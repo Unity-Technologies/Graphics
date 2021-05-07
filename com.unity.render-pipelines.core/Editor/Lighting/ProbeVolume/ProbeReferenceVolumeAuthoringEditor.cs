@@ -28,7 +28,7 @@ namespace UnityEngine.Experimental.Rendering
 
                     // Cull all the cells that are not visible (we don't need them for realtime debug)
                     ctx.cells.RemoveAll(c => {
-                        return probeVolumeAuthoring.ShouldCull(c.position);
+                        return probeVolumeAuthoring.ShouldCullCell(c.position);
                     });
 
                     ProbeGIBaking.BakeBricks(ctx);

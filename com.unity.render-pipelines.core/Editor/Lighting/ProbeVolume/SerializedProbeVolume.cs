@@ -15,10 +15,10 @@ namespace UnityEditor.Experimental.Rendering
         {
             serializedObject = obj;
 
-            size = m_SerializedObject.FindProperty("size");
-            maxSubdivisionMultiplier = m_SerializedObject.FindProperty("maxSubdivisionMultiplier");
-            minSubdivisionMultiplier = m_SerializedObject.FindProperty("minSubdivisionMultiplier");
-            objectLayerMask = m_SerializedObject.FindProperty("objectLayerMask");
+            size = serializedObject.FindProperty("size");
+            maxSubdivisionMultiplier = serializedObject.FindProperty("maxSubdivisionMultiplier");
+            minSubdivisionMultiplier = serializedObject.FindProperty("minSubdivisionMultiplier");
+            objectLayerMask = serializedObject.FindProperty("objectLayerMask");
         }
 
         internal void Apply()
