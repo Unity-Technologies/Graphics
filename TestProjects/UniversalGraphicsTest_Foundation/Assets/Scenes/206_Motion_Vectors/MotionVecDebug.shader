@@ -16,14 +16,11 @@ Shader "MotionVecDebug"
 
             #include "Packages/com.unity.render-pipelines.universal/Shaders/Utils/Fullscreen.hlsl"
 
-
-
             TEXTURE2D(_MotionVectorTexture);
             SAMPLER(sampler_MotionVectorTexture);
 
             float4 _SourceTex_TexelSize;
             float _Intensity;
-
 
             half4 frag (Varyings input) : SV_Target
             {
@@ -34,7 +31,5 @@ Shader "MotionVecDebug"
             }
             ENDHLSL
         }
-
-
     }
 }
