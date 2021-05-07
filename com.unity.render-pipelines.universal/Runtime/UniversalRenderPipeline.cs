@@ -195,7 +195,7 @@ namespace UnityEngine.Rendering.Universal
         }
 
 #if UNITY_2021_1_OR_NEWER
-        protected override void Render(ScriptableRenderContext renderContext,  Camera[] cameras)
+        protected override void Render(ScriptableRenderContext renderContext, Camera[] cameras)
         {
             Render(renderContext, new List<Camera>(cameras));
         }
@@ -609,29 +609,34 @@ namespace UnityEngine.Rendering.Universal
         {
             using var profScope = new ProfilingScope(null, ProfilingSampler.Get(URPProfileId.UpdateVolumeFramework));
 
-            // Default values when there's no additional camera data available
-            LayerMask layerMask = 1; // "Default"
-            Transform trigger = camera.transform;
+            // We update the volume framework for:
+            // * All cameras in the editor when not in playmode
+            // * scene cameras
+            // * cameras with update mode set to EveryFrame
+            // * cameras with update mode set to UsePipelineSettings and the URP Asset set to EveryFrame
+            bool shouldUpdate = camera.cameraType == CameraType.SceneView;
+            shouldUpdate |= additionalCameraData != null && additionalCameraData.requiresVolumeFrameworkUpdate;
 
-            if (additionalCameraData != null)
+            #if UNITY_EDITOR
+            shouldUpdate |= Application.isPlaying == false;
+            #endif
+
+            // When we have volume updates per-frame disabled...
+            if (!shouldUpdate && additionalCameraData)
             {
-                layerMask = additionalCameraData.volumeLayerMask;
-                trigger = additionalCameraData.volumeTrigger != null
-                    ? additionalCameraData.volumeTrigger
-                    : trigger;
-            }
-            else if (camera.cameraType == CameraType.SceneView)
-            {
-                // Try to mirror the MainCamera volume layer mask for the scene view - do not mirror the target
-                var mainCamera = Camera.main;
-                UniversalAdditionalCameraData mainAdditionalCameraData = null;
+                // Create a local volume stack and cache the state if it's null
+                if (additionalCameraData.volumeStack == null)
+                {
+                    camera.UpdateVolumeStack(additionalCameraData);
+                }
 
-                if (mainCamera != null && mainCamera.TryGetComponent(out mainAdditionalCameraData))
-                    layerMask = mainAdditionalCameraData.volumeLayerMask;
-
-                trigger = mainAdditionalCameraData != null && mainAdditionalCameraData.volumeTrigger != null ? mainAdditionalCameraData.volumeTrigger : trigger;
+                VolumeManager.instance.stack = additionalCameraData.volumeStack;
+                return;
             }
 
+            // When we want to update the volumes every frame...
+            camera.GetVolumeLayerMaskAndTrigger(additionalCameraData, out LayerMask layerMask, out Transform trigger);
+            VolumeManager.instance.ResetMainStack();
             VolumeManager.instance.Update(trigger, layerMask);
         }
 
