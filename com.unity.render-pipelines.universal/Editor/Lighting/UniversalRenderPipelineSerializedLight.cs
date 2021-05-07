@@ -14,7 +14,6 @@ namespace UnityEditor.Rendering.Universal
         public UniversalAdditionalLightData additionalLightData => lightsAdditionalData[0];
         public UniversalAdditionalLightData[] lightsAdditionalData { get; private set; }
 
-
         // Common SRP's Lights properties
         public SerializedProperty intensity { get; }
 

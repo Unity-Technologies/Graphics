@@ -134,6 +134,14 @@ namespace UnityEngine.Rendering
     /// </summary>
     public class Texture2DAtlas
     {
+        private enum BlitType
+        {
+            Default,
+            CubeTo2DOctahedral,
+            SingleChannel,
+            CubeTo2DOctahedralSingleChannel,
+        }
+
         /// <summary>
         /// Texture is not on the GPU or is not up to date.
         /// </summary>
@@ -331,14 +339,6 @@ namespace UnityEngine.Rendering
             }
 
             return false;
-        }
-
-        private enum BlitType
-        {
-            Default,
-            CubeTo2DOctahedral,
-            SingleChannel,
-            CubeTo2DOctahedralSingleChannel,
         }
 
         private void Blit2DTexture(CommandBuffer cmd, Vector4 scaleOffset, Texture texture, Vector4 sourceScaleOffset, bool blitMips, BlitType blitType)

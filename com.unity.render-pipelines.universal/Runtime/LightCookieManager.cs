@@ -71,25 +71,20 @@ namespace UnityEngine.Rendering.Universal
             public ushort lightBufferIndex;  // Index into light shader data buffer (dst)
         }
 
-        private struct WorkSlice<T>
+        private readonly struct WorkSlice<T>
         {
-            private T[] m_Data;
-            private int m_Start;
-            private int m_Length;
+            private readonly T[] m_Data;
+            private readonly int m_Start;
+            private readonly int m_Length;
 
-            public WorkSlice(T[] src, int srcLen = -1)
-            {
-                m_Data = src;
-                m_Start = 0;
-                m_Length = (srcLen < 0) ? src.Length : Math.Min(srcLen, src.Length);
-            }
+            public WorkSlice(T[] src, int srcLen = -1) : this(src, 0, srcLen) {}
 
             public WorkSlice(T[] src, int srcStart, int srcLen = -1)
             {
                 m_Data = src;
                 m_Start = srcStart;
                 m_Length = (srcLen < 0) ? src.Length : Math.Min(srcLen, src.Length);
-                Debug.Assert(m_Start + m_Length <= capacity, "Slice out of bounds!");
+                Assertions.Assert.IsTrue(m_Start + m_Length <= capacity);
             }
 
             public T this[int index]
@@ -113,7 +108,7 @@ namespace UnityEngine.Rendering.Universal
                     return;
 
                 // Avoid allocs on every tiny size change.
-                size = Math.Max(size, (size + 15) / 16);
+                size = Math.Max(size, ((size + 15) / 16) * 16);
 
                 lightMappings = new LightCookieMapping[size];
                 uvRects = new Vector4[size];
@@ -304,8 +299,7 @@ namespace UnityEngine.Rendering.Universal
                 Matrix4x4 cookieUVTransform = Matrix4x4.identity;
                 float cookieFormat     = (float)GetLightCookieShaderFormat(cookieTexture.graphicsFormat);
 
-                var additionalLightData = mainLight.GetComponent<UniversalAdditionalLightData>();
-                if (additionalLightData != null)
+                if (mainLight.TryGetComponent(out UniversalAdditionalLightData additionalLightData))
                     GetLightUVScaleOffset(ref additionalLightData, ref cookieUVTransform);
 
                 Matrix4x4 cookieMatrix = s_DirLightProj * cookieUVTransform *
@@ -419,7 +413,7 @@ namespace UnityEngine.Rendering.Universal
                 if (!(lightType == LightType.Spot ||
                       lightType == LightType.Point))
                 {
-                    Debug.LogWarning($"Additional {lightType.ToString()} light called '{light.name}' has a light cookie which will not be visible.");
+                    Debug.LogWarning($"Additional {lightType.ToString()} light called '{light.name}' has a light cookie which will not be visible.", light);
                     continue;
                 }
 
@@ -427,11 +421,11 @@ namespace UnityEngine.Rendering.Universal
                 // Skip vertex lights, no support
                 if (light.renderMode == LightRenderMode.ForceVertex)
                 {
-                    Debug.LogWarning($"Additional {lightType.ToString()} light called '{light.name}' is a vertex light and its light cookie will not be visible.");
+                    Debug.LogWarning($"Additional {lightType.ToString()} light called '{light.name}' is a vertex light and its light cookie will not be visible.", light);
                     continue;
                 }
 
-                Debug.Assert(i < ushort.MaxValue);
+                Assertions.Assert.IsTrue(i < ushort.MaxValue);
 
                 LightCookieMapping lp;
                 lp.visibleLightIndex = (ushort)i;
@@ -472,12 +466,12 @@ namespace UnityEngine.Rendering.Universal
                 Vector4 uvScaleOffset = Vector4.zero;
                 if (cookie.dimension == TextureDimension.Cube)
                 {
-                    Debug.Assert(light.type == LightType.Point);
+                    Assertions.Assert.IsTrue(light.type == LightType.Point);
                     uvScaleOffset = FetchCube(cmd, cookie);
                 }
                 else
                 {
-                    Debug.Assert(light.type == LightType.Spot || light.type == LightType.Directional, "Light type needs 2D texture!");
+                    Assertions.Assert.IsTrue(light.type == LightType.Spot || light.type == LightType.Directional, "Light type needs 2D texture!");
                     uvScaleOffset = Fetch2D(cmd, cookie);
                 }
 
@@ -513,8 +507,8 @@ namespace UnityEngine.Rendering.Universal
 
         Vector4 Fetch2D(CommandBuffer cmd, Texture cookie)
         {
-            Debug.Assert(cookie != null);
-            Debug.Assert(cookie.dimension == TextureDimension.Tex2D);
+            Assertions.Assert.IsTrue(cookie != null);
+            Assertions.Assert.IsTrue(cookie.dimension == TextureDimension.Tex2D);
 
             Vector4 uvScaleOffset = Vector4.zero;
             m_AdditionalLightsCookieAtlas.UpdateTexture(cmd, cookie, ref uvScaleOffset, cookie);
@@ -540,8 +534,8 @@ namespace UnityEngine.Rendering.Universal
 
         Vector4 FetchCube(CommandBuffer cmd, Texture cookie)
         {
-            Debug.Assert(cookie != null);
-            Debug.Assert(cookie.dimension == TextureDimension.Cube);
+            Assertions.Assert.IsTrue(cookie != null);
+            Assertions.Assert.IsTrue(cookie.dimension == TextureDimension.Cube);
 
             Vector4 uvScaleOffset = Vector4.zero;
 
@@ -580,8 +574,8 @@ namespace UnityEngine.Rendering.Universal
 
         void UploadAdditionalLights(CommandBuffer cmd, ref LightData lightData, ref WorkSlice<LightCookieMapping> validLightMappings, ref WorkSlice<Vector4> validUvRects)
         {
-            Debug.Assert(m_AdditionalLightsCookieAtlas != null);
-            Debug.Assert(m_AdditionalLightsCookieShaderData != null);
+            Assertions.Assert.IsTrue(m_AdditionalLightsCookieAtlas != null);
+            Assertions.Assert.IsTrue(m_AdditionalLightsCookieShaderData != null);
 
             cmd.SetGlobalTexture(ShaderProperty.additionalLightsCookieAtlasTexture, m_AdditionalLightsCookieAtlas.AtlasTexture);
             cmd.SetGlobalFloat(ShaderProperty.additionalLightsCookieAtlasFormat, (float)GetLightCookieShaderFormat(m_AdditionalLightsCookieAtlas.AtlasTexture.rt.graphicsFormat));

@@ -40,11 +40,11 @@ namespace UnityEngine.Rendering
         int GetTexturePadding() => (int)Mathf.Pow(2, m_MipPadding) * 2;
 
         /// <summary>
-        /// Get location of the actual texture data without padding in Atlas.
+        /// Get location of the actual texture data without padding in the atlas.
         /// </summary>
         /// <param name="texture">The source texture cached in the atlas.</param>
         /// <param name="scaleOffset">Cached atlas location (scale and offset) for the source texture.</param>
-        /// <returns></returns>
+        /// <returns>Scale and offset for the source texture without padding.</returns>
         public Vector4 GetPayloadScaleOffset(Texture texture, in Vector4 scaleOffset)
         {
             int pixelPadding = GetTexturePadding();
@@ -54,7 +54,7 @@ namespace UnityEngine.Rendering
         }
 
         /// <summary>
-        /// Get location of the actual texture data without padding in Atlas.
+        /// Get location of the actual texture data without padding in the atlas.
         /// </summary>
         /// <param name="textureSize">Size of the source texture</param>
         /// <param name="paddingSize">Padding size used for the source texture. </param>
