@@ -1,7 +1,6 @@
 using System;
 using Unity.Collections;
 using System.Collections.Generic;
-using UnityEditor.Rendering;
 #if UNITY_EDITOR
 using UnityEditor;
 using UnityEditor.Rendering.Universal;
@@ -131,9 +130,7 @@ namespace UnityEngine.Rendering.Universal
         }
 
         internal const int k_DefaultRenderingLayerMask = 0x00000001;
-#if URP_ENABLE_DEBUG_DISPLAY
         private readonly DebugDisplaySettingsUI m_DebugDisplaySettingsUI = new DebugDisplaySettingsUI();
-#endif
 
         public UniversalRenderPipeline(UniversalRenderPipelineAsset asset)
         {
@@ -161,20 +158,15 @@ namespace UnityEngine.Rendering.Universal
 
             CameraCaptureBridge.enabled = true;
 
-            RenderingUtils.ClearSystemInfoCache();
+            RenderingUtils.ClearSystemInfoCache();               DecalProjector.defaultMaterial = asset.decalMaterial;
 
-            DecalProjector.defaultMaterial = asset.decalMaterial;
-
-#if URP_ENABLE_DEBUG_DISPLAY
+            DebugManager.instance.RefreshEditor();
             m_DebugDisplaySettingsUI.RegisterDebug(DebugDisplaySettings.Instance);
-#endif
         }
 
         protected override void Dispose(bool disposing)
         {
-#if URP_ENABLE_DEBUG_DISPLAY
             m_DebugDisplaySettingsUI.UnregisterDebug();
-#endif
 
             base.Dispose(disposing);
 
@@ -1176,12 +1168,8 @@ namespace UnityEngine.Rendering.Universal
                 if (!debugDisplaySettings.IsPostProcessingAllowed)
                     cameraData.postProcessEnabled = false;
 
-                cameraData.cameraTargetDescriptor = CreateRenderTextureDescriptor(cameraData.camera,
-                    cameraData.renderScale,
-                    cameraData.isHdrEnabled,
-                    msaaSamples,
-                    true,
-                    cameraData.requiresOpaqueTexture);
+                cameraData.cameraTargetDescriptor.graphicsFormat = MakeRenderTextureGraphicsFormat(cameraData.isHdrEnabled, true);
+                cameraData.cameraTargetDescriptor.msaaSamples = msaaSamples;
             }
         }
 

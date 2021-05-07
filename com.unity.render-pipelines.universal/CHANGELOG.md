@@ -24,6 +24,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Added a new UI for Render Pipeline Converters. Used now for Built-in to Universal conversion.
 - Added sections on Light Inspector.
 - Reorder camera inspector to be in the same order as HDRP.
+- Added new URP Debug Views under Window/Analysis/Rendering Debugger.
 - Added support for controlling Volume Framework Update Frequency in UI on Cameras and URP Asset as well as through scripting.
 
 ### Changed

@@ -43,10 +43,14 @@ namespace UnityEngine.Rendering.Universal
         }
 
         // Rendering mode setup from UI.
-        internal RenderingMode renderingMode { get { return m_RenderingMode;  } }
+        internal RenderingMode renderingMode => m_RenderingMode;
+
         // Actual rendering mode, which may be different (ex: wireframe rendering, harware not capable of deferred rendering).
-        internal RenderingMode actualRenderingMode { get { return GL.wireframe || m_DeferredLights == null || !m_DeferredLights.IsRuntimeSupportedThisFrame() || m_DeferredLights.IsOverlay ? RenderingMode.Forward : this.renderingMode; } }
-        internal bool accurateGbufferNormals { get { return m_DeferredLights != null ? m_DeferredLights.AccurateGbufferNormals : false; } }
+        internal RenderingMode actualRenderingMode => (GL.wireframe || (DebugHandler != null && DebugHandler.IsActiveModeUnsupportedForDeferred) || m_DeferredLights == null || !m_DeferredLights.IsRuntimeSupportedThisFrame() || m_DeferredLights.IsOverlay)
+        ? RenderingMode.Forward
+        : this.renderingMode;
+
+        internal bool accurateGbufferNormals => m_DeferredLights != null ? m_DeferredLights.AccurateGbufferNormals : false;
         internal bool usesRenderPass;
 
         /// <summary>Property to control the depth priming behavior of the forward rendering path.</summary>
@@ -221,34 +225,6 @@ namespace UnityEngine.Rendering.Universal
             m_FinalDepthCopyPass = new CopyDepthPass(RenderPassEvent.AfterRendering + 9, m_CopyDepthMaterial);
 #endif
 
-            if (DebugHandler != null)
-            {
-                // Hook in the debug-render where appropriate...
-                m_RenderOpaqueForwardPass.DebugHandler = DebugHandler;
-                m_FinalBlitPass.DebugHandler = DebugHandler;
-
-                if (m_RenderOpaqueForwardOnlyPass != null)
-                {
-                    m_RenderOpaqueForwardOnlyPass.DebugHandler = DebugHandler;
-                }
-                if (m_RenderTransparentForwardPass != null)
-                {
-                    m_RenderTransparentForwardPass.DebugHandler = DebugHandler;
-                }
-                if (m_DrawSkyboxPass != null)
-                {
-                    m_DrawSkyboxPass.DebugHandler = DebugHandler;
-                }
-                if (m_PostProcessPasses.postProcessPass != null)
-                {
-                    m_PostProcessPasses.postProcessPass.DebugHandler = DebugHandler;
-                }
-                if (m_PostProcessPasses.finalPostProcessPass != null)
-                {
-                    m_PostProcessPasses.finalPostProcessPass.DebugHandler = DebugHandler;
-                }
-            }
-
             // RenderTexture format depends on camera and pipeline (HDR, non HDR, etc)
             // Samples (MSAA) depend on camera and pipeline
             m_CameraColorAttachment.Init("_CameraColorTexture");
@@ -298,31 +274,32 @@ namespace UnityEngine.Rendering.Universal
         {
             if ((DebugHandler != null) && DebugHandler.IsActiveForCamera(ref cameraData))
             {
-                if (DebugHandler.TryGetFullscreenDebugMode(out DebugFullScreenMode fullScreenDebugMode))
+                if (DebugHandler.TryGetFullscreenDebugMode(out DebugFullScreenMode fullScreenDebugMode, out int outputHeight))
                 {
                     Camera camera = cameraData.camera;
                     float screenWidth = camera.pixelWidth;
                     float screenHeight = camera.pixelHeight;
-                    float size = Mathf.Min(screenWidth, screenHeight);
-                    float normalizedSizeX = size / screenWidth;
-                    float normalizedSizeY = size / screenHeight;
+                    float height = Mathf.Min(outputHeight, screenHeight);
+                    float width = height * (screenWidth / screenHeight);
+                    float normalizedSizeX = width / screenWidth;
+                    float normalizedSizeY = height / screenHeight;
                     Rect normalizedRect = new Rect(1 - normalizedSizeX, 1 - normalizedSizeY, normalizedSizeX, normalizedSizeY);
 
                     switch (fullScreenDebugMode)
                     {
                         case DebugFullScreenMode.Depth:
                         {
-                            DebugHandler.SetDebugRenderTarget(m_DepthTexture.Identifier(), new Rect(0, 0, 1, 1));
+                            DebugHandler.SetDebugRenderTarget(m_DepthTexture.Identifier(), normalizedRect, true);
                             break;
                         }
                         case DebugFullScreenMode.AdditionalLightsShadowMap:
                         {
-                            DebugHandler.SetDebugRenderTarget(m_AdditionalLightsShadowCasterPass.m_AdditionalLightsShadowmapTexture, normalizedRect);
+                            DebugHandler.SetDebugRenderTarget(m_AdditionalLightsShadowCasterPass.m_AdditionalLightsShadowmapTexture, normalizedRect, false);
                             break;
                         }
                         case DebugFullScreenMode.MainLightShadowMap:
                         {
-                            DebugHandler.SetDebugRenderTarget(m_MainLightShadowCasterPass.m_MainLightShadowmapTexture, normalizedRect);
+                            DebugHandler.SetDebugRenderTarget(m_MainLightShadowCasterPass.m_MainLightShadowmapTexture, normalizedRect, false);
                             break;
                         }
                         default:
@@ -345,10 +322,7 @@ namespace UnityEngine.Rendering.Universal
             Camera camera = cameraData.camera;
             RenderTextureDescriptor cameraTargetDescriptor = cameraData.cameraTargetDescriptor;
 
-            if ((DebugHandler != null) && DebugHandler.IsActiveForCamera(ref cameraData))
-            {
-                DebugHandler.Setup(context);
-            }
+            DebugHandler?.Setup(context, ref cameraData);
 
 #if ADAPTIVE_PERFORMANCE_2_1_0_OR_NEWER
             bool needTransparencyPass = !UniversalRenderPipeline.asset.useAdaptivePerformance || !AdaptivePerformance.AdaptivePerformanceRenderSettings.SkipTransparentObjects;
@@ -517,7 +491,7 @@ namespace UnityEngine.Rendering.Universal
 
             if ((DebugHandler != null) && DebugHandler.IsActiveForCamera(ref cameraData))
             {
-                DebugHandler.TryGetFullscreenDebugMode(out var fullScreenMode);
+                DebugHandler.TryGetFullscreenDebugMode(out var fullScreenMode, out int outputHeight);
                 if (fullScreenMode == DebugFullScreenMode.Depth)
                 {
                     requiresDepthPrepass = true;
