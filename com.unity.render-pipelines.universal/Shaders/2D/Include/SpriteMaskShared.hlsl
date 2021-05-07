@@ -36,7 +36,8 @@ half4 MaskRenderingFragment(Varyings input) : SV_Target
     half4 c = SAMPLE_TEXTURE2D(_MainTex, sampler_MainTex, input.uv);
     // for masks: discard pixel if alpha falls below MaskingCutoff
     clip(c.a - _Cutoff);
-    return 0;
+
+    return half4(1, 1, 1, 0.2);
 }
 
 #endif

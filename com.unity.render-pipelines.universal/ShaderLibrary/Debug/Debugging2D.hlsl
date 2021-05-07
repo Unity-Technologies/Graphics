@@ -49,7 +49,7 @@ bool CalculateDebugColorMaterialSettings(in SurfaceData2D surfaceData, in InputD
         case DEBUGMATERIALMODE_SPRITE_MASK:
         {
             debugColor = surfaceData.mask;
-            return true;
+            return false;
         }
 
         case DEBUGMATERIALMODE_NORMAL_TANGENT_SPACE:

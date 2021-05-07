@@ -158,6 +158,9 @@ namespace UnityEngine.Experimental.Rendering.Universal
 
             if (DebugHandler != null)
             {
+#if UNITY_EDITOR
+                UnityEditorInternal.SpriteMaskUtility.EnableDebugMode(DebugHandler.DebugDisplaySettings.MaterialSettings.DebugMaterialModeData == DebugMaterialMode.SpriteMask);
+#endif
                 if (DebugHandler.AreAnySettingsActive)
                 {
                     stackHasPostProcess = stackHasPostProcess && DebugHandler.IsPostProcessingAllowed;
