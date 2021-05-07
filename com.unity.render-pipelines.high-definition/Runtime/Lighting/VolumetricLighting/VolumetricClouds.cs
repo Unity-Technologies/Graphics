@@ -135,9 +135,9 @@ namespace UnityEngine.Rendering.HighDefinition
         public BoolParameter enable = new BoolParameter(false);
 
         /// <summary>
-        /// Controls if the clouds are rendered in the local space of the scene.
+        /// When enabled, clouds are part of the scene and you can interact with them. This means for example, you can move around the clouds, clouds can appear between the Camera and other GameObjects, and the Camera's clipping planes affects the clouds. When disabled, the clouds are part of the skybox. This mean the clouds and their shadows appear relative to the Camera and always appear behind geometry.
         /// </summary>
-        [Tooltip("Controls if the clouds are rendered in the local space of the scene.")]
+        [Tooltip("When enabled, clouds are part of the scene and you can interact with them. This means for example, you can move around the clouds, clouds can appear between the Camera and other GameObjects, and the Camera's clipping planes affects the clouds. When disabled, the clouds are part of the skybox. This mean the clouds and their shadows appear relative to the Camera and always appear behind geometry.")]
         public BoolParameter localClouds = new BoolParameter(false);
 
         /// <summary>
