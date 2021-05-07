@@ -12,13 +12,13 @@ using UnityEditor.ShaderGraph.Serialization;
 
 namespace UnityEditor.Rendering.BuiltIn.ShaderGraph
 {
-    public enum MaterialType
+    enum MaterialType
     {
         Lit,
         UnLit
     }
 
-    public enum WorkflowMode
+    enum WorkflowMode
     {
         Specular,
         Metallic,
