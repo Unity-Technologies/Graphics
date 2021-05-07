@@ -21,7 +21,12 @@ namespace UnityEditor.Rendering
             public const int thumbnailSize = 52;
             public const int iconMargin = 6;    //margin for icon be ing at 75% of 52 thumbnail size
             public const int horiwontalSpaceBetweenThumbnailAndInspector = 5;
-            public const int shrinkingLabel = 15;
+            public const int shrinkingLabel = 10;
+
+            public static readonly Color elementBackgroundColor = EditorGUIUtility.isProSkin
+                ? new Color32(65, 65, 65, 255)
+                : new Color32(200, 200, 200, 255);
+
             public static readonly GUIContent mainHeader = EditorGUIUtility.TrTextContent("Elements", "List of elements in the Lens Flare.");
             public static readonly GUIContent elementHeader = EditorGUIUtility.TrTextContent("Lens Flare Element", "Elements in the Lens Flare.");
 
@@ -291,8 +296,8 @@ namespace UnityEditor.Rendering
         #endregion
 
         #region Draw element
-        //disable background coloration on selection
-        void DrawElementBackground(Rect rect, int index, bool isActive, bool isFocused) {}
+        void DrawElementBackground(Rect rect, int index, bool isActive, bool isFocused)
+            => EditorGUI.DrawRect(rect, Styles.elementBackgroundColor);
 
         void DrawElement(Rect rect, int index, bool isActive, bool isFocused)
         {
