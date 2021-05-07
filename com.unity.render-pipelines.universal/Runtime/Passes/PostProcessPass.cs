@@ -303,7 +303,7 @@ namespace UnityEngine.Rendering.Universal.Internal
 
         void Render(CommandBuffer cmd, ref RenderingData renderingData)
         {
-            ref var cameraData = ref renderingData.cameraData;
+            ref CameraData cameraData = ref renderingData.cameraData;
 
             // Don't use these directly unless you have a good reason to, use GetSource() and
             // GetDestination() instead
@@ -366,7 +366,10 @@ namespace UnityEngine.Rendering.Universal.Internal
             }
 
             // Depth of Field
-            if (m_DepthOfField.IsActive() && !isSceneViewCamera)
+            // Adreno 3xx SystemInfo.graphicsShaderLevel is 35, but instancing support is disabled due to buggy drivers.
+            // DOF shader uses #pragma target 3.5 which adds requirement for instancing support, thus marking the shader unsupported on those devices.
+            var dofMaterial = m_DepthOfField.mode.value == DepthOfFieldMode.Gaussian ? m_Materials.gaussianDepthOfField : m_Materials.bokehDepthOfField;
+            if (m_DepthOfField.IsActive() && !isSceneViewCamera && dofMaterial != null)
             {
                 var markerName = m_DepthOfField.mode.value == DepthOfFieldMode.Gaussian
                     ? URPProfileId.GaussianDepthOfField
@@ -376,6 +379,31 @@ namespace UnityEngine.Rendering.Universal.Internal
                 {
                     DoDepthOfField(cameraData.camera, cmd, GetSource(), GetDestination(), cameraData.pixelRect);
                     Swap();
+                }
+            }
+
+            // Lens Flare
+            if (!LensFlareCommonSRP.Instance.IsEmpty())
+            {
+                bool usePanini;
+                float paniniDistance;
+                float paniniCropToFit;
+                if (m_PaniniProjection.IsActive())
+                {
+                    usePanini = true;
+                    paniniDistance = m_PaniniProjection.distance.value;
+                    paniniCropToFit = m_PaniniProjection.cropToFit.value;
+                }
+                else
+                {
+                    usePanini = false;
+                    paniniDistance = 1.0f;
+                    paniniCropToFit = 1.0f;
+                }
+
+                using (new ProfilingScope(cmd, ProfilingSampler.Get(URPProfileId.LensFlareDataDriven)))
+                {
+                    DoLensFlareDatadriven(cameraData.camera, cmd, GetSource(), usePanini, paniniDistance, paniniCropToFit);
                 }
             }
 
@@ -430,6 +458,12 @@ namespace UnityEngine.Rendering.Universal.Internal
                 if (m_UseFastSRGBLinearConversion)
                 {
                     m_Materials.uber.EnableKeyword(ShaderKeywordStrings.UseFastSRGBLinearConversion);
+                }
+
+                if (isSceneViewCamera)
+                {
+                    // Scene-view doesn't necessarily use the final-blit, so ensure we set the debug properties here (if necessary)...
+                    DebugHandler?.UpdateShaderGlobalPropertiesFinalBlitPass(cmd, ref cameraData);
                 }
 
                 // Done with Uber, blit it
@@ -800,6 +834,42 @@ namespace UnityEngine.Rendering.Universal.Internal
             cmd.ReleaseTemporaryRT(ShaderConstants._FullCoCTexture);
             cmd.ReleaseTemporaryRT(ShaderConstants._PingTexture);
             cmd.ReleaseTemporaryRT(ShaderConstants._PongTexture);
+        }
+
+        #endregion
+
+        #region LensFlareDataDriven
+
+
+        static float GetLensFlareLightAttenuation(Light light, Camera cam, Vector3 wo)
+        {
+            // Must always be true
+            if (light != null)
+            {
+                switch (light.type)
+                {
+                    case LightType.Directional:
+                        return LensFlareCommonSRP.ShapeAttenuationDirLight(light.transform.forward, wo);
+                    case LightType.Point:
+                        return LensFlareCommonSRP.ShapeAttenuationPointLight();
+                    case LightType.Spot:
+                        return LensFlareCommonSRP.ShapeAttenuationSpotConeLight(light.transform.forward, wo, light.spotAngle, light.innerSpotAngle / 180.0f);
+                    default:
+                        return 1.0f;
+                }
+            }
+
+            return 1.0f;
+        }
+
+        void DoLensFlareDatadriven(Camera camera, CommandBuffer cmd, RenderTargetIdentifier source, bool usePanini, float paniniDistance, float paniniCropToFit)
+        {
+            LensFlareCommonSRP.DoLensFlareDataDrivenCommon(m_Materials.lensFlareDataDriven, LensFlareCommonSRP.Instance, camera, (float)Screen.width, (float)Screen.height,
+                usePanini, paniniDistance, paniniCropToFit,
+                cmd, source,
+                GetLensFlareLightAttenuation,
+                ShaderConstants._FlareTex, ShaderConstants._FlareColorValue,
+                ShaderConstants._FlareData0, ShaderConstants._FlareData1, ShaderConstants._FlareData2, ShaderConstants._FlareData3, ShaderConstants._FlareData4, ShaderConstants._FlareData5, false);
         }
 
         #endregion
@@ -1219,6 +1289,8 @@ namespace UnityEngine.Rendering.Universal.Internal
             if (RequireSRGBConversionBlitToBackBuffer(cameraData))
                 material.EnableKeyword(ShaderKeywordStrings.LinearToSRGBConversion);
 
+            DebugHandler?.UpdateShaderGlobalPropertiesFinalBlitPass(cmd, ref cameraData);
+
             cmd.SetGlobalTexture(ShaderPropertyId.sourceTex, m_Source.Identifier());
 
             var colorLoadAction = cameraData.isDefaultViewport ? RenderBufferLoadAction.DontCare : RenderBufferLoadAction.Load;
@@ -1275,6 +1347,7 @@ namespace UnityEngine.Rendering.Universal.Internal
             public readonly Material bloom;
             public readonly Material uber;
             public readonly Material finalPass;
+            public readonly Material lensFlareDataDriven;
 
             public MaterialLibrary(PostProcessData data)
             {
@@ -1287,6 +1360,7 @@ namespace UnityEngine.Rendering.Universal.Internal
                 bloom = Load(data.shaders.bloomPS);
                 uber = Load(data.shaders.uberPostPS);
                 finalPass = Load(data.shaders.finalPostPassPS);
+                lensFlareDataDriven = Load(data.shaders.LensFlareDataDrivenPS);
             }
 
             Material Load(Shader shader)
@@ -1361,6 +1435,15 @@ namespace UnityEngine.Rendering.Universal.Internal
             public static readonly int _InternalLut        = Shader.PropertyToID("_InternalLut");
             public static readonly int _UserLut            = Shader.PropertyToID("_UserLut");
             public static readonly int _DownSampleScaleFactor = Shader.PropertyToID("_DownSampleScaleFactor");
+
+            public static readonly int _FlareTex           = Shader.PropertyToID("_FlareTex");
+            public static readonly int _FlareColorValue    = Shader.PropertyToID("_FlareColorValue");
+            public static readonly int _FlareData0         = Shader.PropertyToID("_FlareData0");
+            public static readonly int _FlareData1         = Shader.PropertyToID("_FlareData1");
+            public static readonly int _FlareData2         = Shader.PropertyToID("_FlareData2");
+            public static readonly int _FlareData3         = Shader.PropertyToID("_FlareData3");
+            public static readonly int _FlareData4         = Shader.PropertyToID("_FlareData4");
+            public static readonly int _FlareData5         = Shader.PropertyToID("_FlareData5");
 
             public static readonly int _FullscreenProjMat  = Shader.PropertyToID("_FullscreenProjMat");
 

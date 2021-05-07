@@ -48,7 +48,8 @@ namespace UnityEngine.Rendering.Universal
         Particle,
         Terrain,
         Sprite,
-        UnityBuiltinDefault
+        UnityBuiltinDefault,
+        Decal,
     }
 
     public enum LightRenderingMode
@@ -87,9 +88,38 @@ namespace UnityEngine.Rendering.Universal
         HighDynamicRange
     }
 
+    /// <summary>
+    /// Defines if Unity discards or stores the render targets of the DrawObjects Passes. Selecting the Store option significantly increases the memory bandwidth on mobile and tile-based GPUs.
+    /// </summary>
+    public enum StoreActionsOptimization
+    {
+        /// <summary>Unity uses the Discard option by default, and falls back to the Store option if it detects any injected Passes.</summary>
+        Auto,
+        /// <summary>Unity discards the render targets of render Passes that are not reused later (lower memory bandwidth).</summary>
+        Discard,
+        /// <summary>Unity stores all render targets of each Pass (higher memory bandwidth).</summary>
+        Store
+    }
+
     [ExcludeFromPreset]
     public partial class UniversalRenderPipelineAsset : RenderPipelineAsset, ISerializationCallbackReceiver
     {
+        // Rendering layer settings.
+        // HDRP use GetRenderingLayerMaskNames to create its light linking system
+        // Mean here we define our name for light linking.
+        static readonly string[] k_RenderingLayerNames = new string[]
+        {
+            "Light Layer default", "Light Layer 1", "Light Layer 2", "Light Layer 3", "Light Layer 4", "Light Layer 5", "Light Layer 6", "Light Layer 7",
+            "Unused 0", "Unused 1", "Unused 2", "Unused 3", "Unused 4", "Unused 5", "Unused 6", "Unused 7",
+            "Unused 8", "Unused 9", "Unused 10", "Unused 11", "Unused 12", "Unused 13", "Unused 14", "Unused 15",
+            "Unused 16", "Unused 17", "Unused 18", "Unused 19", "Unused 20", "Unused 21", "Unused 22", "Unused 23"
+        };
+
+        static readonly string[] k_LightLayerNames = new string[]
+        {
+            "Light Layer default", "Light Layer 1", "Light Layer 2", "Light Layer 3", "Light Layer 4", "Light Layer 5", "Light Layer 6", "Light Layer 7"
+        };
+
         Shader m_DefaultShader;
         ScriptableRenderer[] m_Renderers = new ScriptableRenderer[1];
 
@@ -111,6 +141,7 @@ namespace UnityEngine.Rendering.Universal
         [SerializeField] bool m_RequireOpaqueTexture = false;
         [SerializeField] Downsampling m_OpaqueDownsampling = Downsampling._2xBilinear;
         [SerializeField] bool m_SupportsTerrainHoles = true;
+        [SerializeField] StoreActionsOptimization m_StoreActionsOptimization = StoreActionsOptimization.Auto;
 
         // Quality settings
         [SerializeField] bool m_SupportsHDR = true;
@@ -133,6 +164,10 @@ namespace UnityEngine.Rendering.Universal
         [SerializeField] int m_AdditionalLightsShadowResolutionTierMedium = AdditionalLightsDefaultShadowResolutionTierMedium;
         [SerializeField] int m_AdditionalLightsShadowResolutionTierHigh = AdditionalLightsDefaultShadowResolutionTierHigh;
 
+        // Reflection Probes
+        [SerializeField] bool m_ReflectionProbeBlending = false;
+        [SerializeField] bool m_ReflectionProbeBoxProjection = false;
+
         // Shadows Settings
         [SerializeField] float m_ShadowDistance = 50.0f;
         [SerializeField] int m_ShadowCascadeCount = 1;
@@ -150,6 +185,7 @@ namespace UnityEngine.Rendering.Universal
         [SerializeField] bool m_UseSRPBatcher = true;
         [SerializeField] bool m_SupportsDynamicBatching = false;
         [SerializeField] bool m_MixedLightingSupported = true;
+        [SerializeField] bool m_SupportsLightLayers = false;
         [SerializeField][Obsolete] PipelineDebugLevel m_DebugLevel;
 
         // Adaptive performance settings
@@ -242,7 +278,7 @@ namespace UnityEngine.Rendering.Universal
                     return CreateInstance<UniversalRendererData>();
                 // 2D renderer is experimental
                 case RendererType._2DRenderer:
-                    return CreateInstance<Experimental.Rendering.Universal.Renderer2DData>();
+                    return CreateInstance<Renderer2DData>();
                 // Universal Renderer is the fallback renderer that works on all platforms
                 default:
                     return CreateInstance<UniversalRendererData>();
@@ -377,6 +413,9 @@ namespace UnityEngine.Rendering.Universal
 
                 case DefaultMaterialType.Terrain:
                     return editorResources.materials.terrainLit;
+
+                case DefaultMaterialType.Decal:
+                    return editorResources.materials.decal;
 
                 // Unity Builtin Default
                 default:
@@ -515,6 +554,16 @@ namespace UnityEngine.Rendering.Universal
             get { return m_SupportsTerrainHoles; }
         }
 
+        /// <summary>
+        /// Returns the active store action optimization value.
+        /// </summary>
+        /// <returns>Returns the active store action optimization value.</returns>
+        public StoreActionsOptimization storeActionsOptimization
+        {
+            get { return m_StoreActionsOptimization; }
+            set { m_StoreActionsOptimization = value; }
+        }
+
         public bool supportsHDR
         {
             get { return m_SupportsHDR; }
@@ -605,6 +654,16 @@ namespace UnityEngine.Rendering.Universal
                 return additionalLightsShadowResolutionTierHigh;
 
             return additionalLightsShadowResolutionTierMedium;
+        }
+
+        public bool reflectionProbeBlending
+        {
+            get { return m_ReflectionProbeBlending; }
+        }
+
+        public bool reflectionProbeBoxProjection
+        {
+            get { return m_ReflectionProbeBoxProjection; }
         }
 
         /// <summary>
@@ -703,6 +762,14 @@ namespace UnityEngine.Rendering.Universal
         public bool supportsMixedLighting
         {
             get { return m_MixedLightingSupported; }
+        }
+
+        /// <summary>
+        /// Returns true if the Render Pipeline Asset supports light layers, false otherwise.
+        /// </summary>
+        public bool supportsLightLayers
+        {
+            get { return m_SupportsLightLayers; }
         }
 
         public ShaderVariantLogLevel shaderVariantLogLevel
@@ -805,6 +872,11 @@ namespace UnityEngine.Rendering.Universal
             get { return GetMaterial(DefaultMaterialType.Sprite); }
         }
 
+        public Material decalMaterial
+        {
+            get { return GetMaterial(DefaultMaterialType.Decal); }
+        }
+
         public override Shader defaultShader
         {
             get
@@ -877,6 +949,14 @@ namespace UnityEngine.Rendering.Universal
             get { return editorResources?.shaders.defaultSpeedTree8PS; }
         }
 #endif
+
+        /// <summary>Names used for display of rendering layer masks.</summary>
+        public override string[] renderingLayerMaskNames => k_RenderingLayerNames;
+
+        /// <summary>
+        /// Names used for display of light layers.
+        /// </summary>
+        public string[] lightLayerMaskNames { get { return k_LightLayerNames; } }
 
         public void OnBeforeSerialize()
         {

@@ -51,6 +51,8 @@ struct Varyings
 
 void InitializeInputData(Varyings input, half3 normalTS, out InputData inputData)
 {
+    inputData = (InputData)0;
+
     inputData.positionWS = input.posWS;
 
     #ifdef _NORMALMAP
@@ -90,6 +92,12 @@ void InitializeInputData(Varyings input, half3 normalTS, out InputData inputData
 
     inputData.normalizedScreenSpaceUV = GetNormalizedScreenSpaceUV(input.positionCS);
     inputData.shadowMask = SAMPLE_SHADOWMASK(input.staticLightmapUV);
+
+#if defined(LIGHTMAP_ON)
+    inputData.lightmapUV = input.staticLightmapUV;
+#else
+    inputData.vertexSH = input.vertexSH;
+#endif
 }
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -152,6 +160,11 @@ FragmentOutput LitPassFragmentSimple(Varyings input)
 
     InputData inputData;
     InitializeInputData(input, surfaceData.normalTS, inputData);
+    SETUP_DEBUG_TEXTURE_DATA(inputData, input.uv, _BaseMap);
+
+#ifdef _DBUFFER
+    ApplyDecalToSurfaceData(input.positionCS, surfaceData, inputData);
+#endif
 
     Light mainLight = GetMainLight(inputData.shadowCoord, inputData.positionWS, inputData.shadowMask);
     MixRealtimeAndBakedGI(mainLight, inputData.normalWS, inputData.bakedGI, inputData.shadowMask);
