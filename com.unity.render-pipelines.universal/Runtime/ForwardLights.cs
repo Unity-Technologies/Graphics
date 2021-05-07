@@ -53,9 +53,9 @@ namespace UnityEngine.Rendering.Universal.Internal
         NativeArray<uint> m_HorizontalLightMasks;
         NativeArray<uint> m_VerticalLightMasks;
 
-        Vector4[] m_ZBinBuffer;
-        Vector4[] m_HorizontalBuffer;
-        Vector4[] m_VerticalBuffer;
+        ComputeBuffer m_ZBinBuffer;
+        ComputeBuffer m_HorizontalBuffer;
+        ComputeBuffer m_VerticalBuffer;
 
         public ForwardLights(bool clusteredRendering, int tileSize)
         {
@@ -91,9 +91,9 @@ namespace UnityEngine.Rendering.Universal.Internal
 
             if (m_UseClusteredRendering)
             {
-                m_ZBinBuffer = new Vector4[UniversalRenderPipeline.maxZBins / 4];
-                m_HorizontalBuffer = new Vector4[UniversalRenderPipeline.maxVisibilityVec4s];
-                m_VerticalBuffer = new Vector4[UniversalRenderPipeline.maxVisibilityVec4s];
+                m_ZBinBuffer = new ComputeBuffer(UniversalRenderPipeline.maxZBins / 4, UnsafeUtility.SizeOf<float4>(), ComputeBufferType.Constant);
+                m_HorizontalBuffer = new ComputeBuffer(UniversalRenderPipeline.maxVisibilityVec4s, UnsafeUtility.SizeOf<float4>(), ComputeBufferType.Constant);
+                m_VerticalBuffer = new ComputeBuffer(UniversalRenderPipeline.maxVisibilityVec4s, UnsafeUtility.SizeOf<float4>(), ComputeBufferType.Constant);
                 m_RequestedTileWidth = tileSize;
             }
         }
@@ -283,28 +283,18 @@ namespace UnityEngine.Rendering.Universal.Internal
                 {
                     m_CullingHandle.Complete();
 
-                    unsafe
-                    {
-                        fixed(Vector4* zBinPtr = m_ZBinBuffer, horizontalPtr = m_HorizontalBuffer, verticalPtr = m_VerticalBuffer)
-                        {
-                            UnsafeUtility.MemCpy(zBinPtr, m_ZBins.GetUnsafeReadOnlyPtr(), m_ZBins.Length * sizeof(ZBin));
-                            UnsafeUtility.MemCpy(horizontalPtr, m_HorizontalLightMasks.GetUnsafeReadOnlyPtr(), m_HorizontalLightMasks.Length * sizeof(uint));
-                            UnsafeUtility.MemCpy(verticalPtr, m_VerticalLightMasks.GetUnsafeReadOnlyPtr(), m_VerticalLightMasks.Length * sizeof(uint));
-                        }
-                    }
-
-                    // NativeArray<Vector4>.Copy(m_ZBins.Reinterpret<Vector4>(UnsafeUtility.SizeOf<ZBin>()), m_ZBinBuffer, m_ZBins.Length / 4);
-                    // NativeArray<Vector4>.Copy(m_HorizontalLightMasks.Reinterpret<Vector4>(UnsafeUtility.SizeOf<uint>()), m_HorizontalBuffer, m_HorizontalLightMasks.Length / 4);
-                    // NativeArray<Vector4>.Copy(m_VerticalLightMasks.Reinterpret<Vector4>(UnsafeUtility.SizeOf<uint>()), m_VerticalBuffer, m_VerticalLightMasks.Length / 4);
+                    m_ZBinBuffer.SetData(m_ZBins.Reinterpret<float4>(UnsafeUtility.SizeOf<ZBin>()), 0, 0, m_ZBins.Length / 4);
+                    m_HorizontalBuffer.SetData(m_HorizontalLightMasks.Reinterpret<float4>(UnsafeUtility.SizeOf<uint>()), 0, 0, m_HorizontalLightMasks.Length / 4);
+                    m_VerticalBuffer.SetData(m_VerticalLightMasks.Reinterpret<float4>(UnsafeUtility.SizeOf<uint>()), 0, 0, m_VerticalLightMasks.Length / 4);
 
                     cmd.SetGlobalInteger("_AdditionalLightsDirectionalCount", m_DirectionalLightCount);
                     cmd.SetGlobalInteger("_AdditionalLightsZBinOffset", m_ZBinOffset);
                     cmd.SetGlobalFloat("_AdditionalLightsZBinScale", m_ZBinFactor);
                     cmd.SetGlobalVector("_AdditionalLightsTileScale", renderingData.cameraData.pixelRect.size / (float)m_ActualTileWidth);
 
-                    cmd.SetGlobalVectorArray("_AdditionalLightsZBins", m_ZBinBuffer);
-                    cmd.SetGlobalVectorArray("_AdditionalLightsHorizontalVisibility", m_HorizontalBuffer);
-                    cmd.SetGlobalVectorArray("_AdditionalLightsVerticalVisibility", m_VerticalBuffer);
+                    cmd.SetGlobalConstantBuffer(m_ZBinBuffer, "AdditionalLightsZBins", 0, UniversalRenderPipeline.maxZBins);
+                    cmd.SetGlobalConstantBuffer(m_HorizontalBuffer, "AdditionalLightsHorizontalVisibility", 0, UniversalRenderPipeline.maxVisibilityVec4s);
+                    cmd.SetGlobalConstantBuffer(m_VerticalBuffer, "AdditionalLightsVerticalVisibility", 0, UniversalRenderPipeline.maxVisibilityVec4s);
 
                     m_ZBins.Dispose();
                     m_HorizontalLightMasks.Dispose();
@@ -333,12 +323,12 @@ namespace UnityEngine.Rendering.Universal.Internal
 
         public void Dispose()
         {
-            // if (m_UseClusteredRendering)
-            // {
-            //     m_ZBinBuffer.Dispose();
-            //     m_HorizontalBuffer.Dispose();
-            //     m_VerticalBuffer.Dispose();
-            // }
+            if (m_UseClusteredRendering)
+            {
+                m_ZBinBuffer.Dispose();
+                m_HorizontalBuffer.Dispose();
+                m_VerticalBuffer.Dispose();
+            }
         }
 
         void InitializeLightConstants(NativeArray<VisibleLight> lights, int lightIndex, out Vector4 lightPos, out Vector4 lightColor, out Vector4 lightAttenuation, out Vector4 lightSpotDir, out Vector4 lightOcclusionProbeChannel)
