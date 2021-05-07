@@ -17,6 +17,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Added support for SSAO in Particle and Unlit shaders.
 - Added Decal support. This includes new Decal Projector component, Decal renderer feature and Decal shader graph.
 - Added a SpeedTree 8 Shader Graph but did not set it as the default when importing or upgrading Speed Tree 8 assets. Because URP doesn't yet support per-material culling, this Shader Graph does not yet behave in the same way as the existing handwritten SpeedTree 8 shader for URP.
+- Added optional Depth Priming. Allows the forward opaque pass of the base camera to skip shading certain fragments if they don't contribute to the final opaque output.
 - Added blending and box projection for reflection probes.
 - Added 'Store Actions' option that enables bandwidth optimizations on mobile GPU architectures.
 - Added "Allow Material Override" option to Lit and Unlit ShaderGraph targets.  When checked, allows Material to control the surface options (transparent/opaque, blend mode, etc).
