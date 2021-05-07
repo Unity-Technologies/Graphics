@@ -345,11 +345,10 @@ void InitializeInputData(SpeedTreeFragmentInput input, half3 normalTS, out Input
     inputData.normalizedScreenSpaceUV = GetNormalizedScreenSpaceUV(input.interpolated.clipPos);
     inputData.shadowMask = half4(1, 1, 1, 1); // No GI currently.
 
-    #if defined(LIGHTMAP_ON)
-    inputData.lightmapUV = input.lightmapUV;
-    #else
-    inputData.vertexSH = 0;
+    #if defined(DEBUG_DISPLAY) && !defined(LIGHTMAP_ON)
+    inputData.vertexSH = input.interpolated.vertexSH;
     #endif
+
     #if defined(_NORMALMAP)
     inputData.tangentToWorld = half3x3(input.interpolated.tangentWS.xyz, input.interpolated.bitangentWS.xyz, input.interpolated.normalWS.xyz);
     #endif
@@ -460,7 +459,7 @@ half4 SpeedTree8Frag(SpeedTreeFragmentInput input) : SV_Target
     InitializeBRDFData(albedo, metallic, specular, smoothness, alpha, brdfData);
 
     MixRealtimeAndBakedGI(mainLight, inputData.normalWS, inputData.bakedGI, inputData.shadowMask);
-    half3 color = GlobalIllumination(brdfData, inputData.bakedGI, occlusion, inputData.normalWS, inputData.viewDirectionWS);
+    half3 color = GlobalIllumination(brdfData, inputData.bakedGI, occlusion, inputData.positionWS, inputData.normalWS, inputData.viewDirectionWS);
 
     return BRDFDataToGbuffer(brdfData, inputData, smoothness, emission + color, occlusion);
 

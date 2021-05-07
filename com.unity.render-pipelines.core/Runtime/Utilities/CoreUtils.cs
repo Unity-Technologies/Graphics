@@ -76,6 +76,8 @@ namespace UnityEngine.Rendering
             public const int editMenuPriority = 320;
             /// <summary>Game Object Menu priority</summary>
             public const int gameObjectMenuPriority = 10;
+            /// <summary>Lens Flare Priority</summary>
+            public const int srpLensFlareMenuPriority = 303;
         }
 
         const string obsoletePriorityMessage = "Use CoreUtils.Priorities instead";
@@ -418,6 +420,24 @@ namespace UnityEngine.Rendering
             ClearFlag clearFlag, Color clearColor)
         {
             cmd.SetRenderTarget(colorBuffer, colorLoadAction, colorStoreAction, depthBuffer, depthLoadAction, depthStoreAction);
+            ClearRenderTarget(cmd, clearFlag, clearColor);
+        }
+
+        /// <summary>
+        /// Set the current render texture.
+        /// </summary>
+        /// <param name="cmd">CommandBuffer used for rendering commands.</param>
+        /// <param name="buffer">RenderTargetIdentifier of the render texture.</param>
+        /// <param name="colorLoadAction">Color buffer load action.</param>
+        /// <param name="colorStoreAction">Color buffer store action.</param>
+        /// <param name="depthLoadAction">Depth buffer load action.</param>
+        /// <param name="depthStoreAction">Depth buffer store action.</param>
+        /// <param name="clearFlag">If not set to ClearFlag.None, specifies how to clear the render target after setup.</param>
+        /// <param name="clearColor">If applicable, color with which to clear the render texture after setup.</param>
+        public static void SetRenderTarget(CommandBuffer cmd, RenderTargetIdentifier buffer, RenderBufferLoadAction colorLoadAction, RenderBufferStoreAction colorStoreAction,
+            RenderBufferLoadAction depthLoadAction, RenderBufferStoreAction depthStoreAction, ClearFlag clearFlag, Color clearColor)
+        {
+            cmd.SetRenderTarget(buffer, colorLoadAction, colorStoreAction, depthLoadAction, depthStoreAction);
             ClearRenderTarget(cmd, clearFlag, clearColor);
         }
 
@@ -1359,5 +1379,72 @@ namespace UnityEngine.Rendering
         /// <returns>Last value of the enum</returns>
         public static T GetLastEnumValue<T>() where T : Enum
             => typeof(T).GetEnumValues().Cast<T>().Last();
+
+#if UNITY_EDITOR
+        // This is required in Runtime assembly between #if UNITY_EDITOR
+        /// <summary>
+        /// AssetDataBase.FindAssets("t:<type>") load all asset in project to check the type.
+        /// This utility function will try to filter at much possible before loading anything.
+        /// This also works with Interface and inherited types.
+        /// This will not find embedded sub assets.
+        /// This still take times on big project so it must be only used in Editor context only.
+        /// </summary>
+        /// <typeparam name="T">Type or Interface to search</typeparam>
+        /// <param name="extension">Extension of files to search in</param>
+        /// <param name="allowSubTypes">Allows to retrieve type inheriting from T.</param>
+        /// <returns>List of all asset of type T or implementing interface T.</returns>
+        public static IEnumerable<T> LoadAllAssets<T>(string extension = "asset", bool allowSubTypes = true)
+            where T : class
+        {
+            if (string.IsNullOrEmpty(extension))
+                throw new ArgumentNullException(nameof(extension), "You must pass a valid extension");
+
+            bool isInterface = typeof(T).IsInterface;
+            if (!typeof(UnityEngine.Object).IsAssignableFrom(typeof(T)) && !isInterface)
+                throw new Exception("T must be an interface or inherite UnityEngine.Object.");
+
+            Func<Type, bool> needsLoad = (allowSubTypes || isInterface)
+                ? (type) => typeof(T).IsAssignableFrom(type)
+                : (type) => typeof(T) == type;
+
+            string[] guids = UnityEditor.AssetDatabase.FindAssets($"glob:\"*.{extension}\"");
+            foreach (string guid in guids)
+            {
+                string path = UnityEditor.AssetDatabase.GUIDToAssetPath(guid);
+                Type type = UnityEditor.AssetDatabase.GetMainAssetTypeAtPath(path);
+                if (needsLoad(type))
+                    yield return UnityEditor.AssetDatabase.LoadAssetAtPath(path, type) as T;
+            }
+        }
+
+        /// <summary>
+        /// Create any missing folder in the file path given.
+        /// Path must use '/' separator
+        /// </summary>
+        /// <param name="filePath">Path to a file or to a folder (ending with '/') to ensure existance of each sub folder in it. </param>
+        public static void EnsureFolderTreeInAssetFilePath(string filePath)
+        {
+            void Recurse(string _folderPath)
+            {
+                int lastSeparator = _folderPath.LastIndexOf('/');
+                if (lastSeparator == -1)
+                    return;
+
+                string rootPath = _folderPath.Substring(0, lastSeparator);
+
+                Recurse(rootPath);
+
+                string folder = _folderPath.Substring(lastSeparator + 1);
+                if (!UnityEditor.AssetDatabase.IsValidFolder(_folderPath))
+                    UnityEditor.AssetDatabase.CreateFolder(rootPath, folder);
+            }
+
+            if (!filePath.StartsWith("assets/", System.StringComparison.CurrentCultureIgnoreCase))
+                throw new System.ArgumentException($"Path should start with \"Assets/\". Got {filePath}.", filePath);
+
+            Recurse(filePath.Substring(0, filePath.LastIndexOf('/')));
+        }
+
+#endif
     }
 }

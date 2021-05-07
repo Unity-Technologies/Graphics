@@ -261,7 +261,7 @@ Shader "HDRP/TerrainLit"
             #pragma multi_compile_fragment DECALS_OFF DECALS_3RT DECALS_4RT
 
             // Supported shadow modes per light type
-            #pragma multi_compile_fragment SHADOW_LOW SHADOW_MEDIUM SHADOW_HIGH
+            #pragma multi_compile_fragment SHADOW_LOW SHADOW_MEDIUM SHADOW_HIGH SHADOW_VERY_HIGH
 
             #pragma multi_compile USE_FPTL_LIGHTLIST USE_CLUSTERED_LIGHTLIST
 

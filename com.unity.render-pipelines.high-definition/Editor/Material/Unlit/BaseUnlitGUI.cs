@@ -297,7 +297,7 @@ namespace UnityEditor.Rendering.HighDefinition
 
         static public void SetupBaseUnlitPass(this Material material)
         {
-            if (material.shader.IsShaderGraph())
+            if (material.IsShaderGraph())
             {
                 // Shader graph generate distortion pass only if required. So we can safely enable it
                 // all the time here.
@@ -360,7 +360,7 @@ namespace UnityEditor.Rendering.HighDefinition
 
             // Shader graphs materials have their own management of motion vector pass in the material inspector
             // (see DrawMotionVectorToggle())
-            if (!material.shader.IsShaderGraph())
+            if (!material.IsShaderGraph())
             {
                 //In the case of additional velocity data we will enable the motion vector pass.
                 bool addPrecomputedVelocity = false;

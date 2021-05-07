@@ -307,8 +307,12 @@ namespace UnityEngine.Rendering.HighDefinition
             public Shader SMAAPS;
             [Reload("Runtime/PostProcessing/Shaders/TemporalAntialiasing.shader")]
             public Shader temporalAntialiasingPS;
+            [Reload("Runtime/PostProcessing/Shaders/UpsampleScene.compute")]
+            public ComputeShader upsampleSceneCS;
+            [Reload("Runtime/PostProcessing/Shaders/LensFlareDataDriven.shader")]
+            public Shader lensFlareDataDrivenPS;
 
-            // Physicaly based DoF
+            // Physically based DoF
             [Reload("Runtime/PostProcessing/Shaders/DoFCircleOfConfusion.compute")]
             public ComputeShader dofCircleOfConfusion;
             [Reload("Runtime/PostProcessing/Shaders/DoFGather.compute")]
