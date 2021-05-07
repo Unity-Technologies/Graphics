@@ -265,14 +265,17 @@ namespace UnityEngine.Experimental.Rendering
 
                     if (cellAABB.Intersects(renderer.bounds))
                     {
-                        if (renderer.TryGetComponent<MeshFilter>(out var meshFilter))
+                        if (renderer.TryGetComponent<MeshFilter>(out var meshFilter) && meshFilter.sharedMesh != null)
                         {
-                            props.SetInt("_AxisSwizzle", 0);
-                            cmd.DrawMesh(meshFilter.sharedMesh, renderer.transform.localToWorldMatrix, mat, 0, shaderPass: 0, props);
-                            props.SetInt("_AxisSwizzle", 1);
-                            cmd.DrawMesh(meshFilter.sharedMesh, renderer.transform.localToWorldMatrix, mat, 0, shaderPass: 0, props);
-                            props.SetInt("_AxisSwizzle", 2);
-                            cmd.DrawMesh(meshFilter.sharedMesh, renderer.transform.localToWorldMatrix, mat, 0, shaderPass: 0, props);
+                            for (int submesh = 0; submesh < meshFilter.sharedMesh.subMeshCount; submesh++)
+                            {
+                                props.SetInt("_AxisSwizzle", 0);
+                                cmd.DrawMesh(meshFilter.sharedMesh, renderer.transform.localToWorldMatrix, mat, submesh, shaderPass: 0, props);
+                                props.SetInt("_AxisSwizzle", 1);
+                                cmd.DrawMesh(meshFilter.sharedMesh, renderer.transform.localToWorldMatrix, mat, submesh, shaderPass: 0, props);
+                                props.SetInt("_AxisSwizzle", 2);
+                                cmd.DrawMesh(meshFilter.sharedMesh, renderer.transform.localToWorldMatrix, mat, submesh, shaderPass: 0, props);
+                            }
                         }
                     }
                 }
