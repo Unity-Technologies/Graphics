@@ -29,6 +29,7 @@ test_platforms:
     - [all]: <shared.platform.commands.unity_downloader_cli>
     - [all]: choco install python3 && refreshenv
     - [all]: python .yamato/tooling/wrap_utr.py <UTR_FLAGS>
+    - [Win_DX11]: ls C:/build/output/Unity-Technologies/Graphics/TestProjects/ShaderGraph/Logs/
     - [all]: mkdir C:\ProgramData\pip && echo [global] >> C:\ProgramData\pip\pip.ini && echo extra-index-url = https://artifactory-slo.bf.unity3d.com/artifactory/api/pypi/pypi/simple >> C:\ProgramData\pip\pip.ini
     - [all]: pip install GitPython
     - [Win_DX11, Win_DX12, Win_Vulkan]: python .yamato/tooling/shadergraph_commitback.py "TestProjects/ShaderGraph" <UTR_FLAGS>

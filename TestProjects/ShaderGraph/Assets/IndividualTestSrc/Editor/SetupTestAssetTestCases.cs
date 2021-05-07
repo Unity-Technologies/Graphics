@@ -278,6 +278,7 @@ public class SetupTestAssetTestCases : IPrebuildSetup
                     continue;
                 }
 
+                File.AppendAllLines("Logs/Test.log", new string[] { "Trying to get test data..." });
                 if(!TestAssetTestData.TryGetTestData(testResultsPath, testAsset.name, individualTest.material, out TestAssetTestData data))
                 {
                     continue;
@@ -286,12 +287,14 @@ public class SetupTestAssetTestCases : IPrebuildSetup
 
                 string path = data.GetReferenceImagePath();
                 Debug.Log(path);
+                File.AppendAllLines("Logs/Test.log", new string[] { $"Found test data: {data} with path {path}" });
                 if(File.Exists(path) && AssetDatabase.LoadAssetAtPath<Texture2D>(path) != null)
                 {
                     output[data.ReferenceImageLookup] = path;
                 }
 
                 output[$"{testAsset.name}_{individualTest.material.name}_hash"] = data.FilePath;
+                File.AppendAllLines("Logs/Test.log", new string[] { $"Returning IndividualTest obj with material {individualTest.material}" });
                 output[data.TestMaterialLookup] = AssetDatabase.GetAssetPath(individualTest.material);
             }
         }
