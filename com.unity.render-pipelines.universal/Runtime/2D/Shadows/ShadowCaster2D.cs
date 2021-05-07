@@ -10,8 +10,16 @@ namespace UnityEngine.Rendering.Universal
     [DisallowMultipleComponent]
     [AddComponentMenu("Rendering/2D/Shadow Caster 2D")]
     [MovedFrom("UnityEngine.Experimental.Rendering.Universal")]
-    public class ShadowCaster2D : ShadowCasterGroup2D
+    public class ShadowCaster2D : ShadowCasterGroup2D, ISerializationCallbackReceiver
     {
+        public enum ComponentVersions
+        {
+            Version_Unserialized = 0,
+            Version_1 = 1
+        }
+        const ComponentVersions k_CurrentComponentVersion = ComponentVersions.Version_1;
+        [SerializeField] ComponentVersions m_ComponentVersion = ComponentVersions.Version_Unserialized;
+
         [SerializeField] bool m_HasRenderer = false;
         [SerializeField] bool m_UseRendererSilhouette = true;
         [SerializeField] bool m_CastsShadows = true;
@@ -25,14 +33,16 @@ namespace UnityEngine.Rendering.Universal
         internal ShadowCasterGroup2D m_ShadowCasterGroup = null;
         internal ShadowCasterGroup2D m_PreviousShadowCasterGroup = null;
 
-        internal Mesh mesh => m_Mesh;
-        internal Vector3[] shapePath => m_ShapePath;
+        [SerializeField]
+        internal BoundingSphere m_ProjectedBoundingSphere;
+
+        public Mesh mesh => m_Mesh;
+        public Vector3[] shapePath => m_ShapePath;
         internal int shapePathHash { get { return m_ShapePathHash; } set { m_ShapePathHash = value; } }
 
         int m_PreviousShadowGroup = 0;
         bool m_PreviousCastsShadows = true;
         int m_PreviousPathHash = 0;
-
 
         /// <summary>
         /// If selfShadows is true, useRendererSilhoutte specifies that the renderer's sihouette should be considered part of the shadow. If selfShadows is false, useRendererSilhoutte specifies that the renderer's sihouette should be excluded from the shadow
@@ -72,6 +82,15 @@ namespace UnityEngine.Rendering.Universal
             }
 
             return allLayers;
+        }
+
+        internal bool IsLit(Light2D light)
+        {
+            Vector3 deltaPos = light.transform.position - (m_ProjectedBoundingSphere.position + transform.position);
+            float distanceSq = Vector3.SqrMagnitude(deltaPos);
+
+            float radiiLength = light.boundingSphere.radius + m_ProjectedBoundingSphere.radius;
+            return distanceSq <= (radiiLength * radiiLength);
         }
 
         internal bool IsShadowedLayer(int layer)
@@ -125,7 +144,7 @@ namespace UnityEngine.Rendering.Universal
             if (m_Mesh == null || m_InstanceId != GetInstanceID())
             {
                 m_Mesh = new Mesh();
-                ShadowUtility.GenerateShadowMesh(m_Mesh, m_ShapePath);
+                m_ProjectedBoundingSphere = ShadowUtility.GenerateShadowMesh(m_Mesh, m_ShapePath);
                 m_InstanceId = GetInstanceID();
             }
 
@@ -144,7 +163,9 @@ namespace UnityEngine.Rendering.Universal
 
             bool rebuildMesh = LightUtility.CheckForChange(m_ShapePathHash, ref m_PreviousPathHash);
             if (rebuildMesh)
-                ShadowUtility.GenerateShadowMesh(m_Mesh, m_ShapePath);
+            {
+                m_ProjectedBoundingSphere = ShadowUtility.GenerateShadowMesh(m_Mesh, m_ShapePath);
+            }
 
             m_PreviousShadowCasterGroup = m_ShadowCasterGroup;
             bool addedToNewGroup = ShadowCasterGroup2DManager.AddToShadowCasterGroup(this, ref m_ShadowCasterGroup);
@@ -170,6 +191,21 @@ namespace UnityEngine.Rendering.Universal
                     ShadowCasterGroup2DManager.AddGroup(this);
                 else
                     ShadowCasterGroup2DManager.RemoveGroup(this);
+            }
+        }
+
+        public void OnBeforeSerialize()
+        {
+            m_ComponentVersion = k_CurrentComponentVersion;
+        }
+
+        public void OnAfterDeserialize()
+        {
+            // Upgrade from no serialized version
+            if (m_ComponentVersion == ComponentVersions.Version_Unserialized)
+            {
+                ShadowUtility.ComputeBoundingSphere(m_ShapePath, out m_ProjectedBoundingSphere);
+                m_ComponentVersion = ComponentVersions.Version_1;
             }
         }
 

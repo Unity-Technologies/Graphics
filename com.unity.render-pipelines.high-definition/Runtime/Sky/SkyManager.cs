@@ -302,7 +302,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
 #endif
 
-        public void Build(HDRenderPipelineAsset hdAsset, RenderPipelineResources defaultResources, IBLFilterBSDF[] iblFilterBSDFArray)
+        public void Build(HDRenderPipelineAsset hdAsset, HDRenderPipelineRuntimeResources defaultResources, IBLFilterBSDF[] iblFilterBSDFArray)
         {
             m_Resolution = (int)hdAsset.currentPlatformRenderPipelineSettings.lightLoopSettings.skyReflectionSize;
             m_IBLFilterArray = iblFilterBSDFArray;
@@ -925,6 +925,17 @@ namespace UnityEngine.Rendering.HighDefinition
             m_BuiltinParameters.frameIndex = (int)hdCamera.GetCameraFrameCount();
             m_BuiltinParameters.skySettings = skyContext.skySettings;
             m_BuiltinParameters.cloudSettings = skyContext.cloudSettings;
+        }
+
+        public bool TryGetCloudSettings(HDCamera hdCamera, out CloudSettings cloudSettings, out CloudRenderer cloudRenderer)
+        {
+            var skyContext = hdCamera.visualSky;
+            //SkyAmbientMode ambientMode = hdCamera.volumeStack.GetComponent<VisualEnvironment>().skyAmbientMode.value;
+            //int skyHash = ComputeSkyHash(hdCamera, skyContext, sunLight, ambientMode);
+            //AcquireSkyRenderingContext(skyContext, skyHash);
+            cloudSettings = skyContext.cloudSettings;
+            cloudRenderer = skyContext.cloudRenderer;
+            return skyContext.HasClouds();
         }
 
         public bool RequiresPreRenderSky(HDCamera hdCamera)

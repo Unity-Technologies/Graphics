@@ -79,7 +79,7 @@ The **Shadows** section has the following properties.
 | ---------------- | ----------- |
 | __Max Distance__ | The maximum distance from the Camera at which Unity renders the shadows. Unity does not render shadows farther than this distance.<br/>__Note:__ This property is in metric units regardless of the value in the __Working Unit__ property. |
 | __Working Unit__ | The unit in which Unity measures the shadow cascade distances. |
-| __Cascade Count__ | The number of [shadow cascades](https://docs.unity3d.com/Manual/shadow-cascades.html). With shadow cascades, you can avoid crude shadows close to the Camera and keep the Shadow Resolution reasonably low. For more information, see the page [Shadow Cascades](https://docs.unity3d.com/Manual/shadow-cascades.html). Increasing the number of cascades reduces the performance. |
+| __Cascade Count__ | The number of [shadow cascades](https://docs.unity3d.com/Manual/shadow-cascades.html). With shadow cascades, you can avoid crude shadows close to the Camera and keep the Shadow Resolution reasonably low. For more information, see the page [Shadow Cascades](https://docs.unity3d.com/Manual/shadow-cascades.html). Increasing the number of cascades reduces the performance. Cascade settings only affects the main light. |
 | &nbsp;&nbsp;&nbsp;&nbsp;Split&nbsp;1 | The distance where cascade 1 ends and cascade 2 starts. |
 | &nbsp;&nbsp;&nbsp;&nbsp;Split&nbsp;2 | The distance where cascade 2 ends and cascade 3 starts. |
 | &nbsp;&nbsp;&nbsp;&nbsp;Split&nbsp;3 | The distance where cascade 3 ends and cascade 4 starts. |
@@ -113,7 +113,7 @@ This section allows you to fine-tune less commonly changed settings, which impac
 | __Mixed Lighting__         | Enable [Mixed Lighting](https://docs.unity3d.com/Manual/LightMode-Mixed.html), to tell the pipeline to include mixed lighting shader variants in the build. |
 | __Debug Level__            | Set the level of debug information that the render pipeline generates. The values are:<br />**Disabled**:  Debugging is disabled. This is the default.<br  />**Profiling**: Makes the render pipeline provide detailed information tags, which you can see in the FrameDebugger. |
 | __Shader Variant Log Level__ | Set the level of information about Shader Stripping and Shader Variants you want to display when Unity finishes a build. Values are:<br /> **Disabled**: Unity doesn’t log anything.<br />**Only Universal**: Unity logs information for all of the [URP Shaders](shaders-in-universalrp.md).<br />**All**: Unity logs information for all Shaders in your build.<br /> You can see the information in Console panel when your build has finished. |
-
+| __Store Actions__          | Defines if Unity discards or stores the render targets of the DrawObjects Passes. Selecting the **Store** option significantly increases the memory bandwidth on mobile and tile-based GPUs.<br/>__Auto__: Unity uses the **Discard** option by default, and falls back to the **Store** option if it detects any injected Passes.<br/>__Discard__:  Unity discards the render targets of render Passes that are not reused later (lower memory bandwidth).<br/>__Store__: Unity stores all render targets of each Pass (higher memory bandwidth). |
 
 
 ### Adaptive Performance
