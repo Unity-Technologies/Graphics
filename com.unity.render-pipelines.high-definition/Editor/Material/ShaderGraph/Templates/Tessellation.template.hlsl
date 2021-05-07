@@ -19,7 +19,7 @@ VertexDescriptionInputs VaryingsMeshToDSToVertexDescriptionInputs(VaryingsMeshTo
     $VertexDescriptionInputs.ViewSpaceBiTangent:        output.ViewSpaceBiTangent = TransformWorldToViewDir(output.WorldSpaceBiTangent);
     $VertexDescriptionInputs.TangentSpaceBiTangent:     output.TangentSpaceBiTangent = float3(0.0f, 1.0f, 0.0f);
     $VertexDescriptionInputs.ObjectSpacePosition:       output.ObjectSpacePosition = TransformWorldToObject(input.positionRWS);
-    $VertexDescriptionInputs.WorldSpacePosition:        output.WorldSpacePosition = input.positionRWS; 
+    $VertexDescriptionInputs.WorldSpacePosition:        output.WorldSpacePosition = input.positionRWS;
     $VertexDescriptionInputs.ViewSpacePosition:         output.ViewSpacePosition = TransformWorldToView(output.WorldSpacePosition);
     $VertexDescriptionInputs.TangentSpacePosition:      output.TangentSpacePosition = float3(0.0f, 0.0f, 0.0f);
     $VertexDescriptionInputs.AbsoluteWorldSpacePosition:output.AbsoluteWorldSpacePosition = GetAbsolutePositionWS(input.positionRWS);

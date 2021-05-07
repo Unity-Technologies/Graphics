@@ -140,8 +140,8 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
             if (!context.pass.useRaytracing) // Don't handle vertex shader when using raytracing
             {
                 context.AddField(Fields.GraphVertex, descs.Contains(BlockFields.VertexDescription.Position) ||
-                                                     descs.Contains(BlockFields.VertexDescription.Normal) ||
-                                                     descs.Contains(BlockFields.VertexDescription.Tangent));
+                    descs.Contains(BlockFields.VertexDescription.Normal) ||
+                    descs.Contains(BlockFields.VertexDescription.Tangent));
             }
 
             context.AddField(Fields.GraphPixel);
@@ -456,7 +456,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
 
         public static DependencyCollection Tessellation = new DependencyCollection
         {
-           //Tessellation Varying Dependencies
+            //Tessellation Varying Dependencies
             new FieldDependency(HDStructFields.VaryingsMeshToPS.positionRWS,                         HDStructFields.VaryingsMeshToDS.positionRWS),
             new FieldDependency(HDStructFields.VaryingsMeshToPS.normalWS,                            HDStructFields.VaryingsMeshToDS.normalWS),
             new FieldDependency(HDStructFields.VaryingsMeshToPS.tangentWS,                           HDStructFields.VaryingsMeshToDS.tangentWS),

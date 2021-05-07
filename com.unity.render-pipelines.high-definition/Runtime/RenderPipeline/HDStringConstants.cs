@@ -1107,6 +1107,6 @@ namespace UnityEngine.Rendering.HighDefinition
         internal const string kTessellationFactorTriangleSize = "_TessellationFactorTriangleSize";
         internal const string kTessellationShapeFactor = "_TessellationShapeFactor";
         internal const string kTessellationBackFaceCullEpsilon = "_TessellationBackFaceCullEpsilon";
-        internal const string kTessellationMaxDisplacement = "_TessellationMaxDisplacement";        
+        internal const string kTessellationMaxDisplacement = "_TessellationMaxDisplacement";
     }
 }

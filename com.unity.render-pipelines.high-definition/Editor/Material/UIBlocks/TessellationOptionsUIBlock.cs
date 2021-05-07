@@ -63,14 +63,14 @@ namespace UnityEditor.Rendering.HighDefinition
             doubleSidedEnable = FindProperty(kDoubleSidedEnable, false);
 
             // tessellation specific, silent if not found
-            tessellationMode = FindProperty(kTessellationMode);        
+            tessellationMode = FindProperty(kTessellationMode);
             tessellationFactor = FindProperty(kTessellationFactor); // non-SG only property
             tessellationFactorMinDistance = FindProperty(kTessellationFactorMinDistance);
             tessellationFactorMaxDistance = FindProperty(kTessellationFactorMaxDistance);
             tessellationFactorTriangleSize = FindProperty(kTessellationFactorTriangleSize);
             tessellationShapeFactor = FindProperty(kTessellationShapeFactor);
             tessellationBackFaceCullEpsilon = FindProperty(kTessellationBackFaceCullEpsilon);
-            tessellationMaxDisplacement = FindProperty(kTessellationMaxDisplacement); // SG only property            
+            tessellationMaxDisplacement = FindProperty(kTessellationMaxDisplacement); // SG only property
         }
 
         /// <summary>
@@ -102,7 +102,7 @@ namespace UnityEditor.Rendering.HighDefinition
                 EditorGUI.indentLevel++;
                 materialEditor.ShaderProperty(tessellationShapeFactor, Styles.tessellationShapeFactorText);
                 EditorGUI.indentLevel--;
-            }            
+            }
         }
 
         void TessellationModePopup()
