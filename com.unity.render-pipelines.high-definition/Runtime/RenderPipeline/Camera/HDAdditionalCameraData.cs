@@ -331,6 +331,34 @@ namespace UnityEngine.Rendering.HighDefinition
         /// <summary>Enable to retain history buffers even if the camera is disabled.</summary>
         public bool hasPersistentHistory = false;
 
+        /// <summary>Allow NVIDIA Deep Learning Super Sampling (DLSS) on this camera.</summary>
+        [Tooltip("Allow NVIDIA Deep Learning Super Sampling (DLSS) on this camera")]
+        public bool allowDeepLearningSuperSampling = true;
+
+        /// <summary>If set to true, NVIDIA Deep Learning Super Sampling (DLSS) will utilize the Quality setting set on this camera instead of the one specified in the quality asset.</summary>
+        [Tooltip("If set to true, NVIDIA Deep Learning Super Sampling (DLSS) will utilize the Quality setting set on this camera instead of the one specified in the quality asset.")]
+        public bool deepLearningSuperSamplingUseCustomQualitySettings = false;
+
+        /// <summary>Selects a performance quality setting for NVIDIA Deep Learning Super Sampling (DLSS) for this camera of this project.</summary>
+        [Tooltip("Selects a performance quality setting for NVIDIA Deep Learning Super Sampling (DLSS) for this camera of this project.")]
+        public uint deepLearningSuperSamplingQuality = 0;
+
+        /// <summary>If set to true, NVIDIA Deep Learning Super Sampling (DLSS) will utilize the Quality setting set on this camera instead of the one specified in the quality asset of this project.</summary>
+        [Tooltip("If set to true, NVIDIA Deep Learning Super Sampling (DLSS) will utilize the attributes (Optimal Settings and Sharpness) specified on this camera, instead of the ones specified in the quality asset of this project.")]
+        public bool deepLearningSuperSamplingUseCustomAttributes = false;
+
+        /// <summary>Sets the sharpness and scale automatically for NVIDIA Deep Learning Super Sampling (DLSS) for this camera, depending on the values of quality settings.</summary>
+        [Tooltip("Sets the sharpness and scale automatically for NVIDIA Deep Learning Super Sampling (DLSS) for this camera, depending on the values of quality settings.")]
+        public bool deepLearningSuperSamplingUseOptimalSettings = true;
+
+        /// <summary>Sets the Sharpening value for NVIDIA Deep Learning Super Sampling (DLSS) for this camera.</summary>
+        [Tooltip("Sets the Sharpening value for NVIDIA Deep Learning Super Sampling (DLSS) for this camera.")]
+        [Range(0, 1)]
+        public float deepLearningSuperSamplingSharpening = 0;
+
+        /// internal state set by the runtime wether DLSS is enabled or not on this camera, depending on the results of all other settings.
+        internal bool cameraCanRenderDLSS = false;
+
         /// <summary>Event used to override HDRP rendering for this particular camera.</summary>
         public event Action<ScriptableRenderContext, HDCamera> customRender;
         /// <summary>True if any Custom Render event is registered for this camera.</summary>
