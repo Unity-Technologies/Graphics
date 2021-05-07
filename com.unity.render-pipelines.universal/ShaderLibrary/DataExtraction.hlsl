@@ -31,17 +31,24 @@ float4 OutputExtraction(ExtractionInputs inputs)
 
     // Outline mask is the most performance sensitive (rendered each frame when selection is active),
     // so it is tested first.
+    // For some weird reason, using a direct return inside the branch causes a warning about
+    // a potentially uninitialized variable, so use an explicitly initialized return value variable
+    // to avoid it.
+    float4 selectionMask = 0;
     if (UNITY_DataExtraction_Mode == RENDER_OUTLINE_MASK)
     {
         // Red channel = unique identifier, can be used to separate groups of objects from each other
         //               to get outlines between them.
         // Green channel = occluded behind depth buffer (0) or not occluded (1)
         // Blue channel  = always 1 = not cleared to zero = there's an outlined object at this pixel
-        return ComputeSelectionMask(
+        selectionMask = ComputeSelectionMask(
             0, // Object unique identifier currently unused
             ComputeNormalizedDeviceCoordinatesWithZ(inputs.positionWS, UNITY_MATRIX_VP),
             TEXTURE2D_ARGS(unity_EditorViz_DepthBuffer, sampler_unity_EditorViz_DepthBuffer));
     }
+
+    if (UNITY_DataExtraction_Mode == RENDER_OUTLINE_MASK)
+        return selectionMask;
 
     #ifdef _SPECULAR_SETUP
         specular = inputs.specular;

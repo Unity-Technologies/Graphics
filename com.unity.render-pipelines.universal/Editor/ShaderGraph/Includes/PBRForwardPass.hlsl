@@ -161,7 +161,8 @@ half4 fragExtraction(PackedVaryings packedInput) : SV_TARGET
     extraction.occlusion = surfaceDescription.Occlusion;
     extraction.emission = surfaceDescription.Emission.xyz;
 
-    return OutputExtraction(extraction);
+    // half precision will not preserve things like IDs which require exact results.
+    return half4(OutputExtraction(extraction));
 }
 
 
