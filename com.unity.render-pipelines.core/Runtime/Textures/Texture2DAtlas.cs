@@ -438,7 +438,7 @@ namespace UnityEngine.Rendering
                     blitType = BlitType.CubeTo2DOctahedralSingleChannel;
 
                 // By default blit cube into a single octahedral 2D texture quad
-                Blit2DTexture(cmd, scaleOffset, texture, new Vector4(1, 1, 0, 0), blitMips, blitType);
+                Blit2DTexture(cmd, scaleOffset, texture, new Vector4(1.0f, 1.0f, 0.0f, 0.0f), blitMips, blitType);
 
                 var instanceID = overrideInstanceID != -1 ? overrideInstanceID : GetTextureID(texture);
                 MarkGPUTextureValid(instanceID, blitMips);
