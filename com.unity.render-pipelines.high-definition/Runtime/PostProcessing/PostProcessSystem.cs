@@ -1711,6 +1711,7 @@ namespace UnityEngine.Rendering.HighDefinition
             {
                 cs = m_Resources.shaders.motionBlurCS;
                 kernel = cs.FindKernel("MotionBlurCS");
+                CoreUtils.SetKeyword(cs, "ENABLE_ALPHA", m_EnableAlpha);
                 cmd.SetComputeVectorParam(cs, HDShaderIDs._TileTargetSize, tileTargetSize);
                 cmd.SetComputeTextureParam(cs, kernel, HDShaderIDs._MotionVecAndDepth, preppedMotionVec);
                 cmd.SetComputeTextureParam(cs, kernel, HDShaderIDs._OutputTexture, destination);
