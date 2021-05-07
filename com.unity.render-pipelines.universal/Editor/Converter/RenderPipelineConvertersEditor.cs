@@ -86,8 +86,8 @@ namespace UnityEditor.Rendering.Universal
             RenderPipelineConvertersEditor wnd = GetWindow<RenderPipelineConvertersEditor>();
             wnd.titleContent = new GUIContent("Render Pipeline Converter");
             DontSaveToLayout(wnd);
-            wnd.maxSize = new Vector2(625f, 4000f);
-            wnd.minSize = new Vector2(625f, 400f);
+            wnd.maxSize = new Vector2(645f, 4000f);
+            wnd.minSize = new Vector2(645f, 400f);
             wnd.Show();
         }
 
@@ -220,6 +220,9 @@ namespace UnityEditor.Rendering.Universal
 
                     Status status = (Status)property.FindPropertyRelative("status").enumValueIndex; // prop.enumValueIndex;// m_ConverterStates[localID].items[index].status;
                     string info = property.FindPropertyRelative("message").stringValue;//m_ConverterStates[localID].items[index].message;
+
+                    // Update the amount of things to convert
+                    child.Q<Label>("converterStats").text = $"{m_ItemsToConvert[id].Count} items";
 
                     ConverterItemDescriptor convItemDesc = m_ItemsToConvert[id][index]; //converterItemInfos[index];
 
