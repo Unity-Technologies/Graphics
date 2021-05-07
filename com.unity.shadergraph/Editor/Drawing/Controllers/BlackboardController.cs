@@ -218,18 +218,21 @@ namespace UnityEditor.ShaderGraph.Drawing
                     throw new ArgumentOutOfRangeException();
             }
 
-            // If specific category to copy to is provided, find and use it
-            foreach (var category in graphData.categories)
+            if (copiedShaderInput != null)
             {
-                if (category.categoryGuid == containingCategoryGuid)
+                // If specific category to copy to is provided, find and use it
+                foreach (var category in graphData.categories)
                 {
-                    graphData.InsertItemIntoCategory(category.objectId, copiedShaderInput, insertIndex);
-                    return;
+                    if (category.categoryGuid == containingCategoryGuid)
+                    {
+                        graphData.InsertItemIntoCategory(category.objectId, copiedShaderInput, insertIndex);
+                        return;
+                    }
                 }
-            }
 
-            // Else, add to default category
-            graphData.categories.First().InsertItemIntoCategory(copiedShaderInput);
+                // Else, add to default category
+                graphData.categories.First().InsertItemIntoCategory(copiedShaderInput);
+            }
         }
 
         public Action<GraphData> modifyGraphDataAction => CopyShaderInput;
@@ -587,7 +590,8 @@ namespace UnityEditor.ShaderGraph.Drawing
 
                     break;
                 case CopyShaderInputAction copyShaderInputAction:
-                    if (IsInputUncategorized(copyShaderInputAction.copiedShaderInput))
+                    // In the specific case of only-one keywords like Material Quality and Raytracing, they can get copied, but because only one can exist, the output copied value is null
+                    if (copyShaderInputAction.copiedShaderInput != null && IsInputUncategorized(copyShaderInputAction.copiedShaderInput))
                     {
                         var blackboardRow = InsertBlackboardRow(copyShaderInputAction.copiedShaderInput);
 

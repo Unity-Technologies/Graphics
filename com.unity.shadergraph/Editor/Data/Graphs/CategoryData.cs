@@ -31,6 +31,12 @@ namespace UnityEditor.ShaderGraph
 
         public void InsertItemIntoCategory(ShaderInput itemToAdd, int insertionIndex = -1)
         {
+            if (itemToAdd == null)
+            {
+                AssertHelpers.Fail("Tried to insert item into category that was null.");
+                return;
+            }
+
             if (insertionIndex == -1)
             {
                 m_ChildObjectList.Add(itemToAdd);

@@ -490,18 +490,21 @@ namespace UnityEditor.ShaderGraph.Drawing
                         var moveShaderInputAction = new MoveShaderInputAction();
                         if (draggedElement.Item2.userData is ShaderInput shaderInput)
                         {
-                            moveShaderInputAction.shaderInputReference = shaderInput;
-                            moveShaderInputAction.newIndexValue = insertIndex;
-                            m_ViewModel.requestModelChangeAction(moveShaderInputAction);
-
                             if (insertIndex == contentContainer.childCount)
                             {
-                                categoryDirectChild.BringToFront();
+                                insertIndex = contentContainer.childCount - 1;
+                                categoryDirectChild.PlaceInFront(this[contentContainer.childCount-1]);
                             }
                             else
                             {
                                 categoryDirectChild.PlaceBehind(this[insertIndex]);
                             }
+
+                            moveShaderInputAction.associatedCategoryGuid = viewModel.associatedCategoryGuid;
+                            moveShaderInputAction.shaderInputReference = shaderInput;
+                            moveShaderInputAction.newIndexValue = insertIndex;
+                            m_ViewModel.requestModelChangeAction(moveShaderInputAction);
+
                         }
                     }
 

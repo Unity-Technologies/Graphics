@@ -1612,81 +1612,20 @@ namespace UnityEditor.ShaderGraph
                 m_MovedCategories.Add(category);
         }
 
-        public void MoveProperty(AbstractShaderProperty property, int newIndex)
+        public void MoveItemInCategory(ShaderInput itemToMove, int newIndex, string associatedCategoryGuid)
         {
-            if (newIndex > m_Properties.Count || newIndex < 0)
-                throw new ArgumentException("New index is not within properties list.");
-            var currentIndex = m_Properties.IndexOf(property);
-            if (currentIndex == -1)
-                throw new ArgumentException("Property is not in graph.");
-            if (newIndex == currentIndex)
-                return;
-            m_Properties.RemoveAt(currentIndex);
-            if (newIndex > currentIndex)
-                newIndex--;
-            var isLast = newIndex == m_Properties.Count;
-            if (isLast)
-                m_Properties.Add(property);
-            else
-                m_Properties.Insert(newIndex, property);
-            if (!m_MovedInputs.Contains(property))
-                m_MovedInputs.Add(property);
-
-            foreach (var categoryData in m_CategoryData)
-                if (categoryData.value.IsItemInCategory(property))
+            foreach (var categoryData in categories)
+            {
+                if (categoryData.categoryGuid == associatedCategoryGuid && categoryData.IsItemInCategory(itemToMove))
                 {
-                    categoryData.value.MoveItemInCategory(property, newIndex);
+                    // Validate new index to move the item to
+                    if (newIndex < 0 || newIndex >= categoryData.childCount)
+                        return;
+
+                    categoryData.MoveItemInCategory(itemToMove, newIndex);
                     break;
                 }
-        }
-
-        public void MoveKeyword(ShaderKeyword keyword, int newIndex)
-        {
-            if (newIndex > m_Keywords.Count || newIndex < 0)
-                throw new ArgumentException("New index is not within keywords list.");
-            var currentIndex = m_Keywords.IndexOf(keyword);
-            if (currentIndex == -1)
-                throw new ArgumentException("Keyword is not in graph.");
-            if (newIndex == currentIndex)
-                return;
-            m_Keywords.RemoveAt(currentIndex);
-            if (newIndex > currentIndex)
-                newIndex--;
-            var isLast = newIndex == m_Keywords.Count;
-            if (isLast)
-                m_Keywords.Add(keyword);
-            else
-                m_Keywords.Insert(newIndex, keyword);
-            if (!m_MovedInputs.Contains(keyword))
-                m_MovedInputs.Add(keyword);
-
-            foreach (var categoryData in m_CategoryData)
-                if (categoryData.value.IsItemInCategory(keyword))
-                {
-                    categoryData.value.MoveItemInCategory(keyword, newIndex);
-                    break;
-                }
-        }
-
-        public void MoveDropdown(ShaderDropdown dropdown, int newIndex)
-        {
-            if (newIndex > m_Dropdowns.Count || newIndex < 0)
-                throw new ArgumentException("New index is not within dropdowns list.");
-            var currentIndex = m_Dropdowns.IndexOf(dropdown);
-            if (currentIndex == -1)
-                throw new ArgumentException("Dropdown is not in graph.");
-            if (newIndex == currentIndex)
-                return;
-            m_Dropdowns.RemoveAt(currentIndex);
-            if (newIndex > currentIndex)
-                newIndex--;
-            var isLast = newIndex == m_Dropdowns.Count;
-            if (isLast)
-                m_Dropdowns.Add(dropdown);
-            else
-                m_Dropdowns.Insert(newIndex, dropdown);
-            if (!m_MovedInputs.Contains(dropdown))
-                m_MovedInputs.Add(dropdown);
+            }
         }
 
         public int GetGraphInputIndex(ShaderInput input)
@@ -1844,13 +1783,11 @@ namespace UnityEditor.ShaderGraph
         {
             var copiedCategory = new CategoryData(categoryToCopy);
             AddCategory(copiedCategory);
-            int insertIndex = 0;
             // Whenever a category is copied, also copy over all the inputs within that category
             foreach (var childInputToCopy in categoryToCopy.Children)
             {
-                var newShaderInput = AddCopyOfShaderInput(childInputToCopy, insertIndex);
+                var newShaderInput = AddCopyOfShaderInput(childInputToCopy);
                 copiedCategory.InsertItemIntoCategory(newShaderInput);
-                insertIndex++;
             }
 
             return copiedCategory;

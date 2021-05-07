@@ -20,20 +20,12 @@ namespace UnityEditor.ShaderGraph.Drawing
             AssertHelpers.IsNotNull(graphData, "GraphData is null while carrying out MoveShaderInputAction");
             AssertHelpers.IsNotNull(shaderInputReference, "ShaderInputReference is null while carrying out MoveShaderInputAction");
             graphData.owner.RegisterCompleteObjectUndo("Move Graph Input");
-            switch (shaderInputReference)
-            {
-                case AbstractShaderProperty property:
-                    graphData.MoveProperty(property, newIndexValue);
-                    break;
-                case ShaderKeyword keyword:
-                    graphData.MoveKeyword(keyword, newIndexValue);
-                    break;
-                default:
-                    throw new ArgumentOutOfRangeException();
-            }
+            graphData.MoveItemInCategory(shaderInputReference, newIndexValue, associatedCategoryGuid);
         }
 
         public Action<GraphData> modifyGraphDataAction =>  MoveShaderInput;
+
+        internal string associatedCategoryGuid { get; set; }
 
         // Reference to the shader input being modified
         internal ShaderInput shaderInputReference { get; set; }
@@ -167,7 +159,8 @@ namespace UnityEditor.ShaderGraph.Drawing
                     break;
 
                 case CopyShaderInputAction copyShaderInputAction:
-                    if (IsInputInCategory(copyShaderInputAction.copiedShaderInput))
+                    // In the specific case of only-one keywords like Material Quality and Raytracing, they can get copied, but because only one can exist, the output copied value is null
+                    if (copyShaderInputAction.copiedShaderInput != null && IsInputInCategory(copyShaderInputAction.copiedShaderInput))
                         InsertBlackboardRow(copyShaderInputAction.copiedShaderInput, copyShaderInputAction.insertIndex);
                     break;
 
