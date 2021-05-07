@@ -50,6 +50,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Added support for lighting full screen debug mode in automated tests.
 - Added a way for fitting a probe volume around either the scene contents or a selection.
 - Added support for mip bias override on texture samplers through the HDAdditionalCameraData component.
+- Added path tracing support for stacklit material.
 
 ### Fixed
 - Fixed Intensity Multiplier not affecting realtime global illumination.
