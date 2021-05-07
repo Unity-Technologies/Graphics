@@ -195,11 +195,7 @@ namespace UnityEditor.ShaderGraph.UnitTests
             var sb =  new ShaderStringBuilder();
             foreach (var keyword in m_Collector.keywords)
             {
-                string declaration = keyword.GetKeywordDeclarationString();
-                if(!string.IsNullOrEmpty(declaration))
-                {
-                    sb.AppendLine(declaration);
-                }
+                keyword.AppendKeywordDeclarationStrings(sb);
             }
 
             Assert.AreEqual(kExpectedForRealsDeclaration.Replace("\r\n", "\n"), sb.ToString(), "Keyword declaration snippet for final shader was invalid");
