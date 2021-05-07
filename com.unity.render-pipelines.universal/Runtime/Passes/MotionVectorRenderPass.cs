@@ -1,8 +1,5 @@
 using System;
-using UnityEngine;
 using UnityEngine.Experimental.Rendering;
-using UnityEngine.Rendering;
-using UnityEngine.Rendering.Universal;
 
 namespace UnityEngine.Rendering.Universal.Internal
 {
@@ -85,7 +82,7 @@ namespace UnityEngine.Rendering.Universal.Internal
                 // If the flag hasn't been set yet on this camera, motion vectors will skip a frame.
                 camera.depthTextureMode |= DepthTextureMode.MotionVectors | DepthTextureMode.Depth;
 
-                // Drawing
+                // TODO: add option to only draw either one?
                 DrawCameraMotionVectors(context, cmd, camera);
                 DrawObjectMotionVectors(context, ref renderingData, cmd, camera);
             }
@@ -95,7 +92,6 @@ namespace UnityEngine.Rendering.Universal.Internal
 
         DrawingSettings GetDrawingSettings(ref RenderingData renderingData)
         {
-            // Drawing Settings
             var camera = renderingData.cameraData.camera;
             var sortingSettings = new SortingSettings(camera) { criteria = SortingCriteria.CommonOpaque };
             var drawingSettings = new DrawingSettings(ShaderTagId.none, sortingSettings)
@@ -104,15 +100,15 @@ namespace UnityEngine.Rendering.Universal.Internal
                 enableDynamicBatching = renderingData.supportsDynamicBatching,
                 enableInstancing = true,
             };
-
-            // Shader Tags
+            
             for (int i = 0; i < s_ShaderTags.Length; ++i)
             {
                 drawingSettings.SetShaderPassName(i, new ShaderTagId(s_ShaderTags[i]));
             }
 
-            // Material
+            // Material that will be used if shader tags cannot be found
             drawingSettings.fallbackMaterial = m_ObjectMaterial;
+
             return drawingSettings;
         }
 
