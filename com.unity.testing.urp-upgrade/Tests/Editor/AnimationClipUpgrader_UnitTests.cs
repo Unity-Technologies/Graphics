@@ -13,7 +13,7 @@ using IRenderer = UnityEditor.Rendering.AnimationClipUpgrader.IRenderer;
 using ClipPath = UnityEditor.Rendering.AnimationClipUpgrader.ClipPath;
 using PrefabPath = UnityEditor.Rendering.AnimationClipUpgrader.PrefabPath;
 using ScenePath = UnityEditor.Rendering.AnimationClipUpgrader.ScenePath;
-using RenameType = UnityEditor.Rendering.MaterialUpgrader.RenameType;
+using MaterialPropertyType = UnityEditor.Rendering.MaterialUpgrader.MaterialPropertyType;
 using UID = UnityEditor.Rendering.UpgradeUtility.UID;
 using static UnityEditor.Rendering.Tests.AnimationClipUpgraderTestUtility;
 using static UnityEditor.Rendering.Tests.UpgraderTestUtility;
@@ -255,7 +255,7 @@ namespace UnityEditor.Rendering.Tests
                 new[] { (From: "_Color", To: "_BaseColor") },
                 new[]
                 {
-                    ("OldShader", "NewShader", new[] { (From: "_Color", To: "_BaseColor", Type: (int)RenameType.Color) })
+                    ("OldShader", "NewShader", new[] { (From: "_Color", To: "_BaseColor", Type: (int)MaterialPropertyType.Color) })
                 }
             )
                 .Returns(SerializedShaderPropertyUsage.UsedByUpgraded)
@@ -266,7 +266,7 @@ namespace UnityEditor.Rendering.Tests
                 new[] { (From: "_MainTex_ST", To: "_BaseMap_ST_ST") },
                 new[]
                 {
-                    ("OldShader", "NewShader", new[] { (From: "_MainTex_ST", To: "_BaseMap_ST_ST", Type: (int)RenameType.Float) })
+                    ("OldShader", "NewShader", new[] { (From: "_MainTex_ST", To: "_BaseMap_ST_ST", Type: (int)MaterialPropertyType.Float) })
                 }
             )
                 .Returns(SerializedShaderPropertyUsage.UsedByUpgraded)
@@ -277,8 +277,8 @@ namespace UnityEditor.Rendering.Tests
                 new[] { (From: "_Color", To: "_BaseColor1") },
                 new[]
                 {
-                    ("OldShader1", "NewShader", new[] { (From: "_Color", To: "_BaseColor1", Type: (int)RenameType.Color) }),
-                    ("OldShader2", "NewShader", new[] { (From: "_Color", To: "_BaseColor2", Type: (int)RenameType.Color) })
+                    ("OldShader1", "NewShader", new[] { (From: "_Color", To: "_BaseColor1", Type: (int)MaterialPropertyType.Color) }),
+                    ("OldShader2", "NewShader", new[] { (From: "_Color", To: "_BaseColor2", Type: (int)MaterialPropertyType.Color) })
                 }
             )
                 .Returns(SerializedShaderPropertyUsage.UsedByUpgraded | SerializedShaderPropertyUsage.UsedByAmbiguouslyUpgraded)
@@ -289,8 +289,8 @@ namespace UnityEditor.Rendering.Tests
                 new[] { (From: "_MainTex_ST", To: "_BaseMap_ST_ST1") },
                 new[]
                 {
-                    ("OldShader1", "NewShader", new[] { (From: "_MainTex_ST", To: "_BaseMap_ST_ST1", Type: (int)RenameType.Float) }),
-                    ("OldShader2", "NewShader", new[] { (From: "_MainTex_ST", To: "_BaseMap_ST_ST2", Type: (int)RenameType.Float) })
+                    ("OldShader1", "NewShader", new[] { (From: "_MainTex_ST", To: "_BaseMap_ST_ST1", Type: (int)MaterialPropertyType.Float) }),
+                    ("OldShader2", "NewShader", new[] { (From: "_MainTex_ST", To: "_BaseMap_ST_ST2", Type: (int)MaterialPropertyType.Float) })
                 }
             )
                 .Returns(SerializedShaderPropertyUsage.UsedByUpgraded | SerializedShaderPropertyUsage.UsedByAmbiguouslyUpgraded)
@@ -301,7 +301,7 @@ namespace UnityEditor.Rendering.Tests
                 new[] { (From: "_Color", To: "_Color") },
                 new[]
                 {
-                    ("OldShader", "NewShader", new[] { (From: "_Color", To: "_BaseColor", Type: (int)RenameType.Color) })
+                    ("OldShader", "NewShader", new[] { (From: "_Color", To: "_BaseColor", Type: (int)MaterialPropertyType.Color) })
                 }
             )
                 .Returns(SerializedShaderPropertyUsage.UsedByNonUpgraded)
@@ -312,7 +312,7 @@ namespace UnityEditor.Rendering.Tests
                 new[] { (From: "_MainTex_ST", To: "_MainTex_ST") },
                 new[]
                 {
-                    ("OldShader", "NewShader", new[] { (From: "_MainTex_ST", To: "_BaseMap_ST_ST", Type: (int)RenameType.Float) })
+                    ("OldShader", "NewShader", new[] { (From: "_MainTex_ST", To: "_BaseMap_ST_ST", Type: (int)MaterialPropertyType.Float) })
                 }
             )
                 .Returns(SerializedShaderPropertyUsage.UsedByNonUpgraded)
@@ -323,8 +323,8 @@ namespace UnityEditor.Rendering.Tests
                 new[] { (From: "_Color", To: "_BaseColor") },
                 new[]
                 {
-                    ("OldShader", "NewShader1", new[] { (From: "_Color", To: "_BaseColor", Type: (int)RenameType.Color) }),
-                    ("OldShader", "NewShader2", new[] { (From: "_Color", To: "_BaseColor", Type: (int)RenameType.Color) })
+                    ("OldShader", "NewShader1", new[] { (From: "_Color", To: "_BaseColor", Type: (int)MaterialPropertyType.Color) }),
+                    ("OldShader", "NewShader2", new[] { (From: "_Color", To: "_BaseColor", Type: (int)MaterialPropertyType.Color) })
                 }
             )
                 .Returns(SerializedShaderPropertyUsage.UsedByUpgraded)
@@ -335,8 +335,8 @@ namespace UnityEditor.Rendering.Tests
                 new[] { (From: "_Color", To: "_BaseColor2") },
                 new[]
                 {
-                    ("OldShader", "NewShader1", new[] { (From: "_Color", To: "_BaseColor1", Type: (int)RenameType.Color) }),
-                    ("OldShader", "NewShader2", new[] { (From: "_Color", To: "_BaseColor2", Type: (int)RenameType.Color) })
+                    ("OldShader", "NewShader1", new[] { (From: "_Color", To: "_BaseColor1", Type: (int)MaterialPropertyType.Color) }),
+                    ("OldShader", "NewShader2", new[] { (From: "_Color", To: "_BaseColor2", Type: (int)MaterialPropertyType.Color) })
                 }
             )
                 .Returns(SerializedShaderPropertyUsage.UsedByUpgraded | SerializedShaderPropertyUsage.UsedByAmbiguouslyUpgraded)
@@ -383,7 +383,7 @@ namespace UnityEditor.Rendering.Tests
                 new[] { (From: "_Color", To: "_BaseColor") },
                 new[]
                 {
-                    ("OldShader", "NewShader", new[] { (From: "_Color", To: "_BaseColor", Type: (int)RenameType.Color) })
+                    ("OldShader", "NewShader", new[] { (From: "_Color", To: "_BaseColor", Type: (int)MaterialPropertyType.Color) })
                 }
             )
                 .Returns(SerializedShaderPropertyUsage.UsedByUpgraded)
@@ -393,7 +393,7 @@ namespace UnityEditor.Rendering.Tests
                 new[] { (From: "_MainTex_ST", To: "_BaseMap_ST") },
                 new[]
                 {
-                    ("OldShader", "NewShader", new[] { (From: "_MainTex_ST", To: "_BaseMap_ST", Type: (int)RenameType.Float) })
+                    ("OldShader", "NewShader", new[] { (From: "_MainTex_ST", To: "_BaseMap_ST", Type: (int)MaterialPropertyType.Float) })
                 }
             )
                 .Returns(SerializedShaderPropertyUsage.UsedByUpgraded)
@@ -438,11 +438,11 @@ namespace UnityEditor.Rendering.Tests
 
         static readonly (string OldShader, string NewShader, (string From, string To, int Type)[])[] k_AllUpgrades =
         {
-            ("OldShader1", "NewShader1", new[] { (From: "_Color", To: "_BaseColor1", Type: (int)RenameType.Color) }),
-            ("OldShader2", "NewShader2", new[] { (From: "_Color", To: "_BaseColor2", Type: (int)RenameType.Color) })
+            ("OldShader1", "NewShader1", new[] { (From: "_Color", To: "_BaseColor1", Type: (int)MaterialPropertyType.Color) }),
+            ("OldShader2", "NewShader2", new[] { (From: "_Color", To: "_BaseColor2", Type: (int)MaterialPropertyType.Color) })
         };
         static readonly (string OldShader, string NewShader, (string From, string To, int Type)[])k_KnownUpgrade =
-            ("OldShader1", "NewShader1", new[] { (From : "_Color", To : "_BaseColor1", Type : (int)RenameType.Color) });
+            ("OldShader1", "NewShader1", new[] { (From : "_Color", To : "_BaseColor1", Type : (int)MaterialPropertyType.Color) });
 
         static readonly TestCaseData[] k_OneKnownUpgradePathTestCases =
         {
@@ -453,7 +453,7 @@ namespace UnityEditor.Rendering.Tests
                 new[]
                 {
                     k_KnownUpgrade,
-                    ("OldShader2", "NewShader2", new[] { (From: "_Color", To: "_BaseColor2", Type: (int)RenameType.Color) })
+                    ("OldShader2", "NewShader2", new[] { (From: "_Color", To: "_BaseColor2", Type: (int)MaterialPropertyType.Color) })
                 }
             )
                 .Returns(SerializedShaderPropertyUsage.UsedByUpgraded | SerializedShaderPropertyUsage.UsedByAmbiguouslyUpgraded)

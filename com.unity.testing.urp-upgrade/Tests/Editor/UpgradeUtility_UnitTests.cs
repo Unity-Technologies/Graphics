@@ -3,7 +3,7 @@ using System.Linq;
 using Moq;
 using NUnit.Framework;
 using IMaterial = UnityEditor.Rendering.UpgradeUtility.IMaterial;
-using RenameType = UnityEditor.Rendering.MaterialUpgrader.RenameType;
+using MaterialPropertyType = UnityEditor.Rendering.MaterialUpgrader.MaterialPropertyType;
 using UID = UnityEditor.Rendering.UpgradeUtility.UID;
 using static UnityEditor.Rendering.Tests.UpgraderTestUtility;
 
@@ -21,8 +21,8 @@ namespace UnityEditor.Rendering.Tests
             var result = new Dictionary<string, List<MaterialUpgrader>>();
             foreach (var upgrader in CreateMaterialUpgraders(materialUpgraderParams))
             {
-                if (!result.TryGetValue(upgrader.NewShader, out var upgraders))
-                    upgraders = result[upgrader.NewShader] = new List<MaterialUpgrader>();
+                if (!result.TryGetValue(upgrader.NewShaderPath, out var upgraders))
+                    upgraders = result[upgrader.NewShaderPath] = new List<MaterialUpgrader>();
                 upgraders.Add(upgrader);
             }
             return result.ToDictionary(kv => kv.Key, kv => kv.Value as IReadOnlyList<MaterialUpgrader>);
@@ -40,12 +40,12 @@ namespace UnityEditor.Rendering.Tests
                 materialUpgrader.RenameShader(muParams.OldShader, muParams.NewShader);
                 foreach (var rename in muParams.Renames)
                 {
-                    switch ((RenameType)rename.Type)
+                    switch ((MaterialPropertyType)rename.Type)
                     {
-                        case RenameType.Color:
+                        case MaterialPropertyType.Color:
                             materialUpgrader.RenameColor(rename.From, rename.To);
                             break;
-                        case RenameType.Float:
+                        case MaterialPropertyType.Float:
                             materialUpgrader.RenameFloat(rename.From, rename.To);
                             break;
                     }
@@ -91,62 +91,62 @@ namespace UnityEditor.Rendering.Tests
         static readonly TestCaseData[] k_UnknownUpgradePathTestCases =
         {
             new TestCaseData(
-                "_Color", "NewShader", RenameType.Color,
+                "_Color", "NewShader", MaterialPropertyType.Color,
                 new[]
                 {
-                    ("OldShader", "NewShader", new[] { (From: "_Color", To: "_BaseColor", Type: (int)RenameType.Color) })
+                    ("OldShader", "NewShader", new[] { (From: "_Color", To: "_BaseColor", Type: (int)MaterialPropertyType.Color) })
                 },
                 "_BaseColor"
             )
                 .Returns(SerializedShaderPropertyUsage.UsedByUpgraded)
                 .SetName("Upgraded color property"),
             new TestCaseData(
-                "_MainTex_ST", "NewShader", RenameType.Float,
+                "_MainTex_ST", "NewShader", MaterialPropertyType.Float,
                 new[]
                 {
-                    ("OldShader", "NewShader", new[] { (From: "_MainTex_ST", To: "_BaseMap_ST_ST", Type: (int)RenameType.Float) })
+                    ("OldShader", "NewShader", new[] { (From: "_MainTex_ST", To: "_BaseMap_ST_ST", Type: (int)MaterialPropertyType.Float) })
                 },
                 "_BaseMap_ST_ST"
             )
                 .Returns(SerializedShaderPropertyUsage.UsedByUpgraded)
                 .SetName("Single target material, upgraded, float property"),
             new TestCaseData(
-                "_Color", "NewShader", RenameType.Color,
+                "_Color", "NewShader", MaterialPropertyType.Color,
                 new[]
                 {
-                    ("OldShader1", "NewShader", new[] { (From: "_Color", To: "_BaseColor1", Type: (int)RenameType.Color) }),
-                    ("OldShader2", "NewShader", new[] { (From: "_Color", To: "_BaseColor2", Type: (int)RenameType.Color) })
+                    ("OldShader1", "NewShader", new[] { (From: "_Color", To: "_BaseColor1", Type: (int)MaterialPropertyType.Color) }),
+                    ("OldShader2", "NewShader", new[] { (From: "_Color", To: "_BaseColor2", Type: (int)MaterialPropertyType.Color) })
                 },
                 "_BaseColor1"
             )
                 .Returns(SerializedShaderPropertyUsage.UsedByUpgraded | SerializedShaderPropertyUsage.UsedByAmbiguouslyUpgraded)
                 .SetName("Single target material, upgraded with multiple paths, color property"),
             new TestCaseData(
-                "_MainTex_ST", "NewShader", RenameType.Float,
+                "_MainTex_ST", "NewShader", MaterialPropertyType.Float,
                 new[]
                 {
-                    ("OldShader1", "NewShader", new[] { (From: "_MainTex_ST", To: "_BaseMap_ST_ST1", Type: (int)RenameType.Float) }),
-                    ("OldShader2", "NewShader", new[] { (From: "_MainTex_ST", To: "_BaseMap_ST_ST2", Type: (int)RenameType.Float) })
+                    ("OldShader1", "NewShader", new[] { (From: "_MainTex_ST", To: "_BaseMap_ST_ST1", Type: (int)MaterialPropertyType.Float) }),
+                    ("OldShader2", "NewShader", new[] { (From: "_MainTex_ST", To: "_BaseMap_ST_ST2", Type: (int)MaterialPropertyType.Float) })
                 },
                 "_BaseMap_ST_ST1"
             )
                 .Returns(SerializedShaderPropertyUsage.UsedByUpgraded | SerializedShaderPropertyUsage.UsedByAmbiguouslyUpgraded)
                 .SetName("Single target material, upgraded with multiple paths, float property"),
             new TestCaseData(
-                "_Color", "OldShader", RenameType.Color,
+                "_Color", "OldShader", MaterialPropertyType.Color,
                 new[]
                 {
-                    ("OldShader", "NewShader", new[] { (From: "_Color", To: "_BaseColor", Type: (int)RenameType.Color) })
+                    ("OldShader", "NewShader", new[] { (From: "_Color", To: "_BaseColor", Type: (int)MaterialPropertyType.Color) })
                 },
                 "_Color"
             )
                 .Returns(SerializedShaderPropertyUsage.UsedByNonUpgraded)
                 .SetName("Single target material, not upgraded, color property"),
             new TestCaseData(
-                "_MainTex_ST", "OldShader", RenameType.Float,
+                "_MainTex_ST", "OldShader", MaterialPropertyType.Float,
                 new[]
                 {
-                    ("OldShader", "NewShader", new[] { (From: "_MainTex_ST", To: "_BaseMap_ST_ST", Type: (int)RenameType.Float) })
+                    ("OldShader", "NewShader", new[] { (From: "_MainTex_ST", To: "_BaseMap_ST_ST", Type: (int)MaterialPropertyType.Float) })
                 },
                 "_MainTex_ST"
             )
@@ -156,7 +156,7 @@ namespace UnityEditor.Rendering.Tests
 
         [TestCaseSource(nameof(k_UnknownUpgradePathTestCases))]
         public SerializedShaderPropertyUsage GetNewPropertyName_WhenUpgradePathIsUnknown_ReturnsExpectedResult(
-            string propertyName, string materialShaderName, RenameType renameType,
+            string propertyName, string materialShaderName, MaterialPropertyType materialPropertyType,
             (string OldShader, string NewShader, (string From, string To, int Type)[] Renames)[] materialUpgraders,
             string expectedNewName
         )
@@ -168,7 +168,7 @@ namespace UnityEditor.Rendering.Tests
             var actualUsage = UpgradeUtility.GetNewPropertyName(
                 propertyName,
                 material.Object,
-                renameType,
+                materialPropertyType,
                 allUpgradePathsToNewShaders,
                 upgradePathsUsedByMaterials: default,
                 out var actualNewPropertyName
@@ -181,20 +181,20 @@ namespace UnityEditor.Rendering.Tests
         static readonly TestCaseData[] k_KnownUpgradePathTestCases =
         {
             new TestCaseData(
-                "_Color", "NewShader", RenameType.Color,
+                "_Color", "NewShader", MaterialPropertyType.Color,
                 new[]
                 {
-                    ("OldShader", "NewShader", new[] { (From: "_Color", To: "_BaseColor", Type: (int)RenameType.Color) })
+                    ("OldShader", "NewShader", new[] { (From: "_Color", To: "_BaseColor", Type: (int)MaterialPropertyType.Color) })
                 },
                 "_BaseColor"
             )
                 .Returns(SerializedShaderPropertyUsage.UsedByUpgraded)
                 .SetName("Single target material, color property"),
             new TestCaseData(
-                "_MainTex_ST", "NewShader", RenameType.Float,
+                "_MainTex_ST", "NewShader", MaterialPropertyType.Float,
                 new[]
                 {
-                    ("OldShader", "NewShader", new[] { (From: "_MainTex_ST", To: "_BaseMap_ST", Type: (int)RenameType.Float) })
+                    ("OldShader", "NewShader", new[] { (From: "_MainTex_ST", To: "_BaseMap_ST", Type: (int)MaterialPropertyType.Float) })
                 },
                 "_BaseMap_ST"
             )
@@ -204,7 +204,7 @@ namespace UnityEditor.Rendering.Tests
 
         [TestCaseSource(nameof(k_KnownUpgradePathTestCases))]
         public SerializedShaderPropertyUsage GetNewPropertyName_WhenUpgradePathIsKnown_UsesKnownUpgradePath(
-            string propertyName, string materialShaderName, RenameType renameType,
+            string propertyName, string materialShaderName, MaterialPropertyType materialPropertyType,
             (string OldShader, string NewShader, (string From, string To, int Type)[] Renames)[] materialUpgraders,
             string expectedNewName
         )
@@ -220,7 +220,7 @@ namespace UnityEditor.Rendering.Tests
             var actualUsage = UpgradeUtility.GetNewPropertyName(
                 propertyName,
                 material.Object,
-                renameType,
+                materialPropertyType,
                 allUpgradePathsToNewShaders,
                 upgradePathsUsedByMaterials,
                 out var actualNewPropertyName
