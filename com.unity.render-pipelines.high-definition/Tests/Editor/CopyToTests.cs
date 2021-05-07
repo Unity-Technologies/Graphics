@@ -2,7 +2,6 @@ using NUnit.Framework;
 using System;
 using System.Collections;
 using System.Collections.Generic;
-using System.ComponentModel;
 using System.Linq;
 using System.Reflection;
 
@@ -64,8 +63,8 @@ namespace UnityEngine.Rendering.HighDefinition.Tests
             if (copyToMethodInfo == null)
                 Assert.Fail($"{type.Name} don't have CopyTo method.");
 
-            System.Object originalObject = GenerateObject(type);
-            System.Object modifiedObject = GenerateObjectWithMutation(type);
+            object originalObject = GenerateObject(type);
+            object modifiedObject = GenerateObjectWithMutation(type);
 
             copyToMethodInfo.Invoke(originalObject, new[] { modifiedObject });
 
@@ -315,7 +314,7 @@ namespace UnityEngine.Rendering.HighDefinition.Tests
             MonoBehaviour m_MonoBehaviour; //interesting as we cannot instanciate it directly
             CustomMonoBehaviour m_CustomMonoBehaviour;
             Class m_ClassRef;
-            [CopyFilter(CopyFilterAttribute.Filter.CheckContent)]
+            [ValueCopy]
             Class m_Class = new Class();
             bool m_Bool;
             int m_Int;
@@ -330,19 +329,19 @@ namespace UnityEngine.Rendering.HighDefinition.Tests
             Struct m_Struct;
 
             int[] m_IntRef = new int[0];
-            [CopyFilter(CopyFilterAttribute.Filter.CheckContent)]
+            [ValueCopy]
             int[] m_Ints = new int[0];
-            [CopyFilter(CopyFilterAttribute.Filter.CheckContent)]
+            [ValueCopy]
             Struct[] m_Structs = new Struct[0];
-            [CopyFilter(CopyFilterAttribute.Filter.CheckContent)]
+            [ValueCopy]
             Texture[] m_Textures = new Texture[0];
-            [CopyFilter(CopyFilterAttribute.Filter.CheckContent)]
+            [ValueCopy]
             Component[] m_Components = new Component[0];
-            [CopyFilter(CopyFilterAttribute.Filter.CheckContent)]
+            [ValueCopy]
             Transform[] m_Transforms = new Transform[0];
-            [CopyFilter(CopyFilterAttribute.Filter.CheckContent)]
+            [ValueCopy]
             CustomMonoBehaviour[] m_CustomMonoBehaviours = new CustomMonoBehaviour[0];
-            [CopyFilter(CopyFilterAttribute.Filter.CheckContent)]
+            [ValueCopy]
             Class[] m_Classes = new Class[0];
 
             void CopyTo(TypeSelfTest other)
@@ -393,14 +392,14 @@ namespace UnityEngine.Rendering.HighDefinition.Tests
             int m_FieldIncluded;
 
 #pragma warning disable 0067 //never used
-            [CopyFilter(CopyFilterAttribute.Filter.Exclude)]
+            [ExcludeCopy]
             int m_FieldExcluded;
 #pragma warning restore 0067
 
             int m_PropertyIncluded { get; set; }
 
 #pragma warning disable 0067 //never used
-            [field: CopyFilter(CopyFilterAttribute.Filter.Exclude)]
+            [field: ExcludeCopy]
             int m_PropertyExcluded { get; set; }
 
             event Action m_Event1;
@@ -414,7 +413,7 @@ namespace UnityEngine.Rendering.HighDefinition.Tests
             MyDelegate m_Delegate;
 
 
-            [CopyFilter(CopyFilterAttribute.Filter.Exclude)]
+            [ExcludeCopy]
             int m_CustomBackingField;
 #pragma warning restore 0067
 

@@ -57,7 +57,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
 #pragma warning disable 0618, 0612
         [SerializeField]
-        [CopyFilter(CopyFilterAttribute.Filter.Exclude)]
+        [ExcludeCopy]
         private Version m_Version = MigrationDescription.LastVersion<Version>();
 
         private static readonly MigrationDescription<Version, HDAdditionalLightData> k_HDLightMigrationSteps
@@ -194,30 +194,30 @@ namespace UnityEngine.Rendering.HighDefinition
         // we add intensity (for each type of light we want to manage).
         [Obsolete("Use Light.renderingLayerMask instead")]
         [FormerlySerializedAs("lightLayers")]
-        [CopyFilter(CopyFilterAttribute.Filter.Exclude)]
+        [ExcludeCopy]
         LightLayerEnum m_LightLayers = LightLayerEnum.LightLayerDefault;
 
         [Obsolete]
         [SerializeField]
         [FormerlySerializedAs("m_ShadowResolutionTier")]
-        [CopyFilter(CopyFilterAttribute.Filter.Exclude)]
+        [ExcludeCopy]
         ShadowResolutionTier m_ObsoleteShadowResolutionTier = ShadowResolutionTier.Medium;
         [Obsolete]
         [SerializeField]
         [FormerlySerializedAs("m_UseShadowQualitySettings")]
-        [CopyFilter(CopyFilterAttribute.Filter.Exclude)]
+        [ExcludeCopy]
         bool m_ObsoleteUseShadowQualitySettings = false;
 
         [FormerlySerializedAs("m_CustomShadowResolution")]
         [Obsolete]
         [SerializeField]
-        [CopyFilter(CopyFilterAttribute.Filter.Exclude)]
+        [ExcludeCopy]
         int m_ObsoleteCustomShadowResolution = k_DefaultShadowResolution;
 
         [FormerlySerializedAs("m_ContactShadows")]
         [Obsolete]
         [SerializeField]
-        [CopyFilter(CopyFilterAttribute.Filter.Exclude)]
+        [ExcludeCopy]
         bool m_ObsoleteContactShadows = false;
         #endregion
     }

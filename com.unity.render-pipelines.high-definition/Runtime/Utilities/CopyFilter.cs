@@ -14,15 +14,15 @@ namespace UnityEngine.Rendering.HighDefinition
     /// {
     ///     int field1;                     //will check if value are equals
     ///     object field2;                  //will check if reference are equals
-    ///     [CopyFilter(CopyFilterAttribute.Filter.CheckContent)]
+    ///     [ValueCopy]
     ///     object field3;                  //will not check the reference but check that each value inside are the same.
-    ///     [CopyFilter(CopyFilterAttribute.Filter.Exclude)]
+    ///     [ExcludeCopy]
     ///     int field4;                     //will not check anything
     ///     int property1 { get; set; }     //will check if generated backing field is copied
     ///     object property3 { get; set; }  //will check if generated backing field's reference are equals
-    ///     [field: CopyFilter(CopyFilterAttribute.Filter.CheckContent)]
+    ///     [field: ValueCopy]
     ///     object property3 { get; set; }  //will not check the reference but check that each value inside are the same, in the generated backing field.
-    ///     [field: CopyFilter(CopyFilterAttribute.Filter.Exclude)]
+    ///     [field: ExcludeCopy]
     ///     int property2 { get; set; }     //will not check anything
     ///
     ///     // Also all delegate (include Action and Func) and backing field using them (such as event)
@@ -38,7 +38,7 @@ namespace UnityEngine.Rendering.HighDefinition
     /// }
     /// </example>
     [AttributeUsage(AttributeTargets.Field | AttributeTargets.Class | AttributeTargets.Property, AllowMultiple = false, Inherited = false)]
-    sealed class CopyFilterAttribute : Attribute
+    class CopyFilterAttribute : Attribute
     {
         public enum Filter
         {
@@ -49,11 +49,25 @@ namespace UnityEngine.Rendering.HighDefinition
         public readonly Filter filter;
 #endif
 
-        public CopyFilterAttribute(Filter test)
+        protected CopyFilterAttribute(Filter test)
         {
 #if UNITY_EDITOR
             this.filter = test;
 #endif
         }
+    }
+
+    sealed class ExcludeCopyAttribute : CopyFilterAttribute
+    {
+        public ExcludeCopyAttribute()
+            : base(Filter.Exclude)
+        {}
+    }
+
+    sealed class ValueCopyAttribute : CopyFilterAttribute
+    {
+        public ValueCopyAttribute()
+            : base(Filter.CheckContent)
+        {}
     }
 }
