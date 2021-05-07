@@ -435,10 +435,18 @@ namespace UnityEngine.Rendering.Universal.Internal
         ProfilingSampler m_ProfilingSamplerDeferredFogPass = new ProfilingSampler(k_DeferredFogPass);
         ProfilingSampler m_ProfilingSamplerClearStencilPartialPass = new ProfilingSampler(k_ClearStencilPartial);
 
-        // TODO: move? share with forward? Pass in?
         private LightCookieManager m_LightCookieManager;
 
-        internal DeferredLights(Material tileDepthInfoMaterial, Material tileDeferredMaterial, Material stencilDeferredMaterial)
+        internal struct InitParams
+        {
+            public Material tileDepthInfoMaterial;
+            public Material tileDeferredMaterial;
+            public Material stencilDeferredMaterial;
+
+            public LightCookieManager lightCookieManager;
+        }
+
+        internal DeferredLights(InitParams initParams)
         {
             // Cache result for GL platform here. SystemInfo properties are in C++ land so repeated access will be unecessary penalized.
             // They can also only be called from main thread!
@@ -449,9 +457,9 @@ namespace UnityEngine.Rendering.Universal.Internal
             // Cachre result for DX10 platform too. Same reasons as above.
             DeferredConfig.IsDX10 = SystemInfo.graphicsDeviceType == GraphicsDeviceType.Direct3D11 && SystemInfo.graphicsShaderLevel <= 40;
 
-            m_TileDepthInfoMaterial = tileDepthInfoMaterial;
-            m_TileDeferredMaterial = tileDeferredMaterial;
-            m_StencilDeferredMaterial = stencilDeferredMaterial;
+            m_TileDepthInfoMaterial = initParams.tileDepthInfoMaterial;
+            m_TileDeferredMaterial = initParams.tileDeferredMaterial;
+            m_StencilDeferredMaterial = initParams.stencilDeferredMaterial;
 
             m_TileDeferredPasses = new int[k_TileDeferredPassNames.Length];
             InitTileDeferredMaterial();
@@ -488,17 +496,7 @@ namespace UnityEngine.Rendering.Universal.Internal
             this.UseJobSystem = true;
             m_HasTileVisLights = false;
 
-            {
-                var settings = LightCookieManager.Settings.GetDefault();
-                var asset = UniversalRenderPipeline.asset;
-                if (asset)
-                {
-                    settings.atlas.format = asset.additionalLightsCookieFormat;
-                    settings.atlas.resolution = asset.additionalLightsCookieResolution;
-                }
-
-                m_LightCookieManager = new LightCookieManager(ref settings);
-            }
+            m_LightCookieManager = initParams.lightCookieManager;
         }
 
         internal ref DeferredTiler GetTiler(int i)

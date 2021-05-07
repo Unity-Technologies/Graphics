@@ -1,5 +1,6 @@
 using UnityEngine.Experimental.GlobalIllumination;
 using Unity.Collections;
+using UnityEngine.PlayerLoop;
 
 namespace UnityEngine.Rendering.Universal.Internal
 {
@@ -43,10 +44,33 @@ namespace UnityEngine.Rendering.Universal.Internal
 
         bool m_UseStructuredBuffer;
 
-        // TODO: move?
         private LightCookieManager m_LightCookieManager;
 
-        public ForwardLights()
+        internal struct InitParams
+        {
+            public LightCookieManager lightCookieManager;
+
+            static internal InitParams GetDefault()
+            {
+                InitParams p;
+                {
+                    var settings = LightCookieManager.Settings.GetDefault();
+                    var asset = UniversalRenderPipeline.asset;
+                    if (asset)
+                    {
+                        settings.atlas.format = asset.additionalLightsCookieFormat;
+                        settings.atlas.resolution = asset.additionalLightsCookieResolution;
+                    }
+
+                    p.lightCookieManager = new LightCookieManager(ref settings);
+                }
+                return p;
+            }
+        }
+
+        public ForwardLights() : this(InitParams.GetDefault()) {}
+
+        internal ForwardLights(InitParams initParams)
         {
             m_UseStructuredBuffer = RenderingUtils.useStructuredBuffer;
 
@@ -79,17 +103,7 @@ namespace UnityEngine.Rendering.Universal.Internal
                 m_AdditionalLightsLayerMasks = new float[maxLights];
             }
 
-            {
-                var settings = LightCookieManager.Settings.GetDefault();
-                var asset = UniversalRenderPipeline.asset;
-                if (asset)
-                {
-                    settings.atlas.format = asset.additionalLightsCookieFormat;
-                    settings.atlas.resolution = asset.additionalLightsCookieResolution;
-                }
-
-                m_LightCookieManager = new LightCookieManager(ref settings);
-            }
+            m_LightCookieManager = initParams.lightCookieManager;
         }
 
         public void Setup(ScriptableRenderContext context, ref RenderingData renderingData)
