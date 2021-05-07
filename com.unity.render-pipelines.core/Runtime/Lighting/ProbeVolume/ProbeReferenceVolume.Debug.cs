@@ -114,6 +114,9 @@ namespace UnityEngine.Experimental.Rendering
             var subdivContainer = new DebugUI.Container() { displayName = "Subdivision Visualization" };
             subdivContainer.children.Add(new DebugUI.BoolField { displayName = "Display Cells", getter = () => debugDisplay.drawCells, setter = value => debugDisplay.drawCells = value, onValueChanged = RefreshDebug });
             subdivContainer.children.Add(new DebugUI.BoolField { displayName = "Display Bricks", getter = () => debugDisplay.drawBricks, setter = value => debugDisplay.drawBricks = value, onValueChanged = RefreshDebug });
+#if UNITY_EDITOR
+            subdivContainer.children.Add(new DebugUI.BoolField { displayName = "Realtime Update", getter = () => debugDisplay.realtimeSubdivision, setter = value => debugDisplay.realtimeSubdivision = value, onValueChanged = RefreshDebug });
+#endif
 
             if (debugDisplay.drawCells || debugDisplay.drawBricks)
             {
@@ -149,10 +152,6 @@ namespace UnityEngine.Experimental.Rendering
                     max = () => ProbeReferenceVolume.instance.GetMaxSubdivision(),
                 });
             }
-
-#if UNITY_EDITOR
-            widgetList.Add(new DebugUI.BoolField { displayName = "Realtime Subdivision", getter = () => debugDisplay.realtimeSubdivision, setter = value => debugDisplay.realtimeSubdivision = value, onValueChanged = RefreshDebug });
-#endif
 
             widgetList.Add(subdivContainer);
             widgetList.Add(probeContainer);

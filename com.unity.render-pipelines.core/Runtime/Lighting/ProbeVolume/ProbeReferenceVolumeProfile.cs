@@ -19,20 +19,18 @@ namespace UnityEngine.Experimental.Rendering
         Version version = CoreUtils.GetLastEnumValue<Version>();
 
         /// <summary>
-        /// How much the probes structure contains hierarchical levels
+        /// How many levels contains the probes hierarchical structure.
         /// </summary>
         [Range(2, 4)]
         public int simplificationLevels = 3;
 
-        // This field will be replaced by something else (probably a distance based setting in meter) when the artists decide
-        // what they want. So, we shouldn't rely on this information too much.
         /// <summary>
-        /// The size of a Cell.
+        /// The size of a Cell in number of bricks.
         /// </summary>
         public int cellSizeInBricks => (int)Mathf.Pow(simplificationLevels, 3);
 
         /// <summary>
-        /// The size of a Brick.
+        /// The minimum distance between two probes in meters.
         /// </summary>
         [Min(0.1f)]
         public float minDistanceBetweenProbes = 1.0f;
@@ -40,10 +38,16 @@ namespace UnityEngine.Experimental.Rendering
         /// <summary>
         /// Maximum subdivision in the structure.
         /// </summary>
-        public int maxSubdivision => simplificationLevels + 1;
+        public int maxSubdivision => simplificationLevels + 1; // we add one for the top subdiv level which is the same size as a cell
 
+        /// <summary>
+        /// Minimum size of a brick in meters.
+        /// </summary>
         public float minBrickSize => Mathf.Max(0.01f, minDistanceBetweenProbes * 3.0f);
 
+        /// <summary>
+        /// Size of the cell in meters.
+        /// </summary>
         public float cellSizeInMeters => (float)cellSizeInBricks * minBrickSize;
 
         void OnEnable()
