@@ -294,5 +294,15 @@ namespace UnityEngine.Experimental.Rendering.Universal
             if (m_CreateDepthTexture)
                 cmd.ReleaseTemporaryRT(k_DepthTextureHandle.id);
         }
+
+        internal override void SwapColorBuffer(CommandBuffer cmd)
+        {
+            throw new System.NotImplementedException();
+        }
+
+        internal override RenderTargetIdentifier GetCameraColorFrontBuffer(CommandBuffer cmd)
+        {
+            throw new System.NotImplementedException();
+        }
     }
 }
