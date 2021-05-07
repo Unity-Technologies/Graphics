@@ -6,6 +6,7 @@
 #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/GlobalIllumination.hlsl"
 #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/RealtimeLights.hlsl"
 #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/AmbientOcclusion.hlsl"
+#include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/DBuffer.hlsl"
 
 #if defined(LIGHTMAP_ON)
     #define DECLARE_LIGHTMAP_OR_SH(lmName, shName, index) float2 lmName : TEXCOORD##index
@@ -269,7 +270,7 @@ half4 UniversalFragmentPBR(InputData inputData, SurfaceData surfaceData)
     LightingData lightingData = CreateLightingData(inputData, surfaceData);
 
     lightingData.giColor = GlobalIllumination(brdfData, brdfDataClearCoat, surfaceData.clearCoatMask,
-                                              inputData.bakedGI, aoFactor.indirectAmbientOcclusion,
+                                              inputData.bakedGI, aoFactor.indirectAmbientOcclusion, inputData.positionWS,
                                               inputData.normalWS, inputData.viewDirectionWS);
 
     if (IsMatchingLightLayer(mainLight.layerMask, meshRenderingLayers))

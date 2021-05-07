@@ -54,6 +54,8 @@ Shader "Universal Render Pipeline/Nature/SpeedTree8"
             #pragma multi_compile _ _MAIN_LIGHT_SHADOWS _MAIN_LIGHT_SHADOWS_CASCADE _MAIN_LIGHT_SHADOWS_SCREEN
             #pragma multi_compile _ _ADDITIONAL_LIGHTS_VERTEX _ADDITIONAL_LIGHTS
             #pragma multi_compile _ _ADDITIONAL_LIGHT_SHADOWS
+            #pragma multi_compile_fragment _ _REFLECTION_PROBE_BLENDING
+            #pragma multi_compile_fragment _ _REFLECTION_PROBE_BOX_PROJECTION
             #pragma multi_compile _ _SHADOWS_SOFT
             #pragma multi_compile _ LOD_FADE_CROSSFADE
             #pragma multi_compile_fragment _ _SCREEN_SPACE_OCCLUSION
@@ -122,6 +124,8 @@ Shader "Universal Render Pipeline/Nature/SpeedTree8"
             #pragma multi_compile _ _MAIN_LIGHT_SHADOWS _MAIN_LIGHT_SHADOWS_CASCADE _MAIN_LIGHT_SHADOWS_SCREEN
             //#pragma multi_compile _ _ADDITIONAL_LIGHTS_VERTEX _ADDITIONAL_LIGHTS
             //#pragma multi_compile _ _ADDITIONAL_LIGHT_SHADOWS
+            #pragma multi_compile_fragment _ _REFLECTION_PROBE_BLENDING
+            #pragma multi_compile_fragment _ _REFLECTION_PROBE_BOX_PROJECTION
             #pragma multi_compile _ _SHADOWS_SOFT
             #pragma multi_compile _ LOD_FADE_CROSSFADE
             #pragma multi_compile_vertex LOD_FADE_PERCENTAGE

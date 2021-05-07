@@ -4,6 +4,7 @@
 
 #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Lighting.hlsl"
 #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/UnityGBuffer.hlsl"
+#include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/DBuffer.hlsl"
 
 #if defined(UNITY_INSTANCING_ENABLED) && defined(_TERRAIN_INSTANCED_PERPIXEL_NORMAL)
     #define ENABLE_TERRAIN_PERPIXEL_NORMAL
@@ -423,6 +424,17 @@ half4 SplatmapFragment(Varyings IN) : SV_TARGET
     InitializeInputData(IN, normalTS, inputData);
     SETUP_DEBUG_TEXTURE_DATA(inputData, IN.uvMainAndLM.xy, _BaseMap);
 
+#if defined(_DBUFFER)
+    half3 specular = half3(0.0h, 0.0h, 0.0h);
+    ApplyDecal(IN.clipPos,
+        albedo,
+        specular,
+        inputData.normalWS,
+        metallic,
+        occlusion,
+        smoothness);
+#endif
+
 #ifdef TERRAIN_GBUFFER
 
     BRDFData brdfData;
@@ -432,7 +444,7 @@ half4 SplatmapFragment(Varyings IN) : SV_TARGET
     half4 color;
     Light mainLight = GetMainLight(inputData.shadowCoord, inputData.positionWS, inputData.shadowMask);
     MixRealtimeAndBakedGI(mainLight, inputData.normalWS, inputData.bakedGI, inputData.shadowMask);
-    color.rgb = GlobalIllumination(brdfData, inputData.bakedGI, occlusion, inputData.normalWS, inputData.viewDirectionWS);
+    color.rgb = GlobalIllumination(brdfData, inputData.bakedGI, occlusion, inputData.positionWS, inputData.normalWS, inputData.viewDirectionWS);
     color.a = alpha;
     SplatmapFinalColor(color, inputData.fogCoord);
 
