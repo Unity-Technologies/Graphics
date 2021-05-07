@@ -229,6 +229,8 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
 
         public override object saveContext => m_ActiveSubTarget.value?.saveContext;
 
+        public override int GeneratedPropertiesHash() => (int)(m_ActiveSubTarget.value?.GeneratedPropertiesHash());
+
         // IHasMetaData
         public string identifier
         {

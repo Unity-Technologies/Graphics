@@ -22,6 +22,7 @@ namespace UnityEditor.ShaderGraph
         public abstract void GetPropertiesGUI(ref TargetPropertyGUIContext context, Action onChange, Action<string> registerUndo);
         public virtual void CollectShaderProperties(PropertyCollector collector, GenerationMode generationMode) {}
         public virtual void ProcessPreviewMaterial(Material material) {}
+        public virtual int GeneratedPropertiesHash() { return 0; }
         public virtual object saveContext => null;
         public virtual bool IsNodeAllowedByTarget(Type nodeType)
         {

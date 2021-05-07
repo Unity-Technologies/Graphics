@@ -41,6 +41,7 @@ namespace UnityEditor.Rendering.HighDefinition
         /// <param name="material">The target material.</param>
         public static void SetupLightingKeywordsAndPass(Material material)
         {
+            Debug.Log(material.name);
             SynchronizeShaderGraphProperties(material);
 
             BaseLitGUI.SetupBaseLitKeywords(material);

@@ -403,7 +403,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                 || soConeFixupMethod == StackLitData.SpecularOcclusionConeFixupMethod.BoostAndTilt);
         }
 
-        protected override int ComputeMaterialNeedsUpdateHash()
-            => base.ComputeMaterialNeedsUpdateHash() * 23 + stackLitData.subsurfaceScattering.GetHashCode();
+        public override int GeneratedPropertiesHash()
+            => base.GeneratedPropertiesHash() * 23 + stackLitData.subsurfaceScattering.GetHashCode();
     }
 }

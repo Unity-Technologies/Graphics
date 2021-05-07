@@ -1,4 +1,5 @@
 using UnityEngine;
+using UnityEngine.Rendering;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
@@ -257,6 +258,26 @@ Shader ""Hidden/GraphErrorShader2""
                     ctx.DependsOnArtifact(asset.Key);
                 }
             }
+
+            // Generate Artifact file so material can register a dependency on inherited values
+            int hash = 0, hiddenPropertyCount = 0;
+            foreach (var target in graph.activeTargets)
+                hash = hash * 23 + target.GeneratedPropertiesHash();
+            for (int i = 0; i < shader.GetPropertyCount(); i++)
+            {
+                if (shader.GetPropertyAttributes(i).Contains("HideInMaterial"))
+                {
+                    hiddenPropertyCount++;
+                    var type = shader.GetPropertyType(i);
+                    if (type == ShaderPropertyType.Float || type == ShaderPropertyType.Range)
+                        hash = hash * 23 + shader.GetPropertyDefaultFloatValue(i).GetHashCode();
+                    else if (type == ShaderPropertyType.Vector || type == ShaderPropertyType.Color)
+                        hash = hash * 23 + shader.GetPropertyDefaultVectorValue(i).GetHashCode();
+                }
+            }
+            string artifact = ctx.GetOutputArtifactFilePath("GeneratedPropertiesHash"); // this fileName is read by the material importer
+            if (!string.IsNullOrEmpty(artifact))
+                File.WriteAllText(artifact, (hash * 23 + hiddenPropertyCount).ToString());
         }
 
         static void ReportErrors(GraphData graph, Shader shader, string path)

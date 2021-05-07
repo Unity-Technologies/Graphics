@@ -40,8 +40,6 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
         protected VFXContextCompiledData m_ContextDataVFX;
         protected bool TargetsVFX() => m_ContextVFX != null;
 
-        protected virtual int ComputeMaterialNeedsUpdateHash() => 0;
-
         public override bool IsActive() => true;
 
         protected abstract ShaderID shaderID { get; }
@@ -108,7 +106,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
             if (m_MigrateFromOldSG)
             {
                 systemData.version = ShaderGraphVersion.Initial;
-                systemData.materialNeedsUpdateHash = ComputeMaterialNeedsUpdateHash();
+                systemData.materialNeedsUpdateHash = GeneratedPropertiesHash();
             }
 
             // Migration hack to have the case where SG doesn't have version yet but is already upgraded to the stack system
@@ -257,19 +255,6 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
         }
 
         protected abstract void AddInspectorPropertyBlocks(SubTargetPropertiesGUI blockList);
-
-        public override object saveContext
-        {
-            get
-            {
-                int hash = ComputeMaterialNeedsUpdateHash();
-                bool needsUpdate = hash != systemData.materialNeedsUpdateHash;
-                if (needsUpdate)
-                    systemData.materialNeedsUpdateHash = hash;
-
-                return new HDSaveContext { updateMaterials = needsUpdate };
-            }
-        }
 
         public void ConfigureContextData(VFXContext context, VFXContextCompiledData data)
         {
