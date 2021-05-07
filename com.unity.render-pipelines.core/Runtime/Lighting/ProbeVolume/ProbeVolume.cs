@@ -13,11 +13,13 @@ namespace UnityEngine.Experimental.Rendering
     [AddComponentMenu("Light/Probe Volume (Experimental)")]
     public class ProbeVolume : MonoBehaviour
     {
-        public Vector3      size = Vector3.one;
+        public Vector3      size = new Vector3(10, 10, 10);
         [HideInInspector]
         public float        maxSubdivisionMultiplier = 1;
         [HideInInspector]
         public float        minSubdivisionMultiplier = 0;
+        [HideInInspector, Range(0f, 2f)]
+        public float        geometryDistanceOffset = 0;
 
         public LayerMask    objectLayerMask = -1;
 

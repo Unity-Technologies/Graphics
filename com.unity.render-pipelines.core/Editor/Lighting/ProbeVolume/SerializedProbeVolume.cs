@@ -8,6 +8,7 @@ namespace UnityEditor.Experimental.Rendering
         internal SerializedProperty maxSubdivisionMultiplier;
         internal SerializedProperty minSubdivisionMultiplier;
         internal SerializedProperty objectLayerMask;
+        internal SerializedProperty geometryDistanceOffset;
 
         internal SerializedObject serializedObject;
 
@@ -19,6 +20,7 @@ namespace UnityEditor.Experimental.Rendering
             maxSubdivisionMultiplier = serializedObject.FindProperty("maxSubdivisionMultiplier");
             minSubdivisionMultiplier = serializedObject.FindProperty("minSubdivisionMultiplier");
             objectLayerMask = serializedObject.FindProperty("objectLayerMask");
+            geometryDistanceOffset = serializedObject.FindProperty("geometryDistanceOffset");
         }
 
         internal void Apply()

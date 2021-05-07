@@ -14,6 +14,7 @@ struct GPUProbeVolumeOBB
     float3 Z;
     int minSubdivisionLevel;
     int maxSubdivisionLevel;
+    float geometryDistanceOffset;
 };
 
 //
@@ -42,6 +43,10 @@ int GetMinSubdivisionLevel(GPUProbeVolumeOBB value)
 int GetMaxSubdivisionLevel(GPUProbeVolumeOBB value)
 {
     return value.maxSubdivisionLevel;
+}
+float GetGeometryDistanceOffset(GPUProbeVolumeOBB value)
+{
+    return value.geometryDistanceOffset;
 }
 
 #endif

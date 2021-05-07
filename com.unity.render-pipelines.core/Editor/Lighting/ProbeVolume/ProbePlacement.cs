@@ -28,6 +28,7 @@ namespace UnityEngine.Experimental.Rendering
 
             public int minSubdivisionLevel;
             public int maxSubdivisionLevel;
+            public float geometryDistanceOffset;
         }
 
         public class GPUSubdivisionContext : IDisposable
@@ -363,6 +364,7 @@ namespace UnityEngine.Experimental.Rendering
                         Z = kp.volume.Z,
                         minSubdivisionLevel = minSubdiv,
                         maxSubdivisionLevel = maxSubdiv,
+                        geometryDistanceOffset = kp.component.geometryDistanceOffset,
                     });
                 }
 

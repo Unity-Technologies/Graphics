@@ -195,6 +195,7 @@ bool PointInsideOBB(GPUProbeVolumeOBB obbA, GPUProbeVolumeOBB obbB)
 void VoxelizeProbeVolumeData(uint3 id : SV_DispatchThreadID)
 {
     float2 subdivisionLimits = float2(0, 0);
+    float maxGeometryDistance = -1e20;
 
     if (any(id >= uint3(_MaxBrickSize)))
         return;
@@ -214,10 +215,11 @@ void VoxelizeProbeVolumeData(uint3 id : SV_DispatchThreadID)
         {
             subdivisionLimits.x = max(subdivisionLimits.x, obb.minSubdivisionLevel);
             subdivisionLimits.y = max(subdivisionLimits.y, obb.maxSubdivisionLevel);
+            maxGeometryDistance = max(maxGeometryDistance, obb.geometryDistanceOffset);
         }
     }
 
-    _Output[id] = float4(subdivisionLimits, 0, 0);
+    _Output[id] = float4(subdivisionLimits, maxGeometryDistance, 0);
 }
 
 [numthreads(8, 8, 1)]
@@ -230,7 +232,7 @@ void Subdivide(uint3 id : SV_DispatchThreadID)
     float3 position01 = (float3(id) + 0.5) / _MaxBrickSize;
 
     // Get the local min and max subdivision levels
-    float2 subdivisionLevelData = _ProbeVolumeData.Load(uint4(id, _SubdivisionLevel)).xy;
+    float3 subdivisionLevelData = _ProbeVolumeData.Load(uint4(id, _SubdivisionLevel)).xyz;
 
     // Discard bricks that are below the max subdiv level of the probe volume
     int maxSubdiv = _MaxSubdivisionLevel - subdivisionLevelData.y + 1;
@@ -242,13 +244,15 @@ void Subdivide(uint3 id : SV_DispatchThreadID)
 
     float dist = _Input[sdfId].r;
 
-    float voxelDetectionDistance = 1.0 / _MaxBrickSize.x;
+    float voxelDetectionDistance = rcp(_MaxBrickSize.x);
     voxelDetectionDistance *= voxelDetectionDistance;
     voxelDetectionDistance = sqrt(voxelDetectionDistance + voxelDetectionDistance + voxelDetectionDistance) / 2.0;
 
     int minSubdiv = _MaxSubdivisionLevel - subdivisionLevelData.x;
 
-    // TODO: expose this distance as a parameter
+    // Add a small offset to control how the subdivision looks from the probe volume
+    voxelDetectionDistance += subdivisionLevelData.z * rcp(_MaxBrickSize.x);
+
     if (dist <= voxelDetectionDistance || _SubdivisionLevel > minSubdiv)
     {
         // transform id to world position

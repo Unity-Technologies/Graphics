@@ -150,6 +150,8 @@ namespace UnityEditor.Experimental.Rendering
             }
 
             EditorGUILayout.PropertyField(serialized.objectLayerMask, Styles.s_ObjectLayerMask);
+
+            EditorGUILayout.PropertyField(serialized.geometryDistanceOffset, Styles.s_GeometryDistanceOffset);
         }
     }
 }
