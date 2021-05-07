@@ -4,7 +4,7 @@ using UnityEngine.Rendering.Universal;
 
 namespace UnityEditor.Rendering.Universal
 {
-    internal class UniversalRenderPipelineSerializedCamera : ISerializedCamera
+    class UniversalRenderPipelineSerializedCamera : ISerializedCamera
     {
         public SerializedObject serializedObject { get; }
         public SerializedObject serializedAdditionalDataObject { get; }
@@ -29,6 +29,7 @@ namespace UnityEditor.Rendering.Universal
         public SerializedProperty cameraType { get; }
         public SerializedProperty cameras { get; set; }
         public SerializedProperty volumeTrigger { get; }
+        public SerializedProperty volumeFrameworkUpdateMode { get; }
         public SerializedProperty renderPostProcessing { get; }
         public SerializedProperty antialiasingQuality { get; }
 #if ENABLE_VR && ENABLE_XR_MODULE
@@ -81,6 +82,7 @@ namespace UnityEditor.Rendering.Universal
             renderer = serializedAdditionalDataObject.FindProperty("m_RendererIndex");
             volumeLayerMask = serializedAdditionalDataObject.FindProperty("m_VolumeLayerMask");
             volumeTrigger = serializedAdditionalDataObject.FindProperty("m_VolumeTrigger");
+            volumeFrameworkUpdateMode = serializedAdditionalDataObject.FindProperty("m_VolumeFrameworkUpdateModeOption");
             renderPostProcessing = serializedAdditionalDataObject.FindProperty("m_RenderPostProcessing");
             antialiasingQuality = serializedAdditionalDataObject.FindProperty("m_AntialiasingQuality");
             cameraType = serializedAdditionalDataObject.FindProperty("m_CameraType");

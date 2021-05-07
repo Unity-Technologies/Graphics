@@ -9,6 +9,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 ### Changed
 - ClearFlag.Depth does not implicitely clear stencil anymore. ClearFlag.Stencil added.
 - The RTHandleSystem no longer requires a specific number of sample for MSAA textures. Number of samples can be chosen independently for all textures.
+- Platform ShaderLibrary API headers now have a new macro layer for 2d texture sampling macros. This layer starts with PLATFORM_SAMPLE2D definition, and it gives the possibility of injecting sampling behavior on a render pipeline level. For example: being able to a global mip bias for temporal upscalers.
 
 ### Fixed
 - Fixed missing warning UI about Projector component being unsupported (case 1300327).
@@ -19,6 +20,9 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed normal bias field of reference volume being wrong until the profile UI was displayed.
 - Fixed L2 for Probe Volumes.
 - Fixed assertion on compression of L1 coefficients for Probe Volume.
+- Fixed ACES filter artefact due to half float error on some mobile platforms.
+- Fixed issue displaying a warning of different probe reference volume profiles even when they are equivalent.
+- Fixed missing increment/decrement controls from DebugUIIntField & DebugUIUIntField widget prefabs.
 
 ### Added
 - Support for the PlayStation 5 platform has been added.
@@ -38,9 +42,18 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - New API in DynamicResolutionHandler to handle multicamera rendering for hardware mode. Changing cameras and resetting scaling per camera should be safe.
 - Added SpeedTree8MaterialUpgrader, which provides utilities for upgrading and importing SpeedTree 8 assets to scriptable render pipelines.
 - Adding documentation links to Light Sections
+- Support for Lens Flare Data Driven (from images and Procedural shapes), on HDRP
+- New SRPLensFlareData Asset
+- Adding documentation links to Light Sections.
+- Added sampling noise to probe volume sampling position to hide seams between subdivision levels.
+- Added DebugUI.Foldout.isHeader property to allow creating full-width header foldouts in Rendering Debugger.
+- Added DebugUI.Flags.IsHidden to allow conditional display of widgets in Rendering Debugger.
+- Added "Expand/Collapse All" buttons to Rendering Debugger window menu.
+- Added mouse & touch input support for Rendering Debugger runtime UI, and fix problems when InputSystem package is used.
+- Add automatic spaces to enum display names used in Rendering Debugger and add support for InspectorNameAttribute.
 
 ### Changed
-- Changed Window/Render Pipeline/Render Pipeline Debug to Window/Rendering/Render Pipeline Debugger
+- Changed Window/Render Pipeline/Render Pipeline Debug to Window/Analysis/Rendering Debugger
 - Changed Window/Render Pipeline/Look Dev to Window/Analysis/Look Dev
 - Changed Window/Render Pipeline/Render Graph Viewer to Window/Analysis/Render Graph Viewer
 - Changed Window/Render Pipeline/Graphics Compositor to Window/Rendering/Graphics Compositor

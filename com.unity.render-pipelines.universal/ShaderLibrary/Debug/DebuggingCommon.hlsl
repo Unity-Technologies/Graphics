@@ -4,15 +4,6 @@
 
 #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Debug/DebugViewEnums.cs.hlsl"
 
-// Set of colors that should still provide contrast for the Color-blind
-#define kPurpleColor float4(156.0 / 255.0, 79.0 / 255.0, 255.0 / 255.0, 1.0) // #9C4FFF
-#define kRedColor float4(203.0 / 255.0, 48.0 / 255.0, 34.0 / 255.0, 1.0) // #CB3022
-#define kGreenColor float4(8.0 / 255.0, 215.0 / 255.0, 139.0 / 255.0, 1.0) // #08D78B
-#define kYellowGreenColor float4(151.0 / 255.0, 209.0 / 255.0, 61.0 / 255.0, 1.0) // #97D13D
-#define kBlueColor float4(75.0 / 255.0, 146.0 / 255.0, 243.0 / 255.0, 1.0) // #4B92F3
-#define kOrangeBrownColor float4(219.0 / 255.0, 119.0 / 255.0, 59.0 / 255.0, 1.0) // #4B92F3
-#define kGrayColor float4(174.0 / 255.0, 174.0 / 255.0, 174.0 / 255.0, 1.0) // #AEAEAE
-
 #if defined(DEBUG_DISPLAY)
 
 #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Color.hlsl"
@@ -21,18 +12,17 @@
 // Material settings...
 int _DebugMaterialMode;
 int _DebugVertexAttributeMode;
+int _DebugMaterialValidationMode;
 
 // Rendering settings...
 int _DebugFullScreenMode;
 int _DebugSceneOverrideMode;
 int _DebugMipInfoMode;
+int _DebugValidationMode;
 
 // Lighting settings...
 int _DebugLightingMode;
 int _DebugLightingFeatureFlags;
-
-// Validation settings...
-int _DebugValidationMode;
 
 half _DebugValidateAlbedoMinLuminance = 0.01;
 half _DebugValidateAlbedoMaxLuminance = 0.90;
@@ -47,27 +37,11 @@ float4 _DebugColor;
 float4 _DebugColorInvalidMode;
 float4 _DebugValidateBelowMinThresholdColor;
 float4 _DebugValidateAboveMaxThresholdColor;
-sampler2D _DebugNumberTexture;
 
 half3 GetDebugColor(uint index)
 {
-    // TODO: Make these colors colorblind friendly...
-    const uint maxColors = 10;
-    float4 lut[maxColors] = {
-        kPurpleColor,
-        kRedColor,
-        kGreenColor,
-        kYellowGreenColor,
-        kBlueColor,
-        kOrangeBrownColor,
-        kGrayColor,
-        float4(1, 1, 1, 0),
-        float4(0.8, 0.3, 0.7, 0),
-        float4(0.8, 0.7, 0.3, 0),
-    };
-    uint clammpedIndex = clamp(index, 0, maxColors - 1);
-
-    return lut[clammpedIndex].rgb;
+    uint clampedIndex = clamp(index, 0, DEBUG_COLORS_COUNT-1);
+    return kDebugColorGradient[clampedIndex].rgb;
 }
 
 bool TryGetDebugColorInvalidMode(out half4 debugColor)
@@ -76,40 +50,6 @@ bool TryGetDebugColorInvalidMode(out half4 debugColor)
     // for now we'll simply make each pixel use "_DebugColorInvalidMode"...
     debugColor = _DebugColorInvalidMode;
     return true;
-}
-
-half4 GetTextNumber(uint numberValue, float3 positionWS)
-{
-    float4 clipPos = TransformWorldToHClip(positionWS);
-    float2 ndc = saturate((clipPos.xy / clipPos.w) * 0.5 + 0.5);
-
-#if UNITY_UV_STARTS_AT_TOP
-    if (_ProjectionParams.x < 0)
-        ndc.y = 1.0 - ndc.y;
-#endif
-
-    // There are currently 10 characters in the font texture, 0-9.
-    const int numChar = 10;
-    const float invNumChar = 1.0 / numChar;
-    numberValue = clamp(0, numChar - 1, numberValue);
-
-    // The following are hardcoded scales that make the font size readable.
-    ndc.x *= 5.0;
-    ndc.y *= 15.0;
-    ndc.x = fmod(ndc.x, invNumChar) + (numberValue * invNumChar);
-
-    return tex2D(_DebugNumberTexture, ndc.xy);
-}
-
-half4 CalculateDebugColorWithNumber(float3 positionWS, half3 albedo, uint index)
-{
-    const float opacity = 0.8f; // TODO: Opacity could be user-defined.
-
-    const half3 debugColor = GetDebugColor(index);
-    const half3 fc = lerp(albedo, debugColor, opacity);
-    const half4 textColor = GetTextNumber(index, positionWS);
-
-    return textColor * half4(fc, 1);
 }
 
 uint GetMipMapLevel(float2 nonNormalizedUVCoordinate)
@@ -122,41 +62,6 @@ uint GetMipMapLevel(float2 nonNormalizedUVCoordinate)
     float delta_max_sqr = max(dot(dx_vtc, dx_vtc), dot(dy_vtc, dy_vtc));
 
     return (uint)(0.5 * log2(delta_max_sqr));
-}
-
-half4 GetMipLevelDebugColor(float3 positionWS, half3 albedo, float2 uv, float4 texelSize)
-{
-    uint mipLevel = GetMipMapLevel(uv * texelSize.zw);
-
-    return CalculateDebugColorWithNumber(positionWS, albedo, mipLevel);
-}
-
-half4 GetMipCountDebugColor(float3 positionWS, half3 albedo, uint mipCount)
-{
-    return CalculateDebugColorWithNumber(positionWS, albedo, mipCount);
-}
-
-bool CalculateValidationMipLevel(uint mipCount, uint originalTextureMipCount, float2 uv, float4 texelSize, half3 albedo, half alpha, out half4 color)
-{
-    // TODO: This code can be found in "Debug.hlsl" but requires a Texture2D - we need a version that simply takes the parameters instead...
-    if (originalTextureMipCount != 0)
-    {
-        // Mip count has been reduced but the texelSize was not updated to take that into account
-        uint mipReductionLevel = originalTextureMipCount - mipCount;
-        uint mipReductionFactor = 1 << mipReductionLevel;
-        if (mipReductionFactor)
-        {
-            float oneOverMipReductionFactor = 1.0 / mipReductionFactor;
-            // texelSize.xy *= mipReductionRatio;   // Unused in GetDebugMipColor so lets not re-calculate it
-            texelSize.zw *= oneOverMipReductionFactor;
-        }
-    }
-
-    // https://aras-p.info/blog/2011/05/03/a-way-to-visualize-mip-levels/
-    const half4 mipColor = GetMipLevelColor(uv, texelSize);
-
-    color = half4(lerp(albedo, mipColor.rgb, mipColor.a), alpha);
-    return true;
 }
 
 bool CalculateValidationAlbedo(half3 albedo, out half4 color)
@@ -227,6 +132,7 @@ bool IsFogEnabled()
     #if defined(DEBUG_DISPLAY)
     return (_DebugMaterialMode == DEBUGMATERIALMODE_NONE) &&
            (_DebugVertexAttributeMode == DEBUGVERTEXATTRIBUTEMODE_NONE) &&
+           (_DebugMaterialValidationMode == DEBUGMATERIALVALIDATIONMODE_NONE) &&
            (_DebugSceneOverrideMode == DEBUGSCENEOVERRIDEMODE_NONE) &&
            (_DebugMipInfoMode == DEBUGMIPINFOMODE_NONE) &&
            (_DebugLightingMode == DEBUGLIGHTINGMODE_NONE) &&
@@ -243,6 +149,15 @@ bool IsLightingFeatureEnabled(uint bitMask)
     return (_DebugLightingFeatureFlags == 0) || ((_DebugLightingFeatureFlags & bitMask) != 0);
     #else
     return true;
+    #endif
+}
+
+bool IsOnlyAOLightingFeatureEnabled()
+{
+    #if defined(DEBUG_DISPLAY)
+    return _DebugLightingFeatureFlags == DEBUGLIGHTINGFEATUREFLAGS_AMBIENT_OCCLUSION;
+    #else
+    return false;
     #endif
 }
 
