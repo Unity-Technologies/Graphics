@@ -144,7 +144,7 @@ namespace UnityEditor.Rendering
             {
                 result |= SerializedShaderPropertyUsage.UsedByUpgraded;
 
-                var propertyRenameTable = upgrader.GetRename(materialPropertyType);
+                var propertyRenameTable = upgrader.GetPropertyRenameMap(materialPropertyType);
                 propertyRenameTable.TryGetValue(shaderPropertyName, out newPropertyName);
             }
 
@@ -164,7 +164,7 @@ namespace UnityEditor.Rendering
                 {
                     // narrow possible upgraders to those which specify a rename for the bound property
                     possibleUpgraders = possibleUpgraders.Where(
-                        u => u.GetRename(materialPropertyType).ContainsKey(shaderPropertyName)
+                        u => u.GetPropertyRenameMap(materialPropertyType).ContainsKey(shaderPropertyName)
                         ).ToList();
 
                     // if there are any, assume the material has been upgraded
@@ -173,9 +173,9 @@ namespace UnityEditor.Rendering
                         result |= SerializedShaderPropertyUsage.UsedByUpgraded;
 
                         // if there are many possible upgrade paths to take, mark the upgrade as ambiguous
-                        newPropertyName = possibleUpgraders[0].GetRename(materialPropertyType)[shaderPropertyName];
+                        newPropertyName = possibleUpgraders[0].GetPropertyRenameMap(materialPropertyType)[shaderPropertyName];
                         var name = newPropertyName; // cannot use out param inside lambda
-                        if (possibleUpgraders.Any(u => u.GetRename(materialPropertyType)[shaderPropertyName] != name))
+                        if (possibleUpgraders.Any(u => u.GetPropertyRenameMap(materialPropertyType)[shaderPropertyName] != name))
                             result |= SerializedShaderPropertyUsage.UsedByAmbiguouslyUpgraded;
                     }
                 }

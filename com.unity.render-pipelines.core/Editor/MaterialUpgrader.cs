@@ -84,7 +84,7 @@ namespace UnityEditor.Rendering
         /// <param name="type">Material Property Type</param>
         /// <returns>Dictionary of property names to their renamed values.</returns>
         /// <exception cref="ArgumentException">type is not valid.</exception>
-        public IReadOnlyDictionary<string, string> GetRename(MaterialPropertyType type)
+        public IReadOnlyDictionary<string, string> GetPropertyRenameMap(MaterialPropertyType type)
         {
             switch (type)
             {
