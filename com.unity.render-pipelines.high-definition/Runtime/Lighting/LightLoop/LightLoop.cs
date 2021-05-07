@@ -854,7 +854,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
             // Setup shadow algorithms
             var shadowParams = asset.currentPlatformRenderPipelineSettings.hdShadowInitParams;
-            var shadowKeywords = new[] {"SHADOW_LOW", "SHADOW_MEDIUM", "SHADOW_HIGH"};
+            var shadowKeywords = new[] {"SHADOW_LOW", "SHADOW_MEDIUM", "SHADOW_HIGH", "SHADOW_VERY_HIGH"};
             foreach (var p in shadowKeywords)
                 Shader.DisableKeyword(p);
             Shader.EnableKeyword(shadowKeywords[(int)shadowParams.shadowFilteringQuality]);
@@ -3559,6 +3559,9 @@ namespace UnityEngine.Rendering.HighDefinition
                         break;
                     case HDShadowFilteringQuality.High:
                         parameters.deferredComputeShader.EnableKeyword("SHADOW_HIGH");
+                        break;
+                    case HDShadowFilteringQuality.VeryHigh:
+                        parameters.deferredComputeShader.EnableKeyword("SHADOW_VERY_HIGH");
                         break;
                     default:
                         parameters.deferredComputeShader.EnableKeyword("SHADOW_MEDIUM");

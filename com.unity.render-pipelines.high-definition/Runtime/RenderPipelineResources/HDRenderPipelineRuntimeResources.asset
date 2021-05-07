@@ -214,8 +214,11 @@ MonoBehaviour:
     finalPassPS: {fileID: 4800000, guid: 5ac9ef0c50282754b93c7692488e7ee7, type: 3}
     clearBlackPS: {fileID: 4800000, guid: 3330c1503ea8c6d4d9408df3f64227eb, type: 3}
     SMAAPS: {fileID: 4800000, guid: 9655f4aa89a469c49aceaceabf9bc77b, type: 3}
-    temporalAntialiasingPS: {fileID: 4800000, guid: 3dd9fd928fdb83743b1f27d15df22179, type: 3}
-    dofCircleOfConfusion: {fileID: 7200000, guid: 75332b7b315c80d4babe506820aa0bfd, type: 3}
+    temporalAntialiasingPS: {fileID: 4800000, guid: 3dd9fd928fdb83743b1f27d15df22179,
+      type: 3}
+    dofCircleOfConfusion: {fileID: 7200000, guid: 75332b7b315c80d4babe506820aa0bfd,
+      type: 3}
+    upsampleSceneCS: {fileID: 7200000, guid: 51e13c18f34ea1d4183edb912e98cbf7, type: 3}
     lensFlareDataDrivenPS: {fileID: 4800000, guid: 85330b3de0cfebc4ba78b2d61b1a2899, type: 3}
     dofGatherCS: {fileID: 7200000, guid: 1e6b16a7970a1494db74b1d3d007d1cc, type: 3}
     dofCoCMinMaxCS: {fileID: 7200000, guid: c70dd492c3d2fe94589d6ca8d4e37915, type: 3}
