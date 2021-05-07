@@ -353,6 +353,7 @@ namespace UnityEngine.Rendering.HighDefinition
             // Cascade atlas render texture will only be allocated if there is a shadow casting directional light
             HDShadowAtlas.BlurAlgorithm cascadeBlur = GetDirectionalShadowAlgorithm() == DirectionalShadowAlgorithm.IMS ? HDShadowAtlas.BlurAlgorithm.IM : HDShadowAtlas.BlurAlgorithm.None;
 
+
             HDShadowAtlas.HDShadowAtlasInitParameters dirAtlasInitParams = punctualAtlasInitParams;
             dirAtlasInitParams.useSharedTexture = false;
             dirAtlasInitParams.width = 1;
