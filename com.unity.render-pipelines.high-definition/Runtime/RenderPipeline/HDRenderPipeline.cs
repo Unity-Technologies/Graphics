@@ -1215,8 +1215,11 @@ namespace UnityEngine.Rendering.HighDefinition
                     if (additionalCameraData != null && additionalCameraData.hasCustomRender)
                     {
                         skipRequest = true;
+                        // First prepare the global constant buffer for users (Only camera properties)
+                        hdCamera.UpdateShaderVariablesGlobalCB(ref m_ShaderVariablesGlobalCB);
+                        ConstantBuffer.PushGlobal(m_ShaderVariablesGlobalCB, HDShaderIDs._ShaderVariablesGlobal);
                         // Execute custom render
-                        UnityEngine.Rendering.RenderPipeline.BeginCameraRendering(renderContext, camera);
+                        BeginCameraRendering(renderContext, camera);
                         additionalCameraData.ExecuteCustomRender(renderContext, hdCamera);
                     }
 

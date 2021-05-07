@@ -257,6 +257,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Changed default sidedness to double, when a mesh with a mix of single and double-sided materials is added to the ray tracing acceleration structure (case 1323451).
 - Use the new API for updating Reflection Probe state (fixes garbage allocation, case 1290521)
 - Augmented debug visualization for probe volumes.
+- Global Camera shader constants are now pushed when doing a custom render callback.
 
 ## [11.0.0] - 2020-10-21
 
