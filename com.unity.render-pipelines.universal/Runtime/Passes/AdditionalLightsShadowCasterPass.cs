@@ -56,8 +56,6 @@ namespace UnityEngine.Rendering.Universal.Internal
         private RenderTargetHandle m_AdditionalLightsShadowmap;
         internal RenderTexture m_AdditionalLightsShadowmapTexture;
 
-        int m_ShadowmapWidth;
-        int m_ShadowmapHeight;
 
         float m_MaxShadowDistanceSq;
         float m_CascadeBorder;
@@ -479,8 +477,8 @@ namespace UnityEngine.Rendering.Universal.Internal
 
             Clear();
 
-            m_ShadowmapWidth = renderingData.shadowData.additionalLightsShadowmapWidth;
-            m_ShadowmapHeight = renderingData.shadowData.additionalLightsShadowmapHeight;
+            renderTargetWidth = renderingData.shadowData.additionalLightsShadowmapWidth;
+            renderTargetHeight = renderingData.shadowData.additionalLightsShadowmapHeight;
 
             var visibleLights = renderingData.lightData.visibleLights;
             int additionalLightsCount = renderingData.lightData.additionalLightsCount;
@@ -747,11 +745,12 @@ namespace UnityEngine.Rendering.Universal.Internal
                 atlasMaxY = Mathf.Max(atlasMaxY, shadowResolutionRequest.offsetY + shadowResolutionRequest.allocatedResolution);
             }
             // ...but make sure we still use power-of-two dimensions (might perform better on some hardware)
-            m_ShadowmapWidth = Mathf.NextPowerOfTwo(atlasMaxX);
-            m_ShadowmapHeight = Mathf.NextPowerOfTwo(atlasMaxY);
 
-            float oneOverAtlasWidth = 1.0f / m_ShadowmapWidth;
-            float oneOverAtlasHeight = 1.0f / m_ShadowmapHeight;
+            renderTargetWidth = Mathf.NextPowerOfTwo(atlasMaxX);
+            renderTargetHeight = Mathf.NextPowerOfTwo(atlasMaxY);
+
+            float oneOverAtlasWidth = 1.0f / renderTargetWidth;
+            float oneOverAtlasHeight = 1.0f / renderTargetHeight;
 
             Matrix4x4 sliceTransform;
             for (int globalShadowSliceIndex = 0; globalShadowSliceIndex < shadowCastingLightsBufferCount; ++globalShadowSliceIndex)
@@ -784,7 +783,7 @@ namespace UnityEngine.Rendering.Universal.Internal
                 m_AdditionalLightShadowSliceIndexTo_WorldShadowMatrix[globalShadowSliceIndex] = sliceTransform * m_AdditionalLightShadowSliceIndexTo_WorldShadowMatrix[globalShadowSliceIndex];
             }
 
-            m_AdditionalLightsShadowmapTexture = ShadowUtils.GetTemporaryShadowTexture(m_ShadowmapWidth, m_ShadowmapHeight, k_ShadowmapBufferBits);
+            m_AdditionalLightsShadowmapTexture = ShadowUtils.GetTemporaryShadowTexture(renderTargetWidth, renderTargetHeight, k_ShadowmapBufferBits);
             m_MaxShadowDistanceSq = renderingData.cameraData.maxShadowDistance * renderingData.cameraData.maxShadowDistance;
             m_CascadeBorder = renderingData.shadowData.mainLightShadowCascadeBorder;
 
@@ -793,7 +792,7 @@ namespace UnityEngine.Rendering.Universal.Internal
 
         public override void Configure(CommandBuffer cmd, RenderTextureDescriptor cameraTextureDescriptor)
         {
-            ConfigureTarget(new RenderTargetIdentifier(m_AdditionalLightsShadowmapTexture), GraphicsFormat.ShadowAuto, m_ShadowmapWidth, m_ShadowmapHeight, 1, true);
+            ConfigureTarget(new RenderTargetIdentifier(m_AdditionalLightsShadowmapTexture), GraphicsFormat.ShadowAuto, renderTargetWidth, renderTargetHeight, 1, true);
             ConfigureClear(ClearFlag.All, Color.black);
         }
 

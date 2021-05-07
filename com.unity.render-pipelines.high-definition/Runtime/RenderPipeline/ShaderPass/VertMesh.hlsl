@@ -127,8 +127,11 @@ VaryingsToDS InterpolateWithBaryCoordsToDS(VaryingsToDS input0, VaryingsToDS inp
 #endif
 
 // TODO: Here we will also have all the vertex deformation (GPU skinning, vertex animation, morph target...) or we will need to generate a compute shaders instead (better! but require work to deal with unpacking like fp16)
-// Make it inout so that MotionVectorPass can get the modified input values later.
-VaryingsMeshType VertMesh(AttributesMesh input, float3 worldSpaceOffset)
+VaryingsMeshType VertMesh(AttributesMesh input, float3 worldSpaceOffset
+#ifdef HAVE_VFX_MODIFICATION
+    , out AttributesElement element
+#endif
+)
 {
     VaryingsMeshType output;
     ZERO_INITIALIZE(VaryingsMeshType, output);
@@ -136,12 +139,27 @@ VaryingsMeshType VertMesh(AttributesMesh input, float3 worldSpaceOffset)
     UNITY_SETUP_INSTANCE_ID(input);
     UNITY_TRANSFER_INSTANCE_ID(input, output);
 
+#if defined(HAVE_VFX_MODIFICATION)
+    ZERO_INITIALIZE(AttributesElement, element);
+
+    if(!GetMeshAndElementIndex(input, element))
+        return output; // Culled index.
+
+    if(!GetInterpolatorAndElementData(output, element))
+        return output; // Dead particle.
+
+    SetupVFXMatrices(element, output);
+#endif
 
 #if defined(HAVE_MESH_MODIFICATION)
-    input = ApplyMeshModification(input, _TimeParameters.xyz
+    input = ApplyMeshModification(input,
+     _TimeParameters.xyz
     // If custom interpolators are in use, we need to write them to the shader graph generated VaryingsMesh
     #if defined(USE_CUSTOMINTERP_APPLYMESHMOD)
         , output
+    #endif
+    #if defined(HAVE_VFX_MODIFICATION)
+        , element
     #endif
     );
 #endif
@@ -205,8 +223,20 @@ VaryingsMeshType VertMesh(AttributesMesh input, float3 worldSpaceOffset)
 
 VaryingsMeshType VertMesh(AttributesMesh input)
 {
+#ifdef HAVE_VFX_MODIFICATION
+    AttributesElement element;
+    return VertMesh(input, 0.0f, element);
+#else
     return VertMesh(input, 0.0f);
+#endif
 }
+
+#ifdef HAVE_VFX_MODIFICATION
+VaryingsMeshType VertMesh(AttributesMesh input, out AttributesElement element)
+{
+    return VertMesh(input, 0.0f, element);
+}
+#endif
 
 #ifdef TESSELLATION_ON
 

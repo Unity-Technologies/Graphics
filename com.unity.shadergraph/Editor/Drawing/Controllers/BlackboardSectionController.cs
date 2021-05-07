@@ -28,6 +28,9 @@ namespace UnityEditor.ShaderGraph.Drawing
                 case ShaderKeyword keyword:
                     graphData.MoveKeyword(keyword, newIndexValue);
                     break;
+                case ShaderDropdown dropdown:
+                    graphData.MoveDropdown(dropdown, newIndexValue);
+                    break;
                 default:
                     throw new ArgumentOutOfRangeException();
             }
@@ -91,6 +94,12 @@ namespace UnityEditor.ShaderGraph.Drawing
             }
 
             foreach (var shaderInput in graphData.keywords)
+            {
+                if (IsInputInSection(shaderInput))
+                    InsertBlackboardRow(shaderInput);
+            }
+
+            foreach (var shaderInput in graphData.dropdowns)
             {
                 if (IsInputInSection(shaderInput))
                     InsertBlackboardRow(shaderInput);
