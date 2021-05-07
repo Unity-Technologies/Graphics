@@ -1,7 +1,8 @@
 <ui:UXML xmlns:ui="UnityEngine.UIElements" xmlns:uie="UnityEditor.UIElements" editor-extension-mode="False">
     <ui:VisualElement style="max-width: 620px; min-width: 620px; flex-grow: 1; padding-left: 15px; padding-right: 15px; padding-top: 15px;">
-        <ui:VisualElement style="height: 25px; width: 604px; flex-shrink: 0;">
-            <ui:Label text="Render Pipeline Converter" name="conversionName" style="-unity-font-style: bold; font-size: 16px; width: 622px;" />
+        <ui:VisualElement style="height: 25px; width: 604px; flex-shrink: 0; flex-direction: row;">
+            <ui:Label text="Render Pipeline Converter" name="conversionName" style="-unity-font-style: bold; font-size: 16px; width: 593px; padding-right: 16px;" />
+            <ui:Image name="converterContainerHelpIcon" style="width: 12px; height: 25px; max-width: 12px; max-height: 12px; min-width: 12px; min-height: 12px; padding-left: 0; background-image: none; padding-top: 0; margin-top: 5px;" />
         </ui:VisualElement>
         <ui:TextElement text="The Render Pipeline Conversion Wizard is meant to help Convert projects from built-in to Universal Render Pipeline." name="conversionInfo" style="height: 46px; width: 606px; flex-shrink: 0;" />
         <ui:VisualElement style="flex-direction: row;">

@@ -151,6 +151,8 @@ namespace UnityEditor.Rendering.Universal
             rootVisualElement.Q<Label>("conversionName").text = converterContainer.name;
             rootVisualElement.Q<TextElement>("conversionInfo").text = converterContainer.info;
 
+            rootVisualElement.Q<Image>("converterContainerHelpIcon").image = CoreEditorStyles.iconHelp;
+
             // Getting the scrollview where the converters should be added
             m_ScrollView = rootVisualElement.Q<ScrollView>("convertersScrollView");
             for (int i = 0; i < m_CoreConvertersList.Count; ++i)

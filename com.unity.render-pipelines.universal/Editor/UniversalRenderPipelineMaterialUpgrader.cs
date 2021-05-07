@@ -12,6 +12,8 @@ namespace UnityEditor.Rendering.Universal
         public override string info => "This will upgrade your materials.";
         public override Type conversion => typeof(BuiltInToURPConverterContainer);
 
+        List<string> m_AssetsToConvert = new List<string>();
+
         private List<GUID> m_MaterialGUIDs = new();
 
         static List<MaterialUpgrader> m_Upgraders;
@@ -209,6 +211,8 @@ namespace UnityEditor.Rendering.Universal
                     GUID guid = AssetDatabase.GUIDFromAssetPath(path);
                     m_MaterialGUIDs.Add(guid);
 
+                    m_AssetsToConvert.Add(path);
+
                     ConverterItemDescriptor desc = new ConverterItemDescriptor()
                     {
                         name = m.name,
@@ -234,8 +238,12 @@ namespace UnityEditor.Rendering.Universal
                 context.info = message;
             }
         }
-    }
 
+        public override void OnClicked(int index)
+        {
+            EditorGUIUtility.PingObject(AssetDatabase.LoadAssetAtPath<Material>(m_AssetsToConvert[index]));
+        }
+    }
 
     public static class SupportedUpgradeParams
     {
