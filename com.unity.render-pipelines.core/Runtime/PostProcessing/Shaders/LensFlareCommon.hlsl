@@ -121,7 +121,7 @@ VaryingsLensFlare vert(AttributesLensFlare input, uint instanceID : SV_InstanceI
 
 #if 0
     float screenRatio = _ScreenRatio;
-#elif HDRP_FLARE
+#elif defined(HDRP_FLARE)
     float screenRatio = _ScreenSize.y / _ScreenSize.x;
 #else
     float2 screenParam = GetScaledScreenParams().xy;
