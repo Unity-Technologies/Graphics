@@ -12,20 +12,22 @@
 
 #if defined(SHADER_API_MOBILE) && (defined(SHADER_API_GLES) || defined(SHADER_API_GLES30))
     #define MAX_VISIBLE_LIGHTS 16
+    #define MAX_TILE_VEC4S 4096
 #elif defined(SHADER_API_MOBILE) || (defined(SHADER_API_GLCORE) && !defined(SHADER_API_SWITCH)) || defined(SHADER_API_GLES) || defined(SHADER_API_GLES3) // Workaround because SHADER_API_GLCORE is also defined when SHADER_API_SWITCH is
     #define MAX_VISIBLE_LIGHTS 32
+    #define MAX_TILE_VEC4S 4096
 #else
     #define MAX_VISIBLE_LIGHTS 256
+    #define MAX_TILE_VEC4S 4096
 #endif
 
 // Match with values in UniversalRenderPipeline.cs
-#define MAX_ZBIN_VEC4S 1023
+#define MAX_ZBIN_VEC4S 1024
 #if MAX_VISIBLE_LIGHTS < 32
-#define LIGHTS_PER_TILE 32
+    #define LIGHTS_PER_TILE 32
 #else
-#define LIGHTS_PER_TILE MAX_VISIBLE_LIGHTS
+    #define LIGHTS_PER_TILE MAX_VISIBLE_LIGHTS
 #endif
-#define MAX_VISIBILITY_VEC4S ((LIGHTS_PER_TILE * 3840)/(8*32*4))
 
 struct InputData
 {
@@ -70,6 +72,7 @@ uint _AdditionalLightsZBinOffset;
 float _AdditionalLightsZBinScale;
 // Scale from screen-space UV [0, 1] to tile coordinates [0, tile resolution].
 float2 _AdditionalLightsTileScale;
+uint _AdditionalLightsTileCountX;
 #endif
 
 #if USE_STRUCTURED_BUFFER_FOR_LIGHT_DATA
@@ -94,11 +97,8 @@ CBUFFER_END
     CBUFFER_START(AdditionalLightsZBins)
         float4 _AdditionalLightsZBins[MAX_ZBIN_VEC4S];
     CBUFFER_END
-    CBUFFER_START(AdditionalLightsHorizontalVisibility)
-        float4 _AdditionalLightsHorizontalVisibility[MAX_VISIBILITY_VEC4S];
-    CBUFFER_END
-    CBUFFER_START(AdditionalLightsVerticalVisibility)
-        float4 _AdditionalLightsVerticalVisibility[MAX_VISIBILITY_VEC4S];
+    CBUFFER_START(AdditionalLightsTiles)
+        float4 _AdditionalLightsTiles[MAX_TILE_VEC4S];
     CBUFFER_END
 #endif
 

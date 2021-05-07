@@ -105,26 +105,11 @@ uint2 GetTileId(float2 normalizedScreenSpaceUV)
 
 uint LoadTileMask(uint2 tileId, uint wordIndex, uint2 zBin, uint wordMin, uint wordMax)
 {
-    uint indexV = (LIGHTS_PER_TILE / 32) * tileId.x + wordIndex;
-    uint indexH = (LIGHTS_PER_TILE / 32) * tileId.y + wordIndex;
-    uint maskV = Select4(asuint(_AdditionalLightsVerticalVisibility[indexV / 4]), indexV % 4);
-    uint maskH = Select4(asuint(_AdditionalLightsHorizontalVisibility[indexH / 4]), indexH % 4);
-    uint mask = maskV & maskH;
+    uint index = (tileId.y * _AdditionalLightsTileCountX + tileId.x) * (LIGHTS_PER_TILE / 32) + wordIndex;
+    uint mask = Select4(asuint(_AdditionalLightsTiles[index / 4]), index % 4);
     // The Z-bin might start/end in the middle of a word, so we mask out unneeded parts.
     mask &= 0xFFFFFFFF << ((zBin.x & 0x1F) * (wordIndex == wordMin));
     mask &= 0xFFFFFFFF >> ((31 - (zBin.y & 0x1F)) * (wordIndex == wordMax));
-    return mask;
-}
-
-uint LoadTileMaskSingle(uint2 tileId, uint2 zBin)
-{
-    uint indexV = (LIGHTS_PER_TILE / 32) * tileId.x;
-    uint indexH = (LIGHTS_PER_TILE / 32) * tileId.y;
-    uint maskV = Select4(asuint(_AdditionalLightsVerticalVisibility[indexV / 4]), indexV % 4);
-    uint maskH = Select4(asuint(_AdditionalLightsHorizontalVisibility[indexH / 4]), indexH % 4);
-    uint mask = maskV & maskH;
-    mask &= 0xFFFFFFFF << zBin.x;
-    mask &= 0xFFFFFFFF >> (31 - zBin.y);
     return mask;
 }
 
@@ -161,7 +146,7 @@ uint NextLightIndex(inout uint tileMask, inout uint bitIndex, uint wordIndex)
     #define LIGHT_LOOP_BEGIN(lightCount) \
     lightCount = 0; \
     uint2 zBin = LoadZBin(GetViewZ(inputData.positionWS)); \
-    uint tileMask = LoadTileMaskSingle(GetTileId(inputData.normalizedScreenSpaceUV), zBin); \
+    uint tileMask = LoadTileMask(GetTileId(inputData.normalizedScreenSpaceUV), 0, zBin, 0, 0); \
     uint bitIndex = zBin.x; \
     while (tileMask != 0) { \
         uint lightIndex = NextLightIndex(tileMask, bitIndex, 0); \

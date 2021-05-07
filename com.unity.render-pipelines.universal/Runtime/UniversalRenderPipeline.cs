@@ -142,8 +142,20 @@ namespace UnityEngine.Rendering.Universal
 
         // Match with values in Input.hlsl
         internal static int lightsPerTile => ((maxVisibleAdditionalLights + 31) / 32) * 32;
-        internal static int maxZBins => 1023 * 4;
-        internal static int maxVisibilityVec4s => (lightsPerTile * 3840) / (8 * 32 * 4);
+        internal static int maxZBins => 1024 * 4;
+        internal static int maxTileVec4s
+        {
+            get
+            {
+                bool isMobile = Application.isMobilePlatform;
+                if (isMobile && (SystemInfo.graphicsDeviceType == GraphicsDeviceType.OpenGLES2 || (SystemInfo.graphicsDeviceType == GraphicsDeviceType.OpenGLES3 && Graphics.minOpenGLESVersion <= OpenGLESVersion.OpenGLES30)))
+                    return 4096;
+
+                // GLES can be selected as platform on Windows (not a mobile platform) but uniform buffer size so we must use a low light count.
+                return (isMobile || SystemInfo.graphicsDeviceType == GraphicsDeviceType.OpenGLCore || SystemInfo.graphicsDeviceType == GraphicsDeviceType.OpenGLES2 || SystemInfo.graphicsDeviceType == GraphicsDeviceType.OpenGLES3)
+                    ? 4096 : 4096;
+            }
+        }
 
         public UniversalRenderPipeline(UniversalRenderPipelineAsset asset)
         {

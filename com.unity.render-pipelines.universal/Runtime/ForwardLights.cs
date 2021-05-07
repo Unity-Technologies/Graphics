@@ -44,18 +44,17 @@ namespace UnityEngine.Rendering.Universal.Internal
         bool m_UseClusteredRendering;
         int m_DirectionalLightCount;
         int m_ActualTileWidth;
+        int2 m_TileResolution;
         int m_RequestedTileWidth;
         float m_ZBinFactor;
         int m_ZBinOffset;
 
         JobHandle m_CullingHandle;
         NativeArray<ZBin> m_ZBins;
-        NativeArray<uint> m_HorizontalLightMasks;
-        NativeArray<uint> m_VerticalLightMasks;
+        NativeArray<uint> m_TileLightMasks;
 
         ComputeBuffer m_ZBinBuffer;
-        ComputeBuffer m_HorizontalBuffer;
-        ComputeBuffer m_VerticalBuffer;
+        ComputeBuffer m_TileBuffer;
 
         public ForwardLights(bool clusteredRendering, int tileSize)
         {
@@ -91,9 +90,8 @@ namespace UnityEngine.Rendering.Universal.Internal
 
             if (m_UseClusteredRendering)
             {
-                m_ZBinBuffer = new ComputeBuffer(UniversalRenderPipeline.maxZBins / 4, UnsafeUtility.SizeOf<float4>(), ComputeBufferType.Constant);
-                m_HorizontalBuffer = new ComputeBuffer(UniversalRenderPipeline.maxVisibilityVec4s, UnsafeUtility.SizeOf<float4>(), ComputeBufferType.Constant);
-                m_VerticalBuffer = new ComputeBuffer(UniversalRenderPipeline.maxVisibilityVec4s, UnsafeUtility.SizeOf<float4>(), ComputeBufferType.Constant);
+                m_ZBinBuffer = new ComputeBuffer(UniversalRenderPipeline.maxZBins / 4, UnsafeUtility.SizeOf<float4>(), ComputeBufferType.Constant, ComputeBufferMode.Dynamic);
+                m_TileBuffer = new ComputeBuffer(UniversalRenderPipeline.maxTileVec4s, UnsafeUtility.SizeOf<float4>(), ComputeBufferType.Constant, ComputeBufferMode.Dynamic);
                 m_RequestedTileWidth = tileSize;
             }
         }
@@ -121,26 +119,21 @@ namespace UnityEngine.Rendering.Universal.Internal
                 var lightsPerTile = UniversalRenderPipeline.lightsPerTile;
 
                 m_ActualTileWidth = m_RequestedTileWidth >> 1;
-                int2 tileResolution;
                 do
                 {
                     m_ActualTileWidth = m_ActualTileWidth << 1;
-                    tileResolution = (screenResolution + m_ActualTileWidth - 1) / m_ActualTileWidth;
+                    m_TileResolution = (screenResolution + m_ActualTileWidth - 1) / m_ActualTileWidth;
                 }
-                while (math.any(tileResolution * lightsPerTile / 32 / 4 > UniversalRenderPipeline.maxVisibilityVec4s));
+                while ((m_TileResolution.x * m_TileResolution.y * lightsPerTile / 32) > (UniversalRenderPipeline.maxTileVec4s * 4));
 
                 var fovHalfHeight = math.tan(math.radians(camera.fieldOfView * 0.5f));
                 // TODO: Make this work with VR
                 var fovHalfWidth = fovHalfHeight * (float)screenResolution.x / (float)screenResolution.y;
 
-                // TODO: Decide whether to go for desired or always max
-                //m_ZBinFactor = math.sqrt((float)screenResolution.y / (math.sqrt(2f) * fovHalfHeight));
                 var maxZFactor = (float)UniversalRenderPipeline.maxZBins / (math.sqrt(camera.farClipPlane) - math.sqrt(camera.nearClipPlane));
-                // m_ZBinFactor = math.min(m_ZBinFactor, maxZFactor);
                 m_ZBinFactor = maxZFactor;
                 m_ZBinOffset = (int)(math.sqrt(camera.nearClipPlane) * m_ZBinFactor);
                 var binCount = (int)(math.sqrt(camera.farClipPlane) * m_ZBinFactor) - m_ZBinOffset;
-                // c = sqrt(far) * factor - sqrt(near) * factor => c = factor * (sqrt(far) - sqrt(near)) => factor = c / (sqrt(far) - sqrt(near))
                 // Must be a multiple of 4 to be able to alias to vec4
                 binCount = ((binCount + 3) / 4) * 4;
                 binCount = math.min(UniversalRenderPipeline.maxZBins, binCount);
@@ -205,9 +198,9 @@ namespace UnityEngine.Rendering.Universal.Internal
                 reorderedMinMaxZs.Dispose(zBinningHandle);
 
                 // Must be a multiple of 4 to be able to alias to vec4
-                var lightMasksLength = ((lightsPerTile / 32 * tileResolution + 3) / 4) * 4;
-                m_HorizontalLightMasks = new NativeArray<uint>(lightMasksLength.y, Allocator.TempJob);
-                m_VerticalLightMasks = new NativeArray<uint>(lightMasksLength.x, Allocator.TempJob);
+                var lightMasksLength = (((lightsPerTile / 32) * m_TileResolution + 3) / 4) * 4;
+                var horizontalLightMasks = new NativeArray<uint>(lightMasksLength.y, Allocator.TempJob);
+                var verticalLightMasks = new NativeArray<uint>(lightMasksLength.x, Allocator.TempJob);
 
                 // Vertical slices along the x-axis
                 var verticalJob = new SliceCullingJob
@@ -223,19 +216,32 @@ namespace UnityEngine.Rendering.Universal.Internal
                     positions = positions,
                     coneRadiuses = coneRadiuses,
                     lightsPerTile = lightsPerTile,
-                    sliceLightMasks = m_VerticalLightMasks
+                    sliceLightMasks = verticalLightMasks
                 };
-                var verticalHandle = verticalJob.ScheduleParallel(tileResolution.x, 1, lightExtractionHandle);
+                var verticalHandle = verticalJob.ScheduleParallel(m_TileResolution.x, 1, lightExtractionHandle);
 
                 // Horizontal slices along the y-axis
                 var horizontalJob = verticalJob;
                 horizontalJob.scale = (float)m_ActualTileWidth / (float)screenResolution.y;
                 horizontalJob.viewRight = camera.transform.up * fovHalfHeight;
                 horizontalJob.viewUp = -camera.transform.right * fovHalfWidth;
-                horizontalJob.sliceLightMasks = m_HorizontalLightMasks;
-                var horizontalHandle = horizontalJob.ScheduleParallel(tileResolution.y, 1, lightExtractionHandle);
+                horizontalJob.sliceLightMasks = horizontalLightMasks;
+                var horizontalHandle = horizontalJob.ScheduleParallel(m_TileResolution.y, 1, lightExtractionHandle);
 
-                m_CullingHandle = JobHandle.CombineDependencies(horizontalHandle, verticalHandle, zBinningHandle);
+                var slicesHandle = JobHandle.CombineDependencies(horizontalHandle, verticalHandle);
+
+                m_TileLightMasks = new NativeArray<uint>(((m_TileResolution.x * m_TileResolution.y * (lightsPerTile / 32) + 3) / 4) * 4, Allocator.TempJob);
+                var sliceCombineJob = new SliceCombineJob
+                {
+                    tileResolution = m_TileResolution,
+                    wordsPerTile = lightsPerTile / 32,
+                    sliceLightMasksH = horizontalLightMasks,
+                    sliceLightMasksV = verticalLightMasks,
+                    lightMasks = m_TileLightMasks
+                };
+                var sliceCombineHandle = sliceCombineJob.ScheduleParallel(m_TileResolution.y, 1, slicesHandle);
+
+                m_CullingHandle = JobHandle.CombineDependencies(sliceCombineHandle, zBinningHandle);
 
                 reorderHandle.Complete();
                 NativeArray<VisibleLight>.Copy(reorderedLights, 0, renderingData.lightData.visibleLights, lightOffset, lightCount);
@@ -268,6 +274,8 @@ namespace UnityEngine.Rendering.Universal.Internal
                 positions.Dispose(m_CullingHandle);
                 coneRadiuses.Dispose(m_CullingHandle);
                 reorderedLights.Dispose(m_CullingHandle);
+                horizontalLightMasks.Dispose(m_CullingHandle);
+                verticalLightMasks.Dispose(m_CullingHandle);
                 JobHandle.ScheduleBatchedJobs();
             }
         }
@@ -284,21 +292,19 @@ namespace UnityEngine.Rendering.Universal.Internal
                     m_CullingHandle.Complete();
 
                     m_ZBinBuffer.SetData(m_ZBins.Reinterpret<float4>(UnsafeUtility.SizeOf<ZBin>()), 0, 0, m_ZBins.Length / 4);
-                    m_HorizontalBuffer.SetData(m_HorizontalLightMasks.Reinterpret<float4>(UnsafeUtility.SizeOf<uint>()), 0, 0, m_HorizontalLightMasks.Length / 4);
-                    m_VerticalBuffer.SetData(m_VerticalLightMasks.Reinterpret<float4>(UnsafeUtility.SizeOf<uint>()), 0, 0, m_VerticalLightMasks.Length / 4);
+                    m_TileBuffer.SetData(m_TileLightMasks.Reinterpret<float4>(UnsafeUtility.SizeOf<uint>()), 0, 0, m_TileLightMasks.Length / 4);
 
                     cmd.SetGlobalInteger("_AdditionalLightsDirectionalCount", m_DirectionalLightCount);
                     cmd.SetGlobalInteger("_AdditionalLightsZBinOffset", m_ZBinOffset);
                     cmd.SetGlobalFloat("_AdditionalLightsZBinScale", m_ZBinFactor);
                     cmd.SetGlobalVector("_AdditionalLightsTileScale", renderingData.cameraData.pixelRect.size / (float)m_ActualTileWidth);
+                    cmd.SetGlobalInteger("_AdditionalLightsTileCountX", m_TileResolution.x);
 
-                    cmd.SetGlobalConstantBuffer(m_ZBinBuffer, "AdditionalLightsZBins", 0, UniversalRenderPipeline.maxZBins);
-                    cmd.SetGlobalConstantBuffer(m_HorizontalBuffer, "AdditionalLightsHorizontalVisibility", 0, UniversalRenderPipeline.maxVisibilityVec4s);
-                    cmd.SetGlobalConstantBuffer(m_VerticalBuffer, "AdditionalLightsVerticalVisibility", 0, UniversalRenderPipeline.maxVisibilityVec4s);
+                    cmd.SetGlobalConstantBuffer(m_ZBinBuffer, "AdditionalLightsZBins", 0, m_ZBins.Length * 4);
+                    cmd.SetGlobalConstantBuffer(m_TileBuffer, "AdditionalLightsTiles", 0, m_TileLightMasks.Length * 4);
 
                     m_ZBins.Dispose();
-                    m_HorizontalLightMasks.Dispose();
-                    m_VerticalLightMasks.Dispose();
+                    m_TileLightMasks.Dispose();
                 }
 
                 SetupShaderLightConstants(cmd, ref renderingData);
@@ -326,8 +332,7 @@ namespace UnityEngine.Rendering.Universal.Internal
             if (m_UseClusteredRendering)
             {
                 m_ZBinBuffer.Dispose();
-                m_HorizontalBuffer.Dispose();
-                m_VerticalBuffer.Dispose();
+                m_TileBuffer.Dispose();
             }
         }
 
