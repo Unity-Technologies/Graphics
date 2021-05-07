@@ -137,37 +137,37 @@ namespace UnityEngine.Rendering
         /// <summary>
         /// Texture is not on the GPU or is not up to date.
         /// </summary>
-        internal protected const int kGPUTexInvalid      = 0;
+        private protected const int kGPUTexInvalid      = 0;
         /// <summary>
         /// Texture Mip0 is on the GPU and up to date.
         /// </summary>
-        internal protected const int kGPUTexValidMip0    = 1;
+        private protected const int kGPUTexValidMip0    = 1;
         /// <summary>
         /// Texture and all mips are on the GPU and up to date.
         /// </summary>
-        internal protected const int kGPUTexValidMipAll  = 2;
+        private protected const int kGPUTexValidMipAll  = 2;
 
         /// <summary>
         /// The texture for the atlas.
         /// </summary>
-        internal protected RTHandle m_AtlasTexture = null;
+        private protected RTHandle m_AtlasTexture = null;
         /// <summary>
         /// Width of the atlas.
         /// </summary>
-        internal protected int m_Width;
+        private protected int m_Width;
         /// <summary>
         /// Height of the atlas.
         /// </summary>
-        internal protected int m_Height;
+        private protected int m_Height;
         /// <summary>
         /// Format of the atlas.
         /// </summary>
-        internal protected GraphicsFormat m_Format;
+        private protected GraphicsFormat m_Format;
         /// <summary>
         /// Atlas uses mip maps.
         /// </summary>
-        internal protected bool m_UseMipMaps;
-        internal bool m_IsAtlasTextureOwner = false;
+        private protected bool m_UseMipMaps;
+        bool m_IsAtlasTextureOwner = false;
         private AtlasAllocator m_AtlasAllocator = null;
         private Dictionary<int, (Vector4 scaleOffset, Vector2Int size)> m_AllocationCache = new Dictionary<int, (Vector4, Vector2Int)>();
         private Dictionary<int, int> m_IsGPUTextureUpToDate = new Dictionary<int, int>();
@@ -277,7 +277,7 @@ namespace UnityEngine.Rendering
         /// <param name="width">The texture width in pixels.</param>
         /// <param name="height">The texture height in pixels.</param>
         /// <returns>The number of mip maps.</returns>
-        internal protected int GetTextureMipmapCount(int width, int height)
+        private protected int GetTextureMipmapCount(int width, int height)
         {
             if (!m_UseMipMaps)
                 return 1;
@@ -292,7 +292,7 @@ namespace UnityEngine.Rendering
         /// </summary>
         /// <param name="texture">Source texture.</param>
         /// <returns>True if texture is 2D, false otherwise.</returns>
-        internal protected bool Is2D(Texture texture)
+        private protected bool Is2D(Texture texture)
         {
             RenderTexture rt = texture as RenderTexture;
 
@@ -305,7 +305,7 @@ namespace UnityEngine.Rendering
         /// <param name="source">Blit source texture</param>
         /// <param name="destination">Blit destination texture</param>
         /// <returns>true on single channel conversion false otherwise</returns>
-        internal protected bool IsSingleChannelBlit(Texture source, Texture destination)
+        private protected bool IsSingleChannelBlit(Texture source, Texture destination)
         {
             var srcCount = GraphicsFormatUtility.GetComponentCount(source.graphicsFormat);
             var dstCount = GraphicsFormatUtility.GetComponentCount(destination.graphicsFormat);
@@ -366,7 +366,7 @@ namespace UnityEngine.Rendering
         /// </summary>
         /// <param name="instanceId">Texture instance ID.</param>
         /// <param name="mipAreValid">Texture has valid mip maps.</param>
-        internal protected void MarkGPUTextureValid(int instanceId, bool mipAreValid = false)
+        private protected void MarkGPUTextureValid(int instanceId, bool mipAreValid = false)
         {
             m_IsGPUTextureUpToDate[instanceId] = (mipAreValid) ? kGPUTexValidMipAll : kGPUTexValidMip0;
         }
@@ -375,7 +375,7 @@ namespace UnityEngine.Rendering
         /// Mark texture invalid on the GPU.
         /// </summary>
         /// <param name="instanceId">Texture instance ID.</param>
-        internal protected void MarkGPUTextureInvalid(int instanceId) => m_IsGPUTextureUpToDate[instanceId] = kGPUTexInvalid;
+        private protected void MarkGPUTextureInvalid(int instanceId) => m_IsGPUTextureUpToDate[instanceId] = kGPUTexInvalid;
 
         /// <summary>
         /// Blit 2D texture into the atlas.
@@ -519,7 +519,7 @@ namespace UnityEngine.Rendering
         /// <param name="textureA">Source texture A.</param>
         /// <param name="textureB">Source texture B.</param>
         /// <returns>Hash of texture porperties.</returns>
-        internal protected int GetTextureHash(Texture textureA, Texture textureB)
+        private protected int GetTextureHash(Texture textureA, Texture textureB)
         {
             int hash = CoreUtils.GetTextureHash(textureA) + 23 * CoreUtils.GetTextureHash(textureB);
             return hash;
