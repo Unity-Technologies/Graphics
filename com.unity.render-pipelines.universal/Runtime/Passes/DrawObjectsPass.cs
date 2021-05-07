@@ -19,6 +19,8 @@ namespace UnityEngine.Rendering.Universal.Internal
         ProfilingSampler m_ProfilingSampler;
         bool m_IsOpaque;
 
+        bool m_UseDepthPriming;
+
         static readonly int s_DrawObjectPassDataPropID = Shader.PropertyToID("_DrawObjectPassData");
 
         public DrawObjectsPass(string profilerTag, ShaderTagId[] shaderTagIds, bool opaque, RenderPassEvent evt, RenderQueueRange renderQueueRange, LayerMask layerMask, StencilState stencilState, int stencilReference)
@@ -54,6 +56,20 @@ namespace UnityEngine.Rendering.Universal.Internal
             m_ProfilingSampler = ProfilingSampler.Get(profileId);
         }
 
+        public override void OnCameraSetup(CommandBuffer cmd, ref RenderingData renderingData)
+        {
+            if (renderingData.cameraData.renderer.useDepthPriming && m_IsOpaque && (renderingData.cameraData.renderType == CameraRenderType.Base || renderingData.cameraData.clearDepth))
+            {
+                m_RenderStateBlock.depthState = new DepthState(false, CompareFunction.Equal);
+                m_RenderStateBlock.mask |= RenderStateMask.Depth;
+            }
+            else if (m_RenderStateBlock.depthState.compareFunction == CompareFunction.Equal)
+            {
+                m_RenderStateBlock.depthState = new DepthState(true, CompareFunction.LessEqual);
+                m_RenderStateBlock.mask |= RenderStateMask.Depth;
+            }
+        }
+
         /// <inheritdoc/>
         public override void Execute(ScriptableRenderContext context, ref RenderingData renderingData)
         {
@@ -83,6 +99,9 @@ namespace UnityEngine.Rendering.Universal.Internal
 
                 Camera camera = renderingData.cameraData.camera;
                 var sortFlags = (m_IsOpaque) ? renderingData.cameraData.defaultOpaqueSortFlags : SortingCriteria.CommonTransparent;
+                if (renderingData.cameraData.renderer.useDepthPriming && m_IsOpaque && (renderingData.cameraData.renderType == CameraRenderType.Base || renderingData.cameraData.clearDepth))
+                    sortFlags = SortingCriteria.SortingLayer | SortingCriteria.RenderQueue | SortingCriteria.OptimizeStateChanges | SortingCriteria.CanvasOrder;
+
                 var filterSettings = m_FilteringSettings;
 
                 #if UNITY_EDITOR

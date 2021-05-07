@@ -25,7 +25,7 @@ namespace UnityEngine.Rendering
         /// A reference to the main <see cref="VolumeStack"/>.
         /// </summary>
         /// <seealso cref="VolumeStack"/>
-        public VolumeStack stack { get; private set; }
+        public VolumeStack stack { get; set; }
 
         /// <summary>
         /// The current list of all available types that derive from <see cref="VolumeComponent"/>.
@@ -62,6 +62,11 @@ namespace UnityEngine.Rendering
         // Recycled list used for volume traversal
         readonly List<Collider> m_TempColliders;
 
+        // The default stack the volume manager uses.
+        // We cache this as users able to change the stack through code and
+        // we want to be able to switch to the default one through the ResetMainStack() function.
+        VolumeStack m_DefaultStack = null;
+
         VolumeManager()
         {
             m_SortedVolumes = new Dictionary<int, List<Volume>>();
@@ -72,7 +77,8 @@ namespace UnityEngine.Rendering
 
             ReloadBaseTypes();
 
-            stack = CreateStack();
+            m_DefaultStack = CreateStack();
+            stack = m_DefaultStack;
         }
 
         /// <summary>
@@ -87,6 +93,15 @@ namespace UnityEngine.Rendering
             var stack = new VolumeStack();
             stack.Reload(baseComponentTypeArray);
             return stack;
+        }
+
+        /// <summary>
+        /// Resets the main stack to be the default one.
+        /// Call this function if you've assigned the main stack to something other than the default one.
+        /// </summary>
+        public void ResetMainStack()
+        {
+            stack = m_DefaultStack;
         }
 
         /// <summary>
