@@ -408,7 +408,7 @@ namespace UnityEngine.Rendering.Universal
                 // Only spot and point lights are supported.
                 // Directional lights basically work,
                 // but would require a lot of constants for the uv transform parameters
-                // and there are very few use cases multiple global cookies.
+                // and there are very few use cases for multiple global cookies.
                 var lightType = lightData.visibleLights[i].lightType;
                 if (!(lightType == LightType.Spot ||
                       lightType == LightType.Point))
