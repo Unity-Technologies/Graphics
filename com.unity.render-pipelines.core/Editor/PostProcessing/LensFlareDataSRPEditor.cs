@@ -303,11 +303,9 @@ namespace UnityEditor.Rendering
         {
             Rect labelRect = headerRect;
             labelRect.xMin += 16;
-            labelRect.xMax -= 20;
-            labelRect.y -= 1;
 
             Rect foldoutRect = headerRect;
-            foldoutRect.y += 4;
+            foldoutRect.y += 3f;
             foldoutRect.width = 13;
             foldoutRect.height = 13;
 
