@@ -11,6 +11,7 @@ using UnityEditor.Rendering;
 using UnityEditor.ShaderGraph.Internal;
 using UnityEditor.ShaderGraph.Legacy;
 using UnityEditor.ShaderGraph.Serialization;
+using UnityEditor.ShaderGraph.Drawing;
 using Edge = UnityEditor.Graphing.Edge;
 
 using UnityEngine.UIElements;
@@ -41,6 +42,11 @@ namespace UnityEditor.ShaderGraph
         List<JsonData<ShaderKeyword>> m_Keywords = new List<JsonData<ShaderKeyword>>();
 
         public DataValueEnumerable<ShaderKeyword> keywords => m_Keywords.SelectValue();
+
+        [SerializeField]
+        List<JsonData<ShaderDropdown>> m_Dropdowns = new List<JsonData<ShaderDropdown>>();
+
+        public DataValueEnumerable<ShaderDropdown> dropdowns => m_Dropdowns.SelectValue();
 
         [NonSerialized]
         List<ShaderInput> m_AddedInputs = new List<ShaderInput>();
@@ -513,8 +519,22 @@ namespace UnityEditor.ShaderGraph
 
         // TODO: Need a better way to handle this
 #if VFX_GRAPH_10_0_0_OR_NEWER
-        public bool hasVFXTarget => !isSubGraph && activeTargets.Count() > 0 && activeTargets.OfType<VFXTarget>().Any();
-        public bool isOnlyVFXTarget => hasVFXTarget && activeTargets.Count() == 1;
+        public bool hasVFXCompatibleTarget => activeTargets.Any(o => o.SupportsVFX());
+        public bool hasVFXTarget
+        {
+            get
+            {
+                bool supports = true;
+                supports &= !isSubGraph;
+                supports &= activeTargets.Any();
+                // Maintain support for VFXTarget and VFX compatible targets.
+                supports &= activeTargets.OfType<VFXTarget>().Any() || hasVFXCompatibleTarget;
+                return supports;
+            }
+        }
+
+        public bool isOnlyVFXTarget => activeTargets.Count() == 1 &&
+        activeTargets.Count(t => t is VFXTarget) == 1;
 #else
         public bool isVFXTarget => false;
         public bool isOnlyVFXTarget => false;
@@ -1160,6 +1180,36 @@ namespace UnityEditor.ShaderGraph
             return node as T;
         }
 
+        internal Texture2DShaderProperty GetMainTexture()
+        {
+            foreach (var prop in properties)
+            {
+                if (prop is Texture2DShaderProperty tex)
+                {
+                    if (tex.isMainTexture)
+                    {
+                        return tex;
+                    }
+                }
+            }
+            return null;
+        }
+
+        internal ColorShaderProperty GetMainColor()
+        {
+            foreach (var prop in properties)
+            {
+                if (prop is ColorShaderProperty col)
+                {
+                    if (col.isMainColor)
+                    {
+                        return col;
+                    }
+                }
+            }
+            return null;
+        }
+
         public bool ContainsNode(AbstractMaterialNode node)
         {
             if (node == null)
@@ -1216,6 +1266,14 @@ namespace UnityEditor.ShaderGraph
         {
             foreach (var prop in properties)
             {
+                // For VFX Shader generation, we must omit exposed properties from the Material CBuffer.
+                // This is because VFX computes properties on the fly in the vertex stage, and packed into interpolator.
+                if (generationMode == GenerationMode.VFX && prop.isExposed)
+                {
+                    prop.overrideHLSLDeclaration = true;
+                    prop.hlslDeclarationOverride = HLSLDeclaration.DoNotDeclare;
+                }
+
                 // ugh, this needs to be moved to the gradient property implementation
                 if (prop is GradientShaderProperty gradientProp && generationMode == GenerationMode.Preview)
                 {
@@ -1236,6 +1294,16 @@ namespace UnityEditor.ShaderGraph
 
             // Alwways calculate permutations when collecting
             collector.CalculateKeywordPermutations();
+        }
+
+        public bool IsInputAllowedInGraph(ShaderInput input)
+        {
+            return (isSubGraph && input.allowedInSubGraph) || (!isSubGraph && input.allowedInMainGraph);
+        }
+
+        public bool IsInputAllowedInGraph(AbstractMaterialNode node)
+        {
+            return (isSubGraph && node.allowedInSubGraph) || (!isSubGraph && node.allowedInMainGraph);
         }
 
         // adds the input to the graph, and sanitizes the names appropriately
@@ -1281,6 +1349,18 @@ namespace UnityEditor.ShaderGraph
                         m_Keywords.Insert(index, keyword);
 
                     OnKeywordChangedNoValidate();
+
+                    break;
+                case ShaderDropdown dropdown:
+                    if (m_Dropdowns.Contains(dropdown))
+                        return;
+
+                    if (index < 0)
+                        m_Dropdowns.Add(dropdown);
+                    else
+                        m_Dropdowns.Insert(index, dropdown);
+
+                    OnDropdownChangedNoValidate();
 
                     break;
                 default:
@@ -1353,6 +1433,9 @@ namespace UnityEditor.ShaderGraph
                 case ShaderKeyword keyword:
                     sanitizedName = GraphUtil.SanitizeName(keywords.Where(p => p != input).Select(p => p.displayName), "{0} ({1})", sanitizedName);
                     break;
+                case ShaderDropdown dropdown:
+                    sanitizedName = GraphUtil.SanitizeName(dropdowns.Where(p => p != input).Select(p => p.displayName), "{0} ({1})", sanitizedName);
+                    break;
                 default:
                     throw new ArgumentOutOfRangeException();
             }
@@ -1367,16 +1450,23 @@ namespace UnityEditor.ShaderGraph
             {
                 case AbstractShaderProperty property:
                 {
-                    // must deduplicate ref names against both keyword and properties, as they occupy the same name space
-                    var existingNames = properties.Where(p => p != property).Select(p => p.referenceName).Union(keywords.Select(p => p.referenceName));
+                    // must deduplicate ref names against keywords, dropdowns, and properties, as they occupy the same name space
+                    var existingNames = properties.Where(p => p != property).Select(p => p.referenceName).Union(keywords.Select(p => p.referenceName)).Union(dropdowns.Select(p => p.referenceName));
                     sanitizedName = GraphUtil.DeduplicateName(existingNames, "{0}_{1}", sanitizedName);
                 }
                 break;
                 case ShaderKeyword keyword:
                 {
-                    // must deduplicate ref names against both keyword and properties, as they occupy the same name space
+                    // must deduplicate ref names against keywords, dropdowns, and properties, as they occupy the same name space
                     sanitizedName = sanitizedName.ToUpper();
-                    var existingNames = properties.Select(p => p.referenceName).Union(keywords.Where(p => p != input).Select(p => p.referenceName));
+                    var existingNames = properties.Select(p => p.referenceName).Union(keywords.Where(p => p != input).Select(p => p.referenceName)).Union(dropdowns.Select(p => p.referenceName));
+                    sanitizedName = GraphUtil.DeduplicateName(existingNames, "{0}_{1}", sanitizedName);
+                }
+                break;
+                case ShaderDropdown dropdown:
+                {
+                    // must deduplicate ref names against keywords, dropdowns, and properties, as they occupy the same name space
+                    var existingNames = properties.Select(p => p.referenceName).Union(keywords.Select(p => p.referenceName)).Union(dropdowns.Where(p => p != input).Select(p => p.referenceName));
                     sanitizedName = GraphUtil.DeduplicateName(existingNames, "{0}_{1}", sanitizedName);
                 }
                 break;
@@ -1404,6 +1494,7 @@ namespace UnityEditor.ShaderGraph
                 copyProp.precision = sourceProp.precision;
                 copyProp.overrideHLSLDeclaration = sourceProp.overrideHLSLDeclaration;
                 copyProp.hlslDeclarationOverride = sourceProp.hlslDeclarationOverride;
+                copyProp.useCustomSlotLabel = sourceProp.useCustomSlotLabel;
             }
 
             // sanitize the display name (we let the .Copy() function actually copy the display name over)
@@ -1423,6 +1514,7 @@ namespace UnityEditor.ShaderGraph
                 copy.SetReferenceNameAndSanitizeForGraph(this, source.referenceName);
             }
 
+            copy.OnBeforePasteIntoGraph(this);
             AddGraphInputNoSanitization(copy, insertIndex);
 
             return copy;
@@ -1485,6 +1577,27 @@ namespace UnityEditor.ShaderGraph
                 m_MovedInputs.Add(keyword);
         }
 
+        public void MoveDropdown(ShaderDropdown dropdown, int newIndex)
+        {
+            if (newIndex > m_Dropdowns.Count || newIndex < 0)
+                throw new ArgumentException("New index is not within dropdowns list.");
+            var currentIndex = m_Dropdowns.IndexOf(dropdown);
+            if (currentIndex == -1)
+                throw new ArgumentException("Dropdown is not in graph.");
+            if (newIndex == currentIndex)
+                return;
+            m_Dropdowns.RemoveAt(currentIndex);
+            if (newIndex > currentIndex)
+                newIndex--;
+            var isLast = newIndex == m_Dropdowns.Count;
+            if (isLast)
+                m_Dropdowns.Add(dropdown);
+            else
+                m_Dropdowns.Insert(newIndex, dropdown);
+            if (!m_MovedInputs.Contains(dropdown))
+                m_MovedInputs.Add(dropdown);
+        }
+
         public int GetGraphInputIndex(ShaderInput input)
         {
             switch (input)
@@ -1493,6 +1606,8 @@ namespace UnityEditor.ShaderGraph
                     return m_Properties.IndexOf(property);
                 case ShaderKeyword keyword:
                     return m_Keywords.IndexOf(keyword);
+                case ShaderDropdown dropdown:
+                    return m_Dropdowns.IndexOf(dropdown);
                 default:
                     throw new ArgumentOutOfRangeException();
             }
@@ -1501,7 +1616,8 @@ namespace UnityEditor.ShaderGraph
         void RemoveGraphInputNoValidate(ShaderInput shaderInput)
         {
             if (shaderInput is AbstractShaderProperty property && m_Properties.Remove(property) ||
-                shaderInput is ShaderKeyword keyword && m_Keywords.Remove(keyword))
+                shaderInput is ShaderKeyword keyword && m_Keywords.Remove(keyword) ||
+                shaderInput is ShaderDropdown dropdown && m_Dropdowns.Remove(dropdown))
             {
                 m_RemovedInputs.Add(shaderInput);
                 m_AddedInputs.Remove(shaderInput);
@@ -1553,6 +1669,22 @@ namespace UnityEditor.ShaderGraph
         }
 
         public void OnKeywordChangedNoValidate()
+        {
+            var allNodes = GetNodes<AbstractMaterialNode>();
+            foreach (AbstractMaterialNode node in allNodes)
+            {
+                node.Dirty(ModificationScope.Topological);
+                node.ValidateNode();
+            }
+        }
+
+        public void OnDropdownChanged()
+        {
+            OnDropdownChangedNoValidate();
+            ValidateGraph();
+        }
+
+        public void OnDropdownChangedNoValidate()
         {
             var allNodes = GetNodes<AbstractMaterialNode>();
             foreach (AbstractMaterialNode node in allNodes)
@@ -1672,6 +1804,8 @@ namespace UnityEditor.ShaderGraph
                     inputsToRemove.Add(property);
                 foreach (var keyword in m_Keywords.SelectValue())
                     inputsToRemove.Add(keyword);
+                foreach (var dropdown in m_Dropdowns.SelectValue())
+                    inputsToRemove.Add(dropdown);
                 foreach (var input in inputsToRemove)
                     RemoveGraphInputNoValidate(input);
             }
@@ -1682,6 +1816,10 @@ namespace UnityEditor.ShaderGraph
             foreach (var otherKeyword in other.keywords)
             {
                 AddGraphInputNoSanitization(otherKeyword);
+            }
+            foreach (var otherDropdown in other.dropdowns)
+            {
+                AddGraphInputNoSanitization(otherDropdown);
             }
 
             other.ValidateGraph();
@@ -1816,6 +1954,9 @@ namespace UnityEditor.ShaderGraph
                 if ((node is BlockNode) || (node is MultiJsonInternal.UnknownNodeType))
                     continue;
 
+                if (!IsInputAllowedInGraph(node))
+                    continue;
+
                 AbstractMaterialNode pastedNode = node;
 
                 // Check if the property nodes need to be made into a concrete node.
@@ -1884,11 +2025,29 @@ namespace UnityEditor.ShaderGraph
                     }
                     else
                     {
-                        AddGraphInput(keywordNode.keyword);
+                        owner.graphDataStore.Dispatch(new AddShaderInputAction() { shaderInputReference = keywordNode.keyword });
                     }
 
                     // Always update Keyword nodes to handle any collisions resolved on the Keyword
                     keywordNode.UpdateNode();
+                }
+
+                // Check if the dropdown nodes need to have their dropdowns copied.
+                if (node is DropdownNode dropdownNode)
+                {
+                    var dropdown = m_Dropdowns.SelectValue().FirstOrDefault(x => x.objectId == dropdownNode.dropdown.objectId
+                        || x.referenceName == dropdownNode.dropdown.referenceName);
+                    if (dropdown != null)
+                    {
+                        dropdownNode.dropdown = dropdown;
+                    }
+                    else
+                    {
+                        owner.graphDataStore.Dispatch(new AddShaderInputAction() { shaderInputReference = dropdownNode.dropdown });
+                    }
+
+                    // Always update Dropdown nodes to handle any collisions resolved on the Keyword
+                    dropdownNode.UpdateNode();
                 }
             }
 
@@ -1977,6 +2136,7 @@ namespace UnityEditor.ShaderGraph
                     var slotsField = typeof(AbstractMaterialNode).GetField("m_Slots", BindingFlags.Instance | BindingFlags.NonPublic);
                     var propertyField = typeof(PropertyNode).GetField("m_Property", BindingFlags.Instance | BindingFlags.NonPublic);
                     var keywordField = typeof(KeywordNode).GetField("m_Keyword", BindingFlags.Instance | BindingFlags.NonPublic);
+                    var dropdownField = typeof(DropdownNode).GetField("m_Dropdown", BindingFlags.Instance | BindingFlags.NonPublic);
                     var defaultReferenceNameField = typeof(ShaderInput).GetField("m_DefaultReferenceName", BindingFlags.Instance | BindingFlags.NonPublic);
 
                     m_GroupDatas.Clear();

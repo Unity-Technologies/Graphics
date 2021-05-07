@@ -50,7 +50,7 @@ For Example : Position type carries a Vector3 value and a Space : setting a the 
 
 Depending on the [System Simulation Space](Systems.md#system-spaces), the value will be automatically transformed to the simulation space if required.
 
-> Tip: Manually changing a Property Space can be achieved using the Change Space operator
+> Tip: Manually changing a Property Space can be achieved using the Change Space Operator
 
 ## Property Nodes
 
