@@ -1351,7 +1351,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
             type = KeywordType.Boolean,
             definition = KeywordDefinition.ShaderFeature,
             scope = KeywordScope.Local,
-            stages = KeywordShaderStage.Domain,
+            // stages = KeywordShaderStage.Domain, - TODO: don't work currently
         };
 
         public static KeywordDescriptor TransparentDepthPrepass = new KeywordDescriptor()
