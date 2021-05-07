@@ -493,7 +493,7 @@ namespace UnityEngine.Rendering.Universal
 
 #if ENABLE_VR && ENABLE_XR_MODULE
             var xrActive = false;
-            var xrPasses = m_XRSystem.SetupFrame(baseCamera);
+            var xrPasses = m_XRSystem.SetupFrame(baseCamera, baseCameraAdditionalData.allowXRRendering);
             foreach (XRPass xrPass in xrPasses)
             {
 
