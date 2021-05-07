@@ -359,6 +359,7 @@ namespace UnityEngine.Rendering.HighDefinition
         public float deepLearningSuperSamplingSharpening = 0;
 
         /// internal state set by the runtime wether DLSS is enabled or not on this camera, depending on the results of all other settings.
+        [ExcludeCopy]
         internal bool cameraCanRenderDLSS = false;
 
         /// <summary>Event used to override HDRP rendering for this particular camera.</summary>
@@ -581,6 +582,15 @@ namespace UnityEngine.Rendering.HighDefinition
             data.defaultFrameSettings = defaultFrameSettings;
 
             data.probeCustomFixedExposure = probeCustomFixedExposure;
+
+            data.allowDeepLearningSuperSampling = allowDeepLearningSuperSampling;
+            data.deepLearningSuperSamplingUseCustomQualitySettings = deepLearningSuperSamplingUseCustomQualitySettings;
+            data.deepLearningSuperSamplingQuality = deepLearningSuperSamplingQuality;
+            data.deepLearningSuperSamplingUseCustomAttributes = deepLearningSuperSamplingUseCustomAttributes;
+            data.deepLearningSuperSamplingUseOptimalSettings = deepLearningSuperSamplingUseOptimalSettings;
+            data.deepLearningSuperSamplingSharpening = deepLearningSuperSamplingSharpening;
+
+            data.materialMipBias = materialMipBias;
 
             // We must not copy the following
             //data.m_IsDebugRegistered = m_IsDebugRegistered;
