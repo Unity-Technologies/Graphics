@@ -8,7 +8,7 @@ namespace UnityEngine.Rendering
     /// </summary>
     public class PowerOfTwoTextureAtlas : Texture2DAtlas
     {
-        int m_MipPadding;
+        readonly int m_MipPadding;
         const float k_MipmapFactorApprox = 1.33f;
 
         private Dictionary<int, Vector2Int> m_RequestedTextures = new Dictionary<int, Vector2Int>();
