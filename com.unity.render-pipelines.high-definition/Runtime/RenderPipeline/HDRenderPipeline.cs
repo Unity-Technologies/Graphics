@@ -144,6 +144,7 @@ namespace UnityEngine.Rendering.HighDefinition
         RenderStateBlock m_AlphaToMaskBlock;
 
         readonly List<CustomPassVolume> m_ActivePassVolumes = new List<CustomPassVolume>(6);
+        readonly List<Terrain> m_ActiveTerrains = new List<Terrain>();
 
         // Detect when windows size is changing
         int m_MaxCameraWidth;
@@ -1081,13 +1082,13 @@ namespace UnityEngine.Rendering.HighDefinition
             if (newCount != m_FrameCount)
             {
                 m_FrameCount = newCount;
-                m_ProbeCameraCache.ClearCamerasUnusedFor(2, Time.frameCount);
                 HDCamera.CleanUnused();
             }
 
 #if ENABLE_NVIDIA && ENABLE_NVIDIA_MODULE
             m_DebugDisplaySettings.nvidiaDebugView.Update();
 #endif
+            Terrain.GetActiveTerrains(m_ActiveTerrains);
 
             // This syntax is awful and hostile to debugging, please don't use it...
             using (ListPool<RenderRequest>.Get(out List<RenderRequest> renderRequests))
@@ -1453,15 +1454,19 @@ namespace UnityEngine.Rendering.HighDefinition
                     for (int j = 0; j < cameraSettings.Count; ++j)
                     {
                         var camera = m_ProbeCameraCache.GetOrCreate((viewerTransform, visibleProbe, j), Time.frameCount, CameraType.Reflection);
-                        var additionalCameraData = camera.GetComponent<HDAdditionalCameraData>();
 
                         var settingsCopy = m_Asset.currentPlatformRenderPipelineSettings.dynamicResolutionSettings;
                         settingsCopy.forcedPercentage = 100.0f;
                         settingsCopy.forceResolution = true;
                         DynamicResolutionHandler.UpdateAndUseCamera(camera, settingsCopy);
 
-                        if (additionalCameraData == null)
+                        foreach (var terrain in m_ActiveTerrains)
+                            terrain.SetKeepUnusedCameraRenderingResources(camera.GetInstanceID(), true);
+
+                        if (!camera.TryGetComponent<HDAdditionalCameraData>(out var additionalCameraData))
+                        {
                             additionalCameraData = camera.gameObject.AddComponent<HDAdditionalCameraData>();
+                        }
                         additionalCameraData.hasPersistentHistory = true;
 
                         // We need to set a targetTexture with the right otherwise when setting pixelRect, it will be rescaled internally to the size of the screen
