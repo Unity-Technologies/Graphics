@@ -231,6 +231,10 @@ void GetSurfaceAndBuiltinData(FragInputs input, float3 V, inout PositionInputs p
     GENERIC_ALPHA_TEST(alphaValue, alphaCutoff);
 #endif
 
+    // This need to be init here to quiet the compiler in case of decal, but can be override later.
+    surfaceData.geomNormalWS = input.tangentToWorld[2];
+    surfaceData.specularOcclusion = 1.0;
+
     // We perform the conversion to world of the normalTS outside of the GetSurfaceData
     // so it allow us to correctly deal with detail normal map and optimize the code for the layered shaders
     float3 normalTS;
@@ -238,7 +242,7 @@ void GetSurfaceAndBuiltinData(FragInputs input, float3 V, inout PositionInputs p
     float3 bentNormalWS;
     float alpha = GetSurfaceData(input, layerTexCoord, surfaceData, normalTS, bentNormalTS);
 
-#if HAVE_DECALS
+#if SHADEROPTIONS_SURFACE_GRADIENT_DECAL_NORMAL == 1 && HAVE_DECALS
     if (_EnableDecals)
     {
         DecalSurfaceData decalSurfaceData = GetDecalSurfaceData(posInput, input, alpha);
@@ -248,9 +252,14 @@ void GetSurfaceAndBuiltinData(FragInputs input, float3 V, inout PositionInputs p
 
     GetNormalWS(input, normalTS, surfaceData.normalWS, doubleSidedConstants);
 
-    surfaceData.geomNormalWS = input.tangentToWorld[2];
-
-    surfaceData.specularOcclusion = 1.0; // This need to be init here to quiet the compiler in case of decal, but can be override later.
+#if SHADEROPTIONS_SURFACE_GRADIENT_DECAL_NORMAL == 0 && HAVE_DECALS
+    if (_EnableDecals)
+    {
+        // Both uses and modifies 'surfaceData.normalWS'.
+        DecalSurfaceData decalSurfaceData = GetDecalSurfaceData(posInput, input, alpha);
+        ApplyDecalToSurfaceData(decalSurfaceData, input.tangentToWorld[2], surfaceData);
+    }
+#endif
 
     // Use bent normal to sample GI if available
 #ifdef _BENTNORMALMAP

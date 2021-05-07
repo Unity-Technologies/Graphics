@@ -1,5 +1,5 @@
 void ApplyDecalToSurfaceData(DecalSurfaceData decalSurfaceData, float3 vtxNormal, inout SurfaceData surfaceData
-#ifdef SURFACE_GRADIENT
+#if SHADEROPTIONS_SURFACE_GRADIENT_DECAL_NORMAL == 1 && defined(SURFACE_GRADIENT)
     , inout float3 normalTS
 #endif
 )
@@ -12,7 +12,7 @@ void ApplyDecalToSurfaceData(DecalSurfaceData decalSurfaceData, float3 vtxNormal
     // Always test the normal as we can have decompression artifact
     if (decalSurfaceData.normalWS.w < 1.0)
     {
-#ifdef SURFACE_GRADIENT
+#if SHADEROPTIONS_SURFACE_GRADIENT_DECAL_NORMAL == 1 && defined(SURFACE_GRADIENT)
         float3 surfGrad = SurfaceGradientFromVolumeGradient(vtxNormal, decalSurfaceData.normalWS.xyz);
         normalTS = normalTS * decalSurfaceData.normalWS.w + surfGrad;
 #else

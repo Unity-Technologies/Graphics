@@ -524,7 +524,11 @@ void SetFlakesSurfaceData(TextureUVMapping uvMapping, inout SurfaceData surfaceD
 
 #ifndef SHADER_STAGE_RAY_TRACING
 
-void ApplyDecalToSurfaceData(DecalSurfaceData decalSurfaceData, float3 vtxNormal, inout SurfaceData surfaceData, inout float3 normalTS, inout float3 clearcoatNormalTS)
+void ApplyDecalToSurfaceData(DecalSurfaceData decalSurfaceData, float3 vtxNormal, inout SurfaceData surfaceData
+#if SHADEROPTIONS_SURFACE_GRADIENT_DECAL_NORMAL
+    , inout float3 normalTS, inout float3 clearcoatNormalTS
+#endif
+)
 {
 #if defined(_AXF_BRDF_TYPE_SVBRDF) || defined(_AXF_BRDF_TYPE_CAR_PAINT) // Not implemented for BTF
     // using alpha compositing https://developer.nvidia.com/gpugems/GPUGems3/gpugems3_ch23.html
@@ -537,9 +541,14 @@ void ApplyDecalToSurfaceData(DecalSurfaceData decalSurfaceData, float3 vtxNormal
     if (decalSurfaceData.normalWS.w < 1.0)
     {
         // Affect both normal and clearcoat normal
+#if SHADEROPTIONS_SURFACE_GRADIENT_DECAL_NORMAL
         float3 surfGrad = SurfaceGradientFromVolumeGradient(vtxNormal, decalSurfaceData.normalWS.xyz);
         normalTS = normalTS * decalSurfaceData.normalWS.w + surfGrad;
         clearcoatNormalTS = clearcoatNormalTS * decalSurfaceData.normalWS.w + surfGrad;
+#else
+        surfaceData.normalWS.xyz = SafeNormalize(surfaceData.normalWS.xyz * decalSurfaceData.normalWS.w + decalSurfaceData.normalWS.xyz);
+        surfaceData.clearcoatNormalWS = SafeNormalize(surfaceData.clearcoatNormalWS.xyz * decalSurfaceData.normalWS.w + decalSurfaceData.normalWS.xyz);
+#endif
     }
 
 #ifdef DECALS_4RT // only smoothness in 3RT mode
@@ -670,7 +679,7 @@ void GetSurfaceAndBuiltinData(FragInputs input, float3 V, inout PositionInputs p
 
     float3 clearcoatNormalTS = AXF_SAMPLE_SMP_TEXTURE2D_NORMAL_AS_GRAD(_ClearcoatNormalMap, sampler_ClearcoatNormalMap, uvMapping);
 
-#if HAVE_DECALS
+#if SHADEROPTIONS_SURFACE_GRADIENT_DECAL_NORMAL == 1 && HAVE_DECALS
     if (_EnableDecals)
     {
         DecalSurfaceData decalSurfaceData = GetDecalSurfaceData(posInput, input, alpha);
@@ -680,6 +689,15 @@ void GetSurfaceAndBuiltinData(FragInputs input, float3 V, inout PositionInputs p
 
     GetNormalWS(input, normalTS, surfaceData.normalWS, doubleSidedConstants);
     GetNormalWS(input, clearcoatNormalTS, surfaceData.clearcoatNormalWS, doubleSidedConstants);
+
+#if SHADEROPTIONS_SURFACE_GRADIENT_DECAL_NORMAL == 0 && HAVE_DECALS
+    if (_EnableDecals)
+    {
+        // Both uses and modifies 'surfaceData.normalWS'.
+        DecalSurfaceData decalSurfaceData = GetDecalSurfaceData(posInput, input, alpha);
+        ApplyDecalToSurfaceData(decalSurfaceData, input.tangentToWorld[2], surfaceData);
+    }
+#endif
 
     // TODO
     // Assume same xyz encoding for AxF bent normal as other normal maps.

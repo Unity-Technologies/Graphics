@@ -138,8 +138,8 @@ void EvalDecalMask( PositionInputs posInput, float3 vtxNormal, float3 positionRW
         // Normal
         if (affectFlags & 2)
         {
-            float4 src;
-            float2 deriv = float2(0.0, 0.0);
+            float4 src = 0.0;
+            float3 normalTS = float3(0.0, 0.0, 1.0);
 
             // We use scaleBias value to now if we have init a texture. 0 mean a texture is bound
             bool normalTextureBound = (decalData.normalScaleBias.x > 0) && (decalData.normalScaleBias.y > 0);
@@ -153,11 +153,19 @@ void EvalDecalMask( PositionInputs posInput, float3 vtxNormal, float3 positionRW
                 float2 sampleNormalDdy = positionDSDdy.xz * decalData.normalScaleBias.xy;
                 float  lodNormal = ComputeTextureLOD(sampleNormalDdx, sampleNormalDdy, _DecalAtlasResolution, 0.5);
 
-                deriv = UnpackDerivativeNormalRGorAG(SAMPLE_TEXTURE2D_LOD(_DecalAtlas2D, _trilinear_clamp_sampler_DecalAtlas2D, sampleNormal, lodNormal));
+                #if SHADEROPTIONS_SURFACE_GRADIENT_DECAL_NORMAL
+                float3x3 tangentToWorld = transpose((float3x3)decalData.normalToWorld);
+                float2 deriv = UnpackDerivativeNormalRGorAG(SAMPLE_TEXTURE2D_LOD(_DecalAtlas2D, _trilinear_clamp_sampler_DecalAtlas2D, sampleNormal, lodNormal));
+                src.xyz = SurfaceGradientFromTBN(deriv, tangentToWorld[0], tangentToWorld[1]);
+                #else
+                normalTS = UnpackNormalmapRGorAG(SAMPLE_TEXTURE2D_LOD(_DecalAtlas2D, _trilinear_clamp_sampler_DecalAtlas2D, sampleNormal, lodNormal));
+                #endif
             }
 
-            float3x3 tangentToWorld = transpose((float3x3)decalData.normalToWorld);
-            src.xyz = SurfaceGradientFromTBN(deriv, tangentToWorld[0], tangentToWorld[1]) * 0.5 + 0.5; // The " * 0.5 + 0.5" mimic what is happening when calling EncodeIntoDBuffer()
+            #if !SHADEROPTIONS_SURFACE_GRADIENT_DECAL_NORMAL
+            src.xyz = mul((float3x3)decalData.normalToWorld, normalTS);
+            #endif
+            src.xyz = src.xyz * 0.5 + 0.5; // Mimic what is happening when calling EncodeIntoDBuffer()
             src.w = (decalData.blendParams.x == 1.0) ? maskMapBlend : albedoMapBlend;
 
             // Accumulate in dbuffer (mimic what ROP are doing)
@@ -257,7 +265,7 @@ DecalSurfaceData GetDecalSurfaceData(PositionInputs posInput, float3 vtxNormal, 
     DecalSurfaceData decalSurfaceData;
     DECODE_FROM_DBUFFER(DBuffer, decalSurfaceData);
 
-#ifndef SURFACE_GRADIENT
+#if SHADEROPTIONS_SURFACE_GRADIENT_DECAL_NORMAL && !defined(SURFACE_GRADIENT)
     decalSurfaceData.normalWS.xyz = SurfaceGradientResolveNormal(vtxNormal, decalSurfaceData.normalWS.xyz);
 #endif
 

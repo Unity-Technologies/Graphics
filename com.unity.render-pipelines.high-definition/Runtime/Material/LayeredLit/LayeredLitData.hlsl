@@ -783,7 +783,7 @@ void GetSurfaceAndBuiltinData(FragInputs input, float3 V, inout PositionInputs p
     surfaceData.specularOcclusion = 1.0;
     surfaceData.normalWS = 0;
 
-#if HAVE_DECALS
+#if SHADEROPTIONS_SURFACE_GRADIENT_DECAL_NORMAL && HAVE_DECALS
     if (_EnableDecals)
     {
         DecalSurfaceData decalSurfaceData = GetDecalSurfaceData(posInput, input, alpha);
@@ -792,6 +792,15 @@ void GetSurfaceAndBuiltinData(FragInputs input, float3 V, inout PositionInputs p
 #endif
 
     GetNormalWS(input, normalTS, surfaceData.normalWS, doubleSidedConstants);
+
+#if !SHADEROPTIONS_SURFACE_GRADIENT_DECAL_NORMAL && HAVE_DECALS
+    if (_EnableDecals)
+    {
+        // Both uses and modifies 'surfaceData.normalWS'.
+        DecalSurfaceData decalSurfaceData = GetDecalSurfaceData(posInput, input, alpha);
+        ApplyDecalToSurfaceData(decalSurfaceData, input.tangentToWorld[2], surfaceData);
+    }
+#endif
 
     // Use bent normal to sample GI if available
     // If any layer use a bent normal map, then bentNormalTS contain the interpolated result of bentnormal and normalmap (in case no bent normal are available)

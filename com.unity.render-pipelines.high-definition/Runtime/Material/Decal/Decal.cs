@@ -40,7 +40,8 @@ namespace UnityEngine.Rendering.HighDefinition
         static public void GetMaterialDBufferDescription(out GraphicsFormat[] RTFormat)
         {
             HDRenderPipeline hdPipeline = RenderPipelineManager.currentPipeline as HDRenderPipeline;
-            bool hp = hdPipeline.currentPlatformRenderPipelineSettings.decalNormalBufferHP;
+            bool hp = ShaderConfig.s_SurfaceGradientDecalNormal &&
+                hdPipeline.currentPlatformRenderPipelineSettings.decalNormalBufferHP;
             RTFormat = hp ? m_RTFormatHP : m_RTFormat;
         }
     }

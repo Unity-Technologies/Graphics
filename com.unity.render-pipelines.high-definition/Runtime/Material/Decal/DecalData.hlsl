@@ -79,12 +79,10 @@ void GetSurfaceData(FragInputs input, float3 V, PositionInputs posInput, float a
     // If no texture is assign it is the bump texture (0.0, 0.0, 1.0)
 #ifdef _MATERIAL_AFFECTS_NORMAL
 
+#if SHADEROPTIONS_SURFACE_GRADIENT_DECAL_NORMAL
     #ifdef _NORMALMAP
     // normalTS in [-1; 1] range
     float2 deriv = UnpackDerivativeNormalRGorAG(SAMPLE_TEXTURE2D(_NormalMap, sampler_NormalMap, texCoords));
-    //#ifndef _DECAL_VOLUME_HIGH_PRECISION
-    deriv = clamp(deriv, float2(-1, -1), float2(1, 1));
-    //#endif
     #else
     float2 deriv = float2(0.0, 0.0);
     #endif
@@ -99,6 +97,24 @@ void GetSurfaceData(FragInputs input, float3 V, PositionInputs posInput, float a
     // since the volume gradient is a linear operator. (eq. 2 is used in gbuffer pass)
     surfaceData.normalWS.xyz = SurfaceGradientFromTBN(deriv, tangentToWorld[0], tangentToWorld[1]);
     surfaceData.normalWS.w = _NormalBlendSrc ? maskMapBlend : albedoMapBlend;
+#else
+    #ifdef _NORMALMAP
+    float3 normalTS = UnpackNormalmapRGorAG(SAMPLE_TEXTURE2D(_NormalMap, sampler_NormalMap, texCoords));
+    #else
+    float3 normalTS = float3(0.0, 0.0, 1.0);
+    #endif
+    float3 normalWS = float3(0.0, 0.0, 0.0);
+
+    #if (SHADERPASS == SHADERPASS_DBUFFER_PROJECTOR)
+    normalWS = mul((float3x3)normalToWorld, normalTS);
+    #elif (SHADERPASS == SHADERPASS_DBUFFER_MESH)
+    // We need to normalize as we use mikkt tangent space and this is expected (tangent space is not normalize)
+    normalWS = normalize(TransformTangentToWorld(normalTS, input.tangentToWorld));
+    #endif
+
+    surfaceData.normalWS.xyz = normalWS;
+    surfaceData.normalWS.w = _NormalBlendSrc ? maskMapBlend : albedoMapBlend;
+#endif
 
 #endif
 
