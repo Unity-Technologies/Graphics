@@ -9,11 +9,11 @@ namespace UnityEditor.Experimental.Rendering
         internal SerializedProperty minSubdivisionMultiplier;
         internal SerializedProperty objectLayerMask;
 
-        SerializedObject m_SerializedObject;
+        internal SerializedObject serializedObject;
 
-        internal SerializedProbeVolume(SerializedObject serializedObject)
+        internal SerializedProbeVolume(SerializedObject obj)
         {
-            m_SerializedObject = serializedObject;
+            serializedObject = obj;
 
             size = m_SerializedObject.FindProperty("size");
             maxSubdivisionMultiplier = m_SerializedObject.FindProperty("maxSubdivisionMultiplier");
@@ -23,7 +23,7 @@ namespace UnityEditor.Experimental.Rendering
 
         internal void Apply()
         {
-            m_SerializedObject.ApplyModifiedProperties();
+            serializedObject.ApplyModifiedProperties();
         }
     }
 }
