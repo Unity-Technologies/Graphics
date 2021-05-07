@@ -49,8 +49,8 @@ namespace UnityEngine.Rendering.Universal
         Terrain,
         Sprite,
         UnityBuiltinDefault,
-        Decal,
-        SpriteMask
+        SpriteMask,
+        Decal
     }
 
     public enum LightRenderingMode
