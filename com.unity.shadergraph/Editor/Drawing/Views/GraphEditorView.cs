@@ -847,7 +847,7 @@ namespace UnityEditor.ShaderGraph.Drawing
             {
                 node.UnregisterCallback(OnNodeChanged);
                 var nodeView = m_GraphView.nodes.ToList().OfType<IShaderNodeView>()
-                        .FirstOrDefault(p => p.node != null && p.node == node);
+                    .FirstOrDefault(p => p.node != null && p.node == node);
                 if (nodeView != null)
                 {
                     nodeView.Dispose();
