@@ -17,6 +17,7 @@ namespace UnityEditor.Rendering
             public static readonly int cathegorySpacing = 5;
             public const int footerSeparatorHeight = 5;
             public const int thumbnailSize = 52;
+            public const int iconMargin = 6;    //margin for icon be ing at 75% of 52 thumbnail size
             public const int horiwontalSpaceBetweenThumbnailAndInspector = 5;
             public const int shrinkingLabel = 15;
             public static readonly GUIContent mainHeader = EditorGUIUtility.TrTextContent("Elements", "List of elements in the Lens Flare.");
@@ -341,9 +342,13 @@ namespace UnityEditor.Rendering
             SerializedProperty count = element.FindPropertyRelative("m_Count");
 
             Rect thumbnailRect = OffsetForThumbnail(ref summaryRect);
-            //draw thumbnail here
-            EditorGUI.DrawRect(thumbnailRect, Color.black);
-
+            Rect thumbnailIconeRect = thumbnailRect;
+            thumbnailIconeRect.xMin += Styles.iconMargin;
+            thumbnailIconeRect.xMax -= Styles.iconMargin;
+            thumbnailIconeRect.yMin += Styles.iconMargin;
+            thumbnailIconeRect.yMax -= Styles.iconMargin;
+            Color guiColor = GUI.color;
+            GUI.color = Color.black; //set background color for thunmbnail
             switch (GetEnum<SRPLensFlareType>(type))
             {
                 case SRPLensFlareType.Image:
@@ -357,13 +362,16 @@ namespace UnityEditor.Rendering
                     break;
 
                 case SRPLensFlareType.Circle:
-                    EditorGUI.DrawTextureTransparent(thumbnailRect, LensFlareEditorUtils.Icons.circle, ScaleMode.ScaleToFit, 1);
+                    EditorGUI.DrawRect(thumbnailRect, GUI.color);   //draw the margin
+                    EditorGUI.DrawTextureTransparent(thumbnailIconeRect, LensFlareEditorUtils.Icons.circle, ScaleMode.ScaleToFit, 1);
                     break;
 
                 case SRPLensFlareType.Polygon:
-                    EditorGUI.DrawTextureTransparent(thumbnailRect, LensFlareEditorUtils.Icons.polygon, ScaleMode.ScaleToFit, 1);
+                    EditorGUI.DrawRect(thumbnailRect, GUI.color);   //draw the margin
+                    EditorGUI.DrawTextureTransparent(thumbnailIconeRect, LensFlareEditorUtils.Icons.polygon, ScaleMode.ScaleToFit, 1);
                     break;
             }
+            GUI.color = guiColor;
 
             IEnumerator<Rect> fieldRect = ReserveFields(summaryRect, allowMultipleElement.boolValue ? 4 : 3);
             float oldLabelWidth = EditorGUIUtility.labelWidth;
