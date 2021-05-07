@@ -543,8 +543,6 @@ namespace UnityEngine.Rendering.Universal
                         if (RenderPassEvent.AfterRenderingGbuffer <= renderPassInputs.requiresDepthNormalAtEvent &&
                             renderPassInputs.requiresDepthNormalAtEvent <= RenderPassEvent.BeforeRenderingOpaques)
                             m_DepthNormalPrepass.shaderTagId = new ShaderTagId(k_DepthNormalsOnly);
-                        if (m_DeferredLights.UseRenderPass && RenderPassEvent.AfterRenderingGbuffer == renderPassInputs.requiresDepthNormalAtEvent)
-                            m_DeferredLights.DisableUseRenderPass();
                     }
                     else
                     {
@@ -577,10 +575,9 @@ namespace UnityEngine.Rendering.Universal
 
             if (this.actualRenderingMode == RenderingMode.Deferred)
             {
-                var cmd = CommandBufferPool.Get();
-                CoreUtils.SetKeyword(cmd, ShaderKeywordStrings.RenderPassEnabled, m_DeferredLights.UseRenderPass && cameraData.cameraType == CameraType.Game);
-                context.ExecuteCommandBuffer(cmd);
-                CommandBufferPool.Release(cmd);
+                if (m_DeferredLights.UseRenderPass && (RenderPassEvent.AfterRenderingGbuffer == renderPassInputs.requiresDepthNormalAtEvent || !useRenderPassEnabled))
+                    m_DeferredLights.DisableFramebufferFetchInput();
+
                 EnqueueDeferred(ref renderingData, requiresDepthPrepass, renderPassInputs.requiresNormalsTexture, mainLightShadows, additionalLightShadows);
             }
             else

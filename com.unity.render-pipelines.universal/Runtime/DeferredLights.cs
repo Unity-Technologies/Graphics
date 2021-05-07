@@ -566,6 +566,8 @@ namespace UnityEngine.Rendering.Universal.Internal
                     CoreUtils.SetKeyword(cmd, ShaderKeywordStrings.LightmapShadowMixing, isSubtractive || isShadowMaskAlways);
                     CoreUtils.SetKeyword(cmd, ShaderKeywordStrings.ShadowsShadowMask, isShadowMask);
                     CoreUtils.SetKeyword(cmd, ShaderKeywordStrings.MixedLightingSubtractive, isSubtractive); // Backward compatibility
+                    // This should be moved to a more global scope when framebuffer fetch is introduced to more passes
+                    CoreUtils.SetKeyword(cmd, ShaderKeywordStrings.RenderPassEnabled, this.UseRenderPass && renderingData.cameraData.cameraType == CameraType.Game);
                 }
 
                 context.ExecuteCommandBuffer(cmd);
@@ -742,7 +744,7 @@ namespace UnityEngine.Rendering.Universal.Internal
 
         // In cases when custom pass is injected between GBuffer and Deferred passes we need to fallback
         // To non-renderpass path in the middle of setup, which means recreating the gbuffer attachments as well due to GBuffer4 used for RenderPass
-        internal void DisableUseRenderPass()
+        internal void DisableFramebufferFetchInput()
         {
             this.UseRenderPass = false;
             CreateGbufferAttachments();

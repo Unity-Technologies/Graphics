@@ -396,6 +396,9 @@ namespace UnityEngine.Rendering.Universal
                 }
                 else
                 {
+                    // Regarding input attachments, currently we always recreate a new subpass if it contains input attachments
+                    // This might not the most optimal way though and it should be investigated in the future
+                    // Whether merging subpasses with matching input attachments is a more viable option
                     if (!AreAttachmentIndicesCompatible(m_ActiveRenderPassQueue[m_LastBeginSubpassPassIndex], m_ActiveRenderPassQueue[currentPassIndex]))
                     {
                         context.EndSubPass();
