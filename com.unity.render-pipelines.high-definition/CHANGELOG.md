@@ -184,6 +184,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fix Clouds on Metal or platforms that don't support RW in same shader of R11G11B10 textures.
 - Fixed blocky looking bloom when dynamic resolution scaling was used.
 - Fixed normals provided in object space or world space, when using double sided materials.
+- Fixed multi cameras using cloud layers shadows.
 
 ### Changed
 - Changed Window/Render Pipeline/HD Render Pipeline Wizard to Window/Rendering/HDRP Wizard
@@ -255,6 +256,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Changed ray tracing acceleration structure build, so that only meshes with HDRP materials are included (case 1322365).
 - Changed default sidedness to double, when a mesh with a mix of single and double-sided materials is added to the ray tracing acceleration structure (case 1323451).
 - Use the new API for updating Reflection Probe state (fixes garbage allocation, case 1290521)
+- Augmented debug visualization for probe volumes.
 
 ## [11.0.0] - 2020-10-21
 

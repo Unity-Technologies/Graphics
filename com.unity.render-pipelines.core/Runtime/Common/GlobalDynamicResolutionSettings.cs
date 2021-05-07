@@ -59,6 +59,21 @@ namespace UnityEngine.Rendering
         /// <summary>Select whether the dynamic resolution is enabled or not.</summary>
         public bool enabled;
 
+        /// <summary>ToggleNVIDIA Deep Learning Super Sampling (DLSS).</summary>
+        public bool enableDLSS;
+
+        /// <summary>Opaque quality setting of NVIDIA Deep Learning Super Sampling (DLSS). Use the system enum UnityEngine.NVIDIA.DLSSQuality to set the quality.</summary>
+        public uint DLSSPerfQualitySetting;
+
+        /// <summary>Toggle NVIDIA Deep Learning Super Sampling (DLSS) automatic recommendation system for scaling and sharpness.
+        /// If this is on, the manually established scale callback for Dynamic Resolution Scaling is ignored. The sharpness setting of DLSS is also ignored.
+        /// </summary>
+        public bool DLSSUseOptimalSettings;
+
+        /// <summary>Pixel sharpness of NVIDIA Deep Leraning Super Sampling (DLSS).</summary>
+        [Range(0, 1)]
+        public float DLSSSharpness;
+
         /// <summary>The maximum resolution percentage that dynamic resolution can reach.</summary>
         public float maxPercentage;
         /// <summary>The minimum resolution percentage that dynamic resolution can reach.</summary>

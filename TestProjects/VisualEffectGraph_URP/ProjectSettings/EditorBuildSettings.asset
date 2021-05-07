@@ -71,4 +71,7 @@ EditorBuildSettings:
   - enabled: 1
     path: Assets/GraphicsTests/102_RenderDepth.unity
     guid: bbb228de8c5a7dd4ba58363e4b3c8669
+  - enabled: 1
+    path: Assets/GraphicsTests/103_Renderer2D.unity
+    guid: 956dddffc117fe241a0ef90b1b12ec68
   m_configObjects: {}
