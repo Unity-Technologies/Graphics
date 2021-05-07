@@ -419,7 +419,7 @@ namespace UnityEngine.Rendering.Universal
                 if (!(lightType == LightType.Spot ||
                       lightType == LightType.Point))
                 {
-                    Debug.LogWarning($"Additional {lightType.ToString()} light called '{light.name}' has a light cookie which will not be visible.");
+                    Debug.LogWarning($"Additional {lightType.ToString()} light called '{light.name}' has a light cookie which will not be visible.", lightData.visibleLights[i].light);
                     continue;
                 }
 
