@@ -285,17 +285,33 @@ APVResources FillAPVResources()
     return apvRes;
 }
 
-void EvaluateAdaptiveProbeVolume(in float3 posWS, in float3 normalWS, in float3 backNormalWS, in float3 viewDir,
+void EvaluateAdaptiveProbeVolume(in float3 posWS, in float3 normalWS, in float3 backNormalWS, in float3 viewDir, in float2 positionSS,
     out float3 bakeDiffuseLighting, out float3 backBakeDiffuseLighting)
 {
     APVResources apvRes = FillAPVResources();
+
+    // Bit of an hack to apply noise at sampling location to hide seams. Ideally we should run this only when there is a seam, but detecting that would be costly.
+    if (_PVSamplingNoise > 0)
+    {
+        float3x3 orthoBasis = GetLocalFrame(normalWS);
+
+        float noise1D_0 = (InterleavedGradientNoise(positionSS, 0) * 2.0f - 1.0f) * _PVSamplingNoise;
+        float noise1D_1 = (InterleavedGradientNoise(positionSS, 1) * 2.0f - 1.0f) * _PVSamplingNoise;
+        posWS += orthoBasis[0] * noise1D_1 + noise1D_0 * orthoBasis[1];
+    }
 
     EvaluateAdaptiveProbeVolume(posWS, normalWS, backNormalWS, viewDir, apvRes,
         bakeDiffuseLighting, backBakeDiffuseLighting);
 }
 
-void EvaluateAdaptiveProbeVolume(in float3 posWS, out float3 bakeDiffuseLighting)
+void EvaluateAdaptiveProbeVolume(in float3 posWS, in float2 positionSS, out float3 bakeDiffuseLighting)
 {
+    if (_PVSamplingNoise > 0)
+    {
+        float noise1D_0 = (InterleavedGradientNoise(positionSS, 0) * 2.0f - 1.0f) * _PVSamplingNoise;
+        posWS += noise1D_0;
+    }
+
     APVResources apvRes = FillAPVResources();
     bakeDiffuseLighting = EvaluateAdaptiveProbeVolumeL0(posWS, float3(0.0f, 0.0f, 0.0f), float3(0.0f, 0.0f, 0.0f), apvRes);
 }

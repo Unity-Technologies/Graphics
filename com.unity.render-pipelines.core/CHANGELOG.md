@@ -21,6 +21,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed L2 for Probe Volumes.
 - Fixed assertion on compression of L1 coefficients for Probe Volume.
 - Fixed ACES filter artefact due to half float error on some mobile platforms.
+- Fixed issue displaying a warning of different probe reference volume profiles even when they are equivalent.
 - Fixed missing increment/decrement controls from DebugUIIntField & DebugUIUIntField widget prefabs.
 
 ### Added
@@ -43,6 +44,8 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Adding documentation links to Light Sections
 - Support for Lens Flare Data Driven (from images and Procedural shapes), on HDRP
 - New SRPLensFlareData Asset
+- Adding documentation links to Light Sections.
+- Added sampling noise to probe volume sampling position to hide seams between subdivision levels.
 - Added DebugUI.Foldout.isHeader property to allow creating full-width header foldouts in Rendering Debugger.
 - Added DebugUI.Flags.IsHidden to allow conditional display of widgets in Rendering Debugger.
 - Added "Expand/Collapse All" buttons to Rendering Debugger window menu.
