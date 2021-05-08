@@ -612,6 +612,13 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
         {
         };
 
+        // Motion vector require positionRWS.
+        public static FieldCollection BasicMotionVector = new FieldCollection()
+        {
+            Basic,
+            HDStructFields.FragInputs.positionRWS,
+        };
+
         public static FieldCollection BasicLighting = new FieldCollection()
         {
             // We need to have tangent because if a lighting model have anisotropy and require tangent, it need to be present
@@ -620,6 +627,12 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
             // UV1 / 2 are always included for lightmaps (static and dynamic) sampling
             HDStructFields.FragInputs.texCoord1,
             HDStructFields.FragInputs.texCoord2,
+        };
+
+        public static FieldCollection BasicLightingMotionVector = new FieldCollection()
+        {
+            BasicLighting,
+            HDStructFields.FragInputs.positionRWS,
         };
     }
     #endregion

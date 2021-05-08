@@ -328,7 +328,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                 useInPreview = false,
 
                 // Collections
-                requiredFields = supportLighting ? CoreRequiredFields.BasicLighting : CoreRequiredFields.Basic,
+                requiredFields = supportLighting ? CoreRequiredFields.BasicLightingMotionVector : CoreRequiredFields.BasicMotionVector,
                 renderStates = GenerateRenderState(),
                 pragmas = CorePragmas.DotsInstancedInV2Only,
                 defines = GenerateDefines(),
@@ -400,7 +400,8 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                 useInPreview = true,
 
                 // Collections
-                requiredFields = supportLighting ? CoreRequiredFields.BasicLighting : CoreRequiredFields.Basic,
+                // We need motion vector version as Forward pass support transparent motion vector and we can't use ifdef for it
+                requiredFields = supportLighting ? CoreRequiredFields.BasicLightingMotionVector : CoreRequiredFields.BasicMotionVector,
                 renderStates = CoreRenderStates.Forward,
                 pragmas = CorePragmas.DotsInstancedInV2Only,
                 defines = supportLighting ? CoreDefines.Forward : CoreDefines.ForwardUnlit,
@@ -805,7 +806,8 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                 useInPreview = true,
 
                 // Collections
-                requiredFields = CoreRequiredFields.BasicLighting,
+                // We need motion vector version as Forward pass support transparent motion vector and we can't use ifdef for it
+                requiredFields = CoreRequiredFields.BasicLightingMotionVector,
                 renderStates = CoreRenderStates.Forward,
                 pragmas = CorePragmas.DotsInstancedInV2Only,
                 defines = CoreDefines.ForwardLit,
