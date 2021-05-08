@@ -495,7 +495,7 @@ namespace UnityEngine.Rendering.Universal
             var xrActive = false;
             var xrRendering = true;
             if (baseCameraAdditionalData != null)
-                xrRendering = baseCameraAdditionalData.allowXRRendering
+                xrRendering = baseCameraAdditionalData.allowXRRendering;
             var xrPasses = m_XRSystem.SetupFrame(baseCamera, xrRendering);
             foreach (XRPass xrPass in xrPasses)
             {
