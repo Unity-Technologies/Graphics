@@ -19,7 +19,7 @@ namespace UnityEditor.ShaderGraph
             // TODO: In the future we may have proper ShaderStage for tessellation, this will need to be revisit then
             public static BlockFieldDescriptor TessellationFactor = new BlockFieldDescriptor(SurfaceDescription.name, "TessellationFactor", "Tessellation Factor", "VERTEXDESCRIPTION_TESSELLATIONFACTOR",
                 new FloatControl(1.0f), ShaderStage.Vertex);
-            public static BlockFieldDescriptor TessellationPosition = new BlockFieldDescriptor(SurfaceDescription.name, "TessellationPosition", "Tessellation Position", "VERTEXDESCRIPTION_TESSELLATIONPOSITION",
+            public static BlockFieldDescriptor TessellationDisplacement = new BlockFieldDescriptor(SurfaceDescription.name, "TessellationDisplacement", "Tessellation Displacement", "VERTEXDESCRIPTION_TESSELLATIONDISPLACEMENT",
                 new PositionControl(CoordinateSpace.World), ShaderStage.Vertex);
         }
 

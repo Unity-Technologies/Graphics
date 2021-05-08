@@ -106,7 +106,7 @@ VaryingsMeshToDS ApplyTessellationModification(VaryingsMeshToDS input, float3 ti
     $VertexDescriptionInputs.TimeParameters: vertexDescriptionInputs.TimeParameters = timeParameters;
 
     VertexDescription vertexDescription = VertexDescriptionFunction(vertexDescriptionInputs);
-    $VertexDescription.TessellationPosition: input.positionRWS = vertexDescription.TessellationPosition;
+    $VertexDescription.TessellationDisplacement: input.positionRWS += vertexDescription.TessellationDisplacement;
 
     // TODO: Check custom interpolator
     // The purpose of the above ifdef, this allows shader graph custom interpolators to write directly to the varyings structs.
