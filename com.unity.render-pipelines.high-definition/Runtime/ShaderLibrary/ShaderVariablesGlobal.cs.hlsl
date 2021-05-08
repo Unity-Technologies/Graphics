@@ -31,8 +31,11 @@ GLOBAL_CBUFFER_START(ShaderVariablesGlobal, b0)
     float4 _WorldSpaceCameraPos_Internal;
     float4 _PrevCamPosRWS_Internal;
     float4 _ScreenSize;
+    float4 _PostProcessScreenSize;
     float4 _RTHandleScale;
     float4 _RTHandleScaleHistory;
+    float4 _RTHandlePostProcessScale;
+    float4 _RTHandlePostProcessScaleHistory;
     float4 _ZBufferParams;
     float4 _ProjectionParams;
     float4 unity_OrthoParams;
