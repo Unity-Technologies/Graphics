@@ -722,11 +722,9 @@ namespace UnityEditor.ShaderGraph.Drawing
                     SGBlackboardCategory category = blackboardPropertyView.GetFirstAncestorOfType<SGBlackboardCategory>();
                     if (row == null || category == null)
                         continue;
-                    VisualElement categoryContainer = category.parent;
+                    int blackboardFieldIndex = category.IndexOf(row);
 
-                    int categoryIndex = categoryContainer.IndexOf(category);
-
-                    return categoryIndex;
+                    return blackboardFieldIndex;
                 }
             }
 

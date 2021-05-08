@@ -137,7 +137,7 @@ namespace UnityEditor.ShaderGraph.Drawing
 
             hierarchy.Add(m_DragIndicator);
 
-            capabilities |= Capabilities.Selectable | Capabilities.Movable | Capabilities.Droppable | Capabilities.Deletable | Capabilities.Renamable;
+            capabilities |= Capabilities.Selectable | Capabilities.Movable | Capabilities.Droppable | Capabilities.Deletable | Capabilities.Renamable | Capabilities.Copiable;
 
             ClearClassList();
             AddToClassList("blackboardCategory");
