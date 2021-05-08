@@ -591,13 +591,24 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                 },
 
                 // Collections
-                requiredFields = CoreRequiredFields.Basic,
+                requiredFields = GenerateRequiredFields(),
                 renderStates = GenerateRenderState(),
                 pragmas = CorePragmas.DotsInstancedInV2Only,
+                // For TransparentDepthPrepass, WRITE_NORMAL_BUFFER is define in the ShaderPass.template directly as it rely on other define
                 defines = CoreDefines.TransparentDepthPrepass,
                 includes = GenerateIncludes(),
                 customInterpolators = CoreCustomInterpolators.Common,
             };
+
+            FieldCollection GenerateRequiredFields()
+            {
+                var fieldCollection = new FieldCollection();
+
+                fieldCollection.Add(CoreRequiredFields.Basic);
+                fieldCollection.Add(CoreRequiredFields.AddWriteNormalBuffer); // Always define as we can't test condition for it
+
+                return fieldCollection;
+            }
 
             RenderStateCollection GenerateRenderState()
             {
