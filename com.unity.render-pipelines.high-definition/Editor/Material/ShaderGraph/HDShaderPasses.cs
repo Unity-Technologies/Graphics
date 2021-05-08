@@ -846,7 +846,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
 
                 // Collections
                 // We need motion vector version as Forward pass support transparent motion vector and we can't use ifdef for it
-                requiredFields = CoreRequiredFields.BasicLightingMotionVector,
+                requiredFields = CoreRequiredFields.BasicLighting,
                 renderStates = CoreRenderStates.Forward,
                 pragmas = CorePragmas.DotsInstancedInV2Only,
                 defines = CoreDefines.ForwardLit,
