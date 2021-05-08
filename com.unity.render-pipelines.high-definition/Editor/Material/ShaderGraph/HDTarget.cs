@@ -634,6 +634,11 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
             BasicLighting,
             HDStructFields.FragInputs.positionRWS,
         };
+
+        public static FieldCollection AddWriteNormalBuffer = new FieldCollection()
+        {
+            HDStructFields.FragInputs.tangentToWorld, // Required for WRITE_NORMAL_BUFFER case (to access to vertex normal)
+        };
     }
     #endregion
 

@@ -92,13 +92,23 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                 useInPreview = false,
 
                 // Collections
-                requiredFields = CoreRequiredFields.Basic,
+                requiredFields = GenerateRequiredFields(),
                 renderStates = CoreRenderStates.ScenePicking,
                 pragmas = CorePragmas.DotsInstancedInV1AndV2EditorSync,
                 defines = CoreDefines.ScenePicking,
                 includes = GenerateIncludes(),
                 customInterpolators = CoreCustomInterpolators.Common,
             };
+
+            FieldCollection GenerateRequiredFields()
+            {
+                var fieldCollection = new FieldCollection();
+
+                fieldCollection.Add(CoreRequiredFields.Basic);
+                fieldCollection.Add(CoreRequiredFields.AddWriteNormalBuffer);
+
+                return fieldCollection;
+            }
 
             IncludeCollection GenerateIncludes()
             {
@@ -279,13 +289,23 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                 useInPreview = true,
 
                 // Collections
-                requiredFields = supportLighting ? CoreRequiredFields.BasicLighting : CoreRequiredFields.Basic,
+                requiredFields = GenerateRequiredFields(),
                 renderStates = GenerateRenderState(),
                 pragmas = CorePragmas.DotsInstancedInV2Only,
                 defines = supportLighting ? CoreDefines.DepthForwardOnly : CoreDefines.DepthForwardOnlyUnlit,
                 includes = GenerateIncludes(),
                 customInterpolators = CoreCustomInterpolators.Common,
             };
+
+            FieldCollection GenerateRequiredFields()
+            {
+                var fieldCollection = new FieldCollection();
+
+                fieldCollection.Add(supportLighting ? CoreRequiredFields.BasicLighting : CoreRequiredFields.Basic);
+                fieldCollection.Add(CoreRequiredFields.AddWriteNormalBuffer);
+
+                return fieldCollection;
+            }
 
             RenderStateCollection GenerateRenderState()
             {
@@ -328,7 +348,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                 useInPreview = false,
 
                 // Collections
-                requiredFields = supportLighting ? CoreRequiredFields.BasicLightingMotionVector : CoreRequiredFields.BasicMotionVector,
+                requiredFields = GenerateRequiredFields(),
                 renderStates = GenerateRenderState(),
                 pragmas = CorePragmas.DotsInstancedInV2Only,
                 // For shadow matte (unlit SG only) we need to enable write normal buffer
@@ -338,6 +358,16 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                 includes = GenerateIncludes(),
                 customInterpolators = CoreCustomInterpolators.Common,
             };
+
+            FieldCollection GenerateRequiredFields()
+            {
+                var fieldCollection = new FieldCollection();
+
+                fieldCollection.Add(supportLighting ? CoreRequiredFields.BasicLightingMotionVector : CoreRequiredFields.BasicMotionVector);
+                fieldCollection.Add(CoreRequiredFields.AddWriteNormalBuffer);
+
+                return fieldCollection;
+            }
 
             RenderStateCollection GenerateRenderState()
             {
@@ -692,7 +722,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                 useInPreview = true,
 
                 // Collections
-                requiredFields = CoreRequiredFields.Basic,
+                requiredFields = GenerateRequiredFields(),
                 renderStates = CoreRenderStates.DepthOnly,
                 pragmas = CorePragmas.DotsInstancedInV2Only,
                 defines = CoreDefines.ShaderGraphRaytracingDefault,
@@ -700,6 +730,16 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                 includes = DepthOnlyIncludes,
                 customInterpolators = CoreCustomInterpolators.Common,
             };
+
+            FieldCollection GenerateRequiredFields()
+            {
+                var fieldCollection = new FieldCollection();
+
+                fieldCollection.Add(CoreRequiredFields.Basic);
+                fieldCollection.Add(CoreRequiredFields.AddWriteNormalBuffer);
+
+                return fieldCollection;
+            }
         }
 
         public static IncludeCollection DepthOnlyIncludes = new IncludeCollection
