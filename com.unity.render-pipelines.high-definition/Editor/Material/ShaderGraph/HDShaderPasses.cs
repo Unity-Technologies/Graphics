@@ -497,7 +497,8 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                 useInPreview = true,
 
                 // Collections
-                requiredFields = supportLighting ? CoreRequiredFields.BasicLighting : CoreRequiredFields.Basic,
+                // BackThenFront is a forward pass and thus require same settings
+                requiredFields = supportLighting ? CoreRequiredFields.BasicLightingMotionVector : CoreRequiredFields.BasicMotionVector,
                 renderStates = CoreRenderStates.TransparentBackface,
                 pragmas = CorePragmas.DotsInstancedInV2Only,
                 defines = CoreDefines.BackThenFront,
