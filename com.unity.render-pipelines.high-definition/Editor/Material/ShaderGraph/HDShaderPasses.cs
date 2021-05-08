@@ -25,6 +25,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                 useInPreview = true,
 
                 // Collections
+                requiredFields = CoreRequiredFields.Basic,
                 renderStates = GenerateRenderState(),
                 pragmas = CorePragmas.DotsInstancedInV2Only,
                 defines = CoreDefines.ShaderGraphRaytracingDefault,
@@ -91,6 +92,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                 useInPreview = false,
 
                 // Collections
+                requiredFields = CoreRequiredFields.Basic,
                 renderStates = CoreRenderStates.ScenePicking,
                 pragmas = CorePragmas.DotsInstancedInV1AndV2EditorSync,
                 defines = CoreDefines.ScenePicking,
@@ -130,6 +132,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                 useInPreview = false,
 
                 // Collections
+                requiredFields = CoreRequiredFields.Basic,
                 renderStates = CoreRenderStates.SceneSelection,
                 pragmas = CorePragmas.DotsInstancedInV1AndV2EditorSync,
                 defines = CoreDefines.SceneSelection,
@@ -184,6 +187,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                 },
 
                 // Collections
+                requiredFields = CoreRequiredFields.Basic,
                 renderStates = CoreRenderStates.ShadowCaster,
                 pragmas = CorePragmas.DotsInstancedInV2Only,
                 includes = GenerateIncludes(),
@@ -275,7 +279,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                 useInPreview = true,
 
                 // Collections
-                requiredFields = GenerateRequiredFields(),
+                requiredFields = supportLighting ? CoreRequiredFields.BasicLighting : CoreRequiredFields.Basic,
                 renderStates = GenerateRenderState(),
                 pragmas = CorePragmas.DotsInstancedInV2Only,
                 defines = supportLighting ? CoreDefines.DepthForwardOnly : CoreDefines.DepthForwardOnlyUnlit,
@@ -287,36 +291,6 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
             {
                 var renderState = new RenderStateCollection { CoreRenderStates.DepthOnly };
                 return renderState;
-            }
-
-            FieldCollection GenerateRequiredFields()
-            {
-                if (supportLighting)
-                {
-                    return new FieldCollection()
-                    {
-                        HDStructFields.AttributesMesh.normalOS,
-                        HDStructFields.AttributesMesh.tangentOS,
-                        HDStructFields.AttributesMesh.uv0,
-                        HDStructFields.AttributesMesh.uv1,
-                        HDStructFields.AttributesMesh.color,
-                        HDStructFields.AttributesMesh.uv2,
-                        HDStructFields.AttributesMesh.uv3,
-                        HDStructFields.FragInputs.tangentToWorld,
-                        HDStructFields.FragInputs.positionRWS,
-                        HDStructFields.FragInputs.texCoord1,
-                        HDStructFields.FragInputs.texCoord2,
-                        HDStructFields.FragInputs.texCoord3,
-                        HDStructFields.FragInputs.color,
-                    };
-                }
-                else
-                {
-                    return new FieldCollection()
-                    {
-                        HDStructFields.FragInputs.positionRWS,
-                    };
-                }
             }
 
             IncludeCollection GenerateIncludes()
@@ -354,7 +328,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                 useInPreview = false,
 
                 // Collections
-                requiredFields = CoreRequiredFields.LitFull,
+                requiredFields = supportLighting ? CoreRequiredFields.BasicLighting : CoreRequiredFields.Basic,
                 renderStates = GenerateRenderState(),
                 pragmas = CorePragmas.DotsInstancedInV2Only,
                 defines = GenerateDefines(),
@@ -426,7 +400,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                 useInPreview = true,
 
                 // Collections
-                requiredFields = GenerateRequiredFields(),
+                requiredFields = supportLighting ? CoreRequiredFields.BasicLighting : CoreRequiredFields.Basic,
                 renderStates = CoreRenderStates.Forward,
                 pragmas = CorePragmas.DotsInstancedInV2Only,
                 defines = supportLighting ? CoreDefines.Forward : CoreDefines.ForwardUnlit,
@@ -435,20 +409,6 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                 virtualTextureFeedback = true,
                 customInterpolators = CoreCustomInterpolators.Common
             };
-
-            FieldCollection GenerateRequiredFields()
-            {
-                if (supportLighting)
-                    return CoreRequiredFields.LitFull;
-                else
-                {
-                    return new FieldCollection
-                    {
-                        // TODO: add preprocessor protection for this interpolator: _TRANSPARENT_WRITES_MOTION_VEC
-                        HDStructFields.FragInputs.positionRWS,
-                    };
-                }
-            }
 
             IncludeCollection GenerateIncludes()
             {
@@ -497,7 +457,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                 useInPreview = false,
 
                 // Collections
-                requiredFields = GenerateRequiredFields(),
+                requiredFields = CoreRequiredFields.Basic,
                 renderStates = CoreRenderStates.ForwardEmissiveForDeferred,
                 pragmas = CorePragmas.DotsInstancedInV2Only,
                 defines = CoreDefines.ForwardEmissiveForDeferred,
@@ -505,11 +465,6 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
 
                 virtualTextureFeedback = true,
             };
-
-            FieldCollection GenerateRequiredFields()
-            {
-                return CoreRequiredFields.LitFull;
-            }
 
             IncludeCollection GenerateIncludes()
             {
@@ -540,7 +495,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                 useInPreview = true,
 
                 // Collections
-                requiredFields = CoreRequiredFields.LitMinimal,
+                requiredFields = supportLighting ? CoreRequiredFields.BasicLighting : CoreRequiredFields.Basic,
                 renderStates = CoreRenderStates.TransparentBackface,
                 pragmas = CorePragmas.DotsInstancedInV2Only,
                 defines = CoreDefines.BackThenFront,
@@ -617,7 +572,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                 },
 
                 // Collections
-                requiredFields = TransparentDepthPrepassFields,
+                requiredFields = CoreRequiredFields.Basic,
                 renderStates = GenerateRenderState(),
                 pragmas = CorePragmas.DotsInstancedInV2Only,
                 defines = CoreDefines.TransparentDepthPrepass,
@@ -665,23 +620,6 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
             }
         }
 
-        public static FieldCollection TransparentDepthPrepassFields = new FieldCollection()
-        {
-            HDStructFields.AttributesMesh.normalOS,
-            HDStructFields.AttributesMesh.tangentOS,
-            HDStructFields.AttributesMesh.uv0,
-            HDStructFields.AttributesMesh.uv1,
-            HDStructFields.AttributesMesh.color,
-            HDStructFields.AttributesMesh.uv2,
-            HDStructFields.AttributesMesh.uv3,
-            HDStructFields.FragInputs.tangentToWorld,
-            HDStructFields.FragInputs.positionRWS,
-            HDStructFields.FragInputs.texCoord1,
-            HDStructFields.FragInputs.texCoord2,
-            HDStructFields.FragInputs.texCoord3,
-            HDStructFields.FragInputs.color,
-        };
-
         #endregion
 
         #region Transparent Depth Postpass
@@ -707,6 +645,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                 },
 
                 // Collections
+                requiredFields = CoreRequiredFields.Basic,
                 renderStates = GenerateRenderState(),
                 pragmas = CorePragmas.DotsInstancedInV2Only,
                 defines = CoreDefines.TransparentDepthPostpass,
@@ -764,7 +703,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                 useInPreview = true,
 
                 // Collections
-                requiredFields = CoreRequiredFields.LitFull,
+                requiredFields = CoreRequiredFields.Basic,
                 renderStates = CoreRenderStates.DepthOnly,
                 pragmas = CorePragmas.DotsInstancedInV2Only,
                 defines = CoreDefines.ShaderGraphRaytracingDefault,
@@ -808,7 +747,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                 useInPreview = true,
 
                 // Collections
-                requiredFields = CoreRequiredFields.LitMinimal,
+                requiredFields = CoreRequiredFields.BasicLighting,
                 renderStates = GBufferRenderState,
                 pragmas = CorePragmas.DotsInstancedInV2Only,
                 defines = CoreDefines.ShaderGraphRaytracingDefault,
@@ -866,7 +805,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                 useInPreview = true,
 
                 // Collections
-                requiredFields = CoreRequiredFields.LitMinimal,
+                requiredFields = CoreRequiredFields.BasicLighting,
                 renderStates = CoreRenderStates.Forward,
                 pragmas = CorePragmas.DotsInstancedInV2Only,
                 defines = CoreDefines.ForwardLit,
@@ -905,6 +844,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                 lightMode = "RayTracingPrepass",
                 useInPreview = false,
 
+                requiredFields = CoreRequiredFields.Basic,
                 // Collections
                 renderStates = RayTracingPrepassRenderState,
                 // no tessellation for raytracing
@@ -954,7 +894,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                 referenceName = "SHADERPASS_RAYTRACING_INDIRECT",
                 lightMode = "IndirectDXR",
                 useInPreview = false,
-                requiredFields = supportLighting ? CoreRequiredFields.LitMinimal : null,
+                requiredFields = supportLighting ? CoreRequiredFields.BasicLighting : CoreRequiredFields.Basic,
 
                 // Collections
                 defines = supportLighting ? RaytracingIndirectDefines : null,
@@ -1021,6 +961,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                 // validPixelBlocks = RaytracingVisibilityFragment,
 
                 // Collections
+                requiredFields = CoreRequiredFields.Basic,
                 defines = supportLighting ? RaytracingVisibilityDefines : null,
                 keywords = CoreKeywords.RaytracingVisiblity,
                 includes = GenerateIncludes(),
@@ -1069,7 +1010,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                 referenceName = "SHADERPASS_RAYTRACING_FORWARD",
                 lightMode = "ForwardDXR",
                 useInPreview = false,
-                requiredFields = supportLighting ? CoreRequiredFields.LitMinimal : null,
+                requiredFields = supportLighting ? CoreRequiredFields.BasicLighting : CoreRequiredFields.Basic,
 
                 // Port Mask
                 // validVertexBlocks = CoreBlockMasks.Vertex,
@@ -1136,7 +1077,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                 referenceName = "SHADERPASS_RAYTRACING_GBUFFER",
                 lightMode = "GBufferDXR",
                 useInPreview = false,
-                requiredFields = supportLighting ? CoreRequiredFields.LitMinimal : null,
+                requiredFields = supportLighting ? CoreRequiredFields.BasicLighting : CoreRequiredFields.Basic,
 
                 // Port Mask
                 // validVertexBlocks = CoreBlockMasks.Vertex,
@@ -1205,6 +1146,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                 // validPixelBlocks = PathTracingFragment,
 
                 //Collections
+                requiredFields = supportLighting ? CoreRequiredFields.BasicLighting : CoreRequiredFields.Basic,
                 defines = supportLighting ? RaytracingPathTracingDefines : null,
                 includes = GenerateIncludes(),
             };
@@ -1261,7 +1203,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                 referenceName = "SHADERPASS_RAYTRACING_SUB_SURFACE",
                 lightMode = "SubSurfaceDXR",
                 useInPreview = false,
-                requiredFields = supportLighting ? CoreRequiredFields.LitMinimal : null,
+                requiredFields = supportLighting ? CoreRequiredFields.BasicLighting : CoreRequiredFields.Basic,
 
                 // Template
                 // passTemplatePath = passTemplatePath,
@@ -1322,6 +1264,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                 useInPreview = false,
 
                 // Collections
+                requiredFields = CoreRequiredFields.Basic,
                 pragmas = CorePragmas.DotsInstancedInV2Only,
                 renderStates = FullScreenDebugRenderState,
                 includes = GenerateIncludes(),

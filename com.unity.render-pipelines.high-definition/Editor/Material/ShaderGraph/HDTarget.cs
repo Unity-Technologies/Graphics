@@ -608,29 +608,18 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
             HDStructFields.AttributesMesh.uv2,
         };
 
-        public static FieldCollection LitMinimal = new FieldCollection()
+        public static FieldCollection Basic = new FieldCollection()
         {
-            HDStructFields.FragInputs.tangentToWorld,
-            HDStructFields.FragInputs.positionRWS,
-            HDStructFields.FragInputs.texCoord1,
-            HDStructFields.FragInputs.texCoord2,
         };
 
-        public static FieldCollection LitFull = new FieldCollection()
+        public static FieldCollection BasicLighting = new FieldCollection()
         {
-            HDStructFields.AttributesMesh.normalOS,
-            HDStructFields.AttributesMesh.tangentOS,
-            HDStructFields.AttributesMesh.uv0,
-            HDStructFields.AttributesMesh.uv1,
-            HDStructFields.AttributesMesh.color,
-            HDStructFields.AttributesMesh.uv2,
-            HDStructFields.AttributesMesh.uv3,
+            // We need to have tangent because if a lighting model have anisotropy and require tangent, it need to be present
+            // This works for all lighting shader type including raytracing other fields are included due to DependencyCollection
             HDStructFields.FragInputs.tangentToWorld,
-            HDStructFields.FragInputs.positionRWS,
+            // UV1 / 2 are always included for lightmaps (static and dynamic) sampling
             HDStructFields.FragInputs.texCoord1,
             HDStructFields.FragInputs.texCoord2,
-            HDStructFields.FragInputs.texCoord3,
-            HDStructFields.FragInputs.color,
         };
     }
     #endregion
