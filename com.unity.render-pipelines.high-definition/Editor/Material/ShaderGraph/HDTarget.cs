@@ -621,6 +621,9 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
 
         public static FieldCollection BasicLighting = new FieldCollection()
         {
+            // We need positionRWS to calculate the view vector per pixel for some hardcoded effect like Specular occlusion
+            // We also need it to calculate motion vector
+            HDStructFields.FragInputs.positionRWS,
             // We need to have tangent because if a lighting model have anisotropy and require tangent, it need to be present
             // This works for all lighting shader type including raytracing other fields are included due to DependencyCollection
             HDStructFields.FragInputs.tangentToWorld,
@@ -629,12 +632,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
             HDStructFields.FragInputs.texCoord2,
         };
 
-        public static FieldCollection BasicLightingMotionVector = new FieldCollection()
-        {
-            BasicLighting,
-            HDStructFields.FragInputs.positionRWS,
-        };
-
+        // Note: this can result in duplicate with BasicLighting but shouldn't be an issue
         public static FieldCollection AddWriteNormalBuffer = new FieldCollection()
         {
             HDStructFields.FragInputs.tangentToWorld, // Required for WRITE_NORMAL_BUFFER case (to access to vertex normal)

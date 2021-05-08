@@ -363,7 +363,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
             {
                 var fieldCollection = new FieldCollection();
 
-                fieldCollection.Add(supportLighting ? CoreRequiredFields.BasicLightingMotionVector : CoreRequiredFields.BasicMotionVector);
+                fieldCollection.Add(supportLighting ? CoreRequiredFields.BasicLighting : CoreRequiredFields.BasicMotionVector);
                 fieldCollection.Add(CoreRequiredFields.AddWriteNormalBuffer);
 
                 return fieldCollection;
@@ -415,7 +415,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
 
                 // Collections
                 // We need motion vector version as Forward pass support transparent motion vector and we can't use ifdef for it
-                requiredFields = supportLighting ? CoreRequiredFields.BasicLightingMotionVector : CoreRequiredFields.BasicMotionVector,
+                requiredFields = supportLighting ? CoreRequiredFields.BasicLighting : CoreRequiredFields.BasicMotionVector,
                 renderStates = CoreRenderStates.Forward,
                 pragmas = CorePragmas.DotsInstancedInV2Only,
                 defines = supportLighting ? CoreDefines.Forward : CoreDefines.ForwardUnlit,
@@ -512,7 +512,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
 
                 // Collections
                 // BackThenFront is a forward pass and thus require same settings
-                requiredFields = supportLighting ? CoreRequiredFields.BasicLightingMotionVector : CoreRequiredFields.BasicMotionVector,
+                requiredFields = supportLighting ? CoreRequiredFields.BasicLighting : CoreRequiredFields.BasicMotionVector,
                 renderStates = CoreRenderStates.TransparentBackface,
                 pragmas = CorePragmas.DotsInstancedInV2Only,
                 defines = CoreDefines.BackThenFront,

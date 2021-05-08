@@ -40,12 +40,10 @@ VertexDescriptionInputs AttributesMeshToVertexDescriptionInputs(AttributesMesh i
     return output;
 }
 
-    // This is used for injecting the define below.
-    $splice(CustomInterpolatorPreVertex)
+// This is used for injecting the define below.
+$splice(CustomInterpolatorPreVertex)
 
-
-
-    AttributesMesh ApplyMeshModification(AttributesMesh input,
+AttributesMesh ApplyMeshModification(AttributesMesh input,
           float3 timeParameters
 #if defined(USE_CUSTOMINTERP_APPLYMESHMOD) // mirrored in VertMesh.hlsl and MotionVectorVertexShaderCommon.hlsl
     #ifdef TESSELLATION_ON
@@ -111,14 +109,14 @@ FragInputs BuildFragInputs(VaryingsMeshToPS input)
     // FragInputs from VFX come from two places: Interpolator or CBuffer.
     $splice(VFXSetFragInputs)
 
-        $FragInputs.elementToWorld:     BuildElementToWorld(input);
+    $FragInputs.elementToWorld:     BuildElementToWorld(input);
     $FragInputs.worldToElement:     BuildWorldToElement(input);
 #endif
 
     // splice point to copy custom interpolator fields from varyings to frag inputs
     $splice(CustomInterpolatorVaryingsToFragInputs)
 
-        return output;
+    return output;
 }
 
 // existing HDRP code uses the combined function to go directly from packed to frag inputs
