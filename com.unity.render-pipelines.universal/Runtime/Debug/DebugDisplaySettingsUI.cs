@@ -1,8 +1,7 @@
 using System;
 using System.Collections.Generic;
-using UnityEngine.Rendering;
 
-namespace UnityEditor.Rendering
+namespace UnityEngine.Rendering.Universal
 {
     public class DebugDisplaySettingsUI : IDebugData
     {
@@ -18,6 +17,7 @@ namespace UnityEditor.Rendering
                 // TODO: Tear the UI down and re-create it for now - this is horrible, so reset it instead.
                 UnregisterDebug();
                 RegisterDebug(m_Settings);
+                DebugManager.instance.RefreshEditor();
             }
         }
 
