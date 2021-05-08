@@ -465,6 +465,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                 includes = GenerateIncludes(),
 
                 virtualTextureFeedback = true,
+                customInterpolators = CoreCustomInterpolators.Common,
             };
 
             IncludeCollection GenerateIncludes()
@@ -501,6 +502,8 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                 pragmas = CorePragmas.DotsInstancedInV2Only,
                 defines = CoreDefines.BackThenFront,
                 includes = GenerateIncludes(),
+
+                virtualTextureFeedback = true,
                 customInterpolators = CoreCustomInterpolators.Common
             };
 
@@ -754,8 +757,8 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                 defines = CoreDefines.ShaderGraphRaytracingDefault,
                 keywords = GBufferKeywords,
                 includes = GBufferIncludes,
-                customInterpolators = CoreCustomInterpolators.Common,
                 virtualTextureFeedback = true,
+                customInterpolators = CoreCustomInterpolators.Common,
             };
         }
 
@@ -812,8 +815,8 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                 pragmas = CorePragmas.DotsInstancedInV2Only,
                 defines = CoreDefines.ForwardLit,
                 includes = ForwardIncludes,
-                customInterpolators = CoreCustomInterpolators.Common,
                 virtualTextureFeedback = true,
+                customInterpolators = CoreCustomInterpolators.Common,
             };
         }
 
@@ -853,6 +856,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                 pragmas = null,
                 defines = CoreDefines.ShaderGraphRaytracingDefault,
                 includes = RayTracingPrepassIncludes,
+                customInterpolators = CoreCustomInterpolators.Common,
             };
         }
 
@@ -1270,6 +1274,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                 pragmas = CorePragmas.DotsInstancedInV2Only,
                 renderStates = FullScreenDebugRenderState,
                 includes = GenerateIncludes(),
+                customInterpolators = CoreCustomInterpolators.Common,
             };
 
             IncludeCollection GenerateIncludes()
