@@ -331,29 +331,13 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                 requiredFields = supportLighting ? CoreRequiredFields.BasicLightingMotionVector : CoreRequiredFields.BasicMotionVector,
                 renderStates = GenerateRenderState(),
                 pragmas = CorePragmas.DotsInstancedInV2Only,
-                defines = GenerateDefines(),
+                // For shadow matte (unlit SG only) we need to enable write normal buffer
+                // For lighting case: we want to use WRITE_NORMAL_BUFFER as a define in forward only case and WRITE_NORMAL_BUFFER as a keyword in Lit case.
+                // This is handled in CollectPassKeywords() function in SurfaceSubTarget.cs so we don't add it here.
+                defines = supportLighting ? Defines.raytracingDefault : CoreDefines.MotionVectorUnlit,
                 includes = GenerateIncludes(),
                 customInterpolators = CoreCustomInterpolators.Common,
             };
-
-            DefineCollection GenerateDefines()
-            {
-                if (!supportLighting)
-                {
-                    // For shadow matte (unlit SG only) we need to enable write normal buffer
-                    return CoreDefines.MotionVectorUnlit;
-                }
-
-                var defines = new DefineCollection { Defines.raytracingDefault };
-
-                // TODO: do a #define WRITE_NORMAL_BUFFER for motion vector in forward only material case instead of a multi-compile
-                // if (supportForward)
-                // {
-                //     defines.Add(CoreKeywordDescriptors.WriteNormalBuffer, 1);
-                // }
-
-                return defines;
-            }
 
             RenderStateCollection GenerateRenderState()
             {
