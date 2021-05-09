@@ -89,17 +89,11 @@ struct TessellationFactors
     float inside : SV_InsideTessFactor;
 };
 
-struct PackedVaryingHStoDS
+TessellationFactors HullConstant(InputPatch<PackedVaryingsToDS, 3> input)
 {
-    PackedVaryingsToDS packedVaryingsToDS;
-    float tessellationFactor : TESSELLATION_FACTOR; // Semantic name don't matter
-};
-
-TessellationFactors HullConstant(OutputPatch<PackedVaryingHStoDS, 3> input)
-{
-    VaryingsToDS varying0 = UnpackVaryingsToDS(input[0].packedVaryingsToDS);
-    VaryingsToDS varying1 = UnpackVaryingsToDS(input[1].packedVaryingsToDS);
-    VaryingsToDS varying2 = UnpackVaryingsToDS(input[2].packedVaryingsToDS);
+    VaryingsToDS varying0 = UnpackVaryingsToDS(input[0]);
+    VaryingsToDS varying1 = UnpackVaryingsToDS(input[1]);
+    VaryingsToDS varying2 = UnpackVaryingsToDS(input[2]);
 
     float3 p0 = varying0.vmesh.positionRWS;
     float3 p1 = varying1.vmesh.positionRWS;
@@ -114,9 +108,10 @@ TessellationFactors HullConstant(OutputPatch<PackedVaryingHStoDS, 3> input)
     // z - 0->1 edge
     // w - inside tessellation factor (calculate as mean of three in GetTessellationFactors())
     float3 inputTessellationFactors;
-    inputTessellationFactors.x = 0.5 * (input[1].tessellationFactor + input[2].tessellationFactor);
-    inputTessellationFactors.y = 0.5 * (input[2].tessellationFactor + input[0].tessellationFactor);
-    inputTessellationFactors.z = 0.5 * (input[0].tessellationFactor + input[1].tessellationFactor);
+    // TessellatinFactor is evaluate in vertex shader
+    inputTessellationFactors.x = 0.5 * (varying1.vmesh.tessellationFactor + varying2.vmesh.tessellationFactor);
+    inputTessellationFactors.y = 0.5 * (varying2.vmesh.tessellationFactor + varying0.vmesh.tessellationFactor);
+    inputTessellationFactors.z = 0.5 * (varying0.vmesh.tessellationFactor + varying1.vmesh.tessellationFactor);
 
     float4 tf = GetTessellationFactors(p0, p1, p2, n0, n1, n2, inputTessellationFactors);
 
@@ -136,21 +131,18 @@ TessellationFactors HullConstant(OutputPatch<PackedVaryingHStoDS, 3> input)
 [outputtopology("triangle_cw")]
 [patchconstantfunc("HullConstant")]
 [outputcontrolpoints(3)]
-PackedVaryingHStoDS Hull(InputPatch<PackedVaryingsToDS, 3> input, uint id : SV_OutputControlPointID)
+PackedVaryingsToDS Hull(InputPatch<PackedVaryingsToDS, 3> input, uint id : SV_OutputControlPointID)
 {
-    PackedVaryingHStoDS packedVaryingHStoDS;
-    packedVaryingHStoDS.packedVaryingsToDS = input[id];
-    packedVaryingHStoDS.tessellationFactor = GetTessellationFactor(UnpackVaryingsToDS(input[id]).vmesh);
-
-    return packedVaryingHStoDS;
+    // Pass-through
+    return input[id];
 }
 
 [domain("tri")]
-PackedVaryingsToPS Domain(TessellationFactors tessFactors, const OutputPatch<PackedVaryingHStoDS, 3> input, float3 baryCoords : SV_DomainLocation)
+PackedVaryingsToPS Domain(TessellationFactors tessFactors, const OutputPatch<PackedVaryingsToDS, 3> input, float3 baryCoords : SV_DomainLocation)
 {
-    VaryingsToDS varying0 = UnpackVaryingsToDS(input[0].packedVaryingsToDS);
-    VaryingsToDS varying1 = UnpackVaryingsToDS(input[1].packedVaryingsToDS);
-    VaryingsToDS varying2 = UnpackVaryingsToDS(input[2].packedVaryingsToDS);
+    VaryingsToDS varying0 = UnpackVaryingsToDS(input[0]);
+    VaryingsToDS varying1 = UnpackVaryingsToDS(input[1]);
+    VaryingsToDS varying2 = UnpackVaryingsToDS(input[2]);
 
     VaryingsToDS varying = InterpolateWithBaryCoordsToDS(varying0, varying1, varying2, baryCoords);
 

@@ -70,6 +70,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
         {
             public static string name = "VaryingsMeshToDS";
             public static FieldDescriptor positionRWS = new FieldDescriptor(VaryingsMeshToDS.name, "positionRWS", "VARYINGS_DS_NEED_POSITION_WS", ShaderValueType.Float3);
+            public static FieldDescriptor tessellationFactor = new FieldDescriptor(VaryingsMeshToDS.name, "tessellationFactor", "VARYINGS_DS_NEED_TESSELLATION_FACTOR", ShaderValueType.Float);
             public static FieldDescriptor normalWS = new FieldDescriptor(VaryingsMeshToDS.name, "normalWS", "VARYINGS_DS_NEED_NORMAL_WS", ShaderValueType.Float3);
             public static FieldDescriptor tangentWS = new FieldDescriptor(VaryingsMeshToDS.name, "tangentWS", "VARYINGS_DS_NEED_TANGENT_WS", ShaderValueType.Float4,
                 subscriptOptions: StructFieldOptions.Optional);

@@ -183,6 +183,10 @@ VaryingsMeshType VertMesh(AttributesMesh input, float3 worldSpaceOffset
 
 #ifdef TESSELLATION_ON
     output.positionRWS = positionRWS;
+    // For tessellation we evaluate the tessellation factor from vertex shader then interpolate it in Hull Shader
+    // Note: For unknow reason evaluating the tessellationFactor directly in Hull shader cause internal compiler issue for both Metal and Vulkan (Unity issue) when use with shadergraph
+    // so we prefer this version to be compatible with all platforms, have same code for non shader graph and shader graph version and also it should be faster.
+    output.tessellationFactor = GetTessellationFactor(input);
     output.normalWS = normalWS;
 #if defined(VARYINGS_NEED_TANGENT_TO_WORLD) || defined(VARYINGS_DS_NEED_TANGENT)
     output.tangentWS = tangentWS;

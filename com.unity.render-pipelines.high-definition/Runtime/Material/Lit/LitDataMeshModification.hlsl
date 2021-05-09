@@ -49,7 +49,7 @@ void ApplyVertexModification(AttributesMesh input, float3 normalWS, inout float3
 
 #ifdef TESSELLATION_ON
 
-float GetTessellationFactor(VaryingsMeshToDS input)
+float GetTessellationFactor(AttributesMesh input)
 {
     return _TessellationFactor;
 }

@@ -52,6 +52,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
             fields = new FieldDescriptor[]
             {
                 HDStructFields.VaryingsMeshToDS.positionRWS,
+                HDStructFields.VaryingsMeshToDS.tessellationFactor,
                 HDStructFields.VaryingsMeshToDS.normalWS,
                 HDStructFields.VaryingsMeshToDS.tangentWS,
                 HDStructFields.VaryingsMeshToDS.texCoord0,
