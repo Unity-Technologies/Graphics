@@ -95,7 +95,7 @@ struct PackedVaryingHStoDS
     float tessellationFactor : TESSELLATION_FACTOR; // Semantic name don't matter
 };
 
-TessellationFactors HullConstant(InputPatch<PackedVaryingHStoDS, 3> input)
+TessellationFactors HullConstant(OutputPatch<PackedVaryingHStoDS, 3> input)
 {
     VaryingsToDS varying0 = UnpackVaryingsToDS(input[0].packedVaryingsToDS);
     VaryingsToDS varying1 = UnpackVaryingsToDS(input[1].packedVaryingsToDS);
