@@ -41,7 +41,14 @@ VertexDescriptionInputs AttributesMeshToVertexDescriptionInputs(AttributesMesh i
 }
 
 AttributesMesh ApplyMeshModification(AttributesMesh input, float3 timeParameters
-#if defined(HAVE_VFX_MODIFICATION)
+#ifdef USE_CUSTOMINTERP_SUBSTRUCT
+    #ifdef TESSELLATION_ON
+    , inout VaryingsMeshToDS varyings
+    #else
+    , inout VaryingsMeshToPS varyings
+    #endif
+#endif
+#ifdef HAVE_VFX_MODIFICATION
         , AttributesElement element
 #endif
     )
@@ -52,7 +59,7 @@ AttributesMesh ApplyMeshModification(AttributesMesh input, float3 timeParameters
     $VertexDescriptionInputs.TimeParameters: vertexDescriptionInputs.TimeParameters = timeParameters;
 
     // evaluate vertex graph
-#if defined(HAVE_VFX_MODIFICATION)
+#ifdef HAVE_VFX_MODIFICATION
     GraphProperties properties;
     ZERO_INITIALIZE(GraphProperties, properties);
 
@@ -69,27 +76,10 @@ AttributesMesh ApplyMeshModification(AttributesMesh input, float3 timeParameters
     $VertexDescription.Normal:   input.normalOS = vertexDescription.Normal;
     $VertexDescription.Tangent:  input.tangentOS.xyz = vertexDescription.Tangent;
 
+    $splice(CustomInterpolatorVertMeshCustomInterpolation)
+
     return input;
 }
-
-#ifdef USE_CUSTOMINTERP_SUBSTRUCT
-
-// This will evaluate the custom interpolator and update the varying structure
-void VertMeshCustomInterpolation(AttributesMesh input,
-#ifdef TESSELLATION_ON
-    inout VaryingsMeshToDS varyings
-#else
-    inout VaryingsMeshToPS varyings
-#endif
-)
-{
-    VertexDescriptionInputs vertexDescriptionInputs = AttributesMeshToVertexDescriptionInputs(input);
-    VertexDescription vertexDescription = VertexDescriptionFunction(vertexDescriptionInputs);
-
-    $splice(CustomInterpolatorVertMeshCustomInterpolation)
-}
-
-#endif // USE_CUSTOMINTERP_SUBSTRUCT
 
 FragInputs BuildFragInputs(VaryingsMeshToPS input)
 {
