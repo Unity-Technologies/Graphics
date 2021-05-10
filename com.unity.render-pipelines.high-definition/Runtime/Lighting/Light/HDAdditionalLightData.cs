@@ -29,7 +29,7 @@ namespace UnityEngine.Rendering.HighDefinition
     /// <summary>
     /// HDRP Additional light data component. It contains the light API and fields used by HDRP.
     /// </summary>
-    [HelpURL(Documentation.baseURL + Documentation.version + Documentation.subURL + "Light-Component" + Documentation.endURL)]
+    [HDRPHelpURLAttribute("Light-Component")]
     [AddComponentMenu("")] // Hide in menu
     [RequireComponent(typeof(Light))]
     [ExecuteAlways]
@@ -2377,7 +2377,7 @@ namespace UnityEngine.Rendering.HighDefinition
             // This base bias is a good value if we expose a [0..1] since values within [0..5] are empirically shown to be sensible for the slope-scale bias with the width of our PCF.
             float baseBias = 5.0f;
             // If we are PCSS, the blur radius can be quite big, hence we need to tweak up the slope bias
-            if (filteringQuality == HDShadowFilteringQuality.High)
+            if (filteringQuality == HDShadowFilteringQuality.High || filteringQuality == HDShadowFilteringQuality.VeryHigh)
             {
                 if (softness > 0.01f)
                 {
@@ -2855,18 +2855,18 @@ namespace UnityEngine.Rendering.HighDefinition
             }
 
             // Update Mesh
-            if (HDRenderPipeline.defaultAsset != null)
+            if (HDRenderPipelineGlobalSettings.instance != null && !HDRenderPipelineGlobalSettings.instance.Equals(null))
             {
                 switch (areaLightShape)
                 {
                     case AreaLightShape.Tube:
-                        if (m_EmissiveMeshFilter.sharedMesh != HDRenderPipeline.defaultAsset.renderPipelineResources.assets.emissiveCylinderMesh)
-                            m_EmissiveMeshFilter.sharedMesh = HDRenderPipeline.defaultAsset.renderPipelineResources.assets.emissiveCylinderMesh;
+                        if (m_EmissiveMeshFilter.sharedMesh != HDRenderPipelineGlobalSettings.instance.renderPipelineResources.assets.emissiveCylinderMesh)
+                            m_EmissiveMeshFilter.sharedMesh = HDRenderPipelineGlobalSettings.instance.renderPipelineResources.assets.emissiveCylinderMesh;
                         break;
                     case AreaLightShape.Rectangle:
                     default:
-                        if (m_EmissiveMeshFilter.sharedMesh != HDRenderPipeline.defaultAsset.renderPipelineResources.assets.emissiveQuadMesh)
-                            m_EmissiveMeshFilter.sharedMesh = HDRenderPipeline.defaultAsset.renderPipelineResources.assets.emissiveQuadMesh;
+                        if (m_EmissiveMeshFilter.sharedMesh != HDRenderPipelineGlobalSettings.instance.renderPipelineResources.assets.emissiveQuadMesh)
+                            m_EmissiveMeshFilter.sharedMesh = HDRenderPipelineGlobalSettings.instance.renderPipelineResources.assets.emissiveQuadMesh;
                         break;
                 }
             }

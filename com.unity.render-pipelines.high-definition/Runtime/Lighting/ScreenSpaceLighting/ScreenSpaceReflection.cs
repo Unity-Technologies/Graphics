@@ -34,7 +34,7 @@ namespace UnityEngine.Rendering.HighDefinition
     /// A volume component that holds settings for screen space reflection and ray traced reflections.
     /// </summary>
     [Serializable, VolumeComponentMenu("Lighting/Screen Space Reflection")]
-    [HelpURL(Documentation.baseURL + Documentation.version + Documentation.subURL + "Override-Screen-Space-Reflection" + Documentation.endURL)]
+    [HDRPHelpURLAttribute("Override-Screen-Space-Reflection")]
     public class ScreenSpaceReflection : VolumeComponentWithQuality
     {
         bool UsesRayTracingQualityMode()
