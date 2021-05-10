@@ -194,7 +194,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
         }
 
         public override object saveContext => m_ActiveSubTarget.value?.saveContext;
-        
+
         // IHasMetaData
         public string identifier
         {
@@ -219,7 +219,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
         {
             if(!subTargetType.IsSubclassOf(typeof(SubTarget)))
                 return false;
-            
+
             foreach(var subTarget in m_SubTargets)
             {
                 if(subTarget.GetType().Equals(subTargetType))
@@ -265,7 +265,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
         {
             if(!(subTarget is IRequiresData<T> requiresData))
                 return;
-            
+
             // Ensure data object exists in list
             var data = m_Datas.SelectValue().FirstOrDefault(x => x.GetType().Equals(typeof(T))) as T;
             if(data == null)
@@ -310,11 +310,11 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
             {
                 if(!(subTarget is ILegacyTarget legacySubTarget))
                     continue;
-                
+
                 // Ensure all SubTargets have any required data to fill out during upgrade
                 ProcessSubTargetDatas(subTarget);
                 subTarget.target = this;
-                
+
                 if(legacySubTarget.TryUpgradeFromMasterNode(masterNode, out blockMap))
                 {
                     m_ActiveSubTarget = subTarget;
@@ -709,72 +709,23 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
             { Pragma.EditorSyncCompilation },
         };
 
-        public static PragmaCollection DotsInstancedInV2Only = new PragmaCollection
+        public static PragmaCollection DotsInstanced = new PragmaCollection
         {
             { Basic },
             { Pragma.MultiCompileInstancing },
-            { Pragma.InstancingOptions(InstancingOptions.RenderingLayer) },
-            #if ENABLE_HYBRID_RENDERER_V2
             { Pragma.DOTSInstancing },
+            { Pragma.InstancingOptions(InstancingOptions.RenderingLayer) },
             { Pragma.InstancingOptions(InstancingOptions.NoLodFade) },
-            #endif
         };
 
-        public static PragmaCollection DotsInstancedInV2OnlyEditorSync = new PragmaCollection
+        public static PragmaCollection DotsInstancedEditorSync = new PragmaCollection
         {
             { Basic },
             { Pragma.MultiCompileInstancing },
+            { Pragma.DOTSInstancing },
             { Pragma.EditorSyncCompilation },
             { Pragma.InstancingOptions(InstancingOptions.RenderingLayer) },
-            #if ENABLE_HYBRID_RENDERER_V2
-            { Pragma.DOTSInstancing },
             { Pragma.InstancingOptions(InstancingOptions.NoLodFade) },
-            #endif
-        };
-
-        public static PragmaCollection DotsInstancedInV1AndV2 = new PragmaCollection
-        {
-            { Basic },
-            { Pragma.MultiCompileInstancing },
-            // Hybrid Renderer V2 requires a completely different set of pragmas from Hybrid V1
-            #if ENABLE_HYBRID_RENDERER_V2
-            { Pragma.DOTSInstancing },
-            { Pragma.InstancingOptions(InstancingOptions.NoLodFade) },
-            { Pragma.InstancingOptions(InstancingOptions.RenderingLayer) },
-            #else
-            { Pragma.InstancingOptions(InstancingOptions.NoLightProbe), new FieldCondition(HDFields.DotsInstancing, true) },
-            { Pragma.InstancingOptions(InstancingOptions.NoLightProbe), new FieldCondition(HDFields.DotsProperties, true) },
-            { Pragma.InstancingOptions(InstancingOptions.NoLodFade),    new FieldCondition(HDFields.DotsInstancing, true) },
-            { Pragma.InstancingOptions(InstancingOptions.NoLodFade),    new FieldCondition(HDFields.DotsProperties, true) },
-            { Pragma.InstancingOptions(InstancingOptions.RenderingLayer), new FieldCondition[]
-            {
-                new FieldCondition(HDFields.DotsInstancing, false),
-                new FieldCondition(HDFields.DotsProperties, false),
-            } },
-            #endif
-        };
-
-        public static PragmaCollection DotsInstancedInV1AndV2EditorSync = new PragmaCollection
-        {
-            { Basic },
-            { Pragma.MultiCompileInstancing },
-            { Pragma.EditorSyncCompilation },
-            // Hybrid Renderer V2 requires a completely different set of pragmas from Hybrid V1
-            #if ENABLE_HYBRID_RENDERER_V2
-            { Pragma.DOTSInstancing },
-            { Pragma.InstancingOptions(InstancingOptions.NoLodFade) },
-            { Pragma.InstancingOptions(InstancingOptions.RenderingLayer) },
-            #else
-            { Pragma.InstancingOptions(InstancingOptions.NoLightProbe), new FieldCondition(HDFields.DotsInstancing, true) },
-            { Pragma.InstancingOptions(InstancingOptions.NoLightProbe), new FieldCondition(HDFields.DotsProperties, true) },
-            { Pragma.InstancingOptions(InstancingOptions.NoLodFade),    new FieldCondition(HDFields.DotsInstancing, true) },
-            { Pragma.InstancingOptions(InstancingOptions.NoLodFade),    new FieldCondition(HDFields.DotsProperties, true) },
-            { Pragma.InstancingOptions(InstancingOptions.RenderingLayer), new FieldCondition[]
-            {
-                new FieldCondition(HDFields.DotsInstancing, false),
-                new FieldCondition(HDFields.DotsProperties, false),
-            } },
-            #endif
         };
 
         public static PragmaCollection RaytracingBasic = new PragmaCollection
@@ -798,7 +749,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
         {
             { CoreKeywordDescriptors.TransparentColorShadow },
         };
-        
+
     }
 #endregion
 
@@ -866,7 +817,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
             { CoreKeywordDescriptors.SupportBlendModePreserveSpecularLighting, 1 },
             { CoreKeywordDescriptors.HasLightloop, 1 },
             { RayTracingQualityNode.GetRayTracingQualityKeyword(), 0 },
-            // { CoreKeywordDescriptors.LightList, 1 }, // BackThenFront Transparent use #define USE_CLUSTERED_LIGHTLIST 
+            // { CoreKeywordDescriptors.LightList, 1 }, // BackThenFront Transparent use #define USE_CLUSTERED_LIGHTLIST
         };
     }
 #endregion
@@ -920,7 +871,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
         public const string kNormalSurfaceGradient = "Packages/com.unity.render-pipelines.core/ShaderLibrary/NormalSurfaceGradient.hlsl";
         public const string kLighting = "Packages/com.unity.render-pipelines.high-definition/Runtime/Lighting/Lighting.hlsl";
         public const string kLightLoop = "Packages/com.unity.render-pipelines.high-definition/Runtime/Lighting/LightLoop/LightLoop.hlsl";
-        
+
         // Public Pregraph Material
         public const string kUnlit = "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Unlit/Unlit.hlsl";
         public const string kLit = "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Lit/Lit.hlsl";
@@ -956,7 +907,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
 
         public static IncludeCollection CorePregraph = new IncludeCollection
         {
-            { kDebugDisplay, IncludeLocation.Pregraph },            
+            { kDebugDisplay, IncludeLocation.Pregraph },
             { kMaterial, IncludeLocation.Pregraph },
         };
 

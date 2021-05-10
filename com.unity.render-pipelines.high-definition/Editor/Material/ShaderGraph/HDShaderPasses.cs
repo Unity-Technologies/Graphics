@@ -24,7 +24,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
 
                 // Collections
                 renderStates = GenerateRenderState(),
-                pragmas = CorePragmas.DotsInstancedInV1AndV2,
+                pragmas = CorePragmas.DotsInstanced,
                 defines = CoreDefines.ShaderGraphRaytracingDefault,
                 includes = GenerateIncludes(),
             };
@@ -88,7 +88,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
 
                 // Collections
                 renderStates = CoreRenderStates.ScenePicking,
-                pragmas = CorePragmas.DotsInstancedInV1AndV2EditorSync,
+                pragmas = CorePragmas.DotsInstancedEditorSync,
                 defines = CoreDefines.ScenePicking,
                 includes = GenerateIncludes(),
             };
@@ -124,7 +124,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
 
                 // Collections
                 renderStates = CoreRenderStates.SceneSelection,
-                pragmas = CorePragmas.DotsInstancedInV1AndV2EditorSync,
+                pragmas = CorePragmas.DotsInstancedEditorSync,
                 defines = CoreDefines.SceneSelection,
                 includes = GenerateIncludes(),
             };
@@ -175,7 +175,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
 
                 // Collections
                 renderStates = CoreRenderStates.ShadowCaster,
-                pragmas = CorePragmas.DotsInstancedInV2Only,
+                pragmas = CorePragmas.DotsInstanced,
                 includes = GenerateIncludes(),
             };
 
@@ -220,7 +220,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                 // Collections
                 requiredFields = CoreRequiredFields.Meta,
                 renderStates = CoreRenderStates.Meta,
-                pragmas = CorePragmas.DotsInstancedInV1AndV2,
+                pragmas = CorePragmas.DotsInstanced,
                 defines = CoreDefines.ShaderGraphRaytracingDefault,
                 includes = GenerateIncludes(),
             };
@@ -263,7 +263,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                 // Collections
                 requiredFields = GenerateRequiredFields(),
                 renderStates = GenerateRenderState(),
-                pragmas = CorePragmas.DotsInstancedInV2Only,
+                pragmas = CorePragmas.DotsInstanced,
                 defines = supportLighting ? CoreDefines.DepthForwardOnly : CoreDefines.DepthForwardOnlyUnlit,
                 includes = GenerateIncludes(),
             };
@@ -330,7 +330,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                 requiredFields = CoreRequiredFields.LitFull,
                 renderStates = GenerateRenderState(),
                 defines = GenerateDefines(),
-                pragmas = CorePragmas.DotsInstancedInV2Only,
+                pragmas = CorePragmas.DotsInstanced,
                 includes = GenerateIncludes(),
             };
 
@@ -348,8 +348,8 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                 // if (supportForward)
                 // {
                 //     defines.Add(CoreKeywordDescriptors.WriteNormalBuffer, 1);
-                // }                    
-                
+                // }
+
                 return defines;
             }
 
@@ -389,7 +389,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
         public static PassDescriptor GenerateForwardOnlyPass(bool supportLighting)
         {
             return new PassDescriptor
-            { 
+            {
                 // Definition
                 displayName = "ForwardOnly",
                 referenceName = supportLighting ? "SHADERPASS_FORWARD" : "SHADERPASS_FORWARD_UNLIT",
@@ -399,7 +399,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                 // Collections
                 requiredFields = GenerateRequiredFields(),
                 renderStates = CoreRenderStates.Forward,
-                pragmas = CorePragmas.DotsInstancedInV2Only,
+                pragmas = CorePragmas.DotsInstanced,
                 defines = supportLighting ? CoreDefines.Forward : CoreDefines.ForwardUnlit,
                 includes = GenerateIncludes(),
 
@@ -445,7 +445,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                     includes.Add(CoreIncludes.kPassForward, IncludeLocation.Postgraph);
                 else
                     includes.Add(CoreIncludes.kPassForwardUnlit, IncludeLocation.Postgraph);
- 
+
                 return includes;
             }
         }
@@ -457,7 +457,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
         public static PassDescriptor GenerateBackThenFront(bool supportLighting)
         {
             return new PassDescriptor
-            { 
+            {
                 // Definition
                 displayName = "TransparentBackface",
                 referenceName = supportLighting ? "SHADERPASS_FORWARD" : "SHADERPASS_FORWARD_UNLIT",
@@ -467,7 +467,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                 // Collections
                 requiredFields = CoreRequiredFields.LitMinimal,
                 renderStates = CoreRenderStates.TransparentBackface,
-                pragmas = CorePragmas.DotsInstancedInV1AndV2,
+                pragmas = CorePragmas.DotsInstanced,
                 defines = CoreDefines.BackThenFront,
                 includes = GenerateIncludes(),
             };
@@ -541,7 +541,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                 // Collections
                 requiredFields = TransparentDepthPrepassFields,
                 renderStates = GenerateRenderState(),
-                pragmas = CorePragmas.DotsInstancedInV1AndV2,
+                pragmas = CorePragmas.DotsInstanced,
                 defines = CoreDefines.TransparentDepthPrepass,
                 includes = GenerateIncludes(),
             };
@@ -627,7 +627,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
 
                 // Collections
                 renderStates = GenerateRenderState(),
-                pragmas = CorePragmas.DotsInstancedInV1AndV2,
+                pragmas = CorePragmas.DotsInstanced,
                 defines = CoreDefines.TransparentDepthPostpass,
                 includes = GenerateIncludes(),
             };
@@ -682,7 +682,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                 // Collections
                 requiredFields = CoreRequiredFields.LitFull,
                 renderStates = CoreRenderStates.DepthOnly,
-                pragmas = CorePragmas.DotsInstancedInV1AndV2,
+                pragmas = CorePragmas.DotsInstanced,
                 defines = CoreDefines.ShaderGraphRaytracingDefault,
                 keywords = LitDepthOnlyKeywords,
                 includes = DepthOnlyIncludes,
@@ -723,7 +723,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                 // Collections
                 requiredFields = CoreRequiredFields.LitMinimal,
                 renderStates = GBufferRenderState,
-                pragmas = CorePragmas.DotsInstancedInV1AndV2,
+                pragmas = CorePragmas.DotsInstanced,
                 defines = CoreDefines.ShaderGraphRaytracingDefault,
                 keywords = GBufferKeywords,
                 includes = GBufferIncludes,
@@ -779,7 +779,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                 // Collections
                 requiredFields = CoreRequiredFields.LitMinimal,
                 renderStates = CoreRenderStates.Forward,
-                pragmas = CorePragmas.DotsInstancedInV1AndV2,
+                pragmas = CorePragmas.DotsInstanced,
                 defines = CoreDefines.Forward,
                 includes = ForwardIncludes,
 
@@ -1067,7 +1067,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                 // We want to have the normal buffer include if this is a gbuffer and unlit shader
                 if (!supportLighting)
                     includes.Add(CoreIncludes.kNormalBuffer, IncludeLocation.Pregraph);
-                    
+
                 // If this is the gbuffer sub-shader, we want the standard lit data
                 includes.Add(CoreIncludes.kStandardLit, IncludeLocation.Pregraph);
 
