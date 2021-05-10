@@ -13,9 +13,38 @@ namespace UnityEngine.Experimental.Rendering
     /// </summary>
     public struct ProbeVolumeSystemParameters
     {
+        /// <summary>
+        /// The memory budget determining the size of the textures containing SH data.
+        /// </summary>
         public ProbeVolumeTextureMemoryBudget memoryBudget;
+        /// <summary>
+        /// The debug mesh used to draw probes in the debug view.
+        /// </summary>
         public Mesh probeDebugMesh;
+        /// <summary>
+        /// The shader used to visualize the probes in the debug view.
+        /// </summary>
         public Shader probeDebugShader;
+    }
+
+    public struct ProbeVolumeShadingParameters
+    {
+        /// <summary>
+        /// Normal bias to apply to the position used to sample probe volumes.
+        /// </summary>
+        public float normalBias;
+        /// <summary>
+        /// View bias to apply to the position used to sample probe volumes.
+        /// </summary>
+        public float viewBias;
+        /// <summary>
+        /// Whether to scale the biases with the minimum distance between probes.
+        /// </summary>
+        public bool scaleBiasByMinDistanceBetweenProbes;
+        /// <summary>
+        /// Noise to be applied to the sampling position. It can hide seams issues between subdivision levels, but introduces noise.
+        /// </summary>
+        public float samplingNoise;
     }
 
     /// <summary>
@@ -277,16 +306,21 @@ namespace UnityEngine.Experimental.Rendering
 
         bool m_NeedLoadAsset = false;
         bool m_ProbeReferenceVolumeInit = false;
+        internal bool isInitialized => m_ProbeReferenceVolumeInit;
+
         // Similarly the index dimensions come from the authoring component; if a change happens
         // a pending request for re-init (and what it implies) is added from the editor.
         Vector3Int m_PendingIndexDimChange;
         bool m_NeedsIndexDimChange = false;
+        bool m_HasChangedIndexDim = false;
 
-        private int m_CBShaderID = Shader.PropertyToID("ShaderVariablesProbeVolumes");
+        int m_CBShaderID = Shader.PropertyToID("ShaderVariablesProbeVolumes");
 
         private int m_NumberOfCellsLoadedPerFrame = 2;
 
         ProbeVolumeTextureMemoryBudget m_MemoryBudget;
+
+        internal bool clearAssetsOnVolumeClear = false;
 
         /// <summary>
         /// Get the memory budget for the Probe Volume system.
@@ -365,7 +399,7 @@ namespace UnityEngine.Experimental.Rendering
                 indexDimension = Vector3Int.Max(indexDimension, a.maxCellIndex);
 
             m_PendingIndexDimChange = indexDimension;
-            m_NeedsIndexDimChange = true;
+            m_NeedsIndexDimChange = m_Index == null || (m_Index != null && indexDimension != m_Index.GetIndexDimension());
         }
 
         internal void AddPendingAssetRemoval(ProbeVolumeAsset asset)
@@ -417,7 +451,12 @@ namespace UnityEngine.Experimental.Rendering
             {
                 CleanupLoadedData();
                 InitProbeReferenceVolume(kProbeIndexPoolAllocationSize, m_MemoryBudget, m_PendingIndexDimChange);
+                m_HasChangedIndexDim = true;
                 m_NeedsIndexDimChange = false;
+            }
+            else
+            {
+                m_HasChangedIndexDim = false;
             }
         }
 
@@ -440,17 +479,18 @@ namespace UnityEngine.Experimental.Rendering
 
         void PerformPendingLoading()
         {
-            LoadPendingCells();
-
             if ((m_PendingAssetsToBeLoaded.Count == 0 && m_ActiveAssets.Count == 0) || !m_NeedLoadAsset || !m_ProbeReferenceVolumeInit)
                 return;
 
             m_Pool.EnsureTextureValidity();
 
             // Load the ones that are already active but reload if we said we need to load
-            foreach (var asset in m_ActiveAssets.Values)
+            if (m_HasChangedIndexDim)
             {
-                LoadAsset(asset);
+                foreach (var asset in m_ActiveAssets.Values)
+                {
+                    LoadAsset(asset);
+                }
             }
 
             foreach (var asset in m_PendingAssetsToBeLoaded.Values)
@@ -519,6 +559,7 @@ namespace UnityEngine.Experimental.Rendering
             PerformPendingDeletion();
             PerformPendingIndexDimensionChangeAndInit();
             PerformPendingLoading();
+            LoadPendingCells();
         }
 
         /// <summary>
@@ -555,8 +596,9 @@ namespace UnityEngine.Experimental.Rendering
                 m_ProbeReferenceVolumeInit = true;
 
                 ClearDebugData();
+
+                m_NeedLoadAsset = true;
             }
-            m_NeedLoadAsset = true;
         }
 
         /// <summary>
@@ -633,6 +675,12 @@ namespace UnityEngine.Experimental.Rendering
                 m_Pool.Clear();
                 m_Index.Clear();
                 cells.Clear();
+            }
+
+            if (clearAssetsOnVolumeClear)
+            {
+                m_PendingAssetsToBeLoaded.Clear();
+                m_ActiveAssets.Clear();
             }
         }
 
@@ -917,12 +965,13 @@ namespace UnityEngine.Experimental.Rendering
         /// Update the constant buffer used by Probe Volumes in shaders.
         /// </summary>
         /// <param name="cmd">A command buffer used to perform the data update.</param>
-        /// <param name="normalBias">Normal bias to apply to the position used to sample probe volumes.</param>
-        /// <param name="viewBias">View bias to apply to the position used to sample probe volumes.</param>
-        /// <param name="scaleBiasByMinDistanceBetweenProbes">Whether to scale the biases with the minimum distance between probes.</param>
-        public void UpdateConstantBuffer(CommandBuffer cmd, float normalBias, float viewBias, bool scaleBiasByMinDistanceBetweenProbes)
+        /// <param name="parameters">Parameters to be used when sampling the probe volume.</param>
+        public void UpdateConstantBuffer(CommandBuffer cmd, ProbeVolumeShadingParameters parameters)
         {
-            if (scaleBiasByMinDistanceBetweenProbes)
+            float normalBias = parameters.normalBias;
+            float viewBias = parameters.viewBias;
+
+            if (parameters.scaleBiasByMinDistanceBetweenProbes)
             {
                 normalBias *= MinDistanceBetweenProbes();
                 viewBias *= MinDistanceBetweenProbes();
@@ -934,6 +983,8 @@ namespace UnityEngine.Experimental.Rendering
             shaderVars._NormalBias = normalBias;
             shaderVars._PoolDim = m_Pool.GetPoolDimensions();
             shaderVars._ViewBias = viewBias;
+            shaderVars._PVSamplingNoise = parameters.samplingNoise;
+            shaderVars.pad0 = Vector2.zero;
 
             ConstantBuffer.PushGlobal(cmd, shaderVars, m_CBShaderID);
         }

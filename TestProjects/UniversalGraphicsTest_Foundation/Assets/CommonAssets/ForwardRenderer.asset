@@ -52,4 +52,6 @@ MonoBehaviour:
     zFailOperation: 0
   m_ShadowTransparentReceive: 1
   m_RenderingMode: 0
+  m_DepthPrepassMode: 1
+  m_DepthPrimingMode: 0
   m_AccurateGbufferNormals: 0
