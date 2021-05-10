@@ -368,9 +368,10 @@ namespace UnityEngine.Rendering.HighDefinition
 
             InitializeLightLoop(m_IBLFilterArray);
 
-            if (IsAPVSupported())
+            var pvr = ProbeReferenceVolume.instance;
+            pvr.featureIsAvailable = IsAPVSupported();
+            if (pvr.featureIsAvailable)
             {
-                var pvr = ProbeReferenceVolume.instance;
                 ProbeReferenceVolume.instance.Initialize(new ProbeVolumeSystemParameters()
                 {
                     memoryBudget = m_Asset.currentPlatformRenderPipelineSettings.probeVolumeMemoryBudget,
