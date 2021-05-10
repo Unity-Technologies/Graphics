@@ -55,7 +55,7 @@ namespace UnityEngine.Rendering.Universal.Internal
 
             using (new ProfilingScope(cmd, ProfilingSampler.Get(URPProfileId.FinalBlit)))
             {
-                DebugHandler?.UpdateShaderGlobalPropertiesFinalBlitPass(cmd, ref cameraData);
+                GetActiveDebugHandler(renderingData)?.UpdateShaderGlobalPropertiesForFinalValidationPass(cmd, ref cameraData, true);
 
                 CoreUtils.SetKeyword(cmd, ShaderKeywordStrings.LinearToSRGBConversion,
                     cameraData.requireSrgbConversion);
@@ -90,8 +90,7 @@ namespace UnityEngine.Rendering.Universal.Internal
                 }
                 else
 #endif
-                if ((isSceneViewCamera || cameraData.isDefaultViewport) &&
-                    ((DebugHandler == null) || (DebugHandler.DebugDisplaySettings.ValidationSettings.validationMode == DebugValidationMode.None)))
+                if (isSceneViewCamera || cameraData.isDefaultViewport)
                 {
                     // This set render target is necessary so we change the LOAD state to DontCare.
                     cmd.SetRenderTarget(BuiltinRenderTextureType.CameraTarget,
