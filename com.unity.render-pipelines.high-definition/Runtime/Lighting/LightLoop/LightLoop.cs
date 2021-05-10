@@ -3560,6 +3560,9 @@ namespace UnityEngine.Rendering.HighDefinition
                     case HDShadowFilteringQuality.High:
                         parameters.deferredComputeShader.EnableKeyword("SHADOW_HIGH");
                         break;
+                    case HDShadowFilteringQuality.VeryHigh:
+                        parameters.deferredComputeShader.EnableKeyword("SHADOW_VERY_HIGH");
+                        break;
                     default:
                         parameters.deferredComputeShader.EnableKeyword("SHADOW_MEDIUM");
                         break;

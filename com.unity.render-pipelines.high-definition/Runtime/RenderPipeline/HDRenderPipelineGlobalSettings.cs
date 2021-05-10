@@ -693,6 +693,12 @@ namespace UnityEngine.Rendering.HighDefinition
 
 #endif
 
+        [SerializeField]
+        internal string DLSSProjectId = "000000";
+
+        [SerializeField]
+        internal bool useDLSSCustomProjectId = false;
+
         #endregion
     }
 }

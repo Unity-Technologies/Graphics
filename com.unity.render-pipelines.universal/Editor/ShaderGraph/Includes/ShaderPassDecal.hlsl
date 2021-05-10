@@ -91,11 +91,16 @@ void InitializeInputData(Varyings input, float3 positionWS, half3 normalWS, half
     inputData.shadowMask = SAMPLE_SHADOWMASK(input.staticLightmapUV);
 #endif
 
-#if defined(VARYINGS_NEED_STATIC_LIGHTMAP_UV) && defined(LIGHTMAP_ON)
-    inputData.lightmapUV = input.staticLightmapUV;
-#elif defined(VARYINGS_NEED_SH)
-    inputData.vertexSH = half3(input.sh);
-#endif
+    #if defined(DEBUG_DISPLAY)
+    #if defined(VARYINGS_NEED_DYNAMIC_LIGHTMAP_UV) && defined(DYNAMICLIGHTMAP_ON)
+    inputData.dynamicLightmapUV = input.dynamicLightmapUV.xy;
+    #endif
+    #if defined(VARYINGS_NEED_STATIC_LIGHTMAP_UV && LIGHTMAP_ON)
+    inputData.staticLightmapUV = input.staticLightmapUV;
+    #elif defined(VARYINGS_NEED_SH)
+    inputData.vertexSH = input.sh;
+    #endif
+    #endif
 
     inputData.normalizedScreenSpaceUV = GetNormalizedScreenSpaceUV(input.positionCS);
 }
