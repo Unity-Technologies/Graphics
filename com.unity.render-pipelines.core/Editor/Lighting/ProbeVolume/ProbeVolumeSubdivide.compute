@@ -239,7 +239,6 @@ void Subdivide(uint3 id : SV_DispatchThreadID)
     if (_SubdivisionLevel < maxSubdiv)
         return;
 
-    // TODO: check the subdiv level of the probe volume min and max
     uint3 sdfId = floor(position01 * _SDFSize);
 
     float dist = _Input[sdfId].r;
