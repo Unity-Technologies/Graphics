@@ -322,7 +322,7 @@ Shader "Hidden/Universal Render Pipeline/StencilDeferred"
     half4 FragFog(Varyings input) : SV_Target
     {
         #if _RENDER_PASS_ENABLED
-            float d = LOAD_FRAMEBUFFER_INPUT(GBUFFER3, input.positionCS.xy);
+            float d = LOAD_FRAMEBUFFER_INPUT(GBUFFER3, input.positionCS.xy).x;
         #else
             float d = LOAD_TEXTURE2D_X(_CameraDepthTexture, input.positionCS.xy).x;
         #endif
