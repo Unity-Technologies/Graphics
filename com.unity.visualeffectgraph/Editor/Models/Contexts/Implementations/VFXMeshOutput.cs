@@ -9,7 +9,15 @@ namespace UnityEditor.VFX
     [VFXInfo]
     class VFXMeshOutput : VFXShaderGraphParticleOutput, IVFXMultiMeshOutput
     {
-        public override string name { get { return "Output Particle Mesh"; } }
+        public override string name
+        {
+            get
+            {
+                if (shaderName != string.Empty)
+                    return $"Output Particle {shaderName} Mesh";
+                return "Output Particle Mesh";
+            }
+        }
         public override string codeGeneratorTemplate { get { return RenderPipeTemplate("VFXParticleMeshes"); } }
         public override VFXTaskType taskType { get { return VFXTaskType.ParticleMeshOutput; } }
         public override bool supportsUV { get { return GetOrRefreshShaderGraphObject() == null; } }

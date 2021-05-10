@@ -1,16 +1,26 @@
-using UnityEditor.Rendering;
 using UnityEngine;
 using UnityEngine.Rendering.HighDefinition;
 
 namespace UnityEditor.Rendering.HighDefinition
 {
-    class SerializedHDCamera
+    class SerializedHDCamera : ISerializedCamera
     {
-        public SerializedObject serializedObject;
-        public SerializedObject serializedAdditionalDataObject;
+        public SerializedObject serializedObject { get; }
+        public SerializedObject serializedAdditionalDataObject { get; }
+        public CameraEditor.Settings baseCameraSettings { get; }
 
-        //public SerializedProperty backgroundColor;
+        // This one is internal in UnityEditor for whatever reason...
+        public SerializedProperty projectionMatrixMode { get; }
 
+        // Common properties
+        public SerializedProperty dithering { get; }
+        public SerializedProperty stopNaNs { get; }
+        public SerializedProperty allowDynamicResolution { get; }
+        public SerializedProperty volumeLayerMask { get; }
+        public SerializedProperty clearDepth { get; }
+        public SerializedProperty antialiasing { get; }
+
+        // HDRP specific properties
         public SerializedProperty iso;
         public SerializedProperty shutterSpeed;
         public SerializedProperty aperture;
@@ -20,7 +30,13 @@ namespace UnityEditor.Rendering.HighDefinition
         public SerializedProperty anamorphism;
         public SerializedProperty exposureTarget;
 
-        public SerializedProperty antialiasing;
+        public SerializedProperty allowDeepLearningSuperSampling;
+        public SerializedProperty deepLearningSuperSamplingUseCustomQualitySettings;
+        public SerializedProperty deepLearningSuperSamplingQuality;
+        public SerializedProperty deepLearningSuperSamplingUseCustomAttributes;
+        public SerializedProperty deepLearningSuperSamplingUseOptimalSettings;
+        public SerializedProperty deepLearningSuperSamplingSharpening;
+
         public SerializedProperty SMAAQuality;
         public SerializedProperty taaSharpenStrength;
         public SerializedProperty taaHistorySharpening;
@@ -29,23 +45,13 @@ namespace UnityEditor.Rendering.HighDefinition
         public SerializedProperty taaAntiRinging;
         public SerializedProperty taaQualityLevel;
 
-        public SerializedProperty dithering;
-        public SerializedProperty stopNaNs;
         public SerializedProperty clearColorMode;
         public SerializedProperty backgroundColorHDR;
         public SerializedProperty xrRendering;
         public SerializedProperty passThrough;
         public SerializedProperty customRenderingSettings;
-        public SerializedProperty clearDepth;
-        public SerializedProperty volumeLayerMask;
         public SerializedProperty volumeAnchorOverride;
-        public SerializedProperty allowDynamicResolution;
         public SerializedFrameSettings frameSettings;
-        public CameraEditor.Settings baseCameraSettings { get; private set; }
-
-        // This one is internal in UnityEditor for whatever reason...
-        public SerializedProperty projectionMatrixMode;
-
         public SerializedProperty probeLayerMask;
 
         public SerializedHDCamera(SerializedObject serializedObject)
@@ -63,7 +69,15 @@ namespace UnityEditor.Rendering.HighDefinition
                 hideFlags.intValue = (int)HideFlags.None;
             serializedAdditionalDataObject.ApplyModifiedProperties();
 
-            //backgroundColor = serializedObject.FindProperty("m_BackGroundColor");
+            // Common properties
+            dithering = serializedAdditionalDataObject.Find((HDAdditionalCameraData d) => d.dithering);
+            stopNaNs = serializedAdditionalDataObject.Find((HDAdditionalCameraData d) => d.stopNaNs);
+            allowDynamicResolution = serializedAdditionalDataObject.Find((HDAdditionalCameraData d) => d.allowDynamicResolution);
+            volumeLayerMask = serializedAdditionalDataObject.Find((HDAdditionalCameraData d) => d.volumeLayerMask);
+            clearDepth = serializedAdditionalDataObject.Find((HDAdditionalCameraData d) => d.clearDepth);
+            antialiasing = serializedAdditionalDataObject.Find((HDAdditionalCameraData d) => d.antialiasing);
+
+            // HDRP specific properties
             iso = serializedAdditionalDataObject.FindProperty("physicalParameters.m_Iso");
             shutterSpeed = serializedAdditionalDataObject.FindProperty("physicalParameters.m_ShutterSpeed");
             aperture = serializedAdditionalDataObject.FindProperty("physicalParameters.m_Aperture");
@@ -74,7 +88,13 @@ namespace UnityEditor.Rendering.HighDefinition
 
             exposureTarget = serializedAdditionalDataObject.Find((HDAdditionalCameraData d) => d.exposureTarget);
 
-            antialiasing = serializedAdditionalDataObject.Find((HDAdditionalCameraData d) => d.antialiasing);
+            allowDeepLearningSuperSampling = serializedAdditionalDataObject.Find((HDAdditionalCameraData d) => d.allowDeepLearningSuperSampling);
+            deepLearningSuperSamplingUseCustomQualitySettings = serializedAdditionalDataObject.Find((HDAdditionalCameraData d) => d.deepLearningSuperSamplingUseCustomQualitySettings);
+            deepLearningSuperSamplingQuality = serializedAdditionalDataObject.Find((HDAdditionalCameraData d) => d.deepLearningSuperSamplingQuality);
+            deepLearningSuperSamplingUseCustomAttributes = serializedAdditionalDataObject.Find((HDAdditionalCameraData d) => d.deepLearningSuperSamplingUseCustomAttributes);
+            deepLearningSuperSamplingUseOptimalSettings = serializedAdditionalDataObject.Find((HDAdditionalCameraData d) => d.deepLearningSuperSamplingUseOptimalSettings);
+            deepLearningSuperSamplingSharpening = serializedAdditionalDataObject.Find((HDAdditionalCameraData d) => d.deepLearningSuperSamplingSharpening);
+
             SMAAQuality = serializedAdditionalDataObject.Find((HDAdditionalCameraData d) => d.SMAAQuality);
             taaSharpenStrength = serializedAdditionalDataObject.Find((HDAdditionalCameraData d) => d.taaSharpenStrength);
             taaQualityLevel = serializedAdditionalDataObject.Find((HDAdditionalCameraData d) => d.TAAQuality);
@@ -84,28 +104,25 @@ namespace UnityEditor.Rendering.HighDefinition
             taaAntiRinging = serializedAdditionalDataObject.Find((HDAdditionalCameraData d) => d.taaAntiHistoryRinging);
             taaQualityLevel = serializedAdditionalDataObject.Find((HDAdditionalCameraData d) => d.TAAQuality);
 
-            dithering = serializedAdditionalDataObject.Find((HDAdditionalCameraData d) => d.dithering);
-            stopNaNs = serializedAdditionalDataObject.Find((HDAdditionalCameraData d) => d.stopNaNs);
             clearColorMode = serializedAdditionalDataObject.Find((HDAdditionalCameraData d) => d.clearColorMode);
             backgroundColorHDR = serializedAdditionalDataObject.Find((HDAdditionalCameraData d) => d.backgroundColorHDR);
             xrRendering = serializedAdditionalDataObject.Find((HDAdditionalCameraData d) => d.xrRendering);
             passThrough = serializedAdditionalDataObject.Find((HDAdditionalCameraData d) => d.fullscreenPassthrough);
             customRenderingSettings = serializedAdditionalDataObject.Find((HDAdditionalCameraData d) => d.customRenderingSettings);
-            clearDepth = serializedAdditionalDataObject.Find((HDAdditionalCameraData d) => d.clearDepth);
-            volumeLayerMask = serializedAdditionalDataObject.Find((HDAdditionalCameraData d) => d.volumeLayerMask);
             volumeAnchorOverride = serializedAdditionalDataObject.Find((HDAdditionalCameraData d) => d.volumeAnchorOverride);
+            probeLayerMask = serializedAdditionalDataObject.Find((HDAdditionalCameraData d) => d.probeLayerMask);
             frameSettings = new SerializedFrameSettings(
                 serializedAdditionalDataObject.FindProperty("m_RenderingPathCustomFrameSettings"),
                 serializedAdditionalDataObject.Find((HDAdditionalCameraData d) => d.renderingPathCustomFrameSettingsOverrideMask)
             );
 
-            probeLayerMask = serializedAdditionalDataObject.Find((HDAdditionalCameraData d) => d.probeLayerMask);
-            allowDynamicResolution = serializedAdditionalDataObject.Find((HDAdditionalCameraData d) => d.allowDynamicResolution);
-
             baseCameraSettings = new CameraEditor.Settings(serializedObject);
             baseCameraSettings.OnEnable();
         }
 
+        /// <summary>
+        /// Updates the internal serialized objects
+        /// </summary>
         public void Update()
         {
             serializedObject.Update();
@@ -118,10 +135,20 @@ namespace UnityEditor.Rendering.HighDefinition
             baseCameraSettings.HDR.boolValue = false;
         }
 
+        /// <summary>
+        /// Applies the modified properties to the serialized objects
+        /// </summary>
         public void Apply()
         {
             serializedObject.ApplyModifiedProperties();
             serializedAdditionalDataObject.ApplyModifiedProperties();
+        }
+
+        /// <summary>
+        /// Refreshes the serialized properties from the serialized objects
+        /// </summary>
+        public void Refresh()
+        {
         }
     }
 }

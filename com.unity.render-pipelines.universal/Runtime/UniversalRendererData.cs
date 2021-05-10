@@ -56,6 +56,13 @@ namespace UnityEngine.Rendering.Universal
 
             [Reload("Shaders/Utils/MaterialError.shader")]
             public Shader materialErrorPS;
+
+            // Core blitter shaders, adapted from HDRP
+            // TODO: move to core and share with HDRP
+            [Reload("Shaders/Utils/CoreBlit.shader")]
+            public Shader coreBlitPS;
+            [Reload("Shaders/Utils/CoreBlitColorAndDepth.shader")]
+            public Shader coreBlitColorAndDepthPS;
         }
 
         public PostProcessData postProcessData = null;
@@ -72,6 +79,7 @@ namespace UnityEngine.Rendering.Universal
         [SerializeField] StencilStateData m_DefaultStencilState = new StencilStateData() { passOperation = StencilOp.Replace }; // This default state is compatible with deferred renderer.
         [SerializeField] bool m_ShadowTransparentReceive = true;
         [SerializeField] RenderingMode m_RenderingMode = RenderingMode.Forward;
+        [SerializeField] DepthPrimingMode m_DepthPrimingMode = DepthPrimingMode.Disabled; // Default disabled because there are some outstanding issues with Text Mesh rendering.
         [SerializeField] bool m_AccurateGbufferNormals = false;
         //[SerializeField] bool m_TiledDeferredShading = false;
         [SerializeField] bool m_ClusteredRendering = false;
@@ -146,6 +154,19 @@ namespace UnityEngine.Rendering.Universal
             {
                 SetDirty();
                 m_RenderingMode = value;
+            }
+        }
+
+        /// <summary>
+        /// Depth priming mode.
+        /// </summary>
+        public DepthPrimingMode depthPrimingMode
+        {
+            get => m_DepthPrimingMode;
+            set
+            {
+                SetDirty();
+                m_DepthPrimingMode = value;
             }
         }
 

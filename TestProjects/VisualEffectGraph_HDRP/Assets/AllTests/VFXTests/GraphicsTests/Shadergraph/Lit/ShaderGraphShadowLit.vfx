@@ -177,7 +177,6 @@ MonoBehaviour:
   m_ImportDependencies: []
   m_GraphVersion: 7
   m_ResourceVersion: 1
-  m_saved: 1
   m_SubgraphDependencies: []
   m_CategoryPath: 
 --- !u!114 &114380859405582094
@@ -1073,6 +1072,7 @@ MonoBehaviour:
   useAlphaClipping: 1
   generateMotionVector: 0
   excludeFromTAA: 0
+  materialOffset: 0
   m_SubOutputs:
   - {fileID: 8926484042661614590}
   cullMode: 0
@@ -1091,6 +1091,9 @@ MonoBehaviour:
   flipbookLayout: 0
   shaderGraph: {fileID: -5475051401550479605, guid: 512f82f171764c6479b3c00a0ed7479a,
     type: 3}
+  materialSettings:
+    m_PropertyNames: []
+    m_PropertyValues: []
   materialType: 0
   onlyAmbientLighting: 0
   diffusionProfileAsset: {fileID: 0}
@@ -1228,6 +1231,7 @@ MonoBehaviour:
   useAlphaClipping: 1
   generateMotionVector: 0
   excludeFromTAA: 0
+  materialOffset: 0
   m_SubOutputs:
   - {fileID: 8926484042661614601}
   cullMode: 0
@@ -1246,6 +1250,9 @@ MonoBehaviour:
   flipbookLayout: 0
   shaderGraph: {fileID: -5475051401550479605, guid: 512f82f171764c6479b3c00a0ed7479a,
     type: 3}
+  materialSettings:
+    m_PropertyNames: []
+    m_PropertyValues: []
   materialType: 0
   onlyAmbientLighting: 0
   diffusionProfileAsset: {fileID: 0}
@@ -1709,6 +1716,7 @@ MonoBehaviour:
   useAlphaClipping: 1
   generateMotionVector: 0
   excludeFromTAA: 0
+  materialOffset: 0
   m_SubOutputs:
   - {fileID: 8926484042661614624}
   cullMode: 0
@@ -1727,6 +1735,9 @@ MonoBehaviour:
   flipbookLayout: 0
   shaderGraph: {fileID: -5475051401550479605, guid: 512f82f171764c6479b3c00a0ed7479a,
     type: 3}
+  materialSettings:
+    m_PropertyNames: []
+    m_PropertyValues: []
   materialType: 0
   onlyAmbientLighting: 0
   diffusionProfileAsset: {fileID: 0}
@@ -2127,6 +2138,7 @@ MonoBehaviour:
   useAlphaClipping: 1
   generateMotionVector: 0
   excludeFromTAA: 0
+  materialOffset: 0
   m_SubOutputs:
   - {fileID: 8926484042661614636}
   cullMode: 0
@@ -2145,6 +2157,9 @@ MonoBehaviour:
   flipbookLayout: 0
   shaderGraph: {fileID: -5475051401550479605, guid: 512f82f171764c6479b3c00a0ed7479a,
     type: 3}
+  materialSettings:
+    m_PropertyNames: []
+    m_PropertyValues: []
   materialType: 0
   onlyAmbientLighting: 0
   diffusionProfileAsset: {fileID: 0}
