@@ -1,0 +1,182 @@
+Pass
+{		
+	Name "DBufferMesh"
+	Tags {"LightMode"="DBufferMesh"}
+
+
+	Cull Front
+    ZWrite Off
+    ZTest Greater
+
+    // using alpha compositing https://developer.nvidia.com/gpugems/GPUGems3/gpugems3_ch23.html
+    Blend 0 SrcAlpha OneMinusSrcAlpha, Zero OneMinusSrcAlpha
+    Blend 1 SrcAlpha OneMinusSrcAlpha, Zero OneMinusSrcAlpha
+    Blend 2 SrcAlpha OneMinusSrcAlpha, Zero OneMinusSrcAlpha
+    Blend 3 Zero OneMinusSrcColor
+
+    // ColorMask [_DecalColorMask0]
+    // ColorMask [_DecalColorMask1] 1
+    // ColorMask [_DecalColorMask2] 2
+    // ColorMask [_DecalColorMask3] 3
+		
+	HLSLPROGRAM
+	#pragma target 4.5
+	#pragma multi_compile _ LIGHT_LAYERS
+	#pragma multi_compile _ DEBUG_DISPLAY
+	
+	#define UNITY_MATERIAL_LIT
+		
+	${VFXIncludeRP("VFXLitVaryings.template")}		
+    #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Decal/Decal.hlsl"
+	struct ps_input
+	{
+		float4 pos : SV_POSITION;
+		
+		${VFXHDRPLitDeclareVaryings}
+		
+		float2 uv : TEXCOORD1;
+		float3 posWS : TEXCOORD2;
+		float4 sphereInfo : TEXCOORD3;
+
+		nointerpolation float4 viewToDecal0 : TEXCOORD4;
+		nointerpolation float4 viewToDecal1 : TEXCOORD5;
+		nointerpolation float4 viewToDecal2 : TEXCOORD6;
+
+		UNITY_VERTEX_OUTPUT_STEREO
+	};
+	
+	${VFXHDRPLitVaryingsMacros}	
+		
+	#define VFX_VARYING_PS_INPUTS ps_input
+	#define VFX_VARYING_POSCS pos
+	#define VFX_VARYING_UV uv
+	#define VFX_VARYING_POSWS posWS	
+
+	${VFXBegin:VFXVertexAdditionalProcess}
+	float4x4 viewToDecal = GetVFXToElementMatrix(
+		attributes.axisX,
+		attributes.axisY,
+		attributes.axisZ,
+		float3(attributes.angleX,attributes.angleY,attributes.angleZ),
+		float3(attributes.pivotX,attributes.pivotY,attributes.pivotZ),
+		size3,
+		attributes.position);
+		
+	#if VFX_LOCAL_SPACE
+	viewToDecal = mul(viewToDecal, VFXGetWorldToObjectMatrix());
+	#endif
+	viewToDecal = mul(viewToDecal, VFXGetViewToWorldMatrix());
+	o.viewToDecal0 = viewToDecal[0];
+	o.viewToDecal1 = viewToDecal[1];
+	o.viewToDecal2 = viewToDecal[2];
+
+	${VFXHDRPLitFillVaryings}
+	${VFXEnd}
+
+	
+//TODO : Vertex shader of decal must perform z bias or view bias (BiasType), need to create one
+${VFXInclude("Shaders/ParticleHexahedron/Pass.template")}	
+#define SHADERPASS SHADERPASS_VFX_DBUFFER_PROJECTOR
+${VFXIncludeRP("VFXLit.template")}
+
+//TODO : Move that to a header (new or existing one)
+#define VFXComputePixelOutputToDBuffer(i, normalWS,outDBuffer) \
+{ \
+	DecalSurfaceData surfaceData; \
+    ZERO_INITIALIZE(DecalSurfaceData, surfaceData); \
+    VFXGetSurfaceDecalData(surfaceData,i,normalWS); \
+ \
+    ENCODE_INTO_DBUFFER(surfaceData, outDBuffer); \
+}
+
+void VFXGetSurfaceDecalData(out DecalSurfaceData surfaceData, VFX_VARYING_PS_INPUTS i, float3 normalWS)
+{
+	ZERO_INITIALIZE(DecalSurfaceData, surfaceData); 
+	VFXTransformPSInputs(i);
+
+	float3 clipPos;
+	clipPos.xy = (i.pos.xy / _ScreenParams.xy) * 2.0f - 1.0f;
+	clipPos.z = VFXSampleDepth(i.pos);
+	clipPos *= VFXLinearEyeDepth(clipPos.z);
+	
+
+	float4 worldPos;
+	worldPos.x = clipPos.x / UNITY_MATRIX_P[0][0];
+	worldPos.y = clipPos.y / -UNITY_MATRIX_P[1][1];
+	worldPos.z = (clipPos.z - UNITY_MATRIX_P[2][3]) / UNITY_MATRIX_P[2][2];
+	worldPos.w = 1.0f;
+	//Assumes worldPos is ViewPos ?
+	float4x4 viewToElement;
+	viewToElement[0] = i.viewToDecal0;
+	viewToElement[1] = i.viewToDecal1;
+	viewToElement[2] = i.viewToDecal2;
+	viewToElement[3] = float4(0,0,0,1);
+	
+	float3 elementPos = mul(viewToElement,worldPos).xyz * 2.0f;
+	clip(1.0f - abs(elementPos));
+
+	float2 uv = elementPos.xy * 0.5f + 0.5f;
+	VFXUVData uvData = GetUVData(uv);
+
+	float4 color = float4(1,1,1,1);
+    #if HDRP_USE_BASE_COLOR
+    color *= VFXGetParticleColor(i);
+    #elif HDRP_USE_ADDITIONAL_BASE_COLOR
+    #if defined(VFX_VARYING_COLOR)
+    color.xyz *= i.VFX_VARYING_COLOR;
+    #endif
+    #if defined(VFX_VARYING_ALPHA)
+    color.a *= i.VFX_VARYING_ALPHA;
+    #endif
+    #endif
+    #if HDRP_USE_BASE_COLOR_MAP
+    float4 colorMap = SampleTexture(VFX_SAMPLER(baseColorMap),uvData);
+    #if HDRP_USE_BASE_COLOR_MAP_COLOR
+    color.xyz *= colorMap.xyz;
+    #endif
+    #if HDRP_USE_BASE_COLOR_MAP_ALPHA
+    color.a *= colorMap.a;
+    #endif
+    #endif
+	float fadeFactor = 1.0f;
+	color.a *= fadeFactor;
+    VFXClipFragmentColor(color.a,i);
+    surfaceData.baseColor.rgb = saturate(color.rgb);
+	surfaceData.baseColor.a = color.a;
+
+	float albedoMapBlend = surfaceData.baseColor.a;
+	float maskMapBlend = fadeFactor;
+	
+    #if HDRP_USE_MASK_MAP
+    float4 mask = SampleTexture(VFX_SAMPLER(maskMap), uvData);
+	surfaceData.mask = mask;
+	surfaceData.mask.z = surfaceData.mask.w;
+	maskMapBlend = mask.z;
+	#if VFX_MASK_BLEND_BASE_COLOR_ALPHA 
+	surfaceData.mask.w = albedoMapBlend;
+	#elif VFX_MASK_BLEND_MASK_BLUE // TODO : Careful, not the only two cases, e.g. when using opacity
+	surfaceData.mask.w = maskMapBlend;
+	#endif
+
+    #endif
+
+	float3 normalTS = UnpackNormalmapRGorAG(SampleTexture(VFX_SAMPLER(normalMap), uvData));
+	surfaceData.normalWS.xyz = mul((float3x3)viewToElement, normalTS); //TODO : do proper inverse transform
+	#if VFX_NORMAL_BLEND_BASE_COLOR_ALPHA 
+	surfaceData.normalWS.w = albedoMapBlend;
+	#elif VFX_MASK_BLEND_MASK_BLUE // TODO : Careful, not the only two cases, e.g. when using opacity	surfaceData.mask.w = maskMapBlend;
+	surfaceData.normalWS.w = maskMapBlend;
+	#endif
+}
+
+//EndTODO
+					
+	#pragma fragment frag
+	void frag(ps_input i, OUTPUT_DBUFFER(outDBuffer))
+	{
+		UNITY_SETUP_STEREO_EYE_INDEX_POST_VERTEX(i);
+		float3 normalWS = float3(0,1,0); //TODO : compute it properly
+		VFXComputePixelOutputToDBuffer(i, normalWS,outDBuffer);
+	}
+	ENDHLSL
+}
