@@ -132,19 +132,7 @@ namespace UnityEngine.Rendering.Universal
         // Match with values in Input.hlsl
         internal static int lightsPerTile => ((maxVisibleAdditionalLights + 31) / 32) * 32;
         internal static int maxZBins => 1024 * 4;
-        internal static int maxTileVec4s
-        {
-            get
-            {
-                bool isMobile = Application.isMobilePlatform;
-                if (isMobile && (SystemInfo.graphicsDeviceType == GraphicsDeviceType.OpenGLES2 || (SystemInfo.graphicsDeviceType == GraphicsDeviceType.OpenGLES3 && Graphics.minOpenGLESVersion <= OpenGLESVersion.OpenGLES30)))
-                    return 4096;
-
-                // GLES can be selected as platform on Windows (not a mobile platform) but uniform buffer size so we must use a low light count.
-                return (isMobile || SystemInfo.graphicsDeviceType == GraphicsDeviceType.OpenGLCore || SystemInfo.graphicsDeviceType == GraphicsDeviceType.OpenGLES2 || SystemInfo.graphicsDeviceType == GraphicsDeviceType.OpenGLES3)
-                    ? 4096 : 4096;
-            }
-        }
+        internal static int maxTileVec4s => 4096;
 
         internal const int k_DefaultRenderingLayerMask = 0x00000001;
         private readonly DebugDisplaySettingsUI m_DebugDisplaySettingsUI = new DebugDisplaySettingsUI();
@@ -655,7 +643,7 @@ namespace UnityEngine.Rendering.Universal
                 if (additionalCameraData.volumeStack == null)
                 {
                     camera.UpdateVolumeStack(additionalCameraData);
-            }
+                }
 
                 VolumeManager.instance.stack = additionalCameraData.volumeStack;
                 return;

@@ -16,17 +16,15 @@
 
 #if defined(SHADER_API_MOBILE) && (defined(SHADER_API_GLES) || defined(SHADER_API_GLES30))
     #define MAX_VISIBLE_LIGHTS 16
-    #define MAX_TILE_VEC4S 4096
 #elif defined(SHADER_API_MOBILE) || (defined(SHADER_API_GLCORE) && !defined(SHADER_API_SWITCH)) || defined(SHADER_API_GLES) || defined(SHADER_API_GLES3) // Workaround because SHADER_API_GLCORE is also defined when SHADER_API_SWITCH is
     #define MAX_VISIBLE_LIGHTS 32
-    #define MAX_TILE_VEC4S 4096
 #else
     #define MAX_VISIBLE_LIGHTS 256
-    #define MAX_TILE_VEC4S 4096
 #endif
 
 // Match with values in UniversalRenderPipeline.cs
 #define MAX_ZBIN_VEC4S 1024
+#define MAX_TILE_VEC4S 4096
 #if MAX_VISIBLE_LIGHTS < 32
     #define LIGHTS_PER_TILE 32
 #else

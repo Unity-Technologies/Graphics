@@ -44,6 +44,12 @@ namespace UnityEditor.Rendering.Universal
         SerializedProperty m_Shaders;
         SerializedProperty m_ShadowTransparentReceiveProp;
 
+#if URP_ENABLE_CLUSTERED_UI
+        static bool s_EnableClusteredUI => true;
+#else
+        static bool s_EnableClusteredUI => false;
+#endif
+
         private void OnEnable()
         {
             m_OpaqueLayerMask = serializedObject.FindProperty("m_OpaqueLayerMask");
@@ -92,10 +98,13 @@ namespace UnityEditor.Rendering.Universal
             {
                 EditorGUI.indentLevel++;
 
-                EditorGUILayout.PropertyField(m_ClusteredRendering, Styles.clusteredRenderingLabel);
-                EditorGUI.BeginDisabledGroup(!m_ClusteredRendering.boolValue);
-                EditorGUILayout.PropertyField(m_TileSize);
-                EditorGUI.EndDisabledGroup();
+                if (s_EnableClusteredUI)
+                {
+                    EditorGUILayout.PropertyField(m_ClusteredRendering, Styles.clusteredRenderingLabel);
+                    EditorGUI.BeginDisabledGroup(!m_ClusteredRendering.boolValue);
+                    EditorGUILayout.PropertyField(m_TileSize);
+                    EditorGUI.EndDisabledGroup();
+                }
 
                 EditorGUILayout.PropertyField(m_DepthPrimingMode, Styles.DepthPrimingModeLabel);
                 if (m_DepthPrimingMode.intValue != (int)DepthPrimingMode.Disabled)

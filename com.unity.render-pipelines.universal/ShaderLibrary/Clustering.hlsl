@@ -1,6 +1,8 @@
 #ifndef UNIVERSAL_CLUSTERING_INCLUDED
 #define UNIVERSAL_CLUSTERING_INCLUDED
 
+#include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Input.hlsl"
+
 #if USE_CLUSTERED_LIGHTING
 
 // TODO: Remove after PR #4039 is merged
@@ -45,18 +47,19 @@ ClusteredLightLoop ClusteredLightLoopInit(float2 normalizedScreenSpaceUV, float3
     float viewZ = dot(GetViewForwardDir(), positionWS - GetCameraPositionWS());
     uint zBinIndex = min(4*MAX_ZBIN_VEC4S, (uint)(sqrt(viewZ) * _AdditionalLightsZBinScale) - _AdditionalLightsZBinOffset);
     uint zBinData = ClusteringSelect4(asuint(_AdditionalLightsZBins[zBinIndex / 4]), zBinIndex % 4);
-    uint2 zBin = uint2(data & 0xFFFF, (data >> 16) & 0xFFFF);
+    uint2 zBin = uint2(zBinData & 0xFFFF, (zBinData >> 16) & 0xFFFF);
     uint2 zBinWords = zBin / 32;
     state.zBinMinMask = 0xFFFFFFFF << (zBin.x & 0x1F);
     state.zBinMaxMask = 0xFFFFFFFF >> (31 - (zBin.y & 0x1F));
 #if LIGHTS_PER_TILE > 32
     state.wordMin = zBinWords.x;
     state.wordMax = zBinWords.y;
-#endif
     state.wordIndex = zBinWords.x;
-#if SHADER_TARGET < 45
-    state.bitIndex = zBin.x;
 #endif
+#if SHADER_TARGET < 45
+    state.bitIndex = zBin.x & 0x1F;
+#endif
+    return state;
 }
 
 bool ClusteredLightLoopNextWord(inout ClusteredLightLoop state)
@@ -94,7 +97,7 @@ bool ClusteredLightLoopNextLight(inout ClusteredLightLoop state)
 
 uint ClusteredLightLoopGetLightIndex(ClusteredLightLoop state)
 {
-    return _AdditionalLightsDirectionalCount + state.wordIndex * 32 + state.bitIndex;
+    return _AdditionalLightsDirectionalCount + (state.wordIndex - 1) * 32 + state.bitIndex;
 }
 
 #endif

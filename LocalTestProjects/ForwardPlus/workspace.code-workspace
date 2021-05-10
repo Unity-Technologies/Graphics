@@ -1,0 +1,17 @@
+{
+	"folders": [
+		{
+			"path": "."
+		},
+		{
+			"path": "../../com.unity.render-pipelines.core"
+		},
+		{
+			"path": "../../com.unity.render-pipelines.universal"
+		},
+		{
+			"path": "../../com.unity.shadergraph"
+		}
+	],
+	"settings": {}
+}
