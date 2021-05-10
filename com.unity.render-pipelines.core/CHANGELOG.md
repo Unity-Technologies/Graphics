@@ -34,8 +34,8 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - New method DrawHeaders for VolumeComponentsEditors
 - Unification of Material Editor Headers Scopes
 - New API functions with no side effects in DynamicResolutionHandler, to retrieve resolved drs scale and to apply DRS on a size.
-- Added a blitter for the SRPs.
-- Added 2D texture atlases.
+- Added a blitter utility class. Moved from HDRP to RP core.
+- Added a realtime 2D texture atlas utility classes. Moved from HDRP to RP core.
 - New methods on CoreEditorDrawers, to allow adding a label on a group before rendering the internal drawers
 - Method to generate a Texture2D of 1x1 with a plain color
 - Red, Green, Blue Texture2D on CoreEditorStyles
