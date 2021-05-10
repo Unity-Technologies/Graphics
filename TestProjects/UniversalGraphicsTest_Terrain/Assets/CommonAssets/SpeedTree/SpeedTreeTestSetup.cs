@@ -6,6 +6,7 @@ using UnityEngine.Rendering;
 
 public class SpeedTreeTestSetup : MonoBehaviour
 {
+    private float savedLodBias;
     void OnEnable()
     {
         if (GraphicsSettings.renderPipelineAsset != null)
@@ -14,6 +15,8 @@ public class SpeedTreeTestSetup : MonoBehaviour
             distance = lwAsset.shadowDistance;
             lwAsset.shadowDistance = 1000.0f;
         }
+        savedLodBias = QualitySettings.lodBias;
+        QualitySettings.lodBias = 1.0f;
     }
 
     void OnDisable()
@@ -23,6 +26,7 @@ public class SpeedTreeTestSetup : MonoBehaviour
             var lwAsset = (UnityEngine.Rendering.Universal.UniversalRenderPipelineAsset)GraphicsSettings.renderPipelineAsset;
             lwAsset.shadowDistance = distance;
         }
+        QualitySettings.lodBias = savedLodBias;
     }
 
     float distance = 0.0f;
