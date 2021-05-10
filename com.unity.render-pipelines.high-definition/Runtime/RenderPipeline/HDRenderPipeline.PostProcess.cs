@@ -4387,8 +4387,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
         TextureHandle ContrastAdaptiveSharpeningPass(RenderGraph renderGraph, HDCamera hdCamera, TextureHandle source)
         {
-            if (hdCamera.DynResRequest.enabled &&
-                hdCamera.DynResRequest.filter == DynamicResUpscaleFilter.ContrastAdaptiveSharpen)
+            if (hdCamera.DynResRequest.enabled && (hdCamera.DynResRequest.filter == DynamicResUpscaleFilter.ContrastAdaptiveSharpen || hdCamera.DynResRequest.filter == DynamicResUpscaleFilter.EdgeAdaptiveScalingUpres))
             {
                 using (var builder = renderGraph.AddRenderPass<CASData>("Contrast Adaptive Sharpen", out var passData, ProfilingSampler.Get(HDProfileId.ContrastAdaptiveSharpen)))
                 {
@@ -4524,6 +4523,7 @@ namespace UnityEngine.Rendering.HighDefinition
                                         finalPassMaterial.EnableKeyword("LANCZOS");
                                         break;
                                     case DynamicResUpscaleFilter.ContrastAdaptiveSharpen:
+                                    case DynamicResUpscaleFilter.EdgeAdaptiveScalingUpres:
                                         finalPassMaterial.EnableKeyword("BYPASS");
                                         break;
                                 }
