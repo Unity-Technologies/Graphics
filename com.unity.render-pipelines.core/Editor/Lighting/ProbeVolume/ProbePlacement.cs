@@ -109,13 +109,51 @@ namespace UnityEngine.Experimental.Rendering
             }
         }
 
+        static readonly int _BricksToClear = Shader.PropertyToID("_BricksToClear");
+        static readonly int _Output = Shader.PropertyToID("_Output");
+        static readonly int _OutputSize = Shader.PropertyToID("_OutputSize");
+        static readonly int _VolumeWorldOffset = Shader.PropertyToID("_VolumeWorldOffset");
+        static readonly int _VolumeSize = Shader.PropertyToID("_VolumeSize");
+        static readonly int _AxisSwizzle = Shader.PropertyToID("_AxisSwizzle");
+        static readonly int _Size = Shader.PropertyToID("_Size");
+        static readonly int _Input = Shader.PropertyToID("_Input");
+        static readonly int _Offset = Shader.PropertyToID("_Offset");
+        static readonly int _ProbeVolumes = Shader.PropertyToID("_ProbeVolumes");
+        static readonly int _ProbeVolumeCount = Shader.PropertyToID("_ProbeVolumeCount");
+        static readonly int _MaxBrickSize = Shader.PropertyToID("_MaxBrickSize");
+        static readonly int _VolumeOffsetInBricks = Shader.PropertyToID("_VolumeOffsetInBricks");
+        static readonly int _Bricks = Shader.PropertyToID("_Bricks");
+        static readonly int _SubdivisionLevel = Shader.PropertyToID("_SubdivisionLevel");
+        static readonly int _MaxSubdivisionLevel = Shader.PropertyToID("_MaxSubdivisionLevel");
+        static readonly int _VolumeSizeInBricks = Shader.PropertyToID("_VolumeSizeInBricks");
+        static readonly int _SDFSize = Shader.PropertyToID("_SDFSize");
+        static readonly int _ProbeVolumeData = Shader.PropertyToID("_ProbeVolumeData");
+        static readonly int _BrickSize = Shader.PropertyToID("_BrickSize");
+
+        static int s_ClearBufferKernel;
+        static int s_ClearKernel;
+        static int s_JumpFloodingKernel;
+        static int s_FillUVKernel;
+        static int s_FinalPassKernel;
+        static int s_VoxelizeProbeVolumesKernel;
+        static int s_SubdivideKernel;
+
         static ComputeShader _subdivideSceneCS;
         static ComputeShader subdivideSceneCS
         {
             get
             {
                 if (_subdivideSceneCS == null)
+                {
                     _subdivideSceneCS = AssetDatabase.LoadAssetAtPath<ComputeShader>("Packages/com.unity.render-pipelines.core/Editor/Lighting/ProbeVolume/ProbeVolumeSubdivide.compute");
+                    s_ClearBufferKernel = subdivideSceneCS.FindKernel("ClearBuffer");
+                    s_ClearKernel = subdivideSceneCS.FindKernel("Clear");
+                    s_JumpFloodingKernel = subdivideSceneCS.FindKernel("JumpFlooding");
+                    s_FillUVKernel = subdivideSceneCS.FindKernel("FillUVMap");
+                    s_FinalPassKernel = subdivideSceneCS.FindKernel("FinalPass");
+                    s_VoxelizeProbeVolumesKernel = subdivideSceneCS.FindKernel("VoxelizeProbeVolumeData");
+                    s_SubdivideKernel = subdivideSceneCS.FindKernel("Subdivide");
+                }
                 return _subdivideSceneCS;
             }
         }
@@ -162,9 +200,8 @@ namespace UnityEngine.Experimental.Rendering
 
                     using (new ProfilingScope(cmd, new ProfilingSampler("Clear Bricks Buffer")))
                     {
-                        int clearBufferKernel = subdivideSceneCS.FindKernel("ClearBuffer");
-                        cmd.SetComputeBufferParam(subdivideSceneCS, clearBufferKernel, "_BricksToClear", bricksBuffer);
-                        DispatchCompute(cmd, clearBufferKernel, brickCountPerAxis * brickCountPerAxis * brickCountPerAxis, 1);
+                        cmd.SetComputeBufferParam(subdivideSceneCS, s_ClearBufferKernel, _BricksToClear, bricksBuffer);
+                        DispatchCompute(cmd, s_ClearBufferKernel, brickCountPerAxis * brickCountPerAxis * brickCountPerAxis, 1);
                         cmd.SetBufferCounterValue(bricksBuffer, 0);
                     }
 
@@ -226,17 +263,16 @@ namespace UnityEngine.Experimental.Rendering
 
                 using (new ProfilingScope(cmd, new ProfilingSampler("Clear")))
                 {
-                    int clearKernel = subdivideSceneCS.FindKernel("Clear");
-                    cmd.SetComputeTextureParam(subdivideSceneCS, clearKernel, "_Output", sceneSDF);
-                    DispatchCompute(cmd, clearKernel, sceneSDF.width, sceneSDF.height, sceneSDF.volumeDepth);
+                    cmd.SetComputeTextureParam(subdivideSceneCS, s_ClearKernel, _Output, sceneSDF);
+                    DispatchCompute(cmd, s_ClearKernel, sceneSDF.width, sceneSDF.height, sceneSDF.volumeDepth);
                 }
 
                 cmd.SetRandomWriteTarget(4, sceneSDF);
 
                 var mat = new Material(Shader.Find("Hidden/ProbeVolume/VoxelizeScene"));
-                mat.SetVector("_OutputSize", new Vector3(sceneSDF.width, sceneSDF.height, sceneSDF.volumeDepth));
-                mat.SetVector("_VolumeWorldOffset", cellAABB.center - cellAABB.extents);
-                mat.SetVector("_VolumeSize", cellAABB.size);
+                mat.SetVector(_OutputSize, new Vector3(sceneSDF.width, sceneSDF.height, sceneSDF.volumeDepth));
+                mat.SetVector(_VolumeWorldOffset, cellAABB.center - cellAABB.extents);
+                mat.SetVector(_VolumeSize, cellAABB.size);
 
                 var topMatrix = GetCameraMatrixForAngle(Quaternion.Euler(90, 0, 0));
                 var rightMatrix = GetCameraMatrixForAngle(Quaternion.Euler(0, 90, 0));
@@ -270,11 +306,11 @@ namespace UnityEngine.Experimental.Rendering
                         {
                             for (int submesh = 0; submesh < meshFilter.sharedMesh.subMeshCount; submesh++)
                             {
-                                props.SetInt("_AxisSwizzle", 0);
+                                props.SetInt(_AxisSwizzle, 0);
                                 cmd.DrawMesh(meshFilter.sharedMesh, renderer.transform.localToWorldMatrix, mat, submesh, shaderPass: 0, props);
-                                props.SetInt("_AxisSwizzle", 1);
+                                props.SetInt(_AxisSwizzle, 1);
                                 cmd.DrawMesh(meshFilter.sharedMesh, renderer.transform.localToWorldMatrix, mat, submesh, shaderPass: 0, props);
-                                props.SetInt("_AxisSwizzle", 2);
+                                props.SetInt(_AxisSwizzle, 2);
                                 cmd.DrawMesh(meshFilter.sharedMesh, renderer.transform.localToWorldMatrix, mat, submesh, shaderPass: 0, props);
                             }
                         }
@@ -301,30 +337,25 @@ namespace UnityEngine.Experimental.Rendering
             using (new ProfilingScope(cmd, new ProfilingSampler("GenerateDistanceField")))
             {
                 // Generate distance field with JFA
-                cmd.SetComputeVectorParam(subdivideSceneCS, "_Size", new Vector4(sceneSDF1.width, 1.0f / sceneSDF1.width));
-
-                int clearKernel = subdivideSceneCS.FindKernel("Clear");
-                int jumpFloodingKernel = subdivideSceneCS.FindKernel("JumpFlooding");
-                int fillUVKernel = subdivideSceneCS.FindKernel("FillUVMap");
-                int finalPassKernel = subdivideSceneCS.FindKernel("FinalPass");
+                cmd.SetComputeVectorParam(subdivideSceneCS, _Size, new Vector4(sceneSDF1.width, 1.0f / sceneSDF1.width));
 
                 Swap(ref sceneSDF1, ref sceneSDF2);
 
                 // Jump flooding implementation based on https://www.comp.nus.edu.sg/~tants/jfa.html
                 using (new ProfilingScope(cmd, new ProfilingSampler("JumpFlooding")))
                 {
-                    cmd.SetComputeTextureParam(subdivideSceneCS, fillUVKernel, "_Input", sceneSDF2);
-                    cmd.SetComputeTextureParam(subdivideSceneCS, fillUVKernel, "_Output", sceneSDF1);
-                    DispatchCompute(cmd, fillUVKernel, sceneSDF1.width, sceneSDF1.height, sceneSDF1.volumeDepth);
+                    cmd.SetComputeTextureParam(subdivideSceneCS, s_FillUVKernel, _Input, sceneSDF2);
+                    cmd.SetComputeTextureParam(subdivideSceneCS, s_FillUVKernel, _Output, sceneSDF1);
+                    DispatchCompute(cmd, s_FillUVKernel, sceneSDF1.width, sceneSDF1.height, sceneSDF1.volumeDepth);
 
                     int maxLevels = (int)Mathf.Log(sceneSDF1.width, 2);
                     for (int i = 0; i <= maxLevels; i++)
                     {
                         float offset = 1 << (maxLevels - i);
-                        cmd.SetComputeFloatParam(subdivideSceneCS, "_Offset", offset);
-                        cmd.SetComputeTextureParam(subdivideSceneCS, jumpFloodingKernel, "_Input", sceneSDF1);
-                        cmd.SetComputeTextureParam(subdivideSceneCS, jumpFloodingKernel, "_Output", sceneSDF2);
-                        DispatchCompute(cmd, jumpFloodingKernel, sceneSDF1.width, sceneSDF1.height, sceneSDF1.volumeDepth);
+                        cmd.SetComputeFloatParam(subdivideSceneCS, _Offset, offset);
+                        cmd.SetComputeTextureParam(subdivideSceneCS, s_JumpFloodingKernel, _Input, sceneSDF1);
+                        cmd.SetComputeTextureParam(subdivideSceneCS, s_JumpFloodingKernel, _Output, sceneSDF2);
+                        DispatchCompute(cmd, s_JumpFloodingKernel, sceneSDF1.width, sceneSDF1.height, sceneSDF1.volumeDepth);
 
                         Swap(ref sceneSDF1, ref sceneSDF2);
                     }
@@ -338,9 +369,9 @@ namespace UnityEngine.Experimental.Rendering
                     s2 = tmp;
                 }
 
-                cmd.SetComputeTextureParam(subdivideSceneCS, finalPassKernel, "_Input", sceneSDF2);
-                cmd.SetComputeTextureParam(subdivideSceneCS, finalPassKernel, "_Output", sceneSDF1);
-                DispatchCompute(cmd, finalPassKernel, sceneSDF1.width, sceneSDF1.height, sceneSDF1.volumeDepth);
+                cmd.SetComputeTextureParam(subdivideSceneCS, s_FinalPassKernel, _Input, sceneSDF2);
+                cmd.SetComputeTextureParam(subdivideSceneCS, s_FinalPassKernel, _Output, sceneSDF1);
+                DispatchCompute(cmd, s_FinalPassKernel, sceneSDF1.width, sceneSDF1.height, sceneSDF1.volumeDepth);
             }
         }
 
@@ -369,19 +400,18 @@ namespace UnityEngine.Experimental.Rendering
                 }
 
                 cmd.SetBufferData(probeVolumesBuffer, gpuProbeVolumes);
-                int kernel = subdivideSceneCS.FindKernel("VoxelizeProbeVolumeData");
-                cmd.SetComputeBufferParam(subdivideSceneCS, kernel, "_ProbeVolumes", probeVolumesBuffer);
-                cmd.SetComputeFloatParam(subdivideSceneCS, "_ProbeVolumeCount", probeVolumes.Count);
-                cmd.SetComputeVectorParam(subdivideSceneCS, "_VolumeWorldOffset", cellAABB.center - cellAABB.extents);
-                cmd.SetComputeVectorParam(subdivideSceneCS, "_MaxBrickSize", Vector3.one * maxBrickCountPerAxis);
+                cmd.SetComputeBufferParam(subdivideSceneCS, s_VoxelizeProbeVolumesKernel, _ProbeVolumes, probeVolumesBuffer);
+                cmd.SetComputeFloatParam(subdivideSceneCS, _ProbeVolumeCount, probeVolumes.Count);
+                cmd.SetComputeVectorParam(subdivideSceneCS, _VolumeWorldOffset, cellAABB.center - cellAABB.extents);
+                cmd.SetComputeVectorParam(subdivideSceneCS, _MaxBrickSize, Vector3.one * maxBrickCountPerAxis);
 
                 int subdivisionLevelCount = (int)Mathf.Log(maxBrickCountPerAxis, 3);
                 for (int i = 0; i <= subdivisionLevelCount; i++)
                 {
                     int brickCountPerAxis = (int)Mathf.Pow(3, maxSubdivLevel - i);
-                    cmd.SetComputeFloatParam(subdivideSceneCS, "_BrickSize", cellAABB.size.x / brickCountPerAxis);
-                    cmd.SetComputeTextureParam(subdivideSceneCS, kernel, "_Output", target, i);
-                    DispatchCompute(cmd, kernel, brickCountPerAxis, brickCountPerAxis, brickCountPerAxis);
+                    cmd.SetComputeFloatParam(subdivideSceneCS, _BrickSize, cellAABB.size.x / brickCountPerAxis);
+                    cmd.SetComputeTextureParam(subdivideSceneCS, s_VoxelizeProbeVolumesKernel, _Output, target, i);
+                    DispatchCompute(cmd, s_VoxelizeProbeVolumesKernel, brickCountPerAxis, brickCountPerAxis, brickCountPerAxis);
                 }
             }
         }
@@ -391,21 +421,20 @@ namespace UnityEngine.Experimental.Rendering
             using (new ProfilingScope(cmd, new ProfilingSampler($"Subdivide Bricks at level {Mathf.Log(brickCount, 3)}")))
             {
                 // TODO: cleanup: cache kernel names + cache shader ids
-                int kernel = subdivideSceneCS.FindKernel("Subdivide");
 
                 // We convert the world space volume position (of a corner) in bricks.
                 // This is necessary to have correct brick position (the position calculated in the compute shader needs to be in number of bricks from the reference volume (origin)).
                 Vector3 volumeBrickPosition = (volume.center - volume.extents) / ProbeReferenceVolume.instance.MinBrickSize();
-                cmd.SetComputeVectorParam(subdivideSceneCS, "_VolumeOffsetInBricks", volumeBrickPosition);
-                cmd.SetComputeBufferParam(subdivideSceneCS, kernel, "_Bricks", buffer);
-                cmd.SetComputeVectorParam(subdivideSceneCS, "_MaxBrickSize", Vector3.one * brickCount);
-                cmd.SetComputeFloatParam(subdivideSceneCS, "_SubdivisionLevel", subdivisionLevel);
-                cmd.SetComputeFloatParam(subdivideSceneCS, "_MaxSubdivisionLevel", maxSubdivisionLevel);
-                cmd.SetComputeVectorParam(subdivideSceneCS, "_VolumeSizeInBricks", Vector3.one * maxBrickCountPerAxis);
-                cmd.SetComputeVectorParam(subdivideSceneCS, "_SDFSize", new Vector3(sceneSDF.width, sceneSDF.height, sceneSDF.volumeDepth));
-                cmd.SetComputeTextureParam(subdivideSceneCS, kernel, "_Input", sceneSDF);
-                cmd.SetComputeTextureParam(subdivideSceneCS, kernel, "_ProbeVolumeData", probeVolumeData);
-                DispatchCompute(cmd, kernel, brickCount, brickCount, brickCount);
+                cmd.SetComputeVectorParam(subdivideSceneCS, _VolumeOffsetInBricks, volumeBrickPosition);
+                cmd.SetComputeBufferParam(subdivideSceneCS, s_SubdivideKernel, _Bricks, buffer);
+                cmd.SetComputeVectorParam(subdivideSceneCS, _MaxBrickSize, Vector3.one * brickCount);
+                cmd.SetComputeFloatParam(subdivideSceneCS, _SubdivisionLevel, subdivisionLevel);
+                cmd.SetComputeFloatParam(subdivideSceneCS, _MaxSubdivisionLevel, maxSubdivisionLevel);
+                cmd.SetComputeVectorParam(subdivideSceneCS, _VolumeSizeInBricks, Vector3.one * maxBrickCountPerAxis);
+                cmd.SetComputeVectorParam(subdivideSceneCS, _SDFSize, new Vector3(sceneSDF.width, sceneSDF.height, sceneSDF.volumeDepth));
+                cmd.SetComputeTextureParam(subdivideSceneCS, s_SubdivideKernel, _Input, sceneSDF);
+                cmd.SetComputeTextureParam(subdivideSceneCS, s_SubdivideKernel, _ProbeVolumeData, probeVolumeData);
+                DispatchCompute(cmd, s_SubdivideKernel, brickCount, brickCount, brickCount);
             }
         }
     }
