@@ -41,6 +41,7 @@ namespace UnityEditor.Rendering
         {
             RenameShader(sourceShaderName, destShaderName, finalizer);
             RenameFloat("_WindQuality", "_WINDQUALITY");
+            RenameFloat("_BillboardKwToggle", "EFFECT_BILLBOARD");
         }
 
         private static void ImportNewSpeedTree8Material(Material mat, int windQuality, bool isBillboard)
@@ -102,6 +103,9 @@ namespace UnityEditor.Rendering
         /// <param name="material">SpeedTree 8 material to upgrade.</param>
         public static void SpeedTree8MaterialFinalizer(Material material)
         {
+            if (material == null)
+                return;
+
             if (material.IsKeywordEnabled("EFFECT_EXTRA_TEX"))
                 material.SetFloat("EFFECT_EXTRA_TEX", 1.0f);
 

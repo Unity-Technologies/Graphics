@@ -522,6 +522,7 @@ namespace UnityEditor.Rendering.Universal
             : base(oldShaderName, ShaderUtils.GetShaderPath(ShaderPathID.SpeedTree8), UniversalSpeedTree8MaterialFinalizer)
         {
             RenameFloat("_TwoSided", Property.CullMode);
+            SetFloat("_OldHueVarBehavior", 1);
         }
 
         static public void UniversalSpeedTree8MaterialFinalizer(Material mat)
