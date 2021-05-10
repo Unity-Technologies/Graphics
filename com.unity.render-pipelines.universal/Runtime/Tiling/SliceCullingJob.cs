@@ -49,7 +49,6 @@ namespace UnityEngine.Rendering.Universal
 
             var lightCount = lightTypes.Length;
             var lightWordCount = (lightCount + 31) / 32;
-            var lightTailCount = lightCount % 32;
 
             var sectionOffset = index * lightsPerTile / 32;
 
