@@ -10,29 +10,29 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 877e1507ae8d81c40bf1b94c1a86036f, type: 3}
-  m_Name: Simple Spike
+  m_Name: Anamorphic_Digital_Streak
   m_EditorClassIdentifier: 
   elements:
   - position: 0
     positionOffset: {x: 0, y: 0}
     angularOffset: 0
-    translationScale: {x: 1, y: 1}
-    localIntensity: 2
-    lensFlareTexture: {fileID: 2800000, guid: ca6ab6b6493b415439b6e31928ab43ee, type: 3}
-    uniformScale: 5
-    sizeXY: {x: 1, y: 1}
+    translationScale: {x: 1, y: 0}
+    localIntensity: 1
+    lensFlareTexture: {fileID: 2800000, guid: 22a901c46cac63446a47a41268f00fa7, type: 3}
+    uniformScale: 1
+    sizeXY: {x: 72.06, y: 0.6}
     allowMultipleElement: 1
     count: 2
     preserveAspectRatio: 0
-    rotation: 14.22
-    tint: {r: 1, g: 1, b: 1, a: 0.5}
-    blendMode: 0
+    rotation: 0
+    tint: {r: 0.2392157, g: 0.2509804, b: 0.9607844, a: 0.5}
+    blendMode: 1
     autoRotate: 0
     flareType: 0
     modulateByLightColor: 0
     isFoldOpened: 0
-    distribution: 2
-    lengthSpread: 0
+    distribution: 0
+    lengthSpread: 0.3
     positionCurve:
       serializedVersion: 2
       m_Curve:
@@ -111,10 +111,10 @@ MonoBehaviour:
       m_Mode: 0
       m_NumColorKeys: 2
       m_NumAlphaKeys: 2
-    intensityVariation: 1
+    intensityVariation: 0
     positionVariation: {x: 0, y: 0}
-    scaleVariation: 1.36
-    rotationVariation: 6.1
+    scaleVariation: 0
+    rotationVariation: 0
     enableRadialDistortion: 0
     targetSizeDistortion: {x: 1, y: 1}
     distortionCurve:

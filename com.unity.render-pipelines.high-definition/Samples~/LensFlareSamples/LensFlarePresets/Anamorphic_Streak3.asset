@@ -10,26 +10,26 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 877e1507ae8d81c40bf1b94c1a86036f, type: 3}
-  m_Name: Anamorphic Stylized
+  m_Name: Anamorphic_Streak3
   m_EditorClassIdentifier: 
   elements:
-  - position: 0
+  - position: 0.5
     positionOffset: {x: 0, y: 0}
     angularOffset: 0
-    translationScale: {x: 1, y: 1}
-    localIntensity: 0.18
-    lensFlareTexture: {fileID: 2800000, guid: af1af92286e00d84fa6eebe7e6201c67, type: 3}
+    translationScale: {x: 1, y: 0}
+    localIntensity: 0.3
+    lensFlareTexture: {fileID: 2800000, guid: 83ca61610be485341944d9cc19d27c4e, type: 3}
     uniformScale: 1
-    sizeXY: {x: 14, y: 0.2}
-    allowMultipleElement: 0
-    count: 5
+    sizeXY: {x: 33.4, y: 0.23}
+    allowMultipleElement: 1
+    count: 2
     preserveAspectRatio: 0
     rotation: 0
     tint: {r: 1, g: 1, b: 1, a: 0.5}
     blendMode: 0
     autoRotate: 0
     flareType: 0
-    modulateByLightColor: 1
+    modulateByLightColor: 0
     isFoldOpened: 0
     distribution: 0
     lengthSpread: 1
@@ -84,8 +84,8 @@ MonoBehaviour:
     seed: 0
     colorGradient:
       serializedVersion: 2
-      key0: {r: 1, g: 1, b: 1, a: 1}
-      key1: {r: 1, g: 1, b: 1, a: 1}
+      key0: {r: 0.37835556, g: 0.23137254, b: 1, a: 1}
+      key1: {r: 0.07843137, g: 0.47288117, b: 1, a: 1}
       key2: {r: 0, g: 0, b: 0, a: 0}
       key3: {r: 0, g: 0, b: 0, a: 0}
       key4: {r: 0, g: 0, b: 0, a: 0}

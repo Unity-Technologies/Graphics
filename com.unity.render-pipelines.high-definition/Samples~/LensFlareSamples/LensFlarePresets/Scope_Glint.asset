@@ -10,7 +10,7 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 877e1507ae8d81c40bf1b94c1a86036f, type: 3}
-  m_Name: Scope Glint
+  m_Name: Scope_Glint
   m_EditorClassIdentifier: 
   elements:
   - position: 0

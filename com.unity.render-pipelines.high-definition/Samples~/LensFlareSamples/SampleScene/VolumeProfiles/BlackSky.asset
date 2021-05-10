@@ -90,7 +90,7 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: d7fd9488000d3734a9e00ee676215985, type: 3}
-  m_Name: Black Sky
+  m_Name: BlackSky
   m_EditorClassIdentifier: 
   components:
   - {fileID: -3671228646652344306}

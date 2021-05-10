@@ -10,29 +10,29 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 877e1507ae8d81c40bf1b94c1a86036f, type: 3}
-  m_Name: Anamorphic Streak Smudged
+  m_Name: Anamorphic_Stylized
   m_EditorClassIdentifier: 
   elements:
   - position: 0
     positionOffset: {x: 0, y: 0}
     angularOffset: 0
     translationScale: {x: 1, y: 1}
-    localIntensity: 0.12
-    lensFlareTexture: {fileID: 2800000, guid: 62bb1123d19cf634b8795e456d1fe37f, type: 3}
+    localIntensity: 0.18
+    lensFlareTexture: {fileID: 2800000, guid: af1af92286e00d84fa6eebe7e6201c67, type: 3}
     uniformScale: 1
-    sizeXY: {x: 97.31, y: 1}
-    allowMultipleElement: 1
-    count: 3
+    sizeXY: {x: 14, y: 0.2}
+    allowMultipleElement: 0
+    count: 5
     preserveAspectRatio: 0
     rotation: 0
     tint: {r: 1, g: 1, b: 1, a: 0.5}
     blendMode: 0
     autoRotate: 0
     flareType: 0
-    modulateByLightColor: 0
+    modulateByLightColor: 1
     isFoldOpened: 0
-    distribution: 2
-    lengthSpread: 0.03
+    distribution: 0
+    lengthSpread: 1
     positionCurve:
       serializedVersion: 2
       m_Curve:
@@ -113,8 +113,8 @@ MonoBehaviour:
       m_NumAlphaKeys: 2
     intensityVariation: 0
     positionVariation: {x: 0, y: 0}
-    scaleVariation: 0.92
-    rotationVariation: 0.3
+    scaleVariation: 0
+    rotationVariation: 0
     enableRadialDistortion: 0
     targetSizeDistortion: {x: 1, y: 1}
     distortionCurve:

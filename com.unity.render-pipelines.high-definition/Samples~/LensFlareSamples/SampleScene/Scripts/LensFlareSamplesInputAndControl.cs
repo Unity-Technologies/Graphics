@@ -1,6 +1,3 @@
-using System;
-using System.Collections;
-using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
 
@@ -8,20 +5,22 @@ using UnityEngine.UI;
 using UnityEngine.InputSystem;
 #endif
 
-public class LensFlareSamplesInputAndControl : MonoBehaviour
+
+    /// <summary>
+    /// Script that allows easy navigation of provided lens flare assets and ability to add custom lens flare assets for development
+    /// </summary>
+    public class LensFlareSamplesInputAndControl : MonoBehaviour
 {
     [Header("References")]
     public GameObject cameraGameObject;
     public LensFlareComponentSRP lensFlareComponent;
     public Text lensFlareUIText;
-
     public GameObject[] environments;
     public LensFlareDataSRP[] lensFlares;
 
     [Header("Light Settings")]
     public GameObject lensFlareLight;
     public float lightDistance = 100.0f;
-
 
     [Header("Camera Movement")]
     public float cameraRotationSpeed = 1.0f;
@@ -35,9 +34,7 @@ public class LensFlareSamplesInputAndControl : MonoBehaviour
     public float cameraShakeAmplitude = 0.3f;
 
     private Camera cameraComponent;
-
     private int flareNumber;
-
     private Vector3 vectorNoise = Vector3.zero;
 
     void Start()
@@ -168,7 +165,7 @@ public class LensFlareSamplesInputAndControl : MonoBehaviour
 
     private void UpdateFlareNameUI()
     {
-        // set the flare name in the UI but only the name
+        // set the flare name in the UI but only include the name information
         lensFlareUIText.text = lensFlares[flareNumber].ToString().Split(char.Parse("("))[0];
     }
 
