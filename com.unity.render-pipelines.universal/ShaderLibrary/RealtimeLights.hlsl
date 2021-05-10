@@ -5,6 +5,7 @@
 #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/AmbientOcclusion.hlsl"
 #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Input.hlsl"
 #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Shadows.hlsl"
+#include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Clustering.hlsl"
 
 ///////////////////////////////////////////////////////////////////////////////
 //                             Light Layers                                   /
@@ -38,7 +39,13 @@ struct Light
     #define _USE_WEBGL1_LIGHTS 0
 #endif
 
-#if !_USE_WEBGL1_LIGHTS
+#if USE_CLUSTERED_LIGHTING
+    #define LIGHT_LOOP_BEGIN(lightCount) \
+    ClusteredLightLoop cll = ClusteredLightLoopInit(inputData.normalizedScreenSpaceUV, inputData.positionWS); \
+    while (ClusteredLightLoopNextWord(cll)) { while (ClusteredLightLoopNextLight(cll)) { \
+        uint lightIndex = ClusteredLightLoopGetLightIndex(cll);
+    #define LIGHT_LOOP_END } }
+#elif !_USE_WEBGL1_LIGHTS
     #define LIGHT_LOOP_BEGIN(lightCount) \
     for (uint lightIndex = 0u; lightIndex < lightCount; ++lightIndex) {
 
@@ -107,7 +114,11 @@ Light GetMainLight()
 {
     Light light;
     light.direction = half3(_MainLightPosition.xyz);
+#if USE_CLUSTERED_LIGHTING
+    light.distanceAttenuation = 1.0;
+#else
     light.distanceAttenuation = unity_LightData.z; // unity_LightData.z is 1 when not culled by the culling mask, otherwise 0.
+#endif
     light.shadowAttenuation = 1.0;
     light.color = _MainLightColor.rgb;
 
@@ -251,21 +262,29 @@ int GetPerObjectLightIndex(uint index)
 // index to a perObjectLightIndex
 Light GetAdditionalLight(uint i, float3 positionWS)
 {
-    int perObjectLightIndex = GetPerObjectLightIndex(i);
-    return GetAdditionalPerObjectLight(perObjectLightIndex, positionWS);
+#if USE_CLUSTERED_LIGHTING
+    int lightIndex = i;
+#else
+    int lightIndex = GetPerObjectLightIndex(i);
+#endif
+    return GetAdditionalPerObjectLight(lightIndex, positionWS);
 }
 
 Light GetAdditionalLight(uint i, float3 positionWS, half4 shadowMask)
 {
-    int perObjectLightIndex = GetPerObjectLightIndex(i);
-    Light light = GetAdditionalPerObjectLight(perObjectLightIndex, positionWS);
+#if USE_CLUSTERED_LIGHTING
+    int lightIndex = i;
+#else
+    int lightIndex = GetPerObjectLightIndex(i);
+#endif
+    Light light = GetAdditionalPerObjectLight(lightIndex, positionWS);
 
 #if USE_STRUCTURED_BUFFER_FOR_LIGHT_DATA
-    half4 occlusionProbeChannels = _AdditionalLightsBuffer[perObjectLightIndex].occlusionProbeChannels;
+    half4 occlusionProbeChannels = _AdditionalLightsBuffer[lightIndex].occlusionProbeChannels;
 #else
-    half4 occlusionProbeChannels = _AdditionalLightsOcclusionProbes[perObjectLightIndex];
+    half4 occlusionProbeChannels = _AdditionalLightsOcclusionProbes[lightIndex];
 #endif
-    light.shadowAttenuation = AdditionalLightShadow(perObjectLightIndex, positionWS, light.direction, shadowMask, occlusionProbeChannels);
+    light.shadowAttenuation = AdditionalLightShadow(lightIndex, positionWS, light.direction, shadowMask, occlusionProbeChannels);
 
     return light;
 }
@@ -286,10 +305,15 @@ Light GetAdditionalLight(uint i, InputData inputData, half4 shadowMask, AmbientO
 
 int GetAdditionalLightsCount()
 {
+#if USE_CLUSTERED_LIGHTING
+    // Counting the number of lights in clustered requires traversing the bit list, and is not needed up front.
+    return 0;
+#else
     // TODO: we need to expose in SRP api an ability for the pipeline cap the amount of lights
     // in the culling. This way we could do the loop branch with an uniform
     // This would be helpful to support baking exceeding lights in SH as well
     return int(min(_AdditionalLightsCount.x, unity_LightData.y));
+#endif
 }
 
 half4 CalculateShadowMask(InputData inputData)
