@@ -5,11 +5,8 @@ using UnityEngine.UI;
 using UnityEngine.InputSystem;
 #endif
 
-
-    /// <summary>
-    /// Script that allows easy navigation of provided lens flare assets and ability to add custom lens flare assets for development
-    /// </summary>
-    public class LensFlareSamplesInputAndControl : MonoBehaviour
+// Script that allows easy navigation of provided lens flare assets and ability to add custom lens flare assets for development
+public class LensFlareSamplesInputAndControl : MonoBehaviour
 {
     [Header("References")]
     public GameObject cameraGameObject;
