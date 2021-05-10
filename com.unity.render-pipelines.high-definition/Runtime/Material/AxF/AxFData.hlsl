@@ -679,7 +679,7 @@ void GetSurfaceAndBuiltinData(FragInputs input, float3 V, inout PositionInputs p
 
     float3 clearcoatNormalTS = AXF_SAMPLE_SMP_TEXTURE2D_NORMAL_AS_GRAD(_ClearcoatNormalMap, sampler_ClearcoatNormalMap, uvMapping);
 
-#if SHADEROPTIONS_SURFACE_GRADIENT_DECAL_NORMAL == 1 && HAVE_DECALS
+#if SHADEROPTIONS_SURFACE_GRADIENT_DECAL_NORMAL != 0 && defined(SURFACE_GRADIENT) && HAVE_DECALS
     if (_EnableDecals)
     {
         DecalSurfaceData decalSurfaceData = GetDecalSurfaceData(posInput, input, alpha);
@@ -690,7 +690,7 @@ void GetSurfaceAndBuiltinData(FragInputs input, float3 V, inout PositionInputs p
     GetNormalWS(input, normalTS, surfaceData.normalWS, doubleSidedConstants);
     GetNormalWS(input, clearcoatNormalTS, surfaceData.clearcoatNormalWS, doubleSidedConstants);
 
-#if SHADEROPTIONS_SURFACE_GRADIENT_DECAL_NORMAL == 0 && HAVE_DECALS
+#if SHADEROPTIONS_SURFACE_GRADIENT_DECAL_NORMAL == 0 || !defined(SURFACE_GRADIENT) && HAVE_DECALS
     if (_EnableDecals)
     {
         // Both uses and modifies 'surfaceData.normalWS'.

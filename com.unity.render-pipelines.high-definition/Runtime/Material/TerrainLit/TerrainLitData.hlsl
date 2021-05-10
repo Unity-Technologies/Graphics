@@ -213,7 +213,7 @@ void GetSurfaceAndBuiltinData(inout FragInputs input, float3 V, inout PositionIn
     surfaceData.specularOcclusion = 1.0;
     surfaceData.normalWS = 0;
 
-#if SHADEROPTIONS_SURFACE_GRADIENT_DECAL_NORMAL == 1
+#if SHADEROPTIONS_SURFACE_GRADIENT_DECAL_NORMAL
 
 #if !defined(ENABLE_TERRAIN_PERPIXEL_NORMAL) || !defined(TERRAIN_PERPIXEL_NORMAL_OVERRIDE)
     float3 normalTS = ConvertToNormalTS(terrainLitSurfaceData.normalData, input.tangentToWorld[0], input.tangentToWorld[1]);
@@ -239,7 +239,7 @@ void GetSurfaceAndBuiltinData(inout FragInputs input, float3 V, inout PositionIn
     }
 #endif
 
-#else // SHADEROPTIONS_SURFACE_GRADIENT_DECAL_NORMAL == 0
+#else // SHADEROPTIONS_SURFACE_GRADIENT_DECAL_NORMAL
 
 #if !defined(ENABLE_TERRAIN_PERPIXEL_NORMAL) || !defined(TERRAIN_PERPIXEL_NORMAL_OVERRIDE)
     float3 normalTS = ConvertToNormalTS(terrainLitSurfaceData.normalData, input.tangentToWorld[0], input.tangentToWorld[1]);
@@ -256,7 +256,7 @@ void GetSurfaceAndBuiltinData(inout FragInputs input, float3 V, inout PositionIn
     }
 #endif
 
-#endif
+#endif // SHADEROPTIONS_SURFACE_GRADIENT_DECAL_NORMAL
 
     float3 bentNormalWS = surfaceData.normalWS;
 

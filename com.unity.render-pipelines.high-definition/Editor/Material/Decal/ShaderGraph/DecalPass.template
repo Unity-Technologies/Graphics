@@ -143,13 +143,13 @@ Pass
                 $SurfaceDescription.NormalTS:   float2 deriv = -surfaceDescription.NormalTS.xy * rsqrt(max(1 - Sq(surfaceDescription.NormalTS.x) - Sq(surfaceDescription.NormalTS.y), Sq(FLT_EPS)));
                 #if (SHADERPASS == SHADERPASS_DBUFFER_PROJECTOR) || (SHADERPASS == SHADERPASS_FORWARD_EMISSIVE_PROJECTOR)
                     $SurfaceDescription.NormalTS:   float3x3 tangentToWorld = transpose((float3x3)normalToWorld);
-                #elif (SHADERPASS == SHADERPASS_DBUFFER_MESH) || (SHADERPASS == SHADERPASS_FORWARD_PREVIEW) || (SHADERPASS == SHADERPASS_FORWARD_EMISSIVE_MESH)
-                    $SurfaceDescription.NormalTS:   float3x3 tangentToWorld = input.tangentToWorld;
+                #else
+                    $SurfaceDescription.NormalTS:   float3x3 tangentToWorld = fragInputs.tangentToWorld;
                 #endif
 
                 $SurfaceDescription.NormalTS:       surfaceData.normalWS.xyz = SurfaceGradientFromTBN(deriv, tangentToWorld[0], tangentToWorld[1]);
             #else
-                #if (SHADERPASS == SHADERPASS_DBUFFER_PROJECTOR) 
+                #if (SHADERPASS == SHADERPASS_DBUFFER_PROJECTOR)
                     $SurfaceDescription.NormalTS:   surfaceData.normalWS.xyz = mul((float3x3)normalToWorld, surfaceDescription.NormalTS);
                 #elif (SHADERPASS == SHADERPASS_DBUFFER_MESH) || (SHADERPASS == SHADERPASS_FORWARD_PREVIEW)
                     // We need to normalize as we use mikkt tangent space and this is expected (tangent space is not normalize)
