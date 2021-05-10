@@ -630,7 +630,7 @@ MonoBehaviour:
     m_PostInfinity: 2
     m_RotationOrder: 4
   useOcclusion: 1
-  occlusionRadius: 230.7
+  occlusionRadius: 90
   sampleCount: 32
   occlusionOffset: 0
   scale: 1
