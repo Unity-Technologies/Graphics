@@ -1,6 +1,6 @@
 namespace UnityEngine.Rendering.Universal
 {
-    public enum TileSize
+    internal enum TileSize
     {
         _8 = 8,
         _16 = 16,
