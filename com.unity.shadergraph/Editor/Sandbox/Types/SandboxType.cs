@@ -30,29 +30,6 @@ using UnityEngine;
 
 
 [Serializable]
-public abstract class SandboxTypeDefinition : JsonObject
-{
-    public abstract string GetTypeName();
-    public abstract SandboxType.Flags GetTypeFlags();
-    public abstract bool ValueEquals(SandboxTypeDefinition other);
-
-    public virtual int VectorDimension => 0;
-    public virtual int MatrixRows => 0;
-    public virtual int MatrixColumns => 0;
-
-    internal virtual void AddHLSLVariableDeclarationString(ShaderStringBuilder sb, string id)
-    {
-        sb.Add(GetTypeName(), " ", id);
-    }
-
-    internal virtual void AddHLSLTypeDeclarationString(ShaderStringBuilder sb)
-    {
-        // no declaration by default
-    }
-}
-
-
-[Serializable]
 public sealed class SandboxType
 {
     [SerializeField]
@@ -72,7 +49,8 @@ public sealed class SandboxType
         Texture = 32,
         SamplerState = 64,
         BareResource = 128,                 // raw resource, not wrapped in Unity struct (Texture2D, SamplerState, cbuffer etc.)
-        HasHLSLDeclaration = 256,           // has an HLSL Declaration
+        Function = 256,
+        HasHLSLDeclaration = 512,           // has an HLSL Declaration
 
         VectorOrScalar = Scalar | Vector,
     }
@@ -85,16 +63,17 @@ public sealed class SandboxType
     internal SandboxTypeDefinition Definition => definition.value;
     internal T GetDefinition<T>() where T : SandboxTypeDefinition { return definition.value as T; }
 
-    public bool IsPlaceholder =>    (flags & Flags.Placeholder) != 0;
-    public bool IsScalar =>         (flags & Flags.Scalar) != 0;
-    public bool IsVector =>         (flags & Flags.Vector) != 0;
-    public bool IsMatrix =>         (flags & Flags.Matrix) != 0;
-    public bool IsStruct =>         (flags & Flags.Struct) != 0;
-    public bool IsTexture =>        (flags & Flags.Texture) != 0;
-    public bool IsSamplerState =>   (flags & Flags.SamplerState) != 0;
-    public bool IsBareResource =>   (flags & Flags.BareResource) != 0;
-    public bool IsVectorOrScalar => (flags & Flags.VectorOrScalar) != 0;
-    public bool HasHLSLDeclaration => (flags & Flags.HasHLSLDeclaration) != 0;
+    public bool IsPlaceholder =>        (flags & Flags.Placeholder) != 0;
+    public bool IsScalar =>             (flags & Flags.Scalar) != 0;
+    public bool IsVector =>             (flags & Flags.Vector) != 0;
+    public bool IsMatrix =>             (flags & Flags.Matrix) != 0;
+    public bool IsStruct =>             (flags & Flags.Struct) != 0;
+    public bool IsTexture =>            (flags & Flags.Texture) != 0;
+    public bool IsSamplerState =>       (flags & Flags.SamplerState) != 0;
+    public bool IsBareResource =>       (flags & Flags.BareResource) != 0;
+    public bool IsVectorOrScalar =>     (flags & Flags.VectorOrScalar) != 0;
+    public bool IsFunction =>           (flags & Flags.Function) != 0;
+    public bool HasHLSLDeclaration =>   (flags & Flags.HasHLSLDeclaration) != 0;
 
     // returns the vector dimension (1, 2, 3 or 4) for vector types, 1 for scalar types, and 0 for all other types
     public int VectorDimension
