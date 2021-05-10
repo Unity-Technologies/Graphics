@@ -20,7 +20,7 @@ namespace UnityEditor.VFX
                 get
                 {
                     if (Selection.activeGameObject && Selection.activeGameObject.TryGetComponent<VisualEffect>(out m_Effect))
-                        return visible;
+                        return VFXEventTesterWindow.visible;
                     return false;
                 }
             }
