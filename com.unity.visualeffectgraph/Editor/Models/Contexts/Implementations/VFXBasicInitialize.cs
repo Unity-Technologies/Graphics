@@ -85,7 +85,7 @@ namespace UnityEditor.VFX
             var data = GetData() as VFXDataParticle;
             if (data != null && data.boundsSettingMode == BoundsSettingMode.Recorded)
             {
-                if (VFXViewWindow.currentWindow.graphView.attachedComponent == null ||
+                if (VFXViewWindow.currentWindow?.graphView?.attachedComponent == null ||
                     !BoardPreferenceHelper.IsVisible(BoardPreferenceHelper.Board.componentBoard, false))
                 {
                     manager.RegisterError("NeedsRecording", VFXErrorType.Warning,
