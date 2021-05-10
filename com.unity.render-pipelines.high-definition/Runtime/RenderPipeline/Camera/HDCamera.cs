@@ -859,10 +859,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 Vector2Int scaledSize = DynamicResolutionHandler.instance.GetScaledSize(new Vector2Int(actualWidth, actualHeight));
                 actualWidth = scaledSize.x;
                 actualHeight = scaledSize.y;
-                if (IsDLSSEnabled())
-                {
-                    globalMipBias += (float)Math.Log((double)actualWidth / (double)nonScaledViewport.x, 2.0);
-                }
+                globalMipBias += DynamicResolutionHandler.instance.CalculateMipBias(scaledSize, nonScaledViewport, IsDLSSEnabled());
             }
 
             var screenWidth = actualWidth;

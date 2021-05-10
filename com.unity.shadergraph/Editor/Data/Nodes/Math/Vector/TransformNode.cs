@@ -40,6 +40,8 @@ namespace UnityEditor.ShaderGraph
     [Title("Math", "Vector", "Transform")]
     class TransformNode : AbstractMaterialNode, IGeneratesBodyCode, IMayRequireTangent, IMayRequireBitangent, IMayRequireNormal, IMayRequireTransform
     {
+        public override int latestVersion => 1;
+
         private const int InputSlotId = 0;
         private const int OutputSlotId = 1;
         private const string kInputSlotName = "In";
@@ -190,7 +192,9 @@ namespace UnityEditor.ShaderGraph
                 }
                 else if (conversion.to == CoordinateSpace.Object)
                 {
-                    transformString = string.Format(conversionType == ConversionType.Direction ? "TransformWorldToObjectDir(mul(UNITY_MATRIX_I_V, $precision4({0}, 1) ).xyz)" : "TransformWorldToObject(mul(UNITY_MATRIX_I_V, $precision4({0}, 1) ).xyz)", inputValue);
+                    transformString = string.Format(conversionType == ConversionType.Direction ?
+                        "TransformWorldToObjectDir(mul((float3x3)UNITY_MATRIX_I_V, {0}))" :
+                        "TransformWorldToObject(mul(UNITY_MATRIX_I_V, $precision4({0}, 1) ).xyz)", inputValue);
                 }
                 else if (conversion.to == CoordinateSpace.Tangent)
                 {
@@ -215,7 +219,14 @@ namespace UnityEditor.ShaderGraph
                 }
                 else if (conversion.to == CoordinateSpace.Object)
                 {
-                    transformString = string.Format(conversionType == ConversionType.Direction ? "TransformWorldToObjectDir(GetCameraRelativePositionWS({0}))" : "TransformWorldToObject(GetCameraRelativePositionWS({0}))", inputValue);
+                    if (m_SGVersion == 0)
+                    {
+                        transformString = string.Format(conversionType == ConversionType.Direction ? "TransformWorldToObjectDir(GetCameraRelativePositionWS({0}))" : "TransformWorldToObject(GetCameraRelativePositionWS({0}))", inputValue);
+                    }
+                    else
+                    {
+                        transformString = string.Format(conversionType == ConversionType.Direction ? "TransformWorldToObjectDir({0})" : "TransformWorldToObject(GetCameraRelativePositionWS({0}))", inputValue);
+                    }
                 }
                 else if (conversion.to == CoordinateSpace.Tangent)
                 {
@@ -225,7 +236,14 @@ namespace UnityEditor.ShaderGraph
                 }
                 else if (conversion.to == CoordinateSpace.View)
                 {
-                    transformString = string.Format(conversionType == ConversionType.Direction ? "TransformWorldToViewDir(GetCameraRelativePositionWS({0}))" : "TransformWorldToView(GetCameraRelativePositionWS({0}))", inputValue);
+                    if (m_SGVersion == 0)
+                    {
+                        transformString = string.Format(conversionType == ConversionType.Direction ? "TransformWorldToViewDir(GetCameraRelativePositionWS({0}))" : "TransformWorldToView(GetCameraRelativePositionWS({0}))", inputValue);
+                    }
+                    else
+                    {
+                        transformString = string.Format(conversionType == ConversionType.Direction ? "TransformWorldToViewDir({0})" : "TransformWorldToView(GetCameraRelativePositionWS({0}))", inputValue);
+                    }
                 }
                 else if (conversion.to == CoordinateSpace.AbsoluteWorld)
                 {
