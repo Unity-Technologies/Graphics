@@ -412,7 +412,6 @@ namespace UnityEditor.ShaderGraph.Drawing
                 if (sourceItem is SGBlackboardCategory blackboardCategory)
                 {
                     SetDragIndicatorVisible(false);
-                    return;
                 }
             }
 

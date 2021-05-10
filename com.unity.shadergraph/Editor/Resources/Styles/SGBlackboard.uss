@@ -96,6 +96,7 @@
 
 #SGBlackboard.scrollable > .mainContainer > #content > #scrollBoundaryTop
 {
+    position: relative;
     align-content: flex-start;
     opacity: 0.1;
     min-height: 15;
@@ -103,11 +104,11 @@
     background-color: lightgrey;
     border-bottom-right-radius: 15px;
     border-bottom-left-radius: 15px;
-    padding-bottom: 15px;
 }
 
 #SGBlackboard.scrollable > .mainContainer > #content > #scrollBoundaryBottom
 {
+    position: relative;
     align-content: flex-end;
     min-height: 15;
     opacity: 0.1;
@@ -115,7 +116,6 @@
     background-color: lightgrey;
     border-top-right-radius: 15px;
     border-top-left-radius: 15px;
-    padding-top: 15px;
 }
 
 #SGBlackboard > .mainContainer > #content > ScrollView {
@@ -198,7 +198,7 @@
 }
 
 .blackboardCategory {
-    padding: 1px;
+    padding: 2px;
     border-color: dimgray;
     border-width: 0.5px;
     border-radius: 3px;

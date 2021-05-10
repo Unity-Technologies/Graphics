@@ -88,7 +88,7 @@ namespace UnityEditor.ShaderGraph.Drawing
         bool m_ScrollToTop = false;
         bool m_ScrollToBottom = false;
         bool m_EditPathCancelled = false;
-        bool m_IsFieldBeingDragged = false;
+        bool m_IsUserDraggingItems = false;
         int m_InsertIndex = -1;
 
         const int k_DraggedPropertyScrollSpeed = 6;
@@ -193,17 +193,20 @@ namespace UnityEditor.ShaderGraph.Drawing
 
         public void OnDragEnterEvent(DragEnterEvent evt)
         {
-            if (!m_IsFieldBeingDragged && scrollableHeight > 0)
+            if (!m_IsUserDraggingItems && scrollableHeight > 0)
             {
                 // Interferes with scrolling functionality of properties with the bottom scroll boundary
                 m_BottomResizer.style.visibility = Visibility.Hidden;
 
-                m_IsFieldBeingDragged = true;
+                m_IsUserDraggingItems = true;
                 var contentElement = m_MainContainer.Q(name: "content");
                 scrollViewIndex = contentElement.IndexOf(m_ScrollView);
                 contentElement.Insert(scrollViewIndex, m_ScrollBoundaryTop);
                 scrollViewIndex = contentElement.IndexOf(m_ScrollView);
                 contentElement.Insert(scrollViewIndex + 1, m_ScrollBoundaryBottom);
+
+                // If there are any categories in the selection, show drag indicator, otherwise hide
+                SetCategoryDragIndicatorVisible(selection.OfType<SGBlackboardCategory>().Any());
             }
         }
 
@@ -216,7 +219,7 @@ namespace UnityEditor.ShaderGraph.Drawing
         void HideScrollBoundaryRegions()
         {
             m_BottomResizer.style.visibility = Visibility.Visible;
-            m_IsFieldBeingDragged = false;
+            m_IsUserDraggingItems = false;
             m_ScrollBoundaryTop.RemoveFromHierarchy();
             m_ScrollBoundaryBottom.RemoveFromHierarchy();
         }
@@ -264,12 +267,6 @@ namespace UnityEditor.ShaderGraph.Drawing
                 return;
             }
 
-            if (!selection.OfType<SGBlackboardCategory>().Any())
-            {
-                SetCategoryDragIndicatorVisible(false);
-                return;
-            }
-
             foreach (ISelectable selectedElement in selection)
             {
                 var sourceItem = selectedElement as VisualElement;
@@ -280,7 +277,6 @@ namespace UnityEditor.ShaderGraph.Drawing
                     return;
                 }
             }
-            SetCategoryDragIndicatorVisible(true);
 
             Vector2 localPosition = evt.localMousePosition;
             m_InsertIndex = InsertionIndex(localPosition);
@@ -293,7 +289,6 @@ namespace UnityEditor.ShaderGraph.Drawing
                     if (childCount > 0)
                     {
                         VisualElement lastChild = this[childCount - 1];
-
                         indicatorY = lastChild.ChangeCoordinatesTo(this, new Vector2(0, lastChild.layout.height + lastChild.resolvedStyle.marginBottom)).y;
                     }
                     else
@@ -307,7 +302,6 @@ namespace UnityEditor.ShaderGraph.Drawing
                     indicatorY = childAtInsertIndex.ChangeCoordinatesTo(this, new Vector2(0, -childAtInsertIndex.resolvedStyle.marginTop)).y;
                 }
 
-                SetCategoryDragIndicatorVisible(true);
                 m_DragIndicator.style.top =  indicatorY - m_DragIndicator.resolvedStyle.height * 0.5f;
                 DragAndDrop.visualMode = DragAndDropVisualMode.Move;
             }
@@ -400,8 +394,9 @@ namespace UnityEditor.ShaderGraph.Drawing
 
         void ScrollRegionTopEnter(MouseEnterEvent mouseEnterEvent)
         {
-            if (m_IsFieldBeingDragged)
+            if (m_IsUserDraggingItems)
             {
+                SetCategoryDragIndicatorVisible(false);
                 m_ScrollToTop = true;
                 m_ScrollToBottom = false;
             }
@@ -409,14 +404,19 @@ namespace UnityEditor.ShaderGraph.Drawing
 
         void ScrollRegionTopLeave(MouseLeaveEvent mouseLeaveEvent)
         {
-            if (m_IsFieldBeingDragged)
+            if (m_IsUserDraggingItems)
+            {
                 m_ScrollToTop = false;
+                // If there are any categories in the selection, show drag indicator, otherwise hide
+                SetCategoryDragIndicatorVisible(selection.OfType<SGBlackboardCategory>().Any());
+            }
         }
 
         void ScrollRegionBottomEnter(MouseEnterEvent mouseEnterEvent)
         {
-            if (m_IsFieldBeingDragged)
+            if (m_IsUserDraggingItems)
             {
+                SetCategoryDragIndicatorVisible(false);
                 m_ScrollToBottom = true;
                 m_ScrollToTop = false;
             }
@@ -424,8 +424,12 @@ namespace UnityEditor.ShaderGraph.Drawing
 
         void ScrollRegionBottomLeave(MouseLeaveEvent mouseLeaveEvent)
         {
-            if (m_IsFieldBeingDragged)
+            if (m_IsUserDraggingItems)
+            {
                 m_ScrollToBottom = false;
+                // If there are any categories in the selection, show drag indicator, otherwise hide
+                SetCategoryDragIndicatorVisible(selection.OfType<SGBlackboardCategory>().Any());
+            }
         }
 
         void OnFieldDragUpdate(DragUpdatedEvent dragUpdatedEvent)
