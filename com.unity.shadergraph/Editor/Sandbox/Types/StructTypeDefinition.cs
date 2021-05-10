@@ -13,6 +13,33 @@ public class StructTypeDefinition : SandboxTypeDefinition
     [SerializeField]
     List<Member> members;
 
+    public struct Builder
+    {
+        string name;
+        List<Member> members;
+
+        public Builder(string name)
+        {
+            this.name = name;
+            this.members = null;
+        }
+
+        public void AddMember(SandboxType type, string name)
+        {
+            if (members == null)
+                members = new List<Member>();
+
+            // TODO: check for name collision..
+
+            members.Add(new Member(type, name));
+        }
+
+        public StructTypeDefinition Build()
+        {
+            return new StructTypeDefinition(name, members);
+        }
+    }
+
     internal StructTypeDefinition(string name, List<Member> members)
     {
         this.name = name;
@@ -21,7 +48,7 @@ public class StructTypeDefinition : SandboxTypeDefinition
 
     public override SandboxType.Flags GetTypeFlags()
     {
-        return SandboxType.Flags.Struct;
+        return SandboxType.Flags.Struct | SandboxType.Flags.HasHLSLDeclaration;
     }
 
     public override string GetTypeName()
@@ -51,7 +78,7 @@ public class StructTypeDefinition : SandboxTypeDefinition
         return true;
     }
 
-    internal override bool AddHLSLTypeDeclarationString(ShaderStringBuilder sb)
+    internal override void AddHLSLTypeDeclarationString(ShaderStringBuilder sb)
     {
         sb.Add("struct ");
         sb.AddLine(name);
@@ -61,8 +88,7 @@ public class StructTypeDefinition : SandboxTypeDefinition
             m.Type.AddHLSLVariableDeclarationString(sb, m.Name);
             sb.AddLine(";");
         }
-        sb.Add("}");
-        return true;
+        sb.Add("};");       // remember stucts must have a semicolon after their declaration in HLSL!  ;)
     }
 
     internal override void AddHLSLVariableDeclarationString(ShaderStringBuilder sb, string id)

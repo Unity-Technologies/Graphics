@@ -36,15 +36,15 @@ namespace UnityEditor.ShaderGraph
             func.AddLine("$precision freq = pow(2.0, $precision(0));");
             func.AddLine("$precision amp = pow(0.5, $precision(3 - 0));");
             func.AddLine("$precision octave;");
-            func.CallFunction(valueNoise, "UV.xy * (Scale / freq)", "octave");
+            func.Call(valueNoise, "UV.xy * (Scale / freq)", "octave");
             func.AddLine("Out += octave * amp;");
             func.AddLine("freq = pow(2.0, $precision(1));");
             func.AddLine("amp = pow(0.5, $precision(3 - 1));");
-            func.CallFunction(valueNoise, "UV.xy * (Scale / freq)", "octave");
+            func.Call(valueNoise, "UV.xy * (Scale / freq)", "octave");
             func.AddLine("Out += octave * amp;");
             func.AddLine("freq = pow(2.0, $precision(2));");
             func.AddLine("amp = pow(0.5, $precision(3 - 2));");
-            func.CallFunction(valueNoise, "UV.xy * (Scale / freq)", "octave");
+            func.Call(valueNoise, "UV.xy * (Scale / freq)", "octave");
             func.AddLine("Out += octave * amp;");
 
             return func.Build();
@@ -69,17 +69,17 @@ namespace UnityEditor.ShaderGraph
 
             var randFunc = BuildRandomValue();
             func.AddLine("$precision r0, r1, r2, r3;");
-            func.CallFunction(randFunc, "c0", "r0");
-            func.CallFunction(randFunc, "c1", "r1");
-            func.CallFunction(randFunc, "c2", "r2");
-            func.CallFunction(randFunc, "c3", "r3");
+            func.Call(randFunc, "c0", "r0");
+            func.Call(randFunc, "c1", "r1");
+            func.Call(randFunc, "c2", "r2");
+            func.Call(randFunc, "c3", "r3");
 
             var interpolateFunc = BuildInterpolate();
 
             func.AddLine("$precision bottomOfGrid, topOfGrid;");
-            func.CallFunction(interpolateFunc, "r0", "r1", "f.x", "bottomOfGrid");
-            func.CallFunction(interpolateFunc, "r2", "r3", "f.x", "topOfGrid");
-            func.CallFunction(interpolateFunc, "bottomOfGrid", "topOfGrid", "f.y", "Out");
+            func.Call(interpolateFunc, "r0", "r1", "f.x", "bottomOfGrid");
+            func.Call(interpolateFunc, "r2", "r3", "f.x", "topOfGrid");
+            func.Call(interpolateFunc, "bottomOfGrid", "topOfGrid", "f.y", "Out");
 
             return func.Build();
         }

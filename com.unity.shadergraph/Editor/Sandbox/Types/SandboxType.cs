@@ -45,10 +45,9 @@ public abstract class SandboxTypeDefinition : JsonObject
         sb.Add(GetTypeName(), " ", id);
     }
 
-    internal virtual bool AddHLSLTypeDeclarationString(ShaderStringBuilder sb)
+    internal virtual void AddHLSLTypeDeclarationString(ShaderStringBuilder sb)
     {
         // no declaration by default
-        return false;
     }
 }
 
@@ -73,6 +72,7 @@ public sealed class SandboxType
         Texture = 32,
         SamplerState = 64,
         BareResource = 128,                 // raw resource, not wrapped in Unity struct (Texture2D, SamplerState, cbuffer etc.)
+        HasHLSLDeclaration = 256,           // has an HLSL Declaration
 
         VectorOrScalar = Scalar | Vector,
     }
@@ -94,6 +94,7 @@ public sealed class SandboxType
     public bool IsSamplerState =>   (flags & Flags.SamplerState) != 0;
     public bool IsBareResource =>   (flags & Flags.BareResource) != 0;
     public bool IsVectorOrScalar => (flags & Flags.VectorOrScalar) != 0;
+    public bool HasHLSLDeclaration => (flags & Flags.HasHLSLDeclaration) != 0;
 
     // returns the vector dimension (1, 2, 3 or 4) for vector types, 1 for scalar types, and 0 for all other types
     public int VectorDimension
@@ -195,10 +196,9 @@ public sealed class SandboxType
             sb.Add(name, " ", id);
     }
 
-    internal bool AddHLSLTypeDeclarationString(ShaderStringBuilder sb)
+    internal void AddHLSLTypeDeclarationString(ShaderStringBuilder sb)
     {
-        if (definition.value != null)
-            return definition.value.AddHLSLTypeDeclarationString(sb);
-        return false;
+        if (HasHLSLDeclaration && (definition.value != null))
+            definition.value.AddHLSLTypeDeclarationString(sb);
     }
 }

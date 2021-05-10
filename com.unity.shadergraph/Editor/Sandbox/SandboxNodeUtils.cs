@@ -50,6 +50,16 @@ public static class SandboxNodeUtils
             }
         }
 
+        // check parameter types -- if any are not built in, provide them
+        foreach (var p in function.Parameters)
+        {
+            if (p.Type.HasHLSLDeclaration)
+            {
+                registry.ProvideFunction(p.Type.Name, sb =>
+                    p.Type.AddHLSLTypeDeclarationString(sb));
+            }
+        }
+
         // then provide the main function last
         registry.ProvideFunction(function.Name, sb =>
         {

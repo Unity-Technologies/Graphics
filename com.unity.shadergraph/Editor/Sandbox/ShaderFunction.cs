@@ -144,23 +144,18 @@ public class ShaderFunction : ShaderFunctionSignature
             includePaths.Add(filePath);
         }
 
-        public void CallFunction(ShaderFunctionSignature func, params string[] arguments)
+        public void DeclareVariable(SandboxType type, string name)
         {
-            if (arguments.Length == func.Parameters.Count)
-            {
-                using (var args = CallFunction(func))
-                {
-                    foreach (var p in arguments)
-                        args.Add(p);
-                }
-            }
-            else
-            {
-                Debug.Log("CallFunction: " + func.Name + " argument count mismatch, " + arguments.Length + " arguments provided, but function takes " + func.Parameters.Count + " parameters.");
-            }
+            // TODO: the type should be registered as an internally used type (at least if not built-in...)
+            // to ensure we declare the type
+
+            ShaderStringBuilder temp = new ShaderStringBuilder();
+            type.AddHLSLVariableDeclarationString(temp, name);
+            body.Add(temp.ToString(), ";");
+            body.NewLine();
         }
 
-        public Arguments CallFunction(ShaderFunctionSignature func)
+        public Arguments Call(ShaderFunctionSignature func)
         {
             if (functionsCalled == null)
                 functionsCalled = new List<JsonData<ShaderFunctionSignature>>();
@@ -176,6 +171,22 @@ public class ShaderFunction : ShaderFunctionSignature
             body.Add("(");
 
             return new Arguments(body, func.Parameters.Count);
+        }
+
+        // inline call function variants
+        public void Call(ShaderFunctionSignature func, string p0) { Call(func).Add(p0).Dispose(); }
+        public void Call(ShaderFunctionSignature func, string p0, string p1) { Call(func).Add(p0).Add(p1).Dispose(); }
+        public void Call(ShaderFunctionSignature func, string p0, string p1, string p2) { Call(func).Add(p0).Add(p1).Add(p2).Dispose(); }
+        public void Call(ShaderFunctionSignature func, string p0, string p1, string p2, string p3) { Call(func).Add(p0).Add(p1).Add(p2).Add(p3).Dispose(); }
+        public void Call(ShaderFunctionSignature func, string p0, string p1, string p2, string p3, string p4) { Call(func).Add(p0).Add(p1).Add(p2).Add(p3).Add(p4).Dispose(); }
+        public void Call(ShaderFunctionSignature func, string p0, string p1, string p2, string p3, string p4, params string[] ps)
+        {
+            using (var args = Call(func))
+            {
+                args.Add(p0).Add(p1).Add(p2).Add(p3).Add(p4);
+                foreach (var p in ps)
+                    args.Add(p);
+            }
         }
 
         public ref struct Arguments
@@ -195,18 +206,12 @@ public class ShaderFunction : ShaderFunctionSignature
 
             public Arguments Add(string arg)
             {
-                if (argCount <= paramCount)
-                {
-                    if (!first)
-                        body.Add(", ");
+                if (!first)
+                    body.Add(", ");
 
-                    body.Add(arg);
-                    first = false;
-                }
-                else
-                {
-                    Debug.Log("CallFunction: too many arguments");
-                }
+                body.Add(arg);
+                first = false;
+
                 argCount++;
                 return this;
             }

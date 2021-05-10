@@ -14,7 +14,7 @@ public class ShaderFunctionSignature : JsonObject
     // public API
     public string Name                              { get { return name; } }
 
-    public IReadOnlyList<Parameter> Parameters      { get { return parameters.AsReadOnly() ?? ListUtils.EmptyReadOnlyList<Parameter>(); } }
+    public IReadOnlyList<Parameter> Parameters      { get { return parameters?.AsReadOnly() ?? ListUtils.EmptyReadOnlyList<Parameter>(); } }
 
     [SerializeField]
     protected string name;

@@ -62,6 +62,13 @@ namespace UnityEditor.ShaderGraph
         , IMayRequireViewDirection
         , IMayRequirePosition
         , IMayRequireVertexColor
+        //, IMayRequireTime
+        //, IMayRequireFaceSign
+        //, IMayRequireCameraOpaqueTexture
+        //, IMayRequireDepthTexture
+        //, IMayRequireVertexSkinning
+        //, IMayRequireVertexID
+        // , IOnAssetEnabled
         , ISandboxNodeBuildContext
         where DEF : JsonObject, ISandboxNodeDefinition, new()
     {
