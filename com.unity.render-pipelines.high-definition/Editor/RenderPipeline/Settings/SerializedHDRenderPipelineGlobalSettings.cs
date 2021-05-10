@@ -44,6 +44,7 @@ namespace UnityEditor.Rendering.HighDefinition
         public SerializedProperty shaderVariantLogLevel;
         public SerializedProperty lensAttenuation;
         public SerializedProperty diffusionProfileSettingsList;
+        public SerializedProperty supportProbeVolumes;
 
         internal ReorderableList uiBeforeTransparentCustomPostProcesses;
         internal ReorderableList uiBeforeTAACustomPostProcesses;
@@ -122,6 +123,8 @@ namespace UnityEditor.Rendering.HighDefinition
             shaderVariantLogLevel = serializedObject.Find((HDRenderPipelineGlobalSettings s) => s.shaderVariantLogLevel);
 
             lensAttenuation = serializedObject.FindProperty("lensAttenuationMode");
+            supportProbeVolumes = serializedObject.Find((HDRenderPipelineGlobalSettings s) => s.supportProbeVolumes);
+
             diffusionProfileSettingsList = serializedObject.Find((HDRenderPipelineGlobalSettings s) => s.diffusionProfileSettingsList);
             m_DiffusionProfileUI = new DiffusionProfileSettingsListUI()
             {

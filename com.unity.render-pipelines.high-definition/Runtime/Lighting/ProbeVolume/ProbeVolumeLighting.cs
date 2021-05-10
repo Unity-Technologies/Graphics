@@ -6,6 +6,11 @@ namespace UnityEngine.Rendering.HighDefinition
     {
         private ComputeBuffer m_EmptyIndexBuffer = null;
 
+        internal bool IsAPVSupported()
+        {
+            return m_GlobalSettings.supportProbeVolumes && m_Asset.currentPlatformRenderPipelineSettings.supportProbeVolume;
+        }
+
         private void BindAPVRuntimeResources(CommandBuffer cmdBuffer, HDCamera hdCamera)
         {
             bool needToBindNeutral = true;

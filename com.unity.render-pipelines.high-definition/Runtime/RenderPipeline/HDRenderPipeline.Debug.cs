@@ -157,7 +157,7 @@ namespace UnityEngine.Rendering.HighDefinition
                         cb._DebugRenderingLayersColors[i * 4 + j] = m_CurrentDebugDisplaySettings.data.lightingDebugSettings.debugRenderingLayersColors[i][j];
                 }
 
-                if (asset.currentPlatformRenderPipelineSettings.supportProbeVolume)
+                if (IsAPVSupported())
                 {
                     var subdivColors = ProbeReferenceVolume.instance.subdivisionDebugColors;
                     for (int i = 0; i < 7; ++i)
