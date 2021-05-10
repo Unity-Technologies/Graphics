@@ -134,12 +134,11 @@ VaryingsMeshType VertMesh(AttributesMesh input, float3 worldSpaceOffset
 )
 {
     VaryingsMeshType output;
-    ZERO_INITIALIZE(VaryingsMeshType, output);
 
     UNITY_SETUP_INSTANCE_ID(input);
     UNITY_TRANSFER_INSTANCE_ID(input, output);
 
-#if defined(HAVE_VFX_MODIFICATION)
+#ifdef HAVE_VFX_MODIFICATION
     ZERO_INITIALIZE(AttributesElement, element);
 
     if(!GetMeshAndElementIndex(input, element))
@@ -151,13 +150,8 @@ VaryingsMeshType VertMesh(AttributesMesh input, float3 worldSpaceOffset
     SetupVFXMatrices(element, output);
 #endif
 
-#if defined(HAVE_MESH_MODIFICATION)
-    input = ApplyMeshModification(input,
-     _TimeParameters.xyz
-    // If custom interpolators are in use, we need to write them to the shader graph generated VaryingsMesh
-    #if defined(USE_CUSTOMINTERP_APPLYMESHMOD)
-        , output
-    #endif
+#ifdef HAVE_MESH_MODIFICATION
+    input = ApplyMeshModification(input, _TimeParameters.xyz
     #if defined(HAVE_VFX_MODIFICATION)
         , element
     #endif
@@ -222,6 +216,12 @@ VaryingsMeshType VertMesh(AttributesMesh input, float3 worldSpaceOffset
     output.color = input.color;
 #endif
 
+    // Call is last to deal with 'not completly initialize warning'. We don't want to ZeroInitialize the output struct to be able to detect issue.
+#ifdef USE_CUSTOMINTERP_SUBSTRUCT
+    // If custom interpolators are in use, we need to write them to the shader graph generated VaryingsMesh
+    VertMeshCustomInterpolation(input, output);
+#endif
+
     return output;
 }
 
@@ -281,6 +281,12 @@ VaryingsMeshToPS VertMeshTesselation(VaryingsMeshToDS input)
 #endif
 #ifdef VARYINGS_NEED_COLOR
     output.color = input.color;
+#endif
+
+    // Call is last to deal with 'not completly initialize warning'. We don't want to ZeroInitialize the output struct to be able to detect issue.
+#ifdef USE_CUSTOMINTERP_SUBSTRUCT
+    // If custom interpolators are in use, we need to write them to the shader graph generated VaryingsMesh
+    VertMeshTesselationCustomInterpolation(input, output);
 #endif
 
     return output;

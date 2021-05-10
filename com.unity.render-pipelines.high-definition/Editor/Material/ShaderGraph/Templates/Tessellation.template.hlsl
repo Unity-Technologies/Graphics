@@ -17,7 +17,7 @@ float GetMaxDisplacement()
     return _TessellationMaxDisplacement;
 }
 
-// TODO => must take into account custom interpolator
+// TODO: We should generate this struct like all the other varying struct
 VaryingsMeshToDS InterpolateWithBaryCoordsMeshToDS(VaryingsMeshToDS input0, VaryingsMeshToDS input1, VaryingsMeshToDS input2, float3 baryCoords)
 {
     VaryingsMeshToDS output;
@@ -45,6 +45,9 @@ VaryingsMeshToDS InterpolateWithBaryCoordsMeshToDS(VaryingsMeshToDS input0, Vary
 #ifdef VARYINGS_DS_NEED_COLOR
     TESSELLATION_INTERPOLATE_BARY(color, baryCoords);
 #endif
+
+    // Pass-Through for custom interpolator
+    $splice(CustomInterpolatorInterpolateWithBaryCoordsMeshToDS)
 
     return output;
 }
@@ -100,20 +103,26 @@ VaryingsMeshToDS ApplyTessellationModification(VaryingsMeshToDS input, float3 ti
 {
     // HACK: As there is no specific tessellation stage for now in shadergraph, we reuse the vertex description mechanism.
     // It mean we store TessellationFactor inside vertex description causing extra read on both vertex and hull stage, but unusued paramater are optimize out by the shader compiler, so no impact.
-    VertexDescriptionInputs vertexDescriptionInputs = VaryingsMeshToDSToVertexDescriptionInputs(input);
+    $VertexDescription.TessellationDisplacement: VertexDescriptionInputs vertexDescriptionInputs = VaryingsMeshToDSToVertexDescriptionInputs(input);
     // Override time paramters with used one (This is required to correctly handle motion vector for tessellation animation based on time)
-    $VertexDescriptionInputs.TimeParameters: vertexDescriptionInputs.TimeParameters = timeParameters;
+    $VertexDescription.TessellationDisplacement: $VertexDescriptionInputs.TimeParameters: vertexDescriptionInputs.TimeParameters = timeParameters;
 
-    VertexDescription vertexDescription = VertexDescriptionFunction(vertexDescriptionInputs);
+    $VertexDescription.TessellationDisplacement: VertexDescription vertexDescription = VertexDescriptionFunction(vertexDescriptionInputs);
     $VertexDescription.TessellationDisplacement: input.positionRWS += vertexDescription.TessellationDisplacement;
-
-    // TODO: Check custom interpolator
-    // The purpose of the above ifdef, this allows shader graph custom interpolators to write directly to the varyings structs.
-    // $splice(CustomInterpolatorVertexDefinitionToVaryings)
 
     return input;
 }
 
 #endif
+
+#ifdef USE_CUSTOMINTERP_SUBSTRUCT
+
+// This will evaluate the custom interpolator and update the varying structure
+void VertMeshTesselationCustomInterpolation(VaryingsMeshToDS input, inout VaryingsMeshToPS output)
+{
+    $splice(CustomInterpolatorVertMeshTesselationCustomInterpolation)
+}
+
+#endif // USE_CUSTOMINTERP_SUBSTRUCT
 
 #endif // TESSELLATION_ON

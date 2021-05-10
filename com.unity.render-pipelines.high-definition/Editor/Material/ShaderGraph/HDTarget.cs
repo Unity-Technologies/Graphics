@@ -1539,9 +1539,10 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
     {
         public static readonly CustomInterpSubGen.Collection Common = new CustomInterpSubGen.Collection
         {
-            CustomInterpSubGen.Descriptor.MakeDefine(CustomInterpSubGen.Splice.k_splicePreVertex, "USE_CUSTOMINTERP_APPLYMESHMOD"),
             CustomInterpSubGen.Descriptor.MakeStruct(CustomInterpSubGen.Splice.k_splicePreInclude, "CustomInterpolators", "USE_CUSTOMINTERP_SUBSTRUCT"),
-            CustomInterpSubGen.Descriptor.MakeBlock("CustomInterpolatorVertexDefinitionToVaryings", "varyings", "vertexDescription"),
+            CustomInterpSubGen.Descriptor.MakeBlock("CustomInterpolatorVertMeshCustomInterpolation", "varyings", "vertexDescription"),
+            CustomInterpSubGen.Descriptor.MakeMacroBlock("CustomInterpolatorInterpolateWithBaryCoordsMeshToDS", "TESSELLATION_INTERPOLATE_BARY(", ", baryCoords)"),
+            CustomInterpSubGen.Descriptor.MakeBlock("CustomInterpolatorVertMeshTesselationCustomInterpolation", "output", "input"),
             CustomInterpSubGen.Descriptor.MakeBlock("CustomInterpolatorVaryingsToFragInputs", "output.customInterpolators", "input"),
             CustomInterpSubGen.Descriptor.MakeBlock(CustomInterpSubGen.Splice.k_spliceCopyToSDI, "output", "input.customInterpolators")
         };

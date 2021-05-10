@@ -40,18 +40,7 @@ VertexDescriptionInputs AttributesMeshToVertexDescriptionInputs(AttributesMesh i
     return output;
 }
 
-// This is used for injecting the define below.
-$splice(CustomInterpolatorPreVertex)
-
-AttributesMesh ApplyMeshModification(AttributesMesh input,
-          float3 timeParameters
-#if defined(USE_CUSTOMINTERP_APPLYMESHMOD) // mirrored in VertMesh.hlsl and MotionVectorVertexShaderCommon.hlsl
-    #ifdef TESSELLATION_ON
-        , inout VaryingsMeshToDS varyings
-    #else
-        , inout VaryingsMeshToPS varyings
-    #endif
-#endif
+AttributesMesh ApplyMeshModification(AttributesMesh input, float3 timeParameters
 #if defined(HAVE_VFX_MODIFICATION)
         , AttributesElement element
 #endif
@@ -80,11 +69,27 @@ AttributesMesh ApplyMeshModification(AttributesMesh input,
     $VertexDescription.Normal:   input.normalOS = vertexDescription.Normal;
     $VertexDescription.Tangent:  input.tangentOS.xyz = vertexDescription.Tangent;
 
-    // The purpose of the above ifdef, this allows shader graph custom interpolators to write directly to the varyings structs.
-    $splice(CustomInterpolatorVertexDefinitionToVaryings)
-
     return input;
 }
+
+#ifdef USE_CUSTOMINTERP_SUBSTRUCT
+
+// This will evaluate the custom interpolator and update the varying structure
+void VertMeshCustomInterpolation(AttributesMesh input,
+#ifdef TESSELLATION_ON
+    inout VaryingsMeshToDS varyings
+#else
+    inout VaryingsMeshToPS varyings
+#endif
+)
+{
+    VertexDescriptionInputs vertexDescriptionInputs = AttributesMeshToVertexDescriptionInputs(input);
+    VertexDescription vertexDescription = VertexDescriptionFunction(vertexDescriptionInputs);
+
+    $splice(CustomInterpolatorVertMeshCustomInterpolation)
+}
+
+#endif // USE_CUSTOMINTERP_SUBSTRUCT
 
 FragInputs BuildFragInputs(VaryingsMeshToPS input)
 {
