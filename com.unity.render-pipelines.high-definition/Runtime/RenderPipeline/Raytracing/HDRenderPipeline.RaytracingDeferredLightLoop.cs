@@ -73,7 +73,7 @@ namespace UnityEngine.Rendering.HighDefinition
             public float lodBias;
 
             // Ray marching attributes
-            public bool hybridTracing;
+            public bool mixedTracing;
             public int raySteps;
             public float nearClipPlane;
             public float farClipPlane;
@@ -211,7 +211,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 passData.depthPyramid = builder.ReadTexture(prepassOutput.depthPyramidTexture);
                 passData.normalBuffer = builder.ReadTexture(prepassOutput.normalBuffer);
 
-                if (passData.parameters.hybridTracing)
+                if (passData.parameters.mixedTracing)
                 {
                     passData.ssgbuffer0 = builder.ReadTexture(prepassOutput.gbuffer.mrt[0]);
                     passData.ssgbuffer1 = builder.ReadTexture(prepassOutput.gbuffer.mrt[1]);
@@ -260,9 +260,9 @@ namespace UnityEngine.Rendering.HighDefinition
                         // Inject the global parameters
                         ConstantBuffer.PushGlobal(ctx.cmd, data.parameters.raytracingCB, HDShaderIDs._ShaderVariablesRaytracing);
 
-                        // If hybrid ray tracing was enabled for this pass, we need to try to resolve as many pixels as possible
+                        // If mixed ray tracing was enabled for this pass, we need to try to resolve as many pixels as possible
                         // using the depth buffer ray marching
-                        if (data.parameters.hybridTracing)
+                        if (data.parameters.mixedTracing)
                         {
                             RayMarchGBuffer(ctx.cmd, data, texWidth, texHeight);
                         }

@@ -18,7 +18,7 @@ namespace UnityEngine.Rendering.HighDefinition
         /// <summary>
         /// When selected, both ray marching and ray tracing are used to evaluate ray intersections.
         /// </summary>
-        Hybrid = 1 << 2,
+        Mixed = 1 << 2,
     }
 
     /// <summary>

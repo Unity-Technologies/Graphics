@@ -51,7 +51,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Added a way for fitting a probe volume around either the scene contents or a selection.
 - Added support for mip bias override on texture samplers through the HDAdditionalCameraData component.
 - Added new checkbox to enable mip bias in the Dynamic Resolution HDRP quality settings. This allows dynamic resolution scaling applying a bias on the frame to improve on texture sampling detail.
-- Added an hybrid RayMarching/RayTracing mode for RTReflections and RTGI.
+- Added a mixed RayMarching/RayTracing mode for RTReflections and RTGI.
 
 ### Fixed
 - Fixed Intensity Multiplier not affecting realtime global illumination.

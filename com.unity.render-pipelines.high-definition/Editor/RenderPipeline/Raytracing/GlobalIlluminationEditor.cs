@@ -25,8 +25,8 @@ namespace UnityEditor.Rendering.HighDefinition
         SerializedDataParameter m_ClampValue;
         SerializedDataParameter m_Mode;
 
-        // Hybrid
-        SerializedDataParameter m_RayStepsRT;
+        // Mixed
+        SerializedDataParameter m_MaxMixedRaySteps;
 
         // Performance
         SerializedDataParameter m_FullResolution;
@@ -51,7 +51,7 @@ namespace UnityEditor.Rendering.HighDefinition
 
             // SSGI Parameters
             m_DepthBufferThickness = Unpack(o.Find(x => x.depthBufferThickness));
-            m_RaySteps = Unpack(o.Find(x => x.raySteps));
+            m_RaySteps = Unpack(o.Find(x => x.maxRaySteps));
             m_FilterRadius = Unpack(o.Find(x => x.filterRadius));
 
             // Ray Tracing shared parameters
@@ -61,8 +61,8 @@ namespace UnityEditor.Rendering.HighDefinition
             m_ClampValue = Unpack(o.Find(x => x.clampValue));
             m_Mode = Unpack(o.Find(x => x.mode));
 
-            // Hybrid
-            m_RayStepsRT = Unpack(o.Find(x => x.rayStepsRT));
+            // Mixed
+            m_MaxMixedRaySteps = Unpack(o.Find(x => x.maxMixedRaySteps));
 
             // Performance
             m_FullResolution = Unpack(o.Find(x => x.fullResolution));
@@ -96,7 +96,7 @@ namespace UnityEditor.Rendering.HighDefinition
             }
         }
 
-        void RayTracingPerformanceModeGUI(bool hybrid)
+        void RayTracingPerformanceModeGUI(bool mixed)
         {
             base.OnInspectorGUI(); // Quality Setting
             using (new HDEditorUtils.IndentScope())
@@ -106,8 +106,8 @@ namespace UnityEditor.Rendering.HighDefinition
                 PropertyField(m_ClampValue);
                 PropertyField(m_FullResolution);
                 PropertyField(m_UpscaleRadius);
-                if (hybrid)
-                    PropertyField(m_RayStepsRT);
+                if (mixed)
+                    PropertyField(m_MaxMixedRaySteps);
                 DenoiserGUI();
             }
         }
@@ -185,11 +185,11 @@ namespace UnityEditor.Rendering.HighDefinition
                         if (tracingMode == RayCastingMode.RayTracing)
                             RayTracingQualityModeGUI();
                         else
-                            EditorGUILayout.HelpBox("The current HDRP Asset does not support the hybrid mode which is only available in performance mode.", MessageType.Error, wide: true);
+                            EditorGUILayout.HelpBox("The current HDRP Asset does not support the mixed mode which is only available in performance mode.", MessageType.Error, wide: true);
                     }
                     else
                     {
-                        RayTracingPerformanceModeGUI(tracingMode == RayCastingMode.Hybrid);
+                        RayTracingPerformanceModeGUI(tracingMode == RayCastingMode.Mixed);
                     }
                 }
                 else
@@ -217,7 +217,7 @@ namespace UnityEditor.Rendering.HighDefinition
             settings.Save<float>(m_ClampValue);
             settings.Save<bool>(m_FullResolution);
             settings.Save<int>(m_UpscaleRadius);
-            settings.Save<int>(m_RayStepsRT);
+            settings.Save<int>(m_MaxMixedRaySteps);
             settings.Save<bool>(m_Denoise);
             settings.Save<bool>(m_HalfResolutionDenoiser);
             settings.Save<float>(m_DenoiserRadius);
@@ -237,7 +237,7 @@ namespace UnityEditor.Rendering.HighDefinition
             settings.TryLoad<float>(ref m_ClampValue);
             settings.TryLoad<bool>(ref m_FullResolution);
             settings.TryLoad<int>(ref m_UpscaleRadius);
-            settings.TryLoad<int>(ref m_RayStepsRT);
+            settings.TryLoad<int>(ref m_MaxMixedRaySteps);
             settings.TryLoad<bool>(ref m_Denoise);
             settings.TryLoad<bool>(ref m_HalfResolutionDenoiser);
             settings.TryLoad<float>(ref m_DenoiserRadius);
@@ -255,7 +255,7 @@ namespace UnityEditor.Rendering.HighDefinition
             CopySetting(ref m_ClampValue, settings.lightingQualitySettings.RTGIClampValue[level]);
             CopySetting(ref m_FullResolution, settings.lightingQualitySettings.RTGIFullResolution[level]);
             CopySetting(ref m_UpscaleRadius, settings.lightingQualitySettings.RTGIUpScaleRadius[level]);
-            CopySetting(ref m_RayStepsRT, settings.lightingQualitySettings.RTGIRaySteps[level]);
+            CopySetting(ref m_MaxMixedRaySteps, settings.lightingQualitySettings.RTGIRaySteps[level]);
             CopySetting(ref m_Denoise, settings.lightingQualitySettings.RTGIDenoise[level]);
             CopySetting(ref m_HalfResolutionDenoiser, settings.lightingQualitySettings.RTGIHalfResDenoise[level]);
             CopySetting(ref m_DenoiserRadius, settings.lightingQualitySettings.RTGIDenoiserRadius[level]);

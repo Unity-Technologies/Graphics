@@ -167,7 +167,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 passData.farClipPlane = hdCamera.camera.farClipPlane;
                 passData.fullResolutionSS = true;
                 passData.thickness = giSettings.depthBufferThickness.value;
-                passData.raySteps = giSettings.raySteps;
+                passData.raySteps = giSettings.maxRaySteps;
                 passData.frameIndex = RayTracingFrameIndex(hdCamera, 16);
                 passData.colorPyramidUvScaleAndLimitPrevFrame = HDUtils.ComputeViewportScaleAndLimit(hdCamera.historyRTHandleProperties.previousViewportSize, hdCamera.historyRTHandleProperties.previousRenderTargetSize);
 

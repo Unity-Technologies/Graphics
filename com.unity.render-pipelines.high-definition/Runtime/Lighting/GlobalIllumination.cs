@@ -25,7 +25,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
         /// <summary>
         /// </summary>
-        [Tooltip("Controls the casting technique used to evaluate the effect.")]
+        [Tooltip("Controls the casting technique used to evaluate the effect. Ray marching uses a ray-marched screen-space solution, Ray tracing uses a hardware accelerated world-space solution. Mixed uses first Ray marching, then Ray tracing if it fails to intersect on-screen geometry.")]
         public RayCastingModeParameter tracing = new RayCastingModeParameter(RayCastingMode.RayMarching);
         #endregion
 
@@ -44,20 +44,20 @@ namespace UnityEngine.Rendering.HighDefinition
         /// <summary>
         /// The number of steps that should be used during the ray marching pass.
         /// </summary>
-        public int raySteps
+        public int maxRaySteps
         {
             get
             {
                 if (!UsesQualitySettings())
-                    return m_RaySteps.value;
+                    return m_MaxRaySteps.value;
                 else
                     return GetLightingQualitySettings().SSGIRaySteps[(int)quality.value];
             }
-            set { m_RaySteps.value = value; }
+            set { m_MaxRaySteps.value = value; }
         }
         [SerializeField]
         [Tooltip("Controls the number of steps used for ray marching.")]
-        private ClampedIntParameter m_RaySteps = new ClampedIntParameter(48, 32, 256);
+        private ClampedIntParameter m_MaxRaySteps = new ClampedIntParameter(48, 32, 256);
 
         /// <summary>
         /// Defines the radius for the spatial filter
@@ -256,21 +256,22 @@ namespace UnityEngine.Rendering.HighDefinition
         private BoolParameter m_SecondDenoiserPass = new BoolParameter(true);
 
         /// <summary>
-        /// Controls the number of steps used for the hybrid tracing
+        /// Controls the number of steps used for the mixed tracing
         /// </summary>
-        public int rayStepsRT
+        public int maxMixedRaySteps
         {
             get
             {
                 if (!UsesQualitySettings() || UsesQualityMode())
-                    return m_RayStepsRT.value;
+                    return m_MaxMixedRaySteps.value;
                 else
                     return GetLightingQualitySettings().RTGIRaySteps[(int)quality.value];
             }
-            set { m_RayStepsRT.value = value; }
+            set { m_MaxMixedRaySteps.value = value; }
         }
         [SerializeField]
-        private ClampedIntParameter m_RayStepsRT = new ClampedIntParameter(32, 16, 128);
+        [Tooltip("Controls the number of steps HDRP uses for mixed ray marching.")]
+        private ClampedIntParameter m_MaxMixedRaySteps = new ClampedIntParameter(32, 16, 128);
         #endregion
 
         internal static bool RayTracingActive(GlobalIllumination volume)

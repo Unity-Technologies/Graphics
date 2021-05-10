@@ -32,7 +32,7 @@ namespace UnityEditor.Rendering.HighDefinition
         SerializedDataParameter m_AffectsSmoothSurfaces;
         SerializedDataParameter m_Mode;
 
-        // Hybrid
+        // Mixed
         SerializedDataParameter m_RayMaxIterationsRT;
 
         // Performance
@@ -70,7 +70,7 @@ namespace UnityEditor.Rendering.HighDefinition
             m_AffectsSmoothSurfaces         = Unpack(o.Find(x => x.affectSmoothSurfaces));
             m_Mode                          = Unpack(o.Find(x => x.mode));
 
-            // Hybrid
+            // Mixed
             m_RayMaxIterationsRT            = Unpack(o.Find(x => x.rayMaxIterationsRT));
 
             // Performance
@@ -84,7 +84,7 @@ namespace UnityEditor.Rendering.HighDefinition
         }
 
         static public readonly GUIContent k_Algo = EditorGUIUtility.TrTextContent("Algorithm", "The screen space reflection algorithm used.");
-        static public readonly GUIContent k_TracingText = EditorGUIUtility.TrTextContent("Tracing", "Controls the technique used to compute the reflection.");
+        static public readonly GUIContent k_TracingText = EditorGUIUtility.TrTextContent("Tracing", "Controls the technique used to compute the reflection.Controls the technique used to compute the reflections. Ray marching uses a ray-marched screen-space solution, Ray tracing uses a hardware accelerated world-space solution. Mixed uses first Ray marching, then Ray tracing if it fails to intersect on-screen geometry.");
         static public readonly GUIContent k_ReflectSkyText = EditorGUIUtility.TrTextContent("Reflect Sky", "When enabled, SSR handles sky reflection.");
         static public readonly GUIContent k_LayerMaskText = EditorGUIUtility.TrTextContent("Layer Mask", "Layer mask used to include the objects for ray traced reflections.");
         static public readonly GUIContent k_TextureLodBiasText = EditorGUIUtility.TrTextContent("Texture Lod Bias", "The LOD Bias HDRP applies to textures in the reflection. A higher value increases performance and makes denoising easier, but it might reduce visual fidelity.");
@@ -103,7 +103,7 @@ namespace UnityEditor.Rendering.HighDefinition
         static public readonly GUIContent k_FullResolutionText = EditorGUIUtility.TrTextContent("Full Resolution", "Enables full resolution mode.");
         static public readonly GUIContent k_DenoiseRadiusText = EditorGUIUtility.TrTextContent("Denoiser Radius", "Controls the radius of reflection denoiser.");
         static public readonly GUIContent k_AffectsSmoothSurfacesText = EditorGUIUtility.TrTextContent("Affect Smooth Surfaces", "When enabled, the denoiser affects perfectly smooth surfaces.");
-        static public readonly GUIContent k_MaxHybridRaySteps = EditorGUIUtility.TrTextContent("Max Hybrid Ray Steps", "Sets the maximum number of steps HDRP uses for hybrid ray marching.");
+        static public readonly GUIContent k_MaxMixedRaySteps = EditorGUIUtility.TrTextContent("Max Mixed Ray Steps", "Sets the maximum number of steps HDRP uses for mixed ray marching.");
 
         void RayTracingQualityModeGUI()
         {
@@ -125,7 +125,7 @@ namespace UnityEditor.Rendering.HighDefinition
             }
         }
 
-        void RayTracingPerformanceModeGUI(bool hybrid)
+        void RayTracingPerformanceModeGUI(bool mixed)
         {
             base.OnInspectorGUI();
 
@@ -138,8 +138,8 @@ namespace UnityEditor.Rendering.HighDefinition
                 PropertyField(m_RayLength, k_RayLengthText);
                 PropertyField(m_ClampValue, k_ClampValueText);
                 PropertyField(m_FullResolution, k_FullResolutionText);
-                if (hybrid)
-                    PropertyField(m_RayMaxIterationsRT, k_MaxHybridRaySteps);
+                if (mixed)
+                    PropertyField(m_RayMaxIterationsRT, k_MaxMixedRaySteps);
                 PropertyField(m_Denoise, k_DenoiseText);
                 using (new HDEditorUtils.IndentScope())
                 {
@@ -183,11 +183,11 @@ namespace UnityEditor.Rendering.HighDefinition
                 if (tracingMode == RayCastingMode.RayTracing)
                     RayTracingQualityModeGUI();
                 else
-                    EditorGUILayout.HelpBox("The current HDRP Asset does not support the hybrid mode which is only available in performance mode.", MessageType.Error, wide: true);
+                    EditorGUILayout.HelpBox("The current HDRP Asset does not support the mixed mode which is only available in performance mode.", MessageType.Error, wide: true);
             }
             else
             {
-                RayTracingPerformanceModeGUI(tracingMode == RayCastingMode.Hybrid);
+                RayTracingPerformanceModeGUI(tracingMode == RayCastingMode.Mixed);
             }
         }
 

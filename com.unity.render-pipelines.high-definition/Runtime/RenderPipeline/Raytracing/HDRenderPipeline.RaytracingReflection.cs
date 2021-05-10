@@ -315,7 +315,7 @@ namespace UnityEngine.Rendering.HighDefinition
             deferredParameters.lodBias = settings.textureLodBias.value;
 
             // Ray Marching parameters
-            deferredParameters.hybridTracing = (settings.tracing.value == RayCastingMode.Hybrid && hdCamera.frameSettings.litShaderMode == LitShaderMode.Deferred) && !transparent;
+            deferredParameters.mixedTracing = (settings.tracing.value == RayCastingMode.Mixed && hdCamera.frameSettings.litShaderMode == LitShaderMode.Deferred) && !transparent;
             deferredParameters.raySteps = settings.rayMaxIterationsRT;
             deferredParameters.nearClipPlane = hdCamera.camera.nearClipPlane;
             deferredParameters.farClipPlane = hdCamera.camera.farClipPlane;
