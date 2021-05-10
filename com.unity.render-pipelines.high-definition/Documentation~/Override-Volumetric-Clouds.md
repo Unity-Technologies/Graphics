@@ -118,7 +118,6 @@ When importing these two map textures, disable **sRGB**. For best results, do no
 | **Property**                   | **Description**                                              |
 | ------------------------------ | ------------------------------------------------------------ |
 | **Ambient Light Probe Dimmer** | Controls the influence of light probes on the cloud volume. A lower value suppresses the ambient light and produces darker clouds overall. |
-| **Scattering Direction**       | The direction of light scattering. A value of **0** produces backward scattering and a value of **1** produces forward scattering. |
 | **Scattering Tint**            | The color to tint the clouds.                                |
 | **Powder Effect Intensity**    | Controls the amount of local scattering in the clouds. When clouds have a lot of local details due to erosion, a value of **1** provides a more powdery aspect. |
 | **Multi Scattering**           | Controls the amount of multi-scattering inside the cloud. Higher values make lighting look more diffuse within the cloud. |

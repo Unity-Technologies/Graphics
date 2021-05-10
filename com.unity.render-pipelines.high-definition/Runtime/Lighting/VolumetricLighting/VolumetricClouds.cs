@@ -255,12 +255,6 @@ namespace UnityEngine.Rendering.HighDefinition
         public CloudMapResolutionParameter cloudMapResolution = new CloudMapResolutionParameter(CloudMapResolution.Medium64x64);
 
         /// <summary>
-        /// Controls the direction of the scattering. 0.0 is backward 1.0 is forward.
-        /// </summary>
-        [Tooltip("Controls the direction of the scattering. 0.0 is backward 1.0 is forward.")]
-        public ClampedFloatParameter scatteringDirection = new ClampedFloatParameter(0.5f, 0.0f, 1.0f);
-
-        /// <summary>
         /// Specifies the tint of the cloud scattering color.
         /// </summary>
         [Tooltip("Specifies the tint of the cloud scattering color.")]

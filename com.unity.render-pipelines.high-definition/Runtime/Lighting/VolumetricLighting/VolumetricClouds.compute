@@ -655,7 +655,7 @@ VolumetricRayResult TraceVolumetricRay(CloudRay cloudRay, float offset)
             {
                 const float forwardP = HenyeyGreenstein(cosAngle, FORWARD_ECCENTRICITY * PositivePow(_MultiScattering, o));
                 const float backwardsP = HenyeyGreenstein(cosAngle, -BACKWARD_ECCENTRICITY * PositivePow(_MultiScattering, o));
-                phaseFunction[o] = lerp(backwardsP, forwardP, _ScatteringDirection);
+                phaseFunction[o] = backwardsP + forwardP;
             }
 
             // Initialize the cloud properties structure
@@ -1083,17 +1083,17 @@ void UPSAMPLE_KERNEL(uint3 finalCoord : SV_DispatchThreadID,
     currentClouds.w = saturate(currentClouds.w);
 
 #ifdef LOCAL_VOLUMETRIC_CLOUDS
-    float cloudDepth = IndexToLocalOffsetCoords[closestNeighbor];
+    float cloudDepth = GetCloudDepth_LDS(groupThreadId, IndexToLocalOffsetCoords[closestNeighbor]);
 #else
     float cloudDepth = UNITY_RAW_FAR_CLIP_VALUE;
 #endif
 
 #ifdef PLANAR_REFLECTION_CAMERA
     // Compute the pos input of the cloud position
-    PositionInputs cloudPosInput = GetPositionInput(finalCoord.xy, _FinalScreenSize.zw, GetCloudDepth_LDS(groupThreadId, cloudDepth), _CameraInverseViewProjection_NO, GetWorldToViewMatrix(), 0);
+    PositionInputs cloudPosInput = GetPositionInput(finalCoord.xy, _FinalScreenSize.zw, cloudDepth, _CameraInverseViewProjection_NO, GetWorldToViewMatrix(), 0);
 #else
     // Compute the pos input of the cloud position
-    PositionInputs cloudPosInput = GetPositionInput(finalCoord.xy, _FinalScreenSize.zw, GetCloudDepth_LDS(groupThreadId, cloudDepth), UNITY_MATRIX_I_VP, GetWorldToViewMatrix(), 0);
+    PositionInputs cloudPosInput = GetPositionInput(finalCoord.xy, _FinalScreenSize.zw, cloudDepth, UNITY_MATRIX_I_VP, GetWorldToViewMatrix(), 0);
 #endif
     // Compute the view direction
     float3 viewDir = -normalize(cloudPosInput.positionWS);
