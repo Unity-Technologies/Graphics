@@ -378,6 +378,8 @@ all_package_ci_project_2020.3:
     dependencies:
       -  .yamato/_projectcontext.yml#test_all_project_Win_2020.3
       -  .yamato/_projectcontext.yml#test_all_project_OSX_2020.3
+    triggers:
+      expression: pull_request.target eq "10.x.x/release" AND NOT pull_request.draft
     commands:
       -  npm install upm-ci-utils@stable -g --registry https://artifactory.prd.cds.internal.unity3d.com/artifactory/api/npm/upm-npm
       -  upm-ci package izon -t
