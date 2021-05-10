@@ -1,41 +1,63 @@
 using System;
 using System.Collections.Generic;
 using UnityEngine;
-using UnityEngine.Rendering.Universal;
 
-namespace UnityEditor.Rendering
+namespace UnityEngine.Rendering.Universal
 {
     public class DebugDisplaySettings : IDebugDisplaySettingsQuery
     {
         private readonly HashSet<IDebugDisplaySettingsData> m_Settings = new HashSet<IDebugDisplaySettingsData>();
 
         private static readonly Lazy<DebugDisplaySettings> s_Instance = new Lazy<DebugDisplaySettings>(() => new DebugDisplaySettings());
+
+        /// <summary>
+        /// The singleton instance that contains the current settings of URP Rendering Debugger.
+        /// </summary>
         public static DebugDisplaySettings Instance => s_Instance.Value;
 
-        public DebugMaterialSettings MaterialSettings { get; private set; }
-        public DebugDisplaySettingsRendering RenderingSettings { get; private set; }
-        public DebugDisplaySettingsLighting LightingSettings { get; private set; }
-        public DebugDisplaySettingsValidation ValidationSettings { get; private set; }
+        DebugDisplaySettingsCommon CommonSettings { get; set; }
+
+        /// <summary>
+        /// Material-related Rendering Debugger settings.
+        /// </summary>
+        internal DebugDisplaySettingsMaterial MaterialSettings { get; private set; }
+
+        /// <summary>
+        /// Rendering-related Rendering Debugger settings.
+        /// </summary>
+        internal DebugDisplaySettingsRendering RenderingSettings { get; private set; }
+
+        /// <summary>
+        /// Lighting-related Rendering Debugger settings.
+        /// </summary>
+        internal DebugDisplaySettingsLighting LightingSettings { get; private set; }
 
         #region IDebugDisplaySettingsQuery
+
+        /// <summary>
+        /// Returns true if any of the debug settings are currently active.
+        /// </summary>
         public bool AreAnySettingsActive => MaterialSettings.AreAnySettingsActive ||
         LightingSettings.AreAnySettingsActive ||
-        RenderingSettings.AreAnySettingsActive ||
-        ValidationSettings.AreAnySettingsActive;
+        RenderingSettings.AreAnySettingsActive;
 
         public bool TryGetScreenClearColor(ref Color color)
         {
             return MaterialSettings.TryGetScreenClearColor(ref color) ||
                 RenderingSettings.TryGetScreenClearColor(ref color) ||
-                LightingSettings.TryGetScreenClearColor(ref color) ||
-                ValidationSettings.TryGetScreenClearColor(ref color);
+                LightingSettings.TryGetScreenClearColor(ref color);
         }
 
+        /// <summary>
+        /// Returns true if lighting is active for current state of debug settings.
+        /// </summary>
         public bool IsLightingActive => MaterialSettings.IsLightingActive &&
         RenderingSettings.IsLightingActive &&
-        LightingSettings.IsLightingActive &&
-        ValidationSettings.IsLightingActive;
+        LightingSettings.IsLightingActive;
 
+        /// <summary>
+        /// Returns true if the current state of debug settings allows post-processing.
+        /// </summary>
         public bool IsPostProcessingAllowed
         {
             get
@@ -54,8 +76,7 @@ namespace UnityEditor.Rendering
                         // Only enable post-processing if we aren't using certain debug-views...
                         return MaterialSettings.IsPostProcessingAllowed &&
                             RenderingSettings.IsPostProcessingAllowed &&
-                            LightingSettings.IsPostProcessingAllowed &&
-                            ValidationSettings.IsPostProcessingAllowed;
+                            LightingSettings.IsPostProcessingAllowed;
                     }
 
                     case DebugPostProcessingMode.Enabled:
@@ -67,7 +88,7 @@ namespace UnityEditor.Rendering
                     {
                         throw new ArgumentOutOfRangeException(nameof(debugPostProcessingMode), $"Invalid post-processing state {debugPostProcessingMode}");
                     }
-                } // End of switch.
+                }
             }
         }
         #endregion
@@ -78,22 +99,22 @@ namespace UnityEditor.Rendering
             return newData;
         }
 
-        public DebugDisplaySettings()
+        DebugDisplaySettings()
         {
             Reset();
         }
 
-        public void Reset()
+        internal void Reset()
         {
             m_Settings.Clear();
 
-            MaterialSettings = Add(new DebugMaterialSettings());
-            RenderingSettings = Add(new DebugDisplaySettingsRendering());
+            CommonSettings = Add(new DebugDisplaySettingsCommon());
+            MaterialSettings = Add(new DebugDisplaySettingsMaterial());
             LightingSettings = Add(new DebugDisplaySettingsLighting());
-            ValidationSettings = Add(new DebugDisplaySettingsValidation());
+            RenderingSettings = Add(new DebugDisplaySettingsRendering());
         }
 
-        public void ForEach(Action<IDebugDisplaySettingsData> onExecute)
+        internal void ForEach(Action<IDebugDisplaySettingsData> onExecute)
         {
             foreach (IDebugDisplaySettingsData setting in m_Settings)
             {

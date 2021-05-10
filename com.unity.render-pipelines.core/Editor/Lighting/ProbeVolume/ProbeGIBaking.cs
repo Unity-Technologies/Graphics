@@ -178,7 +178,7 @@ namespace UnityEngine.Experimental.Rendering
             }
         }
 
-        private static ProbeReferenceVolumeAuthoring GetCardinalAuthoringComponent(ProbeReferenceVolumeAuthoring[] refVolAuthList)
+        static ProbeReferenceVolumeAuthoring GetCardinalAuthoringComponent(ProbeReferenceVolumeAuthoring[] refVolAuthList)
         {
             List<ProbeReferenceVolumeAuthoring> enabledVolumes = new List<ProbeReferenceVolumeAuthoring>();
 
@@ -208,20 +208,23 @@ namespace UnityEngine.Experimental.Rendering
                 if (reference.transform.localScale != compare.transform.localScale)
                     return null;
 
-                if (reference.profile != compare.profile)
+                if (!reference.profile.IsEquivalent(compare.profile))
                     return null;
             }
 
             return reference;
         }
 
-        private static void OnBakeStarted()
+        static void OnBakeStarted()
         {
-            FindWorldBounds();
+            if (!ProbeReferenceVolume.instance.isInitialized) return;
 
             var refVolAuthList = GameObject.FindObjectsOfType<ProbeReferenceVolumeAuthoring>();
             if (refVolAuthList.Length == 0)
                 return;
+
+            FindWorldBounds();
+            refVolAuthList = GameObject.FindObjectsOfType<ProbeReferenceVolumeAuthoring>();
 
             m_BakingReferenceVolumeAuthoring = GetCardinalAuthoringComponent(refVolAuthList);
 
@@ -231,12 +234,11 @@ namespace UnityEngine.Experimental.Rendering
                 return;
             }
 
-            FindWorldBounds();
 
             RunPlacement();
         }
 
-        private static void OnAdditionalProbesBakeCompleted()
+        static void OnAdditionalProbesBakeCompleted()
         {
             UnityEditor.Experimental.Lightmapping.additionalBakedProbesCompleted -= OnAdditionalProbesBakeCompleted;
 
@@ -411,7 +413,7 @@ namespace UnityEngine.Experimental.Rendering
             }
         }
 
-        private static void OnLightingDataCleared()
+        static void OnLightingDataCleared()
         {
             Clear();
         }
@@ -439,7 +441,7 @@ namespace UnityEngine.Experimental.Rendering
             return (float)(sum / 2.0);
         }
 
-        private static void DilateInvalidProbes(Vector3[] probePositions,
+        static void DilateInvalidProbes(Vector3[] probePositions,
             List<Brick> bricks, SphericalHarmonicsL2[] sh, float[] validity, ProbeDilationSettings dilationSettings)
         {
             // For each brick
@@ -485,7 +487,7 @@ namespace UnityEngine.Experimental.Rendering
         }
 
         // Given a brick index, find and accumulate probes in nearby bricks
-        private static void CullDilationProbes(int brickIdx, List<Brick> bricks,
+        static void CullDilationProbes(int brickIdx, List<Brick> bricks,
             float[] validity, ProbeDilationSettings dilationSettings, List<DilationProbe> outProbeIndices)
         {
             outProbeIndices.Clear();
@@ -522,7 +524,7 @@ namespace UnityEngine.Experimental.Rendering
         }
 
         // Given a probe index, find nearby probes weighted by inverse distance
-        private static void FindNearProbes(int probeIdx, Vector3[] probePositions,
+        static void FindNearProbes(int probeIdx, Vector3[] probePositions,
             ProbeDilationSettings dilationSettings, List<DilationProbe> culledProbes, List<DilationProbe> outNearProbes, out float invDistSum)
         {
             outNearProbes.Clear();
