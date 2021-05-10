@@ -1,4 +1,4 @@
-namespace UnityEngine
+namespace UnityEngine.Rendering
 {
     /// <summary>
     /// Common code for all Data-Driven Lens Flare used
