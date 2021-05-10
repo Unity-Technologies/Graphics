@@ -997,11 +997,11 @@ namespace UnityEditor.VFX
 
         public override void Sanitize(int version)
         {
-            base.Sanitize(version);
             if (version < 8)
             {
-                boundsSettingMode = BoundsSettingMode.Manual;
+                SetSettingValue("boundsSettingMode", BoundsSettingMode.Manual);
             }
+            base.Sanitize(version);
         }
 
         public override void CopySettings<T>(T dst)
