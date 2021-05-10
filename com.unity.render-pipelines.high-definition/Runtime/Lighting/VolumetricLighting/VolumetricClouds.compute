@@ -41,6 +41,8 @@
 #define MAX_EROSION_DISTANCE 300000.0
 // Value that is used to normalize the noise textures
 #define NOISE_TEXTURE_NORMALIZATION_FACTOR 100000.0f
+// Maximal distance until which the "skybox"
+#define MAX_SKYBOX_VOLUMETRIC_CLOUDS_DISTANCE 200000.0f
 
 // HDRP generic includes
 #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Common.hlsl"
@@ -197,7 +199,7 @@ CloudRay BuildRay(uint2 halfResCoord)
 #ifdef LOCAL_VOLUMETRIC_CLOUDS
     ray.maxRayLength = lerp(_ProjectionParams.z, length(pos), isOccluded);
 #else
-    ray.maxRayLength = 200000.0f;
+    ray.maxRayLength = MAX_SKYBOX_VOLUMETRIC_CLOUDS_DISTANCE;
 #endif
 
     // Compute the absolute position of the pixel from which the ray will start
