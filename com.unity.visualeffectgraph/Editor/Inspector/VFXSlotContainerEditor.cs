@@ -133,6 +133,8 @@ class VFXSlotContainerEditor : Editor
     IGizmoController m_CurrentController;
 
     static VFXSlotContainerEditor s_EffectUi;
+
+    /* TODO : Fix ITransientOverlay
     [Overlay(typeof(SceneView), k_OverlayId, k_DisplayName)]
     class SceneViewVFXSlotContainerOverlay : ITransientOverlay
     {
@@ -148,6 +150,7 @@ class VFXSlotContainerEditor : Editor
             s_EffectUi.SceneViewGUICallback();
         }
     }
+    */
 
     void OnSceneGUI(SceneView sv)
     {

@@ -9,6 +9,7 @@ namespace UnityEditor.VFX
 {
     static class VFXEventTesterWindow
     {
+        /* TODO : Fix ITransientOverlay
         [Overlay(typeof(SceneView), k_OverlayId, k_DisplayName)]
         class SceneViewVFXEventTesterOverlay : ITransientOverlay
         {
@@ -32,6 +33,7 @@ namespace UnityEditor.VFX
                     WindowGUI();
             }
         }
+        */
 
         public static bool visible { get { return s_Visible; } set { SetVisibility(value); } }
 

@@ -560,6 +560,7 @@ namespace UnityEditor.VFX
 
         static VisualEffectEditor s_EffectUi;
 
+        /* TODO : Fix ITransientOverlay
         [Overlay(typeof(SceneView), k_OverlayId, k_DisplayName)]
         class SceneViewVFXSlotContainerOverlay : ITransientOverlay
         {
@@ -576,6 +577,7 @@ namespace UnityEditor.VFX
                 s_EffectUi.SceneViewGUICallback();
             }
         }
+        */
 
         private VFXGraph m_graph;
 
