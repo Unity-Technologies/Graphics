@@ -1,10 +1,13 @@
 using UnityEngine;
+using UnityEngine.Rendering;
 using UnityEngine.Rendering.Universal;
 
 internal class CaptureMotionVectorsRendererFeature : ScriptableRendererFeature
 {
     public Shader m_Shader;
     public float m_Intensity;
+
+    Material m_Material;
 
     CaptureMotionVectorsPass m_RenderPass = null;
 
@@ -20,6 +23,16 @@ internal class CaptureMotionVectorsRendererFeature : ScriptableRendererFeature
 
     public override void Create()
     {
-        m_RenderPass = new CaptureMotionVectorsPass(m_Shader);
+        if (m_Shader != null)
+            m_Material = new Material(m_Shader);
+        else
+            Debug.LogError(typeof(CaptureMotionVectorsRendererFeature) + " was assigned an invalid shader.");
+
+        m_RenderPass = new CaptureMotionVectorsPass(m_Material);
+    }
+
+    protected override void Dispose(bool disposing)
+    {
+        CoreUtils.Destroy(m_Material);
     }
 }

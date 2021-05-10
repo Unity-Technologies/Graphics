@@ -9,13 +9,9 @@ internal class CaptureMotionVectorsPass : ScriptableRenderPass
     RenderTargetIdentifier m_CameraColorTarget;
     float m_intensity;
 
-    public CaptureMotionVectorsPass(Shader shader)
+    public CaptureMotionVectorsPass(Material material)
     {
-        if (shader != null)
-            m_Material = new Material(shader);
-        else
-            Debug.LogError(typeof(CaptureMotionVectorsPass) + " was assigned an invalid shader.");
-
+        m_Material = material;
         renderPassEvent = RenderPassEvent.BeforeRenderingPostProcessing;
     }
 
@@ -44,8 +40,6 @@ internal class CaptureMotionVectorsPass : ScriptableRenderPass
             cmd.Clear();
         }
 
-        context.ExecuteCommandBuffer(cmd);
-        cmd.Clear();
         CommandBufferPool.Release(cmd);
     }
 }
