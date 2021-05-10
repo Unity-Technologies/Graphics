@@ -124,7 +124,7 @@ namespace UnityEngine.Rendering.Universal
         [EditorBrowsable(EditorBrowsableState.Never)]
         public RenderTargetIdentifier cameraDepth
         {
-            get => m_CameraDepthTarget;
+            get => m_CameraDepthTarget.nameID;
         }
     }
 }
