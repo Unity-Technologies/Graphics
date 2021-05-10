@@ -38,7 +38,7 @@ RenderSettings:
   m_ReflectionIntensity: 1
   m_CustomReflection: {fileID: 0}
   m_Sun: {fileID: 0}
-  m_IndirectSpecularColor: {r: 0.38885736, g: 0.40605986, b: 0.41740465, a: 1}
+  m_IndirectSpecularColor: {r: 0.38851547, g: 0.40563643, b: 0.41688952, a: 1}
   m_UseRadianceAmbientProbe: 0
 --- !u!157 &3
 LightmapSettings:
@@ -428,6 +428,14 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 7a68c43fe1f2a47cfa234b5eeaa98012, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  m_Version: 11
+  m_ObsoleteShadowResolutionTier: 1
+  m_ObsoleteUseShadowQualitySettings: 0
+  m_ObsoleteCustomShadowResolution: 1024
+  m_ObsoleteContactShadows: 0
+  m_PointlightHDType: 0
+  m_SpotLightShape: 0
+  m_AreaLightShape: 0
   m_Intensity: 1.5
   m_EnableSpotReflector: 0
   m_LuxAtDistance: 1
@@ -511,7 +519,6 @@ MonoBehaviour:
   m_BarnDoorAngle: 90
   m_BarnDoorLength: 0.05
   m_preserveCachedShadow: 0
-  m_OnDemandShadowRenderOnPlacement: 1
   m_ShadowCascadeRatios:
   - 0.05
   - 0.2
@@ -527,17 +534,10 @@ MonoBehaviour:
   useOldInspector: 0
   useVolumetric: 1
   featuresFoldout: 1
+  showAdditionalSettings: 0
   m_AreaLightEmissiveMeshShadowCastingMode: 0
   m_AreaLightEmissiveMeshMotionVectorGenerationMode: 0
   m_AreaLightEmissiveMeshLayer: -1
-  m_Version: 11
-  m_ObsoleteShadowResolutionTier: 1
-  m_ObsoleteUseShadowQualitySettings: 0
-  m_ObsoleteCustomShadowResolution: 1024
-  m_ObsoleteContactShadows: 0
-  m_PointlightHDType: 0
-  m_SpotLightShape: 0
-  m_AreaLightShape: 0
 --- !u!108 &167693176
 Light:
   m_ObjectHideFlags: 0
@@ -900,7 +900,7 @@ MonoBehaviour:
   settingType: 1
   gBuffer: 0
   fullScreenDebugMode: 0
-  lightlayers: 0
+  lightlayers: 1
   lightingFullScreenDebugMode: 3
 --- !u!4 &825910925
 Transform:
@@ -1080,7 +1080,6 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   m_Profile: {fileID: 11400000, guid: 919acda9bae911e4fac8930ea8b43b73, type: 2}
   m_StaticLightingSkyUniqueID: 1
-  m_StaticLightingCloudsUniqueID: 0
 --- !u!4 &930401667
 Transform:
   m_ObjectHideFlags: 1

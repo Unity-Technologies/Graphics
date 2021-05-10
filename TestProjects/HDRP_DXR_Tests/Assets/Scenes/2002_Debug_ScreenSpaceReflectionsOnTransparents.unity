@@ -431,7 +431,7 @@ MonoBehaviour:
   settingType: 1
   gBuffer: 0
   fullScreenDebugMode: 0
-  lightlayers: 0
+  lightlayers: 1
   lightingFullScreenDebugMode: 4
 --- !u!4 &1831478055
 Transform:
