@@ -7,43 +7,65 @@ using UnityEngine;
 [Serializable]
 public class StructTypeDefinition : SandboxTypeDefinition
 {
+    // serialized state
     [SerializeField]
     string name;
 
     [SerializeField]
-    List<Member> members;
+    List<Field> fields;
 
+    [SerializeField]
+    List<ShaderFunction> functions;
+
+    // public API
+    public IReadOnlyList<Field> Fields => fields?.AsReadOnly() ?? ListUtils.EmptyReadOnlyList<Field>();
+    public IReadOnlyList<ShaderFunction> Functions => functions?.AsReadOnly() ?? ListUtils.EmptyReadOnlyList<ShaderFunction>();
+
+    // public Builder
     public struct Builder
     {
         string name;
-        List<Member> members;
+        List<Field> fields;
+        List<ShaderFunction> functions;
 
         public Builder(string name)
         {
             this.name = name;
-            this.members = null;
+            this.fields = null;
+            this.functions = null;
         }
 
-        public void AddMember(SandboxType type, string name)
+        public void AddField(SandboxType type, string name)
         {
-            if (members == null)
-                members = new List<Member>();
+            if (fields == null)
+                fields = new List<Field>();
 
             // TODO: check for name collision..
 
-            members.Add(new Member(type, name));
+            fields.Add(new Field(type, name));
+        }
+
+        public void AddFunction(ShaderFunction function)
+        {
+            if (functions == null)
+                functions = new List<ShaderFunction>();
+
+            // TODO: check for name collision...
+
+            functions.Add(function);
         }
 
         public StructTypeDefinition Build()
         {
-            return new StructTypeDefinition(name, members);
+            return new StructTypeDefinition(name, fields, functions);
         }
     }
 
-    internal StructTypeDefinition(string name, List<Member> members)
+    internal StructTypeDefinition(string name, List<Field> members, List<ShaderFunction> functions)
     {
         this.name = name;
-        this.members = members;
+        this.fields = members;
+        this.functions = functions;
     }
 
     public override SandboxType.Flags GetTypeFlags()
@@ -65,13 +87,13 @@ public class StructTypeDefinition : SandboxTypeDefinition
         if (otherType == this)
             return true;
 
-        if ((otherType.name != name) || (otherType.members.Count != members.Count))
+        if ((otherType.name != name) || (otherType.fields.Count != fields.Count))
             return false;
 
-        for (int i = 0; i < members.Count; i++)
+        for (int i = 0; i < fields.Count; i++)
         {
-            if ((members[i].Name != otherType.members[i].Name) ||
-                (members[i].Type.ValueEquals(otherType.members[i].Type)))
+            if ((fields[i].Name != otherType.fields[i].Name) ||
+                (fields[i].Type.ValueEquals(otherType.fields[i].Type)))
                 return false;
         }
 
@@ -83,12 +105,18 @@ public class StructTypeDefinition : SandboxTypeDefinition
         sb.Add("struct ");
         sb.AddLine(name);
         sb.AddLine("{");
-        foreach (var m in members)
+        // declare the member fields
+        foreach (var f in Fields)
         {
-            m.Type.AddHLSLVariableDeclarationString(sb, m.Name);
+            f.Type.AddHLSLVariableDeclarationString(sb, f.Name);
             sb.AddLine(";");
         }
-        sb.Add("};");       // remember stucts must have a semicolon after their declaration in HLSL!  ;)
+        // declare the member functions
+        foreach (var f in Functions)
+        {
+            f.AppendHLSLDeclarationString(sb);
+        }
+        sb.AddLine("};");       // remember stucts must have a semicolon after their declaration in HLSL!  ;)
     }
 
     internal override void AddHLSLVariableDeclarationString(ShaderStringBuilder sb, string id)
@@ -97,9 +125,9 @@ public class StructTypeDefinition : SandboxTypeDefinition
     }
 
     [Serializable]
-    public struct Member // would be marked readonly, except that makes it non-serializable
+    public struct Field // would be marked readonly, except that makes it non-serializable
     {
-        public Member(SandboxType type, string name)
+        public Field(SandboxType type, string name)
         {
             this.type = type;
             this.name = name;
@@ -111,7 +139,7 @@ public class StructTypeDefinition : SandboxTypeDefinition
         [SerializeField]
         string name;
 
-        public SandboxType Type { get { return type; } }
-        public string Name { get { return name; } }
+        public SandboxType Type => type;
+        public string Name => name;
     }
 }

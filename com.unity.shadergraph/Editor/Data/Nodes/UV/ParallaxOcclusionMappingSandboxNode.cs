@@ -21,25 +21,35 @@ namespace UnityEditor.ShaderGraph
             context.SetPreviewFunction(shaderFunc);
         }
 
-        static StructTypeDefinition k_PomStruct = null;
-        static StructTypeDefinition PomStructDefinition()
+        static StructTypeDefinition k_HeightSampler = null;
+        static StructTypeDefinition HeightSamplerDefinition()
         {
-            if (k_PomStruct == null)
+            if (k_HeightSampler == null)
             {
-                var str = new StructTypeDefinition.Builder("POMStruct_$precision");
-                str.AddMember(Types._precision2, "uv");
-                str.AddMember(Types._UnityTexture2D, "tex");
-                str.AddMember(Types._UnitySamplerState, "samplerState");
-                k_PomStruct = str.Build();
+                var str = new StructTypeDefinition.Builder("HeightSampler_$precision");
+                str.AddField(Types._precision2, "uv");
+                str.AddField(Types._UnityTexture2D, "tex");
+                str.AddField(Types._UnitySamplerState, "samplerState");
+
+                var func = new ShaderFunction.Builder("SampleHeight");
+                func.AddInput(Types._precision2, "texOffsetCurrent");
+                func.AddInput(Types._precision, "lod");
+                func.AddOutput(Types._precision, "outHeight");
+                func.AddLine("outHeight = SAMPLE_TEXTURE2D_LOD(tex, samplerState, uv + texOffsetCurrent, lod).r;");
+
+                str.AddFunction(func.Build());
+
+                k_HeightSampler = str.Build();
             }
-            return k_PomStruct;
+            return k_HeightSampler;
         }
 
         static ShaderFunction Unity_POM()
         {
-            var POMStruct = new SandboxType(PomStructDefinition());
-            var POMGetHeight = Unity_POM_GetHeight(POMStruct);
-            var POMOffset = Unity_POM_Offset(POMGetHeight, POMStruct);
+            var POMStruct = HeightSamplerDefinition();
+            var POMType = new SandboxType(POMStruct);
+
+            var POMOffset = Unity_POM_Offset(POMType);
             var GetDisplacementObjectScale = Unity_GetDisplacementObjectScale();
 
             var func = new ShaderFunction.Builder("Unity_POM_$precision");
@@ -66,7 +76,7 @@ namespace UnityEditor.ShaderGraph
             func.AddLine("float3 ViewDirUV = normalize(float3(ViewDir.xy * MaxHeight, ViewDir.z));"); // TODO: skip normalize
 
             // construct the state to pass down
-            func.DeclareVariable(POMStruct, "POM");
+            func.DeclareVariable(POMType, "POM");
             func.AddLine("POM.uv = UVs;");
             func.AddLine("POM.tex = Heightmap;");
             func.AddLine("POM.samplerState = HeightmapSampler;");
@@ -88,29 +98,15 @@ namespace UnityEditor.ShaderGraph
             return func.Build();
         }
 
-        static ShaderFunction Unity_POM_GetHeight(SandboxType POMStruct)
+        static ShaderFunction Unity_POM_Offset(SandboxType samplerType)
         {
-            var func = new ShaderFunction.Builder("Unity_POM_GetHeight_" + POMStruct.Name);
-            func.AddInput(Types._precision2, "texOffsetCurrent");
-            func.AddInput(Types._precision, "lod");
-            func.AddInput(POMStruct, "pomStruct");
+            var func = new ShaderFunction.Builder("Unity_POM_Offset");
 
-            func.AddOutput(Types._precision, "outHeight");
+            // need to be able to declare generic type constraints here (i.e. has member function signature...)
+            var heightSamplerType = func.AddGenericTypeParameter("$HeightSampler$");
 
-            func.AddLine("outHeight = SAMPLE_TEXTURE2D_LOD(pomStruct.tex, pomStruct.samplerState, pomStruct.uv + texOffsetCurrent, lod).r;");
-
-            return func.Build();
-        }
-
-        static ShaderFunction Unity_POM_Offset(ShaderFunction GetHeight, SandboxType POMStruct)
-        {
-            var func = new ShaderFunction.Builder("Unity_POM_Offset_" + GetHeight.Name);
-
-            // TODO: generic function parameters
-            // ideally we actually want to define the generic parameter as a class that implements a GetHeight function..
-            // so that it's just one generic parameter with a type restriction
-            // but we would need interfaces or base class / inheritance to be able to express that
-            // func.AddGenericFunctionParameter("$GetHeight$");
+            // TODO: this function should be grabbed from the interface, not the specialized type...
+            // var GetHeight = (samplerType.Definition as StructTypeDefinition).Functions.FirstOrDefault();
 
             // could we express the GetHeight function / POMStruct class as an INPUT parameter?
 
@@ -119,7 +115,7 @@ namespace UnityEditor.ShaderGraph
             func.AddInput(Types._precision, "lodThreshold");
             func.AddInput(Types._int, "numSteps");
             func.AddInput(Types._precision3, "viewDirTS");
-            func.AddInput(POMStruct, "pomStruct");
+            func.AddInput(heightSamplerType, "heightSampler");
 
             // outputs
             func.AddOutput(Types._precision, "outHeight");
@@ -140,9 +136,11 @@ namespace UnityEditor.ShaderGraph
             // Do a first step before the loop to init all value correctly
             func.AddLine("real2 texOffsetCurrent = real2(0.0, 0.0);");
             func.AddLine("real prevHeight, currHeight;");
-            func.Call(GetHeight, "texOffsetCurrent", "lod", "pomStruct", "prevHeight");
+            // func.Call(GetHeight, "texOffsetCurrent", "lod", "heightSampler", "prevHeight");
+            func.AddLine("heightSampler.SampleHeight(texOffsetCurrent, lod, prevHeight);");       // TODO: how do we express this as a tracked function call?
             func.AddLine("texOffsetCurrent += texOffsetPerStep;");
-            func.Call(GetHeight, "texOffsetCurrent", "lod", "pomStruct", "currHeight");
+            //func.Call(GetHeight, "texOffsetCurrent", "lod", "heightSampler", "currHeight");
+            func.AddLine("heightSampler.SampleHeight(texOffsetCurrent, lod, currHeight);");
             func.AddLine("real rayHeight = 1.0 - stepSize;"); // Start at top less one sample
 
             // Linear search
@@ -156,7 +154,8 @@ namespace UnityEditor.ShaderGraph
                 func.AddLine("texOffsetCurrent += texOffsetPerStep;");
 
                 // Sample height map which in this case is stored in the alpha channel of the normal map:
-                func.Call(GetHeight, "texOffsetCurrent", "lod", "pomStruct", "currHeight");
+                // func.Call(GetHeight, "texOffsetCurrent", "lod", "heightSampler", "currHeight");
+                func.AddLine("heightSampler.SampleHeight(texOffsetCurrent, lod, currHeight);");
             }
 
             // Found below and above points, now perform line intersection (ray) with piecewise linear heightfield approximation
@@ -179,7 +178,8 @@ namespace UnityEditor.ShaderGraph
 
                 // Retrieve offset require to find this intersectionHeight
                 func.AddLine("offset = (1 - intersectionHeight) * texOffsetPerStep * numSteps;");
-                func.Call(GetHeight, "offset", "lod", "pomStruct", "currHeight");
+                //func.Call(GetHeight, "offset", "lod", "heightSampler", "currHeight");
+                func.AddLine("heightSampler.SampleHeight(offset, lod, currHeight);");
                 func.AddLine("delta = intersectionHeight - currHeight;");
                 func.AddLine("if (abs(delta) <= 0.01) break;");
 
@@ -204,7 +204,9 @@ namespace UnityEditor.ShaderGraph
             func.AddLine("offset *= (1.0 - saturate(lod - lodThreshold));");
             func.AddLine("uvOffset = offset;");
 
-            return func.Build();
+            var generic = func.BuildGeneric();
+
+            return generic.SpecializeType(heightSamplerType, samplerType);
         }
 
         static ShaderFunction Unity_GetDisplacementObjectScale()

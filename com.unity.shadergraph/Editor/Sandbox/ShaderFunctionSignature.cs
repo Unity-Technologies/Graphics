@@ -12,9 +12,9 @@ public class ShaderFunctionSignature : JsonObject
     public override int latestVersion => 1;
 
     // public API
-    public string Name                              { get { return name; } }
+    public string Name => name;
 
-    public IReadOnlyList<Parameter> Parameters      { get { return parameters?.AsReadOnly() ?? ListUtils.EmptyReadOnlyList<Parameter>(); } }
+    public IReadOnlyList<Parameter> Parameters => parameters?.AsReadOnly() ?? ListUtils.EmptyReadOnlyList<Parameter>();
 
     [SerializeField]
     protected string name;

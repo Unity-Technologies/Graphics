@@ -14,7 +14,7 @@ public class ShaderFunction : ShaderFunctionSignature
 
     // public API
     public IEnumerable<ShaderFunctionSignature> FunctionsCalled => functionsCalled?.SelectValue();
-    public IEnumerable<string> IncludePaths => includePaths.AsReadOnly();
+    public IEnumerable<string> IncludePaths => includePaths?.AsReadOnly() ?? ListUtils.EmptyReadOnlyList<string>();
     public string Body { get { return body; } }
     public virtual bool isGeneric => false;
 
@@ -96,6 +96,8 @@ public class ShaderFunction : ShaderFunctionSignature
         }
 
 /*
+        // we might not need function types or generic function parameters
+        // if we support member functions on structs...  :D
         public ShaderFunctionSignature AddGenericFunctionParameter(ShaderFunctionSignature placeholderFunctionSignature)
         {
             if (placeholderFunctionSignature == null)
@@ -170,7 +172,7 @@ public class ShaderFunction : ShaderFunctionSignature
             body.Add(func.Name);
             body.Add("(");
 
-            return new Arguments(body, func.Parameters.Count);
+            return new Arguments(body, func);
         }
 
         // inline call function variants
@@ -192,16 +194,16 @@ public class ShaderFunction : ShaderFunctionSignature
         public ref struct Arguments
         {
             internal ShaderBuilder body;
+            ShaderFunctionSignature func;
             bool first;
-            int paramCount;
             int argCount;
 
-            internal Arguments(ShaderBuilder body, int paramCount)
+            internal Arguments(ShaderBuilder body, ShaderFunctionSignature func)
             {
                 this.body = body;
                 this.first = true;
                 this.argCount = 0;
-                this.paramCount = paramCount;
+                this.func = func;
             }
 
             public Arguments Add(string arg)
@@ -218,13 +220,14 @@ public class ShaderFunction : ShaderFunctionSignature
 
             public void Dispose()
             {
-                if (argCount != paramCount)
+                if (argCount != func.Parameters.Count)
                 {
                     // ERROR: mismatched argument count
-                    Debug.Log("CallFunction: mismatched argument count");
+                    Debug.LogError("CallFunction: " + func.Name + " has mismatched argument count (" + argCount + " arguments to " + func.Parameters.Count + " parameters");
                 }
                 body.AddLine(");");
                 body = null;
+                func = null;
             }
         }
 

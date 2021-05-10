@@ -49,7 +49,6 @@ public sealed class SandboxType
         Texture = 32,
         SamplerState = 64,
         BareResource = 128,                 // raw resource, not wrapped in Unity struct (Texture2D, SamplerState, cbuffer etc.)
-        Function = 256,
         HasHLSLDeclaration = 512,           // has an HLSL Declaration
 
         VectorOrScalar = Scalar | Vector,
@@ -72,7 +71,6 @@ public sealed class SandboxType
     public bool IsSamplerState =>       (flags & Flags.SamplerState) != 0;
     public bool IsBareResource =>       (flags & Flags.BareResource) != 0;
     public bool IsVectorOrScalar =>     (flags & Flags.VectorOrScalar) != 0;
-    public bool IsFunction =>           (flags & Flags.Function) != 0;
     public bool HasHLSLDeclaration =>   (flags & Flags.HasHLSLDeclaration) != 0;
 
     // returns the vector dimension (1, 2, 3 or 4) for vector types, 1 for scalar types, and 0 for all other types
