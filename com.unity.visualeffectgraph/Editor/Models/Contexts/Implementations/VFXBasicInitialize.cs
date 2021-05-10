@@ -111,9 +111,24 @@ namespace UnityEditor.VFX
             get
             {
                 var particleData = GetData() as VFXDataParticle;
-                var prop = (particleData && particleData.boundsSettingMode != BoundsSettingMode.Automatic)
-                    ? PropertiesFromType("InputPropertiesBounds").Concat(PropertiesFromType("InputPropertiesPadding"))
-                    : PropertiesFromType("InputPropertiesPadding");
+
+                var prop = Enumerable.Empty<VFXPropertyWithValue>();
+                if (particleData)
+                {
+                    if (particleData.boundsSettingMode == BoundsSettingMode.Manual)
+                    {
+                        prop = prop.Concat(PropertiesFromType("InputPropertiesBounds"));
+                    }
+                    if (particleData.boundsSettingMode == BoundsSettingMode.Recorded)
+                    {
+                        prop = prop.Concat(PropertiesFromType("InputPropertiesBounds"));
+                        prop = prop.Concat(PropertiesFromType("InputPropertiesPadding"));
+                    }
+                    if (particleData.boundsSettingMode == BoundsSettingMode.Automatic)
+                    {
+                        prop = prop.Concat(PropertiesFromType("InputPropertiesPadding"));
+                    }
+                }
 
                 if (ownedType == VFXDataType.ParticleStrip && !hasGPUSpawner)
                     prop = prop.Concat(PropertiesFromType("StripInputProperties"));
@@ -131,27 +146,33 @@ namespace UnityEditor.VFX
         public override VFXExpressionMapper GetExpressionMapper(VFXDeviceTarget target)
         {
             var particleData = GetData() as VFXDataParticle;
-            bool hasBoundsSlot = particleData && particleData.boundsSettingMode != BoundsSettingMode.Automatic;
-
+            bool isRecordedBounds = particleData && particleData.boundsSettingMode == BoundsSettingMode.Recorded;
             // GPU
             if (target == VFXDeviceTarget.GPU)
             {
                 var gpuMapper = VFXExpressionMapper.FromBlocks(activeFlattenedChildrenWithImplicit);
                 if (ownedType == VFXDataType.ParticleStrip && !hasGPUSpawner)
-                    gpuMapper.AddExpressionsFromSlot(inputSlots[(hasBoundsSlot ? 2 : 1)], -1); // strip index
+                    gpuMapper.AddExpressionsFromSlot(inputSlots[(isRecordedBounds ? 2 : 1)], -1); // strip index
                 return gpuMapper;
             }
 
             // CPU
             var cpuMapper = new VFXExpressionMapper();
-            if (hasBoundsSlot)
+            if (particleData)
             {
-                cpuMapper.AddExpressionsFromSlot(inputSlots[0], -1); // bounds
-                cpuMapper.AddExpressionsFromSlot(inputSlots[1], -1); //bounds padding
-            }
-            else
-            { 
-                cpuMapper.AddExpressionsFromSlot(inputSlots[0], -1); //bounds padding
+                switch (particleData.boundsSettingMode)
+                {
+                    case BoundsSettingMode.Manual:
+                        cpuMapper.AddExpressionsFromSlot(inputSlots[0], -1); // bounds
+                        break;
+                    case BoundsSettingMode.Recorded:
+                        cpuMapper.AddExpressionsFromSlot(inputSlots[0], -1); // bounds
+                        cpuMapper.AddExpressionsFromSlot(inputSlots[1], -1); //bounds padding
+                        break;
+                    case BoundsSettingMode.Automatic:
+                        cpuMapper.AddExpressionsFromSlot(inputSlots[0], -1); //bounds padding
+                        break;
+                }
             }
 
             return cpuMapper;

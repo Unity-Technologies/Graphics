@@ -312,16 +312,10 @@ namespace UnityEditor.VFX.UI
                         if (system.space == VFXCoordinateSpace.World)
                         {
                             Matrix4x4 worldToLocal = m_Effect.transform.worldToLocalMatrix;
-                            Vector3 center = worldToLocal.MultiplyPoint3x4(currentBounds.center);
-                            Vector3 size = Vector3.Scale(worldToLocal.lossyScale, currentBounds.size);
-                            Bounds tmpBounds = currentBounds;
-                            tmpBounds.center = center;
-                            tmpBounds.size = size;
-                            currentBounds = tmpBounds;
+                            currentBounds = TransformAABBSlow(currentBounds, worldToLocal);
                         }
                         if (m_FirstBound[systemName])
                         {
-
                             m_Bounds[systemName] = currentBounds;
                             m_FirstBound[systemName] = false;
                         }
@@ -395,22 +389,7 @@ namespace UnityEditor.VFX.UI
             Matrix4x4 oldMatrix = Handles.matrix;
             Handles.matrix = m_Effect.transform.localToWorldMatrix;
 
-            Vector3[] points = new Vector3[8];
-
-            Vector3 center = bounds.center;
-            Vector3 size = bounds.size;
-
-            points[0] = center + new Vector3(size.x * 0.5f, size.y * 0.5f, size.z * 0.5f);
-            points[1] = center + new Vector3(size.x * 0.5f, -size.y * 0.5f, size.z * 0.5f);
-
-            points[2] = center + new Vector3(-size.x * 0.5f, size.y * 0.5f, size.z * 0.5f);
-            points[3] = center + new Vector3(-size.x * 0.5f, -size.y * 0.5f, size.z * 0.5f);
-
-            points[4] = center + new Vector3(size.x * 0.5f, size.y * 0.5f, -size.z * 0.5f);
-            points[5] = center + new Vector3(size.x * 0.5f, -size.y * 0.5f, -size.z * 0.5f);
-
-            points[6] = center + new Vector3(-size.x * 0.5f, size.y * 0.5f, -size.z * 0.5f);
-            points[7] = center + new Vector3(-size.x * 0.5f, -size.y * 0.5f, -size.z * 0.5f);
+            var points = ExtractVerticesFromBounds(bounds);
 
             Color prevColor = Handles.color;
             Handles.color = Color.red;
@@ -431,6 +410,40 @@ namespace UnityEditor.VFX.UI
             Handles.matrix = oldMatrix;
 
             Handles.color = prevColor;
+        }
+
+        private Vector3[] ExtractVerticesFromBounds(Bounds bounds)
+        {
+            Vector3[] points = new Vector3[8];
+
+            Vector3 center = bounds.center;
+            Vector3 size = bounds.size;
+
+            points[0] = center + new Vector3(size.x * 0.5f, size.y * 0.5f, size.z * 0.5f);
+            points[1] = center + new Vector3(size.x * 0.5f, -size.y * 0.5f, size.z * 0.5f);
+
+            points[2] = center + new Vector3(-size.x * 0.5f, size.y * 0.5f, size.z * 0.5f);
+            points[3] = center + new Vector3(-size.x * 0.5f, -size.y * 0.5f, size.z * 0.5f);
+
+            points[4] = center + new Vector3(size.x * 0.5f, size.y * 0.5f, -size.z * 0.5f);
+            points[5] = center + new Vector3(size.x * 0.5f, -size.y * 0.5f, -size.z * 0.5f);
+
+            points[6] = center + new Vector3(-size.x * 0.5f, size.y * 0.5f, -size.z * 0.5f);
+            points[7] = center + new Vector3(-size.x * 0.5f, -size.y * 0.5f, -size.z * 0.5f);
+            return points;
+        }
+
+        private Bounds TransformAABBSlow(Bounds bounds, Matrix4x4 transform)
+        {
+            Vector3[] v = ExtractVerticesFromBounds(bounds);
+            Bounds transformed = new Bounds(transform.MultiplyPoint(v[0]), Vector3.zero);
+
+            for (int i = 1; i < 8; i++)
+            {
+                Vector3 point = transform.MultiplyPoint(v[i]);
+                transformed.Encapsulate(point);
+            }
+            return transformed;
         }
 
         public void ModifyMode(string syst, BoundsSettingMode mode)
@@ -486,7 +499,14 @@ namespace UnityEditor.VFX.UI
                         break;
                     }
                     var boundsSlot = initContext.inputSlots.FirstOrDefault(s => s.name == "bounds");
-                    boundsSlot.value = new AABox() { center = m_Bounds[systemName].center, size = m_Bounds[systemName].size };
+                    if(initContext.GetOutputSpaceFromSlot(boundsSlot) == VFXCoordinateSpace.Local) //This should always be the case
+                        boundsSlot.value = new AABox() { center = m_Bounds[systemName].center, size = m_Bounds[systemName].size };
+                    else
+                    {
+                        var localToWorld = m_Effect.transform.localToWorldMatrix;
+                        var transformedBounds = TransformAABBSlow(m_Bounds[systemName], localToWorld);
+                        boundsSlot.value = new AABox() { center = transformedBounds.center, size = transformedBounds.size };
+                    }
                 }
             }
         }
