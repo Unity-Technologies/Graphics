@@ -1732,7 +1732,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 kernel =  cs.FindKernel(m_EnableAlpha ?  "MotionBlurF4CS": "MotionBlurF3CS");
                 cmd.SetComputeVectorParam(cs, HDShaderIDs._TileTargetSize, tileTargetSize);
                 cmd.SetComputeTextureParam(cs, kernel, HDShaderIDs._MotionVecAndDepth, preppedMotionVec);
-                cmd.SetComputeTextureParam(cs, kernel, m_EnableAlpha ? HDShaderIDs._OutputTextureF4 : HDShaderIDs._OutputTextureF3, destination);
+                cmd.SetComputeTextureParam(cs, kernel, HDShaderIDs._OutputTexture, destination);
                 cmd.SetComputeTextureParam(cs, kernel, HDShaderIDs._TileMaxNeighbourhood, maxTileNeigbourhood);
                 cmd.SetComputeTextureParam(cs, kernel, HDShaderIDs._InputTexture, source);
                 cmd.SetComputeVectorParam(cs, HDShaderIDs._MotionBlurParams, motionBlurParams0);
