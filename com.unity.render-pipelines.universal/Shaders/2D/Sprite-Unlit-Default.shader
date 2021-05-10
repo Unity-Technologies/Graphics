@@ -115,7 +115,7 @@ Shader "Universal Render Pipeline/2D/Sprite-Unlit-Default"
             #pragma vertex UnlitVertex
             #pragma fragment UnlitFragment
 
-            #pragma multi_compile _ DEBUG_DISPLAY
+            #pragma multi_compile_fragment _ DEBUG_DISPLAY
 
             struct Attributes
             {

@@ -78,6 +78,15 @@ void ApplyDebugToLighting(LightLoopContext context, inout BuiltinData builtinDat
             builtinData.emissiveColor = real3(0.0, 0.0, 0.0);
         }
     }
+
+    if (_DebugLightingMode == DEBUGLIGHTINGMODE_PROBE_VOLUME_SAMPLED_SUBDIVISION)
+    {
+        aggregateLighting.direct.diffuse = real3(0.0, 0.0, 0.0);
+        aggregateLighting.direct.specular = real3(0.0, 0.0, 0.0);
+        aggregateLighting.indirect.specularReflected = real3(0.0, 0.0, 0.0);
+        aggregateLighting.indirect.specularTransmitted = real3(0.0, 0.0, 0.0);
+        builtinData.emissiveColor = real3(0.0, 0.0, 0.0);
+    }
 #endif
 }
 
@@ -95,12 +104,7 @@ bool UseScreenSpaceShadow(DirectionalLightData light, float3 normalWS)
 void ApplyDebug(LightLoopContext context, PositionInputs posInput, BSDFData bsdfData, inout LightLoopOutput lightLoopOutput)
 {
 #ifdef DEBUG_DISPLAY
-    if (_DebugLightingMode == DEBUGLIGHTINGMODE_PROBE_VOLUME)
-    {
-        // Debug info is written to diffuseColor inside of light loop.
-        lightLoopOutput.specularLighting = float3(0.0, 0.0, 0.0);
-    }
-    else if (_DebugLightingMode == DEBUGLIGHTINGMODE_LUX_METER)
+    if (_DebugLightingMode == DEBUGLIGHTINGMODE_LUX_METER)
     {
         lightLoopOutput.specularLighting = float3(0.0, 0.0, 0.0); // Disable specular lighting
         // Take the luminance
@@ -529,6 +533,8 @@ void LightLoop( float3 V, PositionInputs posInput, PreLightData preLightData, BS
             EvaluateAdaptiveProbeVolume(GetAbsolutePositionWS(posInput.positionWS),
                                         bsdfData.normalWS,
                                         -bsdfData.normalWS,
+                                        V,
+                                        posInput.positionSS,
                                         apvBuiltinData.bakeDiffuseLighting,
                                         apvBuiltinData.backBakeDiffuseLighting);
 
@@ -539,7 +545,7 @@ void LightLoop( float3 V, PositionInputs posInput, PreLightData preLightData, BS
 #ifdef MODIFY_BAKED_DIFFUSE_LIGHTING
 #ifdef DEBUG_DISPLAY
             // When the lux meter is enabled, we don't want the albedo of the material to modify the diffuse baked lighting
-            if (_DebugLightingMode != DEBUGLIGHTINGMODE_LUX_METER)
+            if (_DebugLightingMode != DEBUGLIGHTINGMODE_LUX_METER && _DebugLightingMode != DEBUGLIGHTINGMODE_PROBE_VOLUME_SAMPLED_SUBDIVISION)
 #endif
                 ModifyBakedDiffuseLighting(V, posInput, preLightData, bsdfData, apvBuiltinData);
 
@@ -560,6 +566,20 @@ void LightLoop( float3 V, PositionInputs posInput, PreLightData preLightData, BS
             builtinData.bakeDiffuseLighting = uninitializedGI ? float3(0.0, 0.0, 0.0) : builtinData.bakeDiffuseLighting;
             // Note: builtinDataProbeVolumes.bakeDiffuseLighting and builtinDataProbeVolumes.backBakeDiffuseLighting were combine inside of ModifyBakedDiffuseLighting().
             builtinData.bakeDiffuseLighting += apvBuiltinData.bakeDiffuseLighting;
+
+
+#ifdef DEBUG_DISPLAY
+            if (_DebugLightingMode == DEBUGLIGHTINGMODE_PROBE_VOLUME_SAMPLED_SUBDIVISION)
+            {
+                float3 uvw;
+                uint subdiv;
+                if (TryToGetPoolUVWAndSubdiv(FillAPVResources(), GetAbsolutePositionWS(posInput.positionWS), bsdfData.normalWS, V, uvw, subdiv))
+                    // Only mix 50% of the color to avoid getting black result with incompatible colors.
+                    builtinData.bakeDiffuseLighting = (0.5 + 0.5 * _DebugAPVSubdivColors[subdiv].xyz) * builtinData.bakeDiffuseLighting;
+                else
+                    builtinData.bakeDiffuseLighting = float3(0.0, 0.0, 0.0);
+            }
+#endif
         }
     }
 #endif
@@ -597,7 +617,7 @@ void LightLoop( float3 V, PositionInputs posInput, PreLightData preLightData, BS
 
     // Also Apply indiret diffuse (GI)
     // PostEvaluateBSDF will perform any operation wanted by the material and sum everything into diffuseLighting and specularLighting
-    PostEvaluateBSDF(   context, V, posInput, preLightData, bsdfData, builtinData, aggregateLighting, lightLoopOutput);
+    PostEvaluateBSDF(context, V, posInput, preLightData, bsdfData, builtinData, aggregateLighting, lightLoopOutput);
 
     ApplyDebug(context, posInput, bsdfData, lightLoopOutput);
 }

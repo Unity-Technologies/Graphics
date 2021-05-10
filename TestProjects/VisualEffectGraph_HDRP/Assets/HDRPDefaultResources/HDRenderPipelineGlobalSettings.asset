@@ -12,9 +12,9 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 781cc897cf8675041a751163b51f97dd, type: 3}
   m_Name: HDRenderPipelineGlobalSettings
   m_EditorClassIdentifier: 
-  m_VolumeProfileDefault: {fileID: 11400000, guid: 6da6f79984c6a5e40ae22ead3a2ecfec,
+  m_DefaultVolumeProfile: {fileID: 11400000, guid: 6da6f79984c6a5e40ae22ead3a2ecfec,
     type: 2}
-  m_VolumeProfileLookDev: {fileID: 0}
+  m_LookDevVolumeProfile: {fileID: 0}
   m_RenderingPathDefaultCameraFrameSettings:
     bitDatas:
       data1: 87872878411613
@@ -28,6 +28,7 @@ MonoBehaviour:
     sssQualityMode: 0
     sssQualityLevel: 0
     sssCustomSampleBudget: 20
+    msaaMode: 1
     materialQuality: 0
   m_RenderingPathDefaultBakedOrCustomReflectionFrameSettings:
     bitDatas:
@@ -42,6 +43,7 @@ MonoBehaviour:
     sssQualityMode: 0
     sssQualityLevel: 0
     sssCustomSampleBudget: 20
+    msaaMode: 1
     materialQuality: 0
   m_RenderingPathDefaultRealtimeReflectionFrameSettings:
     bitDatas:
@@ -56,6 +58,7 @@ MonoBehaviour:
     sssQualityMode: 0
     sssQualityLevel: 0
     sssCustomSampleBudget: 20
+    msaaMode: 1
     materialQuality: 0
   m_RenderPipelineResources: {fileID: 11400000, guid: 3ce144cff5783da45aa5d4fdc2da14b7,
     type: 2}
@@ -85,4 +88,4 @@ MonoBehaviour:
   diffusionProfileSettingsList:
   - {fileID: 11400000, guid: cbe1ee9036c47b84ba1b8b3dbcde2aff, type: 2}
   - {fileID: 11400000, guid: 38c0905fbe269274782e939ce4393d85, type: 2}
-  m_Version: 0
+  m_Version: 1

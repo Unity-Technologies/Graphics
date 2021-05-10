@@ -190,7 +190,6 @@ namespace UnityEditor.VFX
                 if (vfxResource != null)
                 {
                     var graph = vfxResource.GetOrCreateGraph();
-                    graph.OnSaved();
                     vfxResource.WriteAsset(); // write asset as the AssetDatabase won't do it.
                 }
             }
@@ -382,18 +381,6 @@ namespace UnityEditor.VFX
             }
         }
 
-        public void OnSaved()
-        {
-            try
-            {
-                m_saved = true;
-            }
-            catch (Exception e)
-            {
-                Debug.LogErrorFormat("Save failed : {0}", e);
-            }
-        }
-
         public void SanitizeGraph()
         {
             if (m_GraphSanitized)
@@ -460,14 +447,6 @@ namespace UnityEditor.VFX
             m_ResourceVersion = resourceCurrentVersion;
             m_GraphSanitized = true;
             m_GraphVersion = CurrentVersion;
-
-#if !CASE_1289829_HAS_BEEN_FIXED
-            if (visualEffectResource != null && (visualEffectResource.updateMode & VFXUpdateMode.ExactFixedTimeStep) == VFXUpdateMode.ExactFixedTimeStep)
-            {
-                visualEffectResource.updateMode = visualEffectResource.updateMode & ~VFXUpdateMode.ExactFixedTimeStep;
-                Debug.Log("Sanitize : Exact Fixed Time has been automatically reset to false to avoid an unexpected behavior.");
-            }
-#endif
 
             UpdateSubAssets(); //Should not be necessary : force remove no more referenced object from asset
         }
@@ -553,9 +532,8 @@ namespace UnityEditor.VFX
 
         protected override void OnInvalidate(VFXModel model, VFXModel.InvalidationCause cause)
         {
-            m_saved = false;
-
             if (cause == VFXModel.InvalidationCause.kStructureChanged
+                || cause == VFXModel.InvalidationCause.kSettingChanged
                 || cause == VFXModel.InvalidationCause.kSettingChanged
                 || cause == VFXModel.InvalidationCause.kConnectionChanged)
                 m_SystemNames.Sync(this);
@@ -977,11 +955,6 @@ namespace UnityEditor.VFX
 
         [NonSerialized]
         public Action<VFXGraph> onRuntimeDataChanged;
-
-        [SerializeField]
-        protected bool m_saved = false;
-
-        public bool saved { get { return m_saved; } }
 
         [SerializeField]
         private List<VisualEffectObject> m_SubgraphDependencies = new List<VisualEffectObject>();
