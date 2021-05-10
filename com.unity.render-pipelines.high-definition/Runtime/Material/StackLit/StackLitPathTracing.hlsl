@@ -266,7 +266,7 @@ bool SampleMaterial(MaterialData mtlData, float3 inputSample, out float3 sampleD
                 result.diffPdf *= mtlData.bsdfWeight[0];
             }
         }
-        else  // Specular B BRDF
+        else // Specular B BRDF
         {
             if (!BRDF::SampleAnisoGGX(mtlData, GetSpecularNormal(mtlData), mtlData.bsdfData.roughnessBT, mtlData.bsdfData.roughnessBB, mtlData.bsdfData.fresnel0, inputSample, sampleDir, result.specValue, result.specPdf))
                 return false;
@@ -303,7 +303,7 @@ bool SampleMaterial(MaterialData mtlData, float3 inputSample, out float3 sampleD
 #endif
     }
 
-    return true;
+    return result.diffPdf + result.specPdf > 0.0;
 }
 
 void EvaluateMaterial(MaterialData mtlData, float3 sampleDir, out MaterialResult result)
