@@ -1472,17 +1472,11 @@ namespace UnityEngine.Rendering.HighDefinition
                 passData.prevHistory = builder.WriteTexture(passData.prevHistory);
             }
             passData.nextHistory = builder.WriteTexture(renderGraph.ImportTexture(nextHistory));
-            if (!postDoF)
-            {
-                GrabVelocityMagnitudeHistoryTextures(camera, out var prevMVLen, out var nextMVLen);
-                passData.prevMVLen = builder.ReadTexture(renderGraph.ImportTexture(prevMVLen));
-                passData.nextMVLen = builder.WriteTexture(renderGraph.ImportTexture(nextMVLen));
-            }
-            else
-            {
-                passData.prevMVLen = TextureHandle.nullHandle;
-                passData.nextMVLen = TextureHandle.nullHandle;
-            }
+
+            // Note: In case we run TAA for a second time (post-dof), we can use the same velocity history (saves the length of the mv)
+            GrabVelocityMagnitudeHistoryTextures(camera, out var prevMVLen, out var nextMVLen);
+            passData.prevMVLen = builder.ReadTexture(renderGraph.ImportTexture(prevMVLen));
+            passData.nextMVLen = builder.WriteTexture(renderGraph.ImportTexture(nextMVLen));
 
             passData.destination = builder.WriteTexture(GetPostprocessOutputHandle(renderGraph, outputName));;
 
