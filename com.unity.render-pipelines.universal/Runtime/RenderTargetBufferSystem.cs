@@ -55,9 +55,12 @@ namespace UnityEngine.Rendering.Universal.Internal
             cmd.GetTemporaryRT(m_NameB, m_Desc, m_FilterMode);
         }
 
-        void GetBuffer(CommandBuffer cmd, bool firstBuffer)
+        public void Clear(CommandBuffer cmd)
         {
-            cmd.GetTemporaryRT(firstBuffer ? m_NameA : m_NameB, m_Desc, m_FilterMode);
+            cmd.ReleaseTemporaryRT(m_NameA);
+            cmd.ReleaseTemporaryRT(m_NameB);
+
+            m_FirstIsBackBuffer = true;
         }
 
         public void SetCameraSettings(CommandBuffer cmd, RenderTextureDescriptor desc, FilterMode filterMode)

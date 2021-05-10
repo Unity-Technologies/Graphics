@@ -299,10 +299,5 @@ namespace UnityEngine.Experimental.Rendering.Universal
         {
             throw new System.NotImplementedException();
         }
-
-        internal override RenderTargetIdentifier GetCameraColorFrontBuffer(CommandBuffer cmd)
-        {
-            throw new System.NotImplementedException();
-        }
     }
 }

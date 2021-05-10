@@ -772,7 +772,7 @@ namespace UnityEngine.Rendering.Universal
         {
             if (m_ActiveCameraColorAttachment != RenderTargetHandle.CameraTarget)
             {
-                cmd.ReleaseTemporaryRT(m_ActiveCameraColorAttachment.id);
+                m_ColorBufferSystem.Clear(cmd);
                 m_ActiveCameraColorAttachment = RenderTargetHandle.CameraTarget;
             }
 
@@ -869,6 +869,8 @@ namespace UnityEngine.Rendering.Universal
                     m_ColorBufferSystem.SetCameraSettings(cmd, colorDescriptor, FilterMode.Bilinear);
 
                     ConfigureCameraTarget(m_ColorBufferSystem.GetBackBuffer(cmd).id, m_DepthTexture.id);
+                    m_ActiveCameraColorAttachment = m_ColorBufferSystem.GetBackBuffer(cmd);
+                    cmd.SetGlobalTexture("_CameraColorTexture", m_ActiveCameraColorAttachment.id);
                 }
 
                 if (m_ActiveCameraDepthAttachment != RenderTargetHandle.CameraTarget)
@@ -968,6 +970,7 @@ namespace UnityEngine.Rendering.Universal
             m_ColorBufferSystem.Swap();
             ConfigureCameraTarget(m_ColorBufferSystem.GetBackBuffer(cmd).id, m_DepthTexture.id);
             m_ActiveCameraColorAttachment = m_ColorBufferSystem.GetBackBuffer();
+            cmd.SetGlobalTexture("_CameraColorTexture", m_ActiveCameraColorAttachment.id);
         }
 
         internal override RenderTargetIdentifier GetCameraColorFrontBuffer(CommandBuffer cmd)
