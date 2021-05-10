@@ -11,9 +11,9 @@ namespace UnityEditor.Rendering.HighDefinition
 {
     using CED = CoreEditorDrawer<SerializedHDRenderPipelineGlobalSettings>;
 
-    class DefaultSettingsPanelProvider
+    class HDGlobalSettingsPanelProvider
     {
-        static DefaultSettingsPanelIMGUI s_IMGUIImpl = new DefaultSettingsPanelIMGUI();
+        static HDGlobalSettingsPanelIMGUI s_IMGUIImpl = new HDGlobalSettingsPanelIMGUI();
 
         [SettingsProvider]
         public static SettingsProvider CreateSettingsProvider()
@@ -21,14 +21,14 @@ namespace UnityEditor.Rendering.HighDefinition
             return new SettingsProvider("Project/Graphics/HDRP Settings", SettingsScope.Project)
             {
                 activateHandler = s_IMGUIImpl.OnActivate,
-                keywords = SettingsProvider.GetSearchKeywordsFromGUIContentProperties<DefaultSettingsPanelIMGUI.Styles>()
+                keywords = SettingsProvider.GetSearchKeywordsFromGUIContentProperties<HDGlobalSettingsPanelIMGUI.Styles>()
                     .Concat(OverridableFrameSettingsArea.frameSettingsKeywords)
                     .ToArray(),
                 guiHandler = s_IMGUIImpl.DoGUI
             };
         }
     }
-    internal class DefaultSettingsPanelIMGUI
+    internal class HDGlobalSettingsPanelIMGUI
     {
         public class Styles
         {
@@ -94,7 +94,7 @@ namespace UnityEditor.Rendering.HighDefinition
 
         public static readonly CED.IDrawer Inspector;
 
-        static DefaultSettingsPanelIMGUI()
+        static HDGlobalSettingsPanelIMGUI()
         {
             Inspector = CED.Group(
                 VolumeSection,
