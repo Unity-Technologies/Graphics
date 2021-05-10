@@ -44,7 +44,6 @@ namespace UnityEditor.Rendering.HighDefinition
         SerializedDataParameter m_ErosionScale;
 
         // Lighting
-        SerializedDataParameter m_ScatteringDirection;
         SerializedDataParameter m_ScatteringTint;
         SerializedDataParameter m_PowderEffectIntensity;
         SerializedDataParameter m_MultiScattering;
@@ -109,7 +108,6 @@ namespace UnityEditor.Rendering.HighDefinition
             m_ErosionScale = Unpack(o.Find(x => x.erosionScale));
 
             // Lighting
-            m_ScatteringDirection = Unpack(o.Find(x => x.scatteringDirection));
             m_ScatteringTint = Unpack(o.Find(x => x.scatteringTint));
             m_PowderEffectIntensity = Unpack(o.Find(x => x.powderEffectIntensity));
             m_MultiScattering = Unpack(o.Find(x => x.multiScattering));
@@ -228,7 +226,6 @@ namespace UnityEditor.Rendering.HighDefinition
             DrawHeader("Lighting");
             {
                 PropertyField(m_AmbientLightProbeDimmer);
-                PropertyField(m_ScatteringDirection);
                 PropertyField(m_ScatteringTint);
                 PropertyField(m_PowderEffectIntensity);
                 PropertyField(m_MultiScattering);

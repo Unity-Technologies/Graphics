@@ -268,7 +268,6 @@ namespace UnityEngine.Rendering.HighDefinition
             cb._MaxRayMarchingDistance = Mathf.Min(1500.0f * cb._NumPrimarySteps, hdCamera.camera.farClipPlane);
             cb._CloudMapTiling.Set(settings.cloudTiling.value.x, settings.cloudTiling.value.y, settings.cloudOffset.value.x, settings.cloudOffset.value.y);
 
-            cb._ScatteringDirection = settings.scatteringDirection.value;
             cb._ScatteringTint = Color.white - settings.scatteringTint.value * 0.75f;
             cb._PowderEffectIntensity = settings.powderEffectIntensity.value;
             cb._NormalizationFactor = ComputeNormalizationFactor(cb._EarthRadius, (cb._LowestCloudAltitude + cb._HighestCloudAltitude) * 0.5f);
