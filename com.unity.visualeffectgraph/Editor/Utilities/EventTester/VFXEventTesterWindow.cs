@@ -9,9 +9,8 @@ namespace UnityEditor.VFX
 {
     static class VFXEventTesterWindow
     {
-        /* TODO : Fix ITransientOverlay
         [Overlay(typeof(SceneView), k_OverlayId, k_DisplayName)]
-        class SceneViewVFXEventTesterOverlay : ITransientOverlay
+        class SceneViewVFXEventTesterOverlay : IMGUIOverlay, ITransientOverlay
         {
             const string k_OverlayId = "Scene View/Visual Effect Event Tester";
             const string k_DisplayName = "Visual Effect Event Tester";
@@ -21,19 +20,18 @@ namespace UnityEditor.VFX
                 get
                 {
                     if (Selection.activeGameObject && Selection.activeGameObject.TryGetComponent<VisualEffect>(out m_Effect))
-                        return visible;
+                        return VFXEventTesterWindow.visible;
                     return false;
                 }
             }
 
 
-            public void OnSceneGUI()
+            public override void OnGUI()
             {
                 if (visible)
                     WindowGUI();
             }
         }
-        */
 
         public static bool visible { get { return s_Visible; } set { SetVisibility(value); } }
 
