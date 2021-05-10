@@ -20,7 +20,7 @@
 #if OUTPUT_SHADOWMASK && defined(_LIGHT_LAYERS)
     #define GBUFFER_OPTIONAL_SLOT_1 GBuffer5
     #define GBUFFER_OPTIONAL_SLOT_2 GBuffer6
-    #define FER_LIGHT_LAYERS GBuffer5
+    #define GBUFFER_LIGHT_LAYERS GBuffer5
     #define GBUFFER_SHADOWMASK GBuffer6
 #elif OUTPUT_SHADOWMASK
     #define GBUFFER_OPTIONAL_SLOT_1 GBuffer5
