@@ -133,7 +133,7 @@ public class LensFlareSamplesInputAndControl : MonoBehaviour
         {
             IncrementFlare();
         }
-        else if (Input.GetKeyDown("a")|| Input.GetKeyDown("right"))
+        else if (Input.GetKeyDown("a") || Input.GetKeyDown("right"))
         {
             DecrementFlare();
         }
@@ -168,7 +168,7 @@ public class LensFlareSamplesInputAndControl : MonoBehaviour
 
     private void UpdateFlareNameUI()
     {
-        // set the flare name in the UI but only the name 
+        // set the flare name in the UI but only the name
         lensFlareUIText.text = lensFlares[flareNumber].ToString().Split(char.Parse("("))[0];
     }
 
@@ -232,7 +232,6 @@ public class LensFlareSamplesInputAndControl : MonoBehaviour
             Cursor.lockState = CursorLockMode.None;
         }
 #endif
-
     }
 
     private void CameraShake()
