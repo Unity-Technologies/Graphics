@@ -54,9 +54,7 @@ Pass
         nointerpolation float2 builtInInterpolants2 : TEXCOORD5;
         #endif
         
-#if VFX_NEEDS_POSWS_INTERPOLATOR
-        float3 posWS : TEXCOORD6;
-#endif
+        float3 posWS : TEXCOORD6; //Needed for GI
 
         ${VFXAdditionalInterpolantsDeclaration}
     
@@ -82,9 +80,7 @@ ${VFXURPLitVaryingsMacros}
 #if USE_NORMAL_MAP || SHADERGRAPH_NEEDS_TANGENT_GBUFFER
 #define VFX_VARYING_TANGENT tangent
 #endif
-#if VFX_NEEDS_POSWS_INTERPOLATOR
 #define VFX_VARYING_POSWS posWS
-#endif
 
 ${VFXBegin:VFXVertexAdditionalProcess}
 ${VFXURPLitFillVaryings}

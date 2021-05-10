@@ -44,9 +44,8 @@ Pass
         #if USE_NORMAL_BENDING
         float2 bentFactors : TEXCOORD6;
         #endif
-        #if VFX_NEEDS_POSWS_INTERPOLATOR
-        float3 posWS : TEXCOORD7;
-        #endif
+		
+        float3 posWS : TEXCOORD7; //Needed for GI
 
         ${VFXAdditionalInterpolantsDeclaration}
 
@@ -66,9 +65,7 @@ ${VFXURPLitVaryingsMacros}
 #if USE_NORMAL_MAP || USE_NORMAL_BENDING || SHADERGRAPH_NEEDS_TANGENT_GBUFFER
 #define VFX_VARYING_TANGENT tangent
 #endif
-#if VFX_NEEDS_POSWS_INTERPOLATOR
 #define VFX_VARYING_POSWS posWS
-#endif
 #if USE_NORMAL_BENDING
 #define VFX_VARYING_BENTFACTORS bentFactors
 #endif
