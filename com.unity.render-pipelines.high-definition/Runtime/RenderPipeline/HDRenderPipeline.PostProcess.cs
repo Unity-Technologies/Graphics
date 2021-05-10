@@ -2776,7 +2776,6 @@ namespace UnityEngine.Rendering.HighDefinition
                     passData.parameters = PrepareLensFlareParameters(hdCamera);
                     passData.hdCamera = hdCamera;
                     TextureHandle dest = GetPostprocessOutputHandle(renderGraph, "Lens Flare Destination");
-                    //passData.destination = builder.WriteTexture(dest);
 
                     builder.SetRenderFunc(
                         (LensFlareData data, RenderGraphContext ctx) =>
@@ -2793,8 +2792,14 @@ namespace UnityEngine.Rendering.HighDefinition
                                 (a, b, c) => { return GetLensFlareLightAttenuation(a, b, c); },
                                 HDShaderIDs._FlareTex, HDShaderIDs._FlareColorValue,
                                 HDShaderIDs._FlareData0, HDShaderIDs._FlareData1, HDShaderIDs._FlareData2, HDShaderIDs._FlareData3, HDShaderIDs._FlareData4, HDShaderIDs._FlareData5,
+                                hdCamera.xr.enabled, hdCamera.xr.singlePassEnabled,
+                                //hdCamera.xr.enabled ? hdCamera.xr.GetViewMatrix(0) : hdCamera.camera.worldToCameraMatrix,
+                                hdCamera.camera.worldToCameraMatrix,
+                                //(hdCamera.xr.enabled && hdCamera.xr.viewCount > 1) ? hdCamera.xr.GetViewMatrix(1) : Matrix4x4.identity,
+                                Matrix4x4.identity,
                                 data.parameters.skipCopy);
                         });
+
 
                     PushFullScreenDebugTexture(renderGraph, source, FullScreenDebugMode.LensFlareDataDriven);
                 }
