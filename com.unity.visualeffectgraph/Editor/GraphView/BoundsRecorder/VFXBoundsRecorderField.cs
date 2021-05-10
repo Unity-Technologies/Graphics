@@ -16,11 +16,10 @@ namespace  UnityEditor.VFX.UI
 {
     class VFXBoundsRecorderField : VisualElement, ISelectable
     {
-
         private Button m_Button;
         private VisualElement m_Divider;
         private VFXView m_View;
-        
+
 
         public string text
         {
@@ -31,7 +30,7 @@ namespace  UnityEditor.VFX.UI
         private bool m_Selected = false;
 
         public class VFXBoundsRecorderFieldUIFactory : UxmlFactory<VFXBoundsRecorderField>
-        { }
+        {}
 
         IVisualElementScheduledItem m_UpdateItem;
 
@@ -66,7 +65,7 @@ namespace  UnityEditor.VFX.UI
             {
                 Select(selector, true);
             }
-            if(!tiedContextSelected && m_Selected)
+            if (!tiedContextSelected && m_Selected)
             {
                 Unselect(selector);
             }
@@ -131,7 +130,6 @@ namespace  UnityEditor.VFX.UI
                 Select(selector, e.actionKey);
             }
             e.StopPropagation();
-
         }
 
         public bool IsSelectable()
@@ -176,7 +174,6 @@ namespace  UnityEditor.VFX.UI
 
         public bool IsSelected(VisualElement selectionContainer)
         {
-
             if (selectionContainer is ISelection selection)
             {
                 if (selection.selection.Contains(this))

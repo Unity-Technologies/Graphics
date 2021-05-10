@@ -128,7 +128,6 @@ namespace UnityEditor.VFX.UI
             }
             UpdateBorder();
         }
-    
 
         public override void OnUnselected()
         {

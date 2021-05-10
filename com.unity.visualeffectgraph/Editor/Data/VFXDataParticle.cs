@@ -259,7 +259,6 @@ namespace UnityEditor.VFX
                 }
                 capacity = stripCapacity * particlePerStripCount;
             }
-
         }
 
         protected override void OnInvalidate(VFXModel model, InvalidationCause cause)
@@ -671,7 +670,7 @@ namespace UnityEditor.VFX
             {
                 systemFlag |= VFXSystemFlag.SystemInWorldSpace;
             }
-            
+
             var initContext = m_Contexts.FirstOrDefault(o => o.contextType == VFXContextType.Init);
             if (initContext != null)
                 systemBufferMappings.AddRange(effectiveFlowInputLinks[initContext].SelectMany(t => t.Select(u => u.context)).Where(o => o.contextType == VFXContextType.Spawner).Select(o => new VFXMapping("spawner_input", contextSpawnToBufferIndex[o])));
@@ -692,7 +691,7 @@ namespace UnityEditor.VFX
                     systemValueMappings.Add(new VFXMapping("bounds_center", boundsCenterIndex));
                     systemValueMappings.Add(new VFXMapping("bounds_size", boundsSizeIndex));
                 }
-                if(boundsPaddingIndex != -1)
+                if (boundsPaddingIndex != -1)
                 {
                     systemValueMappings.Add(new VFXMapping("boundsPadding", boundsPaddingIndex));
                 }

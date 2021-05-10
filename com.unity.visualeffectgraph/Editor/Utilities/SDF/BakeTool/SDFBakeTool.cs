@@ -91,8 +91,8 @@ namespace UnityEditor.Experimental.VFX.SDF
         private Vector3 m_ActualBoxSize;
 
 
-    protected void OnGUI()
-    {
+        protected void OnGUI()
+        {
             if (m_Settings == null)
             {
                 m_Settings = CreateInstance<SdfBakerSettings>();
@@ -186,7 +186,6 @@ namespace UnityEditor.Experimental.VFX.SDF
             bool fitPaddingChanged = false;
             if (m_ShowAdvanced)
             {
-
                 m_FoldOutParameters = EditorGUILayout.BeginFoldoutHeaderGroup(m_FoldOutParameters, Contents.bakingParameters);
                 EditorGUI.BeginChangeCheck();
                 if (m_FoldOutParameters)
@@ -195,9 +194,8 @@ namespace UnityEditor.Experimental.VFX.SDF
                     signPassesCount = Mathf.Clamp(EditorGUILayout.IntField(Contents.signPass, signPassesCount), 0,
                         20);
                     inOutThreshold = EditorGUILayout.Slider(Contents.inOutParam, inOutThreshold, 0.0f, 1.0f);
-                    surfaceOffset = EditorGUILayout.Slider(Contents.sdfOffset, surfaceOffset, -0.5f, 0.5f );
+                    surfaceOffset = EditorGUILayout.Slider(Contents.sdfOffset, surfaceOffset, -0.5f, 0.5f);
                     EditorGUI.indentLevel--;
-
                 }
                 EditorGUILayout.EndFoldoutHeaderGroup();
                 needsUpdate |= EditorGUI.EndChangeCheck();
@@ -230,7 +228,7 @@ namespace UnityEditor.Experimental.VFX.SDF
             }
 
             EditorGUI.BeginChangeCheck();
-            modelSource = (ModelSource) EditorGUILayout.EnumPopup(Contents.bakeSource, modelSource);
+            modelSource = (ModelSource)EditorGUILayout.EnumPopup(Contents.bakeSource, modelSource);
             bool changedSource = EditorGUI.EndChangeCheck();
             needsUpdate |= changedSource;
 
@@ -239,7 +237,7 @@ namespace UnityEditor.Experimental.VFX.SDF
                 case ModelSource.Mesh:
                     EditorGUI.BeginChangeCheck();
                     selectedMesh =
-                        (Mesh) EditorGUILayout.ObjectField(Contents.mesh, selectedMesh, typeof(Mesh), false);
+                        (Mesh)EditorGUILayout.ObjectField(Contents.mesh, selectedMesh, typeof(Mesh), false);
                     bool meshFieldHasChanged = EditorGUI.EndChangeCheck();
                     needsUpdate |= meshFieldHasChanged;
 
@@ -254,9 +252,9 @@ namespace UnityEditor.Experimental.VFX.SDF
                 case ModelSource.MeshPrefab:
                     EditorGUI.BeginChangeCheck();
                     meshPrefab =
-                        (GameObject) EditorGUILayout.ObjectField(Contents.meshPrefab, meshPrefab, typeof(GameObject),
+                        (GameObject)EditorGUILayout.ObjectField(Contents.meshPrefab, meshPrefab, typeof(GameObject),
                             false);
-                    
+
                     meshFieldHasChanged = EditorGUI.EndChangeCheck() || m_PrefabChanged;
                     m_PrefabChanged = false;
                     needsUpdate |= meshFieldHasChanged;
@@ -321,7 +319,7 @@ namespace UnityEditor.Experimental.VFX.SDF
 
             GUI.enabled = true;
 
-            previewObject = (PreviewChoice) EditorGUILayout.EnumPopup(Contents.previewChoice, previewObject);
+            previewObject = (PreviewChoice)EditorGUILayout.EnumPopup(Contents.previewChoice, previewObject);
             if ((previewObject & PreviewChoice.Mesh) != 0)
             {
                 UpdateMeshPreview();
@@ -332,11 +330,11 @@ namespace UnityEditor.Experimental.VFX.SDF
                 UpdateTexture3dPreview();
             }
 
-            if(needsUpdate)
+            if (needsUpdate)
                 EditorUtility.SetDirty(m_Settings);
-    }
+        }
 
-    private void UpdateTexture3dPreview()
+        private void UpdateTexture3dPreview()
         {
             if (m_BakedSDF)
             {
@@ -350,7 +348,6 @@ namespace UnityEditor.Experimental.VFX.SDF
                 EditorGUI.DropShadowLabel(rect, m_TexturePreview.GetInfoString());
             }
         }
-
 
         private void UpdateMeshPreview()
         {
@@ -378,7 +375,7 @@ namespace UnityEditor.Experimental.VFX.SDF
             GUI.Button(rect, Contents.contextMenuIcon, GUIStyle.none);
             if (EditorGUI.EndChangeCheck())
             {
-                OnContextClick(new Vector2(rect.x, rect.yMax) );
+                OnContextClick(new Vector2(rect.x, rect.yMax));
             }
         }
 
@@ -408,7 +405,6 @@ namespace UnityEditor.Experimental.VFX.SDF
             PrefabUtility.prefabInstanceUpdated += OnPrefabInstanceUpdated;
             Selection.selectionChanged += OnSelectionChanged;
         }
-
 
         public void OnDisable()
         {
@@ -443,7 +439,6 @@ namespace UnityEditor.Experimental.VFX.SDF
             m_MeshPreview = new SdfBakerPreview(mesh);
         }
 
-
         void OnSelectionChanged()
         {
             if (Selection.activeObject is SdfBakerSettings)
@@ -453,6 +448,7 @@ namespace UnityEditor.Experimental.VFX.SDF
                 Repaint();
             }
         }
+
         protected void FitBoxToMesh()
         {
             boxCenter = mesh.bounds.center;
@@ -472,6 +468,7 @@ namespace UnityEditor.Experimental.VFX.SDF
             boxSizeReference += absolutePadding;
             m_ActualBoxSize = SnapBoxToVoxels();
         }
+
         private Vector3 GetAbsolutePadding()
         {
             float maxExtent = Mathf.Max(boxSizeReference.x, Mathf.Max(boxSizeReference.y, boxSizeReference.z));
@@ -512,7 +509,7 @@ namespace UnityEditor.Experimental.VFX.SDF
         {
             float maxExtent = Mathf.Max(boxSizeReference.x, Mathf.Max(boxSizeReference.y, boxSizeReference.z));
             int dimX, dimY, dimZ;
-            
+
             if (refAxis == 0 || refAxis > 3) // Default behavior, choose largest dimension
             {
                 if (maxExtent == boxSizeReference.x)
@@ -628,7 +625,6 @@ namespace UnityEditor.Experimental.VFX.SDF
                 m_Settings.hideFlags = HideFlags.None;
                 AssetDatabase.CreateAsset(m_Settings, path);
             }
-
         }
 
         internal void LoadSettings(SdfBakerSettings newSettings)
@@ -679,19 +675,18 @@ namespace UnityEditor.Experimental.VFX.SDF
 
             public static GUIContent saveSDFBlocked = new GUIContent("Save SDF",
                 "There is nothing to save yet. Please use the Bake Mesh button before saving.");
-            static Texture2D paneOptionsIconDark = (Texture2D) EditorGUIUtility.Load("Builtin Skins/DarkSkin/Images/pane options.png");
-            static Texture2D paneOptionsIconLight = (Texture2D) EditorGUIUtility.Load("Builtin Skins/LightSkin/Images/pane options.png");
+            static Texture2D paneOptionsIconDark = (Texture2D)EditorGUIUtility.Load("Builtin Skins/DarkSkin/Images/pane options.png");
+            static Texture2D paneOptionsIconLight = (Texture2D)EditorGUIUtility.Load("Builtin Skins/LightSkin/Images/pane options.png");
             static Texture2D paneOptionsIcon { get { return EditorGUIUtility.isProSkin ? paneOptionsIconDark : paneOptionsIconLight; } }
             public static GUIContent contextMenuIcon = new GUIContent(paneOptionsIcon, "Additional Properties");
 
             public static GUIContent fitPadding = new GUIContent("Fit Padding", "Controls the padding, in voxel, to apply when using \"Fit Box/Cube to Mesh\".");
-            public static GUIContent fitBoxToMesh = new GUIContent("Fit box to Mesh", "Fits the bounding box of the bake to the bounding box of the mesh. Padding specified in \"Fit Padding\" (in Additional Properties) will be applied." );
+            public static GUIContent fitBoxToMesh = new GUIContent("Fit box to Mesh", "Fits the bounding box of the bake to the bounding box of the mesh. Padding specified in \"Fit Padding\" (in Additional Properties) will be applied.");
             public static GUIContent fitCubeToMesh = new GUIContent("Fit cube to Mesh", "Fits the bounding box of the bake to the bounding cube of the mesh. Padding specified in \"Fit Padding\" (in Additional Properties) will be applied.");
             public static GUIContent bakingParameters = new GUIContent("Baking parameters");
             public static GUIContent createNewSession = new GUIContent("New Session", "Resets the tool to its default parameters, creating a new unsaved settings assets. This will also erase the current baked SDF texture if there is any.");
             public static GUIContent saveSettings = new GUIContent("Save Settings", "Saves the settings of the tool into an asset.");
             public static GUIContent settingsAsset = new GUIContent("Settings Asset");
-
         }
     }
 }

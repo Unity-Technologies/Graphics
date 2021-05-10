@@ -59,7 +59,7 @@ uint id3(int3 coord)
 
 float3 GetVertexObj(uint idThread, uint idVertex)
 {
-	return vertices[indices[3 * idThread + idVertex]];
+    return vertices[indices[3 * idThread + idVertex]];
 }
 
 [numthreads(64, 1, 1)]
@@ -70,7 +70,7 @@ void GenerateTrianglesUV(uint3 id: SV_DispatchThreadID)
 
     float3 half_extents = 0.5f * (maxBoundsExtended - minBoundsExtended) / maxExtent;
     float3 center = 0.5f * (maxBoundsExtended + minBoundsExtended);
-    Triangle triUV; 
+    Triangle triUV;
     triUV.a = (GetVertexObj(id.x, 0) - center) / maxExtent + half_extents;
     triUV.b = (GetVertexObj(id.x, 1) - center) / maxExtent + half_extents;
     triUV.c = (GetVertexObj(id.x, 2) - center) / maxExtent + half_extents;
@@ -85,7 +85,7 @@ void ConservativeRasterization(uint3 id: SV_DispatchThreadID)
         return;
     if(coordFlip[id.x] != currentAxis)
         return;
-        
+
     uint i;
 
     float4 vertex[3];
@@ -122,7 +122,7 @@ void ConservativeRasterization(uint3 id: SV_DispatchThreadID)
     // Get AABB of the triangle.
     _aabb.xy = min(_aabb.xy, min(vertex[0].xy, min(vertex[1].xy, vertex[2].xy)));
     _aabb.zw = max(_aabb.xy, max(vertex[0].xy, max(vertex[1].xy, vertex[2].xy)));
-    
+
     // Add offset of half pixel size to AABB.
     aabb[id.x] = _aabb + float4(-hPixel.x, -hPixel.y, hPixel.x, hPixel.y);
 
@@ -143,7 +143,7 @@ void ConservativeRasterization(uint3 id: SV_DispatchThreadID)
         }
         vertexCons[i] /= vertexCons[i].w;
     }
-    
+
     for ( i = 0; i < 3; i++)
     {
         // Calculate the new z-Coordinate derived from a point on a plane.
@@ -160,7 +160,7 @@ void ChooseDirectionTriangleOnly(uint3 id: SV_DispatchThreadID)
 {
     if (id.x >= nTriangles)
         return;
-   
+
     float3 n = computeNormalUnnormalized(GetVertexObj(id.x, 0), GetVertexObj(id.x, 1), GetVertexObj(id.x, 2));
     n = abs(n);
     float3 temp;
@@ -262,7 +262,7 @@ void InBucketSum(uint3 DTid: SV_DispatchThreadID, uint3 GTid: SV_GroupThreadID, 
         x = 0u;
     }
     else{
-        x = Input[DTid.x]; 
+        x = Input[DTid.x];
     }
     PrefixSum(DTid, GI, x);
 }
@@ -279,7 +279,7 @@ void BlockSums(uint3 DTid: SV_DispatchThreadID, uint3 GTid: SV_GroupThreadID, ui
     {
         uint id = (DTid.x + 1) * groupthreads - 1;
         x = Input[id] + inputCounter[id]; // Change the type of x here if scan other types
-    }   
+    }
     PrefixSum(DTid, GI, x);
 }
 
@@ -295,7 +295,7 @@ void FinalSum(uint3 Gid: SV_GroupID, uint3 DTid: SV_DispatchThreadID) {
     {
         Result[DTid.x] = Input[DTid.x] + auxBuffer[Gid.x];
     }
-    
+
 }
 
 [numthreads(groupthreads, 1, 1)]
@@ -348,12 +348,12 @@ void SurfaceClosing(uint3 id : SV_DispatchThreadID)
     if (id.x >= (uint)size.x-1 || id.y >= (uint)size.y-1 || id.z >= (uint)size.z-1)
         return;
     uint size_max = Max3(size.x, size.y, size.z);
-	if(  (signMap[id.xyz]-threshold)*(signMap[id.xyz + uint3(1,0,0)] - threshold) < 0
+    if(  (signMap[id.xyz]-threshold)*(signMap[id.xyz + uint3(1,0,0)] - threshold) < 0
         || (signMap[id.xyz] - threshold) * (signMap[id.xyz + uint3(0, 1, 0)] - threshold) < 0
         || (signMap[id.xyz] - threshold) * (signMap[id.xyz + uint3(0, 0, 1)] - threshold) < 0)
-	{
+    {
         voxels[id.xyz] = float4 ((float3(id.xyz) + float3(0.5f, 0.5f, 0.5f)) / size_max, 1.0f);
-	}
+    }
 }
 
 
@@ -468,7 +468,7 @@ void GenerateRayMapLocal(uint3 id: SV_DispatchThreadID) {
         Triangle tri = trianglesUV[idTri];
         float3 intersectForward, intersectBackward;
         TestIntersection6Rays(tri, int3(id.xyz), intersectForward, intersectBackward);
-       
+
 
 
         rayMap[id.xyz] += float4(intersectForward, 1.0f);
@@ -558,19 +558,19 @@ void SignPassNeighbors(uint3 id: SV_DispatchThreadID) {
         //////xyz,
         accumSign += (selfRayMap.x - rayMap[int3(neighborsIndex.x, id.y, id.z)].x);
         accumSign += (rayMap[int3(neighborsIndex.x, id.y, id.z)].y - rayMap[int3(neighborsIndex.x, neighborsIndex.y, id.z)].y);
-    	accumSign += (rayMap[int3(neighborsIndex.x, neighborsIndex.y, id.z)].z - rayMap[neighborsIndex].z);
+        accumSign += (rayMap[int3(neighborsIndex.x, neighborsIndex.y, id.z)].z - rayMap[neighborsIndex].z);
 
 
         ////// xzy
         accumSign += (selfRayMap.x - rayMap[int3(neighborsIndex.x, id.y, id.z)].x);
         accumSign += (rayMap[int3(neighborsIndex.x, id.y, id.z)].z - rayMap[int3(neighborsIndex.x, id.y, neighborsIndex.z)].z);
         accumSign += (rayMap[int3(neighborsIndex.x, id.y, neighborsIndex.z)].y - rayMap[neighborsIndex].y);
-    	
+
         //////yxz,
         accumSign += (selfRayMap.y - rayMap[int3(id.x, neighborsIndex.y, id.z)].y);
         accumSign += (rayMap[int3(id.x, neighborsIndex.y, id.z)].x - rayMap[int3(neighborsIndex.x, neighborsIndex.y, id.z)].x);
         accumSign += (rayMap[int3(neighborsIndex.x, neighborsIndex.y, id.z)].z - rayMap[neighborsIndex].z);
-    	
+
         ////yzx,
         accumSign += (selfRayMap.y - rayMap[int3(id.x, neighborsIndex.y, id.z)].y);
         accumSign += (rayMap[int3(id.x, neighborsIndex.y, id.z)].z - rayMap[int3(id.x, neighborsIndex.y, neighborsIndex.z)].z);
@@ -589,12 +589,12 @@ void SignPassNeighbors(uint3 id: SV_DispatchThreadID) {
         signMap[id.xyz] += normalizeFactor * accumSign + 6 * signMapTmp[neighborsIndex];
 
     }
-	if (needNormalize)
-	{
-		int normalizeFactorFinal = normalizeFactor + numNeighbours * 6 * normalizeFactor;
+    if (needNormalize)
+    {
+        int normalizeFactorFinal = normalizeFactor + numNeighbours * 6 * normalizeFactor;
         signMap[id.xyz] /= normalizeFactorFinal;
 
-	}
+    }
 }
 
 RWTexture3D<float> distanceTexture;
@@ -618,10 +618,10 @@ void DistanceTransform(uint3 id: SV_DispatchThreadID) {
         Triangle tri = trianglesUV[idTri];
         dist = min(dist,ComputeDistancePointTri(voxelCoord, tri));
     }
-	if(dist == 9999)
-	{
+    if(dist == 9999)
+    {
         dist = length(seedCoord - voxelCoord);
-	}
+    }
     distanceTexture[id.xyz] = signD * dist - sdfOffset;
 }
 
@@ -634,7 +634,7 @@ void ClearTexturesAndBuffers(uint3 id : SV_DispatchThreadID)
     voxelsTmp[int3(id.x, id.y, id.z)] = float4(0.0f,0.0f,0.0f,0.0f);
     rayMap[int3(id.x, id.y, id.z)]= float4(0.0f,0.0f,0.0f,0.0f);
     signMap[int3(id.x, id.y, id.z)] = 0.0f;
-	signMapTmp[int3(id.x, id.y, id.z)] = 0.0f;
+    signMapTmp[int3(id.x, id.y, id.z)] = 0.0f;
     accumCounter[id3(id.xyz)] = 0u;
     counter[id3(id.xyz)] = 0u;
     voxelsBuffer[id3(id.xyz)] = float4(0.0f,0.0f,0.0f,0.0f);

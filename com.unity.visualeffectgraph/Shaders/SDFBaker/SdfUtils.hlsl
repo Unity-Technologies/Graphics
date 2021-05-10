@@ -102,24 +102,23 @@ int3 GenerateNeighborOffset(int iNeighbour, float maxSize, float distToSurface)
 
 float ComputeDistancePointTri(float3 p, Triangle tri)
 {
-    // prepare data    
+    // prepare data
     float3 v21 = tri.b - tri.a; float3 p1 = p - tri.a;
     float3 v32 = tri.c - tri.b; float3 p2 = p - tri.b;
     float3 v13 = tri.a - tri.c; float3 p3 = p - tri.c;
     float3 nor = cross(v21, v13);
 
-    return sqrt( // inside/outside test    
+    return sqrt( // inside/outside test
         (sign(dot(cross(v21, nor), p1)) +
             sign(dot(cross(v32, nor), p2)) +
             sign(dot(cross(v13, nor), p3)) < 2.0f)
         ?
-        // 3 edges    
+        // 3 edges
         min(min(
             dot2(v21 * clamp(dot(v21, p1) / dot2(v21), 0.0, 1.0) - p1),
             dot2(v32 * clamp(dot(v32, p2) / dot2(v32), 0.0, 1.0) - p2)),
             dot2(v13 * clamp(dot(v13, p3) / dot2(v13), 0.0, 1.0) - p3))
         :
-        // 1 face    
+        // 1 face
         dot(nor, p1) * dot(nor, p1) / dot2(nor));
 }
-

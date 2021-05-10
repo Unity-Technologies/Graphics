@@ -31,7 +31,7 @@ Create a new C# script (**Assets** > **Create** > **C# Script**), call it VFXUpd
 
 3. **On Update (every frame)**:
 
-4. - It bakes the SkinnedMeshRenderer's Mesh in its current state and assigns the resulting SDF texture to the property set up in [Visual Effect Graph setup](#visual-effect-graph-setup). 
+4. - It bakes the SkinnedMeshRenderer's Mesh in its current state and assigns the resulting SDF texture to the property set up in [Visual Effect Graph setup](#visual-effect-graph-setup).
 
 5. **On Destroy (when the attached GameObject is destroyed)**:
 
@@ -41,8 +41,8 @@ Create a new C# script (**Assets** > **Create** > **C# Script**), call it VFXUpd
 using UnityEngine;
 using UnityEngine.VFX;
 using UnityEngine.VFX.SDF;
- 
- 
+
+
 public class VFXUpdateSkinnedSDF : MonoBehaviour
 {
     MeshToSDFBaker m_Baker;
@@ -54,7 +54,7 @@ public class VFXUpdateSkinnedSDF : MonoBehaviour
     public Vector3 sizeBox;
     public int signPassCount = 1;
     public float threshold = 0.5f;
- 
+
     void Start()
     {
         m_Mesh = new Mesh();
@@ -72,7 +72,7 @@ public class VFXUpdateSkinnedSDF : MonoBehaviour
         m_Baker.BakeSDF();
         m_Vfx.SetTexture("WalkingSDF", m_Baker.SdfTexture);
     }
- 
+
     void OnDestroy()
     {
         if (m_Baker != null)

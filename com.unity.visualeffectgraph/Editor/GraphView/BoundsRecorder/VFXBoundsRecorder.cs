@@ -1,4 +1,3 @@
-
 using System;
 using System.Linq;
 using System.Collections.Generic;
@@ -19,7 +18,7 @@ namespace UnityEditor.VFX.UI
     {
         private VisualEffect m_Effect;
         private bool m_IsRecording = false;
-        private Dictionary<string,Bounds> m_Bounds;
+        private Dictionary<string, Bounds> m_Bounds;
         private Dictionary<string, bool> m_FirstBound;
         private VFXView m_View;
         private VFXGraph m_Graph;
@@ -125,7 +124,6 @@ namespace UnityEditor.VFX.UI
             isRecording = false;
         }
 
-
         public bool NeedsToBeRecorded(string systemName)
         {
             try
@@ -151,10 +149,9 @@ namespace UnityEditor.VFX.UI
             }
         }
 
-
         public bool NeedsAnyToBeRecorded()
         {
-            foreach(var system in viewableSystems)
+            foreach (var system in viewableSystems)
             {
                 if (NeedsToBeRecorded(system))
                 {
@@ -273,7 +270,7 @@ namespace UnityEditor.VFX.UI
                 yield break;
             }
             var ctx = owner as VFXContext;
-            if(ctx != null)
+            if (ctx != null)
             {
                 yield return ctx.GetData();
                 yield break;
@@ -281,7 +278,7 @@ namespace UnityEditor.VFX.UI
 
             var op = owner as VFXOperator;
             if (op != null)
-            { 
+            {
                 var outSlots = op.outputSlots;
                 foreach (var outSlot in outSlots)
                 {
@@ -366,7 +363,6 @@ namespace UnityEditor.VFX.UI
                     renderAllRecordedBounds = true;
                 foreach (var system in viewableSystems)
                 {
-                    
                     string systemName = "";
                     try  //RenderBounds() is not executed in the same thread, so it can be executed before viewableSystems is up-to-date when a system is deleted
                     {
@@ -376,11 +372,10 @@ namespace UnityEditor.VFX.UI
                     {
                         continue;
                     }
-                    
+
                     if ((selectedSystems.Contains(systemName) || renderAllRecordedBounds) && m_Bounds.ContainsKey(systemName) && NeedsToBeRecorded(system))
                         RenderBoundsSystem(m_Bounds[systemName]);
                 }
-
             }
         }
 
@@ -460,7 +455,7 @@ namespace UnityEditor.VFX.UI
             foreach (var system in viewableSystems)
             {
                 string systemName = "";
-                try  
+                try
                 {
                     systemName = m_Graph.systemNames.GetUniqueSystemName(system);
                 }
@@ -499,7 +494,7 @@ namespace UnityEditor.VFX.UI
                         break;
                     }
                     var boundsSlot = initContext.inputSlots.FirstOrDefault(s => s.name == "bounds");
-                    if(initContext.GetOutputSpaceFromSlot(boundsSlot) == VFXCoordinateSpace.Local) //This should always be the case
+                    if (initContext.GetOutputSpaceFromSlot(boundsSlot) == VFXCoordinateSpace.Local) //This should always be the case
                         boundsSlot.value = new AABox() { center = m_Bounds[systemName].center, size = m_Bounds[systemName].size };
                     else
                     {

@@ -264,7 +264,7 @@ namespace UnityEditor.VFX.UI
                 foreach (var elem in m_SystemBoundsContainer.Children())
                 {
                     var systemBound = elem as VFXComponentBoardBoundsSystemUI;
-                    if(systemBound != null)
+                    if (systemBound != null)
                         needClearSelection |= systemBound.Unselect();
                 }
             }
@@ -323,8 +323,8 @@ namespace UnityEditor.VFX.UI
         {
             bool hasSomethingToRecord = m_BoundsRecorder != null && m_BoundsRecorder.NeedsAnyToBeRecorded();
             m_RecordBoundsButton.SetEnabled(hasSomethingToRecord);
-            
-            if (hasSomethingToRecord && m_BoundsRecorder.isRecording )
+
+            if (hasSomethingToRecord && m_BoundsRecorder.isRecording)
             {
                 float remainder = Time.realtimeSinceStartup % 1.0f;
                 if (remainder < 0.22f)
@@ -338,7 +338,6 @@ namespace UnityEditor.VFX.UI
 
                 m_BoundsToolContainer.style.backgroundColor = m_BackgroundRecordingColor;
                 m_BoundsActionLabel.text = "Recording in progress...";
-                
             }
             else
             {
@@ -346,7 +345,7 @@ namespace UnityEditor.VFX.UI
                 m_BoundsToolContainer.style.backgroundColor = m_BackgroundDefaultColor;
                 m_BoundsActionLabel.text = "Bounds Recording";
             }
-            if(!hasSomethingToRecord && m_BoundsRecorder.isRecording)
+            if (!hasSomethingToRecord && m_BoundsRecorder.isRecording)
                 m_BoundsRecorder.ToggleRecording();
         }
 
@@ -358,7 +357,7 @@ namespace UnityEditor.VFX.UI
 
         void ApplyCurrentBounds()
         {
-            if(m_View.IsAssetEditable())
+            if (m_View.IsAssetEditable())
                 m_BoundsRecorder.ApplyCurrentBounds();
         }
 
@@ -373,7 +372,7 @@ namespace UnityEditor.VFX.UI
 
         void UpdateBoundsRecorder()
         {
-            if(m_AttachedComponent != null)
+            if (m_AttachedComponent != null)
             {
                 controller.RecompileExpressionGraphIfNeeded();
                 bool wasRecording = false;
@@ -383,7 +382,7 @@ namespace UnityEditor.VFX.UI
                     m_BoundsRecorder.CleanUp();
                 }
                 m_BoundsRecorder = new VFXBoundsRecorder(m_AttachedComponent, m_View);
-                if (wasRecording && !m_View.controller.isReentrant) //If this is called during an Undo/Redo, toggling the recording will cause a reentrant invalidation  
+                if (wasRecording && !m_View.controller.isReentrant) //If this is called during an Undo/Redo, toggling the recording will cause a reentrant invalidation
                 {
                     m_BoundsRecorder.ToggleRecording();
                 }
@@ -412,6 +411,7 @@ namespace UnityEditor.VFX.UI
                 }
             }
         }
+
         void OnEffectSlider(float f)
         {
             if (m_AttachedComponent != null)
@@ -605,7 +605,6 @@ namespace UnityEditor.VFX.UI
                 UpdateBoundsRecorder();
                 UpdateRecordingButton();
                 RefreshInitializeErrors();
-
             }
         }
 
@@ -665,7 +664,6 @@ namespace UnityEditor.VFX.UI
             UpdateBoundsModes();
             m_ApplyBoundsButton.SetEnabled(m_BoundsRecorder.bounds.Any() && m_View.IsAssetEditable());
             UpdateRecordingButton();
-
         }
 
         void UpdatePlayRate()
@@ -737,7 +735,7 @@ namespace UnityEditor.VFX.UI
         void IControlledElement.OnControllerChanged(ref ControllerChangedEvent e)
         {
             UpdateEventList();
-            if(e.change != VFXViewController.Change.ui)
+            if (e.change != VFXViewController.Change.ui)
                 UpdateBoundsRecorder();
         }
 
@@ -855,7 +853,7 @@ namespace UnityEditor.VFX.UI
                     boundsModeElem.UpdateLabel();
                 }
             }
-            if(systemNamesChanged)
+            if (systemNamesChanged)
                 UpdateBoundsRecorder();
         }
 
@@ -986,7 +984,7 @@ namespace UnityEditor.VFX.UI
             }
         }
 
-        private List<string> m_BoundsModes = new List<string>{"Manual", "Recorded", "Automatic"};
+        private List<string> m_BoundsModes = new List<string> {"Manual", "Recorded", "Automatic"};
 
         void OnBoundsModeMenu()
         {
@@ -1005,12 +1003,11 @@ namespace UnityEditor.VFX.UI
             m_BoundsMode.text = m_CurrentMode.ToString();
             if (!m_BoundsRecorder.NeedsToBeRecorded(m_SystemName, out VFXBoundsRecorder.ExclusionCause cause))
             {
-                m_SystemNameButton.text = $"{m_SystemName} {VFXBoundsRecorder.exclusionCauseString[cause]}" ;
+                m_SystemNameButton.text = $"{m_SystemName} {VFXBoundsRecorder.exclusionCauseString[cause]}";
                 m_SystemNameButton.tooltip =
                     $"This system will not be taken into account in the recording because {VFXBoundsRecorder.exclusionCauseTooltip[cause]}";
                 m_SystemNameButton.style.color = m_Colors["excluded"];
                 m_SystemNameButton.SetEnabled(false);
-
             }
             else
             {
@@ -1030,7 +1027,7 @@ namespace UnityEditor.VFX.UI
         {
             m_CurrentMode = (BoundsSettingMode)mode;
             m_BoundsMode.text = mode.ToString();
-            m_BoundsRecorder.ModifyMode(m_SystemName, (BoundsSettingMode) mode);
+            m_BoundsRecorder.ModifyMode(m_SystemName, (BoundsSettingMode)mode);
         }
 
         public void ReleaseBoundsRecorder()
@@ -1044,36 +1041,34 @@ namespace UnityEditor.VFX.UI
             return m_SystemNameButton.Unselect();
         }
 
-
         string m_SystemName;
         VFXBoundsRecorderField m_SystemNameButton;
         Button m_BoundsMode;
-        BoundsSettingMode m_CurrentMode; 
+        BoundsSettingMode m_CurrentMode;
         VFXBoundsRecorder m_BoundsRecorder;
-        Dictionary<string,StyleColor> m_Colors;
+        Dictionary<string, StyleColor> m_Colors;
 
         static class BoundsSystemContents
         {
             public static Dictionary<BoundsSettingMode, GUIContent> modesContent =
                 new Dictionary<BoundsSettingMode, GUIContent>()
+            {
                 {
-                    {
-                        BoundsSettingMode.Automatic,
-                        new GUIContent(BoundsSettingMode.Automatic.ToString(),
-                            "Systems with the Automatic bounds setting will not be affected by the recording.")
-                    },
-                    {
-                        BoundsSettingMode.Manual,
-                        new GUIContent(BoundsSettingMode.Manual.ToString(),
-                            "Systems with the Manual bounds setting will not be affected by the recording.")
-                    },
-                    {
-                        BoundsSettingMode.Recorded,
-                        new GUIContent(BoundsSettingMode.Recorded.ToString(),
-                            "")
-                    },
-                };
+                    BoundsSettingMode.Automatic,
+                    new GUIContent(BoundsSettingMode.Automatic.ToString(),
+                        "Systems with the Automatic bounds setting will not be affected by the recording.")
+                },
+                {
+                    BoundsSettingMode.Manual,
+                    new GUIContent(BoundsSettingMode.Manual.ToString(),
+                        "Systems with the Manual bounds setting will not be affected by the recording.")
+                },
+                {
+                    BoundsSettingMode.Recorded,
+                    new GUIContent(BoundsSettingMode.Recorded.ToString(),
+                        "")
+                },
+            };
         }
     }
-
 }

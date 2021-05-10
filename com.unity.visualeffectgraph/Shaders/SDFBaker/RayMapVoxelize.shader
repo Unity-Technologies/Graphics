@@ -4,7 +4,7 @@ Shader "Hidden/VoxelizeShader"
     SubShader
     {
 
-        HLSLINCLUDE 
+        HLSLINCLUDE
         #include "SdfUtils.hlsl"
         #define AABB_EPS 1e-5
 

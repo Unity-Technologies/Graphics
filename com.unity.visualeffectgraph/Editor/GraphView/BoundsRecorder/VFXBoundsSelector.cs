@@ -1,5 +1,3 @@
-
-
 using System;
 using System.Collections.Generic;
 using UnityEditor.Experimental.GraphView;
@@ -9,14 +7,14 @@ namespace  UnityEditor.VFX.UI
 {
     class VFXBoundsSelector : VisualElement, ISelection
     {
-
         class VFXBoundsSelectorFactory : UxmlFactory<VFXBoundsSelector>
-        { }
+        {}
 
         public VFXBoundsSelector()
         {
             selection = new List<ISelectable>();
         }
+
         public void AddToSelection(ISelectable selectable)
         {
             if (selectable is VFXBoundsRecorderField boundsField)
@@ -52,7 +50,6 @@ namespace  UnityEditor.VFX.UI
                 }
             }
             selection.Clear();
-
         }
 
         public List<ISelectable> selection { get; }

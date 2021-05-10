@@ -5,8 +5,7 @@ using UnityEditor.VFX;
 
 
 namespace UnityEngine.VFX
-{ 
-
+{
     class VFXRuntimeResources : ScriptableObject
     {
         [SerializeField]
@@ -60,5 +59,4 @@ namespace UnityEngine.VFX
             }
         }
     }
-
 }

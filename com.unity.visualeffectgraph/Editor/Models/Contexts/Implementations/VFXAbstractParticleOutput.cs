@@ -618,12 +618,12 @@ namespace UnityEditor.VFX
             {
                 var modifiedBounds = children
                     .SelectMany(b =>
-                        b.attributes)
+                    b.attributes)
                     .Any(attr => attr.mode.HasFlag(VFXAttributeMode.Write) &&
-                                                                                (attr.attrib.name.Contains("size")
-                                                                               || attr.attrib.name.Contains("position")
-                                                                               || attr.attrib.name.Contains("scale")
-                                                                               || attr.attrib.name.Contains("pivot")));
+                        (attr.attrib.name.Contains("size")
+                            || attr.attrib.name.Contains("position")
+                            || attr.attrib.name.Contains("scale")
+                            || attr.attrib.name.Contains("pivot")));
 
                 if (modifiedBounds)
                     manager.RegisterError("WarningBoundsComputation", VFXErrorType.Warning, $"Bounds computation during recording is based on Position and Size in the Update Context." +

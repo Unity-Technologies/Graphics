@@ -91,8 +91,6 @@ namespace UnityEditor
             set => m_CenterBox = value;
         }
 
-        
-
 
         private bool m_Orthographic = false;
 
@@ -140,14 +138,12 @@ namespace UnityEditor
             return mat;
         }
 
-
         void ResetView()
         {
             m_Settings.zoomFactor = 1.0f;
             m_Settings.orthoPosition = new Vector3(0.5f, 0.5f, -1);
             m_Settings.pivotPositionOffset = Vector3.zero;
         }
-
 
         internal void RenderMeshPreview(
             Mesh mesh,
@@ -170,7 +166,7 @@ namespace UnityEditor
             else
             {
                 previewUtility.camera.nearClipPlane = 0.0001f;
-                previewUtility.camera.farClipPlane = 1000f; 
+                previewUtility.camera.farClipPlane = 1000f;
             }
 
             float halfSize = bounds.extents.magnitude;
@@ -192,7 +188,6 @@ namespace UnityEditor
 
             RenderMeshPreviewSkipCameraAndLighting(mesh, bounds, previewUtility, settings, null, meshSubset);
         }
-
 
         internal static Color GetSubMeshTint(int index)
         {
@@ -332,7 +327,6 @@ namespace UnityEditor
             m_PreviewUtility.EndAndDrawPreview(rect);
 
             EditorGUI.DropShadowLabel(rect, GetInfoString(mesh));
-
         }
 
         public void OnPreviewSettings()
@@ -351,7 +345,6 @@ namespace UnityEditor
             }
         }
 
-
         void MeshPreviewZoom(Rect rect, Event evt)
         {
             float zoomDelta = -(HandleUtility.niceMouseDeltaZoom * 0.5f) * 0.05f;
@@ -366,10 +359,10 @@ namespace UnityEditor
             var mouseToCamPos = m_Settings.orthoPosition - mouseWorldPos;
             var newCamPos = mouseWorldPos + mouseToCamPos * (newZoom / m_Settings.zoomFactor);
 
-            
+
             m_Settings.orthoPosition.x = newCamPos.x;
             m_Settings.orthoPosition.y = newCamPos.y;
-            
+
 
             m_Settings.zoomFactor = newZoom;
             evt.Use();
@@ -394,7 +387,7 @@ namespace UnityEditor
             screenPos += delta;
             worldPos = cam.ScreenToWorldPoint(screenPos) - m_Settings.pivotPositionOffset;
             m_Settings.pivotPositionOffset += worldPos;
-            
+
 
             evt.Use();
         }

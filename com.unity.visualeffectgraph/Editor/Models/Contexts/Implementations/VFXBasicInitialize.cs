@@ -69,7 +69,7 @@ namespace UnityEditor.VFX
         {
             if (cause == InvalidationCause.kConnectionChanged)
             {
-                if(model == this)
+                if (model == this)
                     ResyncSlots(false); // To add/remove stripIndex
                 RefreshErrors(GetGraph());
             }
@@ -103,7 +103,6 @@ namespace UnityEditor.VFX
                 }
                 catch { /* do nothing*/ }
             }
-
         }
 
         protected override IEnumerable<VFXPropertyWithValue> inputProperties

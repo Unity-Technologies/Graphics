@@ -39,7 +39,6 @@ namespace UnityEditor.Experimental.VFX.SDF
         internal PreviewChoice m_PreviewObject = PreviewChoice.MeshAndTexture;
 
 
-
         [OnOpenAsset]
         internal static bool OpenBakeTool(int instanceID, int line)
         {
@@ -162,7 +161,6 @@ namespace UnityEditor.Experimental.VFX.SDF
             combinedMesh.CombineMeshes(combine.ToArray());
             return combinedMesh;
         }
-
     }
     public enum PreviewChoice
     {
@@ -182,7 +180,6 @@ namespace UnityEditor.Experimental.VFX.SDF
 [CustomEditor(typeof(SdfBakerSettings))]
 public class SdfBakerSettingsEditor : Editor
 {
-
     public override void OnInspectorGUI()
     {
         //Left blank intentionally

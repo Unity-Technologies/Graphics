@@ -117,6 +117,7 @@ namespace UnityEditor.VFX
 
             return mapper;
         }
+
         protected override void GenerateErrors(VFXInvalidateErrorReporter manager)
         {
             base.GenerateErrors(manager);

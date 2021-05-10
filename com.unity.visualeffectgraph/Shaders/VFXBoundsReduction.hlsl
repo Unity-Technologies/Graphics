@@ -37,7 +37,7 @@ void InitReduction(Attributes attributes, float3 size3, uint tid)
         float3 localPos = elementToVFX._m03_m13_m23;
 
         //Bounding sphere
-        
+
         float xAxisSqrLength = dot(elementToVFX._m00_m10_m20, elementToVFX._m00_m10_m20);
         float yAxisSqrLength = dot(elementToVFX._m01_m11_m21, elementToVFX._m01_m11_m21);
         float zAxisSqrLength = dot(elementToVFX._m02_m12_m22, elementToVFX._m02_m12_m22);
@@ -64,15 +64,15 @@ void InitReduction(Attributes attributes, float3 size3, uint tid)
 
 void PerformBoundsReduction(uint id, uint tid)
 {
-	if(id >= nbMax)
-	{
+    if(id >= nbMax)
+    {
         sMinPositionsX[tid] = 0xffffffff;
         sMinPositionsY[tid] = 0xffffffff;
         sMinPositionsZ[tid] = 0xffffffff;
         sMaxPositionsX[tid] = 0u;
         sMaxPositionsY[tid] = 0u;
         sMaxPositionsZ[tid] = 0u;
-	}
+    }
     GroupMemoryBarrierWithGroupSync();
     [unroll((int)(log2(NB_THREADS_PER_GROUP) + 0.5f))]
     for (uint s = NB_THREADS_PER_GROUP / 2; s > 0; s >>= 1) {

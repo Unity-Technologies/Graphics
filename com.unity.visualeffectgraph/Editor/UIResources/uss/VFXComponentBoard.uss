@@ -316,7 +316,7 @@ VFXComponentBoardEventUI .unity-button, #on-play-button, #on-stop-button,#attach
     width: 30px;
 }
 
- 
+
 #bounds-actions-container .unity-button#record #record-icon
 {
     /*--unity-image: url("project:///Packages/com.unity.visualeffectgraph/Editor/UIResources/VFX/d_Record\ On.png"); */

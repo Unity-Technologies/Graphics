@@ -22,11 +22,11 @@ namespace UnityEngine.VFX.SDF
             m_SumBlocksAdditional;
 
         private GraphicsBuffer
-        m_IndicesBuffer,
-         m_VerticesBuffer,
-         m_VerticesOutBuffer,
-         m_CoordFlipBuffer,
-         m_AabbBuffer;
+            m_IndicesBuffer,
+            m_VerticesBuffer,
+            m_VerticesOutBuffer,
+            m_CoordFlipBuffer,
+            m_AabbBuffer;
         private int m_ThreadGroupSize = 512;
         private int m_SignPassesCount;
         private float m_InOutThreshold;
@@ -199,6 +199,7 @@ namespace UnityEngine.VFX.SDF
         {
             Cleanup();
         }
+
         public void Reinit(Vector3 sizeBox, Vector3 center, int maxRes, Mesh mesh, int signPassesCount = 1, float threshold = 0.5f, float sdfOffset = 0.0f)
         {
             m_Mesh = mesh;
@@ -246,7 +247,7 @@ namespace UnityEngine.VFX.SDF
                 msaaSamples = 1,
             };
 
-            RenderTextureDescriptor rtDescSignMap= new RenderTextureDescriptor
+            RenderTextureDescriptor rtDescSignMap = new RenderTextureDescriptor
             {
                 graphicsFormat = GraphicsFormat.R32_SFloat,
                 dimension = TextureDimension.Tex3D,
@@ -267,7 +268,7 @@ namespace UnityEngine.VFX.SDF
 
             CreateGraphicsBufferIfNeeded(ref m_bufferVoxel, m_dimX * m_dimY * m_dimZ,
                 4 * sizeof(float));
-            
+
             InitPrefixSumBuffers();
         }
 
@@ -295,7 +296,7 @@ namespace UnityEngine.VFX.SDF
             rtDesc.volumeDepth = 1;
             rtDesc.msaaSamples = 1;
             rtDesc.dimension = TextureDimension.Tex2D;
-            if(m_RenderTextureViews == null)
+            if (m_RenderTextureViews == null)
                 m_RenderTextureViews = new RenderTexture[3];
             for (var i = 0; i < 3; i++)
             {
@@ -319,7 +320,7 @@ namespace UnityEngine.VFX.SDF
                 }
             }
 
-            if (m_Material == null || m_Material[0]==null || m_Material[1]==null || m_Material[2]==null)
+            if (m_Material == null || m_Material[0] == null || m_Material[1] == null || m_Material[2] == null)
             {
                 m_Material = new Material[3];
                 Shader rayMapShader = m_RuntimeResources.sdfRayMapShader;
@@ -346,8 +347,8 @@ namespace UnityEngine.VFX.SDF
                 m_ViewMat = new Matrix4x4[3];
             }
             UpdateCameras();
-
         }
+
         void UpdateCameras()
         {
             Vector3 pos =  m_Center + Vector3.back * (m_SizeBox.z * 0.5f + 1f);
@@ -369,9 +370,9 @@ namespace UnityEngine.VFX.SDF
 
         Matrix4x4 ComputeOrthographicWorldToClip(Vector3 pos, Quaternion rot, float width, float height, float near, float far, out Matrix4x4 proj, out Matrix4x4 view)
         {
-            proj = Matrix4x4.Ortho(-width/2, width/2, -height/2, height/2, near, far);
+            proj = Matrix4x4.Ortho(-width / 2, width / 2, -height / 2, height / 2, near, far);
             proj = GL.GetGPUProjectionMatrix(proj, false);
-            view = Matrix4x4.TRS(pos, rot, new Vector3(1,1,-1)).inverse;
+            view = Matrix4x4.TRS(pos, rot, new Vector3(1, 1, -1)).inverse;
             return proj * view;
         }
 
@@ -379,6 +380,7 @@ namespace UnityEngine.VFX.SDF
         {
             return (a % b != 0) ? (a / b + 1) : (a / b);
         }
+
         void PrefixSumCount()
         {
             int nVoxels = m_dimX * m_dimY * m_dimZ;
@@ -395,7 +397,6 @@ namespace UnityEngine.VFX.SDF
             int nBlocks = iDivUp(nVoxels , m_ThreadGroupSize);
             if (nBlocks > m_ThreadGroupSize) //If the number of cells is bigger than m_ThreadGroupSize^2, (512^2, 64^3), apply prefix sum recursively
             {
-
                 m_Cmd.SetComputeBufferParam(m_computeShader, m_Kernels.toBlockSumBuffer, ShaderProperties.inputCounter, m_CounterBuffer);
                 m_Cmd.SetComputeBufferParam(m_computeShader, m_Kernels.toBlockSumBuffer, ShaderProperties.inputBuffer, m_TmpBuffer);
                 m_Cmd.SetComputeBufferParam(m_computeShader, m_Kernels.toBlockSumBuffer, ShaderProperties.resultBuffer, m_SumBlocksBuffer);
@@ -439,7 +440,6 @@ namespace UnityEngine.VFX.SDF
             m_Cmd.DispatchCompute(m_computeShader, m_Kernels.finalSum,
                 Mathf.CeilToInt((float)nVoxels / m_ThreadGroupSize), 1, 1);
             m_Cmd.EndSample("BakeSDF.PrefixSum");
-
         }
 
         void SurfaceClosing()
@@ -453,9 +453,8 @@ namespace UnityEngine.VFX.SDF
             m_Cmd.SetComputeTextureParam(m_computeShader, m_Kernels.surfaceClosing, ShaderProperties.signMap, GetSignMapPrincipal(m_SignPassesCount));
             m_Cmd.SetComputeTextureParam(m_computeShader, m_Kernels.surfaceClosing, ShaderProperties.voxelsTexture, GetTextureVoxelPrincipal(1));
 
-            m_Cmd.DispatchCompute(m_computeShader, m_Kernels.surfaceClosing, iDivUp(m_dimX,4), iDivUp(m_dimY, 4), iDivUp(m_dimZ, 4));
+            m_Cmd.DispatchCompute(m_computeShader, m_Kernels.surfaceClosing, iDivUp(m_dimX, 4), iDivUp(m_dimY, 4), iDivUp(m_dimZ, 4));
             m_Cmd.EndSample("BakeSDF.SurfaceClosing");
-
         }
 
         RenderTexture GetTextureVoxelPrincipal(int step)
@@ -469,6 +468,7 @@ namespace UnityEngine.VFX.SDF
                 return m_textureVoxelBis;
             }
         }
+
         RenderTexture GetTextureVoxelBis(int step)
         {
             if (step % 2 == 0)
@@ -480,6 +480,7 @@ namespace UnityEngine.VFX.SDF
                 return m_textureVoxel;
             }
         }
+
         void JFA()
         {
             m_Cmd.BeginSample("BakeSDF.JFA");
@@ -512,7 +513,6 @@ namespace UnityEngine.VFX.SDF
                     Mathf.CeilToInt(m_dimY / 4.0f), Mathf.CeilToInt(m_dimZ / 4.0f));
             }
             m_Cmd.EndSample("BakeSDF.JFA");
-
         }
 
         void GenerateRayMap()
@@ -559,7 +559,6 @@ namespace UnityEngine.VFX.SDF
             m_Cmd.EndSample("BakeSDF.GlobalRaymap");
 
             m_Cmd.EndSample("BakeSDF.Raymap");
-
         }
 
         RenderTexture GetSignMapPrincipal(int step)
@@ -571,6 +570,7 @@ namespace UnityEngine.VFX.SDF
 
             return m_SignMapBis;
         }
+
         RenderTexture GetSignMapBis(int step)
         {
             if (step % 2 == 0)
@@ -580,6 +580,7 @@ namespace UnityEngine.VFX.SDF
 
             return m_SignMap;
         }
+
         void SignPass()
         {
             m_Cmd.BeginSample("BakeSDF.SignPass");
@@ -595,7 +596,7 @@ namespace UnityEngine.VFX.SDF
             m_Cmd.SetComputeIntParam(m_computeShader, ShaderProperties.numNeighbours, neighboursCount);
 
             int signPasses = m_SignPassesCount;
-            for(int i = 1; i <= signPasses; i++)
+            for (int i = 1; i <= signPasses; i++)
             {
                 m_Cmd.SetComputeIntParam(m_computeShader, ShaderProperties.passId, i);
                 m_Cmd.SetComputeFloatParam(m_computeShader, ShaderProperties.normalizeFactor, normalizeFactor);
@@ -608,7 +609,6 @@ namespace UnityEngine.VFX.SDF
             }
 
             m_Cmd.EndSample("BakeSDF.SignPass");
-
         }
 
         public void BakeSDF()
@@ -617,7 +617,7 @@ namespace UnityEngine.VFX.SDF
             UpdateCameras();
             m_Cmd.SetComputeIntParams(m_computeShader, "size", m_dimX, m_dimY, m_dimZ);
             CreateGraphicsBufferIfNeeded(ref m_bufferVoxel, m_dimX * m_dimY * m_dimZ,
-                4 * sizeof(float) );
+                4 * sizeof(float));
 
             InitPrefixSumBuffers();
 
@@ -659,7 +659,6 @@ namespace UnityEngine.VFX.SDF
                 Graphics.ExecuteCommandBuffer(m_Cmd);
                 m_Cmd.Clear();
             }
-
         }
 
         private void SecondDraw()
@@ -770,18 +769,17 @@ namespace UnityEngine.VFX.SDF
             CreateGraphicsBufferIfNeeded(ref m_AccumCounterBuffer, m_dimX * m_dimY * m_dimZ,
                 sizeof(int));
             CreateGraphicsBufferIfNeeded(ref m_AccumSumBlocks,
-                Mathf.CeilToInt((float) m_dimX * m_dimY * m_dimZ / m_ThreadGroupSize), sizeof(int));
+                Mathf.CeilToInt((float)m_dimX * m_dimY * m_dimZ / m_ThreadGroupSize), sizeof(int));
 
             CreateGraphicsBufferIfNeeded(ref m_SumBlocksBuffer,
-                Mathf.CeilToInt((float) m_dimX * m_dimY * m_dimZ / m_ThreadGroupSize), sizeof(int));
+                Mathf.CeilToInt((float)m_dimX * m_dimY * m_dimZ / m_ThreadGroupSize), sizeof(int));
             CreateGraphicsBufferIfNeeded(ref m_InSumBlocksBuffer,
-                Mathf.CeilToInt((float) m_dimX * m_dimY * m_dimZ / m_ThreadGroupSize), sizeof(int));
+                Mathf.CeilToInt((float)m_dimX * m_dimY * m_dimZ / m_ThreadGroupSize), sizeof(int));
             CreateGraphicsBufferIfNeeded(ref m_TmpBuffer, m_dimX * m_dimY * m_dimZ, sizeof(int));
             CreateGraphicsBufferIfNeeded(ref m_SumBlocksAdditional,
-                Mathf.CeilToInt((float) m_dimX * m_dimY * m_dimZ / (m_ThreadGroupSize * m_ThreadGroupSize)),
+                Mathf.CeilToInt((float)m_dimX * m_dimY * m_dimZ / (m_ThreadGroupSize * m_ThreadGroupSize)),
                 sizeof(int));
         }
-
 
         protected void ClearRenderTexturesAndBuffers()
         {
@@ -800,16 +798,15 @@ namespace UnityEngine.VFX.SDF
             m_Cmd.DispatchCompute(m_computeShader, m_Kernels.clearTexturesAndBuffers, Mathf.CeilToInt(m_dimX / 8.0f),
                 Mathf.CeilToInt(m_dimY / 8.0f), Mathf.CeilToInt(m_dimZ / 8.0f));
             m_Cmd.EndSample("BakeSDF.ClearTexturesAndBuffers");
-
         }
+
         void PerformDistanceTransformWinding()
         {
-
             m_Cmd.BeginSample("BakeSDF.DistanceTransform");
             m_Cmd.SetComputeFloatParam(m_computeShader, ShaderProperties.threshold, m_InOutThreshold);
             m_Cmd.SetComputeFloatParam(m_computeShader, ShaderProperties.sdfOffset, m_SdfOffset);
 
-            m_Cmd.SetComputeTextureParam(m_computeShader, m_Kernels.distanceTransform, ShaderProperties.voxelsTexture, GetTextureVoxelPrincipal(m_nStepsJFA+1));
+            m_Cmd.SetComputeTextureParam(m_computeShader, m_Kernels.distanceTransform, ShaderProperties.voxelsTexture, GetTextureVoxelPrincipal(m_nStepsJFA + 1));
             m_Cmd.SetComputeTextureParam(m_computeShader, m_Kernels.distanceTransform, ShaderProperties.distanceTexture, m_DistanceTexture);
             m_Cmd.SetComputeBufferParam(m_computeShader, m_Kernels.distanceTransform, ShaderProperties.accumCounter, m_AccumCounterBuffer);
             m_Cmd.SetComputeBufferParam(m_computeShader, m_Kernels.distanceTransform, ShaderProperties.triangleIDs, m_TrianglesInVoxels);
@@ -819,7 +816,6 @@ namespace UnityEngine.VFX.SDF
                 Mathf.CeilToInt(m_dimY / 8.0f), Mathf.CeilToInt(m_dimZ / 8.0f));
 
             m_Cmd.EndSample("BakeSDF.DistanceTransform");
-
         }
 
         public RenderTexture RayMap => m_RayMap;
@@ -854,11 +850,11 @@ namespace UnityEngine.VFX.SDF
             ReleaseGraphicsBuffer(ref m_CounterBuffer);
             ReleaseGraphicsBuffer(ref m_AccumCounterBuffer);
         }
+
         public void Cleanup()
         {
             ReleaseBuffersAndTextures();
         }
-
 
 #if UNITY_EDITOR
         protected void SaveWithComputeBuffer(RenderTexture tex, string assetName = "", bool oneChannel = true)
@@ -895,6 +891,7 @@ namespace UnityEngine.VFX.SDF
 
             tmpBufferVoxel.Release();
         }
+
 #endif
 
         protected void CreateGraphicsBufferIfNeeded(ref GraphicsBuffer gb, int length, int stride)
@@ -944,6 +941,7 @@ namespace UnityEngine.VFX.SDF
         {
             SaveWithComputeBuffer(m_DistanceTexture);
         }
+
 #endif
 
 
@@ -1027,7 +1025,7 @@ namespace UnityEngine.VFX.SDF
             public int chooseDirectionTriangleOnly = -1;
             public int surfaceClosing = -1;
 
-            public Kernels( ComputeShader computeShader)
+            public Kernels(ComputeShader computeShader)
             {
                 inBucketSum = computeShader.FindKernel("InBucketSum");
                 blockSums = computeShader.FindKernel("BlockSums");
@@ -1052,6 +1050,5 @@ namespace UnityEngine.VFX.SDF
                 surfaceClosing = computeShader.FindKernel("SurfaceClosing");
             }
         }
-
     }
 }
