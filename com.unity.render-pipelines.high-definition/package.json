@@ -43,8 +43,8 @@
       "path": "Samples~/MaterialSamples"
     },
     {
-      "displayName": "Len Flare Samples",
-      "description": "Adds Lens Flare Samples to your project. Open the Lens Flare Samples scene to view and interact with the flares.",
+      "displayName": "Lens Flare Samples",
+      "description": "Adds Lens Flare Samples to your project. Open the LensFlareSamples scene to view and interact with the flares.",
       "path": "Samples~/LensFlareSamples"
     }
   ]
