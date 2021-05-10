@@ -10,16 +10,14 @@ namespace UnityEngine.Rendering.Universal.Internal
         const string kMotionVectorTexture = "_MotionVectorTexture";
         const GraphicsFormat m_TargetFormat = GraphicsFormat.R16G16_SFloat;
 
-        static readonly string[] s_ShaderTags = new string[]
-        {
-            "MotionVectors",
-        };
+        static readonly string[] s_ShaderTags = new string[] { "MotionVectors" };
 
         RenderTargetHandle m_MotionVectorHandle; //Move to UniversalRenderer like other passes?
         readonly Material m_CameraMaterial;
         readonly Material m_ObjectMaterial;
+
         PreviousFrameData m_MotionData;
-        private ProfilingSampler m_ProfilingSampler = ProfilingSampler.Get(URPProfileId.MotionVectors);
+        ProfilingSampler m_ProfilingSampler = ProfilingSampler.Get(URPProfileId.MotionVectors);
         #endregion
 
         #region Constructors
