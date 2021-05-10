@@ -78,7 +78,7 @@ namespace UnityEngine.Rendering.HighDefinition
             public TextureHandle outputBuffer;
         }
 
-        TextureHandle DirGenRTR(RenderGraph renderGraph, HDCamera hdCamera, ScreenSpaceReflection settings, TextureHandle depthPyramid, TextureHandle stencilBuffer, TextureHandle normalBuffer, TextureHandle clearCoatTexture, bool transparent)
+        TextureHandle DirGenRTR(RenderGraph renderGraph, HDCamera hdCamera, ScreenSpaceReflection settings, TextureHandle depthBuffer, TextureHandle stencilBuffer, TextureHandle normalBuffer, TextureHandle clearCoatTexture, bool transparent)
         {
             using (var builder = renderGraph.AddRenderPass<DirGenRTRPassData>("Generating the rays for RTR", out var passData, ProfilingSampler.Get(HDProfileId.RaytracingReflectionDirectionGeneration)))
             {
@@ -103,7 +103,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 passData.ditheredTextureSet = GetBlueNoiseManager().DitheredTextureSet8SPP();
                 passData.shaderVariablesRayTracingCB = m_ShaderVariablesRayTracingCB;
 
-                passData.depthBuffer = builder.ReadTexture(depthPyramid);
+                passData.depthBuffer = builder.ReadTexture(depthBuffer);
                 passData.stencilBuffer = builder.ReadTexture(stencilBuffer);
                 passData.normalBuffer = builder.ReadTexture(normalBuffer);
                 passData.clearCoatMaskTexture = builder.ReadTexture(clearCoatTexture);
@@ -249,7 +249,7 @@ namespace UnityEngine.Rendering.HighDefinition
             public TextureHandle outputTexture;
         }
 
-        TextureHandle UpscaleRTR(RenderGraph renderGraph, HDCamera hdCamera, TextureHandle depthPyramid, TextureHandle lightingTexture)
+        TextureHandle UpscaleRTR(RenderGraph renderGraph, HDCamera hdCamera, TextureHandle depthBuffer, TextureHandle lightingTexture)
         {
             using (var builder = renderGraph.AddRenderPass<UpscaleRTRPassData>("Upscale RTR", out var passData, ProfilingSampler.Get(HDProfileId.RaytracingReflectionUpscale)))
             {
@@ -261,7 +261,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 passData.reflectionFilterCS = m_GlobalSettings.renderPipelineRayTracingResources.reflectionBilateralFilterCS;
                 passData.upscaleKernel = m_ReflectionUpscaleKernel;
 
-                passData.depthStencilBuffer = builder.ReadTexture(depthPyramid);
+                passData.depthStencilBuffer = builder.ReadTexture(depthBuffer);
                 passData.lightingTexture = builder.ReadTexture(lightingTexture);
                 passData.outputTexture = builder.WriteTexture(renderGraph.CreateTexture(new TextureDesc(Vector2.one, true, true)
                     { colorFormat = GraphicsFormat.R16G16B16A16_SFloat, enableRandomWrite = true, name = "Reflection Ray Reflections" }));
@@ -367,24 +367,24 @@ namespace UnityEngine.Rendering.HighDefinition
             // Fetch all the settings
             ScreenSpaceReflection settings = hdCamera.volumeStack.GetComponent<ScreenSpaceReflection>();
 
-            TextureHandle directionBuffer = DirGenRTR(renderGraph, hdCamera, settings, prepassOutput.depthPyramidTexture, prepassOutput.stencilBuffer, prepassOutput.normalBuffer, clearCoatTexture, transparent);
+            TextureHandle directionBuffer = DirGenRTR(renderGraph, hdCamera, settings, prepassOutput.depthBuffer, prepassOutput.stencilBuffer, prepassOutput.normalBuffer, clearCoatTexture, transparent);
 
             DeferredLightingRTParameters deferredParamters = PrepareReflectionDeferredLightingRTParameters(hdCamera, transparent);
             TextureHandle lightingBuffer = DeferredLightingRT(renderGraph, in deferredParamters, directionBuffer, prepassOutput, skyTexture, rayCountTexture);
 
-            rtrResult = AdjustWeightRTR(renderGraph, hdCamera, settings, prepassOutput.depthPyramidTexture, prepassOutput.normalBuffer, clearCoatTexture, lightingBuffer, directionBuffer);
+            rtrResult = AdjustWeightRTR(renderGraph, hdCamera, settings, prepassOutput.depthBuffer, prepassOutput.normalBuffer, clearCoatTexture, lightingBuffer, directionBuffer);
 
             // Denoise if required
             if (settings.denoise && !transparent)
             {
                 rtrResult = DenoiseReflection(renderGraph, hdCamera, settings.fullResolution, settings.denoiserRadius, singleReflectionBounce: true, settings.affectSmoothSurfaces,
-                    rtrResult, prepassOutput.depthPyramidTexture, prepassOutput.normalBuffer, prepassOutput.motionVectorsBuffer, clearCoatTexture);
+                    rtrResult, prepassOutput.depthBuffer, prepassOutput.normalBuffer, prepassOutput.motionVectorsBuffer, clearCoatTexture);
             }
 
             // We only need to upscale if the effect was not rendered in full res
             if (!settings.fullResolution)
             {
-                rtrResult = UpscaleRTR(renderGraph, hdCamera, prepassOutput.depthPyramidTexture, rtrResult);
+                rtrResult = UpscaleRTR(renderGraph, hdCamera, prepassOutput.depthBuffer, rtrResult);
             }
 
             return rtrResult;
