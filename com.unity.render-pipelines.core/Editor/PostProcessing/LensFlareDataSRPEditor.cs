@@ -1,8 +1,10 @@
+using System;
 using System.Collections.Generic;
+using System.Linq.Expressions;
+using System.Reflection;
 using UnityEditorInternal;
 using UnityEngine;
 using UnityEngine.Rendering;
-using UnityEngine.UIElements;
 
 namespace UnityEditor.Rendering
 {
@@ -19,7 +21,12 @@ namespace UnityEditor.Rendering
             public const int thumbnailSize = 52;
             public const int iconMargin = 6;    //margin for icon be ing at 75% of 52 thumbnail size
             public const int horiwontalSpaceBetweenThumbnailAndInspector = 5;
-            public const int shrinkingLabel = 15;
+            public const int shrinkingLabel = 10;
+
+            public static readonly Color elementBackgroundColor = EditorGUIUtility.isProSkin
+                ? new Color32(65, 65, 65, 255)
+                : new Color32(200, 200, 200, 255);
+
             public static readonly GUIContent mainHeader = EditorGUIUtility.TrTextContent("Elements", "List of elements in the Lens Flare.");
             public static readonly GUIContent elementHeader = EditorGUIUtility.TrTextContent("Lens Flare Element", "Elements in the Lens Flare.");
 
@@ -95,10 +102,25 @@ namespace UnityEditor.Rendering
             }
         }
 
+        #region Reflection
+        static Func<SerializedProperty, GenericMenu> FillPropertyContextMenu;
+
+        static LensFlareDataSRPEditor()
+        {
+            MethodInfo FillPropertyContextMenuInfo = typeof(EditorGUI).GetMethod("FillPropertyContextMenu", BindingFlags.Static | BindingFlags.NonPublic);
+            var propertyParam = Expression.Parameter(typeof(SerializedProperty), "property");
+            var FillPropertyContextMenuBlock = Expression.Block(
+                Expression.Call(null, FillPropertyContextMenuInfo, propertyParam, Expression.Constant(null, typeof(SerializedProperty)), Expression.Constant(null, typeof(GenericMenu)))
+            );
+            var FillPropertyContextMenuLambda = Expression.Lambda<Func<SerializedProperty, GenericMenu>>(FillPropertyContextMenuBlock, propertyParam);
+            FillPropertyContextMenu = FillPropertyContextMenuLambda.Compile();
+        }
+
+        #endregion
+
         SerializedProperty m_Elements;
         ReorderableList m_List;
         Rect? reservedListSizeRect;
-        static Material m_ProceduralShapeFlare;
 
         void OnEnable()
         {
@@ -274,8 +296,8 @@ namespace UnityEditor.Rendering
         #endregion
 
         #region Draw element
-        //disable background coloration on selection
-        void DrawElementBackground(Rect rect, int index, bool isActive, bool isFocused) {}
+        void DrawElementBackground(Rect rect, int index, bool isActive, bool isFocused)
+            => EditorGUI.DrawRect(rect, Styles.elementBackgroundColor);
 
         void DrawElement(Rect rect, int index, bool isActive, bool isFocused)
         {
@@ -292,7 +314,7 @@ namespace UnityEditor.Rendering
             SerializedProperty element = m_Elements.GetArrayElementAtIndex(index);
             SerializedProperty isFoldOpened = element.FindPropertyRelative("isFoldOpened");
 
-            if (DrawElementHeader(headerRect, isFoldOpened, selectedInList: isActive))
+            if (DrawElementHeader(headerRect, isFoldOpened, selectedInList: isActive, element))
                 DrawFull(contentRect, element);
             else
                 DrawSummary(contentRect, element);
@@ -300,10 +322,19 @@ namespace UnityEditor.Rendering
             EditorGUIUtility.wideMode = oldWideMode;
         }
 
-        bool DrawElementHeader(Rect headerRect, SerializedProperty isFoldOpened, bool selectedInList)
+        bool DrawElementHeader(Rect headerRect, SerializedProperty isFoldOpened, bool selectedInList, SerializedProperty element)
         {
             Rect labelRect = headerRect;
             labelRect.xMin += 16;
+            labelRect.xMax -= 16;
+
+            Rect contextMenuRect = labelRect;
+            contextMenuRect.xMin = labelRect.xMax;
+            contextMenuRect.width = 16;
+            contextMenuRect.y += 1;
+            contextMenuRect.height = 16;
+
+            EditorGUI.BeginProperty(headerRect, Styles.elementHeader, element); //handle contextual menu on name
 
             Rect foldoutRect = headerRect;
             foldoutRect.y += 3f;
@@ -319,15 +350,24 @@ namespace UnityEditor.Rendering
             bool newState = GUI.Toggle(foldoutRect, previousState, GUIContent.none, EditorStyles.foldout);
 
             var e = Event.current;
-            if (e.type == EventType.MouseDown && headerRect.Contains(e.mousePosition) && e.button == 0)
+            if (e.type == EventType.MouseDown && labelRect.Contains(e.mousePosition) && e.button == 0)
             {
                 newState = !previousState;
                 GUI.changed = true;
                 e.Use();
             }
 
+            // ellipsis menu
+            if (GUI.Button(contextMenuRect, CoreEditorStyles.contextMenuIcon, CoreEditorStyles.contextMenuStyle))
+            {
+                GenericMenu menu = FillPropertyContextMenu(element);
+                menu.DropDown(new Rect(new Vector2(contextMenuRect.x, contextMenuRect.yMax), Vector2.zero));
+            }
+
             if (newState ^ previousState)
                 isFoldOpened.boolValue = newState;
+
+            EditorGUI.EndProperty();
 
             return newState;
         }
@@ -366,8 +406,8 @@ namespace UnityEditor.Rendering
                     break;
 
                 case SRPLensFlareType.Polygon:
-                    //EditorGUI.DrawRect(thumbnailRect, GUI.color);   //draw the margin
-                    //EditorGUI.DrawTextureTransparent(thumbnailIconeRect, LensFlareEditorUtils.Icons.polygon, ScaleMode.ScaleToFit, 1);
+                    EditorGUI.DrawRect(thumbnailRect, GUI.color);   //draw the margin
+                    EditorGUI.DrawTextureTransparent(thumbnailIconeRect, LensFlareEditorUtils.Icons.polygon, ScaleMode.ScaleToFit, 1);
                     break;
             }
             GUI.color = guiColor;

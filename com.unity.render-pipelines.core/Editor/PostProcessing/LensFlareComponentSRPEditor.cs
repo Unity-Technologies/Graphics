@@ -1,6 +1,5 @@
-using System.IO;
-using UnityEditor;
 using UnityEngine;
+using UnityEngine.Rendering;
 
 namespace UnityEditor.Rendering
 {
@@ -9,7 +8,7 @@ namespace UnityEditor.Rendering
     /// </summary>
     [CanEditMultipleObjects]
     [CustomEditorForRenderPipeline(typeof(LensFlareComponentSRP), typeof(UnityEngine.Rendering.RenderPipelineAsset))]
-    internal class LensFlareComponentSRPEditor : Editor
+    class LensFlareComponentSRPEditor : Editor
     {
         SerializedProperty m_LensFlareData;
         SerializedProperty m_Intensity;
