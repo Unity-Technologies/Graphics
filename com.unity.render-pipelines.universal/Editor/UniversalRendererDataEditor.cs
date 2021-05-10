@@ -25,7 +25,7 @@ namespace UnityEditor.Rendering.Universal
             public static readonly GUIContent defaultStencilStateLabel = EditorGUIUtility.TrTextContent("Default Stencil State", "Configure the stencil state for the opaque and transparent render passes.");
             public static readonly GUIContent shadowTransparentReceiveLabel = EditorGUIUtility.TrTextContent("Transparent Receive Shadows", "When disabled, none of the transparent objects will receive shadows.");
             public static readonly GUIContent invalidStencilOverride = EditorGUIUtility.TrTextContent("Error: When using the deferred rendering path, the Renderer requires the control over the 4 highest bits of the stencil buffer to store Material types. The current combination of the stencil override options prevents the Renderer from controlling the required bits. Try changing one of the options to Replace.");
-            public static readonly GUIContent clusteredRenderingLabel = EditorGUIUtility.TrTextContent("Clustered", "Enables clustered rendering, allowing for more lights per object and more accurate light cullling.");
+            public static readonly GUIContent clusteredRenderingLabel = EditorGUIUtility.TrTextContent("Clustered (experimental)", "(Experimental) Enables clustered rendering, allowing for more lights per object and more accurate light cullling.");
         }
 
         SerializedProperty m_OpaqueLayerMask;
