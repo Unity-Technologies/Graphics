@@ -207,6 +207,10 @@ namespace UnityEngine.Rendering.HighDefinition
             InlineCPU
         }
 
+#if ENABLE_NVIDIA && ENABLE_NVIDIA_MODULE
+        internal UnityEngine.NVIDIA.DebugView nvidiaDebugView { get; } = new UnityEngine.NVIDIA.DebugView();
+#endif
+
         /// <summary>
         /// Debug data.
         /// </summary>
@@ -1837,6 +1841,10 @@ namespace UnityEngine.Rendering.HighDefinition
             {
                 new DebugUI.EnumField { displayName = "Freeze Camera for culling", getter = () => data.debugCameraToFreeze, setter = value => data.debugCameraToFreeze = value, enumNames = s_CameraNamesStrings, enumValues = s_CameraNamesValues, getIndex = () => data.debugCameraToFreezeEnumIndex, setIndex = value => data.debugCameraToFreezeEnumIndex = value },
             });
+
+#if ENABLE_NVIDIA && ENABLE_NVIDIA_MODULE
+            widgetList.Add(nvidiaDebugView.CreateWidget());
+#endif
 
             m_DebugRenderingItems = widgetList.ToArray();
             var panel = DebugManager.instance.GetPanel(k_PanelRendering, true);

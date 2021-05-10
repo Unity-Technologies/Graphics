@@ -2,7 +2,7 @@
 using UnityEditor;
 #endif
 
-namespace UnityEngine
+namespace UnityEngine.Rendering
 {
     /// <summary>
     /// Data-Driven Lens Flare can be added on any gameobeject

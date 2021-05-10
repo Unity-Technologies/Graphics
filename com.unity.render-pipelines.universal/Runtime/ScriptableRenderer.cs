@@ -3,7 +3,6 @@ using System.Diagnostics;
 using System.Collections.Generic;
 using Unity.Collections;
 using UnityEditor;
-using UnityEditor.Rendering;
 using UnityEngine.Experimental.Rendering;
 using UnityEngine.Profiling;
 
@@ -476,11 +475,13 @@ namespace UnityEngine.Rendering.Universal
             m_ActiveDepthAttachment = depthAttachment;
         }
 
+        internal bool useDepthPriming { get; set; } = false;
+
         public ScriptableRenderer(ScriptableRendererData data)
         {
-#if URP_ENABLE_DEBUG_DISPLAY
-            DebugHandler = new DebugHandler(data);
-#endif
+            if (Debug.isDebugBuild)
+                DebugHandler = new DebugHandler(data);
+
             profilingExecute = new ProfilingSampler($"{nameof(ScriptableRenderer)}.{nameof(ScriptableRenderer.Execute)}: {data.name}");
 
             foreach (var feature in data.rendererFeatures)
@@ -1050,7 +1051,20 @@ namespace UnityEngine.Rendering.Universal
                             trimmedAttachments[i] = renderPass.colorAttachments[i];
 
                         if (!IsRenderPassEnabled(renderPass) || cameraData.cameraType != CameraType.Game)
-                            SetRenderTarget(cmd, trimmedAttachments, renderPass.depthAttachment, finalClearFlag, renderPass.clearColor);
+                        {
+                            RenderTargetIdentifier depthAttachment = m_CameraDepthTarget;
+
+                            if (renderPass.overrideCameraTarget)
+                            {
+                                depthAttachment = renderPass.depthAttachment;
+                            }
+                            else
+                            {
+                                m_FirstTimeCameraDepthTargetIsBound = false;
+                            }
+
+                            SetRenderTarget(cmd, trimmedAttachments, depthAttachment, finalClearFlag, renderPass.clearColor);
+                        }
 
                     #if ENABLE_VR && ENABLE_XR_MODULE
                         if (cameraData.xr.enabled)
@@ -1073,11 +1087,12 @@ namespace UnityEngine.Rendering.Universal
 
                 // When render pass doesn't call ConfigureTarget we assume it's expected to render to camera target
                 // which might be backbuffer or the framebuffer render textures.
+
                 if (!renderPass.overrideCameraTarget)
                 {
                     // Default render pass attachment for passes before main rendering is current active
                     // early return so we don't change current render target setup.
-                    if (renderPass.renderPassEvent < RenderPassEvent.BeforeRenderingOpaques)
+                    if (renderPass.renderPassEvent < RenderPassEvent.BeforeRenderingPrePasses)
                         return;
 
                     // Otherwise default is the pipeline camera target.
