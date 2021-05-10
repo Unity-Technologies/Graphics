@@ -133,23 +133,24 @@ class VFXSlotContainerEditor : Editor
     IGizmoController m_CurrentController;
 
     static VFXSlotContainerEditor s_EffectUi;
+
+    /* TODO : Fix ITransientOverlay
     [Overlay(typeof(SceneView), k_OverlayId, k_DisplayName)]
-    class SceneViewVFXSlotContainerOverlay : TransientSceneViewOverlay
+    class SceneViewVFXSlotContainerOverlay : ITransientOverlay
     {
         const string k_OverlayId = "Scene View/Visual Effect Model";
         const string k_DisplayName = "Visual Effect Model";
-        public override bool ShouldDisplay()
-        {
-            return s_EffectUi != null;
-        }
 
-        public override void OnGUI()
+        public bool visible => s_EffectUi != null;
+
+        public void OnSceneGUI()
         {
             if (s_EffectUi == null)
                 return;
             s_EffectUi.SceneViewGUICallback();
         }
     }
+    */
 
     void OnSceneGUI(SceneView sv)
     {
