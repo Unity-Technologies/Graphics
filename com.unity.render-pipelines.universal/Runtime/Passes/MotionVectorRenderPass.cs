@@ -97,7 +97,7 @@ namespace UnityEngine.Rendering.Universal.Internal
                 enableDynamicBatching = renderingData.supportsDynamicBatching,
                 enableInstancing = true,
             };
-            
+
             for (int i = 0; i < s_ShaderTags.Length; ++i)
             {
                 drawingSettings.SetShaderPassName(i, new ShaderTagId(s_ShaderTags[i]));
