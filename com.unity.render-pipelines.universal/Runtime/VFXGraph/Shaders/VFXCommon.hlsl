@@ -24,14 +24,6 @@ float4 VFXApplyPreExposure(float4 color, VFX_VARYING_PS_INPUTS input)
 
 float4 VFXTransformFinalColor(float4 color)
 {
-/* URP hasn't the transparency overdraw debug
-#ifdef DEBUG_DISPLAY
-    if (_DebugFullScreenMode == FULLSCREENDEBUGMODE_TRANSPARENCY_OVERDRAW)
-    {
-        color = float4(TRANSPARENCY_OVERDRAW_COST, TRANSPARENCY_OVERDRAW_COST, TRANSPARENCY_OVERDRAW_COST, color.a);
-    }
-#endif
-*/
     return color;
 }
 
