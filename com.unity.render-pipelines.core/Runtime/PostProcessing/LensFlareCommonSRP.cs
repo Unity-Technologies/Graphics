@@ -281,7 +281,6 @@ namespace UnityEngine.Rendering
             Rendering.RenderTargetIdentifier colorBuffer,
             System.Func<Light, Camera, Vector3, float> GetLensFlareLightAttenuation,
             int _FlareTex, int _FlareColorValue, int _FlareData0, int _FlareData1, int _FlareData2, int _FlareData3, int _FlareData4, int _FlareData5,
-            bool enableXR, bool xrSinglePass, Matrix4x4 viewMatrix0, Matrix4x4 viewMatrix1,
             bool debugView)
         {
             Vector2 vScreenRatio;
@@ -343,10 +342,9 @@ namespace UnityEngine.Rendering
                 {
                     positionWS = comp.transform.position;
                 }
-                //viewportPos = cam.WorldToViewportPoint(positionWS);
-                //viewportPos = enableXR ? hdCamera.xr.GetViewMatrix(viewIndex) : hdCamera.camera.worldToCameraMatrix;
-                //Matrix4x4 worldToView = enableXR ? hdCamera.xr.GetViewMatrix(viewIndex) : cam.worldToCameraMatrix;
-                viewportPos = viewMatrix0 * positionWS;
+
+                viewportPos = cam.WorldToViewportPoint(positionWS);
+
                 if (usePanini && cam == Camera.main)
                 {
                     viewportPos = DoPaniniProjection(viewportPos, actualWidth, actualHeight, cam.fieldOfView, paniniCropToFit, paniniDistance);
