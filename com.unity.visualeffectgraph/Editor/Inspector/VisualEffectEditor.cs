@@ -561,16 +561,14 @@ namespace UnityEditor.VFX
         static VisualEffectEditor s_EffectUi;
 
         [Overlay(typeof(SceneView), k_OverlayId, k_DisplayName)]
-        class SceneViewVFXSlotContainerOverlay : TransientSceneViewOverlay
+        class SceneViewVFXSlotContainerOverlay : ITransientOverlay
         {
             const string k_OverlayId = "Scene View/Visual Effect";
             const string k_DisplayName = "Visual Effect";
-            public override bool ShouldDisplay()
-            {
-                return s_EffectUi != null;
-            }
 
-            public override void OnGUI()
+            public bool visible => s_EffectUi != null;
+
+            public void OnSceneGUI()
             {
                 if (s_EffectUi == null)
                     return;
