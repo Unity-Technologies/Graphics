@@ -15,8 +15,10 @@ namespace UnityEditor.Rendering.Universal
             public static readonly GUIContent FilteringLabel = new GUIContent("Filtering", "Controls filter rendering settings for this renderer.");
             public static readonly GUIContent OpaqueMask = new GUIContent("Opaque Layer Mask", "Controls which opaque layers this renderer draws.");
             public static readonly GUIContent TransparentMask = new GUIContent("Transparent Layer Mask", "Controls which transparent layers this renderer draws.");
-            public static readonly GUIContent LightingLabel = new GUIContent("Lighting", "Settings related to lighting and rendering paths.");
+            public static readonly GUIContent RenderingLabel = new GUIContent("Rendering", "Settings related to rendering and lighting.");
             public static readonly GUIContent RenderingModeLabel = new GUIContent("Rendering Path", "Select a rendering path.");
+            public static readonly GUIContent DepthPrimingModeLabel = new GUIContent("Depth Priming Mode", "With depth priming enabled, Unity uses the depth buffer generated in the depth prepass to determine if a fragment should be rendered or skipped during the Base Camera opaque pass. Disabled: Unity does not perform depth priming. Auto: If there is a Render Pass that requires a depth prepass, Unity performs the depth prepass and depth priming. Forced: Unity performs the depth prepass and depth priming.");
+            public static readonly GUIContent DepthPrimingModeInfo = new GUIContent("On Android, iOS, and Apple TV, Unity performs depth priming only in the Forced mode. On tiled GPUs, which are common to those platforms, depth priming might reduce performance when combined with MSAA.");
             public static readonly GUIContent RenderPassLabel = new GUIContent("Native RenderPass", "Enables URP to use RenderPass API");
             public static readonly GUIContent accurateGbufferNormalsLabel = EditorGUIUtility.TrTextContent("Accurate G-buffer normals", "Normals in G-buffer use octahedron encoding/decoding. This improves visual quality but might reduce performance.");
             //public static readonly GUIContent tiledDeferredShadingLabel = EditorGUIUtility.TrTextContent("Tiled Deferred Shading (Experimental)", "Allows Tiled Deferred Shading on appropriate lights");
@@ -28,6 +30,7 @@ namespace UnityEditor.Rendering.Universal
         SerializedProperty m_OpaqueLayerMask;
         SerializedProperty m_TransparentLayerMask;
         SerializedProperty m_RenderingMode;
+        SerializedProperty m_DepthPrimingMode;
         SerializedProperty m_AccurateGbufferNormals;
         //SerializedProperty m_TiledDeferredShading;
         SerializedProperty m_UseNativeRenderPass;
@@ -41,6 +44,7 @@ namespace UnityEditor.Rendering.Universal
             m_OpaqueLayerMask = serializedObject.FindProperty("m_OpaqueLayerMask");
             m_TransparentLayerMask = serializedObject.FindProperty("m_TransparentLayerMask");
             m_RenderingMode = serializedObject.FindProperty("m_RenderingMode");
+            m_DepthPrimingMode = serializedObject.FindProperty("m_DepthPrimingMode");
             m_AccurateGbufferNormals = serializedObject.FindProperty("m_AccurateGbufferNormals");
             // Not exposed yet.
             //m_TiledDeferredShading = serializedObject.FindProperty("m_TiledDeferredShading");
@@ -64,7 +68,7 @@ namespace UnityEditor.Rendering.Universal
             EditorGUI.indentLevel--;
             EditorGUILayout.Space();
 
-            EditorGUILayout.LabelField(Styles.LightingLabel, EditorStyles.boldLabel);
+            EditorGUILayout.LabelField(Styles.RenderingLabel, EditorStyles.boldLabel);
             EditorGUI.indentLevel++;
             EditorGUILayout.PropertyField(m_RenderingMode, Styles.RenderingModeLabel);
             if (m_RenderingMode.intValue == (int)RenderingMode.Deferred)
@@ -74,6 +78,19 @@ namespace UnityEditor.Rendering.Universal
                 //EditorGUILayout.PropertyField(m_TiledDeferredShading, Styles.tiledDeferredShadingLabel, true);
                 EditorGUI.indentLevel--;
             }
+
+            if (m_RenderingMode.intValue == (int)RenderingMode.Forward)
+            {
+                EditorGUI.indentLevel++;
+                EditorGUILayout.PropertyField(m_DepthPrimingMode, Styles.DepthPrimingModeLabel);
+                if (m_DepthPrimingMode.intValue != (int)DepthPrimingMode.Disabled)
+                {
+                    EditorGUILayout.HelpBox(Styles.DepthPrimingModeInfo.text, MessageType.Info);
+                }
+                EditorGUI.indentLevel--;
+            }
+
+
             EditorGUI.indentLevel--;
             EditorGUILayout.Space();
             EditorGUILayout.LabelField("RenderPass", EditorStyles.boldLabel);

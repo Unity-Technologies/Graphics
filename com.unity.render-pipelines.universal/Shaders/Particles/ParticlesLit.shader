@@ -133,7 +133,7 @@ Shader "Universal Render Pipeline/Particles/Lit"
             // Unity defined keywords
             #pragma multi_compile_fog
             #pragma multi_compile_instancing
-            #pragma multi_compile _ DEBUG_DISPLAY
+            #pragma multi_compile_fragment _ DEBUG_DISPLAY
             #pragma instancing_options procedural:ParticleInstancingSetup
 
             #pragma vertex ParticlesLitVertex

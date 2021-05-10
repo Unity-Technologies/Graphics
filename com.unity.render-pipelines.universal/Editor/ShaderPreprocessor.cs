@@ -8,6 +8,10 @@ using UnityEngine.Profiling;
 using UnityEngine.Rendering.Universal;
 using UnityEngine.Rendering;
 
+#if XR_MANAGEMENT_4_0_1_OR_NEWER
+using UnityEditor.XR.Management;
+#endif
+
 namespace UnityEditor.Rendering.Universal
 {
     [Flags]
@@ -148,11 +152,16 @@ namespace UnityEditor.Rendering.Universal
 
         bool StripUnusedFeatures(ShaderFeatures features, Shader shader, ShaderSnippetData snippetData, ShaderCompilerData compilerData)
         {
-#if URP_ENABLE_DEBUG_DISPLAY
             bool stripDebugDisplayShaders = !Debug.isDebugBuild;
-#else
-            bool stripDebugDisplayShaders = true;
+
+#if XR_MANAGEMENT_4_0_1_OR_NEWER
+            var buildTargetSettings = XRGeneralSettingsPerBuildTarget.XRGeneralSettingsForBuildTarget(BuildTargetGroup.Standalone);
+            if (buildTargetSettings != null && buildTargetSettings.AssignedSettings != null && buildTargetSettings.AssignedSettings.activeLoaders.Count > 0)
+            {
+                stripDebugDisplayShaders = true;
+            }
 #endif
+
             if (stripDebugDisplayShaders && compilerData.shaderKeywordSet.IsEnabled(m_DebugDisplay))
             {
                 return true;
