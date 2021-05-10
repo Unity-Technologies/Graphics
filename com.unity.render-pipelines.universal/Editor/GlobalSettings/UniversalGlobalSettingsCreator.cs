@@ -29,19 +29,24 @@ namespace UnityEngine.Rendering.Universal
             ProjectWindowUtil.StartNameEditingIfProjectWindowExists(assetCreator.GetInstanceID(), assetCreator, path, CoreEditorStyles.globalSettingsIcon, null);
         }
 
-        public static void Create(bool activateAsset)
+        public static void Create(bool useProjectSettingsFolder, bool activateAsset)
         {
             settings = null;
             updateGraphicsSettings = activateAsset;
 
-            var path = $"Assets/{UniversalRenderPipelineGlobalSettings.defaultAssetName}.asset";
+            var path = $"{UniversalRenderPipelineGlobalSettings.defaultAssetName}.asset";
+            if (useProjectSettingsFolder)
+            {
+                path = $"Assets/{UniversalRenderPipelineGlobalSettings.defaultAssetName}.asset";
+                CoreUtils.EnsureFolderTreeInAssetFilePath(path);
+            }
             ProjectWindowUtil.StartNameEditingIfProjectWindowExists(0, ScriptableObject.CreateInstance<UniversalGlobalSettingsCreator>(), path, CoreEditorStyles.globalSettingsIcon, null);
         }
 
         [MenuItem("Assets/Create/Rendering/URP Global Settings Asset", priority = CoreUtils.Sections.section3 + 1)]
         internal static void CreateUniversalRenderPipelineGlobalSettings()
         {
-            UniversalGlobalSettingsCreator.Create(activateAsset: false);
+            UniversalGlobalSettingsCreator.Create(useProjectSettingsFolder: false, activateAsset: false);
         }
     }
 }

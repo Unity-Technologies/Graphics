@@ -132,7 +132,7 @@ namespace UnityEditor.Rendering.Universal
 
                 if (GUILayout.Button(Styles.newAssetButtonLabel, GUILayout.Width(45), GUILayout.Height(18)))
                 {
-                    UniversalGlobalSettingsCreator.Create(activateAsset: true);
+                    UniversalGlobalSettingsCreator.Create(useProjectSettingsFolder: true, activateAsset: true);
                 }
 
                 bool guiEnabled = GUI.enabled;
