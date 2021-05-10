@@ -89,7 +89,7 @@ void MAIN(uint3 dispatchThreadId : SV_DispatchThreadID)
 #endif
 
     const float kMaxMips = 4.0;
-    float2 sampDist = _TexelSize.zw * samp0CoC * Radius;
+    float2 sampDist = _PostProcessScreenSize.zw * samp0CoC * Radius;
 
 #if NEAR
     float mip = 0.0;
@@ -116,7 +116,7 @@ void MAIN(uint3 dispatchThreadId : SV_DispatchThreadID)
         // low clipping values
         float clipping = 1.0 - abs(dot(sampTap, barrelUV));
         sampTap = sampTap * sampDist * clipping + uv;
-        sampTap = ClampAndScaleUV(sampTap, _TexelSize.zw, texelsToClamp);
+        sampTap = ClampAndScaleUVPostProcessTexture(sampTap, _PostProcessScreenSize.zw, texelsToClamp);
 
         CTYPE sampColor = SAMPLE_TEXTURE2D_X_LOD(_InputTexture, SamplerTap, sampTap, mip).CTYPE_SWIZZLE;
         float sampCoC = SAMPLE_TEXTURE2D_X_LOD(_InputCoCTexture, SamplerTap, sampTap, mip).x;

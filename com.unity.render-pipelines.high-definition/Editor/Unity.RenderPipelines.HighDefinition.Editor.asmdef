@@ -30,6 +30,11 @@
             "name": "com.unity.xr.management",
             "expression": "1.0.0",
             "define": "ENABLE_XR_MANAGEMENT"
+        },
+        {
+            "name": "com.unity.modules.nvidia",
+            "expression": "1.0.0",
+            "define": "ENABLE_NVIDIA_MODULE"
         }
     ]
 }
