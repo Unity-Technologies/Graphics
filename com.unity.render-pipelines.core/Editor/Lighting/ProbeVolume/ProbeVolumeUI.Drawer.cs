@@ -1,6 +1,7 @@
 using UnityEngine;
 using UnityEngine.Experimental.Rendering;
 using UnityEditor.Rendering;
+using UnityEngine.Rendering;
 
 // TODO(Nicholas): deduplicate with LocalVolumetricFogUI.Drawer.cs.
 namespace UnityEditor.Experimental.Rendering
@@ -30,6 +31,8 @@ namespace UnityEditor.Experimental.Rendering
 
         static void Drawer_BakeToolBar(SerializedProbeVolume serialized, Editor owner)
         {
+            if (!ProbeReferenceVolume.instance.isAvailableAndInitialized) return;
+
             Bounds bounds = new Bounds();
             bool foundABound = false;
             bool performFitting = false;
@@ -119,32 +122,48 @@ namespace UnityEditor.Experimental.Rendering
 
         static void Drawer_VolumeContent(SerializedProbeVolume serialized, Editor owner)
         {
-            EditorGUI.BeginChangeCheck();
-            EditorGUILayout.PropertyField(serialized.size, Styles.s_Size);
-
-            var rect = EditorGUILayout.GetControlRect(true);
-            EditorGUI.BeginProperty(rect, Styles.s_MinMaxSubdivSlider, serialized.minSubdivisionMultiplier);
-            EditorGUI.BeginProperty(rect, Styles.s_MinMaxSubdivSlider, serialized.maxSubdivisionMultiplier);
-
-            // Round min and max subdiv
-            float maxSubdiv = ProbeReferenceVolume.instance.GetMaxSubdivision(1) - 1;
-            float min = Mathf.Round(serialized.minSubdivisionMultiplier.floatValue * maxSubdiv) / maxSubdiv;
-            float max = Mathf.Round(serialized.maxSubdivisionMultiplier.floatValue * maxSubdiv) / maxSubdiv;
-
-            EditorGUILayout.MinMaxSlider(Styles.s_MinMaxSubdivSlider, ref min, ref max, 0, 1);
-            serialized.minSubdivisionMultiplier.floatValue = Mathf.Max(0.01f, min);
-            serialized.maxSubdivisionMultiplier.floatValue = Mathf.Max(0.01f, max);
-            EditorGUI.EndProperty();
-            EditorGUI.EndProperty();
-
-            EditorGUILayout.HelpBox($"The probe subdivision will fluctuate between {ProbeReferenceVolume.instance.GetMaxSubdivision(serialized.minSubdivisionMultiplier.floatValue)} and {ProbeReferenceVolume.instance.GetMaxSubdivision(serialized.maxSubdivisionMultiplier.floatValue)}", MessageType.Info);
-            if (EditorGUI.EndChangeCheck())
+            if (ProbeReferenceVolume.instance.isAvailableAndInitialized)
             {
-                Vector3 tmpClamp = serialized.size.vector3Value;
-                tmpClamp.x = Mathf.Max(0f, tmpClamp.x);
-                tmpClamp.y = Mathf.Max(0f, tmpClamp.y);
-                tmpClamp.z = Mathf.Max(0f, tmpClamp.z);
-                serialized.size.vector3Value = tmpClamp;
+                EditorGUI.BeginChangeCheck();
+                EditorGUILayout.PropertyField(serialized.size, Styles.s_Size);
+
+                var rect = EditorGUILayout.GetControlRect(true);
+                EditorGUI.BeginProperty(rect, Styles.s_MinMaxSubdivSlider, serialized.minSubdivisionMultiplier);
+                EditorGUI.BeginProperty(rect, Styles.s_MinMaxSubdivSlider, serialized.maxSubdivisionMultiplier);
+
+                // Round min and max subdiv
+                float maxSubdiv = ProbeReferenceVolume.instance.GetMaxSubdivision(1) - 1;
+                float min = Mathf.Round(serialized.minSubdivisionMultiplier.floatValue * maxSubdiv) / maxSubdiv;
+                float max = Mathf.Round(serialized.maxSubdivisionMultiplier.floatValue * maxSubdiv) / maxSubdiv;
+
+                EditorGUILayout.MinMaxSlider(Styles.s_MinMaxSubdivSlider, ref min, ref max, 0, 1);
+                serialized.minSubdivisionMultiplier.floatValue = Mathf.Max(0.01f, min);
+                serialized.maxSubdivisionMultiplier.floatValue = Mathf.Max(0.01f, max);
+                EditorGUI.EndProperty();
+                EditorGUI.EndProperty();
+
+                EditorGUILayout.HelpBox($"The probe subdivision will fluctuate between {ProbeReferenceVolume.instance.GetMaxSubdivision(serialized.minSubdivisionMultiplier.floatValue)} and {ProbeReferenceVolume.instance.GetMaxSubdivision(serialized.maxSubdivisionMultiplier.floatValue)}", MessageType.Info);
+                if (EditorGUI.EndChangeCheck())
+                {
+                    Vector3 tmpClamp = serialized.size.vector3Value;
+                    tmpClamp.x = Mathf.Max(0f, tmpClamp.x);
+                    tmpClamp.y = Mathf.Max(0f, tmpClamp.y);
+                    tmpClamp.z = Mathf.Max(0f, tmpClamp.z);
+                    serialized.size.vector3Value = tmpClamp;
+                }
+            }
+            else
+            {
+                var renderPipelineAsset = RenderPipelineManager.currentPipeline;
+
+                if (renderPipelineAsset != null && renderPipelineAsset.GetType().Name == "HDRenderPipelineAsset")
+                {
+                    EditorGUILayout.HelpBox("The probe volumes feature is disabled. The feature needs to be enabled in the HDRP Settings and on the used HDRP asset.", MessageType.Warning, wide: true);
+                }
+                else
+                {
+                    EditorGUILayout.HelpBox("The probe volumes feature is not enabled or not available on current SRP.", MessageType.Warning, wide: true);
+                }
             }
         }
     }

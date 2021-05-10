@@ -307,7 +307,24 @@ namespace UnityEngine.Experimental.Rendering
         bool m_NeedLoadAsset = false;
         bool m_ProbeReferenceVolumeInit = false;
         internal bool isInitialized => m_ProbeReferenceVolumeInit;
+        internal bool isAvailableAndInitialized => (featureIsAvailable && m_ProbeReferenceVolumeInit);
 
+        bool m_FeatureIsAvailable = false;
+        /// <summary>
+        /// Determines whether the feature is available or not. Any SRP that supports the feature needs to set this value.
+        /// </summary>
+        public bool featureIsAvailable
+        {
+            get => m_FeatureIsAvailable;
+            set
+            {
+                if (m_FeatureIsAvailable != featureIsAvailable)
+                {
+                    Cleanup();
+                    Initialize();
+                }
+            }
+        }
         // Similarly the index dimensions come from the authoring component; if a change happens
         // a pending request for re-init (and what it implies) is added from the editor.
         Vector3Int m_PendingIndexDimChange;
@@ -354,6 +371,8 @@ namespace UnityEngine.Experimental.Rendering
         /// <param name="parameters">Initialization parameters.</param>
         public void Initialize(in ProbeVolumeSystemParameters parameters)
         {
+            if (!featureIsAvailable) return;
+
             if (m_IsInitialized)
             {
                 Debug.LogError("Probe Volume System has already been initialized.");
@@ -372,7 +391,6 @@ namespace UnityEngine.Experimental.Rendering
         {
             if (!m_IsInitialized)
             {
-                Debug.LogError("Probe Volume System has not been initialized first before calling cleanup.");
                 return;
             }
 
@@ -556,6 +574,8 @@ namespace UnityEngine.Experimental.Rendering
         /// </summary>
         public void PerformPendingOperations()
         {
+            if (!featureIsAvailable) return;
+
             PerformPendingDeletion();
             PerformPendingIndexDimensionChangeAndInit();
             PerformPendingLoading();

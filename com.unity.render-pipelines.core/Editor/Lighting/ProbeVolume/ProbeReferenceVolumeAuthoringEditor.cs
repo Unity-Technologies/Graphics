@@ -50,6 +50,12 @@ namespace UnityEngine.Experimental.Rendering
             {
                 serializedObject.Update();
 
+                if (!ProbeReferenceVolume.instance.isAvailableAndInitialized)
+                {
+                    EditorGUILayout.HelpBox("The probe volumes feature is disabled. The feature needs to be enabled in the HDRP Settings and on the used HDRP asset.", MessageType.Warning, wide: true);
+                    return;
+                }
+
                 var probeReferenceVolumes = FindObjectsOfType<ProbeReferenceVolumeAuthoring>();
                 bool mismatchedProfile = false;
                 bool mismatchedTransform = false;
