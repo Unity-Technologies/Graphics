@@ -62,7 +62,9 @@ namespace UnityEngine.Rendering.Universal.Internal
         ComputeBuffer m_ZBinBuffer;
         ComputeBuffer m_TileBuffer;
 
-        public ForwardLights(bool clusteredRendering, int tileSize)
+        public ForwardLights() : this(false, -1) {}
+
+        internal ForwardLights(bool clusteredRendering, int tileSize)
         {
             Assert.IsTrue(math.ispow2(tileSize));
             m_UseStructuredBuffer = RenderingUtils.useStructuredBuffer;
@@ -105,7 +107,7 @@ namespace UnityEngine.Rendering.Universal.Internal
             }
         }
 
-        public void ProcessLights(ref RenderingData renderingData)
+        internal void ProcessLights(ref RenderingData renderingData)
         {
             if (m_UseClusteredRendering)
             {
@@ -342,7 +344,7 @@ namespace UnityEngine.Rendering.Universal.Internal
             CommandBufferPool.Release(cmd);
         }
 
-        public void Dispose()
+        internal void Cleanup()
         {
             if (m_UseClusteredRendering)
             {

@@ -57,7 +57,7 @@ namespace UnityEngine.Rendering.Universal
     {
         Disabled = 0,
         PerVertex = 2,
-        PerPixel = 1
+        PerPixel = 1,
     }
 
     public enum ShaderVariantLogLevel

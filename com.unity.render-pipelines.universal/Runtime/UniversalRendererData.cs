@@ -83,7 +83,7 @@ namespace UnityEngine.Rendering.Universal
         [SerializeField] bool m_AccurateGbufferNormals = false;
         //[SerializeField] bool m_TiledDeferredShading = false;
         [SerializeField] bool m_ClusteredRendering = false;
-        const TileSize k_DefaultTileSize = TileSize._8;
+        const TileSize k_DefaultTileSize = TileSize._32;
         [SerializeField] TileSize m_TileSize = k_DefaultTileSize;
 
         protected override ScriptableRenderer Create()
@@ -196,7 +196,7 @@ namespace UnityEngine.Rendering.Universal
         }
         */
 
-        public bool clusteredRendering
+        internal bool clusteredRendering
         {
             get => m_ClusteredRendering;
             set
@@ -206,7 +206,7 @@ namespace UnityEngine.Rendering.Universal
             }
         }
 
-        public TileSize tileSize
+        internal TileSize tileSize
         {
             get => m_TileSize;
             set

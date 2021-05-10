@@ -258,7 +258,7 @@ namespace UnityEngine.Rendering.Universal
         /// <inheritdoc />
         protected override void Dispose(bool disposing)
         {
-            m_ForwardLights.Dispose();
+            m_ForwardLights.Cleanup();
             m_PostProcessPasses.Dispose();
 
             CoreUtils.Destroy(m_BlitMaterial);
@@ -561,7 +561,7 @@ namespace UnityEngine.Rendering.Universal
                         // Only render forward-only geometry, as standard geometry will be rendered as normal into the gbuffer.
                         if (RenderPassEvent.AfterRenderingGbuffer <= renderPassInputs.requiresDepthNormalAtEvent &&
                             renderPassInputs.requiresDepthNormalAtEvent <= RenderPassEvent.BeforeRenderingOpaques)
-                        m_DepthNormalPrepass.shaderTagId = new ShaderTagId(k_DepthNormalsOnly);
+                            m_DepthNormalPrepass.shaderTagId = new ShaderTagId(k_DepthNormalsOnly);
                     }
                     else
                     {
@@ -624,7 +624,7 @@ namespace UnityEngine.Rendering.Universal
             if (camera.clearFlags == CameraClearFlags.Skybox && cameraData.renderType != CameraRenderType.Overlay)
             {
                 if (RenderSettings.skybox != null || (camera.TryGetComponent(out Skybox cameraSkybox) && cameraSkybox.material != null))
-                EnqueuePass(m_DrawSkyboxPass);
+                    EnqueuePass(m_DrawSkyboxPass);
             }
 
             // If a depth texture was created we necessarily need to copy it, otherwise we could have render it to a renderbuffer.
