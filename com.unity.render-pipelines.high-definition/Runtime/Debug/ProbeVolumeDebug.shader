@@ -28,9 +28,6 @@ Shader "Hidden/HDRP/ProbeVolumeDebug"
         uniform float _ExposureCompensation;
         uniform float _ProbeSize;
         uniform float4 _Color;
-        uniform int _SubdivLevel;
-        uniform float _CullDistance;
-        uniform int _MaxAllowedSubdiv;
 
         struct appdata
         {
@@ -58,23 +55,8 @@ Shader "Hidden/HDRP/ProbeVolumeDebug"
             UNITY_SETUP_INSTANCE_ID(v);
             UNITY_TRANSFER_INSTANCE_ID(v, o);
 
-
-            // Finer culling, degenerate the vertices of the sphere if it lies over the max distance.
-            // Coarser culling has already happened on CPU.
-            float4 position = UNITY_ACCESS_INSTANCED_PROP(Props, _Position);
-            if (distance(position.xyz, _WorldSpaceCameraPos.xyz) > _CullDistance ||
-                _SubdivLevel > _MaxAllowedSubdiv)
-            {
-                o.vertex = 0;
-                o.normal = 0;
-            }
-            else
-            {
-                float4 wsPos = mul(UNITY_MATRIX_M, float4(v.vertex.xyz * _ProbeSize, 1.0));
-                o.vertex = mul(UNITY_MATRIX_VP, wsPos);
-
-                o.normal = normalize(mul(v.normal, (float3x3)UNITY_MATRIX_M));
-            }
+            o.vertex = mul(UNITY_MATRIX_VP, mul(UNITY_MATRIX_M, float4(v.vertex.xyz * _ProbeSize, 1.0)));
+            o.normal = normalize(mul(v.normal, (float3x3)UNITY_MATRIX_M));
 
             return o;
         }

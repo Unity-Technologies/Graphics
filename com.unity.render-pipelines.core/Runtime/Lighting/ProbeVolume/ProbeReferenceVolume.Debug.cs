@@ -18,9 +18,7 @@ namespace UnityEngine.Experimental.Rendering
         public bool drawCells;
         public DebugProbeShadingMode probeShading;
         public float probeSize = 1.0f;
-        public float subdivisionViewCullingDistance = 500.0f;
-        public float probeCullingDistance = 200.0f;
-        public int maxSubdivToVisualize = ProbeBrickIndex.kMaxSubdivisionLevels;
+        public float cullingDistance = 500;
         public float exposureCompensation;
     }
 
@@ -109,20 +107,13 @@ namespace UnityEngine.Experimental.Rendering
         void RegisterDebug()
         {
             var widgetList = new List<DebugUI.Widget>();
-
-            var subdivContainer = new DebugUI.Container() { displayName = "Subdivision Visualization" };
-            subdivContainer.children.Add(new DebugUI.BoolField { displayName = "Display Cells", getter = () => debugDisplay.drawCells, setter = value => debugDisplay.drawCells = value, onValueChanged = RefreshDebug });
-            subdivContainer.children.Add(new DebugUI.BoolField { displayName = "Display Bricks", getter = () => debugDisplay.drawBricks, setter = value => debugDisplay.drawBricks = value, onValueChanged = RefreshDebug });
-
-            if (debugDisplay.drawCells || debugDisplay.drawBricks)
-            {
-                subdivContainer.children.Add(new DebugUI.FloatField { displayName = "Culling Distance", getter = () => debugDisplay.subdivisionViewCullingDistance, setter = value => debugDisplay.subdivisionViewCullingDistance = value, min = () => 0.0f });
-            }
-
-            var probeContainer = new DebugUI.Container() { displayName = "Probe Visualization" };
-            probeContainer.children.Add(new DebugUI.BoolField { displayName = "Display Probes", getter = () => debugDisplay.drawProbes, setter = value => debugDisplay.drawProbes = value, onValueChanged = RefreshDebug });
+            widgetList.Add(new DebugUI.BoolField { displayName = "Display Cells", getter = () => debugDisplay.drawCells, setter = value => debugDisplay.drawCells = value });
+            widgetList.Add(new DebugUI.BoolField { displayName = "Display Bricks", getter = () => debugDisplay.drawBricks, setter = value => debugDisplay.drawBricks = value });
+            widgetList.Add(new DebugUI.BoolField { displayName = "Display Probes", getter = () => debugDisplay.drawProbes, setter = value => debugDisplay.drawProbes = value, onValueChanged = RefreshDebug });
             if (debugDisplay.drawProbes)
             {
+                var probeContainer = new DebugUI.Container();
+
                 probeContainer.children.Add(new DebugUI.EnumField
                 {
                     displayName = "Probe Shading Mode",
@@ -137,20 +128,9 @@ namespace UnityEngine.Experimental.Rendering
                 if (debugDisplay.probeShading == DebugProbeShadingMode.SH)
                     probeContainer.children.Add(new DebugUI.FloatField { displayName = "Probe Exposure Compensation", getter = () => debugDisplay.exposureCompensation, setter = value => debugDisplay.exposureCompensation = value });
 
-                probeContainer.children.Add(new DebugUI.FloatField { displayName = "Culling Distance", getter = () => debugDisplay.probeCullingDistance, setter = value => debugDisplay.probeCullingDistance = value, min = () => 0.0f });
-
-                probeContainer.children.Add(new DebugUI.IntField
-                {
-                    displayName = "Max subdivision displayed",
-                    getter = () => debugDisplay.maxSubdivToVisualize,
-                    setter = (v) => debugDisplay.maxSubdivToVisualize = Mathf.Min(v, ProbeReferenceVolume.instance.GetMaxSubdivision()),
-                    min = () => 0,
-                    max = () => ProbeReferenceVolume.instance.GetMaxSubdivision(),
-                });
+                widgetList.Add(probeContainer);
             }
-            widgetList.Add(subdivContainer);
-            widgetList.Add(probeContainer);
-
+            widgetList.Add(new DebugUI.FloatField { displayName = "Culling Distance", getter = () => debugDisplay.cullingDistance, setter = value => debugDisplay.cullingDistance = value, min = () => 0.0f });
 
             m_DebugItems = widgetList.ToArray();
             var panel = DebugManager.instance.GetPanel("Probe Volume", true);
@@ -165,16 +145,13 @@ namespace UnityEngine.Experimental.Rendering
                 DebugManager.instance.GetPanel("Probe Volume", false).children.Remove(m_DebugItems);
         }
 
-        bool ShouldCullCell(Vector3 cellPosition, Transform cameraTransform, Plane[] frustumPlanes)
+        bool ShouldCull(Vector3 cellPosition, Vector3 cameraPosition, Plane[] frustumPlanes)
         {
             var cellSize = MaxBrickSize();
             var originWS = GetTransform().posWS;
             Vector3 cellCenterWS = cellPosition * cellSize + originWS + Vector3.one * (cellSize / 2.0f);
 
-            // We do coarse culling with cell, finer culling later.
-            float distanceRoundedUpWithCellSize = Mathf.CeilToInt(debugDisplay.probeCullingDistance / cellSize) * cellSize;
-
-            if (Vector3.Distance(cameraTransform.position, cellCenterWS) > distanceRoundedUpWithCellSize)
+            if (Vector3.Distance(cameraPosition, cellCenterWS) > debugDisplay.cullingDistance)
                 return true;
 
             var volumeAABB = new Bounds(cellCenterWS, cellSize * Vector3.one);
@@ -194,7 +171,7 @@ namespace UnityEngine.Experimental.Rendering
 
                 foreach (var debug in m_CellDebugData)
                 {
-                    if (ShouldCullCell(debug.cellPosition, camera.transform, m_DebugFrustumPlanes))
+                    if (ShouldCull(debug.cellPosition, camera.transform.position, m_DebugFrustumPlanes))
                         continue;
 
                     for (int i = 0; i < debug.probeBuffers.Count; ++i)
@@ -204,8 +181,6 @@ namespace UnityEngine.Experimental.Rendering
                         props.SetInt("_ShadingMode", (int)debugDisplay.probeShading);
                         props.SetFloat("_ExposureCompensation", -debugDisplay.exposureCompensation);
                         props.SetFloat("_ProbeSize", debugDisplay.probeSize);
-                        props.SetFloat("_CullDistance", debugDisplay.probeCullingDistance);
-                        props.SetInt("_MaxAllowedSubdiv", debugDisplay.maxSubdivToVisualize);
 
                         Graphics.DrawMeshInstanced(m_DebugMesh, 0, m_DebugMaterial, probeBuffer, probeBuffer.Length, props, ShadowCastingMode.Off, false, 0, camera, LightProbeUsage.Off, null);
                     }
@@ -252,7 +227,6 @@ namespace UnityEngine.Experimental.Rendering
                             MaterialPropertyBlock prop = new MaterialPropertyBlock();
                             float gradient = largestBrickSize == 0 ? 1 : brickSize / largestBrickSize;
                             prop.SetColor("_Color", Color.Lerp(Color.red, Color.green, gradient));
-                            prop.SetInt("_SubdivLevel", brickSize);
                             props.Add(prop);
 
                             probeBuffers.Add(probeBuffer.ToArray());

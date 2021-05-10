@@ -16,7 +16,6 @@ namespace UnityEngine.Rendering.Universal.Internal
         private RenderTargetHandle depthHandle { get; set; }
         private RenderTargetHandle normalHandle { get; set; }
         private FilteringSettings m_FilteringSettings;
-        private int m_RendererMSAASamples = 1;
 
         // Constants
         private const int k_DepthBufferBits = 32;
@@ -48,20 +47,15 @@ namespace UnityEngine.Rendering.Universal.Internal
                 normalsFormat = GraphicsFormat.R32G32B32A32_SFloat; // fallback
 
             this.depthHandle = depthHandle;
-
-            m_RendererMSAASamples = baseDescriptor.msaaSamples;
-
             baseDescriptor.colorFormat = RenderTextureFormat.Depth;
             baseDescriptor.depthBufferBits = k_DepthBufferBits;
-
-            // Never have MSAA on this depth texture. When doing MSAA depth priming this is the texture that is resolved to and used for post-processing.
             baseDescriptor.msaaSamples = 1;// Depth-Only pass don't use MSAA
-
             depthDescriptor = baseDescriptor;
 
             this.normalHandle = normalHandle;
             baseDescriptor.graphicsFormat = normalsFormat;
             baseDescriptor.depthBufferBits = 0;
+            baseDescriptor.msaaSamples = 1;
             normalDescriptor = baseDescriptor;
 
             this.allocateDepth = true;
@@ -73,29 +67,13 @@ namespace UnityEngine.Rendering.Universal.Internal
         public override void OnCameraSetup(CommandBuffer cmd, ref RenderingData renderingData)
         {
             if (this.allocateNormal)
-            {
-                RenderTextureDescriptor desc = normalDescriptor;
-                desc.msaaSamples = renderingData.cameraData.renderer.useDepthPriming ? m_RendererMSAASamples : 1;
-                cmd.GetTemporaryRT(normalHandle.id, desc, FilterMode.Point);
-            }
+                cmd.GetTemporaryRT(normalHandle.id, normalDescriptor, FilterMode.Point);
             if (this.allocateDepth)
                 cmd.GetTemporaryRT(depthHandle.id, depthDescriptor, FilterMode.Point);
-
-            if (renderingData.cameraData.renderer.useDepthPriming && (renderingData.cameraData.renderType == CameraRenderType.Base || renderingData.cameraData.clearDepth))
-            {
-                ConfigureTarget(
-                    new RenderTargetIdentifier(normalHandle.Identifier(), 0, CubemapFace.Unknown, -1),
-                    new RenderTargetIdentifier(renderingData.cameraData.renderer.cameraDepthTarget, 0, CubemapFace.Unknown, -1)
-                );
-            }
-            else
-            {
-                ConfigureTarget(
-                    new RenderTargetIdentifier(normalHandle.Identifier(), 0, CubemapFace.Unknown, -1),
-                    new RenderTargetIdentifier(depthHandle.Identifier(), 0, CubemapFace.Unknown, -1)
-                );
-            }
-
+            ConfigureTarget(
+                new RenderTargetIdentifier(normalHandle.Identifier(), 0, CubemapFace.Unknown, -1),
+                new RenderTargetIdentifier(depthHandle.Identifier(), 0, CubemapFace.Unknown, -1)
+            );
             ConfigureClear(ClearFlag.All, Color.black);
         }
 

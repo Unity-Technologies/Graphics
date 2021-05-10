@@ -1,80 +1,70 @@
 using System.Collections;
 using System.Collections.Generic;
 using System.Diagnostics;
+using UnityEditor.Rendering;
 
 namespace UnityEngine.Rendering.Universal
 {
     class DebugHandler : IDebugDisplaySettingsQuery
     {
         #region Property Id Constants
+        private static readonly int kDebugColorInvalidModePropertyId = Shader.PropertyToID("_DebugColorInvalidMode");
+        private static readonly int kDebugNumberTexturePropertyId = Shader.PropertyToID("_DebugNumberTexture");
 
-        static readonly int k_DebugColorInvalidModePropertyId = Shader.PropertyToID("_DebugColorInvalidMode");
-
-        static readonly int k_DebugColorPropertyId = Shader.PropertyToID("_DebugColor");
-        static readonly int k_DebugTexturePropertyId = Shader.PropertyToID("_DebugTexture");
-        static readonly int k_DebugTextureNoStereoPropertyId = Shader.PropertyToID("_DebugTextureNoStereo");
-        static readonly int k_DebugTextureDisplayRect = Shader.PropertyToID("_DebugTextureDisplayRect");
-        static readonly int k_DebugRenderTargetSupportsStereo = Shader.PropertyToID("_DebugRenderTargetSupportsStereo");
+        private static readonly int kDebugColorPropertyId = Shader.PropertyToID("_DebugColor");
+        private static readonly int kDebugTexturePropertyId = Shader.PropertyToID("_DebugTexture");
+        private static readonly int kDebugTextureDisplayRect = Shader.PropertyToID("_DebugTextureDisplayRect");
 
         // Material settings...
-        static readonly int k_DebugMaterialModeId = Shader.PropertyToID("_DebugMaterialMode");
-        static readonly int k_DebugVertexAttributeModeId = Shader.PropertyToID("_DebugVertexAttributeMode");
-        static readonly int k_DebugMaterialValidationModeId = Shader.PropertyToID("_DebugMaterialValidationMode");
+        private static readonly int kDebugMaterialModeId = Shader.PropertyToID("_DebugMaterialMode");
+        private static readonly int kDebugVertexAttributeModeId = Shader.PropertyToID("_DebugVertexAttributeMode");
 
         // Rendering settings...
-        static readonly int k_DebugMipInfoModeId = Shader.PropertyToID("_DebugMipInfoMode");
-        static readonly int k_DebugSceneOverrideModeId = Shader.PropertyToID("_DebugSceneOverrideMode");
-        static readonly int k_DebugFullScreenModeId = Shader.PropertyToID("_DebugFullScreenMode");
-        static readonly int k_DebugValidationModeId = Shader.PropertyToID("_DebugValidationMode");
-        static readonly int k_DebugValidateBelowMinThresholdColorPropertyId = Shader.PropertyToID("_DebugValidateBelowMinThresholdColor");
-        static readonly int k_DebugValidateAboveMaxThresholdColorPropertyId = Shader.PropertyToID("_DebugValidateAboveMaxThresholdColor");
+        private static readonly int kDebugMipInfoModeId = Shader.PropertyToID("_DebugMipInfoMode");
+        private static readonly int kDebugSceneOverrideModeId = Shader.PropertyToID("_DebugSceneOverrideMode");
+        private static readonly int kDebugFullScreenModeId = Shader.PropertyToID("_DebugFullScreenMode");
 
         // Lighting settings...
-        static readonly int k_DebugLightingModeId = Shader.PropertyToID("_DebugLightingMode");
-        static readonly int k_DebugLightingFeatureFlagsId = Shader.PropertyToID("_DebugLightingFeatureFlags");
+        private static readonly int kDebugLightingModeId = Shader.PropertyToID("_DebugLightingMode");
+        private static readonly int kDebugLightingFeatureFlagsId = Shader.PropertyToID("_DebugLightingFeatureFlags");
 
-        static readonly int k_DebugValidateAlbedoMinLuminanceId = Shader.PropertyToID("_DebugValidateAlbedoMinLuminance");
-        static readonly int k_DebugValidateAlbedoMaxLuminanceId = Shader.PropertyToID("_DebugValidateAlbedoMaxLuminance");
-        static readonly int k_DebugValidateAlbedoSaturationToleranceId = Shader.PropertyToID("_DebugValidateAlbedoSaturationTolerance");
-        static readonly int k_DebugValidateAlbedoHueToleranceId = Shader.PropertyToID("_DebugValidateAlbedoHueTolerance");
-        static readonly int k_DebugValidateAlbedoCompareColorId = Shader.PropertyToID("_DebugValidateAlbedoCompareColor");
+        // ValidationSettings...
+        private static readonly int kDebugValidationModeId = Shader.PropertyToID("_DebugValidationMode");
+        private static readonly int kDebugValidateBelowMinThresholdColorPropertyId = Shader.PropertyToID("_DebugValidateBelowMinThresholdColor");
+        private static readonly int kDebugValidateAboveMaxThresholdColorPropertyId = Shader.PropertyToID("_DebugValidateAboveMaxThresholdColor");
 
-        static readonly int k_DebugValidateMetallicMinValueId = Shader.PropertyToID("_DebugValidateMetallicMinValue");
-        static readonly int k_DebugValidateMetallicMaxValueId = Shader.PropertyToID("_DebugValidateMetallicMaxValue");
+        private static readonly int kDebugValidateAlbedoMinLuminanceId = Shader.PropertyToID("_DebugValidateAlbedoMinLuminance");
+        private static readonly int kDebugValidateAlbedoMaxLuminanceId = Shader.PropertyToID("_DebugValidateAlbedoMaxLuminance");
+        private static readonly int kDebugValidateAlbedoSaturationToleranceId = Shader.PropertyToID("_DebugValidateAlbedoSaturationTolerance");
+        private static readonly int kDebugValidateAlbedoHueToleranceId = Shader.PropertyToID("_DebugValidateAlbedoHueTolerance");
+        private static readonly int kDebugValidateAlbedoCompareColorId = Shader.PropertyToID("_DebugValidateAlbedoCompareColor");
 
-        static readonly int k_ValidationChannelsId = Shader.PropertyToID("_ValidationChannels");
-        static readonly int k_RangeMinimumId = Shader.PropertyToID("_RangeMinimum");
-        static readonly int k_RangeMaximumId = Shader.PropertyToID("_RangeMaximum");
+        private static readonly int kDebugValidateMetallicMinValueId = Shader.PropertyToID("_DebugValidateMetallicMinValue");
+        private static readonly int kDebugValidateMetallicMaxValueId = Shader.PropertyToID("_DebugValidateMetallicMaxValue");
 
+        private static readonly int kRangeMinimumId = Shader.PropertyToID("_RangeMinimum");
+        private static readonly int kRangeMaximumId = Shader.PropertyToID("_RangeMaximum");
+        private static readonly int kHighlightOutOfRangeAlpha = Shader.PropertyToID("_HighlightOutOfRangeAlpha");
         #endregion
 
-        readonly Material m_ReplacementMaterial;
+        private readonly Texture2D m_NumberFontTexture;
+        private readonly Material m_ReplacementMaterial;
 
-        bool m_HasDebugRenderTarget;
-        bool m_DebugRenderTargetSupportsStereo;
-        Vector4 m_DebugRenderTargetPixelRect;
-        RenderTargetIdentifier m_DebugRenderTargetIdentifier;
+        private bool m_HasDebugRenderTarget;
+        private Vector4 m_DebugRenderTargetPixelRect;
+        private RenderTargetIdentifier m_DebugRenderTargetIdentifier;
 
-        readonly DebugDisplaySettings m_DebugDisplaySettings;
+        private readonly DebugDisplaySettings m_DebugDisplaySettings;
 
-        DebugDisplaySettingsLighting LightingSettings => m_DebugDisplaySettings.LightingSettings;
-        DebugDisplaySettingsMaterial MaterialSettings => m_DebugDisplaySettings.MaterialSettings;
-        DebugDisplaySettingsRendering RenderingSettings => m_DebugDisplaySettings.RenderingSettings;
+        private DebugDisplaySettingsLighting LightingSettings => m_DebugDisplaySettings.LightingSettings;
+        private DebugMaterialSettings MaterialSettings => m_DebugDisplaySettings.MaterialSettings;
+        private DebugDisplaySettingsRendering RenderingSettings => m_DebugDisplaySettings.RenderingSettings;
+        private DebugDisplaySettingsValidation ValidationSettings => m_DebugDisplaySettings.ValidationSettings;
 
         #region IDebugDisplaySettingsQuery
-
         public bool AreAnySettingsActive => m_DebugDisplaySettings.AreAnySettingsActive;
         public bool IsPostProcessingAllowed => m_DebugDisplaySettings.IsPostProcessingAllowed;
         public bool IsLightingActive => m_DebugDisplaySettings.IsLightingActive;
-
-        // These modes would require putting custom data into gbuffer, so instead we just disable deferred mode.
-        internal bool IsActiveModeUnsupportedForDeferred =>
-            m_DebugDisplaySettings.LightingSettings.DebugLightingMode != DebugLightingMode.None ||
-            m_DebugDisplaySettings.LightingSettings.DebugLightingFeatureFlagsMask != DebugLightingFeatureFlags.None ||
-            m_DebugDisplaySettings.RenderingSettings.debugSceneOverrideMode != DebugSceneOverrideMode.None ||
-            m_DebugDisplaySettings.MaterialSettings.DebugMaterialModeData != DebugMaterialMode.None ||
-            m_DebugDisplaySettings.MaterialSettings.DebugVertexAttributeIndexData != DebugVertexAttributeMode.None ||
-            m_DebugDisplaySettings.MaterialSettings.MaterialValidationMode != DebugMaterialValidationMode.None;
 
         public bool TryGetScreenClearColor(ref Color color)
         {
@@ -98,10 +88,12 @@ namespace UnityEngine.Rendering.Universal
 
         internal DebugHandler(ScriptableRendererData scriptableRendererData)
         {
+            Texture2D numberFontTexture = scriptableRendererData.debugShaders.NumberFont;
             Shader debugReplacementShader = scriptableRendererData.debugShaders.debugReplacementPS;
 
             m_DebugDisplaySettings = DebugDisplaySettings.Instance;
 
+            m_NumberFontTexture = numberFontTexture;
             m_ReplacementMaterial = (debugReplacementShader == null) ? null : CoreUtils.CreateEngineMaterial(debugReplacementShader);
         }
 
@@ -110,10 +102,9 @@ namespace UnityEngine.Rendering.Universal
             return !cameraData.isPreviewCamera && AreAnySettingsActive;
         }
 
-        internal bool TryGetFullscreenDebugMode(out DebugFullScreenMode debugFullScreenMode, out int outputHeight)
+        internal bool TryGetFullscreenDebugMode(out DebugFullScreenMode debugFullScreenMode)
         {
             debugFullScreenMode = RenderingSettings.debugFullScreenMode;
-            outputHeight = RenderingSettings.debugFullScreenModeOutputSize;
             return debugFullScreenMode != DebugFullScreenMode.None;
         }
 
@@ -134,19 +125,19 @@ namespace UnityEngine.Rendering.Universal
             {
                 case DebugSceneOverrideMode.Overdraw:
                 {
-                    cmd.SetGlobalColor(k_DebugColorPropertyId, new Color(0.1f, 0.01f, 0.01f, 1));
+                    cmd.SetGlobalColor(kDebugColorPropertyId, new Color(0.1f, 0.01f, 0.01f, 1));
                     break;
                 }
 
                 case DebugSceneOverrideMode.Wireframe:
                 {
-                    cmd.SetGlobalColor(k_DebugColorPropertyId, Color.black);
+                    cmd.SetGlobalColor(kDebugColorPropertyId, Color.black);
                     break;
                 }
 
                 case DebugSceneOverrideMode.SolidWireframe:
                 {
-                    cmd.SetGlobalColor(k_DebugColorPropertyId, (passIndex == 0) ? Color.white : Color.black);
+                    cmd.SetGlobalColor(kDebugColorPropertyId, (passIndex == 0) ? Color.white : Color.black);
                     break;
                 }
 
@@ -158,35 +149,37 @@ namespace UnityEngine.Rendering.Universal
                     }
                     else if (passIndex == 1)
                     {
-                        cmd.SetGlobalColor(k_DebugColorPropertyId, Color.black);
+                        cmd.SetGlobalColor(kDebugColorPropertyId, Color.black);
                         cmd.EnableShaderKeyword(ShaderKeywordStrings.DEBUG_DISPLAY);
                     }
-
                     break;
                 }
-            }
+            }       // End of switch.
 
-            switch (MaterialSettings.MaterialValidationMode)
+            switch (ValidationSettings.validationMode)
             {
-                case DebugMaterialValidationMode.Albedo:
-                    cmd.SetGlobalFloat(k_DebugValidateAlbedoMinLuminanceId, MaterialSettings.AlbedoMinLuminance);
-                    cmd.SetGlobalFloat(k_DebugValidateAlbedoMaxLuminanceId, MaterialSettings.AlbedoMaxLuminance);
-                    cmd.SetGlobalFloat(k_DebugValidateAlbedoSaturationToleranceId, MaterialSettings.AlbedoSaturationTolerance);
-                    cmd.SetGlobalFloat(k_DebugValidateAlbedoHueToleranceId, MaterialSettings.AlbedoHueTolerance);
-                    cmd.SetGlobalColor(k_DebugValidateAlbedoCompareColorId, MaterialSettings.AlbedoCompareColor.linear);
+                case DebugValidationMode.ValidateAlbedo:
+                {
+                    cmd.SetGlobalFloat(kDebugValidateAlbedoMinLuminanceId, ValidationSettings.AlbedoMinLuminance);
+                    cmd.SetGlobalFloat(kDebugValidateAlbedoMaxLuminanceId, ValidationSettings.AlbedoMaxLuminance);
+                    cmd.SetGlobalFloat(kDebugValidateAlbedoSaturationToleranceId, ValidationSettings.AlbedoSaturationTolerance);
+                    cmd.SetGlobalFloat(kDebugValidateAlbedoHueToleranceId, ValidationSettings.AlbedoHueTolerance);
+                    cmd.SetGlobalColor(kDebugValidateAlbedoCompareColorId, ValidationSettings.AlbedoCompareColor.linear);
                     break;
+                }
 
-                case DebugMaterialValidationMode.Metallic:
-                    cmd.SetGlobalFloat(k_DebugValidateMetallicMinValueId, MaterialSettings.MetallicMinValue);
-                    cmd.SetGlobalFloat(k_DebugValidateMetallicMaxValueId, MaterialSettings.MetallicMaxValue);
+                case DebugValidationMode.ValidateMetallic:
+                {
+                    cmd.SetGlobalFloat(kDebugValidateMetallicMinValueId, ValidationSettings.MetallicMinValue);
+                    cmd.SetGlobalFloat(kDebugValidateMetallicMaxValueId, ValidationSettings.MetallicMaxValue);
                     break;
-            }
+                }
+            }       // End of switch.
         }
 
-        internal void SetDebugRenderTarget(RenderTargetIdentifier renderTargetIdentifier, Rect displayRect, bool supportsStereo)
+        internal void SetDebugRenderTarget(RenderTargetIdentifier renderTargetIdentifier, Rect displayRect)
         {
             m_HasDebugRenderTarget = true;
-            m_DebugRenderTargetSupportsStereo = supportsStereo;
             m_DebugRenderTargetIdentifier = renderTargetIdentifier;
             m_DebugRenderTargetPixelRect = new Vector4(displayRect.x, displayRect.y, displayRect.width, displayRect.height);
         }
@@ -197,15 +190,9 @@ namespace UnityEngine.Rendering.Universal
         }
 
         [Conditional("DEVELOPMENT_BUILD"), Conditional("UNITY_EDITOR")]
-        internal void UpdateShaderGlobalPropertiesForFinalValidationPass(CommandBuffer cmd, ref CameraData cameraData, bool isFinalPass)
+        internal void UpdateShaderGlobalPropertiesFinalBlitPass(CommandBuffer cmd, ref CameraData cameraData)
         {
-            // Ensure final validation & fullscreen debug modes are only done once in the very final pass, for the last camera on the stack.
-            bool isFinal = isFinalPass && cameraData.resolveFinalTarget;
-            if (!isFinal)
-            {
-                cmd.DisableShaderKeyword(ShaderKeywordStrings.DEBUG_DISPLAY);
-                return;
-            }
+            DebugDisplaySettingsValidation validationSettings = m_DebugDisplaySettings.ValidationSettings;
 
             if (IsActiveForCamera(ref cameraData))
             {
@@ -218,61 +205,50 @@ namespace UnityEngine.Rendering.Universal
 
             if (m_HasDebugRenderTarget)
             {
-                cmd.SetGlobalTexture(m_DebugRenderTargetSupportsStereo ? k_DebugTexturePropertyId : k_DebugTextureNoStereoPropertyId, m_DebugRenderTargetIdentifier);
-                cmd.SetGlobalVector(k_DebugTextureDisplayRect, m_DebugRenderTargetPixelRect);
-                cmd.SetGlobalInteger(k_DebugRenderTargetSupportsStereo, m_DebugRenderTargetSupportsStereo ? 1 : 0);
+                cmd.SetGlobalTexture(kDebugTexturePropertyId, m_DebugRenderTargetIdentifier);
+                cmd.SetGlobalVector(kDebugTextureDisplayRect, m_DebugRenderTargetPixelRect);
             }
 
-            var renderingSettings = m_DebugDisplaySettings.RenderingSettings;
-            if (renderingSettings.validationMode == DebugValidationMode.HighlightOutsideOfRange)
+            if (validationSettings.validationMode == DebugValidationMode.HighlightOutsideOfRange)
             {
-                cmd.SetGlobalInteger(k_ValidationChannelsId, (int)renderingSettings.validationChannels);
-                cmd.SetGlobalFloat(k_RangeMinimumId, renderingSettings.ValidationRangeMin);
-                cmd.SetGlobalFloat(k_RangeMaximumId, renderingSettings.ValidationRangeMax);
+                cmd.SetGlobalFloat(kRangeMinimumId, validationSettings.RangeMin);
+                cmd.SetGlobalFloat(kRangeMaximumId, validationSettings.RangeMax);
+                cmd.SetGlobalInt(kHighlightOutOfRangeAlpha, validationSettings.AlsoHighlightAlphaOutsideRange ? 1 : 0);
             }
         }
 
         [Conditional("DEVELOPMENT_BUILD"), Conditional("UNITY_EDITOR")]
-        internal void Setup(ScriptableRenderContext context, ref CameraData cameraData)
+        internal void Setup(ScriptableRenderContext context)
         {
             var cmd = CommandBufferPool.Get("");
 
-            if (IsActiveForCamera(ref cameraData))
-            {
-                cmd.EnableShaderKeyword(ShaderKeywordStrings.DEBUG_DISPLAY);
+            // Material settings...
+            cmd.SetGlobalFloat(kDebugMaterialModeId, (int)MaterialSettings.DebugMaterialModeData);
+            cmd.SetGlobalFloat(kDebugVertexAttributeModeId, (int)MaterialSettings.DebugVertexAttributeIndexData);
 
-                // Material settings...
-                cmd.SetGlobalFloat(k_DebugMaterialModeId, (int)MaterialSettings.DebugMaterialModeData);
-                cmd.SetGlobalFloat(k_DebugVertexAttributeModeId, (int)MaterialSettings.DebugVertexAttributeIndexData);
+            // Rendering settings...
+            cmd.SetGlobalInt(kDebugMipInfoModeId, (int)RenderingSettings.debugMipInfoMode);
+            cmd.SetGlobalInt(kDebugSceneOverrideModeId, (int)RenderingSettings.debugSceneOverrideMode);
+            cmd.SetGlobalInt(kDebugFullScreenModeId, (int)RenderingSettings.debugFullScreenMode);
 
-                cmd.SetGlobalInteger(k_DebugMaterialValidationModeId, (int)MaterialSettings.MaterialValidationMode);
+            // Lighting settings...
+            cmd.SetGlobalFloat(kDebugLightingModeId, (int)LightingSettings.DebugLightingMode);
+            cmd.SetGlobalInt(kDebugLightingFeatureFlagsId, (int)LightingSettings.DebugLightingFeatureFlagsMask);
 
-                // Rendering settings...
-                cmd.SetGlobalInteger(k_DebugMipInfoModeId, (int)RenderingSettings.debugMipInfoMode);
-                cmd.SetGlobalInteger(k_DebugSceneOverrideModeId, (int)RenderingSettings.debugSceneOverrideMode);
-                cmd.SetGlobalInteger(k_DebugFullScreenModeId, (int)RenderingSettings.debugFullScreenMode);
-                cmd.SetGlobalInteger(k_DebugValidationModeId, (int)RenderingSettings.validationMode);
-                cmd.SetGlobalColor(k_DebugValidateBelowMinThresholdColorPropertyId, Color.red);
-                cmd.SetGlobalColor(k_DebugValidateAboveMaxThresholdColorPropertyId, Color.blue);
+            // Validation settings...
+            cmd.SetGlobalInt(kDebugValidationModeId, (int)ValidationSettings.validationMode);
+            cmd.SetGlobalColor(kDebugValidateBelowMinThresholdColorPropertyId, Color.red);
+            cmd.SetGlobalColor(kDebugValidateAboveMaxThresholdColorPropertyId, Color.blue);
 
-                // Lighting settings...
-                cmd.SetGlobalFloat(k_DebugLightingModeId, (int)LightingSettings.DebugLightingMode);
-                cmd.SetGlobalInteger(k_DebugLightingFeatureFlagsId, (int)LightingSettings.DebugLightingFeatureFlagsMask);
-
-                // Set-up any other persistent properties...
-                cmd.SetGlobalColor(k_DebugColorInvalidModePropertyId, Color.red);
-            }
-            else
-            {
-                cmd.DisableShaderKeyword(ShaderKeywordStrings.DEBUG_DISPLAY);
-            }
+            // Set-up any other persistent properties...
+            cmd.SetGlobalColor(kDebugColorInvalidModePropertyId, Color.red);
+            cmd.SetGlobalTexture(kDebugNumberTexturePropertyId, m_NumberFontTexture);
 
             context.ExecuteCommandBuffer(cmd);
             CommandBufferPool.Release(cmd);
         }
 
         #region DebugRenderPasses
-
         private class DebugRenderPassEnumerable : IEnumerable<DebugRenderSetup>
         {
             private class Enumerator : IEnumerator<DebugRenderSetup>
@@ -300,7 +276,6 @@ namespace UnityEngine.Rendering.Universal
                 }
 
                 #region IEnumerator<DebugRenderSetup>
-
                 public bool MoveNext()
                 {
                     Current?.Dispose();
@@ -323,7 +298,6 @@ namespace UnityEngine.Rendering.Universal
                         Current.Dispose();
                         Current = null;
                     }
-
                     m_Index = -1;
                 }
 
@@ -347,7 +321,6 @@ namespace UnityEngine.Rendering.Universal
             }
 
             #region IEnumerable<DebugRenderSetup>
-
             public IEnumerator<DebugRenderSetup> GetEnumerator()
             {
                 return new Enumerator(m_DebugHandler, m_Context, m_CommandBuffer);
@@ -365,30 +338,6 @@ namespace UnityEngine.Rendering.Universal
             CommandBuffer commandBuffer)
         {
             return new DebugRenderPassEnumerable(this, context, commandBuffer);
-        }
-
-        internal delegate void DrawFunction(
-            ScriptableRenderContext context,
-            ref RenderingData renderingData,
-            ref DrawingSettings drawingSettings,
-            ref FilteringSettings filteringSettings,
-            ref RenderStateBlock renderStateBlock);
-
-        internal void DrawWithDebugRenderState(
-            ScriptableRenderContext context,
-            CommandBuffer cmd,
-            ref RenderingData renderingData,
-            ref DrawingSettings drawingSettings,
-            ref FilteringSettings filteringSettings,
-            ref RenderStateBlock renderStateBlock,
-            DrawFunction func)
-        {
-            foreach (DebugRenderSetup debugRenderSetup in CreateDebugRenderSetupEnumerable(context, cmd))
-            {
-                DrawingSettings debugDrawingSettings = debugRenderSetup.CreateDrawingSettings(drawingSettings);
-                RenderStateBlock debugRenderStateBlock = debugRenderSetup.GetRenderStateBlock(renderStateBlock);
-                func(context, ref renderingData, ref debugDrawingSettings, ref filteringSettings, ref debugRenderStateBlock);
-            }
         }
 
         #endregion

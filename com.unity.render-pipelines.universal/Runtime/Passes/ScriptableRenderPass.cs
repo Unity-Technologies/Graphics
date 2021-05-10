@@ -214,13 +214,7 @@ namespace UnityEngine.Rendering.Universal
         ClearFlag m_ClearFlag = ClearFlag.None;
         Color m_ClearColor = Color.black;
 
-        internal DebugHandler GetActiveDebugHandler(RenderingData renderingData)
-        {
-            var debugHandler = renderingData.cameraData.renderer.DebugHandler;
-            if ((debugHandler != null) && debugHandler.IsActiveForCamera(ref renderingData.cameraData))
-                return debugHandler;
-            return null;
-        }
+        internal DebugHandler DebugHandler { get; set; }
 
         public ScriptableRenderPass()
         {

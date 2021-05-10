@@ -68,9 +68,9 @@ namespace UnityEngine.Experimental.Rendering
 #endif
 
         [SerializeField]
-        ProbeReferenceVolumeProfile m_Profile = null;
+        private ProbeReferenceVolumeProfile m_Profile = null;
 #if UNITY_EDITOR
-        ProbeReferenceVolumeProfile m_PrevProfile = null;
+        private ProbeReferenceVolumeProfile m_PrevProfile = null;
 #endif
 
         internal ProbeReferenceVolumeProfile profile { get { return m_Profile; } }
@@ -81,15 +81,15 @@ namespace UnityEngine.Experimental.Rendering
 #if UNITY_EDITOR
         // Dilation
         [SerializeField]
-        bool m_Dilate = false;
+        private bool m_Dilate = false;
         [SerializeField]
-        int m_MaxDilationSamples = 16;
+        private int m_MaxDilationSamples = 16;
         [SerializeField]
-        float m_MaxDilationSampleDistance = 1f;
+        private float m_MaxDilationSampleDistance = 1f;
         [SerializeField]
-        float m_DilationValidityThreshold = 0.25f;
+        private float m_DilationValidityThreshold = 0.25f;
         [SerializeField]
-        bool m_GreedyDilation = false;
+        private bool m_GreedyDilation = false;
 
         Dictionary<ProbeReferenceVolume.Cell, MeshGizmo> brickGizmos = new Dictionary<ProbeReferenceVolume.Cell, MeshGizmo>();
         MeshGizmo cellGizmo;
@@ -97,7 +97,7 @@ namespace UnityEngine.Experimental.Rendering
         // In some cases Unity will magically popuplate this private field with a correct value even though it should not be serialized.
         // The [NonSerialized] attribute allows to force the asset to be null in case a domain reload happens.
         [System.NonSerialized]
-        ProbeVolumeAsset m_PrevAsset = null;
+        private ProbeVolumeAsset m_PrevAsset = null;
 #endif
         public ProbeVolumeAsset volumeAsset = null;
 
@@ -107,6 +107,7 @@ namespace UnityEngine.Experimental.Rendering
                 return;
 
             var refVol = ProbeReferenceVolume.instance;
+            refVol.Clear();
             refVol.SetTRS(transform.position, transform.rotation, m_Profile.brickSize);
             refVol.SetMaxSubdivision(m_Profile.maxSubdivision);
 
@@ -130,7 +131,7 @@ namespace UnityEngine.Experimental.Rendering
             ProbeReferenceVolume.instance.AddPendingAssetRemoval(volumeAsset);
         }
 
-        void Start()
+        private void Start()
         {
 #if UNITY_EDITOR
             if (m_Profile == null)
@@ -141,7 +142,7 @@ namespace UnityEngine.Experimental.Rendering
 
 #if UNITY_EDITOR
 
-        void OnValidate()
+        private void OnValidate()
         {
             if (!enabled || !gameObject.activeSelf)
                 return;
@@ -164,29 +165,23 @@ namespace UnityEngine.Experimental.Rendering
             m_PrevAsset = volumeAsset;
         }
 
-        void OnDisable()
+        private void OnDisable()
         {
             QueueAssetRemoval();
         }
 
-        void OnDestroy()
+        private void OnDestroy()
         {
             QueueAssetRemoval();
         }
 
-        internal bool ShouldCullCell(Vector3 cellPosition, Vector3 originWS = default(Vector3))
+        internal bool ShouldCull(Vector3 cellPosition, Vector3 originWS = default(Vector3))
         {
             if (m_Profile == null)
                 return true;
 
-            var cameraTransform = SceneView.lastActiveSceneView.camera.transform;
-
             Vector3 cellCenterWS = cellPosition * m_Profile.cellSize + originWS + Vector3.one * (m_Profile.cellSize / 2.0f);
-
-            // Round down to cell size distance
-            float roundedDownDist = Mathf.Floor(Vector3.Distance(cameraTransform.position, cellCenterWS) / m_Profile.cellSize) * m_Profile.cellSize;
-
-            if (roundedDownDist > ProbeReferenceVolume.instance.debugDisplay.subdivisionViewCullingDistance)
+            if (Vector3.Distance(SceneView.lastActiveSceneView.camera.transform.position, cellCenterWS) > ProbeReferenceVolume.instance.debugDisplay.cullingDistance)
                 return true;
 
             var frustumPlanes = GeometryUtility.CalculateFrustumPlanes(SceneView.lastActiveSceneView.camera);
@@ -196,9 +191,9 @@ namespace UnityEngine.Experimental.Rendering
         }
 
         // TODO: We need to get rid of Handles.DrawWireCube to be able to have those at runtime as well.
-        void OnDrawGizmos()
+        private void OnDrawGizmos()
         {
-            if (!enabled || !gameObject.activeSelf || !ProbeReferenceVolume.instance.isInitialized)
+            if (!enabled || !gameObject.activeSelf)
                 return;
 
             var debugDisplay = ProbeReferenceVolume.instance.debugDisplay;
@@ -208,7 +203,7 @@ namespace UnityEngine.Experimental.Rendering
                 var subdivColors = ProbeReferenceVolume.instance.subdivisionDebugColors;
                 foreach (var cell in ProbeReferenceVolume.instance.cells.Values)
                 {
-                    if (ShouldCullCell(cell.position, ProbeReferenceVolume.instance.GetTransform().posWS))
+                    if (ShouldCull(cell.position, ProbeReferenceVolume.instance.GetTransform().posWS))
                         continue;
 
                     if (cell.bricks == null)
@@ -246,7 +241,7 @@ namespace UnityEngine.Experimental.Rendering
                 cellGizmo.Clear();
                 foreach (var cell in ProbeReferenceVolume.instance.cells.Values)
                 {
-                    if (ShouldCullCell(cell.position, transform.position))
+                    if (ShouldCull(cell.position, transform.position))
                         continue;
 
                     var positionF = new Vector3(cell.position.x, cell.position.y, cell.position.z);

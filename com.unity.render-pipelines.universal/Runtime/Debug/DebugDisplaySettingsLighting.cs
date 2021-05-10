@@ -1,32 +1,13 @@
 using UnityEngine;
+using UnityEngine.Rendering;
+using UnityEngine.Rendering.Universal;
 
-namespace UnityEngine.Rendering.Universal
+namespace UnityEditor.Rendering
 {
-    class DebugDisplaySettingsLighting : IDebugDisplaySettingsData
+    public class DebugDisplaySettingsLighting : IDebugDisplaySettingsData
     {
         internal DebugLightingMode DebugLightingMode { get; private set; }
         internal DebugLightingFeatureFlags DebugLightingFeatureFlagsMask { get; private set; }
-
-        internal static class WidgetFactory
-        {
-            internal static DebugUI.Widget CreateLightingDebugMode(DebugDisplaySettingsLighting data) => new DebugUI.EnumField
-            {
-                displayName = "Lighting Debug Mode",
-                autoEnum = typeof(DebugLightingMode),
-                getter = () => (int)data.DebugLightingMode,
-                setter = (value) => {},
-                getIndex = () => (int)data.DebugLightingMode,
-                setIndex = (value) => data.DebugLightingMode = (DebugLightingMode)value
-            };
-
-            internal static DebugUI.Widget CreateLightingFeatures(DebugDisplaySettingsLighting data) => new DebugUI.BitField
-            {
-                displayName = "Lighting Features",
-                getter = () => data.DebugLightingFeatureFlagsMask,
-                setter = (value) => data.DebugLightingFeatureFlagsMask = (DebugLightingFeatureFlags)value,
-                enumType = typeof(DebugLightingFeatureFlags),
-            };
-        }
 
         private class SettingsPanel : DebugDisplaySettingsPanel
         {
@@ -34,24 +15,30 @@ namespace UnityEngine.Rendering.Universal
 
             public SettingsPanel(DebugDisplaySettingsLighting data)
             {
-                AddWidget(new DebugUI.Foldout
+                AddWidget(new DebugUI.EnumField
                 {
-                    displayName = "Lighting Debug Modes",
-                    isHeader = true,
-                    opened = true,
-                    children =
-                    {
-                        WidgetFactory.CreateLightingDebugMode(data),
-                        WidgetFactory.CreateLightingFeatures(data)
-                    }
+                    displayName = "Lighting Mode", autoEnum = typeof(DebugLightingMode),
+                    getter = () => (int)data.DebugLightingMode,
+                    setter = (value) => {},
+                    getIndex = () => (int)data.DebugLightingMode,
+                    setIndex = (value) => data.DebugLightingMode = (DebugLightingMode)value
+                });
+
+                AddWidget(new DebugUI.BitField
+                {
+                    displayName = "Lighting Features",
+                    getter = () => data.DebugLightingFeatureFlagsMask,
+                    setter = (value) => data.DebugLightingFeatureFlagsMask = (DebugLightingFeatureFlags)value,
+                    enumType = typeof(DebugLightingFeatureFlags),
                 });
             }
         }
 
         #region IDebugDisplaySettingsData
-        public bool AreAnySettingsActive => (DebugLightingMode != DebugLightingMode.None) || (DebugLightingFeatureFlagsMask != DebugLightingFeatureFlags.None);
+        public bool AreAnySettingsActive => (DebugLightingMode != DebugLightingMode.None) ||
+        (DebugLightingFeatureFlagsMask != DebugLightingFeatureFlags.None);
 
-        public bool IsPostProcessingAllowed => (DebugLightingMode != DebugLightingMode.Reflections && DebugLightingMode != DebugLightingMode.ReflectionsWithSmoothness);
+        public bool IsPostProcessingAllowed => true;
 
         public bool IsLightingActive => true;
 

@@ -7,6 +7,19 @@
 #include "Packages/com.unity.render-pipelines.core/Runtime/Lighting/ProbeVolume/DecodeSH.hlsl"
 #endif
 
+
+// APV specific code
+struct APVConstants
+{
+    float3x4    WStoRS;
+    float       normalBias; // amount of biasing along the normal
+    int3        centerRS;   // index center location in refspace
+    int3        centerIS;   // index center location in index space
+    uint3       indexDim;   // resolution of the index
+    uint3       poolDim;    // resolution of the brick pool
+};
+
+
 struct APVResources
 {
     StructuredBuffer<int> index;

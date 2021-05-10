@@ -306,15 +306,12 @@ namespace UnityEngine.Experimental.Rendering
 
         bool m_NeedLoadAsset = false;
         bool m_ProbeReferenceVolumeInit = false;
-        internal bool isInitialized => m_ProbeReferenceVolumeInit;
-
         // Similarly the index dimensions come from the authoring component; if a change happens
         // a pending request for re-init (and what it implies) is added from the editor.
         Vector3Int m_PendingIndexDimChange;
         bool m_NeedsIndexDimChange = false;
-        bool m_HasChangedIndexDim = false;
 
-        int m_CBShaderID = Shader.PropertyToID("ShaderVariablesProbeVolumes");
+        private int m_CBShaderID = Shader.PropertyToID("ShaderVariablesProbeVolumes");
 
         private int m_NumberOfCellsLoadedPerFrame = 2;
 
@@ -399,7 +396,7 @@ namespace UnityEngine.Experimental.Rendering
                 indexDimension = Vector3Int.Max(indexDimension, a.maxCellIndex);
 
             m_PendingIndexDimChange = indexDimension;
-            m_NeedsIndexDimChange = m_Index == null || (m_Index != null && indexDimension != m_Index.GetIndexDimension());
+            m_NeedsIndexDimChange = true;
         }
 
         internal void AddPendingAssetRemoval(ProbeVolumeAsset asset)
@@ -451,12 +448,7 @@ namespace UnityEngine.Experimental.Rendering
             {
                 CleanupLoadedData();
                 InitProbeReferenceVolume(kProbeIndexPoolAllocationSize, m_MemoryBudget, m_PendingIndexDimChange);
-                m_HasChangedIndexDim = true;
                 m_NeedsIndexDimChange = false;
-            }
-            else
-            {
-                m_HasChangedIndexDim = false;
             }
         }
 
@@ -479,18 +471,17 @@ namespace UnityEngine.Experimental.Rendering
 
         void PerformPendingLoading()
         {
+            LoadPendingCells();
+
             if ((m_PendingAssetsToBeLoaded.Count == 0 && m_ActiveAssets.Count == 0) || !m_NeedLoadAsset || !m_ProbeReferenceVolumeInit)
                 return;
 
             m_Pool.EnsureTextureValidity();
 
             // Load the ones that are already active but reload if we said we need to load
-            if (m_HasChangedIndexDim)
+            foreach (var asset in m_ActiveAssets.Values)
             {
-                foreach (var asset in m_ActiveAssets.Values)
-                {
-                    LoadAsset(asset);
-                }
+                LoadAsset(asset);
             }
 
             foreach (var asset in m_PendingAssetsToBeLoaded.Values)
@@ -559,7 +550,6 @@ namespace UnityEngine.Experimental.Rendering
             PerformPendingDeletion();
             PerformPendingIndexDimensionChangeAndInit();
             PerformPendingLoading();
-            LoadPendingCells();
         }
 
         /// <summary>
@@ -596,9 +586,8 @@ namespace UnityEngine.Experimental.Rendering
                 m_ProbeReferenceVolumeInit = true;
 
                 ClearDebugData();
-
-                m_NeedLoadAsset = true;
             }
+            m_NeedLoadAsset = true;
         }
 
         /// <summary>

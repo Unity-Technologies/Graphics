@@ -32,13 +32,6 @@ The Default Volume Profile Asset references a Volume Profile in the HDRP Package
 
 The LookDev Volume Profile Asset references the Volume Profile that will be used in the [LookDev window](Look-Dev.md). It works the same way than the Default Volume profile except that in this asset you can't put a [Visual Environment Component](Override-Visual-Environment.md) or skies component because they are overwritten by the LookDev.
 
-### Layers Names
-
-| **Property**              | **Description**                                              |
-| --------------------------| ------------------------------------------------------------ |
-| Light Layer Names                     | The name displayed on Lights and Meshes when using [Light Layers](Light-Layers.md). |
-| Decal Layer Names                     | The name displayed on decals and Meshes when using [Decal Layers](Decal.md). |
-
 ### Custom Post Processes Order
 
 Use this section to select which custom post processing effect will be used in the project and in which order they will be executed.
@@ -54,5 +47,5 @@ Use this section to select which custom [Diffusion Profiles](Diffusion-Profile.m
 | --------------------------| ------------------------------------------------------------ |
 | Shader Variant Log Level              | Use the drop-down to select what information HDRP logs about Shader variants when you build your Unity Project. • Disabled: HDRP doesn’t log any Shader variant information.• Only HDRP Shaders: Only log Shader variant information for HDRP Shaders.• All Shaders: Log Shader variant information for every Shader type. |
 | Lens Attenuation Mode                 | Set the attenuation mode of the lens that is used to compute exposure. With imperfect lens some energy is lost when converting from EV100 to the exposure multiplier, while a perfect lens has no attenuation and no energy is lost. |
-| Use DLSS Custom Project Id            | Controls whether to use a custom project ID for the NVIDIA Deep Learning Super Sampling module. If you enable this property, you can use **DLSS Custom Project Id** to specify a custom project ID.<br/>This property only appears if you enable the NVIDIA package (com.unity.modules.nvidia) in your Unity project. |
-| DLSS Custom Project Id                | Controls whether to use a custom project ID for the NVIDIA Deep Learning Super Sampling (DLSS) module. If you enable this property, you can use **DLSS Custom Project Id** to specify a custom project ID. If you disable this property, Unity generates a unique project ID. <br/>This property only appears if you enable the NVIDIA package (com.unity.modules.nvidia) in your Unity project. |
+| Light Layer Names                     | The name displayed on Lights and Meshes when using [Light Layers](Light-Layers.md). |
+| Decal Layer Names                     | The name displayed on decals and Meshes when using [Decal Layers](Decal.md). |

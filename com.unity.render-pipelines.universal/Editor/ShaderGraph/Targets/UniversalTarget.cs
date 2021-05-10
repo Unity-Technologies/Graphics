@@ -678,46 +678,6 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
             return result;
         }
 
-        // used by lit/unlit subtargets
-        public static PassDescriptor DepthNormalOnly(UniversalTarget target)
-        {
-            var result = new PassDescriptor()
-            {
-                // Definition
-                displayName = "DepthNormals",
-                referenceName = "SHADERPASS_DEPTHNORMALSONLY",
-                lightMode = "DepthNormals",
-                useInPreview = false,
-
-                // Template
-                passTemplatePath = UniversalTarget.kUberTemplatePath,
-                sharedTemplateDirectories = UniversalTarget.kSharedTemplateDirectories,
-
-                // Port Mask
-                validVertexBlocks = CoreBlockMasks.Vertex,
-                validPixelBlocks = CoreBlockMasks.FragmentDepthNormals,
-
-                // Fields
-                structs = CoreStructCollections.Default,
-                requiredFields = CoreRequiredFields.DepthNormals,
-                fieldDependencies = CoreFieldDependencies.Default,
-
-                // Conditional State
-                renderStates = CoreRenderStates.DepthNormalsOnly(target),
-                pragmas = CorePragmas.Instanced,
-                defines = new DefineCollection(),
-                keywords = new KeywordCollection(),
-                includes = CoreIncludes.DepthNormalsOnly,
-
-                // Custom Interpolator Support
-                customInterpolators = CoreCustomInterpDescriptors.Common
-            };
-
-            AddAlphaClipControlToPass(ref result, target);
-
-            return result;
-        }
-
         // used by lit/unlit targets
         public static PassDescriptor ShadowCaster(UniversalTarget target)
         {
@@ -781,15 +741,6 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
             BlockFields.SurfaceDescription.Alpha,
             BlockFields.SurfaceDescription.AlphaClipThreshold,
         };
-
-        public static readonly BlockFieldDescriptor[] FragmentDepthNormals = new BlockFieldDescriptor[]
-        {
-            BlockFields.SurfaceDescription.NormalOS,
-            BlockFields.SurfaceDescription.NormalTS,
-            BlockFields.SurfaceDescription.NormalWS,
-            BlockFields.SurfaceDescription.Alpha,
-            BlockFields.SurfaceDescription.AlphaClipThreshold,
-        };
     }
     #endregion
 
@@ -812,13 +763,6 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
         public static readonly FieldCollection ShadowCaster = new FieldCollection()
         {
             StructFields.Attributes.normalOS,
-        };
-
-        public static readonly FieldCollection DepthNormals = new FieldCollection()
-        {
-            StructFields.Attributes.uv1,                            // needed for meta vertex position
-            StructFields.Varyings.normalWS,
-            StructFields.Varyings.tangentWS,                        // needed for vertex lighting
         };
     }
     #endregion

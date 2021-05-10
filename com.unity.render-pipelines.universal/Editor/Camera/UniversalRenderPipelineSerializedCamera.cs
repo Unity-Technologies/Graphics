@@ -29,7 +29,6 @@ namespace UnityEditor.Rendering.Universal
         public SerializedProperty cameraType { get; }
         public SerializedProperty cameras { get; set; }
         public SerializedProperty volumeTrigger { get; }
-        public SerializedProperty volumeFrameworkUpdateMode { get; }
         public SerializedProperty renderPostProcessing { get; }
         public SerializedProperty antialiasingQuality { get; }
 #if ENABLE_VR && ENABLE_XR_MODULE
@@ -82,7 +81,6 @@ namespace UnityEditor.Rendering.Universal
             renderer = serializedAdditionalDataObject.FindProperty("m_RendererIndex");
             volumeLayerMask = serializedAdditionalDataObject.FindProperty("m_VolumeLayerMask");
             volumeTrigger = serializedAdditionalDataObject.FindProperty("m_VolumeTrigger");
-            volumeFrameworkUpdateMode = serializedAdditionalDataObject.FindProperty("m_VolumeFrameworkUpdateModeOption");
             renderPostProcessing = serializedAdditionalDataObject.FindProperty("m_RenderPostProcessing");
             antialiasingQuality = serializedAdditionalDataObject.FindProperty("m_AntialiasingQuality");
             cameraType = serializedAdditionalDataObject.FindProperty("m_CameraType");

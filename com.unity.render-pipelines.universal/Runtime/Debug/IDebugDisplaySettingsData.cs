@@ -1,4 +1,4 @@
-namespace UnityEngine.Rendering.Universal
+namespace UnityEditor.Rendering
 {
     public interface IDebugDisplaySettingsData : IDebugDisplaySettingsQuery
     {

@@ -45,9 +45,6 @@ namespace UnityEditor.Rendering.HighDefinition
         public SerializedProperty lensAttenuation;
         public SerializedProperty diffusionProfileSettingsList;
 
-        public SerializedProperty DLSSProjectId;
-        public SerializedProperty useDLSSCustomProjectId;
-
         internal ReorderableList uiBeforeTransparentCustomPostProcesses;
         internal ReorderableList uiBeforeTAACustomPostProcesses;
         internal ReorderableList uiBeforePostProcessCustomPostProcesses;
@@ -130,10 +127,6 @@ namespace UnityEditor.Rendering.HighDefinition
             {
                 drawElement = DrawDiffusionProfileElement
             };
-
-
-            DLSSProjectId = serializedObject.Find((HDRenderPipelineGlobalSettings s) => s.DLSSProjectId);
-            useDLSSCustomProjectId = serializedObject.Find((HDRenderPipelineGlobalSettings s) => s.useDLSSCustomProjectId);
         }
 
         void InitializeCustomPostProcessesLists()

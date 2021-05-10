@@ -1701,33 +1701,6 @@ namespace UnityEngine.Rendering.HighDefinition
             return executed;
         }
 
-        private class UpdatePostProcessScreenSizePassData
-        {
-            public int postProcessWidth;
-            public int postProcessHeight;
-            public HDCamera hdCamera;
-            public ShaderVariablesGlobal shaderVariablesGlobal;
-        }
-
-        internal void UpdatePostProcessScreenSize(RenderGraph renderGraph, HDCamera hdCamera, int postProcessWidth, int postProcessHeight)
-        {
-            using (var builder = renderGraph.AddRenderPass<UpdatePostProcessScreenSizePassData>("Update RT Handle Scales CB", out var passData))
-            {
-                passData.hdCamera = hdCamera;
-                passData.shaderVariablesGlobal = m_ShaderVariablesGlobalCB;
-                passData.postProcessWidth  = postProcessWidth;
-                passData.postProcessHeight = postProcessHeight;
-
-                builder.SetRenderFunc(
-                    (UpdatePostProcessScreenSizePassData data, RenderGraphContext ctx) =>
-                    {
-                        data.hdCamera.SetPostProcessScreenSize(data.postProcessWidth, data.postProcessHeight);
-                        data.hdCamera.UpdateScalesAndScreenSizesCB(ref data.shaderVariablesGlobal);
-                        ConstantBuffer.PushGlobal(ctx.cmd, data.shaderVariablesGlobal, HDShaderIDs._ShaderVariablesGlobal);
-                    });
-            }
-        }
-
         class ResetCameraSizeForAfterPostProcessPassData
         {
             public HDCamera hdCamera;
@@ -1738,7 +1711,7 @@ namespace UnityEngine.Rendering.HighDefinition
         {
             if (DynamicResolutionHandler.instance.DynamicResolutionEnabled())
             {
-                using (var builder = renderGraph.AddRenderPass<ResetCameraSizeForAfterPostProcessPassData>("Reset Camera Size After Post Process", out var passData))
+                using (var builder = renderGraph.AddRenderPass("Reset Camera Size After Post Process", out ResetCameraSizeForAfterPostProcessPassData passData))
                 {
                     passData.hdCamera = hdCamera;
                     passData.shaderVariablesGlobal = m_ShaderVariablesGlobalCB;
@@ -1766,7 +1739,7 @@ namespace UnityEngine.Rendering.HighDefinition
         {
             if (hdCamera.frameSettings.IsEnabled(FrameSettingsField.CustomPass))
             {
-                using (var builder = renderGraph.AddRenderPass<BindCustomPassBuffersPassData>("Bind Custom Pass Buffers", out var passData))
+                using (var builder = renderGraph.AddRenderPass("Bind Custom Pass Buffers", out BindCustomPassBuffersPassData passData))
                 {
                     passData.customColorTexture = m_CustomPassColorBuffer;
                     passData.customDepthTexture = m_CustomPassDepthBuffer;

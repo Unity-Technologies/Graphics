@@ -4,15 +4,12 @@ using UnityEngine.InputSystem;
 using UnityEngine.InputSystem.UI;
 using UnityEngine.InputSystem.EnhancedTouch;
 #endif
-using System.Collections;
 using UnityEngine.EventSystems;
 
 namespace UnityEngine.Rendering
 {
     class DebugUpdater : MonoBehaviour
     {
-        ScreenOrientation m_Orientation;
-
         [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.AfterSceneLoad)]
         static void RuntimeInit()
         {
@@ -20,7 +17,7 @@ namespace UnityEngine.Rendering
                 return;
 
             var go = new GameObject { name = "[Debug Updater]" };
-            var debugUpdater = go.AddComponent<DebugUpdater>();
+            go.AddComponent<DebugUpdater>();
 
             var es = GameObject.FindObjectOfType<EventSystem>();
             if (es == null)
@@ -38,9 +35,6 @@ namespace UnityEngine.Rendering
                 go.AddComponent<StandaloneInputModule>();
 #endif
             }
-
-            debugUpdater.m_Orientation = Screen.orientation;
-
             DontDestroyOnLoad(go);
         }
 
@@ -60,21 +54,6 @@ namespace UnityEngine.Rendering
             {
                 debugManager.Reset();
             }
-
-            if (debugManager.GetActionReleaseScrollTarget())
-                debugManager.SetScrollTarget(null); // Allow mouse wheel scroll without causing auto-scroll
-
-            if (m_Orientation != Screen.orientation)
-            {
-                StartCoroutine(RefreshRuntimeUINextFrame());
-                m_Orientation = Screen.orientation;
-            }
-        }
-
-        static IEnumerator RefreshRuntimeUINextFrame()
-        {
-            yield return null; // Defer runtime UI refresh to next frame to allow canvas to update first.
-            DebugManager.instance.ReDrawOnScreenDebug();
         }
     }
 }

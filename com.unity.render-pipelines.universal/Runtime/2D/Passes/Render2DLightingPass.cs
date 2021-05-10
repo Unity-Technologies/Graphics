@@ -151,17 +151,23 @@ namespace UnityEngine.Rendering.Universal
             }
         }
 
-        private void Render(ScriptableRenderContext context, CommandBuffer cmd, ref RenderingData renderingData, ref FilteringSettings filterSettings, DrawingSettings drawSettings)
+        private void Render(ScriptableRenderContext context, CommandBuffer cmd, ref RenderingData renderingData, ref FilteringSettings filterSettings, DrawingSettings drawSettings, bool debugRender)
         {
-            var activeDebugHandler = GetActiveDebugHandler(renderingData);
-            if (activeDebugHandler != null)
+            if (debugRender)
             {
-                RenderStateBlock renderStateBlock = new RenderStateBlock();
-                activeDebugHandler.DrawWithDebugRenderState(context, cmd, ref renderingData, ref drawSettings, ref filterSettings, ref renderStateBlock,
-                    (ScriptableRenderContext ctx, ref RenderingData data, ref DrawingSettings ds, ref FilteringSettings fs, ref RenderStateBlock rsb) =>
+                foreach (DebugRenderSetup debugRenderSetup in DebugHandler.CreateDebugRenderSetupEnumerable(context, cmd))
+                {
+                    DrawingSettings debugDrawSettings = debugRenderSetup.CreateDrawingSettings(ref renderingData, drawSettings);
+
+                    if (debugRenderSetup.GetRenderStateBlock(out RenderStateBlock renderStateBlock))
                     {
-                        ctx.DrawRenderers(data.cullResults, ref ds, ref fs, ref rsb);
-                    });
+                        context.DrawRenderers(renderingData.cullResults, ref debugDrawSettings, ref filterSettings, ref renderStateBlock);
+                    }
+                    else
+                    {
+                        context.DrawRenderers(renderingData.cullResults, ref debugDrawSettings, ref filterSettings);
+                    }
+                }
             }
             else
             {
@@ -181,8 +187,7 @@ namespace UnityEngine.Rendering.Universal
             ref DrawingSettings drawSettings,
             ref RenderTextureDescriptor desc)
         {
-            var debugHandler = GetActiveDebugHandler(renderingData);
-            bool drawLights = debugHandler?.IsLightingActive ?? true;
+            bool drawLights = (DebugHandler == null) || DebugHandler.IsLightingActive;
             var batchesDrawn = 0;
             var rtCount = 0U;
 
@@ -278,6 +283,7 @@ namespace UnityEngine.Rendering.Universal
                         cmd.Clear();
 
                         short cameraSortingLayerBoundsIndex = GetCameraSortingLayerBoundsIndex();
+                        bool debugRender = (DebugHandler != null) && DebugHandler.IsActiveForCamera(ref renderingData.cameraData);
 
                         RenderBufferStoreAction copyStoreAction;
                         if (msaaEnabled)
@@ -288,16 +294,16 @@ namespace UnityEngine.Rendering.Universal
                         if (cameraSortingLayerBoundsIndex >= layerBatch.layerRange.lowerBound && cameraSortingLayerBoundsIndex < layerBatch.layerRange.upperBound && m_Renderer2DData.useCameraSortingLayerTexture)
                         {
                             filterSettings.sortingLayerRange = new SortingLayerRange(layerBatch.layerRange.lowerBound, cameraSortingLayerBoundsIndex);
-                            Render(context, cmd, ref renderingData, ref filterSettings, drawSettings);
+                            Render(context, cmd, ref renderingData, ref filterSettings, drawSettings, debugRender);
                             CopyCameraSortingLayerRenderTexture(context, renderingData, copyStoreAction);
 
                             filterSettings.sortingLayerRange = new SortingLayerRange((short)(cameraSortingLayerBoundsIndex + 1), layerBatch.layerRange.upperBound);
-                            Render(context, cmd, ref renderingData, ref filterSettings, drawSettings);
+                            Render(context, cmd, ref renderingData, ref filterSettings, drawSettings, debugRender);
                         }
                         else
                         {
                             filterSettings.sortingLayerRange = new SortingLayerRange(layerBatch.layerRange.lowerBound, layerBatch.layerRange.upperBound);
-                            Render(context, cmd, ref renderingData, ref filterSettings, drawSettings);
+                            Render(context, cmd, ref renderingData, ref filterSettings, drawSettings, debugRender);
 
                             if (cameraSortingLayerBoundsIndex == layerBatch.layerRange.upperBound && m_Renderer2DData.useCameraSortingLayerTexture)
                                 CopyCameraSortingLayerRenderTexture(context, renderingData, copyStoreAction);
@@ -389,6 +395,7 @@ namespace UnityEngine.Rendering.Universal
                 var unlitDrawSettings = CreateDrawingSettings(k_ShaderTags, ref renderingData, SortingCriteria.CommonTransparent);
                 var msaaEnabled = renderingData.cameraData.cameraTargetDescriptor.msaaSamples > 1;
                 var storeAction = msaaEnabled ? RenderBufferStoreAction.Resolve : RenderBufferStoreAction.Store;
+                bool debugRender = (DebugHandler != null) && DebugHandler.IsActiveForCamera(ref renderingData.cameraData);
 
                 var cmd = CommandBufferPool.Get();
                 using (new ProfilingScope(cmd, m_ProfilingSamplerUnlit))
@@ -414,16 +421,16 @@ namespace UnityEngine.Rendering.Universal
                 if (m_Renderer2DData.useCameraSortingLayerTexture)
                 {
                     filterSettings.sortingLayerRange = new SortingLayerRange(short.MinValue, m_CameraSortingLayerBoundsIndex);
-                    Render(context, cmd, ref renderingData, ref filterSettings, unlitDrawSettings);
+                    Render(context, cmd, ref renderingData, ref filterSettings, unlitDrawSettings, debugRender);
 
                     CopyCameraSortingLayerRenderTexture(context, renderingData, storeAction);
 
                     filterSettings.sortingLayerRange = new SortingLayerRange(m_CameraSortingLayerBoundsIndex, short.MaxValue);
-                    Render(context, cmd, ref renderingData, ref filterSettings, unlitDrawSettings);
+                    Render(context, cmd, ref renderingData, ref filterSettings, unlitDrawSettings, debugRender);
                 }
                 else
                 {
-                    Render(context, cmd, ref renderingData, ref filterSettings, unlitDrawSettings);
+                    Render(context, cmd, ref renderingData, ref filterSettings, unlitDrawSettings, debugRender);
                 }
                 Profiler.EndSample();
 

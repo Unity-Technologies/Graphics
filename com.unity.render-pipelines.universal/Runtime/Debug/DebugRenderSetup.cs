@@ -1,4 +1,5 @@
 using System;
+using UnityEditor.Rendering;
 
 namespace UnityEngine.Rendering.Universal
 {
@@ -9,9 +10,10 @@ namespace UnityEngine.Rendering.Universal
         private readonly CommandBuffer m_CommandBuffer;
         private readonly int m_Index;
 
-        private DebugDisplaySettingsMaterial MaterialSettings => m_DebugHandler.DebugDisplaySettings.MaterialSettings;
+        private DebugMaterialSettings MaterialSettings => m_DebugHandler.DebugDisplaySettings.MaterialSettings;
         private DebugDisplaySettingsRendering RenderingSettings => m_DebugHandler.DebugDisplaySettings.RenderingSettings;
         private DebugDisplaySettingsLighting LightingSettings => m_DebugHandler.DebugDisplaySettings.LightingSettings;
+        private DebugDisplaySettingsValidation ValidationSettings => m_DebugHandler.DebugDisplaySettings.ValidationSettings;
 
         private void Begin()
         {
@@ -36,7 +38,7 @@ namespace UnityEngine.Rendering.Universal
                     }
                     break;
                 }
-            }
+            } // End of switch.
 
             m_DebugHandler.SetupShaderProperties(m_CommandBuffer, m_Index);
 
@@ -67,7 +69,12 @@ namespace UnityEngine.Rendering.Universal
                     }
                     break;
                 }
-            }
+
+                default:
+                {
+                    break;
+                }
+            } // End of switch.
         }
 
         internal DebugRenderSetup(DebugHandler debugHandler, ScriptableRenderContext context, CommandBuffer commandBuffer, int index)
@@ -80,7 +87,7 @@ namespace UnityEngine.Rendering.Universal
             Begin();
         }
 
-        internal DrawingSettings CreateDrawingSettings(DrawingSettings drawingSettings)
+        internal DrawingSettings CreateDrawingSettings(ref RenderingData renderingData, DrawingSettings drawingSettings)
         {
             bool usesReplacementMaterial = (MaterialSettings.DebugVertexAttributeIndexData != DebugVertexAttributeMode.None);
 
@@ -98,21 +105,28 @@ namespace UnityEngine.Rendering.Universal
             return drawingSettings;
         }
 
-        internal RenderStateBlock GetRenderStateBlock(RenderStateBlock renderStateBlock)
+        internal bool GetRenderStateBlock(out RenderStateBlock renderStateBlock)
         {
             DebugSceneOverrideMode sceneOverrideMode = RenderingSettings.debugSceneOverrideMode;
 
-            // Potentially override parts of the RenderStateBlock
+            // Create an empty render-state block and only enable the parts we wish to override...
+            renderStateBlock = new RenderStateBlock();
+
             switch (sceneOverrideMode)
             {
                 case DebugSceneOverrideMode.Overdraw:
                 {
                     RenderTargetBlendState additiveBlend = new RenderTargetBlendState(sourceColorBlendMode: BlendMode.One, destinationColorBlendMode: BlendMode.One);
 
-                    // Additive-blend but leave z-write and culling as they are when we draw normally
+                    // Additive-blend but leave z-write and culling as they are when we draw normally...
                     renderStateBlock.blendState = new BlendState {blendState0 = additiveBlend};
                     renderStateBlock.mask = RenderStateMask.Blend;
-                    break;
+                    return true;
+                }
+
+                case DebugSceneOverrideMode.Wireframe:
+                {
+                    return true;
                 }
 
                 case DebugSceneOverrideMode.SolidWireframe:
@@ -124,11 +138,16 @@ namespace UnityEngine.Rendering.Universal
                         renderStateBlock.rasterState = new RasterState(offsetUnits: -1, offsetFactor: -1);
                         renderStateBlock.mask = RenderStateMask.Raster;
                     }
-                    break;
-                }
-            }
 
-            return renderStateBlock;
+                    return true;
+                }
+
+                default:
+                {
+                    // We're not going to override anything...
+                    return false;
+                }
+            } // End of switch.
         }
 
         public void Dispose()

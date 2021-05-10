@@ -150,7 +150,6 @@
   * [Alpha Output](Alpha-Output.md)
   * [Arbitrary Output Variables](AOVs.md)
   * [Multiframe Rendering and Accumulation](Accumulation.md)
-  * [Deep learning super sampling](deep-learning-super-sampling-in-hdrp.md)
 * [Post-processing](Post-Processing-Main.md)
   * [Effect Execution Order](Post-Processing-Execution-Order.md)
   * [Effect List](post-processing-effect-list.md)

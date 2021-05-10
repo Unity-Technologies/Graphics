@@ -8,7 +8,6 @@
   * [Install URP into an existing Project](InstallURPIntoAProject.md)
 * [Render Pipeline Concepts](urp-concepts.md)
   * [The URP Asset](universalrp-asset.md)
-  * [URP Global Settings](universal-global-settings.md)
   * [Forward Renderer](urp-forward-renderer.md)
   * [Renderer Feature](urp-renderer-feature.md)
     * [Using Renderer Features]()

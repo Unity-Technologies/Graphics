@@ -27,8 +27,6 @@ namespace UnityEngine.Rendering.HighDefinition
         const int     k_DefaultPlanarResolution = 512;
         // Intermediate variables
         Vector4 currentScreenSize = new Vector4(1.0f, 1.0f, 1.0f, 1.0f);
-        MaterialPropertyBlock m_MaterialPropertyBlock = new MaterialPropertyBlock();
-
 
         public IBLFilterGGX(HDRenderPipelineRuntimeResources renderPipelineResources, MipGenerator mipGenerator)
         {
@@ -140,22 +138,23 @@ namespace UnityEngine.Rendering.HighDefinition
 
                 m_convolveMaterial.SetTexture("_GgxIblSamples", m_GgxIblSampleData);
 
-                m_MaterialPropertyBlock.SetTexture("_MainTex", source);
-                m_MaterialPropertyBlock.SetFloat("_InvOmegaP", invOmegaP);
+                var props = new MaterialPropertyBlock();
+                props.SetTexture("_MainTex", source);
+                props.SetFloat("_InvOmegaP", invOmegaP);
 
                 for (int mip = 1; mip < (int)EnvConstants.ConvolutionMipCount; ++mip)
                 {
-                    m_MaterialPropertyBlock.SetFloat("_Level", mip);
+                    props.SetFloat("_Level", mip);
 
                     for (int face = 0; face < 6; ++face)
                     {
                         var faceSize = new Vector4(source.width >> mip, source.height >> mip, 1.0f / (source.width >> mip), 1.0f / (source.height >> mip));
                         var transform = HDUtils.ComputePixelCoordToWorldSpaceViewDirectionMatrix(0.5f * Mathf.PI, Vector2.zero, faceSize, worldToViewMatrices[face], true);
 
-                        m_MaterialPropertyBlock.SetMatrix(HDShaderIDs._PixelCoordToViewDirWS, transform);
+                        props.SetMatrix(HDShaderIDs._PixelCoordToViewDirWS, transform);
 
                         CoreUtils.SetRenderTarget(cmd, target, ClearFlag.None, mip, (CubemapFace)face);
-                        CoreUtils.DrawFullScreen(cmd, m_convolveMaterial, m_MaterialPropertyBlock);
+                        CoreUtils.DrawFullScreen(cmd, m_convolveMaterial, props);
                     }
                 }
             }

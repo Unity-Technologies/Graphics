@@ -209,13 +209,11 @@ namespace UnityEngine.Rendering.Universal
                     {
                         cmdBuffer.SetRenderTarget(renderTexture, RenderBufferLoadAction.DontCare, RenderBufferStoreAction.Store, RenderBufferLoadAction.DontCare, RenderBufferStoreAction.DontCare);
 
+                        if (colorBit == 0)
+                            cmdBuffer.ClearRenderTarget(true, true, Color.clear);  // clear stencil
+
                         using (new ProfilingScope(cmdBuffer, m_ProfilingSamplerShadowColorsLookup[colorBit]))
                         {
-                            if (colorBit == 0)
-                                cmdBuffer.ClearRenderTarget(true, true, Color.clear);
-                            else
-                                cmdBuffer.ClearRenderTarget(true, false, Color.clear);
-
                             var shadowRadius = light.boundingSphere.radius;
 
                             cmdBuffer.SetGlobalVector(k_LightPosID, light.transform.position);

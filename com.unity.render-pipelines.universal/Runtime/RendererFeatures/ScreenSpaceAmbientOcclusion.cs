@@ -178,10 +178,7 @@ namespace UnityEngine.Rendering.Universal
                 }
                 else
                 {
-                    // Rendering after PrePasses is usually correct except when depth priming is in play:
-                    // then we rely on a depth resolve taking place after the PrePasses in order to have it ready for SSAO.
-                    // Hence we set the event to RenderPassEvent.AfterRenderingPrePasses + 1 at the earliest.
-                    renderPassEvent = featureSettings.AfterOpaque ? RenderPassEvent.AfterRenderingOpaques : RenderPassEvent.AfterRenderingPrePasses + 1;
+                    renderPassEvent = featureSettings.AfterOpaque ? RenderPassEvent.AfterRenderingOpaques : RenderPassEvent.AfterRenderingPrePasses;
                     source = m_CurrentSettings.Source;
                 }
 

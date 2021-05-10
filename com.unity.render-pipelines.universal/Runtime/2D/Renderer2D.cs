@@ -49,6 +49,20 @@ namespace UnityEngine.Rendering.Universal
 
             m_UseDepthStencilBuffer = data.useDepthStencilBuffer;
 
+            // Hook in the debug-render where appropriate...
+            m_Render2DLightingPass.DebugHandler = DebugHandler;
+            m_FinalBlitPass.DebugHandler = DebugHandler;
+
+            if (m_PostProcessPasses.finalPostProcessPass != null)
+            {
+                m_PostProcessPasses.finalPostProcessPass.DebugHandler = DebugHandler;
+            }
+
+            if (m_PostProcessPasses.postProcessPass != null)
+            {
+                m_PostProcessPasses.postProcessPass.DebugHandler = DebugHandler;
+            }
+
             // We probably should declare these names in the base class,
             // as they must be the same across all ScriptableRenderer types for camera stacking to work.
             k_ColorTextureHandle.Init("_CameraColorTexture");
@@ -151,7 +165,11 @@ namespace UnityEngine.Rendering.Universal
                 {
                     stackHasPostProcess = stackHasPostProcess && DebugHandler.IsPostProcessingAllowed;
                 }
-                DebugHandler.Setup(context, ref cameraData);
+
+                if (DebugHandler.IsActiveForCamera(ref cameraData))
+                {
+                    DebugHandler.Setup(context);
+                }
             }
 
 #if UNITY_EDITOR

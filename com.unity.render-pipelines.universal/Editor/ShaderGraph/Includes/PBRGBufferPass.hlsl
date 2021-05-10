@@ -40,15 +40,10 @@ void InitializeInputData(Varyings input, SurfaceDescription surfaceDescription, 
     inputData.normalizedScreenSpaceUV = GetNormalizedScreenSpaceUV(input.positionCS);
     inputData.shadowMask = SAMPLE_SHADOWMASK(input.staticLightmapUV);
 
-    #if defined(DEBUG_DISPLAY)
-    #if defined(DYNAMICLIGHTMAP_ON)
-    inputData.dynamicLightmapUV = input.dynamicLightmapUV.xy;
-    #endif
     #if defined(LIGHTMAP_ON)
-    inputData.staticLightmapUV = input.staticLightmapUV;
+    inputData.lightmapUV = input.staticLightmapUV;
     #else
     inputData.vertexSH = input.sh;
-    #endif
     #endif
 }
 

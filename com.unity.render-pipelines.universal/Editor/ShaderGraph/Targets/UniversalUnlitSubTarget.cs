@@ -133,8 +133,6 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
                 if (target.mayWriteDepth)
                     result.passes.Add(CorePasses.DepthOnly(target));
 
-                result.passes.Add(CorePasses.DepthNormalOnly(target));
-
                 if (target.castShadows || target.allowMaterialOverride)
                     result.passes.Add(CorePasses.ShadowCaster(target));
 
@@ -157,8 +155,6 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
 
                 if (target.mayWriteDepth)
                     result.passes.Add(PassVariant(CorePasses.DepthOnly(target), CorePragmas.DOTSInstanced));
-
-                result.passes.Add(PassVariant(CorePasses.DepthNormalOnly(target), CorePragmas.DOTSInstanced));
 
                 if (target.castShadows || target.allowMaterialOverride)
                     result.passes.Add(PassVariant(CorePasses.ShadowCaster(target), CorePragmas.DOTSInstanced));

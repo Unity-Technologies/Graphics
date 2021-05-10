@@ -68,7 +68,7 @@ namespace UnityEngine.Experimental.Rendering
             return true;
         }
 
-        static Vector2 ProjectOBB(ref ProbeReferenceVolume.Volume a, Vector3 axis)
+        private static Vector2 ProjectOBB(ref ProbeReferenceVolume.Volume a, Vector3 axis)
         {
             float min = Vector3.Dot(axis, a.corner);
             float max = min;
