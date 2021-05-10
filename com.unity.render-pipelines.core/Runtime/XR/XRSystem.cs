@@ -167,7 +167,7 @@ namespace UnityEngine.Rendering
         }
 
         /// <summary>
-        /// Used by the render pipeline to complete the XR layout.
+        /// Used by the render pipeline to complete the XR layout at the end of the frame.
         /// </summary>
         public static void EndFrame()
         {
@@ -283,7 +283,7 @@ namespace UnityEngine.Rendering
         #endif
         }
 
-        internal static void UpdatePass(XRPass xrPass, Camera camera)
+        internal static void ReconfigurePass(XRPass xrPass, Camera camera)
         {
         #if ENABLE_VR && ENABLE_XR_MODULE
             if (xrPass.enabled && s_Display != null)

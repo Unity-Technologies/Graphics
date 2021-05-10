@@ -1,7 +1,7 @@
 namespace UnityEngine.Rendering
 {
     /// <summary>
-    /// Helper static class used by render pipelines to setup stereo constants used by builtin shaders.
+    /// Helper static class used by render pipelines to setup stereo constants accessed by builtin shaders.
     /// </summary>
     public static class XRBuiltinShaderConstants
     {

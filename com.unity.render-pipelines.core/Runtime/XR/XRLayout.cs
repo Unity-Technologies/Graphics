@@ -41,19 +41,18 @@ namespace UnityEngine.Rendering
         /// </summary>
         /// <param name="xrPass"></param>
         /// <param name="camera"></param>
-        public void UpdatePass(XRPass xrPass, Camera camera)
+        public void ReconfigurePass(XRPass xrPass, Camera camera)
         {
             if (xrPass.enabled)
             {
-                XRSystem.UpdatePass(xrPass, camera);
+                XRSystem.ReconfigurePass(xrPass, camera);
                 xrPass.UpdateCombinedOcclusionMesh();
             }
         }
 
         /// <summary>
-        /// Used by render pipelines to access all registered passes.
+        /// Used by render pipelines to access all registered passes on this layout.
         /// </summary>
-        /// <returns></returns>
         public List<(Camera, XRPass)> GetFramePasses()
         {
             return m_FramePasses;

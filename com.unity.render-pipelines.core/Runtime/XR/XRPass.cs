@@ -16,8 +16,8 @@ namespace UnityEngine.Rendering
 
     /// <summary>
     /// XRPass holds the render target information and a list of XRView.
-    /// XRView contains the parameters required to render (proj and view matrices, viewport, etc)
-    /// When a pass has 2+ views, single-pass will be active if the platform supports it.
+    /// XRView contains the parameters required to render (projection and view matrices, viewport, etc)
+    /// When a pass has 2 views or more, single-pass will be active if the platform supports it.
     /// To avoid allocating every frame, XRView is a struct and XRPass is pooled.
     /// </summary>
     public class XRPass
@@ -48,37 +48,37 @@ namespace UnityEngine.Rendering
         }
 
         /// <summary>
-        /// If true, the render pipeline is expected to output depth buffer to renderTarget.
+        /// If true, the render pipeline is expected to output a valid depth buffer to the renderTarget.
         /// </summary>
         public bool copyDepth { get; private set; }
 
         /// <summary>
-        /// 
+        /// Index of the pass inside the frame.
         /// </summary>
         public int multipassId { get; private set; }
 
         /// <summary>
-        /// 
+        /// Index used for culling. It can be shared between multiple passes.
         /// </summary>
         public int cullingPassId { get; private set; }
 
         /// <summary>
-        /// 
+        /// Destination render target.
         /// </summary>
         public RenderTargetIdentifier renderTarget { get; private set; }
 
         /// <summary>
-        /// 
+        /// Destination render target descriptor.
         /// </summary>
         public RenderTextureDescriptor renderTargetDesc { get; private set; }
 
         /// <summary>
-        /// 
+        /// Parameters used for culling.
         /// </summary>
         public ScriptableCullingParameters cullingParams { get; private set; }
 
         /// <summary>
-        /// 
+        /// Returns the number of views inside this pass.
         /// </summary>
         public int viewCount { get => m_Views.Count; }
 
@@ -88,50 +88,45 @@ namespace UnityEngine.Rendering
         public bool singlePassEnabled { get => viewCount > 1; }
 
         /// <summary>
-        /// 
+        /// Returns the projection matrix for a given view.
         /// </summary>
         /// <param name="viewIndex"></param>
-        /// <returns></returns>
         public Matrix4x4 GetProjMatrix(int viewIndex = 0)
         {
             return m_Views[viewIndex].projMatrix;
         }
 
         /// <summary>
-        /// 
+        /// Returns the view matrix for a given view.
         /// </summary>
         /// <param name="viewIndex"></param>
-        /// <returns></returns>
         public Matrix4x4 GetViewMatrix(int viewIndex = 0)
         {
             return m_Views[viewIndex].viewMatrix;
         }
 
         /// <summary>
-        /// 
+        /// Returns the viewport for a given view.
         /// </summary>
         /// <param name="viewIndex"></param>
-        /// <returns></returns>
         public Rect GetViewport(int viewIndex = 0)
         {
             return m_Views[viewIndex].viewport;
         }
 
         /// <summary>
-        /// 
+        /// Returns the occlusion mesh for a given view.
         /// </summary>
         /// <param name="viewIndex"></param>
-        /// <returns></returns>
         public Mesh GetOcclusionMesh(int viewIndex = 0)
         {
             return m_Views[viewIndex].occlusionMesh;
         }
 
         /// <summary>
-        /// 
+        /// Returns the destination slice index (for texture array) for a given view.
         /// </summary>
         /// <param name="viewIndex"></param>
-        /// <returns></returns>
         public int GetTextureArraySlice(int viewIndex = 0)
         {
             return m_Views[viewIndex].textureArraySlice;

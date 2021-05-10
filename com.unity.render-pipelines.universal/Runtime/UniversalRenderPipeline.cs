@@ -554,7 +554,7 @@ namespace UnityEngine.Rendering.Universal
                             UpdateVolumeFramework(currCamera, currCameraData);
                             InitializeAdditionalCameraData(currCamera, currCameraData, lastCamera, ref overlayCameraData);
 
-                            xrLayout.UpdatePass(overlayCameraData.xr, currCamera);
+                            xrLayout.ReconfigurePass(overlayCameraData.xr, currCamera);
 
                             RenderSingleCamera(context, overlayCameraData, anyPostProcessingEnabled);
 
