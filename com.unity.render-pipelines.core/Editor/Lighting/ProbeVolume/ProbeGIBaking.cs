@@ -579,14 +579,13 @@ namespace UnityEngine.Experimental.Rendering
         public static ProbeSubdivisionResult BakeBricks(ProbeSubdivisionContext ctx)
         {
             var result = new ProbeSubdivisionResult();
-            var refVol = ProbeReferenceVolume.instance;
             var sceneRefs = new Dictionary<Scene, int>();
 
             bool realtimeSubdivision = ProbeReferenceVolume.instance.debugDisplay.realtimeSubdivision;
             if (realtimeSubdivision)
                 ctx.refVolume.realtimeSubdivisionInfo.Clear();
-            
-            using (var gpuResources = ProbePlacement.AllocateGPUResources(ctx.probeVolumes.Count))
+
+            using (var gpuResources = ProbePlacement.AllocateGPUResources(ctx.probeVolumes.Count, ctx.refVolume.profile.maxSubdivision))
             {
                 // subdivide all the cells and generate brick positions 
                 foreach (var cell in ctx.cells)
@@ -629,7 +628,7 @@ namespace UnityEngine.Experimental.Rendering
                     if (validRenderers.Count == 0 && overlappingProbeVolumes.Count == 0)
                         continue;
 
-                    var bricks = ProbePlacement.SubdivideWithSDF(cell.volume, refVol, gpuResources, validRenderers, overlappingProbeVolumes);
+                    var bricks = ProbePlacement.SubdivideWithSDF(cell.volume, ctx, gpuResources, validRenderers, overlappingProbeVolumes);
 
                     // Each cell keeps a number of references it has to each scene it was influenced by
                     // We use this list to determine which scene's ProbeVolume asset to assign this cells data to

@@ -220,6 +220,7 @@ namespace UnityEngine.Experimental.Rendering
                 {
                     if (debugDisplay.realtimeSubdivision)
                     {
+                        // realtime subdiv cells are already culled
                         foreach (var kp in realtimeSubdivisionInfo)
                         {
                             var cellVolume = kp.Key;
@@ -260,7 +261,13 @@ namespace UnityEngine.Experimental.Rendering
                     brickGizmos.AddWireCube(scaledPos, scaledSize, subdivColors[brick.subdivisionLevel]);
                 }
 
-                brickGizmos.RenderWireframe(ProbeReferenceVolume.instance.GetRefSpaceToWS(), gizmoName: "Brick Gizmo Rendering");
+                Matrix4x4 trs = ProbeReferenceVolume.instance.GetRefSpaceToWS();
+
+                // For realtime subdivision, the matrix from ProbeReferenceVolume.instance can be wrong if the profile changed since the last bake
+                if (debugDisplay.realtimeSubdivision)
+                    trs = Matrix4x4.TRS(transform.position, Quaternion.identity, Vector3.one * m_Profile.minBrickSize);
+                
+                brickGizmos.RenderWireframe(trs, gizmoName: "Brick Gizmo Rendering");
             }
 
             if (debugDisplay.drawCells)
@@ -289,10 +296,16 @@ namespace UnityEngine.Experimental.Rendering
                     }
                 }
 
+                Matrix4x4 trs = Matrix4x4.TRS(ProbeReferenceVolume.instance.GetTransform().posWS, ProbeReferenceVolume.instance.GetTransform().rot, Vector3.one);
+
+                // For realtime subdivision, the matrix from ProbeReferenceVolume.instance can be wrong if the profile changed since the last bake
+                if (debugDisplay.realtimeSubdivision)
+                    trs = Matrix4x4.TRS(transform.position, Quaternion.identity, Vector3.one);
+
                 // Fetching this from components instead of from the reference volume allows the user to
                 // preview how cells will look before they commit to a bake.
                 Gizmos.color = new Color(0, 1, 0.5f, 0.2f);
-                Gizmos.matrix = Matrix4x4.TRS(ProbeReferenceVolume.instance.GetTransform().posWS, ProbeReferenceVolume.instance.GetTransform().rot, Vector3.one);
+                Gizmos.matrix = trs;
                 if (cellGizmo == null)
                     cellGizmo = new MeshGizmo();
                 cellGizmo.Clear();
