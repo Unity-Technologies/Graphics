@@ -18,7 +18,7 @@ namespace UnityEditor.Rendering.Universal
         [SettingsProvider]
         public static SettingsProvider CreateSettingsProvider()
         {
-            return new SettingsProvider("Project/Graphics/URP Settings", SettingsScope.Project)
+            return new SettingsProvider("Project/Graphics/URP Global Settings", SettingsScope.Project)
             {
                 activateHandler = s_IMGUIImpl.OnActivate,
                 keywords = SettingsProvider.GetSearchKeywordsFromGUIContentProperties<UniversalGlobalSettingsPanelIMGUI.Styles>().ToArray(),
@@ -27,29 +27,8 @@ namespace UnityEditor.Rendering.Universal
         }
     }
 
-    internal class UniversalGlobalSettingsPanelIMGUI
+    internal partial class UniversalGlobalSettingsPanelIMGUI
     {
-        public class Styles
-        {
-            public const int labelWidth = 220;
-            internal static GUIStyle sectionHeaderStyle = new GUIStyle(EditorStyles.largeLabel) { richText = true, fontSize = 18, fixedHeight = 42 };
-            internal static GUIStyle subSectionHeaderStyle = new GUIStyle(EditorStyles.boldLabel);
-
-            internal static readonly GUIContent lightLayersLabel = EditorGUIUtility.TrTextContent("Light Layer Names (3D)", "If the Light Layers feature is enabled in the URP Asset, Unity allocates memory for processing Light Layers. In the Deferred Rendering Path, this allocation includes an extra render target in GPU memory, which reduces performance.");
-            internal static readonly GUIContent lightLayerName0 = EditorGUIUtility.TrTextContent("Light Layer 0", "The display name for Light Layer 0.");
-            internal static readonly GUIContent lightLayerName1 = EditorGUIUtility.TrTextContent("Light Layer 1", "The display name for Light Layer 1.");
-            internal static readonly GUIContent lightLayerName2 = EditorGUIUtility.TrTextContent("Light Layer 2", "The display name for Light Layer 2.");
-            internal static readonly GUIContent lightLayerName3 = EditorGUIUtility.TrTextContent("Light Layer 3", "The display name for Light Layer 3.");
-            internal static readonly GUIContent lightLayerName4 = EditorGUIUtility.TrTextContent("Light Layer 4", "The display name for Light Layer 4.");
-            internal static readonly GUIContent lightLayerName5 = EditorGUIUtility.TrTextContent("Light Layer 5", "The display name for Light Layer 5.");
-            internal static readonly GUIContent lightLayerName6 = EditorGUIUtility.TrTextContent("Light Layer 6", "The display name for Light Layer 6.");
-            internal static readonly GUIContent lightLayerName7 = EditorGUIUtility.TrTextContent("Light Layer 7", "The display name for Light Layer 7.");
-
-            internal static readonly string warningUrpNotActive = "Project graphics settings do not refer to a URP Asset. Check the settings: Graphics > Scriptable Render Pipeline Settings, Quality > Render Pipeline Asset.";
-            internal static readonly string warningGlobalSettingsMissing = "The URP Settings property does not contain a valid URP Global Settings asset. There might be issues in rendering. Select a valid URP Global Settings asset.";
-            internal static readonly string infoGlobalSettingsMissing = "Select a URP Global Settings asset.";
-        }
-
         /// <summary>
         /// Like EditorGUILayout.DrawTextField but for delayed text field
         /// </summary>
@@ -151,14 +130,14 @@ namespace UnityEditor.Rendering.Universal
                         EditorUtility.SetDirty(settingsSerialized);
                 }
 
-                if (GUILayout.Button(EditorGUIUtility.TrTextContent("New", "Create a URP Global Settings asset in the Assets folder."), GUILayout.Width(45), GUILayout.Height(18)))
+                if (GUILayout.Button(Styles.newAssetButtonLabel, GUILayout.Width(45), GUILayout.Height(18)))
                 {
                     UniversalGlobalSettingsCreator.Create(activateAsset: true);
                 }
 
                 bool guiEnabled = GUI.enabled;
                 GUI.enabled = guiEnabled && (settingsSerialized != null);
-                if (GUILayout.Button(EditorGUIUtility.TrTextContent("Clone", "Clone a URP Global Settings asset in the Assets folder."), GUILayout.Width(45), GUILayout.Height(18)))
+                if (GUILayout.Button(Styles.cloneAssetButtonLabel, GUILayout.Width(45), GUILayout.Height(18)))
                 {
                     UniversalGlobalSettingsCreator.Clone(settingsSerialized, activateAsset: true);
                 }
