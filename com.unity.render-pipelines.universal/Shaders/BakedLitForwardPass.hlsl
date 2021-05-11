@@ -61,10 +61,12 @@ void InitializeInputData(Varyings input, half3 normalTS, out InputData inputData
     inputData.normalizedScreenSpaceUV = GetNormalizedScreenSpaceUV(input.positionCS);
     inputData.shadowMask = half4(1, 1, 1, 1);
 
+    #if defined(DEBUG_DISPLAY)
     #if defined(LIGHTMAP_ON)
-    inputData.lightmapUV = input.staticLightmapUV;
+    inputData.staticLightmapUV = input.staticLightmapUV;
     #else
     inputData.vertexSH = input.vertexSH;
+    #endif
     #endif
 }
 
@@ -125,6 +127,10 @@ half4 BakedLitForwardPassFragment(Varyings input) : SV_Target
     half alpha = texColor.a * _BaseColor.a;
 
     AlphaDiscard(alpha, _Cutoff);
+
+#ifdef _DBUFFER
+    ApplyDecalToBaseColorAndNormal(input.positionCS, color, inputData.normalWS);
+#endif
 
     half4 finalColor = UniversalFragmentBakedLit(inputData, color, alpha, normalTS);
 
