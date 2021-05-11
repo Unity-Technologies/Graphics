@@ -239,9 +239,9 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
             blockList.AddPropertyBlock(new LitAdvancedOptionsPropertyBlock(litData));
         }
 
-        public override int GeneratedPropertiesHash()
+        protected override int ComputeMaterialNeedsUpdateHash()
         {
-            int hash = base.GeneratedPropertiesHash();
+            int hash = base.ComputeMaterialNeedsUpdateHash();
 
             unchecked
             {

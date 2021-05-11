@@ -166,6 +166,13 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                 if (Equals(activeSubTargetIndex, m_SubTargetField.index))
                     return;
 
+                var systemData = m_Datas.SelectValue().FirstOrDefault(x => x is SystemData) as SystemData;
+                if (systemData != null)
+                {
+                    // Force material update hash
+                    systemData.materialNeedsUpdateHash = -1;
+                }
+
                 m_ActiveSubTarget = m_SubTargets[m_SubTargetField.index];
                 ProcessSubTargetDatas(m_ActiveSubTarget.value);
                 onChange();
@@ -223,8 +230,6 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
         }
 
         public override object saveContext => m_ActiveSubTarget.value?.saveContext;
-
-        public override int GeneratedPropertiesHash() => (int)(m_ActiveSubTarget.value?.GeneratedPropertiesHash());
 
         // IHasMetaData
         public string identifier

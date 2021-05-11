@@ -119,6 +119,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
             systemData.transparentCullMode = hdLitMasterNode.m_transparentCullMode;
             systemData.zTest = hdLitMasterNode.m_ZTest;
             systemData.dotsInstancing = hdLitMasterNode.m_DOTSInstancing;
+            systemData.materialNeedsUpdateHash = hdLitMasterNode.m_MaterialNeedsUpdateHash;
 
             builtinData.transparentDepthPrepass = hdLitMasterNode.m_AlphaTestDepthPrepass;
             builtinData.transparentDepthPostpass = hdLitMasterNode.m_AlphaTestDepthPostpass;

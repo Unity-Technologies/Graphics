@@ -54,9 +54,9 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
             context.Add(gui);
         }
 
-        public override int GeneratedPropertiesHash()
+        protected override int ComputeMaterialNeedsUpdateHash()
         {
-            int hash = base.GeneratedPropertiesHash();
+            int hash = base.ComputeMaterialNeedsUpdateHash();
 
             unchecked
             {

@@ -119,7 +119,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
             blockList.AddPropertyBlock(new AdvancedOptionsPropertyBlock());
         }
 
-        public override int GeneratedPropertiesHash()
-            => base.GeneratedPropertiesHash() * 23 + fabricData.subsurfaceScattering.GetHashCode();
+        protected override int ComputeMaterialNeedsUpdateHash()
+            => base.ComputeMaterialNeedsUpdateHash() * 23 + fabricData.subsurfaceScattering.GetHashCode();
     }
 }

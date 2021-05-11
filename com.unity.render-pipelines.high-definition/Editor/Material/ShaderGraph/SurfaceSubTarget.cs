@@ -38,7 +38,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
         protected virtual bool supportDistortion => false;
         protected override bool supportRaytracing => true;
 
-        public override int GeneratedPropertiesHash()
+        protected override int ComputeMaterialNeedsUpdateHash()
         {
             // Alpha test is currently the only property in buitin data to trigger the material upgrade script.
             int hash = systemData.alphaTest.GetHashCode();

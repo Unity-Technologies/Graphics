@@ -49,7 +49,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Added the multicompile for dynamic lightmaps to support enlighten in ray tracing (case 1318927).
 - Added support for lighting full screen debug mode in automated tests.
 - Added a way for fitting a probe volume around either the scene contents or a selection.
-- Add dependency between shadergaph and materials.
+- Added ValidateMaterial callbacks to ShaderGUI.
 
 ### Fixed
 - Fixed Intensity Multiplier not affecting realtime global illumination.
