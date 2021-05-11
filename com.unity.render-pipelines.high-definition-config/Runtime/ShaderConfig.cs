@@ -33,9 +33,6 @@ namespace UnityEngine.Rendering.HighDefinition
 
         /// <summary>Support for barn doors.</summary>
         BarnDoor = 0,
-
-        /// <summary>Support for barn doors.</summary>
-        SurfaceGradientDecalNormal = 1,
     };
 
     // Note: #define can't be use in include file in C# so we chose this way to configure both C# and hlsl
@@ -70,9 +67,5 @@ namespace UnityEngine.Rendering.HighDefinition
         /// <summary>Indicates whether to support barn doors.</summary>
         ///<seealso cref="ShaderOptions.BarnDoor"/>
         public static int s_BarnDoor = (int)ShaderOptions.BarnDoor;
-
-        /// <summary>Indicates whether to support surface gradient for decal normal blending.</summary>
-        ///<seealso cref="ShaderOptions.SurfaceGradientDecalNormal"/>
-        public static bool s_SurfaceGradientDecalNormal = (int)ShaderOptions.SurfaceGradientDecalNormal != 0;
     }
 }

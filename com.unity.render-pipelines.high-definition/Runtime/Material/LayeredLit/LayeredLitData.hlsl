@@ -783,7 +783,7 @@ void GetSurfaceAndBuiltinData(FragInputs input, float3 V, inout PositionInputs p
     surfaceData.specularOcclusion = 1.0;
     surfaceData.normalWS = 0;
 
-#if SHADEROPTIONS_SURFACE_GRADIENT_DECAL_NORMAL != 0 && defined(SURFACE_GRADIENT) && HAVE_DECALS
+#if defined(DECAL_SURFACE_GRADIENT) && defined(SURFACE_GRADIENT) && HAVE_DECALS
     if (_EnableDecals)
     {
         DecalSurfaceData decalSurfaceData = GetDecalSurfaceData(posInput, input, alpha);
@@ -793,7 +793,7 @@ void GetSurfaceAndBuiltinData(FragInputs input, float3 V, inout PositionInputs p
 
     GetNormalWS(input, normalTS, surfaceData.normalWS, doubleSidedConstants);
 
-#if SHADEROPTIONS_SURFACE_GRADIENT_DECAL_NORMAL == 0 || !defined(SURFACE_GRADIENT) && HAVE_DECALS
+#if !defined(DECAL_SURFACE_GRADIENT) || !defined(SURFACE_GRADIENT) && HAVE_DECALS
     if (_EnableDecals)
     {
         // Both uses and modifies 'surfaceData.normalWS'.

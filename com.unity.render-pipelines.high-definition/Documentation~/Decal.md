@@ -48,9 +48,20 @@ Implementation detail: To allow HDRP to apply decals to opaque Materials, it mus
 
 Before Unity 2020.2, the default value for the **Rendering Layer Mask** for new Mesh Renderers and Terrain doesn't include any of the Decal Layer flags. This means that, when you enable Decal Layers, these Mesh Renderers and Terrain default to not receive any Decals. Later versions use **Decal Layer Default**  by default.
 
-## High Precision Normal Buffer
+## Additive Normal Blending
 
-When HDRP projects decals on a mesh, it first combines all the decals in an intermediate buffer, before applying them altogether. When using a low precision normal buffer, HDRP will constrain the decal displacement to a cone of 45° around the object normal to reduce banding.
-To remove the angle constraint on the normal at the cost of a higher memory usage, you can tell HDRP to use an High Precision Buffer:
+Additive normal blending is a method that can be enabled per project to allow decal normals to be additively blended with the underlying object normal.
+The screenshot on the left below do not use additive normal blending, whereas the screenshot on the right does.
+
+![](Images/HDRPFeatures-SurfGrad.png)
+
+To use Additive Normal Blending:
+1. Select your Project’s [HDRP Asset](HDRP-Asset.md).
+2. In the Inspector, go to **Rendering > Decals** and enable the **Additive Normal Blending** checkbox.
+
+### High Precision Normal Buffer
+
+When using additive normal blending, HDRP will constrain the decal displacement to a cone of 45° around the object normal to reduce banding artifacts.
+To remove the angle constraint on the normal at the cost of a higher memory usage, you can tell HDRP to use an High Precision Normal Buffer:
 1. Select your Project’s [HDRP Asset](HDRP-Asset.md).
 2. In the Inspector, go to **Rendering > Decals** and enable the **High Precision Normal Buffer** checkbox.

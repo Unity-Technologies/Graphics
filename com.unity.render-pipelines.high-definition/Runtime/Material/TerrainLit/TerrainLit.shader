@@ -76,6 +76,8 @@ Shader "HDRP/TerrainLit"
     #pragma shader_feature_local _DISABLE_DECALS
     #pragma shader_feature_local _ADD_PRECOMPUTED_VELOCITY
 
+    #pragma multi_compile_fragment _ DECAL_SURFACE_GRADIENT
+
     //enable GPU instancing support
     #pragma multi_compile_instancing
     #pragma instancing_options assumeuniformscaling nomatrices nolightprobe nolightmap

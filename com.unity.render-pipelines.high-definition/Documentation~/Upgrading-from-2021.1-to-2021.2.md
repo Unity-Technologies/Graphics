@@ -6,10 +6,9 @@ From 2021.2, if material ambient occlusion needs to be applied to probe volume G
 
 HDRP 2021.2 includes the "ForwardEmissiveForDeferred" shader pass and the associated SHADERPASS_FORWARD_EMISSIVE_FOR_DEFERRED define for Materials that have a GBuffer pass. You can see the new pass in Lit.shader. When you use the Deferred Lit shader mode, Unity uses "ForwardEmissiveForDeferred" to render the emissive contribution of a Material in a separate forward pass. Otherwise, Unity ignores "ForwardEmissiveForDeferred".
 
-From 2021.2, HDRP Decal projectors use a surface gradient based approach to perturb the normal of the affected objects.
+From 2021.2, HDRP Decals can use a surface gradient based approach to perturb the normal of the affected objects. This feature needs to be enabled in the HDRP asset.
 When creating a custom decal shader, the accumulated normal value stored in the DBuffer now represent the surface gradient instead of the tangent space normal. You can refer to `DecalUtilities.hlsl` for an example implementation.
 When writing a shader for a surface receiving decals, the normals should now be blended using the surface gradient framework. The prototype for the function `ApplyDecalToSurfaceData` has changed from: `void ApplyDecalToSurfaceData(DecalSurfaceData decalSurfaceData, float3 vtxNormal, inout SurfaceData surfaceData)` to `void ApplyDecalToSurfaceData(DecalSurfaceData decalSurfaceData, float3 vtxNormal, inout SurfaceData surfaceData, inout float3 normalTS)`. You can refer to `LitData.hlsl` and `LitDecalData.hlsl` for an example implementation.
-You can also disable this feature to keep the old behaviour by disabling the shader option `SurfaceGradientDecalNormal` in the [HDRP config package](HDRP-Config-Package.md).
 
 ## Density Volumes
 

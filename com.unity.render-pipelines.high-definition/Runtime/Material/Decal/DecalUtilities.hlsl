@@ -153,7 +153,7 @@ void EvalDecalMask( PositionInputs posInput, float3 vtxNormal, float3 positionRW
                 float2 sampleNormalDdy = positionDSDdy.xz * decalData.normalScaleBias.xy;
                 float  lodNormal = ComputeTextureLOD(sampleNormalDdx, sampleNormalDdy, _DecalAtlasResolution, 0.5);
 
-                #if SHADEROPTIONS_SURFACE_GRADIENT_DECAL_NORMAL
+                #ifdef DECAL_SURFACE_GRADIENT
                 float3x3 tangentToWorld = transpose((float3x3)decalData.normalToWorld);
                 float2 deriv = UnpackDerivativeNormalRGorAG(SAMPLE_TEXTURE2D_LOD(_DecalAtlas2D, _trilinear_clamp_sampler_DecalAtlas2D, sampleNormal, lodNormal));
                 src.xyz = SurfaceGradientFromTBN(deriv, tangentToWorld[0], tangentToWorld[1]);
@@ -162,9 +162,10 @@ void EvalDecalMask( PositionInputs posInput, float3 vtxNormal, float3 positionRW
                 #endif
             }
 
-            #if !SHADEROPTIONS_SURFACE_GRADIENT_DECAL_NORMAL
+            #ifndef DECAL_SURFACE_GRADIENT
             src.xyz = mul((float3x3)decalData.normalToWorld, normalTS);
             #endif
+
             src.xyz = src.xyz * 0.5 + 0.5; // Mimic what is happening when calling EncodeIntoDBuffer()
             src.w = (decalData.blendParams.x == 1.0) ? maskMapBlend : albedoMapBlend;
 
@@ -265,7 +266,7 @@ DecalSurfaceData GetDecalSurfaceData(PositionInputs posInput, float3 vtxNormal, 
     DecalSurfaceData decalSurfaceData;
     DECODE_FROM_DBUFFER(DBuffer, decalSurfaceData);
 
-#if SHADEROPTIONS_SURFACE_GRADIENT_DECAL_NORMAL && !defined(SURFACE_GRADIENT)
+#if defined(DECAL_SURFACE_GRADIENT) && !defined(SURFACE_GRADIENT)
     decalSurfaceData.normalWS.xyz = SurfaceGradientResolveNormal(vtxNormal, decalSurfaceData.normalWS.xyz);
 #endif
 
@@ -277,15 +278,11 @@ DecalSurfaceData GetDecalSurfaceData(PositionInputs posInput, FragInputs input, 
     float3 vtxNormal = input.tangentToWorld[2];
     DecalSurfaceData decalSurfaceData = GetDecalSurfaceData(posInput, vtxNormal, alpha);
 
-#if SHADEROPTIONS_SURFACE_GRADIENT_DECAL_NORMAL == 0 || !defined(SURFACE_GRADIENT)
-
-#ifdef _DOUBLESIDED_ON
+#if (!defined(DECAL_SURFACE_GRADIENT) || !defined(SURFACE_GRADIENT)) && defined(_DOUBLESIDED_ON)
     // 'doubleSidedConstants' is float3(-1, -1, -1) in flip mode and float3(1, 1, -1) in mirror mode.
     // It's float3(1, 1, 1) in the none mode.
     float flipSign = input.isFrontFace ? 1.0 : _DoubleSidedConstants.x;
     decalSurfaceData.normalWS.xy *= flipSign;
-#endif // _DOUBLESIDED_ON
-
 #endif
 
     return decalSurfaceData;

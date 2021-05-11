@@ -139,7 +139,7 @@ Pass
         #endif
 
         #ifdef _MATERIAL_AFFECTS_NORMAL
-            #if SHADEROPTIONS_SURFACE_GRADIENT_DECAL_NORMAL
+            #ifdef DECAL_SURFACE_GRADIENT
                 $SurfaceDescription.NormalTS:   float2 deriv = -surfaceDescription.NormalTS.xy * rsqrt(max(1 - Sq(surfaceDescription.NormalTS.x) - Sq(surfaceDescription.NormalTS.y), Sq(FLT_EPS)));
                 #if (SHADERPASS == SHADERPASS_DBUFFER_PROJECTOR) || (SHADERPASS == SHADERPASS_FORWARD_EMISSIVE_PROJECTOR)
                     $SurfaceDescription.NormalTS:   float3x3 tangentToWorld = transpose((float3x3)normalToWorld);
@@ -160,7 +160,7 @@ Pass
             $SurfaceDescription.NormalAlpha:    surfaceData.normalWS.w = surfaceDescription.NormalAlpha * fadeFactor;
         #else
             #if (SHADERPASS == SHADERPASS_FORWARD_PREVIEW) // Default to vertex normal
-                #if SHADEROPTIONS_SURFACE_GRADIENT_DECAL_NORMAL
+                #ifdef DECAL_SURFACE_GRADIENT
                     $SurfaceDescription.NormalTS:   surfaceData.normalWS.xyz = float3(0.0, 0.0, 0.0);
                 #else
                     $SurfaceDescription.NormalTS: surfaceData.normalWS.xyz = normalize(TransformTangentToWorld(float3(0.0, 0.0, 0.1), fragInputs.tangentToWorld));

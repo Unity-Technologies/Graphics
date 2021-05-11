@@ -236,6 +236,8 @@ Shader "HDRP/LitTessellation"
     // Variant
     //-------------------------------------------------------------------------------------
 
+    #pragma multi_compile_fragment _ DECAL_SURFACE_GRADIENT
+
     #pragma shader_feature_local _ALPHATEST_ON
     #pragma shader_feature_local _ALPHATOMASK_ON
     #pragma shader_feature_local_fragment _DEPTHOFFSET_ON

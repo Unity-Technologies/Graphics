@@ -525,7 +525,7 @@ void SetFlakesSurfaceData(TextureUVMapping uvMapping, inout SurfaceData surfaceD
 #ifndef SHADER_STAGE_RAY_TRACING
 
 void ApplyDecalToSurfaceData(DecalSurfaceData decalSurfaceData, float3 vtxNormal, inout SurfaceData surfaceData
-#if SHADEROPTIONS_SURFACE_GRADIENT_DECAL_NORMAL
+#ifdef DECAL_SURFACE_GRADIENT
     , inout float3 normalTS, inout float3 clearcoatNormalTS
 #endif
 )
@@ -541,7 +541,7 @@ void ApplyDecalToSurfaceData(DecalSurfaceData decalSurfaceData, float3 vtxNormal
     if (decalSurfaceData.normalWS.w < 1.0)
     {
         // Affect both normal and clearcoat normal
-#if SHADEROPTIONS_SURFACE_GRADIENT_DECAL_NORMAL
+#ifdef DECAL_SURFACE_GRADIENT
         float3 surfGrad = SurfaceGradientFromVolumeGradient(vtxNormal, decalSurfaceData.normalWS.xyz);
         normalTS = normalTS * decalSurfaceData.normalWS.w + surfGrad;
         clearcoatNormalTS = clearcoatNormalTS * decalSurfaceData.normalWS.w + surfGrad;
@@ -679,7 +679,7 @@ void GetSurfaceAndBuiltinData(FragInputs input, float3 V, inout PositionInputs p
 
     float3 clearcoatNormalTS = AXF_SAMPLE_SMP_TEXTURE2D_NORMAL_AS_GRAD(_ClearcoatNormalMap, sampler_ClearcoatNormalMap, uvMapping);
 
-#if SHADEROPTIONS_SURFACE_GRADIENT_DECAL_NORMAL != 0 && defined(SURFACE_GRADIENT) && HAVE_DECALS
+#if defined(DECAL_SURFACE_GRADIENT) && defined(SURFACE_GRADIENT) && HAVE_DECALS
     if (_EnableDecals)
     {
         DecalSurfaceData decalSurfaceData = GetDecalSurfaceData(posInput, input, alpha);
@@ -690,7 +690,7 @@ void GetSurfaceAndBuiltinData(FragInputs input, float3 V, inout PositionInputs p
     GetNormalWS(input, normalTS, surfaceData.normalWS, doubleSidedConstants);
     GetNormalWS(input, clearcoatNormalTS, surfaceData.clearcoatNormalWS, doubleSidedConstants);
 
-#if SHADEROPTIONS_SURFACE_GRADIENT_DECAL_NORMAL == 0 || !defined(SURFACE_GRADIENT) && HAVE_DECALS
+#if !defined(DECAL_SURFACE_GRADIENT) || !defined(SURFACE_GRADIENT) && HAVE_DECALS
     if (_EnableDecals)
     {
         // Both uses and modifies 'surfaceData.normalWS'.

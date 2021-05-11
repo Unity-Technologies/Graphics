@@ -290,6 +290,7 @@ Shader "HDRP/Lit"
     #pragma shader_feature_local_raytracing _DISABLE_SSR
     // Bit of a mystery why this is not possible to have frequency specific.
     #pragma shader_feature_local _DISABLE_SSR_TRANSPARENT
+    #pragma multi_compile_fragment _ DECAL_SURFACE_GRADIENT
 
     #pragma shader_feature_local_fragment _ENABLE_GEOMETRIC_SPECULAR_AA
 

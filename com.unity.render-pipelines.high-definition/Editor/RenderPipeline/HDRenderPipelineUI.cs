@@ -412,8 +412,14 @@ namespace UnityEditor.Rendering.HighDefinition
 
                 EditorGUILayout.PropertyField(serialized.renderPipelineSettings.supportDecalLayers, Styles.supportDecalLayersContent);
 
-                if (ShaderConfig.s_SurfaceGradientDecalNormal)
+                EditorGUILayout.PropertyField(serialized.renderPipelineSettings.supportSurfaceGradient, Styles.supportSurfaceGradientContent);
+
+                if (serialized.renderPipelineSettings.supportSurfaceGradient.boolValue)
+                {
+                    ++EditorGUI.indentLevel;
                     EditorGUILayout.PropertyField(serialized.renderPipelineSettings.decalNormalBufferHP, Styles.decalNormalFormatContent);
+                    --EditorGUI.indentLevel;
+                }
             }
             --EditorGUI.indentLevel;
         }

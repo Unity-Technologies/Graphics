@@ -403,6 +403,8 @@ Shader "HDRP/LayeredLitTessellation"
     #pragma target 5.0
     #pragma only_renderers d3d11 playstation xboxone xboxseries vulkan metal switch
 
+    #pragma multi_compile_fragment _ DECAL_SURFACE_GRADIENT
+
     #pragma shader_feature_local _ALPHATEST_ON
     #pragma shader_feature_local _ALPHATOMASK_ON
     #pragma shader_feature_local_fragment _DEPTHOFFSET_ON

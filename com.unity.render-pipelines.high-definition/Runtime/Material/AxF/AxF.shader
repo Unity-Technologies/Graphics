@@ -177,6 +177,8 @@ Shader "HDRP/AxF"
     //-------------------------------------------------------------------------------------
     // Variant
     //-------------------------------------------------------------------------------------
+    #pragma multi_compile_fragment _ DECAL_SURFACE_GRADIENT
+
     #pragma shader_feature_local _AXF_BRDF_TYPE_SVBRDF _AXF_BRDF_TYPE_CAR_PAINT _AXF_BRDF_TYPE_BTF
 
     #pragma shader_feature_local _ _SPECULAR_OCCLUSION_NONE //_SPECULAR_OCCLUSION_FROM_BENT_NORMAL_MAP

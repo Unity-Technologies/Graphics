@@ -71,6 +71,8 @@ Shader "HDRP/Decal"
     //-------------------------------------------------------------------------------------
     // Variant
     //-------------------------------------------------------------------------------------
+    #pragma multi_compile_fragment _ DECAL_SURFACE_GRADIENT
+
     #pragma shader_feature_local_fragment _COLORMAP
     #pragma shader_feature_local_fragment _MASKMAP
     #pragma shader_feature_local _NORMALMAP

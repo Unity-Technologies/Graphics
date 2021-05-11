@@ -172,13 +172,15 @@ void GetSurfaceAndBuiltinData(inout FragInputs input, float3 V, inout PositionIn
 #ifdef ENABLE_TERRAIN_PERPIXEL_NORMAL
     #ifdef TERRAIN_PERPIXEL_NORMAL_OVERRIDE
         float3 normalWS = terrainLitSurfaceData.normalData.xyz; // normalData directly contains normal in world space.
-        surfaceData.normalWS = normalWS;
     #else
         float3 normalOS = SAMPLE_TEXTURE2D(_TerrainNormalmapTexture, sampler_TerrainNormalmapTexture, terrainNormalMapUV).rgb * 2 - 1;
         float3 normalWS = mul((float3x3)GetObjectToWorldMatrix(), normalOS);
     #endif
     float4 tangentWS = ConstructTerrainTangent(normalWS, GetObjectToWorldMatrix()._13_23_33);
     input.tangentToWorld = BuildTangentToWorld(tangentWS, normalWS);
+    surfaceData.normalWS = normalWS;
+#else
+    surfaceData.normalWS = 0;
 #endif
     surfaceData.tangentWS = normalize(input.tangentToWorld[0].xyz); // The tangent is not normalize in tangentToWorld for mikkt. Tag: SURFACE_GRADIENT
 
@@ -211,9 +213,8 @@ void GetSurfaceAndBuiltinData(inout FragInputs input, float3 V, inout PositionIn
 
     // This need to be init here to quiet the compiler in case of decal, but can be override later.
     surfaceData.specularOcclusion = 1.0;
-    surfaceData.normalWS = 0;
 
-#if SHADEROPTIONS_SURFACE_GRADIENT_DECAL_NORMAL
+#ifdef DECAL_SURFACE_GRADIENT
 
 #if !defined(ENABLE_TERRAIN_PERPIXEL_NORMAL) || !defined(TERRAIN_PERPIXEL_NORMAL_OVERRIDE)
     float3 normalTS = ConvertToNormalTS(terrainLitSurfaceData.normalData, input.tangentToWorld[0], input.tangentToWorld[1]);
@@ -239,7 +240,7 @@ void GetSurfaceAndBuiltinData(inout FragInputs input, float3 V, inout PositionIn
     }
 #endif
 
-#else // SHADEROPTIONS_SURFACE_GRADIENT_DECAL_NORMAL
+#else // DECAL_SURFACE_GRADIENT
 
 #if !defined(ENABLE_TERRAIN_PERPIXEL_NORMAL) || !defined(TERRAIN_PERPIXEL_NORMAL_OVERRIDE)
     float3 normalTS = ConvertToNormalTS(terrainLitSurfaceData.normalData, input.tangentToWorld[0], input.tangentToWorld[1]);
@@ -256,7 +257,7 @@ void GetSurfaceAndBuiltinData(inout FragInputs input, float3 V, inout PositionIn
     }
 #endif
 
-#endif // SHADEROPTIONS_SURFACE_GRADIENT_DECAL_NORMAL
+#endif // DECAL_SURFACE_GRADIENT
 
     float3 bentNormalWS = surfaceData.normalWS;
 
