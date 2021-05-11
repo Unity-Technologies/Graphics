@@ -823,9 +823,9 @@ namespace UnityEditor.Rendering
         /// <summary>
         /// Draw an EnumPopup handling multiEdition
         /// </summary>
-        /// <param name="property"></param>
-        /// <param name="type"></param>
-        /// <param name="label"></param>
+        /// <param name="label">the label</param>
+        /// <param name="property">The data displayed</param>
+        /// <param name="options">Options of the dropdown</param>
         public static void DrawEnumPopup(SerializedProperty property, System.Type type, GUIContent label = null)
         {
             EditorGUI.showMixedValue = property.hasMultipleDifferentValues;
@@ -838,6 +838,22 @@ namespace UnityEditor.Rendering
             if (EditorGUI.EndChangeCheck())
                 property.intValue = result;
             EditorGUI.showMixedValue = false;
+        }
+
+        /// <summary>
+        /// Like EditorGUILayout.DrawTextField but for delayed text field
+        /// </summary>
+        /// <param name="label">the label</param>
+        /// <param name="property">The data displayed</param>
+        public static void DrawDelayedTextField(GUIContent label, SerializedProperty property)
+        {
+            Rect lineRect = GUILayoutUtility.GetRect(1, EditorGUIUtility.singleLineHeight);
+            EditorGUI.BeginProperty(lineRect, label, property);
+            EditorGUI.BeginChangeCheck();
+            string value = EditorGUI.DelayedTextField(lineRect, label, property.stringValue);
+            if (EditorGUI.EndChangeCheck())
+                property.stringValue = value;
+            EditorGUI.EndProperty();
         }
 
         /// <summary>Remove the keywords on the given materials</summary>

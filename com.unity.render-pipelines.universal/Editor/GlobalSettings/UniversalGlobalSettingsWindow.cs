@@ -29,20 +29,6 @@ namespace UnityEditor.Rendering.Universal
 
     internal partial class UniversalGlobalSettingsPanelIMGUI
     {
-        /// <summary>
-        /// Like EditorGUILayout.DrawTextField but for delayed text field
-        /// </summary>
-        internal static void DrawDelayedTextField(GUIContent label, SerializedProperty property)
-        {
-            Rect lineRect = GUILayoutUtility.GetRect(1, EditorGUIUtility.singleLineHeight);
-            EditorGUI.BeginProperty(lineRect, label, property);
-            EditorGUI.BeginChangeCheck();
-            string value = EditorGUI.DelayedTextField(lineRect, label, property.stringValue);
-            if (EditorGUI.EndChangeCheck())
-                property.stringValue = value;
-            EditorGUI.EndProperty();
-        }
-
         public static readonly CED.IDrawer Inspector;
 
         public class DocumentationUrls
@@ -169,21 +155,21 @@ namespace UnityEditor.Rendering.Universal
 
             using (new EditorGUI.IndentLevelScope())
             {
-                DrawDelayedTextField(Styles.lightLayerName0, serialized.lightLayerName0);
+                CoreEditorUtils.DrawDelayedTextField(Styles.lightLayerName0, serialized.lightLayerName0);
                 GUILayout.Space(2);
-                DrawDelayedTextField(Styles.lightLayerName1, serialized.lightLayerName1);
+                CoreEditorUtils.DrawDelayedTextField(Styles.lightLayerName1, serialized.lightLayerName1);
                 GUILayout.Space(2);
-                DrawDelayedTextField(Styles.lightLayerName2, serialized.lightLayerName2);
+                CoreEditorUtils.DrawDelayedTextField(Styles.lightLayerName2, serialized.lightLayerName2);
                 GUILayout.Space(2);
-                DrawDelayedTextField(Styles.lightLayerName3, serialized.lightLayerName3);
+                CoreEditorUtils.DrawDelayedTextField(Styles.lightLayerName3, serialized.lightLayerName3);
                 GUILayout.Space(2);
-                DrawDelayedTextField(Styles.lightLayerName4, serialized.lightLayerName4);
+                CoreEditorUtils.DrawDelayedTextField(Styles.lightLayerName4, serialized.lightLayerName4);
                 GUILayout.Space(2);
-                DrawDelayedTextField(Styles.lightLayerName5, serialized.lightLayerName5);
+                CoreEditorUtils.DrawDelayedTextField(Styles.lightLayerName5, serialized.lightLayerName5);
                 GUILayout.Space(2);
-                DrawDelayedTextField(Styles.lightLayerName6, serialized.lightLayerName6);
+                CoreEditorUtils.DrawDelayedTextField(Styles.lightLayerName6, serialized.lightLayerName6);
                 GUILayout.Space(2);
-                DrawDelayedTextField(Styles.lightLayerName7, serialized.lightLayerName7);
+                CoreEditorUtils.DrawDelayedTextField(Styles.lightLayerName7, serialized.lightLayerName7);
                 EditorGUILayout.Space();
             }
 

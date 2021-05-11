@@ -486,21 +486,21 @@ namespace UnityEditor.Rendering.HighDefinition
             {
                 using (new EditorGUI.IndentLevelScope())
                 {
-                    HDEditorUtils.DrawDelayedTextField(Styles.lightLayerName0, serialized.lightLayerName0);
+                    CoreEditorUtils.DrawDelayedTextField(Styles.lightLayerName0, serialized.lightLayerName0);
                     GUILayout.Space(2);
-                    HDEditorUtils.DrawDelayedTextField(Styles.lightLayerName1, serialized.lightLayerName1);
+                    CoreEditorUtils.DrawDelayedTextField(Styles.lightLayerName1, serialized.lightLayerName1);
                     GUILayout.Space(2);
-                    HDEditorUtils.DrawDelayedTextField(Styles.lightLayerName2, serialized.lightLayerName2);
+                    CoreEditorUtils.DrawDelayedTextField(Styles.lightLayerName2, serialized.lightLayerName2);
                     GUILayout.Space(2);
-                    HDEditorUtils.DrawDelayedTextField(Styles.lightLayerName3, serialized.lightLayerName3);
+                    CoreEditorUtils.DrawDelayedTextField(Styles.lightLayerName3, serialized.lightLayerName3);
                     GUILayout.Space(2);
-                    HDEditorUtils.DrawDelayedTextField(Styles.lightLayerName4, serialized.lightLayerName4);
+                    CoreEditorUtils.DrawDelayedTextField(Styles.lightLayerName4, serialized.lightLayerName4);
                     GUILayout.Space(2);
-                    HDEditorUtils.DrawDelayedTextField(Styles.lightLayerName5, serialized.lightLayerName5);
+                    CoreEditorUtils.DrawDelayedTextField(Styles.lightLayerName5, serialized.lightLayerName5);
                     GUILayout.Space(2);
-                    HDEditorUtils.DrawDelayedTextField(Styles.lightLayerName6, serialized.lightLayerName6);
+                    CoreEditorUtils.DrawDelayedTextField(Styles.lightLayerName6, serialized.lightLayerName6);
                     GUILayout.Space(2);
-                    HDEditorUtils.DrawDelayedTextField(Styles.lightLayerName7, serialized.lightLayerName7);
+                    CoreEditorUtils.DrawDelayedTextField(Styles.lightLayerName7, serialized.lightLayerName7);
                 }
             }
         }
@@ -514,21 +514,21 @@ namespace UnityEditor.Rendering.HighDefinition
             {
                 using (new EditorGUI.IndentLevelScope())
                 {
-                    HDEditorUtils.DrawDelayedTextField(Styles.decalLayerName0, serialized.decalLayerName0);
+                    CoreEditorUtils.DrawDelayedTextField(Styles.decalLayerName0, serialized.decalLayerName0);
                     GUILayout.Space(2);
-                    HDEditorUtils.DrawDelayedTextField(Styles.decalLayerName1, serialized.decalLayerName1);
+                    CoreEditorUtils.DrawDelayedTextField(Styles.decalLayerName1, serialized.decalLayerName1);
                     GUILayout.Space(2);
-                    HDEditorUtils.DrawDelayedTextField(Styles.decalLayerName2, serialized.decalLayerName2);
+                    CoreEditorUtils.DrawDelayedTextField(Styles.decalLayerName2, serialized.decalLayerName2);
                     GUILayout.Space(2);
-                    HDEditorUtils.DrawDelayedTextField(Styles.decalLayerName3, serialized.decalLayerName3);
+                    CoreEditorUtils.DrawDelayedTextField(Styles.decalLayerName3, serialized.decalLayerName3);
                     GUILayout.Space(2);
-                    HDEditorUtils.DrawDelayedTextField(Styles.decalLayerName4, serialized.decalLayerName4);
+                    CoreEditorUtils.DrawDelayedTextField(Styles.decalLayerName4, serialized.decalLayerName4);
                     GUILayout.Space(2);
-                    HDEditorUtils.DrawDelayedTextField(Styles.decalLayerName5, serialized.decalLayerName5);
+                    CoreEditorUtils.DrawDelayedTextField(Styles.decalLayerName5, serialized.decalLayerName5);
                     GUILayout.Space(2);
-                    HDEditorUtils.DrawDelayedTextField(Styles.decalLayerName6, serialized.decalLayerName6);
+                    CoreEditorUtils.DrawDelayedTextField(Styles.decalLayerName6, serialized.decalLayerName6);
                     GUILayout.Space(2);
-                    HDEditorUtils.DrawDelayedTextField(Styles.decalLayerName7, serialized.decalLayerName7);
+                    CoreEditorUtils.DrawDelayedTextField(Styles.decalLayerName7, serialized.decalLayerName7);
                 }
             }
         }
