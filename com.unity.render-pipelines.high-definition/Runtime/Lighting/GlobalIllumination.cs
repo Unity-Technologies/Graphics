@@ -270,8 +270,8 @@ namespace UnityEngine.Rendering.HighDefinition
             set { m_MaxMixedRaySteps.value = value; }
         }
         [SerializeField]
-        [Tooltip("Controls the number of steps HDRP uses for mixed ray marching.")]
-        private MinIntParameter m_MaxMixedRaySteps = new MinIntParameter(64, 0);
+        [Tooltip("Controls the number of steps HDRP uses for mixed tracing.")]
+        private MinIntParameter m_MaxMixedRaySteps = new MinIntParameter(48, 0);
         #endregion
 
         internal static bool RayTracingActive(GlobalIllumination volume)

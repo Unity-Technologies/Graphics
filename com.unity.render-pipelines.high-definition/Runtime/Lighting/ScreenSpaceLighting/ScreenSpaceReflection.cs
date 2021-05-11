@@ -274,7 +274,7 @@ namespace UnityEngine.Rendering.HighDefinition
         public ClampedIntParameter bounceCount = new ClampedIntParameter(1, 1, 8);
 
         /// <summary>
-        /// Sets the maximum number of steps HDRP uses for raytracing. Affects both correctness and performance.
+        /// Sets the maximum number of steps HDRP uses for mixed tracing. Affects both correctness and performance.
         /// </summary>
         public int rayMaxIterationsRT
         {
@@ -289,7 +289,7 @@ namespace UnityEngine.Rendering.HighDefinition
         }
 
         [SerializeField, FormerlySerializedAs("rayMaxIterations")]
-        private MinIntParameter m_RayMaxIterationsRT = new MinIntParameter(32, 0);
+        private MinIntParameter m_RayMaxIterationsRT = new MinIntParameter(48, 0);
         #endregion
 
         internal static bool RayTracingActive(ScreenSpaceReflection volume)
