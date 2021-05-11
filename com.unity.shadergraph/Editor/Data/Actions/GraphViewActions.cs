@@ -16,12 +16,20 @@ namespace UnityEditor.ShaderGraph
             AssertHelpers.IsNotNull(inlinePropertiesToConvert, "InlinePropertiesToConvert is null while carrying out ConvertToPropertyAction");
             graphData.owner.RegisterCompleteObjectUndo("Convert to Property");
 
+            var defaultCategory = graphData.categories.FirstOrDefault();
+            AssertHelpers.IsNotNull(defaultCategory, "Default Category is null while carrying out ConvertToPropertyAction");
+
             foreach (var converter in inlinePropertiesToConvert)
             {
                 var convertedProperty = converter.AsShaderProperty();
                 var node = converter as AbstractMaterialNode;
 
                 graphData.AddGraphInput(convertedProperty);
+
+                // Also insert this input into the default category
+                if(defaultCategory != null)
+                    graphData.InsertItemIntoCategory(defaultCategory.categoryGuid, convertedProperty);
+
                 // Add reference to converted property for use in responding to this action later
                 convertedPropertyReferences.Add(convertedProperty);
 

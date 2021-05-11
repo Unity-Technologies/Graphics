@@ -85,27 +85,6 @@ namespace UnityEditor.ShaderGraph.Drawing.Inspector.PropertyDrawers
         PreChangeValueCallback _preChangeValueCallback;
         PostChangeValueCallback _postChangeValueCallback;
 
-        public void GetPropertyData(
-            bool isSubGraph,
-            GraphData graphData,
-            ChangeExposedFieldCallback exposedFieldCallback,
-            Action precisionChangedCallback,
-            Action keywordChangedCallback,
-            Action dropdownChangedCallback,
-            ChangeValueCallback changeValueCallback,
-            PostChangeValueCallback postChangeValueCallback)
-        {
-            this.isSubGraph = isSubGraph;
-            this.graphData = graphData;
-            this._keywordChangedCallback = keywordChangedCallback;
-            this._dropdownChangedCallback = dropdownChangedCallback;
-            this._precisionChangedCallback = precisionChangedCallback;
-            this._exposedFieldChangedCallback = exposedFieldCallback;
-            this._changeValueCallback = changeValueCallback;
-            this._preChangeValueCallback = (actionName) => this.graphData.owner.RegisterCompleteObjectUndo(actionName);
-            this._postChangeValueCallback = postChangeValueCallback;
-        }
-
         internal void GetViewModel(ShaderInputViewModel shaderInputViewModel, GraphData inGraphData, PostChangeValueCallback postChangeValueCallback)
         {
             m_ViewModel = shaderInputViewModel;
