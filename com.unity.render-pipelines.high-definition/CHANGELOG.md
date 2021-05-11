@@ -11,6 +11,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ### Fixed
 - Fixed lights shadow frustum near and far planes.
+- Fixed motionblur issue when  both color and post-porcessing buffers format are with alpha.  (case 1333592)
 
 ## [7.6.0] - 2021-03-25
 
