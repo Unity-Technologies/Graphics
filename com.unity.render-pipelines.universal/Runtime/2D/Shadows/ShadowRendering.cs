@@ -212,10 +212,9 @@ namespace UnityEngine.Rendering.Universal
                         using (new ProfilingScope(cmdBuffer, m_ProfilingSamplerShadowColorsLookup[colorBit]))
                         {
                             if (colorBit == 0)
-                                cmdBuffer.ClearRenderTarget(RTClearFlags.ColorStencil, Color.clear, 0, 0);  // If we are using a new shadow texture clear both color and stencil
+                                cmdBuffer.ClearRenderTarget(true, true, Color.clear);
                             else
-                                cmdBuffer.ClearRenderTarget(RTClearFlags.Stencil, Color.clear, 0, 0); // otherwise clear stencil only.
-
+                                cmdBuffer.ClearRenderTarget(true, false, Color.clear);
 
                             var shadowRadius = light.boundingSphere.radius;
 
