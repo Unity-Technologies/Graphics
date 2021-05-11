@@ -1,10 +1,9 @@
-// Each #kernel tells which function to compile; you can have many kernels
 #pragma kernel Clear
 #pragma kernel ClearBuffer
 #pragma kernel FillUVMap
 #pragma kernel JumpFlooding
 #pragma kernel FinalPass
-#pragma kernel VoxelizeProbeVolumeData 
+#pragma kernel VoxelizeProbeVolumeData
 #pragma kernel Subdivide
 
 // #pragma enable_d3d11_debug_symbols
