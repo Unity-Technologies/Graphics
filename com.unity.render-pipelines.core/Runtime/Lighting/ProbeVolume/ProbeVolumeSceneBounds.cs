@@ -9,29 +9,33 @@ using UnityEngine.SceneManagement;
 namespace UnityEngine.Experimental.Rendering
 {
     [System.Serializable]
+    /// <summary> A class containing info about the bounds defined by the probe volumes in various scenes. </summary>
     public class ProbeVolumeSceneBounds : ISerializationCallbackReceiver
     {
         [System.Serializable]
-        private struct SerializableBoundItem
+        struct SerializableBoundItem
         {
             [SerializeField] public string scenePath;
             [SerializeField] public Bounds bounds;
         }
 
         [System.Serializable]
-        private struct SerializableHasPVItem
+        struct SerializableHasPVItem
         {
             [SerializeField] public string scenePath;
             [SerializeField] public bool hasProbeVolumes;
         }
 
-        [SerializeField] private List<SerializableBoundItem> serializedBounds;
-        [SerializeField] private List<SerializableHasPVItem> serializedHasVolumes;
+        [SerializeField] List<SerializableBoundItem> serializedBounds;
+        [SerializeField] List<SerializableHasPVItem> serializedHasVolumes;
 
-        private Object m_ParentAsset = null;
+        Object m_ParentAsset = null;
+        /// <summary> A dictionary containing the Bounds defined by probe volumes for each scene (scene path is the key of the dictionary). </summary>
         public Dictionary<string, Bounds> sceneBounds;
         internal Dictionary<string, bool> hasProbeVolumes;
 
+        /// <summary>Constructor for ProbeVolumeSceneBounds. </summary>
+        /// <param name="parentAsset">The asset holding this ProbeVolumeSceneBounds, it will be dirtied every time scene bounds are updated. </param>
         public ProbeVolumeSceneBounds(Object parentAsset)
         {
             m_ParentAsset = parentAsset;
@@ -41,11 +45,16 @@ namespace UnityEngine.Experimental.Rendering
             serializedHasVolumes = new List<SerializableHasPVItem>();
         }
 
+        /// <summary>Set a reference to the object holding this ProbeVolumeSceneBounds.</summary>
+        /// <param name="parentAsset">The object holding this ProbeVolumeSceneBounds, it will be dirtied every time scene bounds are updated. </param>
         public void SetParentObject(Object parent)
         {
             m_ParentAsset = parent;
         }
 
+        /// <summary>
+        /// OnAfterDeserialize implementation.
+        /// </summary>
         public void OnAfterDeserialize()
         {
             sceneBounds = new Dictionary<string, Bounds>();
@@ -61,6 +70,9 @@ namespace UnityEngine.Experimental.Rendering
             }
         }
 
+        /// <summary>
+        /// OnBeforeSerialize implementation.
+        /// </summary>
         public void OnBeforeSerialize()
         {
             serializedBounds.Clear();
