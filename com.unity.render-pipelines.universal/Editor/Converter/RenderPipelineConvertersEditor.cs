@@ -378,15 +378,7 @@ namespace UnityEditor.Rendering.Universal
         void Init(ClickEvent evt)
         {
             // Need to check if the indexing should be created or not
-            bool createIndex = false;
-            foreach (RenderPipelineConverter converter in m_CoreConvertersList)
-            {
-                if (converter.NeedsIndexing)
-                {
-                    createIndex = true;
-                    break;
-                }
-            }
+            bool createIndex = ShouldCreateIndex();
 
             if (createIndex)
             {
@@ -395,12 +387,36 @@ namespace UnityEditor.Rendering.Universal
 
             for (int i = 0; i < m_ConverterStates.Count; ++i)
             {
-                var state = m_ConverterStates[i];
-                if (state.isInitialized || !state.isEnabled || !state.isActive)
-                    continue;
-
-                GetAndSetData(i);
+                if (ShouldInit(i))
+                {
+                    GetAndSetData(i);
+                }
             }
+        }
+
+        bool ShouldCreateIndex()
+        {
+            for (int i = 0; i < m_ConverterStates.Count; ++i)
+            {
+                if (ShouldInit(i))
+                {
+                    var converter = m_CoreConvertersList[i];
+                    if (converter.NeedsIndexing)
+                    {
+                        return true;
+                    }
+                }
+            }
+
+            return false;
+        }
+
+        bool ShouldInit(int index)
+        {
+            var state = m_ConverterStates[index];
+            if (state.isInitialized || !state.isEnabled || !state.isActive)
+                return false;
+            return true;
         }
 
         void AddToContextMenu(ContextualMenuPopulateEvent evt, int coreConverterIndex)
