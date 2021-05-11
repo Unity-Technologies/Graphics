@@ -587,7 +587,7 @@ namespace UnityEngine.Experimental.Rendering
 
             using (var gpuResources = ProbePlacement.AllocateGPUResources(ctx.probeVolumes.Count, ctx.refVolume.profile.maxSubdivision))
             {
-                // subdivide all the cells and generate brick positions 
+                // subdivide all the cells and generate brick positions
                 foreach (var cell in ctx.cells)
                 {
                     sceneRefs.Clear();

@@ -266,7 +266,7 @@ namespace UnityEngine.Experimental.Rendering
                 // For realtime subdivision, the matrix from ProbeReferenceVolume.instance can be wrong if the profile changed since the last bake
                 if (debugDisplay.realtimeSubdivision)
                     trs = Matrix4x4.TRS(transform.position, Quaternion.identity, Vector3.one * m_Profile.minBrickSize);
-            
+
                 brickGizmos.RenderWireframe(trs, gizmoName: "Brick Gizmo Rendering");
             }
 

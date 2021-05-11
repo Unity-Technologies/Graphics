@@ -7,11 +7,10 @@ using UnityEngine.SceneManagement;
 
 namespace UnityEngine.Experimental.Rendering
 {
-
     class ProbeSubdivisionResult
     {
         public List<Vector3Int> cellPositions = new List<Vector3Int>();
         public Dictionary<Vector3Int, List<Brick>> bricksPerCells = new Dictionary<Vector3Int, List<Brick>>();
         public SortedDictionary<int, Scene> sortedRefs = new SortedDictionary<int, Scene>();
-    } 
+    }
 }

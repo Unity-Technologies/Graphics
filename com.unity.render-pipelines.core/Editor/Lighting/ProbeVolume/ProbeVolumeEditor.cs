@@ -20,7 +20,7 @@ namespace UnityEditor.Experimental.Rendering
         {
             get
             {
-                return _ShapeBox ??= new HierarchicalBox(ProbeVolumeUI.Styles.k_GizmoColorBase, ProbeVolumeUI.Styles.k_BaseHandlesColor);
+                return _ShapeBox ?? = new HierarchicalBox(ProbeVolumeUI.Styles.k_GizmoColorBase, ProbeVolumeUI.Styles.k_BaseHandlesColor);
             }
         }
 

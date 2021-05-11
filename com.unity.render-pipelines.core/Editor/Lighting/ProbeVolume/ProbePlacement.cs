@@ -172,7 +172,7 @@ namespace UnityEngine.Experimental.Rendering
         }
 
         static Material _voxelizeMaterial;
-        static Material voxelizeMaterial => _voxelizeMaterial ??= new Material(Shader.Find("Hidden/ProbeVolume/VoxelizeScene"));
+        static Material voxelizeMaterial => _voxelizeMaterial ?? = new Material(Shader.Find("Hidden/ProbeVolume/VoxelizeScene"));
 
         static public ProbeReferenceVolume.Volume ToVolume(Bounds bounds)
         {
@@ -249,7 +249,7 @@ namespace UnityEngine.Experimental.Rendering
                             {
                                 if (ProbeVolumePositioning.OBBIntersect(renderer.volume, probeVolume.volume)
                                     && ProbeVolumePositioning.OBBIntersect(renderer.volume, subVolume.volume))
-                                        overlappingRenderers.Add(renderer);
+                                    overlappingRenderers.Add(renderer);
                             }
                         }
 
@@ -273,7 +273,7 @@ namespace UnityEngine.Experimental.Rendering
                                 {
                                     Vector3 subCellPos = (subVolume.parentPosition / parentSubdivLevel);
                                     // Add the sub-cell offset:
-                                    int t = (int)Mathf.Pow(3, i+1);
+                                    int t = (int)Mathf.Pow(3, i + 1);
                                     Vector3Int subCellPosInt = new Vector3Int(Mathf.FloorToInt(subCellPos.x), Mathf.FloorToInt(subCellPos.y), Mathf.FloorToInt(subCellPos.z)) * t;
                                     Vector3Int parentSubCellPos = new Vector3Int(Mathf.RoundToInt(cellID.x), Mathf.RoundToInt(cellID.y), Mathf.RoundToInt(cellID.z)) + subCellPosInt;
 
@@ -528,7 +528,8 @@ namespace UnityEngine.Experimental.Rendering
                 {
                     int minSubdiv = GetMaxSubdivision(ctx, kp.component.minSubdivisionMultiplier);
                     int maxSubdiv = GetMaxSubdivision(ctx, kp.component.maxSubdivisionMultiplier);
-                    gpuProbeVolumes.Add(new GPUProbeVolumeOBB{
+                    gpuProbeVolumes.Add(new GPUProbeVolumeOBB
+                    {
                         corner = kp.volume.corner,
                         X = kp.volume.X,
                         Y = kp.volume.Y,
