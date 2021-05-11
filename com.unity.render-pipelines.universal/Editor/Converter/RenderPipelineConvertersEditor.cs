@@ -4,8 +4,10 @@ using System.Reflection;
 using UnityEngine;
 using UnityEditor;
 using UnityEditor.Rendering;
+using UnityEditor.Search;
 using UnityEditor.UIElements;
 using UnityEngine.UIElements;
+
 
 namespace UnityEditor.Rendering.Universal
 {
@@ -255,8 +257,57 @@ namespace UnityEditor.Rendering.Universal
             m_SerializedObject.Update();
         }
 
+        void OnSearchIndexCreated(string name, string path, IEnumerable<SearchItem> items, Action finished)
+        {
+            var siObj = AssetDatabase.LoadAssetAtPath<UnityEngine.Object>(path);
+            Debug.Log($"Search index {name} is ready to be used", siObj);
+
+            // TODO: Run your query on the temporary index
+            var searchQuery = $"p: a={name} t:Material";
+            Debug.Log($"Listing materials using <b>{searchQuery}</b>");
+            UnityEditor.Search.SearchService.Request(searchQuery, (context, materials) =>
+            {
+                // Process materials...
+                foreach (var m in materials)
+                    Debug.Log(m.GetDescription(context));
+            }, _ =>
+                {
+                    AllQueriesFinished();
+                });
+
+            void AllQueriesFinished()
+            {
+                Type type = typeof(EditorApplication);
+                EditorApplication.CallbackFunction callback = () =>
+                {
+                    Debug.Log($"Project upgrading finished");
+                    finished();
+                };
+                MethodInfo delayedMethod = type.GetMethod("CallDelayed", BindingFlags.NonPublic | BindingFlags.Static);
+                object[] parameters = new object[] {callback, 3d};
+
+                delayedMethod?.Invoke(null, parameters);
+            }
+        }
+
         void Init(ClickEvent evt)
         {
+            // Need to check if the indexing should be created or not
+            bool createIndex = false;
+            foreach (RenderPipelineConverter converter in m_CoreConvertersList)
+            {
+                if (converter.NeedsIndexing)
+                {
+                    createIndex = true;
+                    break;
+                }
+            }
+
+            if (createIndex)
+            {
+                CreateSearchIndex("URPConverterIndex", OnSearchIndexCreated);
+            }
+
             for (int i = 0; i < m_ConverterStates.Count; ++i)
             {
                 // Need to clear selection here otherwise we get an error for the listview refresh
@@ -440,6 +491,68 @@ namespace UnityEditor.Rendering.Universal
                 m_CoreConvertersList[coreConverterIndex].OnRun(ref ctx);
                 UpdateInfo(coreConverterIndex, ctx);
             }
+        }
+
+        /// <summary>
+        /// Handler called when the temporary search index is created and ready to be used.
+        /// </summary>
+        /// <param name="name">Name of the search index</param>
+        /// <param name="path">Asset path of the temporary index</param>
+        /// <param name="items">Search results of the temporary index.</param>
+        /// <param name="finished">Callback to be invoked when you are done using the temporary index.</param>
+        public delegate void SearchIndexCreatedHandler(string name, string path, IEnumerable<SearchItem> items, Action finished);
+
+        /// <summary>
+        /// Create a search index. When the search index is ready to be used, callback the user code.
+        /// IMPORTANT: The user code must call finished() when the search index can be disposed.
+        /// </summary>
+        /// <param name="name"></param>
+        /// <param name="onIndexReady"></param>
+        public static void CreateSearchIndex(string name, SearchIndexCreatedHandler onIndexReady)
+        {
+            // Create <guid>.index in the project
+            var title = $"Building {name} search index";
+            EditorUtility.DisplayProgressBar(title, "Creating search index...", -1f);
+
+            // Private implementation of a file naming function which puts the file at the selected path.
+            Type assetdatabase = typeof(AssetDatabase);
+            var indexPath = (string)assetdatabase.GetMethod("GetUniquePathNameAtSelectedPath",
+                BindingFlags.NonPublic | BindingFlags.Static).Invoke(assetdatabase, new object[] {name});
+            // Write search index manifest
+            System.IO.File.WriteAllText(indexPath,
+@"{
+                ""roots"": [""Assets""],
+                ""includes"": [],
+                ""excludes"": [],
+                ""options"": {
+                    ""types"": true,
+                    ""properties"": true,
+                    ""extended"": true,
+                    ""dependencies"": true
+                    },
+                ""baseScore"": 9999
+                }");
+
+            // Import the search index
+            AssetDatabase.ImportAsset(indexPath, ImportAssetOptions.ForceSynchronousImport | ImportAssetOptions.DontDownloadFromCacheServer);
+            EditorApplication.delayCall += () =>
+            {
+                // Wait for the index to be finished
+                var context = UnityEditor.Search.SearchService.CreateContext("asset", $"p: a=\"{name}\"");
+                UnityEditor.Search.SearchService.Request(context, (_, items) =>
+                {
+                    // Raise onIndexReady callback
+                    onIndexReady?.Invoke(name, indexPath, items, () =>
+                    {
+                        context?.Dispose();
+                        context = null;
+
+                        // Client code has finished with the created index. We can delete it.
+                        AssetDatabase.DeleteAsset(indexPath);
+                        EditorUtility.ClearProgressBar();
+                    });
+                });
+            };
         }
     }
 }

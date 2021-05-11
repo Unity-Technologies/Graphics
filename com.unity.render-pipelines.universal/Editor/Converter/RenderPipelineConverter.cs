@@ -21,6 +21,13 @@ namespace UnityEditor.Rendering.Universal
         public virtual bool IsEnabled => true;
 
         /// <summary>
+        /// A check to see if the converter needs to create the index.
+        /// This will only need to be set to true if the converter is using search api, and search queries.
+        /// If set to true the converter framework will create the indexer and remove it after all search queries are done.
+        /// </summary>
+        public virtual bool NeedsIndexing => false;
+
+        /// <summary>
         /// This method getting triggered when clicking the listview item in the UI.
         /// </summary>
         public virtual void OnClicked(int index)
