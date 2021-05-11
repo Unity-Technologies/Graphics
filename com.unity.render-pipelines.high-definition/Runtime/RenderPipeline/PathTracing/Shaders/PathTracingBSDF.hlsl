@@ -38,97 +38,6 @@ float D_AnisoGGX(float roughnessX,
 namespace BRDF
 {
 
-bool SampleGGX(MaterialData mtlData,
-               float3 normal,
-               float roughness,
-               float3 fresnel0,
-               float3 inputSample,
-           out float3 outgoingDir,
-           out float3 value,
-           out float pdf,
-           out float3 fresnel)
-{
-    roughness = clamp(roughness, MIN_GGX_ROUGHNESS, MAX_GGX_ROUGHNESS);
-
-    float NdotL, NdotH, VdotH;
-    float3x3 localToWorld = GetLocalFrame(normal);
-    SampleGGXDir(inputSample.xy, mtlData.V, localToWorld, roughness, outgoingDir, NdotL, NdotH, VdotH);
-
-    if (NdotL < 0.001 || !IsAbove(mtlData, outgoingDir))
-        return false;
-
-    float D = min(D_GGX(NdotH, roughness), DELTA_PDF); // Safeguard on quasi-delta distribution
-    pdf = D * NdotH / (4.0 * VdotH);
-
-    if (pdf < 0.001)
-        return false;
-
-    float NdotV = dot(normal, mtlData.V);
-    float Vg = V_SmithJointGGX(NdotL, NdotV, roughness);
-    fresnel = F_Schlick(fresnel0, VdotH);
-
-    value = fresnel * D * Vg * NdotL;
-
-    return true;
-}
-
-bool SampleGGX(MaterialData mtlData,
-               float3 normal,
-               float roughness,
-               float3 fresnel0,
-               float3 inputSample,
-           out float3 outgoingDir,
-           out float3 value,
-           out float pdf)
-{
-    float3 dummyFresnel;
-    return SampleGGX(mtlData, normal, roughness, fresnel0, inputSample, outgoingDir, value, pdf, dummyFresnel);
-}
-
-void EvaluateGGX(MaterialData mtlData,
-                 float3 normal,
-                 float roughness,
-                 float3 fresnel0,
-                 float3 outgoingDir,
-             out float3 value,
-             out float pdf,
-             out float3 fresnel)
-{
-    float NdotV = dot(normal, mtlData.V);
-    if (NdotV < 0.001)
-    {
-        value = 0.0;
-        pdf = 0.0;
-        return;
-    }
-    float NdotL = dot(normal, outgoingDir);
-
-    roughness = clamp(roughness, MIN_GGX_ROUGHNESS, MAX_GGX_ROUGHNESS);
-
-    float3 H = normalize(mtlData.V + outgoingDir);
-    float NdotH = dot(normal, H);
-    float VdotH = dot(mtlData.V, H);
-    float D = min(D_GGX(NdotH, roughness), DELTA_PDF); // Safeguard on quasi-delta distribution
-    pdf = D * NdotH / (4.0 * VdotH);
-
-    float Vg = V_SmithJointGGX(NdotL, NdotV, roughness);
-    fresnel = F_Schlick(fresnel0, VdotH);
-
-    value = fresnel * D * Vg * NdotL;
-}
-
-void EvaluateGGX(MaterialData mtlData,
-                float3 normal,
-                float roughness,
-                float3 fresnel0,
-                float3 outgoingDir,
-            out float3 value,
-            out float pdf)
-{
-    float3 dummyFresnel;
-    EvaluateGGX(mtlData, normal, roughness, fresnel0, outgoingDir, value, pdf, dummyFresnel);
-}
-
 bool SampleAnisoGGX(MaterialData mtlData,
                     float3 normal,
                     float roughnessX,
@@ -234,6 +143,56 @@ void EvaluateAnisoGGX(MaterialData mtlData,
 {
     float3 dummyFresnel;
     EvaluateAnisoGGX(mtlData, normal, roughnessX, roughnessY, fresnel0, outgoingDir, value, pdf, dummyFresnel);
+}
+
+bool SampleGGX(MaterialData mtlData,
+               float3 normal,
+               float roughness,
+               float3 fresnel0,
+               float3 inputSample,
+           out float3 outgoingDir,
+           out float3 value,
+           out float pdf,
+           out float3 fresnel)
+{
+    return SampleAnisoGGX(mtlData, normal, roughness, roughness, fresnel0, inputSample, outgoingDir, value, pdf, fresnel);
+}
+
+bool SampleGGX(MaterialData mtlData,
+               float3 normal,
+               float roughness,
+               float3 fresnel0,
+               float3 inputSample,
+           out float3 outgoingDir,
+           out float3 value,
+           out float pdf)
+{
+    float3 dummyFresnel;
+    return SampleGGX(mtlData, normal, roughness, fresnel0, inputSample, outgoingDir, value, pdf, dummyFresnel);
+}
+
+void EvaluateGGX(MaterialData mtlData,
+                 float3 normal,
+                 float roughness,
+                 float3 fresnel0,
+                 float3 outgoingDir,
+             out float3 value,
+             out float pdf,
+             out float3 fresnel)
+{
+    return EvaluateAnisoGGX(mtlData, normal, roughness, roughness, fresnel0, outgoingDir, value, pdf, fresnel);
+}
+
+void EvaluateGGX(MaterialData mtlData,
+                float3 normal,
+                float roughness,
+                float3 fresnel0,
+                float3 outgoingDir,
+            out float3 value,
+            out float pdf)
+{
+    float3 dummyFresnel;
+    EvaluateGGX(mtlData, normal, roughness, fresnel0, outgoingDir, value, pdf, dummyFresnel);
 }
 
 bool SampleDelta(MaterialData mtlData,
