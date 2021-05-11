@@ -333,6 +333,15 @@ namespace UnityEngine.Experimental.Rendering
                 Mathf.Max(1, Mathf.CeilToInt(depth / (float)z)));
         }
 
+        static void CopyTexture(CommandBuffer cmd, RenderTexture source, RenderTexture destination)
+        {
+            using (new ProfilingScope(cmd, new ProfilingSampler("Copy")))
+            {
+                for (int i = 0; i < source.volumeDepth; i++)
+                    cmd.CopyTexture(source, i, 0, destination, i, 0);
+            }
+        }
+
         static void GenerateDistanceField(CommandBuffer cmd, RenderTexture sceneSDF1, RenderTexture sceneSDF2)
         {
             using (new ProfilingScope(cmd, new ProfilingSampler("GenerateDistanceField")))
@@ -340,7 +349,8 @@ namespace UnityEngine.Experimental.Rendering
                 // Generate distance field with JFA
                 cmd.SetComputeVectorParam(subdivideSceneCS, _Size, new Vector4(sceneSDF1.width, 1.0f / sceneSDF1.width));
 
-                Swap(ref sceneSDF1, ref sceneSDF2);
+                // We need those copies because there is a compute barrier bug only happening on low-resolution textures
+                CopyTexture(cmd, sceneSDF1, sceneSDF2);
 
                 // Jump flooding implementation based on https://www.comp.nus.edu.sg/~tants/jfa.html
                 using (new ProfilingScope(cmd, new ProfilingSampler("JumpFlooding")))
@@ -358,10 +368,10 @@ namespace UnityEngine.Experimental.Rendering
                         cmd.SetComputeTextureParam(subdivideSceneCS, s_JumpFloodingKernel, _Output, sceneSDF2);
                         DispatchCompute(cmd, s_JumpFloodingKernel, sceneSDF1.width, sceneSDF1.height, sceneSDF1.volumeDepth);
 
-                        Swap(ref sceneSDF1, ref sceneSDF2);
+                        CopyTexture(cmd, sceneSDF2, sceneSDF1);
                     }
                 }
-                Swap(ref sceneSDF1, ref sceneSDF2);
+                CopyTexture(cmd, sceneSDF2, sceneSDF1);
 
                 void Swap(ref RenderTexture s1, ref RenderTexture s2)
                 {
