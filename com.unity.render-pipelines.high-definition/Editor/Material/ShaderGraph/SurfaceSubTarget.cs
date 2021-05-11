@@ -192,7 +192,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
             base.GetFields(ref context);
 
             if (systemData.tessellation)
-                context.AddField(Fields.GraphTessellation);
+                context.AddField(HDFields.GraphTessellation);
 
             if (supportDistortion)
                 AddDistortionFields(ref context);
