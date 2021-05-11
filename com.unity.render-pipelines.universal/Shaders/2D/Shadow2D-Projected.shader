@@ -11,8 +11,8 @@ Shader "Hidden/ShadowProjected2D"
 
         Cull Off
         BlendOp Add
-        Blend One Zero
         ZWrite Off
+        ZTest Always
 
         // This pass draws the projected shadow and sets the composite shadow bit.
         Pass

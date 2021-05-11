@@ -11,8 +11,9 @@ Shader "Hidden/Shadow2DUnshadowSprite"
 
         Cull Off
         BlendOp Add
-        Blend One Zero
+        Blend OneMinusSrcColor SrcColor, OneMinusSrcAlpha SrcAlpha
         ZWrite Off
+        ZTest Always
 
         Pass
         {
