@@ -255,7 +255,7 @@ namespace UnityEngine.Experimental.Rendering
                 {
                     if (brick.subdivisionLevel < 0)
                         continue;
-                        
+
                     Vector3 scaledSize = Vector3.one * Mathf.Pow(3, brick.subdivisionLevel);
                     Vector3 scaledPos = brick.position + scaledSize / 2;
                     brickGizmos.AddWireCube(scaledPos, scaledSize, subdivColors[brick.subdivisionLevel]);
@@ -266,7 +266,7 @@ namespace UnityEngine.Experimental.Rendering
                 // For realtime subdivision, the matrix from ProbeReferenceVolume.instance can be wrong if the profile changed since the last bake
                 if (debugDisplay.realtimeSubdivision)
                     trs = Matrix4x4.TRS(transform.position, Quaternion.identity, Vector3.one * m_Profile.minBrickSize);
-                
+            
                 brickGizmos.RenderWireframe(trs, gizmoName: "Brick Gizmo Rendering");
             }
 

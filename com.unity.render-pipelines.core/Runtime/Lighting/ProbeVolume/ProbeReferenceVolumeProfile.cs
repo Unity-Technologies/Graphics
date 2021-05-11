@@ -27,7 +27,7 @@ namespace UnityEngine.Experimental.Rendering
         /// <summary>
         /// The size of a Cell in number of bricks.
         /// </summary>
-        public int cellSizeInBricks => (int)Mathf.Pow(simplificationLevels, 3);
+        public int cellSizeInBricks => (int)Mathf.Pow(3, simplificationLevels);
 
         /// <summary>
         /// The minimum distance between two probes in meters.

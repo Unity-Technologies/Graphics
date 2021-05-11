@@ -373,13 +373,6 @@ namespace UnityEngine.Experimental.Rendering
                 }
                 CopyTexture(cmd, sceneSDF2, sceneSDF1);
 
-                void Swap(ref RenderTexture s1, ref RenderTexture s2)
-                {
-                    var tmp = s1;
-                    s1 = s2;
-                    s2 = tmp;
-                }
-
                 cmd.SetComputeTextureParam(subdivideSceneCS, s_FinalPassKernel, _Input, sceneSDF2);
                 cmd.SetComputeTextureParam(subdivideSceneCS, s_FinalPassKernel, _Output, sceneSDF1);
                 DispatchCompute(cmd, s_FinalPassKernel, sceneSDF1.width, sceneSDF1.height, sceneSDF1.volumeDepth);
