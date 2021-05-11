@@ -560,16 +560,15 @@ namespace UnityEditor.VFX
 
         static VisualEffectEditor s_EffectUi;
 
-        /* TODO : Fix ITransientOverlay
         [Overlay(typeof(SceneView), k_OverlayId, k_DisplayName)]
-        class SceneViewVFXSlotContainerOverlay : ITransientOverlay
+        class SceneViewVFXSlotContainerOverlay : IMGUIOverlay, ITransientOverlay
         {
             const string k_OverlayId = "Scene View/Visual Effect";
             const string k_DisplayName = "Visual Effect";
 
             public bool visible => s_EffectUi != null;
 
-            public void OnSceneGUI()
+            public override void OnGUI()
             {
                 if (s_EffectUi == null)
                     return;
@@ -577,7 +576,6 @@ namespace UnityEditor.VFX
                 s_EffectUi.SceneViewGUICallback();
             }
         }
-        */
 
         private VFXGraph m_graph;
 
