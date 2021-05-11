@@ -172,7 +172,15 @@ namespace UnityEngine.Experimental.Rendering
         }
 
         static Material _voxelizeMaterial;
-        static Material voxelizeMaterial => _voxelizeMaterial ?? = new Material(Shader.Find("Hidden/ProbeVolume/VoxelizeScene"));
+        static Material voxelizeMaterial
+        {
+            get
+            {
+                if (_voxelizeMaterial == null)
+                    _voxelizeMaterial = new Material(Shader.Find("Hidden/ProbeVolume/VoxelizeScene"));
+                return _voxelizeMaterial;
+            }
+        }
 
         static public ProbeReferenceVolume.Volume ToVolume(Bounds bounds)
         {
