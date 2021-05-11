@@ -143,7 +143,13 @@ namespace UnityEditor.VFX.URP
             if (cause == InvalidationCause.kSettingChanged
                 && !validSmoothnessSources.Contains(smoothnessSource))
             {
-                SetSettingValue(nameof(smoothnessSource), SmoothnessSource.None);
+                var fallbackSmoothness = SmoothnessSource.None;
+                if (smoothnessSource == SmoothnessSource.MetallicAlpha && validSmoothnessSources.Contains(SmoothnessSource.SpecularAlpha))
+                    fallbackSmoothness = SmoothnessSource.SpecularAlpha;
+                if (smoothnessSource == SmoothnessSource.SpecularAlpha && validSmoothnessSources.Contains(SmoothnessSource.MetallicAlpha))
+                    fallbackSmoothness = SmoothnessSource.MetallicAlpha;
+
+                SetSettingValue(nameof(smoothnessSource), fallbackSmoothness);
             }
         }
 
