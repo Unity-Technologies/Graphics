@@ -128,6 +128,7 @@ namespace UnityEngine.Rendering.Universal.Internal
 
                 var visibleLights = renderingData.lightData.visibleLights.GetSubArray(lightOffset, lightCount);
                 var lightsPerTile = UniversalRenderPipeline.lightsPerTile;
+                var wordsPerTile = lightsPerTile / 32;
 
                 m_ActualTileWidth = m_RequestedTileWidth >> 1;
                 do
@@ -135,7 +136,7 @@ namespace UnityEngine.Rendering.Universal.Internal
                     m_ActualTileWidth = m_ActualTileWidth << 1;
                     m_TileResolution = (screenResolution + m_ActualTileWidth - 1) / m_ActualTileWidth;
                 }
-                while ((m_TileResolution.x * m_TileResolution.y * lightsPerTile / 32) > (UniversalRenderPipeline.maxTileVec4s * 4));
+                while ((m_TileResolution.x * m_TileResolution.y * wordsPerTile) > (UniversalRenderPipeline.maxTileVec4s * 4));
 
                 var fovHalfHeight = math.tan(math.radians(camera.fieldOfView * 0.5f));
                 // TODO: Make this work with VR
@@ -152,6 +153,7 @@ namespace UnityEngine.Rendering.Universal.Internal
                 Assert.AreEqual(UnsafeUtility.SizeOf<uint>(), UnsafeUtility.SizeOf<ZBin>());
 
                 using var minMaxZs = new NativeArray<LightMinMaxZ>(lightCount, Allocator.TempJob);
+                // We allocate double array length because the sorting algorithm needs swap space to work in.
                 using var meanZs = new NativeArray<float>(lightCount * 2, Allocator.TempJob);
 
                 Matrix4x4 worldToViewMatrix = renderingData.cameraData.GetViewMatrix();
@@ -162,8 +164,10 @@ namespace UnityEngine.Rendering.Universal.Internal
                     minMaxZs = minMaxZs,
                     meanZs = meanZs
                 };
+                // Innerloop batch count of 32 is not special, just a handwavy amount to not have too much scheduling overhead nor too little parallelism.
                 var minMaxZHandle = minMaxZJob.ScheduleParallel(lightCount, 32, new JobHandle());
 
+                // We allocate double array length because the sorting algorithm needs swap space to work in.
                 using var indices = new NativeArray<int>(lightCount * 2, Allocator.TempJob);
                 var radixSortJob = new RadixSortJob
                 {
@@ -209,7 +213,7 @@ namespace UnityEngine.Rendering.Universal.Internal
                 reorderedMinMaxZs.Dispose(zBinningHandle);
 
                 // Must be a multiple of 4 to be able to alias to vec4
-                var lightMasksLength = (((lightsPerTile / 32) * m_TileResolution + 3) / 4) * 4;
+                var lightMasksLength = (((wordsPerTile) * m_TileResolution + 3) / 4) * 4;
                 var horizontalLightMasks = new NativeArray<uint>(lightMasksLength.y, Allocator.TempJob);
                 var verticalLightMasks = new NativeArray<uint>(lightMasksLength.x, Allocator.TempJob);
 
@@ -241,11 +245,11 @@ namespace UnityEngine.Rendering.Universal.Internal
 
                 var slicesHandle = JobHandle.CombineDependencies(horizontalHandle, verticalHandle);
 
-                m_TileLightMasks = new NativeArray<uint>(((m_TileResolution.x * m_TileResolution.y * (lightsPerTile / 32) + 3) / 4) * 4, Allocator.TempJob);
+                m_TileLightMasks = new NativeArray<uint>(((m_TileResolution.x * m_TileResolution.y * (wordsPerTile) + 3) / 4) * 4, Allocator.TempJob);
                 var sliceCombineJob = new SliceCombineJob
                 {
                     tileResolution = m_TileResolution,
-                    wordsPerTile = lightsPerTile / 32,
+                    wordsPerTile = wordsPerTile,
                     sliceLightMasksH = horizontalLightMasks,
                     sliceLightMasksV = verticalLightMasks,
                     lightMasks = m_TileLightMasks
