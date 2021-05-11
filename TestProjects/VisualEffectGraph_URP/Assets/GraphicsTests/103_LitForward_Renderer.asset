@@ -12,6 +12,9 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: f971995892640ec4f807ef396269e91e, type: 3}
   m_Name: 103_LitForward_Renderer
   m_EditorClassIdentifier: 
+  debugShaders:
+    debugReplacementPS: {fileID: 4800000, guid: cf852408f2e174538bcd9b7fda1c5ae7,
+      type: 3}
   m_RendererFeatures:
   - {fileID: 1321965346354261286}
   m_RendererFeatureMap: 266dd27a7a905812
@@ -44,6 +47,7 @@ MonoBehaviour:
     zFailOperation: 0
   m_ShadowTransparentReceive: 1
   m_RenderingMode: 0
+  m_DepthPrimingMode: 0
   m_AccurateGbufferNormals: 0
 --- !u!114 &1321965346354261286
 MonoBehaviour:

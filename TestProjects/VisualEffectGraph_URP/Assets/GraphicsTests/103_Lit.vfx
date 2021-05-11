@@ -65,7 +65,6 @@ MonoBehaviour:
   m_ImportDependencies: []
   m_GraphVersion: 7
   m_ResourceVersion: 1
-  m_saved: 1
   m_SubgraphDependencies: []
   m_CategoryPath: 
 --- !u!2058629511 &8926484042661614527
@@ -1122,7 +1121,10 @@ MonoBehaviour:
   useExposureWeight: 0
   flipbookLayout: 0
   shaderGraph: {fileID: 0}
-  materialType: 0
+  materialSettings:
+    m_PropertyNames: []
+    m_PropertyValues: []
+  workflowMode: 0
   smoothnessSource: 0
   useBaseColorMap: 0
   useOcclusionMap: 1
@@ -1409,7 +1411,10 @@ MonoBehaviour:
   useExposureWeight: 0
   flipbookLayout: 0
   shaderGraph: {fileID: 0}
-  materialType: 0
+  materialSettings:
+    m_PropertyNames: []
+    m_PropertyValues: []
+  workflowMode: 0
   smoothnessSource: 0
   useBaseColorMap: 0
   useOcclusionMap: 0
@@ -1892,7 +1897,10 @@ MonoBehaviour:
   useExposureWeight: 0
   flipbookLayout: 0
   shaderGraph: {fileID: 0}
-  materialType: 1
+  materialSettings:
+    m_PropertyNames: []
+    m_PropertyValues: []
+  workflowMode: 1
   smoothnessSource: 0
   useBaseColorMap: 0
   useOcclusionMap: 0
@@ -2342,7 +2350,10 @@ MonoBehaviour:
   useExposureWeight: 0
   flipbookLayout: 0
   shaderGraph: {fileID: 0}
-  materialType: 0
+  materialSettings:
+    m_PropertyNames: []
+    m_PropertyValues: []
+  workflowMode: 0
   smoothnessSource: 0
   useBaseColorMap: 0
   useOcclusionMap: 1
@@ -2921,7 +2932,10 @@ MonoBehaviour:
   useExposureWeight: 0
   flipbookLayout: 0
   shaderGraph: {fileID: 0}
-  materialType: 0
+  materialSettings:
+    m_PropertyNames: []
+    m_PropertyValues: []
+  workflowMode: 0
   smoothnessSource: 0
   useBaseColorMap: 0
   useOcclusionMap: 1
@@ -3502,7 +3516,10 @@ MonoBehaviour:
   useExposureWeight: 0
   flipbookLayout: 0
   shaderGraph: {fileID: 0}
-  materialType: 1
+  materialSettings:
+    m_PropertyNames: []
+    m_PropertyValues: []
+  workflowMode: 1
   smoothnessSource: 0
   useBaseColorMap: 0
   useOcclusionMap: 1
@@ -4079,7 +4096,10 @@ MonoBehaviour:
   useExposureWeight: 0
   flipbookLayout: 0
   shaderGraph: {fileID: 0}
-  materialType: 0
+  materialSettings:
+    m_PropertyNames: []
+    m_PropertyValues: []
+  workflowMode: 0
   smoothnessSource: 0
   useBaseColorMap: 0
   useOcclusionMap: 0
@@ -6660,7 +6680,7 @@ MonoBehaviour:
   m_UIIgnoredErrors: []
   m_Parent: {fileID: 114350483966674976}
   m_Children: []
-  m_UIPosition: {x: 702, y: 3057}
+  m_UIPosition: {x: 700, y: 3052}
   m_UICollapsed: 0
   m_UISuperCollapsed: 1
   m_InputSlots: []
