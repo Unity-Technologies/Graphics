@@ -81,6 +81,8 @@ namespace UnityEngine.Rendering.Universal
         static   RenderTargetIdentifier  invalidRT = -1;
         internal bool                    renderTargetValid { get => renderTarget != invalidRT; }
         internal bool                    renderTargetIsRenderTexture { get; private set; }
+        internal bool canMarkLateLatch { get; set; }
+        internal bool hasMarkedLateLatch { get; set; }
 
         // Access to view information
         internal Matrix4x4 GetProjMatrix(int viewIndex = 0)  { return views[viewIndex].projMatrix; }
@@ -433,6 +435,15 @@ namespace UnityEngine.Rendering.Universal
             }
         }
 
+#if ENABLE_VR && ENABLE_XR_MODULE
+        internal static readonly int UNITY_STEREO_MATRIX_V = Shader.PropertyToID("unity_StereoMatrixV");
+        internal static readonly int UNITY_STEREO_MATRIX_IV = Shader.PropertyToID("unity_StereoMatrixInvV");
+        internal static readonly int UNITY_STEREO_MATRIX_P = Shader.PropertyToID("unity_StereoMatrixP");
+        internal static readonly int UNITY_STEREO_MATRIX_IP = Shader.PropertyToID("unity_StereoMatrixIP");
+        internal static readonly int UNITY_STEREO_MATRIX_VP = Shader.PropertyToID("unity_StereoMatrixVP");
+        internal static readonly int UNITY_STEREO_MATRIX_IVP = Shader.PropertyToID("unity_StereoMatrixIVP");
+#endif
+
         // Store array to avoid allocating every frame
         private Matrix4x4[] stereoProjectionMatrix = new Matrix4x4[2];
         private Matrix4x4[] stereoViewMatrix = new Matrix4x4[2];
@@ -452,6 +463,15 @@ namespace UnityEngine.Rendering.Universal
                     stereoProjectionMatrix[i] = GL.GetGPUProjectionMatrix(stereoCameraProjectionMatrix[i], isRenderToTexture);
                 }
                 RenderingUtils.SetStereoViewAndProjectionMatrices(cmd, stereoViewMatrix, stereoProjectionMatrix, stereoCameraProjectionMatrix, true);
+                if (cameraData.xr.canMarkLateLatch)
+                {
+                    cmd.MarkLateLatchMatrixShaderPropertyID(CameraLateLatchMatrixType.View, UNITY_STEREO_MATRIX_V);
+                    cmd.MarkLateLatchMatrixShaderPropertyID(CameraLateLatchMatrixType.InverseView, UNITY_STEREO_MATRIX_IV);
+                    cmd.MarkLateLatchMatrixShaderPropertyID(CameraLateLatchMatrixType.ViewProjection, UNITY_STEREO_MATRIX_VP);
+                    cmd.MarkLateLatchMatrixShaderPropertyID(CameraLateLatchMatrixType.InverseViewProjection, UNITY_STEREO_MATRIX_IVP);
+                    cmd.SetLateLatchProjectionMatrices(stereoProjectionMatrix);
+                    cameraData.xr.hasMarkedLateLatch = true;
+                }
             }
         }
     }
