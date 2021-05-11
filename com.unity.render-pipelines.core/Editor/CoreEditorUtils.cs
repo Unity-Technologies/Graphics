@@ -547,12 +547,10 @@ namespace UnityEditor.Rendering
 
             if (e.type == EventType.MouseDown)
             {
-                if (backgroundRect.Contains(e.mousePosition))
+                if (contextMenuRect.Contains(e.mousePosition))
                 {
                     // Right click: Context menu
-                    if (contextAction != null)
-                        contextAction(e.mousePosition);
-
+                    contextAction?.Invoke(new Vector2(contextMenuRect.x, contextMenuRect.yMax));
                     e.Use();
                 }
             }
