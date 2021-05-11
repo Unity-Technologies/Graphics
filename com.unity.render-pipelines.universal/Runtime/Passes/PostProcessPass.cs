@@ -409,7 +409,7 @@ namespace UnityEngine.Rendering.Universal.Internal
 
                 using (new ProfilingScope(cmd, ProfilingSampler.Get(URPProfileId.LensFlareDataDriven)))
                 {
-                    DoLensFlareDatadriven(cameraData.camera, cmd, GetSource(), usePanini, paniniDistance, paniniCropToFit);
+                    DoLensFlareDatadriven(cameraData.camera, cmd, source, usePanini, paniniDistance, paniniCropToFit);
                 }
             }
 

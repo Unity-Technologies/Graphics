@@ -19,6 +19,8 @@ namespace UnityEngine.Rendering.Universal.Internal
         int m_NameA;
         int m_NameB;
 
+        bool m_RTisAllocated = false;
+
         public RenderTargetBufferSystem(string name)
         {
             m_NameA = Shader.PropertyToID(name + "A");
@@ -34,13 +36,15 @@ namespace UnityEngine.Rendering.Universal.Internal
 
         public RenderTargetHandle GetBackBuffer(CommandBuffer cmd)
         {
-            Initialize(cmd);
+            if(!m_RTisAllocated)
+                Initialize(cmd);
             return m_FirstIsBackBuffer ? RTA : RTB;
         }
 
         public RenderTargetHandle GetFrontBuffer(CommandBuffer cmd)
         {
-            Initialize(cmd);
+            if(!m_RTisAllocated)
+                Initialize(cmd);
             return m_FirstIsBackBuffer ? RTB : RTA;
         }
 
@@ -53,6 +57,7 @@ namespace UnityEngine.Rendering.Universal.Internal
         {
             cmd.GetTemporaryRT(m_NameA, m_Desc, m_FilterMode);
             cmd.GetTemporaryRT(m_NameB, m_Desc, m_FilterMode);
+            m_RTisAllocated = true;
         }
 
         public void Clear(CommandBuffer cmd)
@@ -70,7 +75,6 @@ namespace UnityEngine.Rendering.Universal.Internal
 
             Initialize(cmd);
         }
-
     }
 
     
