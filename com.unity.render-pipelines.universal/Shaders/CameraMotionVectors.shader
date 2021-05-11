@@ -50,7 +50,7 @@ Shader "Hidden/kMotion/CameraMotionVectors"
                 // Calculate PositionInputs
                 half depth = LoadSceneDepth(input.position.xy).x;
                 outDepth = depth;
-                half2 screenSize = half2(1/_ScreenParams.x, 1/_ScreenParams.y);
+                half2 screenSize = _ScreenSize.zw;
                 PositionInputs positionInputs = GetPositionInput(input.position.xy, screenSize, depth, UNITY_MATRIX_I_VP, UNITY_MATRIX_V);
 
                 // Calculate positions
@@ -58,6 +58,7 @@ Shader "Hidden/kMotion/CameraMotionVectors"
                 float4 positionVP = mul(UNITY_MATRIX_VP, float4(positionInputs.positionWS, 1.0));
                 previousPositionVP.xy = previousPositionVP.xy / previousPositionVP.w;
                 positionVP.xy = positionVP.xy / positionVP.w;
+
 
                 // Calculate velocity
                 float2 velocity = (positionVP.xy - previousPositionVP.xy);

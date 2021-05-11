@@ -8,7 +8,7 @@ namespace UnityEngine.Rendering.Universal.Internal
         #region Fields
         static MotionVectorRendering s_Instance;
 
-        Dictionary<Camera, PreviousFrameData> m_MotionDatas;
+        Dictionary<Camera, PreviousFrameData> m_CameraFrameData;
         uint  m_FrameCount;
         float m_LastTime;
         float m_Time;
@@ -17,7 +17,7 @@ namespace UnityEngine.Rendering.Universal.Internal
         #region Constructors
         private MotionVectorRendering()
         {
-            m_MotionDatas = new Dictionary<Camera, PreviousFrameData>();
+            m_CameraFrameData = new Dictionary<Camera, PreviousFrameData>();
         }
 
         public static MotionVectorRendering instance
@@ -35,17 +35,17 @@ namespace UnityEngine.Rendering.Universal.Internal
 
         public void Clear()
         {
-            m_MotionDatas.Clear();
+            m_CameraFrameData.Clear();
         }
 
         public PreviousFrameData GetMotionDataForCamera(Camera camera)
         {
             // Get MotionData
             PreviousFrameData motionData;
-            if (!m_MotionDatas.TryGetValue(camera, out motionData))
+            if (!m_CameraFrameData.TryGetValue(camera, out motionData))
             {
                 motionData = new PreviousFrameData();
-                m_MotionDatas.Add(camera, motionData);
+                m_CameraFrameData.Add(camera, motionData);
             }
 
             // Calculate motion data
@@ -60,7 +60,6 @@ namespace UnityEngine.Rendering.Universal.Internal
         {
             // Get data
             float t = Time.realtimeSinceStartup;
-            uint  c = (uint)Time.frameCount;
 
             // SRP.Render() can be called several times per frame.
             // Also, most Time variables do not consistently update in the Scene View.
@@ -69,15 +68,19 @@ namespace UnityEngine.Rendering.Universal.Internal
             // Therefore, outside of the Play Mode we update the time at 60 fps,
             // and in the Play Mode we rely on 'Time.frameCount'.
             bool newFrame;
-            if (Application.isPlaying)
-            {
-                newFrame = m_FrameCount != c;
-                m_FrameCount = c;
-            }
-            else
+#if UNITY_EDITOR
+            if (!Application.isPlaying)
             {
                 newFrame = (t - m_Time) > 0.0166f;
-                m_FrameCount += newFrame ? (uint)1 : (uint)0;
+                m_FrameCount += newFrame ? 1u : 0u;
+            
+            }
+            else
+#endif
+            {
+                uint frameCount = (uint)Time.frameCount;
+                newFrame = m_FrameCount != frameCount;
+                m_FrameCount = frameCount;
             }
 
             if (newFrame)
@@ -102,11 +105,11 @@ namespace UnityEngine.Rendering.Universal.Internal
             // A camera could be rendered multiple times per frame, only updates the previous view proj & pos if needed
             if (motionData.lastFrameActive != Time.frameCount)
             {
-                motionData.isFirstFrame = false;
                 motionData.previousGPUViewProjectionMatrix = motionData.isFirstFrame ?
                     gpuVP : motionData.gpuViewProjectionMatrix;
                 motionData.previousViewProjectionMatrix = motionData.isFirstFrame ?
                     vp : motionData.viewProjectionMatrix;
+                motionData.isFirstFrame = false;
             }
 
             // Set current frame data
