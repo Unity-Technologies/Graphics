@@ -1,10 +1,10 @@
 # Deep learning super sampling
 
-NVIDIA Deep Learning Super Sampling (DLSS) is a rendering technology that uses artificial intelligence to increase graphics performance. The High Definition Render Pipeline (HDRP) natively supports DLSS. For more information about DLSS see [Deep learning super sampling](https://docs.unity3d.com/Manual/deep-learning-super-sampling.html).
+NVIDIA Deep Learning Super Sampling (DLSS) is a rendering technology that uses artificial intelligence to increase graphics performance. The High Definition Render Pipeline (HDRP) natively supports DLSS. For more information about DLSS see [Deep learning super sampling](https://docs.unity3d.com/2021.2/Documentation/Manual/deep-learning-super-sampling.html).
 
 ## Requirements and compatibility
 
-This section includes HDRP-specific requirements and compatibility information for DLSS. For information about the general requirements and compatibility of DLSS, see [Deep learning super sampling](https://docs.unity3d.com/Manual/deep-learning-super-sampling.html).
+This section includes HDRP-specific requirements and compatibility information for DLSS. For information about the general requirements and compatibility of DLSS, see [Deep learning super sampling](https://docs.unity3d.com/2021.2/Documentation/Manual/deep-learning-super-sampling.html).
 
 ### Platforms
 
@@ -49,7 +49,7 @@ Your Unity project now supports DLSS and you can now enable DLSS for Cameras in 
 
 ### Setting the DLSS quality mode
 
-DLSS now works in your project, but you can change the quality mode to customize DLSS towards performance or quality. You can do this on a project level or a per-Camera level. For information about the available quality modes, see [Quality modes](https://docs.unity3d.com/Manual/deep-learning-super-sampling.html).
+DLSS now works in your project, but you can change the quality mode to customize DLSS towards performance or quality. You can do this on a project level or a per-Camera level. For information about the available quality modes, see [Quality modes](https://docs.unity3d.com/2021.2/Documentation/Manual/deep-learning-super-sampling.html).
 
 To change the DLSS quality mode for your whole project:
 
