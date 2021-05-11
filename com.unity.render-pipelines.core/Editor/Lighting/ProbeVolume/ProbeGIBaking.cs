@@ -612,7 +612,8 @@ namespace UnityEngine.Experimental.Rendering
 
                         foreach (var probeVolume in overlappingProbeVolumes)
                         {
-                            if (ProbeVolumePositioning.OBBIntersect(renderer.volume, probeVolume.volume))
+                            if (ProbeVolumePositioning.OBBIntersect(renderer.volume, probeVolume.volume)
+                                && ProbeVolumePositioning.OBBIntersect(renderer.volume, cell.volume))
                             {
                                 // Check if the renderer has a matching layer with probe volume
                                 if ((probeVolume.component.objectLayerMask & rendererLayerMask) != 0)
@@ -628,7 +629,7 @@ namespace UnityEngine.Experimental.Rendering
                     if (validRenderers.Count == 0 && overlappingProbeVolumes.Count == 0)
                         continue;
 
-                    var bricks = ProbePlacement.SubdivideWithSDF(cell.volume, ctx, gpuResources, validRenderers, overlappingProbeVolumes);
+                    var bricks = ProbePlacement.SubdivideCell(cell.volume, ctx, gpuResources, validRenderers, overlappingProbeVolumes);
 
                     // Each cell keeps a number of references it has to each scene it was influenced by
                     // We use this list to determine which scene's ProbeVolume asset to assign this cells data to

@@ -21,7 +21,7 @@ namespace UnityEngine.Experimental.Rendering
         /// <summary>
         /// How many levels contains the probes hierarchical structure.
         /// </summary>
-        [Range(2, 4)]
+        [Range(2, 6)]
         public int simplificationLevels = 3;
 
         /// <summary>

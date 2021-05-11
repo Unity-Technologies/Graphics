@@ -23,7 +23,7 @@ namespace UnityEngine.Experimental.Rendering
     }
 
     [ExecuteAlways]
-    [AddComponentMenu("Light/Experimental/Probe Reference Volume")]
+    [AddComponentMenu("Light/Probe Reference Volume (Experimental)")]
     internal class ProbeReferenceVolumeAuthoring : MonoBehaviour
     {
 #if UNITY_EDITOR
