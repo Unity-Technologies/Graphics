@@ -50,6 +50,8 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Added support for lighting full screen debug mode in automated tests.
 - Added a way for fitting a probe volume around either the scene contents or a selection.
 - Added support for mip bias override on texture samplers through the HDAdditionalCameraData component.
+- Added Lens Flare Samples
+- Added new checkbox to enable mip bias in the Dynamic Resolution HDRP quality settings. This allows dynamic resolution scaling applying a bias on the frame to improve on texture sampling detail.
 
 ### Fixed
 - Fixed Intensity Multiplier not affecting realtime global illumination.
@@ -185,6 +187,8 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed blocky looking bloom when dynamic resolution scaling was used.
 - Fixed normals provided in object space or world space, when using double sided materials.
 - Fixed multi cameras using cloud layers shadows.
+- Fixed HDAdditionalLightData's CopyTo and HDAdditionalCameraData's CopyTo missing copy.
+- Fixed pixel coord to view direction matrix for asymetric projection matrix.
 
 ### Changed
 - Changed Window/Render Pipeline/HD Render Pipeline Wizard to Window/Rendering/HDRP Wizard
@@ -258,6 +262,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Use the new API for updating Reflection Probe state (fixes garbage allocation, case 1290521)
 - Augmented debug visualization for probe volumes.
 - Global Camera shader constants are now pushed when doing a custom render callback.
+- Splited HDProjectSettings with new HDUserSettings in UserProject. Now Wizard working variable should not bother versioning tool anymore (case 1330640)
 
 ## [11.0.0] - 2020-10-21
 

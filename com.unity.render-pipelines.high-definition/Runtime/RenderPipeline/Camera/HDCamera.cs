@@ -859,10 +859,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 Vector2Int scaledSize = DynamicResolutionHandler.instance.GetScaledSize(new Vector2Int(actualWidth, actualHeight));
                 actualWidth = scaledSize.x;
                 actualHeight = scaledSize.y;
-                if (IsDLSSEnabled())
-                {
-                    globalMipBias += (float)Math.Log((double)actualWidth / (double)nonScaledViewport.x, 2.0);
-                }
+                globalMipBias += DynamicResolutionHandler.instance.CalculateMipBias(scaledSize, nonScaledViewport, IsDLSSEnabled());
             }
 
             var screenWidth = actualWidth;
@@ -1703,25 +1700,10 @@ namespace UnityEngine.Rendering.HighDefinition
         /// <returns></returns>
         Matrix4x4 ComputePixelCoordToWorldSpaceViewDirectionMatrix(ViewConstants viewConstants, Vector4 resolution, float aspect = -1)
         {
-            // In XR mode, use a more generic matrix to account for asymmetry in the projection
-            if (xr.enabled)
-            {
-                var transform = Matrix4x4.Scale(new Vector3(-1.0f, -1.0f, -1.0f)) * viewConstants.invViewProjMatrix;
-                transform = transform * Matrix4x4.Scale(new Vector3(1.0f, -1.0f, 1.0f));
-                transform = transform * Matrix4x4.Translate(new Vector3(-1.0f, -1.0f, 0.0f));
-                transform = transform * Matrix4x4.Scale(new Vector3(2.0f * resolution.z, 2.0f * resolution.w, 1.0f));
+            if (camera.orthographic)
+                return HDUtils.ComputePixelCoordToWorldSpaceViewDirectionMatrix_Orthographic(resolution, viewConstants.viewMatrix);
 
-                return transform.transpose;
-            }
-
-            float verticalFoV = camera.GetGateFittedFieldOfView() * Mathf.Deg2Rad;
-            if (!camera.usePhysicalProperties)
-            {
-                verticalFoV = Mathf.Atan(-1.0f / viewConstants.projMatrix[1, 1]) * 2;
-            }
-            Vector2 lensShift = camera.GetGateFittedLensShift();
-
-            return HDUtils.ComputePixelCoordToWorldSpaceViewDirectionMatrix(verticalFoV, lensShift, resolution, viewConstants.viewMatrix, false, aspect, camera.orthographic);
+            return HDUtils.ComputePixelCoordToWorldSpaceViewDirectionMatrix_Perspective(resolution, viewConstants.invViewProjMatrix);
         }
 
         void Dispose()
