@@ -496,7 +496,15 @@ namespace UnityEditor.Rendering.HighDefinition
                 if (serialized.useDLSSCustomProjectId.boolValue)
                     EditorGUILayout.PropertyField(serialized.DLSSProjectId, Styles.DLSSProjectIdLabel);
 #endif
+
+                Type renderPipeManagerType = typeof(RenderPipelineManager);
+                var cleanupRenderPipeline = renderPipeManagerType.GetMethod("CleanupRenderPipeline");
+                EditorGUI.BeginChangeCheck();
                 EditorGUILayout.PropertyField(serialized.supportProbeVolumes, Styles.probeVolumeSupportContentLabel);
+                if (EditorGUI.EndChangeCheck())
+                {
+                    cleanupRenderPipeline?.Invoke(null, null);
+                }
             }
             EditorGUIUtility.labelWidth = oldWidth;
         }
