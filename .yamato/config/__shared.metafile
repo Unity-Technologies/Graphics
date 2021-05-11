@@ -356,7 +356,8 @@ platforms:
       - android
     agents_project:
       default:
-        type: Unity::mobile::android
+        type: Unity::mobile::samsung
+        model: s10e-eu
         image: mobile/android-execution-r19:stable
         flavor: b1.large
       standalone_build:
