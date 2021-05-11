@@ -14,8 +14,6 @@ namespace UnityEditor.Rendering.Universal
         public class Styles
         {
             public const int labelWidth = 220;
-            internal static GUIStyle sectionHeaderStyle = new GUIStyle(EditorStyles.largeLabel) { richText = true, fontSize = 18, fixedHeight = 42 };
-            internal static GUIStyle subSectionHeaderStyle = new GUIStyle(EditorStyles.boldLabel);
 
             internal static readonly GUIContent lightLayersLabel = EditorGUIUtility.TrTextContent("Light Layer Names (3D)", "If the Light Layers feature is enabled in the URP Asset, Unity allocates memory for processing Light Layers. In the Deferred Rendering Path, this allocation includes an extra render target in GPU memory, which reduces performance.");
             internal static readonly GUIContent lightLayerName0 = EditorGUIUtility.TrTextContent("Light Layer 0", "The display name for Light Layer 0.");

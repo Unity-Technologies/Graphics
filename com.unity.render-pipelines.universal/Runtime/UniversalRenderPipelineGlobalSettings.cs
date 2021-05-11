@@ -36,6 +36,9 @@ namespace UnityEngine.Rendering.Universal
         #endregion
 
         private static UniversalRenderPipelineGlobalSettings cachedInstance = null;
+        /// <summary>
+        /// Active URP Global Settings asset. If the value is null then no UniversalRenderPipelineGlobalSettings has been registered to the Graphics Settings with the UniversalRenderPipeline.
+        /// </summary>
         public static UniversalRenderPipelineGlobalSettings instance
         {
             get
@@ -54,6 +57,7 @@ namespace UnityEngine.Rendering.Universal
             cachedInstance = newSettings;
         }
 
+        /// <summary>Default name when creating an URP Global Settings asset.</summary>
         public static readonly string defaultAssetName = "UniversalRenderPipelineGlobalSettings";
 
 #if UNITY_EDITOR
@@ -153,6 +157,7 @@ namespace UnityEngine.Rendering.Universal
                 return m_RenderingLayerNames;
             }
         }
+        /// <summary>Names used for display of rendering layer masks.</summary>
         public string[] renderingLayerMaskNames => renderingLayerNames;
 
         void UpdateRenderingLayerNames()
@@ -225,7 +230,7 @@ namespace UnityEngine.Rendering.Universal
             }
         }
 
-        public void ResetRenderingLayerNames()
+        internal void ResetRenderingLayerNames()
         {
             lightLayerName0 = k_DefaultLightLayerNames[0];
             lightLayerName1 = k_DefaultLightLayerNames[1];

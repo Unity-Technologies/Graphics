@@ -206,15 +206,15 @@ namespace UnityEditor.Rendering.HighDefinition
         {
             using (new EditorGUI.IndentLevelScope())
             {
-                EditorGUILayout.LabelField(Styles.frameSettingsLabel_Camera, Styles.subSectionHeaderStyle);
+                EditorGUILayout.LabelField(Styles.frameSettingsLabel_Camera, CoreEditorStyles.subSectionHeaderStyle);
                 DrawFrameSettingsSubsection(0, serialized.defaultCameraFrameSettings, owner);
                 EditorGUILayout.Space();
 
-                EditorGUILayout.LabelField(Styles.frameSettingsLabel_RTProbe, Styles.subSectionHeaderStyle);
+                EditorGUILayout.LabelField(Styles.frameSettingsLabel_RTProbe, CoreEditorStyles.subSectionHeaderStyle);
                 DrawFrameSettingsSubsection(1, serialized.defaultRealtimeReflectionFrameSettings, owner);
                 EditorGUILayout.Space();
 
-                EditorGUILayout.LabelField(Styles.frameSettingsLabel_BakedProbe, Styles.subSectionHeaderStyle);
+                EditorGUILayout.LabelField(Styles.frameSettingsLabel_BakedProbe, CoreEditorStyles.subSectionHeaderStyle);
                 DrawFrameSettingsSubsection(2, serialized.defaultBakedOrCustomReflectionFrameSettings, owner);
                 EditorGUILayout.Space();
             }
@@ -536,7 +536,7 @@ namespace UnityEditor.Rendering.HighDefinition
         static void OnContextClickRenderingLayerNames(Vector2 position, SerializedHDRenderPipelineGlobalSettings serialized, int section = 0)
         {
             var menu = new GenericMenu();
-            menu.AddItem(section == 0 ? Styles.resetAllButtonLabel : Styles.resetButtonLabel, false, () =>
+            menu.AddItem(section == 0 ? CoreEditorStyles.resetAllButtonLabel : CoreEditorStyles.resetButtonLabel, false, () =>
             {
                 var globalSettings = (serialized.serializedObject.targetObject as HDRenderPipelineGlobalSettings);
                 globalSettings.ResetRenderingLayerNames(lightLayers: section < 2, decalLayers: section != 1);

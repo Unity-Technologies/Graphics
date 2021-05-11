@@ -34,6 +34,10 @@ namespace UnityEngine.Rendering.HighDefinition
     partial class HDRenderPipelineGlobalSettings : RenderPipelineGlobalSettings
     {
         private static HDRenderPipelineGlobalSettings cachedInstance = null;
+
+        /// <summary>
+        /// Active HDRP Global Settings asset. If the value is null then no HDRenderPipelineGlobalSettings has been registered to the Graphics Settings with the HDRenderPipeline.
+        /// </summary>
         public static HDRenderPipelineGlobalSettings instance
         {
             get
@@ -629,6 +633,8 @@ namespace UnityEngine.Rendering.HighDefinition
                 return m_RenderingLayerNames;
             }
         }
+
+        /// <summary>Names used for display of rendering layer masks.</summary>
         public string[] renderingLayerMaskNames => renderingLayerNames;
 
         void UpdateRenderingLayerNames()
@@ -660,7 +666,7 @@ namespace UnityEngine.Rendering.HighDefinition
             }
         }
 
-        public void ResetRenderingLayerNames(bool lightLayers, bool decalLayers)
+        internal void ResetRenderingLayerNames(bool lightLayers, bool decalLayers)
         {
             if (lightLayers)
             {

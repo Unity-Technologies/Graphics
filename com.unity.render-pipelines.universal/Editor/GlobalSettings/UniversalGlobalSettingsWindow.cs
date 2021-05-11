@@ -193,7 +193,7 @@ namespace UnityEditor.Rendering.Universal
         static void OnContextClickLightLayerNames(Vector2 position, SerializedUniversalRenderPipelineGlobalSettings serialized)
         {
             var menu = new GenericMenu();
-            menu.AddItem(EditorGUIUtility.TrTextContent("Reset"), false, () =>
+            menu.AddItem(CoreEditorStyles.resetButtonLabel, false, () =>
             {
                 var globalSettings = (serialized.serializedObject.targetObject as UniversalRenderPipelineGlobalSettings);
                 globalSettings.ResetRenderingLayerNames();

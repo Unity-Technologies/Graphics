@@ -16,8 +16,6 @@ namespace UnityEditor.Rendering.HighDefinition
         public class Styles
         {
             public const int labelWidth = 220;
-            internal static GUIStyle sectionHeaderStyle = new GUIStyle(EditorStyles.largeLabel) { richText = true, fontSize = 18, fixedHeight = 42 };
-            internal static GUIStyle subSectionHeaderStyle = new GUIStyle(EditorStyles.boldLabel);
 
             internal static readonly GUIContent defaultVolumeProfileLabel = EditorGUIUtility.TrTextContent("Default Volume Profile Asset");
             internal static readonly GUIContent lookDevVolumeProfileLabel = EditorGUIUtility.TrTextContent("LookDev Volume Profile Asset");
@@ -78,9 +76,6 @@ namespace UnityEditor.Rendering.HighDefinition
             internal static readonly GUIContent newAssetButtonLabel = EditorGUIUtility.TrTextContent("New", "Create a HD Global Settings Asset in your default resource folder (defined in Wizard)");
             internal static readonly GUIContent cloneAssetButtonLabel = EditorGUIUtility.TrTextContent("Clone", "Clone a HD Global Settings Asset in your default resource folder (defined in Wizard)");
             internal static readonly GUIContent newVolumeProfileLabel = EditorGUIUtility.TrTextContent("New", "Create a new Volume Profile for default in your default resource folder (defined in Wizard)");
-
-            internal static readonly GUIContent resetButtonLabel = EditorGUIUtility.TrTextContent("Reset");
-            internal static readonly GUIContent resetAllButtonLabel = EditorGUIUtility.TrTextContent("Reset All");
         }
     }
 }
