@@ -1016,6 +1016,5 @@ namespace UnityEngine.Rendering.Universal
         {
             return m_ColorBufferSystem.GetFrontBuffer(cmd).id;
         }
-
     }
 }

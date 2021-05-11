@@ -30,20 +30,20 @@ namespace UnityEngine.Rendering.Universal.Internal
         }
 
         public RenderTargetHandle GetBackBuffer()
-        {           
+        {
             return m_FirstIsBackBuffer ? RTA : RTB;
         }
 
         public RenderTargetHandle GetBackBuffer(CommandBuffer cmd)
         {
-            if(!m_RTisAllocated)
+            if (!m_RTisAllocated)
                 Initialize(cmd);
             return m_FirstIsBackBuffer ? RTA : RTB;
         }
 
         public RenderTargetHandle GetFrontBuffer(CommandBuffer cmd)
         {
-            if(!m_RTisAllocated)
+            if (!m_RTisAllocated)
                 Initialize(cmd);
             return m_FirstIsBackBuffer ? RTB : RTA;
         }
@@ -76,6 +76,4 @@ namespace UnityEngine.Rendering.Universal.Internal
             Initialize(cmd);
         }
     }
-
-    
 }

@@ -517,7 +517,7 @@ namespace UnityEngine.Rendering.Universal.Internal
                     cmd.SetViewProjectionMatrices(cameraData.camera.worldToCameraMatrix, cameraData.camera.projectionMatrix);
                 }
 
-                if(m_Destination.id == 0 && !m_ResolveToScreen)
+                if (m_Destination.id == 0 && !m_ResolveToScreen)
                 {
                     renderer.SwapColorBuffer(cmd);
                 }
@@ -1274,7 +1274,7 @@ namespace UnityEngine.Rendering.Universal.Internal
 
             GetActiveDebugHandler(renderingData)?.UpdateShaderGlobalPropertiesForFinalValidationPass(cmd, ref cameraData, m_IsFinalPass);
 
-            if(m_Source == cameraData.renderer.GetCameraColorFrontBuffer(cmd))
+            if (m_Source == cameraData.renderer.GetCameraColorFrontBuffer(cmd))
             {
                 m_Source = cameraData.renderer.cameraColorTarget;
             }

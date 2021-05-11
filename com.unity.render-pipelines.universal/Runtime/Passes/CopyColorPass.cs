@@ -81,7 +81,7 @@ namespace UnityEngine.Rendering.Universal.Internal
             {
                 source = renderingData.cameraData.renderer.cameraColorTarget;
             }
-            
+
             using (new ProfilingScope(cmd, ProfilingSampler.Get(URPProfileId.CopyColor)))
             {
                 RenderTargetIdentifier opaqueColorRT = destination.Identifier();
