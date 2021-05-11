@@ -4,43 +4,46 @@
 #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Lighting.hlsl"
 #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Particles.hlsl"
 
-void InitializeInputData(VaryingsParticle input, half3 normalTS, out InputData output)
+void InitializeInputData(VaryingsParticle input, half3 normalTS, out InputData inputData)
 {
-    output = (InputData)0;
+    inputData = (InputData)0;
 
-    output.positionWS = input.positionWS.xyz;
+    inputData.positionWS = input.positionWS.xyz;
 
 #ifdef _NORMALMAP
     half3 viewDirWS = half3(input.normalWS.w, input.tangentWS.w, input.bitangentWS.w);
-    output.tangentToWorld = half3x3(input.tangentWS.xyz, input.bitangentWS.xyz, input.normalWS.xyz);
-    output.normalWS = TransformTangentToWorld(normalTS, output.tangentToWorld);
+    inputData.tangentToWorld = half3x3(input.tangentWS.xyz, input.bitangentWS.xyz, input.normalWS.xyz);
+    inputData.normalWS = TransformTangentToWorld(normalTS, inputData.tangentToWorld);
 #else
     half3 viewDirWS = input.viewDirWS;
-    output.normalWS = input.normalWS;
+    inputData.normalWS = input.normalWS;
 #endif
 
-    output.normalWS = NormalizeNormalPerPixel(output.normalWS);
+    inputData.normalWS = NormalizeNormalPerPixel(inputData.normalWS);
 
 #if SHADER_HINT_NICE_QUALITY
     viewDirWS = SafeNormalize(viewDirWS);
 #endif
 
-    output.viewDirectionWS = viewDirWS;
+    inputData.viewDirectionWS = viewDirWS;
 
 #if defined(REQUIRES_VERTEX_SHADOW_COORD_INTERPOLATOR)
-    output.shadowCoord = input.shadowCoord;
+    inputData.shadowCoord = input.shadowCoord;
 #elif defined(MAIN_LIGHT_CALCULATE_SHADOWS)
-    output.shadowCoord = TransformWorldToShadowCoord(output.positionWS);
+    inputData.shadowCoord = TransformWorldToShadowCoord(inputData.positionWS);
 #else
-    output.shadowCoord = float4(0, 0, 0, 0);
+    inputData.shadowCoord = float4(0, 0, 0, 0);
 #endif
 
-    output.fogCoord = InitializeInputDataFog(float4(input.positionWS.xyz, 1.0), input.positionWS.w);
-    output.vertexLighting = half3(0.0h, 0.0h, 0.0h);
-    output.bakedGI = SampleSHPixel(input.vertexSH, output.normalWS);
-    output.normalizedScreenSpaceUV = GetNormalizedScreenSpaceUV(input.clipPos);
-    output.vertexSH = input.vertexSH;
-    output.shadowMask = half4(1, 1, 1, 1);
+    inputData.fogCoord = InitializeInputDataFog(float4(input.positionWS.xyz, 1.0), input.positionWS.w);
+    inputData.vertexLighting = half3(0.0h, 0.0h, 0.0h);
+    inputData.bakedGI = SampleSHPixel(input.vertexSH, inputData.normalWS);
+    inputData.normalizedScreenSpaceUV = GetNormalizedScreenSpaceUV(input.clipPos);
+    inputData.shadowMask = half4(1, 1, 1, 1);
+
+    #if defined(DEBUG_DISPLAY) && !defined(PARTICLES_EDITOR_META_PASS)
+    inputData.vertexSH = input.vertexSH;
+    #endif
 }
 
 ///////////////////////////////////////////////////////////////////////////////

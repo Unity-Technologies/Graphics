@@ -31,7 +31,7 @@ half4 frag(PackedVaryings packedInput) : SV_TARGET
     SurfaceData2D surfaceData;
     InitializeSurfaceData(color.rgb, color.a, surfaceData);
     InputData2D inputData;
-    InitializeInputData(unpacked.positionWS, unpacked.texCoord0, inputData);
+    InitializeInputData(unpacked.positionWS.xy, half2(unpacked.texCoord0.xy), inputData);
     half4 debugColor = 0;
 
     SETUP_DEBUG_DATA_2D(inputData, unpacked.positionWS);

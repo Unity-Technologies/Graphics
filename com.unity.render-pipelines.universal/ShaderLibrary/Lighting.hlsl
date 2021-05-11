@@ -143,6 +143,11 @@ half3 CalculateLightingColor(LightingData lightingData, half3 albedo)
 {
     half3 lightingColor = 0;
 
+    if (IsOnlyAOLightingFeatureEnabled())
+    {
+        return lightingData.giColor; // Contains white + AO
+    }
+
     if (IsLightingFeatureEnabled(DEBUGLIGHTINGFEATUREFLAGS_GLOBAL_ILLUMINATION))
     {
         lightingColor += lightingData.giColor;
