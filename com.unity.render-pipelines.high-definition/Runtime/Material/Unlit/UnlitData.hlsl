@@ -67,7 +67,7 @@ void GetSurfaceAndBuiltinData(FragInputs input, float3 V, inout PositionInputs p
     builtinData.distortionBlur = clamp(distortion.b * _DistortionBlurScale, 0.0, 1.0) * (_DistortionBlurRemapMax - _DistortionBlurRemapMin) + _DistortionBlurRemapMin;
 #endif
 
-#if defined(DEBUG_DISPLAY) && !defined(SHADER_STAGE_RAY_TRACING)
+#if defined(DEBUG_DISPLAY) && !defined(SHADER_STAGE_RAY_TRACING) && (SHADERPASS != SHADERPASS_LIGHT_TRANSPORT)
     if (_DebugMipMapMode != DEBUGMIPMAPMODE_NONE)
     {
         surfaceData.color = GetTextureDataDebug(_DebugMipMapMode, unlitColorMapUv, _UnlitColorMap, _UnlitColorMap_TexelSize, _UnlitColorMap_MipInfo, surfaceData.color);

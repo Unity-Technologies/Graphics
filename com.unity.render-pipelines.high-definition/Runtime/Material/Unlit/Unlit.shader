@@ -329,7 +329,6 @@ Shader "HDRP/Unlit"
             Cull Off
 
             HLSLPROGRAM
-
             #pragma only_renderers d3d11 playstation xboxone xboxseries vulkan metal switch
             //enable GPU instancing support
             #pragma multi_compile_instancing
@@ -340,6 +339,7 @@ Shader "HDRP/Unlit"
             // both direct and indirect lighting) will hand up in the "regular" lightmap->LIGHTMAP_ON.
 
             #define SHADERPASS SHADERPASS_LIGHT_TRANSPORT
+            #pragma shader_feature EDITOR_VISUALIZATION
 
             #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Material.hlsl"
             #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Unlit/Unlit.hlsl"

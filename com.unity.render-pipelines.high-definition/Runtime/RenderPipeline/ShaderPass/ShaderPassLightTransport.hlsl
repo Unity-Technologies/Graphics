@@ -37,19 +37,24 @@ PackedVaryingsToPS Vert(AttributesMesh inputMesh)
     output.vmesh.tangentWS = float4(1.0, 0.0, 0.0, 0.0);
 #endif
 
+#ifdef EDITOR_VISUALIZATION
+    float2 vizUV = 0;
+    float4 lightCoord = 0;
+    if (unity_VisualizationMode == EDITORVIZ_TEXTURE)
+        vizUV = UnityMetaVizUV(unity_EditorViz_UVIndex, inputMesh.uv0.xy, inputMesh.uv1.xy, inputMesh.uv2.xy, unity_EditorViz_Texture_ST);
+    else if (unity_VisualizationMode == EDITORVIZ_SHOWLIGHTMASK)
+    {
+        vizUV = inputMesh.uv1.xy * unity_LightmapST.xy + unity_LightmapST.zw;
+        lightCoord = mul(unity_EditorViz_WorldToLight, float4(TransformObjectToWorld(inputMesh.positionOS), 1));
+    }
+#endif
+
 #ifdef VARYINGS_NEED_TEXCOORD0
     output.vmesh.texCoord0 = inputMesh.uv0;
 #endif
 #ifdef VARYINGS_NEED_TEXCOORD1
 #ifdef EDITOR_VISUALIZATION
-    // texCoord1 = vizUV
-    output.vmesh.texCoord1 = 0;
-    if (unity_VisualizationMode == EDITORVIZ_TEXTURE)
-        output.vmesh.texCoord1 = UnityMetaVizUV(unity_EditorViz_UVIndex, inputMesh.uv0.xy, inputMesh.uv1.xy, inputMesh.uv2.xy, unity_EditorViz_Texture_ST);
-    else if (unity_VisualizationMode == EDITORVIZ_SHOWLIGHTMASK)
-    {
-        output.vmesh.texCoord1 = inputMesh.uv1.xy * unity_LightmapST.xy + unity_LightmapST.zw;
-    }
+    output.vmesh.texCoord1 = vizUV;
 #else
     output.vmesh.texCoord1 = inputMesh.uv1;
 #endif
@@ -57,15 +62,17 @@ PackedVaryingsToPS Vert(AttributesMesh inputMesh)
 #ifdef VARYINGS_NEED_TEXCOORD2
     // texCoord2 = lightCoord
 #ifdef EDITOR_VISUALIZATION
-        output.vmesh.texCoord2 = 0;
-        if (unity_VisualizationMode == EDITORVIZ_SHOWLIGHTMASK)
-            output.vmesh.texCoord2 = mul(unity_EditorViz_WorldToLight, float4(TransformObjectToWorld(inputMesh.positionOS), 1)).xy;
+    output.vmesh.texCoord2 = lightCoord.xy;
 #else
-        output.vmesh.texCoord2 = inputMesh.uv2;
+    output.vmesh.texCoord2 = inputMesh.uv2;
 #endif
 #endif
 #ifdef VARYINGS_NEED_TEXCOORD3
+#ifdef EDITOR_VISUALIZATION
+    output.vmesh.texCoord3 = lightCoord.zw;
+#else
     output.vmesh.texCoord3 = inputMesh.uv3;
+#endif
 #endif
 #ifdef VARYINGS_NEED_COLOR
     output.vmesh.color = inputMesh.color;
@@ -111,7 +118,7 @@ float4 Frag(PackedVaryingsToPS packedInput) : SV_Target
 #endif
 #ifdef EDITOR_VISUALIZATION
     metaInput.VizUV = input.texCoord1.xy;
-    metaInput.LightCoord = input.texCoord2;
+    metaInput.LightCoord = float4(input.texCoord2.xy, input.texCoord3.xy);
 #endif
     res = UnityMetaFragment(metaInput);
 
