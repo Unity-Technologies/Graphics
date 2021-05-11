@@ -120,35 +120,53 @@ namespace UnityEngine.Experimental.Rendering
                 prevScenes.Add(scene.path);
             }
 
+            bool neededToOpenScene = false;
             hasFoundBounds = false;
 
             foreach (var buildScene in EditorBuildSettings.scenes)
             {
-                var scene = EditorSceneManager.OpenScene(buildScene.path, OpenSceneMode.Single);
-                var probeVolumes = UnityEngine.GameObject.FindObjectsOfType<ProbeVolume>();
-
-                foreach (var probeVolume in probeVolumes)
+                var scenePath = buildScene.path;
+                bool hasProbeVolumes = false;
+                var sceneBounds = ProbeReferenceVolume.instance.sceneBounds;
+                if (sceneBounds.hasProbeVolumes.TryGetValue(scenePath, out hasProbeVolumes))
                 {
-                    var extent = probeVolume.GetExtents();
-                    var pos = probeVolume.gameObject.transform.position;
-                    Bounds localBounds = new Bounds(pos, extent);
-
-                    if (!hasFoundBounds)
+                    if (hasProbeVolumes)
                     {
-                        hasFoundBounds = true;
-                        globalBounds = localBounds;
+                        Bounds localBound;
+                        if (sceneBounds.sceneBounds.TryGetValue(scenePath, out localBound))
+                        {
+                            if (hasFoundBounds)
+                            {
+                                globalBounds.Encapsulate(localBound);
+                            }
+                            else
+                            {
+                                globalBounds = localBound;
+                                hasFoundBounds = true;
+                            }
+                        }
                     }
+                }
+                else // we need to open the scene to test.
+                {
+                    neededToOpenScene = true;
+                    var scene = EditorSceneManager.OpenScene(buildScene.path, OpenSceneMode.Single);
+                    sceneBounds.UpdateSceneBounds(scene);
+                    Bounds localBound = sceneBounds.sceneBounds[buildScene.path];
+                    if (hasFoundBounds)
+                        globalBounds.Encapsulate(localBound);
                     else
-                    {
-                        globalBounds.Encapsulate(localBounds);
-                    }
+                        globalBounds = localBound;
                 }
             }
 
-            for (int i = 0; i < prevScenes.Count; ++i)
+            if (neededToOpenScene)
             {
-                var scene = prevScenes[i];
-                EditorSceneManager.OpenScene(scene, i == 0 ? OpenSceneMode.Single : OpenSceneMode.Additive);
+                for (int i = 0; i < prevScenes.Count; ++i)
+                {
+                    var scene = prevScenes[i];
+                    EditorSceneManager.OpenScene(scene, i == 0 ? OpenSceneMode.Single : OpenSceneMode.Additive);
+                }
             }
         }
 
