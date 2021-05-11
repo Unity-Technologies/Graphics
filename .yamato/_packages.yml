@@ -8,20 +8,6 @@
 
 ---
 
-pack_HDRP_Testing:
-    name: Pack HDRP Testing
-    agent:
-        type: Unity::VM
-        image: package-ci/win10:stable
-        flavor: b1.large
-    commands:
-      -  npm install upm-ci-utils@stable -g --registry https://artifactory.prd.cds.internal.unity3d.com/artifactory/api/npm/upm-npm
-      -  mkdir packages_temp\core
-      -  upm-ci package pack --package-path com.unity.testing.hdrp --artifacts-path packages_temp/testing.hdrp
-    artifacts:
-        packages:
-            paths:
-              -  "packages_temp/testing.hdrp/upm-ci~/packages/**/*"
 pack_core:
     name: Pack Core
     agent:
