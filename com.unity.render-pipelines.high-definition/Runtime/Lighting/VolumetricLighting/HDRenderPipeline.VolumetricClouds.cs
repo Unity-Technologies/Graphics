@@ -216,19 +216,19 @@ namespace UnityEngine.Rendering.HighDefinition
                 }
                 case VolumetricClouds.CloudPresets.Cloudy:
                 {
-                    densityMultiplier = 0.9f;
+                    densityMultiplier = 0.7f;
                     shapeFactor = 0.75f;
                     shapeScale = 0.5f;
                     erosionFactor = 0.8f;
-                    erosionScale = 0.6f;
+                    erosionScale = 0.5f;
                     return;
                 }
                 case VolumetricClouds.CloudPresets.Overcast:
                 {
-                    densityMultiplier = 1.0f;
+                    densityMultiplier = 0.1f;
                     shapeFactor = 0.3f;
                     shapeScale = 0.7f;
-                    erosionFactor = 0.3f;
+                    erosionFactor = 0.0f;
                     erosionScale = 1.0f;
                     return;
                 }
@@ -237,7 +237,7 @@ namespace UnityEngine.Rendering.HighDefinition
                     densityMultiplier = 1.25f;
                     shapeFactor = 0.7f;
                     shapeScale = 0.7f;
-                    erosionFactor = 0.8f;
+                    erosionFactor = 0.6f;
                     erosionScale = 1.2f;
                     return;
                 }
