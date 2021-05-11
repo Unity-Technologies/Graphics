@@ -333,15 +333,47 @@ namespace UnityEngine.Rendering.Universal.Internal
             // GetDestination() instead
             bool tempTargetUsed = false;
             bool tempTarget2Used = false;
-            RenderTargetIdentifier source = renderer.cameraColorTarget;
-            RenderTargetIdentifier destination = renderer.GetCameraColorFrontBuffer(cmd);
+            RenderTargetIdentifier source =  m_UseSwapBuffer ? renderer.cameraColorTarget : m_Source;
+            RenderTargetIdentifier destination = m_UseSwapBuffer ? renderer.GetCameraColorFrontBuffer(cmd) : -1;
             bool isSceneViewCamera = cameraData.isSceneViewCamera;
+
+            RenderTargetIdentifier GetSource() => source;
+
+            RenderTargetIdentifier GetDestination()
+            {
+                if (m_UseSwapBuffer)
+                    return destination;
+                else
+                {
+                    if (destination == -1)
+                    {
+                        cmd.GetTemporaryRT(ShaderConstants._TempTarget, GetCompatibleDescriptor(), FilterMode.Bilinear);
+                        destination = ShaderConstants._TempTarget;
+                        tempTargetUsed = true;
+                    }
+                    else if (destination == m_Source && m_Descriptor.msaaSamples > 1)
+                    {
+                        // Avoid using m_Source.id as new destination, it may come with a depth buffer that we don't want, may have MSAA that we don't want etc
+                        cmd.GetTemporaryRT(ShaderConstants._TempTarget2, GetCompatibleDescriptor(), FilterMode.Bilinear);
+                        destination = ShaderConstants._TempTarget2;
+                        tempTarget2Used = true;
+                    }
+                    return destination;
+                }
+            }
 
             void Swap(ref ScriptableRenderer r)
             {
-                r.SwapColorBuffer(cmd);
-                source = r.cameraColorTarget;
-                destination = r.GetCameraColorFrontBuffer(cmd);
+                if (m_UseSwapBuffer)
+                {
+                    r.SwapColorBuffer(cmd);
+                    source = r.cameraColorTarget;
+                    destination = r.GetCameraColorFrontBuffer(cmd);
+                }
+                else
+                {
+                    CoreUtils.Swap(ref source, ref destination);
+                }
             }
 
             // Setup projection matrix for cmd.DrawMesh()
@@ -354,7 +386,7 @@ namespace UnityEngine.Rendering.Universal.Internal
                 using (new ProfilingScope(cmd, ProfilingSampler.Get(URPProfileId.StopNaNs)))
                 {
                     RenderingUtils.Blit(
-                        cmd, source, destination, m_Materials.stopNaN, 0, m_UseDrawProcedural,
+                        cmd, GetSource(), GetDestination(), m_Materials.stopNaN, 0, m_UseDrawProcedural,
                         RenderBufferLoadAction.DontCare, RenderBufferStoreAction.Store,
                         RenderBufferLoadAction.DontCare, RenderBufferStoreAction.DontCare);
 
@@ -367,7 +399,7 @@ namespace UnityEngine.Rendering.Universal.Internal
             {
                 using (new ProfilingScope(cmd, ProfilingSampler.Get(URPProfileId.SMAA)))
                 {
-                    DoSubpixelMorphologicalAntialiasing(ref cameraData, cmd, source, destination);
+                    DoSubpixelMorphologicalAntialiasing(ref cameraData, cmd, GetSource(), GetDestination());
                     Swap(ref renderer);
                 }
             }
@@ -384,7 +416,7 @@ namespace UnityEngine.Rendering.Universal.Internal
 
                 using (new ProfilingScope(cmd, ProfilingSampler.Get(markerName)))
                 {
-                    DoDepthOfField(cameraData.camera, cmd, source, destination, cameraData.pixelRect);
+                    DoDepthOfField(cameraData.camera, cmd, GetSource(), GetDestination(), cameraData.pixelRect);
                     Swap(ref renderer);
                 }
             }
@@ -410,7 +442,7 @@ namespace UnityEngine.Rendering.Universal.Internal
 
                 using (new ProfilingScope(cmd, ProfilingSampler.Get(URPProfileId.LensFlareDataDriven)))
                 {
-                    DoLensFlareDatadriven(cameraData.camera, cmd, source, usePanini, paniniDistance, paniniCropToFit);
+                    DoLensFlareDatadriven(cameraData.camera, cmd, GetSource(), usePanini, paniniDistance, paniniCropToFit);
                 }
             }
 
@@ -419,7 +451,7 @@ namespace UnityEngine.Rendering.Universal.Internal
             {
                 using (new ProfilingScope(cmd, ProfilingSampler.Get(URPProfileId.MotionBlur)))
                 {
-                    DoMotionBlur(cameraData, cmd, source, destination);
+                    DoMotionBlur(cameraData, cmd, GetSource(), GetDestination());
                     Swap(ref renderer);
                 }
             }
@@ -430,7 +462,7 @@ namespace UnityEngine.Rendering.Universal.Internal
             {
                 using (new ProfilingScope(cmd, ProfilingSampler.Get(URPProfileId.PaniniProjection)))
                 {
-                    DoPaniniProjection(cameraData.camera, cmd, source, destination);
+                    DoPaniniProjection(cameraData.camera, cmd, GetSource(), GetDestination());
                     Swap(ref renderer);
                 }
             }
@@ -446,7 +478,7 @@ namespace UnityEngine.Rendering.Universal.Internal
                 if (bloomActive)
                 {
                     using (new ProfilingScope(cmd, ProfilingSampler.Get(URPProfileId.Bloom)))
-                        SetupBloom(cmd, source, m_Materials.uber);
+                        SetupBloom(cmd, GetSource(), m_Materials.uber);
                 }
 
                 // Setup other effects constants
@@ -470,7 +502,7 @@ namespace UnityEngine.Rendering.Universal.Internal
                 GetActiveDebugHandler(renderingData)?.UpdateShaderGlobalPropertiesForFinalValidationPass(cmd, ref cameraData, !m_HasFinalPass);
 
                 // Done with Uber, blit it
-                cmd.SetGlobalTexture(ShaderPropertyId.sourceTex, source);
+                cmd.SetGlobalTexture(ShaderPropertyId.sourceTex, GetSource());
 
                 var colorLoadAction = RenderBufferLoadAction.DontCare;
                 if (m_Destination == RenderTargetHandle.CameraTarget && !cameraData.isDefaultViewport)
@@ -482,7 +514,16 @@ namespace UnityEngine.Rendering.Universal.Internal
                 // Overlay cameras need to output to the target described in the base camera while doing camera stack.
                 RenderTargetHandle cameraTargetHandle = RenderTargetHandle.GetCameraTarget(cameraData.xr);
                 RenderTargetIdentifier cameraTarget = (cameraData.targetTexture != null && !cameraData.xr.enabled) ? new RenderTargetIdentifier(cameraData.targetTexture) : cameraTargetHandle.Identifier();
-                cameraTarget = (m_ResolveToScreen) ? cameraTarget : targetDestination;
+
+                if (m_UseSwapBuffer)
+                {
+                    cameraTarget = (m_ResolveToScreen) ? cameraTarget : targetDestination;
+                }
+                else
+                {
+                    cameraTarget = (m_Destination == RenderTargetHandle.CameraTarget) ? cameraTarget : m_Destination.Identifier();
+                }
+
 
                 // With camera stacking we not always resolve post to final screen as we might run post-processing in the middle of the stack.
                 bool finishPostProcessOnScreen = m_ResolveToScreen;
@@ -503,6 +544,21 @@ namespace UnityEngine.Rendering.Universal.Internal
                     Vector4 scaleBias = yflip ? new Vector4(1, -1, 0, 1) : new Vector4(1, 1, 0, 0);
                     cmd.SetGlobalVector(ShaderPropertyId.scaleBias, scaleBias);
                     cmd.DrawProcedural(Matrix4x4.identity, m_Materials.uber, 0, MeshTopology.Quads, 4, 1, null);
+
+                    //TODO: Implement swapbuffer in 2DRenderer so we can remove this
+                    // For now, when render post - processing in the middle of the camera stack(not resolving to screen)
+                    // we do an extra blit to ping pong results back to color texture. In future we should allow a Swap of the current active color texture
+                    // in the pipeline to avoid this extra blit.
+                    if (!finishPostProcessOnScreen && !m_UseSwapBuffer)
+                    {
+                        cmd.SetGlobalTexture(ShaderPropertyId.sourceTex, m_Source);
+                        cmd.SetRenderTarget(new RenderTargetIdentifier(cameraTarget, 0, CubemapFace.Unknown, -1),
+                            colorLoadAction, RenderBufferStoreAction.Store, RenderBufferLoadAction.DontCare, RenderBufferStoreAction.DontCare);
+
+                        scaleBias = new Vector4(1, 1, 0, 0);;
+                        cmd.SetGlobalVector(ShaderPropertyId.scaleBias, scaleBias);
+                        cmd.DrawProcedural(Matrix4x4.identity, m_BlitMaterial, 0, MeshTopology.Quads, 4, 1, null);
+                    }
                 }
                 else
 #endif
@@ -514,6 +570,18 @@ namespace UnityEngine.Rendering.Universal.Internal
                         cmd.SetViewport(cameraData.pixelRect);
 
                     cmd.DrawMesh(RenderingUtils.fullscreenMesh, Matrix4x4.identity, m_Materials.uber);
+
+                    // TODO: Implement swapbuffer in 2DRenderer so we can remove this
+                    // For now, when render post-processing in the middle of the camera stack (not resolving to screen)
+                    // we do an extra blit to ping pong results back to color texture. In future we should allow a Swap of the current active color texture
+                    // in the pipeline to avoid this extra blit.
+                    if (!finishPostProcessOnScreen)
+                    {
+                        cmd.SetGlobalTexture(ShaderPropertyId.sourceTex, m_Source);
+                        cmd.SetRenderTarget(cameraTarget, RenderBufferLoadAction.DontCare, RenderBufferStoreAction.Store, RenderBufferLoadAction.DontCare, RenderBufferStoreAction.DontCare);
+                        cmd.DrawMesh(RenderingUtils.fullscreenMesh, Matrix4x4.identity, m_BlitMaterial);
+                    }
+
                     cmd.SetViewProjectionMatrices(cameraData.camera.worldToCameraMatrix, cameraData.camera.projectionMatrix);
                 }
 
@@ -1274,7 +1342,11 @@ namespace UnityEngine.Rendering.Universal.Internal
 
             GetActiveDebugHandler(renderingData)?.UpdateShaderGlobalPropertiesForFinalValidationPass(cmd, ref cameraData, m_IsFinalPass);
 
-            if (m_Source == cameraData.renderer.GetCameraColorFrontBuffer(cmd))
+            if (!m_UseSwapBuffer)
+            {
+                cmd.SetGlobalTexture(ShaderPropertyId.sourceTex, m_Source);
+            }
+            else if (m_Source == cameraData.renderer.GetCameraColorFrontBuffer(cmd))
             {
                 m_Source = cameraData.renderer.cameraColorTarget;
             }
