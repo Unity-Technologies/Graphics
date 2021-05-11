@@ -147,6 +147,7 @@ namespace UnityEngine.Rendering.HighDefinition
             volumetricHistoryIsValid = false;
             volumetricValidFrames = 0;
             colorPyramidHistoryIsValid = false;
+            dofHistoryIsValid = false;
 
             // Reset the volumetric cloud offset animation data
             volumetricCloudsAnimationData.lastTime = -1.0f;
