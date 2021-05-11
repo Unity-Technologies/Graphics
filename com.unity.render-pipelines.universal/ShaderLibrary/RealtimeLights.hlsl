@@ -1,6 +1,6 @@
 
-#ifndef REALTIME_LIGHTS_INCLUDED
-#define REALTIME_LIGHTS_INCLUDED
+#ifndef UNIVERSAL_REALTIME_LIGHTS_INCLUDED
+#define UNIVERSAL_REALTIME_LIGHTS_INCLUDED
 
 #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/AmbientOcclusion.hlsl"
 #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Input.hlsl"
