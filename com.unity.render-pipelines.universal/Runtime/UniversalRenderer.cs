@@ -559,7 +559,7 @@ namespace UnityEngine.Rendering.Universal
                         // Only render forward-only geometry, as standard geometry will be rendered as normal into the gbuffer.
                         if (RenderPassEvent.AfterRenderingGbuffer <= renderPassInputs.requiresDepthNormalAtEvent &&
                             renderPassInputs.requiresDepthNormalAtEvent <= RenderPassEvent.BeforeRenderingOpaques)
-                            m_DepthNormalPrepass.shaderTagId = k_DepthNormalsOnly;
+                            m_DepthNormalPrepass.shaderTagIds = k_DepthNormalsOnly;
                     }
                     else
                     {

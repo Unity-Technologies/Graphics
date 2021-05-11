@@ -325,7 +325,7 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
                 if (complexLit)
                     result.passes.Add(CorePasses.DepthNormalOnly(target));
                 else
-                    result.passes.Add(LitPasses.DepthNormal(target));
+                    result.passes.Add(CorePasses.DepthNormal(target));
                 result.passes.Add(LitPasses.Meta(target));
                 result.passes.Add(LitPasses._2D(target));
 
