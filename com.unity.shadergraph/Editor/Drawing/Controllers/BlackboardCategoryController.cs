@@ -193,13 +193,6 @@ namespace UnityEditor.ShaderGraph.Drawing
                         return;
                     }
 
-                    // Check if any inputs were added to this category (i.e. if a category merge took place)
-                    foreach (var childInput in Model.Children)
-                    {
-                        var existingBlackboardRow = FindBlackboardRow(childInput);
-                        if (existingBlackboardRow == null)
-                            InsertBlackboardRow(childInput);
-                    }
                     break;
 
                 case ChangeCategoryIsExpandedAction changeIsExpandedAction:
