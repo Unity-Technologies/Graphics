@@ -28,9 +28,20 @@ namespace UnityEditor.Rendering.HighDefinition
             };
         }
     }
+
     internal partial class HDGlobalSettingsPanelIMGUI
     {
         public static readonly CED.IDrawer Inspector;
+
+        public class DocumentationUrls
+        {
+            public static readonly string k_Volumes = "Volume-Profile";
+            public static readonly string k_DiffusionProfiles = "Override-Diffusion-Profile";
+            public static readonly string k_FrameSettings = "Frame-Settings";
+            public static readonly string k_LightLayers = "Light-Layers";
+            public static readonly string k_DecalLayers = "Decal";
+            public static readonly string k_CustomPostProcesses = "Custom-Post-Process";
+        }
 
         static HDGlobalSettingsPanelIMGUI()
         {
@@ -151,7 +162,7 @@ namespace UnityEditor.Rendering.HighDefinition
         #region Resources
 
         static readonly CED.IDrawer ResourcesSection = CED.Group(
-            CED.Group((serialized, owner) => EditorGUILayout.LabelField(Styles.resourceLabel, Styles.sectionHeaderStyle)),
+            CED.Group((serialized, owner) => CoreEditorUtils.DrawSectionHeader(Styles.resourceLabel)),
             CED.Group((serialized, owner) => EditorGUILayout.Space()),
             CED.Group(DrawResourcesSection),
             CED.Group((serialized, owner) => EditorGUILayout.Space())
@@ -185,15 +196,14 @@ namespace UnityEditor.Rendering.HighDefinition
         #region Frame Settings
 
         static readonly CED.IDrawer FrameSettingsSection = CED.Group(
+            CED.Group((serialized, owner) => CoreEditorUtils.DrawSectionHeader(Styles.frameSettingsLabel, Documentation.GetPageLink(DocumentationUrls.k_FrameSettings))),
+            CED.Group((serialized, owner) => EditorGUILayout.Space()),
             CED.Group(DrawFrameSettings),
             CED.Group((serialized, owner) => EditorGUILayout.Space())
         );
 
         static void DrawFrameSettings(SerializedHDRenderPipelineGlobalSettings serialized, Editor owner)
         {
-            EditorGUILayout.LabelField(Styles.frameSettingsLabel, Styles.sectionHeaderStyle);
-            EditorGUILayout.Space();
-
             using (new EditorGUI.IndentLevelScope())
             {
                 EditorGUILayout.LabelField(Styles.frameSettingsLabel_Camera, Styles.subSectionHeaderStyle);
@@ -268,7 +278,7 @@ namespace UnityEditor.Rendering.HighDefinition
         #region Custom Post Processes
 
         static readonly CED.IDrawer CustomPostProcessesSection = CED.Group(
-            CED.Group((serialized, owner) => EditorGUILayout.LabelField(Styles.customPostProcessOrderLabel, Styles.sectionHeaderStyle)),
+            CED.Group((serialized, owner) => CoreEditorUtils.DrawSectionHeader(Styles.customPostProcessOrderLabel, Documentation.GetPageLink(DocumentationUrls.k_CustomPostProcesses))),
             CED.Group((serialized, owner) => EditorGUILayout.Space()),
             CED.Group(DrawCustomPostProcess)
         );
@@ -304,7 +314,7 @@ namespace UnityEditor.Rendering.HighDefinition
         #region Diffusion Profile Settings List
 
         static readonly CED.IDrawer DiffusionProfileSettingsSection = CED.Group(
-            CED.Group((serialized, owner) => EditorGUILayout.LabelField(Styles.diffusionProfileSettingsLabel, Styles.sectionHeaderStyle)),
+            CED.Group((serialized, owner) => CoreEditorUtils.DrawSectionHeader(Styles.diffusionProfileSettingsLabel, Documentation.GetPageLink(DocumentationUrls.k_DiffusionProfiles))),
             CED.Group((serialized, owner) => EditorGUILayout.Space()),
             CED.Group(DrawDiffusionProfileSettings)
         );
@@ -325,7 +335,7 @@ namespace UnityEditor.Rendering.HighDefinition
         static int m_CurrentVolumeProfileInstanceID;
 
         static readonly CED.IDrawer VolumeSection = CED.Group(
-            CED.Group((serialized, owner) => EditorGUILayout.LabelField(Styles.volumeComponentsLabel, Styles.sectionHeaderStyle)),
+            CED.Group((serialized, owner) => CoreEditorUtils.DrawSectionHeader(Styles.volumeComponentsLabel, Documentation.GetPageLink(DocumentationUrls.k_Volumes))),
             CED.Group((serialized, owner) => EditorGUILayout.Space()),
             CED.Group(DrawVolumeSection),
             CED.Group((serialized, owner) => EditorGUILayout.Space())
@@ -413,7 +423,7 @@ namespace UnityEditor.Rendering.HighDefinition
         #region Misc Settings
 
         static readonly CED.IDrawer MiscSection = CED.Group(
-            CED.Group((serialized, owner) => EditorGUILayout.LabelField(Styles.generalSettingsLabel, Styles.sectionHeaderStyle)),
+            CED.Group((serialized, owner) => CoreEditorUtils.DrawSectionHeader(Styles.generalSettingsLabel)),
             CED.Group((serialized, owner) => EditorGUILayout.Space()),
             CED.Group(DrawMiscSettings),
             CED.Group((serialized, owner) => EditorGUILayout.Space())
@@ -442,7 +452,7 @@ namespace UnityEditor.Rendering.HighDefinition
         #region Rendering Layer Names
 
         static readonly CED.IDrawer LayerNamesSection = CED.Group(
-            CED.Group((serialized, owner) => EditorGUILayout.LabelField(Styles.layerNamesLabel, Styles.sectionHeaderStyle)),
+            CED.Group((serialized, owner) => CoreEditorUtils.DrawSectionHeader(Styles.layerNamesLabel, contextAction: pos => OnContextClickRenderingLayerNames(pos, serialized), documentationURL: Documentation.GetPageLink(DocumentationUrls.k_LightLayers))),
             CED.Group((serialized, owner) => EditorGUILayout.Space()),
             CED.Group(DrawLayerNamesSettings),
             CED.Group((serialized, owner) => EditorGUILayout.Space())
@@ -453,13 +463,13 @@ namespace UnityEditor.Rendering.HighDefinition
             var oldWidth = EditorGUIUtility.labelWidth;
             EditorGUIUtility.labelWidth = Styles.labelWidth;
 
-            using (new EditorGUI.IndentLevelScope())
-            {
-                DrawLightLayerNames(serialized, owner);
-                EditorGUILayout.Space();
-                DrawDecalLayerNames(serialized, owner);
-                EditorGUILayout.Space();
-            }
+            CoreEditorUtils.DrawSplitter();
+            DrawLightLayerNames(serialized, owner);
+            CoreEditorUtils.DrawSplitter();
+            DrawDecalLayerNames(serialized, owner);
+            CoreEditorUtils.DrawSplitter();
+            EditorGUILayout.Space();
+
             EditorGUIUtility.labelWidth = oldWidth;
         }
 
@@ -467,7 +477,11 @@ namespace UnityEditor.Rendering.HighDefinition
         static private bool m_ShowDecalLayerNames = false;
         static void DrawLightLayerNames(SerializedHDRenderPipelineGlobalSettings serialized, Editor owner)
         {
-            m_ShowLightLayerNames = EditorGUILayout.Foldout(m_ShowLightLayerNames, Styles.lightLayersLabel, true);
+            m_ShowLightLayerNames = CoreEditorUtils.DrawHeaderFoldout(Styles.lightLayersLabel,
+                m_ShowLightLayerNames,
+                documentationURL: DocumentationUrls.k_DecalLayers,
+                contextAction: pos => OnContextClickRenderingLayerNames(pos, serialized, section: 1)
+            );
             if (m_ShowLightLayerNames)
             {
                 using (new EditorGUI.IndentLevelScope())
@@ -493,7 +507,9 @@ namespace UnityEditor.Rendering.HighDefinition
 
         static void DrawDecalLayerNames(SerializedHDRenderPipelineGlobalSettings serialized, Editor owner)
         {
-            m_ShowDecalLayerNames = EditorGUILayout.Foldout(m_ShowDecalLayerNames, Styles.decalLayersLabel, true);
+            m_ShowDecalLayerNames = CoreEditorUtils.DrawHeaderFoldout(Styles.decalLayersLabel, m_ShowDecalLayerNames,
+                documentationURL: DocumentationUrls.k_DecalLayers,
+                contextAction: pos => OnContextClickRenderingLayerNames(pos, serialized, section: 2));
             if (m_ShowDecalLayerNames)
             {
                 using (new EditorGUI.IndentLevelScope())
@@ -515,6 +531,17 @@ namespace UnityEditor.Rendering.HighDefinition
                     HDEditorUtils.DrawDelayedTextField(Styles.decalLayerName7, serialized.decalLayerName7);
                 }
             }
+        }
+
+        static void OnContextClickRenderingLayerNames(Vector2 position, SerializedHDRenderPipelineGlobalSettings serialized, int section = 0)
+        {
+            var menu = new GenericMenu();
+            menu.AddItem(section == 0 ? Styles.resetAllButtonLabel : Styles.resetButtonLabel, false, () =>
+            {
+                var globalSettings = (serialized.serializedObject.targetObject as HDRenderPipelineGlobalSettings);
+                globalSettings.ResetRenderingLayerNames(lightLayers: section < 2, decalLayers: section != 1);
+            });
+            menu.DropDown(new Rect(position, Vector2.zero));
         }
 
         #endregion

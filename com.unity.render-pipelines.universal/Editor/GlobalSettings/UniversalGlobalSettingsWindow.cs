@@ -45,6 +45,11 @@ namespace UnityEditor.Rendering.Universal
 
         public static readonly CED.IDrawer Inspector;
 
+        public class DocumentationUrls
+        {
+            public static readonly string k_LightLayers = "Light-Layers";
+        }
+
         static UniversalGlobalSettingsPanelIMGUI()
         {
             Inspector = CED.Group(
@@ -151,7 +156,7 @@ namespace UnityEditor.Rendering.Universal
         #region Rendering Layer Names
 
         static readonly CED.IDrawer LightLayerNamesSection = CED.Group(
-            CED.Group((serialized, owner) => EditorGUILayout.LabelField(Styles.lightLayersLabel, Styles.sectionHeaderStyle)),
+            CED.Group((serialized, owner) => CoreEditorUtils.DrawSectionHeader(Styles.lightLayersLabel, contextAction: pos => OnContextClickLightLayerNames(pos, serialized))),
             CED.Group((serialized, owner) => EditorGUILayout.Space()),
             CED.Group(DrawLightLayerNames),
             CED.Group((serialized, owner) => EditorGUILayout.Space())
@@ -183,6 +188,17 @@ namespace UnityEditor.Rendering.Universal
             }
 
             EditorGUIUtility.labelWidth = oldWidth;
+        }
+
+        static void OnContextClickLightLayerNames(Vector2 position, SerializedUniversalRenderPipelineGlobalSettings serialized)
+        {
+            var menu = new GenericMenu();
+            menu.AddItem(EditorGUIUtility.TrTextContent("Reset"), false, () =>
+            {
+                var globalSettings = (serialized.serializedObject.targetObject as UniversalRenderPipelineGlobalSettings);
+                globalSettings.ResetRenderingLayerNames();
+            });
+            menu.DropDown(new Rect(position, Vector2.zero));
         }
 
         #endregion
