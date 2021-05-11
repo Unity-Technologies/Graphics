@@ -188,6 +188,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed normals provided in object space or world space, when using double sided materials.
 - Fixed multi cameras using cloud layers shadows.
 - Fixed HDAdditionalLightData's CopyTo and HDAdditionalCameraData's CopyTo missing copy.
+- Fixed pixel coord to view direction matrix for asymetric projection matrix.
 
 ### Changed
 - Changed Window/Render Pipeline/HD Render Pipeline Wizard to Window/Rendering/HDRP Wizard
