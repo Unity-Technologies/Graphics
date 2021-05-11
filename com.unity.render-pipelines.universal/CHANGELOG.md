@@ -55,6 +55,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - DepthNormals passes now sample normal maps if used on the material, otherwise output the geometry normal.
 - SSAO Texture is now R8 instead of ARGB32 if supported by the platform.
 - Enabled subsurface scattering with GI on handwritten Universal ST8 shader.
+- Material upgrader now also upgrades AnimationClips in the project that have curves bound to renamed material properties.
 
 ### Fixed
 - Camera Inspector Stack list edition fixes.
