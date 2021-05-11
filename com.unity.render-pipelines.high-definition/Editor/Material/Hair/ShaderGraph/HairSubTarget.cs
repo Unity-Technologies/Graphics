@@ -56,7 +56,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
         public static FieldDescriptor HairStrandDirection =      new FieldDescriptor(string.Empty, "HairStrandDirection", "_HAIR_STRAND_DIRECTION 1");
         public static FieldDescriptor UseLightFacingNormal =     new FieldDescriptor(string.Empty, "UseLightFacingNormal", "_USE_LIGHT_FACING_NORMAL 1");
         public static FieldDescriptor Transmittance =            new FieldDescriptor(string.Empty, "Transmittance", "_TRANSMITTANCE 1");
-        public static FieldDescriptor ScatteringDensityVolume  = new FieldDescriptor(string.Empty, "ScatteringDensityVolume", "_USE_DENSITY_VOLUME_SCATTERING");
+        public static FieldDescriptor ScatteringDensityVolume  = new FieldDescriptor(string.Empty, "ScatteringDensityVolume", "_USE_DENSITY_VOLUME_SCATTERING 1");
 
         public override void GetFields(ref TargetFieldContext context)
         {
