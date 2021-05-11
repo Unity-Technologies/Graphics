@@ -136,18 +136,6 @@ namespace UnityEditor.Rendering.HighDefinition
 
         public override void OnInspectorGUI()
         {
-#if UNITY_EDITOR
-            UnityEditor.BuildTarget activeBuildTarget = UnityEditor.EditorUserBuildSettings.activeBuildTarget;
-            if (activeBuildTarget == UnityEditor.BuildTarget.StandaloneOSX)
-#else
-            if (SystemInfo.graphicsDeviceType == GraphicsDeviceType.Metal)
-#endif
-            {
-                EditorGUILayout.Space();
-                EditorGUILayout.HelpBox("Volumetric Clouds are not supported on the current target platform.", MessageType.Error, wide: true);
-                return;
-            }
-
             // This whole editor has nothing to display if the SSR feature is not supported
             HDRenderPipelineAsset currentAsset = HDRenderPipeline.currentAsset;
             if (!currentAsset?.currentPlatformRenderPipelineSettings.supportVolumetricClouds ?? false)

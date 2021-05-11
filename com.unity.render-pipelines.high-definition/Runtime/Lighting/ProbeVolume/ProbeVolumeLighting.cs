@@ -63,10 +63,22 @@ namespace UnityEngine.Rendering.HighDefinition
             }
         }
 
-        private void UpdateShaderVariablesProbeVolumes(ref ShaderVariablesGlobal cb, HDCamera hdCamera)
+        private void UpdateShaderVariablesProbeVolumes(ref ShaderVariablesGlobal cb, HDCamera hdCamera, CommandBuffer cmd)
         {
             bool loadedData = ProbeReferenceVolume.instance.DataHasBeenLoaded();
             cb._EnableProbeVolumes = (hdCamera.frameSettings.IsEnabled(FrameSettingsField.ProbeVolume) && loadedData) ? 1u : 0u;
+
+            var probeVolumeOptions = hdCamera.volumeStack.GetComponent<ProbeVolumesOptions>();
+
+            if (cb._EnableProbeVolumes > 0)
+            {
+                ProbeVolumeShadingParameters parameters;
+                parameters.normalBias = probeVolumeOptions.normalBias.value;
+                parameters.viewBias = probeVolumeOptions.viewBias.value;
+                parameters.scaleBiasByMinDistanceBetweenProbes = probeVolumeOptions.scaleBiasWithMinProbeDistance.value;
+                parameters.samplingNoise = probeVolumeOptions.samplingNoise.value;
+                ProbeReferenceVolume.instance.UpdateConstantBuffer(cmd, parameters);
+            }
         }
     }
 }

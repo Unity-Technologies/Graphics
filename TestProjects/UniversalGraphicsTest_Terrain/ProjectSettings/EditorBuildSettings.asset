@@ -59,4 +59,7 @@ EditorBuildSettings:
   - enabled: 1
     path: Assets/Scenes/205_SSAO_BackBuffer.unity
     guid: 72491ed40bf654eec9fef43f455e3916
+  - enabled: 1
+    path: Assets/Scenes/230_Decal.unity
+    guid: e04a7c287e4c08242a5511645a045ed4
   m_configObjects: {}

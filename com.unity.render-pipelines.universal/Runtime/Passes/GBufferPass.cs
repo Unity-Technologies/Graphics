@@ -62,6 +62,8 @@ namespace UnityEngine.Rendering.Universal.Internal
                 if (i == m_DeferredLights.GBufferLightingIndex)
                     continue;
 
+                // Normal buffer may have already been created if there was a depthNormal prepass before.
+                // DepthNormal prepass is needed for forward-only materials when SSAO is generated between gbuffer and deferred lighting pass.
                 if (i == m_DeferredLights.GBufferNormalSmoothnessIndex && m_DeferredLights.HasNormalPrepass)
                     continue;
 
@@ -73,8 +75,9 @@ namespace UnityEngine.Rendering.Universal.Internal
             }
 
             ConfigureTarget(m_DeferredLights.GbufferAttachmentIdentifiers, m_DeferredLights.DepthAttachmentIdentifier, m_DeferredLights.GbufferFormats);
+
             // We must explicitely specify we don't want any clear to avoid unwanted side-effects.
-            // ScriptableRenderer may still implicitely force a clear the first time the camera color/depth targets are bound.
+            // ScriptableRenderer will implicitely force a clear the first time the camera color/depth targets are bound.
             ConfigureClear(ClearFlag.None, Color.black);
         }
 
@@ -104,7 +107,9 @@ namespace UnityEngine.Rendering.Universal.Internal
 
                 NativeArray<ShaderTagId> tagValues = new NativeArray<ShaderTagId>(m_ShaderTagValues, Allocator.Temp);
                 NativeArray<RenderStateBlock> stateBlocks = new NativeArray<RenderStateBlock>(m_RenderStateBlocks, Allocator.Temp);
+
                 context.DrawRenderers(renderingData.cullResults, ref drawingSettings, ref m_FilteringSettings, universalMaterialTypeTag, false, tagValues, stateBlocks);
+
                 tagValues.Dispose();
                 stateBlocks.Dispose();
 
@@ -114,6 +119,7 @@ namespace UnityEngine.Rendering.Universal.Internal
                 // If any sub-system needs camera normal texture, make it available.
                 gbufferCommands.SetGlobalTexture(s_CameraNormalsTextureID, m_DeferredLights.GbufferAttachmentIdentifiers[m_DeferredLights.GBufferNormalSmoothnessIndex]);
             }
+
             context.ExecuteCommandBuffer(gbufferCommands);
             CommandBufferPool.Release(gbufferCommands);
         }

@@ -11,11 +11,12 @@ namespace UnityEditor.Rendering.HighDefinition
         partial class Rendering
         {
             public static readonly CED.IDrawer Drawer = CED.FoldoutGroup(
-                Styles.header,
-                Expandable.Rendering,
+                CameraUI.Rendering.Styles.header,
+                CameraUI.Expandable.Rendering,
                 k_ExpandedState,
                 FoldoutOption.Indent,
                 CED.Group(
+                    Drawer_Rendering_AllowDynamicResolution,
                     Drawer_Rendering_Antialiasing
                     ),
                 AntialiasingModeDrawer(
@@ -25,10 +26,10 @@ namespace UnityEditor.Rendering.HighDefinition
                     HDAdditionalCameraData.AntialiasingMode.TemporalAntialiasing,
                     Drawer_Rendering_Antialiasing_TAA),
                 CED.Group(
-                    Drawer_Rendering_StopNaNs,
-                    Drawer_Rendering_Dithering,
-                    Drawer_Rendering_CullingMask,
-                    Drawer_Rendering_OcclusionCulling,
+                    CameraUI.Rendering.Drawer_Rendering_StopNaNs,
+                    CameraUI.Rendering.Drawer_Rendering_Dithering,
+                    CameraUI.Rendering.Drawer_Rendering_CullingMask,
+                    CameraUI.Rendering.Drawer_Rendering_OcclusionCulling,
                     Drawer_Rendering_ExposureTarget,
                     Drawer_Rendering_RenderingPath,
                     Drawer_Rendering_CameraWarnings
@@ -39,17 +40,93 @@ namespace UnityEditor.Rendering.HighDefinition
                 )
             );
 
+            static void Drawer_Rendering_AllowDynamicResolution(SerializedHDCamera p, Editor owner)
+            {
+                CameraUI.Output.Drawer_Output_AllowDynamicResolution(p, owner);
+
+#if ENABLE_NVIDIA && ENABLE_NVIDIA_MODULE
+                EditorGUI.indentLevel++;
+                Drawer_Draw_DLSS_Section(p, owner);
+                EditorGUI.indentLevel--;
+#endif
+            }
+
+#if ENABLE_NVIDIA && ENABLE_NVIDIA_MODULE
+            static void Drawer_Draw_DLSS_Section(SerializedHDCamera p, Editor owner)
+            {
+                if (!p.allowDynamicResolution.boolValue)
+                    return;
+
+                bool isDLSSEnabledInQualityAsset = HDRenderPipeline.currentAsset.currentPlatformRenderPipelineSettings.dynamicResolutionSettings.enableDLSS;
+
+                EditorGUILayout.PropertyField(p.allowDeepLearningSuperSampling, Styles.DLSSAllow);
+                if (!isDLSSEnabledInQualityAsset && p.allowDeepLearningSuperSampling.boolValue)
+                {
+                    EditorGUILayout.HelpBox(Styles.DLSSNotEnabledInQualityAsset, MessageType.Info);
+                }
+
+                if (p.allowDeepLearningSuperSampling.boolValue)
+                {
+                    EditorGUI.indentLevel++;
+                    EditorGUILayout.PropertyField(p.deepLearningSuperSamplingUseCustomQualitySettings, Styles.DLSSCustomQualitySettings);
+                    if (p.deepLearningSuperSamplingUseCustomQualitySettings.boolValue)
+                    {
+                        EditorGUI.indentLevel++;
+                        var v = EditorGUILayout.EnumPopup(
+                            HDRenderPipelineUI.Styles.DLSSQualitySettingContent,
+                            (UnityEngine.NVIDIA.DLSSQuality)p.deepLearningSuperSamplingQuality.intValue);
+                        p.deepLearningSuperSamplingQuality.intValue = (int)(object)v;
+                        EditorGUI.indentLevel--;
+                    }
+
+                    EditorGUILayout.PropertyField(p.deepLearningSuperSamplingUseCustomAttributes, Styles.DLSSUseCustomAttributes);
+                    if (p.deepLearningSuperSamplingUseCustomAttributes.boolValue)
+                    {
+                        EditorGUI.indentLevel++;
+                        EditorGUILayout.PropertyField(p.deepLearningSuperSamplingUseOptimalSettings, HDRenderPipelineUI.Styles.DLSSUseOptimalSettingsContent);
+                        using (new EditorGUI.DisabledScope(p.deepLearningSuperSamplingUseOptimalSettings.boolValue))
+                        {
+                            EditorGUILayout.PropertyField(p.deepLearningSuperSamplingSharpening, HDRenderPipelineUI.Styles.DLSSSharpnessContent);
+                        }
+                        EditorGUI.indentLevel--;
+                    }
+                    EditorGUI.indentLevel--;
+                }
+
+                bool isDLSSEnabled = isDLSSEnabledInQualityAsset && p.allowDeepLearningSuperSampling.boolValue;
+                if (isDLSSEnabled)
+                {
+                    bool featureDetected = HDDynamicResolutionPlatformCapabilities.DLSSDetected;
+
+                    //write here support string for dlss upscaler
+                    EditorGUILayout.HelpBox(
+                        featureDetected ? Styles.DLSSFeatureDetectedMsg : Styles.DLSSFeatureNotDetectedMsg,
+                        featureDetected ? MessageType.Info : MessageType.Warning);
+                }
+            }
+
+#endif
+
+
             static void Drawer_Rendering_Antialiasing(SerializedHDCamera p, Editor owner)
             {
+                bool showAntialiasContentAsFallback = false;
+
+#if ENABLE_NVIDIA && ENABLE_NVIDIA_MODULE
+                bool isDLSSEnabled = HDRenderPipeline.currentAsset.currentPlatformRenderPipelineSettings.dynamicResolutionSettings.enableDLSS
+                    && p.allowDeepLearningSuperSampling.boolValue;
+                showAntialiasContentAsFallback = isDLSSEnabled;
+#endif
+
                 Rect antiAliasingRect = EditorGUILayout.GetControlRect();
                 EditorGUI.BeginProperty(antiAliasingRect, Styles.antialiasing, p.antialiasing);
                 {
                     EditorGUI.BeginChangeCheck();
-                    int selectedValue = (int)(HDAdditionalCameraData.AntialiasingMode)EditorGUI.EnumPopup(antiAliasingRect, Styles.antialiasing, (HDAdditionalCameraData.AntialiasingMode)p.antialiasing.intValue);
+                    int selectedValue = (int)(HDAdditionalCameraData.AntialiasingMode)EditorGUI.EnumPopup(antiAliasingRect, showAntialiasContentAsFallback ? Styles.antialiasingContentFallback : Styles.antialiasing, (HDAdditionalCameraData.AntialiasingMode)p.antialiasing.intValue);
+
                     if (EditorGUI.EndChangeCheck())
                         p.antialiasing.intValue = selectedValue;
                 }
-                EditorGUI.EndProperty();
             }
 
             static CED.IDrawer AntialiasingModeDrawer(HDAdditionalCameraData.AntialiasingMode antialiasingMode, CED.ActionDrawer antialiasingDrawer)
@@ -91,26 +168,6 @@ namespace UnityEditor.Rendering.HighDefinition
                 EditorGUILayout.PropertyField(p.passThrough, Styles.fullScreenPassthrough);
                 using (new EditorGUI.DisabledScope(p.passThrough.boolValue))
                     EditorGUILayout.PropertyField(p.customRenderingSettings, Styles.renderingPath);
-            }
-
-            static void Drawer_Rendering_Dithering(SerializedHDCamera p, Editor owner)
-            {
-                EditorGUILayout.PropertyField(p.dithering, Styles.dithering);
-            }
-
-            static void Drawer_Rendering_StopNaNs(SerializedHDCamera p, Editor owner)
-            {
-                EditorGUILayout.PropertyField(p.stopNaNs, Styles.stopNaNs);
-            }
-
-            static void Drawer_Rendering_CullingMask(SerializedHDCamera p, Editor owner)
-            {
-                EditorGUILayout.PropertyField(p.baseCameraSettings.cullingMask, Styles.cullingMask);
-            }
-
-            static void Drawer_Rendering_OcclusionCulling(SerializedHDCamera p, Editor owner)
-            {
-                EditorGUILayout.PropertyField(p.baseCameraSettings.occlusionCulling, Styles.occlusionCulling);
             }
 
             static void Drawer_Rendering_ExposureTarget(SerializedHDCamera p, Editor owner)
