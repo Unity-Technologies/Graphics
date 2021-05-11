@@ -110,7 +110,7 @@ Material:
     - _StencilWriteMaskMV: 40
     - _SupportDecals: 1
     - _SurfaceType: 0
-    - _TessellationBackFaceCullEpsilon: -1
+    - _TessellationBackFaceCullEpsilon: -0.647
     - _TessellationFactorMaxDistance: 100
     - _TessellationFactorMinDistance: 0
     - _TessellationFactorTriangleSize: 4.8
