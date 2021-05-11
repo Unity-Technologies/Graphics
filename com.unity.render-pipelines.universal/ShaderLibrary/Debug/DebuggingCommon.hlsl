@@ -40,7 +40,7 @@ float4 _DebugValidateAboveMaxThresholdColor;
 
 half3 GetDebugColor(uint index)
 {
-    uint clampedIndex = clamp(index, 0, DEBUG_COLORS_COUNT-1);
+    uint clampedIndex = clamp(index, 0u, uint(DEBUG_COLORS_COUNT-1));
     return kDebugColorGradient[clampedIndex].rgb;
 }
 
