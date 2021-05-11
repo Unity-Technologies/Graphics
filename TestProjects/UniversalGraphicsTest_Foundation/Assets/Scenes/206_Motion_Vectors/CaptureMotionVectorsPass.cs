@@ -30,15 +30,15 @@ internal class CaptureMotionVectorsPass : ScriptableRenderPass
         if (m_Material == null)
             return;
 
+        //Todo: test code is not working for XR
         CommandBuffer cmd = CommandBufferPool.Get();
         using (new ProfilingScope(cmd, m_ProfilingSampler))
         {
             m_Material.SetFloat("_Intensity", m_intensity);
             cmd.Blit(m_CameraColorTarget, m_CameraColorTarget, m_Material);
-
-            context.ExecuteCommandBuffer(cmd);
-            cmd.Clear();
         }
+        context.ExecuteCommandBuffer(cmd);
+        cmd.Clear();
 
         CommandBufferPool.Release(cmd);
     }
