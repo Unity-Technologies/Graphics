@@ -109,7 +109,7 @@ namespace UnityEngine.Rendering.Universal.Internal
 
         internal void ProcessLights(ref RenderingData renderingData)
         {
-            if (m_UseClusteredRendering)
+            if (m_UseClusteredRendering && renderingData.cameraData.cameraType != CameraType.Preview)
             {
                 var camera = renderingData.cameraData.camera;
                 var screenResolution = math.int2(renderingData.cameraData.pixelWidth, renderingData.cameraData.pixelHeight);
@@ -302,7 +302,8 @@ namespace UnityEngine.Rendering.Universal.Internal
             CommandBuffer cmd = CommandBufferPool.Get();
             using (new ProfilingScope(null, m_ProfilingSampler))
             {
-                if (m_UseClusteredRendering)
+                var useClusteredRendering = m_UseClusteredRendering && renderingData.cameraData.cameraType != CameraType.Preview;
+                if (useClusteredRendering)
                 {
                     m_CullingHandle.Complete();
 
@@ -325,11 +326,11 @@ namespace UnityEngine.Rendering.Universal.Internal
                 SetupShaderLightConstants(cmd, ref renderingData);
 
                 CoreUtils.SetKeyword(cmd, ShaderKeywordStrings.AdditionalLightsVertex,
-                    additionalLightsCount > 0 && additionalLightsPerVertex && !m_UseClusteredRendering);
+                    additionalLightsCount > 0 && additionalLightsPerVertex && !useClusteredRendering);
                 CoreUtils.SetKeyword(cmd, ShaderKeywordStrings.AdditionalLightsPixel,
-                    additionalLightsCount > 0 && !additionalLightsPerVertex && !m_UseClusteredRendering);
+                    additionalLightsCount > 0 && !additionalLightsPerVertex && !useClusteredRendering);
                 CoreUtils.SetKeyword(cmd, ShaderKeywordStrings.ClusteredRendering,
-                    m_UseClusteredRendering);
+                    useClusteredRendering);
 
                 bool isShadowMask = renderingData.lightData.supportsMixedLighting && m_MixedLightingSetup == MixedLightingSetup.ShadowMask;
                 bool isShadowMaskAlways = isShadowMask && QualitySettings.shadowmaskMode == ShadowmaskMode.Shadowmask;
