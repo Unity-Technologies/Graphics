@@ -258,20 +258,6 @@ namespace UnityEditor.Rendering.HighDefinition
         }
 
         /// <summary>
-        /// Like EditorGUILayout.DrawTextField but for delayed text field
-        /// </summary>
-        internal static void DrawDelayedTextField(GUIContent label, SerializedProperty property)
-        {
-            Rect lineRect = GUILayoutUtility.GetRect(1, EditorGUIUtility.singleLineHeight);
-            EditorGUI.BeginProperty(lineRect, label, property);
-            EditorGUI.BeginChangeCheck();
-            string value = EditorGUI.DelayedTextField(lineRect, label, property.stringValue);
-            if (EditorGUI.EndChangeCheck())
-                property.stringValue = value;
-            EditorGUI.EndProperty();
-        }
-
-        /// <summary>
         /// Similar to <see cref="EditorGUI.HandlePrefixLabel(Rect, Rect, GUIContent)"/> but indent the label
         /// with <see cref="EditorGUI.indentLevel"/> value.
         ///
