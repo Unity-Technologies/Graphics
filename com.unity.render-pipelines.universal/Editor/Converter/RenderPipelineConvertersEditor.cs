@@ -54,6 +54,8 @@ namespace UnityEditor.Rendering.Universal
         public int errors;
         public int success;
         internal int index;
+
+        public bool shouldInit => isInitialized || !isEnabled || !isActive;
     }
 
     [Serializable]
@@ -387,7 +389,7 @@ namespace UnityEditor.Rendering.Universal
 
             for (int i = 0; i < m_ConverterStates.Count; ++i)
             {
-                if (ShouldInit(i))
+                if (m_ConverterStates[i].shouldInit)
                 {
                     GetAndSetData(i);
                 }
@@ -398,7 +400,7 @@ namespace UnityEditor.Rendering.Universal
         {
             for (int i = 0; i < m_ConverterStates.Count; ++i)
             {
-                if (ShouldInit(i))
+                if (m_ConverterStates[i].shouldInit)
                 {
                     var converter = m_CoreConvertersList[i];
                     if (converter.NeedsIndexing)
@@ -409,14 +411,6 @@ namespace UnityEditor.Rendering.Universal
             }
 
             return false;
-        }
-
-        bool ShouldInit(int index)
-        {
-            var state = m_ConverterStates[index];
-            if (state.isInitialized || !state.isEnabled || !state.isActive)
-                return false;
-            return true;
         }
 
         void AddToContextMenu(ContextualMenuPopulateEvent evt, int coreConverterIndex)
@@ -534,11 +528,11 @@ namespace UnityEditor.Rendering.Universal
 
             // Private implementation of a file naming function which puts the file at the selected path.
             Type assetdatabase = typeof(AssetDatabase);
-            var indexPath = (string)assetdatabase.GetMethod("GetUniquePathNameAtSelectedPath",
-                BindingFlags.NonPublic | BindingFlags.Static).Invoke(assetdatabase, new object[] {name});
+            var indexPath = (string)assetdatabase.GetMethod("GetUniquePathNameAtSelectedPath", BindingFlags.NonPublic | BindingFlags.Static).Invoke(assetdatabase, new object[] {name});
+
             // Write search index manifest
             System.IO.File.WriteAllText(indexPath,
-@"{
+                @"{
                 ""roots"": [""Assets""],
                 ""includes"": [],
                 ""excludes"": [],
@@ -556,8 +550,8 @@ namespace UnityEditor.Rendering.Universal
             EditorApplication.delayCall += () =>
             {
                 // Wait for the index to be finished
-                var context = UnityEditor.Search.SearchService.CreateContext("asset", $"p: a=\"{name}\"");
-                UnityEditor.Search.SearchService.Request(context, (_, items) =>
+                var context = Search.SearchService.CreateContext("asset", $"p: a=\"{name}\"");
+                Search.SearchService.Request(context, (_, items) =>
                 {
                     // Raise onIndexReady callback
                     onIndexReady?.Invoke(name, indexPath, items, () =>
