@@ -5,6 +5,8 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
 
+using UnityObject = UnityEngine.Object;
+
 namespace UnityEngine.Rendering.HighDefinition.Tests
 {
     class CopyToTests
@@ -12,13 +14,13 @@ namespace UnityEngine.Rendering.HighDefinition.Tests
         class DummyMonoBehaviour : MonoBehaviour {}
 
         GameObject m_Root;
-        List<UnityEngine.Object> m_ToClean;
+        List<UnityObject> m_ToClean;
 
         [SetUp]
         public void SetUp()
         {
             m_Root = new GameObject("TEST");
-            m_ToClean = new List<UnityEngine.Object> { m_Root };
+            m_Root.SetActive(false);
         }
 
         [TearDown]
@@ -72,7 +74,7 @@ namespace UnityEngine.Rendering.HighDefinition.Tests
         }
 
         #region Creation and Mutation
-        System.Object GenerateObject(Type type)
+        object GenerateObject(Type type)
         {
             if (typeof(Component).IsAssignableFrom(type))
             {
@@ -103,9 +105,9 @@ namespace UnityEngine.Rendering.HighDefinition.Tests
                 return Activator.CreateInstance(type);  //currently only default constructor are handled
         }
 
-        System.Object GenerateObjectWithMutation(Type type)
+        object GenerateObjectWithMutation(Type type)
         {
-            System.Object createdObject = GenerateObject(type);
+            object createdObject = GenerateObject(type);
 
             type = createdObject.GetType();
             foreach (FieldInfo fieldInfo in GetAllField(type))
@@ -135,7 +137,7 @@ namespace UnityEngine.Rendering.HighDefinition.Tests
                 return true;
             });
 
-        void ChangeValue(System.Object instance, FieldInfo fieldInfo)
+        void ChangeValue(object instance, FieldInfo fieldInfo)
         {
             object initialValue = fieldInfo.GetValue(instance);
 
@@ -220,7 +222,7 @@ namespace UnityEngine.Rendering.HighDefinition.Tests
                 Assert.AreNotEqual(initialValue, fieldInfo.GetValue(instance), $"Value of {fieldInfo.Name} cannot have been modified.");
         }
 
-        void AssertAllFieldMatches(System.Object a, System.Object b)
+        void AssertAllFieldMatches(object a, object b)
         {
             Assert.AreEqual(a.GetType(), b.GetType(), "Type mismatch");
 
@@ -228,7 +230,7 @@ namespace UnityEngine.Rendering.HighDefinition.Tests
                 AssertOneFieldMatch(a, b, fieldInfo);
         }
 
-        void AssertOneFieldMatch(System.Object a, System.Object b, FieldInfo fieldInfo)
+        void AssertOneFieldMatch(object a, object b, FieldInfo fieldInfo)
         {
             bool CheckContentCopy = fieldInfo
                 .GetCustomAttributes(typeof(CopyFilterAttribute))
