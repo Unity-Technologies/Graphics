@@ -25,6 +25,8 @@ namespace UnityEngine.Experimental.Rendering
         /// The shader used to visualize the probes in the debug view.
         /// </summary>
         public Shader probeDebugShader;
+
+        public ProbeVolumeSceneBounds sceneBounds;
     }
 
     public struct ProbeVolumeShadingParameters
@@ -291,6 +293,7 @@ namespace UnityEngine.Experimental.Rendering
         Dictionary<RegId, List<Chunk>>  m_Registry = new Dictionary<RegId, List<Chunk>>();
 
         internal Dictionary<int, Cell> cells = new Dictionary<int, Cell>();
+        internal ProbeVolumeSceneBounds sceneBounds;
 
         bool m_BricksLoaded = false;
         Dictionary<string, List<RegId>> m_AssetPathToBricks = new Dictionary<string, List<RegId>>();
@@ -364,6 +367,13 @@ namespace UnityEngine.Experimental.Rendering
             InitializeDebug(parameters.probeDebugMesh, parameters.probeDebugShader);
             InitProbeReferenceVolume(kProbeIndexPoolAllocationSize, m_MemoryBudget, m_PendingIndexDimChange);
             m_IsInitialized = true;
+            sceneBounds = parameters.sceneBounds;
+#if UNITY_EDITOR
+            if (sceneBounds != null)
+            {
+                UnityEditor.SceneManagement.EditorSceneManager.sceneSaved += sceneBounds.UpdateSceneBounds;
+            }
+#endif
         }
 
         /// Cleanup the Probe Volume system.
