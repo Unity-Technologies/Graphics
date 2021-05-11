@@ -6,6 +6,7 @@ using UnityEngine.Rendering;
 using UnityEngine.UIElements;
 using UnityEditorInternal;
 using System.Linq;
+using System.Reflection;
 
 namespace UnityEditor.Rendering.HighDefinition
 {
@@ -499,7 +500,7 @@ namespace UnityEditor.Rendering.HighDefinition
             }
 
             Type renderPipeManagerType = typeof(RenderPipelineManager);
-            var cleanupRenderPipeline = renderPipeManagerType.GetMethod("CleanupRenderPipeline");
+            var cleanupRenderPipeline = renderPipeManagerType.GetMethod("CleanupRenderPipeline", BindingFlags.Static | BindingFlags.NonPublic | BindingFlags.Public);
             EditorGUI.BeginChangeCheck();
             EditorGUILayout.PropertyField(serialized.supportProbeVolumes, Styles.probeVolumeSupportContentLabel);
             if (EditorGUI.EndChangeCheck())
