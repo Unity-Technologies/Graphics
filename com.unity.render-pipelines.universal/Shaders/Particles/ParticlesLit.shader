@@ -124,6 +124,8 @@ Shader "Universal Render Pipeline/Particles/Lit"
             #pragma multi_compile _ _MAIN_LIGHT_SHADOWS _MAIN_LIGHT_SHADOWS_CASCADE _MAIN_LIGHT_SHADOWS_SCREEN
             #pragma multi_compile _ _ADDITIONAL_LIGHTS_VERTEX _ADDITIONAL_LIGHTS
             #pragma multi_compile_fragment _ _ADDITIONAL_LIGHT_SHADOWS
+            #pragma multi_compile_fragment _ _REFLECTION_PROBE_BLENDING
+            #pragma multi_compile_fragment _ _REFLECTION_PROBE_BOX_PROJECTION
             #pragma multi_compile_fragment _ _SHADOWS_SOFT
             #pragma multi_compile_fragment _ _SCREEN_SPACE_OCCLUSION
 
@@ -131,7 +133,7 @@ Shader "Universal Render Pipeline/Particles/Lit"
             // Unity defined keywords
             #pragma multi_compile_fog
             #pragma multi_compile_instancing
-            #pragma multi_compile _ DEBUG_DISPLAY
+            #pragma multi_compile_fragment _ DEBUG_DISPLAY
             #pragma instancing_options procedural:ParticleInstancingSetup
 
             #pragma vertex ParticlesLitVertex
@@ -180,6 +182,8 @@ Shader "Universal Render Pipeline/Particles/Lit"
             #pragma multi_compile _ _MAIN_LIGHT_SHADOWS _MAIN_LIGHT_SHADOWS_CASCADE _MAIN_LIGHT_SHADOWS_SCREEN
             //#pragma multi_compile _ _ADDITIONAL_LIGHTS_VERTEX _ADDITIONAL_LIGHTS
             //#pragma multi_compile _ _ADDITIONAL_LIGHT_SHADOWS
+            #pragma multi_compile_fragment _ _REFLECTION_PROBE_BLENDING
+            #pragma multi_compile_fragment _ _REFLECTION_PROBE_BOX_PROJECTION
             #pragma multi_compile _ _SHADOWS_SOFT
             #pragma multi_compile_fragment _ _GBUFFER_NORMALS_OCT
 

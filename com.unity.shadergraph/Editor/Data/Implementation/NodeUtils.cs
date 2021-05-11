@@ -542,6 +542,8 @@ namespace UnityEditor.Graphing
                     return "3x3";
                 case ConcreteSlotValueType.Matrix4:
                     return "4x4";
+                case ConcreteSlotValueType.PropertyConnectionState:
+                    return String.Empty;
                 default:
                     return "Error";
             }

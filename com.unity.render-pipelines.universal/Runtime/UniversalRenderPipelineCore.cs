@@ -39,6 +39,8 @@ namespace UnityEngine.Rendering.Universal
         public NativeArray<VisibleLight> visibleLights;
         public bool shadeAdditionalLightsPerVertex;
         public bool supportsMixedLighting;
+        public bool reflectionProbeBoxProjection;
+        public bool reflectionProbeBlending;
         public bool supportsLightLayers;
     }
 
@@ -260,6 +262,9 @@ namespace UnityEngine.Rendering.Universal
         public static readonly int glossyEnvironmentColor = Shader.PropertyToID("_GlossyEnvironmentColor");
         public static readonly int subtractiveShadowColor = Shader.PropertyToID("_SubtractiveShadowColor");
 
+        public static readonly int glossyEnvironmentCubeMap = Shader.PropertyToID("_GlossyEnvironmentCubeMap");
+        public static readonly int glossyEnvironmentCubeMapHDR = Shader.PropertyToID("_GlossyEnvironmentCubeMap_HDR");
+
         public static readonly int ambientSkyColor = Shader.PropertyToID("unity_AmbientSky");
         public static readonly int ambientEquatorColor = Shader.PropertyToID("unity_AmbientEquator");
         public static readonly int ambientGroundColor = Shader.PropertyToID("unity_AmbientGround");
@@ -276,6 +281,8 @@ namespace UnityEngine.Rendering.Universal
         public static readonly int projectionParams = Shader.PropertyToID("_ProjectionParams");
         public static readonly int zBufferParams = Shader.PropertyToID("_ZBufferParams");
         public static readonly int orthoParams = Shader.PropertyToID("unity_OrthoParams");
+
+        public static readonly int screenSize = Shader.PropertyToID("_ScreenSize");
 
         public static readonly int viewMatrix = Shader.PropertyToID("unity_MatrixV");
         public static readonly int projectionMatrix = Shader.PropertyToID("glstate_matrix_projection");
@@ -323,6 +330,8 @@ namespace UnityEngine.Rendering.Universal
         public static readonly string AdditionalLightsVertex = "_ADDITIONAL_LIGHTS_VERTEX";
         public static readonly string AdditionalLightsPixel = "_ADDITIONAL_LIGHTS";
         public static readonly string AdditionalLightShadows = "_ADDITIONAL_LIGHT_SHADOWS";
+        public static readonly string ReflectionProbeBoxProjection = "_REFLECTION_PROBE_BOX_PROJECTION";
+        public static readonly string ReflectionProbeBlending = "_REFLECTION_PROBE_BLENDING";
         public static readonly string SoftShadows = "_SHADOWS_SOFT";
         public static readonly string MixedLightingSubtractive = "_MIXED_LIGHTING_SUBTRACTIVE"; // Backward compatibility
         public static readonly string LightmapShadowMixing = "LIGHTMAP_SHADOW_MIXING";
@@ -337,6 +346,13 @@ namespace UnityEngine.Rendering.Universal
 
         public static readonly string LinearToSRGBConversion = "_LINEAR_TO_SRGB_CONVERSION";
         internal static readonly string UseFastSRGBLinearConversion = "_USE_FAST_SRGB_LINEAR_CONVERSION";
+
+        public static readonly string DBufferMRT1 = "_DBUFFER_MRT1";
+        public static readonly string DBufferMRT2 = "_DBUFFER_MRT2";
+        public static readonly string DBufferMRT3 = "_DBUFFER_MRT3";
+        public static readonly string DecalNormalBlendLow = "_DECAL_NORMAL_BLEND_LOW";
+        public static readonly string DecalNormalBlendMedium = "_DECAL_NORMAL_BLEND_MEDIUM";
+        public static readonly string DecalNormalBlendHigh = "_DECAL_NORMAL_BLEND_HIGH";
 
         public static readonly string SmaaLow = "_SMAA_PRESET_LOW";
         public static readonly string SmaaMedium = "_SMAA_PRESET_MEDIUM";
@@ -370,6 +386,7 @@ namespace UnityEngine.Rendering.Universal
         public static readonly string _DEFERRED_FIRST_LIGHT = "_DEFERRED_FIRST_LIGHT";
         public static readonly string _DEFERRED_MAIN_LIGHT = "_DEFERRED_MAIN_LIGHT";
         public static readonly string _DEFERRED_LIGHT_SHADOWS = "_DEFERRED_LIGHT_SHADOWS";
+        public static readonly string _DEFERRED_SHADOWS_SOFT = "_DEFERRED_SHADOWS_SOFT";
         public static readonly string _GBUFFER_NORMALS_OCT = "_GBUFFER_NORMALS_OCT";
         public static readonly string _DEFERRED_MIXED_LIGHTING = "_DEFERRED_MIXED_LIGHTING";
         public static readonly string LIGHTMAP_ON = "LIGHTMAP_ON";
@@ -381,6 +398,13 @@ namespace UnityEngine.Rendering.Universal
         public static readonly string _CLEARCOAT = "_CLEARCOAT";
         public static readonly string _CLEARCOATMAP = "_CLEARCOATMAP";
         public static readonly string DEBUG_DISPLAY = "DEBUG_DISPLAY";
+
+        public static readonly string _EMISSION = "_EMISSION";
+        public static readonly string _RECEIVE_SHADOWS_OFF = "_RECEIVE_SHADOWS_OFF";
+        public static readonly string _SURFACE_TYPE_TRANSPARENT = "_SURFACE_TYPE_TRANSPARENT";
+        public static readonly string _ALPHAPREMULTIPLY_ON = "_ALPHAPREMULTIPLY_ON";
+        public static readonly string _ALPHAMODULATE_ON = "_ALPHAMODULATE_ON";
+        public static readonly string _NORMALMAP = "_NORMALMAP";
 
         // XR
         public static readonly string UseDrawProcedural = "_USE_DRAW_PROCEDURAL";
@@ -469,28 +493,31 @@ namespace UnityEngine.Rendering.Universal
 
 #endif
 
+        static GraphicsFormat MakeRenderTextureGraphicsFormat(bool isHdrEnabled, bool needsAlpha)
+        {
+            if (isHdrEnabled)
+            {
+                if (!needsAlpha && RenderingUtils.SupportsGraphicsFormat(GraphicsFormat.B10G11R11_UFloatPack32, FormatUsage.Linear | FormatUsage.Render))
+                    return GraphicsFormat.B10G11R11_UFloatPack32;
+                if (RenderingUtils.SupportsGraphicsFormat(GraphicsFormat.R16G16B16A16_SFloat, FormatUsage.Linear | FormatUsage.Render))
+                    return GraphicsFormat.R16G16B16A16_SFloat;
+                return SystemInfo.GetGraphicsFormat(DefaultFormat.HDR); // This might actually be a LDR format on old devices.
+            }
+
+            return SystemInfo.GetGraphicsFormat(DefaultFormat.LDR);
+        }
+
         static RenderTextureDescriptor CreateRenderTextureDescriptor(Camera camera, float renderScale,
             bool isHdrEnabled, int msaaSamples, bool needsAlpha, bool requiresOpaqueTexture)
         {
             RenderTextureDescriptor desc;
-            GraphicsFormat renderTextureFormatDefault = SystemInfo.GetGraphicsFormat(DefaultFormat.LDR);
 
             if (camera.targetTexture == null)
             {
                 desc = new RenderTextureDescriptor(camera.pixelWidth, camera.pixelHeight);
                 desc.width = (int)((float)desc.width * renderScale);
                 desc.height = (int)((float)desc.height * renderScale);
-
-
-                GraphicsFormat hdrFormat;
-                if (!needsAlpha && RenderingUtils.SupportsGraphicsFormat(GraphicsFormat.B10G11R11_UFloatPack32, FormatUsage.Linear | FormatUsage.Render))
-                    hdrFormat = GraphicsFormat.B10G11R11_UFloatPack32;
-                else if (RenderingUtils.SupportsGraphicsFormat(GraphicsFormat.R16G16B16A16_SFloat, FormatUsage.Linear | FormatUsage.Render))
-                    hdrFormat = GraphicsFormat.R16G16B16A16_SFloat;
-                else
-                    hdrFormat = SystemInfo.GetGraphicsFormat(DefaultFormat.HDR); // This might actually be a LDR format on old devices.
-
-                desc.graphicsFormat = isHdrEnabled ? hdrFormat : renderTextureFormatDefault;
+                desc.graphicsFormat = MakeRenderTextureGraphicsFormat(isHdrEnabled, needsAlpha);
                 desc.depthBufferBits = 32;
                 desc.msaaSamples = msaaSamples;
                 desc.sRGB = (QualitySettings.activeColorSpace == ColorSpace.Linear);
@@ -500,9 +527,9 @@ namespace UnityEngine.Rendering.Universal
                 desc = camera.targetTexture.descriptor;
                 desc.width = camera.pixelWidth;
                 desc.height = camera.pixelHeight;
-                if (camera.cameraType == CameraType.SceneView  && !isHdrEnabled)
+                if (camera.cameraType == CameraType.SceneView && !isHdrEnabled)
                 {
-                    desc.graphicsFormat = renderTextureFormatDefault;
+                    desc.graphicsFormat = SystemInfo.GetGraphicsFormat(DefaultFormat.LDR);
                 }
                 // SystemInfo.SupportsRenderTextureFormat(camera.targetTexture.descriptor.colorFormat)
                 // will assert on R8_SINT since it isn't a valid value of RenderTextureFormat.
@@ -774,6 +801,7 @@ namespace UnityEngine.Rendering.Universal
         PaniniProjection,
         UberPostProcess,
         Bloom,
+        LensFlareDataDriven,
 
         FinalBlit
     }

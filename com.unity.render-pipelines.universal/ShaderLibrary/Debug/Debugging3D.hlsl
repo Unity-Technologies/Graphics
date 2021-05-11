@@ -29,85 +29,63 @@ void SetupDebugDataBrdf(inout InputData inputData, half3 brdfDiffuse, half3 brdf
     inputData.brdfSpecular = brdfSpecular;
 }
 
-half3 GetLODDebugColor()
-{
-#ifdef SHADER_API_GLES
-    // No integer bit ops on GLES
-    return kPurpleColor.rgb;
-#else
-    if (IsBitSet(unity_LODFade.z, 0))
-        return GetDebugColor(0);
-    else if (IsBitSet(unity_LODFade.z, 1))
-        return GetDebugColor(1);
-    else if (IsBitSet(unity_LODFade.z, 2))
-        return GetDebugColor(2);
-    else if (IsBitSet(unity_LODFade.z, 3))
-        return GetDebugColor(3);
-    else if (IsBitSet(unity_LODFade.z, 4))
-        return GetDebugColor(4);
-    else if (IsBitSet(unity_LODFade.z, 5))
-        return GetDebugColor(5);
-    else if (IsBitSet(unity_LODFade.z, 6))
-        return GetDebugColor(6);
-    else if (IsBitSet(unity_LODFade.z, 7))
-        return GetDebugColor(7);
-    else
-        return GetDebugColor(8);
-#endif
-}
-
 bool UpdateSurfaceAndInputDataForDebug(inout SurfaceData surfaceData, inout InputData inputData)
 {
-    bool changed = false;
+    #if SHADER_API_VULKAN || SHADER_API_GLES || SHADER_API_GLES3 || SHADER_API_GLCORE
+        // Something about this function is problematic for HLSLcc (generates forbidden 'uintBitsToFloat' intrinsics).
+        // Re-enable when this is fixed.
+        return false;
+    #else
+        bool changed = false;
 
-    if (_DebugLightingMode == DEBUGLIGHTINGMODE_LIGHT_ONLY || _DebugLightingMode == DEBUGLIGHTINGMODE_LIGHT_DETAIL)
-    {
-        surfaceData.albedo = 1;
-        surfaceData.emission = 0;
-        surfaceData.specular = 0;
-        surfaceData.occlusion = 1;
-        surfaceData.clearCoatMask = 0;
-        surfaceData.clearCoatSmoothness = 1;
-        surfaceData.metallic = 0;
-        surfaceData.smoothness = 0;
-        changed = true;
-    }
-    else if (_DebugLightingMode == DEBUGLIGHTINGMODE_REFLECTIONS || _DebugLightingMode == DEBUGLIGHTINGMODE_REFLECTIONS_WITH_SMOOTHNESS)
-    {
-        surfaceData.albedo = 0;
-        surfaceData.emission = 0;
-        surfaceData.occlusion = 1;
-        surfaceData.clearCoatMask = 0;
-        surfaceData.clearCoatSmoothness = 1;
-        if (_DebugLightingMode == DEBUGLIGHTINGMODE_REFLECTIONS)
+        if (_DebugLightingMode == DEBUGLIGHTINGMODE_LIGHTING_WITHOUT_NORMAL_MAPS || _DebugLightingMode == DEBUGLIGHTINGMODE_LIGHTING_WITH_NORMAL_MAPS)
         {
-            surfaceData.specular = 1;
-            surfaceData.metallic = 0;
-            surfaceData.smoothness = 1;
-        }
-        else if (_DebugLightingMode == DEBUGLIGHTINGMODE_REFLECTIONS_WITH_SMOOTHNESS)
-        {
+            surfaceData.albedo = 1;
+            surfaceData.emission = 0;
             surfaceData.specular = 0;
-            surfaceData.metallic = 1;
+            surfaceData.occlusion = 1;
+            surfaceData.clearCoatMask = 0;
+            surfaceData.clearCoatSmoothness = 1;
+            surfaceData.metallic = 0;
             surfaceData.smoothness = 0;
+            changed = true;
         }
-        changed = true;
-    }
+        else if (_DebugLightingMode == DEBUGLIGHTINGMODE_REFLECTIONS || _DebugLightingMode == DEBUGLIGHTINGMODE_REFLECTIONS_WITH_SMOOTHNESS)
+        {
+            surfaceData.albedo = 0;
+            surfaceData.emission = 0;
+            surfaceData.occlusion = 1;
+            surfaceData.clearCoatMask = 0;
+            surfaceData.clearCoatSmoothness = 1;
+            if (_DebugLightingMode == DEBUGLIGHTINGMODE_REFLECTIONS)
+            {
+                surfaceData.specular = 1;
+                surfaceData.metallic = 0;
+                surfaceData.smoothness = 1;
+            }
+            else if (_DebugLightingMode == DEBUGLIGHTINGMODE_REFLECTIONS_WITH_SMOOTHNESS)
+            {
+                surfaceData.specular = 0;
+                surfaceData.metallic = 1;
+                surfaceData.smoothness = 0;
+            }
+            changed = true;
+        }
 
-    if (_DebugLightingMode == DEBUGLIGHTINGMODE_LIGHT_ONLY || _DebugLightingMode == DEBUGLIGHTINGMODE_REFLECTIONS)
-    {
-        const half3 normalTS = half3(0, 0, 1);
+        if (_DebugLightingMode == DEBUGLIGHTINGMODE_LIGHTING_WITHOUT_NORMAL_MAPS || _DebugLightingMode == DEBUGLIGHTINGMODE_REFLECTIONS)
+        {
+            const half3 normalTS = half3(0, 0, 1);
+            #if defined(_NORMALMAP)
+            inputData.normalWS = TransformTangentToWorld(normalTS, inputData.tangentToWorld);
+            #else
+            inputData.normalWS = inputData.normalWS;
+            #endif
+            surfaceData.normalTS = normalTS;
+            changed = true;
+        }
 
-        #if defined(_NORMALMAP)
-        inputData.normalWS = TransformTangentToWorld(normalTS, inputData.tangentToWorld);
-        #else
-        inputData.normalWS = inputData.normalWS;
-        #endif
-        surfaceData.normalTS = normalTS;
-        changed = true;
-    }
-
-    return changed;
+        return changed;
+    #endif
 }
 
 bool CalculateValidationMetallic(half3 albedo, half metallic, inout half4 debugColor)
@@ -131,41 +109,16 @@ bool CalculateValidationMetallic(half3 albedo, half metallic, inout half4 debugC
 
 bool CalculateValidationColorForDebug(in InputData inputData, in SurfaceData surfaceData, inout half4 debugColor)
 {
-    switch(_DebugValidationMode)
+    switch(_DebugMaterialValidationMode)
     {
-        case DEBUGVALIDATIONMODE_NONE:
-        case DEBUGVALIDATIONMODE_HIGHLIGHT_NAN_INF_NEGATIVE:
-        case DEBUGVALIDATIONMODE_HIGHLIGHT_OUTSIDE_OF_RANGE:
+        case DEBUGMATERIALVALIDATIONMODE_NONE:
             return false;
 
-        case DEBUGVALIDATIONMODE_VALIDATE_ALBEDO:
+        case DEBUGMATERIALVALIDATIONMODE_ALBEDO:
             return CalculateValidationAlbedo(surfaceData.albedo, debugColor);
 
-        case DEBUGVALIDATIONMODE_VALIDATE_METALLIC:
+        case DEBUGMATERIALVALIDATIONMODE_METALLIC:
             return CalculateValidationMetallic(surfaceData.albedo, surfaceData.metallic, debugColor);
-
-        case DEBUGVALIDATIONMODE_VALIDATE_MIPMAPS:
-            return CalculateValidationMipLevel(inputData.mipCount, inputData.mipInfo.y, inputData.uv, inputData.texelSize, surfaceData.albedo, surfaceData.alpha, debugColor);
-
-        default:
-            return TryGetDebugColorInvalidMode(debugColor);
-    }
-}
-
-bool CalculateDebugColorForMipmaps(in InputData inputData, in SurfaceData surfaceData, inout half4 debugColor)
-{
-    switch (_DebugMipInfoMode)
-    {
-        case DEBUGMIPINFOMODE_NONE:
-            return false;
-
-        case DEBUGMIPINFOMODE_LEVEL:
-            debugColor = GetMipLevelDebugColor(inputData.positionWS, surfaceData.albedo, inputData.uv, inputData.texelSize);
-            return true;
-
-        case DEBUGMIPINFOMODE_COUNT:
-            debugColor = GetMipCountDebugColor(inputData.positionWS, surfaceData.albedo, inputData.mipCount);
-            return true;
 
         default:
             return TryGetDebugColorInvalidMode(debugColor);
@@ -212,10 +165,6 @@ bool CalculateColorForDebugMaterial(in InputData inputData, in SurfaceData surfa
             debugColor = half4(surfaceData.normalTS.xyz * 0.5 + 0.5, 1);
             return true;
 
-        case DEBUGMATERIALMODE_LOD:
-            debugColor = half4(GetLODDebugColor(), 1);
-            return true;
-
         case DEBUGMATERIALMODE_METALLIC:
             debugColor = half4(surfaceData.metallic.rrr, 1);
             return true;
@@ -239,10 +188,6 @@ bool CalculateColorForDebug(in InputData inputData, in SurfaceData surfaceData, 
     {
         return true;
     }
-    else if (CalculateDebugColorForMipmaps(inputData, surfaceData, debugColor))
-    {
-        return true;
-    }
     else
     {
         return false;
@@ -253,8 +198,14 @@ half3 CalculateDebugShadowCascadeColor(in InputData inputData)
 {
     float3 positionWS = inputData.positionWS;
     half cascadeIndex = ComputeCascadeIndex(positionWS);
-
-    return GetDebugColor(cascadeIndex).rgb;
+    switch (uint(cascadeIndex))
+    {
+        case 0: return kDebugColorBrightRed.rgb;
+        case 1: return kDebugColorDarkYellow.rgb;
+        case 2: return kDebugColorSkyBlue.rgb;
+        case 3: return kDebugColorBrightGreen.rgb;
+        default: return kDebugColorBlack.rgb;
+    }
 }
 
 half4 CalculateDebugLightingComplexityColor(in InputData inputData, in SurfaceData surfaceData)
@@ -262,7 +213,21 @@ half4 CalculateDebugLightingComplexityColor(in InputData inputData, in SurfaceDa
     // Assume a main light and add 1 to the additional lights.
     int numLights = GetAdditionalLightsCount() + 1;
 
-    return CalculateDebugColorWithNumber(inputData.positionWS, surfaceData.albedo, numLights);
+    const uint2 tileSize = uint2(32,32);
+    const uint maxLights = 9;
+    const float opacity = 0.8f;
+
+    uint2 pixelCoord = uint2(inputData.normalizedScreenSpaceUV * _ScreenParams.xy);
+    half3 base = surfaceData.albedo;
+    half4 overlay = half4(OverlayHeatMap(pixelCoord, tileSize, numLights, maxLights, opacity));
+
+    uint2 tileCoord = (float2)pixelCoord / tileSize;
+    uint2 offsetInTile = pixelCoord - tileCoord * tileSize;
+    bool border = any(offsetInTile == 0 || offsetInTile == tileSize.x - 1);
+    if (border)
+        overlay = half4(1, 1, 1, 0.4f);
+
+    return half4(lerp(base.rgb, overlay.rgb, overlay.a), 1);
 }
 
 bool CanDebugOverrideOutputColor(inout InputData inputData, inout SurfaceData surfaceData, inout BRDFData brdfData, inout half4 debugColor)
@@ -280,23 +245,23 @@ bool CanDebugOverrideOutputColor(inout InputData inputData, inout SurfaceData su
         {
             surfaceData.albedo = CalculateDebugShadowCascadeColor(inputData);
         }
-        else if ((_DebugMaterialMode == DEBUGMATERIALMODE_LOD) && CalculateColorForDebug(inputData, surfaceData, debugColor))
-        {
-            surfaceData.albedo = debugColor.rgb;
-        }
         else
         {
             if (UpdateSurfaceAndInputDataForDebug(surfaceData, inputData))
             {
                 // If we've modified any data we'll need to re-sample the GI to ensure that everything works correctly...
-                inputData.bakedGI = SAMPLE_GI(inputData.lightmapUV, inputData.vertexSH, inputData.normalWS);
+                #if defined(DYNAMICLIGHTMAP_ON)
+                inputData.bakedGI = SAMPLE_GI(inputData.staticLightmapUV, inputData.dynamicLightmapUV.xy, inputData.vertexSH, inputData.normalWS);
+                #else
+                inputData.bakedGI = SAMPLE_GI(inputData.staticLightmapUV, inputData.vertexSH, inputData.normalWS);
+                #endif
             }
         }
 
         // Update the BRDF data following any changes to the input/surface above...
         InitializeBRDFData(surfaceData, brdfData);
 
-        return (_DebugMaterialMode != DEBUGMATERIALMODE_LOD) && CalculateColorForDebug(inputData, surfaceData, debugColor);
+        return CalculateColorForDebug(inputData, surfaceData, debugColor);
     }
 }
 
@@ -313,20 +278,20 @@ bool CanDebugOverrideOutputColor(inout InputData inputData, inout SurfaceData su
         {
             surfaceData.albedo = CalculateDebugShadowCascadeColor(inputData);
         }
-        else if ((_DebugMaterialMode == DEBUGMATERIALMODE_LOD) && CalculateColorForDebug(inputData, surfaceData, debugColor))
-        {
-            surfaceData.albedo = debugColor.rgb;
-        }
         else
         {
             if (UpdateSurfaceAndInputDataForDebug(surfaceData, inputData))
             {
                 // If we've modified any data we'll need to re-sample the GI to ensure that everything works correctly...
-                inputData.bakedGI = SAMPLE_GI(inputData.lightmapUV, inputData.vertexSH, inputData.normalWS);
+                #if defined(DYNAMICLIGHTMAP_ON)
+                inputData.bakedGI = SAMPLE_GI(inputData.staticLightmapUV, inputData.dynamicLightmapUV.xy, inputData.vertexSH, inputData.normalWS);
+                #else
+                inputData.bakedGI = SAMPLE_GI(inputData.staticLightmapUV, inputData.vertexSH, inputData.normalWS);
+                #endif
             }
         }
 
-        return (_DebugMaterialMode != DEBUGMATERIALMODE_LOD) && CalculateColorForDebug(inputData, surfaceData, debugColor);
+        return CalculateColorForDebug(inputData, surfaceData, debugColor);
     }
 }
 

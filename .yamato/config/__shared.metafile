@@ -1,5 +1,4 @@
 target_branch: master # specifies the branch on which recurrent or pr triggers are created, etc
-target_branch_editor_ci: ci/editor-pinning # specifies the branch on which editor pinning is done
 target_editor: trunk # specifies the target editor used for some package/preview publish jobs
 conditional_jobs: # some jobs are relevent only depending on the branch
   preview_publish: True
@@ -10,6 +9,7 @@ editors: # applied for all yml files
   - track: trunk
     name: trunk
     rerun_strategy: on_new_revision
+    ono_branch_var: ONO_BRANCH_TRUNK
     editor_pinning:
       enabled: True
       green_abv_required: False
@@ -63,44 +63,44 @@ test_platforms:
       - [OSX_OpenGlCore, OSX_Metal]: --platform=StandaloneOSX
       - [iPhone_Metal]: --platform=iOS
       - [Android_OpenGLES3, Android_Vulkan, XRQuest_OpenGLES3, XRQuest_Vulkan]: --platform=Android
-      
+
       - [Android_OpenGLES3, Android_Vulkan, iPhone_Metal,Win_DX11, Win_DX12, Win_Vulkan, Win_, Linux_OpenGlCore, Linux_Vulkan, XRQuest_OpenGLES3, XRQuest_Vulkan]: --player-load-path=players
-      
+
       - [all]: --artifacts_path=TestProjects/<PROJECT_FOLDER>/test-results
       - [OSX_Metal]: --artifacts_path=/Users/bokken/Graphics/TestProjects/<PROJECT_FOLDER>/test-results
-        
+
       - [OSX_Metal]: --editor-location=.Editor
 
       - [OSX_Metal]: --scripting-backend=<SCRIPTING_BACKEND>
-      - [OSX_Metal]: --testfilter=%TEST_FILTER% 
-     
+      - [OSX_Metal]: --testfilter=%TEST_FILTER%
+
       - [Android_OpenGLES3, Android_Vulkan, XRQuest_OpenGLES3, XRQuest_Vulkan]: --architecture=ARM64
       - [OSX_Metal]: --testproject=/Users/bokken/Graphics/TestProjects/<PROJECT_FOLDER>
-      - [Win_DX11, Win_DX12, Win_Vulkan, Win_, Linux_OpenGlCore, Linux_Vulkan]: --player-connection-ip=auto 
+      - [Win_DX11, Win_DX12, Win_Vulkan, Win_, Linux_OpenGlCore, Linux_Vulkan]: --player-connection-ip=auto
 
     utr_flags_build:
-      - [all]: --testfilter=%TEST_FILTER% 
+      - [all]: --testfilter=%TEST_FILTER%
       - [all]: --suite=playmode
       - [all]: --build-only
       - [all]: --scripting-backend=<SCRIPTING_BACKEND>
-      - [all]: --extra-editor-arg="-colorspace=<COLORSPACE>" 
-      
+      - [all]: --extra-editor-arg="-colorspace=<COLORSPACE>"
+
       - [Win_DX11, Win_DX12, Win_Vulkan, Win_]: --platform=StandaloneWindows64
       - [Linux_OpenGlCore, Linux_Vulkan]: --platform=StandaloneLinux64
       - [OSX_OpenGlCore, OSX_Metal]: --platform=StandaloneOSX
       - [iPhone_Metal]: --platform=iOS
       - [Android_OpenGLES3, Android_Vulkan, XRQuest_OpenGLES3, XRQuest_Vulkan]: --platform=Android
-      
+
       - [all]: --testproject=./TestProjects/<PROJECT_FOLDER>
-      
+
       - [all]: --editor-location=.Editor
       - [Android_OpenGLES3, Android_Vulkan, XRQuest_OpenGLES3, XRQuest_Vulkan]: --editor-location=./WindowsEditor
       - [XRQuest_Vulkan, XRQuest_OpenGLES3]: --extra-editor-arg="-enabledxrtargets=OculusXRSDK"
-      
+
       - [all]: --artifacts_path=TestProjects/<PROJECT_FOLDER>/test-results
-      
+
       - [Android_OpenGLES3, Android_Vulkan, iPhone_Metal, Win_DX11, Win_DX12, Win_Vulkan, Win_, Linux_OpenGlCore, Linux_Vulkan, XRQuest_OpenGLES3, XRQuest_Vulkan]: --player-save-path=players
-      
+
       - [all]: --timeout=1200
       - [Android_OpenGLES3, Android_Vulkan, XRQuest_OpenGLES3, XRQuest_Vulkan]: --timeout=2700
       - [iPhone]: --timeout=1800
@@ -111,13 +111,13 @@ test_platforms:
       - [Win_Vulkan, Linux_Vulkan, Android_Vulkan, XRQuest_Vulkan]: --extra-editor-arg="-executemethod" --extra-editor-arg="SetupProject.ApplySettings" --extra-editor-arg="vulkan" --extra-editor-arg="<COLORSPACE>"
       - [Android_OpenGLES3, XRQuest_OpenGLES3]: --extra-editor-arg="-executemethod" --extra-editor-arg="SetupProject.ApplySettings" --extra-editor-arg="gles3" --extra-editor-arg="<COLORSPACE>"
       - [iPhone_Metal]: --extra-editor-arg="-executemethod" --extra-editor-arg="SetupProject.ApplySettings" --extra-editor-arg="metal" --extra-editor-arg="<COLORSPACE>"
-      
+
       - [Win_DX11]: --extra-editor-arg="-playergraphicsapi=Direct3D11"
       - [Win_DX12]: --extra-editor-arg="-playergraphicsapi=Direct3D12"
       - [Win_Vulkan, Linux_Vulkan, Android_Vulkan, XRQuest_Vulkan]: --extra-editor-arg="-playergraphicsapi=Vulkan"
       - [Android_OpenGLES3, XRQuest_OpenGLES3]: --extra-editor-arg="-playergraphicsapi=OpenGLES3"
       - [iPhone_Metal]: --extra-editor-arg="-playergraphicsapi=Metal"
-      
+
       - [Android_OpenGLES3, Android_Vulkan, XRQuest_OpenGLES3, XRQuest_Vulkan]: --architecture=ARM64
     commands:
       - [Android_OpenGLES3, Android_Vulkan]: <shared.platform.commands.connect_bokken>
@@ -133,20 +133,20 @@ test_platforms:
       - [all]: <shared.platform.commands.call_utr>
   - type: playmode
     utr_flags:
-      - [all]: --testfilter=%TEST_FILTER% 
+      - [all]: --testfilter=%TEST_FILTER%
       - [all]: --zero-tests-are-ok=1
       - [all]: --suite=playmode
-      - [all]: --scripting-backend=<SCRIPTING_BACKEND> 
+      - [all]: --scripting-backend=<SCRIPTING_BACKEND>
       # - [all]: --reruncount=2
       - [all]: --extra-editor-arg="-colorspace=<COLORSPACE>"
-      
+
       - [all]: --testproject=./TestProjects/<PROJECT_FOLDER>
       - [OSX_Metal]: --testproject=/Users/bokken/Graphics/TestProjects/<PROJECT_FOLDER>
 
       - [all]: --editor-location=.Editor
       - [Android_OpenGLES3, Android_Vulkan]: --editor-location=./WindowsEditor
       - [OSX_Metal]: --editor-location=/Users/bokken/.Editor
-      
+
       - [all]: --artifacts_path=TestProjects/<PROJECT_FOLDER>/test-results
       - [OSX_Metal]: --artifacts_path=/Users/bokken/Graphics/TestProjects/<PROJECT_FOLDER>/test-results
 
@@ -159,26 +159,26 @@ test_platforms:
       - [all]: <shared.platform.commands.setup_utr>
       - [all]: <shared.platform.commands.unity_downloader_cli>
       - [all]: <shared.platform.commands.call_utr>
-      
+
   - type: editmode
     utr_flags:
-      - [all]: --testfilter=%TEST_FILTER% 
+      - [all]: --testfilter=%TEST_FILTER%
       - [all]: --zero-tests-are-ok=1
       - [all]: --suite=editor
       # - [all]: --reruncount=2
-      - [all]: --scripting-backend=<SCRIPTING_BACKEND> 
+      - [all]: --scripting-backend=<SCRIPTING_BACKEND>
       - [all]: --platform=editmode
       - [all]: --extra-editor-arg="-colorspace=<COLORSPACE>"
       - [Android_OpenGLES3, Android_Vulkan]: --platform=Android
       - [iPhone_Metal]: --platform=iOS
-      
+
       - [all]: --testproject=./TestProjects/<PROJECT_FOLDER>
       - [OSX_Metal]: --testproject=/Users/bokken/Graphics/TestProjects/<PROJECT_FOLDER>
 
       - [all]: --editor-location=.Editor
       - [Android_OpenGLES3, Android_Vulkan]: --editor-location=./WindowsEditor
       - [OSX_Metal]: --editor-location=Users/bokken/.Editor
-      
+
       - [all]: --artifacts_path=TestProjects/<PROJECT_FOLDER>/test-results
       - [OSX_Metal]: --artifacts_path=/Users/bokken/Graphics/TestProjects/<PROJECT_FOLDER>/test-results
 
@@ -244,12 +244,12 @@ platforms:
                     echo %GIT_REVISIONDATE%
                     del revdate.tmp
                     utr <UTR_FLAGS> & exit 0
-        unity_downloader_cli: 
+        unity_downloader_cli:
           - choco install unity-downloader-cli -y -s https://artifactory.prd.it.unity3d.com/artifactory/api/nuget/unity-choco-local
           - unity-downloader-cli <EDITOR_REVISION_CMD> -c editor -c il2cpp  --wait --published-only
-        turn_off_firewall: 
+        turn_off_firewall:
           - NetSh Advfirewall set allprofiles state off
-  
+
   OSX:
     name: OSX
     os: macos
@@ -274,7 +274,7 @@ platforms:
     editorpath: "$(pwd)/.Editor/Unity.app/Contents/MacOS/Unity"
     commands:
       [Metal]:
-        setup_utr: 
+        setup_utr:
           - curl -s https://artifactory.prd.it.unity3d.com/artifactory/unity-tools-local/utr-standalone/utr --output utr
           - chmod +x utr
           - scp -i ~/.ssh/id_rsa_macmini -r $YAMATO_SOURCE_DIR bokken@$BOKKEN_DEVICE_IP:~/Graphics
@@ -282,14 +282,14 @@ platforms:
         call_utr: # TODO add git commands when needed
           - |5-
                     ssh -i ~/.ssh/id_rsa_macmini bokken@$BOKKEN_DEVICE_IP "export UPM_REGISTRY=https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates; ~/Graphics/utr  <UTR_FLAGS> "
-                    UTR_RESULT=$? 
+                    UTR_RESULT=$?
                     mkdir -p TestProjects/<PROJECT_FOLDER>/test-results/
                     scp -i ~/.ssh/id_rsa_macmini -r bokken@$BOKKEN_DEVICE_IP:/Users/bokken/Graphics/TestProjects/<PROJECT_FOLDER>/test-results/ TestProjects/<PROJECT_FOLDER>/test-results/
                     exit $UTR_RESULT
         call_utr_without_git:
           - |5-
                     ssh -i ~/.ssh/id_rsa_macmini bokken@$BOKKEN_DEVICE_IP "export UPM_REGISTRY=https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates; ~/Graphics/utr  <UTR_FLAGS> "
-                    UTR_RESULT=$? 
+                    UTR_RESULT=$?
                     mkdir -p TestProjects/<PROJECT_FOLDER>/test-results/
                     scp -i ~/.ssh/id_rsa_macmini -r bokken@$BOKKEN_DEVICE_IP:/Users/bokken/Graphics/TestProjects/<PROJECT_FOLDER>/test-results/ TestProjects/<PROJECT_FOLDER>/test-results/
                     exit $UTR_RESULT
@@ -331,7 +331,7 @@ platforms:
         flavor: b1.xlarge
     commands:
       [OpenGlCore, Vulkan]:
-        setup_utr: 
+        setup_utr:
           - curl -s https://artifactory.prd.it.unity3d.com/artifactory/unity-tools-local/utr-standalone/utr --output utr
           - chmod +x utr
         call_utr:
@@ -345,7 +345,7 @@ platforms:
           - sudo apt update
           - sudo apt install unity-downloader-cli
           - sudo unity-downloader-cli <EDITOR_REVISION_CMD> -c editor -c il2cpp  --wait --published-only
-      
+
 
   Android:
     name: Android
@@ -365,7 +365,7 @@ platforms:
         flavor: b1.large
     commands:
       [OpenGLES3, Vulkan]:
-        setup_utr: 
+        setup_utr:
           - curl -s https://artifactory.prd.it.unity3d.com/artifactory/unity-tools-local/utr-standalone/utr.bat --output utr.bat
         call_utr:
           - |5-
@@ -378,16 +378,16 @@ platforms:
         call_utr_without_git:
           - utr <UTR_FLAGS>
         unity_downloader_cli:
-          - pip install unity-downloader-cli --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade
+          - choco install unity-downloader-cli -y -s https://artifactory.prd.it.unity3d.com/artifactory/api/nuget/unity-choco-local
           - unity-downloader-cli <EDITOR_REVISION_CMD> -p WindowsEditor -c editor -c il2cpp -c android  --wait --published-only
-        turn_off_firewall: 
+        turn_off_firewall:
           - NetSh Advfirewall set allprofiles state off
         connect_bokken:
           - '%ANDROID_SDK_ROOT%\platform-tools\adb.exe connect %BOKKEN_DEVICE_IP%'
           - powershell %ANDROID_SDK_ROOT%\platform-tools\adb.exe devices
-        kill_server: 
+        kill_server:
           - start %ANDROID_SDK_ROOT%\platform-tools\adb.exe kill-server
-      
+
 
   XRQuest:
     name: XRQuest
@@ -426,12 +426,12 @@ platforms:
         unity_downloader_cli:
           - pip install unity-downloader-cli --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade
           - unity-downloader-cli <EDITOR_REVISION_CMD> -p WindowsEditor -c editor -c il2cpp -c android  --wait --published-only
-        turn_off_firewall: 
+        turn_off_firewall:
           - NetSh Advfirewall set allprofiles state off
         connect_bokken:
           - '%ANDROID_SDK_ROOT%\platform-tools\adb.exe connect %BOKKEN_DEVICE_IP%'
           - powershell %ANDROID_SDK_ROOT%\platform-tools\adb.exe devices
-        kill_server: 
+        kill_server:
           - start %ANDROID_SDK_ROOT%\platform-tools\adb.exe kill-server
 
   iPhone:
@@ -477,7 +477,7 @@ non_project_agents:
   package_ci_ubuntu_small_v124:
     type: Unity::VM
     image: package-ci/ubuntu:v1.2.4-701242
-    flavor: b1.small    
+    flavor: b1.small
   package_ci_win_large:
     type: Unity::VM
     image: package-ci/win10:stable

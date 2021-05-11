@@ -53,12 +53,6 @@ void InitializeInputData(Varyings input, out InputData inputData)
     inputData.bakedGI = half3(0, 0, 0);
     inputData.normalizedScreenSpaceUV = 0;
     inputData.shadowMask = half4(1, 1, 1, 1);
-
-    #if defined(LIGHTMAP_ON)
-    inputData.lightmapUV = half2(0, 0);
-    #else
-    inputData.vertexSH = half3(0, 0, 0);
-    #endif
 }
 
 Varyings UniversalVertexUnlit(Attributes input)
@@ -110,6 +104,10 @@ half4 UniversalFragmentUnlit(Varyings input) : SV_Target
     InputData inputData;
     InitializeInputData(input, inputData);
     SETUP_DEBUG_TEXTURE_DATA(inputData, input.uv, _BaseMap);
+
+#ifdef _DBUFFER
+    ApplyDecalToBaseColor(input.positionCS, color);
+#endif
 
     #if defined(_FOG_FRAGMENT)
         #if (defined(FOG_LINEAR) || defined(FOG_EXP) || defined(FOG_EXP2))
