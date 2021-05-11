@@ -1434,7 +1434,7 @@
 }
 
 {
-    "m_SGVersion": 0,
+    "m_SGVersion": 1,
     "m_Type": "UnityEditor.ShaderGraph.TransformNode",
     "m_ObjectId": "16910a20060c43f889cace1d074fd2ca",
     "m_Group": {
@@ -5850,7 +5850,8 @@
         "m_SerializableColors": []
     },
     "m_TextureType": 0,
-    "m_NormalMapSpace": 0
+    "m_NormalMapSpace": 0,
+    "m_DisableGlobalMipBias": false
 }
 
 {
