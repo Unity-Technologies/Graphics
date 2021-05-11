@@ -6,12 +6,13 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.Rendering;
 using UnityEngine.Rendering.Universal;
+using UnityEngine.Serialization;
 
 namespace UnityEditor.VFX.URP
 {
     abstract class VFXAbstractParticleURPLitOutput : VFXShaderGraphParticleOutput
     {
-        public enum MaterialType
+        public enum WorkflowMode
         {
             Metallic,
             Specular,
@@ -49,8 +50,8 @@ namespace UnityEditor.VFX.URP
             nameof(SpecularColorProperties)
         };
 
-        [VFXSetting(VFXSettingAttribute.VisibleFlags.InInspector), SerializeField, Header("Lighting"), Tooltip("Specifies the surface type of this output. Surface types determine how the particle will react to light.")]
-        protected MaterialType materialType = MaterialType.Metallic;
+        [VFXSetting(VFXSettingAttribute.VisibleFlags.InInspector), SerializeField, FormerlySerializedAs("materialType"), Header("Lighting"), Tooltip("Specifies the surface type of this output. Surface types determine how the particle will react to light.")]
+        protected WorkflowMode workflowMode = WorkflowMode.Metallic;
 
         [VFXSetting(VFXSettingAttribute.VisibleFlags.InInspector), SerializeField, Tooltip("Specified the smoothness map source. It can be the alpha channel of the Metallic Map or the Base Color Map if they are used in the output.")]
         protected SmoothnessSource smoothnessSource = SmoothnessSource.None;
@@ -116,9 +117,9 @@ namespace UnityEditor.VFX.URP
                 yield return SmoothnessSource.None;
                 if (useBaseColorMap != BaseColorMapMode.None)
                     yield return SmoothnessSource.AlbedoAlpha;
-                if (materialType == MaterialType.Metallic && useMetallicMap)
+                if (workflowMode == WorkflowMode.Metallic && useMetallicMap)
                     yield return SmoothnessSource.MetallicAlpha;
-                if (materialType == MaterialType.Specular && useSpecularMap)
+                if (workflowMode == WorkflowMode.Specular && useSpecularMap)
                     yield return SmoothnessSource.SpecularAlpha;
             }
         }
@@ -233,7 +234,7 @@ namespace UnityEditor.VFX.URP
                 if (GetOrRefreshShaderGraphObject() == null)
                 {
                     properties = properties.Concat(PropertiesFromType(nameof(URPLitInputProperties)));
-                    properties = properties.Concat(PropertiesFromType(kMaterialTypeToName[(int)materialType]));
+                    properties = properties.Concat(PropertiesFromType(kMaterialTypeToName[(int)workflowMode]));
 
                     if (allowTextures)
                     {
@@ -248,9 +249,9 @@ namespace UnityEditor.VFX.URP
                     {
                         if (useOcclusionMap)
                             properties = properties.Concat(occlusionMapsProperties);
-                        if (useMetallicMap && materialType == MaterialType.Metallic)
+                        if (useMetallicMap && workflowMode == WorkflowMode.Metallic)
                             properties = properties.Concat(metallicMapsProperties);
-                        if (useSpecularMap && materialType == MaterialType.Specular)
+                        if (useSpecularMap && workflowMode == WorkflowMode.Specular)
                             properties = properties.Concat(specularMapsProperties);
                         if (useNormalMap)
                             properties = properties.Concat(normalMapsProperties);
@@ -275,12 +276,12 @@ namespace UnityEditor.VFX.URP
             {
                 yield return slotExpressions.First(o => o.name == nameof(URPLitInputProperties.smoothness));
 
-                switch (materialType)
+                switch (workflowMode)
                 {
-                    case MaterialType.Metallic:
+                    case WorkflowMode.Metallic:
                         yield return slotExpressions.First(o => o.name == nameof(StandardProperties.metallic));
                         break;
-                    case MaterialType.Specular:
+                    case WorkflowMode.Specular:
                         yield return slotExpressions.First(o => o.name == nameof(SpecularColorProperties.specularColor));
                         break;
                     default:
@@ -293,9 +294,9 @@ namespace UnityEditor.VFX.URP
                         yield return slotExpressions.First(o => o.name == kBaseColorMap);
                     if (useOcclusionMap)
                         yield return slotExpressions.First(o => o.name == kOcclusionMap);
-                    if (useMetallicMap && materialType == MaterialType.Metallic)
+                    if (useMetallicMap && workflowMode == WorkflowMode.Metallic)
                         yield return slotExpressions.First(o => o.name == kMetallicMap);
-                    if (useSpecularMap && materialType == MaterialType.Specular)
+                    if (useSpecularMap && workflowMode == WorkflowMode.Specular)
                         yield return slotExpressions.First(o => o.name == kSpecularMap);
                     if (useNormalMap)
                     {
@@ -327,13 +328,13 @@ namespace UnityEditor.VFX.URP
                 yield return "URP_LIT";
 
                 if (GetOrRefreshShaderGraphObject() == null)
-                    switch (materialType)
+                    switch (workflowMode)
                     {
-                        case MaterialType.Metallic:
+                        case WorkflowMode.Metallic:
                             yield return "URP_MATERIAL_TYPE_METALLIC";
                             break;
 
-                        case MaterialType.Specular:
+                        case WorkflowMode.Specular:
                             yield return "URP_MATERIAL_TYPE_SPECULAR";
                             break;
                     }
@@ -348,9 +349,9 @@ namespace UnityEditor.VFX.URP
                         yield return "URP_USE_BASE_COLOR_MAP_ALPHA";
                     if (useOcclusionMap)
                         yield return "URP_USE_OCCLUSION_MAP";
-                    if (useMetallicMap && materialType == MaterialType.Metallic)
+                    if (useMetallicMap && workflowMode == WorkflowMode.Metallic)
                         yield return "URP_USE_METALLIC_MAP";
-                    if (useSpecularMap && materialType == MaterialType.Specular)
+                    if (useSpecularMap && workflowMode == WorkflowMode.Specular)
                         yield return "URP_USE_SPECULAR_MAP";
                     if (useNormalMap)
                         yield return "USE_NORMAL_MAP";
@@ -403,15 +404,15 @@ namespace UnityEditor.VFX.URP
                     yield return nameof(useEmissiveMap);
                 }
 
-                if (materialType != MaterialType.Metallic)
+                if (workflowMode != WorkflowMode.Metallic)
                     yield return nameof(useMetallicMap);
 
-                if (materialType != MaterialType.Specular)
+                if (workflowMode != WorkflowMode.Specular)
                     yield return nameof(useSpecularMap);
 
                 if (GetOrRefreshShaderGraphObject() != null)
                 {
-                    yield return nameof(materialType);
+                    yield return nameof(workflowMode);
                     yield return nameof(useEmissive);
                     yield return nameof(colorMode);
                     yield return nameof(smoothnessSource);
@@ -438,13 +439,13 @@ namespace UnityEditor.VFX.URP
 
                 // URP Forward specific defines
                 var forwardDefines = new VFXShaderWriter();
-                if (materialType == MaterialType.Specular)
+                if (workflowMode == WorkflowMode.Specular)
                     forwardDefines.Write("#define _SPECULAR_SETUP");
                 yield return new KeyValuePair<string, VFXShaderWriter>("${VFXURPForwardDefines}", forwardDefines);
 
                 // URP GBuffer specific defines
                 var gbufferDefines = new VFXShaderWriter();
-                if (materialType == MaterialType.Specular)
+                if (workflowMode == WorkflowMode.Specular)
                     gbufferDefines.Write("#define _SPECULAR_SETUP");
                 yield return new KeyValuePair<string, VFXShaderWriter>("${VFXURPGBufferDefines}", gbufferDefines);
             }
