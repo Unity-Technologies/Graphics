@@ -413,7 +413,6 @@ namespace UnityEngine.Rendering
         /// <param name="overrideInstanceID">Override texture instance ID.</param>
         public virtual void BlitOctahedralTexture(CommandBuffer cmd, Vector4 scaleOffset, Texture texture, Vector4 sourceScaleOffset, bool blitMips = true, int overrideInstanceID = -1)
         {
-            // TODO: verify, what does pot2 padding for allocator do?
             // Default implementation. No padding in Texture2DAtlas, no need to handle specially.
             BlitTexture(cmd, scaleOffset, texture, sourceScaleOffset, blitMips, overrideInstanceID);
         }
