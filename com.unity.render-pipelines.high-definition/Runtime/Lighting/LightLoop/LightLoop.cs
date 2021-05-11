@@ -947,9 +947,7 @@ namespace UnityEngine.Rendering.HighDefinition
             }
 
             // We need to verify and flush any pending asset loading for probe volume.
-            bool apvSupported = IsAPVSupported();
-            ProbeReferenceVolume.instance.featureIsAvailable = apvSupported;
-            if (apvSupported)
+            if (IsAPVSupported())
             {
                 if (hdCamera.frameSettings.IsEnabled(FrameSettingsField.ProbeVolume))
                 {

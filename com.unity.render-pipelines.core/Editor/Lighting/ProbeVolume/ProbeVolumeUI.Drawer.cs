@@ -31,7 +31,7 @@ namespace UnityEditor.Experimental.Rendering
 
         static void Drawer_BakeToolBar(SerializedProbeVolume serialized, Editor owner)
         {
-            if (!ProbeReferenceVolume.instance.isAvailableAndInitialized) return;
+            if (!ProbeReferenceVolume.instance.isInitialized) return;
 
             Bounds bounds = new Bounds();
             bool foundABound = false;
@@ -122,7 +122,7 @@ namespace UnityEditor.Experimental.Rendering
 
         static void Drawer_VolumeContent(SerializedProbeVolume serialized, Editor owner)
         {
-            if (ProbeReferenceVolume.instance.isAvailableAndInitialized)
+            if (ProbeReferenceVolume.instance.isInitialized)
             {
                 EditorGUI.BeginChangeCheck();
                 EditorGUILayout.PropertyField(serialized.size, Styles.s_Size);

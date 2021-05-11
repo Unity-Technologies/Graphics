@@ -368,9 +368,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
             InitializeLightLoop(m_IBLFilterArray);
 
-            var pvr = ProbeReferenceVolume.instance;
-            pvr.featureIsAvailable = IsAPVSupported();
-            if (pvr.featureIsAvailable)
+            if (IsAPVSupported())
             {
                 ProbeReferenceVolume.instance.Initialize(new ProbeVolumeSystemParameters()
                 {

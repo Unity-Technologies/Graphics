@@ -198,7 +198,7 @@ namespace UnityEngine.Experimental.Rendering
         // TODO: We need to get rid of Handles.DrawWireCube to be able to have those at runtime as well.
         void OnDrawGizmos()
         {
-            if (!enabled || !gameObject.activeSelf || !ProbeReferenceVolume.instance.isAvailableAndInitialized)
+            if (!enabled || !gameObject.activeSelf || !ProbeReferenceVolume.instance.isInitialized)
                 return;
 
             var debugDisplay = ProbeReferenceVolume.instance.debugDisplay;

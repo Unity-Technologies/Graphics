@@ -191,7 +191,7 @@ namespace UnityEngine.Experimental.Rendering
 
         static void OnBakeStarted()
         {
-            if (!ProbeReferenceVolume.instance.isAvailableAndInitialized) return;
+            if (!ProbeReferenceVolume.instance.isInitialized) return;
 
             var refVolAuthList = GameObject.FindObjectsOfType<ProbeReferenceVolumeAuthoring>();
             if (refVolAuthList.Length == 0)
