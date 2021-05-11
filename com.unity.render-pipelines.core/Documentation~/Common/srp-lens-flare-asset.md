@@ -72,7 +72,7 @@ The Lens Flare Element asset has the following properties:
 | **Property**            | **Description**                                              |
 | ----------------------- | ------------------------------------------------------------ |
 | Tint                    | Changes the tint of the lens flare. If this asset is attached to the light, this property is based on the light tint. |
-| Modulate By Light Color | Allows light color to affect this Lens Flare Element. This only applies when the asset is used in a [SRP Lens Flare Override Component](srp-lens-flare-component.md) that is attached to a point, spot or area light. |
+| Modulate By Light Color | Allows light color to affect this Lens Flare Element. This only applies when the asset is used in a [SRP Lens Flare Override Component](srp-lens-flare-component.md) that is attached to a point, spot, or area light. |
 | Intensity               | Controls the intensity of this element.                      |
 | Blend Mode              | Select the blend mode of the Lens Flare Element this asset creates:<br />• Additive  <br />• Screen  <br />• Premultiplied <br />• Lerp |
 
