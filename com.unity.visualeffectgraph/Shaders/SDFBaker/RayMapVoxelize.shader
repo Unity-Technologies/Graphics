@@ -11,7 +11,6 @@ Shader "Hidden/VoxelizeShader"
     // Vertex input attributes
     struct Attributes
     {
-        float4 position : POSITION;
         uint vertexId : SV_VertexID;
     };
 
