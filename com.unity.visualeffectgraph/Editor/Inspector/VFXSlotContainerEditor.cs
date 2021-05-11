@@ -134,23 +134,21 @@ class VFXSlotContainerEditor : Editor
 
     static VFXSlotContainerEditor s_EffectUi;
 
-    /* TODO : Fix ITransientOverlay
     [Overlay(typeof(SceneView), k_OverlayId, k_DisplayName)]
-    class SceneViewVFXSlotContainerOverlay : ITransientOverlay
+    class SceneViewVFXSlotContainerOverlay : IMGUIOverlay, ITransientOverlay
     {
         const string k_OverlayId = "Scene View/Visual Effect Model";
         const string k_DisplayName = "Visual Effect Model";
 
         public bool visible => s_EffectUi != null;
 
-        public void OnSceneGUI()
+        public override void OnGUI()
         {
             if (s_EffectUi == null)
                 return;
             s_EffectUi.SceneViewGUICallback();
         }
     }
-    */
 
     void OnSceneGUI(SceneView sv)
     {
