@@ -32,20 +32,10 @@ void ProcessBSDFData(PathIntersection pathIntersection, BuiltinData builtinData,
 #ifdef STACK_LIT_USE_GGX_ENERGY_COMPENSATION
     float sqrtNdotV = sqrt(NdotV);
 
-    if (bsdfData.lobeMix  < 1.0)
-    {
-        float roughness = 0.5 * (bsdfData.roughnessAT + bsdfData.roughnessAB);
-        float2 coordLUT = Remap01ToHalfTexelCoord(float2(sqrtNdotV, roughness), FGDTEXTURE_RESOLUTION);
-        float E = SAMPLE_TEXTURE2D_LOD(_PreIntegratedFGD_GGXDisneyDiffuse, s_linear_clamp_sampler, coordLUT, 0).y;
-        bsdfData.specularOcclusionCustomInput = (1.0 - E) / E;
-    }
+    if (bsdfData.lobeMix < 1.0)
+        bsdfData.specularOcclusionCustomInput = BRDF::GetGGXMultipleScatteringEnergy(0.5 * (bsdfData.roughnessAT + bsdfData.roughnessAB), sqrtNdotV);
     if (bsdfData.lobeMix > 0.0)
-    {
-        float roughness = 0.5 * (bsdfData.roughnessBT + bsdfData.roughnessBB);
-        float2 coordLUT = Remap01ToHalfTexelCoord(float2(sqrtNdotV, roughness), FGDTEXTURE_RESOLUTION);
-        float E = SAMPLE_TEXTURE2D_LOD(_PreIntegratedFGD_GGXDisneyDiffuse, s_linear_clamp_sampler, coordLUT, 0).y;
-        bsdfData.soFixupStrengthFactor = (1.0 - E) / E;
-    }
+        bsdfData.soFixupStrengthFactor = BRDF::GetGGXMultipleScatteringEnergy(0.5 * (bsdfData.roughnessBT + bsdfData.roughnessBB), sqrtNdotV);
 #else
     bsdfData.specularOcclusionCustomInput = 0.0;
     bsdfData.soFixupStrengthFactor = 0.0;
@@ -88,8 +78,8 @@ bool CreateMaterialData(PathIntersection pathIntersection, BuiltinData builtinDa
         mtlData.bsdfWeight[1] = Fcoat * mtlData.bsdfData.coatMask;
         coatingTransmission = (1.0 - mtlData.bsdfWeight[1]) * mtlData.bsdfData.coatExtinction;
         float coatingTransmissionWeight = Luminance(coatingTransmission);
-        mtlData.bsdfWeight[2] = coatingTransmissionWeight * (1.0 - mtlData.bsdfData.lobeMix) * lerp(Fspec, 0.5, 0.5 * (mtlData.bsdfData.roughnessAT + mtlData.bsdfData.roughnessAB)) * (1.0 + Fspec * mtlData.bsdfData.specularOcclusionCustomInput);
-        mtlData.bsdfWeight[3] = coatingTransmissionWeight * mtlData.bsdfData.lobeMix * lerp(Fspec, 0.5, 0.5 * (mtlData.bsdfData.roughnessBT + mtlData.bsdfData.roughnessBB)) * (1.0 + Fspec * mtlData.bsdfData.soFixupStrengthFactor);
+        mtlData.bsdfWeight[2] = coatingTransmissionWeight * (1.0 - mtlData.bsdfData.lobeMix) * lerp(Fspec, 0.5, 0.5 * (mtlData.bsdfData.roughnessAT + mtlData.bsdfData.roughnessAB)) * (1.0 + mtlData.bsdfData.fresnel0 * mtlData.bsdfData.specularOcclusionCustomInput);
+        mtlData.bsdfWeight[3] = coatingTransmissionWeight * mtlData.bsdfData.lobeMix * lerp(Fspec, 0.5, 0.5 * (mtlData.bsdfData.roughnessBT + mtlData.bsdfData.roughnessBB)) * (1.0 + mtlData.bsdfData.fresnel0 * mtlData.bsdfData.soFixupStrengthFactor);
         mtlData.bsdfWeight[0] = coatingTransmissionWeight * Luminance(mtlData.bsdfData.diffuseColor) * mtlData.bsdfData.ambientOcclusion;
     }
 

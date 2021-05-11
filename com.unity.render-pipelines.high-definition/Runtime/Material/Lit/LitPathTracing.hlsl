@@ -28,10 +28,7 @@ void ProcessBSDFData(PathIntersection pathIntersection, BuiltinData builtinData,
 
     // We store an energy compensation coefficient for GGX into the specular occlusion (code adapted from Lit.hlsl to produce identical results)
 #ifdef LIT_USE_GGX_ENERGY_COMPENSATION
-    float roughness = 0.5 * (bsdfData.roughnessT + bsdfData.roughnessB);
-    float2 coordLUT = Remap01ToHalfTexelCoord(float2(sqrt(NdotV), roughness), FGDTEXTURE_RESOLUTION);
-    float E = SAMPLE_TEXTURE2D_LOD(_PreIntegratedFGD_GGXDisneyDiffuse, s_linear_clamp_sampler, coordLUT, 0).y;
-    bsdfData.specularOcclusion = (1.0 - E) / E;
+    bsdfData.specularOcclusion = BRDF::GetGGXMultipleScatteringEnergy(0.5 * (bsdfData.roughnessT + bsdfData.roughnessB), sqrt(NdotV));
 #else
     bsdfData.specularOcclusion = 0.0;
 #endif
@@ -65,7 +62,7 @@ bool CreateMaterialData(PathIntersection pathIntersection, BuiltinData builtinDa
 
         mtlData.bsdfWeight[1] = Fcoat * mtlData.bsdfData.coatMask;
         coatingTransmission = 1.0 - mtlData.bsdfWeight[1];
-        mtlData.bsdfWeight[2] = coatingTransmission * lerp(Fspec, 0.5, 0.5 * (mtlData.bsdfData.roughnessT + mtlData.bsdfData.roughnessB)) * (1.0 + Fspec * mtlData.bsdfData.specularOcclusion);
+        mtlData.bsdfWeight[2] = coatingTransmission * lerp(Fspec, 0.5, 0.5 * (mtlData.bsdfData.roughnessT + mtlData.bsdfData.roughnessB)) * (1.0 + mtlData.bsdfData.fresnel0 * mtlData.bsdfData.specularOcclusion);
         mtlData.bsdfWeight[3] = (coatingTransmission - mtlData.bsdfWeight[2]) * mtlData.bsdfData.transmittanceMask;
         mtlData.bsdfWeight[0] = coatingTransmission * (1.0 - mtlData.bsdfData.transmittanceMask) * Luminance(mtlData.bsdfData.diffuseColor) * mtlData.bsdfData.ambientOcclusion;
     }

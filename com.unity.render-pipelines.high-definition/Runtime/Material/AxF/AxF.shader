@@ -756,6 +756,43 @@ Shader "HDRP/AxF"
 
             ENDHLSL
         }
+
+        Pass
+        {
+            Name "PathTracingDXR"
+            Tags{ "LightMode" = "PathTracingDXR" }
+
+            HLSLPROGRAM
+
+            #pragma only_renderers d3d11
+            #pragma raytracing surface_shader
+
+            #pragma multi_compile _ DEBUG_DISPLAY
+
+            #define SHADERPASS SHADERPASS_PATH_TRACING
+
+            // This is just because it needs to be defined, shadow maps are not used.
+            #define SHADOW_LOW
+
+            #include "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/Raytracing/Shaders/RaytracingMacros.hlsl"
+
+            #include "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/Raytracing/Shaders/ShaderVariablesRaytracing.hlsl"
+            #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Material.hlsl"
+            #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Lighting/Lighting.hlsl"
+
+            #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/AxF/ShaderPass/AxFSharePass.hlsl"
+            #include "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/Raytracing/Shaders/RaytracingIntersection.hlsl"
+
+            #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Lighting/LightLoop/LightLoopDef.hlsl"
+            #define HAS_LIGHTLOOP
+            #include "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/Raytracing/Shaders/RayTracingCommon.hlsl"
+            #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/AxF/AxF.hlsl"
+            #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/AxF/AxFData.hlsl"
+            #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/AxF/AxFPathTracing.hlsl"
+            #include "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/ShaderPass/ShaderPassPathTracing.hlsl"
+
+            ENDHLSL
+        }
     }
 
     CustomEditor "Rendering.HighDefinition.AxFGUI"

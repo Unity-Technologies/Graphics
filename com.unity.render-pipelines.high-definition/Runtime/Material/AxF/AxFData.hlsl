@@ -625,7 +625,7 @@ void GetSurfaceAndBuiltinData(FragInputs input, float3 V, inout PositionInputs p
 
     // The AxF models include both a general coloring term that they call "specular color" while the f0 is actually another term,
     // seemingly always scalar:
-    surfaceData.fresnelF0 = AXF_SAMPLE_SMP_TEXTURE2D(_SVBRDF_FresnelMap, sampler_SVBRDF_FresnelMap, uvMapping).x;
+    surfaceData.fresnel0 = AXF_SAMPLE_SMP_TEXTURE2D(_SVBRDF_FresnelMap, sampler_SVBRDF_FresnelMap, uvMapping).x;
     surfaceData.height_mm = AXF_SAMPLE_SMP_TEXTURE2D(_SVBRDF_HeightMap, sampler_SVBRDF_HeightMap, uvMapping).x * _SVBRDF_HeightMapMaxMM;
     // Our importer range remaps the [-HALF_PI, HALF_PI) range to [0,1). We map back here:
     surfaceData.anisotropyAngle =
@@ -671,7 +671,7 @@ void GetSurfaceAndBuiltinData(FragInputs input, float3 V, inout PositionInputs p
 
     // Useless for car paint BSDF
     surfaceData.specularColor = 0;
-    surfaceData.fresnelF0 = 0;
+    surfaceData.fresnel0 = 0;
     surfaceData.height_mm = 0;
     surfaceData.anisotropyAngle = 0;
 #endif
@@ -725,7 +725,7 @@ void GetSurfaceAndBuiltinData(FragInputs input, float3 V, inout PositionInputs p
     surfaceData.tangentWS = Orthonormalize(surfaceData.tangentWS, surfaceData.normalWS);
 
     // Instead of
-    // surfaceData.biTangentWS = Orthonormalize(input.tangentToWorld[1], surfaceData.normalWS),
+    // surfaceData.bitangentWS = Orthonormalize(input.tangentToWorld[1], surfaceData.normalWS),
     // make AxF follow what we do in other HDRP shaders for consistency: use the
     // cross product to finish building the TBN frame and thus get a frame matching
     // the handedness of the world space (tangentToWorld can be passed right handed while
