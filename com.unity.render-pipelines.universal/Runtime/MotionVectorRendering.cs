@@ -73,7 +73,6 @@ namespace UnityEngine.Rendering.Universal.Internal
             {
                 newFrame = (t - m_Time) > 0.0166f;
                 m_FrameCount += newFrame ? 1u : 0u;
-            
             }
             else
 #endif

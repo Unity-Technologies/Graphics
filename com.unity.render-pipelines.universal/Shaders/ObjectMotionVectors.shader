@@ -63,7 +63,8 @@ Shader "Hidden/kMotion/ObjectMotionVectors"
                 #endif
 
                 output.positionVP = mul(UNITY_MATRIX_VP, mul(UNITY_MATRIX_M, input.position));
-                output.previousPositionVP = mul(_PrevViewProjMatrix, mul(unity_MatrixPreviousM, unity_MotionVectorsParams.x == 1 ? float4(input.positionOld, 1) : input.position));
+                const float4 prevPos = (unity_MotionVectorsParams.x > 0) ? float4(input.positionOld, 1) : input.position;
+                output.previousPositionVP = mul(_PrevViewProjMatrix, mul(unity_MatrixPreviousM, prevPos));
 
                 return output;
             }
