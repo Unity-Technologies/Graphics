@@ -273,7 +273,7 @@ namespace UnityEditor.Rendering
             var menuRect = new Rect(labelRect.xMax + 3f, labelRect.y + 1f, 16, 16);
 
             // Add context menu for "Additional Properties"
-            if (hasMoreOptions != null)
+            if (contextAction == null && hasMoreOptions != null)
             {
                 contextAction = pos => OnContextClick(pos, hasMoreOptions, toggleMoreOptions);
             }

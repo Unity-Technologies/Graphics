@@ -37,7 +37,7 @@ namespace UnityEngine.Rendering.Universal
             var path = $"{UniversalRenderPipelineGlobalSettings.defaultAssetName}.asset";
             if (useProjectSettingsFolder)
             {
-                path = $"Assets/{UniversalRenderPipelineGlobalSettings.defaultAssetName}.asset";
+                path = $"Assets/{path}";
                 CoreUtils.EnsureFolderTreeInAssetFilePath(path);
             }
             ProjectWindowUtil.StartNameEditingIfProjectWindowExists(0, ScriptableObject.CreateInstance<UniversalGlobalSettingsCreator>(), path, CoreEditorStyles.globalSettingsIcon, null);
