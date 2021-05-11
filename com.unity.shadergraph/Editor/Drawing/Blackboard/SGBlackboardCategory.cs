@@ -125,7 +125,7 @@ namespace UnityEditor.ShaderGraph.Drawing
 
             m_Header = m_MainContainer.Q("categoryHeader");
             m_TitleLabel = m_MainContainer.Q<Label>("categoryTitleLabel");
-			m_Foldout = m_MainContainer.Q<Foldout>("categoryTitleFoldout");
+            m_Foldout = m_MainContainer.Q<Foldout>("categoryTitleFoldout");
             m_RowsContainer = m_MainContainer.Q("rowsContainer");
             m_TextField = m_MainContainer.Q<TextField>("textField");
             m_TextField.style.display = DisplayStyle.None;
@@ -344,7 +344,6 @@ namespace UnityEditor.ShaderGraph.Drawing
                     SetDragIndicatorVisible(false);
                     return;
                 }
-
             }
 
             // If can't find at least one blackboard field in the selection, don't update drag indicator
@@ -375,7 +374,7 @@ namespace UnityEditor.ShaderGraph.Drawing
                         indicatorY = lastChild.ChangeCoordinatesTo(this, new Vector2(0, lastChild.layout.height + lastChild.resolvedStyle.marginBottom)).y;
                     }
                 }
-                else if(this.childCount > 0)
+                else if (this.childCount > 0)
                 {
                     VisualElement childAtInsertIndex = this[m_InsertIndex];
                     indicatorY = childAtInsertIndex.ChangeCoordinatesTo(this, new Vector2(0, -childAtInsertIndex.resolvedStyle.marginTop)).y;
@@ -492,7 +491,7 @@ namespace UnityEditor.ShaderGraph.Drawing
                             if (insertIndex == contentContainer.childCount)
                             {
                                 insertIndex = contentContainer.childCount - 1;
-                                categoryDirectChild.PlaceInFront(this[contentContainer.childCount-1]);
+                                categoryDirectChild.PlaceInFront(this[contentContainer.childCount - 1]);
                             }
                             else
                             {
@@ -503,7 +502,6 @@ namespace UnityEditor.ShaderGraph.Drawing
                             moveShaderInputAction.shaderInputReference = shaderInput;
                             moveShaderInputAction.newIndexValue = insertIndex;
                             m_ViewModel.requestModelChangeAction(moveShaderInputAction);
-
                         }
                     }
 

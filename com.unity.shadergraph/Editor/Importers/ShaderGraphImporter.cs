@@ -232,7 +232,7 @@ Shader ""Hidden/GraphErrorShader2""
             }
 
             List<MinimalCategoryData.GraphInputData> inputInspectorDataList = new List<MinimalCategoryData.GraphInputData>();
-            foreach(AbstractShaderProperty property in graph.properties)
+            foreach (AbstractShaderProperty property in graph.properties)
             {
                 // Don't write out data for non-exposed blackboard items
                 if (!property.isExposed)
@@ -244,7 +244,7 @@ Shader ""Hidden/GraphErrorShader2""
                 else
                     inputInspectorDataList.Add(new MinimalCategoryData.GraphInputData() { referenceName = property.referenceName, propertyType = property.propertyType, isKeyword = false});
             }
-            foreach(ShaderKeyword keyword in graph.keywords)
+            foreach (ShaderKeyword keyword in graph.keywords)
             {
                 // Don't write out data for non-exposed blackboard items
                 if (!keyword.isExposed)
@@ -253,10 +253,10 @@ Shader ""Hidden/GraphErrorShader2""
             }
 
             sgMetadata.categoryDatas = new List<MinimalCategoryData>();
-            foreach(CategoryData categoryData in graph.categories)
+            foreach (CategoryData categoryData in graph.categories)
             {
                 // Don't write out empty categories
-                if(categoryData.childCount == 0)
+                if (categoryData.childCount == 0)
                     continue;
 
                 MinimalCategoryData mcd = new MinimalCategoryData()
@@ -264,11 +264,11 @@ Shader ""Hidden/GraphErrorShader2""
                     categoryName = categoryData.name,
                     propertyDatas = new List<MinimalCategoryData.GraphInputData>()
                 };
-                foreach(var input in categoryData.Children)
+                foreach (var input in categoryData.Children)
                 {
                     MinimalCategoryData.GraphInputData propData;
                     // Only write out data for exposed blackboard items
-                    if(input.isExposed == false)
+                    if (input.isExposed == false)
                         continue;
 
                     // VTs are treated differently
@@ -283,7 +283,7 @@ Shader ""Hidden/GraphErrorShader2""
                         mcd.propertyDatas.Add(propData);
                         continue;
                     }
-                    else if(input is ShaderKeyword keyword)
+                    else if (input is ShaderKeyword keyword)
                     {
                         propData = new MinimalCategoryData.GraphInputData() { referenceName = input.referenceName, keywordType = keyword.keywordType, isKeyword = true};
                     }
@@ -300,7 +300,7 @@ Shader ""Hidden/GraphErrorShader2""
             }
 
             // Any uncategorized elements get tossed into an un-named category at the top as a fallback
-            if(inputInspectorDataList.Count > 0)
+            if (inputInspectorDataList.Count > 0)
             {
                 sgMetadata.categoryDatas.Insert(0, new MinimalCategoryData() { categoryName = "", propertyDatas = inputInspectorDataList });
             }

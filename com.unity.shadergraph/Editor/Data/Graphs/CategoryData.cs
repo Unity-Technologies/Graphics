@@ -64,7 +64,7 @@ namespace UnityEditor.ShaderGraph
         public void MoveItemInCategory(ShaderInput itemToMove, int newIndex)
         {
             m_ChildObjectList.Remove(itemToMove);
-            m_ChildObjectList.Insert(newIndex,itemToMove);
+            m_ChildObjectList.Insert(newIndex, itemToMove);
             // Recreate the hash-set as the data structure does not allow for moving/inserting elements
             m_ChildObjectIDSet.Clear();
             foreach (var childObject in m_ChildObjectList)

@@ -255,8 +255,8 @@ namespace UnityEditor.ShaderGraph.Drawing
 
             if (index == -1 && childCount >= 2)
             {
-                index = localPos.y < Children().First().layout.yMin ? 0 :
-                        localPos.y > Children().Last().layout.yMax ? childCount : -1;
+                index = localPos.y<Children().First().layout.yMin? 0 :
+                                   localPos.y> Children().Last().layout.yMax ? childCount : -1;
             }
             // Don't allow the default category to be displaced
             return Mathf.Clamp(index, 1, index);

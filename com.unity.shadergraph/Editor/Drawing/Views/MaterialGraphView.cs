@@ -871,7 +871,7 @@ namespace UnityEditor.ShaderGraph.Drawing
             // Sort so that the ShaderInputs are in the correct order
             selectedProperties.Sort((x, y) => graph.GetGraphInputIndex(x) > graph.GetGraphInputIndex(y) ? 1 : -1);
 
-            CopyPasteGraph copiedItems = new CopyPasteGraph(null, null, null, selectedProperties, selectedCategories, null, null, null, null, copyPasteGraphSource:CopyPasteGraphSource.Duplicate);
+            CopyPasteGraph copiedItems = new CopyPasteGraph(null, null, null, selectedProperties, selectedCategories, null, null, null, null, copyPasteGraphSource: CopyPasteGraphSource.Duplicate);
             GraphViewExtensions.InsertCopyPasteGraph(this, copiedItems);
         }
 
@@ -1044,9 +1044,9 @@ namespace UnityEditor.ShaderGraph.Drawing
                 }
             }
 
-            if(deleteShaderInputAction.shaderInputsToDelete.Count != 0)
+            if (deleteShaderInputAction.shaderInputsToDelete.Count != 0)
                 graph.owner.graphDataStore.Dispatch(deleteShaderInputAction);
-            if(deleteCategoriesAction.categoriesToRemoveGuids.Count != 0)
+            if (deleteCategoriesAction.categoriesToRemoveGuids.Count != 0)
                 graph.owner.graphDataStore.Dispatch(deleteCategoriesAction);
 
             // Test Keywords against variant limit
@@ -1309,7 +1309,7 @@ namespace UnityEditor.ShaderGraph.Drawing
             {
                 // Disregard any inputs that belong to a category in the CopyPasteGraph already,
                 // GraphData handles copying those child inputs over when the category is copied
-                if(copyGraph.IsInputCategorized(input))
+                if (copyGraph.IsInputCategorized(input))
                     continue;
 
                 string associatedCategoryGuid = String.Empty;
@@ -1382,7 +1382,7 @@ namespace UnityEditor.ShaderGraph.Drawing
                 foreach (var input in category.Children.ToList())
                 {
                     // Remove this input from being copied if its not allowed to be copied into the target graph (eg. its a dropdown and the target graph isn't a sub-graph)
-                    if(graphView.graph.IsInputAllowedInGraph(input) == false)
+                    if (graphView.graph.IsInputAllowedInGraph(input) == false)
                         category.RemoveItemFromCategory(input);
                 }
                 var copyCategoryAction = new CopyCategoryAction() { categoryToCopyReference = category };

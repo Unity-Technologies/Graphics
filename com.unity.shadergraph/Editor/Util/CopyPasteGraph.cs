@@ -64,17 +64,17 @@ namespace UnityEditor.ShaderGraph
         public CopyPasteGraph() {}
 
         public CopyPasteGraph(IEnumerable<GroupData> groups,
-                                IEnumerable<AbstractMaterialNode> nodes,
-                                IEnumerable<Edge> edges,
-                                IEnumerable<ShaderInput> inputs,
-                                IEnumerable<CategoryData> categories,
-                                IEnumerable<AbstractShaderProperty> metaProperties,
-                                IEnumerable<ShaderKeyword> metaKeywords,
-                                IEnumerable<ShaderDropdown> metaDropdowns,
-                                IEnumerable<StickyNoteData> notes,
-                                bool keepOutputEdges = false,
-                                bool removeOrphanEdges = true,
-                                CopyPasteGraphSource copyPasteGraphSource = CopyPasteGraphSource.Default)
+                              IEnumerable<AbstractMaterialNode> nodes,
+                              IEnumerable<Edge> edges,
+                              IEnumerable<ShaderInput> inputs,
+                              IEnumerable<CategoryData> categories,
+                              IEnumerable<AbstractShaderProperty> metaProperties,
+                              IEnumerable<ShaderKeyword> metaKeywords,
+                              IEnumerable<ShaderDropdown> metaDropdowns,
+                              IEnumerable<StickyNoteData> notes,
+                              bool keepOutputEdges = false,
+                              bool removeOrphanEdges = true,
+                              CopyPasteGraphSource copyPasteGraphSource = CopyPasteGraphSource.Default)
         {
             m_CopyPasteGraphSource = copyPasteGraphSource;
             if (groups != null)
@@ -165,9 +165,9 @@ namespace UnityEditor.ShaderGraph
         // The only situation in which an input has an identical reference name to another input in a category, while not being the same instance, is if they are duplicates
         public bool IsInputDuplicatedFromCategory(ShaderInput shaderInput, CategoryData inputCategory, GraphData targetGraphData)
         {
-            foreach(var child in inputCategory.Children)
+            foreach (var child in inputCategory.Children)
             {
-                if(child.referenceName.Equals(shaderInput.referenceName, StringComparison.Ordinal) && child.objectId != shaderInput.objectId)
+                if (child.referenceName.Equals(shaderInput.referenceName, StringComparison.Ordinal) && child.objectId != shaderInput.objectId)
                 {
                     return true;
                 }

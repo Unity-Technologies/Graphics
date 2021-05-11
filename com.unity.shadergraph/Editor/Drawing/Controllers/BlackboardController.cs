@@ -143,7 +143,6 @@ namespace UnityEditor.ShaderGraph.Drawing
         Type blackboardItemType { get; set; }
 
         Func<BlackboardItem> m_ShaderInputReferenceGetter = null;
-
     }
 
     class ChangeGraphPathAction : IGraphDataAction
@@ -538,7 +537,7 @@ namespace UnityEditor.ShaderGraph.Drawing
             blackboardCategoryViewModel.isExpanded = EditorPrefs.GetBool($"{editorPrefsBaseKey}.{categoryInfo.categoryGuid}.{ChangeCategoryIsExpandedAction.kEditorPrefKey}", true);
 
             var blackboardCategoryController = new BlackboardCategoryController(categoryInfo, blackboardCategoryViewModel, graphDataStore);
-            if(m_BlackboardCategoryControllers.ContainsKey(categoryInfo.categoryGuid) == false)
+            if (m_BlackboardCategoryControllers.ContainsKey(categoryInfo.categoryGuid) == false)
             {
                 m_BlackboardCategoryControllers.Add(categoryInfo.categoryGuid, blackboardCategoryController);
             }
@@ -702,7 +701,7 @@ namespace UnityEditor.ShaderGraph.Drawing
         {
             foreach (var categoryController in m_BlackboardCategoryControllers.Values)
             {
-                if(categoryController.Model.categoryGuid == inputGuid)
+                if (categoryController.Model.categoryGuid == inputGuid)
                     return categoryController.blackboardCategoryView;
             }
 

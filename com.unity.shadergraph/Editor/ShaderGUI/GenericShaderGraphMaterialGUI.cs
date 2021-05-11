@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using UnityEditor.ShaderGraph.Drawing;
 using UnityEngine;
 using UnityEditor;

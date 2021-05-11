@@ -21,7 +21,7 @@ namespace UnityEditor.ShaderGraph.Drawing
             ShaderGraphMetadata metadata = null;
             foreach (var obj in AssetDatabase.LoadAllAssetsAtPath(path))
             {
-                if(obj is ShaderGraphMetadata meta)
+                if (obj is ShaderGraphMetadata meta)
                 {
                     metadata = meta;
                     break;
@@ -35,6 +35,7 @@ namespace UnityEditor.ShaderGraph.Drawing
         {
             return EditorGUILayout.GetControlRect(true, MaterialEditor.GetDefaultPropertyHeight(prop));
         }
+
         private static Rect GetRect()
         {
             return EditorGUILayout.GetControlRect();
@@ -42,9 +43,9 @@ namespace UnityEditor.ShaderGraph.Drawing
 
         private static MaterialProperty FindProperty(string propertyName, MaterialProperty[] properties)
         {
-            foreach(var prop in properties)
+            foreach (var prop in properties)
             {
-                if(prop.name == propertyName)
+                if (prop.name == propertyName)
                 {
                     return prop;
                 }
@@ -54,7 +55,7 @@ namespace UnityEditor.ShaderGraph.Drawing
 
         public static void DrawShaderGraphGUI(MaterialEditor materialEditor, MaterialProperty[] properties, IEnumerable<MinimalCategoryData> categoryDatas)
         {
-            foreach(MinimalCategoryData mcd in categoryDatas)
+            foreach (MinimalCategoryData mcd in categoryDatas)
             {
                 DrawCategory(materialEditor, properties, mcd);
             }
@@ -115,11 +116,11 @@ namespace UnityEditor.ShaderGraph.Drawing
             if (foldoutState)
             {
                 EditorGUI.indentLevel++;
-                    foreach (var subProperty in compoundPropertyData.subProperties)
-                    {
-                        var property = FindProperty(subProperty.referenceName, properties);
-                        DrawMaterialProperty(materialEditor, property, subProperty.propertyType);
-                    }
+                foreach (var subProperty in compoundPropertyData.subProperties)
+                {
+                    var property = FindProperty(subProperty.referenceName, properties);
+                    DrawMaterialProperty(materialEditor, property, subProperty.propertyType);
+                }
                 EditorGUI.indentLevel--;
             }
 
@@ -128,10 +129,9 @@ namespace UnityEditor.ShaderGraph.Drawing
             EditorGUI.indentLevel--;
         }
 
-
         private static void DrawMaterialProperty(MaterialEditor materialEditor, MaterialProperty property, PropertyType propertyType, bool isKeyword = false, KeywordType keywordType = KeywordType.Boolean)
         {
-            if(isKeyword)
+            if (isKeyword)
             {
                 switch (keywordType)
                 {
@@ -233,7 +233,7 @@ namespace UnityEditor.ShaderGraph.Drawing
             EditorGUI.showMixedValue = property.hasMixedValue;
             Vector2 newValue = EditorGUI.Vector2Field(GetRect(property), property.displayName, new Vector2(property.vectorValue.x, property.vectorValue.y));
             EditorGUI.showMixedValue = false;
-            if(EditorGUI.EndChangeCheck())
+            if (EditorGUI.EndChangeCheck())
             {
                 property.vectorValue = newValue;
             }
@@ -245,7 +245,7 @@ namespace UnityEditor.ShaderGraph.Drawing
             EditorGUI.showMixedValue = property.hasMixedValue;
             Vector3 newValue = EditorGUI.Vector3Field(GetRect(property), property.displayName, new Vector3(property.vectorValue.x, property.vectorValue.y, property.vectorValue.z));
             EditorGUI.showMixedValue = false;
-            if(EditorGUI.EndChangeCheck())
+            if (EditorGUI.EndChangeCheck())
             {
                 property.vectorValue = newValue;
             }
