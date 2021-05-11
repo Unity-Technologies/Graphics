@@ -58,7 +58,8 @@ namespace UnityEngine.Experimental.Rendering
         public void OnAfterDeserialize()
         {
             // We haven't initialized the bounds, no need to do anything here.
-            if (serializedBounds == null || serializedHasVolumes == null) return;
+            if (sceneBounds == null || hasProbeVolumes == null ||
+                serializedBounds == null || serializedHasVolumes == null) return;
 
             sceneBounds = new Dictionary<string, Bounds>();
             hasProbeVolumes = new Dictionary<string, bool>();
@@ -79,7 +80,8 @@ namespace UnityEngine.Experimental.Rendering
         public void OnBeforeSerialize()
         {
             // We haven't initialized the bounds, no need to do anything here.
-            if (serializedBounds == null || serializedHasVolumes == null) return;
+            if (sceneBounds == null || hasProbeVolumes == null ||
+                serializedBounds == null || serializedHasVolumes == null) return;
 
             serializedBounds.Clear();
             serializedHasVolumes.Clear();
