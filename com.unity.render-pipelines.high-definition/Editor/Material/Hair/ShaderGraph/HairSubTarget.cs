@@ -56,12 +56,14 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
         public static FieldDescriptor HairStrandDirection =      new FieldDescriptor(string.Empty, "HairStrandDirection", "_HAIR_STRAND_DIRECTION 1");
         public static FieldDescriptor UseLightFacingNormal =     new FieldDescriptor(string.Empty, "UseLightFacingNormal", "_USE_LIGHT_FACING_NORMAL 1");
         public static FieldDescriptor Transmittance =            new FieldDescriptor(string.Empty, "Transmittance", "_TRANSMITTANCE 1");
+        public static FieldDescriptor ScatteringDensityVolume  = new FieldDescriptor(string.Empty, "ScatteringDensityVolume", "_USE_DENSITY_VOLUME_SCATTERING");
 
         public override void GetFields(ref TargetFieldContext context)
         {
             base.GetFields(ref context);
 
             var descs = context.blocks.Select(x => x.descriptor);
+
             // Hair specific properties:
             context.AddField(KajiyaKay,                            hairData.materialType == HairData.MaterialType.KajiyaKay);
             context.AddField(Marschner,                            hairData.materialType == HairData.MaterialType.Marschner);
@@ -69,6 +71,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
             context.AddField(RimTransmissionIntensity,             descs.Contains(HDBlockFields.SurfaceDescription.RimTransmissionIntensity) && context.pass.validPixelBlocks.Contains(HDBlockFields.SurfaceDescription.RimTransmissionIntensity));
             context.AddField(UseLightFacingNormal,                 hairData.useLightFacingNormal);
             context.AddField(Transmittance,                        descs.Contains(HDBlockFields.SurfaceDescription.Transmittance) && context.pass.validPixelBlocks.Contains(HDBlockFields.SurfaceDescription.Transmittance));
+            context.AddField(ScatteringDensityVolume,     hairData.scatteringMode == HairData.ScatteringMode.DensityVolume);
 
             // Misc
             context.AddField(SpecularAA,                           lightingData.specularAA &&
