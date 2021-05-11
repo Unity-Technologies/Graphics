@@ -282,7 +282,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                 requiredFields = CoreRequiredFields.Meta,
                 renderStates = CoreRenderStates.Meta,
                 // Note: no tessellation for meta pass
-                pragmas = GeneratePragmas(CorePragmas.DotsInstancedInV2Only, useVFX, false, false),
+                pragmas = GeneratePragmas(CorePragmas.DotsInstancedInV1AndV2, useVFX, false, false),
                 defines = GenerateDefines(CoreDefines.ShaderGraphRaytracingDefault, useVFX, false, false),
                 includes = GenerateIncludes(),
             };
@@ -623,7 +623,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                 structs = GenerateStructs(null, useVFX, useTessellation, false),
                 requiredFields = GenerateRequiredFields(),
                 renderStates = GenerateRenderState(),
-                pragmas = GeneratePragmas(CorePragmas.DotsInstancedInV2Only, useVFX, useTessellation, false),
+                pragmas = GeneratePragmas(CorePragmas.DotsInstancedInV1AndV2, useVFX, useTessellation, false),
                 // For TransparentDepthPrepass, WRITE_NORMAL_BUFFER is define in the ShaderPass.template directly as it rely on other define
                 defines = GenerateDefines(CoreDefines.TransparentDepthPrepass, useVFX, useTessellation, false),
                 includes = GenerateIncludes(),
@@ -763,7 +763,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                 structs = GenerateStructs(null, useVFX, useTessellation, false),
                 requiredFields = GenerateRequiredFields(),
                 renderStates = CoreRenderStates.DepthOnly,
-                pragmas = GeneratePragmas(CorePragmas.DotsInstancedInV2Only, useVFX, useTessellation, false),
+                pragmas = GeneratePragmas(CorePragmas.DotsInstancedInV1AndV2, useVFX, useTessellation, false),
                 defines = GenerateDefines(CoreDefines.ShaderGraphRaytracingDefault, useVFX, useTessellation, false),
                 keywords = LitDepthOnlyKeywords,
                 includes = DepthOnlyIncludes,
@@ -816,7 +816,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                 structs = GenerateStructs(null, useVFX, useTessellation, false),
                 requiredFields = CoreRequiredFields.BasicLighting,
                 renderStates = GBufferRenderState,
-                pragmas = GeneratePragmas(CorePragmas.DotsInstancedInV2Only, useVFX, useTessellation, false),
+                pragmas = GeneratePragmas(CorePragmas.DotsInstancedInV1AndV2, useVFX, useTessellation, false),
                 defines = GenerateDefines(CoreDefines.ShaderGraphRaytracingDefault, useVFX, useTessellation, false),
                 keywords = GBufferKeywords,
                 includes = GBufferIncludes,
@@ -874,7 +874,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                 // We need motion vector version as Forward pass support transparent motion vector and we can't use ifdef for it
                 requiredFields = CoreRequiredFields.BasicLighting,
                 renderStates = CoreRenderStates.Forward,
-                pragmas = GeneratePragmas(CorePragmas.DotsInstancedInV2Only, useVFX, useTessellation, false),
+                pragmas = GeneratePragmas(CorePragmas.DotsInstancedInV1AndV2, useVFX, useTessellation, false),
                 defines = GenerateDefines(CoreDefines.ForwardLit, useVFX, useTessellation, false),
                 includes = ForwardIncludes,
                 virtualTextureFeedback = true,
