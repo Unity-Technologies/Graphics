@@ -48,15 +48,14 @@
     #define ATTRIBUTES_NEED_TEXCOORD0
     #define ATTRIBUTES_NEED_TANGENT // will be filled by ApplyMeshModification()
     #if SHADERPASS == SHADERPASS_LIGHT_TRANSPORT
-        #ifdef EDITOR_VISUALIZATION
-        //#define ATTRIBUTES_NEED_TEXCOORD0 Already defined. Will there be texcoord0 usage collision in meta pass?
         #define ATTRIBUTES_NEED_TEXCOORD1
         #define ATTRIBUTES_NEED_TEXCOORD2
+        #ifdef EDITOR_VISUALIZATION
+        #define ATTRIBUTES_NEED_TEXCOORD3
         #define VARYINGS_NEED_TEXCOORD0
         #define VARYINGS_NEED_TEXCOORD1
-        #else
-        #define ATTRIBUTES_NEED_TEXCOORD1
-        #define ATTRIBUTES_NEED_TEXCOORD2
+        #define VARYINGS_NEED_TEXCOORD2
+        #define VARYINGS_NEED_TEXCOORD3
         #endif
     #endif
     // Varying - Use for pixel shader

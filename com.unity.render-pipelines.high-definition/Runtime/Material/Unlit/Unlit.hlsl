@@ -54,8 +54,11 @@ void GetBSDFDataDebug(uint paramId, BSDFData bsdfData, inout float3 result, inou
 LightTransportData GetLightTransportData(SurfaceData surfaceData, BuiltinData builtinData, BSDFData bsdfData)
 {
     LightTransportData lightTransportData;
-
+#if (SHADERPASS == SHADERPASS_LIGHT_TRANSPORT)
+    lightTransportData.diffuseColor = surfaceData.color;
+#else
     lightTransportData.diffuseColor = float3(0.0, 0.0, 0.0);
+#endif
     lightTransportData.emissiveColor = builtinData.emissiveColor;
 
     return lightTransportData;
