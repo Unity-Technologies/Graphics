@@ -484,6 +484,24 @@ namespace UnityEditor.VFX
 
         private static bool unsupportedSRPWarningIssued = false;
 
+        private static void LogUnsupportedSRP(VFXSRPBinder binder, bool forceLog)
+        {
+            if (binder == null && (forceLog || !unsupportedSRPWarningIssued))
+            {
+                Debug.LogWarning("The Visual Effect Graph is supported in the High Definition Render Pipeline (HDRP) and the Universal Render Pipeline (URP). Please assign your chosen Render Pipeline Asset in the Graphics Settings to use it.");
+                unsupportedSRPWarningIssued = true;
+            }
+        }
+
+        public static void LogUnsupportedSRP(bool forceLog = true)
+        {
+            bool logIssued = unsupportedSRPWarningIssued;
+            var binder = currentSRPBinder;
+
+            if (logIssued || !unsupportedSRPWarningIssued) // Don't reissue warning if inner currentSRPBinder call has already logged it
+                LogUnsupportedSRP(binder, forceLog);
+        }
+
         public static VFXSRPBinder currentSRPBinder
         {
             get
@@ -494,11 +512,7 @@ namespace UnityEditor.VFX
                 if (GraphicsSettings.currentRenderPipeline != null)
                     srpBinders.TryGetValue(GraphicsSettings.currentRenderPipeline.GetType().Name, out binder);
 
-                if (binder == null && !unsupportedSRPWarningIssued)
-                {
-                    Debug.LogWarning("The Visual Effect Graph is supported in the High Definition Render Pipeline (HDRP) and the Universal Render Pipeline (URP). Please assign your chosen Render Pipeline Asset in the Graphics Settings to use it.");
-                    unsupportedSRPWarningIssued = true;
-                }
+                LogUnsupportedSRP(binder, false);
 
                 return binder;
             }

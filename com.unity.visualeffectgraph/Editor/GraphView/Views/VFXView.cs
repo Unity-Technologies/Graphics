@@ -1421,6 +1421,8 @@ namespace UnityEditor.VFX.UI
 
         void OnCompile()
         {
+            VFXLibrary.LogUnsupportedSRP();
+
             if (controller.model.isSubgraph)
                 controller.graph.RecompileIfNeeded(false, false);
             else
