@@ -13,6 +13,7 @@ Shader "Hidden/Shadow2DShadowSprite"
         BlendOp Add
         Blend One Zero
         ZWrite Off
+        ZTest Always
 
         Pass
         {
