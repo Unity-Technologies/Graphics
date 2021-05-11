@@ -121,6 +121,10 @@ namespace UnityEditor.Rendering
         SerializedProperty m_Elements;
         ReorderableList m_List;
         Rect? reservedListSizeRect;
+        static Shader m_PreviewShader = null;
+        static Material m_CircleMaterial = null;
+        static Material m_PolygonMaterial = null;
+        static RTHandle m_PreviewTexture = null;
 
         void OnEnable()
         {
@@ -133,6 +137,25 @@ namespace UnityEditor.Rendering
             m_List.drawElementBackgroundCallback = DrawElementBackground;
             m_List.drawElementCallback = DrawElement;
             m_List.elementHeightCallback = ElementHeight;
+
+            if (m_PreviewShader == null)
+                m_PreviewShader = Shader.Find("Hidden/Core/LensFlareDataDrivenPreview");
+            if (m_CircleMaterial == null)
+            {
+                m_CircleMaterial = new Material(m_PreviewShader);
+                m_CircleMaterial.SetPass(0);
+                CoreUtils.SetKeyword(m_CircleMaterial, "FLARE_CIRCLE", true);
+            }
+            if (m_PolygonMaterial == null)
+            {
+                m_PolygonMaterial = new Material(m_PreviewShader);
+                m_PolygonMaterial.SetPass(0);
+                CoreUtils.SetKeyword(m_PolygonMaterial, "FLARE_POLYGON", true);
+            }
+            if (m_PreviewTexture == null)
+            {
+                m_PreviewTexture = RTHandles.Alloc(128, 128, colorFormat: UnityEngine.Experimental.Rendering.GraphicsFormat.R8G8B8A8_UInt);
+            }
         }
 
         public override void OnInspectorGUI()
@@ -402,12 +425,18 @@ namespace UnityEditor.Rendering
 
                 case SRPLensFlareType.Circle:
                     EditorGUI.DrawRect(thumbnailRect, GUI.color);   //draw the margin
-                    EditorGUI.DrawTextureTransparent(thumbnailIconeRect, LensFlareEditorUtils.Icons.circle, ScaleMode.ScaleToFit, 1);
+                    EditorGUI.DrawTextureTransparent(thumbnailIconeRect, LensFlareEditorUtils.Icons.circle, ScaleMode.ScaleToFit, 1f);
                     break;
 
                 case SRPLensFlareType.Polygon:
                     EditorGUI.DrawRect(thumbnailRect, GUI.color);   //draw the margin
-                    EditorGUI.DrawTextureTransparent(thumbnailIconeRect, LensFlareEditorUtils.Icons.polygon, ScaleMode.ScaleToFit, 1);
+                    //Graphics.SetRenderTarget(m_PreviewTexture);
+                    //Graphics.ClearRandomWriteTargets();
+                    //EditorGUI.DrawTextureTransparent(thumbnailIconeRect, LensFlareEditorUtils.Icons.polygon, ScaleMode.ScaleToFit, 1);
+                    Graphics.SetRenderTarget(m_PreviewTexture);
+                    Graphics.Blit(Texture2D.whiteTexture, m_PreviewTexture.rt, m_PolygonMaterial);
+                    //EditorGUI.DrawPreviewTexture(thumbnailIconeRect, LensFlareEditorUtils.Icons.polygon, m_PolygonMaterial, ScaleMode.ScaleToFit, 1f);
+                    EditorGUI.DrawTextureTransparent(thumbnailIconeRect, m_PreviewTexture.rt, ScaleMode.ScaleToFit, 1f);
                     break;
             }
             GUI.color = guiColor;
