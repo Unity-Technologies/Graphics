@@ -225,6 +225,7 @@ The version number for this package has increased due to a version update of a r
 - Fixed fog precision in some camera positions (case 1329603).
 - Fixed contact shadows tile coordinates calculations.
 - Fixed blocky looking bloom when dynamic resolution scaling was used.
+- Fixed issue with history buffer allocation for AOVs when the request does not come in first frame.
 
 ### Changed
 - Now reflection probes cannot have SSAO, SSGI, SSR, ray tracing effects or volumetric reprojection.
