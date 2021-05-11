@@ -6,6 +6,19 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
 {
     internal static class HDBlockFields
     {
+
+        [GenerateBlocks("High Definition Render Pipeline")]
+        public struct VertexDescription
+        {
+            public static string name = "VertexDescription";
+
+            // TODO: In the future we may have proper ShaderStage for tessellation, this will need to be revisit then
+            public static BlockFieldDescriptor TessellationFactor = new BlockFieldDescriptor(VertexDescription.name, "TessellationFactor", "Tessellation Factor", "VERTEXDESCRIPTION_TESSELLATIONFACTOR",
+                new FloatControl(1.0f), ShaderStage.Vertex);
+            public static BlockFieldDescriptor TessellationDisplacement = new BlockFieldDescriptor(VertexDescription.name, "TessellationDisplacement", "Tessellation Displacement", "VERTEXDESCRIPTION_TESSELLATIONDISPLACEMENT",
+                new PositionControl(CoordinateSpace.World), ShaderStage.Vertex);
+        }
+
         [GenerateBlocks("High Definition Render Pipeline")]
         public struct SurfaceDescription
         {
