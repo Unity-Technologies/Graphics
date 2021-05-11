@@ -103,11 +103,11 @@ VaryingsMeshToDS ApplyTessellationModification(VaryingsMeshToDS input, float3 ti
 {
     // HACK: As there is no specific tessellation stage for now in shadergraph, we reuse the vertex description mechanism.
     // It mean we store TessellationFactor inside vertex description causing extra read on both vertex and hull stage, but unusued paramater are optimize out by the shader compiler, so no impact.
-    $VertexDescription.TessellationDisplacement: VertexDescriptionInputs vertexDescriptionInputs = VaryingsMeshToDSToVertexDescriptionInputs(input);
+    VertexDescriptionInputs vertexDescriptionInputs = VaryingsMeshToDSToVertexDescriptionInputs(input);
     // Override time paramters with used one (This is required to correctly handle motion vector for tessellation animation based on time)
-    $VertexDescription.TessellationDisplacement: $VertexDescriptionInputs.TimeParameters: vertexDescriptionInputs.TimeParameters = timeParameters;
+    $VertexDescriptionInputs.TimeParameters: vertexDescriptionInputs.TimeParameters = timeParameters;
 
-    $VertexDescription.TessellationDisplacement: VertexDescription vertexDescription = VertexDescriptionFunction(vertexDescriptionInputs);
+    VertexDescription vertexDescription = VertexDescriptionFunction(vertexDescriptionInputs);
     $VertexDescription.TessellationDisplacement: input.positionRWS += vertexDescription.TessellationDisplacement;
 
     return input;
