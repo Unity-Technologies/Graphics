@@ -230,6 +230,19 @@ namespace UnityEngine.Experimental.Rendering
             RunPlacement();
         }
 
+        static void CellCountInDirections(out Vector3Int cellsInXYZ, int cellSizeInMeters)
+        {
+            cellsInXYZ = Vector3Int.zero;
+
+            Vector3 center = Vector3.zero;
+            var centeredMin = globalBounds.min - center;
+            var centeredMax = globalBounds.max - center;
+
+            cellsInXYZ.x = Mathf.Max(Mathf.CeilToInt(Mathf.Abs(centeredMin.x / cellSizeInMeters)), Mathf.CeilToInt(Mathf.Abs(centeredMax.x / cellSizeInMeters))) * 2;
+            cellsInXYZ.y = Mathf.Max(Mathf.CeilToInt(Mathf.Abs(centeredMin.y / cellSizeInMeters)), Mathf.CeilToInt(Mathf.Abs(centeredMax.y / cellSizeInMeters))) * 2;
+            cellsInXYZ.z = Mathf.Max(Mathf.CeilToInt(Mathf.Abs(centeredMin.z / cellSizeInMeters)), Mathf.CeilToInt(Mathf.Abs(centeredMax.z / cellSizeInMeters))) * 2;
+        }
+
         static void OnAdditionalProbesBakeCompleted()
         {
             UnityEditor.Experimental.Lightmapping.additionalBakedProbesCompleted -= OnAdditionalProbesBakeCompleted;
@@ -345,21 +358,15 @@ namespace UnityEngine.Experimental.Rendering
                         asset.cells.Add(cell);
                         if (hasFoundBounds)
                         {
-                            // TODO: Needs to be global bounds center when we get rid of the importance of the location of the ref volume
-                            Vector3 center = refVol.transform.position; //globalBounds.center;
+                            Vector3Int cellsInDir;
+                            int cellSizeInMeters = Mathf.CeilToInt((float)refVol.profile.cellSizeInBricks * refVol.profile.brickSize);
+                            CellCountInDirections(out cellsInDir, cellSizeInMeters);
 
-                            float cellSizeInMeters = Mathf.CeilToInt((float)refVol.profile.cellSizeInBricks * refVol.profile.brickSize);
+                            asset.maxCellIndex.x = cellsInDir.x * (int)refVol.profile.cellSizeInBricks;
+                            asset.maxCellIndex.y = cellsInDir.y * (int)refVol.profile.cellSizeInBricks;
+                            asset.maxCellIndex.z = cellsInDir.z * (int)refVol.profile.cellSizeInBricks;
 
-                            var centeredMin = globalBounds.min - center;
-                            var centeredMax = globalBounds.max - center;
-
-                            int cellsInX = Mathf.Max(Mathf.CeilToInt(Mathf.Abs(centeredMin.x / cellSizeInMeters)), Mathf.CeilToInt(Mathf.Abs(centeredMax.x / cellSizeInMeters))) * 2;
-                            int cellsInY = Mathf.Max(Mathf.CeilToInt(Mathf.Abs(centeredMin.y / cellSizeInMeters)), Mathf.CeilToInt(Mathf.Abs(centeredMax.y / cellSizeInMeters))) * 2;
-                            int cellsInZ = Mathf.Max(Mathf.CeilToInt(Mathf.Abs(centeredMin.z / cellSizeInMeters)), Mathf.CeilToInt(Mathf.Abs(centeredMax.z / cellSizeInMeters))) * 2;
-
-                            asset.maxCellIndex.x = cellsInX * (int)refVol.profile.cellSizeInBricks;
-                            asset.maxCellIndex.y = cellsInY * (int)refVol.profile.cellSizeInBricks;
-                            asset.maxCellIndex.z = cellsInZ * (int)refVol.profile.cellSizeInBricks;
+                            Debug.Log(asset.maxCellIndex);
                         }
                         else
                         {
@@ -583,9 +590,12 @@ namespace UnityEngine.Experimental.Rendering
 
             var volumeScale = m_BakingReferenceVolumeAuthoring.transform.localScale;
             var CellSize = m_BakingReferenceVolumeAuthoring.cellSize;
-            var xCells = (int)Mathf.Ceil(volumeScale.x / CellSize);
-            var yCells = (int)Mathf.Ceil(volumeScale.y / CellSize);
-            var zCells = (int)Mathf.Ceil(volumeScale.z / CellSize);
+            Vector3Int cellsInDir;
+            CellCountInDirections(out cellsInDir, CellSize);
+
+            var xCells = cellsInDir.x;
+            var yCells = cellsInDir.y;
+            var zCells = cellsInDir.z;
 
             // create cells
             List<Vector3Int> cellPositions = new List<Vector3Int>();
