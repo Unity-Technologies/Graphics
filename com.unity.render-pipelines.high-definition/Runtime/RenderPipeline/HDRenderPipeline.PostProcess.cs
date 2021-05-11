@@ -147,9 +147,8 @@ namespace UnityEngine.Rendering.HighDefinition
         // Debug Exposure compensation (Drive by debug menu) to add to all exposure processed value
         float m_DebugExposureCompensation;
 
-        // Physical camera ref
+        // Physical camera copy
         HDPhysicalCamera m_PhysicalCamera;
-        static readonly HDPhysicalCamera m_DefaultPhysicalCamera = new HDPhysicalCamera();
 
         // HDRP has the following behavior regarding alpha:
         // - If post processing is disabled, the alpha channel of the rendering passes (if any) will be passed to the frame buffer by the final pass
@@ -292,7 +291,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
             // Grab physical camera settings or a default instance if it's null (should only happen
             // in rare occasions due to how HDAdditionalCameraData is added to the camera)
-            m_PhysicalCamera = camera.physicalParameters ?? m_DefaultPhysicalCamera;
+            m_PhysicalCamera = camera.physicalParameters;
 
             // Prefetch all the volume components we need to save some cycles as most of these will
             // be needed in multiple places

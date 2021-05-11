@@ -53,7 +53,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Added Lens Flare Samples
 - Added new checkbox to enable mip bias in the Dynamic Resolution HDRP quality settings. This allows dynamic resolution scaling applying a bias on the frame to improve on texture sampling detail.
 - Added the ability to control focus distance either from the physical camera properties or the volume.
-- Added the ability to animate physical camera properties.
+- Added the ability to animate many physical camera properties with Timeline.
 
 ### Fixed
 - Fixed Intensity Multiplier not affecting realtime global illumination.
