@@ -250,6 +250,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                 useInPreview = false,
 
                 // Collections
+                structs = CoreStructCollections.Basic,
                 renderStates = DecalRenderStates.ScenePicking,
                 pragmas = DecalPragmas.Instanced,
                 defines = CoreDefines.ScenePicking,
@@ -268,6 +269,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                 // Port mask
                 validPixelBlocks = DecalBlockMasks.FragmentDefault,
 
+                structs = CoreStructCollections.Basic,
                 renderStates = DecalRenderStates.DBufferProjector,
                 pragmas = DecalPragmas.Instanced,
                 keywords = DecalDefines.Decals,
@@ -287,6 +289,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                 validPixelBlocks = DecalBlockMasks.FragmentEmissive,
 
                 // Conditional State
+                structs = CoreStructCollections.Basic,
                 renderStates = DecalRenderStates.DecalProjectorForwardEmissive,
                 pragmas = DecalPragmas.Instanced,
                 defines = DecalDefines.Emission,
@@ -309,6 +312,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                 requiredFields = DecalRequiredFields.Mesh,
 
                 // Conditional State
+                structs = CoreStructCollections.Basic,
                 renderStates = DecalRenderStates.DBufferMesh,
                 pragmas = DecalPragmas.Instanced,
                 keywords = DecalDefines.Decals,
@@ -331,6 +335,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                 requiredFields = DecalRequiredFields.Mesh,
 
                 // Conditional State
+                structs = CoreStructCollections.Basic,
                 renderStates = DecalRenderStates.DecalMeshForwardEmissive,
                 pragmas = DecalPragmas.Instanced,
                 defines = DecalDefines.Emission,
@@ -353,6 +358,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                 requiredFields = DecalRequiredFields.Mesh,
 
                 // Render state overrides
+                structs = CoreStructCollections.Basic,
                 renderStates = DecalRenderStates.Preview,
                 pragmas = DecalPragmas.Instanced,
                 includes = DecalIncludes.Default,
