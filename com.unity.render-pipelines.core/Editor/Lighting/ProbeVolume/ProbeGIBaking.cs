@@ -99,7 +99,7 @@ namespace UnityEngine.Experimental.Rendering
 
                 var refVol = ProbeReferenceVolume.instance;
                 refVol.Clear();
-                refVol.SetTRS(refVolAuthoring.transform.position, refVolAuthoring.transform.rotation, refVolAuthoring.brickSize);
+                refVol.SetTRS(refVolAuthoring.transform.position, Quaternion.identity, refVolAuthoring.brickSize);
                 refVol.SetMaxSubdivision(refVolAuthoring.maxSubdivision);
             }
 

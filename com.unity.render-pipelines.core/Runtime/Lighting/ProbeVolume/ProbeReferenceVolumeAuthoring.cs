@@ -107,7 +107,7 @@ namespace UnityEngine.Experimental.Rendering
                 return;
 
             var refVol = ProbeReferenceVolume.instance;
-            refVol.SetTRS(transform.position, transform.rotation, m_Profile.brickSize);
+            refVol.SetTRS(transform.position, Quaternion.identity, m_Profile.brickSize);
             refVol.SetMaxSubdivision(m_Profile.maxSubdivision);
 
             refVol.AddPendingAssetLoading(volumeAsset);
