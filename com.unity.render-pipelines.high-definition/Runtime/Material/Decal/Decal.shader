@@ -212,6 +212,7 @@ Shader "HDRP/Decal"
             HLSLPROGRAM
 
             #pragma multi_compile_fragment DECALS_3RT DECALS_4RT
+            #pragma multi_compile _ DOTS_INSTANCING_ON
             // enable dithering LOD crossfade
             #pragma multi_compile _ LOD_FADE_CROSSFADE
 
@@ -246,6 +247,7 @@ Shader "HDRP/Decal"
             Blend 0 SrcAlpha One
 
             HLSLPROGRAM
+            #pragma multi_compile _ DOTS_INSTANCING_ON
             // enable dithering LOD crossfade
             #pragma multi_compile _ LOD_FADE_CROSSFADE
 

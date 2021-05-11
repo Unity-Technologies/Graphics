@@ -33,6 +33,7 @@ namespace UnityEditor.Rendering.HighDefinition
             DistanceShadowmask
         }
 
+        [HDRPHelpURL("Light-Component")]
         enum Expandable
         {
             General = 1 << 0,
@@ -109,6 +110,8 @@ namespace UnityEditor.Rendering.HighDefinition
                                     CED.AdditionalPropertiesFoldoutGroup(s_Styles.shadowMapSubHeader, Expandable.ShadowMap, k_ExpandedState, AdditionalProperties.Shadow, k_AdditionalPropertiesState,
                                         DrawShadowMapContent, DrawShadowMapAdditionalContent, FoldoutOption.SubFoldout | FoldoutOption.Indent | FoldoutOption.NoSpaceAtEnd)),
                                 CED.space,
+                                CED.Conditional((serialized, owner) => k_AdditionalPropertiesState[AdditionalProperties.Shadow] && HasShadowQualitySettingsUI(HDShadowFilteringQuality.VeryHigh, serialized, owner),
+                                    CED.FoldoutGroup(s_Styles.veryHighShadowQualitySubHeader, Expandable.ShadowQuality, k_ExpandedState, FoldoutOption.SubFoldout | FoldoutOption.Indent, DrawVeryHighShadowSettingsContent)),
                                 CED.Conditional((serialized, owner) => k_AdditionalPropertiesState[AdditionalProperties.Shadow] && HasShadowQualitySettingsUI(HDShadowFilteringQuality.High, serialized, owner),
                                     CED.FoldoutGroup(s_Styles.highShadowQualitySubHeader, Expandable.ShadowQuality, k_ExpandedState, FoldoutOption.SubFoldout | FoldoutOption.Indent, DrawHighShadowSettingsContent)),
                                 CED.Conditional((serialized, owner) => HasShadowQualitySettingsUI(HDShadowFilteringQuality.Medium, serialized, owner),
@@ -1338,9 +1341,8 @@ namespace UnityEditor.Rendering.HighDefinition
 
         static void DrawVeryHighShadowSettingsContent(SerializedHDLight serialized, Editor owner)
         {
-            EditorGUILayout.PropertyField(serialized.kernelSize, s_Styles.kernelSize);
-            EditorGUILayout.PropertyField(serialized.lightAngle, s_Styles.lightAngle);
-            EditorGUILayout.PropertyField(serialized.maxDepthBias, s_Styles.maxDepthBias);
+            // Same as high for now (PCSS)
+            DrawHighShadowSettingsContent(serialized, owner);
         }
 
         static void SetLightsDirty(Editor owner)

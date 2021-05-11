@@ -84,6 +84,9 @@ namespace UnityEditor.Rendering.HighDefinition
             internal static readonly GUIContent lensAttenuationModeContentLabel = EditorGUIUtility.TrTextContent("Lens Attenuation Mode", "Set the attenuation mode of the lens that is used to compute exposure. With imperfect lens some energy is lost when converting from EV100 to the exposure multiplier.");
             internal static readonly GUIContent rendererListCulling = EditorGUIUtility.TrTextContent("Dynamic Render Pass Culling", "When enabled, rendering passes are automatically culled based on what is visible on the camera.");
 
+            internal static readonly GUIContent useDLSSCustomProjectIdLabel = EditorGUIUtility.TrTextContent("Use DLSS Custom Project Id", "Set to utilize a custom project Id for the NVIDIA Deep Learning Super Sampling extension.");
+            internal static readonly GUIContent DLSSProjectIdLabel = EditorGUIUtility.TrTextContent("DLSS Custom Project Id", "The custom project ID string to utilize for the NVIDIA Deep Learning Super Sampling extension.");
+
             internal static readonly GUIContent diffusionProfileSettingsLabel = EditorGUIUtility.TrTextContent("Diffusion Profile Assets");
             internal static readonly string warningHdrpNotActive = "No HD Render Pipeline currently active. Verify your Graphics Settings and active Quality Level.";
             internal static readonly string warningGlobalSettingsMissing = "No active settings for HDRP. Rendering may be broken until a new one is assigned.";
@@ -126,7 +129,7 @@ namespace UnityEditor.Rendering.HighDefinition
             {
                 if (HDRenderPipeline.currentAsset != null || HDRenderPipelineGlobalSettings.instance != null)
                 {
-                    settingsSerialized = HDRenderPipelineGlobalSettings.Ensure(folderPath: HDProjectSettings.projectSettingsFolderPath);
+                    settingsSerialized = HDRenderPipelineGlobalSettings.Ensure();
                     var serializedObject = new SerializedObject(settingsSerialized);
                     serializedSettings = new SerializedHDRenderPipelineGlobalSettings(serializedObject);
                 }
@@ -136,8 +139,8 @@ namespace UnityEditor.Rendering.HighDefinition
                 serializedSettings.serializedObject.Update();
             }
 
-            DrawWarnings(ref serializedSettings, null);
             DrawAssetSelection(ref serializedSettings, null);
+            DrawWarnings(ref serializedSettings, null);
             if (settingsSerialized != null && serializedSettings != null)
             {
                 EditorGUILayout.Space();
@@ -191,14 +194,14 @@ namespace UnityEditor.Rendering.HighDefinition
 
                 if (GUILayout.Button(EditorGUIUtility.TrTextContent("New", "Create a HD Global Settings Asset in your default resource folder (defined in Wizard)"), GUILayout.Width(45), GUILayout.Height(18)))
                 {
-                    HDAssetFactory.HDRenderPipelineGlobalSettingsCreator.Create(useProjectSettingsFolder: true, activateAsset: true);
+                    HDAssetFactory.HDRenderPipelineGlobalSettingsCreator.Create(useProjectSettingsFolder: true, assignToActiveAsset: true);
                 }
 
                 bool guiEnabled = GUI.enabled;
                 GUI.enabled = guiEnabled && (settingsSerialized != null);
                 if (GUILayout.Button(EditorGUIUtility.TrTextContent("Clone", "Clone a HD Global Settings Asset in your default resource folder (defined in Wizard)"), GUILayout.Width(45), GUILayout.Height(18)))
                 {
-                    HDAssetFactory.HDRenderPipelineGlobalSettingsCreator.Clone(settingsSerialized, activateAsset: true);
+                    HDAssetFactory.HDRenderPipelineGlobalSettingsCreator.Clone(settingsSerialized, assignToActiveAsset: true);
                 }
                 GUI.enabled = guiEnabled;
             }
@@ -488,6 +491,12 @@ namespace UnityEditor.Rendering.HighDefinition
                 EditorGUILayout.PropertyField(serialized.shaderVariantLogLevel, Styles.shaderVariantLogLevelLabel);
                 EditorGUILayout.PropertyField(serialized.lensAttenuation, Styles.lensAttenuationModeContentLabel);
                 EditorGUILayout.PropertyField(serialized.rendererListCulling, Styles.rendererListCulling);
+
+#if ENABLE_NVIDIA && ENABLE_NVIDIA_MODULE
+                EditorGUILayout.PropertyField(serialized.useDLSSCustomProjectId, Styles.useDLSSCustomProjectIdLabel);
+                if (serialized.useDLSSCustomProjectId.boolValue)
+                    EditorGUILayout.PropertyField(serialized.DLSSProjectId, Styles.DLSSProjectIdLabel);
+#endif
             }
             EditorGUIUtility.labelWidth = oldWidth;
         }

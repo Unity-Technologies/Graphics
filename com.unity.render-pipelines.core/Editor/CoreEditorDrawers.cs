@@ -1,7 +1,10 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
+using System.Reflection;
 using UnityEngine;
 using UnityEditor.AnimatedValues;
+using UnityEngine.Rendering;
 
 namespace UnityEditor.Rendering
 {
@@ -534,6 +537,20 @@ namespace UnityEditor.Rendering
             return FoldoutGroup(title, mask, state, options, null, null, contentDrawers);
         }
 
+        static string GetHelpURL<TEnum>(TEnum mask)
+            where TEnum : struct, IConvertible
+        {
+            var helpURLAttribute = (HelpURLAttribute)mask
+                .GetType()
+                .GetCustomAttributes(typeof(HelpURLAttribute), false)
+                .FirstOrDefault();
+
+            if (helpURLAttribute == null)
+                return string.Empty;
+
+            return $"{helpURLAttribute.URL}#{mask}";
+        }
+
         // This one is private as we do not want to have unhandled advanced switch. Change it if necessary.
         static IDrawer FoldoutGroup<TEnum, TState>(GUIContent title, TEnum mask, ExpandedState<TEnum, TState> state, FoldoutOption options, Enabler showAdditionalProperties, SwitchEnabler switchAdditionalProperties, params ActionDrawer[] contentDrawers)
             where TEnum : struct, IConvertible
@@ -554,9 +571,12 @@ namespace UnityEditor.Rendering
                 else
                 {
                     CoreEditorUtils.DrawSplitter(isBoxed);
-                    newExpended = CoreEditorUtils.DrawHeaderFoldout(title, expended, isBoxed,
+                    newExpended = CoreEditorUtils.DrawHeaderFoldout(title,
+                        expended,
+                        isBoxed,
                         showAdditionalProperties == null ? (Func<bool>)null : () => showAdditionalProperties(data, owner),
-                        switchAdditionalProperties == null ? (Action)null : () => switchAdditionalProperties(data, owner));
+                        switchAdditionalProperties == null ? (Action)null : () => switchAdditionalProperties(data, owner),
+                        GetHelpURL<TEnum>(mask));
                 }
                 if (newExpended ^ expended)
                     state[mask] = newExpended;

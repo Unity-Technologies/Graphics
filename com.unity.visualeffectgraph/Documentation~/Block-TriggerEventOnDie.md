@@ -2,9 +2,9 @@
 
 Menu Path : **GPU Event > Trigger Event On Die**
 
-The **Trigger Event On Die** Block triggers the creation of a specified number of particles via a [GPU Event](Context-GPUEvent.md) when a particle dies. Trigger blocks always execute at the end of Update, regardless of where the block is in the Context.
+The **Trigger Event On Die** Block triggers the creation of a specified number of particles via a [GPU Event](Context-GPUEvent.md) when a particle dies. Trigger Blocks always execute at the end of Update, regardless of where the Block is in the Context.
 
-You can also use the Trigger block with various conditions to create more complex spawning behavior:
+You can also use the Trigger Block with various conditions to create more complex spawning behavior:
 
 ![img](Images/Block-TriggerEventOnDieExample.png)
 

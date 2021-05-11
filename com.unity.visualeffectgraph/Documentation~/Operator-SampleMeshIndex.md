@@ -14,7 +14,7 @@ The Sample Mesh or Skinned Mesh Renderer Index Operator allows you to fetch inde
 | ------------ | -------- | ------------------------------------------------------------ |
 | **Source**   | Enum     | Choose the kind of geometry to sample, either a **Mesh** or a **Skinned Mesh Renderer** |
 
-### Operator Properties
+### Operator properties
 
 | **Input**                 | **Type**              | **Description**                                              |
 | ------------------------- | --------------------- | ------------------------------------------------------------ |

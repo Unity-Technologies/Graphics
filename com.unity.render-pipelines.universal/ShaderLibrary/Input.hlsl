@@ -7,6 +7,10 @@
 // Keep in sync with RenderingUtils.useStructuredBuffer
 #define USE_STRUCTURED_BUFFER_FOR_LIGHT_DATA 0
 
+#define RENDERING_LIGHT_LAYERS_MASK (255)
+#define RENDERING_LIGHT_LAYERS_MASK_SHIFT (0)
+#define DEFAULT_LIGHT_LAYERS (RENDERING_LIGHT_LAYERS_MASK >> RENDERING_LIGHT_LAYERS_MASK_SHIFT)
+
 #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/ShaderTypes.cs.hlsl"
 #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Deprecated.hlsl"
 
@@ -29,6 +33,32 @@ struct InputData
     half3   bakedGI;
     float2  normalizedScreenSpaceUV;
     half4   shadowMask;
+    half3x3 tangentToWorld;
+
+    #if defined(DEBUG_DISPLAY)
+    half2   dynamicLightmapUV;
+    half2   staticLightmapUV;
+    float3  vertexSH;
+
+    half3 brdfDiffuse;
+    half3 brdfSpecular;
+    float2 uv;
+    uint mipCount;
+
+    // texelSize :
+    // x = 1 / width
+    // y = 1 / height
+    // z = width
+    // w = height
+    float4 texelSize;
+
+    // mipInfo :
+    // x = quality settings minStreamingMipLevel
+    // y = original mip count for texture
+    // z = desired on screen mip level
+    // w = loaded mip level
+    float4 mipInfo;
+    #endif
 };
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -38,12 +68,17 @@ struct InputData
 half4 _GlossyEnvironmentColor;
 half4 _SubtractiveShadowColor;
 
+half4 _GlossyEnvironmentCubeMap_HDR;
+TEXTURECUBE(_GlossyEnvironmentCubeMap);
+SAMPLER(sampler_GlossyEnvironmentCubeMap);
+
 #define _InvCameraViewProj unity_MatrixInvVP
 float4 _ScaledScreenParams;
 
 float4 _MainLightPosition;
 half4 _MainLightColor;
 half4 _MainLightOcclusionProbes;
+uint _MainLightLayerMask;
 
 // xyz are currently unused
 // w: directLightStrength
@@ -64,6 +99,7 @@ half4 _AdditionalLightsColor[MAX_VISIBLE_LIGHTS];
 half4 _AdditionalLightsAttenuation[MAX_VISIBLE_LIGHTS];
 half4 _AdditionalLightsSpotDir[MAX_VISIBLE_LIGHTS];
 half4 _AdditionalLightsOcclusionProbes[MAX_VISIBLE_LIGHTS];
+float _AdditionalLightsLayerMasks[MAX_VISIBLE_LIGHTS]; // we want uint[] but Unity api does not support it.
 #ifndef SHADER_API_GLES3
 CBUFFER_END
 #endif
