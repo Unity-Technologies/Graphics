@@ -58,7 +58,7 @@ namespace UnityEditor.Rendering.Universal
 
     [Serializable]
     [EditorWindowTitle(title = "Render Pipeline Converters")]
-    public class RenderPipelineConvertersEditor : EditorWindow
+    internal class RenderPipelineConvertersEditor : EditorWindow
     {
         public VisualTreeAsset converterEditorAsset;
         public VisualTreeAsset converterListAsset;

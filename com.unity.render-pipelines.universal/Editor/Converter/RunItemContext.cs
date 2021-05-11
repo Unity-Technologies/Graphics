@@ -4,7 +4,7 @@ namespace UnityEditor.Rendering
     /// A structure needed for the conversion part of the converter.
     /// This holds the item that is being converted.
     /// </summary>
-    public struct RunItemContext
+    internal struct RunItemContext
     {
         ConverterItemInfo m_Item;
         /// <summary> The item that will go through the conversion code. </summary>
