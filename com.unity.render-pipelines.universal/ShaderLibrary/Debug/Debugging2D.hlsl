@@ -49,7 +49,7 @@ bool CalculateDebugColorMaterialSettings(in SurfaceData2D surfaceData, in InputD
         case DEBUGMATERIALMODE_SPRITE_MASK:
         {
             debugColor = surfaceData.mask;
-            return false;
+            return true;
         }
 
         case DEBUGMATERIALMODE_NORMAL_TANGENT_SPACE:
@@ -117,7 +117,7 @@ bool CanDebugOverrideOutputColor(inout SurfaceData2D surfaceData, inout InputDat
 {
     if (CalculateDebugColorMaterialSettings(surfaceData, inputData, debugColor))
     {
-        return true;
+        return _DebugMaterialMode != DEBUGMATERIALMODE_SPRITE_MASK;
     }
     else if (CalculateDebugColorForRenderingSettings(surfaceData, inputData, debugColor))
     {
