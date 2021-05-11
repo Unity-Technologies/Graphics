@@ -29,7 +29,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
             PragmaCollection pragmas = input == null ? new PragmaCollection() : new PragmaCollection { input };
 
             if (useVFX)
-                pragmas.Add(CorePragmas.BasicVFX);         
+                pragmas.Add(CorePragmas.BasicVFX);
             else if (useTessellation) // Tessellation is currently not compatible with Raytracing
                 pragmas.Add(CorePragmas.BasicTessellation);
             else

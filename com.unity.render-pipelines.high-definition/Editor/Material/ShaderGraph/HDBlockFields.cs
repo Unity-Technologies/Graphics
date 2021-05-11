@@ -6,7 +6,6 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
 {
     internal static class HDBlockFields
     {
-
         [GenerateBlocks("High Definition Render Pipeline")]
         public struct VertexDescription
         {
