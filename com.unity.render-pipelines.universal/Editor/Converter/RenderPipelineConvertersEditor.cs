@@ -81,6 +81,9 @@ namespace UnityEditor.Rendering.Universal
 
         TypeCache.TypeCollection m_ConverterContainers;
 
+        // Name of the index file
+        string m_URPConverterIndex = "URPConverterIndex";
+
         [MenuItem("Window/Rendering/Render Pipeline Converter", false, 50)]
         public static void ShowWindow()
         {
@@ -387,7 +390,7 @@ namespace UnityEditor.Rendering.Universal
 
             if (createIndex)
             {
-                CreateSearchIndex("URPConverterIndex", OnSearchIndexCreated);
+                CreateSearchIndex(m_URPConverterIndex, OnSearchIndexCreated);
             }
 
             for (int i = 0; i < m_ConverterStates.Count; ++i)
