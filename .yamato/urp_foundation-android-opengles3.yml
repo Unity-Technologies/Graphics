@@ -11,7 +11,8 @@
 URP_Foundation_Android_OpenGLES3_Standalone_il2cpp_Linear_trunk:
     name: URP_Foundation on Android_OpenGLES3_Standalone_il2cpp_Linear on version trunk
     agent:
-        type: Unity::mobile::android
+        type: Unity::mobile::samsung
+        model: s10e-eu
         image: mobile/android-execution-r19:stable
         flavor: b1.large
     variables:
@@ -79,7 +80,8 @@ Build_URP_Foundation_Android_OpenGLES3_Standalone_il2cpp_Linear_trunk:
 URP_Foundation_Android_OpenGLES3_Standalone_cache_il2cpp_Linear_trunk:
     name: URP_Foundation on Android_OpenGLES3_Standalone_cache_il2cpp_Linear on version trunk
     agent:
-        type: Unity::mobile::android
+        type: Unity::mobile::samsung
+        model: s10e-eu
         image: mobile/android-execution-r19:stable
         flavor: b1.large
     variables:
@@ -147,7 +149,8 @@ Build_URP_Foundation_Android_OpenGLES3_Standalone_cache_il2cpp_Linear_trunk:
 URP_Foundation_Android_OpenGLES3_Standalone_il2cpp_Linear_CUSTOM-REVISION:
     name: URP_Foundation on Android_OpenGLES3_Standalone_il2cpp_Linear on version CUSTOM-REVISION
     agent:
-        type: Unity::mobile::android
+        type: Unity::mobile::samsung
+        model: s10e-eu
         image: mobile/android-execution-r19:stable
         flavor: b1.large
     variables:
@@ -215,7 +218,8 @@ Build_URP_Foundation_Android_OpenGLES3_Standalone_il2cpp_Linear_CUSTOM-REVISION:
 URP_Foundation_Android_OpenGLES3_Standalone_cache_il2cpp_Linear_CUSTOM-REVISION:
     name: URP_Foundation on Android_OpenGLES3_Standalone_cache_il2cpp_Linear on version CUSTOM-REVISION
     agent:
-        type: Unity::mobile::android
+        type: Unity::mobile::samsung
+        model: s10e-eu
         image: mobile/android-execution-r19:stable
         flavor: b1.large
     variables:

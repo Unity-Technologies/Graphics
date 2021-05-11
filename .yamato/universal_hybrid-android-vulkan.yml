@@ -11,7 +11,8 @@
 Universal_Hybrid_Android_Vulkan_Standalone_mono_Linear_trunk:
     name: Universal_Hybrid on Android_Vulkan_Standalone_mono_Linear on version trunk
     agent:
-        type: Unity::mobile::android
+        type: Unity::mobile::samsung
+        model: s10e-eu
         image: mobile/android-execution-r19:stable
         flavor: b1.large
     variables:
@@ -79,7 +80,8 @@ Build_Universal_Hybrid_Android_Vulkan_Standalone_mono_Linear_trunk:
 Universal_Hybrid_Android_Vulkan_Standalone_cache_mono_Linear_trunk:
     name: Universal_Hybrid on Android_Vulkan_Standalone_cache_mono_Linear on version trunk
     agent:
-        type: Unity::mobile::android
+        type: Unity::mobile::samsung
+        model: s10e-eu
         image: mobile/android-execution-r19:stable
         flavor: b1.large
     variables:
@@ -147,7 +149,8 @@ Build_Universal_Hybrid_Android_Vulkan_Standalone_cache_mono_Linear_trunk:
 Universal_Hybrid_Android_Vulkan_Standalone_mono_Linear_CUSTOM-REVISION:
     name: Universal_Hybrid on Android_Vulkan_Standalone_mono_Linear on version CUSTOM-REVISION
     agent:
-        type: Unity::mobile::android
+        type: Unity::mobile::samsung
+        model: s10e-eu
         image: mobile/android-execution-r19:stable
         flavor: b1.large
     variables:
@@ -215,7 +218,8 @@ Build_Universal_Hybrid_Android_Vulkan_Standalone_mono_Linear_CUSTOM-REVISION:
 Universal_Hybrid_Android_Vulkan_Standalone_cache_mono_Linear_CUSTOM-REVISION:
     name: Universal_Hybrid on Android_Vulkan_Standalone_cache_mono_Linear on version CUSTOM-REVISION
     agent:
-        type: Unity::mobile::android
+        type: Unity::mobile::samsung
+        model: s10e-eu
         image: mobile/android-execution-r19:stable
         flavor: b1.large
     variables:
