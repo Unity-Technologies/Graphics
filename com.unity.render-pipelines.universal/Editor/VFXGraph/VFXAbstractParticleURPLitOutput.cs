@@ -160,7 +160,7 @@ namespace UnityEditor.VFX.URP
         {
             get
             {
-                yield return new VFXPropertyWithValue(new VFXProperty(GetTextureType(), kOcclusionMap, new TooltipAttribute("Specifies the Occlusion Map for the particle - Ambient occlusion (G)")), (usesFlipbook ? null : VFXResources.defaultResources.noiseTexture));
+                yield return new VFXPropertyWithValue(new VFXProperty(GetTextureType(), kOcclusionMap, new TooltipAttribute("Specifies the Occlusion Map for the particle - Ambient occlusion (G)")));
             }
         }
 
@@ -169,7 +169,7 @@ namespace UnityEditor.VFX.URP
         {
             get
             {
-                yield return new VFXPropertyWithValue(new VFXProperty(GetTextureType(), kSpecularMap, new TooltipAttribute("Specifies the Specular Map for the particle - Color (RGB) - (Optional A) Smoothness")), (usesFlipbook ? null : VFXResources.defaultResources.noiseTexture));
+                yield return new VFXPropertyWithValue(new VFXProperty(GetTextureType(), kSpecularMap, new TooltipAttribute("Specifies the Specular Map for the particle - Color (RGB) - (Optional A) Smoothness")));
             }
         }
 
@@ -178,7 +178,7 @@ namespace UnityEditor.VFX.URP
         {
             get
             {
-                yield return new VFXPropertyWithValue(new VFXProperty(GetTextureType(), kMetallicMap, new TooltipAttribute("Specifies the Metallic Map for the particle - Metallic (R) - (Optional A) Smoothness")), (usesFlipbook ? null : VFXResources.defaultResources.noiseTexture));
+                yield return new VFXPropertyWithValue(new VFXProperty(GetTextureType(), kMetallicMap, new TooltipAttribute("Specifies the Metallic Map for the particle - Metallic (R) - (Optional A) Smoothness")));
             }
         }
 
