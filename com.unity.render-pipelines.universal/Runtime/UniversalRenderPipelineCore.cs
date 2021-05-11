@@ -419,6 +419,7 @@ namespace UnityEngine.Rendering.Universal
         }
 
 #if ENABLE_VR && ENABLE_VR_MODULE
+        static List<XR.XRDisplaySubsystem> displaySubsystemList = new List<XR.XRDisplaySubsystem>();
         static XR.XRDisplaySubsystem GetXRDisplaySubsystem()
         {
             XR.XRDisplaySubsystem display = null;
