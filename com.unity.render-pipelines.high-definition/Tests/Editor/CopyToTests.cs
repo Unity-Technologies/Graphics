@@ -21,6 +21,7 @@ namespace UnityEngine.Rendering.HighDefinition.Tests
         {
             m_Root = new GameObject("TEST");
             m_Root.SetActive(false);
+            m_ToClean = new List<UnityObject> { m_Root };
         }
 
         [TearDown]
@@ -82,6 +83,7 @@ namespace UnityEngine.Rendering.HighDefinition.Tests
                 {
                     //cannot create Transform
                     GameObject go = new GameObject("DummyForTransform");
+                    go.SetActive(false);
                     m_ToClean.Add(go);
                     return go.transform;
                 }
@@ -91,6 +93,7 @@ namespace UnityEngine.Rendering.HighDefinition.Tests
                 {
                     //cannot add multiple instance
                     GameObject go = new GameObject("DummyForUnique");
+                    go.SetActive(false);
                     m_ToClean.Add(go);
                     return go.AddComponent(type);
                 }
