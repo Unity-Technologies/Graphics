@@ -139,9 +139,9 @@ Shader "Hidden/Universal Render Pipeline/StencilDeferred"
     #endif
 #endif
 
-    #ifdef GBUFFER_OPTIONAL_SLOT_2 && _RENDER_PASS_ENABLED
+    #if defined(GBUFFER_OPTIONAL_SLOT_2) && _RENDER_PASS_ENABLED
     TEXTURE2D_X_HALF(_GBuffer5);
-    #else
+    #elif defined(GBUFFER_OPTIONAL_SLOT_2)
     TEXTURE2D_X(_GBuffer5);
     #endif
     #ifdef GBUFFER_OPTIONAL_SLOT_3
