@@ -643,7 +643,7 @@ namespace UnityEngine.Rendering.Universal
                 EnqueuePass(m_CopyDepthPass);
             }
 
-            if (renderPassInputs.requiresMotionVectors)
+            if (renderPassInputs.requiresMotionVectors && !cameraData.xr.enabled)
             {
                 SupportedRenderingFeatures.active.motionVectors = true; // Todo : not set this here
                 var data = MotionVectorRendering.instance.GetMotionDataForCamera(renderingData.cameraData.camera);
