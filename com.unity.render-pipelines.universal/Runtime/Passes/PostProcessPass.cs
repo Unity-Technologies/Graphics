@@ -83,6 +83,9 @@ namespace UnityEngine.Rendering.Universal.Internal
         // Blit to screen or color frontbuffer at the end
         bool m_ResolveToScreen;
 
+        // Renderer is using swapbuffer system
+        bool m_UseSwapBuffer;
+
         Material m_BlitMaterial;
 
         public PostProcessPass(RenderPassEvent evt, PostProcessData data, Material blitMaterial)
@@ -151,6 +154,7 @@ namespace UnityEngine.Rendering.Universal.Internal
             m_EnableSRGBConversionIfNeeded = enableSRGBConversion;
             m_ResolveToScreen = resolveToScreen;
             m_Destination = RenderTargetHandle.CameraTarget;
+            m_UseSwapBuffer = true;
         }
 
         public void Setup(in RenderTextureDescriptor baseDescriptor, in RenderTargetHandle source, RenderTargetHandle destination, in RenderTargetHandle depth, in RenderTargetHandle internalLut, bool hasFinalPass, bool enableSRGBConversion)
@@ -165,6 +169,7 @@ namespace UnityEngine.Rendering.Universal.Internal
             m_IsFinalPass = false;
             m_HasFinalPass = hasFinalPass;
             m_EnableSRGBConversionIfNeeded = enableSRGBConversion;
+            m_UseSwapBuffer = false;
         }
 
         public void SetupFinalPass(in RenderTargetHandle source)
@@ -179,10 +184,6 @@ namespace UnityEngine.Rendering.Universal.Internal
         /// <inheritdoc/>
         public override void OnCameraSetup(CommandBuffer cmd, ref RenderingData renderingData)
         {
-            //if destination was not set we use front/backbuffer system
-            if (m_Destination.id == 0)
-                return;
-
             if (m_Destination == RenderTargetHandle.CameraTarget)
                 return;
 
@@ -475,8 +476,7 @@ namespace UnityEngine.Rendering.Universal.Internal
                 if (m_Destination == RenderTargetHandle.CameraTarget && !cameraData.isDefaultViewport)
                     colorLoadAction = RenderBufferLoadAction.Load;
 
-                //if the user passed a final destination we will use that, if not we use the front/back buffer system.
-                RenderTargetIdentifier targetDestination = m_Destination.id == 0 ? destination : m_Destination.id;
+                RenderTargetIdentifier targetDestination = m_UseSwapBuffer ? destination : m_Destination.id;
 
                 // Note: We rendering to "camera target" we need to get the cameraData.targetTexture as this will get the targetTexture of the camera stack.
                 // Overlay cameras need to output to the target described in the base camera while doing camera stack.
@@ -517,7 +517,7 @@ namespace UnityEngine.Rendering.Universal.Internal
                     cmd.SetViewProjectionMatrices(cameraData.camera.worldToCameraMatrix, cameraData.camera.projectionMatrix);
                 }
 
-                if (m_Destination.id == 0 && !m_ResolveToScreen)
+                if (m_UseSwapBuffer && !m_ResolveToScreen)
                 {
                     renderer.SwapColorBuffer(cmd);
                 }
