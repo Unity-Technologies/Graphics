@@ -136,7 +136,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
         }
 
         [SerializeField]
-        float m_TessellationFactorMinDistance;
+        float m_TessellationFactorMinDistance = 20.0f;
         public float tessellationFactorMinDistance
         {
             get => m_TessellationFactorMinDistance;
@@ -144,7 +144,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
         }
 
         [SerializeField]
-        float m_TessellationFactorMaxDistance;
+        float m_TessellationFactorMaxDistance = 50.0f;
         public float tessellationFactorMaxDistance
         {
             get => m_TessellationFactorMaxDistance;
@@ -152,7 +152,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
         }
 
         [SerializeField]
-        float m_TessellationFactorTriangleSize;
+        float m_TessellationFactorTriangleSize = 100.0f;
         public float tessellationFactorTriangleSize
         {
             get => m_TessellationFactorTriangleSize;
@@ -160,7 +160,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
         }
 
         [SerializeField]
-        float m_TessellationShapeFactor;
+        float m_TessellationShapeFactor = 4.0f;
         public float tessellationShapeFactor
         {
             get => m_TessellationShapeFactor;
@@ -168,7 +168,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
         }
 
         [SerializeField]
-        float m_TessellationBackFaceCullEpsilon;
+        float m_TessellationBackFaceCullEpsilon = -0.25f;
         public float tessellationBackFaceCullEpsilon
         {
             get => m_TessellationBackFaceCullEpsilon;
@@ -176,7 +176,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
         }
 
         [SerializeField]
-        float m_TessellationMaxDisplacement;
+        float m_TessellationMaxDisplacement = 0.01f;
         public float tessellationMaxDisplacement
         {
             get => m_TessellationMaxDisplacement;
