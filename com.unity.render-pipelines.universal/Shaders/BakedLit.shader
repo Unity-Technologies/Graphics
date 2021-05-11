@@ -223,7 +223,7 @@ Shader "Universal Render Pipeline/Baked Lit"
             #pragma target 4.5
 
             #pragma vertex UniversalVertexMeta
-            #pragma fragment UniversalFragmentMetaBakedLit
+            #pragma fragment UniversalFragmentMetaUnlit
 
             #include "Packages/com.unity.render-pipelines.universal/Shaders/BakedLitInput.hlsl"
             #include "Packages/com.unity.render-pipelines.universal/Shaders/BakedLitMetaPass.hlsl"
@@ -375,7 +375,7 @@ Shader "Universal Render Pipeline/Baked Lit"
             #pragma target 2.0
 
             #pragma vertex UniversalVertexMeta
-            #pragma fragment UniversalFragmentMetaBakedLit
+            #pragma fragment UniversalFragmentMetaUnlit
 
             #include "Packages/com.unity.render-pipelines.universal/Shaders/BakedLitInput.hlsl"
             #include "Packages/com.unity.render-pipelines.universal/Shaders/BakedLitMetaPass.hlsl"

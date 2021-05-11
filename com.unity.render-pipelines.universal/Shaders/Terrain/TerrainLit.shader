@@ -248,8 +248,9 @@ Shader "Universal Render Pipeline/Terrain/Lit"
             HLSLPROGRAM
             #pragma vertex TerrainVertexMeta
             #pragma fragment TerrainFragmentMeta
-#pragma enable_d3d11_debug_symbols
+
             #pragma multi_compile_instancing
+            #pragma instancing_options assumeuniformscaling nomatrices nolightprobe nolightmap
             #pragma shader_feature EDITOR_VISUALIZATION
             #define _METALLICSPECGLOSSMAP 1
             #define _SMOOTHNESS_TEXTURE_ALBEDO_CHANNEL_A 1

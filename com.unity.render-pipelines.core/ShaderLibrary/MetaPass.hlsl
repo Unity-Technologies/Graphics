@@ -30,21 +30,13 @@ struct UnityMetaInput
 };
 
 #ifdef EDITOR_VISUALIZATION
-//Visualization defines
+// Visualization defines
 // Should be kept in sync with the EditorVisualizationMode enum in EditorCameraDrawing.cpp
+// First two are unused.
 #define EDITORVIZ_PBR_VALIDATION_ALBEDO         0
 #define EDITORVIZ_PBR_VALIDATION_METALSPECULAR  1
 #define EDITORVIZ_TEXTURE                       2
 #define EDITORVIZ_SHOWLIGHTMASK                 3
-
-
-uniform int _CheckPureMetal = 0;// flag to check only full metal, not partial metal, known because it has metallic features and pure black albedo
-uniform int _CheckAlbedo = 0; // if 0, pass through untouched color
-uniform half4 _AlbedoCompareColor = half4(0.0, 0.0, 0.0, 0.0);
-uniform half _AlbedoMinLuminance = 0.0;
-uniform half _AlbedoMaxLuminance = 1.0;
-uniform half _AlbedoHueTolerance = 0.1;
-uniform half _AlbedoSaturationTolerance = 0.1;
 
 uniform sampler2D unity_EditorViz_Texture;
 uniform half4 unity_EditorViz_Texture_ST;
@@ -60,186 +52,6 @@ uniform sampler2D unity_EditorViz_LightTextureB;
 #define unity_EditorViz_Color         unity_EditorViz_ColorAdd
 #define unity_EditorViz_LightType     unity_EditorViz_UVIndex
 uniform float4x4 unity_EditorViz_WorldToLight;
-
-uniform half4 unity_MaterialValidateLowColor = half4(1.0f, 0.0f, 0.0f, 0.0f);
-uniform half4 unity_MaterialValidateHighColor = half4(0.0f, 0.0f, 1.0f, 0.0f);
-uniform half4 unity_MaterialValidatePureMetalColor = half4(1.0f, 1.0f, 0.0f, 0.0f);
-
-// Define bounds value in linear RGB for fresnel0 values
-static const float dieletricMin = 0.02;
-static const float dieletricMax = 0.07;
-static const float gemsMin      = 0.07;
-static const float gemsMax      = 0.22;
-static const float conductorMin = 0.45;
-static const float conductorMax = 1.00;
-static const float albedoMin    = 0.012;
-static const float albedoMax    = 0.9;
-
-half3 UnityMeta_RGBToHSVHelper(float offset, half dominantColor, half colorone, half colortwo)
-{
-    half H, S, V;
-    V = dominantColor;
-
-    if (V != 0.0)
-    {
-        half small = 0.0;
-        if (colorone > colortwo)
-            small = colortwo;
-        else
-            small = colorone;
-
-        half diff = V - small;
-
-        if (diff != 0)
-        {
-            S = diff / V;
-            H = offset + ((colorone - colortwo)/diff);
-        }
-        else
-        {
-            S = 0;
-            H = offset + (colorone - colortwo);
-        }
-
-        H /= 6.0;
-
-        if (H < 6.0)
-        {
-            H += 1.0;
-        }
-    }
-    else
-    {
-        S = 0;
-        H = 0;
-    }
-    return half3(H, S, V);
-}
-
-half3 UnityMeta_RGBToHSV(half3 rgbColor)
-{
-    // when blue is highest valued
-    if((rgbColor.b > rgbColor.g) && (rgbColor.b > rgbColor.r))
-        return UnityMeta_RGBToHSVHelper(4.0, rgbColor.b, rgbColor.r, rgbColor.g);
-    //when green is highest valued
-    else if(rgbColor.g > rgbColor.r)
-        return UnityMeta_RGBToHSVHelper(2.0, rgbColor.g, rgbColor.b, rgbColor.r);
-    //when red is highest valued
-    else
-        return UnityMeta_RGBToHSVHelper(0.0, rgbColor.r, rgbColor.g, rgbColor.b);
-}
-
-// Pass 0 - Albedo
-half4 UnityMeta_pbrAlbedo(UnityMetaInput IN)
-{
-    half3 SpecularColor = IN.SpecularColor;
-    half3 baseColor = IN.Albedo;
-
-#ifdef UNITY_COLORSPACE_GAMMA
-        baseColor = half3( Gamma20ToLinear(baseColor.x), Gamma20ToLinear(baseColor.y), Gamma20ToLinear(baseColor.z) );
-        SpecularColor = Gamma20ToLinear(SpecularColor);
-#endif
-
-    half3 unTouched = Luminance(baseColor).xxx; // if no errors, leave color as it was in render
-
-    bool isMetal = dot(SpecularColor, float3(0.3333,0.3333,0.3333)) >= conductorMin;
-    // When checking full range we do not take the luminance but the mean because often in game blue color are highlight as too low whereas this is what we are looking for.
-    half value = _CheckAlbedo ? Luminance(baseColor) : dot(baseColor, half3(0.3333, 0.3333, 0.3333));
-
-     // Check if we are pure metal with black albedo
-    if (_CheckPureMetal && isMetal && value != 0.0)
-        return unity_MaterialValidatePureMetalColor;
-
-    if (_CheckAlbedo == 0)
-    {
-        // If we have a metallic object, don't complain about low albedo
-        if (!isMetal && value < albedoMin)
-        {
-            return unity_MaterialValidateLowColor;
-        }
-        else if (value > albedoMax)
-        {
-            return unity_MaterialValidateHighColor;
-        }
-        else
-        {
-            return half4(unTouched, 0);
-        }
-    }
-    else
-    {
-        if (_AlbedoMinLuminance > value)
-        {
-             return unity_MaterialValidateLowColor;
-        }
-        else if (_AlbedoMaxLuminance < value)
-        {
-             return unity_MaterialValidateHighColor;
-        }
-        else
-        {
-            half3 hsv = UnityMeta_RGBToHSV(IN.Albedo);
-            half hue = hsv.r;
-            half sat = hsv.g;
-
-            half3 compHSV = UnityMeta_RGBToHSV(_AlbedoCompareColor.rgb);
-            half compHue = compHSV.r;
-            half compSat = compHSV.g;
-
-            if ((compSat - _AlbedoSaturationTolerance > sat) || ((compHue - _AlbedoHueTolerance > hue) && (compHue - _AlbedoHueTolerance + 1.0 > hue)))
-            {
-                return unity_MaterialValidateLowColor;
-            }
-            else if ((sat > compSat + _AlbedoSaturationTolerance) || ((hue > compHue + _AlbedoHueTolerance) && (hue > compHue + _AlbedoHueTolerance - 1.0)))
-            {
-                return unity_MaterialValidateHighColor;
-            }
-            else
-            {
-                return half4(unTouched, 0);
-            }
-        }
-    }
-
-    return half4(1.0, 0, 0, 1);
-}
-
-// Pass 1 - Metal Specular
-half4 UnityMeta_pbrMetalspec(UnityMetaInput IN)
-{
-    half3 SpecularColor = IN.SpecularColor;
-    half4 baseColor = half4(IN.Albedo, 0);
-
-#ifdef UNITY_COLORSPACE_GAMMA
-        baseColor.xyz = Gamma20ToLinear(baseColor.xyz);
-        SpecularColor = Gamma20ToLinear(SpecularColor);
-#endif
-
-    // Take the mean of three channel, works ok.
-    half value = dot(SpecularColor, half3(0.3333,0.3333,0.3333));
-    bool isMetal = value >= conductorMin;
-
-    half4 outColor = half4(Luminance(baseColor.xyz).xxx, 1.0f);
-
-    if (value < conductorMin)
-    {
-         outColor = unity_MaterialValidateLowColor;
-    }
-    else if (value > conductorMax)
-    {
-        outColor = unity_MaterialValidateHighColor;
-    }
-    else if (isMetal)
-    {
-         // If we are here we supposed the users want to have a metal, so check if we have a pure metal (black albedo) or not
-        // if it is not a pure metal, highlight it
-        if (_CheckPureMetal)
-            outColor = dot(baseColor.xyz, half3(1,1,1)) == 0 ? outColor : unity_MaterialValidatePureMetalColor;
-    }
-
-    return outColor;
-}
-
 #endif // EDITOR_VISUALIZATION
 
 float2 UnityMetaVizUV(int uvIndex, float2 uv0, float2 uv1, float2 uv2, float4 st)
@@ -254,7 +66,7 @@ float2 UnityMetaVizUV(int uvIndex, float2 uv0, float2 uv1, float2 uv2, float4 st
 
 float4 UnityMetaVertexPosition(float3 vertex, float2 uv1, float2 uv2, float4 lightmapST, float4 dynlightmapST)
 {
-//#if !defined(EDITOR_VISUALIZATION)
+#ifndef EDITOR_VISUALIZATION
     if (unity_MetaVertexControl.x)
     {
         vertex.xy = uv1 * lightmapST.xy + lightmapST.zw;
@@ -269,10 +81,10 @@ float4 UnityMetaVertexPosition(float3 vertex, float2 uv1, float2 uv2, float4 lig
         // so use it in a very dummy way
         vertex.z = vertex.z > 0 ? REAL_MIN : 0.0f;
     }
-    return TransformWorldToHClip(vertex);//mul(UNITY_MATRIX_VP, float4(vertex.xyz, 1.0));
-//#else
-//    return TransformObjectToHClip(vertex);
-//#endif
+    return TransformWorldToHClip(vertex);
+#else
+    return TransformObjectToHClip(vertex);
+#endif
 }
 
 float unity_OneOverOutputBoost;
@@ -282,7 +94,7 @@ float unity_UseLinearSpace;
 half4 UnityMetaFragment (UnityMetaInput IN)
 {
     half4 res = 0;
-#if !defined(EDITOR_VISUALIZATION)
+#ifndef EDITOR_VISUALIZATION
     if (unity_MetaFragmentControl.x)
     {
         res = half4(IN.Albedo,1);
@@ -301,15 +113,8 @@ half4 UnityMetaFragment (UnityMetaInput IN)
         res = half4(emission, 1.0);
     }
 #else
-    if ( unity_VisualizationMode == EDITORVIZ_PBR_VALIDATION_ALBEDO)
-    {
-        res = UnityMeta_pbrAlbedo(IN);
-    }
-    else if (unity_VisualizationMode == EDITORVIZ_PBR_VALIDATION_METALSPECULAR)
-    {
-        res = UnityMeta_pbrMetalspec(IN);
-    }
-    else if (unity_VisualizationMode == EDITORVIZ_TEXTURE)
+    // SRPs don't support EDITORVIZ_PBR_VALIDATION_ALBEDO or EDITORVIZ_PBR_VALIDATION_METALSPECULAR
+    if (unity_VisualizationMode == EDITORVIZ_TEXTURE)
     {
         res = tex2D(unity_EditorViz_Texture, IN.VizUV);
 
