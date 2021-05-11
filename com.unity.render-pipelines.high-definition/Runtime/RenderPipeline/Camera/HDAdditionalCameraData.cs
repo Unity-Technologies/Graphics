@@ -194,6 +194,7 @@ namespace UnityEngine.Rendering.HighDefinition
         /// <returns>The non oblique projection matrix for a particular camera.</returns>
         public delegate Matrix4x4 NonObliqueProjectionGetter(Camera camera);
 
+        [ExcludeCopy]
         Camera m_Camera;
 
         /// <summary>
@@ -302,6 +303,7 @@ namespace UnityEngine.Rendering.HighDefinition
         public bool taaAntiHistoryRinging = false;
 
         /// <summary>Physical camera parameters.</summary>
+        [ValueCopy] // reference should not be same. only content.
         public HDPhysicalCamera physicalParameters = new HDPhysicalCamera();
 
         /// <summary>Vertical flip mode.</summary>
@@ -357,6 +359,7 @@ namespace UnityEngine.Rendering.HighDefinition
         public float deepLearningSuperSamplingSharpening = 0;
 
         /// internal state set by the runtime wether DLSS is enabled or not on this camera, depending on the results of all other settings.
+        [ExcludeCopy]
         internal bool cameraCanRenderDLSS = false;
 
         /// <summary>Event used to override HDRP rendering for this particular camera.</summary>
@@ -378,14 +381,19 @@ namespace UnityEngine.Rendering.HighDefinition
         public float materialMipBias = 0;
 
         internal float probeCustomFixedExposure = 1.0f;
+
+        [ExcludeCopy]
         internal float deExposureMultiplier = 1.0f;
 
         [SerializeField, FormerlySerializedAs("renderingPathCustomFrameSettings")]
         FrameSettings m_RenderingPathCustomFrameSettings = FrameSettings.NewDefaultCamera();
+
         /// <summary>Mask specifying which frame settings are overridden when using custom frame settings.</summary>
         public FrameSettingsOverrideMask renderingPathCustomFrameSettingsOverrideMask;
+
         /// <summary>When using default frame settings, specify which type of frame settings to use.</summary>
         public FrameSettingsRenderType defaultFrameSettings;
+
         /// <summary>Custom frame settings.</summary>
         public ref FrameSettings renderingPathCustomFrameSettings => ref m_RenderingPathCustomFrameSettings;
 
@@ -398,6 +406,7 @@ namespace UnityEngine.Rendering.HighDefinition
         FrameSettings IFrameSettingsHistoryContainer.frameSettings
             => m_RenderingPathCustomFrameSettings;
 
+        [ExcludeCopy]
         FrameSettingsHistory m_RenderingPathHistory = new FrameSettingsHistory()
         {
             defaultType = FrameSettingsRenderType.Camera
@@ -422,8 +431,10 @@ namespace UnityEngine.Rendering.HighDefinition
         // => m_FrameSettingsHistory.TriggerReset
             => () => m_RenderingPathHistory.TriggerReset();
 
+        [ExcludeCopy]
         internal ProfilingSampler profilingSampler;
 
+        [ExcludeCopy]
         AOVRequestDataCollection m_AOVRequestDataCollection = new AOVRequestDataCollection(null);
 
         /// <summary>Set AOV requests to use.</summary>
@@ -520,7 +531,9 @@ namespace UnityEngine.Rendering.HighDefinition
         // Use for debug windows
         // When camera name change we need to update the name in DebugWindows.
         // This is the purpose of this class
+        [ExcludeCopy]
         bool m_IsDebugRegistered = false;
+        [ExcludeCopy]
         string m_CameraRegisterName;
 
         // When we are a preview, there is no way inside Unity to make a distinction between camera preview and material preview.
@@ -528,6 +541,7 @@ namespace UnityEngine.Rendering.HighDefinition
         /// <summary>
         /// Unity support two type of preview: Camera preview and material preview. This property allow to know that we are an editor camera preview when the type is preview.
         /// </summary>
+        [field: ExcludeCopy]
         public bool isEditorCameraPreview { get; internal set; }
 
         // This is use to copy data into camera for the Reset() workflow in camera editor
@@ -546,6 +560,21 @@ namespace UnityEngine.Rendering.HighDefinition
             data.antialiasing = antialiasing;
             data.dithering = dithering;
             data.xrRendering = xrRendering;
+            data.SMAAQuality = SMAAQuality;
+            data.stopNaNs = stopNaNs;
+            data.taaSharpenStrength = taaSharpenStrength;
+            data.TAAQuality = TAAQuality;
+            data.taaHistorySharpening = taaHistorySharpening;
+            data.taaAntiFlicker = taaAntiFlicker;
+            data.taaMotionVectorRejection = taaMotionVectorRejection;
+            data.taaAntiHistoryRinging = taaAntiHistoryRinging;
+            data.flipYMode = flipYMode;
+            data.fullscreenPassthrough = fullscreenPassthrough;
+            data.allowDynamicResolution = allowDynamicResolution;
+            data.invertFaceCulling = invertFaceCulling;
+            data.probeLayerMask = probeLayerMask;
+            data.hasPersistentHistory = hasPersistentHistory;
+            data.exposureTarget = exposureTarget;
             physicalParameters.CopyTo(data.physicalParameters);
 
             data.renderingPathCustomFrameSettings = renderingPathCustomFrameSettings;
@@ -553,6 +582,15 @@ namespace UnityEngine.Rendering.HighDefinition
             data.defaultFrameSettings = defaultFrameSettings;
 
             data.probeCustomFixedExposure = probeCustomFixedExposure;
+
+            data.allowDeepLearningSuperSampling = allowDeepLearningSuperSampling;
+            data.deepLearningSuperSamplingUseCustomQualitySettings = deepLearningSuperSamplingUseCustomQualitySettings;
+            data.deepLearningSuperSamplingQuality = deepLearningSuperSamplingQuality;
+            data.deepLearningSuperSamplingUseCustomAttributes = deepLearningSuperSamplingUseCustomAttributes;
+            data.deepLearningSuperSamplingUseOptimalSettings = deepLearningSuperSamplingUseOptimalSettings;
+            data.deepLearningSuperSamplingSharpening = deepLearningSuperSamplingSharpening;
+
+            data.materialMipBias = materialMipBias;
 
             // We must not copy the following
             //data.m_IsDebugRegistered = m_IsDebugRegistered;
@@ -565,6 +603,7 @@ namespace UnityEngine.Rendering.HighDefinition
         /// <summary>
         /// Specify a custom getter for non oblique projection matrix.
         /// </summary>
+        [ExcludeCopy]
         public NonObliqueProjectionGetter nonObliqueProjectionGetter = GeometryUtils.CalculateProjectionMatrix;
 
         /// <summary>
