@@ -28,7 +28,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
         protected override void CreatePropertyGUI()
         {
             // TODO: Un-hide me when Marschner BSDF is available.
-            // AddProperty(Styles.materialType, () => hairData.materialType, (newValue) => hairData.materialType = newValue);
+            AddProperty(Styles.materialType, () => hairData.materialType, (newValue) => hairData.materialType = newValue);
 
             base.CreatePropertyGUI();
         }
