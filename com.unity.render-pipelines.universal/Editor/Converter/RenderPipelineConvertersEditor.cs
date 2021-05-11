@@ -55,7 +55,7 @@ namespace UnityEditor.Rendering.Universal
         public int success;
         internal int index;
 
-        public bool shouldInit => isInitialized || !isEnabled || !isActive;
+        public bool shouldInit => !isInitialized && isEnabled && isActive;
     }
 
     [Serializable]
