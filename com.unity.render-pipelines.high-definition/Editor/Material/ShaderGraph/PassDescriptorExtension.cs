@@ -42,5 +42,16 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
         {
             return IsLightingOrMaterial(pass) || pass.lightMode == HDShaderPassNames.s_ForwardEmissiveForDeferredStr;
         }
+
+        public static bool IsTessellation(this PassDescriptor pass)
+        {
+            foreach (var pragma in pass.pragmas)
+            {
+                if (pragma.value == "Hull")
+                    return true;
+            }
+
+            return true;
+        }
     }
 }

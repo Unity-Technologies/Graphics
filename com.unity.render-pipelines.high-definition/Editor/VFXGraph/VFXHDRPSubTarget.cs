@@ -86,14 +86,21 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
             {
                 var passDescriptor = passes[i].descriptor;
 
-                // Warning: Touching the structs field may require to manually append the default structs here.
+                // Warning: We are replacing the struct provided in the regular pass. It is ok as for now the VFX editor don't support
+                // tessellation or raytracing
                 passDescriptor.structs = new StructCollection
                 {
                     AttributesMeshVFX, // TODO: Could probably re-use the original HD Attributes Mesh and just ensure Instancing enabled.
+                    Structs.VertexDescriptionInputs,
+                    Structs.SurfaceDescriptionInputs,
                     AppendVFXInterpolator(HDStructs.VaryingsMeshToPS, context, data),
                     attributesStruct,
                     sourceAttributesStruct
                 };
+
+                // Add additional VFX dependencies
+                passDescriptor.fieldDependencies = passDescriptor.fieldDependencies == null ? new DependencyCollection() : new DependencyCollection { passDescriptor.fieldDependencies }; // Duplicate fieldDependencies to avoid side effects (static list modification)
+                passDescriptor.fieldDependencies.Add(VFXHDRPSubTarget.ElementSpaceDependencies);
 
                 passDescriptor.additionalCommands = new AdditionalCommandCollection
                 {
@@ -120,6 +127,25 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
             subShaderDescriptor.passes = vfxPasses;
 
             return subShaderDescriptor;
+        }
+
+        static PragmaCollection ModifyVertexEntry(PragmaCollection pragmas)
+        {
+            // Replace the default vertex shader entry with one defined by VFX.
+            // NOTE: Assumes they are named "Vert" for all shader passes, which they are.
+            const string k_CoreBasicVertex = "#pragma vertex Vert";
+
+            var pragmaVFX = new PragmaCollection();
+
+            foreach (var pragma in pragmas)
+            {
+                if (pragma.value != k_CoreBasicVertex)
+                    pragmaVFX.Add(pragma.descriptor);
+                else
+                    pragmaVFX.Add(Pragma.Vertex("VertVFX"));
+            }
+
+            return pragmaVFX;
         }
 
         static StructDescriptor AttributesMeshVFX = new StructDescriptor()

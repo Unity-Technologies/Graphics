@@ -137,7 +137,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
         {
             var descs = context.blocks.Select(x => x.descriptor);
             // Stages
-            if (!context.pass.useRaytracing) // Don't handle vertex shader when using raytracing
+            if (!context.pass.IsDXR()) // Don't handle vertex shader when using raytracing
             {
                 context.AddField(Fields.GraphVertex, descs.Contains(BlockFields.VertexDescription.Position) ||
                     descs.Contains(BlockFields.VertexDescription.Normal) ||
@@ -413,12 +413,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
             { Structs.SurfaceDescriptionInputs },
         };
 
-        // VFX have its own structure define in PostProcessSubShader, below is just the basic to complement
-        public static StructCollection BasicVFX = new StructCollection
-        {
-            { Structs.VertexDescriptionInputs },
-            { Structs.SurfaceDescriptionInputs },
-        };
+        // VFX have its own structure define in PostProcessSubShader that replace existing one
 
         // Will be append on top of Default if tessellation is enabled
         public static StructCollection BasicTessellation = new StructCollection

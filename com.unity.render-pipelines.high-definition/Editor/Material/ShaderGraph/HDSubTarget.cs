@@ -178,35 +178,14 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                 if (passDescriptor.validVertexBlocks == null)
                     passDescriptor.validVertexBlocks = tmpCtx.activeBlocks.Where(b => b.shaderStage == ShaderStage.Vertex).ToArray();
 
-                // Add struct, pragmas, keywords, defines from subshaders:
-                passDescriptor.structs = passDescriptor.structs == null ? new StructCollection() : new StructCollection { passDescriptor.structs }; // Duplicate structs to avoid side effects (static list modification)
-                passDescriptor.pragmas = passDescriptor.pragmas == null ? new PragmaCollection() : new PragmaCollection { passDescriptor.pragmas }; // Duplicate pragmas to avoid side effects (static list modification)
+                // Add various collections, most are init in HDShaderPasses.cs
                 passDescriptor.keywords = passDescriptor.keywords == null ? new KeywordCollection() : new KeywordCollection { passDescriptor.keywords }; // Duplicate keywords to avoid side effects (static list modification)
-                passDescriptor.defines = passDescriptor.defines == null ? new DefineCollection() : new DefineCollection { passDescriptor.defines }; // Duplicate defines to avoid side effects (static list modification)
-                passDescriptor.fieldDependencies = passDescriptor.fieldDependencies == null ? new DependencyCollection() : new DependencyCollection { passDescriptor.fieldDependencies }; // Duplicate fieldDependencies to avoid side effects (static list modification)
 
+                passDescriptor.fieldDependencies = passDescriptor.fieldDependencies == null ? new DependencyCollection() : new DependencyCollection { passDescriptor.fieldDependencies }; // Duplicate fieldDependencies to avoid side effects (static list modification)
                 passDescriptor.fieldDependencies.Add(CoreFieldDependencies.Default);
 
-                if (TargetsVFX())
-                {
-                    passDescriptor.structs.Add(CoreStructCollections.BasicVFX); // Complement the struct already added by call to VFXSubTarget.PostProcessSubShader
-                    passDescriptor.pragmas.Add(CorePragmas.BasicVFX);
-                    passDescriptor.fieldDependencies.Add(VFXHDRPSubTarget.ElementSpaceDependencies);
-                }
-                // Tessellation management, append - Tessellation is currently not compatible with Raytracing
-                else if (passDescriptor.useTessellation)
-                {
-                    passDescriptor.structs.Add(CoreStructCollections.BasicTessellation);
-                    passDescriptor.pragmas.Add(CorePragmas.BasicTessellation);
-                    passDescriptor.defines.Add(CoreDefines.Tessellation);
-                }
-                else
-                {
-                    passDescriptor.structs.Add(passDescriptor.useRaytracing ? CoreStructCollections.BasicRaytracing : CoreStructCollections.Basic);
-                    passDescriptor.pragmas.Add(passDescriptor.useRaytracing ? CorePragmas.BasicRaytracing : CorePragmas.Basic);
-                }
-
                 CollectPassKeywords(ref passDescriptor);
+
 
                 finalPasses.Add(passDescriptor, passes[i].fieldConditions);
             }
