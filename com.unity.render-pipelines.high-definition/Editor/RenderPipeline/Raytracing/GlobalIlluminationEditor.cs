@@ -83,6 +83,8 @@ namespace UnityEditor.Rendering.HighDefinition
 
         static public readonly GUIContent k_RayLengthText = EditorGUIUtility.TrTextContent("Max Ray Length", "Controls the maximal length of global illumination rays. The higher this value is, the more expensive ray traced global illumination is.");
         static public readonly GUIContent k_DepthBufferThicknessText = EditorGUIUtility.TrTextContent("Depth Tolerance", "Controls the tolerance when comparing the depth of two pixels.");
+        static public readonly GUIContent k_MaxMixedRaySteps = EditorGUIUtility.TrTextContent("Max Ray Steps", "Sets the maximum number of steps HDRP uses for mixed tracing.");
+
 
         public void DenoiserGUI()
         {
@@ -107,7 +109,7 @@ namespace UnityEditor.Rendering.HighDefinition
                 PropertyField(m_FullResolution);
                 PropertyField(m_UpscaleRadius);
                 if (mixed)
-                    PropertyField(m_MaxMixedRaySteps);
+                    PropertyField(m_MaxMixedRaySteps, k_MaxMixedRaySteps);
                 DenoiserGUI();
             }
         }
@@ -232,38 +234,52 @@ namespace UnityEditor.Rendering.HighDefinition
 
         public override void LoadSettingsFromObject(QualitySettingsBlob settings)
         {
-            // RTGI
-            settings.TryLoad<float>(ref m_RayLength);
-            settings.TryLoad<float>(ref m_ClampValue);
-            settings.TryLoad<bool>(ref m_FullResolution);
-            settings.TryLoad<int>(ref m_UpscaleRadius);
-            settings.TryLoad<int>(ref m_MaxMixedRaySteps);
-            settings.TryLoad<bool>(ref m_Denoise);
-            settings.TryLoad<bool>(ref m_HalfResolutionDenoiser);
-            settings.TryLoad<float>(ref m_DenoiserRadius);
-            settings.TryLoad<bool>(ref m_SecondDenoiserPass);
+            if (HDRenderPipeline.pipelineSupportsRayTracing && m_Tracing.overrideState.boolValue &&
+                m_Tracing.value.GetEnumValue<RayCastingMode>() != RayCastingMode.RayMarching)
+            {
+                // RTGI
+                settings.TryLoad<float>(ref m_RayLength);
+                settings.TryLoad<float>(ref m_ClampValue);
+                settings.TryLoad<bool>(ref m_FullResolution);
+                settings.TryLoad<int>(ref m_UpscaleRadius);
+                settings.TryLoad<int>(ref m_MaxMixedRaySteps);
+                settings.TryLoad<bool>(ref m_Denoise);
+                settings.TryLoad<bool>(ref m_HalfResolutionDenoiser);
+                settings.TryLoad<float>(ref m_DenoiserRadius);
+                settings.TryLoad<bool>(ref m_SecondDenoiserPass);
 
-            // SSGI
-            settings.TryLoad<int>(ref m_RaySteps);
-            settings.TryLoad<int>(ref m_FilterRadius);
+
+            }
+            else
+            { 
+                // SSGI
+                settings.TryLoad<int>(ref m_RaySteps);
+                settings.TryLoad<int>(ref m_FilterRadius);
+            }
         }
 
         public override void LoadSettingsFromQualityPreset(RenderPipelineSettings settings, int level)
         {
-            // RTGI
-            CopySetting(ref m_RayLength, settings.lightingQualitySettings.RTGIRayLength[level]);
-            CopySetting(ref m_ClampValue, settings.lightingQualitySettings.RTGIClampValue[level]);
-            CopySetting(ref m_FullResolution, settings.lightingQualitySettings.RTGIFullResolution[level]);
-            CopySetting(ref m_UpscaleRadius, settings.lightingQualitySettings.RTGIUpScaleRadius[level]);
-            CopySetting(ref m_MaxMixedRaySteps, settings.lightingQualitySettings.RTGIRaySteps[level]);
-            CopySetting(ref m_Denoise, settings.lightingQualitySettings.RTGIDenoise[level]);
-            CopySetting(ref m_HalfResolutionDenoiser, settings.lightingQualitySettings.RTGIHalfResDenoise[level]);
-            CopySetting(ref m_DenoiserRadius, settings.lightingQualitySettings.RTGIDenoiserRadius[level]);
-            CopySetting(ref m_SecondDenoiserPass, settings.lightingQualitySettings.RTGISecondDenoise[level]);
-
-            // SSGI
-            CopySetting(ref m_RaySteps, settings.lightingQualitySettings.SSGIRaySteps[level]);
-            CopySetting(ref m_FilterRadius, settings.lightingQualitySettings.SSGIFilterRadius[level]);
+            if (HDRenderPipeline.pipelineSupportsRayTracing && m_Tracing.overrideState.boolValue &&
+             m_Tracing.value.GetEnumValue<RayCastingMode>() != RayCastingMode.RayMarching)
+            {
+                // RTGI
+                CopySetting(ref m_RayLength, settings.lightingQualitySettings.RTGIRayLength[level]);
+                CopySetting(ref m_ClampValue, settings.lightingQualitySettings.RTGIClampValue[level]);
+                CopySetting(ref m_FullResolution, settings.lightingQualitySettings.RTGIFullResolution[level]);
+                CopySetting(ref m_UpscaleRadius, settings.lightingQualitySettings.RTGIUpScaleRadius[level]);
+                CopySetting(ref m_MaxMixedRaySteps, settings.lightingQualitySettings.RTGIRaySteps[level]);
+                CopySetting(ref m_Denoise, settings.lightingQualitySettings.RTGIDenoise[level]);
+                CopySetting(ref m_HalfResolutionDenoiser, settings.lightingQualitySettings.RTGIHalfResDenoise[level]);
+                CopySetting(ref m_DenoiserRadius, settings.lightingQualitySettings.RTGIDenoiserRadius[level]);
+                CopySetting(ref m_SecondDenoiserPass, settings.lightingQualitySettings.RTGISecondDenoise[level]);
+            }
+            else
+            {
+                // SSGI
+                CopySetting(ref m_RaySteps, settings.lightingQualitySettings.SSGIRaySteps[level]);
+                CopySetting(ref m_FilterRadius, settings.lightingQualitySettings.SSGIFilterRadius[level]);
+            }
         }
 
         public override bool QualityEnabled()
@@ -273,15 +289,17 @@ namespace UnityEditor.Rendering.HighDefinition
                 return true;
 
             // Handle the quality usage for RTGI
-            var currentAsset = HDRenderPipeline.currentAsset;
+            HDRenderPipelineAsset currentAsset = HDRenderPipeline.currentAsset;
 
-            var bothSupportedAndPerformanceMode = (currentAsset.currentPlatformRenderPipelineSettings.supportedRayTracingMode ==
-                RenderPipelineSettings.SupportedRayTracingMode.Both) && (m_Mode.value.GetEnumValue<RayTracingMode>() == RayTracingMode.Performance);
+            // Define if the asset supports Peformance or Both Mode (Quality && Performance)
+            bool assetSupportsPerf = currentAsset.currentPlatformRenderPipelineSettings.supportedRayTracingMode == RenderPipelineSettings.SupportedRayTracingMode.Performance;
+            bool assetSupportsBoth = currentAsset.currentPlatformRenderPipelineSettings.supportedRayTracingMode == RenderPipelineSettings.SupportedRayTracingMode.Both;
 
-            var performanceMode = currentAsset.currentPlatformRenderPipelineSettings.supportedRayTracingMode ==
-                RenderPipelineSettings.SupportedRayTracingMode.Performance;
+            // Define if the volume is in Peformance or Mixed Mode
+            bool volumeIsInPerfOrMixed = (m_Tracing.value.GetEnumValue<RayCastingMode>() == RayCastingMode.RayTracing && m_Mode.value.GetEnumValue<RayTracingMode>() == RayTracingMode.Performance)
+                                        || (m_Tracing.value.GetEnumValue<RayCastingMode>() == RayCastingMode.Mixed);
 
-            return bothSupportedAndPerformanceMode || performanceMode;
+            return (assetSupportsBoth && volumeIsInPerfOrMixed) || (assetSupportsPerf && m_Tracing.value.GetEnumValue<RayCastingMode>() != RayCastingMode.RayMarching);
         }
     }
 }

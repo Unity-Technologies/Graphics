@@ -40,7 +40,7 @@ namespace UnityEngine.Rendering.HighDefinition
         bool UsesRayTracingQualityMode()
         {
             // The default value is set to quality. So we should be in quality if not overriden or we have an override set to quality
-            return !mode.overrideState || mode == RayTracingMode.Quality;
+            return (tracing.overrideState && tracing == RayCastingMode.RayTracing && (!mode.overrideState || (mode.overrideState && mode == RayTracingMode.Quality)));
         }
 
         bool UsesRayTracing()
@@ -137,7 +137,7 @@ namespace UnityEngine.Rendering.HighDefinition
         }
 
         [SerializeField, FormerlySerializedAs("rayMaxIterations")]
-        private MinIntParameter m_RayMaxIterations = new MinIntParameter(32, 0);
+        private MinIntParameter m_RayMaxIterations = new MinIntParameter(64, 0);
         #endregion
 
         #region Ray Tracing

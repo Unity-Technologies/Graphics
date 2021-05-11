@@ -13,7 +13,7 @@ namespace UnityEngine.Rendering.HighDefinition
         bool UsesQualityMode()
         {
             // The default value is set to quality. So we should be in quality if not overriden or we have an override set to quality
-            return !mode.overrideState || mode == RayTracingMode.Quality;
+            return (tracing.overrideState && tracing == RayCastingMode.RayTracing && (!mode.overrideState || (mode.overrideState && mode == RayTracingMode.Quality)));
         }
 
         #region General
@@ -57,7 +57,7 @@ namespace UnityEngine.Rendering.HighDefinition
         }
         [SerializeField]
         [Tooltip("Controls the number of steps used for ray marching.")]
-        private ClampedIntParameter m_MaxRaySteps = new ClampedIntParameter(48, 32, 256);
+        private MinIntParameter m_MaxRaySteps = new MinIntParameter(32, 0);
 
         /// <summary>
         /// Defines the radius for the spatial filter
@@ -271,7 +271,7 @@ namespace UnityEngine.Rendering.HighDefinition
         }
         [SerializeField]
         [Tooltip("Controls the number of steps HDRP uses for mixed ray marching.")]
-        private ClampedIntParameter m_MaxMixedRaySteps = new ClampedIntParameter(32, 16, 128);
+        private MinIntParameter m_MaxMixedRaySteps = new MinIntParameter(64, 0);
         #endregion
 
         internal static bool RayTracingActive(GlobalIllumination volume)

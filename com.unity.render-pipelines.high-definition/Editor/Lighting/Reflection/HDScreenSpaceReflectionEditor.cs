@@ -103,7 +103,7 @@ namespace UnityEditor.Rendering.HighDefinition
         static public readonly GUIContent k_FullResolutionText = EditorGUIUtility.TrTextContent("Full Resolution", "Enables full resolution mode.");
         static public readonly GUIContent k_DenoiseRadiusText = EditorGUIUtility.TrTextContent("Denoiser Radius", "Controls the radius of reflection denoiser.");
         static public readonly GUIContent k_AffectsSmoothSurfacesText = EditorGUIUtility.TrTextContent("Affect Smooth Surfaces", "When enabled, the denoiser affects perfectly smooth surfaces.");
-        static public readonly GUIContent k_MaxMixedRaySteps = EditorGUIUtility.TrTextContent("Max Mixed Ray Steps", "Sets the maximum number of steps HDRP uses for mixed ray marching.");
+        static public readonly GUIContent k_MaxMixedRaySteps = EditorGUIUtility.TrTextContent("Max Ray Steps", "Sets the maximum number of steps HDRP uses for mixed tracingg.");
 
         void RayTracingQualityModeGUI()
         {
@@ -277,7 +277,7 @@ namespace UnityEditor.Rendering.HighDefinition
         {
             // RTR
             if (HDRenderPipeline.pipelineSupportsRayTracing && m_Tracing.overrideState.boolValue &&
-                m_Tracing.value.GetEnumValue<RayCastingMode>() == RayCastingMode.RayMarching)
+                m_Tracing.value.GetEnumValue<RayCastingMode>() != RayCastingMode.RayMarching)
             {
                 settings.TryLoad<float>(ref m_MinSmoothness);
                 settings.TryLoad<float>(ref m_SmoothnessFadeStart);
@@ -298,7 +298,7 @@ namespace UnityEditor.Rendering.HighDefinition
         {
             // RTR
             if (HDRenderPipeline.pipelineSupportsRayTracing && m_Tracing.overrideState.boolValue &&
-                m_Tracing.value.GetEnumValue<RayCastingMode>() == RayCastingMode.RayMarching)
+                m_Tracing.value.GetEnumValue<RayCastingMode>() != RayCastingMode.RayMarching)
             {
                 CopySetting(ref m_MinSmoothness, settings.lightingQualitySettings.RTRMinSmoothness[level]);
                 CopySetting(ref m_SmoothnessFadeStart, settings.lightingQualitySettings.RTRSmoothnessFadeStart[level]);
@@ -321,15 +321,18 @@ namespace UnityEditor.Rendering.HighDefinition
             if (!HDRenderPipeline.rayTracingSupportedBySystem || m_Tracing.value.GetEnumValue<RayCastingMode>() == RayCastingMode.RayMarching)
                 return true;
 
-            // Handle the quality usage for RTGI
+            // Handle the quality usage for RTR
             HDRenderPipelineAsset currentAsset = HDRenderPipeline.currentAsset;
 
-            var bothSupportedAndPerformanceMode = currentAsset.currentPlatformRenderPipelineSettings.supportedRayTracingMode == RenderPipelineSettings.SupportedRayTracingMode.Both
-                && m_Mode.value.GetEnumValue<RayTracingMode>() == RayTracingMode.Performance;
+            // Define if the asset supports Peformance or Both Mode (Quality && Performance)
+            bool assetSupportsPerf = currentAsset.currentPlatformRenderPipelineSettings.supportedRayTracingMode == RenderPipelineSettings.SupportedRayTracingMode.Performance;
+            bool assetSupportsBoth = currentAsset.currentPlatformRenderPipelineSettings.supportedRayTracingMode == RenderPipelineSettings.SupportedRayTracingMode.Both;
 
-            var performanceSupported = currentAsset.currentPlatformRenderPipelineSettings.supportedRayTracingMode == RenderPipelineSettings.SupportedRayTracingMode.Performance;
+            // Define if the volume is in Peformance or Mixed Mode
+            bool volumeIsInPerfOrMixed = (m_Tracing.value.GetEnumValue<RayCastingMode>() == RayCastingMode.RayTracing && m_Mode.value.GetEnumValue<RayTracingMode>() == RayTracingMode.Performance)
+                                        || (m_Tracing.value.GetEnumValue<RayCastingMode>() == RayCastingMode.Mixed);
 
-            return bothSupportedAndPerformanceMode || performanceSupported;
+            return (assetSupportsBoth && volumeIsInPerfOrMixed) || (assetSupportsPerf && m_Tracing.value.GetEnumValue<RayCastingMode>() != RayCastingMode.RayMarching);
         }
     }
 }
