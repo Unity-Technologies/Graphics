@@ -99,7 +99,7 @@ namespace UnityEngine.Experimental.Rendering
 
                 var refVol = ProbeReferenceVolume.instance;
                 refVol.Clear();
-                refVol.SetTRS(refVolAuthoring.transform.position, Quaternion.identity, refVolAuthoring.brickSize);
+                refVol.SetTRS(Vector3.zero, Quaternion.identity, refVolAuthoring.brickSize);
                 refVol.SetMaxSubdivision(refVolAuthoring.maxSubdivision);
             }
 
@@ -194,12 +194,6 @@ namespace UnityEngine.Experimental.Rendering
             for (int c = 1; c < numVols; ++c)
             {
                 var compare = enabledVolumes[c];
-                if (reference.transform.position != compare.transform.position)
-                    return null;
-
-                if (reference.transform.localScale != compare.transform.localScale)
-                    return null;
-
                 if (!reference.profile.IsEquivalent(compare.profile))
                     return null;
             }
