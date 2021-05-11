@@ -14,6 +14,7 @@ namespace UnityEditor.ShaderGraph.Drawing
     struct BlackboardShaderInputOrder
     {
         public bool isKeyword;
+        public bool isDropdown;
         public KeywordType keywordType;
         public ShaderKeyword builtInKeyword;
         public string deprecatedPropertyName;
@@ -34,6 +35,10 @@ namespace UnityEditor.ShaderGraph.Drawing
                 {
                     output = order.builtInKeyword;
                 }
+            }
+            else if (order.isDropdown)
+            {
+                output = new ShaderDropdown();
             }
             else
             {
@@ -70,9 +75,9 @@ namespace UnityEditor.ShaderGraph.Drawing
             {
                 shaderInputReference = (BlackboardItem)Activator.CreateInstance(blackboardItemType, true);
             }
-            else if (shaderInputReferenceGetter != null)
+            else if (m_ShaderInputReferenceGetter != null)
             {
-                shaderInputReference = shaderInputReferenceGetter();
+                shaderInputReference = m_ShaderInputReferenceGetter();
             }
             // If type is null a direct override object must have been provided or else we are in an error-state
             else if (shaderInputReference == null)
@@ -110,28 +115,35 @@ namespace UnityEditor.ShaderGraph.Drawing
 
         public static AddShaderInputAction AddDeprecatedPropertyAction(BlackboardShaderInputOrder order)
         {
-            return new AddShaderInputAction() { shaderInputReference = BlackboardShaderInputFactory.GetShaderInput(order), addInputActionType = AddShaderInputAction.AddActionSource.AddMenu };
+            return new() { shaderInputReference = BlackboardShaderInputFactory.GetShaderInput(order), addInputActionType = AddShaderInputAction.AddActionSource.AddMenu };
+        }
+
+        public static AddShaderInputAction AddDropdownAction(BlackboardShaderInputOrder order)
+        {
+            return new() { shaderInputReference = BlackboardShaderInputFactory.GetShaderInput(order), addInputActionType = AddShaderInputAction.AddActionSource.AddMenu };
         }
 
         public static AddShaderInputAction AddKeywordAction(BlackboardShaderInputOrder order)
         {
-            return new AddShaderInputAction() { shaderInputReference = BlackboardShaderInputFactory.GetShaderInput(order), addInputActionType = AddShaderInputAction.AddActionSource.AddMenu };
+            return new() { shaderInputReference = BlackboardShaderInputFactory.GetShaderInput(order), addInputActionType = AddShaderInputAction.AddActionSource.AddMenu };
         }
 
         public static AddShaderInputAction AddPropertyAction(Type shaderInputType)
         {
-            return new AddShaderInputAction() { blackboardItemType = shaderInputType, addInputActionType = AddShaderInputAction.AddActionSource.AddMenu };
+            return new() { blackboardItemType = shaderInputType, addInputActionType = AddShaderInputAction.AddActionSource.AddMenu };
         }
 
         public Action<GraphData> modifyGraphDataAction => AddShaderInput;
         // If this is a subclass of ShaderInput and is not null, then an object of this type is created to add to blackboard
-        public Type blackboardItemType { get; set; }
         // If the type field above is null and this is provided, then it is directly used as the item to add to blackboard
         public BlackboardItem shaderInputReference { get; set; }
-
-        public Func<BlackboardItem> shaderInputReferenceGetter = null;
         public AddActionSource addInputActionType { get; set; }
         public string categoryToAddItemToGuid { get; set; } = String.Empty;
+
+        Type blackboardItemType { get; set; }
+
+        Func<BlackboardItem> m_ShaderInputReferenceGetter = null;
+
     }
 
     class ChangeGraphPathAction : IGraphDataAction
@@ -401,7 +413,7 @@ namespace UnityEditor.ShaderGraph.Drawing
             // Clear the view model
             ViewModel.ResetViewModelData();
             ViewModel.subtitle = BlackboardUtils.FormatPath(Model.path);
-            BlackboardShaderInputOrder order = new BlackboardShaderInputOrder();
+            BlackboardShaderInputOrder propertyTypesOrder = new BlackboardShaderInputOrder();
 
             // Property data first
             foreach (var shaderInputType in s_ShaderInputTypes)
@@ -415,10 +427,10 @@ namespace UnityEditor.ShaderGraph.Drawing
                 // QUICK FIX TO DEAL WITH DEPRECATED COLOR PROPERTY
                 if (name.Equals("Color", StringComparison.InvariantCultureIgnoreCase) && ShaderGraphPreferences.allowDeprecatedBehaviors)
                 {
-                    order.isKeyword = false;
-                    order.deprecatedPropertyName = name;
-                    order.version = ColorShaderProperty.deprecatedVersion;
-                    ViewModel.propertyNameToAddActionMap.Add("Color (Deprecated)", AddShaderInputAction.AddDeprecatedPropertyAction(order));
+                    propertyTypesOrder.isKeyword = false;
+                    propertyTypesOrder.deprecatedPropertyName = name;
+                    propertyTypesOrder.version = ColorShaderProperty.deprecatedVersion;
+                    ViewModel.propertyNameToAddActionMap.Add("Color (Deprecated)", AddShaderInputAction.AddDeprecatedPropertyAction(propertyTypesOrder));
                     ViewModel.propertyNameToAddActionMap.Add(name, AddShaderInputAction.AddPropertyAction(shaderInputType));
                 }
                 else
@@ -426,11 +438,12 @@ namespace UnityEditor.ShaderGraph.Drawing
             }
 
             // Default Keywords next
-            order.isKeyword = true;
-            order.keywordType = KeywordType.Boolean;
-            ViewModel.defaultKeywordNameToAddActionMap.Add("Boolean", AddShaderInputAction.AddKeywordAction(order));
-            order.keywordType = KeywordType.Enum;
-            ViewModel.defaultKeywordNameToAddActionMap.Add("Enum", AddShaderInputAction.AddKeywordAction(order));
+            BlackboardShaderInputOrder keywordTypesOrder = new BlackboardShaderInputOrder();
+            keywordTypesOrder.isKeyword = true;
+            keywordTypesOrder.keywordType = KeywordType.Boolean;
+            ViewModel.defaultKeywordNameToAddActionMap.Add("Boolean", AddShaderInputAction.AddKeywordAction(keywordTypesOrder));
+            keywordTypesOrder.keywordType = KeywordType.Enum;
+            ViewModel.defaultKeywordNameToAddActionMap.Add("Enum", AddShaderInputAction.AddKeywordAction(keywordTypesOrder));
 
             // Built-In Keywords after that
             foreach (var builtinKeywordDescriptor in KeywordUtil.GetBuiltinKeywordDescriptors())
@@ -443,13 +456,17 @@ namespace UnityEditor.ShaderGraph.Drawing
                 }
                 else
                 {
-                    order.builtInKeyword = (ShaderKeyword)keyword.Copy();
-                    ViewModel.builtInKeywordNameToAddActionMap.Add(keyword.displayName, AddShaderInputAction.AddKeywordAction(order));
+                    keywordTypesOrder.builtInKeyword = (ShaderKeyword)keyword.Copy();
+                    ViewModel.builtInKeywordNameToAddActionMap.Add(keyword.displayName, AddShaderInputAction.AddKeywordAction(keywordTypesOrder));
                 }
             }
 
             if (useDropdowns)
-                ViewModel.defaultDropdownNameToAdd = new Tuple<string, IGraphDataAction>("Dropdown", new AddShaderInputAction() { shaderInputReferenceGetter = () => new ShaderDropdown(), addInputActionType = AddShaderInputAction.AddActionSource.AddMenu });
+            {
+                BlackboardShaderInputOrder dropdownsOrder = new BlackboardShaderInputOrder();
+                dropdownsOrder.isDropdown = true;
+                ViewModel.defaultDropdownNameToAdd = new Tuple<string, IGraphDataAction>("Dropdown", AddShaderInputAction.AddDropdownAction(dropdownsOrder));
+            }
 
             // Category data last
             var defaultNewCategoryReference = new CategoryData("Category");
@@ -534,7 +551,7 @@ namespace UnityEditor.ShaderGraph.Drawing
         }
 
         // Creates controller, view and view model for a blackboard item and adds the view to the specified index in the category
-        internal SGBlackboardRow InsertBlackboardRow(BlackboardItem shaderInput, int insertionIndex = -1)
+        SGBlackboardRow InsertBlackboardRow(BlackboardItem shaderInput, int insertionIndex = -1)
         {
             return m_DefaultCategoryController.InsertBlackboardRow(shaderInput, insertionIndex);
         }

@@ -871,7 +871,7 @@ namespace UnityEditor.ShaderGraph.Drawing
             // Sort so that the ShaderInputs are in the correct order
             selectedProperties.Sort((x, y) => graph.GetGraphInputIndex(x) > graph.GetGraphInputIndex(y) ? 1 : -1);
 
-            CopyPasteGraph copiedItems = new CopyPasteGraph(null, null, null, selectedProperties, selectedCategories, null, null, null, null);
+            CopyPasteGraph copiedItems = new CopyPasteGraph(null, null, null, selectedProperties, selectedCategories, null, null, null, null, copyPasteGraphSource:CopyPasteGraphSource.Duplicate);
             GraphViewExtensions.InsertCopyPasteGraph(this, copiedItems);
         }
 
@@ -1332,6 +1332,14 @@ namespace UnityEditor.ShaderGraph.Drawing
                             associatedCategoryGuid = String.Empty;
                         }
                     }
+                }
+
+                // This ensures that if an item is duplicated, it is copied to the same category
+                if (copyGraph.copyPasteGraphSource == CopyPasteGraphSource.Duplicate)
+                {
+                    associatedCategoryGuid = graphView.graph.FindCategoryForInput(input);
+                    // Also ensures it is added to the end of the category
+                    insertionIndex = -1;
                 }
 
                 var copyShaderInputAction = new CopyShaderInputAction { shaderInputToCopy = input, containingCategoryGuid = associatedCategoryGuid };

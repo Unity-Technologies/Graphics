@@ -9,9 +9,17 @@ using UnityEditor.ShaderGraph.Serialization;
 
 namespace UnityEditor.ShaderGraph
 {
+    enum CopyPasteGraphSource
+    {
+        Default,
+        Duplicate
+    }
+
     [Serializable]
     sealed class CopyPasteGraph : JsonObject
     {
+        CopyPasteGraphSource m_CopyPasteGraphSource;
+
         [SerializeField]
         List<Edge> m_Edges = new List<Edge>();
 
@@ -65,8 +73,10 @@ namespace UnityEditor.ShaderGraph
                                 IEnumerable<ShaderDropdown> metaDropdowns,
                                 IEnumerable<StickyNoteData> notes,
                                 bool keepOutputEdges = false,
-                                bool removeOrphanEdges = true)
+                                bool removeOrphanEdges = true,
+                                CopyPasteGraphSource copyPasteGraphSource = CopyPasteGraphSource.Default)
         {
+            m_CopyPasteGraphSource = copyPasteGraphSource;
             if (groups != null)
             {
                 foreach (var groupData in groups)
@@ -261,6 +271,8 @@ namespace UnityEditor.ShaderGraph
         public IEnumerable<string> metaPropertyIds => m_MetaPropertyIds;
 
         public IEnumerable<string> metaKeywordIds => m_MetaKeywordIds;
+
+        public CopyPasteGraphSource copyPasteGraphSource => m_CopyPasteGraphSource;
 
         public override void OnAfterMultiDeserialize(string json)
         {

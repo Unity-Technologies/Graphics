@@ -193,17 +193,21 @@ namespace UnityEditor.ShaderGraph.Drawing
 
         public void OnDragEnterEvent(DragEnterEvent evt)
         {
-            if (!m_IsUserDraggingItems && scrollableHeight > 0)
+            if (!m_IsUserDraggingItems)
             {
-                // Interferes with scrolling functionality of properties with the bottom scroll boundary
-                m_BottomResizer.style.visibility = Visibility.Hidden;
-
                 m_IsUserDraggingItems = true;
-                var contentElement = m_MainContainer.Q(name: "content");
-                scrollViewIndex = contentElement.IndexOf(m_ScrollView);
-                contentElement.Insert(scrollViewIndex, m_ScrollBoundaryTop);
-                scrollViewIndex = contentElement.IndexOf(m_ScrollView);
-                contentElement.Insert(scrollViewIndex + 1, m_ScrollBoundaryBottom);
+
+                if (scrollableHeight > 0)
+                {
+                    // Interferes with scrolling functionality of properties with the bottom scroll boundary
+                    m_BottomResizer.style.visibility = Visibility.Hidden;
+
+                    var contentElement = m_MainContainer.Q(name: "content");
+                    scrollViewIndex = contentElement.IndexOf(m_ScrollView);
+                    contentElement.Insert(scrollViewIndex, m_ScrollBoundaryTop);
+                    scrollViewIndex = contentElement.IndexOf(m_ScrollView);
+                    contentElement.Insert(scrollViewIndex + 1, m_ScrollBoundaryBottom);
+                }
 
                 // If there are any categories in the selection, show drag indicator, otherwise hide
                 SetCategoryDragIndicatorVisible(selection.OfType<SGBlackboardCategory>().Any());
@@ -450,14 +454,12 @@ namespace UnityEditor.ShaderGraph.Drawing
                 return;
             }
 
+            var selectedCategoryGuid = controller.GetFirstSelectedCategoryGuid();
             foreach (var nameToAddActionTuple in ViewModel.propertyNameToAddActionMap)
             {
                 string propertyName = nameToAddActionTuple.Key;
-                IGraphDataAction addAction = nameToAddActionTuple.Value;
-                if (addAction is AddShaderInputAction addShaderInputAction)
-                {
-                    addShaderInputAction.categoryToAddItemToGuid = controller.GetFirstSelectedCategoryGuid();
-                }
+                AddShaderInputAction addAction = nameToAddActionTuple.Value as AddShaderInputAction;
+                addAction.categoryToAddItemToGuid = selectedCategoryGuid;
                 m_AddBlackboardItemMenu.AddItem(new GUIContent(propertyName), false, () => ViewModel.requestModelChangeAction(addAction));
             }
             m_AddBlackboardItemMenu.AddSeparator($"/");
@@ -465,7 +467,8 @@ namespace UnityEditor.ShaderGraph.Drawing
             foreach (var nameToAddActionTuple in ViewModel.defaultKeywordNameToAddActionMap)
             {
                 string defaultKeywordName = nameToAddActionTuple.Key;
-                IGraphDataAction addAction = nameToAddActionTuple.Value;
+                AddShaderInputAction addAction = nameToAddActionTuple.Value as AddShaderInputAction;
+                addAction.categoryToAddItemToGuid = selectedCategoryGuid;
                 m_AddBlackboardItemMenu.AddItem(new GUIContent($"Keyword/{defaultKeywordName}"), false, () => ViewModel.requestModelChangeAction(addAction));
             }
             m_AddBlackboardItemMenu.AddSeparator($"Keyword/");
@@ -473,7 +476,8 @@ namespace UnityEditor.ShaderGraph.Drawing
             foreach (var nameToAddActionTuple in ViewModel.builtInKeywordNameToAddActionMap)
             {
                 string builtInKeywordName = nameToAddActionTuple.Key;
-                IGraphDataAction addAction = nameToAddActionTuple.Value;
+                AddShaderInputAction addAction = nameToAddActionTuple.Value as AddShaderInputAction;
+                addAction.categoryToAddItemToGuid = selectedCategoryGuid;
                 m_AddBlackboardItemMenu.AddItem(new GUIContent($"Keyword/{builtInKeywordName}"), false, () => ViewModel.requestModelChangeAction(addAction));
             }
 
@@ -486,7 +490,8 @@ namespace UnityEditor.ShaderGraph.Drawing
             if (ViewModel.defaultDropdownNameToAdd != null)
             {
                 string defaultDropdownName = ViewModel.defaultDropdownNameToAdd.Item1;
-                IGraphDataAction addAction = ViewModel.defaultDropdownNameToAdd.Item2;
+                AddShaderInputAction addAction = ViewModel.defaultDropdownNameToAdd.Item2 as AddShaderInputAction;
+                addAction.categoryToAddItemToGuid = selectedCategoryGuid;
                 m_AddBlackboardItemMenu.AddItem(new GUIContent($"{defaultDropdownName}"), false, () => ViewModel.requestModelChangeAction(addAction));
             }
 
