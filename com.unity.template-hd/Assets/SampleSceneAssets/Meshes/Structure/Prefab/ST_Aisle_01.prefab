@@ -108,7 +108,7 @@ PrefabInstance:
     - target: {fileID: 771084761889501729, guid: a14c587d20d95c64b87da73879bf5894, type: 3}
       propertyPath: m_LightmapParameters
       value: 
-      objectReference: {fileID: 111300000, guid: 8a7260d6525209b4eb583d373f12a307, type: 2}
+      objectReference: {fileID: 111300000, guid: 256f8cb8d5245bc438bf3488f62111a1, type: 2}
     - target: {fileID: 771084761889501729, guid: a14c587d20d95c64b87da73879bf5894, type: 3}
       propertyPath: m_RenderingLayerMask
       value: 7

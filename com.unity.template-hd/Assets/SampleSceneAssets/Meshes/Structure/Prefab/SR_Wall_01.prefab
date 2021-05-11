@@ -100,7 +100,7 @@ PrefabInstance:
     - target: {fileID: -1308854500275421662, guid: efadd0c563ee7fb46917d9a15f897f17, type: 3}
       propertyPath: m_LightmapParameters
       value: 
-      objectReference: {fileID: 111300000, guid: 8a7260d6525209b4eb583d373f12a307, type: 2}
+      objectReference: {fileID: 111300000, guid: e557d06fc5f265040926387c301eba42, type: 2}
     - target: {fileID: -1308854500275421662, guid: efadd0c563ee7fb46917d9a15f897f17, type: 3}
       propertyPath: m_StaticShadowCaster
       value: 1

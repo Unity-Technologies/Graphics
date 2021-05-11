@@ -83,12 +83,12 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 4672236741616924634, guid: 93a4b7efc82a6bf48ae489a6b36f228d, type: 3}
       propertyPath: m_PreserveUVs
-      value: 1
+      value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 4672236741616924634, guid: 93a4b7efc82a6bf48ae489a6b36f228d, type: 3}
       propertyPath: m_LightmapParameters
       value: 
-      objectReference: {fileID: 111300000, guid: 8a7260d6525209b4eb583d373f12a307, type: 2}
+      objectReference: {fileID: 111300000, guid: 256f8cb8d5245bc438bf3488f62111a1, type: 2}
     - target: {fileID: 4672236741616924634, guid: 93a4b7efc82a6bf48ae489a6b36f228d, type: 3}
       propertyPath: m_StaticShadowCaster
       value: 1
