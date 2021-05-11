@@ -33,17 +33,18 @@ Shader "Hidden/ProbeVolume/VoxelizeScene"
             struct VertexToFragment
             {
                 float4 vertex : SV_POSITION;
-                float3 worldPos : TEXCOORD0;
+                float3 cellPos01 : TEXCOORD0;
             };
 
             VertexToFragment vert(float4 vertex : POSITION)
             {
                 VertexToFragment o;
 
-                o.worldPos = mul(GetRawUnityObjectToWorld(), vertex).xyz;
-                o.worldPos -= _VolumeWorldOffset;
+                float3 cellPos = mul(GetRawUnityObjectToWorld(), vertex).xyz;
+                cellPos -= _VolumeWorldOffset;
+                o.cellPos01 = (cellPos / _VolumeSize);
 
-                float4 p = float4(o.worldPos, 1);
+                float4 p = float4(cellPos, 1);
 
                 switch (_AxisSwizzle)
                 {
@@ -68,16 +69,14 @@ Shader "Hidden/ProbeVolume/VoxelizeScene"
 
             float4 frag(VertexToFragment i) : COLOR
             {
-                float3 cellPos = i.worldPos;
-                float3 cellPos01 = cellPos / _VolumeSize;
-                uint3 pos = (cellPos01 * _OutputSize);
-
-                if (any(pos < 0) || any(pos > uint3(_OutputSize)))
+                if (any(i.cellPos01 < 0) || any(i.cellPos01 >= 1))
                     return 0;
+
+                uint3 pos = uint3(i.cellPos01 * _OutputSize);
 
                 _Output[pos] = 1;
 
-                return 1;
+                return float4(i.cellPos01, 1);
             }
             ENDHLSL
         }
