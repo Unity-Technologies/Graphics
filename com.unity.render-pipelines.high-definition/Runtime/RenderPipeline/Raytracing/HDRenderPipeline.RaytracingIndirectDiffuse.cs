@@ -59,7 +59,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
             // Ray marching
             deferredParameters.mixedTracing = settings.tracing.value == RayCastingMode.Mixed && hdCamera.frameSettings.litShaderMode == LitShaderMode.Deferred;
-            deferredParameters.raySteps = settings.maxRaySteps;
+            deferredParameters.raySteps = settings.maxMixedRaySteps;
             deferredParameters.nearClipPlane = hdCamera.camera.nearClipPlane;
             deferredParameters.farClipPlane = hdCamera.camera.farClipPlane;
 
