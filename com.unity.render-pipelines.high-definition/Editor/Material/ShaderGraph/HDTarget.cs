@@ -137,7 +137,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
         {
             var descs = context.blocks.Select(x => x.descriptor);
             // Stages
-            if (!context.pass.IsDXR()) // Don't handle vertex shader when using raytracing
+            if (!context.pass.IsRaytracing()) // Don't handle vertex shader when using raytracing
             {
                 context.AddField(Fields.GraphVertex, descs.Contains(BlockFields.VertexDescription.Position) ||
                     descs.Contains(BlockFields.VertexDescription.Normal) ||

@@ -541,7 +541,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                 // BackThenFront is a forward pass and thus require same settings
                 requiredFields = supportLighting ? CoreRequiredFields.BasicLighting : CoreRequiredFields.BasicMotionVector,
                 renderStates = CoreRenderStates.TransparentBackface,
-                pragmas = GeneratePragmas(CorePragmas.DotsInstancedInV2Only, useVFX, useTessellation),
+                pragmas = GeneratePragmas(CorePragmas.DotsInstancedInV1AndV2, useVFX, useTessellation),
                 defines = GenerateDefines(CoreDefines.BackThenFront, useVFX, useTessellation),
                 includes = GenerateIncludes(),
 
@@ -702,7 +702,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                 structs = GenerateStructs(null, useVFX, useTessellation),
                 requiredFields = CoreRequiredFields.Basic,
                 renderStates = GenerateRenderState(),
-                pragmas = GeneratePragmas(CorePragmas.DotsInstancedInV2Only, useVFX, useTessellation),
+                pragmas = GeneratePragmas(CorePragmas.DotsInstancedInV1AndV2, useVFX, useTessellation),
                 defines = GenerateDefines(CoreDefines.TransparentDepthPostpass, useVFX, useTessellation),
                 includes = GenerateIncludes(),
                 customInterpolators = CoreCustomInterpolators.Common,
@@ -1257,7 +1257,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
 
         #region Raytracing Subsurface
 
-        public static PassDescriptor GenerateRaytracingSubsurface(bool supportLighting)
+        public static PassDescriptor GenerateRaytracingSubsurface()
         {
             return new PassDescriptor
             {
@@ -1266,7 +1266,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                 referenceName = "SHADERPASS_RAYTRACING_SUB_SURFACE",
                 lightMode = "SubSurfaceDXR",
                 useInPreview = false,
-                requiredFields = supportLighting ? CoreRequiredFields.BasicLighting : CoreRequiredFields.Basic,
+                requiredFields = CoreRequiredFields.BasicLighting,
 
                 // //Port mask
                 // validVertexBlocks = CoreBlockMasks.Vertex,
@@ -1275,7 +1275,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                 //Collections
                 structs = CoreStructCollections.BasicRaytracing,
                 pragmas = CorePragmas.BasicRaytracing,
-                defines = supportLighting ? RaytracingSubsurfaceDefines : null,
+                defines = RaytracingSubsurfaceDefines,
                 includes = GenerateIncludes(),
             };
 

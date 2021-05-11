@@ -118,7 +118,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                 pass.keywords.Add(CoreKeywordDescriptors.ProbeVolumes);
                 pass.keywords.Add(CoreKeywordDescriptors.DynamicLightmap);
 
-                if (!pass.IsDXR())
+                if (!pass.IsRelatedToRaytracing())
                 {
                     pass.keywords.Add(CoreKeywordDescriptors.ShadowsShadowmask);
                     pass.keywords.Add(CoreKeywordDescriptors.Decals);

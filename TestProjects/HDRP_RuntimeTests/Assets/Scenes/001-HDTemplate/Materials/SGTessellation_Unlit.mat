@@ -7,14 +7,14 @@ Material:
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  m_Name: SGTessellation_Lit
-  m_Shader: {fileID: -6465566751694194690, guid: ce563b92ad5ec2a44b59623cf39c8854,
+  m_Name: SGTessellation_Unlit
+  m_Shader: {fileID: -6465566751694194690, guid: 3fc178db9bd582a418af172e2fdfaca9,
     type: 3}
-  m_ShaderKeywords: _DISABLE_SSR_TRANSPARENT _TESSELLATION_PHONG
+  m_ShaderKeywords: 
   m_LightmapFlags: 4
   m_EnableInstancingVariants: 0
   m_DoubleSidedGI: 0
-  m_CustomRenderQueue: 2225
+  m_CustomRenderQueue: 2000
   stringTagMap:
     MotionVector: User
   disabledShaderPasses:
@@ -40,7 +40,7 @@ Material:
         m_Scale: {x: 1, y: 1}
         m_Offset: {x: 0, y: 0}
     - Normal_map:
-        m_Texture: {fileID: 2800000, guid: c517a9b1527aec343806327b47ad22df, type: 3}
+        m_Texture: {fileID: 2800000, guid: db17334dfe5991a4bbe241ee9a728c38, type: 3}
         m_Scale: {x: 1, y: 1}
         m_Offset: {x: 0, y: 0}
     - unity_Lightmaps:
@@ -57,8 +57,8 @@ Material:
         m_Offset: {x: 0, y: 0}
     m_Ints: []
     m_Floats:
-    - Height_Multiplier: 0.04
-    - TessellationFactor: 5
+    - Height_Multiplier: -0.02
+    - TessellationFactor: 2.5
     - Vector1_2914A566: 18.03
     - Vector1_895C97D6: 0.2
     - _AddPrecomputedVelocity: 0
@@ -88,10 +88,10 @@ Material:
     - _RequireSplitLighting: 0
     - _SrcBlend: 1
     - _StencilRef: 0
-    - _StencilRefDepth: 8
+    - _StencilRefDepth: 0
     - _StencilRefDistortionVec: 4
-    - _StencilRefGBuffer: 10
-    - _StencilRefMV: 40
+    - _StencilRefGBuffer: 2
+    - _StencilRefMV: 32
     - _StencilWriteMask: 6
     - _StencilWriteMaskDepth: 8
     - _StencilWriteMaskDistortionVec: 4
@@ -99,10 +99,10 @@ Material:
     - _StencilWriteMaskMV: 40
     - _SupportDecals: 1
     - _SurfaceType: 0
-    - _TessellationBackFaceCullEpsilon: -0.25
+    - _TessellationBackFaceCullEpsilon: -0.316
     - _TessellationFactorMaxDistance: 50
     - _TessellationFactorMinDistance: 20
-    - _TessellationFactorTriangleSize: 100
+    - _TessellationFactorTriangleSize: 0
     - _TessellationMaxDisplacement: 0.01
     - _TessellationMode: 1
     - _TessellationShapeFactor: 0.75

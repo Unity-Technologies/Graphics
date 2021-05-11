@@ -170,7 +170,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
             if (pass.NeedsDebugDisplay())
                 pass.keywords.Add(CoreKeywordDescriptors.DebugDisplay);
 
-            if (!pass.IsDXR())
+            if (!pass.IsRelatedToRaytracing())
                 pass.keywords.Add(CoreKeywordDescriptors.LodFadeCrossfade, new FieldCondition(Fields.LodCrossFade, true));
 
             if (pass.lightMode == HDShaderPassNames.s_MotionVectorsStr)

@@ -252,7 +252,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                 // Collections
                 structs = CoreStructCollections.Basic,
                 renderStates = DecalRenderStates.ScenePicking,
-                pragmas = DecalPragmas.Instanced,
+                pragmas = DecalPragmas.InstancedDecal,
                 defines = CoreDefines.ScenePicking,
                 includes = DecalIncludes.ScenePicking,
                 customInterpolators = CoreCustomInterpolators.Common,
@@ -271,7 +271,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
 
                 structs = CoreStructCollections.Basic,
                 renderStates = DecalRenderStates.DBufferProjector,
-                pragmas = DecalPragmas.Instanced,
+                pragmas = DecalPragmas.InstancedDecal,
                 keywords = DecalDefines.Decals,
                 includes = DecalIncludes.Default,
                 customInterpolators = CoreCustomInterpolators.Common,
@@ -291,7 +291,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                 // Conditional State
                 structs = CoreStructCollections.Basic,
                 renderStates = DecalRenderStates.DecalProjectorForwardEmissive,
-                pragmas = DecalPragmas.Instanced,
+                pragmas = DecalPragmas.InstancedDecal,
                 defines = DecalDefines.Emission,
                 includes = DecalIncludes.Default,
                 customInterpolators = CoreCustomInterpolators.Common,
@@ -314,7 +314,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                 // Conditional State
                 structs = CoreStructCollections.Basic,
                 renderStates = DecalRenderStates.DBufferMesh,
-                pragmas = DecalPragmas.Instanced,
+                pragmas = DecalPragmas.InstancedDecal,
                 keywords = DecalDefines.Decals,
                 includes = DecalIncludes.Default,
                 customInterpolators = CoreCustomInterpolators.Common,
@@ -337,7 +337,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                 // Conditional State
                 structs = CoreStructCollections.Basic,
                 renderStates = DecalRenderStates.DecalMeshForwardEmissive,
-                pragmas = DecalPragmas.Instanced,
+                pragmas = DecalPragmas.InstancedDecal,
                 defines = DecalDefines.Emission,
                 includes = DecalIncludes.Default,
                 customInterpolators = CoreCustomInterpolators.Common,
@@ -360,7 +360,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                 // Render state overrides
                 structs = CoreStructCollections.Basic,
                 renderStates = DecalRenderStates.Preview,
-                pragmas = DecalPragmas.Instanced,
+                pragmas = DecalPragmas.InstancedDecal,
                 includes = DecalIncludes.Default,
                 customInterpolators = CoreCustomInterpolators.Common,
             };
@@ -485,8 +485,9 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
         #region Pragmas
         static class DecalPragmas
         {
-            public static PragmaCollection Instanced = new PragmaCollection
+            public static PragmaCollection InstancedDecal = new PragmaCollection
             {
+                { CorePragmas.Basic },
 #if ENABLE_HYBRID_RENDERER_V2
                 { Pragma.DOTSInstancing },
 #endif
