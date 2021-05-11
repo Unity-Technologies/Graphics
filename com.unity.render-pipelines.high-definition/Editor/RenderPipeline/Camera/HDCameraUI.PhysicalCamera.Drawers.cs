@@ -32,7 +32,7 @@ namespace UnityEditor.Rendering.HighDefinition
                         CameraUI.PhysicalCamera.Drawer_PhysicalCamera_Lens_FocalLength,
                         CameraUI.PhysicalCamera.Drawer_PhysicalCamera_Lens_Shift,
                         Drawer_PhysicalCamera_Lens_Aperture,
-                        Drawer_PhysicalCamera_FocusDistance,
+                        Drawer_PhysicalCamera_FocusDistance
                     )
                     ),
                 CED.Group(
