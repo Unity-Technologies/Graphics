@@ -840,22 +840,6 @@ namespace UnityEditor.Rendering
             EditorGUI.showMixedValue = false;
         }
 
-        /// <summary>
-        /// Like EditorGUILayout.DrawTextField but for delayed text field
-        /// </summary>
-        /// <param name="label">the label</param>
-        /// <param name="property">The data displayed</param>
-        public static void DrawDelayedTextField(GUIContent label, SerializedProperty property)
-        {
-            Rect lineRect = GUILayoutUtility.GetRect(1, EditorGUIUtility.singleLineHeight);
-            EditorGUI.BeginProperty(lineRect, label, property);
-            EditorGUI.BeginChangeCheck();
-            string value = EditorGUI.DelayedTextField(lineRect, label, property.stringValue);
-            if (EditorGUI.EndChangeCheck())
-                property.stringValue = value;
-            EditorGUI.EndProperty();
-        }
-
         /// <summary>Remove the keywords on the given materials</summary>
         /// <param name="material">The material to edit</param>
         public static void RemoveMaterialKeywords(Material material)

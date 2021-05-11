@@ -155,22 +155,14 @@ namespace UnityEditor.Rendering.Universal
 
             using (new EditorGUI.IndentLevelScope())
             {
-                CoreEditorUtils.DrawDelayedTextField(Styles.lightLayerName0, serialized.lightLayerName0);
-                GUILayout.Space(2);
-                CoreEditorUtils.DrawDelayedTextField(Styles.lightLayerName1, serialized.lightLayerName1);
-                GUILayout.Space(2);
-                CoreEditorUtils.DrawDelayedTextField(Styles.lightLayerName2, serialized.lightLayerName2);
-                GUILayout.Space(2);
-                CoreEditorUtils.DrawDelayedTextField(Styles.lightLayerName3, serialized.lightLayerName3);
-                GUILayout.Space(2);
-                CoreEditorUtils.DrawDelayedTextField(Styles.lightLayerName4, serialized.lightLayerName4);
-                GUILayout.Space(2);
-                CoreEditorUtils.DrawDelayedTextField(Styles.lightLayerName5, serialized.lightLayerName5);
-                GUILayout.Space(2);
-                CoreEditorUtils.DrawDelayedTextField(Styles.lightLayerName6, serialized.lightLayerName6);
-                GUILayout.Space(2);
-                CoreEditorUtils.DrawDelayedTextField(Styles.lightLayerName7, serialized.lightLayerName7);
-                EditorGUILayout.Space();
+                EditorGUILayout.DelayedTextField(serialized.lightLayerName0, Styles.lightLayerName0, GUILayout.Height(EditorGUIUtility.singleLineHeight), GUILayout.ExpandWidth(true));
+                EditorGUILayout.DelayedTextField(serialized.lightLayerName1, Styles.lightLayerName1, GUILayout.Height(EditorGUIUtility.singleLineHeight), GUILayout.ExpandWidth(true));
+                EditorGUILayout.DelayedTextField(serialized.lightLayerName2, Styles.lightLayerName2, GUILayout.Height(EditorGUIUtility.singleLineHeight), GUILayout.ExpandWidth(true));
+                EditorGUILayout.DelayedTextField(serialized.lightLayerName3, Styles.lightLayerName3, GUILayout.Height(EditorGUIUtility.singleLineHeight), GUILayout.ExpandWidth(true));
+                EditorGUILayout.DelayedTextField(serialized.lightLayerName4, Styles.lightLayerName4, GUILayout.Height(EditorGUIUtility.singleLineHeight), GUILayout.ExpandWidth(true));
+                EditorGUILayout.DelayedTextField(serialized.lightLayerName5, Styles.lightLayerName5, GUILayout.Height(EditorGUIUtility.singleLineHeight), GUILayout.ExpandWidth(true));
+                EditorGUILayout.DelayedTextField(serialized.lightLayerName6, Styles.lightLayerName6, GUILayout.Height(EditorGUIUtility.singleLineHeight), GUILayout.ExpandWidth(true));
+                EditorGUILayout.DelayedTextField(serialized.lightLayerName7, Styles.lightLayerName7, GUILayout.Height(EditorGUIUtility.singleLineHeight), GUILayout.ExpandWidth(true));
             }
 
             EditorGUIUtility.labelWidth = oldWidth;
