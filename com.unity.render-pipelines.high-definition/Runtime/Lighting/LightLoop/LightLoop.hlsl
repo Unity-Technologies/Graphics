@@ -534,6 +534,7 @@ void LightLoop( float3 V, PositionInputs posInput, PreLightData preLightData, BS
                                         bsdfData.normalWS,
                                         -bsdfData.normalWS,
                                         V,
+                                        posInput.positionSS,
                                         apvBuiltinData.bakeDiffuseLighting,
                                         apvBuiltinData.backBakeDiffuseLighting);
 

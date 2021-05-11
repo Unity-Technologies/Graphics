@@ -220,7 +220,7 @@ namespace UnityEditor.Rendering.HighDefinition
         {
             var window = GetWindow<HDWizard>(Style.title.text);
             window.minSize = new Vector2(500, 450);
-            HDProjectSettings.wizardPopupAlreadyShownOnce = true;
+            HDUserSettings.wizardPopupAlreadyShownOnce = true;
         }
 
         void OnGUI()
@@ -250,7 +250,7 @@ namespace UnityEditor.Rendering.HighDefinition
             {
                 EditorApplication.update -= WizardBehaviourDelayed;
 
-                if (HDProjectSettings.wizardIsStartPopup && !HDProjectSettings.wizardPopupAlreadyShownOnce)
+                if (HDUserSettings.wizardIsStartPopup && !HDUserSettings.wizardPopupAlreadyShownOnce)
                 {
                     //Application.isPlaying cannot be called in constructor. Do it here
                     if (Application.isPlaying)
@@ -259,7 +259,7 @@ namespace UnityEditor.Rendering.HighDefinition
                     OpenWindow();
                 }
 
-                EditorApplication.quitting += () => HDProjectSettings.wizardPopupAlreadyShownOnce = false;
+                EditorApplication.quitting += () => HDUserSettings.wizardPopupAlreadyShownOnce = false;
             }
         }
 
@@ -268,8 +268,8 @@ namespace UnityEditor.Rendering.HighDefinition
         {
             EditorApplication.delayCall += () =>
             {
-                if (HDProjectSettings.wizardPopupAlreadyShownOnce)
-                    EditorApplication.quitting += () => HDProjectSettings.wizardPopupAlreadyShownOnce = false;
+                if (HDUserSettings.wizardPopupAlreadyShownOnce)
+                    EditorApplication.quitting += () => HDUserSettings.wizardPopupAlreadyShownOnce = false;
             };
         }
 
@@ -421,14 +421,14 @@ namespace UnityEditor.Rendering.HighDefinition
             var toolbar = new ToolbarRadio();
             toolbar.AddRadios(tabs);
             //make sure when we open the same project on different platforms the saved active tab is not out of range
-            int tabIndex = toolbar.radioLength > HDProjectSettings.wizardActiveTab ? HDProjectSettings.wizardActiveTab : 0;
+            int tabIndex = toolbar.radioLength > HDUserSettings.wizardActiveTab ? HDUserSettings.wizardActiveTab : 0;
             toolbar.SetValueWithoutNotify(tabIndex);
             m_Configuration = (Configuration)tabIndex;
             toolbar.RegisterValueChangedCallback(evt =>
             {
                 int index = evt.newValue;
                 m_Configuration = (Configuration)index;
-                HDProjectSettings.wizardActiveTab = index;
+                HDUserSettings.wizardActiveTab = index;
             });
 
             var outerBox = new VisualElement() { name = "OuterBox" };
@@ -444,11 +444,11 @@ namespace UnityEditor.Rendering.HighDefinition
         {
             var toggle = new Toggle(Style.showOnStartUp)
             {
-                value = HDProjectSettings.wizardIsStartPopup,
+                value = HDUserSettings.wizardIsStartPopup,
                 name = "WizardCheckbox"
             };
             toggle.RegisterValueChangedCallback(evt
-                => HDProjectSettings.wizardIsStartPopup = evt.newValue);
+                => HDUserSettings.wizardIsStartPopup = evt.newValue);
             return toggle;
         }
 

@@ -14,7 +14,7 @@ GameObject:
   - component: {fileID: 114649910605725082}
   - component: {fileID: 114530362809716058}
   m_Layer: 5
-  m_Name: DebugUI Canvas
+  m_Name: DebugUICanvas
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -30,6 +30,7 @@ RectTransform:
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
   m_LocalPosition: {x: 0, y: 0, z: 0}
   m_LocalScale: {x: 0, y: 0, z: 0}
+  m_ConstrainProportionsScale: 0
   m_Children: []
   m_Father: {fileID: 0}
   m_RootOrder: 0
@@ -72,7 +73,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 0cd44c1031e13a943bb63640046fad76, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  m_UiScaleMode: 1
+  m_UiScaleMode: 0
   m_ReferencePixelsPerUnit: 100
   m_ScaleFactor: 1
   m_ReferenceResolution: {x: 800, y: 600}
@@ -82,6 +83,7 @@ MonoBehaviour:
   m_FallbackScreenDPI: 96
   m_DefaultSpriteDPI: 96
   m_DynamicPixelsPerUnit: 1
+  m_PresetInfoIsWorld: 0
 --- !u!114 &114649910605725082
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -127,7 +129,7 @@ MonoBehaviour:
     prefab: {fileID: 224720214277421396, guid: f22bcc84a5f4a1944b075a2c4ac71493, type: 3}
   - type: UnityEngine.Rendering.DebugUI+FloatField, Unity.RenderPipelines.Core.Runtime,
       Version=0.0.0.0, Culture=neutral, PublicKeyToken=null
-    prefab: {fileID: 224720214277421396, guid: 7d4fd3415ea7dd64bbcfe13fb48a730b, type: 3}
+    prefab: {fileID: 224720214277421396, guid: d8c744701b43c864b88e7f8144e19bc5, type: 3}
   - type: UnityEngine.Rendering.DebugUI+EnumField, Unity.RenderPipelines.Core.Runtime,
       Version=0.0.0.0, Culture=neutral, PublicKeyToken=null
     prefab: {fileID: 224224135738715566, guid: 988db55689193434fb0b3b89538f978f, type: 3}
