@@ -51,7 +51,7 @@ namespace UnityEngine.Experimental.Rendering
             mightNeedRebaking = false;
         }
 
-        internal override int GetHashCode()
+        public override int GetHashCode()
         {
             int hash = 17;
 

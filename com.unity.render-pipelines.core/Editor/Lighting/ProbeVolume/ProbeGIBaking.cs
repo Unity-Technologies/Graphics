@@ -358,7 +358,7 @@ namespace UnityEngine.Experimental.Rendering
                             // TODO: Needs to be global bounds center when we get rid of the importance of the location of the ref volume
                             Vector3 center = refVol.transform.position; //globalBounds.center;
 
-                            float cellSizeInMeters = Mathf.CeilToInt((float)refVol.profile.cellSizeInBricks * refVol.profile.brickSize);
+                            float cellSizeInMeters = Mathf.CeilToInt(refVol.profile.cellSizeInMeters);
 
                             var centeredMin = globalBounds.min - center;
                             var centeredMax = globalBounds.max - center;
@@ -373,12 +373,15 @@ namespace UnityEngine.Experimental.Rendering
                         }
                         else
                         {
-                            float x = Mathf.Abs((float)p.x + refVol.transform.position.x) / refVol.profile.minBrickSize;
-                            float y = Mathf.Abs((float)p.y + refVol.transform.position.y) / refVol.profile.minBrickSize;
-                            float z = Mathf.Abs((float)p.z + refVol.transform.position.z) / refVol.profile.minBrickSize;
-                            asset.maxCellIndex.x = Mathf.Max(asset.maxCellIndex.x, Mathf.CeilToInt(x * 2));
-                            asset.maxCellIndex.y = Mathf.Max(asset.maxCellIndex.y, Mathf.CeilToInt(y * 2));
-                            asset.maxCellIndex.z = Mathf.Max(asset.maxCellIndex.z, Mathf.CeilToInt(z * 2));
+                            foreach (var p in cell.probePositions)
+                            {
+                                float x = Mathf.Abs((float)p.x + refVol.transform.position.x) / refVol.profile.minBrickSize;
+                                float y = Mathf.Abs((float)p.y + refVol.transform.position.y) / refVol.profile.minBrickSize;
+                                float z = Mathf.Abs((float)p.z + refVol.transform.position.z) / refVol.profile.minBrickSize;
+                                asset.maxCellIndex.x = Mathf.Max(asset.maxCellIndex.x, Mathf.CeilToInt(x * 2));
+                                asset.maxCellIndex.y = Mathf.Max(asset.maxCellIndex.y, Mathf.CeilToInt(y * 2));
+                                asset.maxCellIndex.z = Mathf.Max(asset.maxCellIndex.z, Mathf.CeilToInt(z * 2));
+                            }
                         }
                     }
                 }
@@ -412,7 +415,7 @@ namespace UnityEngine.Experimental.Rendering
             foreach (var refVol in refVol2Asset.Keys)
             {
                 if (refVol.enabled && refVol.gameObject.activeSelf)
-                    refVol.QueueAssetLoadingAndProfile();
+                    refVol.QueueAssetLoading();
             }
         }
 
