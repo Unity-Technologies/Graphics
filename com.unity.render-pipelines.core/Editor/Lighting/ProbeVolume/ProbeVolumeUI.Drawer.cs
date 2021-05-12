@@ -120,6 +120,11 @@ namespace UnityEditor.Experimental.Rendering
         static void Drawer_VolumeContent(SerializedProbeVolume serialized, Editor owner)
         {
             EditorGUI.BeginChangeCheck();
+            if ((serialized.serializedObject.targetObject as ProbeVolume).mightNeedRebaking)
+            {
+                EditorGUILayout.HelpBox("The probe volume has changed since last baking or the data was never baked.\nPlease bake lighting in the lighting panel to update the lighting data.", MessageType.Warning, wide: true);
+            }
+
             EditorGUILayout.PropertyField(serialized.size, Styles.s_Size);
 
             var rect = EditorGUILayout.GetControlRect(true);
