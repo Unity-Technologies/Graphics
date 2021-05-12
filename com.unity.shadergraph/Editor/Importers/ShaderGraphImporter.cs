@@ -255,8 +255,6 @@ Shader ""Hidden/GraphErrorShader2""
                     sanitizedReferenceName = sanitizedReferenceName.Replace("_ON", String.Empty);
 
                 inputInspectorDataList.Add(new MinimalCategoryData.GraphInputData() { referenceName = sanitizedReferenceName, keywordType = keyword.keywordType, isKeyword = true});
-
-
             }
 
             sgMetadata.categoryDatas = new List<MinimalCategoryData>();

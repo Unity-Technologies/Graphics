@@ -30,8 +30,6 @@ namespace UnityEditor.ShaderGraph.Drawing
             return index;
         }
 
-
-
         internal static string FormatPath(string path)
         {
             if (string.IsNullOrEmpty(path))

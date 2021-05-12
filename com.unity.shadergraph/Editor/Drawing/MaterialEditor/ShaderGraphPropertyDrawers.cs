@@ -41,7 +41,7 @@ namespace UnityEditor.ShaderGraph.Drawing
             return EditorGUILayout.GetControlRect();
         }
 
-        private static MaterialProperty FindProperty(string propertyName,IEnumerable<MaterialProperty> properties)
+        private static MaterialProperty FindProperty(string propertyName, IEnumerable<MaterialProperty> properties)
         {
             foreach (var prop in properties)
             {

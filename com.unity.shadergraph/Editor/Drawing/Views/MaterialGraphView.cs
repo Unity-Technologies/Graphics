@@ -846,7 +846,7 @@ namespace UnityEditor.ShaderGraph.Drawing
             List<ShaderInput> selectedProperties = new List<ShaderInput>();
             List<CategoryData> selectedCategories = new List<CategoryData>();
 
-            for(int index = 0; index < selection.Count; ++index)
+            for (int index = 0; index < selection.Count; ++index)
             {
                 var selectable = selection[index];
                 if (selectable is SGBlackboardCategory blackboardCategory)
