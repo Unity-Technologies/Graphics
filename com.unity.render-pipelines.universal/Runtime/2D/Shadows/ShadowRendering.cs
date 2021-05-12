@@ -115,8 +115,8 @@ namespace UnityEngine.Rendering.Universal
 
         private static Material GetGeometryUnshadowMaterial(this Renderer2DData rendererData, int colorIndex)
         {
-            rendererData.geometryUnshadowMaterial = null;
-            if (rendererData.geometryUnshadowMaterial == null || rendererData.geometryUnshadowMaterial.Length == 0 || rendererData.geometryUnshadowShader != rendererData.spriteUnshadowMaterial[0].shader)
+            //rendererData.geometryUnshadowMaterial = null;
+            if (rendererData.geometryUnshadowMaterial == null || rendererData.geometryUnshadowMaterial.Length == 0 || rendererData.geometryUnshadowShader != rendererData.geometryUnshadowMaterial[0].shader)
             {
                 rendererData.geometryUnshadowMaterial = CreateMaterials(rendererData.geometryUnshadowShader);
             }
