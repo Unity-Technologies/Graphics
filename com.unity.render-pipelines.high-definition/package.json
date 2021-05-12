@@ -9,6 +9,7 @@
     "com.unity.modules.video": "1.0.0",
     "com.unity.modules.animation": "1.0.0",
     "com.unity.modules.imageconversion": "1.0.0",
+    "com.unity.modules.terrain": "1.0.0",
     "com.unity.render-pipelines.core": "12.0.0",
     "com.unity.shadergraph": "12.0.0",
     "com.unity.visualeffectgraph": "12.0.0",
@@ -41,6 +42,11 @@
       "displayName": "Material Samples",
       "description": "Adds Material Samples to your project. Open the MaterialSamples scene to see examples of materials based on the lit shader with effects such as subsurface scattering, displacement, anisotropy and more. This scene requires Text Mesh Pro to render text explanations.",
       "path": "Samples~/MaterialSamples"
+    },
+    {
+      "displayName": "Lens Flare Samples",
+      "description": "Adds Lens Flare Samples to your project. Open the LensFlareSamples scene to view and interact with the flares.",
+      "path": "Samples~/LensFlareSamples"
     }
   ]
 }

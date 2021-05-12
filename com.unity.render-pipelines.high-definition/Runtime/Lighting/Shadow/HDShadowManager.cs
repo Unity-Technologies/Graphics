@@ -438,6 +438,10 @@ namespace UnityEngine.Rendering.HighDefinition
                 {
                     return DirectionalShadowAlgorithm.PCSS;
                 }
+                case HDShadowFilteringQuality.VeryHigh:
+                {
+                    return DirectionalShadowAlgorithm.PCSS;
+                }
             }
             ;
             return DirectionalShadowAlgorithm.PCF5x5;
