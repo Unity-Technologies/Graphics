@@ -296,7 +296,6 @@ namespace UnityEngine.Experimental.Rendering.Universal
             m_Camera = GetComponent<Camera>();
             m_Internal = new PixelPerfectCameraInternal(this);
 
-
             // Case 1249076: Initialize internals immediately after the scene is loaded,
             // as the Cinemachine extension may need them before OnBeginContextRendering is called.
             UpdateCameraProperties();
