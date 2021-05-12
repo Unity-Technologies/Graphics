@@ -289,8 +289,7 @@ namespace UnityEngine.Rendering.HighDefinition
             m_AfterDynamicResUpscaleRes = new Vector2Int((int)Mathf.Round(camera.finalViewport.width), (int)Mathf.Round(camera.finalViewport.height));
             m_BeforeDynamicResUpscaleRes = new Vector2Int(camera.actualWidth, camera.actualHeight);
 
-            // Grab physical camera settings or a default instance if it's null (should only happen
-            // in rare occasions due to how HDAdditionalCameraData is added to the camera)
+            // Grab a copy of the physical camera settings
             m_PhysicalCamera = camera.physicalParameters;
 
             // Prefetch all the volume components we need to save some cycles as most of these will
