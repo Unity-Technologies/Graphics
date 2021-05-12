@@ -420,7 +420,7 @@ namespace UnityEditor.Rendering.Universal
                         ConvertIndex(index, j);
                     }
                 }
-
+                m_CoreConvertersList[index].OnPostRun();
                 EditorUtility.ClearProgressBar();
             }
         }

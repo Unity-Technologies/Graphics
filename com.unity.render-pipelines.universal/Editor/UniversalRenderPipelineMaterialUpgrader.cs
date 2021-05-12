@@ -10,7 +10,7 @@ namespace UnityEditor.Rendering.Universal
     {
         public override string name => "Material Upgrade";
         public override string info => "This will upgrade your materials.";
-        public override Type conversion => typeof(BuiltInToURPConverterContainer);
+        public override Type container => typeof(BuiltInToURPConverterContainer);
 
         List<string> m_AssetsToConvert = new List<string>();
 
@@ -27,7 +27,6 @@ namespace UnityEditor.Rendering.Universal
             GetShaderNamesToIgnore(ref m_ShaderNamesToIgnore);
         }
 
-        [MenuItem("Edit/Rendering/Materials/Convert All Built-in Materials to URP", priority = CoreUtils.Sections.section1 + CoreUtils.Priorities.editMenuPriority)]
         private static void UpgradeProjectMaterials()
         {
             m_Upgraders = new List<MaterialUpgrader>();
@@ -41,7 +40,6 @@ namespace UnityEditor.Rendering.Universal
             AnimationClipUpgrader.DoUpgradeAllClipsMenuItem(m_Upgraders, "Upgrade Animation Clips to URP Materials");
         }
 
-        [MenuItem("Edit/Rendering/Materials/Convert Selected Built-in Materials to URP", priority = CoreUtils.Sections.section1 + CoreUtils.Priorities.editMenuPriority + 1)]
         private static void UpgradeSelectedMaterials()
         {
             List<MaterialUpgrader> upgraders = new List<MaterialUpgrader>();
@@ -241,6 +239,11 @@ namespace UnityEditor.Rendering.Universal
                 context.didFail = true;
                 context.info = message;
             }
+        }
+
+        public override void OnPostRun()
+        {
+            AnimationClipUpgrader.DoUpgradeAllClipsMenuItem(m_Upgraders, "Upgrade Animation Clips to URP Materials");
         }
 
         public override void OnClicked(int index)
