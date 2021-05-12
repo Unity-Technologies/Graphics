@@ -204,7 +204,9 @@ namespace UnityEditor.Rendering.HighDefinition
             collector.AddToggleProperty(kTransparentBackfaceEnable, backThenFrontRendering);
         }
 
-        public static void AddTessellationShaderProperties(PropertyCollector collector, TessellationMode tessellationMode)
+        public static void AddTessellationShaderProperties(PropertyCollector collector, TessellationMode tessellationMode,
+            float tessellationFactorMinDistance, float tessellationFactorMaxDistance, float tessellationFactorTriangleSize,
+            float tessellationShapeFactor, float tessellationBackFaceCullEpsilon, float tessellationMaxDisplacement)
         {
             collector.AddShaderProperty(new Vector1ShaderProperty
             {
@@ -218,12 +220,12 @@ namespace UnityEditor.Rendering.HighDefinition
                 hlslDeclarationOverride = HLSLDeclaration.DoNotDeclare,
             });
 
-            collector.AddFloatProperty(kTessellationFactorMinDistance, 20.0f, HLSLDeclaration.UnityPerMaterial);
-            collector.AddFloatProperty(kTessellationFactorMaxDistance, 50.0f, HLSLDeclaration.UnityPerMaterial);
-            collector.AddFloatProperty(kTessellationFactorTriangleSize, 100.0f, HLSLDeclaration.UnityPerMaterial);
-            collector.AddSliderProperty(kTessellationShapeFactor, "Tessellation shape factor", 0.75f, new Vector2(0.0f, 1.0f), HLSLDeclaration.UnityPerMaterial);
-            collector.AddSliderProperty(kTessellationBackFaceCullEpsilon, "Tessellation back face epsilon", -0.25f, new Vector2(-1.0f, 0.0f), HLSLDeclaration.UnityPerMaterial);
-            collector.AddFloatProperty(kTessellationMaxDisplacement, 0.01f, HLSLDeclaration.UnityPerMaterial);
+            collector.AddFloatProperty(kTessellationFactorMinDistance, tessellationFactorMinDistance, HLSLDeclaration.UnityPerMaterial);
+            collector.AddFloatProperty(kTessellationFactorMaxDistance, tessellationFactorMaxDistance, HLSLDeclaration.UnityPerMaterial);
+            collector.AddFloatProperty(kTessellationFactorTriangleSize, tessellationFactorTriangleSize, HLSLDeclaration.UnityPerMaterial);
+            collector.AddSliderProperty(kTessellationShapeFactor, "Tessellation shape factor", tessellationShapeFactor, new Vector2(0.0f, 1.0f), HLSLDeclaration.UnityPerMaterial);
+            collector.AddSliderProperty(kTessellationBackFaceCullEpsilon, "Tessellation back face epsilon", tessellationBackFaceCullEpsilon, new Vector2(-1.0f, 0.0f), HLSLDeclaration.UnityPerMaterial);
+            collector.AddFloatProperty(kTessellationMaxDisplacement, tessellationMaxDisplacement, HLSLDeclaration.UnityPerMaterial);
         }
 
         public static void AddAlphaCutoffShaderProperties(PropertyCollector collector, bool alphaCutoff, bool shadowThreshold)

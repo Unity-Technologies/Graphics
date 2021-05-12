@@ -380,7 +380,9 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
 
             // Add all shader properties required by the inspector for Tessellation
             if (systemData.tessellation)
-                HDSubShaderUtilities.AddTessellationShaderProperties(collector, systemData.tessellationMode);
+                HDSubShaderUtilities.AddTessellationShaderProperties(collector, systemData.tessellationMode,
+                    systemData.tessellationFactorMinDistance, systemData.tessellationFactorMaxDistance, systemData.tessellationFactorTriangleSize,
+                    systemData.tessellationShapeFactor, systemData.tessellationBackFaceCullEpsilon, systemData.tessellationMaxDisplacement);
         }
 
         public override void ProcessPreviewMaterial(Material material)
