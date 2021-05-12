@@ -95,9 +95,9 @@ namespace UnityEngine.Rendering.Universal.Internal
 
         internal ForwardLights(InitParams initParams)
         {
-            if (clusteredRendering) Assert.IsTrue(math.ispow2(tileSize));
+            if (initParams.clusteredRendering) Assert.IsTrue(math.ispow2(initParams.tileSize));
             m_UseStructuredBuffer = RenderingUtils.useStructuredBuffer;
-            m_UseClusteredRendering = clusteredRendering;
+            m_UseClusteredRendering = initParams.clusteredRendering;
 
             LightConstantBuffer._MainLightPosition = Shader.PropertyToID("_MainLightPosition");
             LightConstantBuffer._MainLightColor = Shader.PropertyToID("_MainLightColor");
@@ -134,7 +134,7 @@ namespace UnityEngine.Rendering.Universal.Internal
             {
                 m_ZBinBuffer = new ComputeBuffer(UniversalRenderPipeline.maxZBins / 4, UnsafeUtility.SizeOf<float4>(), ComputeBufferType.Constant, ComputeBufferMode.Dynamic);
                 m_TileBuffer = new ComputeBuffer(UniversalRenderPipeline.maxTileVec4s, UnsafeUtility.SizeOf<float4>(), ComputeBufferType.Constant, ComputeBufferMode.Dynamic);
-                m_RequestedTileWidth = tileSize;
+                m_RequestedTileWidth = initParams.tileSize;
             }
         }
 
