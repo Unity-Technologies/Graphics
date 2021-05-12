@@ -238,7 +238,7 @@ void Subdivide(uint3 id : SV_DispatchThreadID)
     float3 subdivisionLevelData = _ProbeVolumeData.Load(uint4(id, _SubdivisionLevel)).xyz;
 
     // Discard bricks that are below the max subdiv level of the probe volume
-    int maxSubdiv = _MaxSubdivisionLevel - subdivisionLevelData.y + 1;
+    int maxSubdiv = _MaxSubdivisionLevel - subdivisionLevelData.y;
     if (_SubdivisionLevel < maxSubdiv)
         return;
 

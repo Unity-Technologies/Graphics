@@ -240,7 +240,6 @@ namespace UnityEngine.Experimental.Rendering
                         c++;
                         // redo the renderers and probe volume culling to avoid unnecessary work
 
-                        // TODO: put in a function and re-use in ProbeGIBaking
                         // Calculate overlaping probe volumes to avoid unnecessary work
                         var overlappingProbeVolumes = new List<(ProbeVolume component, ProbeReferenceVolume.Volume volume)>();
                         foreach (var probeVolume in probeVolumes)
