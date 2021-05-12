@@ -281,7 +281,7 @@ namespace UnityEditor.Rendering.Universal
             initButton.RegisterCallback<ClickEvent>(InitializeAllActiveConverters);
         }
 
-        void GetAndSetData(int i, Action OnAllConvertersCompleted = null)
+        void GetAndSetData(int i, Action onAllConvertersCompleted = null)
         {
             // This need to be in Init method
             // Need to get the assets that this converter is converting.
@@ -347,7 +347,7 @@ namespace UnityEditor.Rendering.Universal
 
             void CheckAllConvertersCompleted()
             {
-                int convertersToIntialize = 0;
+                int convertersToInitialize = 0;
                 int convertersInitialized = 0;
 
                 for (var j = 0; j < m_ConverterStates.Count; j++)
@@ -361,10 +361,10 @@ namespace UnityEditor.Rendering.Universal
                     if (converter.isInitialized)
                         convertersInitialized++;
                     else
-                        convertersToIntialize++;
+                        convertersToInitialize++;
                 }
 
-                var sum = convertersToIntialize + convertersInitialized;
+                var sum = convertersToInitialize + convertersInitialized;
 
                 Assert.IsFalse(sum == 0);
 
@@ -372,10 +372,10 @@ namespace UnityEditor.Rendering.Universal
                 EditorUtility.ClearProgressBar();
                 EditorUtility.DisplayProgressBar($"Initializing converters", $"Initializing converters ({convertersInitialized}/{sum})...", (float)convertersInitialized / sum);
 
-                // If all converters are inialized call the complete callback
-                if (convertersToIntialize == 0)
+                // If all converters are initialized call the complete callback
+                if (convertersToInitialize == 0)
                 {
-                    OnAllConvertersCompleted?.Invoke();
+                    onAllConvertersCompleted?.Invoke();
                 }
             }
         }
@@ -383,7 +383,7 @@ namespace UnityEditor.Rendering.Universal
         void InitializeAllActiveConverters(ClickEvent evt)
         {
             // If we use search index, go async
-            if (true || ShouldCreateSearchIndex())
+            if (ShouldCreateSearchIndex())
             {
                 CreateSearchIndex(m_URPConverterIndex);
             }
@@ -405,7 +405,7 @@ namespace UnityEditor.Rendering.Universal
 
                 // Write search index manifest
                 System.IO.File.WriteAllText(indexPath,
-                @"{
+@"{
                 ""roots"": [""Assets""],
                 ""includes"": [],
                 ""excludes"": [],
@@ -423,24 +423,19 @@ namespace UnityEditor.Rendering.Universal
 
                 EditorApplication.delayCall += () =>
                 {
-                    // Create dummy request to ensure indexing ahs finished
+                    // Create dummy request to ensure indexing has finished
                     var context = Search.SearchService.CreateContext("asset", $"p: a=\"{name}\"");
                     Search.SearchService.Request(context, (_, items) =>
                     {
-                        OnSearchIndexCreated(name, indexPath, items, () =>
+                        OnSearchIndexCreated(name, indexPath, () =>
                         {
-                            context?.Dispose();
-                            context = null;
-                            Debug.Log($"Deleted search index at path {indexPath}");
-                            // Client code has finished with the created index. We can delete it.
-                            AssetDatabase.DeleteAsset(indexPath);
-                            EditorUtility.ClearProgressBar();
+                            DeleteSearchIndex(context, indexPath);
                         });
                     });
                 };
             }
 
-            void OnSearchIndexCreated(string name, string path, IEnumerable<SearchItem> items, Action onComplete)
+            void OnSearchIndexCreated(string name, string path, Action onComplete)
             {
                 var siObj = AssetDatabase.LoadAssetAtPath<UnityEngine.Object>(path);
                 Debug.Log($"Search index {name} is ready to be used", siObj);
@@ -449,24 +444,35 @@ namespace UnityEditor.Rendering.Universal
                 ConverterCollectData(onComplete);
             }
 
-            void ConverterCollectData(Action OnConverterDataCollectionComplete = null)
+            void ConverterCollectData(Action onConverterDataCollectionComplete = null)
             {
                 EditorUtility.DisplayProgressBar($"Initializing converters", $"Initializing converters...", -1f);
 
-                int convertersTocConvert = 0;
+                int convertersToConvert = 0;
                 for (int i = 0; i < m_ConverterStates.Count; ++i)
                 {
                     if (m_ConverterStates[i].requiresInitialization)
                     {
-                        convertersTocConvert++;
-                        GetAndSetData(i, OnConverterDataCollectionComplete);
+                        convertersToConvert++;
+                        GetAndSetData(i, onConverterDataCollectionComplete);
                     }
                 }
 
                 // If we did not kick off any converter intialization
                 // We can complete everything immediately
-                if(convertersTocConvert == 0)
-                    OnConverterDataCollectionComplete();
+                if (convertersToConvert == 0)
+                {
+                    onConverterDataCollectionComplete?.Invoke();
+                }
+            }
+
+            void DeleteSearchIndex(SearchContext context, string indexPath)
+            {
+                context?.Dispose();
+                Debug.Log($"Deleted search index at path {indexPath}");
+                // Client code has finished with the created index. We can delete it.
+                AssetDatabase.DeleteAsset(indexPath);
+                EditorUtility.ClearProgressBar();
             }
         }
 
