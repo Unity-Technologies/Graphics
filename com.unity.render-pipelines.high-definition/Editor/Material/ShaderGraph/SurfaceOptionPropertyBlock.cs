@@ -34,7 +34,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
 
         Features enabledFeatures;
 
-        protected override string title => "Surface Option";
+        protected override string title => "Surface Options";
         protected override int foldoutIndex => 0;
 
         public SurfaceOptionPropertyBlock(Features features) => enabledFeatures = features;
