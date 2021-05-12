@@ -30,6 +30,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Added possibility to rename light layer values.
 - Added Light cookies support to directional, point and spot light. Directional light cookie is main light only feature.
 - VFX: Basic support of Lit output.
+- Added Lights 2D to the Light Explorer window.
 
 ### Changed
 - Moved fog evaluation from vertex shader to pixel shader. This improves rendering of fog for big triangles and fog quality. This can change the look of the fog slightly.
@@ -58,6 +59,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - SSAO Texture is now R8 instead of ARGB32 if supported by the platform.
 - Enabled subsurface scattering with GI on handwritten Universal ST8 shader.
 - Material upgrader now also upgrades AnimationClips in the project that have curves bound to renamed material properties.
+- 2D Lights now inherit from Light2DBase.
 
 ### Fixed
 - Camera Inspector Stack list edition fixes.
