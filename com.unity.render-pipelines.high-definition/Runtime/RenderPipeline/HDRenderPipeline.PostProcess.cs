@@ -1472,17 +1472,11 @@ namespace UnityEngine.Rendering.HighDefinition
                 passData.prevHistory = builder.WriteTexture(passData.prevHistory);
             }
             passData.nextHistory = builder.WriteTexture(renderGraph.ImportTexture(nextHistory));
-            if (!postDoF)
-            {
-                GrabVelocityMagnitudeHistoryTextures(camera, out var prevMVLen, out var nextMVLen);
-                passData.prevMVLen = builder.ReadTexture(renderGraph.ImportTexture(prevMVLen));
-                passData.nextMVLen = builder.WriteTexture(renderGraph.ImportTexture(nextMVLen));
-            }
-            else
-            {
-                passData.prevMVLen = TextureHandle.nullHandle;
-                passData.nextMVLen = TextureHandle.nullHandle;
-            }
+
+            // Note: In case we run TAA for a second time (post-dof), we can use the same velocity history (and not write the output)
+            GrabVelocityMagnitudeHistoryTextures(camera, out var prevMVLen, out var nextMVLen);
+            passData.prevMVLen = builder.ReadTexture(renderGraph.ImportTexture(prevMVLen));
+            passData.nextMVLen = (!postDoF) ? builder.WriteTexture(renderGraph.ImportTexture(nextMVLen)) : TextureHandle.nullHandle;
 
             passData.destination = builder.WriteTexture(GetPostprocessOutputHandle(renderGraph, outputName));;
 
@@ -4383,8 +4377,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
         TextureHandle ContrastAdaptiveSharpeningPass(RenderGraph renderGraph, HDCamera hdCamera, TextureHandle source)
         {
-            if (hdCamera.DynResRequest.enabled &&
-                hdCamera.DynResRequest.filter == DynamicResUpscaleFilter.ContrastAdaptiveSharpen)
+            if (hdCamera.DynResRequest.enabled && (hdCamera.DynResRequest.filter == DynamicResUpscaleFilter.ContrastAdaptiveSharpen || hdCamera.DynResRequest.filter == DynamicResUpscaleFilter.EdgeAdaptiveScalingUpres))
             {
                 using (var builder = renderGraph.AddRenderPass<CASData>("Contrast Adaptive Sharpen", out var passData, ProfilingSampler.Get(HDProfileId.ContrastAdaptiveSharpen)))
                 {
@@ -4520,6 +4513,7 @@ namespace UnityEngine.Rendering.HighDefinition
                                         finalPassMaterial.EnableKeyword("LANCZOS");
                                         break;
                                     case DynamicResUpscaleFilter.ContrastAdaptiveSharpen:
+                                    case DynamicResUpscaleFilter.EdgeAdaptiveScalingUpres:
                                         finalPassMaterial.EnableKeyword("BYPASS");
                                         break;
                                 }

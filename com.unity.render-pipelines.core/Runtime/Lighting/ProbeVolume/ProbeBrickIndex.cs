@@ -414,7 +414,7 @@ namespace UnityEngine.Experimental.Rendering
 
                             if (shift_cnt == 0)
                             {
-                                hr.cnt = Mathf.Min(m_IndexDim.y, brick_min.y + brick_cell_size - hr.min);
+                                hr.cnt = Mathf.Max(0, Mathf.Min(m_IndexDim.y, brick_min.y + brick_cell_size - hr.min));
                                 UpdateIndexData(m_TmpUpdater, 0, base_offset + TranslateIndex(mx, brick_min.y - hr.min, mz), Mathf.Min(brick_cell_size, highest_limit - brick_min.y));
                             }
                             else

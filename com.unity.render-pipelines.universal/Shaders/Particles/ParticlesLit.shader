@@ -128,12 +128,13 @@ Shader "Universal Render Pipeline/Particles/Lit"
             #pragma multi_compile_fragment _ _REFLECTION_PROBE_BOX_PROJECTION
             #pragma multi_compile_fragment _ _SHADOWS_SOFT
             #pragma multi_compile_fragment _ _SCREEN_SPACE_OCCLUSION
+            #pragma multi_compile_fragment _ _LIGHT_COOKIES
 
             // -------------------------------------
             // Unity defined keywords
             #pragma multi_compile_fog
             #pragma multi_compile_instancing
-            #pragma multi_compile _ DEBUG_DISPLAY
+            #pragma multi_compile_fragment _ DEBUG_DISPLAY
             #pragma instancing_options procedural:ParticleInstancingSetup
 
             #pragma vertex ParticlesLitVertex

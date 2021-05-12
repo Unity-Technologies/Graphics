@@ -29,8 +29,13 @@ namespace UnityEditor.Rendering.Universal
                     )
                     ),
                 CED.Group(
-                    CameraUI.Environment.Drawer_Environment_VolumeLayerMask,
-                    Drawer_Environment_VolumeTrigger
+                    Styles.volumesSettingsText,
+                    CED.Group(
+                        GroupOption.Indent,
+                        Drawer_Environment_VolumeUpdate,
+                        CameraUI.Environment.Drawer_Environment_VolumeLayerMask,
+                        Drawer_Environment_VolumeTrigger
+                    )
                 )
             );
 
@@ -93,6 +98,21 @@ namespace UnityEditor.Rendering.Universal
                 }
                 EditorGUI.EndProperty();
                 EditorGUI.showMixedValue = false;
+            }
+
+            static void Drawer_Environment_VolumeUpdate(UniversalRenderPipelineSerializedCamera p, Editor owner)
+            {
+                EditorGUI.BeginChangeCheck();
+                VolumeFrameworkUpdateMode prevVolumeUpdateMode = (VolumeFrameworkUpdateMode)p.volumeFrameworkUpdateMode.intValue;
+                EditorGUILayout.PropertyField(p.volumeFrameworkUpdateMode, Styles.volumeUpdates);
+                if (EditorGUI.EndChangeCheck())
+                {
+                    if (p.serializedObject.targetObject is not Camera cam)
+                        return;
+
+                    VolumeFrameworkUpdateMode curVolumeUpdateMode = (VolumeFrameworkUpdateMode)p.volumeFrameworkUpdateMode.intValue;
+                    cam.SetVolumeFrameworkUpdateMode(curVolumeUpdateMode);
+                }
             }
 
             static void Drawer_Environment_VolumeTrigger(UniversalRenderPipelineSerializedCamera p, Editor owner)

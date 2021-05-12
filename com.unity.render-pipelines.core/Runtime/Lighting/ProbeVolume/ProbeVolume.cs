@@ -23,6 +23,11 @@ namespace UnityEngine.Experimental.Rendering
 
         public LayerMask    objectLayerMask = -1;
 
+        [SerializeField] internal bool mightNeedRebaking = false;
+
+        [SerializeField] internal Matrix4x4 cachedTransform;
+        [SerializeField] internal int cachedHashCode;
+
         /// <summary>
         /// Returns the extents of the volume.
         /// </summary>
@@ -33,32 +38,33 @@ namespace UnityEngine.Experimental.Rendering
         }
 
 #if UNITY_EDITOR
-        protected void Update()
-        {
-        }
-
-        internal void OnLightingDataCleared()
-        {
-        }
-
         internal void OnLightingDataAssetCleared()
         {
-        }
-
-        internal void OnProbesBakeCompleted()
-        {
+            mightNeedRebaking = true;
         }
 
         internal void OnBakeCompleted()
         {
+            // We cache the data of last bake completed.
+            cachedTransform = gameObject.transform.worldToLocalMatrix;
+            cachedHashCode = GetHashCode();
+            mightNeedRebaking = false;
         }
 
-        internal void ForceBakingDisabled()
+        internal override int GetHashCode()
         {
-        }
+            int hash = 17;
 
-        internal void ForceBakingEnabled()
-        {
+            unchecked
+            {
+                hash = hash * 23 + size.GetHashCode();
+                hash = hash * 23 + maxSubdivisionMultiplier.GetHashCode();
+                hash = hash * 23 + minSubdivisionMultiplier.GetHashCode();
+                hash = hash * 23 + geometryDistanceOffset.GetHashCode();
+                hash = hash * 23 + objectLayerMask.GetHashCode();
+            }
+
+            return hash;
         }
 
 #endif

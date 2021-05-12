@@ -103,6 +103,13 @@ namespace UnityEngine.Experimental.Rendering
                 refVol.SetMaxSubdivision(refVolAuthoring.maxSubdivision);
             }
 
+            var probeVolumes = GameObject.FindObjectsOfType<ProbeVolume>();
+            foreach (var probeVolume in probeVolumes)
+            {
+                probeVolume.OnLightingDataAssetCleared();
+            }
+
+
             if (m_BakingBatch != null)
                 m_BakingBatch.Clear();
 
@@ -120,35 +127,53 @@ namespace UnityEngine.Experimental.Rendering
                 prevScenes.Add(scene.path);
             }
 
+            bool neededToOpenScene = false;
             hasFoundBounds = false;
 
             foreach (var buildScene in EditorBuildSettings.scenes)
             {
-                var scene = EditorSceneManager.OpenScene(buildScene.path, OpenSceneMode.Single);
-                var probeVolumes = UnityEngine.GameObject.FindObjectsOfType<ProbeVolume>();
-
-                foreach (var probeVolume in probeVolumes)
+                var scenePath = buildScene.path;
+                bool hasProbeVolumes = false;
+                var sceneBounds = ProbeReferenceVolume.instance.sceneBounds;
+                if (sceneBounds.hasProbeVolumes.TryGetValue(scenePath, out hasProbeVolumes))
                 {
-                    var extent = probeVolume.GetExtents();
-                    var pos = probeVolume.gameObject.transform.position;
-                    Bounds localBounds = new Bounds(pos, extent);
-
-                    if (!hasFoundBounds)
+                    if (hasProbeVolumes)
                     {
-                        hasFoundBounds = true;
-                        globalBounds = localBounds;
+                        Bounds localBound;
+                        if (sceneBounds.sceneBounds.TryGetValue(scenePath, out localBound))
+                        {
+                            if (hasFoundBounds)
+                            {
+                                globalBounds.Encapsulate(localBound);
+                            }
+                            else
+                            {
+                                globalBounds = localBound;
+                                hasFoundBounds = true;
+                            }
+                        }
                     }
+                }
+                else // we need to open the scene to test.
+                {
+                    neededToOpenScene = true;
+                    var scene = EditorSceneManager.OpenScene(buildScene.path, OpenSceneMode.Single);
+                    sceneBounds.UpdateSceneBounds(scene);
+                    Bounds localBound = sceneBounds.sceneBounds[buildScene.path];
+                    if (hasFoundBounds)
+                        globalBounds.Encapsulate(localBound);
                     else
-                    {
-                        globalBounds.Encapsulate(localBounds);
-                    }
+                        globalBounds = localBound;
                 }
             }
 
-            for (int i = 0; i < prevScenes.Count; ++i)
+            if (neededToOpenScene)
             {
-                var scene = prevScenes[i];
-                EditorSceneManager.OpenScene(scene, i == 0 ? OpenSceneMode.Single : OpenSceneMode.Additive);
+                for (int i = 0; i < prevScenes.Count; ++i)
+                {
+                    var scene = prevScenes[i];
+                    EditorSceneManager.OpenScene(scene, i == 0 ? OpenSceneMode.Single : OpenSceneMode.Additive);
+                }
             }
         }
 
@@ -328,8 +353,25 @@ namespace UnityEngine.Experimental.Rendering
                     {
                         var asset = refVol2Asset[refVol];
                         asset.cells.Add(cell);
+                        if (hasFoundBounds)
+                        {
+                            // TODO: Needs to be global bounds center when we get rid of the importance of the location of the ref volume
+                            Vector3 center = refVol.transform.position; //globalBounds.center;
 
-                        foreach (var p in cell.probePositions)
+                            float cellSizeInMeters = Mathf.CeilToInt((float)refVol.profile.cellSizeInBricks * refVol.profile.brickSize);
+
+                            var centeredMin = globalBounds.min - center;
+                            var centeredMax = globalBounds.max - center;
+
+                            int cellsInX = Mathf.Max(Mathf.CeilToInt(Mathf.Abs(centeredMin.x / cellSizeInMeters)), Mathf.CeilToInt(Mathf.Abs(centeredMax.x / cellSizeInMeters))) * 2;
+                            int cellsInY = Mathf.Max(Mathf.CeilToInt(Mathf.Abs(centeredMin.y / cellSizeInMeters)), Mathf.CeilToInt(Mathf.Abs(centeredMax.y / cellSizeInMeters))) * 2;
+                            int cellsInZ = Mathf.Max(Mathf.CeilToInt(Mathf.Abs(centeredMin.z / cellSizeInMeters)), Mathf.CeilToInt(Mathf.Abs(centeredMax.z / cellSizeInMeters))) * 2;
+
+                            asset.maxCellIndex.x = cellsInX * (int)refVol.profile.cellSizeInBricks;
+                            asset.maxCellIndex.y = cellsInY * (int)refVol.profile.cellSizeInBricks;
+                            asset.maxCellIndex.z = cellsInZ * (int)refVol.profile.cellSizeInBricks;
+                        }
+                        else
                         {
                             float x = Mathf.Abs((float)p.x + refVol.transform.position.x) / refVol.profile.minBrickSize;
                             float y = Mathf.Abs((float)p.y + refVol.transform.position.y) / refVol.profile.minBrickSize;
@@ -355,6 +397,12 @@ namespace UnityEngine.Experimental.Rendering
                     UnityEditor.EditorUtility.SetDirty(refVol);
                     UnityEditor.EditorUtility.SetDirty(refVol.volumeAsset);
                 }
+            }
+
+            var probeVolumes = GameObject.FindObjectsOfType<ProbeVolume>();
+            foreach (var probeVolume in probeVolumes)
+            {
+                probeVolume.OnBakeCompleted();
             }
 
             UnityEditor.AssetDatabase.SaveAssets();

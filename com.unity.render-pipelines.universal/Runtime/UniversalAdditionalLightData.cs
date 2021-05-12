@@ -31,6 +31,13 @@ namespace UnityEngine.Rendering.Universal
     [RequireComponent(typeof(Light))]
     public class UniversalAdditionalLightData : MonoBehaviour
     {
+        // Version 0 means serialized data before the version field.
+        [SerializeField] int m_Version = 1;
+        internal int version
+        {
+            get => m_Version;
+        }
+
         [Tooltip("Controls if light Shadow Bias parameters use pipeline settings.")]
         [SerializeField] bool m_UsePipelineSettings = true;
 
@@ -81,6 +88,22 @@ namespace UnityEngine.Rendering.Universal
         {
             get { return m_ShadowLayerMask; }
             set { m_ShadowLayerMask = value; }
+        }
+
+        [Tooltip("Controls the size of the cookie mask currently assigned to the light.")]
+        [SerializeField] Vector2 m_LightCookieSize = Vector2.one;
+        public Vector2 lightCookieSize
+        {
+            get => m_LightCookieSize;
+            set => m_LightCookieSize = value;
+        }
+
+        [Tooltip("Controls the offset of the cookie mask currently assigned to the light.")]
+        [SerializeField] Vector2 m_LightCookieOffset = Vector2.zero;
+        public Vector2 lightCookieOffset
+        {
+            get => m_LightCookieOffset;
+            set => m_LightCookieOffset = value;
         }
     }
 }
