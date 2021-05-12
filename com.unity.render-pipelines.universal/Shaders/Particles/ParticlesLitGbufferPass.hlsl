@@ -4,42 +4,47 @@
 #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Lighting.hlsl"
 #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/UnityGBuffer.hlsl"
 
-void InitializeInputData(VaryingsParticle input, half3 normalTS, out InputData output)
+void InitializeInputData(VaryingsParticle input, half3 normalTS, out InputData inputData)
 {
-    output = (InputData)0;
+    inputData = (InputData)0;
 
-    output.positionWS = input.positionWS.xyz;
+    inputData.positionWS = input.positionWS.xyz;
+    inputData.positionCS = input.clipPos;
 
 #ifdef _NORMALMAP
     half3 viewDirWS = half3(input.normalWS.w, input.tangentWS.w, input.bitangentWS.w);
-    output.normalWS = TransformTangentToWorld(normalTS,
+    inputData.normalWS = TransformTangentToWorld(normalTS,
         half3x3(input.tangentWS.xyz, input.bitangentWS.xyz, input.normalWS.xyz));
 #else
     half3 viewDirWS = input.viewDirWS;
-    output.normalWS = input.normalWS;
+    inputData.normalWS = input.normalWS;
 #endif
 
-    output.normalWS = NormalizeNormalPerPixel(output.normalWS);
+    inputData.normalWS = NormalizeNormalPerPixel(inputData.normalWS);
 
 #if SHADER_HINT_NICE_QUALITY
     viewDirWS = SafeNormalize(viewDirWS);
 #endif
 
-    output.viewDirectionWS = viewDirWS;
+    inputData.viewDirectionWS = viewDirWS;
 
 #if defined(REQUIRES_VERTEX_SHADOW_COORD_INTERPOLATOR)
-    output.shadowCoord = input.shadowCoord;
+    inputData.shadowCoord = input.shadowCoord;
 #elif defined(MAIN_LIGHT_CALCULATE_SHADOWS)
-    output.shadowCoord = TransformWorldToShadowCoord(output.positionWS);
+    inputData.shadowCoord = TransformWorldToShadowCoord(inputData.positionWS);
 #else
-    output.shadowCoord = float4(0, 0, 0, 0);
+    inputData.shadowCoord = float4(0, 0, 0, 0);
 #endif
 
-    output.fogCoord = 0.0; // not used for deferred shading
-    output.vertexLighting = half3(0.0h, 0.0h, 0.0h);
-    output.bakedGI = SampleSHPixel(input.vertexSH, output.normalWS);
-    output.normalizedScreenSpaceUV = GetNormalizedScreenSpaceUV(input.clipPos);
-    output.shadowMask = half4(1, 1, 1, 1);
+    inputData.fogCoord = 0.0; // not used for deferred shading
+    inputData.vertexLighting = half3(0.0h, 0.0h, 0.0h);
+    inputData.bakedGI = SampleSHPixel(input.vertexSH, inputData.normalWS);
+    inputData.normalizedScreenSpaceUV = GetNormalizedScreenSpaceUV(input.clipPos);
+    inputData.shadowMask = half4(1, 1, 1, 1);
+
+    #if defined(DEBUG_DISPLAY) && !defined(PARTICLES_EDITOR_META_PASS)
+    inputData.vertexSH = input.vertexSH;
+    #endif
 }
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -54,8 +59,8 @@ VaryingsParticle ParticlesGBufferVertex(AttributesParticle input)
     UNITY_TRANSFER_INSTANCE_ID(input, output);
     UNITY_INITIALIZE_VERTEX_OUTPUT_STEREO(output);
 
-    VertexPositionInputs vertexInput = GetVertexPositionInputs(input.vertex.xyz);
-    VertexNormalInputs normalInput = GetVertexNormalInputs(input.normal, input.tangent);
+    VertexPositionInputs vertexInput = GetVertexPositionInputs(input.positionOS.xyz);
+    VertexNormalInputs normalInput = GetVertexNormalInputs(input.normalOS, input.tangentOS);
 
     half3 viewDirWS = GetWorldSpaceNormalizeViewDir(vertexInput.positionWS);
     half3 vertexLight = VertexLighting(vertexInput.positionWS, half3(normalInput.normalWS));
@@ -110,8 +115,9 @@ FragmentOutput ParticlesGBufferFragment(VaryingsParticle input)
     SurfaceData surfaceData;
     InitializeParticleLitSurfaceData(input.texcoord, blendUv, input.color, projectedPosition, surfaceData);
 
-    InputData inputData = (InputData)0;
+    InputData inputData;
     InitializeInputData(input, surfaceData.normalTS, inputData);
+    SETUP_DEBUG_TEXTURE_DATA(inputData, input.texcoord, _BaseMap);
 
     // Stripped down version of UniversalFragmentPBR().
 
@@ -122,7 +128,7 @@ FragmentOutput ParticlesGBufferFragment(VaryingsParticle input)
 
     Light mainLight = GetMainLight(inputData.shadowCoord, inputData.positionWS, inputData.shadowMask);
     MixRealtimeAndBakedGI(mainLight, inputData.normalWS, inputData.bakedGI, inputData.shadowMask);
-    half3 color = GlobalIllumination(brdfData, inputData.bakedGI, surfaceData.occlusion, inputData.normalWS, inputData.viewDirectionWS);
+    half3 color = GlobalIllumination(brdfData, inputData.bakedGI, surfaceData.occlusion, inputData.positionWS, inputData.normalWS, inputData.viewDirectionWS);
 
     return BRDFDataToGbuffer(brdfData, inputData, surfaceData.smoothness, surfaceData.emission + color, surfaceData.occlusion);
 }

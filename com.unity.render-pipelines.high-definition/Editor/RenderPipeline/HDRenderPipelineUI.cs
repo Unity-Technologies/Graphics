@@ -162,16 +162,6 @@ namespace UnityEditor.Rendering.HighDefinition
 
         static void Drawer_SectionProbeVolume(SerializedHDRenderPipelineAsset serialized, Editor owner)
         {
-            using (new EditorGUI.DisabledScope(!serialized.renderPipelineSettings.supportProbeVolume.boolValue))
-            {
-                ++EditorGUI.indentLevel;
-
-                if (serialized.renderPipelineSettings.supportProbeVolume.boolValue)
-                    EditorGUILayout.HelpBox(Styles.probeVolumeInfo, MessageType.Warning);
-
-                --EditorGUI.indentLevel;
-            }
-
             EditorGUILayout.PropertyField(serialized.renderPipelineSettings.supportProbeVolume, Styles.supportProbeVolumeContent);
             EditorGUILayout.PropertyField(serialized.renderPipelineSettings.probeVolumeTextureSize, Styles.probeVolumeMemoryBudget);
             EditorGUILayout.PropertyField(serialized.renderPipelineSettings.probeVolumeSHBands, Styles.probeVolumeSHBands);
@@ -421,6 +411,15 @@ namespace UnityEditor.Rendering.HighDefinition
                     serialized.renderPipelineSettings.lightLoopSettings.maxDecalsOnScreen.intValue = Mathf.Clamp(serialized.renderPipelineSettings.lightLoopSettings.maxDecalsOnScreen.intValue, 1, HDRenderPipeline.k_MaxDecalsOnScreen);
 
                 EditorGUILayout.PropertyField(serialized.renderPipelineSettings.supportDecalLayers, Styles.supportDecalLayersContent);
+
+                EditorGUILayout.PropertyField(serialized.renderPipelineSettings.supportSurfaceGradient, Styles.supportSurfaceGradientContent);
+
+                if (serialized.renderPipelineSettings.supportSurfaceGradient.boolValue)
+                {
+                    ++EditorGUI.indentLevel;
+                    EditorGUILayout.PropertyField(serialized.renderPipelineSettings.decalNormalBufferHP, Styles.decalNormalFormatContent);
+                    --EditorGUI.indentLevel;
+                }
             }
             --EditorGUI.indentLevel;
         }
@@ -452,9 +451,56 @@ namespace UnityEditor.Rendering.HighDefinition
         {
             EditorGUILayout.PropertyField(serialized.renderPipelineSettings.dynamicResolutionSettings.enabled, Styles.enabled);
 
+            bool showUpsampleFilterAsFallback = false;
+
             ++EditorGUI.indentLevel;
+
             using (new EditorGUI.DisabledScope(!serialized.renderPipelineSettings.dynamicResolutionSettings.enabled.boolValue))
             {
+#if ENABLE_NVIDIA && ENABLE_NVIDIA_MODULE
+                bool dlssDetected = HDDynamicResolutionPlatformCapabilities.DLSSDetected;
+                EditorGUILayout.PropertyField(serialized.renderPipelineSettings.dynamicResolutionSettings.enableDLSS, Styles.enableDLSS);
+
+                if (serialized.renderPipelineSettings.dynamicResolutionSettings.enableDLSS.boolValue)
+                {
+                    ++EditorGUI.indentLevel;
+                    var v = EditorGUILayout.EnumPopup(
+                        Styles.DLSSQualitySettingContent,
+                        (UnityEngine.NVIDIA.DLSSQuality)
+                        serialized.renderPipelineSettings.dynamicResolutionSettings.DLSSPerfQualitySetting.intValue);
+
+                    serialized.renderPipelineSettings.dynamicResolutionSettings.DLSSPerfQualitySetting.intValue = (int)(object)v;
+
+                    EditorGUILayout.PropertyField(serialized.renderPipelineSettings.dynamicResolutionSettings.DLSSUseOptimalSettings, Styles.DLSSUseOptimalSettingsContent);
+
+                    using (new EditorGUI.DisabledScope(serialized.renderPipelineSettings.dynamicResolutionSettings.DLSSUseOptimalSettings.boolValue))
+                    {
+                        EditorGUILayout.PropertyField(serialized.renderPipelineSettings.dynamicResolutionSettings.DLSSSharpness, Styles.DLSSSharpnessContent);
+                    }
+                    --EditorGUI.indentLevel;
+                }
+
+                showUpsampleFilterAsFallback = serialized.renderPipelineSettings.dynamicResolutionSettings.enableDLSS.boolValue;
+                if (serialized.renderPipelineSettings.dynamicResolutionSettings.enableDLSS.boolValue)
+                {
+                    EditorGUILayout.HelpBox(
+                        dlssDetected ? Styles.DLSSFeatureDetectedMsg : Styles.DLSSFeatureNotDetectedMsg,
+                        dlssDetected ? MessageType.Info : MessageType.Warning);
+                }
+
+                if (dlssDetected && EditorUserBuildSettings.activeBuildTarget != BuildTarget.StandaloneWindows64 && serialized.renderPipelineSettings.dynamicResolutionSettings.enableDLSS.boolValue)
+                {
+                    --EditorGUI.indentLevel;
+                    EditorGUILayout.BeginHorizontal();
+                    EditorGUILayout.HelpBox(Styles.DLSSWinTargetWarning, MessageType.Info);
+                    if (GUILayout.Button(Styles.DLSSSwitchTarget64Button, GUILayout.ExpandWidth(true), GUILayout.ExpandHeight(true)))
+                    {
+                        EditorUserBuildSettings.SwitchActiveBuildTarget(BuildTargetGroup.Standalone, BuildTarget.StandaloneWindows64);
+                    }
+                    EditorGUILayout.EndHorizontal();
+                    ++EditorGUI.indentLevel;
+                }
+#endif
                 EditorGUILayout.PropertyField(serialized.renderPipelineSettings.dynamicResolutionSettings.dynamicResType, Styles.dynResType);
                 if (serialized.renderPipelineSettings.dynamicResolutionSettings.dynamicResType.hasMultipleDifferentValues)
                 {
@@ -462,11 +508,19 @@ namespace UnityEditor.Rendering.HighDefinition
                         EditorGUILayout.LabelField(Styles.multipleDifferenteValueMessage);
                 }
                 else
-                    EditorGUILayout.PropertyField(serialized.renderPipelineSettings.dynamicResolutionSettings.softwareUpsamplingFilter, Styles.upsampleFilter);
+                    EditorGUILayout.PropertyField(serialized.renderPipelineSettings.dynamicResolutionSettings.softwareUpsamplingFilter, showUpsampleFilterAsFallback ? Styles.fallbackUpsampleFilter : Styles.upsampleFilter);
+
+                EditorGUILayout.PropertyField(serialized.renderPipelineSettings.dynamicResolutionSettings.useMipBias, Styles.useMipBias);
 
                 if (!serialized.renderPipelineSettings.dynamicResolutionSettings.forcePercentage.hasMultipleDifferentValues
                     && !serialized.renderPipelineSettings.dynamicResolutionSettings.forcePercentage.boolValue)
                 {
+#if ENABLE_NVIDIA && ENABLE_NVIDIA_MODULE
+                    if (dlssDetected && serialized.renderPipelineSettings.dynamicResolutionSettings.enableDLSS.boolValue && serialized.renderPipelineSettings.dynamicResolutionSettings.DLSSUseOptimalSettings.boolValue)
+                    {
+                        EditorGUILayout.HelpBox(Styles.DLSSIgnorePercentages, MessageType.Info);
+                    }
+#endif
                     float minPercentage = serialized.renderPipelineSettings.dynamicResolutionSettings.minPercentage.floatValue;
                     float maxPercentage = serialized.renderPipelineSettings.dynamicResolutionSettings.maxPercentage.floatValue;
 
@@ -506,6 +560,16 @@ namespace UnityEditor.Rendering.HighDefinition
                 }
             }
             --EditorGUI.indentLevel;
+
+#if ENABLE_NVIDIA && !ENABLE_NVIDIA_MODULE
+            EditorGUILayout.BeginHorizontal();
+            EditorGUILayout.HelpBox(Styles.DLSSPackageLabel, MessageType.Info);
+            if (GUILayout.Button(Styles.DLSSInstallButton, GUILayout.ExpandWidth(true), GUILayout.ExpandHeight(true)))
+            {
+                PackageManager.Client.Add("com.unity.modules.nvidia");
+            }
+            EditorGUILayout.EndHorizontal();
+#endif
         }
 
         static void Drawer_SectionLowResTransparentSettings(SerializedHDRenderPipelineAsset serialized, Editor owner)
@@ -896,6 +960,7 @@ namespace UnityEditor.Rendering.HighDefinition
             EditorGUILayout.PropertyField(serialized.renderPipelineSettings.lightingQualitySettings.RTRRayLength.GetArrayElementAtIndex(tier), Styles.RTRRayLength);
             EditorGUILayout.PropertyField(serialized.renderPipelineSettings.lightingQualitySettings.RTRClampValue.GetArrayElementAtIndex(tier), Styles.RTRClampValue);
             EditorGUILayout.PropertyField(serialized.renderPipelineSettings.lightingQualitySettings.RTRFullResolution.GetArrayElementAtIndex(tier), Styles.RTRFullResolution);
+            EditorGUILayout.PropertyField(serialized.renderPipelineSettings.lightingQualitySettings.RTRRayMaxIterations.GetArrayElementAtIndex(tier), Styles.RTRRayMaxIterations);
             EditorGUILayout.PropertyField(serialized.renderPipelineSettings.lightingQualitySettings.RTRDenoise.GetArrayElementAtIndex(tier), Styles.RTRDenoise);
             EditorGUILayout.PropertyField(serialized.renderPipelineSettings.lightingQualitySettings.RTRDenoiserRadius.GetArrayElementAtIndex(tier), Styles.RTRDenoiserRadius);
             EditorGUILayout.PropertyField(serialized.renderPipelineSettings.lightingQualitySettings.RTRSmoothDenoising.GetArrayElementAtIndex(tier), Styles.RTRSmoothDenoising);
@@ -983,6 +1048,7 @@ namespace UnityEditor.Rendering.HighDefinition
             EditorGUILayout.PropertyField(serialized.renderPipelineSettings.lightingQualitySettings.RTGIClampValue.GetArrayElementAtIndex(tier), Styles.RTGIClampValue);
             EditorGUILayout.PropertyField(serialized.renderPipelineSettings.lightingQualitySettings.RTGIFullResolution.GetArrayElementAtIndex(tier), Styles.RTGIFullResolution);
             EditorGUILayout.PropertyField(serialized.renderPipelineSettings.lightingQualitySettings.RTGIUpScaleRadius.GetArrayElementAtIndex(tier), Styles.RTGIUpScaleRadius);
+            EditorGUILayout.PropertyField(serialized.renderPipelineSettings.lightingQualitySettings.RTGIRaySteps.GetArrayElementAtIndex(tier), Styles.RTGIRaySteps);
             EditorGUILayout.PropertyField(serialized.renderPipelineSettings.lightingQualitySettings.RTGIDenoise.GetArrayElementAtIndex(tier), Styles.RTGIDenoise);
             EditorGUILayout.PropertyField(serialized.renderPipelineSettings.lightingQualitySettings.RTGIHalfResDenoise.GetArrayElementAtIndex(tier), Styles.RTGIHalfResDenoise);
             EditorGUILayout.PropertyField(serialized.renderPipelineSettings.lightingQualitySettings.RTGIDenoiserRadius.GetArrayElementAtIndex(tier), Styles.RTGIDenoiserRadius);

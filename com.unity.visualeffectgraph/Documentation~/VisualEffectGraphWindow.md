@@ -116,7 +116,7 @@ You can manipulate graph elements in the workspace :
 #### Moving elements
 
 * To move an element around the workspace, left click on the element's header, drag the element to a new position, and release the mouse button.
-* To move [Blocks](Blocks.md) inside a context, or move them to another context, click on the Block's header, drag the Block to a new position, and release the mouse button.
+* To move [Blocks](Blocks.md) inside a Context, or move them to another Context, click on the Block's header, drag the Block to a new position, and release the mouse button.
 
 #### Resizing elements
 

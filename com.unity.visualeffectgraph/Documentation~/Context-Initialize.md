@@ -48,7 +48,7 @@ In an Initialize Context, Blocks and Operators can read from [source attributes]
 
 ### Input flow compatibility
 
-Initialize Contexts can connect from one or many SpawnEvent outputting contexts with the following rules:
+Initialize Contexts can connect from one or many SpawnEvent outputting Contexts with the following rules:
 
 - Initialize Contexts can connect from any number of Spawn and/or Event Contexts.
 - Initialize Contexts can connect from a single GPU Event Context.

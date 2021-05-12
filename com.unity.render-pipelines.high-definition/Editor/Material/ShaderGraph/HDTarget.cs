@@ -11,6 +11,7 @@ using UnityEditor.ShaderGraph.Internal;
 using UnityEditor.UIElements;
 using UnityEditor.ShaderGraph.Serialization;
 using UnityEditor.ShaderGraph.Legacy;
+using UnityEditor.VFX;
 
 namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
 {
@@ -44,7 +45,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
         Custom
     }
 
-    sealed class HDTarget : Target, IHasMetadata, ILegacyTarget
+    sealed class HDTarget : Target, IHasMetadata, ILegacyTarget, IMaySupportVFX, IRequireVFXContext
     {
         // Constants
         static readonly GUID kSourceCodeGuid = new GUID("61d9843d4027e3e4a924953135f76f3c"); // HDTarget.cs
@@ -57,6 +58,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
         // View
         PopupField<string> m_SubTargetField;
         TextField m_CustomGUIField;
+        Toggle m_SupportVFXToggle;
 
         [SerializeField]
         JsonData<SubTarget> m_ActiveSubTarget;
@@ -66,6 +68,15 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
 
         [SerializeField]
         string m_CustomEditorGUI;
+
+        [SerializeField]
+        bool m_SupportVFX;
+
+        private static readonly List<Type> m_IncompatibleVFXSubTargets = new List<Type>
+        {
+            // Currently there is not support for VFX decals via HDRP master node.
+            typeof(DecalSubTarget)
+        };
 
         internal override bool ignoreCustomInterpolators => false;
         internal override int padCustomInterpolatorLimit => 8;
@@ -181,6 +192,23 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                 onChange();
             });
             context.AddProperty("Custom Editor GUI", m_CustomGUIField, (evt) => {});
+
+            if (VFXViewPreference.generateOutputContextWithShaderGraph)
+            {
+                // VFX Support
+                if (m_IncompatibleVFXSubTargets.Contains(m_ActiveSubTarget.value.GetType()))
+                    context.AddHelpBox(MessageType.Info, $"The {m_ActiveSubTarget.value.displayName} target does not support VFX Graph.");
+                else
+                {
+                    m_SupportVFXToggle = new Toggle("") { value = m_SupportVFX };
+                    const string k_VFXToggleTooltip = "When enabled, this shader can be assigned to a compatible Visual Effect Graph output.";
+                    context.AddProperty("Support VFX Graph", k_VFXToggleTooltip, 0, m_SupportVFXToggle, (evt) =>
+                    {
+                        m_SupportVFX = m_SupportVFXToggle.value;
+                        onChange();
+                    });
+                }
+            }
 
             context.globalIndentLevel--;
         }
@@ -336,6 +364,25 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
         public override bool WorksWithSRP(RenderPipelineAsset scriptableRenderPipeline)
         {
             return scriptableRenderPipeline?.GetType() == typeof(HDRenderPipelineAsset);
+        }
+
+        public bool SupportsVFX()
+        {
+            if (m_ActiveSubTarget.value == null)
+                return false;
+
+            if (m_IncompatibleVFXSubTargets.Contains(m_ActiveSubTarget.value.GetType()))
+                return false;
+
+            return m_SupportVFX;
+        }
+
+        public void ConfigureContextData(VFXContext context, VFXContextCompiledData data)
+        {
+            if (!(m_ActiveSubTarget.value is IRequireVFXContext vfxSubtarget))
+                return;
+
+            vfxSubtarget.ConfigureContextData(context, data);
         }
     }
 
@@ -927,7 +974,9 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
         public const string kFabricPathtracing = "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Fabric/FabricPathTracing.hlsl";
         public const string kEyeRaytracing = "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Eye/EyeRaytracing.hlsl";
         public const string kStackLitRaytracing = "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/StackLit/StackLitRaytracing.hlsl";
+        public const string kStackLitPathtracing = "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/StackLit/StackLitPathTracing.hlsl";
         public const string kHairRaytracing = "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Hair/HairRaytracing.hlsl";
+        public const string kHairPathtracing = "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Hair/HairPathTracing.hlsl";
         public const string kRaytracingLightLoop = "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/Raytracing/Shaders/RaytracingLightLoop.hlsl";
         public const string kRaytracingCommon = "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/Raytracing/Shaders/RaytracingCommon.hlsl";
         public const string kNormalBuffer = "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/NormalBuffer.hlsl";
@@ -1188,6 +1237,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                 new KeywordEntry() { displayName = "Low", referenceName = "LOW" },
                 new KeywordEntry() { displayName = "Medium", referenceName = "MEDIUM" },
                 new KeywordEntry() { displayName = "High", referenceName = "HIGH" },
+                new KeywordEntry() { displayName = "VeryHigh", referenceName = "VERY_HIGH" },
             },
             stages = KeywordShaderStage.Fragment,
         };
@@ -1335,6 +1385,16 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
             definition = KeywordDefinition.ShaderFeature,
             scope = KeywordScope.Local,
             stages = KeywordShaderStage.FragmentAndRaytracing,
+        };
+
+        public static KeywordDescriptor DecalSurfaceGradient = new KeywordDescriptor
+        {
+            displayName = "Additive normal blending",
+            referenceName = "DECAL_SURFACE_GRADIENT",
+            type = KeywordType.Boolean,
+            definition = KeywordDefinition.MultiCompile,
+            scope = KeywordScope.Global,
+            stages = KeywordShaderStage.Fragment,
         };
 
         public static KeywordDescriptor DisableSSR = new KeywordDescriptor

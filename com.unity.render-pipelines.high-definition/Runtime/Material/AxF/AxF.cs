@@ -209,7 +209,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
         public AxF() {}
 
-        public override void Build(HDRenderPipelineAsset hdAsset, RenderPipelineResources defaultResources)
+        public override void Build(HDRenderPipelineAsset hdAsset, HDRenderPipelineRuntimeResources defaultResources)
         {
             // Create Materials
             m_preIntegratedFGDMaterial_Ward = CoreUtils.CreateEngineMaterial(defaultResources.shaders.preIntegratedFGD_WardPS);

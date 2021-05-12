@@ -926,63 +926,6 @@ void GetCarPaintSpecularColorAndFlakesComponent(SurfaceData surfaceData, out flo
     }
 }
 
-// For raytracing fit to standard Lit:
-// Giving V will use a codepath where V is used, this is relevant only for carpaint model
-// (cf GetColorBaseDiffuse() and GetColorBaseFresnelF0())
-void GetBaseSurfaceColorAndF0(SurfaceData surfaceData, out float3 diffuseColor, out float3 fresnel0, out float3 specBRDFColor, out float3 singleFlakesComponent, out float coatFGD, float3 V = 0, bool mixFlakes = false)
-{
-    coatFGD = 0;
-    singleFlakesComponent = (float3)0;
-    fresnel0 = (float3)0;
-    float3 specularColor = (float3)0;
-    specBRDFColor = float3(1,1,1); // only used for carpaint
-    diffuseColor = surfaceData.diffuseColor;
-
-#ifdef _AXF_BRDF_TYPE_SVBRDF
-
-    specularColor = surfaceData.specularColor;
-    fresnel0 = surfaceData.fresnelF0; // See AxfData.hlsl: the actual sampled texture is always 1 channel, if we ever find otherwise, we will use the others.
-    fresnel0 = HasFresnelTerm() ? fresnel0.r * specularColor : specularColor;
-
-#elif defined(_AXF_BRDF_TYPE_CAR_PAINT)
-
-    GetCarPaintSpecularColorAndFlakesComponent(surfaceData, /*out*/specBRDFColor, /*out*/singleFlakesComponent, /*out*/coatFGD, V);
-
-    // For carpaint, diffuseColor is not chromatic.
-    // A chromatic diffuse albedo is the result of a scalar diffuse coefficient multiplied by the brdf color table value.
-    specularColor = specBRDFColor;
-    diffuseColor *= specBRDFColor;
-    fresnel0 = saturate(3*GetCarPaintFresnel0()); // TODO: presumably better fit using V, see also GetCarPaintSpecularColor that uses V
-    fresnel0 = fresnel0.r * specularColor;
-
-    if (mixFlakes)
-    {
-        float maxf0 = Max3(fresnel0.r, fresnel0.g, fresnel0.b);
-        fresnel0 = saturate(singleFlakesComponent + fresnel0);
-    }
-
-#endif
-
-    float baseEnergy = (1-coatFGD); // should be Sq but at this point we eyeball anyway,
-    //specularColor *= baseEnergy;
-    //diffuseColor *= baseEnergy;
-    //...commented, seems better without it.
-}
-
-void GetRoughnessNormalCoatMaskForFitToStandardLit(SurfaceData surfaceData, float coatFGD, out float3 normalWS, out float roughness, out float coatMask)
-{
-    normalWS = surfaceData.normalWS; // todo: "refract back" hack
-    // Try to simulate apparent roughness increase when he have refraction as we can't store refracted V in the GBUFFER,
-    // we could try another hack and modify the normal too.
-    roughness = GetScalarRoughness(surfaceData.specularLobe);
-    roughness = saturate(roughness * (HasClearcoatAndRefraction() ? (max(1,surfaceData.clearcoatIOR)) : 1) );
-    coatMask = HasClearcoat()? Sq(coatFGD) * Max3(surfaceData.clearcoatColor.r, surfaceData.clearcoatColor.g, surfaceData.clearcoatColor.b) : 0;
-    // Sq(coatFGD) is a hack to better fit what AxF shows vs the usage of the coatmask with Lit
-    coatMask = 0;
-    //...disable for now coat reduces too much visibility of primary surface and in any case in performance mode where we use FitToStandardLit,
-    //we will not get another reflection bounce so the coat reflection will be a fallback probe
-}
-
 float3 GetColorBaseDiffuse(BSDFData bsdfData)
 {
     float3 diffuseColor = 0;
