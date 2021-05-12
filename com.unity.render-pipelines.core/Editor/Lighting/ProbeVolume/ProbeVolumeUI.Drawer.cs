@@ -124,7 +124,7 @@ namespace UnityEditor.Experimental.Rendering
             if (!ProbeReferenceVolume.instance.isInitialized)
             {
                 var renderPipelineAsset = UnityEngine.Rendering.RenderPipelineManager.currentPipeline;
-                if (renderPipelineAsset != null && renderPipelineAsset.GetType().Name == "HDRenderPipelineAsset")
+                if (renderPipelineAsset != null && renderPipelineAsset.GetType().Name == "HDRenderPipeline")
                 {
                     EditorGUILayout.HelpBox("The probe volumes feature is disabled. The feature needs to be enabled in the HDRP Settings and on the used HDRP asset.", MessageType.Warning, wide: true);
                 }
