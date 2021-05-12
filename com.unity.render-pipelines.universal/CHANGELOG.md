@@ -6,6 +6,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ## [12.0.0] - 2021-01-11
 ### Added
+- Added support for default sprite mask shaders for the 2D Renderer in URP.
 - Added View Vector node to mimic old behavior of View Direction node in URP.
 - Added support for the PlayStation 5 platform.
 - Enabled deferred renderer in UI.
