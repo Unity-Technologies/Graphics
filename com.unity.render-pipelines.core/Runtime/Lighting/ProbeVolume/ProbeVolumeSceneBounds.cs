@@ -57,6 +57,9 @@ namespace UnityEngine.Experimental.Rendering
         /// </summary>
         public void OnAfterDeserialize()
         {
+            // We haven't initialized the bounds, no need to do anything here.
+            if (serializedBounds == null || serializedHasVolumes == null) return;
+
             sceneBounds = new Dictionary<string, Bounds>();
             hasProbeVolumes = new Dictionary<string, bool>();
             foreach (var boundItem in serializedBounds)
@@ -75,6 +78,10 @@ namespace UnityEngine.Experimental.Rendering
         /// </summary>
         public void OnBeforeSerialize()
         {
+            // We haven't initialized the bounds, no need to do anything here.
+            if (sceneBounds == null || hasProbeVolumes == null ||
+                serializedBounds == null || serializedHasVolumes == null) return;
+
             serializedBounds.Clear();
             serializedHasVolumes.Clear();
             foreach (var k in sceneBounds.Keys)
