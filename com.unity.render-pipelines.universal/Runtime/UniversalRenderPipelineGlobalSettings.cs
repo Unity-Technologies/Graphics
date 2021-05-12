@@ -7,6 +7,7 @@ namespace UnityEngine.Rendering.Universal
     /// Global settings are unique per Render Pipeline type. In URP, Global Settings contain:
     /// - light layer names
     /// </summary>
+    [URPHelpURL("URP-Global-Settings")]
     partial class UniversalRenderPipelineGlobalSettings : RenderPipelineGlobalSettings
     {
         #region Version system

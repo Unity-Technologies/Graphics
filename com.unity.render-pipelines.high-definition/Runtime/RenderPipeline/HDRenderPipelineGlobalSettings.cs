@@ -31,6 +31,7 @@ namespace UnityEngine.Rendering.HighDefinition
     /// - Frame Settings applied by default to Camera, ReflectionProbe
     /// - Various resources (such as Shaders) for runtime, editor-only, and raytracing
     /// </summary>
+    [HDRPHelpURL("Default-Settings-Window")]
     partial class HDRenderPipelineGlobalSettings : RenderPipelineGlobalSettings
     {
         private static HDRenderPipelineGlobalSettings cachedInstance = null;
