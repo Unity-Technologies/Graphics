@@ -56,7 +56,7 @@ Shader "Hidden/ShadowProjected2D"
             {
                 Ref         3
                 WriteMask   2
-                ReadMask    1    
+                ReadMask    1
                 Comp        Equal
                 Pass        Replace
                 Fail        Keep

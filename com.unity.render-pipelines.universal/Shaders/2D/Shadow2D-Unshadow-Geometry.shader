@@ -30,7 +30,7 @@ Shader "Hidden/Shadow2DUnshadowGeometry"
             HLSLPROGRAM
             #pragma vertex vert
             #pragma fragment frag
-    
+
             #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Core.hlsl"
 
             struct Attributes

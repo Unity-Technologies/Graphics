@@ -48,7 +48,7 @@ namespace UnityEngine.Rendering.Universal
                 }
             }
 
-            if(m_LightInputTextures == null || m_LightInputTextures.Length != maxTextureCount)
+            if (m_LightInputTextures == null || m_LightInputTextures.Length != maxTextureCount)
             {
                 m_LightInputTextures = new RenderTargetIdentifier[maxTextureCount];
             }
@@ -123,7 +123,6 @@ namespace UnityEngine.Rendering.Universal
 
             return rendererData.geometryUnshadowMaterial[colorIndex];
         }
-
 
         public static void CreateShadowRenderTexture(IRenderPass2D pass, RenderingData renderingData, CommandBuffer cmdBuffer, int shadowIndex)
         {
@@ -201,7 +200,6 @@ namespace UnityEngine.Rendering.Universal
             cmdBuffer.SetGlobalMatrix(k_ShadowModelMatrixID, shadowMatrix);
             cmdBuffer.SetGlobalMatrix(k_ShadowModelInvMatrixID, shadowMatrix.inverse);
         }
-
 
         public static bool RenderShadows(IRenderPass2D pass, RenderingData renderingData, CommandBuffer cmdBuffer, int layerToRender, Light2D light, float shadowIntensity, RenderTargetIdentifier renderTexture, int colorBit)
         {
