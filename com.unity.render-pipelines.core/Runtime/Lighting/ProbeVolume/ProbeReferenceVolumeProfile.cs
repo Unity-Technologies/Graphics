@@ -41,11 +41,6 @@ namespace UnityEngine.Experimental.Rendering
         /// </summary>
         [Min(0.1f)]
         public float minDistanceBetweenProbes = 1.0f;
-        /// <summary>
-        /// The normal bias to apply during shading.
-        /// </summary>
-        [Range(0.0f, 1.0f), Delayed]
-        public float normalBias = 0.2f;
 
         [SerializeField]
         Version version = CoreUtils.GetLastEnumValue<Version>();
@@ -71,8 +66,7 @@ namespace UnityEngine.Experimental.Rendering
         {
             return minDistanceBetweenProbes == otherProfile.minDistanceBetweenProbes &&
                 cellSize == otherProfile.cellSize &&
-                maxSubdivision == otherProfile.maxSubdivision &&
-                normalBias == otherProfile.normalBias;
+                maxSubdivision == otherProfile.maxSubdivision;
         }
     }
 
@@ -81,9 +75,9 @@ namespace UnityEngine.Experimental.Rendering
     [CustomEditor(typeof(ProbeReferenceVolumeProfile))]
     internal class ProbeReferenceVolumeProfileEditor : Editor
     {
-        private SerializedProperty m_CellSize;
-        private SerializedProperty m_MinDistanceBetweenProbes;
-        private SerializedProperty m_IndexDimensions;
+        SerializedProperty m_CellSize;
+        SerializedProperty m_MinDistanceBetweenProbes;
+        SerializedProperty m_IndexDimensions;
         ProbeReferenceVolumeProfile profile => target as ProbeReferenceVolumeProfile;
 
         sealed class Styles
@@ -96,7 +90,7 @@ namespace UnityEngine.Experimental.Rendering
 
         static Styles s_Styles = new Styles();
 
-        private void OnEnable()
+        void OnEnable()
         {
             m_CellSize = serializedObject.FindProperty(nameof(ProbeReferenceVolumeProfile.cellSizeInBricks));
             m_MinDistanceBetweenProbes = serializedObject.FindProperty(nameof(ProbeReferenceVolumeProfile.minDistanceBetweenProbes));

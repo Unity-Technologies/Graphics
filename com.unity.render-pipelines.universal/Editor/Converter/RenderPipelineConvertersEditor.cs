@@ -86,7 +86,8 @@ namespace UnityEditor.Rendering.Universal
             RenderPipelineConvertersEditor wnd = GetWindow<RenderPipelineConvertersEditor>();
             wnd.titleContent = new GUIContent("Render Pipeline Converter");
             DontSaveToLayout(wnd);
-
+            wnd.maxSize = new Vector2(645f, 4000f);
+            wnd.minSize = new Vector2(645f, 400f);
             wnd.Show();
         }
 
@@ -151,6 +152,8 @@ namespace UnityEditor.Rendering.Universal
             rootVisualElement.Q<Label>("conversionName").text = converterContainer.name;
             rootVisualElement.Q<TextElement>("conversionInfo").text = converterContainer.info;
 
+            rootVisualElement.Q<Image>("converterContainerHelpIcon").image = CoreEditorStyles.iconHelp;
+
             // Getting the scrollview where the converters should be added
             m_ScrollView = rootVisualElement.Q<ScrollView>("convertersScrollView");
             for (int i = 0; i < m_CoreConvertersList.Count; ++i)
@@ -208,8 +211,10 @@ namespace UnityEditor.Rendering.Universal
 
                 listView.bindItem = (element, index) =>
                 {
-                    // ListView doesn't bind the child elements for us properly, so we do that for it
+                    m_SerializedObject.Update();
                     var property = m_SerializedObject.FindProperty($"{listView.bindingPath}.Array.data[{index}]");
+
+                    // ListView doesn't bind the child elements for us properly, so we do that for it
                     // In the UXML our root is a BindableElement, as we can't bind otherwise.
                     var bindable = (BindableElement)element;
                     bindable.BindProperty(property);
@@ -217,10 +222,13 @@ namespace UnityEditor.Rendering.Universal
                     // Adding index here to userData so it can be retrieved later
                     element.userData = index;
 
-                    Status status = (Status)property.FindPropertyRelative("status").enumValueIndex; // prop.enumValueIndex;// m_ConverterStates[localID].items[index].status;
-                    string info = property.FindPropertyRelative("message").stringValue;//m_ConverterStates[localID].items[index].message;
+                    Status status = (Status)property.FindPropertyRelative("status").enumValueIndex;
+                    string info = property.FindPropertyRelative("message").stringValue;
 
-                    ConverterItemDescriptor convItemDesc = m_ItemsToConvert[id][index]; //converterItemInfos[index];
+                    // Update the amount of things to convert
+                    child.Q<Label>("converterStats").text = $"{m_ItemsToConvert[id].Count} items";
+
+                    ConverterItemDescriptor convItemDesc = m_ItemsToConvert[id][index];
 
                     element.Q<Label>("converterItemName").text = convItemDesc.name;
                     element.Q<Label>("converterItemPath").text = convItemDesc.info;
@@ -283,12 +291,13 @@ namespace UnityEditor.Rendering.Universal
 
             // This should also go to the init method
             // This will fill out the converter item infos list
+            int id = i;
             conv.OnInitialize(initCtx,
                 () =>
                 {
                     // Set the item infos list to to the right index
-                    m_ItemsToConvert[i] = converterItemInfos;
-                    m_ConverterStates[i].items = new List<ConverterItemState>(converterItemInfos.Count);
+                    m_ItemsToConvert[id] = converterItemInfos;
+                    m_ConverterStates[id].items = new List<ConverterItemState>(converterItemInfos.Count);
 
                     // Default all the entries to true
                     for (var j = 0; j < converterItemInfos.Count; j++)
@@ -306,10 +315,10 @@ namespace UnityEditor.Rendering.Universal
                             status = Status.Warning;
                             message = converterItemInfos[j].warningMessage;
                             active = false;
-                            m_ConverterStates[i].warnings++;
+                            m_ConverterStates[id].warnings++;
                         }
 
-                        m_ConverterStates[i].items.Add(new ConverterItemState
+                        m_ConverterStates[id].items.Add(new ConverterItemState
                         {
                             isActive = active,
                             message = message,
@@ -318,15 +327,14 @@ namespace UnityEditor.Rendering.Universal
                         });
                     }
 
-                    m_ConverterStates[i].isLoading = false;
-                    m_ConverterStates[i].isInitialized = true;
+                    m_ConverterStates[id].isLoading = false;
+                    m_ConverterStates[id].isInitialized = true;
 
                     // Making sure that the pending amount is set to the amount of items needs converting
-                    m_ConverterStates[i].pending = m_ConverterStates[i].items.Count;
+                    m_ConverterStates[id].pending = m_ConverterStates[id].items.Count;
 
                     EditorUtility.SetDirty(this);
                     m_SerializedObject.ApplyModifiedProperties();
-                    m_SerializedObject.Update();
                 });
         }
 
