@@ -67,7 +67,7 @@ namespace UnityEngine.Experimental.Rendering
         {
             return minDistanceBetweenProbes == otherProfile.minDistanceBetweenProbes &&
                 cellSizeInMeters == otherProfile.cellSizeInMeters &&
-                maxSubdivision == otherProfile.maxSubdivision;
+                simplificationLevels == otherProfile.simplificationLevels;
         }
     }
 

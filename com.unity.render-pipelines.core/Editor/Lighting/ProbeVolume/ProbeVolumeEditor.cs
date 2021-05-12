@@ -41,7 +41,7 @@ namespace UnityEditor.Experimental.Rendering
                 hasChanges = true;
             }
 
-            if (!probeVolume.cachedParameters.IsEquivalent(probeVolume.parameters))
+            if (!probeVolume.cachedHashCode != probeVolume.GetHashCode())
             {
                 hasChanges = true;
             }
