@@ -992,9 +992,6 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
     #endregion
 
     #region Pragmas
-    // TODO: should these be renamed and moved to UniversalPragmas/UniversalPragmas.cs ?
-    // TODO: these aren't "core" as HDRP doesn't use them
-    // TODO: and the same for the rest "Core" things
     static class CorePragmas
     {
         public static readonly PragmaCollection Default = new PragmaCollection
@@ -1169,8 +1166,6 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
     #endregion
 
     #region KeywordDescriptors
-    // TODO: should these be renamed and moved to UniversalKeywordDescriptors/UniversalKeywords.cs ?
-    // TODO: these aren't "core" as they aren't used by HDRP
     static class CoreKeywordDescriptors
     {
         public static readonly KeywordDescriptor StaticLightmap = new KeywordDescriptor()
@@ -1432,6 +1427,15 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
             referenceName = "DEBUG_DISPLAY",
             type = KeywordType.Boolean,
             definition = KeywordDefinition.MultiCompile,
+            scope = KeywordScope.Global,
+        };
+
+        public static readonly KeywordDescriptor LightCookies = new KeywordDescriptor()
+        {
+            displayName = "Light Cookies",
+            referenceName = "_LIGHT_COOKIES",
+            type = KeywordType.Boolean,
+            definition = KeywordDefinition.ShaderFeature,
             scope = KeywordScope.Global,
         };
 

@@ -1,4 +1,5 @@
 using Unity.Collections;
+using UnityEngine.PlayerLoop;
 using Unity.Jobs;
 using UnityEngine.Assertions;
 using Unity.Mathematics;
@@ -62,9 +63,37 @@ namespace UnityEngine.Rendering.Universal.Internal
         ComputeBuffer m_ZBinBuffer;
         ComputeBuffer m_TileBuffer;
 
-        public ForwardLights() : this(false, -1) {}
+        private LightCookieManager m_LightCookieManager;
 
-        internal ForwardLights(bool clusteredRendering, int tileSize)
+        internal struct InitParams
+        {
+            public LightCookieManager lightCookieManager;
+            public bool clusteredRendering;
+            public int tileSize;
+
+            static internal InitParams GetDefault()
+            {
+                InitParams p;
+                {
+                    var settings = LightCookieManager.Settings.GetDefault();
+                    var asset = UniversalRenderPipeline.asset;
+                    if (asset)
+                    {
+                        settings.atlas.format = asset.additionalLightsCookieFormat;
+                        settings.atlas.resolution = asset.additionalLightsCookieResolution;
+                    }
+
+                    p.lightCookieManager = new LightCookieManager(ref settings);
+                    p.clusteredRendering = false;
+                    p.tileSize = 32;
+                }
+                return p;
+            }
+        }
+
+        public ForwardLights() : this(InitParams.GetDefault()) {}
+
+        internal ForwardLights(InitParams initParams)
         {
             if (clusteredRendering) Assert.IsTrue(math.ispow2(tileSize));
             m_UseStructuredBuffer = RenderingUtils.useStructuredBuffer;
@@ -98,6 +127,8 @@ namespace UnityEngine.Rendering.Universal.Internal
                 m_AdditionalLightOcclusionProbeChannels = new Vector4[maxLights];
                 m_AdditionalLightsLayerMasks = new float[maxLights];
             }
+
+            m_LightCookieManager = initParams.lightCookieManager;
 
             if (m_UseClusteredRendering)
             {
@@ -344,6 +375,8 @@ namespace UnityEngine.Rendering.Universal.Internal
 
                 bool lightLayers = renderingData.lightData.supportsLightLayers;
                 CoreUtils.SetKeyword(cmd, ShaderKeywordStrings.LightLayers, lightLayers);
+
+                m_LightCookieManager.Setup(context, cmd, ref renderingData.lightData);
             }
             context.ExecuteCommandBuffer(cmd);
             CommandBufferPool.Release(cmd);

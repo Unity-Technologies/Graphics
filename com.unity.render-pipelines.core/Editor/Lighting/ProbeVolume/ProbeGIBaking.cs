@@ -103,6 +103,13 @@ namespace UnityEngine.Experimental.Rendering
                 refVol.SetMaxSubdivision(refVolAuthoring.maxSubdivision);
             }
 
+            var probeVolumes = GameObject.FindObjectsOfType<ProbeVolume>();
+            foreach (var probeVolume in probeVolumes)
+            {
+                probeVolume.OnLightingDataAssetCleared();
+            }
+
+
             if (m_BakingBatch != null)
                 m_BakingBatch.Clear();
 
@@ -352,6 +359,12 @@ namespace UnityEngine.Experimental.Rendering
                     UnityEditor.EditorUtility.SetDirty(refVol);
                     UnityEditor.EditorUtility.SetDirty(refVol.volumeAsset);
                 }
+            }
+
+            var probeVolumes = GameObject.FindObjectsOfType<ProbeVolume>();
+            foreach (var probeVolume in probeVolumes)
+            {
+                probeVolume.OnBakeCompleted();
             }
 
             UnityEditor.AssetDatabase.SaveAssets();

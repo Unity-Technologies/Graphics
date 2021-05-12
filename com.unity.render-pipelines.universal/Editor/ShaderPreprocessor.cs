@@ -123,7 +123,7 @@ namespace UnityEditor.Rendering.Universal
             {
                 if (SupportedRenderingFeatures.active.enlighten == false ||
                     ((int)SupportedRenderingFeatures.active.lightmapBakeTypes | (int)LightmapBakeType.Realtime) == 0)
-                return true;
+                    return true;
             }
 
             if (snippetData.passType == PassType.ShadowCaster)
@@ -159,6 +159,10 @@ namespace UnityEditor.Rendering.Universal
             {
                 stripDebugDisplayShaders = true;
             }
+#endif
+
+#if URP_TEST_AGGRESSIVE_SHADER_STRIPPING
+            stripDebugDisplayShaders = true;
 #endif
 
             if (stripDebugDisplayShaders && compilerData.shaderKeywordSet.IsEnabled(m_DebugDisplay))
