@@ -38,7 +38,7 @@ public class VFXUpdateSkinnedSDF : MonoBehaviour
     {
         if (m_Baker != null)
         {
-            m_Baker.Cleanup();
+            m_Baker.Dispose();
         }
     }
 }

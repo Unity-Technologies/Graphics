@@ -192,7 +192,7 @@ namespace UnityEditor.VFX
         private List<int> m_BucketOffsets = new List<int>();
     }
 
-    public enum BoundsSettingMode
+    internal enum BoundsSettingMode
     {
         Recorded,
         Manual,

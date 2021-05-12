@@ -6,9 +6,9 @@ using Object = UnityEngine.Object;
 using UnityEngine.VFX.SDF;
 
 
-namespace UnityEditor.Experimental.VFX.SDF
+namespace UnityEditor.VFX.SDF
 {
-    public class SDFBakeTool : EditorWindow
+    class SDFBakeTool : EditorWindow
     {
         [MenuItem("Window/Visual Effects/Utilities/SDF Bake Tool", false, 3013)]
         static void OpenWindow()
@@ -387,7 +387,7 @@ namespace UnityEditor.Experimental.VFX.SDF
             menu.DropDown(new Rect(pos, Vector2.zero));
         }
 
-        public void OnEnable()
+        private void OnEnable()
         {
             titleContent = Contents.title;
             minSize = new Vector2(300.0f, 400.0f);
@@ -409,7 +409,7 @@ namespace UnityEditor.Experimental.VFX.SDF
         public void OnDisable()
         {
             m_MeshPreview?.Dispose();
-            m_Baker?.Cleanup();
+            m_Baker?.Dispose();
             if (m_BakedSDF)
             {
                 m_BakedSDF.Release();
@@ -449,7 +449,7 @@ namespace UnityEditor.Experimental.VFX.SDF
             }
         }
 
-        protected void FitBoxToMesh()
+        void FitBoxToMesh()
         {
             boxCenter = mesh.bounds.center;
             boxSizeReference = mesh.bounds.extents * 2.0f;
@@ -459,7 +459,7 @@ namespace UnityEditor.Experimental.VFX.SDF
             boxSizeReference = m_ActualBoxSize;
         }
 
-        protected void FitCubeToMesh()
+        void FitCubeToMesh()
         {
             float maxSize = Mathf.Max(mesh.bounds.extents.x, mesh.bounds.extents.y, mesh.bounds.extents.z) * 2.0f;
             boxSizeReference = new Vector3(maxSize, maxSize, maxSize);
@@ -593,7 +593,7 @@ namespace UnityEditor.Experimental.VFX.SDF
             m_RefreshMeshPreview = false;
             if (m_Baker != null)
             {
-                m_Baker.Cleanup();
+                m_Baker.Dispose();
                 m_Baker = null;
             }
         }
@@ -651,42 +651,42 @@ namespace UnityEditor.Experimental.VFX.SDF
 
         static class Contents
         {
-            public static GUIContent title = new GUIContent("SDF Bake Tool");
-            public static GUIContent maxResolution = new GUIContent("Max resolution", "Sets the number of voxels of the largest dimension.");
-            public static GUIContent mesh = new GUIContent("Mesh");
-            public static GUIContent boxSizeReference = new GUIContent("Desired Box Size", "Size of the desired Bounding Box. The Actual Bounding Box will be slightly modified to make sure that each voxel is a cube. Displayed in white in the mesh preview.");
-            public static GUIContent actualBoxSize = new GUIContent("Actual Box Size", "Size of the Bounding Box where the mesh will actually be baked. It may differ from the desired Bounding Box to make sure that each voxel is a cube. Displayed in green in the mesh preview.");
-            public static GUIContent boxCenter = new GUIContent("Box Center");
-            public static GUIContent meshPrefab = new GUIContent("Mesh Prefab");
-            public static GUIContent previewChoice = new GUIContent("Preview Object");
-            public static GUIContent bakeSource = new GUIContent("Model Source");
-            public static GUIContent liveUpdate = new GUIContent("Live Update", "When enabled, every modification to the settings will trigger a new bake of the SDF, and the preview will be updated accordingly.");
+            internal static GUIContent title = new GUIContent("SDF Bake Tool");
+            internal static GUIContent maxResolution = new GUIContent("Max resolution", "Sets the number of voxels of the largest dimension.");
+            internal static GUIContent mesh = new GUIContent("Mesh");
+            internal static GUIContent boxSizeReference = new GUIContent("Desired Box Size", "Size of the desired Bounding Box. The Actual Bounding Box will be slightly modified to make sure that each voxel is a cube. Displayed in white in the mesh preview.");
+            internal static GUIContent actualBoxSize = new GUIContent("Actual Box Size", "Size of the Bounding Box where the mesh will actually be baked. It may differ from the desired Bounding Box to make sure that each voxel is a cube. Displayed in green in the mesh preview.");
+            internal static GUIContent boxCenter = new GUIContent("Box Center");
+            internal static GUIContent meshPrefab = new GUIContent("Mesh Prefab");
+            internal static GUIContent previewChoice = new GUIContent("Preview Object");
+            internal static GUIContent bakeSource = new GUIContent("Model Source");
+            internal static GUIContent liveUpdate = new GUIContent("Live Update", "When enabled, every modification to the settings will trigger a new bake of the SDF, and the preview will be updated accordingly.");
 
-            public static GUIContent signPass = new GUIContent("Sign passes count",
+            internal static GUIContent signPass = new GUIContent("Sign passes count",
                 "Increasing the number of sign passes can help refine the distinction between the inside and the outside of the mesh." +
                 " This can be useful for models containing holes or self-intersections");
 
-            public static GUIContent inOutParam = new GUIContent("In/Out Threshold",
+            internal static GUIContent inOutParam = new GUIContent("In/Out Threshold",
                 "This helps arbitrate what is inside from what is outside of the shape. Low values will include more points in the inside (negative sign), and vice versa.");
-            public static GUIContent sdfOffset = new GUIContent("Surface Offset",
+            internal static GUIContent sdfOffset = new GUIContent("Surface Offset",
                 "Selects the amount of offset applied to the surface. This amount is in the normalized voxel space.");
 
-            public static GUIContent saveSDF = new GUIContent("Save SDF");
+            internal static GUIContent saveSDF = new GUIContent("Save SDF");
 
-            public static GUIContent saveSDFBlocked = new GUIContent("Save SDF",
+            internal static GUIContent saveSDFBlocked = new GUIContent("Save SDF",
                 "There is nothing to save yet. Please use the Bake Mesh button before saving.");
             static Texture2D paneOptionsIconDark = (Texture2D)EditorGUIUtility.Load("Builtin Skins/DarkSkin/Images/pane options.png");
             static Texture2D paneOptionsIconLight = (Texture2D)EditorGUIUtility.Load("Builtin Skins/LightSkin/Images/pane options.png");
             static Texture2D paneOptionsIcon { get { return EditorGUIUtility.isProSkin ? paneOptionsIconDark : paneOptionsIconLight; } }
-            public static GUIContent contextMenuIcon = new GUIContent(paneOptionsIcon, "Additional Properties");
+            internal static GUIContent contextMenuIcon = new GUIContent(paneOptionsIcon, "Additional Properties");
 
-            public static GUIContent fitPadding = new GUIContent("Fit Padding", "Controls the padding, in voxel, to apply when using \"Fit Box/Cube to Mesh\".");
-            public static GUIContent fitBoxToMesh = new GUIContent("Fit box to Mesh", "Fits the bounding box of the bake to the bounding box of the mesh. Padding specified in \"Fit Padding\" (in Additional Properties) will be applied.");
-            public static GUIContent fitCubeToMesh = new GUIContent("Fit cube to Mesh", "Fits the bounding box of the bake to the bounding cube of the mesh. Padding specified in \"Fit Padding\" (in Additional Properties) will be applied.");
-            public static GUIContent bakingParameters = new GUIContent("Baking parameters");
-            public static GUIContent createNewSession = new GUIContent("New Session", "Resets the tool to its default parameters, creating a new unsaved settings assets. This will also erase the current baked SDF texture if there is any.");
-            public static GUIContent saveSettings = new GUIContent("Save Settings", "Saves the settings of the tool into an asset.");
-            public static GUIContent settingsAsset = new GUIContent("Settings Asset");
+            internal static GUIContent fitPadding = new GUIContent("Fit Padding", "Controls the padding, in voxel, to apply when using \"Fit Box/Cube to Mesh\".");
+            internal static GUIContent fitBoxToMesh = new GUIContent("Fit box to Mesh", "Fits the bounding box of the bake to the bounding box of the mesh. Padding specified in \"Fit Padding\" (in Additional Properties) will be applied.");
+            internal static GUIContent fitCubeToMesh = new GUIContent("Fit cube to Mesh", "Fits the bounding box of the bake to the bounding cube of the mesh. Padding specified in \"Fit Padding\" (in Additional Properties) will be applied.");
+            internal static GUIContent bakingParameters = new GUIContent("Baking parameters");
+            internal static GUIContent createNewSession = new GUIContent("New Session", "Resets the tool to its default parameters, creating a new unsaved settings assets. This will also erase the current baked SDF texture if there is any.");
+            internal static GUIContent saveSettings = new GUIContent("Save Settings", "Saves the settings of the tool into an asset.");
+            internal static GUIContent settingsAsset = new GUIContent("Settings Asset");
         }
     }
 }

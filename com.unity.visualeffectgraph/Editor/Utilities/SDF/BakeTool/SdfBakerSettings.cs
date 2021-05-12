@@ -4,9 +4,9 @@ using UnityEngine.Rendering;
 using System.Collections.Generic;
 using UnityEditor;
 using UnityEditor.Callbacks;
-using UnityEditor.Experimental.VFX.SDF;
+using UnityEditor.VFX.SDF;
 
-namespace UnityEditor.Experimental.VFX.SDF
+namespace UnityEditor.VFX.SDF
 {
     [Serializable]
     class SdfBakerSettings : ScriptableObject
@@ -101,7 +101,7 @@ namespace UnityEditor.Experimental.VFX.SDF
             }
         }
 
-        protected void CollectMeshesAndTransforms(GameObject prefab, ref List<Mesh> meshes,
+        internal void CollectMeshesAndTransforms(GameObject prefab, ref List<Mesh> meshes,
             ref List<Matrix4x4> transforms)
         {
             Mesh currentMesh = null;
@@ -137,7 +137,7 @@ namespace UnityEditor.Experimental.VFX.SDF
             }
         }
 
-        protected Mesh InitMeshFromList(List<Mesh> meshes, List<Matrix4x4> transforms)
+        internal Mesh InitMeshFromList(List<Mesh> meshes, List<Matrix4x4> transforms)
         {
             int nMeshes = meshes.Count;
             if (nMeshes != transforms.Count)
@@ -162,7 +162,7 @@ namespace UnityEditor.Experimental.VFX.SDF
             return combinedMesh;
         }
     }
-    public enum PreviewChoice
+    internal enum PreviewChoice
     {
         None = 0,
         Mesh = 1 << 0,
@@ -170,7 +170,7 @@ namespace UnityEditor.Experimental.VFX.SDF
         MeshAndTexture = Texture | Mesh,
     }
 
-    public enum ModelSource
+    internal enum ModelSource
     {
         Mesh,
         MeshPrefab,
@@ -178,7 +178,7 @@ namespace UnityEditor.Experimental.VFX.SDF
 }
 
 [CustomEditor(typeof(SdfBakerSettings))]
-public class SdfBakerSettingsEditor : Editor
+class SdfBakerSettingsEditor : Editor
 {
     public override void OnInspectorGUI()
     {

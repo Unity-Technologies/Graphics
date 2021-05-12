@@ -1,27 +1,24 @@
 using System;
-using System.Collections.Generic;
-using System.Linq;
-using UnityEditor.VFX;
 using UnityEngine;
-using UnityEngine.Rendering;
 using Transform = UnityEngine.Transform;
 using UObject = UnityEngine.Object;
+using UnityEditor;
 
-namespace UnityEditor
+namespace UnityEditor.VFX.SDF
 {
-    public class SdfBakerPreview : IDisposable
+    class SdfBakerPreview
     {
         internal static class Styles
         {
-            public static readonly GUIContent wireframeToggle = EditorGUIUtility.TrTextContent("Wireframe", "Show wireframe");
-            public static readonly GUIContent orthographicToggle = EditorGUIUtility.TrTextContent("Orthographic view");
-            public static readonly GUIContent showActualBox = EditorGUIUtility.TrTextContent("Show Actual Box");
-            public static readonly GUIContent showDesiredBox = EditorGUIUtility.TrTextContent("Show Desired Box");
+            internal static readonly GUIContent wireframeToggle = EditorGUIUtility.TrTextContent("Wireframe", "Show wireframe");
+            internal static readonly GUIContent orthographicToggle = EditorGUIUtility.TrTextContent("Orthographic view");
+            internal static readonly GUIContent showActualBox = EditorGUIUtility.TrTextContent("Show Actual Box");
+            internal static readonly GUIContent showDesiredBox = EditorGUIUtility.TrTextContent("Show Desired Box");
 
-            public static GUIStyle preSlider = "preSlider";
+            internal static GUIStyle preSlider = "preSlider";
         }
 
-        internal class Settings : IDisposable
+        internal class Settings
         {
             public bool drawWire = true;
             public bool showActualBox = true;
@@ -63,7 +60,7 @@ namespace UnityEditor
 
         Mesh m_Target;
 
-        public Mesh mesh
+        internal Mesh mesh
         {
             get => m_Target;
             set => m_Target = value;
@@ -74,18 +71,18 @@ namespace UnityEditor
         private Vector3 m_CenterBox = Vector3.zero;
         private Color m_ActualBoxColor = new Color(0, 255.0f / 255, 70.0f / 255);
 
-        public Vector3 sizeBoxReference
+        internal Vector3 sizeBoxReference
         {
             get => m_SizeBoxReference;
             set => m_SizeBoxReference = value;
         }
 
-        public Vector3 actualSizeBox
+        internal Vector3 actualSizeBox
         {
             get => m_ActualSizeBox;
             set => m_ActualSizeBox = value;
         }
-        public Vector3 centerBox
+        internal Vector3 centerBox
         {
             get => m_CenterBox;
             set => m_CenterBox = value;
@@ -94,7 +91,7 @@ namespace UnityEditor
 
         private bool m_Orthographic = false;
 
-        public bool orthographic
+        internal bool orthographic
         {
             get => m_Orthographic;
             set => m_Orthographic = value;
@@ -105,7 +102,7 @@ namespace UnityEditor
         Settings m_Settings;
 
 
-        public SdfBakerPreview(Mesh target)
+        internal SdfBakerPreview(Mesh target)
         {
             m_Target = target;
 
@@ -116,12 +113,11 @@ namespace UnityEditor
             m_Settings = new Settings();
         }
 
-        public void Dispose()
+        internal void Dispose()
         {
             m_PreviewUtility.Cleanup();
             m_Settings.Dispose();
         }
-
         static Material CreateWireframeMaterial()
         {
             var shader = Shader.Find("Hidden/Internal-Colored");
@@ -156,7 +152,7 @@ namespace UnityEditor
 
             Bounds bounds = mesh.bounds;
 
-            Transform renderCamTransform = previewUtility.camera.GetComponent<Transform>();
+            UnityEngine.Transform renderCamTransform = previewUtility.camera.GetComponent<UnityEngine.Transform>();
             if (m_Orthographic)
             {
                 previewUtility.camera.nearClipPlane = 1;
@@ -276,7 +272,7 @@ namespace UnityEditor
             RenderMeshPreview(mesh, m_PreviewUtility, m_Settings, -1);
         }
 
-        public void OnPreviewGUI(Rect rect, GUIStyle background)
+        internal void OnPreviewGUI(Rect rect, GUIStyle background)
         {
             var evt = Event.current;
 
@@ -329,7 +325,7 @@ namespace UnityEditor
             EditorGUI.DropShadowLabel(rect, GetInfoString(mesh));
         }
 
-        public void OnPreviewSettings()
+        internal void OnPreviewSettings()
         {
             if (!ShaderUtil.hardwareSupportsRectRenderTexture)
                 return;
@@ -392,7 +388,7 @@ namespace UnityEditor
             evt.Use();
         }
 
-        public static string GetInfoString(Mesh mesh)
+        static string GetInfoString(Mesh mesh)
         {
             if (mesh == null)
                 return "";
