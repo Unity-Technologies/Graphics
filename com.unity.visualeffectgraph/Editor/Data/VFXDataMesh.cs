@@ -157,10 +157,6 @@ namespace UnityEditor.VFX
             if (subMaskIndex != -1)
                 mappings.Add(new VFXMapping("subMeshMask", subMaskIndex));
 
-            var compiledData = contextToCompiledData[context];
-            compiledData.indexInSystemDesc = outBufferDescs.Count;
-            contextToCompiledData[context] = compiledData;
-
             outSystemDescs.Add(new VFXEditorSystemDesc()
             {
                 tasks = new VFXEditorTaskDesc[1] { task },

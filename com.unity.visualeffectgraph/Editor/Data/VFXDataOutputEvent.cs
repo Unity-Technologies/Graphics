@@ -99,13 +99,6 @@ namespace UnityEditor.VFX
                 });
             }
 
-            foreach (var context in allMatchingVFXOutputEvent)
-            {
-                var compiledData = contextToCompiledData[context];
-                compiledData.indexInSystemDesc = outBufferDescs.Count;
-                contextToCompiledData[context] = compiledData;
-            }
-
             outSystemDescs.Add(new VFXEditorSystemDesc()
             {
                 flags = VFXSystemFlag.SystemDefault,

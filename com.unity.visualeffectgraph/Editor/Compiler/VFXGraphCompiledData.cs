@@ -22,7 +22,6 @@ namespace UnityEditor.VFX
         public VFXUniformMapper uniformMapper;
         public VFXMapping[] parameters;
         public int indexInShaderSource;
-        public int indexInSystemDesc;
     }
 
     enum VFXCompilationMode
@@ -577,6 +576,7 @@ namespace UnityEditor.VFX
         }
 
         private static void FillSpawner(Dictionary<VFXContext, SpawnInfo> outContextSpawnToSpawnInfo,
+            Dictionary<VFXData, uint> outDataToSystemIndex,
             List<VFXCPUBufferDesc> outCpuBufferDescs,
             List<VFXEditorSystemDesc> outSystemDescs,
             IEnumerable<VFXContext> contexts,
@@ -648,7 +648,12 @@ namespace UnityEditor.VFX
                 else
                     throw new InvalidOperationException("system names manager cannot be null");
 
-                contextData.indexInSystemDesc = outSystemDescs.Count;
+                var data = spawnContext.GetData();
+
+                if (outDataToSystemIndex.ContainsKey(data))
+                    throw new InvalidOperationException("Unexpected duplicated VFXData for spawner : " + nativeName);
+
+                outDataToSystemIndex.Add(data, (uint)outSystemDescs.Count);
                 contextToCompiledData[spawnContext] = contextData;
 
                 outSystemDescs.Add(new VFXEditorSystemDesc()
@@ -694,13 +699,13 @@ namespace UnityEditor.VFX
         {
             var contextEffectiveInputLinks = subgraphInfos.contextEffectiveInputLinks;
 
-            var allPlayNotLinked = contextSpawnToSpawnInfo.Where(o => !contextEffectiveInputLinks[o.Key][0].Any()).Select(o => o.Key).ToList();
-            var allStopNotLinked = contextSpawnToSpawnInfo.Where(o => !contextEffectiveInputLinks[o.Key][1].Any()).Select(o => o.Key).ToList();
+            var allPlayNotLinked = contextSpawnToSpawnInfo.Where(o => !contextEffectiveInputLinks[o.Key][0].Any()).Select(o => o.Key.GetData()).ToList();
+            var allStopNotLinked = contextSpawnToSpawnInfo.Where(o => !contextEffectiveInputLinks[o.Key][1].Any()).Select(o => o.Key.GetData()).ToList();
 
             var eventDescTemp = new EventDesc[]
             {
-                new EventDesc() { name = VisualEffectAsset.PlayEventName, startSystems = allPlayNotLinked, stopSystems = new List<VFXContext>(), initSystems = new List<VFXContext>() },
-                new EventDesc() { name = VisualEffectAsset.StopEventName, startSystems = new List<VFXContext>(), stopSystems = allStopNotLinked, initSystems = new List<VFXContext>() },
+                new EventDesc() { name = VisualEffectAsset.PlayEventName, startSystems = allPlayNotLinked, stopSystems = new List<VFXData>(), initSystems = new List<VFXData>() },
+                new EventDesc() { name = VisualEffectAsset.StopEventName, startSystems = new List<VFXData>(), stopSystems = allStopNotLinked, initSystems = new List<VFXData>() },
             }.ToList();
 
             var specialNames = new HashSet<string>(new string[] {VisualEffectAsset.PlayEventName, VisualEffectAsset.StopEventName});
@@ -724,9 +729,9 @@ namespace UnityEditor.VFX
                         eventDescTemp.Add(new EventDesc
                         {
                             name = eventName,
-                            startSystems = new List<VFXContext>(),
-                            stopSystems = new List<VFXContext>(),
-                            initSystems = new List<VFXContext>()
+                            startSystems = new List<VFXData>(),
+                            stopSystems = new List<VFXData>(),
+                            initSystems = new List<VFXData>()
                         });
                     }
 
@@ -738,17 +743,17 @@ namespace UnityEditor.VFX
                             var startSystem = link.slotIndex == 0;
                             if (startSystem)
                             {
-                                eventDesc.startSystems.Add(link.context);
+                                eventDesc.startSystems.Add(link.context.GetData());
                             }
                             else
                             {
-                                eventDesc.stopSystems.Add(link.context);
+                                eventDesc.stopSystems.Add(link.context.GetData());
                             }
                         }
                     }
                     else if (link.context.contextType == VFXContextType.Init)
                     {
-                        eventDesc.initSystems.Add(link.context);
+                        eventDesc.initSystems.Add(link.context.GetData());
                     }
                     else
                     {
@@ -971,11 +976,17 @@ namespace UnityEditor.VFX
         struct EventDesc
         {
             public string name;
-            public List<VFXContext> startSystems;
-            public List<VFXContext> stopSystems;
-            public List<VFXContext> initSystems;
+            public List<VFXData> startSystems;
+            public List<VFXData> stopSystems;
+            public List<VFXData> initSystems;
         }
 
+        static IEnumerable<uint> ConvertDataToSystemIndex(IEnumerable<VFXData> input, Dictionary<VFXData, uint> dataToSystemIndex)
+        {
+            foreach (var data in input)
+                if (dataToSystemIndex.TryGetValue(data, out var index))
+                    yield return index;
+        }
 
         public void Compile(VFXCompilationMode compilationMode, bool forceShaderValidation)
         {
@@ -1050,7 +1061,7 @@ namespace UnityEditor.VFX
 
                 Dictionary<VFXContext, VFXContextCompiledData> contextToCompiledData = new Dictionary<VFXContext, VFXContextCompiledData>();
                 foreach (var context in compilableContexts)
-                    contextToCompiledData.Add(context, new VFXContextCompiledData() { indexInShaderSource = -1, indexInSystemDesc = -1 });
+                    contextToCompiledData.Add(context, new VFXContextCompiledData() { indexInShaderSource = -1 });
 
                 EditorUtility.DisplayProgressBar(progressBarTitle, "Generating mappings", 5 / nbSteps);
                 foreach (var context in compilableContexts)
@@ -1116,7 +1127,8 @@ namespace UnityEditor.VFX
                 });
 
                 var contextSpawnToSpawnInfo = new Dictionary<VFXContext, SpawnInfo>();
-                FillSpawner(contextSpawnToSpawnInfo, cpuBufferDescs, systemDescs, compilableContexts, m_ExpressionGraph, contextToCompiledData, ref subgraphInfos, m_Graph.systemNames);
+                var dataToSystemIndex = new Dictionary<VFXData, uint>();
+                FillSpawner(contextSpawnToSpawnInfo, dataToSystemIndex, cpuBufferDescs, systemDescs, compilableContexts, m_ExpressionGraph, contextToCompiledData, ref subgraphInfos, m_Graph.systemNames);
 
                 var eventDescs = new List<EventDesc>();
                 FillEvent(eventDescs, contextSpawnToSpawnInfo, compilableContexts, compilableData, ref subgraphInfos);
@@ -1127,6 +1139,11 @@ namespace UnityEditor.VFX
                 var contextSpawnToBufferIndex = contextSpawnToSpawnInfo.Select(o => new { o.Key, o.Value.bufferIndex }).ToDictionary(o => o.Key, o => o.bufferIndex);
                 foreach (var data in compilableData)
                 {
+                    if (!dataToSystemIndex.ContainsKey(data)) //dataToSystemIndex could have been filled by FillSpawner (TODO: rework this approach and always use FillDescs after an appropriate ordering of compilableData)
+                    {
+                        dataToSystemIndex.Add(data, (uint)systemDescs.Count);
+                    }
+
                     data.FillDescs(VFXGraph.compileReporter,
                         bufferDescs,
                         temporaryBufferDescs,
@@ -1146,6 +1163,17 @@ namespace UnityEditor.VFX
                     throw new InvalidOperationException("There are duplicated entries in OutputEvent");
                 }
 
+                // Early check : dataToSystemIndex should be consistent
+                if (compilableData.Except(dataToSystemIndex.Keys).Any())
+                {
+                    throw new InvalidOperationException("Missing system desc among compilable system");
+                }
+
+                if (dataToSystemIndex.Values.Count() != dataToSystemIndex.Distinct().Count())
+                {
+                    throw new InvalidOperationException("Duplicated system index");
+                }
+
                 // Update transient renderer settings
                 ShadowCastingMode shadowCastingMode = compilableContexts.OfType<IVFXSubRenderer>().Any(r => r.hasShadowCasting) ? ShadowCastingMode.On : ShadowCastingMode.Off;
                 MotionVectorGenerationMode motionVectorGenerationMode = compilableContexts.OfType<IVFXSubRenderer>().Any(r => r.hasMotionVector) ? MotionVectorGenerationMode.Object : MotionVectorGenerationMode.Camera;
@@ -1162,9 +1190,9 @@ namespace UnityEditor.VFX
                     return new VFXEventDesc()
                     {
                         name = e.name,
-                        initSystems = e.initSystems.Select(s => contextToCompiledData[s].indexInSystemDesc).Where(i => i != -1).Select(i => (uint)i).ToArray(),
-                        startSystems = e.startSystems.Select(s => contextToCompiledData[s].indexInSystemDesc).Where(i => i != -1).Select(i => (uint)i).ToArray(),
-                        stopSystems = e.stopSystems.Select(s => contextToCompiledData[s].indexInSystemDesc).Where(i => i != -1).Select(i => (uint)i).ToArray(),
+                        initSystems = ConvertDataToSystemIndex(e.initSystems, dataToSystemIndex).ToArray(),
+                        startSystems = ConvertDataToSystemIndex(e.startSystems, dataToSystemIndex).ToArray(),
+                        stopSystems = ConvertDataToSystemIndex(e.stopSystems, dataToSystemIndex).ToArray()
                     };
                 }).Where(e =>
                     {
