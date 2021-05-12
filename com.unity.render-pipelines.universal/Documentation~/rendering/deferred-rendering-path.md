@@ -156,7 +156,7 @@ Unity adds this render target to the G-buffer layout when the Light Layers featu
 
 **DepthStencil**
 
-Unity uses the four lowest bits of this render target to mark the Material type. See also [URP Pass tags: UniversalMaterialType](../urp-shaders/urp-shaderlab-pass-tags.md#universalmaterialtype). 
+Unity reserves the four highest bits of this render target to mark the Material type. See also [URP Pass tags: UniversalMaterialType](../urp-shaders/urp-shaderlab-pass-tags.md#universalmaterialtype). 
 
 For this render target, Unity selects either the D32F_S8 format, or the D24S8 format depending on the platform.
 
@@ -281,7 +281,7 @@ In the Deferred Rendering Path, in the depth prepass or depth and normal prepass
 
 In the Deferred Rendering Path, Unity does not use the depth prepass to generate a copy of the depth buffer (this behavior is different in the Forward Rendering Path).
 
-If the Universal Renderer has the SSAO Renderer Feature, Unity executes the depth and normal prepass. SSAO uses the screen-space normal buffer to calculate ambient occlusion.
+If the Universal Renderer has the SSAO Renderer Feature, Unity executes the depth and normal prepass. SSAO uses the screen-space depth and normal buffers to calculate ambient occlusion.
 
 #### Optional passes: SSAO, SSAO with blending 
 
@@ -293,7 +293,7 @@ When the After Opaque option is enabled, Unity executes the SSAO and blending Pa
 
 **Performance considerations**
 
-On mobile platforms with TBDR architecture, there is a significant performance impact when the **After Opaque** option is enabled, because it requires extra render target load and store operations.
+On mobile platforms with TBDR architecture, with the **After Opaque** option is disabled, Unity requires an extra render target for load and store operations. This has a significant performance impact.
 
 Enabling the **After Opaque** option on mobile platforms improves GPU performance. On mobile platforms with TBDR architecture, enabling this option avoids extra render target load and store operations.
 
@@ -379,7 +379,7 @@ This section describes the limitations of the Deferred Rendering Path.
 
 ### Terrain blending
 
-When blending more than four Terrain layers, the Deferred Rendering Path generates slightly different results from the Forward Rendering Path. This happens because in the Forward Rendering Path, Unity processes the first four layers separately from the next four layers when using multi-pass rendering.
+When blending more than four Terrain layers, the Deferred Rendering Path generates slightly different results from the Forward Rendering Path. This happens because in the Forward Rendering Path, Unity processes the first four layers separately from the next four layers using multi-pass rendering.
 
 In the Forward Rendering Path, Unity merges Material properties and calculates lighting for the combined properties of four layers at once. Unity then processes the next four layers in the same way and alpha-blends the lighting results.
 
@@ -387,7 +387,7 @@ In the Deferred Rendering Path, Unity combines Terrain layers in the G-buffer pa
 
 Unity combines the Material properties in the G-buffer using hardware blending (four layers at a time), which limits how correct the combination of property values is. For example, pixel normals cannot be correctly combined using the alpha blend equation alone, because one Terrain layer might contain coarse Terrain detail while another layer might contain fine detail. Averaging or summing normals results in loss of accuracy.
 
-> **NOTE:** Turning the setting [Accurate G-buffer normals](#accurate-g-buffer-normals) on breaks Terrain blending. With this setting turned on, Unity encodes normals using octahedron encoding. Normals in different layers encoded this way cannot be blended together bacause of the bitwise nature of the encoding (2 x 12 bits). If your application requires more than four Terrain layers, turn the **Accurate G-buffer normals** setting off.
+> **NOTE:** Turning the setting [Accurate G-buffer normals](#accurate-g-buffer-normals) on breaks Terrain blending. With this setting turned on, Unity encodes normals using octahedron encoding. Normals in different layers encoded this way cannot be blended together because of the bitwise nature of the encoding (2 x 12 bits). If your application requires more than four Terrain layers, turn the **Accurate G-buffer normals** setting off.
 
 <a name="terrain-visual-diff"></a>The following illustration shows the visual difference when rendering Terrain layers with different Rendering Paths.
 
@@ -419,4 +419,4 @@ The Light Layers feature requires an extra G-buffer render target to store the r
 
 In the Forward Rendering Path, the [Layers](https://docs.unity3d.com/Manual/Layers.html) feature lets you tell Unity to render specific meshes with a specific set of Lights. The [Layers](https://docs.unity3d.com/Manual/Layers.html) feature uses the culling mask system.
 
-The Deferred Rendering Path cannot use the culling mask system, because the shading is deferred to a later stage in the rendering loop (see the **Deferred rendering (stencil)** step in the [Deferred Rendering Path render Passes](#render-passes) table.)
+The Deferred Rendering Path cannot use the layer system with light culling masks, because the shading is deferred to a later stage in the rendering loop (see the **Deferred rendering (stencil)** step in the [Deferred Rendering Path render Passes](#render-passes) table.)
