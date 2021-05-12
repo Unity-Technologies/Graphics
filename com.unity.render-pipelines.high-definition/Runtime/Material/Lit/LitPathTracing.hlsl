@@ -248,7 +248,7 @@ bool SampleMaterial(MaterialData mtlData, float3 inputSample, out float3 sampleD
     {
 #ifdef _SURFACE_TYPE_TRANSPARENT
     #ifdef _REFRACTION_THIN
-        if (mtlData.bsdfData.transmittanceMask)
+        if (mtlData.bsdfData.transmittanceMask > 0.0)
         {
             // Just go through (although we should not end up here)
             sampleDir = -mtlData.V;

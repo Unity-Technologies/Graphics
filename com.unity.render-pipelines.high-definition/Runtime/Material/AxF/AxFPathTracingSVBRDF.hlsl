@@ -1,65 +1,61 @@
 #ifndef UNITY_AXF_PATH_TRACING_SVBRDF_INCLUDED
 #define UNITY_AXF_PATH_TRACING_SVBRDF_INCLUDED
 
-// AxF SVBRDF Material Data:
-//
-// bsdfWeight0  Diffuse BRDF
-// bsdfWeight1  Clearoat BRDF
-// bsdfWeight2  Specular BRDF
+// By defining this, we replace specular GGX values with the original ones used in the raster version
+#define AXF_PATH_TRACING_SVBRDF_USE_RASTER_SPECULAR
 
-float3 GetCoatNormal(MaterialData mtlData)
+#ifdef AXF_PATH_TRACING_SVBRDF_USE_RASTER_SPECULAR
+void OverrideSpecularValue(MaterialData mtlData, float3 sampleDir, inout float3 specularValue)
 {
-    return mtlData.bsdfData.clearcoatNormalWS;
-}
+    float3 H = normalize(mtlData.V + sampleDir);
+    float LdotH = dot(sampleDir, H);
+    float NdotL = dot(GetSpecularNormal(mtlData), sampleDir);
+    float NdotV = dot(GetSpecularNormal(mtlData), mtlData.V);
 
-void ProcessBSDFData(PathIntersection pathIntersection, BuiltinData builtinData, MaterialData mtlData, inout BSDFData bsdfData)
-{
-    // Adjust roughness to reduce fireflies
-    bsdfData.roughness.x = max(pathIntersection.maxRoughness, bsdfData.roughness.x);
-    bsdfData.roughness.y = max(pathIntersection.maxRoughness, bsdfData.roughness.y);
+    // We set a threshold of 10x the value computed by our path tracing GGX BRDF
+    float maxLum = 10.0 * Luminance(specularValue);
 
-    // One of the killer features of AxF, optional specular Fresnel...
-    if (!HasFresnelTerm())
-        bsdfData.fresnel0 = 1.0;
-
-    // Make sure we can get valid coat normal reflection directions
-    if (HasClearcoat())
-        bsdfData.clearcoatNormalWS = ComputeConsistentShadingNormal(mtlData.V, bsdfData.geomNormalWS, bsdfData.clearcoatNormalWS);
-}
-
-bool CreateMaterialData(PathIntersection pathIntersection, BuiltinData builtinData, BSDFData bsdfData, inout float3 shadingPosition, inout float theSample, out MaterialData mtlData)
-{
-    // Alter values in the material's bsdfData struct, to better suit path tracing
-    mtlData.V = -WorldRayDirection();
-    mtlData.Nv = ComputeConsistentShadingNormal(mtlData.V, bsdfData.geomNormalWS, bsdfData.normalWS);
-    mtlData.bsdfData = bsdfData;
-    ProcessBSDFData(pathIntersection, builtinData, mtlData, mtlData.bsdfData);
-
-    mtlData.bsdfWeight = 0.0;
-
-    // First determine if our incoming direction V is above (exterior) or below (interior) the surface
-    if (IsAbove(mtlData))
+    switch (AXF_SVBRDF_BRDFTYPE_SPECULARTYPE)
     {
-        float NcoatdotV = dot(GetCoatNormal(mtlData), mtlData.V);
-        float NspecdotV = dot(GetSpecularNormal(mtlData), mtlData.V);
-        float Fcoat = F_Schlick(IorToFresnel0(bsdfData.clearcoatIOR), NcoatdotV);
-        float Fspec = Luminance(F_Schlick(mtlData.bsdfData.fresnel0, NspecdotV));
-
-        mtlData.bsdfWeight[1] = HasClearcoat() ? Fcoat * Luminance(mtlData.bsdfData.clearcoatColor) : 0.0;
-        float clearcoatTransmission = (1.0 - Fcoat); // clearcoatColor only tints the clear coat reflection in this material model...
-        mtlData.bsdfWeight[2] = clearcoatTransmission * lerp(Fspec, 0.5, 0.5 * (mtlData.bsdfData.roughness.x + mtlData.bsdfData.roughness.y)) * Luminance(mtlData.bsdfData.specularColor);
-        mtlData.bsdfWeight[0] = clearcoatTransmission * Luminance(mtlData.bsdfData.diffuseColor) * mtlData.bsdfData.ambientOcclusion;
+        case 0:
+            specularValue = ComputeWard(H, LdotH, NdotL, NdotV, (PreLightData)0, mtlData.bsdfData) * NdotL / mtlData.bsdfData.specularColor;
+            break;
+        case 1:
+            specularValue = ComputeBlinnPhong(H, LdotH, NdotL, NdotV, (PreLightData)0, mtlData.bsdfData) * NdotL / mtlData.bsdfData.specularColor;
+            break;
+        case 2:
+            specularValue = ComputeCookTorrance(H, LdotH, NdotL, NdotV, (PreLightData)0, mtlData.bsdfData) * NdotL / mtlData.bsdfData.specularColor;
+            break;
+        default:
+            return;
     }
 
-    // Normalize the weights
-    float wSum = mtlData.bsdfWeight[0] + mtlData.bsdfWeight[1] + mtlData.bsdfWeight[2];
+    // Make sure the new value is not above our luminance threshold, for robustness sake, as the Compute*(...) above are numerically sensitive...
+    float lum = Luminance(specularValue);
+    if (lum > maxLum)
+        specularValue *= maxLum / lum;
+}
+#endif
 
-    if (wSum < BSDF_WEIGHT_EPSILON)
+bool SampleSpecular(MaterialData mtlData, float3 inputSample, out float3 sampleDir, out float3 value, out float pdf)
+{
+    if (!BRDF::SampleAnisoGGX(mtlData, GetSpecularNormal(mtlData), mtlData.bsdfData.roughness.x, mtlData.bsdfData.roughness.y, mtlData.bsdfData.fresnel0, inputSample, sampleDir, value, pdf))
         return false;
 
-    mtlData.bsdfWeight /= wSum;
+#ifdef AXF_PATH_TRACING_SVBRDF_USE_RASTER_SPECULAR
+    OverrideSpecularValue(mtlData, sampleDir, value);
+#endif
 
     return true;
+}
+
+void EvaluateSpecular(MaterialData mtlData, float3 sampleDir, out float3 value, out float pdf)
+{
+    BRDF::EvaluateAnisoGGX(mtlData, GetSpecularNormal(mtlData), mtlData.bsdfData.roughness.x, mtlData.bsdfData.roughness.y, mtlData.bsdfData.fresnel0, sampleDir, value, pdf);
+
+#ifdef AXF_PATH_TRACING_SVBRDF_USE_RASTER_SPECULAR
+    OverrideSpecularValue(mtlData, sampleDir, value);
+#endif
 }
 
 bool SampleMaterial(MaterialData mtlData, float3 inputSample, out float3 sampleDir, out MaterialResult result)
@@ -92,7 +88,7 @@ bool SampleMaterial(MaterialData mtlData, float3 inputSample, out float3 sampleD
 
             if (mtlData.bsdfWeight[2] > BSDF_WEIGHT_EPSILON)
             {
-                BRDF::EvaluateAnisoGGX(mtlData, GetSpecularNormal(mtlData), mtlData.bsdfData.roughness.x, mtlData.bsdfData.roughness.y, mtlData.bsdfData.fresnel0, sampleDir, value, pdf);
+                EvaluateSpecular(mtlData, sampleDir, value, pdf);
                 result.specValue += value * coatingTransmission * mtlData.bsdfData.specularColor;
                 result.specPdf += mtlData.bsdfWeight[2] * pdf;
             }
@@ -115,15 +111,16 @@ bool SampleMaterial(MaterialData mtlData, float3 inputSample, out float3 sampleD
 
             if (mtlData.bsdfWeight[2] > BSDF_WEIGHT_EPSILON)
             {
-                BRDF::EvaluateAnisoGGX(mtlData, GetSpecularNormal(mtlData), mtlData.bsdfData.roughness.x, mtlData.bsdfData.roughness.y, mtlData.bsdfData.fresnel0, sampleDir, value, pdf);
+                EvaluateSpecular(mtlData, sampleDir, value, pdf);
                 result.specValue += value * coatingTransmission * mtlData.bsdfData.specularColor;
                 result.specPdf += mtlData.bsdfWeight[2] * pdf;
             }
         }
         else // Specular BRDF
         {
-            if (!BRDF::SampleAnisoGGX(mtlData, GetSpecularNormal(mtlData), mtlData.bsdfData.roughness.x, mtlData.bsdfData.roughness.y, mtlData.bsdfData.fresnel0, inputSample, sampleDir, result.specValue, result.specPdf))
+            if (!SampleSpecular(mtlData, inputSample, sampleDir, result.specValue, result.specPdf))
                 return false;
+
             result.specValue *= mtlData.bsdfData.specularColor;
             result.specPdf *= mtlData.bsdfWeight[2];
 
@@ -174,7 +171,7 @@ void EvaluateMaterial(MaterialData mtlData, float3 sampleDir, out MaterialResult
 
         if (mtlData.bsdfWeight[2] > BSDF_WEIGHT_EPSILON)
         {
-            BRDF::EvaluateAnisoGGX(mtlData, GetSpecularNormal(mtlData), mtlData.bsdfData.roughness.x, mtlData.bsdfData.roughness.y, mtlData.bsdfData.fresnel0, sampleDir, value, pdf);
+            EvaluateSpecular(mtlData, sampleDir, value, pdf);
             result.specValue += value * coatingTransmission * mtlData.bsdfData.specularColor;
             result.specPdf += mtlData.bsdfWeight[2] * pdf;
         }

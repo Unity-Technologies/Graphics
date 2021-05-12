@@ -1214,6 +1214,8 @@ float  MultiLobesCookTorrance(BSDFData bsdfData, float NdotL, float NdotV, float
 
         specularIntensity += coeff * CT_D(NdotH, spread) * CT_F(VdotH, F0);
     }
+
+    // FIXME: should be 4 instead of PI at the denominator, this was a mistake in the original paper
     specularIntensity *= G_CookTorrance(NdotH, NdotV, NdotL, VdotH)  // Shadowing/Masking term
         / (PI * max(1e-3, NdotV * NdotL));
 
@@ -2107,7 +2109,7 @@ CBSDF EvaluateBSDF(float3 viewWS_Clearcoat, float3 lightWS_Clearcoat, PreLightDa
 
     // Apply flakes
     //TODO_FLAKES
-    specularTerm += CarPaint_BTF(thetaH, thetaD, (SurfaceData)0, bsdfData, /*useBSDFData:*/true);;
+    specularTerm += CarPaint_BTF(thetaH, thetaD, (SurfaceData)0, bsdfData, /*useBSDFData:*/true);
 
     cbsdf.diffR = clearcoatExtinction * diffuseTerm * saturate(NdotL);
     cbsdf.specR = (clearcoatExtinction * specularTerm * saturate(NdotL) + clearcoatReflectionLobeNdotL);
