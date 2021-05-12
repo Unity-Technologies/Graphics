@@ -737,7 +737,7 @@ namespace UnityEngine.Rendering.Universal
             // stay in RT so we resume rendering on stack after post-processing
             else if (applyPostProcessing)
             {
-                postProcessPass.Setup(cameraTargetDescriptor, m_ActiveCameraColorAttachment, resolvePostProcessingToCameraTarget, m_ActiveCameraDepthAttachment, colorGradingLut, false, false);
+                postProcessPass.Setup(cameraTargetDescriptor, m_ActiveCameraColorAttachment, false, m_ActiveCameraDepthAttachment, colorGradingLut, false, false);
                 EnqueuePass(postProcessPass);
             }
 
@@ -800,9 +800,10 @@ namespace UnityEngine.Rendering.Universal
         /// <inheritdoc />
         public override void FinishRendering(CommandBuffer cmd)
         {
+            m_ColorBufferSystem.Clear(cmd);
+
             if (m_ActiveCameraColorAttachment != RenderTargetHandle.CameraTarget)
             {
-                m_ColorBufferSystem.Clear(cmd);
                 m_ActiveCameraColorAttachment = RenderTargetHandle.CameraTarget;
             }
 
