@@ -12,16 +12,16 @@ namespace UnityEditor.Experimental.Rendering
             internal static readonly GUIContent s_ObjectLayerMask = new GUIContent("Object Layer Mask", "Control which layers will be used to select the meshes for the probe placement algorithm.");
             internal static readonly GUIContent s_GeometryDistanceOffset = new GUIContent("Geometry Distance Offset", "Affects the minimum distance at which the subdivision system will place probes near the geometry.");
 
-            internal static readonly Color k_GizmoColorBase = new Color(180 / 255f, 180 / 255f, 180 / 255f, 8 / 255f).gamma;
+            internal static readonly Color k_GizmoColorBase = new Color32(137, 222, 144, 255);
 
             internal static readonly Color[] k_BaseHandlesColor = new Color[]
             {
-                new Color(180 / 255f, 180 / 255f, 180 / 255f, 255 / 255f).gamma,
-                new Color(180 / 255f, 180 / 255f, 180 / 255f, 255 / 255f).gamma,
-                new Color(180 / 255f, 180 / 255f, 180 / 255f, 255 / 255f).gamma,
-                new Color(180 / 255f, 180 / 255f, 180 / 255f, 255 / 255f).gamma,
-                new Color(180 / 255f, 180 / 255f, 180 / 255f, 255 / 255f).gamma,
-                new Color(180 / 255f, 180 / 255f, 180 / 255f, 255 / 255f).gamma
+                k_GizmoColorBase,
+                k_GizmoColorBase,
+                k_GizmoColorBase,
+                k_GizmoColorBase,
+                k_GizmoColorBase,
+                k_GizmoColorBase
             };
         }
     }
