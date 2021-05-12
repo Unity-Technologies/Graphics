@@ -40,7 +40,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
         {
             foreach (var pragma in pass.pragmas)
             {
-                if (pragma.value == "surface_shader")
+                if (pragma.value == "#pragma raytracing surface_shader")
                     return true;
             }
 
@@ -59,7 +59,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
         {
             foreach (var pragma in pass.pragmas)
             {
-                if (pragma.value == "Hull")
+                if (pragma.value == "#pragma hull Hull")
                     return true;
             }
 
