@@ -45,9 +45,9 @@ ClusteredLightLoop ClusteredLightLoopInit(float2 normalizedScreenSpaceUV, float3
     uint2 tileId = uint2(normalizedScreenSpaceUV * _AdditionalLightsTileScale);
     state.baseIndex = (tileId.y * _AdditionalLightsTileCountX + tileId.x) * (LIGHTS_PER_TILE / 32);
     float viewZ = dot(GetViewForwardDir(), positionWS - GetCameraPositionWS());
-    uint zBinIndex = min(4*MAX_ZBIN_VEC4S, (uint)(sqrt(viewZ) * _AdditionalLightsZBinScale) - _AdditionalLightsZBinOffset);
+    uint zBinIndex = min(4*MAX_ZBIN_VEC4S - 1, (uint)(sqrt(viewZ) * _AdditionalLightsZBinScale) - _AdditionalLightsZBinOffset);
     uint zBinData = ClusteringSelect4(asuint(_AdditionalLightsZBins[zBinIndex / 4]), zBinIndex % 4);
-    uint2 zBin = uint2(zBinData & 0xFFFF, (zBinData >> 16) & 0xFFFF);
+    uint2 zBin = min(uint2(zBinData & 0xFFFF, (zBinData >> 16) & 0xFFFF), MAX_VISIBLE_LIGHTS - 1);
     uint2 zBinWords = zBin / 32;
     state.zBinMinMask = 0xFFFFFFFF << (zBin.x & 0x1F);
     state.zBinMaxMask = 0xFFFFFFFF >> (31 - (zBin.y & 0x1F));
