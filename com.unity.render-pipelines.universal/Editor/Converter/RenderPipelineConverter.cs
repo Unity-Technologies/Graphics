@@ -40,7 +40,7 @@ namespace UnityEditor.Rendering.Universal
 
         // This is in which drop down item the converter belongs to.
         // Not properly implemented yet
-        public abstract Type conversion { get; }
+        public abstract Type container { get; }
 
         /// <summary>
         /// This runs when initializing the converter. To gather data for the UI and also for the converter if needed.
@@ -53,5 +53,13 @@ namespace UnityEditor.Rendering.Universal
         /// </summary>
         /// <param name="context">The context that will be used when executing converter.</param>
         public abstract void OnRun(ref RunItemContext context);
+
+
+        /// <summary>
+        /// The method that will be run after the converters are done if needed.
+        /// </summary>
+        public virtual void OnPostRun()
+        {
+        }
     }
 }
