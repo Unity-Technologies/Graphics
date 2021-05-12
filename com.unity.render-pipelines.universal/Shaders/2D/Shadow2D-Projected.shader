@@ -7,7 +7,7 @@ Shader "Hidden/ShadowProjected2D"
 
     SubShader
     {
-        Tags { "RenderType"="Opaque" }
+        Tags { "RenderType"="Transparent" }
 
         Cull Off
         BlendOp Add
@@ -53,9 +53,12 @@ Shader "Hidden/ShadowProjected2D"
             // Bit 0: Composite Shadow Bit, Bit 1: Global Shadow Bit
             Stencil
             {
-                Ref         2
-                Comp        Always
+                Ref         3
+                WriteMask   2
+                ReadMask    1    
+                Comp        Equal
                 Pass        Replace
+                Fail        Keep
             }
 
             // We only want to change the stencil value in this pass

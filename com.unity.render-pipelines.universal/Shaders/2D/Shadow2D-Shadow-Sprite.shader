@@ -7,11 +7,11 @@ Shader "Hidden/Shadow2DShadowSprite"
     }
     SubShader
     {
-        Tags { "RenderType"="Opaque" }
+        Tags { "RenderType"="Transparent" }
 
         Cull Off
         BlendOp Add
-        Blend OneMinusSrcColor SrcColor, OneMinusSrcAlpha SrcAlpha
+        Blend One One
         ZWrite Off
         ZTest Always
 
