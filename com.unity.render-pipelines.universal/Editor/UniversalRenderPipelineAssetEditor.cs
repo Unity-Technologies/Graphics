@@ -54,6 +54,8 @@ namespace UnityEditor.Rendering.Universal
                 new GUIContent("Medium"),
                 new GUIContent("High")
             };
+            public static GUIContent additionalLightsCookieResolution = EditorGUIUtility.TrTextContent("Cookie Atlas Resolution", "All additional lights are packed into a single cookie atlas. This setting controls the atlas size.");
+            public static GUIContent additionalLightsCookieFormat = EditorGUIUtility.TrTextContent("Cookie Atlas Format", "All additional lights are packed into a single cookie atlas. This setting controls the atlas format.");
 
             // Reflection Probes
             public static GUIContent reflectionProbesSettingsText = EditorGUIUtility.TrTextContent("Reflection Probes");
@@ -143,6 +145,9 @@ namespace UnityEditor.Rendering.Universal
         SerializedProperty m_AdditionalLightsShadowResolutionTierMediumProp;
         SerializedProperty m_AdditionalLightsShadowResolutionTierHighProp;
 
+        SerializedProperty m_AdditionalLightCookieResolutionProp;
+        SerializedProperty m_AdditionalLightCookieFormatProp;
+
         SerializedProperty m_ReflectionProbeBlendingProp;
         SerializedProperty m_ReflectionProbeBoxProjectionProp;
 
@@ -227,6 +232,9 @@ namespace UnityEditor.Rendering.Universal
             m_AdditionalLightsShadowResolutionTierLowProp = serializedObject.FindProperty("m_AdditionalLightsShadowResolutionTierLow");
             m_AdditionalLightsShadowResolutionTierMediumProp = serializedObject.FindProperty("m_AdditionalLightsShadowResolutionTierMedium");
             m_AdditionalLightsShadowResolutionTierHighProp = serializedObject.FindProperty("m_AdditionalLightsShadowResolutionTierHigh");
+
+            m_AdditionalLightCookieResolutionProp = serializedObject.FindProperty("m_AdditionalLightsCookieResolution");
+            m_AdditionalLightCookieFormatProp = serializedObject.FindProperty("m_AdditionalLightsCookieFormat");
 
             m_ReflectionProbeBlendingProp = serializedObject.FindProperty("m_ReflectionProbeBlending");
             m_ReflectionProbeBoxProjectionProp = serializedObject.FindProperty("m_ReflectionProbeBoxProjection");
@@ -364,6 +372,17 @@ namespace UnityEditor.Rendering.Universal
                 EditorGUI.BeginDisabledGroup(disableGroup);
                 EditorGUILayout.PropertyField(m_AdditionalLightShadowmapResolutionProp, Styles.additionalLightsShadowmapResolution);
                 DrawShadowResolutionTierSettings();
+                EditorGUI.EndDisabledGroup();
+
+                EditorGUILayout.Space();
+                disableGroup = m_AdditionalLightsRenderingModeProp.intValue == (int)LightRenderingMode.Disabled;
+
+                EditorGUI.BeginDisabledGroup(disableGroup);
+                EditorGUILayout.PropertyField(m_AdditionalLightCookieResolutionProp, Styles.additionalLightsCookieResolution);
+                EditorGUI.EndDisabledGroup();
+
+                EditorGUI.BeginDisabledGroup(disableGroup);
+                EditorGUILayout.PropertyField(m_AdditionalLightCookieFormatProp, Styles.additionalLightsCookieFormat);
                 EditorGUI.EndDisabledGroup();
 
                 EditorGUI.indentLevel--;

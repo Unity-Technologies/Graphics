@@ -85,7 +85,7 @@ namespace UnityEditor.ShaderGraph
         string m_SerializedSubGraph = string.Empty;
 
         [NonSerialized]
-        SubGraphAsset m_SubGraph;
+        SubGraphAsset m_SubGraph; // This should not be accessed directly by most code -- use the asset property instead, and check for NULL! :)
 
         [SerializeField]
         List<string> m_PropertyGuids = new List<string>();
@@ -188,7 +188,7 @@ namespace UnityEditor.ShaderGraph
 
         public override bool canSetPrecision
         {
-            get { return asset.subGraphGraphPrecision == GraphPrecision.Graph; }
+            get { return asset?.subGraphGraphPrecision == GraphPrecision.Graph;  }
         }
 
         public void GenerateNodeCode(ShaderStringBuilder sb, GenerationMode generationMode)
@@ -586,14 +586,8 @@ namespace UnityEditor.ShaderGraph
             if (index >= 0)
             {
                 var guid = m_PropertyGuids[index];
-                var properties = m_SubGraph.inputs.Where(x => x.guid.ToString().Equals(guid));
-                var count = properties.Count();
-                if (properties.Count() > 0)
-                {
-                    return properties.First();
-                }
+                return asset?.inputs.Where(x => x.guid.ToString().Equals(guid)).FirstOrDefault();
             }
-
             return null;
         }
 

@@ -147,6 +147,7 @@ namespace UnityEngine.Rendering.HighDefinition
             volumetricHistoryIsValid = false;
             volumetricValidFrames = 0;
             colorPyramidHistoryIsValid = false;
+            dofHistoryIsValid = false;
 
             // Reset the volumetric cloud offset animation data
             volumetricCloudsAnimationData.lastTime = -1.0f;
@@ -1701,10 +1702,25 @@ namespace UnityEngine.Rendering.HighDefinition
         /// <returns></returns>
         Matrix4x4 ComputePixelCoordToWorldSpaceViewDirectionMatrix(ViewConstants viewConstants, Vector4 resolution, float aspect = -1)
         {
-            if (camera.orthographic)
-                return HDUtils.ComputePixelCoordToWorldSpaceViewDirectionMatrix_Orthographic(resolution, viewConstants.viewMatrix);
+            // In XR mode, use a more generic matrix to account for asymmetry in the projection
+            if (xr.enabled)
+            {
+                var transform = Matrix4x4.Scale(new Vector3(-1.0f, -1.0f, -1.0f)) * viewConstants.invViewProjMatrix;
+                transform = transform * Matrix4x4.Scale(new Vector3(1.0f, -1.0f, 1.0f));
+                transform = transform * Matrix4x4.Translate(new Vector3(-1.0f, -1.0f, 0.0f));
+                transform = transform * Matrix4x4.Scale(new Vector3(2.0f * resolution.z, 2.0f * resolution.w, 1.0f));
 
-            return HDUtils.ComputePixelCoordToWorldSpaceViewDirectionMatrix_Perspective(resolution, viewConstants.invViewProjMatrix);
+                return transform.transpose;
+            }
+
+            float verticalFoV = camera.GetGateFittedFieldOfView() * Mathf.Deg2Rad;
+            if (!camera.usePhysicalProperties)
+            {
+                verticalFoV = Mathf.Atan(-1.0f / viewConstants.projMatrix[1, 1]) * 2;
+            }
+            Vector2 lensShift = camera.GetGateFittedLensShift();
+
+            return HDUtils.ComputePixelCoordToWorldSpaceViewDirectionMatrix(verticalFoV, lensShift, resolution, viewConstants.viewMatrix, false, aspect, camera.orthographic);
         }
 
         void Dispose()

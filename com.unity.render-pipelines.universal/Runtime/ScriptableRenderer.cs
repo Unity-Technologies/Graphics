@@ -495,7 +495,7 @@ namespace UnityEngine.Rendering.Universal
 
             ResetNativeRenderPassFrameData();
 
-            useRenderPassEnabled = data.useNativeRenderPass;
+            useRenderPassEnabled = data.useNativeRenderPass && SystemInfo.graphicsDeviceType != GraphicsDeviceType.OpenGLES2;
             Clear(CameraRenderType.Base);
             m_ActiveRenderPassQueue.Clear();
 
@@ -535,15 +535,12 @@ namespace UnityEngine.Rendering.Universal
             m_CameraDepthTarget = depthTarget;
         }
 
-#if ENABLE_RENDER_PASS_UI
         internal void ConfigureCameraTarget(RenderTargetIdentifier colorTarget, RenderTargetIdentifier depthTarget, RenderTargetIdentifier resolveTarget)
         {
             m_CameraColorTarget = colorTarget;
             m_CameraDepthTarget = depthTarget;
             m_CameraResolveTarget = resolveTarget;
         }
-
-#endif
 
         // This should be removed when early camera color target assignment is removed.
         internal void ConfigureCameraColorTarget(RenderTargetIdentifier colorTarget)
@@ -740,7 +737,10 @@ namespace UnityEngine.Rendering.Universal
                 InternalFinishRendering(context, cameraData.resolveFinalTarget);
 
                 for (int i = 0; i < m_ActiveRenderPassQueue.Count; ++i)
+                {
+                    m_ActiveRenderPassQueue[i].m_ColorAttachmentIndices.Dispose();
                     m_ActiveRenderPassQueue[i].m_InputAttachmentIndices.Dispose();
+                }
             }
 
             context.ExecuteCommandBuffer(cmd);
@@ -872,6 +872,7 @@ namespace UnityEngine.Rendering.Universal
             cmd.DisableShaderKeyword(ShaderKeywordStrings.MainLightShadowScreen);
             cmd.DisableShaderKeyword(ShaderKeywordStrings.AdditionalLightsVertex);
             cmd.DisableShaderKeyword(ShaderKeywordStrings.AdditionalLightsPixel);
+            cmd.DisableShaderKeyword(ShaderKeywordStrings.ClusteredRendering);
             cmd.DisableShaderKeyword(ShaderKeywordStrings.AdditionalLightShadows);
             cmd.DisableShaderKeyword(ShaderKeywordStrings.ReflectionProbeBlending);
             cmd.DisableShaderKeyword(ShaderKeywordStrings.ReflectionProbeBoxProjection);
@@ -1037,7 +1038,7 @@ namespace UnityEngine.Rendering.Universal
                 finalClearFlag |= needCustomCameraColorClear ? (IsRenderPassEnabled(renderPass) ? (cameraClearFlag & ClearFlag.Color) : 0) : (renderPass.clearFlag & ClearFlag.Color);
 
                 if (IsRenderPassEnabled(renderPass) && cameraData.cameraType == CameraType.Game)
-                    SetNativeRenderPassMRTAttachmentList(renderPass, ref cameraData, validColorBuffersCount, needCustomCameraColorClear, finalClearFlag);
+                    SetNativeRenderPassMRTAttachmentList(renderPass, ref cameraData, needCustomCameraColorClear, finalClearFlag);
 
                 // Only setup render target if current render pass attachments are different from the active ones.
                 if (!RenderingUtils.SequenceEqual(renderPass.colorAttachments, m_ActiveColorAttachments) || renderPass.depthAttachment != m_ActiveDepthAttachment || finalClearFlag != ClearFlag.None)
