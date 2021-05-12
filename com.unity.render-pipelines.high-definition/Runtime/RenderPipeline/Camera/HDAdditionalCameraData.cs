@@ -123,23 +123,6 @@ namespace UnityEngine.Rendering.HighDefinition
         }
 
         /// <summary>
-        /// Copies the settings of this instance to another instance.
-        /// </summary>
-        /// <param name="c">The instance to copy the settings to.</param>
-        [Obsolete("The CopyTo method is obsolete and will be removed in the future. Please use the assignement operator to get a copy of the HDPhysicalCamera parameters.")]
-        public void CopyTo(HDPhysicalCamera c)
-        {
-            c.iso = iso;
-            c.shutterSpeed = shutterSpeed;
-            c.aperture = aperture;
-            c.focusDistance = focusDistance;
-            c.bladeCount = bladeCount;
-            c.curvature = curvature;
-            c.barrelClipping = barrelClipping;
-            c.anamorphism = anamorphism;
-        }
-
-        /// <summary>
         /// Returns a set of default physical camera parameters
         /// </summary>
         public static HDPhysicalCamera GetDefaults()
