@@ -201,6 +201,9 @@ EditorBuildSettings:
     path: Assets/GraphicTests/Scenes/1x_Materials/1713_MeshDecalViewBias.unity
     guid: 0adc2fcc221085f45ba4dce7e4afae0d
   - enabled: 1
+    path: Assets/GraphicTests/Scenes/1x_Materials/1714_DecalSurfaceGradient.unity
+    guid: e27844b790c0043498bee0b060bb2598
+  - enabled: 1
     path: Assets/GraphicTests/Scenes/1x_Materials/1800_Classification.unity
     guid: 5043daebf48d1b740bb244b9a55508ef
   - enabled: 1

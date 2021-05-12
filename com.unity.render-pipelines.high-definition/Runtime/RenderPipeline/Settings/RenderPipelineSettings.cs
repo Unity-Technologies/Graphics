@@ -94,7 +94,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 supportedLitShaderMode = SupportedLitShaderMode.DeferredOnly,
                 supportDecals = true,
                 supportDecalLayers = false,
-                supportSurfaceGradient = false,
+                supportSurfaceGradient = true,
                 decalNormalBufferHP = false,
                 msaaSampleCount = MSAASamples.None,
                 supportMotionVectors = true,
