@@ -156,6 +156,8 @@ namespace UnityEngine.Rendering.Universal
 
             ForwardLights.InitParams forwardInitParams;
             forwardInitParams.lightCookieManager = m_LightCookieManager;
+            forwardInitParams.clusteredRendering = data.clusteredRendering;
+            forwardInitParams.tileSize = (int)data.tileSize;
             m_ForwardLights = new ForwardLights(forwardInitParams);
             //m_DeferredLights.LightCulling = data.lightCulling;
             this.m_RenderingMode = data.renderingMode;
@@ -278,6 +280,7 @@ namespace UnityEngine.Rendering.Universal
         /// <inheritdoc />
         protected override void Dispose(bool disposing)
         {
+            m_ForwardLights.Cleanup();
             m_PostProcessPasses.Dispose();
 
             CoreUtils.Destroy(m_BlitMaterial);
@@ -338,6 +341,8 @@ namespace UnityEngine.Rendering.Universal
         /// <inheritdoc />
         public override void Setup(ScriptableRenderContext context, ref RenderingData renderingData)
         {
+            m_ForwardLights.ProcessLights(ref renderingData);
+
             ref CameraData cameraData = ref renderingData.cameraData;
             Camera camera = cameraData.camera;
             RenderTextureDescriptor cameraTargetDescriptor = cameraData.cameraTargetDescriptor;
