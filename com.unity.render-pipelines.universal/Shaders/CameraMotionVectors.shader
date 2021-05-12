@@ -56,8 +56,10 @@ Shader "Hidden/kMotion/CameraMotionVectors"
                 // Calculate positions
                 float4 previousPositionVP = mul(_PrevViewProjMatrix, float4(positionInputs.positionWS, 1.0));
                 float4 positionVP = mul(UNITY_MATRIX_VP, float4(positionInputs.positionWS, 1.0));
-                previousPositionVP.xy = previousPositionVP.xy / previousPositionVP.w;
-                positionVP.xy = positionVP.xy / positionVP.w;
+
+
+                previousPositionVP.xy *= rcp(previousPositionVP.w);
+                positionVP.xy *= rcp(positionVP.w);
 
 
                 // Calculate velocity

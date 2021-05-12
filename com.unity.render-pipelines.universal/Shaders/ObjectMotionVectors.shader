@@ -63,7 +63,8 @@ Shader "Hidden/kMotion/ObjectMotionVectors"
                 #endif
 
                 output.positionVP = mul(UNITY_MATRIX_VP, mul(UNITY_MATRIX_M, input.position));
-                const float4 prevPos = (unity_MotionVectorsParams.x > 0) ? float4(input.positionOld, 1) : input.position;
+
+                const float4 prevPos = (unity_MotionVectorsParams.x == 1) ? float4(input.positionOld, 1) : input.position;
                 output.previousPositionVP = mul(_PrevViewProjMatrix, mul(unity_MatrixPreviousM, prevPos));
 
                 return output;
@@ -85,11 +86,12 @@ Shader "Hidden/kMotion/ObjectMotionVectors"
 
                 // Calculate positions
                 float4 posVP = input.positionVP;
-                posVP.xy = posVP.xy / posVP.w;
-                input.previousPositionVP.xy = input.previousPositionVP.xy / input.previousPositionVP.w;
+                float4 prevPosVP = input.previousPositionVP;
+                posVP.xy *= rcp(posVP.w);
+                prevPosVP.xy *= rcp(prevPosVP.w);
 
                 // Calculate velocity
-                float2 velocity = (posVP.xy - input.previousPositionVP.xy);
+                float2 velocity = (posVP.xy - prevPosVP.xy);
                 #if UNITY_UV_STARTS_AT_TOP
                     velocity.y = -velocity.y;
                 #endif
