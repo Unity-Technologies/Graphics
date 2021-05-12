@@ -6,6 +6,7 @@ using UnityEngine.Rendering;
 using UnityEngine.UIElements;
 using UnityEditorInternal;
 using System.Linq;
+using System.Reflection;
 
 namespace UnityEditor.Rendering.HighDefinition
 {
@@ -82,6 +83,7 @@ namespace UnityEditor.Rendering.HighDefinition
             internal static readonly GUIContent shaderVariantLogLevelLabel = EditorGUIUtility.TrTextContent("Shader Variant Log Level", "Controls the level logging in of shader variants information is outputted when a build is performed. Information appears in the Unity Console when the build finishes..");
 
             internal static readonly GUIContent lensAttenuationModeContentLabel = EditorGUIUtility.TrTextContent("Lens Attenuation Mode", "Set the attenuation mode of the lens that is used to compute exposure. With imperfect lens some energy is lost when converting from EV100 to the exposure multiplier.");
+            internal static readonly GUIContent probeVolumeSupportContentLabel = EditorGUIUtility.TrTextContent("Probe Volumes (Experimental)", "Set whether Probe volumes are supported by the project. The feature is highly experimental and subject to changes.");
             internal static readonly GUIContent rendererListCulling = EditorGUIUtility.TrTextContent("Dynamic Render Pass Culling", "When enabled, rendering passes are automatically culled based on what is visible on the camera.");
 
             internal static readonly GUIContent useDLSSCustomProjectIdLabel = EditorGUIUtility.TrTextContent("Use DLSS Custom Project Id", "Set to utilize a custom project Id for the NVIDIA Deep Learning Super Sampling extension.");
@@ -498,6 +500,16 @@ namespace UnityEditor.Rendering.HighDefinition
                     EditorGUILayout.PropertyField(serialized.DLSSProjectId, Styles.DLSSProjectIdLabel);
 #endif
             }
+
+            Type renderPipeManagerType = typeof(RenderPipelineManager);
+            var cleanupRenderPipeline = renderPipeManagerType.GetMethod("CleanupRenderPipeline", BindingFlags.Static | BindingFlags.NonPublic | BindingFlags.Public);
+            EditorGUI.BeginChangeCheck();
+            EditorGUILayout.PropertyField(serialized.supportProbeVolumes, Styles.probeVolumeSupportContentLabel);
+            if (EditorGUI.EndChangeCheck())
+            {
+                cleanupRenderPipeline?.Invoke(null, null);
+            }
+
             EditorGUIUtility.labelWidth = oldWidth;
         }
 

@@ -50,9 +50,14 @@ namespace UnityEngine.Experimental.Rendering
             {
                 serializedObject.Update();
 
+                if (!ProbeReferenceVolume.instance.isInitialized)
+                {
+                    EditorGUILayout.HelpBox("The probe volumes feature is disabled. The feature needs to be enabled in the HDRP Settings and on the used HDRP asset.", MessageType.Warning, wide: true);
+                    return;
+                }
+
                 var probeReferenceVolumes = FindObjectsOfType<ProbeReferenceVolumeAuthoring>();
                 bool mismatchedProfile = false;
-                bool mismatchedTransform = false;
                 if (probeReferenceVolumes.Length > 1)
                 {
                     foreach (var o1 in probeReferenceVolumes)
@@ -63,10 +68,6 @@ namespace UnityEngine.Experimental.Rendering
                             {
                                 mismatchedProfile = true;
                             }
-                            if (o1.transform.worldToLocalMatrix != o2.transform.worldToLocalMatrix)
-                            {
-                                mismatchedTransform = true;
-                            }
                         }
                     }
 
@@ -74,11 +75,6 @@ namespace UnityEngine.Experimental.Rendering
                     {
                         EditorGUILayout.HelpBox("Multiple Probe Reference Volume components are loaded, but they have different profiles. "
                             + "This is unsupported, please make sure all loaded Probe Reference Volume have the same profile or profiles with equal values.", MessageType.Error, wide: true);
-                    }
-                    if (mismatchedTransform)
-                    {
-                        EditorGUILayout.HelpBox("Multiple Probe Reference Volume components are loaded, but they have different transforms. "
-                            + "This is currently unsupported, please make sure all loaded Probe Reference Volume have the same transform.", MessageType.Error, wide: true);
                     }
                 }
 
