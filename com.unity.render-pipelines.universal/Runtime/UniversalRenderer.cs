@@ -99,6 +99,7 @@ namespace UnityEngine.Rendering.Universal
         DepthPrimingMode m_DepthPrimingMode;
         bool m_DepthPrimingRecommended;
         StencilState m_DefaultStencilState;
+        LightCookieManager m_LightCookieManager;
 
         // Materials used in URP Scriptable Render Passes
         Material m_BlitMaterial = null;
@@ -140,7 +141,21 @@ namespace UnityEngine.Rendering.Universal
             m_DefaultStencilState.SetFailOperation(stencilData.failOperation);
             m_DefaultStencilState.SetZFailOperation(stencilData.zFailOperation);
 
-            m_ForwardLights = new ForwardLights();
+            {
+                var settings = LightCookieManager.Settings.GetDefault();
+                var asset = UniversalRenderPipeline.asset;
+                if (asset)
+                {
+                    settings.atlas.format = asset.additionalLightsCookieFormat;
+                    settings.atlas.resolution = asset.additionalLightsCookieResolution;
+                }
+
+                m_LightCookieManager = new LightCookieManager(ref settings);
+            }
+
+            ForwardLights.InitParams forwardInitParams;
+            forwardInitParams.lightCookieManager = m_LightCookieManager;
+            m_ForwardLights = new ForwardLights(forwardInitParams);
             //m_DeferredLights.LightCulling = data.lightCulling;
             this.m_RenderingMode = data.renderingMode;
             this.m_DepthPrimingMode = data.depthPrimingMode;
@@ -171,7 +186,12 @@ namespace UnityEngine.Rendering.Universal
 
             if (this.renderingMode == RenderingMode.Deferred)
             {
-                m_DeferredLights = new DeferredLights(m_TileDepthInfoMaterial, m_TileDeferredMaterial, m_StencilDeferredMaterial, useRenderPassEnabled);
+                var deferredInitParams = new DeferredLights.InitParams();
+                deferredInitParams.tileDepthInfoMaterial = m_TileDepthInfoMaterial;
+                deferredInitParams.tileDeferredMaterial = m_TileDeferredMaterial;
+                deferredInitParams.stencilDeferredMaterial = m_StencilDeferredMaterial;
+                deferredInitParams.lightCookieManager = m_LightCookieManager;
+                m_DeferredLights = new DeferredLights(deferredInitParams, useRenderPassEnabled);
                 m_DeferredLights.AccurateGbufferNormals = data.accurateGbufferNormals;
                 //m_DeferredLights.TiledDeferredShading = data.tiledDeferredShading;
                 m_DeferredLights.TiledDeferredShading = false;

@@ -162,6 +162,10 @@ namespace UnityEditor.Rendering.Universal
             }
 #endif
 
+#if URP_TEST_AGGRESSIVE_SHADER_STRIPPING
+            stripDebugDisplayShaders = true;
+#endif
+
             if (stripDebugDisplayShaders && compilerData.shaderKeywordSet.IsEnabled(m_DebugDisplay))
             {
                 return true;
