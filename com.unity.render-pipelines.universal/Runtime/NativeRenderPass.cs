@@ -156,16 +156,10 @@ namespace UnityEngine.Rendering.Universal
                     for (int i = 0; i < pass.m_InputAttachmentIndices.Length; ++i)
                         pass.m_InputAttachmentIndices[i] = -1;
 
-                    // TODO: review the lastPassToBB logic to mak it work with merged passes
-                    bool isLastPassToBB = false;
-
                     for (int i = 0; i < validColorBuffersCount; ++i)
                     {
                         AttachmentDescriptor currentAttachmentDescriptor =
                             new AttachmentDescriptor(pass.renderTargetFormat[i] != GraphicsFormat.None ? pass.renderTargetFormat[i] : GetDefaultGraphicsFormat(cameraData));
-
-                        // if this is the current camera's last pass, also check if one of the RTs is the backbuffer (BuiltinRenderTextureType.CameraTarget)
-                        isLastPassToBB |=  pass.isLastPass && (pass.colorAttachments[i] == BuiltinRenderTextureType.CameraTarget);
 
                         int existingAttachmentIndex = FindAttachmentDescriptorIndexInList(currentAttachmentIdx,
                             currentAttachmentDescriptor, m_ActiveColorAttachmentDescriptors);
@@ -197,7 +191,7 @@ namespace UnityEngine.Rendering.Universal
 
                     // TODO: this is redundant and is being setup for each attachment. Needs to be done only once per mergeable pass list (we need to make sure mergeable passes use the same depth!)
                     m_ActiveDepthAttachmentDescriptor = new AttachmentDescriptor(GraphicsFormat.DepthAuto);
-                    m_ActiveDepthAttachmentDescriptor.ConfigureTarget(pass.depthAttachment, (clearFlag & ClearFlag.DepthStencil) == 0, !isLastPassToBB);
+                    m_ActiveDepthAttachmentDescriptor.ConfigureTarget(pass.depthAttachment, (clearFlag & ClearFlag.DepthStencil) == 0, true);
                     if ((clearFlag & ClearFlag.DepthStencil) != 0)
                         m_ActiveDepthAttachmentDescriptor.ConfigureClear(Color.black, 1.0f, 0);
                 }
@@ -217,6 +211,48 @@ namespace UnityEngine.Rendering.Universal
                     return;
 
                 m_RenderPassesAttachmentCount[currentPassHash] = 0;
+
+                // TODO: check the "Store Actions" setting
+                RenderBufferStoreAction[] finalColorStoreAction = {RenderBufferStoreAction.Store, RenderBufferStoreAction.Store, RenderBufferStoreAction.Store, RenderBufferStoreAction.Store,
+                                                                   RenderBufferStoreAction.Store, RenderBufferStoreAction.Store, RenderBufferStoreAction.Store, RenderBufferStoreAction.Store};
+                RenderBufferStoreAction finalDepthStoreAction = RenderBufferStoreAction.Store;
+
+                foreach (var passIdx in currentMergeablePasses)
+                {
+                    if (!m_UseOptimizedStoreActions)
+                        break;
+
+                    if (passIdx == -1)
+                        break;
+
+                    ScriptableRenderPass pass = m_ActiveRenderPassQueue[passIdx];
+
+                    var samples = pass.renderTargetSampleCount != -1
+                        ? pass.renderTargetSampleCount
+                        : cameraData.cameraTargetDescriptor.msaaSamples;
+
+                    bool isFirstMergeablePass = passIdx == currentPassIndex;
+
+                    // only override existing non destructive actions
+                    for (int i = 0; i < 8; ++i)
+                    {
+                        if (finalColorStoreAction[i] == RenderBufferStoreAction.Store || finalColorStoreAction[i] == RenderBufferStoreAction.StoreAndResolve)
+                            finalColorStoreAction[i] = pass.colorStoreActions[i];
+
+                        if (samples > 1)
+                        {
+                            if (finalColorStoreAction[i] == RenderBufferStoreAction.Store)
+                                finalColorStoreAction[i] = RenderBufferStoreAction.StoreAndResolve;
+                            else if (finalColorStoreAction[i] == RenderBufferStoreAction.DontCare)
+                                finalColorStoreAction[i] = RenderBufferStoreAction.Resolve;
+                        }
+                    }
+
+                    // only override existing store
+                    if (finalDepthStoreAction == RenderBufferStoreAction.Store || (finalDepthStoreAction == RenderBufferStoreAction.StoreAndResolve && pass.depthStoreAction == RenderBufferStoreAction.Resolve))
+                        finalDepthStoreAction = pass.depthStoreAction;
+                }
+
 
                 int currentAttachmentIdx = 0;
                 foreach (var passIdx in currentMergeablePasses)
@@ -262,16 +298,12 @@ namespace UnityEngine.Rendering.Universal
                             ? new RenderTargetIdentifier(cameraData.targetTexture.depthBuffer)
                             : BuiltinRenderTextureType.Depth);
 
-                    // TODO: review the lastPassToBB logic to mak it work with merged passes
-                    // keep track if this is the current camera's last pass and the RT is the backbuffer (BuiltinRenderTextureType.CameraTarget)
-                    // knowing isLastPassToBB can help decide the optimal store action as it gives us additional information about the current frame
-                    bool isLastPassToBB = pass.isLastPass && (colorAttachmentTarget == BuiltinRenderTextureType.CameraTarget);
-                    currentAttachmentDescriptor.ConfigureTarget(colorAttachmentTarget, ((uint)finalClearFlag & (uint)ClearFlag.Color) == 0, !(samples > 1 && isLastPassToBB));
+                    currentAttachmentDescriptor.ConfigureTarget(colorAttachmentTarget, ((uint)finalClearFlag & (uint)ClearFlag.Color) == 0, true);
 
                     // TODO: this is redundant and is being setup for each attachment. Needs to be done only once per mergeable pass list (we need to make sure mergeable passes use the same depth!)
                     m_ActiveDepthAttachmentDescriptor = new AttachmentDescriptor(GraphicsFormat.DepthAuto);
                     m_ActiveDepthAttachmentDescriptor.ConfigureTarget(depthAttachmentTarget,
-                        ((uint)finalClearFlag & (uint)ClearFlag.Depth) == 0, !isLastPassToBB);
+                        ((uint)finalClearFlag & (uint)ClearFlag.Depth) == 0, true);
 
                     if (finalClearFlag != ClearFlag.None)
                     {
@@ -285,6 +317,12 @@ namespace UnityEngine.Rendering.Universal
                     // resolving to the implicit color target's resolve surface TODO: handle m_CameraResolveTarget if present?
                     if (samples > 1)
                         currentAttachmentDescriptor.ConfigureResolveTarget(colorAttachmentTarget);
+
+                    if (m_UseOptimizedStoreActions)
+                    {
+                        currentAttachmentDescriptor.storeAction = finalColorStoreAction[0];
+                        m_ActiveDepthAttachmentDescriptor.storeAction = finalDepthStoreAction;
+                    }
 
                     int existingAttachmentIndex = FindAttachmentDescriptorIndexInList(currentAttachmentIdx,
                         currentAttachmentDescriptor, m_ActiveColorAttachmentDescriptors);
