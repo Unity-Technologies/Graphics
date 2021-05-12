@@ -429,14 +429,14 @@ namespace UnityEditor.Rendering
                     break;
 
                 case SRPLensFlareType.Polygon:
-                    EditorGUI.DrawRect(thumbnailRect, GUI.color);   //draw the margin
+                    //EditorGUI.DrawRect(thumbnailRect, GUI.color);   //draw the margin
                     //Graphics.SetRenderTarget(m_PreviewTexture);
                     //Graphics.ClearRandomWriteTargets();
                     //EditorGUI.DrawTextureTransparent(thumbnailIconeRect, LensFlareEditorUtils.Icons.polygon, ScaleMode.ScaleToFit, 1);
-                    Graphics.SetRenderTarget(m_PreviewTexture);
+                    //Graphics.SetRenderTarget(m_PreviewTexture);
                     Graphics.Blit(Texture2D.whiteTexture, m_PreviewTexture.rt, m_PolygonMaterial);
                     //EditorGUI.DrawPreviewTexture(thumbnailIconeRect, LensFlareEditorUtils.Icons.polygon, m_PolygonMaterial, ScaleMode.ScaleToFit, 1f);
-                    //EditorGUI.DrawTextureTransparent(thumbnailIconeRect, m_PreviewTexture.rt, ScaleMode.ScaleToFit, 1f);
+                    EditorGUI.DrawTextureTransparent(thumbnailIconeRect, m_PreviewTexture.rt, ScaleMode.ScaleToFit, 1f);
                     break;
             }
             GUI.color = guiColor;
