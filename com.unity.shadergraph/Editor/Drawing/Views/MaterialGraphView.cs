@@ -839,7 +839,8 @@ namespace UnityEditor.ShaderGraph.Drawing
             graph.owner.graphDataStore.Dispatch(convertToInlineAction);
         }
 
-        void DuplicateSelection()
+        // Made internal for purposes of UI testing
+        internal void DuplicateSelection()
         {
             graph.owner.RegisterCompleteObjectUndo("Duplicate Blackboard Selection");
 

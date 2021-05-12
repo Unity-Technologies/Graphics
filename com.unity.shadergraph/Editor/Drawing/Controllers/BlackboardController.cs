@@ -762,5 +762,14 @@ namespace UnityEditor.ShaderGraph.Drawing
             }
             m_BlackboardCategoryControllers.Clear();
         }
+
+        // Meant to be used by UI testing in order to clear blackboard state
+        internal void ResetBlackboardState()
+        {
+            ClearBlackboardCategories();
+            var addCategoryAction = new AddCategoryAction();
+            addCategoryAction.categoryDataReference = CategoryData.DefaultCategory();
+            DataStore.Dispatch(addCategoryAction);
+        }
     }
 }
