@@ -154,7 +154,9 @@ namespace UnityEditor.Rendering
             }
             if (m_PreviewTexture == null)
             {
-                m_PreviewTexture = RTHandles.Alloc(128, 128, colorFormat: UnityEngine.Experimental.Rendering.GraphicsFormat.R8G8B8A8_UInt);
+                m_PreviewTexture = RTHandles.Alloc(128, 128,
+                    enableRandomWrite: true,
+                    colorFormat: UnityEngine.Experimental.Rendering.GraphicsFormat.R16G16B16A16_SFloat);
             }
         }
 
@@ -434,9 +436,16 @@ namespace UnityEditor.Rendering
                     //Graphics.ClearRandomWriteTargets();
                     //EditorGUI.DrawTextureTransparent(thumbnailIconeRect, LensFlareEditorUtils.Icons.polygon, ScaleMode.ScaleToFit, 1);
                     //Graphics.SetRenderTarget(m_PreviewTexture);
-                    Graphics.Blit(Texture2D.whiteTexture, m_PreviewTexture.rt, m_PolygonMaterial);
                     //EditorGUI.DrawPreviewTexture(thumbnailIconeRect, LensFlareEditorUtils.Icons.polygon, m_PolygonMaterial, ScaleMode.ScaleToFit, 1f);
-                    EditorGUI.DrawTextureTransparent(thumbnailIconeRect, m_PreviewTexture.rt, ScaleMode.ScaleToFit, 1f);
+
+                    if (m_PolygonMaterial != null &&
+                        m_PreviewTexture.rt != null &&
+                        m_PreviewTexture != null)
+                    {
+                        EditorGUI.DrawRect(thumbnailRect, GUI.color);
+                        Graphics.Blit(Texture2D.whiteTexture, m_PreviewTexture.rt, m_PolygonMaterial);
+                        EditorGUI.DrawTextureTransparent(thumbnailIconeRect, m_PreviewTexture.rt, ScaleMode.ScaleToFit, 1f);
+                    }
                     break;
             }
             GUI.color = guiColor;
