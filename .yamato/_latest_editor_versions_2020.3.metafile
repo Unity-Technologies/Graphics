@@ -5,50 +5,50 @@ editor_version_names:
 editor_versions:
   2020_3_latest_internal:
     Android:
-      revision: 507919d4fff5
-      updated_at: '2021-05-04 23:54:09.366714'
-      version: 2020.3.8f1
+      revision: 108be757e447
+      updated_at: '2021-05-12 23:17:27.407076'
+      version: 2020.3.9f1
     Linux:
-      revision: 507919d4fff5
-      updated_at: '2021-05-04 23:54:09.366714'
-      version: 2020.3.8f1
+      revision: 108be757e447
+      updated_at: '2021-05-12 23:17:27.407076'
+      version: 2020.3.9f1
     OSX:
-      revision: 507919d4fff5
-      updated_at: '2021-05-04 23:54:09.366714'
-      version: 2020.3.8f1
+      revision: 108be757e447
+      updated_at: '2021-05-12 23:17:27.407076'
+      version: 2020.3.9f1
     Win:
-      revision: 507919d4fff5
-      updated_at: '2021-05-04 23:54:09.366714'
-      version: 2020.3.8f1
+      revision: 108be757e447
+      updated_at: '2021-05-12 23:17:27.407076'
+      version: 2020.3.9f1
     iPhone:
-      revision: 507919d4fff5
-      updated_at: '2021-05-04 23:54:09.366714'
-      version: 2020.3.8f1
+      revision: 108be757e447
+      updated_at: '2021-05-12 23:17:27.407076'
+      version: 2020.3.9f1
   2020_3_latest_public:
     Android:
-      revision: dd97f2c94397
-      updated_at: '2021-05-05 23:38:34.121086'
-      version: 2020.3.7f1
+      revision: 507919d4fff5
+      updated_at: '2021-05-12 23:17:27.407076'
+      version: 2020.3.8f1
     Linux:
-      revision: dd97f2c94397
-      updated_at: '2021-05-05 23:38:34.121086'
-      version: 2020.3.7f1
+      revision: 507919d4fff5
+      updated_at: '2021-05-12 23:17:27.407076'
+      version: 2020.3.8f1
     OSX:
-      revision: dd97f2c94397
-      updated_at: '2021-05-05 23:38:34.121086'
-      version: 2020.3.7f1
+      revision: 507919d4fff5
+      updated_at: '2021-05-12 23:17:27.407076'
+      version: 2020.3.8f1
     Win:
-      revision: dd97f2c94397
-      updated_at: '2021-05-05 23:38:34.121086'
-      version: 2020.3.7f1
+      revision: 507919d4fff5
+      updated_at: '2021-05-12 23:17:27.407076'
+      version: 2020.3.8f1
     android:
       revision: c7b5465681fb
       updated_at: '2021-02-03 23:59:16.124934'
       version: 2020.3.0f1
     iPhone:
-      revision: dd97f2c94397
-      updated_at: '2021-05-05 23:38:34.121086'
-      version: 2020.3.7f1
+      revision: 507919d4fff5
+      updated_at: '2021-05-12 23:17:27.407076'
+      version: 2020.3.8f1
   2020_3_staging:
     Android:
       revision: 108be757e447bdeac79425e736a34ccc8c376367
