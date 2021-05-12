@@ -24,7 +24,8 @@ namespace UnityEditor.Rendering.HighDefinition
                 keywords = SettingsProvider.GetSearchKeywordsFromGUIContentProperties<HDGlobalSettingsPanelIMGUI.Styles>()
                     .Concat(OverridableFrameSettingsArea.frameSettingsKeywords)
                     .ToArray(),
-                guiHandler = s_IMGUIImpl.DoGUI
+                guiHandler = s_IMGUIImpl.DoGUI,
+                titleBarGuiHandler = s_IMGUIImpl.OnTitleBarGUI
             };
         }
     }
@@ -64,6 +65,13 @@ namespace UnityEditor.Rendering.HighDefinition
 
         SerializedHDRenderPipelineGlobalSettings serializedSettings;
         HDRenderPipelineGlobalSettings settingsSerialized;
+
+        public void OnTitleBarGUI()
+        {
+            if (GUILayout.Button(CoreEditorStyles.iconHelp, CoreEditorStyles.iconHelpStyle))
+                Help.BrowseURL(Documentation.GetPageLink("Default-Settings-Window"));
+        }
+
         public void DoGUI(string searchContext)
         {
             // When the asset being serialized has been deleted before its reconstruction

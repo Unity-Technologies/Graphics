@@ -22,7 +22,8 @@ namespace UnityEditor.Rendering.Universal
             {
                 activateHandler = s_IMGUIImpl.OnActivate,
                 keywords = SettingsProvider.GetSearchKeywordsFromGUIContentProperties<UniversalGlobalSettingsPanelIMGUI.Styles>().ToArray(),
-                guiHandler = s_IMGUIImpl.DoGUI
+                guiHandler = s_IMGUIImpl.DoGUI,
+                titleBarGuiHandler = s_IMGUIImpl.OnTitleBarGUI
             };
         }
     }
@@ -45,6 +46,13 @@ namespace UnityEditor.Rendering.Universal
 
         SerializedUniversalRenderPipelineGlobalSettings serializedSettings;
         UniversalRenderPipelineGlobalSettings settingsSerialized;
+
+        public void OnTitleBarGUI()
+        {
+            if (GUILayout.Button(CoreEditorStyles.iconHelp, CoreEditorStyles.iconHelpStyle))
+                Help.BrowseURL(Documentation.GetPageLink("URP-Global-Settings"));
+        }
+
         public void DoGUI(string searchContext)
         {
             // When the asset being serialized has been deleted before its reconstruction
