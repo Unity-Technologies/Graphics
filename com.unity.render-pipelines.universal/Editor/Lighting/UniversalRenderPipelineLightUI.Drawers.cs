@@ -59,7 +59,7 @@ namespace UnityEditor.Rendering.Universal
             CED.FoldoutGroup(Styles.emissionHeader,
                 Expandable.Emission,
                 k_ExpandedState,
-                DrawEmissionContent),
+                CED.Group(DrawerColor, DrawEmissionContent)),
             CED.FoldoutGroup(Styles.renderingHeader,
                 Expandable.Rendering,
                 k_ExpandedState,
@@ -80,6 +80,34 @@ namespace UnityEditor.Rendering.Universal
             var type = Type.GetType("UnityEditor.AnnotationUtility,UnityEditor");
             var method = type.GetMethod("SetGizmosDirty", BindingFlags.Static | BindingFlags.NonPublic);
             var lambda = Expression.Lambda<Func<int>>(Expression.Call(method));
+            return lambda.Compile();
+        }
+
+        static Action<GUIContent, SerializedProperty, LightEditor.Settings> k_SliderWithTexture = GetSliderWithTexture();
+        static Action<GUIContent, SerializedProperty, LightEditor.Settings> GetSliderWithTexture()
+        {
+            //quicker than standard reflection as it is compiled
+            var paramLabel = Expression.Parameter(typeof(GUIContent), "label");
+            var paramProperty = Expression.Parameter(typeof(SerializedProperty), "property");
+            var paramSettings = Expression.Parameter(typeof(LightEditor.Settings), "settings");
+            System.Reflection.MethodInfo sliderWithTextureInfo = typeof(EditorGUILayout)
+                .GetMethod(
+                "SliderWithTexture",
+                System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Static,
+                null,
+                System.Reflection.CallingConventions.Any,
+                new[] { typeof(GUIContent), typeof(SerializedProperty), typeof(float), typeof(float), typeof(float), typeof(Texture2D), typeof(GUILayoutOption[]) },
+                null);
+            var sliderWithTextureCall = Expression.Call(
+                sliderWithTextureInfo,
+                paramLabel,
+                paramProperty,
+                Expression.Constant((float)typeof(LightEditor.Settings).GetField("kMinKelvin", System.Reflection.BindingFlags.Static | System.Reflection.BindingFlags.NonPublic).GetRawConstantValue()),
+                Expression.Constant((float)typeof(LightEditor.Settings).GetField("kMaxKelvin", System.Reflection.BindingFlags.Static | System.Reflection.BindingFlags.NonPublic).GetRawConstantValue()),
+                Expression.Constant((float)typeof(LightEditor.Settings).GetField("kSliderPower", System.Reflection.BindingFlags.Static | System.Reflection.BindingFlags.NonPublic).GetRawConstantValue()),
+                Expression.Field(paramSettings, typeof(LightEditor.Settings).GetField("m_KelvinGradientTexture", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance)),
+                Expression.Constant(null, typeof(GUILayoutOption[])));
+            var lambda = Expression.Lambda<System.Action<GUIContent, SerializedProperty, LightEditor.Settings>>(sliderWithTextureCall, paramLabel, paramProperty, paramSettings);
             return lambda.Compile();
         }
 
@@ -207,10 +235,36 @@ namespace UnityEditor.Rendering.Universal
                 serializedLight.settings.DrawArea();
         }
 
+        static void DrawerColor(UniversalRenderPipelineSerializedLight serializedLight, Editor owner)
+        {
+            using (var changes = new EditorGUI.ChangeCheckScope())
+            {
+                if (GraphicsSettings.lightsUseLinearIntensity && GraphicsSettings.lightsUseColorTemperature)
+                {
+                    // Use the color temperature bool to create a popup dropdown to choose between the two modes.
+                    var colorTemperaturePopupValue = Convert.ToInt32(serializedLight.settings.useColorTemperature.boolValue);
+                    var lightAppearanceOptions = new[] { "Color", "Filter and Temperature" };
+                    colorTemperaturePopupValue = EditorGUILayout.Popup(Styles.lightAppearance, colorTemperaturePopupValue, lightAppearanceOptions);
+                    serializedLight.settings.useColorTemperature.boolValue = Convert.ToBoolean(colorTemperaturePopupValue);
+
+                    using (new EditorGUI.IndentLevelScope())
+                    {
+                        if (serializedLight.settings.useColorTemperature.boolValue)
+                        {
+                            EditorGUILayout.PropertyField(serializedLight.settings.color, Styles.colorFilter);
+                            k_SliderWithTexture(Styles.colorTemperature, serializedLight.settings.colorTemperature, serializedLight.settings);
+                        }
+                        else
+                            EditorGUILayout.PropertyField(serializedLight.settings.color, Styles.color);
+                    }
+                }
+                else
+                    EditorGUILayout.PropertyField(serializedLight.settings.color, Styles.color);
+            }
+        }
+
         static void DrawEmissionContent(UniversalRenderPipelineSerializedLight serializedLight, Editor owner)
         {
-            serializedLight.settings.DrawColor();
-
             serializedLight.settings.DrawIntensity();
             serializedLight.settings.DrawBounceIntensity();
 

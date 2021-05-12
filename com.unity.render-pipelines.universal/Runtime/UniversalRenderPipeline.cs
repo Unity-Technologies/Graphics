@@ -225,6 +225,7 @@ namespace UnityEngine.Rendering.Universal
 #endif
 
             GraphicsSettings.lightsUseLinearIntensity = (QualitySettings.activeColorSpace == ColorSpace.Linear);
+            GraphicsSettings.lightsUseColorTemperature = true;
             GraphicsSettings.useScriptableRenderPipelineBatching = asset.useSRPBatcher;
             GraphicsSettings.defaultRenderingLayerMask = k_DefaultRenderingLayerMask;
             SetupPerFrameShaderConstants();
