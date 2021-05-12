@@ -122,7 +122,7 @@ namespace UnityEngine.Experimental.Rendering
             LoadProfileInformation();
 
             if (volumeAsset != null)
-                refVol.AddPendingAssetLoading(volumeAsset);
+                ProbeReferenceVolume.instance.AddPendingAssetLoading(volumeAsset);
         }
 
         internal void QueueAssetRemoval()
