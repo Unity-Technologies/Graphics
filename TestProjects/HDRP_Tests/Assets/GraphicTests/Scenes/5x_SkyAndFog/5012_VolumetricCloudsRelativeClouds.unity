@@ -98,7 +98,7 @@ LightmapSettings:
     m_TrainingDataDestination: TrainingData
     m_LightProbeSampleCountMultiplier: 4
   m_LightingDataAsset: {fileID: 0}
-  m_LightingSettings: {fileID: 4890085278179872738, guid: 9744438e18dda59499f4cec2def09605,
+  m_LightingSettings: {fileID: 4890085278179872738, guid: 89af88eb25991d84b93e867efaacceff,
     type: 2}
 --- !u!196 &4
 NavMeshSettings:
@@ -285,7 +285,7 @@ PrefabInstance:
     - target: {fileID: 20109210616973140, guid: c07ace9ab142ca9469fa377877c2f1e7,
         type: 3}
       propertyPath: far clip plane
-      value: 100000
+      value: 1000
       objectReference: {fileID: 0}
     - target: {fileID: 20109210616973140, guid: c07ace9ab142ca9469fa377877c2f1e7,
         type: 3}
@@ -441,7 +441,7 @@ MonoBehaviour:
   priority: 0
   blendDistance: 0
   weight: 1
-  sharedProfile: {fileID: 11400000, guid: 543962d842d8f324d891c1f726aee798, type: 2}
+  sharedProfile: {fileID: 11400000, guid: 5ea30047ee43137439dffef2a40a8a9c, type: 2}
 --- !u!4 &402895081
 Transform:
   m_ObjectHideFlags: 0

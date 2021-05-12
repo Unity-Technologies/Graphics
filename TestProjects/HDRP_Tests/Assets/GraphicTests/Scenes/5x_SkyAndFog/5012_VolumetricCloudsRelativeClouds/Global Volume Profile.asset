@@ -43,10 +43,10 @@ MonoBehaviour:
     m_Value: 1
   localClouds:
     m_OverrideState: 1
-    m_Value: 1
+    m_Value: 0
   earthCurvature:
     m_OverrideState: 1
-    m_Value: 0.5
+    m_Value: 0.209
   cloudTiling:
     m_OverrideState: 0
     m_Value: {x: 1, y: 1}
@@ -76,7 +76,7 @@ MonoBehaviour:
     m_Value: 0
   cloudPreset:
     m_OverrideState: 1
-    m_Value: 1
+    m_Value: 0
   cumulusMap:
     m_OverrideState: 0
     m_Value: {fileID: 0}
@@ -102,16 +102,16 @@ MonoBehaviour:
     m_OverrideState: 0
     m_Value: 64
   scatteringDirection:
-    m_OverrideState: 0
+    m_OverrideState: 1
     m_Value: 0.5
   scatteringTint:
     m_OverrideState: 0
     m_Value: {r: 0, g: 0, b: 0, a: 1}
   powderEffectIntensity:
-    m_OverrideState: 0
+    m_OverrideState: 1
     m_Value: 0.8
   multiScattering:
-    m_OverrideState: 0
+    m_OverrideState: 1
     m_Value: 0.5
   densityMultiplier:
     m_OverrideState: 0
@@ -147,7 +147,7 @@ MonoBehaviour:
     m_OverrideState: 1
     m_Value: 0.25
   temporalAccumulationFactor:
-    m_OverrideState: 0
+    m_OverrideState: 1
     m_Value: 0.95
   shadows:
     m_OverrideState: 1

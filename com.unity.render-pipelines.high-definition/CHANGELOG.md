@@ -52,6 +52,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Added support for mip bias override on texture samplers through the HDAdditionalCameraData component.
 - Added Lens Flare Samples
 - Added new checkbox to enable mip bias in the Dynamic Resolution HDRP quality settings. This allows dynamic resolution scaling applying a bias on the frame to improve on texture sampling detail.
+- Added a toggle to render the volumetric clouds locally or in the skybox.
 
 ### Fixed
 - Fixed Intensity Multiplier not affecting realtime global illumination.
