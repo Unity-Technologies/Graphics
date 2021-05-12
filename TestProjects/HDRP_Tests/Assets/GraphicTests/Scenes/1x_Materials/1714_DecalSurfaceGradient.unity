@@ -1122,6 +1122,11 @@ PrefabInstance:
   m_Modification:
     m_TransformParent: {fileID: 0}
     m_Modifications:
+    - target: {fileID: 437966411659942036, guid: 6e08f2a7c5a268c469ef563c630a3adc,
+        type: 3}
+      propertyPath: m_IsActive
+      value: 0
+      objectReference: {fileID: 0}
     - target: {fileID: 437966411870465850, guid: 6e08f2a7c5a268c469ef563c630a3adc,
         type: 3}
       propertyPath: targetCamera
@@ -1331,6 +1336,11 @@ PrefabInstance:
         type: 3}
       propertyPath: m_Name
       value: DecalBlockDefaultLayer
+      objectReference: {fileID: 0}
+    - target: {fileID: 437966413584796113, guid: 6e08f2a7c5a268c469ef563c630a3adc,
+        type: 3}
+      propertyPath: m_IsActive
+      value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 5012266497963111760, guid: 6e08f2a7c5a268c469ef563c630a3adc,
         type: 3}
