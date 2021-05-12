@@ -184,6 +184,7 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
             public List<int>    producers;
             public List<int>    consumers;
             public int          refCount;
+            public bool         imported;
 
             public void Reset()
             {
@@ -195,6 +196,7 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
                 producers.Clear();
                 consumers.Clear();
                 refCount = 0;
+                imported = false;
             }
         }
 
@@ -787,6 +789,7 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
                     foreach (var resource in resourceRead)
                     {
                         ref CompiledResourceInfo info = ref m_CompiledResourcesInfos[type][resource];
+                        info.imported = m_Resources.IsRenderGraphResourceImported(resource);
                         info.consumers.Add(passIndex);
                         info.refCount++;
 
@@ -799,12 +802,12 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
                     foreach (var resource in resourceWrite)
                     {
                         ref CompiledResourceInfo info = ref m_CompiledResourcesInfos[type][resource];
+                        info.imported = m_Resources.IsRenderGraphResourceImported(resource);
                         info.producers.Add(passIndex);
-                        passInfo.refCount++;
 
                         // Writing to an imported texture is considered as a side effect because we don't know what users will do with it outside of render graph.
-                        if (m_Resources.IsRenderGraphResourceImported(resource))
-                            passInfo.hasSideEffect = true;
+                        passInfo.hasSideEffect = info.imported;
+                        passInfo.refCount++;
 
 #if DEVELOPMENT_BUILD || UNITY_EDITOR
                         passInfo.debugResourceWrites[type].Add(m_Resources.GetRenderGraphResourceName(resource));
@@ -1063,8 +1066,9 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
                     //    Debug.LogError($"Resource {name} is written again after the last pass that reads it.\nLast pass read: {lastPassReadName}\nLast pass write: {lastPassWriteName}");
                     //}
 
-                    // Make sure we don't try to release resources that were never creating (due to culling)
-                    int lastReadPassIndex = firstWriteIndex != -1 ? Math.Max(latestValidWriteIndex, latestValidReadIndex) : -1;
+                    // For not imported resources, make sure we don't try to release them if they were never created (due to culling).
+                    bool shouldRelease = !(firstWriteIndex == -1 && !resourceInfo.imported);
+                    int lastReadPassIndex = shouldRelease ? Math.Max(latestValidWriteIndex, latestValidReadIndex) : -1;
 
                     // Texture release
                     if (lastReadPassIndex != -1)
