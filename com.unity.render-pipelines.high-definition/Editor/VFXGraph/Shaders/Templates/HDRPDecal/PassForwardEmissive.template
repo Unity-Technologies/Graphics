@@ -1,13 +1,13 @@
 Pass
 {		
-	Name "DBufferMesh"
-	Tags {"LightMode"="DBufferMesh"}
+	Name "DecalMeshForwardEmissive"
+	Tags {"LightMode"="DecalMeshForwardEmissive"}
 
 
-	Cull Front
     ZWrite Off
-    ZTest Greater
+    ZTest LEqual
 
+    Blend 0 SrcAlpha One
 
     // ColorMask [_DecalColorMask0]
     // ColorMask [_DecalColorMask1] 1
@@ -72,22 +72,27 @@ Pass
 	${VFXHDRPLitFillVaryings}
 	${VFXEnd}
 
-
+	
 //TODO : Vertex shader of decal must perform z bias or view bias (BiasType), need to create one
 ${VFXInclude("Shaders/ParticleHexahedron/Pass.template")}	
-#define SHADERPASS SHADERPASS_VFX_DBUFFER_PROJECTOR
+#define SHADERPASS SHADERPASS_VFX_DECAL_FORWARD_EMISSIVE
 ${VFXIncludeRP("VFXDecal.template")}
+
 
 
 
 //EndTODO
 					
 	#pragma fragment frag
-	void frag(ps_input i, OUTPUT_DBUFFER(outDBuffer))
+	void frag(ps_input i, out float4 outEmissive : SV_Target0)
 	{
 		UNITY_SETUP_STEREO_EYE_INDEX_POST_VERTEX(i);
-		float3 normalWS = float3(0,1,0); //TODO : compute it properly
-		VFXComputePixelOutputToDBuffer(i, normalWS,outDBuffer);
+		float3 normalWS = float3(0,1,0); //TODO : useless
+		DecalSurfaceData surfaceData; 
+    	ZERO_INITIALIZE(DecalSurfaceData, surfaceData); 
+		VFXGetSurfaceDecalData(surfaceData,i,normalWS);
+		outEmissive.rgb = surfaceData.emissive;
+		outEmissive.a = 1.0f;
 	}
 	ENDHLSL
 }
