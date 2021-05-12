@@ -4,13 +4,14 @@ using System.Linq;
 using UnityEditor.VFX.Block;
 using UnityEngine;
 using UnityEngine.Rendering;
+using UnityEngine.Rendering.HighDefinition;
+using UnityEngine.VFX;
 
 namespace UnityEditor.VFX
 {
     [VFXInfo(experimental = true)]
     class VFXDecalHDRPOutput : VFXAbstractParticleHDRPLitOutput
     {
-
         public override string name { get { return "Output Particle HDRP Decal"; } }
         public override string codeGeneratorTemplate { get { return RenderPipeTemplate("VFXParticleHDRPDecal"); } }
         public override VFXTaskType taskType { get { return VFXTaskType.ParticleHexahedronOutput; } }
@@ -47,8 +48,20 @@ namespace UnityEditor.VFX
         }
         [VFXSetting(VFXSettingAttribute.VisibleFlags.InInspector), SerializeField, Tooltip("Specifies the source this Material uses as opacity for its Normal Map.")]
         BlendSource normalOpacityChannel = BlendSource.BaseColorMapAlpha;
+
         [VFXSetting(VFXSettingAttribute.VisibleFlags.InInspector), SerializeField, Tooltip("Specifies the source this Material uses as opacity for its Mask Map.")]
         BlendSource maskOpacityChannel = BlendSource.BaseColorMapAlpha;
+
+        private bool enableDecalLayers => HDRenderPipeline.currentAsset.currentPlatformRenderPipelineSettings.supportDecals
+                                                  && HDRenderPipeline.currentAsset.currentPlatformRenderPipelineSettings.supportDecalLayers;
+
+        string[] decalLayerNames => HDRenderPipelineGlobalSettings.instance.decalLayerNames;
+        
+
+
+        [VFXSetting(VFXSettingAttribute.VisibleFlags.InInspector), SerializeField,
+         Tooltip("Specifies the layer mask of the decal.")]
+        private DecalLayerEnum decalLayer = DecalLayerEnum.LightLayerDefault;
 
         public class NoMaskMapProperties
         {
@@ -60,10 +73,12 @@ namespace UnityEditor.VFX
             public float smoothness = 0.0f;
         }
 
-        public class BlendSourcesProperties
+        public class FadingProperties
         {
-            [Tooltip("Specifies the source this Material uses as opacity for its Normal Map."), Range(0,1)]
-            public int maskBlendSrc = 0;
+            [Tooltip("Angle Fade. Between 0 and 180.")] //TODO : create range attribute?
+            public Vector2 angleFade = Vector2.zero;
+            [Range(0, 1), Tooltip("Fade Factor.")]
+            public float fadeFactor = 0.0f;
         }
 
         protected override IEnumerable<VFXPropertyWithValue> inputProperties
@@ -71,9 +86,35 @@ namespace UnityEditor.VFX
             get
             {
                 var properties = base.inputProperties;
-                //properties = properties.Concat(PropertiesFromType("BlendSourcesProperties"));
+                properties = properties.Concat(PropertiesFromType("FadingProperties"));
                 return properties;
             }
+        }
+
+        protected override IEnumerable<VFXNamedExpression> CollectGPUExpressions(IEnumerable<VFXNamedExpression> slotExpressions)
+        {
+            foreach (var exp in base.CollectGPUExpressions(slotExpressions))
+                yield return exp;
+
+            if (GetOrRefreshShaderGraphObject() == null)
+            {
+                //yield return slotExpressions.First(o => o.name == "startFade");
+                yield return slotExpressions.First(o => o.name == "fadeFactor");
+                var angleFadeExp = slotExpressions.First(o => o.name == "angleFade");
+                yield return new VFXNamedExpression(AngleFadeSimplification(angleFadeExp.exp), "angleFade");
+            }
+        }
+
+        VFXExpression AngleFadeSimplification(VFXExpression angleFadeExp)
+        {
+            angleFadeExp = angleFadeExp / VFXValue.Constant<Vector2>(new Vector2(180.0f,180.0f));
+            var angleStart = new VFXExpressionExtractComponent(angleFadeExp, 0);
+            var angleEnd = new VFXExpressionExtractComponent(angleFadeExp, 1);
+            var range = new VFXExpressionMax(VFXValue.Constant(0.0001f), angleEnd - angleStart);
+            var simplifiedAngleFade = new VFXExpressionCombine(
+                VFXValue.Constant(1.0f) - (VFXValue.Constant(0.25f) - angleStart) / range,
+                VFXValue.Constant(-0.25f)/ range);
+            return simplifiedAngleFade;
         }
 
         protected override IEnumerable<string> filteredOutSettings
@@ -90,6 +131,9 @@ namespace UnityEditor.VFX
                 yield return "shaderGraph";
                 yield return "zTestMode";
                 yield return "zWriteMode";
+
+                if (!enableDecalLayers)
+                    yield return "decalLayer";
             }
         }
 
@@ -115,20 +159,24 @@ namespace UnityEditor.VFX
                 {
                     yield return "VFX_NORMAL_BLEND_MASK_BLUE";
                 }
+
+                if(enableDecalLayers)
+                {
+                    yield return "VFX_ENABLE_DECAL_LAYERS";
+                }
+                yield return "VFX_ENABLE_DECAL_LAYERS";
             }
         }
 
-        public override VFXExpressionMapper GetExpressionMapper(VFXDeviceTarget target)
+
+        protected override void WriteBlendMode(VFXShaderWriter writer)
         {
-            var mapper = base.GetExpressionMapper(target);
-
-            //if (target == VFXDeviceTarget.GPU)
-            //{
-            //    mapper.AddExpression(VFXValue.Constant((int)normalOpacityChannel), "normalBlendSrc", -1);
-            //    mapper.AddExpression(VFXValue.Constant((int)maskOpacityChannel), "maskBlendSrc", -1);
-            //}
-
-            return mapper;
+            // using alpha compositing https://developer.nvidia.com/gpugems/GPUGems3/gpugems3_ch23.html
+            for (int i = 0; i < 3; i++)
+            {
+                writer.WriteLineFormat("Blend {0} SrcAlpha OneMinusSrcAlpha, Zero OneMinusSrcAlpha", i);
+            }
+            writer.WriteLine("Blend 3 Zero OneMinusSrcColor");
         }
     }
 }
