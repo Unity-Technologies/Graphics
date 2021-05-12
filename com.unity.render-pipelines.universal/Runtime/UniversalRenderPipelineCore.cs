@@ -333,6 +333,7 @@ namespace UnityEngine.Rendering.Universal
         public static readonly string ShadowsShadowMask = "SHADOWS_SHADOWMASK";
         public static readonly string LightLayers = "_LIGHT_LAYERS";
         public static readonly string BillboardFaceCameraPos = "BILLBOARD_FACE_CAMERA_POS";
+        public static readonly string LightCookies = "_LIGHT_COOKIES";
 
         public static readonly string DepthNoMsaa = "_DEPTH_NO_MSAA";
         public static readonly string DepthMsaa2 = "_DEPTH_MSAA_2";
@@ -384,6 +385,7 @@ namespace UnityEngine.Rendering.Universal
         public static readonly string _DEFERRED_SHADOWS_SOFT = "_DEFERRED_SHADOWS_SOFT";
         public static readonly string _GBUFFER_NORMALS_OCT = "_GBUFFER_NORMALS_OCT";
         public static readonly string _DEFERRED_MIXED_LIGHTING = "_DEFERRED_MIXED_LIGHTING";
+        public static readonly string _DEFERRED_ADDITIONAL_LIGHT_COOKIES = "_DEFERRED_ADDITIONAL_LIGHT_COOKIES";
         public static readonly string LIGHTMAP_ON = "LIGHTMAP_ON";
         public static readonly string DYNAMICLIGHTMAP_ON = "DYNAMICLIGHTMAP_ON";
         public static readonly string _ALPHATEST_ON = "_ALPHATEST_ON";
@@ -522,7 +524,7 @@ namespace UnityEngine.Rendering.Universal
             return desc;
         }
 
-        static Lightmapping.RequestLightsDelegate lightsDelegate = (Light[] requests, NativeArray<LightDataGI> lightsOutput) =>
+        private static Lightmapping.RequestLightsDelegate lightsDelegate = (Light[] requests, NativeArray<LightDataGI> lightsOutput) =>
         {
             LightDataGI lightData = new LightDataGI();
 #if UNITY_EDITOR
@@ -530,24 +532,50 @@ namespace UnityEngine.Rendering.Universal
             for (int i = 0; i < requests.Length; i++)
             {
                 Light light = requests[i];
+
+                UniversalAdditionalLightData additionalLightData;
+                light.TryGetComponent(out additionalLightData);
+                if (additionalLightData == null)
+                {
+                    additionalLightData = ComponentSingleton<UniversalAdditionalLightData>.instance;
+                }
+
+                LightmapperUtils.Extract(light, out Cookie cookie);
+
                 switch (light.type)
                 {
                     case LightType.Directional:
                         DirectionalLight directionalLight = new DirectionalLight();
                         LightmapperUtils.Extract(light, ref directionalLight);
-                        lightData.Init(ref directionalLight);
+
+                        if (light.cookie != null)
+                        {
+                            // Size == 1 / Scale
+                            cookie.sizes = additionalLightData.lightCookieSize;
+                            // Offset, Map cookie UV offset to light position on along local axes.
+                            if (additionalLightData.lightCookieOffset != Vector2.zero)
+                            {
+                                var r = light.transform.right * additionalLightData.lightCookieOffset.x;
+                                var u = light.transform.up * additionalLightData.lightCookieOffset.y;
+                                var offset = r + u;
+
+                                directionalLight.position += offset;
+                            }
+                        }
+
+                        lightData.Init(ref directionalLight, ref cookie);
                         break;
                     case LightType.Point:
                         PointLight pointLight = new PointLight();
                         LightmapperUtils.Extract(light, ref pointLight);
-                        lightData.Init(ref pointLight);
+                        lightData.Init(ref pointLight, ref cookie);
                         break;
                     case LightType.Spot:
                         SpotLight spotLight = new SpotLight();
                         LightmapperUtils.Extract(light, ref spotLight);
                         spotLight.innerConeAngle = light.innerSpotAngle * Mathf.Deg2Rad;
                         spotLight.angularFalloff = AngularFalloffType.AnalyticAndInnerAngle;
-                        lightData.Init(ref spotLight);
+                        lightData.Init(ref spotLight, ref cookie);
                         break;
                     case LightType.Area:
                         RectangleLight rectangleLight = new RectangleLight();
@@ -754,6 +782,8 @@ namespace UnityEngine.Rendering.Universal
 
         // RenderObjectsPass
         //RenderObjects,
+
+        LightCookies,
 
         MainLightShadow,
         ResolveShadows,
