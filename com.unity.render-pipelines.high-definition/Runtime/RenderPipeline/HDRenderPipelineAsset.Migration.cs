@@ -295,8 +295,11 @@ namespace UnityEngine.Rendering.HighDefinition
                 }
             }
 
-            for (int i = 0; i <= packageRegistrationEventArgs.changedFrom.Count; i++)
+            for (int i = 0; i <= packageRegistrationEventArgs.changedTo.Count; i++)
             {
+                if (i >= packageRegistrationEventArgs.changedTo.Count)
+                    continue;
+
                 if (packageRegistrationEventArgs.changedTo[i].name == packageName)
                 {
                     MigrateDueToHDRPPackageUpdate();

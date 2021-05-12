@@ -14,6 +14,12 @@ namespace UnityEngine.Rendering.Tests
             m_RenderGraph.ClearCompiledGraph();
         }
 
+        [OneTimeTearDown]
+        public void CleanUp()
+        {
+            m_RenderGraph.Cleanup();
+        }
+
         class RenderGraphTestPassData
         {
             public TextureHandle[] textures = new TextureHandle[8];
