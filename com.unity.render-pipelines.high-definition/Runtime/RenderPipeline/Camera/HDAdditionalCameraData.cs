@@ -126,6 +126,7 @@ namespace UnityEngine.Rendering.HighDefinition
         /// Copies the settings of this instance to another instance.
         /// </summary>
         /// <param name="c">The instance to copy the settings to.</param>
+        [Obsolete("The CopyTo method is obsolete and will be removed in the future. Please use the assignement operator to get a copy of the HDPhysicalCamera parameters.")]
         public void CopyTo(HDPhysicalCamera c)
         {
             c.iso = iso;
@@ -604,7 +605,7 @@ namespace UnityEngine.Rendering.HighDefinition
             data.probeLayerMask = probeLayerMask;
             data.hasPersistentHistory = hasPersistentHistory;
             data.exposureTarget = exposureTarget;
-            physicalParameters.CopyTo(data.physicalParameters);
+            physicalParameters = data.physicalParameters;
 
             data.renderingPathCustomFrameSettings = renderingPathCustomFrameSettings;
             data.renderingPathCustomFrameSettingsOverrideMask = renderingPathCustomFrameSettingsOverrideMask;
