@@ -420,8 +420,11 @@ namespace UnityEditor.Rendering.Universal
             {
                 if (settings.cookie != null)
                 {
+                    EditorGUI.BeginChangeCheck();
                     EditorGUILayout.PropertyField(serializedLight.lightCookieSizeProp, Styles.LightCookieSize);
                     EditorGUILayout.PropertyField(serializedLight.lightCookieOffsetProp, Styles.LightCookieOffset);
+                    if (EditorGUI.EndChangeCheck())
+                        Experimental.Lightmapping.SetLightDirty((UnityEngine.Light)serializedLight.serializedObject);
                 }
             }
         }
