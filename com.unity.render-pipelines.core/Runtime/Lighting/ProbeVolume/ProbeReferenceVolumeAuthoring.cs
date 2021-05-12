@@ -125,8 +125,6 @@ namespace UnityEngine.Experimental.Rendering
             if (volumeAsset == null)
                 return;
 
-            cellGizmo?.Dispose();
-
 #if UNITY_EDITOR
             brickGizmos?.Dispose();
             brickGizmos = null;
