@@ -22,9 +22,29 @@ namespace UnityEditor.ShaderGraph.Internal
             set {}
         }
 
+        internal virtual string GetHLSLVariableName(bool isSubgraphProperty, GenerationMode mode)
+        {
+            if (mode == GenerationMode.VFX)
+            {
+                // Per-element exposed properties are provided by the properties structure filled by VFX.
+                if (overrideHLSLDeclaration)
+                    return $"PROP.{referenceName}";
+                // For un-exposed global properties, just read from the cbuffer.
+                else
+                    return referenceName;
+            }
+
+            return referenceName;
+        }
+
         internal virtual string GetHLSLVariableName(bool isSubgraphProperty)
         {
-            return referenceName;
+            return GetHLSLVariableName(isSubgraphProperty, GenerationMode.ForReals);
+        }
+
+        internal string GetConnectionStateHLSLVariableName()
+        {
+            return GetConnectionStateVariableName(referenceName + "_" + objectId);
         }
 
         // NOTE: this does not tell you the HLSLDeclaration of the entire property...
@@ -224,6 +244,15 @@ namespace UnityEditor.ShaderGraph.Internal
             "TEXTURE2D_ARRAY",
             "SAMPLER",
         };
+
+        public bool IsObjectType()
+        {
+            return type == HLSLType._SamplerState ||
+                type == HLSLType._Texture2D    ||
+                type == HLSLType._Texture3D    ||
+                type == HLSLType._TextureCube  ||
+                type == HLSLType._Texture2DArray;
+        }
 
         public string GetValueTypeString()
         {

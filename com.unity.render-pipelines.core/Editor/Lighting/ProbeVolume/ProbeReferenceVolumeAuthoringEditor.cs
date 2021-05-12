@@ -1,20 +1,17 @@
 #if UNITY_EDITOR
 
 using UnityEditor;
-using UnityEditor.Rendering;
+using System.Reflection;
+using System;
+using System.Collections.Generic;
+using UnityEngine.Rendering;
 
-namespace UnityEngine.Rendering
+namespace UnityEngine.Experimental.Rendering
 {
     [CanEditMultipleObjects]
     [CustomEditor(typeof(ProbeReferenceVolumeAuthoring))]
     internal class ProbeReferenceVolumeAuthoringEditor : Editor
     {
-        private SerializedProperty m_DrawProbes;
-        private SerializedProperty m_DrawBricks;
-        private SerializedProperty m_DrawCells;
-        private SerializedProperty m_ProbeShading;
-        private SerializedProperty m_CullingDistance;
-        private SerializedProperty m_Exposure;
         private SerializedProperty m_Dilate;
         private SerializedProperty m_MaxDilationSamples;
         private SerializedProperty m_MaxDilationSampleDistance;
@@ -27,9 +24,6 @@ namespace UnityEngine.Rendering
         internal static readonly GUIContent s_DataAssetLabel = new GUIContent("Data asset", "The asset which serializes all probe related data in this volume.");
         internal static readonly GUIContent s_ProfileAssetLabel = new GUIContent("Profile", "The asset which determines the characteristics of the probe reference volume.");
 
-        private string[] ProbeShadingModes = { "Size", "SH", "Validity" };
-
-        private static bool DebugVisualizationGroupEnabled;
         private static bool DilationGroupEnabled;
 
         private float DilationValidityThresholdInverted;
@@ -39,12 +33,6 @@ namespace UnityEngine.Rendering
         private void OnEnable()
         {
             m_Profile = serializedObject.FindProperty("m_Profile");
-            m_DrawProbes = serializedObject.FindProperty("m_DrawProbes");
-            m_DrawBricks = serializedObject.FindProperty("m_DrawBricks");
-            m_DrawCells = serializedObject.FindProperty("m_DrawCells");
-            m_ProbeShading = serializedObject.FindProperty("m_ProbeShading");
-            m_CullingDistance = serializedObject.FindProperty("m_CullingDistance");
-            m_Exposure = serializedObject.FindProperty("m_Exposure");
             m_Dilate = serializedObject.FindProperty("m_Dilate");
             m_MaxDilationSamples = serializedObject.FindProperty("m_MaxDilationSamples");
             m_MaxDilationSampleDistance = serializedObject.FindProperty("m_MaxDilationSampleDistance");
@@ -63,21 +51,34 @@ namespace UnityEngine.Rendering
                 serializedObject.Update();
 
                 var probeReferenceVolumes = FindObjectsOfType<ProbeReferenceVolumeAuthoring>();
-                bool foundInconsistency = false;
+                bool mismatchedProfile = false;
+                bool mismatchedTransform = false;
                 if (probeReferenceVolumes.Length > 1)
                 {
                     foreach (var o1 in probeReferenceVolumes)
                     {
                         foreach (var o2 in probeReferenceVolumes)
                         {
-                            if (!o1.profile.IsEquivalent(o2.profile) && !foundInconsistency)
+                            if (!o1.profile.IsEquivalent(o2.profile))
                             {
-                                EditorGUILayout.HelpBox("Multiple Probe Reference Volume components are loaded, but they have different profiles. "
-                                    + "This is unsupported, please make sure all loaded Probe Reference Volume have the same profile or profiles with equal values.", MessageType.Error, wide: true);
-                                foundInconsistency = true;
+                                mismatchedProfile = true;
                             }
-                            if (foundInconsistency) break;
+                            if (o1.transform.worldToLocalMatrix != o2.transform.worldToLocalMatrix)
+                            {
+                                mismatchedTransform = true;
+                            }
                         }
+                    }
+
+                    if (mismatchedProfile)
+                    {
+                        EditorGUILayout.HelpBox("Multiple Probe Reference Volume components are loaded, but they have different profiles. "
+                            + "This is unsupported, please make sure all loaded Probe Reference Volume have the same profile or profiles with equal values.", MessageType.Error, wide: true);
+                    }
+                    if (mismatchedTransform)
+                    {
+                        EditorGUILayout.HelpBox("Multiple Probe Reference Volume components are loaded, but they have different transforms. "
+                            + "This is currently unsupported, please make sure all loaded Probe Reference Volume have the same transform.", MessageType.Error, wide: true);
                     }
                 }
 
@@ -116,22 +117,6 @@ namespace UnityEngine.Rendering
 
                 m_VolumeAsset.objectReferenceValue = EditorGUILayout.ObjectField(s_DataAssetLabel, m_VolumeAsset.objectReferenceValue, typeof(ProbeVolumeAsset), false);
 
-                DebugVisualizationGroupEnabled = EditorGUILayout.BeginFoldoutHeaderGroup(DebugVisualizationGroupEnabled, "Debug Visualization");
-                if (DebugVisualizationGroupEnabled)
-                {
-                    m_DrawCells.boolValue = EditorGUILayout.Toggle("Draw Cells", m_DrawCells.boolValue);
-                    m_DrawBricks.boolValue = EditorGUILayout.Toggle("Draw Bricks", m_DrawBricks.boolValue);
-                    m_DrawProbes.boolValue = EditorGUILayout.Toggle("Draw Probes", m_DrawProbes.boolValue);
-                    EditorGUI.BeginDisabledGroup(!m_DrawProbes.boolValue);
-                    m_ProbeShading.enumValueIndex = EditorGUILayout.Popup("Probe Shading Mode", m_ProbeShading.enumValueIndex, ProbeShadingModes);
-                    EditorGUI.BeginDisabledGroup(m_ProbeShading.enumValueIndex != 1);
-                    m_Exposure.floatValue = EditorGUILayout.FloatField("Probe exposure", m_Exposure.floatValue);
-                    EditorGUI.EndDisabledGroup();
-                    EditorGUI.EndDisabledGroup();
-                    m_CullingDistance.floatValue = EditorGUILayout.FloatField("Culling Distance", m_CullingDistance.floatValue);
-                }
-                EditorGUILayout.EndFoldoutHeaderGroup();
-
                 DilationGroupEnabled = EditorGUILayout.BeginFoldoutHeaderGroup(DilationGroupEnabled, "Dilation");
                 if (DilationGroupEnabled)
                 {
@@ -159,18 +144,9 @@ namespace UnityEngine.Rendering
 
         private void Constrain()
         {
-            m_CullingDistance.floatValue = Mathf.Max(m_CullingDistance.floatValue, 0);
             m_MaxDilationSamples.intValue = Mathf.Max(m_MaxDilationSamples.intValue, 0);
             m_MaxDilationSampleDistance.floatValue = Mathf.Max(m_MaxDilationSampleDistance.floatValue, 0);
             m_DilationValidityThreshold.floatValue = 1f - DilationValidityThresholdInverted;
-        }
-
-        public void OnSceneGUI()
-        {
-            ProbeReferenceVolumeAuthoring pvra = target as ProbeReferenceVolumeAuthoring;
-
-            if (Event.current.type == EventType.Layout)
-                pvra.DrawProbeGizmos();
         }
     }
 }

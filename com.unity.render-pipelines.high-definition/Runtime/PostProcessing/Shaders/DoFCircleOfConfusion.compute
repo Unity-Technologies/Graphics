@@ -37,16 +37,18 @@ void KMainCoCPhysical(uint3 dispatchThreadId : SV_DispatchThreadID)
     // Note: the linearization of the depth is encoded directly in the MAD parameters
     float CoC = _Params.w - _Params.z * depth;
 
-    const float maxCoC = _Params.x;
+
     if (CoC > 0)
     {
+        const float maxFarCoC = _Params.x;
         // CoC clamping for the far field
-        CoC = min(CoC, maxCoC);
+        CoC = min(CoC, maxFarCoC);
     }
     else
     {
+        const float maxNearCoC = _Params.y;
         // CoC clamping for the near field
-        CoC = max(CoC, -maxCoC);
+        CoC = max(CoC, -maxNearCoC);
     }
 
     _OutputTexture[COORD_TEXTURE2D_X(posInputs.positionSS)] = CoC;

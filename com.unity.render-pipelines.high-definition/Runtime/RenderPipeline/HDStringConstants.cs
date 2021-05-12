@@ -459,6 +459,7 @@ namespace UnityEngine.Rendering.HighDefinition
         public static readonly int _CloudsLightingTexture = Shader.PropertyToID("_CloudsLightingTexture");
         public static readonly int _CloudsLightingTextureRW = Shader.PropertyToID("_CloudsLightingTextureRW");
         public static readonly int _HalfResDepthBufferRW = Shader.PropertyToID("_HalfResDepthBufferRW");
+        public static readonly int _DepthBufferRW = Shader.PropertyToID("_DepthBufferRW");
         public static readonly int _CloudsDepthTexture = Shader.PropertyToID("_CloudsDepthTexture");
         public static readonly int _DepthStatusTexture = Shader.PropertyToID("_DepthStatusTexture");
         public static readonly int _CloudsDepthTextureRW = Shader.PropertyToID("_CloudsDepthTextureRW");
@@ -757,6 +758,8 @@ namespace UnityEngine.Rendering.HighDefinition
         public static readonly int _OutputHistoryTexture           = Shader.PropertyToID("_OutputHistoryTexture");
         public static readonly int _InputVelocityMagnitudeHistory  = Shader.PropertyToID("_InputVelocityMagnitudeHistory");
         public static readonly int _OutputVelocityMagnitudeHistory = Shader.PropertyToID("_OutputVelocityMagnitudeHistory");
+        public static readonly int _OutputDepthTexture             = Shader.PropertyToID("_OutputDepthTexture");
+        public static readonly int _OutputMotionVectorTexture      = Shader.PropertyToID("_OutputMotionVectorTexture");
 
         public static readonly int _TargetScale                    = Shader.PropertyToID("_TargetScale");
         public static readonly int _Params                         = Shader.PropertyToID("_Params");
@@ -790,6 +793,15 @@ namespace UnityEngine.Rendering.HighDefinition
         public static readonly int _OutputAlphaTexture             = Shader.PropertyToID("_OutputAlphaTexture");
         public static readonly int _InputNearAlphaTexture          = Shader.PropertyToID("_InputNearAlphaTexture");
         public static readonly int _CoCTargetScale                 = Shader.PropertyToID("_CoCTargetScale");
+
+        public static readonly int _FlareTex                       = Shader.PropertyToID("_FlareTex");
+        public static readonly int _FlareColorValue                = Shader.PropertyToID("_FlareColorValue");
+        public static readonly int _FlareData0                     = Shader.PropertyToID("_FlareData0");
+        public static readonly int _FlareData1                     = Shader.PropertyToID("_FlareData1");
+        public static readonly int _FlareData2                     = Shader.PropertyToID("_FlareData2");
+        public static readonly int _FlareData3                     = Shader.PropertyToID("_FlareData3");
+        public static readonly int _FlareData4                     = Shader.PropertyToID("_FlareData4");
+        public static readonly int _FlareData5                     = Shader.PropertyToID("_FlareData5");
 
         public static readonly int _BloomParams                    = Shader.PropertyToID("_BloomParams");
         public static readonly int _BloomTint                      = Shader.PropertyToID("_BloomTint");
@@ -1023,7 +1035,8 @@ namespace UnityEngine.Rendering.HighDefinition
         public const string kReceivesSSRTransparent = "_ReceivesSSRTransparent";
         /// <summary>Enable Depth Offset.</summary>
         public const string kDepthOffsetEnable = "_DepthOffsetEnable";
-
+        /// <summary>Enable Depth Offset.</summary>
+        public const string kConservativeDepthOffsetEnable = "_ConservativeDepthOffsetEnable";
         /// <summary>Enable affect Albedo (decal only).</summary>
         public const string kAffectAlbedo   = "_AffectAlbedo";
         /// <summary>Enable affect Normal (decal only.</summary>
