@@ -159,7 +159,7 @@ namespace UnityEngine.Rendering.Universal
             //m_DeferredLights.LightCulling = data.lightCulling;
             this.m_RenderingMode = data.renderingMode;
             this.m_DepthPrimingMode = data.depthPrimingMode;
-            useRenderPassEnabled = data.useNativeRenderPass;
+            useRenderPassEnabled = data.useNativeRenderPass && SystemInfo.graphicsDeviceType != GraphicsDeviceType.OpenGLES2;
 
 #if UNITY_ANDROID || UNITY_IOS || UNITY_TVOS
             this.m_DepthPrimingRecommended = false;
