@@ -696,7 +696,7 @@ namespace UnityEngine.Rendering.HighDefinition
         internal bool useDLSSCustomProjectId = false;
 
         [SerializeField]
-        internal bool supportProbeVolumes = true;
+        internal bool supportProbeVolumes = false;
 
         #endregion
     }
