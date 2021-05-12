@@ -299,21 +299,24 @@ namespace UnityEngine.Experimental.Rendering.Universal
 
             // Case 1249076: Initialize internals immediately after the scene is loaded,
             // as the Cinemachine extension may need them before OnBeginContextRendering is called.
-            var rtSize = cameraRTSize;
-            m_Internal.CalculateCameraProperties(rtSize.x, rtSize.y);
+            UpdateCameraProperties();
         }
 
-        void OnBeginContextRendering(ScriptableRenderContext context, List<Camera> cameras)
+        void UpdateCameraProperties()
         {
             var rtSize = cameraRTSize;
             m_Internal.CalculateCameraProperties(rtSize.x, rtSize.y);
-
-            PixelSnap();
 
             if (m_Internal.useOffscreenRT)
                 m_Camera.pixelRect = m_Internal.CalculateFinalBlitPixelRect(rtSize.x, rtSize.y);
             else
                 m_Camera.rect = new Rect(0.0f, 0.0f, 1.0f, 1.0f);
+        }
+
+        void OnBeginContextRendering(ScriptableRenderContext context, List<Camera> cameras)
+        {
+            UpdateCameraProperties();
+            PixelSnap();
 
             if (!m_CinemachineCompatibilityMode)
             {
