@@ -32,3 +32,7 @@ The following property is only available in Master Stacks. In the [Layered Lit T
 - HDRP does not support tessellation for [ray tracing](Ray-Tracing-Getting-Started.md), tessellated meshes fall back to a non-tessellated version.
 - When using world-space displacement, the object can expand out of its original bounds. You need to adjust the bounds manually to get correct rendering.
 - Motion vectors do not work correctly if the tessellation factor differs for vertices between two frames.
+
+## Performance
+- Enabling the Tessellation option have an extra GPU cost, even if the tessellationFactor is 0.0 or 1.0. It is recommened to have additional LOD with shader without tessellation enabled for good performance.
+- Tessellation is an expensive GPU operation and it is often lest costly to pre-tessellate a mesh and doing vertex displacement than doing the tessellation process, but it have the benefit of being adapatative.
