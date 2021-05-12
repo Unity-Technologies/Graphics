@@ -9,7 +9,6 @@ from git import Repo, exc, Head
 if __name__ == "__main__":
 
     root = sys.argv[1]
-    utr = sys.argv[2:]
 
     repo = Repo(".\\")
 
@@ -35,10 +34,7 @@ if __name__ == "__main__":
     update_tests_file_path = path.join(root, "Assets/Resources/UpdateTests.txt")
     if not path.exists(update_tests_file_path):
         print("No update file found, skipping recommit")
-        print(os.getcwd())
-        for file in os.listdir("C:\\build\\output\\Unity-Technologies\\Graphics\\TestProjects\\ShaderGraph"):
-            print(file)
-        # Skip the additional run if there's nothing to re-commit
+        # Skip the recommit if there's nothing to add
         exit(0)
     with open(update_tests_file_path) as f:
         while True:
@@ -67,12 +63,5 @@ if __name__ == "__main__":
 
     repo.git.commit("-m", "Generated reference images for " + editor)
     repo.remote(name="origin").push(["--set-upstream", new_branch_name])
-
-    utr_file_name = ""
-    if platform.system() == 'Windows':
-        utr_file_name = "utr.bat"
-    else:
-        utr_file_name = "utr"
-    utr.insert(0, utr_file_name)
-    print("Calling utr with arguments: \n" + " ".join(utr))
-    exit(subprocess.call(utr))
+    repo.git.status()
+    
