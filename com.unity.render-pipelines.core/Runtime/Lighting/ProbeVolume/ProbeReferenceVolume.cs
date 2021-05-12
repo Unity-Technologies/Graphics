@@ -571,7 +571,7 @@ namespace UnityEngine.Experimental.Rendering
                 }
                 catch
                 {
-                    Debug.LogError("Index Dimension too big, try reducing the area covered by the probe volumes.");
+                    Debug.LogError($"Index Dimension too big: {indexDimensions}. Please reduce the area covered by the probe volumes.");
                     return;
                 }
                 Profiler.BeginSample("Initialize Reference Volume");

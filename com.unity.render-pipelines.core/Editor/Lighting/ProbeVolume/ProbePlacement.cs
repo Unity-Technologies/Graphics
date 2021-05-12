@@ -23,7 +23,7 @@ namespace UnityEngine.Experimental.Rendering
         // The UAV binding index 4 isn't in use when we bake the probes and doesn't crash unity.
         const int k_RandomWriteBindingIndex = 4;
 
-        [GenerateHLSL]
+        [GenerateHLSL(needAccessors = false)]
         struct GPUProbeVolumeOBB
         {
             public Vector3 corner;
