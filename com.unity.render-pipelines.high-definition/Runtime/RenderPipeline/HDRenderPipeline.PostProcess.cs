@@ -147,9 +147,8 @@ namespace UnityEngine.Rendering.HighDefinition
         // Debug Exposure compensation (Drive by debug menu) to add to all exposure processed value
         float m_DebugExposureCompensation;
 
-        // Physical camera ref
+        // Physical camera copy
         HDPhysicalCamera m_PhysicalCamera;
-        static readonly HDPhysicalCamera m_DefaultPhysicalCamera = new HDPhysicalCamera();
 
         // HDRP has the following behavior regarding alpha:
         // - If post processing is disabled, the alpha channel of the rendering passes (if any) will be passed to the frame buffer by the final pass
@@ -290,9 +289,8 @@ namespace UnityEngine.Rendering.HighDefinition
             m_AfterDynamicResUpscaleRes = new Vector2Int((int)Mathf.Round(camera.finalViewport.width), (int)Mathf.Round(camera.finalViewport.height));
             m_BeforeDynamicResUpscaleRes = new Vector2Int(camera.actualWidth, camera.actualHeight);
 
-            // Grab physical camera settings or a default instance if it's null (should only happen
-            // in rare occasions due to how HDAdditionalCameraData is added to the camera)
-            m_PhysicalCamera = camera.physicalParameters ?? m_DefaultPhysicalCamera;
+            // Grab a copy of the physical camera settings
+            m_PhysicalCamera = camera.physicalParameters;
 
             // Prefetch all the volume components we need to save some cycles as most of these will
             // be needed in multiple places
@@ -1790,7 +1788,11 @@ namespace UnityEngine.Rendering.HighDefinition
             parameters.nearFocusEnd = m_DepthOfField.nearFocusEnd.value;
             parameters.farFocusStart = m_DepthOfField.farFocusStart.value;
             parameters.farFocusEnd = m_DepthOfField.farFocusEnd.value;
-            parameters.focusDistance = m_DepthOfField.focusDistance.value;
+
+            if (m_DepthOfField.focusDistanceMode.value == FocusDistanceMode.Volume)
+                parameters.focusDistance = m_DepthOfField.focusDistance.value;
+            else
+                parameters.focusDistance = m_PhysicalCamera.focusDistance;
 
             parameters.focusMode = m_DepthOfField.focusMode.value;
 
