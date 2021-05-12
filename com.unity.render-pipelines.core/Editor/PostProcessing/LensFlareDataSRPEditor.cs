@@ -139,18 +139,18 @@ namespace UnityEditor.Rendering
             m_List.elementHeightCallback = ElementHeight;
 
             if (m_PreviewShader == null)
-                m_PreviewShader = Shader.Find("Hidden/Core/LensFlareDataDrivenPreview");
+                m_PreviewShader = Shader.Find("Hidden/Core/LensFlareDataDrivenPreview2");
             if (m_CircleMaterial == null)
             {
                 m_CircleMaterial = new Material(m_PreviewShader);
                 m_CircleMaterial.SetPass(0);
-                CoreUtils.SetKeyword(m_CircleMaterial, "FLARE_CIRCLE", true);
+                //CoreUtils.SetKeyword(m_CircleMaterial, "FLARE_CIRCLE", true);
             }
             if (m_PolygonMaterial == null)
             {
                 m_PolygonMaterial = new Material(m_PreviewShader);
                 m_PolygonMaterial.SetPass(0);
-                CoreUtils.SetKeyword(m_PolygonMaterial, "FLARE_POLYGON", true);
+                //CoreUtils.SetKeyword(m_PolygonMaterial, "FLARE_POLYGON", true);
             }
             if (m_PreviewTexture == null)
             {
@@ -436,7 +436,7 @@ namespace UnityEditor.Rendering
                     Graphics.SetRenderTarget(m_PreviewTexture);
                     Graphics.Blit(Texture2D.whiteTexture, m_PreviewTexture.rt, m_PolygonMaterial);
                     //EditorGUI.DrawPreviewTexture(thumbnailIconeRect, LensFlareEditorUtils.Icons.polygon, m_PolygonMaterial, ScaleMode.ScaleToFit, 1f);
-                    EditorGUI.DrawTextureTransparent(thumbnailIconeRect, m_PreviewTexture.rt, ScaleMode.ScaleToFit, 1f);
+                    //EditorGUI.DrawTextureTransparent(thumbnailIconeRect, m_PreviewTexture.rt, ScaleMode.ScaleToFit, 1f);
                     break;
             }
             GUI.color = guiColor;
