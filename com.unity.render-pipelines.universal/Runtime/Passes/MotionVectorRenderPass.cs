@@ -23,7 +23,7 @@ namespace UnityEngine.Rendering.Universal.Internal
         #region Constructors
         internal MotionVectorRenderPass(Material cameraMaterial, Material objectMaterial)
         {
-            renderPassEvent = RenderPassEvent.BeforeRenderingTransparents;
+            renderPassEvent = RenderPassEvent.AfterRenderingSkybox;
             m_CameraMaterial = cameraMaterial;
             m_ObjectMaterial = objectMaterial;
         }
