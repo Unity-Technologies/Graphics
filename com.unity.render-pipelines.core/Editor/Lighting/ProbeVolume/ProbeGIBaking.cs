@@ -450,9 +450,6 @@ namespace UnityEngine.Experimental.Rendering
         static void DilateInvalidProbes(Vector3[] probePositions,
             List<Brick> bricks, SphericalHarmonicsL2[] sh, float[] validity, ProbeDilationSettings dilationSettings)
         {
-            if (!dilationSettings.dilate)
-                return;
-
             UnityEngine.Profiling.Profiler.BeginSample("DilateProbes");
             // For each brick
             List<DilationProbe> culledProbes = new List<DilationProbe>();
