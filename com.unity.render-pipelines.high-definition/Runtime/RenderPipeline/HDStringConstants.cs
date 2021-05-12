@@ -733,6 +733,8 @@ namespace UnityEngine.Rendering.HighDefinition
         // Preintegrated texture name
         public static readonly int _PreIntegratedFGD_GGXDisneyDiffuse = Shader.PropertyToID("_PreIntegratedFGD_GGXDisneyDiffuse");
         public static readonly int _PreIntegratedFGD_CharlieAndFabric = Shader.PropertyToID("_PreIntegratedFGD_CharlieAndFabric");
+        public static readonly int _PreIntegratedFGD_Marschner        = Shader.PropertyToID("_PreIntegratedFGD_Marschner");
+        public static readonly int _PreIntegratedAzimuthalScattering  = Shader.PropertyToID("_PreIntegratedAzimuthalScattering");
 
         public static readonly int _ExposureTexture                = Shader.PropertyToID("_ExposureTexture");
         public static readonly int _PrevExposureTexture            = Shader.PropertyToID("_PrevExposureTexture");
@@ -758,6 +760,8 @@ namespace UnityEngine.Rendering.HighDefinition
         public static readonly int _OutputHistoryTexture           = Shader.PropertyToID("_OutputHistoryTexture");
         public static readonly int _InputVelocityMagnitudeHistory  = Shader.PropertyToID("_InputVelocityMagnitudeHistory");
         public static readonly int _OutputVelocityMagnitudeHistory = Shader.PropertyToID("_OutputVelocityMagnitudeHistory");
+        public static readonly int _OutputDepthTexture             = Shader.PropertyToID("_OutputDepthTexture");
+        public static readonly int _OutputMotionVectorTexture      = Shader.PropertyToID("_OutputMotionVectorTexture");
 
         public static readonly int _TargetScale                    = Shader.PropertyToID("_TargetScale");
         public static readonly int _Params                         = Shader.PropertyToID("_Params");

@@ -175,7 +175,6 @@ namespace UnityEditor.ShaderGraph.UnitTests
 
                 ShaderGraphUITestHelpers.SendDeleteCommand(m_Window, m_GraphEditorView.graphView);
                 yield return null;
-
             }
 
             var cachedKeywordList = m_Window.graphObject.graph.keywords.ToList();
@@ -191,7 +190,6 @@ namespace UnityEditor.ShaderGraph.UnitTests
 
                 ShaderGraphUITestHelpers.SendDeleteCommand(m_Window, m_GraphEditorView.graphView);
                 yield return null;
-
             }
 
 
