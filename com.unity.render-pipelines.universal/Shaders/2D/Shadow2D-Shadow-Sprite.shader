@@ -11,7 +11,7 @@ Shader "Hidden/Shadow2DShadowSprite"
 
         Cull Off
         BlendOp Add
-        Blend One One
+        Blend One One, One One
         ZWrite Off
         ZTest Always
 
