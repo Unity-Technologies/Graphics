@@ -276,8 +276,8 @@ namespace UnityEngine.Rendering.Universal
                                                     cmdBuffer.DrawMesh(shadowCaster.mesh, shadowCaster.transform.localToWorldMatrix, projectedShadowsMaterial, 0, 0);
 
                                                     // This is a fix for a bug. We will likely be able to remove this with a rework of shadow geometry
-                                                    if (!shadowCaster.selfShadows)
-                                                        cmdBuffer.DrawMesh(shadowCaster.mesh, shadowCaster.transform.localToWorldMatrix, unshadowGeometryMaterial, 0, 0);
+                                                    //if (!shadowCaster.selfShadows)
+                                                    //cmdBuffer.DrawMesh(shadowCaster.mesh, shadowCaster.transform.localToWorldMatrix, unshadowGeometryMaterial, 0, 0);
                                                 }
                                             }
                                         }
