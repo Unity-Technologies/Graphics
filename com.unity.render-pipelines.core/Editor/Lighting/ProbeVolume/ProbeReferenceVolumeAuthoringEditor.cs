@@ -31,6 +31,22 @@ namespace UnityEngine.Experimental.Rendering
                         return probeVolumeAuthoring.ShouldCullCell(c.position);
                     });
 
+                    Camera activeCamera = Camera.current ?? SceneView.lastActiveSceneView.camera;
+
+                    if (activeCamera != null)
+                    {
+                        var cameraPos = activeCamera.transform.position;
+                        ctx.cells.Sort((c1, c2) => {
+                            c1.volume.CalculateCenterAndSize(out var c1Center, out var _);
+                            float c1Distance = Vector3.Distance(cameraPos, c1Center);
+
+                            c2.volume.CalculateCenterAndSize(out var c2Center, out var _);
+                            float c2Distance = Vector3.Distance(cameraPos, c2Center);
+
+                            return c1Distance.CompareTo(c2Distance);
+                        });
+                    }
+
                     ProbeGIBaking.BakeBricks(ctx);
                 }
             }

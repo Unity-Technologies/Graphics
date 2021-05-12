@@ -17,6 +17,7 @@ namespace UnityEngine.Experimental.Rendering
         public bool drawBricks;
         public bool drawCells;
         public bool realtimeSubdivision;
+        public float realtimeSubdivisionBudget = 100.0f;
         public DebugProbeShadingMode probeShading;
         public float probeSize = 1.0f;
         public float subdivisionViewCullingDistance = 500.0f;
@@ -116,6 +117,11 @@ namespace UnityEngine.Experimental.Rendering
             subdivContainer.children.Add(new DebugUI.BoolField { displayName = "Display Bricks", getter = () => debugDisplay.drawBricks, setter = value => debugDisplay.drawBricks = value, onValueChanged = RefreshDebug });
 #if UNITY_EDITOR
             subdivContainer.children.Add(new DebugUI.BoolField { displayName = "Realtime Update", getter = () => debugDisplay.realtimeSubdivision, setter = value => debugDisplay.realtimeSubdivision = value, onValueChanged = RefreshDebug });
+            if (debugDisplay.realtimeSubdivision)
+            {
+                var realtimeSubdivBudget = new DebugUI.FloatField { displayName = "Budget", getter = () => debugDisplay.realtimeSubdivisionBudget, setter = value => debugDisplay.realtimeSubdivisionBudget = value, min = () => 0.0f, max = () => 1000.0f };
+                subdivContainer.children.Add(new DebugUI.Container { children = { realtimeSubdivBudget } });
+            }
 #endif
 
             if (debugDisplay.drawCells || debugDisplay.drawBricks)

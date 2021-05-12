@@ -17,10 +17,14 @@ namespace UnityEngine.Experimental.Rendering
         public List<(Vector3Int position, ProbeReferenceVolume.Volume volume)> cells = new List<(Vector3Int, ProbeReferenceVolume.Volume)>();
         public ProbeReferenceVolumeAuthoring refVolume;
 
+        // Limit the time we can spend in the subdivision for realtime debug subdivision
+        public float subdivisionStartTime;
+
         public void Initialize(ProbeReferenceVolumeAuthoring refVolume)
         {
             this.refVolume = refVolume;
             float cellSize = refVolume.cellSizeInMeters;
+            subdivisionStartTime = Time.realtimeSinceStartup;
 
             foreach (var pv in UnityEngine.Object.FindObjectsOfType<ProbeVolume>())
             {
