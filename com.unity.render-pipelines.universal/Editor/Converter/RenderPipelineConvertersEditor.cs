@@ -390,7 +390,7 @@ namespace UnityEditor.Rendering.Universal
             // Otherwise do everything directly
             else
             {
-                ConverterCollectData();
+                ConverterCollectData(() => { EditorUtility.ClearProgressBar(); });
             }
 
             void CreateSearchIndex(string name)
@@ -444,7 +444,7 @@ namespace UnityEditor.Rendering.Universal
                 ConverterCollectData(onComplete);
             }
 
-            void ConverterCollectData(Action onConverterDataCollectionComplete = null)
+            void ConverterCollectData(Action onConverterDataCollectionComplete)
             {
                 EditorUtility.DisplayProgressBar($"Initializing converters", $"Initializing converters...", -1f);
 
