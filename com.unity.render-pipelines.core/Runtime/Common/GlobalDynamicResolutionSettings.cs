@@ -38,6 +38,11 @@ namespace UnityEngine.Rendering
         /// Contrast Adaptive Sharpening upscaling filter.
         /// </summary>
         ContrastAdaptiveSharpen,
+        /// <summary>
+        /// Edge Adaptive Scaling Upres.
+        /// </summary>
+        [InspectorName("Edge Adaptive Scaling Upres")]
+        EdgeAdaptiveScalingUpres
     }
 
     /// <summary>User-facing settings for dynamic resolution.</summary>
@@ -48,6 +53,7 @@ namespace UnityEngine.Rendering
         /// <returns></returns>
         public static GlobalDynamicResolutionSettings NewDefault() => new GlobalDynamicResolutionSettings()
         {
+            useMipBias = false,
             maxPercentage = 100.0f,
             minPercentage = 100.0f,
             // It fall-backs to software when not supported, so it makes sense to have it on by default.
@@ -58,6 +64,8 @@ namespace UnityEngine.Rendering
 
         /// <summary>Select whether the dynamic resolution is enabled or not.</summary>
         public bool enabled;
+        /// <summary>Offsets the mip bias to recover mode detail. This only works if the camera is utilizing TAA.</summary>
+        public bool useMipBias;
 
         /// <summary>ToggleNVIDIA Deep Learning Super Sampling (DLSS).</summary>
         public bool enableDLSS;
