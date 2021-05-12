@@ -424,7 +424,7 @@ namespace UnityEditor.Rendering.Universal
                     EditorGUILayout.PropertyField(serializedLight.lightCookieSizeProp, Styles.LightCookieSize);
                     EditorGUILayout.PropertyField(serializedLight.lightCookieOffsetProp, Styles.LightCookieOffset);
                     if (EditorGUI.EndChangeCheck())
-                        Experimental.Lightmapping.SetLightDirty((UnityEngine.Light)serializedLight.serializedObject);
+                        Experimental.Lightmapping.SetLightDirty((UnityEngine.Light)serializedLight.serializedObject.targetObject);
                 }
             }
         }
