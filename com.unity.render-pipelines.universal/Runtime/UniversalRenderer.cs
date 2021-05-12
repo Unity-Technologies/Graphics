@@ -643,16 +643,6 @@ namespace UnityEngine.Rendering.Universal
                 EnqueuePass(m_CopyDepthPass);
             }
 
-            if (renderPassInputs.requiresMotionVectors && !cameraData.xr.enabled)
-            {
-                
-                SupportedRenderingFeatures.active.motionVectors = true; // hack for enabling UI
-
-                var data = MotionVectorRendering.instance.GetMotionDataForCamera(camera);
-                m_MotionVectorPass.Setup(data);
-                EnqueuePass(m_MotionVectorPass);
-            }
-
             // For Base Cameras: Set the depth texture to the far Z if we do not have a depth prepass or copy depth
             if (cameraData.renderType == CameraRenderType.Base && !requiresDepthPrepass && !requiresDepthCopyPass)
             {
@@ -667,6 +657,17 @@ namespace UnityEngine.Rendering.Universal
                 m_CopyColorPass.Setup(m_ActiveCameraColorAttachment.Identifier(), m_OpaqueColor, downsamplingMethod);
                 EnqueuePass(m_CopyColorPass);
             }
+
+            if (renderPassInputs.requiresMotionVectors && !cameraData.xr.enabled)
+            {
+                SupportedRenderingFeatures.active.motionVectors = true; // hack for enabling UI
+
+                var data = MotionVectorRendering.instance.GetMotionDataForCamera(camera);
+                m_MotionVectorPass.Setup(data);
+                EnqueuePass(m_MotionVectorPass);
+            }
+
+
 #if ADAPTIVE_PERFORMANCE_2_1_0_OR_NEWER
             if (needTransparencyPass)
 #endif
