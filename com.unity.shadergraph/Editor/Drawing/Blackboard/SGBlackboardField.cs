@@ -16,11 +16,11 @@ using GraphDataStore = UnityEditor.ShaderGraph.DataStore<UnityEditor.ShaderGraph
 
 namespace UnityEditor.ShaderGraph.Drawing
 {
-    class BlackboardPropertyView : GraphElement, IInspectable, ISGControlledElement<ShaderInputViewController>
+    class SGBlackboardField : GraphElement, IInspectable, ISGControlledElement<ShaderInputViewController>
     {
         static readonly Texture2D k_ExposedIcon = Resources.Load<Texture2D>("GraphView/Nodes/BlackboardFieldExposed");
-        static readonly string k_UxmlTemplatePath = "UXML/GraphView/BlackboardField";
-        static readonly string k_StyleSheetPath = "Styles/Blackboard";
+        static readonly string k_UxmlTemplatePath = "UXML/Blackboard/SGBlackboardField";
+        static readonly string k_StyleSheetPath = "Styles/SGBlackboard";
 
         ShaderInputViewModel m_ViewModel;
 
@@ -63,7 +63,7 @@ namespace UnityEditor.ShaderGraph.Drawing
             set { m_Pill.highlighted = value; }
         }
 
-        internal BlackboardPropertyView(ShaderInputViewModel viewModel)
+        internal SGBlackboardField(ShaderInputViewModel viewModel)
         {
             ViewModel = viewModel;
             // Store ShaderInput in userData object
@@ -89,7 +89,7 @@ namespace UnityEditor.ShaderGraph.Drawing
             m_TextField.style.display = DisplayStyle.None;
 
             // Update the Pill text if shader input name is changed
-            // we handle this in controller if we change it through BlackboardPropertyView, but its possible to change through PropertyNodeView as well
+            // we handle this in controller if we change it through SGBlackboardField, but its possible to change through PropertyNodeView as well
             shaderInput.displayNameUpdateTrigger += newDisplayName => text = newDisplayName;
 
             // Handles the upgrade fix for the old color property deprecation
@@ -111,7 +111,7 @@ namespace UnityEditor.ShaderGraph.Drawing
             ClearClassList();
             AddToClassList("blackboardField");
 
-            this.name = "BlackboardPropertyView";
+            this.name = "SGBlackboardField";
             UpdateFromViewModel();
 
             // add the right click context menu
@@ -134,16 +134,16 @@ namespace UnityEditor.ShaderGraph.Drawing
             if (blackboard != null)
             {
                 // These callbacks are used for the property dragging scroll behavior
-                RegisterCallback<DragEnterEvent>(evt => blackboard.ShowScrollBoundaryRegions());
-                RegisterCallback<DragExitedEvent>(evt => blackboard.HideScrollBoundaryRegions());
+                RegisterCallback<DragEnterEvent>(blackboard.OnDragEnterEvent);
+                RegisterCallback<DragExitedEvent>(blackboard.OnDragExitedEvent);
 
                 // These callbacks are used for the property dragging scroll behavior
-                RegisterCallback<DragEnterEvent>(evt => blackboard.ShowScrollBoundaryRegions());
-                RegisterCallback<DragExitedEvent>(evt => blackboard.HideScrollBoundaryRegions());
+                RegisterCallback<DragEnterEvent>(blackboard.OnDragEnterEvent);
+                RegisterCallback<DragExitedEvent>(blackboard.OnDragExitedEvent);
             }
         }
 
-        ~BlackboardPropertyView()
+        ~SGBlackboardField()
         {
             ShaderGraphPreferences.onAllowDeprecatedChanged -= UpdateTypeText;
         }
@@ -241,7 +241,7 @@ namespace UnityEditor.ShaderGraph.Drawing
                 // We currently need to do a halfway measure between the old way of handling stuff for property drawers (how FieldView and NodeView handle it)
                 // and how we want to handle it with the new style of controllers and views. Ideally we'd just hand the property drawer a view model and thats it.
                 // We've maintained all the old callbacks as they are in the PropertyDrawer to reduce possible halo changes and support PropertyNodeView functionality
-                // Instead we supply different underlying methods for the callbacks in the new BlackboardPropertyView,
+                // Instead we supply different underlying methods for the callbacks in the new SGBlackboardField,
                 // that way both code paths should work until we can refactor PropertyNodeView
                 shaderInputPropertyDrawer.GetViewModel(
                     ViewModel,
@@ -264,6 +264,10 @@ namespace UnityEditor.ShaderGraph.Drawing
             {
                 OpenTextEditor();
                 e.PreventDefault();
+            }
+            else
+            {
+                e.StopPropagation();
             }
         }
 

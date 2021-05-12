@@ -8,6 +8,6 @@
                 <ui:VisualElement name="itemContainer" pickingMode="Ignore" />
             </ui:VisualElement>
         </ui:VisualElement>
-        <ui:VisualElement name="propertyViewContainer" pickingMode="Ignore" />
+        <ui:VisualElement name="propertyViewContainer"/>
     </ui:VisualElement>
 </UXML>
