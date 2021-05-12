@@ -399,7 +399,7 @@ namespace UnityEditor.VFX
             }
         }
 
-        public override bool hasDynamicSourceCount
+        public bool hasDynamicSourceCount
         {
             get
             {

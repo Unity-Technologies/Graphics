@@ -34,14 +34,6 @@ namespace UnityEditor.VFX
             }
         }
 
-        public virtual bool hasDynamicSourceCount
-        {
-            get
-            {
-                return false;
-            }
-        }
-
         public IEnumerable<VFXContext> owners
         {
             get { return m_Owners; }
