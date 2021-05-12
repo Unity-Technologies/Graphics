@@ -299,6 +299,7 @@ namespace UnityEngine.Rendering
                 cmd.ClearRenderTarget(false, true, Color.black);
             }
 
+#if UNITY_EDITOR
             if (cam.cameraType == CameraType.SceneView)
             {
                 // Determine whether the "Animated Materials" checkbox is checked for the current view.
@@ -311,6 +312,7 @@ namespace UnityEngine.Rendering
                     }
                 }
             }
+#endif
 
             foreach (LensFlareComponentSRP comp in lensFlares.GetData())
             {
