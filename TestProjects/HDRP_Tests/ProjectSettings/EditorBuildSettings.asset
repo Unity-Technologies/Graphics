@@ -251,9 +251,6 @@ EditorBuildSettings:
   - enabled: 1
     path: Assets/GraphicTests/Scenes/2x_Lighting/2009_MultipleSkies.unity
     guid: bdc9e712cf2e77a49a64859ccb7ba8d7
-  - enabled: 0
-    path: Assets/GraphicTests/Scenes/2x_Lighting/2010_IES_Cookies.unity
-    guid: ad7e365098dfb004aba8f7e35924b5ce
   - enabled: 1
     path: Assets/GraphicTests/Scenes/2x_Lighting/2011_ForwardEmissiveForDeferred.unity
     guid: 94ff79e05bdbc3f47897538b381d1a2e
@@ -275,12 +272,6 @@ EditorBuildSettings:
   - enabled: 1
     path: Assets/GraphicTests/Scenes/2x_Lighting/2106_GI_EmissionSG.unity
     guid: bf5546a039f560c45a12651846981034
-  - enabled: 0
-    path: Assets/GraphicTests/Scenes/2x_Lighting/2107_GI_IESCookie_A.unity
-    guid: 8364dfd053eae8648ac8a8c149cbd091
-  - enabled: 0
-    path: Assets/GraphicTests/Scenes/2x_Lighting/2108_GI_IESCookie_B.unity
-    guid: 029a23150c357e745b0a9f972f07049c
   - enabled: 1
     path: Assets/GraphicTests/Scenes/2x_Lighting/2109_GI_DoubleSided.unity
     guid: 901190cb7cb9686409afb4b714125e54
@@ -546,13 +537,11 @@ EditorBuildSettings:
     path: Assets/GraphicTests/Scenes/4x_PostProcessing/4091_DRS-Software.unity
     guid: 6293ce393e2851d4e9827ff3dadd2673
   - enabled: 1
-    path: Assets/GraphicTests/Scenes/4x_PostProcessing/4092_DRS-DLSS-Hardware.unity
+    path: Assets/GraphicTests/Scenes/4x_PostProcessing/4088_DRS-DLSS-Hardware.unity
     guid: 7deb5e53e3101c74ba65ea4ef9579f9a
   - enabled: 1
-    path: Assets/GraphicTests/Scenes/4x_PostProcessing/4092_DRS-DLSS-Software.unity
+    path: Assets/GraphicTests/Scenes/4x_PostProcessing/4089_DRS-DLSS-Software.unity
     guid: eb89f789e3ce3db4d91641ad06d27151
-    path: Assets/GraphicTests/Scenes/4x_PostProcessing/4092_LensFlare_Circle_DataDriven.unity
-    guid: 127cf0a76c5410c44ab9d294dd01c6bd
   - enabled: 1
     path: Assets/GraphicTests/Scenes/4x_PostProcessing/4093_LensFlare_Polygon_DataDriven.unity
     guid: 1855b23a6b57d2b40a5885c843a5c9db
@@ -730,10 +719,10 @@ EditorBuildSettings:
   - enabled: 1
     path: Assets/GraphicTests/Scenes/9x_Other/9500_LightScripting.unity
     guid: 134ab13db8156a14891996196de4cf63
-  - enabled: 1
+  - enabled: 0
     path: Assets/GraphicTests/Scenes/9x_Other/9601_SkinnedMeshBatching-Off.unity
     guid: d0d3270af482d2349baf7fc2a1dc7d4f
-  - enabled: 1
+  - enabled: 0
     path: Assets/GraphicTests/Scenes/9x_Other/9602_SkinnedMeshBatching-On.unity
     guid: 78446c36daacd444c8a07b5671274a51
   - enabled: 1
@@ -764,6 +753,6 @@ EditorBuildSettings:
     path: Assets/GraphicTests/Scenes/9x_Other/9902_AOV_buffers2.unity
     guid: f63ff73f5ad6e02479e7d9e556f572b6
   - enabled: 1
-    path: Assets/GraphicTests/Scenes/9x_Other/9910_MaterialSamplerOverride.unity
+    path: Assets/GraphicTests/Scenes/9x_Other/9910_GlobalMipBias.unity
     guid: 3f9d18568d46df044847954b624b6152
   m_configObjects: {}

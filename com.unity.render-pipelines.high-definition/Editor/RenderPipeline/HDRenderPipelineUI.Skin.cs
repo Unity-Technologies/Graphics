@@ -82,6 +82,7 @@ namespace UnityEditor.Rendering.HighDefinition
             public static readonly GUIContent RTRRayLength = EditorGUIUtility.TrTextContent("Max Ray Length");
             public static readonly GUIContent RTRClampValue = EditorGUIUtility.TrTextContent("Clamp Value");
             public static readonly GUIContent RTRFullResolution = EditorGUIUtility.TrTextContent("Full Resolution");
+            public static readonly GUIContent RTRRayMaxIterations = EditorGUIUtility.TrTextContent("Ray Max Iterations");
             public static readonly GUIContent RTRDenoise = EditorGUIUtility.TrTextContent("Denoise");
             public static readonly GUIContent RTRDenoiserRadius = EditorGUIUtility.TrTextContent("Denoiser Radius");
             public static readonly GUIContent RTRSmoothDenoising = EditorGUIUtility.TrTextContent("Affect Smooth Surfaces");
@@ -92,6 +93,7 @@ namespace UnityEditor.Rendering.HighDefinition
             public static readonly GUIContent RTGIClampValue = EditorGUIUtility.TrTextContent("Clamp Value");
             public static readonly GUIContent RTGIFullResolution = EditorGUIUtility.TrTextContent("Full Resolution");
             public static readonly GUIContent RTGIUpScaleRadius = EditorGUIUtility.TrTextContent("Upscale Radius");
+            public static readonly GUIContent RTGIRaySteps = EditorGUIUtility.TrTextContent("Ray Steps");
             public static readonly GUIContent RTGIDenoise = EditorGUIUtility.TrTextContent("Denoise");
             public static readonly GUIContent RTGIHalfResDenoise = EditorGUIUtility.TrTextContent("Half Resolution Denoiser");
             public static readonly GUIContent RTGIDenoiserRadius = EditorGUIUtility.TrTextContent("Denoiser Radius");
