@@ -13,12 +13,11 @@ MonoBehaviour:
   m_Name: MotionVectorRenderer
   m_EditorClassIdentifier: 
   debugShaders:
-    NumberFont: {fileID: 2800000, guid: f06a37246bbff114da01277637ca397e, type: 3}
     debugReplacementPS: {fileID: 4800000, guid: cf852408f2e174538bcd9b7fda1c5ae7,
       type: 3}
   m_RendererFeatures:
-  - {fileID: 6218234568100364486}
-  m_RendererFeatureMap: c640ade1649b4b56
+  - {fileID: 7182410664851599670}
+  m_RendererFeatureMap: 36f17415720cad63
   m_UseNativeRenderPass: 0
   postProcessData: {fileID: 11400000, guid: 41439944d30ece34e96484bdb6645b55, type: 2}
   xrSystemData: {fileID: 11400000, guid: 60e1133243b97e347b653163a8c01b64, type: 2}
@@ -52,8 +51,9 @@ MonoBehaviour:
     zFailOperation: 0
   m_ShadowTransparentReceive: 1
   m_RenderingMode: 0
+  m_DepthPrimingMode: 0
   m_AccurateGbufferNormals: 0
---- !u!114 &6218234568100364486
+--- !u!114 &7182410664851599670
 MonoBehaviour:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}

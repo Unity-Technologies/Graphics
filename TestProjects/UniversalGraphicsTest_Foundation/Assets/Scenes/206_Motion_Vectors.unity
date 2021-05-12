@@ -413,6 +413,7 @@ MonoBehaviour:
     serializedVersion: 2
     m_Bits: 1
   m_VolumeTrigger: {fileID: 0}
+  m_VolumeFrameworkUpdateModeOption: 2
   m_RenderPostProcessing: 0
   m_Antialiasing: 0
   m_AntialiasingQuality: 2
@@ -438,10 +439,10 @@ MonoBehaviour:
   ImageComparisonSettings:
     TargetWidth: 512
     TargetHeight: 512
-    PerPixelCorrectnessThreshold: 0.01
-    PerPixelGammaThreshold: 0.01
-    PerPixelAlphaThreshold: 0.01
-    AverageCorrectnessThreshold: 0.003
+    PerPixelCorrectnessThreshold: 0.0001
+    PerPixelGammaThreshold: 0.0001
+    PerPixelAlphaThreshold: 0.0001
+    AverageCorrectnessThreshold: 0.0001
     IncorrectPixelsThreshold: 0.0000038146973
     UseHDR: 0
     UseBackBuffer: 1
