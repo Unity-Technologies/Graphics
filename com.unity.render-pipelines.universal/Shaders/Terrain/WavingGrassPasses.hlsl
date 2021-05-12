@@ -81,10 +81,14 @@ void InitializeInputData(GrassVertexOutput input, out InputData inputData)
     inputData.normalizedScreenSpaceUV = GetNormalizedScreenSpaceUV(input.clipPos);
     inputData.shadowMask = SAMPLE_SHADOWMASK(input.lightmapUV);
 
-    #if defined(LIGHTMAP_ON)
-    inputData.lightmapUV = input.lightmapUV;
+    #if defined(DEBUG_DISPLAY)
+    #if defined(DYNAMICLIGHTMAP_ON)
+    inputData.staticLightmapUV = input.lightmapUV;
+    #elif defined(LIGHTMAP_ON)
+    inputData.staticLightmapUV = input.lightmapUV;
     #else
     inputData.vertexSH = input.vertexSH;
+    #endif
     #endif
 }
 

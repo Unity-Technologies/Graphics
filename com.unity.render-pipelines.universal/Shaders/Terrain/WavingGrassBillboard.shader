@@ -29,13 +29,14 @@ Shader "Hidden/TerrainEngine/Details/UniversalPipeline/BillboardWavingDoublePass
             #pragma multi_compile_fragment _ _SHADOWS_SOFT
             #pragma multi_compile _ LIGHTMAP_SHADOW_MIXING
             #pragma multi_compile _ SHADOWS_SHADOWMASK
+            #pragma multi_compile _ _CLUSTERED_RENDERING
 
             // -------------------------------------
             // Unity defined keywords
             #pragma multi_compile _ DIRLIGHTMAP_COMBINED
             #pragma multi_compile _ LIGHTMAP_ON
             #pragma multi_compile_fog
-            #pragma multi_compile _ DEBUG_DISPLAY
+            #pragma multi_compile_fragment _ DEBUG_DISPLAY
 
             //--------------------------------------
             // GPU Instancing

@@ -6,6 +6,10 @@ From 2021.2, if material ambient occlusion needs to be applied to probe volume G
 
 HDRP 2021.2 includes the "ForwardEmissiveForDeferred" shader pass and the associated SHADERPASS_FORWARD_EMISSIVE_FOR_DEFERRED define for Materials that have a GBuffer pass. You can see the new pass in Lit.shader. When you use the Deferred Lit shader mode, Unity uses "ForwardEmissiveForDeferred" to render the emissive contribution of a Material in a separate forward pass. Otherwise, Unity ignores "ForwardEmissiveForDeferred".
 
+From 2021.2, HDRP Decals can use a surface gradient based approach to perturb the normal of the affected objects. This feature needs to be enabled in the HDRP asset.
+When creating a custom decal shader, the accumulated normal value stored in the DBuffer now represent the surface gradient instead of the tangent space normal. You can refer to `DecalUtilities.hlsl` for an example implementation.
+When writing a shader for a surface receiving decals, the normals should now be blended using the surface gradient framework. The prototype for the function `ApplyDecalToSurfaceData` has changed from: `void ApplyDecalToSurfaceData(DecalSurfaceData decalSurfaceData, float3 vtxNormal, inout SurfaceData surfaceData)` to `void ApplyDecalToSurfaceData(DecalSurfaceData decalSurfaceData, float3 vtxNormal, inout SurfaceData surfaceData, inout float3 normalTS)`. You can refer to `LitData.hlsl` and `LitDecalData.hlsl` for an example implementation.
+
 ## Density Volumes
 
 Density Volumes are now known as **Local Volumetric Fog**. If a Scene uses Density Volumes, HDRP automatically migrates the GameObjects to use the new component name, with all the same properties set for the Density Volume. However, if you reference a **Density Volume** through a C# script, a warning appears (**DensityVolume has been deprecated (UnityUpgradable) -> Local Volumetric Fog**) in the Console window. To resolve this, change your code to target the new component. This warning may stop your Project from compiling in future versions of HDRP.

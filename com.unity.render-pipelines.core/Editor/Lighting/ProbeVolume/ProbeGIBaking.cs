@@ -5,6 +5,7 @@ using Unity.Collections;
 using System;
 using System.Linq;
 using UnityEditor;
+using UnityEditor.SceneManagement;
 
 using Brick = UnityEngine.Experimental.Rendering.ProbeBrickIndex.Brick;
 using UnityEngine.SceneManagement;
@@ -67,6 +68,9 @@ namespace UnityEngine.Experimental.Rendering
         static ProbeReferenceVolumeAuthoring m_BakingReferenceVolumeAuthoring = null;
         static int m_BakingBatchIndex = 0;
 
+        static Bounds globalBounds = new Bounds();
+        static bool hasFoundBounds = false;
+
         static ProbeGIBaking()
         {
             Init();
@@ -95,9 +99,16 @@ namespace UnityEngine.Experimental.Rendering
 
                 var refVol = ProbeReferenceVolume.instance;
                 refVol.Clear();
-                refVol.SetTRS(refVolAuthoring.transform.position, refVolAuthoring.transform.rotation, refVolAuthoring.brickSize);
+                refVol.SetTRS(Vector3.zero, Quaternion.identity, refVolAuthoring.brickSize);
                 refVol.SetMaxSubdivision(refVolAuthoring.maxSubdivision);
             }
+
+            var probeVolumes = GameObject.FindObjectsOfType<ProbeVolume>();
+            foreach (var probeVolume in probeVolumes)
+            {
+                probeVolume.OnLightingDataAssetCleared();
+            }
+
 
             if (m_BakingBatch != null)
                 m_BakingBatch.Clear();
@@ -105,7 +116,69 @@ namespace UnityEngine.Experimental.Rendering
             m_BakingBatchIndex = 0;
         }
 
-        private static ProbeReferenceVolumeAuthoring GetCardinalAuthoringComponent(ProbeReferenceVolumeAuthoring[] refVolAuthList)
+        public static void FindWorldBounds()
+        {
+            ProbeReferenceVolume.instance.clearAssetsOnVolumeClear = true;
+
+            var sceneBounds = ProbeReferenceVolume.instance.sceneBounds;
+
+            var prevScenes = new List<string>();
+            for (int i = 0; i < EditorSceneManager.sceneCount; ++i)
+            {
+                var scene = EditorSceneManager.GetSceneAt(i);
+                sceneBounds.UpdateSceneBounds(scene);
+                prevScenes.Add(scene.path);
+            }
+
+            List<Scene> openedScenes = new List<Scene>();
+            hasFoundBounds = false;
+
+            foreach (var buildScene in EditorBuildSettings.scenes)
+            {
+                var scenePath = buildScene.path;
+                bool hasProbeVolumes = false;
+                if (sceneBounds.hasProbeVolumes.TryGetValue(scenePath, out hasProbeVolumes))
+                {
+                    if (hasProbeVolumes)
+                    {
+                        Bounds localBound;
+                        if (sceneBounds.sceneBounds.TryGetValue(scenePath, out localBound))
+                        {
+                            if (hasFoundBounds)
+                            {
+                                globalBounds.Encapsulate(localBound);
+                            }
+                            else
+                            {
+                                globalBounds = localBound;
+                                hasFoundBounds = true;
+                            }
+                        }
+                    }
+                }
+                else // we need to open the scene to test.
+                {
+                    var scene = EditorSceneManager.OpenScene(buildScene.path, OpenSceneMode.Additive);
+                    openedScenes.Add(scene);
+                    sceneBounds.UpdateSceneBounds(scene);
+                    Bounds localBound = sceneBounds.sceneBounds[buildScene.path];
+                    if (hasFoundBounds)
+                        globalBounds.Encapsulate(localBound);
+                    else
+                        globalBounds = localBound;
+                }
+            }
+
+            if (openedScenes.Count > 0)
+            {
+                foreach (var scene in openedScenes)
+                {
+                    EditorSceneManager.CloseScene(scene, true);
+                }
+            }
+        }
+
+        static ProbeReferenceVolumeAuthoring GetCardinalAuthoringComponent(ProbeReferenceVolumeAuthoring[] refVolAuthList)
         {
             List<ProbeReferenceVolumeAuthoring> enabledVolumes = new List<ProbeReferenceVolumeAuthoring>();
 
@@ -129,24 +202,23 @@ namespace UnityEngine.Experimental.Rendering
             for (int c = 1; c < numVols; ++c)
             {
                 var compare = enabledVolumes[c];
-                if (reference.transform.position != compare.transform.position)
-                    return null;
-
-                if (reference.transform.localScale != compare.transform.localScale)
-                    return null;
-
-                if (reference.profile != compare.profile)
+                if (!reference.profile.IsEquivalent(compare.profile))
                     return null;
             }
 
             return reference;
         }
 
-        private static void OnBakeStarted()
+        static void OnBakeStarted()
         {
+            if (!ProbeReferenceVolume.instance.isInitialized) return;
+
             var refVolAuthList = GameObject.FindObjectsOfType<ProbeReferenceVolumeAuthoring>();
             if (refVolAuthList.Length == 0)
                 return;
+
+            FindWorldBounds();
+            refVolAuthList = GameObject.FindObjectsOfType<ProbeReferenceVolumeAuthoring>();
 
             m_BakingReferenceVolumeAuthoring = GetCardinalAuthoringComponent(refVolAuthList);
 
@@ -156,10 +228,24 @@ namespace UnityEngine.Experimental.Rendering
                 return;
             }
 
+
             RunPlacement();
         }
 
-        private static void OnAdditionalProbesBakeCompleted()
+        static void CellCountInDirections(out Vector3Int cellsInXYZ, int cellSizeInMeters)
+        {
+            cellsInXYZ = Vector3Int.zero;
+
+            Vector3 center = Vector3.zero;
+            var centeredMin = globalBounds.min - center;
+            var centeredMax = globalBounds.max - center;
+
+            cellsInXYZ.x = Mathf.Max(Mathf.CeilToInt(Mathf.Abs(centeredMin.x / cellSizeInMeters)), Mathf.CeilToInt(Mathf.Abs(centeredMax.x / cellSizeInMeters))) * 2;
+            cellsInXYZ.y = Mathf.Max(Mathf.CeilToInt(Mathf.Abs(centeredMin.y / cellSizeInMeters)), Mathf.CeilToInt(Mathf.Abs(centeredMax.y / cellSizeInMeters))) * 2;
+            cellsInXYZ.z = Mathf.Max(Mathf.CeilToInt(Mathf.Abs(centeredMin.z / cellSizeInMeters)), Mathf.CeilToInt(Mathf.Abs(centeredMax.z / cellSizeInMeters))) * 2;
+        }
+
+        static void OnAdditionalProbesBakeCompleted()
         {
             UnityEditor.Experimental.Lightmapping.additionalBakedProbesCompleted -= OnAdditionalProbesBakeCompleted;
 
@@ -272,15 +358,27 @@ namespace UnityEngine.Experimental.Rendering
                     {
                         var asset = refVol2Asset[refVol];
                         asset.cells.Add(cell);
-
-                        foreach (var p in cell.probePositions)
+                        if (hasFoundBounds)
                         {
-                            float x = Mathf.Abs((float)p.x + refVol.transform.position.x) / refVol.profile.brickSize;
-                            float y = Mathf.Abs((float)p.y + refVol.transform.position.y) / refVol.profile.brickSize;
-                            float z = Mathf.Abs((float)p.z + refVol.transform.position.z) / refVol.profile.brickSize;
-                            asset.maxCellIndex.x = Mathf.Max(asset.maxCellIndex.x, (int)(x * 2));
-                            asset.maxCellIndex.y = Mathf.Max(asset.maxCellIndex.y, (int)(y * 2));
-                            asset.maxCellIndex.z = Mathf.Max(asset.maxCellIndex.z, (int)(z * 2));
+                            Vector3Int cellsInDir;
+                            int cellSizeInMeters = Mathf.CeilToInt((float)refVol.profile.cellSizeInBricks * refVol.profile.brickSize);
+                            CellCountInDirections(out cellsInDir, cellSizeInMeters);
+
+                            asset.maxCellIndex.x = cellsInDir.x * (int)refVol.profile.cellSizeInBricks;
+                            asset.maxCellIndex.y = cellsInDir.y * (int)refVol.profile.cellSizeInBricks;
+                            asset.maxCellIndex.z = cellsInDir.z * (int)refVol.profile.cellSizeInBricks;
+                        }
+                        else
+                        {
+                            foreach (var p in cell.probePositions)
+                            {
+                                float x = Mathf.Abs((float)p.x + refVol.transform.position.x) / refVol.profile.brickSize;
+                                float y = Mathf.Abs((float)p.y + refVol.transform.position.y) / refVol.profile.brickSize;
+                                float z = Mathf.Abs((float)p.z + refVol.transform.position.z) / refVol.profile.brickSize;
+                                asset.maxCellIndex.x = Mathf.Max(asset.maxCellIndex.x, (int)(x * 2));
+                                asset.maxCellIndex.y = Mathf.Max(asset.maxCellIndex.y, (int)(y * 2));
+                                asset.maxCellIndex.z = Mathf.Max(asset.maxCellIndex.z, (int)(z * 2));
+                            }
                         }
                     }
                 }
@@ -301,8 +399,15 @@ namespace UnityEngine.Experimental.Rendering
                 }
             }
 
+            var probeVolumes = GameObject.FindObjectsOfType<ProbeVolume>();
+            foreach (var probeVolume in probeVolumes)
+            {
+                probeVolume.OnBakeCompleted();
+            }
+
             UnityEditor.AssetDatabase.SaveAssets();
             UnityEditor.AssetDatabase.Refresh();
+            ProbeReferenceVolume.instance.clearAssetsOnVolumeClear = false;
 
             foreach (var refVol in refVol2Asset.Keys)
             {
@@ -311,7 +416,7 @@ namespace UnityEngine.Experimental.Rendering
             }
         }
 
-        private static void OnLightingDataCleared()
+        static void OnLightingDataCleared()
         {
             Clear();
         }
@@ -339,7 +444,7 @@ namespace UnityEngine.Experimental.Rendering
             return (float)(sum / 2.0);
         }
 
-        private static void DilateInvalidProbes(Vector3[] probePositions,
+        static void DilateInvalidProbes(Vector3[] probePositions,
             List<Brick> bricks, SphericalHarmonicsL2[] sh, float[] validity, ProbeDilationSettings dilationSettings)
         {
             // For each brick
@@ -385,7 +490,7 @@ namespace UnityEngine.Experimental.Rendering
         }
 
         // Given a brick index, find and accumulate probes in nearby bricks
-        private static void CullDilationProbes(int brickIdx, List<Brick> bricks,
+        static void CullDilationProbes(int brickIdx, List<Brick> bricks,
             float[] validity, ProbeDilationSettings dilationSettings, List<DilationProbe> outProbeIndices)
         {
             outProbeIndices.Clear();
@@ -422,7 +527,7 @@ namespace UnityEngine.Experimental.Rendering
         }
 
         // Given a probe index, find nearby probes weighted by inverse distance
-        private static void FindNearProbes(int probeIdx, Vector3[] probePositions,
+        static void FindNearProbes(int probeIdx, Vector3[] probePositions,
             ProbeDilationSettings dilationSettings, List<DilationProbe> culledProbes, List<DilationProbe> outNearProbes, out float invDistSum)
         {
             outNearProbes.Clear();
@@ -491,9 +596,12 @@ namespace UnityEngine.Experimental.Rendering
 
             var volumeScale = m_BakingReferenceVolumeAuthoring.transform.localScale;
             var CellSize = m_BakingReferenceVolumeAuthoring.cellSize;
-            var xCells = (int)Mathf.Ceil(volumeScale.x / CellSize);
-            var yCells = (int)Mathf.Ceil(volumeScale.y / CellSize);
-            var zCells = (int)Mathf.Ceil(volumeScale.z / CellSize);
+            Vector3Int cellsInDir;
+            CellCountInDirections(out cellsInDir, CellSize);
+
+            var xCells = cellsInDir.x;
+            var yCells = cellsInDir.y;
+            var zCells = cellsInDir.z;
 
             // create cells
             List<Vector3Int> cellPositions = new List<Vector3Int>();

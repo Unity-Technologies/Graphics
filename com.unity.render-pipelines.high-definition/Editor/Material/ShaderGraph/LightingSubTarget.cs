@@ -122,6 +122,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                 {
                     pass.keywords.Add(CoreKeywordDescriptors.ShadowsShadowmask);
                     pass.keywords.Add(CoreKeywordDescriptors.Decals);
+                    pass.keywords.Add(CoreKeywordDescriptors.DecalSurfaceGradient);
                 }
             }
 

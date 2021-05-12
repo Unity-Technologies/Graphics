@@ -6,6 +6,11 @@ namespace UnityEngine.Rendering.HighDefinition
     {
         private ComputeBuffer m_EmptyIndexBuffer = null;
 
+        bool IsAPVEnabled()
+        {
+            return m_Asset.currentPlatformRenderPipelineSettings.supportProbeVolume && m_GlobalSettings.supportProbeVolumes;
+        }
+
         private void BindAPVRuntimeResources(CommandBuffer cmdBuffer, HDCamera hdCamera)
         {
             bool needToBindNeutral = true;
@@ -72,9 +77,12 @@ namespace UnityEngine.Rendering.HighDefinition
 
             if (cb._EnableProbeVolumes > 0)
             {
-                ProbeReferenceVolume.instance.UpdateConstantBuffer(cmd, probeVolumeOptions.normalBias.value,
-                    probeVolumeOptions.viewBias.value,
-                    probeVolumeOptions.scaleBiasWithMinProbeDistance.value);
+                ProbeVolumeShadingParameters parameters;
+                parameters.normalBias = probeVolumeOptions.normalBias.value;
+                parameters.viewBias = probeVolumeOptions.viewBias.value;
+                parameters.scaleBiasByMinDistanceBetweenProbes = probeVolumeOptions.scaleBiasWithMinProbeDistance.value;
+                parameters.samplingNoise = probeVolumeOptions.samplingNoise.value;
+                ProbeReferenceVolume.instance.UpdateConstantBuffer(cmd, parameters);
             }
         }
     }

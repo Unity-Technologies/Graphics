@@ -854,7 +854,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
             // Setup shadow algorithms
             var shadowParams = asset.currentPlatformRenderPipelineSettings.hdShadowInitParams;
-            var shadowKeywords = new[] {"SHADOW_LOW", "SHADOW_MEDIUM", "SHADOW_HIGH"};
+            var shadowKeywords = new[] {"SHADOW_LOW", "SHADOW_MEDIUM", "SHADOW_HIGH", "SHADOW_VERY_HIGH"};
             foreach (var p in shadowKeywords)
                 Shader.DisableKeyword(p);
             Shader.EnableKeyword(shadowKeywords[(int)shadowParams.shadowFilteringQuality]);
@@ -884,6 +884,12 @@ namespace UnityEngine.Rendering.HighDefinition
             // Screen space shadow
             int numMaxShadows = Math.Max(m_Asset.currentPlatformRenderPipelineSettings.hdShadowInitParams.maxScreenSpaceShadowSlots, 1);
             m_CurrentScreenSpaceShadowData = new ScreenSpaceShadowData[numMaxShadows];
+
+            // Surface gradient decal blending
+            if (asset.currentPlatformRenderPipelineSettings.supportSurfaceGradient)
+                Shader.EnableKeyword("DECAL_SURFACE_GRADIENT");
+            else
+                Shader.DisableKeyword("DECAL_SURFACE_GRADIENT");
         }
 
         void CleanupLightLoop()
@@ -947,7 +953,7 @@ namespace UnityEngine.Rendering.HighDefinition
             }
 
             // We need to verify and flush any pending asset loading for probe volume.
-            if (m_Asset.currentPlatformRenderPipelineSettings.supportProbeVolume)
+            if (IsAPVEnabled())
             {
                 if (hdCamera.frameSettings.IsEnabled(FrameSettingsField.ProbeVolume))
                 {
@@ -3559,6 +3565,9 @@ namespace UnityEngine.Rendering.HighDefinition
                         break;
                     case HDShadowFilteringQuality.High:
                         parameters.deferredComputeShader.EnableKeyword("SHADOW_HIGH");
+                        break;
+                    case HDShadowFilteringQuality.VeryHigh:
+                        parameters.deferredComputeShader.EnableKeyword("SHADOW_VERY_HIGH");
                         break;
                     default:
                         parameters.deferredComputeShader.EnableKeyword("SHADOW_MEDIUM");
