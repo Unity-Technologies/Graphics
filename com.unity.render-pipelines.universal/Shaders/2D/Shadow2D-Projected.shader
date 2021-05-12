@@ -20,8 +20,9 @@ Shader "Hidden/ShadowProjected2D"
             // Bit 0: Composite Shadow Bit, Bit 1: Global Shadow Bit
             Stencil
             {
+                Ref         5
+                ReadMask    4
                 WriteMask   1
-                Ref         1
                 Comp        NotEqual
                 Pass        Replace
                 Fail        Keep
