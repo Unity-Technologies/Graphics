@@ -106,7 +106,7 @@ namespace UnityEngine.Experimental.Rendering
 #endif
         public ProbeVolumeAsset volumeAsset = null;
 
-        internal void QueueAssetLoading()
+        internal void LoadProfileInformation()
         {
             if (m_Profile == null)
                 return;
@@ -115,6 +115,11 @@ namespace UnityEngine.Experimental.Rendering
             refVol.Clear();
             refVol.SetTRS(transform.position, transform.rotation, m_Profile.minBrickSize);
             refVol.SetMaxSubdivision(m_Profile.maxSubdivision);
+        }
+
+        internal void QueueAssetLoading()
+        {
+            LoadProfileInformation();
 
             if (volumeAsset != null)
                 refVol.AddPendingAssetLoading(volumeAsset);

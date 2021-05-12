@@ -473,6 +473,8 @@ namespace UnityEngine.Experimental.Rendering
 
         static void DispatchCompute(CommandBuffer cmd, int kernel, int width, int height, int depth = 1)
         {
+            // If any issue occur on mac / intel GPU devices regarding the probe subdivision, it's likely to be
+            // the GetKernelThreadGroupSizes returning wrong values.
             subdivideSceneCS.GetKernelThreadGroupSizes(kernel, out uint x, out uint y, out uint z);
             cmd.DispatchCompute(
                 subdivideSceneCS,

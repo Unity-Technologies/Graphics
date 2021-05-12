@@ -364,7 +364,7 @@ namespace UnityEngine.Experimental.Rendering
             foreach (var refVol in refVol2Asset.Keys)
             {
                 if (refVol.enabled && refVol.gameObject.activeSelf)
-                    refVol.QueueAssetLoading();
+                    refVol.QueueAssetLoadingAndProfile();
             }
         }
 
