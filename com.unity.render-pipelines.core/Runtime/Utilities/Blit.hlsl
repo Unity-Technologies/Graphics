@@ -184,6 +184,33 @@ float4 FragOctahedralProject(Varyings input) : SV_Target
     return float4(SAMPLE_TEXTURECUBE_LOD(_BlitCubeTexture, sampler_LinearRepeat, dir, _BlitMipLevel).rgb, 1);
 }
 
+// 8-bit single channel sampling/format conversions
+
+float4 FragOctahedralProjectLuminance(Varyings input) : SV_Target
+{
+    UNITY_SETUP_STEREO_EYE_INDEX_POST_VERTEX(input);
+    float2 UV = saturate(input.texcoord);
+    float3 dir = UnpackNormalOctQuadEncode(2.0f*UV - 1.0f);
+    // sRGB/Rec.709
+    return Luminance(SAMPLE_TEXTURECUBE_LOD(_BlitCubeTexture, sampler_LinearRepeat, dir, _BlitMipLevel)).xxxx;
+}
+
+float4 FragOctahedralProjectRedToRGBA(Varyings input) : SV_Target
+{
+    UNITY_SETUP_STEREO_EYE_INDEX_POST_VERTEX(input);
+    float2 UV = saturate(input.texcoord);
+    float3 dir = UnpackNormalOctQuadEncode(2.0f*UV - 1.0f);
+    return SAMPLE_TEXTURECUBE_LOD(_BlitCubeTexture, sampler_LinearRepeat, dir, _BlitMipLevel).rrrr;
+}
+
+float4 FragOctahedralProjectAlphaToRGBA(Varyings input) : SV_Target
+{
+    UNITY_SETUP_STEREO_EYE_INDEX_POST_VERTEX(input);
+    float2 UV = saturate(input.texcoord);
+    float3 dir = UnpackNormalOctQuadEncode(2.0f*UV - 1.0f);
+    return SAMPLE_TEXTURECUBE_LOD(_BlitCubeTexture, sampler_LinearRepeat, dir, _BlitMipLevel).aaaa;
+}
+
 float4 FragBilinearLuminance(Varyings input) : SV_Target
 {
     UNITY_SETUP_STEREO_EYE_INDEX_POST_VERTEX(input);
@@ -196,7 +223,7 @@ float4 FragBilinearRedToRGBA(Varyings input) : SV_Target
 {
     UNITY_SETUP_STEREO_EYE_INDEX_POST_VERTEX(input);
     float2 uv = input.texcoord.xy;
-    return Luminance(SAMPLE_TEXTURE2D_X_LOD(_BlitTexture, sampler_LinearRepeat, uv, _BlitMipLevel)).rrrr;
+    return SAMPLE_TEXTURE2D_X_LOD(_BlitTexture, sampler_LinearRepeat, uv, _BlitMipLevel).rrrr;
 }
 
 float4 FragBilinearAlphaToRGBA(Varyings input) : SV_Target

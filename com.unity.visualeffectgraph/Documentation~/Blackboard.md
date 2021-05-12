@@ -24,7 +24,7 @@ In order to set the Menu path of the currently edited Subgraph, you can double-c
 
 To create a property, click the plus (**+**) button in the top-right of the Blackboard then select a property type from the menu.
 
-You can also convert an inline operator to a property. To do this, right-click on the Node and select either:
+You can also convert an inline Operator to a property. To do this, right-click on the Node and select either:
 
 - **Convert to Property** if you want to create a constant.
 - **Convert to Exposed Property** if you want to create an exposed property

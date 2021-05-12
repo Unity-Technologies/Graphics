@@ -774,10 +774,12 @@ float Length2(float3 v)
     return dot(v, v);
 }
 
+#ifndef BUILTIN_TARGET_API
 real Pow4(real x)
 {
     return (x * x) * (x * x);
 }
+#endif
 
 TEMPLATE_3_FLT(RangeRemap, min, max, t, return saturate((t - min) / (max - min)))
 
@@ -858,8 +860,6 @@ float ComputeTextureLOD(float3 duvw_dx, float3 duvw_dy, float3 duvw_dz, float sc
     return max(0.5f * log2(d * (scale * scale)) - bias, 0.0);
 }
 
-uint GetMipCount(TEXTURE2D_PARAM(tex, smp))
-{
 #if defined(SHADER_API_D3D11) || defined(SHADER_API_D3D12) || defined(SHADER_API_D3D11_9X) || defined(SHADER_API_XBOXONE) || defined(SHADER_API_PSSL)
     #define MIP_COUNT_SUPPORTED 1
 #endif
@@ -872,6 +872,8 @@ uint GetMipCount(TEXTURE2D_PARAM(tex, smp))
 #endif
     // Metal doesn't support high enough OpenGL version
 
+uint GetMipCount(TEXTURE2D_PARAM(tex, smp))
+{
 #if defined(MIP_COUNT_SUPPORTED)
     uint mipLevel, width, height, mipCount;
     mipLevel = width = height = mipCount = 0;
@@ -1266,6 +1268,8 @@ void ApplyDepthOffsetPositionInput(float3 V, float depthOffsetVS, float3 viewFor
 
 #if defined(SHADER_API_VULKAN) || defined(SHADER_API_GLES) || defined(SHADER_API_GLES3)
 
+// For the built-in target this is already a defined symbol
+#ifndef BUILTIN_TARGET_API
 real4 PackHeightmap(real height)
 {
     uint a = (uint)(65535.0 * height);
@@ -1276,9 +1280,12 @@ real UnpackHeightmap(real4 height)
 {
     return (height.r + height.g * 256.0) / 257.0; // (255.0 * height.r + 255.0 * 256.0 * height.g) / 65535.0
 }
+#endif
 
 #else
 
+// For the built-in target this is already a defined symbol
+#ifndef BUILTIN_TARGET_API
 real4 PackHeightmap(real height)
 {
     return real4(height, 0, 0, 0);
@@ -1288,6 +1295,7 @@ real UnpackHeightmap(real4 height)
 {
     return height.r;
 }
+#endif
 
 #endif
 

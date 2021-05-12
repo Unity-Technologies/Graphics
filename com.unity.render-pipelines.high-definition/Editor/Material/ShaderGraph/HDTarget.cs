@@ -1236,6 +1236,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                 new KeywordEntry() { displayName = "Low", referenceName = "LOW" },
                 new KeywordEntry() { displayName = "Medium", referenceName = "MEDIUM" },
                 new KeywordEntry() { displayName = "High", referenceName = "HIGH" },
+                new KeywordEntry() { displayName = "VeryHigh", referenceName = "VERY_HIGH" },
             },
             stages = KeywordShaderStage.Fragment,
         };

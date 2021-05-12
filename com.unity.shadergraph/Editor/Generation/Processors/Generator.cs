@@ -65,7 +65,23 @@ namespace UnityEditor.ShaderGraph
         {
             if (m_OutputNode == null)
             {
-                return m_GraphData.activeTargets.ToArray();
+                var targets = m_GraphData.activeTargets.ToList();
+                // Sort the built-in target to be last. This is currently a requirement otherwise it'll get picked up for other passes incorrectly
+                targets.Sort(delegate(Target target0, Target target1)
+                {
+                    var result = target0.displayName.CompareTo(target1.displayName);
+                    // If only one value is built-in, then sort it last
+                    if (result != 0)
+                    {
+                        if (target0.displayName == "Built-In")
+                            result = 1;
+                        if (target1.displayName == "Built-In")
+                            result = -1;
+                    }
+
+                    return result;
+                });
+                return targets.ToArray();
             }
             else
             {
@@ -554,20 +570,7 @@ namespace UnityEditor.ShaderGraph
                     {
                         if (keyword.TestActive(activeFields))
                         {
-                            if (keyword.descriptor.NeedsMultiStageDefinition(ref stages))
-                            {
-                                foreach (KeywordShaderStage stage in stages)
-                                {
-                                    // Override the stage for each one of the requested ones and append a line for each stage.
-                                    KeywordDescriptor descCopy = keyword.descriptor;
-                                    descCopy.stages = stage;
-                                    passKeywordBuilder.AppendLine(descCopy.ToDeclarationString());
-                                }
-                            }
-                            else
-                            {
-                                passKeywordBuilder.AppendLine(keyword.value);
-                            }
+                            keyword.descriptor.AppendKeywordDeclarationStrings(passKeywordBuilder);
                         }
                     }
                 }
