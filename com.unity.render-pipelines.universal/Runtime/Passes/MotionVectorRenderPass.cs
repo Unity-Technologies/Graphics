@@ -78,7 +78,7 @@ namespace UnityEngine.Rendering.Universal.Internal
 
                 // TODO: add option to only draw either one?
                 DrawCameraMotionVectors(context, cmd, camera);
-                DrawObjectMotionVectors(context, ref renderingData, cmd, camera);
+                DrawObjectMotionVectors(context, ref renderingData, camera);
             }
             ExecuteCommand(context, cmd);
             CommandBufferPool.Release(cmd);
@@ -113,7 +113,7 @@ namespace UnityEngine.Rendering.Universal.Internal
             ExecuteCommand(context, cmd);
         }
 
-        void DrawObjectMotionVectors(ScriptableRenderContext context, ref RenderingData renderingData, CommandBuffer cmd, Camera camera)
+        void DrawObjectMotionVectors(ScriptableRenderContext context, ref RenderingData renderingData, Camera camera)
         {
             var drawingSettings = GetDrawingSettings(ref renderingData);
             var filteringSettings = new FilteringSettings(RenderQueueRange.opaque, camera.cullingMask);
