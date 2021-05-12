@@ -564,9 +564,19 @@ namespace UnityEngine.Experimental.Rendering
         {
             if (!m_ProbeReferenceVolumeInit)
             {
+                int indexSize = 0;
+                try
+                {
+                    indexSize = checked(indexDimensions.x * (indexDimensions.y + 1) * indexDimensions.z);
+                }
+                catch
+                {
+                    Debug.LogError("Index Dimension too big, try reducing the area covered by the probe volumes.");
+                    return;
+                }
                 Profiler.BeginSample("Initialize Reference Volume");
                 m_Pool = new ProbeBrickPool(allocationSize, memoryBudget);
-                if ((indexDimensions.x * (indexDimensions.y + 1) * indexDimensions.z) == 0)
+                if (indexSize == 0)
                 {
                     // Give a momentarily dummy size to allow the system to function with no asset assigned.
                     indexDimensions = new Vector3Int(1, 1, 1);
