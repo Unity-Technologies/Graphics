@@ -13,6 +13,10 @@ This can be used to fix artefacts when using [Screen Space Global Illumination](
 Limitation: When Unity performs a separate pass for the Emissive contribution, it also performs an additional DrawCall. This means it uses more resources on your CPU.
 Group of Materials / GameObject can be setup to use Force Emissive forward with the script "Edit/Render Pipeline/HD Render Pipeline/Force Forward Emissive on Material/Enable In Selection".
 
+### Adding Tessellation support for ShaderGraph Master Stack
+
+From HDRP 12.0, you can enable Tessellation on any Master Stack of the High Definition Render Pipeline. The option is on the Master Stack settings and will add two new inputs to the Vertex Block: Tessellation Factor and World Displacement. Refer to [Tessellation documentation](Tessellation.md) for more information.
+
 ## Improvements
 
 ### Area Lights
