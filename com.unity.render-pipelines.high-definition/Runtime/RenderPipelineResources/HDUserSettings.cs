@@ -13,8 +13,6 @@ namespace UnityEngine.Rendering.HighDefinition
         const string filePath = "UserSettings/HDRPUserSettings.asset";
 
         [SerializeField]
-        bool m_WizardPopupAtStart = true;
-        [SerializeField]
         bool m_WizardPopupAlreadyShownOnce = false;
         [SerializeField]
         int m_WizardActiveTab = 0;
@@ -29,16 +27,6 @@ namespace UnityEngine.Rendering.HighDefinition
             set
             {
                 instance.m_WizardActiveTab = value;
-                Save();
-            }
-        }
-
-        public static bool wizardIsStartPopup
-        {
-            get => instance.m_WizardPopupAtStart;
-            set
-            {
-                instance.m_WizardPopupAtStart = value;
                 Save();
             }
         }
