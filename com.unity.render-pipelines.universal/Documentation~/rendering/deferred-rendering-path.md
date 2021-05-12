@@ -313,7 +313,7 @@ Unity renders Materials with such shaders in the Forward Rendering Path. For the
 
 #### General implementation notes
 
-For maximum platform compatibility, the URP Deferred Rendering Path uses the light stencil volume technique to perform the light accumulation.
+For maximum platform compatibility, the URP Deferred Rendering Path uses the light stencil volume technique to render light volumes and apply deferred shading.
 
 ## Relevant code files
 
