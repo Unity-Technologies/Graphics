@@ -5,6 +5,10 @@ test_platforms:
   - type: Standalone
     utr_flags:
       - [OSX_Metal]: --timeout=2400
+  - type: Standalone
+    name: Standalone_ref_images
+    utr_flags:
+      - [OSX_Metal]: --timeout=2400
     commands:
       - [Android_OpenGLES3, Android_Vulkan]: <shared.platform.commands.connect_bokken>
       - [Win_DX11, Win_DX12, Win_Vulkan, Android_OpenGLES3, Android_Vulkan]: <shared.platform.commands.turn_off_firewall>
@@ -20,6 +24,8 @@ test_platforms:
       - [Android_OpenGLES3, Android_Vulkan]: python .yamato/tooling/shadergraph_commitback.py --root "TestProjects/ShaderGraph"
 
   - type: playmode
+  - type: playmode
+    name: playmode_ref_images
     utr_flags:
     - [all]: --extra-editor-arg="-logfile C:/build/output/Unity-Technologies/Graphics/TestProjects/ShaderGraph/Logs/Editor.log" --testfilter="Individual"
     commands:
@@ -56,6 +62,8 @@ test_platforms:
     - [Android_OpenGLES3, Android_Vulkan]: python .yamato/tooling/shadergraph_commitback.py --root "TestProjects/ShaderGraph"
     - [all]: <shared.platform.commands.call_utr>
   - type: editmode
+  - type: editmode
+    name: editmode_ref_images
     commands:
     - [Win_DX11, Win_DX12, Win_Vulkan]: <shared.platform.commands.turn_off_firewall>
     - [all]: <shared.platform.commands.setup_utr>

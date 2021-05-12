@@ -40,6 +40,7 @@ if __name__ == "__main__":
         while True:
             line = f.readline().strip()
             if line == "":
+                print("Finished adding files")
                 break
             test_name, asset_path, should_update_image = line.split(",")
             _, _, colorspace, editor, test_platform, vr, testname, testasset = asset_path.split("/")
