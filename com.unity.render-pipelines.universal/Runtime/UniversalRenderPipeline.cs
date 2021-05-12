@@ -1070,7 +1070,7 @@ namespace UnityEngine.Rendering.Universal
             lightData.reflectionProbeBlending = settings.reflectionProbeBlending;
             lightData.reflectionProbeBoxProjection = settings.reflectionProbeBoxProjection;
             lightData.supportsLightLayers = RenderingUtils.SupportsLightLayers(SystemInfo.graphicsDeviceType) && settings.supportsLightLayers;
-            lightData.originalIndices = new NativeArray<int>(visibleLights.Length, Allocator.TempJob);
+            lightData.originalIndices = new NativeArray<int>(visibleLights.Length, Allocator.Temp);
             for (var i = 0; i < lightData.originalIndices.Length; i++)
             {
                 lightData.originalIndices[i] = i;
