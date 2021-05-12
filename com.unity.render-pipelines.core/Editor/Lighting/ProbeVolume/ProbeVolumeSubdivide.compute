@@ -250,7 +250,7 @@ void Subdivide(uint3 id : SV_DispatchThreadID)
     voxelDetectionDistance *= voxelDetectionDistance;
     voxelDetectionDistance = sqrt(voxelDetectionDistance + voxelDetectionDistance + voxelDetectionDistance) / 2.0;
 
-    int minSubdiv = _MaxSubdivisionLevel - subdivisionLevelData.x;
+    int minSubdiv = _MaxSubdivisionLevel - subdivisionLevelData.x - 1;
 
     // Add a small offset to control how the subdivision looks from the probe volume
     voxelDetectionDistance += subdivisionLevelData.z * rcp(_MaxBrickSize.x);
