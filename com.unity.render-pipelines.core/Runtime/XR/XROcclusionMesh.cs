@@ -1,7 +1,7 @@
-// TODO: rename shader params and document all usage
-
 namespace UnityEngine.Rendering
 {
+    // Helper class to render occlusion meshes.
+    // If possible, the mesh for each view will be combined into one mesh to reduce draw calls.
     internal class XROcclusionMesh
     {
         XRPass m_Pass;

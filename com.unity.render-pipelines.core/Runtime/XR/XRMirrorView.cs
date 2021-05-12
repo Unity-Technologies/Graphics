@@ -1,11 +1,9 @@
-// TODO: rename shader params and document all usage
-
 namespace UnityEngine.Rendering
 {
     internal static class XRMirrorView
     {
         static readonly MaterialPropertyBlock s_MirrorViewMaterialProperty = new MaterialPropertyBlock();
-        static readonly ProfilingSampler k_MirrorProfilingSampler = new ProfilingSampler("XR Mirror View");
+        static readonly ProfilingSampler k_MirrorViewProfilingSampler = new ProfilingSampler("XR Mirror View");
 
         static readonly int k_SourceTex             = Shader.PropertyToID("_SourceTex");
         static readonly int k_SourceTexArraySlice   = Shader.PropertyToID("_SourceTexArraySlice");
@@ -27,7 +25,7 @@ namespace UnityEngine.Rendering
             int mirrorBlitMode = display.GetPreferredMirrorBlitMode();
             if (display.GetMirrorViewBlitDesc(null, out var blitDesc, mirrorBlitMode))
             {
-                using (new ProfilingScope(cmd, k_MirrorProfilingSampler))
+                using (new ProfilingScope(cmd, k_MirrorViewProfilingSampler))
                 {
                     cmd.SetRenderTarget(camera.targetTexture != null ? camera.targetTexture : new RenderTargetIdentifier(BuiltinRenderTextureType.CameraTarget));
 

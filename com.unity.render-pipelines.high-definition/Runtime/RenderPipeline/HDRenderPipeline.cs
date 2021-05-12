@@ -1090,7 +1090,7 @@ namespace UnityEngine.Rendering.HighDefinition
             Terrain.GetActiveTerrains(m_ActiveTerrains);
             
             XRSystem.singlePassAllowed = m_Asset.currentPlatformRenderPipelineSettings.xrSettings.singlePass;
-            var xrLayout = XRSystem.NewFrame();
+            var xrLayout = XRSystem.NewLayout();
 
             // This syntax is awful and hostile to debugging, please don't use it...
             using (ListPool<RenderRequest>.Get(out List<RenderRequest> renderRequests))
@@ -1118,7 +1118,7 @@ namespace UnityEngine.Rendering.HighDefinition
 #endif
 
                 // Culling loop
-                foreach ((Camera camera, XRPass xrPass) in xrLayout.GetFramePasses())
+                foreach ((Camera camera, XRPass xrPass) in xrLayout.GetActivePasses())
                 {
                     if (camera == null)
                         continue;
@@ -1834,7 +1834,7 @@ namespace UnityEngine.Rendering.HighDefinition
             DynamicResolutionHandler.ClearSelectedCamera();
 
             m_RenderGraph.EndFrame();
-            XRSystem.EndFrame();
+            XRSystem.EndLayout();
 
 #if UNITY_2021_1_OR_NEWER
             EndContextRendering(renderContext, cameras);

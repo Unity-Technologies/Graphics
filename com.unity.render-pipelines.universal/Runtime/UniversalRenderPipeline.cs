@@ -143,9 +143,11 @@ namespace UnityEngine.Rendering.Universal
             if (msaaSampleCountNeedsUpdate)
             {
                 QualitySettings.antiAliasing = asset.msaaSampleCount;
-                XRSystem.SetDisplayAntialiasing(asset.msaaSampleCount);
             }
 
+            // Configure initial XR settings
+            MSAASamples msaaSamples = (MSAASamples)Mathf.Clamp(Mathf.NextPowerOfTwo(QualitySettings.antiAliasing), (int)MSAASamples.None, (int)MSAASamples.MSAA8x);
+            XRSystem.SetDisplayMSAASamples(msaaSamples);
             XRSystem.SetRenderScale(asset.renderScale);
 
             Shader.globalRenderPipeline = "UniversalPipeline";
@@ -490,11 +492,11 @@ namespace UnityEngine.Rendering.Universal
             // Prepare XR rendering
             var initialCameraTargetDesc = baseCameraData.cameraTargetDescriptor;
             var xrActive = false;
-            var xrLayout = XRSystem.NewFrame();
+            var xrLayout = XRSystem.NewLayout();
             xrLayout.AddCamera(baseCameraData.camera, baseCameraData.xrRendering);
 
             // With XR multi-pass enabled, each camera can be rendered multiple times with different parameters
-            foreach ((Camera _, XRPass xrPass) in xrLayout.GetFramePasses())
+            foreach ((Camera _, XRPass xrPass) in xrLayout.GetActivePasses())
             {
                 baseCameraData.xr = xrPass;
                 if (baseCameraData.xr.enabled)
@@ -580,7 +582,7 @@ namespace UnityEngine.Rendering.Universal
                 CommandBufferPool.Release(cmd);
             }
 
-            XRSystem.EndFrame();
+            XRSystem.EndLayout();
         }
 
         // Used for updating URP cameraData data struct with XRPass data.
@@ -716,7 +718,7 @@ namespace UnityEngine.Rendering.Universal
             // Use XR's MSAA if camera is XR camera. XR MSAA needs special handle here because it is not per Camera.
             // Multiple cameras could render into the same XR display and they should share the same MSAA level.
             if (cameraData.xrRendering && rendererSupportsMSAA)
-                msaaSamples = XRSystem.GetDisplayAntialiasing();
+                msaaSamples = (int)XRSystem.GetDisplayMSAASamples();
 
             bool needsAlphaChannel = Graphics.preserveFramebufferAlpha;
             cameraData.cameraTargetDescriptor = CreateRenderTextureDescriptor(camera, cameraData.renderScale,

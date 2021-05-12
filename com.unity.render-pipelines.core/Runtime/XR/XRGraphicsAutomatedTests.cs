@@ -45,7 +45,7 @@ namespace UnityEngine.Rendering
                     cullingParams.stereoViewMatrix = camViewMatrix;
                     cullingParams.stereoSeparationDistance = 0.0f;
 
-                    List<(Camera, XRPass)> xrPasses = layout.GetFramePasses();
+                    List<(Camera, XRPass)> xrPasses = layout.GetActivePasses();
                     for (int passId = 0; passId < xrPasses.Count; passId++)
                     {
                         var xrPass = xrPasses[passId].Item2;

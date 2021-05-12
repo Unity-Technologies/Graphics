@@ -24,7 +24,7 @@ namespace UnityEngine.Rendering
     #endif
 
         // MSAA level (number of samples per pixel) shared by all XR displays
-        static int s_MsaaLevel = 1;
+        static MSAASamples s_MSAASamples = MSAASamples.None;
 
         // Internal resources used by XR rendering
         static Material s_OcclusionMeshMaterial;
@@ -78,19 +78,18 @@ namespace UnityEngine.Rendering
         /// Used by the render pipeline to communicate to the XR device how many samples are used by MSAA.
         /// </summary>
         /// <param name="msaaSampleCount"></param>
-        public static void SetDisplayAntialiasing(int msaaSampleCount)
+        public static void SetDisplayMSAASamples(MSAASamples msaaSamples)
         {
-            if (s_MsaaLevel == msaaSampleCount)
+            if (s_MSAASamples == msaaSamples)
                 return;
 
-            s_MsaaLevel = Mathf.NextPowerOfTwo(msaaSampleCount);
-            s_MsaaLevel = Mathf.Clamp(s_MsaaLevel, 1, 8); // hard-coded ??
+            s_MSAASamples = msaaSamples;
 
         #if ENABLE_VR && ENABLE_XR_MODULE
             SubsystemManager.GetInstances(s_DisplayList);
 
             foreach (var display in s_DisplayList)
-                display.SetMSAALevel(s_MsaaLevel);
+                display.SetMSAALevel((int)s_MSAASamples);
         #endif
         }
 
@@ -98,13 +97,13 @@ namespace UnityEngine.Rendering
         /// Returns the number of samples (MSAA) currently configured on the XR device.
         /// </summary>
         /// <returns></returns>
-        public static int GetDisplayAntialiasing()
+        public static MSAASamples GetDisplayMSAASamples()
         {
-            return s_MsaaLevel;
+            return s_MSAASamples;
         }
 
         /// <summary>
-        /// is this still useful ?
+        /// Used by the render pipeline to scale the render target on the XR device.
         /// </summary>
         /// <param name="renderScale"></param>
         public static void SetRenderScale(float renderScale)
@@ -118,49 +117,16 @@ namespace UnityEngine.Rendering
         }
 
         /// <summary>
-        /// Used by the render pipeline to communicate to the XR device the range of the depth buffer.
+        /// Used by the render pipeline to initiate a new rendering frame through a XR layout.
         /// </summary>
-        /// <param name="zNear"></param>
-        /// <param name="zFar"></param>
-        public static void SetDisplayZRange(float zNear, float zFar)
-        {
-        #if ENABLE_VR && ENABLE_XR_MODULE
-            if (s_Display != null)
-            {
-                s_Display.zNear = zNear;
-                s_Display.zFar = zFar;
-            }
-        #endif
-        }
-
-        // Expose properties for finer control ?
-        public static void SetDisplaySync()
-        {
-            // Disable vsync on the main display when rendering to a XR device.
-            QualitySettings.vSyncCount = 0;
-
-            // On Android and iOS, vSyncCount is ignored and all frame rate control is done using Application.targetFrameRate.
-            if (Application.platform == RuntimePlatform.Android)
-            {
-                float frameRate = 300.0f;
-                //frameRate = s_Display.TryGetDisplayRefreshRate(out float refreshRate) ? refreshRate : frameRate;
-
-                // XRTODO : move out, causing issues with HDRP timing
-                Application.targetFrameRate = Mathf.CeilToInt(frameRate);
-            }
-        }
-
-        /// <summary>
-        /// Used by the render pipeline to setup a new rendering frame trhough a XR layout.
-        /// </summary>
-        public static XRLayout NewFrame()
+        public static XRLayout NewLayout()
         {
             RefreshDeviceInfo();
 
-            if (s_Layout.GetFramePasses().Count > 0)
+            if (s_Layout.GetActivePasses().Count > 0)
             {
-                Debug.LogWarning("Render Pipeline error : XRSystem.EndFrame() was not called!");
-                EndFrame();
+                Debug.LogWarning("Render Pipeline error : XRSystem.EndLayout() was not called!");
+                EndLayout();
             }
 
             return s_Layout;
@@ -169,7 +135,7 @@ namespace UnityEngine.Rendering
         /// <summary>
         /// Used by the render pipeline to complete the XR layout at the end of the frame.
         /// </summary>
-        public static void EndFrame()
+        public static void EndLayout()
         {
             if (dumpDebugInfo)
                 s_Layout.LogDebugInfo();
@@ -198,7 +164,36 @@ namespace UnityEngine.Rendering
             CoreUtils.Destroy(s_MirrorViewMaterial);
         }
 
-        // XRTODO: expose as public API
+        // Used by the render pipeline to communicate to the XR device the range of the depth buffer.
+        internal static void SetDisplayZRange(float zNear, float zFar)
+        {
+        #if ENABLE_VR && ENABLE_XR_MODULE
+            if (s_Display != null)
+            {
+                s_Display.zNear = zNear;
+                s_Display.zFar = zFar;
+            }
+        #endif
+        }
+
+        internal static void SetDisplaySync()
+        {
+            // Disable vsync on the main display when rendering to a XR device.
+            // XRTODO : expose public property to control this behavior
+            QualitySettings.vSyncCount = 0;
+
+            // On Android and iOS, vSyncCount is ignored and all frame rate control is done using Application.targetFrameRate.
+            if (Application.platform == RuntimePlatform.Android)
+            {
+                float frameRate = 300.0f;
+                //frameRate = s_Display.TryGetDisplayRefreshRate(out float refreshRate) ? refreshRate : frameRate;
+
+                // XRTODO : move out, causing issues with HDRP timing
+                Application.targetFrameRate = Mathf.CeilToInt(frameRate);
+            }
+        }
+
+        // XRTODO : expose as public API
         static void SetLayoutOverride(Action<XRLayout, Camera> action)
         {
             s_LayoutOverride = action;
@@ -241,6 +236,7 @@ namespace UnityEngine.Rendering
         #endif
         }
 
+        // Setup the layout to use multi-pass or single-pass based on the runtime caps
         internal static void CreateDefaultLayout(Camera camera)
         {
         #if ENABLE_VR && ENABLE_XR_MODULE
@@ -283,6 +279,7 @@ namespace UnityEngine.Rendering
         #endif
         }
 
+        // Update the parameters of one pass with a different camera
         internal static void ReconfigurePass(XRPass xrPass, Camera camera)
         {
         #if ENABLE_VR && ENABLE_XR_MODULE
@@ -339,7 +336,7 @@ namespace UnityEngine.Rendering
             viewport.y      *= renderPass.renderTargetDesc.height;
             viewport.height *= renderPass.renderTargetDesc.height;
 
-            // XRTODO: remove this line and use XRSettings.useOcclusionMesh instead when it's fixed
+            // XRTODO : remove this line and use XRSettings.useOcclusionMesh instead when it's fixed
             Mesh occlusionMesh = XRGraphicsAutomatedTests.running ? null : renderParameter.occlusionMesh;
 
             return new XRView(renderParameter.projection, renderParameter.view, viewport, occlusionMesh, renderParameter.textureArraySlice);
@@ -348,7 +345,7 @@ namespace UnityEngine.Rendering
         static XRPassCreateInfo BuildPass(XRDisplaySubsystem.XRRenderPass xrRenderPass, ScriptableCullingParameters cullingParameters)
         {
             // We can't use descriptor directly because y-flip is forced
-            // XRTODO: fix root problem
+            // XRTODO : fix root problem
             RenderTextureDescriptor xrDesc = xrRenderPass.renderTargetDesc;
             RenderTextureDescriptor rtDesc = new RenderTextureDescriptor(xrDesc.width, xrDesc.height, xrDesc.colorFormat, xrDesc.depthBufferBits, xrDesc.mipCount);
             rtDesc.dimension    = xrRenderPass.renderTargetDesc.dimension;
@@ -362,7 +359,7 @@ namespace UnityEngine.Rendering
                 renderTargetDesc        = rtDesc,
                 cullingParameters       = cullingParameters,
                 occlusionMeshMaterial   = s_OcclusionMeshMaterial,
-                multipassId             = s_Layout.GetFramePasses().Count,
+                multipassId             = s_Layout.GetActivePasses().Count,
                 cullingPassId           = xrRenderPass.cullingPassIndex,
                 copyDepth               = xrRenderPass.shouldFillOutDepth
             };

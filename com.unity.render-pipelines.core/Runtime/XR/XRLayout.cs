@@ -8,7 +8,7 @@ namespace UnityEngine.Rendering
     /// </summary>
     public class XRLayout
     {
-        readonly List<(Camera, XRPass)> m_FramePasses = new List<(Camera, XRPass)>();
+        readonly List<(Camera, XRPass)> m_ActivePasses = new List<(Camera, XRPass)>();
 
         /// <summary>
         /// Configure the layout to render from the specified camera by generating passes from the the connected XR device.
@@ -53,26 +53,26 @@ namespace UnityEngine.Rendering
         /// <summary>
         /// Used by render pipelines to access all registered passes on this layout.
         /// </summary>
-        public List<(Camera, XRPass)> GetFramePasses()
+        public List<(Camera, XRPass)> GetActivePasses()
         {
-            return m_FramePasses;
+            return m_ActivePasses;
         }
 
         internal void AddPass(Camera camera, XRPass xrPass)
         {
             xrPass.UpdateCombinedOcclusionMesh();
-            m_FramePasses.Add((camera, xrPass));
+            m_ActivePasses.Add((camera, xrPass));
         }
 
         internal void Clear()
         {
-            foreach ((Camera _, XRPass xrPass) in m_FramePasses)
+            foreach ((Camera _, XRPass xrPass) in m_ActivePasses)
             {
                 if (xrPass != XRSystem.emptyPass)
                     XRPass.Release(xrPass);
             }
 
-            m_FramePasses.Clear();
+            m_ActivePasses.Clear();
         }
 
         internal void LogDebugInfo()
@@ -81,9 +81,9 @@ namespace UnityEngine.Rendering
             sb.AppendFormat("XRSystem setup for frame {0}, active: {1}", Time.frameCount, XRSystem.displayActive);
             sb.AppendLine();
 
-            for (int passIndex = 0; passIndex < m_FramePasses.Count; passIndex++)
+            for (int passIndex = 0; passIndex < m_ActivePasses.Count; passIndex++)
             {
-                var pass = m_FramePasses[passIndex].Item2;
+                var pass = m_ActivePasses[passIndex].Item2;
                 for (int viewIndex = 0; viewIndex < pass.viewCount; viewIndex++)
                 {
                     var viewport = pass.GetViewport(viewIndex);
