@@ -131,7 +131,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                 context.globalIndentLevel++;
                 AddProperty(tessellationMaxDisplacementText, () => systemData.tessellationMaxDisplacement, (newValue) => systemData.tessellationMaxDisplacement = newValue);
                 if (systemData.doubleSidedMode == DoubleSidedMode.Disabled)
-                    AddProperty(tessellationBackFaceCullEpsilonText, () => systemData.tessellationBackFaceCullEpsilon, (newValue) => systemData.tessellationBackFaceCullEpsilon = newValue);
+                    AddProperty(tessellationBackFaceCullEpsilonText, () => systemData.tessellationBackFaceCullEpsilon, (newValue) => systemData.tessellationBackFaceCullEpsilon = Mathf.Clamp(newValue, -1.0f, 0.0f));
 
                 AddProperty(tessellationFactorMinDistanceText, () => systemData.tessellationFactorMinDistance, (newValue) => systemData.tessellationFactorMinDistance = newValue);
                 AddProperty(tessellationFactorMaxDistanceText, () => systemData.tessellationFactorMaxDistance, (newValue) => systemData.tessellationFactorMaxDistance = newValue);
@@ -141,7 +141,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                 if (systemData.tessellationMode == TessellationMode.Phong)
                 {
                     context.globalIndentLevel++;
-                    AddProperty(tessellationShapeFactorText, () => systemData.tessellationShapeFactor, (newValue) => systemData.tessellationShapeFactor = newValue);
+                    AddProperty(tessellationShapeFactorText, () => systemData.tessellationShapeFactor, (newValue) => systemData.tessellationShapeFactor = Mathf.Clamp01(newValue));
                     context.globalIndentLevel--;
                 }
 
