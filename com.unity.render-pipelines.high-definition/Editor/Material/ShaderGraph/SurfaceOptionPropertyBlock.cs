@@ -129,7 +129,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
             if (systemData.tessellation)
             {
                 context.globalIndentLevel++;
-                AddProperty(tessellationMaxDisplacementText, () => systemData.tessellationMaxDisplacement, (newValue) => systemData.tessellationMaxDisplacement = newValue);
+                AddProperty(tessellationMaxDisplacementText, () => systemData.tessellationMaxDisplacement, (newValue) => systemData.tessellationMaxDisplacement = Mathf.Abs(newValue));
                 if (systemData.doubleSidedMode == DoubleSidedMode.Disabled)
                     AddProperty(tessellationBackFaceCullEpsilonText, () => systemData.tessellationBackFaceCullEpsilon, (newValue) => systemData.tessellationBackFaceCullEpsilon = Mathf.Clamp(newValue, -1.0f, 0.0f));
 

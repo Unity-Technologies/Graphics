@@ -28,7 +28,7 @@ namespace UnityEditor.Rendering.HighDefinition
             public static GUIContent tessellationFactorTriangleSizeText = new GUIContent("Triangle Size", "Sets the desired screen space size of triangles (in pixels). Smaller values result in smaller triangle. Set to 0 to disable adaptative factor with screen space size.");
             public static GUIContent tessellationShapeFactorText = new GUIContent("Shape Factor", "Controls the strength of Phong tessellation shape (lerp factor).");
             public static GUIContent tessellationBackFaceCullEpsilonText = new GUIContent("Triangle Culling Epsilon", "Controls triangle culling. A value of -1.0 disables back face culling for tessellation, higher values produce more aggressive culling and better performance.");
-            public static GUIContent tessellationMaxDisplacementText = new GUIContent("Max Displacement", "Positive maximum displacement in meter of the current displace geometry. This is use to adapt the culling algorithm in case of large deformation. Can be the maximum height in meter of a heightmap for example.");
+            public static GUIContent tessellationMaxDisplacementText = new GUIContent("Max Displacement", "Positive maximum displacement in meters of the current displaced geometry. This is used to adapt the culling algorithm in case of large deformation. It can be the maximum height in meters of a heightmap for example.");
 
             // Shader graph
             public static GUIContent tessellationEnableText = new GUIContent("Tessellation", "When enabled, HDRP active tessellation for this Material.");
