@@ -6,6 +6,7 @@
 // Included in generated graph shaders
 // ----------------------------------------------------------------------------
 
+#ifndef BUILTIN_TARGET_API
 bool IsGammaSpace()
 {
     #ifdef UNITY_COLORSPACE_GAMMA
@@ -14,6 +15,7 @@ bool IsGammaSpace()
         return false;
     #endif
 }
+#endif
 
 float4 ComputeScreenPos (float4 pos, float projectionSign)
 {

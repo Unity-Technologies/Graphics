@@ -23,6 +23,8 @@
 // Helper functions for roughness
 //-----------------------------------------------------------------------------
 
+
+#ifndef BUILTIN_TARGET_API
 real PerceptualRoughnessToRoughness(real perceptualRoughness)
 {
     return perceptualRoughness * perceptualRoughness;
@@ -32,6 +34,7 @@ real RoughnessToPerceptualRoughness(real roughness)
 {
     return sqrt(roughness);
 }
+#endif
 
 real RoughnessToPerceptualSmoothness(real roughness)
 {
@@ -328,11 +331,13 @@ real LerpWhiteTo(real b, real t)
     return oneMinusT + b * t;
 }
 
+#ifndef BUILTIN_TARGET_API
 real3 LerpWhiteTo(real3 b, real t)
 {
     real oneMinusT = 1.0 - t;
     return real3(oneMinusT, oneMinusT, oneMinusT) + b * t;
 }
+#endif
 
 #if SHADER_API_MOBILE || SHADER_API_GLES || SHADER_API_GLES3
 #pragma warning (enable : 3205) // conversion of larger type to smaller

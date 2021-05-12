@@ -147,9 +147,8 @@ namespace UnityEngine.Rendering.HighDefinition
         // Debug Exposure compensation (Drive by debug menu) to add to all exposure processed value
         float m_DebugExposureCompensation;
 
-        // Physical camera ref
+        // Physical camera copy
         HDPhysicalCamera m_PhysicalCamera;
-        static readonly HDPhysicalCamera m_DefaultPhysicalCamera = new HDPhysicalCamera();
 
         // HDRP has the following behavior regarding alpha:
         // - If post processing is disabled, the alpha channel of the rendering passes (if any) will be passed to the frame buffer by the final pass
@@ -290,9 +289,8 @@ namespace UnityEngine.Rendering.HighDefinition
             m_AfterDynamicResUpscaleRes = new Vector2Int((int)Mathf.Round(camera.finalViewport.width), (int)Mathf.Round(camera.finalViewport.height));
             m_BeforeDynamicResUpscaleRes = new Vector2Int(camera.actualWidth, camera.actualHeight);
 
-            // Grab physical camera settings or a default instance if it's null (should only happen
-            // in rare occasions due to how HDAdditionalCameraData is added to the camera)
-            m_PhysicalCamera = camera.physicalParameters ?? m_DefaultPhysicalCamera;
+            // Grab a copy of the physical camera settings
+            m_PhysicalCamera = camera.physicalParameters;
 
             // Prefetch all the volume components we need to save some cycles as most of these will
             // be needed in multiple places
@@ -1476,17 +1474,11 @@ namespace UnityEngine.Rendering.HighDefinition
                 passData.prevHistory = builder.WriteTexture(passData.prevHistory);
             }
             passData.nextHistory = builder.WriteTexture(renderGraph.ImportTexture(nextHistory));
-            if (!postDoF)
-            {
-                GrabVelocityMagnitudeHistoryTextures(camera, out var prevMVLen, out var nextMVLen);
-                passData.prevMVLen = builder.ReadTexture(renderGraph.ImportTexture(prevMVLen));
-                passData.nextMVLen = builder.WriteTexture(renderGraph.ImportTexture(nextMVLen));
-            }
-            else
-            {
-                passData.prevMVLen = TextureHandle.nullHandle;
-                passData.nextMVLen = TextureHandle.nullHandle;
-            }
+
+            // Note: In case we run TAA for a second time (post-dof), we can use the same velocity history (and not write the output)
+            GrabVelocityMagnitudeHistoryTextures(camera, out var prevMVLen, out var nextMVLen);
+            passData.prevMVLen = builder.ReadTexture(renderGraph.ImportTexture(prevMVLen));
+            passData.nextMVLen = (!postDoF) ? builder.WriteTexture(renderGraph.ImportTexture(nextMVLen)) : TextureHandle.nullHandle;
 
             passData.destination = builder.WriteTexture(GetPostprocessOutputHandle(renderGraph, outputName));;
 
@@ -1800,7 +1792,11 @@ namespace UnityEngine.Rendering.HighDefinition
             parameters.nearFocusEnd = m_DepthOfField.nearFocusEnd.value;
             parameters.farFocusStart = m_DepthOfField.farFocusStart.value;
             parameters.farFocusEnd = m_DepthOfField.farFocusEnd.value;
-            parameters.focusDistance = m_DepthOfField.focusDistance.value;
+
+            if (m_DepthOfField.focusDistanceMode.value == FocusDistanceMode.Volume)
+                parameters.focusDistance = m_DepthOfField.focusDistance.value;
+            else
+                parameters.focusDistance = m_PhysicalCamera.focusDistance;
 
             parameters.focusMode = m_DepthOfField.focusMode.value;
 
@@ -2780,20 +2776,23 @@ namespace UnityEngine.Rendering.HighDefinition
                     passData.parameters = PrepareLensFlareParameters(hdCamera);
                     passData.hdCamera = hdCamera;
                     TextureHandle dest = GetPostprocessOutputHandle(renderGraph, "Lens Flare Destination");
-                    //passData.destination = builder.WriteTexture(dest);
 
                     builder.SetRenderFunc(
                         (LensFlareData data, RenderGraphContext ctx) =>
                         {
+                            float width = (float)data.hdCamera.actualWidth;
+                            float height = (float)data.hdCamera.actualHeight;
+
                             LensFlareCommonSRP.DoLensFlareDataDrivenCommon(
-                                data.parameters.lensFlareShader, data.parameters.lensFlares, data.hdCamera.camera, (float)data.hdCamera.actualWidth, (float)data.hdCamera.actualHeight,
+                                data.parameters.lensFlareShader, data.parameters.lensFlares, data.hdCamera.camera, width, height,
                                 data.parameters.usePanini, data.parameters.paniniDistance, data.parameters.paniniCropToFit,
                                 ctx.cmd, data.source,
                                 // If you pass directly 'GetLensFlareLightAttenuation' that create alloc apparently to cast to System.Func
                                 // And here the lambda setup like that seem to not alloc anything.
                                 (a, b, c) => { return GetLensFlareLightAttenuation(a, b, c); },
                                 HDShaderIDs._FlareTex, HDShaderIDs._FlareColorValue,
-                                HDShaderIDs._FlareData0, HDShaderIDs._FlareData1, HDShaderIDs._FlareData2, HDShaderIDs._FlareData3, HDShaderIDs._FlareData4, HDShaderIDs._FlareData5, data.parameters.skipCopy);
+                                HDShaderIDs._FlareData0, HDShaderIDs._FlareData1, HDShaderIDs._FlareData2, HDShaderIDs._FlareData3, HDShaderIDs._FlareData4, HDShaderIDs._FlareData5,
+                                data.parameters.skipCopy);
                         });
 
                     PushFullScreenDebugTexture(renderGraph, source, FullScreenDebugMode.LensFlareDataDriven);

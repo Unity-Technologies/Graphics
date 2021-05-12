@@ -9,6 +9,7 @@ void InitializeInputData(VaryingsParticle input, half3 normalTS, out InputData i
     inputData = (InputData)0;
 
     inputData.positionWS = input.positionWS.xyz;
+    inputData.positionCS = input.clipPos;
 
 #ifdef _NORMALMAP
     half3 viewDirWS = half3(input.normalWS.w, input.tangentWS.w, input.bitangentWS.w);
