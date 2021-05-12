@@ -39,41 +39,6 @@ void ClipFromDissolveOccludersBase(const in PositionInputs posInput, const in fl
     clip(alpha - max(1e-5f, dither));
 }
 
-void ClipFromDissolveLOS(const in PositionInputs posInput, const in float4 screenSize)
-{
-    float los = 0;
-    float3 worldPos = GetAbsolutePositionWS(posInput.positionWS);
-    
-    // multi-tap version
-    float3 clipCameraPos = _WorldSpaceCameraPos;
-    float3 clipWorldPos = worldPos;
-    float elevationMin = _InfluenceMapObserverPosition.y + 0.5;
-    float elevationDist = max(0, worldPos.y - elevationMin);
-    if(elevationDist > 0)
-    {
-        const int NUM_STEPS = 4;
-        float elevationStep = elevationDist / NUM_STEPS;
-        for(int i=0; i < NUM_STEPS; ++i)
-        {        
-            clipWorldPos.y -= elevationStep;
-            clipCameraPos.y -= elevationStep;
-            float3 worldView = normalize(clipWorldPos - clipCameraPos);
-            float3 raycastWorldPos = InfluenceFloorRaycast(worldView, clipCameraPos);
-            float losSample = SampleInfluenceLOS(raycastWorldPos);
-            los = max(losSample, los);
-        }        
-    }
-
-    // ideal single tap version
-    //float3 worldView = normalize(worldPos - _WorldSpaceCameraPos);
-    //float3 raycastWorldPos = InfluenceFloorRaycast(worldView, _WorldSpaceCameraPos);
-    //los = SampleInfluenceLOS(raycastWorldPos);
-
-    float fadeAmount = 1.0 - saturate(((_InfluenceMapObserverPosition.y + 1.5) - worldPos.y ) * 4);
-    float finalDissolve = (1.0 - saturate(los * fadeAmount));
-    ClipFromLOS(posInput, _ScreenSize, finalDissolve);    
-}
-
 void ClipFromDissolveOccluders(const in PositionInputs posInput, const in float4 screenSize)
 {
 #if defined(CLIP_FROM_DISSOLVE_OCCLUDERS_CUSTOM)
