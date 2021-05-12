@@ -564,7 +564,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
             public static KeywordCollection Maskmap = new KeywordCollection { { Descriptors.AffectsMaskmap, new FieldCondition(AffectsMaskMap, true) } };
             public static DefineCollection Emission = new DefineCollection { { Descriptors.AffectsEmission, 1 } };
 
-            public static KeywordCollection Decals = new KeywordCollection { { Descriptors.Decals } };
+            public static KeywordCollection Decals = new KeywordCollection { { Descriptors.Decals } , { CoreKeywordDescriptors.DecalSurfaceGradient } };
         }
         #endregion
 

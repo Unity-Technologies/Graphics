@@ -82,6 +82,7 @@ namespace UnityEditor.Rendering.HighDefinition
             public static readonly GUIContent RTRRayLength = EditorGUIUtility.TrTextContent("Max Ray Length");
             public static readonly GUIContent RTRClampValue = EditorGUIUtility.TrTextContent("Clamp Value");
             public static readonly GUIContent RTRFullResolution = EditorGUIUtility.TrTextContent("Full Resolution");
+            public static readonly GUIContent RTRRayMaxIterations = EditorGUIUtility.TrTextContent("Ray Max Iterations");
             public static readonly GUIContent RTRDenoise = EditorGUIUtility.TrTextContent("Denoise");
             public static readonly GUIContent RTRDenoiserRadius = EditorGUIUtility.TrTextContent("Denoiser Radius");
             public static readonly GUIContent RTRSmoothDenoising = EditorGUIUtility.TrTextContent("Affect Smooth Surfaces");
@@ -92,6 +93,7 @@ namespace UnityEditor.Rendering.HighDefinition
             public static readonly GUIContent RTGIClampValue = EditorGUIUtility.TrTextContent("Clamp Value");
             public static readonly GUIContent RTGIFullResolution = EditorGUIUtility.TrTextContent("Full Resolution");
             public static readonly GUIContent RTGIUpScaleRadius = EditorGUIUtility.TrTextContent("Upscale Radius");
+            public static readonly GUIContent RTGIRaySteps = EditorGUIUtility.TrTextContent("Ray Steps");
             public static readonly GUIContent RTGIDenoise = EditorGUIUtility.TrTextContent("Denoise");
             public static readonly GUIContent RTGIHalfResDenoise = EditorGUIUtility.TrTextContent("Half Resolution Denoiser");
             public static readonly GUIContent RTGIDenoiserRadius = EditorGUIUtility.TrTextContent("Denoiser Radius");
@@ -130,6 +132,8 @@ namespace UnityEditor.Rendering.HighDefinition
             public static readonly GUIContent MSAASampleCountContent = EditorGUIUtility.TrTextContent("Multisample Anti-aliasing Quality", "Specifies the default quality for MSAA. Set Lit Shader Mode to Forward Only or Both to use this feature.");
             public static readonly GUIContent supportDecalContent = EditorGUIUtility.TrTextContent("Enable", "When enabled, HDRP allocates Shader variants and memory to the decals buffer and cluster decal. This allows you to use decals in your Unity Project.");
             public static readonly GUIContent supportDecalLayersContent = EditorGUIUtility.TrTextContent("Layers", "When enabled, HDRP allocates Shader variants and memory to the decals layers buffer. This allows you to use decal layers in your Unity Project.");
+            public static readonly GUIContent supportSurfaceGradientContent = EditorGUIUtility.TrTextContent("Additive Normal Blending", "When enabled, HDRP uses surface gradients to preserve the affected objects normal when applying decal normals.");
+            public static readonly GUIContent decalNormalFormatContent = EditorGUIUtility.TrTextContent("High Precision Normal Buffer", "When enabled, HDRP uses a high precision format for the buffer storing decal normals.");
             public static readonly GUIContent supportMotionVectorContent = EditorGUIUtility.TrTextContent("Motion Vectors", "When enabled, HDRP allocates memory for processing motion vectors which it uses for Motion Blur, TAA, and temporal re-projection of various effect like SSR.");
             public static readonly GUIContent supportRuntimeDebugDisplayContent = EditorGUIUtility.TrTextContent("Runtime Debug Display", "When disabled, HDRP removes all debug display Shader variants when you build for the Unity Player. This decreases build time.");
             public static readonly GUIContent supportRuntimeAOVAPIContent = EditorGUIUtility.TrTextContent("Runtime AOV API", "When disabled, HDRP removes all AOV API Shader variants when you build for the Unity Player. This decreases build time.");
@@ -232,6 +236,7 @@ namespace UnityEditor.Rendering.HighDefinition
             public static readonly GUIContent maxPercentage = EditorGUIUtility.TrTextContent("Maximum Screen Percentage", "Sets the maximum screen percentage that dynamic resolution can reach.");
             public static readonly GUIContent minPercentage = EditorGUIUtility.TrTextContent("Minimum Screen Percentage", "Sets the minimum screen percentage that dynamic resolution can reach.");
             public static readonly GUIContent dynResType = EditorGUIUtility.TrTextContent("Dynamic Resolution Type", "Specifies the type of dynamic resolution that HDRP uses.");
+            public static readonly GUIContent useMipBias = EditorGUIUtility.TrTextContent("Use Mip Bias", "Offsets the mip bias to recover mode detail. This only works if the camera is utilizing TAA.");
             public static readonly GUIContent upsampleFilter = EditorGUIUtility.TrTextContent("Upscale Filter", "Specifies the filter that HDRP uses for upscaling.");
             public static readonly GUIContent fallbackUpsampleFilter = EditorGUIUtility.TrTextContent("Fallback Upscale Filter", "Specifies the filter that HDRP uses for upscaling as a fallback if Prepost Upscaler is not detected.");
             public static readonly GUIContent forceScreenPercentage = EditorGUIUtility.TrTextContent("Force Screen Percentage", "When enabled, HDRP uses the Forced Screen Percentage value as the screen percentage.");

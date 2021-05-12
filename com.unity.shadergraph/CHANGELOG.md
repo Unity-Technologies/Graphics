@@ -14,6 +14,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
   - Added custom interpolator thresholds on shadergraph project settings page.
   - Added subshadergraphs for SpeedTree 8 shadergraph support: SpeedTree8Wind, SpeedTree8ColorAlpha, SpeedTree8Billboard.
   - Added an HLSL file implementing a version of the Unity core LODDitheringTransition function which can be used in a Shader Graph
+  - Added a new target for the built-in render pipeline, including Lit and Unlit sub-targets.
   - Added stage control to ShaderGraph Keywords, to allow fragment or vertex-only keywords.
   - For Texture2D properties, added linearGrey and red as options for default texture mode.
   - For Texture2D properties, changed the "bump" option to be called "Normal Map", and will now tag these properties with the [NormalMap] tag.
@@ -36,6 +37,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Limited max number of inspectable items in the Inspector View to 20 items
 - Added borders to inspector items styling, to better differentiate between separate items
 - Updated Custom Function Node to use new ShaderInclude asset type instead of TextAsset (.hlsl and .cginc softcheck remains).
+- Change BranchOnInputNode to choose NotConnected branch when generating Preview
 
 ### Fixed
 - Fixed an issue where fog node density was incorrectly calculated.
@@ -63,6 +65,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed an issue where a requirement was placed on a fixed-function emission property [1319637]
 - Fixed default shadergraph precision so it matches what is displayed in the graph settings UI (single) [1325934]
 - Fixed an unhelpful error message when custom function nodes didn't have a valid file [1323493].
+- Fixed an issue with how the transform node handled direction transforms from absolute world space in camera relative SRPs [1323726]
 - Fixed a bug where changing a Target setting would switch the inspector view to the Node Settings tab if any nodes were selected.
 - Fixed "Disconnect All" option being grayed out on stack blocks [1313201].
 - Fixed how shadergraph's prompt for "unsaved changes" was handled to fix double messages and incorrect window sizes [1319623].
@@ -77,6 +80,8 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed reordering when renaming enum keywords. (https://issuetracker.unity3d.com/product/unity/issues/guid/1328761/)
 - Fixed an issue where an integer property would be exposed in the material inspector as a float [1330302](https://issuetracker.unity3d.com/product/unity/issues/guid/1330302/)
 - Fixed an issue where upgrading from an older version of ShaderGraph would cause Enum keywords to be not exposed [1332510]
+- Fixed an issue where a missing subgraph with a "Use Custom Binding" property would cause the parent graph to fail to load [1334621] (https://issuetracker.unity3d.com/issues/shadergraph-shadergraph-cannot-be-opened-if-containing-subgraph-with-custom-binding-that-has-been-deleted)
+- Fixed an issue where the ShaderGraph transform node would generate incorrect results when transforming a direction from view space to object space [1333781] (https://issuetracker.unity3d.com/product/unity/issues/guid/1333781/)
 
 ## [11.0.0] - 2020-10-21
 

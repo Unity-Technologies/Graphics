@@ -24,12 +24,6 @@ namespace UnityEngine.Rendering.Universal
         public sealed class DebugShaderResources
         {
             /// <summary>
-            /// Number font used by Rendering Debugger shaders.
-            /// </summary>
-            [Reload("Textures/Debug/numberFont.png")]
-            public Texture2D NumberFont;
-
-            /// <summary>
             /// Debug shader used to output interpolated vertex attributes.
             /// </summary>
             [Reload("Shaders/Debug/DebugReplacement.shader")]

@@ -977,6 +977,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
         public const string kStackLitPathtracing = "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/StackLit/StackLitPathTracing.hlsl";
         public const string kAxFPathtracing = "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/AxF/AxFPathTracing.hlsl";
         public const string kHairRaytracing = "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Hair/HairRaytracing.hlsl";
+        public const string kHairPathtracing = "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Hair/HairPathTracing.hlsl";
         public const string kRaytracingLightLoop = "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/Raytracing/Shaders/RaytracingLightLoop.hlsl";
         public const string kRaytracingCommon = "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/Raytracing/Shaders/RaytracingCommon.hlsl";
         public const string kNormalBuffer = "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/NormalBuffer.hlsl";
@@ -1237,6 +1238,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                 new KeywordEntry() { displayName = "Low", referenceName = "LOW" },
                 new KeywordEntry() { displayName = "Medium", referenceName = "MEDIUM" },
                 new KeywordEntry() { displayName = "High", referenceName = "HIGH" },
+                new KeywordEntry() { displayName = "VeryHigh", referenceName = "VERY_HIGH" },
             },
             stages = KeywordShaderStage.Fragment,
         };
@@ -1384,6 +1386,16 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
             definition = KeywordDefinition.ShaderFeature,
             scope = KeywordScope.Local,
             stages = KeywordShaderStage.FragmentAndRaytracing,
+        };
+
+        public static KeywordDescriptor DecalSurfaceGradient = new KeywordDescriptor
+        {
+            displayName = "Additive normal blending",
+            referenceName = "DECAL_SURFACE_GRADIENT",
+            type = KeywordType.Boolean,
+            definition = KeywordDefinition.MultiCompile,
+            scope = KeywordScope.Global,
+            stages = KeywordShaderStage.Fragment,
         };
 
         public static KeywordDescriptor DisableSSR = new KeywordDescriptor
