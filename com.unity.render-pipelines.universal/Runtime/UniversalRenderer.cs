@@ -645,8 +645,10 @@ namespace UnityEngine.Rendering.Universal
 
             if (renderPassInputs.requiresMotionVectors && !cameraData.xr.enabled)
             {
-                SupportedRenderingFeatures.active.motionVectors = true; // Todo : not set this here
-                var data = MotionVectorRendering.instance.GetMotionDataForCamera(renderingData.cameraData.camera);
+                
+                SupportedRenderingFeatures.active.motionVectors = true; // hack for enabling UI
+
+                var data = MotionVectorRendering.instance.GetMotionDataForCamera(camera);
                 m_MotionVectorPass.Setup(data);
                 EnqueuePass(m_MotionVectorPass);
             }
