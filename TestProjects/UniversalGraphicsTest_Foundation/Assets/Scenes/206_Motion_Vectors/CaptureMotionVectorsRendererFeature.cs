@@ -25,8 +25,6 @@ internal class CaptureMotionVectorsRendererFeature : ScriptableRendererFeature
     {
         if (m_Shader != null)
             m_Material = new Material(m_Shader);
-        else
-            Debug.LogError(typeof(CaptureMotionVectorsRendererFeature) + " was assigned an invalid shader.");
 
         m_RenderPass = new CaptureMotionVectorsPass(m_Material);
     }
