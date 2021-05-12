@@ -118,6 +118,7 @@ namespace UnityEditor.VFX.SDF
             m_PreviewUtility.Cleanup();
             m_Settings.Dispose();
         }
+
         static Material CreateWireframeMaterial()
         {
             var shader = Shader.Find("Hidden/Internal-Colored");
