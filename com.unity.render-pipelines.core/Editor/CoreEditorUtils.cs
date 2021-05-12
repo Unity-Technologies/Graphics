@@ -821,9 +821,9 @@ namespace UnityEditor.Rendering
         /// <summary>
         /// Draw an EnumPopup handling multiEdition
         /// </summary>
-        /// <param name="label">the label</param>
         /// <param name="property">The data displayed</param>
-        /// <param name="options">Options of the dropdown</param>
+        /// <param name="type">Type of the property</param>
+        /// <param name="label">the label</param>
         public static void DrawEnumPopup(SerializedProperty property, System.Type type, GUIContent label = null)
         {
             EditorGUI.showMixedValue = property.hasMultipleDifferentValues;
