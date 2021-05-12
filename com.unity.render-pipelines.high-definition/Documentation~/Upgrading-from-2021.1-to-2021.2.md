@@ -6,11 +6,13 @@ From 2021.2, if material ambient occlusion needs to be applied to probe volume G
 
 HDRP 2021.2 includes the "ForwardEmissiveForDeferred" shader pass and the associated SHADERPASS_FORWARD_EMISSIVE_FOR_DEFERRED define for Materials that have a GBuffer pass. You can see the new pass in Lit.shader. When you use the Deferred Lit shader mode, Unity uses "ForwardEmissiveForDeferred" to render the emissive contribution of a Material in a separate forward pass. Otherwise, Unity ignores "ForwardEmissiveForDeferred".
 
-From 2021.2, there is various tessellation shader code which have been refactored to adapat to the support of tessellation in Master Stack.
-The function 'GetTessellationFactors()' have move to the file TessellationShare.hlsl and only the part returning the user tessellation factor remain 'GetTessellationFactor()'.
-The prototype of 'ApplyTessellationModification()' function have change from 'void ApplyTessellationModification(VaryingsMeshToDS input, float3 normalWS, inout float3 positionRWS)' to 'VaryingsMeshToDS ApplyTessellationModification(VaryingsMeshToDS input, float3 timeParameters)'
-The support of Motion vector have been improve for tessellation, now only previousPositionRWS is part of the varyings and a 'MotionVectorTessellation()' function have been added. See file MotionVectorVertexShaderCommon.hlsl for more detail.
-Lastly, tessellationFactor is now evaluated in the Vertex shader and pass to Hull shader as interpolator. See file VaryingMesh.hlsl and VertMesh.hlsl for more detail.
+### Tessellation
+In HDRP 2021.2, HDRP refactored various tessellation shader code to enable support of tessellation in [Master Stacks](master-stack-hdrp.md).
+
+* The function `GetTessellationFactors()` has moved from `LitDataMeshModification.hlsl` to `TessellationShare.hlsl`. It calls a new function, `GetTessellationFactor()`, that is in `LitDataMeshModification.hlsl`.
+* The prototype of 'ApplyTessellationModification()' function has changed from:<br/> `void ApplyTessellationModification(VaryingsMeshToDS input, float3 normalWS, inout float3 positionRWS)`<br/>to:<br/>`VaryingsMeshToDS ApplyTessellationModification(VaryingsMeshToDS input, float3 timeParameters)`.
+* HDRP has improved support of motion vectors for tessellation. Now only `previousPositionRWS` is part of the varyings and HDRP added the `MotionVectorTessellation()` function. For more information, see the `MotionVectorVertexShaderCommon.hlsl file.
+* HDRP now evaluates the `tessellationFactor` in the vertex shader and passes it to the hull shader as an interpolator. For more information, see the `VaryingMesh.hlsl` and `VertMesh.hlsl` files.
 
 ## Density Volumes
 
