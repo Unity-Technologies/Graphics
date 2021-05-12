@@ -32,7 +32,7 @@ namespace UnityEngine.Experimental.Rendering
         /// <summary>
         /// The minimum distance between two probes in meters.
         /// </summary>
-        [Min(0.1f)]
+        [Min(0.01f)]
         public float minDistanceBetweenProbes = 1.0f;
 
         /// <summary>
@@ -108,13 +108,7 @@ namespace UnityEngine.Experimental.Rendering
             EditorGUILayout.HelpBox($"The distance between probes will fluctuate between : {profile.minDistanceBetweenProbes}m and {profile.cellSizeInMeters}m", MessageType.Info);
 
             if (EditorGUI.EndChangeCheck())
-            {
                 serializedObject.ApplyModifiedProperties();
-
-                float minDistanceBetweenProbes = ((float)profile.cellSizeInBricks / Mathf.Pow(3, ProbeBrickIndex.kMaxSubdivisionLevels)) / 3.0f;
-                if (profile.minDistanceBetweenProbes < minDistanceBetweenProbes)
-                    profile.minDistanceBetweenProbes = minDistanceBetweenProbes;
-            }
         }
     }
 #endif
