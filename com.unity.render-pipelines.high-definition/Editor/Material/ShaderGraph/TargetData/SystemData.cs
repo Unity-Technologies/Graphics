@@ -160,7 +160,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
         }
 
         [SerializeField]
-        float m_TessellationShapeFactor = 4.0f;
+        float m_TessellationShapeFactor = 0.75f;
         public float tessellationShapeFactor
         {
             get => m_TessellationShapeFactor;
