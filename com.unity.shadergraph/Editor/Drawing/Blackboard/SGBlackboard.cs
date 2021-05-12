@@ -230,34 +230,19 @@ namespace UnityEditor.ShaderGraph.Drawing
 
         int InsertionIndex(Vector2 pos)
         {
-            int index = -1;
             VisualElement owner = contentContainer != null ? contentContainer : this;
             Vector2 localPos = this.ChangeCoordinatesTo(owner, pos);
 
-            if (owner.ContainsPoint(localPos))
-            {
-                index = 0;
+            int index = BlackboardUtils.GetInsertionIndex(owner, localPos, Children());
 
-                foreach (VisualElement child in Children())
-                {
-                    Rect rect = child.layout;
-
-                    if (localPos.y > (rect.y + rect.height / 2))
-                    {
-                        ++index;
-                    }
-                    else
-                    {
-                        break;
-                    }
-                }
-            }
-
+            // Clamps the index between the min and max of the child indices based on the mouse position relative to the categories on the y-axis (up/down)
+            // Checking for at least 2 children to make sure Children.First() and Children.Last() don't throw an exception
             if (index == -1 && childCount >= 2)
             {
-                index = localPos.y<Children().First().layout.yMin? 0 :
-                                   localPos.y> Children().Last().layout.yMax ? childCount : -1;
+                index = localPos.y < Children().First().layout.yMin ? 0 :
+                                   localPos.y > Children().Last().layout.yMax ? childCount : -1;
             }
+
             // Don't allow the default category to be displaced
             return Mathf.Clamp(index, 1, index);
         }
@@ -454,6 +439,10 @@ namespace UnityEditor.ShaderGraph.Drawing
                 return;
             }
 
+            // Add category at top, followed by separator
+            m_AddBlackboardItemMenu.AddItem(new GUIContent("Category"), false, () => ViewModel.requestModelChangeAction(ViewModel.addCategoryAction));
+            m_AddBlackboardItemMenu.AddSeparator($"/");
+
             var selectedCategoryGuid = controller.GetFirstSelectedCategoryGuid();
             foreach (var nameToAddActionTuple in ViewModel.propertyNameToAddActionMap)
             {
@@ -486,7 +475,6 @@ namespace UnityEditor.ShaderGraph.Drawing
                 m_AddBlackboardItemMenu.AddDisabledItem(new GUIContent($"Keyword/{disabledKeywordName}"));
             }
 
-            m_AddBlackboardItemMenu.AddItem(new GUIContent("Category"), false, () => ViewModel.requestModelChangeAction(ViewModel.addCategoryAction));
             if (ViewModel.defaultDropdownNameToAdd != null)
             {
                 string defaultDropdownName = ViewModel.defaultDropdownNameToAdd.Item1;

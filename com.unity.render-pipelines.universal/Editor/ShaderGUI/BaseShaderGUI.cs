@@ -260,7 +260,7 @@ namespace UnityEditor
             if (properties == null)
                 return;
 
-            ShaderGraphPropertyDrawers.DrawShaderGraphGUI(materialEditor, properties.ToArray());
+            ShaderGraphPropertyDrawers.DrawShaderGraphGUI(materialEditor, properties);
         }
 
         internal static void DrawFloatToggleProperty(GUIContent styles, MaterialProperty prop)

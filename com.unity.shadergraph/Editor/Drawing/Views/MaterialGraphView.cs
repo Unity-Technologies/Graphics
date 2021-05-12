@@ -846,17 +846,15 @@ namespace UnityEditor.ShaderGraph.Drawing
             List<ShaderInput> selectedProperties = new List<ShaderInput>();
             List<CategoryData> selectedCategories = new List<CategoryData>();
 
-            foreach (var selectable in selection.ToList())
+            for(int index = 0; index < selection.Count; ++index)
             {
+                var selectable = selection[index];
                 if (selectable is SGBlackboardCategory blackboardCategory)
                 {
                     selectedCategories.Add(blackboardCategory.controller.Model);
+                    var childBlackboardFields = blackboardCategory.Query<SGBlackboardField>().ToList();
                     // Remove the children that live in this category (if any) from the selection, as they will get copied twice otherwise
-                    var childBlackboardFields = blackboardCategory.Query<SGBlackboardField>();
-                    foreach (var blackboardField in childBlackboardFields.ToList())
-                    {
-                        selection.Remove(blackboardField);
-                    }
+                    selection.RemoveAll(childItem => childBlackboardFields.Contains(childItem));
                 }
             }
 
@@ -894,7 +892,7 @@ namespace UnityEditor.ShaderGraph.Drawing
             var notes = elements.OfType<StickyNote>().Select(x => x.userData);
 
             var categories = new List<CategoryData>();
-            foreach (var selectable in selection.ToList())
+            foreach (var selectable in selection)
             {
                 if (selectable is SGBlackboardCategory blackboardCategory)
                 {

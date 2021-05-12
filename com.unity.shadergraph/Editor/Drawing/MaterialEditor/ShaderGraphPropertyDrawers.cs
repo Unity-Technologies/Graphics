@@ -13,7 +13,7 @@ namespace UnityEditor.ShaderGraph.Drawing
     {
         static Dictionary<MinimalCategoryData.GraphInputData, bool> s_CompoundPropertyFoldoutStates = new Dictionary<MinimalCategoryData.GraphInputData, bool>();
 
-        public static void DrawShaderGraphGUI(MaterialEditor materialEditor, MaterialProperty[] properties)
+        public static void DrawShaderGraphGUI(MaterialEditor materialEditor, IEnumerable<MaterialProperty> properties)
         {
             Material m = materialEditor.target as Material;
             Shader s = m.shader;
@@ -41,7 +41,7 @@ namespace UnityEditor.ShaderGraph.Drawing
             return EditorGUILayout.GetControlRect();
         }
 
-        private static MaterialProperty FindProperty(string propertyName, MaterialProperty[] properties)
+        private static MaterialProperty FindProperty(string propertyName,IEnumerable<MaterialProperty> properties)
         {
             foreach (var prop in properties)
             {
@@ -53,7 +53,7 @@ namespace UnityEditor.ShaderGraph.Drawing
             throw new ArgumentException("no property was found with the name " + propertyName);
         }
 
-        public static void DrawShaderGraphGUI(MaterialEditor materialEditor, MaterialProperty[] properties, IEnumerable<MinimalCategoryData> categoryDatas)
+        public static void DrawShaderGraphGUI(MaterialEditor materialEditor, IEnumerable<MaterialProperty> properties, IEnumerable<MinimalCategoryData> categoryDatas)
         {
             foreach (MinimalCategoryData mcd in categoryDatas)
             {
@@ -70,7 +70,7 @@ namespace UnityEditor.ShaderGraph.Drawing
             materialEditor.DoubleSidedGIField();
         }
 
-        private static void DrawCategory(MaterialEditor materialEditor, MaterialProperty[] properties, MinimalCategoryData minimalCategoryData)
+        private static void DrawCategory(MaterialEditor materialEditor, IEnumerable<MaterialProperty> properties, MinimalCategoryData minimalCategoryData)
         {
             if (minimalCategoryData.categoryName.Length > 0)
             {
@@ -101,7 +101,7 @@ namespace UnityEditor.ShaderGraph.Drawing
             EditorGUILayout.EndFoldoutHeaderGroup();
         }
 
-        private static void DrawCompoundProperty(MaterialEditor materialEditor, MaterialProperty[] properties, MinimalCategoryData.GraphInputData compoundPropertyData)
+        private static void DrawCompoundProperty(MaterialEditor materialEditor, IEnumerable<MaterialProperty> properties, MinimalCategoryData.GraphInputData compoundPropertyData)
         {
             EditorGUI.indentLevel++;
 

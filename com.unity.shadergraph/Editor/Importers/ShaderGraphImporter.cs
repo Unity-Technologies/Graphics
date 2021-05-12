@@ -275,11 +275,7 @@ Shader ""Hidden/GraphErrorShader2""
                     if (input is VirtualTextureShaderProperty virtualTextureShaderProperty)
                     {
                         propData = MinimalCategoryData.ProcessVirtualTextureProperty(virtualTextureShaderProperty);
-                        foreach (var inputData in inputInspectorDataList.ToList())
-                        {
-                            if (inputData.referenceName == propData.referenceName)
-                                inputInspectorDataList.Remove(inputData);
-                        }
+                        inputInspectorDataList.RemoveAll(inputData => inputData.referenceName == propData.referenceName);
                         mcd.propertyDatas.Add(propData);
                         continue;
                     }

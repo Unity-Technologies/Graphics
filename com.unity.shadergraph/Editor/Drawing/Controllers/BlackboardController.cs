@@ -400,7 +400,7 @@ namespace UnityEditor.ShaderGraph.Drawing
                     selectedCategories.Add(selectable as SGBlackboardCategory);
                 }
             }
-            if (selectedCategories.Count == 1)
+            if (selectedCategories.Any())
             {
                 selectedCategoryGuid = selectedCategories[0].viewModel.associatedCategoryGuid;
             }

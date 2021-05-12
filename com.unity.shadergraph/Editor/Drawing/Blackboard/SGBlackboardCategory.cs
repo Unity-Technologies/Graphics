@@ -72,27 +72,7 @@ namespace UnityEditor.ShaderGraph.Drawing
 
         int InsertionIndex(Vector2 pos)
         {
-            int index = -1;
-
-            if (this.ContainsPoint(pos))
-            {
-                index = 0;
-
-                foreach (VisualElement child in Children())
-                {
-                    Rect rect = child.layout;
-
-                    if (pos.y > (rect.y + rect.height / 2))
-                    {
-                        ++index;
-                    }
-                    else
-                    {
-                        break;
-                    }
-                }
-            }
-
+            int index = BlackboardUtils.GetInsertionIndex(this, pos, Children());
             return Mathf.Clamp(index, 0, index);
         }
 
@@ -279,6 +259,7 @@ namespace UnityEditor.ShaderGraph.Drawing
 
         void OnMouseDownEvent(MouseDownEvent e)
         {
+            // Handles double-click with left mouse, which should trigger a rename action on this category
             if ((e.clickCount == 2) && e.button == (int)MouseButton.LeftMouse && IsRenamable())
             {
                 OpenTextEditor();
@@ -300,7 +281,7 @@ namespace UnityEditor.ShaderGraph.Drawing
             m_TitleLabel.visible = true;
             m_TextField.style.display = DisplayStyle.None;
 
-            if (title != m_TextField.text && String.IsNullOrWhiteSpace(m_TextField.text) == false && String.IsNullOrEmpty(m_TextField.text) == false)
+            if (title != m_TextField.text && String.IsNullOrWhiteSpace(m_TextField.text) == false)
             {
                 var changeCategoryNameAction = new ChangeCategoryNameAction();
                 changeCategoryNameAction.newCategoryNameValue = m_TextField.text;
