@@ -154,6 +154,10 @@ namespace UnityEditor.Rendering.HighDefinition
 
                 if (inputData.shaderKeywordSet.IsEnabled(m_Decals4RT) && !hdrpAsset.currentPlatformRenderPipelineSettings.decalSettings.perChannelMask)
                     return true;
+
+                // Remove the surface gradient blending if not enabled
+                if (inputData.shaderKeywordSet.IsEnabled(m_DecalSurfaceGradient) && !hdrpAsset.currentPlatformRenderPipelineSettings.supportSurfaceGradient)
+                    return true;
             }
             else
             {
@@ -167,6 +171,10 @@ namespace UnityEditor.Rendering.HighDefinition
 
                 // If no decal support, remove decal variant
                 if (inputData.shaderKeywordSet.IsEnabled(m_Decals3RT) || inputData.shaderKeywordSet.IsEnabled(m_Decals4RT))
+                    return true;
+
+                // Remove the surface gradient blending
+                if (inputData.shaderKeywordSet.IsEnabled(m_DecalSurfaceGradient))
                     return true;
             }
 
