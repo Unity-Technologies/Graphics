@@ -147,6 +147,7 @@ namespace UnityEngine.Rendering.HighDefinition
             volumetricHistoryIsValid = false;
             volumetricValidFrames = 0;
             colorPyramidHistoryIsValid = false;
+            dofHistoryIsValid = false;
 
             // Reset the volumetric cloud offset animation data
             volumetricCloudsAnimationData.lastTime = -1.0f;
@@ -550,7 +551,9 @@ namespace UnityEngine.Rendering.HighDefinition
 
         internal bool allowDynamicResolution => m_AdditionalCameraData != null && m_AdditionalCameraData.allowDynamicResolution;
 
-        internal HDPhysicalCamera physicalParameters { get; private set; }
+        // We set the values of the physical camera in the Update() call. Here we initialize with
+        // the defaults, in case someone is trying to access the values before the first Update
+        internal HDPhysicalCamera physicalParameters { get; private set; } = HDPhysicalCamera.GetDefaults();
 
         internal IEnumerable<AOVRequestData> aovRequests =>
             m_AdditionalCameraData != null && !m_AdditionalCameraData.Equals(null)
@@ -859,10 +862,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 Vector2Int scaledSize = DynamicResolutionHandler.instance.GetScaledSize(new Vector2Int(actualWidth, actualHeight));
                 actualWidth = scaledSize.x;
                 actualHeight = scaledSize.y;
-                if (IsDLSSEnabled())
-                {
-                    globalMipBias += (float)Math.Log((double)actualWidth / (double)nonScaledViewport.x, 2.0);
-                }
+                globalMipBias += DynamicResolutionHandler.instance.CalculateMipBias(scaledSize, nonScaledViewport, IsDLSSEnabled());
             }
 
             var screenWidth = actualWidth;
@@ -1216,29 +1216,31 @@ namespace UnityEngine.Rendering.HighDefinition
                 visualSky.skySettings = SkyManager.GetSkySetting(volumeStack);
                 visualSky.cloudSettings = SkyManager.GetCloudSetting(volumeStack);
 
-                // Now, see if we have a lighting override
-                // Update needs to happen before testing if the component is active other internal data structure are not properly updated yet.
-                VolumeManager.instance.Update(skyManager.lightingOverrideVolumeStack, volumeAnchor, skyManager.lightingOverrideLayerMask);
-                if (VolumeManager.instance.IsComponentActiveInMask<VisualEnvironment>(skyManager.lightingOverrideLayerMask))
-                {
-                    SkySettings newSkyOverride = SkyManager.GetSkySetting(skyManager.lightingOverrideVolumeStack);
-                    CloudSettings newCloudOverride = SkyManager.GetCloudSetting(skyManager.lightingOverrideVolumeStack);
+                lightingSky = visualSky;
 
-                    if ((m_LightingOverrideSky.skySettings != null && newSkyOverride == null) ||
-                        (m_LightingOverrideSky.cloudSettings != null && newCloudOverride == null))
+                if (skyManager.lightingOverrideLayerMask != 0)
+                {
+                    // Now, see if we have a lighting override
+                    // Update needs to happen before testing if the component is active other internal data structure are not properly updated yet.
+                    VolumeManager.instance.Update(skyManager.lightingOverrideVolumeStack, volumeAnchor, skyManager.lightingOverrideLayerMask);
+
+                    if (VolumeManager.instance.IsComponentActiveInMask<VisualEnvironment>(skyManager.lightingOverrideLayerMask))
                     {
-                        // When we switch from override to no override, we need to make sure that the visual sky will actually be properly re-rendered.
-                        // Resetting the visual sky hash will ensure that.
-                        visualSky.skyParametersHash = -1;
-                    }
+                        SkySettings newSkyOverride = SkyManager.GetSkySetting(skyManager.lightingOverrideVolumeStack);
+                        CloudSettings newCloudOverride = SkyManager.GetCloudSetting(skyManager.lightingOverrideVolumeStack);
 
-                    m_LightingOverrideSky.skySettings = newSkyOverride;
-                    m_LightingOverrideSky.cloudSettings = newCloudOverride;
-                    lightingSky = m_LightingOverrideSky;
-                }
-                else
-                {
-                    lightingSky = visualSky;
+                        if ((m_LightingOverrideSky.skySettings != null && newSkyOverride == null) ||
+                            (m_LightingOverrideSky.cloudSettings != null && newCloudOverride == null))
+                        {
+                            // When we switch from override to no override, we need to make sure that the visual sky will actually be properly re-rendered.
+                            // Resetting the visual sky hash will ensure that.
+                            visualSky.skyParametersHash = -1;
+
+                            m_LightingOverrideSky.skySettings = newSkyOverride;
+                            m_LightingOverrideSky.cloudSettings = newCloudOverride;
+                            lightingSky = m_LightingOverrideSky;
+                        }
+                    }
                 }
             }
         }
@@ -1555,7 +1557,6 @@ namespace UnityEngine.Rendering.HighDefinition
         {
             volumeAnchor = null;
             volumeLayerMask = -1;
-            physicalParameters = null;
 
             if (m_AdditionalCameraData != null)
             {
@@ -1595,8 +1596,8 @@ namespace UnityEngine.Rendering.HighDefinition
                             // Remove lighting override mask and layer 31 which is used by preview/lookdev
                             volumeLayerMask = (-1 & ~(hdPipeline.asset.currentPlatformRenderPipelineSettings.lightLoopSettings.skyLightingOverrideLayerMask | (1 << 31)));
 
-                        // No fallback for the physical camera as we can't assume anything in this regard
-                        // Kept at null so the exposure will just use the default physical camera values
+                        // Use the default physical camera values so the exposure will look reasonable
+                        physicalParameters = HDPhysicalCamera.GetDefaults();
                     }
                 }
             }

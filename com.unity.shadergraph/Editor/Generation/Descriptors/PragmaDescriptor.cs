@@ -30,8 +30,13 @@ namespace UnityEditor.ShaderGraph
         public static PragmaDescriptor PreferHlslCC(Platform[] renderers) => new PragmaDescriptor { value = $"prefer_hlslcc {GetPlatformList(renderers)}" };
         public static PragmaDescriptor InstancingOptions(InstancingOptions value) => new PragmaDescriptor { value = $"instancing_options {value.ToShaderString()}" };
         public static PragmaDescriptor MultiCompileInstancing => new PragmaDescriptor { value = "multi_compile_instancing" };
+        public static PragmaDescriptor MultiCompileForwardBase => new PragmaDescriptor { value = "multi_compile_fwdbase" };
+        public static PragmaDescriptor MultiCompileForwardAddFullShadowsBase => new PragmaDescriptor { value = "multi_compile_fwdadd_fullshadows" };
+        public static PragmaDescriptor MultiCompilePrePassFinal => new PragmaDescriptor { value = "multi_compile_prepassfinal" };
+        public static PragmaDescriptor MultiCompileShadowCaster => new PragmaDescriptor { value = "multi_compile_shadowcaster" };
         public static PragmaDescriptor DOTSInstancing => new PragmaDescriptor { value = "multi_compile _ DOTS_INSTANCING_ON" };
         public static PragmaDescriptor MultiCompileFog => new PragmaDescriptor { value = "multi_compile_fog" };
         public static PragmaDescriptor EditorSyncCompilation => new PragmaDescriptor { value = "editor_sync_compilation" };
+        public static PragmaDescriptor SkipVariants(string[] variants) => new PragmaDescriptor { value = $"skip_variants {string.Join(" ", variants)}" };
     }
 }

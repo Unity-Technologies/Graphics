@@ -24,8 +24,8 @@ namespace UnityEditor.Rendering.Universal
 
             public static GUIContent rendererType = EditorGUIUtility.TrTextContent("Renderer", "Controls which renderer this camera uses.");
 
-            public static GUIContent volumeLayerMask = EditorGUIUtility.TrTextContent("Volume Mask", "This camera will only be affected by volumes in the selected scene-layers.");
-            public static GUIContent volumeTrigger = EditorGUIUtility.TrTextContent("Volume Trigger", "A transform that will act as a trigger for volume blending. If none is set, the camera itself will act as a trigger.");
+            public static GUIContent volumeLayerMask = EditorGUIUtility.TrTextContent("Mask", "This Camera is only affected by Volumes in the Layers that are assigned to the Camera.");
+            public static GUIContent volumeTrigger = EditorGUIUtility.TrTextContent("Trigger", "A Transform component that acts as a trigger for Volume blending. If none is set, the Camera itself acts as a trigger.");
 
             public static GUIContent renderPostProcessing = EditorGUIUtility.TrTextContent("Post Processing", "Enable this to make this camera render post-processing effects.");
             public static GUIContent antialiasing = EditorGUIUtility.TrTextContent("Anti-aliasing", "The anti-aliasing method to use.");
