@@ -33,7 +33,7 @@ namespace UnityEditor.VFX
 
         private bool hasGPUSpawner => inputContexts.Any(o => o.contextType == VFXContextType.SpawnerGPU);
 
-        private bool hasDynamicSourceCount => GetData() != null ? GetData().hasDynamicSourceCount : false;
+        private bool hasDynamicSourceCount => GetData() != null ? ((VFXDataParticle)GetData()).hasDynamicSourceCount : false;
 
         public override IEnumerable<string> additionalDefines
         {
