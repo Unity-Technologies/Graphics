@@ -112,6 +112,18 @@ namespace UnityEngine.Rendering.Universal
             return rendererData.spriteUnshadowMaterial[colorIndex];
         }
 
+        private static Material GetGeometryUnshadowMaterial(this Renderer2DData rendererData, int colorIndex)
+        {
+            rendererData.geometryUnshadowMaterial = null;
+            if (rendererData.geometryUnshadowMaterial == null || rendererData.geometryUnshadowMaterial.Length == 0 || rendererData.geometryUnshadowShader != rendererData.spriteUnshadowMaterial[0].shader)
+            {
+                rendererData.geometryUnshadowMaterial = CreateMaterials(rendererData.geometryUnshadowShader);
+            }
+
+            return rendererData.geometryUnshadowMaterial[colorIndex];
+        }
+
+
         public static void CreateShadowRenderTexture(IRenderPass2D pass, RenderingData renderingData, CommandBuffer cmdBuffer, int shadowIndex)
         {
             CreateShadowRenderTexture(pass, m_RenderTargets[shadowIndex], renderingData, cmdBuffer);
@@ -236,6 +248,7 @@ namespace UnityEngine.Rendering.Universal
 
 
                             cmdBuffer.SetGlobalColor(k_ShadowColorMaskID, k_ColorLookup[colorBit]);
+                            var unshadowGeometryMaterial = pass.rendererData.GetGeometryUnshadowMaterial(colorBit);
                             var projectedShadowsMaterial = pass.rendererData.GetProjectedShadowMaterial(colorBit);
                             var selfShadowMaterial = pass.rendererData.GetSpriteSelfShadowMaterial(colorBit);
                             var unshadowMaterial = pass.rendererData.GetSpriteUnshadowMaterial(colorBit);
@@ -261,10 +274,15 @@ namespace UnityEngine.Rendering.Universal
                                                 {
                                                     SetShadowProjectionGlobals(cmdBuffer, shadowCaster);
                                                     cmdBuffer.DrawMesh(shadowCaster.mesh, shadowCaster.transform.localToWorldMatrix, projectedShadowsMaterial, 0, 0);
+
+                                                    // This is a fix for a bug. We will likely be able to remove this with a rework of shadow geometry
+                                                    if (!shadowCaster.selfShadows)
+                                                        cmdBuffer.DrawMesh(shadowCaster.mesh, shadowCaster.transform.localToWorldMatrix, unshadowGeometryMaterial, 0, 0);
                                                 }
                                             }
                                         }
                                     }
+
 
                                     // Draw the sprites, either as self shadowing or unshadowing
                                     for (var i = 0; i < shadowCasters.Count; i++)
