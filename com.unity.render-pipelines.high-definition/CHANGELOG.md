@@ -55,6 +55,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Added a toggle to render the volumetric clouds locally or in the skybox.
 - Added the ability to control focus distance either from the physical camera properties or the volume.
 - Added the ability to animate many physical camera properties with Timeline.
+- Added a mixed RayMarching/RayTracing mode for RTReflections and RTGI.
 
 ### Fixed
 - Fixed Intensity Multiplier not affecting realtime global illumination.
