@@ -180,7 +180,7 @@ void GetSurfaceAndBuiltinData(inout FragInputs input, float3 V, inout PositionIn
     input.tangentToWorld = BuildTangentToWorld(tangentWS, normalWS);
     surfaceData.normalWS = normalWS;
 #else
-    surfaceData.normalWS = 0;
+    surfaceData.normalWS = float3(0.0, 0.0, 0.0);
 #endif
     surfaceData.tangentWS = normalize(input.tangentToWorld[0].xyz); // The tangent is not normalize in tangentToWorld for mikkt. Tag: SURFACE_GRADIENT
 

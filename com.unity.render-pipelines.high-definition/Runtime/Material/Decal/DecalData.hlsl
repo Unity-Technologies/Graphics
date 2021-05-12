@@ -86,7 +86,7 @@ void GetSurfaceData(FragInputs input, float3 V, PositionInputs posInput, float a
     float2 deriv = float2(0.0, 0.0);
     #endif
 
-    #if (SHADERPASS == SHADERPASS_DBUFFER_PROJECTOR) || (SHADERPASS == SHADERPASS_FORWARD_EMISSIVE_PROJECTOR)
+    #if (SHADERPASS == SHADERPASS_DBUFFER_PROJECTOR)
     float3x3 tangentToWorld = transpose((float3x3)normalToWorld);
     #else
     float3x3 tangentToWorld = input.tangentToWorld;

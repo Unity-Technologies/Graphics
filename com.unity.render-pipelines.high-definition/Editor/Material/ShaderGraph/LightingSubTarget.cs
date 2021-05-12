@@ -101,7 +101,6 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
         {
             base.CollectPassKeywords(ref pass);
 
-            pass.keywords.Add(CoreKeywordDescriptors.DecalSurfaceGradient);
             pass.keywords.Add(CoreKeywordDescriptors.DisableDecals);
             pass.keywords.Add(CoreKeywordDescriptors.DisableSSR);
             pass.keywords.Add(CoreKeywordDescriptors.DisableSSRTransparent);
@@ -123,6 +122,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                 {
                     pass.keywords.Add(CoreKeywordDescriptors.ShadowsShadowmask);
                     pass.keywords.Add(CoreKeywordDescriptors.Decals);
+                    pass.keywords.Add(CoreKeywordDescriptors.DecalSurfaceGradient);
                 }
             }
 

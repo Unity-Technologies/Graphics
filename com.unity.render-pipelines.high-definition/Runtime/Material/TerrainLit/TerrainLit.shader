@@ -76,8 +76,6 @@ Shader "HDRP/TerrainLit"
     #pragma shader_feature_local _DISABLE_DECALS
     #pragma shader_feature_local _ADD_PRECOMPUTED_VELOCITY
 
-    #pragma multi_compile_fragment _ DECAL_SURFACE_GRADIENT
-
     //enable GPU instancing support
     #pragma multi_compile_instancing
     #pragma instancing_options assumeuniformscaling nomatrices nolightprobe nolightmap
@@ -139,6 +137,7 @@ Shader "HDRP/TerrainLit"
             #pragma multi_compile_fragment PROBE_VOLUMES_OFF PROBE_VOLUMES_L1 PROBE_VOLUMES_L2
             // Setup DECALS_OFF so the shader stripper can remove variants
             #pragma multi_compile_fragment DECALS_OFF DECALS_3RT DECALS_4RT
+            #pragma multi_compile_fragment _ DECAL_SURFACE_GRADIENT
             #pragma multi_compile_fragment _ LIGHT_LAYERS
 
             #define SHADERPASS SHADERPASS_GBUFFER
@@ -261,6 +260,7 @@ Shader "HDRP/TerrainLit"
             #pragma multi_compile_fragment SCREEN_SPACE_SHADOWS_OFF SCREEN_SPACE_SHADOWS_ON
             // Setup DECALS_OFF so the shader stripper can remove variants
             #pragma multi_compile_fragment DECALS_OFF DECALS_3RT DECALS_4RT
+            #pragma multi_compile_fragment _ DECAL_SURFACE_GRADIENT
 
             // Supported shadow modes per light type
             #pragma multi_compile_fragment SHADOW_LOW SHADOW_MEDIUM SHADOW_HIGH SHADOW_VERY_HIGH

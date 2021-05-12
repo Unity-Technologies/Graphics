@@ -140,7 +140,8 @@ Pass
 
         #ifdef _MATERIAL_AFFECTS_NORMAL
             #ifdef DECAL_SURFACE_GRADIENT
-                $SurfaceDescription.NormalTS:   float2 deriv = -surfaceDescription.NormalTS.xy * rsqrt(max(1 - Sq(surfaceDescription.NormalTS.x) - Sq(surfaceDescription.NormalTS.y), Sq(FLT_EPS)));
+                $SurfaceDescription.NormalTS:   float rcpZ = rsqrt(max(1 - Sq(surfaceDescription.NormalTS.x) - Sq(surfaceDescription.NormalTS.y), HALF_MIN_SQRT));
+                $SurfaceDescription.NormalTS:   float2 deriv = ConvertTangentSpaceNormalToHeightMapGradient(surfaceDescription.NormalTS.xy, rcpZ, 1.0);
                 #if (SHADERPASS == SHADERPASS_DBUFFER_PROJECTOR) || (SHADERPASS == SHADERPASS_FORWARD_EMISSIVE_PROJECTOR)
                     $SurfaceDescription.NormalTS:   float3x3 tangentToWorld = transpose((float3x3)normalToWorld);
                 #else

@@ -144,7 +144,7 @@ void EvalDecalMask( PositionInputs posInput, float3 vtxNormal, float3 positionRW
         // Normal
         if (affectFlags & 2)
         {
-            float4 src = 0.0;
+            float4 src = float4(0.0, 0.0, 0.0, 0.0);
             float3 normalTS = float3(0.0, 0.0, 1.0);
 
             // We use scaleBias value to now if we have init a texture. 0 mean a texture is bound
