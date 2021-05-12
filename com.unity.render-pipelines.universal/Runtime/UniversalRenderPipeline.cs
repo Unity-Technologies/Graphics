@@ -503,7 +503,7 @@ namespace UnityEngine.Rendering.Universal
                 if (xrPass.enabled)
                 {
                     xrActive = true;
-                    UpdateCameraStereoMatrices(baseCameraAdditionalData.camera, xrPass);
+                    UpdateCameraStereoMatrices(baseCamera, xrPass);
                 }
 
                 using (new ProfilingScope(null, Profiling.Pipeline.beginCameraRendering))
