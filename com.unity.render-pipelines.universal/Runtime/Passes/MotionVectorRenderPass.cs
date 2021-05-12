@@ -23,7 +23,7 @@ namespace UnityEngine.Rendering.Universal.Internal
         #region Constructors
         internal MotionVectorRenderPass(Material cameraMaterial, Material objectMaterial)
         {
-            renderPassEvent = RenderPassEvent.AfterRenderingOpaques;
+            renderPassEvent = RenderPassEvent.BeforeRenderingTransparents;
             m_CameraMaterial = cameraMaterial;
             m_ObjectMaterial = objectMaterial;
         }
@@ -44,9 +44,6 @@ namespace UnityEngine.Rendering.Universal.Internal
             m_MotionVectorHandle.Init(kMotionVectorTexture);
             cmd.GetTemporaryRT(m_MotionVectorHandle.id, rtd, FilterMode.Point);
             ConfigureTarget(m_MotionVectorHandle.Identifier(), m_MotionVectorHandle.Identifier());
-
-            // TODO: Why do clear here?
-            cmd.ClearRenderTarget(true, true, Color.black, 1.0f);
         }
 
         #endregion

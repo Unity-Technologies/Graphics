@@ -882,8 +882,8 @@ namespace UnityEngine.Rendering.Universal
             internal bool requiresDepthPrepass;
             internal bool requiresNormalsTexture;
             internal bool requiresColorTexture;
-            internal RenderPassEvent requiresDepthNormalAtEvent;
             internal bool requiresMotionVectors;
+            internal RenderPassEvent requiresDepthNormalAtEvent;
         }
 
         private RenderPassInputSummary GetRenderPassInputs(ref RenderingData renderingData)
