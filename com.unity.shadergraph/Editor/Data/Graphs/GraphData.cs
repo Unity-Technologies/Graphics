@@ -1759,22 +1759,18 @@ namespace UnityEditor.ShaderGraph
 
         public void RemoveCategory(string categoryGUID)
         {
-            foreach (var categoryData in categories.ToList())
+            var existingCategory = categories.FirstOrDefault(category => category.categoryGuid == categoryGUID);
+            if (existingCategory != null)
             {
-                if (categoryData.categoryGuid == categoryGUID)
-                {
-                    m_CategoryData.Remove(categoryData);
-                    m_RemovedCategories.Add(categoryData);
+                m_CategoryData.Remove(existingCategory);
+                m_RemovedCategories.Add(existingCategory);
 
-                    // Whenever a category is removed, also remove any inputs within that category
-                    foreach (var shaderInput in categoryData.Children)
-                        RemoveGraphInput(shaderInput);
-
-                    return;
-                }
+                // Whenever a category is removed, also remove any inputs within that category
+                foreach (var shaderInput in existingCategory.Children)
+                    RemoveGraphInput(shaderInput);
             }
-
-            AssertHelpers.Fail("Attempted to remove a category that does not exist in the graph.");
+            else
+                AssertHelpers.Fail("Attempted to remove a category that does not exist in the graph.");
         }
 
         // This differs from the rest of the category handling functions due to how categories can be copied between graphs

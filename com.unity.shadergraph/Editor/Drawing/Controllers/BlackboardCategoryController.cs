@@ -245,6 +245,8 @@ namespace UnityEditor.ShaderGraph.Drawing
                 else
                     blackboardCategoryView.Insert(insertionIndex, blackboardItemController.BlackboardItemView);
 
+                blackboardCategoryView.MarkDirtyRepaint();
+
                 return blackboardItemController.BlackboardItemView;
             }
             else

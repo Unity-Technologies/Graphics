@@ -249,7 +249,14 @@ Shader ""Hidden/GraphErrorShader2""
                 // Don't write out data for non-exposed blackboard items
                 if (!keyword.isExposed)
                     continue;
-                inputInspectorDataList.Add(new MinimalCategoryData.GraphInputData() { referenceName = keyword.referenceName, keywordType = keyword.keywordType, isKeyword = true});
+
+                var sanitizedReferenceName = keyword.referenceName;
+                if (keyword.keywordType == KeywordType.Boolean && keyword.referenceName.Contains("_ON"))
+                    sanitizedReferenceName = sanitizedReferenceName.Replace("_ON", String.Empty);
+
+                inputInspectorDataList.Add(new MinimalCategoryData.GraphInputData() { referenceName = sanitizedReferenceName, keywordType = keyword.keywordType, isKeyword = true});
+
+
             }
 
             sgMetadata.categoryDatas = new List<MinimalCategoryData>();
@@ -281,7 +288,11 @@ Shader ""Hidden/GraphErrorShader2""
                     }
                     else if (input is ShaderKeyword keyword)
                     {
-                        propData = new MinimalCategoryData.GraphInputData() { referenceName = input.referenceName, keywordType = keyword.keywordType, isKeyword = true};
+                        var sanitizedReferenceName = keyword.referenceName;
+                        if (keyword.keywordType == KeywordType.Boolean && keyword.referenceName.Contains("_ON"))
+                            sanitizedReferenceName = sanitizedReferenceName.Replace("_ON", String.Empty);
+
+                        propData = new MinimalCategoryData.GraphInputData() { referenceName = sanitizedReferenceName, keywordType = keyword.keywordType, isKeyword = true};
                     }
                     else
                     {

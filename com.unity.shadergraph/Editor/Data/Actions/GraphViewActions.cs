@@ -27,8 +27,13 @@ namespace UnityEditor.ShaderGraph
                 graphData.AddGraphInput(convertedProperty);
 
                 // Also insert this input into the default category
-                if(defaultCategory != null)
-                    graphData.InsertItemIntoCategory(defaultCategory.categoryGuid, convertedProperty);
+                if (defaultCategory != null)
+                {
+                    var addItemToCategoryAction = new AddItemToCategoryAction();
+                    addItemToCategoryAction.categoryGuid = defaultCategory.categoryGuid;
+                    addItemToCategoryAction.itemToAdd = convertedProperty;
+                    graphData.owner.graphDataStore.Dispatch(addItemToCategoryAction);
+                }
 
                 // Add reference to converted property for use in responding to this action later
                 convertedPropertyReferences.Add(convertedProperty);

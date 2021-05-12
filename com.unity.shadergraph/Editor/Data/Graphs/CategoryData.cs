@@ -45,32 +45,23 @@ namespace UnityEditor.ShaderGraph
             else
             {
                 m_ChildObjectList.Insert(insertionIndex, itemToAdd);
-                // Recreate the hash-set as the data structure does not allow for moving/inserting elements
-                m_ChildObjectIDSet.Clear();
-                foreach (var childObject in m_ChildObjectList)
-                {
-                    m_ChildObjectIDSet.Add(childObject.value.objectId);
-                }
+                m_ChildObjectIDSet.Add(itemToAdd.objectId);
             }
         }
 
         public void RemoveItemFromCategory(ShaderInput itemToRemove)
         {
-            m_ChildObjectList.Remove(itemToRemove);
-            if (m_ChildObjectIDSet.Contains(itemToRemove.objectId))
+            if (IsItemInCategory(itemToRemove))
+            {
+                m_ChildObjectList.Remove(itemToRemove);
                 m_ChildObjectIDSet.Remove(itemToRemove.objectId);
+            }
         }
 
         public void MoveItemInCategory(ShaderInput itemToMove, int newIndex)
         {
-            m_ChildObjectList.Remove(itemToMove);
-            m_ChildObjectList.Insert(newIndex, itemToMove);
-            // Recreate the hash-set as the data structure does not allow for moving/inserting elements
-            m_ChildObjectIDSet.Clear();
-            foreach (var childObject in m_ChildObjectList)
-            {
-                m_ChildObjectIDSet.Add(childObject.value.objectId);
-            }
+            RemoveItemFromCategory(itemToMove);
+            InsertItemIntoCategory(itemToMove, newIndex);
         }
 
         public bool IsItemInCategory(ShaderInput itemToCheck)
@@ -87,12 +78,13 @@ namespace UnityEditor.ShaderGraph
         {
             if (m_ChildObjectList != null)
             {
-                foreach (var childObject in m_ChildObjectList.ToList())
+                for (int index = 0; index < m_ChildObjectList.Count; ++index)
                 {
+                    var childObject = m_ChildObjectList[index];
                     if (childObject.value != null)
                         m_ChildObjectIDSet.Add(childObject.value.objectId);
                     else
-                        m_ChildObjectList.Remove(childObject);
+                        m_ChildObjectList.RemoveAt(index);
                 }
             }
 

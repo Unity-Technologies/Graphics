@@ -620,11 +620,6 @@ namespace UnityEditor.ShaderGraph.Drawing
 
                     break;
 
-                case ConvertToPropertyAction convertToPropertyAction:
-                    foreach (var convertedProperty in convertToPropertyAction.convertedPropertyReferences)
-                        InsertBlackboardRow(convertedProperty);
-                    break;
-
                 case AddCategoryAction addCategoryAction:
                     AddBlackboardCategory(DataStore, addCategoryAction.categoryDataReference);
                     // Iterate through anything that is selected currently
