@@ -191,6 +191,7 @@ Shader "Universal Render Pipeline/Simple Lit"
             #pragma multi_compile _ LIGHTMAP_ON
             #pragma multi_compile _ DYNAMICLIGHTMAP_ON
             #pragma multi_compile_fragment _ _GBUFFER_NORMALS_OCT
+            #pragma multi_compile_fragment _ _RENDER_PASS_ENABLED
 
             //--------------------------------------
             // GPU Instancing

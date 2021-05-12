@@ -19,7 +19,7 @@ namespace UnityEditor.Rendering.Universal
             public static readonly GUIContent RenderingModeLabel = new GUIContent("Rendering Path", "Select a rendering path.");
             public static readonly GUIContent DepthPrimingModeLabel = new GUIContent("Depth Priming Mode", "With depth priming enabled, Unity uses the depth buffer generated in the depth prepass to determine if a fragment should be rendered or skipped during the Base Camera opaque pass. Disabled: Unity does not perform depth priming. Auto: If there is a Render Pass that requires a depth prepass, Unity performs the depth prepass and depth priming. Forced: Unity performs the depth prepass and depth priming.");
             public static readonly GUIContent DepthPrimingModeInfo = new GUIContent("On Android, iOS, and Apple TV, Unity performs depth priming only in the Forced mode. On tiled GPUs, which are common to those platforms, depth priming might reduce performance when combined with MSAA.");
-            public static readonly GUIContent RenderPassLabel = new GUIContent("Native RenderPass", "Enables URP to use RenderPass API");
+            public static readonly GUIContent RenderPassLabel = new GUIContent("Native RenderPass", "Enables URP to use RenderPass API. Has no effect on OpenGLES2");
             public static readonly GUIContent accurateGbufferNormalsLabel = EditorGUIUtility.TrTextContent("Accurate G-buffer normals", "Normals in G-buffer use octahedron encoding/decoding. This improves visual quality but might reduce performance.");
             //public static readonly GUIContent tiledDeferredShadingLabel = EditorGUIUtility.TrTextContent("Tiled Deferred Shading (Experimental)", "Allows Tiled Deferred Shading on appropriate lights");
             public static readonly GUIContent defaultStencilStateLabel = EditorGUIUtility.TrTextContent("Default Stencil State", "Configure the stencil state for the opaque and transparent render passes.");
@@ -36,9 +36,7 @@ namespace UnityEditor.Rendering.Universal
         //SerializedProperty m_TiledDeferredShading;
         SerializedProperty m_ClusteredRendering;
         SerializedProperty m_TileSize;
-#if ENABLE_RENDER_PASS_UI
         SerializedProperty m_UseNativeRenderPass;
-#endif
         SerializedProperty m_DefaultStencilState;
         SerializedProperty m_PostProcessData;
         SerializedProperty m_Shaders;
@@ -61,9 +59,7 @@ namespace UnityEditor.Rendering.Universal
             //m_TiledDeferredShading = serializedObject.FindProperty("m_TiledDeferredShading");
             m_ClusteredRendering = serializedObject.FindProperty("m_ClusteredRendering");
             m_TileSize = serializedObject.FindProperty("m_TileSize");
-#if ENABLE_RENDER_PASS_UI
             m_UseNativeRenderPass = serializedObject.FindProperty("m_UseNativeRenderPass");
-#endif
             m_DefaultStencilState = serializedObject.FindProperty("m_DefaultStencilState");
             m_PostProcessData = serializedObject.FindProperty("postProcessData");
             m_Shaders = serializedObject.FindProperty("shaders");
@@ -118,13 +114,11 @@ namespace UnityEditor.Rendering.Universal
 
             EditorGUI.indentLevel--;
             EditorGUILayout.Space();
-#if ENABLE_RENDER_PASS_UI
             EditorGUILayout.LabelField("RenderPass", EditorStyles.boldLabel);
             EditorGUI.indentLevel++;
             EditorGUILayout.PropertyField(m_UseNativeRenderPass, Styles.RenderPassLabel);
             EditorGUI.indentLevel--;
             EditorGUILayout.Space();
-#endif
             EditorGUILayout.LabelField("Shadows", EditorStyles.boldLabel);
             EditorGUI.indentLevel++;
             EditorGUILayout.PropertyField(m_ShadowTransparentReceiveProp, Styles.shadowTransparentReceiveLabel);

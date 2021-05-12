@@ -69,6 +69,7 @@ Shader "Hidden/TerrainEngine/Details/UniversalPipeline/Vertexlit"
             #pragma multi_compile _ DIRLIGHTMAP_COMBINED
             #pragma multi_compile _ LIGHTMAP_ON
             #pragma multi_compile_fragment _ _GBUFFER_NORMALS_OCT
+            #pragma multi_compile_fragment _ _RENDER_PASS_ENABLED
 
             #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Core.hlsl"
             #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Lighting.hlsl"
@@ -161,6 +162,7 @@ Shader "Hidden/TerrainEngine/Details/UniversalPipeline/Vertexlit"
 
                 InputData inputData = (InputData)0;
                 inputData.normalWS = input.NormalWS;
+                inputData.positionCS = input.PositionCS;
 
                 return SurfaceDataToGbuffer(surfaceData, inputData, color.rgb, kLightingInvalid);
             }
