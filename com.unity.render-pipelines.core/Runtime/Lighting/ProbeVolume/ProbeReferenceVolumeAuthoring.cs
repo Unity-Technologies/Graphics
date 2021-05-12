@@ -107,7 +107,6 @@ namespace UnityEngine.Experimental.Rendering
                 return;
 
             var refVol = ProbeReferenceVolume.instance;
-            refVol.Clear();
             refVol.SetTRS(transform.position, transform.rotation, m_Profile.brickSize);
             refVol.SetMaxSubdivision(m_Profile.maxSubdivision);
 
@@ -175,13 +174,19 @@ namespace UnityEngine.Experimental.Rendering
             QueueAssetRemoval();
         }
 
-        internal bool ShouldCull(Vector3 cellPosition, Vector3 originWS = default(Vector3))
+        internal bool ShouldCullCell(Vector3 cellPosition, Vector3 originWS = default(Vector3))
         {
             if (m_Profile == null)
                 return true;
 
+            var cameraTransform = SceneView.lastActiveSceneView.camera.transform;
+
             Vector3 cellCenterWS = cellPosition * m_Profile.cellSize + originWS + Vector3.one * (m_Profile.cellSize / 2.0f);
-            if (Vector3.Distance(SceneView.lastActiveSceneView.camera.transform.position, cellCenterWS) > ProbeReferenceVolume.instance.debugDisplay.cullingDistance)
+
+            // Round down to cell size distance
+            float roundedDownDist = Mathf.Floor(Vector3.Distance(cameraTransform.position, cellCenterWS) / m_Profile.cellSize) * m_Profile.cellSize;
+
+            if (roundedDownDist > ProbeReferenceVolume.instance.debugDisplay.subdivisionViewCullingDistance)
                 return true;
 
             var frustumPlanes = GeometryUtility.CalculateFrustumPlanes(SceneView.lastActiveSceneView.camera);
@@ -203,7 +208,7 @@ namespace UnityEngine.Experimental.Rendering
                 var subdivColors = ProbeReferenceVolume.instance.subdivisionDebugColors;
                 foreach (var cell in ProbeReferenceVolume.instance.cells.Values)
                 {
-                    if (ShouldCull(cell.position, ProbeReferenceVolume.instance.GetTransform().posWS))
+                    if (ShouldCullCell(cell.position, ProbeReferenceVolume.instance.GetTransform().posWS))
                         continue;
 
                     if (cell.bricks == null)
@@ -241,7 +246,7 @@ namespace UnityEngine.Experimental.Rendering
                 cellGizmo.Clear();
                 foreach (var cell in ProbeReferenceVolume.instance.cells.Values)
                 {
-                    if (ShouldCull(cell.position, transform.position))
+                    if (ShouldCullCell(cell.position, transform.position))
                         continue;
 
                     var positionF = new Vector3(cell.position.x, cell.position.y, cell.position.z);

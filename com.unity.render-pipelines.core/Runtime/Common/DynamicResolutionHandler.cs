@@ -44,6 +44,7 @@ namespace UnityEngine.Rendering
     public class DynamicResolutionHandler
     {
         private bool  m_Enabled;
+        private bool  m_UseMipBias;
         private float m_MinScreenFraction;
         private float m_MaxScreenFraction;
         private float m_CurrentFraction;
@@ -60,6 +61,7 @@ namespace UnityEngine.Rendering
         private void Reset()
         {
             m_Enabled = false;
+            m_UseMipBias = false;
             m_MinScreenFraction = 1.0f;
             m_MaxScreenFraction = 1.0f;
             m_CurrentFraction = 1.0f;
@@ -243,6 +245,7 @@ namespace UnityEngine.Rendering
         private void ProcessSettings(GlobalDynamicResolutionSettings settings)
         {
             m_Enabled = settings.enabled && (Application.isPlaying || settings.forceResolution);
+
             if (!m_Enabled)
             {
                 m_CurrentFraction = 1.0f;
@@ -250,6 +253,7 @@ namespace UnityEngine.Rendering
             else
             {
                 type = settings.dynResType;
+                m_UseMipBias = settings.useMipBias;
                 float minScreenFrac = Mathf.Clamp(settings.minPercentage / 100.0f, 0.1f, 1.0f);
                 m_MinScreenFraction = minScreenFrac;
                 float maxScreenFrac = Mathf.Clamp(settings.maxPercentage / 100.0f, m_MinScreenFraction, 3.0f);
@@ -283,6 +287,20 @@ namespace UnityEngine.Rendering
             }
 
             return new Vector2(scaleFractionX, scaleFractionY);
+        }
+
+        /// <summary>
+        /// Returns the mip bias to apply in the rendering pipeline. This mip bias helps bring detail since sampling of textures occurs at the target rate.
+        /// </summary>
+        /// <param name="inputResolution">The input width x height resolution in pixels.</param>
+        /// <param name="outputResolution">The output width x height resolution in pixels.</param>
+        /// <param name="forceApply">False by default. If true, we ignore the useMipBias setting and return a mip bias regardless.</param>
+        public float CalculateMipBias(Vector2Int inputResolution, Vector2Int outputResolution, bool forceApply = false)
+        {
+            if (!m_UseMipBias && !forceApply)
+                return 0.0f;
+
+            return (float)Math.Log((double)inputResolution.x / (double)outputResolution.x, 2.0);
         }
 
         /// <summary>

@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic; //needed for list of Custom Post Processes injections
 using System.IO;
 using UnityEngine.Serialization;
+using UnityEngine.Experimental.Rendering;
 #if UNITY_EDITOR
 using UnityEditorInternal;
 using UnityEditor;
@@ -694,6 +695,23 @@ namespace UnityEngine.Rendering.HighDefinition
 
         [SerializeField]
         internal bool useDLSSCustomProjectId = false;
+
+        #endregion
+
+        #region APV
+        // This is temporarily here until we have a core place to put it shared between pipelines.
+        [SerializeField]
+        internal ProbeVolumeSceneBounds apvScenesBounds;
+
+        internal ProbeVolumeSceneBounds GetOrCreateAPVSceneBounds()
+        {
+            if (apvScenesBounds == null)
+                apvScenesBounds = new ProbeVolumeSceneBounds((Object)this);
+
+
+            apvScenesBounds.SetParentObject((Object)this);
+            return apvScenesBounds;
+        }
 
         #endregion
     }
