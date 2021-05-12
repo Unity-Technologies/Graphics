@@ -486,14 +486,14 @@ namespace UnityEditor.Rendering.HighDefinition
             {
                 using (new EditorGUI.IndentLevelScope())
                 {
-                    EditorGUILayout.DelayedTextField(serialized.lightLayerName0, Styles.lightLayerName0, GUILayout.Height(EditorGUIUtility.singleLineHeight), GUILayout.ExpandWidth(true));
-                    EditorGUILayout.DelayedTextField(serialized.lightLayerName1, Styles.lightLayerName1, GUILayout.Height(EditorGUIUtility.singleLineHeight), GUILayout.ExpandWidth(true));
-                    EditorGUILayout.DelayedTextField(serialized.lightLayerName2, Styles.lightLayerName2, GUILayout.Height(EditorGUIUtility.singleLineHeight), GUILayout.ExpandWidth(true));
-                    EditorGUILayout.DelayedTextField(serialized.lightLayerName3, Styles.lightLayerName3, GUILayout.Height(EditorGUIUtility.singleLineHeight), GUILayout.ExpandWidth(true));
-                    EditorGUILayout.DelayedTextField(serialized.lightLayerName4, Styles.lightLayerName4, GUILayout.Height(EditorGUIUtility.singleLineHeight), GUILayout.ExpandWidth(true));
-                    EditorGUILayout.DelayedTextField(serialized.lightLayerName5, Styles.lightLayerName5, GUILayout.Height(EditorGUIUtility.singleLineHeight), GUILayout.ExpandWidth(true));
-                    EditorGUILayout.DelayedTextField(serialized.lightLayerName6, Styles.lightLayerName6, GUILayout.Height(EditorGUIUtility.singleLineHeight), GUILayout.ExpandWidth(true));
-                    EditorGUILayout.DelayedTextField(serialized.lightLayerName7, Styles.lightLayerName7, GUILayout.Height(EditorGUIUtility.singleLineHeight), GUILayout.ExpandWidth(true));
+                    EditorGUILayout.DelayedTextField(serialized.lightLayerName0, Styles.lightLayerName0, GUILayout.ExpandWidth(true));
+                    EditorGUILayout.DelayedTextField(serialized.lightLayerName1, Styles.lightLayerName1, GUILayout.ExpandWidth(true));
+                    EditorGUILayout.DelayedTextField(serialized.lightLayerName2, Styles.lightLayerName2, GUILayout.ExpandWidth(true));
+                    EditorGUILayout.DelayedTextField(serialized.lightLayerName3, Styles.lightLayerName3, GUILayout.ExpandWidth(true));
+                    EditorGUILayout.DelayedTextField(serialized.lightLayerName4, Styles.lightLayerName4, GUILayout.ExpandWidth(true));
+                    EditorGUILayout.DelayedTextField(serialized.lightLayerName5, Styles.lightLayerName5, GUILayout.ExpandWidth(true));
+                    EditorGUILayout.DelayedTextField(serialized.lightLayerName6, Styles.lightLayerName6, GUILayout.ExpandWidth(true));
+                    EditorGUILayout.DelayedTextField(serialized.lightLayerName7, Styles.lightLayerName7, GUILayout.ExpandWidth(true));
                 }
             }
         }
@@ -507,14 +507,14 @@ namespace UnityEditor.Rendering.HighDefinition
             {
                 using (new EditorGUI.IndentLevelScope())
                 {
-                    EditorGUILayout.DelayedTextField(serialized.decalLayerName0, Styles.decalLayerName0, GUILayout.Height(EditorGUIUtility.singleLineHeight), GUILayout.ExpandWidth(true));
-                    EditorGUILayout.DelayedTextField(serialized.decalLayerName1, Styles.decalLayerName1, GUILayout.Height(EditorGUIUtility.singleLineHeight), GUILayout.ExpandWidth(true));
-                    EditorGUILayout.DelayedTextField(serialized.decalLayerName2, Styles.decalLayerName2, GUILayout.Height(EditorGUIUtility.singleLineHeight), GUILayout.ExpandWidth(true));
-                    EditorGUILayout.DelayedTextField(serialized.decalLayerName3, Styles.decalLayerName3, GUILayout.Height(EditorGUIUtility.singleLineHeight), GUILayout.ExpandWidth(true));
-                    EditorGUILayout.DelayedTextField(serialized.decalLayerName4, Styles.decalLayerName4, GUILayout.Height(EditorGUIUtility.singleLineHeight), GUILayout.ExpandWidth(true));
-                    EditorGUILayout.DelayedTextField(serialized.decalLayerName5, Styles.decalLayerName5, GUILayout.Height(EditorGUIUtility.singleLineHeight), GUILayout.ExpandWidth(true));
-                    EditorGUILayout.DelayedTextField(serialized.decalLayerName6, Styles.decalLayerName6, GUILayout.Height(EditorGUIUtility.singleLineHeight), GUILayout.ExpandWidth(true));
-                    EditorGUILayout.DelayedTextField(serialized.decalLayerName7, Styles.decalLayerName7, GUILayout.Height(EditorGUIUtility.singleLineHeight), GUILayout.ExpandWidth(true));
+                    EditorGUILayout.DelayedTextField(serialized.decalLayerName0, Styles.decalLayerName0, GUILayout.ExpandWidth(true));
+                    EditorGUILayout.DelayedTextField(serialized.decalLayerName1, Styles.decalLayerName1, GUILayout.ExpandWidth(true));
+                    EditorGUILayout.DelayedTextField(serialized.decalLayerName2, Styles.decalLayerName2, GUILayout.ExpandWidth(true));
+                    EditorGUILayout.DelayedTextField(serialized.decalLayerName3, Styles.decalLayerName3, GUILayout.ExpandWidth(true));
+                    EditorGUILayout.DelayedTextField(serialized.decalLayerName4, Styles.decalLayerName4, GUILayout.ExpandWidth(true));
+                    EditorGUILayout.DelayedTextField(serialized.decalLayerName5, Styles.decalLayerName5, GUILayout.ExpandWidth(true));
+                    EditorGUILayout.DelayedTextField(serialized.decalLayerName6, Styles.decalLayerName6, GUILayout.ExpandWidth(true));
+                    EditorGUILayout.DelayedTextField(serialized.decalLayerName7, Styles.decalLayerName7, GUILayout.ExpandWidth(true));
                 }
             }
         }
