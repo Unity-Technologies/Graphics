@@ -119,11 +119,24 @@ namespace UnityEngine.Experimental.Rendering.Universal
                     }
                 }
 
-                context.ExecuteCommandBuffer(cmd);
-                cmd.Clear();
+                var activeDebugHandler = GetActiveDebugHandler(renderingData);
+                if (activeDebugHandler != null)
+                {
+                    activeDebugHandler.DrawWithDebugRenderState(context, cmd, ref renderingData, ref drawingSettings,  ref m_FilteringSettings, ref m_RenderStateBlock,
+                        (ScriptableRenderContext ctx, ref RenderingData data, ref DrawingSettings ds, ref FilteringSettings fs, ref RenderStateBlock rsb) =>
+                        {
+                            ctx.DrawRenderers(data.cullResults, ref ds, ref fs, ref rsb);
+                        });
+                }
+                else
+                {
+                    // Ensure we flush our command-buffer before we render...
+                    context.ExecuteCommandBuffer(cmd);
+                    cmd.Clear();
 
-                context.DrawRenderers(renderingData.cullResults, ref drawingSettings, ref m_FilteringSettings,
-                    ref m_RenderStateBlock);
+                    // Render the objects...
+                    context.DrawRenderers(renderingData.cullResults, ref drawingSettings, ref m_FilteringSettings, ref m_RenderStateBlock);
+                }
 
                 if (m_CameraSettings.overrideCamera && m_CameraSettings.restoreCamera && !cameraData.xr.enabled)
                 {

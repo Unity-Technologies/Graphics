@@ -314,6 +314,8 @@ SpeedTreeVertexDepthOutput SpeedTree8VertDepth(SpeedTreeVertexInput input)
 
 void InitializeInputData(SpeedTreeFragmentInput input, half3 normalTS, out InputData inputData)
 {
+    inputData = (InputData)0;
+
     inputData.positionWS = input.interpolated.positionWS.xyz;
 
 #ifdef EFFECT_BUMP
@@ -342,6 +344,14 @@ void InitializeInputData(SpeedTreeFragmentInput input, half3 normalTS, out Input
     inputData.bakedGI = SAMPLE_GI(NOT_USED, input.interpolated.vertexSH, inputData.normalWS);
     inputData.normalizedScreenSpaceUV = GetNormalizedScreenSpaceUV(input.interpolated.clipPos);
     inputData.shadowMask = half4(1, 1, 1, 1); // No GI currently.
+
+    #if defined(DEBUG_DISPLAY) && !defined(LIGHTMAP_ON)
+    inputData.vertexSH = input.interpolated.vertexSH;
+    #endif
+
+    #if defined(_NORMALMAP)
+    inputData.tangentToWorld = half3x3(input.interpolated.tangentWS.xyz, input.interpolated.bitangentWS.xyz, input.interpolated.normalWS.xyz);
+    #endif
 }
 
 #ifdef GBUFFER
@@ -368,7 +378,7 @@ half4 SpeedTree8Frag(SpeedTreeFragmentInput input) : SV_Target
     half4 diffuse = SampleAlbedoAlpha(uv, TEXTURE2D_ARGS(_MainTex, sampler_MainTex)) * _Color;
 
     half alpha = diffuse.a * input.interpolated.color.a;
-    AlphaDiscard(alpha - 0.3333, 0.0);
+    AlphaDiscard(alpha, 0.3333);
 
     half3 albedo = diffuse.rgb;
     half3 emission = 0;
@@ -423,6 +433,7 @@ half4 SpeedTree8Frag(SpeedTreeFragmentInput input) : SV_Target
 
     InputData inputData;
     InitializeInputData(input, normalTs, inputData);
+    SETUP_DEBUG_TEXTURE_DATA(inputData, input.interpolated.uv, _MainTex);
 
 #if defined(GBUFFER) || defined(EFFECT_SUBSURFACE)
     Light mainLight = GetMainLight(inputData.shadowCoord, inputData.positionWS, inputData.shadowMask);
@@ -448,12 +459,30 @@ half4 SpeedTree8Frag(SpeedTreeFragmentInput input) : SV_Target
     InitializeBRDFData(albedo, metallic, specular, smoothness, alpha, brdfData);
 
     MixRealtimeAndBakedGI(mainLight, inputData.normalWS, inputData.bakedGI, inputData.shadowMask);
-    half3 color = GlobalIllumination(brdfData, inputData.bakedGI, occlusion, inputData.normalWS, inputData.viewDirectionWS);
+    half3 color = GlobalIllumination(brdfData, inputData.bakedGI, occlusion, inputData.positionWS, inputData.normalWS, inputData.viewDirectionWS);
 
     return BRDFDataToGbuffer(brdfData, inputData, smoothness, emission + color, occlusion);
 
 #else
-    half4 color = UniversalFragmentPBR(inputData, albedo, metallic, specular, smoothness, occlusion, emission, alpha);
+    SurfaceData surfaceData;
+
+    surfaceData.albedo = albedo;
+    surfaceData.specular = specular;
+    surfaceData.metallic = metallic;
+    surfaceData.smoothness = smoothness;
+    surfaceData.normalTS = normalTs;
+    surfaceData.emission = emission;
+    surfaceData.occlusion = occlusion;
+    surfaceData.alpha = alpha;
+    surfaceData.clearCoatMask = 0;
+    surfaceData.clearCoatSmoothness = 1;
+
+#if defined(DEBUG_DISPLAY)
+    inputData.uv = uv;
+#endif
+
+    half4 color = UniversalFragmentPBR(inputData, surfaceData);
+
     color.rgb = MixFog(color.rgb, inputData.fogCoord);
     color.a = OutputAlpha(color.a, _Surface);
 
@@ -477,7 +506,7 @@ half4 SpeedTree8FragDepth(SpeedTreeVertexDepthOutput input) : SV_Target
     half4 diffuse = SampleAlbedoAlpha(uv, TEXTURE2D_ARGS(_MainTex, sampler_MainTex)) * _Color;
 
     half alpha = diffuse.a * input.color.a;
-    AlphaDiscard(alpha - 0.3333, 0.0);
+    AlphaDiscard(alpha, 0.3333);
 
     #if defined(SCENESELECTIONPASS)
         // We use depth prepass for scene selection in the editor, this code allow to output the outline correctly
@@ -541,7 +570,7 @@ half4 SpeedTree8FragDepthNormal(SpeedTreeDepthNormalFragmentInput input) : SV_Ta
     half4 diffuse = SampleAlbedoAlpha(uv, TEXTURE2D_ARGS(_MainTex, sampler_MainTex)) * _Color;
 
     half alpha = diffuse.a * input.interpolated.color.a;
-    AlphaDiscard(alpha - 0.3333, 0.0);
+    AlphaDiscard(alpha, 0.3333);
 
     // normal
     #if defined(EFFECT_BUMP)

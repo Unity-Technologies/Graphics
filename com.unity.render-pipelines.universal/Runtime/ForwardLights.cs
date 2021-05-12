@@ -1,5 +1,6 @@
 using UnityEngine.Experimental.GlobalIllumination;
 using Unity.Collections;
+using UnityEngine.PlayerLoop;
 
 namespace UnityEngine.Rendering.Universal.Internal
 {
@@ -43,7 +44,33 @@ namespace UnityEngine.Rendering.Universal.Internal
 
         bool m_UseStructuredBuffer;
 
-        public ForwardLights()
+        private LightCookieManager m_LightCookieManager;
+
+        internal struct InitParams
+        {
+            public LightCookieManager lightCookieManager;
+
+            static internal InitParams GetDefault()
+            {
+                InitParams p;
+                {
+                    var settings = LightCookieManager.Settings.GetDefault();
+                    var asset = UniversalRenderPipeline.asset;
+                    if (asset)
+                    {
+                        settings.atlas.format = asset.additionalLightsCookieFormat;
+                        settings.atlas.resolution = asset.additionalLightsCookieResolution;
+                    }
+
+                    p.lightCookieManager = new LightCookieManager(ref settings);
+                }
+                return p;
+            }
+        }
+
+        public ForwardLights() : this(InitParams.GetDefault()) {}
+
+        internal ForwardLights(InitParams initParams)
         {
             m_UseStructuredBuffer = RenderingUtils.useStructuredBuffer;
 
@@ -75,6 +102,8 @@ namespace UnityEngine.Rendering.Universal.Internal
                 m_AdditionalLightOcclusionProbeChannels = new Vector4[maxLights];
                 m_AdditionalLightsLayerMasks = new float[maxLights];
             }
+
+            m_LightCookieManager = initParams.lightCookieManager;
         }
 
         public void Setup(ScriptableRenderContext context, ref RenderingData renderingData)
@@ -98,8 +127,13 @@ namespace UnityEngine.Rendering.Universal.Internal
                 CoreUtils.SetKeyword(cmd, ShaderKeywordStrings.ShadowsShadowMask, isShadowMask);
                 CoreUtils.SetKeyword(cmd, ShaderKeywordStrings.MixedLightingSubtractive, isSubtractive); // Backward compatibility
 
+                CoreUtils.SetKeyword(cmd, ShaderKeywordStrings.ReflectionProbeBlending, renderingData.lightData.reflectionProbeBlending);
+                CoreUtils.SetKeyword(cmd, ShaderKeywordStrings.ReflectionProbeBoxProjection, renderingData.lightData.reflectionProbeBoxProjection);
+
                 bool lightLayers = renderingData.lightData.supportsLightLayers;
                 CoreUtils.SetKeyword(cmd, ShaderKeywordStrings.LightLayers, lightLayers);
+
+                m_LightCookieManager.Setup(context, cmd, ref renderingData.lightData);
             }
             context.ExecuteCommandBuffer(cmd);
             CommandBufferPool.Release(cmd);

@@ -21,16 +21,28 @@ namespace UnityEngine.Experimental.Rendering
             this.maxSubdivisionMultiplier = maxSubdivision;
             this.minSubdivisionMultiplier = minSubdivision;
         }
+
+        public bool IsEquivalent(ProbeVolumeArtistParameters other)
+        {
+            return other.size == size &&
+                other.maxSubdivisionMultiplier == maxSubdivisionMultiplier &&
+                other.minSubdivisionMultiplier == minSubdivisionMultiplier;
+        }
     } // class ProbeVolumeArtistParameters
 
     /// <summary>
     /// A marker to determine what area of the scene is considered by the Probe Volumes system
     /// </summary>
     [ExecuteAlways]
-    [AddComponentMenu("Light/Experimental/Probe Volume")]
+    [AddComponentMenu("Light/Probe Volume (Experimental)")]
     public class ProbeVolume : MonoBehaviour
     {
         [SerializeField] internal ProbeVolumeArtistParameters parameters = new ProbeVolumeArtistParameters(Color.white);
+
+        [SerializeField] internal bool mightNeedRebaking = false;
+
+        [SerializeField] internal Matrix4x4 cachedTransform;
+        [SerializeField] internal ProbeVolumeArtistParameters cachedParameters;
 
         /// <summary>
         /// Returns the extents of the volume.
@@ -42,32 +54,17 @@ namespace UnityEngine.Experimental.Rendering
         }
 
 #if UNITY_EDITOR
-        protected void Update()
-        {
-        }
-
-        internal void OnLightingDataCleared()
-        {
-        }
-
         internal void OnLightingDataAssetCleared()
         {
-        }
-
-        internal void OnProbesBakeCompleted()
-        {
+            mightNeedRebaking = true;
         }
 
         internal void OnBakeCompleted()
         {
-        }
-
-        internal void ForceBakingDisabled()
-        {
-        }
-
-        internal void ForceBakingEnabled()
-        {
+            // We cache the data of last bake completed.
+            cachedTransform = gameObject.transform.worldToLocalMatrix;
+            cachedParameters = parameters;
+            mightNeedRebaking = false;
         }
 
 #endif

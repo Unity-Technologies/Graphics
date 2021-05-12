@@ -6,7 +6,7 @@ using UnityEngine.VFX;
 using static UnityEditor.VFX.VFXAbstractRenderedOutput;
 using static UnityEngine.Rendering.HighDefinition.HDRenderQueue;
 
-namespace UnityEditor.VFX
+namespace UnityEditor.VFX.HDRP
 {
     class VFXHDRPSubOutput : VFXSRPSubOutput
     {
@@ -31,6 +31,13 @@ namespace UnityEditor.VFX
         }
         public override bool supportsExcludeFromTAA { get { return !owner.isBlendModeOpaque; } }
 
+        bool GeneratesWithShaderGraph()
+        {
+            return owner is VFXShaderGraphParticleOutput shaderGraphOutput &&
+                shaderGraphOutput.GetOrRefreshShaderGraphObject() != null &&
+                shaderGraphOutput.GetOrRefreshShaderGraphObject().generatesWithShaderGraph;
+        }
+
         public override bool supportsMaterialOffset
         {
             get
@@ -45,7 +52,7 @@ namespace UnityEditor.VFX
         {
             get
             {
-                if (!supportsQueueSelection)
+                if (!supportsQueueSelection || GeneratesWithShaderGraph())
                 {
                     yield return "transparentRenderQueue";
                     yield return "opaqueRenderQueue";
