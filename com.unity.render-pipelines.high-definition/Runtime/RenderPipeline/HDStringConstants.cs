@@ -388,7 +388,7 @@ namespace UnityEngine.Rendering.HighDefinition
         // Still used by ray tracing.
         public static readonly int _SsrStencilBit = Shader.PropertyToID("_SsrStencilBit");
         public static readonly int _DeferredStencilBit = Shader.PropertyToID("_DeferredStencilBit");
-        
+
         public static readonly int _ShadowMaskTexture = Shader.PropertyToID("_ShadowMaskTexture");
         public static readonly int _LightLayersTexture = Shader.PropertyToID("_LightLayersTexture");
         public static readonly int _DistortionTexture = Shader.PropertyToID("_DistortionTexture");
@@ -710,7 +710,7 @@ namespace UnityEngine.Rendering.HighDefinition
         public static readonly int _RayMarchingThicknessBias            = Shader.PropertyToID("_RayMarchingThicknessBias");
         public static readonly int _RayMarchingSteps                    = Shader.PropertyToID("_RayMarchingSteps");
         public static readonly int _RayMarchingReflectSky               = Shader.PropertyToID("_RayMarchingReflectSky");
-        
+
         // Ray binning
         public static readonly int _RayBinResult                    = Shader.PropertyToID("_RayBinResult");
         public static readonly int _RayBinSizeResult                = Shader.PropertyToID("_RayBinSizeResult");

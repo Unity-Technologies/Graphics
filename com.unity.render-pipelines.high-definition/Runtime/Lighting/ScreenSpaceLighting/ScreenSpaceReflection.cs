@@ -50,7 +50,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 && tracing.overrideState && tracing.value != RayCastingMode.RayMarching;
         }
 
-        #region General 
+        #region General
         /// <summary>Enable Screen Space Reflections.</summary>
         [Tooltip("Enable Screen Space Reflections.")]
         public BoolParameter enabled = new BoolParameter(true);

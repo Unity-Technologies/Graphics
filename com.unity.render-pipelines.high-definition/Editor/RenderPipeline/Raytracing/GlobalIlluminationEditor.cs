@@ -145,8 +145,8 @@ namespace UnityEditor.Rendering.HighDefinition
             // Flag to track if the ray tracing parameters were displayed
             RayCastingMode tracingMode = m_Tracing.value.GetEnumValue<RayCastingMode>();
             bool rayTracingSettingsDisplayed = HDRenderPipeline.pipelineSupportsRayTracing
-                                                && m_Tracing.overrideState.boolValue
-                                                && tracingMode != RayCastingMode.RayMarching;
+                && m_Tracing.overrideState.boolValue
+                && tracingMode != RayCastingMode.RayMarching;
 
             using (new HDEditorUtils.IndentScope())
             {
@@ -154,7 +154,7 @@ namespace UnityEditor.Rendering.HighDefinition
                 {
                     PropertyField(m_LayerMask);
                     PropertyField(m_TextureLodBias);
-                    
+
                     if (currentAsset.currentPlatformRenderPipelineSettings.supportedRayTracingMode == RenderPipelineSettings.SupportedRayTracingMode.Both)
                     {
                         if (tracingMode == RayCastingMode.RayTracing)
@@ -165,15 +165,15 @@ namespace UnityEditor.Rendering.HighDefinition
                                 switch (m_Mode.value.GetEnumValue<RayTracingMode>())
                                 {
                                     case RayTracingMode.Performance:
-                                        {
-                                            RayTracingPerformanceModeGUI(false);
-                                        }
-                                        break;
+                                    {
+                                        RayTracingPerformanceModeGUI(false);
+                                    }
+                                    break;
                                     case RayTracingMode.Quality:
-                                        {
-                                            RayTracingQualityModeGUI();
-                                        }
-                                        break;
+                                    {
+                                        RayTracingQualityModeGUI();
+                                    }
+                                    break;
                                 }
                             }
                         }
@@ -247,11 +247,9 @@ namespace UnityEditor.Rendering.HighDefinition
                 settings.TryLoad<bool>(ref m_HalfResolutionDenoiser);
                 settings.TryLoad<float>(ref m_DenoiserRadius);
                 settings.TryLoad<bool>(ref m_SecondDenoiserPass);
-
-
             }
             else
-            { 
+            {
                 // SSGI
                 settings.TryLoad<int>(ref m_RaySteps);
                 settings.TryLoad<int>(ref m_FilterRadius);
@@ -261,7 +259,7 @@ namespace UnityEditor.Rendering.HighDefinition
         public override void LoadSettingsFromQualityPreset(RenderPipelineSettings settings, int level)
         {
             if (HDRenderPipeline.pipelineSupportsRayTracing && m_Tracing.overrideState.boolValue &&
-             m_Tracing.value.GetEnumValue<RayCastingMode>() != RayCastingMode.RayMarching)
+                m_Tracing.value.GetEnumValue<RayCastingMode>() != RayCastingMode.RayMarching)
             {
                 // RTGI
                 CopySetting(ref m_RayLength, settings.lightingQualitySettings.RTGIRayLength[level]);
@@ -297,7 +295,7 @@ namespace UnityEditor.Rendering.HighDefinition
 
             // Define if the volume is in Peformance or Mixed Mode
             bool volumeIsInPerfOrMixed = (m_Tracing.value.GetEnumValue<RayCastingMode>() == RayCastingMode.RayTracing && m_Mode.value.GetEnumValue<RayTracingMode>() == RayTracingMode.Performance)
-                                        || (m_Tracing.value.GetEnumValue<RayCastingMode>() == RayCastingMode.Mixed);
+                || (m_Tracing.value.GetEnumValue<RayCastingMode>() == RayCastingMode.Mixed);
 
             return (assetSupportsBoth && volumeIsInPerfOrMixed) || (assetSupportsPerf && m_Tracing.value.GetEnumValue<RayCastingMode>() != RayCastingMode.RayMarching);
         }

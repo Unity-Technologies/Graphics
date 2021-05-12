@@ -583,10 +583,10 @@ namespace UnityEngine.Rendering.HighDefinition
 
             return (m_ValidRayTracingState &&
                 (ScreenSpaceReflection.RayTracingActive(reflSettings)
-                || GlobalIllumination.RayTracingActive(giSettings)
-                || recursiveSettings.enable.value
-                || pathTracingSettings.enable.value
-                || subSurface.rayTracing.value));
+                    || GlobalIllumination.RayTracingActive(giSettings)
+                    || recursiveSettings.enable.value
+                    || pathTracingSettings.enable.value
+                    || subSurface.rayTracing.value));
         }
 
         internal void CullForRayTracing(CommandBuffer cmd, HDCamera hdCamera)
