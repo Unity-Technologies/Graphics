@@ -29,6 +29,13 @@ namespace UnityEngine.Rendering.Universal
         };
         AttachmentDescriptor m_ActiveDepthAttachmentDescriptor;
 
+        internal RenderBufferStoreAction[] m_FinalColorStoreAction = new RenderBufferStoreAction[]
+        {
+            RenderBufferStoreAction.Store, RenderBufferStoreAction.Store, RenderBufferStoreAction.Store, RenderBufferStoreAction.Store,
+            RenderBufferStoreAction.Store, RenderBufferStoreAction.Store, RenderBufferStoreAction.Store, RenderBufferStoreAction.Store
+        };
+        internal RenderBufferStoreAction m_FinalDepthStoreAction = RenderBufferStoreAction.Store;
+
         private static partial class Profiling
         {
             public static readonly ProfilingSampler setMRTAttachmentsList = new ProfilingSampler($"NativeRenderPass {nameof(SetNativeRenderPassMRTAttachmentList)}");
@@ -132,6 +139,47 @@ namespace UnityEngine.Rendering.Universal
             }
         }
 
+        internal void UpdateFinalStoreActions(int[] currentMergeablePasses, CameraData cameraData)
+        {
+            for (int i = 0; i < 8; ++i)
+                m_FinalColorStoreAction[i] = RenderBufferStoreAction.Store;
+            m_FinalDepthStoreAction = RenderBufferStoreAction.Store;
+
+            foreach (var passIdx in currentMergeablePasses)
+            {
+                if (!m_UseOptimizedStoreActions)
+                    break;
+
+                if (passIdx == -1)
+                    break;
+
+                ScriptableRenderPass pass = m_ActiveRenderPassQueue[passIdx];
+
+                var samples = pass.renderTargetSampleCount != -1
+                    ? pass.renderTargetSampleCount
+                    : cameraData.cameraTargetDescriptor.msaaSamples;
+
+                // only override existing non destructive actions
+                for (int i = 0; i < 8; ++i)
+                {
+                    if (m_FinalColorStoreAction[i] == RenderBufferStoreAction.Store || m_FinalColorStoreAction[i] == RenderBufferStoreAction.StoreAndResolve)
+                        m_FinalColorStoreAction[i] = pass.colorStoreActions[i];
+
+                    if (samples > 1)
+                    {
+                        if (m_FinalColorStoreAction[i] == RenderBufferStoreAction.Store)
+                            m_FinalColorStoreAction[i] = RenderBufferStoreAction.StoreAndResolve;
+                        else if (m_FinalColorStoreAction[i] == RenderBufferStoreAction.DontCare)
+                            m_FinalColorStoreAction[i] = RenderBufferStoreAction.Resolve;
+                    }
+                }
+
+                // only override existing store
+                if (m_FinalDepthStoreAction == RenderBufferStoreAction.Store || (m_FinalDepthStoreAction == RenderBufferStoreAction.StoreAndResolve && pass.depthStoreAction == RenderBufferStoreAction.Resolve))
+                    m_FinalDepthStoreAction = pass.depthStoreAction;
+            }
+        }
+
         internal void SetNativeRenderPassMRTAttachmentList(ScriptableRenderPass renderPass, ref CameraData cameraData, uint validColorBuffersCount, bool needCustomCameraColorClear, ClearFlag clearFlag)
         {
             using (new ProfilingScope(null, Profiling.setMRTAttachmentsList))
@@ -145,6 +193,8 @@ namespace UnityEngine.Rendering.Universal
                     return;
 
                 m_RenderPassesAttachmentCount[currentPassHash] = 0;
+
+                UpdateFinalStoreActions(currentMergeablePasses, cameraData);
 
                 int currentAttachmentIdx = 0;
                 foreach (var passIdx in currentMergeablePasses)
@@ -163,6 +213,9 @@ namespace UnityEngine.Rendering.Universal
 
                         int existingAttachmentIndex = FindAttachmentDescriptorIndexInList(currentAttachmentIdx,
                             currentAttachmentDescriptor, m_ActiveColorAttachmentDescriptors);
+
+                        if (m_UseOptimizedStoreActions)
+                            currentAttachmentDescriptor.storeAction = m_FinalColorStoreAction[i];
 
                         if (existingAttachmentIndex == -1)
                         {
@@ -194,6 +247,9 @@ namespace UnityEngine.Rendering.Universal
                     m_ActiveDepthAttachmentDescriptor.ConfigureTarget(pass.depthAttachment, (clearFlag & ClearFlag.DepthStencil) == 0, true);
                     if ((clearFlag & ClearFlag.DepthStencil) != 0)
                         m_ActiveDepthAttachmentDescriptor.ConfigureClear(Color.black, 1.0f, 0);
+
+                    if (m_UseOptimizedStoreActions)
+                        m_ActiveDepthAttachmentDescriptor.storeAction = m_FinalDepthStoreAction;
                 }
             }
         }
@@ -212,47 +268,7 @@ namespace UnityEngine.Rendering.Universal
 
                 m_RenderPassesAttachmentCount[currentPassHash] = 0;
 
-                // TODO: check the "Store Actions" setting
-                RenderBufferStoreAction[] finalColorStoreAction = {RenderBufferStoreAction.Store, RenderBufferStoreAction.Store, RenderBufferStoreAction.Store, RenderBufferStoreAction.Store,
-                                                                   RenderBufferStoreAction.Store, RenderBufferStoreAction.Store, RenderBufferStoreAction.Store, RenderBufferStoreAction.Store};
-                RenderBufferStoreAction finalDepthStoreAction = RenderBufferStoreAction.Store;
-
-                foreach (var passIdx in currentMergeablePasses)
-                {
-                    if (!m_UseOptimizedStoreActions)
-                        break;
-
-                    if (passIdx == -1)
-                        break;
-
-                    ScriptableRenderPass pass = m_ActiveRenderPassQueue[passIdx];
-
-                    var samples = pass.renderTargetSampleCount != -1
-                        ? pass.renderTargetSampleCount
-                        : cameraData.cameraTargetDescriptor.msaaSamples;
-
-                    bool isFirstMergeablePass = passIdx == currentPassIndex;
-
-                    // only override existing non destructive actions
-                    for (int i = 0; i < 8; ++i)
-                    {
-                        if (finalColorStoreAction[i] == RenderBufferStoreAction.Store || finalColorStoreAction[i] == RenderBufferStoreAction.StoreAndResolve)
-                            finalColorStoreAction[i] = pass.colorStoreActions[i];
-
-                        if (samples > 1)
-                        {
-                            if (finalColorStoreAction[i] == RenderBufferStoreAction.Store)
-                                finalColorStoreAction[i] = RenderBufferStoreAction.StoreAndResolve;
-                            else if (finalColorStoreAction[i] == RenderBufferStoreAction.DontCare)
-                                finalColorStoreAction[i] = RenderBufferStoreAction.Resolve;
-                        }
-                    }
-
-                    // only override existing store
-                    if (finalDepthStoreAction == RenderBufferStoreAction.Store || (finalDepthStoreAction == RenderBufferStoreAction.StoreAndResolve && pass.depthStoreAction == RenderBufferStoreAction.Resolve))
-                        finalDepthStoreAction = pass.depthStoreAction;
-                }
-
+                UpdateFinalStoreActions(currentMergeablePasses, cameraData);
 
                 int currentAttachmentIdx = 0;
                 foreach (var passIdx in currentMergeablePasses)
@@ -320,8 +336,8 @@ namespace UnityEngine.Rendering.Universal
 
                     if (m_UseOptimizedStoreActions)
                     {
-                        currentAttachmentDescriptor.storeAction = finalColorStoreAction[0];
-                        m_ActiveDepthAttachmentDescriptor.storeAction = finalDepthStoreAction;
+                        currentAttachmentDescriptor.storeAction = m_FinalColorStoreAction[0];
+                        m_ActiveDepthAttachmentDescriptor.storeAction = m_FinalDepthStoreAction;
                     }
 
                     int existingAttachmentIndex = FindAttachmentDescriptorIndexInList(currentAttachmentIdx,
