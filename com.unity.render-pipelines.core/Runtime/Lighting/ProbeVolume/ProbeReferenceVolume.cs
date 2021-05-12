@@ -608,6 +608,7 @@ namespace UnityEngine.Experimental.Rendering
                 ClearDebugData();
 
                 m_NeedLoadAsset = true;
+                m_NeedsIndexDimChange = true;
             }
         }
 
