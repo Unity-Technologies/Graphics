@@ -66,7 +66,7 @@ namespace UnityEngine.Rendering.Universal.Internal
 
         internal ForwardLights(bool clusteredRendering, int tileSize)
         {
-            Assert.IsTrue(math.ispow2(tileSize));
+            if (clusteredRendering) Assert.IsTrue(math.ispow2(tileSize));
             m_UseStructuredBuffer = RenderingUtils.useStructuredBuffer;
             m_UseClusteredRendering = clusteredRendering;
 
