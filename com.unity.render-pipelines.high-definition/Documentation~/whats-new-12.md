@@ -15,7 +15,12 @@ Group of Materials / GameObject can be setup to use Force Emissive forward with 
 
 ### Adding Tessellation support for ShaderGraph Master Stack
 
-From HDRP 12.0, you can enable Tessellation on any Master Stack of the High Definition Render Pipeline. The option is on the Master Stack settings and will add two new inputs to the Vertex Block: Tessellation Factor and World Displacement. Refer to [Tessellation documentation](Tessellation.md) for more information.
+From HDRP 12.0, you can enable [tessellation](Tessellation.md) on any HDRP [Master Stack](master-stack-hdrp.md). The option is in the Master Stack settings and adds two new inputs to the Vertex Block:
+
+* Tessellation Factor
+* World Displacement
+
+For more information about tessellation, see the [Tessellation documentation](Tessellation.md).
 
 ## Improvements
 
