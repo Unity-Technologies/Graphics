@@ -6,6 +6,12 @@ From 2021.2, if material ambient occlusion needs to be applied to probe volume G
 
 HDRP 2021.2 includes the "ForwardEmissiveForDeferred" shader pass and the associated SHADERPASS_FORWARD_EMISSIVE_FOR_DEFERRED define for Materials that have a GBuffer pass. You can see the new pass in Lit.shader. When you use the Deferred Lit shader mode, Unity uses "ForwardEmissiveForDeferred" to render the emissive contribution of a Material in a separate forward pass. Otherwise, Unity ignores "ForwardEmissiveForDeferred".
 
+From 2021.2, there is various tessellation shader code which have been refactored to adapat to the support of tessellation in Master Stack.
+The function 'GetTessellationFactors()' have move to the file TessellationShare.hlsl and only the part returning the user tessellation factor remain 'GetTessellationFactor()'.
+The prototype of 'ApplyTessellationModification()' function have change from 'void ApplyTessellationModification(VaryingsMeshToDS input, float3 normalWS, inout float3 positionRWS)' to 'VaryingsMeshToDS ApplyTessellationModification(VaryingsMeshToDS input, float3 timeParameters)'
+The support of Motion vector have been improve for tessellation, now only previousPositionRWS is part of the varyings and a 'MotionVectorTessellation()' function have been added. See file MotionVectorVertexShaderCommon.hlsl for more detail.
+Lastly, tessellationFactor is now evaluated in the Vertex shader and pass to Hull shader as interpolator. See file VaryingMesh.hlsl and VertMesh.hlsl for more detail.
+
 ## Density Volumes
 
 Density Volumes are now known as **Local Volumetric Fog**. If a Scene uses Density Volumes, HDRP automatically migrates the GameObjects to use the new component name, with all the same properties set for the Density Volume. However, if you reference a **Density Volume** through a C# script, a warning appears (**DensityVolume has been deprecated (UnityUpgradable) -> Local Volumetric Fog**) in the Console window. To resolve this, change your code to target the new component. This warning may stop your Project from compiling in future versions of HDRP.

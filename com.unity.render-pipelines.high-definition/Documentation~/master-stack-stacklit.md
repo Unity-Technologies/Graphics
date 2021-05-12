@@ -37,6 +37,20 @@ When you create a new Hair Master Stack, the Vertex Context contains the followi
 [!include[](snippets/shader-graph-blocks/vertex-tangent.md)]
 </table>
 
+#### Tessellation
+
+When you enable the Surface Option **Tessellation**, the Vertex Context contains additional following Blocks:
+
+<table>
+<tr>
+<th>Property</th>
+<th>Description</th>
+<th>Setting Dependency</th>
+<th>Default Value</th>
+</tr>
+[!include[](snippets/shader-graph-blocks/tessellation-factor.md)]
+[!include[](snippets/shader-graph-blocks/tessellation-displacement.md)]
+
 #### Relevant
 
 This Master Stack material type adds all its Vertex Blocks to the Vertex Context by default and has no extra relevant Blocks.
@@ -148,6 +162,7 @@ Depending on the [Graph Settings](#graph-settings) you use, Shader Graph can add
 [!include[](snippets/shader-properties/surface-options/geometric-specular-aa.md)]
 [!include[](snippets/shader-properties/surface-options/ss-depth-offset.md)]
 [!include[](snippets/shader-properties/surface-options/conservative-depth-offset.md)]
+[!include[](snippets/shader-properties/surface-options/tessellation.md)]
 [!include[](snippets/shader-properties/surface-options/base-color-parametrization.md)]
 [!include[](snippets/shader-properties/surface-options/energy-conserving-specular.md)]
 [!include[](snippets/shader-properties/surface-options/anisotropy-stacklit.md)]

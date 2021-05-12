@@ -24,6 +24,20 @@ To create an Unlit material in Shader Graph, you can either:
 
 [!include[](snippets/master-stacks-contexts-intro.md)]
 
+#### Tessellation
+
+When you enable the Surface Option **Tessellation**, the Vertex Context contains additional following Blocks:
+
+<table>
+<tr>
+<th>Property</th>
+<th>Description</th>
+<th>Setting Dependency</th>
+<th>Default Value</th>
+</tr>
+[!include[](snippets/shader-graph-blocks/tessellation-factor.md)]
+[!include[](snippets/shader-graph-blocks/tessellation-displacement.md)]
+
 ### Vertex Context
 
 #### Default
@@ -112,6 +126,7 @@ Depending on the [Graph Settings](#graph-settings) you use, Shader Graph can add
 [!include[](snippets/shader-properties/surface-options/double-sided.md)]
 [!include[](snippets/shader-properties/surface-options/ss-depth-offset.md)]
 [!include[](snippets/shader-properties/surface-options/conservative-depth-offset.md)]
+[!include[](snippets/shader-properties/surface-options/tessellation.md)]
 [!include[](snippets/shader-properties/surface-options/shadow-matte.md)]
 </table>
 
