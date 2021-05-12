@@ -368,8 +368,6 @@ namespace UnityEngine.Experimental.Rendering
                             asset.maxCellIndex.x = cellsInX * (int)refVol.profile.cellSizeInBricks;
                             asset.maxCellIndex.y = cellsInY * (int)refVol.profile.cellSizeInBricks;
                             asset.maxCellIndex.z = cellsInZ * (int)refVol.profile.cellSizeInBricks;
-
-                            Debug.Log(asset.maxCellIndex);
                         }
                         else
                         {
