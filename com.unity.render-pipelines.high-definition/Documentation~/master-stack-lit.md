@@ -38,9 +38,8 @@ When you create a new Lit Master Stack, the Vertex Context contains the followin
 [!include[](snippets/shader-graph-blocks/vertex-tangent.md)]
 </table>
 
-#### Tessellation
-
-When you enable the Surface Option **Tessellation**, the Vertex Context contains additional following Blocks:
+#### Relevant
+Depending on the [Graph Settings](#graph-settings) you use, Shader Graph can add the following Blocks to the Vertex Context:
 
 <table>
 <tr>
@@ -51,10 +50,8 @@ When you enable the Surface Option **Tessellation**, the Vertex Context contains
 </tr>
 [!include[](snippets/shader-graph-blocks/tessellation-factor.md)]
 [!include[](snippets/shader-graph-blocks/tessellation-displacement.md)]
+</table>
 
-#### Relevant
-
-This Master Stack material type adds all its Vertex Blocks to the Vertex Context by default and has no extra relevant Blocks.
 
 ### Fragment Context
 

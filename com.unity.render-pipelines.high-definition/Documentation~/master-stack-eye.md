@@ -38,9 +38,9 @@ When you create a new Eye Master Stack, the Vertex Context contains the followin
 [!include[](snippets/shader-graph-blocks/vertex-tangent.md)]
 </table>
 
-#### Tessellation
+#### Relevant
 
-When you enable the Surface Option **Tessellation**, the Vertex Context contains additional following Blocks:
+Depending on the [Graph Settings](#graph-settings) you use, Shader Graph can add the following locks to the Vertex Context:
 
 <table>
 <tr>
@@ -51,10 +51,7 @@ When you enable the Surface Option **Tessellation**, the Vertex Context contains
 </tr>
 [!include[](snippets/shader-graph-blocks/tessellation-factor.md)]
 [!include[](snippets/shader-graph-blocks/tessellation-displacement.md)]
-
-#### Relevant
-
-This Master Stack material type adds all its Vertex Blocks to the Vertex Context by default and has no extra relevant Blocks.
+</table>
 
 ### Fragment Context
 
