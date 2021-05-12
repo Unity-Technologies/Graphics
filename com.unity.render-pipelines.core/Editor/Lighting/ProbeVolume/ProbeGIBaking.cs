@@ -119,22 +119,24 @@ namespace UnityEngine.Experimental.Rendering
         public static void FindWorldBounds()
         {
             ProbeReferenceVolume.instance.clearAssetsOnVolumeClear = true;
+
+            var sceneBounds = ProbeReferenceVolume.instance.sceneBounds;
+
             var prevScenes = new List<string>();
             for (int i = 0; i < EditorSceneManager.sceneCount; ++i)
             {
                 var scene = EditorSceneManager.GetSceneAt(i);
-                EditorSceneManager.SaveScene(scene);
+                sceneBounds.UpdateSceneBounds(scene);
                 prevScenes.Add(scene.path);
             }
 
-            bool neededToOpenScene = false;
+            List<Scene> openedScenes = new List<Scene>();
             hasFoundBounds = false;
 
             foreach (var buildScene in EditorBuildSettings.scenes)
             {
                 var scenePath = buildScene.path;
                 bool hasProbeVolumes = false;
-                var sceneBounds = ProbeReferenceVolume.instance.sceneBounds;
                 if (sceneBounds.hasProbeVolumes.TryGetValue(scenePath, out hasProbeVolumes))
                 {
                     if (hasProbeVolumes)
@@ -156,8 +158,8 @@ namespace UnityEngine.Experimental.Rendering
                 }
                 else // we need to open the scene to test.
                 {
-                    neededToOpenScene = true;
-                    var scene = EditorSceneManager.OpenScene(buildScene.path, OpenSceneMode.Single);
+                    var scene = EditorSceneManager.OpenScene(buildScene.path, OpenSceneMode.Additive);
+                    openedScenes.Add(scene);
                     sceneBounds.UpdateSceneBounds(scene);
                     Bounds localBound = sceneBounds.sceneBounds[buildScene.path];
                     if (hasFoundBounds)
@@ -167,12 +169,11 @@ namespace UnityEngine.Experimental.Rendering
                 }
             }
 
-            if (neededToOpenScene)
+            if (openedScenes.Count > 0)
             {
-                for (int i = 0; i < prevScenes.Count; ++i)
+                foreach (var scene in openedScenes)
                 {
-                    var scene = prevScenes[i];
-                    EditorSceneManager.OpenScene(scene, i == 0 ? OpenSceneMode.Single : OpenSceneMode.Additive);
+                    EditorSceneManager.CloseScene(scene, true);
                 }
             }
         }
@@ -367,6 +368,8 @@ namespace UnityEngine.Experimental.Rendering
                             asset.maxCellIndex.x = cellsInX * (int)refVol.profile.cellSizeInBricks;
                             asset.maxCellIndex.y = cellsInY * (int)refVol.profile.cellSizeInBricks;
                             asset.maxCellIndex.z = cellsInZ * (int)refVol.profile.cellSizeInBricks;
+
+                            Debug.Log(asset.maxCellIndex);
                         }
                         else
                         {
