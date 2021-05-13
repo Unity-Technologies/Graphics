@@ -40,8 +40,10 @@ public class HDRP_GraphicTestRunner
 
         bool useBackBuffer = settings.ImageComparisonSettings.UseBackBuffer;
 
+#if UNITY_EDITOR
         if (useBackBuffer)
             GameViewUtils.SetGameViewSize(settings.ImageComparisonSettings.TargetWidth, settings.ImageComparisonSettings.TargetHeight);
+#endif
 
         Time.captureFramerate = settings.captureFramerate;
 
