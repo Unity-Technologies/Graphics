@@ -67,6 +67,7 @@ namespace UnityEngine.Rendering
                 }
             }
         }
+
 #endif
     }
 }

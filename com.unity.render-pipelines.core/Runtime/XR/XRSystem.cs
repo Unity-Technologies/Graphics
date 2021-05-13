@@ -366,6 +366,7 @@ namespace UnityEngine.Rendering
 
             return passInfo;
         }
+
 #endif
     }
 }

@@ -1089,7 +1089,7 @@ namespace UnityEngine.Rendering.HighDefinition
             m_DebugDisplaySettings.nvidiaDebugView.Update();
 #endif
             Terrain.GetActiveTerrains(m_ActiveTerrains);
-            
+
             XRSystem.singlePassAllowed = m_Asset.currentPlatformRenderPipelineSettings.xrSettings.singlePass;
             var xrLayout = XRSystem.NewLayout();
 

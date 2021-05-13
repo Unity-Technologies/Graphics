@@ -1166,8 +1166,8 @@ namespace UnityEngine.Rendering.Universal
                         if (cameraData.xr.enabled)
                         {
                             // SetRenderTarget might alter the internal device state(winding order).
-                        	// Non-stereo buffer is already updated internally when switching render target. We update stereo buffers here to keep the consistency.
-                        	XRBuiltinShaderConstants.Update(cameraData.xr, cmd, passColorAttachment != cameraData.xr.renderTarget);
+                            // Non-stereo buffer is already updated internally when switching render target. We update stereo buffers here to keep the consistency.
+                            XRBuiltinShaderConstants.Update(cameraData.xr, cmd, passColorAttachment != cameraData.xr.renderTarget);
                         }
                     #endif
                     }
