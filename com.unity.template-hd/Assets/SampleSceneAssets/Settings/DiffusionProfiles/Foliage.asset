@@ -12,9 +12,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: b2686e09ec7aef44bad2843e4416f057, type: 3}
   m_Name: Foliage
   m_EditorClassIdentifier: 
-  m_Version: 1
   profile:
-    scatteringDistance: {r: 0.7568628, g: 0.7019608, b: 0.24313727, a: 1}
+    scatteringDistance: {r: 0.56962854, g: 0.7735849, b: 0.09244089, a: 1}
     transmissionTint: {r: 1, g: 1, b: 1, a: 1}
     texturingMode: 0
     transmissionMode: 1
@@ -22,3 +21,4 @@ MonoBehaviour:
     worldScale: 1
     ior: 1.4
     hash: 1080305144
+  m_Version: 1
