@@ -2,6 +2,12 @@
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/PathTracing/Shaders/PathTracingMaterial.hlsl"
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/PathTracing/Shaders/PathTracingBSDF.hlsl"
 
+// AxF Material Data:
+//
+// bsdfWeight0  Diffuse BRDF
+// bsdfWeight1  Clearoat BRDF
+// bsdfWeight2  Specular BRDF(s)
+
 float3 GetCoatNormal(MaterialData mtlData)
 {
     return mtlData.bsdfData.clearcoatNormalWS;

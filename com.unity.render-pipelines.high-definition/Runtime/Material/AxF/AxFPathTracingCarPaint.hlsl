@@ -4,12 +4,6 @@
 // By defining this, we replace specular GGX values with the original Cook-Torrance ones used in the raster version
 #define AXF_PATH_TRACING_CAR_PAINT_USE_RASTER_SPECULAR
 
-// AxF Car Paint Material Data:
-//
-// bsdfWeight0  Diffuse BRDF
-// bsdfWeight1  Clearoat BRDF
-// bsdfWeight2  Specular BRDFs
-
 #ifdef AXF_PATH_TRACING_CAR_PAINT_USE_RASTER_SPECULAR
 void OverrideSpecularValue(MaterialData mtlData, float3 sampleDir, inout float3 specularValue)
 {

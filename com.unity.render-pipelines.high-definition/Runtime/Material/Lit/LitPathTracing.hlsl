@@ -9,6 +9,11 @@
 // bsdfWeight2  Spec GGX BRDF
 // bsdfWeight3  Spec GGX BTDF
 
+float3 GetSpecularCompensation(MaterialData mtlData)
+{
+    return 1.0 + mtlData.bsdfData.specularOcclusion * mtlData.bsdfData.fresnel0;
+}
+
 void ProcessBSDFData(PathIntersection pathIntersection, BuiltinData builtinData, MaterialData mtlData, inout BSDFData bsdfData)
 {
     // Adjust roughness to reduce fireflies
@@ -62,7 +67,7 @@ bool CreateMaterialData(PathIntersection pathIntersection, BuiltinData builtinDa
 
         mtlData.bsdfWeight[1] = Fcoat * mtlData.bsdfData.coatMask;
         coatingTransmission = 1.0 - mtlData.bsdfWeight[1];
-        mtlData.bsdfWeight[2] = coatingTransmission * lerp(Fspec, 0.5, 0.5 * (mtlData.bsdfData.roughnessT + mtlData.bsdfData.roughnessB)) * (1.0 + mtlData.bsdfData.fresnel0 * mtlData.bsdfData.specularOcclusion);
+        mtlData.bsdfWeight[2] = coatingTransmission * lerp(Fspec, 0.5, 0.5 * (mtlData.bsdfData.roughnessT + mtlData.bsdfData.roughnessB)) * GetSpecularCompensation(mtlData);
         mtlData.bsdfWeight[3] = (coatingTransmission - mtlData.bsdfWeight[2]) * mtlData.bsdfData.transmittanceMask;
         mtlData.bsdfWeight[0] = coatingTransmission * (1.0 - mtlData.bsdfData.transmittanceMask) * Luminance(mtlData.bsdfData.diffuseColor) * mtlData.bsdfData.ambientOcclusion;
     }
@@ -124,12 +129,6 @@ bool CreateMaterialData(PathIntersection pathIntersection, BuiltinData builtinDa
     return true;
 }
 
-// Little helper to get the specular compensation term
-float3 GetSpecularCompensation(BSDFData bsdfData)
-{
-    return 1.0 + bsdfData.specularOcclusion * bsdfData.fresnel0;
-}
-
 bool SampleMaterial(MaterialData mtlData, float3 inputSample, out float3 sampleDir, out MaterialResult result)
 {
     Init(result);
@@ -172,7 +171,7 @@ bool SampleMaterial(MaterialData mtlData, float3 inputSample, out float3 sampleD
             if (mtlData.bsdfWeight[2] > BSDF_WEIGHT_EPSILON)
             {
                 BRDF::EvaluateAnisoGGX(mtlData, GetSpecularNormal(mtlData), mtlData.bsdfData.roughnessT, mtlData.bsdfData.roughnessB, mtlData.bsdfData.fresnel0, sampleDir, value, pdf);
-                result.specValue += value * (1.0 - fresnelClearCoat) * GetSpecularCompensation(mtlData.bsdfData);
+                result.specValue += value * (1.0 - fresnelClearCoat) * GetSpecularCompensation(mtlData);
                 result.specPdf += mtlData.bsdfWeight[2] * pdf;
             }
         }
@@ -195,7 +194,7 @@ bool SampleMaterial(MaterialData mtlData, float3 inputSample, out float3 sampleD
             if (mtlData.bsdfWeight[2] > BSDF_WEIGHT_EPSILON)
             {
                 BRDF::EvaluateAnisoGGX(mtlData, GetSpecularNormal(mtlData), mtlData.bsdfData.roughnessT, mtlData.bsdfData.roughnessB, mtlData.bsdfData.fresnel0, sampleDir, value, pdf);
-                result.specValue += value * (1.0 - fresnelClearCoat) * GetSpecularCompensation(mtlData.bsdfData);
+                result.specValue += value * (1.0 - fresnelClearCoat) * GetSpecularCompensation(mtlData);
                 result.specPdf += mtlData.bsdfWeight[2] * pdf;
             }
         }
@@ -204,7 +203,7 @@ bool SampleMaterial(MaterialData mtlData, float3 inputSample, out float3 sampleD
             if (!BRDF::SampleAnisoGGX(mtlData, GetSpecularNormal(mtlData), mtlData.bsdfData.roughnessT, mtlData.bsdfData.roughnessB, mtlData.bsdfData.fresnel0, inputSample, sampleDir, result.specValue, result.specPdf))
                 return false;
 
-            result.specValue *= GetSpecularCompensation(mtlData.bsdfData);
+            result.specValue *= GetSpecularCompensation(mtlData);
             result.specPdf *= mtlData.bsdfWeight[2];
 
             if (mtlData.bsdfWeight[1] > BSDF_WEIGHT_EPSILON)
@@ -317,7 +316,7 @@ void EvaluateMaterial(MaterialData mtlData, float3 sampleDir, out MaterialResult
         if (mtlData.bsdfWeight[2] > BSDF_WEIGHT_EPSILON)
         {
             BRDF::EvaluateAnisoGGX(mtlData, GetSpecularNormal(mtlData), mtlData.bsdfData.roughnessT, mtlData.bsdfData.roughnessB, mtlData.bsdfData.fresnel0, sampleDir, value, pdf);
-            result.specValue += value * (1.0 - fresnelClearCoat) * GetSpecularCompensation(mtlData.bsdfData);
+            result.specValue += value * (1.0 - fresnelClearCoat) * GetSpecularCompensation(mtlData);
             result.specPdf += mtlData.bsdfWeight[2] * pdf;
         }
 
