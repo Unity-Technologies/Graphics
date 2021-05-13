@@ -128,7 +128,7 @@ namespace UnityEditor.Rendering
         public static void DrawMultipleFields(string label, SerializedProperty[] ppts, GUIContent[] lbls)
             => DrawMultipleFields(EditorGUIUtility.TrTextContent(label), ppts, lbls);
 
-        private static float GetLabelLongestLabelWidth(GUIContent[] lbls)
+        private static float GetLongestLabelWidth(GUIContent[] lbls)
         {
             float labelWidth = 0.0f;
             for (var i = 0; i < lbls.Length; ++i)
@@ -152,7 +152,7 @@ namespace UnityEditor.Rendering
 
                 using (new EditorGUILayout.VerticalScope())
                 {
-                    EditorGUIUtility.labelWidth = GetLabelLongestLabelWidth(lbls) + 2; // Add some margin
+                    EditorGUIUtility.labelWidth = GetLongestLabelWidth(lbls) + 2; // Add some margin
                     int oldIndentLevel = EditorGUI.indentLevel;
                     EditorGUI.indentLevel = 0;
                     for (var i = 0; i < ppts.Length; ++i)
@@ -181,7 +181,7 @@ namespace UnityEditor.Rendering
 
                 using (new EditorGUILayout.VerticalScope())
                 {
-                    EditorGUIUtility.labelWidth = GetLabelLongestLabelWidth(lbls) + 2; // Add some margin
+                    EditorGUIUtility.labelWidth = GetLongestLabelWidth(lbls) + 2; // Add some margin
                     int oldIndentLevel = EditorGUI.indentLevel;
                     EditorGUI.indentLevel = 0;
                     for (var i = 0; i < values.Length; ++i)
