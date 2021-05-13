@@ -458,7 +458,9 @@ namespace UnityEditor.Rendering.HighDefinition
                 EditorGUILayout.PropertyField(serialized.supportProbeVolumes, Styles.probeVolumeSupportContentLabel);
                 if (EditorGUI.EndChangeCheck())
                 {
-                    s_CleanupRenderPipelineMethod?.Invoke(null, null);
+                    // If we are running HDRP, we need to make sure the RP is reinitialized
+                    if (HDRenderPipeline.currentPipeline != null)
+                        s_CleanupRenderPipelineMethod?.Invoke(null, null);
                 }
             }
             EditorGUIUtility.labelWidth = oldWidth;
