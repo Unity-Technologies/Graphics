@@ -129,6 +129,20 @@ namespace UnityEngine.Rendering.HighDefinition
 
             // Marschner
             public float lightPathLength;
+
+            public float cuticleAngleR;
+            public float cuticleAngleTT;
+            public float cuticleAngleTRT;
+
+            public float roughnessLR;
+            public float roughnessLTT;
+            public float roughnessLTRT;
+
+            public float roughnessAR;
+            public float roughnessATT;
+            public float roughnessATRT;
+
+            public float ior;
         };
 
 

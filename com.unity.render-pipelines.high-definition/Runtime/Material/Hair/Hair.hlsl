@@ -21,6 +21,22 @@
 // Helper functions/variable specific to this material
 //-----------------------------------------------------------------------------
 
+// Ref: A Practical and Controllable Hair and Fur Model for Production Path Tracing
+float3 DiffuseColorToAbsorption(float3 diffuseColor, float azimuthalRoughness)
+{
+    float beta  = azimuthalRoughness;
+    float beta2 = beta  * beta;
+    float beta3 = beta2 * beta;
+    float beta4 = beta3 * beta;
+    float beta5 = beta4 * beta;
+
+    // Least squares fit of an inverse mapping between scattering parameters and scattering albedo.
+    float denom = 5.969 - (0.215 * beta) + (2.532 * beta2) - (10.73 * beta3) + (5.574 * beta4) + (0.245 * beta5);
+
+    float3 t = log(diffuseColor) / denom;
+    return t * t;
+}
+
 float4 GetDiffuseOrDefaultColor(BSDFData bsdfData, float replace)
 {
     return float4(bsdfData.diffuseColor, 0.0);
@@ -174,7 +190,33 @@ BSDFData ConvertSurfaceDataToBSDFData(uint2 positionSS, SurfaceData surfaceData)
     // Marschner
     if (HasFlag(surfaceData.materialFeatures, MATERIALFEATUREFLAGS_HAIR_MARSCHNER))
     {
-        // TODO
+        // Note: Light Path Length is computed per-light.
+
+        // Absorption
+        bsdfData.diffuseColor = DiffuseColorToAbsorption(surfaceData.diffuseColor, surfaceData.roughnessAzimuthal);
+
+        // Note: The following angle and roughness terms are derived from Marschner's original paper.
+
+        // Cuticle Angle
+        const float cuticleAngle = radians(surfaceData.cuticleAngle);
+        bsdfData.cuticleAngleR   =  cuticleAngle;
+        bsdfData.cuticleAngleTT  = -cuticleAngle * 0.5;
+        bsdfData.cuticleAngleTRT = -cuticleAngle * 3.0 * 0.5;
+
+        // Longitudinal Roughness
+        const float roughnessL = surfaceData.roughnessLongitudinal;
+        bsdfData.roughnessLR   = roughnessL;
+        bsdfData.roughnessLTT  = roughnessL * 0.5;
+        bsdfData.roughnessLTRT = roughnessL * 2.0;
+
+        // Azimuthal Roughness
+        const float roughnessA = surfaceData.roughnessAzimuthal;
+        bsdfData.roughnessAR   = roughnessA;
+        bsdfData.roughnessATT  = roughnessA * 0.5;
+        bsdfData.roughnessATRT = roughnessA * 2.0;
+
+        // Refraction Index
+        bsdfData.ior = surfaceData.ior;
     }
 
     ApplyDebugToBSDFData(bsdfData);

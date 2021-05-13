@@ -61,6 +61,16 @@
 #define DEBUGVIEW_HAIR_BSDFDATA_SPECULAR_SHIFT (1469)
 #define DEBUGVIEW_HAIR_BSDFDATA_SECONDARY_SPECULAR_SHIFT (1470)
 #define DEBUGVIEW_HAIR_BSDFDATA_LIGHT_PATH_LENGTH (1471)
+#define DEBUGVIEW_HAIR_BSDFDATA_CUTICLE_ANGLE_R (1472)
+#define DEBUGVIEW_HAIR_BSDFDATA_CUTICLE_ANGLE_TT (1473)
+#define DEBUGVIEW_HAIR_BSDFDATA_CUTICLE_ANGLE_TRT (1474)
+#define DEBUGVIEW_HAIR_BSDFDATA_ROUGHNESS_LR (1475)
+#define DEBUGVIEW_HAIR_BSDFDATA_ROUGHNESS_LTT (1476)
+#define DEBUGVIEW_HAIR_BSDFDATA_ROUGHNESS_LTRT (1477)
+#define DEBUGVIEW_HAIR_BSDFDATA_ROUGHNESS_AR (1478)
+#define DEBUGVIEW_HAIR_BSDFDATA_ROUGHNESS_ATT (1479)
+#define DEBUGVIEW_HAIR_BSDFDATA_ROUGHNESS_ATRT (1480)
+#define DEBUGVIEW_HAIR_BSDFDATA_IOR (1481)
 
 // Generated from UnityEngine.Rendering.HighDefinition.Hair+SurfaceData
 // PackingRules = Exact
@@ -112,6 +122,16 @@ struct BSDFData
     float specularShift;
     float secondarySpecularShift;
     float lightPathLength;
+    float cuticleAngleR;
+    float cuticleAngleTT;
+    float cuticleAngleTRT;
+    float roughnessLR;
+    float roughnessLTT;
+    float roughnessLTRT;
+    float roughnessAR;
+    float roughnessATT;
+    float roughnessATRT;
+    float ior;
 };
 
 //
@@ -266,6 +286,36 @@ void GetGeneratedBSDFDataDebug(uint paramId, BSDFData bsdfdata, inout float3 res
             break;
         case DEBUGVIEW_HAIR_BSDFDATA_LIGHT_PATH_LENGTH:
             result = bsdfdata.lightPathLength.xxx;
+            break;
+        case DEBUGVIEW_HAIR_BSDFDATA_CUTICLE_ANGLE_R:
+            result = bsdfdata.cuticleAngleR.xxx;
+            break;
+        case DEBUGVIEW_HAIR_BSDFDATA_CUTICLE_ANGLE_TT:
+            result = bsdfdata.cuticleAngleTT.xxx;
+            break;
+        case DEBUGVIEW_HAIR_BSDFDATA_CUTICLE_ANGLE_TRT:
+            result = bsdfdata.cuticleAngleTRT.xxx;
+            break;
+        case DEBUGVIEW_HAIR_BSDFDATA_ROUGHNESS_LR:
+            result = bsdfdata.roughnessLR.xxx;
+            break;
+        case DEBUGVIEW_HAIR_BSDFDATA_ROUGHNESS_LTT:
+            result = bsdfdata.roughnessLTT.xxx;
+            break;
+        case DEBUGVIEW_HAIR_BSDFDATA_ROUGHNESS_LTRT:
+            result = bsdfdata.roughnessLTRT.xxx;
+            break;
+        case DEBUGVIEW_HAIR_BSDFDATA_ROUGHNESS_AR:
+            result = bsdfdata.roughnessAR.xxx;
+            break;
+        case DEBUGVIEW_HAIR_BSDFDATA_ROUGHNESS_ATT:
+            result = bsdfdata.roughnessATT.xxx;
+            break;
+        case DEBUGVIEW_HAIR_BSDFDATA_ROUGHNESS_ATRT:
+            result = bsdfdata.roughnessATRT.xxx;
+            break;
+        case DEBUGVIEW_HAIR_BSDFDATA_IOR:
+            result = bsdfdata.ior.xxx;
             break;
     }
 }
