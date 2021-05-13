@@ -663,7 +663,7 @@ namespace UnityEngine.Rendering.Universal
             {
                 SupportedRenderingFeatures.active.motionVectors = true; // hack for enabling UI
 
-                var data = MotionVectorRendering.instance.GetMotionDataForCamera(camera);
+                var data = MotionVectorRendering.instance.GetMotionDataForCamera(camera, cameraData);
                 m_MotionVectorPass.Setup(data);
                 EnqueuePass(m_MotionVectorPass);
             }

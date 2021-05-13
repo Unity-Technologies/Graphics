@@ -7,6 +7,9 @@ namespace UnityEngine.Rendering.Universal.Internal
     {
         #region Fields
         const string kPreviousViewProjectionMatrix = "_PrevViewProjMatrix";
+#if ENABLE_VR && ENABLE_XR_MODULE
+        const string kPreviousViewProjectionMatrixStero = "_PrevViewProjMStereo";
+#endif
         const string kMotionVectorTexture = "_MotionVectorTexture";
         const GraphicsFormat m_TargetFormat = GraphicsFormat.R16G16_SFloat;
 
@@ -27,7 +30,6 @@ namespace UnityEngine.Rendering.Universal.Internal
             m_CameraMaterial = cameraMaterial;
             m_ObjectMaterial = objectMaterial;
         }
-
         #endregion
 
         #region State
@@ -67,10 +69,18 @@ namespace UnityEngine.Rendering.Universal.Internal
             using (new ProfilingScope(cmd, m_ProfilingSampler))
             {
                 ExecuteCommand(context, cmd);
-
-                // Shader uniforms
-                // Need to set prev matrix array for XR
-                Shader.SetGlobalMatrix(kPreviousViewProjectionMatrix, m_MotionData.previousGPUViewProjectionMatrix);
+                var cameraData = renderingData.cameraData;
+#if ENABLE_VR && ENABLE_XR_MODULE
+                if (cameraData.xr.enabled && cameraData.xr.singlePassEnabled)
+                {
+                    m_CameraMaterial.SetMatrixArray(kPreviousViewProjectionMatrixStero, m_MotionData.previousViewProjectionMatrixStereo);
+                    m_ObjectMaterial.SetMatrixArray(kPreviousViewProjectionMatrixStero, m_MotionData.previousViewProjectionMatrixStereo);
+                }
+                else
+#endif
+                {
+                    Shader.SetGlobalMatrix(kPreviousViewProjectionMatrix, m_MotionData.previousViewProjectionMatrix);
+                }
 
                 // These flags are still required in SRP or the engine won't compute previous model matrices...
                 // If the flag hasn't been set yet on this camera, motion vectors will skip a frame.

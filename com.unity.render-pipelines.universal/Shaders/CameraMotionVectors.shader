@@ -22,6 +22,13 @@ Shader "Hidden/kMotion/CameraMotionVectors"
             #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Core.hlsl"
             #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/DeclareDepthTexture.hlsl"
 
+        #if defined(USING_STEREO_MATRICES)
+        float4x4 _PrevViewProjMStereo[2];
+#define _PrevViewProjM _PrevViewProjMStereo[unity_StereoEyeIndex]
+#else
+#define  _PrevViewProjM _PrevViewProjMatrix
+#endif
+
             // -------------------------------------
             // Structs
             struct Attributes
@@ -54,7 +61,7 @@ Shader "Hidden/kMotion/CameraMotionVectors"
                 PositionInputs positionInputs = GetPositionInput(input.position.xy, screenSize, depth, UNITY_MATRIX_I_VP, UNITY_MATRIX_V);
 
                 // Calculate positions
-                float4 previousPositionVP = mul(_PrevViewProjMatrix, float4(positionInputs.positionWS, 1.0));
+                float4 previousPositionVP = mul(_PrevViewProjM, float4(positionInputs.positionWS, 1.0));
                 float4 positionVP = mul(UNITY_MATRIX_VP, float4(positionInputs.positionWS, 1.0));
 
                 previousPositionVP.xy *= rcp(previousPositionVP.w);

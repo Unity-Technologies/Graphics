@@ -38,7 +38,7 @@ namespace UnityEngine.Rendering.Universal.Internal
             m_CameraFrameData.Clear();
         }
 
-        public PreviousFrameData GetMotionDataForCamera(Camera camera)
+        public PreviousFrameData GetMotionDataForCamera(Camera camera, CameraData camData)
         {
             // Get MotionData
             PreviousFrameData motionData;
@@ -50,7 +50,7 @@ namespace UnityEngine.Rendering.Universal.Internal
 
             // Calculate motion data
             CalculateTime();
-            UpdateMotionData(camera, motionData);
+            UpdateMotionData(camera, camData, motionData);
             return motionData;
         }
 
@@ -90,30 +90,51 @@ namespace UnityEngine.Rendering.Universal.Internal
             }
         }
 
-        void UpdateMotionData(Camera camera, PreviousFrameData motionData)
+        void UpdateMotionData(Camera camera, CameraData cameraData, PreviousFrameData motionData)
         {
             // The actual projection matrix used in shaders is actually massaged a bit to work across all platforms
             // (different Z value ranges etc.)
-            var gpuProj = GL.GetGPUProjectionMatrix(camera.projectionMatrix, true); // Had to change this from 'false'
-            var gpuView = camera.worldToCameraMatrix;
-            var gpuVP = gpuProj * gpuView;
-
-            var vp = camera.projectionMatrix * camera.worldToCameraMatrix;
-
-            // Set last frame data
+            
             // A camera could be rendered multiple times per frame, only updates the previous view proj & pos if needed
-            if (motionData.lastFrameActive != Time.frameCount)
+#if ENABLE_VR && ENABLE_XR_MODULE
+            if (cameraData.xr.enabled)
             {
-                motionData.previousGPUViewProjectionMatrix = motionData.isFirstFrame ?
-                    gpuVP : motionData.gpuViewProjectionMatrix;
-                motionData.previousViewProjectionMatrix = motionData.isFirstFrame ?
-                    vp : motionData.viewProjectionMatrix;
-                motionData.isFirstFrame = false;
-            }
+                var gpuVP0 = GL.GetGPUProjectionMatrix(cameraData.GetProjectionMatrix(0), true) * cameraData.GetViewMatrix(0);
+                var gpuVP1 = GL.GetGPUProjectionMatrix(cameraData.GetProjectionMatrix(1), true) * cameraData.GetViewMatrix(1);
 
-            // Set current frame data
-            motionData.gpuViewProjectionMatrix = gpuVP;
-            motionData.viewProjectionMatrix = vp;
+                // Last frame data
+                if (motionData.lastFrameActive != Time.frameCount)
+                {
+                    bool firstFrame = motionData.isFirstFrame;
+                    var prevViewProjStereo = motionData.previousViewProjectionMatrixStereo;
+                    prevViewProjStereo[0] = firstFrame ? gpuVP0 : prevViewProjStereo[0];
+                    prevViewProjStereo[1] = firstFrame ? gpuVP1 : prevViewProjStereo[1];
+                    motionData.isFirstFrame = false;
+                }
+
+                // Current frame data
+                var viewProjStereo = motionData.viewProjectionMatrixStereo;
+                viewProjStereo[0] = gpuVP0;
+                viewProjStereo[1] = gpuVP1;
+            }
+            else
+#endif
+            {
+                var gpuProj = GL.GetGPUProjectionMatrix(camera.projectionMatrix, true); // Had to change this from 'false'
+                var gpuView = camera.worldToCameraMatrix;
+                var gpuVP = gpuProj * gpuView;
+
+                // Last frame data
+                if (motionData.lastFrameActive != Time.frameCount)
+                {
+                    motionData.previousViewProjectionMatrix = motionData.isFirstFrame ? gpuVP : motionData.viewProjectionMatrix;
+                    motionData.isFirstFrame = false;
+                }
+
+                // Current frame data
+                motionData.viewProjectionMatrix = gpuVP;
+            }
+            
             motionData.lastFrameActive = Time.frameCount;
         }
     }
