@@ -181,6 +181,7 @@ namespace UnityEngine.Rendering.Universal.Internal
             public static int _LightFlags = Shader.PropertyToID("_LightFlags");
             public static int _ShadowLightIndex = Shader.PropertyToID("_ShadowLightIndex");
             public static int _LightLayerMask = Shader.PropertyToID("_LightLayerMask");
+            public static int _CookieLightIndex = Shader.PropertyToID("_CookieLightIndex");
         }
 
         // Disable Burst for now since there are issues on macos builds.
@@ -435,8 +436,18 @@ namespace UnityEngine.Rendering.Universal.Internal
         ProfilingSampler m_ProfilingSamplerDeferredFogPass = new ProfilingSampler(k_DeferredFogPass);
         ProfilingSampler m_ProfilingSamplerClearStencilPartialPass = new ProfilingSampler(k_ClearStencilPartial);
 
+        private LightCookieManager m_LightCookieManager;
 
-        internal DeferredLights(Material tileDepthInfoMaterial, Material tileDeferredMaterial, Material stencilDeferredMaterial, bool useNativeRenderPass = false)
+        internal struct InitParams
+        {
+            public Material tileDepthInfoMaterial;
+            public Material tileDeferredMaterial;
+            public Material stencilDeferredMaterial;
+
+            public LightCookieManager lightCookieManager;
+        }
+
+        internal DeferredLights(InitParams initParams, bool useNativeRenderPass = false)
         {
             // Cache result for GL platform here. SystemInfo properties are in C++ land so repeated access will be unecessary penalized.
             // They can also only be called from main thread!
@@ -447,9 +458,9 @@ namespace UnityEngine.Rendering.Universal.Internal
             // Cachre result for DX10 platform too. Same reasons as above.
             DeferredConfig.IsDX10 = SystemInfo.graphicsDeviceType == GraphicsDeviceType.Direct3D11 && SystemInfo.graphicsShaderLevel <= 40;
 
-            m_TileDepthInfoMaterial = tileDepthInfoMaterial;
-            m_TileDeferredMaterial = tileDeferredMaterial;
-            m_StencilDeferredMaterial = stencilDeferredMaterial;
+            m_TileDepthInfoMaterial = initParams.tileDepthInfoMaterial;
+            m_TileDeferredMaterial = initParams.tileDeferredMaterial;
+            m_StencilDeferredMaterial = initParams.stencilDeferredMaterial;
 
             m_TileDeferredPasses = new int[k_TileDeferredPassNames.Length];
             InitTileDeferredMaterial();
@@ -486,6 +497,7 @@ namespace UnityEngine.Rendering.Universal.Internal
             this.UseJobSystem = true;
             m_HasTileVisLights = false;
             this.UseRenderPass = useNativeRenderPass;
+            m_LightCookieManager = initParams.lightCookieManager;
         }
 
         internal ref DeferredTiler GetTiler(int i)
@@ -568,6 +580,7 @@ namespace UnityEngine.Rendering.Universal.Internal
                     CoreUtils.SetKeyword(cmd, ShaderKeywordStrings.MixedLightingSubtractive, isSubtractive); // Backward compatibility
                     // This should be moved to a more global scope when framebuffer fetch is introduced to more passes
                     CoreUtils.SetKeyword(cmd, ShaderKeywordStrings.RenderPassEnabled, this.UseRenderPass && renderingData.cameraData.cameraType == CameraType.Game);
+                    m_LightCookieManager.Setup(context, cmd, ref renderingData.lightData);
                 }
 
                 context.ExecuteCommandBuffer(cmd);
@@ -1683,6 +1696,10 @@ namespace UnityEngine.Rendering.Universal.Internal
                 CoreUtils.SetKeyword(cmd, ShaderKeywordStrings._DEFERRED_LIGHT_SHADOWS, hasDeferredLightShadows);
                 CoreUtils.SetKeyword(cmd, ShaderKeywordStrings._DEFERRED_SHADOWS_SOFT, hasSoftShadow);
 
+                int cookieLightIndex = m_LightCookieManager.GetLightCookieShaderDataIndex(visLightIndex);
+                // We could test this in shader (static if) a variant (shader change) is undesirable. Same for spot light.
+                CoreUtils.SetKeyword(cmd, ShaderKeywordStrings._DEFERRED_ADDITIONAL_LIGHT_COOKIES, cookieLightIndex >= 0);
+
                 cmd.SetGlobalVector(ShaderConstants._LightPosWS, lightPos);
                 cmd.SetGlobalVector(ShaderConstants._LightColor, lightColor);
                 cmd.SetGlobalVector(ShaderConstants._LightAttenuation, lightAttenuation);
@@ -1690,6 +1707,7 @@ namespace UnityEngine.Rendering.Universal.Internal
                 cmd.SetGlobalInt(ShaderConstants._LightFlags, lightFlags);
                 cmd.SetGlobalInt(ShaderConstants._ShadowLightIndex, shadowLightIndex);
                 cmd.SetGlobalInt(ShaderConstants._LightLayerMask, (int)lightLayerMask);
+                cmd.SetGlobalInt(ShaderConstants._CookieLightIndex, cookieLightIndex);
 
                 // Stencil pass.
                 cmd.DrawMesh(m_SphereMesh, transformMatrix, m_StencilDeferredMaterial, 0, m_StencilDeferredPasses[(int)StencilDeferredPasses.StencilVolume]);
@@ -1699,6 +1717,7 @@ namespace UnityEngine.Rendering.Universal.Internal
                 cmd.DrawMesh(m_SphereMesh, transformMatrix, m_StencilDeferredMaterial, 0, m_StencilDeferredPasses[(int)StencilDeferredPasses.PunctualSimpleLit]);
             }
 
+            cmd.DisableShaderKeyword(ShaderKeywordStrings._DEFERRED_ADDITIONAL_LIGHT_COOKIES);
             cmd.DisableShaderKeyword(ShaderKeywordStrings._DEFERRED_LIGHT_SHADOWS);
             cmd.DisableShaderKeyword(ShaderKeywordStrings._DEFERRED_SHADOWS_SOFT);
             cmd.DisableShaderKeyword(ShaderKeywordStrings._POINT);
@@ -1742,6 +1761,9 @@ namespace UnityEngine.Rendering.Universal.Internal
                 CoreUtils.SetKeyword(cmd, ShaderKeywordStrings._DEFERRED_LIGHT_SHADOWS, hasDeferredLightShadows);
                 CoreUtils.SetKeyword(cmd, ShaderKeywordStrings._DEFERRED_SHADOWS_SOFT, hasSoftShadow);
 
+                int cookieLightIndex = m_LightCookieManager.GetLightCookieShaderDataIndex(visLightIndex);
+                CoreUtils.SetKeyword(cmd, ShaderKeywordStrings._DEFERRED_ADDITIONAL_LIGHT_COOKIES, cookieLightIndex >= 0);
+
                 cmd.SetGlobalVector(ShaderConstants._SpotLightScale, new Vector4(sinAlpha, sinAlpha, 1.0f - cosAlpha, vl.range));
                 cmd.SetGlobalVector(ShaderConstants._SpotLightBias, new Vector4(0.0f, 0.0f, cosAlpha, 0.0f));
                 cmd.SetGlobalVector(ShaderConstants._SpotLightGuard, new Vector4(guard, guard, guard, cosAlpha * vl.range));
@@ -1753,6 +1775,8 @@ namespace UnityEngine.Rendering.Universal.Internal
                 cmd.SetGlobalInt(ShaderConstants._LightFlags, lightFlags);
                 cmd.SetGlobalInt(ShaderConstants._ShadowLightIndex, shadowLightIndex);
                 cmd.SetGlobalInt(ShaderConstants._LightLayerMask, (int)lightLayerMask);
+                cmd.SetGlobalInt(ShaderConstants._CookieLightIndex, cookieLightIndex);
+
 
                 // Stencil pass.
                 cmd.DrawMesh(m_HemisphereMesh, vl.localToWorldMatrix, m_StencilDeferredMaterial, 0, m_StencilDeferredPasses[(int)StencilDeferredPasses.StencilVolume]);
@@ -1762,6 +1786,7 @@ namespace UnityEngine.Rendering.Universal.Internal
                 cmd.DrawMesh(m_HemisphereMesh, vl.localToWorldMatrix, m_StencilDeferredMaterial, 0, m_StencilDeferredPasses[(int)StencilDeferredPasses.PunctualSimpleLit]);
             }
 
+            cmd.DisableShaderKeyword(ShaderKeywordStrings._DEFERRED_ADDITIONAL_LIGHT_COOKIES);
             cmd.DisableShaderKeyword(ShaderKeywordStrings._DEFERRED_LIGHT_SHADOWS);
             cmd.DisableShaderKeyword(ShaderKeywordStrings._DEFERRED_SHADOWS_SOFT);
             cmd.DisableShaderKeyword(ShaderKeywordStrings._SPOT);
