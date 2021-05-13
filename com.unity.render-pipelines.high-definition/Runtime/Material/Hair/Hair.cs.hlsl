@@ -60,6 +60,7 @@
 #define DEBUGVIEW_HAIR_BSDFDATA_SECONDARY_SPECULAR_EXPONENT (1468)
 #define DEBUGVIEW_HAIR_BSDFDATA_SPECULAR_SHIFT (1469)
 #define DEBUGVIEW_HAIR_BSDFDATA_SECONDARY_SPECULAR_SHIFT (1470)
+#define DEBUGVIEW_HAIR_BSDFDATA_LIGHT_PATH_LENGTH (1471)
 
 // Generated from UnityEngine.Rendering.HighDefinition.Hair+SurfaceData
 // PackingRules = Exact
@@ -110,6 +111,7 @@ struct BSDFData
     float secondarySpecularExponent;
     float specularShift;
     float secondarySpecularShift;
+    float lightPathLength;
 };
 
 //
@@ -261,6 +263,9 @@ void GetGeneratedBSDFDataDebug(uint paramId, BSDFData bsdfdata, inout float3 res
             break;
         case DEBUGVIEW_HAIR_BSDFDATA_SECONDARY_SPECULAR_SHIFT:
             result = bsdfdata.secondarySpecularShift.xxx;
+            break;
+        case DEBUGVIEW_HAIR_BSDFDATA_LIGHT_PATH_LENGTH:
+            result = bsdfdata.lightPathLength.xxx;
             break;
     }
 }

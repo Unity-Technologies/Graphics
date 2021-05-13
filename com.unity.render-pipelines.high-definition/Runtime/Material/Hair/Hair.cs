@@ -128,7 +128,7 @@ namespace UnityEngine.Rendering.HighDefinition
             public float secondarySpecularShift;
 
             // Marschner
-            // TODO
+            public float lightPathLength;
         };
 
 
