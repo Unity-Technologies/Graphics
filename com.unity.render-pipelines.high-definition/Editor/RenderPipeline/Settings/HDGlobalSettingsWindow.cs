@@ -431,6 +431,8 @@ namespace UnityEditor.Rendering.HighDefinition
 
         #region Misc Settings
 
+        static MethodInfo s_CleanupRenderPipelineMethod = typeof(RenderPipelineManager).GetMethod("CleanupRenderPipeline", BindingFlags.Static | BindingFlags.NonPublic | BindingFlags.Public);
+
         static readonly CED.IDrawer MiscSection = CED.Group(
             CED.Group((serialized, owner) => CoreEditorUtils.DrawSectionHeader(Styles.generalSettingsLabel)),
             CED.Group((serialized, owner) => EditorGUILayout.Space()),
@@ -452,17 +454,13 @@ namespace UnityEditor.Rendering.HighDefinition
                 if (serialized.useDLSSCustomProjectId.boolValue)
                     EditorGUILayout.PropertyField(serialized.DLSSProjectId, Styles.DLSSProjectIdLabel);
 #endif
+                EditorGUI.BeginChangeCheck();
+                EditorGUILayout.PropertyField(serialized.supportProbeVolumes, Styles.probeVolumeSupportContentLabel);
+                if (EditorGUI.EndChangeCheck())
+                {
+                    s_CleanupRenderPipelineMethod?.Invoke(null, null);
+                }
             }
-
-            Type renderPipeManagerType = typeof(RenderPipelineManager);
-            var cleanupRenderPipeline = renderPipeManagerType.GetMethod("CleanupRenderPipeline", BindingFlags.Static | BindingFlags.NonPublic | BindingFlags.Public);
-            EditorGUI.BeginChangeCheck();
-            EditorGUILayout.PropertyField(serialized.supportProbeVolumes, Styles.probeVolumeSupportContentLabel);
-            if (EditorGUI.EndChangeCheck())
-            {
-                cleanupRenderPipeline?.Invoke(null, null);
-            }
-
             EditorGUIUtility.labelWidth = oldWidth;
         }
 
