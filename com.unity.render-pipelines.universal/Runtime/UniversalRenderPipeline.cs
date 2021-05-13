@@ -533,14 +533,14 @@ namespace UnityEngine.Rendering.Universal
 
                 if (xrPass.enabled)
                 {
-                    // Helper function for updating cameraData with xrPass Data
-                    m_XRSystem.UpdateCameraData(ref baseCameraData, baseCameraData.xr);
                     baseCameraData.xr = xrPass;
-
                     // XRTODO: remove isStereoEnabled in 2021.x
 #pragma warning disable 0618
                     baseCameraData.isStereoEnabled = xrPass.enabled;
 #pragma warning restore 0618
+
+                    // Helper function for updating cameraData with xrPass Data
+                    m_XRSystem.UpdateCameraData(ref baseCameraData, baseCameraData.xr);
                 }
 #endif
 
