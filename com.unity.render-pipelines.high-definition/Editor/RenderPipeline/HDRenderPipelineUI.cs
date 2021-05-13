@@ -327,51 +327,53 @@ namespace UnityEditor.Rendering.HighDefinition
             SerializedScalableSettingUI.ValueGUI<bool>(serialized.renderPipelineSettings.lightSettings.useContactShadows, Styles.useContactShadows);
         }
 
-        static void Drawer_PunctualLightSectionShadows(SerializedHDRenderPipelineAsset serialized, Editor owner)
+        static void DrawLightShadow(
+            SerializedHDShadowAtlasInitParams serializedAtlasInitParams,
+            SerializedScalableSetting scalableSetting,
+            SerializedProperty resolutionProperty,
+            SerializedProperty catchedResolutionProperty,
+            int defaultCatchedResolutionPropertyValue)
         {
             using (new EditorGUI.IndentLevelScope())
             {
-                EditorGUILayout.LabelField(Styles.shadowPointLightAtlasSubTitle, EditorStyles.boldLabel);
+                EditorGUILayout.LabelField(Styles.shadowLightAtlasSubTitle, EditorStyles.boldLabel);
+
                 using (new EditorGUI.IndentLevelScope())
                 {
-                    CoreEditorUtils.DrawEnumPopup(serialized.renderPipelineSettings.hdShadowInitParams.serializedPunctualAtlasInit.shadowMapResolution, typeof(ShadowResolutionValue), Styles.resolutionContent);
-                    EditorGUILayout.IntPopup(serialized.renderPipelineSettings.hdShadowInitParams.serializedPunctualAtlasInit.shadowMapDepthBits, Styles.shadowBitDepthNames, Styles.shadowBitDepthValues, Styles.precisionContent);
-                    EditorGUILayout.PropertyField(serialized.renderPipelineSettings.hdShadowInitParams.serializedPunctualAtlasInit.useDynamicViewportRescale, Styles.dynamicRescaleContent);
+                    CoreEditorUtils.DrawEnumPopup(serializedAtlasInitParams.shadowMapResolution, typeof(ShadowResolutionValue), Styles.resolutionContent);
+                    EditorGUILayout.IntPopup(serializedAtlasInitParams.shadowMapDepthBits, Styles.shadowBitDepthNames, Styles.shadowBitDepthValues, Styles.precisionContent);
+                    EditorGUILayout.PropertyField(serializedAtlasInitParams.useDynamicViewportRescale, Styles.dynamicRescaleContent);
                 }
 
-                serialized.renderPipelineSettings.hdShadowInitParams.shadowResolutionPunctual.ValueGUI<int>(Styles.punctualLightsShadowTiers);
-                EditorGUILayout.DelayedIntField(serialized.renderPipelineSettings.hdShadowInitParams.maxPunctualShadowMapResolution, Styles.maxShadowResolution);
+                scalableSetting.ValueGUI<int>(Styles.shadowResolutionTiers);
+                EditorGUILayout.DelayedIntField(resolutionProperty, Styles.maxShadowResolution);
 
                 // Because we don't know if the asset is old and had the cached shadow map resolution field, if it was set as default float (0) we force a default.
-                if (serialized.renderPipelineSettings.hdShadowInitParams.cachedPunctualShadowAtlasResolution.intValue == 0)
-                {
-                    serialized.renderPipelineSettings.hdShadowInitParams.cachedPunctualShadowAtlasResolution.intValue = 2048;
-                }
-                CoreEditorUtils.DrawEnumPopup(serialized.renderPipelineSettings.hdShadowInitParams.cachedPunctualShadowAtlasResolution, typeof(ShadowResolutionValue), Styles.cachedShadowAtlasResolution);
+                if (catchedResolutionProperty.intValue == 0)
+                    catchedResolutionProperty.intValue = defaultCatchedResolutionPropertyValue;
+
+                CoreEditorUtils.DrawEnumPopup(catchedResolutionProperty, typeof(ShadowResolutionValue), Styles.cachedShadowAtlasResolution);
             }
+        }
+
+        static void Drawer_PunctualLightSectionShadows(SerializedHDRenderPipelineAsset serialized, Editor owner)
+        {
+            DrawLightShadow(
+                serialized.renderPipelineSettings.hdShadowInitParams.serializedPunctualAtlasInit,
+                serialized.renderPipelineSettings.hdShadowInitParams.shadowResolutionPunctual,
+                serialized.renderPipelineSettings.hdShadowInitParams.maxPunctualShadowMapResolution,
+                serialized.renderPipelineSettings.hdShadowInitParams.cachedPunctualShadowAtlasResolution,
+                2048);
         }
 
         static void Drawer_AreaLightSectionShadows(SerializedHDRenderPipelineAsset serialized, Editor owner)
         {
-            using (new EditorGUI.IndentLevelScope())
-            {
-                EditorGUILayout.LabelField(Styles.shadowAreaLightAtlasSubTitle, EditorStyles.boldLabel);
-                using (new EditorGUI.IndentLevelScope())
-                {
-                    CoreEditorUtils.DrawEnumPopup(serialized.renderPipelineSettings.hdShadowInitParams.serializedAreaAtlasInit.shadowMapResolution, typeof(ShadowResolutionValue), Styles.resolutionContent);
-                    EditorGUILayout.IntPopup(serialized.renderPipelineSettings.hdShadowInitParams.serializedAreaAtlasInit.shadowMapDepthBits, Styles.shadowBitDepthNames, Styles.shadowBitDepthValues, Styles.precisionContent);
-                    EditorGUILayout.PropertyField(serialized.renderPipelineSettings.hdShadowInitParams.serializedAreaAtlasInit.useDynamicViewportRescale, Styles.dynamicRescaleContent);
-                }
-
-                serialized.renderPipelineSettings.hdShadowInitParams.shadowResolutionArea.ValueGUI<int>(Styles.areaLightsShadowTiers);
-                EditorGUILayout.DelayedIntField(serialized.renderPipelineSettings.hdShadowInitParams.maxAreaShadowMapResolution, Styles.maxShadowResolution);
-
-                if (serialized.renderPipelineSettings.hdShadowInitParams.cachedAreaShadowAtlasResolution.intValue == 0)
-                {
-                    serialized.renderPipelineSettings.hdShadowInitParams.cachedAreaShadowAtlasResolution.intValue = 1024;
-                }
-                CoreEditorUtils.DrawEnumPopup(serialized.renderPipelineSettings.hdShadowInitParams.cachedAreaShadowAtlasResolution, typeof(ShadowResolutionValue), Styles.cachedShadowAtlasResolution);
-            }
+            DrawLightShadow(
+                serialized.renderPipelineSettings.hdShadowInitParams.serializedAreaAtlasInit,
+                serialized.renderPipelineSettings.hdShadowInitParams.shadowResolutionArea,
+                serialized.renderPipelineSettings.hdShadowInitParams.maxAreaShadowMapResolution,
+                serialized.renderPipelineSettings.hdShadowInitParams.cachedAreaShadowAtlasResolution,
+                1024);
         }
 
         static void Drawer_DirectionalLightSectionShadows(SerializedHDRenderPipelineAsset serialized, Editor owner)
@@ -379,7 +381,7 @@ namespace UnityEditor.Rendering.HighDefinition
             using (new EditorGUI.IndentLevelScope())
             {
                 EditorGUILayout.IntPopup(serialized.renderPipelineSettings.hdShadowInitParams.directionalShadowMapDepthBits, Styles.shadowBitDepthNames, Styles.shadowBitDepthValues, Styles.directionalShadowPrecisionContent);
-                serialized.renderPipelineSettings.hdShadowInitParams.shadowResolutionDirectional.ValueGUI<int>(Styles.directionalLightsShadowTiers);
+                serialized.renderPipelineSettings.hdShadowInitParams.shadowResolutionDirectional.ValueGUI<int>(Styles.shadowResolutionTiers);
                 EditorGUILayout.DelayedIntField(serialized.renderPipelineSettings.hdShadowInitParams.maxDirectionalShadowMapResolution, Styles.maxShadowResolution);
             }
         }

@@ -71,7 +71,6 @@ namespace UnityEditor.Rendering.HighDefinition
             var schema = ScalableSettingSchema.GetSchemaOrNull(new ScalableSettingSchemaId(self.schemaId.stringValue))
                 ?? ScalableSettingSchema.GetSchemaOrNull(ScalableSettingSchemaId.With3Levels);
 
-            EditorGUILayout.LabelField(label, EditorStyles.boldLabel);
             EditorGUI.showMixedValue = self.values.hasMultipleDifferentValues;
 
             var count = schema.levelCount;
@@ -79,17 +78,7 @@ namespace UnityEditor.Rendering.HighDefinition
             if (self.values.arraySize != count)
                 self.values.arraySize = count;
 
-            using (new EditorGUI.IndentLevelScope())
-            {
-                if (typeof(T) == typeof(bool))
-                    LevelValuesFieldGUI<bool>(self, count, schema);
-                else if (typeof(T) == typeof(int))
-                    LevelValuesFieldGUI<int>(self, count, schema);
-                else if (typeof(T) == typeof(float))
-                    LevelValuesFieldGUI<float>(self, count, schema);
-                else if (typeof(T).IsEnum)
-                    LevelValuesFieldGUI<T>(self, count, schema);
-            }
+            LevelValuesFieldGUI<T>(label, self, count, schema);
 
             EditorGUI.showMixedValue = false;
         }
@@ -106,6 +95,7 @@ namespace UnityEditor.Rendering.HighDefinition
         /// <param name="schema">The schema to use when drawing the levels.</param>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         static void LevelValuesFieldGUI<T>(
+            GUIContent label,
             SerializedScalableSetting scalableSetting,
             int count,
             ScalableSettingSchema schema
@@ -117,48 +107,16 @@ namespace UnityEditor.Rendering.HighDefinition
             var values = new T[count];
             for (var i = 0; i < count; ++i)
                 values[i] = scalableSetting.values.GetArrayElementAtIndex(i).GetInline<T>();
-            EditorGUI.BeginChangeCheck();
-            MultiField(labels, values);
-            if (EditorGUI.EndChangeCheck())
+
+            using (var scope = new EditorGUI.ChangeCheckScope())
             {
-                for (var i = 0; i < count; ++i)
-                    scalableSetting.values.GetArrayElementAtIndex(i).SetInline(values[i]);
+                CoreEditorUtils.DrawMultipleFields(label, labels, values);
+                if (scope.changed)
+                {
+                    for (var i = 0; i < count; ++i)
+                        scalableSetting.values.GetArrayElementAtIndex(i).SetInline(values[i]);
+                }
             }
-        }
-
-        /// <summary>Draw multiple fields in a single line.</summary>
-        /// <typeparam name="T">The type to render.</typeparam>
-        /// <param name="position">The rect to use to draw the GUI.</param>
-        /// <param name="subLabels">The labels for each sub value field.</param>
-        /// <param name="values">The current values of the fields.</param>
-        static void MultiField<T>(GUIContent[] subLabels, T[] values)
-            where T : struct
-        {
-            // The number of slots we need to fit into this rectangle
-            var length = values.Length;
-
-            // Loop through the levels
-            for (var index = 0; index < values.Length; ++index)
-            {
-                // Draw the right field depending on its type.
-                if (typeof(T) == typeof(int))
-                    values[index] = (T)(object)EditorGUILayout.DelayedIntField(subLabels[index], (int)(object)values[index]);
-                else if (typeof(T) == typeof(bool))
-                    values[index] = (T)(object)EditorGUILayout.Toggle(subLabels[index], (bool)(object)values[index]);
-                else if (typeof(T) == typeof(float))
-                    values[index] = (T)(object)EditorGUILayout.FloatField(subLabels[index], (float)(object)values[index]);
-                else if (typeof(T).IsEnum)
-                    values[index] = (T)(object)EditorGUILayout.EnumPopup(subLabels[index], (Enum)(object)values[index]);
-                else
-                    throw new ArgumentOutOfRangeException($"<{typeof(T)}> is not a supported type for multi field");
-            }
-        }
-
-        static float CalcPrefixLabelWidth(GUIContent label, GUIStyle style = null)
-        {
-            if (style == null)
-                style = EditorStyles.label;
-            return style.CalcSize(label).x;
         }
     }
 }
