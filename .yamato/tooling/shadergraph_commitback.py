@@ -63,7 +63,7 @@ if __name__ == "__main__":
             full_asset_path = path.join(os.getcwd(), root, asset_path)
 
     repo.git.commit("-m", "Generated reference images for " + editor)
-    repo.git.lfs("push", "--all")
+    repo.git.lfs("push", "origin", new_branch_name)
     repo.remote(name="origin").push(["--set-upstream", new_branch_name])
     repo.git.status()
     
