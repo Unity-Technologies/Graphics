@@ -9,8 +9,8 @@ namespace UnityEditor.Rendering.HighDefinition
         const float k_Stepping = 0.5f;
         const int k_RaycastBufferSize = 128;
 
-        public float OuterRadius = 0.5f;
-        public float InnerRadius = 1f;
+        public float OuterRadius = 2f;
+        public float InnerRadius = 0f;
         public float NormalBias = 0f;
 
         public bool MeshCollidersOnly = true;
