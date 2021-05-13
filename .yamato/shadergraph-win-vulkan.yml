@@ -90,6 +90,7 @@ ShaderGraph_Win_Vulkan_Standalone_ref_images_mono_Linear_trunk:
       -  mkdir C:\ProgramData\pip && echo [global] >> C:\ProgramData\pip\pip.ini && echo extra-index-url = https://artifactory-slo.bf.unity3d.com/artifactory/api/pypi/pypi/simple >> C:\ProgramData\pip\pip.ini
       -  pip install GitPython
       -  python .yamato/tooling/wrap_utr.py --artifacts_path=TestProjects/ShaderGraph/test-results --platform=StandaloneWindows64 --player-connection-ip=auto --player-load-path=players --suite=playmode --timeout=1200 --zero-tests-are-ok=1
+      -  git lfs install
       -  python .yamato/tooling/shadergraph_commitback.py --root "TestProjects/ShaderGraph"
     artifacts:
         logs:
@@ -447,6 +448,7 @@ ShaderGraph_Win_Vulkan_Standalone_ref_images_mono_Linear_CUSTOM-REVISION:
       -  mkdir C:\ProgramData\pip && echo [global] >> C:\ProgramData\pip\pip.ini && echo extra-index-url = https://artifactory-slo.bf.unity3d.com/artifactory/api/pypi/pypi/simple >> C:\ProgramData\pip\pip.ini
       -  pip install GitPython
       -  python .yamato/tooling/wrap_utr.py --artifacts_path=TestProjects/ShaderGraph/test-results --platform=StandaloneWindows64 --player-connection-ip=auto --player-load-path=players --suite=playmode --timeout=1200 --zero-tests-are-ok=1
+      -  git lfs install
       -  python .yamato/tooling/shadergraph_commitback.py --root "TestProjects/ShaderGraph"
     artifacts:
         logs:
