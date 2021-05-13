@@ -57,6 +57,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Added the ability to animate many physical camera properties with Timeline.
 - Added a mixed RayMarching/RayTracing mode for RTReflections and RTGI.
 - Added path tracing support for stacklit material.
+- Added path tracing support for AxF material.
 - Added support for surface gradient based normal blending for decals.
 - Added support for tessellation for all master node in shader graph.
 
