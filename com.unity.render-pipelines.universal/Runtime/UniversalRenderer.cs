@@ -657,8 +657,7 @@ namespace UnityEngine.Rendering.Universal
                 m_CopyColorPass.Setup(m_ActiveCameraColorAttachment.Identifier(), m_OpaqueColor, downsamplingMethod);
                 EnqueuePass(m_CopyColorPass);
             }
-
-#if ENABLE_MOTION_VECTORS
+            
             if (renderPassInputs.requiresMotionVectors && !cameraData.xr.enabled)
             {
                 SupportedRenderingFeatures.active.motionVectors = true; // hack for enabling UI
@@ -667,7 +666,6 @@ namespace UnityEngine.Rendering.Universal
                 m_MotionVectorPass.Setup(data);
                 EnqueuePass(m_MotionVectorPass);
             }
-#endif
 
 
 #if ADAPTIVE_PERFORMANCE_2_1_0_OR_NEWER
@@ -885,9 +883,7 @@ namespace UnityEngine.Rendering.Universal
             internal bool requiresDepthPrepass;
             internal bool requiresNormalsTexture;
             internal bool requiresColorTexture;
-#if ENABLE_MOTION_VECTORS
             internal bool requiresMotionVectors;
-#endif
             internal RenderPassEvent requiresDepthNormalAtEvent;
         }
 
@@ -903,18 +899,14 @@ namespace UnityEngine.Rendering.Universal
                 bool needsDepth   = (pass.input & ScriptableRenderPassInput.Depth) != ScriptableRenderPassInput.None;
                 bool needsNormals = (pass.input & ScriptableRenderPassInput.Normal) != ScriptableRenderPassInput.None;
                 bool needsColor   = (pass.input & ScriptableRenderPassInput.Color) != ScriptableRenderPassInput.None;
-#if ENABLE_MOTION_VECTORS
                 bool needsMotion  = (pass.input & ScriptableRenderPassInput.Motion) != ScriptableRenderPassInput.None;
-#endif
                 bool eventBeforeMainRendering = pass.renderPassEvent <= beforeMainRenderingEvent;
 
                 inputSummary.requiresDepthTexture   |= needsDepth;
                 inputSummary.requiresDepthPrepass   |= needsNormals || needsDepth && eventBeforeMainRendering;
                 inputSummary.requiresNormalsTexture |= needsNormals;
                 inputSummary.requiresColorTexture   |= needsColor;
-#if ENABLE_MOTION_VECTORS
                 inputSummary.requiresMotionVectors  |= needsMotion;
-#endif
                 if (needsNormals || needsDepth)
                     inputSummary.requiresDepthNormalAtEvent = (RenderPassEvent)Mathf.Min((int)pass.renderPassEvent, (int)inputSummary.requiresDepthNormalAtEvent);
             }

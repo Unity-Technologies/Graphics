@@ -13,14 +13,12 @@ internal class CaptureMotionVectorsRendererFeature : ScriptableRendererFeature
 
     public override void AddRenderPasses(ScriptableRenderer renderer, ref RenderingData renderingData)
     {
-#if ENABLE_MOTION_VECTORS
         if (renderingData.cameraData.cameraType == CameraType.Game)
         {
             m_RenderPass.ConfigureInput(ScriptableRenderPassInput.Motion);
             m_RenderPass.SetTarget(renderer.cameraColorTarget, m_Intensity);
             renderer.EnqueuePass(m_RenderPass);
         }
-#endif
     }
 
     public override void Create()
