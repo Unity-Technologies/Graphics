@@ -76,6 +76,8 @@ namespace UnityEditor.Rendering.HighDefinition
             internal static readonly GUIContent newAssetButtonLabel = EditorGUIUtility.TrTextContent("New", "Create a HD Global Settings Asset in your default resource folder (defined in Wizard)");
             internal static readonly GUIContent cloneAssetButtonLabel = EditorGUIUtility.TrTextContent("Clone", "Clone a HD Global Settings Asset in your default resource folder (defined in Wizard)");
             internal static readonly GUIContent newVolumeProfileLabel = EditorGUIUtility.TrTextContent("New", "Create a new Volume Profile for default in your default resource folder (defined in Wizard)");
+
+            internal static readonly GUIContent probeVolumeSupportContentLabel = EditorGUIUtility.TrTextContent("Probe Volumes (Experimental)", "Set whether Probe volumes are supported by the project. The feature is highly experimental and subject to changes.");
         }
     }
 }

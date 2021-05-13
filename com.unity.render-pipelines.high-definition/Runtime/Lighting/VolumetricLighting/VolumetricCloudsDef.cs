@@ -48,8 +48,8 @@ namespace UnityEngine.Rendering.HighDefinition
         public int _PhysicallyBasedSun;
         // Factor for the multi scattering
         public float _MultiScattering;
-        // Defines how we blend the forward and backward HG function
-        public float _ScatteringDirection;
+        // Padding 0
+        public float _Padding0;
         // Controls the strength of the powder effect intensity
         public float _PowderEffectIntensity;
 
@@ -85,8 +85,8 @@ namespace UnityEngine.Rendering.HighDefinition
         // Resolution of the history depth buffer
         public Vector2 _HistoryBufferSize;
 
-        // MipOffset of the first depth mip
-        public Vector2 _Padding;
+        // Padding 1
+        public Vector2 _Padding1;
         // Frame index for the accumulation
         public int _AccumulationFrameIndex;
         // Index for which of the 4 local pixels should be evaluated

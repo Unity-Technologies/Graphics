@@ -87,6 +87,14 @@ From HDRP 12.0, various top level menus are now different. This is to make the t
   * **Density Volume** is now at **GameObject > Rendering > Local Volumetric Fog**
   * **Sky and Fog Volume** is now at **GameObject > Volume > Sky and Fog Global Volume**
 
+### Decal normal blending
+
+From HDRP 12.0, an option has been added in the HDRP asset to allow decal normals to be additively blended with the underlying object normal.
+The screenshot on the left below do not use additive normal blending, whereas the screenshot on the right use the new method.
+
+![](Images/HDRPFeatures-SurfGrad.png)
+
+
 ## Issues resolved
 
 For information on issues resolved in version 12 of HDRP, see the [changelog](https://docs.unity3d.com/Packages/com.unity.render-pipelines.high-definition@12.0/changelog/CHANGELOG.html).
