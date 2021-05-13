@@ -19,6 +19,8 @@ namespace UnityEditor.ShaderGraph
 
             context.SetMainFunction(shaderFunc);
             context.SetPreviewFunction(shaderFunc);
+
+            context.HideSlot("TangentSpaceViewDirection");
         }
 
         static StructTypeDefinition k_HeightSampler = null;
@@ -61,7 +63,7 @@ namespace UnityEditor.ShaderGraph
             func.AddInput(Types._precision2, "UVs", Binding.MeshUV0);
             func.AddInput(Types._precision, "Lod", 0.0f);
             func.AddInput(Types._precision, "LodThreshold");
-            func.AddInput(Types._precision3, "TangentSpaceViewDirection", Binding.TangentSpaceViewDirection);       // TODO: hide!
+            func.AddInput(Types._precision3, "TangentSpaceViewDirection", Binding.TangentSpaceViewDirection);
 
             func.AddOutput(Types._precision, "PixelDepthOffset");
             func.AddOutput(Types._precision2, "ParallaxUVs");
@@ -114,7 +116,7 @@ namespace UnityEditor.ShaderGraph
             func.AddInput(Types._precision, "lod");
             func.AddInput(Types._precision, "lodThreshold");
             func.AddInput(Types._int, "numSteps");
-            func.AddInput(Types._precision3, "viewDirTS");
+            func.AddInput(Types._precision3, "viewDirTS", Binding.TangentSpaceViewDirection);
             func.AddInput(heightSamplerType, "heightSampler");
 
             // outputs

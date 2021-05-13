@@ -42,14 +42,16 @@ public sealed class SandboxType
     public enum Flags
     {
         Placeholder = 1,                    // is a placeholder type for generic types or functions, does not generate valid HLSL
-        Scalar = 2,                         // is a scalar value, i.e. bool, int, float, half...
-        Vector = 4,                         // is a vector value (bool2, int3, float4, half2, float1)
-        Matrix = 8,                         // is a matrix value (float3x3, int2x4, bool1x4, half1x1, etc.)
-        Struct = 16,
-        Texture = 32,
-        SamplerState = 64,
-        BareResource = 128,                 // raw resource, not wrapped in Unity struct (Texture2D, SamplerState, cbuffer etc.)
+        Scalar = 2,                         // is a scalar value, i.e. bool, int, float, half... no type definition
+        Vector = 4,                         // VectorTypeDefinition
+        Matrix = 8,                         // MatrixTypeDefinition
+        Struct = 16,                        // StructureTypeDefinition
+        Texture = 32,                       // TextureTypeDefinition
+        SamplerState = 64,                  // SamplerStateTypeDefinition
+        Array = 128,                        // ArrayTypeDefinition
+        BareResource = 256,                 // raw resource, not wrapped in Unity struct (Texture2D, SamplerState, cbuffer etc.)
         HasHLSLDeclaration = 512,           // has an HLSL Declaration
+        IsDefaultType = 1024,               // is a default type, exists in the Types.Default collection
 
         VectorOrScalar = Scalar | Vector,
     }
@@ -69,21 +71,23 @@ public sealed class SandboxType
     public bool IsStruct =>             (flags & Flags.Struct) != 0;
     public bool IsTexture =>            (flags & Flags.Texture) != 0;
     public bool IsSamplerState =>       (flags & Flags.SamplerState) != 0;
+    public bool IsArray =>              (flags & Flags.Array) != 0;
     public bool IsBareResource =>       (flags & Flags.BareResource) != 0;
     public bool IsVectorOrScalar =>     (flags & Flags.VectorOrScalar) != 0;
     public bool HasHLSLDeclaration =>   (flags & Flags.HasHLSLDeclaration) != 0;
+    public bool IsDefaultType =>        (flags & Flags.IsDefaultType) != 0;
 
     // returns the vector dimension (1, 2, 3 or 4) for vector types, 1 for scalar types, and 0 for all other types
     public int VectorDimension
     {
         get
         {
-            if ((flags & Flags.Vector) != 0)
+            if (IsVector)
             {
                 var vecDef = GetDefinition<VectorTypeDefinition>();
                 return vecDef?.VectorDimension ?? 0;
             }
-            if ((flags & Flags.Scalar) != 0)
+            if (IsScalar)
                 return 1;
             return 0;
         }
@@ -94,7 +98,7 @@ public sealed class SandboxType
     {
         get
         {
-            if ((flags & Flags.Matrix) != 0)
+            if (IsMatrix)
             {
                 var matDef = GetDefinition<MatrixTypeDefinition>();
                 if (matDef != null)
@@ -109,11 +113,25 @@ public sealed class SandboxType
     {
         get
         {
-            if ((flags & Flags.Matrix) != 0)
+            if (IsMatrix)
             {
                 var matDef = GetDefinition<MatrixTypeDefinition>();
                 if (matDef != null)
                     return matDef.MatrixRows;
+            }
+            return 0;
+        }
+    }
+
+    public int ArrayElements
+    {
+        get
+        {
+            if (IsArray)
+            {
+                var arrDef = GetDefinition<ArrayTypeDefinition>();
+                if (arrDef != null)
+                    return arrDef.ArrayElements;
             }
             return 0;
         }
@@ -137,8 +155,13 @@ public sealed class SandboxType
 
     public bool ValueEquals(SandboxType other)
     {
-        if (other == this)
+        // same reference means they are trivially equal
+        // this is important to check first to reduce the work involved
+        if (ReferenceEquals(other, this))
             return true;
+
+        if (other == null)
+            return false;
 
         return (name == other.name) &&
             (flags == other.flags) &&

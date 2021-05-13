@@ -26,29 +26,31 @@ public class ShaderFunctionSignature : JsonObject
     [Serializable]
     public struct Parameter
     {
+        public string Name => name;
+        public SandboxType Type => type;
+        public bool IsInput => input;
+        public bool IsOutput => output;
+        public bool IsInOut => (input && output);       // TODO: doesn't work in sandbox node
+        public System.Object DefaultValue => defaultValue;
+
+
         [SerializeField]
         string name;
-        public string Name => name;
 
         [SerializeField]
         SandboxType type;
-        public SandboxType Type => type;
 
         // TODO: make this an enum
         [SerializeField]
         bool input;
         [SerializeField]
         bool output;
-        public bool IsInput => input;
-        public bool IsOutput => output;
-        public bool IsInOut => (input && output);       // TODO: doesn't work in sandbox node
 
         //[SerializeField]
         //JsonData<JsonObject> defaultValue; ?
         System.Object defaultValue;     // not serialized (yet??)
-        public System.Object DefaultValue => defaultValue;
 
-        public Parameter(SandboxType type, string name, bool input, bool output, System.Object defaultValue = null)
+        internal Parameter(SandboxType type, string name, bool input, bool output, System.Object defaultValue = null)
         {
             this.type = type;
             this.name = name;
@@ -82,14 +84,20 @@ public class ShaderFunctionSignature : JsonObject
             this.name = name;
         }
 
-        internal void AddParameter(Parameter param)
+        public void AddParameter(Parameter param)
         {
             if (parameters == null)
                 parameters = new List<Parameter>();
 
-            // TODO: check for name collision
-
-            parameters.Add(param);
+            var existing = parameters.FindIndex(x => x.Name == param.Name);
+            if (existing < 0)
+            {
+                parameters.Add(param);
+            }
+            else
+            {
+                // error : name collision
+            }
         }
 
         public void AddInput(SandboxType type, string name, object defaultValue = null)
@@ -102,10 +110,10 @@ public class ShaderFunctionSignature : JsonObject
             AddParameter(new Parameter(type, name, false, true));
         }
 
-        public void AddInOut(SandboxType type, string name, object defaultValue = null)
-        {
-            AddParameter(new Parameter(type, name, true, true, defaultValue));
-        }
+//         public void AddInOut(SandboxType type, string name, object defaultValue = null)
+//         {
+//             AddParameter(new Parameter(type, name, true, true, defaultValue));
+//         }
 
         public ShaderFunctionSignature Build()
         {

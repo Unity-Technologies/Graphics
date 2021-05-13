@@ -15,6 +15,9 @@ public sealed partial class Types
     // store all TypeCasters
     //   Dictionary<SandboxValueType, List<SandboxValueTypeCaster>> casts = new Dictionary<SandboxValueType, List<SandboxValueTypeCaster>>();
 
+    // TODO: rename to "local Types" or something like that, as it doesn't iterate parent types...  make a real AllTypes that does iterate parent
+    public IEnumerable<SandboxType> AllTypes => shaderTypes.Values;
+
     public Types(Types parent)
     {
         this.parent = parent;
@@ -28,29 +31,59 @@ public sealed partial class Types
 
     public SandboxType AddType(StructTypeDefinition structType)
     {
-        return AddType(structType);
+        return AddTypeInternal(structType);
     }
 
-    internal SandboxType AddType(SandboxTypeDefinition typeDef)
+    public SandboxType AddType(ArrayTypeDefinition structType)
+    {
+        return AddTypeInternal(structType);
+    }
+
+    internal SandboxType AddTypeInternal(SandboxTypeDefinition typeDef)
     {
         if (readOnly)
         {
-            Debug.LogError("Cannot add a type to a readonly Types collection");
+            // Debug.LogError("Cannot add a type to a readonly Types collection");
             return null;
         }
-        // TODO : check for colliding names
-        var shaderType = new SandboxType(typeDef);
-        return AddType(shaderType);
+
+        if (typeDef == null)
+            return null;
+
+        string typeName = typeDef.GetTypeName();
+        if (string.IsNullOrWhiteSpace(typeName))
+        {
+            // Debug.LogError("Cannot add Type with no name");
+            return null;
+        }
+
+        var existingType = FindTypeByName(typeName);
+        if (existingType != null)
+        {
+            // name collision:  check if it's actually the same type or not
+            var existingDef = existingType.GetDefinition<SandboxTypeDefinition>();
+            if (existingDef?.ValueEquals(typeDef) ?? false)
+                return existingType;
+
+            // cannot add, type has conflicting name
+            // Debug.LogError("Type name conflicts with existing Type name: " + typeName);
+            return null;
+        }
+
+        // new type, add it
+        var type = new SandboxType(typeDef);
+        shaderTypes.Add(typeName, type);
+        return type;
     }
 
     // returns the ShaderType added on success, or null on failure
     // NOTE: the returned ShaderType may not be the one you passed in --
     // -- you may have tried to add a duplicate definition, and it returns the existing one
-    internal SandboxType AddType(SandboxType type)
+    internal SandboxType AddTypeInternal(SandboxType type)
     {
         if (readOnly)
         {
-            Debug.LogError("Cannot add a type to a readonly Types collection");
+            // Debug.LogError("Cannot add a type to a readonly Types collection");
             return null;
         }
 
@@ -97,6 +130,15 @@ public sealed partial class Types
         }
         if (parent != null)
             return parent.FindExactType(type);
+        return null;
+    }
+
+    public SandboxType FindTypeByName(string name)
+    {
+        if (shaderTypes.TryGetValue(name, out SandboxType match))
+            return match;       // found it
+        if (parent != null)
+            return parent.FindTypeByName(name);
         return null;
     }
 

@@ -84,16 +84,30 @@ public class StructTypeDefinition : SandboxTypeDefinition
         if (otherType == null)
             return false;
 
-        if (otherType == this)
+        if (ReferenceEquals(otherType, this))
             return true;
 
-        if ((otherType.name != name) || (otherType.fields.Count != fields.Count))
+        if (otherType.name != name)
             return false;
 
-        for (int i = 0; i < fields.Count; i++)
+        int fieldCount = fields?.Count ?? 0;
+        if ((otherType.fields?.Count ?? 0) != fieldCount)
+            return false;
+
+        int functionCount = functions?.Count ?? 0;
+        if ((otherType.functions?.Count ?? 0) != functionCount)
+            return false;
+
+        for (int i = 0; i < fieldCount; i++)
         {
             if ((fields[i].Name != otherType.fields[i].Name) ||
-                (fields[i].Type.ValueEquals(otherType.fields[i].Type)))
+                (!fields[i].Type.ValueEquals(otherType.fields[i].Type)))
+                return false;
+        }
+
+        for (int i = 0; i < functionCount; i++)
+        {
+            if (!functions[i].ValueEquals(otherType.functions[i]))
                 return false;
         }
 

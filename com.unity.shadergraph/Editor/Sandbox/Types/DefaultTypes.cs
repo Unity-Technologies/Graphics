@@ -22,26 +22,26 @@ public sealed partial class Types
         foreach (var s in scalarTypes)
         {
             // add the scalar type
-            types.AddType(s);
+            types.AddTypeInternal(s);
 
             var baseFlags = (s.IsPlaceholder ? SandboxType.Flags.Placeholder : 0);
 
             // vector variants
             for (int dim = 2; dim <= 4; dim++)
-                types.AddType(new VectorTypeDefinition(s, dim, baseFlags));
+                types.AddTypeInternal(new VectorTypeDefinition(s, dim, baseFlags));
 
             // matrix variants
             for (int rows = 1; rows <= 4; rows++)
                 for (int cols = 1; cols <= 4; cols++)
-                    types.AddType(new MatrixTypeDefinition(s, rows, cols, baseFlags));
+                    types.AddTypeInternal(new MatrixTypeDefinition(s, rows, cols, baseFlags));
         }
 
         // standard dynamic placeholder types
-        types.AddType(new SandboxType("$dynamicVector$", SandboxType.Flags.Vector | SandboxType.Flags.Placeholder));
-        types.AddType(new SandboxType("$dynamicMatrix$", SandboxType.Flags.Matrix | SandboxType.Flags.Placeholder));
-        types.AddType(new SandboxType("$dynamic$", SandboxType.Flags.Placeholder));
+        types.AddTypeInternal(new SandboxType("$dynamicVector$", SandboxType.Flags.Vector | SandboxType.Flags.Placeholder));
+        types.AddTypeInternal(new SandboxType("$dynamicMatrix$", SandboxType.Flags.Matrix | SandboxType.Flags.Placeholder));
+        types.AddTypeInternal(new SandboxType("$dynamic$", SandboxType.Flags.Placeholder));
 
-        // bare types
+        // bare types -- TODO: should these use TextureTypeDefinition ?
         List<SandboxType> bareTypes = new List<SandboxType>()
         {
             new SandboxType("Texture1D",           SandboxType.Flags.Texture | SandboxType.Flags.BareResource),
@@ -56,14 +56,14 @@ public sealed partial class Types
             new SandboxType("SamplerState",        SandboxType.Flags.SamplerState | SandboxType.Flags.BareResource)
         };
         foreach (var b in bareTypes)
-            types.AddType(b);
+            types.AddTypeInternal(b);
 
         // Unity wrapped resource types
-        types.AddType(new TextureTypeDefinition("UnityTexture2D"));
-        types.AddType(new TextureTypeDefinition("UnityTexture2DArray"));
-        types.AddType(new TextureTypeDefinition("UnityTexture3DArray"));
-        types.AddType(new TextureTypeDefinition("UnityTextureCube"));
-        types.AddType(new SamplerStateTypeDefinition("UnitySamplerState"));
+        types.AddTypeInternal(new TextureTypeDefinition("UnityTexture2D"));
+        types.AddTypeInternal(new TextureTypeDefinition("UnityTexture2DArray"));
+        types.AddTypeInternal(new TextureTypeDefinition("UnityTexture3DArray"));
+        types.AddTypeInternal(new TextureTypeDefinition("UnityTextureCube"));
+        types.AddTypeInternal(new SamplerStateTypeDefinition("UnitySamplerState"));
 
         types.SetReadOnly();
 

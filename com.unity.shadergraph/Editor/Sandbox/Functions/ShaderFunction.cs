@@ -13,9 +13,9 @@ public class ShaderFunction : ShaderFunctionSignature
     public override int latestVersion => 1;
 
     // public API
-    public IEnumerable<ShaderFunctionSignature> FunctionsCalled => functionsCalled?.SelectValue();
+    public IEnumerable<ShaderFunctionSignature> FunctionsCalled => (IEnumerable<ShaderFunctionSignature>)functionsCalled?.SelectValue() ?? ListUtils.EmptyReadOnlyList<ShaderFunctionSignature>();
     public IEnumerable<string> IncludePaths => includePaths?.AsReadOnly() ?? ListUtils.EmptyReadOnlyList<string>();
-    public string Body { get { return body; } }
+    public string Body { get { return body; } }     // TODO: should this be public? or internal..
     public virtual bool isGeneric => false;
 
     // serialized state
@@ -157,6 +157,7 @@ public class ShaderFunction : ShaderFunctionSignature
             body.NewLine();
         }
 
+        // TODO: change the name of this function to make it clear it should only be used in a disposable context...
         public Arguments Call(ShaderFunctionSignature func)
         {
             if (functionsCalled == null)
@@ -456,7 +457,7 @@ public class ShaderFunction : ShaderFunctionSignature
     {
         // same reference means they are trivially equal
         // this is important to check first to reduce the work involved
-        if (other == this)
+        if (ReferenceEquals(other, this))
             return true;
 
         if (other == null)
