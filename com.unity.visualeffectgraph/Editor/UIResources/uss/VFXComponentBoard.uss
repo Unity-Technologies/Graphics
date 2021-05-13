@@ -36,7 +36,7 @@ VFXComponentBoard.graphElement > .mainContainer
 }
 
 #divider.horizontal {
-    height: 0.01px;
+    height: 0.05px;
     border-bottom-width: 1px;
 }
 
@@ -149,6 +149,8 @@ VFXComponentBoardEventUI .unity-button, #on-play-button, #on-stop-button,#attach
     --unity-image: url("project:///Packages/com.unity.visualeffectgraph/Editor/UIResources/VFX/Restart.png");
 }
 
+
+
 #play-rate-container
 {
     flex-direction:row;
@@ -160,6 +162,11 @@ VFXComponentBoardEventUI .unity-button, #on-play-button, #on-stop-button,#attach
 #events-label
 {
     padding-top: 8px;
+}
+
+#on-play-stop
+{
+    padding-bottom: 8px;
 }
 
 #debug-container
@@ -283,6 +290,41 @@ VFXComponentBoardEventUI .unity-button, #on-play-button, #on-stop-button,#attach
     width: 40px;
     height: 16px;
 }
+
+#system-bounds-container
+{
+    padding-bottom: 2px;
+}
+
+#bounds-actions-container
+{
+    flex-direction:row;
+    height: 40px;
+    align-items: center;
+    padding-bottom: 2px;
+    padding-top: 2px;
+}
+
+#bounds-actions-container #bounds-label
+{
+    flex-grow: 1;
+}
+
+#bounds-actions-container #record
+{
+    height: 20px;
+    width: 30px;
+}
+
+
+#bounds-actions-container .unity-button#record #record-icon
+{
+    /*--unity-image: url("project:///Packages/com.unity.visualeffectgraph/Editor/UIResources/VFX/d_Record\ On.png"); */
+        height: 16px;
+        width: 16px;
+}
+
+
 
 VFXComponentBoardEventUI
 {
