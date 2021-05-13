@@ -20,11 +20,11 @@ bool SampleSpecular(MaterialData mtlData, float3 inputSample, out float3 sampleD
 {
     uint i;
 
-    float lobeWeight[CARPAINT2_LOBE_COUNT], coeffsNormalization = rcp(GetSpecularCoeffSum(mtlData)); // We know the sum is > 0.0
+    float lobeWeight[CARPAINT2_LOBE_COUNT], CoeffNormalization = rcp(GetSpecularCoeffSum(mtlData)); // We know the sum is > 0.0
 
     UNITY_UNROLL
     for (i = 0; i < CARPAINT2_LOBE_COUNT; i++)
-        lobeWeight[i] = _CarPaint2_CTCoeffs[i] * coeffsNormalization;
+        lobeWeight[i] = _CarPaint2_CTCoeffs[i] * CoeffNormalization;
 
     uint lobeIndex[CARPAINT2_LOBE_COUNT];
 
@@ -75,14 +75,14 @@ void EvaluateSpecular(MaterialData mtlData, float3 sampleDir, out float3 value, 
     pdf = 0.0;
 
     float3 lobeValue;
-    float lobePdf, coeffsNormalization = rcp(GetSpecularCoeffSum(mtlData)); // We know the sum is > 0.0
+    float lobePdf, CoeffNormalization = rcp(GetSpecularCoeffSum(mtlData)); // We know the sum is > 0.0
 
     UNITY_UNROLL
     for (uint i = 0; i < CARPAINT2_LOBE_COUNT; i++)
     {
         BRDF::EvaluateGGX(mtlData, GetSpecularNormal(mtlData), mtlData.bsdfData.roughness[i], _CarPaint2_CTF0s[i], sampleDir, lobeValue, lobePdf);
         value += lobeValue * _CarPaint2_CTCoeffs[i];
-        pdf += lobePdf * _CarPaint2_CTCoeffs[i] * coeffsNormalization;
+        pdf += lobePdf * _CarPaint2_CTCoeffs[i] * CoeffNormalization;
     }
 
 #ifdef AXF_PATH_TRACING_CAR_PAINT_USE_RASTER_SPECULAR
