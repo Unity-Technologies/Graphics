@@ -16,10 +16,10 @@ namespace UnityEditor.Rendering.HighDefinition
         static Dictionary<MaskVolume, HierarchicalBox> shapeBoxes = new Dictionary<MaskVolume, HierarchicalBox>();
         internal static Dictionary<MaskVolume, HierarchicalBox> blendBoxes = new Dictionary<MaskVolume, HierarchicalBox>();
 
-        internal static Color BrushColor = new Color(1f, 0f, 0f, 1f);
+        internal static Color BrushColor = new Color(1f, 1f, 1f, 1f);
         internal static bool BrushApplyRed = true;
-        internal static bool BrushApplyGreen = true;
-        internal static bool BrushApplyBlue = true;
+        internal static bool BrushApplyGreen = false;
+        internal static bool BrushApplyBlue = false;
 
         SerializedMaskVolume m_SerializedMaskVolume;
 
@@ -207,6 +207,7 @@ namespace UnityEditor.Rendering.HighDefinition
             if (!m_ApplyingBrush)
             {
                 Undo.RegisterCompleteObjectUndo(maskVolumeAsset, "Paint Volume");
+                EditorUtility.SetDirty(maskVolumeAsset);
                 m_ApplyingBrush = true;
             }
 
