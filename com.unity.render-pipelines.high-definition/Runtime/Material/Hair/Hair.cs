@@ -119,6 +119,13 @@ namespace UnityEngine.Rendering.HighDefinition
             public Vector3 hairStrandDirectionWS;
             public float anisotropy;
 
+            // TEMP: Pathtracer Compatibility.
+            // Path tracer assumes this anisotropic fields generally exist (even though we don't use them).
+            public Vector3 tangentWS;
+            public Vector3 bitangentWS;
+            public float   roughnessT;
+            public float   roughnessB;
+
             // Kajiya kay
             public float secondaryPerceptualRoughness;
             public Vector3 secondarySpecularTint;

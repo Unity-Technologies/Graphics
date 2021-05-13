@@ -217,6 +217,9 @@ BSDFData ConvertSurfaceDataToBSDFData(uint2 positionSS, SurfaceData surfaceData)
 
         // Refraction Index
         bsdfData.ior = surfaceData.ior;
+
+        // We override the fresnel0 with the custom one (not 1.55 for human hair).
+        bsdfData.fresnel0 = IorToFresnel0(surfaceData.ior);
     }
 
     ApplyDebugToBSDFData(bsdfData);
@@ -435,6 +438,8 @@ LightTransportData GetLightTransportData(SurfaceData surfaceData, BuiltinData bu
 //-----------------------------------------------------------------------------
 // BSDF share between directional light, punctual light and area light (reference)
 //-----------------------------------------------------------------------------
+
+#include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Hair/HairReference.hlsl"
 
 bool IsNonZeroBSDF(float3 V, float3 L, PreLightData preLightData, BSDFData bsdfData)
 {

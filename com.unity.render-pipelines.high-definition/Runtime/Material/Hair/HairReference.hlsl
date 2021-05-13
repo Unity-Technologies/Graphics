@@ -301,19 +301,16 @@ CBSDF EvaluateMarschnerReference(float3 V, float3 L, BSDFData bsdfData)
         float phiR = atan2(R.y, R.x);
         inputs.phi = phiR - phiI;
 
-        // TODO: Move to ConvertSurfaceDataToBSDFData
-        // Only the first lobe is attenuated by primary reflection roughness.
-        float variance = RoughnessToLongitudinalVariance(bsdfData.roughnessT);
-        inputs.variances[0] = variance * bsdfData.roughnessPrimaryReflection;
-        inputs.variances[1] = 0.5 * variance;
-        inputs.variances[2] = 2.0 * variance;
+        inputs.variances[0] = RoughnessToLongitudinalVariance(bsdfData.roughnessLR);
+        inputs.variances[1] = RoughnessToLongitudinalVariance(bsdfData.roughnessLTT);
+        inputs.variances[2] = RoughnessToLongitudinalVariance(bsdfData.roughnessLTRT);
 
-        inputs.shifts[0] = bsdfData.cuticleAngle;
-        inputs.shifts[1] = -inputs.shifts[0] / 2.0;
-        inputs.shifts[2] = 3 * -inputs.shifts[0] / 2.0;
+        inputs.shifts[0] = bsdfData.cuticleAngleR;
+        inputs.shifts[1] = bsdfData.cuticleAngleTT;
+        inputs.shifts[2] = bsdfData.cuticleAngleTRT;
 
-        inputs.eta  = bsdfData.ior;
-        inputs.fresnel0 = IorToFresnel0(inputs.eta);
+        inputs.eta = bsdfData.ior;
+        inputs.fresnel0 = bsdfData.fresnel0;
 
         // The analysis of azimuthal scattering can be restricted to the normal plane by exploiting
         // the Bravais properties of a smooth cylinder fiber and using the modified index of refraction.
@@ -326,14 +323,14 @@ CBSDF EvaluateMarschnerReference(float3 V, float3 L, BSDFData bsdfData)
         // Since we are using a near-field method, we can use the true h value (rather than integrating over the whole fiber width).
         inputs.h = dot(cross(bsdfData.normalWS, X), Z);
 
-        inputs.logisticScale = RoughnessToLogisticalScale(bsdfData.roughnessB);
+        inputs.logisticScale = RoughnessToLogisticalScale(bsdfData.roughnessAR);
 #else
         // TODO: Maintain the Disney parameterization for the far field model.
-        inputs.logisticScale = bsdfData.roughnessB;
+        inputs.logisticScale = bsdfData.roughnessAR;
 #endif
 
         float thetaT = asin(sin(inputs.thetaR / inputs.eta));
-        inputs.absorptionP = bsdfData.transmittance / cos(thetaT);
+        inputs.absorptionP = bsdfData.diffuseColor / cos(thetaT);
     }
 
     float3 S = 0;

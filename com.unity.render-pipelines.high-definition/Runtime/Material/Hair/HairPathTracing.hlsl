@@ -29,16 +29,24 @@ void EvaluateMaterial(MaterialData mtlData, float3 sampleDir, out MaterialResult
 {
     Init(result);
 
-    // TODO
+    CBSDF cbsdf = EvaluateMarschnerReference(mtlData.V, sampleDir, mtlData.bsdfData);
+
+    result.specValue = cbsdf.specR;
+
+    // TODO: Importance Sample
+    result.specPdf = INV_FOUR_PI;
 }
 
 bool SampleMaterial(MaterialData mtlData, float3 inputSample, out float3 sampleDir, out MaterialResult result)
 {
     Init(result);
 
-    // TODO
+    // We sample the sphere due to reflective and transmittive events.
+    sampleDir = SampleSphereUniform(inputSample.x, inputSample.y);
 
-    return false;
+    EvaluateMaterial(mtlData, sampleDir, result);
+
+    return true;
 }
 
 float AdjustPathRoughness(MaterialData mtlData, MaterialResult mtlResult, bool isSampleBelow, float pathRoughness)
