@@ -189,6 +189,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed multi cameras using cloud layers shadows.
 - Fixed HDAdditionalLightData's CopyTo and HDAdditionalCameraData's CopyTo missing copy.
 - Fixed pixel coord to view direction matrix for asymetric projection matrix.
+- Fixed sceneview debug mode rendering (case 1211436)
 
 ### Changed
 - Changed Window/Render Pipeline/HD Render Pipeline Wizard to Window/Rendering/HDRP Wizard
