@@ -228,6 +228,9 @@ namespace UnityEngine.Rendering.HighDefinition
             public float fullscreenDebugMip = 0.0f;
             /// <summary>Index of the light used for contact shadows display.</summary>
             public int fullScreenContactShadowLightIndex = 0;
+            /// <summary>XR single pass test mode.</summary>
+            [Obsolete]
+            public bool xrSinglePassTestMode = false;
             /// <summary>Whether to display the average timings every second.</summary>
             public bool averageProfilerTimingsOverASecond = false;
 

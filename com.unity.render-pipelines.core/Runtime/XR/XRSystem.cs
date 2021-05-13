@@ -12,9 +12,6 @@ namespace UnityEngine.Rendering
     /// </summary>
     public static class XRSystem
     {
-        // Valid empty pass when a camera is not using XR
-        public static readonly XRPass emptyPass = new XRPass();
-
         // Keep track of only one XR layout
         static XRLayout s_Layout = new XRLayout();
 
@@ -44,6 +41,11 @@ namespace UnityEngine.Rendering
             get => false;
         #endif
         }
+
+        /// <summary>
+        /// Valid empty pass when a camera is not using XR.
+        /// </summary>
+        public static readonly XRPass emptyPass = new XRPass();
 
         /// <summary>
         /// If true, the system will try to create a layout compatible with single-pass rendering.
@@ -77,7 +79,7 @@ namespace UnityEngine.Rendering
         /// <summary>
         /// Used by the render pipeline to communicate to the XR device how many samples are used by MSAA.
         /// </summary>
-        /// <param name="msaaSampleCount"></param>
+        /// <param name="msaaSamples"></param>
         public static void SetDisplayMSAASamples(MSAASamples msaaSamples)
         {
             if (s_MSAASamples == msaaSamples)
@@ -105,7 +107,7 @@ namespace UnityEngine.Rendering
         /// <summary>
         /// Used by the render pipeline to scale the render target on the XR device.
         /// </summary>
-        /// <param name="renderScale"></param>
+        /// <param name="renderScale">A value of 1.0f represents 100% of the original resolution.</param>
         public static void SetRenderScale(float renderScale)
         {
         #if ENABLE_VR && ENABLE_XR_MODULE
@@ -125,7 +127,7 @@ namespace UnityEngine.Rendering
 
             if (s_Layout.GetActivePasses().Count > 0)
             {
-                Debug.LogWarning("Render Pipeline error : XRSystem.EndLayout() was not called!");
+                Debug.LogWarning("Render Pipeline error : the XR layout still contains active passes. Executing XRSystem.EndLayout() right now.");
                 EndLayout();
             }
 
@@ -179,16 +181,19 @@ namespace UnityEngine.Rendering
         internal static void SetDisplaySync()
         {
             // Disable vsync on the main display when rendering to a XR device.
-            // XRTODO : expose public property to control this behavior
+            // XRTODO : expose public property to control this behavior and document
             QualitySettings.vSyncCount = 0;
 
-            // On Android and iOS, vSyncCount is ignored and all frame rate control is done using Application.targetFrameRate.
+            // On Android, vSyncCount is ignored and all frame rate control is done using Application.targetFrameRate.
+            // XRTODO : handle iOS
             if (Application.platform == RuntimePlatform.Android)
             {
                 float frameRate = 300.0f;
+
+                // XRTODO: investigate why this code is not working as expected
                 //frameRate = s_Display.TryGetDisplayRefreshRate(out float refreshRate) ? refreshRate : frameRate;
 
-                // XRTODO : move out, causing issues with HDRP timing
+                // XRTODO : expose public propety to control this behavior from the render pipeline (causing issues with HDRP timing)
                 Application.targetFrameRate = Mathf.CeilToInt(frameRate);
             }
         }
