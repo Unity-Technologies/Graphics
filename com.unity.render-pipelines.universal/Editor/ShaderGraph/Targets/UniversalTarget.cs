@@ -1346,6 +1346,15 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
             scope = KeywordScope.Global,
         };
 
+        public static readonly KeywordDescriptor RenderPassEnabled = new KeywordDescriptor()
+        {
+            displayName = "Render Pass Enabled",
+            referenceName = "_RENDER_PASS_ENABLED",
+            type = KeywordType.Boolean,
+            definition = KeywordDefinition.MultiCompile,
+            scope = KeywordScope.Global,
+        };
+
         public static readonly KeywordDescriptor ShapeLightType0 = new KeywordDescriptor()
         {
             displayName = "Shape Light Type 0",
@@ -1436,6 +1445,15 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
             referenceName = "_LIGHT_COOKIES",
             type = KeywordType.Boolean,
             definition = KeywordDefinition.ShaderFeature,
+            scope = KeywordScope.Global,
+        };
+
+        public static readonly KeywordDescriptor ClusteredRendering = new KeywordDescriptor()
+        {
+            displayName = "Clustered Rendering",
+            referenceName = "_CLUSTERED_RENDERING",
+            type = KeywordType.Boolean,
+            definition = KeywordDefinition.MultiCompile,
             scope = KeywordScope.Global,
         };
     }
