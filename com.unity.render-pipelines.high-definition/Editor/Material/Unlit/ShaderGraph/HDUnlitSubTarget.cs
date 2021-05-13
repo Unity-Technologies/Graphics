@@ -63,7 +63,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                 return new SubShaderDescriptor
                 {
                     generatesPreview = true,
-                    passes = new PassCollection { { HDShaderPasses.GenerateDistortionPass(false), new FieldCondition(TransparentDistortion, true) } }
+                    passes = new PassCollection { { HDShaderPasses.GenerateDistortionPass(false, TargetsVFX(), systemData.tessellation), new FieldCondition(TransparentDistortion, true) } }
                 };
             }
             else
