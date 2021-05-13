@@ -5,7 +5,7 @@
 #define AXF_PATH_TRACING_CAR_PAINT_USE_RASTER_SPECULAR
 
 #ifdef AXF_PATH_TRACING_CAR_PAINT_USE_RASTER_SPECULAR
-void OverrideSpecularValue(MaterialData mtlData, float3 sampleDir, inout float3 specularValue)
+void OverrideSpecularValue(MaterialData mtlData, float3 sampleDir, out float3 specularValue)
 {
     float3 H = normalize(mtlData.V + sampleDir);
     float NdotL = dot(GetSpecularNormal(mtlData), sampleDir);
@@ -100,6 +100,12 @@ void GetAnglesFromDirections(float3 N, float3 V, float3 L, out float thetaH, out
 
     thetaH = FastACosPos(NdotH);
     thetaD = FastACosPos(LdotH);
+}
+
+float3 GetFlakesValue(MaterialData mtlData, float3 sampleDir, float thetaH, float thetaD)
+{
+    float NdotL = dot(GetSpecularNormal(mtlData), sampleDir);
+    return CarPaint_BTF(thetaH, thetaD, (SurfaceData)0, mtlData.bsdfData, true) * NdotL;
 }
 
 bool SampleMaterial(MaterialData mtlData, float3 inputSample, out float3 sampleDir, out MaterialResult result)
@@ -197,7 +203,7 @@ bool SampleMaterial(MaterialData mtlData, float3 inputSample, out float3 sampleD
         }
 
         // Add flakes to the specular component
-        result.specValue += CarPaint_BTF(thetaH, thetaD, (SurfaceData)0, mtlData.bsdfData, true) * coatingTransmission;
+        result.specValue += GetFlakesValue(mtlData, sampleDir, thetaH, thetaD) * coatingTransmission;
     }
 
     return result.diffPdf + result.specPdf > 0.0;
@@ -239,7 +245,7 @@ void EvaluateMaterial(MaterialData mtlData, float3 sampleDir, out MaterialResult
         }
 
         // Add flakes to the specular component
-        result.specValue += CarPaint_BTF(thetaH, thetaD, (SurfaceData)0, mtlData.bsdfData, true) * coatingTransmission;
+        result.specValue += GetFlakesValue(mtlData, sampleDir, thetaH, thetaD) * coatingTransmission;
     }
 }
 
