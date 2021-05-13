@@ -86,6 +86,12 @@ EditorBuildSettings:
   - enabled: 1
     path: Assets/Scenes/146_AdditionalLightShadowCustomResolution.unity
     guid: 5cb07294042344649a35ad91c91b539a
+  - enabled: 0
+    path: Assets/Scenes/154_ReflectionProbes_Blending.unity
+    guid: 563a251f782be254a91472c4db94e506
+  - enabled: 0
+    path: Assets/Scenes/155_ReflectionProbes_BoxProjection.unity
+    guid: dbc896364427cae40affa52a983b43a2
   - enabled: 1
     path: Assets/Scenes/019_Lighting_Scene_PointLights.unity
     guid: c44973f9bcb9e469ea540fc8b0f0324a
@@ -99,6 +105,12 @@ EditorBuildSettings:
     path: Assets/Scenes/135_Lighting_Directional1Cascades.unity
     guid: f1454a5402867f14e8df402c507e29db
   - enabled: 1
+    path: Assets/Scenes/148_Lighting_LightLayers.unity
+    guid: 04e9a5e9f9bee5742b25a8f229a49428
+  - enabled: 1
+    path: Assets/Scenes/148_Lighting_LightLayers_deferred.unity
+    guid: 4978d640e872ce74bb4412e77a67d88b
+  - enabled: 1
     path: Assets/Scenes/150_Lighting_EnlightenEmission.unity
     guid: b2a47910b2788df489a1f84de6e4486c
   - enabled: 1
@@ -107,7 +119,7 @@ EditorBuildSettings:
   - enabled: 1
     path: Assets/Scenes/152_Lighting_EnlightenEnvironment.unity
     guid: fb8f8e7cc18a5314f8d66d2ddfbfbaec
-  - enabled: 1
+  - enabled: 0
     path: Assets/Scenes/153_Lighting_EnlightenTerrain.unity
     guid: 677cb6424a7fe3947974395b6c3d70a4
   - enabled: 1
@@ -134,4 +146,7 @@ EditorBuildSettings:
   - enabled: 1
     path: Assets/Scenes/205_SSAO_BackBuffer.unity
     guid: 72491ed40bf654eec9fef43f455e3916
+  - enabled: 1
+    path: Assets/Scenes/220_LightCookie_Baked.unity
+    guid: 4cd2c01cabdfb47d5a3ac05309090490
   m_configObjects: {}

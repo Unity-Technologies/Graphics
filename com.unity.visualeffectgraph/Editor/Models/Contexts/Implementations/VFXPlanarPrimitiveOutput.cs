@@ -18,7 +18,15 @@ namespace UnityEditor.VFX
         //[VFXSetting(VFXSettingAttribute.VisibleFlags.InInspector)]
         public bool useGeometryShader = false;
 
-        public override string name { get { return "Output Particle " + primitiveType.ToString(); } }
+        public override string name
+        {
+            get
+            {
+                if (shaderName != string.Empty)
+                    return $"Output Particle {shaderName} {primitiveType.ToString()}";
+                return $"Output Particle {primitiveType.ToString()}";
+            }
+        }
         public override string codeGeneratorTemplate { get { return RenderPipeTemplate("VFXParticlePlanarPrimitive"); } }
         public override VFXTaskType taskType
         {

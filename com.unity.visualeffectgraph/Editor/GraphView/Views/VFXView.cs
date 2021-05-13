@@ -445,6 +445,11 @@ namespace UnityEditor.VFX.UI
             compileButton.text = "Compile";
             m_Toolbar.Add(compileButton);
 
+            var resyncMatButton = new ToolbarButton(OnResyncMaterial);
+            resyncMatButton.style.unityTextAlign = TextAnchor.MiddleLeft;
+            resyncMatButton.text = "Resync Material";
+            m_Toolbar.Add(resyncMatButton);
+
             m_SaveButton = new ToolbarButton(OnSave);
             m_SaveButton.style.unityTextAlign = TextAnchor.MiddleLeft;
             m_SaveButton.text = "Save";
@@ -767,6 +772,7 @@ namespace UnityEditor.VFX.UI
                 m_ComponentBoard.RemoveFromHierarchy();
                 BoardPreferenceHelper.SetVisible(BoardPreferenceHelper.Board.componentBoard, false);
             }
+            m_ComponentBoard.RefreshInitializeErrors();
         }
 
         void OnFirstComponentBoardGeometryChanged(GeometryChangedEvent e)
@@ -1409,6 +1415,11 @@ namespace UnityEditor.VFX.UI
             VFXViewWindow.currentWindow.autoCompile = !VFXViewWindow.currentWindow.autoCompile;
         }
 
+        void OnResyncMaterial()
+        {
+            controller.graph.Invalidate(VFXModel.InvalidationCause.kMaterialChanged);
+        }
+
         void OnCompile()
         {
             if (controller.model.isSubgraph)
@@ -1430,11 +1441,10 @@ namespace UnityEditor.VFX.UI
         {
             var graphToSave = new HashSet<VFXGraph>();
             GetGraphsRecursively(controller.graph, graphToSave);
-
+            m_ComponentBoard.DeactivateBoundsRecording(); //Avoids saving the graph with unnecessary bounds computations
             foreach (var graph in graphToSave)
             {
                 graph.GetResource().WriteAsset();
-                graph.OnSaved();
             }
         }
 
@@ -1781,6 +1791,13 @@ namespace UnityEditor.VFX.UI
                 Selection.objects = blackBoardSelected;
                 return;
             }
+
+            //var boundsRecorderSelected =
+            //    selection.OfType<VFXBoundsRecorderField>().Select(t => t.tiedContext.controller.model).ToArray();
+            //if (boundsRecorderSelected.Length > 0)
+            //{
+            //    Selection.objects = boundsRecorderSelected;
+            //}
         }
 
         void SelectAsset()

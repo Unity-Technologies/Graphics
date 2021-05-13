@@ -34,8 +34,20 @@ namespace UnityEditor.ShaderGraph
 
         public Generator(GraphData graphData, AbstractMaterialNode outputNode, GenerationMode mode, string name, AssetCollection assetCollection)
         {
-            m_GraphData = graphData;
+            m_GraphData  = graphData;
             m_OutputNode = outputNode;
+            Generate(mode, name, assetCollection, GetTargetImplementations());
+        }
+
+        public Generator(GraphData graphData, AbstractMaterialNode outputNode, GenerationMode mode, string name, AssetCollection assetCollection, Target[] targets)
+        {
+            m_GraphData  = graphData;
+            m_OutputNode = outputNode;
+            Generate(mode, name, assetCollection, targets);
+        }
+
+        void Generate(GenerationMode mode, string name, AssetCollection assetCollection, Target[] targets)
+        {
             m_Mode = mode;
             m_Name = name;
 
@@ -43,21 +55,37 @@ namespace UnityEditor.ShaderGraph
             m_ConfiguredTextures = new List<PropertyCollector.TextureInfo>();
             m_assetCollection = assetCollection;
 
-            m_ActiveBlocks = graphData.GetNodes<BlockNode>().ToList();
+            m_ActiveBlocks = m_GraphData.GetNodes<BlockNode>().ToList();
             m_TemporaryBlocks = new List<BlockNode>();
-            GetTargetImplementations();
+            m_Targets = targets;
             BuildShader();
         }
 
-        void GetTargetImplementations()
+        Target[] GetTargetImplementations()
         {
             if (m_OutputNode == null)
             {
-                m_Targets = m_GraphData.activeTargets.ToArray();
+                var targets = m_GraphData.activeTargets.ToList();
+                // Sort the built-in target to be last. This is currently a requirement otherwise it'll get picked up for other passes incorrectly
+                targets.Sort(delegate(Target target0, Target target1)
+                {
+                    var result = target0.displayName.CompareTo(target1.displayName);
+                    // If only one value is built-in, then sort it last
+                    if (result != 0)
+                    {
+                        if (target0.displayName == "Built-In")
+                            result = 1;
+                        if (target1.displayName == "Built-In")
+                            result = -1;
+                    }
+
+                    return result;
+                });
+                return targets.ToArray();
             }
             else
             {
-                m_Targets = new Target[] { new PreviewTarget() };
+                return new Target[] { new PreviewTarget() };
             }
         }
 
@@ -176,6 +204,8 @@ namespace UnityEditor.ShaderGraph
                     {
                         m_Builder.AppendLine($"CustomEditorForRenderPipeline \"{rpCustomEditor.shaderGUI}\" \"{rpCustomEditor.renderPipelineAssetType}\"");
                     }
+
+                    m_Builder.AppendLine("CustomEditor \"" + typeof(GenericShaderGraphMaterialGUI).FullName + "\"");
                 }
 
                 m_Builder.AppendLine(@"FallBack ""Hidden/Shader Graph/FallbackError""");
@@ -542,20 +572,7 @@ namespace UnityEditor.ShaderGraph
                     {
                         if (keyword.TestActive(activeFields))
                         {
-                            if (keyword.descriptor.NeedsMultiStageDefinition(ref stages))
-                            {
-                                foreach (KeywordShaderStage stage in stages)
-                                {
-                                    // Override the stage for each one of the requested ones and append a line for each stage.
-                                    KeywordDescriptor descCopy = keyword.descriptor;
-                                    descCopy.stages = stage;
-                                    passKeywordBuilder.AppendLine(descCopy.ToDeclarationString());
-                                }
-                            }
-                            else
-                            {
-                                passKeywordBuilder.AppendLine(keyword.value);
-                            }
+                            keyword.descriptor.AppendKeywordDeclarationStrings(passKeywordBuilder);
                         }
                     }
                 }
@@ -758,6 +775,21 @@ namespace UnityEditor.ShaderGraph
             using (var propertyBuilder = new ShaderStringBuilder())
             {
                 subShaderProperties.GetPropertiesDeclaration(propertyBuilder, m_Mode, m_GraphData.graphDefaultConcretePrecision);
+
+                if (m_Mode == GenerationMode.VFX)
+                {
+                    const string k_GraphPropertiesStruct = "GraphProperties";
+                    propertyBuilder.AppendLine($"struct {k_GraphPropertiesStruct}");
+                    using (propertyBuilder.BlockSemicolonScope())
+                    {
+                        m_GraphData.ForeachHLSLProperty(h =>
+                        {
+                            if (!h.IsObjectType())
+                                h.AppendTo(propertyBuilder);
+                        });
+                    }
+                }
+
                 if (propertyBuilder.length == 0)
                     propertyBuilder.AppendLine("// GraphProperties: <None>");
                 spliceCommands.Add("GraphProperties", propertyBuilder.ToCodeBlock());
@@ -925,6 +957,17 @@ namespace UnityEditor.ShaderGraph
 
                 // Add to splice commands
                 spliceCommands.Add("Debug", debugBuilder.ToCodeBlock());
+            }
+
+            // --------------------------------------------------
+            // Additional Commands
+
+            if (pass.additionalCommands != null)
+            {
+                foreach (AdditionalCommandCollection.Item additionalCommand in pass.additionalCommands)
+                {
+                    spliceCommands.Add(additionalCommand.field.token, additionalCommand.field.content);
+                }
             }
 
             // --------------------------------------------------

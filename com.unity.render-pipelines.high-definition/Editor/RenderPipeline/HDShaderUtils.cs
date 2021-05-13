@@ -69,7 +69,7 @@ namespace UnityEditor.Rendering.HighDefinition
             { ShaderID.SG_Fabric, LightingShaderGraphGUI.SetupLightingKeywordsAndPass },
             { ShaderID.SG_StackLit, LightingShaderGraphGUI.SetupLightingKeywordsAndPass },
             { ShaderID.SG_Decal, DecalShaderGraphGUI.SetupDecalKeywordsAndPass },
-            // no entry for ShaderID.SG_Eye
+            { ShaderID.SG_Eye, LightingShaderGraphGUI.SetupLightingKeywordsAndPass }
         };
 
         // List of all discovered HDSubTargets
@@ -154,6 +154,12 @@ namespace UnityEditor.Rendering.HighDefinition
         /// </returns>
         public static bool ResetMaterialKeywords(Material material)
         {
+            var shaderID = GetShaderEnumFromShader(material.shader);
+            return ResetMaterialKeywords(material, shaderID);
+        }
+
+        internal static bool ResetMaterialKeywords(Material material, ShaderID shaderId)
+        {
             MaterialResetter resetter;
 
             (ShaderID id, GUID extMaterialGUID) = GetShaderIDsFromShader(material.shader);
@@ -197,7 +203,7 @@ namespace UnityEditor.Rendering.HighDefinition
             if (shader == null)
                 return false;
 
-            if (shader.IsShaderGraph())
+            if (shader.IsShaderGraphAsset())
             {
                 // All HDRP shader graphs should have HD metadata
                 return shader.TryGetMetadataOfType<HDMetadata>(out _);
@@ -210,7 +216,7 @@ namespace UnityEditor.Rendering.HighDefinition
             if (shader == null)
                 return false;
 
-            if (shader.IsShaderGraph())
+            if (shader.IsShaderGraphAsset())
             {
                 // All HDRP shader graphs should have HD metadata
                 return shader.TryGetMetadataOfType<HDMetadata>(out _);
@@ -226,7 +232,7 @@ namespace UnityEditor.Rendering.HighDefinition
             if (shader == null)
                 return false;
 
-            if (shader.IsShaderGraph())
+            if (shader.IsShaderGraphAsset())
             {
                 // Throw exception if no metadata is found
                 // This case should be handled by the Target
@@ -254,7 +260,7 @@ namespace UnityEditor.Rendering.HighDefinition
 
         internal static (ShaderID, GUID) GetShaderIDsFromShader(Shader shader)
         {
-            if (shader.IsShaderGraph())
+            if (shader.IsShaderGraphAsset())
             {
                 // Throw exception if no metadata is found
                 // This case should be handled by the Target

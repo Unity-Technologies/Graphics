@@ -301,6 +301,9 @@ namespace UnityEditor.Rendering.HighDefinition
             if (!HDShaderUtils.IsHDRPShader(material.shader, upgradable: true))
                 return;
 
+            if (HDSpeedTree8MaterialUpgrader.IsHDSpeedTree8Material(material))
+                SpeedTree8MaterialUpgrader.SpeedTree8MaterialFinalizer(material);
+
             HDShaderUtils.ResetMaterialKeywords(material);
         }
 
@@ -448,6 +451,12 @@ namespace UnityEditor.Rendering.HighDefinition
                     s_NeedsSavingAssets = true;
                 }
             }
+        }
+
+        public void OnPostprocessSpeedTree(GameObject speedTree)
+        {
+            SpeedTreeImporter stImporter = assetImporter as SpeedTreeImporter;
+            SpeedTree8MaterialUpgrader.PostprocessSpeedTree8Materials(speedTree, stImporter, HDSpeedTree8MaterialUpgrader.HDSpeedTree8MaterialFinalizer);
         }
 
         // Note: It is not possible to separate migration step by kind of shader
@@ -598,7 +607,7 @@ namespace UnityEditor.Rendering.HighDefinition
         {
             Shader shader = material.shader;
 
-            if (shader.IsShaderGraph())
+            if (shader.IsShaderGraphAsset())
             {
                 if (shader.TryGetMetadataOfType<HDMetadata>(out var obj))
                 {
@@ -631,7 +640,7 @@ namespace UnityEditor.Rendering.HighDefinition
 
         static void MoreMaterialSurfaceOptionFromShaderGraph(Material material, HDShaderUtils.ShaderID id)
         {
-            if (material.shader.IsShaderGraph())
+            if (material.IsShaderGraph())
             {
                 // Synchronize properties we exposed from SG to the material
                 ResetFloatProperty(kReceivesSSR);
