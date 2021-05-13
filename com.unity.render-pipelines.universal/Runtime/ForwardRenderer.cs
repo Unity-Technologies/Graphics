@@ -275,7 +275,7 @@ namespace UnityEngine.Rendering.Universal
             bool isPreviewCamera = cameraData.isPreviewCamera;
             bool isRunningHololens = false;
 #if ENABLE_VR && ENABLE_VR_MODULE
-            isRunningHololens = UniversalRenderPipeline.IsRunningHololens(camera);
+            isRunningHololens = UniversalRenderPipeline.IsRunningHololens(cameraData);
 #endif
             var createColorTexture = (rendererFeatures.Count != 0 && !isRunningHololens) && !isPreviewCamera;
             if (createColorTexture)

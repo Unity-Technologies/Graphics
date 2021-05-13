@@ -435,10 +435,10 @@ namespace UnityEngine.Rendering.Universal
         // with custom render pass.
         // TODO: Remove this method and usages when we have proper dependency tracking in the pipeline to know
         // when a render pass requires camera color as input.
-        internal static bool IsRunningHololens(Camera camera)
+        internal static bool IsRunningHololens(CameraData cameraData)
         {
 #if PLATFORM_WINRT
-            if (IsStereoEnabled(camera))
+            if (cameraData.xr.enabled)
             {
                 var platform = Application.platform;
                 if (platform == RuntimePlatform.WSAPlayerX86 || platform == RuntimePlatform.WSAPlayerARM)
