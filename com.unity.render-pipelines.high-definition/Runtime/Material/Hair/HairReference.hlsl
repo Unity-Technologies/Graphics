@@ -340,8 +340,8 @@ CBSDF EvaluateMarschnerReference(float3 V, float3 L, BSDFData bsdfData)
     {
         // TEMP: Lobe (R, TT, TRT, TRRT) selection
         // if (p == 0) continue;
-        // if (p == 1) continue;
-        // if (p == 2) continue;
+        if (p == 1) continue;
+        if (p == 2) continue;
 
         S += LongitudinalScattering(p, inputs) * AzimuthalScattering(p, inputs);
     }

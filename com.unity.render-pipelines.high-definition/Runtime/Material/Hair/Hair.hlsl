@@ -17,12 +17,24 @@
 
 #define DEFAULT_HAIR_SPECULAR_VALUE 0.0465 // Hair is IOR 1.55
 
-#define HAIR_DISPLAY_REFERENCE_BSDF
+// #define HAIR_DISPLAY_REFERENCE_BSDF
 // #define HAIR_DISPLAY_REFERENCE_IBL
 
 //-----------------------------------------------------------------------------
 // Helper functions/variable specific to this material
 //-----------------------------------------------------------------------------
+
+// Ref: "Light Scattering from Human Hair Fibers"
+// Longitudinal scattering as modeled by a normal distribution.
+// To be used as an approximation to d'Eon et al's Energy Conserving Longitudinal Scattering Function.
+// TODO: Move me to BSDF.hlsl
+real D_LongitudinalScatteringGaussian(real theta, real beta)
+{
+    real v = theta / beta;
+
+    const real sqrtTwoPi = 2.50662827463100050241;
+    return rcp(beta * sqrtTwoPi) * exp(-0.5 * v * v);
+}
 
 // Ref: A Practical and Controllable Hair and Fur Model for Production Path Tracing
 float3 DiffuseColorToAbsorption(float3 diffuseColor, float azimuthalRoughness)
@@ -207,7 +219,7 @@ BSDFData ConvertSurfaceDataToBSDFData(uint2 positionSS, SurfaceData surfaceData)
         bsdfData.cuticleAngleTRT = -cuticleAngle * 3.0 * 0.5;
 
         // Longitudinal Roughness
-        const float roughnessL = surfaceData.roughnessLongitudinal;
+        const float roughnessL = PerceptualRoughnessToRoughness(surfaceData.roughnessLongitudinal);
         bsdfData.roughnessLR   = roughnessL;
         bsdfData.roughnessLTT  = roughnessL * 0.5;
         bsdfData.roughnessLTRT = roughnessL * 2.0;
@@ -449,6 +461,28 @@ bool IsNonZeroBSDF(float3 V, float3 L, PreLightData preLightData, BSDFData bsdfD
     return true; // Due to either reflection or transmission being always active
 }
 
+void GetHairAngle(float3 T, float3 V, float3 L,
+                  out float sinThetaI, out float sinThetaR, out float cosThetaD, out float cosPhi)
+{
+    // TODO: Optimize the math. For now we get everything in terms of the approximated BSDF.
+    // It could be nice to generalize this as a spherical coordinate angle alternative to GetBSDFAngle
+
+    // Transform to the local frame for spherical coordinates
+    float3x3 frame = GetLocalFrame(T);
+    float3 I = TransformWorldToTangent(L, frame);
+    float3 R = TransformWorldToTangent(V, frame);
+
+    // Longitudinal angle.
+    sinThetaI = sin(HALF_PI - acos(I.z));
+    sinThetaR = sin(HALF_PI - acos(R.z));
+    cosThetaD = 0; // cos((cosThetaR - cosThetaI) * 0.5);
+
+    // Azimuthal angle.
+    float phiI = atan2(I.y, I.x);
+    float phiR = atan2(R.y, R.x);
+    cosPhi = cos(phiR - phiI);
+}
+
 CBSDF EvaluateBSDF(float3 V, float3 L, PreLightData preLightData, BSDFData bsdfData)
 {
     CBSDF cbsdf;
@@ -514,7 +548,54 @@ CBSDF EvaluateBSDF(float3 V, float3 L, PreLightData preLightData, BSDFData bsdfD
     #ifdef HAIR_DISPLAY_REFERENCE_BSDF
         cbsdf = EvaluateMarschnerReference(V, L, bsdfData);
     #else
+        // Approximation of the three primary paths in a hair fiber (R, TT, TRT), with concepts from:
+        // "Strand-Based Hair Rendering in Frostbite" (Tafuri 2019)
+        // "A Practical and Controllable Hair and Fur Model for Production Path Tracing" (Chiang 2016)
+        // "Physically Based Hair Shading in Unreal" (Karis 2016)
+        // "An Energy-Conserving Hair Reflectance Model" (d'Eon 2011)
+        // "Light Scattering from Human Hair Fibers" (Marschner 2003)
 
+        // Retrieve angles via spherical coordinates in the hair shading space.
+        float sinThetaI, sinThetaR, cosThetaD, cosPhi;
+        GetHairAngle(T, V, L, sinThetaI, sinThetaR, cosThetaD, cosPhi);
+
+        float3 S = 0;
+
+        float  M, D;
+        float3 A;
+
+        // R Path
+        // --------------------------------------------------------
+        #if 1
+        {
+            M = D_LongitudinalScatteringGaussian(sinThetaI + sinThetaR - bsdfData.cuticleAngleR, bsdfData.roughnessLR);
+
+            // Distribution and attenuation for the this path as proposed by d'Eon et al, replaced with a trig identity for cos half phi.
+            D = 0.25 * sqrt(0.5 + 0.5 * cosPhi);
+            A = F_Schlick(bsdfData.fresnel0, sqrt(0.5 + 0.5 * LdotV));
+
+            S += M * A * D;
+        }
+        #endif
+
+        // TT Path
+        // --------------------------------------------------------
+        #if 0
+        {
+            // TODO
+        }
+        #endif
+
+        // TRT Path
+        // --------------------------------------------------------
+        #if 0
+        {
+            // TODO
+        }
+        #endif
+
+        // Transmission event is built into the model.
+        cbsdf.specR = S;
     #endif
     }
 
