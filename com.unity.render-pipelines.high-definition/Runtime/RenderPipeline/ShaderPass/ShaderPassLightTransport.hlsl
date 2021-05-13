@@ -22,9 +22,7 @@ PackedVaryingsToPS Vert(AttributesMesh inputMesh)
     inputMesh = ApplyMeshModification(inputMesh, _TimeParameters.xyz);
 #endif
 
-    float4 uv;
-    uv = UnityMetaVertexPosition(inputMesh.positionOS, inputMesh.uv1.xy, inputMesh.uv2.xy, unity_LightmapST, unity_DynamicLightmapST);
-    output.vmesh.positionCS = uv;
+    output.vmesh.positionCS = UnityMetaVertexPosition(inputMesh.positionOS, inputMesh.uv1.xy, inputMesh.uv2.xy, unity_LightmapST, unity_DynamicLightmapST);
 
 #ifdef VARYINGS_NEED_POSITION_WS
     output.vmesh.positionRWS = TransformObjectToWorld(inputMesh.positionOS);
@@ -38,6 +36,7 @@ PackedVaryingsToPS Vert(AttributesMesh inputMesh)
 #endif
 
 #ifdef EDITOR_VISUALIZATION
+    // originally, input uv0 was scaled using the main texture's ST. this does not seem necessary for HD, but if it is, scaling would need to be applied before generating vizUV.
     float2 vizUV = 0;
     float4 lightCoord = 0;
     if (unity_VisualizationMode == EDITORVIZ_TEXTURE)
