@@ -67,8 +67,6 @@ namespace UnityEditor.Rendering.Universal
         ShaderKeyword m_AdditionalLightShadows = new ShaderKeyword(ShaderKeywordStrings.AdditionalLightShadows);
         ShaderKeyword m_ReflectionProbeBlending = new ShaderKeyword(ShaderKeywordStrings.ReflectionProbeBlending);
         ShaderKeyword m_ReflectionProbeBoxProjection = new ShaderKeyword(ShaderKeywordStrings.ReflectionProbeBoxProjection);
-        ShaderKeyword m_DeferredLightShadows = new ShaderKeyword(ShaderKeywordStrings._DEFERRED_LIGHT_SHADOWS);
-        ShaderKeyword m_DeferredSoftShadows = new ShaderKeyword(ShaderKeywordStrings._DEFERRED_SHADOWS_SOFT);
         ShaderKeyword m_CastingPunctualLightShadow = new ShaderKeyword(ShaderKeywordStrings.CastingPunctualLightShadow);
         ShaderKeyword m_SoftShadows = new ShaderKeyword(ShaderKeywordStrings.SoftShadows);
         ShaderKeyword m_MixedLightingSubtractive = new ShaderKeyword(ShaderKeywordStrings.MixedLightingSubtractive);
@@ -189,9 +187,7 @@ namespace UnityEditor.Rendering.Universal
             }
 
             bool isSoftShadow = compilerData.shaderKeywordSet.IsEnabled(m_SoftShadows);
-            bool isDeferredSoftShadow = compilerData.shaderKeywordSet.IsEnabled(m_DeferredSoftShadows);
-            if (!IsFeatureEnabled(features, ShaderFeatures.SoftShadows) &&
-                (isSoftShadow || isDeferredSoftShadow))
+            if (!IsFeatureEnabled(features, ShaderFeatures.SoftShadows) && isSoftShadow)
                 return true;
 
             // Left for backward compatibility
@@ -220,8 +216,7 @@ namespace UnityEditor.Rendering.Universal
 
             // No additional light shadows
             bool isAdditionalLightShadow = compilerData.shaderKeywordSet.IsEnabled(m_AdditionalLightShadows);
-            bool isDeferredShadow = compilerData.shaderKeywordSet.IsEnabled(m_DeferredLightShadows);
-            if (!IsFeatureEnabled(features, ShaderFeatures.AdditionalLightShadows) && (isAdditionalLightShadow || isDeferredShadow))
+            if (!IsFeatureEnabled(features, ShaderFeatures.AdditionalLightShadows) && isAdditionalLightShadow)
                 return true;
 
             bool isReflectionProbeBlending = compilerData.shaderKeywordSet.IsEnabled(m_ReflectionProbeBlending);
@@ -337,10 +332,8 @@ namespace UnityEditor.Rendering.Universal
             if (isAdditionalShadow && !(compilerData.shaderKeywordSet.IsEnabled(m_AdditionalLightsPixel) || compilerData.shaderKeywordSet.IsEnabled(m_ClusteredRendering)))
                 return true;
 
-            bool isDeferredShadow = compilerData.shaderKeywordSet.IsEnabled(m_DeferredLightShadows);
-
-            bool isShadowVariant = isMainShadow || isAdditionalShadow || isDeferredShadow;
-            if (!isShadowVariant && (compilerData.shaderKeywordSet.IsEnabled(m_SoftShadows) || compilerData.shaderKeywordSet.IsEnabled(m_DeferredSoftShadows)))
+            bool isShadowVariant = isMainShadow || isAdditionalShadow;
+            if (!isShadowVariant && compilerData.shaderKeywordSet.IsEnabled(m_SoftShadows))
                 return true;
 
             return false;

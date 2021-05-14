@@ -284,8 +284,8 @@ namespace UnityEngine.Rendering.Universal
                 isAdditionalLightsAvailable = SetupAdditionalLights(cmd, ref lightData);
 
             // Main and additional lights are merged into one keyword to reduce variants.
-            bool isLightCookieEnabled = isMainLightAvailable || isAdditionalLightsAvailable;
-            CoreUtils.SetKeyword(cmd, ShaderKeywordStrings.LightCookies, isLightCookieEnabled);
+            lightData.isKeywordLightCookieEnabled = isMainLightAvailable || isAdditionalLightsAvailable;
+            CoreUtils.SetKeyword(cmd, ShaderKeywordStrings.LightCookies, lightData.isKeywordLightCookieEnabled);
         }
 
         bool SetupMainLight(CommandBuffer cmd, ref VisibleLight visibleMainLight)

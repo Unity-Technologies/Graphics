@@ -43,6 +43,8 @@ namespace UnityEngine.Rendering.Universal
         public bool reflectionProbeBoxProjection;
         public bool reflectionProbeBlending;
         public bool supportsLightLayers;
+
+        public bool isKeywordLightCookieEnabled;
     }
 
     public struct CameraData
@@ -223,6 +225,9 @@ namespace UnityEngine.Rendering.Universal
         public int shadowmapDepthBufferBits;
         public List<Vector4> bias;
         public List<int> resolution;
+
+        public bool isKeywordAdditionalLightShadowsEnabled;
+        public bool isKeywordSoftShadowsEnabled;
     }
 
     // Precomputed tile data.
@@ -389,11 +394,8 @@ namespace UnityEngine.Rendering.Universal
         public static readonly string _POINT = "_POINT";
         public static readonly string _DEFERRED_FIRST_LIGHT = "_DEFERRED_FIRST_LIGHT";
         public static readonly string _DEFERRED_MAIN_LIGHT = "_DEFERRED_MAIN_LIGHT";
-        public static readonly string _DEFERRED_LIGHT_SHADOWS = "_DEFERRED_LIGHT_SHADOWS";
-        public static readonly string _DEFERRED_SHADOWS_SOFT = "_DEFERRED_SHADOWS_SOFT";
         public static readonly string _GBUFFER_NORMALS_OCT = "_GBUFFER_NORMALS_OCT";
         public static readonly string _DEFERRED_MIXED_LIGHTING = "_DEFERRED_MIXED_LIGHTING";
-        public static readonly string _DEFERRED_ADDITIONAL_LIGHT_COOKIES = "_DEFERRED_ADDITIONAL_LIGHT_COOKIES";
         public static readonly string LIGHTMAP_ON = "LIGHTMAP_ON";
         public static readonly string DYNAMICLIGHTMAP_ON = "DYNAMICLIGHTMAP_ON";
         public static readonly string _ALPHATEST_ON = "_ALPHATEST_ON";

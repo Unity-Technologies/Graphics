@@ -1031,6 +1031,10 @@ namespace UnityEngine.Rendering.Universal
             shadowData.additionalLightsShadowmapWidth = shadowData.additionalLightsShadowmapHeight = settings.additionalLightsShadowmapResolution;
             shadowData.supportsSoftShadows = settings.supportsSoftShadows && (shadowData.supportsMainLightShadows || shadowData.supportsAdditionalLightShadows);
             shadowData.shadowmapDepthBufferBits = 16;
+
+            // This will be setup in AdditionalLightsShadowCasterPass.
+            shadowData.isKeywordAdditionalLightShadowsEnabled = false;
+            shadowData.isKeywordSoftShadowsEnabled = false;
         }
 
         static void InitializePostProcessingData(UniversalRenderPipelineAsset settings, out PostProcessingData postProcessingData)
@@ -1076,6 +1080,9 @@ namespace UnityEngine.Rendering.Universal
             {
                 lightData.originalIndices[i] = i;
             }
+
+            // This will be setup in LightCookieManager.
+            lightData.isKeywordLightCookieEnabled = false;
         }
 
         static void CleanupLightData(ref LightData lightData)

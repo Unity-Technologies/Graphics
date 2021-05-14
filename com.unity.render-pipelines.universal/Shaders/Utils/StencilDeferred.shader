@@ -28,21 +28,6 @@ Shader "Hidden/Universal Render Pipeline/StencilDeferred"
 
     HLSLINCLUDE
 
-    // _ADDITIONAL_LIGHT_SHADOWS is shader keyword globally enabled for a range of render-passes.
-    // When rendering deferred lights, we need to set/unset this flag dynamically for each deferred
-    // light, however there is no way to restore the value of the keyword, whch is needed by the
-    // forward transparent pass. The workaround is to use a new shader keyword
-    // _DEFERRED_LIGHT_SHADOWS to set _ADDITIONAL_LIGHT_SHADOWS as a #define, so that
-    // the "state" of the keyword itself is unchanged.
-    #ifdef _DEFERRED_LIGHT_SHADOWS
-    #define _ADDITIONAL_LIGHT_SHADOWS 1
-    #endif
-
-    // Same comment as for _DEFERRED_LIGHT_SHADOWS/_ADDITIONAL_LIGHT_SHADOWS above.
-    #ifdef _DEFERRED_SHADOWS_SOFT
-    #define _SHADOWS_SOFT 1
-    #endif
-
     #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Core.hlsl"
     #include "Packages/com.unity.render-pipelines.universal/Shaders/Utils/Deferred.hlsl"
     #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Shadows.hlsl"
@@ -210,7 +195,7 @@ Shader "Hidden/Universal Render Pipeline/StencilDeferred"
 
                 if (!materialReceiveShadowsOff)
                 {
-                    #if defined(_DEFERRED_LIGHT_SHADOWS)
+                    #if defined(_ADDITIONAL_LIGHT_SHADOWS)
                         unityLight.shadowAttenuation = AdditionalLightShadow(_ShadowLightIndex, posWS.xyz, _LightDirection, shadowMask, _LightOcclusionProbInfo);
                     #endif
                 }
@@ -227,8 +212,8 @@ Shader "Hidden/Universal Render Pipeline/StencilDeferred"
             light.layerMask = lightLayerMask;
             unityLight = UnityLightFromPunctualLightDataAndWorldSpacePosition(light, posWS.xyz, shadowMask, _ShadowLightIndex, materialReceiveShadowsOff);
 
-            #ifdef _DEFERRED_ADDITIONAL_LIGHT_COOKIES
-                // Enable/disable is done toggling the keyword _DEFERRED_ADDITIONAL_LIGHT_COOKIES, but we could do a "static if" instead if required.
+            #ifdef _LIGHT_COOKIES
+                // Enable/disable is done toggling the keyword _LIGHT_COOKIES, but we could do a "static if" instead if required.
                 // if(_CookieLightIndex >= 0)
                 {
                     float4 cookieUvRect = URP_LightCookie_GetAtlasUVRect(_CookieLightIndex);
@@ -441,8 +426,8 @@ Shader "Hidden/Universal Render Pipeline/StencilDeferred"
 
             #pragma multi_compile _POINT _SPOT
             #pragma multi_compile_fragment _LIT
-            #pragma multi_compile_fragment _ _DEFERRED_LIGHT_SHADOWS
-            #pragma multi_compile_fragment _ _DEFERRED_SHADOWS_SOFT
+            #pragma multi_compile_fragment _ _ADDITIONAL_LIGHT_SHADOWS
+            #pragma multi_compile_fragment _ _SHADOWS_SOFT
             #pragma multi_compile_fragment _ LIGHTMAP_SHADOW_MIXING
             #pragma multi_compile_fragment _ SHADOWS_SHADOWMASK
             #pragma multi_compile_fragment _ _GBUFFER_NORMALS_OCT
@@ -450,7 +435,7 @@ Shader "Hidden/Universal Render Pipeline/StencilDeferred"
             #pragma multi_compile_fragment _ _SCREEN_SPACE_OCCLUSION
             #pragma multi_compile_fragment _ _LIGHT_LAYERS
             #pragma multi_compile_fragment _ _RENDER_PASS_ENABLED
-            #pragma multi_compile_fragment _ _DEFERRED_ADDITIONAL_LIGHT_COOKIES
+            #pragma multi_compile_fragment _ _LIGHT_COOKIES
 
             #pragma vertex Vertex
             #pragma fragment DeferredShading
@@ -487,8 +472,8 @@ Shader "Hidden/Universal Render Pipeline/StencilDeferred"
 
             #pragma multi_compile _POINT _SPOT
             #pragma multi_compile_fragment _SIMPLELIT
-            #pragma multi_compile_fragment _ _DEFERRED_LIGHT_SHADOWS
-            #pragma multi_compile_fragment _ _DEFERRED_SHADOWS_SOFT
+            #pragma multi_compile_fragment _ _ADDITIONAL_LIGHT_SHADOWS
+            #pragma multi_compile_fragment _ _SHADOWS_SOFT
             #pragma multi_compile_fragment _ LIGHTMAP_SHADOW_MIXING
             #pragma multi_compile_fragment _ SHADOWS_SHADOWMASK
             #pragma multi_compile_fragment _ _GBUFFER_NORMALS_OCT
@@ -496,7 +481,7 @@ Shader "Hidden/Universal Render Pipeline/StencilDeferred"
             #pragma multi_compile_fragment _ _SCREEN_SPACE_OCCLUSION
             #pragma multi_compile_fragment _ _LIGHT_LAYERS
             #pragma multi_compile_fragment _ _RENDER_PASS_ENABLED
-            #pragma multi_compile_fragment _ _DEFERRED_ADDITIONAL_LIGHT_COOKIES
+            #pragma multi_compile_fragment _ _LIGHT_COOKIES
 
             #pragma vertex Vertex
             #pragma fragment DeferredShading
@@ -535,8 +520,8 @@ Shader "Hidden/Universal Render Pipeline/StencilDeferred"
             #pragma multi_compile_fragment _ _MAIN_LIGHT_SHADOWS _MAIN_LIGHT_SHADOWS_CASCADE _MAIN_LIGHT_SHADOWS_SCREEN
             #pragma multi_compile_fragment _ _DEFERRED_MAIN_LIGHT
             #pragma multi_compile_fragment _ _DEFERRED_FIRST_LIGHT
-            #pragma multi_compile_fragment _ _DEFERRED_LIGHT_SHADOWS
-            #pragma multi_compile_fragment _ _DEFERRED_SHADOWS_SOFT
+            #pragma multi_compile_fragment _ _ADDITIONAL_LIGHT_SHADOWS
+            #pragma multi_compile_fragment _ _SHADOWS_SOFT
             #pragma multi_compile_fragment _ LIGHTMAP_SHADOW_MIXING
             #pragma multi_compile_fragment _ SHADOWS_SHADOWMASK
             #pragma multi_compile_fragment _ _GBUFFER_NORMALS_OCT
@@ -583,8 +568,8 @@ Shader "Hidden/Universal Render Pipeline/StencilDeferred"
             #pragma multi_compile_fragment _ _MAIN_LIGHT_SHADOWS _MAIN_LIGHT_SHADOWS_CASCADE _MAIN_LIGHT_SHADOWS_SCREEN
             #pragma multi_compile_fragment _ _DEFERRED_MAIN_LIGHT
             #pragma multi_compile_fragment _ _DEFERRED_FIRST_LIGHT
-            #pragma multi_compile_fragment _ _DEFERRED_LIGHT_SHADOWS
-            #pragma multi_compile_fragment _ _DEFERRED_SHADOWS_SOFT
+            #pragma multi_compile_fragment _ _ADDITIONAL_LIGHT_SHADOWS
+            #pragma multi_compile_fragment _ _SHADOWS_SOFT
             #pragma multi_compile_fragment _ LIGHTMAP_SHADOW_MIXING
             #pragma multi_compile_fragment _ SHADOWS_SHADOWMASK
             #pragma multi_compile_fragment _ _GBUFFER_NORMALS_OCT
