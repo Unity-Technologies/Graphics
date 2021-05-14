@@ -1,25 +1,3 @@
-#include "Packages/com.unity.render-pipelines.high-definition/Runtime/VFXGraph/Shaders/VFXLit.hlsl"
-
-	${VFXBegin:VFXVertexAdditionalProcess}
-	float4x4 viewToDecal = GetVFXToElementMatrix(
-		attributes.axisX,
-		attributes.axisY,
-		attributes.axisZ,
-		float3(attributes.angleX,attributes.angleY,attributes.angleZ),
-		float3(attributes.pivotX,attributes.pivotY,attributes.pivotZ),
-		size3,
-		attributes.position);
-		
-	#if VFX_LOCAL_SPACE
-	viewToDecal = mul(viewToDecal, VFXGetWorldToObjectMatrix());
-	#endif
-	viewToDecal = mul(viewToDecal, VFXGetViewToWorldMatrix());
-	o.viewToDecal0 = viewToDecal[0];
-	o.viewToDecal1 = viewToDecal[1];
-	o.viewToDecal2 = viewToDecal[2];
-
-	${VFXHDRPLitFillVaryings}
-	${VFXEnd}
 
 //TODO : Check for unnecessary includes / and for necessary ones
 #define VFXComputePixelOutputToDBuffer(i, normalWS,outDBuffer) \
@@ -42,7 +20,7 @@ void VFXGetSurfaceDecalData(out DecalSurfaceData surfaceData, VFX_VARYING_PS_INP
     ZERO_INITIALIZE(DecalPrepassData, material);
 	// Clip the decal if it does not pass the decal layer mask of the receiving material.
 	// Decal layer of the decal
-	uint decalLayerMask = 1; //TODO : Decide how to pass the decal layer + retrieve it
+	uint decalLayerMask = i.VFX_VARYING_DECALLAYER; //TODO : Does it really need to be a Varying ? Can't I use VFXLoadParameter here ?
 
 	DecodeFromDecalPrepass(i.pos.xy, material);
 
@@ -56,39 +34,52 @@ void VFXGetSurfaceDecalData(out DecalSurfaceData surfaceData, VFX_VARYING_PS_INP
 	float3 clipPos;
 	clipPos.xy = (i.pos.xy / _ScreenParams.xy) * 2.0f - 1.0f;
 	clipPos.z = VFXSampleDepth(i.pos);
-	clipPos *= VFXLinearEyeDepth(clipPos.z);
+	clipPos *= VFXLinearEyeDepth(clipPos.z); //TODO: Does not work with Orthographic projection, do it.
+	if (_ProjectionParams.x < 0)
+        clipPos.y = -clipPos.y;
 
-	float4 worldPos;
-	worldPos.x = clipPos.x / UNITY_MATRIX_P[0][0];
-	worldPos.y = clipPos.y / -UNITY_MATRIX_P[1][1];
-	worldPos.z = (clipPos.z - UNITY_MATRIX_P[2][3]) / UNITY_MATRIX_P[2][2];
-	worldPos.w = 1.0f;
-	//Assumes worldPos is ViewPos ?
+	float4 viewPos;
+
+	if(IsPerspectiveProjection())
+	{
+		viewPos.x = clipPos.x / UNITY_MATRIX_P[0][0];
+		viewPos.y = clipPos.y / UNITY_MATRIX_P[1][1];
+		viewPos.z = (clipPos.z - UNITY_MATRIX_P[2][3]) / UNITY_MATRIX_P[2][2];
+		viewPos.w = 1.0f ;
+	}
+	else
+	{
+		viewPos.x = (clipPos.x - UNITY_MATRIX_P[0][3]) / UNITY_MATRIX_P[0][0];
+		viewPos.y = (clipPos.y - UNITY_MATRIX_P[1][3]) / UNITY_MATRIX_P[1][1];
+		viewPos.z = (clipPos.z - UNITY_MATRIX_P[2][3]) / UNITY_MATRIX_P[2][2];
+		viewPos.w = 1.0f;
+	}
+
 	float4x4 viewToElement;
 	viewToElement[0] = i.viewToDecal0;
 	viewToElement[1] = i.viewToDecal1;
 	viewToElement[2] = i.viewToDecal2;
 	viewToElement[3] = float4(0,0,0,1);
 	
-	float3 elementPos = mul(viewToElement,worldPos).xyz * 2.0f;
+	float3 elementPos = mul(viewToElement,viewPos).xyz * 2.0f;
 	clip(1.0f - abs(elementPos));
 
 	float2 uv = elementPos.xy * 0.5f + 0.5f;
 	VFXUVData uvData = GetUVData(uv);
     float angleFadeFactor = 1.0f;
-	float3x3 elementToWorld = mul((float3x3)viewToElement, VFXGetWorldToViewRotMatrix()); //TODO: Won't be correct for non-uniform scalings
+	float3x3 elementToWorld = mul((float3x3)viewToElement, VFXGetWorldToViewRotMatrix()); //Transposed//TODO: Won't be correct for non-uniform scalings
 	elementToWorld[2] *= -1.0f; //TODO : Why ?
 
 #if VFX_ENABLE_DECAL_LAYERS
-	if (angleFade.y < 0.0f) // if angle fade is enabled
+	if (i.VFX_VARYING_ANGLEFADE.y < 0.0f) // if angle fade is enabled
 	{
 		float3 decalNormal = normalize(elementToWorld[2].xyz);
 		float dotAngle = dot(material.geomNormalWS, decalNormal);
 		// See equation in DecalSystem.cs - simplified to a madd mul add here
-		angleFadeFactor = saturate(angleFade.x + angleFade.y * (dotAngle * (dotAngle - 2.0f)));
+		angleFadeFactor = saturate(i.VFX_VARYING_ANGLEFADE.x + i.VFX_VARYING_ANGLEFADE.y * (dotAngle * (dotAngle - 2.0f)));
 	}
 #endif
-
+	float fadeFactor = i.VFX_VARYING_FADEFACTOR;
 	fadeFactor *= angleFadeFactor;
 	#if SHADERPASS == SHADERPASS_VFX_DBUFFER_PROJECTOR
 
@@ -133,7 +124,11 @@ void VFXGetSurfaceDecalData(out DecalSurfaceData surfaceData, VFX_VARYING_PS_INP
 
     #endif
 
+	#if USE_NORMAL_MAP
 	float3 normalTS = SampleNormalMap(VFX_SAMPLER(normalMap),uvData);
+	#else
+	float3 normalTS = float3(0.0f,0.0f,1.0f);
+	#endif
 	normalWS = normalize(mul(transpose(elementToWorld), normalTS));
 
 	surfaceData.normalWS.xyz = normalWS; 
@@ -147,12 +142,24 @@ void VFXGetSurfaceDecalData(out DecalSurfaceData surfaceData, VFX_VARYING_PS_INP
 	#endif
 	#if SHADERPASS == SHADERPASS_VFX_DECAL_FORWARD_EMISSIVE
 		#if defined(VFX_VARYING_EMISSIVE)
-		surfaceData.emissive = i.VFX_VARYING_EMISSIVE * fadeFactor; // Handle Exposure
+		surfaceData.emissive = i.VFX_VARYING_EMISSIVE * fadeFactor;
+		#endif
+		#ifdef HDRP_USE_EMISSIVE_MAP
+		float emissiveScale = 1.0f;
+		#ifdef VFX_VARYING_EMISSIVESCALE
+		emissiveScale = i.VFX_VARYING_EMISSIVESCALE;
+		#endif
+		surfaceData.emissive *= SampleTexture(VFX_SAMPLER(emissiveMap), uvData).rgb * emissiveScale;
+		#endif
+		// Inverse pre-expose using exposureWeight weight
+		float3 emissiveRcpExposure = surfaceData.emissive * GetInverseCurrentExposureMultiplier();
+		#ifdef VFX_VARYING_EXPOSUREWEIGHT
+		surfaceData.emissive = lerp(emissiveRcpExposure, surfaceData.emissive, i.VFX_VARYING_EXPOSUREWEIGHT);
+		#elif VFX_BYPASS_EXPOSURE
+		surfaceData.emissive = lerp(emissiveRcpExposure, surfaceData.emissive, 0.0f);
+		#else
+		surfaceData.emissive = lerp(emissiveRcpExposure, surfaceData.emissive, 1.0f);
 		#endif
 	#endif
-
-
 }
-
-#include "Packages/com.unity.render-pipelines.high-definition/Runtime/VFXGraph/Shaders/VFXLitPixelOutput.hlsl"
 

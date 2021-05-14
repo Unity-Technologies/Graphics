@@ -8,12 +8,7 @@ Pass
     ZTest LEqual
 
     Blend 0 SrcAlpha One
-
-    // ColorMask [_DecalColorMask0]
-    // ColorMask [_DecalColorMask1] 1
-    // ColorMask [_DecalColorMask2] 2
-    // ColorMask [_DecalColorMask3] 3
-		
+	
 	HLSLPROGRAM
 	#pragma target 4.5
 	#pragma multi_compile _ LIGHT_LAYERS
@@ -33,13 +28,16 @@ Pass
 		
 		${VFXHDRPLitDeclareVaryings}
 		
-		float2 uv : TEXCOORD1;
+		float2 uv : TEXCOORD1; //unsure about the necessity of this one
 		float3 posWS : TEXCOORD2;
-		float4 sphereInfo : TEXCOORD3;
+		#if VFX_ENABLE_DECAL_LAYERS
+		float3 fadeParameters : TEXCOORD3;
+		uint decalLayerMask : TEXCOORD4;
+		#endif
 
-		nointerpolation float4 viewToDecal0 : TEXCOORD4;
-		nointerpolation float4 viewToDecal1 : TEXCOORD5;
-		nointerpolation float4 viewToDecal2 : TEXCOORD6;
+		nointerpolation float4 viewToDecal0 : TEXCOORD5;
+		nointerpolation float4 viewToDecal1 : TEXCOORD6;
+		nointerpolation float4 viewToDecal2 : TEXCOORD7;
 
 		UNITY_VERTEX_OUTPUT_STEREO
 	};
@@ -49,7 +47,13 @@ Pass
 	#define VFX_VARYING_PS_INPUTS ps_input
 	#define VFX_VARYING_POSCS pos
 	#define VFX_VARYING_UV uv
-	#define VFX_VARYING_POSWS posWS	
+	#define VFX_VARYING_POSWS posWS
+	#define VFX_VARYING_FADEFACTOR fadeParameters.z
+	#if VFX_ENABLE_DECAL_LAYERS
+	#define VFX_VARYING_ANGLEFADE fadeParameters.xy
+	#define VFX_VARYING_DECALLAYER decalLayerMask
+	#endif
+
 
 	${VFXBegin:VFXVertexAdditionalProcess}
 	float4x4 viewToDecal = GetVFXToElementMatrix(
@@ -68,6 +72,7 @@ Pass
 	o.viewToDecal0 = viewToDecal[0];
 	o.viewToDecal1 = viewToDecal[1];
 	o.viewToDecal2 = viewToDecal[2];
+	//Move this somewhere else
 
 	${VFXHDRPLitFillVaryings}
 	${VFXEnd}
@@ -91,7 +96,7 @@ ${VFXIncludeRP("VFXDecal.template")}
 		DecalSurfaceData surfaceData; 
     	ZERO_INITIALIZE(DecalSurfaceData, surfaceData); 
 		VFXGetSurfaceDecalData(surfaceData,i,normalWS);
-		outEmissive.rgb = surfaceData.emissive;
+		outEmissive.rgb = surfaceData.emissive * GetCurrentExposureMultiplier();
 		outEmissive.a = 1.0f;
 	}
 	ENDHLSL
