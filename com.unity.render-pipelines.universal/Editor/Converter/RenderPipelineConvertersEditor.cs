@@ -442,8 +442,6 @@ namespace UnityEditor.Rendering.Universal.Converters
 
             void OnSearchIndexCreated(string name, string path, Action onComplete)
             {
-                var siObj = AssetDatabase.LoadAssetAtPath<UnityEngine.Object>(path);
-                Debug.Log($"Search index {name} is ready to be used", siObj);
                 EditorUtility.ClearProgressBar();
 
                 ConverterCollectData(onComplete);
@@ -474,7 +472,6 @@ namespace UnityEditor.Rendering.Universal.Converters
             void DeleteSearchIndex(SearchContext context, string indexPath)
             {
                 context?.Dispose();
-                Debug.Log($"Deleted search index at path {indexPath}");
                 // Client code has finished with the created index. We can delete it.
                 AssetDatabase.DeleteAsset(indexPath);
                 EditorUtility.ClearProgressBar();
