@@ -192,9 +192,9 @@ namespace UnityEngine.Rendering.HighDefinition
             // Fetch the shaders
             if (m_RayTracingSupported)
             {
-                m_ScreenSpaceShadowsCS = HDRenderPipelineGlobalSettings.instance.renderPipelineRayTracingResources.shadowRaytracingCS;
-                m_ScreenSpaceShadowsFilterCS = HDRenderPipelineGlobalSettings.instance.renderPipelineRayTracingResources.shadowFilterCS;
-                m_ScreenSpaceShadowsRT = HDRenderPipelineGlobalSettings.instance.renderPipelineRayTracingResources.shadowRaytracingRT;
+                m_ScreenSpaceShadowsCS = m_GlobalSettings.renderPipelineRayTracingResources.shadowRaytracingCS;
+                m_ScreenSpaceShadowsFilterCS = m_GlobalSettings.renderPipelineRayTracingResources.shadowFilterCS;
+                m_ScreenSpaceShadowsRT = m_GlobalSettings.renderPipelineRayTracingResources.shadowRaytracingRT;
 
                 // Directional shadow kernels
                 m_ClearShadowTexture = m_ScreenSpaceShadowsCS.FindKernel("ClearShadowTexture");
@@ -233,6 +233,9 @@ namespace UnityEngine.Rendering.HighDefinition
                     break;
                 case HDShadowFilteringQuality.High:
                     s_ScreenSpaceShadowsMat.EnableKeyword("SHADOW_HIGH");
+                    break;
+                case HDShadowFilteringQuality.VeryHigh:
+                    s_ScreenSpaceShadowsMat.EnableKeyword("SHADOW_VERY_HIGH");
                     break;
                 default:
                     s_ScreenSpaceShadowsMat.EnableKeyword("SHADOW_MEDIUM");
@@ -370,7 +373,7 @@ namespace UnityEngine.Rendering.HighDefinition
             sssdParams.debugKernel = m_WriteShadowTextureDebugKernel;
 
             // TODO: move the debug kernel outside of the ray tracing resources
-            sssdParams.shadowFilter = HDRenderPipelineGlobalSettings.instance.renderPipelineRayTracingResources.shadowFilterCS;
+            sssdParams.shadowFilter = m_GlobalSettings.renderPipelineRayTracingResources.shadowFilterCS;
             return sssdParams;
         }
 

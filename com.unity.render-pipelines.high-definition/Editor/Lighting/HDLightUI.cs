@@ -33,6 +33,7 @@ namespace UnityEditor.Rendering.HighDefinition
             DistanceShadowmask
         }
 
+        [HDRPHelpURL("Light-Component")]
         enum Expandable
         {
             General = 1 << 0,
@@ -109,6 +110,8 @@ namespace UnityEditor.Rendering.HighDefinition
                                     CED.AdditionalPropertiesFoldoutGroup(s_Styles.shadowMapSubHeader, Expandable.ShadowMap, k_ExpandedState, AdditionalProperties.Shadow, k_AdditionalPropertiesState,
                                         DrawShadowMapContent, DrawShadowMapAdditionalContent, FoldoutOption.SubFoldout | FoldoutOption.Indent | FoldoutOption.NoSpaceAtEnd)),
                                 CED.space,
+                                CED.Conditional((serialized, owner) => k_AdditionalPropertiesState[AdditionalProperties.Shadow] && HasShadowQualitySettingsUI(HDShadowFilteringQuality.VeryHigh, serialized, owner),
+                                    CED.FoldoutGroup(s_Styles.veryHighShadowQualitySubHeader, Expandable.ShadowQuality, k_ExpandedState, FoldoutOption.SubFoldout | FoldoutOption.Indent, DrawVeryHighShadowSettingsContent)),
                                 CED.Conditional((serialized, owner) => k_AdditionalPropertiesState[AdditionalProperties.Shadow] && HasShadowQualitySettingsUI(HDShadowFilteringQuality.High, serialized, owner),
                                     CED.FoldoutGroup(s_Styles.highShadowQualitySubHeader, Expandable.ShadowQuality, k_ExpandedState, FoldoutOption.SubFoldout | FoldoutOption.Indent, DrawHighShadowSettingsContent)),
                                 CED.Conditional((serialized, owner) => HasShadowQualitySettingsUI(HDShadowFilteringQuality.Medium, serialized, owner),
@@ -238,9 +241,7 @@ namespace UnityEditor.Rendering.HighDefinition
                 using (var change = new EditorGUI.ChangeCheckScope())
                 {
                     EditorGUILayout.PropertyField(serialized.lightlayersMask, s_Styles.lightLayer);
-
-                    // If we're not in decoupled mode for light layers, we sync light with shadow layers:
-                    if (serialized.linkLightLayers.boolValue && change.changed && !serialized.lightlayersMask.hasMultipleDifferentValues)
+                    if (change.changed && serialized.linkShadowLayers.boolValue)
                         SyncLightAndShadowLayers(serialized, owner);
                 }
             }
@@ -1218,20 +1219,35 @@ namespace UnityEditor.Rendering.HighDefinition
                 {
                     using (var change = new EditorGUI.ChangeCheckScope())
                     {
-                        EditorGUILayout.PropertyField(serialized.linkLightLayers, s_Styles.linkLightAndShadowLayersText);
+                        Rect lineRect = EditorGUILayout.GetControlRect();
+                        EditorGUI.BeginProperty(lineRect, s_Styles.unlinkLightAndShadowLayersText, serialized.linkShadowLayers);
+                        bool savedHasMultipleDifferentValue = EditorGUI.showMixedValue;
+                        EditorGUI.showMixedValue = serialized.linkShadowLayers.hasMultipleDifferentValues;
+                        bool newValue = !EditorGUI.Toggle(lineRect, s_Styles.unlinkLightAndShadowLayersText, !serialized.linkShadowLayers.boolValue);
+                        EditorGUI.showMixedValue = savedHasMultipleDifferentValue;
+                        EditorGUI.EndProperty();
 
                         // Undo the changes in the light component because the SyncLightAndShadowLayers will change the value automatically when link is ticked
                         if (change.changed)
-                            Undo.RecordObjects(owner.targets, "Undo Light Layers Changed");
-                    }
-                    if (!serialized.linkLightLayers.hasMultipleDifferentValues && !serialized.lightlayersMask.hasMultipleDifferentValues)
-                    {
-                        using (new EditorGUI.DisabledGroupScope(serialized.linkLightLayers.boolValue))
                         {
-                            HDEditorUtils.DrawLightLayerMaskFromInt(s_Styles.shadowLayerMaskText, serialized.settings.renderingLayerMask);
+                            Undo.RecordObjects(owner.targets, "Undo Light Layers Changed");
+                            serialized.linkShadowLayers.boolValue = newValue;
+                            if (!newValue)
+                            {
+                                serialized.Apply(); //we need to push above modification the modification on object as it is used to sync
+                                SyncLightAndShadowLayers(serialized, owner);
+                            }
                         }
-                        if (serialized.linkLightLayers.boolValue)
-                            SyncLightAndShadowLayers(serialized, owner);
+                    }
+                    //
+                    if (serialized.linkShadowLayers.hasMultipleDifferentValues || !serialized.linkShadowLayers.boolValue)
+                    {
+                        using (new EditorGUI.DisabledGroupScope(serialized.linkShadowLayers.hasMultipleDifferentValues))
+                        {
+                            ++EditorGUI.indentLevel;
+                            HDEditorUtils.DrawLightLayerMaskFromInt(s_Styles.shadowLayerMaskText, serialized.settings.renderingLayerMask);
+                            --EditorGUI.indentLevel;
+                        }
                     }
                 }
             }
@@ -1239,10 +1255,19 @@ namespace UnityEditor.Rendering.HighDefinition
 
         static void SyncLightAndShadowLayers(SerializedHDLight serialized, Editor owner)
         {
-            // If we're not in decoupled mode for light layers, we sync light with shadow layers:
-            foreach (Light target in owner.targets)
+            // If we're not in decoupled mode for light layers, we sync light with shadow layers.
+            // In mixed state, it make sens to do it only on Light that links the mode.
+            HDLightEditor editor = owner as HDLightEditor;
+            for (int i = 0; i < owner.targets.Length; ++i)
+            {
+                HDAdditionalLightData additionalData = editor.GetAdditionalDataForTargetIndex(i);
+                if (!additionalData.linkShadowLayers)
+                    continue;
+
+                Light target = owner.targets[i] as Light;
                 if (target.renderingLayerMask != serialized.lightlayersMask.intValue)
                     target.renderingLayerMask = serialized.lightlayersMask.intValue;
+            }
         }
 
         static void DrawContactShadowsContent(SerializedHDLight serialized, Editor owner)
@@ -1316,9 +1341,8 @@ namespace UnityEditor.Rendering.HighDefinition
 
         static void DrawVeryHighShadowSettingsContent(SerializedHDLight serialized, Editor owner)
         {
-            EditorGUILayout.PropertyField(serialized.kernelSize, s_Styles.kernelSize);
-            EditorGUILayout.PropertyField(serialized.lightAngle, s_Styles.lightAngle);
-            EditorGUILayout.PropertyField(serialized.maxDepthBias, s_Styles.maxDepthBias);
+            // Same as high for now (PCSS)
+            DrawHighShadowSettingsContent(serialized, owner);
         }
 
         static void SetLightsDirty(Editor owner)

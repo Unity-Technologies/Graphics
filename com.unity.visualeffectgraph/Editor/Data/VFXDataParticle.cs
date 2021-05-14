@@ -6,6 +6,7 @@ using UnityEngine;
 using UnityEditor.VFX;
 using UnityEngine.VFX;
 using UnityEngine.Serialization;
+using Object = UnityEngine.Object;
 
 namespace UnityEditor.VFX
 {
@@ -469,23 +470,25 @@ namespace UnityEditor.VFX
 
         public override IEnumerable<VFXContext> InitImplicitContexts()
         {
+            var contexts = compilableOwners.ToList();
+
             if (!NeedsGlobalSort() &&
-                !m_Owners.OfType<VFXAbstractParticleOutput>().Any(o => o.NeedsOutputUpdate()))
+                !contexts.OfType<VFXAbstractParticleOutput>().Any(o => o.NeedsOutputUpdate()))
             {
                 //Early out with the most common case
-                m_Contexts = m_Owners;
+                m_Contexts = contexts;
                 return Enumerable.Empty<VFXContext>();
             }
 
-            m_Contexts = new List<VFXContext>(m_Owners.Count + 2); // Allocate max number
+            m_Contexts = new List<VFXContext>(contexts.Count + 2); // Allocate max number
             int index = 0;
 
             // First add init and updates
-            for (index = 0; index < m_Owners.Count; ++index)
+            for (index = 0; index < contexts.Count; ++index)
             {
-                if ((m_Owners[index].contextType == VFXContextType.Output))
+                if ((contexts[index].contextType == VFXContextType.Output))
                     break;
-                m_Contexts.Add(m_Owners[index]);
+                m_Contexts.Add(contexts[index]);
             }
 
             var implicitContext = new List<VFXContext>();
@@ -498,9 +501,9 @@ namespace UnityEditor.VFX
             }
 
             //additional update
-            for (int outputIndex = index; outputIndex < m_Owners.Count; ++outputIndex)
+            for (int outputIndex = index; outputIndex < contexts.Count; ++outputIndex)
             {
-                var currentOutputContext = m_Owners[outputIndex];
+                var currentOutputContext = contexts[outputIndex];
                 var abstractParticleOutput = currentOutputContext as VFXAbstractParticleOutput;
                 if (abstractParticleOutput == null)
                     continue;
@@ -515,25 +518,25 @@ namespace UnityEditor.VFX
             }
 
             // And finally output
-            for (; index < m_Owners.Count; ++index)
-                m_Contexts.Add(m_Owners[index]);
+            for (; index < contexts.Count; ++index)
+                m_Contexts.Add(contexts[index]);
 
             return implicitContext;
         }
 
         public bool NeedsIndirectBuffer()
         {
-            return owners.OfType<VFXAbstractParticleOutput>().Any(o => o.HasIndirectDraw());
+            return compilableOwners.OfType<VFXAbstractParticleOutput>().Any(o => o.HasIndirectDraw());
         }
 
         public bool NeedsGlobalIndirectBuffer()
         {
-            return owners.OfType<VFXAbstractParticleOutput>().Any(o => o.HasIndirectDraw() && !VFXOutputUpdate.HasFeature(o.outputUpdateFeatures, VFXOutputUpdate.Features.IndirectDraw));
+            return compilableOwners.OfType<VFXAbstractParticleOutput>().Any(o => o.HasIndirectDraw() && !VFXOutputUpdate.HasFeature(o.outputUpdateFeatures, VFXOutputUpdate.Features.IndirectDraw));
         }
 
         public bool NeedsGlobalSort()
         {
-            return owners.OfType<VFXAbstractParticleOutput>().Any(o => o.HasSorting() && !VFXOutputUpdate.HasFeature(o.outputUpdateFeatures, VFXOutputUpdate.Features.IndirectDraw));
+            return compilableOwners.OfType<VFXAbstractParticleOutput>().Any(o => o.CanBeCompiled() && o.HasSorting() && !VFXOutputUpdate.HasFeature(o.outputUpdateFeatures, VFXOutputUpdate.Features.IndirectDraw));
         }
 
         public override void FillDescs(
@@ -742,7 +745,8 @@ namespace UnityEditor.VFX
                 var temporaryBufferMappings = new List<VFXMappingTemporary>();
 
                 var context = m_Contexts[i];
-                var contextData = contextToCompiledData[context];
+                if (!contextToCompiledData.TryGetValue(context, out var contextData))
+                    throw new InvalidOperationException("Unexpected context which hasn't been compiled : " + context);
 
                 var taskDesc = new VFXEditorTaskDesc();
                 taskDesc.type = (UnityEngine.VFX.VFXTaskType)context.taskType;
@@ -873,6 +877,7 @@ namespace UnityEditor.VFX
                 taskDesc.values = uniformMappings.ToArray();
                 taskDesc.parameters = cpuMappings.Concat(contextData.parameters).Concat(additionalParameters).ToArray();
                 taskDesc.shaderSourceIndex = contextToCompiledData[context].indexInShaderSource;
+                taskDesc.model = context;
 
                 if (context is IVFXMultiMeshOutput) // If the context is a multi mesh output, split and patch task desc into several tasks
                 {
@@ -900,6 +905,7 @@ namespace UnityEditor.VFX
                             VFXEditorTaskDesc sortTaskDesc = new VFXEditorTaskDesc();
                             sortTaskDesc.type = UnityEngine.VFX.VFXTaskType.PerCameraSort;
                             sortTaskDesc.externalProcessor = null;
+                            sortTaskDesc.model = context;
 
                             sortTaskDesc.buffers = new VFXMapping[3];
                             sortTaskDesc.buffers[0] = new VFXMapping("srcBuffer", update.bufferIndex + j);

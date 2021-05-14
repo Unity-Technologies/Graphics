@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using UnityEngine.Assertions;
 using UnityEngine.Rendering.UI;
+using UnityEngine.UI;
 
 namespace UnityEngine.Rendering
 {
@@ -69,6 +70,8 @@ namespace UnityEngine.Rendering
         /// </summary>
         public bool refreshEditorRequested;
 
+        int? m_RequestedPanelIndex;
+
         GameObject m_Root;
         DebugUIHandlerCanvas m_RootUICanvas;
 
@@ -102,6 +105,12 @@ namespace UnityEngine.Rendering
                     m_Root.name = "[Debug Canvas]";
                     m_Root.transform.localPosition = Vector3.zero;
                     m_RootUICanvas = m_Root.GetComponent<DebugUIHandlerCanvas>();
+
+#if UNITY_ANDROID || UNITY_IPHONE || UNITY_TVOS || UNITY_SWITCH
+                    var canvasScaler = m_Root.GetComponent<CanvasScaler>();
+                    canvasScaler.uiScaleMode = CanvasScaler.ScaleMode.ScaleWithScreenSize;
+#endif
+
                     m_Root.SetActive(true);
                 }
                 else
@@ -155,12 +164,12 @@ namespace UnityEngine.Rendering
         }
 
         /// <summary>
-        /// Redraw the runtime debug UI.
+        /// Request the runtime debug UI be redrawn on the next update.
         /// </summary>
         public void ReDrawOnScreenDebug()
         {
             if (displayRuntimeUI)
-                m_RootUICanvas?.ResetAllHierarchy();
+                m_RootUICanvas?.RequestHierarchyReset();
         }
 
         /// <summary>
@@ -199,6 +208,12 @@ namespace UnityEngine.Rendering
         internal void ChangeSelection(DebugUIHandlerWidget widget, bool fromNext)
         {
             m_RootUICanvas.ChangeSelection(widget, fromNext);
+        }
+
+        internal void SetScrollTarget(DebugUIHandlerWidget widget)
+        {
+            if (m_RootUICanvas != null)
+                m_RootUICanvas.SetScrollTarget(widget);
         }
 
         void CheckPersistentCanvas()
@@ -241,6 +256,25 @@ namespace UnityEngine.Rendering
         void OnPanelDirty(DebugUI.Panel panel)
         {
             onSetDirty();
+        }
+
+        /// <summary>
+        /// Request DebugWindow to open the specified panel.
+        /// </summary>
+        /// <param name="index">Index of the debug window panel to activate.</param>
+        public void RequestEditorWindowPanelIndex(int index)
+        {
+            // Similar to RefreshEditor(), this function is required to bypass a dependency problem where DebugWindow
+            // cannot be accessed from the Core.Runtime assembly. Should there be a better way to allow editor-dependent
+            // features in DebugUI?
+            m_RequestedPanelIndex = index;
+        }
+
+        internal int? GetRequestedEditorWindowPanelIndex()
+        {
+            int? requestedIndex = m_RequestedPanelIndex;
+            m_RequestedPanelIndex = null;
+            return requestedIndex;
         }
 
         // TODO: Optimally we should use a query path here instead of a display name

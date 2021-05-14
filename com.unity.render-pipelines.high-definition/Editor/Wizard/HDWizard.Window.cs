@@ -111,6 +111,9 @@ namespace UnityEditor.Rendering.HighDefinition
             public static readonly ConfigStyle hdrpLookDevVolumeProfile = new ConfigStyle(
                 label: L10n.Tr("Default Look Dev volume profile"),
                 error: L10n.Tr("Default Look Dev volume profile must be assigned in the HDRP Settings! Also, for it to be editable, it should be outside of package."));
+            public static readonly ConfigStyle hdrpMigratableAssets = new ConfigStyle(
+                label: L10n.Tr("Assets Migration"),
+                error: L10n.Tr("At least one of the HDRP assets used in quality or the current HDRenderPipelineGlobalSettings have not been migrated to last version."));
 
             public static readonly ConfigStyle vrLegacyVRSystem = new ConfigStyle(
                 label: L10n.Tr("Legacy VR System"),
@@ -145,7 +148,7 @@ namespace UnityEditor.Rendering.HighDefinition
                 messageType: MessageType.Warning);
             public static readonly ConfigStyle dxrScreenSpaceShadowFS = new ConfigStyle(
                 label: L10n.Tr("Screen Space Shadows (HDRP Default Settings)"),
-                error: L10n.Tr($"Screen Space Shadows are disabled in the default Camera Frame Settings. This means Cameras that use these Frame Settings do not render ray-traced shadows. To enable this feature, go to Project Settings > HDRP Settings > Frame Settings > Default Frame Settings For Camera > Lighting and enable Screen Space Shadows. This configuration depends on {dxrScreenSpaceShadow.label}. This means, before you fix this, you must fix {dxrScreenSpaceShadow.label} first."),
+                error: L10n.Tr($"Screen Space Shadows are disabled in the default Camera Frame Settings. This means Cameras that use these Frame Settings do not render ray-traced shadows. To enable this feature, go to Project Settings > HDRP Settings > Frame Settings (Default Values) > Camera > Lighting and enable Screen Space Shadows. This configuration depends on {dxrScreenSpaceShadow.label}. This means, before you fix this, you must fix {dxrScreenSpaceShadow.label} first."),
                 messageType: MessageType.Info);
             public static readonly ConfigStyle dxrReflections = new ConfigStyle(
                 label: L10n.Tr("Screan Space Reflection (Asset)"),
@@ -153,7 +156,7 @@ namespace UnityEditor.Rendering.HighDefinition
                 messageType: MessageType.Warning);
             public static readonly ConfigStyle dxrReflectionsFS = new ConfigStyle(
                 label: L10n.Tr("Screan Space Reflection (HDRP Default Settings)"),
-                error: L10n.Tr($"Screen Space Reflection is disabled in the default Camera Frame Settings. This means Cameras that use these Frame Settings do not render ray-traced reflections. To enable this feature, go to Project Settings > HDRP Settings > Frame Settings > Default Frame Settings For Camera > Lighting and enable Screen Space Reflections. This configuration depends on {dxrReflections.label}. This means, before you fix this, you must fix {dxrReflections.label} first."),
+                error: L10n.Tr($"Screen Space Reflection is disabled in the default Camera Frame Settings. This means Cameras that use these Frame Settings do not render ray-traced reflections. To enable this feature, go to Project Settings > HDRP Settings > Frame Settings (Default Values) > Camera > Lighting and enable Screen Space Reflections. This configuration depends on {dxrReflections.label}. This means, before you fix this, you must fix {dxrReflections.label} first."),
                 messageType: MessageType.Info);
             public static readonly ConfigStyle dxrTransparentReflections = new ConfigStyle(
                 label: L10n.Tr("Screen Space Reflection - Transparent (Asset)"),
@@ -161,7 +164,7 @@ namespace UnityEditor.Rendering.HighDefinition
                 messageType: MessageType.Warning);
             public static readonly ConfigStyle dxrTransparentReflectionsFS = new ConfigStyle(
                 label: L10n.Tr("Screen Space Reflection - Transparent (HDRP Default Settings)"),
-                error: L10n.Tr($"Screen Space Reflection - Transparent is disabled in the default Camera Frame Settings. This means Cameras that use these Frame Settings do not render ray-traced reflections on transparent GameObjects. To enable this feature, go to Project Settings > HDRP Settings > Frame Settings > Default Frame Settings For Camera > Lighting and enable Transparents. This configuration depends on {dxrTransparentReflections.label}. This means, before you fix this, you must fix {dxrTransparentReflections.label} first."),
+                error: L10n.Tr($"Screen Space Reflection - Transparent is disabled in the default Camera Frame Settings. This means Cameras that use these Frame Settings do not render ray-traced reflections on transparent GameObjects. To enable this feature, go to Project Settings > HDRP Settings > Frame Settings (Default Values) > Camera > Lighting and enable Transparents. This configuration depends on {dxrTransparentReflections.label}. This means, before you fix this, you must fix {dxrTransparentReflections.label} first."),
                 messageType: MessageType.Info);
             public static readonly ConfigStyle dxrGI = new ConfigStyle(
                 label: L10n.Tr("Screen Space Global Illumination (Asset)"),
@@ -169,7 +172,7 @@ namespace UnityEditor.Rendering.HighDefinition
                 messageType: MessageType.Warning);
             public static readonly ConfigStyle dxrGIFS = new ConfigStyle(
                 label: L10n.Tr("Screen Space Global Illumination (HDRP Default Settings)"),
-                error: L10n.Tr($"Screen Space Global Illumination is disabled in the default Camera Frame Settings. This means Cameras that use these Frame Settings do not render ray-traced global illumination. To enable this feature, go to Project Settings > HDRP Settings > Frame Settings > Default Frame Settings For Camera > Lighting and enable Screen Space Global Illumination. This configuration depends on {dxrGI.label}. This means, before you fix this, you must fix {dxrGI.label} first."),
+                error: L10n.Tr($"Screen Space Global Illumination is disabled in the default Camera Frame Settings. This means Cameras that use these Frame Settings do not render ray-traced global illumination. To enable this feature, go to Project Settings > HDRP Settings > Frame Settings (Default Values) > Camera > Lighting and enable Screen Space Global Illumination. This configuration depends on {dxrGI.label}. This means, before you fix this, you must fix {dxrGI.label} first."),
                 messageType: MessageType.Info);
             public static readonly ConfigStyle dxr64bits = new ConfigStyle(
                 label: L10n.Tr("Architecture 64 bits"),
@@ -217,7 +220,7 @@ namespace UnityEditor.Rendering.HighDefinition
         {
             var window = GetWindow<HDWizard>(Style.title.text);
             window.minSize = new Vector2(500, 450);
-            HDProjectSettings.wizardPopupAlreadyShownOnce = true;
+            HDUserSettings.wizardPopupAlreadyShownOnce = true;
         }
 
         void OnGUI()
@@ -247,7 +250,7 @@ namespace UnityEditor.Rendering.HighDefinition
             {
                 EditorApplication.update -= WizardBehaviourDelayed;
 
-                if (HDProjectSettings.wizardIsStartPopup && !HDProjectSettings.wizardPopupAlreadyShownOnce)
+                if (HDUserSettings.wizardIsStartPopup && !HDUserSettings.wizardPopupAlreadyShownOnce)
                 {
                     //Application.isPlaying cannot be called in constructor. Do it here
                     if (Application.isPlaying)
@@ -256,7 +259,7 @@ namespace UnityEditor.Rendering.HighDefinition
                     OpenWindow();
                 }
 
-                EditorApplication.quitting += () => HDProjectSettings.wizardPopupAlreadyShownOnce = false;
+                EditorApplication.quitting += () => HDUserSettings.wizardPopupAlreadyShownOnce = false;
             }
         }
 
@@ -265,8 +268,8 @@ namespace UnityEditor.Rendering.HighDefinition
         {
             EditorApplication.delayCall += () =>
             {
-                if (HDProjectSettings.wizardPopupAlreadyShownOnce)
-                    EditorApplication.quitting += () => HDProjectSettings.wizardPopupAlreadyShownOnce = false;
+                if (HDUserSettings.wizardPopupAlreadyShownOnce)
+                    EditorApplication.quitting += () => HDUserSettings.wizardPopupAlreadyShownOnce = false;
             };
         }
 
@@ -418,14 +421,14 @@ namespace UnityEditor.Rendering.HighDefinition
             var toolbar = new ToolbarRadio();
             toolbar.AddRadios(tabs);
             //make sure when we open the same project on different platforms the saved active tab is not out of range
-            int tabIndex = toolbar.radioLength > HDProjectSettings.wizardActiveTab ? HDProjectSettings.wizardActiveTab : 0;
+            int tabIndex = toolbar.radioLength > HDUserSettings.wizardActiveTab ? HDUserSettings.wizardActiveTab : 0;
             toolbar.SetValueWithoutNotify(tabIndex);
             m_Configuration = (Configuration)tabIndex;
             toolbar.RegisterValueChangedCallback(evt =>
             {
                 int index = evt.newValue;
                 m_Configuration = (Configuration)index;
-                HDProjectSettings.wizardActiveTab = index;
+                HDUserSettings.wizardActiveTab = index;
             });
 
             var outerBox = new VisualElement() { name = "OuterBox" };
@@ -441,11 +444,11 @@ namespace UnityEditor.Rendering.HighDefinition
         {
             var toggle = new Toggle(Style.showOnStartUp)
             {
-                value = HDProjectSettings.wizardIsStartPopup,
+                value = HDUserSettings.wizardIsStartPopup,
                 name = "WizardCheckbox"
             };
             toggle.RegisterValueChangedCallback(evt
-                => HDProjectSettings.wizardIsStartPopup = evt.newValue);
+                => HDUserSettings.wizardIsStartPopup = evt.newValue);
             return toggle;
         }
 
