@@ -68,4 +68,40 @@ EditorBuildSettings:
   - enabled: 1
     path: Assets/Scenes/072_Shadow_Prerendering.unity
     guid: 5c51bb3f8f127fd4cbfa0fbdb9221b0e
+  - enabled: 1
+    path: Assets/Scenes/004_Shadows_Ortho_Caster_011_Casts_Self.unity
+    guid: 2ebe6f9707194264dbb7c5ea1a554a63
+  - enabled: 1
+    path: Assets/Scenes/004_Shadows_Ortho_Caster_010_Casts.unity
+    guid: f1133382f389ec44fb4ca453261df767
+  - enabled: 1
+    path: Assets/Scenes/004_Shadows_Ortho_Caster_001_Self.unity
+    guid: 7599bce7824e37a4e98f14a6a979d514
+  - enabled: 1
+    path: Assets/Scenes/004_Shadows_Ortho_Caster_110_Silhoutte_Casts.unity
+    guid: 2dda30162850d854a82c0aefd796ac47
+  - enabled: 1
+    path: Assets/Scenes/004_Shadows_Ortho_Caster_111_Silhoutte_Casts_Self.unity
+    guid: 6c6efdca0c680b644afe1e5633c16f1e
+  - enabled: 1
+    path: Assets/Scenes/004_Shadows_Ortho_Caster_101_Silhoutte_Self.unity
+    guid: d8fca6ddf5f036e4c9f78ca6a73c9c7e
+  - enabled: 1
+    path: Assets/Scenes/006_Shadows_Ortho_Multi_Light.unity
+    guid: 117f831afebc64849a3778657be72e4b
+  - enabled: 1
+    path: Assets/Scenes/004_Shadows_Ortho_Caster_000.unity
+    guid: 304cf4847cf9c824a914e06835197176
+  - enabled: 1
+    path: Assets/Scenes/005_Shadows_Ortho_Composite_010_Casts.unity
+    guid: bb5969d69f099614fac0de58964a31f7
+  - enabled: 1
+    path: Assets/Scenes/005_Shadows_Ortho_Composite_011_Casts_Self.unity
+    guid: f7952349d3e7dc948939e2cb20e23cd7
+  - enabled: 1
+    path: Assets/Scenes/005_Shadows_Ortho_Composite_110_Silhoutte_Casts.unity
+    guid: 69114a96062831843a5fbd2dc88d4bbc
+  - enabled: 1
+    path: Assets/Scenes/005_Shadows_Ortho_Composite_111_Silhoutte_Casts_Self.unity
+    guid: 0c92f1bbe0928b542a0eabd9058802a0
   m_configObjects: {}
