@@ -104,4 +104,22 @@ EditorBuildSettings:
   - enabled: 1
     path: Assets/Scenes/005_Shadows_Ortho_Composite_111_Silhoutte_Casts_Self.unity
     guid: 0c92f1bbe0928b542a0eabd9058802a0
+  - enabled: 1
+    path: Assets/Scenes/007_Shadows_Ortho_Layers_All.unity
+    guid: de4584021b3367c4e8117b0cc77a3ced
+  - enabled: 1
+    path: Assets/Scenes/007_Shadows_Ortho_Layers_BG.unity
+    guid: ecdd95c8c8d9a10429c3a9a096b223dc
+  - enabled: 1
+    path: Assets/Scenes/007_Shadows_Ortho_Layers_Default.unity
+    guid: 68090b5e260eb2e4eb9bb33377560ec8
+  - enabled: 1
+    path: Assets/Scenes/008_Shadows_Ortho_Transparency_Composite_NonSelf_vs_NonSelf.unity
+    guid: 872553bc79db0924cb5950ce38bb55fe
+  - enabled: 1
+    path: Assets/Scenes/008_Shadows_Ortho_Transparency_Composite_Self_vs_NonSelf.unity
+    guid: e06c2b4e832508b4c81cf82a2e48355e
+  - enabled: 1
+    path: Assets/Scenes/008_Shadows_Ortho_Transparency_Composite_Self_vs_Self.unity
+    guid: 966062afce8978f48b90fbe2210979b6
   m_configObjects: {}
