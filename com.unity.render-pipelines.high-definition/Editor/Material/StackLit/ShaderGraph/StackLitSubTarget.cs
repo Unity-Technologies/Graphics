@@ -125,7 +125,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
             var descriptor = base.GetRaytracingSubShaderDescriptor();
 
             if (stackLitData.subsurfaceScattering)
-                descriptor.passes.Add(HDShaderPasses.GenerateRaytracingSubsurface(true));
+                descriptor.passes.Add(HDShaderPasses.GenerateRaytracingSubsurface());
 
             return descriptor;
         }

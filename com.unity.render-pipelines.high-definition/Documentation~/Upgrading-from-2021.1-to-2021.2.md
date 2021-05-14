@@ -9,6 +9,13 @@ HDRP 2021.2 includes the "ForwardEmissiveForDeferred" shader pass and the associ
 From 2021.2, HDRP Decals can use a surface gradient based approach to perturb the normal of the affected objects. This feature needs to be enabled in the HDRP asset.
 When creating a custom decal shader, the accumulated normal value stored in the DBuffer now represent the surface gradient instead of the tangent space normal. You can refer to `DecalUtilities.hlsl` for an example implementation.
 When writing a shader for a surface receiving decals, the normals should now be blended using the surface gradient framework. The prototype for the function `ApplyDecalToSurfaceData` has changed from: `void ApplyDecalToSurfaceData(DecalSurfaceData decalSurfaceData, float3 vtxNormal, inout SurfaceData surfaceData)` to `void ApplyDecalToSurfaceData(DecalSurfaceData decalSurfaceData, float3 vtxNormal, inout SurfaceData surfaceData, inout float3 normalTS)`. You can refer to `LitData.hlsl` and `LitDecalData.hlsl` for an example implementation.
+?### Tessellation
+In HDRP 2021.2, HDRP refactored various tessellation shader code to enable support of tessellation in [Master Stacks](master-stack-hdrp.md).
+
+* The function `GetTessellationFactors()` has moved from `LitDataMeshModification.hlsl` to `TessellationShare.hlsl`. It calls a new function, `GetTessellationFactor()`, that is in `LitDataMeshModification.hlsl`.
+* The prototype of 'ApplyTessellationModification()' function has changed from:<br/> `void ApplyTessellationModification(VaryingsMeshToDS input, float3 normalWS, inout float3 positionRWS)`<br/>to:<br/>`VaryingsMeshToDS ApplyTessellationModification(VaryingsMeshToDS input, float3 timeParameters)`.
+* HDRP has improved support of motion vectors for tessellation. Now only `previousPositionRWS` is part of the varyings and HDRP added the `MotionVectorTessellation()` function. For more information, see the `MotionVectorVertexShaderCommon.hlsl file.
+* HDRP now evaluates the `tessellationFactor` in the vertex shader and passes it to the hull shader as an interpolator. For more information, see the `VaryingMesh.hlsl` and `VertMesh.hlsl` files.
 
 ## Density Volumes
 

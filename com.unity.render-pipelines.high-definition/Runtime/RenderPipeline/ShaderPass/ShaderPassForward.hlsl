@@ -24,12 +24,7 @@ PackedVaryingsToPS VertTesselation(VaryingsToDS input)
 {
     VaryingsToPS output;
     output.vmesh = VertMeshTesselation(input.vmesh);
-    MotionVectorPositionZBias(output);
-
-    output.vpass.positionCS = input.vpass.positionCS;
-    output.vpass.previousPositionCS = input.vpass.previousPositionCS;
-
-    return PackVaryingsToPS(output);
+    return MotionVectorTessellation(output, input);
 }
 
 #endif // TESSELLATION_ON
@@ -69,7 +64,6 @@ PackedVaryingsToPS VertTesselation(VaryingsToDS input)
 
     return PackVaryingsToPS(output);
 }
-
 
 #endif // TESSELLATION_ON
 
