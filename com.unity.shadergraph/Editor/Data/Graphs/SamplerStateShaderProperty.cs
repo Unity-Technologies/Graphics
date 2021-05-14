@@ -26,7 +26,7 @@ namespace UnityEditor.ShaderGraph
         internal override bool isReferenceRenamable => false;
 
         // this is the fixed naming scheme for actual samplerstates properties
-        string propertyReferenceName => $"SamplerState_{value.filter}_{value.wrap}";
+        string propertyReferenceName => value.defaultPropertyName;
         public override string referenceNameForEditing => propertyReferenceName;
 
         internal override bool AllowHLSLDeclaration(HLSLDeclaration decl) => false; // disable UI, nothing to choose
