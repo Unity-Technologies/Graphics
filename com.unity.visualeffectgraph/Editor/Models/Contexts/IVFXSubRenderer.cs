@@ -43,7 +43,7 @@ namespace UnityEditor.VFX
 
                 m_PropertyMap.Add(p.name, p.floatValue);
             }
-            
+
             //TODOPAUL
             if (m_PropertyMap.Count == 0)
                 Debug.LogError("TODOPAUL Unexpected empty property map for " + material.name);
@@ -89,10 +89,6 @@ namespace UnityEditor.VFX
 
         void LoadProperties()
         {
-            m_PropertyMap = new Dictionary<string, float>();
-            for (int i = 0; i != Math.Min(m_PropertyNames.Count, m_PropertyValues.Count); i++)
-                m_PropertyMap.Add(m_PropertyNames[i], m_PropertyValues[i]);
-        }
             m_PropertyMap = new Dictionary<string, float>();
             for (int i = 0; i != Math.Min(m_PropertyNames.Count, m_PropertyValues.Count); i++)
                 m_PropertyMap.Add(m_PropertyNames[i], m_PropertyValues[i]);

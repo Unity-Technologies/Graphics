@@ -1,4 +1,4 @@
-#if USE_VFX
+#if HAS_VFX_GRAPH
 using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
@@ -7,9 +7,6 @@ using static UnityEditor.VFX.VFXAbstractRenderedOutput;
 
 namespace UnityEditor.VFX
 {
-    //TODOPAUL : comment why empty
-    class VFXUniversalSubOutput : VFXSRPSubOutput
-    {
-    }
+    //DELETE_ME
 }
 #endif

@@ -191,7 +191,9 @@ namespace UnityEditor.VFX
                 if (materialSettings.NeedsSync())
                 {
                     materialSettings.SyncFromMaterial(material);
-                    Invalidate(InvalidationCause.kSettingChanged);
+                    //TODOPAUL : Probably an incorrect integration, this invalidation is causing an infinite compilation loop
+                    //Check why m_PropertyMap remains empty
+                    //Invalidate(InvalidationCause.kSettingChanged);
                     return;
                 }
 
@@ -209,8 +211,6 @@ namespace UnityEditor.VFX
             {
                 materialSettings.SyncFromMaterial(transientMaterial);
             }
-        }
-
         }
 
         public override void GetImportDependentAssets(HashSet<int> dependencies)

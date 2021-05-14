@@ -5,14 +5,14 @@ using UnityEditor.ShaderGraph;
 using UnityEditor.ShaderGraph.Legacy;
 using static UnityEditor.Rendering.Universal.ShaderGraph.SubShaderUtils;
 using static Unity.Rendering.Universal.ShaderUtils;
-#if USE_VFX
+#if HAS_VFX_GRAPH
 using UnityEditor.VFX;
 #endif
 
 namespace UnityEditor.Rendering.Universal.ShaderGraph
 {
     sealed class UniversalUnlitSubTarget : UniversalSubTarget, ILegacyTarget
-#if USE_VFX
+#if HAS_VFX_GRAPH
         , IRequireVFXContext
 #endif
     {
@@ -27,7 +27,7 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
 
         public override bool IsActive() => true;
 
-#if USE_VFX
+#if HAS_VFX_GRAPH
         // VFX Properties
         VFXContext m_ContextVFX = null;
         VFXContextCompiledData m_ContextDataVFX;
@@ -52,13 +52,14 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
                 context.AddCustomEditorForRenderPipeline(typeof(ShaderGraphUnlitGUI).FullName, universalRPType);
             }
 
-#if USE_VFX
+            var subShaderUnlit = SubShaders.Unlit(target, target.renderType, target.renderQueue);
+#if HAS_VFX_GRAPH
             if (TargetsVFX())
-                subShaders[i] = VFX.VFXSubTarget.PostProcessSubShader(subShaders[i], m_ContextVFX, m_ContextDataVFX);
+                subShaderUnlit = VFX.VFXSubTarget.PostProcessSubShader(subShaderUnlit, m_ContextVFX, m_ContextDataVFX);
 #endif
 
             // Process SubShaders
-            context.AddSubShader(SubShaders.Unlit(target, target.renderType, target.renderQueue));
+            context.AddSubShader(subShaderUnlit);
             context.AddSubShader(SubShaders.UnlitDOTS(target, target.renderType, target.renderQueue));
         }
 
@@ -85,7 +86,7 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
 
         public override void GetFields(ref TargetFieldContext context)
         {
-#if USE_VFX
+#if HAS_VFX_GRAPH
             if (TargetsVFX())
                 VFXSubTarget.GetFields(ref context, m_ContextVFX);
 #endif

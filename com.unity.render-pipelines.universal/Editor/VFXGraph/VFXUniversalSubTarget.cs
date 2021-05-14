@@ -1,4 +1,4 @@
-//#if USE_VFX
+//#if HAS_VFX_GRAPH
 using System;
 using System.Collections.Generic;
 using System.Globalization;

@@ -10,7 +10,7 @@ using UnityEditor.ShaderGraph.Internal;
 using UnityEditor.UIElements;
 using UnityEditor.ShaderGraph.Serialization;
 using UnityEditor.ShaderGraph.Legacy;
-#if USE_VFX
+#if HAS_VFX_GRAPH
 using UnityEditor.VFX;
 #endif
 
@@ -65,9 +65,6 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
     }
 
     internal enum RenderFace
-#if USE_VFX
-    , IMaySupportVFX, IRequireVFXContext
-#endif
     {
         Front = 2,      // = CullMode.Back -- render front face only
         Back = 1,       // = CullMode.Front -- render back face only
@@ -75,6 +72,9 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
     }
 
     sealed class UniversalTarget : Target, IHasMetadata, ILegacyTarget
+#if HAS_VFX_GRAPH
+        , IMaySupportVFX, IRequireVFXContext
+#endif
     {
         public override int latestVersion => 1;
 
@@ -94,7 +94,7 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
         // View
         PopupField<string> m_SubTargetField;
         TextField m_CustomGUIField;
-#if USE_VFX
+#if HAS_VFX_GRAPH
         Toggle m_SupportVFXToggle;
 #endif
 
@@ -377,7 +377,7 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
             });
             context.AddProperty("Custom Editor GUI", m_CustomGUIField, (evt) => {});
 
-#if USE_VFX
+#if HAS_VFX_GRAPH
             if (VFXViewPreference.generateOutputContextWithShaderGraph)
             {
                 // VFX Support
@@ -589,7 +589,7 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
             return scriptableRenderPipeline?.GetType() == typeof(UniversalRenderPipelineAsset);
         }
 
-#if USE_VFX
+#if HAS_VFX_GRAPH
         public void ConfigureContextData(VFXContext context, VFXContextCompiledData data)
         {
             if (!(m_ActiveSubTarget.value is IRequireVFXContext vfxSubtarget))
@@ -602,7 +602,7 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
 
         public bool SupportsVFX()
         {
-#if USE_VFX
+#if HAS_VFX_GRAPH
             /* TODOPAUL : See if it's relevant
              *
              * if (m_ActiveSubTarget.value == null)
