@@ -124,15 +124,15 @@ namespace UnityEditor.Rendering
         /// </summary>
         /// <param name="label">Label of the whole</param>
         /// <param name="ppts">Properties</param>
-        /// <param name="lbls">Sub-labels</param>
-        public static void DrawMultipleFields(string label, SerializedProperty[] ppts, GUIContent[] lbls)
-            => DrawMultipleFields(EditorGUIUtility.TrTextContent(label), ppts, lbls);
+        /// <param name="labels">Sub-labels</param>
+        public static void DrawMultipleFields(string label, SerializedProperty[] ppts, GUIContent[] labels)
+            => DrawMultipleFields(EditorGUIUtility.TrTextContent(label), ppts, labels);
 
-        private static float GetLongestLabelWidth(GUIContent[] lbls)
+        private static float GetLongestLabelWidth(GUIContent[] labels)
         {
             float labelWidth = 0.0f;
-            for (var i = 0; i < lbls.Length; ++i)
-                labelWidth = Mathf.Max(EditorStyles.label.CalcSize(lbls[i]).x, labelWidth);
+            for (var i = 0; i < labels.Length; ++i)
+                labelWidth = Mathf.Max(EditorStyles.label.CalcSize(labels[i]).x, labelWidth);
             return labelWidth;
         }
 
@@ -141,8 +141,8 @@ namespace UnityEditor.Rendering
         /// </summary>
         /// <param name="label">Label of the whole</param>
         /// <param name="ppts">Properties</param>
-        /// <param name="lbls">Sub-labels</param>
-        public static void DrawMultipleFields(GUIContent label, SerializedProperty[] ppts, GUIContent[] lbls)
+        /// <param name="labels">Sub-labels</param>
+        public static void DrawMultipleFields(GUIContent label, SerializedProperty[] ppts, GUIContent[] labels)
         {
             var labelWidth = EditorGUIUtility.labelWidth;
 
@@ -152,11 +152,11 @@ namespace UnityEditor.Rendering
 
                 using (new EditorGUILayout.VerticalScope())
                 {
-                    EditorGUIUtility.labelWidth = GetLongestLabelWidth(lbls) + 2; // Add some margin
+                    EditorGUIUtility.labelWidth = GetLongestLabelWidth(labels) + CoreEditorStyles.standardSpacing;
                     int oldIndentLevel = EditorGUI.indentLevel;
                     EditorGUI.indentLevel = 0;
                     for (var i = 0; i < ppts.Length; ++i)
-                        EditorGUILayout.PropertyField(ppts[i], lbls[i]);
+                        EditorGUILayout.PropertyField(ppts[i], labels[i]);
                     EditorGUI.indentLevel = oldIndentLevel;
                 }
             }
@@ -168,9 +168,9 @@ namespace UnityEditor.Rendering
         /// Draw a multiple field property
         /// </summary>
         /// <param name="label">Label of the whole</param>
-        /// <param name="lbls">The labels mapping the values</param>
+        /// <param name="labels">The labels mapping the values</param>
         /// <param name="values">The values to be displayed</param>
-        public static void DrawMultipleFields<T>(GUIContent label, GUIContent[] lbls, T[] values)
+        public static void DrawMultipleFields<T>(GUIContent label, GUIContent[] labels, T[] values)
             where T : struct
         {
             var labelWidth = EditorGUIUtility.labelWidth;
@@ -181,20 +181,20 @@ namespace UnityEditor.Rendering
 
                 using (new EditorGUILayout.VerticalScope())
                 {
-                    EditorGUIUtility.labelWidth = GetLongestLabelWidth(lbls) + 2; // Add some margin
+                    EditorGUIUtility.labelWidth = GetLongestLabelWidth(labels) + CoreEditorStyles.standardSpacing;
                     int oldIndentLevel = EditorGUI.indentLevel;
                     EditorGUI.indentLevel = 0;
                     for (var i = 0; i < values.Length; ++i)
                     {
                         // Draw the right field depending on its type.
                         if (typeof(T) == typeof(int))
-                            values[i] = (T)(object)EditorGUILayout.DelayedIntField(lbls[i], (int)(object)values[i]);
+                            values[i] = (T)(object)EditorGUILayout.DelayedIntField(labels[i], (int)(object)values[i]);
                         else if (typeof(T) == typeof(bool))
-                            values[i] = (T)(object)EditorGUILayout.Toggle(lbls[i], (bool)(object)values[i]);
+                            values[i] = (T)(object)EditorGUILayout.Toggle(labels[i], (bool)(object)values[i]);
                         else if (typeof(T) == typeof(float))
-                            values[i] = (T)(object)EditorGUILayout.FloatField(lbls[i], (float)(object)values[i]);
+                            values[i] = (T)(object)EditorGUILayout.FloatField(labels[i], (float)(object)values[i]);
                         else if (typeof(T).IsEnum)
-                            values[i] = (T)(object)EditorGUILayout.EnumPopup(lbls[i], (Enum)(object)values[i]);
+                            values[i] = (T)(object)EditorGUILayout.EnumPopup(labels[i], (Enum)(object)values[i]);
                         else
                             throw new ArgumentOutOfRangeException($"<{typeof(T)}> is not a supported type for multi field");
                     }

@@ -13,10 +13,9 @@ namespace UnityEditor.Rendering.HighDefinition
     {
         enum Expandable
         {
-            // CameraFrameSettings = 1 << 0, //obsolete
-            // BakedOrCustomProbeFrameSettings = 1 << 1, //obsolete
-            // RealtimeProbeFrameSettings = 1 << 2, //obsolete
-            // General = 1 << 3, // empty - settings moved to HD Global Settings
+            PunctualLightShadows = 1 << 1,
+            DirectionalLightShadows = 1 << 2,
+            AreaLightShadows = 1 << 3,
             Rendering = 1 << 4,
             Lighting = 1 << 5,
             Material = 1 << 6,
@@ -48,7 +47,7 @@ namespace UnityEditor.Rendering.HighDefinition
             RTRQuality = 1 << 32,
             RTGIQuality = 1 << 33,
             SSGIQuality = 1 << 34,
-            VolumetricClouds = 1 << 35
+            VolumetricClouds = 1 << 35,
         }
 
         static readonly ExpandedState<Expandable, HDRenderPipelineAsset> k_ExpandedState = new ExpandedState<Expandable, HDRenderPipelineAsset>(Expandable.Rendering, "HDRP");
@@ -93,9 +92,9 @@ namespace UnityEditor.Rendering.HighDefinition
                     CED.FoldoutGroup(Styles.skySubTitle, Expandable.Sky, k_ExpandedState, FoldoutOption.Indent | FoldoutOption.SubFoldout, Drawer_SectionSky),
                     CED.FoldoutGroup(Styles.shadowSubTitle, Expandable.Shadow, k_ExpandedState, FoldoutOption.Indent | FoldoutOption.SubFoldout,
                         CED.Group(Drawer_SectionShadows),
-                        CED.FoldoutGroup(Styles.pointLightshadowSubTitle, Expandable.Shadow, k_ExpandedState, FoldoutOption.Indent | FoldoutOption.SubFoldout, Drawer_PunctualLightSectionShadows),
-                        CED.FoldoutGroup(Styles.directionalLightshadowSubTitle, Expandable.Shadow, k_ExpandedState, FoldoutOption.Indent | FoldoutOption.SubFoldout, Drawer_DirectionalLightSectionShadows),
-                        CED.FoldoutGroup(Styles.areaLightshadowSubTitle, Expandable.Shadow, k_ExpandedState, FoldoutOption.Indent | FoldoutOption.SubFoldout, Drawer_AreaLightSectionShadows)
+                        CED.FoldoutGroup(Styles.punctualLightshadowSubTitle, Expandable.PunctualLightShadows, k_ExpandedState, FoldoutOption.Indent | FoldoutOption.SubFoldout, Drawer_PunctualLightSectionShadows),
+                        CED.FoldoutGroup(Styles.directionalLightshadowSubTitle, Expandable.DirectionalLightShadows, k_ExpandedState, FoldoutOption.Indent | FoldoutOption.SubFoldout, Drawer_DirectionalLightSectionShadows),
+                        CED.FoldoutGroup(Styles.areaLightshadowSubTitle, Expandable.AreaLightShadows, k_ExpandedState, FoldoutOption.Indent | FoldoutOption.SubFoldout, Drawer_AreaLightSectionShadows)
                         ),
                     CED.FoldoutGroup(Styles.lightLoopSubTitle, Expandable.LightLoop, k_ExpandedState, FoldoutOption.Indent | FoldoutOption.SubFoldout | FoldoutOption.NoSpaceAtEnd, Drawer_SectionLightLoop)
                     ),
@@ -331,8 +330,8 @@ namespace UnityEditor.Rendering.HighDefinition
             SerializedHDShadowAtlasInitParams serializedAtlasInitParams,
             SerializedScalableSetting scalableSetting,
             SerializedProperty resolutionProperty,
-            SerializedProperty catchedResolutionProperty,
-            int defaultCatchedResolutionPropertyValue)
+            SerializedProperty cachedResolutionProperty,
+            int defaultCachedResolutionPropertyValue)
         {
             using (new EditorGUI.IndentLevelScope())
             {
@@ -349,10 +348,10 @@ namespace UnityEditor.Rendering.HighDefinition
                 EditorGUILayout.DelayedIntField(resolutionProperty, Styles.maxShadowResolution);
 
                 // Because we don't know if the asset is old and had the cached shadow map resolution field, if it was set as default float (0) we force a default.
-                if (catchedResolutionProperty.intValue == 0)
-                    catchedResolutionProperty.intValue = defaultCatchedResolutionPropertyValue;
+                if (cachedResolutionProperty.intValue == 0)
+                    cachedResolutionProperty.intValue = defaultCachedResolutionPropertyValue;
 
-                CoreEditorUtils.DrawEnumPopup(catchedResolutionProperty, typeof(ShadowResolutionValue), Styles.cachedShadowAtlasResolution);
+                CoreEditorUtils.DrawEnumPopup(cachedResolutionProperty, typeof(ShadowResolutionValue), Styles.cachedShadowAtlasResolution);
             }
         }
 
