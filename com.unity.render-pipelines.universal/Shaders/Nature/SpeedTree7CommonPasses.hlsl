@@ -90,6 +90,7 @@ void InitializeInputData(SpeedTreeVertexOutput input, half3 normalTS, out InputD
     inputData = (InputData)0;
 
     inputData.positionWS = input.positionWS.xyz;
+    inputData.positionCS = input.clipPos;
 
     #ifdef EFFECT_BUMP
         inputData.normalWS = TransformTangentToWorld(normalTS, half3x3(input.tangentWS.xyz, input.bitangentWS.xyz, input.normalWS.xyz));
@@ -119,11 +120,10 @@ void InitializeInputData(SpeedTreeVertexOutput input, half3 normalTS, out InputD
     inputData.normalizedScreenSpaceUV = GetNormalizedScreenSpaceUV(input.clipPos);
     inputData.shadowMask = half4(1, 1, 1, 1); // No GI currently.
 
-    #if defined(LIGHTMAP_ON)
-    inputData.lightmapUV = input.lightmapUV;
-    #else
-    inputData.vertexSH = 0;
+    #if defined(DEBUG_DISPLAY) && !defined(LIGHTMAP_ON)
+    inputData.vertexSH = input.vertexSH;
     #endif
+
     #if defined(_NORMALMAP)
     inputData.tangentToWorld = half3x3(input.tangentWS.xyz, input.bitangentWS.xyz, input.normalWS.xyz);
     #endif
