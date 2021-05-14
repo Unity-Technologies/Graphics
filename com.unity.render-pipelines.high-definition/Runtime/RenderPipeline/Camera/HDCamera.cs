@@ -147,6 +147,7 @@ namespace UnityEngine.Rendering.HighDefinition
             volumetricHistoryIsValid = false;
             volumetricValidFrames = 0;
             colorPyramidHistoryIsValid = false;
+            dofHistoryIsValid = false;
 
             // Reset the volumetric cloud offset animation data
             volumetricCloudsAnimationData.lastTime = -1.0f;
@@ -550,7 +551,9 @@ namespace UnityEngine.Rendering.HighDefinition
 
         internal bool allowDynamicResolution => m_AdditionalCameraData != null && m_AdditionalCameraData.allowDynamicResolution;
 
-        internal HDPhysicalCamera physicalParameters { get; private set; }
+        // We set the values of the physical camera in the Update() call. Here we initialize with
+        // the defaults, in case someone is trying to access the values before the first Update
+        internal HDPhysicalCamera physicalParameters { get; private set; } = HDPhysicalCamera.GetDefaults();
 
         internal IEnumerable<AOVRequestData> aovRequests =>
             m_AdditionalCameraData != null && !m_AdditionalCameraData.Equals(null)
@@ -1554,7 +1557,6 @@ namespace UnityEngine.Rendering.HighDefinition
         {
             volumeAnchor = null;
             volumeLayerMask = -1;
-            physicalParameters = null;
 
             if (m_AdditionalCameraData != null)
             {
@@ -1594,8 +1596,8 @@ namespace UnityEngine.Rendering.HighDefinition
                             // Remove lighting override mask and layer 31 which is used by preview/lookdev
                             volumeLayerMask = (-1 & ~(hdPipeline.asset.currentPlatformRenderPipelineSettings.lightLoopSettings.skyLightingOverrideLayerMask | (1 << 31)));
 
-                        // No fallback for the physical camera as we can't assume anything in this regard
-                        // Kept at null so the exposure will just use the default physical camera values
+                        // Use the default physical camera values so the exposure will look reasonable
+                        physicalParameters = HDPhysicalCamera.GetDefaults();
                     }
                 }
             }
@@ -1700,10 +1702,25 @@ namespace UnityEngine.Rendering.HighDefinition
         /// <returns></returns>
         Matrix4x4 ComputePixelCoordToWorldSpaceViewDirectionMatrix(ViewConstants viewConstants, Vector4 resolution, float aspect = -1)
         {
-            if (camera.orthographic)
-                return HDUtils.ComputePixelCoordToWorldSpaceViewDirectionMatrix_Orthographic(resolution, viewConstants.viewMatrix);
+            // In XR mode, use a more generic matrix to account for asymmetry in the projection
+            if (xr.enabled)
+            {
+                var transform = Matrix4x4.Scale(new Vector3(-1.0f, -1.0f, -1.0f)) * viewConstants.invViewProjMatrix;
+                transform = transform * Matrix4x4.Scale(new Vector3(1.0f, -1.0f, 1.0f));
+                transform = transform * Matrix4x4.Translate(new Vector3(-1.0f, -1.0f, 0.0f));
+                transform = transform * Matrix4x4.Scale(new Vector3(2.0f * resolution.z, 2.0f * resolution.w, 1.0f));
 
-            return HDUtils.ComputePixelCoordToWorldSpaceViewDirectionMatrix_Perspective(resolution, viewConstants.invViewProjMatrix);
+                return transform.transpose;
+            }
+
+            float verticalFoV = camera.GetGateFittedFieldOfView() * Mathf.Deg2Rad;
+            if (!camera.usePhysicalProperties)
+            {
+                verticalFoV = Mathf.Atan(-1.0f / viewConstants.projMatrix[1, 1]) * 2;
+            }
+            Vector2 lensShift = camera.GetGateFittedLensShift();
+
+            return HDUtils.ComputePixelCoordToWorldSpaceViewDirectionMatrix(verticalFoV, lensShift, resolution, viewConstants.viewMatrix, false, aspect, camera.orthographic);
         }
 
         void Dispose()

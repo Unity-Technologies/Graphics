@@ -40,7 +40,18 @@ When you create a new Eye Master Stack, the Vertex Context contains the followin
 
 #### Relevant
 
-This Master Stack material type adds all its Vertex Blocks to the Vertex Context by default and has no extra relevant Blocks.
+Depending on the [Graph Settings](#graph-settings) you use, Shader Graph can add the following locks to the Vertex Context:
+
+<table>
+<tr>
+<th>Property</th>
+<th>Description</th>
+<th>Setting Dependency</th>
+<th>Default Value</th>
+</tr>
+[!include[](snippets/shader-graph-blocks/tessellation-factor.md)]
+[!include[](snippets/shader-graph-blocks/tessellation-displacement.md)]
+</table>
 
 ### Fragment Context
 
@@ -131,6 +142,7 @@ Depending on the [Graph Settings](#graph-settings) you use, Shader Graph can add
 [!include[](snippets/shader-properties/surface-options/geometric-specular-aa.md)]
 [!include[](snippets/shader-properties/surface-options/ss-depth-offset.md)]
 [!include[](snippets/shader-properties/surface-options/conservative-depth-offset.md)]
+[!include[](snippets/shader-properties/surface-options/tessellation.md)]
 [!include[](snippets/shader-properties/surface-options/subsurface-scattering.md)]
 [!include[](snippets/shader-properties/surface-options/iris-normal.md)]
 </table>

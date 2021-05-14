@@ -18,6 +18,8 @@ namespace UnityEngine.Rendering.HighDefinition
         string m_ProjectSettingFolderPath = "HDRPDefaultResources";
         [SerializeField]
         int m_LastMaterialVersion = k_NeverProcessedMaterialVersion;
+        [SerializeField]
+        bool m_WizardPopupAtStart = true;
 
         internal const int k_NeverProcessedMaterialVersion = -1;
 
@@ -37,6 +39,16 @@ namespace UnityEngine.Rendering.HighDefinition
             set
             {
                 instance.m_LastMaterialVersion = value;
+                Save();
+            }
+        }
+
+        public static bool wizardIsStartPopup
+        {
+            get => instance.m_WizardPopupAtStart;
+            set
+            {
+                instance.m_WizardPopupAtStart = value;
                 Save();
             }
         }
@@ -103,7 +115,6 @@ namespace UnityEngine.Rendering.HighDefinition
             MigrationStep.New(Version.SplittedWithHDUserSettings, (HDProjectSettings data) =>
             {
 #pragma warning disable 618 // Type or member is obsolete
-                HDUserSettings.wizardIsStartPopup = instance.m_ObsoleteWizardPopupAtStart;
                 HDUserSettings.wizardPopupAlreadyShownOnce = instance.m_ObsoleteWizardPopupAlreadyShownOnce;
                 HDUserSettings.wizardActiveTab = instance.m_ObsoleteWizardActiveTab;
                 HDUserSettings.wizardNeedRestartAfterChangingToDX12 = instance.m_ObsoleteWizardNeedRestartAfterChangingToDX12;
@@ -113,8 +124,6 @@ namespace UnityEngine.Rendering.HighDefinition
         );
 
 #pragma warning disable 649 // Field never assigned
-        [SerializeField, Obsolete("Moved from HDProjectSettings to HDUserSettings"), FormerlySerializedAs("m_WizardPopupAtStart")]
-        bool m_ObsoleteWizardPopupAtStart;
         [SerializeField, Obsolete("Moved from HDProjectSettings to HDUserSettings"), FormerlySerializedAs("m_WizardPopupAlreadyShownOnce")]
         bool m_ObsoleteWizardPopupAlreadyShownOnce;
         [SerializeField, Obsolete("Moved from HDProjectSettings to HDUserSettings"), FormerlySerializedAs("m_WizardActiveTab")]
