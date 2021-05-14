@@ -276,6 +276,7 @@ namespace UnityEditor.Rendering.Universal
             rootVisualElement.Bind(m_SerializedObject);
             var button = rootVisualElement.Q<Button>("convertButton");
             button.RegisterCallback<ClickEvent>(Convert);
+            button.SetEnabled(false);
 
             var initButton = rootVisualElement.Q<Button>("initializeButton");
             initButton.RegisterCallback<ClickEvent>(InitializeAllActiveConverters);
@@ -343,6 +344,10 @@ namespace UnityEditor.Rendering.Universal
                 m_SerializedObject.ApplyModifiedProperties();
 
                 CheckAllConvertersCompleted();
+
+                // Make sure that the Convert Button is turned back on
+                var button = rootVisualElement.Q<Button>("convertButton");
+                button.SetEnabled(true);
             }
 
             void CheckAllConvertersCompleted()
