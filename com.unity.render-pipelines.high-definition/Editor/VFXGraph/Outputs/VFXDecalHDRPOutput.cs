@@ -7,7 +7,7 @@ using UnityEngine.Rendering;
 using UnityEngine.Rendering.HighDefinition;
 using UnityEngine.VFX;
 
-namespace UnityEditor.VFX
+namespace UnityEditor.VFX.HDRP
 {
     [VFXInfo(experimental = true)]
     class VFXDecalHDRPOutput : VFXAbstractParticleHDRPLitOutput
@@ -100,14 +100,17 @@ namespace UnityEditor.VFX
             {
                 //yield return slotExpressions.First(o => o.name == "startFade");
                 yield return slotExpressions.First(o => o.name == "fadeFactor");
-                var angleFadeExp = slotExpressions.First(o => o.name == "angleFade");
-                yield return new VFXNamedExpression(AngleFadeSimplification(angleFadeExp.exp), "angleFade");
+                if(enableDecalLayers)
+                {
+                    var angleFadeExp = slotExpressions.First(o => o.name == "angleFade");
+                    yield return new VFXNamedExpression(AngleFadeSimplification(angleFadeExp.exp), "angleFade");
+                }
             }
         }
 
         VFXExpression AngleFadeSimplification(VFXExpression angleFadeExp)
         {
-            angleFadeExp = angleFadeExp / VFXValue.Constant<Vector2>(new Vector2(180.0f,180.0f));
+            angleFadeExp = angleFadeExp / VFXValue.Constant(new Vector2(180.0f,180.0f));
             var angleStart = new VFXExpressionExtractComponent(angleFadeExp, 0);
             var angleEnd = new VFXExpressionExtractComponent(angleFadeExp, 1);
             var range = new VFXExpressionMax(VFXValue.Constant(0.0001f), angleEnd - angleStart);
