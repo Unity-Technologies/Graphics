@@ -1,6 +1,6 @@
 using System;
 
-namespace UnityEditor.Rendering.Universal
+namespace UnityEditor.Rendering.Universal.Converters
 {
     // Might need to change this name before making it public
     internal abstract class RenderPipelineConverter

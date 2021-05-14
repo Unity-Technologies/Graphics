@@ -1,4 +1,4 @@
-namespace UnityEditor.Rendering
+namespace UnityEditor.Rendering.Universal.Converters
 {
     /// <summary>
     /// A structure holding the information for each Item that needs to be Converted.

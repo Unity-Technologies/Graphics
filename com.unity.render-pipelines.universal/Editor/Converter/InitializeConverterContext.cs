@@ -1,6 +1,6 @@
 using System.Collections.Generic;
 
-namespace UnityEditor.Rendering
+namespace UnityEditor.Rendering.Universal.Converters
 {
     /// <summary>
     /// A structure needed for the initialization step of the converter.
