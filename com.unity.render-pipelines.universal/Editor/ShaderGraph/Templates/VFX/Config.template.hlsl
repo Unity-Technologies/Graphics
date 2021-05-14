@@ -1,5 +1,8 @@
+
+//VFXDefineSpace splice
 $splice(VFXDefineSpace)
 
+//VFXDefines splice
 $splice(VFXDefines)
 
 //TODOPAUL See VisualEffectVertex.hlsl in HDRP, special case for null geometry
@@ -53,7 +56,7 @@ CBUFFER_END
     #define VFX_GET_INSTANCE_ID(i)      input.instanceID
 #endif
 
-#include "Packages/com.unity.visualeffectgraph/Shaders/RenderPipeline/Universal/VFXCommon.hlsl"
+#include "Packages/com.unity.render-pipelines.universal/Runtime/VFXGraph/Shaders/VFXCommon.hlsl"
 #include "Packages/com.unity.visualeffectgraph/Shaders/VFXCommon.hlsl"
 
 $splice(VFXParameterBuffer)

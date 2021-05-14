@@ -53,14 +53,17 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
             }
 
             var subShaderUnlit = SubShaders.Unlit(target, target.renderType, target.renderQueue);
+            var dotsUnlit = SubShaders.UnlitDOTS(target, target.renderType, target.renderQueue);
 #if HAS_VFX_GRAPH
             if (TargetsVFX())
+            {
                 subShaderUnlit = VFX.VFXSubTarget.PostProcessSubShader(subShaderUnlit, m_ContextVFX, m_ContextDataVFX);
+                dotsUnlit = VFX.VFXSubTarget.PostProcessSubShader(dotsUnlit, m_ContextVFX, m_ContextDataVFX);
+            }
 #endif
-
             // Process SubShaders
             context.AddSubShader(subShaderUnlit);
-            context.AddSubShader(SubShaders.UnlitDOTS(target, target.renderType, target.renderQueue));
+            context.AddSubShader(dotsUnlit);
         }
 
         public override void ProcessPreviewMaterial(Material material)
