@@ -251,13 +251,13 @@ EditorBuildSettings:
   - enabled: 1
     path: Assets/AllTests/VFXTests/GraphicsTests/31_CameraBuffer.unity
     guid: 022b924fd58e94e41bcc5a24218370fe
-  - enabled: 0
-    path: Assets/AllTests/VFXTests/GraphicsTests/32_ExcludeFromTAA.unity
-    guid: 8f9c50f62a67d6d429a71cb9ad4a3f57
   - enabled: 1
     path: Assets/AllTests/VFXTests/GraphicsTests/33_LightProbe.unity
     guid: d3f8710940444f14c9f69cf044a9b0ef
   - enabled: 1
     path: Assets/AllTests/VFXTests/GraphicsTests/35_ShaderGraphGenerationFTP.unity
     guid: da06c943b1328a748a471abe815ea9f6
+  - enabled: 1
+    path: Assets/AllTests/VFXTests/GraphicsTests/36_SDFBaker/Scene/36_SkinnedSDF.unity
+    guid: ebaa785ec5cfd50448e6b1fca17c280f
   m_configObjects: {}
