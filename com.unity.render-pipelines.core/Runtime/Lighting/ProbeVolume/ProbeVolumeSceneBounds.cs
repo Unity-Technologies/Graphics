@@ -130,6 +130,11 @@ namespace UnityEngine.Experimental.Rendering
 
             if (boundFound)
             {
+                if (sceneBounds == null)
+                {
+                    sceneBounds = new Dictionary<string, Bounds>();
+                    hasProbeVolumes = new Dictionary<string, bool>();
+                }
                 if (sceneBounds.ContainsKey(scene.path))
                 {
                     sceneBounds[scene.path] = newBound;
