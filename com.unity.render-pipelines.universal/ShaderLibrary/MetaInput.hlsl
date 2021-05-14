@@ -31,14 +31,9 @@ struct Varyings
     float2 uv           : TEXCOORD0;
 };
 
-#ifndef BASEMAPNAME
-#define BASEMAPNAME _BaseMap
-#endif
-
 MetaVaryings UniversalMetaVertexPosition(float4 positionOS, float2 uv0, float2 uv1, float2 uv2)
 {
     MetaVaryings ret = (MetaVaryings)0;
-    ret.uv = TRANSFORM_TEX(uv0, BASEMAPNAME);
     ret.positionCS = UnityMetaVertexPosition(positionOS.xyz, uv1, uv2, unity_LightmapST, unity_DynamicLightmapST);
 
 #ifdef EDITOR_VISUALIZATION

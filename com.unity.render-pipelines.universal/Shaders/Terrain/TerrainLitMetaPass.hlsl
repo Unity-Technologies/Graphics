@@ -1,7 +1,6 @@
 #ifndef TERRAIN_LIT_META_PASS_INCLUDED
 #define TERRAIN_LIT_META_PASS_INCLUDED
 
-#define BASEMAPNAME _MainTex
 #include "Packages/com.unity.render-pipelines.universal/Shaders/LitMetaPass.hlsl"
 
 MetaVaryings TerrainVertexMeta(Attributes input)
