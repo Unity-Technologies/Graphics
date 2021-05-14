@@ -201,7 +201,6 @@ namespace UnityEditor.Rendering.BuiltIn.ShaderGraph
                     { LitPasses.Deferred },
                     { CorePasses.ShadowCaster },
                     { CorePasses.DepthOnly },
-                    { LitPasses.DepthNormalOnly },
                     { LitPasses.Meta },
                     { LitPasses._2D },
                     { CorePasses.SceneSelection },
@@ -396,37 +395,6 @@ namespace UnityEditor.Rendering.BuiltIn.ShaderGraph
                 pragmas = CorePragmas.Instanced,
                 defines = CoreDefines.BuiltInTargetAPI,
                 includes = LitIncludes._2D,
-
-                // Custom Interpolator Support
-                customInterpolators = CoreCustomInterpDescriptors.Common
-            };
-
-            public static readonly PassDescriptor DepthNormalOnly = new PassDescriptor()
-            {
-                // Definition
-                displayName = "DepthNormals",
-                referenceName = "SHADERPASS_DEPTHNORMALSONLY",
-                lightMode = "DepthNormals",
-                useInPreview = false,
-
-                // Template
-                passTemplatePath = BuiltInTarget.kTemplatePath,
-                sharedTemplateDirectories = BuiltInTarget.kSharedTemplateDirectories,
-
-                // Port Mask
-                validVertexBlocks = CoreBlockMasks.Vertex,
-                validPixelBlocks = LitBlockMasks.FragmentDepthNormals,
-
-                // Fields
-                structs = CoreStructCollections.Default,
-                requiredFields = LitRequiredFields.DepthNormals,
-                fieldDependencies = CoreFieldDependencies.Default,
-
-                // Conditional State
-                renderStates = CoreRenderStates.DepthNormalsOnly,
-                pragmas = CorePragmas.Instanced,
-                defines = CoreDefines.BuiltInTargetAPI,
-                includes = CoreIncludes.DepthNormalsOnly,
 
                 // Custom Interpolator Support
                 customInterpolators = CoreCustomInterpDescriptors.Common
