@@ -19,7 +19,6 @@ Pass
 
     // Pragmas
     $splice(PassPragmas)
-    #pragma enable_d3d11_debug_symbols
 
     // Keywords
     $splice(PassKeywords)
@@ -40,6 +39,8 @@ Pass
     #endif
 
     #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Common.hlsl"
+	#include "Packages/com.unity.render-pipelines.core/ShaderLibrary/GeometricTools.hlsl" // Required by Tessellation.hlsl
+	#include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Tessellation.hlsl"
     #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Texture.hlsl"
     #include "Packages/com.unity.render-pipelines.high-definition/Runtime/ShaderLibrary/ShaderVariables.hlsl"
     #include "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/ShaderPass/FragInputs.hlsl"
@@ -75,6 +76,16 @@ Pass
     $SurfaceDescriptionInputs.FaceSign:     #define VARYINGS_NEED_CULLFACE
 
     $splice(GraphDefines)
+
+	$features.graphTessellation: #ifdef TESSELLATION_ON
+	$features.graphTessellation: // World and normal are always available
+	$features.graphTessellation: $VaryingsMeshToDS.tangentWS:        #define VARYINGS_DS_NEED_TANGENT
+    $features.graphTessellation: $VaryingsMeshToDS.texCoord0:        #define VARYINGS_DS_NEED_TEXCOORD0
+    $features.graphTessellation: $VaryingsMeshToDS.texCoord1:        #define VARYINGS_DS_NEED_TEXCOORD1
+    $features.graphTessellation: $VaryingsMeshToDS.texCoord2:        #define VARYINGS_DS_NEED_TEXCOORD2
+    $features.graphTessellation: $VaryingsMeshToDS.texCoord3:        #define VARYINGS_DS_NEED_TEXCOORD3
+    $features.graphTessellation: $VaryingsMeshToDS.color:            #define VARYINGS_DS_NEED_COLOR
+	$features.graphTessellation: #endif
 
     // Following two define are a workaround introduce in 10.1.x for RaytracingQualityNode
     // The ShaderGraph don't support correctly migration of this node as it serialize all the node data
@@ -188,8 +199,9 @@ Pass
     // Build Graph Inputs
 
 	$features.graphVFX:     $include("VFX/Config.template.hlsl")
-    $features.graphVertex:  $include("VertexAnimation.template.hlsl")
-    $features.graphPixel:   $include("SharedCode.template.hlsl")
+    $features.graphVertex:  $include("Vertex.template.hlsl")
+	$features.graphTessellation:  $include("Tessellation.template.hlsl")
+    $features.graphPixel:   $include("Pixel.template.hlsl")
 
     // --------------------------------------------------
     // Build Surface Data (Specific Material)

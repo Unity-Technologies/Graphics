@@ -124,7 +124,9 @@ Varyings BuildVaryings(Attributes input
 #endif
 
 #ifdef VARYINGS_NEED_VIEWDIRECTION_WS
-    output.viewDirectionWS = GetWorldSpaceNormalizeViewDir(positionWS);
+    // Need the unnormalized direction here as otherwise interpolation is incorrect.
+    // It is normalized after interpolation in the fragment shader.
+    output.viewDirectionWS = GetWorldSpaceViewDir(positionWS);
 #endif
 
 #ifdef VARYINGS_NEED_SCREENPOSITION

@@ -125,7 +125,7 @@ namespace UnityEngine.Rendering.HighDefinition
             bool enableDof = (dofSettings.focusMode.value == DepthOfFieldMode.UsePhysicalCamera) && !(hdCamera.camera.cameraType == CameraType.SceneView);
 
             // focalLength is in mm, so we need to convert to meters. We also want the aperture radius, not diameter, so we divide by two.
-            float apertureRadius = (enableDof && hdCamera.physicalParameters != null && hdCamera.physicalParameters.aperture > 0) ? 0.5f * 0.001f * hdCamera.camera.focalLength / hdCamera.physicalParameters.aperture : 0.0f;
+            float apertureRadius = (enableDof && hdCamera.physicalParameters.aperture > 0) ? 0.5f * 0.001f * hdCamera.camera.focalLength / hdCamera.physicalParameters.aperture : 0.0f;
 
             return new Vector4(apertureRadius, dofSettings.focusDistance.value, 0.0f, 0.0f);
         }
@@ -346,7 +346,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 passData.sunLight = GetCurrentSunLight();
                 passData.hdCamera = hdCamera;
                 passData.colorBuffer = builder.WriteTexture(skyBuffer);
-                passData.depthTexture = builder.WriteTexture(CreateDepthBuffer(renderGraph, true, false));
+                passData.depthTexture = builder.WriteTexture(CreateDepthBuffer(renderGraph, true, MSAASamples.None));
                 passData.debugDisplaySettings = m_CurrentDebugDisplaySettings;
                 passData.skyManager = m_SkyManager;
 

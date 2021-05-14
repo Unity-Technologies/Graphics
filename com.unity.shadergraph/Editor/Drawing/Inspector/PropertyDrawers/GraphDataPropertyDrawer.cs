@@ -107,6 +107,7 @@ namespace UnityEditor.ShaderGraph.Drawing.Inspector.PropertyDrawers
                 }
             }
 
+#if VFX_GRAPH_10_0_0_OR_NEWER
             // Inform the user that VFXTarget is deprecated, if they are using one.
             if (graphData.m_ActiveTargets.Count(t => t.value.SupportsVFX()) == 1 &&
                 graphData.m_ActiveTargets.Count(t => t.value is VFXTarget) == 1)
@@ -121,6 +122,7 @@ namespace UnityEditor.ShaderGraph.Drawing.Inspector.PropertyDrawers
                 vfxWarning.Add(vfxWarningLabel);
                 element.Add(vfxWarning);
             }
+#endif
 
             return element;
         }

@@ -1,5 +1,4 @@
 // Wrapper vertex invocations for VFX. Necesarry to work around various null input geometry issues for vertex input layout on DX12 and Vulkan.
-// These entrypoints will only be called in the case of DX12/Vulkan.
 #if NULL_GEOMETRY_INPUT
     #ifdef MOTION_VEC_VERTEX_COMMON_INCLUDED
         PackedVaryingsType VertVFX(uint vertexID : VERTEXID_SEMANTIC, uint instanceID : INSTANCEID_SEMANTIC)

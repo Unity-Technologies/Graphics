@@ -165,7 +165,16 @@ namespace UnityEditor.Rendering.HighDefinition
 
             area.AmmendInfo(FrameSettingsField.DepthPrepassWithDeferredRendering, ignoreDependencies: true);
             area.AmmendInfo(FrameSettingsField.ClearGBuffers, ignoreDependencies: true);
-            area.AmmendInfo(FrameSettingsField.MSAA, ignoreDependencies: true);
+
+            area.AmmendInfo(FrameSettingsField.MSAAMode, ignoreDependencies: true);
+            area.AmmendInfo(
+                FrameSettingsField.MSAAMode,
+                overridedDefaultValue: defaultFrameSettings?.msaaMode ?? MSAAMode.FromHDRPAsset,
+                customGetter: () => serialized.msaaMode.GetEnumValue<MSAAMode>(),
+                customSetter: v => serialized.msaaMode.SetEnumValue((MSAAMode)v),
+                hasMixedValues: serialized.msaaMode.hasMultipleDifferentValues
+            );
+
             area.AmmendInfo(FrameSettingsField.AlphaToMask, ignoreDependencies: true);
             area.AmmendInfo(FrameSettingsField.DecalLayers, ignoreDependencies: true);
             area.AmmendInfo(FrameSettingsField.ObjectMotionVectors, ignoreDependencies: true);
@@ -257,6 +266,7 @@ namespace UnityEditor.Rendering.HighDefinition
             area.AmmendInfo(FrameSettingsField.Volumetrics, ignoreDependencies: true);
             area.AmmendInfo(FrameSettingsField.ReprojectionForVolumetrics, ignoreDependencies: true);
             area.AmmendInfo(FrameSettingsField.TransparentSSR, ignoreDependencies: true);
+            area.AmmendInfo(FrameSettingsField.ProbeVolume, hideInUI: !HDRenderPipelineGlobalSettings.Ensure().supportProbeVolumes);
 
             area.AmmendInfo(
                 FrameSettingsField.SssQualityMode,
