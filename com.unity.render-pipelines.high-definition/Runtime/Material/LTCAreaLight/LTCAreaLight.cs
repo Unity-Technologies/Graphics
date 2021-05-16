@@ -17,6 +17,7 @@ namespace UnityEngine.Rendering.HighDefinition
         // Hair
         KajiyaKaySpecular,
         KajiyaKayDiffuse,
+        Marschner,
 
         // Other
         CookTorrance,
@@ -45,6 +46,8 @@ namespace UnityEngine.Rendering.HighDefinition
                     return new BRDF_KajiyaKaySpecular();
                 case LTCLightingModel.KajiyaKayDiffuse:
                     return new BRDF_KajiyaKayDiffuse();
+                case LTCLightingModel.Marschner:
+                    return new BRDF_Marschner();
 
                 case LTCLightingModel.CookTorrance:
                     return new BRDF_CookTorrance();
@@ -125,6 +128,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
                 LoadLUT(m_LtcData, (int)LTCLightingModel.KajiyaKaySpecular, GraphicsFormat.R16G16B16A16_SFloat, s_LtcMatrixData_BRDF_KajiyaKaySpecular);
                 LoadLUT(m_LtcData, (int)LTCLightingModel.KajiyaKayDiffuse, GraphicsFormat.R16G16B16A16_SFloat, s_LtcMatrixData_BRDF_KajiyaKayDiffuse);
+                // TODO: Generate the Marschner LCT Table
 
                 LoadLUT(m_LtcData, (int)LTCLightingModel.CookTorrance, GraphicsFormat.R16G16B16A16_SFloat, s_LtcMatrixData_BRDF_CookTorrance);
                 LoadLUT(m_LtcData, (int)LTCLightingModel.Ward, GraphicsFormat.R16G16B16A16_SFloat, s_LtcMatrixData_BRDF_Ward);

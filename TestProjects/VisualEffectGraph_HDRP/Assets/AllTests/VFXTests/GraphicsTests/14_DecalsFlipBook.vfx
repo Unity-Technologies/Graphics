@@ -1438,9 +1438,8 @@ MonoBehaviour:
   m_UIInfos: {fileID: 114347380218361602}
   m_ParameterInfo: []
   m_ImportDependencies: []
-  m_GraphVersion: 7
+  m_GraphVersion: 8
   m_ResourceVersion: 1
-  m_saved: 1
   m_SubgraphDependencies: []
   m_CategoryPath: 
 --- !u!114 &114725874336250028
@@ -1994,6 +1993,8 @@ MonoBehaviour:
   capacity: 4032
   stripCapacity: 16
   particlePerStripCount: 16
+  needsComputeBounds: 0
+  boundsSettingMode: 1
   m_Space: 0
 --- !u!2058629511 &8926484042661614527
 VisualEffectResource:
@@ -2866,6 +2867,7 @@ MonoBehaviour:
   useAlphaClipping: 0
   generateMotionVector: 0
   excludeFromTAA: 0
+  materialOffset: 0
   m_SubOutputs:
   - {fileID: 8926484042661614667}
   cullMode: 2

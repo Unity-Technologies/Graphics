@@ -1,6 +1,5 @@
 using System;
 using System.Collections.Generic;
-using UnityEditor.Rendering;
 using UnityEngine.Profiling;
 
 namespace UnityEngine.Rendering.Universal.Internal
@@ -19,6 +18,8 @@ namespace UnityEngine.Rendering.Universal.Internal
         string m_ProfilerTag;
         ProfilingSampler m_ProfilingSampler;
         bool m_IsOpaque;
+
+        bool m_UseDepthPriming;
 
         static readonly int s_DrawObjectPassDataPropID = Shader.PropertyToID("_DrawObjectPassData");
 
@@ -55,6 +56,20 @@ namespace UnityEngine.Rendering.Universal.Internal
             m_ProfilingSampler = ProfilingSampler.Get(profileId);
         }
 
+        public override void OnCameraSetup(CommandBuffer cmd, ref RenderingData renderingData)
+        {
+            if (renderingData.cameraData.renderer.useDepthPriming && m_IsOpaque && (renderingData.cameraData.renderType == CameraRenderType.Base || renderingData.cameraData.clearDepth))
+            {
+                m_RenderStateBlock.depthState = new DepthState(false, CompareFunction.Equal);
+                m_RenderStateBlock.mask |= RenderStateMask.Depth;
+            }
+            else if (m_RenderStateBlock.depthState.compareFunction == CompareFunction.Equal)
+            {
+                m_RenderStateBlock.depthState = new DepthState(true, CompareFunction.LessEqual);
+                m_RenderStateBlock.mask |= RenderStateMask.Depth;
+            }
+        }
+
         /// <inheritdoc/>
         public override void Execute(ScriptableRenderContext context, ref RenderingData renderingData)
         {
@@ -84,6 +99,9 @@ namespace UnityEngine.Rendering.Universal.Internal
 
                 Camera camera = renderingData.cameraData.camera;
                 var sortFlags = (m_IsOpaque) ? renderingData.cameraData.defaultOpaqueSortFlags : SortingCriteria.CommonTransparent;
+                if (renderingData.cameraData.renderer.useDepthPriming && m_IsOpaque && (renderingData.cameraData.renderType == CameraRenderType.Base || renderingData.cameraData.clearDepth))
+                    sortFlags = SortingCriteria.SortingLayer | SortingCriteria.RenderQueue | SortingCriteria.OptimizeStateChanges | SortingCriteria.CanvasOrder;
+
                 var filterSettings = m_FilteringSettings;
 
                 #if UNITY_EDITOR
@@ -96,21 +114,14 @@ namespace UnityEngine.Rendering.Universal.Internal
 
                 DrawingSettings drawSettings = CreateDrawingSettings(m_ShaderTagIdList, ref renderingData, sortFlags);
 
-                if ((DebugHandler != null) && DebugHandler.IsActiveForCamera(ref renderingData.cameraData))
+                var activeDebugHandler = GetActiveDebugHandler(renderingData);
+                if (activeDebugHandler != null)
                 {
-                    foreach (DebugRenderSetup debugRenderSetup in DebugHandler.CreateDebugRenderSetupEnumerable(context, cmd))
-                    {
-                        DrawingSettings debugDrawingSettings = debugRenderSetup.CreateDrawingSettings(ref renderingData, drawSettings);
-
-                        if (debugRenderSetup.GetRenderStateBlock(out RenderStateBlock renderStateBlock))
+                    activeDebugHandler.DrawWithDebugRenderState(context, cmd, ref renderingData, ref drawSettings, ref filterSettings, ref m_RenderStateBlock,
+                        (ScriptableRenderContext ctx, ref RenderingData data, ref DrawingSettings ds, ref FilteringSettings fs, ref RenderStateBlock rsb) =>
                         {
-                            context.DrawRenderers(renderingData.cullResults, ref debugDrawingSettings, ref filterSettings, ref renderStateBlock);
-                        }
-                        else
-                        {
-                            context.DrawRenderers(renderingData.cullResults, ref debugDrawingSettings, ref filterSettings, ref m_RenderStateBlock);
-                        }
-                    }
+                            ctx.DrawRenderers(data.cullResults, ref ds, ref fs, ref rsb);
+                        });
                 }
                 else
                 {

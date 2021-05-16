@@ -21,12 +21,6 @@ void InitializeInputData(Varyings input, out InputData inputData)
     inputData.bakedGI = half3(0, 0, 0);
     inputData.normalizedScreenSpaceUV = 0;
     inputData.shadowMask = half4(1, 1, 1, 1);
-
-    #if defined(LIGHTMAP_ON)
-    inputData.lightmapUV = half2(0, 0);
-    #else
-    inputData.vertexSH = half3(0, 0, 0);
-    #endif
 }
 
 PackedVaryings vert(Attributes input)
@@ -54,6 +48,10 @@ half4 frag(PackedVaryings packedInput) : SV_TARGET
     #else
         half alpha = 1;
     #endif
+
+#if defined(_DBUFFER)
+    ApplyDecalToBaseColor(unpacked.positionCS, surfaceDescription.BaseColor);
+#endif
 
     InputData inputData;
     InitializeInputData(unpacked, inputData);

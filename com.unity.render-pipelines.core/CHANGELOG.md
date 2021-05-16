@@ -9,6 +9,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 ### Changed
 - ClearFlag.Depth does not implicitely clear stencil anymore. ClearFlag.Stencil added.
 - The RTHandleSystem no longer requires a specific number of sample for MSAA textures. Number of samples can be chosen independently for all textures.
+- Platform ShaderLibrary API headers now have a new macro layer for 2d texture sampling macros. This layer starts with PLATFORM_SAMPLE2D definition, and it gives the possibility of injecting sampling behavior on a render pipeline level. For example: being able to a global mip bias for temporal upscalers.
 
 ### Fixed
 - Fixed missing warning UI about Projector component being unsupported (case 1300327).
@@ -19,6 +20,10 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed normal bias field of reference volume being wrong until the profile UI was displayed.
 - Fixed L2 for Probe Volumes.
 - Fixed assertion on compression of L1 coefficients for Probe Volume.
+- Explicit half precision not working even when Unified Shader Precision Model is enabled.
+- Fixed ACES filter artefact due to half float error on some mobile platforms.
+- Fixed issue displaying a warning of different probe reference volume profiles even when they are equivalent.
+- Fixed missing increment/decrement controls from DebugUIIntField & DebugUIUIntField widget prefabs.
 
 ### Added
 - Support for the PlayStation 5 platform has been added.
@@ -30,17 +35,28 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - New method DrawHeaders for VolumeComponentsEditors
 - Unification of Material Editor Headers Scopes
 - New API functions with no side effects in DynamicResolutionHandler, to retrieve resolved drs scale and to apply DRS on a size.
-- Added a blitter for the SRPs.
-- Added 2D texture atlases.
+- Added a blitter utility class. Moved from HDRP to RP core.
+- Added a realtime 2D texture atlas utility classes. Moved from HDRP to RP core.
 - New methods on CoreEditorDrawers, to allow adding a label on a group before rendering the internal drawers
 - Method to generate a Texture2D of 1x1 with a plain color
 - Red, Green, Blue Texture2D on CoreEditorStyles
 - New API in DynamicResolutionHandler to handle multicamera rendering for hardware mode. Changing cameras and resetting scaling per camera should be safe.
 - Added SpeedTree8MaterialUpgrader, which provides utilities for upgrading and importing SpeedTree 8 assets to scriptable render pipelines.
 - Adding documentation links to Light Sections
+- Support for Lens Flare Data Driven (from images and Procedural shapes), on HDRP
+- New SRPLensFlareData Asset
+- Adding documentation links to Light Sections.
+- Added sampling noise to probe volume sampling position to hide seams between subdivision levels.
+- Added DebugUI.Foldout.isHeader property to allow creating full-width header foldouts in Rendering Debugger.
+- Added DebugUI.Flags.IsHidden to allow conditional display of widgets in Rendering Debugger.
+- Added "Expand/Collapse All" buttons to Rendering Debugger window menu.
+- Added mouse & touch input support for Rendering Debugger runtime UI, and fix problems when InputSystem package is used.
+- Add automatic spaces to enum display names used in Rendering Debugger and add support for InspectorNameAttribute.
+- Adding new API functions inside DynamicResolutionHandler to get mip bias. This allows dynamic resolution scaling applying a bias on the frame to improve on texture sampling detail.
+- Added a reminder if the data of probe volume might be obsolete.
 
 ### Changed
-- Changed Window/Render Pipeline/Render Pipeline Debug to Window/Rendering/Render Pipeline Debugger
+- Changed Window/Render Pipeline/Render Pipeline Debug to Window/Analysis/Rendering Debugger
 - Changed Window/Render Pipeline/Look Dev to Window/Analysis/Look Dev
 - Changed Window/Render Pipeline/Render Graph Viewer to Window/Analysis/Render Graph Viewer
 - Changed Window/Render Pipeline/Graphics Compositor to Window/Rendering/Graphics Compositor

@@ -178,35 +178,14 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                 if (passDescriptor.validVertexBlocks == null)
                     passDescriptor.validVertexBlocks = tmpCtx.activeBlocks.Where(b => b.shaderStage == ShaderStage.Vertex).ToArray();
 
-                // Add keywords from subshaders:
+                // Add various collections, most are init in HDShaderPasses.cs
                 passDescriptor.keywords = passDescriptor.keywords == null ? new KeywordCollection() : new KeywordCollection { passDescriptor.keywords }; // Duplicate keywords to avoid side effects (static list modification)
-                passDescriptor.defines = passDescriptor.defines == null ? new DefineCollection() : new DefineCollection { passDescriptor.defines }; // Duplicate defines to avoid side effects (static list modification)
+
+                passDescriptor.fieldDependencies = passDescriptor.fieldDependencies == null ? new DependencyCollection() : new DependencyCollection { passDescriptor.fieldDependencies }; // Duplicate fieldDependencies to avoid side effects (static list modification)
+                passDescriptor.fieldDependencies.Add(CoreFieldDependencies.Default);
+
                 CollectPassKeywords(ref passDescriptor);
 
-                // Set default values for HDRP "surface" passes:
-                if (passDescriptor.structs == null)
-                    passDescriptor.structs = CoreStructCollections.Default;
-
-                if (passDescriptor.fieldDependencies == null)
-                {
-                    if (TargetsVFX())
-                        passDescriptor.fieldDependencies = new DependencyCollection()
-                        {
-                            CoreFieldDependencies.Default,
-                            VFXHDRPSubTarget.ElementSpaceDependencies
-                        };
-                    else
-                        passDescriptor.fieldDependencies = CoreFieldDependencies.Default;
-                }
-                else if (TargetsVFX())
-                {
-                    var fieldDependencies = passDescriptor.fieldDependencies;
-                    passDescriptor.fieldDependencies = new DependencyCollection()
-                    {
-                        fieldDependencies,
-                        VFXHDRPSubTarget.ElementSpaceDependencies
-                    };
-                }
 
                 finalPasses.Add(passDescriptor, passes[i].fieldConditions);
             }

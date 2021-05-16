@@ -1,6 +1,7 @@
 #if ENABLE_INPUT_SYSTEM && ENABLE_INPUT_SYSTEM_PACKAGE
     #define USE_INPUT_SYSTEM
 using UnityEngine.InputSystem;
+using UnityEngine.InputSystem.EnhancedTouch;
 #endif
 
 using System.Collections.Generic;
@@ -252,20 +253,23 @@ namespace UnityEngine.Rendering
         internal bool GetActionToggleDebugMenuWithTouch()
         {
 #if USE_INPUT_SYSTEM
+            if (!EnhancedTouchSupport.enabled)
+                return false;
+
             var touches = InputSystem.EnhancedTouch.Touch.activeTouches;
             var touchCount = touches.Count;
-            const InputSystem.TouchPhase touchPhaseBegan = InputSystem.TouchPhase.Began;
+            InputSystem.TouchPhase? expectedTouchPhase = null;
 #else
             var touches = Input.touches;
             var touchCount = Input.touchCount;
-            const TouchPhase touchPhaseBegan = TouchPhase.Began;
+            TouchPhase? expectedTouchPhase = TouchPhase.Began;
 #endif
             if (touchCount == 3)
             {
                 foreach (var touch in touches)
                 {
                     // Gesture: 3-finger double-tap
-                    if (touch.phase == touchPhaseBegan && touch.tapCount == 2)
+                    if ((!expectedTouchPhase.HasValue || touch.phase == expectedTouchPhase.Value) && touch.tapCount == 2)
                         return true;
                 }
             }
@@ -273,9 +277,21 @@ namespace UnityEngine.Rendering
             return false;
         }
 
+        internal bool GetActionReleaseScrollTarget()
+        {
+#if USE_INPUT_SYSTEM
+            bool mouseWheelActive = Mouse.current != null && Mouse.current.scroll.ReadValue() != Vector2.zero;
+            bool touchSupported = Touchscreen.current != null;
+#else
+            bool mouseWheelActive = Input.mouseScrollDelta != Vector2.zero;
+            bool touchSupported = Input.touchSupported;
+#endif
+            return mouseWheelActive || touchSupported; // Touchscreens have general problems with scrolling, so it's disabled.
+        }
+
         void RegisterInputs()
         {
-#if UNITY_EDITOR
+#if UNITY_EDITOR && !USE_INPUT_SYSTEM
             var inputEntries = new List<InputManagerEntry>
             {
                 new InputManagerEntry { name = kEnableDebugBtn1,  kind = InputManagerEntry.Kind.KeyOrButton, btnPositive = "left ctrl",   altBtnPositive = "joystick button 8" },

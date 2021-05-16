@@ -135,7 +135,7 @@ MonoBehaviour:
       m_Type:
         m_SerializableType: UnityEngine.Texture2DArray, UnityEngine.CoreModule, Version=0.0.0.0,
           Culture=neutral, PublicKeyToken=null
-      m_SerializableObject: '{"obj":{"fileID":18700000,"guid":"5f2171281d6302d428a3dc151a6a07f3","type":2}}'
+      m_SerializableObject: 
     min: -Infinity
     max: Infinity
     enumValues: []
@@ -149,7 +149,7 @@ MonoBehaviour:
       m_Type:
         m_SerializableType: UnityEngine.Texture2D, UnityEngine.CoreModule, Version=0.0.0.0,
           Culture=neutral, PublicKeyToken=null
-      m_SerializableObject: '{"obj":{"fileID":2800000,"guid":"947dd615ac304d74ea809613f2b3b7d1","type":3}}'
+      m_SerializableObject: 
     min: -Infinity
     max: Infinity
     enumValues: []
@@ -225,9 +225,8 @@ MonoBehaviour:
     enumValues: []
     descendantCount: 0
   m_ImportDependencies: []
-  m_GraphVersion: 7
+  m_GraphVersion: 8
   m_ResourceVersion: 1
-  m_saved: 1
   m_SubgraphDependencies: []
   m_CategoryPath: 
 --- !u!114 &114380859405582094
@@ -291,6 +290,8 @@ MonoBehaviour:
   capacity: 32
   stripCapacity: 16
   particlePerStripCount: 16
+  needsComputeBounds: 0
+  boundsSettingMode: 1
   m_Space: 0
 --- !u!114 &114512514798047786
 MonoBehaviour:
@@ -665,6 +666,7 @@ MonoBehaviour:
   useAlphaClipping: 0
   generateMotionVector: 0
   excludeFromTAA: 0
+  materialOffset: 0
   m_SubOutputs:
   - {fileID: 8926484042661614684}
   cullMode: 0
@@ -683,6 +685,9 @@ MonoBehaviour:
   flipbookLayout: 0
   shaderGraph: {fileID: -5475051401550479605, guid: c4c8bf7d10931ba41b4b54f15d185935,
     type: 3}
+  materialSettings:
+    m_PropertyNames: []
+    m_PropertyValues: []
   materialType: 0
   onlyAmbientLighting: 0
   diffusionProfileAsset: {fileID: 0}
@@ -1321,6 +1326,7 @@ MonoBehaviour:
   useAlphaClipping: 0
   generateMotionVector: 0
   excludeFromTAA: 0
+  materialOffset: 0
   m_SubOutputs:
   - {fileID: 8926484042661615215}
   cullMode: 0
@@ -1339,6 +1345,9 @@ MonoBehaviour:
   flipbookLayout: 0
   shaderGraph: {fileID: -5475051401550479605, guid: c4c8bf7d10931ba41b4b54f15d185935,
     type: 3}
+  materialSettings:
+    m_PropertyNames: []
+    m_PropertyValues: []
   materialType: 0
   onlyAmbientLighting: 0
   diffusionProfileAsset: {fileID: 0}

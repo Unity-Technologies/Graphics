@@ -23,4 +23,4 @@ This translates to a Sample() call on the texture in High-Level Shading Language
 
 ## Limitations
 
-This Operator only runs on the GPU, therefore it does not work when plugged into **Spawner context** ports.
+This Operator only runs on the GPU, therefore it does not work when plugged into **Spawner Context** ports.

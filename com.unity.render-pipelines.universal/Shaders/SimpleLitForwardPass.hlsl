@@ -94,11 +94,16 @@ void InitializeInputData(Varyings input, half3 normalTS, out InputData inputData
     inputData.normalizedScreenSpaceUV = GetNormalizedScreenSpaceUV(input.positionCS);
     inputData.shadowMask = SAMPLE_SHADOWMASK(input.staticLightmapUV);
 
-#if defined(LIGHTMAP_ON)
-    inputData.lightmapUV = input.staticLightmapUV;
-#else
+    #if defined(DEBUG_DISPLAY)
+    #if defined(DYNAMICLIGHTMAP_ON)
+    inputData.dynamicLightmapUV = input.dynamicLightmapUV.xy;
+    #endif
+    #if defined(LIGHTMAP_ON)
+    inputData.staticLightmapUV = input.staticLightmapUV;
+    #else
     inputData.vertexSH = input.vertexSH;
-#endif
+    #endif
+    #endif
 }
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -168,6 +173,10 @@ half4 LitPassFragmentSimple(Varyings input) : SV_Target
     InputData inputData;
     InitializeInputData(input, surfaceData.normalTS, inputData);
     SETUP_DEBUG_TEXTURE_DATA(inputData, input.uv, _BaseMap);
+
+#ifdef _DBUFFER
+    ApplyDecalToSurfaceData(input.positionCS, surfaceData, inputData);
+#endif
 
     half4 color = UniversalFragmentBlinnPhong(inputData, surfaceData);
     color.rgb = MixFog(color.rgb, inputData.fogCoord);
