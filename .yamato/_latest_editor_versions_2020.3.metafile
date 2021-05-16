@@ -51,8 +51,8 @@ editor_versions:
       version: 2020.3.8f1
   2020_3_staging:
     Android:
-      revision: 8df6281f548d72325d19c5ccfa15aa232a0b14d8
-      updated_at: '2021-05-15 23:22:43.391032'
+      revision: 6965e5786beb83892b3f76d7a505eb4299fc31f6
+      updated_at: '2021-05-16 23:25:04.775908'
       version: ''
     Linux:
       revision: 8df6281f548d72325d19c5ccfa15aa232a0b14d8
