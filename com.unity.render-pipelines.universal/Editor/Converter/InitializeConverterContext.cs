@@ -1,12 +1,12 @@
 using System.Collections.Generic;
 
-namespace UnityEditor.Rendering
+namespace UnityEditor.Rendering.Universal.Converters
 {
     /// <summary>
     /// A structure needed for the initialization step of the converter.
     /// Stores data to be visible in the UI.
     /// </summary>
-    public struct InitializeConverterContext
+    internal struct InitializeConverterContext
     {
         /// <summary>
         /// Stores the list of ConverterItemDescriptor that will be filled in during the initialization step.
@@ -18,7 +18,7 @@ namespace UnityEditor.Rendering
         /// This will be used to display information to the user in the UI.
         /// </summary>
         /// <param name="item">The item to add to the list items to convert</param>
-        public void AddAssetToConvert(ConverterItemDescriptor item)
+        internal void AddAssetToConvert(ConverterItemDescriptor item)
         {
             items.Add(item);
         }

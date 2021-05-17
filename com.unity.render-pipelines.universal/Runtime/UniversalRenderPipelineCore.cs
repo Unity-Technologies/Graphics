@@ -835,6 +835,7 @@ namespace UnityEngine.Rendering.Universal
         UberPostProcess,
         Bloom,
         LensFlareDataDriven,
+        MotionVectors,
 
         FinalBlit
     }
