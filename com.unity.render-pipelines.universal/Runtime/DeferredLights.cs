@@ -363,6 +363,7 @@ namespace UnityEngine.Rendering.Universal.Internal
 
         // Output lighting result.
         internal RenderTargetHandle[] GbufferAttachments { get; set; }
+        internal RenderTargetIdentifier[] DeferredInputAttachments { get; set; }
         // Input depth texture, also bound as read-only RT
         internal RenderTargetHandle DepthAttachment { get; set; }
         //
@@ -446,7 +447,7 @@ namespace UnityEngine.Rendering.Universal.Internal
             public LightCookieManager lightCookieManager;
         }
 
-        internal DeferredLights(InitParams initParams)
+        internal DeferredLights(InitParams initParams, bool useNativeRenderPass = false)
         {
             // Cache result for GL platform here. SystemInfo properties are in C++ land so repeated access will be unecessary penalized.
             // They can also only be called from main thread!
@@ -495,7 +496,7 @@ namespace UnityEngine.Rendering.Universal.Internal
             this.TiledDeferredShading = true;
             this.UseJobSystem = true;
             m_HasTileVisLights = false;
-
+            this.UseRenderPass = useNativeRenderPass;
             m_LightCookieManager = initParams.lightCookieManager;
         }
 
@@ -577,6 +578,8 @@ namespace UnityEngine.Rendering.Universal.Internal
                     CoreUtils.SetKeyword(cmd, ShaderKeywordStrings.LightmapShadowMixing, isSubtractive || isShadowMaskAlways);
                     CoreUtils.SetKeyword(cmd, ShaderKeywordStrings.ShadowsShadowMask, isShadowMask);
                     CoreUtils.SetKeyword(cmd, ShaderKeywordStrings.MixedLightingSubtractive, isSubtractive); // Backward compatibility
+                    // This should be moved to a more global scope when framebuffer fetch is introduced to more passes
+                    CoreUtils.SetKeyword(cmd, ShaderKeywordStrings.RenderPassEnabled, this.UseRenderPass && renderingData.cameraData.cameraType == CameraType.Game);
 
                     m_LightCookieManager.Setup(context, cmd, ref renderingData.lightData);
                 }
@@ -750,6 +753,19 @@ namespace UnityEngine.Rendering.Universal.Internal
             // Once the mixed lighting mode has been discovered, we know how many MRTs we need for the gbuffer.
             // Subtractive mixed lighting requires shadowMask output, which is actually used to store unity_ProbesOcclusion values.
 
+            CreateGbufferAttachments();
+        }
+
+        // In cases when custom pass is injected between GBuffer and Deferred passes we need to fallback
+        // To non-renderpass path in the middle of setup, which means recreating the gbuffer attachments as well due to GBuffer4 used for RenderPass
+        internal void DisableFramebufferFetchInput()
+        {
+            this.UseRenderPass = false;
+            CreateGbufferAttachments();
+        }
+
+        internal void CreateGbufferAttachments()
+        {
             int gbufferSliceCount = this.GBufferSliceCount;
             if (this.GbufferAttachments == null || this.GbufferAttachments.Length != gbufferSliceCount)
             {
@@ -800,8 +816,15 @@ namespace UnityEngine.Rendering.Universal.Internal
                 this.GbufferAttachmentIdentifiers[i] = this.GbufferAttachments[i].Identifier();
                 this.GbufferFormats[i] = this.GetGBufferFormat(i);
             }
+            if (this.DeferredInputAttachments == null && this.UseRenderPass && this.GbufferAttachments.Length >= 5)
+            {
+                this.DeferredInputAttachments = new RenderTargetIdentifier[4]
+                {
+                    this.GbufferAttachmentIdentifiers[0], this.GbufferAttachmentIdentifiers[1],
+                    this.GbufferAttachmentIdentifiers[2], this.GbufferAttachmentIdentifiers[4]
+                };
+            }
             this.DepthAttachmentIdentifier = depthAttachment.Identifier();
-
 #if ENABLE_VR && ENABLE_XR_MODULE
             // In XR SinglePassInstance mode, the RTs are texture-array and all slices must be bound.
             if (renderingData.cameraData.xr.enabled)

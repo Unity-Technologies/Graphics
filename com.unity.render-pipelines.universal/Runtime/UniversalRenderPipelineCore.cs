@@ -37,6 +37,7 @@ namespace UnityEngine.Rendering.Universal
         public int additionalLightsCount;
         public int maxPerObjectAdditionalLightsCount;
         public NativeArray<VisibleLight> visibleLights;
+        internal NativeArray<int> originalIndices;
         public bool shadeAdditionalLightsPerVertex;
         public bool supportsMixedLighting;
         public bool reflectionProbeBoxProjection;
@@ -329,6 +330,7 @@ namespace UnityEngine.Rendering.Universal
         public static readonly string CastingPunctualLightShadow = "_CASTING_PUNCTUAL_LIGHT_SHADOW"; // This is used during shadow map generation to differentiate between directional and punctual light shadows, as they use different formulas to apply Normal Bias
         public static readonly string AdditionalLightsVertex = "_ADDITIONAL_LIGHTS_VERTEX";
         public static readonly string AdditionalLightsPixel = "_ADDITIONAL_LIGHTS";
+        internal static readonly string ClusteredRendering = "_CLUSTERED_RENDERING";
         public static readonly string AdditionalLightShadows = "_ADDITIONAL_LIGHT_SHADOWS";
         public static readonly string ReflectionProbeBoxProjection = "_REFLECTION_PROBE_BOX_PROJECTION";
         public static readonly string ReflectionProbeBlending = "_REFLECTION_PROBE_BLENDING";
@@ -337,6 +339,7 @@ namespace UnityEngine.Rendering.Universal
         public static readonly string LightmapShadowMixing = "LIGHTMAP_SHADOW_MIXING";
         public static readonly string ShadowsShadowMask = "SHADOWS_SHADOWMASK";
         public static readonly string LightLayers = "_LIGHT_LAYERS";
+        public static readonly string RenderPassEnabled = "_RENDER_PASS_ENABLED";
         public static readonly string BillboardFaceCameraPos = "BILLBOARD_FACE_CAMERA_POS";
         public static readonly string LightCookies = "_LIGHT_COOKIES";
 
@@ -832,6 +835,7 @@ namespace UnityEngine.Rendering.Universal
         UberPostProcess,
         Bloom,
         LensFlareDataDriven,
+        MotionVectors,
 
         FinalBlit
     }

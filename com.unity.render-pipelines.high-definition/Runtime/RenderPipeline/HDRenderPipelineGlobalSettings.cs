@@ -696,6 +696,9 @@ namespace UnityEngine.Rendering.HighDefinition
         [SerializeField]
         internal bool useDLSSCustomProjectId = false;
 
+        [SerializeField]
+        internal bool supportProbeVolumes = false;
+
         #endregion
 
         #region APV

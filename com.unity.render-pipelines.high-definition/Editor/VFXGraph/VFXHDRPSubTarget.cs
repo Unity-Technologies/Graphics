@@ -86,22 +86,21 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
             {
                 var passDescriptor = passes[i].descriptor;
 
-                // Warning: Touching the structs field may require to manually append the default structs here.
+                // Warning: We are replacing the struct provided in the regular pass. It is ok as for now the VFX editor don't support
+                // tessellation or raytracing
                 passDescriptor.structs = new StructCollection
                 {
                     AttributesMeshVFX, // TODO: Could probably re-use the original HD Attributes Mesh and just ensure Instancing enabled.
-                    AppendVFXInterpolator(HDStructs.VaryingsMeshToPS, context, data),
-                    Structs.SurfaceDescriptionInputs,
                     Structs.VertexDescriptionInputs,
+                    Structs.SurfaceDescriptionInputs,
+                    AppendVFXInterpolator(HDStructs.VaryingsMeshToPS, context, data),
                     attributesStruct,
                     sourceAttributesStruct
                 };
 
-                passDescriptor.pragmas = new PragmaCollection
-                {
-                    ModifyVertexEntry(passDescriptor.pragmas),
-                    Pragma.MultiCompileInstancing
-                };
+                // Add additional VFX dependencies
+                passDescriptor.fieldDependencies = passDescriptor.fieldDependencies == null ? new DependencyCollection() : new DependencyCollection { passDescriptor.fieldDependencies }; // Duplicate fieldDependencies to avoid side effects (static list modification)
+                passDescriptor.fieldDependencies.Add(VFXHDRPSubTarget.ElementSpaceDependencies);
 
                 passDescriptor.additionalCommands = new AdditionalCommandCollection
                 {
