@@ -48,6 +48,7 @@ namespace Editor.Converters
         public override string name => "Readonly Material Converter";
         public override string info => "Converts references to Built-In readonly materials to URP readonly materials";
         public override Type container => typeof(BuiltInToURPConverterContainer);
+        public override bool NeedsIndexing => true;
 
         private bool _startingSceneIsClosed;
 
