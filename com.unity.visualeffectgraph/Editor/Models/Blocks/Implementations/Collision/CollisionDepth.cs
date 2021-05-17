@@ -148,14 +148,29 @@ if (aProjPos.x < 1.0f && aProjPos.y < 1.0f) // visible on screen
 
         vPos10.xyz /= vPos10.w;
         vPos01.xyz /= vPos01.w;
-
-        viewPos *= linearEyeDepth / viewPos.z; // Position on depth surface
+        float r = 0.0f;
+        if(!Camera_orthographic)
+        {
+            r = linearEyeDepth / viewPos.z;
+        }
+        else
+        {
+            // Will work for planar surface, not curved, because the normal nEstimate is evaluated away from the real projection point
+            float3 pSurface = viewPos;
+            pSurface.z = linearEyeDepth;
+            float3 nEstimate = normalize(cross(vPos01.xyz - pSurface,vPos10.xyz - pSurface));
+            r = dot(pSurface,nEstimate)/dot(viewPos,nEstimate);
+        }
+        viewPos *= r; // Position on depth surface
 
         float3 n = normalize(cross(vPos01.xyz - viewPos,vPos10.xyz - viewPos));
         n = normalize(mul((float3x3)ViewToVFX,n));
+        n = float3(0,1,0);
 
-        viewPos *= 1.0f - (radius + VFX_EPSILON) / linearEyeDepth; // Push based on radius
-        position = mul(ViewToVFX,float4(viewPos,1.0f)).xyz;";
+        viewPos *= 1.0f - radius / linearEyeDepth; // Push based on radius
+        position = mul(ViewToVFX,float4(viewPos,1.0f)).xyz;
+"
+                    ;
 
                 Source += collisionResponseSource;
                 Source += @"
