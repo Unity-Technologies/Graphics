@@ -32,6 +32,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Added Light cookies support to directional, point and spot light. Directional light cookie is main light only feature.
 - VFX: Basic support of Lit output.
 - Added Motion Vector render pass for URP.
+- VFX: Fix light cookies integration.
 
 ### Changed
 - Moved fog evaluation from vertex shader to pixel shader. This improves rendering of fog for big triangles and fog quality. This can change the look of the fog slightly.
