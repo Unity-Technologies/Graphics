@@ -79,7 +79,7 @@ real2 UnpackDerivativeNormalRGB(real4 packedNormal, real scale = 1.0)
 real2 UnpackDerivativeNormalAG(real4 packedNormal, real scale = 1.0)
 {
     real2 vT   = packedNormal.ag * 2.0 - 1.0;                      // Unsigned to signed
-    real  rcpZ = rsqrt(max(1 - Sq(vT.x) - Sq(vT.y), Sq(REAL_EPS))); // Clamp to avoid INF
+    real  rcpZ = rsqrt(max(1 - Sq(vT.x) - Sq(vT.y), HALF_MIN_SQRT)); // Clamp to avoid INF
 
     return ConvertTangentSpaceNormalToHeightMapGradient(vT.xy, rcpZ, scale);
 }

@@ -1,17 +1,16 @@
 using System;
+using System.Collections.Generic;
 using UnityEngine.Experimental.Rendering;
 
 namespace UnityEngine.Rendering.Universal.Internal
 {
     public class DepthNormalOnlyPass : ScriptableRenderPass
     {
-        private static readonly ShaderTagId k_ShaderTagId = new ShaderTagId("DepthNormals");
-
         internal RenderTextureDescriptor normalDescriptor { get; set; }
         internal RenderTextureDescriptor depthDescriptor { get; set; }
         internal bool allocateDepth { get; set; } = true;
         internal bool allocateNormal { get; set; } = true;
-        internal ShaderTagId shaderTagId { get; set; } = k_ShaderTagId;
+        internal List<ShaderTagId> shaderTagIds { get;  set; }
 
         private RenderTargetHandle depthHandle { get; set; }
         private RenderTargetHandle normalHandle { get; set; }
@@ -20,6 +19,7 @@ namespace UnityEngine.Rendering.Universal.Internal
 
         // Constants
         private const int k_DepthBufferBits = 32;
+        private static readonly List<ShaderTagId> k_DepthNormals = new List<ShaderTagId> { new ShaderTagId("DepthNormals"), new ShaderTagId("DepthNormalsOnly") };
 
         /// <summary>
         /// Create the DepthNormalOnlyPass
@@ -29,6 +29,7 @@ namespace UnityEngine.Rendering.Universal.Internal
             base.profilingSampler = new ProfilingSampler(nameof(DepthNormalOnlyPass));
             m_FilteringSettings = new FilteringSettings(renderQueueRange, layerMask);
             renderPassEvent = evt;
+            useNativeRenderPass = false;
         }
 
         /// <summary>
@@ -66,7 +67,7 @@ namespace UnityEngine.Rendering.Universal.Internal
 
             this.allocateDepth = true;
             this.allocateNormal = true;
-            this.shaderTagId = k_ShaderTagId;
+            this.shaderTagIds = k_DepthNormals;
         }
 
         /// <inheritdoc/>
@@ -111,7 +112,7 @@ namespace UnityEngine.Rendering.Universal.Internal
                 cmd.Clear();
 
                 var sortFlags = renderingData.cameraData.defaultOpaqueSortFlags;
-                var drawSettings = CreateDrawingSettings(this.shaderTagId, ref renderingData, sortFlags);
+                var drawSettings = CreateDrawingSettings(this.shaderTagIds, ref renderingData, sortFlags);
                 drawSettings.perObjectData = PerObjectData.None;
 
                 ref CameraData cameraData = ref renderingData.cameraData;

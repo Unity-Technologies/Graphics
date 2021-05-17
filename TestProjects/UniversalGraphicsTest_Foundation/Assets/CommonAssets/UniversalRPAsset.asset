@@ -20,7 +20,7 @@ MonoBehaviour:
   - {fileID: 11400000, guid: f59607d3476b54858a594ea904187fb5, type: 2}
   - {fileID: 11400000, guid: 676c15eaf197b43079a39998e6c23816, type: 2}
   - {fileID: 11400000, guid: e46834cadfc4eb241bd46a362765a390, type: 2}
-  - {fileID: 11400000, guid: 25dd23104304c1c44af89227207beefb, type: 2}
+  - {fileID: 0}
   - {fileID: 11400000, guid: cf6f9a77b024a423386dd9c195cae7cd, type: 2}
   - {fileID: 11400000, guid: eb924988a8ba4aa4c93a60d0380ce254, type: 2}
   - {fileID: 11400000, guid: 56d7ecd0b54e2884191ca2c577dbacea, type: 2}
@@ -34,6 +34,7 @@ MonoBehaviour:
   - {fileID: 11400000, guid: adbdcedb560f6cf4085b03ba7218e899, type: 2}
   - {fileID: 11400000, guid: 73e47dc1b5a4ddd4e9b3738a03fe9525, type: 2}
   - {fileID: 11400000, guid: 9a26b2a5c669cc1409605b459d1696ea, type: 2}
+  - {fileID: 11400000, guid: 44c1717b6468947409aaeb8bec9b287c, type: 2}
   m_DefaultRendererIndex: 0
   m_RequireDepthTexture: 1
   m_RequireOpaqueTexture: 1
@@ -66,6 +67,7 @@ MonoBehaviour:
   m_UseSRPBatcher: 1
   m_SupportsDynamicBatching: 0
   m_MixedLightingSupported: 0
+  m_SupportsLightLayers: 0
   m_DebugLevel: 0
   m_UseAdaptivePerformance: 1
   m_ColorGradingMode: 0

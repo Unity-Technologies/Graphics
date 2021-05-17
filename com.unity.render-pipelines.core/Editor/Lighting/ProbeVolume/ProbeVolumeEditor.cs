@@ -26,19 +26,34 @@ namespace UnityEditor.Experimental.Rendering
 
         public override void OnInspectorGUI()
         {
+            ProbeVolume probeVolume = target as ProbeVolume;
+
+            bool hasChanges = false;
+            if (probeVolume.cachedTransform != probeVolume.gameObject.transform.worldToLocalMatrix)
+            {
+                hasChanges = true;
+            }
+
+            if (!probeVolume.cachedParameters.IsEquivalent(probeVolume.parameters))
+            {
+                hasChanges = true;
+            }
+
+            probeVolume.mightNeedRebaking = hasChanges;
+
             var renderPipelineAsset = GraphicsSettings.renderPipelineAsset;
             if (renderPipelineAsset != null && renderPipelineAsset.GetType().Name == "HDRenderPipelineAsset")
             {
                 serializedObject.Update();
 
                 ProbeVolumeUI.Inspector.Draw(m_SerializedProbeVolume, this);
-
-                m_SerializedProbeVolume.Apply();
             }
             else
             {
                 EditorGUILayout.HelpBox("Probe Volume is not a supported feature by this SRP.", MessageType.Error, wide: true);
             }
+
+            m_SerializedProbeVolume.Apply();
         }
 
         [DrawGizmo(GizmoType.InSelectionHierarchy)]
