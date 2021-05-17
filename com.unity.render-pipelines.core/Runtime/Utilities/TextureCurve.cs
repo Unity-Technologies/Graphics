@@ -124,6 +124,8 @@ namespace UnityEngine.Rendering
         /// <returns>A 128x1 texture.</returns>
         public Texture2D GetTexture()
         {
+            Profiling.Profiler.BeginSample($"{nameof(TextureCurve)}.{nameof(GetTexture)}");
+
             if (m_Texture == null)
             {
                 m_Texture = new Texture2D(k_Precision, 1, GetTextureFormat(), false, true);
@@ -145,6 +147,8 @@ namespace UnityEngine.Rendering
                 m_Texture.Apply(false, false);
                 m_IsTextureDirty = false;
             }
+
+            Profiling.Profiler.EndSample();
 
             return m_Texture;
         }
@@ -236,6 +240,77 @@ namespace UnityEngine.Rendering
             m_Curve.SmoothTangents(index, weight);
             SetDirty();
         }
+
+        public void Interp(TextureCurve @from, TextureCurve to, float t)
+        {
+            if (t == 0f)
+            {
+                SetValue(from);
+                return;
+            }
+            else if (t == 1f)
+            {
+                SetValue(to);
+                return;
+            }
+
+            Profiling.Profiler.BeginSample($"{nameof(TextureCurve)}.{nameof(Interp)}");
+
+            var fromCurve = new AnimationCurve();
+            var fromKeys = from.m_Curve.keys;
+            fromCurve.keys = fromKeys;
+            var toCurve = new AnimationCurve();
+            var toKeys = to.m_Curve.keys;
+            toCurve.keys = toKeys;
+
+            for (int i = 0; i < fromKeys.Length; i++)
+            {
+                var time = fromKeys[i].time;
+                toCurve.AddKey(time, toCurve.Evaluate(time));
+            }
+
+            for (int i = 0; i < toKeys.Length; i++)
+            {
+                var time = toKeys[i].time;
+                fromCurve.AddKey(time, fromCurve.Evaluate(time));
+            }
+
+            for (int i = m_Curve.length - 1; i >= 0; i--)
+                m_Curve.RemoveKey(i);
+
+            var length = fromCurve.length;
+            Debug.Assert(length == toCurve.length);
+            for (int i = 0; i < length; i++)
+            {
+                var fromKey = fromCurve[i];
+                var toKey = toCurve[i];
+                var key = new Keyframe(fromKey.time,
+                    Mathf.Lerp(fromKey.value, toKey.value, t),
+                    Mathf.Lerp(fromKey.inTangent, toKey.inTangent, t),
+                    Mathf.Lerp(fromKey.outTangent, toKey.outTangent, t));
+
+                m_Curve.AddKey(key);
+            }
+
+            SetDirty();
+
+            Profiling.Profiler.EndSample();
+        }
+
+        public void SetValue(TextureCurve value)
+        {
+            Profiling.Profiler.BeginSample($"{nameof(TextureCurve)}.{nameof(Interp)}");
+
+            var keys = value.m_Curve.keys;
+            m_Curve.keys = keys;
+            m_ZeroValue = value.m_ZeroValue;
+            m_Loop = value.m_Loop;
+            m_Range = value.m_Range;
+            length = keys.Length;
+            SetDirty();
+
+            Profiling.Profiler.EndSample();
+        }
     }
 
     /// <summary>
@@ -257,6 +332,14 @@ namespace UnityEngine.Rendering
         /// </summary>
         public override void Release() => m_Value.Release();
 
-        // TODO: TextureCurve interpolation
+        public override void SetValue(VolumeParameter parameter)
+        {
+            m_Value.SetValue(((TextureCurveParameter)parameter).m_Value);
+        }
+
+        public override void Interp(TextureCurve from, TextureCurve to, float t)
+        {
+            m_Value.Interp(from, to, t);
+        }
     }
 }
