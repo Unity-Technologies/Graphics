@@ -60,6 +60,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Added path tracing support for AxF material.
 - Added support for surface gradient based normal blending for decals.
 - Added support for tessellation for all master node in shader graph.
+- Added ValidateMaterial callbacks to ShaderGUI.
 
 ### Fixed
 - Fixed Intensity Multiplier not affecting realtime global illumination.
@@ -271,6 +272,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Augmented debug visualization for probe volumes.
 - Global Camera shader constants are now pushed when doing a custom render callback.
 - Splited HDProjectSettings with new HDUserSettings in UserProject. Now Wizard working variable should not bother versioning tool anymore (case 1330640)
+- Removed redundant Show Inactive Objects and Isolate Selection checkboxes from the Emissive Materials tab of the Light Explorer (case 1331750).
 
 ## [11.0.0] - 2020-10-21
 

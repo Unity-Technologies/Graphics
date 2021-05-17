@@ -97,10 +97,16 @@ namespace UnityEditor.VFX
         private static void ComputeEventAttributeDescs(List<VFXLayoutElementDesc> globalEventAttributes, IEnumerable<VFXContext> contexts)
         {
             globalEventAttributes.Clear();
-            globalEventAttributes.Add(new VFXLayoutElementDesc() { name = "spawnCount", type = VFXValueType.Float });
+
+            //SpawnCount should always be added first : spawnCount is an implicit parameter from eventAttribute
+            globalEventAttributes.Add(new VFXLayoutElementDesc()
+            {
+                name = VFXAttribute.SpawnCount.name,
+                type = VFXAttribute.SpawnCount.type
+            });
 
             IEnumerable<VFXLayoutElementDesc> globalAttribute = Enumerable.Empty<VFXLayoutElementDesc>();
-            foreach (var context in contexts.Where(o => o.contextType == VFXContextType.Spawner))
+            foreach (var context in contexts.Where(o => o.contextType == VFXContextType.Spawner || o.contextType == VFXContextType.Event))
             {
                 var attributesToStoreFromOutputContext = context.outputContexts.Select(o => o.GetData()).Where(o => o != null)
                     .SelectMany(o => o.GetAttributes().Where(a => (a.mode & VFXAttributeMode.ReadSource) != 0));
