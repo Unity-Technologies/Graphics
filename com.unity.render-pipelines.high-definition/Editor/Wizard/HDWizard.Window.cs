@@ -111,6 +111,9 @@ namespace UnityEditor.Rendering.HighDefinition
             public static readonly ConfigStyle hdrpLookDevVolumeProfile = new ConfigStyle(
                 label: L10n.Tr("Default Look Dev volume profile"),
                 error: L10n.Tr("Default Look Dev volume profile must be assigned in the HDRP Settings! Also, for it to be editable, it should be outside of package."));
+            public static readonly ConfigStyle hdrpMigratableAssets = new ConfigStyle(
+                label: L10n.Tr("Assets Migration"),
+                error: L10n.Tr("At least one of the HDRP assets used in quality or the current HDRenderPipelineGlobalSettings have not been migrated to last version."));
 
             public static readonly ConfigStyle vrLegacyVRSystem = new ConfigStyle(
                 label: L10n.Tr("Legacy VR System"),
@@ -217,7 +220,7 @@ namespace UnityEditor.Rendering.HighDefinition
         {
             var window = GetWindow<HDWizard>(Style.title.text);
             window.minSize = new Vector2(500, 450);
-            HDProjectSettings.wizardPopupAlreadyShownOnce = true;
+            HDUserSettings.wizardPopupAlreadyShownOnce = true;
         }
 
         void OnGUI()
@@ -247,7 +250,7 @@ namespace UnityEditor.Rendering.HighDefinition
             {
                 EditorApplication.update -= WizardBehaviourDelayed;
 
-                if (HDProjectSettings.wizardIsStartPopup && !HDProjectSettings.wizardPopupAlreadyShownOnce)
+                if (HDProjectSettings.wizardIsStartPopup && !HDUserSettings.wizardPopupAlreadyShownOnce)
                 {
                     //Application.isPlaying cannot be called in constructor. Do it here
                     if (Application.isPlaying)
@@ -256,7 +259,7 @@ namespace UnityEditor.Rendering.HighDefinition
                     OpenWindow();
                 }
 
-                EditorApplication.quitting += () => HDProjectSettings.wizardPopupAlreadyShownOnce = false;
+                EditorApplication.quitting += () => HDUserSettings.wizardPopupAlreadyShownOnce = false;
             }
         }
 
@@ -265,8 +268,8 @@ namespace UnityEditor.Rendering.HighDefinition
         {
             EditorApplication.delayCall += () =>
             {
-                if (HDProjectSettings.wizardPopupAlreadyShownOnce)
-                    EditorApplication.quitting += () => HDProjectSettings.wizardPopupAlreadyShownOnce = false;
+                if (HDUserSettings.wizardPopupAlreadyShownOnce)
+                    EditorApplication.quitting += () => HDUserSettings.wizardPopupAlreadyShownOnce = false;
             };
         }
 
@@ -418,14 +421,14 @@ namespace UnityEditor.Rendering.HighDefinition
             var toolbar = new ToolbarRadio();
             toolbar.AddRadios(tabs);
             //make sure when we open the same project on different platforms the saved active tab is not out of range
-            int tabIndex = toolbar.radioLength > HDProjectSettings.wizardActiveTab ? HDProjectSettings.wizardActiveTab : 0;
+            int tabIndex = toolbar.radioLength > HDUserSettings.wizardActiveTab ? HDUserSettings.wizardActiveTab : 0;
             toolbar.SetValueWithoutNotify(tabIndex);
             m_Configuration = (Configuration)tabIndex;
             toolbar.RegisterValueChangedCallback(evt =>
             {
                 int index = evt.newValue;
                 m_Configuration = (Configuration)index;
-                HDProjectSettings.wizardActiveTab = index;
+                HDUserSettings.wizardActiveTab = index;
             });
 
             var outerBox = new VisualElement() { name = "OuterBox" };

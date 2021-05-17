@@ -48,18 +48,40 @@ VaryingsPassToPS UnpackVaryingsPassToPS(PackedVaryingsPassToPS input)
 
 // Available interpolator start from TEXCOORD4
 
-// Same as ToPS here
-#define VaryingsPassToDS VaryingsPassToPS
-#define PackedVaryingsPassToDS PackedVaryingsPassToPS
-#define PackVaryingsPassToDS PackVaryingsPassToPS
-#define UnpackVaryingsPassToDS UnpackVaryingsPassToPS
+struct VaryingsPassToDS
+{
+    // For Tessellation we currently keep previous world position to only project in the last step to clip space
+    // No need to keep world position as we will recompute it from the VaryingMesh struct
+    float3 previousPositionRWS;
+};
+
+// Available interpolator start from TEXCOORD8
+struct PackedVaryingsPassToDS
+{
+    float3 interpolators0 : TEXCOORD8;
+};
+
+PackedVaryingsPassToDS PackVaryingsPassToDS(VaryingsPassToDS input)
+{
+    PackedVaryingsPassToDS output;
+    output.interpolators0 = input.previousPositionRWS;
+
+    return output;
+}
+
+VaryingsPassToDS UnpackVaryingsPassToDS(PackedVaryingsPassToDS input)
+{
+    VaryingsPassToDS output;
+    output.previousPositionRWS = input.interpolators0;
+
+    return output;
+}
 
 VaryingsPassToDS InterpolateWithBaryCoordsPassToDS(VaryingsPassToDS input0, VaryingsPassToDS input1, VaryingsPassToDS input2, float3 baryCoords)
 {
     VaryingsPassToDS output;
 
-    TESSELLATION_INTERPOLATE_BARY(positionCS, baryCoords);
-    TESSELLATION_INTERPOLATE_BARY(previousPositionCS, baryCoords);
+    TESSELLATION_INTERPOLATE_BARY(previousPositionRWS, baryCoords);
 
     return output;
 }
@@ -85,27 +107,30 @@ void MotionVectorPositionZBias(VaryingsToPS input)
 #endif
 }
 
-PackedVaryingsType MotionVectorVS(inout VaryingsType varyingsType, AttributesMesh inputMesh, AttributesPass inputPass
+PackedVaryingsType MotionVectorVS(VaryingsType varyingsType, AttributesMesh inputMesh, AttributesPass inputPass
 #ifdef HAVE_VFX_MODIFICATION
     , AttributesElement inputElement
 #endif
 )
 {
-
-#if !defined(TESSELLATION_ON)
+    // With tessellation we will do following processing after tessellation modification
+#ifndef TESSELLATION_ON
     MotionVectorPositionZBias(varyingsType);
-#endif
 
-    // It is not possible to correctly generate the motion vector for tesselated geometry as tessellation parameters can change
-    // from one frame to another (adaptative, lod) + in Unity we only receive information for one non tesselated vertex.
-    // So motion vetor will be based on interpolate previous position at vertex level instead.
+    // Use unjiterred matrix for motion vector
     varyingsType.vpass.positionCS = mul(UNITY_MATRIX_UNJITTERED_VP, float4(varyingsType.vmesh.positionRWS, 1.0));
+#endif // TESSELLATION_ON
 
     // Note: unity_MotionVectorsParams.y is 0 is forceNoMotion is enabled
     bool forceNoMotion = unity_MotionVectorsParams.y == 0.0;
     if (forceNoMotion)
     {
+#ifdef TESSELLATION_ON
+        // Dummy value, will not be used
+        varyingsType.vpass.previousPositionRWS = float3(0.0, 0.0, 0.0);
+#else
         varyingsType.vpass.previousPositionCS = float4(0.0, 0.0, 0.0, 1.0);
+#endif
     }
     else
     {
@@ -125,12 +150,11 @@ PackedVaryingsType MotionVectorVS(inout VaryingsType varyingsType, AttributesMes
         AttributesMesh previousMesh = inputMesh;
         previousMesh.positionOS = effectivePositionOS;
 
-        previousMesh = ApplyMeshModification(previousMesh,
-            _LastTimeParameters.xyz
-    #if defined(USE_CUSTOMINTERP_APPLYMESHMOD)
+        previousMesh = ApplyMeshModification(previousMesh, _LastTimeParameters.xyz
+    #ifdef USE_CUSTOMINTERP_SUBSTRUCT
             , varyingsType.vmesh
     #endif
-    #if defined(HAVE_VFX_MODIFICATION)
+    #ifdef HAVE_VFX_MODIFICATION
             , inputElement
     #endif
             );
@@ -162,10 +186,63 @@ PackedVaryingsType MotionVectorVS(inout VaryingsType varyingsType, AttributesMes
         }
 #endif
 
+#ifdef TESSELLATION_ON
+        // With tessellation we will apply the tessellation modification on top of previousPositionRWS
+        // so don't convert to CS yet.
+        varyingsType.vpass.previousPositionRWS = previousPositionRWS;
+#else
         varyingsType.vpass.previousPositionCS = mul(UNITY_MATRIX_PREV_VP, float4(previousPositionRWS, 1.0));
+#endif
     }
 
     return PackVaryingsType(varyingsType);
 }
+
+#if defined(TESSELLATION_ON)
+
+PackedVaryingsToPS MotionVectorTessellation(VaryingsToPS output, VaryingsToDS input)
+{
+    MotionVectorPositionZBias(output);
+
+    // Use unjittered matrix for motion vector
+    output.vpass.positionCS = mul(UNITY_MATRIX_UNJITTERED_VP, float4(input.vmesh.positionRWS, 1.0));
+
+    // It is not possible to correctly generate the motion vector for tessellated geometry as tessellation parameters can change
+    // from one frame to another (adaptative, lod) but still better than doing nothing, so we calculate the previous position with
+    // current frame tessellation parameters
+
+    // Note: unity_MotionVectorsParams.y is 0 is forceNoMotion is enabled
+    bool forceNoMotion = unity_MotionVectorsParams.y == 0.0;
+    if (forceNoMotion)
+    {
+        output.vpass.previousPositionCS = float4(0.0, 0.0, 0.0, 1.0);
+    }
+    else
+    {
+        float3 previousPositionRWS = input.vmesh.positionRWS.xyz;
+
+        // Need to apply any tessellation animation to the previous worldspace position, if we want it to show up in the motion vector buffer
+#if defined(HAVE_TESSELLATION_MODIFICATION)
+    #ifdef _WRITE_TRANSPARENT_MOTION_VECTOR
+        if (_TransparentCameraOnlyMotionVectors == 0)
+        {
+    #endif
+            VaryingsMeshToDS previousMesh = input.vmesh;
+            previousMesh.positionRWS.xyz = input.vpass.previousPositionRWS;
+            previousMesh = ApplyTessellationModification(previousMesh, _LastTimeParameters.xyz);
+            previousPositionRWS = previousMesh.positionRWS.xyz;
+    #ifdef _WRITE_TRANSPARENT_MOTION_VECTOR
+        }
+    #endif
+#endif
+
+        output.vpass.previousPositionCS = mul(UNITY_MATRIX_PREV_VP, float4(previousPositionRWS, 1.0));
+    }
+
+    return PackVaryingsToPS(output);
+}
+
+#endif
+
 
 #endif

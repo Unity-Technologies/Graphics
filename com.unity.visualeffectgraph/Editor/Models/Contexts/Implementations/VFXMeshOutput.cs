@@ -143,5 +143,15 @@ namespace UnityEditor.VFX
 
             return mapper;
         }
+
+        protected override void GenerateErrors(VFXInvalidateErrorReporter manager)
+        {
+            base.GenerateErrors(manager);
+            var dataParticle = GetData() as VFXDataParticle;
+            if (dataParticle != null && dataParticle.boundsSettingMode != BoundsSettingMode.Manual)
+                manager.RegisterError("WarningBoundsComputation", VFXErrorType.Warning, $"Bounds computation have no sense of what the scale of the output mesh is," +
+                    $" so the resulted computed bounds can be too small or big" +
+                    $" Please use padding to mitigate this discrepancy.");
+        }
     }
 }

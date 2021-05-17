@@ -35,6 +35,7 @@ namespace UnityEditor.VFX
         public Dictionary<VFXData, int> attributeBuffers = new Dictionary<VFXData, int>();
         public Dictionary<VFXData, int> stripBuffers = new Dictionary<VFXData, int>();
         public Dictionary<VFXData, int> eventBuffers = new Dictionary<VFXData, int>();
+        public Dictionary<VFXData, int> boundsBuffers = new Dictionary<VFXData, int>();
     }
 
     class VFXGraphCompiledData
@@ -477,9 +478,23 @@ namespace UnityEditor.VFX
             foreach (var expression in expressionPerSpawnToProcess)
                 CollectParentExpressionRecursively(expression, allExpressions);
 
-            var expressionIndexes = allExpressions.Select(o => graph.GetFlattenedIndex(o)).OrderBy(i => i);
-            var processChunk = new List<ProcessChunk>();
+            var expressionIndexes = allExpressions.
+                Where(o => o.Is(VFXExpression.Flags.PerSpawn)) //Filter only per spawn part of graph
+                .Select(o => graph.GetFlattenedIndex(o))
+                .OrderBy(i => i);
 
+            //Additional verification of appropriate expected expression index
+            //In flatten expression, all common expressions are sorted first, then, we have chunk of additional preprocess
+            //We aren't supposed to happen a chunk which is running common expression here.
+            if (expressionIndexes.Any(i => i < graph.CommonExpressionCount))
+            {
+                var expressionInCommon = allExpressions
+                    .Where(o => graph.GetFlattenedIndex(o) < graph.CommonExpressionCount)
+                    .OrderBy(o => graph.GetFlattenedIndex(o));
+                Debug.LogErrorFormat("Unexpected preprocess expression detected : {0} (count)", expressionInCommon.Count());
+            }
+
+            var processChunk = new List<ProcessChunk>();
             int previousIndex = int.MinValue;
             foreach (var indice in expressionIndexes)
             {
@@ -888,6 +903,14 @@ namespace UnityEditor.VFX
                     bufferDescs.Add(new VFXGPUBufferDesc() { type = ComputeBufferType.Default, size = stripCapacity * 5, stride = 4 });
                 }
                 buffers.stripBuffers.Add(data, stripBufferIndex);
+
+                int boundsBufferIndex = -1;
+                if (data.NeedsComputeBounds())
+                {
+                    boundsBufferIndex = bufferDescs.Count;
+                    bufferDescs.Add(new VFXGPUBufferDesc(){type = ComputeBufferType.Default, size = 6, stride = 4});
+                }
+                buffers.boundsBuffers.Add(data, boundsBufferIndex); // TODO Ludovic : Fill the data index and stuff
             }
 
             //Prepare GPU event buffer

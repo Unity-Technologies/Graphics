@@ -269,7 +269,7 @@ namespace  UnityEditor.VFX.UI
                     {
                         filename = controller.name;
 
-                        if (!graph.saved)
+                        if (EditorUtility.IsDirty(graph))
                         {
                             filename += "*";
                         }
