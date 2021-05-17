@@ -32,8 +32,8 @@ uint currentAxis;
 RWStructuredBuffer<float4> voxelsBuffer;
 
 
-RWStructuredBuffer<Triangle> rw_trianglesUV;
-StructuredBuffer<Triangle> trianglesUV;
+RWStructuredBuffer<Tri> rw_trianglesUV;
+StructuredBuffer<Tri> trianglesUV;
 RWTexture3D<float4> voxels, voxelsTmp;
 RWTexture3D<float4> rayMap;
 
@@ -70,7 +70,7 @@ void GenerateTrianglesUV(uint3 id: SV_DispatchThreadID)
 
     float3 half_extents = 0.5f * (maxBoundsExtended - minBoundsExtended) / maxExtent;
     float3 center = 0.5f * (maxBoundsExtended + minBoundsExtended);
-    Triangle triUV;
+    Tri triUV;
     triUV.a = (GetVertexObj(id.x, 0) - center) / maxExtent + half_extents;
     triUV.b = (GetVertexObj(id.x, 1) - center) / maxExtent + half_extents;
     triUV.c = (GetVertexObj(id.x, 2) - center) / maxExtent + half_extents;
@@ -395,9 +395,9 @@ void JFA(uint3 id: SV_DispatchThreadID)
 }
 
 
-void TestIntersection6Rays(in Triangle tri, in int3 voxelId, out float3 intersectForward, out float3 intersectBackward)
+void TestIntersection6Rays(in Tri tri, in int3 voxelId, out float3 intersectForward, out float3 intersectBackward)
 {
-    Triangle tri_ccw;
+    Tri tri_ccw;
     tri_ccw.a = tri.c;
     tri_ccw.b = tri.b;
     tri_ccw.c = tri.a;
@@ -467,7 +467,7 @@ void GenerateRayMapLocal(uint3 id: SV_DispatchThreadID) {
     for (uint i = startId; i < endId && (i < upperBoundCount - 1); i++)
     {
         uint idTri = triangleIDs[i];
-        Triangle tri = trianglesUV[idTri];
+        Tri tri = trianglesUV[idTri];
         float3 intersectForward, intersectBackward;
         TestIntersection6Rays(tri, int3(id.xyz), intersectForward, intersectBackward);
 
@@ -617,7 +617,7 @@ void DistanceTransform(uint3 id: SV_DispatchThreadID) {
     for (uint i = startId; (i < endId) && (i < upperBoundCount-1); i++)
     {
         uint idTri = triangleIDs[i];
-        Triangle tri = trianglesUV[idTri];
+        Tri tri = trianglesUV[idTri];
         dist = min(dist,ComputeDistancePointTri(voxelCoord, tri));
     }
     if(dist == 9999)
