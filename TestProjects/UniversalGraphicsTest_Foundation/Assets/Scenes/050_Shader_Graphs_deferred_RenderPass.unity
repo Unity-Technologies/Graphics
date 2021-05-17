@@ -670,7 +670,7 @@ MonoBehaviour:
     ActiveImageTests: 1
     ActivePixelTests: 7
   WaitFrames: 0
-  XRCompatible: 1
+  XRCompatible: 0
 --- !u!81 &971756571
 AudioListener:
   m_ObjectHideFlags: 0
