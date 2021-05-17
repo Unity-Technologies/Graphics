@@ -173,30 +173,6 @@ namespace UnityEditor.Rendering
             }
         }
 
-        void OnDisable()
-        {
-            if (m_PreviewReadBackTexture != null)
-            {
-                DestroyImmediate(m_PreviewReadBackTexture);
-            }
-            if (m_PreviewTexture != null)
-            {
-                DestroyImmediate(m_PreviewTexture);
-            }
-            if (m_PolygonMaterial != null)
-            {
-                DestroyImmediate(m_PolygonMaterial);
-            }
-            if (m_CircleMaterial != null)
-            {
-                DestroyImmediate(m_CircleMaterial);
-            }
-            if (m_PreviewShader != null)
-            {
-                DestroyImmediate(m_PreviewShader);
-            }
-        }
-
         public override void OnInspectorGUI()
         {
             serializedObject.Update();
@@ -377,18 +353,18 @@ namespace UnityEditor.Rendering
             SerializedProperty colorProp = element.FindPropertyRelative("tint");
             SerializedProperty intensityProp = element.FindPropertyRelative("m_LocalIntensity");
             SerializedProperty sideCountProp = element.FindPropertyRelative("m_SideCount");
-            SerializedProperty uniformScaleProp = element.FindPropertyRelative("uniformScale");
             SerializedProperty rotationProp = element.FindPropertyRelative("rotation");
             SerializedProperty edgeOffsetProp = element.FindPropertyRelative("m_EdgeOffset");
             SerializedProperty fallOffProp = element.FindPropertyRelative("m_FallOff");
-            SerializedProperty inverseSDFProp = element.FindPropertyRelative("inverseSDF");
             SerializedProperty sdfRoundnessProp = element.FindPropertyRelative("m_SdfRoundness");
-            SerializedProperty preserveAspectRatioProp = element.FindPropertyRelative("preserveAspectRatio");
             SerializedProperty sizeXYProp = element.FindPropertyRelative("sizeXY");
 
             float invSideCount = 1f / ((float)sideCountProp.intValue);
             float intensity = intensityProp.floatValue;
             float usedSDFRoundness = sdfRoundnessProp.floatValue;
+            Vector2 sizeXY = sizeXYProp.vector2Value;
+            Vector2 sizeXYAbs = new Vector2(Mathf.Abs(sizeXY.x), Mathf.Abs(sizeXY.y));
+            Vector2 localSize = new Vector2(sizeXY.x / Mathf.Max(sizeXYAbs.x, sizeXYAbs.y), sizeXY.y / Mathf.Max(sizeXYAbs.x, sizeXYAbs.y));
 
             float rCos = Mathf.Cos(Mathf.PI * invSideCount);
             float roundValue = rCos * usedSDFRoundness;
@@ -410,7 +386,7 @@ namespace UnityEditor.Rendering
             usedMaterial.SetVector(_FlareColorValue, new Vector4(colorProp.colorValue.r * intensity, colorProp.colorValue.g * intensity, colorProp.colorValue.b * intensity, 1f));
             usedMaterial.SetVector(_FlareData0, flareData0);
             usedMaterial.SetVector(_FlareData1, new Vector4(0f, 0f, 0f, 1f));
-            usedMaterial.SetVector(_FlareData2, new Vector4(0f, 0f, 1f, 1f));
+            usedMaterial.SetVector(_FlareData2, new Vector4(0f, 0f, localSize.x, localSize.y));
             usedMaterial.SetVector(_FlareData3, new Vector4(0f, 0f, invSideCount, 0f));
             if (type == SRPLensFlareType.Polygon)
                 usedMaterial.SetVector(_FlareData4, new Vector4(usedSDFRoundness, r, an, he));
