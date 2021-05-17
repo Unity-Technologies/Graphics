@@ -54,16 +54,8 @@ namespace UnityEditor
             EditorGUIUtility.labelWidth = 0f;
 
             // Detect any changes to the material
-            EditorGUI.BeginChangeCheck();
             if (workflowMode != null)
-            {
                 DoPopup(LitGUI.Styles.workflowModeText, workflowMode, Enum.GetNames(typeof(LitGUI.WorkflowMode)));
-            }
-            if (EditorGUI.EndChangeCheck())
-            {
-                foreach (var obj in blendModeProp.targets)
-                    ValidateMaterial((Material)obj);
-            }
             base.DrawSurfaceOptions(material);
         }
 
