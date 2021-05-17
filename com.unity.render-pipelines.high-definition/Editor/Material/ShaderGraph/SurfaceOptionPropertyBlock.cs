@@ -9,6 +9,7 @@ using UnityEngine;
 
 // We share the name of the properties in the UI to avoid duplication
 using static UnityEditor.Rendering.HighDefinition.SurfaceOptionUIBlock.Styles;
+using static UnityEditor.Rendering.HighDefinition.TessellationOptionsUIBlock.Styles;
 
 namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
 {
@@ -33,14 +34,15 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
 
         Features enabledFeatures;
 
-        protected override string title => "Surface Option";
+        protected override string title => "Surface Options";
         protected override int foldoutIndex => 0;
 
         public SurfaceOptionPropertyBlock(Features features) => enabledFeatures = features;
 
         protected override void CreatePropertyGUI()
         {
-            AddProperty(surfaceTypeText, () => systemData.surfaceType, (newValue) => {
+            AddProperty(surfaceTypeText, () => systemData.surfaceType, (newValue) =>
+            {
                 systemData.surfaceType = newValue;
                 systemData.TryChangeRenderingPass(systemData.renderQueueType);
             });
@@ -120,6 +122,29 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
             {
                 context.globalIndentLevel++;
                 AddProperty(conservativeDepthOffsetEnableText, () => builtinData.conservativeDepthOffset, (newValue) => builtinData.conservativeDepthOffset = newValue);
+                context.globalIndentLevel--;
+            }
+
+            AddProperty(tessellationEnableText, () => systemData.tessellation, (newValue) => systemData.tessellation = newValue);
+            if (systemData.tessellation)
+            {
+                context.globalIndentLevel++;
+                AddProperty(tessellationMaxDisplacementText, () => systemData.tessellationMaxDisplacement, (newValue) => systemData.tessellationMaxDisplacement = Mathf.Abs(newValue));
+                if (systemData.doubleSidedMode == DoubleSidedMode.Disabled)
+                    AddProperty(tessellationBackFaceCullEpsilonText, () => systemData.tessellationBackFaceCullEpsilon, (newValue) => systemData.tessellationBackFaceCullEpsilon = Mathf.Clamp(newValue, -1.0f, 0.0f));
+
+                AddProperty(tessellationFactorMinDistanceText, () => systemData.tessellationFactorMinDistance, (newValue) => systemData.tessellationFactorMinDistance = newValue);
+                AddProperty(tessellationFactorMaxDistanceText, () => systemData.tessellationFactorMaxDistance, (newValue) => systemData.tessellationFactorMaxDistance = newValue);
+                AddProperty(tessellationFactorTriangleSizeText, () => systemData.tessellationFactorTriangleSize, (newValue) => systemData.tessellationFactorTriangleSize = newValue);
+
+                AddProperty(tessellationModeText, () => systemData.tessellationMode, (newValue) => systemData.tessellationMode = newValue);
+                if (systemData.tessellationMode == TessellationMode.Phong)
+                {
+                    context.globalIndentLevel++;
+                    AddProperty(tessellationShapeFactorText, () => systemData.tessellationShapeFactor, (newValue) => systemData.tessellationShapeFactor = Mathf.Clamp01(newValue));
+                    context.globalIndentLevel--;
+                }
+
                 context.globalIndentLevel--;
             }
         }
