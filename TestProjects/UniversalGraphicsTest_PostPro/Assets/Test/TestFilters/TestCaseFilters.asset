@@ -85,12 +85,3 @@ MonoBehaviour:
     XrSdk: 
     StereoModes: 0
     Reason: https://fogbugz.unity3d.com/f/cases/1305922/
-  - FilteredScene: {fileID: 0}
-    FilteredScenes:
-    - {fileID: 102900000, guid: aee9f891d65e44daf811d30053402efd, type: 3}
-    ColorSpace: -1
-    BuildPlatform: 24
-    GraphicsDevice: 21
-    XrSdk: None
-    StereoModes: 0
-    Reason: https://fogbugz.unity3d.com/f/cases/1305639/
