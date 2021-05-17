@@ -9,6 +9,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 ### Fixed
 - Fixed resolution of intermediate textures when rendering to part of a render texture. [case 1261287](https://issuetracker.unity3d.com/product/unity/issues/guid/1261287/)
 - Fixed an issue when using the opaque texture with XR multipass. [case 1256604](https://issuetracker.unity3d.com/issues/urp-xr-xr-sdk-opaque-texture-is-black-in-one-eye-if-both-depth-and-opaque-texture-enabled-for-multipass-vr-in-urp)
+- Fixed an issue where SMAA did not work for OpenGL [case 1318214](https://issuetracker.unity3d.com/issues/urp-there-is-no-effect-when-using-smaa-in-urp-with-opengles-api)
 
 ## [7.6.0] - 2021-03-25
 
