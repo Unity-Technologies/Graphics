@@ -232,7 +232,7 @@ namespace UnityEngine.Experimental.Rendering
             RunPlacement();
         }
 
-        static void CellCountInDirections(out Vector3Int cellsInXYZ, int cellSizeInMeters)
+        static void CellCountInDirections(out Vector3Int cellsInXYZ, float cellSizeInMeters)
         {
             cellsInXYZ = Vector3Int.zero;
 
