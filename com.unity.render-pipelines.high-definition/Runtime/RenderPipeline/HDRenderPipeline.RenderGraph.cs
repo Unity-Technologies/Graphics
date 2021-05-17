@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using UnityEngine.Experimental.Rendering;
 using UnityEngine.Experimental.Rendering.RenderGraphModule;
 using UnityEngine.VFX;
+using UnityEngine.Rendering.RendererUtils;
 
 namespace UnityEngine.Rendering.HighDefinition
 {

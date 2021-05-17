@@ -6,6 +6,8 @@ using System.Linq;
 using UnityEngine.Experimental.GlobalIllumination;
 using UnityEngine.Experimental.Rendering;
 using UnityEngine.Experimental.Rendering.RenderGraphModule;
+using UnityEngine.Rendering.RendererUtils;
+
 #if UNITY_EDITOR
 using UnityEditorInternal;
 using UnityEditor.Rendering;

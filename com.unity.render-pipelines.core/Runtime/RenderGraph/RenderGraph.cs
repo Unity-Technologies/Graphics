@@ -2,6 +2,7 @@ using System;
 using System.Diagnostics;
 using System.Collections.Generic;
 using UnityEngine.Rendering;
+using UnityEngine.Rendering.RendererUtils;
 
 namespace UnityEngine.Experimental.Rendering.RenderGraphModule
 {

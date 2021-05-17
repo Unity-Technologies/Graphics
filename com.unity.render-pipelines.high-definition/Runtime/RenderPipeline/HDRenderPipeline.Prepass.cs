@@ -945,7 +945,7 @@ namespace UnityEngine.Rendering.HighDefinition
             {
                 builder.AllowRendererListCulling(false);
 
-                passData.meshDecalsRendererList = builder.UseRendererList(renderGraph.CreateRendererList(new RendererListDesc(m_MeshDecalsPassNames, cullingResults, hdCamera.camera)
+                passData.meshDecalsRendererList = builder.UseRendererList(renderGraph.CreateRendererList(new RendererUtils.RendererListDesc(m_MeshDecalsPassNames, cullingResults, hdCamera.camera)
                 {
                     sortingCriteria = SortingCriteria.CommonOpaque,
                     rendererConfiguration = PerObjectData.None,
