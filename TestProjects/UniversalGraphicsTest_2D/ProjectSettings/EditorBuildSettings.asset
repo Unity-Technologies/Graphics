@@ -63,6 +63,18 @@ EditorBuildSettings:
     path: Assets/Scenes/004_Shadows_Ortho_Caster_101_Silhoutte_Self.unity
     guid: d8fca6ddf5f036e4c9f78ca6a73c9c7e
   - enabled: 1
+    path: Assets/Scenes/004_Shadows_Perspective_Caster_010_Casts.unity
+    guid: 131bd0d5f9d17c2428d5c3d1ec81c404
+  - enabled: 1
+    path: Assets/Scenes/004_Shadows_Perspective_Caster_011_Casts_Self.unity
+    guid: 628b5808162e78e44873c13d02ee6004
+  - enabled: 1
+    path: Assets/Scenes/004_Shadows_Perspective_Caster_110_Silhoutte_Casts.unity
+    guid: 4c07daa3552b3394089af62683209c84
+  - enabled: 1
+    path: Assets/Scenes/004_Shadows_Perspective_Caster_111_Silhoutte_Casts_Self.unity
+    guid: 2a18f99570705fd449f8655170150241
+  - enabled: 1
     path: Assets/Scenes/006_Shadows_Ortho_Multi_Light.unity
     guid: 117f831afebc64849a3778657be72e4b
   - enabled: 1
@@ -77,6 +89,18 @@ EditorBuildSettings:
   - enabled: 1
     path: Assets/Scenes/005_Shadows_Ortho_Composite_111_Silhoutte_Casts_Self.unity
     guid: 0c92f1bbe0928b542a0eabd9058802a0
+  - enabled: 1
+    path: Assets/Scenes/005_Shadows_Perspective_Composite_010_Casts.unity
+    guid: b5cae22917767144b9ca74c726ad2397
+  - enabled: 1
+    path: Assets/Scenes/005_Shadows_Perspective_Composite_011_Casts_Self.unity
+    guid: da610f9f6388f6643982010dab851e81
+  - enabled: 1
+    path: Assets/Scenes/005_Shadows_Perspective_Composite_110_Silhoutte_Casts.unity
+    guid: 6911d731a08c29a42a27064fa52ba1ed
+  - enabled: 1
+    path: Assets/Scenes/005_Shadows_Perspective_Composite_111_Silhoutte_Casts_Self.unity
+    guid: 1e524f710a15aab43acaa97cb477ddab
   - enabled: 1
     path: Assets/Scenes/007_Shadows_Ortho_Layers_All.unity
     guid: de4584021b3367c4e8117b0cc77a3ced
