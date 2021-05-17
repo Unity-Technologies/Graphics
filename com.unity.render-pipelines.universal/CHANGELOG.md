@@ -118,6 +118,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed an issue where SMAA did not work for OpenGL [case 1318214](https://issuetracker.unity3d.com/issues/urp-there-is-no-effect-when-using-smaa-in-urp-with-opengles-api)
 - Fixed an issue with Shader Graph Lit shaders where the normalized view direction produced incorrect lighting. [1332804]
 - Fixed return values from GetStereoProjectionMatrix() and SetStereoViewMatrix(). [case 1312813](https://issuetracker.unity3d.com/issues/xr-urp-begincamerarender-method-is-lagging-behind-when-using-urp)
+- Fixed CopyDepthPass incorrectly always enqueued when deferred rendering mode was enabled when it should depends on the pipeline asset settings.
 - Fixed renderer post processing option to work with asset selector re-assing. [case 1319454](https://issuetracker.unity3d.com/issues/urp-universal-renderer-post-processing-doesnt-enable-when-postprocessdata-reassigned-from-the-asset-selector-window)
 - Fixed post processing to be enabled by default in the renderer when creating URP asset option. [case 1333461](https://issuetracker.unity3d.com/issues/post-processing-is-disabled-by-default-in-the-forward-renderer-when-creating-a-new-urp-asset)
 - Fixed shaderGraph shaders to render into correct depthNormals passes when deferred rendering mode and SSAO are enabled.
