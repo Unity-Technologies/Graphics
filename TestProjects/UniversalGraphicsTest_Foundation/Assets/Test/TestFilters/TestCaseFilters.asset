@@ -162,5 +162,5 @@ MonoBehaviour:
     BuildPlatform: 13
     GraphicsDevice: 11
     XrSdk: MockHMDLoader
-    StereoModes: 0
+    StereoModes: 7
     Reason: Ref image is wrong (gamma space)
