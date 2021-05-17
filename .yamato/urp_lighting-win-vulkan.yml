@@ -14,7 +14,6 @@ URP_Lighting_Win_Vulkan_Standalone_mono_Linear_trunk:
         type: Unity::VM::GPU
         image: sdet/gamecode_win10:stable
         flavor: b1.xlarge
-        model: rtx2080
     variables:
         UPM_REGISTRY: https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates
         CUSTOM_REVISION: '{{trunk.changeset.id}}'
@@ -240,7 +239,6 @@ URP_Lighting_Win_Vulkan_Standalone_cache_mono_Linear_trunk:
         type: Unity::VM::GPU
         image: sdet/gamecode_win10:stable
         flavor: b1.xlarge
-        model: rtx2080
     variables:
         UPM_REGISTRY: https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates
         CUSTOM_REVISION: '{{trunk.changeset.id}}'
@@ -372,7 +370,6 @@ URP_Lighting_Win_Vulkan_Standalone_mono_Linear_CUSTOM-REVISION:
         type: Unity::VM::GPU
         image: sdet/gamecode_win10:stable
         flavor: b1.xlarge
-        model: rtx2080
     variables:
         UPM_REGISTRY: https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates
         CUSTOM_REVISION: custom_revision_not_set
@@ -598,7 +595,6 @@ URP_Lighting_Win_Vulkan_Standalone_cache_mono_Linear_CUSTOM-REVISION:
         type: Unity::VM::GPU
         image: sdet/gamecode_win10:stable
         flavor: b1.xlarge
-        model: rtx2080
     variables:
         UPM_REGISTRY: https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates
         CUSTOM_REVISION: custom_revision_not_set
