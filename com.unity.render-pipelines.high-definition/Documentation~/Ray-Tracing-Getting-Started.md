@@ -182,7 +182,7 @@ To build your Project to a Unity Player, ray tracing requires that the build use
 
 #### Scene validation
 
-To check whether it is possible to use ray tracing in a Scene, HDRP includes a menu option that validates each GameObject in the Scene. If you do not setup GameObjects correctly, this process throws warnings in the Console window. To use it:
+To check whether it is possible to use ray tracing in a Scene, HDRP includes a menu option that validates each GameObject in the Scene. If you do not setup GameObjects correctly, this process throws warnings in the Console window. For the list of things this option checks for, see [Menu items](Menu-Items.md#other). To use it:
 1. Click **Edit > Rendering > Check Scene Content for HDRP Ray Tracing**.
 2. In the Console window (menu: **Window > General > Console**), check if there are any warnings.
 

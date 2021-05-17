@@ -3277,6 +3277,15 @@ namespace UnityEngine.Rendering.HighDefinition
             parameters.bloomDirtTileOffset = dirtTileOffset;
             parameters.bloomThreshold = GetBloomThresholdParams();
             parameters.bloomBicubicParams = new Vector4(m_BloomMipsInfo[0].x, m_BloomMipsInfo[0].y, 1.0f / m_BloomMipsInfo[0].x, 1.0f / m_BloomMipsInfo[0].y);
+
+            // We undo the scale here, because bloom uses these parameters for its bicubic filtering offset.
+            // The bicubic filtering function is SampleTexture2DBicubic, and it requires the underlying texture's
+            // unscaled pixel sizes to compute the offsets of the samples.
+            // For more info please see the implementation of SampleTexture2DBicubic
+            parameters.bloomBicubicParams.x /= RTHandles.rtHandleProperties.rtHandleScale.x;
+            parameters.bloomBicubicParams.y /= RTHandles.rtHandleProperties.rtHandleScale.y;
+            parameters.bloomBicubicParams.z *= RTHandles.rtHandleProperties.rtHandleScale.x;
+            parameters.bloomBicubicParams.w *= RTHandles.rtHandleProperties.rtHandleScale.y;
         }
 
         void AllocateBloomMipTextures()

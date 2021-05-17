@@ -33,6 +33,18 @@ EditorBuildSettings:
     path: Assets/Scenes/106_ReflectionsMultiBounceRough.unity
     guid: 6ea352d11ef71204089ff0b18223c824
   - enabled: 1
+    path: Assets/Scenes/108_ReflectionEmissive_Perf_Exposure_0.unity
+    guid: 84d0d38a16a53224e9a6612392dafaa7
+  - enabled: 1
+    path: Assets/Scenes/108_ReflectionEmissive_Perf_Exposure_12.unity
+    guid: 9256657e1a6d16c4ba20bef7ab633c92
+  - enabled: 1
+    path: Assets/Scenes/108_ReflectionEmissive_Quality_Exposure_0.unity
+    guid: 12bcdb701fced1643b60e5e4f1cedcbe
+  - enabled: 1
+    path: Assets/Scenes/108_ReflectionEmissive_Quality_Exposure_12.unity
+    guid: b458f5a4df209624aa568bb522890c6a
+  - enabled: 1
     path: Assets/Scenes/201_LargeAmbientOcclusion.unity
     guid: 41a04a0db6c8e4e4eb54296e4521c3e5
   - enabled: 1
