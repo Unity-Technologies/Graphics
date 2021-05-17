@@ -1,4 +1,4 @@
-namespace UnityEditor.Rendering.Universal
+namespace UnityEditor.Rendering.Universal.Converters
 {
     internal sealed class BuiltInToURPConverterContainer : RenderPipelineConverterContainer
     {
