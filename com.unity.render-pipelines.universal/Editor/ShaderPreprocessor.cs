@@ -68,9 +68,7 @@ namespace UnityEditor.Rendering.Universal
         ShaderKeyword m_ReflectionProbeBlending = new ShaderKeyword(ShaderKeywordStrings.ReflectionProbeBlending);
         ShaderKeyword m_ReflectionProbeBoxProjection = new ShaderKeyword(ShaderKeywordStrings.ReflectionProbeBoxProjection);
         ShaderKeyword m_DeferredLightShadows = new ShaderKeyword(ShaderKeywordStrings._DEFERRED_LIGHT_SHADOWS);
-        ShaderKeyword m_DeferredSoftShadows = new ShaderKeyword(ShaderKeywordStrings._DEFERRED_SHADOWS_SOFT);
         ShaderKeyword m_CastingPunctualLightShadow = new ShaderKeyword(ShaderKeywordStrings.CastingPunctualLightShadow);
-        ShaderKeyword m_SoftShadows = new ShaderKeyword(ShaderKeywordStrings.SoftShadows);
         ShaderKeyword m_MixedLightingSubtractive = new ShaderKeyword(ShaderKeywordStrings.MixedLightingSubtractive);
         ShaderKeyword m_LightmapShadowMixing = new ShaderKeyword(ShaderKeywordStrings.LightmapShadowMixing);
         ShaderKeyword m_ShadowsShadowMask = new ShaderKeyword(ShaderKeywordStrings.ShadowsShadowMask);
@@ -187,12 +185,6 @@ namespace UnityEditor.Rendering.Universal
                 if (snippetData.passType == PassType.ShadowCaster && !compilerData.shaderKeywordSet.IsEnabled(m_CastingPunctualLightShadow))
                     return true;
             }
-
-            bool isSoftShadow = compilerData.shaderKeywordSet.IsEnabled(m_SoftShadows);
-            bool isDeferredSoftShadow = compilerData.shaderKeywordSet.IsEnabled(m_DeferredSoftShadows);
-            if (!IsFeatureEnabled(features, ShaderFeatures.SoftShadows) &&
-                (isSoftShadow || isDeferredSoftShadow))
-                return true;
 
             // Left for backward compatibility
             if (compilerData.shaderKeywordSet.IsEnabled(m_MixedLightingSubtractive) &&
@@ -335,12 +327,6 @@ namespace UnityEditor.Rendering.Universal
 
             bool isAdditionalShadow = compilerData.shaderKeywordSet.IsEnabled(m_AdditionalLightShadows);
             if (isAdditionalShadow && !(compilerData.shaderKeywordSet.IsEnabled(m_AdditionalLightsPixel) || compilerData.shaderKeywordSet.IsEnabled(m_ClusteredRendering)))
-                return true;
-
-            bool isDeferredShadow = compilerData.shaderKeywordSet.IsEnabled(m_DeferredLightShadows);
-
-            bool isShadowVariant = isMainShadow || isAdditionalShadow || isDeferredShadow;
-            if (!isShadowVariant && (compilerData.shaderKeywordSet.IsEnabled(m_SoftShadows) || compilerData.shaderKeywordSet.IsEnabled(m_DeferredSoftShadows)))
                 return true;
 
             return false;

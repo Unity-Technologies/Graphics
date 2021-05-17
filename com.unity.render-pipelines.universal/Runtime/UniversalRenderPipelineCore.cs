@@ -334,7 +334,6 @@ namespace UnityEngine.Rendering.Universal
         public static readonly string AdditionalLightShadows = "_ADDITIONAL_LIGHT_SHADOWS";
         public static readonly string ReflectionProbeBoxProjection = "_REFLECTION_PROBE_BOX_PROJECTION";
         public static readonly string ReflectionProbeBlending = "_REFLECTION_PROBE_BLENDING";
-        public static readonly string SoftShadows = "_SHADOWS_SOFT";
         public static readonly string MixedLightingSubtractive = "_MIXED_LIGHTING_SUBTRACTIVE"; // Backward compatibility
         public static readonly string LightmapShadowMixing = "LIGHTMAP_SHADOW_MIXING";
         public static readonly string ShadowsShadowMask = "SHADOWS_SHADOWMASK";
@@ -390,7 +389,6 @@ namespace UnityEngine.Rendering.Universal
         public static readonly string _DEFERRED_FIRST_LIGHT = "_DEFERRED_FIRST_LIGHT";
         public static readonly string _DEFERRED_MAIN_LIGHT = "_DEFERRED_MAIN_LIGHT";
         public static readonly string _DEFERRED_LIGHT_SHADOWS = "_DEFERRED_LIGHT_SHADOWS";
-        public static readonly string _DEFERRED_SHADOWS_SOFT = "_DEFERRED_SHADOWS_SOFT";
         public static readonly string _GBUFFER_NORMALS_OCT = "_GBUFFER_NORMALS_OCT";
         public static readonly string _DEFERRED_MIXED_LIGHTING = "_DEFERRED_MIXED_LIGHTING";
         public static readonly string _DEFERRED_ADDITIONAL_LIGHT_COOKIES = "_DEFERRED_ADDITIONAL_LIGHT_COOKIES";

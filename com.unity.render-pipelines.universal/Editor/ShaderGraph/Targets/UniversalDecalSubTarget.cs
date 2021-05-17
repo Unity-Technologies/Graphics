@@ -948,7 +948,6 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
                 { CoreKeywordDescriptors.MainLightShadows },
                 { CoreKeywordDescriptors.AdditionalLights },
                 { CoreKeywordDescriptors.AdditionalLightShadows },
-                { CoreKeywordDescriptors.ShadowsSoft },
                 { CoreKeywordDescriptors.LightmapShadowMixing },
                 { CoreKeywordDescriptors.ShadowsShadowmask },
                 { CoreKeywordDescriptors.ClusteredRendering },
@@ -961,7 +960,6 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
                 { CoreKeywordDescriptors.MainLightShadows },
                 { CoreKeywordDescriptors.AdditionalLights },
                 { CoreKeywordDescriptors.AdditionalLightShadows },
-                { CoreKeywordDescriptors.ShadowsSoft },
                 { CoreKeywordDescriptors.ClusteredRendering },
                 { Descriptors.DecalsNormalBlend },
             };
@@ -972,7 +970,6 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
                 { CoreKeywordDescriptors.DynamicLightmap },
                 { CoreKeywordDescriptors.DirectionalLightmapCombined },
                 { CoreKeywordDescriptors.MainLightShadows },
-                { CoreKeywordDescriptors.ShadowsSoft },
                 { CoreKeywordDescriptors.LightmapShadowMixing },
                 { CoreKeywordDescriptors.MixedLightingSubtractive },
                 { Descriptors.DecalsNormalBlend },
@@ -983,7 +980,6 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
             public static readonly KeywordCollection GBufferProjector = new KeywordCollection
             {
                 { CoreKeywordDescriptors.MainLightShadows },
-                { CoreKeywordDescriptors.ShadowsSoft },
                 { Descriptors.DecalsNormalBlend },
                 { CoreKeywordDescriptors.GBufferNormalsOct },
             };

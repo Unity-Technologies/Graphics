@@ -1636,7 +1636,6 @@ namespace UnityEngine.Rendering.Universal.Internal
                 }
 
                 bool hasSoftShadow = hasDeferredShadows && renderingData.shadowData.supportsSoftShadows && vl.light.shadows == LightShadows.Soft;
-                CoreUtils.SetKeyword(cmd, ShaderKeywordStrings._DEFERRED_SHADOWS_SOFT, hasSoftShadow);
                 CoreUtils.SetKeyword(cmd, ShaderKeywordStrings._DEFERRED_FIRST_LIGHT, isFirstLight); // First directional light applies SSAO
                 CoreUtils.SetKeyword(cmd, ShaderKeywordStrings._DEFERRED_MAIN_LIGHT, visLightIndex == mainLightIndex); // main directional light use different uniform constants from additional directional lights
 
@@ -1653,7 +1652,6 @@ namespace UnityEngine.Rendering.Universal.Internal
             }
 
             cmd.DisableShaderKeyword(ShaderKeywordStrings._DEFERRED_LIGHT_SHADOWS);
-            cmd.DisableShaderKeyword(ShaderKeywordStrings._DEFERRED_SHADOWS_SOFT);
             cmd.DisableShaderKeyword(ShaderKeywordStrings._DIRECTIONAL);
         }
 
@@ -1695,7 +1693,6 @@ namespace UnityEngine.Rendering.Universal.Internal
                 bool hasSoftShadow = hasDeferredLightShadows && renderingData.shadowData.supportsSoftShadows && vl.light.shadows == LightShadows.Soft;
 
                 CoreUtils.SetKeyword(cmd, ShaderKeywordStrings._DEFERRED_LIGHT_SHADOWS, hasDeferredLightShadows);
-                CoreUtils.SetKeyword(cmd, ShaderKeywordStrings._DEFERRED_SHADOWS_SOFT, hasSoftShadow);
 
                 int cookieLightIndex = m_LightCookieManager.GetLightCookieShaderDataIndex(visLightIndex);
                 // We could test this in shader (static if) a variant (shader change) is undesirable. Same for spot light.
@@ -1720,7 +1717,6 @@ namespace UnityEngine.Rendering.Universal.Internal
 
             cmd.DisableShaderKeyword(ShaderKeywordStrings._DEFERRED_ADDITIONAL_LIGHT_COOKIES);
             cmd.DisableShaderKeyword(ShaderKeywordStrings._DEFERRED_LIGHT_SHADOWS);
-            cmd.DisableShaderKeyword(ShaderKeywordStrings._DEFERRED_SHADOWS_SOFT);
             cmd.DisableShaderKeyword(ShaderKeywordStrings._POINT);
         }
 
@@ -1760,7 +1756,6 @@ namespace UnityEngine.Rendering.Universal.Internal
                 bool hasSoftShadow = hasDeferredLightShadows && renderingData.shadowData.supportsSoftShadows && vl.light.shadows == LightShadows.Soft;
 
                 CoreUtils.SetKeyword(cmd, ShaderKeywordStrings._DEFERRED_LIGHT_SHADOWS, hasDeferredLightShadows);
-                CoreUtils.SetKeyword(cmd, ShaderKeywordStrings._DEFERRED_SHADOWS_SOFT, hasSoftShadow);
 
                 int cookieLightIndex = m_LightCookieManager.GetLightCookieShaderDataIndex(visLightIndex);
                 CoreUtils.SetKeyword(cmd, ShaderKeywordStrings._DEFERRED_ADDITIONAL_LIGHT_COOKIES, cookieLightIndex >= 0);
@@ -1789,7 +1784,6 @@ namespace UnityEngine.Rendering.Universal.Internal
 
             cmd.DisableShaderKeyword(ShaderKeywordStrings._DEFERRED_ADDITIONAL_LIGHT_COOKIES);
             cmd.DisableShaderKeyword(ShaderKeywordStrings._DEFERRED_LIGHT_SHADOWS);
-            cmd.DisableShaderKeyword(ShaderKeywordStrings._DEFERRED_SHADOWS_SOFT);
             cmd.DisableShaderKeyword(ShaderKeywordStrings._SPOT);
         }
 

@@ -885,7 +885,6 @@ namespace UnityEngine.Rendering.Universal.Internal
                     (mainLightHasSoftShadows || additionalLightHasSoftShadows);
 
                 CoreUtils.SetKeyword(cmd, ShaderKeywordStrings.AdditionalLightShadows, anyShadowSliceRenderer);
-                CoreUtils.SetKeyword(cmd, ShaderKeywordStrings.SoftShadows, softShadows);
 
                 if (anyShadowSliceRenderer)
                     SetupAdditionalLightsShadowReceiverConstants(cmd, ref shadowData, softShadows);

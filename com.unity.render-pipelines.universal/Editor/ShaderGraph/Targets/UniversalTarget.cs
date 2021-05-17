@@ -1341,15 +1341,6 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
             scope = KeywordScope.Global,
         };
 
-        public static readonly KeywordDescriptor ShadowsSoft = new KeywordDescriptor()
-        {
-            displayName = "Shadows Soft",
-            referenceName = "_SHADOWS_SOFT",
-            type = KeywordType.Boolean,
-            definition = KeywordDefinition.MultiCompile,
-            scope = KeywordScope.Global,
-        };
-
         public static readonly KeywordDescriptor MixedLightingSubtractive = new KeywordDescriptor()
         {
             displayName = "Mixed Lighting Subtractive",
