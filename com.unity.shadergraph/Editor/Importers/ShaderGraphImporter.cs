@@ -512,7 +512,17 @@ Shader ""Hidden/GraphErrorShader2""
                 codeSnippets.Add($"// Property: {property.displayName}{nl}{builder.ToCodeBlock()}{nl}{nl}");
             }
 
+            foreach (var prop in shaderProperties.properties)
+            {
+                if (!graph.properties.Contains(prop) && (prop is SamplerStateShaderProperty))
+                {
+                    sharedCodeIndices.Add(codeSnippets.Count);
+                    ShaderStringBuilder builder = new ShaderStringBuilder();
+                    prop.ForeachHLSLProperty(h => h.AppendTo(builder));
 
+                    codeSnippets.Add($"// Property: {prop.displayName}{nl}{builder.ToCodeBlock()}{nl}{nl}");
+                }
+            }
 
             var inputStructName = $"SG_Input_{assetGuid}";
             var outputStructName = $"SG_Output_{assetGuid}";
