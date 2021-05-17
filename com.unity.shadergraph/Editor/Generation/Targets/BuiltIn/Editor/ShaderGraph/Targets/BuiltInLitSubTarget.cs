@@ -202,7 +202,6 @@ namespace UnityEditor.Rendering.BuiltIn.ShaderGraph
                     { CorePasses.ShadowCaster },
                     { CorePasses.DepthOnly },
                     { LitPasses.Meta },
-                    { LitPasses._2D },
                     { CorePasses.SceneSelection },
                     { CorePasses.ScenePicking },
                 },
@@ -367,34 +366,6 @@ namespace UnityEditor.Rendering.BuiltIn.ShaderGraph
                 defines = CoreDefines.BuiltInTargetAPI,
                 keywords = LitKeywords.Meta,
                 includes = LitIncludes.Meta,
-
-                // Custom Interpolator Support
-                customInterpolators = CoreCustomInterpDescriptors.Common
-            };
-
-            public static readonly PassDescriptor _2D = new PassDescriptor()
-            {
-                // Definition
-                referenceName = "SHADERPASS_2D",
-                lightMode = "BuiltIn2D",
-
-                // Template
-                passTemplatePath = BuiltInTarget.kTemplatePath,
-                sharedTemplateDirectories = BuiltInTarget.kSharedTemplateDirectories,
-
-                // Port Mask
-                validVertexBlocks = CoreBlockMasks.Vertex,
-                validPixelBlocks = CoreBlockMasks.FragmentColorAlpha,
-
-                // Fields
-                structs = CoreStructCollections.Default,
-                fieldDependencies = CoreFieldDependencies.Default,
-
-                // Conditional State
-                renderStates = CoreRenderStates.Default,
-                pragmas = CorePragmas.Instanced,
-                defines = CoreDefines.BuiltInTargetAPI,
-                includes = LitIncludes._2D,
 
                 // Custom Interpolator Support
                 customInterpolators = CoreCustomInterpDescriptors.Common
@@ -591,7 +562,6 @@ namespace UnityEditor.Rendering.BuiltIn.ShaderGraph
             const string kGBuffer = "Packages/com.unity.shadergraph/Editor/Generation/Targets/BuiltIn/ShaderLibrary/UnityGBuffer.hlsl";
             const string kPBRGBufferPass = "Packages/com.unity.shadergraph/Editor/Generation/Targets/BuiltIn/Editor/ShaderGraph/Includes/PBRGBufferPass.hlsl";
             const string kLightingMetaPass = "Packages/com.unity.shadergraph/Editor/Generation/Targets/BuiltIn/Editor/ShaderGraph/Includes/LightingMetaPass.hlsl";
-            const string k2DPass = "Packages/com.unity.shadergraph/Editor/Generation/Targets/BuiltIn/Editor/ShaderGraph/Includes/PBR2DPass.hlsl";
 
             public static readonly IncludeCollection Forward = new IncludeCollection
             {
@@ -648,17 +618,6 @@ namespace UnityEditor.Rendering.BuiltIn.ShaderGraph
                 // Post-graph
                 { CoreIncludes.CorePostgraph },
                 { kLightingMetaPass, IncludeLocation.Postgraph },
-            };
-
-            public static readonly IncludeCollection _2D = new IncludeCollection
-            {
-                // Pre-graph
-                { CoreIncludes.CorePregraph },
-                { CoreIncludes.ShaderGraphPregraph },
-
-                // Post-graph
-                { CoreIncludes.CorePostgraph },
-                { k2DPass, IncludeLocation.Postgraph },
             };
         }
         #endregion

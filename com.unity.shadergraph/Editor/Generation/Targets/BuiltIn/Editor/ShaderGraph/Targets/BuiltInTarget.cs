@@ -731,14 +731,6 @@ namespace UnityEditor.Rendering.BuiltIn.ShaderGraph
             { Pragma.Vertex("vert") },
             { Pragma.Fragment("frag") },
         };
-
-        public static readonly PragmaCollection _2DDefault = new PragmaCollection
-        {
-            { Pragma.Target(ShaderModel.Target30) },
-            { Pragma.ExcludeRenderers(new[] { Platform.D3D9 }) },
-            { Pragma.Vertex("vert") },
-            { Pragma.Fragment("frag") },
-        };
     }
     #endregion
 
