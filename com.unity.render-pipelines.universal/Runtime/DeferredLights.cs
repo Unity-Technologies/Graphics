@@ -1635,7 +1635,6 @@ namespace UnityEngine.Rendering.Universal.Internal
                     cmd.SetGlobalInt(ShaderConstants._ShadowLightIndex, shadowLightIndex);
                 }
 
-                bool hasSoftShadow = hasDeferredShadows && renderingData.shadowData.supportsSoftShadows && vl.light.shadows == LightShadows.Soft;
                 CoreUtils.SetKeyword(cmd, ShaderKeywordStrings._DEFERRED_FIRST_LIGHT, isFirstLight); // First directional light applies SSAO
                 CoreUtils.SetKeyword(cmd, ShaderKeywordStrings._DEFERRED_MAIN_LIGHT, visLightIndex == mainLightIndex); // main directional light use different uniform constants from additional directional lights
 
