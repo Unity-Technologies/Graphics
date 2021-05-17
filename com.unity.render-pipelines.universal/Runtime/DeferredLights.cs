@@ -1689,7 +1689,6 @@ namespace UnityEngine.Rendering.Universal.Internal
 
                 int shadowLightIndex = m_AdditionalLightsShadowCasterPass != null ? m_AdditionalLightsShadowCasterPass.GetShadowLightIndexFromLightIndex(visLightIndex) : -1;
                 bool hasDeferredLightShadows = vl.light && vl.light.shadows != LightShadows.None && shadowLightIndex >= 0;
-                bool hasSoftShadow = hasDeferredLightShadows && renderingData.shadowData.supportsSoftShadows && vl.light.shadows == LightShadows.Soft;
 
                 CoreUtils.SetKeyword(cmd, ShaderKeywordStrings._DEFERRED_LIGHT_SHADOWS, hasDeferredLightShadows);
 
