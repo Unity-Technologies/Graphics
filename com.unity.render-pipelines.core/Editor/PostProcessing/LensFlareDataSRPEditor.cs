@@ -161,7 +161,7 @@ namespace UnityEditor.Rendering
             }
             if (m_PreviewTexture == null)
             {
-                m_PreviewTexture = RTHandles.Alloc(m_PreviewSize, m_PreviewSize, colorFormat: UnityEngine.Experimental.Rendering.GraphicsFormat.R16G16B16A16_SFloat);
+                m_PreviewTexture = RTHandles.Alloc(m_PreviewSize, m_PreviewSize, colorFormat: UnityEngine.Experimental.Rendering.GraphicsFormat.R8G8B8A8_SRGB);
             }
             if (m_PreviewReadBackTexture == null)
             {
