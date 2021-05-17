@@ -5,6 +5,7 @@ using System.Text;
 using UnityEditor;
 using UnityEditor.Rendering;
 using UnityEditor.Rendering.Universal;
+using UnityEditor.Rendering.Universal.Converters;
 using UnityEditor.SceneManagement;
 using UnityEditor.Search;
 using UnityEditor.Search.Providers;
@@ -46,7 +47,7 @@ namespace Editor.Converters
     {
         public override string name => "Readonly Material Converter";
         public override string info => "Converts references to Built-In readonly materials to URP readonly materials";
-        public override Type conversion => typeof(BuiltInToURPConverterContainer);
+        public override Type container => typeof(BuiltInToURPConverterContainer);
 
         private bool _startingSceneIsClosed;
 
