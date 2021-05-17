@@ -75,6 +75,24 @@ EditorBuildSettings:
     path: Assets/Scenes/004_Shadows_Caster_Perspective_111_Silhoutte_Casts_Self.unity
     guid: 2a18f99570705fd449f8655170150241
   - enabled: 1
+    path: Assets/Scenes/004_Shadows_Caster_Ortho_Volumetric_111_Silhoutte_Casts_Self.unity
+    guid: 7162c533026f1df40acb93885a833d3d
+  - enabled: 1
+    path: Assets/Scenes/004_Shadows_Caster_Ortho_Volumetric_110_Silhoutte_Casts.unity
+    guid: 352218ce3212d9e4fbe0a167d6081bb2
+  - enabled: 1
+    path: Assets/Scenes/004_Shadows_Caster_Ortho_Volumetric_101_Silhoutte_Self.unity
+    guid: 09188a0a64a3a8148af5f186fe5575f9
+  - enabled: 1
+    path: Assets/Scenes/004_Shadows_Caster_Ortho_Volumetric_011_Casts_Self.unity
+    guid: 45ef0f49a3464054399f4da9d4e9ff0d
+  - enabled: 1
+    path: Assets/Scenes/004_Shadows_Caster_Ortho_Volumetric_010_Casts.unity
+    guid: cb076ec83e2f72c44b38c9252edd457c
+  - enabled: 1
+    path: Assets/Scenes/004_Shadows_Caster_Ortho_Volumetric_001_Self.unity
+    guid: d500c08dea0bd74489aa077fd270ce7c
+  - enabled: 1
     path: Assets/Scenes/005_Shadows_Composite_Ortho_010_Casts.unity
     guid: bb5969d69f099614fac0de58964a31f7
   - enabled: 1
