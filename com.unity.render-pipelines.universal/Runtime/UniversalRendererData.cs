@@ -63,6 +63,13 @@ namespace UnityEngine.Rendering.Universal
             public Shader coreBlitPS;
             [Reload("Shaders/Utils/CoreBlitColorAndDepth.shader")]
             public Shader coreBlitColorAndDepthPS;
+
+
+            [Reload("Shaders/CameraMotionVectors.shader")]
+            public Shader cameraMotionVector;
+
+            [Reload("Shaders/ObjectMotionVectors.shader")]
+            public Shader objectMotionVector;
         }
 
         public PostProcessData postProcessData = null;
