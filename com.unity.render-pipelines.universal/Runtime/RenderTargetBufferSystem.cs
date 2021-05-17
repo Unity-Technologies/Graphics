@@ -56,6 +56,8 @@ namespace UnityEngine.Rendering.Universal.Internal
         void Initialize(CommandBuffer cmd)
         {
             cmd.GetTemporaryRT(m_NameA, m_Desc, m_FilterMode);
+            var descB = m_Desc;
+            descB.depthBufferBits = 0;
             cmd.GetTemporaryRT(m_NameB, m_Desc, m_FilterMode);
             m_RTisAllocated = true;
         }
@@ -74,6 +76,11 @@ namespace UnityEngine.Rendering.Universal.Internal
             m_FilterMode = filterMode;
 
             Initialize(cmd);
+        }
+
+        public RenderTargetHandle GetBufferA()
+        {
+            return RTA;
         }
     }
 }

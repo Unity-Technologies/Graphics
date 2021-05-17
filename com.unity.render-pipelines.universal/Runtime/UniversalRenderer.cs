@@ -924,7 +924,13 @@ namespace UnityEngine.Rendering.Universal
                     colorDescriptor.autoGenerateMips = false;
                     colorDescriptor.depthBufferBits = (useDepthRenderBuffer) ? k_DepthStencilBufferBits : 0;
                     m_ColorBufferSystem.SetCameraSettings(cmd, colorDescriptor, FilterMode.Bilinear);
-                    
+
+                    if (useDepthRenderBuffer)
+                        ConfigureCameraTarget(m_ColorBufferSystem.GetBackBuffer(cmd).id, m_ColorBufferSystem.GetBufferA().id);
+                    else
+                        ConfigureCameraColorTarget(m_ColorBufferSystem.GetBackBuffer(cmd).id);
+
+
                     ConfigureCameraColorTarget(m_ColorBufferSystem.GetBackBuffer(cmd).id);
                     m_ActiveCameraColorAttachment = m_ColorBufferSystem.GetBackBuffer(cmd);
                     cmd.SetGlobalTexture("_CameraColorTexture", m_ActiveCameraColorAttachment.id);
@@ -1028,7 +1034,7 @@ namespace UnityEngine.Rendering.Universal
         internal override void SwapColorBuffer(CommandBuffer cmd)
         {
             m_ColorBufferSystem.Swap();
-            ConfigureCameraColorTarget(m_ColorBufferSystem.GetBackBuffer(cmd).id);
+            ConfigureCameraTarget(m_ColorBufferSystem.GetBackBuffer(cmd).id, m_ColorBufferSystem.GetBufferA().id);
             m_ActiveCameraColorAttachment = m_ColorBufferSystem.GetBackBuffer();
             cmd.SetGlobalTexture("_CameraColorTexture", m_ActiveCameraColorAttachment.id);
         }
