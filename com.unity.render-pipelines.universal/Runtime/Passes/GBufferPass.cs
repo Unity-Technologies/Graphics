@@ -55,23 +55,26 @@ namespace UnityEngine.Rendering.Universal.Internal
         {
             RenderTargetHandle[] gbufferAttachments = m_DeferredLights.GbufferAttachments;
 
-            // Create and declare the render targets used in the pass
-            for (int i = 0; i < gbufferAttachments.Length; ++i)
+            if (cmd != null)
             {
-                // Lighting buffer has already been declared with line ConfigureCameraTarget(m_ActiveCameraColorAttachment.Identifier(), ...) in DeferredRenderer.Setup
-                if (i == m_DeferredLights.GBufferLightingIndex)
-                    continue;
+                // Create and declare the render targets used in the pass
+                for (int i = 0; i < gbufferAttachments.Length; ++i)
+                {
+                    // Lighting buffer has already been declared with line ConfigureCameraTarget(m_ActiveCameraColorAttachment.Identifier(), ...) in DeferredRenderer.Setup
+                    if (i == m_DeferredLights.GBufferLightingIndex)
+                        continue;
 
-                // Normal buffer may have already been created if there was a depthNormal prepass before.
-                // DepthNormal prepass is needed for forward-only materials when SSAO is generated between gbuffer and deferred lighting pass.
-                if (i == m_DeferredLights.GBufferNormalSmoothnessIndex && m_DeferredLights.HasNormalPrepass)
-                    continue;
+                    // Normal buffer may have already been created if there was a depthNormal prepass before.
+                    // DepthNormal prepass is needed for forward-only materials when SSAO is generated between gbuffer and deferred lighting pass.
+                    if (i == m_DeferredLights.GBufferNormalSmoothnessIndex && m_DeferredLights.HasNormalPrepass)
+                        continue;
 
-                RenderTextureDescriptor gbufferSlice = cameraTextureDescriptor;
-                gbufferSlice.depthBufferBits = 0; // make sure no depth surface is actually created
-                gbufferSlice.stencilFormat = GraphicsFormat.None;
-                gbufferSlice.graphicsFormat = m_DeferredLights.GetGBufferFormat(i);
-                cmd.GetTemporaryRT(m_DeferredLights.GbufferAttachments[i].id, gbufferSlice);
+                    RenderTextureDescriptor gbufferSlice = cameraTextureDescriptor;
+                    gbufferSlice.depthBufferBits = 0; // make sure no depth surface is actually created
+                    gbufferSlice.stencilFormat = GraphicsFormat.None;
+                    gbufferSlice.graphicsFormat = m_DeferredLights.GetGBufferFormat(i);
+                    cmd.GetTemporaryRT(m_DeferredLights.GbufferAttachments[i].id, gbufferSlice);
+                }
             }
 
             ConfigureTarget(m_DeferredLights.GbufferAttachmentIdentifiers, m_DeferredLights.DepthAttachmentIdentifier, m_DeferredLights.GbufferFormats);

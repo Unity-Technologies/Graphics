@@ -57,7 +57,12 @@ For more information, see [Blackboard](Blackboard.md).
 <a name="TargetGameObject"></a>
 ### Target Visual Effect GameObject
 
-The **Target Visual Effect GameObject** panel allows you to attach the currently opened Visual Effect Graph to a GameObject and control playback options as well as trigger Events. It is a floating panel that is independent of the zoom and position of the current Workspace view. The window always displays this panel on top of Nodes in the **Node Workspace**.
+The **Target Visual Effect GameObject** panel allows you to attach the currently opened Visual Effect Graph to a GameObject. It enables you to:
+* Control playback options
+* Trigger Events
+* Record the bounds of the visual effect. For more information about bounds recording, see [Visual effect bounds](visual-effect-bounds.md).
+
+It is a floating panel that is independent of the zoom and position of the current Workspace view. The window always displays this panel on top of Nodes in the **Node Workspace**.
 
 To resize this panel, click on any edge or corner and drag. To reposition this panel, click on the header of the panel and drag.
 

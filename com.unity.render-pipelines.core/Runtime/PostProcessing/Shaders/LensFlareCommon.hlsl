@@ -65,7 +65,11 @@ float2 Rotate(float2 v, float cos0, float sin0)
 #if FLARE_OCCLUSION
 float GetLinearDepthValue(float2 uv)
 {
+#ifdef HDRP_FLARE
     float depth = LOAD_TEXTURE2D_X_LOD(_CameraDepthTexture, uint2(uv * _ScreenSize.xy), 0).x;
+#else
+    float depth = LOAD_TEXTURE2D_X_LOD(_CameraDepthTexture, uint2(uv * GetScaledScreenParams().xy), 0).x;
+#endif
 
     return LinearEyeDepth(depth, _ZBufferParams);
 }
@@ -87,6 +91,7 @@ float GetOcclusion(float2 screenPos, float flareDepth, float ratio)
 #ifdef UNITY_UV_STARTS_AT_TOP
         pos.y = 1.0f - pos.y;
 #endif
+
         if (all(pos >= 0) && all(pos <= 1))
         {
             float depth0 = GetLinearDepthValue(pos);
@@ -114,7 +119,12 @@ VaryingsLensFlare vert(AttributesLensFlare input, uint instanceID : SV_InstanceI
     UNITY_SETUP_INSTANCE_ID(input);
     UNITY_INITIALIZE_VERTEX_OUTPUT_STEREO(output);
 
+#ifdef HDRP_FLARE
     float screenRatio = _ScreenRatio;
+#else
+    float2 screenParam = GetScaledScreenParams().xy;
+    float screenRatio = screenParam.y / screenParam.x;
+#endif
 
 #if SHADER_API_GLES
     float4 posPreScale = input.positionCS;

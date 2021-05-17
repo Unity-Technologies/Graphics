@@ -8,6 +8,7 @@ using UnityEditorInternal;
 using System.ComponentModel;
 using System.Linq;
 using UnityEngine.Serialization;
+using UnityEngine.Experimental.Rendering;
 
 namespace UnityEngine.Rendering.Universal
 {
@@ -25,6 +26,24 @@ namespace UnityEngine.Rendering.Universal
         _1024 = 1024,
         _2048 = 2048,
         _4096 = 4096
+    }
+
+    public enum LightCookieResolution
+    {
+        _256 = 256,
+        _512 = 512,
+        _1024 = 1024,
+        _2048 = 2048,
+        _4096 = 4096
+    }
+
+    public enum LightCookieFormat
+    {
+        _8BitGrayscale,
+        _16BitGrayscale,
+        _16BitColor,
+        _32BitColor,
+        _32BitHDR,
     }
 
     public enum MsaaQuality
@@ -50,7 +69,8 @@ namespace UnityEngine.Rendering.Universal
         Terrain,
         Sprite,
         UnityBuiltinDefault,
-        Decal,
+        SpriteMask,
+        Decal
     }
 
     public enum LightRenderingMode
@@ -176,6 +196,10 @@ namespace UnityEngine.Rendering.Universal
         [SerializeField] float m_ShadowDepthBias = 1.0f;
         [SerializeField] float m_ShadowNormalBias = 1.0f;
         [SerializeField] bool m_SoftShadowsSupported = false;
+
+        // Light Cookie Settings
+        [SerializeField] LightCookieResolution m_AdditionalLightsCookieResolution = LightCookieResolution._2048;
+        [SerializeField] LightCookieFormat m_AdditionalLightsCookieFormat = LightCookieFormat._32BitColor;
 
         // Advanced settings
         [SerializeField] bool m_UseSRPBatcher = true;
@@ -515,6 +539,44 @@ namespace UnityEngine.Rendering.Universal
         }
 
 #endif
+        private static GraphicsFormat[][] s_LightCookieFormatList = new GraphicsFormat[][]
+        {
+            /* 8-bit-Grayscale */ new GraphicsFormat[] {GraphicsFormat.R8_UNorm},
+            /* 16-bit-Grayscale*/ new GraphicsFormat[] {GraphicsFormat.R16_UNorm},
+            /* 16-bit-Color    */ new GraphicsFormat[] {GraphicsFormat.R5G6B5_UNormPack16, GraphicsFormat.B5G6R5_UNormPack16, GraphicsFormat.R5G5B5A1_UNormPack16, GraphicsFormat.B5G5R5A1_UNormPack16},
+            /* 32-bit-Color    */ new GraphicsFormat[] {GraphicsFormat.A2B10G10R10_UNormPack32, GraphicsFormat.R8G8B8A8_SRGB, GraphicsFormat.B8G8R8A8_SRGB},
+            /* 32-bit-HDR      */ new GraphicsFormat[] {GraphicsFormat.B10G11R11_UFloatPack32},
+        };
+
+        internal GraphicsFormat additionalLightsCookieFormat
+        {
+            get
+            {
+                GraphicsFormat result = GraphicsFormat.None;
+                foreach (var format in s_LightCookieFormatList[(int)m_AdditionalLightsCookieFormat])
+                {
+                    if (SystemInfo.IsFormatSupported(format, FormatUsage.Render))
+                    {
+                        result = format;
+                        break;
+                    }
+                }
+
+                if (QualitySettings.activeColorSpace == ColorSpace.Gamma)
+                    result = GraphicsFormatUtility.GetLinearFormat(result);
+
+                // Fallback
+                if (result == GraphicsFormat.None)
+                {
+                    result = GraphicsFormat.R8G8B8A8_UNorm;
+                    Debug.LogWarning($"Additional Lights Cookie Format ({ m_AdditionalLightsCookieFormat.ToString() }) is not supported by the platform. Falling back to {GraphicsFormatUtility.GetBlockSize(result) * 8}-bit format ({GraphicsFormatUtility.GetFormatString(result)})");
+                }
+
+                return result;
+            }
+        }
+
+        internal Vector2Int additionalLightsCookieResolution => new Vector2Int((int)m_AdditionalLightsCookieResolution, (int)m_AdditionalLightsCookieResolution);
 
         internal int[] rendererIndexList
         {
@@ -857,9 +919,22 @@ namespace UnityEngine.Rendering.Universal
             get { return GetMaterial(DefaultMaterialType.UnityBuiltinDefault); }
         }
 
+        /// <summary>
+        /// Returns the default material for the 2D renderer.
+        /// </summary>
+        /// <returns>Returns the material containing the default lit and unlit shader passes for sprites in the 2D renderer.</returns>
         public override Material default2DMaterial
         {
             get { return GetMaterial(DefaultMaterialType.Sprite); }
+        }
+
+        /// <summary>
+        /// Returns the default sprite mask material for the 2D renderer.
+        /// </summary>
+        /// <returns>Returns the material containing the default shader pass for sprite mask in the 2D renderer.</returns>
+        public override Material default2DMaskMaterial
+        {
+            get { return GetMaterial(DefaultMaterialType.SpriteMask); }
         }
 
         public Material decalMaterial
