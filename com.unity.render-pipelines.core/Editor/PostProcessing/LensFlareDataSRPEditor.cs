@@ -153,15 +153,11 @@ namespace UnityEditor.Rendering
             {
                 m_CircleMaterial = new Material(m_PreviewShader);
                 m_CircleMaterial.SetPass(0);
-                //CoreUtils.SetKeyword(m_CircleMaterial, "FLARE_CIRCLE", true);
-                //CoreUtils.SetKeyword(m_CircleMaterial, "FLARE_POLYGON", false);
             }
             if (m_PolygonMaterial == null)
             {
                 m_PolygonMaterial = new Material(m_PreviewShader);
                 m_PolygonMaterial.SetPass(0);
-                //CoreUtils.SetKeyword(m_PolygonMaterial, "FLARE_POLYGON", true);
-                //CoreUtils.SetKeyword(m_PolygonMaterial, "FLARE_CIRCLE", false);
             }
             if (m_PreviewTexture == null)
             {
