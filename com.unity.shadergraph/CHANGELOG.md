@@ -9,6 +9,11 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 Version Updated
 The version number for this package has increased due to a version update of a related graphics package.
 
+### Fixed
+- Fixed SubGraph SamplerState property defaults not being respected [1336119]
+- Fixed an issue where nested subgraphs with identical SamplerState property settings could cause compile failures [1336089]
+- Fixed an issue where SamplerState properties could not be renamed after creation [1336126]
+
 ## [10.4.0] - 2021-01-27
 
 ### Added
