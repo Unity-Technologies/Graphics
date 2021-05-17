@@ -127,6 +127,13 @@ namespace UnityEditor.Rendering
         static RTHandle m_PreviewTexture = null;
         static Texture2D m_PreviewReadBackTexture = null;
         static int m_PreviewSize = 128;
+        static int _FlareColorValue = Shader.PropertyToID("_FlareColorValue");
+        static int _FlareData0 = Shader.PropertyToID("_FlareData0");
+        static int _FlareData1 = Shader.PropertyToID("_FlareData1");
+        static int _FlareData2 = Shader.PropertyToID("_FlareData2");
+        static int _FlareData3 = Shader.PropertyToID("_FlareData3");
+        static int _FlareData4 = Shader.PropertyToID("_FlareData4");
+        static int _FlareData5 = Shader.PropertyToID("_FlareData5");
 
         void OnEnable()
         {
@@ -356,10 +363,10 @@ namespace UnityEditor.Rendering
 
         void DrawThumbnailProcedural(Rect rect, SerializedProperty element, SRPLensFlareType type)
         {
-            EditorGUI.DrawRect(rect, Color.yellow);
-
             RenderTexture oldActive = RenderTexture.active;
             RenderTexture.active = m_PreviewTexture.rt;
+
+            GL.Clear(false, true, Color.black);
 
             Material usedMaterial = null;
             if (type == SRPLensFlareType.Circle)
@@ -367,11 +374,49 @@ namespace UnityEditor.Rendering
             else if (type == SRPLensFlareType.Polygon)
                 usedMaterial = m_PolygonMaterial;
 
+            SerializedProperty colorProp = element.FindPropertyRelative("tint");
+            SerializedProperty intensityProp = element.FindPropertyRelative("m_LocalIntensity");
+            SerializedProperty sideCountProp = element.FindPropertyRelative("m_SideCount");
+            SerializedProperty uniformScaleProp = element.FindPropertyRelative("uniformScale");
+            SerializedProperty rotationProp = element.FindPropertyRelative("rotation");
+            SerializedProperty edgeOffsetProp = element.FindPropertyRelative("m_EdgeOffset");
+            SerializedProperty fallOffProp = element.FindPropertyRelative("m_FallOff");
+            SerializedProperty inverseSDFProp = element.FindPropertyRelative("inverseSDF");
+            SerializedProperty sdfRoundnessProp = element.FindPropertyRelative("m_SdfRoundness");
+            SerializedProperty preserveAspectRatioProp = element.FindPropertyRelative("preserveAspectRatio");
+            SerializedProperty sizeXYProp = element.FindPropertyRelative("sizeXY");
+
+            float invSideCount = 1f / ((float)sideCountProp.intValue);
+            float intensity = intensityProp.floatValue;
+            float usedSDFRoundness = sdfRoundnessProp.floatValue;
+
+            float rCos = Mathf.Cos(Mathf.PI * invSideCount);
+            float roundValue = rCos * usedSDFRoundness;
+            float r = rCos - roundValue;
+            float an = 2.0f * Mathf.PI * invSideCount;
+            float he = r * Mathf.Tan(0.5f * an);
+
+            float usedGradientPosition = Mathf.Clamp01((1.0f - edgeOffsetProp.floatValue) - 1e-6f);
+            if (type == SRPLensFlareType.Polygon)
+                usedGradientPosition = Mathf.Pow(usedGradientPosition + 1.0f, 5);
+
+            Vector4 flareData0 = LensFlareCommonSRP.GetFlareData0(Vector2.zero, Vector2.zero, Vector2.one, rotationProp.floatValue, 0f, 0f, Vector2.zero, false);
+
             //Set here what need to be setup in the material
             usedMaterial.SetPass(0);
             CoreUtils.SetKeyword(usedMaterial, "FLARE_CIRCLE", type == SRPLensFlareType.Circle);
             CoreUtils.SetKeyword(usedMaterial, "FLARE_POLYGON", type == SRPLensFlareType.Polygon);
-            //usedMaterial.SetVector(...);
+
+            usedMaterial.SetVector(_FlareColorValue, new Vector4(colorProp.colorValue.r * intensity, colorProp.colorValue.g * intensity, colorProp.colorValue.b * intensity, 1f));
+            usedMaterial.SetVector(_FlareData0, flareData0);
+            usedMaterial.SetVector(_FlareData1, new Vector4(0f, 0f, 0f, 1f));
+            usedMaterial.SetVector(_FlareData2, new Vector4(0f, 0f, 1f, 1f));
+            usedMaterial.SetVector(_FlareData3, new Vector4(0f, 0f, invSideCount, 0f));
+            if (type == SRPLensFlareType.Polygon)
+                usedMaterial.SetVector(_FlareData4, new Vector4(usedSDFRoundness, r, an, he));
+            else
+                usedMaterial.SetVector(_FlareData4, new Vector4(usedSDFRoundness, 0f, 0f, 0f));
+            usedMaterial.SetVector(_FlareData5, new Vector4(0f, usedGradientPosition, Mathf.Exp(Mathf.Lerp(0.0f, 4.0f, Mathf.Clamp01(1.0f - fallOffProp.floatValue))), 0f));
 
             GL.PushMatrix();
             GL.LoadOrtho();
@@ -499,15 +544,8 @@ namespace UnityEditor.Rendering
                     break;
 
                 case SRPLensFlareType.Circle:
-                    //EditorGUI.DrawRect(thumbnailRect, GUI.color);   //draw the margin
-                    //EditorGUI.DrawTextureTransparent(thumbnailIconeRect, LensFlareEditorUtils.Icons.circle, ScaleMode.ScaleToFit, 1f);
-                    EditorGUI.DrawRect(thumbnailRect, GUI.color); //draw the margin
-                    DrawThumbnailProcedural(thumbnailRect, element, SRPLensFlareType.Circle);
-                    break;
-
                 case SRPLensFlareType.Polygon:
-                    EditorGUI.DrawRect(thumbnailRect, GUI.color); //draw the margin
-                    DrawThumbnailProcedural(thumbnailRect, element, SRPLensFlareType.Polygon);
+                    DrawThumbnailProcedural(thumbnailRect, element, GetEnum<SRPLensFlareType>(type));
                     break;
             }
             GUI.color = guiColor;

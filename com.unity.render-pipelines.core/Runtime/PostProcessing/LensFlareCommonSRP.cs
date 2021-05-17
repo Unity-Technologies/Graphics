@@ -217,7 +217,19 @@ namespace UnityEngine.Rendering
             return ShapeAttenuationDirLight(forward, wo);
         }
 
-        static Vector4 GetFlareData0(Vector2 screenPos, Vector2 translationScale, Vector2 vLocalScreenRatio, float angleDeg, float position, float angularOffset, Vector2 positionOffset, bool autoRotate)
+        /// <summary>
+        /// Compute internal parameters needed to render single flare
+        /// </summary>
+        /// <param name="screenPos"></param>
+        /// <param name="translationScale"></param>
+        /// <param name="vLocalScreenRatio"></param>
+        /// <param name="angleDeg"></param>
+        /// <param name="position"></param>
+        /// <param name="angularOffset"></param>
+        /// <param name="positionOffset"></param>
+        /// <param name="autoRotate"></param>
+        /// <returns></returns>
+        static public Vector4 GetFlareData0(Vector2 screenPos, Vector2 translationScale, Vector2 vLocalScreenRatio, float angleDeg, float position, float angularOffset, Vector2 positionOffset, bool autoRotate)
         {
             float globalCos0 = Mathf.Cos(-angularOffset * Mathf.Deg2Rad);
             float globalSin0 = Mathf.Sin(-angularOffset * Mathf.Deg2Rad);
@@ -245,7 +257,15 @@ namespace UnityEngine.Rendering
             return new Vector4(localCos0, localSin0, positionOffset.x, -positionOffset.y);
         }
 
-        static Vector2 GetLensFlareRayOffset(Vector2 screenPos, float position, float globalCos0, float globalSin0)
+        /// <summary>
+        /// Compute light-relative offset
+        /// </summary>
+        /// <param name="screenPos">Screen space position of the light</param>
+        /// <param name="position">Distance to light in screen value</param>
+        /// <param name="globalCos0">Cosinus of the angle of the angular offset</param>
+        /// <param name="globalSin0">Sinus of the angle of the angular offset</param>
+        /// <returns></returns>
+        static public Vector2 GetLensFlareRayOffset(Vector2 screenPos, float position, float globalCos0, float globalSin0)
         {
             Vector2 rayOff = -(screenPos + screenPos * (position - 1.0f));
             return new Vector2(globalCos0 * rayOff.x - globalSin0 * rayOff.y,
