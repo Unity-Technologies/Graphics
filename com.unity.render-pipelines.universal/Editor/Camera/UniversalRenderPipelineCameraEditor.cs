@@ -32,7 +32,7 @@ namespace UnityEditor.Rendering.Universal
             base.OnEnable();
             settings.OnEnable();
 
-            m_SerializedCamera = new UniversalRenderPipelineSerializedCamera(serializedObject);
+            m_SerializedCamera = new UniversalRenderPipelineSerializedCamera(serializedObject, settings);
 
             m_ErrorIcon = LoadConsoleIcon(true);
             m_WarningIcon = LoadConsoleIcon(false);

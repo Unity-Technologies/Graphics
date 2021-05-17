@@ -30,6 +30,16 @@ namespace UnityEditor.ShaderGraph
             m_Items = new List<Item>();
         }
 
+        public DefineCollection(DefineCollection defines)
+        {
+            m_Items = new List<Item>();
+
+            foreach (DefineCollection.Item item in defines)
+            {
+                m_Items.Add(item);
+            }
+        }
+
         public DefineCollection Add(DefineCollection defines)
         {
             foreach (DefineCollection.Item item in defines)

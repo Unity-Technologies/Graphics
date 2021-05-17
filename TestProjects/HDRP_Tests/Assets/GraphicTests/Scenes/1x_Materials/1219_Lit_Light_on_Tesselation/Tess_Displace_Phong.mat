@@ -176,6 +176,7 @@ Material:
     - _DistortionVectorBias: -1
     - _DistortionVectorScale: 2
     - _DoubleSidedEnable: 0
+    - _DoubleSidedGIMode: 0
     - _DoubleSidedNormalMode: 1
     - _Drag: 1
     - _DstBlend: 0
@@ -251,6 +252,7 @@ Material:
     - _SubsurfaceRadius: 1
     - _SupportDecals: 1
     - _SurfaceType: 0
+    - _TessellationAdaptative: 1
     - _TessellationBackFaceCullEpsilon: -0.675
     - _TessellationFactor: 60
     - _TessellationFactorMaxDistance: 100

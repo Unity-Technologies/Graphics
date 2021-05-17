@@ -103,6 +103,7 @@ namespace UnityEditor.Rendering.HighDefinition
             // Lit properties
             public static GUIContent doubleSidedNormalModeText = new GUIContent("Normal Mode", "Specifies the method HDRP uses to modify the normal base.\nMirror: Mirrors the normals with the vertex normal plane.\nFlip: Flips the normal.");
             public static GUIContent depthOffsetEnableText = new GUIContent("Depth Offset", "When enabled, HDRP uses the Height Map to calculate the depth offset for this Material.");
+
             public static GUIContent doubleSidedGIText = new GUIContent("Double-Sided GI", "When selecting Auto, Double-Sided GI is enabled if the material is Double-Sided, otherwise On enables it and Off disables it.\n" +
                 "When enabled, the lightmapper accounts for both sides of the geometry when calculating Global Illumination. Backfaces are not rendered or added to lightmaps, but get treated as valid when seen from other objects. When using the Progressive Lightmapper backfaces bounce light using the same emission and albedo as frontfaces. (Currently this setting is only available when baking with the Progressive Lightmapper backend.).");
             public static GUIContent conservativeDepthOffsetEnableText = new GUIContent("Conservative", "When enabled, only positive depth offsets will be applied in order to take advantage of the early depth test mechanic.");
@@ -223,7 +224,6 @@ namespace UnityEditor.Rendering.HighDefinition
         MaterialProperty conservativeDepthOffsetEnable = null;
 
         MaterialProperty tessellationMode = null;
-        const string kTessellationMode = "_TessellationMode";
 
         MaterialProperty[] heightMap = new MaterialProperty[kMaxLayerCount];
         const string kHeightMap = "_HeightMap";
