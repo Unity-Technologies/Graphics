@@ -4,6 +4,7 @@ using UnityEditor.ProjectWindowCallback;
 #endif
 using System;
 using UnityEngine.Scripting.APIUpdating;
+using UnityEngine.Assertions;
 
 namespace UnityEngine.Rendering.Universal
 {
@@ -88,6 +89,9 @@ namespace UnityEngine.Rendering.Universal
         [SerializeField] DepthPrimingMode m_DepthPrimingMode = DepthPrimingMode.Disabled; // Default disabled because there are some outstanding issues with Text Mesh rendering.
         [SerializeField] bool m_AccurateGbufferNormals = false;
         //[SerializeField] bool m_TiledDeferredShading = false;
+        [SerializeField] bool m_ClusteredRendering = false;
+        const TileSize k_DefaultTileSize = TileSize._32;
+        [SerializeField] TileSize m_TileSize = k_DefaultTileSize;
 
         protected override ScriptableRenderer Create()
         {
@@ -198,6 +202,36 @@ namespace UnityEngine.Rendering.Universal
             }
         }
         */
+
+        internal bool clusteredRendering
+        {
+            get => m_ClusteredRendering;
+            set
+            {
+                SetDirty();
+                m_ClusteredRendering = value;
+            }
+        }
+
+        internal TileSize tileSize
+        {
+            get => m_TileSize;
+            set
+            {
+                Assert.IsTrue(value.IsValid());
+                SetDirty();
+                m_TileSize = value;
+            }
+        }
+
+        protected override void OnValidate()
+        {
+            base.OnValidate();
+            if (!m_TileSize.IsValid())
+            {
+                m_TileSize = k_DefaultTileSize;
+            }
+        }
 
         protected override void OnEnable()
         {

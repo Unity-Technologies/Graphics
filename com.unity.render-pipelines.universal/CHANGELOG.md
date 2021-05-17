@@ -28,6 +28,8 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Added support for controlling Volume Framework Update Frequency in UI on Cameras and URP Asset as well as through scripting.
 - Added URP Global Settings Asset to the Graphics Settings - a common place for project-wide URP settings.
 - Added possibility to rename light layer values.
+- Added Light cookies support to directional, point and spot light. Directional light cookie is main light only feature.
+- VFX: Basic support of Lit output.
 - Added Motion Vector render pass for URP.
 
 ### Changed
@@ -56,6 +58,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - DepthNormals passes now sample normal maps if used on the material, otherwise output the geometry normal.
 - SSAO Texture is now R8 instead of ARGB32 if supported by the platform.
 - Enabled subsurface scattering with GI on handwritten Universal ST8 shader.
+- Material upgrader now also upgrades AnimationClips in the project that have curves bound to renamed material properties.
 
 ### Fixed
 - Camera Inspector Stack list edition fixes.
