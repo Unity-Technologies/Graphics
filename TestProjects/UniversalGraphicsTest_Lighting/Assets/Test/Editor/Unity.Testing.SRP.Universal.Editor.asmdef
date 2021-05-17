@@ -1,7 +1,9 @@
 {
     "name": "UniversalEditorTests",
+    "rootNamespace": "",
     "references": [
         "GUID:e18141520846dcc44b725b2f74e91229",
+        "GUID:c081bc530f560634bb5c21d4b323a7f1",
         "GUID:ed05cc0a83a5a40c0a6e72098212c312",
         "GUID:27619889b8ba8c24980f49ee34dbb44a",
         "GUID:0acc523941302664db1f4e527237feb3",

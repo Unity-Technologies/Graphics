@@ -11,7 +11,7 @@ namespace UnityEngine.Rendering.HighDefinition
     /// High Definition Render Pipeline asset.
     /// </summary>
     [HDRPHelpURLAttribute("HDRP-Asset")]
-    public partial class HDRenderPipelineAsset : RenderPipelineAsset, IVirtualTexturingEnabledRenderPipeline, IOverrideCoreEditorResources
+    public partial class HDRenderPipelineAsset : RenderPipelineAsset, IVirtualTexturingEnabledRenderPipeline
     {
         [System.NonSerialized]
         internal bool isInOnValidateCall = false;
@@ -20,7 +20,14 @@ namespace UnityEngine.Rendering.HighDefinition
         {
         }
 
-        void Reset() => OnValidate();
+        void Reset()
+        {
+#if UNITY_EDITOR
+            // we need to ensure we have a global settings asset to be able to create an HDRP Asset
+            HDRenderPipelineGlobalSettings.Ensure(canCreateNewAsset: true);
+#endif
+            OnValidate();
+        }
 
         /// <summary>
         /// CreatePipeline implementation.
@@ -46,10 +53,9 @@ namespace UnityEngine.Rendering.HighDefinition
 
         HDRenderPipelineGlobalSettings globalSettings => HDRenderPipelineGlobalSettings.instance;
 
-        internal RenderPipelineResources renderPipelineResources
+        internal HDRenderPipelineRuntimeResources renderPipelineResources
         {
             get { return globalSettings.renderPipelineResources; }
-            set { globalSettings.renderPipelineResources = value; }
         }
 
         internal bool frameSettingsHistory { get; set; } = false;
@@ -102,17 +108,17 @@ namespace UnityEngine.Rendering.HighDefinition
 
         /// <summary>Names used for display of rendering layer masks.</summary>
         public override string[] renderingLayerMaskNames
-            => HDRenderPipelineGlobalSettings.instance.renderingLayerMaskNames;
+            => globalSettings.renderingLayerMaskNames;
 
         /// <summary>
         /// Names used for display of light layers.
         /// </summary>
-        public string[] lightLayerNames => HDRenderPipelineGlobalSettings.instance.lightLayerNames;
+        public string[] lightLayerNames => globalSettings.lightLayerNames;
 
         /// <summary>
         /// Names used for display of decal layers.
         /// </summary>
-        public string[] decalLayerNames => HDRenderPipelineGlobalSettings.instance.decalLayerNames;
+        public string[] decalLayerNames => globalSettings.decalLayerNames;
 
         /// <summary>HDRP default shader.</summary>
         public override Shader defaultShader
@@ -160,6 +166,9 @@ namespace UnityEngine.Rendering.HighDefinition
         public override Shader terrainDetailGrassBillboardShader
             => globalSettings?.renderPipelineEditorResources?.shaders.terrainDetailGrassBillboardShader;
 
+        public override Shader defaultSpeedTree8Shader
+            => globalSettings?.renderPipelineEditorResources?.shaderGraphs.defaultSpeedTree8Shader;
+
         // Note: This function is HD specific
         /// <summary>HDRP default Decal material.</summary>
         public Material GetDefaultDecalMaterial()
@@ -177,9 +186,6 @@ namespace UnityEngine.Rendering.HighDefinition
         /// <summary>HDRP default terrain material.</summary>
         public override Material defaultTerrainMaterial
             => globalSettings?.renderPipelineEditorResources?.materials.defaultTerrainMat;
-
-        /// <summary>HDRP Probe Volume shader.</summary>
-        public Shader GetProbeVolumeProbeShader() => globalSettings?.renderPipelineEditorResources.shaders.probeVolumeGizmoShader;
 
         // Array structure that allow us to manipulate the set of defines that the HD render pipeline needs
         List<string> defineArray = new List<string>();

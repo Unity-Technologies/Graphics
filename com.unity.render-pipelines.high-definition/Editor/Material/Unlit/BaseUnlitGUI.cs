@@ -253,6 +253,12 @@ namespace UnityEditor.Rendering.HighDefinition
                 }
             }
 
+            if (material.HasProperty(kTessellationMode))
+            {
+                TessellationMode tessMode = (TessellationMode)material.GetFloat(kTessellationMode);
+                CoreUtils.SetKeyword(material, "_TESSELLATION_PHONG", tessMode == TessellationMode.Phong);
+            }
+
             // DoubleSidedGI has to be synced with our double sided toggle
             var serializedObject = new SerializedObject(material);
             bool doubleSidedGI = false;
@@ -297,7 +303,7 @@ namespace UnityEditor.Rendering.HighDefinition
 
         static public void SetupBaseUnlitPass(this Material material)
         {
-            if (material.shader.IsShaderGraph())
+            if (material.IsShaderGraph())
             {
                 // Shader graph generate distortion pass only if required. So we can safely enable it
                 // all the time here.
@@ -360,7 +366,7 @@ namespace UnityEditor.Rendering.HighDefinition
 
             // Shader graphs materials have their own management of motion vector pass in the material inspector
             // (see DrawMotionVectorToggle())
-            if (!material.shader.IsShaderGraph())
+            if (!material.IsShaderGraph())
             {
                 //In the case of additional velocity data we will enable the motion vector pass.
                 bool addPrecomputedVelocity = false;

@@ -1,7 +1,7 @@
 using System.Collections.Generic;
-using System.Linq;
 using UnityEngine;
 using UnityEngine.Rendering;
+using UnityEngine.Experimental.Rendering;
 using UnityEngine.Rendering.HighDefinition;
 
 namespace UnityEditor.Rendering.HighDefinition
@@ -111,13 +111,13 @@ namespace UnityEditor.Rendering.HighDefinition
         {
             return new[]
             {
-                new LightingExplorerTab("Lights", GetHDLights, GetHDLightColumns),
-                new LightingExplorerTab("Volumes", GetVolumes, GetVolumeColumns),
-                new LightingExplorerTab("Reflection Probes", GetHDReflectionProbes, GetHDReflectionProbeColumns),
-                new LightingExplorerTab("Planar Reflection Probes", GetPlanarReflections, GetPlanarReflectionColumns),
-                new LightingExplorerTab("Light Probes", GetLightProbes, GetLightProbeColumns),
-                new LightingExplorerTab("Probe Volumes", GetProbeVolumes, GetProbeVolumeColumns),
-                new LightingExplorerTab("Emissive Materials", GetEmissives, GetEmissivesColumns)
+                new LightingExplorerTab("Lights", GetHDLights, GetHDLightColumns, true),
+                new LightingExplorerTab("Volumes", GetVolumes, GetVolumeColumns, true),
+                new LightingExplorerTab("Reflection Probes", GetHDReflectionProbes, GetHDReflectionProbeColumns, true),
+                new LightingExplorerTab("Planar Reflection Probes", GetPlanarReflections, GetPlanarReflectionColumns, true),
+                new LightingExplorerTab("Light Probes", GetLightProbes, GetLightProbeColumns, true),
+                new LightingExplorerTab("Probe Volumes", GetProbeVolumes, GetProbeVolumeColumns, true),
+                new LightingExplorerTab("Emissive Materials", GetEmissives, GetEmissivesColumns, false)
             };
         }
 
