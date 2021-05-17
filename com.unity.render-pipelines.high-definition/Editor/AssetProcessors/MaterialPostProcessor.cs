@@ -128,7 +128,7 @@ namespace UnityEditor.Rendering.HighDefinition
             }
             else
             {
-                if (!GraphUtil.IsShaderGraph(shader))
+                if (!GraphUtil.IsShaderGraphAsset(shader))
                     return false;
             }
 
@@ -336,7 +336,7 @@ namespace UnityEditor.Rendering.HighDefinition
 
                 var material = (Material)AssetDatabase.LoadAssetAtPath(asset, typeof(Material));
 
-                if (MaterialReimporter.s_ReimportShaderGraphDependencyOnMaterialUpdate && GraphUtil.IsShaderGraph(material.shader))
+                if (MaterialReimporter.s_ReimportShaderGraphDependencyOnMaterialUpdate && GraphUtil.IsShaderGraphAsset(material.shader))
                 {
                     // Check first if the HDRP shadergraph assigned needs a migration: here we dont ignore non HDRP ShaderGraphs as
                     // the detection is based on the presence of the "HDMetaData" object and old HDRP ShaderGraphs don't have these,

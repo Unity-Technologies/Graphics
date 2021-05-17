@@ -1,18 +1,14 @@
-#if UNITY_EDITOR
-using UnityEngine;
 using UnityEditorInternal;
 using System;
 using System.IO;
 using System.Collections.Generic;
-using UnityEngine.Rendering;
+using UnityEngine;
 using UnityEngine.Rendering.HighDefinition;
 using UnityEngine.Serialization;
 using UnityEditor.Rendering.HighDefinition.ShaderGraph;
-#endif
 
-namespace UnityEngine.Rendering.HighDefinition
+namespace UnityEditor.Rendering.HighDefinition
 {
-#if UNITY_EDITOR
     //As ScriptableSingleton is not usable due to internal FilePathAttribute,
     //copying mechanism here
     class HDProjectSettings : ScriptableObject, IVersionable<HDProjectSettings.Version>
@@ -128,15 +124,20 @@ namespace UnityEngine.Rendering.HighDefinition
         HDProjectSettings()
         {
             s_Instance = this;
-            //s_Instance.FillPresentPluginMaterialVersions(); // Useless when assembly reloading as here, this is not deserialized in yet
+            // s_Instance.FillPresentPluginMaterialVersions(); <
+            // We can't call this here as the scriptable object will not be deserialized in yet
         }
 
+        // We force the instance to be loaded/created and ready with valid values on assembly reload.
+        // We also use this so that the HDUserSettings.cs on the runtime assembly will have the HDProjectSettings proxy
+        // injected before it is used.
         [InitializeOnLoadMethod]
         static void Reset()
         {
             // Make sure the cached last seen plugin versions (capped to codebase versions) and their sum is valid
             // on assembly reload.
             instance.FillPresentPluginMaterialVersions();
+            HDProjectSettingsProxy.projectSettingsFolderPath = () => projectSettingsFolderPath;
         }
 
         void FillPresentPluginMaterialVersions()
@@ -256,7 +257,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
         static HDProjectSettings CreateOrLoad()
         {
-            //try load
+            //try load: if it exists, this will trigger the call to the private ctor
             InternalEditorUtility.LoadSerializedFileAndForget(filePath);
 
             //else create
@@ -297,7 +298,6 @@ namespace UnityEngine.Rendering.HighDefinition
         // (and thus a step never to be executed for that enum entry) because underlying enum values are ordered as unsigned and
         // MigrationDescription.LastVersion<Version>() will not work properly - ie it can return -1 if present instead of other positive values.
         // (as the enum symbol with -1 will be listed as the last enum values in UnityEngine.Rendering.HighDefinition.TypeInfo.GetEnumLastValue<T>())
-
         internal enum Version
         {
             None,
@@ -335,5 +335,4 @@ namespace UnityEngine.Rendering.HighDefinition
 #pragma warning restore 649 // Field never assigned
         #endregion
     }
-#endif
 }

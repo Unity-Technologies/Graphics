@@ -83,6 +83,10 @@ namespace UnityEditor.Rendering.HighDefinition
                 //.Where(subTarget => subTarget.IsExternalPlugin())
                 .ToList());
 
+        // Map from HDMetaData subTarget GUID to its HDSubTarget
+        static Dictionary<GUID, HDSubTarget> k_HDSubTargetsFromGuid =
+            k_HDSubTargets.ToDictionary(subTarget => subTarget.subTargetGuid, subTarget => subTarget);
+
         // Map from HDMetaData subTarget GUID to its MaterialResetter function
         static Dictionary<GUID, MaterialResetter> k_HDSubTargetsMaterialResetters =
             k_HDSubTargets.ToDictionary(subTarget => subTarget.subTargetGuid, subTarget => subTarget.setupMaterialKeywordsAndPassFunc);
@@ -106,7 +110,7 @@ namespace UnityEditor.Rendering.HighDefinition
             k_HDPluginSubTargets.Count > 0 ? k_HDPluginSubTargets.Sum(pair => (long)pair.Value.latestSubTargetVersion) : (long)PluginMaterial.GenericVersions.NeverMigrated;
 
         /// <summary>
-        /// Checks if a SubTarget GUID of a shadegraph shader used by a material correspond to a plugin SubTarget.
+        /// Checks if a SubTarget GUID of a shadergraph shader used by a material correspond to a plugin SubTarget.
         /// If so, also returns that plugin material interface giving access to its latest version and material migration.
         /// </summary>
         /// <param name="pluginMaterialGUID">The SubTarget GUID (<see cref="GetShaderIDsFromShader"/>)</param>
@@ -115,7 +119,7 @@ namespace UnityEditor.Rendering.HighDefinition
         /// True: The GUID matches a found plugin SubTarget and the subTargetMaterialUtils interface is found.
         /// False: Unknown plugin SubTarget GUID.
         /// </returns>
-        public static bool GetMaterialPluginSubTarget(GUID pluginMaterialGUID, out IPluginSubTargetMaterialUtils subTargetMaterialUtils)
+        internal static bool GetMaterialPluginSubTarget(GUID pluginMaterialGUID, out IPluginSubTargetMaterialUtils subTargetMaterialUtils)
         {
             try
             {
@@ -143,6 +147,36 @@ namespace UnityEditor.Rendering.HighDefinition
             return pluginSubTargetVersionsSum;
         }
 
+        internal static string GetMaterialSubTargetDisplayName(GUID subTargetGUID)
+        {
+            try
+            {
+                k_HDSubTargetsFromGuid.TryGetValue(subTargetGUID, out HDSubTarget subTarget);
+                if (subTarget == null)
+                    return String.Empty;
+                else
+                    return subTarget.displayName;
+            }
+            catch
+            {
+                return String.Empty;
+            }
+        }
+
+        /// <summary>
+        /// Returns a material's shadergraph's SubTarget display name, if it
+        /// is an HD shadergraph.
+        /// </summary>
+        /// <param name="material">The material with the subtarget</param>
+        /// <returns>
+        /// The display name of the subtarget or an empty string.
+        /// </returns>
+        internal static string GetMaterialSubTargetDisplayName(Material material)
+        {
+            (_, GUID subTargetGUID) = GetShaderIDsFromShader(material.shader);
+            return GetMaterialSubTargetDisplayName(subTargetGUID);
+        }
+
         /// <summary>
         /// Reset the dedicated Keyword and Pass regarding the shader kind.
         /// Also re-init the drawers and set the material dirty for the engine.
@@ -153,12 +187,6 @@ namespace UnityEditor.Rendering.HighDefinition
         /// False: unknown shader used in material
         /// </returns>
         public static bool ResetMaterialKeywords(Material material)
-        {
-            var shaderID = GetShaderEnumFromShader(material.shader);
-            return ResetMaterialKeywords(material, shaderID);
-        }
-
-        internal static bool ResetMaterialKeywords(Material material, ShaderID shaderId)
         {
             MaterialResetter resetter;
 
@@ -256,6 +284,26 @@ namespace UnityEditor.Rendering.HighDefinition
             }
 
             return s_ShaderPaths[index];
+        }
+
+        internal static (ShaderID, GUID) GetShaderIDsFromHDMetadata(UnityEngine.Object mainAsset)
+        {
+            // Throw exception if no metadata is found
+            // This case should be handled by the Target
+            HDMetadata obj = null;
+            var path = AssetDatabase.GetAssetPath(mainAsset);
+            foreach (var asset in AssetDatabase.LoadAllAssetsAtPath(path))
+            {
+                if (asset is HDMetadata metadataAsset)
+                {
+                    obj = metadataAsset;
+                }
+            }
+
+            if (obj == null)
+                throw new ArgumentException("No HDMetaData found");
+
+            return (obj.shaderID, obj.subTargetGuid);
         }
 
         internal static (ShaderID, GUID) GetShaderIDsFromShader(Shader shader)
