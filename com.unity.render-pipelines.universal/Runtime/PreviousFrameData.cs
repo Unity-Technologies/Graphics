@@ -67,5 +67,5 @@ namespace UnityEngine.Rendering.Universal.Internal
         }
 #endif
     }
-        #endregion
+    #endregion
 }

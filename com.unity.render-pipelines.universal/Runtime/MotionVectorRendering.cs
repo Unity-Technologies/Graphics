@@ -94,7 +94,7 @@ namespace UnityEngine.Rendering.Universal.Internal
         {
             // The actual projection matrix used in shaders is actually massaged a bit to work across all platforms
             // (different Z value ranges etc.)
-            
+
             // A camera could be rendered multiple times per frame, only updates the previous view proj & pos if needed
 #if ENABLE_VR && ENABLE_XR_MODULE
             if (cameraData.xr.enabled)
@@ -134,7 +134,7 @@ namespace UnityEngine.Rendering.Universal.Internal
                 // Current frame data
                 motionData.viewProjectionMatrix = gpuVP;
             }
-            
+
             motionData.lastFrameActive = Time.frameCount;
         }
     }

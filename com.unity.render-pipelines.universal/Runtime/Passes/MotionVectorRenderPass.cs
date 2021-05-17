@@ -30,6 +30,7 @@ namespace UnityEngine.Rendering.Universal.Internal
             m_CameraMaterial = cameraMaterial;
             m_ObjectMaterial = objectMaterial;
         }
+
         #endregion
 
         #region State

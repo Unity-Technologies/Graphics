@@ -688,7 +688,7 @@ namespace UnityEngine.Rendering.Universal
                 m_CopyColorPass.Setup(m_ActiveCameraColorAttachment.Identifier(), m_OpaqueColor, downsamplingMethod);
                 EnqueuePass(m_CopyColorPass);
             }
-            
+
             if (renderPassInputs.requiresMotionVectors && !cameraData.xr.enabled)
             {
                 SupportedRenderingFeatures.active.motionVectors = true; // hack for enabling UI
