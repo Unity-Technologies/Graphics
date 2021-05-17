@@ -60,6 +60,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Added path tracing support for AxF material.
 - Added support for surface gradient based normal blending for decals.
 - Added support for tessellation for all master node in shader graph.
+- Added ValidateMaterial callbacks to ShaderGUI.
 
 ### Fixed
 - Fixed Intensity Multiplier not affecting realtime global illumination.

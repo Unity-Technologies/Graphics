@@ -553,7 +553,6 @@ namespace UnityEditor.VFX
         {
             if (cause == VFXModel.InvalidationCause.kStructureChanged
                 || cause == VFXModel.InvalidationCause.kSettingChanged
-                || cause == VFXModel.InvalidationCause.kSettingChanged
                 || cause == VFXModel.InvalidationCause.kConnectionChanged)
                 m_SystemNames.Sync(this);
 

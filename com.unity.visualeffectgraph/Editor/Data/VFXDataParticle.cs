@@ -417,7 +417,7 @@ namespace UnityEditor.VFX
 
         uint m_SourceCount = 0xFFFFFFFFu;
 
-        public override uint sourceCount
+        public override uint staticSourceCount
         {
             get
             {
@@ -425,10 +425,21 @@ namespace UnityEditor.VFX
             }
         }
 
+        public bool hasDynamicSourceCount
+        {
+            get
+            {
+                return m_Contexts.Any(
+                    o => o.contextType == VFXContextType.Init
+                    && o.inputFlowSlot.Any(flow => flow.link.Any(link => link.context.contextType == VFXContextType.Event)));
+            }
+        }
+
         public override void GenerateAttributeLayout(Dictionary<VFXContext, List<VFXContextLink>[]> effectiveFlowInputLinks)
         {
             m_layoutAttributeCurrent.GenerateAttributeLayout(alignedCapacity, m_StoredCurrentAttributes);
             m_SourceCount = ComputeSourceCount(effectiveFlowInputLinks);
+
             var parent = m_DependenciesIn.OfType<VFXDataParticle>().FirstOrDefault();
             if (parent != null)
             {
@@ -608,7 +619,7 @@ namespace UnityEditor.VFX
                 systemBufferMappings.Add(new VFXMapping("attributeBuffer", attributeBufferIndex));
             }
 
-            if (m_ownAttributeSourceBuffer && m_layoutAttributeSource.GetBufferSize(sourceCount) > 0u)
+            if (m_ownAttributeSourceBuffer)
             {
                 if (attributeSourceBufferIndex != -1)
                 {
@@ -616,7 +627,7 @@ namespace UnityEditor.VFX
                 }
 
                 attributeSourceBufferIndex = outBufferDescs.Count;
-                outBufferDescs.Add(m_layoutAttributeSource.GetBufferDesc(sourceCount));
+                outBufferDescs.Add(m_layoutAttributeSource.GetBufferDesc(staticSourceCount));
             }
 
             if (attributeSourceBufferIndex != -1)
@@ -653,6 +664,11 @@ namespace UnityEditor.VFX
 
                 stripDataIndex = dependentBuffers.stripBuffers[this];
                 systemBufferMappings.Add(new VFXMapping("stripDataBuffer", stripDataIndex));
+            }
+
+            if (hasDynamicSourceCount)
+            {
+                systemFlag |= VFXSystemFlag.SystemHasDirectLink;
             }
 
             if (needsComputeBounds || boundsSettingMode == BoundsSettingMode.Automatic)
