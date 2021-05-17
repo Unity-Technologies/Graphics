@@ -41,6 +41,7 @@ namespace UnityEngine.Rendering
         Texture2D m_Texture;
 
         bool m_IsCurveDirty;
+        bool m_IsLoopingCurveDirty;
         bool m_IsTextureDirty;
 
         /// <summary>
@@ -105,6 +106,7 @@ namespace UnityEngine.Rendering
         public void SetDirty()
         {
             m_IsCurveDirty = true;
+            m_IsLoopingCurveDirty = true;
             m_IsTextureDirty = true;
         }
 
@@ -138,12 +140,30 @@ namespace UnityEngine.Rendering
 
             if (m_IsTextureDirty)
             {
-                var pixels = new Color[k_Precision];
-
-                for (int i = 0; i < pixels.Length; i++)
-                    pixels[i].r = Evaluate(i * k_Step);
-
-                m_Texture.SetPixels(pixels);
+                switch (m_Texture.format)
+                {
+                    case TextureFormat.RHalf:
+                    {
+                        var data = m_Texture.GetPixelData<ushort>(0);
+                        for (int i = 0; i < k_Precision; i++)
+                            data[i] = Mathf.FloatToHalf(Evaluate(i * k_Step));
+                        break;
+                    }
+                    case TextureFormat.R8:
+                    {
+                        var data = m_Texture.GetPixelData<byte>(0);
+                        for (int i = 0; i < k_Precision; i++)
+                            data[i] = (byte)(Mathf.Clamp01(Evaluate(i * k_Step)) * byte.MaxValue);
+                        break;
+                    }
+                    case TextureFormat.ARGB32:
+                    {
+                        var data = m_Texture.GetPixelData<byte>(0);
+                        for (int i = 0; i < k_Precision; i++)
+                            data[i * 4 + 1] = (byte)(Mathf.Clamp01(Evaluate(i * k_Step)) * byte.MaxValue);
+                        break;
+                    }
+                }
                 m_Texture.Apply(false, false);
                 m_IsTextureDirty = false;
             }
@@ -161,7 +181,10 @@ namespace UnityEngine.Rendering
         public float Evaluate(float time)
         {
             if (m_IsCurveDirty)
+            {
                 length = m_Curve.length;
+                m_IsCurveDirty = false;
+            }
 
             if (length == 0)
                 return m_ZeroValue;
@@ -169,7 +192,7 @@ namespace UnityEngine.Rendering
             if (!m_Loop || length == 1)
                 return m_Curve.Evaluate(time);
 
-            if (m_IsCurveDirty)
+            if (m_IsLoopingCurveDirty)
             {
                 if (m_LoopingCurve == null)
                     m_LoopingCurve = new AnimationCurve();
@@ -181,7 +204,7 @@ namespace UnityEngine.Rendering
                 m_LoopingCurve.keys = m_Curve.keys; // GC pressure
                 m_LoopingCurve.AddKey(prev);
                 m_LoopingCurve.AddKey(next);
-                m_IsCurveDirty = false;
+                m_IsLoopingCurveDirty = false;
             }
 
             return m_LoopingCurve.Evaluate(time);
@@ -248,7 +271,7 @@ namespace UnityEngine.Rendering
                 SetValue(from);
                 return;
             }
-            else if (t == 1f)
+            if (t == 1f)
             {
                 SetValue(to);
                 return;
