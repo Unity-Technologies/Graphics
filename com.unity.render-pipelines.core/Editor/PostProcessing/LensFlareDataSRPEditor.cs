@@ -125,6 +125,8 @@ namespace UnityEditor.Rendering
         static Material m_CircleMaterial = null;
         static Material m_PolygonMaterial = null;
         static RTHandle m_PreviewTexture = null;
+        static Texture2D m_PreviewReadBackTexture = null;
+        static int m_PreviewSize = 128;
 
         void OnEnable()
         {
@@ -139,24 +141,52 @@ namespace UnityEditor.Rendering
             m_List.elementHeightCallback = ElementHeight;
 
             if (m_PreviewShader == null)
-                m_PreviewShader = Shader.Find("Hidden/Core/LensFlareDataDrivenPreview2");
+                m_PreviewShader = Shader.Find("Hidden/Core/LensFlareDataDrivenPreview");
             if (m_CircleMaterial == null)
             {
                 m_CircleMaterial = new Material(m_PreviewShader);
                 m_CircleMaterial.SetPass(0);
                 //CoreUtils.SetKeyword(m_CircleMaterial, "FLARE_CIRCLE", true);
+                //CoreUtils.SetKeyword(m_CircleMaterial, "FLARE_POLYGON", false);
             }
             if (m_PolygonMaterial == null)
             {
                 m_PolygonMaterial = new Material(m_PreviewShader);
                 m_PolygonMaterial.SetPass(0);
                 //CoreUtils.SetKeyword(m_PolygonMaterial, "FLARE_POLYGON", true);
+                //CoreUtils.SetKeyword(m_PolygonMaterial, "FLARE_CIRCLE", false);
             }
             if (m_PreviewTexture == null)
             {
-                m_PreviewTexture = RTHandles.Alloc(128, 128,
-                    enableRandomWrite: true,
-                    colorFormat: UnityEngine.Experimental.Rendering.GraphicsFormat.R16G16B16A16_SFloat);
+                m_PreviewTexture = RTHandles.Alloc(m_PreviewSize, m_PreviewSize, colorFormat: UnityEngine.Experimental.Rendering.GraphicsFormat.R16G16B16A16_SFloat);
+            }
+            if (m_PreviewReadBackTexture == null)
+            {
+                m_PreviewReadBackTexture = new Texture2D(m_PreviewSize, m_PreviewSize, UnityEngine.Experimental.Rendering.GraphicsFormat.R8G8B8A8_SRGB, UnityEngine.Experimental.Rendering.TextureCreationFlags.None);
+            }
+        }
+
+        void OnDisable()
+        {
+            if (m_PreviewReadBackTexture != null)
+            {
+                DestroyImmediate(m_PreviewReadBackTexture);
+            }
+            if (m_PreviewTexture != null)
+            {
+                DestroyImmediate(m_PreviewTexture);
+            }
+            if (m_PolygonMaterial != null)
+            {
+                DestroyImmediate(m_PolygonMaterial);
+            }
+            if (m_CircleMaterial != null)
+            {
+                DestroyImmediate(m_CircleMaterial);
+            }
+            if (m_PreviewShader != null)
+            {
+                DestroyImmediate(m_PreviewShader);
             }
         }
 
@@ -324,6 +354,49 @@ namespace UnityEditor.Rendering
         void DrawElementBackground(Rect rect, int index, bool isActive, bool isFocused)
             => EditorGUI.DrawRect(rect, Styles.elementBackgroundColor);
 
+        void DrawThumbnailProcedural(Rect rect, SerializedProperty element, SRPLensFlareType type)
+        {
+            EditorGUI.DrawRect(rect, Color.yellow);
+
+            RenderTexture oldActive = RenderTexture.active;
+            RenderTexture.active = m_PreviewTexture.rt;
+
+            Material usedMaterial = null;
+            if (type == SRPLensFlareType.Circle)
+                usedMaterial = m_CircleMaterial;
+            else if (type == SRPLensFlareType.Polygon)
+                usedMaterial = m_PolygonMaterial;
+
+            //Set here what need to be setup in the material
+            usedMaterial.SetPass(0);
+            CoreUtils.SetKeyword(usedMaterial, "FLARE_CIRCLE", type == SRPLensFlareType.Circle);
+            CoreUtils.SetKeyword(usedMaterial, "FLARE_POLYGON", type == SRPLensFlareType.Polygon);
+            //usedMaterial.SetVector(...);
+
+            GL.PushMatrix();
+            GL.LoadOrtho();
+            GL.Viewport(new Rect(0, 0, m_PreviewSize, m_PreviewSize));
+
+            GL.Begin(GL.QUADS);
+            GL.TexCoord2(0, 0);
+            GL.Vertex3(0f, 0f, 0);
+            GL.TexCoord2(0, 1);
+            GL.Vertex3(0f, 1f, 0);
+            GL.TexCoord2(1, 1);
+            GL.Vertex3(1f, 1f, 0);
+            GL.TexCoord2(1, 0);
+            GL.Vertex3(1f, 0f, 0);
+            GL.End();
+            GL.PopMatrix();
+
+            m_PreviewReadBackTexture.ReadPixels(new Rect(0, 0, m_PreviewSize, m_PreviewSize), 0, 0, false);
+            m_PreviewReadBackTexture.Apply(false);
+
+            RenderTexture.active = oldActive;
+
+            EditorGUI.DrawTextureTransparent(rect, m_PreviewReadBackTexture, ScaleMode.ScaleToFit, 1f);
+        }
+
         void DrawElement(Rect rect, int index, bool isActive, bool isFocused)
         {
             Rect headerRect = rect;
@@ -426,26 +499,15 @@ namespace UnityEditor.Rendering
                     break;
 
                 case SRPLensFlareType.Circle:
-                    EditorGUI.DrawRect(thumbnailRect, GUI.color);   //draw the margin
-                    EditorGUI.DrawTextureTransparent(thumbnailIconeRect, LensFlareEditorUtils.Icons.circle, ScaleMode.ScaleToFit, 1f);
+                    //EditorGUI.DrawRect(thumbnailRect, GUI.color);   //draw the margin
+                    //EditorGUI.DrawTextureTransparent(thumbnailIconeRect, LensFlareEditorUtils.Icons.circle, ScaleMode.ScaleToFit, 1f);
+                    EditorGUI.DrawRect(thumbnailRect, GUI.color); //draw the margin
+                    DrawThumbnailProcedural(thumbnailRect, element, SRPLensFlareType.Circle);
                     break;
 
                 case SRPLensFlareType.Polygon:
-                    //EditorGUI.DrawRect(thumbnailRect, GUI.color);   //draw the margin
-                    //Graphics.SetRenderTarget(m_PreviewTexture);
-                    //Graphics.ClearRandomWriteTargets();
-                    //EditorGUI.DrawTextureTransparent(thumbnailIconeRect, LensFlareEditorUtils.Icons.polygon, ScaleMode.ScaleToFit, 1);
-                    //Graphics.SetRenderTarget(m_PreviewTexture);
-                    //EditorGUI.DrawPreviewTexture(thumbnailIconeRect, LensFlareEditorUtils.Icons.polygon, m_PolygonMaterial, ScaleMode.ScaleToFit, 1f);
-
-                    if (m_PolygonMaterial != null &&
-                        m_PreviewTexture.rt != null &&
-                        m_PreviewTexture != null)
-                    {
-                        EditorGUI.DrawRect(thumbnailRect, GUI.color);
-                        Graphics.Blit(Texture2D.whiteTexture, m_PreviewTexture.rt, m_PolygonMaterial);
-                        EditorGUI.DrawTextureTransparent(thumbnailIconeRect, m_PreviewTexture.rt, ScaleMode.ScaleToFit, 1f);
-                    }
+                    EditorGUI.DrawRect(thumbnailRect, GUI.color); //draw the margin
+                    DrawThumbnailProcedural(thumbnailRect, element, SRPLensFlareType.Polygon);
                     break;
             }
             GUI.color = guiColor;
