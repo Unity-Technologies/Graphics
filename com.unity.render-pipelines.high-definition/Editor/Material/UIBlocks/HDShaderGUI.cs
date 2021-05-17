@@ -23,8 +23,15 @@ namespace UnityEditor.Rendering.HighDefinition
     /// </summary>
     public abstract class HDShaderGUI : ShaderGUI
     {
-        // The following set of functions are call by the ShaderGraph
-        // It will allow to display our common parameters + setup keyword correctly for them
+        /// <summary>
+        /// Sets up the keywords and passes for the material you pass in as a parameter.
+        /// </summary>
+        /// <param name="material">Target material.</param>
+        [Obsolete("SetupMaterialKeywordsAndPass has been renamed ValidateMaterial (UnityUpgradable) -> ValidateMaterial()", false)]
+        protected virtual void SetupMaterialKeywordsAndPass(Material material)
+        {
+            ValidateMaterial(material);
+        }
 
         /// <summary>
         /// Unity calls this function when it displays the GUI. This method is sealed so you cannot override it. To implement your custom GUI, use OnMaterialGUI instead.
