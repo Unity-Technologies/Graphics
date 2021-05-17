@@ -287,7 +287,6 @@ namespace UnityEditor.ShaderGraph
         // This needs to be checked at a later point in time so actions like replace (remove + add) don't remove blocks.
         internal bool checkAutoAddRemoveBlocks { get; set; }
 
-
         // NOTE: having preview mode default to 3D preserves the old behavior of pre-existing subgraphs
         // if we change this, we would have to introduce a versioning step if we want to maintain the old behavior
         [SerializeField]
