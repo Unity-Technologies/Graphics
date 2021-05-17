@@ -106,7 +106,7 @@ namespace UnityEditor.VFX
             {
                 m_CachedMaterial = new Material(shader);
                 m_CachedMaterial.hideFlags = HideFlags.HideAndDontSave;
-                
+
                 VFXLibrary.currentSRPBinder?.SetupMaterial(m_CachedMaterial);
             }
 

@@ -991,15 +991,14 @@ namespace UnityEditor.VFX
                 if (contextToSystemIndex.TryGetValue(data, out var index))
                     yield return index;
         }
-      
+
         private void CleanRuntimeData()
         {
             if (m_Graph.visualEffectResource != null)
                 m_Graph.visualEffectResource.ClearRuntimeData();
 
             m_ExpressionGraph = new VFXExpressionGraph();
-            m_ExpressionValues = new VFXExpressionValueContainerDesc[] { };
-            return;
+            m_ExpressionValues = new VFXExpressionValueContainerDesc[] {};
         }
 
         public void Compile(VFXCompilationMode compilationMode, bool forceShaderValidation)
