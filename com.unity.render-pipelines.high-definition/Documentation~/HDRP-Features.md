@@ -386,6 +386,12 @@ Path tracing now supports fog absorption. Like SSS, to use this feature, enable 
 
 For information on fog in HDRP, see [fog](Override-Fog.md).
 
+#### Materials support
+
+![](Images/Path-traced-materials.png)
+
+Path tracing supports almost all the rasterization engine [materials](#Material) listed above: it can render Lit, Layered Lit, Unlit, Stacklit, Fabric and AxF materials. Note that objects using non-HDRP materials simply won't appear in the image, when in path tracing mode.
+
 <a name="Tools"></a>
 
 ## Tools
