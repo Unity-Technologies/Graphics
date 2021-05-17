@@ -58,7 +58,7 @@ This section describes the implementation details of this feature, and technical
 
 In the Deferred Rendering Path, Unity stores normals in the G-buffer. Unity encodes each normal as a 24 bit value.
 
-When you select the **Deferred** option in the **Rendering Path** property in the URP Universal Renderer asset, Unity shows the **Accurate G-buffer normals** property. 
+When you select the **Deferred** option in the **Rendering Path** property in the URP Universal Renderer asset, Unity shows the **Accurate G-buffer normals** property.
 
 ![The Accurate G-buffer normals property in the URP Universal Renderer asset](../Images/rendering-deferred/urp-renderer-accurate-g-buffer-normals.png)
 
@@ -66,7 +66,7 @@ The **Accurate G-buffer normals** property lets you configure how Unity encodes 
 
 * **Accurate G-buffer normals** off: Unity stores values of normal vectors in the G-buffer in the RGB channel of a normal texture, 8 bit per value (x, y, z). The values are quantized with the loss of accuracy. This option increases performance, especially on mobile GPUs, but might lead to color banding artifacts on smooth surfaces.
 
-* **Accurate G-buffer normals** on: Unity uses the octahedron encoding to stores values of normal vectors in the RGB channel of a normal texture. With this encoding, values of normal vectors are more accurate, but the encoding and decoding operations put extra load on the GPU.<br/>The precision of the encoded normal vectors is similar to the precision of the sampled values in the Forward Rendering Path. 
+* **Accurate G-buffer normals** on: Unity uses the octahedron encoding to stores values of normal vectors in the RGB channel of a normal texture. With this encoding, values of normal vectors are more accurate, but the encoding and decoding operations put extra load on the GPU.<br/>The precision of the encoded normal vectors is similar to the precision of the sampled values in the Forward Rendering Path.
 
 The following illustration shows the visual difference between the two options when the Camera is very close to the GameObject:
 
@@ -146,7 +146,7 @@ Render target format:
 
 **ShadowMask**
 
-Unity adds this render target to the G-buffer layout when Lighting Mode is set to Subtractive or Shadow mask. 
+Unity adds this render target to the G-buffer layout when Lighting Mode is set to Subtractive or Shadow mask.
 
 The Subtractive and the Shadow mask modes are optimized for the Forward Rendering Path, and are less efficient in the Deferred Rendering Path. In the Deferred Rendering Path,  avoid using these modes and use the Baked Indirect mode instead to improve GPU performance.
 
@@ -156,7 +156,7 @@ Unity adds this render target to the G-buffer layout when the Light Layers featu
 
 **DepthStencil**
 
-Unity reserves the four highest bits of this render target to mark the Material type. See also [URP Pass tags: UniversalMaterialType](../urp-shaders/urp-shaderlab-pass-tags.md#universalmaterialtype). 
+Unity reserves the four highest bits of this render target to mark the Material type. See also [URP Pass tags: UniversalMaterialType](../urp-shaders/urp-shaderlab-pass-tags.md#universalmaterialtype).
 
 For this render target, Unity selects either the D32F_S8 format, or the D24S8 format depending on the platform.
 
@@ -164,113 +164,113 @@ For this render target, Unity selects either the D32F_S8 format, or the D24S8 fo
 
 The following table shows the sequence of Render Pass events in the Deferred Rendering Path.
 
-<table>	
-	<thead>
-	<tr>
-		<th>Render Pass events</th>
-		<th>Deferred Rendering Path Passes</th>
-		<th>SSAO Renderer Feature Passes</th>
-	</tr>
-	</thead>
-	<tbody>
-	<tr>
-		<td>BeforeRendering</td>
-		<td>&#160;</td>
-		<td>&#160;</td>
-	</tr>
-	<tr>
-		<td>BeforeRenderingShadows</td>
-		<td>&#160;</td>
-		<td>&#160;</td>
-	</tr>
-	<tr>
-		<td>AfterRenderingShadows</td>
-		<td>&#160;</td>
-		<td>&#160;</td>
-	</tr>
-	<tr>
-		<td>BeforeRenderingPrePasses</td>
-		<td>Depth, or depth and normal prepass (Forward only materials)</td>
-		<td>&#160;</td>
-	</tr>
-	<tr>
-		<td>AfterRenderingPrePasses</td>
-		<td>&#160;</td>
-		<td>&#160;</td>
-	</tr>
-	<tr>
-		<td>BeforeRenderingGbuffer</td>
-		<td>G-buffer Pass (GBufferPass)</td>
-		<td>&#160;</td>
-	</tr>
-	<tr>
-		<td>&#160;</td>
-		<td>Copy G-buffer depth texture</td>
-		<td>&#160;</td>
-	</tr>
-	<tr>
-		<td>AfterRenderingGbuffer</td>
-		<td>&#160;</td>
-		<td>SSAO (optional)</td>
-	</tr>
-	<tr>
-		<td>BeforeRenderingDeferredLights</td>
-		<td>&#160;</td>
-		<td rowspan="4"><img src="../Images/rendering-deferred/decorator-or.png" /></td>
-	</tr>
+<table>
+    <thead>
     <tr>
-		<td></td>
-		<td>Deferred rendering (stencil)</td>		
-	</tr>
-	<tr>
-		<td>AfterRenderingDeferredLights</td>
-		<td>&#160;</td>		
-	</tr>
-	<tr>
-		<td>BeforeRenderingOpaques</td>
-		<td>Opaque Forward-only Materials</td>
-	</tr>
-	<tr>
-		<td>AfterRenderingOpaques</td>
-		<td>&#160;</td>
-		<td>SSAO and blending (optional)</td>
-	</tr>
-	<tr>
-		<td>BeforeRenderingSkybox</td>
-		<td>&#160;</td>
-		<td>&#160;</td>
-	</tr>
-	<tr>
-		<td>AfterRenderingSkybox</td>
-		<td>&#160;</td>
-		<td>&#160;</td>
-	</tr>
-	<tr>
-		<td>BeforeRenderingTransparents</td>
-		<td>&#160;</td>
-		<td>&#160;</td>
-	</tr>
-	<tr>
-		<td>AfterRenderingTransparents</td>
-		<td>&#160;</td>
-		<td>&#160;</td>
-	</tr>
-	<tr>
-		<td>BeforeRenderingPostProcessing</td>
-		<td>&#160;</td>
-		<td>&#160;</td>
-	</tr>
-	<tr>
-		<td>AfterRenderingPostProcessing</td>
-		<td>&#160;</td>
-		<td>&#160;</td>
-	</tr>
-	<tr>
-		<td>AfterRendering</td>
-		<td>&#160;</td>
-		<td>&#160;</td>
-	</tr>
-	<tbody>
+        <th>Render Pass events</th>
+        <th>Deferred Rendering Path Passes</th>
+        <th>SSAO Renderer Feature Passes</th>
+    </tr>
+    </thead>
+    <tbody>
+    <tr>
+        <td>BeforeRendering</td>
+        <td>&#160;</td>
+        <td>&#160;</td>
+    </tr>
+    <tr>
+        <td>BeforeRenderingShadows</td>
+        <td>&#160;</td>
+        <td>&#160;</td>
+    </tr>
+    <tr>
+        <td>AfterRenderingShadows</td>
+        <td>&#160;</td>
+        <td>&#160;</td>
+    </tr>
+    <tr>
+        <td>BeforeRenderingPrePasses</td>
+        <td>Depth, or depth and normal prepass (Forward only materials)</td>
+        <td>&#160;</td>
+    </tr>
+    <tr>
+        <td>AfterRenderingPrePasses</td>
+        <td>&#160;</td>
+        <td>&#160;</td>
+    </tr>
+    <tr>
+        <td>BeforeRenderingGbuffer</td>
+        <td>G-buffer Pass (GBufferPass)</td>
+        <td>&#160;</td>
+    </tr>
+    <tr>
+        <td>&#160;</td>
+        <td>Copy G-buffer depth texture</td>
+        <td>&#160;</td>
+    </tr>
+    <tr>
+        <td>AfterRenderingGbuffer</td>
+        <td>&#160;</td>
+        <td>SSAO (optional)</td>
+    </tr>
+    <tr>
+        <td>BeforeRenderingDeferredLights</td>
+        <td>&#160;</td>
+        <td rowspan="4"><img src="../Images/rendering-deferred/decorator-or.png" /></td>
+    </tr>
+    <tr>
+        <td></td>
+        <td>Deferred rendering (stencil)</td>
+    </tr>
+    <tr>
+        <td>AfterRenderingDeferredLights</td>
+        <td>&#160;</td>
+    </tr>
+    <tr>
+        <td>BeforeRenderingOpaques</td>
+        <td>Opaque Forward-only Materials</td>
+    </tr>
+    <tr>
+        <td>AfterRenderingOpaques</td>
+        <td>&#160;</td>
+        <td>SSAO and blending (optional)</td>
+    </tr>
+    <tr>
+        <td>BeforeRenderingSkybox</td>
+        <td>&#160;</td>
+        <td>&#160;</td>
+    </tr>
+    <tr>
+        <td>AfterRenderingSkybox</td>
+        <td>&#160;</td>
+        <td>&#160;</td>
+    </tr>
+    <tr>
+        <td>BeforeRenderingTransparents</td>
+        <td>&#160;</td>
+        <td>&#160;</td>
+    </tr>
+    <tr>
+        <td>AfterRenderingTransparents</td>
+        <td>&#160;</td>
+        <td>&#160;</td>
+    </tr>
+    <tr>
+        <td>BeforeRenderingPostProcessing</td>
+        <td>&#160;</td>
+        <td>&#160;</td>
+    </tr>
+    <tr>
+        <td>AfterRenderingPostProcessing</td>
+        <td>&#160;</td>
+        <td>&#160;</td>
+    </tr>
+    <tr>
+        <td>AfterRendering</td>
+        <td>&#160;</td>
+        <td>&#160;</td>
+    </tr>
+    <tbody>
 </table>
 
 The following sections describe the Deferred Rendering Path render Passes.
@@ -283,7 +283,7 @@ In the Deferred Rendering Path, Unity does not use the depth prepass to generate
 
 If the Universal Renderer has the SSAO Renderer Feature, Unity executes the depth and normal prepass. SSAO uses the screen-space depth and normal buffers to calculate ambient occlusion.
 
-#### Optional passes: SSAO, SSAO with blending 
+#### Optional passes: SSAO, SSAO with blending
 
 If the Universal Renderer has the SSAO Renderer Feature, and the **After Opaque** option is disabled (the option is disabled by default), Unity executes the SSAO Pass at the AfterRenderingGbuffer event. The SSAO Renderer Feature calculates the SSAO texture. Unity samples this texture in the Deferred rendering Pass and in the Pass that renders Forward-only Materials.
 
