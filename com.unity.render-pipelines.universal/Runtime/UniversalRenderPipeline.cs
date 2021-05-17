@@ -515,7 +515,6 @@ namespace UnityEngine.Rendering.Universal
             var xrPasses = m_XRSystem.SetupFrame(baseCamera, xrRendering);
             foreach (XRPass xrPass in xrPasses)
             {
-
                 if (xrPass.enabled)
                 {
                     xrActive = true;
