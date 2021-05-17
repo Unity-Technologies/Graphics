@@ -273,19 +273,19 @@ namespace UnityEngine.Rendering.Universal
             {
                 case RendererType.UniversalRenderer:
                 default:
-                    {
-                        var rendererData = CreateInstance<UniversalRendererData>();
-                        rendererData.postProcessData = PostProcessData.GetDefaultPostProcessData();
-                        return rendererData;
-                    }
+                {
+                    var rendererData = CreateInstance<UniversalRendererData>();
+                    rendererData.postProcessData = PostProcessData.GetDefaultPostProcessData();
+                    return rendererData;
+                }
                 // 2D renderer is experimental
                 case RendererType._2DRenderer:
-                    {
-                        var rendererData = CreateInstance<Renderer2DData>();
-                        rendererData.postProcessData = PostProcessData.GetDefaultPostProcessData();
-                        return rendererData;
-                        // Universal Renderer is the fallback renderer that works on all platforms
-                    }
+                {
+                    var rendererData = CreateInstance<Renderer2DData>();
+                    rendererData.postProcessData = PostProcessData.GetDefaultPostProcessData();
+                    return rendererData;
+                    // Universal Renderer is the fallback renderer that works on all platforms
+                }
             }
         }
 
