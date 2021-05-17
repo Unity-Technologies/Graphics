@@ -21,7 +21,7 @@ namespace UnityEngine.Experimental.Rendering
         /// <summary>
         /// How many levels contains the probes hierarchical structure.
         /// </summary>
-        [Range(2, 6)]
+        [Range(2, 5)]
         public int simplificationLevels = 3;
 
         /// <summary>
@@ -81,15 +81,14 @@ namespace UnityEngine.Experimental.Rendering
         SerializedProperty m_SimplificationLevels;
         ProbeReferenceVolumeProfile profile => target as ProbeReferenceVolumeProfile;
 
-        sealed class Styles
+        static class Styles
         {
             // TODO: Better tooltip are needed here.
-            public readonly GUIContent simplificationLevels = new GUIContent("Simplification levels", "Determine how much bricks there is in a streamable unit.");
-            public readonly GUIContent minDistanceBetweenProbes = new GUIContent("Min Distance Between Probes", "The minimal distance between two probes in meters.");
-            public readonly GUIContent indexDimensions = new GUIContent("Index Dimensions", "The dimensions of the index buffer.");
+            public static readonly GUIContent simplificationLevels = new GUIContent("Simplification levels", "Determine how much bricks there is in a streamable unit.");
+            public static readonly string simplificationLevelsHighWarning = "High simplification levels have a big memory overhead, they are not recommended except for testing purposes.";
+            public static readonly GUIContent minDistanceBetweenProbes = new GUIContent("Min Distance Between Probes", "The minimal distance between two probes in meters.");
+            public static readonly GUIContent indexDimensions = new GUIContent("Index Dimensions", "The dimensions of the index buffer.");
         }
-
-        static Styles s_Styles = new Styles();
 
         void OnEnable()
         {
@@ -103,8 +102,12 @@ namespace UnityEngine.Experimental.Rendering
             EditorGUI.BeginChangeCheck();
             serializedObject.Update();
 
-            EditorGUILayout.PropertyField(m_SimplificationLevels, s_Styles.simplificationLevels);
-            EditorGUILayout.PropertyField(m_MinDistanceBetweenProbes, s_Styles.minDistanceBetweenProbes);
+            EditorGUILayout.PropertyField(m_SimplificationLevels, Styles.simplificationLevels);
+            if (m_SimplificationLevels.intValue == 5)
+            {
+                EditorGUILayout.HelpBox(Styles.simplificationLevelsHighWarning, MessageType.Warning);
+            }
+            EditorGUILayout.PropertyField(m_MinDistanceBetweenProbes, Styles.minDistanceBetweenProbes);
             EditorGUILayout.HelpBox($"The distance between probes will fluctuate between : {profile.minDistanceBetweenProbes}m and {profile.cellSizeInMeters}m", MessageType.Info);
 
             if (EditorGUI.EndChangeCheck())
