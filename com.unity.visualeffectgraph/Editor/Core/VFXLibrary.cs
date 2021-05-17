@@ -495,8 +495,9 @@ namespace UnityEditor.VFX
                 LoadSRPBindersIfNeeded();
 
                 VFXSRPBinder binder = null;
-                if (GraphicsSettings.currentRenderPipeline != null)
-                    srpBinders.TryGetValue(GraphicsSettings.currentRenderPipeline.GetType().Name, out binder);
+                var currentSRP = QualitySettings.renderPipeline ?? GraphicsSettings.currentRenderPipeline;
+                if (currentSRP != null)
+                    srpBinders.TryGetValue(currentSRP.GetType().Name, out binder);
 
                 LogUnsupportedSRP(binder, false);
 
