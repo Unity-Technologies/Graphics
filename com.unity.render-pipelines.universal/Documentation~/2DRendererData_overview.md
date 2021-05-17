@@ -26,8 +26,8 @@ This option is enabled by default. Clear this option to disable the Depth/[Stenc
 
 The __2D Renderer Data__ can specify how to supply the shader variable _CameraSortingLayerTexture for use in custom shaders.
 
-### Bound
-All layers captured for use in the supplied texture will be drawn from the very back layer until and including the layer specified by __Bound__
+### Foremost Sorting Layer
+All layers captured for use in the supplied texture will be drawn from the very back layer until and including the layer specified by __Foremost Sorting Layer__
 
 ### Downsampling Method
 Downsampling will reduce the texture resolution used by _CameraSortingLayerTexture_. The options are: __None__, __2x Bilinear__, __4x Box__, __4x Bilinear__
