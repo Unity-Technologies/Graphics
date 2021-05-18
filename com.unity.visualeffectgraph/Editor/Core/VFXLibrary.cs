@@ -508,15 +508,7 @@ namespace UnityEditor.VFX
         [InitializeOnLoadMethod]
         private static void RegisterSRPChangeCallback()
         {
-            EventInfo onRPChanged = typeof(RenderPipelineManager).GetEvent("activeRenderPipelineTypeChanged", BindingFlags.NonPublic | BindingFlags.Static);
-            if (onRPChanged != null)
-            {
-                MethodInfo addHandler = onRPChanged.GetAddMethod(nonPublic: true);
-                addHandler.Invoke(null, new Action[] { SRPChanged });
-            }
-
-            // Once activeRenderPipelineTypeChanged is public don't use reflection anymore
-            //RenderPipelineManager.activeRenderPipelineTypeChanged += OnSRPChanged;
+            RenderPipelineManager.activeRenderPipelineTypeChanged += OnSRPChanged;
         }
 
         public delegate void OnSRPChangedEvent();
