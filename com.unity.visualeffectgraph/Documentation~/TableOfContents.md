@@ -19,6 +19,7 @@
   * [Sticky Notes](StickyNotes.md)
   * [Project Settings](VisualEffectProjectSettings.md)
   * [Preferences](VisualEffectPreferences.md)
+  * [Visual Effect Bounds](visual-effect-bounds.md)
 * [The Visual Effect Component](VisualEffectComponent.md)
   * [C# Component API](ComponentAPI.md)
   * [Using Visual Effects with Timeline](Timeline.md)
@@ -30,6 +31,10 @@
   * [Visual Effect Target](sg-target-visual-effect.md)
 * Pipeline Tools
   * [Representing Complex Shapes](representing-complex-shapes.md)
+    * [Signed Distance Fields](sdf-in-vfx-graph.md)
+      * [SDF Bake Tool](sdf-bake-tool.md)
+        * [SDF Bake Tool window](sdf-bake-tool-window.md)
+        * [SDF Bake Tool API](sdf-bake-tool-api.md)
     * [Point Caches](point-cache-in-vfx-graph.md)
       * [Point Cache asset](point-cache-asset.md)
       * [Point Cache Bake Tool](point-cache-bake-tool.md)
@@ -37,7 +42,6 @@
   * [Vector Fields](VectorFields.md)
   * [Spawner Callbacks](SpawnerCallbacks.md)
 * [Node Library](node-library.md)
-* Node Library
   * Context
     * [Event](Context-Event.md)
     * [GPU Event](Context-GPUEvent.md)

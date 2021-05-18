@@ -19,8 +19,8 @@ namespace UnityEditor.ShaderGraph.Drawing
         public Dictionary<string, IGraphDataAction> builtInKeywordNameToAddActionMap { get; set; }
         public Tuple<string, IGraphDataAction> defaultDropdownNameToAdd { get; set; }
 
+        public IGraphDataAction addCategoryAction { get; set; }
         public Action<IGraphDataAction> requestModelChangeAction { get; set; }
-
         public List<CategoryData> categoryInfoList { get; set; }
 
         // Can't add disbled keywords, so don't need an add action
