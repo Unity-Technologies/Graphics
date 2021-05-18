@@ -407,7 +407,7 @@ namespace UnityEditor.Rendering.Universal.Converters
 
                 // Private implementation of a file naming function which puts the file at the selected path.
                 Type assetdatabase = typeof(AssetDatabase);
-                var indexPath = (string)assetdatabase.GetMethod("GetUniquePathNameAtSelectedPath", BindingFlags.NonPublic | BindingFlags.Static).Invoke(assetdatabase, new object[] { name });
+                var indexPath = (string)assetdatabase.GetMethod("GetUniquePathNameAtSelectedPath", BindingFlags.NonPublic | BindingFlags.Static).Invoke(assetdatabase, new object[] { $"Assets/{name}.index" });
 
                 // Write search index manifest
                 System.IO.File.WriteAllText(indexPath,
