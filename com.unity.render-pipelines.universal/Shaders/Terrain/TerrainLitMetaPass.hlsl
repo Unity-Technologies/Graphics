@@ -3,12 +3,12 @@
 
 #include "Packages/com.unity.render-pipelines.universal/Shaders/LitMetaPass.hlsl"
 
-MetaVaryings TerrainVertexMeta(Attributes input)
+Varyings TerrainVertexMeta(Attributes input)
 {
-    MetaVaryings output;
+    Varyings output;
     UNITY_SETUP_INSTANCE_ID(input);
     TerrainInstancing(input.positionOS, input.normalOS, input.uv0);
-    output = UniversalMetaVertexPosition(input.positionOS, input.uv0, input.uv1, input.uv2);
+    output = MetaVertexPosition(input.positionOS, input.uv0, input.uv1, input.uv2);
 
 #if defined(EDITOR_VISUALIZATION) && defined(UNITY_INSTANCING_ENABLED)
     // Don't scale UVs when instancing since assumeuniformscaling should be set
@@ -17,7 +17,7 @@ MetaVaryings TerrainVertexMeta(Attributes input)
     return output;
 }
 
-half4 TerrainFragmentMeta(MetaVaryings input) : SV_Target
+half4 TerrainFragmentMeta(Varyings input) : SV_Target
 {
 
     return UniversalFragmentMetaLit(input);
