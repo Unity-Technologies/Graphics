@@ -13,6 +13,7 @@ MonoBehaviour:
   m_Name: AmbientOcclusion
   m_EditorClassIdentifier: 
   active: 0
+  m_AdvancedMode: 0
   quality:
     m_OverrideState: 0
     m_Value: 1
@@ -34,11 +35,6 @@ MonoBehaviour:
     m_Value: 2
     min: 0.25
     max: 5
-  spatialBilateralAggressiveness:
-    m_OverrideState: 0
-    m_Value: 0.15
-    min: 0
-    max: 1
   temporalAccumulation:
     m_OverrideState: 0
     m_Value: 1
@@ -57,6 +53,24 @@ MonoBehaviour:
     m_Value:
       serializedVersion: 2
       m_Bits: 4294967295
+  rayLength:
+    m_OverrideState: 0
+    m_Value: 0.5
+    min: 0
+    max: 50
+  sampleCount:
+    m_OverrideState: 0
+    m_Value: 4
+    min: 1
+    max: 64
+  denoise:
+    m_OverrideState: 1
+    m_Value: 1
+  denoiserRadius:
+    m_OverrideState: 0
+    m_Value: 0.5
+    min: 0.001
+    max: 1
   m_StepCount:
     m_OverrideState: 0
     m_Value: 6
@@ -78,23 +92,6 @@ MonoBehaviour:
     m_Value: 2
     min: 1
     max: 6
-  m_RayLength:
-    m_OverrideState: 0
-    m_Value: 3
-    min: 0
-  m_SampleCount:
-    m_OverrideState: 0
-    m_Value: 2
-    min: 1
-    max: 64
-  m_Denoise:
-    m_OverrideState: 0
-    m_Value: 1
-  m_DenoiserRadius:
-    m_OverrideState: 0
-    m_Value: 0.5
-    min: 0.001
-    max: 1
 --- !u!114 &11400000
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -123,21 +120,22 @@ MonoBehaviour:
   m_Name: ScreenSpaceReflection
   m_EditorClassIdentifier: 
   active: 1
+  m_AdvancedMode: 0
   quality:
     m_OverrideState: 0
     m_Value: 1
   enabled:
     m_OverrideState: 1
     m_Value: 1
-  tracing:
+  rayTracing:
     m_OverrideState: 1
-    m_Value: 2
-  m_MinSmoothness:
+    m_Value: 1
+  minSmoothness:
     m_OverrideState: 1
     m_Value: 0
     min: 0
     max: 1
-  m_SmoothnessFadeStart:
+  smoothnessFadeStart:
     m_OverrideState: 0
     m_Value: 0.9
     min: 0
@@ -145,9 +143,6 @@ MonoBehaviour:
   reflectSky:
     m_OverrideState: 0
     m_Value: 1
-  usedAlgorithm:
-    m_OverrideState: 0
-    m_Value: 0
   depthBufferThickness:
     m_OverrideState: 0
     m_Value: 0.01
@@ -158,44 +153,36 @@ MonoBehaviour:
     m_Value: 0.1
     min: 0
     max: 1
-  accumulationFactor:
-    m_OverrideState: 0
-    m_Value: 0.75
-    min: 0
-    max: 1
-  m_RayMaxIterations:
-    m_OverrideState: 0
-    m_Value: 32
-    min: 0
   layerMask:
     m_OverrideState: 0
     m_Value:
       serializedVersion: 2
       m_Bits: 4294967295
-  m_RayLength:
+  rayLength:
     m_OverrideState: 0
     m_Value: 10
     min: 0.001
-  m_ClampValue:
+    max: 50
+  clampValue:
     m_OverrideState: 0
     m_Value: 1
     min: 0.001
     max: 10
-  m_Denoise:
+  denoise:
     m_OverrideState: 1
     m_Value: 1
-  m_DenoiserRadius:
+  denoiserRadius:
     m_OverrideState: 0
     m_Value: 8
     min: 1
     max: 32
-  m_AffectSmoothSurfaces:
-    m_OverrideState: 0
-    m_Value: 0
   mode:
     m_OverrideState: 1
     m_Value: 2
-  m_FullResolution:
+  upscaleRadius:
+    m_OverrideState: 1
+    m_Value: 2
+  fullResolution:
     m_OverrideState: 1
     m_Value: 0
   sampleCount:
@@ -208,7 +195,6 @@ MonoBehaviour:
     m_Value: 1
     min: 1
     max: 31
-  m_RayMaxIterationsRT:
+  m_RayMaxIterations:
     m_OverrideState: 0
     m_Value: 32
-    min: 0

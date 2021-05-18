@@ -156,71 +156,6 @@ TEXTURE2D(_PrevExposureTexture);
 
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/ShaderLibrary/ShaderVariablesXR.cs.hlsl"
 
-// In HDRP, all material samplers have the possibility of having a mip bias.
-// This mip bias is necessary for temporal upsamplers, since they render to a lower
-// resolution into a higher resolution target.
-#if defined(SHADEROPTIONS_GLOBAL_MIP_BIAS) && SHADEROPTIONS_GLOBAL_MIP_BIAS != 0
-
-    //simple 2d textures bias manipulation
-    #ifdef PLATFORM_SAMPLE_TEXTURE2D_BIAS
-        #ifdef  SAMPLE_TEXTURE2D
-            #undef  SAMPLE_TEXTURE2D
-            #define SAMPLE_TEXTURE2D(textureName, samplerName, coord2) \
-                PLATFORM_SAMPLE_TEXTURE2D_BIAS(textureName, samplerName, coord2,  _GlobalMipBias)
-        #endif
-        #ifdef  SAMPLE_TEXTURE2D_BIAS
-            #undef  SAMPLE_TEXTURE2D_BIAS
-            #define SAMPLE_TEXTURE2D_BIAS(textureName, samplerName, coord2, bias) \
-                PLATFORM_SAMPLE_TEXTURE2D_BIAS(textureName, samplerName, coord2,  (bias + _GlobalMipBias))
-        #endif
-    #endif
-
-    //2d texture arrays bias manipulation
-    #ifdef PLATFORM_SAMPLE_TEXTURE2D_ARRAY_BIAS
-        #ifdef  SAMPLE_TEXTURE2D_ARRAY
-            #undef  SAMPLE_TEXTURE2D_ARRAY
-            #define SAMPLE_TEXTURE2D_ARRAY(textureName, samplerName, coord2, index) \
-                PLATFORM_SAMPLE_TEXTURE2D_ARRAY_BIAS(textureName, samplerName, coord2, index, _GlobalMipBias)
-        #endif
-        #ifdef  SAMPLE_TEXTURE2D_ARRAY_BIAS
-            #undef  SAMPLE_TEXTURE2D_ARRAY_BIAS
-            #define SAMPLE_TEXTURE2D_ARRAY_BIAS(textureName, samplerName, coord2, index, bias) \
-                PLATFORM_SAMPLE_TEXTURE2D_ARRAY_BIAS(textureName, samplerName, coord2, index, (bias + _GlobalMipBias))
-        #endif //SAMPLE_TEXTURE2D_ARRAY_BIAS
-    #endif //PLATFORM_SAMPLE_TEXTURE2D_ARRAY_BIAS
-
-    //2d texture cube arrays bias manipulation
-    #ifdef PLATFORM_SAMPLE_TEXTURECUBE_BIAS
-        #ifdef  SAMPLE_TEXTURECUBE
-            #undef  SAMPLE_TEXTURECUBE
-            #define SAMPLE_TEXTURECUBE(textureName, samplerName, coord3) \
-                PLATFORM_SAMPLE_TEXTURECUBE_BIAS(textureName, samplerName, coord3, _GlobalMipBias)
-        #endif
-        #ifdef  SAMPLE_TEXTURECUBE_BIAS
-            #undef  SAMPLE_TEXTURECUBE_BIAS
-            #define SAMPLE_TEXTURECUBE_BIAS(textureName, samplerName, coord3, bias) \
-                PLATFORM_SAMPLE_TEXTURECUBE_BIAS(textureName, samplerName, coord3, (bias + _GlobalMipBias))
-        #endif
-    #endif
-
-    //sample of texture cubemap array
-    #ifdef PLATFORM_SAMPLE_TEXTURECUBE_ARRAY_BIAS
-
-        #ifdef  SAMPLE_TEXTURECUBE_ARRAY
-            #undef  SAMPLE_TEXTURECUBE_ARRAY
-            #define SAMPLE_TEXTURECUBE_ARRAY(textureName, samplerName, coord3, index)\
-                PLATFORM_SAMPLE_TEXTURECUBE_ARRAY_BIAS(textureName, samplerName, coord3, index, _GlobalMipBias)
-        #endif
-
-        #ifdef  SAMPLE_TEXTURECUBE_ARRAY_BIAS
-            #undef  SAMPLE_TEXTURECUBE_ARRAY_BIAS
-            #define SAMPLE_TEXTURECUBE_ARRAY_BIAS(textureName, samplerName, coord3, index, bias)\
-                PLATFORM_SAMPLE_TEXTURECUBE_ARRAY_BIAS(textureName, samplerName, coord3, index, (bias + _GlobalMipBias))
-        #endif
-    #endif
-
-#endif
-
 // Note: To sample camera depth in HDRP we provide these utils functions because the way we store the depth mips can change
 // Currently it's an atlas and it's layout can be found at ComputePackedMipChainInfo in HDUtils.cs
 float LoadCameraDepth(uint2 pixelCoords)
@@ -362,15 +297,10 @@ float GetIndirectSpecularMultiplier(uint renderingLayers)
 
 // Functions to clamp UVs to use when RTHandle system is used.
 
-float2 ClampAndScaleUV(float2 UV, float2 texelSize, float numberOfTexels, float2 scale)
-{
-    float2 maxCoord = 1.0f - numberOfTexels * texelSize;
-    return min(UV, maxCoord) * scale;
-}
-
 float2 ClampAndScaleUV(float2 UV, float2 texelSize, float numberOfTexels)
 {
-    return ClampAndScaleUV(UV, texelSize, numberOfTexels, _RTHandleScale.xy);
+    float2 maxCoord = 1.0f - numberOfTexels * texelSize;
+    return min(UV, maxCoord) * _RTHandleScale.xy;
 }
 
 // This is assuming half a texel offset in the clamp.
@@ -379,38 +309,15 @@ float2 ClampAndScaleUVForBilinear(float2 UV, float2 texelSize)
     return ClampAndScaleUV(UV, texelSize, 0.5f);
 }
 
-// This is assuming full screen buffer and half a texel offset for the clamping.
+// This is assuming full screen buffer and .
 float2 ClampAndScaleUVForBilinear(float2 UV)
 {
     return ClampAndScaleUV(UV, _ScreenSize.zw, 0.5f);
 }
 
-// This is assuming an upsampled texture used in post processing, with original screen size and a half a texel offset for the clamping.
-float2 ClampAndScaleUVForBilinearPostProcessTexture(float2 UV)
-{
-    return ClampAndScaleUV(UV, _PostProcessScreenSize.zw, 0.5f, _RTHandlePostProcessScale.xy);
-}
-
-// This is assuming an upsampled texture used in post processing, with original screen size and a half a texel offset for the clamping.
-float2 ClampAndScaleUVForBilinearPostProcessTexture(float2 UV, float2 texelSize)
-{
-    return ClampAndScaleUV(UV, texelSize, 0.5f, _RTHandlePostProcessScale.xy);
-}
-
-// This is assuming an upsampled texture used in post processing, with original screen size and a half a texel offset for the clamping.
-float2 ClampAndScaleUVPostProcessTexture(float2 UV, float2 texelSize, float numberOfTexels)
-{
-    return ClampAndScaleUV(UV, texelSize, numberOfTexels, _RTHandlePostProcessScale.xy);
-}
-
 float2 ClampAndScaleUVForPoint(float2 UV)
 {
     return min(UV, 1.0f) * _RTHandleScale.xy;
-}
-
-float2 ClampAndScaleUVPostProcessTextureForPoint(float2 UV)
-{
-    return min(UV, 1.0f) * _RTHandlePostProcessScale.xy;
 }
 
 uint Get1DAddressFromPixelCoord(uint2 pixCoord, uint2 screenSize, uint eye)

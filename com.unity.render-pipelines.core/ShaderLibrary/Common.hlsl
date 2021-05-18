@@ -87,20 +87,6 @@
 #define REAL_IS_HALF 0
 #endif // Do we have half?
 
-#if REAL_IS_HALF || (defined(UNITY_UNIFIED_SHADER_PRECISION_MODEL) && (defined(UNITY_COMPILER_HLSL) || defined(UNITY_COMPILER_DXC)))
-#define half min16float
-#define half2 min16float2
-#define half3 min16float3
-#define half4 min16float4
-#define half2x2 min16float2x2
-#define half2x3 min16float2x3
-#define half3x2 min16float3x2
-#define half3x3 min16float3x3
-#define half3x4 min16float3x4
-#define half4x3 min16float4x3
-#define half4x4 min16float4x4
-#endif
-
 #if REAL_IS_HALF
 #define real half
 #define real2 half2
@@ -115,6 +101,19 @@
 #define real3x4 half3x4
 #define real4x3 half4x3
 #define real4x4 half4x4
+
+#define half min16float
+#define half2 min16float2
+#define half3 min16float3
+#define half4 min16float4
+
+#define half2x2 min16float2x2
+#define half2x3 min16float2x3
+#define half3x2 min16float3x2
+#define half3x3 min16float3x3
+#define half3x4 min16float3x4
+#define half4x3 min16float4x3
+#define half4x4 min16float4x4
 
 #define REAL_MIN HALF_MIN
 #define REAL_MAX HALF_MAX
@@ -775,12 +774,10 @@ float Length2(float3 v)
     return dot(v, v);
 }
 
-#ifndef BUILTIN_TARGET_API
 real Pow4(real x)
 {
     return (x * x) * (x * x);
 }
-#endif
 
 TEMPLATE_3_FLT(RangeRemap, min, max, t, return saturate((t - min) / (max - min)))
 
@@ -1269,8 +1266,6 @@ void ApplyDepthOffsetPositionInput(float3 V, float depthOffsetVS, float3 viewFor
 
 #if defined(SHADER_API_VULKAN) || defined(SHADER_API_GLES) || defined(SHADER_API_GLES3)
 
-// For the built-in target this is already a defined symbol
-#ifndef BUILTIN_TARGET_API
 real4 PackHeightmap(real height)
 {
     uint a = (uint)(65535.0 * height);
@@ -1281,12 +1276,9 @@ real UnpackHeightmap(real4 height)
 {
     return (height.r + height.g * 256.0) / 257.0; // (255.0 * height.r + 255.0 * 256.0 * height.g) / 65535.0
 }
-#endif
 
 #else
 
-// For the built-in target this is already a defined symbol
-#ifndef BUILTIN_TARGET_API
 real4 PackHeightmap(real height)
 {
     return real4(height, 0, 0, 0);
@@ -1296,7 +1288,6 @@ real UnpackHeightmap(real4 height)
 {
     return height.r;
 }
-#endif
 
 #endif
 

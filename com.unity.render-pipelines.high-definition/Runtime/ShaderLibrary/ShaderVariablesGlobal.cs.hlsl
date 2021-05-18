@@ -31,11 +31,8 @@ GLOBAL_CBUFFER_START(ShaderVariablesGlobal, b0)
     float4 _WorldSpaceCameraPos_Internal;
     float4 _PrevCamPosRWS_Internal;
     float4 _ScreenSize;
-    float4 _PostProcessScreenSize;
     float4 _RTHandleScale;
     float4 _RTHandleScaleHistory;
-    float4 _RTHandlePostProcessScale;
-    float4 _RTHandlePostProcessScaleHistory;
     float4 _ZBufferParams;
     float4 _ProjectionParams;
     float4 unity_OrthoParams;
@@ -56,7 +53,7 @@ GLOBAL_CBUFFER_START(ShaderVariablesGlobal, b0)
     float _MaxFogDistance;
     float4 _FogColor;
     float _FogColorMode;
-    float _GlobalMipBias;
+    float _Pad0;
     float _Pad1;
     float _Pad2;
     float4 _MipFogParameters;

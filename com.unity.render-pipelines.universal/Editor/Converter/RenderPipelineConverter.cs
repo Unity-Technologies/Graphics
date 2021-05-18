@@ -39,7 +39,7 @@ namespace UnityEditor.Rendering.Universal
         /// This runs when initializing the converter. To gather data for the UI and also for the converter if needed.
         /// </summary>
         /// <param name="context">The context that will be used to initialize data for the converter.</param>
-        public abstract void OnInitialize(InitializeConverterContext context, Action callback);
+        public abstract void OnInitialize(InitializeConverterContext context);
 
         /// <summary>
         /// The method that will be run when converting the assets.

@@ -422,9 +422,9 @@ namespace UnityEngine.Rendering.HighDefinition
             AmbientOcclusion aoSettings = hdCamera.volumeStack.GetComponent<AmbientOcclusion>();
             bool rtAOEnabled = aoSettings.rayTracing.value && hdCamera.frameSettings.IsEnabled(FrameSettingsField.SSAO);
             ScreenSpaceReflection reflSettings = hdCamera.volumeStack.GetComponent<ScreenSpaceReflection>();
-            bool rtREnabled = reflSettings.enabled.value && ScreenSpaceReflection.RayTracingActive(reflSettings) && hdCamera.frameSettings.IsEnabled(FrameSettingsField.SSR);
+            bool rtREnabled = reflSettings.enabled.value && reflSettings.rayTracing.value && hdCamera.frameSettings.IsEnabled(FrameSettingsField.SSR);
             GlobalIllumination giSettings = hdCamera.volumeStack.GetComponent<GlobalIllumination>();
-            bool rtGIEnabled = giSettings.enable.value && GlobalIllumination.RayTracingActive(giSettings) && hdCamera.frameSettings.IsEnabled(FrameSettingsField.SSGI);
+            bool rtGIEnabled = giSettings.enable.value && giSettings.rayTracing.value && hdCamera.frameSettings.IsEnabled(FrameSettingsField.SSGI);
             RecursiveRendering recursiveSettings = hdCamera.volumeStack.GetComponent<RecursiveRendering>();
             bool rrEnabled = recursiveSettings.enable.value;
             SubSurfaceScattering sssSettings = hdCamera.volumeStack.GetComponent<SubSurfaceScattering>();
@@ -481,8 +481,8 @@ namespace UnityEngine.Rendering.HighDefinition
                             AddInstanceToRAS(currentRenderer,
                                 rayTracedShadows,
                                 aoSettings.rayTracing.value, aoSettings.layerMask.value,
-                                ScreenSpaceReflection.RayTracingActive(reflSettings), reflSettings.layerMask.value,
-                                GlobalIllumination.RayTracingActive(giSettings), giSettings.layerMask.value,
+                                reflSettings.rayTracing.value, reflSettings.layerMask.value,
+                                giSettings.rayTracing.value, giSettings.layerMask.value,
                                 recursiveSettings.enable.value, recursiveSettings.layerMask.value,
                                 pathTracingSettings.enable.value, pathTracingSettings.layerMask.value);
                         }
@@ -529,8 +529,8 @@ namespace UnityEngine.Rendering.HighDefinition
                 AddInstanceToRAS(currentRenderer,
                     rayTracedShadows,
                     aoSettings.rayTracing.value, aoSettings.layerMask.value,
-                    ScreenSpaceReflection.RayTracingActive(reflSettings), reflSettings.layerMask.value,
-                    GlobalIllumination.RayTracingActive(giSettings), giSettings.layerMask.value,
+                    reflSettings.rayTracing.value, reflSettings.layerMask.value,
+                    giSettings.rayTracing.value, giSettings.layerMask.value,
                     recursiveSettings.enable.value, recursiveSettings.layerMask.value,
                     pathTracingSettings.enable.value, pathTracingSettings.layerMask.value);
             }
@@ -581,12 +581,11 @@ namespace UnityEngine.Rendering.HighDefinition
             PathTracing pathTracingSettings = hdCamera.volumeStack.GetComponent<PathTracing>();
             SubSurfaceScattering subSurface = hdCamera.volumeStack.GetComponent<SubSurfaceScattering>();
 
-            return (m_ValidRayTracingState &&
-                (ScreenSpaceReflection.RayTracingActive(reflSettings)
-                    || GlobalIllumination.RayTracingActive(giSettings)
-                    || recursiveSettings.enable.value
-                    || pathTracingSettings.enable.value
-                    || subSurface.rayTracing.value));
+            return (m_ValidRayTracingState && (reflSettings.rayTracing.value
+                || giSettings.rayTracing.value
+                || recursiveSettings.enable.value
+                || pathTracingSettings.enable.value
+                || subSurface.rayTracing.value));
         }
 
         internal void CullForRayTracing(CommandBuffer cmd, HDCamera hdCamera)

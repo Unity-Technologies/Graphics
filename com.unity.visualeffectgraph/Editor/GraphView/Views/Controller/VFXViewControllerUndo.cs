@@ -104,8 +104,6 @@ namespace UnityEditor.VFX.UI
         [NonSerialized]
         private VFXGraphUndoStack m_graphUndoStack;
 
-        public bool isReentrant => m_reentrant;
-
         private void InitializeUndoStack()
         {
             m_graphUndoStack = new VFXGraphUndoStack(graph);

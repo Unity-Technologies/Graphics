@@ -72,7 +72,33 @@ bool CalculateDebugColorForRenderingSettings(in SurfaceData2D surfaceData, in In
     {
         return true;
     }
-    return TryGetDebugColorInvalidMode(debugColor);
+    else
+    {
+        switch(_DebugMipInfoMode)
+        {
+            case DEBUGMIPINFOMODE_NONE:
+            {
+                return false;
+            }
+
+            case DEBUGMIPINFOMODE_LEVEL:
+            {
+                debugColor = GetMipLevelDebugColor(inputData.positionWS, surfaceData.albedo, inputData.uv, inputData.texelSize);
+                return true;
+            }
+
+            case DEBUGMIPINFOMODE_COUNT:
+            {
+                debugColor = GetMipCountDebugColor(inputData.positionWS, surfaceData.albedo, inputData.mipCount);
+                return true;
+            }
+
+            default:
+            {
+                return TryGetDebugColorInvalidMode(debugColor);
+            }
+        }
+    }
 }
 
 bool CalculateDebugColorLightingSettings(inout SurfaceData2D surfaceData, inout InputData2D inputData, inout half4 debugColor)
@@ -84,8 +110,8 @@ bool CalculateDebugColorLightingSettings(inout SurfaceData2D surfaceData, inout 
             return false;
         }
 
-        case DEBUGLIGHTINGMODE_LIGHTING_WITHOUT_NORMAL_MAPS:
-        case DEBUGLIGHTINGMODE_LIGHTING_WITH_NORMAL_MAPS:
+        case DEBUGLIGHTINGMODE_LIGHT_ONLY:
+        case DEBUGLIGHTINGMODE_LIGHT_DETAIL:
         {
             surfaceData.albedo = 1;
             return false;
@@ -100,16 +126,29 @@ bool CalculateDebugColorLightingSettings(inout SurfaceData2D surfaceData, inout 
 
 bool CalculateDebugColorValidationSettings(in SurfaceData2D surfaceData, in InputData2D inputData, inout half4 debugColor)
 {
-    switch(_DebugMaterialValidationMode)
+    switch(_DebugValidationMode)
     {
-        case DEBUGMATERIALVALIDATIONMODE_NONE:
+        case DEBUGVALIDATIONMODE_NONE:
+        case DEBUGVALIDATIONMODE_HIGHLIGHT_NAN_INF_NEGATIVE:
+        case DEBUGVALIDATIONMODE_HIGHLIGHT_OUTSIDE_OF_RANGE:
+        {
             return false;
+        }
 
-        case DEBUGMATERIALVALIDATIONMODE_ALBEDO:
+        case DEBUGVALIDATIONMODE_VALIDATE_ALBEDO:
+        {
             return CalculateValidationAlbedo(surfaceData.albedo, debugColor);
+        }
+
+        case DEBUGVALIDATIONMODE_VALIDATE_MIPMAPS:
+        {
+            return CalculateValidationMipLevel(inputData.mipCount, inputData.mipInfo.y, inputData.uv, inputData.texelSize, surfaceData.albedo, surfaceData.alpha, debugColor);
+        }
 
         default:
+        {
             return TryGetDebugColorInvalidMode(debugColor);
+        }
     }
 }
 

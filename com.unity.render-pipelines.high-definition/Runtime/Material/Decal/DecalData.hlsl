@@ -79,25 +79,6 @@ void GetSurfaceData(FragInputs input, float3 V, PositionInputs posInput, float a
     // If no texture is assign it is the bump texture (0.0, 0.0, 1.0)
 #ifdef _MATERIAL_AFFECTS_NORMAL
 
-#ifdef DECAL_SURFACE_GRADIENT
-    #ifdef _NORMALMAP
-    float2 deriv = UnpackDerivativeNormalRGorAG(SAMPLE_TEXTURE2D(_NormalMap, sampler_NormalMap, texCoords));
-    #else
-    float2 deriv = float2(0.0, 0.0);
-    #endif
-
-    #if (SHADERPASS == SHADERPASS_DBUFFER_PROJECTOR)
-    float3x3 tangentToWorld = transpose((float3x3)normalToWorld);
-    #else
-    float3x3 tangentToWorld = input.tangentToWorld;
-    #endif
-
-    // consider oriented decal a volume bump map and use equation 2. in "Bump Mapping Unparametrized Surfaces on the GPU"
-    // since the volume gradient is a linear operator. (eq. 2 is used in gbuffer pass)
-    surfaceData.normalWS.xyz = SurfaceGradientFromTBN(deriv, tangentToWorld[0], tangentToWorld[1]);
-
-#else // DECAL_SURFACE_GRADIENT
-
     #ifdef _NORMALMAP
     float3 normalTS = UnpackNormalmapRGorAG(SAMPLE_TEXTURE2D(_NormalMap, sampler_NormalMap, texCoords));
     #else
@@ -113,8 +94,6 @@ void GetSurfaceData(FragInputs input, float3 V, PositionInputs posInput, float a
     #endif
 
     surfaceData.normalWS.xyz = normalWS;
-#endif
-
     surfaceData.normalWS.w = _NormalBlendSrc ? maskMapBlend : albedoMapBlend;
 
 #endif

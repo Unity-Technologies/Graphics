@@ -18,7 +18,6 @@ namespace UnityEngine.Rendering.HighDefinition
         {
             First,
             UpdateMSAA,
-            UpdateLensFlare
         }
 
         static Version[] skipedStepWhenCreatedFromHDRPAsset = new Version[] {};
@@ -35,11 +34,6 @@ namespace UnityEngine.Rendering.HighDefinition
                 FrameSettings.MigrateMSAA(ref data.m_RenderingPathDefaultCameraFrameSettings, ref unusedMaskForDefault);
                 FrameSettings.MigrateMSAA(ref data.m_RenderingPathDefaultBakedOrCustomReflectionFrameSettings, ref unusedMaskForDefault);
                 FrameSettings.MigrateMSAA(ref data.m_RenderingPathDefaultRealtimeReflectionFrameSettings, ref unusedMaskForDefault);
-            }),
-
-            MigrationStep.New(Version.UpdateLensFlare, (HDRenderPipelineGlobalSettings data) =>
-            {
-                FrameSettings.MigrateToLensFlare(ref data.m_RenderingPathDefaultCameraFrameSettings);
             })
         );
         bool IMigratableAsset.Migrate()

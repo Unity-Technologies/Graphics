@@ -51,39 +51,36 @@ namespace UnityEngine.Rendering.HighDefinition
             }
         }
 
-        bool UpdateCache(CloudLayer cloudLayer, Light sunLight)
+        protected override bool Update(BuiltinSkyParameters builtinParams)
         {
-            int currPrecomputationParamHash = cloudLayer.GetBakingHashCode(sunLight);
+            var cloudLayer = builtinParams.cloudSettings as CloudLayer;
+
+            int currPrecomputationParamHash = cloudLayer.GetBakingHashCode(builtinParams.sunLight);
             if (currPrecomputationParamHash != m_LastPrecomputationParamHash)
             {
                 s_PrecomputationCache.Release(m_LastPrecomputationParamHash);
-                m_PrecomputedData = s_PrecomputationCache.Get(cloudLayer, currPrecomputationParamHash);
+                m_PrecomputedData = s_PrecomputationCache.Get(builtinParams, currPrecomputationParamHash);
                 m_LastPrecomputationParamHash = currPrecomputationParamHash;
                 return true;
             }
+
             return false;
         }
 
-        protected override bool Update(BuiltinSkyParameters builtinParams)
-            => UpdateCache(builtinParams.cloudSettings as CloudLayer, builtinParams.sunLight);
-
-        public override bool GetSunLightCookieParameters(CloudSettings settings, ref CookieParameters cookieParams)
+        public override bool RequiresPreRenderClouds(BuiltinSkyParameters builtinParams)
         {
-            var cloudLayer = (CloudLayer)settings;
-            if (cloudLayer.CastShadows)
-            {
-                if (m_PrecomputedData == null || m_PrecomputedData.cloudShadowsRT == null)
-                    UpdateCache(cloudLayer, HDRenderPipeline.currentPipeline.GetCurrentSunLight());
-
-                cookieParams.texture = m_PrecomputedData.cloudShadowsRT;
-                cookieParams.size = new Vector2(cloudLayer.shadowSize.value, cloudLayer.shadowSize.value);
-                return true;
-            }
-            return false;
+            var cloudLayer = builtinParams.cloudSettings as CloudLayer;
+            return builtinParams.sunLight != null && cloudLayer.CastShadows;
         }
 
-        public override void RenderSunLightCookie(CloudSettings settings, Light sunLight, CommandBuffer cmd)
-            => m_PrecomputedData.BakeCloudShadows((CloudLayer)settings, sunLight, cmd);
+        public override void PreRenderClouds(BuiltinSkyParameters builtinParams, bool renderForCubemap)
+        {
+            if (renderForCubemap)
+                return;
+
+            m_PrecomputedData.BakeCloudShadows(builtinParams);
+            builtinParams.sunLight.cookie = m_PrecomputedData.cloudShadowsRT;
+        }
 
         public override void RenderClouds(BuiltinSkyParameters builtinParams, bool renderForCubemap)
         {
@@ -96,7 +93,6 @@ namespace UnityEngine.Rendering.HighDefinition
             float dt = hdCamera.animateMaterials ? hdCamera.time - lastTime : 0.0f;
             lastTime = hdCamera.time;
 
-            m_PrecomputedData.InitIfNeeded(cloudLayer, builtinParams.sunLight, builtinParams.commandBuffer);
             m_CloudLayerMaterial.SetTexture(_CloudTexture, m_PrecomputedData.cloudTextureRT);
 
             float intensity = builtinParams.sunLight ? builtinParams.sunLight.intensity : 1;
@@ -144,7 +140,7 @@ namespace UnityEngine.Rendering.HighDefinition
             ObjectPool<RefCountedData> m_DataPool = new ObjectPool<RefCountedData>(null, null);
             Dictionary<int, RefCountedData> m_CachedData = new Dictionary<int, RefCountedData>();
 
-            public PrecomputationData Get(CloudLayer cloudLayer, int currentHash)
+            public PrecomputationData Get(BuiltinSkyParameters builtinParams, int currentHash)
             {
                 RefCountedData result;
                 if (m_CachedData.TryGetValue(currentHash, out result))
@@ -156,7 +152,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 {
                     result = m_DataPool.Get();
                     result.refCount = 1;
-                    result.data.Allocate(cloudLayer);
+                    result.data.Allocate(builtinParams);
                     m_CachedData.Add(currentHash, result);
                     return result.data;
                 }
@@ -207,14 +203,14 @@ namespace UnityEngine.Rendering.HighDefinition
             static TextureCache cloudTextureCache;
             static TextureCache cloudShadowsCache;
 
-            bool initialized = false;
             int cloudTextureWidth, cloudTextureHeight, cloudShadowsResolution;
             public RTHandle cloudTextureRT = null;
             public RTHandle cloudShadowsRT = null;
 
-            public void Allocate(CloudLayer cloudLayer)
+            public void Allocate(BuiltinSkyParameters builtinParams)
             {
-                initialized = false;
+                var cloudLayer = builtinParams.cloudSettings as CloudLayer;
+
                 cloudTextureWidth = (int)cloudLayer.resolution.value;
                 cloudTextureHeight = cloudLayer.upperHemisphereOnly.value ? cloudTextureWidth / 2 : cloudTextureWidth;
                 if (!cloudTextureCache.TryGet(cloudTextureWidth, cloudTextureHeight, ref cloudTextureRT))
@@ -228,6 +224,8 @@ namespace UnityEngine.Rendering.HighDefinition
                     cloudShadowsRT = RTHandles.Alloc(cloudShadowsResolution, cloudShadowsResolution,
                         colorFormat: GraphicsFormat.B10G11R11_UFloatPack32, dimension: TextureDimension.Tex2D,
                         enableRandomWrite: true, useMipMap: false, filterMode: FilterMode.Bilinear, name: "Cloud Shadows");
+
+                BakeCloudTexture(builtinParams);
             }
 
             public void Release()
@@ -236,12 +234,12 @@ namespace UnityEngine.Rendering.HighDefinition
                 cloudShadowsCache.Cache(cloudShadowsResolution, cloudShadowsResolution, cloudShadowsRT);
             }
 
-            public bool InitIfNeeded(CloudLayer cloudLayer, Light sunLight, CommandBuffer cmd)
+            void BakeCloudTexture(BuiltinSkyParameters builtinParams)
             {
-                if (initialized)
-                    return false;
+                var cmd = builtinParams.commandBuffer;
+                var cloudLayer = builtinParams.cloudSettings as CloudLayer;
 
-                Vector4 params1 = sunLight == null ? Vector3.zero : sunLight.transform.forward;
+                Vector4 params1 = builtinParams.sunLight == null ? Vector3.zero : builtinParams.sunLight.transform.forward;
                 params1.w = (cloudLayer.upperHemisphereOnly.value ? 1.0f : 0.0f);
 
                 cmd.SetComputeVectorParam(s_BakeCloudTextureCS, HDShaderIDs._Params, params1);
@@ -275,17 +273,16 @@ namespace UnityEngine.Rendering.HighDefinition
                 int threadGroupY = (cloudTextureHeight + (groupSizeY - 1)) / groupSizeY;
 
                 cmd.DispatchCompute(s_BakeCloudTextureCS, s_BakeCloudTextureKernel, threadGroupX, threadGroupY, 1);
-
-                initialized = true;
-                return true;
             }
 
-            public void BakeCloudShadows(CloudLayer cloudLayer, Light sunLight, CommandBuffer cmd)
+            public void BakeCloudShadows(BuiltinSkyParameters builtinParams)
             {
-                InitIfNeeded(cloudLayer, sunLight, cmd);
-                Vector4 _Params = sunLight.transform.forward;
-                Vector4 _Params1 = sunLight.transform.right;
-                Vector4 _Params2 = sunLight.transform.up;
+                var cmd = builtinParams.commandBuffer;
+                var cloudLayer = builtinParams.cloudSettings as CloudLayer;
+
+                Vector4 _Params = builtinParams.sunLight.transform.forward;
+                Vector4 _Params1 = builtinParams.sunLight.transform.right;
+                Vector4 _Params2 = builtinParams.sunLight.transform.up;
                 Vector4 _Params3 = cloudLayer.shadowTint.value;
                 _Params.w = 1.0f / cloudShadowsResolution;
                 _Params3.w = cloudLayer.shadowMultiplier.value * 8.0f;

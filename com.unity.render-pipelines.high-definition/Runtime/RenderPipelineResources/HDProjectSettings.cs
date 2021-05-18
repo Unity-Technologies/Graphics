@@ -1,8 +1,6 @@
 #if UNITY_EDITOR
 using UnityEditorInternal;
 using System.IO;
-using System;
-using UnityEngine.Serialization;
 #endif
 
 namespace UnityEngine.Rendering.HighDefinition
@@ -10,16 +8,35 @@ namespace UnityEngine.Rendering.HighDefinition
 #if UNITY_EDITOR
     //As ScriptableSingleton is not usable due to internal FilePathAttribute,
     //copying mechanism here
-    class HDProjectSettings : ScriptableObject, IVersionable<HDProjectSettings.Version>
+    class HDProjectSettings : ScriptableObject
     {
         const string filePath = "ProjectSettings/HDRPProjectSettings.asset";
+
+        //preparing to eventual migration later
+        enum Version
+        {
+            None,
+            First
+        }
+#pragma warning disable 414 // never used
+        [SerializeField]
+        Version version = MigrationDescription.LastVersion<Version>();
+#pragma warning restore 414
 
         [SerializeField]
         string m_ProjectSettingFolderPath = "HDRPDefaultResources";
         [SerializeField]
-        int m_LastMaterialVersion = k_NeverProcessedMaterialVersion;
-        [SerializeField]
         bool m_WizardPopupAtStart = true;
+        [SerializeField]
+        bool m_WizardPopupAlreadyShownOnce = false;
+        [SerializeField]
+        int m_WizardActiveTab = 0;
+        [SerializeField]
+        bool m_WizardNeedRestartAfterChangingToDX12 = false;
+        [SerializeField]
+        bool m_WizardNeedToRunFixAllAgainAfterDomainReload = false;
+        [SerializeField]
+        int m_LastMaterialVersion = k_NeverProcessedMaterialVersion;
 
         internal const int k_NeverProcessedMaterialVersion = -1;
 
@@ -33,12 +50,12 @@ namespace UnityEngine.Rendering.HighDefinition
             }
         }
 
-        public static int materialVersionForUpgrade
+        public static int wizardActiveTab
         {
-            get => instance.m_LastMaterialVersion;
+            get => instance.m_WizardActiveTab;
             set
             {
-                instance.m_LastMaterialVersion = value;
+                instance.m_WizardActiveTab = value;
                 Save();
             }
         }
@@ -53,10 +70,49 @@ namespace UnityEngine.Rendering.HighDefinition
             }
         }
 
+        public static bool wizardPopupAlreadyShownOnce
+        {
+            get => instance.m_WizardPopupAlreadyShownOnce;
+            set
+            {
+                instance.m_WizardPopupAlreadyShownOnce = value;
+                Save();
+            }
+        }
+
+        public static bool wizardNeedToRunFixAllAgainAfterDomainReload
+        {
+            get => instance.m_WizardNeedToRunFixAllAgainAfterDomainReload;
+            set
+            {
+                instance.m_WizardNeedToRunFixAllAgainAfterDomainReload = value;
+                Save();
+            }
+        }
+
+        public static bool wizardNeedRestartAfterChangingToDX12
+        {
+            get => instance.m_WizardNeedRestartAfterChangingToDX12;
+            set
+            {
+                instance.m_WizardNeedRestartAfterChangingToDX12 = value;
+                Save();
+            }
+        }
+
+        public static int materialVersionForUpgrade
+        {
+            get => instance.m_LastMaterialVersion;
+            set
+            {
+                instance.m_LastMaterialVersion = value;
+                Save();
+            }
+        }
+
         //singleton pattern
         static HDProjectSettings s_Instance;
         static HDProjectSettings instance => s_Instance ?? CreateOrLoad();
-
         HDProjectSettings()
         {
             s_Instance = this;
@@ -75,10 +131,6 @@ namespace UnityEngine.Rendering.HighDefinition
             }
 
             System.Diagnostics.Debug.Assert(s_Instance != null);
-
-            if (k_Migration.Migrate(instance))
-                Save();
-
             return s_Instance;
         }
 
@@ -96,44 +148,6 @@ namespace UnityEngine.Rendering.HighDefinition
 
             InternalEditorUtility.SaveToSerializedFileAndForget(new[] { s_Instance }, filePath, allowTextSerialization: true);
         }
-
-        #region Migration
-        internal enum Version
-        {
-            None,
-            First,
-            SplittedWithHDUserSettings
-        }
-#pragma warning disable 414 // never used
-        [SerializeField, FormerlySerializedAs("version")]
-        Version m_Version = MigrationDescription.LastVersion<Version>();
-#pragma warning restore 414
-
-        Version IVersionable<Version>.version { get => instance.m_Version; set => instance.m_Version = value; }
-
-        static readonly MigrationDescription<Version, HDProjectSettings> k_Migration = MigrationDescription.New(
-            MigrationStep.New(Version.SplittedWithHDUserSettings, (HDProjectSettings data) =>
-            {
-#pragma warning disable 618 // Type or member is obsolete
-                HDUserSettings.wizardPopupAlreadyShownOnce = instance.m_ObsoleteWizardPopupAlreadyShownOnce;
-                HDUserSettings.wizardActiveTab = instance.m_ObsoleteWizardActiveTab;
-                HDUserSettings.wizardNeedRestartAfterChangingToDX12 = instance.m_ObsoleteWizardNeedRestartAfterChangingToDX12;
-                HDUserSettings.wizardNeedToRunFixAllAgainAfterDomainReload = instance.m_ObsoleteWizardNeedToRunFixAllAgainAfterDomainReload;
-#pragma warning restore 618 // Type or member is obsolete
-            })
-        );
-
-#pragma warning disable 649 // Field never assigned
-        [SerializeField, Obsolete("Moved from HDProjectSettings to HDUserSettings"), FormerlySerializedAs("m_WizardPopupAlreadyShownOnce")]
-        bool m_ObsoleteWizardPopupAlreadyShownOnce;
-        [SerializeField, Obsolete("Moved from HDProjectSettings to HDUserSettings"), FormerlySerializedAs("m_WizardActiveTab")]
-        int m_ObsoleteWizardActiveTab;
-        [SerializeField, Obsolete("Moved from HDProjectSettings to HDUserSettings"), FormerlySerializedAs("m_WizardNeedRestartAfterChangingToDX12")]
-        bool m_ObsoleteWizardNeedRestartAfterChangingToDX12;
-        [SerializeField, Obsolete("Moved from HDProjectSettings to HDUserSettings"), FormerlySerializedAs("m_WizardNeedToRunFixAllAgainAfterDomainReload")]
-        bool m_ObsoleteWizardNeedToRunFixAllAgainAfterDomainReload;
-#pragma warning restore 649 // Field never assigned
-        #endregion
     }
 #endif
 }

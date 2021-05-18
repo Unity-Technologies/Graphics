@@ -216,7 +216,7 @@ namespace UnityEditor.ShaderGraph.Drawing
                 // This takes care of when a property is dragged from BB and then the drag is ended by the Escape key, hides the scroll boundary regions and drag indicator if so
                 m_GraphView.RegisterCallback<DragExitedEvent>(evt =>
                 {
-                    blackboardController.blackboard.OnDragExitedEvent(evt);
+                    blackboardController.blackboard.HideScrollBoundaryRegions();
                     blackboardController.blackboard.hideDragIndicatorAction?.Invoke();
                 });
 

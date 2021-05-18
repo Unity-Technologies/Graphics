@@ -206,14 +206,9 @@ namespace UnityEditor.ShaderGraph
             {
                 // we now allow keywords to control whether they are exposed (for Material control) or not.
                 // old exposable keywords set their exposed state to maintain previous behavior
-                // (where bool keywords only showed up in the material when ending in "_ON")
+                // (where only keywords ending in "_ON" showed up in the material)
                 if (isExposable)
-                {
-                    if (m_KeywordType == KeywordType.Boolean)
-                        generatePropertyBlock = referenceName.EndsWith("_ON");
-                    else // KeywordType.Enum
-                        generatePropertyBlock = true;
-                }
+                    generatePropertyBlock = referenceName.EndsWith("_ON");
                 ChangeVersion(1);
             }
         }

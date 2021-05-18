@@ -21,13 +21,6 @@ namespace UnityEngine.Experimental.Rendering
             this.maxSubdivisionMultiplier = maxSubdivision;
             this.minSubdivisionMultiplier = minSubdivision;
         }
-
-        public bool IsEquivalent(ProbeVolumeArtistParameters other)
-        {
-            return other.size == size &&
-                other.maxSubdivisionMultiplier == maxSubdivisionMultiplier &&
-                other.minSubdivisionMultiplier == minSubdivisionMultiplier;
-        }
     } // class ProbeVolumeArtistParameters
 
     /// <summary>
@@ -39,11 +32,6 @@ namespace UnityEngine.Experimental.Rendering
     {
         [SerializeField] internal ProbeVolumeArtistParameters parameters = new ProbeVolumeArtistParameters(Color.white);
 
-        [SerializeField] internal bool mightNeedRebaking = false;
-
-        [SerializeField] internal Matrix4x4 cachedTransform;
-        [SerializeField] internal ProbeVolumeArtistParameters cachedParameters;
-
         /// <summary>
         /// Returns the extents of the volume.
         /// </summary>
@@ -54,17 +42,32 @@ namespace UnityEngine.Experimental.Rendering
         }
 
 #if UNITY_EDITOR
+        protected void Update()
+        {
+        }
+
+        internal void OnLightingDataCleared()
+        {
+        }
+
         internal void OnLightingDataAssetCleared()
         {
-            mightNeedRebaking = true;
+        }
+
+        internal void OnProbesBakeCompleted()
+        {
         }
 
         internal void OnBakeCompleted()
         {
-            // We cache the data of last bake completed.
-            cachedTransform = gameObject.transform.worldToLocalMatrix;
-            cachedParameters = parameters;
-            mightNeedRebaking = false;
+        }
+
+        internal void ForceBakingDisabled()
+        {
+        }
+
+        internal void ForceBakingEnabled()
+        {
         }
 
 #endif

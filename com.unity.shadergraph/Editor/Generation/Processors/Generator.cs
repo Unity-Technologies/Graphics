@@ -65,23 +65,7 @@ namespace UnityEditor.ShaderGraph
         {
             if (m_OutputNode == null)
             {
-                var targets = m_GraphData.activeTargets.ToList();
-                // Sort the built-in target to be last. This is currently a requirement otherwise it'll get picked up for other passes incorrectly
-                targets.Sort(delegate(Target target0, Target target1)
-                {
-                    var result = target0.displayName.CompareTo(target1.displayName);
-                    // If only one value is built-in, then sort it last
-                    if (result != 0)
-                    {
-                        if (target0.displayName == "Built-In")
-                            result = 1;
-                        if (target1.displayName == "Built-In")
-                            result = -1;
-                    }
-
-                    return result;
-                });
-                return targets.ToArray();
+                return m_GraphData.activeTargets.ToArray();
             }
             else
             {
@@ -204,8 +188,6 @@ namespace UnityEditor.ShaderGraph
                     {
                         m_Builder.AppendLine($"CustomEditorForRenderPipeline \"{rpCustomEditor.shaderGUI}\" \"{rpCustomEditor.renderPipelineAssetType}\"");
                     }
-
-                    m_Builder.AppendLine("CustomEditor \"" + typeof(GenericShaderGraphMaterialGUI).FullName + "\"");
                 }
 
                 m_Builder.AppendLine(@"FallBack ""Hidden/Shader Graph/FallbackError""");
@@ -630,9 +612,7 @@ namespace UnityEditor.ShaderGraph
                     }
                     else
                     {
-                        ShaderStringBuilder localInterpolatorBuilder; // GenerateInterpolatorFunctions do the allocation
-                        GenerationUtils.GenerateInterpolatorFunctions(shaderStruct, activeFields.baseInstance, out localInterpolatorBuilder);
-                        interpolatorBuilder.Concat(localInterpolatorBuilder);
+                        GenerationUtils.GenerateInterpolatorFunctions(shaderStruct, activeFields.baseInstance, out interpolatorBuilder);
                     }
                     //using interp index from functions, generate packed struct descriptor
                     GenerationUtils.GeneratePackedStruct(shaderStruct, activeFields, out packStruct);

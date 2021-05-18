@@ -49,8 +49,7 @@ These properties control the overall look of your Material's surface and how Uni
 
 
 ### Tessellation Options
-
-For information on the properties in this section, see the [Tessellation documentation](Tessellation.md).
+[!include[](snippets/shader-properties/tessellation-options.md)]
 
 ### Surface Inputs
 [!include[](snippets/shader-properties/surface-inputs/layered-surface-inputs.md)]

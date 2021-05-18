@@ -170,14 +170,10 @@ namespace UnityEngine.Rendering.HighDefinition
             public Shader preIntegratedFGD_GGXDisneyDiffusePS;
             [Reload("Runtime/Material/PreIntegratedFGD/PreIntegratedFGD_CharlieFabricLambert.shader")]
             public Shader preIntegratedFGD_CharlieFabricLambertPS;
-            [Reload("Runtime/Material/PreIntegratedFGD/PreIntegratedFGD_Marschner.shader")]
-            public Shader preIntegratedFGD_MarschnerPS;
             [Reload("Runtime/Material/AxF/PreIntegratedFGD_Ward.shader")]
             public Shader preIntegratedFGD_WardPS;
             [Reload("Runtime/Material/AxF/PreIntegratedFGD_CookTorrance.shader")]
             public Shader preIntegratedFGD_CookTorrancePS;
-            [Reload("Runtime/Material/Hair/PreIntegratedAzimuthalScattering.shader")]
-            public Shader preIntegratedAzimuthalScatteringPS;
 
             // Utilities / Core
             [Reload("Runtime/Core/CoreResources/EncodeBC6H.compute")]
@@ -311,12 +307,8 @@ namespace UnityEngine.Rendering.HighDefinition
             public Shader SMAAPS;
             [Reload("Runtime/PostProcessing/Shaders/TemporalAntialiasing.shader")]
             public Shader temporalAntialiasingPS;
-            [Reload("Runtime/PostProcessing/Shaders/UpsampleScene.compute")]
-            public ComputeShader upsampleSceneCS;
-            [Reload("Runtime/PostProcessing/Shaders/LensFlareDataDriven.shader")]
-            public Shader lensFlareDataDrivenPS;
 
-            // Physically based DoF
+            // Physicaly based DoF
             [Reload("Runtime/PostProcessing/Shaders/DoFCircleOfConfusion.compute")]
             public ComputeShader dofCircleOfConfusion;
             [Reload("Runtime/PostProcessing/Shaders/DoFGather.compute")]

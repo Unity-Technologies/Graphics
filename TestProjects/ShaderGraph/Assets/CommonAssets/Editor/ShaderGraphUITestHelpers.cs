@@ -5,8 +5,6 @@ using System.Reflection;
 using System.Runtime.InteropServices;
 using System.Text;
 using UnityEditor;
-using UnityEditor.Experimental.GraphView;
-using UnityEditor.ShaderGraph.Drawing;
 using UnityEditor.ShaderGraph.UnitTests;
 using UnityEngine;
 using UnityEngine.UIElements;
@@ -52,21 +50,17 @@ namespace UnityEditor.ShaderGraph.UnitTests
             VisualElement elementToNotify)
         {
             var deleteCommand = new ExecuteCommandEvent();
-            deleteCommand.SetNonPrivateProperty("commandName", "Delete");
-            if (parentWindow is MaterialGraphEditWindow materialGraphEditWindow)
-            {
-                var graphView = materialGraphEditWindow.graphEditorView.graphView;
-                graphView.InvokePrivateFunc("OnExecuteCommand", new object[]{ deleteCommand });
-            }
+            deleteCommand.SetNonPrivateProperty("commandName", "SoftDelete");
+            elementToNotify.InvokePrivateFunc("OnExecuteCommand", new object[]{ deleteCommand });
         }
 
-        public static void SendDuplicateCommand(EditorWindow parentWindow)
+        public static void SendDuplicateCommand(
+            EditorWindow parentWindow,
+            VisualElement elementToNotify)
         {
-            if (parentWindow is MaterialGraphEditWindow materialGraphEditWindow)
-            {
-                var graphView = materialGraphEditWindow.graphEditorView.graphView;
-                graphView?.DuplicateSelection();
-            }
+            var duplicateCommand = new ExecuteCommandEvent();
+            duplicateCommand.SetNonPrivateProperty("commandName", "Duplicate");
+            elementToNotify.InvokePrivateFunc("OnExecuteCommand", new object[]{ new ExecuteCommandEvent() {} });
         }
 
         public static void SendKeyEvent(EditorWindow parentWindow,

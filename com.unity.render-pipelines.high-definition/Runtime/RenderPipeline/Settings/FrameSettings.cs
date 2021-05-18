@@ -200,9 +200,6 @@ namespace UnityEngine.Rendering.HighDefinition
         /// <summary>When enabled, HDRP adds bloom to Cameras affected by a Volume containing the Bloom override.</summary>
         [FrameSettingsField(0, autoName: Bloom, positiveDependencies: new[] { Postprocess }, customOrderInGroup: 19, tooltip: "When enabled, HDRP adds bloom to Cameras affected by a Volume containing the Bloom override.")]
         Bloom = 84,
-        /// <summary>When enabled, HDRP adds lens flare to Cameras affected by a Volume containing the lens flare override.</summary>
-        [FrameSettingsField(0, autoName: LensFlareDataDriven, positiveDependencies: new[] { Postprocess }, customOrderInGroup: 19, tooltip: "When enabled, HDRP adds lens flare to Cameras affected by a Volume containing the lens flare override.")]
-        LensFlareDataDriven = 97,
         /// <summary>When enabled, HDRP adds lens distortion to Cameras affected by a Volume containing the Lens Distortion override.</summary>
         [FrameSettingsField(0, autoName: LensDistortion, positiveDependencies: new[] { Postprocess }, customOrderInGroup: 19, tooltip: "When enabled, HDRP adds lens distortion to Cameras affected by a Volume containing the Lens Distortion override.")]
         LensDistortion = 85,
@@ -438,7 +435,6 @@ namespace UnityEngine.Rendering.HighDefinition
                 (uint)FrameSettingsField.MotionBlur,
                 (uint)FrameSettingsField.PaniniProjection,
                 (uint)FrameSettingsField.Bloom,
-                (uint)FrameSettingsField.LensFlareDataDriven,
                 (uint)FrameSettingsField.LensDistortion,
                 (uint)FrameSettingsField.ChromaticAberration,
                 (uint)FrameSettingsField.Vignette,

@@ -42,7 +42,7 @@ MonoBehaviour:
   m_UIInfos: {fileID: 3}
   m_ParameterInfo: []
   m_ImportDependencies: []
-  m_GraphVersion: 8
+  m_GraphVersion: 7
   m_ResourceVersion: 1
   m_SubgraphDependencies: []
   m_CategoryPath: Subgraph Block
@@ -118,6 +118,4 @@ MonoBehaviour:
   capacity: 128
   stripCapacity: 16
   particlePerStripCount: 16
-  needsComputeBounds: 0
-  boundsSettingMode: 1
   m_Space: 0

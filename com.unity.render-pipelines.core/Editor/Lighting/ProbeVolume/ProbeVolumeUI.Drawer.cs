@@ -30,8 +30,6 @@ namespace UnityEditor.Experimental.Rendering
 
         static void Drawer_BakeToolBar(SerializedProbeVolume serialized, Editor owner)
         {
-            if (!ProbeReferenceVolume.instance.isInitialized) return;
-
             Bounds bounds = new Bounds();
             bool foundABound = false;
             bool performFitting = false;
@@ -121,27 +119,7 @@ namespace UnityEditor.Experimental.Rendering
 
         static void Drawer_VolumeContent(SerializedProbeVolume serialized, Editor owner)
         {
-            if (!ProbeReferenceVolume.instance.isInitialized)
-            {
-                var renderPipelineAsset = UnityEngine.Rendering.RenderPipelineManager.currentPipeline;
-                if (renderPipelineAsset != null && renderPipelineAsset.GetType().Name == "HDRenderPipeline")
-                {
-                    EditorGUILayout.HelpBox("The probe volumes feature is disabled. The feature needs to be enabled in the HDRP Settings and on the used HDRP asset.", MessageType.Warning, wide: true);
-                }
-                else
-                {
-                    EditorGUILayout.HelpBox("The probe volumes feature is not enabled or not available on current SRP.", MessageType.Warning, wide: true);
-                }
-
-                return;
-            }
-
             EditorGUI.BeginChangeCheck();
-            if ((serialized.serializedObject.targetObject as ProbeVolume).mightNeedRebaking)
-            {
-                EditorGUILayout.HelpBox("The probe volume has changed since last baking or the data was never baked.\nPlease bake lighting in the lighting panel to update the lighting data.", MessageType.Warning, wide: true);
-            }
-
             EditorGUILayout.PropertyField(serialized.size, Styles.s_Size);
 
             var rect = EditorGUILayout.GetControlRect(true);

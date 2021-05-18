@@ -12,11 +12,7 @@ Shader "Hidden/HDRP/Material/Decal/DecalNormalBuffer"
 
         #pragma target 4.5
         #pragma only_renderers d3d11 playstation xboxone xboxseries vulkan metal switch
-
-        #pragma multi_compile_fragment _ DECAL_SURFACE_GRADIENT
-
         #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Common.hlsl"
-        #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/NormalSurfaceGradient.hlsl"
         #include "Packages/com.unity.render-pipelines.high-definition/Runtime/ShaderLibrary/ShaderVariables.hlsl"
         #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Decal/Decal.hlsl"
         #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/NormalBuffer.hlsl"
@@ -66,12 +62,7 @@ Shader "Hidden/HDRP/Material/Decal/DecalNormalBuffer"
             float4 normalbuffer = _NormalBuffer[COORD_TEXTURE2D_X(positionSS)];
             NormalData normalData;
             DecodeFromNormalBuffer(normalbuffer, normalData);
-
-            #ifdef DECAL_SURFACE_GRADIENT
-            decalSurfaceData.normalWS.xyz = SurfaceGradientResolveNormal(normalData.normalWS.xyz, decalSurfaceData.normalWS.xyz);
-            #endif
             normalData.normalWS.xyz = normalize(normalData.normalWS.xyz * decalSurfaceData.normalWS.w + decalSurfaceData.normalWS.xyz);
-
             normalData.perceptualRoughness = PerceptualSmoothnessToPerceptualRoughness(PerceptualRoughnessToPerceptualSmoothness(normalData.perceptualRoughness) * decalSurfaceData.mask.w + decalSurfaceData.mask.z);
             EncodeIntoNormalBuffer(normalData, normalbuffer);
             _NormalBuffer[COORD_TEXTURE2D_X(positionSS)] = normalbuffer;

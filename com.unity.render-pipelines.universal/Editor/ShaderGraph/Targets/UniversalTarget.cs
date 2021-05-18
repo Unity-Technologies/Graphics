@@ -328,10 +328,6 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
             collector.AddShaderProperty(LightmappingShaderProperties.kLightmapsArray);
             collector.AddShaderProperty(LightmappingShaderProperties.kLightmapsIndirectionArray);
             collector.AddShaderProperty(LightmappingShaderProperties.kShadowMasksArray);
-
-
-            // SubTarget blocks
-            m_ActiveSubTarget.value.CollectShaderProperties(collector, generationMode);
         }
 
         public override void GetPropertiesGUI(ref TargetPropertyGUIContext context, Action onChange, Action<String> registerUndo)
@@ -678,46 +674,6 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
             return result;
         }
 
-        // used by lit/unlit subtargets
-        public static PassDescriptor DepthNormalOnly(UniversalTarget target)
-        {
-            var result = new PassDescriptor()
-            {
-                // Definition
-                displayName = "DepthNormals",
-                referenceName = "SHADERPASS_DEPTHNORMALSONLY",
-                lightMode = "DepthNormals",
-                useInPreview = false,
-
-                // Template
-                passTemplatePath = UniversalTarget.kUberTemplatePath,
-                sharedTemplateDirectories = UniversalTarget.kSharedTemplateDirectories,
-
-                // Port Mask
-                validVertexBlocks = CoreBlockMasks.Vertex,
-                validPixelBlocks = CoreBlockMasks.FragmentDepthNormals,
-
-                // Fields
-                structs = CoreStructCollections.Default,
-                requiredFields = CoreRequiredFields.DepthNormals,
-                fieldDependencies = CoreFieldDependencies.Default,
-
-                // Conditional State
-                renderStates = CoreRenderStates.DepthNormalsOnly(target),
-                pragmas = CorePragmas.Instanced,
-                defines = new DefineCollection(),
-                keywords = new KeywordCollection(),
-                includes = CoreIncludes.DepthNormalsOnly,
-
-                // Custom Interpolator Support
-                customInterpolators = CoreCustomInterpDescriptors.Common
-            };
-
-            AddAlphaClipControlToPass(ref result, target);
-
-            return result;
-        }
-
         // used by lit/unlit targets
         public static PassDescriptor ShadowCaster(UniversalTarget target)
         {
@@ -781,15 +737,6 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
             BlockFields.SurfaceDescription.Alpha,
             BlockFields.SurfaceDescription.AlphaClipThreshold,
         };
-
-        public static readonly BlockFieldDescriptor[] FragmentDepthNormals = new BlockFieldDescriptor[]
-        {
-            BlockFields.SurfaceDescription.NormalOS,
-            BlockFields.SurfaceDescription.NormalTS,
-            BlockFields.SurfaceDescription.NormalWS,
-            BlockFields.SurfaceDescription.Alpha,
-            BlockFields.SurfaceDescription.AlphaClipThreshold,
-        };
     }
     #endregion
 
@@ -812,13 +759,6 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
         public static readonly FieldCollection ShadowCaster = new FieldCollection()
         {
             StructFields.Attributes.normalOS,
-        };
-
-        public static readonly FieldCollection DepthNormals = new FieldCollection()
-        {
-            StructFields.Attributes.uv1,                            // needed for meta vertex position
-            StructFields.Varyings.normalWS,
-            StructFields.Varyings.tangentWS,                        // needed for vertex lighting
         };
     }
     #endregion
@@ -992,6 +932,9 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
     #endregion
 
     #region Pragmas
+    // TODO: should these be renamed and moved to UniversalPragmas/UniversalPragmas.cs ?
+    // TODO: these aren't "core" as HDRP doesn't use them
+    // TODO: and the same for the rest "Core" things
     static class CorePragmas
     {
         public static readonly PragmaCollection Default = new PragmaCollection
@@ -1088,7 +1031,6 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
         const string kDepthNormalsOnlyPass = "Packages/com.unity.render-pipelines.universal/Editor/ShaderGraph/Includes/DepthNormalsOnlyPass.hlsl";
         const string kShadowCasterPass = "Packages/com.unity.render-pipelines.universal/Editor/ShaderGraph/Includes/ShadowCasterPass.hlsl";
         const string kTextureStack = "Packages/com.unity.render-pipelines.core/ShaderLibrary/TextureStack.hlsl";
-        const string kDBuffer = "Packages/com.unity.render-pipelines.universal/ShaderLibrary/DBuffer.hlsl";
 
         public static readonly IncludeCollection CorePregraph = new IncludeCollection
         {
@@ -1142,11 +1084,6 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
             { CorePostgraph },
             { kShadowCasterPass, IncludeLocation.Postgraph },
         };
-
-        public static readonly IncludeCollection DBufferPregraph = new IncludeCollection
-        {
-            { kDBuffer, IncludeLocation.Pregraph },
-        };
     }
     #endregion
 
@@ -1166,6 +1103,8 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
     #endregion
 
     #region KeywordDescriptors
+    // TODO: should these be renamed and moved to UniversalKeywordDescriptors/UniversalKeywords.cs ?
+    // TODO: these aren't "core" as they aren't used by HDRP
     static class CoreKeywordDescriptors
     {
         public static readonly KeywordDescriptor StaticLightmap = new KeywordDescriptor()
@@ -1262,15 +1201,15 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
         public static readonly KeywordDescriptor AdditionalLights = new KeywordDescriptor()
         {
             displayName = "Additional Lights",
-            referenceName = "",
+            referenceName = "_ADDITIONAL",
             type = KeywordType.Enum,
             definition = KeywordDefinition.MultiCompile,
             scope = KeywordScope.Global,
             entries = new KeywordEntry[]
             {
-                new KeywordEntry() { displayName = "Off", referenceName = "" },
-                new KeywordEntry() { displayName = "Vertex", referenceName = "ADDITIONAL_LIGHTS_VERTEX" },
-                new KeywordEntry() { displayName = "Fragment", referenceName = "ADDITIONAL_LIGHTS" },
+                new KeywordEntry() { displayName = "Vertex", referenceName = "LIGHTS_VERTEX" },
+                new KeywordEntry() { displayName = "Fragment", referenceName = "LIGHTS" },
+                new KeywordEntry() { displayName = "Off", referenceName = "OFF" },
             }
         };
 
@@ -1346,15 +1285,6 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
             scope = KeywordScope.Global,
         };
 
-        public static readonly KeywordDescriptor RenderPassEnabled = new KeywordDescriptor()
-        {
-            displayName = "Render Pass Enabled",
-            referenceName = "_RENDER_PASS_ENABLED",
-            type = KeywordType.Boolean,
-            definition = KeywordDefinition.MultiCompile,
-            scope = KeywordScope.Global,
-        };
-
         public static readonly KeywordDescriptor ShapeLightType0 = new KeywordDescriptor()
         {
             displayName = "Shape Light Type 0",
@@ -1405,53 +1335,10 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
             type = KeywordType.Boolean,
         };
 
-        public static readonly KeywordDescriptor GBufferNormalsOct = new KeywordDescriptor()
-        {
-            displayName = "GBuffer normal octahedron encoding",
-            referenceName = "_GBUFFER_NORMALS_OCT",
-            type = KeywordType.Boolean,
-            definition = KeywordDefinition.MultiCompile,
-            scope = KeywordScope.Global,
-        };
-
-        public static readonly KeywordDescriptor DBuffer = new KeywordDescriptor()
-        {
-            displayName = "Decals",
-            referenceName = "",
-            type = KeywordType.Enum,
-            definition = KeywordDefinition.MultiCompile,
-            scope = KeywordScope.Global,
-            entries = new KeywordEntry[]
-            {
-                new KeywordEntry() { displayName = "Off", referenceName = "" },
-                new KeywordEntry() { displayName = "DBuffer Mrt1", referenceName = "DBUFFER_MRT1" },
-                new KeywordEntry() { displayName = "DBuffer Mrt2", referenceName = "DBUFFER_MRT2" },
-                new KeywordEntry() { displayName = "DBuffer Mrt3", referenceName = "DBUFFER_MRT3" },
-            }
-        };
-
         public static readonly KeywordDescriptor DebugDisplay = new KeywordDescriptor()
         {
             displayName = "Debug Display",
             referenceName = "DEBUG_DISPLAY",
-            type = KeywordType.Boolean,
-            definition = KeywordDefinition.MultiCompile,
-            scope = KeywordScope.Global,
-        };
-
-        public static readonly KeywordDescriptor LightCookies = new KeywordDescriptor()
-        {
-            displayName = "Light Cookies",
-            referenceName = "_LIGHT_COOKIES",
-            type = KeywordType.Boolean,
-            definition = KeywordDefinition.ShaderFeature,
-            scope = KeywordScope.Global,
-        };
-
-        public static readonly KeywordDescriptor ClusteredRendering = new KeywordDescriptor()
-        {
-            displayName = "Clustered Rendering",
-            referenceName = "_CLUSTERED_RENDERING",
             type = KeywordType.Boolean,
             definition = KeywordDefinition.MultiCompile,
             scope = KeywordScope.Global,

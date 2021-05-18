@@ -191,7 +191,6 @@ namespace UnityEngine.Rendering.Universal
                 return;
             }
 
-
             // Break up light rendering into batches for the purpose of shadow casting
             var lightIndex = 0;
             while (lightIndex < lights.Count)
@@ -204,14 +203,13 @@ namespace UnityEngine.Rendering.Universal
                 while (batchedLights < remainingLights && shadowLightCount < maxShadowLightCount)
                 {
                     var light = lights[lightIndex + batchedLights];
-                    if (light.shadowsEnabled && light.shadowIntensity > 0 && light.IsLitLayer(layerToRender))
+                    if (light.shadowsEnabled && light.shadowIntensity > 0)
                     {
                         ShadowRendering.PrerenderShadows(pass, renderingData, cmd, layerToRender, light, shadowLightCount, light.shadowIntensity);
                         shadowLightCount++;
                     }
                     batchedLights++;
                 }
-
 
                 // Set the current RT to the light RT
                 if (shadowLightCount > 0 || requiresRTInit)

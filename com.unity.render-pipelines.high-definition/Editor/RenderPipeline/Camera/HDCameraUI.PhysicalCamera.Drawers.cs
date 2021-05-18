@@ -31,8 +31,7 @@ namespace UnityEditor.Rendering.HighDefinition
                         GroupOption.Indent,
                         CameraUI.PhysicalCamera.Drawer_PhysicalCamera_Lens_FocalLength,
                         CameraUI.PhysicalCamera.Drawer_PhysicalCamera_Lens_Shift,
-                        Drawer_PhysicalCamera_Lens_Aperture,
-                        Drawer_PhysicalCamera_FocusDistance
+                        Drawer_PhysicalCamera_Lens_Aperture
                     )
                     ),
                 CED.Group(
@@ -44,11 +43,6 @@ namespace UnityEditor.Rendering.HighDefinition
                     )
                 )
             );
-
-            static void Drawer_PhysicalCamera_FocusDistance(SerializedHDCamera p, Editor owner)
-            {
-                EditorGUILayout.PropertyField(p.focusDistance, Styles.focusDistance);
-            }
 
             static void Drawer_PhysicalCamera_CameraBody_ISO(SerializedHDCamera p, Editor owner)
             {

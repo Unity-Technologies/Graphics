@@ -13,15 +13,6 @@ This can be used to fix artefacts when using [Screen Space Global Illumination](
 Limitation: When Unity performs a separate pass for the Emissive contribution, it also performs an additional DrawCall. This means it uses more resources on your CPU.
 Group of Materials / GameObject can be setup to use Force Emissive forward with the script "Edit/Render Pipeline/HD Render Pipeline/Force Forward Emissive on Material/Enable In Selection".
 
-### Adding Tessellation support for ShaderGraph Master Stack
-
-From HDRP 12.0, you can enable [tessellation](Tessellation.md) on any HDRP [Master Stack](master-stack-hdrp.md). The option is in the Master Stack settings and adds two new inputs to the Vertex Block:
-
-* Tessellation Factor
-* World Displacement
-
-For more information about tessellation, see the [Tessellation documentation](Tessellation.md).
-
 ## Improvements
 
 ### Area Lights
@@ -95,14 +86,6 @@ From HDRP 12.0, various top level menus are now different. This is to make the t
 * **GameObject**
   * **Density Volume** is now at **GameObject > Rendering > Local Volumetric Fog**
   * **Sky and Fog Volume** is now at **GameObject > Volume > Sky and Fog Global Volume**
-
-### Decal normal blending
-
-From HDRP 12.0, an option has been added in the HDRP asset to allow decal normals to be additively blended with the underlying object normal.
-The screenshot on the left below do not use additive normal blending, whereas the screenshot on the right use the new method.
-
-![](Images/HDRPFeatures-SurfGrad.png)
-
 
 ## Issues resolved
 

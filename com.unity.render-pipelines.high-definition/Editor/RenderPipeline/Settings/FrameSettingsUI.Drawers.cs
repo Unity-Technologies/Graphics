@@ -266,7 +266,6 @@ namespace UnityEditor.Rendering.HighDefinition
             area.AmmendInfo(FrameSettingsField.Volumetrics, ignoreDependencies: true);
             area.AmmendInfo(FrameSettingsField.ReprojectionForVolumetrics, ignoreDependencies: true);
             area.AmmendInfo(FrameSettingsField.TransparentSSR, ignoreDependencies: true);
-            area.AmmendInfo(FrameSettingsField.ProbeVolume, hideInUI: !HDRenderPipelineGlobalSettings.Ensure().supportProbeVolumes);
 
             area.AmmendInfo(
                 FrameSettingsField.SssQualityMode,

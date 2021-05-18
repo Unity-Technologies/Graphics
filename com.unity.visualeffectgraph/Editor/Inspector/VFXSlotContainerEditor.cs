@@ -133,14 +133,15 @@ class VFXSlotContainerEditor : Editor
     IGizmoController m_CurrentController;
 
     static VFXSlotContainerEditor s_EffectUi;
-
     [Overlay(typeof(SceneView), k_OverlayId, k_DisplayName)]
-    class SceneViewVFXSlotContainerOverlay : IMGUIOverlay, ITransientOverlay
+    class SceneViewVFXSlotContainerOverlay : TransientSceneViewOverlay
     {
         const string k_OverlayId = "Scene View/Visual Effect Model";
         const string k_DisplayName = "Visual Effect Model";
-
-        public bool visible => s_EffectUi != null;
+        public override bool ShouldDisplay()
+        {
+            return s_EffectUi != null;
+        }
 
         public override void OnGUI()
         {

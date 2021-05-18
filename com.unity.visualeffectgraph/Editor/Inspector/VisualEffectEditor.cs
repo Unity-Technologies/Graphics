@@ -561,12 +561,14 @@ namespace UnityEditor.VFX
         static VisualEffectEditor s_EffectUi;
 
         [Overlay(typeof(SceneView), k_OverlayId, k_DisplayName)]
-        class SceneViewVFXSlotContainerOverlay : IMGUIOverlay, ITransientOverlay
+        class SceneViewVFXSlotContainerOverlay : TransientSceneViewOverlay
         {
             const string k_OverlayId = "Scene View/Visual Effect";
             const string k_DisplayName = "Visual Effect";
-
-            public bool visible => s_EffectUi != null;
+            public override bool ShouldDisplay()
+            {
+                return s_EffectUi != null;
+            }
 
             public override void OnGUI()
             {
@@ -1176,8 +1178,6 @@ namespace UnityEditor.VFX
             private SerializedObject m_SerializedRenderers;
 
             private SerializedProperty m_RendererPriority;
-            private SerializedProperty m_SortingLayerID;
-            private SerializedProperty m_SortingOrder;
             private SerializedProperty m_RenderingLayerMask;
             private SerializedProperty m_LightProbeUsage;
             private SerializedProperty m_LightProbeVolumeOverride;
@@ -1196,8 +1196,6 @@ namespace UnityEditor.VFX
                 m_SerializedRenderers = new SerializedObject(m_Renderers);
 
                 m_RendererPriority = m_SerializedRenderers.FindProperty("m_RendererPriority");
-                m_SortingOrder = m_SerializedRenderers.FindProperty("m_SortingOrder");
-                m_SortingLayerID = m_SerializedRenderers.FindProperty("m_SortingLayerID");
                 m_RenderingLayerMask = m_SerializedRenderers.FindProperty("m_RenderingLayerMask");
                 m_LightProbeUsage = m_SerializedRenderers.FindProperty("m_LightProbeUsage");
                 m_LightProbeVolumeOverride = m_SerializedRenderers.FindProperty("m_LightProbeVolumeOverride");
@@ -1212,7 +1210,7 @@ namespace UnityEditor.VFX
                 var type = Type.GetType("UnityEditor.RendererEditorBase, UnityEditor");
                 if (type != null)
                 {
-                    var property = type.GetProperty("defaultRenderingLayerNames", BindingFlags.Static | BindingFlags.GetField | BindingFlags.NonPublic | BindingFlags.Public);
+                    var property = type.GetProperty("defaultRenderingLayerNames", BindingFlags.Static | BindingFlags.GetField | BindingFlags.NonPublic);
                     if (property != null)
                     {
                         var invokeResult = property.GetMethod.Invoke(null, null);
@@ -1221,43 +1219,6 @@ namespace UnityEditor.VFX
                     }
                 }
                 return null;
-            }
-
-            public static readonly Action<GUIContent, SerializedProperty, GUIStyle, GUIStyle> s_fnGetSortingLayerField = GetSortingLayerField();
-
-            private static Action<GUIContent, SerializedProperty, GUIStyle, GUIStyle> GetSortingLayerField()
-            {
-                //Find UnityEditor.EditorGUILayout.SortingLayerField by reflection to avoid any breakage due to an API change
-                var type = typeof(EditorGUILayout);
-                var function = type.GetMethods(BindingFlags.Static | BindingFlags.InvokeMethod | BindingFlags.NonPublic | BindingFlags.Public)
-                    .FirstOrDefault(f => f.Name == "SortingLayerField" && f.GetParameters().Length == 4);
-                if (function != null)
-                {
-                    var parameters = function.GetParameters();
-                    if (parameters[0].ParameterType == typeof(GUIContent)
-                        && parameters[1].ParameterType == typeof(SerializedProperty)
-                        && parameters[2].ParameterType == typeof(GUIStyle)
-                        && parameters[3].ParameterType == typeof(GUIStyle))
-                    {
-                        return delegate(GUIContent label, SerializedProperty layerID, GUIStyle style, GUIStyle labelStyle)
-                        {
-                            function.Invoke(null, new object[] { label, layerID, style, labelStyle });
-                        };
-                    }
-                }
-                return null;
-            }
-
-            static void SortingLayerField(GUIContent label, SerializedProperty layerID, GUIStyle style, GUIStyle labelStyle)
-            {
-                if (s_fnGetSortingLayerField == null)
-                    return;
-                s_fnGetSortingLayerField.Invoke(label, layerID, style, labelStyle);
-            }
-
-            static bool HasPrefabOverride(SerializedProperty property)
-            {
-                return property != null && property.serializedObject.targetObjectsCount == 1 && property.isInstantiatedPrefab && property.prefabOverride;
             }
 
             public void OnInspectorGUI()
@@ -1273,17 +1234,7 @@ namespace UnityEditor.VFX
 
                 if (m_ShowProbesCategory)
                 {
-                    bool showReflectionProbeUsage = m_ReflectionProbeUsage != null && SupportedRenderingFeatures.active.reflectionProbes;
-
-                    var srpAsset = QualitySettings.renderPipeline ?? GraphicsSettings.renderPipelineAsset;
-                    if (srpAsset && srpAsset.GetType().ToString().Contains("UniversalRenderPipeline"))
-                    {
-                        //Reflection Probe Usage option has been removed in URP but the VFXRenderer uses ReflectionProbeUsage.Off by default
-                        //We are temporarily letting this option reachable until the C++ doesn't change the default value
-                        showReflectionProbeUsage = m_ReflectionProbeUsage != null;
-                    }
-
-                    if (showReflectionProbeUsage)
+                    if (m_ReflectionProbeUsage != null && SupportedRenderingFeatures.active.reflectionProbes)
                     {
                         Rect r = EditorGUILayout.GetControlRect(true, EditorGUI.kSingleLineHeight, EditorStyles.popup);
                         EditorGUI.BeginProperty(r, Contents.reflectionProbeUsageStyle, m_ReflectionProbeUsage);
@@ -1374,12 +1325,11 @@ namespace UnityEditor.VFX
                         EditorGUILayout.PropertyField(m_RendererPriority, Contents.rendererPriorityStyle);
                     }
 
-                    if (m_SortingOrder != null && m_SortingLayerID != null)
-                    {
-                        var hasPrefabOverride = HasPrefabOverride(m_SortingLayerID);
-                        SortingLayerField(Contents.sortingLayerStyle, m_SortingLayerID, hasPrefabOverride ? Contents.boldPopupStyle : EditorStyles.popup, hasPrefabOverride ? EditorStyles.boldLabel : EditorStyles.label);
-                        EditorGUILayout.PropertyField(m_SortingOrder, Contents.sortingOrderStyle);
-                    }
+                    //As classic MeshRenderer, VisualEffect doesn't support the single mesh batching of UI.
+                    //if (m_SortingOrder != null && m_SortingLayerID != null)
+                    //{
+                    //    SortingLayerEditorUtility.RenderSortingLayerFields(m_SortingOrder, m_SortingLayerID);
+                    //}
                 }
                 EditorGUILayout.EndFoldoutHeaderGroup();
 
@@ -1398,11 +1348,6 @@ namespace UnityEditor.VFX
 
                 public static readonly GUIContent probeSettings =                   EditorGUIUtility.TrTextContent("Probes");
                 public static readonly GUIContent otherSettings =                   EditorGUIUtility.TrTextContent("Additional Settings");
-
-                public static readonly GUIContent sortingLayerStyle =               EditorGUIUtility.TrTextContent("Sorting Layer", "Name of the Renderer's sorting layer");
-                public static readonly GUIContent sortingOrderStyle =               EditorGUIUtility.TrTextContent("Order in Layer", "Renderer's order within a sorting layer");
-
-                public static readonly GUIStyle boldPopupStyle =                    new GUIStyle(EditorStyles.popup) { fontStyle = FontStyle.Bold };
             }
         }
 

@@ -22,13 +22,6 @@ namespace UnityEngine.Rendering.UI
             m_Field = CastWidget<DebugUI.BoolField>();
             nameLabel.text = m_Field.displayName;
             UpdateValueLabel();
-
-            valueToggle.onValueChanged.AddListener(OnToggleValueChanged);
-        }
-
-        void OnToggleValueChanged(bool value)
-        {
-            m_Field.SetValue(value);
         }
 
         /// <summary>

@@ -6,7 +6,7 @@ using UnityEngine.VFX;
 using static UnityEditor.VFX.VFXAbstractRenderedOutput;
 using static UnityEngine.Rendering.HighDefinition.HDRenderQueue;
 
-namespace UnityEditor.VFX.HDRP
+namespace UnityEditor.VFX
 {
     class VFXHDRPSubOutput : VFXSRPSubOutput
     {

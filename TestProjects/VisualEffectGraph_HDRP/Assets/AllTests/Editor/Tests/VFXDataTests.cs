@@ -25,12 +25,6 @@ namespace UnityEditor.VFX.Test
         private class ContextTestInit : VFXContext
         {
             public ContextTestInit() : base(VFXContextType.Init, VFXDataType.SpawnEvent, VFXDataType.Particle) {}
-
-            public override bool CanBeCompiled()
-            {
-                return true;
-            }
-
             public override IEnumerable<VFXAttributeInfo> attributes
             {
                 get
@@ -44,12 +38,6 @@ namespace UnityEditor.VFX.Test
         private class ContextTestUpdate : VFXContext
         {
             public ContextTestUpdate() : base(VFXContextType.Update, VFXDataType.Particle, VFXDataType.Particle) {}
-
-            public override bool CanBeCompiled()
-            {
-                return true;
-            }
-
             public override IEnumerable<VFXAttributeInfo> attributes
             {
                 get
@@ -64,12 +52,6 @@ namespace UnityEditor.VFX.Test
         private class ContextTestOutput : VFXContext
         {
             public ContextTestOutput() : base(VFXContextType.Output, VFXDataType.Particle, VFXDataType.None) {}
-
-            public override bool CanBeCompiled()
-            {
-                return true;
-            }
-
             public override IEnumerable<VFXAttributeInfo> attributes
             {
                 get

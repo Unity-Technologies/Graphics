@@ -22,6 +22,16 @@ namespace UnityEngine.Rendering.HighDefinition.Tests
             Area
         }
 
+        public class LightTypeDatas : TestCaseData
+        {
+            public LightType builtinLightType;
+            public PointLightHDType pointHDType;
+            public SpotLightShape spotLightShape;
+            public AreaLightShape areaLightShape;
+            public HDLightType correspondingType;
+            public HDLightTypeAndShape correspondingLightAndShape;
+        }
+
         //Resources for ComputedType test
         static TestCaseData[] s_LightTypeDatas =
         {

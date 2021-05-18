@@ -274,8 +274,7 @@ namespace UnityEditor.VFX
         // 5: Harmonized position blocks composition: PositionAABox was the only one with Overwrite position
         // 6: Remove automatic strip orientation from quad strip context
         // 7: Add CameraBuffer type
-        // 8: Bounds computation introduces a BoundsSettingMode for VFXDataParticles
-        public static readonly int CurrentVersion = 8;
+        public static readonly int CurrentVersion = 7;
 
         public readonly VFXErrorManager errorManager = new VFXErrorManager();
 
@@ -448,6 +447,14 @@ namespace UnityEditor.VFX
             m_ResourceVersion = resourceCurrentVersion;
             m_GraphSanitized = true;
             m_GraphVersion = CurrentVersion;
+
+#if !CASE_1289829_HAS_BEEN_FIXED
+            if (visualEffectResource != null && (visualEffectResource.updateMode & VFXUpdateMode.ExactFixedTimeStep) == VFXUpdateMode.ExactFixedTimeStep)
+            {
+                visualEffectResource.updateMode = visualEffectResource.updateMode & ~VFXUpdateMode.ExactFixedTimeStep;
+                Debug.Log("Sanitize : Exact Fixed Time has been automatically reset to false to avoid an unexpected behavior.");
+            }
+#endif
 
             UpdateSubAssets(); //Should not be necessary : force remove no more referenced object from asset
         }

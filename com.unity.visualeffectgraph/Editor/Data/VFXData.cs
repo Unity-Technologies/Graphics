@@ -39,12 +39,13 @@ namespace UnityEditor.VFX
             get { return m_Owners; }
         }
 
-        public IEnumerable<VFXContext> compilableOwners
-        {
-            get { return owners.Where(o => o.CanBeCompiled()); }
-        }
-
         public string title;
+
+
+        public IEnumerable<VFXContext> implicitContexts
+        {
+            get { return Enumerable.Empty<VFXContext>(); }
+        }
 
         public virtual IEnumerable<string> additionalHeaders
         {
@@ -251,7 +252,7 @@ namespace UnityEditor.VFX
         // Create implicit contexts and initialize cached contexts list
         public virtual IEnumerable<VFXContext> InitImplicitContexts()
         {
-            m_Contexts = compilableOwners.ToList();
+            m_Contexts = m_Owners;
             return Enumerable.Empty<VFXContext>();
         }
 
@@ -375,7 +376,7 @@ namespace UnityEditor.VFX
         {
             if (!m_DependenciesIn.Any() && !m_DependenciesOut.Any())
             {
-                m_Layer = 0; //Independent system, choose layer 0 anyway.
+                m_Layer = uint.MaxValue; //Completely independent system
             }
             else
             {

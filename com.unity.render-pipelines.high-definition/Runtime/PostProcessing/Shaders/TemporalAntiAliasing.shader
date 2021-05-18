@@ -243,7 +243,7 @@ Shader "Hidden/HDRP/TemporalAA"
             _OutputHistoryTexture[COORD_TEXTURE2D_X(input.positionCS.xy)] = color.CTYPE_SWIZZLE;
             outColor = color.CTYPE_SWIZZLE;
 
-#if VELOCITY_REJECTION && !defined(POST_DOF)
+#if VELOCITY_REJECTION
             _OutputVelocityMagnitudeHistory[COORD_TEXTURE2D_X(input.positionCS.xy)] = lengthMV;
 #endif
             // -------------------------------------------------------------

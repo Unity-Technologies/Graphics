@@ -6,7 +6,6 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using UnityEditor.Callbacks;
-using UnityEditorInternal;
 using UnityEngine;
 using UnityEngine.Rendering;
 
@@ -30,7 +29,7 @@ namespace UnityEditor.Rendering
         }
     }
 
-    sealed class DebugWindow : EditorWindow, IHasCustomMenu
+    sealed class DebugWindow : EditorWindow
     {
         static Styles s_Styles;
         static GUIStyle s_SplitterLeft;
@@ -125,7 +124,7 @@ namespace UnityEditor.Rendering
             s_TypeMapDirty = false;
         }
 
-        [MenuItem("Window/Analysis/Rendering Debugger", priority = 10005)]
+        [MenuItem("Window/Analysis/Render Pipeline Debugger", priority = 10005)]
         static void Init()
         {
             var window = GetWindow<DebugWindow>();
@@ -135,12 +134,6 @@ namespace UnityEditor.Rendering
                 OnDebugWindowToggled += DebugManager.instance.ToggleEditorUI;
 
             open = true;
-        }
-
-        [MenuItem("Window/Analysis/Rendering Debugger", validate = true)]
-        static bool ValidateMenuItem()
-        {
-            return RenderPipelineManager.currentPipeline != null;
         }
 
         void OnEnable()
@@ -329,12 +322,6 @@ namespace UnityEditor.Rendering
                 DebugManager.instance.refreshEditorRequested = false;
             }
 
-            int? requestedPanelIndex = DebugManager.instance.GetRequestedEditorWindowPanelIndex();
-            if (requestedPanelIndex != null)
-            {
-                m_Settings.selectedPanel = requestedPanelIndex.Value;
-            }
-
             int treeState = DebugManager.instance.GetState();
 
             if (m_DebugTreeState != treeState || m_IsDirty)
@@ -376,11 +363,7 @@ namespace UnityEditor.Rendering
             GUILayout.BeginHorizontal(EditorStyles.toolbar);
             GUILayout.FlexibleSpace();
             if (GUILayout.Button(Styles.resetButtonContent, EditorStyles.toolbarButton))
-            {
                 DebugManager.instance.Reset();
-                InternalEditorUtility.RepaintAllViews();
-            }
-
             GUILayout.EndHorizontal();
 
             using (new EditorGUILayout.HorizontalScope())
@@ -388,6 +371,8 @@ namespace UnityEditor.Rendering
                 // Side bar
                 using (var scrollScope = new EditorGUILayout.ScrollViewScope(m_PanelScroll, s_Styles.sectionScrollView, GUILayout.Width(splitterPos)))
                 {
+                    GUILayout.Space(40f);
+
                     if (m_Settings.selectedPanel >= panels.Count)
                         m_Settings.selectedPanel = 0;
 
@@ -438,17 +423,17 @@ namespace UnityEditor.Rendering
                 Rect splitterRect = new Rect(splitterPos - 3, 0, 6, Screen.height);
                 GUI.Box(splitterRect, "", s_SplitterLeft);
 
-                const float topMargin = 2f;
-                GUILayout.Space(topMargin);
+                GUILayout.Space(10f);
 
                 // Main section - traverse current container
                 using (var changedScope = new EditorGUI.ChangeCheckScope())
                 {
                     using (new EditorGUILayout.VerticalScope())
                     {
-                        const float leftMargin = 4f;
-                        GUILayout.Space(leftMargin);
                         var selectedPanel = panels[m_Settings.selectedPanel];
+
+                        GUILayout.Label(selectedPanel.displayName, s_Styles.sectionHeader);
+                        GUILayout.Space(10f);
 
                         using (var scrollScope = new EditorGUILayout.ScrollViewScope(m_ContentScroll))
                         {
@@ -497,13 +482,12 @@ namespace UnityEditor.Rendering
 
         void OnWidgetGUI(DebugUI.Widget widget)
         {
-            if (widget.isInactiveInEditor || widget.isHidden)
+            if (widget.isInactiveInEditor)
                 return;
 
             // State will be null for stateless widget
             m_WidgetStates.TryGetValue(widget.queryPath, out DebugState state);
 
-            GUILayout.Space(4);
 
             if (!s_WidgetDrawerMap.TryGetValue(widget.GetType(), out DebugUIDrawer drawer))
             {
@@ -545,16 +529,10 @@ namespace UnityEditor.Rendering
         {
             public static float s_DefaultLabelWidth = 0.5f;
 
-            public static GUIContent windowTitle { get; } = EditorGUIUtility.TrTextContent("Rendering Debugger");
+            public static GUIContent windowTitle { get; } = EditorGUIUtility.TrTextContent("Render Pipeline Debugger");
 
             public static GUIContent resetButtonContent { get; } = EditorGUIUtility.TrTextContent("Reset");
 
-            public static GUIStyle foldoutHeaderStyle { get; } = new GUIStyle(EditorStyles.foldoutHeader)
-            {
-                fixedHeight = 20,
-                fontStyle = FontStyle.Bold,
-                margin = new RectOffset(0, 0, 0, 0)
-            };
 
             public readonly GUIStyle sectionScrollView = "PreferencesSectionBox";
             public readonly GUIStyle sectionElement = new GUIStyle("PreferencesSection");
@@ -564,11 +542,6 @@ namespace UnityEditor.Rendering
 
             public Styles()
             {
-                Color textColorDarkSkin = new Color32(210, 210, 210, 255);
-                Color textColorLightSkin = new Color32(102, 102, 102, 255);
-                Color backgroundColorDarkSkin = new Color32(38, 38, 38, 128);
-                Color backgroundColorLightSkin = new Color32(128, 128, 128, 96);
-
                 sectionScrollView = new GUIStyle(sectionScrollView);
                 sectionScrollView.overflow.bottom += 1;
 
@@ -578,33 +551,19 @@ namespace UnityEditor.Rendering
                 sectionHeader.fontSize = 18;
                 sectionHeader.margin.top = 10;
                 sectionHeader.margin.left += 1;
-                sectionHeader.normal.textColor = EditorGUIUtility.isProSkin ? textColorDarkSkin : textColorLightSkin;
-                skinBackgroundColor = EditorGUIUtility.isProSkin ? backgroundColorDarkSkin : backgroundColorLightSkin;
-            }
-        }
+                sectionHeader.normal.textColor = !EditorGUIUtility.isProSkin
+                    ? new Color(0.4f, 0.4f, 0.4f, 1.0f)
+                    : new Color(0.7f, 0.7f, 0.7f, 1.0f);
 
-        public void AddItemsToMenu(GenericMenu menu)
-        {
-            menu.AddItem(EditorGUIUtility.TrTextContent("Expand All"), false, () => SetExpanded(true));
-            menu.AddItem(EditorGUIUtility.TrTextContent("Collapse All"), false, () => SetExpanded(false));
-        }
-
-        void SetExpanded(bool value)
-        {
-            var panels = DebugManager.instance.panels;
-            foreach (var p in panels)
-            {
-                foreach (var w in p.children)
+                if (EditorGUIUtility.isProSkin)
                 {
-                    if (w.GetType() == typeof(DebugUI.Foldout))
-                    {
-                        if (m_WidgetStates.TryGetValue(w.queryPath, out DebugState state))
-                        {
-                            var foldout = (DebugUI.Foldout)w;
-                            state.SetValue(value, foldout);
-                            foldout.SetValue(value);
-                        }
-                    }
+                    sectionHeader.normal.textColor = new Color(0.7f, 0.7f, 0.7f, 1.0f);
+                    skinBackgroundColor = Color.gray * new Color(0.3f, 0.3f, 0.3f, 0.5f);
+                }
+                else
+                {
+                    sectionHeader.normal.textColor = new Color(0.4f, 0.4f, 0.4f, 1.0f);
+                    skinBackgroundColor = Color.gray * new Color(1f, 1f, 1f, 0.32f);
                 }
             }
         }

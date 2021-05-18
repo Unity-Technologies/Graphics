@@ -157,7 +157,7 @@ namespace UnityEngine.Rendering.HighDefinition
                         cb._DebugRenderingLayersColors[i * 4 + j] = m_CurrentDebugDisplaySettings.data.lightingDebugSettings.debugRenderingLayersColors[i][j];
                 }
 
-                if (IsAPVEnabled())
+                if (asset.currentPlatformRenderPipelineSettings.supportProbeVolume)
                 {
                     var subdivColors = ProbeReferenceVolume.instance.subdivisionDebugColors;
                     for (int i = 0; i < 7; ++i)
@@ -848,8 +848,8 @@ namespace UnityEngine.Rendering.HighDefinition
                 passData.debugImageHistogramCS = defaultResources.shaders.debugImageHistogramCS;
                 passData.debugImageHistogramKernel = passData.debugImageHistogramCS.FindKernel("KHistogramGen");
                 passData.imageHistogram = m_DebugImageHistogramBuffer;
-                passData.cameraWidth = postProcessViewportSize.x;
-                passData.cameraHeight = postProcessViewportSize.y;
+                passData.cameraWidth = hdCamera.actualWidth;
+                passData.cameraHeight = hdCamera.actualHeight;
                 passData.source = builder.ReadTexture(source);
 
                 builder.SetRenderFunc(
@@ -1153,8 +1153,6 @@ namespace UnityEngine.Rendering.HighDefinition
             public TextureHandle    output;
             public int              mipIndex;
             public bool             xrTexture;
-            public bool             useCustomScaleBias;
-            public Vector4          customScaleBias;
         }
 
         void PushFullScreenLightingDebugTexture(RenderGraph renderGraph, TextureHandle input, GraphicsFormat colorFormat = GraphicsFormat.R16G16B16A16_SFloat)
@@ -1175,14 +1173,6 @@ namespace UnityEngine.Rendering.HighDefinition
             }
         }
 
-        internal void PushFullScreenDebugTexture(RenderGraph renderGraph, TextureHandle input, Vector2 scales, FullScreenDebugMode debugMode, GraphicsFormat colorFormat = GraphicsFormat.R16G16B16A16_SFloat, bool xrTexture = true)
-        {
-            if (debugMode == m_CurrentDebugDisplaySettings.data.fullScreenDebugMode)
-            {
-                PushFullScreenDebugTexture(renderGraph, input, true, scales, colorFormat, xrTexture: xrTexture);
-            }
-        }
-
         void PushFullScreenDebugTextureMip(RenderGraph renderGraph, TextureHandle input, int lodCount, Vector4 scaleBias, FullScreenDebugMode debugMode, GraphicsFormat colorFormat = GraphicsFormat.R16G16B16A16_SFloat)
         {
             if (debugMode == m_CurrentDebugDisplaySettings.data.fullScreenDebugMode)
@@ -1195,62 +1185,30 @@ namespace UnityEngine.Rendering.HighDefinition
 
         void PushFullScreenDebugTexture(RenderGraph renderGraph, TextureHandle input, GraphicsFormat rtFormat = GraphicsFormat.R16G16B16A16_SFloat, int mipIndex = -1, bool xrTexture = true)
         {
-            PushFullScreenDebugTexture(renderGraph, input, false, new Vector2(1.0f, 1.0f), rtFormat, mipIndex, xrTexture);
-        }
-
-        void PushFullScreenDebugTexture(RenderGraph renderGraph, TextureHandle input, bool useCustomScaleBias, Vector2 customScales, GraphicsFormat rtFormat = GraphicsFormat.R16G16B16A16_SFloat, int mipIndex = -1, bool xrTexture = true)
-        {
             using (var builder = renderGraph.AddRenderPass<PushFullScreenDebugPassData>("Push Full Screen Debug", out var passData))
             {
                 passData.mipIndex = mipIndex;
                 passData.xrTexture = xrTexture;
                 passData.input = builder.ReadTexture(input);
-                if (useCustomScaleBias)
-                {
-                    passData.useCustomScaleBias = true;
-                    passData.customScaleBias = new Vector4(customScales.x, customScales.y, 0.0f, 0.0f);
-                }
-
-                passData.output = builder.UseColorBuffer(renderGraph.CreateTexture(new TextureDesc(Vector2.one, false, true)
+                passData.output = builder.UseColorBuffer(renderGraph.CreateTexture(new TextureDesc(Vector2.one, true, true)
                     { colorFormat = rtFormat, name = "DebugFullScreen" }), 0);
 
                 builder.SetRenderFunc(
                     (PushFullScreenDebugPassData data, RenderGraphContext ctx) =>
                     {
-                        if (data.useCustomScaleBias)
+                        if (data.xrTexture)
                         {
-                            if (data.xrTexture)
-                            {
-                                if (data.mipIndex != -1)
-                                    HDUtils.BlitCameraTexture(ctx.cmd, data.input, data.output, data.customScaleBias, data.mipIndex);
-                                else
-                                    HDUtils.BlitCameraTexture(ctx.cmd, data.input, data.output, data.customScaleBias);
-                            }
+                            if (data.mipIndex != -1)
+                                HDUtils.BlitCameraTexture(ctx.cmd, data.input, data.output, data.mipIndex);
                             else
-                            {
-                                CoreUtils.SetRenderTarget(ctx.cmd, data.output);
-                                if (data.mipIndex != -1)
-                                    HDUtils.BlitTexture2D(ctx.cmd, data.input, data.customScaleBias, data.mipIndex, false);
-                                else
-                                    HDUtils.BlitTexture2D(ctx.cmd, data.input, data.customScaleBias, 0.0f, false);
-                            }
+                                HDUtils.BlitCameraTexture(ctx.cmd, data.input, data.output);
                         }
                         else
                         {
-                            if (data.xrTexture)
-                            {
-                                if (data.mipIndex != -1)
-                                    HDUtils.BlitCameraTexture(ctx.cmd, data.input, data.output, data.mipIndex);
-                                else
-                                    HDUtils.BlitCameraTexture(ctx.cmd, data.input, data.output);
-                            }
+                            if (data.mipIndex != -1)
+                                HDUtils.BlitCameraTexture2D(ctx.cmd, data.input, data.output, data.mipIndex);
                             else
-                            {
-                                if (data.mipIndex != -1)
-                                    HDUtils.BlitCameraTexture2D(ctx.cmd, data.input, data.output, data.mipIndex);
-                                else
-                                    HDUtils.BlitCameraTexture2D(ctx.cmd, data.input, data.output);
-                            }
+                                HDUtils.BlitCameraTexture2D(ctx.cmd, data.input, data.output);
                         }
                     });
 

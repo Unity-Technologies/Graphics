@@ -49,7 +49,7 @@ MonoBehaviour:
   m_UIInfos: {fileID: 114462104128276238}
   m_ParameterInfo: []
   m_ImportDependencies: []
-  m_GraphVersion: 8
+  m_GraphVersion: 7
   m_ResourceVersion: 1
   m_SubgraphDependencies: []
   m_CategoryPath: 
@@ -2331,8 +2331,6 @@ MonoBehaviour:
   capacity: 32
   stripCapacity: 16
   particlePerStripCount: 16
-  needsComputeBounds: 0
-  boundsSettingMode: 1
   m_Space: 1
 --- !u!114 &114334070119171780
 MonoBehaviour:
@@ -2662,8 +2660,6 @@ MonoBehaviour:
   capacity: 32
   stripCapacity: 16
   particlePerStripCount: 16
-  needsComputeBounds: 0
-  boundsSettingMode: 1
   m_Space: 1
 --- !u!114 &114372241904003984
 MonoBehaviour:
@@ -5253,8 +5249,6 @@ MonoBehaviour:
   capacity: 32
   stripCapacity: 16
   particlePerStripCount: 16
-  needsComputeBounds: 0
-  boundsSettingMode: 1
   m_Space: 0
 --- !u!114 &114703007325403528
 MonoBehaviour:
@@ -7743,8 +7737,6 @@ MonoBehaviour:
   capacity: 32
   stripCapacity: 16
   particlePerStripCount: 16
-  needsComputeBounds: 0
-  boundsSettingMode: 1
   m_Space: 0
 --- !u!114 &114952299790952532
 MonoBehaviour:

@@ -319,7 +319,7 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
                 if (target.mayWriteDepth)
                     result.passes.Add(CorePasses.DepthOnly(target));
 
-                result.passes.Add(CorePasses.DepthNormalOnly(target));
+                result.passes.Add(LitPasses.DepthNormalOnly(target));
                 result.passes.Add(LitPasses.Meta(target));
                 result.passes.Add(LitPasses._2D(target));
 
@@ -569,11 +569,11 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
 
                     // Port Mask
                     validVertexBlocks = CoreBlockMasks.Vertex,
-                    validPixelBlocks = CoreBlockMasks.FragmentDepthNormals,
+                    validPixelBlocks = LitBlockMasks.FragmentDepthNormals,
 
                     // Fields
                     structs = CoreStructCollections.Default,
-                    requiredFields = CoreRequiredFields.DepthNormals,
+                    requiredFields = LitRequiredFields.DepthNormals,
                     fieldDependencies = CoreFieldDependencies.Default,
 
                     // Conditional State
@@ -636,6 +636,15 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
                 BlockFields.SurfaceDescription.Alpha,
                 BlockFields.SurfaceDescription.AlphaClipThreshold,
             };
+
+            public static readonly BlockFieldDescriptor[] FragmentDepthNormals = new BlockFieldDescriptor[]
+            {
+                BlockFields.SurfaceDescription.NormalOS,
+                BlockFields.SurfaceDescription.NormalTS,
+                BlockFields.SurfaceDescription.NormalWS,
+                BlockFields.SurfaceDescription.Alpha,
+                BlockFields.SurfaceDescription.AlphaClipThreshold,
+            };
         }
         #endregion
 
@@ -670,6 +679,13 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
                 UniversalStructFields.Varyings.sh,
                 UniversalStructFields.Varyings.fogFactorAndVertexLight, // fog and vertex lighting, vert input is dependency
                 UniversalStructFields.Varyings.shadowCoord,             // shadow coord, vert input is dependency
+            };
+
+            public static readonly FieldCollection DepthNormals = new FieldCollection()
+            {
+                StructFields.Attributes.uv1,                            // needed for meta vertex position
+                StructFields.Varyings.normalWS,
+                StructFields.Varyings.tangentWS,                        // needed for vertex lighting
             };
 
             public static readonly FieldCollection Meta = new FieldCollection()
@@ -716,6 +732,15 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
                 scope = KeywordScope.Local,
             };
 
+            public static readonly KeywordDescriptor GBufferNormalsOct = new KeywordDescriptor()
+            {
+                displayName = "GBuffer normal octahedron encoding",
+                referenceName = "_GBUFFER_NORMALS_OCT",
+                type = KeywordType.Boolean,
+                definition = KeywordDefinition.MultiCompile,
+                scope = KeywordScope.Global,
+            };
+
             public static readonly KeywordDescriptor ScreenSpaceAmbientOcclusion = new KeywordDescriptor()
             {
                 displayName = "Screen Space Ambient Occlusion",
@@ -739,11 +764,8 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
                 { CoreKeywordDescriptors.ShadowsSoft },
                 { CoreKeywordDescriptors.LightmapShadowMixing },
                 { CoreKeywordDescriptors.ShadowsShadowmask },
-                { CoreKeywordDescriptors.DBuffer },
                 { CoreKeywordDescriptors.LightLayers },
                 { CoreKeywordDescriptors.DebugDisplay },
-                { CoreKeywordDescriptors.LightCookies },
-                { CoreKeywordDescriptors.ClusteredRendering },
             };
 
             public static readonly KeywordCollection GBuffer = new KeywordCollection
@@ -757,11 +779,9 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
                 { CoreKeywordDescriptors.ShadowsSoft },
                 { CoreKeywordDescriptors.LightmapShadowMixing },
                 { CoreKeywordDescriptors.MixedLightingSubtractive },
-                { CoreKeywordDescriptors.DBuffer },
-                { CoreKeywordDescriptors.GBufferNormalsOct },
                 { CoreKeywordDescriptors.LightLayers },
-                { CoreKeywordDescriptors.RenderPassEnabled },
                 { CoreKeywordDescriptors.DebugDisplay },
+                { GBufferNormalsOct },
             };
         }
         #endregion
@@ -783,7 +803,6 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
                 { CoreIncludes.CorePregraph },
                 { kShadows, IncludeLocation.Pregraph },
                 { CoreIncludes.ShaderGraphPregraph },
-                { CoreIncludes.DBufferPregraph },
 
                 // Post-graph
                 { CoreIncludes.CorePostgraph },
@@ -796,7 +815,6 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
                 { CoreIncludes.CorePregraph },
                 { kShadows, IncludeLocation.Pregraph },
                 { CoreIncludes.ShaderGraphPregraph },
-                { CoreIncludes.DBufferPregraph },
 
                 // Post-graph
                 { CoreIncludes.CorePostgraph },

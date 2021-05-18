@@ -733,8 +733,6 @@ MonoBehaviour:
   capacity: 32000
   stripCapacity: 16
   particlePerStripCount: 16
-  needsComputeBounds: 0
-  boundsSettingMode: 1
   m_Space: 0
 --- !u!114 &114157825477331762
 MonoBehaviour:
@@ -2346,7 +2344,7 @@ MonoBehaviour:
   m_UIInfos: {fileID: 114656056817691274}
   m_ParameterInfo: []
   m_ImportDependencies: []
-  m_GraphVersion: 8
+  m_GraphVersion: 7
   m_ResourceVersion: 1
   m_SubgraphDependencies: []
   m_CategoryPath: 
@@ -4290,8 +4288,6 @@ MonoBehaviour:
   capacity: 32000
   stripCapacity: 16
   particlePerStripCount: 16
-  needsComputeBounds: 0
-  boundsSettingMode: 1
   m_Space: 0
 --- !u!114 &114948610863482378
 MonoBehaviour:

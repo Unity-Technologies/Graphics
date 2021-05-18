@@ -276,7 +276,7 @@ MonoBehaviour:
     enumValues: []
     descendantCount: 0
   m_ImportDependencies: []
-  m_GraphVersion: 8
+  m_GraphVersion: 7
   m_ResourceVersion: 1
   m_SubgraphDependencies: []
   m_CategoryPath: 
@@ -345,8 +345,6 @@ MonoBehaviour:
   capacity: 32
   stripCapacity: 16
   particlePerStripCount: 16
-  needsComputeBounds: 0
-  boundsSettingMode: 1
   m_Space: 0
 --- !u!114 &114512514798047786
 MonoBehaviour:
@@ -2356,8 +2354,6 @@ MonoBehaviour:
   capacity: 1
   stripCapacity: 16
   particlePerStripCount: 16
-  needsComputeBounds: 0
-  boundsSettingMode: 1
   m_Space: 0
 --- !u!114 &8926484042661614646
 MonoBehaviour:
@@ -4154,8 +4150,6 @@ MonoBehaviour:
   capacity: 80
   stripCapacity: 16
   particlePerStripCount: 16
-  needsComputeBounds: 0
-  boundsSettingMode: 1
   m_Space: 0
 --- !u!114 &8926484042661614878
 MonoBehaviour:
@@ -10032,8 +10026,6 @@ MonoBehaviour:
   capacity: 32
   stripCapacity: 16
   particlePerStripCount: 16
-  needsComputeBounds: 0
-  boundsSettingMode: 1
   m_Space: 1
 --- !u!114 &8926484042661615280
 MonoBehaviour:
@@ -12250,8 +12242,6 @@ MonoBehaviour:
   capacity: 32
   stripCapacity: 16
   particlePerStripCount: 16
-  needsComputeBounds: 0
-  boundsSettingMode: 1
   m_Space: 0
 --- !u!114 &8926484042661615459
 MonoBehaviour:
@@ -15509,8 +15499,6 @@ MonoBehaviour:
   capacity: 32
   stripCapacity: 16
   particlePerStripCount: 16
-  needsComputeBounds: 0
-  boundsSettingMode: 1
   m_Space: 1
 --- !u!114 &8926484042661615634
 MonoBehaviour:
@@ -16480,8 +16468,6 @@ MonoBehaviour:
   capacity: 32
   stripCapacity: 16
   particlePerStripCount: 16
-  needsComputeBounds: 0
-  boundsSettingMode: 1
   m_Space: 0
 --- !u!114 &8926484042661615691
 MonoBehaviour:
@@ -17327,8 +17313,6 @@ MonoBehaviour:
   capacity: 32
   stripCapacity: 16
   particlePerStripCount: 16
-  needsComputeBounds: 0
-  boundsSettingMode: 1
   m_Space: 1
 --- !u!114 &8926484042661615730
 MonoBehaviour:
@@ -18246,8 +18230,6 @@ MonoBehaviour:
   capacity: 32
   stripCapacity: 16
   particlePerStripCount: 16
-  needsComputeBounds: 0
-  boundsSettingMode: 1
   m_Space: 0
 --- !u!114 &8926484042661615773
 MonoBehaviour:
@@ -28691,8 +28673,6 @@ MonoBehaviour:
   capacity: 4
   stripCapacity: 16
   particlePerStripCount: 16
-  needsComputeBounds: 0
-  boundsSettingMode: 1
   m_Space: 0
 --- !u!114 &8926484042661616194
 MonoBehaviour:

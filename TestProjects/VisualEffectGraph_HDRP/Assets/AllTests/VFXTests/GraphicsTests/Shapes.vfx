@@ -115,8 +115,6 @@ MonoBehaviour:
   capacity: 8000
   stripCapacity: 16
   particlePerStripCount: 16
-  needsComputeBounds: 0
-  boundsSettingMode: 1
   m_Space: 0
 --- !u!114 &114089173068204810
 MonoBehaviour:
@@ -615,7 +613,7 @@ MonoBehaviour:
   m_UIInfos: {fileID: 114878232584584390}
   m_ParameterInfo: []
   m_ImportDependencies: []
-  m_GraphVersion: 8
+  m_GraphVersion: 7
   m_ResourceVersion: 1
   m_SubgraphDependencies: []
   m_CategoryPath: 
@@ -1491,8 +1489,6 @@ MonoBehaviour:
   capacity: 8000
   stripCapacity: 16
   particlePerStripCount: 16
-  needsComputeBounds: 0
-  boundsSettingMode: 1
   m_Space: 0
 --- !u!114 &8926484042661614595
 MonoBehaviour:
@@ -2308,8 +2304,6 @@ MonoBehaviour:
   capacity: 8000
   stripCapacity: 16
   particlePerStripCount: 16
-  needsComputeBounds: 0
-  boundsSettingMode: 1
   m_Space: 0
 --- !u!114 &8926484042661614643
 MonoBehaviour:
@@ -2793,8 +2787,6 @@ MonoBehaviour:
   capacity: 8000
   stripCapacity: 16
   particlePerStripCount: 16
-  needsComputeBounds: 0
-  boundsSettingMode: 1
   m_Space: 0
 --- !u!114 &8926484042661614681
 MonoBehaviour:
@@ -3254,8 +3246,6 @@ MonoBehaviour:
   capacity: 8000
   stripCapacity: 16
   particlePerStripCount: 16
-  needsComputeBounds: 0
-  boundsSettingMode: 1
   m_Space: 0
 --- !u!114 &8926484042661614695
 MonoBehaviour:
@@ -3800,8 +3790,6 @@ MonoBehaviour:
   capacity: 8000
   stripCapacity: 16
   particlePerStripCount: 16
-  needsComputeBounds: 0
-  boundsSettingMode: 1
   m_Space: 0
 --- !u!114 &8926484042661614731
 MonoBehaviour:
@@ -5103,8 +5091,6 @@ MonoBehaviour:
   capacity: 8000
   stripCapacity: 16
   particlePerStripCount: 16
-  needsComputeBounds: 0
-  boundsSettingMode: 1
   m_Space: 0
 --- !u!114 &8926484042661614771
 MonoBehaviour:
@@ -5734,8 +5720,6 @@ MonoBehaviour:
   capacity: 8000
   stripCapacity: 16
   particlePerStripCount: 16
-  needsComputeBounds: 0
-  boundsSettingMode: 1
   m_Space: 0
 --- !u!114 &8926484042661614818
 MonoBehaviour:
@@ -6725,8 +6709,6 @@ MonoBehaviour:
   capacity: 8000
   stripCapacity: 16
   particlePerStripCount: 16
-  needsComputeBounds: 0
-  boundsSettingMode: 1
   m_Space: 0
 --- !u!114 &8926484042661614848
 MonoBehaviour:
@@ -7542,8 +7524,6 @@ MonoBehaviour:
   capacity: 8000
   stripCapacity: 16
   particlePerStripCount: 16
-  needsComputeBounds: 0
-  boundsSettingMode: 1
   m_Space: 0
 --- !u!114 &8926484042661614873
 MonoBehaviour:
@@ -8088,8 +8068,6 @@ MonoBehaviour:
   capacity: 8000
   stripCapacity: 16
   particlePerStripCount: 16
-  needsComputeBounds: 0
-  boundsSettingMode: 1
   m_Space: 0
 --- !u!114 &8926484042661614899
 MonoBehaviour:
@@ -8942,8 +8920,6 @@ MonoBehaviour:
   capacity: 8000
   stripCapacity: 16
   particlePerStripCount: 16
-  needsComputeBounds: 0
-  boundsSettingMode: 1
   m_Space: 0
 --- !u!114 &8926484042661614925
 MonoBehaviour:
@@ -9606,8 +9582,6 @@ MonoBehaviour:
   capacity: 8000
   stripCapacity: 16
   particlePerStripCount: 16
-  needsComputeBounds: 0
-  boundsSettingMode: 1
   m_Space: 0
 --- !u!114 &8926484042661614963
 MonoBehaviour:
@@ -10513,8 +10487,6 @@ MonoBehaviour:
   capacity: 8000
   stripCapacity: 16
   particlePerStripCount: 16
-  needsComputeBounds: 0
-  boundsSettingMode: 1
   m_Space: 0
 --- !u!114 &8926484042661614991
 MonoBehaviour:
@@ -10968,8 +10940,6 @@ MonoBehaviour:
   capacity: 8000
   stripCapacity: 16
   particlePerStripCount: 16
-  needsComputeBounds: 0
-  boundsSettingMode: 1
   m_Space: 0
 --- !u!114 &8926484042661615013
 MonoBehaviour:
@@ -11960,8 +11930,6 @@ MonoBehaviour:
   capacity: 8000
   stripCapacity: 16
   particlePerStripCount: 16
-  needsComputeBounds: 0
-  boundsSettingMode: 1
   m_Space: 0
 --- !u!114 &8926484042661615043
 MonoBehaviour:
@@ -12777,8 +12745,6 @@ MonoBehaviour:
   capacity: 8000
   stripCapacity: 16
   particlePerStripCount: 16
-  needsComputeBounds: 0
-  boundsSettingMode: 1
   m_Space: 0
 --- !u!114 &8926484042661615068
 MonoBehaviour:
@@ -13323,8 +13289,6 @@ MonoBehaviour:
   capacity: 8000
   stripCapacity: 16
   particlePerStripCount: 16
-  needsComputeBounds: 0
-  boundsSettingMode: 1
   m_Space: 0
 --- !u!114 &8926484042661615094
 MonoBehaviour:
@@ -14177,8 +14141,6 @@ MonoBehaviour:
   capacity: 8000
   stripCapacity: 16
   particlePerStripCount: 16
-  needsComputeBounds: 0
-  boundsSettingMode: 1
   m_Space: 0
 --- !u!114 &8926484042661615120
 MonoBehaviour:
@@ -14751,8 +14713,6 @@ MonoBehaviour:
   capacity: 8000
   stripCapacity: 16
   particlePerStripCount: 16
-  needsComputeBounds: 0
-  boundsSettingMode: 1
   m_Space: 0
 --- !u!114 &8926484042661615155
 MonoBehaviour:
@@ -15658,8 +15618,6 @@ MonoBehaviour:
   capacity: 8000
   stripCapacity: 16
   particlePerStripCount: 16
-  needsComputeBounds: 0
-  boundsSettingMode: 1
   m_Space: 0
 --- !u!114 &8926484042661615183
 MonoBehaviour:
@@ -16237,8 +16195,6 @@ MonoBehaviour:
   capacity: 8000
   stripCapacity: 16
   particlePerStripCount: 16
-  needsComputeBounds: 0
-  boundsSettingMode: 1
   m_Space: 0
 --- !u!114 &8926484042661615209
 MonoBehaviour:
@@ -17261,8 +17217,6 @@ MonoBehaviour:
   capacity: 8000
   stripCapacity: 16
   particlePerStripCount: 16
-  needsComputeBounds: 0
-  boundsSettingMode: 1
   m_Space: 0
 --- !u!114 &8926484042661615240
 MonoBehaviour:
@@ -18079,8 +18033,6 @@ MonoBehaviour:
   capacity: 8000
   stripCapacity: 16
   particlePerStripCount: 16
-  needsComputeBounds: 0
-  boundsSettingMode: 1
   m_Space: 0
 --- !u!114 &8926484042661615265
 MonoBehaviour:
@@ -18629,8 +18581,6 @@ MonoBehaviour:
   capacity: 8000
   stripCapacity: 16
   particlePerStripCount: 16
-  needsComputeBounds: 0
-  boundsSettingMode: 1
   m_Space: 0
 --- !u!114 &8926484042661615317
 MonoBehaviour:
@@ -19203,8 +19153,6 @@ MonoBehaviour:
   capacity: 8000
   stripCapacity: 16
   particlePerStripCount: 16
-  needsComputeBounds: 0
-  boundsSettingMode: 1
   m_Space: 0
 --- !u!114 &8926484042661615352
 MonoBehaviour:
@@ -20111,8 +20059,6 @@ MonoBehaviour:
   capacity: 8000
   stripCapacity: 16
   particlePerStripCount: 16
-  needsComputeBounds: 0
-  boundsSettingMode: 1
   m_Space: 0
 --- !u!114 &8926484042661615380
 MonoBehaviour:
@@ -20929,8 +20875,6 @@ MonoBehaviour:
   capacity: 8000
   stripCapacity: 16
   particlePerStripCount: 16
-  needsComputeBounds: 0
-  boundsSettingMode: 1
   m_Space: 0
 --- !u!114 &8926484042661615441
 MonoBehaviour:
@@ -21781,8 +21725,6 @@ MonoBehaviour:
   capacity: 8000
   stripCapacity: 16
   particlePerStripCount: 16
-  needsComputeBounds: 0
-  boundsSettingMode: 1
   m_Space: 0
 --- !u!114 &8926484042661615467
 MonoBehaviour:
@@ -22365,8 +22307,6 @@ MonoBehaviour:
   capacity: 8000
   stripCapacity: 16
   particlePerStripCount: 16
-  needsComputeBounds: 0
-  boundsSettingMode: 1
   m_Space: 0
 --- !u!114 &8926484042661615494
 MonoBehaviour:
@@ -22939,8 +22879,6 @@ MonoBehaviour:
   capacity: 8000
   stripCapacity: 16
   particlePerStripCount: 16
-  needsComputeBounds: 0
-  boundsSettingMode: 1
   m_Space: 0
 --- !u!114 &8926484042661615529
 MonoBehaviour:
@@ -23881,8 +23819,6 @@ MonoBehaviour:
   capacity: 8000
   stripCapacity: 16
   particlePerStripCount: 16
-  needsComputeBounds: 0
-  boundsSettingMode: 1
   m_Space: 0
 --- !u!114 &8926484042661615558
 MonoBehaviour:

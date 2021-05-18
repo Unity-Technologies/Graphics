@@ -13,7 +13,7 @@ namespace UnityEditor.Rendering.HighDefinition
 
         public override void OnEnable()
         {
-            var o = new PropertyFetcher<SubSurfaceScattering>(serializedObject);
+            var o = new PropertyFetcher<GlobalIllumination>(serializedObject);
             m_RayTracing = Unpack(o.Find(x => x.rayTracing));
             m_SampleCount = Unpack(o.Find(x => x.sampleCount));
         }

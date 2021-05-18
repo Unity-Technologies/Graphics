@@ -8,7 +8,6 @@
 // UnityEngine.Rendering.HighDefinition.Hair+MaterialFeatureFlags:  static fields
 //
 #define MATERIALFEATUREFLAGS_HAIR_KAJIYA_KAY (1)
-#define MATERIALFEATUREFLAGS_HAIR_MARSCHNER (2)
 
 //
 // UnityEngine.Rendering.HighDefinition.Hair+SurfaceData:  static fields
@@ -30,11 +29,6 @@
 #define DEBUGVIEW_HAIR_SURFACEDATA_SECONDARY_SPECULAR_TINT (1414)
 #define DEBUGVIEW_HAIR_SURFACEDATA_SPECULAR_SHIFT (1415)
 #define DEBUGVIEW_HAIR_SURFACEDATA_SECONDARY_SPECULAR_SHIFT (1416)
-#define DEBUGVIEW_HAIR_SURFACEDATA_LONGITUDINAL_ROUGHNESS (1417)
-#define DEBUGVIEW_HAIR_SURFACEDATA_AZIMUTHAL_ROUGHNESS (1418)
-#define DEBUGVIEW_HAIR_SURFACEDATA_PRIMARY_REFLECTION_ROUGHNESS (1419)
-#define DEBUGVIEW_HAIR_SURFACEDATA_REFRACTION_INDEX (1420)
-#define DEBUGVIEW_HAIR_SURFACEDATA_CUTICLE_ANGLE (1421)
 
 //
 // UnityEngine.Rendering.HighDefinition.Hair+BSDFData:  static fields
@@ -80,11 +74,6 @@ struct SurfaceData
     float3 secondarySpecularTint;
     float specularShift;
     float secondarySpecularShift;
-    float roughnessLongitudinal;
-    float roughnessAzimuthal;
-    float roughnessPrimaryReflection;
-    float ior;
-    float cuticleAngle;
 };
 
 // Generated from UnityEngine.Rendering.HighDefinition.Hair+BSDFData
@@ -172,21 +161,6 @@ void GetGeneratedSurfaceDataDebug(uint paramId, SurfaceData surfacedata, inout f
             break;
         case DEBUGVIEW_HAIR_SURFACEDATA_SECONDARY_SPECULAR_SHIFT:
             result = surfacedata.secondarySpecularShift.xxx;
-            break;
-        case DEBUGVIEW_HAIR_SURFACEDATA_LONGITUDINAL_ROUGHNESS:
-            result = surfacedata.roughnessLongitudinal.xxx;
-            break;
-        case DEBUGVIEW_HAIR_SURFACEDATA_AZIMUTHAL_ROUGHNESS:
-            result = surfacedata.roughnessAzimuthal.xxx;
-            break;
-        case DEBUGVIEW_HAIR_SURFACEDATA_PRIMARY_REFLECTION_ROUGHNESS:
-            result = surfacedata.roughnessPrimaryReflection.xxx;
-            break;
-        case DEBUGVIEW_HAIR_SURFACEDATA_REFRACTION_INDEX:
-            result = surfacedata.ior.xxx;
-            break;
-        case DEBUGVIEW_HAIR_SURFACEDATA_CUTICLE_ANGLE:
-            result = surfacedata.cuticleAngle.xxx;
             break;
     }
 }

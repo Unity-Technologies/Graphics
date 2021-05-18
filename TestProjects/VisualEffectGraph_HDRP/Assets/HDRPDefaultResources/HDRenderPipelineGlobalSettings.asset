@@ -18,7 +18,7 @@ MonoBehaviour:
   m_RenderingPathDefaultCameraFrameSettings:
     bitDatas:
       data1: 87872878411613
-      data2: 4539628434053070872
+      data2: 4539628425463136280
     lodBias: 1
     lodBiasMode: 0
     lodBiasQualityLevel: 0
@@ -88,6 +88,4 @@ MonoBehaviour:
   diffusionProfileSettingsList:
   - {fileID: 11400000, guid: cbe1ee9036c47b84ba1b8b3dbcde2aff, type: 2}
   - {fileID: 11400000, guid: 38c0905fbe269274782e939ce4393d85, type: 2}
-  DLSSProjectId: 000000
-  useDLSSCustomProjectId: 0
-  m_Version: 2
+  m_Version: 1

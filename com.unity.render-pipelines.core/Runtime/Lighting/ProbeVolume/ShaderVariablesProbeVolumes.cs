@@ -19,9 +19,6 @@ namespace UnityEngine.Rendering
         public float _NormalBias;
 
         public Vector3 _PoolDim;
-        public float _ViewBias;
-
-        public float _PVSamplingNoise;
-        public Vector3 pad0;
+        public float pad0;
     }
 }

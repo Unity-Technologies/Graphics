@@ -46,7 +46,4 @@ ${VFXEnd}
 		return 0;
 	}
 	ENDHLSL
-	
-${VFXBegin:VFXVertexAdditionalProcess}
-${VFXEnd}
 }

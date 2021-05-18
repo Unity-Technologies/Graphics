@@ -28,13 +28,10 @@ void ClosestHitGBuffer(inout RayIntersectionGBuffer rayIntersectionGbuffer : SV_
     cone.spreadAngle = 0.0;
     GetSurfaceAndBuiltinData(fragInput, -incidentDir, posInput, surfaceData, builtinData, currentVertex, cone, isVisible);
 
-    // Compute the bsdf data
-    BSDFData bsdfData = ConvertSurfaceDataToBSDFData(posInput.positionSS, surfaceData);
-
     // First we pack the data into the standard bsdf data
     StandardBSDFData standardLitData;
     ZERO_INITIALIZE(StandardBSDFData, standardLitData);
-    FitToStandardLit(bsdfData, builtinData, posInput.positionSS, standardLitData);
+    FitToStandardLit(surfaceData, builtinData, posInput.positionSS, standardLitData);
 
 #ifdef MINIMAL_GBUFFER
     // Override all the parameters that we do not require for our minimal lit version

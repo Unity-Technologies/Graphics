@@ -1,7 +1,6 @@
 #if ENABLE_INPUT_SYSTEM && ENABLE_INPUT_SYSTEM_PACKAGE
     #define USE_INPUT_SYSTEM
 using UnityEngine.InputSystem;
-using UnityEngine.InputSystem.EnhancedTouch;
 #endif
 
 using System.Collections.Generic;
@@ -253,40 +252,25 @@ namespace UnityEngine.Rendering
         internal bool GetActionToggleDebugMenuWithTouch()
         {
 #if USE_INPUT_SYSTEM
-            if (!EnhancedTouchSupport.enabled)
-                return false;
-
             var touches = InputSystem.EnhancedTouch.Touch.activeTouches;
             var touchCount = touches.Count;
-            InputSystem.TouchPhase? expectedTouchPhase = null;
+            const InputSystem.TouchPhase touchPhaseBegan = InputSystem.TouchPhase.Began;
 #else
             var touches = Input.touches;
             var touchCount = Input.touchCount;
-            TouchPhase? expectedTouchPhase = TouchPhase.Began;
+            const TouchPhase touchPhaseBegan = TouchPhase.Began;
 #endif
             if (touchCount == 3)
             {
                 foreach (var touch in touches)
                 {
                     // Gesture: 3-finger double-tap
-                    if ((!expectedTouchPhase.HasValue || touch.phase == expectedTouchPhase.Value) && touch.tapCount == 2)
+                    if (touch.phase == touchPhaseBegan && touch.tapCount == 2)
                         return true;
                 }
             }
 
             return false;
-        }
-
-        internal bool GetActionReleaseScrollTarget()
-        {
-#if USE_INPUT_SYSTEM
-            bool mouseWheelActive = Mouse.current != null && Mouse.current.scroll.ReadValue() != Vector2.zero;
-            bool touchSupported = Touchscreen.current != null;
-#else
-            bool mouseWheelActive = Input.mouseScrollDelta != Vector2.zero;
-            bool touchSupported = Input.touchSupported;
-#endif
-            return mouseWheelActive || touchSupported; // Touchscreens have general problems with scrolling, so it's disabled.
         }
 
         void RegisterInputs()

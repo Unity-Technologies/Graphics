@@ -1,7 +1,6 @@
 using System;
 using System.Linq;
 using System.Collections.Generic;
-using UnityEditor.VFX.UI;
 using UnityEngine;
 using UnityEngine.VFX;
 
@@ -46,18 +45,10 @@ namespace UnityEditor.VFX
             }
         }
 
-        public class InputPropertiesBounds
+        public class InputProperties
         {
-            [Tooltip(
-                "The culling bounds of this system. The Visual Effect is only visible if the bounding box specified here is visible to the camera.")]
-            public AABox bounds = new AABox() {size = Vector3.one};
-        }
-
-        public class InputPropertiesPadding
-        {
-            [Tooltip(
-                "Some additional padding to add the culling bounds set above. It can be helpful when using recorded bounds.")]
-            public Vector3 boundsPadding = Vector3.zero;
+            [Tooltip("The culling bounds of this system. The Visual Effect is only visible if the bounding box specified here is visible to the camera.")]
+            public AABox bounds = new AABox() { size = Vector3.one };
         }
 
         public class StripInputProperties
@@ -67,12 +58,8 @@ namespace UnityEditor.VFX
 
         protected override void OnInvalidate(VFXModel model, InvalidationCause cause)
         {
-            if (cause == InvalidationCause.kConnectionChanged)
-            {
-                if (model == this)
-                    ResyncSlots(false); // To add/remove stripIndex
-                RefreshErrors(GetGraph());
-            }
+            if (model == this && cause == InvalidationCause.kConnectionChanged)
+                ResyncSlots(false); // To add/remove stripIndex
 
             base.OnInvalidate(model, cause);
         }
@@ -82,53 +69,13 @@ namespace UnityEditor.VFX
             VFXSetting capacitySetting = GetSetting("capacity");
             if ((uint)capacitySetting.value > 1000000)
                 manager.RegisterError("CapacityOver1M", VFXErrorType.PerfWarning, "Systems with large capacities can be slow to simulate");
-            var data = GetData() as VFXDataParticle;
-            if (data != null && data.boundsSettingMode == BoundsSettingMode.Recorded)
-            {
-                if (VFXViewWindow.currentWindow?.graphView?.attachedComponent == null ||
-                    !BoardPreferenceHelper.IsVisible(BoardPreferenceHelper.Board.componentBoard, false))
-                {
-                    manager.RegisterError("NeedsRecording", VFXErrorType.Warning,
-                        "In order to record the bounds, the current graph needs to be attached to a scene instance via the Target Game Object panel");
-                }
-
-                try
-                {
-                    var boundsSlot = inputSlots.First(s => s.name == "bounds");
-                    if (boundsSlot.AllChildrenWithLink().Any())
-                    {
-                        manager.RegisterError("OverriddenRecording", VFXErrorType.Warning,
-                            "This system bounds will not be recorded because they are set from operators.");
-                    }
-                }
-                catch { /* do nothing*/ }
-            }
         }
 
         protected override IEnumerable<VFXPropertyWithValue> inputProperties
         {
             get
             {
-                var particleData = GetData() as VFXDataParticle;
-
-                var prop = Enumerable.Empty<VFXPropertyWithValue>();
-                if (particleData)
-                {
-                    if (particleData.boundsSettingMode == BoundsSettingMode.Manual)
-                    {
-                        prop = prop.Concat(PropertiesFromType("InputPropertiesBounds"));
-                    }
-                    if (particleData.boundsSettingMode == BoundsSettingMode.Recorded)
-                    {
-                        prop = prop.Concat(PropertiesFromType("InputPropertiesBounds"));
-                        prop = prop.Concat(PropertiesFromType("InputPropertiesPadding"));
-                    }
-                    if (particleData.boundsSettingMode == BoundsSettingMode.Automatic)
-                    {
-                        prop = prop.Concat(PropertiesFromType("InputPropertiesPadding"));
-                    }
-                }
-
+                var prop = base.inputProperties;
                 if (ownedType == VFXDataType.ParticleStrip && !hasGPUSpawner)
                     prop = prop.Concat(PropertiesFromType("StripInputProperties"));
                 return prop;
@@ -144,36 +91,18 @@ namespace UnityEditor.VFX
 
         public override VFXExpressionMapper GetExpressionMapper(VFXDeviceTarget target)
         {
-            var particleData = GetData() as VFXDataParticle;
-            bool isRecordedBounds = particleData && particleData.boundsSettingMode == BoundsSettingMode.Recorded;
             // GPU
             if (target == VFXDeviceTarget.GPU)
             {
                 var gpuMapper = VFXExpressionMapper.FromBlocks(activeFlattenedChildrenWithImplicit);
                 if (ownedType == VFXDataType.ParticleStrip && !hasGPUSpawner)
-                    gpuMapper.AddExpressionsFromSlot(inputSlots[(isRecordedBounds ? 2 : 1)], -1); // strip index
+                    gpuMapper.AddExpressionsFromSlot(inputSlots[1], -1); // strip index
                 return gpuMapper;
             }
 
             // CPU
             var cpuMapper = new VFXExpressionMapper();
-            if (particleData)
-            {
-                switch (particleData.boundsSettingMode)
-                {
-                    case BoundsSettingMode.Manual:
-                        cpuMapper.AddExpressionsFromSlot(inputSlots[0], -1); // bounds
-                        break;
-                    case BoundsSettingMode.Recorded:
-                        cpuMapper.AddExpressionsFromSlot(inputSlots[0], -1); // bounds
-                        cpuMapper.AddExpressionsFromSlot(inputSlots[1], -1); //bounds padding
-                        break;
-                    case BoundsSettingMode.Automatic:
-                        cpuMapper.AddExpressionsFromSlot(inputSlots[0], -1); //bounds padding
-                        break;
-                }
-            }
-
+            cpuMapper.AddExpressionsFromSlot(inputSlots[0], -1); // bounds
             return cpuMapper;
         }
 

@@ -82,9 +82,6 @@ namespace UnityEngine.Rendering.Universal
         [SerializeField, Reload("Shaders/2D/Shadow2D-Unshadow-Sprite.shader")]
         Shader m_SpriteUnshadowShader = null;
 
-        [SerializeField, Reload("Shaders/2D/Shadow2D-Unshadow-Geometry.shader")]
-        Shader m_GeometryUnshadowShader = null;
-
         [SerializeField, Reload("Shaders/Utils/FallbackError.shader")]
         Shader m_FallbackErrorShader;
 
@@ -116,8 +113,6 @@ namespace UnityEngine.Rendering.Universal
         internal PostProcessData postProcessData { get => m_PostProcessData; set { m_PostProcessData = value; } }
         internal Shader spriteShadowShader => m_SpriteShadowShader;
         internal Shader spriteUnshadowShader => m_SpriteUnshadowShader;
-        internal Shader geometryUnshadowShader => m_GeometryUnshadowShader;
-
         internal Shader projectedShadowShader => m_ProjectedShadowShader;
         internal TransparencySortMode transparencySortMode => m_TransparencySortMode;
         internal Vector3 transparencySortAxis => m_TransparencySortAxis;
@@ -160,8 +155,6 @@ namespace UnityEngine.Rendering.Universal
         internal Dictionary<uint, Material> lightMaterials { get; } = new Dictionary<uint, Material>();
         internal Material[] spriteSelfShadowMaterial { get; set; }
         internal Material[] spriteUnshadowMaterial { get; set; }
-        internal Material[] geometryUnshadowMaterial { get; set; }
-
         internal Material[] projectedShadowMaterial { get; set; }
         internal Material[] stencilOnlyShadowMaterial { get; set; }
 

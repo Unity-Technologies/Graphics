@@ -8,14 +8,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
     {
         public enum MaterialType
         {
-            KajiyaKay,
-            Marschner
-        }
-
-        public enum ScatteringMode
-        {
-            Approximate,
-            DensityVolume
+            KajiyaKay
         }
 
         [SerializeField]
@@ -24,15 +17,6 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
         {
             get => m_MaterialType;
             set => m_MaterialType = value;
-        }
-
-        [SerializeField]
-        ScatteringMode m_ScatteringMode;
-
-        public ScatteringMode scatteringMode
-        {
-            get => m_ScatteringMode;
-            set => m_ScatteringMode = value;
         }
 
         [SerializeField]

@@ -72,12 +72,6 @@ namespace UnityEngine.Rendering.HighDefinition
             public int rayCountType;
             public float lodBias;
 
-            // Ray marching attributes
-            public bool mixedTracing;
-            public int raySteps;
-            public float nearClipPlane;
-            public float farClipPlane;
-
             // Camera data
             public int width;
             public int height;
@@ -86,12 +80,10 @@ namespace UnityEngine.Rendering.HighDefinition
             // Compute buffers
             public ComputeBuffer rayBinResult;
             public ComputeBuffer rayBinSizeResult;
-            public ComputeBuffer mipChainBuffer;
             public RayTracingAccelerationStructure accelerationStructure;
             public HDRaytracingLightCluster lightCluster;
 
             // Shaders
-            public ComputeShader rayMarchingCS;
             public RayTracingShader gBufferRaytracingRT;
             public ComputeShader deferredRaytracingCS;
             public ComputeShader rayBinningCS;
@@ -102,32 +94,17 @@ namespace UnityEngine.Rendering.HighDefinition
         class DeferredLightingRTRPassData
         {
             public DeferredLightingRTParameters parameters;
-
-            // Prepass textures
-            public TextureHandle depthPyramid;
+            public TextureHandle directionBuffer;
             public TextureHandle depthStencilBuffer;
             public TextureHandle normalBuffer;
-            public TextureHandle ssgbuffer0;
-            public TextureHandle ssgbuffer1;
-            public TextureHandle ssgbuffer2;
-            public TextureHandle ssgbuffer3;
-
-            // Input textures
-            public TextureHandle directionBuffer;
-
-            // Intermediate textures
+            public Texture skyTexture;
             public TextureHandle gbuffer0;
             public TextureHandle gbuffer1;
             public TextureHandle gbuffer2;
             public TextureHandle gbuffer3;
             public TextureHandle distanceBuffer;
-
-            // Output textures
-            public TextureHandle litBuffer;
             public TextureHandle rayCountTexture;
-
-            // Data textures
-            public Texture skyTexture;
+            public TextureHandle litBuffer;
         }
 
         static void BinRays(CommandBuffer cmd, in DeferredLightingRTParameters config, RTHandle directionBuffer, int texWidth, int texHeight)
@@ -152,53 +129,7 @@ namespace UnityEngine.Rendering.HighDefinition
             cmd.DispatchCompute(config.rayBinningCS, currentKernel, numTilesRayBinX, numTilesRayBinY, config.viewCount);
         }
 
-        static void RayMarchGBuffer(CommandBuffer cmd, in DeferredLightingRTRPassData data, int texWidth, int texHeight)
-        {
-            // Now let's do the deferred shading pass on the samples
-            int marchingKernel = data.parameters.rayMarchingCS.FindKernel(data.parameters.halfResolution ? "RayMarchHalf" : "RayMarch");
-
-            // Evaluate the dispatch parameters
-            int numTilesRayBinX = (texWidth + (8 - 1)) / 8;
-            int numTilesRayBinY = (texHeight + (8 - 1)) / 8;
-
-            // Prepass textures
-            cmd.SetComputeTextureParam(data.parameters.rayMarchingCS, marchingKernel, HDShaderIDs._DepthTexture, data.depthPyramid);
-            cmd.SetComputeTextureParam(data.parameters.rayMarchingCS, marchingKernel, HDShaderIDs._NormalBufferTexture, data.normalBuffer);
-            cmd.SetComputeTextureParam(data.parameters.rayMarchingCS, marchingKernel, HDShaderIDs._StencilTexture, data.depthStencilBuffer, 0, RenderTextureSubElement.Stencil);
-            cmd.SetComputeIntParam(data.parameters.rayMarchingCS, HDShaderIDs._DeferredStencilBit, (int)StencilUsage.RequiresDeferredLighting);
-            cmd.SetComputeBufferParam(data.parameters.rayMarchingCS, marchingKernel, HDShaderIDs._DepthPyramidMipLevelOffsets, data.parameters.mipChainBuffer);
-
-            // Bind the input parameters
-            float n = data.parameters.nearClipPlane;
-            float f = data.parameters.farClipPlane;
-            float thicknessScale = 1.0f / (1.0f + 0.01f);
-            float thicknessBias = -n / (f - n) * (0.01f * thicknessScale);
-            cmd.SetComputeFloatParam(data.parameters.rayMarchingCS, HDShaderIDs._RayMarchingThicknessScale, thicknessScale);
-            cmd.SetComputeFloatParam(data.parameters.rayMarchingCS, HDShaderIDs._RayMarchingThicknessBias, thicknessBias);
-            cmd.SetComputeIntParam(data.parameters.rayMarchingCS, HDShaderIDs._RayMarchingSteps, data.parameters.raySteps);
-            cmd.SetComputeIntParam(data.parameters.rayMarchingCS, HDShaderIDs._RayMarchingReflectSky, data.parameters.raytracingCB._RaytracingIncludeSky);
-            cmd.SetComputeTextureParam(data.parameters.rayMarchingCS, marchingKernel, HDShaderIDs._RaytracingDirectionBuffer, data.directionBuffer);
-            cmd.SetComputeTextureParam(data.parameters.rayMarchingCS, marchingKernel, HDShaderIDs._GBufferTexture[0], data.ssgbuffer0);
-            cmd.SetComputeTextureParam(data.parameters.rayMarchingCS, marchingKernel, HDShaderIDs._GBufferTexture[1], data.ssgbuffer1);
-            cmd.SetComputeTextureParam(data.parameters.rayMarchingCS, marchingKernel, HDShaderIDs._GBufferTexture[2], data.ssgbuffer2);
-            cmd.SetComputeTextureParam(data.parameters.rayMarchingCS, marchingKernel, HDShaderIDs._GBufferTexture[3], data.ssgbuffer3);
-
-            // Bind the output textures
-            cmd.SetComputeTextureParam(data.parameters.rayMarchingCS, marchingKernel, HDShaderIDs._GBufferTextureRW[0], data.gbuffer0);
-            cmd.SetComputeTextureParam(data.parameters.rayMarchingCS, marchingKernel, HDShaderIDs._GBufferTextureRW[1], data.gbuffer1);
-            cmd.SetComputeTextureParam(data.parameters.rayMarchingCS, marchingKernel, HDShaderIDs._GBufferTextureRW[2], data.gbuffer2);
-            cmd.SetComputeTextureParam(data.parameters.rayMarchingCS, marchingKernel, HDShaderIDs._GBufferTextureRW[3], data.gbuffer3);
-            cmd.SetComputeTextureParam(data.parameters.rayMarchingCS, marchingKernel, HDShaderIDs._RaytracingDistanceBuffer, data.distanceBuffer);
-
-            // Run the ray marching
-            cmd.DispatchCompute(data.parameters.rayMarchingCS, marchingKernel, numTilesRayBinX, numTilesRayBinY, data.parameters.viewCount);
-        }
-
-        TextureHandle DeferredLightingRT(RenderGraph renderGraph, in DeferredLightingRTParameters parameters,
-            TextureHandle directionBuffer,
-            in PrepassOutput prepassOutput,
-            Texture skyTexture,
-            TextureHandle rayCountTexture)
+        TextureHandle DeferredLightingRT(RenderGraph renderGraph, in DeferredLightingRTParameters parameters, TextureHandle directionBuffer, TextureHandle depthPyramid, TextureHandle normalBuffer, Texture skyTexture, TextureHandle rayCountTexture)
         {
             using (var builder = renderGraph.AddRenderPass<DeferredLightingRTRPassData>("Deferred Lighting Ray Tracing", out var passData, ProfilingSampler.Get(HDProfileId.RaytracingDeferredLighting)))
             {
@@ -207,25 +138,8 @@ namespace UnityEngine.Rendering.HighDefinition
                 passData.parameters = parameters;
                 // Input Buffers
                 passData.directionBuffer = builder.ReadTexture(directionBuffer);
-                passData.depthStencilBuffer = builder.ReadTexture(prepassOutput.depthBuffer);
-                passData.depthPyramid = builder.ReadTexture(prepassOutput.depthPyramidTexture);
-                passData.normalBuffer = builder.ReadTexture(prepassOutput.normalBuffer);
-
-                if (passData.parameters.mixedTracing)
-                {
-                    passData.ssgbuffer0 = builder.ReadTexture(prepassOutput.gbuffer.mrt[0]);
-                    passData.ssgbuffer1 = builder.ReadTexture(prepassOutput.gbuffer.mrt[1]);
-                    passData.ssgbuffer2 = builder.ReadTexture(prepassOutput.gbuffer.mrt[2]);
-                    passData.ssgbuffer3 = builder.ReadTexture(prepassOutput.gbuffer.mrt[3]);
-                }
-                else
-                {
-                    passData.ssgbuffer0 = renderGraph.defaultResources.blackTextureXR;
-                    passData.ssgbuffer1 = renderGraph.defaultResources.blackTextureXR;
-                    passData.ssgbuffer2 = renderGraph.defaultResources.blackTextureXR;
-                    passData.ssgbuffer3 = renderGraph.defaultResources.blackTextureXR;
-                }
-
+                passData.depthStencilBuffer = builder.ReadTexture(depthPyramid);
+                passData.normalBuffer = builder.ReadTexture(normalBuffer);
                 passData.skyTexture = skyTexture;
 
                 // Temporary buffers
@@ -255,16 +169,6 @@ namespace UnityEngine.Rendering.HighDefinition
                         {
                             texWidth /= 2;
                             texHeight /= 2;
-                        }
-
-                        // Inject the global parameters
-                        ConstantBuffer.PushGlobal(ctx.cmd, data.parameters.raytracingCB, HDShaderIDs._ShaderVariablesRaytracing);
-
-                        // If mixed ray tracing was enabled for this pass, we need to try to resolve as many pixels as possible
-                        // using the depth buffer ray marching
-                        if (data.parameters.mixedTracing)
-                        {
-                            RayMarchGBuffer(ctx.cmd, data, texWidth, texHeight);
                         }
 
                         if (data.parameters.rayBinning)

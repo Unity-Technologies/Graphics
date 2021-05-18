@@ -7,13 +7,12 @@ Shader "Hidden/Shadow2DShadowSprite"
     }
     SubShader
     {
-        Tags { "RenderType"="Transparent" }
+        Tags { "RenderType"="Opaque" }
 
         Cull Off
         BlendOp Add
-        Blend One One, One One
+        Blend One Zero
         ZWrite Off
-        ZTest Always
 
         Pass
         {
@@ -60,8 +59,7 @@ Shader "Hidden/Shadow2DShadowSprite"
             half4 frag(Varyings i) : SV_Target
             {
                 half4 main = tex2D(_MainTex, i.uv);
-                half color = main.a;
-                return half4(color, color, color, color);
+                return half4(main.a, main.a, main.a, main.a);
             }
             ENDHLSL
         }

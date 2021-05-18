@@ -23,10 +23,6 @@ namespace UnityEngine.Rendering.HighDefinition
         /// High Shadow Filtering Quality
         /// </summary>
         High = 2,
-        /// <summary>
-        /// Very High Shadow Filtering Quality
-        /// </summary>
-        VeryHigh = 3,
     }
 
     enum ShadowMapType
@@ -435,10 +431,6 @@ namespace UnityEngine.Rendering.HighDefinition
                     return DirectionalShadowAlgorithm.PCF7x7;
                 }
                 case HDShadowFilteringQuality.High:
-                {
-                    return DirectionalShadowAlgorithm.PCSS;
-                }
-                case HDShadowFilteringQuality.VeryHigh:
                 {
                     return DirectionalShadowAlgorithm.PCSS;
                 }

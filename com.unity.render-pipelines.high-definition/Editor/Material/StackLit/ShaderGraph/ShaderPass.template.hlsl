@@ -118,16 +118,16 @@ void BuildSurfaceData(FragInputs fragInputs, inout SurfaceDescription surfaceDes
     #endif
 
     // normal delivered to master node
-    $SurfaceDescription.NormalOS: GetNormalWS_SrcOS(fragInputs, surfaceDescription.NormalOS, surfaceData.normalWS, doubleSidedConstants);
+    $SurfaceDescription.NormalOS: surfaceData.normalWS = TransformObjectToWorldNormal(surfaceDescription.NormalOS);
     $SurfaceDescription.NormalTS: GetNormalWS(fragInputs, surfaceDescription.NormalTS, surfaceData.normalWS, doubleSidedConstants);
-    $SurfaceDescription.NormalWS: GetNormalWS_SrcWS(fragInputs, surfaceDescription.NormalWS, surfaceData.normalWS, doubleSidedConstants);
+    $SurfaceDescription.NormalWS: surfaceData.normalWS = surfaceDescription.NormalWS;
 
     surfaceData.geomNormalWS = fragInputs.tangentToWorld[2];
 
     surfaceData.coatNormalWS = surfaceData.geomNormalWS;
-    $SurfaceDescription.CoatNormalOS: GetNormalWS_SrcOS(fragInputs, surfaceDescription.CoatNormalOS, surfaceData.coatNormalWS, doubleSidedConstants);
+    $SurfaceDescription.CoatNormalOS: surfaceData.coatNormalWS = TransformObjectToWorldNormal(surfaceDescription.CoatNormalOS);
     $SurfaceDescription.CoatNormalTS: GetNormalWS(fragInputs, surfaceDescription.CoatNormalTS, surfaceData.coatNormalWS, doubleSidedConstants);
-    $SurfaceDescription.CoatNormalWS: GetNormalWS_SrcWS(fragInputs, surfaceDescription.CoatNormalWS, surfaceData.CoatNormalWS, doubleSidedConstants);
+    $SurfaceDescription.CoatNormalWS: surfaceData.coatNormalWS = surfaceDescription.CoatNormalWS;
 
     // surfaceData.tangentWS = normalize(fragInputs.tangentToWorld[0].xyz);
     // ...We don't need to normalize if we're going to call Orthonormalize anyways as long as

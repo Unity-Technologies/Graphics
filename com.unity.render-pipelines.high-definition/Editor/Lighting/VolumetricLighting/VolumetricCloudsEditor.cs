@@ -11,7 +11,6 @@ namespace UnityEditor.Rendering.HighDefinition
     {
         // General
         SerializedDataParameter m_Enable;
-        SerializedDataParameter m_LocalClouds;
 
         // Shape
         SerializedDataParameter m_CloudControl;
@@ -44,6 +43,7 @@ namespace UnityEditor.Rendering.HighDefinition
         SerializedDataParameter m_ErosionScale;
 
         // Lighting
+        SerializedDataParameter m_ScatteringDirection;
         SerializedDataParameter m_ScatteringTint;
         SerializedDataParameter m_PowderEffectIntensity;
         SerializedDataParameter m_MultiScattering;
@@ -75,7 +75,6 @@ namespace UnityEditor.Rendering.HighDefinition
 
             // General
             m_Enable = Unpack(o.Find(x => x.enable));
-            m_LocalClouds = Unpack(o.Find(x => x.localClouds));
 
             // Shape
             m_CloudControl = Unpack(o.Find(x => x.cloudControl));
@@ -108,6 +107,7 @@ namespace UnityEditor.Rendering.HighDefinition
             m_ErosionScale = Unpack(o.Find(x => x.erosionScale));
 
             // Lighting
+            m_ScatteringDirection = Unpack(o.Find(x => x.scatteringDirection));
             m_ScatteringTint = Unpack(o.Find(x => x.scatteringTint));
             m_PowderEffectIntensity = Unpack(o.Find(x => x.powderEffectIntensity));
             m_MultiScattering = Unpack(o.Find(x => x.multiScattering));
@@ -145,12 +145,10 @@ namespace UnityEditor.Rendering.HighDefinition
                 return;
             }
 
+            EditorGUILayout.HelpBox("Volumetric Clouds are only displayed up to the far plane of the used camera. Make sure to increase the far and near planes accordingly.", MessageType.Info);
 
             EditorGUILayout.LabelField("General", EditorStyles.miniLabel);
             PropertyField(m_Enable);
-            PropertyField(m_LocalClouds);
-            if (m_LocalClouds.value.boolValue)
-                EditorGUILayout.HelpBox("Volumetric Clouds are only displayed up to the far plane of the used camera. Make sure to increase the far and near planes accordingly.", MessageType.Info);
             EditorGUILayout.Space();
 
             EditorGUILayout.LabelField("Shape", EditorStyles.miniLabel);
@@ -226,6 +224,7 @@ namespace UnityEditor.Rendering.HighDefinition
             DrawHeader("Lighting");
             {
                 PropertyField(m_AmbientLightProbeDimmer);
+                PropertyField(m_ScatteringDirection);
                 PropertyField(m_ScatteringTint);
                 PropertyField(m_PowderEffectIntensity);
                 PropertyField(m_MultiScattering);

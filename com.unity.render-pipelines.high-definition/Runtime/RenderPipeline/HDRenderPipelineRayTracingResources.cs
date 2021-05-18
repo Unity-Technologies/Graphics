@@ -75,10 +75,6 @@ namespace UnityEngine.Rendering.HighDefinition
         [Reload("Runtime/RenderPipeline/PathTracing/Shaders/PathTracingMain.raytrace")]
         public RayTracingShader pathTracing;
 
-        // Ray Marching
-        [Reload("Runtime/RenderPipeline/Raytracing/Shaders/RayMarching.compute")]
-        public ComputeShader rayMarchingCS;
-
         // Ray Binning
         [Reload("Runtime/RenderPipeline/Raytracing/Shaders/Common/RayBinning.compute")]
         public ComputeShader rayBinningCS;

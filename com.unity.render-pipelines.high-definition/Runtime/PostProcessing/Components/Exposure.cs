@@ -203,7 +203,6 @@ namespace UnityEngine.Rendering.HighDefinition
         /// <summary>
         /// Uses the current physical Camera settings to set the Scene exposure.
         /// </summary>
-        [InspectorName("Physical Camera")]
         UsePhysicalCamera = 3
     }
 

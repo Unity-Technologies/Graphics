@@ -25,7 +25,7 @@ CBUFFER_START(ShaderVariablesClouds)
     float4 _SunDirection;
     int _PhysicallyBasedSun;
     float _MultiScattering;
-    float _Padding0;
+    float _ScatteringDirection;
     float _PowderEffectIntensity;
     float _NormalizationFactor;
     float _MaxCloudDistance;
@@ -41,7 +41,7 @@ CBUFFER_START(ShaderVariablesClouds)
     float4 _TraceScreenSize;
     float2 _HistoryViewportSize;
     float2 _HistoryBufferSize;
-    float2 _Padding1;
+    float2 _Padding;
     int _AccumulationFrameIndex;
     int _SubPixelIndex;
     float4 _AmbientProbeCoeffs[7];

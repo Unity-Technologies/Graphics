@@ -192,13 +192,6 @@ namespace UnityEditor.VFX
         private List<int> m_BucketOffsets = new List<int>();
     }
 
-    internal enum BoundsSettingMode
-    {
-        Recorded,
-        Manual,
-        Automatic,
-    }
-
     class VFXDataParticle : VFXData, ISpaceable
     {
         public override VFXDataType type { get { return hasStrip ? VFXDataType.ParticleStrip : VFXDataType.Particle; } }
@@ -217,13 +210,6 @@ namespace UnityEditor.VFX
         protected uint stripCapacity = 1;
         [VFXSetting, Delayed, SerializeField]
         protected uint particlePerStripCount = 128;
-        [VFXSetting(VFXSettingAttribute.VisibleFlags.None), SerializeField]
-        protected bool needsComputeBounds = false;
-
-        public bool NeedsComputeBounds() => needsComputeBounds;
-
-        [VFXSetting(VFXSettingAttribute.VisibleFlags.All), SerializeField]
-        public BoundsSettingMode boundsSettingMode = BoundsSettingMode.Recorded;
 
         public bool hasStrip { get { return dataType == DataType.ParticleStrip; } }
 
@@ -237,18 +223,6 @@ namespace UnityEditor.VFX
                 stripCapacity = 1;
             else if (setting.name == "particlePerStripCount" && particlePerStripCount == 0)
                 particlePerStripCount = 1;
-            else if (setting.name == "boundsSettingMode")
-            {
-                //Refresh errors on Output contexts
-                var allSystemOutputContexts = owners.Where(ctx => ctx is VFXAbstractParticleOutput);
-                foreach (var ctx in allSystemOutputContexts)
-                {
-                    ctx.RefreshErrors(GetGraph());
-                }
-                if (boundsSettingMode == BoundsSettingMode.Automatic)
-                    needsComputeBounds = true;
-            }
-
 
             if (hasStrip)
             {
@@ -496,25 +470,23 @@ namespace UnityEditor.VFX
 
         public override IEnumerable<VFXContext> InitImplicitContexts()
         {
-            var contexts = compilableOwners.ToList();
-
             if (!NeedsGlobalSort() &&
-                !contexts.OfType<VFXAbstractParticleOutput>().Any(o => o.NeedsOutputUpdate()))
+                !m_Owners.OfType<VFXAbstractParticleOutput>().Any(o => o.NeedsOutputUpdate()))
             {
                 //Early out with the most common case
-                m_Contexts = contexts;
+                m_Contexts = m_Owners;
                 return Enumerable.Empty<VFXContext>();
             }
 
-            m_Contexts = new List<VFXContext>(contexts.Count + 2); // Allocate max number
+            m_Contexts = new List<VFXContext>(m_Owners.Count + 2); // Allocate max number
             int index = 0;
 
             // First add init and updates
-            for (index = 0; index < contexts.Count; ++index)
+            for (index = 0; index < m_Owners.Count; ++index)
             {
-                if ((contexts[index].contextType == VFXContextType.Output))
+                if ((m_Owners[index].contextType == VFXContextType.Output))
                     break;
-                m_Contexts.Add(contexts[index]);
+                m_Contexts.Add(m_Owners[index]);
             }
 
             var implicitContext = new List<VFXContext>();
@@ -527,9 +499,9 @@ namespace UnityEditor.VFX
             }
 
             //additional update
-            for (int outputIndex = index; outputIndex < contexts.Count; ++outputIndex)
+            for (int outputIndex = index; outputIndex < m_Owners.Count; ++outputIndex)
             {
-                var currentOutputContext = contexts[outputIndex];
+                var currentOutputContext = m_Owners[outputIndex];
                 var abstractParticleOutput = currentOutputContext as VFXAbstractParticleOutput;
                 if (abstractParticleOutput == null)
                     continue;
@@ -544,25 +516,25 @@ namespace UnityEditor.VFX
             }
 
             // And finally output
-            for (; index < contexts.Count; ++index)
-                m_Contexts.Add(contexts[index]);
+            for (; index < m_Owners.Count; ++index)
+                m_Contexts.Add(m_Owners[index]);
 
             return implicitContext;
         }
 
         public bool NeedsIndirectBuffer()
         {
-            return compilableOwners.OfType<VFXAbstractParticleOutput>().Any(o => o.HasIndirectDraw());
+            return owners.OfType<VFXAbstractParticleOutput>().Any(o => o.HasIndirectDraw());
         }
 
         public bool NeedsGlobalIndirectBuffer()
         {
-            return compilableOwners.OfType<VFXAbstractParticleOutput>().Any(o => o.HasIndirectDraw() && !VFXOutputUpdate.HasFeature(o.outputUpdateFeatures, VFXOutputUpdate.Features.IndirectDraw));
+            return owners.OfType<VFXAbstractParticleOutput>().Any(o => o.HasIndirectDraw() && !VFXOutputUpdate.HasFeature(o.outputUpdateFeatures, VFXOutputUpdate.Features.IndirectDraw));
         }
 
         public bool NeedsGlobalSort()
         {
-            return compilableOwners.OfType<VFXAbstractParticleOutput>().Any(o => o.CanBeCompiled() && o.HasSorting() && !VFXOutputUpdate.HasFeature(o.outputUpdateFeatures, VFXOutputUpdate.Features.IndirectDraw));
+            return owners.OfType<VFXAbstractParticleOutput>().Any(o => o.HasSorting() && !VFXOutputUpdate.HasFeature(o.outputUpdateFeatures, VFXOutputUpdate.Features.IndirectDraw));
         }
 
         public override void FillDescs(
@@ -591,7 +563,6 @@ namespace UnityEditor.VFX
             int eventGPUFrom = -1;
 
             var stripDataIndex = -1;
-            var boundsBufferIndex = -1;
 
             if (m_DependenciesIn.Any())
             {
@@ -655,24 +626,6 @@ namespace UnityEditor.VFX
                 systemBufferMappings.Add(new VFXMapping("stripDataBuffer", stripDataIndex));
             }
 
-            if (needsComputeBounds || boundsSettingMode == BoundsSettingMode.Automatic)
-            {
-                systemFlag |= VFXSystemFlag.SystemNeedsComputeBounds;
-
-                boundsBufferIndex = dependentBuffers.boundsBuffers[this];
-                systemBufferMappings.Add(new VFXMapping("boundsBuffer", boundsBufferIndex));
-            }
-
-            if (boundsSettingMode == BoundsSettingMode.Automatic)
-            {
-                systemFlag |= VFXSystemFlag.SystemAutomaticBounds;
-            }
-
-            if (space == VFXCoordinateSpace.World)
-            {
-                systemFlag |= VFXSystemFlag.SystemInWorldSpace;
-            }
-
             var initContext = m_Contexts.FirstOrDefault(o => o.contextType == VFXContextType.Init);
             if (initContext != null)
                 systemBufferMappings.AddRange(effectiveFlowInputLinks[initContext].SelectMany(t => t.Select(u => u.context)).Where(o => o.contextType == VFXContextType.Spawner).Select(o => new VFXMapping("spawner_input", contextSpawnToBufferIndex[o])));
@@ -682,20 +635,14 @@ namespace UnityEditor.VFX
 
                 var boundsCenterExp = mapper.FromNameAndId("bounds_center", -1);
                 var boundsSizeExp = mapper.FromNameAndId("bounds_size", -1);
-                var boundsPaddingExp = mapper.FromNameAndId("boundsPadding", -1);
 
                 int boundsCenterIndex = boundsCenterExp != null ? expressionGraph.GetFlattenedIndex(boundsCenterExp) : -1;
                 int boundsSizeIndex = boundsSizeExp != null ? expressionGraph.GetFlattenedIndex(boundsSizeExp) : -1;
-                int boundsPaddingIndex = boundsPaddingExp != null ? expressionGraph.GetFlattenedIndex(boundsPaddingExp) : -1;
 
                 if (boundsCenterIndex != -1 && boundsSizeIndex != -1)
                 {
                     systemValueMappings.Add(new VFXMapping("bounds_center", boundsCenterIndex));
                     systemValueMappings.Add(new VFXMapping("bounds_size", boundsSizeIndex));
-                }
-                if (boundsPaddingIndex != -1)
-                {
-                    systemValueMappings.Add(new VFXMapping("boundsPadding", boundsPaddingIndex));
                 }
             }
 
@@ -796,8 +743,7 @@ namespace UnityEditor.VFX
                 var temporaryBufferMappings = new List<VFXMappingTemporary>();
 
                 var context = m_Contexts[i];
-                if (!contextToCompiledData.TryGetValue(context, out var contextData))
-                    throw new InvalidOperationException("Unexpected context which hasn't been compiled : " + context);
+                var contextData = contextToCompiledData[context];
 
                 var taskDesc = new VFXEditorTaskDesc();
                 taskDesc.type = (UnityEngine.VFX.VFXTaskType)context.taskType;
@@ -995,15 +941,6 @@ namespace UnityEditor.VFX
                 type = VFXSystemType.Particle,
                 layer = m_Layer
             });
-        }
-
-        public override void Sanitize(int version)
-        {
-            if (version < 8)
-            {
-                SetSettingValue("boundsSettingMode", BoundsSettingMode.Manual);
-            }
-            base.Sanitize(version);
         }
 
         public override void CopySettings<T>(T dst)

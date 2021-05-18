@@ -8,7 +8,7 @@ namespace UnityEngine.Rendering
     /// </summary>
     public class PowerOfTwoTextureAtlas : Texture2DAtlas
     {
-        readonly int m_MipPadding;
+        int m_MipPadding;
         const float k_MipmapFactorApprox = 1.33f;
 
         private Dictionary<int, Vector2Int> m_RequestedTextures = new Dictionary<int, Vector2Int>();
@@ -17,7 +17,7 @@ namespace UnityEngine.Rendering
         /// Create a new texture atlas, must have power of two size.
         /// </summary>
         /// <param name="size">The size of the atlas in pixels. Must be power of two.</param>
-        /// <param name="mipPadding">Amount of mip padding in power of two.</param>
+        /// <param name="mipPadding">Amount of mip padding.</param>
         /// <param name="format">Atlas texture format</param>
         /// <param name="filterMode">Atlas texture filter mode.</param>
         /// <param name="name">Name of the atlas</param>
@@ -32,60 +32,11 @@ namespace UnityEngine.Rendering
                 Debug.Assert(false, "Power of two atlas was constructed with non power of two size: " + size);
         }
 
-        /// <summary>
-        /// Used mipmap padding size in power of two.
-        /// </summary>
         public int mipPadding => m_MipPadding;
 
         int GetTexturePadding() => (int)Mathf.Pow(2, m_MipPadding) * 2;
 
-        /// <summary>
-        /// Get location of the actual texture data without padding in the atlas.
-        /// </summary>
-        /// <param name="texture">The source texture cached in the atlas.</param>
-        /// <param name="scaleOffset">Cached atlas location (scale and offset) for the source texture.</param>
-        /// <returns>Scale and offset for the source texture without padding.</returns>
-        public Vector4 GetPayloadScaleOffset(Texture texture, in Vector4 scaleOffset)
-        {
-            int pixelPadding = GetTexturePadding();
-            Vector2 paddingSize = Vector2.one * pixelPadding;
-            Vector2 textureSize = GetPowerOfTwoTextureSize(texture);
-            return GetPayloadScaleOffset(textureSize, paddingSize, scaleOffset);
-        }
-
-        /// <summary>
-        /// Get location of the actual texture data without padding in the atlas.
-        /// </summary>
-        /// <param name="textureSize">Size of the source texture</param>
-        /// <param name="paddingSize">Padding size used for the source texture. </param>
-        /// <param name="scaleOffset">Cached atlas location (scale and offset) for the source texture.</param>
-        /// <returns>Scale and offset for the source texture without padding.</returns>
-        static public Vector4 GetPayloadScaleOffset(in Vector2 textureSize, in Vector2 paddingSize, in Vector4 scaleOffset)
-        {
-            // Scale, Offset is a padded atlas sub-texture rectangle.
-            // Actual texture data (payload) is inset, i.e. padded inwards.
-            Vector2 subTexScale = new Vector2(scaleOffset.x, scaleOffset.y);
-            Vector2 subTexOffset = new Vector2(scaleOffset.z, scaleOffset.w);
-
-            // NOTE: Should match Blit() padding calculations.
-            Vector2 scalePadding = ((textureSize + paddingSize) / textureSize);            // Size of padding (sampling) rectangle relative to the payload texture.
-            Vector2 offsetPadding = (paddingSize / 2.0f) / (textureSize + paddingSize);    // Padding offset in the padding rectangle
-
-            Vector2 insetScale  = subTexScale / scalePadding;                 // Size of payload rectangle in sub-tex
-            Vector2 insetOffset = subTexOffset + subTexScale * offsetPadding; // Offset of payload rectangle in sub-tex
-
-            return new Vector4(insetScale.x, insetScale.y, insetOffset.x, insetOffset.y);
-        }
-
-        private enum BlitType
-        {
-            Padding,
-            PaddingMultiply,
-            OctahedralPadding,
-            OctahedralPaddingMultiply,
-        }
-
-        private void Blit2DTexture(CommandBuffer cmd, Vector4 scaleOffset, Texture texture, Vector4 sourceScaleOffset, bool blitMips, BlitType blitType)
+        void Blit2DTexturePadding(CommandBuffer cmd, Vector4 scaleOffset, Texture texture, Vector4 sourceScaleOffset, bool blitMips = true)
         {
             int mipCount = GetTextureMipmapCount(texture.width, texture.height);
             int pixelPadding = GetTexturePadding();
@@ -100,13 +51,67 @@ namespace UnityEngine.Rendering
                 for (int mipLevel = 0; mipLevel < mipCount; mipLevel++)
                 {
                     cmd.SetRenderTarget(m_AtlasTexture, mipLevel);
-                    switch (blitType)
-                    {
-                        case BlitType.Padding: Blitter.BlitQuadWithPadding(cmd, texture, textureSize, sourceScaleOffset, scaleOffset, mipLevel, bilinear, pixelPadding); break;
-                        case BlitType.PaddingMultiply: Blitter.BlitQuadWithPaddingMultiply(cmd, texture, textureSize, sourceScaleOffset, scaleOffset, mipLevel, bilinear, pixelPadding); break;
-                        case BlitType.OctahedralPadding: Blitter.BlitOctahedralWithPadding(cmd, texture, textureSize, sourceScaleOffset, scaleOffset, mipLevel, bilinear, pixelPadding); break;
-                        case BlitType.OctahedralPaddingMultiply: Blitter.BlitOctahedralWithPaddingMultiply(cmd, texture, textureSize, sourceScaleOffset, scaleOffset, mipLevel, bilinear, pixelPadding); break;
-                    }
+                    Blitter.BlitQuadWithPadding(cmd, texture, textureSize, sourceScaleOffset, scaleOffset, mipLevel, bilinear, pixelPadding);
+                }
+            }
+        }
+
+        void Blit2DTexturePaddingMultiply(CommandBuffer cmd, Vector4 scaleOffset, Texture texture, Vector4 sourceScaleOffset, bool blitMips = true)
+        {
+            int mipCount = GetTextureMipmapCount(texture.width, texture.height);
+            int pixelPadding = GetTexturePadding();
+            Vector2 textureSize = GetPowerOfTwoTextureSize(texture);
+            bool bilinear = texture.filterMode != FilterMode.Point;
+
+            if (!blitMips)
+                mipCount = 1;
+
+            using (new ProfilingScope(cmd, ProfilingSampler.Get(CoreProfileId.BlitTextureInPotAtlas)))
+            {
+                for (int mipLevel = 0; mipLevel < mipCount; mipLevel++)
+                {
+                    cmd.SetRenderTarget(m_AtlasTexture, mipLevel);
+                    Blitter.BlitQuadWithPaddingMultiply(cmd, texture, textureSize, sourceScaleOffset, scaleOffset, mipLevel, bilinear, pixelPadding);
+                }
+            }
+        }
+
+        void BlitOctahedralTexturePadding(CommandBuffer cmd, Vector4 scaleOffset, Texture texture, Vector4 sourceScaleOffset, bool blitMips = true)
+        {
+            int mipCount = GetTextureMipmapCount(texture.width, texture.height);
+            int pixelPadding = GetTexturePadding();
+            Vector2 textureSize = GetPowerOfTwoTextureSize(texture);
+            bool bilinear = texture.filterMode != FilterMode.Point;
+
+            if (!blitMips)
+                mipCount = 1;
+
+            using (new ProfilingScope(cmd, ProfilingSampler.Get(CoreProfileId.BlitTextureInPotAtlas)))
+            {
+                for (int mipLevel = 0; mipLevel < mipCount; mipLevel++)
+                {
+                    cmd.SetRenderTarget(m_AtlasTexture, mipLevel);
+                    Blitter.BlitOctahedralWithPadding(cmd, texture, textureSize, sourceScaleOffset, scaleOffset, mipLevel, bilinear, pixelPadding);
+                }
+            }
+        }
+
+        void BlitOctahedralTexturePaddingMultiply(CommandBuffer cmd, Vector4 scaleOffset, Texture texture, Vector4 sourceScaleOffset, bool blitMips = true)
+        {
+            int mipCount = GetTextureMipmapCount(texture.width, texture.height);
+            int pixelPadding = GetTexturePadding();
+            Vector2 textureSize = GetPowerOfTwoTextureSize(texture);
+            bool bilinear = texture.filterMode != FilterMode.Point;
+
+            if (!blitMips)
+                mipCount = 1;
+
+            using (new ProfilingScope(cmd, ProfilingSampler.Get(CoreProfileId.BlitTextureInPotAtlas)))
+            {
+                for (int mipLevel = 0; mipLevel < mipCount; mipLevel++)
+                {
+                    cmd.SetRenderTarget(m_AtlasTexture, mipLevel);
+                    Blitter.BlitOctahedralWithPaddingMultiply(cmd, texture, textureSize, sourceScaleOffset, scaleOffset, mipLevel, bilinear, pixelPadding);
                 }
             }
         }
@@ -125,7 +130,7 @@ namespace UnityEngine.Rendering
             // We handle ourself the 2D blit because cookies needs mipPadding for trilinear filtering
             if (Is2D(texture))
             {
-                Blit2DTexture(cmd, scaleOffset, texture, sourceScaleOffset, blitMips, BlitType.Padding);
+                Blit2DTexturePadding(cmd, scaleOffset, texture, sourceScaleOffset, blitMips);
                 MarkGPUTextureValid(overrideInstanceID != -1 ? overrideInstanceID : texture.GetInstanceID(), blitMips);
             }
         }
@@ -144,7 +149,7 @@ namespace UnityEngine.Rendering
             // We handle ourself the 2D blit because cookies needs mipPadding for trilinear filtering
             if (Is2D(texture))
             {
-                Blit2DTexture(cmd, scaleOffset, texture, sourceScaleOffset, blitMips, BlitType.PaddingMultiply);
+                Blit2DTexturePaddingMultiply(cmd, scaleOffset, texture, sourceScaleOffset, blitMips);
                 MarkGPUTextureValid(overrideInstanceID != -1 ? overrideInstanceID : texture.GetInstanceID(), blitMips);
             }
         }
@@ -163,7 +168,7 @@ namespace UnityEngine.Rendering
             // We handle ourself the 2D blit because cookies needs mipPadding for trilinear filtering
             if (Is2D(texture))
             {
-                Blit2DTexture(cmd, scaleOffset, texture, sourceScaleOffset, blitMips, BlitType.OctahedralPadding);
+                BlitOctahedralTexturePadding(cmd, scaleOffset, texture, sourceScaleOffset, blitMips);
                 MarkGPUTextureValid(overrideInstanceID != -1 ? overrideInstanceID : texture.GetInstanceID(), blitMips);
             }
         }
@@ -182,7 +187,7 @@ namespace UnityEngine.Rendering
             // We handle ourself the 2D blit because cookies needs mipPadding for trilinear filtering
             if (Is2D(texture))
             {
-                Blit2DTexture(cmd, scaleOffset, texture, sourceScaleOffset, blitMips, BlitType.OctahedralPaddingMultiply);
+                BlitOctahedralTexturePaddingMultiply(cmd, scaleOffset, texture, sourceScaleOffset, blitMips);
                 MarkGPUTextureValid(overrideInstanceID != -1 ? overrideInstanceID : texture.GetInstanceID(), blitMips);
             }
         }

@@ -186,7 +186,7 @@ namespace UnityEngine.Experimental.Rendering
             }
         }
 
-        static Vector3Int ProbeCountToDataLocSize(int numProbes)
+        private static Vector3Int ProbeCountToDataLocSize(int numProbes)
         {
             Debug.Assert(numProbes != 0);
             Debug.Assert(numProbes % kBrickProbeCountTotal == 0);
@@ -250,7 +250,7 @@ namespace UnityEngine.Experimental.Rendering
             return loc;
         }
 
-        static void SetPixel(ref Color[] data, int x, int y, int z, int dataLocWidth, int dataLocHeight, Color value)
+        private static void SetPixel(ref Color[] data, int x, int y, int z, int dataLocWidth, int dataLocHeight, Color value)
         {
             int index = x + dataLocWidth * (y + dataLocHeight * z);
             data[index] = value;
@@ -377,7 +377,7 @@ namespace UnityEngine.Experimental.Rendering
             }
         }
 
-        void DerivePoolSizeFromBudget(int allocationSize, ProbeVolumeTextureMemoryBudget memoryBudget, out int width, out int height, out int depth)
+        private void DerivePoolSizeFromBudget(int allocationSize, ProbeVolumeTextureMemoryBudget memoryBudget, out int width, out int height, out int depth)
         {
             // TODO: This is fairly simplistic for now and relies on the enum to have the value set to the desired numbers,
             // might change the heuristic later on.

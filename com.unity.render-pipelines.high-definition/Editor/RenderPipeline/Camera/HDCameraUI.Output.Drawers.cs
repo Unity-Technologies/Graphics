@@ -25,6 +25,7 @@ namespace UnityEditor.Rendering.HighDefinition
 #endif
                     CameraUI.Output.Drawer_Output_RenderTarget,
                     Drawer_Output_MSAA_Warning,
+                    CameraUI.Output.Drawer_Output_AllowDynamicResolution,
                     CameraUI.Output.Drawer_Output_Depth,
                     CameraUI.Output.Drawer_Output_NormalizedViewPort
                 )

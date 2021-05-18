@@ -37,8 +37,6 @@ namespace UnityEditor.Rendering.HighDefinition
 
         public SerializedProperty supportDecals;
         public SerializedProperty supportDecalLayers;
-        public SerializedProperty supportSurfaceGradient;
-        public SerializedProperty decalNormalBufferHP;
 
         public SerializedProperty MSAASampleCount;
         public SerializedProperty supportMotionVectors;
@@ -98,8 +96,6 @@ namespace UnityEditor.Rendering.HighDefinition
 
             supportDecals                   = root.Find((RenderPipelineSettings s) => s.supportDecals);
             supportDecalLayers              = root.Find((RenderPipelineSettings s) => s.supportDecalLayers);
-            supportSurfaceGradient          = root.Find((RenderPipelineSettings s) => s.supportSurfaceGradient);
-            decalNormalBufferHP             = root.Find((RenderPipelineSettings s) => s.decalNormalBufferHP);
             MSAASampleCount                 = root.Find((RenderPipelineSettings s) => s.msaaSampleCount);
             supportMotionVectors            = root.Find((RenderPipelineSettings s) => s.supportMotionVectors);
             supportRuntimeDebugDisplay      = root.Find((RenderPipelineSettings s) => s.supportRuntimeDebugDisplay);

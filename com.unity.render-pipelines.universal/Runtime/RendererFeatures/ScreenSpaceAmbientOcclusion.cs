@@ -178,10 +178,7 @@ namespace UnityEngine.Rendering.Universal
                 }
                 else
                 {
-                    // Rendering after PrePasses is usually correct except when depth priming is in play:
-                    // then we rely on a depth resolve taking place after the PrePasses in order to have it ready for SSAO.
-                    // Hence we set the event to RenderPassEvent.AfterRenderingPrePasses + 1 at the earliest.
-                    renderPassEvent = featureSettings.AfterOpaque ? RenderPassEvent.AfterRenderingOpaques : RenderPassEvent.AfterRenderingPrePasses + 1;
+                    renderPassEvent = featureSettings.AfterOpaque ? RenderPassEvent.AfterRenderingOpaques : RenderPassEvent.AfterRenderingPrePasses;
                     source = m_CurrentSettings.Source;
                 }
 
@@ -357,7 +354,7 @@ namespace UnityEngine.Rendering.Universal
                     // If true, SSAO pass is inserted after opaque pass and is expected to modulate lighting result now.
                     if (m_CurrentSettings.AfterOpaque)
                     {
-                        // This implicitly also bind depth attachment. Explicitly binding m_Renderer.cameraDepthTarget does not work.
+                        // This implicitely also bind depth attachment. Explicitely binding m_Renderer.cameraDepthTarget does not work.
                         cmd.SetRenderTarget(
                             m_Renderer.cameraColorTarget,
                             RenderBufferLoadAction.Load,

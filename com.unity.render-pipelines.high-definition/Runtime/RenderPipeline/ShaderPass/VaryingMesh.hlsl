@@ -198,7 +198,6 @@ FragInputs UnpackVaryingsMeshToFragInputs(PackedVaryingsMeshToPS input)
 struct VaryingsMeshToDS
 {
     float3 positionRWS;
-    float tessellationFactor;
     float3 normalWS;
 #ifdef VARYINGS_DS_NEED_TANGENT
     float4 tangentWS;
@@ -224,7 +223,7 @@ struct VaryingsMeshToDS
 
 struct PackedVaryingsMeshToDS
 {
-    float4 interpolators0 : INTERNALTESSPOS; // positionRWS.xyz, tessellationFactor w
+    float3 interpolators0 : INTERNALTESSPOS; // positionRWS
     float3 interpolators1 : NORMAL; // NormalWS
 
 #ifdef VARYINGS_DS_NEED_TANGENT
@@ -258,7 +257,7 @@ PackedVaryingsMeshToDS PackVaryingsMeshToDS(VaryingsMeshToDS input)
 
     UNITY_TRANSFER_INSTANCE_ID(input, output);
 
-    output.interpolators0 = float4(input.positionRWS, input.tessellationFactor);
+    output.interpolators0 = input.positionRWS;
     output.interpolators1 = input.normalWS;
 #ifdef VARYINGS_DS_NEED_TANGENT
     output.interpolators2 = input.tangentWS;
@@ -288,8 +287,7 @@ VaryingsMeshToDS UnpackVaryingsMeshToDS(PackedVaryingsMeshToDS input)
 
     UNITY_TRANSFER_INSTANCE_ID(input, output);
 
-    output.positionRWS = input.interpolators0.xyz;
-    output.tessellationFactor = input.interpolators0.w;
+    output.positionRWS = input.interpolators0;
     output.normalWS = input.interpolators1;
 #ifdef VARYINGS_DS_NEED_TANGENT
     output.tangentWS = input.interpolators2;
@@ -320,7 +318,6 @@ VaryingsMeshToDS InterpolateWithBaryCoordsMeshToDS(VaryingsMeshToDS input0, Vary
     UNITY_TRANSFER_INSTANCE_ID(input0, output);
 
     TESSELLATION_INTERPOLATE_BARY(positionRWS, baryCoords);
-    output.tessellationFactor = 0.0; // Not used, just to silent the shader compiler
     TESSELLATION_INTERPOLATE_BARY(normalWS, baryCoords);
 #ifdef VARYINGS_DS_NEED_TANGENT
     // This will interpolate the sign but should be ok in practice as we may expect a triangle to have same sign (? TO CHECK)

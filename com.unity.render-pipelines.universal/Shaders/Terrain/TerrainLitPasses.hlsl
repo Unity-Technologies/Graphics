@@ -4,7 +4,6 @@
 
 #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Lighting.hlsl"
 #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/UnityGBuffer.hlsl"
-#include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/DBuffer.hlsl"
 
 #if defined(UNITY_INSTANCING_ENABLED) && defined(_TERRAIN_INSTANCED_PERPIXEL_NORMAL)
     #define ENABLE_TERRAIN_PERPIXEL_NORMAL
@@ -76,66 +75,60 @@ struct Varyings
     UNITY_VERTEX_OUTPUT_STEREO
 };
 
-void InitializeInputData(Varyings IN, half3 normalTS, out InputData inputData)
+void InitializeInputData(Varyings IN, half3 normalTS, out InputData input)
 {
-    inputData = (InputData)0;
+    input = (InputData)0;
 
-    inputData.positionWS = IN.positionWS;
-    inputData.positionCS = IN.clipPos;
+    input.positionWS = IN.positionWS;
 
     #if defined(_NORMALMAP) && !defined(ENABLE_TERRAIN_PERPIXEL_NORMAL)
         half3 viewDirWS = half3(IN.normal.w, IN.tangent.w, IN.bitangent.w);
-        inputData.tangentToWorld = half3x3(-IN.tangent.xyz, IN.bitangent.xyz, IN.normal.xyz);
-        inputData.normalWS = TransformTangentToWorld(normalTS, inputData.tangentToWorld);
-        half3 SH = SampleSH(inputData.normalWS.xyz);
+        input.tangentToWorld = half3x3(-IN.tangent.xyz, IN.bitangent.xyz, IN.normal.xyz);
+        input.normalWS = TransformTangentToWorld(normalTS, input.tangentToWorld);
+        half3 SH = SampleSH(input.normalWS.xyz);
     #elif defined(ENABLE_TERRAIN_PERPIXEL_NORMAL)
         half3 viewDirWS = GetWorldSpaceNormalizeViewDir(IN.positionWS);
         float2 sampleCoords = (IN.uvMainAndLM.xy / _TerrainHeightmapRecipSize.zw + 0.5f) * _TerrainHeightmapRecipSize.xy;
         half3 normalWS = TransformObjectToWorldNormal(normalize(SAMPLE_TEXTURE2D(_TerrainNormalmapTexture, sampler_TerrainNormalmapTexture, sampleCoords).rgb * 2 - 1));
         half3 tangentWS = cross(GetObjectToWorldMatrix()._13_23_33, normalWS);
-        inputData.normalWS = TransformTangentToWorld(normalTS, half3x3(-tangentWS, cross(normalWS, tangentWS), normalWS));
-        half3 SH = SampleSH(inputData.normalWS.xyz);
+        input.normalWS = TransformTangentToWorld(normalTS, half3x3(-tangentWS, cross(normalWS, tangentWS), normalWS));
+        half3 SH = SampleSH(input.normalWS.xyz);
     #else
         half3 viewDirWS = GetWorldSpaceNormalizeViewDir(IN.positionWS);
-        inputData.normalWS = IN.normal;
+        input.normalWS = IN.normal;
         half3 SH = IN.vertexSH;
     #endif
 
-    inputData.normalWS = NormalizeNormalPerPixel(inputData.normalWS);
-    inputData.viewDirectionWS = viewDirWS;
+    input.normalWS = NormalizeNormalPerPixel(input.normalWS);
+    input.viewDirectionWS = viewDirWS;
 
     #if defined(REQUIRES_VERTEX_SHADOW_COORD_INTERPOLATOR)
-        inputData.shadowCoord = IN.shadowCoord;
+        input.shadowCoord = IN.shadowCoord;
     #elif defined(MAIN_LIGHT_CALCULATE_SHADOWS)
-        inputData.shadowCoord = TransformWorldToShadowCoord(inputData.positionWS);
+        input.shadowCoord = TransformWorldToShadowCoord(input.positionWS);
     #else
-        inputData.shadowCoord = float4(0, 0, 0, 0);
+        input.shadowCoord = float4(0, 0, 0, 0);
     #endif
 
     #ifdef _ADDITIONAL_LIGHTS_VERTEX
-        inputData.fogCoord = InitializeInputDataFog(float4(IN.positionWS, 1.0), IN.fogFactorAndVertexLight.x);
-        inputData.vertexLighting = IN.fogFactorAndVertexLight.yzw;
+    input.fogCoord = InitializeInputDataFog(float4(IN.positionWS, 1.0), IN.fogFactorAndVertexLight.x);
+        input.vertexLighting = IN.fogFactorAndVertexLight.yzw;
     #else
-    inputData.fogCoord = InitializeInputDataFog(float4(IN.positionWS, 1.0), IN.fogFactor);
+    input.fogCoord = InitializeInputDataFog(float4(IN.positionWS, 1.0), IN.fogFactor);
     #endif
 
 #if defined(DYNAMICLIGHTMAP_ON)
-    inputData.bakedGI = SAMPLE_GI(IN.uvMainAndLM.zw, IN.dynamicLightmapUV, SH, inputData.normalWS);
+    input.bakedGI = SAMPLE_GI(IN.uvMainAndLM.zw, IN.dynamicLightmapUV, SH, input.normalWS);
 #else
-    inputData.bakedGI = SAMPLE_GI(IN.uvMainAndLM.zw, SH, inputData.normalWS);
+    input.bakedGI = SAMPLE_GI(IN.uvMainAndLM.zw, SH, input.normalWS);
 #endif
-    inputData.normalizedScreenSpaceUV = GetNormalizedScreenSpaceUV(IN.clipPos);
-    inputData.shadowMask = SAMPLE_SHADOWMASK(IN.uvMainAndLM.zw)
+    input.normalizedScreenSpaceUV = GetNormalizedScreenSpaceUV(IN.clipPos);
+    input.shadowMask = SAMPLE_SHADOWMASK(IN.uvMainAndLM.zw)
 
-    #if defined(DEBUG_DISPLAY)
-    #if defined(DYNAMICLIGHTMAP_ON)
-    inputData.dynamicLightmapUV = IN.dynamicLightmapUV;
-    #endif
     #if defined(LIGHTMAP_ON)
-    inputData.staticLightmapUV = IN.uvMainAndLM.zw;
+    input.lightmapUV = IN.uvMainAndLM.zw;
     #else
-    inputData.vertexSH = SH;
-    #endif
+    input.vertexSH = SH;
     #endif
 }
 
@@ -429,17 +422,6 @@ half4 SplatmapFragment(Varyings IN) : SV_TARGET
     InputData inputData;
     InitializeInputData(IN, normalTS, inputData);
     SETUP_DEBUG_TEXTURE_DATA(inputData, IN.uvMainAndLM.xy, _BaseMap);
-
-#if defined(_DBUFFER)
-    half3 specular = half3(0.0h, 0.0h, 0.0h);
-    ApplyDecal(IN.clipPos,
-        albedo,
-        specular,
-        inputData.normalWS,
-        metallic,
-        occlusion,
-        smoothness);
-#endif
 
 #ifdef TERRAIN_GBUFFER
 

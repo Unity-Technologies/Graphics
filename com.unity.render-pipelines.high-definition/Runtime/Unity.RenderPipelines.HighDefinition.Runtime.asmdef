@@ -33,11 +33,6 @@
             "name": "Unity",
             "expression": "2021.2.0a16",
             "define": "REFLECTION_PROBE_UPDATE_CACHED_DATA_AVAILABLE"
-        },
-        {
-            "name": "com.unity.modules.nvidia",
-            "expression": "1.0.0",
-            "define": "ENABLE_NVIDIA_MODULE"
         }
     ],
     "noEngineReferences": false

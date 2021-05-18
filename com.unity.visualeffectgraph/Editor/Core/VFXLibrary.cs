@@ -176,6 +176,20 @@ namespace UnityEditor.VFX
         public virtual bool IsGraphDataValid(GraphData graph) => false;
     }
 
+    // Not in Universal package because we dont want to add a dependency on VFXGraph
+    class VFXUniversalBinder : VFXSRPBinder
+    {
+        public override string templatePath { get { return "Packages/com.unity.visualeffectgraph/Shaders/RenderPipeline/Universal"; } }
+        public override string SRPAssetTypeStr { get { return "UniversalRenderPipelineAsset"; } }
+        public override Type SRPOutputDataType { get { return null; } }
+    }
+
+    // This is just for retrocompatibility with LWRP
+    class VFXLWRPBinder : VFXUniversalBinder
+    {
+        public override string SRPAssetTypeStr { get { return "LightweightRenderPipelineAsset"; } }
+    }
+
     // This is the default binder used if no SRP is used in the project
     class VFXLegacyBinder : VFXSRPBinder
     {

@@ -4,38 +4,40 @@
 #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Unlit.hlsl"
 #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Particles.hlsl"
 
-void InitializeInputData(VaryingsParticle input, SurfaceData surfaceData, out InputData inputData)
+void InitializeInputData(VaryingsParticle input, SurfaceData surfaceData, out InputData output)
 {
-    inputData = (InputData)0;
+    output = (InputData)0;
 
-    inputData.positionWS = input.positionWS.xyz;
+    output.positionWS = input.positionWS.xyz;
 
 #ifdef _NORMALMAP
     half3 viewDirWS = half3(input.normalWS.w, input.tangentWS.w, input.bitangentWS.w);
-    inputData.tangentToWorld = half3x3(input.tangentWS.xyz, input.bitangentWS.xyz, input.normalWS.xyz);
-    inputData.normalWS = TransformTangentToWorld(surfaceData.normalTS, inputData.tangentToWorld);
+    output.tangentToWorld = half3x3(input.tangentWS.xyz, input.bitangentWS.xyz, input.normalWS.xyz);
+    output.normalWS = TransformTangentToWorld(surfaceData.normalTS, output.tangentToWorld);
 #else
     half3 viewDirWS = input.viewDirWS;
-    inputData.normalWS = input.normalWS;
+    output.normalWS = input.normalWS;
 #endif
 
-    inputData.normalWS = NormalizeNormalPerPixel(inputData.normalWS);
+    output.normalWS = NormalizeNormalPerPixel(output.normalWS);
 
 #if SHADER_HINT_NICE_QUALITY
     viewDirWS = SafeNormalize(viewDirWS);
 #endif
 
-    inputData.viewDirectionWS = viewDirWS;
+    output.viewDirectionWS = viewDirWS;
 
-    inputData.fogCoord = InitializeInputDataFog(float4(input.positionWS.xyz, 1.0), input.positionWS.w);
-    inputData.vertexLighting = 0;
-    inputData.bakedGI = SampleSHPixel(input.vertexSH, inputData.normalWS);
-    inputData.normalizedScreenSpaceUV = GetNormalizedScreenSpaceUV(input.clipPos);
-    inputData.shadowMask = 1;
-    inputData.shadowCoord = 0;
+    output.fogCoord = InitializeInputDataFog(float4(input.positionWS.xyz, 1.0), input.positionWS.w);
+    output.vertexLighting = 0;
+    output.bakedGI = SampleSHPixel(input.vertexSH, output.normalWS);
+    output.normalizedScreenSpaceUV = GetNormalizedScreenSpaceUV(input.clipPos);
+    output.shadowMask = 1;
+    output.shadowCoord = 0;
 
-    #if defined(DEBUG_DISPLAY) && !defined(PARTICLES_EDITOR_META_PASS)
-    inputData.vertexSH = input.vertexSH;
+    #if defined(LIGHTMAP_ON)
+    output.lightmapUV = 0;
+    #else
+    output.vertexSH = input.vertexSH;
     #endif
 }
 

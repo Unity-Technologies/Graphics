@@ -51,12 +51,31 @@ namespace UnityEngine.Rendering.HighDefinition
             return HasVolumetricCloudsShadows_IgnoreSun(hdCamera, settings);
         }
 
+        DirectionalLightData OverrideDirectionalLightDataForVolumetricCloudsShadows(HDCamera hdCamera, DirectionalLightData directionalLightData)
+        {
+            // Grab the current sun light
+            Light sunLight = GetCurrentSunLight();
+
+            // Compute the shadow size
+            VolumetricClouds settings = hdCamera.volumeStack.GetComponent<VolumetricClouds>();
+            float groundShadowSize = settings.shadowDistance.value * 2.0f;
+            float scaleX = Mathf.Abs(Vector3.Dot(sunLight.transform.right, Vector3.Normalize(new Vector3(sunLight.transform.right.x, 0.0f, sunLight.transform.right.z))));
+            float scaleY = Mathf.Abs(Vector3.Dot(sunLight.transform.up, Vector3.Normalize(new Vector3(sunLight.transform.up.x, 0.0f, sunLight.transform.up.z))));
+            Vector2 shadowSize = new Vector2(groundShadowSize * scaleX, groundShadowSize * scaleY);
+
+            // Override the parameters that we are interested in
+            directionalLightData.right = sunLight.transform.right * 2 / Mathf.Max(shadowSize.x, 0.001f);
+            directionalLightData.up = sunLight.transform.up * 2 / Mathf.Max(shadowSize.y, 0.001f);
+            directionalLightData.positionRWS = Vector3.zero - new Vector3(0.0f, hdCamera.camera.transform.position.y - settings.shadowPlaneHeightOffset.value, 0.0f);
+
+            // Return the overridden light data
+            return directionalLightData;
+        }
+
         static void TraceVolumetricCloudShadow(CommandBuffer cmd, VolumetricCloudsParameters parameters, RTHandle shadowTexture)
         {
             using (new ProfilingScope(cmd, ProfilingSampler.Get(HDProfileId.VolumetricCloudsShadow)))
             {
-                CoreUtils.SetKeyword(cmd, "LOCAL_VOLUMETRIC_CLOUDS", parameters.localClouds);
-
                 // Bind the constant buffer
                 ConstantBuffer.Push(cmd, parameters.cloudsCB, parameters.volumetricCloudsCS, HDShaderIDs._ShaderVariablesClouds);
 
@@ -116,13 +135,13 @@ namespace UnityEngine.Rendering.HighDefinition
             return m_VolumetricCloudsShadowTexture[shadowResIndex];
         }
 
-        CookieParameters RenderVolumetricCloudsShadows(CommandBuffer cmd, HDCamera hdCamera)
+        RTHandle RenderVolumetricCloudsShadows(CommandBuffer cmd, HDCamera hdCamera)
         {
             VolumetricClouds settings = hdCamera.volumeStack.GetComponent<VolumetricClouds>();
 
             // Make sure we should compute the shadow otherwise we return
             if (!HasVolumetricCloudsShadows(hdCamera, in settings))
-                return default;
+                return TextureXR.GetWhiteTexture();
 
             // Make sure the shadow texture is the right size
             // TODO: Right now we can end up with a bunch of textures allocated which should be solved by an other PR.
@@ -132,24 +151,7 @@ namespace UnityEngine.Rendering.HighDefinition
             var parameters = PrepareVolumetricCloudsParameters(hdCamera, settings, true, false);
             TraceVolumetricCloudShadow(cmd, parameters, currentHandle);
 
-            // Grab the current sun light
-            Light sunLight = GetCurrentSunLight();
-
-            // Compute the shadow size
-            float groundShadowSize = settings.shadowDistance.value * 2.0f;
-            float scaleX = Mathf.Abs(Vector3.Dot(sunLight.transform.right, Vector3.Normalize(new Vector3(sunLight.transform.right.x, 0.0f, sunLight.transform.right.z))));
-            float scaleY = Mathf.Abs(Vector3.Dot(sunLight.transform.up, Vector3.Normalize(new Vector3(sunLight.transform.up.x, 0.0f, sunLight.transform.up.z))));
-            Vector2 shadowSize = new Vector2(groundShadowSize * scaleX, groundShadowSize * scaleY);
-
-            Vector3 positionWS = hdCamera.mainViewConstants.worldSpaceCameraPos;
-            positionWS.y = settings.shadowPlaneHeightOffset.value;
-
-            return new CookieParameters()
-            {
-                texture = currentHandle,
-                size = shadowSize,
-                position = positionWS
-            };
+            return currentHandle;
         }
     }
 }

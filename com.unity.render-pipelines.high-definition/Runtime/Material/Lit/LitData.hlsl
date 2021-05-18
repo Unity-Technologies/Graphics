@@ -237,22 +237,13 @@ void GetSurfaceAndBuiltinData(FragInputs input, float3 V, inout PositionInputs p
     float3 bentNormalTS;
     float3 bentNormalWS;
     float alpha = GetSurfaceData(input, layerTexCoord, surfaceData, normalTS, bentNormalTS);
-
-    // This need to be init here to quiet the compiler in case of decal, but can be override later.
-    surfaceData.geomNormalWS = input.tangentToWorld[2];
-    surfaceData.specularOcclusion = 1.0;
-
-#if HAVE_DECALS && (defined(DECAL_SURFACE_GRADIENT) && defined(SURFACE_GRADIENT))
-    if (_EnableDecals)
-    {
-        DecalSurfaceData decalSurfaceData = GetDecalSurfaceData(posInput, input, alpha);
-        ApplyDecalToSurfaceData(decalSurfaceData, input.tangentToWorld[2], surfaceData, normalTS);
-    }
-#endif
-
     GetNormalWS(input, normalTS, surfaceData.normalWS, doubleSidedConstants);
 
-#if HAVE_DECALS && (!defined(DECAL_SURFACE_GRADIENT) || !defined(SURFACE_GRADIENT))
+    surfaceData.geomNormalWS = input.tangentToWorld[2];
+
+    surfaceData.specularOcclusion = 1.0; // This need to be init here to quiet the compiler in case of decal, but can be override later.
+
+#if HAVE_DECALS
     if (_EnableDecals)
     {
         // Both uses and modifies 'surfaceData.normalWS'.

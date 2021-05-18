@@ -4,7 +4,7 @@ using UnityEngine.Rendering.Universal;
 
 namespace UnityEditor.Rendering.Universal
 {
-    class UniversalRenderPipelineSerializedCamera : ISerializedCamera
+    internal class UniversalRenderPipelineSerializedCamera : ISerializedCamera
     {
         public SerializedObject serializedObject { get; }
         public SerializedObject serializedAdditionalDataObject { get; }
@@ -29,7 +29,6 @@ namespace UnityEditor.Rendering.Universal
         public SerializedProperty cameraType { get; }
         public SerializedProperty cameras { get; set; }
         public SerializedProperty volumeTrigger { get; }
-        public SerializedProperty volumeFrameworkUpdateMode { get; }
         public SerializedProperty renderPostProcessing { get; }
         public SerializedProperty antialiasingQuality { get; }
 #if ENABLE_VR && ENABLE_XR_MODULE
@@ -48,28 +47,21 @@ namespace UnityEditor.Rendering.Universal
             }
         }
 
-        public int numCameras => cameras?.arraySize ?? 0;
+        public int numCameras => cameras.arraySize;
 
         UniversalRenderPipelineSerializedCamera[] cameraSerializedObjects { get; set; }
 
         public UniversalAdditionalCameraData[] camerasAdditionalData { get; }
 
-        public UniversalRenderPipelineSerializedCamera(SerializedObject serializedObject, CameraEditor.Settings settings = null)
+        public UniversalRenderPipelineSerializedCamera(SerializedObject serializedObject)
         {
             this.serializedObject = serializedObject;
             projectionMatrixMode = serializedObject.FindProperty("m_projectionMatrixMode");
 
             allowDynamicResolution = serializedObject.FindProperty("m_AllowDynamicResolution");
 
-            if (settings == null)
-            {
-                baseCameraSettings = new CameraEditor.Settings(serializedObject);
-                baseCameraSettings.OnEnable();
-            }
-            else
-            {
-                baseCameraSettings = settings;
-            }
+            baseCameraSettings = new CameraEditor.Settings(serializedObject);
+            baseCameraSettings.OnEnable();
 
             camerasAdditionalData = CoreEditorUtils
                 .GetAdditionalData<UniversalAdditionalCameraData>(serializedObject.targetObjects);
@@ -89,7 +81,6 @@ namespace UnityEditor.Rendering.Universal
             renderer = serializedAdditionalDataObject.FindProperty("m_RendererIndex");
             volumeLayerMask = serializedAdditionalDataObject.FindProperty("m_VolumeLayerMask");
             volumeTrigger = serializedAdditionalDataObject.FindProperty("m_VolumeTrigger");
-            volumeFrameworkUpdateMode = serializedAdditionalDataObject.FindProperty("m_VolumeFrameworkUpdateModeOption");
             renderPostProcessing = serializedAdditionalDataObject.FindProperty("m_RenderPostProcessing");
             antialiasingQuality = serializedAdditionalDataObject.FindProperty("m_AntialiasingQuality");
             cameraType = serializedAdditionalDataObject.FindProperty("m_CameraType");
@@ -97,6 +88,8 @@ namespace UnityEditor.Rendering.Universal
 #if ENABLE_VR && ENABLE_XR_MODULE
             allowXRRendering = serializedAdditionalDataObject.FindProperty("m_AllowXRRendering");
 #endif
+
+            Refresh();
         }
 
         /// <summary>
@@ -140,8 +133,8 @@ namespace UnityEditor.Rendering.Universal
             cameraSerializedObjects = new UniversalRenderPipelineSerializedCamera[numCameras];
             for (int i = 0; i < numCameras; ++i)
             {
-                Camera cam = cameras.GetArrayElementAtIndex(i).objectReferenceValue as Camera;
-                cameraSerializedObjects[i] = new UniversalRenderPipelineSerializedCamera(new SerializedObject(cam));
+                cameraSerializedObjects[i] = new UniversalRenderPipelineSerializedCamera(
+                    new SerializedObject(cameras.GetArrayElementAtIndex(i).objectReferenceValue as Camera));
             }
         }
     }
