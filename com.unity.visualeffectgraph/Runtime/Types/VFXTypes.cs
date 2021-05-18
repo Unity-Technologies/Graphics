@@ -8,12 +8,14 @@ using UnityEngine.VFX;
 namespace UnityEngine.VFX
 {
     /// <summary>
-    /// Attribute to define a VFXType that will be usable in VFX Graph view.
+    /// Defines a VFXType that you can use in Node Workspace.
     /// </summary>
     [AttributeUsage(AttributeTargets.Struct, AllowMultiple = false)]
     public class VFXTypeAttribute : Attribute
     {
-        /// <summary>Usage of VFXType.</summary>
+        /// <summary>
+        /// Options that define how the Visual Effect Graph can use a VFXType.
+        /// </summary>
         [Flags]
         public enum Usage
         {
@@ -23,8 +25,10 @@ namespace UnityEngine.VFX
             GraphicsBuffer
         }
 
-        /// <summary>Constructor of VFXType.</summary>
-        /// <param name="usages">Usage of the VFXType.</param>
+        /// <summary>
+        /// Initializes and returns an instance of VFXType.
+        /// </summary>
+        /// <param name="usages">Flags that set how the Visual Effect Graph can use the VFXType.</param>
         public VFXTypeAttribute(Usage usages = Usage.Default)
         {
             this.usages = usages;
