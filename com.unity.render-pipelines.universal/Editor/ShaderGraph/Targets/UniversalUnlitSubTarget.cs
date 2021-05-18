@@ -133,8 +133,12 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
                 if (target.mayWriteDepth)
                     result.passes.Add(CorePasses.DepthOnly(target));
 
+                result.passes.Add(CorePasses.DepthNormalOnly(target));
+
                 if (target.castShadows || target.allowMaterialOverride)
                     result.passes.Add(CorePasses.ShadowCaster(target));
+
+                result.passes.Add(UnlitPasses.DepthNormalOnly(target));
 
                 return result;
             }
@@ -156,8 +160,12 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
                 if (target.mayWriteDepth)
                     result.passes.Add(PassVariant(CorePasses.DepthOnly(target), CorePragmas.DOTSInstanced));
 
+                result.passes.Add(PassVariant(CorePasses.DepthNormalOnly(target), CorePragmas.DOTSInstanced));
+
                 if (target.castShadows || target.allowMaterialOverride)
                     result.passes.Add(PassVariant(CorePasses.ShadowCaster(target), CorePragmas.DOTSInstanced));
+
+                result.passes.Add(UnlitPasses.DepthNormalOnly(target));
 
                 return result;
             }
@@ -205,6 +213,57 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
                 return result;
             }
 
+            public static PassDescriptor DepthNormalOnly(UniversalTarget target)
+            {
+                var result = new PassDescriptor
+                {
+                    // Definition
+                    displayName = "DepthNormals",
+                    referenceName = "SHADERPASS_DEPTHNORMALSONLY",
+                    lightMode = "DepthNormalsOnly",
+                    useInPreview = false,
+
+                    // Template
+                    passTemplatePath = UniversalTarget.kUberTemplatePath,
+                    sharedTemplateDirectories = UniversalTarget.kSharedTemplateDirectories,
+
+                    // Port Mask
+                    validVertexBlocks = CoreBlockMasks.Vertex,
+                    validPixelBlocks = UnlitBlockMasks.FragmentDepthNormals,
+
+                    // Fields
+                    structs = CoreStructCollections.Default,
+                    requiredFields = UnlitRequiredFields.DepthNormalsOnly,
+                    fieldDependencies = CoreFieldDependencies.Default,
+
+                    // Conditional State
+                    renderStates = CoreRenderStates.DepthNormalsOnly(target),
+                    pragmas = CorePragmas.Forward,
+                    defines = new DefineCollection(),
+                    keywords = new KeywordCollection(),
+                    includes = CoreIncludes.DepthNormalsOnly,
+
+                    // Custom Interpolator Support
+                    customInterpolators = CoreCustomInterpDescriptors.Common
+                };
+
+                CorePasses.AddTargetSurfaceControlsToPass(ref result, target);
+
+                return result;
+            }
+
+            #region PortMasks
+            static class UnlitBlockMasks
+            {
+                public static readonly BlockFieldDescriptor[] FragmentDepthNormals = new BlockFieldDescriptor[]
+                {
+                    BlockFields.SurfaceDescription.NormalWS,
+                    BlockFields.SurfaceDescription.Alpha,
+                    BlockFields.SurfaceDescription.AlphaClipThreshold,
+                };
+            }
+            #endregion
+
             #region RequiredFields
             static class UnlitRequiredFields
             {
@@ -213,6 +272,11 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
                     StructFields.Varyings.positionWS,
                     StructFields.Varyings.normalWS,
                     StructFields.Varyings.viewDirectionWS,
+                };
+
+                public static readonly FieldCollection DepthNormalsOnly = new FieldCollection()
+                {
+                    StructFields.Varyings.normalWS,
                 };
             }
             #endregion
@@ -230,6 +294,7 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
                 CoreKeywordDescriptors.StaticLightmap,
                 CoreKeywordDescriptors.DirectionalLightmapCombined,
                 CoreKeywordDescriptors.SampleGI,
+                CoreKeywordDescriptors.DBuffer,
                 CoreKeywordDescriptors.DebugDisplay,
             };
         }
@@ -245,6 +310,7 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
                 // Pre-graph
                 { CoreIncludes.CorePregraph },
                 { CoreIncludes.ShaderGraphPregraph },
+                { CoreIncludes.DBufferPregraph },
 
                 // Post-graph
                 { CoreIncludes.CorePostgraph },

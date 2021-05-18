@@ -1,24 +1,25 @@
 using System;
+using System.Collections.Generic;
 using UnityEngine.Experimental.Rendering;
 
 namespace UnityEngine.Rendering.Universal.Internal
 {
     public class DepthNormalOnlyPass : ScriptableRenderPass
     {
-        private static readonly ShaderTagId k_ShaderTagId = new ShaderTagId("DepthNormals");
-
         internal RenderTextureDescriptor normalDescriptor { get; set; }
         internal RenderTextureDescriptor depthDescriptor { get; set; }
         internal bool allocateDepth { get; set; } = true;
         internal bool allocateNormal { get; set; } = true;
-        internal ShaderTagId shaderTagId { get; set; } = k_ShaderTagId;
+        internal List<ShaderTagId> shaderTagIds { get;  set; }
 
         private RenderTargetHandle depthHandle { get; set; }
         private RenderTargetHandle normalHandle { get; set; }
         private FilteringSettings m_FilteringSettings;
+        private int m_RendererMSAASamples = 1;
 
         // Constants
         private const int k_DepthBufferBits = 32;
+        private static readonly List<ShaderTagId> k_DepthNormals = new List<ShaderTagId> { new ShaderTagId("DepthNormals"), new ShaderTagId("DepthNormalsOnly") };
 
         /// <summary>
         /// Create the DepthNormalOnlyPass
@@ -28,6 +29,7 @@ namespace UnityEngine.Rendering.Universal.Internal
             base.profilingSampler = new ProfilingSampler(nameof(DepthNormalOnlyPass));
             m_FilteringSettings = new FilteringSettings(renderQueueRange, layerMask);
             renderPassEvent = evt;
+            useNativeRenderPass = false;
         }
 
         /// <summary>
@@ -47,33 +49,54 @@ namespace UnityEngine.Rendering.Universal.Internal
                 normalsFormat = GraphicsFormat.R32G32B32A32_SFloat; // fallback
 
             this.depthHandle = depthHandle;
+
+            m_RendererMSAASamples = baseDescriptor.msaaSamples;
+
             baseDescriptor.colorFormat = RenderTextureFormat.Depth;
             baseDescriptor.depthBufferBits = k_DepthBufferBits;
+
+            // Never have MSAA on this depth texture. When doing MSAA depth priming this is the texture that is resolved to and used for post-processing.
             baseDescriptor.msaaSamples = 1;// Depth-Only pass don't use MSAA
+
             depthDescriptor = baseDescriptor;
 
             this.normalHandle = normalHandle;
             baseDescriptor.graphicsFormat = normalsFormat;
             baseDescriptor.depthBufferBits = 0;
-            baseDescriptor.msaaSamples = 1;
             normalDescriptor = baseDescriptor;
 
             this.allocateDepth = true;
             this.allocateNormal = true;
-            this.shaderTagId = k_ShaderTagId;
+            this.shaderTagIds = k_DepthNormals;
         }
 
         /// <inheritdoc/>
         public override void OnCameraSetup(CommandBuffer cmd, ref RenderingData renderingData)
         {
             if (this.allocateNormal)
-                cmd.GetTemporaryRT(normalHandle.id, normalDescriptor, FilterMode.Point);
+            {
+                RenderTextureDescriptor desc = normalDescriptor;
+                desc.msaaSamples = renderingData.cameraData.renderer.useDepthPriming ? m_RendererMSAASamples : 1;
+                cmd.GetTemporaryRT(normalHandle.id, desc, FilterMode.Point);
+            }
             if (this.allocateDepth)
                 cmd.GetTemporaryRT(depthHandle.id, depthDescriptor, FilterMode.Point);
-            ConfigureTarget(
-                new RenderTargetIdentifier(normalHandle.Identifier(), 0, CubemapFace.Unknown, -1),
-                new RenderTargetIdentifier(depthHandle.Identifier(), 0, CubemapFace.Unknown, -1)
-            );
+
+            if (renderingData.cameraData.renderer.useDepthPriming && (renderingData.cameraData.renderType == CameraRenderType.Base || renderingData.cameraData.clearDepth))
+            {
+                ConfigureTarget(
+                    new RenderTargetIdentifier(normalHandle.Identifier(), 0, CubemapFace.Unknown, -1),
+                    new RenderTargetIdentifier(renderingData.cameraData.renderer.cameraDepthTarget, 0, CubemapFace.Unknown, -1)
+                );
+            }
+            else
+            {
+                ConfigureTarget(
+                    new RenderTargetIdentifier(normalHandle.Identifier(), 0, CubemapFace.Unknown, -1),
+                    new RenderTargetIdentifier(depthHandle.Identifier(), 0, CubemapFace.Unknown, -1)
+                );
+            }
+
             ConfigureClear(ClearFlag.All, Color.black);
         }
 
@@ -89,7 +112,7 @@ namespace UnityEngine.Rendering.Universal.Internal
                 cmd.Clear();
 
                 var sortFlags = renderingData.cameraData.defaultOpaqueSortFlags;
-                var drawSettings = CreateDrawingSettings(this.shaderTagId, ref renderingData, sortFlags);
+                var drawSettings = CreateDrawingSettings(this.shaderTagIds, ref renderingData, sortFlags);
                 drawSettings.perObjectData = PerObjectData.None;
 
                 ref CameraData cameraData = ref renderingData.cameraData;

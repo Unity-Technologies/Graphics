@@ -927,6 +927,14 @@ namespace UnityEngine.Rendering.HighDefinition
             m_BuiltinParameters.cloudSettings = skyContext.cloudSettings;
         }
 
+        public bool TryGetCloudSettings(HDCamera hdCamera, out CloudSettings cloudSettings, out CloudRenderer cloudRenderer)
+        {
+            var skyContext = hdCamera.visualSky;
+            cloudSettings = skyContext.cloudSettings;
+            cloudRenderer = skyContext.cloudRenderer;
+            return skyContext.HasClouds();
+        }
+
         public bool RequiresPreRenderSky(HDCamera hdCamera)
         {
             var skyContext = hdCamera.visualSky;
