@@ -353,6 +353,25 @@ namespace UnityEngine.Rendering
             }
 
             UpdateLength();
+            if (length == 0)
+            {
+                m_Curve.AddKey(0f, m_ZeroValue);
+                length = 1;
+            }
+            else if (length == 1)
+            {
+                var key = m_Curve[0];
+                m_Curve.MoveKey(0, new Keyframe(0f, key.value));
+            }
+            else if (m_Loop)
+            {
+                // Bake looped values
+                m_Curve = GetEffectiveCurve();
+                m_LoopingCurve = null;
+                m_Loop = false;
+                length = m_Curve.length;
+            }
+
             for (int i = 0; i < length; i++)
             {
                 var time = m_Curve[i].time;
