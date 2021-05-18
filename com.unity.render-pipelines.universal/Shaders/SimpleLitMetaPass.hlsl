@@ -1,7 +1,7 @@
 #ifndef UNIVERSAL_SIMPLE_LIT_META_PASS_INCLUDED
 #define UNIVERSAL_SIMPLE_LIT_META_PASS_INCLUDED
 
-#include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/MetaInput.hlsl"
+#include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/UniversalMetaPass.hlsl"
 
 half4 UniversalFragmentMetaSimple(Varyings input) : SV_Target
 {

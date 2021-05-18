@@ -1,21 +1,18 @@
-#ifndef UNIVERSAL_META_PASS_INCLUDED
-#define UNIVERSAL_META_PASS_INCLUDED
+#ifndef UNIVERSAL_META_INPUT_INCLUDED
+#define UNIVERSAL_META_INPUT_INCLUDED
 
 #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/MetaPass.hlsl"
 #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Lighting.hlsl"
 #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Color.hlsl"
 
-struct Attributes
+#define MetaInput UnityMetaInput
+#define MetaFragment UnityMetaFragment
+float4 MetaVertexPosition(float4 positionOS, float2 uv1, float2 uv2, float4 uv1ST, float4 uv2ST)
 {
-    float4 positionOS   : POSITION;
-    float3 normalOS     : NORMAL;
-    float2 uv0          : TEXCOORD0;
-    float2 uv1          : TEXCOORD1;
-    float2 uv2          : TEXCOORD2;
-    UNITY_VERTEX_INPUT_INSTANCE_ID
-};
+    return UnityMetaVertexPosition(positionOS.xyz, uv1, uv2, uv1ST, uv2ST);
+}
 
-struct Varyings
+struct MetaVaryings
 {
     float4 positionCS   : SV_POSITION;
     float2 uv           : TEXCOORD0;
@@ -25,12 +22,9 @@ struct Varyings
 #endif
 };
 
-#define MetaInput UnityMetaInput
-#define MetaFragment UnityMetaFragment
-
-Varyings MetaVertexPosition(float4 positionOS, float2 uv0, float2 uv1, float2 uv2, float4 uv1ST, float4 uv2ST)
+MetaVaryings FillMetaVaryings(float4 positionOS, float2 uv0, float2 uv1, float2 uv2, float4 uv1ST, float4 uv2ST)
 {
-    Varyings ret = (Varyings)0;
+    MetaVaryings ret = (MetaVaryings)0;
     ret.positionCS = UnityMetaVertexPosition(positionOS.xyz, uv1, uv2, uv1ST, uv2ST);
 
 #ifdef EDITOR_VISUALIZATION
@@ -45,25 +39,8 @@ Varyings MetaVertexPosition(float4 positionOS, float2 uv0, float2 uv1, float2 uv
     return ret;
 }
 
-Varyings MetaVertexPosition(float4 positionOS, float2 uv0, float2 uv1, float2 uv2)
+MetaVaryings FillMetaVaryings(float4 positionOS, float2 uv0, float2 uv1, float2 uv2)
 {
-    return MetaVertexPosition(positionOS, uv0, uv1, uv2, unity_LightmapST, unity_DynamicLightmapST);
-}
-
-Varyings UniversalVertexMeta(Attributes input)
-{
-    Varyings output;
-    output = MetaVertexPosition(input.positionOS, input.uv0, input.uv1, input.uv2);
-    return output;
-}
-
-half4 UniversalFragmentMeta(Varyings fragIn, MetaInput metaInput)
-{
-#ifdef EDITOR_VISUALIZATION
-    metaInput.VizUV = fragIn.VizUV;
-    metaInput.LightCoord = fragIn.LightCoord;
-#endif
-
-    return UnityMetaFragment(metaInput);
+    return FillMetaVaryings(positionOS, uv0, uv1, uv2, unity_LightmapST, unity_DynamicLightmapST);
 }
 #endif
