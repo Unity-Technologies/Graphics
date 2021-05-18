@@ -1,7 +1,6 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Reflection;
 using UnityEngine;
 using UnityEditor.ShaderGraph;
 using UnityEngine.Rendering.HighDefinition;
@@ -30,7 +29,7 @@ namespace UnityEditor.Rendering.HighDefinition
             // The GUID is already present though, and we actually use those facts to infer we
             // have a newly created shadergraph.
 
-            // TODO TOCHECK:
+            //
             // HDMetaData subasset will be included after SG creation anyway so unlike for materials
             // (cf .mat with AssetVersion in OnPostprocessAllAssets) we dont need to manually add a subasset.
             // For adding them to MaterialPostprocessor.s_ImportedAssetThatNeedSaving for SaveAssetsToDisk()
@@ -39,6 +38,8 @@ namespace UnityEditor.Rendering.HighDefinition
             // /Library side serialized data is actually changed (including the generated .shader that can
             // also change which is why we run shadergraph reimports), and re-import from the same .shadergraph
             // should be idempotent.
+            // In other words, there shouldn't be anything to checkout for the .shadergraph per se.
+            //
             if (asset.ToLowerInvariant().EndsWith($".{ShaderGraphImporter.Extension}.meta"))
             {
                 var sgPath = System.IO.Path.ChangeExtension(asset, null);
@@ -113,7 +114,6 @@ namespace UnityEditor.Rendering.HighDefinition
         internal static bool CheckHDShaderGraphVersionsForUpgrade(string assetPath, Shader shader = null, bool ignoreNonHDRPShaderGraphs = false)
         {
             bool upgradeNeeded = false;
-            bool testBypass = false;
 
             shader = shader ?? (Shader)AssetDatabase.LoadAssetAtPath(assetPath, typeof(Shader));
             if (ignoreNonHDRPShaderGraphs)
@@ -122,8 +122,7 @@ namespace UnityEditor.Rendering.HighDefinition
                 // eg using a masternode.
                 if (!HDShaderUtils.IsHDRPShaderGraph(shader))
                 {
-                    if (!testBypass) // TODO CLEANUP
-                        return false;
+                    return false;
                 }
             }
             else
@@ -221,7 +220,7 @@ namespace UnityEditor.Rendering.HighDefinition
                         reimportAllHDShaderGraphsTriggered = true;
                     }
                     // we do else here, as we want to first call SaveAssetsToDisk() for shadergraphs, as it updates the HDProjectSettings version sentinels
-                    // TODO TOCHECK probably safe to also do materials right after.
+                    // (tocheck: it's probably safe to also do materials right after)
                     else if (scanMaterialsForUpgradeNeeded)
                     {
                         string commandLineOptions = System.Environment.CommandLine;
@@ -338,11 +337,12 @@ namespace UnityEditor.Rendering.HighDefinition
 
                 if (MaterialReimporter.s_ReimportShaderGraphDependencyOnMaterialUpdate && GraphUtil.IsShaderGraphAsset(material.shader))
                 {
-                    // Check first if the HDRP shadergraph assigned needs a migration: here we dont ignore non HDRP ShaderGraphs as
+                    // Check first if the HDRP shadergraph assigned needs a migration:
+                    // Here ignoreNonHDRPShaderGraphs = false is useful to not ignore non HDRP ShaderGraphs as
                     // the detection is based on the presence of the "HDMetaData" object and old HDRP ShaderGraphs don't have these,
-                    // so we conservatively force a re-import of any ShaderGraphs. Unity might not have reimported such ShaderGraphs
+                    // so we can conservatively force a re-import of any ShaderGraphs. Unity might not have reimported such ShaderGraphs
                     // based on declared source dependencies by the ShaderGraphImporter because these might have moved / changed
-                    // for old ones. We cover these cases here.
+                    // for old ones. We can cover these cases here.
                     //
                     // Note we could also check this dependency in ReimportAllMaterials but in case a user manually re-imports a material,
                     // (ie the OnPostprocessAllAssets call here is not generated from ReimportAllMaterials())
