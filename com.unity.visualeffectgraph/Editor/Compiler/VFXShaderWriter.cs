@@ -234,7 +234,7 @@ namespace UnityEditor.VFX
 
         static void GenerateStructureCode(Type type, VFXShaderWriter structureDeclaration, HashSet<Type> alreadyGeneratedStructure)
         {
-            if (VFXExpression.IsUniform(VFXExpression.GetVFXValueTypeFromType(type)))
+            if (IsBufferBuiltinType(type))
                 return; // No structure to generate, it is a builtin type
 
             if (alreadyGeneratedStructure.Contains(type))
@@ -269,10 +269,9 @@ namespace UnityEditor.VFX
             alreadyGeneratedStructure.Add(type);
         }
 
-        private void WriteGeneratedStructure(Type type, HashSet<Type> alreadyGeneratedStructure)
+        private void WriteBufferTypeDeclaration(Type type, HashSet<Type> alreadyGeneratedStructure)
         {
-            if (!IsBufferBuiltinType(type))
-                GenerateStructureCode(type, this, alreadyGeneratedStructure);
+            GenerateStructureCode(type, this, alreadyGeneratedStructure);
 
             var structureName = GetStructureName(type);
             var expectedStride = Marshal.SizeOf(type);
@@ -294,11 +293,11 @@ namespace UnityEditor.VFX
             }
         }
 
-        public void WriteGeneratedStructure(IEnumerable<Type> types)
+        public void WriteBufferTypeDeclaration(IEnumerable<Type> types)
         {
             var alreadyGeneratedStructure = new HashSet<Type>();
             foreach (var type in types)
-                WriteGeneratedStructure(type, alreadyGeneratedStructure);
+                WriteBufferTypeDeclaration(type, alreadyGeneratedStructure);
         }
 
         public void WriteBuffer(VFXUniformMapper mapper, ReadOnlyDictionary<VFXExpression, Type> usageGraphicsBuffer)

@@ -49,7 +49,6 @@ namespace UnityEditor.VFX
         {
         }
 
-        //TODOPAUL : Check code convention
         private Type m_SampledType;
         private VFXValueType m_FieldType;
         private string m_FieldPath;
