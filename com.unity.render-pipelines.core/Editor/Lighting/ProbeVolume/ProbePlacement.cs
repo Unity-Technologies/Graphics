@@ -489,22 +489,23 @@ namespace UnityEngine.Experimental.Rendering
                     {
                         // Only mesh renderers are supported for this voxelization pass.
                         var terrainData = kp.terrain.terrainData;
-                        var transform = kp.terrain.transform.localToWorldMatrix;
+                        // Terrains can't be rotated or scaled
+                        var transform = Matrix4x4.Translate(kp.terrain.GetPosition());
 
                         props.SetTexture("_TerrainHeightmapTexture", terrainData.heightmapTexture);
                         props.SetTexture("_TerrainHolesTexture", terrainData.holesTexture);
-                        props.SetVector("_TerrainHeightmapScale", new Vector4(terrainData.heightmapResolution, terrainData.heightmapScale, terrainData.heightmapResolution, 0));
+                        props.SetVector("_TerrainSize", terrainData.size);
+                        props.SetFloat("_TerrainHeightmapResolution", terrainData.heightmapResolution);
                         Debug.Log(terrainData.heightmapScale + " | " + terrainData.size);
 
                         // if (cellAABB.Intersects(terrainData.bounds))
-                        {
-                            props.SetInt(_AxisSwizzle, 0);
-                            cmd.DrawProcedural(transform, voxelizeMaterial, shaderPass: 1, MeshTopology.Quads, 4, 1, props);
-                            props.SetInt(_AxisSwizzle, 1);
-                            cmd.DrawProcedural(transform, voxelizeMaterial, shaderPass: 1, MeshTopology.Quads, 4, 1, props);
-                            props.SetInt(_AxisSwizzle, 2);
-                            cmd.DrawProcedural(transform, voxelizeMaterial, shaderPass: 1, MeshTopology.Quads, 4, 1, props);
-                        }
+                        int terrainTileCount = terrainData.heightmapResolution * terrainData.heightmapResolution;
+                        props.SetInt(_AxisSwizzle, 0);
+                        cmd.DrawProcedural(transform, voxelizeMaterial, shaderPass: 1, MeshTopology.Quads, 4 * terrainTileCount, 1, props);
+                        props.SetInt(_AxisSwizzle, 1);
+                        cmd.DrawProcedural(transform, voxelizeMaterial, shaderPass: 1, MeshTopology.Quads, 4 * terrainTileCount, 1, props);
+                        props.SetInt(_AxisSwizzle, 2);
+                        cmd.DrawProcedural(transform, voxelizeMaterial, shaderPass: 1, MeshTopology.Quads, 4 * terrainTileCount, 1, props);
                     }
                 }
             }

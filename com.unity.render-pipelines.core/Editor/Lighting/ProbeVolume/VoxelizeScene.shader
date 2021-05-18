@@ -105,7 +105,8 @@ Shader "Hidden/ProbeVolume/VoxelizeScene"
             uint                _AxisSwizzle;
             TEXTURE2D(_TerrainHeightmapTexture);
             TEXTURE2D(_TerrainHolesTexture);
-            float4              _TerrainHeightmapScale;
+            float4              _TerrainSize;
+            float               _TerrainHeightmapResolution;
 
             struct VertexToFragment
             {
@@ -114,25 +115,27 @@ Shader "Hidden/ProbeVolume/VoxelizeScene"
                 float2 uv : TEXCOORD1;
             };
 
-            VertexToFragment vert(uint vertexID : SV_VERTEXID)
+            VertexToFragment vert(uint vertexID : SV_VERTEXID, uint instanceID : SV_InstanceID)
             {
                 VertexToFragment o;
 
                 uint quadID = vertexID / 4;
-                uint2 quadPos = uint2((quadID % _TerrainHeightmapScale.x) / _TerrainHeightmapScale.y), quadID / _TerrainHeightmapScale.x);
+                uint2 quadPos = uint2(quadID % uint(_TerrainHeightmapResolution), quadID / uint(_TerrainHeightmapResolution));
                 float4 vertex = GetQuadVertexPosition(vertexID % 4);
+
                 // flip quad to xz axis (default terrain orientation without rotation)
                 vertex = float4(vertex.x, 0, vertex.y, 1);
 
                 // Offset quad to create the plane terrain
+                vertex.xz += (float2(quadPos) / float(_TerrainHeightmapResolution)) * _TerrainSize.xz;
 
-                float2 uv = float2(quadPos / _TerrainHeightmapScale.xz);
-                float height = UnpackHeightmap(_TerrainHeightmapTexture.Sample(s_point_clamp_sampler, float3(uv, 0)));
-                vertex.y += height * _TerrainHeightmapScale.y;
+                uint2 id = (quadPos / _TerrainSize.xz) * _TerrainHeightmapResolution;
+                float height = UnpackHeightmap(_TerrainHeightmapTexture.Load(uint3(quadPos, 0)));
+                vertex.y += height * _TerrainSize.y * 2;
 
                 o.uv = vertex.xz;
                 // TODO: multiply by terrain size
-                vertex.xyz *= _TerrainHeightmapScale.xz;
+                // vertex.xyz *= _TerrainSize.xz;
 
                 float3 cellPos = mul(GetRawUnityObjectToWorld(), vertex).xyz;
                 cellPos -= _VolumeWorldOffset;
@@ -169,7 +172,7 @@ Shader "Hidden/ProbeVolume/VoxelizeScene"
                 // Offset the cellposition with the heightmap
                 // float height = UnpackHeightmap(_TerrainHeightmapTexture.Sample(s_point_clamp_sampler, float3(i.uv, 0)));
 
-                // i.cellPos01.y += height * _TerrainHeightmapScale.y;
+                // i.cellPos01.y += height * _TerrainSize.y;
 
                 // TODO: discard pixels above a hole
                 // float hole = SAMPLE_TEXTURE2D(_TerrainHolesTexture, sampler_TerrainHolesTexture, uv).r;
@@ -179,7 +182,7 @@ Shader "Hidden/ProbeVolume/VoxelizeScene"
 
                 _Output[pos] = 1;
 
-                return float4(height, i.cellPos01.x, i.cellPos01.z, 1);
+                return float4(i.cellPos01.xyz, 1);
             }
             ENDHLSL
         }
