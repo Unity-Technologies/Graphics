@@ -12,10 +12,14 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: f971995892640ec4f807ef396269e91e, type: 3}
   m_Name: SSAO_DepthRenderer
   m_EditorClassIdentifier: 
+  debugShaders:
+    debugReplacementPS: {fileID: 4800000, guid: cf852408f2e174538bcd9b7fda1c5ae7,
+      type: 3}
   m_RendererFeatures:
   - {fileID: 339116797255187971}
   - {fileID: 5458192165673701163}
   m_RendererFeatureMap: 037ec32deec8b4042b0fcd1edb64bf4b
+  m_UseNativeRenderPass: 0
   postProcessData: {fileID: 11400000, guid: 41439944d30ece34e96484bdb6645b55, type: 2}
   xrSystemData: {fileID: 11400000, guid: 60e1133243b97e347b653163a8c01b64, type: 2}
   shaders:
@@ -27,6 +31,9 @@ MonoBehaviour:
     stencilDeferredPS: {fileID: 4800000, guid: e9155b26e1bc55942a41e518703fe304, type: 3}
     fallbackErrorPS: {fileID: 4800000, guid: e6e9a19c3678ded42a3bc431ebef7dbd, type: 3}
     materialErrorPS: {fileID: 4800000, guid: 5fd9a8feb75a4b5894c241777f519d4e, type: 3}
+    coreBlitPS: {fileID: 4800000, guid: 93446b5c5339d4f00b85c159e1159b7c, type: 3}
+    coreBlitColorAndDepthPS: {fileID: 4800000, guid: d104b2fc1ca6445babb8e90b0758136b,
+      type: 3}
   m_OpaqueLayerMask:
     serializedVersion: 2
     m_Bits: 4294967295
@@ -42,7 +49,10 @@ MonoBehaviour:
     zFailOperation: 0
   m_ShadowTransparentReceive: 1
   m_RenderingMode: 0
+  m_DepthPrimingMode: 0
   m_AccurateGbufferNormals: 0
+  m_ClusteredRendering: 0
+  m_TileSize: 32
 --- !u!114 &339116797255187971
 MonoBehaviour:
   m_ObjectHideFlags: 0
