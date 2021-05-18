@@ -169,6 +169,12 @@ namespace UnityEditor
         ////////////////////////////////////
         #region GeneralFunctions
 
+        [Obsolete("MaterialChanged has been renamed ValidateMaterial", false)]
+        public virtual void MaterialChanged(Material material)
+        {
+            ValidateMaterial(material);
+        }
+
         public virtual void FindProperties(MaterialProperty[] properties)
         {
             var material = materialEditor?.target as Material;
