@@ -78,21 +78,11 @@ namespace UnityEditor.Rendering.HighDefinition
             new AdvancedOptionsUIBlock(MaterialUIBlock.ExpandableBit.Advance, AdvancedOptionsUIBlock.Features.Instancing | AdvancedOptionsUIBlock.Features.SpecularOcclusion | AdvancedOptionsUIBlock.Features.AddPrecomputedVelocity),
         };
 
-        protected override void SetupMaterialKeywordsAndPass(Material material) => SetupAxFKeywordsAndPass(material);
+        public override void ValidateMaterial(Material material) => SetupAxFKeywordsAndPass(material);
 
         protected override void OnMaterialGUI(MaterialEditor materialEditor, MaterialProperty[] props)
         {
-            using (var changed = new EditorGUI.ChangeCheckScope())
-            {
-                uiBlocks.OnGUI(materialEditor, props);
-
-                // Apply material keywords and pass:
-                if (changed.changed)
-                {
-                    foreach (var material in uiBlocks.materials)
-                        SetupAxFKeywordsAndPass(material);
-                }
-            }
+            uiBlocks.OnGUI(materialEditor, props);
         }
 
         /////////////////////////////////////////////////////////////////////////////////////////////////
