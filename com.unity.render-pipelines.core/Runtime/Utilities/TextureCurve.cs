@@ -149,58 +149,53 @@ namespace UnityEngine.Rendering
             {
                 UpdateLength();
 
-                switch (m_Texture.format)
+                var format = m_Texture.format;
+                if (format == TextureFormat.RHalf)
                 {
-                    case TextureFormat.RHalf:
+                    var data = m_Texture.GetPixelData<ushort>(0);
+                    if (length > 1)
                     {
-                        var data = m_Texture.GetPixelData<ushort>(0);
-                        if (length != 0)
-                        {
-                            var curve = GetEffectiveCurve();
-                            for (int i = 0; i < k_Precision; i++)
-                                data[i] = Mathf.FloatToHalf(curve.Evaluate(i * k_Step));
-                        }
-                        else
-                        {
-                            var value = Mathf.FloatToHalf(m_ZeroValue);
-                            for (int i = 0; i < k_Precision; i++)
-                                data[i] = value;
-                        }
-                        break;
+                        var curve = GetEffectiveCurve();
+                        for (int i = 0; i < k_Precision; i++)
+                            data[i] = Mathf.FloatToHalf(curve.Evaluate(i * k_Step));
                     }
-                    case TextureFormat.R8:
+                    else // Constant value
                     {
-                        var data = m_Texture.GetPixelData<byte>(0);
-                        if (length != 0)
+                        var value = Mathf.FloatToHalf(length == 0 ? m_ZeroValue : m_Curve[0].value);
+                        for (int i = 0; i < k_Precision; i++)
+                            data[i] = value;
+                    }
+                }
+                else
+                {
+                    var data = m_Texture.GetPixelData<byte>(0);
+                    if (length > 1)
+                    {
+                        var curve = GetEffectiveCurve();
+                        if (format == TextureFormat.R8)
                         {
-                            var curve = GetEffectiveCurve();
                             for (int i = 0; i < k_Precision; i++)
                                 data[i] = (byte)(Mathf.Clamp01(curve.Evaluate(i * k_Step)) * byte.MaxValue);
                         }
                         else
                         {
-                            var value = (byte)(Mathf.Clamp01(m_ZeroValue) * byte.MaxValue);
-                            for (int i = 0; i < k_Precision; i++)
-                                data[i] = value;
-                        }
-                        break;
-                    }
-                    case TextureFormat.ARGB32:
-                    {
-                        var data = m_Texture.GetPixelData<byte>(0);
-                        if (length != 0)
-                        {
-                            var curve = GetEffectiveCurve();
                             for (int i = 0; i < k_Precision; i++)
                                 data[i * 4 + 1] = (byte)(Mathf.Clamp01(curve.Evaluate(i * k_Step)) * byte.MaxValue);
                         }
+                    }
+                    else // Constant value
+                    {
+                        var value = (byte)(Mathf.Clamp01(length == 0 ? m_ZeroValue : m_Curve[0].value) * byte.MaxValue);
+                        if (format == TextureFormat.R8)
+                        {
+                            for (int i = 0; i < k_Precision; i++)
+                                data[i] = value;
+                        }
                         else
                         {
-                            var value = (byte)(Mathf.Clamp01(m_ZeroValue) * byte.MaxValue);
                             for (int i = 0; i < k_Precision; i++)
                                 data[i * 4 + 1] = value;
                         }
-                        break;
                     }
                 }
 
@@ -402,25 +397,26 @@ namespace UnityEngine.Rendering
             Profiling.Profiler.EndSample();
         }
 
-        void Interp(AnimationCurve from, AnimationCurve to, float t)
-        {
-        }
-
-        void Interp(AnimationCurve from, float to, float t)
-        {
-        }
-
         public void SetValue(TextureCurve value)
         {
-            Profiling.Profiler.BeginSample($"{nameof(TextureCurve)}.{nameof(Interp)}");
+            Profiling.Profiler.BeginSample($"{nameof(TextureCurve)}.{nameof(SetValue)}");
 
-            var keys = value.m_Curve.keys; // GC pressure
-            m_Curve.keys = keys;
+            if (value == this)
+                return;
+
+            UpdateLength();
+            for (int i = length - 1; i >= 0; i--)
+                m_Curve.RemoveKey(i);
+
+            value.UpdateLength();
+            length = value.length;
+            for (int i = 0; i < length; i++)
+                m_Curve.AddKey(value[i]);
+
             m_ZeroValue = value.m_ZeroValue;
             m_Loop = value.m_Loop;
             m_Range = value.m_Range;
-            length = keys.Length;
-            m_IsLengthDirty = false;
+
             SetValuesDirty();
 
             Profiling.Profiler.EndSample();
