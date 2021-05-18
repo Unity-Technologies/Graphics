@@ -260,11 +260,23 @@ namespace UnityEngine.Experimental.Rendering
                             }
                         }
 
-                        if (overlappingRenderers.Count == 0 && overlappingProbeVolumes.Count == 0)
+                        // Calculate overlapping terrains to avoid unnecessary work
+                        var overlappingTerrains = new List<(Terrain terrain, ProbeReferenceVolume.Volume volume)>();
+                        foreach (var terrain in subdivisionCtx.terrains)
+                        {
+                            foreach (var probeVolume in overlappingProbeVolumes)
+                            {
+                                if (ProbeVolumePositioning.OBBIntersect(terrain.volume, probeVolume.volume)
+                                    && ProbeVolumePositioning.OBBIntersect(terrain.volume, subVolume.volume))
+                                    overlappingTerrains.Add(terrain);
+                            }
+                        }
+
+                        if (overlappingRenderers.Count == 0 && overlappingProbeVolumes.Count == 0 && overlappingTerrains.Count == 0)
                             continue;
 
                         int brickCount = brickSet.Count;
-                        SubdivideSubCell(subVolume.volume, subdivisionCtx, ctx, overlappingRenderers, overlappingProbeVolumes, brickSet);
+                        SubdivideSubCell(subVolume.volume, subdivisionCtx, ctx, overlappingRenderers, overlappingProbeVolumes, overlappingTerrains, brickSet);
 
                         // In case there is at least one brick in the sub-cell, we need to spawn the parent brick.
                         if (brickCount != brickSet.Count)
@@ -294,7 +306,7 @@ namespace UnityEngine.Experimental.Rendering
                 }
                 else
                 {
-                    SubdivideSubCell(cellVolume, subdivisionCtx, ctx, renderers, probeVolumes, brickSet);
+                    SubdivideSubCell(cellVolume, subdivisionCtx, ctx, renderers, probeVolumes, subdivisionCtx.terrains, brickSet);
                 }
 
                 finalBricks = brickSet.ToList();
@@ -324,7 +336,8 @@ namespace UnityEngine.Experimental.Rendering
 
         static void SubdivideSubCell(ProbeReferenceVolume.Volume cellVolume, ProbeSubdivisionContext subdivisionCtx,
             GPUSubdivisionContext ctx, List<(Renderer component, ProbeReferenceVolume.Volume volume)> renderers,
-            List<(ProbeVolume component, ProbeReferenceVolume.Volume volume)> probeVolumes, HashSet<Brick> brickSet)
+            List<(ProbeVolume component, ProbeReferenceVolume.Volume volume)> probeVolumes,
+            List<(Terrain terrain, ProbeReferenceVolume.Volume volume)> terrains, HashSet<Brick> brickSet)
         {
             var cellAABB = cellVolume.CalculateAABB();
             float minBrickSize = subdivisionCtx.refVolume.profile.minBrickSize;
@@ -341,9 +354,9 @@ namespace UnityEngine.Experimental.Rendering
             }
 #endif
 
-            if (renderers.Count > 0)
+            if (RastersizeGeometry(cmd, cellVolume, ctx, renderers, terrains))
             {
-                RastersizeMeshes(cmd, cellVolume, ctx, renderers);
+                // Only generate the distance field if there was an object rasterized
                 GenerateDistanceField(cmd, ctx.sceneSDF, ctx.sceneSDF2);
             }
             else
@@ -404,12 +417,24 @@ namespace UnityEngine.Experimental.Rendering
             Graphics.ExecuteCommandBuffer(cmd);
         }
 
-        static void RastersizeMeshes(CommandBuffer cmd, ProbeReferenceVolume.Volume cellVolume, GPUSubdivisionContext ctx, List<(Renderer component, ProbeReferenceVolume.Volume volume)> renderers)
+        static bool RastersizeGeometry(CommandBuffer cmd, ProbeReferenceVolume.Volume cellVolume, GPUSubdivisionContext ctx,
+            List<(Renderer component, ProbeReferenceVolume.Volume volume)> renderers,
+            List<(Terrain terrain, ProbeReferenceVolume.Volume volume)> terrains)
         {
-            using (new ProfilingScope(cmd, new ProfilingSampler("Rasterize Meshes 3D")))
-            {
-                var cellAABB = cellVolume.CalculateAABB();
+            var topMatrix = GetCameraMatrixForAngle(Quaternion.Euler(90, 0, 0));
+            var rightMatrix = GetCameraMatrixForAngle(Quaternion.Euler(0, 90, 0));
+            var forwardMatrix = GetCameraMatrixForAngle(Quaternion.Euler(0, 0, 90));
+            var props = new MaterialPropertyBlock();
+            bool hasGeometry = renderers.Count > 0 || terrains.Count > 0;
+            var cellAABB = cellVolume.CalculateAABB();
 
+            // Setup voxelize material properties
+            voxelizeMaterial.SetVector(_OutputSize, new Vector3(ctx.sceneSDF.width, ctx.sceneSDF.height, ctx.sceneSDF.volumeDepth));
+            voxelizeMaterial.SetVector(_VolumeWorldOffset, cellAABB.center - cellAABB.extents);
+            voxelizeMaterial.SetVector(_VolumeSize, cellAABB.size);
+
+            if (hasGeometry)
+            {
                 using (new ProfilingScope(cmd, new ProfilingSampler("Clear")))
                 {
                     cmd.SetComputeTextureParam(subdivideSceneCS, s_ClearKernel, _Output, ctx.sceneSDF);
@@ -417,58 +442,86 @@ namespace UnityEngine.Experimental.Rendering
                     cmd.SetComputeFloatParam(subdivideSceneCS, _ClearValue, 0);
                     DispatchCompute(cmd, s_ClearKernel, ctx.sceneSDF.width, ctx.sceneSDF.height, ctx.sceneSDF.volumeDepth);
                 }
+            }
 
-                cmd.SetRandomWriteTarget(k_RandomWriteBindingIndex, ctx.sceneSDF);
+            cmd.SetRandomWriteTarget(k_RandomWriteBindingIndex, ctx.sceneSDF);
 
-                voxelizeMaterial.SetVector(_OutputSize, new Vector3(ctx.sceneSDF.width, ctx.sceneSDF.height, ctx.sceneSDF.volumeDepth));
-                voxelizeMaterial.SetVector(_VolumeWorldOffset, cellAABB.center - cellAABB.extents);
-                voxelizeMaterial.SetVector(_VolumeSize, cellAABB.size);
+            // We need to bind at least something for rendering
+            cmd.SetRenderTarget(ctx.dummyRenderTarget);
+            cmd.SetViewport(new Rect(0, 0, ctx.dummyRenderTarget.width, ctx.dummyRenderTarget.height));
 
-                var topMatrix = GetCameraMatrixForAngle(Quaternion.Euler(90, 0, 0));
-                var rightMatrix = GetCameraMatrixForAngle(Quaternion.Euler(0, 90, 0));
-                var forwardMatrix = GetCameraMatrixForAngle(Quaternion.Euler(0, 0, 90));
-
-                Matrix4x4 GetCameraMatrixForAngle(Quaternion rotation)
+            if (renderers.Count > 0)
+            {
+                using (new ProfilingScope(cmd, new ProfilingSampler("Rasterize Meshes 3D")))
                 {
-                    cellVolume.CalculateCenterAndSize(out var center, out var size);
-                    Vector3 cameraSize = new Vector3(ctx.sceneSDF.width, ctx.sceneSDF.height, ctx.sceneSDF.volumeDepth) / 2.0f;
-                    cameraSize = size / 2;
-                    var worldToCamera = Matrix4x4.TRS(Vector3.zero, rotation, Vector3.one);
-                    var projection = Matrix4x4.Ortho(-cameraSize.x, cameraSize.x, -cameraSize.y, cameraSize.y, 0, cameraSize.z * 2);
-                    return Matrix4x4.Rotate(Quaternion.Euler((Time.realtimeSinceStartup * 10f) % 360, 0, 0));
-                }
-
-                // We need to bind at least something for rendering
-                cmd.SetRenderTarget(ctx.dummyRenderTarget);
-                cmd.SetViewport(new Rect(0, 0, ctx.dummyRenderTarget.width, ctx.dummyRenderTarget.height));
-                var props = new MaterialPropertyBlock();
-                foreach (var kp in renderers)
-                {
-                    // Only mesh renderers are supported for the voxelization.
-                    var renderer = kp.component as MeshRenderer;
-
-                    if (renderer == null)
-                        continue;
-
-                    if (cellAABB.Intersects(renderer.bounds))
+                    foreach (var kp in renderers)
                     {
-                        if (renderer.TryGetComponent<MeshFilter>(out var meshFilter) && meshFilter.sharedMesh != null)
+                        // Only mesh renderers are supported for this voxelization pass.
+                        var renderer = kp.component as MeshRenderer;
+
+                        if (renderer == null)
+                            continue;
+
+                        if (cellAABB.Intersects(renderer.bounds))
                         {
-                            for (int submesh = 0; submesh < meshFilter.sharedMesh.subMeshCount; submesh++)
+                            if (renderer.TryGetComponent<MeshFilter>(out var meshFilter) && meshFilter.sharedMesh != null)
                             {
-                                props.SetInt(_AxisSwizzle, 0);
-                                cmd.DrawMesh(meshFilter.sharedMesh, renderer.transform.localToWorldMatrix, voxelizeMaterial, submesh, shaderPass: 0, props);
-                                props.SetInt(_AxisSwizzle, 1);
-                                cmd.DrawMesh(meshFilter.sharedMesh, renderer.transform.localToWorldMatrix, voxelizeMaterial, submesh, shaderPass: 0, props);
-                                props.SetInt(_AxisSwizzle, 2);
-                                cmd.DrawMesh(meshFilter.sharedMesh, renderer.transform.localToWorldMatrix, voxelizeMaterial, submesh, shaderPass: 0, props);
+                                for (int submesh = 0; submesh < meshFilter.sharedMesh.subMeshCount; submesh++)
+                                {
+                                    props.SetInt(_AxisSwizzle, 0);
+                                    cmd.DrawMesh(meshFilter.sharedMesh, renderer.transform.localToWorldMatrix, voxelizeMaterial, submesh, shaderPass: 0, props);
+                                    props.SetInt(_AxisSwizzle, 1);
+                                    cmd.DrawMesh(meshFilter.sharedMesh, renderer.transform.localToWorldMatrix, voxelizeMaterial, submesh, shaderPass: 0, props);
+                                    props.SetInt(_AxisSwizzle, 2);
+                                    cmd.DrawMesh(meshFilter.sharedMesh, renderer.transform.localToWorldMatrix, voxelizeMaterial, submesh, shaderPass: 0, props);
+                                }
                             }
                         }
                     }
                 }
-
-                cmd.ClearRandomWriteTargets();
             }
+
+            if (terrains.Count > 0)
+            {
+                using (new ProfilingScope(cmd, new ProfilingSampler("Rasterize Terrains")))
+                {
+                    foreach (var kp in terrains)
+                    {
+                        // Only mesh renderers are supported for this voxelization pass.
+                        var terrainData = kp.terrain.terrainData;
+                        var transform = kp.terrain.transform.localToWorldMatrix;
+
+                        props.SetTexture("_TerrainHeightmapTexture", terrainData.heightmapTexture);
+                        props.SetTexture("_TerrainHolesTexture", terrainData.holesTexture);
+                        props.SetVector("_TerrainHeightmapScale", new Vector4(terrainData.heightmapResolution, terrainData.heightmapScale, terrainData.heightmapResolution, 0));
+                        Debug.Log(terrainData.heightmapScale + " | " + terrainData.size);
+
+                        // if (cellAABB.Intersects(terrainData.bounds))
+                        {
+                            props.SetInt(_AxisSwizzle, 0);
+                            cmd.DrawProcedural(transform, voxelizeMaterial, shaderPass: 1, MeshTopology.Quads, 4, 1, props);
+                            props.SetInt(_AxisSwizzle, 1);
+                            cmd.DrawProcedural(transform, voxelizeMaterial, shaderPass: 1, MeshTopology.Quads, 4, 1, props);
+                            props.SetInt(_AxisSwizzle, 2);
+                            cmd.DrawProcedural(transform, voxelizeMaterial, shaderPass: 1, MeshTopology.Quads, 4, 1, props);
+                        }
+                    }
+                }
+            }
+
+            Matrix4x4 GetCameraMatrixForAngle(Quaternion rotation)
+            {
+                cellVolume.CalculateCenterAndSize(out var center, out var size);
+                Vector3 cameraSize = new Vector3(ctx.sceneSDF.width, ctx.sceneSDF.height, ctx.sceneSDF.volumeDepth) / 2.0f;
+                cameraSize = size / 2;
+                var worldToCamera = Matrix4x4.TRS(Vector3.zero, rotation, Vector3.one);
+                var projection = Matrix4x4.Ortho(-cameraSize.x, cameraSize.x, -cameraSize.y, cameraSize.y, 0, cameraSize.z * 2);
+                return Matrix4x4.Rotate(Quaternion.Euler((Time.realtimeSinceStartup * 10f) % 360, 0, 0));
+            }
+
+            cmd.ClearRandomWriteTargets();
+
+            return hasGeometry;
         }
 
         static void DispatchCompute(CommandBuffer cmd, int kernel, int width, int height, int depth = 1)
