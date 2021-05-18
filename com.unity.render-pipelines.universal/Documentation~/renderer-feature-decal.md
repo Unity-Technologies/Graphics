@@ -56,7 +56,7 @@ Selecting this technique reveals the **Surface Data** property. The Surface Data
 
 **Limitations:**
 
-* This technique requires the DepthNormal prepass, which does not work with tile-based rendering.
+* This technique requires the DepthNormal prepass, which makes the technique less efficient on GPUs that implement tile-based rendering.
 
 * This technique does not work on particles and terrain details.
 
