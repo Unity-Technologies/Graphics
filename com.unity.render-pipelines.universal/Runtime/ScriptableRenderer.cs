@@ -494,8 +494,11 @@ namespace UnityEngine.Rendering.Universal
             }
 
             ResetNativeRenderPassFrameData();
-
-            useRenderPassEnabled = data.useNativeRenderPass && SystemInfo.graphicsDeviceType != GraphicsDeviceType.OpenGLES2;
+#if ENABLE_VR && ENABLE_XR_MODULE
+            useRenderPassEnabled = false;
+#else
+            useRenderPassEnabled = data.useNativeRenderPass && SystemInfo.graphicsDeviceType != GraphicsDeviceType.OpenGLES2 && !ENABLE_VR;
+#endif
             Clear(CameraRenderType.Base);
             m_ActiveRenderPassQueue.Clear();
 
