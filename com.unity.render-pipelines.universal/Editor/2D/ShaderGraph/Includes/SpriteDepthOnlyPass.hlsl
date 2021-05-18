@@ -1,12 +1,10 @@
-#ifndef SG_DEPTH_ONLY_PASS_INCLUDED
-#define SG_DEPTH_ONLY_PASS_INCLUDED
+half4 _RendererColor;
 
 PackedVaryings vert(Attributes input)
 {
     Varyings output = (Varyings)0;
     output = BuildVaryings(input);
-    PackedVaryings packedOutput = (PackedVaryings)0;
-    packedOutput = PackVaryings(output);
+    PackedVaryings packedOutput = PackVaryings(output);
     return packedOutput;
 }
 
@@ -20,7 +18,9 @@ half4 frag(PackedVaryings packedInput) : SV_TARGET
     SurfaceDescription surfaceDescription = SurfaceDescriptionFunction(surfaceDescriptionInputs);
 
     #if _ALPHATEST_ON
-        clip(surfaceDescription.Alpha - surfaceDescription.AlphaClipThreshold);
+        // This isn't defined in the sprite passes. It looks like the built-in legacy shader will use this as it's default constant
+        float alphaClipThreshold = 0.01f;
+        clip(surfaceDescription.Alpha - alphaClipThreshold);
     #endif
 
     half4 outColor = 0;
@@ -33,5 +33,3 @@ half4 frag(PackedVaryings packedInput) : SV_TARGET
 
     return outColor;
 }
-
-#endif
