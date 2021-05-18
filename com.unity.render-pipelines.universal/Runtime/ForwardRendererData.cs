@@ -3,7 +3,6 @@ using UnityEditor;
 using UnityEditor.ProjectWindowCallback;
 #endif
 using System;
-using UnityEngine.Scripting.APIUpdating;
 
 namespace UnityEngine.Rendering.Universal
 {
@@ -13,7 +12,6 @@ namespace UnityEngine.Rendering.Universal
     /// </summary>
     [System.Obsolete("ForwardRendererData has been deprecated (UnityUpgradable) -> UniversalRendererData", true)]
     [Serializable, ReloadGroup, ExcludeFromPreset]
-    [MovedFrom("UnityEngine.Rendering.LWRP")]
     public class ForwardRendererData : ScriptableRendererData
     {
         private const string k_ErrorMessage = "ForwardRendererData has been deprecated. Use UniversalRendererData instead";
@@ -43,14 +41,14 @@ namespace UnityEngine.Rendering.Universal
             public Shader materialErrorPS;
         }
 
+        public ShaderResources shaders = null;
+
         public PostProcessData postProcessData = null;
 
 #if ENABLE_VR && ENABLE_XR_MODULE
         [Reload("Runtime/Data/XRSystemData.asset")]
         public XRSystemData xrSystemData = null;
 #endif
-
-        public ShaderResources shaders = null;
 
         protected override ScriptableRenderer Create()
         {

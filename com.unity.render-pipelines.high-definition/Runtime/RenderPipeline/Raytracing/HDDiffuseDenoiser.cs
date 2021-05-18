@@ -4,43 +4,6 @@ using UnityEngine.Rendering;
 
 namespace UnityEngine.Rendering.HighDefinition
 {
-    struct DiffuseDenoiserParameters
-    {
-        // Camera parameters
-        public int texWidth;
-        public int texHeight;
-        public int viewCount;
-
-        // Denoising parameters
-        public float pixelSpreadTangent;
-        public float kernelSize;
-        public bool halfResolutionFilter;
-        public bool jitterFilter;
-        public int frameIndex;
-
-        // Kernels
-        public int bilateralFilterKernel;
-        public int gatherKernel;
-
-        // Other parameters
-        public Texture owenScrambleRGBA;
-        public ComputeShader diffuseDenoiserCS;
-    }
-
-    struct DiffuseDenoiserResources
-    {
-        // Input buffers
-        public RTHandle depthStencilBuffer;
-        public RTHandle normalBuffer;
-        public RTHandle noisyBuffer;
-
-        // Temporary buffers
-        public RTHandle intermediateBuffer;
-
-        // Output buffers
-        public RTHandle outputBuffer;
-    }
-
     class HDDiffuseDenoiser
     {
         // Resources used for the denoiser
@@ -55,11 +18,7 @@ namespace UnityEngine.Rendering.HighDefinition
         int m_GatherSingleKernel;
         int m_GatherColorKernel;
 
-        public HDDiffuseDenoiser()
-        {
-        }
-
-        public void Init(RenderPipelineResources rpResources, HDRenderPipelineRayTracingResources rpRTResources, HDRenderPipeline renderPipeline)
+        public void Init(HDRenderPipelineRuntimeResources rpResources, HDRenderPipelineRayTracingResources rpRTResources, HDRenderPipeline renderPipeline)
         {
             // Keep track of the resources
             m_DiffuseDenoiser = rpRTResources.diffuseDenoiserCS;
@@ -78,66 +37,28 @@ namespace UnityEngine.Rendering.HighDefinition
         {
         }
 
-        public DiffuseDenoiserParameters PrepareDiffuseDenoiserParameters(HDCamera hdCamera, bool singleChannel, float kernelSize, bool halfResolutionFilter, bool jitterFilter)
-        {
-            DiffuseDenoiserParameters ddParams = new DiffuseDenoiserParameters();
-
-            // Camera parameters
-            ddParams.texWidth = hdCamera.actualWidth;
-            ddParams.texHeight = hdCamera.actualHeight;
-            ddParams.viewCount = hdCamera.viewCount;
-
-            // Denoising parameters
-            ddParams.pixelSpreadTangent = HDRenderPipeline.GetPixelSpreadTangent(hdCamera.camera.fieldOfView, hdCamera.actualWidth, hdCamera.actualHeight);
-            ddParams.kernelSize = kernelSize;
-            ddParams.halfResolutionFilter = halfResolutionFilter;
-            ddParams.jitterFilter = jitterFilter;
-            ddParams.frameIndex = m_RenderPipeline.RayTracingFrameIndex(hdCamera);
-
-            // Kernels
-            ddParams.bilateralFilterKernel = singleChannel ? m_BilateralFilterSingleKernel : m_BilateralFilterColorKernel;
-            ddParams.gatherKernel = singleChannel ? m_GatherSingleKernel : m_GatherColorKernel;
-
-            // Other parameters
-            ddParams.owenScrambleRGBA = m_OwenScrambleRGBA;
-            ddParams.diffuseDenoiserCS = m_DiffuseDenoiser;
-            return ddParams;
-        }
-
-        static public void DenoiseBuffer(CommandBuffer cmd, DiffuseDenoiserParameters ddParams, DiffuseDenoiserResources ddResources)
-        {
-            // Evaluate the dispatch parameters
-            int areaTileSize = 8;
-            int numTilesX = (ddParams.texWidth + (areaTileSize - 1)) / areaTileSize;
-            int numTilesY = (ddParams.texHeight + (areaTileSize - 1)) / areaTileSize;
-
-            // Request the intermediate buffers that we need
-            cmd.SetGlobalTexture(HDShaderIDs._OwenScrambledRGTexture, ddParams.owenScrambleRGBA);
-            cmd.SetComputeFloatParam(ddParams.diffuseDenoiserCS, HDShaderIDs._DenoiserFilterRadius, ddParams.kernelSize);
-            cmd.SetComputeTextureParam(ddParams.diffuseDenoiserCS, ddParams.bilateralFilterKernel, HDShaderIDs._DenoiseInputTexture, ddResources.noisyBuffer);
-            cmd.SetComputeTextureParam(ddParams.diffuseDenoiserCS, ddParams.bilateralFilterKernel, HDShaderIDs._DepthTexture, ddResources.depthStencilBuffer);
-            cmd.SetComputeTextureParam(ddParams.diffuseDenoiserCS, ddParams.bilateralFilterKernel, HDShaderIDs._NormalBufferTexture, ddResources.normalBuffer);
-            cmd.SetComputeTextureParam(ddParams.diffuseDenoiserCS, ddParams.bilateralFilterKernel, HDShaderIDs._DenoiseOutputTextureRW, ddParams.halfResolutionFilter ? ddResources.intermediateBuffer : ddResources.outputBuffer);
-            cmd.SetComputeIntParam(ddParams.diffuseDenoiserCS, HDShaderIDs._HalfResolutionFilter, ddParams.halfResolutionFilter ? 1 : 0);
-            cmd.SetComputeFloatParam(ddParams.diffuseDenoiserCS, HDShaderIDs._PixelSpreadAngleTangent, ddParams.pixelSpreadTangent);
-            if (ddParams.jitterFilter)
-                cmd.SetComputeIntParam(ddParams.diffuseDenoiserCS, HDShaderIDs._JitterFramePeriod, (ddParams.frameIndex % 4));
-            else
-                cmd.SetComputeIntParam(ddParams.diffuseDenoiserCS, HDShaderIDs._JitterFramePeriod, -1);
-
-            cmd.DispatchCompute(ddParams.diffuseDenoiserCS, ddParams.bilateralFilterKernel, numTilesX, numTilesY, ddParams.viewCount);
-
-            if (ddParams.halfResolutionFilter)
-            {
-                cmd.SetComputeTextureParam(ddParams.diffuseDenoiserCS, ddParams.gatherKernel, HDShaderIDs._DenoiseInputTexture, ddResources.intermediateBuffer);
-                cmd.SetComputeTextureParam(ddParams.diffuseDenoiserCS, ddParams.gatherKernel, HDShaderIDs._DenoiseOutputTextureRW, ddResources.outputBuffer);
-                cmd.DispatchCompute(ddParams.diffuseDenoiserCS, ddParams.gatherKernel, numTilesX, numTilesY, ddParams.viewCount);
-            }
-        }
-
         class DiffuseDenoiserPassData
         {
-            public DiffuseDenoiserParameters parameters;
+            // Camera parameters
+            public int texWidth;
+            public int texHeight;
+            public int viewCount;
+
+            // Denoising parameters
+            public float pixelSpreadTangent;
+            public float kernelSize;
+            public bool halfResolutionFilter;
+            public bool jitterFilter;
+            public int frameIndex;
+
+            // Kernels
+            public int bilateralFilterKernel;
+            public int gatherKernel;
+
+            // Other parameters
+            public Texture owenScrambleRGBA;
+            public ComputeShader diffuseDenoiserCS;
+
             public TextureHandle depthStencilBuffer;
             public TextureHandle normalBuffer;
             public TextureHandle noisyBuffer;
@@ -145,7 +66,8 @@ namespace UnityEngine.Rendering.HighDefinition
             public TextureHandle outputBuffer;
         }
 
-        public TextureHandle Denoise(RenderGraph renderGraph, HDCamera hdCamera, DiffuseDenoiserParameters tfParameters, TextureHandle noisyBuffer, TextureHandle depthBuffer, TextureHandle normalBuffer, TextureHandle outputBuffer)
+        public TextureHandle Denoise(RenderGraph renderGraph, HDCamera hdCamera, bool singleChannel, float kernelSize, bool halfResolutionFilter, bool jitterFilter,
+            TextureHandle noisyBuffer, TextureHandle depthBuffer, TextureHandle normalBuffer, TextureHandle outputBuffer)
         {
             using (var builder = renderGraph.AddRenderPass<DiffuseDenoiserPassData>("DiffuseDenoiser", out var passData, ProfilingSampler.Get(HDProfileId.DiffuseFilter)))
             {
@@ -153,7 +75,26 @@ namespace UnityEngine.Rendering.HighDefinition
                 builder.EnableAsyncCompute(false);
 
                 // Fetch all the resources
-                passData.parameters = tfParameters;
+                // Camera parameters
+                passData.texWidth = hdCamera.actualWidth;
+                passData.texHeight = hdCamera.actualHeight;
+                passData.viewCount = hdCamera.viewCount;
+
+                // Denoising parameters
+                passData.pixelSpreadTangent = HDRenderPipeline.GetPixelSpreadTangent(hdCamera.camera.fieldOfView, hdCamera.actualWidth, hdCamera.actualHeight);
+                passData.kernelSize = kernelSize;
+                passData.halfResolutionFilter = halfResolutionFilter;
+                passData.jitterFilter = jitterFilter;
+                passData.frameIndex = m_RenderPipeline.RayTracingFrameIndex(hdCamera);
+
+                // Kernels
+                passData.bilateralFilterKernel = singleChannel ? m_BilateralFilterSingleKernel : m_BilateralFilterColorKernel;
+                passData.gatherKernel = singleChannel ? m_GatherSingleKernel : m_GatherColorKernel;
+
+                // Other parameters
+                passData.owenScrambleRGBA = m_OwenScrambleRGBA;
+                passData.diffuseDenoiserCS = m_DiffuseDenoiser;
+
                 passData.depthStencilBuffer = builder.ReadTexture(depthBuffer);
                 passData.normalBuffer = builder.ReadTexture(normalBuffer);
                 passData.noisyBuffer = builder.ReadTexture(noisyBuffer);
@@ -163,13 +104,33 @@ namespace UnityEngine.Rendering.HighDefinition
                 builder.SetRenderFunc(
                     (DiffuseDenoiserPassData data, RenderGraphContext ctx) =>
                     {
-                        DiffuseDenoiserResources ddResources = new DiffuseDenoiserResources();
-                        ddResources.depthStencilBuffer = data.depthStencilBuffer;
-                        ddResources.normalBuffer = data.normalBuffer;
-                        ddResources.noisyBuffer = data.noisyBuffer;
-                        ddResources.intermediateBuffer = data.intermediateBuffer;
-                        ddResources.outputBuffer = data.outputBuffer;
-                        DenoiseBuffer(ctx.cmd, data.parameters, ddResources);
+                        // Evaluate the dispatch parameters
+                        int areaTileSize = 8;
+                        int numTilesX = (data.texWidth + (areaTileSize - 1)) / areaTileSize;
+                        int numTilesY = (data.texHeight + (areaTileSize - 1)) / areaTileSize;
+
+                        // Request the intermediate buffers that we need
+                        ctx.cmd.SetGlobalTexture(HDShaderIDs._OwenScrambledRGTexture, data.owenScrambleRGBA);
+                        ctx.cmd.SetComputeFloatParam(data.diffuseDenoiserCS, HDShaderIDs._DenoiserFilterRadius, data.kernelSize);
+                        ctx.cmd.SetComputeTextureParam(data.diffuseDenoiserCS, data.bilateralFilterKernel, HDShaderIDs._DenoiseInputTexture, data.noisyBuffer);
+                        ctx.cmd.SetComputeTextureParam(data.diffuseDenoiserCS, data.bilateralFilterKernel, HDShaderIDs._DepthTexture, data.depthStencilBuffer);
+                        ctx.cmd.SetComputeTextureParam(data.diffuseDenoiserCS, data.bilateralFilterKernel, HDShaderIDs._NormalBufferTexture, data.normalBuffer);
+                        ctx.cmd.SetComputeTextureParam(data.diffuseDenoiserCS, data.bilateralFilterKernel, HDShaderIDs._DenoiseOutputTextureRW, data.halfResolutionFilter ? data.intermediateBuffer : data.outputBuffer);
+                        ctx.cmd.SetComputeIntParam(data.diffuseDenoiserCS, HDShaderIDs._HalfResolutionFilter, data.halfResolutionFilter ? 1 : 0);
+                        ctx.cmd.SetComputeFloatParam(data.diffuseDenoiserCS, HDShaderIDs._PixelSpreadAngleTangent, data.pixelSpreadTangent);
+                        if (data.jitterFilter)
+                            ctx.cmd.SetComputeIntParam(data.diffuseDenoiserCS, HDShaderIDs._JitterFramePeriod, (data.frameIndex % 4));
+                        else
+                            ctx.cmd.SetComputeIntParam(data.diffuseDenoiserCS, HDShaderIDs._JitterFramePeriod, -1);
+
+                        ctx.cmd.DispatchCompute(data.diffuseDenoiserCS, data.bilateralFilterKernel, numTilesX, numTilesY, data.viewCount);
+
+                        if (data.halfResolutionFilter)
+                        {
+                            ctx.cmd.SetComputeTextureParam(data.diffuseDenoiserCS, data.gatherKernel, HDShaderIDs._DenoiseInputTexture, data.intermediateBuffer);
+                            ctx.cmd.SetComputeTextureParam(data.diffuseDenoiserCS, data.gatherKernel, HDShaderIDs._DenoiseOutputTextureRW, data.outputBuffer);
+                            ctx.cmd.DispatchCompute(data.diffuseDenoiserCS, data.gatherKernel, numTilesX, numTilesY, data.viewCount);
+                        }
                     });
                 return passData.outputBuffer;
             }

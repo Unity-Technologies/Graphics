@@ -235,7 +235,7 @@ float ApplyPerPixelDisplacement(FragInputs input, float3 V, inout LayerTexCoord 
     ppdParam.uvSpaceScale[2] = _BaseColorMap2_ST.xy * worldScale2;// *maxHeight2;
     ppdParam.uvSpaceScale[3] = _BaseColorMap3_ST.xy * worldScale3;// *maxHeight3;
 
-    float uvSpaceScale = BlendLayeredScalar(ppdParam.uvSpaceScale[0], ppdParam.uvSpaceScale[1], ppdParam.uvSpaceScale[2], ppdParam.uvSpaceScale[3], weights);
+    float2 uvSpaceScale = BlendLayeredVector2(ppdParam.uvSpaceScale[0], ppdParam.uvSpaceScale[1], ppdParam.uvSpaceScale[2], ppdParam.uvSpaceScale[3], weights);
 
     float2 scaleOffsetDetails0 =_DetailMap0_ST.xy;
     float2 scaleOffsetDetails1 =_DetailMap1_ST.xy;

@@ -13,7 +13,7 @@ namespace UnityEditor.Rendering.HighDefinition
 
         public override void OnEnable()
         {
-            var o = new PropertyFetcher<GlobalIllumination>(serializedObject);
+            var o = new PropertyFetcher<SubSurfaceScattering>(serializedObject);
             m_RayTracing = Unpack(o.Find(x => x.rayTracing));
             m_SampleCount = Unpack(o.Find(x => x.sampleCount));
         }
@@ -29,7 +29,7 @@ namespace UnityEditor.Rendering.HighDefinition
             }
 
             // If ray tracing is supported display the content of the volume component
-            if ((RenderPipelineManager.currentPipeline as HDRenderPipeline).rayTracingSupported)
+            if (RenderPipelineManager.currentPipeline != null && (RenderPipelineManager.currentPipeline as HDRenderPipeline).rayTracingSupported)
             {
                 PropertyField(m_RayTracing);
                 if (m_RayTracing.overrideState.boolValue && m_RayTracing.value.boolValue)

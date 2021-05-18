@@ -6,7 +6,7 @@ Shader "Universal Render Pipeline/Complex Lit"
     Properties
     {
         // Specular vs Metallic workflow
-        [HideInInspector] _WorkflowMode("WorkflowMode", Float) = 1.0
+        _WorkflowMode("WorkflowMode", Float) = 1.0
 
         [MainTexture] _BaseMap("Albedo", 2D) = "white" {}
         [MainColor] _BaseColor("Color", Color) = (1,1,1,1)
@@ -14,7 +14,6 @@ Shader "Universal Render Pipeline/Complex Lit"
         _Cutoff("Alpha Cutoff", Range(0.0, 1.0)) = 0.5
 
         _Smoothness("Smoothness", Range(0.0, 1.0)) = 0.5
-        _GlossMapScale("Smoothness Scale", Range(0.0, 1.0)) = 1.0
         _SmoothnessTextureChannel("Smoothness texture channel", Float) = 0
 
         _Metallic("Metallic", Range(0.0, 1.0)) = 0.0
@@ -44,23 +43,24 @@ Shader "Universal Render Pipeline/Complex Lit"
         _DetailNormalMapScale("Scale", Range(0.0, 2.0)) = 1.0
         [Normal] _DetailNormalMap("Normal Map", 2D) = "bump" {}
 
-        _ClearCoat("Clear Coat", Float) = 0.0
+        [ToggleUI] _ClearCoat("Clear Coat", Float) = 0.0
         _ClearCoatMap("Clear Coat Map", 2D) = "white" {}
         _ClearCoatMask("Clear Coat Mask", Range(0.0, 1.0)) = 0.0
         _ClearCoatSmoothness("Clear Coat Smoothness", Range(0.0, 1.0)) = 1.0
 
         // Blending state
-        [HideInInspector] _Surface("__surface", Float) = 0.0
-        [HideInInspector] _Blend("__blend", Float) = 0.0
-        [HideInInspector] _AlphaClip("__clip", Float) = 0.0
+        _Surface("__surface", Float) = 0.0
+        _Blend("__mode", Float) = 0.0
+        _Cull("__cull", Float) = 2.0
+        [ToggleUI] _AlphaClip("__clip", Float) = 0.0
+        [HideInInspector] _BlendOp("__blendop", Float) = 0.0
         [HideInInspector] _SrcBlend("__src", Float) = 1.0
         [HideInInspector] _DstBlend("__dst", Float) = 0.0
         [HideInInspector] _ZWrite("__zw", Float) = 1.0
-        [HideInInspector] _Cull("__cull", Float) = 2.0
 
-        _ReceiveShadows("Receive Shadows", Float) = 1.0
+        [ToggleUI] _ReceiveShadows("Receive Shadows", Float) = 1.0
         // Editmode props
-        [HideInInspector] _QueueOffset("Queue offset", Float) = 0.0
+        _QueueOffset("Queue offset", Float) = 0.0
 
         [HideInInspector][NoScaleOffset]unity_Lightmaps("unity_Lightmaps", 2DArray) = "" {}
         [HideInInspector][NoScaleOffset]unity_LightmapsInd("unity_LightmapsInd", 2DArray) = "" {}
@@ -97,7 +97,9 @@ Shader "Universal Render Pipeline/Complex Lit"
             // Material Keywords
             #pragma shader_feature_local _NORMALMAP
             #pragma shader_feature_local _PARALLAXMAP
+            #pragma shader_feature_local _RECEIVE_SHADOWS_OFF
             #pragma shader_feature_local _ _DETAIL_MULX2 _DETAIL_SCALED
+            #pragma shader_feature_local_fragment _SURFACE_TYPE_TRANSPARENT
             #pragma shader_feature_local_fragment _ALPHATEST_ON
             #pragma shader_feature_local_fragment _ALPHAPREMULTIPLY_ON
             #pragma shader_feature_local_fragment _EMISSION
@@ -108,26 +110,33 @@ Shader "Universal Render Pipeline/Complex Lit"
             #pragma shader_feature_local_fragment _SPECULARHIGHLIGHTS_OFF
             #pragma shader_feature_local_fragment _ENVIRONMENTREFLECTIONS_OFF
             #pragma shader_feature_local_fragment _SPECULAR_SETUP
-            #pragma shader_feature_local _RECEIVE_SHADOWS_OFF
 
             // -------------------------------------
             // Universal Pipeline keywords
             #pragma multi_compile _ _MAIN_LIGHT_SHADOWS _MAIN_LIGHT_SHADOWS_CASCADE _MAIN_LIGHT_SHADOWS_SCREEN
             #pragma multi_compile _ _ADDITIONAL_LIGHTS_VERTEX _ADDITIONAL_LIGHTS
             #pragma multi_compile_fragment _ _ADDITIONAL_LIGHT_SHADOWS
+            #pragma multi_compile_fragment _ _REFLECTION_PROBE_BLENDING
+            #pragma multi_compile_fragment _ _REFLECTION_PROBE_BOX_PROJECTION
             #pragma multi_compile_fragment _ _SHADOWS_SOFT
             #pragma multi_compile _ _MIXED_LIGHTING_SUBTRACTIVE
             #pragma multi_compile_fragment _ _SCREEN_SPACE_OCCLUSION
+            #pragma multi_compile_fragment _ _DBUFFER_MRT1 _DBUFFER_MRT2 _DBUFFER_MRT3
+            #pragma multi_compile_fragment _ _LIGHT_LAYERS
+            #pragma multi_compile_fragment _ _LIGHT_COOKIES
+            #pragma multi_compile _ _CLUSTERED_RENDERING
 
             // -------------------------------------
             // Unity defined keywords
             #pragma multi_compile _ DIRLIGHTMAP_COMBINED
             #pragma multi_compile _ LIGHTMAP_ON
             #pragma multi_compile_fog
+            #pragma multi_compile_fragment _ DEBUG_DISPLAY
 
             //--------------------------------------
             // GPU Instancing
             #pragma multi_compile_instancing
+            #pragma instancing_options renderinglayer
             #pragma multi_compile _ DOTS_INSTANCING_ON
 
             #pragma vertex LitPassVertex
@@ -207,39 +216,7 @@ Shader "Universal Render Pipeline/Complex Lit"
             ENDHLSL
         }
 
-        // This pass is used when drawing to a _CameraNormalsTexture texture
-        Pass
-        {
-            Name "DepthNormals"
-            Tags{"LightMode" = "DepthNormals"}
-
-            ZWrite On
-            Cull[_Cull]
-
-            HLSLPROGRAM
-            #pragma exclude_renderers gles gles3 glcore
-            #pragma target 4.5
-
-            #pragma vertex DepthNormalsVertex
-            #pragma fragment DepthNormalsFragment
-
-            // -------------------------------------
-            // Material Keywords
-            #pragma shader_feature_local _NORMALMAP
-            #pragma shader_feature_local_fragment _ALPHATEST_ON
-            #pragma shader_feature_local_fragment _SMOOTHNESS_TEXTURE_ALBEDO_CHANNEL_A
-
-            //--------------------------------------
-            // GPU Instancing
-            #pragma multi_compile_instancing
-            #pragma multi_compile _ DOTS_INSTANCING_ON
-
-            #include "Packages/com.unity.render-pipelines.universal/Shaders/LitInput.hlsl"
-            #include "Packages/com.unity.render-pipelines.universal/Shaders/DepthNormalsPass.hlsl"
-            ENDHLSL
-        }
-
-        // Same as DepthNormals pass, but used for deferred renderer and forwardOnly materials.
+        // This pass is used when drawing to a _CameraNormalsTexture texture with the forward renderer or the depthNormal prepass with the deferred renderer.
         Pass
         {
             Name "DepthNormalsOnly"
@@ -258,6 +235,8 @@ Shader "Universal Render Pipeline/Complex Lit"
             // -------------------------------------
             // Material Keywords
             #pragma shader_feature_local _NORMALMAP
+            #pragma shader_feature_local _PARALLAXMAP
+            #pragma shader_feature_local _ _DETAIL_MULX2 _DETAIL_SCALED
             #pragma shader_feature_local_fragment _ALPHATEST_ON
             #pragma shader_feature_local_fragment _SMOOTHNESS_TEXTURE_ALBEDO_CHANNEL_A
 
@@ -271,7 +250,7 @@ Shader "Universal Render Pipeline/Complex Lit"
             #pragma multi_compile _ DOTS_INSTANCING_ON
 
             #include "Packages/com.unity.render-pipelines.universal/Shaders/LitInput.hlsl"
-            #include "Packages/com.unity.render-pipelines.universal/Shaders/DepthNormalsPass.hlsl"
+            #include "Packages/com.unity.render-pipelines.universal/Shaders/LitDepthNormalsPass.hlsl"
             ENDHLSL
         }
 
@@ -304,6 +283,7 @@ Shader "Universal Render Pipeline/Complex Lit"
 
             ENDHLSL
         }
+
         Pass
         {
             Name "Universal2D"
@@ -348,14 +328,16 @@ Shader "Universal Render Pipeline/Complex Lit"
             Cull[_Cull]
 
             HLSLPROGRAM
-            #pragma only_renderers gles gles3 glcore
+            #pragma only_renderers gles gles3 glcore d3d11
             #pragma target 2.0
 
             // -------------------------------------
             // Material Keywords
             #pragma shader_feature_local _NORMALMAP
             #pragma shader_feature_local _PARALLAXMAP
+            #pragma shader_feature_local _RECEIVE_SHADOWS_OFF
             #pragma shader_feature_local _ _DETAIL_MULX2 _DETAIL_SCALED
+            #pragma shader_feature_local_fragment _SURFACE_TYPE_TRANSPARENT
             #pragma shader_feature_local_fragment _ALPHATEST_ON
             #pragma shader_feature_local_fragment _ALPHAPREMULTIPLY_ON
             #pragma shader_feature_local_fragment _EMISSION
@@ -366,26 +348,32 @@ Shader "Universal Render Pipeline/Complex Lit"
             #pragma shader_feature_local_fragment _SPECULARHIGHLIGHTS_OFF
             #pragma shader_feature_local_fragment _ENVIRONMENTREFLECTIONS_OFF
             #pragma shader_feature_local_fragment _SPECULAR_SETUP
-            #pragma shader_feature_local _RECEIVE_SHADOWS_OFF
 
             // -------------------------------------
             // Universal Pipeline keywords
             #pragma multi_compile _ _MAIN_LIGHT_SHADOWS _MAIN_LIGHT_SHADOWS_CASCADE _MAIN_LIGHT_SHADOWS_SCREEN
             #pragma multi_compile _ _ADDITIONAL_LIGHTS_VERTEX _ADDITIONAL_LIGHTS
             #pragma multi_compile_fragment _ _ADDITIONAL_LIGHT_SHADOWS
+            #pragma multi_compile_fragment _ _REFLECTION_PROBE_BLENDING
+            #pragma multi_compile_fragment _ _REFLECTION_PROBE_BOX_PROJECTION
             #pragma multi_compile_fragment _ _SHADOWS_SOFT
             #pragma multi_compile _ _MIXED_LIGHTING_SUBTRACTIVE
             #pragma multi_compile_fragment _ _SCREEN_SPACE_OCCLUSION
+            #pragma multi_compile_fragment _ _LIGHT_LAYERS
+            #pragma multi_compile_fragment _ _LIGHT_COOKIES
+            #pragma multi_compile _ _CLUSTERED_RENDERING
 
             // -------------------------------------
             // Unity defined keywords
             #pragma multi_compile _ DIRLIGHTMAP_COMBINED
             #pragma multi_compile _ LIGHTMAP_ON
             #pragma multi_compile_fog
+            #pragma multi_compile_fragment _ DEBUG_DISPLAY
 
             //--------------------------------------
             // GPU Instancing
             #pragma multi_compile_instancing
+            #pragma instancing_options renderinglayer
 
             #pragma vertex LitPassVertex
             #pragma fragment LitPassFragment
@@ -405,7 +393,7 @@ Shader "Universal Render Pipeline/Complex Lit"
             Cull[_Cull]
 
             HLSLPROGRAM
-            #pragma only_renderers gles gles3 glcore
+            #pragma only_renderers gles gles3 glcore d3d11
             #pragma target 2.0
 
             //--------------------------------------
@@ -435,7 +423,7 @@ Shader "Universal Render Pipeline/Complex Lit"
             Cull[_Cull]
 
             HLSLPROGRAM
-            #pragma only_renderers gles gles3 glcore
+            #pragma only_renderers gles gles3 glcore d3d11
             #pragma target 2.0
 
             //--------------------------------------
@@ -465,7 +453,7 @@ Shader "Universal Render Pipeline/Complex Lit"
             Cull[_Cull]
 
             HLSLPROGRAM
-            #pragma only_renderers gles gles3 glcore
+            #pragma only_renderers gles gles3 glcore d3d11
             #pragma target 2.0
 
             #pragma vertex DepthNormalsVertex
@@ -474,6 +462,8 @@ Shader "Universal Render Pipeline/Complex Lit"
             // -------------------------------------
             // Material Keywords
             #pragma shader_feature_local _NORMALMAP
+            #pragma shader_feature_local _PARALLAXMAP
+            #pragma shader_feature_local _ _DETAIL_MULX2 _DETAIL_SCALED
             #pragma shader_feature_local_fragment _ALPHATEST_ON
             #pragma shader_feature_local_fragment _SMOOTHNESS_TEXTURE_ALBEDO_CHANNEL_A
 
@@ -482,7 +472,7 @@ Shader "Universal Render Pipeline/Complex Lit"
             #pragma multi_compile_instancing
 
             #include "Packages/com.unity.render-pipelines.universal/Shaders/LitInput.hlsl"
-            #include "Packages/com.unity.render-pipelines.universal/Shaders/DepthNormalsPass.hlsl"
+            #include "Packages/com.unity.render-pipelines.universal/Shaders/LitDepthNormalsPass.hlsl"
             ENDHLSL
         }
 
@@ -495,7 +485,7 @@ Shader "Universal Render Pipeline/Complex Lit"
             Cull Off
 
             HLSLPROGRAM
-            #pragma only_renderers gles gles3 glcore
+            #pragma only_renderers gles gles3 glcore d3d11
             #pragma target 2.0
 
             #pragma vertex UniversalVertexMeta
@@ -515,6 +505,7 @@ Shader "Universal Render Pipeline/Complex Lit"
 
             ENDHLSL
         }
+
         Pass
         {
             Name "Universal2D"
@@ -525,7 +516,7 @@ Shader "Universal Render Pipeline/Complex Lit"
             Cull[_Cull]
 
             HLSLPROGRAM
-            #pragma only_renderers gles gles3 glcore
+            #pragma only_renderers gles gles3 glcore d3d11
             #pragma target 2.0
 
             #pragma vertex vert

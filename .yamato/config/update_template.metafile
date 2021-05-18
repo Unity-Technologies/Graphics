@@ -3,13 +3,13 @@ project:
   folder: URP-Update-Testing/URP-Update-Testing
   variables:
     TEMPLATE_UPDATE_PROJECT_BRANCH: master
-    TEMPLATE_UPDATE_PROJECT_REVISION: 61a06c2185bfd01c8c260a6210715edc53f23a54
+    TEMPLATE_UPDATE_PROJECT_REVISION: 818b6345d6bf46cf3e5644aceff134e866c6150e
 
 reuse_blocks:
   setup_with_utr:
     - [iPhone_Metal, OSX_Metal, Linux_Vulkan]: git clone https://github.cds.internal.unity3d.com/sophia/URP-Update-testing.git -b $TEMPLATE_UPDATE_PROJECT_BRANCH TestProjects/URP-Update-Testing
     - [Win_DX11, Win_DX12, Win_Vulkan, Android_OpenGLES3, Android_Vulkan]: git clone https://github.cds.internal.unity3d.com/sophia/URP-Update-testing.git -b %TEMPLATE_UPDATE_PROJECT_BRANCH% TestProjects/URP-Update-Testing
-      
+
     - [iPhone_Metal, OSX_Metal, Linux_Vulkan]: cd TestProjects/URP-Update-Testing && git checkout $TEMPLATE_UPDATE_PROJECT_REVISION
     - [Win_DX11, Win_DX12, Win_Vulkan, Android_OpenGLES3, Android_Vulkan]: cd TestProjects/URP-Update-Testing && git checkout %TEMPLATE_UPDATE_PROJECT_REVISION%
 
@@ -28,7 +28,7 @@ test_platforms:
   - type: editmode
     commands:
       - <reuse_blocks.setup_with_utr>
-expression_trigger: 
+expression_trigger:
   expression: ""
 platforms:
   - name: Win
@@ -59,7 +59,7 @@ pr:
 #    - project: URPUpdate_BoatAttack
 #      pr: true
     - project: URPUpdate_Top_Asset_Store
-      pr: true  
+      pr: true
 nightly:
   dependencies:
     - project: URPUpdate

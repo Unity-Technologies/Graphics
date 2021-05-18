@@ -1,6 +1,10 @@
 #ifndef UNITY_PACKING_INCLUDED
 #define UNITY_PACKING_INCLUDED
 
+#if SHADER_API_MOBILE || SHADER_API_GLES || SHADER_API_GLES3
+#pragma warning (disable : 3205) // conversion of larger type to smaller
+#endif
+
 //-----------------------------------------------------------------------------
 // Normal packing
 //-----------------------------------------------------------------------------
@@ -198,6 +202,7 @@ real3 UnpackNormalmapRGorAG(real4 packedNormal, real scale = 1.0)
     return UnpackNormalAG(packedNormal, scale);
 }
 
+#ifndef BUILTIN_TARGET_API
 real3 UnpackNormal(real4 packedNormal)
 {
 #if defined(UNITY_ASTC_NORMALMAP_ENCODING)
@@ -209,6 +214,7 @@ real3 UnpackNormal(real4 packedNormal)
     return UnpackNormalmapRGorAG(packedNormal, 1.0);
 #endif
 }
+#endif
 
 real3 UnpackNormalScale(real4 packedNormal, real bumpScale)
 {
@@ -580,5 +586,9 @@ float2 Unpack8ToFloat2(float f)
     float y = y_expanded / 15.0;
     return float2(x, y);
 }
+
+#if SHADER_API_MOBILE || SHADER_API_GLES || SHADER_API_GLES3
+#pragma warning (enable : 3205) // conversion of larger type to smaller
+#endif
 
 #endif // UNITY_PACKING_INCLUDED

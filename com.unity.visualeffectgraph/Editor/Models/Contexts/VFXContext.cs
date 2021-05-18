@@ -139,6 +139,7 @@ namespace UnityEditor.VFX
         public virtual IEnumerable<string> additionalDefines            { get { return Enumerable.Empty<string>(); } }
         public virtual IEnumerable<KeyValuePair<string, VFXShaderWriter>> additionalReplacements { get { return Enumerable.Empty<KeyValuePair<string, VFXShaderWriter>>(); } }
         public virtual IEnumerable<string> fragmentParameters           { get { return Enumerable.Empty<string>(); } }
+        public virtual IEnumerable<string> vertexParameters             { get { return Enumerable.Empty<string>(); } }
 
         public virtual bool CanBeCompiled()
         {
@@ -167,10 +168,28 @@ namespace UnityEditor.VFX
             if (cause == InvalidationCause.kStructureChanged ||
                 cause == InvalidationCause.kConnectionChanged ||
                 cause == InvalidationCause.kExpressionInvalidated ||
-                cause == InvalidationCause.kSettingChanged)
+                cause == InvalidationCause.kSettingChanged ||
+                cause == InvalidationCause.kEnableChanged)
             {
                 if (hasBeenCompiled || CanBeCompiled())
-                    Invalidate(InvalidationCause.kExpressionGraphChanged);
+                {
+                    bool skip = false;
+
+                    // Check if the invalidation comes from a disable block and in that case don't recompile
+                    if (cause != InvalidationCause.kEnableChanged)
+                    {
+                        VFXBlock block = null;
+                        if (model is VFXBlock)
+                            block = (VFXBlock)model;
+                        else if (model is VFXSlot)
+                            block = ((VFXSlot)model).owner as VFXBlock;
+
+                        skip = block != null && !block.enabled;
+                    }
+
+                    if (!skip)
+                        Invalidate(InvalidationCause.kExpressionGraphChanged);
+                }
             }
         }
 
@@ -245,8 +264,8 @@ namespace UnityEditor.VFX
             if (from.m_ContextType == VFXContextType.SpawnerGPU && to.m_ContextType == VFXContextType.OutputEvent)
                 return false;
 
-            //Can't connect directly event to context (OutputEvent or Initialize) for now
-            if (from.m_ContextType == VFXContextType.Event && to.contextType != VFXContextType.Spawner && to.contextType != VFXContextType.Subgraph)
+            //Can't connect directly event to context to OutputEvent
+            if (from.m_ContextType == VFXContextType.Event && to.contextType == VFXContextType.OutputEvent)
                 return false;
 
             return true;
@@ -312,7 +331,7 @@ namespace UnityEditor.VFX
         {
             if (from == to)
                 return false;
-            if (from == VFXContextType.Spawner)
+            if (from == VFXContextType.Spawner || from == VFXContextType.Event)
                 return false;
             return true;
         }

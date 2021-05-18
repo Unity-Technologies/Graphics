@@ -252,7 +252,7 @@ Shader "HDRP/LayeredLitTessellation"
         [HideInInspector] _EmissiveColorLDR("EmissiveColor LDR", Color) = (0, 0, 0)
         _EmissiveColorMap("EmissiveColorMap", 2D) = "white" {}
         [ToggleUI] _AlbedoAffectEmissive("Albedo Affect Emissive", Float) = 0.0
-        [HideInInspector] _EmissiveIntensityUnit("Emissive Mode", Int) = 0
+        _EmissiveIntensityUnit("Emissive Mode", Int) = 0
         [ToggleUI] _UseEmissiveIntensity("Use Emissive Intensity", Int) = 0
         _EmissiveIntensity("Emissive Intensity", Float) = 1
         _EmissiveExposureWeight("Emissive Pre Exposure", Range(0.0, 1.0)) = 1.0
@@ -277,8 +277,8 @@ Shader "HDRP/LayeredLitTessellation"
         [HideInInspector] _StencilWriteMaskMV("_StencilWriteMaskMV", Int) = 32 // StencilUsage.ObjectMotionVector
 
         // Blending state
-        [HideInInspector] _SurfaceType("__surfacetype", Float) = 0.0
-        [HideInInspector] _BlendMode ("__blendmode", Float) = 0.0
+        _SurfaceType("__surfacetype", Float) = 0.0
+        _BlendMode ("__blendmode", Float) = 0.0
         [HideInInspector] _SrcBlend ("__src", Float) = 1.0
         [HideInInspector] _DstBlend ("__dst", Float) = 0.0
         [HideInInspector] _AlphaSrcBlend("__alphaSrc", Float) = 1.0
@@ -324,7 +324,7 @@ Shader "HDRP/LayeredLitTessellation"
         [HideInInspector] _InvPrimScale("Inverse primitive scale for non-planar POM", Vector) = (1, 1, 0, 0)
 
         [Enum(Use Emissive Color, 0, Use Emissive Mask, 1)] _EmissiveColorMode("Emissive color mode", Float) = 1
-        [Enum(UV0, 0, UV1, 1, UV2, 2, UV3, 3, Planar, 4, Triplanar, 5)] _UVEmissive("UV Set for emissive", Float) = 0
+        [Enum(UV0, 0, UV1, 1, UV2, 2, UV3, 3, Planar, 4, Triplanar, 5, Same as Main layer, 6)] _UVEmissive("UV Set for emissive", Float) = 0
         _TexWorldScaleEmissive("Scale to apply on world coordinate", Float) = 1.0
         [HideInInspector] _UVMappingMaskEmissive("_UVMappingMaskEmissive", Color) = (1, 0, 0, 0)
 
@@ -380,9 +380,9 @@ Shader "HDRP/LayeredLitTessellation"
         // TODO: Handle culling mode for backface culling
 
         // HACK: GI Baking system relies on some properties existing in the shader ("_MainTex", "_Cutoff" and "_Color") for opacity handling, so we need to store our version of those parameters in the hard-coded name the GI baking system recognizes.
-        _MainTex("Albedo", 2D) = "white" {}
-        _Color("Color", Color) = (1,1,1,1)
-        _Cutoff("Alpha Cutoff", Range(0.0, 1.0)) = 0.5
+        [HideInInspector] _MainTex("Albedo", 2D) = "white" {}
+        [HideInInspector] _Color("Color", Color) = (1,1,1,1)
+        [HideInInspector] _Cutoff("Alpha Cutoff", Range(0.0, 1.0)) = 0.5
 
         [ToggleUI] _SupportDecals("Support Decals", Float) = 1.0
         [ToggleUI] _ReceivesSSR("Receives SSR", Float) = 1.0
@@ -397,8 +397,11 @@ Shader "HDRP/LayeredLitTessellation"
 
     HLSLINCLUDE
 
+    //Our DXC backend currently does not support Metal tessellation
+    #pragma never_use_dxc metal
+
     #pragma target 5.0
-    #pragma only_renderers d3d11 playstation xboxone vulkan metal switch
+    #pragma only_renderers d3d11 playstation xboxone xboxseries vulkan metal switch
 
     #pragma shader_feature_local _ALPHATEST_ON
     #pragma shader_feature_local _ALPHATOMASK_ON
@@ -408,7 +411,7 @@ Shader "HDRP/LayeredLitTessellation"
     #pragma shader_feature_local _VERTEX_DISPLACEMENT_LOCK_OBJECT_SCALE
     #pragma shader_feature_local _DISPLACEMENT_LOCK_TILING_SCALE
     #pragma shader_feature_local_fragment _PIXEL_DISPLACEMENT_LOCK_OBJECT_SCALE
-    #pragma shader_feature_local _TESSELLATION_PHONG
+    #pragma shader_feature_local_domain _TESSELLATION_PHONG
 
     #pragma shader_feature_local _LAYER_TILING_COUPLED_WITH_UNIFORM_OBJECT_SCALE
     #pragma shader_feature_local _ _LAYER_MAPPING_PLANAR_BLENDMASK _LAYER_MAPPING_TRIPLANAR_BLENDMASK
@@ -565,6 +568,16 @@ Shader "HDRP/LayeredLitTessellation"
     // Explicitely said that we are a layered shader as we share code between lit and layered lit
     #define LAYERED_LIT_SHADER
 
+    // Define _DEFERRED_CAPABLE_MATERIAL for shader capable to run in deferred pass
+    #ifndef _SURFACE_TYPE_TRANSPARENT
+    #define _DEFERRED_CAPABLE_MATERIAL
+    #endif
+
+    // In this shader, the heightmap implies depth offsets away from the camera.
+    #if defined(_HEIGHTMAP0) || defined(_HEIGHTMAP1) || defined(_HEIGHTMAP2) || defined(_HEIGHTMAP3)
+    #define _CONSERVATIVE_DEPTH_OFFSET
+    #endif
+
     //-------------------------------------------------------------------------------------
     // Include
     //-------------------------------------------------------------------------------------
@@ -688,6 +701,7 @@ Shader "HDRP/LayeredLitTessellation"
             #pragma multi_compile_fragment PROBE_VOLUMES_OFF PROBE_VOLUMES_L1 PROBE_VOLUMES_L2
             // Setup DECALS_OFF so the shader stripper can remove variants
             #pragma multi_compile_fragment DECALS_OFF DECALS_3RT DECALS_4RT
+            #pragma multi_compile_fragment _ DECAL_SURFACE_GRADIENT
             #pragma multi_compile_fragment _ LIGHT_LAYERS
 
         #ifndef DEBUG_DISPLAY
@@ -898,9 +912,10 @@ Shader "HDRP/LayeredLitTessellation"
             #pragma multi_compile_fragment SCREEN_SPACE_SHADOWS_OFF SCREEN_SPACE_SHADOWS_ON
             // Setup DECALS_OFF so the shader stripper can remove variants
             #pragma multi_compile_fragment DECALS_OFF DECALS_3RT DECALS_4RT
+            #pragma multi_compile_fragment _ DECAL_SURFACE_GRADIENT
 
             // Supported shadow modes per light type
-            #pragma multi_compile_fragment SHADOW_LOW SHADOW_MEDIUM SHADOW_HIGH
+            #pragma multi_compile_fragment SHADOW_LOW SHADOW_MEDIUM SHADOW_HIGH SHADOW_VERY_HIGH
 
             #pragma multi_compile_fragment USE_FPTL_LIGHTLIST USE_CLUSTERED_LIGHTLIST
 
@@ -959,13 +974,6 @@ Shader "HDRP/LayeredLitTessellation"
             Cull [_CullModeForward]
 
             HLSLPROGRAM
-
-            #pragma only_renderers d3d11 playstation xboxone vulkan metal switch
-            //enable GPU instancing support
-            #pragma multi_compile_instancing
-            #pragma multi_compile _ DOTS_INSTANCING_ON
-            // enable dithering LOD crossfade
-            #pragma multi_compile _ LOD_FADE_CROSSFADE
 
             #pragma multi_compile _ DEBUG_DISPLAY // This pass is only for opaque
 

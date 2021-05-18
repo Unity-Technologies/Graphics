@@ -66,6 +66,7 @@ When importing these two map textures, disable **sRGB**. For best results, do no
 | **Property** | **Description**                                       |
 | ------------ | ----------------------------------------------------- |
 | Enable       | Indicates whether to render volumetric clouds or not. |
+| Local Clouds | Indicates whether the clouds are part of the scene or rendered into the skybox. When enabled, clouds are part of the scene and you can interact with them. This means for example, you can move around the clouds, clouds can appear between the Camera and other GameObjects, and the Camera's clipping planes affects the clouds. When disabled, the clouds are part of the skybox. This mean the clouds and their shadows appear relative to the Camera and always appear behind geometry. |
 
 ### Shape
 
@@ -117,7 +118,6 @@ When importing these two map textures, disable **sRGB**. For best results, do no
 | **Property**                   | **Description**                                              |
 | ------------------------------ | ------------------------------------------------------------ |
 | **Ambient Light Probe Dimmer** | Controls the influence of light probes on the cloud volume. A lower value suppresses the ambient light and produces darker clouds overall. |
-| **Scattering Direction**       | The direction of light scattering. A value of **0** produces backward scattering and a value of **1** produces forward scattering. |
 | **Scattering Tint**            | The color to tint the clouds.                                |
 | **Powder Effect Intensity**    | Controls the amount of local scattering in the clouds. When clouds have a lot of local details due to erosion, a value of **1** provides a more powdery aspect. |
 | **Multi Scattering**           | Controls the amount of multi-scattering inside the cloud. Higher values make lighting look more diffuse within the cloud. |
@@ -137,7 +137,7 @@ When importing these two map textures, disable **sRGB**. For best results, do no
 
 This section lists any limitations that HDRP's volumetric clouds have:
 
-- Volumetric clouds do not appear in [Reflection Probes](Reflection-Probe.md) or [Planar Reflection Probes](Planar-Reflection-Probe.md).
+- Volumetric clouds do not appear in [Reflection Probes](Reflection-Probe.md).
 - HDRP uses the [main Camera](https://docs.unity3d.com/ScriptReference/Camera-main.html) to generate the shadow cookie for volumetric clouds. This means that volumetric cloud shadows do not look correct from the point of view of other Cameras.
 - Volumetric clouds do not appear in ray-traced effects.
 - Volumetric clouds currently do not work on Metal.

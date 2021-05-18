@@ -42,7 +42,7 @@ Shader "Unlit/CameraOpaque"
                 v2f o;
                 UNITY_SETUP_INSTANCE_ID(v);
                 UNITY_INITIALIZE_VERTEX_OUTPUT_STEREO(o);
-                VertexPositionInputs vertexInputs = GetVertexPositionInputs(v.vertex);
+                VertexPositionInputs vertexInputs = GetVertexPositionInputs(v.vertex.xyz);
                 o.vertex = vertexInputs.positionCS;
                 o.uv = v.uv;
                 o.screenUV = vertexInputs.positionNDC;

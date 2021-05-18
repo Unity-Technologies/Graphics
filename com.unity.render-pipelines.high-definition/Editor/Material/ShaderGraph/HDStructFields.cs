@@ -35,7 +35,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
         public struct VaryingsMeshToPS
         {
             public static string name = "VaryingsMeshToPS";
-            public static FieldDescriptor positionCS = new FieldDescriptor(VaryingsMeshToPS.name, "positionCS", "", ShaderValueType.Float4, "SV_POSITION");
+            public static FieldDescriptor positionCS = new FieldDescriptor(VaryingsMeshToPS.name, "positionCS", "", ShaderValueType.Float4, "SV_POSITION", interpolation: "SV_POSITION_QUALIFIERS");
             public static FieldDescriptor positionRWS = new FieldDescriptor(VaryingsMeshToPS.name, "positionRWS", "VARYINGS_NEED_POSITION_WS", ShaderValueType.Float3,
                 subscriptOptions: StructFieldOptions.Optional);
             public static FieldDescriptor normalWS = new FieldDescriptor(VaryingsMeshToPS.name, "normalWS", "VARYINGS_NEED_NORMAL_WS", ShaderValueType.Float3,
@@ -55,24 +55,34 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
             public static FieldDescriptor instanceID = new FieldDescriptor(VaryingsMeshToPS.name, "instanceID", "", ShaderValueType.Uint,
                 "CUSTOM_INSTANCE_ID", "UNITY_ANY_INSTANCING_ENABLED");
             // Note: we don't generate cullFace here as it is always present in VertMesh.hlsl
+
+            // VFX
+            public static FieldDescriptor worldToElement0 = new FieldDescriptor(VaryingsMeshToPS.name, "worldToElement0", "VARYINGS_NEED_WORLD_TO_ELEMENT", ShaderValueType.Float4, subscriptOptions: StructFieldOptions.Optional, interpolation: "nointerpolation");
+            public static FieldDescriptor worldToElement1 = new FieldDescriptor(VaryingsMeshToPS.name, "worldToElement1", "VARYINGS_NEED_WORLD_TO_ELEMENT", ShaderValueType.Float4, subscriptOptions: StructFieldOptions.Optional, interpolation: "nointerpolation");
+            public static FieldDescriptor worldToElement2 = new FieldDescriptor(VaryingsMeshToPS.name, "worldToElement2", "VARYINGS_NEED_WORLD_TO_ELEMENT", ShaderValueType.Float4, subscriptOptions: StructFieldOptions.Optional, interpolation: "nointerpolation");
+
+            public static FieldDescriptor elementToWorld0 = new FieldDescriptor(VaryingsMeshToPS.name, "elementToWorld0", "VARYINGS_NEED_ELEMENT_TO_WORLD", ShaderValueType.Float4, subscriptOptions: StructFieldOptions.Optional, interpolation: "nointerpolation");
+            public static FieldDescriptor elementToWorld1 = new FieldDescriptor(VaryingsMeshToPS.name, "elementToWorld1", "VARYINGS_NEED_ELEMENT_TO_WORLD", ShaderValueType.Float4, subscriptOptions: StructFieldOptions.Optional, interpolation: "nointerpolation");
+            public static FieldDescriptor elementToWorld2 = new FieldDescriptor(VaryingsMeshToPS.name, "elementToWorld2", "VARYINGS_NEED_ELEMENT_TO_WORLD", ShaderValueType.Float4, subscriptOptions: StructFieldOptions.Optional, interpolation: "nointerpolation");
         }
 
         public struct VaryingsMeshToDS
         {
             public static string name = "VaryingsMeshToDS";
-            public static FieldDescriptor positionRWS = new FieldDescriptor(VaryingsMeshToDS.name, "positionWS", "VARYINGS_NEED_POSITION_WS", ShaderValueType.Float3);
-            public static FieldDescriptor normalWS = new FieldDescriptor(VaryingsMeshToDS.name, "normalWS", "VARYINGS_NEED_NORMAL_WS", ShaderValueType.Float3);
-            public static FieldDescriptor tangentWS = new FieldDescriptor(VaryingsMeshToDS.name, "tangentWS", "VARYINGS_NEED_TANGENT_WS", ShaderValueType.Float4,
+            public static FieldDescriptor positionRWS = new FieldDescriptor(VaryingsMeshToDS.name, "positionRWS", "VARYINGS_DS_NEED_POSITION_WS", ShaderValueType.Float3);
+            public static FieldDescriptor tessellationFactor = new FieldDescriptor(VaryingsMeshToDS.name, "tessellationFactor", "VARYINGS_DS_NEED_TESSELLATION_FACTOR", ShaderValueType.Float);
+            public static FieldDescriptor normalWS = new FieldDescriptor(VaryingsMeshToDS.name, "normalWS", "VARYINGS_DS_NEED_NORMAL_WS", ShaderValueType.Float3);
+            public static FieldDescriptor tangentWS = new FieldDescriptor(VaryingsMeshToDS.name, "tangentWS", "VARYINGS_DS_NEED_TANGENT_WS", ShaderValueType.Float4,
                 subscriptOptions: StructFieldOptions.Optional);
-            public static FieldDescriptor texCoord0 = new FieldDescriptor(VaryingsMeshToDS.name, "texCoord0", "VARYINGS_NEED_TEXCOORD0", ShaderValueType.Float4,
+            public static FieldDescriptor texCoord0 = new FieldDescriptor(VaryingsMeshToDS.name, "texCoord0", "VARYINGS_DS_NEED_TEXCOORD0", ShaderValueType.Float4,
                 subscriptOptions: StructFieldOptions.Optional);
-            public static FieldDescriptor texCoord1 = new FieldDescriptor(VaryingsMeshToDS.name, "texCoord1", "VARYINGS_NEED_TEXCOORD1", ShaderValueType.Float4,
+            public static FieldDescriptor texCoord1 = new FieldDescriptor(VaryingsMeshToDS.name, "texCoord1", "VARYINGS_DS_NEED_TEXCOORD1", ShaderValueType.Float4,
                 subscriptOptions: StructFieldOptions.Optional);
-            public static FieldDescriptor texCoord2 = new FieldDescriptor(VaryingsMeshToDS.name, "texCoord2", "VARYINGS_NEED_TEXCOORD2", ShaderValueType.Float4,
+            public static FieldDescriptor texCoord2 = new FieldDescriptor(VaryingsMeshToDS.name, "texCoord2", "VARYINGS_DS_NEED_TEXCOORD2", ShaderValueType.Float4,
                 subscriptOptions: StructFieldOptions.Optional);
-            public static FieldDescriptor texCoord3 = new FieldDescriptor(VaryingsMeshToDS.name, "texCoord3", "VARYINGS_NEED_TEXCOORD3", ShaderValueType.Float4,
+            public static FieldDescriptor texCoord3 = new FieldDescriptor(VaryingsMeshToDS.name, "texCoord3", "VARYINGS_DS_NEED_TEXCOORD3", ShaderValueType.Float4,
                 subscriptOptions: StructFieldOptions.Optional);
-            public static FieldDescriptor color = new FieldDescriptor(VaryingsMeshToDS.name, "color", "VARYINGS_NEED_COLOR", ShaderValueType.Float4,
+            public static FieldDescriptor color = new FieldDescriptor(VaryingsMeshToDS.name, "color", "VARYINGS_DS_NEED_COLOR", ShaderValueType.Float4,
                 subscriptOptions: StructFieldOptions.Optional);
             public static FieldDescriptor instanceID = new FieldDescriptor(VaryingsMeshToDS.name, "instanceID", "", ShaderValueType.Uint,
                 "INSTANCEID_SEMANTIC", "UNITY_ANY_INSTANCING_ENABLED");
@@ -99,6 +109,10 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                 subscriptOptions: StructFieldOptions.Optional);
             public static FieldDescriptor IsFrontFace = new FieldDescriptor(FragInputs.name, "isFrontFace", "", ShaderValueType.Boolean,
                 subscriptOptions: StructFieldOptions.Optional);
+
+            // VFX
+            public static FieldDescriptor worldToElement = new FieldDescriptor(FragInputs.name, "worldToElement", "", ShaderValueType.Matrix4, subscriptOptions: StructFieldOptions.Optional);
+            public static FieldDescriptor elementToWorld = new FieldDescriptor(FragInputs.name, "elementToWorld", "", ShaderValueType.Matrix4, subscriptOptions: StructFieldOptions.Optional);
         }
     }
 }

@@ -8,8 +8,14 @@
 PackedVaryingsType Vert(AttributesMesh inputMesh, AttributesPass inputPass)
 {
     VaryingsType varyingsType;
+#ifdef HAVE_VFX_MODIFICATION
+    AttributesElement inputElement;
+    varyingsType.vmesh = VertMesh(inputMesh, inputElement);
+    return MotionVectorVS(varyingsType, inputMesh, inputPass, inputElement);
+#else
     varyingsType.vmesh = VertMesh(inputMesh);
     return MotionVectorVS(varyingsType, inputMesh, inputPass);
+#endif
 }
 
 #ifdef TESSELLATION_ON
@@ -18,12 +24,7 @@ PackedVaryingsToPS VertTesselation(VaryingsToDS input)
 {
     VaryingsToPS output;
     output.vmesh = VertMeshTesselation(input.vmesh);
-    MotionVectorPositionZBias(output);
-
-    output.vpass.positionCS = input.vpass.positionCS;
-    output.vpass.previousPositionCS = input.vpass.previousPositionCS;
-
-    return PackVaryingsToPS(output);
+    return MotionVectorTessellation(output, input);
 }
 
 #endif // TESSELLATION_ON
@@ -63,6 +64,15 @@ PackedVaryingsToPS VertTesselation(VaryingsToDS input)
 #define EXTRA_BUFFER_TARGET SV_Target1
 #endif
 
+float GetDeExposureMultiplier()
+{
+#if defined(DISABLE_UNLIT_DEEXPOSURE)
+    return 1.0;
+#else
+    return _DeExposureMultiplier;
+#endif
+}
+
 void Frag(PackedVaryingsToPS packedInput,
             out float4 outColor : SV_Target0
         #ifdef UNITY_VIRTUAL_TEXTURING
@@ -72,7 +82,7 @@ void Frag(PackedVaryingsToPS packedInput,
             , out float4 outMotionVec : EXTRA_BUFFER_TARGET
         #endif
         #ifdef _DEPTHOFFSET_ON
-            , out float outputDepth : SV_Depth
+            , out float outputDepth : DEPTH_OFFSET_SEMANTIC
         #endif
 )
 {
@@ -108,7 +118,7 @@ void Frag(PackedVaryingsToPS packedInput,
 #endif
 
     // Note: we must not access bsdfData in shader pass, but for unlit we make an exception and assume it should have a color field
-    float4 outResult = ApplyBlendMode(bsdfData.color + builtinData.emissiveColor * GetCurrentExposureMultiplier(), builtinData.opacity);
+    float4 outResult = ApplyBlendMode(bsdfData.color*GetDeExposureMultiplier() + builtinData.emissiveColor * GetCurrentExposureMultiplier(), builtinData.opacity);
     outResult = EvaluateAtmosphericScattering(posInput, V, outResult);
 
 #ifdef DEBUG_DISPLAY
@@ -138,8 +148,8 @@ void Frag(PackedVaryingsToPS packedInput,
 
             // TEMP!
             // For now, the final blit in the backbuffer performs an sRGB write
-            // So in the meantime we apply the inverse transform to linear data to compensate.
-            if (!needLinearToSRGB)
+            // So in the meantime we apply the inverse transform to linear data to compensate, unless we output to AOVs.
+            if (!needLinearToSRGB && _DebugAOVOutput == 0)
                 result = SRGBToLinear(max(0, result));
 
             outResult = float4(result, 1.0);

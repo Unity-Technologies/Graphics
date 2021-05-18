@@ -59,6 +59,9 @@ namespace UnityEngine.Rendering.Universal.Internal
         RenderTargetIdentifier[] m_MRT2;
         Vector4[] m_BokehKernel;
         int m_BokehHash;
+        // Needed if the device changes its render target width/height (ex, Mobile platform allows change of orientation)
+        float m_BokehMaxRadius;
+        float m_BokehRCPAspect;
 
         // True when this is the very last pass in the pipeline
         bool m_IsFinalPass;
@@ -127,6 +130,7 @@ namespace UnityEngine.Rendering.Universal.Internal
 
             m_MRT2 = new RenderTargetIdentifier[2];
             m_ResetHistory = true;
+            base.useNativeRenderPass = false;
         }
 
         public void Cleanup() => m_Materials.Cleanup();
@@ -299,7 +303,7 @@ namespace UnityEngine.Rendering.Universal.Internal
 
         void Render(CommandBuffer cmd, ref RenderingData renderingData)
         {
-            ref var cameraData = ref renderingData.cameraData;
+            ref CameraData cameraData = ref renderingData.cameraData;
 
             // Don't use these directly unless you have a good reason to, use GetSource() and
             // GetDestination() instead
@@ -362,7 +366,10 @@ namespace UnityEngine.Rendering.Universal.Internal
             }
 
             // Depth of Field
-            if (m_DepthOfField.IsActive() && !isSceneViewCamera)
+            // Adreno 3xx SystemInfo.graphicsShaderLevel is 35, but instancing support is disabled due to buggy drivers.
+            // DOF shader uses #pragma target 3.5 which adds requirement for instancing support, thus marking the shader unsupported on those devices.
+            var dofMaterial = m_DepthOfField.mode.value == DepthOfFieldMode.Gaussian ? m_Materials.gaussianDepthOfField : m_Materials.bokehDepthOfField;
+            if (m_DepthOfField.IsActive() && !isSceneViewCamera && dofMaterial != null)
             {
                 var markerName = m_DepthOfField.mode.value == DepthOfFieldMode.Gaussian
                     ? URPProfileId.GaussianDepthOfField
@@ -372,6 +379,31 @@ namespace UnityEngine.Rendering.Universal.Internal
                 {
                     DoDepthOfField(cameraData.camera, cmd, GetSource(), GetDestination(), cameraData.pixelRect);
                     Swap();
+                }
+            }
+
+            // Lens Flare
+            if (!LensFlareCommonSRP.Instance.IsEmpty())
+            {
+                bool usePanini;
+                float paniniDistance;
+                float paniniCropToFit;
+                if (m_PaniniProjection.IsActive())
+                {
+                    usePanini = true;
+                    paniniDistance = m_PaniniProjection.distance.value;
+                    paniniCropToFit = m_PaniniProjection.cropToFit.value;
+                }
+                else
+                {
+                    usePanini = false;
+                    paniniDistance = 1.0f;
+                    paniniCropToFit = 1.0f;
+                }
+
+                using (new ProfilingScope(cmd, ProfilingSampler.Get(URPProfileId.LensFlareDataDriven)))
+                {
+                    DoLensFlareDatadriven(cameraData.camera, cmd, GetSource(), usePanini, paniniDistance, paniniCropToFit);
                 }
             }
 
@@ -427,6 +459,8 @@ namespace UnityEngine.Rendering.Universal.Internal
                 {
                     m_Materials.uber.EnableKeyword(ShaderKeywordStrings.UseFastSRGBLinearConversion);
                 }
+
+                GetActiveDebugHandler(renderingData)?.UpdateShaderGlobalPropertiesForFinalValidationPass(cmd, ref cameraData, !m_HasFinalPass);
 
                 // Done with Uber, blit it
                 cmd.SetGlobalTexture(ShaderPropertyId.sourceTex, GetSource());
@@ -566,7 +600,7 @@ namespace UnityEngine.Rendering.Universal.Internal
                 stencil = m_Depth.Identifier();
                 tempDepthBits = 0;
             }
-            cmd.GetTemporaryRT(ShaderConstants._EdgeTexture, GetCompatibleDescriptor(m_Descriptor.width, m_Descriptor.height, m_SMAAEdgeFormat, tempDepthBits), FilterMode.Point);
+            cmd.GetTemporaryRT(ShaderConstants._EdgeTexture, GetCompatibleDescriptor(m_Descriptor.width, m_Descriptor.height, m_SMAAEdgeFormat, tempDepthBits), FilterMode.Bilinear);
             cmd.GetTemporaryRT(ShaderConstants._BlendTexture, GetCompatibleDescriptor(m_Descriptor.width, m_Descriptor.height, GraphicsFormat.R8G8B8A8_UNorm), FilterMode.Point);
 
             // Prepare for manual blit
@@ -577,7 +611,7 @@ namespace UnityEngine.Rendering.Universal.Internal
             cmd.SetRenderTarget(new RenderTargetIdentifier(ShaderConstants._EdgeTexture, 0, CubemapFace.Unknown, -1),
                 RenderBufferLoadAction.DontCare, RenderBufferStoreAction.Store, stencil,
                 RenderBufferLoadAction.DontCare, RenderBufferStoreAction.Store);
-            cmd.ClearRenderTarget(true, true, Color.clear);
+            cmd.ClearRenderTarget(RTClearFlags.ColorStencil, Color.clear, 1.0f, 0);
             cmd.SetGlobalTexture(ShaderConstants._ColorTexture, source);
             DrawFullscreenMesh(cmd, material, 0);
 
@@ -678,7 +712,7 @@ namespace UnityEngine.Rendering.Universal.Internal
             cmd.ReleaseTemporaryRT(ShaderConstants._PongTexture);
         }
 
-        void PrepareBokehKernel()
+        void PrepareBokehKernel(float maxRadius, float rcpAspect)
         {
             const int kRings = 4;
             const int kPointsPerRing = 7;
@@ -714,7 +748,14 @@ namespace UnityEngine.Rendering.Universal.Internal
                     float u = r * Mathf.Cos(phi - rotation);
                     float v = r * Mathf.Sin(phi - rotation);
 
-                    m_BokehKernel[idx] = new Vector4(u, v);
+                    float uRadius = u * maxRadius;
+                    float vRadius = v * maxRadius;
+                    float uRadiusPowTwo = uRadius * uRadius;
+                    float vRadiusPowTwo = vRadius * vRadius;
+                    float kernelLength = Mathf.Sqrt((uRadiusPowTwo + vRadiusPowTwo));
+                    float uRCP = uRadius * rcpAspect;
+
+                    m_BokehKernel[idx] = new Vector4(uRadius, vRadius, kernelLength, uRCP);
                     idx++;
                 }
             }
@@ -748,10 +789,12 @@ namespace UnityEngine.Rendering.Universal.Internal
 
             // Prepare the bokeh kernel constant buffer
             int hash = m_DepthOfField.GetHashCode();
-            if (hash != m_BokehHash)
+            if (hash != m_BokehHash || maxRadius != m_BokehMaxRadius || rcpAspect != m_BokehRCPAspect)
             {
                 m_BokehHash = hash;
-                PrepareBokehKernel();
+                m_BokehMaxRadius = maxRadius;
+                m_BokehRCPAspect = rcpAspect;
+                PrepareBokehKernel(maxRadius, rcpAspect);
             }
 
             cmd.SetGlobalVectorArray(ShaderConstants._BokehKernel, m_BokehKernel);
@@ -763,6 +806,8 @@ namespace UnityEngine.Rendering.Universal.Internal
 
             PostProcessUtils.SetSourceSize(cmd, m_Descriptor);
             cmd.SetGlobalVector(ShaderConstants._DownSampleScaleFactor, new Vector4(1.0f / downSample, 1.0f / downSample, downSample, downSample));
+            float uvMargin = (1.0f / m_Descriptor.height) * downSample;
+            cmd.SetGlobalVector(ShaderConstants._BokehConstants, new Vector4(uvMargin, uvMargin * 2.0f));
 
             // Compute CoC
             Blit(cmd, source, ShaderConstants._FullCoCTexture, material, 0);
@@ -785,6 +830,42 @@ namespace UnityEngine.Rendering.Universal.Internal
             cmd.ReleaseTemporaryRT(ShaderConstants._FullCoCTexture);
             cmd.ReleaseTemporaryRT(ShaderConstants._PingTexture);
             cmd.ReleaseTemporaryRT(ShaderConstants._PongTexture);
+        }
+
+        #endregion
+
+        #region LensFlareDataDriven
+
+
+        static float GetLensFlareLightAttenuation(Light light, Camera cam, Vector3 wo)
+        {
+            // Must always be true
+            if (light != null)
+            {
+                switch (light.type)
+                {
+                    case LightType.Directional:
+                        return LensFlareCommonSRP.ShapeAttenuationDirLight(light.transform.forward, wo);
+                    case LightType.Point:
+                        return LensFlareCommonSRP.ShapeAttenuationPointLight();
+                    case LightType.Spot:
+                        return LensFlareCommonSRP.ShapeAttenuationSpotConeLight(light.transform.forward, wo, light.spotAngle, light.innerSpotAngle / 180.0f);
+                    default:
+                        return 1.0f;
+                }
+            }
+
+            return 1.0f;
+        }
+
+        void DoLensFlareDatadriven(Camera camera, CommandBuffer cmd, RenderTargetIdentifier source, bool usePanini, float paniniDistance, float paniniCropToFit)
+        {
+            LensFlareCommonSRP.DoLensFlareDataDrivenCommon(m_Materials.lensFlareDataDriven, LensFlareCommonSRP.Instance, camera, (float)Screen.width, (float)Screen.height,
+                usePanini, paniniDistance, paniniCropToFit,
+                cmd, source,
+                GetLensFlareLightAttenuation,
+                ShaderConstants._FlareTex, ShaderConstants._FlareColorValue,
+                ShaderConstants._FlareData0, ShaderConstants._FlareData1, ShaderConstants._FlareData2, ShaderConstants._FlareData3, ShaderConstants._FlareData4, ShaderConstants._FlareData5, false);
         }
 
         #endregion
@@ -1204,6 +1285,8 @@ namespace UnityEngine.Rendering.Universal.Internal
             if (RequireSRGBConversionBlitToBackBuffer(cameraData))
                 material.EnableKeyword(ShaderKeywordStrings.LinearToSRGBConversion);
 
+            GetActiveDebugHandler(renderingData)?.UpdateShaderGlobalPropertiesForFinalValidationPass(cmd, ref cameraData, m_IsFinalPass);
+
             cmd.SetGlobalTexture(ShaderPropertyId.sourceTex, m_Source.Identifier());
 
             var colorLoadAction = cameraData.isDefaultViewport ? RenderBufferLoadAction.DontCare : RenderBufferLoadAction.Load;
@@ -1260,6 +1343,7 @@ namespace UnityEngine.Rendering.Universal.Internal
             public readonly Material bloom;
             public readonly Material uber;
             public readonly Material finalPass;
+            public readonly Material lensFlareDataDriven;
 
             public MaterialLibrary(PostProcessData data)
             {
@@ -1272,6 +1356,7 @@ namespace UnityEngine.Rendering.Universal.Internal
                 bloom = Load(data.shaders.bloomPS);
                 uber = Load(data.shaders.uberPostPS);
                 finalPass = Load(data.shaders.finalPostPassPS);
+                lensFlareDataDriven = Load(data.shaders.LensFlareDataDrivenPS);
             }
 
             Material Load(Shader shader)
@@ -1317,6 +1402,7 @@ namespace UnityEngine.Rendering.Universal.Internal
             public static readonly int _DofTexture         = Shader.PropertyToID("_DofTexture");
             public static readonly int _CoCParams          = Shader.PropertyToID("_CoCParams");
             public static readonly int _BokehKernel        = Shader.PropertyToID("_BokehKernel");
+            public static readonly int _BokehConstants     = Shader.PropertyToID("_BokehConstants");
             public static readonly int _PongTexture        = Shader.PropertyToID("_PongTexture");
             public static readonly int _PingTexture        = Shader.PropertyToID("_PingTexture");
 
@@ -1345,6 +1431,15 @@ namespace UnityEngine.Rendering.Universal.Internal
             public static readonly int _InternalLut        = Shader.PropertyToID("_InternalLut");
             public static readonly int _UserLut            = Shader.PropertyToID("_UserLut");
             public static readonly int _DownSampleScaleFactor = Shader.PropertyToID("_DownSampleScaleFactor");
+
+            public static readonly int _FlareTex           = Shader.PropertyToID("_FlareTex");
+            public static readonly int _FlareColorValue    = Shader.PropertyToID("_FlareColorValue");
+            public static readonly int _FlareData0         = Shader.PropertyToID("_FlareData0");
+            public static readonly int _FlareData1         = Shader.PropertyToID("_FlareData1");
+            public static readonly int _FlareData2         = Shader.PropertyToID("_FlareData2");
+            public static readonly int _FlareData3         = Shader.PropertyToID("_FlareData3");
+            public static readonly int _FlareData4         = Shader.PropertyToID("_FlareData4");
+            public static readonly int _FlareData5         = Shader.PropertyToID("_FlareData5");
 
             public static readonly int _FullscreenProjMat  = Shader.PropertyToID("_FullscreenProjMat");
 

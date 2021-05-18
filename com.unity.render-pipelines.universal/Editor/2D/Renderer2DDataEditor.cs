@@ -1,12 +1,10 @@
-using UnityEditor.Rendering;
-using UnityEditor.Rendering.Universal;
 using UnityEngine;
-using UnityEngine.Experimental.Rendering.Universal;
+using UnityEngine.Rendering.Universal;
 
-namespace UnityEditor.Experimental.Rendering.Universal
+namespace UnityEditor.Rendering.Universal
 {
     [CustomEditor(typeof(Renderer2DData), true)]
-    internal class Renderer2DDataEditor : Editor
+    internal class Renderer2DDataEditor : ScriptableRendererDataEditor
     {
         class Styles
         {
@@ -31,7 +29,7 @@ namespace UnityEditor.Experimental.Rendering.Universal
             public static readonly GUIContent postProcessIncluded = EditorGUIUtility.TrTextContent("Enabled", "Turns post-processing on (check box selected) or off (check box cleared). If you clear this check box, Unity excludes post-processing render Passes, shaders, and textures from the build.");
             public static readonly GUIContent postProcessData = EditorGUIUtility.TrTextContent("Data", "The asset containing references to shaders and Textures that the Renderer uses for post-processing.");
 
-            public static readonly GUIContent cameraSortingLayerTextureHeader = EditorGUIUtility.TrTextContent("Camera Sorting Layers Texture", "Layers from back most to selected bounds will be rendered to _CameraSortingLayersTexture");
+            public static readonly GUIContent cameraSortingLayerTextureHeader = EditorGUIUtility.TrTextContent("Camera Sorting Layer Texture", "Layers from back most to selected bounds will be rendered to _CameraSortingLayerTexture");
             public static readonly GUIContent cameraSortingLayerTextureBound = EditorGUIUtility.TrTextContent("Bound", "Layers from back most to selected bounds will be rendered to _CameraSortingLayersTexture");
             public static readonly GUIContent cameraSortingLayerDownsampling = EditorGUIUtility.TrTextContent("Downsampling Method", "Method used to copy _CameraSortingLayersTexture");
         }
@@ -151,6 +149,9 @@ namespace UnityEditor.Experimental.Rendering.Universal
 
             m_WasModified |= serializedObject.hasModifiedProperties;
             serializedObject.ApplyModifiedProperties();
+
+            EditorGUILayout.Space();
+            base.OnInspectorGUI(); // Draw the base UI, contains ScriptableRenderFeatures list
         }
 
         public void DrawCameraSortingLayerTexture()
@@ -263,10 +264,11 @@ namespace UnityEditor.Experimental.Rendering.Universal
             {
                 m_PostProcessData.objectReferenceValue = postProcessIncluded ? UnityEngine.Rendering.Universal.PostProcessData.GetDefaultPostProcessData() : null;
             }
-            if (postProcessIncluded)
-            {
-                EditorGUILayout.PropertyField(m_PostProcessData, Styles.postProcessData);
-            }
+
+            EditorGUI.indentLevel++;
+            EditorGUILayout.PropertyField(m_PostProcessData, Styles.postProcessData);
+            EditorGUI.indentLevel--;
+
             EditorGUILayout.Space();
         }
     }

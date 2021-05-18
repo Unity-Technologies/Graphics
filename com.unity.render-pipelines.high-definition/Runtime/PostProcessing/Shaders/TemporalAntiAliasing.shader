@@ -16,7 +16,7 @@ Shader "Hidden/HDRP/TemporalAA"
         #pragma multi_compile_local_fragment _ ANTI_RINGING
         #pragma multi_compile_local_fragment LOW_QUALITY MEDIUM_QUALITY HIGH_QUALITY POST_DOF
 
-        #pragma only_renderers d3d11 playstation xboxone vulkan metal switch
+        #pragma only_renderers d3d11 playstation xboxone xboxseries vulkan metal switch
 
         #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Common.hlsl"
         #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Color.hlsl"
@@ -78,7 +78,7 @@ Shader "Hidden/HDRP/TemporalAA"
     #define HISTORY_CLIP DIRECT_CLIP
     #define ANTI_FLICKER 1
     #define ANTI_FLICKER_MV_DEPENDENT 1
-    #define VELOCITY_REJECTION (defined(ENABLE_MV_REJECTION) && 0)
+    #define VELOCITY_REJECTION defined(ENABLE_MV_REJECTION)
     #define PERCEPTUAL_SPACE 1
     #define PERCEPTUAL_SPACE_ONLY_END 0 && (PERCEPTUAL_SPACE == 0)
 
@@ -243,7 +243,7 @@ Shader "Hidden/HDRP/TemporalAA"
             _OutputHistoryTexture[COORD_TEXTURE2D_X(input.positionCS.xy)] = color.CTYPE_SWIZZLE;
             outColor = color.CTYPE_SWIZZLE;
 
-#if VELOCITY_REJECTION
+#if VELOCITY_REJECTION && !defined(POST_DOF)
             _OutputVelocityMagnitudeHistory[COORD_TEXTURE2D_X(input.positionCS.xy)] = lengthMV;
 #endif
             // -------------------------------------------------------------

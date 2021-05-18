@@ -265,6 +265,21 @@ float3 BlendLayeredVector3(float3 x0, float3 x1, float3 x2, float3 x3, float wei
     return result;
 }
 
+float2 BlendLayeredVector2(float2 x0, float2 x1, float2 x2, float2 x3, float weight[4])
+{
+    float2 result = float2(0.0, 0.0);
+
+    result = x0 * weight[0] + x1 * weight[1];
+#if _LAYER_COUNT >= 3
+    result += (x2 * weight[2]);
+#endif
+#if _LAYER_COUNT >= 4
+    result += x3 * weight[3];
+#endif
+
+    return result;
+}
+
 float BlendLayeredScalar(float x0, float x1, float x2, float x3, float weight[4])
 {
     float result = 0.0;
@@ -655,7 +670,7 @@ void GetSurfaceAndBuiltinData(FragInputs input, float3 V, inout PositionInputs p
     // When using lightmaps, the uv1 is always valid but we don't update _UVMappingMask.y to 1
     // So when we are using them, we just need to keep the UVs as is.
 #if !defined(LIGHTMAP_ON) && defined(SURFACE_GRADIENT)
-    input.texCoord1 = ((_UVMappingMask0.y + _UVMappingMask1.y + _UVMappingMask2.y + _UVMappingMask3.y + _UVDetailsMappingMask0.y + _UVDetailsMappingMask1.y + _UVDetailsMappingMask2.y + _UVDetailsMappingMask3.y) > 0) ? input.texCoord1 : 0;
+    input.texCoord1 = ((_UVMappingMask0.y + _UVMappingMask1.y + _UVMappingMask2.y + _UVMappingMask3.y + _UVDetailsMappingMask0.y + _UVDetailsMappingMask1.y + _UVDetailsMappingMask2.y + _UVDetailsMappingMask3.y + _UVMappingMaskEmissive.y) > 0) ? input.texCoord1 : 0;
 #endif
 
 // Don't dither if displaced tessellation (we're fading out the displacement instead to match the next LOD)
@@ -762,17 +777,27 @@ void GetSurfaceAndBuiltinData(FragInputs input, float3 V, inout PositionInputs p
     surfaceData.atDistance = 1000000.0;
     surfaceData.transmittanceMask = 0.0;
 
-    GetNormalWS(input, normalTS, surfaceData.normalWS, doubleSidedConstants);
-
     surfaceData.geomNormalWS = input.tangentToWorld[2];
 
-    surfaceData.specularOcclusion = 1.0; // This need to be init here to quiet the compiler in case of decal, but can be override later.
+    // This need to be init here to quiet the compiler in case of decal, but can be override later.
+    surfaceData.specularOcclusion = 1.0;
+    surfaceData.normalWS = float3(0.0, 0.0, 0.0);
 
-#if HAVE_DECALS
+#if HAVE_DECALS && (defined(DECAL_SURFACE_GRADIENT) && defined(SURFACE_GRADIENT))
+    if (_EnableDecals)
+    {
+        DecalSurfaceData decalSurfaceData = GetDecalSurfaceData(posInput, input, alpha);
+        ApplyDecalToSurfaceData(decalSurfaceData, input.tangentToWorld[2], surfaceData, normalTS);
+    }
+#endif
+
+    GetNormalWS(input, normalTS, surfaceData.normalWS, doubleSidedConstants);
+
+#if HAVE_DECALS && (!defined(DECAL_SURFACE_GRADIENT) || !defined(SURFACE_GRADIENT))
     if (_EnableDecals)
     {
         // Both uses and modifies 'surfaceData.normalWS'.
-        DecalSurfaceData decalSurfaceData = GetDecalSurfaceData(posInput, input.tangentToWorld[2], alpha);
+        DecalSurfaceData decalSurfaceData = GetDecalSurfaceData(posInput, input, alpha);
         ApplyDecalToSurfaceData(decalSurfaceData, input.tangentToWorld[2], surfaceData);
     }
 #endif

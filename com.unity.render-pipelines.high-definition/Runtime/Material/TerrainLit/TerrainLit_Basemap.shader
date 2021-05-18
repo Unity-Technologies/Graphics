@@ -42,7 +42,7 @@ Shader "Hidden/HDRP/TerrainLit_Basemap"
     HLSLINCLUDE
 
     #pragma target 4.5
-    #pragma only_renderers d3d11 playstation xboxone vulkan metal switch
+    #pragma only_renderers d3d11 playstation xboxone xboxseries vulkan metal switch
 
     #pragma shader_feature_local _DISABLE_DECALS
     #pragma shader_feature_local _TERRAIN_INSTANCED_PERPIXEL_NORMAL
@@ -209,7 +209,7 @@ Shader "Hidden/HDRP/TerrainLit_Basemap"
             #pragma multi_compile_fragment DECALS_OFF DECALS_3RT DECALS_4RT
 
             // Supported shadow modes per light type
-            #pragma multi_compile_fragment SHADOW_LOW SHADOW_MEDIUM SHADOW_HIGH
+            #pragma multi_compile_fragment SHADOW_LOW SHADOW_MEDIUM SHADOW_HIGH SHADOW_VERY_HIGH
 
             #pragma multi_compile USE_FPTL_LIGHTLIST USE_CLUSTERED_LIGHTLIST
 

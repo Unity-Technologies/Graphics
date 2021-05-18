@@ -199,12 +199,21 @@ float ConvertCloudDepth(float3 position)
 // Given that the sky is virtually a skybox, we cannot use the motion vector buffer
 float2 EvaluateCloudMotionVectors(float2 fullResCoord, float deviceDepth, float positionFlag)
 {
+#ifdef PLANAR_REFLECTION_CAMERA
+    PositionInputs posInput = GetPositionInput(fullResCoord, _ScreenSize.zw, deviceDepth, _CameraInverseViewProjection_NO, UNITY_MATRIX_V);
+#else
     PositionInputs posInput = GetPositionInput(fullResCoord, _ScreenSize.zw, deviceDepth, UNITY_MATRIX_I_VP, UNITY_MATRIX_V);
+#endif
     float4 worldPos = float4(posInput.positionWS, positionFlag);
     float4 prevPos = worldPos;
 
+#ifdef PLANAR_REFLECTION_CAMERA
+    float4 prevClipPos = mul(_CameraPrevViewProjection_NO, prevPos);
+    float4 curClipPos = mul(_CameraViewProjection_NO, worldPos);
+#else
     float4 prevClipPos = mul(UNITY_MATRIX_PREV_VP, prevPos);
     float4 curClipPos = mul(UNITY_MATRIX_UNJITTERED_VP, worldPos);
+#endif
 
     float2 previousPositionCS = prevClipPos.xy / prevClipPos.w;
     float2 positionCS = curClipPos.xy / curClipPos.w;
@@ -239,7 +248,7 @@ uint OffsetToLDSAdress(uint2 groupThreadId, int2 offset)
 {
     // Compute the tap coordinate in the 6x6 grid
     uint2 tapAddress = (uint2)((int2)(groupThreadId / 2 + 1) + offset);
-    return (uint)(tapAddress.x) % 6 + tapAddress.y * 6;
+    return clamp((uint)(tapAddress.x) % 6 + tapAddress.y * 6, 0, 35);
 }
 
 float GetCloudDepth_LDS(uint2 groupThreadId, int2 offset)

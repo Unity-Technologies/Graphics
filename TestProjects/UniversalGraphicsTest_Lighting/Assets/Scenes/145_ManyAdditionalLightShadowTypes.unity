@@ -23,7 +23,7 @@ RenderSettings:
   m_AmbientSkyColor: {r: 0.212, g: 0.227, b: 0.259, a: 1}
   m_AmbientEquatorColor: {r: 0.114, g: 0.125, b: 0.133, a: 1}
   m_AmbientGroundColor: {r: 0.047, g: 0.043, b: 0.035, a: 1}
-  m_AmbientIntensity: 1
+  m_AmbientIntensity: 0
   m_AmbientMode: 0
   m_SubtractiveShadowColor: {r: 0.42, g: 0.478, b: 0.627, a: 1}
   m_SkyboxMaterial: {fileID: 10304, guid: 0000000000000000f000000000000000, type: 0}
@@ -35,10 +35,10 @@ RenderSettings:
   m_DefaultReflectionMode: 0
   m_DefaultReflectionResolution: 128
   m_ReflectionBounces: 1
-  m_ReflectionIntensity: 1
+  m_ReflectionIntensity: 0
   m_CustomReflection: {fileID: 0}
   m_Sun: {fileID: 0}
-  m_IndirectSpecularColor: {r: 0, g: 0, b: 0, a: 1}
+  m_IndirectSpecularColor: {r: 0, g: 0, b: 0, a: 0}
   m_UseRadianceAmbientProbe: 0
 --- !u!157 &3
 LightmapSettings:
@@ -98,7 +98,8 @@ LightmapSettings:
     m_TrainingDataDestination: TrainingData
     m_LightProbeSampleCountMultiplier: 4
   m_LightingDataAsset: {fileID: 0}
-  m_LightingSettings: {fileID: 0}
+  m_LightingSettings: {fileID: 4890085278179872738, guid: 979946c4998b4fd458fa802bb92f527a,
+    type: 2}
 --- !u!196 &4
 NavMeshSettings:
   serializedVersion: 2
@@ -154,6 +155,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   m_UsePipelineSettings: 1
+  m_AdditionalLightsShadowResolutionTier: 0
 --- !u!108 &59419710
 Light:
   m_ObjectHideFlags: 0
@@ -273,6 +275,7 @@ MeshRenderer:
   m_CastShadows: 1
   m_ReceiveShadows: 1
   m_DynamicOccludee: 1
+  m_StaticShadowCaster: 0
   m_MotionVectors: 1
   m_LightProbeUsage: 1
   m_ReflectionProbeUsage: 1
@@ -368,6 +371,7 @@ MeshRenderer:
   m_CastShadows: 1
   m_ReceiveShadows: 1
   m_DynamicOccludee: 1
+  m_StaticShadowCaster: 0
   m_MotionVectors: 1
   m_LightProbeUsage: 1
   m_ReflectionProbeUsage: 1
@@ -463,6 +467,7 @@ MeshRenderer:
   m_CastShadows: 1
   m_ReceiveShadows: 1
   m_DynamicOccludee: 1
+  m_StaticShadowCaster: 0
   m_MotionVectors: 1
   m_LightProbeUsage: 1
   m_ReflectionProbeUsage: 1
@@ -559,6 +564,7 @@ MeshRenderer:
   m_CastShadows: 0
   m_ReceiveShadows: 1
   m_DynamicOccludee: 1
+  m_StaticShadowCaster: 0
   m_MotionVectors: 1
   m_LightProbeUsage: 1
   m_ReflectionProbeUsage: 1
@@ -642,6 +648,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   m_UsePipelineSettings: 0
+  m_AdditionalLightsShadowResolutionTier: 0
 --- !u!108 &207626285
 Light:
   m_ObjectHideFlags: 0
@@ -749,6 +756,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   m_UsePipelineSettings: 0
+  m_AdditionalLightsShadowResolutionTier: 0
 --- !u!108 &235683877
 Light:
   m_ObjectHideFlags: 0
@@ -869,6 +877,7 @@ MeshRenderer:
   m_CastShadows: 0
   m_ReceiveShadows: 1
   m_DynamicOccludee: 1
+  m_StaticShadowCaster: 0
   m_MotionVectors: 1
   m_LightProbeUsage: 1
   m_ReflectionProbeUsage: 1
@@ -964,6 +973,7 @@ MeshRenderer:
   m_CastShadows: 1
   m_ReceiveShadows: 1
   m_DynamicOccludee: 1
+  m_StaticShadowCaster: 0
   m_MotionVectors: 1
   m_LightProbeUsage: 1
   m_ReflectionProbeUsage: 1
@@ -1047,6 +1057,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   m_UsePipelineSettings: 1
+  m_AdditionalLightsShadowResolutionTier: 0
 --- !u!108 &311770766
 Light:
   m_ObjectHideFlags: 0
@@ -1166,6 +1177,7 @@ MeshRenderer:
   m_CastShadows: 1
   m_ReceiveShadows: 1
   m_DynamicOccludee: 1
+  m_StaticShadowCaster: 0
   m_MotionVectors: 1
   m_LightProbeUsage: 1
   m_ReflectionProbeUsage: 1
@@ -1249,6 +1261,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   m_UsePipelineSettings: 0
+  m_AdditionalLightsShadowResolutionTier: 0
 --- !u!108 &375490807
 Light:
   m_ObjectHideFlags: 0
@@ -1356,6 +1369,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   m_UsePipelineSettings: 1
+  m_AdditionalLightsShadowResolutionTier: 0
 --- !u!108 &379915655
 Light:
   m_ObjectHideFlags: 0
@@ -1475,6 +1489,7 @@ MeshRenderer:
   m_CastShadows: 1
   m_ReceiveShadows: 1
   m_DynamicOccludee: 1
+  m_StaticShadowCaster: 0
   m_MotionVectors: 1
   m_LightProbeUsage: 1
   m_ReflectionProbeUsage: 1
@@ -1558,6 +1573,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   m_UsePipelineSettings: 0
+  m_AdditionalLightsShadowResolutionTier: 0
 --- !u!108 &418713317
 Light:
   m_ObjectHideFlags: 0
@@ -1665,6 +1681,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   m_UsePipelineSettings: 0
+  m_AdditionalLightsShadowResolutionTier: 0
 --- !u!108 &499992453
 Light:
   m_ObjectHideFlags: 0
@@ -1772,6 +1789,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   m_UsePipelineSettings: 0
+  m_AdditionalLightsShadowResolutionTier: 0
 --- !u!108 &547578328
 Light:
   m_ObjectHideFlags: 0
@@ -1879,6 +1897,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   m_UsePipelineSettings: 0
+  m_AdditionalLightsShadowResolutionTier: 0
 --- !u!108 &634524179
 Light:
   m_ObjectHideFlags: 0
@@ -1999,6 +2018,7 @@ MeshRenderer:
   m_CastShadows: 0
   m_ReceiveShadows: 1
   m_DynamicOccludee: 1
+  m_StaticShadowCaster: 0
   m_MotionVectors: 1
   m_LightProbeUsage: 1
   m_ReflectionProbeUsage: 1
@@ -2094,6 +2114,7 @@ MeshRenderer:
   m_CastShadows: 1
   m_ReceiveShadows: 1
   m_DynamicOccludee: 1
+  m_StaticShadowCaster: 0
   m_MotionVectors: 1
   m_LightProbeUsage: 1
   m_ReflectionProbeUsage: 1
@@ -2177,6 +2198,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   m_UsePipelineSettings: 0
+  m_AdditionalLightsShadowResolutionTier: 0
 --- !u!108 &667598358
 Light:
   m_ObjectHideFlags: 0
@@ -2284,6 +2306,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   m_UsePipelineSettings: 0
+  m_AdditionalLightsShadowResolutionTier: 0
 --- !u!108 &704330138
 Light:
   m_ObjectHideFlags: 0
@@ -2391,6 +2414,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   m_UsePipelineSettings: 0
+  m_AdditionalLightsShadowResolutionTier: 0
 --- !u!108 &732748148
 Light:
   m_ObjectHideFlags: 0
@@ -2498,6 +2522,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   m_UsePipelineSettings: 1
+  m_AdditionalLightsShadowResolutionTier: 0
 --- !u!108 &788999776
 Light:
   m_ObjectHideFlags: 0
@@ -2605,6 +2630,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   m_UsePipelineSettings: 0
+  m_AdditionalLightsShadowResolutionTier: 0
 --- !u!108 &793072102
 Light:
   m_ObjectHideFlags: 0
@@ -2712,6 +2738,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   m_UsePipelineSettings: 0
+  m_AdditionalLightsShadowResolutionTier: 0
 --- !u!108 &915782159
 Light:
   m_ObjectHideFlags: 0
@@ -2819,6 +2846,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   m_UsePipelineSettings: 0
+  m_AdditionalLightsShadowResolutionTier: 0
 --- !u!108 &931003734
 Light:
   m_ObjectHideFlags: 0
@@ -2926,6 +2954,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   m_UsePipelineSettings: 0
+  m_AdditionalLightsShadowResolutionTier: 0
 --- !u!108 &959729796
 Light:
   m_ObjectHideFlags: 0
@@ -3109,6 +3138,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   m_UsePipelineSettings: 1
+  m_AdditionalLightsShadowResolutionTier: 0
 --- !u!1 &998759175
 GameObject:
   m_ObjectHideFlags: 0
@@ -3140,6 +3170,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   m_UsePipelineSettings: 0
+  m_AdditionalLightsShadowResolutionTier: 0
 --- !u!108 &998759177
 Light:
   m_ObjectHideFlags: 0
@@ -3247,6 +3278,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   m_UsePipelineSettings: 0
+  m_AdditionalLightsShadowResolutionTier: 0
 --- !u!108 &1009371068
 Light:
   m_ObjectHideFlags: 0
@@ -3354,6 +3386,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   m_UsePipelineSettings: 0
+  m_AdditionalLightsShadowResolutionTier: 0
 --- !u!108 &1019188792
 Light:
   m_ObjectHideFlags: 0
@@ -3461,6 +3494,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   m_UsePipelineSettings: 0
+  m_AdditionalLightsShadowResolutionTier: 0
 --- !u!108 &1058897401
 Light:
   m_ObjectHideFlags: 0
@@ -3568,6 +3602,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   m_UsePipelineSettings: 0
+  m_AdditionalLightsShadowResolutionTier: 0
 --- !u!108 &1108469467
 Light:
   m_ObjectHideFlags: 0
@@ -3687,6 +3722,7 @@ MeshRenderer:
   m_CastShadows: 1
   m_ReceiveShadows: 1
   m_DynamicOccludee: 1
+  m_StaticShadowCaster: 0
   m_MotionVectors: 1
   m_LightProbeUsage: 1
   m_ReflectionProbeUsage: 1
@@ -3770,6 +3806,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   m_UsePipelineSettings: 0
+  m_AdditionalLightsShadowResolutionTier: 0
 --- !u!108 &1118592634
 Light:
   m_ObjectHideFlags: 0
@@ -3877,6 +3914,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   m_UsePipelineSettings: 0
+  m_AdditionalLightsShadowResolutionTier: 0
 --- !u!108 &1120593503
 Light:
   m_ObjectHideFlags: 0
@@ -3984,6 +4022,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   m_UsePipelineSettings: 0
+  m_AdditionalLightsShadowResolutionTier: 0
 --- !u!108 &1134827865
 Light:
   m_ObjectHideFlags: 0
@@ -4091,6 +4130,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   m_UsePipelineSettings: 0
+  m_AdditionalLightsShadowResolutionTier: 0
 --- !u!108 &1174698820
 Light:
   m_ObjectHideFlags: 0
@@ -4211,6 +4251,7 @@ MeshRenderer:
   m_CastShadows: 1
   m_ReceiveShadows: 1
   m_DynamicOccludee: 1
+  m_StaticShadowCaster: 0
   m_MotionVectors: 1
   m_LightProbeUsage: 1
   m_ReflectionProbeUsage: 1
@@ -4294,6 +4335,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   m_UsePipelineSettings: 1
+  m_AdditionalLightsShadowResolutionTier: 0
 --- !u!108 &1235592935
 Light:
   m_ObjectHideFlags: 0
@@ -4551,6 +4593,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   m_UsePipelineSettings: 1
+  m_AdditionalLightsShadowResolutionTier: 0
 --- !u!1 &1348592348
 GameObject:
   m_ObjectHideFlags: 0
@@ -4582,6 +4625,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   m_UsePipelineSettings: 0
+  m_AdditionalLightsShadowResolutionTier: 0
 --- !u!108 &1348592350
 Light:
   m_ObjectHideFlags: 0
@@ -4782,6 +4826,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   m_UsePipelineSettings: 0
+  m_AdditionalLightsShadowResolutionTier: 0
 --- !u!108 &1441734906
 Light:
   m_ObjectHideFlags: 0
@@ -4971,6 +5016,7 @@ MonoBehaviour:
   m_StopNaN: 0
   m_Dithering: 0
   m_ClearDepth: 1
+  m_AllowXRRendering: 1
   m_RequiresDepthTexture: 0
   m_RequiresColorTexture: 0
   m_Version: 2
@@ -4990,10 +5036,15 @@ MonoBehaviour:
     TargetWidth: 640
     TargetHeight: 360
     PerPixelCorrectnessThreshold: 0.0001
+    PerPixelGammaThreshold: 0.003921569
+    PerPixelAlphaThreshold: 0.003921569
     AverageCorrectnessThreshold: 0.0011
+    IncorrectPixelsThreshold: 0.0000038146973
     UseHDR: 0
     UseBackBuffer: 0
     ImageResolution: 4
+    ActiveImageTests: 1
+    ActivePixelTests: 7
   WaitFrames: 0
   XRCompatible: 1
 --- !u!1 &1453190985
@@ -5027,6 +5078,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   m_UsePipelineSettings: 0
+  m_AdditionalLightsShadowResolutionTier: 0
 --- !u!108 &1453190987
 Light:
   m_ObjectHideFlags: 0
@@ -5134,6 +5186,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   m_UsePipelineSettings: 0
+  m_AdditionalLightsShadowResolutionTier: 0
 --- !u!108 &1482455559
 Light:
   m_ObjectHideFlags: 0
@@ -5241,6 +5294,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   m_UsePipelineSettings: 0
+  m_AdditionalLightsShadowResolutionTier: 0
 --- !u!108 &1494897975
 Light:
   m_ObjectHideFlags: 0
@@ -5348,6 +5402,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   m_UsePipelineSettings: 0
+  m_AdditionalLightsShadowResolutionTier: 0
 --- !u!108 &1496613410
 Light:
   m_ObjectHideFlags: 0
@@ -5455,6 +5510,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   m_UsePipelineSettings: 0
+  m_AdditionalLightsShadowResolutionTier: 0
 --- !u!108 &1524675013
 Light:
   m_ObjectHideFlags: 0
@@ -5562,6 +5618,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   m_UsePipelineSettings: 0
+  m_AdditionalLightsShadowResolutionTier: 0
 --- !u!108 &1536612269
 Light:
   m_ObjectHideFlags: 0
@@ -5669,6 +5726,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   m_UsePipelineSettings: 0
+  m_AdditionalLightsShadowResolutionTier: 0
 --- !u!108 &1571177241
 Light:
   m_ObjectHideFlags: 0
@@ -5776,6 +5834,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   m_UsePipelineSettings: 0
+  m_AdditionalLightsShadowResolutionTier: 0
 --- !u!108 &1590391640
 Light:
   m_ObjectHideFlags: 0
@@ -5896,6 +5955,7 @@ MeshRenderer:
   m_CastShadows: 1
   m_ReceiveShadows: 1
   m_DynamicOccludee: 1
+  m_StaticShadowCaster: 0
   m_MotionVectors: 1
   m_LightProbeUsage: 1
   m_ReflectionProbeUsage: 1
@@ -5979,6 +6039,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   m_UsePipelineSettings: 0
+  m_AdditionalLightsShadowResolutionTier: 0
 --- !u!108 &1633532941
 Light:
   m_ObjectHideFlags: 0
@@ -6099,6 +6160,7 @@ MeshRenderer:
   m_CastShadows: 0
   m_ReceiveShadows: 1
   m_DynamicOccludee: 1
+  m_StaticShadowCaster: 0
   m_MotionVectors: 1
   m_LightProbeUsage: 1
   m_ReflectionProbeUsage: 1
@@ -6182,6 +6244,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   m_UsePipelineSettings: 0
+  m_AdditionalLightsShadowResolutionTier: 0
 --- !u!108 &1781656402
 Light:
   m_ObjectHideFlags: 0
@@ -6289,6 +6352,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   m_UsePipelineSettings: 0
+  m_AdditionalLightsShadowResolutionTier: 0
 --- !u!108 &1838311767
 Light:
   m_ObjectHideFlags: 0
@@ -6396,6 +6460,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   m_UsePipelineSettings: 0
+  m_AdditionalLightsShadowResolutionTier: 0
 --- !u!108 &1884085659
 Light:
   m_ObjectHideFlags: 0
@@ -6503,6 +6568,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   m_UsePipelineSettings: 0
+  m_AdditionalLightsShadowResolutionTier: 0
 --- !u!108 &1889173091
 Light:
   m_ObjectHideFlags: 0
@@ -6623,6 +6689,7 @@ MeshRenderer:
   m_CastShadows: 0
   m_ReceiveShadows: 1
   m_DynamicOccludee: 1
+  m_StaticShadowCaster: 0
   m_MotionVectors: 1
   m_LightProbeUsage: 1
   m_ReflectionProbeUsage: 1
@@ -6706,6 +6773,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   m_UsePipelineSettings: 0
+  m_AdditionalLightsShadowResolutionTier: 0
 --- !u!108 &1971629827
 Light:
   m_ObjectHideFlags: 0
@@ -6825,6 +6893,7 @@ MeshRenderer:
   m_CastShadows: 1
   m_ReceiveShadows: 1
   m_DynamicOccludee: 1
+  m_StaticShadowCaster: 0
   m_MotionVectors: 1
   m_LightProbeUsage: 1
   m_ReflectionProbeUsage: 1
@@ -6921,6 +6990,7 @@ MeshRenderer:
   m_CastShadows: 0
   m_ReceiveShadows: 1
   m_DynamicOccludee: 1
+  m_StaticShadowCaster: 0
   m_MotionVectors: 1
   m_LightProbeUsage: 1
   m_ReflectionProbeUsage: 1
@@ -7004,6 +7074,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   m_UsePipelineSettings: 0
+  m_AdditionalLightsShadowResolutionTier: 0
 --- !u!108 &2030414055
 Light:
   m_ObjectHideFlags: 0
@@ -7123,6 +7194,7 @@ MeshRenderer:
   m_CastShadows: 1
   m_ReceiveShadows: 1
   m_DynamicOccludee: 1
+  m_StaticShadowCaster: 0
   m_MotionVectors: 1
   m_LightProbeUsage: 1
   m_ReflectionProbeUsage: 1
@@ -7206,6 +7278,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   m_UsePipelineSettings: 0
+  m_AdditionalLightsShadowResolutionTier: 0
 --- !u!108 &2114053040
 Light:
   m_ObjectHideFlags: 0

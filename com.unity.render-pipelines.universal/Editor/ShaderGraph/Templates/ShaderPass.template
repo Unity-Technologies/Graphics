@@ -28,12 +28,7 @@ $splice(PassKeywords)
 $splice(GraphKeywords)
 
 // Defines
-$SurfaceType.Transparent:           #define _SURFACE_TYPE_TRANSPARENT 1
-$AlphaClip: #define _AlphaClip 1
 $Normal: #define _NORMALMAP 1
-$SpecularSetup: #define _SPECULAR_SETUP
-$BlendMode.Add: #define _BLENDMODE_ADD 1
-$BlendMode.Premultiply: #define _ALPHAPREMULTIPLY_ON 1
 $NormalDropOffTS: #define _NORMAL_DROPOFF_TS 1
 $NormalDropOffOS: #define _NORMAL_DROPOFF_OS 1
 $NormalDropOffWS: #define _NORMAL_DROPOFF_WS 1
@@ -57,6 +52,7 @@ $Varyings.viewDirectionWS: #define VARYINGS_NEED_VIEWDIRECTION_WS
 $Varyings.bitangentWS: #define VARYINGS_NEED_BITANGENT_WS
 $Varyings.screenPosition: #define VARYINGS_NEED_SCREENPOSITION
 $Varyings.fogFactorAndVertexLight: #define VARYINGS_NEED_FOG_AND_VERTEX_LIGHT
+$Varyings.shadowCoord: #define VARYINGS_NEED_SHADOW_COORD
 $Varyings.cullFace: #define VARYINGS_NEED_CULLFACE
 $features.graphVertex: #define FEATURES_GRAPH_VERTEX
 $Universal.UseLegacySpriteBlocks: #define UNIVERSAL_USELEGACYSPRITEBLOCKS
@@ -64,11 +60,18 @@ $splice(PassInstancing)
 $splice(GraphDefines)
 $splice(DotsInstancingVars)
 
+
+// custom interpolator pre-include
+$splice(sgci_CustomInterpolatorPreInclude)
+
 // Includes
 $splice(PreGraphIncludes)
 
 // --------------------------------------------------
 // Structs and Packing
+
+// custom interpolators pre packing
+$splice(CustomInterpolatorPrePacking)
 
 $splice(PassStructs)
 
@@ -80,11 +83,20 @@ $splice(InterpolatorPack)
 // Graph Properties
 $splice(GraphProperties)
 
+// Graph Includes
+$splice(GraphIncludes)
+
 // Graph Functions
 $splice(GraphFunctions)
 
+// Custom interpolators pre vertex
+$splice(CustomInterpolatorPreVertex)
+
 // Graph Vertex
 $splice(GraphVertex)
+
+// Custom interpolators, pre surface
+$splice(CustomInterpolatorPreSurface)
 
 // Graph Pixel
 $splice(GraphPixel)

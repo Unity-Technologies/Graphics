@@ -32,6 +32,7 @@ namespace UnityEditor.Rendering.HighDefinition
         public SerializedProperty RTRRayLength;
         public SerializedProperty RTRClampValue;
         public SerializedProperty RTRFullResolution;
+        public SerializedProperty RTRRayMaxIterations;
         public SerializedProperty RTRDenoise;
         public SerializedProperty RTRDenoiserRadius;
         public SerializedProperty RTRSmoothDenoising;
@@ -41,10 +42,15 @@ namespace UnityEditor.Rendering.HighDefinition
         public SerializedProperty RTGIFullResolution;
         public SerializedProperty RTGIClampValue;
         public SerializedProperty RTGIUpScaleRadius;
+        public SerializedProperty RTGIRaySteps;
         public SerializedProperty RTGIDenoise;
         public SerializedProperty RTGIHalfResDenoise;
         public SerializedProperty RTGIDenoiserRadius;
         public SerializedProperty RTGISecondDenoise;
+
+        // Screen Space Global Illumination
+        public SerializedProperty SSGIRaySteps;
+        public SerializedProperty SSGIFilterRadius;
 
         // Fog
         public SerializedProperty VolumetricFogBudget;
@@ -79,6 +85,7 @@ namespace UnityEditor.Rendering.HighDefinition
             RTRRayLength = root.Find((GlobalLightingQualitySettings s) => s.RTRRayLength);
             RTRClampValue = root.Find((GlobalLightingQualitySettings s) => s.RTRClampValue);
             RTRFullResolution = root.Find((GlobalLightingQualitySettings s) => s.RTRFullResolution);
+            RTRRayMaxIterations = root.Find((GlobalLightingQualitySettings s) => s.RTRRayMaxIterations);
             RTRDenoise = root.Find((GlobalLightingQualitySettings s) => s.RTRDenoise);
             RTRDenoiserRadius = root.Find((GlobalLightingQualitySettings s) => s.RTRDenoiserRadius);
             RTRSmoothDenoising = root.Find((GlobalLightingQualitySettings s) => s.RTRSmoothDenoising);
@@ -88,10 +95,15 @@ namespace UnityEditor.Rendering.HighDefinition
             RTGIFullResolution = root.Find((GlobalLightingQualitySettings s) => s.RTGIFullResolution);
             RTGIClampValue = root.Find((GlobalLightingQualitySettings s) => s.RTGIClampValue);
             RTGIUpScaleRadius = root.Find((GlobalLightingQualitySettings s) => s.RTGIUpScaleRadius);
+            RTGIRaySteps = root.Find((GlobalLightingQualitySettings s) => s.RTGIRaySteps);
             RTGIDenoise = root.Find((GlobalLightingQualitySettings s) => s.RTGIDenoise);
             RTGIHalfResDenoise = root.Find((GlobalLightingQualitySettings s) => s.RTGIHalfResDenoise);
             RTGIDenoiserRadius = root.Find((GlobalLightingQualitySettings s) => s.RTGIDenoiserRadius);
             RTGISecondDenoise = root.Find((GlobalLightingQualitySettings s) => s.RTGISecondDenoise);
+
+            // Screen Space Global Illumination
+            SSGIRaySteps = root.Find((GlobalLightingQualitySettings s) => s.SSGIRaySteps);
+            SSGIFilterRadius = root.Find((GlobalLightingQualitySettings s) => s.SSGIFilterRadius);
 
             // Fog
             VolumetricFogBudget = root.Find((GlobalLightingQualitySettings s) => s.Fog_Budget);

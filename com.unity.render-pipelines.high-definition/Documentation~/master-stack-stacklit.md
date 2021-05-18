@@ -39,7 +39,18 @@ When you create a new Hair Master Stack, the Vertex Context contains the followi
 
 #### Relevant
 
-This Master Stack material type adds all its Vertex Blocks to the Vertex Context by default and has no extra relevant Blocks.
+Depending on the [Graph Settings](#graph-settings) you use, Shader Graph can add the following Blocks to the Vertex Context:
+
+<table>
+<tr>
+<th>Property</th>
+<th>Description</th>
+<th>Setting Dependency</th>
+<th>Default Value</th>
+</tr>
+[!include[](snippets/shader-graph-blocks/tessellation-factor.md)]
+[!include[](snippets/shader-graph-blocks/tessellation-displacement.md)]
+</table>
 
 ### Fragment Context
 
@@ -98,7 +109,7 @@ Depending on the [Graph Settings](#graph-settings) you use, Shader Graph can add
 [!include[](snippets/shader-graph-blocks/iridescence-coat-fixup-tir-clamp.md)]
 [!include[](snippets/shader-graph-blocks/iridescence-thickness.md)]
 [!include[](snippets/shader-graph-blocks/iridescence-mask.md)]
-[!include[](snippets/shader-graph-blocks/haze-extents.md)]
+[!include[](snippets/shader-graph-blocks/haze-extent.md)]
 [!include[](snippets/shader-graph-blocks/haziness.md)]
 [!include[](snippets/shader-graph-blocks/hazy-gloss-max-dielectric-f0.md)]
 [!include[](snippets/shader-graph-blocks/lobe-mix.md)]
@@ -147,9 +158,11 @@ Depending on the [Graph Settings](#graph-settings) you use, Shader Graph can add
 [!include[](snippets/shader-properties/surface-options/receive-ssr-transparent.md)]
 [!include[](snippets/shader-properties/surface-options/geometric-specular-aa.md)]
 [!include[](snippets/shader-properties/surface-options/ss-depth-offset.md)]
+[!include[](snippets/shader-properties/surface-options/conservative-depth-offset.md)]
+[!include[](snippets/shader-properties/surface-options/tessellation.md)]
 [!include[](snippets/shader-properties/surface-options/base-color-parametrization.md)]
 [!include[](snippets/shader-properties/surface-options/energy-conserving-specular.md)]
-[!include[](snippets/shader-properties/surface-options/anisotropy.md)]
+[!include[](snippets/shader-properties/surface-options/anisotropy-stacklit.md)]
 [!include[](snippets/shader-properties/surface-options/coat.md)]
 [!include[](snippets/shader-properties/surface-options/coat-normal.md)]
 [!include[](snippets/shader-properties/surface-options/dual-specular-lobe.md)]
@@ -160,8 +173,8 @@ Depending on the [Graph Settings](#graph-settings) you use, Shader Graph can add
 [!include[](snippets/shader-properties/surface-options/specular-occlusion-mode-stacklit.md)]
 [!include[](snippets/shader-properties/surface-options/anisotropy-for-area-lights.md)]
 [!include[](snippets/shader-properties/surface-options/base-layer-uses-refracted-angles.md)]
-[!include[](snippets/shader-properties/surface-options/recompute-stack-and-iridescence.md
-[!include[](snippets/shader-properties/surface-options/honor-per-light-max-smoothness.md
+[!include[](snippets/shader-properties/surface-options/recompute-stack-and-iridescence.md)]
+[!include[](snippets/shader-properties/surface-options/honor-per-light-max-smoothness.md)]
 </table>
 
 ### Distortion
@@ -189,4 +202,14 @@ This set of settings only appears if you set **Surface Type** to **Transparent**
 [!include[](snippets/shader-properties/advanced-options/override-baked-gi.md)]
 [!include[](snippets/shader-properties/advanced-options/support-lod-crossfade.md)]
 [!include[](snippets/shader-properties/advanced-options/add-precomputed-velocity.md)]
+</table>
+
+### Other top level settings
+
+<table>
+<tr>
+<th>Property</th>
+<th>Description</th>
+</tr>
+[!include[](snippets/shader-properties/support-vfx-graph.md)]
 </table>
