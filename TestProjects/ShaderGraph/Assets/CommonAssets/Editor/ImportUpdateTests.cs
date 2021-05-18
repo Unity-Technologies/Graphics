@@ -143,6 +143,25 @@ namespace UnityEditor.ShaderGraph.UnitTests
                 string shader2 = generator2.generatedShader;
 
                 Assert.AreEqual(shader, shader2, $"Importing the graph {unityLocalPath} twice resulted in different generated shaders.");
+
+                // compile all of the passes
+                Shader shaderAsset = AssetDatabase.LoadAssetAtPath<Shader>(unityLocalPath);
+                if (shaderAsset == null)
+                {
+                    // it's ok if the shader couldn't be loaded -- probably an HDRP shader
+                    Debug.Log("Could not load Shader");
+                }
+                else
+                {
+                    // if it was loaded though, check there are no compilation errors
+                    var mat = new Material(shaderAsset) { hideFlags = HideFlags.HideAndDontSave };
+                    int materialPassCount = mat.passCount;
+                    for (var i = 0; i < materialPassCount; i++)
+                    {
+                        ShaderUtil.CompilePass(mat, i, true);
+                    }
+                    Object.DestroyImmediate(mat);
+                }
             }
         }
 
