@@ -164,7 +164,7 @@ namespace UnityEngine.Rendering.Universal
 #if ENABLE_VR && ENABLE_XR_MODULE
             useRenderPassEnabled = false;
 #else
-            useRenderPassEnabled = data.useNativeRenderPass && SystemInfo.graphicsDeviceType != GraphicsDeviceType.OpenGLES2 && !ENABLE_VR;
+            useRenderPassEnabled = data.useNativeRenderPass && SystemInfo.graphicsDeviceType != GraphicsDeviceType.OpenGLES2;
 #endif
 
 #if UNITY_ANDROID || UNITY_IOS || UNITY_TVOS
