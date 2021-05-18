@@ -17,9 +17,7 @@ namespace UnityEngine.Rendering.Universal
         {
             public override void Action(int instanceId, string pathName, string resourceFile)
             {
-                var instance = CreateInstance<UniversalRendererData>();
-                instance.postProcessData = PostProcessData.GetDefaultPostProcessData();
-                AssetDatabase.CreateAsset(instance, pathName);
+                var instance = UniversalRenderPipelineAsset.CreateRendererAsset(pathName, RendererType.UniversalRenderer, false) as UniversalRendererData;
                 ResourceReloader.ReloadAllNullIn(instance, UniversalRenderPipelineAsset.packagePath);
                 Selection.activeObject = instance;
             }

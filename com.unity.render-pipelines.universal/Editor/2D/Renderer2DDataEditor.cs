@@ -265,10 +265,9 @@ namespace UnityEditor.Rendering.Universal
                 m_PostProcessData.objectReferenceValue = postProcessIncluded ? UnityEngine.Rendering.Universal.PostProcessData.GetDefaultPostProcessData() : null;
             }
 
-            // this field is no longer hidden by the checkbox. It is bad UX to begin with
-            // also, if the field is hidden, the user could still use Asset Selector to set the value, but it won't stick
-            // making it look like a bug(1307128)
+            EditorGUI.indentLevel++;
             EditorGUILayout.PropertyField(m_PostProcessData, Styles.postProcessData);
+            EditorGUI.indentLevel--;
 
             EditorGUILayout.Space();
         }
