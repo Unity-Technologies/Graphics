@@ -221,7 +221,7 @@ namespace UnityEditor
                 m_FirstTimeApply = false;
             }
 
-            m_MaterialScopeList.DrawHeaders(materialEditor, material);
+            ShaderPropertiesGUI(material);
         }
 
         public virtual void OnOpenGUI(Material material, MaterialEditor materialEditor)
@@ -233,6 +233,11 @@ namespace UnityEditor
             FillAdditionalFoldouts(m_MaterialScopeList);
 
             m_MaterialScopeList.RegisterHeaderScope(Styles.AdvancedLabel, (uint)Expandable.Advanced, DrawAdvancedOptions);
+        }
+
+        public void ShaderPropertiesGUI(Material material)
+        {
+            m_MaterialScopeList.DrawHeaders(materialEditor, material);
         }
 
         #endregion
