@@ -165,7 +165,7 @@ namespace UnityEngine.Rendering.Universal
                 // only override existing non destructive actions
                 for (int i = 0; i < 8; ++i)
                 {
-                    if (m_FinalColorStoreAction[i] == RenderBufferStoreAction.Store || m_FinalColorStoreAction[i] == RenderBufferStoreAction.StoreAndResolve)
+                    if (m_FinalColorStoreAction[i] == RenderBufferStoreAction.Store || m_FinalColorStoreAction[i] == RenderBufferStoreAction.StoreAndResolve || pass.overriddenColorStoreActions[i])
                         m_FinalColorStoreAction[i] = pass.colorStoreActions[i];
 
                     if (samples > 1)
@@ -178,7 +178,7 @@ namespace UnityEngine.Rendering.Universal
                 }
 
                 // only override existing store
-                if (m_FinalDepthStoreAction == RenderBufferStoreAction.Store || (m_FinalDepthStoreAction == RenderBufferStoreAction.StoreAndResolve && pass.depthStoreAction == RenderBufferStoreAction.Resolve))
+                if (m_FinalDepthStoreAction == RenderBufferStoreAction.Store || (m_FinalDepthStoreAction == RenderBufferStoreAction.StoreAndResolve && pass.depthStoreAction == RenderBufferStoreAction.Resolve) || pass.overriddenDepthStoreAction)
                     m_FinalDepthStoreAction = pass.depthStoreAction;
             }
         }
