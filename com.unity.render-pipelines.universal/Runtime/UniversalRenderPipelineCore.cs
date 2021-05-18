@@ -441,16 +441,11 @@ namespace UnityEngine.Rendering.Universal
             if (cameraData.xr.enabled)
             {
                 var platform = Application.platform;
-                if (platform == RuntimePlatform.WSAPlayerX86 || platform == RuntimePlatform.WSAPlayerARM)
+                if (platform == RuntimePlatform.WSAPlayerX86 || platform == RuntimePlatform.WSAPlayerARM || platform == RuntimePlatform.WSAPlayerX64)
                 {
                     var displaySubsystem = GetXRDisplaySubsystem();
-                    var subsystemDescriptor = displaySubsystem?.SubsystemDescriptor ?? null;
-                    string id = subsystemDescriptor?.id ?? "";
-
-                    if (id.Contains("Windows Mixed Reality Display"))
-                        return true;
-
-                    if (!XR.WSA.HolographicSettings.IsDisplayOpaque)
+                    
+                    if (!displaySubsystem.displayOpaque)
                         return true;
                 }
             }
