@@ -1,5 +1,6 @@
 using System;
 using System.Runtime.CompilerServices;
+using UnityEngine.Assertions;
 
 namespace UnityEngine.Rendering
 {
@@ -40,7 +41,7 @@ namespace UnityEngine.Rendering
         AnimationCurve m_LoopingCurve;
         Texture2D m_Texture;
 
-        bool m_IsCurveDirty;
+        bool m_IsLengthDirty;
         bool m_IsLoopingCurveDirty;
         bool m_IsTextureDirty;
 
@@ -105,7 +106,13 @@ namespace UnityEngine.Rendering
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public void SetDirty()
         {
-            m_IsCurveDirty = true;
+            m_IsLengthDirty = true;
+            SetValuesDirty();
+        }
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        void SetValuesDirty()
+        {
             m_IsLoopingCurveDirty = true;
             m_IsTextureDirty = true;
         }
@@ -140,30 +147,63 @@ namespace UnityEngine.Rendering
 
             if (m_IsTextureDirty)
             {
+                UpdateLength();
+
                 switch (m_Texture.format)
                 {
                     case TextureFormat.RHalf:
                     {
                         var data = m_Texture.GetPixelData<ushort>(0);
-                        for (int i = 0; i < k_Precision; i++)
-                            data[i] = Mathf.FloatToHalf(Evaluate(i * k_Step));
+                        if (length != 0)
+                        {
+                            var curve = GetEffectiveCurve();
+                            for (int i = 0; i < k_Precision; i++)
+                                data[i] = Mathf.FloatToHalf(curve.Evaluate(i * k_Step));
+                        }
+                        else
+                        {
+                            var value = Mathf.FloatToHalf(m_ZeroValue);
+                            for (int i = 0; i < k_Precision; i++)
+                                data[i] = value;
+                        }
                         break;
                     }
                     case TextureFormat.R8:
                     {
                         var data = m_Texture.GetPixelData<byte>(0);
-                        for (int i = 0; i < k_Precision; i++)
-                            data[i] = (byte)(Mathf.Clamp01(Evaluate(i * k_Step)) * byte.MaxValue);
+                        if (length != 0)
+                        {
+                            var curve = GetEffectiveCurve();
+                            for (int i = 0; i < k_Precision; i++)
+                                data[i] = (byte)(Mathf.Clamp01(curve.Evaluate(i * k_Step)) * byte.MaxValue);
+                        }
+                        else
+                        {
+                            var value = (byte)(Mathf.Clamp01(m_ZeroValue) * byte.MaxValue);
+                            for (int i = 0; i < k_Precision; i++)
+                                data[i] = value;
+                        }
                         break;
                     }
                     case TextureFormat.ARGB32:
                     {
                         var data = m_Texture.GetPixelData<byte>(0);
-                        for (int i = 0; i < k_Precision; i++)
-                            data[i * 4 + 1] = (byte)(Mathf.Clamp01(Evaluate(i * k_Step)) * byte.MaxValue);
+                        if (length != 0)
+                        {
+                            var curve = GetEffectiveCurve();
+                            for (int i = 0; i < k_Precision; i++)
+                                data[i * 4 + 1] = (byte)(Mathf.Clamp01(curve.Evaluate(i * k_Step)) * byte.MaxValue);
+                        }
+                        else
+                        {
+                            var value = (byte)(Mathf.Clamp01(m_ZeroValue) * byte.MaxValue);
+                            for (int i = 0; i < k_Precision; i++)
+                                data[i * 4 + 1] = value;
+                        }
                         break;
                     }
                 }
+
                 m_Texture.Apply(false, false);
                 m_IsTextureDirty = false;
             }
@@ -180,17 +220,29 @@ namespace UnityEngine.Rendering
         /// <returns>The value of the curve, at the point in time specified.</returns>
         public float Evaluate(float time)
         {
-            if (m_IsCurveDirty)
-            {
-                length = m_Curve.length;
-                m_IsCurveDirty = false;
-            }
+            UpdateLength();
 
             if (length == 0)
                 return m_ZeroValue;
 
+            return GetEffectiveCurve().Evaluate(time);
+        }
+
+        void UpdateLength()
+        {
+            if (m_IsLengthDirty)
+            {
+                length = m_Curve.length;
+                m_IsLengthDirty = false;
+            }
+        }
+
+        AnimationCurve GetEffectiveCurve()
+        {
+            Assert.AreNotEqual(0, length);
+
             if (!m_Loop || length == 1)
-                return m_Curve.Evaluate(time);
+                return m_Curve;
 
             if (m_IsLoopingCurveDirty)
             {
@@ -207,7 +259,7 @@ namespace UnityEngine.Rendering
                 m_IsLoopingCurveDirty = false;
             }
 
-            return m_LoopingCurve.Evaluate(time);
+            return m_LoopingCurve;
         }
 
         /// <summary>
@@ -261,16 +313,19 @@ namespace UnityEngine.Rendering
         public void SmoothTangents(int index, float weight)
         {
             m_Curve.SmoothTangents(index, weight);
-            SetDirty();
+            SetValuesDirty();
         }
 
-        public void Interp(TextureCurve @from, TextureCurve to, float t)
+        public void Interp(TextureCurve from, TextureCurve to, float t)
         {
+            // Volume system doesn't seem to ever interpolate 2 sources into a 3rd target.
+            // Instead it applies "to" on top of "this", which is also passed as "from".
+            // We cut some corners here and really support only the second case for simplicity.
+            Assert.AreEqual(this, from);
+
             if (t == 0f)
-            {
-                SetValue(from);
                 return;
-            }
+
             if (t == 1f)
             {
                 SetValue(to);
@@ -279,58 +334,75 @@ namespace UnityEngine.Rendering
 
             Profiling.Profiler.BeginSample($"{nameof(TextureCurve)}.{nameof(Interp)}");
 
-            var fromCurve = new AnimationCurve();
-            var fromKeys = from.m_Curve.keys;
-            fromCurve.keys = fromKeys;
-            var toCurve = new AnimationCurve();
-            var toKeys = to.m_Curve.keys;
-            toCurve.keys = toKeys;
-
-            for (int i = 0; i < fromKeys.Length; i++)
+            var toCurve = new AnimationCurve(); // GC pressure
+            to.UpdateLength();
+            if (to.length == 0)
             {
-                var time = fromKeys[i].time;
+                toCurve.AddKey(0f, to.m_ZeroValue);
+            }
+            else if (to.length == 1)
+            {
+                toCurve.AddKey(0f, to[0].value);
+            }
+            else
+            {
+                var curve = to.GetEffectiveCurve();
+                var curveLength = curve.length;
+                for (int i = 0; i < curveLength; i++)
+                    toCurve.AddKey(curve[i]);
+            }
+
+            UpdateLength();
+            for (int i = 0; i < length; i++)
+            {
+                var time = m_Curve[i].time;
                 toCurve.AddKey(time, toCurve.Evaluate(time));
             }
 
-            for (int i = 0; i < toKeys.Length; i++)
-            {
-                var time = toKeys[i].time;
-                fromCurve.AddKey(time, fromCurve.Evaluate(time));
-            }
-
-            for (int i = m_Curve.length - 1; i >= 0; i--)
-                m_Curve.RemoveKey(i);
-
-            var length = fromCurve.length;
-            Debug.Assert(length == toCurve.length);
+            length = toCurve.length;
             for (int i = 0; i < length; i++)
             {
-                var fromKey = fromCurve[i];
-                var toKey = toCurve[i];
-                var key = new Keyframe(fromKey.time,
-                    Mathf.Lerp(fromKey.value, toKey.value, t),
-                    Mathf.Lerp(fromKey.inTangent, toKey.inTangent, t),
-                    Mathf.Lerp(fromKey.outTangent, toKey.outTangent, t));
-
-                m_Curve.AddKey(key);
+                var time = toCurve[i].time;
+                m_Curve.AddKey(time, m_Curve.Evaluate(time));
             }
 
-            SetDirty();
+            for (int i = 0; i < length; i++)
+            {
+                var key = m_Curve[i];
+
+                var toKey = toCurve[i];
+                key.value = Mathf.Lerp(key.value, toKey.value, t);
+                key.inTangent = Mathf.Lerp(key.inTangent, toKey.inTangent, t);
+                key.outTangent = Mathf.Lerp(key.outTangent, toKey.outTangent, t);
+
+                m_Curve.MoveKey(i, key);
+            }
+
+            SetValuesDirty();
 
             Profiling.Profiler.EndSample();
+        }
+
+        void Interp(AnimationCurve from, AnimationCurve to, float t)
+        {
+        }
+
+        void Interp(AnimationCurve from, float to, float t)
+        {
         }
 
         public void SetValue(TextureCurve value)
         {
             Profiling.Profiler.BeginSample($"{nameof(TextureCurve)}.{nameof(Interp)}");
 
-            var keys = value.m_Curve.keys;
+            var keys = value.m_Curve.keys; // GC pressure
             m_Curve.keys = keys;
             m_ZeroValue = value.m_ZeroValue;
             m_Loop = value.m_Loop;
             m_Range = value.m_Range;
             length = keys.Length;
-            SetDirty();
+            m_IsLengthDirty = false;
+            SetValuesDirty();
 
             Profiling.Profiler.EndSample();
         }
