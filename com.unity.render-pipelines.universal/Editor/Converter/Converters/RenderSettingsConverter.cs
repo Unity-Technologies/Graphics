@@ -1,7 +1,5 @@
 using System;
 using System.Collections.Generic;
-using System.Linq;
-using UnityEditor.Search;
 using UnityEngine;
 using UnityEngine.Rendering;
 using UnityEngine.Rendering.Universal;
@@ -29,7 +27,7 @@ namespace UnityEditor.Rendering.Universal
         // List of the rendering modes required
         List<RenderingMode> m_RenderingModes = new List<RenderingMode>();
 
-        const string m_PipelineAssetPath = "Settings";
+        const string k_PipelineAssetPath = "Settings";
 
         public override void OnInitialize(InitializeConverterContext context)
         {
@@ -114,7 +112,7 @@ namespace UnityEditor.Rendering.Universal
             }
         }
 
-        private void GeneratePipelineAsset(int index, RenderSettingItem settings)
+        private void GeneratePipelineAsset(RenderSettingItem settings)
         {
             // store current quality level
             var currentQualityLevel = QualitySettings.GetQualityLevel();
