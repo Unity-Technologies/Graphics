@@ -1,8 +1,7 @@
-using UnityEngine.Rendering;
-using UnityEngine.Rendering.Universal;
+using UnityEngine.Experimental.Rendering.Universal;
 using UnityEngine.Rendering.Universal.Internal;
 
-namespace UnityEngine.Experimental.Rendering.Universal
+namespace UnityEngine.Rendering.Universal
 {
     internal class Renderer2D : ScriptableRenderer
     {
@@ -44,6 +43,7 @@ namespace UnityEngine.Experimental.Rendering.Universal
             // we should determine why clearing the camera target is set so late in the events... sounds like it could be earlier
             m_PixelPerfectBackgroundPass = new PixelPerfectBackgroundPass(RenderPassEvent.AfterRenderingTransparents);
             m_FinalBlitPass = new FinalBlitPass(RenderPassEvent.AfterRendering + 1, m_BlitMaterial);
+
 
             m_PostProcessPasses = new PostProcessPasses(data.postProcessData, m_BlitMaterial);
 
@@ -142,6 +142,21 @@ namespace UnityEngine.Experimental.Rendering.Universal
             bool ppcUsesOffscreenRT = false;
             bool ppcUpscaleRT = false;
 
+            bool savedIsOrthographic = renderingData.cameraData.camera.orthographic;
+            float savedOrthographicSize = renderingData.cameraData.camera.orthographicSize;
+
+            if (DebugHandler != null)
+            {
+#if UNITY_EDITOR
+                UnityEditorInternal.SpriteMaskUtility.EnableDebugMode(DebugHandler.DebugDisplaySettings.MaterialSettings.DebugMaterialModeData == DebugMaterialMode.SpriteMask);
+#endif
+                if (DebugHandler.AreAnySettingsActive)
+                {
+                    stackHasPostProcess = stackHasPostProcess && DebugHandler.IsPostProcessingAllowed;
+                }
+                DebugHandler.Setup(context, ref cameraData);
+            }
+
 #if UNITY_EDITOR
             // The scene view camera cannot be uninitialized or skybox when using the 2D renderer.
             if (cameraData.cameraType == CameraType.SceneView)
@@ -154,7 +169,7 @@ namespace UnityEngine.Experimental.Rendering.Universal
             if (cameraData.renderType == CameraRenderType.Base && lastCameraInStack)
             {
                 cameraData.camera.TryGetComponent(out ppc);
-                if (ppc != null)
+                if (ppc != null && ppc.enabled)
                 {
                     if (ppc.offscreenRTSize != Vector2Int.zero)
                     {
@@ -166,8 +181,11 @@ namespace UnityEngine.Experimental.Rendering.Universal
                         cameraTargetDescriptor.height = ppc.offscreenRTSize.y;
                     }
 
+                    renderingData.cameraData.camera.orthographic = true;
+                    renderingData.cameraData.camera.orthographicSize = ppc.orthographicSize;
+
                     colorTextureFilterMode = ppc.finalBlitFilterMode;
-                    ppcUpscaleRT = ppc.upscaleRT && ppc.isRunning;
+                    ppcUpscaleRT = ppc.gridSnapping == PixelPerfectCamera.GridSnapping.UpscaleRenderTexture;
                 }
             }
 
@@ -226,8 +244,11 @@ namespace UnityEngine.Experimental.Rendering.Universal
                 colorTargetHandle = postProcessDestHandle;
             }
 
-            if (ppc != null && ppc.isRunning && (ppc.cropFrameX || ppc.cropFrameY))
+            if (ppc != null && ppc.enabled && (ppc.cropFrame == PixelPerfectCamera.CropFrame.Pillarbox || ppc.cropFrame == PixelPerfectCamera.CropFrame.Letterbox || ppc.cropFrame == PixelPerfectCamera.CropFrame.Windowbox || ppc.cropFrame == PixelPerfectCamera.CropFrame.StretchFill))
+            {
+                m_PixelPerfectBackgroundPass.Setup(savedIsOrthographic, savedOrthographicSize);
                 EnqueuePass(m_PixelPerfectBackgroundPass);
+            }
 
             if (requireFinalPostProcessPass && m_PostProcessPasses.isCreated)
             {

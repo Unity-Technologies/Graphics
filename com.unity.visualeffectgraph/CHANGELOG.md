@@ -11,6 +11,12 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Sample vertices of a transformed skinned mesh with Position (Skinned Mesh) and Sample Skinned Mesh operator.
 - Placement option (Vertex, Edge, Surface) in Sample Mesh & Skinned Mesh, allows triangle sampling.
 - Material Offset setting in inspector of the rendered outputs.
+- Restore "Exact Fixed Time Step" option on VisualEffectAsset.
+- Support 2D Renderer in URP for Unlit.
+- New tool to help set VFX Bounds
+- New tool : Signed Distance Field baker.
+- Provide explicit access to spawnCount in graph
+- Support of direct link event to initialize context (which support several event within the same frame)
 
 ### Changed
 - Allow remaking an existing link.
@@ -50,6 +56,12 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Having more than five GPU Event output leads to "unexpected token 'if" at compilation [Case 1323434](https://issuetracker.unity3d.com/product/unity/issues/guid/1323434/)
 - Deleted properties still show up in the inspector [Case 1320952](https://issuetracker.unity3d.com/product/unity/issues/guid/1320952/)
 - Exception in VFXFilterWindow if search field is empty [Case 1235269](https://issuetracker.unity3d.com/product/unity/issues/guid/1235269/)
+- Fixed null reference exception when exposing Camera type in VFX graph [Case 1315582](https://issuetracker.unity3d.com/product/unity/issues/guid/1315582/)
+- Fixed VFX with output mesh being always reimported [Case 1309753](https://issuetracker.unity3d.com/product/unity/issues/guid/1309753/)
+- Modified state in the VFX tab has now a correct state
+- Motion Vector map sampling for flipbooks were not using correct mips
+- Remove unexpected expression in spawn context evaluation [Case 1318412](https://issuetracker.unity3d.com/product/unity/issues/guid/1318412/)
+- Fix unexpected Spawn context execution ordering
 
 ## [11.0.0] - 2020-10-21
 ### Added

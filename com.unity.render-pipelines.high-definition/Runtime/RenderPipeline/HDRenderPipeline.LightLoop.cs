@@ -254,12 +254,13 @@ namespace UnityEngine.Rendering.HighDefinition
             return result;
         }
 
-        TextureHandle CreateDiffuseLightingBuffer(RenderGraph renderGraph, bool msaa)
+        TextureHandle CreateDiffuseLightingBuffer(RenderGraph renderGraph, MSAASamples msaaSamples)
         {
+            bool msaa = msaaSamples != MSAASamples.None;
             return renderGraph.CreateTexture(new TextureDesc(Vector2.one, true, true)
             {
                 colorFormat = GraphicsFormat.B10G11R11_UFloatPack32, enableRandomWrite = !msaa,
-                bindTextureMS = msaa, enableMSAA = msaa, clearBuffer = true, clearColor = Color.clear, name = msaa ? "CameraSSSDiffuseLightingMSAA" : "CameraSSSDiffuseLighting"
+                bindTextureMS = msaa, msaaSamples = msaaSamples, clearBuffer = true, clearColor = Color.clear, name = msaa ? "CameraSSSDiffuseLightingMSAA" : "CameraSSSDiffuseLighting"
             });
         }
 
@@ -466,11 +467,11 @@ namespace UnityEngine.Rendering.HighDefinition
 
             var settings = hdCamera.volumeStack.GetComponent<ScreenSpaceReflection>();
 
-            bool usesRaytracedReflections = hdCamera.frameSettings.IsEnabled(FrameSettingsField.RayTracing) && settings.rayTracing.value;
+            bool usesRaytracedReflections = hdCamera.frameSettings.IsEnabled(FrameSettingsField.RayTracing) && ScreenSpaceReflection.RayTracingActive(settings);
             if (usesRaytracedReflections)
             {
                 result = RenderRayTracedReflections(renderGraph, hdCamera,
-                    prepassOutput.depthBuffer, prepassOutput.stencilBuffer, prepassOutput.normalBuffer, prepassOutput.resolvedMotionVectorsBuffer, clearCoatMask, skyTexture, rayCountTexture,
+                    prepassOutput, clearCoatMask, skyTexture, rayCountTexture,
                     m_ShaderVariablesRayTracingCB, transparent);
             }
             else
@@ -685,10 +686,11 @@ namespace UnityEngine.Rendering.HighDefinition
 
                 // Avoid garbage when visualizing contact shadows.
                 bool clearBuffer = m_CurrentDebugDisplaySettings.data.fullScreenDebugMode == FullScreenDebugMode.ContactShadows;
+                bool msaa = hdCamera.msaaEnabled;
 
                 passData.contactShadowsCS = contactShadowComputeShader;
                 passData.contactShadowsCS.shaderKeywords = null;
-                if (hdCamera.frameSettings.IsEnabled(FrameSettingsField.MSAA))
+                if (msaa)
                 {
                     passData.contactShadowsCS.EnableKeyword("ENABLE_MSAA");
                 }
@@ -721,7 +723,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 passData.numTilesY = (hdCamera.actualHeight + (deferredShadowTileSize - 1)) / deferredShadowTileSize;
                 passData.viewCount = hdCamera.viewCount;
 
-                passData.depthTextureParameterName = hdCamera.frameSettings.IsEnabled(FrameSettingsField.MSAA) ? HDShaderIDs._CameraDepthValuesTexture : HDShaderIDs._CameraDepthTexture;
+                passData.depthTextureParameterName = msaa ? HDShaderIDs._CameraDepthValuesTexture : HDShaderIDs._CameraDepthTexture;
 
                 passData.lightLoopLightData = m_LightLoopLightData;
                 passData.lightList = builder.ReadComputeBuffer(lightLists.lightList);

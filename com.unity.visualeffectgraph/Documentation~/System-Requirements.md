@@ -8,6 +8,7 @@ The following table shows the compatibility of the Visual Effect Graph versions 
 
 | **Package version** | **Minimum Unity version** | **Maximum Unity version** |
 | ------------------- | ------------------------- | ------------------------- |
+| 11.x                | 2021.1                    | 2021.1                    |
 | 10.x                | 2020.2                    | 2020.2                    |
 | 8.x / 9.x-preview   | 2020.1                    | 2020.1                    |
 | 7.x                 | 2019.3                    | 2019.4                    |
@@ -19,6 +20,7 @@ The Visual Effect Graph varies in compatibility between the High Definition Rend
 
 | **Package version** | **HDRP**       | **URP**       |
 | ------------------- | -------------- | ------------- |
+| 11.x                | Out of preview | In preview    |
 | 10.x                | Out of preview | In preview    |
 | 8.x / 9.x-preview   | Out of preview | In preview    |
 | 7.x                 | Out of preview | In preview    |
@@ -29,6 +31,8 @@ The Visual Effect Graph supports the [High Definition Render Pipeline](https://d
 **Note**: When you download the HDRP package from the Package Manager, Unity automatically installs the Visual Effect Graph package.
 
 The Visual Effect Graph supports the [Universal Render Pipeline](https://docs.unity3d.com/Packages/com.unity.render-pipelines.universal@latest/index.html) (URP) from Unity 2019.3. However, it is not yet out of preview for URP, which means it only supports a subset of platforms that URP supports. It also does not support every feature that it does with HDRP, and also only supports unlit particles.
+
+**Note**: In URP, the Visual Effect Graph does not support [gamma color space](https://docs.unity3d.com/Manual/LinearRendering-LinearOrGammaWorkflow.html).
 
 ## Unity Player system requirements
 

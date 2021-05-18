@@ -182,7 +182,11 @@ ${VFXBegin:VFXPassDepthCommonFragmentUnlit}
 #endif
 
 #ifdef VFX_SHADERGRAPH
-${SHADERGRAPH_PIXEL_CODE_DEPTHONLY}
+	#if (SHADERPASS == SHADERPASS_DEPTHNORMALSONLY)
+	${SHADERGRAPH_PIXEL_CODE_DEPTHNORMALS}
+	#else
+	${SHADERGRAPH_PIXEL_CODE_DEPTHONLY}
+	#endif
 #endif
 
 #if VFX_PASSDEPTH == VFX_PASSDEPTH_SELECTION
@@ -218,7 +222,11 @@ void frag(ps_input i
 	VFXTransformPSInputs(i);
     #ifdef VFX_SHADERGRAPH
         ${VFXAdditionalInterpolantsPreparation}
-        ${SHADERGRAPH_PIXEL_CALL_DEPTHONLY}
+		#if (SHADERPASS == SHADERPASS_DEPTHNORMALSONLY)
+		${SHADERGRAPH_PIXEL_CALL_DEPTHNORMALS}
+		#else
+		${SHADERGRAPH_PIXEL_CALL_DEPTHONLY}
+		#endif
         float alpha = OUTSG.${SHADERGRAPH_PARAM_ALPHA};
     #else
         float alpha = VFXGetFragmentColor(i).a;

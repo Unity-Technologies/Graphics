@@ -41,11 +41,6 @@ namespace UnityEngine.Experimental.Rendering
         /// </summary>
         [Min(0.1f)]
         public float minDistanceBetweenProbes = 1.0f;
-        /// <summary>
-        /// The normal bias to apply during shading.
-        /// </summary>
-        [Range(0.0f, 1.0f), Delayed]
-        public float normalBias = 0.2f;
 
         [SerializeField]
         Version version = CoreUtils.GetLastEnumValue<Version>();
@@ -71,8 +66,7 @@ namespace UnityEngine.Experimental.Rendering
         {
             return minDistanceBetweenProbes == otherProfile.minDistanceBetweenProbes &&
                 cellSize == otherProfile.cellSize &&
-                maxSubdivision == otherProfile.maxSubdivision &&
-                normalBias == otherProfile.normalBias;
+                maxSubdivision == otherProfile.maxSubdivision;
         }
     }
 
@@ -81,10 +75,9 @@ namespace UnityEngine.Experimental.Rendering
     [CustomEditor(typeof(ProbeReferenceVolumeProfile))]
     internal class ProbeReferenceVolumeProfileEditor : Editor
     {
-        private SerializedProperty m_CellSize;
-        private SerializedProperty m_MinDistanceBetweenProbes;
-        private SerializedProperty m_NormalBias;
-        private SerializedProperty m_IndexDimensions;
+        SerializedProperty m_CellSize;
+        SerializedProperty m_MinDistanceBetweenProbes;
+        SerializedProperty m_IndexDimensions;
         ProbeReferenceVolumeProfile profile => target as ProbeReferenceVolumeProfile;
 
         sealed class Styles
@@ -92,17 +85,15 @@ namespace UnityEngine.Experimental.Rendering
             // TODO: Better tooltip are needed here.
             public readonly GUIContent cellSizeStyle = new GUIContent("Brick Count Per Cell", "Determine how much bricks there is in a streamable unit.");
             public readonly GUIContent minDistanceBetweenProbes = new GUIContent("Min Distance Between Probes", "The minimal distance between two probes in meters.");
-            public readonly GUIContent normalBias = new GUIContent("Normal Bias", "The normal bias used when sampling the volume. It can reduce leaking.");
             public readonly GUIContent indexDimensions = new GUIContent("Index Dimensions", "The dimensions of the index buffer.");
         }
 
         static Styles s_Styles = new Styles();
 
-        private void OnEnable()
+        void OnEnable()
         {
             m_CellSize = serializedObject.FindProperty(nameof(ProbeReferenceVolumeProfile.cellSizeInBricks));
             m_MinDistanceBetweenProbes = serializedObject.FindProperty(nameof(ProbeReferenceVolumeProfile.minDistanceBetweenProbes));
-            m_NormalBias = serializedObject.FindProperty(nameof(ProbeReferenceVolumeProfile.normalBias));
         }
 
         public override void OnInspectorGUI()
@@ -113,9 +104,6 @@ namespace UnityEngine.Experimental.Rendering
             EditorGUILayout.PropertyField(m_CellSize, s_Styles.cellSizeStyle);
             EditorGUILayout.PropertyField(m_MinDistanceBetweenProbes, s_Styles.minDistanceBetweenProbes);
             EditorGUILayout.HelpBox("Maximum subvision of the volume: " + profile.maxSubdivision, MessageType.Info);
-            EditorGUILayout.PropertyField(m_NormalBias, s_Styles.normalBias);
-
-            ProbeReferenceVolume.instance.normalBiasFromProfile = m_NormalBias.floatValue;
 
             if (EditorGUI.EndChangeCheck())
             {
