@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.Rendering;
 using UnityEngine.Rendering.Universal;
+using UnityEditor.Rendering.Universal.Converters;
 using ShadowQuality = UnityEngine.ShadowQuality;
 using ShadowResolution = UnityEngine.ShadowResolution;
 
@@ -16,7 +17,7 @@ namespace UnityEditor.Rendering.Universal
             "This converter will look at creating Universal Render Pipeline assets and respective Renderer Assets and configure" +
             " their settings based on equivalent settings from builtin renderer.";
 
-        public override Type conversion => typeof(BuiltInToURPConverterContainer);
+        public override Type container => typeof(BuiltInToURPConverterContainer);
 
         // Used to store settings specific to Graphics Tiers
         GraphicsTierSettings m_GraphicsTierSettings;
@@ -29,13 +30,15 @@ namespace UnityEditor.Rendering.Universal
 
         const string k_PipelineAssetPath = "Settings";
 
-        public override void OnInitialize(InitializeConverterContext context)
+        public override void OnInitialize(InitializeConverterContext context, Action callback)
         {
             // check graphics tiers
             GatherGraphicsTiers();
 
             // check quality levels
             GatherQualityLevels(ref context);
+
+            callback?.Invoke();
         }
 
         /// <summary>
