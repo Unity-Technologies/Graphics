@@ -106,13 +106,6 @@ namespace UnityEditor.Rendering.HighDefinition
             if ((m_Features & Features.ExposedProperties) != 0)
                 PropertiesDefaultGUI(properties);
 
-            // If we change a property in a shadergraph, we trigger a material keyword reset
-            if (CheckPropertyChanged(properties))
-            {
-                foreach (var material in materials)
-                    HDShaderUtils.ResetMaterialKeywords(material);
-            }
-
             if ((m_Features & Features.DiffusionProfileAsset) != 0)
                 DrawDiffusionProfileUI();
 
