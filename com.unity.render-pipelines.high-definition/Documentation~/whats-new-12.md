@@ -74,9 +74,9 @@ From HDRP 12.0, More Options have become Additional Properties. The way to acces
 
 ![](Images/HDRPFeatures-FabricPT.png)
 
-HDRP's path tracer now offers support for additional materials:
-- Fabric, in both its cotton/wool and silk variants.
-- AxF, in both its SVBRDF and car paint variants.
+HDRP path tracing now supports the following Materials:
+- Fabric: Cotton/wool and silk variants.
+- AxF: SVBRDF and car paint variants.
 - Stacklit.
 
 ### Top level menus

@@ -390,7 +390,14 @@ For information on fog in HDRP, see [fog](Override-Fog.md).
 
 ![](Images/Path-traced-materials-Feature.png)
 
-Path tracing supports almost all the rasterization engine [materials](#Material) listed above: it can render Lit, Layered Lit, Unlit, Stacklit, Fabric and AxF materials. Note that objects using non-HDRP materials simply won't appear in the image, when in path tracing mode.
+Path tracing can render the following rasterization engine [Materials](#Material):
+- Lit
+- Layered Lit
+- Unlit
+- Stacklit
+- Fabric
+- AxF
+When path tracing is enabled, objects that use non-HDRP Materials won't appear in the final image.
 
 <a name="Tools"></a>
 
