@@ -135,6 +135,8 @@ namespace UnityEngine.Rendering.HighDefinition
             public float secondarySpecularShift;
 
             // Marschner
+            public Vector3 absorption;
+
             public float lightPathLength;
 
             public float cuticleAngleR;

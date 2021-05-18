@@ -1,4 +1,5 @@
 // #define HAIR_REFERENCE_NEAR_FIELD
+// #define HAIR_REFERENCE_LONGITUDINAL_ENERGY_CONSERVING
 
 struct ReferenceInputs
 {
@@ -42,9 +43,13 @@ float HyperbolicCosecant(float x)
 // Plot: https://www.desmos.com/calculator/4dnfmn9xal
 float RoughnessToLongitudinalVariance(float roughness)
 {
+#ifdef HAIR_REFERENCE_LONGITUDINAL_ENERGY_CONSERVING
     float beta = roughness;
     float v = (0.726 * beta) + (0.812 * beta * beta) + (3.7 * pow(beta, 20.0));
     return v * v;
+#else
+    return roughness;
+#endif
 }
 
 float RoughnessToLogisticalScale(float roughness)
@@ -98,7 +103,7 @@ float AzimuthalDirection(uint p, float etaPrime, float h)
 {
     float gammaI = asin(h);
     float gammaT = asin(h / etaPrime);
-    float omega = (2 * p * gammaT) - (2 * gammaI) + p * PI;
+    float omega = (2 * p * gammaT) - (2 * gammaI) + (p * PI);
 
     return omega;
 }
@@ -109,7 +114,7 @@ float3 Attenuation(uint p, float h, float LdotV, float thetaD, float etaPrime, f
 
     if (p == 0)
     {
-        // Attenuation term for R is a special case.
+        // Attenuation term for R is a special case.s
         A = F_Schlick(fresnel0, sqrt(0.5 + 0.5 * LdotV));
     }
     else
@@ -131,7 +136,7 @@ float3 Attenuation(uint p, float h, float LdotV, float thetaD, float etaPrime, f
 
 // Ref: [A Practical and Controllable Hair and Fur Model for Production Path Tracing]
 // Plot: https://www.desmos.com/calculator/cmy0eig6ln
-float LogisticAzimuthalAngularDistribution(float s, float phi)
+float LogisticAzimuthalAngularDistribution(float x, float s)
 {
     const float a = -PI;
     const float b = +PI;
@@ -141,10 +146,8 @@ float LogisticAzimuthalAngularDistribution(float s, float phi)
 
     float normalizeTerm = rcp(rcp(1 + exp(a / s)) - rcp(1 + exp(b / s)));
 
-    float distributionN = exp(-phi / s);
-
-    float distributionD = 1 + exp(-phi / s);
-    distributionD = s * distributionD * distributionD;
+    float distributionN = exp(-x / s);
+    float distributionD = s * Sq(1 + distributionN);
 
     return normalizeTerm * (distributionN / distributionD);
 }
@@ -182,6 +185,7 @@ float3 AzimuthalScatteringNearField(uint p, ReferenceInputs inputs)
     azimuth = RemapLogisticAngle(azimuth);
 
     float D = LogisticAzimuthalAngularDistribution(inputs.logisticScale, inputs.phi - azimuth);
+    // float D = GaussianDetector(inputs.logisticScale, inputs.phi - azimuth);
 
     return A * D;
 }
@@ -218,13 +222,16 @@ float3 AzimuthalScatteringFarField(uint p, ReferenceInputs inputs)
 // Plot: https://www.desmos.com/calculator/jmf1ofgfdv
 float LongitudinalScattering(uint p, ReferenceInputs inputs)
 {
-    const float v      = max(0.0001, inputs.variances[p]);
-    const float thetaI = inputs.thetaI;
-    const float thetaR = inputs.thetaR - radians(inputs.shifts[p]);
+    const float v = max(0.0001, inputs.variances[p]);
+    float thetaI  = inputs.thetaI;
+    float thetaR  = inputs.thetaR;
 
     float M;
 
-#if 1
+#ifdef HAIR_REFERENCE_LONGITUDINAL_ENERGY_CONSERVING
+    // Apply the cuticle shift.
+    thetaR -= inputs.shifts[p];
+
     if (v < 0.1)
     {
         // Ref: [https://publons.com/review/414383/]
@@ -253,8 +260,8 @@ float LongitudinalScattering(uint p, ReferenceInputs inputs)
         M *= BesselI((cos(-thetaI) * cos(thetaR)) / v);
     }
 #else
-    // TODO: Marschner Gaussian
-    M = 1;
+    const float thetaH = 0.5 * (thetaI + thetaR);
+    M = D_LongitudinalScatteringGaussian(thetaH - inputs.shifts[p], v);
 #endif
 
     return M;
@@ -321,7 +328,7 @@ CBSDF EvaluateMarschnerReference(float3 V, float3 L, BSDFData bsdfData)
 #ifdef HAIR_REFERENCE_NEAR_FIELD
         // Evaluation of h in the normal plane, given by gammaI = asin(h), where gammaI is the incident angle.
         // Since we are using a near-field method, we can use the true h value (rather than integrating over the whole fiber width).
-        inputs.h = dot(cross(bsdfData.normalWS, X), Z);
+        inputs.h = sin(acos(dot(bsdfData.normalWS, L)));
 
         inputs.logisticScale = RoughnessToLogisticalScale(bsdfData.roughnessAR);
 #else
@@ -330,7 +337,7 @@ CBSDF EvaluateMarschnerReference(float3 V, float3 L, BSDFData bsdfData)
 #endif
 
         float thetaT = asin(sin(inputs.thetaR / inputs.eta));
-        inputs.absorptionP = bsdfData.diffuseColor / cos(thetaT);
+        inputs.absorptionP = bsdfData.absorption / cos(thetaT);
     }
 
     float3 S = 0;
@@ -340,8 +347,8 @@ CBSDF EvaluateMarschnerReference(float3 V, float3 L, BSDFData bsdfData)
     {
         // TEMP: Lobe (R, TT, TRT, TRRT) selection
         // if (p == 0) continue;
-        if (p == 1) continue;
-        if (p == 2) continue;
+        // if (p == 1) continue;
+        // if (p == 2) continue;
 
         S += LongitudinalScattering(p, inputs) * AzimuthalScattering(p, inputs);
     }
