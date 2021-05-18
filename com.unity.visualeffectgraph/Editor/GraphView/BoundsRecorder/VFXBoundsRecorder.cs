@@ -84,9 +84,12 @@ namespace UnityEditor.VFX.UI
         {
             get
             {
-                return m_View.GetAllContexts().Where(c => c.controller.model is VFXBasicInitialize)
-                    .Select(c => c.controller.model.GetData())
-                    .OfType<VFXDataParticle>();
+                return m_View.GetAllContexts()
+                    .Select(c => c.controller.model)
+                    .OfType<VFXBasicInitialize>()
+                    .Select(c => c.GetData())
+                    .OfType<VFXDataParticle>()
+                    .Where(d => d.CanBeCompiled());
             }
         }
 
@@ -445,8 +448,7 @@ namespace UnityEditor.VFX.UI
         {
             VFXDataParticle system = GetSystem(syst);
             system.boundsSettingMode = mode;
-            system.OnSettingModified(system.GetSetting("boundsSettingMode"));
-            system.Invalidate(VFXModel.InvalidationCause.kSettingChanged);
+            system.SetSettingValue("boundsSettingMode", mode);
         }
 
         public void ToggleRecording()
