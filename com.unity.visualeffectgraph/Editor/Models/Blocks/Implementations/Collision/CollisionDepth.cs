@@ -108,14 +108,16 @@ if (aProjPos.x < 1.0f && aProjPos.y < 1.0f) // visible on screen
 
     const float n = Camera_nearPlane;
     const float f = Camera_farPlane;
-    float linearEyeDepth;
+    float linearEyeDepth, offset;
     if (!Camera_orthographic)
     {
         linearEyeDepth = n * f / (depth * (n - f) + f);
+        offset = 2.0f;
     }
     else
     {
         linearEyeDepth = n + depth * (f-n);
+        offset = 32.0f; //Orthographic depth requires a larger offset to give out correct normals
     }";
 
                 if (surfaceThickness == SurfaceThickness.Infinite)
@@ -127,7 +129,7 @@ if (aProjPos.x < 1.0f && aProjPos.y < 1.0f) // visible on screen
 
                 Source += @"
     {
-        const float2 pixelOffset = 2.0f / Camera_pixelDimensions;
+        const float2 pixelOffset = offset / Camera_pixelDimensions;
 
         float2 projPos10 = projPos.xy + float2(pixelOffset.x,0.0f);
         float2 projPos01 = projPos.xy + float2(0.0f,pixelOffset.y);
@@ -165,7 +167,6 @@ if (aProjPos.x < 1.0f && aProjPos.y < 1.0f) // visible on screen
 
         float3 n = normalize(cross(vPos01.xyz - viewPos,vPos10.xyz - viewPos));
         n = normalize(mul((float3x3)ViewToVFX,n));
-        n = float3(0,1,0);
 
         viewPos *= 1.0f - radius / linearEyeDepth; // Push based on radius
         position = mul(ViewToVFX,float4(viewPos,1.0f)).xyz;
