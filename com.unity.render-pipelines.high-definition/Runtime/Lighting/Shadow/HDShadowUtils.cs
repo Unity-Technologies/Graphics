@@ -36,7 +36,8 @@ namespace UnityEngine.Rendering.HighDefinition
             Vector4 lightDir;
 
             float guardAngle = CalcGuardAnglePerspective(90.0f, viewportSize.x, GetPunctualFilterWidthInTexels(filteringQuality), normalBiasMax, 79.0f);
-            ExtractPointLightMatrix(visibleLight, faceIndex, nearPlane, guardAngle, out view, out projection, out deviceProjection, out deviceProjectionYFlip, out invViewProjection, out lightDir, out splitData);
+            splitData.cullingMatrix = ExtractPointLightMatrix(visibleLight, faceIndex, nearPlane, guardAngle, out view, out projection, out deviceProjection, out deviceProjectionYFlip, out invViewProjection, out lightDir, out splitData);
+            splitData.isOrthographicCulling = false;
         }
 
         // TODO: box spot and pyramid spots with non 1 aspect ratios shadow are incorrectly culled, see when scriptable culling will be here
@@ -59,6 +60,9 @@ namespace UnityEngine.Rendering.HighDefinition
                 deviceProjection = GL.GetGPUProjectionMatrix(projection, false);
                 deviceProjectionYFlip = GL.GetGPUProjectionMatrix(projection, true);
                 InvertOrthographic(ref deviceProjectionYFlip, ref view, out invViewProjection);
+
+                splitData.cullingMatrix = CoreMatrixUtils.MultiplyPerspectiveMatrix(deviceProjection, view);
+                splitData.isOrthographicCulling = true;
             }
         }
 
