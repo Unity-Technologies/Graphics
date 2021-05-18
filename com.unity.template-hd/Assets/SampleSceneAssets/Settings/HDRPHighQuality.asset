@@ -82,14 +82,14 @@ MonoBehaviour:
       directionalShadowsDepthBits: 16
       shadowFilteringQuality: 2
       punctualLightShadowAtlas:
-        shadowAtlasResolution: 4096
+        shadowAtlasResolution: 8192
         shadowAtlasDepthBits: 16
-        useDynamicViewportRescale: 1
+        useDynamicViewportRescale: 0
       areaLightShadowAtlas:
         shadowAtlasResolution: 4096
         shadowAtlasDepthBits: 16
         useDynamicViewportRescale: 0
-      cachedPunctualLightShadowAtlas: 4096
+      cachedPunctualLightShadowAtlas: 8192
       cachedAreaLightShadowAtlas: 4096
       shadowResolutionDirectional:
         m_Values: 00020000000400000008000000100000

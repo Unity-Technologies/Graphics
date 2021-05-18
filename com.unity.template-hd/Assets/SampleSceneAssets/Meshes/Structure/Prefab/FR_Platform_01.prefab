@@ -85,6 +85,10 @@ PrefabInstance:
       propertyPath: m_RenderingLayerMask
       value: 7
       objectReference: {fileID: 0}
+    - target: {fileID: 5190926239664889648, guid: e89a4afe12d9bea49a7ee33cc1b98ab6, type: 3}
+      propertyPath: m_StaticShadowCaster
+      value: 1
+      objectReference: {fileID: 0}
     - target: {fileID: 5706340028736351151, guid: e89a4afe12d9bea49a7ee33cc1b98ab6, type: 3}
       propertyPath: m_StaticEditorFlags
       value: 4294967295
