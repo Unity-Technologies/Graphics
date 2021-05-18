@@ -107,7 +107,7 @@ namespace UnityEditor.VFX
             var stride = parents[2];
             var count = parents[3];
 
-            return string.Format("SampleStructuredBuffer({0}, {1}, {2}, {3}).{4}", buffer, index, stride, count, m_FieldPath);
+            return string.Format("SampleStructuredBuffer({0}, {1}, {2}, {3}){4}", buffer, index, stride, count, string.IsNullOrEmpty(m_FieldPath) ? "" : "." + m_FieldPath);
         }
     }
 }

@@ -24,15 +24,20 @@ namespace UnityEditor.VFX.Operator
             {
                 foreach (var type in VFXLibrary.GetSlotsType())
                 {
-                    var typeAttribute = type.GetCustomAttributes(typeof(VFXTypeAttribute), true).FirstOrDefault() as VFXTypeAttribute;
-                    if (typeAttribute != null && typeAttribute.usages.HasFlag(VFXTypeAttribute.Usage.GraphicsBuffer))
+                    if (VFXExpression.IsUniform(VFXExpression.GetVFXValueTypeFromType(type)))
                         yield return type;
+                    else
+                    {
+                        var typeAttribute = type.GetCustomAttributes(typeof(VFXTypeAttribute), true).FirstOrDefault() as VFXTypeAttribute;
+                        if (typeAttribute != null && typeAttribute.usages.HasFlag(VFXTypeAttribute.Usage.GraphicsBuffer))
+                            yield return type;
+                    }
                 }
             }
         }
 
 
-        protected override Type defaultValueType => validTypes.FirstOrDefault();
+        protected override Type defaultValueType => typeof(float);
 
         public override string name { get { return "Sample Graphics Buffer"; } }
 
@@ -58,8 +63,11 @@ namespace UnityEditor.VFX.Operator
 
         public string ComputeSlotPath(VFXSlot slot)
         {
-            var name = slot.name;
+            if (slot.IsMasterSlot())
+                return string.Empty;
+
             var parent = slot.GetParent();
+            var name = slot.name;
             while (!parent.IsMasterSlot())
             {
                 name = string.Format("{0}.{1}", parent.name, name);

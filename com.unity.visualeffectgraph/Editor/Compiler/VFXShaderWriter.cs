@@ -219,13 +219,24 @@ namespace UnityEditor.VFX
             return padding;
         }
 
+        private static bool IsBufferBuiltinType(Type type)
+        {
+            return VFXExpression.IsUniform(VFXExpression.GetVFXValueTypeFromType(type));
+        }
+
         static string GetStructureName(Type type)
         {
-            return type.Name;
+            if (IsBufferBuiltinType(type))
+                return VFXExpression.TypeToCode(VFXExpression.GetVFXValueTypeFromType(type));
+            else
+                return type.Name;
         }
 
         static void GenerateStructureCode(Type type, VFXShaderWriter structureDeclaration, HashSet<Type> alreadyGeneratedStructure)
         {
+            if (VFXExpression.IsUniform(VFXExpression.GetVFXValueTypeFromType(type)))
+                return; // No structure to generate, it is a builtin type
+
             if (alreadyGeneratedStructure.Contains(type))
                 return;
 
@@ -260,7 +271,8 @@ namespace UnityEditor.VFX
 
         private void WriteGeneratedStructure(Type type, HashSet<Type> alreadyGeneratedStructure)
         {
-            GenerateStructureCode(type, this, alreadyGeneratedStructure);
+            if (!IsBufferBuiltinType(type))
+                GenerateStructureCode(type, this, alreadyGeneratedStructure);
 
             var structureName = GetStructureName(type);
             var expectedStride = Marshal.SizeOf(type);
@@ -273,7 +285,7 @@ namespace UnityEditor.VFX
                 WriteLineFormat("if (actualStride == (uint){0} && index < actualCount)", expectedStride);
                 {
                     Indent();
-                    WriteLine("read = buffer[(int)index];");
+                    WriteLine("read = buffer[index];");
                     Deindent();
                 }
                 WriteLineFormat("return read;", structureName);
