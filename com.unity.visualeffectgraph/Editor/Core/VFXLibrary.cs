@@ -508,7 +508,7 @@ namespace UnityEditor.VFX
         [InitializeOnLoadMethod]
         private static void RegisterSRPChangeCallback()
         {
-            RenderPipelineManager.activeRenderPipelineTypeChanged += OnSRPChanged;
+            RenderPipelineManager.activeRenderPipelineTypeChanged += SRPChanged;
         }
 
         public delegate void OnSRPChangedEvent();
