@@ -62,6 +62,6 @@ To use Additive Normal Blending:
 ### High Precision Normal Buffer
 
 When using additive normal blending, HDRP will constrain the decal displacement to a cone of 45° around the object normal to reduce banding artifacts.
-To remove the angle constraint on the normal at the cost of a higher memory usage, you can tell HDRP to use an High Precision Normal Buffer:
+To remove the angle constraint on the normal at the cost of a higher memory usage, you can tell HDRP to use a High Precision Normal Buffer:
 1. Select your Project’s [HDRP Asset](HDRP-Asset.md).
 2. In the Inspector, go to **Rendering > Decals** and enable the **High Precision Normal Buffer** checkbox.
