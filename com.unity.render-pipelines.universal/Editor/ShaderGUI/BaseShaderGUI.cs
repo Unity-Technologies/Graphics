@@ -9,6 +9,7 @@ using RenderQueue = UnityEngine.Rendering.RenderQueue;
 using UnityEngine.Rendering.Universal;
 using static Unity.Rendering.Universal.ShaderUtils;
 using System.Linq;
+using UnityEditor.ShaderGraph.Drawing;
 
 namespace UnityEditor
 {
@@ -168,8 +169,6 @@ namespace UnityEditor
         ////////////////////////////////////
         #region GeneralFunctions
 
-        public abstract void MaterialChanged(Material material);
-
         public virtual void FindProperties(MaterialProperty[] properties)
         {
             var material = materialEditor?.target as Material;
@@ -216,13 +215,7 @@ namespace UnityEditor
                 m_FirstTimeApply = false;
             }
 
-            ShaderPropertiesGUI(material);
-        }
-
-        void UpdateMaterials(MaterialEditor materialEditor)
-        {
-            foreach (var obj in materialEditor.targets)
-                MaterialChanged((Material)obj);
+            m_MaterialScopeList.DrawHeaders(materialEditor, material);
         }
 
         public virtual void OnOpenGUI(Material material, MaterialEditor materialEditor)
@@ -234,18 +227,6 @@ namespace UnityEditor
             FillAdditionalFoldouts(m_MaterialScopeList);
 
             m_MaterialScopeList.RegisterHeaderScope(Styles.AdvancedLabel, (uint)Expandable.Advanced, DrawAdvancedOptions);
-
-            UpdateMaterials(materialEditor);
-        }
-
-        public void ShaderPropertiesGUI(Material material)
-        {
-            EditorGUI.BeginChangeCheck();
-            {
-                m_MaterialScopeList.DrawHeaders(materialEditor, material);
-                if (EditorGUI.EndChangeCheck())
-                    UpdateMaterials(materialEditor);
-            }
         }
 
         #endregion
@@ -259,16 +240,7 @@ namespace UnityEditor
             if (properties == null)
                 return;
 
-            foreach (var prop in properties)
-            {
-                if ((prop.flags & (MaterialProperty.PropFlags.HideInInspector | MaterialProperty.PropFlags.PerRendererData)) != 0)
-                    continue;
-
-                float h = materialEditor.GetPropertyHeight(prop, prop.displayName);
-                Rect r = EditorGUILayout.GetControlRect(true, h, EditorStyles.layerMaskField);
-
-                materialEditor.ShaderProperty(r, prop, prop.displayName);
-            }
+            ShaderGraphPropertyDrawers.DrawShaderGraphGUI(materialEditor, properties);
         }
 
         internal static void DrawFloatToggleProperty(GUIContent styles, MaterialProperty prop)
@@ -337,7 +309,6 @@ namespace UnityEditor
             var emissive = true;
             var hadEmissionTexture = emissionMapProp?.textureValue != null;
 
-            EditorGUI.indentLevel -= 1;
             if (!keyword)
             {
                 if ((emissionMapProp != null) && (emissionColorProp != null))
@@ -356,7 +327,6 @@ namespace UnityEditor
                 }
                 EditorGUI.EndDisabledGroup();
             }
-            EditorGUI.indentLevel += 1;
 
             // If texture was assigned and color was black set color to white
             float brightness = 1.0f;
@@ -450,11 +420,7 @@ namespace UnityEditor
 
             // Setup double sided GI based on Cull state
             if (material.HasProperty(Property.CullMode))
-            {
-                bool doubleSidedGI = (RenderFace)material.GetFloat(Property.CullMode) != RenderFace.Front;
-                if (doubleSidedGI != material.doubleSidedGI)
-                    material.doubleSidedGI = doubleSidedGI;
-            }
+                material.doubleSidedGI = (RenderFace)material.GetFloat(Property.CullMode) != RenderFace.Front;
 
             // Temporary fix for lightmapping. TODO: to be replaced with attribute tag.
             if (material.HasProperty("_MainTex"))

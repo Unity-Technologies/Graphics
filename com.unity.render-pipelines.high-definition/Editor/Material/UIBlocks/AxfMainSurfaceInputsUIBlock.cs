@@ -56,14 +56,7 @@ namespace UnityEditor.Rendering.HighDefinition
         /// </summary>
         protected override void OnGUIOpen()
         {
-            EditorGUI.BeginChangeCheck();
-            float val = EditorGUILayout.Popup(Styles.mappingModeText, (int)m_MappingMode.floatValue, MappingModeNames);
-            if (EditorGUI.EndChangeCheck())
-            {
-                Material material = materialEditor.target as Material;
-                Undo.RecordObject(material, "Change Mapping Mode");
-                m_MappingMode.floatValue = val;
-            }
+            materialEditor.PopupShaderProperty(m_MappingMode, Styles.mappingModeText, MappingModeNames);
 
             AxFMappingMode mappingMode = (AxFMappingMode)m_MappingMode.floatValue;
             m_MappingMask.vectorValue = AxFGUI.AxFMappingModeToMask(mappingMode);

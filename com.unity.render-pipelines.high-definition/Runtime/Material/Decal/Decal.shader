@@ -7,45 +7,45 @@ Shader "HDRP/Decal"
         _NormalMap("NormalMap", 2D) = "bump" {}     // Tangent space normal map
         _MaskMap("MaskMap", 2D) = "white" {}
         _DecalBlend("_DecalBlend", Range(0.0, 1.0)) = 0.5
-        [HideInInspector] _NormalBlendSrc("_NormalBlendSrc", Float) = 0.0
-        [HideInInspector] _MaskBlendSrc("_MaskBlendSrc", Float) = 1.0
+        _NormalBlendSrc("_NormalBlendSrc", Float) = 0.0
+        _MaskBlendSrc("_MaskBlendSrc", Float) = 1.0
         [Enum(Depth Bias, 0, View Bias, 1)] _DecalMeshBiasType("_DecalMeshBiasType", Int) = 0
-        [HideInInspector] _DecalMeshDepthBias("_DecalMeshDepthBias", Float) = 0.0
-        [HideInInspector] _DecalMeshViewBias("_DecalMeshViewBias", Float) = 0.0
-        [HideInInspector] _DrawOrder("_DrawOrder", Int) = 0
+        _DecalMeshDepthBias("_DecalMeshDepthBias", Float) = 0.0
+        _DecalMeshViewBias("_DecalMeshViewBias", Float) = 0.0
+        _DrawOrder("_DrawOrder", Int) = 0
         [HDR] _EmissiveColor("EmissiveColor", Color) = (0, 0, 0)
         // Used only to serialize the LDR and HDR emissive color in the material UI,
         // in the shader only the _EmissiveColor should be used
         [HideInInspector] _EmissiveColorLDR("EmissiveColor LDR", Color) = (0, 0, 0)
         [HDR][HideInInspector] _EmissiveColorHDR("EmissiveColor HDR", Color) = (0, 0, 0)
         _EmissiveColorMap("EmissiveColorMap", 2D) = "white" {}
-        [HideInInspector] _EmissiveIntensityUnit("Emissive Mode", Int) = 0
+        _EmissiveIntensityUnit("Emissive Mode", Int) = 0
         [ToggleUI] _UseEmissiveIntensity("Use Emissive Intensity", Int) = 0
         _EmissiveIntensity("Emissive Intensity", Float) = 1
         _EmissiveExposureWeight("Emissive Pre Exposure", Range(0.0, 1.0)) = 1.0
 
         // Remapping
-        [HideInInspector] _MetallicRemapMin("_MetallicRemapMin", Range(0.0, 1.0)) = 0.0
-        [HideInInspector] _MetallicRemapMax("_MetallicRemapMax", Range(0.0, 1.0)) = 1.0
-        [HideInInspector] _SmoothnessRemapMin("SmoothnessRemapMin", Float) = 0.0
-        [HideInInspector] _SmoothnessRemapMax("SmoothnessRemapMax", Float) = 1.0
-        [HideInInspector] _AORemapMin("AORemapMin", Float) = 0.0
-        [HideInInspector] _AORemapMax("AORemapMax", Float) = 1.0
+        _MetallicRemapMin("_MetallicRemapMin", Range(0.0, 1.0)) = 0.0
+        _MetallicRemapMax("_MetallicRemapMax", Range(0.0, 1.0)) = 1.0
+        _SmoothnessRemapMin("SmoothnessRemapMin", Float) = 0.0
+        _SmoothnessRemapMax("SmoothnessRemapMax", Float) = 1.0
+        _AORemapMin("AORemapMin", Float) = 0.0
+        _AORemapMax("AORemapMax", Float) = 1.0
 
         // scaling
-        [HideInInspector] _DecalMaskMapBlueScale("_DecalMaskMapBlueScale", Range(0.0, 1.0)) = 1.0
+        _DecalMaskMapBlueScale("_DecalMaskMapBlueScale", Range(0.0, 1.0)) = 1.0
 
         // Alternative when no mask map is provided
-        [HideInInspector] _Smoothness("_Smoothness",  Range(0.0, 1.0)) = 0.5
-        [HideInInspector] _Metallic("_Metallic",  Range(0.0, 1.0)) = 0.0
-        [HideInInspector] _AO("_AO",  Range(0.0, 1.0)) = 1.0
+        _Smoothness("_Smoothness",  Range(0.0, 1.0)) = 0.5
+        _Metallic("_Metallic",  Range(0.0, 1.0)) = 0.0
+        _AO("_AO",  Range(0.0, 1.0)) = 1.0
 
-        [HideInInspector][ToggleUI]_AffectAlbedo("Boolean", Float) = 1
-        [HideInInspector][ToggleUI]_AffectNormal("Boolean", Float) = 1
-        [HideInInspector][ToggleUI]_AffectAO("Boolean", Float) = 0
-        [HideInInspector][ToggleUI]_AffectMetal("Boolean", Float) = 1
-        [HideInInspector][ToggleUI]_AffectSmoothness("Boolean", Float) = 1
-        [HideInInspector][ToggleUI]_AffectEmission("Boolean", Float) = 0
+        [ToggleUI]_AffectAlbedo("Boolean", Float) = 1
+        [ToggleUI]_AffectNormal("Boolean", Float) = 1
+        [ToggleUI]_AffectAO("Boolean", Float) = 0
+        [ToggleUI]_AffectMetal("Boolean", Float) = 1
+        [ToggleUI]_AffectSmoothness("Boolean", Float) = 1
+        [ToggleUI]_AffectEmission("Boolean", Float) = 0
 
         // Stencil state
         [HideInInspector] _DecalStencilRef("_DecalStencilRef", Int) = 16
@@ -137,6 +137,7 @@ Shader "HDRP/Decal"
             HLSLPROGRAM
 
             #pragma multi_compile_fragment DECALS_3RT DECALS_4RT
+            #pragma multi_compile_fragment _ DECAL_SURFACE_GRADIENT
             #define SHADERPASS SHADERPASS_DBUFFER_PROJECTOR
             #include "Packages/com.unity.render-pipelines.high-definition/Runtime/ShaderLibrary/ShaderVariables.hlsl"
             #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Decal/DecalProperties.hlsl"
@@ -212,6 +213,7 @@ Shader "HDRP/Decal"
             HLSLPROGRAM
 
             #pragma multi_compile_fragment DECALS_3RT DECALS_4RT
+            #pragma multi_compile_fragment _ DECAL_SURFACE_GRADIENT
             #pragma multi_compile _ DOTS_INSTANCING_ON
             // enable dithering LOD crossfade
             #pragma multi_compile _ LOD_FADE_CROSSFADE
