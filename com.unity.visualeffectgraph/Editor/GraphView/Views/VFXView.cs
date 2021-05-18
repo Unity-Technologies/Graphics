@@ -589,9 +589,7 @@ namespace UnityEditor.VFX.UI
 
         DropdownMenuAction.Status ShaderValidationStatus(DropdownMenuAction action)
         {
-            if (VFXGraphCompiledData.k_FnVFXResource_SetCompileInitialVariants == null)
-                return DropdownMenuAction.Status.Disabled;
-            else if (m_ForceShaderValidation)
+            if (m_ForceShaderValidation)
                 return DropdownMenuAction.Status.Checked;
             else
                 return DropdownMenuAction.Status.Normal;
@@ -1422,6 +1420,8 @@ namespace UnityEditor.VFX.UI
 
         void OnCompile()
         {
+            VFXLibrary.LogUnsupportedSRP();
+
             if (controller.model.isSubgraph)
                 controller.graph.RecompileIfNeeded(false, false);
             else

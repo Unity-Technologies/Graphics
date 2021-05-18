@@ -303,7 +303,7 @@ Note that transformations in this method are in object space. If you want to app
 2. Apply the transformations.
 3. Convert the world space data back to object space. Use the `TransformWorldToObject` method to convert position data and `TransformWorldToObjectDir` to convert normal data.
 
-For an example on how to use this method to write vertex shader code, see the following code sample. This example modifies the vertex data to slightly enlarge the mesh and avoid z-fighting:
+For an example on how to use this method to write vertex shader code, see the following code sample. This example modifies the vertex data to slightly enlarge the mesh and avoid [z-fighting](Glossary.md#ZFighting):
 
 ```c#
 #define HAVE_MESH_MODIFICATION
