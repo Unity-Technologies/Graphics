@@ -31,7 +31,7 @@ To configure these parameters, go to the Unity Editor [Project Settings](https:/
 
 ### Adding a Custom Interpolator block to the Master Stack
 
-![](images/custom-interpolators-3.gif)     ![](custom-interpolators-2.png)
+![](images/custom-interpolators-3.gif)     ![](images/custom-interpolators-2.png)
 
 1. Right-click in the **Vertex** contex to create a block node.
 2. Select **Custom Interpolator**.
@@ -42,7 +42,7 @@ In the illustrated example, you use the Vector 4 (vec4) data type.
 
 ### Writing data to the interpolator
 
- ![](custom-interpolators-1.png)
+ ![](images/custom-interpolators-1.png)
 
 1. Right-click in your graph to create a node.
 2. Select the type **Vertex ID**.
@@ -56,7 +56,7 @@ In the example, you write Vertex ID values from your graph into the Custom Inter
 2. Select **Custom Interpolator**.
 3. Connect the Custom Interpolator node to the relevant block in the Fragment context.
 
- ![](custom-interpolators-4.png)
+ ![](images/custom-interpolators-4.png)
 
 In this example, you connect to the **Base Color** block in order to pass the Vertex ID from the vertex shader to the fragment shader and use it as color output.
 
