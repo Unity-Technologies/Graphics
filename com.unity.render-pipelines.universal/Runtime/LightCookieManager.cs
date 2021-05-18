@@ -194,6 +194,8 @@ namespace UnityEngine.Rendering.Universal
             }
         }
 
+        internal bool IsKeywordLightCookieEnabled { get; private set; }
+
         Texture2DAtlas        m_AdditionalLightsCookieAtlas;
         LightCookieShaderData m_AdditionalLightsCookieShaderData;
         WorkMemory            m_WorkMem;
@@ -284,8 +286,8 @@ namespace UnityEngine.Rendering.Universal
                 isAdditionalLightsAvailable = SetupAdditionalLights(cmd, ref lightData);
 
             // Main and additional lights are merged into one keyword to reduce variants.
-            lightData.isKeywordLightCookieEnabled = isMainLightAvailable || isAdditionalLightsAvailable;
-            CoreUtils.SetKeyword(cmd, ShaderKeywordStrings.LightCookies, lightData.isKeywordLightCookieEnabled);
+            IsKeywordLightCookieEnabled = isMainLightAvailable || isAdditionalLightsAvailable;
+            CoreUtils.SetKeyword(cmd, ShaderKeywordStrings.LightCookies, IsKeywordLightCookieEnabled);
         }
 
         bool SetupMainLight(CommandBuffer cmd, ref VisibleLight visibleMainLight)

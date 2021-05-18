@@ -43,8 +43,6 @@ namespace UnityEngine.Rendering.Universal
         public bool reflectionProbeBoxProjection;
         public bool reflectionProbeBlending;
         public bool supportsLightLayers;
-
-        public bool isKeywordLightCookieEnabled;
     }
 
     public struct CameraData
@@ -226,8 +224,8 @@ namespace UnityEngine.Rendering.Universal
         public List<Vector4> bias;
         public List<int> resolution;
 
-        public bool isKeywordAdditionalLightShadowsEnabled;
-        public bool isKeywordSoftShadowsEnabled;
+        internal bool isKeywordAdditionalLightShadowsEnabled;
+        internal bool isKeywordSoftShadowsEnabled;
     }
 
     // Precomputed tile data.

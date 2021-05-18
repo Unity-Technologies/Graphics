@@ -1080,9 +1080,6 @@ namespace UnityEngine.Rendering.Universal
             {
                 lightData.originalIndices[i] = i;
             }
-
-            // This will be setup in LightCookieManager.
-            lightData.isKeywordLightCookieEnabled = false;
         }
 
         static void CleanupLightData(ref LightData lightData)

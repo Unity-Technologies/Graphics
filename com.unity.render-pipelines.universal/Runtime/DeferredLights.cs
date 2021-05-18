@@ -1154,7 +1154,7 @@ namespace UnityEngine.Rendering.Universal.Internal
             // Restore shader keywords
             CoreUtils.SetKeyword(cmd, ShaderKeywordStrings.AdditionalLightShadows, renderingData.shadowData.isKeywordAdditionalLightShadowsEnabled);
             CoreUtils.SetKeyword(cmd, ShaderKeywordStrings.SoftShadows, renderingData.shadowData.isKeywordSoftShadowsEnabled);
-            CoreUtils.SetKeyword(cmd, ShaderKeywordStrings.LightCookies, renderingData.lightData.isKeywordLightCookieEnabled);
+            CoreUtils.SetKeyword(cmd, ShaderKeywordStrings.LightCookies, m_LightCookieManager.IsKeywordLightCookieEnabled);
 
             context.ExecuteCommandBuffer(cmd);
             CommandBufferPool.Release(cmd);
