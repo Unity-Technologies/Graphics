@@ -188,9 +188,15 @@ namespace UnityEditor.Rendering.HighDefinition
         /// </returns>
         public static bool ResetMaterialKeywords(Material material)
         {
+            return ResetMaterialKeywords(material, assetWithHDMetaData: null);
+        }
+
+        // Giving assetWithHDMetaData will directly try to get ids from an HDMetaData object from the given asset
+        internal static bool ResetMaterialKeywords(Material material, UnityEngine.Object assetWithHDMetaData = null)
+        {
             MaterialResetter resetter;
 
-            (ShaderID id, GUID extMaterialGUID) = GetShaderIDsFromShader(material.shader);
+            (ShaderID id, GUID extMaterialGUID) = GetShaderIDsFromShader(material.shader, assetWithHDMetaData);
             // If we send a non HDRP material we don't throw an exception, the return type already handles errors.
             try
             {
@@ -306,13 +312,21 @@ namespace UnityEditor.Rendering.HighDefinition
             return (obj.shaderID, obj.subTargetGuid);
         }
 
-        internal static (ShaderID, GUID) GetShaderIDsFromShader(Shader shader)
+        // Giving assetWithHDMetaData will directly try to get ids from an HDMetaData object from the given asset
+        internal static (ShaderID, GUID) GetShaderIDsFromShader(Shader shader, UnityEngine.Object assetWithHDMetaData = null)
         {
+            if (assetWithHDMetaData != null)
+            {
+                return GetShaderIDsFromHDMetadata(assetWithHDMetaData);
+            }
+
             if (shader.IsShaderGraphAsset())
             {
                 // Throw exception if no metadata is found
                 // This case should be handled by the Target
                 HDMetadata obj;
+                // TODO: To check in GraphUtil: should TryGetMetadataOfType() really use IsShaderGraphAsset, as an HDMetaData
+                // can be present with that call failing, see use case in VFXHDRPBinder SetupMaterial().
                 if (!shader.TryGetMetadataOfType<HDMetadata>(out obj))
                     throw new ArgumentException("Unknown shader");
 

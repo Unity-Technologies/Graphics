@@ -26,9 +26,12 @@ namespace UnityEditor.VFX.HDRP
             {
                 if (shaderGraph != null)
                 {
-                    // The following will throw an exception if the material with VFX Shader Graph actually doesn't reference an HDRP ShaderGraph (with HDMetaData):
-                    (HDShaderUtils.ShaderID shaderID, GUID subTargetGUID) = HDShaderUtils.GetShaderIDsFromHDMetadata(shaderGraph);
-                    HDShaderUtils.ResetMaterialKeywords(mat);
+                    // The following will throw an exception if the given shaderGraph object actually doesn't contain an HDMetaData object.
+                    // It thus bypasses the check to see if the shader assigned to the material is a shadergraph: this is necessary because this later check
+                    // uses GraphUtil's IsShaderGraphAsset(shader) which check for a shadergraph importer (cf IsShaderGraph(material) which check for a material
+                    // tag "ShaderGraphShader").
+                    // In our context, IsShaderGraphAsset() will fail even though the ShaderGraphVfxAsset does have an HDMetaData object so we need to bypass the check:
+                    HDShaderUtils.ResetMaterialKeywords(mat, assetWithHDMetaData: shaderGraph);
 
                     // Configure HDRP Shadow + MV
                     mat.SetShaderPassEnabled(HDShaderPassNames.s_MotionVectorsStr, hasMotionVector);
