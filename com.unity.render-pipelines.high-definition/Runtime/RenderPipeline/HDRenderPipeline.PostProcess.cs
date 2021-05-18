@@ -739,7 +739,7 @@ namespace UnityEngine.Rendering.HighDefinition
             return GetExposureTextureHandle(camera.currentExposureTextures.current);
         }
 
-        public RTHandle GetExposureTextureHandle(RTHandle rt)
+        internal RTHandle GetExposureTextureHandle(RTHandle rt)
         {
             return rt ?? m_EmptyExposureTexture;
         }
