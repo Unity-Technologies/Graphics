@@ -130,7 +130,7 @@ namespace UnityEngine.Rendering.HighDefinition
         //to calculate its exposure values, since this requires frame data.
         float m_ProbeExposureValue = 1.0f;
 
-        //Set and used by the pipeline, depending on the resolved configuration of a probe.
+        ///<summary>Set and used by the pipeline, depending on the resolved configuration of a probe.</summary>
         public bool ExposureControlEnabled { set; get; }
 
         internal void SetProbeExposureValue(float exposure)
