@@ -10,6 +10,6 @@ public class SetupGraphicsTestCases : IPrebuildSetup
         UnityEditor.TestTools.Graphics.SetupGraphicsTestCases.Setup(UniversalGraphicsTests.universalPackagePath);
 
         // Configure project for XR tests
-        Unity.Testing.XR.Editor.InjectMockHMD.SetupLoader();
+        //Unity.Testing.XR.Editor.InjectMockHMD.SetupLoader();
     }
 }

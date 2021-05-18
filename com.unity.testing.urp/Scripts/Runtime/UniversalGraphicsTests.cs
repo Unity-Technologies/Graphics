@@ -30,7 +30,7 @@ public class UniversalGraphicsTests
         var settings = Object.FindObjectOfType<UniversalGraphicsTestSettings>();
         Assert.IsNotNull(settings, "Invalid test scene, couldn't find UniversalGraphicsTestSettings");
 
-        int waitFrames = Unity.Testing.XR.Runtime.ConfigureMockHMD.SetupTest(settings.XRCompatible, settings.WaitFrames, settings.ImageComparisonSettings);
+        int waitFrames = settings.WaitFrames;
 
         Scene scene = SceneManager.GetActiveScene();
 
