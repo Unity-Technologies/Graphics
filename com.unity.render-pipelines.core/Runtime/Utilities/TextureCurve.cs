@@ -46,8 +46,7 @@ namespace UnityEngine.Rendering
         bool m_IsLengthDirty;
         bool m_IsLoopingCurveDirty;
         bool m_IsTextureDirty;
-
-        int m_AppliedCurveHash;
+        int m_PreviousCurveHash;
 
         /// <summary>
         /// Retrieves the key at index.
@@ -114,6 +113,10 @@ namespace UnityEngine.Rendering
             SetValuesDirty();
         }
 
+        /// <summary>
+        /// Marks the curve key values as dirty to trigger a redraw of the texture the next time
+        /// <see cref="GetTexture"/> is called but without forcing the update of <see cref="length"/>.
+        /// </summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         void SetValuesDirty()
         {
@@ -137,8 +140,6 @@ namespace UnityEngine.Rendering
         /// <returns>A 128x1 texture.</returns>
         public Texture2D GetTexture()
         {
-            Profiling.Profiler.BeginSample($"{nameof(TextureCurve)}.{nameof(GetTexture)}");
-
             if (m_Texture == null)
             {
                 m_Texture = new Texture2D(k_Precision, 1, GetTextureFormat(), false, true);
@@ -147,7 +148,7 @@ namespace UnityEngine.Rendering
                 m_Texture.filterMode = FilterMode.Bilinear;
                 m_Texture.wrapMode = TextureWrapMode.Clamp;
                 m_IsTextureDirty = true;
-                m_AppliedCurveHash = 0;
+                m_PreviousCurveHash = 0;
             }
 
             if (m_IsTextureDirty)
@@ -168,6 +169,7 @@ namespace UnityEngine.Rendering
                         keyHash = keyHash * 23 + key.value.GetHashCode();
                         keyHash = keyHash * 23 + key.inTangent.GetHashCode();
                         keyHash = keyHash * 23 + key.outTangent.GetHashCode();
+                        // TODO: Should we handle weights? It seems they are not used in Volumes.
 
                         curveHash = curveHash * 23 + keyHash;
                     }
@@ -178,7 +180,7 @@ namespace UnityEngine.Rendering
                     curveHash = m_ZeroValue.GetHashCode();
                 }
 
-                if (curveHash != m_AppliedCurveHash)
+                if (curveHash != m_PreviousCurveHash)
                 {
                     var format = m_Texture.format;
                     if (format == TextureFormat.RHalf)
@@ -230,13 +232,11 @@ namespace UnityEngine.Rendering
 
                     m_Texture.Apply(false, false);
 
-                    m_AppliedCurveHash = curveHash;
+                    m_PreviousCurveHash = curveHash;
                 }
 
                 m_IsTextureDirty = false;
             }
-
-            Profiling.Profiler.EndSample();
 
             return m_Texture;
         }
@@ -267,6 +267,7 @@ namespace UnityEngine.Rendering
 
         AnimationCurve GetEffectiveCurve()
         {
+            // If length is 0 it should never be called as m_ZeroValue is used instead.
             Assert.AreNotEqual(0, length);
 
             if (!m_Loop || length == 1)
@@ -371,8 +372,6 @@ namespace UnityEngine.Rendering
                 return;
             }
 
-            Profiling.Profiler.BeginSample($"{nameof(TextureCurve)}.{nameof(Interp)}");
-
             if (s_TempCurve == null)
                 s_TempCurve = new AnimationCurve();
 
@@ -434,22 +433,21 @@ namespace UnityEngine.Rendering
                 key.value = Mathf.Lerp(key.value, toKey.value, t);
                 key.inTangent = Mathf.Lerp(key.inTangent, toKey.inTangent, t);
                 key.outTangent = Mathf.Lerp(key.outTangent, toKey.outTangent, t);
+                // TODO: Should we handle weights? It seems they are not used in Volumes.
 
                 m_Curve.MoveKey(i, key);
             }
 
+            // Clear the temp curve for future use.
             for (int i = length - 1; i >= 0f; i--)
                 s_TempCurve.RemoveKey(i);
 
+            // Don't call SetDirty() here because we've already set the correct length.
             SetValuesDirty();
-
-            Profiling.Profiler.EndSample();
         }
 
         public void SetValue(TextureCurve value)
         {
-            Profiling.Profiler.BeginSample($"{nameof(TextureCurve)}.{nameof(SetValue)}");
-
             if (value == this)
                 return;
 
@@ -466,9 +464,8 @@ namespace UnityEngine.Rendering
             m_Loop = value.m_Loop;
             m_Range = value.m_Range;
 
+            // Don't call SetDirty() here because we've already set the correct length.
             SetValuesDirty();
-
-            Profiling.Profiler.EndSample();
         }
     }
 
