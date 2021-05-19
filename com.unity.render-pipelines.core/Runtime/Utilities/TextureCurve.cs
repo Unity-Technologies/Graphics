@@ -20,6 +20,8 @@ namespace UnityEngine.Rendering
         const int k_Precision = 128; // Edit LutBuilder3D if you change this value
         const float k_Step = 1f / k_Precision;
 
+        static AnimationCurve s_TempCurve;
+
         /// <summary>
         /// The number of keys in the curve.
         /// </summary>
@@ -242,15 +244,25 @@ namespace UnityEngine.Rendering
             if (m_IsLoopingCurveDirty)
             {
                 if (m_LoopingCurve == null)
+                {
                     m_LoopingCurve = new AnimationCurve();
+                }
+                else
+                {
+                    for (int i = m_LoopingCurve.length - 1; i >= 0; i--)
+                        m_LoopingCurve.RemoveKey(i);
+                }
 
                 var prev = m_Curve[length - 1];
                 prev.time -= m_Range;
                 var next = m_Curve[0];
                 next.time += m_Range;
-                m_LoopingCurve.keys = m_Curve.keys; // GC pressure
+
                 m_LoopingCurve.AddKey(prev);
+                for (int i = 0; i < length; i++)
+                    m_LoopingCurve.AddKey(m_Curve[i]);
                 m_LoopingCurve.AddKey(next);
+
                 m_IsLoopingCurveDirty = false;
             }
 
@@ -329,22 +341,24 @@ namespace UnityEngine.Rendering
 
             Profiling.Profiler.BeginSample($"{nameof(TextureCurve)}.{nameof(Interp)}");
 
-            var toCurve = new AnimationCurve(); // GC pressure
+            if (s_TempCurve == null)
+                s_TempCurve = new AnimationCurve();
+
             to.UpdateLength();
             if (to.length == 0)
             {
-                toCurve.AddKey(0f, to.m_ZeroValue);
+                s_TempCurve.AddKey(0f, to.m_ZeroValue);
             }
             else if (to.length == 1)
             {
-                toCurve.AddKey(0f, to[0].value);
+                s_TempCurve.AddKey(0f, to[0].value);
             }
             else
             {
                 var curve = to.GetEffectiveCurve();
                 var curveLength = curve.length;
                 for (int i = 0; i < curveLength; i++)
-                    toCurve.AddKey(curve[i]);
+                    s_TempCurve.AddKey(curve[i]);
             }
 
             UpdateLength();
@@ -370,13 +384,13 @@ namespace UnityEngine.Rendering
             for (int i = 0; i < length; i++)
             {
                 var time = m_Curve[i].time;
-                toCurve.AddKey(time, toCurve.Evaluate(time));
+                s_TempCurve.AddKey(time, s_TempCurve.Evaluate(time));
             }
 
-            length = toCurve.length;
+            length = s_TempCurve.length;
             for (int i = 0; i < length; i++)
             {
-                var time = toCurve[i].time;
+                var time = s_TempCurve[i].time;
                 m_Curve.AddKey(time, m_Curve.Evaluate(time));
             }
 
@@ -384,13 +398,16 @@ namespace UnityEngine.Rendering
             {
                 var key = m_Curve[i];
 
-                var toKey = toCurve[i];
+                var toKey = s_TempCurve[i];
                 key.value = Mathf.Lerp(key.value, toKey.value, t);
                 key.inTangent = Mathf.Lerp(key.inTangent, toKey.inTangent, t);
                 key.outTangent = Mathf.Lerp(key.outTangent, toKey.outTangent, t);
 
                 m_Curve.MoveKey(i, key);
             }
+
+            for (int i = length - 1; i >= 0f; i--)
+                s_TempCurve.RemoveKey(i);
 
             SetValuesDirty();
 
