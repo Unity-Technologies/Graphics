@@ -133,7 +133,7 @@ namespace UnityEditor.Rendering.Universal.Converters
             SetPipelineSettings(asset, settings);
 
             // Create Renderers
-            var defaultIndex = -1;
+            var defaultIndex = 0;
             var renderers = new List<ScriptableRendererData>();
             if (m_RenderingModes.Contains(RenderingMode.Forward))
             {
