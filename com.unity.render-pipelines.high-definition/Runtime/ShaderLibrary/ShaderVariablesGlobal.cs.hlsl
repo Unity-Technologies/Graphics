@@ -57,7 +57,7 @@ GLOBAL_CBUFFER_START(ShaderVariablesGlobal, b0)
     float4 _FogColor;
     float _FogColorMode;
     float _GlobalMipBias;
-    float _Pad1;
+    float _GlobalMipBiasPow2;
     float _Pad2;
     float4 _MipFogParameters;
     float4 _HeightFogBaseScattering;

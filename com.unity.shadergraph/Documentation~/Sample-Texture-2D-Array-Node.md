@@ -27,7 +27,7 @@ NOTE: This [Node](Node.md) can only be used in the **Fragment** shader stage.
 
 | Name                     | Type     | Options         | Description |
 |:------------------------ |:---------|:----------------|:-------------------------|
-|  Disable Global Mip Bias | Toggle   | On, Off         | Disables the automatic global mip bias imposed by the runtime. This bias is set during certain dynamic resolution scaling algorithms to improve detail reconstruction. |
+|  Enable Global Mip Bias | Toggle   | On, Off         | Enables the global mipmap bias that Unity automatically imposes at runtime. Unity sets this bias during certain dynamic resolution scaling algorithms to improve detail reconstruction. |
 
 
 ## Generated Code Example
