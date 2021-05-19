@@ -1420,6 +1420,8 @@ namespace UnityEditor.VFX.UI
 
         void OnCompile()
         {
+            VFXLibrary.LogUnsupportedSRP();
+
             if (controller.model.isSubgraph)
                 controller.graph.RecompileIfNeeded(false, false);
             else
@@ -1439,7 +1441,7 @@ namespace UnityEditor.VFX.UI
         {
             var graphToSave = new HashSet<VFXGraph>();
             GetGraphsRecursively(controller.graph, graphToSave);
-            m_ComponentBoard.DeactivateBoundsRecording(); //Avoids saving the graph with unnecessary bounds computations
+            m_ComponentBoard.DeactivateBoundsRecordingIfNeeded(); //Avoids saving the graph with unnecessary bounds computations
             foreach (var graph in graphToSave)
             {
                 graph.GetResource().WriteAsset();
@@ -1789,13 +1791,6 @@ namespace UnityEditor.VFX.UI
                 Selection.objects = blackBoardSelected;
                 return;
             }
-
-            //var boundsRecorderSelected =
-            //    selection.OfType<VFXBoundsRecorderField>().Select(t => t.tiedContext.controller.model).ToArray();
-            //if (boundsRecorderSelected.Length > 0)
-            //{
-            //    Selection.objects = boundsRecorderSelected;
-            //}
         }
 
         void SelectAsset()

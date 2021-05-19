@@ -31,6 +31,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
         }
 
         protected override string customInspector => "Rendering.HighDefinition.LightingShaderGraphGUI";
+        internal override MaterialResetter setupMaterialKeywordsAndPassFunc => LightingShaderGraphGUI.SetupLightingKeywordsAndPass;
 
         protected override string renderQueue
         {
