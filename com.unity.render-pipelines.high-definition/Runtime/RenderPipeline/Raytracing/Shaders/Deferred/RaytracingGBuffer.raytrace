@@ -76,12 +76,6 @@ struct PixelCoordinates
 
 void TraceGBuffer(PixelCoordinates coords)
 {
-    _RaytracingDistanceBuffer[COORD_TEXTURE2D_X(coords.outputCoords)] = _RaytracingRayMaxLength;
-    _GBufferTexture0RW[COORD_TEXTURE2D_X(coords.outputCoords)] = float4(1.0, 0.0, 0.5, 1.0);
-    _GBufferTexture1RW[COORD_TEXTURE2D_X(coords.outputCoords)] = float4(0.0, 0.0, 0.0, 0.0);
-    _GBufferTexture2RW[COORD_TEXTURE2D_X(coords.outputCoords)] = float4(0.0, 0.0, 0.0, 0.0);
-    _GBufferTexture3RW[COORD_TEXTURE2D_X(coords.outputCoords)] = float4(0.0, 0.0, 0.0, 0.0);
-
     // Read the depth value
     float depthValue  = LOAD_TEXTURE2D_X(_DepthTexture, coords.geometryCoords);
 
@@ -89,13 +83,16 @@ void TraceGBuffer(PixelCoordinates coords)
     float4 direction = LOAD_TEXTURE2D_X(_RaytracingDirectionBuffer, coords.directionCoords);
 
     // If this is the background, or UnL is null or this pixel has been flagged as invalid, no
-    if (depthValue == UNITY_RAW_FAR_CLIP_VALUE || direction.w < 0.0)
+    if (depthValue == UNITY_RAW_FAR_CLIP_VALUE || direction.w <= 0.0)
     {
-        _RaytracingDistanceBuffer[COORD_TEXTURE2D_X(coords.outputCoords)] = _RaytracingRayMaxLength;
-        _GBufferTexture0RW[COORD_TEXTURE2D_X(coords.outputCoords)] = float4(0.0, 0.0, 0.0, 0.0);
-        _GBufferTexture1RW[COORD_TEXTURE2D_X(coords.outputCoords)] = float4(0.0, 0.0, 0.0, 0.0);
-        _GBufferTexture2RW[COORD_TEXTURE2D_X(coords.outputCoords)] = float4(0.0, 0.0, 0.0, 0.0);
-        _GBufferTexture3RW[COORD_TEXTURE2D_X(coords.outputCoords)] = float4(0.0, 0.0, 0.0, 0.0);
+        if (direction.w < 0.0)
+        {
+            _RaytracingDistanceBuffer[COORD_TEXTURE2D_X(coords.outputCoords)] = _RaytracingRayMaxLength;
+            _GBufferTexture0RW[COORD_TEXTURE2D_X(coords.outputCoords)] = float4(0.0, 0.0, 0.0, 0.0);
+            _GBufferTexture1RW[COORD_TEXTURE2D_X(coords.outputCoords)] = float4(0.0, 0.0, 0.0, 0.0);
+            _GBufferTexture2RW[COORD_TEXTURE2D_X(coords.outputCoords)] = float4(0.0, 0.0, 0.0, 0.0);
+            _GBufferTexture3RW[COORD_TEXTURE2D_X(coords.outputCoords)] = float4(0.0, 0.0, 0.0, 0.0);
+        }
         return;
     }
 

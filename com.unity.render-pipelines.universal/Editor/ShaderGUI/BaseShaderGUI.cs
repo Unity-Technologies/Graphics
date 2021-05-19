@@ -169,6 +169,12 @@ namespace UnityEditor
         ////////////////////////////////////
         #region GeneralFunctions
 
+        [Obsolete("MaterialChanged has been renamed ValidateMaterial", false)]
+        public virtual void MaterialChanged(Material material)
+        {
+            ValidateMaterial(material);
+        }
+
         public virtual void FindProperties(MaterialProperty[] properties)
         {
             var material = materialEditor?.target as Material;
@@ -215,7 +221,7 @@ namespace UnityEditor
                 m_FirstTimeApply = false;
             }
 
-            m_MaterialScopeList.DrawHeaders(materialEditor, material);
+            ShaderPropertiesGUI(material);
         }
 
         public virtual void OnOpenGUI(Material material, MaterialEditor materialEditor)
@@ -227,6 +233,11 @@ namespace UnityEditor
             FillAdditionalFoldouts(m_MaterialScopeList);
 
             m_MaterialScopeList.RegisterHeaderScope(Styles.AdvancedLabel, (uint)Expandable.Advanced, DrawAdvancedOptions);
+        }
+
+        public void ShaderPropertiesGUI(Material material)
+        {
+            m_MaterialScopeList.DrawHeaders(materialEditor, material);
         }
 
         #endregion
