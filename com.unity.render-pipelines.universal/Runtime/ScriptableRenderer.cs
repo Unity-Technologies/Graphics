@@ -738,7 +738,6 @@ namespace UnityEngine.Rendering.Universal
 
                 for (int i = 0; i < m_ActiveRenderPassQueue.Count; ++i)
                 {
-                    m_ActiveRenderPassQueue[i].m_ColorAttachmentIndices.Dispose();
                     m_ActiveRenderPassQueue[i].m_InputAttachmentIndices.Dispose();
                 }
             }

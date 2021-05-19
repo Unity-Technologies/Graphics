@@ -206,7 +206,6 @@ namespace UnityEngine.Rendering.Universal
         // index to track the position in the current frame
         internal int renderPassQueueIndex { get; set; }
 
-        internal NativeArray<int> m_ColorAttachmentIndices;
         internal NativeArray<int> m_InputAttachmentIndices;
 
         internal GraphicsFormat[] renderTargetFormat { get; set; }
