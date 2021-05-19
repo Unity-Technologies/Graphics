@@ -4,7 +4,7 @@ using UnityEngine.Rendering.HighDefinition.LTC;
 namespace UnityEngine.Rendering.HighDefinition
 {
     [GenerateHLSL]
-    public enum LTCLightingModel
+    internal enum LTCLightingModel
     {
         // Lit, Stack-Lit and Fabric/Silk
         GGX,
@@ -26,7 +26,7 @@ namespace UnityEngine.Rendering.HighDefinition
         Count
     }
 
-    partial class LTCAreaLight
+    internal partial class LTCAreaLight
     {
         internal static IBRDF GetBRDFInterface(LTCLightingModel model)
         {
@@ -61,7 +61,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
         static LTCAreaLight s_Instance;
 
-        public static LTCAreaLight instance
+        internal static LTCAreaLight instance
         {
             get
             {
@@ -77,16 +77,16 @@ namespace UnityEngine.Rendering.HighDefinition
         // For area lighting - We pack all texture inside a texture array to reduce the number of resource required
         Texture2DArray m_LtcData; // 0: m_LtcGGXMatrix - RGBA, 1: m_LtcDisneyDiffuseMatrix - RGBA
 
-        public const int k_LtcLUTMatrixDim = 3; // size of the matrix (3x3)
-        public const int k_LtcLUTResolution = 64;
+        internal const int k_LtcLUTMatrixDim = 3; // size of the matrix (3x3)
+        internal const int k_LtcLUTResolution = 64;
 
-        LTCAreaLight()
+        internal LTCAreaLight()
         {
             m_refCounting = 0;
         }
 
         // Load LUT with 3x3 matrix in RGBA of a tex2D (some part are zero)
-        public static void LoadLUT(Texture2DArray tex, int arrayElement, GraphicsFormat format, double[,] LUTTransformInv)
+        internal static void LoadLUT(Texture2DArray tex, int arrayElement, GraphicsFormat format, double[,] LUTTransformInv)
         {
             const int count = k_LtcLUTResolution * k_LtcLUTResolution;
             Color[] pixels = new Color[count];
@@ -106,7 +106,7 @@ namespace UnityEngine.Rendering.HighDefinition
             tex.SetPixels(pixels, arrayElement);
         }
 
-        public void Build()
+        internal void Build()
         {
             Debug.Assert(m_refCounting >= 0);
 
@@ -140,7 +140,7 @@ namespace UnityEngine.Rendering.HighDefinition
             m_refCounting++;
         }
 
-        public void Cleanup()
+        internal void Cleanup()
         {
             m_refCounting--;
 
@@ -152,7 +152,7 @@ namespace UnityEngine.Rendering.HighDefinition
             Debug.Assert(m_refCounting >= 0);
         }
 
-        public void Bind(CommandBuffer cmd)
+        internal void Bind(CommandBuffer cmd)
         {
             cmd.SetGlobalTexture("_LtcData", m_LtcData);
         }
