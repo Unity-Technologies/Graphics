@@ -930,7 +930,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
             if (parameters.volumeAtlas == null)
             {
-                parameters.volumeAtlas = CoreUtils.emptyUAV;
+                parameters.volumeAtlas = CoreUtils.emptyVolumeUAV;
             }
 
             const float volumetricIndirectLightingMultiplierUnused = 0.0f;
