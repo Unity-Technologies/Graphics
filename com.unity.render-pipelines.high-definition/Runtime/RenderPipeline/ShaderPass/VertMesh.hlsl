@@ -134,12 +134,14 @@ VaryingsMeshType VertMesh(AttributesMesh input, float3 worldSpaceOffset
 )
 {
     VaryingsMeshType output;
-    ZERO_INITIALIZE(VaryingsMeshType, output);
+#if defined(USE_CUSTOMINTERP_SUBSTRUCT) || defined(HAVE_VFX_MODIFICATION)
+    ZERO_INITIALIZE(VaryingsMeshType, output); // Only required with custom interpolator to quiet the shader compiler about not fully initialized struct
+#endif
 
     UNITY_SETUP_INSTANCE_ID(input);
     UNITY_TRANSFER_INSTANCE_ID(input, output);
 
-#if defined(HAVE_VFX_MODIFICATION)
+#ifdef HAVE_VFX_MODIFICATION
     ZERO_INITIALIZE(AttributesElement, element);
 
     if(!GetMeshAndElementIndex(input, element))
@@ -151,14 +153,13 @@ VaryingsMeshType VertMesh(AttributesMesh input, float3 worldSpaceOffset
     SetupVFXMatrices(element, output);
 #endif
 
-#if defined(HAVE_MESH_MODIFICATION)
-    input = ApplyMeshModification(input,
-     _TimeParameters.xyz
-    // If custom interpolators are in use, we need to write them to the shader graph generated VaryingsMesh
-    #if defined(USE_CUSTOMINTERP_APPLYMESHMOD)
+#ifdef HAVE_MESH_MODIFICATION
+    input = ApplyMeshModification(input, _TimeParameters.xyz
+    #ifdef USE_CUSTOMINTERP_SUBSTRUCT
+        // If custom interpolators are in use, we need to write them to the shader graph generated VaryingsMesh
         , output
     #endif
-    #if defined(HAVE_VFX_MODIFICATION)
+    #ifdef HAVE_VFX_MODIFICATION
         , element
     #endif
     );
@@ -183,6 +184,10 @@ VaryingsMeshType VertMesh(AttributesMesh input, float3 worldSpaceOffset
 
 #ifdef TESSELLATION_ON
     output.positionRWS = positionRWS;
+    // For tessellation we evaluate the tessellation factor from vertex shader then interpolate it in Hull Shader
+    // Note: For unknow reason evaluating the tessellationFactor directly in Hull shader cause internal compiler issue for both Metal and Vulkan (Unity issue) when use with shadergraph
+    // so we prefer this version to be compatible with all platforms, have same code for non shader graph and shader graph version and also it should be faster.
+    output.tessellationFactor = GetTessellationFactor(input);
     output.normalWS = normalWS;
 #if defined(VARYINGS_NEED_TANGENT_TO_WORLD) || defined(VARYINGS_DS_NEED_TANGENT)
     output.tangentWS = tangentWS;
@@ -277,6 +282,12 @@ VaryingsMeshToPS VertMeshTesselation(VaryingsMeshToDS input)
 #endif
 #ifdef VARYINGS_NEED_COLOR
     output.color = input.color;
+#endif
+
+    // Call is last to deal with 'not completly initialize warning'. We don't want to ZeroInitialize the output struct to be able to detect issue.
+#ifdef USE_CUSTOMINTERP_SUBSTRUCT
+    // If custom interpolators are in use, we need to write them to the shader graph generated VaryingsMesh
+    VertMeshTesselationCustomInterpolation(input, output);
 #endif
 
     return output;

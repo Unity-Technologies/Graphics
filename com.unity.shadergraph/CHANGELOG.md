@@ -7,10 +7,11 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 ## [12.0.0] - 2021-01-11
 
 ### Added
+  - Added categories to the blackboard, enabling more control over the organization of shader properties and keywords in the Shader Graph tool. These categories are also reflected in the Material Inspector for URP + HDRP, for materials created from shader graphs.
   - Added ability to define custom vertex-to-fragment interpolators.
   - Support for the XboxSeries platform has been added.
   - Stereo Eye Index, Instance ID, and Vertex ID nodes added to the shadergraph library.
-  - Added View Vector Node doc
+  - Added View Vector Node documentation
   - Added custom interpolator thresholds on shadergraph project settings page.
   - Added subshadergraphs for SpeedTree 8 shadergraph support: SpeedTree8Wind, SpeedTree8ColorAlpha, SpeedTree8Billboard.
   - Added an HLSL file implementing a version of the Unity core LODDitheringTransition function which can be used in a Shader Graph
@@ -30,7 +31,9 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
   - Added toggle "Disable Global Mip Bias" in Sample Texture 2D and Sample Texture 2D array node. This checkbox disables the runtimes automatic Mip Bias, which for instance can be activated during dynamic resolution scaling.
 
 ### Changed
-- Updated/corrected View Direction doc
+- Properties and Keywords are no longer separated by type on the blackboard. Categories allow for any combination of properties and keywords to be grouped together as the user defines.
+- Vector2/Vector3/Vector4 property types will now be properly represented by a matching Vector2/Vector3/Vector4 UI control in the URP + HDRP Material Inspector as opposed to the fallback Vector4 field that was used for any multi-dimensional vector type in the past.
+- Updated/corrected View Direction documentation
 - Change Asset/Create/Shader/Blank Shader Graph to Asset/Create/Shader Graph/Blank Shader Graph
 - Change Asset/Create/Shader/Sub Graph to Asset/Create/Shader Graph/Sub Graph
 - Change Asset/Create/Shader/VFX Shader Graph to Asset/Create/Shader Graph/VFX Shader Graph
