@@ -420,7 +420,7 @@ namespace UnityEngine.Rendering.Universal
 
 #if ENABLE_VR && ENABLE_VR_MODULE
         static List<XR.XRDisplaySubsystem> displaySubsystemList = new List<XR.XRDisplaySubsystem>();
-        static XR.XRDisplaySubsystem GetXRDisplaySubsystem()
+        static XR.XRDisplaySubsystem GetFirstXRDisplaySubsystem()
         {
             XR.XRDisplaySubsystem display = null;
             SubsystemManager.GetInstances(displaySubsystemList);
@@ -443,9 +443,9 @@ namespace UnityEngine.Rendering.Universal
                 var platform = Application.platform;
                 if (platform == RuntimePlatform.WSAPlayerX86 || platform == RuntimePlatform.WSAPlayerARM || platform == RuntimePlatform.WSAPlayerX64)
                 {
-                    var displaySubsystem = GetXRDisplaySubsystem();
+                    var displaySubsystem = GetFirstXRDisplaySubsystem();
                     
-                    if (!displaySubsystem.displayOpaque)
+                    if (displaySubsystem != null && !displaySubsystem.displayOpaque)
                         return true;
                 }
             }
