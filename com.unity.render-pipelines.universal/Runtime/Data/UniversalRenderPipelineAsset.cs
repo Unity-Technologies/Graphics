@@ -734,13 +734,13 @@ namespace UnityEngine.Rendering.Universal
         public bool reflectionProbeBlending
         {
             get { return m_ReflectionProbeBlending; }
-            set { m_ReflectionProbeBlending = value; }
+            internal set { m_ReflectionProbeBlending = value; }
         }
 
         public bool reflectionProbeBoxProjection
         {
             get { return m_ReflectionProbeBoxProjection; }
-            set { m_ReflectionProbeBoxProjection = value; }
+            internal set { m_ReflectionProbeBoxProjection = value; }
         }
 
         /// <summary>
@@ -831,7 +831,7 @@ namespace UnityEngine.Rendering.Universal
         public bool supportsSoftShadows
         {
             get { return m_SoftShadowsSupported; }
-            set { m_SoftShadowsSupported = value; }
+            internal set { m_SoftShadowsSupported = value; }
         }
 
         public bool supportsDynamicBatching
