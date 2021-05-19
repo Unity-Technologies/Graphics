@@ -19,7 +19,7 @@ namespace UnityEngine.Experimental.Rendering
         [HideInInspector]
         public float        minSubdivisionMultiplier = 0;
         [HideInInspector, Range(0f, 2f)]
-        public float        geometryDistanceOffset = 0;
+        public float        geometryDistanceOffset = 0.2f;
 
         public LayerMask    objectLayerMask = -1;
 
