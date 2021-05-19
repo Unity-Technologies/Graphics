@@ -269,7 +269,6 @@ void EvaluateAtmosphericScattering(PositionInputs posInput, float3 V, out float3
     // Note2: we do not adjust it anymore to account for the distance to the planet. This can lead to wrong results (since the planet does not write depth).
     float fogFragDist = distance(posInput.positionWS, GetCurrentViewPosition());
 
-    if (_FogEnabled)
     {
         float4 volFog = float4(0.0, 0.0, 0.0, 0.0);
 
@@ -298,7 +297,7 @@ void EvaluateAtmosphericScattering(PositionInputs posInput, float3 V, out float3
         // and the latter resides on the far plane, the computation will be numerically unstable.
         float distDelta = fogFragDist - expFogStart;
 
-        if ((distDelta > 0))
+        if (_FogEnabled && (distDelta > 0))
         {
             // Apply the distant (fallback) fog.
             float3 positionWS = GetCurrentViewPosition() - V * expFogStart;
