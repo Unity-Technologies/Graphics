@@ -1101,11 +1101,14 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
         // - Cull unused render passes.
         internal void CompileRenderGraph()
         {
-            InitializeCompilationData();
-            CountReferences();
-            CullUnusedPasses();
-            UpdateResourceAllocationAndSynchronization();
-            LogRendererListsCreation();
+            using (new ProfilingScope(m_RenderGraphContext.cmd, ProfilingSampler.Get(RenderGraphProfileId.CompileRenderGraph)))
+            {
+                InitializeCompilationData();
+                CountReferences();
+                CullUnusedPasses();
+                UpdateResourceAllocationAndSynchronization();
+                LogRendererListsCreation();
+            }
         }
 
         ref CompiledPassInfo CompilePassImmediatly(RenderGraphPass pass)
@@ -1208,9 +1211,12 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
         // Execute the compiled render graph
         void ExecuteRenderGraph()
         {
-            for (int passIndex = 0; passIndex < m_CompiledPassInfos.size; ++passIndex)
+            using (new ProfilingScope(m_RenderGraphContext.cmd, ProfilingSampler.Get(RenderGraphProfileId.ExecuteRenderGraph)))
             {
-                ExecuteCompiledPass(ref m_CompiledPassInfos[passIndex], passIndex);
+                for (int passIndex = 0; passIndex < m_CompiledPassInfos.size; ++passIndex)
+                {
+                    ExecuteCompiledPass(ref m_CompiledPassInfos[passIndex], passIndex);
+                }
             }
         }
 

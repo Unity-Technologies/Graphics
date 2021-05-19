@@ -759,119 +759,122 @@ namespace UnityEngine.Rendering.HighDefinition
             SkyAmbientMode          ambientMode,
             CommandBuffer           cmd)
         {
-            if (skyContext.IsValid())
+            using (new ProfilingScope(cmd, ProfilingSampler.Get(HDProfileId.UpdateEnvironment)))
             {
-                skyContext.currentUpdateTime += hdCamera.deltaTime;
-
-                m_BuiltinParameters.hdCamera = hdCamera;
-                m_BuiltinParameters.commandBuffer = cmd;
-                m_BuiltinParameters.sunLight = sunLight;
-                m_BuiltinParameters.pixelCoordToViewDirMatrix = hdCamera.mainViewConstants.pixelCoordToViewDirWS;
-                Vector3 worldSpaceCameraPos = hdCamera.mainViewConstants.worldSpaceCameraPos;
-                // For planar reflections we use the parent camera position for all the runtime computations.
-                // This is to avoid cases in which the probe camera is below ground and the parent is not, leading to
-                // in case of PBR sky to a black sky. All other parameters are left as is.
-                // This can introduce inaccuracies, but they should be acceptable if the distance parent camera - probe camera is
-                // small.
-                if (hdCamera.camera.cameraType == CameraType.Reflection && hdCamera.parentCamera != null)
+                if (skyContext.IsValid())
                 {
-                    worldSpaceCameraPos = hdCamera.parentCamera.transform.position;
-                }
-                m_BuiltinParameters.worldSpaceCameraPos = worldSpaceCameraPos;
-                m_BuiltinParameters.viewMatrix = hdCamera.mainViewConstants.viewMatrix;
-                m_BuiltinParameters.screenSize = m_CubemapScreenSize;
-                m_BuiltinParameters.debugSettings = null; // We don't want any debug when updating the environment.
-                m_BuiltinParameters.frameIndex = (int)hdCamera.GetCameraFrameCount();
-                m_BuiltinParameters.skySettings = skyContext.skySettings;
-                m_BuiltinParameters.cloudSettings = skyContext.cloudSettings;
+                    skyContext.currentUpdateTime += hdCamera.deltaTime;
 
-                // When update is not requested and the context is already valid (ie: already computed at least once),
-                // we need to early out in two cases:
-                // - updateMode is "OnDemand" in which case we never update unless explicitly requested
-                // - updateMode is "Realtime" in which case we only update if the time threshold for realtime update is passed.
-                if (IsCachedContextValid(skyContext) && !updateRequired)
-                {
-                    if (skyContext.skySettings.updateMode.value == EnvironmentUpdateMode.OnDemand)
-                        return;
-                    else if (skyContext.skySettings.updateMode.value == EnvironmentUpdateMode.Realtime && skyContext.currentUpdateTime < skyContext.skySettings.updatePeriod.value)
-                        return;
-                }
-
-                int skyHash = ComputeSkyHash(hdCamera, skyContext, sunLight, ambientMode, staticSky);
-                bool forceUpdate = updateRequired;
-
-                // Acquire the rendering context, if the context was invalid or the hash has changed, this will request for an update.
-                forceUpdate |= AcquireSkyRenderingContext(skyContext, skyHash, staticSky ? "SkyboxCubemap_Static" : "SkyboxCubemap", !staticSky);
-
-                ref CachedSkyContext cachedContext = ref m_CachedSkyContexts[skyContext.cachedSkyRenderingContextId];
-                var renderingContext = cachedContext.renderingContext;
-
-                if (IsCachedContextValid(skyContext))
-                {
-                    forceUpdate |= skyContext.skyRenderer.DoUpdate(m_BuiltinParameters);
-                    forceUpdate |= (skyContext.HasClouds() && skyContext.cloudRenderer.DoUpdate(m_BuiltinParameters));
-                }
-
-                if (forceUpdate ||
-                    (skyContext.skySettings.updateMode.value == EnvironmentUpdateMode.OnChanged && skyHash != skyContext.skyParametersHash) ||
-                    (skyContext.skySettings.updateMode.value == EnvironmentUpdateMode.Realtime && skyContext.currentUpdateTime > skyContext.skySettings.updatePeriod.value))
-                {
-                    using (new ProfilingScope(cmd, ProfilingSampler.Get(HDProfileId.UpdateSkyEnvironment)))
+                    m_BuiltinParameters.hdCamera = hdCamera;
+                    m_BuiltinParameters.commandBuffer = cmd;
+                    m_BuiltinParameters.sunLight = sunLight;
+                    m_BuiltinParameters.pixelCoordToViewDirMatrix = hdCamera.mainViewConstants.pixelCoordToViewDirWS;
+                    Vector3 worldSpaceCameraPos = hdCamera.mainViewConstants.worldSpaceCameraPos;
+                    // For planar reflections we use the parent camera position for all the runtime computations.
+                    // This is to avoid cases in which the probe camera is below ground and the parent is not, leading to
+                    // in case of PBR sky to a black sky. All other parameters are left as is.
+                    // This can introduce inaccuracies, but they should be acceptable if the distance parent camera - probe camera is
+                    // small.
+                    if (hdCamera.camera.cameraType == CameraType.Reflection && hdCamera.parentCamera != null)
                     {
-                        // Debug.Log("Update Sky Lighting");
-                        RenderSkyToCubemap(skyContext);
+                        worldSpaceCameraPos = hdCamera.parentCamera.transform.position;
+                    }
+                    m_BuiltinParameters.worldSpaceCameraPos = worldSpaceCameraPos;
+                    m_BuiltinParameters.viewMatrix = hdCamera.mainViewConstants.viewMatrix;
+                    m_BuiltinParameters.screenSize = m_CubemapScreenSize;
+                    m_BuiltinParameters.debugSettings = null; // We don't want any debug when updating the environment.
+                    m_BuiltinParameters.frameIndex = (int)hdCamera.GetCameraFrameCount();
+                    m_BuiltinParameters.skySettings = skyContext.skySettings;
+                    m_BuiltinParameters.cloudSettings = skyContext.cloudSettings;
 
-                        if (updateAmbientProbe)
+                    // When update is not requested and the context is already valid (ie: already computed at least once),
+                    // we need to early out in two cases:
+                    // - updateMode is "OnDemand" in which case we never update unless explicitly requested
+                    // - updateMode is "Realtime" in which case we only update if the time threshold for realtime update is passed.
+                    if (IsCachedContextValid(skyContext) && !updateRequired)
+                    {
+                        if (skyContext.skySettings.updateMode.value == EnvironmentUpdateMode.OnDemand)
+                            return;
+                        else if (skyContext.skySettings.updateMode.value == EnvironmentUpdateMode.Realtime && skyContext.currentUpdateTime < skyContext.skySettings.updatePeriod.value)
+                            return;
+                    }
+
+                    int skyHash = ComputeSkyHash(hdCamera, skyContext, sunLight, ambientMode, staticSky);
+                    bool forceUpdate = updateRequired;
+
+                    // Acquire the rendering context, if the context was invalid or the hash has changed, this will request for an update.
+                    forceUpdate |= AcquireSkyRenderingContext(skyContext, skyHash, staticSky ? "SkyboxCubemap_Static" : "SkyboxCubemap", !staticSky);
+
+                    ref CachedSkyContext cachedContext = ref m_CachedSkyContexts[skyContext.cachedSkyRenderingContextId];
+                    var renderingContext = cachedContext.renderingContext;
+
+                    if (IsCachedContextValid(skyContext))
+                    {
+                        forceUpdate |= skyContext.skyRenderer.DoUpdate(m_BuiltinParameters);
+                        forceUpdate |= (skyContext.HasClouds() && skyContext.cloudRenderer.DoUpdate(m_BuiltinParameters));
+                    }
+
+                    if (forceUpdate ||
+                        (skyContext.skySettings.updateMode.value == EnvironmentUpdateMode.OnChanged && skyHash != skyContext.skyParametersHash) ||
+                        (skyContext.skySettings.updateMode.value == EnvironmentUpdateMode.Realtime && skyContext.currentUpdateTime > skyContext.skySettings.updatePeriod.value))
+                    {
+                        using (new ProfilingScope(cmd, ProfilingSampler.Get(HDProfileId.UpdateSkyEnvironment)))
                         {
-                            using (new ProfilingScope(cmd, ProfilingSampler.Get(HDProfileId.UpdateSkyAmbientProbe)))
-                            {
-                                cmd.SetComputeBufferParam(m_ComputeAmbientProbeCS, m_ComputeAmbientProbeKernel, m_AmbientProbeOutputBufferParam, renderingContext.ambientProbeResult);
-                                cmd.SetComputeTextureParam(m_ComputeAmbientProbeCS, m_ComputeAmbientProbeKernel, m_AmbientProbeInputCubemap, renderingContext.skyboxCubemapRT);
-                                cmd.DispatchCompute(m_ComputeAmbientProbeCS, m_ComputeAmbientProbeKernel, 1, 1, 1);
-                                cmd.RequestAsyncReadback(renderingContext.ambientProbeResult, renderingContext.OnComputeAmbientProbeDone);
+                            // Debug.Log("Update Sky Lighting");
+                            RenderSkyToCubemap(skyContext);
 
-                                // When the profiler is enabled, we don't want to submit the render context because
-                                // it will break all the profiling sample Begin() calls issued previously, which leads
-                                // to profiling sample mismatch errors in the console.
-                                if (!UnityEngine.Profiling.Profiler.enabled)
+                            if (updateAmbientProbe)
+                            {
+                                using (new ProfilingScope(cmd, ProfilingSampler.Get(HDProfileId.UpdateSkyAmbientProbe)))
                                 {
-                                    // In case we are the first frame after a domain reload, we need to wait for async readback request to complete
-                                    // otherwise ambient probe isn't correct for one frame.
-                                    if (m_RequireWaitForAsyncReadBackRequest)
+                                    cmd.SetComputeBufferParam(m_ComputeAmbientProbeCS, m_ComputeAmbientProbeKernel, m_AmbientProbeOutputBufferParam, renderingContext.ambientProbeResult);
+                                    cmd.SetComputeTextureParam(m_ComputeAmbientProbeCS, m_ComputeAmbientProbeKernel, m_AmbientProbeInputCubemap, renderingContext.skyboxCubemapRT);
+                                    cmd.DispatchCompute(m_ComputeAmbientProbeCS, m_ComputeAmbientProbeKernel, 1, 1, 1);
+                                    cmd.RequestAsyncReadback(renderingContext.ambientProbeResult, renderingContext.OnComputeAmbientProbeDone);
+
+                                    // When the profiler is enabled, we don't want to submit the render context because
+                                    // it will break all the profiling sample Begin() calls issued previously, which leads
+                                    // to profiling sample mismatch errors in the console.
+                                    if (!UnityEngine.Profiling.Profiler.enabled)
                                     {
-                                        cmd.WaitAllAsyncReadbackRequests();
-                                        renderContext.ExecuteCommandBuffer(cmd);
-                                        CommandBufferPool.Release(cmd);
-                                        renderContext.Submit();
-                                        cmd = CommandBufferPool.Get();
-                                        m_RequireWaitForAsyncReadBackRequest = false;
+                                        // In case we are the first frame after a domain reload, we need to wait for async readback request to complete
+                                        // otherwise ambient probe isn't correct for one frame.
+                                        if (m_RequireWaitForAsyncReadBackRequest)
+                                        {
+                                            cmd.WaitAllAsyncReadbackRequests();
+                                            renderContext.ExecuteCommandBuffer(cmd);
+                                            CommandBufferPool.Release(cmd);
+                                            renderContext.Submit();
+                                            cmd = CommandBufferPool.Get();
+                                            m_RequireWaitForAsyncReadBackRequest = false;
+                                        }
                                     }
                                 }
                             }
-                        }
 
-                        if (renderingContext.supportsConvolution)
-                        {
-                            RenderCubemapGGXConvolution(skyContext);
-                        }
+                            if (renderingContext.supportsConvolution)
+                            {
+                                RenderCubemapGGXConvolution(skyContext);
+                            }
 
-                        skyContext.skyParametersHash = skyHash;
-                        skyContext.currentUpdateTime = 0.0f;
+                            skyContext.skyParametersHash = skyHash;
+                            skyContext.currentUpdateTime = 0.0f;
 
 #if UNITY_EDITOR
-                        // In the editor when we change the sky we want to make the GI dirty so when baking again the new sky is taken into account.
-                        // Changing the hash of the rendertarget allow to say that GI is dirty
-                        renderingContext.skyboxCubemapRT.rt.imageContentsHash = new Hash128((uint)skyHash, 0, 0, 0);
+                            // In the editor when we change the sky we want to make the GI dirty so when baking again the new sky is taken into account.
+                            // Changing the hash of the rendertarget allow to say that GI is dirty
+                            renderingContext.skyboxCubemapRT.rt.imageContentsHash = new Hash128((uint)skyHash, 0, 0, 0);
 #endif
+                        }
                     }
                 }
-            }
-            else
-            {
-                if (skyContext.cachedSkyRenderingContextId != -1)
+                else
                 {
-                    ReleaseCachedContext(skyContext.cachedSkyRenderingContextId);
-                    skyContext.cachedSkyRenderingContextId = -1;
+                    if (skyContext.cachedSkyRenderingContextId != -1)
+                    {
+                        ReleaseCachedContext(skyContext.cachedSkyRenderingContextId);
+                        skyContext.cachedSkyRenderingContextId = -1;
+                    }
                 }
             }
         }
