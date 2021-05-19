@@ -46,6 +46,10 @@ Shader "Universal Render Pipeline/Simple Lit"
         [HideInInspector][NoScaleOffset]unity_ShadowMasks("unity_ShadowMasks", 2DArray) = "" {}
     }
 
+    HLSLINCLUDE
+    #pragma use_dxc metal
+    ENDHLSL
+
     SubShader
     {
         Tags { "RenderType" = "Opaque" "RenderPipeline" = "UniversalPipeline" "UniversalMaterialType" = "SimpleLit" "IgnoreProjector" = "True" "ShaderModel"="4.5"}

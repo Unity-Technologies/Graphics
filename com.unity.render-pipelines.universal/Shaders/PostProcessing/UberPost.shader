@@ -1,6 +1,7 @@
 Shader "Hidden/Universal Render Pipeline/UberPost"
 {
     HLSLINCLUDE
+        #pragma use_dxc metal
         #pragma exclude_renderers gles
         #pragma multi_compile_local_fragment _ _DISTORTION
         #pragma multi_compile_local_fragment _ _CHROMATIC_ABERRATION

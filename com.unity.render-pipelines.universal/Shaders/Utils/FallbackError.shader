@@ -1,6 +1,10 @@
 // Shader to use as a fallback error when rendering UniversalRP materials with built-in pipeline
 Shader "Hidden/Universal Render Pipeline/FallbackError"
 {
+    HLSLINCLUDE
+    #pragma use_dxc metal
+    ENDHLSL
+
     SubShader
     {
         Pass

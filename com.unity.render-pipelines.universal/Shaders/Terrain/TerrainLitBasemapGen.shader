@@ -30,6 +30,7 @@ Shader "Hidden/Universal Render Pipeline/Terrain/Lit (Basemap Gen)"
     Subshader
     {
         HLSLINCLUDE
+        #pragma use_dxc metal
         #pragma target 3.0
 
         #define _METALLICSPECGLOSSMAP 1

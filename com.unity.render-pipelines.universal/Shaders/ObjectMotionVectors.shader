@@ -1,5 +1,9 @@
 Shader "Hidden/kMotion/ObjectMotionVectors"
 {
+    HLSLINCLUDE
+    #pragma use_dxc metal
+    ENDHLSL
+
     SubShader
     {
         Pass

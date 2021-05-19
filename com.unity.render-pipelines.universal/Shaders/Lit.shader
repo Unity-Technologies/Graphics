@@ -69,6 +69,10 @@ Shader "Universal Render Pipeline/Lit"
         [HideInInspector][NoScaleOffset]unity_ShadowMasks("unity_ShadowMasks", 2DArray) = "" {}
     }
 
+    HLSLINCLUDE
+    #pragma use_dxc metal
+    ENDHLSL
+
     SubShader
     {
         // Universal Pipeline tag is required. If Universal render pipeline is not set in the graphics settings

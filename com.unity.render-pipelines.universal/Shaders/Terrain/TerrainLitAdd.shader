@@ -37,7 +37,7 @@ Shader "Hidden/Universal Render Pipeline/Terrain/Lit (Add Pass)"
     }
 
     HLSLINCLUDE
-
+    #pragma use_dxc metal
     #pragma multi_compile_fragment __ _ALPHATEST_ON
 
     ENDHLSL

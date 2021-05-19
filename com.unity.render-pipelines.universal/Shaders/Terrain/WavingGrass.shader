@@ -8,6 +8,11 @@ Shader "Hidden/TerrainEngine/Details/UniversalPipeline/WavingDoublePass"
         _WaveAndDistance ("Wave and distance", Vector) = (12, 3.6, 1, 1)
         _Cutoff ("Cutoff", float) = 0.5
     }
+
+    HLSLINCLUDE
+    #pragma use_dxc metal
+    ENDHLSL
+
     SubShader
     {
         Tags {"Queue" = "Geometry+200" "RenderType" = "Grass" "IgnoreProjector" = "True" "RenderPipeline" = "UniversalPipeline" "UniversalMaterialType" = "SimpleLit" }//"DisableBatching"="True"

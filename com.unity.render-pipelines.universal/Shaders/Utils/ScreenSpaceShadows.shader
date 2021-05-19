@@ -5,6 +5,7 @@ Shader "Hidden/Universal Render Pipeline/ScreenSpaceShadows"
         Tags{ "RenderPipeline" = "UniversalPipeline" "IgnoreProjector" = "True"}
 
         HLSLINCLUDE
+        #pragma use_dxc metal
 
         //Keep compiler quiet about Shadows.hlsl.
         #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Common.hlsl"

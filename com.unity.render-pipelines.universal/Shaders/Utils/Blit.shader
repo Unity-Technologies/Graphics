@@ -1,5 +1,9 @@
 Shader "Hidden/Universal Render Pipeline/Blit"
 {
+    HLSLINCLUDE
+    #pragma use_dxc metal
+    ENDHLSL
+
     SubShader
     {
         Tags { "RenderType" = "Opaque" "RenderPipeline" = "UniversalPipeline"}

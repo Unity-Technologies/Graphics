@@ -1,7 +1,7 @@
 Shader "Hidden/Universal/CoreBlitColorAndDepth"
 {
     HLSLINCLUDE
-
+        #pragma use_dxc metal
         #pragma target 2.0
         #pragma editor_sync_compilation
         #pragma multi_compile _ DISABLE_TEXTURE2D_X_ARRAY

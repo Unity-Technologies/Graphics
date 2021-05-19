@@ -27,6 +27,7 @@ Shader "Hidden/Universal Render Pipeline/StencilDeferred"
     }
 
     HLSLINCLUDE
+    #pragma use_dxc metal
 
     // _ADDITIONAL_LIGHT_SHADOWS is shader keyword globally enabled for a range of render-passes.
     // When rendering deferred lights, we need to set/unset this flag dynamically for each deferred

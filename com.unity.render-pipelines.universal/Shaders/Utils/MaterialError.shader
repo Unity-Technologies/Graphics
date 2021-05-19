@@ -1,5 +1,9 @@
 Shader "Hidden/Universal Render Pipeline/MaterialError"
 {
+    HLSLINCLUDE
+    #pragma use_dxc metal
+    ENDHLSL
+
     SubShader
     {
         Pass
