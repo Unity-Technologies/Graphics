@@ -314,6 +314,9 @@ namespace UnityEngine.Experimental.Rendering.Universal
 
         void OnBeginContextRendering(ScriptableRenderContext context, List<Camera> cameras)
         {
+            if (!cameras.Exists(x => x == m_Camera))
+                return;
+
             UpdateCameraProperties();
             PixelSnap();
 
