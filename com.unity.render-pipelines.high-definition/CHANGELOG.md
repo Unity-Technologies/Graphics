@@ -200,6 +200,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed HDAdditionalLightData's CopyTo and HDAdditionalCameraData's CopyTo missing copy.
 - Fixed issue with velocity rejection when using physically-based DoF.
 - Fixed HDRP's ShaderGraphVersion migration management which was broken.
+- Fixed missing API documentation for LTC area light code.
 
 ### Changed
 - Changed Window/Render Pipeline/HD Render Pipeline Wizard to Window/Rendering/HDRP Wizard
