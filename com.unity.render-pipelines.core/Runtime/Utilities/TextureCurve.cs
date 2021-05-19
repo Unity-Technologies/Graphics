@@ -256,6 +256,9 @@ namespace UnityEngine.Rendering
             return GetEffectiveCurve().Evaluate(time);
         }
 
+        /// <summary>
+        /// Update <see cref="length"/> if the curve was changed since the last call.
+        /// </summary>
         void UpdateLength()
         {
             if (m_IsLengthDirty)
@@ -265,6 +268,10 @@ namespace UnityEngine.Rendering
             }
         }
 
+        /// <summary>
+        /// Get the updated curve that has looping applied to it if necessary. It may not equal <see cref="m_Curve"/>.
+        /// </summary>
+        /// <returns>The effective curve to evaluate.</returns>
         AnimationCurve GetEffectiveCurve()
         {
             // If length is 0 it should never be called as m_ZeroValue is used instead.
@@ -355,14 +362,13 @@ namespace UnityEngine.Rendering
             SetValuesDirty();
         }
 
-        public void Interp(TextureCurve from, TextureCurve to, float t)
+        /// <summary>
+        /// Interpolate values of this curve toward the specified <see cref="TextureCurve"/>.
+        /// </summary>
+        /// <param name="to"><see cref="TextureCurve"/> with values to be used at t = 1.</param>
+        /// <param name="t">The interpolation value.</param>
+        public void Interp(TextureCurve to, float t)
         {
-            // Volume system doesn't seem to ever interpolate 2 sources into a 3rd target.
-            // Instead it applies "to" on top of "this", which is also passed as "from".
-            // We cut some corners here and really support only the second case for simplicity.
-            // TODO: Make sure it's okay.
-            Assert.AreEqual(this, from);
-
             if (t == 0f)
                 return;
 
@@ -446,6 +452,10 @@ namespace UnityEngine.Rendering
             SetValuesDirty();
         }
 
+        /// <summary>
+        /// Deep-copy the data of the specified <see cref="TextureCurve"/> to this one.
+        /// </summary>
+        /// <param name="value"><see cref="TextureCurve"/> to copy the data from.</param>
         public void SetValue(TextureCurve value)
         {
             if (value == this)
@@ -488,14 +498,30 @@ namespace UnityEngine.Rendering
         /// </summary>
         public override void Release() => m_Value.Release();
 
+        /// <summary>
+        /// Deep-copy the data of the specified <see cref="VolumeParameter"/> to this one.
+        /// </summary>
+        /// <param name="value"><see cref="VolumeParameter"/> to copy the data from.</param>
         public override void SetValue(VolumeParameter parameter)
         {
             m_Value.SetValue(((TextureCurveParameter)parameter).m_Value);
         }
 
+        /// <summary>
+        /// Interpolate values of this <see cref="TextureCurve"/> toward the specified <see cref="TextureCurve"/>.
+        /// The "from" curve is unused in this implementation and expected to be the same as this.
+        /// </summary>
+        /// <param name="from">Unused. Expected to be the same <see cref="TextureCurve"/> as this.</param>
+        /// <param name="to"><see cref="TextureCurve"/> with values to be used at t = 1.</param>
+        /// <param name="t">The interpolation value.</param>
         public override void Interp(TextureCurve from, TextureCurve to, float t)
         {
-            m_Value.Interp(from, to, t);
+            // Volume system doesn't seem to ever interpolate 2 sources into a 3rd target.
+            // Instead it applies "to" on top of "this", which is also passed as "from".
+            // We cut some corners here and really support only the second case for simplicity.
+            Assert.AreEqual(m_Value, from);
+
+            m_Value.Interp(to, t);
         }
     }
 }
