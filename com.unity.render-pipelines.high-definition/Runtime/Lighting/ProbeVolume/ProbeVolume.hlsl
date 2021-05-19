@@ -2,6 +2,22 @@
 #define __PROBEVOLUME_HLSL__
 
 #include "Packages/com.unity.render-pipelines.high-definition-config/Runtime/ShaderConfig.cs.hlsl"
+
+#ifndef PROBE_VOLUMES_SAMPLING_MODE
+// Default to sampling probe volumes at native atlas encoding mode.
+// Users can override this by defining PROBE_VOLUMES_SAMPLING_MODE before including LightLoop.hlsl
+// TODO: It's likely we will want to extend this out to simply be shader LOD quality levels,
+// as there are other parameters such as bilateral filtering, additive blending, and normal bias
+// that we will want to disable for a low quality high performance mode.
+#define PROBE_VOLUMES_SAMPLING_MODE SHADEROPTIONS_PROBE_VOLUMES_ENCODING_MODE
+#endif
+
+#ifndef PROBE_VOLUMES_BILATERAL_FILTERING_MODE
+// Default to filtering probe volumes with mode specified in ShaderConfig.cs
+// Users can override this by defining PROBE_VOLUMES_BILATERAL_FILTERING_MODE before including LightLoop.hlsl
+#define PROBE_VOLUMES_BILATERAL_FILTERING_MODE SHADEROPTIONS_PROBE_VOLUMES_BILATERAL_FILTERING_MODE
+#endif
+
 #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Packing.hlsl"
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Lighting/ProbeVolume/ProbeVolume.cs.hlsl"
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Lighting/ProbeVolume/ProbeVolumeLightLoopDef.hlsl"
@@ -24,7 +40,7 @@ float ProbeVolumeComputeFadeFactor(
     return dstF * fade;
 }
 
-#if SHADEROPTIONS_PROBE_VOLUMES_BILATERAL_FILTERING_MODE != PROBEVOLUMESBILATERALFILTERINGMODES_NONE
+#if PROBE_VOLUMES_BILATERAL_FILTERING_MODE != PROBEVOLUMESBILATERALFILTERINGMODES_DISABLED
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Lighting/ProbeVolume/ProbeVolumeBilateralFilter.hlsl"
 #endif
 
@@ -174,15 +190,6 @@ float3 ProbeVolumeEvaluateAmbientProbeFallback(float3 normalWS, float weightHier
 #define PROBE_VOLUMES_ACCUMULATE_MODE PROBEVOLUMESENCODINGMODES_SPHERICAL_HARMONICS_L2
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Lighting/ProbeVolume/ProbeVolumeAccumulate.hlsl"
 #undef PROBE_VOLUMES_ACCUMULATE_MODE
-
-#ifndef PROBE_VOLUMES_SAMPLING_MODE
-// Default to sampling probe volumes at native atlas encoding mode.
-// Users can override this by defining PROBE_VOLUMES_SAMPLING_MODE before including LightLoop.hlsl
-// TODO: It's likely we will want to extend this out to simply be shader LOD quality levels,
-// as there are other parameters such as bilateral filtering, additive blending, and normal bias
-// that we will want to disable for a low quality high performance mode.
-#define PROBE_VOLUMES_SAMPLING_MODE SHADEROPTIONS_PROBE_VOLUMES_ENCODING_MODE
-#endif
 
 void ProbeVolumeEvaluateSphericalHarmonics(PositionInputs posInput, float3 normalWS, float3 backNormalWS, float3 viewDirectionWS, uint renderingLayers, float weightHierarchy, inout float3 bakeDiffuseLighting, inout float3 backBakeDiffuseLighting)
 {
