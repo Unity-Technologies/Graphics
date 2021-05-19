@@ -167,7 +167,7 @@ namespace UnityEditor.Rendering.Universal.Converters
         {
             var rendererAsset =
                 UniversalRenderPipelineAsset.CreateRendererAsset(assetPath, RendererType.UniversalRenderer, true, fileName)
-                    as UniversalRendererData;
+                as UniversalRendererData;
             //Missing API to set deferred or forward
             rendererAsset.renderingMode =
                 renderingPath == RenderingPath.Forward ? RenderingMode.Forward : RenderingMode.Deferred;
@@ -195,7 +195,7 @@ namespace UnityEditor.Rendering.Universal.Converters
                 : LightRenderingMode.PerPixel;
             asset.supportsMainLightShadows = settings.Shadows != ShadowQuality.Disable;
             asset.mainLightShadowmapResolution =
-                GetEquivalentMainlightShadowResolution((int) settings.ShadowResolution);
+                GetEquivalentMainlightShadowResolution((int)settings.ShadowResolution);
 
             // Additional Lights
             asset.additionalLightsRenderingMode = settings.PixelLightCount <= 1
@@ -204,7 +204,7 @@ namespace UnityEditor.Rendering.Universal.Converters
             asset.maxAdditionalLightsCount = Mathf.Max(0, settings.PixelLightCount - 1);
             asset.supportsAdditionalLightShadows = settings.Shadows != ShadowQuality.Disable;
             asset.additionalLightsShadowmapResolution =
-                GetEquivalentAdditionalLightAtlasShadowResolution((int) settings.ShadowResolution);
+                GetEquivalentAdditionalLightAtlasShadowResolution((int)settings.ShadowResolution);
 
             // Reflection Probes
             asset.reflectionProbeBlending = m_GraphicsTierSettings.ReflectionProbeBlending;
@@ -275,7 +275,7 @@ namespace UnityEditor.Rendering.Universal.Converters
             public RenderingPath RenderingPath;
         }
 
-        private class SettingsItem { }
+        private class SettingsItem {}
 
         private class RenderSettingItem : SettingsItem
         {
