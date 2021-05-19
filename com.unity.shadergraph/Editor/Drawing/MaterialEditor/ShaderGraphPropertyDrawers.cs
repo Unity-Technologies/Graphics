@@ -50,7 +50,7 @@ namespace UnityEditor.ShaderGraph.Drawing
                     return prop;
                 }
             }
-            throw new ArgumentException("no property was found with the name " + propertyName);
+            return null;
         }
 
         public static void DrawShaderGraphGUI(MaterialEditor materialEditor, IEnumerable<MaterialProperty> properties, IEnumerable<MinimalCategoryData> categoryDatas)
@@ -89,6 +89,7 @@ namespace UnityEditor.ShaderGraph.Drawing
                     if (propData.isCompoundProperty == false)
                     {
                         MaterialProperty prop = FindProperty(propData.referenceName, properties);
+                        if (prop == null) continue;
                         DrawMaterialProperty(materialEditor, prop, propData.propertyType, propData.isKeyword, propData.keywordType);
                     }
                     else
@@ -119,6 +120,7 @@ namespace UnityEditor.ShaderGraph.Drawing
                 foreach (var subProperty in compoundPropertyData.subProperties)
                 {
                     var property = FindProperty(subProperty.referenceName, properties);
+                    if (property == null) continue;
                     DrawMaterialProperty(materialEditor, property, subProperty.propertyType);
                 }
                 EditorGUI.indentLevel--;
