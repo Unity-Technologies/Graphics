@@ -173,15 +173,21 @@ namespace UnityEngine.Rendering.HighDefinition
             return d * 0.144765f;
         }
 
-        static void UpdateShaderVariablesGlobalCBNeutralParameters(ref ShaderVariablesGlobal cb)
+        static void UpdateShaderVariablesGlobalCBFogNeutralParameters(ref ShaderVariablesGlobal cb)
         {
             cb._FogEnabled = 0;
-            cb._EnableVolumetricFog = 0;
             cb._HeightFogBaseScattering = Vector3.zero;
             cb._HeightFogBaseExtinction = 0.0f;
             cb._HeightFogExponents = Vector2.one;
             cb._HeightFogBaseHeight = 0.0f;
+            cb._MaxFogDistance = 0.0f;
+        }
+
+        static void UpdateShaderVariablesGlobalCBVolumetricFogNeutralParameters(ref ShaderVariablesGlobal cb)
+        {
+            cb._EnableVolumetricFog = 0;
             cb._GlobalFogAnisotropy = 0.0f;
+            cb._VolumetricFilteringEnabled = 0;
         }
 
         internal static void UpdateShaderVariablesGlobalCB(ref ShaderVariablesGlobal cb, HDCamera hdCamera)
@@ -189,24 +195,32 @@ namespace UnityEngine.Rendering.HighDefinition
             // TODO Handle user override
             var fogSettings = hdCamera.volumeStack.GetComponent<Fog>();
 
-            if (!hdCamera.frameSettings.IsEnabled(FrameSettingsField.AtmosphericScattering) || !fogSettings.enabled.value)
+            bool enableFog = fogSettings.enabled.value && hdCamera.frameSettings.IsEnabled(FrameSettingsField.AtmosphericScattering);
+            bool enableVolumetrics = fogSettings.enableVolumetricFog.value && hdCamera.frameSettings.IsEnabled(FrameSettingsField.Volumetrics);
+
+            if (enableFog)
             {
-                UpdateShaderVariablesGlobalCBNeutralParameters(ref cb);
+                fogSettings.UpdateShaderVariablesGlobalCBFogParameters(ref cb, hdCamera);
             }
             else
             {
-                fogSettings.UpdateShaderVariablesGlobalCBFogParameters(ref cb, hdCamera);
+                UpdateShaderVariablesGlobalCBFogNeutralParameters(ref cb);
+            }
+
+            if (enableVolumetrics)
+            {
+                fogSettings.UpdateShaderVariablesGlobalCBVolumetricFogParameters(ref cb, hdCamera);
+            }
+            else
+            {
+                UpdateShaderVariablesGlobalCBVolumetricFogNeutralParameters(ref cb);
             }
         }
 
         void UpdateShaderVariablesGlobalCBFogParameters(ref ShaderVariablesGlobal cb, HDCamera hdCamera)
         {
-            bool enableVolumetrics = enableVolumetricFog.value && hdCamera.frameSettings.IsEnabled(FrameSettingsField.Volumetrics);
-
             cb._FogEnabled = 1;
             cb._PBRFogEnabled = IsPBRFogEnabled(hdCamera) ? 1 : 0;
-            cb._EnableVolumetricFog = enableVolumetrics ? 1 : 0;
-            cb._MaxFogDistance = maxFogDistance.value;
 
             Color fogColor = (colorMode.value == FogColorMode.ConstantColor) ? color.value : tint.value;
             cb._FogColorMode = (float)colorMode.value;
@@ -218,7 +232,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
             cb._HeightFogBaseScattering = data.scattering;
             cb._HeightFogBaseExtinction = data.extinction;
-
+            
             float crBaseHeight = baseHeight.value;
 
             if (ShaderConfig.s_CameraRelativeRendering != 0)
@@ -230,6 +244,13 @@ namespace UnityEngine.Rendering.HighDefinition
             float H = ScaleHeightFromLayerDepth(layerDepth);
             cb._HeightFogExponents = new Vector2(1.0f / H, H);
             cb._HeightFogBaseHeight = crBaseHeight;
+            cb._MaxFogDistance = maxFogDistance.value;
+            cb._GlobalFogAnisotropy = anisotropy.value;
+        }
+
+        void UpdateShaderVariablesGlobalCBVolumetricFogParameters(ref ShaderVariablesGlobal cb, HDCamera hdCamera)
+        {            
+            cb._EnableVolumetricFog = 1;
             cb._GlobalFogAnisotropy = anisotropy.value;
             cb._VolumetricFilteringEnabled = ((int)denoisingMode.value & (int)FogDenoisingMode.Gaussian) != 0 ? 1 : 0;
         }
