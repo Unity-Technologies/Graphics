@@ -3,15 +3,14 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.Rendering;
 using UnityEngine.Rendering.Universal;
-using UnityEditor.Rendering.Universal.Converters;
 using ShadowQuality = UnityEngine.ShadowQuality;
 using ShadowResolution = UnityEngine.ShadowResolution;
 
-namespace UnityEditor.Rendering.Universal
+namespace UnityEditor.Rendering.Universal.Converters
 {
     internal class RenderSettingsConverter : RenderPipelineConverter
     {
-        public override string name => "Rendering Settings Upgrade";
+        public override string name => "Rendering Settings";
 
         public override string info =>
             "This converter will look at creating Universal Render Pipeline assets and respective Renderer Assets and configure" +
@@ -23,15 +22,18 @@ namespace UnityEditor.Rendering.Universal
         GraphicsTierSettings m_GraphicsTierSettings;
 
         // Settings items, currently tracks Quality settings only
-        List<SettingsItem> m_SettingsItems = new List<SettingsItem>();
+        List<SettingsItem> m_SettingsItems;
 
         // List of the rendering modes required
-        List<RenderingMode> m_RenderingModes = new List<RenderingMode>();
+        List<RenderingMode> m_RenderingModes;
 
         const string k_PipelineAssetPath = "Settings";
 
         public override void OnInitialize(InitializeConverterContext context, Action callback)
         {
+            m_SettingsItems = new List<SettingsItem>();
+            m_RenderingModes = new List<RenderingMode>();
+
             // check graphics tiers
             GatherGraphicsTiers();
 
@@ -111,7 +113,7 @@ namespace UnityEditor.Rendering.Universal
             // is quality item
             if (m_SettingsItems[item.index].GetType() == typeof(RenderSettingItem))
             {
-                GeneratePipelineAsset(item.index, m_SettingsItems[item.index] as RenderSettingItem);
+                GeneratePipelineAsset(m_SettingsItems[item.index] as RenderSettingItem);
             }
         }
 
@@ -123,9 +125,9 @@ namespace UnityEditor.Rendering.Universal
             //creating pipeline asset
             var asset =
                 ScriptableObject.CreateInstance(typeof(UniversalRenderPipelineAsset)) as UniversalRenderPipelineAsset;
-            if (!AssetDatabase.IsValidFolder($"Assets/{m_PipelineAssetPath}"))
-                AssetDatabase.CreateFolder("Assets", m_PipelineAssetPath);
-            var path = $"Assets/{m_PipelineAssetPath}/{settings.LevelName}_PipelineAsset.asset";
+            if (!AssetDatabase.IsValidFolder($"Assets/{k_PipelineAssetPath}"))
+                AssetDatabase.CreateFolder("Assets", k_PipelineAssetPath);
+            var path = $"Assets/{k_PipelineAssetPath}/{settings.LevelName}_PipelineAsset.asset";
 
             // Setting Pipeline Asset settings
             SetPipelineSettings(asset, settings);
@@ -143,7 +145,7 @@ namespace UnityEditor.Rendering.Universal
             if (m_RenderingModes.Contains(RenderingMode.Deferred))
             {
                 renderers.Add(CreateRendererDataAsset(path, RenderingPath.DeferredShading, "DeferredRenderer"));
-                if (GetEquivalentRenderMode(m_GraphicsTierSettings.RenderingPath) == RenderingMode.Forward)
+                if (GetEquivalentRenderMode(m_GraphicsTierSettings.RenderingPath) == RenderingMode.Deferred)
                     defaultIndex = m_RenderingModes.IndexOf(RenderingMode.Deferred);
             }
 
@@ -216,6 +218,8 @@ namespace UnityEditor.Rendering.Universal
             asset.supportsSoftShadows = settings.Shadows == ShadowQuality.All;
         }
 
+        #region HelperFunctions
+
         private static int GetEquivalentMainlightShadowResolution(int value)
         {
             return GetEquivalentShadowResolution(value);
@@ -258,7 +262,9 @@ namespace UnityEditor.Rendering.Universal
             }
         }
 
-        #region Structs
+        #endregion
+
+        #region Data
 
         private struct GraphicsTierSettings
         {
@@ -291,12 +297,5 @@ namespace UnityEditor.Rendering.Universal
         }
 
         #endregion
-
-        private enum Parent
-        {
-            Prefab,
-            PrefabVariant,
-            Scene,
-        }
     }
 }
