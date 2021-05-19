@@ -931,7 +931,6 @@ namespace UnityEngine.Rendering.Universal
                         ConfigureCameraColorTarget(m_ColorBufferSystem.GetBackBuffer(cmd).id);
 
 
-                    ConfigureCameraColorTarget(m_ColorBufferSystem.GetBackBuffer(cmd).id);
                     m_ActiveCameraColorAttachment = m_ColorBufferSystem.GetBackBuffer(cmd);
                     cmd.SetGlobalTexture("_CameraColorTexture", m_ActiveCameraColorAttachment.id);
                 }
@@ -1034,7 +1033,12 @@ namespace UnityEngine.Rendering.Universal
         internal override void SwapColorBuffer(CommandBuffer cmd)
         {
             m_ColorBufferSystem.Swap();
-            ConfigureCameraTarget(m_ColorBufferSystem.GetBackBuffer(cmd).id, m_ColorBufferSystem.GetBufferA().id);
+
+            //Check if we are using the depth that is attached to color buffer
+            if (m_ActiveCameraDepthAttachment == RenderTargetHandle.CameraTarget)
+                ConfigureCameraTarget(m_ColorBufferSystem.GetBackBuffer(cmd).id, m_ColorBufferSystem.GetBufferA().id);
+            else ConfigureCameraColorTarget(m_ColorBufferSystem.GetBackBuffer(cmd).id);
+
             m_ActiveCameraColorAttachment = m_ColorBufferSystem.GetBackBuffer();
             cmd.SetGlobalTexture("_CameraColorTexture", m_ActiveCameraColorAttachment.id);
         }
