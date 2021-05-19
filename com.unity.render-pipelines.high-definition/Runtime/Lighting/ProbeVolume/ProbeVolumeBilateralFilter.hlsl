@@ -28,7 +28,7 @@ uint3 ComputeProbeVolumeTexel3DMinOffsetFromIndex(uint i)
 #define PROBEVOLUMES_PROBE_INDEX_1D_TNW (6)
 #define PROBEVOLUMES_PROBE_INDEX_1D_TNE (7)
 
-#if SHADEROPTIONS_PROBE_VOLUMES_BILATERAL_FILTERING_MODE == PROBEVOLUMESBILATERALFILTERINGMODES_OCTAHEDRAL_DEPTH
+#if PROBE_VOLUMES_BILATERAL_FILTERING_MODE == PROBEVOLUMESBILATERALFILTERINGMODES_OCTAHEDRAL_DEPTH
 float3 ProbeVolumeEvaluateOctahedralDepthOcclusionDebugColor(
     float3 probeVolumeTexel3D,
     float3 probeVolumeTexel3DMin,
@@ -114,7 +114,7 @@ float3 ProbeVolumeEvaluateOctahedralDepthOcclusionDebugColor(
 }
 #endif
 
-#if SHADEROPTIONS_PROBE_VOLUMES_BILATERAL_FILTERING_MODE == PROBEVOLUMESBILATERALFILTERINGMODES_OCTAHEDRAL_DEPTH
+#if PROBE_VOLUMES_BILATERAL_FILTERING_MODE == PROBEVOLUMESBILATERALFILTERINGMODES_OCTAHEDRAL_DEPTH
 
 float ProbeVolumeOctahedralDepthReduceLightBleeding(float chebyshevWeight, float tailClipThreshold)
 {   
@@ -392,7 +392,7 @@ float3 ProbeVolumeComputeTexel3DFromBilateralFilter(
     {
         ProbeVolumeEvaluateValidityWeights(weights, probeVolumeTexel3DMin, probeVolumeData.resolutionInverse, probeVolumeData.scale, probeVolumeData.bias);
     }
-#if SHADEROPTIONS_PROBE_VOLUMES_BILATERAL_FILTERING_MODE == PROBEVOLUMESBILATERALFILTERINGMODES_OCTAHEDRAL_DEPTH
+#if PROBE_VOLUMES_BILATERAL_FILTERING_MODE == PROBEVOLUMESBILATERALFILTERINGMODES_OCTAHEDRAL_DEPTH
     else if (_ProbeVolumeLeakMitigationMode == LEAKMITIGATIONMODE_OCTAHEDRAL_DEPTH_OCCLUSION_FILTER)
     {
         float3x3 probeVolumeWorldFromTexel3DRotationScale;
@@ -494,7 +494,7 @@ void ProbeVolumeComputeWeightsFromBilateralFilter(
     {
         ProbeVolumeEvaluateValidityWeights(weights, probeVolumeTexel3DMin, probeVolumeData.resolutionInverse, probeVolumeData.scale, probeVolumeData.bias);
     }
-#if SHADEROPTIONS_PROBE_VOLUMES_BILATERAL_FILTERING_MODE == PROBEVOLUMESBILATERALFILTERINGMODES_OCTAHEDRAL_DEPTH
+#if PROBE_VOLUMES_BILATERAL_FILTERING_MODE == PROBEVOLUMESBILATERALFILTERINGMODES_OCTAHEDRAL_DEPTH
     else if (_ProbeVolumeLeakMitigationMode == LEAKMITIGATIONMODE_OCTAHEDRAL_DEPTH_OCCLUSION_FILTER)
     {
         float3x3 probeVolumeWorldFromTexel3DRotationScale;
@@ -527,6 +527,6 @@ void ProbeVolumeComputeWeightsFromBilateralFilter(
 
     ProbeVolumeNormalizeWeights(weights);
 }
-#endif // SHADEROPTIONS_PROBE_VOLUMES_BILATERAL_FILTERING_MODE != PROBEVOLUMESBILATERALFILTERINGMODES_DISABLED
+#endif // PROBE_VOLUMES_BILATERAL_FILTERING_MODE != PROBEVOLUMESBILATERALFILTERINGMODES_DISABLED
 
 #endif // __PROBEVOLUME_BILATERAL_FILTER_HLSL__
