@@ -141,7 +141,17 @@ namespace UnityEngine.Rendering.HighDefinition
         TemporalFilter,
         DiffuseFilter,
 
+        UpdateGlobalConstantBuffers,
+        UpdateEnvironment,
+        ConfigureKeywords,
+        RecordRenderGraph,
+
         PrepareLightsForGPU,
+        PrepareGPULightdata,
+        PrepareGPUProbeData,
+        ConvertLightsGpuFormat,
+        ProcessVisibleLights,
+        ProcessVisibleLightsParallel,
 
         // Profile sampler for shadow
         RenderShadowMaps,

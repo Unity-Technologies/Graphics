@@ -22,6 +22,8 @@ namespace UnityEngine.Rendering.HighDefinition
             ScriptableRenderContext renderContext,
             CommandBuffer           commandBuffer)
         {
+            var recordRenderGraphScope = new ProfilingScope(commandBuffer, ProfilingSampler.Get(HDProfileId.RecordRenderGraph));
+
             var hdCamera = renderRequest.hdCamera;
             var camera = hdCamera.camera;
             var cullingResults = renderRequest.cullingResults.cullingResults;
@@ -314,6 +316,8 @@ namespace UnityEngine.Rendering.HighDefinition
             RenderWireOverlay(m_RenderGraph, hdCamera, backBuffer);
 
             RenderGizmos(m_RenderGraph, hdCamera, GizmoSubset.PostImageEffects);
+
+            recordRenderGraphScope.Dispose();
 
             m_RenderGraph.Execute();
 

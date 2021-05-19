@@ -812,12 +812,15 @@ namespace UnityEngine.Rendering.HighDefinition
 
         void UpdateGlobalConstantBuffers(HDCamera hdCamera, CommandBuffer cmd)
         {
-            UpdateShaderVariablesGlobalCB(hdCamera, cmd);
-            UpdateShaderVariablesXRCB(hdCamera, cmd);
-            UpdateShaderVariablesRaytracingCB(hdCamera, cmd);
+            using (new ProfilingScope(cmd, ProfilingSampler.Get(HDProfileId.UpdateGlobalConstantBuffers)))
+            {
+                UpdateShaderVariablesGlobalCB(hdCamera, cmd);
+                UpdateShaderVariablesXRCB(hdCamera, cmd);
+                UpdateShaderVariablesRaytracingCB(hdCamera, cmd);
 
-            // This one is not in a constant buffer because it's only used as a parameter for some shader's render states. It's not actually used inside shader code.
-            cmd.SetGlobalInt(HDShaderIDs._ColorMaskTransparentVel, (int)ColorWriteMask.All);
+                // This one is not in a constant buffer because it's only used as a parameter for some shader's render states. It's not actually used inside shader code.
+                cmd.SetGlobalInt(HDShaderIDs._ColorMaskTransparentVel, (int)ColorWriteMask.All);
+            }
         }
 
         void UpdateShaderVariablesGlobalCB(HDCamera hdCamera, CommandBuffer cmd)
@@ -912,40 +915,43 @@ namespace UnityEngine.Rendering.HighDefinition
 
         void ConfigureKeywords(bool enableBakeShadowMask, HDCamera hdCamera, CommandBuffer cmd)
         {
-            // Globally enable (for GBuffer shader and forward lit (opaque and transparent) the keyword SHADOWS_SHADOWMASK
-            CoreUtils.SetKeyword(cmd, "SHADOWS_SHADOWMASK", enableBakeShadowMask);
-            // Configure material to use depends on shadow mask option
-            m_CurrentRendererConfigurationBakedLighting = enableBakeShadowMask ? HDUtils.k_RendererConfigurationBakedLightingWithShadowMask : HDUtils.k_RendererConfigurationBakedLighting;
-            m_currentDebugViewMaterialGBuffer = enableBakeShadowMask ? m_DebugViewMaterialGBufferShadowMask : m_DebugViewMaterialGBuffer;
-
-            CoreUtils.SetKeyword(cmd, "LIGHT_LAYERS", hdCamera.frameSettings.IsEnabled(FrameSettingsField.LightLayers));
-
-            // configure keyword for both decal.shader and material
-            if (m_Asset.currentPlatformRenderPipelineSettings.supportDecals)
+            using (new ProfilingScope(cmd, ProfilingSampler.Get(HDProfileId.ConfigureKeywords)))
             {
-                CoreUtils.SetKeyword(cmd, "DECALS_OFF", false);
-                CoreUtils.SetKeyword(cmd, "DECALS_3RT", !m_Asset.currentPlatformRenderPipelineSettings.decalSettings.perChannelMask);
-                CoreUtils.SetKeyword(cmd, "DECALS_4RT", m_Asset.currentPlatformRenderPipelineSettings.decalSettings.perChannelMask);
+                // Globally enable (for GBuffer shader and forward lit (opaque and transparent) the keyword SHADOWS_SHADOWMASK
+                CoreUtils.SetKeyword(cmd, "SHADOWS_SHADOWMASK", enableBakeShadowMask);
+                // Configure material to use depends on shadow mask option
+                m_CurrentRendererConfigurationBakedLighting = enableBakeShadowMask ? HDUtils.k_RendererConfigurationBakedLightingWithShadowMask : HDUtils.k_RendererConfigurationBakedLighting;
+                m_currentDebugViewMaterialGBuffer = enableBakeShadowMask ? m_DebugViewMaterialGBufferShadowMask : m_DebugViewMaterialGBuffer;
+
+                CoreUtils.SetKeyword(cmd, "LIGHT_LAYERS", hdCamera.frameSettings.IsEnabled(FrameSettingsField.LightLayers));
+
+                // configure keyword for both decal.shader and material
+                if (m_Asset.currentPlatformRenderPipelineSettings.supportDecals)
+                {
+                    CoreUtils.SetKeyword(cmd, "DECALS_OFF", false);
+                    CoreUtils.SetKeyword(cmd, "DECALS_3RT", !m_Asset.currentPlatformRenderPipelineSettings.decalSettings.perChannelMask);
+                    CoreUtils.SetKeyword(cmd, "DECALS_4RT", m_Asset.currentPlatformRenderPipelineSettings.decalSettings.perChannelMask);
+                }
+                else
+                {
+                    CoreUtils.SetKeyword(cmd, "DECALS_OFF", true);
+                    CoreUtils.SetKeyword(cmd, "DECALS_3RT", false);
+                    CoreUtils.SetKeyword(cmd, "DECALS_4RT", false);
+                }
+
+                CoreUtils.SetKeyword(cmd, "PROBE_VOLUMES_OFF", !IsAPVEnabled());
+                CoreUtils.SetKeyword(cmd, "PROBE_VOLUMES_L1", IsAPVEnabled() && m_Asset.currentPlatformRenderPipelineSettings.probeVolumeSHBands == ProbeVolumeSHBands.SphericalHarmonicsL1);
+                CoreUtils.SetKeyword(cmd, "PROBE_VOLUMES_L2", IsAPVEnabled() && m_Asset.currentPlatformRenderPipelineSettings.probeVolumeSHBands == ProbeVolumeSHBands.SphericalHarmonicsL2);
+
+                // Raise the normal buffer flag only if we are in forward rendering
+                CoreUtils.SetKeyword(cmd, "WRITE_NORMAL_BUFFER", hdCamera.frameSettings.litShaderMode == LitShaderMode.Forward);
+
+                // Raise the decal buffer flag only if we have decal enabled
+                CoreUtils.SetKeyword(cmd, "WRITE_DECAL_BUFFER", hdCamera.frameSettings.IsEnabled(FrameSettingsField.DecalLayers));
+
+                // Raise or remove the depth msaa flag based on the frame setting
+                CoreUtils.SetKeyword(cmd, "WRITE_MSAA_DEPTH", hdCamera.msaaEnabled);
             }
-            else
-            {
-                CoreUtils.SetKeyword(cmd, "DECALS_OFF", true);
-                CoreUtils.SetKeyword(cmd, "DECALS_3RT", false);
-                CoreUtils.SetKeyword(cmd, "DECALS_4RT", false);
-            }
-
-            CoreUtils.SetKeyword(cmd, "PROBE_VOLUMES_OFF", !IsAPVEnabled());
-            CoreUtils.SetKeyword(cmd, "PROBE_VOLUMES_L1", IsAPVEnabled() && m_Asset.currentPlatformRenderPipelineSettings.probeVolumeSHBands == ProbeVolumeSHBands.SphericalHarmonicsL1);
-            CoreUtils.SetKeyword(cmd, "PROBE_VOLUMES_L2", IsAPVEnabled() && m_Asset.currentPlatformRenderPipelineSettings.probeVolumeSHBands == ProbeVolumeSHBands.SphericalHarmonicsL2);
-
-            // Raise the normal buffer flag only if we are in forward rendering
-            CoreUtils.SetKeyword(cmd, "WRITE_NORMAL_BUFFER", hdCamera.frameSettings.litShaderMode == LitShaderMode.Forward);
-
-            // Raise the decal buffer flag only if we have decal enabled
-            CoreUtils.SetKeyword(cmd, "WRITE_DECAL_BUFFER", hdCamera.frameSettings.IsEnabled(FrameSettingsField.DecalLayers));
-
-            // Raise or remove the depth msaa flag based on the frame setting
-            CoreUtils.SetKeyword(cmd, "WRITE_MSAA_DEPTH", hdCamera.msaaEnabled);
         }
 
         void SetupDLSSForCameraDataAndDynamicResHandler(
