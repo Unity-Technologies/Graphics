@@ -615,9 +615,9 @@ CBSDF EvaluateBSDF(float3 V, float3 L, PreLightData preLightData, BSDFData bsdfD
             // This lobe's distribution is determined by sampling gaussian weights from a pre-integrated LUT of the distribution and evaluating the gaussian.
             D = 1;
 
-            // Attenutation
-            F = F_Schlick(bsdfData.fresnel0, acos(cosThetaD)); // cos(arcsin(0.0)) = 1.0
-            T = exp(-2 * muPrime * (1 + cos(2 * asin(HAIR_H_TT / etaPrime))));
+            // Attenutation (Simplified for H = 0)
+            F = F_Schlick(bsdfData.fresnel0, acos(cosThetaD));
+            T = exp(-2 * muPrime);
             A = Sq(1 - F) * T;
 
             S += M * A * D;
@@ -634,8 +634,8 @@ CBSDF EvaluateBSDF(float3 V, float3 L, PreLightData preLightData, BSDFData bsdfD
             float scaleFactor = saturate(1.5 * (1 - bsdfData.roughnessATRT));
             D = scaleFactor * exp(scaleFactor * (17.0 * cosPhi - 16.78));
 
-            // Attenutation
-            F = F_Schlick(bsdfData.fresnel0, acos(cosThetaD * 0.5)); // cos(arcsin(v3/2)) = 0.5
+            // Attenutation (Simplified for H = v3/2)
+            F = F_Schlick(bsdfData.fresnel0, acos(cosThetaD * 0.5));
             T = exp(-2 * muPrime * (1 + cos(2 * asin(HAIR_H_TRT / etaPrime))));
             A = Sq(1 - F) * F * Sq(T);
 
