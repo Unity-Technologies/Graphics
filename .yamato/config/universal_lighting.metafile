@@ -184,7 +184,6 @@ platforms:
         exclude_test_platforms:
           - name: playmode
           - name: editmode
-          - name: Standalone_XR_cache
           - name: playmode_XR
           - name: playmode_XR_cache
           - name: playmode_cache
