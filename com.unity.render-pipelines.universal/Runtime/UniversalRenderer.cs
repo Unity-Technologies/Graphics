@@ -161,11 +161,7 @@ namespace UnityEngine.Rendering.Universal
             //m_DeferredLights.LightCulling = data.lightCulling;
             this.m_RenderingMode = data.renderingMode;
             this.m_DepthPrimingMode = data.depthPrimingMode;
-#if ENABLE_VR && ENABLE_XR_MODULE
-            useRenderPassEnabled = false;
-#else
             useRenderPassEnabled = data.useNativeRenderPass && SystemInfo.graphicsDeviceType != GraphicsDeviceType.OpenGLES2;
-#endif
 
 #if UNITY_ANDROID || UNITY_IOS || UNITY_TVOS
             this.m_DepthPrimingRecommended = false;
