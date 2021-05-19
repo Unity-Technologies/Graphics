@@ -47,6 +47,8 @@ namespace UnityEngine.Rendering
         bool m_IsLoopingCurveDirty;
         bool m_IsTextureDirty;
 
+        int m_AppliedCurveHash;
+
         /// <summary>
         /// Retrieves the key at index.
         /// </summary>
@@ -145,63 +147,92 @@ namespace UnityEngine.Rendering
                 m_Texture.filterMode = FilterMode.Bilinear;
                 m_Texture.wrapMode = TextureWrapMode.Clamp;
                 m_IsTextureDirty = true;
+                m_AppliedCurveHash = 0;
             }
 
             if (m_IsTextureDirty)
             {
-                UpdateLength();
+                AnimationCurve curve;
+                int curveHash;
 
-                var format = m_Texture.format;
-                if (format == TextureFormat.RHalf)
+                UpdateLength();
+                if (length != 0)
                 {
-                    var data = m_Texture.GetPixelData<ushort>(0);
-                    if (length > 1)
+                    curve = GetEffectiveCurve();
+                    curveHash = 0;
+                    var curveLength = curve.length;
+                    for (int i = 0; i < curveLength; i++)
                     {
-                        var curve = GetEffectiveCurve();
-                        for (int i = 0; i < k_Precision; i++)
-                            data[i] = Mathf.FloatToHalf(curve.Evaluate(i * k_Step));
-                    }
-                    else // Constant value
-                    {
-                        var value = Mathf.FloatToHalf(length == 0 ? m_ZeroValue : m_Curve[0].value);
-                        for (int i = 0; i < k_Precision; i++)
-                            data[i] = value;
+                        var key = curve[i];
+                        var keyHash = key.time.GetHashCode();
+                        keyHash = keyHash * 23 + key.value.GetHashCode();
+                        keyHash = keyHash * 23 + key.inTangent.GetHashCode();
+                        keyHash = keyHash * 23 + key.outTangent.GetHashCode();
+
+                        curveHash = curveHash * 23 + keyHash;
                     }
                 }
                 else
                 {
-                    var data = m_Texture.GetPixelData<byte>(0);
-                    if (length > 1)
+                    curve = null;
+                    curveHash = m_ZeroValue.GetHashCode();
+                }
+
+                if (curveHash != m_AppliedCurveHash)
+                {
+                    var format = m_Texture.format;
+                    if (format == TextureFormat.RHalf)
                     {
-                        var curve = GetEffectiveCurve();
-                        if (format == TextureFormat.R8)
+                        var data = m_Texture.GetPixelData<ushort>(0);
+                        if (length > 1)
                         {
                             for (int i = 0; i < k_Precision; i++)
-                                data[i] = (byte)(Mathf.Clamp01(curve.Evaluate(i * k_Step)) * byte.MaxValue);
+                                data[i] = Mathf.FloatToHalf(curve.Evaluate(i * k_Step));
                         }
-                        else
+                        else // Constant value
                         {
-                            for (int i = 0; i < k_Precision; i++)
-                                data[i * 4 + 1] = (byte)(Mathf.Clamp01(curve.Evaluate(i * k_Step)) * byte.MaxValue);
-                        }
-                    }
-                    else // Constant value
-                    {
-                        var value = (byte)(Mathf.Clamp01(length == 0 ? m_ZeroValue : m_Curve[0].value) * byte.MaxValue);
-                        if (format == TextureFormat.R8)
-                        {
+                            var value = Mathf.FloatToHalf(length == 0 ? m_ZeroValue : m_Curve[0].value);
                             for (int i = 0; i < k_Precision; i++)
                                 data[i] = value;
                         }
-                        else
+                    }
+                    else
+                    {
+                        var data = m_Texture.GetPixelData<byte>(0);
+                        if (length > 1)
                         {
-                            for (int i = 0; i < k_Precision; i++)
-                                data[i * 4 + 1] = value;
+                            if (format == TextureFormat.R8)
+                            {
+                                for (int i = 0; i < k_Precision; i++)
+                                    data[i] = (byte)(Mathf.Clamp01(curve.Evaluate(i * k_Step)) * byte.MaxValue);
+                            }
+                            else
+                            {
+                                for (int i = 0; i < k_Precision; i++)
+                                    data[i * 4 + 1] = (byte)(Mathf.Clamp01(curve.Evaluate(i * k_Step)) * byte.MaxValue);
+                            }
+                        }
+                        else // Constant value
+                        {
+                            var value = (byte)(Mathf.Clamp01(length == 0 ? m_ZeroValue : m_Curve[0].value) * byte.MaxValue);
+                            if (format == TextureFormat.R8)
+                            {
+                                for (int i = 0; i < k_Precision; i++)
+                                    data[i] = value;
+                            }
+                            else
+                            {
+                                for (int i = 0; i < k_Precision; i++)
+                                    data[i * 4 + 1] = value;
+                            }
                         }
                     }
+
+                    m_Texture.Apply(false, false);
+
+                    m_AppliedCurveHash = curveHash;
                 }
 
-                m_Texture.Apply(false, false);
                 m_IsTextureDirty = false;
             }
 
@@ -328,6 +359,7 @@ namespace UnityEngine.Rendering
             // Volume system doesn't seem to ever interpolate 2 sources into a 3rd target.
             // Instead it applies "to" on top of "this", which is also passed as "from".
             // We cut some corners here and really support only the second case for simplicity.
+            // TODO: Make sure it's okay.
             Assert.AreEqual(this, from);
 
             if (t == 0f)
