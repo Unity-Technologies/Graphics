@@ -21,7 +21,7 @@ namespace UnityEngine.Rendering.Universal
         private Hash128[] m_PassIndexToPassHash = new Hash128[kRenderPassMaxCount];
         private Dictionary<Hash128, int> m_RenderPassesAttachmentCount = new Dictionary<Hash128, int>(kRenderPassMapSize);
 
-        // [kRenderPassMaxCount][o]
+        // [kRenderPassMaxCount][8]
         private int[][] m_PassesColorAttachmentIndices;
         private int[][] m_PassesInputAttachmentIndices;
 
@@ -151,11 +151,6 @@ namespace UnityEngine.Rendering.Universal
                 }
 
                 m_ActiveRenderPassQueue[lastPassIndex].isLastPass = true;
-
-                for (int i = 0; i < m_ActiveRenderPassQueue.Count; ++i)
-                {
-                    m_ActiveRenderPassQueue[i].m_InputAttachmentIndices = new NativeArray<int>(8, Allocator.Temp);
-                }
             }
         }
 
@@ -183,8 +178,8 @@ namespace UnityEngine.Rendering.Universal
                     for (int i = 0; i < m_PassesColorAttachmentIndices[passIdx].Length; ++i)
                         m_PassesColorAttachmentIndices[passIdx][i] = -1;
 
-                    for (int i = 0; i < pass.m_InputAttachmentIndices.Length; ++i)
-                        pass.m_InputAttachmentIndices[i] = -1;
+                    for (int i = 0; i < m_PassesInputAttachmentIndices[passIdx].Length; ++i)
+                        m_PassesInputAttachmentIndices[passIdx][i] = -1;
 
                     uint validColorBuffersCount = RenderingUtils.GetValidColorBufferCount(pass.colorAttachments);
                     // TODO: review the lastPassToBB logic to mak it work with merged passes
@@ -405,6 +400,13 @@ namespace UnityEngine.Rendering.Universal
                     }
                 }
 
+                var validInputBufferCount = GetValidInputAttachmentCount(renderPass);
+                var inputAttachmentIndices = new NativeArray<int>(validInputBufferCount, Allocator.Temp);
+                for (int i = 0; i < validInputBufferCount; ++i)
+                {
+                    inputAttachmentIndices[i] = m_PassesInputAttachmentIndices[currentPassIndex][i];
+                }
+
                 if (validPassCount == 1 || currentMergeablePasses[0] == currentPassIndex) // Check if it's the first pass
                 {
                     if (PassHasInputAttachments(renderPass))
@@ -427,7 +429,7 @@ namespace UnityEngine.Rendering.Universal
                     {
                         context.EndSubPass();
                         if (PassHasInputAttachments(m_ActiveRenderPassQueue[currentPassIndex]))
-                            context.BeginSubPass(attachmentIndices, m_ActiveRenderPassQueue[currentPassIndex].m_InputAttachmentIndices);
+                            context.BeginSubPass(attachmentIndices, inputAttachmentIndices);
                         else
                             context.BeginSubPass(attachmentIndices);
 
@@ -436,13 +438,14 @@ namespace UnityEngine.Rendering.Universal
                     else if (PassHasInputAttachments(m_ActiveRenderPassQueue[currentPassIndex]))
                     {
                         context.EndSubPass();
-                        context.BeginSubPass(attachmentIndices, m_ActiveRenderPassQueue[currentPassIndex].m_InputAttachmentIndices);
+                        context.BeginSubPass(attachmentIndices, inputAttachmentIndices);
 
                         m_LastBeginSubpassPassIndex = currentPassIndex;
                     }
                 }
 
                 attachmentIndices.Dispose();
+                inputAttachmentIndices.Dispose();
 
                 renderPass.Execute(context, ref renderingData);
 
@@ -466,19 +469,19 @@ namespace UnityEngine.Rendering.Universal
         internal void SetupInputAttachmentIndices(ScriptableRenderPass pass)
         {
             var validInputBufferCount = GetValidInputAttachmentCount(pass);
-            pass.m_InputAttachmentIndices = new NativeArray<int>(validInputBufferCount, Allocator.Temp);
+            int passIdx = pass.renderPassQueueIndex;
             for (int i = 0; i < validInputBufferCount; i++)
             {
-                pass.m_InputAttachmentIndices[i] = FindAttachmentDescriptorIndexInList(pass.m_InputAttachments[i], m_ActiveColorAttachmentDescriptors);
-                if (pass.m_InputAttachmentIndices[i] == -1)
+                m_PassesInputAttachmentIndices[passIdx][i] = FindAttachmentDescriptorIndexInList(pass.m_InputAttachments[i], m_ActiveColorAttachmentDescriptors);
+                if (m_PassesInputAttachmentIndices[passIdx][i] == -1)
                 {
                     Debug.LogWarning("RenderPass Input attachment not found in the current RenderPass");
                     continue;
                 }
 
                 // Assume input attachment has to be transient as ScriptableRenderPass currently has only setters for StoreAction
-                m_ActiveColorAttachmentDescriptors[pass.m_InputAttachmentIndices[i]].loadAction = RenderBufferLoadAction.DontCare;
-                m_ActiveColorAttachmentDescriptors[pass.m_InputAttachmentIndices[i]].storeAction = RenderBufferStoreAction.DontCare;
+                m_ActiveColorAttachmentDescriptors[m_PassesInputAttachmentIndices[passIdx][i]].loadAction = RenderBufferLoadAction.DontCare;
+                m_ActiveColorAttachmentDescriptors[m_PassesInputAttachmentIndices[passIdx][i]].storeAction = RenderBufferStoreAction.DontCare;
             }
         }
 

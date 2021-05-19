@@ -206,8 +206,6 @@ namespace UnityEngine.Rendering.Universal
         // index to track the position in the current frame
         internal int renderPassQueueIndex { get; set; }
 
-        internal NativeArray<int> m_InputAttachmentIndices;
-
         internal GraphicsFormat[] renderTargetFormat { get; set; }
         RenderTargetIdentifier[] m_ColorAttachments = new RenderTargetIdentifier[] {BuiltinRenderTextureType.CameraTarget};
         internal RenderTargetIdentifier[] m_InputAttachments = new RenderTargetIdentifier[8];
