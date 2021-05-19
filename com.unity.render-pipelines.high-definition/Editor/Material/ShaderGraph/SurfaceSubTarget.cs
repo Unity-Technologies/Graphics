@@ -236,7 +236,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                 context.AddField(HDStructFields.FragInputs.positionRWS);
 
             context.AddField(HDFields.TessellationFactor, systemData.tessellation);
-            context.AddField(HDFields.TessellationDisplacement, systemData.tessellation);
+            context.AddField(HDFields.TessellationPosition, systemData.tessellation);
         }
 
         protected void AddDistortionFields(ref TargetFieldContext context)
@@ -275,7 +275,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
             context.AddBlock(HDBlockFields.SurfaceDescription.DepthOffset, builtinData.depthOffset);
 
             context.AddBlock(HDBlockFields.VertexDescription.TessellationFactor, systemData.tessellation);
-            context.AddBlock(HDBlockFields.VertexDescription.TessellationDisplacement, systemData.tessellation);
+            context.AddBlock(HDBlockFields.VertexDescription.TessellationPosition, systemData.tessellation);
         }
 
         protected void AddDistortionBlocks(ref TargetActiveBlockContext context)

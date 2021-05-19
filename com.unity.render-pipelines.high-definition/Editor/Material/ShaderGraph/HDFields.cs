@@ -67,7 +67,7 @@ namespace UnityEditor.Rendering.HighDefinition
 
         // Tessellation
         public static FieldDescriptor TessellationFactor =      new FieldDescriptor(string.Empty, "TessellationFactor", "_TESSELLATION_FACTOR 1");
-        public static FieldDescriptor TessellationDisplacement = new FieldDescriptor(string.Empty, "TessellationDisplacement", "_TESSELLATION_DISPLACEMENT 1");
+        public static FieldDescriptor TessellationPosition =    new FieldDescriptor(string.Empty, "TessellationPosition", "_TESSELLATION_POSITION 1");
         public static FieldDescriptor GraphTessellation =       new FieldDescriptor(kFeatures, "graphTessellation", "FEATURES_GRAPH_TESSELLATION");
 
         #endregion

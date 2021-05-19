@@ -54,7 +54,7 @@ Depending on the [Graph Settings](#graph-settings) you use, Shader Graph can add
 <th>Default Value</th>
 </tr>
 [!include[](snippets/shader-graph-blocks/tessellation-factor.md)]
-[!include[](snippets/shader-graph-blocks/tessellation-displacement.md)]
+[!include[](snippets/shader-graph-blocks/tessellation-position.md)]
 </table>
 
 

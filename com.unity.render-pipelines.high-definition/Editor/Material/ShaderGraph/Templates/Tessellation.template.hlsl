@@ -108,7 +108,7 @@ VaryingsMeshToDS ApplyTessellationModification(VaryingsMeshToDS input, float3 ti
     $VertexDescriptionInputs.TimeParameters: vertexDescriptionInputs.TimeParameters = timeParameters;
 
     VertexDescription vertexDescription = VertexDescriptionFunction(vertexDescriptionInputs);
-    $VertexDescription.TessellationDisplacement: input.positionRWS += vertexDescription.TessellationDisplacement;
+    $VertexDescription.TessellationPosition: input.positionRWS = vertexDescription.TessellationPosition;
 
     return input;
 }
