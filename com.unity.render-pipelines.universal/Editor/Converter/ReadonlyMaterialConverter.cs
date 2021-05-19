@@ -2,18 +2,12 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
-using UnityEditor;
-using UnityEditor.Rendering;
-using UnityEditor.Rendering.Universal;
-using UnityEditor.Rendering.Universal.Converters;
 using UnityEditor.SceneManagement;
-using UnityEditor.Search;
-using UnityEditor.Search.Providers;
 using UnityEngine;
 using UnityEngine.SceneManagement;
 using Object = UnityEngine.Object;
 
-namespace Editor.Converters
+namespace UnityEditor.Rendering.Universal.Converters
 {
     enum IdentifierType { kNullIdentifier = 0, kImportedAsset = 1, kSceneObject = 2, kSourceAsset = 3, kBuiltInAsset = 4 };
 
@@ -54,9 +48,9 @@ namespace Editor.Converters
 
         public override void OnInitialize(InitializeConverterContext ctx, Action callback)
         {
-            var context = SearchService.CreateContext("asset", "urp:convert-readonly");
+            var context = Search.SearchService.CreateContext("asset", "urp:convert-readonly");
 
-            SearchService.Request(context,  (c, items) =>
+            Search.SearchService.Request(context,  (c, items) =>
             {
                 // we're going to do this step twice in order to get them ordered, but it should be fast
                 var orderedRequest = items.OrderBy(req =>
