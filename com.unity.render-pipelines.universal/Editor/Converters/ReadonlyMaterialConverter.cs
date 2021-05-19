@@ -17,7 +17,7 @@ namespace Editor.Converters
 {
     enum IdentifierType { kNullIdentifier = 0, kImportedAsset = 1, kSceneObject = 2, kSourceAsset = 3, kBuiltInAsset = 4 };
 
-    public static class ReadonlyMaterialMap
+    internal static class ReadonlyMaterialMap
     {
         public static readonly Dictionary<string, string> Map = new Dictionary<string, string>
         {
@@ -54,44 +54,6 @@ namespace Editor.Converters
 
         public override void OnInitialize(InitializeConverterContext ctx, Action callback)
         {
-            //var context = SearchService.CreateContext("asset", "urp:convert-readonly");
-            // var context = SearchService.CreateContext("asset", "urp:convert-readonly", SearchFlags.Synchronous);
-            //
-            // var items = SearchService.GetItems(context, SearchFlags.Synchronous);
-            //
-            // Debug.Log("Count!" + items.Count);
-            // //(c, items) =>
-            // //{
-            //     // we're going to do this step twice in order to get them ordered, but it should be fast
-            //     var orderedRequest = items.OrderBy(req =>
-            //         {
-            //             GlobalObjectId.TryParse(req.id, out var gid);
-            //             return gid.assetGUID;
-            //         })
-            //         .ToList();
-            //
-            //     foreach (var r in orderedRequest)
-            //     {
-            //         if (r == null || !GlobalObjectId.TryParse(r.id, out var gid))
-            //         {
-            //             continue;
-            //         }
-            //
-            //         var label = r.provider.fetchLabel(r, r.context);
-            //         var description = r.provider.fetchDescription(r, r.context);
-            //
-            //         var item = new ConverterItemDescriptor()
-            //         {
-            //             name = $"{label} : {description}",
-            //             info = gid.ToString(),
-            //         };
-            //
-            //         ctx.AddAssetToConvert(item);
-            //     }
-            //
-            //     callback.Invoke();
-            // //});
-
             var context = SearchService.CreateContext("asset", "urp:convert-readonly");
 
             SearchService.Request(context,  (c, items) =>
@@ -125,37 +87,6 @@ namespace Editor.Converters
 
                 callback.Invoke();
             });
-
-
-            // using var request = SearchService.Request(context);
-            // {
-            //     // we're going to do this step twice in order to get them ordered, but it should be fast
-            //     var orderedRequest = request.OrderBy(req =>
-            //         {
-            //             GlobalObjectId.TryParse(req.id, out var gid);
-            //             return gid.assetGUID;
-            //         })
-            //         .ToList();
-            //
-            //     foreach (var r in orderedRequest)
-            //     {
-            //         if (r == null || !GlobalObjectId.TryParse(r.id, out var gid))
-            //         {
-            //             continue;
-            //         }
-            //
-            //         var label = r.provider.fetchLabel(r, r.context);
-            //         var description = r.provider.fetchDescription(r, r.context);
-            //
-            //         var item = new ConverterItemDescriptor()
-            //         {
-            //             name = $"{label} : {description}",
-            //             info = gid.ToString(),
-            //         };
-            //
-            //         ctx.AddAssetToConvert(item);
-            //     }
-            // }
         }
 
         public override void OnRun(ref RunItemContext ctx)
