@@ -3,8 +3,6 @@
 
 #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/LightCookie/LightCookieTypes.hlsl"
 
-// TODO : _URP_LightCookie_MainLightTexture???
-// TODO : _URP_LightCookie_AdditionalLightsAtlasTexture???
 // Textures
 TEXTURE2D(_MainLightCookieTexture);
 TEXTURE2D(_AdditionalLightsCookieAtlasTexture);
@@ -16,23 +14,21 @@ SAMPLER(sampler_AdditionalLightsCookieAtlasTexture);
 // Buffers
 // GLES3 causes a performance regression in some devices when using CBUFFER.
 #ifndef SHADER_API_GLES3
-CBUFFER_START(MainLightCookie)
+CBUFFER_START(LightCookies)
 #endif
-    float4x4 _MainLightWorldToLight;  // TODO: Simple solution. Should property of the light! Orthographic! 3x4 would be enough or even just light.up (cross(spotDir, light.up), light.up, spotDir, lightPos)
-    float    _MainLightCookieFormat;  // 0 RGBA, 1 Alpha only
-//  float3   _MainLightCookie_Unused;
+    float4x4 _MainLightWorldToLight;  // TODO: Should property of the light! Orthographic. 3x4 would be enough.
+    float    _MainLightCookieTextureFormat;
+    float    _AdditionalLightsCookieAtlasTextureFormat;
+//  float2   _Unused;
 #ifndef SHADER_API_GLES3
 CBUFFER_END
 #endif
 
-// TODO : _URP_LightCookie_AdditionalLightsWorldToLightBuffer???
-// TODO : _URP_LightCookie_AdditionalLightsAtlasUVRectBuffer???
 // TODO: pack data
 #if USE_STRUCTURED_BUFFER_FOR_LIGHT_DATA
-    StructuredBuffer<float4x4> _AdditionalLightsWorldToLightBuffer; // TODO: should really be property of the light! Move to Input.hlsl
+    StructuredBuffer<float4x4> _AdditionalLightsWorldToLightBuffer; // TODO: should really be property of the light!
     StructuredBuffer<float4>   _AdditionalLightsCookieAtlasUVRectBuffer; // UV rect into light cookie atlas (xy: uv offset, zw: uv size)
-    StructuredBuffer<float>    _AdditionalLightsLightTypeBuffer; // TODO: should really be property of the light! Move to Input.hlsl
-    float _AdditionalLightsCookieAtlasFormat;
+    StructuredBuffer<float>    _AdditionalLightsLightTypeBuffer; // TODO: should really be property of the light!
 #else
     #ifndef SHADER_API_GLES3
         CBUFFER_START(AdditionalLightsCookies)
@@ -40,7 +36,6 @@ CBUFFER_END
             float4x4 _AdditionalLightsWorldToLights[MAX_VISIBLE_LIGHTS];  // TODO: Should really be a property of the light !!!
             float4 _AdditionalLightsCookieAtlasUVRects[MAX_VISIBLE_LIGHTS]; // (xy: uv size, zw: uv offset)
             float _AdditionalLightsLightTypes[MAX_VISIBLE_LIGHTS]; // TODO: Should really be a property of the light !!!
-            float _AdditionalLightsCookieAtlasFormat;
     #ifndef SHADER_API_GLES3
         CBUFFER_END
     #endif
@@ -48,7 +43,7 @@ CBUFFER_END
 
 // Data Getters
 
-float4x4 URP_LightCookie_GetWorldToLightMatrix(int lightIndex)
+float4x4 GetLightCookieWorldToLightMatrix(int lightIndex)
 {
     #if USE_STRUCTURED_BUFFER_FOR_LIGHT_DATA
         return _AdditionalLightsWorldToLightBuffer[lightIndex];
@@ -57,7 +52,7 @@ float4x4 URP_LightCookie_GetWorldToLightMatrix(int lightIndex)
     #endif
 }
 
-float4 URP_LightCookie_GetAtlasUVRect(int lightIndex)
+float4 GetLightCookieAtlasUVRect(int lightIndex)
 {
     #if USE_STRUCTURED_BUFFER_FOR_LIGHT_DATA
         return _AdditionalLightsCookieAtlasUVRectBuffer[lightIndex];
@@ -66,7 +61,7 @@ float4 URP_LightCookie_GetAtlasUVRect(int lightIndex)
     #endif
 }
 
-int URP_LightCookie_GetLightType(int lightIndex)
+int GetLightCookieLightType(int lightIndex)
 {
     #if USE_STRUCTURED_BUFFER_FOR_LIGHT_DATA
         return _AdditionalLightsLightTypeBuffer[lightIndex];
@@ -75,42 +70,43 @@ int URP_LightCookie_GetLightType(int lightIndex)
     #endif
 }
 
-bool URP_LightCookie_MainLightTextureIsRGBFormat()
+bool IsMainLightCookieTextureRGBFormat()
 {
-    return _MainLightCookieFormat == URP_LIGHT_COOKIE_FORMAT_RGB;
+    return _MainLightCookieTextureFormat == URP_LIGHT_COOKIE_FORMAT_RGB;
 }
 
-bool URP_LightCookie_MainLightTextureIsAlphaFormat()
+bool IsMainLightCookieTextureAlphaFormat()
 {
-    return _MainLightCookieFormat == URP_LIGHT_COOKIE_FORMAT_ALPHA;
+    return _MainLightCookieTextureFormat == URP_LIGHT_COOKIE_FORMAT_ALPHA;
 }
 
-bool URP_LightCookie_AdditionalLightsTextureIsRGBFormat()
+bool IsAdditionalLightsCookieAtlasTextureRGBFormat()
 {
-    return _AdditionalLightsCookieAtlasFormat == URP_LIGHT_COOKIE_FORMAT_RGB;
+    return _AdditionalLightsCookieAtlasTextureFormat == URP_LIGHT_COOKIE_FORMAT_RGB;
 }
 
-bool URP_LightCookie_AdditionalLightsTextureIsAlphaFormat()
+bool IsAdditionalLightsCookieAtlasTextureAlphaFormat()
 {
-    return _AdditionalLightsCookieAtlasFormat == URP_LIGHT_COOKIE_FORMAT_ALPHA;
+    return _AdditionalLightsCookieAtlasTextureFormat == URP_LIGHT_COOKIE_FORMAT_ALPHA;
 }
 
 // Sampling
 
-real4 URP_LightCookie_SampleMainLightTexture(float2 uv)
+real4 SampleMainLightCookieTexture(float2 uv)
 {
     return SAMPLE_TEXTURE2D(_MainLightCookieTexture, sampler_MainLightCookieTexture, uv);
 }
 
-real4 URP_LightCookie_SampleAdditionalLightsTexture(float2 uv)
+real4 SampleAdditionalLightsCookieTexture(float2 uv)
 {
     return SAMPLE_TEXTURE2D(_AdditionalLightsCookieAtlasTexture, sampler_AdditionalLightsCookieAtlasTexture, uv);
 }
 
 // Helpers
 
-bool URP_LightCookie_IsEnabled(float4 uvRect)
+bool IsLightCookieEnabled(int lightBufferIndex)
 {
+    float4 uvRect = GetLightCookieAtlasUVRect(lightBufferIndex);
     return all(uvRect == 0);
 }
 

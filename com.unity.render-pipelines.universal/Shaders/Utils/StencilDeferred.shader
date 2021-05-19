@@ -198,7 +198,7 @@ Shader "Hidden/Universal Render Pipeline/StencilDeferred"
                 }
 
                 #if defined(_LIGHT_COOKIES)
-                    real3 cookieColor = URP_LightCookie_SampleMainLightCookie(posWS);
+                    real3 cookieColor = SampleMainLightCookie(posWS);
                     unityLight.color *= float4(cookieColor, 1);
                 #endif
             #else
@@ -231,18 +231,18 @@ Shader "Hidden/Universal Render Pipeline/StencilDeferred"
                 // Enable/disable is done toggling the keyword _DEFERRED_ADDITIONAL_LIGHT_COOKIES, but we could do a "static if" instead if required.
                 // if(_CookieLightIndex >= 0)
                 {
-                    float4 cookieUvRect = URP_LightCookie_GetAtlasUVRect(_CookieLightIndex);
-                    float4x4 worldToLight = URP_LightCookie_GetWorldToLightMatrix(_CookieLightIndex);
+                    float4 cookieUvRect = GetLightCookieAtlasUVRect(_CookieLightIndex);
+                    float4x4 worldToLight = GetLightCookieWorldToLightMatrix(_CookieLightIndex);
                     float2 cookieUv = float2(0,0);
                     #if defined(_SPOT)
-                        cookieUv = URP_LightCookie_ComputeUVSpot(worldToLight, posWS, cookieUvRect);
+                        cookieUv = ComputeLightCookieUVSpot(worldToLight, posWS, cookieUvRect);
                     #endif
                     #if defined(_POINT)
-                        cookieUv = URP_LightCookie_ComputeUVPoint(worldToLight, posWS, cookieUvRect);
+                        cookieUv = ComputeLightCookieUVPoint(worldToLight, posWS, cookieUvRect);
                     #endif
-                    half4 cookieColor = URP_LightCookie_SampleAdditionalLightsTexture(cookieUv);
-                    cookieColor = half4(URP_LightCookie_AdditionalLightsTextureIsRGBFormat() ? cookieColor.rgb
-                                        : URP_LightCookie_AdditionalLightsTextureIsAlphaFormat() ? cookieColor.aaa
+                    half4 cookieColor = SampleAdditionalLightsCookieTexture(cookieUv);
+                    cookieColor = half4(IsAdditionalLightsCookieTextureRGBFormat() ? cookieColor.rgb
+                                        : IsAdditionalLightsCookieTextureAlphaFormat() ? cookieColor.aaa
                                         : cookieColor.rrr, 1);
                     unityLight.color *= cookieColor;
                 }
