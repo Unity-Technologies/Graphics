@@ -1,5 +1,5 @@
-#pragma kernel RayMarch RAY_MARCH=RayMarch
-#pragma kernel RayMarchHalf RAY_MARCH=RayMarchHalf HALF_RESOLUTION
+#pragma kernel RayMarchKernel RAY_MARCH_KERNEL=RayMarchKernel
+#pragma kernel RayMarchHalfKernel RAY_MARCH_KERNEL=RayMarchHalfKernel HALF_RESOLUTION
 
 #pragma only_renderers d3d11
 
@@ -56,7 +56,7 @@ RW_TEXTURE2D_X(float4, _GBufferTexture3RW); // Bake lighting and/or emissive
 RW_TEXTURE2D_X(float, _RaytracingDistanceBuffer);
 
 [numthreads(RAY_MARCHING_TILE_SIZE, RAY_MARCHING_TILE_SIZE, 1)]
-void RAY_MARCH(uint3 dispatchThreadId : SV_DispatchThreadID, uint2 groupThreadId : SV_GroupThreadID, uint2 groupId : SV_GroupID)
+void RAY_MARCH_KERNEL(uint3 dispatchThreadId : SV_DispatchThreadID, uint2 groupThreadId : SV_GroupThreadID, uint2 groupId : SV_GroupID)
 {
     UNITY_XR_ASSIGN_VIEW_INDEX(dispatchThreadId.z);
 
