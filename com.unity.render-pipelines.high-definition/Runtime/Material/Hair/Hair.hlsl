@@ -19,7 +19,7 @@
 
 // These H offset values (-1, 1) are used to approximate the integral for far-field azimuthal scattering.
 // For TT, the dominant contribution comes from light transmitted straight through the fiber (thus 0).
-// For TRT, a similar observation is made and √3/2 is used to approximate.
+// For TRT, a similar observation is made and v3/2 is used to approximate.
 #define HAIR_H_TT  0.0
 #define HAIR_H_TRT 0.866
 
@@ -635,7 +635,7 @@ CBSDF EvaluateBSDF(float3 V, float3 L, PreLightData preLightData, BSDFData bsdfD
             D = scaleFactor * exp(scaleFactor * (17.0 * cosPhi - 16.78));
 
             // Attenutation
-            F = F_Schlick(bsdfData.fresnel0, acos(cosThetaD * 0.5)); // cos(arcsin(√3/2)) = 0.5
+            F = F_Schlick(bsdfData.fresnel0, acos(cosThetaD * 0.5)); // cos(arcsin(v3/2)) = 0.5
             T = exp(-2 * muPrime * (1 + cos(2 * asin(HAIR_H_TRT / etaPrime))));
             A = Sq(1 - F) * F * Sq(T);
 

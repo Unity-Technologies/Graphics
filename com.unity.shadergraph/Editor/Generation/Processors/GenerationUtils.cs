@@ -55,6 +55,12 @@ namespace UnityEditor.ShaderGraph
                     builder.AppendLine($"\"Queue\"=\"{descriptor.renderQueue}\"");
                 else
                     builder.AppendLine("// Queue: <None>");
+
+                // ShaderGraphShader tag (so we can tell what shadergraph built)
+                builder.AppendLine("\"ShaderGraphShader\"=\"true\"");
+
+                if (target is IHasMetadata metadata)
+                    builder.AppendLine($"\"ShaderGraphTargetId\"=\"{metadata.identifier}\"");
             }
         }
 
@@ -196,6 +202,7 @@ namespace UnityEditor.ShaderGraph
             packBuilder.AppendLine("{");
             packBuilder.IncreaseIndent();
             packBuilder.AppendLine($"{packedStruct} output;");
+            packBuilder.AppendLine($"ZERO_INITIALIZE({packedStruct}, output);");
 
             unpackBuilder.AppendLine($"{shaderStruct.name} Unpack{shaderStruct.name} ({packedStruct} input)");
             unpackBuilder.AppendLine("{");
@@ -253,10 +260,12 @@ namespace UnityEditor.ShaderGraph
             packBuilder.AppendLine("return output;");
             packBuilder.DecreaseIndent();
             packBuilder.AppendLine("}");
+            packBuilder.AppendNewLine();
 
             unpackBuilder.AppendLine("return output;");
             unpackBuilder.DecreaseIndent();
             unpackBuilder.AppendLine("}");
+            unpackBuilder.AppendNewLine();
 
             interpolatorBuilder.Concat(packBuilder);
             interpolatorBuilder.Concat(unpackBuilder);
@@ -572,6 +581,8 @@ namespace UnityEditor.ShaderGraph
                     return rawOutput;
                 case ConcreteSlotValueType.Matrix2:
                     return rawOutput;
+                case ConcreteSlotValueType.PropertyConnectionState:
+                    return node.GetConnnectionStateVariableNameForSlot(outputSlotId);
                 default:
                     return kErrorString;
             }
