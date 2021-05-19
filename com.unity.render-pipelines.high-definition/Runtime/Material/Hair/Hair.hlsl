@@ -17,10 +17,13 @@
 
 #define DEFAULT_HAIR_SPECULAR_VALUE 0.0465 // Hair is IOR 1.55
 
-#define HAIR_TT_OFFSET_VALUE  0
-#define HAIR_TRT_OFFSET_VALUE sqrt(3) / 2
+// These H offset values (-1, 1) are used to approximate the integral for far-field azimuthal scattering.
+// For TT, the dominant contribution comes from light transmitted straight through the fiber (thus 0).
+// For TRT, a similar observation is made and √3/2 is used to approximate.
+#define HAIR_H_TT  0.0
+#define HAIR_H_TRT 0.866
 
-#define HAIR_DISPLAY_REFERENCE_BSDF
+// #define HAIR_DISPLAY_REFERENCE_BSDF
 // #define HAIR_DISPLAY_REFERENCE_IBL
 
 //-----------------------------------------------------------------------------
@@ -607,7 +610,17 @@ CBSDF EvaluateBSDF(float3 V, float3 L, PreLightData preLightData, BSDFData bsdfD
         // TT
         #if 0
         {
-            // TODO
+            M = D_LongitudinalScatteringGaussian(thetaH - bsdfData.cuticleAngleTT, bsdfData.roughnessLTT);
+
+            // This lobe's distribution is determined by sampling gaussian weights from a pre-integrated LUT of the distribution and evaluating the gaussian.
+            D = 1;
+
+            // Attenutation
+            F = F_Schlick(bsdfData.fresnel0, acos(cosThetaD)); // cos(arcsin(0.0)) = 1.0
+            T = exp(-2 * muPrime * (1 + cos(2 * asin(HAIR_H_TT / etaPrime))));
+            A = Sq(1 - F) * T;
+
+            S += M * A * D;
         }
         #endif
 
@@ -622,11 +635,8 @@ CBSDF EvaluateBSDF(float3 V, float3 L, PreLightData preLightData, BSDFData bsdfD
             D = scaleFactor * exp(scaleFactor * (17.0 * cosPhi - 16.78));
 
             // Attenutation
-            const float gammatTRT = asin(HAIR_TRT_OFFSET_VALUE / etaPrime);
-
-            // Note: cos(arcsin(√3/2)) = 0.5
-            F = F_Schlick(bsdfData.fresnel0, acos(cosThetaD * 0.5));
-            T = exp(-2 * muPrime * (1 + cos(2 * gammatTRT)));
+            F = F_Schlick(bsdfData.fresnel0, acos(cosThetaD * 0.5)); // cos(arcsin(√3/2)) = 0.5
+            T = exp(-2 * muPrime * (1 + cos(2 * asin(HAIR_H_TRT / etaPrime))));
             A = Sq(1 - F) * F * Sq(T);
 
             S += M * A * D;
