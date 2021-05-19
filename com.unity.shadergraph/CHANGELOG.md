@@ -11,7 +11,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 ### Changed
 
 ### Fixed
-- Removed padding from the shader graph sub-windows and fixed bug where the scrollbar widgets were unusable due to being overlapped by resize regions at edges of windows [1320993]
+- Removed padding from the shader graph sub-windows and fixed bug where the horizontal scrollbar widget was unusable due to being overlapped by resize regions at edges of windows [1320993]
 - Fixed an issue where nodes with ports on one side would appear incorrectly on creation [1262050]
 - Fixed a broken link in the TOC to Main Preview
 - Fixed an issue with the Gradient color picker displaying different values than the selected color.
