@@ -13,12 +13,23 @@ struct Attributes
     UNITY_VERTEX_INPUT_INSTANCE_ID
 };
 
-#define Varyings MetaVaryings
+struct Varyings
+{
+    float4 positionCS   : SV_POSITION;
+    float2 uv           : TEXCOORD0;
+#ifdef EDITOR_VISUALIZATION
+    float2 VizUV        : TEXCOORD1;
+    float4 LightCoord   : TEXCOORD2;
+#endif
+};
 
 Varyings UniversalVertexMeta(Attributes input)
 {
     Varyings output = (Varyings)0;
-    output = (Varyings)FillMetaVaryings(input.positionOS, input.uv0, input.uv1, input.uv2);
+    output.positionCS = UnityMetaVertexPosition(input.positionOS.xyz, input.uv1, input.uv2);
+#ifdef EDITOR_VISUALIZATION
+    UnityEditorVizData(input.positionOS.xyz, input.uv0, input.uv1, input.uv2, output.VizUV, output.LightCoord);
+#endif
     return output;
 }
 

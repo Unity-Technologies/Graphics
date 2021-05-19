@@ -64,6 +64,24 @@ float2 UnityMetaVizUV(int uvIndex, float2 uv0, float2 uv1, float2 uv2, float4 st
         return uv2 * st.xy + st.zw;
 }
 
+void UnityEditorVizData(float3 positionOS, float2 uv0, float2 uv1, float2 uv2, float4 st, out float2 VizUV, out float4 LightCoord)
+{
+#ifdef EDITOR_VISUALIZATION
+    if (unity_VisualizationMode == EDITORVIZ_TEXTURE)
+        VizUV = UnityMetaVizUV(unity_EditorViz_UVIndex, uv0, uv1, uv2, unity_EditorViz_Texture_ST);
+    else if (unity_VisualizationMode == EDITORVIZ_SHOWLIGHTMASK)
+    {
+        VizUV = uv1 * st.xy + st.zw;
+        LightCoord = mul(unity_EditorViz_WorldToLight, float4(TransformObjectToWorld(positionOS), 1));
+    }
+#endif
+}
+
+void UnityEditorVizData(float3 positionOS, float2 uv0, float2 uv1, float2 uv2, out float2 VizUV, out float4 LightCoord)
+{
+    UnityEditorVizData(positionOS, uv0, uv1, uv2, unity_LightmapST, VizUV, LightCoord);
+}
+
 float4 UnityMetaVertexPosition(float3 vertex, float2 uv1, float2 uv2, float4 lightmapST, float4 dynlightmapST)
 {
 #ifndef EDITOR_VISUALIZATION
@@ -85,6 +103,11 @@ float4 UnityMetaVertexPosition(float3 vertex, float2 uv1, float2 uv2, float4 lig
 #else
     return TransformObjectToHClip(vertex);
 #endif
+}
+
+float4 UnityMetaVertexPosition(float3 vertex, float2 uv1, float2 uv2)
+{
+    return UnityMetaVertexPosition(vertex, uv1, uv2, unity_LightmapST, unity_DynamicLightmapST);
 }
 
 float unity_OneOverOutputBoost;

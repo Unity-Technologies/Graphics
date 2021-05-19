@@ -39,13 +39,7 @@ PackedVaryingsToPS Vert(AttributesMesh inputMesh)
     // originally, input uv0 was scaled using the main texture's ST. this does not seem necessary for HD, but if it is, scaling would need to be applied before generating vizUV.
     float2 vizUV = 0;
     float4 lightCoord = 0;
-    if (unity_VisualizationMode == EDITORVIZ_TEXTURE)
-        vizUV = UnityMetaVizUV(unity_EditorViz_UVIndex, inputMesh.uv0.xy, inputMesh.uv1.xy, inputMesh.uv2.xy, unity_EditorViz_Texture_ST);
-    else if (unity_VisualizationMode == EDITORVIZ_SHOWLIGHTMASK)
-    {
-        vizUV = inputMesh.uv1.xy * unity_LightmapST.xy + unity_LightmapST.zw;
-        lightCoord = mul(unity_EditorViz_WorldToLight, float4(TransformObjectToWorld(inputMesh.positionOS), 1));
-    }
+    UnityEditorVizData(inputMesh.positionOS, inputMesh.uv0, inputMesh.uv1, inputMesh.uv2, vizUV, lightCoord);
 #endif
 
 #ifdef VARYINGS_NEED_TEXCOORD0

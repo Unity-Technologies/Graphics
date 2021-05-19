@@ -505,7 +505,7 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
                     renderStates = CoreRenderStates.Meta,
                     pragmas = CorePragmas.Default,
                     defines = new DefineCollection() { CoreDefines.UseFragmentFog },
-                    keywords = new KeywordCollection(),
+                    keywords = new KeywordCollection() { CoreKeywordDescriptors.EditorVisualization },
                     includes = LitIncludes.Meta,
 
                     // Custom Interpolator Support
@@ -674,8 +674,16 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
 
             public static readonly FieldCollection Meta = new FieldCollection()
             {
+                StructFields.Attributes.positionOS,
+                StructFields.Attributes.normalOS,
+                StructFields.Attributes.uv0,                            //
                 StructFields.Attributes.uv1,                            // needed for meta vertex position
-                StructFields.Attributes.uv2,                            //needed for meta vertex position
+                StructFields.Attributes.uv2,                            // needed for meta UVs
+                StructFields.Attributes.instanceID,                     // needed for rendering instanced terrain
+                StructFields.Varyings.positionCS,
+                StructFields.Varyings.texCoord0,                        // needed for meta UVs
+                StructFields.Varyings.texCoord1,                        // VizUV
+                StructFields.Varyings.texCoord2,                        // LightCoord
             };
         }
         #endregion

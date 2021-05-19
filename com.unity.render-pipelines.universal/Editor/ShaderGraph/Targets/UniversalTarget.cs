@@ -1456,6 +1456,15 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
             definition = KeywordDefinition.MultiCompile,
             scope = KeywordScope.Global,
         };
+
+        public static readonly KeywordDescriptor EditorVisualization = new KeywordDescriptor()
+        {
+            displayName = "Editor Visualization",
+            referenceName = "EDITOR_VISUALIZATION",
+            type = KeywordType.Boolean,
+            definition = KeywordDefinition.ShaderFeature,
+            scope = KeywordScope.Global,
+        };
     }
     #endregion
 
