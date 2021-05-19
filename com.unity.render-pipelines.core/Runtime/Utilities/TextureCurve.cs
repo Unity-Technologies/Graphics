@@ -378,9 +378,9 @@ namespace UnityEngine.Rendering
                 return;
             }
 
+            // Prepare a temporary and more blend-friendly version of the target curve.
             if (s_TempCurve == null)
                 s_TempCurve = new AnimationCurve();
-
             to.UpdateLength();
             if (to.length == 0)
             {
@@ -398,6 +398,7 @@ namespace UnityEngine.Rendering
                     s_TempCurve.AddKey(curve[i]);
             }
 
+            // Prepare current curve for blending.
             UpdateLength();
             if (length == 0)
             {
@@ -406,24 +407,26 @@ namespace UnityEngine.Rendering
             }
             else if (length == 1)
             {
+                // For a single key reset tangents and time.
                 var key = m_Curve[0];
                 m_Curve.MoveKey(0, new Keyframe(0f, key.value));
             }
             else if (m_Loop)
             {
-                // Bake looped values
+                // Bake the looping by updating and swapping the curves.
+                var originalCurve = m_Curve;
                 m_Curve = GetEffectiveCurve();
-                m_LoopingCurve = null;
-                m_Loop = false;
+                m_LoopingCurve = originalCurve;
                 length = m_Curve.length;
             }
+            m_Loop = false;
 
+            // Syncing the curves so the keys at the same index would have the same time in both curves.
             for (int i = 0; i < length; i++)
             {
                 var time = m_Curve[i].time;
                 s_TempCurve.AddKey(time, s_TempCurve.Evaluate(time));
             }
-
             length = s_TempCurve.length;
             for (int i = 0; i < length; i++)
             {
@@ -431,6 +434,7 @@ namespace UnityEngine.Rendering
                 m_Curve.AddKey(time, m_Curve.Evaluate(time));
             }
 
+            // Now we can just blend between two key sets.
             for (int i = 0; i < length; i++)
             {
                 var key = m_Curve[i];
