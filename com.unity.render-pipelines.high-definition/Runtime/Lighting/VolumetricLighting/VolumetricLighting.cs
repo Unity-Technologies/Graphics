@@ -72,8 +72,8 @@ namespace UnityEngine.Rendering.HighDefinition
         // TODO: Remove if equals to the ones in global CB?
         public uint _NumTileBigTileX;
         public uint _NumTileBigTileY;
+        public float _VolumetricIndirectLightingMultiplier;
         public uint _Pad0_SVV;
-        public uint _Pad1_SVV;
     }
 
 
@@ -837,7 +837,7 @@ namespace UnityEngine.Rendering.HighDefinition
                     cb._AmbientProbeCoeffs[i * 4 + j] = m_PackedCoeffs[i][j];
         }
 
-        unsafe void UpdateShaderVariableslVolumetrics(ref ShaderVariablesVolumetric cb, HDCamera hdCamera, in Vector4 resolution)
+        unsafe void UpdateShaderVariableslVolumetrics(ref ShaderVariablesVolumetric cb, HDCamera hdCamera, in Vector4 resolution, float volumetricIndirectLightingMultiplier)
         {
             var fog = hdCamera.volumeStack.GetComponent<Fog>();
             var vFoV = hdCamera.camera.GetGateFittedFieldOfView() * Mathf.Deg2Rad;
@@ -903,6 +903,7 @@ namespace UnityEngine.Rendering.HighDefinition
             cb._VBufferPrevDistanceDecodingParams = prevParams.depthDecodingParams;
             cb._NumTileBigTileX = (uint)GetNumTileBigTileX(hdCamera);
             cb._NumTileBigTileY = (uint)GetNumTileBigTileY(hdCamera);
+            cb._VolumetricIndirectLightingMultiplier = volumetricIndirectLightingMultiplier;
         }
 
         VolumeVoxelizationParameters PrepareVolumeVoxelizationParameters(HDCamera hdCamera)
@@ -932,7 +933,8 @@ namespace UnityEngine.Rendering.HighDefinition
                 parameters.volumeAtlas = CoreUtils.emptyUAV;
             }
 
-            UpdateShaderVariableslVolumetrics(ref m_ShaderVariablesVolumetricCB, hdCamera, parameters.resolution);
+            const float volumetricIndirectLightingMultiplierUnused = 0.0f;
+            UpdateShaderVariableslVolumetrics(ref m_ShaderVariablesVolumetricCB, hdCamera, parameters.resolution, volumetricIndirectLightingMultiplierUnused);
             parameters.volumetricCB = m_ShaderVariablesVolumetricCB;
             parameters.lightListCB = m_ShaderVariablesLightListCB;
 
@@ -1023,6 +1025,7 @@ namespace UnityEngine.Rendering.HighDefinition
             public bool                         filterVolume;
             public ShaderVariablesVolumetric    volumetricCB;
             public ShaderVariablesLightList     lightListCB;
+            public float                        volumetricIndirectLightingMultiplier;
         }
 
         VolumetricLightingParameters PrepareVolumetricLightingParameters(HDCamera hdCamera)
@@ -1054,6 +1057,8 @@ namespace UnityEngine.Rendering.HighDefinition
             CoreUtils.SetKeyword(parameters.volumetricLightingCS, "ENABLE_ANISOTROPY", enableAnisotropy);
             CoreUtils.SetKeyword(parameters.volumetricLightingCS, "VL_PRESET_OPTIMAL", optimal);
             CoreUtils.SetKeyword(parameters.volumetricLightingCS, "SUPPORT_LOCAL_LIGHTS", !fog.directionalLightsOnly.value);
+            CoreUtils.SetKeyword(parameters.volumetricLightingCS, "SUPPORT_PROBE_VOLUMES", fog.volumetricIndirectLightingMultiplier.value > 1e-5f);
+            parameters.volumetricIndirectLightingMultiplier = fog.volumetricIndirectLightingMultiplier.value;
 
             parameters.volumetricLightingKernel = parameters.volumetricLightingCS.FindKernel("VolumetricLighting");
 
@@ -1066,7 +1071,7 @@ namespace UnityEngine.Rendering.HighDefinition
             parameters.filterVolume = ((int)fog.denoisingMode.value & (int)FogDenoisingMode.Gaussian) != 0;
             parameters.sliceCount = (int)(cvp.z);
 
-            UpdateShaderVariableslVolumetrics(ref m_ShaderVariablesVolumetricCB, hdCamera, parameters.resolution);
+            UpdateShaderVariableslVolumetrics(ref m_ShaderVariablesVolumetricCB, hdCamera, parameters.resolution, parameters.volumetricIndirectLightingMultiplier);
             parameters.volumetricCB = m_ShaderVariablesVolumetricCB;
             parameters.lightListCB = m_ShaderVariablesLightListCB;
 

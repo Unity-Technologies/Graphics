@@ -137,6 +137,10 @@ namespace UnityEngine.Rendering.HighDefinition
         [Tooltip("When enabled, HDRP only includes directional Lights when it evaluates volumetric fog.")]
         public BoolParameter directionalLightsOnly = new BoolParameter(false);
 
+        /// <summary>Controls the amount of indirect lighting applied to volumetrics. 1.0 is PBR. 0.0 fully disables indirect lightings contribution to volumetrics which can be a useful optimization.</summary>
+        [Tooltip("Controls the amount of indirect lighting applied to volumetrics. 1.0 is PBR. 0.0 fully disables indirect lightings contribution to volumetrics which can be a useful optimization.")]
+        public MinFloatParameter volumetricIndirectLightingMultiplier = new MinFloatParameter(1.0f, 0.0f);
+
         /// <summary>Deprecated don't used</summary>
         [Tooltip("Deprecated don't used")]
         public BoolParameter filter = new BoolParameter(false); // DO not used, removed in 11.x

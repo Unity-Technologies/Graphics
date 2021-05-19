@@ -10,6 +10,7 @@
 
 // Make VFX only sample probe volumes as SH0 for performance.
 #define PROBE_VOLUMES_SAMPLING_MODE PROBEVOLUMESENCODINGMODES_SPHERICAL_HARMONICS_L0
+#define PROBE_VOLUMES_BILATERAL_FILTERING_MODE PROBEVOLUMESBILATERALFILTERINGMODES_DISABLED
 
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Material.hlsl"
 
