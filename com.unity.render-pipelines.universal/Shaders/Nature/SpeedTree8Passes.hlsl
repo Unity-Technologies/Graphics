@@ -377,7 +377,7 @@ half4 SpeedTree8Frag(SpeedTreeFragmentInput input) : SV_Target
 
     // subsurface (hijack emissive)
     #ifdef EFFECT_SUBSURFACE
-    Light mainLight = GetMainLight(inputData.shadowCoord, inputData.positionWS, inputData.shadowMask);    
+    Light mainLight = GetMainLight(inputData.shadowCoord); 
     half fSubsurfaceRough = 0.7 - smoothness * 0.5;
     half fSubsurface = D_GGX(clamp(-dot(mainLight.direction.xyz, inputData.viewDirectionWS.xyz), 0, 1), fSubsurfaceRough);
 
