@@ -13,7 +13,20 @@ This can be used to fix artefacts when using [Screen Space Global Illumination](
 Limitation: When Unity performs a separate pass for the Emissive contribution, it also performs an additional DrawCall. This means it uses more resources on your CPU.
 Group of Materials / GameObject can be setup to use Force Emissive forward with the script "Edit/Render Pipeline/HD Render Pipeline/Force Forward Emissive on Material/Enable In Selection".
 
+### Adding Tessellation support for ShaderGraph Master Stack
+
+From HDRP 12.0, you can enable [tessellation](Tessellation.md) on any HDRP [Master Stack](master-stack-hdrp.md). The option is in the Master Stack settings and adds two new inputs to the Vertex Block:
+
+* Tessellation Factor
+* World Displacement
+
+For more information about tessellation, see the [Tessellation documentation](Tessellation.md).
+
 ## Improvements
+
+### Area Lights
+
+The AxF shader and Fabric and Hair master nodes now correctly support Area lights.
 
 ### Density Volume (Local Volumetric Fog) Improvements
 
@@ -43,6 +56,8 @@ This version of HDRP introduces multiple improvements to Dynamic Resolution Scal
 - The rendering artifact that caused black edges to appear on screen when in hardware mode no longer occurs.
 - The rendering artifacts that appeared when using the Lanczos filter in software mode no longer occur.
 - Hardware mode now utilizes the Contrast Adaptive Sharpening filter to prevent the results from looking too pixelated. This uses FidelityFX (CAS) AMD™. For information about FidelityFX and Contrast Adaptive Sharpening, see [AMD FidelityFX](https://www.amd.com/en/technologies/radeon-software-fidelityfx).
+- Fixing a corrupted scaling on dx12 hardware mode when a planar reflection probe / secondary camera is present.
+- New API in DynamicResolutionHandler to handle multicamera rendering for hardware mode. Changing cameras and resetting scaling per camera should be safe.
 
 ### AOV API
 
@@ -54,6 +69,12 @@ From HDRP 12.0, The AOV API includes the following improvements:
 ### Additional Properties
 
 From HDRP 12.0, More Options have become Additional Properties. The way to access them has also changed. The cogwheel that was present in component headers has been replaced by an entry in the contextual menu. When you enable additional properties, Unity highlights the background of each additional property for a few seconds to show you where they are.
+
+### Path traced fabric material
+
+![](Images/HDRPFeatures-FabricPT.png)
+
+HDRP's path tracer now offers support for the fabric material, in both its cotton/wool and silk variants.
 
 ### Top level menus
 
@@ -74,6 +95,14 @@ From HDRP 12.0, various top level menus are now different. This is to make the t
 * **GameObject**
   * **Density Volume** is now at **GameObject > Rendering > Local Volumetric Fog**
   * **Sky and Fog Volume** is now at **GameObject > Volume > Sky and Fog Global Volume**
+
+### Decal normal blending
+
+From HDRP 12.0, an option has been added in the HDRP asset to allow decal normals to be additively blended with the underlying object normal.
+The screenshot on the left below do not use additive normal blending, whereas the screenshot on the right use the new method.
+
+![](Images/HDRPFeatures-SurfGrad.png)
+
 
 ## Issues resolved
 

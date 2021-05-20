@@ -6,11 +6,8 @@ namespace UnityEditor.Rendering.Universal.ShaderGUI
     internal class UnlitShader : BaseShaderGUI
     {
         // material changed check
-        public override void MaterialChanged(Material material)
+        public override void ValidateMaterial(Material material)
         {
-            if (material == null)
-                throw new ArgumentNullException("material");
-
             SetMaterialKeywords(material);
         }
 
@@ -23,16 +20,7 @@ namespace UnityEditor.Rendering.Universal.ShaderGUI
             // Use default labelWidth
             EditorGUIUtility.labelWidth = 0f;
 
-            // Detect any changes to the material
-            EditorGUI.BeginChangeCheck();
-            {
-                base.DrawSurfaceOptions(material);
-            }
-            if (EditorGUI.EndChangeCheck())
-            {
-                foreach (var obj in blendModeProp.targets)
-                    MaterialChanged((Material)obj);
-            }
+            base.DrawSurfaceOptions(material);
         }
 
         // material main surface inputs
@@ -76,10 +64,17 @@ namespace UnityEditor.Rendering.Universal.ShaderGUI
                 surfaceType = SurfaceType.Transparent;
                 blendMode = BlendMode.Alpha;
             }
-            material.SetFloat("_Surface", (float)surfaceType);
             material.SetFloat("_Blend", (float)blendMode);
 
-            MaterialChanged(material);
+            material.SetFloat("_Surface", (float)surfaceType);
+            if (surfaceType == SurfaceType.Opaque)
+            {
+                material.DisableKeyword("_SURFACE_TYPE_TRANSPARENT");
+            }
+            else
+            {
+                material.EnableKeyword("_SURFACE_TYPE_TRANSPARENT");
+            }
         }
     }
 }

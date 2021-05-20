@@ -94,6 +94,8 @@ namespace UnityEngine.Rendering.HighDefinition
                 supportedLitShaderMode = SupportedLitShaderMode.DeferredOnly,
                 supportDecals = true,
                 supportDecalLayers = false,
+                supportSurfaceGradient = true,
+                decalNormalBufferHP = false,
                 msaaSampleCount = MSAASamples.None,
                 supportMotionVectors = true,
                 supportRuntimeDebugDisplay = false,
@@ -251,6 +253,10 @@ namespace UnityEngine.Rendering.HighDefinition
         public bool supportDecals;
         /// <summary>Support decal Layers.</summary>
         public bool supportDecalLayers;
+        /// <summary>Support surface gradient for decal normal blending.</summary>
+        public bool supportSurfaceGradient;
+        /// <summary>High precision normal buffer.</summary>
+        public bool decalNormalBufferHP;
         /// <summary>Name for decal layer 0.</summary>
         public string decalLayerName0
         {
@@ -300,13 +306,17 @@ namespace UnityEngine.Rendering.HighDefinition
             set { HDRenderPipelineGlobalSettings.instance.decalLayerName7 = value; }
         }
 
-        /// <summary>Number of samples when using MSAA.</summary>
+        /// <summary>Default Number of samples when using MSAA.</summary>
         public MSAASamples msaaSampleCount;
         /// <summary>Support MSAA.</summary>
+        [Obsolete]
         public bool supportMSAA => msaaSampleCount != MSAASamples.None;
 
         // Returns true if the output of the rendering passes support an alpha channel
-        internal bool supportsAlpha => colorBufferFormat == ColorBufferFormat.R16G16B16A16;
+        internal bool SupportsAlpha()
+        {
+            return CoreUtils.IsSceneFilteringEnabled() || (colorBufferFormat == ColorBufferFormat.R16G16B16A16);
+        }
 
         /// <summary>Support motion vectors.</summary>
         public bool supportMotionVectors;

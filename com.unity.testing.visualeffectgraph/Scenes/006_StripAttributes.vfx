@@ -282,9 +282,8 @@ MonoBehaviour:
   m_UIInfos: {fileID: 114340500867371532}
   m_ParameterInfo: []
   m_ImportDependencies: []
-  m_GraphVersion: 7
+  m_GraphVersion: 8
   m_ResourceVersion: 1
-  m_saved: 1
   m_SubgraphDependencies: []
   m_CategoryPath: 
 --- !u!2058629511 &8926484042661614527
@@ -763,6 +762,8 @@ MonoBehaviour:
   capacity: 600
   stripCapacity: 16
   particlePerStripCount: 16
+  needsComputeBounds: 0
+  boundsSettingMode: 1
   m_Space: 0
 --- !u!114 &8926484042661614626
 MonoBehaviour:
@@ -1789,6 +1790,8 @@ MonoBehaviour:
   capacity: 36000
   stripCapacity: 600
   particlePerStripCount: 60
+  needsComputeBounds: 0
+  boundsSettingMode: 1
   m_Space: 0
 --- !u!114 &8926484042661614680
 MonoBehaviour:
@@ -2438,6 +2441,7 @@ MonoBehaviour:
   useAlphaClipping: 0
   generateMotionVector: 0
   excludeFromTAA: 0
+  materialOffset: 0
   m_SubOutputs:
   - {fileID: 8926484042661615396}
   cullMode: 3
@@ -2879,6 +2883,7 @@ MonoBehaviour:
   useAlphaClipping: 0
   generateMotionVector: 0
   excludeFromTAA: 0
+  materialOffset: 0
   m_SubOutputs:
   - {fileID: 8926484042661615397}
   cullMode: 3
@@ -4382,6 +4387,8 @@ MonoBehaviour:
   capacity: 360
   stripCapacity: 2
   particlePerStripCount: 180
+  needsComputeBounds: 0
+  boundsSettingMode: 1
   m_Space: 0
 --- !u!114 &8926484042661615027
 MonoBehaviour:
@@ -6588,6 +6595,8 @@ MonoBehaviour:
   capacity: 600
   stripCapacity: 30
   particlePerStripCount: 20
+  needsComputeBounds: 0
+  boundsSettingMode: 1
   m_Space: 0
 --- !u!114 &8926484042661615127
 MonoBehaviour:
@@ -7526,6 +7535,7 @@ MonoBehaviour:
   useAlphaClipping: 0
   generateMotionVector: 0
   excludeFromTAA: 0
+  materialOffset: 0
   m_SubOutputs:
   - {fileID: 8926484042661615400}
   cullMode: 3
@@ -9988,6 +9998,7 @@ MonoBehaviour:
   useAlphaClipping: 0
   generateMotionVector: 0
   excludeFromTAA: 0
+  materialOffset: 0
   m_SubOutputs:
   - {fileID: 8926484042661615401}
   cullMode: 3

@@ -1,6 +1,10 @@
 #ifndef UNITY_COLOR_INCLUDED
 #define UNITY_COLOR_INCLUDED
 
+#if SHADER_API_MOBILE || SHADER_API_GLES || SHADER_API_GLES3
+#pragma warning (disable : 3205) // conversion of larger type to smaller
+#endif
+
 #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/ACES.hlsl"
 
 //-----------------------------------------------------------------------------
@@ -176,10 +180,12 @@ real4 FastLinearToSRGB(real4 c)
 
 // Convert rgb to luminance
 // with rgb in linear space with sRGB primaries and D65 white point
+#ifndef BUILTIN_TARGET_API
 real Luminance(real3 linearRgb)
 {
     return dot(linearRgb, real3(0.2126729, 0.7151522, 0.0721750));
 }
+#endif
 
 real Luminance(real4 linearRgba)
 {
@@ -731,5 +737,9 @@ half3 DecodeRGBM(half4 rgbm)
 {
     return rgbm.xyz * rgbm.w * kRGBMRange;
 }
+
+#if SHADER_API_MOBILE || SHADER_API_GLES || SHADER_API_GLES3
+#pragma warning (enable : 3205) // conversion of larger type to smaller
+#endif
 
 #endif // UNITY_COLOR_INCLUDED
