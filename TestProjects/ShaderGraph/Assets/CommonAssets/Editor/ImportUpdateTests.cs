@@ -117,7 +117,7 @@ namespace UnityEditor.ShaderGraph.UnitTests
             graphData.ValidateGraph();
 
             string fileExtension = Path.GetExtension(fullPath).ToLower();
-            bool isSubgraph = (fileExtension == "shadersubgraph");
+            bool isSubgraph = (fileExtension.Contains("shadersubgraph"));
             if (isSubgraph)
             {
                 // check that the SubGraphAsset is the same after versioning twice
