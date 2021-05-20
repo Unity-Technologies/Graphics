@@ -166,6 +166,6 @@ MonoBehaviour:
     ColorSpace: -1
     BuildPlatform: 13
     GraphicsDevice: 11
-    XrSdk: MockHMDLoader
-    StereoModes: 0
+    XrSdk: 
+    StereoModes: 7
     Reason: Scenes need to be changed to use backbuffer to match XR
