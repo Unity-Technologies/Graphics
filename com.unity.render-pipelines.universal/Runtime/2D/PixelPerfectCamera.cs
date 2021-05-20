@@ -312,24 +312,20 @@ namespace UnityEngine.Experimental.Rendering.Universal
                 m_Camera.rect = new Rect(0.0f, 0.0f, 1.0f, 1.0f);
         }
 
-        void OnBeginContextRendering(ScriptableRenderContext context, List<Camera> cameras)
-        {
-            if (!cameras.Exists(x => x == m_Camera))
-                return;
-
-            UpdateCameraProperties();
-            PixelSnap();
-
-            if (!m_CinemachineCompatibilityMode)
-            {
-                m_Camera.orthographicSize = m_Internal.orthoSize;
-            }
-        }
-
         void OnBeginCameraRendering(ScriptableRenderContext context, Camera camera)
         {
             if (camera == m_Camera)
+            {
+                UpdateCameraProperties();
+                PixelSnap();
+
+                if (!m_CinemachineCompatibilityMode)
+                {
+                    m_Camera.orthographicSize = m_Internal.orthoSize;
+                }
+
                 UnityEngine.U2D.PixelPerfectRendering.pixelSnapSpacing = m_Internal.unitsPerPixel;
+            }
         }
 
         void OnEndCameraRendering(ScriptableRenderContext context, Camera camera)
@@ -342,14 +338,12 @@ namespace UnityEngine.Experimental.Rendering.Universal
         {
             m_CinemachineCompatibilityMode = false;
 
-            RenderPipelineManager.beginContextRendering += OnBeginContextRendering;
             RenderPipelineManager.beginCameraRendering += OnBeginCameraRendering;
             RenderPipelineManager.endCameraRendering += OnEndCameraRendering;
         }
 
         internal void OnDisable()
         {
-            RenderPipelineManager.beginContextRendering -= OnBeginContextRendering;
             RenderPipelineManager.beginCameraRendering -= OnBeginCameraRendering;
             RenderPipelineManager.endCameraRendering -= OnEndCameraRendering;
 
