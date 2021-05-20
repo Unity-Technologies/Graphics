@@ -5,12 +5,7 @@ using UnityEngine;
 using UnityEngine.Rendering.HighDefinition;
 using UnityEditor.ShaderGraph;
 using UnityEditor.ShaderGraph.Internal;
-using UnityEditor.Graphing;
-using UnityEditor.ShaderGraph.Legacy;
-using UnityEditor.Rendering.HighDefinition.ShaderGraph.Legacy;
-using UnityEditor.VFX;
 using static UnityEngine.Rendering.HighDefinition.HDMaterialProperties;
-using static UnityEditor.Rendering.HighDefinition.HDShaderUtils;
 
 namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
 {
@@ -83,36 +78,36 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                 var passes = new PassCollection
                 {
                     // Common "surface" passes
-                    HDShaderPasses.GenerateShadowCaster(supportLighting),
-                    HDShaderPasses.GenerateMETA(supportLighting),
-                    HDShaderPasses.GenerateScenePicking(),
-                    HDShaderPasses.GenerateSceneSelection(supportLighting),
-                    HDShaderPasses.GenerateMotionVectors(supportLighting, supportForward),
-                    { HDShaderPasses.GenerateBackThenFront(supportLighting), new FieldCondition(HDFields.TransparentBackFace, true)},
-                    { HDShaderPasses.GenerateTransparentDepthPostpass(supportLighting), new FieldCondition(HDFields.TransparentDepthPostPass, true)}
+                    HDShaderPasses.GenerateShadowCaster(supportLighting, TargetsVFX(), systemData.tessellation),
+                    HDShaderPasses.GenerateMETA(supportLighting, TargetsVFX()),
+                    HDShaderPasses.GenerateScenePicking(TargetsVFX(), systemData.tessellation),
+                    HDShaderPasses.GenerateSceneSelection(supportLighting, TargetsVFX(), systemData.tessellation),
+                    HDShaderPasses.GenerateMotionVectors(supportLighting, supportForward, TargetsVFX(), systemData.tessellation),
+                    { HDShaderPasses.GenerateBackThenFront(supportLighting, TargetsVFX(), systemData.tessellation), new FieldCondition(HDFields.TransparentBackFace, true)},
+                    { HDShaderPasses.GenerateTransparentDepthPostpass(supportLighting, TargetsVFX(), systemData.tessellation), new FieldCondition(HDFields.TransparentDepthPostPass, true)}
                 };
 
                 if (supportLighting)
                 {
                     // We always generate the TransparentDepthPrepass as it can be use with SSR transparent
-                    passes.Add(HDShaderPasses.GenerateTransparentDepthPrepass(true));
+                    passes.Add(HDShaderPasses.GenerateTransparentDepthPrepass(true, TargetsVFX(), systemData.tessellation));
                 }
                 else
                 {
                     // We only generate the pass if requested
-                    passes.Add(HDShaderPasses.GenerateTransparentDepthPrepass(false), new FieldCondition(HDFields.TransparentDepthPrePass, true));
+                    passes.Add(HDShaderPasses.GenerateTransparentDepthPrepass(false, TargetsVFX(), systemData.tessellation), new FieldCondition(HDFields.TransparentDepthPrePass, true));
                 }
 
                 if (supportForward)
                 {
-                    passes.Add(HDShaderPasses.GenerateDepthForwardOnlyPass(supportLighting));
-                    passes.Add(HDShaderPasses.GenerateForwardOnlyPass(supportLighting));
+                    passes.Add(HDShaderPasses.GenerateDepthForwardOnlyPass(supportLighting, TargetsVFX(), systemData.tessellation));
+                    passes.Add(HDShaderPasses.GenerateForwardOnlyPass(supportLighting, TargetsVFX(), systemData.tessellation));
                 }
 
                 if (supportDistortion)
-                    passes.Add(HDShaderPasses.GenerateDistortionPass(supportLighting), new FieldCondition(HDFields.TransparentDistortion, true));
+                    passes.Add(HDShaderPasses.GenerateDistortionPass(supportLighting, TargetsVFX(), systemData.tessellation), new FieldCondition(HDFields.TransparentDistortion, true));
 
-                passes.Add(HDShaderPasses.GenerateFullScreenDebug());
+                passes.Add(HDShaderPasses.GenerateFullScreenDebug(TargetsVFX(), systemData.tessellation));
 
                 return passes;
             }
@@ -170,7 +165,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
             if (pass.NeedsDebugDisplay())
                 pass.keywords.Add(CoreKeywordDescriptors.DebugDisplay);
 
-            if (!pass.IsDXR())
+            if (!pass.IsRelatedToRaytracing())
                 pass.keywords.Add(CoreKeywordDescriptors.LodFadeCrossfade, new FieldCondition(Fields.LodCrossFade, true));
 
             if (pass.lightMode == HDShaderPassNames.s_MotionVectorsStr)
@@ -180,11 +175,19 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                 else
                     pass.keywords.Add(CoreKeywordDescriptors.WriteNormalBuffer, new FieldCondition(HDFields.Unlit, false));
             }
+
+            if (pass.IsTessellation())
+            {
+                pass.keywords.Add(CoreKeywordDescriptors.TessellationMode);
+            }
         }
 
         public override void GetFields(ref TargetFieldContext context)
         {
             base.GetFields(ref context);
+
+            if (systemData.tessellation)
+                context.AddField(HDFields.GraphTessellation);
 
             if (supportDistortion)
                 AddDistortionFields(ref context);
@@ -231,6 +234,9 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
             // Depth offset needs positionRWS and is now a multi_compile
             if (builtinData.depthOffset)
                 context.AddField(HDStructFields.FragInputs.positionRWS);
+
+            context.AddField(HDFields.TessellationFactor, systemData.tessellation);
+            context.AddField(HDFields.TessellationDisplacement, systemData.tessellation);
         }
 
         protected void AddDistortionFields(ref TargetFieldContext context)
@@ -267,6 +273,9 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
 
             // Misc
             context.AddBlock(HDBlockFields.SurfaceDescription.DepthOffset, builtinData.depthOffset);
+
+            context.AddBlock(HDBlockFields.VertexDescription.TessellationFactor, systemData.tessellation);
+            context.AddBlock(HDBlockFields.VertexDescription.TessellationDisplacement, systemData.tessellation);
         }
 
         protected void AddDistortionBlocks(ref TargetActiveBlockContext context)
@@ -363,6 +372,12 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                 builtinData.backThenFrontRendering,
                 builtinData.transparencyFog
             );
+
+            // Add all shader properties required by the inspector for Tessellation
+            if (systemData.tessellation)
+                HDSubShaderUtilities.AddTessellationShaderProperties(collector, systemData.tessellationMode,
+                    systemData.tessellationFactorMinDistance, systemData.tessellationFactorMaxDistance, systemData.tessellationFactorTriangleSize,
+                    systemData.tessellationShapeFactor, systemData.tessellationBackFaceCullEpsilon, systemData.tessellationMaxDisplacement);
         }
 
         public override void ProcessPreviewMaterial(Material material)
@@ -378,6 +393,16 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
             material.SetFloat(kTransparentCullMode, (int)systemData.transparentCullMode);
             material.SetFloat(kOpaqueCullMode, (int)systemData.opaqueCullMode);
             material.SetFloat(kTransparentZWrite, systemData.transparentZWrite ? 1.0f : 0.0f);
+
+            if (systemData.tessellation)
+            {
+                material.SetFloat(kTessellationFactorMinDistance, systemData.tessellationFactorMinDistance);
+                material.SetFloat(kTessellationFactorMaxDistance, systemData.tessellationFactorMaxDistance);
+                material.SetFloat(kTessellationFactorTriangleSize, systemData.tessellationFactorTriangleSize);
+                material.SetFloat(kTessellationShapeFactor, systemData.tessellationShapeFactor);
+                material.SetFloat(kTessellationBackFaceCullEpsilon, systemData.tessellationBackFaceCullEpsilon);
+                material.SetFloat(kTessellationMaxDisplacement, systemData.tessellationMaxDisplacement);
+            }
 
             // No sorting priority for shader graph preview
             material.renderQueue = (int)HDRenderQueue.ChangeType(systemData.renderQueueType, offset: 0, alphaTest: systemData.alphaTest, false);

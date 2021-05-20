@@ -12,6 +12,7 @@
         "GUID:329b4ccd385744985bf3f83cfd77dfe7",
         "GUID:9604b18aafdbc9346bceb5e19ac9c746",
         "GUID:f9fe0089ec81f4079af78eb2287a6163",
+        "GUID:116a4d4dbf5c04973bbf517077a062a1",
         "GUID:e40ba710768534012815d3193fa296cb"
     ],
     "includePlatforms": [
@@ -38,6 +39,11 @@
             "name": "com.unity.xr.management",
             "expression": "4.0.1",
             "define": "XR_MANAGEMENT_4_0_1_OR_NEWER"
+        },
+        {
+            "name": "com.unity.visualeffectgraph",
+            "expression": "1.0.0",
+            "define": "HAS_VFX_GRAPH"
         }
     ],
     "noEngineReferences": false
