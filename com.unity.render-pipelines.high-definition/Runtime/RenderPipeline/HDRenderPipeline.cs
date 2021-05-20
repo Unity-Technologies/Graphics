@@ -1190,7 +1190,7 @@ namespace UnityEngine.Rendering.HighDefinition
                     cameraXRSettings.viewTotal = hdCamera.xr.enabled ? 2U : 1U;
                     cameraXRSettings.viewCount = (uint)hdCamera.viewCount;
                     cameraXRSettings.viewOffset = (uint)hdCamera.xr.multipassId;
-                    
+
                     VFXManager.PrepareCamera(camera, cameraXRSettings);
 
                     // Note: In case of a custom render, we have false here and 'TryCull' is not executed
