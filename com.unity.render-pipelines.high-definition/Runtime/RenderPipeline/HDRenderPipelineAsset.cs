@@ -110,6 +110,10 @@ namespace UnityEngine.Rendering.HighDefinition
         public override string[] renderingLayerMaskNames
             => globalSettings.renderingLayerMaskNames;
 
+        /// <summary>Names used for display of rendering layer masks with a prefix.</summary>
+        public override string[] prefixedRenderingLayerMaskNames
+            => globalSettings.prefixedRenderingLayerMaskNames;
+
         /// <summary>
         /// Names used for display of light layers.
         /// </summary>

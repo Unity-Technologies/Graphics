@@ -204,7 +204,7 @@ namespace UnityEditor.Rendering.HighDefinition
         }
 
         /// <summary>
-        /// This is to convert any int into LightLayer which is usefull for the version in shadow of lights.
+        /// This is to convert any int into LightLayer which is useful for the version in shadow of lights.
         /// LightLayer have a CustomPropertyDrawer so for SerializedProperty on LightLayer type,
         /// prefer using EditorGUILayout.PropertyField.
         /// </summary>
@@ -234,7 +234,7 @@ namespace UnityEditor.Rendering.HighDefinition
             EditorGUI.BeginProperty(rect, label, property);
 
             EditorGUI.BeginChangeCheck();
-            int changedValue = EditorGUI.MaskField(rect, label ?? GUIContent.none, property.intValue, HDRenderPipelineGlobalSettings.instance.indexedDecalLayerNames);
+            int changedValue = EditorGUI.MaskField(rect, label ?? GUIContent.none, property.intValue, HDRenderPipelineGlobalSettings.instance.prefixedDecalLayerNames);
             if (EditorGUI.EndChangeCheck())
                 property.intValue = changedValue;
 
@@ -251,7 +251,7 @@ namespace UnityEditor.Rendering.HighDefinition
                 return lightLayer;
 
             EditorGUI.BeginChangeCheck();
-            lightLayer = EditorGUI.MaskField(rect, label ?? GUIContent.none, lightLayer, HDRenderPipelineGlobalSettings.instance.indexedLightLayerNames);
+            lightLayer = EditorGUI.MaskField(rect, label ?? GUIContent.none, lightLayer, HDRenderPipelineGlobalSettings.instance.prefixedLightLayerNames);
             if (EditorGUI.EndChangeCheck())
                 lightLayer = HDAdditionalLightData.LightLayerToRenderingLayerMask(lightLayer, value);
             return lightLayer;

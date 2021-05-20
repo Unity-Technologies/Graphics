@@ -149,11 +149,24 @@ namespace UnityEngine.Rendering.Universal
                 {
                     UpdateRenderingLayerNames();
                 }
-
                 return m_RenderingLayerNames;
             }
         }
+        [System.NonSerialized]
+        string[] m_PrefixedRenderingLayerNames;
+        string[] prefixedRenderingLayerNames
+        {
+            get
+            {
+                if (m_PrefixedRenderingLayerNames == null)
+                    UpdateRenderingLayerNames();
+                return m_PrefixedRenderingLayerNames;
+            }
+        }
+        /// <summary>Names used for display of rendering layer masks.</summary>
         public string[] renderingLayerMaskNames => renderingLayerNames;
+        /// <summary>Names used for display of rendering layer masks with a prefix.</summary>
+        public string[] prefixedRenderingLayerMaskNames => prefixedRenderingLayerNames;
 
         void UpdateRenderingLayerNames()
         {
@@ -175,32 +188,33 @@ namespace UnityEngine.Rendering.Universal
             {
                 m_RenderingLayerNames[i] = string.Format("Unused {0}", i);
             }
+
+            // Update prefixed
+            if (m_PrefixedRenderingLayerNames == null)
+                m_PrefixedRenderingLayerNames = new string[32];
+            if (m_PrefixedLightLayerNames == null)
+                m_PrefixedLightLayerNames = new string[8];
+            for (int i = 0; i < m_PrefixedRenderingLayerNames.Length; ++i)
+            {
+                m_PrefixedRenderingLayerNames[i] = string.Format("{0}: {1}", i, m_RenderingLayerNames[i]);
+                if (i < 8)
+                    m_PrefixedLightLayerNames[i] = m_PrefixedRenderingLayerNames[i];
+            }
         }
 
         [System.NonSerialized]
-        string[] m_IndexedLightLayerNames = null;
+        string[] m_PrefixedLightLayerNames = null;
         /// <summary>
-        /// Names used for display of light layers.
+        /// Names used for display of light layers with Layer's index as prefix.
+        /// For example: "0: Light Layer Default"
         /// </summary>
-        public string[] indexedLightLayerNames
+        public string[] prefixedLightLayerNames
         {
             get
             {
-                if (m_IndexedLightLayerNames == null)
-                {
-                    m_IndexedLightLayerNames = new string[8];
-                }
-
-                m_IndexedLightLayerNames[0] = "0: " + lightLayerName0;
-                m_IndexedLightLayerNames[1] = "1: " + lightLayerName1;
-                m_IndexedLightLayerNames[2] = "2: " + lightLayerName2;
-                m_IndexedLightLayerNames[3] = "3: " + lightLayerName3;
-                m_IndexedLightLayerNames[4] = "4: " + lightLayerName4;
-                m_IndexedLightLayerNames[5] = "5: " + lightLayerName5;
-                m_IndexedLightLayerNames[6] = "6: " + lightLayerName6;
-                m_IndexedLightLayerNames[7] = "7: " + lightLayerName7;
-
-                return m_IndexedLightLayerNames;
+                if (m_PrefixedLightLayerNames == null)
+                    UpdateRenderingLayerNames();
+                return m_PrefixedLightLayerNames;
             }
         }
 

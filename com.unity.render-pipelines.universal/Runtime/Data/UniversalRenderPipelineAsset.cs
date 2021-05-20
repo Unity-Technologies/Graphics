@@ -1025,6 +1025,9 @@ namespace UnityEngine.Rendering.Universal
         /// <summary>Names used for display of rendering layer masks.</summary>
         public override string[] renderingLayerMaskNames => UniversalRenderPipelineGlobalSettings.instance.renderingLayerMaskNames;
 
+        /// <summary>Names used for display of rendering layer masks with prefix.</summary>
+        public override string[] prefixedRenderingLayerMaskNames => UniversalRenderPipelineGlobalSettings.instance.prefixedRenderingLayerMaskNames;
+
         /// <summary>
         /// Names used for display of light layers.
         /// </summary>

@@ -166,7 +166,7 @@ namespace UnityEditor.Rendering.Universal
             EditorGUI.BeginProperty(controlRect, style, property);
 
             EditorGUI.BeginChangeCheck();
-            lightLayer = EditorGUI.MaskField(controlRect, style, lightLayer, UniversalRenderPipelineGlobalSettings.instance.indexedLightLayerNames);
+            lightLayer = EditorGUI.MaskField(controlRect, style, lightLayer, UniversalRenderPipelineGlobalSettings.instance.prefixedLightLayerNames);
             if (EditorGUI.EndChangeCheck())
                 property.intValue = lightLayer;
 

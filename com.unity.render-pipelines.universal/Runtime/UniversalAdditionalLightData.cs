@@ -3,6 +3,7 @@ using System;
 namespace UnityEngine.Rendering.Universal
 {
     /// <summary>Light Layers.</summary>
+    [Flags]
     public enum LightLayerEnum
     {
         /// <summary>The light will no affect any object.</summary>
