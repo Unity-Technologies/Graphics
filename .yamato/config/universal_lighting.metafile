@@ -150,6 +150,9 @@ platforms:
       - name: Metal
         exclude_test_platforms:
           - name: editmode
+          - name: playmode_XR
+          - name: playmode_XR_cache
+          - name: Standalone_XR_cache
       - name: OpenGLCore
         exclude_test_platforms:
           - name: playmode_XR
@@ -248,6 +251,7 @@ pr:
       color_space: Linear
       test_platforms:
         - Standalone_cache
+        - Standalone_XR_cache
     - platform: Android
       api: Vulkan
       build_config: il2cpp

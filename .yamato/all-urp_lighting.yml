@@ -29,6 +29,8 @@ PR_URP_Lighting_trunk:
          rerun: on_new_revision
       -  path: .yamato/urp_lighting-android-opengles3.yml#URP_Lighting_Android_OpenGLES3_Standalone_cache_il2cpp_Linear_trunk
          rerun: on_new_revision
+      -  path: .yamato/urp_lighting-android-opengles3.yml#URP_Lighting_Android_OpenGLES3_Standalone_XR_cache_il2cpp_Linear_trunk
+         rerun: on_new_revision
       -  path: .yamato/urp_lighting-android-vulkan.yml#URP_Lighting_Android_Vulkan_Standalone_cache_il2cpp_Linear_trunk
          rerun: on_new_revision
       -  path: .yamato/urp_lighting-iphone-metal.yml#URP_Lighting_iPhone_Metal_Standalone_cache_il2cpp_Linear_trunk
@@ -84,6 +86,8 @@ PR_URP_Lighting_CUSTOM-REVISION:
       -  path: .yamato/urp_lighting-linux-vulkan.yml#URP_Lighting_Linux_Vulkan_Standalone_cache_mono_Linear_CUSTOM-REVISION
          rerun: on_new_revision
       -  path: .yamato/urp_lighting-android-opengles3.yml#URP_Lighting_Android_OpenGLES3_Standalone_cache_il2cpp_Linear_CUSTOM-REVISION
+         rerun: on_new_revision
+      -  path: .yamato/urp_lighting-android-opengles3.yml#URP_Lighting_Android_OpenGLES3_Standalone_XR_cache_il2cpp_Linear_CUSTOM-REVISION
          rerun: on_new_revision
       -  path: .yamato/urp_lighting-android-vulkan.yml#URP_Lighting_Android_Vulkan_Standalone_cache_il2cpp_Linear_CUSTOM-REVISION
          rerun: on_new_revision
