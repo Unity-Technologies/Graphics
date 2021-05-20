@@ -577,6 +577,13 @@ float EvaluateLight_EnvIntersection(float3 positionWS, float3 normalWS, EnvLight
         // We can reuse dist calculate in LS directly in WS as there is no scaling. Also the offset is already include in light.capturePositionRWS
         R = (positionWS + projectionDistance * R) - light.capturePositionRWS;
 
+        // custom-begin
+        // Support rotating the resulting reflections, not just rotating the proxy / influence.
+        // This is necessary to handle reflection probes inside of prefabs, placed into scenes at arbitrary orientations,
+        // as well as to support streaming sub-scenes in an arbitrary orientations.
+        R = mul(R, worldToPS);
+        // custom-end
+
         weight = InfluenceSphereWeight(light, normalWS, positionWS, positionIS, dirIS);
     }
     else if (influenceShapeType == ENVSHAPETYPE_BOX)
@@ -585,6 +592,10 @@ float EvaluateLight_EnvIntersection(float3 positionWS, float3 normalWS, EnvLight
         // No need to normalize for fetching cubemap
         // We can reuse dist calculate in LS directly in WS as there is no scaling. Also the offset is already include in light.capturePositionRWS
         R = (positionWS + projectionDistance * R) - light.capturePositionRWS;
+
+        // custom-begin
+        R = mul(R, worldToPS);
+        // custom-end
 
         weight = InfluenceBoxWeight(light, normalWS, positionWS, positionIS, dirIS);
     }
