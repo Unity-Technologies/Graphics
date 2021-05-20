@@ -1433,7 +1433,8 @@ namespace UnityEditor.VFX.UI
 
             foreach (var graph in graphToSave)
             {
-                graph.GetResource().WriteAsset();
+                if (EditorUtility.IsDirty(graph) || UnityEngine.Object.ReferenceEquals(graph, controller.graph))
+                    graph.GetResource().WriteAsset();
             }
         }
 
