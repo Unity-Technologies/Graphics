@@ -20,7 +20,7 @@ MonoBehaviour:
   - {fileID: 11400000, guid: f59607d3476b54858a594ea904187fb5, type: 2}
   - {fileID: 11400000, guid: 676c15eaf197b43079a39998e6c23816, type: 2}
   - {fileID: 11400000, guid: e46834cadfc4eb241bd46a362765a390, type: 2}
-  - {fileID: 0}
+  - {fileID: 11400000, guid: 25dd23104304c1c44af89227207beefb, type: 2}
   - {fileID: 11400000, guid: cf6f9a77b024a423386dd9c195cae7cd, type: 2}
   - {fileID: 11400000, guid: eb924988a8ba4aa4c93a60d0380ce254, type: 2}
   - {fileID: 11400000, guid: 56d7ecd0b54e2884191ca2c577dbacea, type: 2}
@@ -40,6 +40,7 @@ MonoBehaviour:
   m_RequireOpaqueTexture: 1
   m_OpaqueDownsampling: 1
   m_SupportsTerrainHoles: 1
+  m_StoreActionsOptimization: 0
   m_SupportsHDR: 1
   m_MSAA: 4
   m_RenderScale: 1
@@ -64,6 +65,8 @@ MonoBehaviour:
   m_ShadowDepthBias: 1
   m_ShadowNormalBias: 1
   m_SoftShadowsSupported: 1
+  m_AdditionalLightsCookieResolution: 2048
+  m_AdditionalLightsCookieFormat: 3
   m_UseSRPBatcher: 1
   m_SupportsDynamicBatching: 0
   m_MixedLightingSupported: 0
@@ -79,4 +82,5 @@ MonoBehaviour:
   m_MaxPixelLights: 4
   m_ShadowAtlasResolution: 2048
   m_ShaderVariantLogLevel: 0
+  m_VolumeFrameworkUpdateMode: 0
   m_ShadowCascades: 3
