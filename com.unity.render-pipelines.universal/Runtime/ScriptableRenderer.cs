@@ -633,8 +633,9 @@ namespace UnityEngine.Rendering.Universal
                     // Sort the render pass queue
                     SortStable(m_ActiveRenderPassQueue);
                 }
+
                 if (cameraData.xr.enabled)
-                    useRenderPassEnabled = false
+                    useRenderPassEnabled = false;
                 SetupNativeRenderPassFrameData(cameraData, useRenderPassEnabled);
 
                 using var renderBlocks = new RenderBlocks(m_ActiveRenderPassQueue);
