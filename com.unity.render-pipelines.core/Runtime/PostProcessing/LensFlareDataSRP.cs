@@ -78,6 +78,8 @@ namespace UnityEngine.Rendering
         /// <summary> Initialize default values </summary>
         public LensFlareDataElementSRP()
         {
+            visible = true;
+
             localIntensity = 1.0f;
             position = 0.0f;
             positionOffset = new Vector2(0.0f, 0.0f);
@@ -106,10 +108,10 @@ namespace UnityEngine.Rendering
 
             // Random
             seed = 0;
-            intensityVariation = 0.0f;
-            positionVariation = new Vector2(0.0f, 0.0f);
-            scaleVariation = 0.0f;
-            rotationVariation = 0.0f;
+            intensityVariation = 0.75f;
+            positionVariation = new Vector2(1.0f, 0.0f);
+            scaleVariation = 1.0f;
+            rotationVariation = 180.0f;
 
             // Distortion
             enableRadialDistortion = false;
@@ -124,6 +126,9 @@ namespace UnityEngine.Rendering
             sideCount = 6;
             inverseSDF = false;
         }
+
+        /// <summary> Visibility checker for current element </summary>
+        public bool visible;
 
         /// <summary> Position </summary>
         public float position;

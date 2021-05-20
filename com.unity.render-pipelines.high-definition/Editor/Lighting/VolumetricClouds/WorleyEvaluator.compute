@@ -28,8 +28,6 @@ void PerlinWorleyNoiseEvaluator(uint3 dispatchThreadID : SV_DispatchThreadID)
     float worley1 = 1.0 - WorleyNoise(positionFrequence, baseFrequence * 1.0f);
     float worley2 = 1.0 - WorleyNoise(positionFrequence * 2.0f, baseFrequence * 2.0f);
     float worley4 = 1.0 - WorleyNoise(positionFrequence * 4.0f, baseFrequence * 4.0f);
-    //float worley8 = 1.0 - WorleyNoise(positionFrequence * 8.0f, baseFrequence * 8.0f);
-    //float worley16 = 1.0 - WorleyNoise(positionFrequence * 16.0f, baseFrequence * 16.0f);
 
     // Compute the worley fractal brownian motion
     float worleyFBM = worley1 * 0.625 + worley2 * 0.25 + worley4 * 0.125;
@@ -49,7 +47,7 @@ void WorleyNoiseEvaluator(uint3 dispatchThreadID : SV_DispatchThreadID)
     float3 position = float3(((float2)dispatchThreadID.xy + 0.5) / _NumLayers, ((float)_Layer + 0.5) / _NumLayers);
 
     // Generate all the worley noises that are required
-    const float baseFrequence = 8.0;
+    const float baseFrequence = 4.0;
     const float3 positionFrequence = position * baseFrequence;
     float worley2 = 1.0 - WorleyNoise(positionFrequence * 2.0f, baseFrequence * 2.0f);
     float worley4 = 1.0 - WorleyNoise(positionFrequence * 4.0f, baseFrequence * 4.0f);

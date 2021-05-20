@@ -99,7 +99,7 @@ namespace UnityEngine.Experimental.Rendering
 
                 var refVol = ProbeReferenceVolume.instance;
                 refVol.Clear();
-                refVol.SetTRS(refVolAuthoring.transform.position, refVolAuthoring.transform.rotation, refVolAuthoring.brickSize);
+                refVol.SetTRS(Vector3.zero, Quaternion.identity, refVolAuthoring.brickSize);
                 refVol.SetMaxSubdivision(refVolAuthoring.maxSubdivision);
             }
 
@@ -119,22 +119,24 @@ namespace UnityEngine.Experimental.Rendering
         public static void FindWorldBounds()
         {
             ProbeReferenceVolume.instance.clearAssetsOnVolumeClear = true;
+
+            var sceneBounds = ProbeReferenceVolume.instance.sceneBounds;
+
             var prevScenes = new List<string>();
             for (int i = 0; i < EditorSceneManager.sceneCount; ++i)
             {
                 var scene = EditorSceneManager.GetSceneAt(i);
-                EditorSceneManager.SaveScene(scene);
+                sceneBounds.UpdateSceneBounds(scene);
                 prevScenes.Add(scene.path);
             }
 
-            bool neededToOpenScene = false;
+            List<Scene> openedScenes = new List<Scene>();
             hasFoundBounds = false;
 
             foreach (var buildScene in EditorBuildSettings.scenes)
             {
                 var scenePath = buildScene.path;
                 bool hasProbeVolumes = false;
-                var sceneBounds = ProbeReferenceVolume.instance.sceneBounds;
                 if (sceneBounds.hasProbeVolumes.TryGetValue(scenePath, out hasProbeVolumes))
                 {
                     if (hasProbeVolumes)
@@ -156,8 +158,8 @@ namespace UnityEngine.Experimental.Rendering
                 }
                 else // we need to open the scene to test.
                 {
-                    neededToOpenScene = true;
-                    var scene = EditorSceneManager.OpenScene(buildScene.path, OpenSceneMode.Single);
+                    var scene = EditorSceneManager.OpenScene(buildScene.path, OpenSceneMode.Additive);
+                    openedScenes.Add(scene);
                     sceneBounds.UpdateSceneBounds(scene);
                     Bounds localBound = sceneBounds.sceneBounds[buildScene.path];
                     if (hasFoundBounds)
@@ -167,12 +169,11 @@ namespace UnityEngine.Experimental.Rendering
                 }
             }
 
-            if (neededToOpenScene)
+            if (openedScenes.Count > 0)
             {
-                for (int i = 0; i < prevScenes.Count; ++i)
+                foreach (var scene in openedScenes)
                 {
-                    var scene = prevScenes[i];
-                    EditorSceneManager.OpenScene(scene, i == 0 ? OpenSceneMode.Single : OpenSceneMode.Additive);
+                    EditorSceneManager.CloseScene(scene, true);
                 }
             }
         }
@@ -201,12 +202,6 @@ namespace UnityEngine.Experimental.Rendering
             for (int c = 1; c < numVols; ++c)
             {
                 var compare = enabledVolumes[c];
-                if (reference.transform.position != compare.transform.position)
-                    return null;
-
-                if (reference.transform.localScale != compare.transform.localScale)
-                    return null;
-
                 if (!reference.profile.IsEquivalent(compare.profile))
                     return null;
             }
@@ -235,6 +230,19 @@ namespace UnityEngine.Experimental.Rendering
 
 
             RunPlacement();
+        }
+
+        static void CellCountInDirections(out Vector3Int cellsInXYZ, int cellSizeInMeters)
+        {
+            cellsInXYZ = Vector3Int.zero;
+
+            Vector3 center = Vector3.zero;
+            var centeredMin = globalBounds.min - center;
+            var centeredMax = globalBounds.max - center;
+
+            cellsInXYZ.x = Mathf.Max(Mathf.CeilToInt(Mathf.Abs(centeredMin.x / cellSizeInMeters)), Mathf.CeilToInt(Mathf.Abs(centeredMax.x / cellSizeInMeters))) * 2;
+            cellsInXYZ.y = Mathf.Max(Mathf.CeilToInt(Mathf.Abs(centeredMin.y / cellSizeInMeters)), Mathf.CeilToInt(Mathf.Abs(centeredMax.y / cellSizeInMeters))) * 2;
+            cellsInXYZ.z = Mathf.Max(Mathf.CeilToInt(Mathf.Abs(centeredMin.z / cellSizeInMeters)), Mathf.CeilToInt(Mathf.Abs(centeredMax.z / cellSizeInMeters))) * 2;
         }
 
         static void OnAdditionalProbesBakeCompleted()
@@ -352,21 +360,13 @@ namespace UnityEngine.Experimental.Rendering
                         asset.cells.Add(cell);
                         if (hasFoundBounds)
                         {
-                            // TODO: Needs to be global bounds center when we get rid of the importance of the location of the ref volume
-                            Vector3 center = refVol.transform.position; //globalBounds.center;
+                            Vector3Int cellsInDir;
+                            int cellSizeInMeters = Mathf.CeilToInt((float)refVol.profile.cellSizeInBricks * refVol.profile.brickSize);
+                            CellCountInDirections(out cellsInDir, cellSizeInMeters);
 
-                            float cellSizeInMeters = Mathf.CeilToInt((float)refVol.profile.cellSizeInBricks * refVol.profile.brickSize);
-
-                            var centeredMin = globalBounds.min - center;
-                            var centeredMax = globalBounds.max - center;
-
-                            int cellsInX = Mathf.Max(Mathf.CeilToInt(Mathf.Abs(centeredMin.x / cellSizeInMeters)), Mathf.CeilToInt(Mathf.Abs(centeredMax.x / cellSizeInMeters))) * 2;
-                            int cellsInY = Mathf.Max(Mathf.CeilToInt(Mathf.Abs(centeredMin.y / cellSizeInMeters)), Mathf.CeilToInt(Mathf.Abs(centeredMax.y / cellSizeInMeters))) * 2;
-                            int cellsInZ = Mathf.Max(Mathf.CeilToInt(Mathf.Abs(centeredMin.z / cellSizeInMeters)), Mathf.CeilToInt(Mathf.Abs(centeredMax.z / cellSizeInMeters))) * 2;
-
-                            asset.maxCellIndex.x = cellsInX * (int)refVol.profile.cellSizeInBricks;
-                            asset.maxCellIndex.y = cellsInY * (int)refVol.profile.cellSizeInBricks;
-                            asset.maxCellIndex.z = cellsInZ * (int)refVol.profile.cellSizeInBricks;
+                            asset.maxCellIndex.x = cellsInDir.x * (int)refVol.profile.cellSizeInBricks;
+                            asset.maxCellIndex.y = cellsInDir.y * (int)refVol.profile.cellSizeInBricks;
+                            asset.maxCellIndex.z = cellsInDir.z * (int)refVol.profile.cellSizeInBricks;
                         }
                         else
                         {
@@ -596,9 +596,12 @@ namespace UnityEngine.Experimental.Rendering
 
             var volumeScale = m_BakingReferenceVolumeAuthoring.transform.localScale;
             var CellSize = m_BakingReferenceVolumeAuthoring.cellSize;
-            var xCells = (int)Mathf.Ceil(volumeScale.x / CellSize);
-            var yCells = (int)Mathf.Ceil(volumeScale.y / CellSize);
-            var zCells = (int)Mathf.Ceil(volumeScale.z / CellSize);
+            Vector3Int cellsInDir;
+            CellCountInDirections(out cellsInDir, CellSize);
+
+            var xCells = cellsInDir.x;
+            var yCells = cellsInDir.y;
+            var zCells = cellsInDir.z;
 
             // create cells
             List<Vector3Int> cellPositions = new List<Vector3Int>();
