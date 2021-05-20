@@ -379,6 +379,10 @@ namespace UnityEditor.Rendering
             CoreUtils.SetKeyword(usedMaterial, "FLARE_CIRCLE", type == SRPLensFlareType.Circle);
             CoreUtils.SetKeyword(usedMaterial, "FLARE_POLYGON", type == SRPLensFlareType.Polygon);
 
+            //usedMaterial.EnableKeyword("HDRP_FLARE");
+            usedMaterial.DisableKeyword("HDRP_FLARE");
+            usedMaterial.DisableKeyword("FLARE_OCCLUSION");
+
             usedMaterial.SetVector(_FlareColorValue, new Vector4(colorProp.colorValue.r * intensity, colorProp.colorValue.g * intensity, colorProp.colorValue.b * intensity, 1f));
             usedMaterial.SetVector(_FlareData0, flareData0);
             usedMaterial.SetVector(_FlareData1, new Vector4(0f, 0f, 0f, 1f));
