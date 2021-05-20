@@ -5,7 +5,7 @@ from ..shared.constants import NPM_UPMCI_INSTALL_URL
 
 
 class Project_AllPackageCiJob():
-    
+
     def __init__(self, packages, agent, platforms, target_branch, editor):
         self.job_id = projectcontext_job_id_test_all(editor["name"])
         self.yml = self.get_job_definition(packages, agent, platforms, target_branch, editor).get_yml()
@@ -19,7 +19,7 @@ class Project_AllPackageCiJob():
             dependencies.append(f'{projectcontext_filepath()}#{projectcontext_job_id_test(platform["os"],editor["name"])}')
             dependencies.append(f'{projectcontext_filepath()}#{projectcontext_job_id_test_min_editor(platform["os"])}')
             #dependencies.append(f'{packages_filepath()}#{package_job_id_test_dependencies(package["id"],platform["os"],editor["track"])}')
-        
+
         # construct job
         job = YMLJob()
         job.set_name(f'Pack and test all packages - { editor["name"]} [project context]')
@@ -30,6 +30,7 @@ class Project_AllPackageCiJob():
                 f'npm install upm-ci-utils@stable -g --registry {NPM_UPMCI_INSTALL_URL}',
                 f'upm-ci package izon -t',
                 f'upm-ci package izon -d'])
+        if editor["name"] == 2019.4:
+            job.set_trigger_on_expression(f'pull_request.target eq "{target_branch}" AND NOT pull_request.draft')
         return job
-        
-    
+

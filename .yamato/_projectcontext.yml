@@ -417,6 +417,8 @@ all_package_ci_project_2019.4:
       -  npm install upm-ci-utils@stable -g --registry https://artifactory.prd.cds.internal.unity3d.com/artifactory/api/npm/upm-npm
       -  upm-ci package izon -t
       -  upm-ci package izon -d
+    triggers:
+        expression: pull_request.target eq "7.x.x/release" AND NOT pull_request.draft
 all_package_ci_project_fast-2019.4:
     name: Pack and test all packages - fast-2019.4 [project context]
     agent:

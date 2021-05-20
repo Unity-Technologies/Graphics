@@ -14,6 +14,7 @@
   * [Upgrading to URP 9.0.x](upgrade-guide-9-0-x.md)
   * [Upgrading to URP 8.1.0](upgrade-guide-8-1-0.md)
   * [Upgrading to URP 8.0.0](upgrade-guide-8-0-0.md)
+  * [Upgrading to URP 7.7.x](upgrade-guide-7-7-x.md)
   * [Upgrading to URP 7.5.x](upgrade-guide-7-5-x.md)
   * [Upgrading to URP 7.4.0](upgrade-guide-7-4-0.md)
   * [Upgrading to URP 7.3.0](upgrade-guide-7-3-0.md)

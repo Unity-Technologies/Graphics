@@ -362,9 +362,9 @@ namespace UnityEngine.Rendering.Universal
         }
 
         static RenderTextureDescriptor CreateRenderTextureDescriptor(Camera camera, float renderScale,
-            bool isStereoEnabled, bool isHdrEnabled, int msaaSamples, bool needsAlpha)
+            bool isStereoEnabled, bool isHdrEnabled, int msaaSamples, bool needsAlpha, bool requiresOpaqueTexture)
         {
-            RenderTextureDescriptor desc;
+            RenderTextureDescriptor desc = new RenderTextureDescriptor(camera.pixelWidth, camera.pixelHeight);;
             GraphicsFormat renderTextureFormatDefault = SystemInfo.GetGraphicsFormat(DefaultFormat.LDR);
 
             // NB: There's a weird case about XR and render texture
@@ -376,11 +376,14 @@ namespace UnityEngine.Rendering.Universal
                 desc = XRGraphics.eyeTextureDesc;
                 renderTextureFormatDefault = desc.graphicsFormat;
             }
-            else if (camera.targetTexture == null)
+
+            if (camera.targetTexture == null)
             {
-                desc = new RenderTextureDescriptor(camera.pixelWidth, camera.pixelHeight);
-                desc.width = (int)((float)desc.width * renderScale);
-                desc.height = (int)((float)desc.height * renderScale);
+                if (!isStereoEnabled)
+                {
+                    desc.width = (int)((float)desc.width * renderScale);
+                    desc.height = (int)((float)desc.height * renderScale);
+                }
 
                 GraphicsFormat hdrFormat;
                 if (!needsAlpha && RenderingUtils.SupportsGraphicsFormat(GraphicsFormat.B10G11R11_UFloatPack32, FormatUsage.Linear | FormatUsage.Render))
@@ -398,11 +401,19 @@ namespace UnityEngine.Rendering.Universal
             else
             {
                 desc = camera.targetTexture.descriptor;
+                desc.width = camera.pixelWidth;
+                desc.height = camera.pixelHeight;
             }
 
             desc.enableRandomWrite = false;
             desc.bindMS = false;
             desc.useDynamicScale = camera.allowDynamicResolution;
+            // if the target platform doesn't support storing multisampled RTs and we are doing a separate opaque pass, using a Load load action on the subsequent passes
+            // will result in loading Resolved data, which on some platforms is discarded, resulting in losing the results of the previous passes.
+            // As a workaround we disable MSAA to make sure that the results of previous passes are stored. (fix for Case 1247423).
+            if (!SystemInfo.supportsStoreAndResolveAction && requiresOpaqueTexture)
+                desc.msaaSamples = 1;
+
             return desc;
         }
 
@@ -463,7 +474,6 @@ namespace UnityEngine.Rendering.Universal
                 lightData.InitNoBake(light.GetInstanceID());
                 lightsOutput[i] = lightData;
             }
-            Debug.LogWarning("Realtime GI is not supported in Universal Pipeline.");
 #endif
         };
     }

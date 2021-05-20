@@ -1,3 +1,6 @@
+// Required for the correct use of cross platform abstractions.
+#include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Common.hlsl"
+
 //Helper to disable bounding box compute code
 #define USE_DYNAMIC_AABB 1
 
@@ -216,7 +219,7 @@ uint VFXMul24(uint a,uint b)
 #ifndef SHADER_API_PSSL
     return (a & 0xffffff) * (b & 0xffffff); // Tmp to ensure correct inputs
 #else
-    return mul24(a, b);
+    return Mul24(a, b);
 #endif
 }
 
@@ -260,7 +263,7 @@ uint Lcg(uint seed)
     const uint multiplier = 0x0019660d;
     const uint increment = 0x3c6ef35f;
 #if RAND_24BITS && defined(SHADER_API_PSSL)
-    return mad24(multiplier, seed, increment);
+    return Mad24(multiplier, seed, increment);
 #else
     return multiplier * seed + increment;
 #endif
@@ -270,7 +273,7 @@ float ToFloat01(uint u)
 {
 #if !RAND_24BITS
     return asfloat((u >> 9) | 0x3f800000) - 1.0f;
-#else //Using mad24 keeping consitency between platform
+#else //Using Mad24 keeping consitency between platform
     return asfloat((u & 0x007fffff) | 0x3f800000) - 1.0f;
 #endif
 }
