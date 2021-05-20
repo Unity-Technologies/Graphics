@@ -188,7 +188,8 @@ namespace UnityEditor.VFX.Test
             return graph;
         }
 
-        [UnityTest]
+        // Deactivated test by now as GetGraphicsBuffer is not public
+        //[UnityTest]
         public IEnumerator CreateComponent_And_BindGraphicsBuffer()
         {
             var targetGraphicsBuffer = "my_exposed_graphics_buffer";
@@ -229,7 +230,8 @@ namespace UnityEditor.VFX.Test
 
         static GraphicsBufferResetCase[] s_GraphicsBufferResetCase = Enum.GetValues(typeof(GraphicsBufferResetCase)).Cast<GraphicsBufferResetCase>().ToArray();
 
-        [UnityTest]
+        // Deactivated test by now as GetGraphicsBuffer is not public
+        //[UnityTest]
         public IEnumerator CreateComponent_And_BindGraphicsBuffer_And_([ValueSource("s_GraphicsBufferResetCase")] GraphicsBufferResetCase resetCase)
         {
             var targetGraphicsBuffer = "my_exposed_graphics_buffer";
