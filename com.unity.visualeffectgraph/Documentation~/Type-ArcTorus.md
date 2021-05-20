@@ -7,6 +7,7 @@ A solid-arc of a torus defined by an angle and a 3D [Torus](Type-Torus.md). This
 | **Property**     | **Description**                                              |
 | ---------------- | ------------------------------------------------------------ |
 | **Center**       | The position of the torus.                                   |
+| **Angles**       | The Eular orientation, in degrees, of the torus.             |
 | **Major Radius** | The radius of the torus. This is the distance from the center of the torus to the center of the tube. |
 | **Minor Radius** | The radius of the tube.                                      |
 | **Arc**          | The angle, in radians, of the torus segment.                 |
