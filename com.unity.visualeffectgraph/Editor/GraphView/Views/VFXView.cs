@@ -1435,13 +1435,13 @@ namespace UnityEditor.VFX.UI
 
         void OnSave()
         {
-            OnCompile();
             var graphToSave = new HashSet<VFXGraph>();
             GetGraphsRecursively(controller.graph,graphToSave);
 
             foreach(var graph in graphToSave)
             {
-                graph.GetResource().WriteAsset();
+                if (EditorUtility.IsDirty(graph) || UnityEngine.Object.ReferenceEquals(graph, controller.graph))
+                    graph.GetResource().WriteAsset();
             }
         }
 
