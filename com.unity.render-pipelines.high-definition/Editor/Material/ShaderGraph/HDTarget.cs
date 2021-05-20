@@ -137,9 +137,13 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
         {
             var descs = context.blocks.Select(x => x.descriptor);
             // Stages
-            context.AddField(Fields.GraphVertex,                    descs.Contains(BlockFields.VertexDescription.Position) ||
-                descs.Contains(BlockFields.VertexDescription.Normal) ||
-                descs.Contains(BlockFields.VertexDescription.Tangent));
+            if (!context.pass.IsRaytracing()) // Don't handle vertex shader when using raytracing
+            {
+                context.AddField(Fields.GraphVertex, descs.Contains(BlockFields.VertexDescription.Position) ||
+                    descs.Contains(BlockFields.VertexDescription.Normal) ||
+                    descs.Contains(BlockFields.VertexDescription.Tangent));
+            }
+
             context.AddField(Fields.GraphPixel);
 
             // SubTarget
@@ -401,12 +405,29 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
     #region StructCollections
     static class CoreStructCollections
     {
-        public static StructCollection Default = new StructCollection
+        public static StructCollection Basic = new StructCollection
         {
             { HDStructs.AttributesMesh },
             { HDStructs.VaryingsMeshToPS },
-            { Structs.SurfaceDescriptionInputs },
             { Structs.VertexDescriptionInputs },
+            { Structs.SurfaceDescriptionInputs },
+        };
+
+        // VFX have its own structure define in PostProcessSubShader that replace existing one
+
+        // Will be append on top of Default if tessellation is enabled
+        public static StructCollection BasicTessellation = new StructCollection
+        {
+            { HDStructs.AttributesMesh },
+            { HDStructs.VaryingsMeshToDS },
+            { HDStructs.VaryingsMeshToPS },
+            { Structs.VertexDescriptionInputs },
+            { Structs.SurfaceDescriptionInputs },
+        };
+
+        public static StructCollection BasicRaytracing = new StructCollection
+        {
+            { Structs.SurfaceDescriptionInputs },
         };
     }
     #endregion
@@ -441,14 +462,15 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
             new FieldDependency(HDStructFields.VaryingsMeshToPS.color,                               HDStructFields.VaryingsMeshToDS.color),
             new FieldDependency(HDStructFields.VaryingsMeshToPS.instanceID,                          HDStructFields.VaryingsMeshToDS.instanceID),
 
-            //Tessellation Varying Dependencies, TODO: Why is this loop created?
-            new FieldDependency(HDStructFields.VaryingsMeshToDS.tangentWS,                           HDStructFields.VaryingsMeshToPS.tangentWS),
-            new FieldDependency(HDStructFields.VaryingsMeshToDS.texCoord0,                           HDStructFields.VaryingsMeshToPS.texCoord0),
-            new FieldDependency(HDStructFields.VaryingsMeshToDS.texCoord1,                           HDStructFields.VaryingsMeshToPS.texCoord1),
-            new FieldDependency(HDStructFields.VaryingsMeshToDS.texCoord2,                           HDStructFields.VaryingsMeshToPS.texCoord2),
-            new FieldDependency(HDStructFields.VaryingsMeshToDS.texCoord3,                           HDStructFields.VaryingsMeshToPS.texCoord3),
-            new FieldDependency(HDStructFields.VaryingsMeshToDS.color,                               HDStructFields.VaryingsMeshToPS.color),
-            new FieldDependency(HDStructFields.VaryingsMeshToDS.instanceID,                          HDStructFields.VaryingsMeshToPS.instanceID),
+            new FieldDependency(HDStructFields.VaryingsMeshToDS.positionRWS,                         HDStructFields.AttributesMesh.positionOS),
+            new FieldDependency(HDStructFields.VaryingsMeshToDS.normalWS,                            HDStructFields.AttributesMesh.normalOS),
+            new FieldDependency(HDStructFields.VaryingsMeshToDS.tangentWS,                           HDStructFields.AttributesMesh.tangentOS),
+            new FieldDependency(HDStructFields.VaryingsMeshToDS.texCoord0,                           HDStructFields.AttributesMesh.uv0),
+            new FieldDependency(HDStructFields.VaryingsMeshToDS.texCoord1,                           HDStructFields.AttributesMesh.uv1),
+            new FieldDependency(HDStructFields.VaryingsMeshToDS.texCoord2,                           HDStructFields.AttributesMesh.uv2),
+            new FieldDependency(HDStructFields.VaryingsMeshToDS.texCoord3,                           HDStructFields.AttributesMesh.uv3),
+            new FieldDependency(HDStructFields.VaryingsMeshToDS.color,                               HDStructFields.AttributesMesh.color),
+            new FieldDependency(HDStructFields.VaryingsMeshToDS.instanceID,                          HDStructFields.AttributesMesh.instanceID),
         };
 
         public static DependencyCollection FragInput = new DependencyCollection
@@ -505,6 +527,20 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
             new FieldDependency(StructFields.VertexDescriptionInputs.VertexID,                       HDStructFields.AttributesMesh.vertexID),
         };
 
+        public static DependencyCollection VertexDescriptionTessellation = new DependencyCollection
+        {
+            //Vertex Description Dependencies
+            new FieldDependency(StructFields.VertexDescriptionInputs.ObjectSpaceTangent,             HDStructFields.VaryingsMeshToDS.tangentWS),
+            new FieldDependency(StructFields.VertexDescriptionInputs.WorldSpaceTangent,              HDStructFields.VaryingsMeshToDS.tangentWS),
+            new FieldDependency(StructFields.VertexDescriptionInputs.ObjectSpaceBiTangent,           HDStructFields.VaryingsMeshToDS.tangentWS),
+
+            new FieldDependency(StructFields.VertexDescriptionInputs.uv0,                            HDStructFields.VaryingsMeshToDS.texCoord0),
+            new FieldDependency(StructFields.VertexDescriptionInputs.uv1,                            HDStructFields.VaryingsMeshToDS.texCoord1),
+            new FieldDependency(StructFields.VertexDescriptionInputs.uv2,                            HDStructFields.VaryingsMeshToDS.texCoord2),
+            new FieldDependency(StructFields.VertexDescriptionInputs.uv3,                            HDStructFields.VaryingsMeshToDS.texCoord3),
+            new FieldDependency(StructFields.VertexDescriptionInputs.VertexColor,                    HDStructFields.VaryingsMeshToDS.color),
+        };
+
         public static DependencyCollection SurfaceDescription = new DependencyCollection
         {
             //Surface Description Dependencies
@@ -548,6 +584,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
             { Tessellation },
             { FragInput },
             { VertexDescription },
+            { VertexDescriptionTessellation },
             { SurfaceDescription },
         };
     }
@@ -566,34 +603,34 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
             HDStructFields.AttributesMesh.uv2,
         };
 
-        public static FieldCollection PositionRWS = new FieldCollection()
+        public static FieldCollection Basic = new FieldCollection()
         {
-            HDStructFields.VaryingsMeshToPS.positionRWS,
         };
 
-        public static FieldCollection LitMinimal = new FieldCollection()
+        // Motion vector require positionRWS.
+        public static FieldCollection BasicMotionVector = new FieldCollection()
         {
-            HDStructFields.FragInputs.tangentToWorld,
+            Basic,
             HDStructFields.FragInputs.positionRWS,
+        };
+
+        public static FieldCollection BasicLighting = new FieldCollection()
+        {
+            // We need positionRWS to calculate the view vector per pixel for some hardcoded effect like Specular occlusion
+            // We also need it to calculate motion vector
+            HDStructFields.FragInputs.positionRWS,
+            // We need to have tangent because if a lighting model have anisotropy and require tangent, it need to be present
+            // This works for all lighting shader type including raytracing other fields are included due to DependencyCollection
+            HDStructFields.FragInputs.tangentToWorld,
+            // UV1 / 2 are always included for lightmaps (static and dynamic) sampling
             HDStructFields.FragInputs.texCoord1,
             HDStructFields.FragInputs.texCoord2,
         };
 
-        public static FieldCollection LitFull = new FieldCollection()
+        // Note: this can result in duplicate with BasicLighting but shouldn't be an issue
+        public static FieldCollection AddWriteNormalBuffer = new FieldCollection()
         {
-            HDStructFields.AttributesMesh.normalOS,
-            HDStructFields.AttributesMesh.tangentOS,
-            HDStructFields.AttributesMesh.uv0,
-            HDStructFields.AttributesMesh.uv1,
-            HDStructFields.AttributesMesh.color,
-            HDStructFields.AttributesMesh.uv2,
-            HDStructFields.AttributesMesh.uv3,
-            HDStructFields.FragInputs.tangentToWorld,
-            HDStructFields.FragInputs.positionRWS,
-            HDStructFields.FragInputs.texCoord1,
-            HDStructFields.FragInputs.texCoord2,
-            HDStructFields.FragInputs.texCoord3,
-            HDStructFields.FragInputs.color,
+            HDStructFields.FragInputs.tangentToWorld, // Required for WRITE_NORMAL_BUFFER case (to access to vertex normal)
         };
     }
     #endregion
@@ -748,45 +785,47 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
     #region Pragmas
     static class CorePragmas
     {
+        // We will always select Basic, BasicVFX or BasicTessellation - added in PostProcessSubShader
         public static PragmaCollection Basic = new PragmaCollection
         {
             { Pragma.Target(ShaderModel.Target45) },
             { Pragma.Vertex("Vert") },
             { Pragma.Fragment("Frag") },
             { Pragma.OnlyRenderers(PragmaRenderers.GetHighEndPlatformArray()) },
-        };
-
-        public static PragmaCollection InstancedRenderingLayer = new PragmaCollection
-        {
-            { Basic },
             { Pragma.MultiCompileInstancing },
-            { Pragma.InstancingOptions(InstancingOptions.RenderingLayer) },
         };
 
-        public static PragmaCollection InstancedRenderingLayerEditorSync = new PragmaCollection
+        public static PragmaCollection BasicVFX = new PragmaCollection
         {
-            { Basic },
+            { Pragma.Target(ShaderModel.Target45) },
+            { Pragma.Vertex("VertVFX") },
+            { Pragma.Fragment("Frag") },
+            { Pragma.OnlyRenderers(PragmaRenderers.GetHighEndPlatformArray()) },
             { Pragma.MultiCompileInstancing },
-            { Pragma.InstancingOptions(InstancingOptions.RenderingLayer) },
-            { Pragma.EditorSyncCompilation },
         };
 
+        public static PragmaCollection BasicTessellation = new PragmaCollection
+        {
+            { Pragma.NeverUseDXC(PragmaRenderers.GetNeverUseDXCPlatformArray()) },
+            { Pragma.Target(ShaderModel.Target50) },
+            { Pragma.Vertex("Vert") },
+            { Pragma.Fragment("Frag") },
+            { Pragma.Hull("Hull") },
+            { Pragma.Domain("Domain") },
+            { Pragma.OnlyRenderers(PragmaRenderers.GetHighEndPlatformArray()) },
+            { Pragma.MultiCompileInstancing },
+        };
+
+        public static PragmaCollection BasicRaytracing = new PragmaCollection
+        {
+            { Pragma.Target(ShaderModel.Target50) },
+            { Pragma.Raytracing("surface_shader") },
+            { Pragma.OnlyRenderers(new Platform[] {Platform.D3D11, Platform.PS5}) },
+        };
+
+        // Here are the Pragma Collection we can add on top of the Basic one
         public static PragmaCollection DotsInstancedInV2Only = new PragmaCollection
         {
-            { Basic },
-            { Pragma.MultiCompileInstancing },
-            { Pragma.InstancingOptions(InstancingOptions.RenderingLayer) },
-            #if ENABLE_HYBRID_RENDERER_V2
-            { Pragma.DOTSInstancing },
-            { Pragma.InstancingOptions(InstancingOptions.NoLodFade) },
-            #endif
-        };
-
-        public static PragmaCollection DotsInstancedInV2OnlyEditorSync = new PragmaCollection
-        {
-            { Basic },
-            { Pragma.MultiCompileInstancing },
-            { Pragma.EditorSyncCompilation },
             { Pragma.InstancingOptions(InstancingOptions.RenderingLayer) },
             #if ENABLE_HYBRID_RENDERER_V2
             { Pragma.DOTSInstancing },
@@ -796,8 +835,6 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
 
         public static PragmaCollection DotsInstancedInV1AndV2 = new PragmaCollection
         {
-            { Basic },
-            { Pragma.MultiCompileInstancing },
             // Hybrid Renderer V2 requires a completely different set of pragmas from Hybrid V1
             #if ENABLE_HYBRID_RENDERER_V2
             { Pragma.DOTSInstancing },
@@ -818,32 +855,8 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
 
         public static PragmaCollection DotsInstancedInV1AndV2EditorSync = new PragmaCollection
         {
-            { Basic },
-            { Pragma.MultiCompileInstancing },
+            { DotsInstancedInV1AndV2 },
             { Pragma.EditorSyncCompilation },
-            // Hybrid Renderer V2 requires a completely different set of pragmas from Hybrid V1
-            #if ENABLE_HYBRID_RENDERER_V2
-            { Pragma.DOTSInstancing },
-            { Pragma.InstancingOptions(InstancingOptions.NoLodFade) },
-            { Pragma.InstancingOptions(InstancingOptions.RenderingLayer) },
-            #else
-            { Pragma.InstancingOptions(InstancingOptions.NoLightProbe), new FieldCondition(HDFields.DotsInstancing, true) },
-            { Pragma.InstancingOptions(InstancingOptions.NoLightProbe), new FieldCondition(HDFields.DotsProperties, true) },
-            { Pragma.InstancingOptions(InstancingOptions.NoLodFade),    new FieldCondition(HDFields.DotsInstancing, true) },
-            { Pragma.InstancingOptions(InstancingOptions.NoLodFade),    new FieldCondition(HDFields.DotsProperties, true) },
-            { Pragma.InstancingOptions(InstancingOptions.RenderingLayer), new FieldCondition[]
-              {
-                  new FieldCondition(HDFields.DotsInstancing, false),
-                  new FieldCondition(HDFields.DotsProperties, false),
-              } },
-            #endif
-        };
-
-        public static PragmaCollection RaytracingBasic = new PragmaCollection
-        {
-            { Pragma.Target(ShaderModel.Target50) },
-            { Pragma.Raytracing("surface_shader") },
-            { Pragma.OnlyRenderers(new Platform[] {Platform.D3D11, Platform.PS5}) },
         };
     }
     #endregion
@@ -866,6 +879,12 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
     #region Defines
     static class CoreDefines
     {
+        public static DefineCollection Tessellation = new DefineCollection
+        {
+            { CoreKeywordDescriptors.Tessellation, 1 },
+            { CoreKeywordDescriptors.TessellationModification, 1 },
+        };
+
         public static DefineCollection ScenePicking = new DefineCollection
         {
             { CoreKeywordDescriptors.ScenePickingPass, 1 },
@@ -974,7 +993,9 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
         public const string kFabricPathtracing = "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Fabric/FabricPathTracing.hlsl";
         public const string kEyeRaytracing = "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Eye/EyeRaytracing.hlsl";
         public const string kStackLitRaytracing = "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/StackLit/StackLitRaytracing.hlsl";
+        public const string kStackLitPathtracing = "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/StackLit/StackLitPathTracing.hlsl";
         public const string kHairRaytracing = "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Hair/HairRaytracing.hlsl";
+        public const string kHairPathtracing = "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Hair/HairPathTracing.hlsl";
         public const string kRaytracingLightLoop = "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/Raytracing/Shaders/RaytracingLightLoop.hlsl";
         public const string kRaytracingCommon = "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/Raytracing/Shaders/RaytracingCommon.hlsl";
         public const string kNormalBuffer = "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/NormalBuffer.hlsl";
@@ -1235,6 +1256,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                 new KeywordEntry() { displayName = "Low", referenceName = "LOW" },
                 new KeywordEntry() { displayName = "Medium", referenceName = "MEDIUM" },
                 new KeywordEntry() { displayName = "High", referenceName = "HIGH" },
+                new KeywordEntry() { displayName = "VeryHigh", referenceName = "VERY_HIGH" },
             },
             stages = KeywordShaderStage.Fragment,
         };
@@ -1310,6 +1332,34 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
             scope = KeywordScope.Local,
         };
 
+        public static KeywordDescriptor Tessellation = new KeywordDescriptor()
+        {
+            displayName = "Tessellation",
+            referenceName = "TESSELLATION_ON",
+            type = KeywordType.Boolean,
+            definition = KeywordDefinition.ShaderFeature,
+            scope = KeywordScope.Local,
+        };
+
+        public static KeywordDescriptor TessellationModification = new KeywordDescriptor()
+        {
+            displayName = "Tessellation Modification",
+            referenceName = "HAVE_TESSELLATION_MODIFICATION",
+            type = KeywordType.Boolean,
+            definition = KeywordDefinition.ShaderFeature,
+            scope = KeywordScope.Local,
+        };
+
+        public static KeywordDescriptor TessellationMode = new KeywordDescriptor()
+        {
+            displayName = "Tessellation Mode",
+            referenceName = "_TESSELLATION_PHONG",
+            type = KeywordType.Boolean,
+            definition = KeywordDefinition.ShaderFeature,
+            scope = KeywordScope.Local,
+            stages = KeywordShaderStage.Domain,
+        };
+
         public static KeywordDescriptor TransparentDepthPrepass = new KeywordDescriptor()
         {
             displayName = "Transparent Depth Prepass",
@@ -1382,6 +1432,16 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
             definition = KeywordDefinition.ShaderFeature,
             scope = KeywordScope.Local,
             stages = KeywordShaderStage.FragmentAndRaytracing,
+        };
+
+        public static KeywordDescriptor DecalSurfaceGradient = new KeywordDescriptor
+        {
+            displayName = "Additive normal blending",
+            referenceName = "DECAL_SURFACE_GRADIENT",
+            type = KeywordType.Boolean,
+            definition = KeywordDefinition.MultiCompile,
+            scope = KeywordScope.Global,
+            stages = KeywordShaderStage.Fragment,
         };
 
         public static KeywordDescriptor DisableSSR = new KeywordDescriptor
@@ -1487,9 +1547,10 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
     {
         public static readonly CustomInterpSubGen.Collection Common = new CustomInterpSubGen.Collection
         {
-            CustomInterpSubGen.Descriptor.MakeDefine(CustomInterpSubGen.Splice.k_splicePreVertex, "USE_CUSTOMINTERP_APPLYMESHMOD"),
             CustomInterpSubGen.Descriptor.MakeStruct(CustomInterpSubGen.Splice.k_splicePreInclude, "CustomInterpolators", "USE_CUSTOMINTERP_SUBSTRUCT"),
-            CustomInterpSubGen.Descriptor.MakeBlock("CustomInterpolatorVertexDefinitionToVaryings", "varyings", "vertexDescription"),
+            CustomInterpSubGen.Descriptor.MakeBlock("CustomInterpolatorVertMeshCustomInterpolation", "varyings", "vertexDescription"),
+            CustomInterpSubGen.Descriptor.MakeMacroBlock("CustomInterpolatorInterpolateWithBaryCoordsMeshToDS", "TESSELLATION_INTERPOLATE_BARY(", ", baryCoords)"),
+            CustomInterpSubGen.Descriptor.MakeBlock("CustomInterpolatorVertMeshTesselationCustomInterpolation", "output", "input"),
             CustomInterpSubGen.Descriptor.MakeBlock("CustomInterpolatorVaryingsToFragInputs", "output.customInterpolators", "input"),
             CustomInterpSubGen.Descriptor.MakeBlock(CustomInterpSubGen.Splice.k_spliceCopyToSDI, "output", "input.customInterpolators")
         };

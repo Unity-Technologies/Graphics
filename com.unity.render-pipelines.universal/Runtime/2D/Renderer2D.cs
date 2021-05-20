@@ -1,8 +1,7 @@
-using UnityEngine.Rendering;
-using UnityEngine.Rendering.Universal;
+using UnityEngine.Experimental.Rendering.Universal;
 using UnityEngine.Rendering.Universal.Internal;
 
-namespace UnityEngine.Experimental.Rendering.Universal
+namespace UnityEngine.Rendering.Universal
 {
     internal class Renderer2D : ScriptableRenderer
     {
@@ -49,20 +48,6 @@ namespace UnityEngine.Experimental.Rendering.Universal
             m_PostProcessPasses = new PostProcessPasses(data.postProcessData, m_BlitMaterial);
 
             m_UseDepthStencilBuffer = data.useDepthStencilBuffer;
-
-            // Hook in the debug-render where appropriate...
-            m_Render2DLightingPass.DebugHandler = DebugHandler;
-            m_FinalBlitPass.DebugHandler = DebugHandler;
-
-            if (m_PostProcessPasses.finalPostProcessPass != null)
-            {
-                m_PostProcessPasses.finalPostProcessPass.DebugHandler = DebugHandler;
-            }
-
-            if (m_PostProcessPasses.postProcessPass != null)
-            {
-                m_PostProcessPasses.postProcessPass.DebugHandler = DebugHandler;
-            }
 
             // We probably should declare these names in the base class,
             // as they must be the same across all ScriptableRenderer types for camera stacking to work.
@@ -162,15 +147,14 @@ namespace UnityEngine.Experimental.Rendering.Universal
 
             if (DebugHandler != null)
             {
+#if UNITY_EDITOR
+                UnityEditorInternal.SpriteMaskUtility.EnableDebugMode(DebugHandler.DebugDisplaySettings.MaterialSettings.DebugMaterialModeData == DebugMaterialMode.SpriteMask);
+#endif
                 if (DebugHandler.AreAnySettingsActive)
                 {
                     stackHasPostProcess = stackHasPostProcess && DebugHandler.IsPostProcessingAllowed;
                 }
-
-                if (DebugHandler.IsActiveForCamera(ref cameraData))
-                {
-                    DebugHandler.Setup(context);
-                }
+                DebugHandler.Setup(context, ref cameraData);
             }
 
 #if UNITY_EDITOR

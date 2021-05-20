@@ -7,19 +7,6 @@
 #include "Packages/com.unity.render-pipelines.core/Runtime/Lighting/ProbeVolume/DecodeSH.hlsl"
 #endif
 
-
-// APV specific code
-struct APVConstants
-{
-    float3x4    WStoRS;
-    float       normalBias; // amount of biasing along the normal
-    int3        centerRS;   // index center location in refspace
-    int3        centerIS;   // index center location in index space
-    uint3       indexDim;   // resolution of the index
-    uint3       poolDim;    // resolution of the brick pool
-};
-
-
 struct APVResources
 {
     StructuredBuffer<int> index;
@@ -140,14 +127,15 @@ void EvaluateAPVL1L2Point(APVResources apvRes, float3 L0, float L1Rx, float3 N, 
 }
 #endif
 
-bool TryToGetPoolUVW(APVResources apvRes, float3 posWS, float3 normalWS, out float3 uvw)
+bool TryToGetPoolUVWAndSubdiv(APVResources apvRes, float3 posWS, float3 normalWS, float3 viewDirWS, out float3 uvw, out uint subdiv)
 {
     uvw = 0;
     // Note: we could instead early return when we know we'll have invalid UVs, but some bade code gen on Vulkan generates shader warnings if we do.
     bool hasValidUVW = true;
 
     // transform into APV space
-    float3 posRS = mul(_WStoRS, float4(posWS + normalWS * _NormalBias, 1.0)).xyz;
+    float3 posRS = mul(_WStoRS, float4(posWS + normalWS * _NormalBias
+                                             + viewDirWS * _ViewBias, 1.0)).xyz;
 
     uint3 indexDim = (uint3)_IndexDim;
     uint3 poolDim = (uint3)_PoolDim;
@@ -190,7 +178,7 @@ bool TryToGetPoolUVW(APVResources apvRes, float3 posWS, float3 normalWS, out flo
 
     // unpack pool idx
     // size is encoded in the upper 4 bits
-    uint   subdiv = (packed_pool_idx >> 28) & 15;
+    subdiv = (packed_pool_idx >> 28) & 15;
     float  cellSize = pow(3.0, subdiv);
     uint   flattened_pool_idx = packed_pool_idx & ((1 << 28) - 1);
     uint3  pool_idx;
@@ -209,14 +197,20 @@ bool TryToGetPoolUVW(APVResources apvRes, float3 posWS, float3 normalWS, out flo
     return hasValidUVW;
 }
 
-void EvaluateAdaptiveProbeVolume(in float3 posWS, in float3 normalWS, in float3 backNormalWS, in APVResources apvRes,
+bool TryToGetPoolUVW(APVResources apvRes, float3 posWS, float3 normalWS, float3 viewDir, out float3 uvw)
+{
+    uint unusedSubdiv;
+    return TryToGetPoolUVWAndSubdiv(apvRes, posWS, normalWS, viewDir, uvw, unusedSubdiv);
+}
+
+void EvaluateAdaptiveProbeVolume(in float3 posWS, in float3 normalWS, in float3 backNormalWS, in float3 viewDir, in APVResources apvRes,
     out float3 bakeDiffuseLighting, out float3 backBakeDiffuseLighting)
 {
     bakeDiffuseLighting = float3(0.0, 0.0, 0.0);
     backBakeDiffuseLighting = float3(0.0, 0.0, 0.0);
 
     float3 pool_uvw;
-    if (TryToGetPoolUVW(apvRes, posWS, normalWS, pool_uvw))
+    if (TryToGetPoolUVW(apvRes, posWS, normalWS, viewDir, pool_uvw))
     {
         float L1Rx;
         float3 L0 = EvaluateAPVL0(apvRes, pool_uvw, L1Rx);
@@ -238,12 +232,12 @@ void EvaluateAdaptiveProbeVolume(in float3 posWS, in float3 normalWS, in float3 
     }
 }
 
-float3 EvaluateAdaptiveProbeVolumeL0(in float3 posWS, in float3 normalWS, in APVResources apvRes)
+float3 EvaluateAdaptiveProbeVolumeL0(in float3 posWS, in float3 normalWS, in float3 viewDir, in APVResources apvRes)
 {
     float3 bakeDiffuseLighting = float3(0.0, 0.0, 0.0);
 
     float3 pool_uvw;
-    if (TryToGetPoolUVW(apvRes, posWS, normalWS, pool_uvw))
+    if (TryToGetPoolUVW(apvRes, posWS, normalWS, viewDir, pool_uvw))
     {
         float unused;
         float3 L0 = EvaluateAPVL0(apvRes, pool_uvw, unused);
@@ -278,19 +272,35 @@ APVResources FillAPVResources()
     return apvRes;
 }
 
-void EvaluateAdaptiveProbeVolume(in float3 posWS, in float3 normalWS, in float3 backNormalWS,
+void EvaluateAdaptiveProbeVolume(in float3 posWS, in float3 normalWS, in float3 backNormalWS, in float3 viewDir, in float2 positionSS,
     out float3 bakeDiffuseLighting, out float3 backBakeDiffuseLighting)
 {
     APVResources apvRes = FillAPVResources();
 
-    EvaluateAdaptiveProbeVolume(posWS, normalWS, backNormalWS, apvRes,
+    // Bit of an hack to apply noise at sampling location to hide seams. Ideally we should run this only when there is a seam, but detecting that would be costly.
+    if (_PVSamplingNoise > 0)
+    {
+        float3x3 orthoBasis = GetLocalFrame(normalWS);
+
+        float noise1D_0 = (InterleavedGradientNoise(positionSS, 0) * 2.0f - 1.0f) * _PVSamplingNoise;
+        float noise1D_1 = (InterleavedGradientNoise(positionSS, 1) * 2.0f - 1.0f) * _PVSamplingNoise;
+        posWS += orthoBasis[0] * noise1D_1 + noise1D_0 * orthoBasis[1];
+    }
+
+    EvaluateAdaptiveProbeVolume(posWS, normalWS, backNormalWS, viewDir, apvRes,
         bakeDiffuseLighting, backBakeDiffuseLighting);
 }
 
-void EvaluateAdaptiveProbeVolume(in float3 posWS, out float3 bakeDiffuseLighting)
+void EvaluateAdaptiveProbeVolume(in float3 posWS, in float2 positionSS, out float3 bakeDiffuseLighting)
 {
+    if (_PVSamplingNoise > 0)
+    {
+        float noise1D_0 = (InterleavedGradientNoise(positionSS, 0) * 2.0f - 1.0f) * _PVSamplingNoise;
+        posWS += noise1D_0;
+    }
+
     APVResources apvRes = FillAPVResources();
-    bakeDiffuseLighting = EvaluateAdaptiveProbeVolumeL0(posWS, float3(0.0f, 0.0f, 0.0f), apvRes);
+    bakeDiffuseLighting = EvaluateAdaptiveProbeVolumeL0(posWS, float3(0.0f, 0.0f, 0.0f), float3(0.0f, 0.0f, 0.0f), apvRes);
 }
 
 #endif // __PROBEVOLUME_HLSL__

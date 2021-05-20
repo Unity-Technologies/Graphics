@@ -6,6 +6,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ## [12.0.0] - 2021-01-11
 ### Added
+- Added support for default sprite mask shaders for the 2D Renderer in URP.
 - Added View Vector node to mimic old behavior of View Direction node in URP.
 - Added support for the PlayStation 5 platform.
 - Enabled deferred renderer in UI.
@@ -15,14 +16,29 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Added _SURFACE_TYPE_TRANSPARENT keyword to URP shaders.
 - Added Depth and DepthNormals passes to particles shaders.
 - Added support for SSAO in Particle and Unlit shaders.
+- Added Decal support. This includes new Decal Projector component, Decal renderer feature and Decal shader graph.
 - Added a SpeedTree 8 Shader Graph but did not set it as the default when importing or upgrading Speed Tree 8 assets. Because URP doesn't yet support per-material culling, this Shader Graph does not yet behave in the same way as the existing handwritten SpeedTree 8 shader for URP.
+- Added optional Depth Priming. Allows the forward opaque pass of the base camera to skip shading certain fragments if they don't contribute to the final opaque output.
 - Added blending and box projection for reflection probes.
 - Added 'Store Actions' option that enables bandwidth optimizations on mobile GPU architectures.
 - Added "Allow Material Override" option to Lit and Unlit ShaderGraph targets.  When checked, allows Material to control the surface options (transparent/opaque, blend mode, etc).
+- Added a new UI for Render Pipeline Converters. Used now for Built-in to Universal conversion.
+- Added sections on Light Inspector.
+- Reorder camera inspector to be in the same order as HDRP.
+- Added new URP Debug Views under Window/Analysis/Rendering Debugger.
+- Added support for controlling Volume Framework Update Frequency in UI on Cameras and URP Asset as well as through scripting.
+- Added URP Global Settings Asset to the Graphics Settings - a common place for project-wide URP settings.
+- Added possibility to rename light layer values.
+- Added Light cookies support to directional, point and spot light. Directional light cookie is main light only feature.
+- VFX: Basic support of Lit output.
+- Added Motion Vector render pass for URP.
+- VFX: Fix light cookies integration.
+- Added Lights 2D to the Light Explorer window.
 
 ### Changed
 - Moved fog evaluation from vertex shader to pixel shader. This improves rendering of fog for big triangles and fog quality. This can change the look of the fog slightly.
 - UNITY_Z_0_FAR_FROM_CLIPSPACE now remaps to [0, far] range on all platforms consistently. Previously OpenGL platforms did not remap, discarding small amount of range [-near, 0].
+- Moved all 2D APIs out of experimental namespace.
 - ClearFlag.Depth does not implicitely clear stencil anymore. ClearFlag.Stencil added.
 - The Forward Renderer asset is renamed to the Universal Renderer asset. The Universal Renderer asset contains the property Rendering Path that lets you select the Forward or the Deferred Rendering Path.
 - Improved PixelPerfectCamera UI/UX
@@ -45,6 +61,8 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - DepthNormals passes now sample normal maps if used on the material, otherwise output the geometry normal.
 - SSAO Texture is now R8 instead of ARGB32 if supported by the platform.
 - Enabled subsurface scattering with GI on handwritten Universal ST8 shader.
+- Material upgrader now also upgrades AnimationClips in the project that have curves bound to renamed material properties.
+- 2D Lights now inherit from Light2DBase.
 
 ### Fixed
 - Camera Inspector Stack list edition fixes.
@@ -99,6 +117,15 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed an issue where Depth Prepass was not run when SSAO was set to Depth Mode.
 - Fixed an issue where changing camera's position in the BeginCameraRendering do not apply properly. [case 1318629] (https://issuetracker.unity3d.com/issues/camera-doesnt-move-when-changing-its-position-in-the-begincamerarendering-and-the-endcamerarendering-methods)
 - Fixed depth of field pass usage on unsupported devices. [case 1327076](https://issuetracker.unity3d.com/issues/adreno-3xx-nothing-is-rendered-when-post-processing-is-enabled)
+- Fixed an issue where SMAA did not work for OpenGL [case 1318214](https://issuetracker.unity3d.com/issues/urp-there-is-no-effect-when-using-smaa-in-urp-with-opengles-api)
+- Fixed an issue with Shader Graph Lit shaders where the normalized view direction produced incorrect lighting. [1332804]
+- Fixed return values from GetStereoProjectionMatrix() and SetStereoViewMatrix(). [case 1312813](https://issuetracker.unity3d.com/issues/xr-urp-begincamerarender-method-is-lagging-behind-when-using-urp)
+- Fixed CopyDepthPass incorrectly always enqueued when deferred rendering mode was enabled when it should depends on the pipeline asset settings.
+- Fixed renderer post processing option to work with asset selector re-assing. [case 1319454](https://issuetracker.unity3d.com/issues/urp-universal-renderer-post-processing-doesnt-enable-when-postprocessdata-reassigned-from-the-asset-selector-window)
+- Fixed post processing to be enabled by default in the renderer when creating URP asset option. [case 1333461](https://issuetracker.unity3d.com/issues/post-processing-is-disabled-by-default-in-the-forward-renderer-when-creating-a-new-urp-asset)
+- Fixed shaderGraph shaders to render into correct depthNormals passes when deferred rendering mode and SSAO are enabled.
+- Fixed ordering of subshaders in the Unlit Shader Graph, such that shader target 4.5 takes priority over 2.0. [case 1328636](https://issuetracker.unity3d.com/product/unity/issues/guid/1328636/)
+- Fixed issue where it will clear camera color if post processing is happening on XR [case 1324451]
 
 ### Changed
 - Change Asset/Create/Shader/Universal Render Pipeline/Lit Shader Graph to Asset/Create/Shader Graph/URP/Lit Shader Graph
