@@ -349,9 +349,9 @@ namespace UnityEditor.VFX.UI
                 m_BoundsRecorder.ToggleRecording();
         }
 
-        public void DeactivateBoundsRecording()
+        public void DeactivateBoundsRecordingIfNeeded()
         {
-            if (m_BoundsRecorder.isRecording)
+            if (m_BoundsRecorder != null && m_BoundsRecorder.isRecording)
                 m_BoundsRecorder.ToggleRecording();
         }
 
