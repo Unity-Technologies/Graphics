@@ -1,0 +1,70 @@
+fileFormatVersion: 2
+guid: 0ed3c212651204f66972e570880acf8e
+MonoImporter:
+  externalObjects: {}
+  serializedVersion: 2
+  defaultReferences:
+  - Clip_Animation_WithMaterialProperties_PotentiallyUpgradable: {fileID: 7400000, guid: 652d3b970b727416e9dbd1a8199c8613, type: 2}
+  - Clip_Animation_WithoutMaterialProperties: {fileID: 7400000, guid: d34ee5e8ac9c14fd890f5627d33f0d92, type: 2}
+  - Clip_Animation_WithMaterialProperties_OnlyUsedByUpgradable: {fileID: 7400000, guid: d346887b29ac844b8be47c14a02c86fb, type: 2}
+  - Clip_Animation_WithMaterialProperties_OnlyUsedByNotUpgradable: {fileID: 7400000, guid: 8db017ad5416942c28e7c009fe0501c3, type: 2}
+  - Clip_Animation_WithMaterialProperties_UsedByUpgradableAndNotUpgradable: {fileID: 7400000, guid: 2eb9bf646126d41969bd86aea1b02ae3, type: 2}
+  - Clip_Animator_WithMaterialProperties_PotentiallyUpgradable: {fileID: 7400000, guid: a111ff3ff582d4db4b171bcde10294ce, type: 2}
+  - Clip_Animator_WithoutMaterialProperties: {fileID: 7400000, guid: 74568ad453c4a4cc1877811ed3350e3b, type: 2}
+  - Clip_Animator_WithMaterialProperties_OnlyUsedByUpgradable: {fileID: 7400000, guid: 91a51a44b77e2484cbf98059fe9116c4, type: 2}
+  - Clip_Animator_WithMaterialProperties_OnlyUsedByNotUpgradable: {fileID: 7400000, guid: 8dd30dfecf911484d96c1b4b86c5e7cd, type: 2}
+  - Clip_Animator_WithMaterialProperties_UsedByUpgradableAndNotUpgradable: {fileID: 7400000, guid: f0d43cc8a526d46ccb16d61ce4380d34, type: 2}
+  - Clip_Timeline_WithoutMaterialProperties: {fileID: -794025157766098318, guid: b3d1af70545044f34b0d0f8dd28b4b0a, type: 2}
+  - Clip_Timeline_WithMaterialProperties_OnlyUsedByUpgradable: {fileID: -794025157766098318, guid: 6f8953412ac1640c9b5c17664c369ad3, type: 2}
+  - Clip_Timeline_WithMaterialProperties_OnlyUsedByNotUpgradable: {fileID: -794025157766098318, guid: 3b93175ca2cd749abb604df3b4a97da7, type: 2}
+  - Clip_Timeline_WithMaterialProperties_UsedByUpgradableAndNotUpgradable: {fileID: -794025157766098318, guid: 21b88de8b6297426385e569275fa87af, type: 2}
+  - Clip_Timeline_WithMaterialProperties_PotentiallyUpgradable: {fileID: -794025157766098318, guid: e61155f24e7824346a7ab65dc21495ec, type: 2}
+  - Clip_Timeline_Standalone_WithMaterialProperties_Upgradable: {fileID: 7400000, guid: 13339e6910fab4530b262fa17ccdd863, type: 2}
+  - Clip_Animator_WithMaterialProperties_PotentiallyUpgradable_NotEditable: {fileID: 1827226128182048838, guid: 2c0a3acb1e5fb48daacd09b0fef59ebb, type: 3}
+  - Clip_ParentAsset: {fileID: 11400000, guid: 4eaa79821fdfb46e3bfe9ad13794bb84, type: 2}
+  - Clip_ChildAsset_Animation_WithMaterialProperties: {fileID: -4727356117655969938, guid: 4eaa79821fdfb46e3bfe9ad13794bb84, type: 2}
+  - Clip_ChildAsset_Animation_WithoutMaterialProperties: {fileID: 7831919683282458595, guid: 4eaa79821fdfb46e3bfe9ad13794bb84, type: 2}
+  - Clip_ChildAsset_Animator_WithMaterialProperties: {fileID: -7688442573598932476, guid: 4eaa79821fdfb46e3bfe9ad13794bb84, type: 2}
+  - Clip_ChildAsset_Animator_WithoutMaterialProperties: {fileID: 8475404384003847048, guid: 4eaa79821fdfb46e3bfe9ad13794bb84, type: 2}
+  - Material_Legacy_Upgradable: {fileID: 2100000, guid: 47fd4dd6c12db4aceaff4cf94f1d2931, type: 2}
+  - Material_Legacy_NotUpgradable: {fileID: 2100000, guid: 709fb845d958b48c6952f4e5115ad377, type: 2}
+  - Material_URP: {fileID: 2100000, guid: b39130b32e41d4d6a961f0a0f8ed2957, type: 2}
+  - Prefab_Animation_WithMaterialProperties_Upgradable: {fileID: 1481733816701744535, guid: 1ba1e404cc39b4f58b2d540cf1f7bb3d, type: 3}
+  - Prefab_Animator_WithMaterialProperties_Upgradable: {fileID: 3698196622611980734, guid: 1d64078a95cb2495482e7a732935e124, type: 3}
+  - Prefab_Timeline_WithMaterialProperties_Upgradable: {fileID: 3698196622611980734, guid: da31bc0c6f52e411d9833da09dd55060, type: 3}
+  - Variant_Animation_WithMaterialProperties_Upgradable: {fileID: 7097384425899576994, guid: 04cacff29c07a4728a6a777e747ef73b, type: 3}
+  - Variant_Animator_WithMaterialProperties_Upgradable: {fileID: 2435348497390911826, guid: cd5406424b8954989a333ed3c6e8f8be, type: 3}
+  - Variant_Timeline_WithMaterialProperties_Upgradable: {fileID: 3893461321846851367, guid: 0d81e404e6cfe4d6ebf37a15b70c94f0, type: 3}
+  - Prefab_Animation_WithoutMaterialProperties: {fileID: 1481733816701744535, guid: 6a77e037b961d4c05b08027837687a3f, type: 3}
+  - Prefab_Animator_WithoutMaterialProperties: {fileID: 3698196622611980734, guid: c87ca33041afb4c16aa39be04a1af525, type: 3}
+  - Prefab_Timeline_WithoutMaterialProperties: {fileID: 3698196622611980734, guid: 8a638d99887964d7da322ecf859e37e3, type: 3}
+  - Variant_Animation_WithoutMaterialProperties: {fileID: 996284936267660066, guid: b08c9579222ae4f2d80ad1b1958dfe4c, type: 3}
+  - Variant_Animator_WithoutMaterialProperties: {fileID: 2976765956098225278, guid: 91cacd9b5fb8b444ba0dcb16fdbb7d6f, type: 3}
+  - Variant_Timeline_WithoutMaterialProperties: {fileID: 5403934943325553837, guid: 16dddd084e0a749308fb850a1f7cacc3, type: 3}
+  - Prefab_Animation_WithMaterialProperties_NotUpgradable: {fileID: 1481733816701744535, guid: ef1474e2e32f14743966bba0b05d4622, type: 3}
+  - Prefab_Animation_WithMaterialProperties_NoMaterials: {fileID: 1481733816701744535, guid: 441e1afe527184084aca83b4eb8fbf14, type: 3}
+  - Prefab_Animation_WithMaterialProperties_NoRenderer: {fileID: 1481733816701744535, guid: c2c3ed02a537f416489e1c6186b8d0a9, type: 3}
+  - Prefab_Animator_WithMaterialProperties_NotUpgradable: {fileID: 669839463223903988, guid: 77feaf104526c4991a04ffc0ae40c2ea, type: 3}
+  - Prefab_Animator_WithMaterialProperties_NoMaterials: {fileID: 3698196622611980734, guid: 30a946f30935e4319945d077f9056699, type: 3}
+  - Prefab_Animator_WithMaterialProperties_NoRenderer: {fileID: 3698196622611980734, guid: 26236332a826c42169a5724bbad1fe9f, type: 3}
+  - Prefab_Timeline_WithMaterialProperties_Upgradable_AlsoUsedByNotUpgradable: {fileID: 3698196622611980734, guid: 72be6f53543a7419ca8ae6e2c145f3e5, type: 3}
+  - Prefab_Timeline_WithMaterialProperties_NotUpgradable: {fileID: 669839463223903988, guid: 1f0feb604f0614616bc5e408d9a231d8, type: 3}
+  - Prefab_Timeline_WithMaterialProperties_NotUpgradable_AlsoUsedByUpgradable: {fileID: 669839463223903988, guid: e145b19fe2bbf41b0b101c166929cae0, type: 3}
+  - Prefab_Timeline_WithMaterialProperties_NoMaterials: {fileID: 3698196622611980734, guid: d626b7607bf944a36aca9f8bf69c6d19, type: 3}
+  - Prefab_Timeline_WithMaterialProperties_NoRenderer: {fileID: 3698196622611980734, guid: ffe27e131787c488ba2ed7e6c295fb20, type: 3}
+  - Prefab_Timeline_Standalone_WithMaterialProperties_Upgradable: {fileID: 3698196622611980734, guid: 8fdb378444e8b45d8afc2074a9eb875f, type: 3}
+  - Variant_Animation_WithMaterialProperties_NotUpgradable: {fileID: 8004010397986628456, guid: da729b53e56164f80a00701e67843440, type: 3}
+  - Variant_Animator_WithMaterialProperties_NotUpgradable: {fileID: 4086699279291622987, guid: 5bfeee0eeaf4c425aa49e8bfba9cb923, type: 3}
+  - Variant_Timeline_WithMaterialProperties_NotUpgradable: {fileID: 3191117540288799841, guid: 5607517bab8f34524a99e41e7bf0bb0b, type: 3}
+  - Scene_Animation_WithMaterialProperties_Upgradable: {fileID: 102900000, guid: 8c905be92d13b4c53a5582816bca899e, type: 3}
+  - Scene_Animator_WithMaterialProperties_Upgradable: {fileID: 102900000, guid: 109f83b9eab494d9bbbdbd2336828072, type: 3}
+  - Scene_Timeline_WithMaterialProperties_Upgradable: {fileID: 102900000, guid: feabd324a28c84aeaa21631bb814bac7, type: 3}
+  - Scene_Animation_WithoutMaterialProperties: {fileID: 102900000, guid: 8de33029276614166a1023cc556cfb0b, type: 3}
+  - Scene_Animator_WithoutMaterialProperties: {fileID: 102900000, guid: 6760434d3896c4799b3c36d9601c685c, type: 3}
+  - Scene_Timeline_WithoutMaterialProperties: {fileID: 102900000, guid: 3b52f36584acc4fb4ad2b77f59673ac5, type: 3}
+  - Scene_NoAnimation: {fileID: 102900000, guid: ece16c9beaf5a4fdd812e72f5f9db2a5, type: 3}
+  executionOrder: 0
+  icon: {instanceID: 0}
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 

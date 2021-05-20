@@ -7,12 +7,12 @@ Shader "Hidden/ShadowProjected2D"
 
     SubShader
     {
-        Tags { "RenderType"="Opaque" }
+        Tags { "RenderType"="Transparent" }
 
         Cull Off
         BlendOp Add
-        Blend One Zero
         ZWrite Off
+        ZTest Always
 
         // This pass draws the projected shadow and sets the composite shadow bit.
         Pass
@@ -20,8 +20,9 @@ Shader "Hidden/ShadowProjected2D"
             // Bit 0: Composite Shadow Bit, Bit 1: Global Shadow Bit
             Stencil
             {
+                Ref         5
+                ReadMask    4
                 WriteMask   1
-                Ref         1
                 Comp        NotEqual
                 Pass        Replace
                 Fail        Keep
@@ -53,9 +54,12 @@ Shader "Hidden/ShadowProjected2D"
             // Bit 0: Composite Shadow Bit, Bit 1: Global Shadow Bit
             Stencil
             {
-                Ref         2
-                Comp        Always
+                Ref         3
+                WriteMask   2
+                ReadMask    1
+                Comp        Equal
                 Pass        Replace
+                Fail        Keep
             }
 
             // We only want to change the stencil value in this pass
