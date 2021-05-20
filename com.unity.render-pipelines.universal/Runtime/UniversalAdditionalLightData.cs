@@ -34,7 +34,7 @@ namespace UnityEngine.Rendering.Universal
     {
         /// <summary>
         /// Universal Render Pipeline exposes additional light data in a separate component.
-        /// This method returns the additional data component for the given light or create one if it doesn't exists yet.
+        /// This method returns the additional data component for the given light or create one if it doesn't exist yet.
         /// </summary>
         /// <param name="light"></param>
         /// <returns>The <c>UniversalAdditionalLightData</c> for this light.</returns>
