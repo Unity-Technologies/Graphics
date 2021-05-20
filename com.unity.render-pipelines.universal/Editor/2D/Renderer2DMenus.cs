@@ -23,9 +23,7 @@ namespace UnityEditor.Rendering.Universal
 
             public override void Action(int instanceId, string pathName, string resourceFile)
             {
-                var instance = CreateInstance<Renderer2DData>();
-                instance.postProcessData = PostProcessData.GetDefaultPostProcessData();
-                AssetDatabase.CreateAsset(instance, pathName);
+                var instance = UniversalRenderPipelineAsset.CreateRendererAsset(pathName, RendererType._2DRenderer, false) as Renderer2DData;
                 Selection.activeObject = instance;
 
                 onCreated?.Invoke(instance);

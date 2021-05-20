@@ -7,10 +7,33 @@ using UnityEngine.VFX;
 
 namespace UnityEditor.VFX.Block
 {
-    [VFXInfo(category = "Attribute", variantProvider = typeof(AttributeVariantReadWritableNoVariadic))]
+    class AttributeProviderSpawner : VariantProvider, IStringProvider
+    {
+        private static readonly string[] kReadOnlyExceptFromSpawnContext = new[] { VFXAttribute.SpawnCount.name, VFXAttribute.SpawnTime.name };
+
+        protected override sealed Dictionary<string, object[]> variants
+        {
+            get
+            {
+                return new Dictionary<string, object[]>
+                {
+                    { "attribute", VFXAttribute.AllReadWritable.Concat(kReadOnlyExceptFromSpawnContext).Cast<object>().ToArray() }
+                };
+            }
+        }
+
+        public string[] GetAvailableString()
+        {
+            var validAttributes = VFXAttribute.AllIncludingVariadicExceptWriteOnly;
+            validAttributes = validAttributes.Concat(kReadOnlyExceptFromSpawnContext).ToArray();
+            return validAttributes;
+        }
+    }
+
+    [VFXInfo(category = "Attribute", variantProvider = typeof(AttributeProviderSpawner))]
     class VFXSpawnerSetAttribute : VFXAbstractSpawner
     {
-        [VFXSetting(VFXSettingAttribute.VisibleFlags.InInspector), StringProvider(typeof(AttributeProvider))]
+        [VFXSetting(VFXSettingAttribute.VisibleFlags.InInspector), StringProvider(typeof(AttributeProviderSpawner))]
         public string attribute = VFXAttribute.AllReadWritable.First();
 
         [VFXSetting(VFXSettingAttribute.VisibleFlags.InInspector)]
