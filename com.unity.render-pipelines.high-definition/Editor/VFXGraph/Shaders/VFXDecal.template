@@ -11,7 +11,7 @@
 
 void VFXGetSurfaceDecalData(out DecalSurfaceData surfaceData, VFX_VARYING_PS_INPUTS i, float3 normalWS)
 {
-	ZERO_INITIALIZE(DecalSurfaceData, surfaceData); 
+	ZERO_INITIALIZE(DecalSurfaceData, surfaceData);
 	VFXTransformPSInputs(i);
 
 //Check light layer
@@ -28,13 +28,13 @@ void VFXGetSurfaceDecalData(out DecalSurfaceData surfaceData, VFX_VARYING_PS_INP
 	{
 		clip(-1);
 	}
-  
+
 #endif
 
 	float3 clipPos;
 	clipPos.xy = (i.pos.xy / _ScreenParams.xy) * 2.0f - 1.0f;
 	clipPos.z = VFXSampleDepth(i.pos);
-	clipPos *= VFXLinearEyeDepth(clipPos.z); //TODO: Does not work with Orthographic projection, do it.
+
 	if (_ProjectionParams.x < 0)
         clipPos.y = -clipPos.y;
 
@@ -42,6 +42,7 @@ void VFXGetSurfaceDecalData(out DecalSurfaceData surfaceData, VFX_VARYING_PS_INP
 
 	if(IsPerspectiveProjection())
 	{
+		clipPos *= VFXLinearEyeDepth(clipPos.z); //TODO: Does not work with Orthographic projection
 		viewPos.x = clipPos.x / UNITY_MATRIX_P[0][0];
 		viewPos.y = clipPos.y / UNITY_MATRIX_P[1][1];
 		viewPos.z = (clipPos.z - UNITY_MATRIX_P[2][3]) / UNITY_MATRIX_P[2][2];
@@ -55,25 +56,26 @@ void VFXGetSurfaceDecalData(out DecalSurfaceData surfaceData, VFX_VARYING_PS_INP
 		viewPos.w = 1.0f;
 	}
 
+
 	float4x4 viewToElement;
 	viewToElement[0] = i.viewToDecal0;
 	viewToElement[1] = i.viewToDecal1;
 	viewToElement[2] = i.viewToDecal2;
 	viewToElement[3] = float4(0,0,0,1);
-	
+
 	float3 elementPos = mul(viewToElement,viewPos).xyz * 2.0f;
 	clip(1.0f - abs(elementPos));
 
 	float2 uv = elementPos.xy * 0.5f + 0.5f;
 	VFXUVData uvData = GetUVData(uv);
     float angleFadeFactor = 1.0f;
-	float3x3 elementToWorld = mul((float3x3)viewToElement, VFXGetWorldToViewRotMatrix()); //Transposed//TODO: Won't be correct for non-uniform scalings
-	elementToWorld[2] *= -1.0f; //TODO : Why ?
+	float3x3 worldToElement = mul((float3x3)viewToElement, VFXGetWorldToViewRotMatrix()); //Transposed//TODO: Won't be correct for non-uniform scalings
+	worldToElement[2] *= -1.0f; //Z points TOWARDS the surface, so we need to revert it
 
 #if VFX_ENABLE_DECAL_LAYERS
 	if (i.VFX_VARYING_ANGLEFADE.y < 0.0f) // if angle fade is enabled
 	{
-		float3 decalNormal = normalize(elementToWorld[2].xyz);
+		float3 decalNormal = normalize(worldToElement[2].xyz);
 		float dotAngle = dot(material.geomNormalWS, decalNormal);
 		// See equation in DecalSystem.cs - simplified to a madd mul add here
 		angleFadeFactor = saturate(i.VFX_VARYING_ANGLEFADE.x + i.VFX_VARYING_ANGLEFADE.y * (dotAngle * (dotAngle - 2.0f)));
@@ -116,7 +118,7 @@ void VFXGetSurfaceDecalData(out DecalSurfaceData surfaceData, VFX_VARYING_PS_INP
 	surfaceData.mask = mask;
 	surfaceData.mask.z = surfaceData.mask.w;
 	maskMapBlend = mask.z * fadeFactor;
-	#if VFX_MASK_BLEND_BASE_COLOR_ALPHA 
+	#if VFX_MASK_BLEND_BASE_COLOR_ALPHA
 	surfaceData.mask.w = albedoMapBlend;
 	#elif VFX_MASK_BLEND_MASK_BLUE // TODO : Careful, not the only two cases, e.g. when using opacity
 	surfaceData.mask.w = maskMapBlend;
@@ -129,10 +131,10 @@ void VFXGetSurfaceDecalData(out DecalSurfaceData surfaceData, VFX_VARYING_PS_INP
 	#else
 	float3 normalTS = float3(0.0f,0.0f,1.0f);
 	#endif
-	normalWS = normalize(mul(transpose(elementToWorld), normalTS));
+	normalWS = normalize(mul(transpose(worldToElement), normalTS));
 
-	surfaceData.normalWS.xyz = normalWS; 
-	#if VFX_NORMAL_BLEND_BASE_COLOR_ALPHA 
+	surfaceData.normalWS.xyz = normalWS;
+	#if VFX_NORMAL_BLEND_BASE_COLOR_ALPHA
 	surfaceData.normalWS.w = albedoMapBlend;
 	#elif VFX_NORMAL_BLEND_MASK_BLUE // TODO : Careful, not the only two cases, e.g. when using opacity	surfaceData.mask.w = maskMapBlend;
 	surfaceData.normalWS.w = maskMapBlend;

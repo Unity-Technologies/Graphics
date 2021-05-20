@@ -139,7 +139,15 @@ float VFXSampleDepth(float4 posSS)
 
 float VFXLinearEyeDepth(float depth)
 {
-    return LinearEyeDepth(depth,_ZBufferParams);
+    if (IsPerspectiveProjection())
+        return LinearEyeDepth(depth, _ZBufferParams);
+    else
+    {
+        #if UNITY_REVERSED_Z
+        depth = 1 - depth;
+        #endif
+        return _ProjectionParams.y + depth * (_ProjectionParams.z - _ProjectionParams.y);
+    }
 }
 
 void VFXApplyShadowBias(inout float4 posCS, inout float3 posWS, float3 normalWS)

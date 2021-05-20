@@ -55,10 +55,6 @@ namespace UnityEditor.VFX.HDRP
         private bool enableDecalLayers => HDRenderPipeline.currentAsset.currentPlatformRenderPipelineSettings.supportDecals
                                                   && HDRenderPipeline.currentAsset.currentPlatformRenderPipelineSettings.supportDecalLayers;
 
-        string[] decalLayerNames => HDRenderPipelineGlobalSettings.instance.decalLayerNames;
-        
-
-
         [VFXSetting(VFXSettingAttribute.VisibleFlags.InInspector), SerializeField,
          Tooltip("Specifies the layer mask of the decal.")]
         private DecalLayerEnum decalLayer = DecalLayerEnum.LightLayerDefault;
@@ -98,12 +94,12 @@ namespace UnityEditor.VFX.HDRP
 
             if (GetOrRefreshShaderGraphObject() == null)
             {
-                //yield return slotExpressions.First(o => o.name == "startFade");
                 yield return slotExpressions.First(o => o.name == "fadeFactor");
                 if(enableDecalLayers)
                 {
                     var angleFadeExp = slotExpressions.First(o => o.name == "angleFade");
                     yield return new VFXNamedExpression(AngleFadeSimplification(angleFadeExp.exp), "angleFade");
+                    yield return new VFXNamedExpression(VFXValue.Constant((uint)decalLayer), "decalLayerMask");
                 }
             }
         }
@@ -134,6 +130,8 @@ namespace UnityEditor.VFX.HDRP
                 yield return "shaderGraph";
                 yield return "zTestMode";
                 yield return "zWriteMode";
+                yield return "castShadows";
+                yield return "materialType";
 
                 if (!enableDecalLayers)
                     yield return "decalLayer";
@@ -167,12 +165,11 @@ namespace UnityEditor.VFX.HDRP
                 {
                     yield return "VFX_ENABLE_DECAL_LAYERS";
                 }
-                yield return "VFX_ENABLE_DECAL_LAYERS";
             }
         }
 
 
-        protected override void WriteBlendMode(VFXShaderWriter writer)
+        protected override void WriteBlendMode(VFXShaderWriter writer)  //TODO : Not sure we need to do it here : different for DBuffer and ForwardEmissive pass
         {
             // using alpha compositing https://developer.nvidia.com/gpugems/GPUGems3/gpugems3_ch23.html
             for (int i = 0; i < 3; i++)
