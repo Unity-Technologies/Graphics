@@ -269,6 +269,28 @@ float2x4 LoadDOTSInstancedData_float2x4(float2x4 default_value, uint metadata)
         LoadDOTSInstancedData_float2x4(metadata) : default_value;
 }
 
+float4  LoadDOTSInstancedData_RenderingLayer()
+{
+    return float4(asfloat(unity_DOTSVisibleInstances[0].VisibleData.z), 0,0,0);
+}
+
+float4 LoadDOTSInstancedData_MotionVectorsParams()
+{
+    uint flags = unity_DOTSVisibleInstances[0].VisibleData.w;
+    // hybrid per drawcommand cbuffer flags:
+    // bit 0: Flip triangle winding
+    // bit 1: force no motion bit
+    // bit 2: camera velocity
+    // bit 3: has last position
+    return float4(0, flags&(1<<1) ? 0.0f : 1.0f, -0.001f, flags&(1 << 2) ? 0.0f : 1.0f);
+}
+
+float4 LoadDOTSInstancedData_WorldTransformParams()
+{
+    uint flags = unity_DOTSVisibleInstances[0].VisibleData.w;
+    return float4(0, 0, 0, flags&(1 << 0) ? -1.0f : 1.0f);
+}
+
 #undef DEFINE_DOTS_LOAD_INSTANCE_SCALAR
 #undef DEFINE_DOTS_LOAD_INSTANCE_VECTOR
 

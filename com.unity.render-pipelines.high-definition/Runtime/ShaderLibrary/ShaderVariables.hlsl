@@ -377,8 +377,6 @@ UNITY_DOTS_INSTANCING_END(BuiltinPropertyMetadata)
 
 // Note: Macros for unity_ObjectToWorld and unity_WorldToObject are declared elsewhere
 #define unity_LODFade               UNITY_ACCESS_DOTS_INSTANCED_PROP(float4,   unity_LODFade)
-#define unity_WorldTransformParams  UNITY_ACCESS_DOTS_INSTANCED_PROP(float4,   unity_WorldTransformParams)
-#define unity_RenderingLayer        UNITY_ACCESS_DOTS_INSTANCED_PROP(float4,   unity_RenderingLayer)
 #define unity_LightmapST            UNITY_ACCESS_DOTS_INSTANCED_PROP(float4,   unity_LightmapST)
 #define unity_LightmapIndex         UNITY_ACCESS_DOTS_INSTANCED_PROP(float4,   unity_LightmapIndex)
 #define unity_DynamicLightmapST     UNITY_ACCESS_DOTS_INSTANCED_PROP(float4,   unity_DynamicLightmapST)
@@ -390,9 +388,12 @@ UNITY_DOTS_INSTANCING_END(BuiltinPropertyMetadata)
 #define unity_SHBb                  UNITY_ACCESS_DOTS_INSTANCED_PROP(float4,   unity_SHBb)
 #define unity_SHC                   UNITY_ACCESS_DOTS_INSTANCED_PROP(float4,   unity_SHC)
 #define unity_ProbesOcclusion       UNITY_ACCESS_DOTS_INSTANCED_PROP(float4,   unity_ProbesOcclusion)
-#define unity_MotionVectorsParams   UNITY_ACCESS_DOTS_INSTANCED_PROP(float4,   unity_MotionVectorsParams)
 #define unity_MatrixPreviousM       LoadDOTSInstancedData_float4x4_from_float3x4(UNITY_DOTS_INSTANCED_METADATA_NAME(float3x4, unity_MatrixPreviousM))
 #define unity_MatrixPreviousMI      LoadDOTSInstancedData_float4x4_from_float3x4(UNITY_DOTS_INSTANCED_METADATA_NAME(float3x4, unity_MatrixPreviousMI))
+
+#define unity_RenderingLayer        LoadDOTSInstancedData_RenderingLayer()
+#define unity_MotionVectorsParams   LoadDOTSInstancedData_MotionVectorsParams()
+#define unity_WorldTransformParams  LoadDOTSInstancedData_WorldTransformParams()
 
 #endif
 
