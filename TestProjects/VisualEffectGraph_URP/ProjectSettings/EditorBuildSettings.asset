@@ -54,6 +54,9 @@ EditorBuildSettings:
     path: Packages/com.unity.testing.visualeffectgraph/Scenes/017_MaterialQueueOffset.unity
     guid: cda518f246caf814c9de4d03ddee9a1e
   - enabled: 1
+    path: Packages/com.unity.testing.visualeffectgraph/Scenes/016_DirectLink.unity
+    guid: f0e4fb0bb130c8e4294ceeadaf7d23f5
+  - enabled: 1
     path: Packages/com.unity.testing.visualeffectgraph/Scenes/015_FixedTime.unity
     guid: 30c9fe15b8e87e04f9a524d5c01aa810
   - enabled: 1

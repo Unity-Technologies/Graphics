@@ -57,7 +57,11 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Added the ability to animate many physical camera properties with Timeline.
 - Added a mixed RayMarching/RayTracing mode for RTReflections and RTGI.
 - Added path tracing support for stacklit material.
+- Added path tracing support for AxF material.
 - Added support for surface gradient based normal blending for decals.
+- Added support for tessellation for all master node in shader graph.
+- Added ValidateMaterial callbacks to ShaderGUI.
+- Added support for internal plugin materials and HDSubTarget with their versioning system.
 
 ### Fixed
 - Fixed Intensity Multiplier not affecting realtime global illumination.
@@ -195,6 +199,8 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed multi cameras using cloud layers shadows.
 - Fixed HDAdditionalLightData's CopyTo and HDAdditionalCameraData's CopyTo missing copy.
 - Fixed issue with velocity rejection when using physically-based DoF.
+- Fixed HDRP's ShaderGraphVersion migration management which was broken.
+- Fixed missing API documentation for LTC area light code.
 
 ### Changed
 - Changed Window/Render Pipeline/HD Render Pipeline Wizard to Window/Rendering/HDRP Wizard
@@ -269,6 +275,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Augmented debug visualization for probe volumes.
 - Global Camera shader constants are now pushed when doing a custom render callback.
 - Splited HDProjectSettings with new HDUserSettings in UserProject. Now Wizard working variable should not bother versioning tool anymore (case 1330640)
+- Removed redundant Show Inactive Objects and Isolate Selection checkboxes from the Emissive Materials tab of the Light Explorer (case 1331750).
 
 ## [11.0.0] - 2020-10-21
 
