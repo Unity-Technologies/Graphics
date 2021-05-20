@@ -37,7 +37,8 @@ namespace UnityEditor.VFX
     #pragma warning disable 0659
     class VFXExpressionRandom : VFXExpression
     {
-        public VFXExpressionRandom(bool perElement, RandId id) : base(perElement ? VFXExpression.Flags.PerElement : VFXExpression.Flags.None)
+        public VFXExpressionRandom(bool perElement, RandId id)
+            : base(perElement ? VFXExpression.Flags.PerElement | VFXExpression.Flags.InvalidOnCPU /* read/write isn't supported during CPU evaluation without SetAttributeSpawner */ : VFXExpression.Flags.None)
         {
             m_Id = id;
         }
