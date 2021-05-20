@@ -390,6 +390,7 @@ namespace UnityEngine.Rendering.Universal
         public static readonly string _SPOT = "_SPOT";
         public static readonly string _DIRECTIONAL = "_DIRECTIONAL";
         public static readonly string _POINT = "_POINT";
+        public static readonly string _DEFERRED_STENCIL = "_DEFERRED_STENCIL";
         public static readonly string _DEFERRED_FIRST_LIGHT = "_DEFERRED_FIRST_LIGHT";
         public static readonly string _DEFERRED_MAIN_LIGHT = "_DEFERRED_MAIN_LIGHT";
         public static readonly string _GBUFFER_NORMALS_OCT = "_GBUFFER_NORMALS_OCT";
