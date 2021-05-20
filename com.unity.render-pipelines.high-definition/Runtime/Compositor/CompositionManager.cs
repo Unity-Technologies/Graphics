@@ -515,6 +515,7 @@ namespace UnityEngine.Rendering.HighDefinition.Compositor
                 m_ShaderPropertiesAreDirty = false;
                 SetupCompositorLayers();//< required to allocate RT for the new layers
             }
+#endif
 
             // Detect runtime resolution change
             foreach (var layer in m_InputLayers)
@@ -526,7 +527,6 @@ namespace UnityEngine.Rendering.HighDefinition.Compositor
                     break;
                 }
             }
-#endif
 
             if (m_CompositionProfile)
             {
