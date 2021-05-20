@@ -234,7 +234,7 @@ namespace UnityEditor.Rendering.HighDefinition
             EditorGUI.BeginProperty(rect, label, property);
 
             EditorGUI.BeginChangeCheck();
-            int changedValue = EditorGUI.MaskField(rect, label ?? GUIContent.none, property.intValue, HDRenderPipelineGlobalSettings.instance.decalLayerNames);
+            int changedValue = EditorGUI.MaskField(rect, label ?? GUIContent.none, property.intValue, HDRenderPipelineGlobalSettings.instance.indexedDecalLayerNames);
             if (EditorGUI.EndChangeCheck())
                 property.intValue = changedValue;
 
@@ -251,7 +251,7 @@ namespace UnityEditor.Rendering.HighDefinition
                 return lightLayer;
 
             EditorGUI.BeginChangeCheck();
-            lightLayer = EditorGUI.MaskField(rect, label ?? GUIContent.none, lightLayer, HDRenderPipelineGlobalSettings.instance.lightLayerNames);
+            lightLayer = EditorGUI.MaskField(rect, label ?? GUIContent.none, lightLayer, HDRenderPipelineGlobalSettings.instance.indexedLightLayerNames);
             if (EditorGUI.EndChangeCheck())
                 lightLayer = HDAdditionalLightData.LightLayerToRenderingLayerMask(lightLayer, value);
             return lightLayer;

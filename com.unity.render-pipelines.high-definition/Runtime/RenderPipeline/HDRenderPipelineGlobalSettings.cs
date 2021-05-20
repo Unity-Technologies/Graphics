@@ -32,9 +32,14 @@ namespace UnityEngine.Rendering.HighDefinition
     /// - Frame Settings applied by default to Camera, ReflectionProbe
     /// - Various resources (such as Shaders) for runtime, editor-only, and raytracing
     /// </summary>
+    [HDRPHelpURL("Default-Settings-Window")]
     partial class HDRenderPipelineGlobalSettings : RenderPipelineGlobalSettings
     {
         private static HDRenderPipelineGlobalSettings cachedInstance = null;
+
+        /// <summary>
+        /// Active HDRP Global Settings asset. If the value is null then no HDRenderPipelineGlobalSettings has been registered to the Graphics Settings with the HDRenderPipeline.
+        /// </summary>
         public static HDRenderPipelineGlobalSettings instance
         {
             get
@@ -520,22 +525,24 @@ namespace UnityEngine.Rendering.HighDefinition
 
         #region Rendering Layer Names [Light + Decal]
 
+        static readonly string[] k_DefaultLightLayerNames = { "Light Layer default", "Light Layer 1", "Light Layer 2", "Light Layer 3", "Light Layer 4", "Light Layer 5", "Light Layer 6", "Light Layer 7"};
+
         /// <summary>Name for light layer 0.</summary>
-        public string lightLayerName0 = "Light Layer default";
+        public string lightLayerName0 = k_DefaultLightLayerNames[0];
         /// <summary>Name for light layer 1.</summary>
-        public string lightLayerName1 = "Light Layer 1";
+        public string lightLayerName1 = k_DefaultLightLayerNames[1];
         /// <summary>Name for light layer 2.</summary>
-        public string lightLayerName2 = "Light Layer 2";
+        public string lightLayerName2 = k_DefaultLightLayerNames[2];
         /// <summary>Name for light layer 3.</summary>
-        public string lightLayerName3 = "Light Layer 3";
+        public string lightLayerName3 = k_DefaultLightLayerNames[3];
         /// <summary>Name for light layer 4.</summary>
-        public string lightLayerName4 = "Light Layer 4";
+        public string lightLayerName4 = k_DefaultLightLayerNames[4];
         /// <summary>Name for light layer 5.</summary>
-        public string lightLayerName5 = "Light Layer 5";
+        public string lightLayerName5 = k_DefaultLightLayerNames[5];
         /// <summary>Name for light layer 6.</summary>
-        public string lightLayerName6 = "Light Layer 6";
+        public string lightLayerName6 = k_DefaultLightLayerNames[6];
         /// <summary>Name for light layer 7.</summary>
-        public string lightLayerName7 = "Light Layer 7";
+        public string lightLayerName7 = k_DefaultLightLayerNames[7];
 
 
         [System.NonSerialized]
@@ -565,22 +572,51 @@ namespace UnityEngine.Rendering.HighDefinition
             }
         }
 
+        [System.NonSerialized]
+        string[] m_IndexedLightLayerNames = null;
+        /// <summary>
+        /// Names used for display of light layers.
+        /// </summary>
+        public string[] indexedLightLayerNames
+        {
+            get
+            {
+                if (m_IndexedLightLayerNames == null)
+                {
+                    m_IndexedLightLayerNames = new string[8];
+                }
+
+                m_IndexedLightLayerNames[0] = "0: " + lightLayerName0;
+                m_IndexedLightLayerNames[1] = "1: " + lightLayerName1;
+                m_IndexedLightLayerNames[2] = "2: " + lightLayerName2;
+                m_IndexedLightLayerNames[3] = "3: " + lightLayerName3;
+                m_IndexedLightLayerNames[4] = "4: " + lightLayerName4;
+                m_IndexedLightLayerNames[5] = "5: " + lightLayerName5;
+                m_IndexedLightLayerNames[6] = "6: " + lightLayerName6;
+                m_IndexedLightLayerNames[7] = "7: " + lightLayerName7;
+
+                return m_IndexedLightLayerNames;
+            }
+        }
+
+        static readonly string[] k_DefaultDecalLayerNames = { "Decal Layer default", "Decal Layer 1", "Decal Layer 2", "Decal Layer 3", "Decal Layer 4", "Decal Layer 5", "Decal Layer 6", "Decal Layer 7" };
+
         /// <summary>Name for decal layer 0.</summary>
-        public string decalLayerName0 = "Decal Layer default";
+        public string decalLayerName0 = k_DefaultDecalLayerNames[0];
         /// <summary>Name for decal layer 1.</summary>
-        public string decalLayerName1 = "Decal Layer 1";
+        public string decalLayerName1 = k_DefaultDecalLayerNames[1];
         /// <summary>Name for decal layer 2.</summary>
-        public string decalLayerName2 = "Decal Layer 2";
+        public string decalLayerName2 = k_DefaultDecalLayerNames[2];
         /// <summary>Name for decal layer 3.</summary>
-        public string decalLayerName3 = "Decal Layer 3";
+        public string decalLayerName3 = k_DefaultDecalLayerNames[3];
         /// <summary>Name for decal layer 4.</summary>
-        public string decalLayerName4 = "Decal Layer 4";
+        public string decalLayerName4 = k_DefaultDecalLayerNames[4];
         /// <summary>Name for decal layer 5.</summary>
-        public string decalLayerName5 = "Decal Layer 5";
+        public string decalLayerName5 = k_DefaultDecalLayerNames[5];
         /// <summary>Name for decal layer 6.</summary>
-        public string decalLayerName6 = "Decal Layer 6";
+        public string decalLayerName6 = k_DefaultDecalLayerNames[6];
         /// <summary>Name for decal layer 7.</summary>
-        public string decalLayerName7 = "Decal Layer 7";
+        public string decalLayerName7 = k_DefaultDecalLayerNames[7];
 
         [System.NonSerialized]
         string[] m_DecalLayerNames = null;
@@ -609,6 +645,33 @@ namespace UnityEngine.Rendering.HighDefinition
             }
         }
 
+        [System.NonSerialized]
+        string[] m_IndexedDecalLayerNames = null;
+        /// <summary>
+        /// Names used for display of light layers.
+        /// </summary>
+        public string[] indexedDecalLayerNames
+        {
+            get
+            {
+                if (m_IndexedDecalLayerNames == null)
+                {
+                    m_IndexedDecalLayerNames = new string[8];
+                }
+
+                m_IndexedDecalLayerNames[0] = "0: " + decalLayerName0;
+                m_IndexedDecalLayerNames[1] = "1: " + decalLayerName1;
+                m_IndexedDecalLayerNames[2] = "2: " + decalLayerName2;
+                m_IndexedDecalLayerNames[3] = "3: " + decalLayerName3;
+                m_IndexedDecalLayerNames[4] = "4: " + decalLayerName4;
+                m_IndexedDecalLayerNames[5] = "5: " + decalLayerName5;
+                m_IndexedDecalLayerNames[6] = "6: " + decalLayerName6;
+                m_IndexedDecalLayerNames[7] = "7: " + decalLayerName7;
+
+                return m_IndexedDecalLayerNames;
+            }
+        }
+
 
         // HDRP use GetRenderingLayerMaskNames to create its light linking system
         // Mean here we define our name for light linking.
@@ -626,6 +689,8 @@ namespace UnityEngine.Rendering.HighDefinition
                 return m_RenderingLayerNames;
             }
         }
+
+        /// <summary>Names used for display of rendering layer masks.</summary>
         public string[] renderingLayerMaskNames => renderingLayerNames;
 
         void UpdateRenderingLayerNames()
@@ -654,6 +719,32 @@ namespace UnityEngine.Rendering.HighDefinition
             for (int i = 16; i < m_RenderingLayerNames.Length; ++i)
             {
                 m_RenderingLayerNames[i] = string.Format("Unused {0}", i);
+            }
+        }
+
+        internal void ResetRenderingLayerNames(bool lightLayers, bool decalLayers)
+        {
+            if (lightLayers)
+            {
+                lightLayerName0 = k_DefaultLightLayerNames[0];
+                lightLayerName1 = k_DefaultLightLayerNames[1];
+                lightLayerName2 = k_DefaultLightLayerNames[2];
+                lightLayerName3 = k_DefaultLightLayerNames[3];
+                lightLayerName4 = k_DefaultLightLayerNames[4];
+                lightLayerName5 = k_DefaultLightLayerNames[5];
+                lightLayerName6 = k_DefaultLightLayerNames[6];
+                lightLayerName7 = k_DefaultLightLayerNames[7];
+            }
+            if (decalLayers)
+            {
+                decalLayerName0 = k_DefaultDecalLayerNames[0];
+                decalLayerName1 = k_DefaultDecalLayerNames[1];
+                decalLayerName2 = k_DefaultDecalLayerNames[2];
+                decalLayerName3 = k_DefaultDecalLayerNames[3];
+                decalLayerName4 = k_DefaultDecalLayerNames[4];
+                decalLayerName5 = k_DefaultDecalLayerNames[5];
+                decalLayerName6 = k_DefaultDecalLayerNames[6];
+                decalLayerName7 = k_DefaultDecalLayerNames[7];
             }
         }
 

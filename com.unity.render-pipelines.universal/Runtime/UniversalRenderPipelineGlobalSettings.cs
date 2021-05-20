@@ -177,6 +177,33 @@ namespace UnityEngine.Rendering.Universal
             }
         }
 
+        [System.NonSerialized]
+        string[] m_IndexedLightLayerNames = null;
+        /// <summary>
+        /// Names used for display of light layers.
+        /// </summary>
+        public string[] indexedLightLayerNames
+        {
+            get
+            {
+                if (m_IndexedLightLayerNames == null)
+                {
+                    m_IndexedLightLayerNames = new string[8];
+                }
+
+                m_IndexedLightLayerNames[0] = "0: " + lightLayerName0;
+                m_IndexedLightLayerNames[1] = "1: " + lightLayerName1;
+                m_IndexedLightLayerNames[2] = "2: " + lightLayerName2;
+                m_IndexedLightLayerNames[3] = "3: " + lightLayerName3;
+                m_IndexedLightLayerNames[4] = "4: " + lightLayerName4;
+                m_IndexedLightLayerNames[5] = "5: " + lightLayerName5;
+                m_IndexedLightLayerNames[6] = "6: " + lightLayerName6;
+                m_IndexedLightLayerNames[7] = "7: " + lightLayerName7;
+
+                return m_IndexedLightLayerNames;
+            }
+        }
+
         #region Light Layer Names [3D]
 
         /// <summary>Name for light layer 0.</summary>
