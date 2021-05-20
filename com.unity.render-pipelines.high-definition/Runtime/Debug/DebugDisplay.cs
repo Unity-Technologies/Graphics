@@ -290,22 +290,40 @@ namespace UnityEngine.Rendering.HighDefinition
             internal int volumeCameraEnumIndex;
 
             private float m_DebugGlobalMipBiasOverride = 0.0f;
+
+            /// <summary>
+            /// Returns the current mip bias override specified in the debug panel.
+            /// </summary>
+            /// <returns>Mip bias override</returns>
             public float GetDebugGlobalMipBiasOverride()
             {
                 return m_DebugGlobalMipBiasOverride;
             }
 
+            /// <summary>
+            /// Sets the mip bias override to be imposed in the rendering pipeline.
+            /// </summary>
+            /// <param name="value">mip bias override value.</param>
             public void SetDebugGlobalMipBiasOverride(float value)
             {
                 m_DebugGlobalMipBiasOverride = value;
             }
 
             private bool m_UseDebugGlobalMipBiasOverride = false;
+
+            /// <summary>
+            /// Returns true if the rendering pipeline should apply the mip bias override from the debug settings.
+            /// </summary>
+            /// <returns>True if mip bias override should be applied, false otherwise</returns>
             public bool UseDebugGlobalMipBiasOverride()
             {
                 return m_UseDebugGlobalMipBiasOverride;
             }
 
+            /// <summary>
+            /// Sets whether to use or not use the mip bias override in the rendering pipeline.
+            /// </summary>
+            /// <param name="value">True to tell the rendering pipeline to use the mip bias override, false otherwise</returns>
             public void SetUseDebugGlobalMipBiasOverride(bool value)
             {
                 m_UseDebugGlobalMipBiasOverride = value;

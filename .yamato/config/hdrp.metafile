@@ -28,6 +28,10 @@ test_platforms:
     - [all]: --extra-editor-arg="-cacheServerEnableDownload" --extra-editor-arg="true"
     - [all]: --extra-editor-arg="-cacheServerEnableUpload" --extra-editor-arg="true"
   - type: editmode
+  - type: editmode
+    name: editmode_XR
+    utr_flags:
+      - [all]: --extra-editor-arg="-xr-reuse-tests"
   - type: Standalone
     utr_flags:
       - [OSX_Metal]: --timeout=2400
@@ -150,6 +154,7 @@ nightly:
       test_platforms:
         - Standalone_cache
         - playmode_XR_cache
+        - editmode_XR
     - platform: Win
       api: Vulkan
       build_config: mono

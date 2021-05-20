@@ -31,6 +31,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
         }
 
         protected override string customInspector => "Rendering.HighDefinition.LightingShaderGraphGUI";
+        internal override MaterialResetter setupMaterialKeywordsAndPassFunc => LightingShaderGraphGUI.SetupLightingKeywordsAndPass;
 
         protected override string renderQueue
         {
@@ -118,10 +119,11 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                 pass.keywords.Add(CoreKeywordDescriptors.ProbeVolumes);
                 pass.keywords.Add(CoreKeywordDescriptors.DynamicLightmap);
 
-                if (!pass.IsDXR())
+                if (!pass.IsRelatedToRaytracing())
                 {
                     pass.keywords.Add(CoreKeywordDescriptors.ShadowsShadowmask);
                     pass.keywords.Add(CoreKeywordDescriptors.Decals);
+                    pass.keywords.Add(CoreKeywordDescriptors.DecalSurfaceGradient);
                 }
             }
 
