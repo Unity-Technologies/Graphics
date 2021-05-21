@@ -5,7 +5,7 @@ Shader "Hidden/HDRP/DebugLightCluster"
         Tags { "Queue"="Transparent+0" "IgnoreProjector"="True" "RenderType"="Transparent" }
 
         HLSLINCLUDE
-        #pragma only_renderers d3d11
+        #pragma only_renderers d3d11  xboxseries
 
         static const float3 cubeVertices[24] =
         {
