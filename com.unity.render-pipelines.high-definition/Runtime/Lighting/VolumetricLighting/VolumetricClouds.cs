@@ -6,6 +6,7 @@ namespace UnityEngine.Rendering.HighDefinition
     /// A volume component that holds settings for the ambient occlusion.
     /// </summary>
     [Serializable, VolumeComponentMenu("Sky/Volumetric Clouds")]
+    [HDRPHelpURLAttribute("Override-Volumetric-Clouds")]
     public sealed class VolumetricClouds : VolumeComponent
     {
         /// <summary>
@@ -134,6 +135,12 @@ namespace UnityEngine.Rendering.HighDefinition
         public BoolParameter enable = new BoolParameter(false);
 
         /// <summary>
+        /// When enabled, clouds are part of the scene and you can interact with them. This means for example, you can move around the clouds, clouds can appear between the Camera and other GameObjects, and the Camera's clipping planes affects the clouds. When disabled, the clouds are part of the skybox. This mean the clouds and their shadows appear relative to the Camera and always appear behind geometry.
+        /// </summary>
+        [Tooltip("When enabled, clouds are part of the scene and you can interact with them. This means for example, you can move around the clouds, clouds can appear between the Camera and other GameObjects, and the Camera's clipping planes affects the clouds. When disabled, the clouds are part of the skybox. This mean the clouds and their shadows appear relative to the Camera and always appear behind geometry.")]
+        public BoolParameter localClouds = new BoolParameter(false);
+
+        /// <summary>
         /// Controls the curvature of the cloud volume which defines the distance at which the clouds intersect with the horizon.
         /// </summary>
         [Tooltip("Controls the curvature of the cloud volume which defines the distance at which the clouds intersect with the horizon.")]
@@ -246,12 +253,6 @@ namespace UnityEngine.Rendering.HighDefinition
         /// </summary>
         [Tooltip("Specifies the internal texture resolution used for the cloud map in the advanced mode. A lower value will lead to higher performance, but less precise cloud type transitions.")]
         public CloudMapResolutionParameter cloudMapResolution = new CloudMapResolutionParameter(CloudMapResolution.Medium64x64);
-
-        /// <summary>
-        /// Controls the direction of the scattering. 0.0 is backward 1.0 is forward.
-        /// </summary>
-        [Tooltip("Controls the direction of the scattering. 0.0 is backward 1.0 is forward.")]
-        public ClampedFloatParameter scatteringDirection = new ClampedFloatParameter(0.5f, 0.0f, 1.0f);
 
         /// <summary>
         /// Specifies the tint of the cloud scattering color.

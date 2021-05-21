@@ -3,7 +3,7 @@
 --- !u!129 &1
 PlayerSettings:
   m_ObjectHideFlags: 0
-  serializedVersion: 22
+  serializedVersion: 23
   productGUID: 3d55fb3b8c70e604a84c55c7cb6a259b
   AndroidProfiler: 0
   AndroidFilterTouchesWhenObscured: 0
@@ -67,7 +67,7 @@ PlayerSettings:
   androidStartInFullscreen: 1
   androidRenderOutsideSafeArea: 1
   androidUseSwappy: 0
-  androidBlitType: 1
+  androidBlitType: 0
   defaultIsNativeResolution: 0
   macRetinaSupport: 1
   runInBackground: 1
@@ -137,7 +137,7 @@ PlayerSettings:
   vrSettings:
     enable360StereoCapture: 0
   isWsaHolographicRemotingEnabled: 0
-  enableFrameTimingStats: 1
+  enableFrameTimingStats: 0
   useHDRDisplay: 0
   D3DHDRBitDepth: 0
   m_ColorGamuts: 00000000
@@ -147,13 +147,15 @@ PlayerSettings:
   androidMaxAspectRatio: 2.1
   applicationIdentifier:
     Android: com.DefaultCompany.GraphicsTests
+    Standalone: com.DefaultCompany.GraphicsTests
+    iPhone: com.DefaultCompany.GraphicsTests
   buildNumber:
     Standalone: 0
     iPhone: 0
     tvOS: 0
   overrideDefaultApplicationIdentifier: 0
   AndroidBundleVersionCode: 1
-  AndroidMinSdkVersion: 19
+  AndroidMinSdkVersion: 22
   AndroidTargetSdkVersion: 0
   AndroidPreferredInstallLocation: 1
   aotOptions: 
@@ -252,6 +254,7 @@ PlayerSettings:
     height: 180
     banner: {fileID: 0}
   androidGamepadSupportLevel: 0
+  chromeosInputEmulation: 1
   AndroidMinifyWithR8: 0
   AndroidMinifyRelease: 0
   AndroidMinifyDebug: 0
@@ -299,6 +302,12 @@ PlayerSettings:
   - m_BuildTarget: AndroidPlayer
     m_APIs: 0b000000
     m_Automatic: 0
+  - m_BuildTarget: WindowsStandaloneSupport
+    m_APIs: 02000000
+    m_Automatic: 1
+  - m_BuildTarget: LinuxStandaloneSupport
+    m_APIs: 1100000015000000
+    m_Automatic: 0
   m_BuildTargetVRSettings:
   - m_BuildTarget: Standalone
     m_Enabled: 0
@@ -315,6 +324,7 @@ PlayerSettings:
   m_BuildTargetGroupLightmapEncodingQuality: []
   m_BuildTargetGroupLightmapSettings: []
   m_BuildTargetNormalMapEncoding: []
+  m_BuildTargetDefaultTextureCompressionFormat: []
   playModeTestRunnerEnabled: 1
   runPlayModeTestAsEditModeTest: 0
   actionOnDotNetUnhandledException: 1
@@ -350,6 +360,7 @@ PlayerSettings:
   switchTitleNames_12: 
   switchTitleNames_13: 
   switchTitleNames_14: 
+  switchTitleNames_15: 
   switchPublisherNames_0: 
   switchPublisherNames_1: 
   switchPublisherNames_2: 
@@ -365,6 +376,7 @@ PlayerSettings:
   switchPublisherNames_12: 
   switchPublisherNames_13: 
   switchPublisherNames_14: 
+  switchPublisherNames_15: 
   switchIcons_0: {fileID: 0}
   switchIcons_1: {fileID: 0}
   switchIcons_2: {fileID: 0}
@@ -380,6 +392,7 @@ PlayerSettings:
   switchIcons_12: {fileID: 0}
   switchIcons_13: {fileID: 0}
   switchIcons_14: {fileID: 0}
+  switchIcons_15: {fileID: 0}
   switchSmallIcons_0: {fileID: 0}
   switchSmallIcons_1: {fileID: 0}
   switchSmallIcons_2: {fileID: 0}
@@ -395,6 +408,7 @@ PlayerSettings:
   switchSmallIcons_12: {fileID: 0}
   switchSmallIcons_13: {fileID: 0}
   switchSmallIcons_14: {fileID: 0}
+  switchSmallIcons_15: {fileID: 0}
   switchManualHTML: 
   switchAccessibleURLs: 
   switchLegalInformation: 
@@ -458,6 +472,8 @@ PlayerSettings:
   switchNetworkInterfaceManagerInitializeEnabled: 1
   switchPlayerConnectionEnabled: 1
   switchUseNewStyleFilepaths: 0
+  switchUseMicroSleepForYield: 1
+  switchMicroSleepForYieldTime: 25
   ps4NPAgeRating: 12
   ps4NPTitleSecret: 
   ps4NPTrophyPackPath: 
@@ -553,20 +569,20 @@ PlayerSettings:
   webGLThreadsSupport: 0
   webGLDecompressionFallback: 0
   scriptingDefineSymbols:
-    1: LWRP_DEBUG_STATIC_POSTFX
-    4: LWRP_DEBUG_STATIC_POSTFX
-    7: LWRP_DEBUG_STATIC_POSTFX
-    13: LWRP_DEBUG_STATIC_POSTFX
-    14: LWRP_DEBUG_STATIC_POSTFX
-    18: LWRP_DEBUG_STATIC_POSTFX
-    19: LWRP_DEBUG_STATIC_POSTFX
-    21: LWRP_DEBUG_STATIC_POSTFX
-    23: LWRP_DEBUG_STATIC_POSTFX
-    25: LWRP_DEBUG_STATIC_POSTFX
-    26: LWRP_DEBUG_STATIC_POSTFX
-    27: LWRP_DEBUG_STATIC_POSTFX
-    28: LWRP_DEBUG_STATIC_POSTFX
-    29: LWRP_DEBUG_STATIC_POSTFX
+    1: LWRP_DEBUG_STATIC_POSTFX;URP_TEST_AGGRESSIVE_SHADER_STRIPPING
+    4: LWRP_DEBUG_STATIC_POSTFX;URP_TEST_AGGRESSIVE_SHADER_STRIPPING
+    7: LWRP_DEBUG_STATIC_POSTFX;URP_TEST_AGGRESSIVE_SHADER_STRIPPING
+    13: LWRP_DEBUG_STATIC_POSTFX;URP_TEST_AGGRESSIVE_SHADER_STRIPPING
+    14: LWRP_DEBUG_STATIC_POSTFX;URP_TEST_AGGRESSIVE_SHADER_STRIPPING
+    18: LWRP_DEBUG_STATIC_POSTFX;URP_TEST_AGGRESSIVE_SHADER_STRIPPING
+    19: LWRP_DEBUG_STATIC_POSTFX;URP_TEST_AGGRESSIVE_SHADER_STRIPPING
+    21: LWRP_DEBUG_STATIC_POSTFX;URP_TEST_AGGRESSIVE_SHADER_STRIPPING
+    23: LWRP_DEBUG_STATIC_POSTFX;URP_TEST_AGGRESSIVE_SHADER_STRIPPING
+    25: LWRP_DEBUG_STATIC_POSTFX;URP_TEST_AGGRESSIVE_SHADER_STRIPPING
+    26: LWRP_DEBUG_STATIC_POSTFX;URP_TEST_AGGRESSIVE_SHADER_STRIPPING
+    27: LWRP_DEBUG_STATIC_POSTFX;URP_TEST_AGGRESSIVE_SHADER_STRIPPING
+    28: LWRP_DEBUG_STATIC_POSTFX;URP_TEST_AGGRESSIVE_SHADER_STRIPPING
+    29: LWRP_DEBUG_STATIC_POSTFX;URP_TEST_AGGRESSIVE_SHADER_STRIPPING
   additionalCompilerArguments: {}
   platformArchitecture: {}
   scriptingBackend: {}

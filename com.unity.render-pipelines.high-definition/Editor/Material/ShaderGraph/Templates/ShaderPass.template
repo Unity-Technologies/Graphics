@@ -28,7 +28,19 @@ Pass
     // allowing for FragInputs to capture CI's intended for ShaderGraph's SDI.
     $splice(CustomInterpolatorPreInclude)
 
+	$features.graphVFX: #define HAVE_VFX_MODIFICATION
+
+    // TODO: Merge FragInputsVFX substruct with CustomInterpolators.
+	#ifdef HAVE_VFX_MODIFICATION
+	struct FragInputsVFX
+    {
+        $splice(FragInputsVFX)
+    };
+    #endif
+
     #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Common.hlsl"
+	#include "Packages/com.unity.render-pipelines.core/ShaderLibrary/GeometricTools.hlsl" // Required by Tessellation.hlsl
+	#include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Tessellation.hlsl"
     #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Texture.hlsl"
     #include "Packages/com.unity.render-pipelines.high-definition/Runtime/ShaderLibrary/ShaderVariables.hlsl"
     #include "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/ShaderPass/FragInputs.hlsl"
@@ -55,6 +67,8 @@ Pass
     $VaryingsMeshToPS.texCoord2:        #define VARYINGS_NEED_TEXCOORD2
     $VaryingsMeshToPS.texCoord3:        #define VARYINGS_NEED_TEXCOORD3
     $VaryingsMeshToPS.color:            #define VARYINGS_NEED_COLOR
+    $VaryingsMeshToPS.elementToWorld0:  #define VARYINGS_NEED_ELEMENT_TO_WORLD
+    $VaryingsMeshToPS.worldToElement0:  #define VARYINGS_NEED_WORLD_TO_ELEMENT
 
     $features.graphVertex:              #define HAVE_MESH_MODIFICATION
 
@@ -63,11 +77,21 @@ Pass
 
     $splice(GraphDefines)
 
+	$features.graphTessellation: #ifdef TESSELLATION_ON
+	$features.graphTessellation: // World and normal are always available
+	$features.graphTessellation: $VaryingsMeshToDS.tangentWS:        #define VARYINGS_DS_NEED_TANGENT
+    $features.graphTessellation: $VaryingsMeshToDS.texCoord0:        #define VARYINGS_DS_NEED_TEXCOORD0
+    $features.graphTessellation: $VaryingsMeshToDS.texCoord1:        #define VARYINGS_DS_NEED_TEXCOORD1
+    $features.graphTessellation: $VaryingsMeshToDS.texCoord2:        #define VARYINGS_DS_NEED_TEXCOORD2
+    $features.graphTessellation: $VaryingsMeshToDS.texCoord3:        #define VARYINGS_DS_NEED_TEXCOORD3
+    $features.graphTessellation: $VaryingsMeshToDS.color:            #define VARYINGS_DS_NEED_COLOR
+	$features.graphTessellation: #endif
+
     // Following two define are a workaround introduce in 10.1.x for RaytracingQualityNode
     // The ShaderGraph don't support correctly migration of this node as it serialize all the node data
     // in the json file making it impossible to uprgrade. Until we get a fix, we do a workaround here
     // to still allow us to rename the field and keyword of this node without breaking existing code.
-    #ifdef RAYTRACING_SHADER_GRAPH_DEFAULT 
+    #ifdef RAYTRACING_SHADER_GRAPH_DEFAULT
     #define RAYTRACING_SHADER_GRAPH_HIGH
     #endif
 
@@ -102,14 +126,6 @@ Pass
     #if !defined(_DISABLE_SSR_TRANSPARENT) && !defined(SHADER_UNLIT)
         #define WRITE_NORMAL_BUFFER
     #endif
-    #endif
-
-    // NOTE: disabling de exposure usage on unlit shader graphs (caused by virtual texture constant buffer binding).
-    // If we turn this on, in vulkan, virtual texture offsets are corrupted. It is likely caused by the stack
-    // textures constant buffers, which utilize arrays. Something is happening to the reflection data of vulkan which completely displaces
-    // the constant buffer. A bug is filed and is being looked at.
-    #if defined(SHADER_API_VULKAN)
-    #define DISABLE_UNLIT_DEEXPOSURE
     #endif
 
     #ifndef DEBUG_DISPLAY
@@ -157,6 +173,7 @@ Pass
 
     // Includes
     $splice(PreGraphIncludes)
+	$splice(GraphIncludes)
 
     // --------------------------------------------------
     // Structs and Packing
@@ -181,8 +198,10 @@ Pass
     // --------------------------------------------------
     // Build Graph Inputs
 
-    $features.graphVertex:  $include("VertexAnimation.template.hlsl")
-    $features.graphPixel:   $include("SharedCode.template.hlsl")
+	$features.graphVFX:     $include("VFX/Config.template.hlsl")
+    $features.graphVertex:  $include("Vertex.template.hlsl")
+	$features.graphTessellation:  $include("Tessellation.template.hlsl")
+    $features.graphPixel:   $include("Pixel.template.hlsl")
 
     // --------------------------------------------------
     // Build Surface Data (Specific Material)
@@ -212,7 +231,17 @@ Pass
         #endif // SHADER_UNLIT
 
         SurfaceDescriptionInputs surfaceDescriptionInputs = FragInputsToSurfaceDescriptionInputs(fragInputs, V);
+
+        #if defined(HAVE_VFX_MODIFICATION)
+        GraphProperties properties;
+        ZERO_INITIALIZE(GraphProperties, properties);
+
+        GetElementPixelProperties(fragInputs, properties);
+
+        SurfaceDescription surfaceDescription = SurfaceDescriptionFunction(surfaceDescriptionInputs, properties);
+        #else
         SurfaceDescription surfaceDescription = SurfaceDescriptionFunction(surfaceDescriptionInputs);
+        #endif
 
         // Perform alpha test very early to save performance (a killed pixel will not sample textures)
         // TODO: split graph evaluation to grab just alpha dependencies first? tricky..
@@ -304,6 +333,13 @@ Pass
     // Main
 
     $splice(PostGraphIncludes)
+
+    // --------------------------------------------------
+    // Visual Effect Vertex Invocations
+
+	#ifdef HAVE_VFX_MODIFICATION
+	#include "Packages/com.unity.render-pipelines.high-definition/Runtime/ShaderLibrary/VisualEffectVertex.hlsl"
+	#endif
 
     ENDHLSL
 }

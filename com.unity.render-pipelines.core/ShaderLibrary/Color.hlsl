@@ -1,6 +1,10 @@
 #ifndef UNITY_COLOR_INCLUDED
 #define UNITY_COLOR_INCLUDED
 
+#if SHADER_API_MOBILE || SHADER_API_GLES || SHADER_API_GLES3
+#pragma warning (disable : 3205) // conversion of larger type to smaller
+#endif
+
 #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/ACES.hlsl"
 
 //-----------------------------------------------------------------------------
@@ -72,6 +76,9 @@ real4 LinearToGamma22(real4 c)
 // sRGB
 real SRGBToLinear(real c)
 {
+#if defined(UNITY_COLORSPACE_GAMMA) && REAL_IS_HALF
+    c = min(c, 100.0); // Make sure not to exceed HALF_MAX after the pow() below
+#endif
     real linearRGBLo  = c / 12.92;
     real linearRGBHi  = PositivePow((c + 0.055) / 1.055, 2.4);
     real linearRGB    = (c <= 0.04045) ? linearRGBLo : linearRGBHi;
@@ -80,6 +87,9 @@ real SRGBToLinear(real c)
 
 real2 SRGBToLinear(real2 c)
 {
+#if defined(UNITY_COLORSPACE_GAMMA) && REAL_IS_HALF
+    c = min(c, 100.0); // Make sure not to exceed HALF_MAX after the pow() below
+#endif
     real2 linearRGBLo  = c / 12.92;
     real2 linearRGBHi  = PositivePow((c + 0.055) / 1.055, real2(2.4, 2.4));
     real2 linearRGB    = (c <= 0.04045) ? linearRGBLo : linearRGBHi;
@@ -88,6 +98,9 @@ real2 SRGBToLinear(real2 c)
 
 real3 SRGBToLinear(real3 c)
 {
+#if defined(UNITY_COLORSPACE_GAMMA) && REAL_IS_HALF
+    c = min(c, 100.0); // Make sure not to exceed HALF_MAX after the pow() below
+#endif
     real3 linearRGBLo  = c / 12.92;
     real3 linearRGBHi  = PositivePow((c + 0.055) / 1.055, real3(2.4, 2.4, 2.4));
     real3 linearRGB    = (c <= 0.04045) ? linearRGBLo : linearRGBHi;
@@ -176,10 +189,12 @@ real4 FastLinearToSRGB(real4 c)
 
 // Convert rgb to luminance
 // with rgb in linear space with sRGB primaries and D65 white point
+#ifndef BUILTIN_TARGET_API
 real Luminance(real3 linearRgb)
 {
     return dot(linearRgb, real3(0.2126729, 0.7151522, 0.0721750));
 }
+#endif
 
 real Luminance(real4 linearRgba)
 {
@@ -731,5 +746,9 @@ half3 DecodeRGBM(half4 rgbm)
 {
     return rgbm.xyz * rgbm.w * kRGBMRange;
 }
+
+#if SHADER_API_MOBILE || SHADER_API_GLES || SHADER_API_GLES3
+#pragma warning (enable : 3205) // conversion of larger type to smaller
+#endif
 
 #endif // UNITY_COLOR_INCLUDED
