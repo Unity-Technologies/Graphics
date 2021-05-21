@@ -123,7 +123,7 @@ namespace UnityEngine.Experimental.Rendering
             cmd.SetComputeBufferParam(dilationShader, dilationKernel, _OutputProbes, data.outputProbes);
 
             int probeCount = cell.probePositions.Length;
-            cmd.SetComputeVectorParam(dilationShader, _DilationParameters, new Vector4(probeCount, settings.dilationValidityThreshold, settings.maxDilationSampleDistance, ProbeReferenceVolume.instance.GetTransform().scale));
+            cmd.SetComputeVectorParam(dilationShader, _DilationParameters, new Vector4(probeCount, settings.dilationValidityThreshold, settings.dilationDistance, settings.brickSize));
 
 
             var refVolume = ProbeReferenceVolume.instance;
