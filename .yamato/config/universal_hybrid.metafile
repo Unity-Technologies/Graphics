@@ -1,14 +1,73 @@
 project:
   name: Universal_Hybrid
   folder: UniversalHybridTest
+
 test_platforms:
   - type: Standalone
-    utr_flags:
-      - [all]: --compilation-errors-as-warnings
-      - [OSX_Metal]: --timeout=2400
-    utr_flags_build:
-      - [Android_OpenGles3, Android_Vulkan]: --timeout=2700
-      - [all]: --compilation-errors-as-warnings
+    name: Standalone_DOTS
+    commands:
+      - [Android_OpenGLES3, Android_Vulkan]: <shared.platform.commands.connect_bokken>
+      - [Win_DX11, Win_DX12, Win_Vulkan, Android_OpenGLES3, Android_Vulkan]: <shared.platform.commands.turn_off_firewall>
+      - [all]: <shared.platform.commands.setup_utr>
+      - [OSX_Metal]: <shared.platform.commands.unity_downloader_cli>
+      - [iPhone_Metal, Android_Vulkan, Android_OpenGLES3, Win_DX11, Win_DX12, Win_Vulkan, OSX_Metal, Linux_Vulkan]: <shared.platform.commands.call_utr>
+        flags:
+          - [all]: --compilation-errors-as-warnings
+          - [OSX_Metal]: --timeout=2400
+          - [OSX_Metal]:  --extra-editor-arg="-playmodePlayerBuilder" --extra-editor-arg="BuildConfiguration" --extra-editor-arg="-executemethod" --extra-editor-arg="SetupProject.ApplySettings" --extra-editor-arg="metal" --extra-editor-arg="<COLORSPACE>"
+
+    commands_build:
+      - [iPhone_Metal]: pip install unity-downloader-cli --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade
+      - [iPhone_Metal]: unity-downloader-cli <EDITOR_REVISION_CMD> -c editor -c iOS -c il2cpp   --wait --published-only
+      - [Win_DX11, Win_DX12, Win_Vulkan, Android_OpenGLES3, Android_Vulkan]: <shared.platform.commands.turn_off_firewall>
+      - [all]: <shared.platform.commands.setup_utr>
+      - [Android_Vulkan, Android_OpenGLES3, Win_DX11, Win_DX12, Win_Vulkan, OSX_Metal, Linux_Vulkan]: <shared.platform.commands.unity_downloader_cli>
+      - [iPhone_Metal, Android_Vulkan, Android_OpenGLES3, Win_DX11, Win_DX12, Win_Vulkan, OSX_Metal, Linux_Vulkan]: <shared.platform.commands.call_utr>
+        flags:
+          - [Android_OpenGles3, Android_Vulkan]: --timeout=2700
+          - [all]: --compilation-errors-as-warnings
+          - [all]:  --extra-editor-arg="-playmodePlayerBuilder" --extra-editor-arg="BuildConfiguration"
+          - [Win_DX11]:  --extra-editor-arg="-playmodePlayerBuilder" --extra-editor-arg="BuildConfiguration" --extra-editor-arg="-executemethod" --extra-editor-arg="SetupProject.ApplySettings" --extra-editor-arg="d3d11" --extra-editor-arg="<COLORSPACE>"
+          - [Win_DX12]:  --extra-editor-arg="-playmodePlayerBuilder" --extra-editor-arg="BuildConfiguration" --extra-editor-arg="-executemethod" --extra-editor-arg="SetupProject.ApplySettings" --extra-editor-arg="d3d12" --extra-editor-arg="<COLORSPACE>"
+          - [Win_Vulkan, Linux_Vulkan, Android_Vulkan]:  --extra-editor-arg="-playmodePlayerBuilder" --extra-editor-arg="BuildConfiguration" --extra-editor-arg="-executemethod" --extra-editor-arg="SetupProject.ApplySettings" --extra-editor-arg="vulkan" --extra-editor-arg="<COLORSPACE>"
+          - [Android_OpenGLES3]:  --extra-editor-arg="-playmodePlayerBuilder" --extra-editor-arg="BuildConfiguration" ---extra-editor-arg="-executemethod" --extra-editor-arg="SetupProject.ApplySettings" --extra-editor-arg="gles3" --extra-editor-arg="<COLORSPACE>"
+          - [iPhone_Metal]:  --extra-editor-arg="-playmodePlayerBuilder" --extra-editor-arg="BuildConfiguration" --extra-editor-arg="-executemethod" --extra-editor-arg="SetupProject.ApplySettings" --extra-editor-arg="metal" --extra-editor-arg="<COLORSPACE>"
+
+  - type: Standalone
+    name: Standalone_DOTS_cache
+    commands:
+      - [Android_OpenGLES3, Android_Vulkan]: <shared.platform.commands.connect_bokken>
+      - [Win_DX11, Win_DX12, Win_Vulkan, Android_OpenGLES3, Android_Vulkan]: <shared.platform.commands.turn_off_firewall>
+      - [all]: <shared.platform.commands.setup_utr>
+      - [OSX_Metal]: <shared.platform.commands.unity_downloader_cli>
+      - [iPhone_Metal, Android_Vulkan, Android_OpenGLES3, Win_DX11, Win_DX12, Win_Vulkan, OSX_Metal, Linux_Vulkan]: <shared.platform.commands.call_utr>
+        flags:
+          - [all]: --compilation-errors-as-warnings
+          - [OSX_Metal]: --timeout=2400
+          - [OSX_Metal]:  --extra-editor-arg="-playmodePlayerBuilder" --extra-editor-arg="BuildConfiguration" --extra-editor-arg="-executemethod" --extra-editor-arg="SetupProject.ApplySettings" --extra-editor-arg="metal" --extra-editor-arg="<COLORSPACE>"
+    commands_build:
+      - [iPhone_Metal]: pip install unity-downloader-cli --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade
+      - [iPhone_Metal]: unity-downloader-cli <EDITOR_REVISION_CMD> -c editor -c iOS -c il2cpp   --wait --published-only
+      - [Win_DX11, Win_DX12, Win_Vulkan, Android_OpenGLES3, Android_Vulkan]: <shared.platform.commands.turn_off_firewall>
+      - [all]: <shared.platform.commands.setup_utr>
+      - [Android_Vulkan, Android_OpenGLES3, Win_DX11, Win_DX12, Win_Vulkan, OSX_Metal, Linux_Vulkan]: <shared.platform.commands.unity_downloader_cli>
+      - [iPhone_Metal, Android_Vulkan, Android_OpenGLES3, Win_DX11, Win_DX12, Win_Vulkan, OSX_Metal, Linux_Vulkan]: <shared.platform.commands.call_utr>
+        flags:
+          - [all]: --timeout=3000
+          - [all]: --compilation-errors-as-warnings
+          - [all]:  --extra-editor-arg="-playmodePlayerBuilder" --extra-editor-arg="BuildConfiguration"
+          - [Win_DX11]:  --extra-editor-arg="-playmodePlayerBuilder" --extra-editor-arg="BuildConfiguration" --extra-editor-arg="-executemethod" --extra-editor-arg="SetupProject.ApplySettings" --extra-editor-arg="d3d11" --extra-editor-arg="<COLORSPACE>"
+          - [Win_DX12]:  --extra-editor-arg="-playmodePlayerBuilder" --extra-editor-arg="BuildConfiguration" --extra-editor-arg="-executemethod" --extra-editor-arg="SetupProject.ApplySettings" --extra-editor-arg="d3d12" --extra-editor-arg="<COLORSPACE>"
+          - [Win_Vulkan, Linux_Vulkan, Android_Vulkan]:  --extra-editor-arg="-playmodePlayerBuilder" --extra-editor-arg="BuildConfiguration" --extra-editor-arg="-executemethod" --extra-editor-arg="SetupProject.ApplySettings" --extra-editor-arg="vulkan" --extra-editor-arg="<COLORSPACE>"
+          - [Android_OpenGLES3]:  --extra-editor-arg="-playmodePlayerBuilder" --extra-editor-arg="BuildConfiguration" ---extra-editor-arg="-executemethod" --extra-editor-arg="SetupProject.ApplySettings" --extra-editor-arg="gles3" --extra-editor-arg="<COLORSPACE>"
+          - [iPhone_Metal]:  --extra-editor-arg="-playmodePlayerBuilder" --extra-editor-arg="BuildConfiguration" --extra-editor-arg="-executemethod" --extra-editor-arg="SetupProject.ApplySettings" --extra-editor-arg="metal" --extra-editor-arg="<COLORSPACE>"
+          - [all]: --extra-editor-arg="-adb2"
+          - [all]: --extra-editor-arg="-enableCacheServer"
+          - [all]: --extra-editor-arg="-cacheServerEndpoint" --extra-editor-arg="cacheserver-slo.hq.unity3d.com"
+          - [all]: --extra-editor-arg="-cacheServerNamespacePrefix" --extra-editor-arg="{{cache.cacheServerNamespacePrefix}}"
+          - [all]: --extra-editor-arg="-cacheServerEnableDownload" --extra-editor-arg="true"
+          - [all]: --extra-editor-arg="-cacheServerEnableUpload" --extra-editor-arg="true"
+
   - type: playmode
     utr_flags:
       - [all]: --compilation-errors-as-warnings
@@ -19,27 +78,10 @@ test_platforms:
     - [all]: --extra-editor-arg="-adb2"
     - [all]: --extra-editor-arg="-enableCacheServer"
     - [all]: --extra-editor-arg="-cacheServerEndpoint" --extra-editor-arg="cacheserver-slo.hq.unity3d.com"
-    - [all]: --extra-editor-arg="-cacheServerNamespacePrefix" --extra-editor-arg="SRP"
+    - [all]: --extra-editor-arg="-cacheServerNamespacePrefix" --extra-editor-arg="{{cache.cacheServerNamespacePrefix}}"
     - [all]: --extra-editor-arg="-cacheServerEnableDownload" --extra-editor-arg="true"
     - [all]: --extra-editor-arg="-cacheServerEnableUpload" --extra-editor-arg="true"
-  - type: Standalone
-    name: Standalone_cache
-    utr_flags:
-    - [all]: --extra-editor-arg="-adb2"
-    - [all]: --extra-editor-arg="-enableCacheServer"
-    - [all]: --extra-editor-arg="-cacheServerEndpoint" --extra-editor-arg="cacheserver-slo.hq.unity3d.com"
-    - [all]: --extra-editor-arg="-cacheServerNamespacePrefix" --extra-editor-arg="SRP"
-    - [all]: --extra-editor-arg="-cacheServerEnableDownload" --extra-editor-arg="true"
-    - [all]: --extra-editor-arg="-cacheServerEnableUpload" --extra-editor-arg="true"
-    utr_flags_build:
-    - [all]: --timeout=3000
-    - [all]: --extra-editor-arg="-adb2"
-    - [all]: --extra-editor-arg="-enableCacheServer"
-    - [all]: --extra-editor-arg="-cacheServerEndpoint" --extra-editor-arg="cacheserver-slo.hq.unity3d.com"
-    - [all]: --extra-editor-arg="-cacheServerNamespacePrefix" --extra-editor-arg="SRP"
-    - [all]: --extra-editor-arg="-cacheServerEnableDownload" --extra-editor-arg="true"
-    - [all]: --extra-editor-arg="-cacheServerEnableUpload" --extra-editor-arg="true"
-expression_trigger: 
+expression_trigger:
   expression: ""
 platforms:
   - name: Win
@@ -50,7 +92,7 @@ platforms:
       - name: mono
     color_spaces:
       - Linear
-  - name: OSX 
+  - name: OSX
     apis:
       - name: Metal
         exclude_test_platforms:
@@ -60,11 +102,11 @@ platforms:
     color_spaces:
       - Linear
   - name: Linux
-    apis: 
+    apis:
       - name: OpenGLCore
         exclude_test_platforms:
-          - name: Standalone
-          - name: Standalone_cache
+          - name: Standalone_DOTS
+          - name: Standalone_DOTS_cache
           - name: playmode_XR
       - name: Vulkan
         exclude_test_platforms:
@@ -96,7 +138,8 @@ pr:
       build_config: mono
       color_space: Linear
       test_platforms:
-        - playmode_cache
+        - playmode
+        - Standalone_DOTS
 nightly:
   dependencies:
     - project: Universal_Hybrid

@@ -39,7 +39,7 @@ namespace UnityEditor.ShaderGraph.Drawing
 
         bool m_TopologyDirty;                                                                               // indicates topology changed, used to rebuild timed node list and preview type (2D/3D) inheritance.
 
-        HashSet<BlockNode> m_MasterNodePreviewBlocks = new HashSet<BlockNode>();                            // all blocks used for the most recent master node preview generation. this includes temporary blocks.
+        HashSet<BlockNode> m_MasterNodeTempBlocks = new HashSet<BlockNode>();                               // temp blocks used by the most recent master node preview generation.
 
         PreviewSceneResources m_SceneResources;
         Texture2D m_ErrorTexture;
@@ -217,7 +217,7 @@ namespace UnityEditor.ShaderGraph.Drawing
         static HashSet<AbstractMaterialNode> m_TempAddedToNodeWave = new HashSet<AbstractMaterialNode>();
 
         // cache the Action to avoid GC
-        Action<AbstractMaterialNode> AddNextLevelNodesToWave =
+        static Action<AbstractMaterialNode> AddNextLevelNodesToWave =
             nextLevelNode =>
             {
                 if (!m_TempAddedToNodeWave.Contains(nextLevelNode))
@@ -227,7 +227,7 @@ namespace UnityEditor.ShaderGraph.Drawing
                 }
             };
 
-        enum PropagationDirection
+        internal enum PropagationDirection
         {
             Upstream,
             Downstream
@@ -236,7 +236,7 @@ namespace UnityEditor.ShaderGraph.Drawing
         // ADDs all nodes in sources, and all nodes in the given direction relative to them, into result
         // sources and result can be the same HashSet
         private static readonly ProfilerMarker PropagateNodesMarker = new ProfilerMarker("PropagateNodes");
-        void PropagateNodes(HashSet<AbstractMaterialNode> sources, PropagationDirection dir, HashSet<AbstractMaterialNode> result)
+        internal static void PropagateNodes(HashSet<AbstractMaterialNode> sources, PropagationDirection dir, HashSet<AbstractMaterialNode> result)
         {
             using (PropagateNodesMarker.Auto())
             if (sources.Count > 0)
@@ -438,6 +438,9 @@ namespace UnityEditor.ShaderGraph.Drawing
 
                 // all nodes downstream of a changed property must be redrawn (to display the updated the property value)
                 PropagateNodes(m_NodesPropertyChanged, PropagationDirection.Downstream, nodesToDraw);
+
+                // always update properties from temporary blocks created by master node preview generation
+                m_NodesPropertyChanged.UnionWith(m_MasterNodeTempBlocks);
 
                 CollectPreviewProperties(m_NodesPropertyChanged, perMaterialPreviewProperties);
                 m_NodesPropertyChanged.Clear();
@@ -1038,6 +1041,9 @@ namespace UnityEditor.ShaderGraph.Drawing
         {
             using (RenderPreviewMarker.Auto())
             {
+                var wasAsyncAllowed = ShaderUtil.allowAsyncCompilation;
+                ShaderUtil.allowAsyncCompilation = true;
+
                 AssignPerMaterialPreviewProperties(renderData.shaderData.mat, perMaterialPreviewProperties);
 
                 var previousRenderTexture = RenderTexture.active;
@@ -1067,6 +1073,8 @@ namespace UnityEditor.ShaderGraph.Drawing
                 renderData.texture = renderData.renderTexture;
 
                 m_PreviewsToDraw.Remove(renderData);
+
+                ShaderUtil.allowAsyncCompilation = wasAsyncAllowed;
             }
         }
 
@@ -1125,12 +1133,11 @@ namespace UnityEditor.ShaderGraph.Drawing
                 var generator = new Generator(m_Graph, m_Graph.outputNode, GenerationMode.Preview, "Master", null);
                 shaderData.shaderString = generator.generatedShader;
 
-                // Blocks from the generation include those temporarily created for missing stack blocks
-                // We need to hold on to these to set preview property values during CollectShaderProperties
-                m_MasterNodePreviewBlocks.Clear();
-                foreach(var block in generator.blocks)
+                // record the blocks temporarily created for missing stack blocks
+                m_MasterNodeTempBlocks.Clear();
+                foreach (var block in generator.temporaryBlocks)
                 {
-                    m_MasterNodePreviewBlocks.Add(block);
+                    m_MasterNodeTempBlocks.Add(block);
                 }
             }
 

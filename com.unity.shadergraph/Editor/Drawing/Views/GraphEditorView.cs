@@ -651,8 +651,11 @@ namespace UnityEditor.ShaderGraph.Drawing
 
             previewManager.RenderPreviews();
             m_BlackboardProvider.HandleGraphChanges(wasUndoRedoPerformed);
-            if(wasUndoRedoPerformed || m_InspectorView.DoesInspectorNeedUpdate())
-                m_InspectorView.Update();
+            if (wasUndoRedoPerformed)
+                m_InspectorView.Update(InspectorUpdateSource.GraphChanges);
+            if(m_InspectorView.DoesInspectorNeedUpdate())
+                m_InspectorView.Update(InspectorUpdateSource.PropertyInspection);
+
             m_GroupHashSet.Clear();
 
             foreach (var node in m_Graph.removedNodes)

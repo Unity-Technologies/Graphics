@@ -591,6 +591,11 @@ namespace UnityEngine.Rendering.HighDefinition
             InitializeProbeVolumes();
             CustomPassUtils.Initialize();
 
+            // We allocate shadow manager non rendergraph resources regardless of whether RG is enabled or not
+            // because as there is no shared texture, we need to import textures from the atlasses all the time to avoid
+            // having issues with "persisting" textures stomping on each other if they have the same descriptor.
+            m_ShadowManager.InitializeNonRenderGraphResources();
+
             EnableRenderGraph(defaultAsset.useRenderGraph && !enableNonRenderGraphTests);
         }
 
@@ -607,7 +612,20 @@ namespace UnityEngine.Rendering.HighDefinition
             ResourceReloader.ReloadAllNullIn(asset.renderPipelineResources, HDUtils.GetHDRenderPipelinePath());
 #endif
 
-            if (m_RayTracingSupported)
+            bool requiresRayTracingResources = false;
+            // Make sure to include ray-tracing resources if at least one of the defaultAsset or quality levels needs it
+            if (defaultAsset.currentPlatformRenderPipelineSettings.supportRayTracing)
+                requiresRayTracingResources = true;
+
+            int qualityLevelCount = QualitySettings.names.Length;
+            for (int i = 0; i < qualityLevelCount && !requiresRayTracingResources; ++i)
+            {
+                var hdrpAsset = QualitySettings.GetRenderPipelineAssetAt(i) as HDRenderPipelineAsset;
+                if (hdrpAsset != null && hdrpAsset.currentPlatformRenderPipelineSettings.supportRayTracing)
+                    requiresRayTracingResources = true;
+            }
+
+            if (requiresRayTracingResources)
             {
                 if (asset.renderPipelineRayTracingResources == null)
                     asset.renderPipelineRayTracingResources
@@ -1019,7 +1037,6 @@ namespace UnityEngine.Rendering.HighDefinition
         void InitializeNonRenderGraphResources()
         {
             InitializeRenderTextures();
-            m_ShadowManager.InitializeNonRenderGraphResources();
             m_AmbientOcclusionSystem.InitializeNonRenderGraphResources();
             m_PostProcessSystem.InitializeNonRenderGraphResources(asset);
             s_lightVolumes.InitializeNonRenderGraphResources();
@@ -1032,7 +1049,6 @@ namespace UnityEngine.Rendering.HighDefinition
         void CleanupNonRenderGraphResources()
         {
             DestroyRenderTextures();
-            m_ShadowManager.CleanupNonRenderGraphResources();
             m_AmbientOcclusionSystem.CleanupNonRenderGraphResources();
             m_PostProcessSystem.CleanupNonRenderGraphResources();
             s_lightVolumes.CleanupNonRenderGraphResources();
@@ -1121,6 +1137,9 @@ namespace UnityEngine.Rendering.HighDefinition
             ReleaseRayTracingManager();
             m_DebugDisplaySettings.UnregisterDebug();
 
+            // We allocated shadow manager non rendergraph resources regardless of whether RG is enabled or not
+            // because as there is no shared texture, we need to import textures from the atlasses all the time.
+            m_ShadowManager.CleanupNonRenderGraphResources();
             CleanupLightLoop();
 
             // For debugging
@@ -1157,6 +1176,7 @@ namespace UnityEngine.Rendering.HighDefinition
             m_SkyManager.Cleanup();
             CleanupVolumetricLighting();
             CleanupProbeVolumes();
+            CleanupSubsurfaceScattering();
 
             for(int bsdfIdx = 0; bsdfIdx < m_IBLFilterArray.Length; ++bsdfIdx)
             {
@@ -1598,25 +1618,6 @@ namespace UnityEngine.Rendering.HighDefinition
                 HDCamera.CleanUnused();
             }
 
-            var dynResHandler = DynamicResolutionHandler.instance;
-            if(m_EnableRenderGraph)
-            {
-                dynResHandler.Update(m_Asset.currentPlatformRenderPipelineSettings.dynamicResolutionSettings);
-            }
-            else
-            {
-                dynResHandler.Update(m_Asset.currentPlatformRenderPipelineSettings.dynamicResolutionSettings, () =>
-                {
-                    var hdrp = (RenderPipelineManager.currentPipeline as HDRenderPipeline);
-                    var stencilBuffer = hdrp.m_SharedRTManager.GetDepthStencilBuffer().rt;
-                    var stencilBufferSize = new Vector2Int(stencilBuffer.width, stencilBuffer.height);
-                    hdrp.m_SharedRTManager.ComputeDepthBufferMipChainSize(DynamicResolutionHandler.instance.GetScaledSize(stencilBufferSize));
-                }
-                );
-            }
-
-
-
             // This syntax is awful and hostile to debugging, please don't use it...
             using (ListPool<RenderRequest>.Get(out List<RenderRequest> renderRequests))
             using (ListPool<int>.Get(out List<int> rootRenderRequestIndices))
@@ -1665,6 +1666,24 @@ namespace UnityEngine.Rendering.HighDefinition
                     if (hasGameViewCamera && camera.cameraType == CameraType.Preview)
                         continue;
 #endif
+
+                    if(m_EnableRenderGraph)
+                    {
+                        DynamicResolutionHandler.UpdateAndUseCamera(camera, m_Asset.currentPlatformRenderPipelineSettings.dynamicResolutionSettings);
+                    }
+                    else
+                    {
+                        DynamicResolutionHandler.UpdateAndUseCamera(camera, m_Asset.currentPlatformRenderPipelineSettings.dynamicResolutionSettings, () =>
+                        {
+                            var hdrp = (RenderPipelineManager.currentPipeline as HDRenderPipeline);
+                            var stencilBuffer = hdrp.m_SharedRTManager.GetDepthStencilBuffer().rt;
+                            var stencilBufferSize = new Vector2Int(stencilBuffer.width, stencilBuffer.height);
+                            hdrp.m_SharedRTManager.ComputeDepthBufferMipChainSize(DynamicResolutionHandler.instance.GetScaledSize(stencilBufferSize));
+                        }
+                        );
+                    }
+
+                    var dynResHandler = DynamicResolutionHandler.instance;
 
                     bool cameraRequestedDynamicRes = false;
                     HDAdditionalCameraData hdCam;
@@ -1969,6 +1988,11 @@ namespace UnityEngine.Rendering.HighDefinition
                         var camera = m_ProbeCameraCache.GetOrCreate((viewerTransform, visibleProbe, j), Time.frameCount, CameraType.Reflection);
                         var additionalCameraData = camera.GetComponent<HDAdditionalCameraData>();
 
+                        var settingsCopy = m_Asset.currentPlatformRenderPipelineSettings.dynamicResolutionSettings;
+                        settingsCopy.forcedPercentage = 100.0f;
+                        settingsCopy.forceResolution = true;
+                        DynamicResolutionHandler.UpdateAndUseCamera(camera, settingsCopy);
+
                         if (additionalCameraData == null)
                             additionalCameraData = camera.gameObject.AddComponent<HDAdditionalCameraData>();
                         additionalCameraData.hasPersistentHistory = true;
@@ -2221,11 +2245,17 @@ namespace UnityEngine.Rendering.HighDefinition
                                 probe.SetRenderData(ProbeSettings.Mode.Realtime, probeRenderData);
                             }
 
+                            // Save the camera history before rendering the AOVs
+                            var cameraHistory = renderRequest.hdCamera.GetHistoryRTHandleSystem();
+
                             // var aovRequestIndex = 0;
                             foreach (var aovRequest in renderRequest.hdCamera.aovRequests)
                             {
                                 using (new ProfilingScope(cmd, ProfilingSampler.Get(HDProfileId.HDRenderPipelineRenderAOV)))
                                 {
+                                    // Before rendering the AOV, bind the correct history buffers
+                                    var aovHistory = renderRequest.hdCamera.GetHistoryRTHandleSystem(aovRequest);
+                                    renderRequest.hdCamera.BindHistoryRTHandleSystem(aovHistory);
                                     cmd.SetInvertCulling(renderRequest.cameraSettings.invertFaceCulling);
                                     ExecuteRenderRequest(renderRequest, renderContext, cmd, aovRequest);
                                     cmd.SetInvertCulling(false);
@@ -2234,6 +2264,9 @@ namespace UnityEngine.Rendering.HighDefinition
                                 renderContext.Submit();
                                 cmd.Clear();
                             }
+
+                            // We are now going to render the main camera, so bind the correct HistoryRTHandleSystem (in case we previously render an AOV)
+                            renderRequest.hdCamera.BindHistoryRTHandleSystem(cameraHistory);
 
                             using (new ProfilingScope(cmd, renderRequest.hdCamera.profilingSampler))
                             {
@@ -2290,6 +2323,8 @@ namespace UnityEngine.Rendering.HighDefinition
                 }
             }
 
+            DynamicResolutionHandler.ClearSelectedCamera();
+
             if (m_EnableRenderGraph)
                 m_RenderGraph.EndFrame();
             m_XRSystem.ReleaseFrame();
@@ -2318,6 +2353,7 @@ namespace UnityEngine.Rendering.HighDefinition
             AOVRequestData aovRequest
         )
         {
+            DynamicResolutionHandler.UpdateAndUseCamera(renderRequest.hdCamera.camera);
             InitializeGlobalResources(renderContext);
 
             var hdCamera = renderRequest.hdCamera;
@@ -2417,9 +2453,9 @@ namespace UnityEngine.Rendering.HighDefinition
             Resize(hdCamera);
             m_PostProcessSystem.BeginFrame(cmd, hdCamera, this);
 
-            ApplyDebugDisplaySettings(hdCamera, cmd);
+            ApplyDebugDisplaySettings(hdCamera, cmd, aovRequest.isValid);
 
-            if (DebugManager.instance.displayRuntimeUI
+                if (DebugManager.instance.displayRuntimeUI
 #if UNITY_EDITOR
                     || DebugManager.instance.displayEditorUI
 #endif
@@ -2615,7 +2651,9 @@ namespace UnityEngine.Rendering.HighDefinition
             // Only on consoles is safe to read and write from/to the depth atlas
             bool mip1FromDownsampleForLowResTrans = SystemInfo.graphicsDeviceType == GraphicsDeviceType.PlayStation4 ||
                                                     SystemInfo.graphicsDeviceType == GraphicsDeviceType.XboxOne ||
-                                                    SystemInfo.graphicsDeviceType == GraphicsDeviceType.XboxOneD3D12;
+                                                    SystemInfo.graphicsDeviceType == GraphicsDeviceType.XboxOneD3D12 ||
+                                                    SystemInfo.graphicsDeviceType == GraphicsDeviceType.GameCoreXboxOne ||
+                                                    SystemInfo.graphicsDeviceType == GraphicsDeviceType.GameCoreXboxSeries;
             mip1FromDownsampleForLowResTrans = mip1FromDownsampleForLowResTrans && hdCamera.frameSettings.IsEnabled(FrameSettingsField.LowResTransparent);
 
             DownsampleDepthForLowResTransparency(hdCamera, cmd, m_SharedRTManager.GetDepthTexture(), mip1FromDownsampleForLowResTrans);
@@ -3853,7 +3891,9 @@ namespace UnityEngine.Rendering.HighDefinition
 
             bool canReadBoundDepthBuffer =  SystemInfo.graphicsDeviceType == GraphicsDeviceType.PlayStation4 ||
                                             SystemInfo.graphicsDeviceType == GraphicsDeviceType.XboxOne ||
-                                            SystemInfo.graphicsDeviceType == GraphicsDeviceType.XboxOneD3D12;
+                                            SystemInfo.graphicsDeviceType == GraphicsDeviceType.XboxOneD3D12 ||
+                                            SystemInfo.graphicsDeviceType == GraphicsDeviceType.GameCoreXboxOne ||
+                                            SystemInfo.graphicsDeviceType == GraphicsDeviceType.GameCoreXboxSeries;
 
             if(!canReadBoundDepthBuffer)
             {
@@ -4791,15 +4831,22 @@ namespace UnityEngine.Rendering.HighDefinition
                 if (ssrSettings.usedAlgorithm.value == ScreenSpaceReflectionAlgorithm.PBRAccumulation)
                 {
                     CoreUtils.SetRenderTarget(cmd, ssrAccum, ClearFlag.Color, Color.clear);
-                    if (ssrNeedReset || hdCamera.isFirstFrame)
+                    if (ssrNeedReset || hdCamera.isFirstFrame || hdCamera.resetPostProcessingHistory)
                     {
                         CoreUtils.SetRenderTarget(cmd, ssrAccumPrev, ClearFlag.Color, Color.clear);
                     }
                 }
             }
 
-            CoreUtils.SetKeyword(cs, "SSR_APPROX", !parameters.usePBRAlgo);
-            CoreUtils.SetKeyword(cs, "DEPTH_SOURCE_NOT_FROM_MIP_CHAIN", parameters.transparentSSR);
+            if (!parameters.usePBRAlgo)
+                cmd.EnableShaderKeyword("SSR_APPROX");
+            else
+                cmd.DisableShaderKeyword("SSR_APPROX");
+
+            if (parameters.transparentSSR)
+                cmd.EnableShaderKeyword("DEPTH_SOURCE_NOT_FROM_MIP_CHAIN");
+            else
+                cmd.DisableShaderKeyword("DEPTH_SOURCE_NOT_FROM_MIP_CHAIN");
 
             using (new ProfilingScope(cmd, ProfilingSampler.Get(HDProfileId.SsrTracing)))
             {
@@ -5064,7 +5111,7 @@ namespace UnityEngine.Rendering.HighDefinition
             }
         }
 
-        unsafe void ApplyDebugDisplaySettings(HDCamera hdCamera, CommandBuffer cmd)
+        unsafe void ApplyDebugDisplaySettings(HDCamera hdCamera, CommandBuffer cmd, bool aovOutput)
         {
             // See ShaderPassForward.hlsl: for forward shaders, if DEBUG_DISPLAY is enabled and no DebugLightingMode or DebugMipMapMod
             // modes have been set, lighting is automatically skipped (To avoid some crashed due to lighting RT not set on console).
@@ -5147,6 +5194,8 @@ namespace UnityEngine.Rendering.HighDefinition
                 cb._MouseClickPixelCoord = HDUtils.GetMouseClickCoordinates(hdCamera);
 
                 cb._DebugSingleShadowIndex = m_CurrentDebugDisplaySettings.data.lightingDebugSettings.shadowDebugUseSelection ? m_DebugSelectedLightShadowIndex : (int)m_CurrentDebugDisplaySettings.data.lightingDebugSettings.shadowMapIndex;
+
+                cb._DebugAOVOutput = aovOutput ? 1 : 0;
 
                 ConstantBuffer.PushGlobal(cmd, m_ShaderVariablesDebugDisplayCB, HDShaderIDs._ShaderVariablesDebugDisplay);
 

@@ -82,19 +82,51 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
                 passes = new PassCollection
                 {
                     { SpriteUnlitPasses.Unlit },
+                    { SpriteUnlitPasses.Forward },
                 },
             };
         }
-#endregion
+        #endregion
 
-#region Passes
+        #region Passes
         static class SpriteUnlitPasses
         {
             public static PassDescriptor Unlit = new PassDescriptor
             {
                 // Definition
+                displayName = "Sprite Unlit",
                 referenceName = "SHADERPASS_SPRITEUNLIT",
+                lightMode = "Universal2D",
                 useInPreview = true,
+
+
+                // Template
+                passTemplatePath = GenerationUtils.GetDefaultTemplatePath("PassMesh.template"),
+                sharedTemplateDirectories = GenerationUtils.GetDefaultSharedTemplateDirectories(),
+
+                // Port Mask
+                validVertexBlocks = CoreBlockMasks.Vertex,
+                validPixelBlocks = SpriteUnlitBlockMasks.Fragment,
+
+                // Fields
+                structs = CoreStructCollections.Default,
+                requiredFields = SpriteUnlitRequiredFields.Unlit,
+                fieldDependencies = CoreFieldDependencies.Default,
+
+                // Conditional State
+                renderStates = CoreRenderStates.Default,
+                pragmas = CorePragmas._2DDefault,
+                includes = SpriteUnlitIncludes.Unlit,
+            };
+
+            public static PassDescriptor Forward = new PassDescriptor
+            {
+                // Definition
+                displayName = "Sprite Unlit",
+                referenceName = "SHADERPASS_SPRITEFORWARD",
+                lightMode = "UniversalForward",
+                useInPreview = true,
+
 
                 // Template
                 passTemplatePath = GenerationUtils.GetDefaultTemplatePath("PassMesh.template"),
@@ -115,9 +147,9 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
                 includes = SpriteUnlitIncludes.Unlit,
             };
         }
-#endregion
+        #endregion
 
-#region PortMasks
+        #region PortMasks
         static class SpriteUnlitBlockMasks
         {
             public static BlockFieldDescriptor[] Fragment = new BlockFieldDescriptor[]

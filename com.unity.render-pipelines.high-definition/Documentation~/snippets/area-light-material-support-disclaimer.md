@@ -3,5 +3,5 @@ Area [Lights](../Light-Component.md) do not currently support Fabric or Hair Mat
 * [Cotton/Wool Shader](../cotton-wool-shader.md)
 * [Silk Shader](../silk-shader.md)
 * [Hair Shader](../hair-shader.md)
-* [Fabric Master Stack](../Master-Node-Fabric.md)
-* [Hair Master Stack](../Master-Node-Hair.md)
+* [Fabric Master Stack](../master-stack-fabric.md)
+* [Hair Master Stack](../master-stack-hair.md)

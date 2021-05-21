@@ -1,3 +1,6 @@
+// Required for the correct use of cross platform abstractions.
+#include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Common.hlsl"
+
 //Helper to disable bounding box compute code
 #define USE_DYNAMIC_AABB 1
 
@@ -84,7 +87,7 @@ float3 GetViewVFXPosition() { return VFXGetViewWorldPosition(); }
 #else
 float3 TransformDirectionVFXToWorld(float3 dir) { return mul(VFXGetObjectToWorldMatrix(), float4(dir, 0.0f)).xyz; }
 float3 TransformPositionVFXToWorld(float3 pos) { return mul(VFXGetObjectToWorldMatrix(), float4(pos, 1.0f)).xyz; }
-float3 TransformNormalVFXToWorld(float3 n) { return mul(n, (float3x3)GetWorldToObjectMatrix()); }
+float3 TransformNormalVFXToWorld(float3 n) { return mul(n, (float3x3)VFXGetWorldToObjectMatrix()); }
 float3 TransformPositionVFXToView(float3 pos) { return VFXTransformPositionWorldToView(mul(VFXGetObjectToWorldMatrix(), float4(pos, 1.0f)).xyz); }
 float4 TransformPositionVFXToClip(float3 pos) { return VFXTransformPositionObjectToClip(pos); }
 float4 TransformPositionVFXToPreviousClip(float3 pos) { return VFXTransformPositionObjectToPreviousClip(pos); }
@@ -267,7 +270,7 @@ uint VFXMul24(uint a, uint b)
 #ifndef SHADER_API_PSSL
     return (a & 0xffffff) * (b & 0xffffff); // Tmp to ensure correct inputs
 #else
-    return mul24(a, b);
+    return Mul24(a, b);
 #endif
 }
 
@@ -311,7 +314,7 @@ uint Lcg(uint seed)
     const uint multiplier = 0x0019660d;
     const uint increment = 0x3c6ef35f;
 #if RAND_24BITS && defined(SHADER_API_PSSL)
-    return mad24(multiplier, seed, increment);
+    return Mad24(multiplier, seed, increment);
 #else
     return multiplier * seed + increment;
 #endif
@@ -321,7 +324,7 @@ float ToFloat01(uint u)
 {
 #if !RAND_24BITS
     return asfloat((u >> 9) | 0x3f800000) - 1.0f;
-#else //Using mad24 keeping consitency between platform
+#else //Using Mad24 keeping consitency between platform
     return asfloat((u & 0x007fffff) | 0x3f800000) - 1.0f;
 #endif
 }
@@ -620,6 +623,13 @@ float3 VFXSafeNormalize(float3 v)
 {
     float sqrLength = max(VFX_FLT_MIN, dot(v, v));
     return v * rsqrt(sqrLength);
+}
+
+float3 VFXSafeNormalizedCross(float3 v1, float3 v2, float3 fallback)
+{
+    float3 outVec = cross(v1, v2);
+    outVec = dot(outVec, outVec) < VFX_EPSILON ? fallback : normalize(outVec);
+    return outVec;
 }
 
 /////////////////////
