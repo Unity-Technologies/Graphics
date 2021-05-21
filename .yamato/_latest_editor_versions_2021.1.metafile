@@ -55,8 +55,8 @@ editor_versions:
       updated_at: '2021-05-20 23:43:05.182391'
       version: ''
     OSX:
-      revision: 38a25f22947c0dc903fbfa1aa2d3b2dfdeda6bf2
-      updated_at: '2021-05-20 23:43:05.182391'
+      revision: b22cf19760c9f999a3780bf2b3523cd60e349b10
+      updated_at: '2021-05-21 23:16:33.361587'
       version: ''
     Win:
       revision: b22cf19760c9f999a3780bf2b3523cd60e349b10
