@@ -122,8 +122,7 @@ namespace UnityEditor.Rendering
         ReorderableList m_List;
         Rect? reservedListSizeRect;
         static Shader m_PreviewShader = null;
-        static Material m_CircleMaterial = null;
-        static Material m_PolygonMaterial = null;
+        static List<Material> m_PreviewMaterials = null;
         static RTHandle m_PreviewTexture = null;
         static Texture2D m_PreviewReadBackTexture = null;
         static int m_PreviewSize = 128;
@@ -149,15 +148,10 @@ namespace UnityEditor.Rendering
 
             if (m_PreviewShader == null)
                 m_PreviewShader = Shader.Find("Hidden/Core/LensFlareDataDrivenPreview");
-            if (m_CircleMaterial == null)
+            m_PreviewMaterials = new List<Material>();
+            for (int i = 0; i < m_Elements.arraySize; ++i)
             {
-                m_CircleMaterial = new Material(m_PreviewShader);
-                m_CircleMaterial.SetPass(0);
-            }
-            if (m_PolygonMaterial == null)
-            {
-                m_PolygonMaterial = new Material(m_PreviewShader);
-                m_PolygonMaterial.SetPass(0);
+                m_PreviewMaterials.Add(new Material(m_PreviewShader));
             }
             if (m_PreviewTexture == null)
             {
@@ -181,6 +175,8 @@ namespace UnityEditor.Rendering
             int newIndex = list.count;
             m_Elements.arraySize = newIndex + 1;
             serializedObject.ApplyModifiedProperties();
+
+            m_PreviewMaterials.Add(new Material(m_PreviewShader));
 
             // Set Default values
             (target as LensFlareDataSRP).elements[newIndex] = new LensFlareDataElementSRP();
@@ -333,18 +329,34 @@ namespace UnityEditor.Rendering
         void DrawElementBackground(Rect rect, int index, bool isActive, bool isFocused)
             => EditorGUI.DrawRect(rect, Styles.elementBackgroundColor);
 
-        void DrawThumbnailProcedural(Rect rect, SerializedProperty element, SRPLensFlareType type)
+        void DrawThumbnailProcedural(Rect rect, SerializedProperty element, SRPLensFlareType type, int index)
         {
             RenderTexture oldActive = RenderTexture.active;
             RenderTexture.active = m_PreviewTexture.rt;
 
             GL.Clear(false, true, Color.black);
 
-            Material usedMaterial = null;
+            SerializedProperty inverseSDFProp = element.FindPropertyRelative("inverseSDF");
+
+            Material usedMaterial = m_PreviewMaterials[index];
             if (type == SRPLensFlareType.Circle)
-                usedMaterial = m_CircleMaterial;
+            {
+                usedMaterial.EnableKeyword("FLARE_CIRCLE");
+                usedMaterial.DisableKeyword("FLARE_POLYGON");
+                if (inverseSDFProp.boolValue)
+                    usedMaterial.EnableKeyword("FLARE_INVERSE_SDF");
+                else
+                    usedMaterial.DisableKeyword("FLARE_INVERSE_SDF");
+            }
             else if (type == SRPLensFlareType.Polygon)
-                usedMaterial = m_PolygonMaterial;
+            {
+                usedMaterial.DisableKeyword("FLARE_CIRCLE");
+                usedMaterial.EnableKeyword("FLARE_POLYGON");
+                if (inverseSDFProp.boolValue)
+                    usedMaterial.EnableKeyword("FLARE_INVERSE_SDF");
+                else
+                    usedMaterial.DisableKeyword("FLARE_INVERSE_SDF");
+            }
 
             SerializedProperty colorProp = element.FindPropertyRelative("tint");
             SerializedProperty intensityProp = element.FindPropertyRelative("m_LocalIntensity");
@@ -375,14 +387,6 @@ namespace UnityEditor.Rendering
             Vector4 flareData0 = LensFlareCommonSRP.GetFlareData0(Vector2.zero, Vector2.zero, Vector2.one, rotationProp.floatValue, 0f, 0f, Vector2.zero, false);
 
             //Set here what need to be setup in the material
-            usedMaterial.SetPass(0);
-            CoreUtils.SetKeyword(usedMaterial, "FLARE_CIRCLE", type == SRPLensFlareType.Circle);
-            CoreUtils.SetKeyword(usedMaterial, "FLARE_POLYGON", type == SRPLensFlareType.Polygon);
-
-            //usedMaterial.EnableKeyword("HDRP_FLARE");
-            usedMaterial.DisableKeyword("HDRP_FLARE");
-            usedMaterial.DisableKeyword("FLARE_OCCLUSION");
-
             usedMaterial.SetVector(_FlareColorValue, new Vector4(colorProp.colorValue.r * intensity, colorProp.colorValue.g * intensity, colorProp.colorValue.b * intensity, 1f));
             usedMaterial.SetVector(_FlareData0, flareData0);
             usedMaterial.SetVector(_FlareData1, new Vector4(0f, 0f, 0f, 1f));
@@ -393,6 +397,8 @@ namespace UnityEditor.Rendering
             else
                 usedMaterial.SetVector(_FlareData4, new Vector4(usedSDFRoundness, 0f, 0f, 0f));
             usedMaterial.SetVector(_FlareData5, new Vector4(0f, usedGradientPosition, Mathf.Exp(Mathf.Lerp(0.0f, 4.0f, Mathf.Clamp01(1.0f - fallOffProp.floatValue))), 0f));
+
+            usedMaterial.SetPass(0);
 
             GL.PushMatrix();
             GL.LoadOrtho();
@@ -436,7 +442,7 @@ namespace UnityEditor.Rendering
             if (DrawElementHeader(headerRect, isFoldOpened, selectedInList: isActive, element))
                 DrawFull(contentRect, element);
             else
-                DrawSummary(contentRect, element);
+                DrawSummary(contentRect, element, index);
 
             EditorGUIUtility.wideMode = oldWideMode;
         }
@@ -503,7 +509,7 @@ namespace UnityEditor.Rendering
             return newState;
         }
 
-        void DrawSummary(Rect summaryRect, SerializedProperty element)
+        void DrawSummary(Rect summaryRect, SerializedProperty element, int index)
         {
             SerializedProperty type = element.FindPropertyRelative("flareType");
             SerializedProperty tint = element.FindPropertyRelative("tint");
@@ -533,7 +539,7 @@ namespace UnityEditor.Rendering
 
                 case SRPLensFlareType.Circle:
                 case SRPLensFlareType.Polygon:
-                    DrawThumbnailProcedural(thumbnailRect, element, GetEnum<SRPLensFlareType>(type));
+                    DrawThumbnailProcedural(thumbnailRect, element, GetEnum<SRPLensFlareType>(type), index);
                     break;
             }
             GUI.color = guiColor;
