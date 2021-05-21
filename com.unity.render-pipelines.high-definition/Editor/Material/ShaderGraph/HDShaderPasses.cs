@@ -280,6 +280,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                 // Note: no tessellation for meta pass
                 pragmas = GeneratePragmas(CorePragmas.DotsInstancedInV1AndV2, useVFX, false),
                 defines = GenerateDefines(CoreDefines.ShaderGraphRaytracingDefault, useVFX, false),
+                keywords = new KeywordCollection() { CoreKeywordDescriptors.EditorVisualization },
                 includes = GenerateIncludes(),
             };
 

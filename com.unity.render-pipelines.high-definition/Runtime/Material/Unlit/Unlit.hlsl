@@ -55,11 +55,7 @@ LightTransportData GetLightTransportData(SurfaceData surfaceData, BuiltinData bu
 {
     LightTransportData lightTransportData;
 
-#if (SHADERPASS == SHADERPASS_LIGHT_TRANSPORT)
-    lightTransportData.diffuseColor = surfaceData.color;
-#else
     lightTransportData.diffuseColor = float3(0.0, 0.0, 0.0);
-#endif
     lightTransportData.emissiveColor = builtinData.emissiveColor;
 
     return lightTransportData;

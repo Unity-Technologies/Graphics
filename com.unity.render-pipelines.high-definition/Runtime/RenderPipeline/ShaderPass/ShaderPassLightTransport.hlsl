@@ -13,7 +13,7 @@
 
 PackedVaryingsToPS Vert(AttributesMesh inputMesh)
 {
-    VaryingsToPS output;
+    VaryingsToPS output = (VaryingsToPS)0;
 
     UNITY_SETUP_INSTANCE_ID(inputMesh);
     UNITY_TRANSFER_INSTANCE_ID(inputMesh, output.vmesh);
@@ -39,7 +39,7 @@ PackedVaryingsToPS Vert(AttributesMesh inputMesh)
     // originally, input uv0 was scaled using the main texture's ST. this does not seem necessary for HD, but if it is, scaling would need to be applied before generating vizUV.
     float2 vizUV = 0;
     float4 lightCoord = 0;
-    UnityEditorVizData(inputMesh.positionOS, inputMesh.uv0, inputMesh.uv1, inputMesh.uv2, vizUV, lightCoord);
+    UnityEditorVizData(inputMesh.positionOS.xyz, inputMesh.uv0.xy, inputMesh.uv1.xy, inputMesh.uv2.xy, vizUV, lightCoord);
 #endif
 
 #ifdef VARYINGS_NEED_TEXCOORD0
@@ -47,7 +47,7 @@ PackedVaryingsToPS Vert(AttributesMesh inputMesh)
 #endif
 #ifdef VARYINGS_NEED_TEXCOORD1
 #ifdef EDITOR_VISUALIZATION
-    output.vmesh.texCoord1 = vizUV;
+    output.vmesh.texCoord1.xy = vizUV.xy;
 #else
     output.vmesh.texCoord1 = inputMesh.uv1;
 #endif
@@ -55,14 +55,14 @@ PackedVaryingsToPS Vert(AttributesMesh inputMesh)
 #ifdef VARYINGS_NEED_TEXCOORD2
     // texCoord2 = lightCoord
 #ifdef EDITOR_VISUALIZATION
-    output.vmesh.texCoord2 = lightCoord.xy;
+    output.vmesh.texCoord2.xy = lightCoord.xy;
 #else
     output.vmesh.texCoord2 = inputMesh.uv2;
 #endif
 #endif
 #ifdef VARYINGS_NEED_TEXCOORD3
 #ifdef EDITOR_VISUALIZATION
-    output.vmesh.texCoord3 = lightCoord.zw;
+    output.vmesh.texCoord3.xy = lightCoord.zw;
 #else
     output.vmesh.texCoord3 = inputMesh.uv3;
 #endif
