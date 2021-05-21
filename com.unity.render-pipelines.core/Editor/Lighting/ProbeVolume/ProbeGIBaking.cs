@@ -409,7 +409,49 @@ namespace UnityEngine.Experimental.Rendering
             }
 
             // Make sure all is loaded.
-            // ProbeReferenceVolume.instance.PerformPendingOperations(loadAllCells: true);
+            ProbeReferenceVolume.instance.PerformPendingOperations(loadAllCells: true);
+            foreach (var cell in ProbeReferenceVolume.instance.cells.Values)
+            {
+                PerformDilation(cell, m_BakingReferenceVolumeAuthoring.GetDilationSettings());
+            }
+            foreach (var sceneList in m_BakingBatch.cellIndex2SceneReferences.Values)
+            {
+                foreach (var scene in sceneList)
+                {
+                    ProbeReferenceVolumeAuthoring refVol = null;
+                    if (scene2RefVol.TryGetValue(scene, out refVol))
+                    {
+                        ProbeReferenceVolume.instance.AddPendingAssetRemoval(refVol2Asset[refVol]);
+                        refVol2Asset[refVol].cells.Clear();
+                    }
+                }
+            }
+
+            // Unload stuff.
+            ProbeReferenceVolume.instance.PerformPendingOperations(false);
+
+            // Put back cells
+            foreach (var cell in ProbeReferenceVolume.instance.cells.Values)
+            {
+                foreach (var scene in m_BakingBatch.cellIndex2SceneReferences[cell.index])
+                {
+                    // This scene has a reference volume authoring component in it?
+                    ProbeReferenceVolumeAuthoring refVol = null;
+                    if (scene2RefVol.TryGetValue(scene, out refVol))
+                    {
+                        var asset = refVol2Asset[refVol];
+                        asset.cells.Add(cell);
+                    }
+                }
+            }
+            UnityEditor.AssetDatabase.SaveAssets();
+            UnityEditor.AssetDatabase.Refresh();
+
+            foreach (var refVol in refVol2Asset.Keys)
+            {
+                if (refVol.enabled && refVol.gameObject.activeSelf)
+                    refVol.QueueAssetLoading(); // We already built a valid index for the exact same asset.
+            }
         }
 
         static void OnLightingDataCleared()
