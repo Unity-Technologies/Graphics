@@ -58,3 +58,18 @@ MonoBehaviour:
     XrSdk: None
     StereoModes: 0
     Reason: Needs fixing in OpenGL
+  - FilteredScene: {fileID: 0}
+    FilteredScenes:
+    - {fileID: 102900000, guid: 50a8dc518aa0c5e4fa5ae2ab2052bef4, type: 3}
+    - {fileID: 102900000, guid: e4d45947c95a67a41b393c5fe823891b, type: 3}
+    - {fileID: 102900000, guid: c4dab86134e72034aac45c19df32ceb7, type: 3}
+    - {fileID: 102900000, guid: 61718ed79ced0044fbfabd6ef7861a15, type: 3}
+    - {fileID: 102900000, guid: b8fbc679adfaed54ea1d4121a8564c81, type: 3}
+    - {fileID: 102900000, guid: 9e7523551cb924341a7dd2c98d773076, type: 3}
+    - {fileID: 102900000, guid: 507fe0226a0388c4898d134f829a4b28, type: 3}
+    ColorSpace: -1
+    BuildPlatform: 13
+    GraphicsDevice: 11
+    XrSdk: 
+    StereoModes: 7
+    Reason: '"Development Build" only in XR'

@@ -54,3 +54,15 @@ MonoBehaviour:
     XrSdk: None
     StereoModes: 0
     Reason: https://fogbugz.unity3d.com/f/cases/1305639/
+  - FilteredScene: {fileID: 0}
+    FilteredScenes:
+    - {fileID: 102900000, guid: b2a47910b2788df489a1f84de6e4486c, type: 3}
+    - {fileID: 102900000, guid: a1c09e3c33ec7fc4084de318357c2fa0, type: 3}
+    - {fileID: 102900000, guid: fb8f8e7cc18a5314f8d66d2ddfbfbaec, type: 3}
+    - {fileID: 102900000, guid: 4cd2c01cabdfb47d5a3ac05309090490, type: 3}
+    ColorSpace: -1
+    BuildPlatform: 13
+    GraphicsDevice: 11
+    XrSdk: 
+    StereoModes: 7
+    Reason: Broken on XR
