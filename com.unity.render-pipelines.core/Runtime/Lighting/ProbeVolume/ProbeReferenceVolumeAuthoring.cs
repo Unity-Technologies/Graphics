@@ -13,12 +13,8 @@ namespace UnityEngine.Experimental.Rendering
     // TODO: Use this structure in the actual authoring component rather than just a mean to group output parameters.
     internal struct ProbeDilationSettings
     {
-        public bool dilate;
-        public int maxDilationSamples;
-        public float maxDilationSampleDistance;
+        public float dilationDistance;
         public float dilationValidityThreshold;
-        public bool greedyDilation;
-
         public float brickSize;   // Not really a dilation setting, but used during dilation.
     }
 
@@ -82,15 +78,9 @@ namespace UnityEngine.Experimental.Rendering
 #if UNITY_EDITOR
         // Dilation
         [SerializeField]
-        bool m_Dilate = false;
-        [SerializeField]
-        int m_MaxDilationSamples = 16;
-        [SerializeField]
         float m_MaxDilationSampleDistance = 1f;
         [SerializeField]
         float m_DilationValidityThreshold = 0.25f;
-        [SerializeField]
-        bool m_GreedyDilation = false;
 
         // Field used for the realtime subdivision preview
         [NonSerialized]
@@ -323,11 +313,8 @@ namespace UnityEngine.Experimental.Rendering
         public ProbeDilationSettings GetDilationSettings()
         {
             ProbeDilationSettings settings;
-            settings.dilate = m_Dilate;
             settings.dilationValidityThreshold = m_DilationValidityThreshold;
-            settings.greedyDilation = m_GreedyDilation;
-            settings.maxDilationSampleDistance = m_MaxDilationSampleDistance;
-            settings.maxDilationSamples = m_MaxDilationSamples;
+            settings.dilationDistance = m_MaxDilationSampleDistance;
             settings.brickSize = brickSize;
 
             return settings;
