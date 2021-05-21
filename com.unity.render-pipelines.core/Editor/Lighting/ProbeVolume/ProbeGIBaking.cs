@@ -408,12 +408,19 @@ namespace UnityEngine.Experimental.Rendering
                     refVol.QueueAssetLoading();
             }
 
-            // Make sure all is loaded.
+            // ---- Perform dilation ---
+
+            // Make sure all is loaded before performing dilation.
             ProbeReferenceVolume.instance.PerformPendingOperations(loadAllCells: true);
+
+            // Dilate all cells
+            List<ProbeReferenceVolume.Cell> dilatedCells = new List<ProbeReferenceVolume.Cell>(ProbeReferenceVolume.instance.cells.Values.Count);
             foreach (var cell in ProbeReferenceVolume.instance.cells.Values)
             {
                 PerformDilation(cell, m_BakingReferenceVolumeAuthoring.GetDilationSettings());
+                dilatedCells.Add(cell);
             }
+
             foreach (var sceneList in m_BakingBatch.cellIndex2SceneReferences.Values)
             {
                 foreach (var scene in sceneList)
@@ -422,16 +429,16 @@ namespace UnityEngine.Experimental.Rendering
                     if (scene2RefVol.TryGetValue(scene, out refVol))
                     {
                         ProbeReferenceVolume.instance.AddPendingAssetRemoval(refVol2Asset[refVol]);
-                        refVol2Asset[refVol].cells.Clear();
                     }
                 }
             }
 
-            // Unload stuff.
-            ProbeReferenceVolume.instance.PerformPendingOperations(false);
+            // Make sure unloading happens.
+            ProbeReferenceVolume.instance.PerformPendingOperations();
 
+            Dictionary<string, bool> assetCleared = new Dictionary<string, bool>();
             // Put back cells
-            foreach (var cell in ProbeReferenceVolume.instance.cells.Values)
+            foreach (var cell in dilatedCells)
             {
                 foreach (var scene in m_BakingBatch.cellIndex2SceneReferences[cell.index])
                 {
@@ -440,6 +447,13 @@ namespace UnityEngine.Experimental.Rendering
                     if (scene2RefVol.TryGetValue(scene, out refVol))
                     {
                         var asset = refVol2Asset[refVol];
+                        bool valueFound = false;
+                        if (!assetCleared.TryGetValue(asset.GetSerializedFullPath(), out valueFound))
+                        {
+                            asset.cells.Clear();
+                            assetCleared.Add(asset.GetSerializedFullPath(), true);
+                            UnityEditor.EditorUtility.SetDirty(asset);
+                        }
                         asset.cells.Add(cell);
                     }
                 }
@@ -450,7 +464,7 @@ namespace UnityEngine.Experimental.Rendering
             foreach (var refVol in refVol2Asset.Keys)
             {
                 if (refVol.enabled && refVol.gameObject.activeSelf)
-                    refVol.QueueAssetLoading(); // We already built a valid index for the exact same asset.
+                    refVol.QueueAssetLoading();
             }
         }
 
