@@ -97,10 +97,16 @@ namespace UnityEditor.VFX
         private static void ComputeEventAttributeDescs(List<VFXLayoutElementDesc> globalEventAttributes, IEnumerable<VFXContext> contexts)
         {
             globalEventAttributes.Clear();
-            globalEventAttributes.Add(new VFXLayoutElementDesc() { name = "spawnCount", type = VFXValueType.Float });
+
+            //SpawnCount should always be added first : spawnCount is an implicit parameter from eventAttribute
+            globalEventAttributes.Add(new VFXLayoutElementDesc()
+            {
+                name = VFXAttribute.SpawnCount.name,
+                type = VFXAttribute.SpawnCount.type
+            });
 
             IEnumerable<VFXLayoutElementDesc> globalAttribute = Enumerable.Empty<VFXLayoutElementDesc>();
-            foreach (var context in contexts.Where(o => o.contextType == VFXContextType.Spawner))
+            foreach (var context in contexts.Where(o => o.contextType == VFXContextType.Spawner || o.contextType == VFXContextType.Event))
             {
                 var attributesToStoreFromOutputContext = context.outputContexts.Select(o => o.GetData()).Where(o => o != null)
                     .SelectMany(o => o.GetAttributes().Where(a => (a.mode & VFXAttributeMode.ReadSource) != 0));
@@ -145,6 +151,7 @@ namespace UnityEditor.VFX
 
                 m_Expressions.Clear();
                 m_FlattenedExpressions.Clear();
+                m_CommonExpressionCount = 0u;
                 m_ExpressionsData.Clear();
 
                 m_ContextsToGPUExpressions.Clear();
@@ -186,6 +193,7 @@ namespace UnityEditor.VFX
                 sortedList = sortedList.Concat(expressionPerSpawn.OrderByDescending(o => o.Value.depth));
 
                 m_FlattenedExpressions = sortedList.Select(o => o.Key).ToList();
+                m_CommonExpressionCount = (uint)expressionNotPerSpawn.Count();
                 // update index in expression data
                 for (int i = 0; i < m_FlattenedExpressions.Count; ++i)
                 {
@@ -279,6 +287,14 @@ namespace UnityEditor.VFX
             }
         }
 
+        public uint CommonExpressionCount
+        {
+            get
+            {
+                return m_CommonExpressionCount;
+            }
+        }
+
         public Dictionary<VFXExpression, VFXExpression> GPUExpressionsToReduced
         {
             get
@@ -307,6 +323,7 @@ namespace UnityEditor.VFX
         private Dictionary<VFXExpression, VFXExpression> m_CPUExpressionsToReduced = new Dictionary<VFXExpression, VFXExpression>();
         private Dictionary<VFXExpression, VFXExpression> m_GPUExpressionsToReduced = new Dictionary<VFXExpression, VFXExpression>();
         private List<VFXExpression> m_FlattenedExpressions = new List<VFXExpression>();
+        private uint m_CommonExpressionCount;
         private Dictionary<VFXExpression, ExpressionData> m_ExpressionsData = new Dictionary<VFXExpression, ExpressionData>();
         private Dictionary<VFXContext, VFXExpressionMapper> m_ContextsToCPUExpressions = new Dictionary<VFXContext, VFXExpressionMapper>();
         private Dictionary<VFXContext, VFXExpressionMapper> m_ContextsToGPUExpressions = new Dictionary<VFXContext, VFXExpressionMapper>();

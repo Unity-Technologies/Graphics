@@ -5,7 +5,6 @@ using System.Linq.Expressions;
 using System.Reflection;
 using UnityEditor.PackageManager;
 using UnityEditor.PackageManager.Requests;
-using UnityEditorInternal;
 using UnityEditorInternal.VR;
 using UnityEngine;
 using UnityEngine.Rendering;
@@ -171,6 +170,7 @@ namespace UnityEditor.Rendering.HighDefinition
                         new Entry(QualityScope.Global, InclusiveMode.HDRP, Style.hdrpDiffusionProfile, IsDiffusionProfileCorrect, FixDiffusionProfile),
                         new Entry(QualityScope.Global, InclusiveMode.HDRP, Style.hdrpVolumeProfile, IsDefaultVolumeProfileCorrect, FixDefaultVolumeProfile),
                         new Entry(QualityScope.Global, InclusiveMode.HDRP, Style.hdrpLookDevVolumeProfile, IsDefaultLookDevVolumeProfileCorrect, FixDefaultLookDevVolumeProfile),
+                        new Entry(QualityScope.Global, InclusiveMode.HDRP, Style.hdrpMigratableAssets, IsMigratableAssetsCorrect, FixMigratableAssets),
 
                         new Entry(QualityScope.Global, InclusiveMode.VR, Style.vrLegacyVRSystem, IsOldVRSystemForCurrentBuildTargetGroupCorrect, FixOldVRSystemForCurrentBuildTargetGroup),
                         new Entry(QualityScope.Global, InclusiveMode.VR, Style.vrXRManagementPackage, IsVRXRManagementPackageInstalledCorrect, FixVRXRManagementPackageInstalled),
@@ -298,14 +298,14 @@ namespace UnityEditor.Rendering.HighDefinition
         void RestartFixAllAfterDomainReload()
         {
             if (m_Fixer.remainingFixes > 0)
-                HDProjectSettings.wizardNeedToRunFixAllAgainAfterDomainReload = true;
+                HDUserSettings.wizardNeedToRunFixAllAgainAfterDomainReload = true;
         }
 
         void CheckPersistentFixAll()
         {
-            if (HDProjectSettings.wizardNeedToRunFixAllAgainAfterDomainReload)
+            if (HDUserSettings.wizardNeedToRunFixAllAgainAfterDomainReload)
             {
-                switch ((Configuration)HDProjectSettings.wizardActiveTab)
+                switch ((Configuration)HDUserSettings.wizardActiveTab)
                 {
                     case Configuration.HDRP:
                         FixHDRPAll();
@@ -317,7 +317,7 @@ namespace UnityEditor.Rendering.HighDefinition
                         FixDXRAll();
                         break;
                 }
-                m_Fixer.Add(() => HDProjectSettings.wizardNeedToRunFixAllAgainAfterDomainReload = false);
+                m_Fixer.Add(() => HDUserSettings.wizardNeedToRunFixAllAgainAfterDomainReload = false);
             }
         }
 
@@ -407,7 +407,7 @@ namespace UnityEditor.Rendering.HighDefinition
             => HDRenderPipelineGlobalSettings.instance != null;
 
         void FixHdrpGlobalSettingsUsed(bool fromAsync)
-            => HDRenderPipelineGlobalSettings.Ensure(folderPath: HDProjectSettings.projectSettingsFolderPath);
+            => HDRenderPipelineGlobalSettings.Ensure();
 
         bool IsRuntimeResourcesCorrect()
             => IsHdrpGlobalSettingsUsedCorrect() && HDRenderPipelineGlobalSettings.instance.AreRuntimeResourcesCreated();
@@ -535,6 +535,41 @@ namespace UnityEditor.Rendering.HighDefinition
             EditorUtility.SetDirty(hdrpSettings);
         }
 
+        IEnumerable<IMigratableAsset> migratableAssets
+        {
+            get
+            {
+                // Note: ideally we should grab all migratableAssets with LoadAllAsset<IMigratableAsset but this can be at high cost for big project. So we check only currently used.
+                //construct it wih all assets used in quality followed by current global settings asset
+                List<IMigratableAsset> collection = new List<IMigratableAsset>();
+                for (int i = QualitySettings.names.Length - 1; i >= 0; --i)
+                {
+                    if (QualitySettings.GetRenderPipelineAssetAt(i) is HDRenderPipelineAsset qualityAsset)
+                        collection.Add(qualityAsset);
+                }
+                if (GraphicsSettings.renderPipelineAsset is HDRenderPipelineAsset graphicsAsset)
+                    collection.Add(graphicsAsset);
+                if (HDRenderPipelineGlobalSettings.instance)
+                {
+                    collection.Add(HDRenderPipelineGlobalSettings.instance.renderPipelineResources); //only resource that have migration
+                    collection.Add(HDRenderPipelineGlobalSettings.instance);
+                }
+                return collection;
+            }
+        }
+
+        bool IsMigratableAssetsCorrect()
+            => !migratableAssets.Any(asset => !asset.IsAtLastVersion());
+
+        void FixMigratableAssets(bool fromAsyncUnused)
+        {
+            foreach (var asset in migratableAssets)
+            {
+                if (asset.Migrate())
+                    Debug.LogWarning($"Migrated asset {AssetDatabase.GetAssetPath(asset as UnityEngine.Object)}. You should save your project to save changes.");
+            }
+        }
+
         #endregion
 
         #region HDRP_VR_FIXES
@@ -600,7 +635,7 @@ namespace UnityEditor.Rendering.HighDefinition
             => PlayerSettings.SetUseDefaultGraphicsAPIs(CalculateSelectedBuildTarget(), false);
 
         bool IsDXRDirect3D12Correct()
-            => (SystemInfo.graphicsDeviceType == GraphicsDeviceType.Direct3D12) && !HDProjectSettings.wizardNeedRestartAfterChangingToDX12;
+            => (SystemInfo.graphicsDeviceType == GraphicsDeviceType.Direct3D12) && !HDUserSettings.wizardNeedRestartAfterChangingToDX12;
 
         void FixDXRDirect3D12(bool fromAsyncUnused)
         {
@@ -625,7 +660,7 @@ namespace UnityEditor.Rendering.HighDefinition
                             .Concat(PlayerSettings.GetGraphicsAPIs(buidTarget))
                             .ToArray());
                 }
-                HDProjectSettings.wizardNeedRestartAfterChangingToDX12 = true;
+                HDUserSettings.wizardNeedRestartAfterChangingToDX12 = true;
                 m_Fixer.Add(() => ChangedFirstGraphicAPI(buidTarget)); //register reboot at end of operations
             }
         }
@@ -643,18 +678,18 @@ namespace UnityEditor.Rendering.HighDefinition
                     "You've changed the active graphics API. This requires a restart of the Editor. After restarting, finish fixing DXR configuration by launching the wizard again.",
                     "Restart Editor", "Not now"))
                 {
-                    HDProjectSettings.wizardNeedRestartAfterChangingToDX12 = false;
+                    HDUserSettings.wizardNeedRestartAfterChangingToDX12 = false;
                     RequestCloseAndRelaunchWithCurrentArguments();
                 }
                 else
-                    EditorApplication.quitting += () => HDProjectSettings.wizardNeedRestartAfterChangingToDX12 = false;
+                    EditorApplication.quitting += () => HDUserSettings.wizardNeedRestartAfterChangingToDX12 = false;
             }
         }
 
         void CheckPersistantNeedReboot()
         {
-            if (HDProjectSettings.wizardNeedRestartAfterChangingToDX12)
-                EditorApplication.quitting += () => HDProjectSettings.wizardNeedRestartAfterChangingToDX12 = false;
+            if (HDUserSettings.wizardNeedRestartAfterChangingToDX12)
+                EditorApplication.quitting += () => HDUserSettings.wizardNeedRestartAfterChangingToDX12 = false;
         }
 
         bool IsDXRResourcesCorrect()
@@ -674,7 +709,7 @@ namespace UnityEditor.Rendering.HighDefinition
             // The D3D12 is a separate check in the wizard, so it is fine not to display an error in case we are not D3D12.
             if (!SystemInfo.supportsRayTracing && IsDXRDirect3D12Correct())
                 Debug.LogError("Your hardware and/or OS don't support DXR!");
-            if (!HDProjectSettings.wizardNeedRestartAfterChangingToDX12 && PlayerSettings.GetGraphicsAPIs(CalculateSelectedBuildTarget()).FirstOrDefault() != GraphicsDeviceType.Direct3D12)
+            if (!HDUserSettings.wizardNeedRestartAfterChangingToDX12 && PlayerSettings.GetGraphicsAPIs(CalculateSelectedBuildTarget()).FirstOrDefault() != GraphicsDeviceType.Direct3D12)
             {
                 Debug.LogWarning("DXR is supported only with DX12");
             }

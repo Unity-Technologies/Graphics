@@ -38,6 +38,11 @@ Shader "Hidden/Universal Render Pipeline/StencilDeferred"
     #define _ADDITIONAL_LIGHT_SHADOWS 1
     #endif
 
+    // Same comment as for _DEFERRED_LIGHT_SHADOWS/_ADDITIONAL_LIGHT_SHADOWS above.
+    #ifdef _DEFERRED_SHADOWS_SOFT
+    #define _SHADOWS_SOFT 1
+    #endif
+
     #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Core.hlsl"
     #include "Packages/com.unity.render-pipelines.universal/Shaders/Utils/Deferred.hlsl"
     #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Shadows.hlsl"
@@ -116,11 +121,31 @@ Shader "Hidden/Universal Render Pipeline/StencilDeferred"
     TEXTURE2D_X_HALF(_GBuffer0);
     TEXTURE2D_X_HALF(_GBuffer1);
     TEXTURE2D_X_HALF(_GBuffer2);
+
+#if _RENDER_PASS_ENABLED
+
+    #define GBUFFER0 0
+    #define GBUFFER1 1
+    #define GBUFFER2 2
+    #define GBUFFER3 3
+
+    FRAMEBUFFER_INPUT_HALF(GBUFFER0);
+    FRAMEBUFFER_INPUT_HALF(GBUFFER1);
+    FRAMEBUFFER_INPUT_HALF(GBUFFER2);
+    FRAMEBUFFER_INPUT_FLOAT(GBUFFER3);
+#else
     #ifdef GBUFFER_OPTIONAL_SLOT_1
     TEXTURE2D_X_HALF(_GBuffer4);
     #endif
-    #ifdef GBUFFER_OPTIONAL_SLOT_2
+#endif
+
+    #if defined(GBUFFER_OPTIONAL_SLOT_2) && _RENDER_PASS_ENABLED
+    TEXTURE2D_X_HALF(_GBuffer5);
+    #elif defined(GBUFFER_OPTIONAL_SLOT_2)
     TEXTURE2D_X(_GBuffer5);
+    #endif
+    #ifdef GBUFFER_OPTIONAL_SLOT_3
+    TEXTURE2D_X(_GBuffer6);
     #endif
 
     float4x4 _ScreenToWorld[2];
@@ -134,6 +159,7 @@ Shader "Hidden/Universal Render Pipeline/StencilDeferred"
     int _LightFlags;
     int _ShadowLightIndex;
     uint _LightLayerMask;
+    int _CookieLightIndex;
 
     half4 FragWhite(Varyings input) : SV_Target
     {
@@ -169,6 +195,11 @@ Shader "Hidden/Universal Render Pipeline/StencilDeferred"
                         unityLight.shadowAttenuation = MainLightShadow(shadowCoord, posWS.xyz, shadowMask, _MainLightOcclusionProbes);
                     #endif
                 }
+
+                #if defined(_LIGHT_COOKIES)
+                    real3 cookieColor = URP_LightCookie_SampleMainLightCookie(posWS);
+                    unityLight.color *= float4(cookieColor, 1);
+                #endif
             #else
                 unityLight.direction = _LightDirection;
                 unityLight.distanceAttenuation = 1.0;
@@ -194,8 +225,28 @@ Shader "Hidden/Universal Render Pipeline/StencilDeferred"
             light.flags = _LightFlags;
             light.layerMask = lightLayerMask;
             unityLight = UnityLightFromPunctualLightDataAndWorldSpacePosition(light, posWS.xyz, shadowMask, _ShadowLightIndex, materialReceiveShadowsOff);
-        #endif
 
+            #ifdef _DEFERRED_ADDITIONAL_LIGHT_COOKIES
+                // Enable/disable is done toggling the keyword _DEFERRED_ADDITIONAL_LIGHT_COOKIES, but we could do a "static if" instead if required.
+                // if(_CookieLightIndex >= 0)
+                {
+                    float4 cookieUvRect = URP_LightCookie_GetAtlasUVRect(_CookieLightIndex);
+                    float4x4 worldToLight = URP_LightCookie_GetWorldToLightMatrix(_CookieLightIndex);
+                    float2 cookieUv = float2(0,0);
+                    #if defined(_SPOT)
+                        cookieUv = URP_LightCookie_ComputeUVSpot(worldToLight, posWS, cookieUvRect);
+                    #endif
+                    #if defined(_POINT)
+                        cookieUv = URP_LightCookie_ComputeUVPoint(worldToLight, posWS, cookieUvRect);
+                    #endif
+                    half4 cookieColor = URP_LightCookie_SampleAdditionalLightsTexture(cookieUv);
+                    cookieColor = half4(URP_LightCookie_AdditionalLightsTextureIsRGBFormat() ? cookieColor.rgb
+                                        : URP_LightCookie_AdditionalLightsTextureIsAlphaFormat() ? cookieColor.aaa
+                                        : cookieColor.rrr, 1);
+                    unityLight.color *= cookieColor;
+                }
+            #endif
+        #endif
         return unityLight;
     }
 
@@ -204,14 +255,20 @@ Shader "Hidden/Universal Render Pipeline/StencilDeferred"
         UNITY_SETUP_INSTANCE_ID(input);
         UNITY_SETUP_STEREO_EYE_INDEX_POST_VERTEX(input);
 
+        float2 screen_uv = (input.screenUV.xy / input.screenUV.z);
+        #if _RENDER_PASS_ENABLED
+        float d        = LOAD_FRAMEBUFFER_INPUT(GBUFFER3, input.positionCS.xy).x;
+        half4 gbuffer0 = LOAD_FRAMEBUFFER_INPUT(GBUFFER0, input.positionCS.xy);
+        half4 gbuffer1 = LOAD_FRAMEBUFFER_INPUT(GBUFFER1, input.positionCS.xy);
+        half4 gbuffer2 = LOAD_FRAMEBUFFER_INPUT(GBUFFER2, input.positionCS.xy);
+        #else
         // Using SAMPLE_TEXTURE2D is faster than using LOAD_TEXTURE2D on iOS platforms (5% faster shader).
         // Possible reason: HLSLcc upcasts Load() operation to float, which doesn't happen for Sample()?
-        float2 screen_uv = (input.screenUV.xy / input.screenUV.z);
         float d        = SAMPLE_TEXTURE2D_X_LOD(_CameraDepthTexture, my_point_clamp_sampler, screen_uv, 0).x; // raw depth value has UNITY_REVERSED_Z applied on most platforms.
         half4 gbuffer0 = SAMPLE_TEXTURE2D_X_LOD(_GBuffer0, my_point_clamp_sampler, screen_uv, 0);
         half4 gbuffer1 = SAMPLE_TEXTURE2D_X_LOD(_GBuffer1, my_point_clamp_sampler, screen_uv, 0);
         half4 gbuffer2 = SAMPLE_TEXTURE2D_X_LOD(_GBuffer2, my_point_clamp_sampler, screen_uv, 0);
-
+        #endif
         #if defined(_DEFERRED_MIXED_LIGHTING)
         half4 shadowMask = SAMPLE_TEXTURE2D_X_LOD(MERGE_NAME(_, GBUFFER_SHADOWMASK), my_point_clamp_sampler, screen_uv, 0);
         #else
@@ -277,7 +334,9 @@ Shader "Hidden/Universal Render Pipeline/StencilDeferred"
             SurfaceData surfaceData = SurfaceDataFromGbuffer(gbuffer0, gbuffer1, gbuffer2, kLightingSimpleLit);
             half3 attenuatedLightColor = unityLight.color * (unityLight.distanceAttenuation * unityLight.shadowAttenuation);
             half3 diffuseColor = LightingLambert(attenuatedLightColor, unityLight.direction, inputData.normalWS);
-            half3 specularColor = LightingSpecular(attenuatedLightColor, unityLight.direction, inputData.normalWS, inputData.viewDirectionWS, half4(surfaceData.specular, surfaceData.smoothness), surfaceData.smoothness);
+            half smoothness = exp2(10 * surfaceData.smoothness + 1);
+            half3 specularColor = LightingSpecular(attenuatedLightColor, unityLight.direction, inputData.normalWS, inputData.viewDirectionWS, half4(surfaceData.specular, 1), smoothness);
+
             // TODO: if !defined(_SPECGLOSSMAP) && !defined(_SPECULAR_COLOR), force specularColor to 0 in gbuffer code
             color = diffuseColor * surfaceData.albedo + specularColor;
         #endif
@@ -287,7 +346,11 @@ Shader "Hidden/Universal Render Pipeline/StencilDeferred"
 
     half4 FragFog(Varyings input) : SV_Target
     {
-        float d = LOAD_TEXTURE2D_X(_CameraDepthTexture, input.positionCS.xy).x;
+        #if _RENDER_PASS_ENABLED
+            float d = LOAD_FRAMEBUFFER_INPUT(GBUFFER3, input.positionCS.xy).x;
+        #else
+            float d = LOAD_TEXTURE2D_X(_CameraDepthTexture, input.positionCS.xy).x;
+        #endif
         float eye_z = LinearEyeDepth(d, _ZBufferParams);
         float clip_z = UNITY_MATRIX_P[2][2] * -eye_z + UNITY_MATRIX_P[2][3];
         half fogFactor = ComputeFogFactor(clip_z);
@@ -378,13 +441,15 @@ Shader "Hidden/Universal Render Pipeline/StencilDeferred"
             #pragma multi_compile _POINT _SPOT
             #pragma multi_compile_fragment _LIT
             #pragma multi_compile_fragment _ _DEFERRED_LIGHT_SHADOWS
-            #pragma multi_compile_fragment _ _SHADOWS_SOFT
+            #pragma multi_compile_fragment _ _DEFERRED_SHADOWS_SOFT
             #pragma multi_compile_fragment _ LIGHTMAP_SHADOW_MIXING
             #pragma multi_compile_fragment _ SHADOWS_SHADOWMASK
             #pragma multi_compile_fragment _ _GBUFFER_NORMALS_OCT
             #pragma multi_compile_fragment _ _DEFERRED_MIXED_LIGHTING
             #pragma multi_compile_fragment _ _SCREEN_SPACE_OCCLUSION
             #pragma multi_compile_fragment _ _LIGHT_LAYERS
+            #pragma multi_compile_fragment _ _RENDER_PASS_ENABLED
+            #pragma multi_compile_fragment _ _DEFERRED_ADDITIONAL_LIGHT_COOKIES
 
             #pragma vertex Vertex
             #pragma fragment DeferredShading
@@ -422,13 +487,15 @@ Shader "Hidden/Universal Render Pipeline/StencilDeferred"
             #pragma multi_compile _POINT _SPOT
             #pragma multi_compile_fragment _SIMPLELIT
             #pragma multi_compile_fragment _ _DEFERRED_LIGHT_SHADOWS
-            #pragma multi_compile_fragment _ _SHADOWS_SOFT
+            #pragma multi_compile_fragment _ _DEFERRED_SHADOWS_SOFT
             #pragma multi_compile_fragment _ LIGHTMAP_SHADOW_MIXING
             #pragma multi_compile_fragment _ SHADOWS_SHADOWMASK
             #pragma multi_compile_fragment _ _GBUFFER_NORMALS_OCT
             #pragma multi_compile_fragment _ _DEFERRED_MIXED_LIGHTING
             #pragma multi_compile_fragment _ _SCREEN_SPACE_OCCLUSION
             #pragma multi_compile_fragment _ _LIGHT_LAYERS
+            #pragma multi_compile_fragment _ _RENDER_PASS_ENABLED
+            #pragma multi_compile_fragment _ _DEFERRED_ADDITIONAL_LIGHT_COOKIES
 
             #pragma vertex Vertex
             #pragma fragment DeferredShading
@@ -468,13 +535,15 @@ Shader "Hidden/Universal Render Pipeline/StencilDeferred"
             #pragma multi_compile_fragment _ _DEFERRED_MAIN_LIGHT
             #pragma multi_compile_fragment _ _DEFERRED_FIRST_LIGHT
             #pragma multi_compile_fragment _ _DEFERRED_LIGHT_SHADOWS
-            #pragma multi_compile_fragment _ _SHADOWS_SOFT
+            #pragma multi_compile_fragment _ _DEFERRED_SHADOWS_SOFT
             #pragma multi_compile_fragment _ LIGHTMAP_SHADOW_MIXING
             #pragma multi_compile_fragment _ SHADOWS_SHADOWMASK
             #pragma multi_compile_fragment _ _GBUFFER_NORMALS_OCT
             #pragma multi_compile_fragment _ _DEFERRED_MIXED_LIGHTING
             #pragma multi_compile_fragment _ _SCREEN_SPACE_OCCLUSION
             #pragma multi_compile_fragment _ _LIGHT_LAYERS
+            #pragma multi_compile_fragment _ _RENDER_PASS_ENABLED
+            #pragma multi_compile_fragment _ _LIGHT_COOKIES
 
             #pragma vertex Vertex
             #pragma fragment DeferredShading
@@ -514,13 +583,15 @@ Shader "Hidden/Universal Render Pipeline/StencilDeferred"
             #pragma multi_compile_fragment _ _DEFERRED_MAIN_LIGHT
             #pragma multi_compile_fragment _ _DEFERRED_FIRST_LIGHT
             #pragma multi_compile_fragment _ _DEFERRED_LIGHT_SHADOWS
-            #pragma multi_compile_fragment _ _SHADOWS_SOFT
+            #pragma multi_compile_fragment _ _DEFERRED_SHADOWS_SOFT
             #pragma multi_compile_fragment _ LIGHTMAP_SHADOW_MIXING
             #pragma multi_compile_fragment _ SHADOWS_SHADOWMASK
             #pragma multi_compile_fragment _ _GBUFFER_NORMALS_OCT
             #pragma multi_compile_fragment _ _DEFERRED_MIXED_LIGHTING
             #pragma multi_compile_fragment _ _SCREEN_SPACE_OCCLUSION
             #pragma multi_compile_fragment _ _LIGHT_LAYERS
+            #pragma multi_compile_fragment _ _RENDER_PASS_ENABLED
+            #pragma multi_compile_fragment _ _LIGHT_COOKIES
 
             #pragma vertex Vertex
             #pragma fragment DeferredShading
@@ -546,6 +617,7 @@ Shader "Hidden/Universal Render Pipeline/StencilDeferred"
 
             #pragma multi_compile _FOG
             #pragma multi_compile FOG_LINEAR FOG_EXP FOG_EXP2
+            #pragma multi_compile_fragment _ _RENDER_PASS_ENABLED
 
             #pragma vertex Vertex
             #pragma fragment FragFog

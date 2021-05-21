@@ -3,12 +3,12 @@ using System.Linq;
 using UnityEditor.VFX.Block;
 using UnityEngine;
 
-namespace UnityEditor.VFX
+namespace UnityEditor.VFX.HDRP
 {
     [VFXInfo(experimental = true)]
     class VFXLitSphereOutput : VFXAbstractParticleHDRPLitOutput
     {
-        public override string name { get { return "Output Particle Lit Sphere"; } }
+        public override string name { get { return "Output Particle HDRP Lit Sphere"; } }
         public override string codeGeneratorTemplate { get { return RenderPipeTemplate("VFXParticleSphere"); } }
         public override VFXTaskType taskType { get { return VFXTaskType.ParticleQuadOutput; } }
 

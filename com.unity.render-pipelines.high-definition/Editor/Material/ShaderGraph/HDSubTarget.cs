@@ -8,13 +8,14 @@ using UnityEditor.ShaderGraph.Internal;
 using UnityEditor.Graphing;
 using UnityEditor.ShaderGraph.Legacy;
 using UnityEditor.Rendering.HighDefinition.ShaderGraph.Legacy;
+using UnityEditor.VFX;
 using static UnityEngine.Rendering.HighDefinition.HDMaterialProperties;
 using static UnityEditor.Rendering.HighDefinition.HDShaderUtils;
 
 namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
 {
     abstract class HDSubTarget : SubTarget<HDTarget>, IHasMetadata,
-        IRequiresData<SystemData>, IVersionable<ShaderGraphVersion>
+        IRequiresData<SystemData>, IVersionable<ShaderGraphVersion>, IRequireVFXContext
     {
         SystemData m_SystemData;
         protected bool m_MigrateFromOldCrossPipelineSG; // Use only for the migration to shader stack architecture
@@ -34,12 +35,21 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
             set => m_SystemData = value;
         }
 
+        // VFX Properties
+        protected VFXContext m_ContextVFX = null;
+        protected VFXContextCompiledData m_ContextDataVFX;
+        protected bool TargetsVFX() => m_ContextVFX != null;
+
         protected virtual int ComputeMaterialNeedsUpdateHash() => 0;
 
         public override bool IsActive() => true;
 
+        internal GUID subTargetGuid { get { return subTargetAssetGuid; } }
         protected abstract ShaderID shaderID { get; }
+
         protected abstract string customInspector { get; }
+        internal abstract MaterialResetter setupMaterialKeywordsAndPassFunc { get; }
+
         protected abstract GUID subTargetAssetGuid { get; }
         protected abstract string renderType { get; }
         protected abstract string renderQueue { get; }
@@ -60,7 +70,9 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
         {
             var hdMetadata = ScriptableObject.CreateInstance<HDMetadata>();
             hdMetadata.shaderID = shaderID;
+            hdMetadata.subTargetGuid = subTargetGuid;
             hdMetadata.migrateFromOldCrossPipelineSG = m_MigrateFromOldCrossPipelineSG;
+            hdMetadata.hdSubTargetVersion = systemData.version;
             return hdMetadata;
         }
 
@@ -85,27 +97,27 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
         {
         }
 
+        /// <summary>
+        /// Override this method to handle subtarget specific migration (ie including private versioning)
+        /// in inherited subtargets
+        /// </summary>
+        internal virtual void Migrate()
+        {
+            if (migrationSteps.Migrate(this))
+                OnBeforeSerialize();
+        }
+
         static readonly GUID kSourceCodeGuid = new GUID("c09e6e9062cbd5a48900c48a0c2ed1c2");  // HDSubTarget.cs
 
         public override void Setup(ref TargetSetupContext context)
         {
+            Migrate();
+
             context.AddAssetDependency(kSourceCodeGuid, AssetCollection.Flags.SourceDependency);
             context.AddAssetDependency(subTargetAssetGuid, AssetCollection.Flags.SourceDependency);
+            var inspector = TargetsVFX() ? VFXHDRPSubTarget.Inspector : customInspector;
             if (!context.HasCustomEditorForRenderPipeline(typeof(HDRenderPipelineAsset)))
-                context.AddCustomEditorForRenderPipeline(customInspector, typeof(HDRenderPipelineAsset));
-
-            if (migrationSteps.Migrate(this))
-                OnBeforeSerialize();
-
-            // Migration hack to have the case where SG doesn't have version yet but is already upgraded to the stack system
-            if (!systemData.firstTimeMigrationExecuted)
-            {
-                // Force the initial migration step
-                MigrateTo(ShaderGraphVersion.FirstTimeMigration);
-                systemData.firstTimeMigrationExecuted = true;
-                OnBeforeSerialize();
-                systemData.materialNeedsUpdateHash = ComputeMaterialNeedsUpdateHash();
-            }
+                context.AddCustomEditorForRenderPipeline(inspector, typeof(HDRenderPipelineAsset));
 
             foreach (var subShader in EnumerateSubShaders())
             {
@@ -119,6 +131,9 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
 
         protected SubShaderDescriptor PostProcessSubShader(SubShaderDescriptor subShaderDescriptor)
         {
+            if (TargetsVFX())
+                subShaderDescriptor = VFXSubTarget.PostProcessSubShader(subShaderDescriptor, m_ContextVFX, m_ContextDataVFX);
+
             if (String.IsNullOrEmpty(subShaderDescriptor.pipelineTag))
                 subShaderDescriptor.pipelineTag = HDRenderPipeline.k_ShaderTagName;
 
@@ -168,16 +183,14 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                 if (passDescriptor.validVertexBlocks == null)
                     passDescriptor.validVertexBlocks = tmpCtx.activeBlocks.Where(b => b.shaderStage == ShaderStage.Vertex).ToArray();
 
-                // Add keywords from subshaders:
+                // Add various collections, most are init in HDShaderPasses.cs
                 passDescriptor.keywords = passDescriptor.keywords == null ? new KeywordCollection() : new KeywordCollection { passDescriptor.keywords }; // Duplicate keywords to avoid side effects (static list modification)
-                passDescriptor.defines = passDescriptor.defines == null ? new DefineCollection() : new DefineCollection { passDescriptor.defines }; // Duplicate defines to avoid side effects (static list modification)
+
+                passDescriptor.fieldDependencies = passDescriptor.fieldDependencies == null ? new DependencyCollection() : new DependencyCollection { passDescriptor.fieldDependencies }; // Duplicate fieldDependencies to avoid side effects (static list modification)
+                passDescriptor.fieldDependencies.Add(CoreFieldDependencies.Default);
+
                 CollectPassKeywords(ref passDescriptor);
 
-                // Set default values for HDRP "surface" passes:
-                if (passDescriptor.structs == null)
-                    passDescriptor.structs = CoreStructCollections.Default;
-                if (passDescriptor.fieldDependencies == null)
-                    passDescriptor.fieldDependencies = CoreFieldDependencies.Default;
 
                 finalPasses.Add(passDescriptor, passes[i].fieldConditions);
             }
@@ -193,7 +206,11 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
         {
             // Common properties between all HD master nodes
             // Dots
-            context.AddField(HDFields.DotsInstancing,      systemData.dotsInstancing);
+            context.AddField(HDFields.DotsInstancing, systemData.dotsInstancing);
+
+            // VFX Setup
+            if (TargetsVFX())
+                VFXSubTarget.GetFields(ref context, m_ContextVFX);
         }
 
         protected abstract IEnumerable<SubShaderDescriptor> EnumerateSubShaders();
@@ -218,6 +235,12 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
 
                 return new HDSaveContext { updateMaterials = needsUpdate };
             }
+        }
+
+        public void ConfigureContextData(VFXContext context, VFXContextCompiledData data)
+        {
+            m_ContextVFX = context;
+            m_ContextDataVFX = data;
         }
     }
 }

@@ -18,6 +18,24 @@ namespace UnityEngine.Rendering.Universal
         internal bool isInvalidated { get; set; }
 
         /// <summary>
+        /// Class contains references to shader resources used by Rendering Debugger.
+        /// </summary>
+        [Serializable, ReloadGroup]
+        public sealed class DebugShaderResources
+        {
+            /// <summary>
+            /// Debug shader used to output interpolated vertex attributes.
+            /// </summary>
+            [Reload("Shaders/Debug/DebugReplacement.shader")]
+            public Shader debugReplacementPS;
+        }
+
+        /// <summary>
+        /// Container for shader resources used by Rendering Debugger.
+        /// </summary>
+        public DebugShaderResources debugShaders;
+
+        /// <summary>
         /// Creates the instance of the ScriptableRenderer.
         /// </summary>
         /// <returns>The instance of ScriptableRenderer</returns>
@@ -72,6 +90,25 @@ namespace UnityEngine.Rendering.Universal
                 SetDirty();
                 m_UseNativeRenderPass = value;
             }
+        }
+
+        /// <summary>
+        /// Returns true if contains renderer feature with specified type.
+        /// </summary>
+        /// <typeparam name="T">Renderer Feature type.</typeparam>
+        /// <returns></returns>
+        internal bool TryGetRendererFeature<T>(out T rendererFeature) where T : ScriptableRendererFeature
+        {
+            foreach (var target in rendererFeatures)
+            {
+                if (target.GetType() == typeof(T))
+                {
+                    rendererFeature = target as T;
+                    return true;
+                }
+            }
+            rendererFeature = null;
+            return false;
         }
 
 #if UNITY_EDITOR

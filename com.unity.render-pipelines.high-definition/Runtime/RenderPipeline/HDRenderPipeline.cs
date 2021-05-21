@@ -144,6 +144,7 @@ namespace UnityEngine.Rendering.HighDefinition
         RenderStateBlock m_AlphaToMaskBlock;
 
         readonly List<CustomPassVolume> m_ActivePassVolumes = new List<CustomPassVolume>(6);
+        readonly List<Terrain> m_ActiveTerrains = new List<Terrain>();
 
         // Detect when windows size is changing
         int m_MaxCameraWidth;
@@ -367,9 +368,16 @@ namespace UnityEngine.Rendering.HighDefinition
 
             InitializeLightLoop(m_IBLFilterArray);
 
-            if (m_Asset.currentPlatformRenderPipelineSettings.supportProbeVolume)
+            if (IsAPVEnabled())
             {
-                ProbeReferenceVolume.instance.SetMemoryBudget(m_Asset.currentPlatformRenderPipelineSettings.probeVolumeMemoryBudget);
+                var pvr = ProbeReferenceVolume.instance;
+                ProbeReferenceVolume.instance.Initialize(new ProbeVolumeSystemParameters()
+                {
+                    memoryBudget = m_Asset.currentPlatformRenderPipelineSettings.probeVolumeMemoryBudget,
+                    probeDebugMesh = defaultResources.assets.sphereMesh,
+                    probeDebugShader = defaultResources.shaders.probeVolumeDebugShader,
+                    sceneBounds = m_GlobalSettings.GetOrCreateAPVSceneBounds()
+                });
             }
 
             m_SkyManager.Build(asset, defaultResources, m_IBLFilterArray);
@@ -438,22 +446,18 @@ namespace UnityEngine.Rendering.HighDefinition
             m_GlobalSettings.EnsureRuntimeResources(forceReload: true);
             m_GlobalSettings.EnsureEditorResources(forceReload: true);
 
-            bool requiresRayTracingResources = false;
-            if (GatherRayTracingSupport(asset.currentPlatformRenderPipelineSettings))
+            // Make sure to include ray-tracing resources if at least one of the defaultAsset or quality levels needs it
+            bool requiresRayTracingResources = m_Asset.currentPlatformRenderPipelineSettings.supportRayTracing;
+
+            // Make sure to include ray-tracing resources if at least one of the quality levels needs it
+            int qualityLevelCount = QualitySettings.names.Length;
+            for (int i = 0; i < qualityLevelCount && !requiresRayTracingResources; ++i)
             {
-                requiresRayTracingResources = true;
+                var hdrpAsset = QualitySettings.GetRenderPipelineAssetAt(i) as HDRenderPipelineAsset;
+                if (hdrpAsset != null && hdrpAsset.currentPlatformRenderPipelineSettings.supportRayTracing)
+                    requiresRayTracingResources = true;
             }
-            // Also make sure to include ray-tracing resources if at least one of the quality levels needs it
-            else if (rayTracingSupportedBySystem)
-            {
-                int qualityLevelCount = QualitySettings.names.Length;
-                for (int i = 0; i < qualityLevelCount && !requiresRayTracingResources; ++i)
-                {
-                    var hdrpAsset = QualitySettings.GetRenderPipelineAssetAt(i) as HDRenderPipelineAsset;
-                    if (hdrpAsset != null && hdrpAsset.currentPlatformRenderPipelineSettings.supportRayTracing)
-                        requiresRayTracingResources = true;
-                }
-            }
+
             // If ray tracing is not enabled we do not want to have ray tracing resources referenced
             if (requiresRayTracingResources)
                 m_GlobalSettings.EnsureRayTracingResources(forceReload: true);
@@ -517,6 +521,9 @@ namespace UnityEngine.Rendering.HighDefinition
                 , overridesShadowmask = true // Don't display the shadow mask UI in Quality Settings
                 , overrideShadowmaskMessage = "\nThe Shadowmask Mode used at run time can be found in the Shadows section of Light component."
                 , overridesRealtimeReflectionProbes = true // Don't display the real time reflection probes checkbox UI in Quality Settings
+                , autoAmbientProbeBaking = false
+                , autoDefaultReflectionProbeBaking = false
+                , enlightenLightmapper = false
             };
 
             Lightmapping.SetDelegate(GlobalIlluminationUtils.hdLightsDelegate);
@@ -533,6 +540,14 @@ namespace UnityEngine.Rendering.HighDefinition
                 Debug.LogError("High Definition Render Pipeline doesn't support Gamma mode, change to Linear mode (HDRP isn't set up properly. Go to Windows > RenderPipeline > HDRP Wizard to fix your settings).");
             }
 #endif
+
+#if ENABLE_NVIDIA && ENABLE_NVIDIA_MODULE
+            m_DebugDisplaySettings.nvidiaDebugView.Reset();
+#endif
+            if (DLSSPass.SetupFeature(m_GlobalSettings))
+            {
+                HDDynamicResolutionPlatformCapabilities.ActivateDLSS();
+            }
         }
 
         bool CheckAPIValidity()
@@ -663,7 +678,6 @@ namespace UnityEngine.Rendering.HighDefinition
 
             DecalSystem.instance.Cleanup();
 
-            ProbeReferenceVolume.instance.Cleanup();
             CoreUtils.SafeRelease(m_EmptyIndexBuffer);
             m_EmptyIndexBuffer = null;
 
@@ -752,6 +766,11 @@ namespace UnityEngine.Rendering.HighDefinition
             }
 
 #endif
+            }
+
+            if (IsAPVEnabled())
+            {
+                ProbeReferenceVolume.instance.Cleanup();
             }
 
             CleanupRenderGraph();
@@ -847,7 +866,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 // Check if recursive rendering is enabled or not. This will control the cull of primitive
                 // during the gbuffer and forward pass
                 ScreenSpaceReflection settings = hdCamera.volumeStack.GetComponent<ScreenSpaceReflection>();
-                bool enableRaytracedReflections = hdCamera.frameSettings.IsEnabled(FrameSettingsField.RayTracing) && settings.rayTracing.value;
+                bool enableRaytracedReflections = hdCamera.frameSettings.IsEnabled(FrameSettingsField.RayTracing) && ScreenSpaceReflection.RayTracingActive(settings);
                 m_ShaderVariablesGlobalCB._EnableRayTracedReflections = enableRaytracedReflections ? 1 : 0;
                 RecursiveRendering recursiveSettings = hdCamera.volumeStack.GetComponent<RecursiveRendering>();
                 m_ShaderVariablesGlobalCB._EnableRecursiveRayTracing = recursiveSettings.enable.value ? 1u : 0u;
@@ -915,9 +934,9 @@ namespace UnityEngine.Rendering.HighDefinition
                 CoreUtils.SetKeyword(cmd, "DECALS_4RT", false);
             }
 
-            CoreUtils.SetKeyword(cmd, "PROBE_VOLUMES_OFF", !m_Asset.currentPlatformRenderPipelineSettings.supportProbeVolume);
-            CoreUtils.SetKeyword(cmd, "PROBE_VOLUMES_L1", m_Asset.currentPlatformRenderPipelineSettings.supportProbeVolume && m_Asset.currentPlatformRenderPipelineSettings.probeVolumeSHBands == ProbeVolumeSHBands.SphericalHarmonicsL1);
-            CoreUtils.SetKeyword(cmd, "PROBE_VOLUMES_L2", m_Asset.currentPlatformRenderPipelineSettings.supportProbeVolume && m_Asset.currentPlatformRenderPipelineSettings.probeVolumeSHBands == ProbeVolumeSHBands.SphericalHarmonicsL2);
+            CoreUtils.SetKeyword(cmd, "PROBE_VOLUMES_OFF", !IsAPVEnabled());
+            CoreUtils.SetKeyword(cmd, "PROBE_VOLUMES_L1", IsAPVEnabled() && m_Asset.currentPlatformRenderPipelineSettings.probeVolumeSHBands == ProbeVolumeSHBands.SphericalHarmonicsL1);
+            CoreUtils.SetKeyword(cmd, "PROBE_VOLUMES_L2", IsAPVEnabled() && m_Asset.currentPlatformRenderPipelineSettings.probeVolumeSHBands == ProbeVolumeSHBands.SphericalHarmonicsL2);
 
             // Raise the normal buffer flag only if we are in forward rendering
             CoreUtils.SetKeyword(cmd, "WRITE_NORMAL_BUFFER", hdCamera.frameSettings.litShaderMode == LitShaderMode.Forward);
@@ -927,6 +946,31 @@ namespace UnityEngine.Rendering.HighDefinition
 
             // Raise or remove the depth msaa flag based on the frame setting
             CoreUtils.SetKeyword(cmd, "WRITE_MSAA_DEPTH", hdCamera.msaaEnabled);
+        }
+
+        void SetupDLSSForCameraDataAndDynamicResHandler(
+            in HDAdditionalCameraData hdCam,
+            Camera camera,
+            XRPass xrPass,
+            bool cameraRequestedDynamicRes,
+            ref GlobalDynamicResolutionSettings outDrsSettings)
+        {
+            if (hdCam == null)
+                return;
+
+            hdCam.cameraCanRenderDLSS = cameraRequestedDynamicRes
+                && HDDynamicResolutionPlatformCapabilities.DLSSDetected
+                && hdCam.allowDeepLearningSuperSampling
+                && m_Asset.currentPlatformRenderPipelineSettings.dynamicResolutionSettings.enableDLSS
+                && m_Asset.currentPlatformRenderPipelineSettings.dynamicResolutionSettings.enabled;
+
+            if (m_DLSSPass != null && hdCam.cameraCanRenderDLSS)
+            {
+                bool useOptimalSettings = hdCam.deepLearningSuperSamplingUseCustomAttributes
+                    ? hdCam.deepLearningSuperSamplingUseOptimalSettings
+                    : m_Asset.currentPlatformRenderPipelineSettings.dynamicResolutionSettings.DLSSUseOptimalSettings;
+                m_DLSSPass.SetupAutomaticDRSScaling(useOptimalSettings, camera, xrPass, ref outDrsSettings);
+            }
         }
 
         struct RenderRequest
@@ -1039,9 +1083,13 @@ namespace UnityEngine.Rendering.HighDefinition
             if (newCount != m_FrameCount)
             {
                 m_FrameCount = newCount;
-                m_ProbeCameraCache.ClearCamerasUnusedFor(2, Time.frameCount);
                 HDCamera.CleanUnused();
             }
+
+#if ENABLE_NVIDIA && ENABLE_NVIDIA_MODULE
+            m_DebugDisplaySettings.nvidiaDebugView.Update();
+#endif
+            Terrain.GetActiveTerrains(m_ActiveTerrains);
 
             // This syntax is awful and hostile to debugging, please don't use it...
             using (ListPool<RenderRequest>.Get(out List<RenderRequest> renderRequests))
@@ -1092,15 +1140,22 @@ namespace UnityEngine.Rendering.HighDefinition
                         continue;
 #endif
 
-                    DynamicResolutionHandler.UpdateAndUseCamera(camera, m_Asset.currentPlatformRenderPipelineSettings.dynamicResolutionSettings);
-                    var dynResHandler = DynamicResolutionHandler.instance;
-
                     bool cameraRequestedDynamicRes = false;
-                    HDAdditionalCameraData hdCam;
+                    HDAdditionalCameraData hdCam = null;
+                    var drsSettings = m_Asset.currentPlatformRenderPipelineSettings.dynamicResolutionSettings;
+
+                    DynamicResolutionHandler.SetActiveDynamicScalerSlot(DynamicResScalerSlot.User);
                     if (camera.TryGetComponent<HDAdditionalCameraData>(out hdCam))
                     {
                         cameraRequestedDynamicRes = hdCam.allowDynamicResolution && camera.cameraType == CameraType.Game;
+                    }
 
+                    SetupDLSSForCameraDataAndDynamicResHandler(hdCam, camera, xrPass, cameraRequestedDynamicRes, ref drsSettings);
+                    DynamicResolutionHandler.UpdateAndUseCamera(camera, drsSettings);
+
+                    var dynResHandler = DynamicResolutionHandler.instance;
+                    if (hdCam != null)
+                    {
                         // We are in a case where the platform does not support hw dynamic resolution, so we force the software fallback.
                         // TODO: Expose the graphics caps info on whether the platform supports hw dynamic resolution or not.
                         // Temporarily disable HW Dynamic resolution on metal until the problems we have with it are fixed
@@ -1111,6 +1166,8 @@ namespace UnityEngine.Rendering.HighDefinition
                     }
 
                     dynResHandler.SetCurrentCameraRequest(cameraRequestedDynamicRes);
+                    dynResHandler.runUpscalerFilterOnFullResolution = hdCam != null && hdCam.cameraCanRenderDLSS;
+
                     RTHandles.SetHardwareDynamicResolutionState(dynResHandler.HardwareDynamicResIsEnabled());
 
                     VFXManager.PrepareCamera(camera);
@@ -1159,8 +1216,11 @@ namespace UnityEngine.Rendering.HighDefinition
                     if (additionalCameraData != null && additionalCameraData.hasCustomRender)
                     {
                         skipRequest = true;
+                        // First prepare the global constant buffer for users (Only camera properties)
+                        hdCamera.UpdateShaderVariablesGlobalCB(ref m_ShaderVariablesGlobalCB);
+                        ConstantBuffer.PushGlobal(m_ShaderVariablesGlobalCB, HDShaderIDs._ShaderVariablesGlobal);
                         // Execute custom render
-                        UnityEngine.Rendering.RenderPipeline.BeginCameraRendering(renderContext, camera);
+                        BeginCameraRendering(renderContext, camera);
                         additionalCameraData.ExecuteCustomRender(renderContext, hdCamera);
                     }
 
@@ -1398,15 +1458,19 @@ namespace UnityEngine.Rendering.HighDefinition
                     for (int j = 0; j < cameraSettings.Count; ++j)
                     {
                         var camera = m_ProbeCameraCache.GetOrCreate((viewerTransform, visibleProbe, j), Time.frameCount, CameraType.Reflection);
-                        var additionalCameraData = camera.GetComponent<HDAdditionalCameraData>();
 
                         var settingsCopy = m_Asset.currentPlatformRenderPipelineSettings.dynamicResolutionSettings;
                         settingsCopy.forcedPercentage = 100.0f;
                         settingsCopy.forceResolution = true;
                         DynamicResolutionHandler.UpdateAndUseCamera(camera, settingsCopy);
 
-                        if (additionalCameraData == null)
+                        foreach (var terrain in m_ActiveTerrains)
+                            terrain.SetKeepUnusedCameraRenderingResources(camera.GetInstanceID(), true);
+
+                        if (!camera.TryGetComponent<HDAdditionalCameraData>(out var additionalCameraData))
+                        {
                             additionalCameraData = camera.gameObject.AddComponent<HDAdditionalCameraData>();
+                        }
                         additionalCameraData.hasPersistentHistory = true;
 
                         // We need to set a targetTexture with the right otherwise when setting pixelRect, it will be rescaled internally to the size of the screen
@@ -2056,6 +2120,10 @@ namespace UnityEngine.Rendering.HighDefinition
 
             hdCamera = HDCamera.GetOrCreate(camera, xrPass.multipassId);
 
+            //Forcefully disable antialiasing if DLSS is enabled.
+            if (additionalCameraData != null)
+                currentFrameSettings.SetEnabled(FrameSettingsField.Antialiasing, currentFrameSettings.IsEnabled(FrameSettingsField.Antialiasing) && !additionalCameraData.cameraCanRenderDLSS);
+
             // From this point, we should only use frame settings from the camera
             hdCamera.Update(currentFrameSettings, this, xrPass);
 
@@ -2182,6 +2250,9 @@ namespace UnityEngine.Rendering.HighDefinition
                 ScriptableRenderContext.EmitWorldGeometryForSceneView(camera);
             }
 #endif
+
+            // Must be called before culling because it emits intermediate renderers via Graphics.DrawInstanced.
+            ProbeReferenceVolume.instance.RenderDebug(hdCamera.camera);
 
             // Set the LOD bias and store current value to be able to restore it.
             // Use a try/finalize pattern to be sure to restore properly the qualitySettings.lodBias

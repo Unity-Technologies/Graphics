@@ -7,8 +7,8 @@ namespace UnityEditor.ShaderGraph.Drawing
 {
     class SGBlackboardRow : VisualElement
     {
-        static readonly string k_UxmlTemplatePath = "UXML/GraphView/BlackboardRow";
-        static readonly string k_StyleSheetPath = "Styles/Blackboard";
+        static readonly string k_UxmlTemplatePath = "UXML/Blackboard/SGBlackboardRow";
+        static readonly string k_StyleSheetPath = "Styles/SGBlackboard";
 
         VisualElement m_Root;
         Button m_ExpandButton;

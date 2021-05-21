@@ -1,5 +1,5 @@
-#ifndef UNITY_IMAGE_BASED_LIGHTING_INCLUDED
-#define UNITY_IMAGE_BASED_LIGHTING_INCLUDED
+#ifndef UNITY_IMAGE_BASED_LIGHTING_HLSL_INCLUDED
+#define UNITY_IMAGE_BASED_LIGHTING_HLSL_INCLUDED
 
 #if SHADER_API_MOBILE || SHADER_API_GLES || SHADER_API_GLES3
 #pragma warning (disable : 3205) // conversion of larger type to smaller
@@ -746,4 +746,4 @@ float InfluenceFadeNormalWeight(float3 normal, float3 centerToPos)
 #pragma warning (enable : 3205) // conversion of larger type to smaller
 #endif
 
-#endif // UNITY_IMAGE_BASED_LIGHTING_INCLUDED
+#endif // UNITY_IMAGE_BASED_LIGHTING_HLSL_INCLUDED
