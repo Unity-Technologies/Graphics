@@ -4,6 +4,8 @@ using System.Globalization;
 using System.Linq;
 using System.Text.RegularExpressions;
 using UnityEngine;
+using UnityEngine.Assertions.Must;
+using UnityEngine.UIElements;
 using UnityEngine.VFX;
 
 namespace UnityEditor.VFX
@@ -56,6 +58,7 @@ namespace UnityEditor.VFX
             Delayed = 1 << 7,
             BitField = 1 << 8,
             Enum = GraphAttribute | 1 << 9,
+            MinMax = 1 << 10,
 
             // Tells whether this attribute modifies the expression graph
             GraphAttribute = 1 << 31,
@@ -72,7 +75,8 @@ namespace UnityEditor.VFX
             { typeof(RegexAttribute),       Type.Regex },
             { typeof(DelayedAttribute),     Type.Delayed },
             { typeof(BitFieldAttribute),    Type.BitField },
-            { typeof(EnumAttribute),    Type.Enum }
+            { typeof(EnumAttribute),    Type.Enum },
+            { typeof(MinMaxAttribute), Type.MinMax},
         };
 
         public VFXPropertyAttributes(params object[] attributes) : this()
@@ -215,6 +219,12 @@ namespace UnityEditor.VFX
             {
                 var attribute = m_AllAttributes.OfType<MinAttribute>().First();
                 return new Vector2(attribute.min, Mathf.Infinity);
+            }
+            else if (Is(Type.MinMax))
+            {
+                var attribute = m_AllAttributes.OfType<MinMaxAttribute>()
+                    .First();
+                return new Vector2(attribute.min, attribute.max);
             }
 
             return Vector2.zero;

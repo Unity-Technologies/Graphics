@@ -71,7 +71,7 @@ namespace UnityEditor.VFX.HDRP
 
         public class FadingProperties
         {
-            [Tooltip("Angle Fade. Between 0 and 180.")] //TODO : create range attribute?
+            [Tooltip("Angle Fade. Between 0 and 180."), MinMax(0,1)] //TODO : create range attribute?
             public Vector2 angleFade = Vector2.zero;
             [Range(0, 1), Tooltip("Fade Factor.")]
             public float fadeFactor = 0.0f;

@@ -59,6 +59,11 @@ VFXColorField #indeterminate
     flex:0 0 auto;
 }
 
+.unity-min-max-slider
+{
+    flex:1 0 auto;
+}
+
 .PopupButton
 {
     -unity-text-align:middle-left;
