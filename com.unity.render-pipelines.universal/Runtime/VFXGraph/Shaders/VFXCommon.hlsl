@@ -107,6 +107,13 @@ float4x4 VFXGetViewToWorldMatrix()
     return UNITY_MATRIX_I_V;
 }
 
+#ifdef USING_STEREO_MATRICES
+float3 GetWorldStereoOffset()
+{
+    return float3(0.0f, 0.0f, 0.0f);
+}
+#endif
+
 float VFXSampleDepth(float4 posSS)
 {
     return LoadSceneDepth(uint2(posSS.xy));
