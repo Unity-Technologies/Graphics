@@ -46,6 +46,15 @@ namespace UnityEditor.ShaderGraph.Internal
             }
         }
 
+        internal override string GetHLSLVariableName(bool isSubgraphProperty)
+        {
+            HLSLDeclaration decl = GetDefaultHLSLDeclaration();
+            if (decl == HLSLDeclaration.HybridPerInstance)
+                return $"UNITY_ACCESS_INSTANCED_PROP(unity_Builtins0, {referenceName})";
+            else
+                return referenceName;
+        }
+
         internal override string GetPropertyBlockString()
         {
             string valueString = NodeUtils.FloatToShaderValueShaderLabSafe(value);

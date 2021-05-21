@@ -304,16 +304,10 @@ namespace UnityEditor.ShaderGraph
                     builder.Append(prop.GetValueTypeString());
                     builder.Append(", ");
                     builder.Append(prop.name);
-                    builder.Append("_Array)");
+                    builder.Append(")");
                     count++;
                 }
                 builder.AppendNewLine();
-
-                foreach (var prop in hybridHLSLProps)
-                {
-                    string varName = $"{prop.name}_Array";
-                    builder.AppendLine("#define {0} UNITY_ACCESS_INSTANCED_PROP(unity_Builtins0, {1})", prop.name, varName);
-                }
             }
             builder.AppendLine("#endif");
             return builder.ToString();
