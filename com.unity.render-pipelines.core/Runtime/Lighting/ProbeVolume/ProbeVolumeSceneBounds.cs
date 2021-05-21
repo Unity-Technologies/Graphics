@@ -109,6 +109,9 @@ namespace UnityEngine.Experimental.Rendering
             Bounds newBound = new Bounds();
             foreach (var volume in volumes)
             {
+                if (volume.globalVolume)
+                    volume.UpdateGlobalVolume(scene);
+
                 var scenePath = volume.gameObject.scene.path;
                 if (scenePath == scene.path)
                 {

@@ -3,6 +3,8 @@ using UnityEngine.Serialization;
 using UnityEditor.Experimental;
 using Unity.Collections;
 using System.Collections.Generic;
+using UnityEngine.SceneManagement;
+using UnityEditor;
 
 namespace UnityEngine.Experimental.Rendering
 {
@@ -13,15 +15,16 @@ namespace UnityEngine.Experimental.Rendering
     [AddComponentMenu("Light/Probe Volume (Experimental)")]
     public class ProbeVolume : MonoBehaviour
     {
-        public Vector3      size = new Vector3(10, 10, 10);
+        public bool globalVolume = false;
+        public Vector3 size = new Vector3(10, 10, 10);
         [HideInInspector]
-        public float        maxSubdivisionMultiplier = 1;
+        public float maxSubdivisionMultiplier = 1;
         [HideInInspector]
-        public float        minSubdivisionMultiplier = 0;
+        public float minSubdivisionMultiplier = 0;
         [HideInInspector, Range(0f, 2f)]
-        public float        geometryDistanceOffset = 0.2f;
+        public float geometryDistanceOffset = 0.2f;
 
-        public LayerMask    objectLayerMask = -1;
+        public LayerMask objectLayerMask = -1;
 
         [SerializeField] internal bool mightNeedRebaking = false;
 
@@ -38,6 +41,53 @@ namespace UnityEngine.Experimental.Rendering
         }
 
 #if UNITY_EDITOR
+        internal void UpdateGlobalVolume(Scene scene)
+        {
+            if (gameObject.scene != scene) return;
+
+            Bounds bounds = new Bounds();
+            bool foundABound = false;
+            bool ContributesToGI(Renderer renderer)
+            {
+                var flags = GameObjectUtility.GetStaticEditorFlags(renderer.gameObject) & StaticEditorFlags.ContributeGI;
+                return (flags & StaticEditorFlags.ContributeGI) != 0;
+            }
+
+            void ExpandBounds(Bounds currBound)
+            {
+                if (!foundABound)
+                {
+                    bounds = currBound;
+                    foundABound = true;
+                }
+                else
+                {
+                    bounds.Encapsulate(currBound);
+                }
+            }
+
+            var renderers = UnityEngine.GameObject.FindObjectsOfType<Renderer>();
+
+            foreach (Renderer renderer in renderers)
+            {
+                bool contributeGI = ContributesToGI(renderer) && renderer.gameObject.activeInHierarchy && renderer.enabled;
+
+                if (contributeGI && renderer.gameObject.scene == scene)
+                {
+                    ExpandBounds(renderer.bounds);
+                }
+            }
+
+            transform.position = bounds.center;
+
+            float minBrickSize = ProbeReferenceVolume.instance.MinBrickSize();
+            Vector3 tmpClamp = (bounds.size + new Vector3(minBrickSize, minBrickSize, minBrickSize));
+            tmpClamp.x = Mathf.Max(0f, tmpClamp.x);
+            tmpClamp.y = Mathf.Max(0f, tmpClamp.y);
+            tmpClamp.z = Mathf.Max(0f, tmpClamp.z);
+            size = tmpClamp;
+        }
+
         internal void OnLightingDataAssetCleared()
         {
             mightNeedRebaking = true;
