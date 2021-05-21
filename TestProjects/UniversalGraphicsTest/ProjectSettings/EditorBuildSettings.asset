@@ -92,15 +92,21 @@ EditorBuildSettings:
   - enabled: 1
     path: Assets/Scenes/034_Shader_HighlightsEnvironmentGradientBaked.unity
     guid: e346f8573410f414ea2a8a4740526c88
-  - enabled: 0
-    path: Assets/Scenes/035_Shader_TerrainShaders.unity
-    guid: 770b86964e87d47e4bdbafa425ccd238
   - enabled: 1
     path: Assets/Scenes/036_Lighting_Scene_DirectionalBakedDirectional.unity
     guid: 7a8ef7ce062f0465b9e493dd5730cecb
   - enabled: 1
     path: Assets/Scenes/038_Shader_TerrainBlend.unity
     guid: 5578c9d8b0329024d8020e3094f70302
+  - enabled: 1
+    path: Assets/Scenes/038_Shader_TerrainBlend_BaseMap.unity
+    guid: 8a4ad2ff3f0300e49908c77e1af1a8f3
+  - enabled: 1
+    path: Assets/Scenes/038_Shader_TerrainBlend_Opacity_As_Density.unity
+    guid: e8a367fa3f01f184ebec18b0689f406d
+  - enabled: 1
+    path: Assets/Scenes/038_Shader_TerrainBlend_Opacity_As_Density_BaseMap.unity
+    guid: 802401076727724479b252af78298a45
   - enabled: 1
     path: Assets/Scenes/041_Lighting_BasicArea.unity
     guid: cd37c7e9d54e74dd7add9b40a2698ada
@@ -245,18 +251,12 @@ EditorBuildSettings:
   - enabled: 1
     path: Assets/Scenes/125_CameraStackingVolumes.unity
     guid: 9173c5ffc1365594aa9b927c4cd84c54
-  - enabled: 0
-    path: Assets/Scenes/126_RendererFeatureActive.unity
-    guid: 92276052d376244eb94e9548db46b27f
   - enabled: 1
     path: Assets/Scenes/126_SampleDepth.unity
     guid: d66b74ae4e7264d62bdb2c4f56261030
   - enabled: 1
     path: Assets/Scenes/127_ClearRenderTexture.unity
     guid: ecb4f57b7a1788b4b85f618d4cbc6677
-  - enabled: 0
-    path: Assets/Scenes/127_DynamicScaling_DOF.unity
-    guid: 069f595c511c463418479db2f730eec1
   - enabled: 1
     path: Assets/Scenes/126_SampleDepth.unity
     guid: d66b74ae4e7264d62bdb2c4f56261030
