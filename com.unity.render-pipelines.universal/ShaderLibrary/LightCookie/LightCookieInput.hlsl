@@ -28,13 +28,16 @@ CBUFFER_END
 #if USE_STRUCTURED_BUFFER_FOR_LIGHT_DATA
     StructuredBuffer<float4x4> _AdditionalLightsWorldToLightBuffer; // TODO: should really be property of the light!
     StructuredBuffer<float4>   _AdditionalLightsCookieAtlasUVRectBuffer; // UV rect into light cookie atlas (xy: uv offset, zw: uv size)
+    StructuredBuffer<float>    _AdditionalLightsCookieEnableBitsBuffer;
     StructuredBuffer<float>    _AdditionalLightsLightTypeBuffer; // TODO: should really be property of the light!
+
 #else
     #ifndef SHADER_API_GLES3
         CBUFFER_START(AdditionalLightsCookies)
     #endif
             float4x4 _AdditionalLightsWorldToLights[MAX_VISIBLE_LIGHTS];  // TODO: Should really be a property of the light !!!
             float4 _AdditionalLightsCookieAtlasUVRects[MAX_VISIBLE_LIGHTS]; // (xy: uv size, zw: uv offset)
+            float _AdditionalLightsCookieEnableBits[(MAX_VISIBLE_LIGHTS + 31) / 32];
             float _AdditionalLightsLightTypes[MAX_VISIBLE_LIGHTS]; // TODO: Should really be a property of the light !!!
     #ifndef SHADER_API_GLES3
         CBUFFER_END
@@ -97,7 +100,7 @@ real4 SampleMainLightCookieTexture(float2 uv)
     return SAMPLE_TEXTURE2D(_MainLightCookieTexture, sampler_MainLightCookieTexture, uv);
 }
 
-real4 SampleAdditionalLightsCookieTexture(float2 uv)
+real4 SampleAdditionalLightsCookieAtlasTexture(float2 uv)
 {
     return SAMPLE_TEXTURE2D(_AdditionalLightsCookieAtlasTexture, sampler_AdditionalLightsCookieAtlasTexture, uv);
 }
@@ -106,8 +109,22 @@ real4 SampleAdditionalLightsCookieTexture(float2 uv)
 
 bool IsLightCookieEnabled(int lightBufferIndex)
 {
+#if 1
     float4 uvRect = GetLightCookieAtlasUVRect(lightBufferIndex);
     return all(uvRect == 0);
+#else
+    uint elemIndex = (uint)lightBufferIndex >> 5;
+    uint bitOffset = (uint)lightBufferIndex & ((1 << 5) - 1);
+
+    #if USE_STRUCTURED_BUFFER_FOR_LIGHT_DATA
+        uint elem = asuint(_AdditionalLightsCookieEnableBitsBuffer[elemIndex]);
+    #else
+        float floatElem = _AdditionalLightsCookieEnableBits[elemIndex];
+        uint elem = asuint(floatElem);
+    #endif
+
+    return (elem & (1 << bitOffset)) != 0;
+#endif
 }
 
 #endif //UNIVERSAL_LIGHT_COOKIE_INPUT_INCLUDED

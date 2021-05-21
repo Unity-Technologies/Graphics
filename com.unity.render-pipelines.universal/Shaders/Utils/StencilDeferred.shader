@@ -239,9 +239,9 @@ Shader "Hidden/Universal Render Pipeline/StencilDeferred"
                     #if defined(_POINT)
                         cookieUv = ComputeLightCookieUVPoint(worldToLight, posWS, cookieUvRect);
                     #endif
-                    half4 cookieColor = SampleAdditionalLightsCookieTexture(cookieUv);
-                    cookieColor = half4(IsAdditionalLightsCookieTextureRGBFormat() ? cookieColor.rgb
-                                        : IsAdditionalLightsCookieTextureAlphaFormat() ? cookieColor.aaa
+                    half4 cookieColor = SampleAdditionalLightsCookieAtlasTexture(cookieUv);
+                    cookieColor = half4(IsAdditionalLightsCookieAtlasTextureRGBFormat() ? cookieColor.rgb
+                                        : IsAdditionalLightsCookieAtlasTextureAlphaFormat() ? cookieColor.aaa
                                         : cookieColor.rrr, 1);
                     unityLight.color *= cookieColor;
                 }

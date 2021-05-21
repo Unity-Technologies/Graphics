@@ -105,7 +105,7 @@ real3 SampleAdditionalLightCookie(int perObjectLightIndex, float3 samplePosition
         uv = ComputeLightCookieUVPoint(worldToLight, samplePositionWS, uvRect);
     }
 
-    real4 color = SampleAdditionalLightsCookieTexture(uv);
+    real4 color = SampleAdditionalLightsCookieAtlasTexture(uv);
 
     return IsAdditionalLightsCookieAtlasTextureRGBFormat() ? color.rgb
             : IsAdditionalLightsCookieAtlasTextureAlphaFormat() ? color.aaa

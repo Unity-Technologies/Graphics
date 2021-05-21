@@ -17,10 +17,12 @@ namespace UnityEngine.Rendering.Universal
             public static readonly int additionalLightsCookieAtlasTextureFormat = Shader.PropertyToID("_AdditionalLightsCookieAtlasTextureFormat");
 
             public static readonly int additionalLightsCookieAtlasUVRectBuffer = Shader.PropertyToID("_AdditionalLightsCookieAtlasUVRectBuffer");
+            public static readonly int additionalLightsCookieEnableBitsBuffer = Shader.PropertyToID("_AdditionalLightsCookieEnableBitsBuffer");
             public static readonly int additionalLightsWorldToLightBuffer = Shader.PropertyToID("_AdditionalLightsWorldToLightBuffer"); // TODO: really a light property
             public static readonly int additionalLightsLightTypeBuffer = Shader.PropertyToID("_AdditionalLightsLightTypeBuffer"); // TODO: really a light property
 
             public static readonly int additionalLightsCookieAtlasUVRects = Shader.PropertyToID("_AdditionalLightsCookieAtlasUVRects");
+            public static readonly int additionalLightsCookieEnableBits = Shader.PropertyToID("_AdditionalLightsCookieEnableBits");
             public static readonly int additionalLightsWorldToLights = Shader.PropertyToID("_AdditionalLightsWorldToLights"); // TODO: really a light property
             public static readonly int additionalLightsLightTypes = Shader.PropertyToID("_AdditionalLightsLightTypes"); // TODO: really a light property
         }
@@ -116,6 +118,86 @@ namespace UnityEngine.Rendering.Universal
             }
         }
 
+        private struct ShaderBitArray
+        {
+            const int kBitsPerElement = 32;
+            const int kElementShift = 5;
+            const int kElementMask = (1 << kElementShift) - 1;
+
+            private float[] m_data;
+
+            public int elemLength => m_data == null ? 0 : m_data.Length;
+            public int bitCapacity => elemLength * kBitsPerElement;
+            public float[] data => m_data;
+
+            public void Resize(int bitCount)
+            {
+                if (bitCapacity > bitCount)
+                    return;
+
+                int newElemCount = ((bitCount + (kBitsPerElement - 1)) / kBitsPerElement);
+                if (newElemCount == m_data?.Length)
+                    return;
+
+                var newData = new float[newElemCount];
+                if (m_data != null)
+                {
+                    for (int i = 0; i < m_data.Length; i++)
+                        newData[i] = m_data[i];
+                }
+                m_data = newData;
+            }
+
+            public void Clear()
+            {
+                for (int i = 0; i < m_data.Length; i++)
+                    m_data[i] = 0;
+            }
+
+            private void GetElementIndexAndBitOffset(int index, out int elemIndex, out int bitOffset)
+            {
+                elemIndex = index >> kElementShift;
+                bitOffset = index & kElementMask;
+            }
+
+            public bool this[int index]
+            {
+                get
+                {
+                    GetElementIndexAndBitOffset(index, out var elemIndex, out var bitOffset);
+
+                    unsafe
+                    {
+                        fixed(float* floatData = m_data)
+                        {
+                            uint* uintElem = (uint*)&floatData[elemIndex];
+                            bool val = ((*uintElem) & (1u << bitOffset)) != 0u;
+                            return val;
+                        }
+                    }
+                }
+                set
+                {
+                    GetElementIndexAndBitOffset(index, out var elemIndex, out var bitOffset);
+                    unsafe
+                    {
+                        fixed(float* floatData = m_data)
+                        {
+                            uint* uintElem = (uint*)&floatData[elemIndex];
+                            if (value == true)
+                            {
+                                *uintElem = (*uintElem) | (1u << bitOffset);
+                            }
+                            else
+                            {
+                                *uintElem = (*uintElem) & ~(1u << bitOffset);
+                            }
+                        }
+                    }
+                }
+            }
+        }
+
         /// Must match light data layout.
         private class LightCookieShaderData : IDisposable
         {
@@ -126,13 +208,16 @@ namespace UnityEngine.Rendering.Universal
             Matrix4x4[] m_WorldToLightCpuData;
             Vector4[] m_AtlasUVRectCpuData;
             float[] m_LightTypeCpuData;
+            ShaderBitArray m_CookieEnableBitsCpuData;
 
             // Compute buffer counterparts for the CPU data
             ComputeBuffer m_WorldToLightBuffer;    // TODO: WorldToLight matrices should be general property of lights!!
             ComputeBuffer m_AtlasUVRectBuffer;
             ComputeBuffer m_LightTypeBuffer;
+            ComputeBuffer m_CookieEnabledBuffer;
 
             public Matrix4x4[] worldToLights  => m_WorldToLightCpuData;
+            public ShaderBitArray cookieEnableBits  => m_CookieEnableBitsCpuData;
             public Vector4[] atlasUVRects   => m_AtlasUVRectCpuData;
             public float[] lightTypes     => m_LightTypeCpuData;
 
@@ -149,6 +234,7 @@ namespace UnityEngine.Rendering.Universal
                     m_WorldToLightBuffer?.Dispose();
                     m_AtlasUVRectBuffer?.Dispose();
                     m_LightTypeBuffer?.Dispose();
+                    m_CookieEnabledBuffer?.Dispose();
                 }
             }
 
@@ -160,16 +246,18 @@ namespace UnityEngine.Rendering.Universal
                 if (m_Size > 0)
                     Dispose();
 
+                m_WorldToLightCpuData = new Matrix4x4[size];
+                m_AtlasUVRectCpuData = new Vector4[size];
+                m_LightTypeCpuData = new float[size];
+                m_CookieEnableBitsCpuData.Resize(size);
+
                 if (m_UseStructuredBuffer)
                 {
                     m_WorldToLightBuffer = new ComputeBuffer(size, Marshal.SizeOf<Matrix4x4>());
                     m_AtlasUVRectBuffer = new ComputeBuffer(size, Marshal.SizeOf<Vector4>());
                     m_LightTypeBuffer = new ComputeBuffer(size, Marshal.SizeOf<float>());
+                    m_CookieEnabledBuffer = new ComputeBuffer(m_CookieEnableBitsCpuData.elemLength, Marshal.SizeOf<float>());
                 }
-
-                m_WorldToLightCpuData = new Matrix4x4[size];
-                m_AtlasUVRectCpuData = new Vector4[size];
-                m_LightTypeCpuData = new float[size];
 
                 m_Size = size;
             }
@@ -181,16 +269,19 @@ namespace UnityEngine.Rendering.Universal
                     m_WorldToLightBuffer.SetData(m_WorldToLightCpuData);
                     m_AtlasUVRectBuffer.SetData(m_AtlasUVRectCpuData);
                     m_LightTypeBuffer.SetData(m_LightTypeCpuData);
+                    m_CookieEnabledBuffer.SetData(m_CookieEnableBitsCpuData.data);
 
                     cmd.SetGlobalBuffer(ShaderProperty.additionalLightsWorldToLightBuffer, m_WorldToLightBuffer);
                     cmd.SetGlobalBuffer(ShaderProperty.additionalLightsCookieAtlasUVRectBuffer, m_AtlasUVRectBuffer);
                     cmd.SetGlobalBuffer(ShaderProperty.additionalLightsLightTypeBuffer, m_LightTypeBuffer);
+                    cmd.SetGlobalBuffer(ShaderProperty.additionalLightsCookieEnableBitsBuffer, m_CookieEnabledBuffer);
                 }
                 else
                 {
                     cmd.SetGlobalMatrixArray(ShaderProperty.additionalLightsWorldToLights, m_WorldToLightCpuData);
                     cmd.SetGlobalVectorArray(ShaderProperty.additionalLightsCookieAtlasUVRects, m_AtlasUVRectCpuData);
                     cmd.SetGlobalFloatArray(ShaderProperty.additionalLightsLightTypes, m_LightTypeCpuData);
+                    cmd.SetGlobalFloatArray(ShaderProperty.additionalLightsCookieEnableBits, m_CookieEnableBitsCpuData.data);
                 }
             }
         }
@@ -577,12 +668,13 @@ namespace UnityEngine.Rendering.Universal
                 m_VisibleLightIndexToShaderDataIndex[i] = -1;
 
             var worldToLights = m_AdditionalLightsCookieShaderData.worldToLights;
+            var cookieEnableBits = m_AdditionalLightsCookieShaderData.cookieEnableBits;
             var atlasUVRects = m_AdditionalLightsCookieShaderData.atlasUVRects;
             var lightTypes = m_AdditionalLightsCookieShaderData.lightTypes;
 
-            // TODO: clear enable bits instead
             // Set all rects to Invalid (Vector4.zero).
             Array.Clear(atlasUVRects, 0, atlasUVRects.Length);
+            cookieEnableBits.Clear();
 
             // TODO: technically, we don't need to upload constants again if we knew the lights, atlas (rects) or visible order haven't changed.
             // TODO: but detecting that, might be as time consuming as just doing the work.
@@ -601,6 +693,7 @@ namespace UnityEngine.Rendering.Universal
                 lightTypes[bufIndex] = (int)lightData.visibleLights[visIndex].lightType;
                 worldToLights[bufIndex] = lightData.visibleLights[visIndex].localToWorldMatrix.inverse;
                 atlasUVRects[bufIndex] = validUvRects[i];
+                cookieEnableBits[bufIndex] = true;
 
                 // Spot projection
                 if (lightData.visibleLights[visIndex].lightType == LightType.Spot)
