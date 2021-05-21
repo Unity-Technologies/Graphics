@@ -335,61 +335,81 @@ struct LightData
 };
 */
 
-bool SampleBeam(LightData lightData,
+bool SampleBeam(
+    LightData lightData,
     float3 position,
     float3 normal,
     out float3 outgoingDir,
     out float3 value,
     out float pdf,
-    out float dist)
+    out float dist,
+    inout PathIntersection payload)
 {
-    // Pick a local light from the list
-    //LightData lightData = GetLocalLightData(lightList, inputSample.z);
+    const float NM_TO_MM = 1e-6;
+    const float MM_TO_M = 1e-3;
 
-    // Generate a point on the surface of the light
-    //float3 lightCenter = lightData.positionRWS;//GetAbsolutePositionWS(lightData.positionRWS);
-    //float3 samplePos = lightCenter;
+    float3 lightDirection = payload.beamDirection;
+    float3 lightPosition = payload.beamOrigin;
 
-    // And the corresponding direction
-    outgoingDir = lightData.positionRWS - position;
+    outgoingDir = position - lightPosition;
     dist = length(outgoingDir);
     outgoingDir /= dist;
 
-    if (dot(normal, outgoingDir) < 0.001)
+    float apertureRadius = lightData.size.x;
+    float w0 = lightData.size.y;
+    float zr = lightData.size.z;
+    float distToWaist = lightData.size.w;
+
+    // get the hit point in the coordinate frame of the laser as a depth(z) and
+    // radial measure(r)
+    float ctheta = dot(lightDirection, outgoingDir);
+    float zFromAperture = ctheta * dist;
+    float rSq = Sq(dist) - Sq(zFromAperture);
+    float3 radialDirection = dist * outgoingDir - zFromAperture*lightDirection;
+
+    float zFromWaist = abs(zFromAperture / MM_TO_M - distToWaist);
+    if (dot(normal, -outgoingDir) < 0.001)
         return false;
 
-    //    if (lightData.lightType == GPULIGHTTYPE_RECTANGLE)
-    //    {
-    //        float cosTheta = -dot(outgoingDir, lightData.forward);
-    //        if (cosTheta < 0.001)
-    //            return false;
+    // Total beam power, note: different from the output here which is irradiance.
+    float P = lightData.color.x;
 
-    //        float lightArea = length(cross(lightData.size.x * lightData.right, lightData.size.y * lightData.up));
-    //        value = lightData.color;
-    //        pdf = GetLocalLightWeight(lightList) * Sq(dist) / (lightArea * cosTheta);
-    //    }
-    //    else // Punctual light
-    {
-        // DELTA_PDF represents 1 / area, where the area is infinitesimal
-        //value = GetPunctualEmission(lightData, outgoingDir, dist);
-        //float4 distances = float4(dist, Sq(dist), 1.0 / dist, -dist * dot(outgoingDir, lightData.forward));
+    const float zRatio = Sq(zFromWaist / zr);
+    const float wz = w0 * sqrt(1 + zRatio) * MM_TO_M;
+    const float Eoz = 2 * P;
+   // const float rMM = r / MM_TO_M;
 
-        //Distance attenuation
-        value = lightData.color;// * PunctualLightAttenuation(distances, lightData.rangeAttenuationScale, lightData.rangeAttenuationBias, lightData.angleScale, lightData.angleOffset);
+    const float wzSq = wz*wz;
 
-        float beamSpotAreaRadius = dist * lightData.angleScale; // in meter
-        float beamSpotArea = PI * Sq(beamSpotAreaRadius);
+    // returning in milimeters here because the value might be too large otherwise..
+    float gaussianFactor = exp(-2 * rSq / wzSq) / (PI * Sq(wz)); // 1/mm^2
+    value = gaussianFactor * Eoz; // W/mm^2
 
-        value /= beamSpotArea; // (W / m^2)
+    payload.beamRadius = wz;
+    payload.beamDepth = zFromAperture;
 
-        //Divergeance attenuation (aka attenuation from the center)
-        //TODO
+#if 1 /*Debug values*/
+    payload.diffuseColor = float3(ctheta, zFromAperture, rSq);
+    payload.fresnel0 = float3(distToWaist, w0, zr);
+    payload.transmittance = float3(zFromWaist, zRatio, wz);
+    payload.tangentWS = float3(Eoz, wzSq, gaussianFactor);
+#endif
 
-        pdf = 1.0f /*GetLocalLightWeight(lightList)*/;
-    }
+    // sampling a point in the "virtual" aperture
+    // Find the actual point in the beam aperture that corresponds to this point
+    float rRatio = apertureRadius / wz;
+    float3 pAperture = lightPosition + rRatio * radialDirection; // location of the point in the aperture
+
+    outgoingDir = pAperture - position; // corrected outgoing vector using the assumption below
+    dist = length(outgoingDir);
+    outgoingDir /= dist;
+
+    // assumption that the interaction point is only illuminated by
+    // one point in the laser aperture.
+    pdf = 1.0f;
 
     return any(value);
-}       
+}
 #endif
 
 bool SampleLights(LightList lightList,

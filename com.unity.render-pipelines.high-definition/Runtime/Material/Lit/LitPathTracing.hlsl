@@ -61,7 +61,7 @@ bool CreateMaterialData(PathIntersection pathIntersection, BuiltinData builtinDa
         float Fcoat = F_Schlick(CLEAR_COAT_F0, NdotV) * mtlData.bsdfData.coatMask;
 
 #if defined(SENSORSDK_SHADERGRAPH) || defined(SENSORSDK_OVERRIDE_REFLECTANCE)
-        float Fspec = F_Schlick(mtlData.bsdfData.fresnel0, NdotV);
+        float Fspec = F_Schlick(mtlData.bsdfData.fresnel0, NdotV).x;
 #else
         float Fspec = Luminance(F_Schlick(mtlData.bsdfData.fresnel0, NdotV));
 #endif

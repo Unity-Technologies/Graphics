@@ -45,13 +45,13 @@ void ComputeSurfaceScattering(inout PathIntersection pathIntersection : SV_RayPa
 #if defined(SENSORSDK_SHADERGRAPH) || defined(SENSORSDK_OVERRIDE_REFLECTANCE)
     pathIntersection.color = float3(0.0f, 0.0f, 1.0f);
 #endif
-    
+
     // Such an invalid remainingDepth value means we are called from a subsurface computation
     if (pathIntersection.remainingDepth > _RaytracingMaxRecursion)
     {
 #if defined(SENSORSDK_SHADERGRAPH) || defined(SENSORSDK_OVERRIDE_REFLECTANCE)
         pathIntersection.color = float3(0.0f, 1.0f, 1.0f);
-#endif        
+#endif
         pathIntersection.value = fragInput.tangentToWorld[2]; // Returns normal
         return;
     }
@@ -59,7 +59,7 @@ void ComputeSurfaceScattering(inout PathIntersection pathIntersection : SV_RayPa
 #if defined(SENSORSDK_SHADERGRAPH) || defined(SENSORSDK_OVERRIDE_REFLECTANCE)
         pathIntersection.color = float3(1.0f, 0.0f, 0.0f);
 #endif
-    
+
     // Grab depth information
     uint currentDepth = _RaytracingMaxRecursion - pathIntersection.remainingDepth;
 
@@ -90,10 +90,10 @@ void ComputeSurfaceScattering(inout PathIntersection pathIntersection : SV_RayPa
 #if defined(SENSORSDK_SHADERGRAPH) || defined(SENSORSDK_OVERRIDE_REFLECTANCE)
     pathIntersection.alpha2 = builtinData.opacity;
     pathIntersection.alphatreshold = builtinData.alphaClipTreshold;
-    
+
     pathIntersection.color = float3(1.0f, 0.0f, 1.0f);
 #endif
-    
+
     // if (!isVisible)
     // {
     //     // This should never happen, return magenta just in case
@@ -118,13 +118,13 @@ void ComputeSurfaceScattering(inout PathIntersection pathIntersection : SV_RayPa
     float wlIdx = clamp(Wavelength * 0.001f, _minWaveLengthValue, _maxWaveLengthValue);
     float wavelengthSpan = _maxWaveLengthValue - _minWaveLengthValue + 1;
     float2 coordCurve = float2(wlIdx / wavelengthSpan, 0);
- 
+
     bsdfData.diffuseColor = SAMPLE_TEXTURE2D(_SensorCustomReflectance, s_linear_clamp_sampler, coordCurve);
 
     pathIntersection.diffValue = bsdfData.diffuseColor;
     pathIntersection.customRefractance = bsdfData.diffuseColor;
 #endif
-    
+
 #if defined(SENSORSDK_SHADERGRAPH) || defined(SENSORSDK_OVERRIDE_REFLECTANCE)
     pathIntersection.color = float3(1.0f, 1.0f, 0.0f);
 #endif
@@ -180,10 +180,10 @@ void ComputeSurfaceScattering(inout PathIntersection pathIntersection : SV_RayPa
         pathIntersection.bsdfWeight1 = mtlData.bsdfWeight[1];
         pathIntersection.bsdfWeight2 = mtlData.bsdfWeight[2];
         pathIntersection.bsdfWeight3 = mtlData.bsdfWeight[3];
-        
+
         pathIntersection.color = float3(0.0f, 0.0f, 2.0f);
 #endif
-        
+
         // Create the list of active lights
     #ifdef _SURFACE_TYPE_TRANSPARENT
         float3 lightNormal = 0.0;
@@ -191,10 +191,10 @@ void ComputeSurfaceScattering(inout PathIntersection pathIntersection : SV_RayPa
         float3 lightNormal = mtlData.bsdfData.normalWS;
     #endif
 
-#if !defined(SENSORSDK_SHADERGRAPH) && !defined(SENSORSDK_OVERRIDE_REFLECTANCE)        
+#if !defined(SENSORSDK_SHADERGRAPH) && !defined(SENSORSDK_OVERRIDE_REFLECTANCE)
         LightList lightList = CreateLightList(shadingPosition, lightNormal, builtinData.renderingLayers);
 #endif
-        
+
         // Bunch of variables common to material and light sampling
         float pdf;
         float3 value;
@@ -207,17 +207,19 @@ void ComputeSurfaceScattering(inout PathIntersection pathIntersection : SV_RayPa
         PathIntersection nextPathIntersection;
 
 #if defined(SENSORSDK_SHADERGRAPH) || defined(SENSORSDK_OVERRIDE_REFLECTANCE)
-        pathIntersection.lightPosition = rayDescriptor.Origin;
-        pathIntersection.lightDirection = bsdfData.normalWS;
+        pathIntersection.lightPosition = pathIntersection.beamOrigin;
+        pathIntersection.lightDirection = pathIntersection.beamDirection;
         pathIntersection.lightCount = _SensorLightCount;
 #endif
 
 
 #if defined(SENSORSDK_SHADERGRAPH) || defined(SENSORSDK_OVERRIDE_REFLECTANCE)
-            pathIntersection.value = 0.0;
+            pathIntersection.value = float3(0., 0., 0.);
             for (uint i = 0; i < _SensorLightCount; i++)
             {
-                if (SampleBeam(_LightDatasRT[i], rayDescriptor.Origin, bsdfData.normalWS, rayDescriptor.Direction, value, pdf, rayDescriptor.TMax))
+                if (SampleBeam(_LightDatasRT[i], rayDescriptor.Origin, bsdfData.normalWS,
+                               rayDescriptor.Direction, value, pdf, rayDescriptor.TMax,
+                               pathIntersection))
                 {
                     pathIntersection.lightOutgoing = rayDescriptor.Direction;
                     pathIntersection.lightIntensity = _LightDatasRT[i].color.x;
@@ -225,7 +227,7 @@ void ComputeSurfaceScattering(inout PathIntersection pathIntersection : SV_RayPa
                     pathIntersection.lightAngleOffset = _LightDatasRT[i].angleOffset;
                     pathIntersection.lightValue = value.x;
                     pathIntersection.lightPDF = pdf;
-                    
+
                     EvaluateMaterial(mtlData, rayDescriptor.Direction, mtlResult);
 
                     pathIntersection.diffValue = mtlResult.diffValue;
@@ -239,7 +241,7 @@ void ComputeSurfaceScattering(inout PathIntersection pathIntersection : SV_RayPa
                     // value is in radian (w/sr) not in lumen (cd/sr) and only the r channel is used
                     value *= (mtlResult.diffValue + mtlResult.specValue) / pdf;
 
-                    pathIntersection.value += value;
+                    pathIntersection.value = value;
                 }
             }
 #else
@@ -390,15 +392,15 @@ void ClosestHit(inout PathIntersection pathIntersection : SV_RayPayload, Attribu
             sampleVolume = SampleVolumeScatteringPosition(inputSample.w, pathIntersection.t, pdf, sampleLocalLights);
     }
 
-#if !defined(SENSORSDK_SHADERGRAPH) && !defined(SENSORSDK_OVERRIDE_REFLECTANCE)  
+#if !defined(SENSORSDK_SHADERGRAPH) && !defined(SENSORSDK_OVERRIDE_REFLECTANCE)
     if (sampleVolume)
         ComputeVolumeScattering(pathIntersection, inputSample.xyz, sampleLocalLights);
     else
-#endif    
+#endif
         ComputeSurfaceScattering(pathIntersection, attributeData, inputSample);
 
     // Apply the volume/surface pdf
-    pathIntersection.value /= pdf;
+   // pathIntersection.value /= pdf;
 
 #else // HAS_LIGHTLOOP
 
@@ -406,7 +408,7 @@ void ClosestHit(inout PathIntersection pathIntersection : SV_RayPayload, Attribu
 
 #endif // HAS_LIGHTLOOP
 
-#if !defined(SENSORSDK_SHADERGRAPH) && !defined(SENSORSDK_OVERRIDE_REFLECTANCE)     
+#if !defined(SENSORSDK_SHADERGRAPH) && !defined(SENSORSDK_OVERRIDE_REFLECTANCE)
     // Apply volumetric attenuation
     bool computeDirect = currentDepth >= _RaytracingMinRecursion - 1;
     ApplyFogAttenuation(WorldRayOrigin(), WorldRayDirection(), pathIntersection.t, pathIntersection.value, computeDirect);
@@ -448,7 +450,7 @@ void AnyHit(inout PathIntersection pathIntersection : SV_RayPayload, AttributeDa
     {
 #if defined(SENSORSDK_SHADERGRAPH) || defined(SENSORSDK_OVERRIDE_REFLECTANCE)
         pathIntersection.color = float3(0.2f, 0.2f, 0.2f);
-        pathIntersection.value = 0.98;        
+        pathIntersection.value = 0.98;
 #endif
         IgnoreHit();
     }
@@ -469,7 +471,7 @@ void AnyHit(inout PathIntersection pathIntersection : SV_RayPayload, AttributeDa
 #if defined(SENSORSDK_SHADERGRAPH) || defined(SENSORSDK_OVERRIDE_REFLECTANCE)
         pathIntersection.color = float3(0.3f, 0.3f, 0.3f);
 #endif
-        
+
         pathIntersection.value = 0.0;
         AcceptHitAndEndSearch();
 #endif
