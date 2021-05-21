@@ -820,7 +820,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
         {
             { Pragma.Target(ShaderModel.Target50) },
             { Pragma.Raytracing("surface_shader") },
-            { Pragma.OnlyRenderers(new Platform[] {Platform.D3D11}) },
+            { Pragma.OnlyRenderers(new Platform[] {Platform.D3D11, Platform.GameCoreXboxSeries }) },
         };
 
         // Here are the Pragma Collection we can add on top of the Basic one
