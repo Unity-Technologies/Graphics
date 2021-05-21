@@ -101,7 +101,7 @@ namespace UnityEngine.Experimental.Rendering
 #endif
         public ProbeVolumeAsset volumeAsset = null;
 
-        internal void QueueAssetLoading()
+        internal void QueueAssetLoading(bool buildIndex = true)
         {
             if (volumeAsset == null || m_Profile == null)
                 return;

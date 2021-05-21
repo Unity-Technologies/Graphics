@@ -61,7 +61,7 @@ namespace UnityEngine.Experimental.Rendering
     }
 
     [InitializeOnLoad]
-    class ProbeGIBaking
+    partial class ProbeGIBaking
     {
         static bool m_IsInit = false;
         static BakingBatch m_BakingBatch;
@@ -83,6 +83,18 @@ namespace UnityEngine.Experimental.Rendering
                 m_IsInit = true;
                 Lightmapping.lightingDataCleared += OnLightingDataCleared;
                 Lightmapping.bakeStarted += OnBakeStarted;
+                // EditorApplication.update += DEBUG_TEST;
+            }
+        }
+
+        static void DEBUG_TEST()
+        {
+            if (ProbeReferenceVolume.instance.isInitialized)
+            {
+                foreach (var cell in ProbeReferenceVolume.instance.cells.Values)
+                {
+                    PerformDilation(cell, new ProbeDilationSettings());
+                }
             }
         }
 
@@ -293,7 +305,6 @@ namespace UnityEngine.Experimental.Rendering
                         //       Add safety margin 2 to avoid out-of-bounds values
                         float l1scale = 2.0f; // Should be: 3/(2*sqrt(3)) * 2, but rounding to 2 to issues we are observing.
                         float l2scale = 3.5777088f; // 4/sqrt(5) * 2
-
                         // L_1^m
                         shv[rgb, 1] = sh[j][rgb, 1] / (l0 * l1scale * 2.0f) + 0.5f;
                         shv[rgb, 2] = sh[j][rgb, 2] / (l0 * l1scale * 2.0f) + 0.5f;
@@ -308,6 +319,15 @@ namespace UnityEngine.Experimental.Rendering
 
                         for (int coeff = 1; coeff < 9; ++coeff)
                             Debug.Assert(shv[rgb, coeff] >= 0.0f && shv[rgb, coeff] <= 1.0f);
+
+
+                        if (validity[j] > m_BakingReferenceVolumeAuthoring.GetDilationSettings().dilationValidityThreshold)
+                        {
+                            for (int kk = 0; kk < 9; ++kk)
+                            {
+                                shv[rgb, kk] = 0.0f;
+                            }
+                        }
                     }
 
                     SphericalHarmonicsL2Utils.SetL0(ref cell.sh[i], new Vector3(shv[0, 0], shv[1, 0], shv[2, 0]));
@@ -323,9 +343,6 @@ namespace UnityEngine.Experimental.Rendering
 
                     cell.validity[i] = validity[j];
                 }
-
-                DilateInvalidProbes(cell.probePositions, cell.bricks, cell.sh, cell.validity, m_BakingReferenceVolumeAuthoring.GetDilationSettings());
-
                 ProbeReferenceVolume.instance.cells[cell.index] = cell;
             }
 
@@ -405,15 +422,74 @@ namespace UnityEngine.Experimental.Rendering
                 probeVolume.OnBakeCompleted();
             }
 
+
             UnityEditor.AssetDatabase.SaveAssets();
             UnityEditor.AssetDatabase.Refresh();
             ProbeReferenceVolume.instance.clearAssetsOnVolumeClear = false;
+
 
             foreach (var refVol in refVol2Asset.Keys)
             {
                 if (refVol.enabled && refVol.gameObject.activeSelf)
                     refVol.QueueAssetLoading();
             }
+
+            {
+                // Make sure all is loaded.
+                ProbeReferenceVolume.instance.PerformPendingOperations(loadAllCells: true);
+
+                foreach (var cell in ProbeReferenceVolume.instance.cells.Values)
+                {
+                    PerformDilation(cell, m_BakingReferenceVolumeAuthoring.GetDilationSettings());
+                }
+                foreach (var sceneList in m_BakingBatch.cellIndex2SceneReferences.Values)
+                {
+                    foreach (var scene in sceneList)
+                    {
+                        ProbeReferenceVolumeAuthoring refVol = null;
+                        if (scene2RefVol.TryGetValue(scene, out refVol))
+                        {
+                            ProbeReferenceVolume.instance.AddPendingAssetRemoval(refVol2Asset[refVol]);
+                            refVol2Asset[refVol].cells.Clear();
+                        }
+                    }
+                }
+
+                // Unload stuff.
+                ProbeReferenceVolume.instance.PerformPendingOperations(false);
+
+                // Put back cells
+                foreach (var cell in ProbeReferenceVolume.instance.cells.Values)
+                {
+                    foreach (var scene in m_BakingBatch.cellIndex2SceneReferences[cell.index])
+                    {
+                        // This scene has a reference volume authoring component in it?
+                        ProbeReferenceVolumeAuthoring refVol = null;
+                        if (scene2RefVol.TryGetValue(scene, out refVol))
+                        {
+                            var asset = refVol2Asset[refVol];
+                            asset.cells.Add(cell);
+                        }
+                    }
+                }
+                UnityEditor.AssetDatabase.SaveAssets();
+                UnityEditor.AssetDatabase.Refresh();
+
+                foreach (var refVol in refVol2Asset.Keys)
+                {
+                    if (refVol.enabled && refVol.gameObject.activeSelf)
+                        refVol.QueueAssetLoading(buildIndex: false); // We already built a valid index for the exact same asset.
+                }
+            }
+
+            UnityEngine.Profiling.Profiler.EndSample();
+            /////// Force loading of asset
+            ///
+            // Perform loading with extra stuff. [validity, index, cellIdx]
+            // Do dilation --> write to buffer [SH, cellIdx, probeIndex]
+            // Read back in cells
+            // go on with life. No need to re build the index tho... so force loading of data.
+            // Resave assets.
         }
 
         static void OnLightingDataCleared()
