@@ -12,6 +12,7 @@ The version number for this package has increased due to a version update of a r
 ### Fixed
 - Fixed an issue where an integer property would be exposed in the material inspector as a float [1332564]
 - Fixed an issue where the normal vector in object space would scale with the objects scale, causing non-normalized normal vectors
+- Fixed a bug in ShaderGraph where sticky notes couldn't be copied and pasted [1221042].
 
 ## [10.5.0] - 2021-04-19
 
