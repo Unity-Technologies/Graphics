@@ -17,19 +17,22 @@
 #endif
 
 #if _RENDER_PASS_ENABLED
+    #define GBUFFER_OPTIONAL_SLOT_1 GBuffer4
+    #define GBUFFER_OPTIONAL_SLOT_1_TYPE float
 #if OUTPUT_SHADOWMASK && defined(_LIGHT_LAYERS)
-    #define GBUFFER_OPTIONAL_SLOT_1 GBuffer5
-    #define GBUFFER_OPTIONAL_SLOT_2 GBuffer6
+    #define GBUFFER_OPTIONAL_SLOT_2 GBuffer5
+    #define GBUFFER_OPTIONAL_SLOT_3 GBuffer6
     #define GBUFFER_LIGHT_LAYERS GBuffer5
     #define GBUFFER_SHADOWMASK GBuffer6
 #elif OUTPUT_SHADOWMASK
-    #define GBUFFER_OPTIONAL_SLOT_1 GBuffer5
+    #define GBUFFER_OPTIONAL_SLOT_2 GBuffer5
     #define GBUFFER_SHADOWMASK GBuffer5
 #elif defined(_LIGHT_LAYERS)
-    #define GBUFFER_OPTIONAL_SLOT_1 GBuffer5
+    #define GBUFFER_OPTIONAL_SLOT_2 GBuffer5
     #define GBUFFER_LIGHT_LAYERS GBuffer5
 #endif //#if OUTPUT_SHADOWMASK && defined(_LIGHT_LAYERS)
 #else
+    #define GBUFFER_OPTIONAL_SLOT_1_TYPE half4
 #if OUTPUT_SHADOWMASK && defined(_LIGHT_LAYERS)
     #define GBUFFER_OPTIONAL_SLOT_1 GBuffer4
     #define GBUFFER_OPTIONAL_SLOT_2 GBuffer5
@@ -66,23 +69,15 @@ struct FragmentOutput
     half4 GBuffer2 : SV_Target2;
     half4 GBuffer3 : SV_Target3; // Camera color attachment
 
-#if _RENDER_PASS_ENABLED
-    float GBuffer4 : SV_Target4;
-
     #ifdef GBUFFER_OPTIONAL_SLOT_1
-    half4 GBuffer5 : SV_Target5;
+    GBUFFER_OPTIONAL_SLOT_1_TYPE GBuffer4 : SV_Target4;
     #endif
     #ifdef GBUFFER_OPTIONAL_SLOT_2
+    half4 GBuffer5 : SV_Target5;
+    #endif
+    #ifdef GBUFFER_OPTIONAL_SLOT_3
     half4 GBuffer6 : SV_Target6;
     #endif
-#else
-    #ifdef GBUFFER_OPTIONAL_SLOT_1
-    half4 GBuffer4 : SV_Target4;
-    #endif
-    #ifdef GBUFFER_OPTIONAL_SLOT_2
-    half4 GBuffer5 : SV_Target5;
-    #endif
-#endif
 };
 
 float PackMaterialFlags(uint materialFlags)
