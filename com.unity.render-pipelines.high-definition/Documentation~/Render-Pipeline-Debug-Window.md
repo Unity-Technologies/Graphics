@@ -2,7 +2,6 @@
 
 The **Render Pipeline Debug** window is a specific window for the Scriptable Render Pipeline that contains debugging and visualization tools. You can use these tools to quickly understand and solve any issues you might encounter. It contains mostly graphics-related tools but you can extend it to include tools for any other field, such as animation. The **Render Pipeline Debug** window separates debug items into different sections as follows:
 
-- [Render Graph](#RenderGraphPanel)
 - [Decals](#DecalsPanel)
 - [Display Stats](#StatsPanel)
 - [Material](#MaterialPanel)
@@ -17,7 +16,7 @@ The Render Pipeline Debugger window.
 
 ## Using the Render Pipeline Debugger window
 
-To open the Render Pipeline Debugger window in the Editor, go to  **Window > Analysis > Render Pipeline Debugger**. You can also open this window at runtime in Play Mode, or in the standalone Unity Player on any device on **Development build**. Use the keyboard shortcut Ctrl+Backspace (Ctrl+Delete on macOS) or press L3 and R3 (Left Stick and Right Stick) on a controller to open the window.
+To open the Render Pipeline Debugger window in the Editor, go to  **Window > Analysis > Rendering Debugger**. You can also open this window at runtime in Play Mode, or in the standalone Unity Player on any device on **Development build**. Use the keyboard shortcut Ctrl+Backspace (Ctrl+Delete on macOS) or press L3 and R3 (Left Stick and Right Stick) on a controller to open the window.
 
 You can display read-only items such as the FPS counter independently of the **Render Pipeline Debugger** window. This means that when you disable the **Render Pipeline Debugger** window, they are still visible in the top right corner of the screen. This is particularly useful if you want to track particular values without cluttering the screen.
 
@@ -40,20 +39,6 @@ To display the current active item independently of the debug window:
 - **Keyboard**: Press the right Shift key.
 - **Xbox controller**: Press the X button.
 - **PlayStation controller**: Press the Square button.
-
-<a name="RenderGraphPanel"></a>
-
-## Render Graph panel
-
-The **Render Graph** panel has tools that you can use to debug the [Render Graph](https://docs.unity3d.com/2020.2/Documentation/Manual/render-graph.html) used by HDRP.
-
-| **Debug Option**  | **Description**                                              |
-| ----------------- | ------------------------------------------------------------ |
-| **Clear Render Targets at creation**  | Enable the checkbox to make the Render Graph system clear render targets the first time it uses them |
-| **Disable Pass Culling**              | Enable the checkbox to render passes which have no impact on the final render. |
-| **Immediate Mode**                    | Enable the checkbox to make the Render Graph system evaluate passes immediately after it creates them. |
-| **Log Frame Information**             | Press the button to log in the Console informations about the passes rendered during a frame. |
-| **Log Resources**                     | Press the button to log in the Console the list of resources used when rendering a frame. |
 
 <a name="DecalsPanel"></a>
 
@@ -228,9 +213,18 @@ The **Color Picker** works with whichever debug mode HDRP displays at the time. 
 | **- Range Threshold 3**       | Set the final split for the intensity range.<br/>This property only appears when you enable the **False Color Mode** checkbox. |
 | **MSAA Samples**              | Use the drop-down to select the number of samples the debugger uses for [MSAA](Anti-Aliasing.md#MSAA). |
 | **Freeze Camera for Culling** | Use the drop-down to select a Camera to freeze in order to check its culling. To check if the Camera's culling works correctly, freeze the Camera and move occluders around it. |
-| **Enable Render Graph**       | Enable the checkbox to use the Render Graph for rendering. |
+
+
+| **Debug Option**  | **Description**                                              |
+| ----------------- | ------------------------------------------------------------ |
+| **Clear Render Targets at creation**  | Enable the checkbox to make the Render Graph system clear render targets the first time it uses them |
+| **Disable Pass Culling**              | Enable the checkbox to render passes which have no impact on the final render. |
+| **Immediate Mode**                    | Enable the checkbox to make the Render Graph system evaluate passes immediately after it creates them. |
+| **Log Frame Information**             | Press the button to log in the Console informations about the passes rendered during a frame. |
+| **Log Resources**                     | Press the button to log in the Console the list of resources used when rendering a frame. |
 
 The **NVIDIA device debug view** is a panel that shows a list of the current feature states of NVIDIA Deep Learning Super Sampling (DLSS). Each row represents an active screen in which DLSS is running.
+
 | **Information**          | **Description**    |
 | ------------------------ | ------------------ |
 | **NVUnityPlugin Version**| Shows the current internal version id of the NVIDIA Unity Plugin that interacts with DLSS. |

@@ -7,6 +7,7 @@ using UnityEditor.ShaderGraph.Internal;
 using UnityEngine;
 using UnityEngine.Rendering;
 using Object = System.Object;
+using System.Reflection;
 
 namespace UnityEditor.VFX
 {
@@ -174,14 +175,6 @@ namespace UnityEditor.VFX
         public virtual string GetShaderName(ShaderGraphVfxAsset shaderGraph) => string.Empty;
 
         public virtual bool IsGraphDataValid(GraphData graph) => false;
-    }
-
-    // This is the default binder used if no SRP is used in the project
-    class VFXLegacyBinder : VFXSRPBinder
-    {
-        public override string templatePath { get { return "Packages/com.unity.visualeffectgraph/Shaders/RenderPipeline/Legacy"; } }
-        public override string SRPAssetTypeStr { get { return "None"; } }
-        public override Type SRPOutputDataType { get { return null; } }
     }
 
     static class VFXLibrary
@@ -475,19 +468,65 @@ namespace UnityEditor.VFX
             }
         }
 
+        private static bool unsupportedSRPWarningIssued = false;
+
+        private static void LogUnsupportedSRP(VFXSRPBinder binder, bool forceLog)
+        {
+            if (binder == null && (forceLog || !unsupportedSRPWarningIssued))
+            {
+                Debug.LogWarning("The Visual Effect Graph is supported in the High Definition Render Pipeline (HDRP) and the Universal Render Pipeline (URP). Please assign your chosen Render Pipeline Asset in the Graphics Settings to use it.");
+                unsupportedSRPWarningIssued = true;
+            }
+        }
+
+        public static void LogUnsupportedSRP(bool forceLog = true)
+        {
+            bool logIssued = unsupportedSRPWarningIssued;
+            var binder = currentSRPBinder;
+
+            if (logIssued || !unsupportedSRPWarningIssued) // Don't reissue warning if inner currentSRPBinder call has already logged it
+                LogUnsupportedSRP(binder, forceLog);
+        }
+
         public static VFXSRPBinder currentSRPBinder
         {
             get
             {
                 LoadSRPBindersIfNeeded();
-                VFXSRPBinder binder = null;
-                srpBinders.TryGetValue(GraphicsSettings.currentRenderPipeline == null ? "None" : GraphicsSettings.currentRenderPipeline.GetType().Name, out binder);
 
-                if (binder == null)
-                    throw new NullReferenceException("The SRP was not registered in VFX: " + GraphicsSettings.currentRenderPipeline.GetType());
+                VFXSRPBinder binder = null;
+                var currentSRP = QualitySettings.renderPipeline ?? GraphicsSettings.currentRenderPipeline;
+                if (currentSRP != null)
+                    srpBinders.TryGetValue(currentSRP.GetType().Name, out binder);
+
+                LogUnsupportedSRP(binder, false);
 
                 return binder;
             }
+        }
+
+        [InitializeOnLoadMethod]
+        private static void RegisterSRPChangeCallback()
+        {
+            EventInfo onRPChanged = typeof(RenderPipelineManager).GetEvent("activeRenderPipelineTypeChanged", BindingFlags.NonPublic | BindingFlags.Static);
+            if (onRPChanged != null)
+            {
+                MethodInfo addHandler = onRPChanged.GetAddMethod(nonPublic: true);
+                addHandler.Invoke(null, new Action[] { SRPChanged });
+            }
+
+            // Once activeRenderPipelineTypeChanged is public don't use reflection anymore
+            //RenderPipelineManager.activeRenderPipelineTypeChanged += OnSRPChanged;
+        }
+
+        public delegate void OnSRPChangedEvent();
+        public static event OnSRPChangedEvent OnSRPChanged;
+
+        private static void SRPChanged()
+        {
+            unsupportedSRPWarningIssued = false;
+            OnSRPChanged?.Invoke();
+            VFXAssetManager.Build();
         }
 
         private static LibrarySentinel m_Sentinel = null;

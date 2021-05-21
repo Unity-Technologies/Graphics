@@ -62,7 +62,7 @@ namespace UnityEngine.Experimental.Rendering
                 // jump flooding algorithm works best with POT textures
                 int sceneSDFSize = Mathf.NextPowerOfTwo(maxBrickCountPerAxis);
                 // Limit the max resolution of the texture to avoid out of memory, for bigger cells, we split them into sub-cells for distance field computation.
-                sceneSDFSize = Mathf.Min(sceneSDFSize, k_MaxDistanceFieldTextureSize);
+                sceneSDFSize = Mathf.Clamp(sceneSDFSize, 64, k_MaxDistanceFieldTextureSize);
 
                 RenderTextureDescriptor distanceFieldTextureDescriptor = new RenderTextureDescriptor
                 {

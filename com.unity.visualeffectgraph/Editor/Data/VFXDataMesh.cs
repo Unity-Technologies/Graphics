@@ -46,6 +46,8 @@ namespace UnityEditor.VFX
         {
             base.OnEnable();
 
+            VFXLibrary.OnSRPChanged += OnSRPChanged;
+
             if (object.ReferenceEquals(shader, null)) shader = VFXResources.defaultResources.shader;
 
             if (m_Shader != null)
@@ -58,6 +60,17 @@ namespace UnityEditor.VFX
             }
         }
 
+        public virtual void OnDisable()
+        {
+            VFXLibrary.OnSRPChanged -= OnSRPChanged;
+            DestroyCachedMaterial();
+        }
+
+        private void OnSRPChanged()
+        {
+            DestroyCachedMaterial();
+        }
+
         public void RefreshShader()
         {
             DestroyCachedMaterial();
@@ -68,11 +81,6 @@ namespace UnityEditor.VFX
         {
             Material.DestroyImmediate(m_CachedMaterial);
             m_CachedMaterial = null;
-        }
-
-        public void OnDisable()
-        {
-            DestroyCachedMaterial();
         }
 
         public override void CopySettings<T>(T dst)
@@ -98,7 +106,8 @@ namespace UnityEditor.VFX
             {
                 m_CachedMaterial = new Material(shader);
                 m_CachedMaterial.hideFlags = HideFlags.HideAndDontSave;
-                VFXLibrary.currentSRPBinder.SetupMaterial(m_CachedMaterial);
+
+                VFXLibrary.currentSRPBinder?.SetupMaterial(m_CachedMaterial);
             }
 
             return m_CachedMaterial;

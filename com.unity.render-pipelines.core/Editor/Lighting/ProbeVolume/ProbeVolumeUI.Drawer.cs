@@ -154,7 +154,7 @@ namespace UnityEditor.Experimental.Rendering
             float max = Mathf.Round(serialized.maxSubdivisionMultiplier.floatValue * maxSubdiv) / maxSubdiv;
 
             EditorGUILayout.MinMaxSlider(Styles.s_MinMaxSubdivSlider, ref min, ref max, 0, 1);
-            serialized.minSubdivisionMultiplier.floatValue = Mathf.Max(0.01f, min);
+            serialized.minSubdivisionMultiplier.floatValue = Mathf.Max(0.00f, min);
             serialized.maxSubdivisionMultiplier.floatValue = Mathf.Max(0.01f, max);
             EditorGUI.EndProperty();
             EditorGUI.EndProperty();
