@@ -140,6 +140,13 @@ CBUFFER_START(UnityInstancingDOTS_InstanceVisibility)
     DOTSVisibleData unity_DOTSVisibleInstances[UNITY_INSTANCED_ARRAY_SIZE];
 CBUFFER_END
 
+// Keep these in sync with SRP Batcher DOTSInstancingFlags
+static const uint kDOTSInstancingFlagFlipWinding      = (1 << 0); // Flip triangle winding when rendering, e.g. when the scale is negative
+static const uint kDOTSInstancingFlagForceZeroMotion  = (1 << 1); // Object should produce zero motion vectors when rendered in the motion pass
+static const uint kDOTSInstancingFlagCameraMotion     = (1 << 2); // Object uses Camera motion (i.e. not per-Object motion)
+static const uint kDOTSInstancingFlagHasPrevPosition  = (1 << 3); // Object has a separate previous frame position vertex streams (e.g. for deformed objects)
+static const uint kDOTSInstancingFlagMainLightEnabled = (1 << 4); // Object should receive direct lighting from the main light (e.g. light not baked into lightmap)
+
 uint GetDOTSInstanceIndex()
 {
     return unity_DOTSVisibleInstances[unity_InstanceID].VisibleData.x;
@@ -277,18 +284,22 @@ float4  LoadDOTSInstancedData_RenderingLayer()
 float4 LoadDOTSInstancedData_MotionVectorsParams()
 {
     uint flags = unity_DOTSVisibleInstances[0].VisibleData.w;
-    // hybrid per drawcommand cbuffer flags:
-    // bit 0: Flip triangle winding
-    // bit 1: force no motion bit
-    // bit 2: camera velocity
-    // bit 3: has last position
-    return float4(0, flags&(1<<1) ? 0.0f : 1.0f, -0.001f, flags&(1 << 2) ? 0.0f : 1.0f);
+    return float4(0, flags & kDOTSInstancingFlagForceZeroMotion ? 0.0f : 1.0f, -0.001f, flags & kDOTSInstancingFlagCameraMotion ? 0.0f : 1.0f);
 }
 
 float4 LoadDOTSInstancedData_WorldTransformParams()
 {
     uint flags = unity_DOTSVisibleInstances[0].VisibleData.w;
-    return float4(0, 0, 0, flags&(1 << 0) ? -1.0f : 1.0f);
+    return float4(0, 0, 0, flags & kDOTSInstancingFlagFlipWinding ? -1.0f : 1.0f);
+}
+
+float4 LoadDOTSInstancedData_LightData()
+{
+    uint flags = unity_DOTSVisibleInstances[0].VisibleData.w;
+    // X channel = light start index (not supported in DOTS instancing)
+    // Y channel = light count (not supported in DOTS instancing)
+    // Z channel = main light strength
+    return float4(0, 0, flags & kDOTSInstancingFlagMainLightEnabled ? 1.0f : 0.0f, 0);
 }
 
 #undef DEFINE_DOTS_LOAD_INSTANCE_SCALAR

@@ -10,8 +10,6 @@ UNITY_DOTS_INSTANCING_START(BuiltinPropertyMetadata)
     UNITY_DOTS_INSTANCED_PROP(float3x4, unity_ObjectToWorld)
     UNITY_DOTS_INSTANCED_PROP(float3x4, unity_WorldToObject)
     UNITY_DOTS_INSTANCED_PROP(float4,   unity_LODFade)
-    UNITY_DOTS_INSTANCED_PROP(float4,   unity_LightData)
-    UNITY_DOTS_INSTANCED_PROP(float2x4, unity_LightIndices)
     UNITY_DOTS_INSTANCED_PROP(float4,   unity_ProbesOcclusion)
     UNITY_DOTS_INSTANCED_PROP(float4,   unity_SpecCube0_HDR)
     UNITY_DOTS_INSTANCED_PROP(float4,   unity_LightmapST)
@@ -29,8 +27,6 @@ UNITY_DOTS_INSTANCING_END(BuiltinPropertyMetadata)
 // Note: Macros for unity_ObjectToWorld and unity_WorldToObject are declared in UnityInstancing.hlsl
 // because of some special handling
 #define unity_LODFade               UNITY_ACCESS_DOTS_INSTANCED_PROP(float4,   unity_LODFade)
-#define unity_LightData             UNITY_ACCESS_DOTS_INSTANCED_PROP(float4,   unity_LightData)
-#define unity_LightIndices          UNITY_ACCESS_DOTS_INSTANCED_PROP(float2x4, unity_LightIndices)
 #define unity_ProbesOcclusion       UNITY_ACCESS_DOTS_INSTANCED_PROP(float4,   unity_ProbesOcclusion)
 #define unity_SpecCube0_HDR         UNITY_ACCESS_DOTS_INSTANCED_PROP(float4,   unity_SpecCube0_HDR)
 #define unity_LightmapST            UNITY_ACCESS_DOTS_INSTANCED_PROP(float4,   unity_LightmapST)
@@ -43,6 +39,8 @@ UNITY_DOTS_INSTANCING_END(BuiltinPropertyMetadata)
 #define unity_SHBg                  UNITY_ACCESS_DOTS_INSTANCED_PROP(float4,   unity_SHBg)
 #define unity_SHBb                  UNITY_ACCESS_DOTS_INSTANCED_PROP(float4,   unity_SHBb)
 #define unity_SHC                   UNITY_ACCESS_DOTS_INSTANCED_PROP(float4,   unity_SHC)
+#define unity_LightIndices          float2x4(0, 0, 0, 0, 0, 0, 0, 0) // Not supported in DOTS instancing
+#define unity_LightData             LoadDOTSInstancedData_LightData()
 #define unity_WorldTransformParams  LoadDOTSInstancedData_WorldTransformParams()
 #endif
 
