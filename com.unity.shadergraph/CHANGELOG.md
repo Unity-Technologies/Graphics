@@ -82,9 +82,11 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed the default dimension (1) for vector material slots so that it is consistent with other nodes. (https://issuetracker.unity3d.com/product/unity/issues/guid/1328756/)
 - Fixed reordering when renaming enum keywords. (https://issuetracker.unity3d.com/product/unity/issues/guid/1328761/)
 - Fixed an issue where an integer property would be exposed in the material inspector as a float [1330302](https://issuetracker.unity3d.com/product/unity/issues/guid/1330302/)
+- Fixed a bug in ShaderGraph where sticky notes couldn't be copied and pasted [1221042].
 - Fixed an issue where upgrading from an older version of ShaderGraph would cause Enum keywords to be not exposed [1332510]
 - Fixed an issue where a missing subgraph with a "Use Custom Binding" property would cause the parent graph to fail to load [1334621] (https://issuetracker.unity3d.com/issues/shadergraph-shadergraph-cannot-be-opened-if-containing-subgraph-with-custom-binding-that-has-been-deleted)
 - Fixed an issue where the ShaderGraph transform node would generate incorrect results when transforming a direction from view space to object space [1333781] (https://issuetracker.unity3d.com/product/unity/issues/guid/1333781/)
+- Fixed a ShaderGraph issue where keyword properties could get stuck highlighted when deleted [1333738].
 
 ## [11.0.0] - 2020-10-21
 
