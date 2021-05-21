@@ -158,12 +158,13 @@ MonoBehaviour:
     FilteredScenes:
     - {fileID: 102900000, guid: 94af32c68b09744d9a23b25ef0d62332, type: 3}
     - {fileID: 102900000, guid: 0bcaa565757b243bba6bd2c007b0977c, type: 3}
+    - {fileID: 102900000, guid: e277e63daf9584a9291edc2c56bcd258, type: 3}
     ColorSpace: -1
     BuildPlatform: 13
     GraphicsDevice: 11
     XrSdk: 
     StereoModes: 0
-    Reason: Needs fixing on OpenGLES3
+    Reason: Needs MSAA fixing on OpenGLES3
   - FilteredScene: {fileID: 0}
     FilteredScenes:
     - {fileID: 102900000, guid: 94af32c68b09744d9a23b25ef0d62332, type: 3}
