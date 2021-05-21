@@ -17,6 +17,7 @@ namespace UnityEditor.Rendering.Universal
     [Flags]
     enum ShaderFeatures
     {
+        All = ~0,
         None = 0,
         MainLight = (1 << 0),
         MainLightShadows = (1 << 1),
@@ -67,6 +68,7 @@ namespace UnityEditor.Rendering.Universal
         ShaderKeyword m_AdditionalLightShadows = new ShaderKeyword(ShaderKeywordStrings.AdditionalLightShadows);
         ShaderKeyword m_ReflectionProbeBlending = new ShaderKeyword(ShaderKeywordStrings.ReflectionProbeBlending);
         ShaderKeyword m_ReflectionProbeBoxProjection = new ShaderKeyword(ShaderKeywordStrings.ReflectionProbeBoxProjection);
+        ShaderKeyword m_ReflectionProbeBoxProjectionOff = new ShaderKeyword(ShaderKeywordStrings.ReflectionProbeBoxProjectionOff);
         ShaderKeyword m_DeferredLightShadows = new ShaderKeyword(ShaderKeywordStrings._DEFERRED_LIGHT_SHADOWS);
         ShaderKeyword m_DeferredSoftShadows = new ShaderKeyword(ShaderKeywordStrings._DEFERRED_SHADOWS_SOFT);
         ShaderKeyword m_CastingPunctualLightShadow = new ShaderKeyword(ShaderKeywordStrings.CastingPunctualLightShadow);
@@ -230,6 +232,10 @@ namespace UnityEditor.Rendering.Universal
 
             bool isReflectionProbeBoxProjection = compilerData.shaderKeywordSet.IsEnabled(m_ReflectionProbeBoxProjection);
             if (!IsFeatureEnabled(features, ShaderFeatures.ReflectionProbeBoxProjection) && isReflectionProbeBoxProjection)
+                return true;
+
+            bool isReflectionProbeBoxProjectionOff = compilerData.shaderKeywordSet.IsEnabled(m_ReflectionProbeBoxProjectionOff);
+            if (isReflectionProbeBoxProjectionOff && IsFeatureEnabled(ShaderBuildPreprocessor.alwaysEnabledFeatures, ShaderFeatures.ReflectionProbeBoxProjection))
                 return true;
 
             bool isPunctualLightShadowCasterPass = (snippetData.passType == PassType.ShadowCaster) && compilerData.shaderKeywordSet.IsEnabled(m_CastingPunctualLightShadow);
@@ -466,7 +472,20 @@ namespace UnityEditor.Rendering.Universal
             }
         }
 
-        private static ShaderFeatures _supportedFeatures = 0;
+        public static ShaderFeatures alwaysEnabledFeatures
+        {
+            get
+            {
+                if(_alwaysEnabledFeatures == ShaderFeatures.All)
+                {
+                    FetchAllSupportedFeatures();
+                }
+                return _alwaysEnabledFeatures;
+            }
+        }
+
+        private static ShaderFeatures _supportedFeatures = ShaderFeatures.None;
+        private static ShaderFeatures _alwaysEnabledFeatures = ShaderFeatures.All;
         public int callbackOrder { get { return 0; } }
 #if PROFILE_BUILD
         public void OnPostprocessBuild(BuildReport report)
@@ -496,12 +515,15 @@ namespace UnityEditor.Rendering.Universal
             }
 
             // Must reset flags.
-            _supportedFeatures = 0;
+            _supportedFeatures = ShaderFeatures.None;
+            _alwaysEnabledFeatures = ShaderFeatures.All;
             foreach (UniversalRenderPipelineAsset urp in urps)
             {
                 if (urp != null)
                 {
-                    _supportedFeatures |= GetSupportedShaderFeatures(urp);
+                    var supportedFeatures = GetSupportedShaderFeatures(urp);
+                    _supportedFeatures |= supportedFeatures;
+                    _alwaysEnabledFeatures &= supportedFeatures;
                 }
             }
         }

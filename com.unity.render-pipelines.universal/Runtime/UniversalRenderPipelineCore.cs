@@ -333,6 +333,7 @@ namespace UnityEngine.Rendering.Universal
         internal static readonly string ClusteredRendering = "_CLUSTERED_RENDERING";
         public static readonly string AdditionalLightShadows = "_ADDITIONAL_LIGHT_SHADOWS";
         public static readonly string ReflectionProbeBoxProjection = "_REFLECTION_PROBE_BOX_PROJECTION";
+        public static readonly string ReflectionProbeBoxProjectionOff = "_REFLECTION_PROBE_BOX_PROJECTION_OFF";
         public static readonly string ReflectionProbeBlending = "_REFLECTION_PROBE_BLENDING";
         public static readonly string SoftShadows = "_SHADOWS_SOFT";
         public static readonly string MixedLightingSubtractive = "_MIXED_LIGHTING_SUBTRACTIVE"; // Backward compatibility
