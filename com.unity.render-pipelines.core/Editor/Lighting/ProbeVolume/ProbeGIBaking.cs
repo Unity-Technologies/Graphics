@@ -478,7 +478,7 @@ namespace UnityEngine.Experimental.Rendering
                 foreach (var refVol in refVol2Asset.Keys)
                 {
                     if (refVol.enabled && refVol.gameObject.activeSelf)
-                        refVol.QueueAssetLoading(buildIndex: false); // We already built a valid index for the exact same asset.
+                        refVol.QueueAssetLoading(); // We already built a valid index for the exact same asset.
                 }
             }
 

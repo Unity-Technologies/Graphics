@@ -99,7 +99,6 @@ namespace UnityEngine.Experimental.Rendering
             internal Cell cell;
             internal float distanceToCamera = 0;
             internal Vector3 position;
-            internal bool buildIndex = true;
 
             public int CompareTo(object obj)
             {
@@ -296,22 +295,11 @@ namespace UnityEngine.Experimental.Rendering
         internal Dictionary<int, Cell> cells = new Dictionary<int, Cell>();
         internal ProbeVolumeSceneBounds sceneBounds;
 
-        struct AssetToLoad
-        {
-            public ProbeVolumeAsset asset;
-            public bool buildIndex;
-
-            public AssetToLoad(ProbeVolumeAsset asset, bool buildIndex = true)
-            {
-                this.asset = asset;
-                this.buildIndex = buildIndex;
-            }
-        }
 
         bool m_BricksLoaded = false;
         Dictionary<string, List<RegId>> m_AssetPathToBricks = new Dictionary<string, List<RegId>>();
         // Information of the probe volume asset that is being loaded (if one is pending)
-        Dictionary<string, AssetToLoad> m_PendingAssetsToBeLoaded = new Dictionary<string, AssetToLoad>();
+        Dictionary<string, ProbeVolumeAsset> m_PendingAssetsToBeLoaded = new Dictionary<string, ProbeVolumeAsset>();
         // Information on probes we need to remove.
         Dictionary<string, ProbeVolumeAsset> m_PendingAssetsToBeUnloaded = new Dictionary<string, ProbeVolumeAsset>();
         // Information of the probe volume asset that is being loaded (if one is pending)
@@ -404,20 +392,20 @@ namespace UnityEngine.Experimental.Rendering
             m_IsInitialized = false;
         }
 
-        internal void AddPendingAssetLoading(ProbeVolumeAsset asset, bool buildIndex = true)
+        internal void AddPendingAssetLoading(ProbeVolumeAsset asset)
         {
             var key = asset.GetSerializedFullPath();
             if (m_PendingAssetsToBeLoaded.ContainsKey(key))
             {
                 m_PendingAssetsToBeLoaded.Remove(key);
             }
-            m_PendingAssetsToBeLoaded.Add(asset.GetSerializedFullPath(), new AssetToLoad(asset, buildIndex));
+            m_PendingAssetsToBeLoaded.Add(asset.GetSerializedFullPath(), asset);
             m_NeedLoadAsset = true;
 
             // Compute the max index dimension from all the loaded assets + assets we need to load
             Vector3Int indexDimension = Vector3Int.zero;
             foreach (var a in m_PendingAssetsToBeLoaded.Values)
-                indexDimension = Vector3Int.Max(indexDimension, a.asset.maxCellIndex);
+                indexDimension = Vector3Int.Max(indexDimension, a.maxCellIndex);
             foreach (var a in m_ActiveAssets.Values)
                 indexDimension = Vector3Int.Max(indexDimension, a.maxCellIndex);
 
@@ -483,7 +471,7 @@ namespace UnityEngine.Experimental.Rendering
             }
         }
 
-        void LoadAsset(ProbeVolumeAsset asset, bool buildIndex = true)
+        void LoadAsset(ProbeVolumeAsset asset)
         {
             var path = asset.GetSerializedFullPath();
             m_AssetPathToBricks[path] = new List<RegId>();
@@ -496,7 +484,6 @@ namespace UnityEngine.Experimental.Rendering
                 sortInfo.cell = cell;
                 sortInfo.position = ((Vector3)cell.position * MaxBrickSize() * 0.5f) + m_Transform.posWS;
                 sortInfo.sourceAsset = asset.GetSerializedFullPath();
-                sortInfo.buildIndex = buildIndex;
                 m_CellsToBeLoaded.Add(sortInfo);
             }
         }
@@ -517,10 +504,9 @@ namespace UnityEngine.Experimental.Rendering
                 }
             }
 
-            foreach (var assetInfo in m_PendingAssetsToBeLoaded.Values)
+            foreach (var asset in m_PendingAssetsToBeLoaded.Values)
             {
-                var asset = assetInfo.asset;
-                LoadAsset(asset, assetInfo.buildIndex);
+                LoadAsset(asset);
                 if (!m_ActiveAssets.ContainsKey(asset.GetSerializedFullPath()))
                 {
                     m_ActiveAssets.Add(asset.GetSerializedFullPath(), asset);
@@ -567,7 +553,7 @@ namespace UnityEngine.Experimental.Rendering
                 // TODO register ID of brick list
                 List<ProbeBrickIndex.Brick> brickList = new List<ProbeBrickIndex.Brick>();
                 brickList.AddRange(cell.bricks);
-                var regId = AddBricks(brickList, dataLocation, sortInfo.buildIndex);
+                var regId = AddBricks(brickList, dataLocation);
 
                 cells[cell.index] = cell;
                 m_AssetPathToBricks[path].Add(regId);
@@ -869,7 +855,7 @@ namespace UnityEngine.Experimental.Rendering
         }
 
         // Runtime API starts here
-        RegId AddBricks(List<Brick> bricks, ProbeBrickPool.DataLocation dataloc, bool buildIndex = true)
+        RegId AddBricks(List<Brick> bricks, ProbeBrickPool.DataLocation dataloc)
         {
             Profiler.BeginSample("AddBricks");
 
@@ -914,11 +900,8 @@ namespace UnityEngine.Experimental.Rendering
             id.id = m_ID;
             m_Registry.Add(id, ch_list);
 
-            if (buildIndex)
-            {
-                // update the index
-                m_Index.AddBricks(id, bricks, ch_list, m_Pool.GetChunkSize(), m_Pool.GetPoolWidth(), m_Pool.GetPoolHeight());
-            }
+            // Build index
+            m_Index.AddBricks(id, bricks, ch_list, m_Pool.GetChunkSize(), m_Pool.GetPoolWidth(), m_Pool.GetPoolHeight());
 
             Profiler.EndSample();
 
