@@ -39,8 +39,6 @@ TEXTURE3D(_APVResL2_2);
 TEXTURE3D(_APVResL2_3);
 #endif
 
-#define APV_USE_BASE_OFFSET
-
 // We split the evaluation in several steps to make variants with different bands easier.
 float3 EvaluateAPVL0(APVResources apvRes, float3 uvw, out float L1Rx)
 {
@@ -134,18 +132,14 @@ bool TryToGetPoolUVWAndSubdiv(APVResources apvRes, float3 posWS, float3 normalWS
     bool hasValidUVW = true;
 
     // transform into APV space
-    float3 posRS = mul(_WStoRS, float4(posWS + normalWS * _NormalBias
-                                             + viewDirWS * _ViewBias, 1.0)).xyz;
+    float3 posRS = mul(_WStoRS, float4(posWS + normalWS * _NormalBias + viewDirWS * _ViewBias, 1.0)).xyz;
 
     uint3 indexDim = (uint3)_IndexDim;
     uint3 poolDim = (uint3)_PoolDim;
     int3 centerIS = indexDim / 2;
+
     // check bounds
-#ifdef APV_USE_BASE_OFFSET
-    if (any(abs(posRS.xz) > float2(centerIS.xz)))
-#else
     if (any(abs(posRS) > float3(centerIS)))
-#endif
     {
         hasValidUVW = false;
     }
@@ -154,21 +148,9 @@ bool TryToGetPoolUVWAndSubdiv(APVResources apvRes, float3 posWS, float3 normalWS
     int3 index = centerIS + floor(posRS);
     index = index % indexDim;
 
-#ifdef APV_USE_BASE_OFFSET
-    // get the y-offset
-    int  yoffset = apvRes.index[index.z * indexDim.x + index.x];
-    if (yoffset == -1 || posRS.y < yoffset || posRS.y >= float(indexDim.y))
-    {
-        hasValidUVW = false;
-    }
-
-    index.y = posRS.y - yoffset;
-#endif
-
     // resolve the index
-    int  base_offset = indexDim.x * indexDim.z;
     int  flattened_index = index.z * (indexDim.x * indexDim.y) + index.x * indexDim.y + index.y;
-    uint packed_pool_idx = apvRes.index[base_offset + flattened_index];
+    uint packed_pool_idx = apvRes.index[flattened_index];
 
     // no valid brick loaded for this index, fallback to ambient probe
     if (packed_pool_idx == 0xffffffff)
