@@ -8,7 +8,7 @@ URP contains the pre-built Decal Shader Graph (`Shader Graphs/Decal`).
 
 ![Decal Material properties.](Images/decal/decal-material-properties.png)<br/>*Decal Material properties and advanced options.*
 
-You can assign a Material that uses a Shader Graph with the Decal Material type to a GameObject directly. In this case Unity projects the decal on objects that the GameObject occludes (taking depth bias into account).
+You can assign a Material that uses a Decal Shader Graph to a GameObject directly. For example, you can [use a Quad as the Decal GameObject](renderer-feature-decal.md#decal-gameobject).
 
 The Decal Shader Graph has the following properties:
 
@@ -24,6 +24,6 @@ A Material which is assigned a Shader Graph with the Decal Material type has the
 |---|---|
 | __Enable GPU&#160;Instancing__ | Enabling this option lets URP render meshes with the same geometry and Material in one batch, when possible. This makes rendering faster. URP cannot render Meshes in one batch if they have different Materials or if the hardware does not support GPU instancing. |
 | __Priority__ | Use this slider to determine the chronological rendering order for a Material. URP renders Materials with higher values first. You can use this to reduce overdraw on devices by making the pipeline render Materials in front of other Materials first, so it doesn't have to render overlapping areas twice. This works similarly to the [render queue](https://docs.unity3d.com/ScriptReference/Material-renderQueue.html) in the built-in Unity render pipeline. ***This property defines the order in which URP draws decals in the Scene. URP draws decals with lower Priority values first, and draws decals with higher Priority values on top of those with lower values. <br />If there are multiple Decal Materials with the same __Priority__ in the Scene, URP renders them in the order in which the Materials were created. |
-| __Mesh Bias Type__  | This property is only applicable when a Decal Material type is assigned to a GameObject directly (not projected by a Decal Projector). Determines the type of bias that URP applies to the Mesh of the GameObject with the Decal Material type. The bias lets you determine how Unity draws the decal relative to other GameObjects. |
-| _View Bias_         | A world-space bias (in meters) that URP applies to the Mesh along the view vector. A positive value draws the decal in front of any overlapping Mesh, a negative value offsets the decal away from the Camera. Decal Projectors ignore this property. |
-| _Depth Bias_        | A depth bias that URP applies to the Mesh. A negative value draws the decal in front of any overlapping Mesh, a positive value offsets the decal further behind. Decal Projectors ignore this property. |
+| <a name="mesh-bias-type"></a>__Mesh Bias Type__  | Select the Mesh bias type. The Mesh bias lets you prevent z-fighting between the Decal GameObject and the GameObject it overlaps. This property is only applicable for GameObjects with a [Decal Material type assigned directly](renderer-feature-decal.md#decal-gameobject). |
+| _View Bias_         | A world-space bias (in meters). When drawing the Decal GameObject, Unity shifts each pixel of the GameObject by this value along the view vector. A positive value shifts pixels closer to the Camera, so that Unity draws the Decal GameObject on top of the overlapping Mesh, which prevents z-fighting. Decal Projectors ignore this property. |
+| _Depth Bias_        | When drawing the Decal GameObject, Unity changes the depth value of each pixel of the GameObject by this value. A negative value shifts pixels closer to the Camera, so that Unity draws the Decal GameObject on top of the overlapping Mesh, which prevents z-fighting. Decal Projectors ignore this property. |

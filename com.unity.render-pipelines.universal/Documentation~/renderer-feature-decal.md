@@ -22,6 +22,14 @@ The following illustration shows a Decal Projector in the Scene.
 
 For more information, see also [Decal Projector component](#decal-projector-component).
 
+<a name="decal-gameobject"></a>An alternative way to add decals to a Scene:
+
+1. Create a Quad GameObject.
+
+2. Assign a Decal Material to the GameObject.
+
+3. Position the Quad on the surface where you want the decal to be. If necessary, adjust the [mesh bias](decal-shader.md#mesh-bias-type) value to prevent z-fighting.
+
 ## Limitations
 
 This feature has the following limitations:
