@@ -24,14 +24,17 @@ namespace UnityEngine.Rendering.HighDefinition
         );
 
         [SerializeField]
+        [ExcludeCopy]
         Version m_Version = MigrationDescription.LastVersion<Version>();
         Version IVersionable<Version>.version { get => m_Version; set => m_Version = value; }
 
         // Obsolete fields
 #pragma warning disable 649 //never assigned
         [SerializeField, FormerlySerializedAs("m_SphereBaseOffset"), Obsolete("For Data Migration")]
+        [ExcludeCopy]
         Vector3 m_ObsoleteSphereBaseOffset;
         [SerializeField, FormerlySerializedAs("m_BoxBaseOffset"), FormerlySerializedAs("m_Offset")]
+        [ExcludeCopy]
         Vector3 m_ObsoleteOffset;
         [Obsolete("Only used for data migration purpose. Don't use this field.")]
         internal Vector3 obsoleteOffset { get => m_ObsoleteOffset; set => m_ObsoleteOffset = value; }

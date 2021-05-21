@@ -9,7 +9,7 @@ namespace UnityEngine.Rendering.Universal.Internal
     /// </summary>
     public class FinalBlitPass : ScriptableRenderPass
     {
-        RenderTargetHandle m_Source;
+        RenderTargetIdentifier m_Source;
         Material m_BlitMaterial;
 
         public FinalBlitPass(RenderPassEvent evt, Material blitMaterial)
@@ -28,7 +28,7 @@ namespace UnityEngine.Rendering.Universal.Internal
         /// <param name="colorHandle"></param>
         public void Setup(RenderTextureDescriptor baseDescriptor, RenderTargetHandle colorHandle)
         {
-            m_Source = colorHandle;
+            m_Source = colorHandle.id;
         }
 
         /// <inheritdoc/>
@@ -47,14 +47,20 @@ namespace UnityEngine.Rendering.Universal.Internal
 
             bool isSceneViewCamera = cameraData.isSceneViewCamera;
             CommandBuffer cmd = CommandBufferPool.Get();
+
+            if (m_Source == cameraData.renderer.GetCameraColorFrontBuffer(cmd))
+            {
+                m_Source = renderingData.cameraData.renderer.cameraColorTarget;
+            }
+
             using (new ProfilingScope(cmd, ProfilingSampler.Get(URPProfileId.FinalBlit)))
             {
-                DebugHandler?.UpdateShaderGlobalPropertiesFinalBlitPass(cmd, ref cameraData);
+                GetActiveDebugHandler(renderingData)?.UpdateShaderGlobalPropertiesForFinalValidationPass(cmd, ref cameraData, true);
 
                 CoreUtils.SetKeyword(cmd, ShaderKeywordStrings.LinearToSRGBConversion,
                     cameraData.requireSrgbConversion);
 
-                cmd.SetGlobalTexture(ShaderPropertyId.sourceTex, m_Source.Identifier());
+                cmd.SetGlobalTexture(ShaderPropertyId.sourceTex, m_Source);
 
 #if ENABLE_VR && ENABLE_XR_MODULE
                 if (cameraData.xr.enabled)
@@ -84,14 +90,13 @@ namespace UnityEngine.Rendering.Universal.Internal
                 }
                 else
 #endif
-                if ((isSceneViewCamera || cameraData.isDefaultViewport) &&
-                    ((DebugHandler == null) || (DebugHandler.DebugDisplaySettings.ValidationSettings.validationMode == DebugValidationMode.None)))
+                if (isSceneViewCamera || cameraData.isDefaultViewport)
                 {
                     // This set render target is necessary so we change the LOAD state to DontCare.
                     cmd.SetRenderTarget(BuiltinRenderTextureType.CameraTarget,
                         RenderBufferLoadAction.DontCare, RenderBufferStoreAction.Store, // color
                         RenderBufferLoadAction.DontCare, RenderBufferStoreAction.DontCare); // depth
-                    cmd.Blit(m_Source.Identifier(), cameraTarget, m_BlitMaterial);
+                    cmd.Blit(m_Source, cameraTarget, m_BlitMaterial);
                 }
                 else
                 {

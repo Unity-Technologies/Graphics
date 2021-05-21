@@ -7,6 +7,7 @@ using UnityEngine.Rendering;
 using UnityEngine.Experimental.Rendering;
 using UnityEngine.Rendering.HighDefinition;
 using System.Diagnostics;
+using System.Reflection;
 using Debug = UnityEngine.Debug;
 
 namespace UnityEditor.Rendering.HighDefinition
@@ -22,6 +23,8 @@ namespace UnityEditor.Rendering.HighDefinition
         {
             // CAUTION: Pass Name and Lightmode name must match in master node and .shader.
             // HDRP use LightMode to do drawRenderer and pass name is use here for stripping!
+
+            var globalSettings = HDRenderPipelineGlobalSettings.Ensure();
 
             // Remove editor only pass
             bool isSceneSelectionPass = snippet.passName == "SceneSelectionPass";
@@ -153,6 +156,10 @@ namespace UnityEditor.Rendering.HighDefinition
 
                 if (inputData.shaderKeywordSet.IsEnabled(m_Decals4RT) && !hdrpAsset.currentPlatformRenderPipelineSettings.decalSettings.perChannelMask)
                     return true;
+
+                // Remove the surface gradient blending if not enabled
+                if (inputData.shaderKeywordSet.IsEnabled(m_DecalSurfaceGradient) && !hdrpAsset.currentPlatformRenderPipelineSettings.supportSurfaceGradient)
+                    return true;
             }
             else
             {
@@ -167,15 +174,19 @@ namespace UnityEditor.Rendering.HighDefinition
                 // If no decal support, remove decal variant
                 if (inputData.shaderKeywordSet.IsEnabled(m_Decals3RT) || inputData.shaderKeywordSet.IsEnabled(m_Decals4RT))
                     return true;
+
+                // Remove the surface gradient blending
+                if (inputData.shaderKeywordSet.IsEnabled(m_DecalSurfaceGradient))
+                    return true;
             }
 
             // Global Illumination
             if (inputData.shaderKeywordSet.IsEnabled(m_ProbeVolumesL1) &&
-                (!hdrpAsset.currentPlatformRenderPipelineSettings.supportProbeVolume || hdrpAsset.currentPlatformRenderPipelineSettings.probeVolumeSHBands != ProbeVolumeSHBands.SphericalHarmonicsL1))
+                (!hdrpAsset.currentPlatformRenderPipelineSettings.supportProbeVolume || !globalSettings.supportProbeVolumes || hdrpAsset.currentPlatformRenderPipelineSettings.probeVolumeSHBands != ProbeVolumeSHBands.SphericalHarmonicsL1))
                 return true;
 
             if (inputData.shaderKeywordSet.IsEnabled(m_ProbeVolumesL2) &&
-                (!hdrpAsset.currentPlatformRenderPipelineSettings.supportProbeVolume || hdrpAsset.currentPlatformRenderPipelineSettings.probeVolumeSHBands != ProbeVolumeSHBands.SphericalHarmonicsL2))
+                (!hdrpAsset.currentPlatformRenderPipelineSettings.supportProbeVolume || !globalSettings.supportProbeVolumes || hdrpAsset.currentPlatformRenderPipelineSettings.probeVolumeSHBands != ProbeVolumeSHBands.SphericalHarmonicsL2))
                 return true;
 
             return false;
@@ -319,6 +330,11 @@ namespace UnityEditor.Rendering.HighDefinition
                 return;
 
             if (HDRenderPipelineGlobalSettings.Ensure(canCreateNewAsset: false) == null)
+                return;
+
+            // Discard any compute shader use for raytracing if none of the RP asset required it
+            ComputeShader unused;
+            if (!ShaderBuildPreprocessor.playerNeedRaytracing && ShaderBuildPreprocessor.computeShaderCache.TryGetValue(shader.GetInstanceID(), out unused))
                 return;
 
             var exportLog = ShaderBuildPreprocessor.hdrpAssets.Count > 0
@@ -561,23 +577,74 @@ namespace UnityEditor.Rendering.HighDefinition
     class ShaderBuildPreprocessor : IPreprocessBuildWithReport
     {
         private static List<HDRenderPipelineAsset> _hdrpAssets;
+        private static Dictionary<int, ComputeShader> s_ComputeShaderCache;
+        private static bool s_PlayerNeedRaytracing;
 
         public static List<HDRenderPipelineAsset> hdrpAssets
         {
             get
             {
-                if (_hdrpAssets == null || _hdrpAssets.Count == 0) GetAllValidHDRPAssets();
+                if (_hdrpAssets == null || _hdrpAssets.Count == 0)
+                    GetAllValidHDRPAssets();
                 return _hdrpAssets;
+            }
+        }
+
+
+        public static Dictionary<int, ComputeShader> computeShaderCache
+        {
+            get
+            {
+                if (s_ComputeShaderCache == null)
+                    BuilRaytracingComputeList();
+                return s_ComputeShaderCache;
+            }
+        }
+
+        public static bool playerNeedRaytracing
+        {
+            get
+            {
+                return s_PlayerNeedRaytracing;
+            }
+        }
+
+        public static void BuilRaytracingComputeList()
+        {
+            if (s_ComputeShaderCache != null)
+                s_ComputeShaderCache.Clear();
+            else
+                s_ComputeShaderCache = new Dictionary<int, ComputeShader>();
+
+            if (HDRenderPipelineGlobalSettings.Ensure(canCreateNewAsset: false) == null)
+                return;
+
+            if (HDRenderPipelineGlobalSettings.instance.renderPipelineRayTracingResources == null)
+                return;
+
+            foreach (var fieldInfo in HDRenderPipelineGlobalSettings.instance.renderPipelineRayTracingResources.GetType().GetFields(BindingFlags.NonPublic | BindingFlags.Public | BindingFlags.Instance))
+            {
+                ComputeShader computeshader;
+                computeshader = fieldInfo.GetValue(HDRenderPipelineGlobalSettings.instance.renderPipelineRayTracingResources) as ComputeShader;
+
+                if (computeshader != null)
+                {
+                    s_ComputeShaderCache.Add(computeshader.GetInstanceID(), computeshader);
+                }
             }
         }
 
         static void GetAllValidHDRPAssets()
         {
+            s_PlayerNeedRaytracing = false;
+
             if (HDRenderPipeline.currentAsset == null)
                 return;
 
-            if (_hdrpAssets != null) _hdrpAssets.Clear();
-            else _hdrpAssets = new List<HDRenderPipelineAsset>();
+            if (_hdrpAssets != null)
+                _hdrpAssets.Clear();
+            else
+                _hdrpAssets = new List<HDRenderPipelineAsset>();
 
             using (ListPool<HDRenderPipelineAsset>.Get(out var tmpAssets))
             {
@@ -666,6 +733,15 @@ namespace UnityEditor.Rendering.HighDefinition
                 else
                 {
                     Debug.LogWarning("There is no HDRP Asset provided in GraphicsSettings. Build time can be extremely long without it.");
+                }
+            }
+            else
+            {
+                // Take the opportunity to know if we need raytracing at runtime
+                foreach (var hdrpAsset in _hdrpAssets)
+                {
+                    if (hdrpAsset.currentPlatformRenderPipelineSettings.supportRayTracing)
+                        s_PlayerNeedRaytracing = true;
                 }
             }
 

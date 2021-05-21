@@ -7,6 +7,8 @@ using UnityEditorInternal;
 #endif
 using System.ComponentModel;
 using System.Linq;
+using UnityEngine.Serialization;
+using UnityEngine.Experimental.Rendering;
 
 namespace UnityEngine.Rendering.Universal
 {
@@ -24,6 +26,24 @@ namespace UnityEngine.Rendering.Universal
         _1024 = 1024,
         _2048 = 2048,
         _4096 = 4096
+    }
+
+    public enum LightCookieResolution
+    {
+        _256 = 256,
+        _512 = 512,
+        _1024 = 1024,
+        _2048 = 2048,
+        _4096 = 4096
+    }
+
+    public enum LightCookieFormat
+    {
+        _8BitGrayscale,
+        _16BitGrayscale,
+        _16BitColor,
+        _32BitColor,
+        _32BitHDR,
     }
 
     public enum MsaaQuality
@@ -48,7 +68,9 @@ namespace UnityEngine.Rendering.Universal
         Particle,
         Terrain,
         Sprite,
-        UnityBuiltinDefault
+        UnityBuiltinDefault,
+        SpriteMask,
+        Decal
     }
 
     public enum LightRenderingMode
@@ -87,25 +109,35 @@ namespace UnityEngine.Rendering.Universal
         HighDynamicRange
     }
 
+    /// <summary>
+    /// Defines if Unity discards or stores the render targets of the DrawObjects Passes. Selecting the Store option significantly increases the memory bandwidth on mobile and tile-based GPUs.
+    /// </summary>
+    public enum StoreActionsOptimization
+    {
+        /// <summary>Unity uses the Discard option by default, and falls back to the Store option if it detects any injected Passes.</summary>
+        Auto,
+        /// <summary>Unity discards the render targets of render Passes that are not reused later (lower memory bandwidth).</summary>
+        Discard,
+        /// <summary>Unity stores all render targets of each Pass (higher memory bandwidth).</summary>
+        Store
+    }
+
+    /// <summary>
+    /// Defines the update frequency for the Volume Framework.
+    /// </summary>
+    public enum VolumeFrameworkUpdateMode
+    {
+        [InspectorName("Every Frame")]
+        EveryFrame = 0,
+        [InspectorName("Via Scripting")]
+        ViaScripting = 1,
+        [InspectorName("Use Pipeline Settings")]
+        UsePipelineSettings = 2,
+    }
+
     [ExcludeFromPreset]
     public partial class UniversalRenderPipelineAsset : RenderPipelineAsset, ISerializationCallbackReceiver
     {
-        // Rendering layer settings.
-        // HDRP use GetRenderingLayerMaskNames to create its light linking system
-        // Mean here we define our name for light linking.
-        static readonly string[] k_RenderingLayerNames = new string[]
-        {
-            "Light Layer default", "Light Layer 1", "Light Layer 2", "Light Layer 3", "Light Layer 4", "Light Layer 5", "Light Layer 6", "Light Layer 7",
-            "Unused 0", "Unused 1", "Unused 2", "Unused 3", "Unused 4", "Unused 5", "Unused 6", "Unused 7",
-            "Unused 8", "Unused 9", "Unused 10", "Unused 11", "Unused 12", "Unused 13", "Unused 14", "Unused 15",
-            "Unused 16", "Unused 17", "Unused 18", "Unused 19", "Unused 20", "Unused 21", "Unused 22", "Unused 23"
-        };
-
-        static readonly string[] k_LightLayerNames = new string[]
-        {
-            "Light Layer default", "Light Layer 1", "Light Layer 2", "Light Layer 3", "Light Layer 4", "Light Layer 5", "Light Layer 6", "Light Layer 7"
-        };
-
         Shader m_DefaultShader;
         ScriptableRenderer[] m_Renderers = new ScriptableRenderer[1];
 
@@ -127,6 +159,7 @@ namespace UnityEngine.Rendering.Universal
         [SerializeField] bool m_RequireOpaqueTexture = false;
         [SerializeField] Downsampling m_OpaqueDownsampling = Downsampling._2xBilinear;
         [SerializeField] bool m_SupportsTerrainHoles = true;
+        [SerializeField] StoreActionsOptimization m_StoreActionsOptimization = StoreActionsOptimization.Auto;
 
         // Quality settings
         [SerializeField] bool m_SupportsHDR = true;
@@ -149,6 +182,10 @@ namespace UnityEngine.Rendering.Universal
         [SerializeField] int m_AdditionalLightsShadowResolutionTierMedium = AdditionalLightsDefaultShadowResolutionTierMedium;
         [SerializeField] int m_AdditionalLightsShadowResolutionTierHigh = AdditionalLightsDefaultShadowResolutionTierHigh;
 
+        // Reflection Probes
+        [SerializeField] bool m_ReflectionProbeBlending = false;
+        [SerializeField] bool m_ReflectionProbeBoxProjection = false;
+
         // Shadows Settings
         [SerializeField] float m_ShadowDistance = 50.0f;
         [SerializeField] int m_ShadowCascadeCount = 1;
@@ -159,6 +196,10 @@ namespace UnityEngine.Rendering.Universal
         [SerializeField] float m_ShadowDepthBias = 1.0f;
         [SerializeField] float m_ShadowNormalBias = 1.0f;
         [SerializeField] bool m_SoftShadowsSupported = false;
+
+        // Light Cookie Settings
+        [SerializeField] LightCookieResolution m_AdditionalLightsCookieResolution = LightCookieResolution._2048;
+        [SerializeField] LightCookieFormat m_AdditionalLightsCookieFormat = LightCookieFormat._32BitColor;
 
         // Advanced settings
         [SerializeField] bool m_UseSRPBatcher = true;
@@ -183,6 +224,7 @@ namespace UnityEngine.Rendering.Universal
         [SerializeField] ShadowResolution m_ShadowAtlasResolution = ShadowResolution._256;
 
         [SerializeField] ShaderVariantLogLevel m_ShaderVariantLogLevel = ShaderVariantLogLevel.Disabled;
+        [SerializeField] VolumeFrameworkUpdateMode m_VolumeFrameworkUpdateMode = VolumeFrameworkUpdateMode.EveryFrame;
 
         // Note: A lut size of 16^3 is barely usable with the HDR grading mode. 32 should be the
         // minimum, the lut being encoded in log. Lower sizes would work better with an additional
@@ -254,13 +296,20 @@ namespace UnityEngine.Rendering.Universal
             switch (type)
             {
                 case RendererType.UniversalRenderer:
-                    return CreateInstance<UniversalRendererData>();
+                default:
+                {
+                    var rendererData = CreateInstance<UniversalRendererData>();
+                    rendererData.postProcessData = PostProcessData.GetDefaultPostProcessData();
+                    return rendererData;
+                }
                 // 2D renderer is experimental
                 case RendererType._2DRenderer:
-                    return CreateInstance<Experimental.Rendering.Universal.Renderer2DData>();
-                // Universal Renderer is the fallback renderer that works on all platforms
-                default:
-                    return CreateInstance<UniversalRendererData>();
+                {
+                    var rendererData = CreateInstance<Renderer2DData>();
+                    rendererData.postProcessData = PostProcessData.GetDefaultPostProcessData();
+                    return rendererData;
+                    // Universal Renderer is the fallback renderer that works on all platforms
+                }
             }
         }
 
@@ -393,6 +442,9 @@ namespace UnityEngine.Rendering.Universal
                 case DefaultMaterialType.Terrain:
                     return editorResources.materials.terrainLit;
 
+                case DefaultMaterialType.Decal:
+                    return editorResources.materials.decal;
+
                 // Unity Builtin Default
                 default:
                     return null;
@@ -494,6 +546,44 @@ namespace UnityEngine.Rendering.Universal
         }
 
 #endif
+        private static GraphicsFormat[][] s_LightCookieFormatList = new GraphicsFormat[][]
+        {
+            /* 8-bit-Grayscale */ new GraphicsFormat[] {GraphicsFormat.R8_UNorm},
+            /* 16-bit-Grayscale*/ new GraphicsFormat[] {GraphicsFormat.R16_UNorm},
+            /* 16-bit-Color    */ new GraphicsFormat[] {GraphicsFormat.R5G6B5_UNormPack16, GraphicsFormat.B5G6R5_UNormPack16, GraphicsFormat.R5G5B5A1_UNormPack16, GraphicsFormat.B5G5R5A1_UNormPack16},
+            /* 32-bit-Color    */ new GraphicsFormat[] {GraphicsFormat.A2B10G10R10_UNormPack32, GraphicsFormat.R8G8B8A8_SRGB, GraphicsFormat.B8G8R8A8_SRGB},
+            /* 32-bit-HDR      */ new GraphicsFormat[] {GraphicsFormat.B10G11R11_UFloatPack32},
+        };
+
+        internal GraphicsFormat additionalLightsCookieFormat
+        {
+            get
+            {
+                GraphicsFormat result = GraphicsFormat.None;
+                foreach (var format in s_LightCookieFormatList[(int)m_AdditionalLightsCookieFormat])
+                {
+                    if (SystemInfo.IsFormatSupported(format, FormatUsage.Render))
+                    {
+                        result = format;
+                        break;
+                    }
+                }
+
+                if (QualitySettings.activeColorSpace == ColorSpace.Gamma)
+                    result = GraphicsFormatUtility.GetLinearFormat(result);
+
+                // Fallback
+                if (result == GraphicsFormat.None)
+                {
+                    result = GraphicsFormat.R8G8B8A8_UNorm;
+                    Debug.LogWarning($"Additional Lights Cookie Format ({ m_AdditionalLightsCookieFormat.ToString() }) is not supported by the platform. Falling back to {GraphicsFormatUtility.GetBlockSize(result) * 8}-bit format ({GraphicsFormatUtility.GetFormatString(result)})");
+                }
+
+                return result;
+            }
+        }
+
+        internal Vector2Int additionalLightsCookieResolution => new Vector2Int((int)m_AdditionalLightsCookieResolution, (int)m_AdditionalLightsCookieResolution);
 
         internal int[] rendererIndexList
         {
@@ -528,6 +618,16 @@ namespace UnityEngine.Rendering.Universal
         public bool supportsTerrainHoles
         {
             get { return m_SupportsTerrainHoles; }
+        }
+
+        /// <summary>
+        /// Returns the active store action optimization value.
+        /// </summary>
+        /// <returns>Returns the active store action optimization value.</returns>
+        public StoreActionsOptimization storeActionsOptimization
+        {
+            get { return m_StoreActionsOptimization; }
+            set { m_StoreActionsOptimization = value; }
         }
 
         public bool supportsHDR
@@ -620,6 +720,16 @@ namespace UnityEngine.Rendering.Universal
                 return additionalLightsShadowResolutionTierHigh;
 
             return additionalLightsShadowResolutionTierMedium;
+        }
+
+        public bool reflectionProbeBlending
+        {
+            get { return m_ReflectionProbeBlending; }
+        }
+
+        public bool reflectionProbeBoxProjection
+        {
+            get { return m_ReflectionProbeBoxProjection; }
         }
 
         /// <summary>
@@ -734,6 +844,11 @@ namespace UnityEngine.Rendering.Universal
             set { m_ShaderVariantLogLevel = value; }
         }
 
+        /// <summary>
+        /// Returns the selected update mode for volumes.
+        /// </summary>
+        public VolumeFrameworkUpdateMode volumeFrameworkUpdateMode => m_VolumeFrameworkUpdateMode;
+
         [Obsolete("PipelineDebugLevel is deprecated. Calling debugLevel is not necessary.", false)]
         public PipelineDebugLevel debugLevel
         {
@@ -811,9 +926,27 @@ namespace UnityEngine.Rendering.Universal
             get { return GetMaterial(DefaultMaterialType.UnityBuiltinDefault); }
         }
 
+        /// <summary>
+        /// Returns the default material for the 2D renderer.
+        /// </summary>
+        /// <returns>Returns the material containing the default lit and unlit shader passes for sprites in the 2D renderer.</returns>
         public override Material default2DMaterial
         {
             get { return GetMaterial(DefaultMaterialType.Sprite); }
+        }
+
+        /// <summary>
+        /// Returns the default sprite mask material for the 2D renderer.
+        /// </summary>
+        /// <returns>Returns the material containing the default shader pass for sprite mask in the 2D renderer.</returns>
+        public override Material default2DMaskMaterial
+        {
+            get { return GetMaterial(DefaultMaterialType.SpriteMask); }
+        }
+
+        public Material decalMaterial
+        {
+            get { return GetMaterial(DefaultMaterialType.Decal); }
         }
 
         public override Shader defaultShader
@@ -890,12 +1023,12 @@ namespace UnityEngine.Rendering.Universal
 #endif
 
         /// <summary>Names used for display of rendering layer masks.</summary>
-        public override string[] renderingLayerMaskNames => k_RenderingLayerNames;
+        public override string[] renderingLayerMaskNames => UniversalRenderPipelineGlobalSettings.instance.renderingLayerMaskNames;
 
         /// <summary>
         /// Names used for display of light layers.
         /// </summary>
-        public string[] lightLayerMaskNames { get { return k_LightLayerNames; } }
+        public string[] lightLayerMaskNames => UniversalRenderPipelineGlobalSettings.instance.lightLayerNames;
 
         public void OnBeforeSerialize()
         {

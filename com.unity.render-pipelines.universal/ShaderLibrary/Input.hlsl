@@ -22,9 +22,19 @@
     #define MAX_VISIBLE_LIGHTS 256
 #endif
 
+// Match with values in UniversalRenderPipeline.cs
+#define MAX_ZBIN_VEC4S 1024
+#define MAX_TILE_VEC4S 4096
+#if MAX_VISIBLE_LIGHTS < 32
+    #define LIGHTS_PER_TILE 32
+#else
+    #define LIGHTS_PER_TILE MAX_VISIBLE_LIGHTS
+#endif
+
 struct InputData
 {
     float3  positionWS;
+    float4  positionCS;
     half3   normalWS;
     half3   viewDirectionWS;
     float4  shadowCoord;
@@ -33,17 +43,13 @@ struct InputData
     half3   bakedGI;
     float2  normalizedScreenSpaceUV;
     half4   shadowMask;
-
-    #if defined(LIGHTMAP_ON)
-    half2   lightmapUV;
-    #else
-    float3  vertexSH;
-    #endif
-    #if defined(_NORMALMAP)
     half3x3 tangentToWorld;
-    #endif
 
     #if defined(DEBUG_DISPLAY)
+    half2   dynamicLightmapUV;
+    half2   staticLightmapUV;
+    float3  vertexSH;
+
     half3 brdfDiffuse;
     half3 brdfSpecular;
     float2 uv;
@@ -72,6 +78,10 @@ struct InputData
 half4 _GlossyEnvironmentColor;
 half4 _SubtractiveShadowColor;
 
+half4 _GlossyEnvironmentCubeMap_HDR;
+TEXTURECUBE(_GlossyEnvironmentCubeMap);
+SAMPLER(sampler_GlossyEnvironmentCubeMap);
+
 #define _InvCameraViewProj unity_MatrixInvVP
 float4 _ScaledScreenParams;
 
@@ -85,6 +95,19 @@ uint _MainLightLayerMask;
 half4 _AmbientOcclusionParam;
 
 half4 _AdditionalLightsCount;
+
+#if USE_CLUSTERED_LIGHTING
+// Directional lights would be in all clusters, so they don't go into the cluster structure.
+// Instead, they are stored first in the light buffer.
+uint _AdditionalLightsDirectionalCount;
+// The number of Z-bins to skip based on near plane distance.
+uint _AdditionalLightsZBinOffset;
+// Scale from view-space Z to Z-bin.
+float _AdditionalLightsZBinScale;
+// Scale from screen-space UV [0, 1] to tile coordinates [0, tile resolution].
+float2 _AdditionalLightsTileScale;
+uint _AdditionalLightsTileCountX;
+#endif
 
 #if USE_STRUCTURED_BUFFER_FOR_LIGHT_DATA
 StructuredBuffer<LightData> _AdditionalLightsBuffer;
@@ -103,6 +126,15 @@ float _AdditionalLightsLayerMasks[MAX_VISIBLE_LIGHTS]; // we want uint[] but Uni
 #ifndef SHADER_API_GLES3
 CBUFFER_END
 #endif
+#endif
+
+#if USE_CLUSTERED_LIGHTING
+    CBUFFER_START(AdditionalLightsZBins)
+        float4 _AdditionalLightsZBins[MAX_ZBIN_VEC4S];
+    CBUFFER_END
+    CBUFFER_START(AdditionalLightsTiles)
+        float4 _AdditionalLightsTiles[MAX_TILE_VEC4S];
+    CBUFFER_END
 #endif
 
 #define UNITY_MATRIX_M     unity_ObjectToWorld

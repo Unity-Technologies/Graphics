@@ -169,7 +169,7 @@ namespace UnityEngine.Rendering
                 cmd.DrawProcedural(Matrix4x4.identity, material, shaderPass, MeshTopology.Triangles, 3, 1, s_PropertyBlock);
         }
 
-        static private void DrawQuad(CommandBuffer cmd, Material material, int shaderPass)
+        static internal void DrawQuad(CommandBuffer cmd, Material material, int shaderPass)
         {
             if (SystemInfo.graphicsShaderLevel < 30)
                 cmd.DrawMesh(s_QuadMesh, Matrix4x4.identity, material, 0, shaderPass, s_PropertyBlock);
@@ -458,8 +458,39 @@ namespace UnityEngine.Rendering
         }
 
         /// <summary>
+        /// Blit a cube texture into 2d texture as octahedral quad. (projection)
+        /// Conversion between single and multi channel formats.
+        /// RGB(A) to YYYY (luminance).
+        /// R to RRRR.
+        /// A to AAAA.
+        /// </summary>
+        /// <param name="cmd">Command buffer used for rendering.</param>
+        /// <param name="source">Source texture.</param>
+        /// <param name="scaleBiasTex">Scale and bias for the input texture.</param>
+        /// <param name="scaleBiasRT">Scale and bias for the output texture.</param>
+        /// <param name="mipLevelTex">Mip level to blit.</param>
+        public static void BlitCubeToOctahedral2DQuadSingleChannel(CommandBuffer cmd, Texture source, Vector4 scaleBiasRT, int mipLevelTex)
+        {
+            int pass = 15;
+            uint sourceChnCount = GraphicsFormatUtility.GetComponentCount(source.graphicsFormat);
+            if (sourceChnCount == 1)
+            {
+                if (GraphicsFormatUtility.IsAlphaOnlyFormat(source.graphicsFormat))
+                    pass = 16;
+                if (GraphicsFormatUtility.GetSwizzleR(source.graphicsFormat) == FormatSwizzle.FormatSwizzleR)
+                    pass = 17;
+            }
+
+            s_PropertyBlock.SetTexture(BlitShaderIDs._BlitCubeTexture, source);
+            s_PropertyBlock.SetFloat(BlitShaderIDs._BlitMipLevel, mipLevelTex);
+            s_PropertyBlock.SetVector(BlitShaderIDs._BlitScaleBias, new Vector4(1, 1, 0, 0));
+            s_PropertyBlock.SetVector(BlitShaderIDs._BlitScaleBiasRt, scaleBiasRT);
+            DrawQuad(cmd, GetBlitMaterial(source.dimension), pass);
+        }
+
+        /// <summary>
         /// Bilinear Blit a texture using a quad in the current render target.
-        /// Mapping between single and multi channel formats.
+        /// Conversion between single and multi channel formats.
         /// RGB(A) to YYYY (luminance).
         /// R to RRRR.
         /// A to AAAA.
@@ -471,20 +502,20 @@ namespace UnityEngine.Rendering
         /// <param name="mipLevelTex">Mip level to blit.</param>
         public static void BlitQuadSingleChannel(CommandBuffer cmd, Texture source, Vector4 scaleBiasTex, Vector4 scaleBiasRT, int mipLevelTex)
         {
-            s_PropertyBlock.SetTexture(BlitShaderIDs._BlitTexture, source);
-            s_PropertyBlock.SetVector(BlitShaderIDs._BlitScaleBias, scaleBiasTex);
-            s_PropertyBlock.SetVector(BlitShaderIDs._BlitScaleBiasRt, scaleBiasRT);
-            s_PropertyBlock.SetFloat(BlitShaderIDs._BlitMipLevel, mipLevelTex);
-
-            int pass = 15;
+            int pass = 18;
             uint sourceChnCount = GraphicsFormatUtility.GetComponentCount(source.graphicsFormat);
             if (sourceChnCount == 1)
             {
                 if (GraphicsFormatUtility.IsAlphaOnlyFormat(source.graphicsFormat))
-                    pass = 16;
+                    pass = 19;
                 if (GraphicsFormatUtility.GetSwizzleR(source.graphicsFormat) == FormatSwizzle.FormatSwizzleR)
-                    pass = 17;
+                    pass = 20;
             }
+
+            s_PropertyBlock.SetTexture(BlitShaderIDs._BlitTexture, source);
+            s_PropertyBlock.SetVector(BlitShaderIDs._BlitScaleBias, scaleBiasTex);
+            s_PropertyBlock.SetVector(BlitShaderIDs._BlitScaleBiasRt, scaleBiasRT);
+            s_PropertyBlock.SetFloat(BlitShaderIDs._BlitMipLevel, mipLevelTex);
 
             DrawQuad(cmd, GetBlitMaterial(source.dimension), pass);
         }
