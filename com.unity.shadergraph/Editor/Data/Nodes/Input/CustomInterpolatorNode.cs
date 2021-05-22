@@ -32,6 +32,7 @@ namespace UnityEditor.ShaderGraph
         public CustomInterpolatorNode()
         {
             UpdateNodeAfterDeserialization();
+            m_PreviewMode = PreviewMode.Preview3D;
         }
 
         internal void ConnectToCustomBlock(BlockNode node)
