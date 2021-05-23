@@ -137,7 +137,7 @@ nightly_vfx_hdrp_-_2021_1:
       updated_at: '2020-12-16 00:05:36.049181'
       version: ''
 nightly_vfx_hdrp_-_2021.1:
-  updated_at: '2021-05-22 07:09:30.654792'
+  updated_at: '2021-05-23 07:09:49.058837'
   last_green_revisions:
     Android:
       revision: b22cf19760c9f999a3780bf2b3523cd60e349b10
@@ -160,7 +160,7 @@ nightly_vfx_hdrp_-_2021.1:
       updated_at: '2021-05-20 23:43:05.182391'
       version: ''
 vfx_hdrp_pr_job_-_2021.1:
-  updated_at: '2021-05-22 07:09:30.654792'
+  updated_at: '2021-05-23 07:09:49.058837'
   last_green_revisions:
     Android:
       revision: b22cf19760c9f999a3780bf2b3523cd60e349b10
