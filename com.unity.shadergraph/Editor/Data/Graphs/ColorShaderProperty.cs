@@ -90,6 +90,15 @@ namespace UnityEditor.ShaderGraph.Internal
             };
         }
 
+        internal override string GetHLSLVariableName(bool isSubgraphProperty)
+        {
+            HLSLDeclaration decl = GetDefaultHLSLDeclaration();
+            if (decl == HLSLDeclaration.HybridPerInstance)
+                return $"UNITY_ACCESS_HYBRID_INSTANCED_PROP({referenceName})";
+            else
+                return referenceName;
+        }
+
         internal override ShaderInput Copy()
         {
             return new ColorShaderProperty()

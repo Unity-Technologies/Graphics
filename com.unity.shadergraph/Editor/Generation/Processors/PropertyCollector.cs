@@ -309,6 +309,9 @@ namespace UnityEditor.ShaderGraph
                 }
                 builder.AppendNewLine();
             }
+            builder.AppendLine("#define UNITY_ACCESS_HYBRID_INSTANCED_PROP(var) UNITY_ACCESS_INSTANCED_PROP(unity_Builtins0, var)");
+            builder.AppendLine("#else");
+            builder.AppendLine("#define UNITY_ACCESS_HYBRID_INSTANCED_PROP(var) var");
             builder.AppendLine("#endif");
             return builder.ToString();
 #else
