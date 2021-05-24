@@ -50,22 +50,25 @@ namespace UnityEditor.ShaderGraph
         [GenerationAPI]
         internal struct Descriptor
         {
-            internal string src, dst; // for function or block.
+            internal string src, dst; // for function or block. For macro block src is start of the macro and dst is end of the macro.
             internal string name;     // for struct or function.
             internal string define;   // defined for client code to indicate we're live.
             internal string splice;   // splice location, prefer use something from the list.
             internal string preprocessor;
+            internal bool hasMacro;
 
-            internal bool isBlock => src != null && dst != null && name == null && splice != null;
+            internal bool isBlock => src != null && dst != null && name == null && splice != null && !hasMacro;
+            internal bool isMacroBlock => src != null && dst != null && name == null && splice != null && hasMacro;
             internal bool isStruct => src == null && dst == null && name != null && splice != null;
             internal bool isFunc => src != null && dst != null && name != null && splice != null;
             internal bool isDefine => define != null && splice != null && src == null && dst == null & name == null;
-            internal bool isValid => isDefine || isBlock || isStruct || isFunc;
+            internal bool isValid => isDefine || isBlock || isStruct || isFunc || isMacroBlock;
             internal bool hasPreprocessor => !String.IsNullOrEmpty(preprocessor);
 
             internal static Descriptor MakeFunc(string splice, string name, string dstType, string srcType, string define = "", string preprocessor = "") => new Descriptor { splice = splice, name = name, dst = dstType, src = srcType, define = define, preprocessor = preprocessor };
             internal static Descriptor MakeStruct(string splice, string name, string define = "", string preprocessor = "") => new Descriptor { splice = splice, name = name, define = define, preprocessor = preprocessor };
             internal static Descriptor MakeBlock(string splice, string dst, string src, string preprocessor = "") => new Descriptor { splice = splice, dst = dst, src = src, preprocessor = preprocessor };
+            internal static Descriptor MakeMacroBlock(string splice, string startMacro, string endMacro, string preprocessor = "") => new Descriptor { splice = splice, dst = endMacro, src = startMacro, preprocessor = preprocessor, hasMacro = true };
             internal static Descriptor MakeDefine(string splice, string define, string preprocessor = "") => new Descriptor { splice = splice, define = define, preprocessor = preprocessor };
         }
 
@@ -209,6 +212,7 @@ namespace UnityEditor.ShaderGraph
                     builder.AppendLine($"#ifdef {desc.preprocessor}");
 
                 if (desc.isBlock) GenCopyBlock(desc.dst, desc.src, builder);
+                else if (desc.isMacroBlock) GenCopyMacroBlock(desc.src, desc.dst, builder);
                 else if (desc.isFunc) GenCopyFunc(desc.name, desc.dst, desc.src, builder, desc.define);
                 else if (desc.isStruct) GenStruct(desc.name, builder, desc.define);
                 else if (desc.isDefine) builder.AppendLine($"#define {desc.define}");
@@ -258,6 +262,12 @@ namespace UnityEditor.ShaderGraph
         {
             foreach (var bnode in customBlockNodes)
                 builder.AppendLine($"{dst}.{bnode.customName} = {src}.{bnode.customName};");
+        }
+
+        private void GenCopyMacroBlock(string startMacro, string endMacro, ShaderStringBuilder builder)
+        {
+            foreach (var bnode in customBlockNodes)
+                builder.AppendLine($"{startMacro}{bnode.customName}{endMacro};");
         }
 
         private void GenCopyFunc(string funcName, string dstType, string srcType, ShaderStringBuilder builder, string makeDefine = "")

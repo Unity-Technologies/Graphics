@@ -42,6 +42,11 @@ namespace UnityEditor.ShaderGraph.Internal
             return GetHLSLVariableName(isSubgraphProperty, GenerationMode.ForReals);
         }
 
+        internal string GetConnectionStateHLSLVariableName()
+        {
+            return GetConnectionStateVariableName(referenceName + "_" + objectId);
+        }
+
         // NOTE: this does not tell you the HLSLDeclaration of the entire property...
         // instead, it tells you what the DEFAULT HLSL Declaration would be, IF the property makes use of the default
         // to check ACTUAL HLSL Declaration types, enumerate the HLSL Properties and check their HLSLDeclarations...

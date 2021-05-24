@@ -110,6 +110,8 @@ namespace UnityEditor.Rendering.HighDefinition
                                     CED.AdditionalPropertiesFoldoutGroup(s_Styles.shadowMapSubHeader, Expandable.ShadowMap, k_ExpandedState, AdditionalProperties.Shadow, k_AdditionalPropertiesState,
                                         DrawShadowMapContent, DrawShadowMapAdditionalContent, FoldoutOption.SubFoldout | FoldoutOption.Indent | FoldoutOption.NoSpaceAtEnd)),
                                 CED.space,
+                                CED.Conditional((serialized, owner) => k_AdditionalPropertiesState[AdditionalProperties.Shadow] && HasShadowQualitySettingsUI(HDShadowFilteringQuality.VeryHigh, serialized, owner),
+                                    CED.FoldoutGroup(s_Styles.veryHighShadowQualitySubHeader, Expandable.ShadowQuality, k_ExpandedState, FoldoutOption.SubFoldout | FoldoutOption.Indent, DrawVeryHighShadowSettingsContent)),
                                 CED.Conditional((serialized, owner) => k_AdditionalPropertiesState[AdditionalProperties.Shadow] && HasShadowQualitySettingsUI(HDShadowFilteringQuality.High, serialized, owner),
                                     CED.FoldoutGroup(s_Styles.highShadowQualitySubHeader, Expandable.ShadowQuality, k_ExpandedState, FoldoutOption.SubFoldout | FoldoutOption.Indent, DrawHighShadowSettingsContent)),
                                 CED.Conditional((serialized, owner) => HasShadowQualitySettingsUI(HDShadowFilteringQuality.Medium, serialized, owner),
@@ -234,7 +236,7 @@ namespace UnityEditor.Rendering.HighDefinition
 
         static void DrawGeneralAdditionalContent(SerializedHDLight serialized, Editor owner)
         {
-            using (new EditorGUI.DisabledScope(!HDUtils.hdrpSettings.supportLightLayers))
+            if (HDUtils.hdrpSettings.supportLightLayers)
             {
                 using (var change = new EditorGUI.ChangeCheckScope())
                 {
@@ -274,69 +276,72 @@ namespace UnityEditor.Rendering.HighDefinition
                     break;
 
                 case HDLightType.Spot:
-                    EditorGUI.BeginChangeCheck();
-                    EditorGUILayout.PropertyField(serialized.spotLightShape, s_Styles.spotLightShape);
-                    if (EditorGUI.EndChangeCheck())
+                    using (var change = new EditorGUI.ChangeCheckScope())
                     {
-                        UpdateLightIntensityUnit(serialized, owner);
+                        EditorGUILayout.PropertyField(serialized.spotLightShape, s_Styles.spotLightShape);
+                        if (change.changed)
+                            UpdateLightIntensityUnit(serialized, owner);
                     }
 
-                    // If realtime GI is enabled and the shape is unsupported or not implemented, show a warning.
-                    if (serialized.settings.isRealtime && SupportedRenderingFeatures.active.enlighten && GetLightingSettingsOrDefaultsFallback.Invoke().realtimeGI)
+                    using (new EditorGUI.IndentLevelScope())
                     {
-                        if (serialized.spotLightShape.GetEnumValue<SpotLightShape>() == SpotLightShape.Box
-                            || serialized.spotLightShape.GetEnumValue<SpotLightShape>() == SpotLightShape.Pyramid)
-                            EditorGUILayout.HelpBox(s_Styles.unsupportedLightShapeWarning, MessageType.Warning);
-                    }
+                        // If realtime GI is enabled and the shape is unsupported or not implemented, show a warning.
+                        if (serialized.settings.isRealtime && SupportedRenderingFeatures.active.enlighten && GetLightingSettingsOrDefaultsFallback.Invoke().realtimeGI)
+                        {
+                            if (serialized.spotLightShape.GetEnumValue<SpotLightShape>() == SpotLightShape.Box
+                                || serialized.spotLightShape.GetEnumValue<SpotLightShape>() == SpotLightShape.Pyramid)
+                                EditorGUILayout.HelpBox(s_Styles.unsupportedLightShapeWarning, MessageType.Warning);
+                        }
 
-                    switch (serialized.spotLightShape.GetEnumValue<SpotLightShape>())
-                    {
-                        case SpotLightShape.Box:
-                            // Box directional light.
-                            EditorGUILayout.PropertyField(serialized.shapeWidth, s_Styles.shapeWidthBox);
-                            EditorGUILayout.PropertyField(serialized.shapeHeight, s_Styles.shapeHeightBox);
-                            break;
-                        case SpotLightShape.Cone:
-                            // Cone spot projector
-                            EditorGUI.BeginChangeCheck();
-                            EditorGUILayout.Slider(serialized.settings.spotAngle, HDAdditionalLightData.k_MinSpotAngle, HDAdditionalLightData.k_MaxSpotAngle, s_Styles.outterAngle);
-                            if (EditorGUI.EndChangeCheck())
-                            {
-                                serialized.customSpotLightShadowCone.floatValue = Math.Min(serialized.customSpotLightShadowCone.floatValue, serialized.settings.spotAngle.floatValue);
-                            }
-                            EditorGUILayout.PropertyField(serialized.spotInnerPercent, s_Styles.spotInnerPercent);
-                            EditorGUI.BeginChangeCheck();
-                            EditorGUILayout.PropertyField(serialized.shapeRadius, s_Styles.lightRadius);
-                            if (EditorGUI.EndChangeCheck())
-                            {
-                                //Also affect baked shadows
-                                serialized.settings.bakedShadowRadiusProp.floatValue = serialized.shapeRadius.floatValue;
-                            }
-                            break;
-                        case SpotLightShape.Pyramid:
-                            // pyramid spot projector
-                            EditorGUI.BeginChangeCheck();
-                            serialized.settings.DrawSpotAngle();
-                            if (EditorGUI.EndChangeCheck())
-                            {
-                                serialized.customSpotLightShadowCone.floatValue = Math.Min(serialized.customSpotLightShadowCone.floatValue, serialized.settings.spotAngle.floatValue);
-                            }
-                            EditorGUILayout.Slider(serialized.aspectRatio, HDAdditionalLightData.k_MinAspectRatio, HDAdditionalLightData.k_MaxAspectRatio, s_Styles.aspectRatioPyramid);
-                            EditorGUI.BeginChangeCheck();
-                            EditorGUILayout.PropertyField(serialized.shapeRadius, s_Styles.lightRadius);
-                            if (EditorGUI.EndChangeCheck())
-                            {
-                                //Also affect baked shadows
-                                serialized.settings.bakedShadowRadiusProp.floatValue = serialized.shapeRadius.floatValue;
-                            }
-                            break;
-                        case (SpotLightShape)(-1): //multiple different values
-                            using (new EditorGUI.DisabledScope(true))
-                                EditorGUILayout.LabelField("Multiple different spot Shapes in selection");
-                            break;
-                        default:
-                            Debug.Assert(false, "Not implemented spot light shape");
-                            break;
+                        switch (serialized.spotLightShape.GetEnumValue<SpotLightShape>())
+                        {
+                            case SpotLightShape.Box:
+                                // Box directional light.
+                                EditorGUILayout.PropertyField(serialized.shapeWidth, s_Styles.shapeWidthBox);
+                                EditorGUILayout.PropertyField(serialized.shapeHeight, s_Styles.shapeHeightBox);
+                                break;
+                            case SpotLightShape.Cone:
+                                // Cone spot projector
+                                EditorGUI.BeginChangeCheck();
+                                EditorGUILayout.Slider(serialized.settings.spotAngle, HDAdditionalLightData.k_MinSpotAngle, HDAdditionalLightData.k_MaxSpotAngle, s_Styles.outterAngle);
+                                if (EditorGUI.EndChangeCheck())
+                                {
+                                    serialized.customSpotLightShadowCone.floatValue = Math.Min(serialized.customSpotLightShadowCone.floatValue, serialized.settings.spotAngle.floatValue);
+                                }
+                                EditorGUILayout.PropertyField(serialized.spotInnerPercent, s_Styles.spotInnerPercent);
+                                EditorGUI.BeginChangeCheck();
+                                EditorGUILayout.PropertyField(serialized.shapeRadius, s_Styles.lightRadius);
+                                if (EditorGUI.EndChangeCheck())
+                                {
+                                    //Also affect baked shadows
+                                    serialized.settings.bakedShadowRadiusProp.floatValue = serialized.shapeRadius.floatValue;
+                                }
+                                break;
+                            case SpotLightShape.Pyramid:
+                                // pyramid spot projector
+                                EditorGUI.BeginChangeCheck();
+                                serialized.settings.DrawSpotAngle();
+                                if (EditorGUI.EndChangeCheck())
+                                {
+                                    serialized.customSpotLightShadowCone.floatValue = Math.Min(serialized.customSpotLightShadowCone.floatValue, serialized.settings.spotAngle.floatValue);
+                                }
+                                EditorGUILayout.Slider(serialized.aspectRatio, HDAdditionalLightData.k_MinAspectRatio, HDAdditionalLightData.k_MaxAspectRatio, s_Styles.aspectRatioPyramid);
+                                EditorGUI.BeginChangeCheck();
+                                EditorGUILayout.PropertyField(serialized.shapeRadius, s_Styles.lightRadius);
+                                if (EditorGUI.EndChangeCheck())
+                                {
+                                    //Also affect baked shadows
+                                    serialized.settings.bakedShadowRadiusProp.floatValue = serialized.shapeRadius.floatValue;
+                                }
+                                break;
+                            case (SpotLightShape)(-1): //multiple different values
+                                using (new EditorGUI.DisabledScope(true))
+                                    EditorGUILayout.LabelField("Multiple different spot Shapes in selection");
+                                break;
+                            default:
+                                Debug.Assert(false, "Not implemented spot light shape");
+                                break;
+                        }
                     }
                     break;
 
@@ -363,55 +368,58 @@ namespace UnityEditor.Rendering.HighDefinition
                     }
                     EditorGUI.showMixedValue = false;
 
-                    switch (updatedAreaLightShape)
+                    using (new EditorGUI.IndentLevelScope())
                     {
-                        case AreaLightShape.Rectangle:
-                            EditorGUI.BeginChangeCheck();
-                            EditorGUILayout.PropertyField(serialized.shapeWidth, s_Styles.shapeWidthRect);
-                            EditorGUILayout.PropertyField(serialized.shapeHeight, s_Styles.shapeHeightRect);
-                            if (ShaderConfig.s_BarnDoor == 1)
-                            {
-                                EditorGUILayout.PropertyField(serialized.barnDoorAngle, s_Styles.barnDoorAngle);
-                                EditorGUILayout.PropertyField(serialized.barnDoorLength, s_Styles.barnDoorLength);
-                            }
-                            if (EditorGUI.EndChangeCheck())
-                            {
-                                serialized.settings.areaSizeX.floatValue = serialized.shapeWidth.floatValue;
-                                serialized.settings.areaSizeY.floatValue = serialized.shapeHeight.floatValue;
+                        switch (updatedAreaLightShape)
+                        {
+                            case AreaLightShape.Rectangle:
+                                EditorGUI.BeginChangeCheck();
+                                EditorGUILayout.PropertyField(serialized.shapeWidth, s_Styles.shapeWidthRect);
+                                EditorGUILayout.PropertyField(serialized.shapeHeight, s_Styles.shapeHeightRect);
                                 if (ShaderConfig.s_BarnDoor == 1)
                                 {
-                                    serialized.barnDoorAngle.floatValue = Mathf.Clamp(serialized.barnDoorAngle.floatValue, 0.0f, 90.0f);
-                                    serialized.barnDoorLength.floatValue = Mathf.Clamp(serialized.barnDoorLength.floatValue, 0.0f, float.MaxValue);
+                                    EditorGUILayout.PropertyField(serialized.barnDoorAngle, s_Styles.barnDoorAngle);
+                                    EditorGUILayout.PropertyField(serialized.barnDoorLength, s_Styles.barnDoorLength);
                                 }
-                            }
-                            break;
-                        case AreaLightShape.Tube:
-                            EditorGUI.BeginChangeCheck();
-                            EditorGUILayout.PropertyField(serialized.shapeWidth, s_Styles.shapeWidthTube);
-                            if (EditorGUI.EndChangeCheck())
-                            {
-                                // Fake line with a small rectangle in vanilla unity for GI
-                                serialized.settings.areaSizeX.floatValue = serialized.shapeWidth.floatValue;
-                                serialized.settings.areaSizeY.floatValue = k_MinLightSize;
-                            }
-                            // If realtime GI is enabled and the shape is unsupported or not implemented, show a warning.
-                            if (serialized.settings.isRealtime && SupportedRenderingFeatures.active.enlighten && GetLightingSettingsOrDefaultsFallback.Invoke().realtimeGI)
-                            {
-                                EditorGUILayout.HelpBox(s_Styles.unsupportedLightShapeWarning, MessageType.Warning);
-                            }
-                            break;
-                        case AreaLightShape.Disc:
-                            //draw the built-in area light control at the moment as everything is handled by built-in
-                            serialized.settings.DrawArea();
-                            serialized.displayAreaLightEmissiveMesh.boolValue = false; //force deactivate emissive mesh for Disc (not supported)
-                            break;
-                        case (AreaLightShape)(-1): //multiple different values
-                            using (new EditorGUI.DisabledScope(true))
-                                EditorGUILayout.LabelField("Multiple different area Shapes in selection");
-                            break;
-                        default:
-                            Debug.Assert(false, "Not implemented area light shape");
-                            break;
+                                if (EditorGUI.EndChangeCheck())
+                                {
+                                    serialized.settings.areaSizeX.floatValue = serialized.shapeWidth.floatValue;
+                                    serialized.settings.areaSizeY.floatValue = serialized.shapeHeight.floatValue;
+                                    if (ShaderConfig.s_BarnDoor == 1)
+                                    {
+                                        serialized.barnDoorAngle.floatValue = Mathf.Clamp(serialized.barnDoorAngle.floatValue, 0.0f, 90.0f);
+                                        serialized.barnDoorLength.floatValue = Mathf.Clamp(serialized.barnDoorLength.floatValue, 0.0f, float.MaxValue);
+                                    }
+                                }
+                                break;
+                            case AreaLightShape.Tube:
+                                EditorGUI.BeginChangeCheck();
+                                EditorGUILayout.PropertyField(serialized.shapeWidth, s_Styles.shapeWidthTube);
+                                if (EditorGUI.EndChangeCheck())
+                                {
+                                    // Fake line with a small rectangle in vanilla unity for GI
+                                    serialized.settings.areaSizeX.floatValue = serialized.shapeWidth.floatValue;
+                                    serialized.settings.areaSizeY.floatValue = k_MinLightSize;
+                                }
+                                // If realtime GI is enabled and the shape is unsupported or not implemented, show a warning.
+                                if (serialized.settings.isRealtime && SupportedRenderingFeatures.active.enlighten && GetLightingSettingsOrDefaultsFallback.Invoke().realtimeGI)
+                                {
+                                    EditorGUILayout.HelpBox(s_Styles.unsupportedLightShapeWarning, MessageType.Warning);
+                                }
+                                break;
+                            case AreaLightShape.Disc:
+                                //draw the built-in area light control at the moment as everything is handled by built-in
+                                serialized.settings.DrawArea();
+                                serialized.displayAreaLightEmissiveMesh.boolValue = false; //force deactivate emissive mesh for Disc (not supported)
+                                break;
+                            case (AreaLightShape)(-1): //multiple different values
+                                using (new EditorGUI.DisabledScope(true))
+                                    EditorGUILayout.LabelField("Multiple different area Shapes in selection");
+                                break;
+                            default:
+                                Debug.Assert(false, "Not implemented area light shape");
+                                break;
+                        }
                     }
                     break;
 
@@ -445,12 +453,12 @@ namespace UnityEditor.Rendering.HighDefinition
                 using (new EditorGUI.DisabledScope(!serialized.interactsWithSky.boolValue))
                 {
                     EditorGUI.indentLevel++;
-                    EditorGUILayout.PropertyField(serialized.flareSize,      s_Styles.flareSize);
-                    EditorGUILayout.PropertyField(serialized.flareFalloff,   s_Styles.flareFalloff);
-                    EditorGUILayout.PropertyField(serialized.flareTint,      s_Styles.flareTint);
+                    EditorGUILayout.PropertyField(serialized.flareSize, s_Styles.flareSize);
+                    EditorGUILayout.PropertyField(serialized.flareFalloff, s_Styles.flareFalloff);
+                    EditorGUILayout.PropertyField(serialized.flareTint, s_Styles.flareTint);
                     EditorGUILayout.PropertyField(serialized.surfaceTexture, s_Styles.surfaceTexture);
-                    EditorGUILayout.PropertyField(serialized.surfaceTint,    s_Styles.surfaceTint);
-                    EditorGUILayout.PropertyField(serialized.distance,       s_Styles.distance);
+                    EditorGUILayout.PropertyField(serialized.surfaceTint, s_Styles.surfaceTint);
+                    EditorGUILayout.PropertyField(serialized.distance, s_Styles.distance);
                     EditorGUI.indentLevel--;
                 }
             }
@@ -458,9 +466,9 @@ namespace UnityEditor.Rendering.HighDefinition
             if (EditorGUI.EndChangeCheck())
             {
                 // Clamp the value and also affect baked shadows.
-                serialized.flareSize.floatValue                     = Mathf.Clamp(serialized.flareSize.floatValue, 0, 90);
-                serialized.flareFalloff.floatValue                  = Mathf.Max(serialized.flareFalloff.floatValue, 0);
-                serialized.distance.floatValue                      = Mathf.Max(serialized.distance.floatValue, 0);
+                serialized.flareSize.floatValue = Mathf.Clamp(serialized.flareSize.floatValue, 0, 90);
+                serialized.flareFalloff.floatValue = Mathf.Max(serialized.flareFalloff.floatValue, 0);
+                serialized.distance.floatValue = Mathf.Max(serialized.distance.floatValue, 0);
             }
         }
 
@@ -607,7 +615,7 @@ namespace UnityEditor.Rendering.HighDefinition
             labelRect.height += interlineOffset;
 
             //handling of prefab overrides in a parent label
-            GUIContent parentLabel =  s_Styles.lightIntensity;
+            GUIContent parentLabel = s_Styles.lightIntensity;
             parentLabel = EditorGUI.BeginProperty(labelRect, parentLabel, serialized.lightUnit);
             parentLabel = EditorGUI.BeginProperty(labelRect, parentLabel, serialized.intensity);
             {
@@ -690,7 +698,7 @@ namespace UnityEditor.Rendering.HighDefinition
                         unitRect.width = k_UnitWidth + .5f;
 
                         EditorGUI.PropertyField(valueRect, serialized.settings.colorTemperature, s_Styles.empty);
-                        EditorGUI.Popup(unitRect, 0, new[] {"Kelvin"});
+                        EditorGUI.Popup(unitRect, 0, new[] { "Kelvin" });
 
                         EditorGUI.indentLevel -= 1;
                     }
@@ -792,7 +800,7 @@ namespace UnityEditor.Rendering.HighDefinition
                 if (EditorGUI.EndChangeCheck())
                 {
                     SerializedProperty pointTex = serialized.iesPoint;
-                    SerializedProperty spotTex  = serialized.iesSpot;
+                    SerializedProperty spotTex = serialized.iesSpot;
                     if (iesAsset == null)
                     {
                         pointTex.objectReferenceValue = null;
@@ -854,7 +862,7 @@ namespace UnityEditor.Rendering.HighDefinition
                     {
                         int oldIndentLevel = EditorGUI.indentLevel;
                         EditorGUI.indentLevel = 0;
-                        GUIStyle wordWrap = new GUIStyle(EditorStyles.miniLabel){ wordWrap = true};
+                        GUIStyle wordWrap = new GUIStyle(EditorStyles.miniLabel) { wordWrap = true };
                         EditorGUILayout.LabelField(s_Styles.cookieTextureTypeError, wordWrap);
                         if (GUILayout.Button("Fix", GUILayout.ExpandHeight(true)))
                         {
@@ -1007,6 +1015,7 @@ namespace UnityEditor.Rendering.HighDefinition
         {
             EditorGUILayout.PropertyField(serialized.useVolumetric, s_Styles.volumetricEnable);
             using (new EditorGUI.DisabledScope(!serialized.useVolumetric.boolValue))
+            using (new EditorGUI.IndentLevelScope())
             {
                 EditorGUILayout.PropertyField(serialized.volumetricDimmer, s_Styles.volumetricDimmer);
                 EditorGUILayout.Slider(serialized.volumetricShadowDimmer, 0.0f, 1.0f, s_Styles.volumetricShadowDimmer);
@@ -1046,13 +1055,21 @@ namespace UnityEditor.Rendering.HighDefinition
             {
                 EditorGUILayout.PropertyField(serialized.shadowUpdateMode, s_Styles.shadowUpdateMode);
 
+                EditorGUI.indentLevel++;
+
                 if (serialized.shadowUpdateMode.intValue > 0 && serialized.type != HDLightType.Directional)
                 {
 #if UNITY_2021_1_OR_NEWER
                     EditorGUILayout.PropertyField(serialized.shadowAlwaysDrawDynamic, s_Styles.shadowAlwaysDrawDynamic);
 #endif
                 }
-                EditorGUILayout.PropertyField(serialized.shadowUpdateUponTransformChange, s_Styles.shadowUpdateOnLightTransformChange);
+
+                if (serialized.shadowUpdateMode.intValue > 0)
+                {
+                    EditorGUILayout.PropertyField(serialized.shadowUpdateUponTransformChange, s_Styles.shadowUpdateOnLightTransformChange);
+                }
+
+                EditorGUI.indentLevel--;
 
                 HDLightType lightType = serialized.type;
 
@@ -1213,7 +1230,7 @@ namespace UnityEditor.Rendering.HighDefinition
                 }
 
                 // Shadow Layers
-                using (new EditorGUI.DisabledScope(!HDUtils.hdrpSettings.supportLightLayers))
+                if (HDUtils.hdrpSettings.supportLightLayers)
                 {
                     using (var change = new EditorGUI.ChangeCheckScope())
                     {
@@ -1339,9 +1356,8 @@ namespace UnityEditor.Rendering.HighDefinition
 
         static void DrawVeryHighShadowSettingsContent(SerializedHDLight serialized, Editor owner)
         {
-            EditorGUILayout.PropertyField(serialized.kernelSize, s_Styles.kernelSize);
-            EditorGUILayout.PropertyField(serialized.lightAngle, s_Styles.lightAngle);
-            EditorGUILayout.PropertyField(serialized.maxDepthBias, s_Styles.maxDepthBias);
+            // Same as high for now (PCSS)
+            DrawHighShadowSettingsContent(serialized, owner);
         }
 
         static void SetLightsDirty(Editor owner)

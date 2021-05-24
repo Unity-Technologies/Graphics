@@ -24,9 +24,9 @@ namespace UnityEditor.ShaderGraph
     // sure that all shader graphs get re-imported. Re-importing is required,
     // because the shader graph codegen is different for V2.
     // This ifdef can be removed once V2 is the only option.
-    [ScriptedImporter(114, Extension, -902)]
+    [ScriptedImporter(115, Extension, -902)]
 #else
-    [ScriptedImporter(47, Extension, -902)]
+    [ScriptedImporter(48, Extension, -902)]
 #endif
 
     class ShaderGraphImporter : ScriptedImporter
@@ -230,6 +230,86 @@ Shader ""Hidden/GraphErrorShader2""
                     }
                 }
             }
+
+            List<MinimalCategoryData.GraphInputData> inputInspectorDataList = new List<MinimalCategoryData.GraphInputData>();
+            foreach (AbstractShaderProperty property in graph.properties)
+            {
+                // Don't write out data for non-exposed blackboard items
+                if (!property.isExposed)
+                    continue;
+
+                // VTs are treated differently
+                if (property is VirtualTextureShaderProperty virtualTextureShaderProperty)
+                    inputInspectorDataList.Add(MinimalCategoryData.ProcessVirtualTextureProperty(virtualTextureShaderProperty));
+                else
+                    inputInspectorDataList.Add(new MinimalCategoryData.GraphInputData() { referenceName = property.referenceName, propertyType = property.propertyType, isKeyword = false});
+            }
+            foreach (ShaderKeyword keyword in graph.keywords)
+            {
+                // Don't write out data for non-exposed blackboard items
+                if (!keyword.isExposed)
+                    continue;
+
+                var sanitizedReferenceName = keyword.referenceName;
+                if (keyword.keywordType == KeywordType.Boolean && keyword.referenceName.Contains("_ON"))
+                    sanitizedReferenceName = sanitizedReferenceName.Replace("_ON", String.Empty);
+
+                inputInspectorDataList.Add(new MinimalCategoryData.GraphInputData() { referenceName = sanitizedReferenceName, keywordType = keyword.keywordType, isKeyword = true});
+            }
+
+            sgMetadata.categoryDatas = new List<MinimalCategoryData>();
+            foreach (CategoryData categoryData in graph.categories)
+            {
+                // Don't write out empty categories
+                if (categoryData.childCount == 0)
+                    continue;
+
+                MinimalCategoryData mcd = new MinimalCategoryData()
+                {
+                    categoryName = categoryData.name,
+                    propertyDatas = new List<MinimalCategoryData.GraphInputData>()
+                };
+                foreach (var input in categoryData.Children)
+                {
+                    MinimalCategoryData.GraphInputData propData;
+                    // Only write out data for exposed blackboard items
+                    if (input.isExposed == false)
+                        continue;
+
+                    // VTs are treated differently
+                    if (input is VirtualTextureShaderProperty virtualTextureShaderProperty)
+                    {
+                        propData = MinimalCategoryData.ProcessVirtualTextureProperty(virtualTextureShaderProperty);
+                        inputInspectorDataList.RemoveAll(inputData => inputData.referenceName == propData.referenceName);
+                        mcd.propertyDatas.Add(propData);
+                        continue;
+                    }
+                    else if (input is ShaderKeyword keyword)
+                    {
+                        var sanitizedReferenceName = keyword.referenceName;
+                        if (keyword.keywordType == KeywordType.Boolean && keyword.referenceName.Contains("_ON"))
+                            sanitizedReferenceName = sanitizedReferenceName.Replace("_ON", String.Empty);
+
+                        propData = new MinimalCategoryData.GraphInputData() { referenceName = sanitizedReferenceName, keywordType = keyword.keywordType, isKeyword = true};
+                    }
+                    else
+                    {
+                        var prop = input as AbstractShaderProperty;
+                        propData = new MinimalCategoryData.GraphInputData() { referenceName = input.referenceName, propertyType = prop.propertyType, isKeyword = false };
+                    }
+
+                    mcd.propertyDatas.Add(propData);
+                    inputInspectorDataList.Remove(propData);
+                }
+                sgMetadata.categoryDatas.Add(mcd);
+            }
+
+            // Any uncategorized elements get tossed into an un-named category at the top as a fallback
+            if (inputInspectorDataList.Count > 0)
+            {
+                sgMetadata.categoryDatas.Insert(0, new MinimalCategoryData() { categoryName = "", propertyDatas = inputInspectorDataList });
+            }
+
             ctx.AddObjectToAsset("SGInternal:Metadata", sgMetadata);
 
             // declare dependencies
