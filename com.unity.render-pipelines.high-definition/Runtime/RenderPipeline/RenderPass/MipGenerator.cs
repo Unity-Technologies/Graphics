@@ -332,22 +332,23 @@ namespace UnityEngine.Rendering.HighDefinition
             float sourceScaleX = (float)size.x / (float)hardwareTextureSize.x;
             float sourceScaleY = (float)size.y / (float)hardwareTextureSize.y;
 
-            // Copies src mip0 to dst mip0
-            cmd.SetComputeTextureParam(m_ColorPyramidCS, m_ColorPyramidCopyMip0Kernel, HDShaderIDs._Source, source, 0);
-            cmd.SetComputeTextureParam(m_ColorPyramidCS, m_ColorPyramidCopyMip0Kernel, HDShaderIDs._Mip0, destination, 0);
-            cmd.DispatchCompute(m_ColorPyramidCS, m_ColorPyramidCopyMip0Kernel, HDUtils.DivRoundUp(size.x, 8), HDUtils.DivRoundUp(size.y, 8), viewCount);
-
             bool isFirstMip = true;
             while (srcMipWidth >= 8 || srcMipHeight >= 8)
             {
                 int dstMipWidth  = Mathf.Max(1, srcMipWidth  >> 1);
                 int dstMipHeight = Mathf.Max(1, srcMipHeight >> 1);
+                var kernel = isFirstMip ? m_ColorPyramidCopyMip0Kernel : m_ColorPyramidKernel;
 
                 // Downsample.
-                cmd.SetComputeVectorParam(m_ColorPyramidCS, HDShaderIDs._Size, new Vector4((float)srcMipWidth, (float)srcMipHeight, 0.0f, 0.0f));
-                cmd.SetComputeTextureParam(m_ColorPyramidCS, m_ColorPyramidKernel, HDShaderIDs._Source, isFirstMip ? source : destination, srcMipLevel);
-                cmd.SetComputeTextureParam(m_ColorPyramidCS, m_ColorPyramidKernel, HDShaderIDs._Destination, destination, srcMipLevel + 1);
-                cmd.DispatchCompute(m_ColorPyramidCS, m_ColorPyramidKernel, HDUtils.DivRoundUp(dstMipWidth, 8), HDUtils.DivRoundUp(dstMipHeight, 8), viewCount);
+                if (isFirstMip)
+                    cmd.SetComputeTextureParam(m_ColorPyramidCS, kernel, HDShaderIDs._Mip0, destination, 0);
+
+                cmd.SetComputeVectorParam(m_ColorPyramidCS, HDShaderIDs._Size, new Vector4((float)srcMipWidth, (float)srcMipHeight, HDUtils.DivRoundUp(dstMipWidth, 8), HDUtils.DivRoundUp(dstMipHeight, 8)));
+                cmd.SetComputeTextureParam(m_ColorPyramidCS, kernel, HDShaderIDs._Source, isFirstMip ? source : destination, srcMipLevel);
+                cmd.SetComputeTextureParam(m_ColorPyramidCS, kernel, HDShaderIDs._Destination, destination, srcMipLevel + 1);
+
+                
+                cmd.DispatchCompute(m_ColorPyramidCS, kernel, HDUtils.DivRoundUp(isFirstMip ? srcMipWidth : dstMipWidth, 8), HDUtils.DivRoundUp(isFirstMip ? srcMipHeight : dstMipHeight, 8), viewCount);
 
                 srcMipLevel++;
                 srcMipWidth  = dstMipWidth;

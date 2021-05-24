@@ -121,14 +121,7 @@ void BlurVertically(uint2 pixelCoord, uint topMostIndex)
     _Destination[COORD_TEXTURE2D_X(pixelCoord)] = blurred;
 }
  
-[numthreads(KERNEL_SIZE, KERNEL_SIZE, 1)]
-void MAIN_CopyMip0(uint3 dispatchThreadId : SV_DispatchThreadID)
-{
-    _Mip0[COORD_TEXTURE2D_X(dispatchThreadId.xy)] = _Source[COORD_TEXTURE2D_X(dispatchThreadId.xy)];
-}
-
-[numthreads(KERNEL_SIZE, KERNEL_SIZE, 1)]
-void MAIN_GAUSSIAN(int2 groupId : SV_GroupID, int2 groupThreadId : SV_GroupThreadID, uint3 dispatchThreadId : SV_DispatchThreadID)
+void PerformGaussian(int2 groupId, int2 groupThreadId, uint3 dispatchThreadId)
 {
     UNITY_XR_ASSIGN_VIEW_INDEX(dispatchThreadId.z);
 
@@ -157,4 +150,21 @@ void MAIN_GAUSSIAN(int2 groupId : SV_GroupID, int2 groupThreadId : SV_GroupThrea
 
     // Vertically blur the pixels in LDS and write the result to memory
     BlurVertically(dispatchThreadId.xy, (groupThreadId.y << 3u) + groupThreadId.x);
+}
+
+[numthreads(KERNEL_SIZE, KERNEL_SIZE, 1)]
+void MAIN_CopyMip0(int2 groupId : SV_GroupID, int2 groupThreadId : SV_GroupThreadID, uint3 dispatchThreadId : SV_DispatchThreadID)
+{
+    _Mip0[COORD_TEXTURE2D_X(dispatchThreadId.xy)] = _Source[COORD_TEXTURE2D_X(dispatchThreadId.xy)];
+
+    if (any(groupId.xy >= (int2)_Size.zw))
+        return;
+
+    PerformGaussian(groupId, groupThreadId, dispatchThreadId);
+}
+
+[numthreads(KERNEL_SIZE, KERNEL_SIZE, 1)]
+void MAIN_GAUSSIAN(int2 groupId : SV_GroupID, int2 groupThreadId : SV_GroupThreadID, uint3 dispatchThreadId : SV_DispatchThreadID)
+{
+    PerformGaussian(groupId, groupThreadId, dispatchThreadId);
 }
