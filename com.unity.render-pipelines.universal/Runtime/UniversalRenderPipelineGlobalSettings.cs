@@ -196,7 +196,6 @@ namespace UnityEngine.Rendering.Universal
         /// <summary>Name for light layer 7.</summary>
         public string lightLayerName7 = "Light Layer 7";
 
-
         [System.NonSerialized]
         string[] m_LightLayerNames = null;
         /// <summary>
@@ -223,6 +222,15 @@ namespace UnityEngine.Rendering.Universal
                 return m_LightLayerNames;
             }
         }
+
+        #endregion
+
+        #region Misc Settings
+
+        /// <summary>
+        /// Controls whether debug display shaders for Rendering Debugger are available in Player builds.
+        /// </summary>
+        public bool supportRuntimeDebugDisplay = false;
 
         #endregion
     }

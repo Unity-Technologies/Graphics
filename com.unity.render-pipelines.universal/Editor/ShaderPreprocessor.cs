@@ -153,7 +153,7 @@ namespace UnityEditor.Rendering.Universal
 
         bool StripUnusedFeatures(ShaderFeatures features, Shader shader, ShaderSnippetData snippetData, ShaderCompilerData compilerData)
         {
-            bool stripDebugDisplayShaders = !Debug.isDebugBuild;
+            bool stripDebugDisplayShaders = !Debug.isDebugBuild || !UniversalRenderPipelineGlobalSettings.instance.supportRuntimeDebugDisplay;
 
 #if XR_MANAGEMENT_4_0_1_OR_NEWER
             var buildTargetSettings = XRGeneralSettingsPerBuildTarget.XRGeneralSettingsForBuildTarget(BuildTargetGroup.Standalone);
@@ -161,10 +161,6 @@ namespace UnityEditor.Rendering.Universal
             {
                 stripDebugDisplayShaders = true;
             }
-#endif
-
-#if URP_TEST_AGGRESSIVE_SHADER_STRIPPING
-            stripDebugDisplayShaders = true;
 #endif
 
             if (stripDebugDisplayShaders && compilerData.shaderKeywordSet.IsEnabled(m_DebugDisplay))

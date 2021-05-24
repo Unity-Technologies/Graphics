@@ -45,6 +45,9 @@ namespace UnityEditor.Rendering.Universal
             internal static readonly GUIContent lightLayerName6 = EditorGUIUtility.TrTextContent("Light Layer 6", "The display name for Light Layer 6.");
             internal static readonly GUIContent lightLayerName7 = EditorGUIUtility.TrTextContent("Light Layer 7", "The display name for Light Layer 7.");
 
+            internal static readonly GUIContent miscSettingsLabel = EditorGUIUtility.TrTextContent("Miscellaneous");
+            internal static readonly GUIContent supportRuntimeDebugDisplayContentLabel = EditorGUIUtility.TrTextContent("Runtime Debug Shaders", "When disabled, all debug display shader variants are removed when you build for the Unity Player. This decreases build time, but prevents the use of Rendering Debugger in Player builds.");
+
             internal static readonly string warningUrpNotActive = "Project graphics settings do not refer to a URP Asset. Check the settings: Graphics > Scriptable Render Pipeline Settings, Quality > Render Pipeline Asset.";
             internal static readonly string warningGlobalSettingsMissing = "The URP Settings property does not contain a valid URP Global Settings asset. There might be issues in rendering. Select a valid URP Global Settings asset.";
             internal static readonly string infoGlobalSettingsMissing = "Select a URP Global Settings asset.";
@@ -69,7 +72,8 @@ namespace UnityEditor.Rendering.Universal
         static UniversalGlobalSettingsPanelIMGUI()
         {
             Inspector = CED.Group(
-                LightLayerNamesSection
+                LightLayerNamesSection,
+                MiscSection
             );
         }
 
@@ -204,6 +208,25 @@ namespace UnityEditor.Rendering.Universal
             }
 
             EditorGUIUtility.labelWidth = oldWidth;
+        }
+
+        #endregion
+
+        #region Misc Settings
+
+        static readonly CED.IDrawer MiscSection = CED.Group(
+            CED.Group((serialized, owner) => EditorGUILayout.LabelField(Styles.miscSettingsLabel, Styles.sectionHeaderStyle)),
+            CED.Group((serialized, owner) => EditorGUILayout.Space()),
+            CED.Group(DrawMiscSettings),
+            CED.Group((serialized, owner) => EditorGUILayout.Space())
+        );
+
+        static void DrawMiscSettings(SerializedUniversalRenderPipelineGlobalSettings serialized, Editor owner)
+        {
+            using (new EditorGUI.IndentLevelScope())
+            {
+                EditorGUILayout.PropertyField(serialized.supportRuntimeDebugDisplay, Styles.supportRuntimeDebugDisplayContentLabel);
+            }
         }
 
         #endregion
