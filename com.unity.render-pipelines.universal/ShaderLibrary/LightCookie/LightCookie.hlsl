@@ -80,8 +80,7 @@ real3 SampleMainLightCookie(float3 samplePositionWS)
 
 real3 SampleAdditionalLightCookie(int perObjectLightIndex, float3 samplePositionWS)
 {
-    // TODO: pack into bits, read less
-    if(IsLightCookieEnabled(perObjectLightIndex))
+    if(!IsLightCookieEnabled(perObjectLightIndex))
         return real3(1,1,1);
 
     int lightType     = GetLightCookieLightType(perObjectLightIndex);

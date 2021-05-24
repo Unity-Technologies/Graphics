@@ -196,6 +196,21 @@ namespace UnityEngine.Rendering.Universal
                     }
                 }
             }
+
+            public override string ToString()
+            {
+                unsafe
+                {
+                    int len = bitCapacity;
+                    byte* buf = stackalloc byte[len];
+                    for (int i = 0; i < len; i++)
+                    {
+                        buf[i] = (byte)(this[i] ? '1' : '0');
+                    }
+
+                    return new string((sbyte*)buf, 0, len, System.Text.Encoding.UTF8);
+                }
+            }
         }
 
         /// Must match light data layout.

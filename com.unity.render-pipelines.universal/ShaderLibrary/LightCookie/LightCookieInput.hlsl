@@ -109,11 +109,12 @@ real4 SampleAdditionalLightsCookieAtlasTexture(float2 uv)
 
 bool IsLightCookieEnabled(int lightBufferIndex)
 {
-#if 1
+#if 0
     float4 uvRect = GetLightCookieAtlasUVRect(lightBufferIndex);
-    return all(uvRect == 0);
+    return any(uvRect != 0);
 #else
-    uint elemIndex = (uint)lightBufferIndex >> 5;
+    // 2^5 == 32, bit mask for a float/uint.
+    uint elemIndex = ((uint)lightBufferIndex) >> 5;
     uint bitOffset = (uint)lightBufferIndex & ((1 << 5) - 1);
 
     #if USE_STRUCTURED_BUFFER_FOR_LIGHT_DATA
@@ -123,7 +124,7 @@ bool IsLightCookieEnabled(int lightBufferIndex)
         uint elem = asuint(floatElem);
     #endif
 
-    return (elem & (1 << bitOffset)) != 0;
+    return (elem & (1u << bitOffset)) != 0u;
 #endif
 }
 
