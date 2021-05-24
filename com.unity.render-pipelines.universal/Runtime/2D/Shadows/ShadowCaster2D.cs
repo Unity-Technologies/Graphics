@@ -32,7 +32,6 @@ namespace UnityEngine.Rendering.Universal
 
         internal ShadowCasterGroup2D m_ShadowCasterGroup = null;
         internal ShadowCasterGroup2D m_PreviousShadowCasterGroup = null;
-        
 
         [SerializeField]
         internal BoundingSphere m_ProjectedBoundingSphere;
@@ -44,7 +43,6 @@ namespace UnityEngine.Rendering.Universal
         int m_PreviousShadowGroup = 0;
         bool m_PreviousCastsShadows = true;
         int m_PreviousPathHash = 0;
-        bool m_CachedIsLit = false;
 
         /// <summary>
         /// If selfShadows is true, useRendererSilhoutte specifies that the renderer's sihouette should be considered part of the shadow. If selfShadows is false, useRendererSilhoutte specifies that the renderer's sihouette should be excluded from the shadow
@@ -86,18 +84,13 @@ namespace UnityEngine.Rendering.Universal
             return allLayers;
         }
 
-        internal bool IsLit(Light2D light, bool useCachedValue)
+        internal bool IsLit(Light2D light)
         {
-            if (!useCachedValue)
-            {
-                Vector3 deltaPos = light.transform.position - (m_ProjectedBoundingSphere.position + transform.position);
-                float distanceSq = Vector3.SqrMagnitude(deltaPos);
+            Vector3 deltaPos = light.transform.position - (m_ProjectedBoundingSphere.position + transform.position);
+            float distanceSq = Vector3.SqrMagnitude(deltaPos);
 
-                float radiiLength = light.boundingSphere.radius + m_ProjectedBoundingSphere.radius;
-                m_CachedIsLit = distanceSq <= (radiiLength * radiiLength);
-            }
-
-            return m_CachedIsLit;
+            float radiiLength = light.boundingSphere.radius + m_ProjectedBoundingSphere.radius;
+            return distanceSq <= (radiiLength * radiiLength);
         }
 
         internal bool IsShadowedLayer(int layer)

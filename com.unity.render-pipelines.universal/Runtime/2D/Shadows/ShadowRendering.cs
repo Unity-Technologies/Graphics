@@ -221,7 +221,7 @@ namespace UnityEngine.Rendering.Universal
                             for (var i = 0; i < shadowCasters.Count; i++)
                             {
                                 var shadowCaster = shadowCasters[i];
-                                if (shadowCaster != null && shadowCaster.IsLit(light, false) && shadowCaster.IsShadowedLayer(layerToRender))
+                                if (shadowCaster != null && shadowCaster.IsLit(light) && shadowCaster.IsShadowedLayer(layerToRender))
                                 {
                                     hasShadow = true;
                                     break;
@@ -265,7 +265,7 @@ namespace UnityEngine.Rendering.Universal
                                     {
                                         var shadowCaster = shadowCasters[i];
 
-                                        if (shadowCaster.IsLit(light, true))
+                                        if (shadowCaster.IsLit(light))
                                         {
                                             if (shadowCaster != null && projectedShadowsMaterial != null && shadowCaster.IsShadowedLayer(layerToRender))
                                             {
@@ -286,7 +286,7 @@ namespace UnityEngine.Rendering.Universal
                                     {
                                         var shadowCaster = shadowCasters[i];
 
-                                        if (shadowCaster.IsLit(light, true))
+                                        if (shadowCaster.IsLit(light))
                                         {
                                             if (shadowCaster != null && shadowCaster.IsShadowedLayer(layerToRender))
                                             {
@@ -321,7 +321,7 @@ namespace UnityEngine.Rendering.Universal
                                     {
                                         var shadowCaster = shadowCasters[i];
 
-                                        if (shadowCaster.IsLit(light, true))
+                                        if (shadowCaster.IsLit(light))
                                         {
                                             if (shadowCaster != null && projectedShadowsMaterial != null && shadowCaster.IsShadowedLayer(layerToRender))
                                             {
