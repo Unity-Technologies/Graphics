@@ -7,7 +7,7 @@ using System.Linq;
 
 namespace UnityEngine.Rendering.HighDefinition.LTC
 {
-    public class LTCTableGeneratorEditor : EditorWindow
+    internal class LTCTableGeneratorEditor : EditorWindow
     {
         // The output directory for the tool
         static string k_OutputDirectory = "./Assets/Generated/LTCTables/";

@@ -3545,7 +3545,7 @@ MonoBehaviour:
     ActiveImageTests: 1
     ActivePixelTests: 7
   WaitFrames: 0
-  XRCompatible: 0
+  XRCompatible: 1
 --- !u!1 &8866405356136588278
 GameObject:
   m_ObjectHideFlags: 0

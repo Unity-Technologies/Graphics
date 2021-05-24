@@ -32,6 +32,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
         protected override string renderType => HDRenderTypeTags.HDUnlitShader.ToString();
         protected override GUID subTargetAssetGuid => kSubTargetSourceCodeGuid;
         protected override string customInspector => "Rendering.HighDefinition.HDUnlitGUI";
+        internal override MaterialResetter setupMaterialKeywordsAndPassFunc => UnlitShaderGraphGUI.SetupUnlitKeywordsAndPass;
         protected override FieldDescriptor subShaderField => new FieldDescriptor(kSubShader, "Unlit SubShader", "");
         protected override string raytracingInclude => CoreIncludes.kUnlitRaytracing;
         protected override string subShaderInclude => CoreIncludes.kUnlit;
@@ -63,7 +64,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                 return new SubShaderDescriptor
                 {
                     generatesPreview = true,
-                    passes = new PassCollection { { HDShaderPasses.GenerateDistortionPass(false), new FieldCondition(TransparentDistortion, true) } }
+                    passes = new PassCollection { { HDShaderPasses.GenerateDistortionPass(false, TargetsVFX(), systemData.tessellation), new FieldCondition(TransparentDistortion, true) } }
                 };
             }
             else

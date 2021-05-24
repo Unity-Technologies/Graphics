@@ -117,7 +117,7 @@ bool CanDebugOverrideOutputColor(inout SurfaceData2D surfaceData, inout InputDat
 {
     if (CalculateDebugColorMaterialSettings(surfaceData, inputData, debugColor))
     {
-        return true;
+        return _DebugMaterialMode != DEBUGMATERIALMODE_SPRITE_MASK;
     }
     else if (CalculateDebugColorForRenderingSettings(surfaceData, inputData, debugColor))
     {

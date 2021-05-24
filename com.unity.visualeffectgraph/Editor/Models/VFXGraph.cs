@@ -128,9 +128,9 @@ namespace UnityEditor.VFX
             }
         }
     }
-    class VFXCacheManager : EditorWindow
+    class VFXAssetManager : EditorWindow
     {
-        private static List<VisualEffectObject> GetAllVisualEffectObjects()
+        public static List<VisualEffectObject> GetAllVisualEffectObjects()
         {
             var vfxObjects = new List<VisualEffectObject>();
             var vfxObjectsGuid = AssetDatabase.FindAssets("t:VisualEffectObject");
@@ -146,8 +146,7 @@ namespace UnityEditor.VFX
             return vfxObjects;
         }
 
-        [MenuItem("Edit/VFX/Rebuild And Save All VFX Graphs", priority = 320)]
-        public static void Build()
+        public static void Build(bool forceDirty = false)
         {
             var vfxObjects = GetAllVisualEffectObjects();
 
@@ -161,11 +160,18 @@ namespace UnityEditor.VFX
                 {
                     VFXGraph graph = resource.GetOrCreateGraph();
                     AssetDatabase.ImportAsset(AssetDatabase.GetAssetPath(graph));
-                    EditorUtility.SetDirty(resource);
+                    if (forceDirty)
+                        EditorUtility.SetDirty(resource);
                 }
             }
 
             VFXExpression.ClearCache();
+        }
+
+        [MenuItem("Edit/VFX/Rebuild And Save All VFX Graphs", priority = 320)]
+        public static void BuildAndSave()
+        {
+            Build(true);
             AssetDatabase.SaveAssets();
         }
     }
@@ -283,6 +289,18 @@ namespace UnityEditor.VFX
         public override void OnEnable()
         {
             base.OnEnable();
+            VFXLibrary.OnSRPChanged += OnSRPChanged;
+            m_ExpressionGraphDirty = true;
+        }
+
+        public virtual void OnDisable()
+        {
+            VFXLibrary.OnSRPChanged -= OnSRPChanged;
+        }
+
+        private void OnSRPChanged()
+        {
+            m_GraphSanitized = false;
             m_ExpressionGraphDirty = true;
         }
 
@@ -534,7 +552,6 @@ namespace UnityEditor.VFX
         protected override void OnInvalidate(VFXModel model, VFXModel.InvalidationCause cause)
         {
             if (cause == VFXModel.InvalidationCause.kStructureChanged
-                || cause == VFXModel.InvalidationCause.kSettingChanged
                 || cause == VFXModel.InvalidationCause.kSettingChanged
                 || cause == VFXModel.InvalidationCause.kConnectionChanged)
                 m_SystemNames.Sync(this);
