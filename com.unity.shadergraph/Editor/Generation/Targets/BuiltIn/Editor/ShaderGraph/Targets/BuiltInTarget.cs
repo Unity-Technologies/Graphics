@@ -66,7 +66,7 @@ namespace UnityEditor.Rendering.BuiltIn.ShaderGraph
 
     sealed class BuiltInTarget : Target, IHasMetadata
     {
-        public override int latestVersion => 1;
+        public override int latestVersion => 2;
 
         // Constants
         static readonly GUID kSourceCodeGuid = new GUID("d0f59811de3924b6ab62802eb365ef6b"); // BuiltInTarget.cs
@@ -444,7 +444,7 @@ namespace UnityEditor.Rendering.BuiltIn.ShaderGraph
             if (this.sgVersion < latestVersion)
             {
                 // Version 0 didn't have m_AllowMaterialOverride but acted as if it was true
-                if (this.sgVersion == 0)
+                if (this.sgVersion <= 1)
                 {
                     this.m_AllowMaterialOverride = true;
                 }
