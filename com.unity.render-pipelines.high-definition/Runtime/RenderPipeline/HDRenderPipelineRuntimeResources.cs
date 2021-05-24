@@ -46,7 +46,7 @@ namespace UnityEngine.Rendering.HighDefinition
             [Reload("Runtime/RenderPipeline/RenderPass/ColorPyramidPS.Shader")]
             public Shader colorPyramidPS;
             [Reload("Runtime/RenderPipeline/RenderPass/ColorPyramid.compute")]
-            public Shader colorPyramidCS;
+            public ComputeShader colorPyramidCS;
             [Reload("Runtime/RenderPipeline/RenderPass/DepthPyramid.compute")]
             public ComputeShader depthPyramidCS;
             [Reload("Runtime/RenderPipeline/RenderPass/GenerateMaxZ.compute")]
