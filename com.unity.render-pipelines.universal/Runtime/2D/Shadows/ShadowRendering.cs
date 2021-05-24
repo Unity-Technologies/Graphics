@@ -191,14 +191,21 @@ namespace UnityEngine.Rendering.Universal
                 cmdBuffer.ReleaseTemporaryRT(m_RenderTargets[textureIndex].id);
         }
 
-        public static void SetShadowProjectionGlobals(CommandBuffer cmdBuffer, ShadowCaster2D shadowCaster)
+        public static void SetShadowProjectionGlobals(CommandBuffer cmdBuffer, ShadowCaster2D shadowCaster, bool useCachedValue)
         {
-            Vector3   shadowCasterScale = shadowCaster.transform.lossyScale;
-            Matrix4x4 shadowMatrix = Matrix4x4.TRS(shadowCaster.transform.position, shadowCaster.transform.rotation, Vector3.one);
+            if (!useCachedValue)
+            {
+                Vector3 shadowCasterScale = shadowCaster.transform.lossyScale;
+                Matrix4x4 shadowMatrix = Matrix4x4.TRS(shadowCaster.transform.position, shadowCaster.transform.rotation, Vector3.one);
 
-            cmdBuffer.SetGlobalVector(k_ShadowModelScaleID, new Vector3(shadowCasterScale.x, shadowCasterScale.y, shadowCasterScale.z));
-            cmdBuffer.SetGlobalMatrix(k_ShadowModelMatrixID, shadowMatrix);
-            cmdBuffer.SetGlobalMatrix(k_ShadowModelInvMatrixID, shadowMatrix.inverse);
+                shadowCaster.m_CachedShadowModelScale = new Vector3(shadowCasterScale.x, shadowCasterScale.y, shadowCasterScale.z);
+                shadowCaster.m_CachedShadowModelMatrix = shadowMatrix;
+                shadowCaster.m_CachedShadowModelInvMatrix = shadowMatrix.inverse;
+            }
+
+            cmdBuffer.SetGlobalVector(k_ShadowModelScaleID, shadowCaster.m_CachedShadowModelScale);
+            cmdBuffer.SetGlobalMatrix(k_ShadowModelMatrixID, shadowCaster.m_CachedShadowModelMatrix);
+            cmdBuffer.SetGlobalMatrix(k_ShadowModelInvMatrixID, shadowCaster.m_CachedShadowModelInvMatrix);
         }
 
         public static bool RenderShadows(IRenderPass2D pass, RenderingData renderingData, CommandBuffer cmdBuffer, int layerToRender, Light2D light, float shadowIntensity, RenderTargetIdentifier renderTexture, int colorBit)
@@ -220,6 +227,7 @@ namespace UnityEngine.Rendering.Universal
                             // Draw the projected shadows for the shadow caster group. Writing into the group stencil buffer bit
                             for (var i = 0; i < shadowCasters.Count; i++)
                             {
+                                
                                 var shadowCaster = shadowCasters[i];
                                 if (shadowCaster != null && shadowCaster.IsLit(light, false) && shadowCaster.IsShadowedLayer(layerToRender))
                                 {
@@ -271,7 +279,7 @@ namespace UnityEngine.Rendering.Universal
                                             {
                                                 if (shadowCaster.castsShadows)
                                                 {
-                                                    SetShadowProjectionGlobals(cmdBuffer, shadowCaster);
+                                                    SetShadowProjectionGlobals(cmdBuffer, shadowCaster, false);
 
                                                     cmdBuffer.DrawMesh(shadowCaster.mesh, shadowCaster.transform.localToWorldMatrix, unshadowGeometryMaterial, 0, 0);
                                                     cmdBuffer.DrawMesh(shadowCaster.mesh, shadowCaster.transform.localToWorldMatrix, projectedShadowsMaterial, 0, 0);
@@ -327,7 +335,7 @@ namespace UnityEngine.Rendering.Universal
                                             {
                                                 if (shadowCaster.castsShadows)
                                                 {
-                                                    SetShadowProjectionGlobals(cmdBuffer, shadowCaster);
+                                                    SetShadowProjectionGlobals(cmdBuffer, shadowCaster, true);
                                                     cmdBuffer.DrawMesh(shadowCaster.mesh, shadowCaster.transform.localToWorldMatrix, projectedShadowsMaterial, 0, 1);
                                                 }
                                             }

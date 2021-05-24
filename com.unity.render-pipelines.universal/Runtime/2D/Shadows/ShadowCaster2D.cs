@@ -44,7 +44,13 @@ namespace UnityEngine.Rendering.Universal
         int m_PreviousShadowGroup = 0;
         bool m_PreviousCastsShadows = true;
         int m_PreviousPathHash = 0;
+
         bool m_CachedIsLit = false;
+        internal Matrix4x4 m_CachedLocalToWorld;
+        internal Vector3 m_CachedShadowModelScale;
+        internal Matrix4x4 m_CachedShadowModelMatrix;
+        internal Matrix4x4 m_CachedShadowModelInvMatrix;
+        
 
         /// <summary>
         /// If selfShadows is true, useRendererSilhoutte specifies that the renderer's sihouette should be considered part of the shadow. If selfShadows is false, useRendererSilhoutte specifies that the renderer's sihouette should be excluded from the shadow
