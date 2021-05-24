@@ -1405,7 +1405,8 @@ namespace UnityEngine.Rendering.HighDefinition
                     (GenerateColorPyramidData data, RenderGraphContext context) =>
                     {
                         Vector2Int pyramidSize = new Vector2Int(data.hdCamera.actualWidth, data.hdCamera.actualHeight);
-                        data.hdCamera.colorPyramidHistoryMipCount = data.mipGenerator.RenderColorGaussianPyramid(context.cmd, pyramidSize, data.inputColor, data.colorPyramid);
+                        //data.hdCamera.colorPyramidHistoryMipCount = data.mipGenerator.RenderColorGaussianPyramid(context.cmd, pyramidSize, data.inputColor, data.colorPyramid);
+                        data.hdCamera.colorPyramidHistoryMipCount = data.mipGenerator.RenderColorGaussianPyramidCS(context.cmd, data.hdCamera.viewCount, pyramidSize, data.inputColor, data.colorPyramid);
                         // TODO RENDERGRAPH: We'd like to avoid SetGlobals like this but it's required by custom passes currently.
                         // We will probably be able to remove those once we push custom passes fully to render graph.
                         context.cmd.SetGlobalTexture(HDShaderIDs._ColorPyramidTexture, data.colorPyramid);
