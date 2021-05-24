@@ -84,6 +84,7 @@ namespace UnityEditor.Rendering.HighDefinition
 
             internal static readonly GUIContent lensAttenuationModeContentLabel = EditorGUIUtility.TrTextContent("Lens Attenuation Mode", "Set the attenuation mode of the lens that is used to compute exposure. With imperfect lens some energy is lost when converting from EV100 to the exposure multiplier.");
             internal static readonly GUIContent probeVolumeSupportContentLabel = EditorGUIUtility.TrTextContent("Probe Volumes (Experimental)", "Set whether Probe volumes are supported by the project. The feature is highly experimental and subject to changes.");
+            internal static readonly GUIContent supportRuntimeDebugDisplayContentLabel = EditorGUIUtility.TrTextContent("Runtime Debug Shaders", "When disabled, HDRP removes all debug display shader variants when you build for the Unity Player. This decreases build time and prevents the use of Rendering Debugger in Player builds.");
 
             internal static readonly GUIContent useDLSSCustomProjectIdLabel = EditorGUIUtility.TrTextContent("Use DLSS Custom Project Id", "Set to utilize a custom project Id for the NVIDIA Deep Learning Super Sampling extension.");
             internal static readonly GUIContent DLSSProjectIdLabel = EditorGUIUtility.TrTextContent("DLSS Custom Project Id", "The custom project ID string to utilize for the NVIDIA Deep Learning Super Sampling extension.");
@@ -507,6 +508,8 @@ namespace UnityEditor.Rendering.HighDefinition
             {
                 cleanupRenderPipeline?.Invoke(null, null);
             }
+
+            EditorGUILayout.PropertyField(serialized.supportRuntimeDebugDisplay, Styles.supportRuntimeDebugDisplayContentLabel);
 
             EditorGUIUtility.labelWidth = oldWidth;
         }
