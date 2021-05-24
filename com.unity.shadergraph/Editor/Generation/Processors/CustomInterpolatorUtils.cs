@@ -113,7 +113,7 @@ namespace UnityEditor.ShaderGraph
             foreach (var cin in pixelNodes.OfType<CustomInterpolatorNode>().ToList())
             {
                 // The CustomBlockNode's subtree.
-                var anties = GetAntecedents(cin.e_targetBlockNode); //?.Where(a => !vertexNodes.Contains(a) && !pixelNodes.Contains(a));
+                var anties = GetAntecedents(cin.e_targetBlockNode);
                 // cin contains an inlined value, so there is nothing to do.
                 if (anties == null)
                 {
