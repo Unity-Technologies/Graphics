@@ -124,9 +124,7 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
         public int anisoLevel;
         ///<summary>Mip map bias.</summary>
         public float mipMapBias;
-        ///<summary>Textre is multisampled. Only supported for Scale and Functor size mode.</summary>
-        public bool enableMSAA;
-        ///<summary>Number of MSAA samples. Only supported for Explicit size mode.</summary>
+        ///<summary>Number of MSAA samples.</summary>
         public MSAASamples msaaSamples;
         ///<summary>Bind texture multi sampled.</summary>
         public bool bindTextureMS;
@@ -244,17 +242,14 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
                     case TextureSizeMode.Explicit:
                         hashCode = hashCode * 23 + width;
                         hashCode = hashCode * 23 + height;
-                        hashCode = hashCode * 23 + (int)msaaSamples;
                         break;
                     case TextureSizeMode.Functor:
                         if (func != null)
                             hashCode = hashCode * 23 + func.GetHashCode();
-                        hashCode = hashCode * 23 + (enableMSAA ? 1 : 0);
                         break;
                     case TextureSizeMode.Scale:
                         hashCode = hashCode * 23 + scale.x.GetHashCode();
                         hashCode = hashCode * 23 + scale.y.GetHashCode();
-                        hashCode = hashCode * 23 + (enableMSAA ? 1 : 0);
                         break;
                 }
 
@@ -273,6 +268,7 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
                 hashCode = hashCode * 23 + (isShadowMap ? 1 : 0);
                 hashCode = hashCode * 23 + (bindTextureMS ? 1 : 0);
                 hashCode = hashCode * 23 + (useDynamicScale ? 1 : 0);
+                hashCode = hashCode * 23 + (int)msaaSamples;
 #if UNITY_2020_2_OR_NEWER
                 hashCode = hashCode * 23 + (fastMemoryDesc.inFastMemory ? 1 : 0);
 #endif
@@ -350,11 +346,11 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
                     break;
                 case TextureSizeMode.Scale:
                     graphicsResource = RTHandles.Alloc(desc.scale, desc.slices, desc.depthBufferBits, desc.colorFormat, desc.filterMode, desc.wrapMode, desc.dimension, desc.enableRandomWrite,
-                        desc.useMipMap, desc.autoGenerateMips, desc.isShadowMap, desc.anisoLevel, desc.mipMapBias, desc.enableMSAA, desc.bindTextureMS, desc.useDynamicScale, desc.memoryless, name);
+                        desc.useMipMap, desc.autoGenerateMips, desc.isShadowMap, desc.anisoLevel, desc.mipMapBias, desc.msaaSamples, desc.bindTextureMS, desc.useDynamicScale, desc.memoryless, name);
                     break;
                 case TextureSizeMode.Functor:
                     graphicsResource = RTHandles.Alloc(desc.func, desc.slices, desc.depthBufferBits, desc.colorFormat, desc.filterMode, desc.wrapMode, desc.dimension, desc.enableRandomWrite,
-                        desc.useMipMap, desc.autoGenerateMips, desc.isShadowMap, desc.anisoLevel, desc.mipMapBias, desc.enableMSAA, desc.bindTextureMS, desc.useDynamicScale, desc.memoryless, name);
+                        desc.useMipMap, desc.autoGenerateMips, desc.isShadowMap, desc.anisoLevel, desc.mipMapBias, desc.msaaSamples, desc.bindTextureMS, desc.useDynamicScale, desc.memoryless, name);
                     break;
             }
         }

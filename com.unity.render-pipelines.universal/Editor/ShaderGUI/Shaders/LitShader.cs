@@ -25,11 +25,8 @@ namespace UnityEditor.Rendering.Universal.ShaderGUI
         }
 
         // material changed check
-        public override void MaterialChanged(Material material)
+        public override void ValidateMaterial(Material material)
         {
-            if (material == null)
-                throw new ArgumentNullException("material");
-
             SetMaterialKeywords(material, LitGUI.SetMaterialKeywords, LitDetailGUI.SetMaterialKeywords);
         }
 
@@ -59,13 +56,8 @@ namespace UnityEditor.Rendering.Universal.ShaderGUI
         {
             if (litProperties.reflections != null && litProperties.highlights != null)
             {
-                EditorGUI.BeginChangeCheck();
                 materialEditor.ShaderProperty(litProperties.highlights, LitGUI.Styles.highlightsText);
                 materialEditor.ShaderProperty(litProperties.reflections, LitGUI.Styles.reflectionsText);
-                if (EditorGUI.EndChangeCheck())
-                {
-                    MaterialChanged(material);
-                }
             }
 
             base.DrawAdvancedOptions(material);
@@ -105,8 +97,17 @@ namespace UnityEditor.Rendering.Universal.ShaderGUI
                 surfaceType = SurfaceType.Transparent;
                 blendMode = BlendMode.Alpha;
             }
-            material.SetFloat("_Surface", (float)surfaceType);
             material.SetFloat("_Blend", (float)blendMode);
+
+            material.SetFloat("_Surface", (float)surfaceType);
+            if (surfaceType == SurfaceType.Opaque)
+            {
+                material.DisableKeyword("_SURFACE_TYPE_TRANSPARENT");
+            }
+            else
+            {
+                material.EnableKeyword("_SURFACE_TYPE_TRANSPARENT");
+            }
 
             if (oldShader.name.Equals("Standard (Specular setup)"))
             {
@@ -122,8 +123,6 @@ namespace UnityEditor.Rendering.Universal.ShaderGUI
                 if (texture != null)
                     material.SetTexture("_MetallicSpecGlossMap", texture);
             }
-
-            MaterialChanged(material);
         }
     }
 }

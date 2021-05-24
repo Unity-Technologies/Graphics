@@ -2,9 +2,13 @@ using System;
 using System.Text;
 using System.Collections.Generic;
 using System.Linq;
+using UnityEditor.ShaderGraph;
+using UnityEditor.ShaderGraph.Internal;
 using UnityEngine;
+using UnityEngine.VFX;
 using UnityEngine.Rendering;
 using Object = System.Object;
+using System.Reflection;
 
 namespace UnityEditor.VFX
 {
@@ -160,29 +164,18 @@ namespace UnityEditor.VFX
         abstract public string SRPAssetTypeStr { get; }
         abstract public Type SRPOutputDataType { get; }
 
-        public virtual void SetupMaterial(Material mat) {}
-    }
+        public virtual void SetupMaterial(Material mat, bool hasMotionVector = false, bool hasShadowCasting = false, ShaderGraphVfxAsset shaderGraph = null) {}
 
-    // Not in Universal package because we dont want to add a dependency on VFXGraph
-    class VFXUniversalBinder : VFXSRPBinder
-    {
-        public override string templatePath { get { return "Packages/com.unity.visualeffectgraph/Shaders/RenderPipeline/Universal"; } }
-        public override string SRPAssetTypeStr { get { return "UniversalRenderPipelineAsset"; } }
-        public override Type SRPOutputDataType { get { return null; } }
-    }
+        public virtual VFXAbstractRenderedOutput.BlendMode GetBlendModeFromMaterial(VFXMaterialSerializedSettings materialSettings)
+        {
+            return VFXAbstractRenderedOutput.BlendMode.Opaque;
+        }
 
-    // This is just for retrocompatibility with LWRP
-    class VFXLWRPBinder : VFXUniversalBinder
-    {
-        public override string SRPAssetTypeStr { get { return "LightweightRenderPipelineAsset"; } }
-    }
+        public virtual bool TransparentMotionVectorEnabled(Material mat) => true;
 
-    // This is the default binder used if no SRP is used in the project
-    class VFXLegacyBinder : VFXSRPBinder
-    {
-        public override string templatePath { get { return "Packages/com.unity.visualeffectgraph/Shaders/RenderPipeline/Legacy"; } }
-        public override string SRPAssetTypeStr { get { return "None"; } }
-        public override Type SRPOutputDataType { get { return null; } }
+        public virtual string GetShaderName(ShaderGraphVfxAsset shaderGraph) => string.Empty;
+
+        public virtual bool IsGraphDataValid(GraphData graph) => false;
     }
 
     static class VFXLibrary
@@ -382,6 +375,106 @@ namespace UnityEditor.VFX
             }
         }
 
+        public struct VFXFieldType
+        {
+            public VFXValueType valueType;
+            public Type type;
+            public string name;
+        }
+
+        public static IEnumerable<VFXFieldType> GetFieldFromType(Type type, bool enumeratePrivate = true)
+        {
+            var bindingsFlag = BindingFlags.Public | BindingFlags.Instance;
+            foreach (var field in type.GetFields(bindingsFlag))
+            {
+                yield return new VFXFieldType()
+                {
+                    valueType = VFXExpression.GetVFXValueTypeFromType(field.FieldType),
+                    type = field.FieldType,
+                    name = field.Name
+                };
+            }
+        }
+
+        private static bool CheckBlittablePublic(Type type)
+        {
+            if (type.GetFields(BindingFlags.NonPublic | BindingFlags.Instance).Any())
+                return false;
+
+            foreach (var field in type.GetFields(BindingFlags.Public | BindingFlags.Instance))
+                if (VFXExpression.GetVFXValueTypeFromType(field.FieldType) == VFXValueType.None
+                    &&  !CheckBlittablePublic(field.FieldType))
+                    return false;
+
+            return true;
+        }
+
+        private static bool ValidateVFXType(Type type, StringBuilder errors, Dictionary<Type, bool> alreadyProcessedType)
+        {
+            if (alreadyProcessedType.TryGetValue(type, out var result))
+                return result;
+
+            alreadyProcessedType.Add(type, false);
+            var attribute = type.GetCustomAttributes(typeof(VFXTypeAttribute), true).FirstOrDefault() as VFXTypeAttribute;
+            if (attribute == null)
+            {
+                errors.AppendFormat("The type {0} doesn't use the expected [VFXType] attribute.\n", type);
+                return false;
+            }
+
+            var hasGraphicsBufferFlag = attribute.usages.HasFlag(VFXTypeAttribute.Usage.GraphicsBuffer);
+            if (hasGraphicsBufferFlag && !Unity.Collections.LowLevel.Unsafe.UnsafeUtility.IsBlittable(type))
+            {
+                errors.AppendFormat("The type {0} is using GraphicsBuffer flag but isn't blittable.\n", type);
+                return false;
+            }
+
+            foreach (var field in GetFieldFromType(type))
+            {
+                if (field.valueType == VFXValueType.None)
+                {
+                    var innerType = field.type;
+                    if (!ValidateVFXType(innerType, errors, alreadyProcessedType))
+                    {
+                        errors.AppendFormat("The field '{0}' ({1}) in type '{2}' isn't valid.\n", field.name, field.type, type);
+                        return false;
+                    }
+                }
+            }
+
+            if (hasGraphicsBufferFlag && !CheckBlittablePublic(type))
+            {
+                errors.AppendFormat("The type {0} is using GraphicsBuffer flag but isn't fully public.\n", type);
+                return false;
+            }
+
+            alreadyProcessedType.Remove(type);
+            alreadyProcessedType.Add(type, true);
+            return true;
+        }
+
+        private static bool ValidateVFXType(Type type, StringBuilder errors)
+        {
+            var processedType = new Dictionary<Type, bool>();
+            return ValidateVFXType(type, errors, processedType);
+        }
+
+        private static Type[] LoadAndValidateVFXType()
+        {
+            var vfxTypes = FindConcreteSubclasses(null, typeof(VFXTypeAttribute));
+            var errors = new StringBuilder();
+            var validTypes = new List<Type>();
+            foreach (var type in vfxTypes)
+            {
+                if (ValidateVFXType(type, errors))
+                    validTypes.Add(type);
+            }
+
+            if (errors.Length != 0)
+                Debug.LogErrorFormat("Error while processing VFXType\n{0}", errors.ToString());
+            return validTypes.ToArray();
+        }
+
         private static Dictionary<Type, VFXModelDescriptor<VFXSlot>> LoadSlots()
         {
             // First find concrete slots
@@ -408,7 +501,7 @@ namespace UnityEditor.VFX
             }
 
             // Then find types that needs a generic slot
-            var vfxTypes = FindConcreteSubclasses(null, typeof(VFXTypeAttribute));
+            var vfxTypes = LoadAndValidateVFXType();
             foreach (var type in vfxTypes)
             {
                 if (!dictionary.ContainsKey(type)) // If a slot was not already explicitly declared
@@ -476,19 +569,65 @@ namespace UnityEditor.VFX
             }
         }
 
+        private static bool unsupportedSRPWarningIssued = false;
+
+        private static void LogUnsupportedSRP(VFXSRPBinder binder, bool forceLog)
+        {
+            if (binder == null && (forceLog || !unsupportedSRPWarningIssued))
+            {
+                Debug.LogWarning("The Visual Effect Graph is supported in the High Definition Render Pipeline (HDRP) and the Universal Render Pipeline (URP). Please assign your chosen Render Pipeline Asset in the Graphics Settings to use it.");
+                unsupportedSRPWarningIssued = true;
+            }
+        }
+
+        public static void LogUnsupportedSRP(bool forceLog = true)
+        {
+            bool logIssued = unsupportedSRPWarningIssued;
+            var binder = currentSRPBinder;
+
+            if (logIssued || !unsupportedSRPWarningIssued) // Don't reissue warning if inner currentSRPBinder call has already logged it
+                LogUnsupportedSRP(binder, forceLog);
+        }
+
         public static VFXSRPBinder currentSRPBinder
         {
             get
             {
                 LoadSRPBindersIfNeeded();
-                VFXSRPBinder binder = null;
-                srpBinders.TryGetValue(GraphicsSettings.currentRenderPipeline == null ? "None" : GraphicsSettings.currentRenderPipeline.GetType().Name, out binder);
 
-                if (binder == null)
-                    throw new NullReferenceException("The SRP was not registered in VFX: " + GraphicsSettings.currentRenderPipeline.GetType());
+                VFXSRPBinder binder = null;
+                var currentSRP = QualitySettings.renderPipeline ?? GraphicsSettings.currentRenderPipeline;
+                if (currentSRP != null)
+                    srpBinders.TryGetValue(currentSRP.GetType().Name, out binder);
+
+                LogUnsupportedSRP(binder, false);
 
                 return binder;
             }
+        }
+
+        [InitializeOnLoadMethod]
+        private static void RegisterSRPChangeCallback()
+        {
+            EventInfo onRPChanged = typeof(RenderPipelineManager).GetEvent("activeRenderPipelineTypeChanged", BindingFlags.NonPublic | BindingFlags.Static);
+            if (onRPChanged != null)
+            {
+                MethodInfo addHandler = onRPChanged.GetAddMethod(nonPublic: true);
+                addHandler.Invoke(null, new Action[] { SRPChanged });
+            }
+
+            // Once activeRenderPipelineTypeChanged is public don't use reflection anymore
+            //RenderPipelineManager.activeRenderPipelineTypeChanged += OnSRPChanged;
+        }
+
+        public delegate void OnSRPChangedEvent();
+        public static event OnSRPChangedEvent OnSRPChanged;
+
+        private static void SRPChanged()
+        {
+            unsupportedSRPWarningIssued = false;
+            OnSRPChanged?.Invoke();
+            VFXAssetManager.Build();
         }
 
         private static LibrarySentinel m_Sentinel = null;

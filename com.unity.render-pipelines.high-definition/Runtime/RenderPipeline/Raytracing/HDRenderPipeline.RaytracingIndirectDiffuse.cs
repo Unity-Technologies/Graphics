@@ -17,7 +17,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
         void InitRayTracedIndirectDiffuse()
         {
-            ComputeShader indirectDiffuseShaderCS = HDRenderPipelineGlobalSettings.instance.renderPipelineRayTracingResources.indirectDiffuseRaytracingCS;
+            ComputeShader indirectDiffuseShaderCS = m_GlobalSettings.renderPipelineRayTracingResources.indirectDiffuseRaytracingCS;
 
             // Grab all the kernels we shall be using
             m_RaytracingIndirectDiffuseFullResKernel = indirectDiffuseShaderCS.FindKernel("RaytracingIndirectDiffuseFullRes");
@@ -57,6 +57,12 @@ namespace UnityEngine.Rendering.HighDefinition
             deferredParameters.rayCountType = (int)RayCountValues.DiffuseGI_Deferred;
             deferredParameters.lodBias = settings.textureLodBias.value;
 
+            // Ray marching
+            deferredParameters.mixedTracing = settings.tracing.value == RayCastingMode.Mixed && hdCamera.frameSettings.litShaderMode == LitShaderMode.Deferred;
+            deferredParameters.raySteps = settings.maxMixedRaySteps;
+            deferredParameters.nearClipPlane = hdCamera.camera.nearClipPlane;
+            deferredParameters.farClipPlane = hdCamera.camera.farClipPlane;
+
             // Camera data
             deferredParameters.width = hdCamera.actualWidth;
             deferredParameters.height = hdCamera.actualHeight;
@@ -67,11 +73,13 @@ namespace UnityEngine.Rendering.HighDefinition
             deferredParameters.rayBinSizeResult = m_RayBinSizeResult;
             deferredParameters.accelerationStructure = RequestAccelerationStructure();
             deferredParameters.lightCluster = RequestLightCluster();
+            deferredParameters.mipChainBuffer = m_DepthBufferMipChainInfo.GetOffsetBufferData(m_DepthPyramidMipLevelOffsetsBuffer);
 
             // Shaders
-            deferredParameters.gBufferRaytracingRT = HDRenderPipelineGlobalSettings.instance.renderPipelineRayTracingResources.gBufferRaytracingRT;
-            deferredParameters.deferredRaytracingCS = HDRenderPipelineGlobalSettings.instance.renderPipelineRayTracingResources.deferredRaytracingCS;
-            deferredParameters.rayBinningCS = HDRenderPipelineGlobalSettings.instance.renderPipelineRayTracingResources.rayBinningCS;
+            deferredParameters.rayMarchingCS = m_GlobalSettings.renderPipelineRayTracingResources.rayMarchingCS;
+            deferredParameters.gBufferRaytracingRT = m_GlobalSettings.renderPipelineRayTracingResources.gBufferRaytracingRT;
+            deferredParameters.deferredRaytracingCS = m_GlobalSettings.renderPipelineRayTracingResources.deferredRaytracingCS;
+            deferredParameters.rayBinningCS = m_GlobalSettings.renderPipelineRayTracingResources.rayBinningCS;
 
             // XRTODO: add ray binning support for single-pass
             if (deferredParameters.viewCount > 1 && deferredParameters.rayBinning)
@@ -127,7 +135,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 passData.fullResolution = settings.fullResolution;
 
                 // Grab the right kernel
-                passData.directionGenCS = HDRenderPipelineGlobalSettings.instance.renderPipelineRayTracingResources.indirectDiffuseRaytracingCS;
+                passData.directionGenCS = m_GlobalSettings.renderPipelineRayTracingResources.indirectDiffuseRaytracingCS;
                 passData.dirGenKernel = settings.fullResolution ? m_RaytracingIndirectDiffuseFullResKernel : m_RaytracingIndirectDiffuseHalfResKernel;
 
                 // Grab the additional parameters
@@ -213,7 +221,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 passData.upscaleRadius = settings.upscaleRadius;
 
                 // Grab the right kernel
-                passData.upscaleCS = HDRenderPipelineGlobalSettings.instance.renderPipelineRayTracingResources.indirectDiffuseRaytracingCS;
+                passData.upscaleCS = m_GlobalSettings.renderPipelineRayTracingResources.indirectDiffuseRaytracingCS;
                 passData.upscaleKernel = settings.fullResolution ? m_IndirectDiffuseUpscaleFullResKernel : m_IndirectDiffuseUpscaleHalfResKernel;
 
                 // Grab the additional parameters
@@ -287,7 +295,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 passData.viewCount = hdCamera.viewCount;
 
                 // Grab the right kernel
-                passData.adjustWeightCS = HDRenderPipelineGlobalSettings.instance.renderPipelineRayTracingResources.indirectDiffuseRaytracingCS;
+                passData.adjustWeightCS = m_GlobalSettings.renderPipelineRayTracingResources.indirectDiffuseRaytracingCS;
                 passData.adjustWeightKernel = m_AdjustIndirectDiffuseWeightKernel;
 
                 passData.depthPyramid = builder.ReadTexture(depthPyramid);
@@ -330,7 +338,7 @@ namespace UnityEngine.Rendering.HighDefinition
         }
 
         TextureHandle RenderIndirectDiffusePerformance(RenderGraph renderGraph, HDCamera hdCamera,
-            TextureHandle depthPyramid, TextureHandle stencilBuffer, TextureHandle normalBuffer, TextureHandle motionVectors, TextureHandle historyValidationTexture,
+            in PrepassOutput prepassOutput, TextureHandle historyValidationTexture,
             TextureHandle rayCountTexture, Texture skyTexture,
             ShaderVariablesRaytracing shaderVariablesRaytracing)
         {
@@ -340,18 +348,18 @@ namespace UnityEngine.Rendering.HighDefinition
             // Fetch all the settings
             GlobalIllumination settings = hdCamera.volumeStack.GetComponent<GlobalIllumination>();
 
-            TextureHandle directionBuffer = DirGenRTGI(renderGraph, hdCamera, settings, depthPyramid, normalBuffer);
+            TextureHandle directionBuffer = DirGenRTGI(renderGraph, hdCamera, settings, prepassOutput.depthPyramidTexture, prepassOutput.normalBuffer);
 
             DeferredLightingRTParameters deferredParamters = PrepareIndirectDiffuseDeferredLightingRTParameters(hdCamera);
-            TextureHandle lightingBuffer = DeferredLightingRT(renderGraph, in deferredParamters, directionBuffer, depthPyramid, normalBuffer, skyTexture, rayCountTexture);
+            TextureHandle lightingBuffer = DeferredLightingRT(renderGraph, in deferredParamters, directionBuffer, prepassOutput, skyTexture, rayCountTexture);
 
-            rtgiResult = UpscaleRTGI(renderGraph, hdCamera, settings, depthPyramid, normalBuffer, lightingBuffer, directionBuffer);
+            rtgiResult = UpscaleRTGI(renderGraph, hdCamera, settings, prepassOutput.depthPyramidTexture, prepassOutput.normalBuffer, lightingBuffer, directionBuffer);
 
             // Denoise if required
-            rtgiResult = DenoiseRTGI(renderGraph, hdCamera, rtgiResult, depthPyramid, normalBuffer, motionVectors, historyValidationTexture);
+            rtgiResult = DenoiseRTGI(renderGraph, hdCamera, rtgiResult, prepassOutput.depthPyramidTexture, prepassOutput.normalBuffer, prepassOutput.resolvedMotionVectorsBuffer, historyValidationTexture);
 
             // Adjust the weight
-            rtgiResult = AdjustRTGIWeight(renderGraph, hdCamera, rtgiResult, depthPyramid, stencilBuffer);
+            rtgiResult = AdjustRTGIWeight(renderGraph, hdCamera, rtgiResult, prepassOutput.depthPyramidTexture, prepassOutput.stencilBuffer);
 
             return rtgiResult;
         }
@@ -405,7 +413,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 passData.lodBias = settings.textureLodBias.value;
 
                 // Grab the additional parameters
-                passData.indirectDiffuseRT = HDRenderPipelineGlobalSettings.instance.renderPipelineRayTracingResources.indirectDiffuseRaytracingRT;
+                passData.indirectDiffuseRT = m_GlobalSettings.renderPipelineRayTracingResources.indirectDiffuseRaytracingRT;
                 passData.accelerationStructure = RequestAccelerationStructure();
                 passData.lightCluster = RequestLightCluster();
                 passData.skyTexture = m_SkyManager.GetSkyReflection(hdCamera);
@@ -543,7 +551,7 @@ namespace UnityEngine.Rendering.HighDefinition
         }
 
         TextureHandle RenderRayTracedIndirectDiffuse(RenderGraph renderGraph, HDCamera hdCamera,
-            TextureHandle depthPyramid, TextureHandle stencilBuffer, TextureHandle normalBuffer, TextureHandle motionVectors, TextureHandle historyValidationTexture,
+            in PrepassOutput prepassOutput, TextureHandle historyValidationTexture,
             Texture skyTexture, TextureHandle rayCountTexture,
             ShaderVariablesRaytracing shaderVariablesRaytracing)
         {
@@ -554,19 +562,19 @@ namespace UnityEngine.Rendering.HighDefinition
 
             // Based on what the asset supports, follow the volume or force the right mode.
             if (m_Asset.currentPlatformRenderPipelineSettings.supportedRayTracingMode == RenderPipelineSettings.SupportedRayTracingMode.Both)
-                qualityMode = giSettings.mode.value == RayTracingMode.Quality;
+                qualityMode = (giSettings.tracing.value == RayCastingMode.RayTracing) && (giSettings.mode.value == RayTracingMode.Quality);
             else
                 qualityMode = m_Asset.currentPlatformRenderPipelineSettings.supportedRayTracingMode == RenderPipelineSettings.SupportedRayTracingMode.Quality;
 
 
             if (qualityMode)
                 rtreflResult = RenderIndirectDiffuseQuality(renderGraph, hdCamera,
-                    depthPyramid, stencilBuffer, normalBuffer, motionVectors, historyValidationTexture,
+                    prepassOutput.depthPyramidTexture, prepassOutput.stencilBuffer, prepassOutput.normalBuffer, prepassOutput.motionVectorsBuffer, historyValidationTexture,
                     rayCountTexture, skyTexture,
                     shaderVariablesRaytracing);
             else
                 rtreflResult = RenderIndirectDiffusePerformance(renderGraph, hdCamera,
-                    depthPyramid, stencilBuffer, normalBuffer, motionVectors, historyValidationTexture,
+                    prepassOutput, historyValidationTexture,
                     rayCountTexture, skyTexture,
                     shaderVariablesRaytracing);
 

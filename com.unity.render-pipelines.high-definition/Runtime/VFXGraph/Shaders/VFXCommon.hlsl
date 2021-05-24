@@ -59,13 +59,13 @@ float4 VFXTransformPositionWorldToClip(float3 posWS)
 float4 VFXTransformPositionObjectToNonJitteredClip(float3 posOS)
 {
     float3 posWS = TransformObjectToWorld(posOS);
-    return mul(_NonJitteredViewProjMatrix, float4(posWS, 1.0f));
+    return mul(UNITY_MATRIX_UNJITTERED_VP, float4(posWS, 1.0f));
 }
 
 float4 VFXTransformPositionObjectToPreviousClip(float3 posOS)
 {
     float3 posWS = TransformPreviousObjectToWorld(posOS);
-    return mul(_PrevViewProjMatrix, float4(posWS, 1.0f));
+    return mul(UNITY_MATRIX_PREV_VP, float4(posWS, 1.0f));
 }
 
 float4 VFXTransformPositionObjectToClip(float3 posOS)
@@ -93,12 +93,22 @@ float3 VFXTransformPositionWorldToCameraRelative(float3 posWS)
 
 float4x4 VFXGetObjectToWorldMatrix()
 {
+// NOTE: If using the new generation path, explicitly call the object matrix (since the particle matrix is now baked into UNITY_MATRIX_M)
+#ifdef HAVE_VFX_MODIFICATION
+    return ApplyCameraTranslationToMatrix(GetRawUnityObjectToWorld());
+#else
     return GetObjectToWorldMatrix();
+#endif
 }
 
 float4x4 VFXGetWorldToObjectMatrix()
 {
+// NOTE: If using the new generation path, explicitly call the object matrix (since the particle matrix is now baked into UNITY_MATRIX_I_M)
+#ifdef HAVE_VFX_MODIFICATION
+    return ApplyCameraTranslationToInverseMatrix(GetRawUnityWorldToObject());
+#else
     return GetWorldToObjectMatrix();
+#endif
 }
 
 float3x3 VFXGetWorldToViewRotMatrix()
@@ -121,6 +131,13 @@ float4x4 VFXGetViewToWorldMatrix()
     viewToWorld._14_24_34 = VFXGetViewWorldPosition();
     return viewToWorld;
 }
+
+#ifdef USING_STEREO_MATRICES
+float3 GetWorldStereoOffset()
+{
+    return _XRWorldSpaceCameraPos[0].xyz - _XRWorldSpaceCameraPos[1].xyz;
+}
+#endif
 
 float VFXSampleDepth(float4 posSS)
 {
