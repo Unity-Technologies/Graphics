@@ -104,7 +104,7 @@ namespace UnityEditor.Rendering.BuiltIn
                     }
                     else if (shaderID.IsShaderGraph())
                     {
-                        // Assumed to be version 0 since to asset version was found
+                        // Assumed to be version 0 since no asset version was found
                         assetVersion.version = 0;
                     }
 

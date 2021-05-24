@@ -49,32 +49,25 @@ namespace UnityEditor.Rendering.BuiltIn.ShaderGraph
                 context.customEditorForRenderPipelines.Add((typeof(BuiltInLitGUI).FullName, ""));
 
             // Process SubShaders
-            SubShaderDescriptor[] litSubShaders = { SubShaders.Lit };
-
-            SubShaderDescriptor[] subShaders = litSubShaders;
-            for (int i = 0; i < subShaders.Length; i++)
-            {
-                // Update Render State
-                subShaders[i].renderType = target.renderType;
-                subShaders[i].renderQueue = target.renderQueue;
-
-                context.AddSubShader(subShaders[i]);
-            }
+            context.AddSubShader(SubShaders.Lit(target, target.renderType, target.renderQueue));
         }
 
         public override void ProcessPreviewMaterial(Material material)
         {
-            // copy our target's default settings into the material
-            // (technically not necessary since we are always recreating the material from the shader each time,
-            // which will pull over the defaults from the shader definition)
-            // but if that ever changes, this will ensure the defaults are set
-            material.SetFloat(Property.SpecularWorkflowMode(), (float)workflowMode);
-            material.SetFloat(Property.Surface(), (float)target.surfaceType);
-            material.SetFloat(Property.Blend(), (float)target.alphaMode);
-            material.SetFloat(Property.AlphaClip(), target.alphaClip ? 1.0f : 0.0f);
-            material.SetFloat(Property.Cull(), (int)target.renderFace);
-            material.SetFloat(Property.ZWriteControl(), (float)target.zWriteControl);
-            material.SetFloat(Property.ZTest(), (float)target.zTestMode);
+            if (target.allowMaterialOverride)
+            {
+                // copy our target's default settings into the material
+                // (technically not necessary since we are always recreating the material from the shader each time,
+                // which will pull over the defaults from the shader definition)
+                // but if that ever changes, this will ensure the defaults are set
+                material.SetFloat(Property.SpecularWorkflowMode(), (float)workflowMode);
+                material.SetFloat(Property.Surface(), (float)target.surfaceType);
+                material.SetFloat(Property.Blend(), (float)target.alphaMode);
+                material.SetFloat(Property.AlphaClip(), target.alphaClip ? 1.0f : 0.0f);
+                material.SetFloat(Property.Cull(), (int)target.renderFace);
+                material.SetFloat(Property.ZWriteControl(), (float)target.zWriteControl);
+                material.SetFloat(Property.ZTest(), (float)target.zTestMode);
+            }
 
             // call the full unlit material setup function
             BuiltInLitGUI.UpdateMaterial(material);
@@ -110,29 +103,31 @@ namespace UnityEditor.Rendering.BuiltIn.ShaderGraph
             context.AddBlock(BlockFields.SurfaceDescription.NormalWS,           normalDropOffSpace == NormalDropOffSpace.World);
             context.AddBlock(BlockFields.SurfaceDescription.Emission);
             context.AddBlock(BlockFields.SurfaceDescription.Occlusion);
-            context.AddBlock(BlockFields.SurfaceDescription.Specular,           workflowMode == WorkflowMode.Specular);
-            context.AddBlock(BlockFields.SurfaceDescription.Metallic,           workflowMode == WorkflowMode.Metallic);
 
-            // TODO: these should be predicated on transparency and alpha clip ONLY when those values are locked
-            context.AddBlock(BlockFields.SurfaceDescription.Alpha);                 // ,              target.surfaceType == SurfaceType.Transparent || target.alphaClip);
-            context.AddBlock(BlockFields.SurfaceDescription.AlphaClipThreshold);    //, target.alphaClip);
+            context.AddBlock(BlockFields.SurfaceDescription.Specular,           (workflowMode == WorkflowMode.Specular) || target.allowMaterialOverride);
+            context.AddBlock(BlockFields.SurfaceDescription.Metallic,           (workflowMode == WorkflowMode.Metallic) || target.allowMaterialOverride);
+            context.AddBlock(BlockFields.SurfaceDescription.Alpha,              (target.surfaceType == SurfaceType.Transparent || target.alphaClip) || target.allowMaterialOverride);
+            context.AddBlock(BlockFields.SurfaceDescription.AlphaClipThreshold, (target.alphaClip) || target.allowMaterialOverride);
         }
 
         public override void CollectShaderProperties(PropertyCollector collector, GenerationMode generationMode)
         {
-            base.CollectShaderProperties(collector, generationMode);
+            if (target.allowMaterialOverride)
+            {
+                base.CollectShaderProperties(collector, generationMode);
 
-            // setup properties using the defaults
-            collector.AddFloatProperty(Property.Surface(), (float)target.surfaceType);
-            collector.AddFloatProperty(Property.Blend(), (float)target.alphaMode);
-            collector.AddFloatProperty(Property.AlphaClip(), target.alphaClip ? 1.0f : 0.0f);
-            collector.AddFloatProperty(Property.SrcBlend(), 1.0f);    // always set by material inspector (TODO : get src/dst blend and set here?)
-            collector.AddFloatProperty(Property.DstBlend(), 0.0f);    // always set by material inspector
-            collector.AddFloatProperty(Property.ZWrite(), (target.surfaceType == SurfaceType.Opaque) ? 1.0f : 0.0f);
-            collector.AddFloatProperty(Property.ZWriteControl(), (float)target.zWriteControl);
-            collector.AddFloatProperty(Property.ZTest(), (float)target.zTestMode);    // ztest mode is designed to directly pass as ztest
-            collector.AddFloatProperty(Property.Cull(), (float)target.renderFace);    // render face enum is designed to directly pass as a cull mode
-            collector.AddFloatProperty(Property.QueueOffset(), 0.0f);
+                // setup properties using the defaults
+                collector.AddFloatProperty(Property.Surface(), (float)target.surfaceType);
+                collector.AddFloatProperty(Property.Blend(), (float)target.alphaMode);
+                collector.AddFloatProperty(Property.AlphaClip(), target.alphaClip ? 1.0f : 0.0f);
+                collector.AddFloatProperty(Property.SrcBlend(), 1.0f);    // always set by material inspector (TODO : get src/dst blend and set here?)
+                collector.AddFloatProperty(Property.DstBlend(), 0.0f);    // always set by material inspector
+                collector.AddFloatProperty(Property.ZWrite(), (target.surfaceType == SurfaceType.Opaque) ? 1.0f : 0.0f);
+                collector.AddFloatProperty(Property.ZWriteControl(), (float)target.zWriteControl);
+                collector.AddFloatProperty(Property.ZTest(), (float)target.zTestMode);    // ztest mode is designed to directly pass as ztest
+                collector.AddFloatProperty(Property.Cull(), (float)target.renderFace);    // render face enum is designed to directly pass as a cull mode
+                collector.AddFloatProperty(Property.QueueOffset(), 0.0f);
+            }
         }
 
         public override void GetPropertiesGUI(ref TargetPropertyGUIContext context, Action onChange, Action<String> registerUndo)
@@ -150,6 +145,7 @@ namespace UnityEditor.Rendering.BuiltIn.ShaderGraph
 
             // show the target default surface properties
             var builtInTarget = (target as BuiltInTarget);
+            builtInTarget?.AddDefaultMaterialOverrideGUI(ref context, onChange, registerUndo);
             builtInTarget?.GetDefaultSurfacePropertiesGUI(ref context, onChange, registerUndo);
 
             context.AddProperty("Fragment Normal Space", new EnumField(NormalDropOffSpace.Tangent) { value = normalDropOffSpace }, (evt) =>
@@ -189,187 +185,250 @@ namespace UnityEditor.Rendering.BuiltIn.ShaderGraph
             #endregion
 
             // SM 2.0
-            public readonly static SubShaderDescriptor Lit = new SubShaderDescriptor()
+            public static SubShaderDescriptor Lit(BuiltInTarget target, string renderType, string renderQueue)
             {
-                //pipelineTag = BuiltInTarget.kPipelineTag,
-                customTags = BuiltInTarget.kLitMaterialTypeTag,
-                generatesPreview = true,
-                passes = new PassCollection
+                var result = new SubShaderDescriptor()
                 {
-                    { LitPasses.Forward },
-                    { LitPasses.ForwardAdd },
-                    { LitPasses.Deferred },
-                    { CorePasses.ShadowCaster },
-                    { CorePasses.DepthOnly },
-                    { LitPasses.Meta },
-                    { CorePasses.SceneSelection },
-                    { CorePasses.ScenePicking },
-                },
-            };
+                    //pipelineTag = BuiltInTarget.kPipelineTag,
+                    customTags = BuiltInTarget.kLitMaterialTypeTag,
+                    renderType = renderType,
+                    renderQueue = renderQueue,
+                    generatesPreview = true,
+                    passes = new PassCollection(),
+                };
+
+                result.passes.Add(LitPasses.Forward(target));
+                result.passes.Add(LitPasses.ForwardAdd(target));
+                result.passes.Add(LitPasses.Deferred(target));
+                result.passes.Add(CorePasses.ShadowCaster(target));
+
+                if (target.mayWriteDepth)
+                    result.passes.Add(CorePasses.DepthOnly(target));
+
+                result.passes.Add(LitPasses.Meta(target));
+                result.passes.Add(CorePasses.SceneSelection(target));
+                result.passes.Add(CorePasses.ScenePicking(target));
+
+                return result;
+            }
         }
         #endregion
 
         #region Passes
         static class LitPasses
         {
-            public static PassDescriptor Forward = new PassDescriptor
+            public static PassDescriptor Forward(BuiltInTarget target)
             {
-                // Definition
-                displayName = "BuiltIn Forward",
-                referenceName = "SHADERPASS_FORWARD",
-                lightMode = "ForwardBase",
-                useInPreview = true,
+                var result = new PassDescriptor()
+                {
+                    // Definition
+                    displayName = "BuiltIn Forward",
+                    referenceName = "SHADERPASS_FORWARD",
+                    lightMode = "ForwardBase",
+                    useInPreview = true,
 
-                // Template
-                passTemplatePath = BuiltInTarget.kTemplatePath,
-                sharedTemplateDirectories = BuiltInTarget.kSharedTemplateDirectories,
+                    // Template
+                    passTemplatePath = BuiltInTarget.kTemplatePath,
+                    sharedTemplateDirectories = BuiltInTarget.kSharedTemplateDirectories,
 
-                // Port Mask
-                validVertexBlocks = CoreBlockMasks.Vertex,
-                validPixelBlocks = LitBlockMasks.FragmentLit,
+                    // Port Mask
+                    validVertexBlocks = CoreBlockMasks.Vertex,
+                    validPixelBlocks = LitBlockMasks.FragmentLit,
 
-                // Fields
-                structs = CoreStructCollections.Default,
-                requiredFields = LitRequiredFields.Forward,
-                fieldDependencies = CoreFieldDependencies.Default,
+                    // Fields
+                    structs = CoreStructCollections.Default,
+                    requiredFields = LitRequiredFields.Forward,
+                    fieldDependencies = CoreFieldDependencies.Default,
 
-                // Conditional State
-                renderStates = CoreRenderStates.Forward,
-                pragmas  = CorePragmas.Forward,     // NOTE: SM 2.0 only GL
-                defines = CoreDefines.BuiltInTargetAPI,
-                keywords = LitKeywords.Forward,
-                includes = LitIncludes.Forward,
+                    // Conditional State
+                    renderStates = CoreRenderStates.Default(target),
+                    pragmas  = CorePragmas.Forward,     // NOTE: SM 2.0 only GL
+                    defines = new DefineCollection() { CoreDefines.BuiltInTargetAPI },
+                    keywords = new KeywordCollection { LitKeywords.Forward },
+                    includes = LitIncludes.Forward,
 
-                // Custom Interpolator Support
-                customInterpolators = CoreCustomInterpDescriptors.Common
-            };
+                    // Custom Interpolator Support
+                    customInterpolators = CoreCustomInterpDescriptors.Common
+                };
+                AddForwardSurfaceControlsToPass(ref result, target);
+                return result;
+            }
 
-            public static PassDescriptor ForwardAdd = new PassDescriptor
+            public static PassDescriptor ForwardAdd(BuiltInTarget target)
             {
-                // Definition
-                displayName = "BuiltIn ForwardAdd",
-                referenceName = "SHADERPASS_FORWARD_ADD",
-                lightMode = "ForwardAdd",
-                useInPreview = true,
+                var result = new PassDescriptor()
+                {
+                    // Definition
+                    displayName = "BuiltIn ForwardAdd",
+                    referenceName = "SHADERPASS_FORWARD_ADD",
+                    lightMode = "ForwardAdd",
+                    useInPreview = true,
 
-                // Template
-                passTemplatePath = BuiltInTarget.kTemplatePath,
-                sharedTemplateDirectories = BuiltInTarget.kSharedTemplateDirectories,
+                    // Template
+                    passTemplatePath = BuiltInTarget.kTemplatePath,
+                    sharedTemplateDirectories = BuiltInTarget.kSharedTemplateDirectories,
 
-                // Port Mask
-                validVertexBlocks = CoreBlockMasks.Vertex,
-                validPixelBlocks = LitBlockMasks.FragmentLit,
+                    // Port Mask
+                    validVertexBlocks = CoreBlockMasks.Vertex,
+                    validPixelBlocks = LitBlockMasks.FragmentLit,
 
-                // Fields
-                structs = CoreStructCollections.Default,
-                requiredFields = LitRequiredFields.Forward,
-                fieldDependencies = CoreFieldDependencies.Default,
+                    // Fields
+                    structs = CoreStructCollections.Default,
+                    requiredFields = LitRequiredFields.Forward,
+                    fieldDependencies = CoreFieldDependencies.Default,
 
-                // Conditional State
-                renderStates = CoreRenderStates.ForwardAdd,
-                pragmas  = CorePragmas.ForwardAdd,     // NOTE: SM 2.0 only GL
-                defines = CoreDefines.BuiltInTargetAPI,
-                keywords = LitKeywords.ForwardAdd,
-                includes = LitIncludes.ForwardAdd,
+                    // Conditional State
+                    renderStates = CoreRenderStates.ForwardAdd,
+                    pragmas  = CorePragmas.ForwardAdd,     // NOTE: SM 2.0 only GL
+                    defines = new DefineCollection() { CoreDefines.BuiltInTargetAPI },
+                    keywords = new KeywordCollection { LitKeywords.ForwardAdd },
+                    includes = LitIncludes.ForwardAdd,
 
-                // Custom Interpolator Support
-                customInterpolators = CoreCustomInterpDescriptors.Common
-            };
+                    // Custom Interpolator Support
+                    customInterpolators = CoreCustomInterpDescriptors.Common
+                };
 
-            public static PassDescriptor ForwardOnly = new PassDescriptor
+                AddForwardAddControlsToPass(ref result, target);
+                return result;
+            }
+
+            public static PassDescriptor ForwardOnly(BuiltInTarget target)
             {
-                // Definition
-                displayName = "BuiltIn Forward Only",
-                referenceName = "SHADERPASS_FORWARDONLY",
-                lightMode = "BuiltInForwardOnly",
-                useInPreview = true,
+                var result = new PassDescriptor()
+                {
+                    // Definition
+                    displayName = "BuiltIn Forward Only",
+                    referenceName = "SHADERPASS_FORWARDONLY",
+                    lightMode = "BuiltInForwardOnly",
+                    useInPreview = true,
 
-                // Template
-                passTemplatePath = BuiltInTarget.kTemplatePath,
-                sharedTemplateDirectories = BuiltInTarget.kSharedTemplateDirectories,
+                    // Template
+                    passTemplatePath = BuiltInTarget.kTemplatePath,
+                    sharedTemplateDirectories = BuiltInTarget.kSharedTemplateDirectories,
 
-                // Port Mask
-                validVertexBlocks = CoreBlockMasks.Vertex,
-                validPixelBlocks = LitBlockMasks.FragmentLit,
+                    // Port Mask
+                    validVertexBlocks = CoreBlockMasks.Vertex,
+                    validPixelBlocks = LitBlockMasks.FragmentLit,
 
-                // Fields
-                structs = CoreStructCollections.Default,
-                requiredFields = LitRequiredFields.Forward,
-                fieldDependencies = CoreFieldDependencies.Default,
+                    // Fields
+                    structs = CoreStructCollections.Default,
+                    requiredFields = LitRequiredFields.Forward,
+                    fieldDependencies = CoreFieldDependencies.Default,
 
-                // Conditional State
-                renderStates = CoreRenderStates.Default,
-                pragmas  = CorePragmas.Forward,    // NOTE: SM 2.0 only GL
-                defines = CoreDefines.BuiltInTargetAPI,
-                keywords = LitKeywords.Forward,
-                includes = LitIncludes.Forward,
+                    // Conditional State
+                    renderStates = CoreRenderStates.Default(target),
+                    pragmas  = CorePragmas.Forward,    // NOTE: SM 2.0 only GL
+                    defines = new DefineCollection() { CoreDefines.BuiltInTargetAPI },
+                    keywords = new KeywordCollection { LitKeywords.Forward },
+                    includes = LitIncludes.Forward,
 
-                // Custom Interpolator Support
-                customInterpolators = CoreCustomInterpDescriptors.Common
-            };
+                    // Custom Interpolator Support
+                    customInterpolators = CoreCustomInterpDescriptors.Common
+                };
+                AddForwardOnlyControlsToPass(ref result, target);
+                return result;
+            }
 
-            public static PassDescriptor Deferred = new PassDescriptor
+            public static PassDescriptor Deferred(BuiltInTarget target)
             {
-                // Definition
-                displayName = "BuiltIn Deferred",
-                referenceName = "SHADERPASS_DEFERRED",
-                lightMode = "Deferred",
-                useInPreview = true,
+                var result = new PassDescriptor()
+                {
+                    // Definition
+                    displayName = "BuiltIn Deferred",
+                    referenceName = "SHADERPASS_DEFERRED",
+                    lightMode = "Deferred",
+                    useInPreview = true,
 
-                // Template
-                passTemplatePath = BuiltInTarget.kTemplatePath,
-                sharedTemplateDirectories = BuiltInTarget.kSharedTemplateDirectories,
+                    // Template
+                    passTemplatePath = BuiltInTarget.kTemplatePath,
+                    sharedTemplateDirectories = BuiltInTarget.kSharedTemplateDirectories,
 
-                // Port Mask
-                validVertexBlocks = CoreBlockMasks.Vertex,
-                validPixelBlocks = LitBlockMasks.FragmentLit,
+                    // Port Mask
+                    validVertexBlocks = CoreBlockMasks.Vertex,
+                    validPixelBlocks = LitBlockMasks.FragmentLit,
 
-                // Fields
-                structs = CoreStructCollections.Default,
-                requiredFields = LitRequiredFields.Forward,
-                fieldDependencies = CoreFieldDependencies.Default,
+                    // Fields
+                    structs = CoreStructCollections.Default,
+                    requiredFields = LitRequiredFields.Forward,
+                    fieldDependencies = CoreFieldDependencies.Default,
 
-                // Conditional State
-                renderStates = CoreRenderStates.Default,
-                pragmas  = CorePragmas.Deferred,    // NOTE: SM 2.0 only GL
-                defines = CoreDefines.BuiltInTargetAPI,
-                keywords = LitKeywords.Deferred,
-                includes = LitIncludes.Deferred,
+                    // Conditional State
+                    renderStates = CoreRenderStates.Default(target),
+                    pragmas  = CorePragmas.Deferred,    // NOTE: SM 2.0 only GL
+                    defines = new DefineCollection() { CoreDefines.BuiltInTargetAPI },
+                    keywords = new KeywordCollection { LitKeywords.Deferred },
+                    includes = LitIncludes.Deferred,
 
-                // Custom Interpolator Support
-                customInterpolators = CoreCustomInterpDescriptors.Common
-            };
+                    // Custom Interpolator Support
+                    customInterpolators = CoreCustomInterpDescriptors.Common
+                };
+                AddDeferredControlsToPass(ref result, target);
+                return result;
+            }
 
-            public static PassDescriptor Meta = new PassDescriptor()
+            public static PassDescriptor Meta(BuiltInTarget target)
             {
-                // Definition
-                displayName = "Meta",
-                referenceName = "SHADERPASS_META",
-                lightMode = "Meta",
+                var result = new PassDescriptor()
+                {
+                    // Definition
+                    displayName = "Meta",
+                    referenceName = "SHADERPASS_META",
+                    lightMode = "Meta",
 
-                // Template
-                passTemplatePath = BuiltInTarget.kTemplatePath,
-                sharedTemplateDirectories = BuiltInTarget.kSharedTemplateDirectories,
+                    // Template
+                    passTemplatePath = BuiltInTarget.kTemplatePath,
+                    sharedTemplateDirectories = BuiltInTarget.kSharedTemplateDirectories,
 
-                // Port Mask
-                validVertexBlocks = CoreBlockMasks.Vertex,
-                validPixelBlocks = LitBlockMasks.FragmentMeta,
+                    // Port Mask
+                    validVertexBlocks = CoreBlockMasks.Vertex,
+                    validPixelBlocks = LitBlockMasks.FragmentMeta,
 
-                // Fields
-                structs = CoreStructCollections.Default,
-                requiredFields = LitRequiredFields.Meta,
-                fieldDependencies = CoreFieldDependencies.Default,
+                    // Fields
+                    structs = CoreStructCollections.Default,
+                    requiredFields = LitRequiredFields.Meta,
+                    fieldDependencies = CoreFieldDependencies.Default,
 
-                // Conditional State
-                renderStates = CoreRenderStates.Meta,
-                pragmas = CorePragmas.Default,
-                defines = CoreDefines.BuiltInTargetAPI,
-                keywords = LitKeywords.Meta,
-                includes = LitIncludes.Meta,
+                    // Conditional State
+                    renderStates = CoreRenderStates.Meta,
+                    pragmas = CorePragmas.Default,
+                    defines = new DefineCollection() { CoreDefines.BuiltInTargetAPI },
+                    keywords = new KeywordCollection { LitKeywords.Meta },
+                    includes = LitIncludes.Meta,
 
-                // Custom Interpolator Support
-                customInterpolators = CoreCustomInterpDescriptors.Common
-            };
+                    // Custom Interpolator Support
+                    customInterpolators = CoreCustomInterpDescriptors.Common
+                };
+
+                AddMetaControlsToPass(ref result, target);
+                return result;
+            }
+
+            internal static void AddForwardSurfaceControlsToPass(ref PassDescriptor pass, BuiltInTarget target)
+            {
+                CorePasses.AddTargetSurfaceControlsToPass(ref pass, target);
+            }
+
+            internal static void AddForwardAddControlsToPass(ref PassDescriptor pass, BuiltInTarget target)
+            {
+                CorePasses.AddSurfaceTypeControlToPass(ref pass, target);
+                CorePasses.AddAlphaClipControlToPass(ref pass, target);
+            }
+
+            internal static void AddForwardOnlyControlsToPass(ref PassDescriptor pass, BuiltInTarget target)
+            {
+                CorePasses.AddTargetSurfaceControlsToPass(ref pass, target);
+            }
+
+            internal static void AddDeferredControlsToPass(ref PassDescriptor pass, BuiltInTarget target)
+            {
+                CorePasses.AddTargetSurfaceControlsToPass(ref pass, target);
+            }
+
+            internal static void AddMetaControlsToPass(ref PassDescriptor pass, BuiltInTarget target)
+            {
+                CorePasses.AddSurfaceTypeControlToPass(ref pass, target);
+                CorePasses.AddAlphaClipControlToPass(ref pass, target);
+            }
         }
         #endregion
 
@@ -490,10 +549,6 @@ namespace UnityEditor.Rendering.BuiltIn.ShaderGraph
                 { CoreKeywordDescriptors.ShadowsSoft },
                 { CoreKeywordDescriptors.LightmapShadowMixing },
                 { CoreKeywordDescriptors.ShadowsShadowmask },
-                CoreKeywordDescriptors.AlphaClip,
-                CoreKeywordDescriptors.AlphaTestOn,
-                CoreKeywordDescriptors.SurfaceTypeTransparent,
-                CoreKeywordDescriptors.AlphaPremultiplyOn,
             };
 
             public static readonly KeywordCollection ForwardAdd = new KeywordCollection
@@ -507,9 +562,6 @@ namespace UnityEditor.Rendering.BuiltIn.ShaderGraph
                 { CoreKeywordDescriptors.ShadowsSoft },
                 { CoreKeywordDescriptors.LightmapShadowMixing },
                 { CoreKeywordDescriptors.ShadowsShadowmask },
-                CoreKeywordDescriptors.AlphaClip,
-                CoreKeywordDescriptors.AlphaTestOn,
-                CoreKeywordDescriptors.SurfaceTypeTransparent,
             };
 
             public static readonly KeywordCollection Deferred = new KeywordCollection
@@ -521,32 +573,11 @@ namespace UnityEditor.Rendering.BuiltIn.ShaderGraph
                 { CoreKeywordDescriptors.LightmapShadowMixing },
                 { CoreKeywordDescriptors.MixedLightingSubtractive },
                 { GBufferNormalsOct },
-                CoreKeywordDescriptors.AlphaClip,
-                CoreKeywordDescriptors.AlphaTestOn,
-                CoreKeywordDescriptors.SurfaceTypeTransparent,
-                CoreKeywordDescriptors.AlphaPremultiplyOn,
-            };
-
-            public static readonly KeywordCollection GBuffer = new KeywordCollection
-            {
-                { CoreKeywordDescriptors.Lightmap },
-                { CoreKeywordDescriptors.DirectionalLightmapCombined },
-                { CoreKeywordDescriptors.MainLightShadows },
-                { CoreKeywordDescriptors.ShadowsSoft },
-                { CoreKeywordDescriptors.LightmapShadowMixing },
-                { CoreKeywordDescriptors.MixedLightingSubtractive },
-                { GBufferNormalsOct },
-                CoreKeywordDescriptors.AlphaClip,
-                CoreKeywordDescriptors.AlphaTestOn,
-                CoreKeywordDescriptors.SurfaceTypeTransparent,
             };
 
             public static readonly KeywordCollection Meta = new KeywordCollection
             {
                 { CoreKeywordDescriptors.SmoothnessChannel },
-                CoreKeywordDescriptors.AlphaClip,
-                CoreKeywordDescriptors.AlphaTestOn,
-                CoreKeywordDescriptors.SurfaceTypeTransparent,
             };
         }
         #endregion
