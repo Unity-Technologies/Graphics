@@ -646,7 +646,7 @@ MonoBehaviour:
   m_RequiresOpaqueTextureOption: 2
   m_CameraType: 0
   m_Cameras: []
-  m_RendererIndex: 17
+  m_RendererIndex: 18
   m_VolumeLayerMask:
     serializedVersion: 2
     m_Bits: 1
@@ -1509,7 +1509,7 @@ MonoBehaviour:
   m_RequiresOpaqueTextureOption: 2
   m_CameraType: 0
   m_Cameras: []
-  m_RendererIndex: 17
+  m_RendererIndex: 18
   m_VolumeLayerMask:
     serializedVersion: 2
     m_Bits: 1
@@ -1754,7 +1754,7 @@ MonoBehaviour:
   m_RequiresOpaqueTextureOption: 2
   m_CameraType: 0
   m_Cameras: []
-  m_RendererIndex: 17
+  m_RendererIndex: 18
   m_VolumeLayerMask:
     serializedVersion: 2
     m_Bits: 1
@@ -1872,7 +1872,7 @@ MonoBehaviour:
   m_RequiresOpaqueTextureOption: 2
   m_CameraType: 0
   m_Cameras: []
-  m_RendererIndex: 17
+  m_RendererIndex: 18
   m_VolumeLayerMask:
     serializedVersion: 2
     m_Bits: 1
@@ -2313,7 +2313,7 @@ MonoBehaviour:
   m_ChildAlignment: 0
   m_StartCorner: 0
   m_StartAxis: 0
-  m_CellSize: {x: 640, y: 360}
+  m_CellSize: {x: 584.8079, y: 393.5992}
   m_Spacing: {x: 0, y: 0}
   m_Constraint: 0
   m_ConstraintCount: 2
