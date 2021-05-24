@@ -22,21 +22,15 @@
 #pragma only_renderers d3d11 playstation xboxone xboxseries vulkan metal switch
 
 #pragma kernel KColorGaussian                       KERNEL_SIZE=8  MAIN_GAUSSIAN=KColorGaussian
-#pragma kernel KColorDownsample                     KERNEL_SIZE=8  MAIN_DOWNSAMPLE=KColorDownsample
+#pragma kernel MAIN_CopyMip0                        KERNEL_SIZE=8  
 
 #pragma multi_compile _ DISABLE_TEXTURE2D_X_ARRAY
-#pragma multi_compile _ COPY_MIP_0
 
 #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Common.hlsl"
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/ShaderLibrary/TextureXR.hlsl"
 
-#if COPY_MIP_0
-       TEXTURE2D_X(_Source);
-    RW_TEXTURE2D_X(float4, _Mip0);
-#else
-    RW_TEXTURE2D_X(float4, _Source);
-#endif
-
+RW_TEXTURE2D_X(float4, _Source);
+RW_TEXTURE2D_X(float4, _Mip0); 
 RW_TEXTURE2D_X(float4, _Destination);
 
 SamplerState sampler_LinearClamp;
@@ -65,10 +59,10 @@ float4 BlurPixels(float4 a, float4 b, float4 c, float4 d, float4 e, float4 f, fl
 
 void Store2Pixels(uint index, float4 pixel1, float4 pixel2)
 {
-    gs_cacheR[index] = f32tof16(pixel1.r) | f32tof16(pixel2.r) << 16;
-    gs_cacheG[index] = f32tof16(pixel1.g) | f32tof16(pixel2.g) << 16;
-    gs_cacheB[index] = f32tof16(pixel1.b) | f32tof16(pixel2.b) << 16;
-    gs_cacheA[index] = f32tof16(pixel1.a) | f32tof16(pixel2.a) << 16;
+    gs_cacheR[index] = f32tof16(pixel1.r) | (f32tof16(pixel2.r) << 16);
+    gs_cacheG[index] = f32tof16(pixel1.g) | (f32tof16(pixel2.g) << 16);
+    gs_cacheB[index] = f32tof16(pixel1.b) | (f32tof16(pixel2.b) << 16);
+    gs_cacheA[index] = f32tof16(pixel1.a) | (f32tof16(pixel2.a) << 16);
 }
 
 void Load2Pixels(uint index, out float4 pixel1, out float4 pixel2)
@@ -126,15 +120,20 @@ void BlurVertically(uint2 pixelCoord, uint topMostIndex)
     // Write to the final target
     _Destination[COORD_TEXTURE2D_X(pixelCoord)] = blurred;
 }
+ 
+[numthreads(KERNEL_SIZE, KERNEL_SIZE, 1)]
+void MAIN_CopyMip0(uint3 dispatchThreadId : SV_DispatchThreadID)
+{
+    _Mip0[COORD_TEXTURE2D_X(dispatchThreadId.xy)] = _Source[COORD_TEXTURE2D_X(dispatchThreadId.xy)];
+}
 
 [numthreads(KERNEL_SIZE, KERNEL_SIZE, 1)]
-void MAIN_GAUSSIAN(uint2 groupId : SV_GroupID, uint2 groupThreadId : SV_GroupThreadID, uint3 dispatchThreadId : SV_DispatchThreadID)
+void MAIN_GAUSSIAN(int2 groupId : SV_GroupID, int2 groupThreadId : SV_GroupThreadID, uint3 dispatchThreadId : SV_DispatchThreadID)
 {
     UNITY_XR_ASSIGN_VIEW_INDEX(dispatchThreadId.z);
 
     // Upper-left pixel coordinate of quad that this thread will read
-    int2 threadUL = (groupThreadId << 1) + (groupId << 3) - 4;
-    threadUL *= 2;
+    int2 threadUL = (groupThreadId << 2).xy + (groupId << 4).xy - 7;
     uint2 uthreadUL = uint2(max(0, threadUL));
 
     uint2 size = uint2(_Size.xy) - 1u;
@@ -146,7 +145,7 @@ void MAIN_GAUSSIAN(uint2 groupId : SV_GroupID, uint2 groupThreadId : SV_GroupThr
     // Store the 4 downsampled pixels in LDS
     uint destIdx = groupThreadId.x + (groupThreadId.y << 4u);
     Store2Pixels(destIdx     , p00, p10);
-    Store2Pixels(destIdx + 8u, p01, p11);
+    Store2Pixels(destIdx + 8, p01, p11); 
 
     GroupMemoryBarrierWithGroupSync();
 
@@ -158,31 +157,4 @@ void MAIN_GAUSSIAN(uint2 groupId : SV_GroupID, uint2 groupThreadId : SV_GroupThr
 
     // Vertically blur the pixels in LDS and write the result to memory
     BlurVertically(dispatchThreadId.xy, (groupThreadId.y << 3u) + groupThreadId.x);
-}
-
-[numthreads(KERNEL_SIZE, KERNEL_SIZE, 1)]
-void MAIN_DOWNSAMPLE(uint3 dispatchThreadId : SV_DispatchThreadID)
-{
-    UNITY_XR_ASSIGN_VIEW_INDEX(dispatchThreadId.z);
-
-    uint2 offset = dispatchThreadId.xy * 2u;
-    uint2 size = uint2(_Size.xy) - 1u;
-
-    uint2 c00 = min(offset + uint2(0u, 0u), size);
-    uint2 c10 = min(offset + uint2(1u, 0u), size);
-    uint2 c11 = min(offset + uint2(1u, 1u), size);
-    uint2 c01 = min(offset + uint2(0u, 1u), size);
-    float4 p00 = _Source[COORD_TEXTURE2D_X(c00)];
-    float4 p10 = _Source[COORD_TEXTURE2D_X(c10)];
-    float4 p11 = _Source[COORD_TEXTURE2D_X(c11)];
-    float4 p01 = _Source[COORD_TEXTURE2D_X(c01)];
-
-    #if COPY_MIP_0
-    _Mip0[COORD_TEXTURE2D_X(c00)] = p00;
-    _Mip0[COORD_TEXTURE2D_X(c10)] = p10;
-    _Mip0[COORD_TEXTURE2D_X(c11)] = p11;
-    _Mip0[COORD_TEXTURE2D_X(c01)] = p01;
-    #endif
-
-    _Destination[COORD_TEXTURE2D_X(dispatchThreadId.xy)] = (p00 + p01 + p11 + p10) * 0.25;
 }

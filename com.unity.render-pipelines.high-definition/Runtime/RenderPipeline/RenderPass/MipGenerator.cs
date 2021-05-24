@@ -14,6 +14,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
         int m_DepthDownsampleKernel;
         int m_ColorPyramidKernel;
+        int m_ColorPyramidCopyMip0Kernel;
 
         int[] m_SrcOffset;
         int[] m_DstOffset;
@@ -34,6 +35,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
             m_ColorPyramidCS = defaultResources.shaders.colorPyramidCS;
             m_ColorPyramidKernel = m_ColorPyramidCS.FindKernel("KColorGaussian");
+            m_ColorPyramidCopyMip0Kernel = m_ColorPyramidCS.FindKernel("MAIN_CopyMip0");
         }
 
         public void Release()
@@ -331,15 +333,11 @@ namespace UnityEngine.Rendering.HighDefinition
             float sourceScaleY = (float)size.y / (float)hardwareTextureSize.y;
 
             // Copies src mip0 to dst mip0
-            m_PropertyBlock.SetTexture(HDShaderIDs._BlitTexture, source);
-            m_PropertyBlock.SetVector(HDShaderIDs._BlitScaleBias, new Vector4(sourceScaleX, sourceScaleY, 0f, 0f));
-            m_PropertyBlock.SetFloat(HDShaderIDs._BlitMipLevel, 0f);
-            cmd.SetRenderTarget(destination, 0, CubemapFace.Unknown, -1);
-            cmd.SetViewport(new Rect(0, 0, srcMipWidth, srcMipHeight));
-            cmd.DrawProcedural(Matrix4x4.identity, HDUtils.GetBlitMaterial(source.dimension), 0, MeshTopology.Triangles, 3, 1, m_PropertyBlock);
+            cmd.SetComputeTextureParam(m_ColorPyramidCS, m_ColorPyramidCopyMip0Kernel, HDShaderIDs._Source, source, 0);
+            cmd.SetComputeTextureParam(m_ColorPyramidCS, m_ColorPyramidCopyMip0Kernel, HDShaderIDs._Mip0, destination, 0);
+            cmd.DispatchCompute(m_ColorPyramidCS, m_ColorPyramidCopyMip0Kernel, HDUtils.DivRoundUp(size.x, 8), HDUtils.DivRoundUp(size.y, 8), viewCount);
 
-            // Note: smaller mips are excluded as we don't need them and the gaussian compute works
-            // on 8x8 blocks
+            bool isFirstMip = true;
             while (srcMipWidth >= 8 || srcMipHeight >= 8)
             {
                 int dstMipWidth  = Mathf.Max(1, srcMipWidth  >> 1);
@@ -347,13 +345,14 @@ namespace UnityEngine.Rendering.HighDefinition
 
                 // Downsample.
                 cmd.SetComputeVectorParam(m_ColorPyramidCS, HDShaderIDs._Size, new Vector4((float)srcMipWidth, (float)srcMipHeight, 0.0f, 0.0f));
-                cmd.SetComputeTextureParam(m_ColorPyramidCS, m_ColorPyramidKernel, HDShaderIDs._Source, destination, srcMipLevel);
+                cmd.SetComputeTextureParam(m_ColorPyramidCS, m_ColorPyramidKernel, HDShaderIDs._Source, isFirstMip ? source : destination, srcMipLevel);
                 cmd.SetComputeTextureParam(m_ColorPyramidCS, m_ColorPyramidKernel, HDShaderIDs._Destination, destination, srcMipLevel + 1);
                 cmd.DispatchCompute(m_ColorPyramidCS, m_ColorPyramidKernel, HDUtils.DivRoundUp(dstMipWidth, 8), HDUtils.DivRoundUp(dstMipHeight, 8), viewCount);
 
                 srcMipLevel++;
                 srcMipWidth  = dstMipWidth;
                 srcMipHeight = dstMipHeight;
+                isFirstMip = false;
             }
 
             return srcMipLevel + 1;
