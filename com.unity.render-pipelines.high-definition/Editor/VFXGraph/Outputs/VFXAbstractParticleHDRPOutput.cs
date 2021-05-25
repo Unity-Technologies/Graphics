@@ -115,7 +115,6 @@ namespace UnityEditor.VFX.HDRP
         {
             get { return hdrpLitInfo; }
         }
-        public override bool isLitShader { get => true; }
 
         protected override IEnumerable<VFXPropertyWithValue> inputProperties
         {
