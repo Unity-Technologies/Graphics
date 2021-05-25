@@ -16,6 +16,12 @@ namespace UnityEditor.VFX.HDRP
         public override string codeGeneratorTemplate { get { return RenderPipeTemplate("VFXParticleHDRPDecal"); } }
         public override VFXTaskType taskType { get { return VFXTaskType.ParticleHexahedronOutput; } }
 
+        public override void OnEnable()
+        {
+            base.OnEnable();
+            blendMode = BlendMode.Opaque;
+        }
+
         public override IEnumerable<VFXAttributeInfo> attributes
         {
             get
@@ -74,7 +80,7 @@ namespace UnityEditor.VFX.HDRP
             [Tooltip("Angle Fade. Between 0 and 180.")] //TODO : create range attribute?
             public Vector2 angleFade = Vector2.zero;
             [Range(0, 1), Tooltip("Fade Factor.")]
-            public float fadeFactor = 0.0f;
+            public float fadeFactor = 1.0f;
         }
 
         protected override IEnumerable<VFXPropertyWithValue> inputProperties
