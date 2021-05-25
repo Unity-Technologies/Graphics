@@ -56,7 +56,7 @@ namespace UnityEditor.Rendering.HighDefinition
             DirectionalLightShadows = 1 << 2,
             AreaLightShadows = 1 << 3,
         }
-        static readonly ExpandedState<ExpandableShadows, HDRenderPipelineAsset> k_LightsExpandedState = new (0, "HDRP:Shadows");
+        static readonly ExpandedState<ExpandableShadows, HDRenderPipelineAsset> k_LightsExpandedState = new(0, "HDRP:Shadows");
 
         enum ShadowResolutionValue
         {
