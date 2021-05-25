@@ -80,7 +80,6 @@ namespace UnityEditor.ShaderGraph.UnitTests
             {
                 AssetDatabase.StopAssetEditing();
             }
-//            AssetDatabase.Refresh();
             // import all the files in the directory
             // NOTE: this is important, as our shader generation relies on the AssetDatabase being fully populated
             // so we can lookup file paths by GUID.
