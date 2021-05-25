@@ -357,7 +357,7 @@ platforms:
     agents_project:
       default:
         type: Unity::mobile::samsung
-        model: s10e-us
+        model: s10e-eu
         image: mobile/android-execution-r19:stable
         flavor: b1.large
       standalone_build:
@@ -370,7 +370,6 @@ platforms:
           - curl -s https://artifactory.prd.it.unity3d.com/artifactory/unity-tools-local/utr-standalone/utr.bat --output utr.bat
         call_utr:
           - |5-
-                    set ANDROID_DEVICE_CONNECTION=%BOKKEN_DEVICE_IP%
                     git rev-parse HEAD | git show -s --format=%%cI > revdate.tmp
                     set /p GIT_REVISIONDATE=<revdate.tmp
                     echo %GIT_REVISIONDATE%
