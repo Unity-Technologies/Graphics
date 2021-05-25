@@ -52,8 +52,8 @@ URP_Performance_BoatAttack_OSX_Metal_performance_playmode_runtime_mono_Linear_tr
       - sed -i '' 's/172\.28\.218\.\*/172\.28\.224\.\*/g' ~/.ssh/config
 
       # Cleanup stuff for a Yamato Remote re-run. Only delete the source dir on the device if you really need to wipe it.
-      - ssh bokken@$BOKKEN_DEVICE_IP "rm -rf ~/.ssh/id_rsa_cds_github ~/.ssh/config ~/.utr_result ~/setup_codesign.sh"
-      - rm -rf ~/.utr_result
+      # - ssh bokken@$BOKKEN_DEVICE_IP "rm -rf ~/.ssh/id_rsa_cds_github ~/.ssh/config ~/.utr_result ~/setup_codesign.sh"
+      # - rm -rf ~/.utr_result
       # - ssh bokken@$BOKKEN_DEVICE_IP "rm -rf ~/RepoName"
 
       # Setup SSH config. Sets the key to use for github.cds.internal.unity3d.com.
