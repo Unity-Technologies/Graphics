@@ -1,7 +1,8 @@
 * [Visual Effect Graph](index.md)
 * [Requirements](System-Requirements.md)
 * [What's new](whats-new.md)
-  * [10](whats-new-10.md)
+  * [10 / Unity 2020.2](whats-new-10.md)
+  * [11 / Unity 2021.1](whats-new-11.md)
 * [Getting Started](GettingStarted.md)
   * [Visual Effect Graph Assets](VisualEffectGraphAsset.md)
   * [Visual Effect Graph Window](VisualEffectGraphWindow.md)
@@ -350,6 +351,7 @@
     * Random
       * [Random Number](Operator-RandomNumber.md)
     * Sampling
+      * [Buffer Count](Operator-BufferCount.md)
       * [Get Texture Dimensions](Operator-GetTextureDimensions.md)
       * [Load CameraBuffer](Operator-LoadCameraBuffer.md)
       * [Mesh Index Count](Operator-MeshIndexCount.md)
@@ -358,6 +360,7 @@
       * [Load Texture2DArray](Operator-LoadTexture2DArray.md)
       * [Load Texture3D](Operator-LoadTexture3D.md)
       * [Position (Depth)](Operator-Position(Depth).md)
+      * [Sample Buffer](Operator-SampleBuffer.md )
       * [Sample CameraBuffer](Operator-SampleCameraBuffer.md)
       * [Sample Curve](Operator-SampleCurve.md)
       * [Sample Gradient](Operator-SampleGradient.md)

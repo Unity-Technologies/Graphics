@@ -662,14 +662,6 @@ namespace UnityEditor.Rendering.BuiltIn.ShaderGraph
             { RenderState.ColorMask("ColorMask 0") },
         };
 
-        public static readonly RenderStateCollection DepthNormalsOnly = new RenderStateCollection
-        {
-            { RenderState.ZTest(ZTest.LEqual) },
-            { RenderState.ZWrite(ZWrite.On) },
-            { RenderState.Cull(Uniforms.cullMode) },
-            { RenderState.Blend(Uniforms.srcBlend, Uniforms.dstBlend) },
-        };
-
         public static readonly RenderStateCollection SceneSelection = new RenderStateCollection
         {
             { RenderState.Cull(Cull.Off) },
@@ -739,14 +731,6 @@ namespace UnityEditor.Rendering.BuiltIn.ShaderGraph
             { Pragma.Vertex("vert") },
             { Pragma.Fragment("frag") },
         };
-
-        public static readonly PragmaCollection _2DDefault = new PragmaCollection
-        {
-            { Pragma.Target(ShaderModel.Target30) },
-            { Pragma.ExcludeRenderers(new[] { Platform.D3D9 }) },
-            { Pragma.Vertex("vert") },
-            { Pragma.Fragment("frag") },
-        };
     }
     #endregion
 
@@ -761,7 +745,6 @@ namespace UnityEditor.Rendering.BuiltIn.ShaderGraph
         const string kVaryings = "Packages/com.unity.shadergraph/Editor/Generation/Targets/BuiltIn/Editor/ShaderGraph/Includes/Varyings.hlsl";
         const string kShaderPass = "Packages/com.unity.shadergraph/Editor/Generation/Targets/BuiltIn/Editor/ShaderGraph/Includes/ShaderPass.hlsl";
         const string kDepthOnlyPass = "Packages/com.unity.shadergraph/Editor/Generation/Targets/BuiltIn/Editor/ShaderGraph/Includes/DepthOnlyPass.hlsl";
-        const string kDepthNormalsOnlyPass = "Packages/com.unity.shadergraph/Editor/Generation/Targets/BuiltIn/Editor/ShaderGraph/Includes/DepthNormalsOnlyPass.hlsl";
         const string kShadowCasterPass = "Packages/com.unity.shadergraph/Editor/Generation/Targets/BuiltIn/Editor/ShaderGraph/Includes/ShadowCasterPass.hlsl";
 
         const string kShims = "Packages/com.unity.shadergraph/Editor/Generation/Targets/BuiltIn/ShaderLibrary/Shim/Shims.hlsl";
@@ -797,17 +780,6 @@ namespace UnityEditor.Rendering.BuiltIn.ShaderGraph
             // Post-graph
             { CorePostgraph },
             { kDepthOnlyPass, IncludeLocation.Postgraph },
-        };
-
-        public static readonly IncludeCollection DepthNormalsOnly = new IncludeCollection
-        {
-            // Pre-graph
-            { CorePregraph },
-            { ShaderGraphPregraph },
-
-            // Post-graph
-            { CorePostgraph },
-            { kDepthNormalsOnlyPass, IncludeLocation.Postgraph },
         };
 
         public static readonly IncludeCollection ShadowCaster = new IncludeCollection
