@@ -168,7 +168,7 @@ namespace UnityEditor.VFX
             var blendMode = BlendMode.Opaque;
 
             var shaderGraph = GetOrRefreshShaderGraphObject();
-            if (shaderGraph != null && shaderGraph.generatesWithShaderGraph)
+            if (shaderGraph != null && shaderGraph.generatesWithShaderGraph && VFXLibrary.currentSRPBinder != null)
             {
                 // VFX Blend Mode state configures important systems like sorting and indirect buffer.
                 // In the case of SG Generation path, we need to know the blend mode state of the SRP
@@ -303,7 +303,7 @@ namespace UnityEditor.VFX
             {
                 var shaderGraph = GetOrRefreshShaderGraphObject();
 
-                if (shaderGraph == null || !shaderGraph.generatesWithShaderGraph)
+                if (shaderGraph == null || !shaderGraph.generatesWithShaderGraph || VFXLibrary.currentSRPBinder == null)
                     return string.Empty;
 
                 return VFXLibrary.currentSRPBinder.GetShaderName(shaderGraph);
@@ -392,12 +392,14 @@ namespace UnityEditor.VFX
             base.CheckGraphBeforeImport();
             // If the graph is reimported it can be because one of its depedency such as the shadergraphs, has been changed.
             if (!VFXGraph.explicitCompile)
+            {
                 ResyncSlots(true);
 
-            // Ensure that the output context name is in sync with the shader graph shader enum name.
-            if (GetOrRefreshShaderGraphObject() != null &&
-                GetOrRefreshShaderGraphObject().generatesWithShaderGraph)
-                Invalidate(InvalidationCause.kStructureChanged);
+                // Ensure that the output context name is in sync with the shader graph shader enum name.
+                if (GetOrRefreshShaderGraphObject() != null &&
+                    GetOrRefreshShaderGraphObject().generatesWithShaderGraph)
+                    Invalidate(InvalidationCause.kUIChangedTransient);
+            }
         }
 
         protected override IEnumerable<VFXPropertyWithValue> inputProperties
