@@ -202,6 +202,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed HDRP's ShaderGraphVersion migration management which was broken.
 - Fixed missing API documentation for LTC area light code.
 - Fixed diffusion profile breaking after upgrading HDRP (case 1337892).
+- Fixed an issue with TAA causing objects not to render at extremely high far flip plane values.
 
 ### Changed
 - Changed Window/Render Pipeline/HD Render Pipeline Wizard to Window/Rendering/HDRP Wizard
