@@ -392,11 +392,11 @@ namespace UnityEngine.Rendering.HighDefinition
             if (ShaderConfig.s_AreaLights == 1)
             {
                 HDShadowAtlas.HDShadowAtlasInitParameters cachedAreaAtlasInitParams = areaAtlasInitParams;
-                areaAtlasInitParams.useSharedTexture = true;
-                areaAtlasInitParams.width = initParams.cachedAreaLightShadowAtlas;
-                areaAtlasInitParams.height = initParams.cachedAreaLightShadowAtlas;
-                areaAtlasInitParams.atlasShaderID = HDShaderIDs._CachedAreaLightShadowmapAtlas;
-                areaAtlasInitParams.name = "Cached Area Light Shadow Map Atlas";
+                cachedAreaAtlasInitParams.useSharedTexture = true;
+                cachedAreaAtlasInitParams.width = initParams.cachedAreaLightShadowAtlas;
+                cachedAreaAtlasInitParams.height = initParams.cachedAreaLightShadowAtlas;
+                cachedAreaAtlasInitParams.atlasShaderID = HDShaderIDs._CachedAreaLightShadowmapAtlas;
+                cachedAreaAtlasInitParams.name = "Cached Area Light Shadow Map Atlas";
 
                 cachedShadowManager.InitAreaLightShadowAtlas(cachedAreaAtlasInitParams);
             }
