@@ -50,8 +50,6 @@ You can open bugs by using the [bug reporter system](https://unity3d.com/unity/q
 
 URP and the Built-in Render Pipeline have different quality settings. While the Built-in Render Pipeline configures many settings in different places like the Quality Settings, Graphics Settings, and Player Settings, all URP settings are stored in the URP Asset. The first thing to do is to check whether your URP Asset settings match the settings your Built-in render pipeline Project. For example, if you disabled MSAA or HDR in your Built-in render pipeline Project, make sure they are disabled in the URP Asset in your URP Project. For advice on configuring URP Assets, see documentation on the [URP Asset](universalrp-asset.md).
 
-Also, make sure you are doing a fair comparison in terms of renderers. For this release, URP only supports a forward renderer, so make sure your Built-in render pipeline Project is using the forward renderer as well.
-
 If, after comparing the settings, you still experience worse performance with URP, please [open a bug report](https://unity3d.com/unity/qa/bug-reporting) and attach your Project.
 ## URP doesn’t run on device X or platform Y. Is this expected?
 

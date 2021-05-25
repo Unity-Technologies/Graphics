@@ -1,6 +1,6 @@
-# Forward Renderer
+# Universal Renderer
 
-This page describes the URP Forward Renderer settings.
+This page describes the URP Universal Renderer settings.
 
 The Forward Renderer in URP implements the forward rendering path.
 
@@ -14,7 +14,7 @@ To find the Forward Renderer asset that a URP asset is using:
 
 2. In the Renderer List section, click a renderer item or the vertical ellipsis icon (&vellip;) next to a renderer.
 
-    ![How to find the Forward Renderer asset](Images/urp-assets/find-renderer.png)
+    ![How to find the Universal Renderer asset](Images/urp-assets/find-renderer.png)
 
 When you create a new project using the Universal Render Pipeline template, the Forward Renderer asset is in the following location:
 
@@ -26,7 +26,7 @@ When you create a new project using the Universal Render Pipeline template, the 
 
 This section describes the properties of the Forward Renderer asset.
 
-![URP Forward Renderer](Images/urp-assets/urp-forward-renderer.png)
+![URP Universal Renderer](Images/urp-assets/urp-universal-renderer.png)
 
 ### Filtering
 
@@ -53,7 +53,7 @@ This section contains Render Pipeline properties that this Renderer overrides.
 
 With this check box selected, the Renderer processes the Stencil buffer values.
 
-![URP Forward Renderer Stencil override](Images/urp-assets/urp-forward-renderer-stencil-on.png)
+![URP Universal Renderer Stencil override](Images/urp-assets/urp-universal-renderer-stencil-on.png)
 
 For more information on how Unity works with the Stencil buffer, see [ShaderLab: Stencil](https://docs.unity3d.com/Manual/SL-Stencil.html).
 
