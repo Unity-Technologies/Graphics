@@ -399,7 +399,7 @@ namespace UnityEditor.Rendering.Universal
             }
         }
 
-        public const bool useList = false;
+        public const bool useList = true;
 
         public void OnProcessShader(Shader shader, ShaderSnippetData snippetData, IList<ShaderCompilerData> compilerDataList)
         {
