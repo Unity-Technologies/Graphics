@@ -179,7 +179,7 @@ namespace UnityEditor.Rendering.BuiltIn.ShaderGraph
                         else if (blendMode == BlendMode.Premultiply)
                             SetBlendMode(material, UnityEngine.Rendering.BlendMode.One, UnityEngine.Rendering.BlendMode.OneMinusSrcAlpha);
                         else if (blendMode == BlendMode.Additive)
-                            SetBlendMode(material, UnityEngine.Rendering.BlendMode.One, UnityEngine.Rendering.BlendMode.One);
+                            SetBlendMode(material, UnityEngine.Rendering.BlendMode.SrcAlpha, UnityEngine.Rendering.BlendMode.One);
                         else if (blendMode == BlendMode.Multiply)
                             SetBlendMode(material, UnityEngine.Rendering.BlendMode.DstColor, UnityEngine.Rendering.BlendMode.Zero);
                         CoreUtils.SetKeyword(material, Keyword.SG_AlphaPremultiplyOn, blendMode == BlendMode.Premultiply);
