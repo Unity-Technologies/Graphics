@@ -120,7 +120,7 @@ namespace UnityEditor.Rendering.HighDefinition
             m_MultiScattering = Unpack(o.Find(x => x.multiScattering));
             m_AmbientLightProbeDimmer = Unpack(o.Find(x => x.ambientLightProbeDimmer));
             m_ErosionOcclusion = Unpack(o.Find(x => x.erosionOcclusion));
-            
+
             // Wind
             m_GlobalWindSpeed = Unpack(o.Find(x => x.globalWindSpeed));
             m_Orientation = Unpack(o.Find(x => x.orientation));

@@ -86,7 +86,6 @@ namespace UnityEngine.Rendering.HighDefinition
 
         void PrepareCustomLutData(in VolumetricClouds clouds)
         {
-
             if (m_CustomLutPresetMap == null)
             {
                 m_CustomLutPresetMap = new Texture2D(1, k_CustomLutMapResolution, GraphicsFormat.R16G16B16A16_SFloat, TextureCreationFlags.None)
@@ -116,7 +115,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 {
                     float currTime = step * i;
                     float density = Mathf.Clamp(densityCurve.Evaluate(currTime), 0.0f, 1.0f);
-                    float erosion = Mathf.Clamp(erosionCurve.Evaluate(currTime), 0.0f, 1.0f); ;
+                    float erosion = Mathf.Clamp(erosionCurve.Evaluate(currTime), 0.0f, 1.0f);;
                     float ambientOcclusion = Mathf.Clamp(ambientOcclusionCurve.Evaluate(currTime), 0.0f, 1.0f);
                     pixels[i] = new Color(density, erosion, ambientOcclusion, 1.0f);
                 }
