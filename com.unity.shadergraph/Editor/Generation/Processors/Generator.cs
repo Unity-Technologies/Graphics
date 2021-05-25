@@ -493,7 +493,8 @@ namespace UnityEditor.ShaderGraph
                     }
                 }
 
-                bool debugShader = true;        // NOCHECKIN -- TODO -- keep this disabled in repo
+                // Enable this to turn on shader debugging
+                bool debugShader = false;
                 if (debugShader)
                 {
                     passPragmaBuilder.AppendLine("#pragma enable_d3d11_debug_symbols");
