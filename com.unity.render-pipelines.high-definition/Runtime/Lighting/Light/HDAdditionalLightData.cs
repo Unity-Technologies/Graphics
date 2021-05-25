@@ -2110,10 +2110,10 @@ namespace UnityEngine.Rendering.HighDefinition
         // area light shape is included in the cone spanned by the spot light.
         internal static float GetAreaLightOffsetForShadows(Vector2 shapeSize, float coneAngle)
         {
-            float rectangleDiagonal = shapeSize.magnitude;
+            float halfMinSize = Mathf.Min(shapeSize.x, shapeSize.y) * 0.5f;
             float halfAngle = coneAngle * 0.5f;
             float cotanHalfAngle = 1.0f / Mathf.Tan(halfAngle * Mathf.Deg2Rad);
-            float offset = rectangleDiagonal * cotanHalfAngle;
+            float offset = halfMinSize * cotanHalfAngle;
 
             return -offset;
         }
@@ -2179,8 +2179,7 @@ namespace UnityEngine.Rendering.HighDefinition
                         case AreaLightShape.Rectangle:
                             Vector2 shapeSize = new Vector2(shapeWidth, m_ShapeHeight);
                             float offset = GetAreaLightOffsetForShadows(shapeSize, areaLightShadowCone);
-                            Vector3 shadowOffset = offset * visibleLight.GetForward();
-                            HDShadowUtils.ExtractRectangleAreaLightData(visibleLight, visibleLight.GetPosition() + shadowOffset, areaLightShadowCone, shadowNearPlane, shapeSize, viewportSize, normalBias, filteringQuality,
+                            HDShadowUtils.ExtractRectangleAreaLightData(visibleLight, offset, areaLightShadowCone, shadowNearPlane, shapeSize, viewportSize, normalBias, filteringQuality,
                                 out shadowRequest.view, out invViewProjection, out shadowRequest.projection, out shadowRequest.deviceProjection, out shadowRequest.deviceProjectionYFlip, out shadowRequest.splitData);
                             break;
                         case AreaLightShape.Tube:
@@ -2329,8 +2328,8 @@ namespace UnityEngine.Rendering.HighDefinition
             }
             else
             {
-                var vlPos = visibleLight.GetPosition();
-                shadowRequest.position = (ShaderConfig.s_CameraRelativeRendering != 0) ? vlPos - cameraPos : vlPos;
+                // TODO: consider passing the area light's offset to this function instead of inverting this matrix again
+                shadowRequest.position = shadowRequest.view.inverse.GetColumn(3);
             }
 
             shadowRequest.shadowToWorld = invViewProjection.transpose;
