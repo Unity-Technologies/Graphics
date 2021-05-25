@@ -29,6 +29,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Added URP Global Settings Asset to the Graphics Settings - a common place for project-wide URP settings.
 - Added possibility to rename light layer values.
 - Added Light cookies support to directional, point and spot light. Directional light cookie is main light only feature.
+- Added GetUniversalAdditionalLightData, a method that returns the additional data component for a given light or create one if it doesn't exist yet.
 - VFX: Basic support of Lit output.
 
 ### Changed
