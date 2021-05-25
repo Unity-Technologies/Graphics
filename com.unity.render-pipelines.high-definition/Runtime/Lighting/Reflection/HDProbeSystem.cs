@@ -181,6 +181,8 @@ namespace UnityEngine.Rendering.HighDefinition
 
         internal void RegisterProbe(HDProbe probe)
         {
+            probe.SubscribeSHBaking();
+
             var settings = probe.settings;
             switch (settings.mode)
             {
@@ -226,6 +228,8 @@ namespace UnityEngine.Rendering.HighDefinition
 
         internal void UnregisterProbe(HDProbe probe)
         {
+            probe.UnsubscribeSHBaking();
+
             m_BakedProbes.Remove(probe);
             m_RealtimeViewDependentProbes.Remove(probe);
             m_RealtimeViewIndependentProbes.Remove(probe);

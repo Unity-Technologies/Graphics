@@ -340,6 +340,18 @@ namespace UnityEngine.Rendering.HighDefinition
             cb._ProbeVolumeBilateralFilterWeight = 0.0f;
             cb._ProbeVolumeBilateralFilterOctahedralDepthParameters = Vector2.zero;
 
+            bool probeVolumeReflectionProbeNormalizationEnabled = false;
+            bool probeVolumeReflectionProbeNormalizationDCOnly = false;
+            float probeVolumeReflectionProbeNormalizationMin = 1.0f;
+            float probeVolumeReflectionProbeNormalizationMax = 1.0f;
+
+            cb._ProbeVolumeReflectionProbeNormalizationParameters = new Vector4(
+                probeVolumeReflectionProbeNormalizationEnabled ? 1.0f : 0.0f,
+                probeVolumeReflectionProbeNormalizationDCOnly ? 1.0f : 0.0f,
+                probeVolumeReflectionProbeNormalizationMin,
+                probeVolumeReflectionProbeNormalizationMax
+            );
+
             // Need to populate ambient probe fallback even in the default case,
             // As if the feature is enabled in the ShaderConfig, but disabled in the HDRenderPipelineAsset, we need to fallback to ambient probe only.
             SphericalHarmonicsL2 ambientProbeFallbackSH = m_SkyManager.GetAmbientProbe(hdCamera);
@@ -416,6 +428,21 @@ namespace UnityEngine.Rendering.HighDefinition
                     settings.octahedralDepthLightBleedReductionThreshold.value
                 );
             }
+
+            bool probeVolumeReflectionProbeNormalizationEnabled = settings.reflectionProbeNormalizationWeight.value >= 1e-5f;
+            bool probeVolumeReflectionProbeNormalizationDCOnly = settings.reflectionProbeNormalizationDCOnly.value;
+            float probeVolumeReflectionProbeNormalizationMin = probeVolumeReflectionProbeNormalizationEnabled ? 0.0f : 1.0f;
+            float probeVolumeReflectionProbeNormalizationMax = (probeVolumeReflectionProbeNormalizationEnabled && !settings.reflectionProbeNormalizationDarkenOnly.value) ? float.MaxValue : 1.0f;
+            probeVolumeReflectionProbeNormalizationEnabled = ((Mathf.Abs(probeVolumeReflectionProbeNormalizationMin - 1.0f) < 1e-5f) && (Mathf.Abs(probeVolumeReflectionProbeNormalizationMax - 1.0f) < 1e-5f))
+                ? false
+                : probeVolumeReflectionProbeNormalizationEnabled;
+
+            cb._ProbeVolumeReflectionProbeNormalizationParameters = new Vector4(
+                settings.reflectionProbeNormalizationWeight.value,
+                probeVolumeReflectionProbeNormalizationDCOnly ? 1.0f : 0.0f,
+                probeVolumeReflectionProbeNormalizationMin,
+                probeVolumeReflectionProbeNormalizationMax
+            );
 
             SphericalHarmonicsL2 ambientProbeFallbackSH = m_SkyManager.GetAmbientProbe(hdCamera);
             SphericalHarmonicMath.PackCoefficients(s_AmbientProbeFallbackPackedCoeffs, ambientProbeFallbackSH);

@@ -266,6 +266,8 @@ namespace UnityEngine.Rendering.HighDefinition
         public float    _Pad8;
         public float    _Pad9;
 
+        public Vector4  _ProbeVolumeReflectionProbeNormalizationParameters;
+
         [HLSLArray(7, typeof(Vector4))]
         public fixed float _ProbeVolumeAmbientProbeFallbackPackedCoeffs[7 * 4]; // 3 bands of SH, packed for storing global ambient probe lighting as fallback to probe volumes.
 

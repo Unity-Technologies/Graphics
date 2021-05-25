@@ -664,7 +664,11 @@ namespace UnityEngine.Rendering.HighDefinition
 
         internal int GetBakeID()
         {
-            return GetID();
+            int id = GetID();
+#if UNITY_EDITOR
+            Debug.Assert(id != AdditionalGIBakeRequestsManager.s_BakingID);
+#endif
+            return id;
         }
 
         internal int GetAtlasID()
