@@ -9,6 +9,7 @@
 #pragma multi_compile _ PHYSICALLY_BASED_SUN
 #pragma multi_compile _ PLANAR_REFLECTION_CAMERA
 #pragma multi_compile _ LOCAL_VOLUMETRIC_CLOUDS
+#pragma multi_compile _ ENABLE_MSAA
 
 // #pragma enable_d3d11_debug_symbols
 
@@ -43,6 +44,10 @@
 #define NOISE_TEXTURE_NORMALIZATION_FACTOR 100000.0f
 // Maximal distance until which the "skybox"
 #define MAX_SKYBOX_VOLUMETRIC_CLOUDS_DISTANCE 200000.0f
+
+#if defined(ENABLE_MSAA)
+#define USE_INTERMEDIATE_BUFFER
+#endif
 
 // HDRP generic includes
 #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Common.hlsl"
@@ -989,11 +994,15 @@ CBUFFER_END
 TEXTURE2D_X(_VolumetricCloudsTexture);
 TEXTURE2D_X(_DepthStatusTexture);
 
+#ifdef USE_INTERMEDIATE_BUFFER
+RW_TEXTURE2D_X(float4, _VolumetricCloudsUpscaleTextureRW);
+#else
 // Input output camera color buffer
 #ifndef CAN_RW_ON_COLOR_BUFFER
 TEXTURE2D_X(_CameraColorTexture);
 #endif
 RW_TEXTURE2D_X(float4, _CameraColorTextureRW);
+#endif
 
 void FillLDSUpscale(uint groupIndex, uint2 groupOrigin)
 {
@@ -1049,13 +1058,6 @@ void UPSAMPLE_KERNEL(uint3 finalCoord : SV_DispatchThreadID,
     // Grab the depth value of the pixel
     float highDepth = LOAD_TEXTURE2D_X(_DepthTexture, finalCoord.xy).x;
 
-    // Read the color buffer
-#ifdef CAN_RW_ON_COLOR_BUFFER
-    float4 currentColor = _CameraColorTextureRW[COORD_TEXTURE2D_X(finalCoord.xy)];
-#else
-    float4 currentColor = _CameraColorTexture[COORD_TEXTURE2D_X(finalCoord.xy)];
-#endif
-
     // Structure that will hold everything
     NeighborhoodUpsampleData3x3 upsampleData;
 
@@ -1106,8 +1108,19 @@ void UPSAMPLE_KERNEL(uint3 finalCoord : SV_DispatchThreadID,
     EvaluateAtmosphericScattering(cloudPosInput, viewDir, fogColor, fogOpacity);
     currentClouds.xyz = currentClouds.xyz * (1 - fogOpacity) + fogColor * (1.0 - currentClouds.a);
 
+#ifdef USE_INTERMEDIATE_BUFFER
+    // Store the upscaled result only, composite in later pass.
+    _VolumetricCloudsUpscaleTextureRW[COORD_TEXTURE2D_X(finalCoord.xy)] = currentClouds;
+#else
+    // Read the color buffer
+#ifdef CAN_RW_ON_COLOR_BUFFER
+    float4 currentColor = _CameraColorTextureRW[COORD_TEXTURE2D_X(finalCoord.xy)];
+#else
+    float4 currentColor = _CameraColorTexture[COORD_TEXTURE2D_X(finalCoord.xy)];
+#endif
     // If this is a background pixel, we want the cloud value, otherwise we do not.
     _CameraColorTextureRW[COORD_TEXTURE2D_X(finalCoord.xy)] = float4(currentColor.xyz * currentClouds.a + currentClouds.xyz, currentColor.a);
+#endif
 }
 
 RW_TEXTURE2D(float3, _VolumetricCloudsShadowRW);
