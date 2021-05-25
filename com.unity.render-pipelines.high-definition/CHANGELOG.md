@@ -277,6 +277,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Splited HDProjectSettings with new HDUserSettings in UserProject. Now Wizard working variable should not bother versioning tool anymore (case 1330640)
 - Removed redundant Show Inactive Objects and Isolate Selection checkboxes from the Emissive Materials tab of the Light Explorer (case 1331750).
 - Renaming Decal Projector to HDRP Decal Projector.
+- Moved supportRuntimeDebugDisplay option from HDRPAsset to HDRPGlobalSettings.
 
 ## [11.0.0] - 2020-10-21
 
