@@ -340,6 +340,9 @@ namespace UnityEditor.Rendering.HighDefinition
         {
             using (new EditorGUI.IndentLevelScope())
             {
+                scalableSetting.ValueGUI<int>(Styles.shadowResolutionTiers);
+                EditorGUILayout.DelayedIntField(resolutionProperty, Styles.maxShadowResolution);
+
                 EditorGUILayout.LabelField(Styles.shadowLightAtlasSubTitle, EditorStyles.boldLabel);
 
                 using (new EditorGUI.IndentLevelScope())
@@ -355,9 +358,6 @@ namespace UnityEditor.Rendering.HighDefinition
                     EditorGUILayout.IntPopup(serializedAtlasInitParams.shadowMapDepthBits, Styles.shadowBitDepthNames, Styles.shadowBitDepthValues, Styles.precisionContent);
                     EditorGUILayout.PropertyField(serializedAtlasInitParams.useDynamicViewportRescale, Styles.dynamicRescaleContent);
                 }
-
-                scalableSetting.ValueGUI<int>(Styles.shadowResolutionTiers);
-                EditorGUILayout.DelayedIntField(resolutionProperty, Styles.maxShadowResolution);
             }
         }
 

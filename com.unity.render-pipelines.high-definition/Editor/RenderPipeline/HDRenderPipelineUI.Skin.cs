@@ -36,7 +36,7 @@ namespace UnityEditor.Rendering.HighDefinition
 
             public static readonly GUIContent shadowLightAtlasSubTitle = EditorGUIUtility.TrTextContent("Light Atlas");
 
-            public static readonly GUIContent shadowResolutionTiers = EditorGUIUtility.TrTextContent("Shadow Resolution Tiers");
+            public static readonly GUIContent shadowResolutionTiers = EditorGUIUtility.TrTextContent("Resolution Tiers");
 
             public static readonly GUIContent dynamicResolutionSubTitle = EditorGUIUtility.TrTextContent("Dynamic resolution");
             public static readonly GUIContent lowResTransparencySubTitle = EditorGUIUtility.TrTextContent("Low res Transparency");
@@ -199,7 +199,7 @@ namespace UnityEditor.Rendering.HighDefinition
 
             public static readonly GUIContent resolutionContent = EditorGUIUtility.TrTextContent("Resolution", "Specifies the resolution of the shadow Atlas.");
             public static readonly GUIContent cachedShadowAtlasResolution = EditorGUIUtility.TrTextContent("Cached Resolution", "Specifies the resolution of the shadow Atlas that contains the cached shadow maps.");
-            public static readonly GUIContent directionalShadowPrecisionContent = EditorGUIUtility.TrTextContent("Directional Shadow Precision", "Select the shadow map bit depth, this forces HDRP to use selected bit depth for shadow maps.");
+            public static readonly GUIContent directionalShadowPrecisionContent = EditorGUIUtility.TrTextContent("Precision", "Select the shadow map bit depth, this forces HDRP to use selected bit depth for shadow maps.");
             public static readonly GUIContent precisionContent = EditorGUIUtility.TrTextContent("Precision", "Select the shadow map bit depth, this forces HDRP to use selected bit depth for shadow maps.");
             public static readonly GUIContent dynamicRescaleContent = EditorGUIUtility.TrTextContent("Dynamic Rescale", "When enabled, scales the shadow map size using the screen size of the Light to leave more space for other shadows in the atlas.");
             public static readonly GUIContent maxRequestContent = EditorGUIUtility.TrTextContent("Maximum Shadows on Screen", "Sets the maximum number of shadows HDRP can handle on screen at once. See the documentation for details on how many shadows each light type casts.");
@@ -213,7 +213,7 @@ namespace UnityEditor.Rendering.HighDefinition
             public static readonly GUIContent supportScreenSpaceShadows = EditorGUIUtility.TrTextContent("Screen Space Shadows", "Enables the support of screen space shadows in HDRP.");
             public static readonly GUIContent maxScreenSpaceShadowSlots = EditorGUIUtility.TrTextContent("Maximum", "Sets the maximum number of screen space shadows slots HDRP can handle on screen at once. Opaque shadows requires one slot, color shadow requires three.");
             public static readonly GUIContent screenSpaceShadowFormat = EditorGUIUtility.TrTextContent("Buffer Format", "Defines the format of the buffer used for screen space shadows. The buffer format can be R8G8B8A8 or R16G16B16A16.");
-            public static readonly GUIContent maxShadowResolution = EditorGUIUtility.TrTextContent("Max shadow resolution", "Specifies the maximum resolution for any single shadow map.");
+            public static readonly GUIContent maxShadowResolution = EditorGUIUtility.TrTextContent("Max Resolution", "Specifies the maximum resolution for any single shadow map.");
 
             public static readonly GUIContent drawDistanceContent = EditorGUIUtility.TrTextContent("Draw Distance", "Sets the maximum distance from the Camera at which HDRP draws Decals.");
             public static readonly GUIContent atlasWidthContent = EditorGUIUtility.TrTextContent("Atlas Width", "Sets the width of the Decal Atlas.");
