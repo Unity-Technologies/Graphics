@@ -372,7 +372,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 areaAtlasInitParams.width = initParams.areaLightShadowAtlas.shadowAtlasResolution;
                 areaAtlasInitParams.height = initParams.areaLightShadowAtlas.shadowAtlasResolution;
                 areaAtlasInitParams.atlasShaderID = HDShaderIDs._ShadowmapAreaAtlas;
-                areaAtlasInitParams.blurAlgorithm = HDShadowAtlas.BlurAlgorithm.EVSM;
+                areaAtlasInitParams.blurAlgorithm = GetAreaLightShadowBlurAlgorithm();
                 areaAtlasInitParams.depthBufferBits = initParams.areaLightShadowAtlas.shadowAtlasDepthBits;
                 areaAtlasInitParams.name = "Area Light Shadow Map Atlas";
 
@@ -386,7 +386,6 @@ namespace UnityEngine.Rendering.HighDefinition
             cachedPunctualAtlasInitParams.height = initParams.cachedPunctualLightShadowAtlas;
             cachedPunctualAtlasInitParams.atlasShaderID = HDShaderIDs._CachedShadowmapAtlas;
             cachedPunctualAtlasInitParams.name = "Cached Shadow Map Atlas";
-
 
             cachedShadowManager.InitPunctualShadowAtlas(cachedPunctualAtlasInitParams);
             if (ShaderConfig.s_AreaLights == 1)
@@ -445,6 +444,12 @@ namespace UnityEngine.Rendering.HighDefinition
             }
             ;
             return DirectionalShadowAlgorithm.PCF5x5;
+        }
+
+        public static HDShadowAtlas.BlurAlgorithm GetAreaLightShadowBlurAlgorithm()
+        {
+            return HDRenderPipeline.currentAsset.currentPlatformRenderPipelineSettings.hdShadowInitParams.shadowFilteringQuality == HDShadowFilteringQuality.VeryHigh ? 
+                HDShadowAtlas.BlurAlgorithm.None : HDShadowAtlas.BlurAlgorithm.EVSM;
         }
 
         public void UpdateShaderVariablesGlobalCB(ref ShaderVariablesGlobal cb)
