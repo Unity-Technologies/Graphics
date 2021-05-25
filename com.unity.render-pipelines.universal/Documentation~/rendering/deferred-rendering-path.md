@@ -2,6 +2,8 @@
 
 URP Universal Renderer supports two Rendering Paths: Forward and Deferred.
 
+For information on differences between the rendering paths, see section [Rendering Path comparison](../urp-universal-renderer.md#rendering-path-comparison).
+
 This section describes the Deferred Rendering Path.
 
 ![Scene rendered with the Deferred Rendering Path](../Images/rendering-deferred/deferred-intro-image.png)<br/>*Sample Scene rendered with the Deferred Rendering Path.*
@@ -9,8 +11,6 @@ This section describes the Deferred Rendering Path.
 This section contains the following topics:
 
 * [How to select the Deferred Rendering Path](#how-to-enable)
-
-* [Rendering Path comparison](#rendering-path-comparison)
 
 * [Unity Player system requirements](#requirements)
 
@@ -28,19 +28,15 @@ To select the Rendering Path, use the property **Lighting** > **Rendering Path**
 
 ![Select the Rendering Path in the URP Universal Renderer asset](../Images/rendering-deferred/urp-renderer-select-deferred-path.png)
 
-When you select the Deferred Rendering Path, Unity shows the [Accurate G-buffer normals](#accurate-g-buffer-normals) property. Read more about this property in section [Implementation details](#implementation-details).
+When you select the Deferred Rendering Path, Unity shows the [Accurate G-buffer normals](#accurate-g-buffer-normals) property.
 
-## Rendering Path comparison
+The **Accurate G-buffer normals** property lets you configure how Unity encodes the normals when storing them in the G-buffer.
 
-The following table shows the differences between the Forward and the Deferred Rendering Paths in URP.
+* **Accurate G-buffer normals** off: This option increases performance, especially on mobile GPUs, but might lead to color banding artifacts on smooth surfaces.
 
-| Feature | Forward | Deferred |
-|---------|---------|----------|
-| Maximum number of real-time lights per object. | 9 Lights per object. | Unlimited number of real-time lights. |
-| Per-pixel normal encoding | No encoding (accurate normal values). | Two options:<ul><li>Quantization of normals in G-buffer (loss of accuracy, better performance).</li><li>Octahedron encoding (accurate normals, might have significant performance impact on mobile GPUs).</li></ul>For more information, see the section [Encoding of normals in G-buffer](#accurate-g-buffer-normals). |
-| MSAA | Yes | No |
-| Vertex lighting | Yes | No |
-| Camera stacking | Yes | Supported with a limitation: Unity renders only the base Camera using the Deferred Rendering Path. Unity renders all overlay Cameras using the Forward Rendering Path. |
+* **Accurate G-buffer normals** on: Unity uses the octahedron encoding to store values of normal vectors in the RGB channel of a normal texture. With this encoding, values of normal vectors are more accurate, but the encoding and decoding operations put extra load on the GPU.
+
+For more information about this setting, see the section [Encoding of normals in G-buffer](#accurate-g-buffer-normals).
 
 ## <a name="requirements"></a>Unity Player system requirements
 
@@ -53,30 +49,6 @@ The Deferred Rendering Path has the following requirements and limitations on to
 ## Implementation details
 
 This section describes the implementation details of this feature, and technical details about how this feature functions.
-
-### <a name="accurate-g-buffer-normals"></a>Encoding of normals in G-buffer
-
-In the Deferred Rendering Path, Unity stores normals in the G-buffer. Unity encodes each normal as a 24 bit value.
-
-When you select the **Deferred** option in the **Rendering Path** property in the URP Universal Renderer asset, Unity shows the **Accurate G-buffer normals** property.
-
-![The Accurate G-buffer normals property in the URP Universal Renderer asset](../Images/rendering-deferred/urp-renderer-accurate-g-buffer-normals.png)
-
-The **Accurate G-buffer normals** property lets you configure how Unity encodes the normals.
-
-* **Accurate G-buffer normals** off: Unity stores values of normal vectors in the G-buffer in the RGB channel of a normal texture, 8 bit per value (x, y, z). The values are quantized with the loss of accuracy. This option increases performance, especially on mobile GPUs, but might lead to color banding artifacts on smooth surfaces.
-
-* **Accurate G-buffer normals** on: Unity uses the octahedron encoding to stores values of normal vectors in the RGB channel of a normal texture. With this encoding, values of normal vectors are more accurate, but the encoding and decoding operations put extra load on the GPU.<br/>The precision of the encoded normal vectors is similar to the precision of the sampled values in the Forward Rendering Path.
-
-The following illustration shows the visual difference between the two options when the Camera is very close to the GameObject:
-
-![Accurate G-buffer normals, visual difference between the two options.](../Images/rendering-deferred/difference-accurate-g-buffer-normals-on-off.png)
-
-**Performance considerations**
-
-With **Accurate G-buffer normals** option turned on, there is extra load on the GPU because of the encoding and decoding operations. This load is insignificant for desktop platforms and consoles, but might be considerable for mobile GPUs.
-
-Turning the option on does not increase the memory footprint. To store the normals, Unity uses the same RGB channel in the normal texture regardless of the encoding.
 
 ### G-buffer layout
 
@@ -159,6 +131,30 @@ Unity adds this render target to the G-buffer layout when the Light Layers featu
 Unity reserves the four highest bits of this render target to mark the Material type. See also [URP Pass tags: UniversalMaterialType](../urp-shaders/urp-shaderlab-pass-tags.md#universalmaterialtype).
 
 For this render target, Unity selects either the D32F_S8 format, or the D24S8 format depending on the platform.
+
+### <a name="accurate-g-buffer-normals"></a>Encoding of normals in G-buffer
+
+In the Deferred Rendering Path, Unity stores normals in the G-buffer. Unity encodes each normal as a 24 bit value.
+
+When you select the **Deferred** option in the **Rendering Path** property in the URP Universal Renderer asset, Unity shows the **Accurate G-buffer normals** property.
+
+![The Accurate G-buffer normals property in the URP Universal Renderer asset](../Images/rendering-deferred/urp-renderer-accurate-g-buffer-normals.png)
+
+The **Accurate G-buffer normals** property lets you configure how Unity encodes the normals.
+
+* **Accurate G-buffer normals** off: Unity stores values of normal vectors in the G-buffer in the RGB channel of a normal texture, 8 bit per value (x, y, z). The values are quantized with the loss of accuracy. This option increases performance, especially on mobile GPUs, but might lead to color banding artifacts on smooth surfaces.
+
+* **Accurate G-buffer normals** on: Unity uses the octahedron encoding to store values of normal vectors in the RGB channel of a normal texture. With this encoding, values of normal vectors are more accurate, but the encoding and decoding operations put extra load on the GPU.<br/>The precision of the encoded normal vectors is similar to the precision of the sampled values in the Forward Rendering Path.
+
+The following illustration shows the visual difference between the two options when the Camera is very close to the GameObject:
+
+![Accurate G-buffer normals, visual difference between the two options.](../Images/rendering-deferred/difference-accurate-g-buffer-normals-on-off.png)
+
+**Performance considerations**
+
+With **Accurate G-buffer normals** option turned on, there is extra load on the GPU because of the encoding and decoding operations. This load is insignificant for desktop platforms and consoles, but might be considerable for mobile GPUs.
+
+Turning the option on does not increase the memory footprint. To store the normals, Unity uses the same RGB channel in the normal texture regardless of the encoding.
 
 ### <a name="render-passes"></a>Deferred Rendering Path render Passes
 

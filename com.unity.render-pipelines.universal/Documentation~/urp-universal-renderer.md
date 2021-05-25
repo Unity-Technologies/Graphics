@@ -2,13 +2,31 @@
 
 This page describes the URP Universal Renderer settings.
 
-The Forward Renderer in URP implements the forward rendering path.
+For more information on rendering in URP, see also [Rendering in the Universal Render Pipeline](rendering-in-universalrp.md).
 
-For more information on how URP implements and uses the Forward Renderer, see [Rendering in the Universal Render Pipeline](rendering-in-universalrp.md).
+## Rendering Paths
 
-## How to find the Forward Renderer asset
+The URP Universal Renderer implements two Rendering Paths:
 
-To find the Forward Renderer asset that a URP asset is using:
+* Forward Rendering Path.
+
+* [Deferred Rendering Path](rendering/deferred-rendering-path.md).
+
+### Rendering Path comparison
+
+The following table shows the differences between the Forward and the Deferred Rendering Paths in URP.
+
+| Feature | Forward | Deferred |
+|---------|---------|----------|
+| Maximum number of real-time lights per object. | 9 Lights per object. | Unlimited number of real-time lights. |
+| Per-pixel normal encoding | No encoding (accurate normal values). | Two options:<ul><li>Quantization of normals in G-buffer (loss of accuracy, better performance).</li><li>Octahedron encoding (accurate normals, might have significant performance impact on mobile GPUs).</li></ul>For more information, see the section [Encoding of normals in G-buffer](rendering/deferred-rendering-path.md#accurate-g-buffer-normals). |
+| MSAA | Yes | No |
+| Vertex lighting | Yes | No |
+| Camera stacking | Yes | Supported with a limitation: Unity renders only the base Camera using the Deferred Rendering Path. Unity renders all overlay Cameras using the Forward Rendering Path. |
+
+## How to find the Universal Renderer asset
+
+To find the Universal Renderer asset that a URP asset is using:
 
 1. Select a URP asset.
 
@@ -16,13 +34,7 @@ To find the Forward Renderer asset that a URP asset is using:
 
     ![How to find the Universal Renderer asset](Images/urp-assets/find-renderer.png)
 
-When you create a new project using the Universal Render Pipeline template, the Forward Renderer asset is in the following location:
-
-```
-/Assets/Settings/ForwardRenderer.asset
-```
-
-## Forward Renderer asset reference
+## Universal Renderer asset reference
 
 This section describes the properties of the Forward Renderer asset.
 

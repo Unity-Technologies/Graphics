@@ -1,13 +1,13 @@
 #Rendering in the Universal Render Pipeline
 
-The Universal Render Pipeline (URP) renders Scenes using the:
+The Universal Render Pipeline (URP) renders Scenes using the following components:
 
-- Renderer. URP contains the following Renderers:
+- URP Renderer. URP contains the following Renderers:
     - [Universal Renderer](urp-universal-renderer.md).
     - [2D Renderer](Setup.md#2d-renderer-setup).
 - [Shading models](shading-model.md) for shaders shipped with URP
 - Camera
-- [UniversalRP Asset](universalrp-asset.md)
+- [URP Asset](universalrp-asset.md)
 
 The following illustration shows the frame rendering loop of the URP Universal Renderer.
 
