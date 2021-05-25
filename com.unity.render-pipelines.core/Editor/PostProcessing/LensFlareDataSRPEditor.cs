@@ -406,9 +406,22 @@ namespace UnityEditor.Rendering
                     SerializedProperty flareTexture = element.FindPropertyRelative("lensFlareTexture");
                     SerializedProperty preserveAspectRatio = element.FindPropertyRelative("preserveAspectRatio");
                     SerializedProperty sizeXY = element.FindPropertyRelative("sizeXY");
-                    float aspectRatio = ((flareTexture.objectReferenceValue is Texture texture) && preserveAspectRatio.boolValue)
-                        ? texture.width / (float)texture.height
-                        : sizeXY.vector2Value.x / Mathf.Max(sizeXY.vector2Value.y, 1e-6f);
+                    const float maxStretch = 50.0f;
+                    float aspectRatio;
+                    if ((flareTexture.objectReferenceValue is Texture texture) && preserveAspectRatio.boolValue)
+                        aspectRatio = texture.width / (float)texture.height;
+                    else if (sizeXY.vector2Value.x > sizeXY.vector2Value.y)
+                    {
+                        aspectRatio = Mathf.Min(sizeXY.vector2Value.x, maxStretch * sizeXY.vector2Value.y) / Mathf.Max(sizeXY.vector2Value.y, 1e-6f);
+                    }
+                    else if (sizeXY.vector2Value.x < sizeXY.vector2Value.y)
+                    {
+                        aspectRatio = sizeXY.vector2Value.x / Mathf.Max(Mathf.Min(sizeXY.vector2Value.y, maxStretch * sizeXY.vector2Value.x), 1e-6f);
+                    }
+                    else
+                    {
+                        aspectRatio = 1.0f;
+                    }
                     EditorGUI.DrawTextureTransparent(thumbnailRect, flareTexture.objectReferenceValue as Texture, ScaleMode.ScaleToFit, aspectRatio);
                     break;
 
