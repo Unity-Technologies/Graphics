@@ -36,7 +36,6 @@ namespace UnityEngine.Rendering.HighDefinition
             VirtualTexturing,
             AddedHDRenderPipelineGlobalSettings,
             DecalSurfaceGradient,
-            MovedSupportRuntimeDebugDisplayToGlobalSettings,
             // If you add more steps here, do not clear settings that are used for the migration to the HDRP Global Settings asset
         }
 
@@ -167,7 +166,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 FrameSettings.MigrateVirtualTexturing(ref data.m_ObsoleteBakedOrCustomReflectionFrameSettingsMovedToDefaultSettings);
                 FrameSettings.MigrateVirtualTexturing(ref data.m_ObsoleteRealtimeReflectionFrameSettingsMovedToDefaultSettings);
 #pragma warning restore 618
-            }),
+            }) ,
             MigrationStep.New(Version.AddedHDRenderPipelineGlobalSettings, (HDRenderPipelineAsset data) =>
             {
 #if UNITY_EDITOR
@@ -205,19 +204,10 @@ namespace UnityEngine.Rendering.HighDefinition
                 data.m_RenderPipelineSettings.m_ObsoleteDecalLayerName6 = null;
                 data.m_RenderPipelineSettings.m_ObsoleteDecalLayerName7 = null;
 #pragma warning restore 618
-            }),
+            }) ,
             MigrationStep.New(Version.DecalSurfaceGradient, (HDRenderPipelineAsset data) =>
             {
                 data.m_RenderPipelineSettings.supportSurfaceGradient = false;
-            }),
-            MigrationStep.New(Version.MovedSupportRuntimeDebugDisplayToGlobalSettings, (HDRenderPipelineAsset data) =>
-            {
-#pragma warning disable 618 // Type or member is obsolete
-                HDRenderPipelineGlobalSettings.instance.supportRuntimeDebugDisplay = data.m_RenderPipelineSettings.m_ObsoleteSupportRuntimeDebugDisplay;
-#if UNITY_EDITOR
-                UnityEditor.EditorUtility.SetDirty(HDRenderPipelineGlobalSettings.instance);
-#endif
-#pragma warning restore 618
             })
         );
         #endregion
