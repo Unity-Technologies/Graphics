@@ -42,5 +42,14 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
             get => m_UseLightFacingNormal;
             set => m_UseLightFacingNormal = value;
         }
+
+        [SerializeField]
+        bool m_UseRoughenedAzimuthalScattering = false;
+
+        public bool useRoughenedAzimuthalScattering
+        {
+            get => m_UseRoughenedAzimuthalScattering;
+            set => m_UseRoughenedAzimuthalScattering = value;
+        }
     }
 }

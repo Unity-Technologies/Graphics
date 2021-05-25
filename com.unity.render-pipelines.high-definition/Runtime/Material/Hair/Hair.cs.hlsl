@@ -69,13 +69,11 @@
 #define DEBUGVIEW_HAIR_BSDFDATA_CUTICLE_ANGLE_R (1477)
 #define DEBUGVIEW_HAIR_BSDFDATA_CUTICLE_ANGLE_TT (1478)
 #define DEBUGVIEW_HAIR_BSDFDATA_CUTICLE_ANGLE_TRT (1479)
-#define DEBUGVIEW_HAIR_BSDFDATA_ROUGHNESS_LR (1480)
-#define DEBUGVIEW_HAIR_BSDFDATA_ROUGHNESS_LTT (1481)
-#define DEBUGVIEW_HAIR_BSDFDATA_ROUGHNESS_LTRT (1482)
-#define DEBUGVIEW_HAIR_BSDFDATA_ROUGHNESS_AR (1483)
-#define DEBUGVIEW_HAIR_BSDFDATA_ROUGHNESS_ATT (1484)
-#define DEBUGVIEW_HAIR_BSDFDATA_ROUGHNESS_ATRT (1485)
-#define DEBUGVIEW_HAIR_BSDFDATA_IOR (1486)
+#define DEBUGVIEW_HAIR_BSDFDATA_ROUGHNESS_R (1480)
+#define DEBUGVIEW_HAIR_BSDFDATA_ROUGHNESS_TT (1481)
+#define DEBUGVIEW_HAIR_BSDFDATA_ROUGHNESS_TRT (1482)
+#define DEBUGVIEW_HAIR_BSDFDATA_ROUGHNESS_RADIAL (1483)
+#define DEBUGVIEW_HAIR_BSDFDATA_IOR (1484)
 
 // Generated from UnityEngine.Rendering.HighDefinition.Hair+SurfaceData
 // PackingRules = Exact
@@ -135,12 +133,10 @@ struct BSDFData
     float cuticleAngleR;
     float cuticleAngleTT;
     float cuticleAngleTRT;
-    float roughnessLR;
-    float roughnessLTT;
-    float roughnessLTRT;
-    float roughnessAR;
-    float roughnessATT;
-    float roughnessATRT;
+    float roughnessR;
+    float roughnessTT;
+    float roughnessTRT;
+    float roughnessRadial;
     float ior;
 };
 
@@ -321,23 +317,17 @@ void GetGeneratedBSDFDataDebug(uint paramId, BSDFData bsdfdata, inout float3 res
         case DEBUGVIEW_HAIR_BSDFDATA_CUTICLE_ANGLE_TRT:
             result = bsdfdata.cuticleAngleTRT.xxx;
             break;
-        case DEBUGVIEW_HAIR_BSDFDATA_ROUGHNESS_LR:
-            result = bsdfdata.roughnessLR.xxx;
+        case DEBUGVIEW_HAIR_BSDFDATA_ROUGHNESS_R:
+            result = bsdfdata.roughnessR.xxx;
             break;
-        case DEBUGVIEW_HAIR_BSDFDATA_ROUGHNESS_LTT:
-            result = bsdfdata.roughnessLTT.xxx;
+        case DEBUGVIEW_HAIR_BSDFDATA_ROUGHNESS_TT:
+            result = bsdfdata.roughnessTT.xxx;
             break;
-        case DEBUGVIEW_HAIR_BSDFDATA_ROUGHNESS_LTRT:
-            result = bsdfdata.roughnessLTRT.xxx;
+        case DEBUGVIEW_HAIR_BSDFDATA_ROUGHNESS_TRT:
+            result = bsdfdata.roughnessTRT.xxx;
             break;
-        case DEBUGVIEW_HAIR_BSDFDATA_ROUGHNESS_AR:
-            result = bsdfdata.roughnessAR.xxx;
-            break;
-        case DEBUGVIEW_HAIR_BSDFDATA_ROUGHNESS_ATT:
-            result = bsdfdata.roughnessATT.xxx;
-            break;
-        case DEBUGVIEW_HAIR_BSDFDATA_ROUGHNESS_ATRT:
-            result = bsdfdata.roughnessATRT.xxx;
+        case DEBUGVIEW_HAIR_BSDFDATA_ROUGHNESS_RADIAL:
+            result = bsdfdata.roughnessRadial.xxx;
             break;
         case DEBUGVIEW_HAIR_BSDFDATA_IOR:
             result = bsdfdata.ior.xxx;

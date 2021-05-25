@@ -143,13 +143,11 @@ namespace UnityEngine.Rendering.HighDefinition
             public float cuticleAngleTT;
             public float cuticleAngleTRT;
 
-            public float roughnessLR;
-            public float roughnessLTT;
-            public float roughnessLTRT;
+            public float roughnessR;
+            public float roughnessTT;
+            public float roughnessTRT;
 
-            public float roughnessAR;
-            public float roughnessATT;
-            public float roughnessATRT;
+            public float roughnessRadial;
 
             public float ior;
         };

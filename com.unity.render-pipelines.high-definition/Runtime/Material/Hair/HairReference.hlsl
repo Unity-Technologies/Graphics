@@ -185,11 +185,11 @@ float3 AzimuthalScatteringNearField(uint p, ReferenceInputs inputs)
     azimuth = RemapLogisticAngle(azimuth);
 
     float D = LogisticAzimuthalAngularDistribution(inputs.logisticScale, inputs.phi - azimuth);
-    // float D = GaussianDetector(inputs.logisticScale, inputs.phi - azimuth);
 
     return A * D;
 }
 
+// Plot: https://www.desmos.com/calculator/i86ekgtzlg
 float3 AzimuthalScatteringFarField(uint p, ReferenceInputs inputs)
 {
     // Integrate azimuthal scattering over the fiber width using a gaussian quadrature.
@@ -308,9 +308,9 @@ CBSDF EvaluateMarschnerReference(float3 V, float3 L, BSDFData bsdfData)
         float phiR = atan2(R.y, R.x);
         inputs.phi = phiR - phiI;
 
-        inputs.variances[0] = RoughnessToLongitudinalVariance(bsdfData.roughnessLR);
-        inputs.variances[1] = RoughnessToLongitudinalVariance(bsdfData.roughnessLTT);
-        inputs.variances[2] = RoughnessToLongitudinalVariance(bsdfData.roughnessLTRT);
+        inputs.variances[0] = RoughnessToLongitudinalVariance(bsdfData.roughnessR);
+        inputs.variances[1] = RoughnessToLongitudinalVariance(bsdfData.roughnessTT);
+        inputs.variances[2] = RoughnessToLongitudinalVariance(bsdfData.roughnessTRT);
 
         inputs.shifts[0] = bsdfData.cuticleAngleR;
         inputs.shifts[1] = bsdfData.cuticleAngleTT;
@@ -330,10 +330,10 @@ CBSDF EvaluateMarschnerReference(float3 V, float3 L, BSDFData bsdfData)
         // Since we are using a near-field method, we can use the true h value (rather than integrating over the whole fiber width).
         inputs.h = sin(acos(dot(bsdfData.normalWS, L)));
 
-        inputs.logisticScale = RoughnessToLogisticalScale(bsdfData.roughnessAR);
+        inputs.logisticScale = RoughnessToLogisticalScale(bsdfData.roughnessRadial);
 #else
         // TODO: Maintain the Disney parameterization for the far field model.
-        inputs.logisticScale = bsdfData.roughnessAR;
+        inputs.logisticScale = bsdfData.roughnessRadial;
 #endif
 
         float thetaT = asin(sin(inputs.thetaR / inputs.eta));

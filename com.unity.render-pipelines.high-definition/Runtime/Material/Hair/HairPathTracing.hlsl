@@ -29,35 +29,32 @@ void EvaluateMaterial(MaterialData mtlData, float3 sampleDir, out MaterialResult
 {
     Init(result);
 
-<<<<<<< HEAD
     CBSDF cbsdf = EvaluateMarschnerReference(mtlData.V, sampleDir, mtlData.bsdfData);
 
     result.specValue = cbsdf.specR;
 
     // TODO: Importance Sample
     result.specPdf = INV_FOUR_PI;
-=======
-    // TODO
->>>>>>> master
 }
 
 bool SampleMaterial(MaterialData mtlData, float3 inputSample, out float3 sampleDir, out MaterialResult result)
 {
     Init(result);
 
-<<<<<<< HEAD
     // We sample the sphere due to reflective and transmittive events.
     sampleDir = SampleSphereUniform(inputSample.x, inputSample.y);
 
     EvaluateMaterial(mtlData, sampleDir, result);
 
     return true;
-=======
-    // TODO
-
-    return false;
->>>>>>> master
 }
+
+float3 GetLightNormal(MaterialData mtlData)
+{
+    // If both diffuse and specular normals are quasi-indentical, return one of them, otherwise return a null vector
+    return dot(GetDiffuseNormal(mtlData), GetSpecularNormal(mtlData)) > 0.99 ? GetDiffuseNormal(mtlData) : float3(0.0, 0.0, 0.0);
+}
+
 
 float AdjustPathRoughness(MaterialData mtlData, MaterialResult mtlResult, bool isSampleBelow, float pathRoughness)
 {

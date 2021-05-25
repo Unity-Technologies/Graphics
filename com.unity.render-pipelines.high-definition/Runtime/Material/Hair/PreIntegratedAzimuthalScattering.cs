@@ -33,7 +33,7 @@ namespace UnityEngine.Rendering.HighDefinition
         public void Build()
         {
             var res = (int)AzimuthalScatteringTexture.Resolution;
-            var format = GraphicsFormat.A2B10G10R10_UNormPack32;
+            var format = GraphicsFormat.R16G16_SFloat;
 
             m_PreIntegratedAzimuthalScatteringMaterial = CoreUtils.CreateEngineMaterial(HDRenderPipelineGlobalSettings.instance.renderPipelineResources.shaders.preIntegratedAzimuthalScatteringPS);
             m_PreIntegratedAzimuthalScatteringRT = new RenderTexture(res, res, 0, format);

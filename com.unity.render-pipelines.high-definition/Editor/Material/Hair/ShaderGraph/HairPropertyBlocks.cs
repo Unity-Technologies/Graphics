@@ -39,6 +39,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
         class Styles
         {
             public static GUIContent useLightFacingNormal = new GUIContent("Use Light Facing Normal", "TODO");
+            public static GUIContent useRoughenedAzimuthalScattering = new GUIContent("Use Roughened Azimuthal Scattering", "");
             public static GUIContent scatteringMode = new GUIContent("Scattering Mode", "");
         }
 
@@ -54,7 +55,10 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
             AddProperty(Styles.useLightFacingNormal, () => hairData.useLightFacingNormal, (newValue) => hairData.useLightFacingNormal = newValue);
 
             if (hairData.materialType == HairData.MaterialType.Marschner)
+            {
+                AddProperty(Styles.useRoughenedAzimuthalScattering, () => hairData.useRoughenedAzimuthalScattering, (newValue) => hairData.useRoughenedAzimuthalScattering = newValue);
                 AddProperty(Styles.scatteringMode, () => hairData.scatteringMode, (newValue) => hairData.scatteringMode = newValue);
+            }
         }
     }
 }

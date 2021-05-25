@@ -7,3 +7,4 @@ $SpecularOcclusionFromAOBentNormal: #define _SPECULAR_OCCLUSION_FROM_AO_BENT_NOR
 $SpecularOcclusionCustom:           #define _SPECULAR_OCCLUSION_CUSTOM 1
 $Specular.AA:                       #define _ENABLE_GEOMETRIC_SPECULAR_AA 1
 $ScatteringDensityVolume:           #define _USE_DENSITY_VOLUME_SCATTERING 1
+$UseRoughenedAzimuthalScattering:   #define _USE_ROUGHENED_AZIMUTHAL_SCATTERING 1
