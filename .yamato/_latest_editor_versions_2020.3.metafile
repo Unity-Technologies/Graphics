@@ -9,9 +9,9 @@ editor_versions:
       updated_at: '2021-05-25 23:16:16.541346'
       version: 2020.3.11f1
     Linux:
-      revision: 297d780c91bc
-      updated_at: '2021-05-20 23:43:34.951825'
-      version: 2020.3.10f1
+      revision: 99c7afb366b3
+      updated_at: '2021-05-25 23:35:49.032624'
+      version: 2020.3.11f1
     OSX:
       revision: 99c7afb366b3
       updated_at: '2021-05-25 23:16:16.541346'
