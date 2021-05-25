@@ -36,11 +36,17 @@ EditorBuildSettings:
     path: Assets/Scenes/056_Lighting_BasicAlphaCut.unity
     guid: ba30e2ead57624e42a64622b129e06fe
   - enabled: 1
+    path: Assets/Scenes/056_Lighting_BasicAlphaCut_Override.unity
+    guid: d0373ff790b226145a1ffcea0d7df64a
+  - enabled: 1
     path: Assets/Scenes/057_Lighting_DeferredSimple.unity
     guid: e20d7842295fc54428769e56f262fec9
   - enabled: 1
     path: Assets/Scenes/058_Lighting_BasicLitTransparency.unity
     guid: 2d9f712bea4002e47a18b95e8526f176
+  - enabled: 1
+    path: Assets/Scenes/058_Lighting_BasicLitTransparency_Override.unity
+    guid: ec4db895a38d8b544bd73782c659f0ab
   - enabled: 1
     path: Assets/Scenes/059_Lighting_BasicNormals.unity
     guid: 8bcc1f5676608a44e8fcf74707e3bb0d
