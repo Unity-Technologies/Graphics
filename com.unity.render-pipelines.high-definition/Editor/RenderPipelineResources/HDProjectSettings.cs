@@ -207,11 +207,11 @@ namespace UnityEditor.Rendering.HighDefinition
             foreach (var entry in allPluginSubTargets)
             {
                 var subTarget = entry.Value;
-                if (s_Instance.m_PluginMaterialVersions.TryGetValue(entry.Key, out int lastSeenVersion))
+                if (instance.m_PluginMaterialVersions.TryGetValue(entry.Key, out int lastSeenVersion))
                 {
                     if (subTarget.latestMaterialVersion > lastSeenVersion)
                     {
-                        s_Instance.m_PluginMaterialVersions[entry.Key] = subTarget.latestMaterialVersion;
+                        instance.m_PluginMaterialVersions[entry.Key] = subTarget.latestMaterialVersion;
                     }
                     // else SubTarget plugin downgraded or same version, nothing to do
                 }
@@ -219,11 +219,11 @@ namespace UnityEditor.Rendering.HighDefinition
                 {
                     // It's the first time this HD project has seen this plugin SubTarget, save the
                     // last seen material version for this SubTarget GUID:
-                    s_Instance.m_PluginMaterialVersions.Add(entry.Key, subTarget.latestMaterialVersion);
+                    instance.m_PluginMaterialVersions.Add(entry.Key, subTarget.latestMaterialVersion);
                 }
             }
 
-            s_Instance.FillPresentPluginMaterialVersions();
+            instance.FillPresentPluginMaterialVersions();
             Save();
         }
 
@@ -234,11 +234,11 @@ namespace UnityEditor.Rendering.HighDefinition
             foreach (var entry in allPluginSubTargets)
             {
                 var subTarget = entry.Value;
-                if (s_Instance.m_PluginSubTargetVersions.TryGetValue(entry.Key, out int lastSeenVersion))
+                if (instance.m_PluginSubTargetVersions.TryGetValue(entry.Key, out int lastSeenVersion))
                 {
                     if (subTarget.latestSubTargetVersion > lastSeenVersion)
                     {
-                        s_Instance.m_PluginSubTargetVersions[entry.Key] = subTarget.latestSubTargetVersion;
+                        instance.m_PluginSubTargetVersions[entry.Key] = subTarget.latestSubTargetVersion;
                     }
                     // else SubTarget plugin downgraded or same version, nothing to do
                 }
@@ -247,11 +247,11 @@ namespace UnityEditor.Rendering.HighDefinition
                     // It's the first time this HD project (the material post processor)
                     // has seen this plugin SubTarget in a HDRP ShaderGraph import scan triggered,
                     // save the last seen *subtarget* version for this SubTarget GUID:
-                    s_Instance.m_PluginSubTargetVersions.Add(entry.Key, subTarget.latestSubTargetVersion);
+                    instance.m_PluginSubTargetVersions.Add(entry.Key, subTarget.latestSubTargetVersion);
                 }
             }
 
-            s_Instance.FillPresentPluginMaterialVersions();
+            instance.FillPresentPluginMaterialVersions();
             Save();
         }
 
@@ -270,7 +270,7 @@ namespace UnityEditor.Rendering.HighDefinition
             System.Diagnostics.Debug.Assert(s_Instance != null);
             s_Instance.FillPresentPluginMaterialVersions();
 
-            if (k_Migration.Migrate(instance))
+            if (k_Migration.Migrate(s_Instance))
                 Save();
 
             return s_Instance;
