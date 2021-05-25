@@ -72,17 +72,17 @@ URP_Performance_BoatAttack_OSX_Metal_performance_playmode_runtime_mono_Linear_tr
       # -  chmod +x utr
       
       # Upload the RepoName repo to the device or update it. The folder will be at ~/RepoName in the remote. Ignore dot files to keep it snappy (especially for Yamato Remote).
-    - rsync -uaqP --exclude=".*" --inplace $YAMATO_SOURCE_DIR bokken@$BOKKEN_DEVICE_IP:~/
+      - rsync -uaqP --exclude=".*" --inplace $YAMATO_SOURCE_DIR bokken@$BOKKEN_DEVICE_IP:~/
 
-    # Install the Unity Downloader.
-    - ssh bokken@$BOKKEN_DEVICE_IP "bash -lc 'pip3 install unity-downloader-cli --user --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade'"    
+      # Install the Unity Downloader.
+      - ssh bokken@$BOKKEN_DEVICE_IP "bash -lc 'pip3 install unity-downloader-cli --user --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade'"    
       
       # -  scp -i ~/.ssh/id_rsa_macmini -r $YAMATO_SOURCE_DIR bokken@$BOKKEN_DEVICE_IP:~/Graphics
       # -  scp -i ~/.ssh/id_rsa_macmini ~/.ssh/id_rsa_macmini bokken@$BOKKEN_DEVICE_IP:~/.ssh/id_rsa_macmini
       # -  ssh -i ~/.ssh/id_rsa_macmini bokken@$BOKKEN_DEVICE_IP "bash -lc 'pip3 install unity-downloader-cli --user --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade'"      
       
       # Get the Editor and required components for the project. This will be rendered as a single line command. Beware of the quotes! They bite, repeatedly. :(
-    - >
+      - >
         ssh bokken@$BOKKEN_DEVICE_IP
         "\$(/usr/local/bin/python3 -m site --user-base)/bin/unity-downloader-cli    \\
             --source-file ~/Graphics/unity_revision.txt                             \\
@@ -91,17 +91,17 @@ URP_Performance_BoatAttack_OSX_Metal_performance_playmode_runtime_mono_Linear_tr
             --wait                                                                  \\
             --published-only"      
 
-    # Setup app signing.
-    - scp $YAMATO_SOURCE_DIR/.yamato/files/setup_codesign.sh bokken@$BOKKEN_DEVICE_IP:~/setup_codesign.sh
-    - ssh bokken@$BOKKEN_DEVICE_IP "bash ~/setup_codesign.sh"
+      # Setup app signing.
+      - scp $YAMATO_SOURCE_DIR/.yamato/files/setup_codesign.sh bokken@$BOKKEN_DEVICE_IP:~/setup_codesign.sh
+      - ssh bokken@$BOKKEN_DEVICE_IP "bash ~/setup_codesign.sh"
 
       # -  ssh -i ~/.ssh/id_rsa_macmini bokken@$BOKKEN_DEVICE_IP '$(python3 -m site --user-base)/bin/unity-downloader-cli --source-file ~/Graphics/unity_revision.txt -c editor -c il2cpp  --wait --published-only'
       # -  |5-
               # export GIT_REVISIONDATE=`git rev-parse HEAD | git show -s --format=%cI`
               # ./utr --artifacts_path=TestProjects/BoatAttack/test-results --build-only --category=URP --editor-location=.Editor --extra-editor-arg="-addscenetobuild=Assets/scenes/Testing/benchmark_island-static.unity" --extra-editor-arg="-buildtarget" --extra-editor-arg="StandaloneOSX" --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-executemethod" --extra-editor-arg="Editor.Setup" --extra-editor-arg="-packageundertestbranch=$GIT_BRANCH" --extra-editor-arg="-packageundertestname=com.unity.render-pipelines.universal" --extra-editor-arg="-packageundertestrev=$GIT_REVISION" --extra-editor-arg="-packageundertestrevdate=$GIT_REVISIONDATE" --extra-editor-arg="-playergraphicsapi=Metal" --extra-editor-arg="-scriptingbackend=mono" --platform=StandaloneOSX --player-save-path=playersLow --scripting-backend=mono --suite=playmode --testfilter=Low --testproject=./TestProjects/BoatAttack --timeout=1200
                          
-    # Build on the device and capture exit code. This will be rendered as a single line command. Beware of the backslashes and the semicolons too.
-    - >
+      # Build on the device and capture exit code. This will be rendered as a single line command. Beware of the backslashes and the semicolons too.
+      - >
         ssh bokken@$BOKKEN_DEVICE_IP
         "export UPM_REGISTRY=$UPM_REGISTRY;
         echo ==================================================;
@@ -136,11 +136,11 @@ URP_Performance_BoatAttack_OSX_Metal_performance_playmode_runtime_mono_Linear_tr
 
         echo \$? > ~/.utr_result"
 
-    # Read UTR result and data from test device.
-    - scp bokken@$BOKKEN_DEVICE_IP:~/.utr_result ~/.utr_result
+      # Read UTR result and data from test device.
+      - scp bokken@$BOKKEN_DEVICE_IP:~/.utr_result ~/.utr_result
 
-    # Print status and exit with UTR's exit code.
-    - |
+      # Print status and exit with UTR's exit code.
+      - |
         UTR_RESULT=$(cat ~/.utr_result)
         echo "=================================================="
         echo "UTR build exit code: $UTR_RESULT"
@@ -158,7 +158,7 @@ URP_Performance_BoatAttack_OSX_Metal_performance_playmode_runtime_mono_Linear_tr
               # exit $UTR_RESULT
               
     # Run tests on the device and capture exit code. This will be rendered as a single line command. Beware of the backslashes and the semicolons too.
-    - >
+      - >
         ssh bokken@$BOKKEN_DEVICE_IP
         "export UPM_REGISTRY=$UPM_REGISTRY;
         echo ==================================================;
@@ -178,12 +178,12 @@ URP_Performance_BoatAttack_OSX_Metal_performance_playmode_runtime_mono_Linear_tr
             --timeout=2400;
         echo \$? > ~/.utr_result"
     
-    # Read UTR result and data from test device.
-    - scp bokken@$BOKKEN_DEVICE_IP:~/.utr_result ~/.utr_result
-    - rsync -aqP bokken@$BOKKEN_DEVICE_IP:~/Graphics/TestProjects/BoatAttack/test-results $YAMATO_SOURCE_DIR/TestProjects/BoatAttack/
+      # Read UTR result and data from test device.
+      - scp bokken@$BOKKEN_DEVICE_IP:~/.utr_result ~/.utr_result
+      - rsync -aqP bokken@$BOKKEN_DEVICE_IP:~/Graphics/TestProjects/BoatAttack/test-results $YAMATO_SOURCE_DIR/TestProjects/BoatAttack/
 
-    # Print status and exit with UTR's exit code.
-    - |
+      # Print status and exit with UTR's exit code.
+      - |
         UTR_RESULT=$(cat ~/.utr_result)
         echo "=================================================="
         echo "UTR test exit code: $UTR_RESULT"
