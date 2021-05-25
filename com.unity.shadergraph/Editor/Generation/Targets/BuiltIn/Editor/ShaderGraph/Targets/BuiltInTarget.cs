@@ -630,7 +630,7 @@ namespace UnityEditor.Rendering.BuiltIn.ShaderGraph
                 // Conditional State
                 renderStates = CoreRenderStates.SceneSelection(target),
                 pragmas = CorePragmas.Instanced,
-                defines = CoreDefines.SceneSelection,
+                defines = new DefineCollection{ CoreDefines.SceneSelection },
                 keywords = new KeywordCollection(),
                 includes = CoreIncludes.SceneSelection,
 
@@ -668,7 +668,7 @@ namespace UnityEditor.Rendering.BuiltIn.ShaderGraph
                 // Conditional State
                 renderStates = CoreRenderStates.ScenePicking(target),
                 pragmas = CorePragmas.Instanced,
-                defines = CoreDefines.ScenePicking,
+                defines = new DefineCollection{ CoreDefines.ScenePicking },
                 keywords = new KeywordCollection(),
                 includes = CoreIncludes.ScenePicking,
 

@@ -278,7 +278,7 @@ namespace UnityEditor.Rendering.BuiltIn.ShaderGraph
                     fieldDependencies = CoreFieldDependencies.Default,
 
                     // Conditional State
-                    renderStates = CoreRenderStates.ForwardAdd,
+                    renderStates = CoreRenderStates.ForwardAdd(target),
                     pragmas  = CorePragmas.ForwardAdd,     // NOTE: SM 2.0 only GL
                     defines = new DefineCollection() { CoreDefines.BuiltInTargetAPI },
                     keywords = new KeywordCollection { LitKeywords.ForwardAdd },
