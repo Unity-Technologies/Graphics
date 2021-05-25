@@ -97,9 +97,9 @@ LightmapSettings:
     m_ExportTrainingData: 0
     m_TrainingDataDestination: TrainingData
     m_LightProbeSampleCountMultiplier: 4
-  m_LightingDataAsset: {fileID: 112000004, guid: eb8fdfb790710a04ba9d59a532699414,
+  m_LightingDataAsset: {fileID: 112000004, guid: 4c1ae8eaa6caa406e8ffb85797a3f2c8,
     type: 2}
-  m_LightingSettings: {fileID: 4890085278179872738, guid: 7fc0cd2a4db2f484b8ea931056abf7bc,
+  m_LightingSettings: {fileID: 4890085278179872738, guid: 0286d948fc51541d4a7ae153481b3c1d,
     type: 2}
 --- !u!196 &4
 NavMeshSettings:
@@ -669,7 +669,7 @@ MonoBehaviour:
     ImageResolution: 0
     ActiveImageTests: 1
     ActivePixelTests: 7
-  WaitFrames: 3
+  WaitFrames: 0
   XRCompatible: 0
 --- !u!81 &971756571
 AudioListener:
