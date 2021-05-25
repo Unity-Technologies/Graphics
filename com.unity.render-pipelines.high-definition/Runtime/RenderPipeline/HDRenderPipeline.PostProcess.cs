@@ -1,6 +1,9 @@
 using System;
 using System.Collections.Generic;
 using System.Runtime.CompilerServices;
+#if UNITY_EDITOR
+using UnityEditor;
+#endif
 using UnityEngine.Assertions;
 using UnityEngine.Experimental.Rendering;
 using UnityEngine.Experimental.Rendering.RenderGraphModule;
@@ -1533,7 +1536,12 @@ namespace UnityEngine.Rendering.HighDefinition
                         }
 
                         ctx.cmd.DrawProcedural(Matrix4x4.identity, data.temporalAAMaterial, 0, MeshTopology.Triangles, 3, 1, mpb);
-                        ctx.cmd.DrawProcedural(Matrix4x4.identity, data.temporalAAMaterial, 1, MeshTopology.Triangles, 3, 1, mpb);
+#if UNITY_EDITOR
+                        if (ShaderUtil.IsPassCompiled(data.temporalAAMaterial, 1))
+#endif
+                        {
+                            ctx.cmd.DrawProcedural(Matrix4x4.identity, data.temporalAAMaterial, 1, MeshTopology.Triangles, 3, 1, mpb);
+                        }
                         ctx.cmd.ClearRandomWriteTargets();
                     });
 
