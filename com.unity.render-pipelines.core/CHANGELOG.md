@@ -12,7 +12,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Platform ShaderLibrary API headers now have a new macro layer for 2d texture sampling macros. This layer starts with PLATFORM_SAMPLE2D definition, and it gives the possibility of injecting sampling behavior on a render pipeline level. For example: being able to a global mip bias for temporal upscalers.
 - Update icon for IES, LightAnchor and LensFlare
 - LensFlare (SRP) can be now disabled per element
-- LensFlare (SRP) change tooltip to refer to meter
+- LensFlare (SRP) tooltips now refer to meters.
 
 ### Fixed
 - Fixed missing warning UI about Projector component being unsupported (case 1300327).
@@ -27,7 +27,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed ACES filter artefact due to half float error on some mobile platforms.
 - Fixed issue displaying a warning of different probe reference volume profiles even when they are equivalent.
 - Fixed missing increment/decrement controls from DebugUIIntField & DebugUIUIntField widget prefabs.
-- Fixed LensFlare Image thumbnail with large stretch ratio are still visible
+- Fixed a large, visible stretch ratio in a LensFlare Image thumbnail.
 
 ### Added
 - Support for the PlayStation 5 platform has been added.
