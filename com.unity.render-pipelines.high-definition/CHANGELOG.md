@@ -201,6 +201,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed issue with velocity rejection when using physically-based DoF.
 - Fixed HDRP's ShaderGraphVersion migration management which was broken.
 - Fixed missing API documentation for LTC area light code.
+- Fixed the ray traced sub subsurface scattering debug mode not displaying only the RTSSS Data (case 1332904).
 
 ### Changed
 - Changed Window/Render Pipeline/HD Render Pipeline Wizard to Window/Rendering/HDRP Wizard
