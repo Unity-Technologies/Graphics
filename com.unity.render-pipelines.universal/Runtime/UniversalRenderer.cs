@@ -414,6 +414,9 @@ namespace UnityEngine.Rendering.Universal
             // There's at least a camera in the camera stack that applies post-processing
             bool anyPostProcessing = renderingData.postProcessingEnabled && m_PostProcessPasses.isCreated;
 
+            // If Camera's PostProcessing is enabled and if there any enabled PostProcessing requires depth texture as shader read resource (Motion Blur/DoF)
+            bool cameraHasPostProcessingWithDepth = applyPostProcessing && cameraData.postProcessRequiresDepthTexture;
+
             // TODO: We could cache and generate the LUT before rendering the stack
             bool generateColorGradingLUT = cameraData.postProcessEnabled && m_PostProcessPasses.isCreated;
             bool isSceneViewCamera = cameraData.isSceneViewCamera;
@@ -434,7 +437,7 @@ namespace UnityEngine.Rendering.Universal
             // - If game or offscreen camera requires it we check if we can copy the depth from the rendering opaques pass and use that instead.
             // - Scene or preview cameras always require a depth texture. We do a depth pre-pass to simplify it and it shouldn't matter much for editor.
             // - Render passes require it
-            bool requiresDepthPrepass = requiresDepthTexture && !CanCopyDepth(ref renderingData.cameraData);
+            bool requiresDepthPrepass = (requiresDepthTexture || cameraHasPostProcessingWithDepth) && !CanCopyDepth(ref renderingData.cameraData);
             requiresDepthPrepass |= isSceneViewCamera;
             requiresDepthPrepass |= isGizmosEnabled;
             requiresDepthPrepass |= isPreviewCamera;
@@ -454,7 +457,29 @@ namespace UnityEngine.Rendering.Universal
 
             // The copying of depth should normally happen after rendering opaques.
             // But if we only require it for post processing or the scene camera then we do it after rendering transparent objects
-            m_CopyDepthPass.renderPassEvent = (!requiresDepthTexture && (applyPostProcessing || isSceneViewCamera || isGizmosEnabled)) ? RenderPassEvent.AfterRenderingTransparents : RenderPassEvent.AfterRenderingOpaques;
+            // Aim to have the most optimized render pass event for Depth Copy (The aim is to minimize the number of render passes)
+            if (requiresDepthTexture)
+            {
+                RenderPassEvent copyDepthPassEvent = RenderPassEvent.AfterRenderingTransparents;
+                // CameraData's requiresDepthTexture is based on the URP Pipeline Asset UI checkbox value.
+                if (cameraData.requiresDepthTexture)
+                {
+                    // If user explicitly enable the setting, we force the depth copy to be AfterRenderingSkybox
+                    copyDepthPassEvent = (RenderPassEvent)Mathf.Min((int)copyDepthPassEvent, (int)RenderPassEvent.AfterRenderingSkybox);
+                }
+                // RenderPassInputs's requiresDepthTexture is configured through ScriptableRenderPass's ConfigureInput function
+                if (renderPassInputs.requiresDepthTexture)
+                {
+                    // Do depth copy before the render pass that requires depth texture as shader read resource
+                    copyDepthPassEvent = (RenderPassEvent)Mathf.Min((int)copyDepthPassEvent, ((int)renderPassInputs.requiresDepthTextureEarliestEvent) - 1);
+                }
+                m_CopyDepthPass.renderPassEvent = copyDepthPassEvent;
+            }
+            else if (cameraHasPostProcessingWithDepth || isSceneViewCamera || isGizmosEnabled)
+            {
+                // If only post process requires depth texture, we can re-use depth buffer from main geometry pass instead of enqueuing a depth copy pass, but no proper API to do that for now, so resort to depth copy pass for now
+                m_CopyDepthPass.renderPassEvent = RenderPassEvent.AfterRenderingTransparents;
+            }
             createColorTexture |= RequiresIntermediateColorTexture(ref cameraData);
             createColorTexture |= renderPassInputs.requiresColorTexture;
             createColorTexture &= !isPreviewCamera;
@@ -464,7 +489,7 @@ namespace UnityEngine.Rendering.Universal
             // around a bug where during gbuffer pass (MRT pass), the camera depth attachment is correctly bound, but during
             // deferred pass ("camera color" + "camera depth"), the implicit depth surface of "camera color" is used instead of "camera depth",
             // because BuiltinRenderTextureType.CameraTarget for depth means there is no explicit depth attachment...
-            bool createDepthTexture = requiresDepthTexture && !requiresDepthPrepass;
+            bool createDepthTexture = (requiresDepthTexture || cameraHasPostProcessingWithDepth) && !requiresDepthPrepass;
             createDepthTexture |= (cameraData.renderType == CameraRenderType.Base && !cameraData.resolveFinalTarget);
             // Deferred renderer always need to access depth buffer.
             createDepthTexture |= (this.actualRenderingMode == RenderingMode.Deferred && !useRenderPassEnabled);
@@ -523,7 +548,7 @@ namespace UnityEngine.Rendering.Universal
             cameraData.renderer.useDepthPriming = useDepthPriming;
 
             bool requiresDepthCopyPass = !requiresDepthPrepass
-                && requiresDepthTexture
+                && (requiresDepthTexture || cameraHasPostProcessingWithDepth)
                 && createDepthTexture;
             bool copyColorPass = renderingData.cameraData.requiresOpaqueTexture || renderPassInputs.requiresColorTexture;
 
@@ -714,6 +739,11 @@ namespace UnityEngine.Rendering.Universal
 
                 RenderBufferStoreAction transparentPassColorStoreAction = cameraTargetDescriptor.msaaSamples > 1 ? RenderBufferStoreAction.Resolve : RenderBufferStoreAction.Store;
                 RenderBufferStoreAction transparentPassDepthStoreAction = RenderBufferStoreAction.DontCare;
+
+                // If CopyDepthPass pass event is scheduled on or after AfterRenderingTransparent, we will need to store the depth buffer or resolve (store for now until latest trunk has depth resolve support) it for MSAA case
+                if (requiresDepthCopyPass && m_CopyDepthPass.renderPassEvent >= RenderPassEvent.AfterRenderingTransparents)
+                    transparentPassDepthStoreAction = RenderBufferStoreAction.Store;
+
                 m_RenderTransparentForwardPass.ConfigureColorStoreAction(transparentPassColorStoreAction);
                 m_RenderTransparentForwardPass.ConfigureDepthStoreAction(transparentPassDepthStoreAction);
                 EnqueuePass(m_RenderTransparentForwardPass);
@@ -926,6 +956,7 @@ namespace UnityEngine.Rendering.Universal
             internal bool requiresColorTexture;
             internal bool requiresMotionVectors;
             internal RenderPassEvent requiresDepthNormalAtEvent;
+            internal RenderPassEvent requiresDepthTextureEarliestEvent;
         }
 
         private RenderPassInputSummary GetRenderPassInputs(ref RenderingData renderingData)
@@ -934,6 +965,7 @@ namespace UnityEngine.Rendering.Universal
 
             RenderPassInputSummary inputSummary = new RenderPassInputSummary();
             inputSummary.requiresDepthNormalAtEvent = RenderPassEvent.BeforeRenderingOpaques;
+            inputSummary.requiresDepthTextureEarliestEvent = RenderPassEvent.BeforeRenderingPostProcessing;
             for (int i = 0; i < activeRenderPassQueue.Count; ++i)
             {
                 ScriptableRenderPass pass = activeRenderPassQueue[i];
@@ -948,6 +980,8 @@ namespace UnityEngine.Rendering.Universal
                 inputSummary.requiresNormalsTexture |= needsNormals;
                 inputSummary.requiresColorTexture   |= needsColor;
                 inputSummary.requiresMotionVectors  |= needsMotion;
+                if (needsDepth)
+                    inputSummary.requiresDepthTextureEarliestEvent = (RenderPassEvent)Mathf.Min((int)pass.renderPassEvent, (int)inputSummary.requiresDepthTextureEarliestEvent);
                 if (needsNormals || needsDepth)
                     inputSummary.requiresDepthNormalAtEvent = (RenderPassEvent)Mathf.Min((int)pass.renderPassEvent, (int)inputSummary.requiresDepthNormalAtEvent);
             }

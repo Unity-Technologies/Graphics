@@ -876,7 +876,8 @@ namespace UnityEngine.Rendering.Universal
             // Disables post if GLes2
             cameraData.postProcessEnabled &= SystemInfo.graphicsDeviceType != GraphicsDeviceType.OpenGLES2;
 
-            cameraData.requiresDepthTexture |= isSceneViewCamera || CheckPostProcessForDepth(cameraData);
+            cameraData.requiresDepthTexture |= isSceneViewCamera;
+            cameraData.postProcessRequiresDepthTexture |= CheckPostProcessForDepth(cameraData);
             cameraData.resolveFinalTarget = resolveFinalTarget;
 
             // Disable depth and color copy. We should add it in the renderer instead to avoid performance pitfalls
@@ -886,6 +887,7 @@ namespace UnityEngine.Rendering.Universal
             {
                 cameraData.requiresDepthTexture = false;
                 cameraData.requiresOpaqueTexture = false;
+                cameraData.postProcessRequiresDepthTexture = false;
             }
 
             Matrix4x4 projectionMatrix = camera.projectionMatrix;

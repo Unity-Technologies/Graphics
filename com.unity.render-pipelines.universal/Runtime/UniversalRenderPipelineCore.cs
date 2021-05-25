@@ -109,6 +109,7 @@ namespace UnityEngine.Rendering.Universal
         public CameraType cameraType;
         public bool isDefaultViewport;
         public bool isHdrEnabled;
+        public bool postProcessRequiresDepthTexture;
         public bool requiresDepthTexture;
         public bool requiresOpaqueTexture;
 #if ENABLE_VR && ENABLE_XR_MODULE
