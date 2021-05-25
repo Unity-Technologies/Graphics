@@ -26,6 +26,15 @@ namespace UnityEngine.Rendering.HighDefinition
         [SerializeField, Tooltip("Controls the sharpness of our octahedral depth filter. 0.0 is the least sharp transition. Can result in light leaks. 1.0 is the sharpest transition. Can result in sharp edge artifacts. High, but less than 1 values are reccomended.")]
         internal ClampedFloatParameter octahedralDepthLightBleedReductionThreshold = new ClampedFloatParameter(0.99f, 0.0f, 0.9999f);
 
+        [SerializeField, Tooltip("Controls how much reflection probe reflections are scaled to approximately match probe volume brightness.\nEnabling can help mitigate specular glowing in dark corners.\nA value of 1.0 means reflections in fully black corners can become fully black (zero).\nA value of 0.0 means reflections will never be darkened or lightened.")]
+        internal ClampedFloatParameter reflectionProbeNormalizationWeight = new ClampedFloatParameter(1.0f, 0.0f, 1.0f);
+
+        [SerializeField, Tooltip("If enabled, reflection probe normalization will use the average incoming light from all directions for rescaling.\nIf disabled, it will use all spherical harmonic data to sample light along the view direction.\nDisabled is more accurate, but can produce poor results if SH terms contain strong ringing.")]
+        internal BoolParameter reflectionProbeNormalizationDCOnly = new BoolParameter(false);
+
+        [SerializeField, Tooltip("If enabled, reflection probe reflections will never be brightened by bright probe volume samples. They will only be darkened by dark probe volume samples.\nThis can be useful if probe volume data contains strong hotspots that blow out reflections.")]
+        internal BoolParameter reflectionProbeNormalizationDarkenOnly = new BoolParameter(false);
+
         ProbeVolumeController()
         {
             displayName = "Probe Volume Controller (Experimental)";

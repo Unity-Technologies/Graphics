@@ -38,6 +38,19 @@ struct ProbeVolumeSphericalHarmonicsL2
     float4 data[7];
 };
 
+ProbeVolumeSphericalHarmonicsL0 ProbeVolumeSphericalHarmonicsL0FromL1(ProbeVolumeSphericalHarmonicsL1 coefficients)
+{
+    ProbeVolumeSphericalHarmonicsL0 L0;
+    L0.data[0] = float4(coefficients.data[0].w, coefficients.data[1].w, coefficients.data[2].w, 0.0f);
+    return L0;
+}
+
+ProbeVolumeSphericalHarmonicsL0 ProbeVolumeSphericalHarmonicsL0FromL2(ProbeVolumeSphericalHarmonicsL2 coefficients)
+{
+    ProbeVolumeSphericalHarmonicsL0 L0;
+    L0.data[0] = float4(coefficients.data[0].w, coefficients.data[1].w, coefficients.data[2].w, 0.0f);
+    return L0;
+}
 
 // See ProbeVolumeAtlasBlit.compute for atlas coefficient layout information.
 void ProbeVolumeLoadAccumulateSphericalHarmonicsL0(int3 probeVolumeAtlasTexelCoord, float weight, inout ProbeVolumeSphericalHarmonicsL0 coefficients)
