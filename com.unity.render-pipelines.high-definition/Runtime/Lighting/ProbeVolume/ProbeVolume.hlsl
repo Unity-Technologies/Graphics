@@ -23,6 +23,31 @@
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Lighting/ProbeVolume/ProbeVolumeLightLoopDef.hlsl"
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Lighting/ProbeVolume/ProbeVolumeAtlas.hlsl"
 
+bool ProbeVolumeGetReflectionProbeNormalizationEnabled()
+{
+    return _ProbeVolumeReflectionProbeNormalizationParameters.x > 0.0f;
+}
+
+float ProbeVolumeGetReflectionProbeNormalizationWeight()
+{
+    return _ProbeVolumeReflectionProbeNormalizationParameters.x;
+}
+
+bool ProbeVolumeGetReflectionProbeNormalizationDCOnly()
+{
+    return _ProbeVolumeReflectionProbeNormalizationParameters.y >= 0.5f;
+}
+
+float ProbeVolumeGetReflectionProbeNormalizationMin()
+{
+    return _ProbeVolumeReflectionProbeNormalizationParameters.z;
+}
+
+float ProbeVolumeGetReflectionProbeNormalizationMax()
+{
+    return _ProbeVolumeReflectionProbeNormalizationParameters.w;
+}
+
 // Copied from VolumeVoxelization.compute
 float ProbeVolumeComputeFadeFactor(
     float3 samplePositionBoxNDC,
@@ -191,30 +216,125 @@ float3 ProbeVolumeEvaluateAmbientProbeFallback(float3 normalWS, float weightHier
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Lighting/ProbeVolume/ProbeVolumeAccumulate.hlsl"
 #undef PROBE_VOLUMES_ACCUMULATE_MODE
 
-void ProbeVolumeEvaluateSphericalHarmonics(PositionInputs posInput, float3 normalWS, float3 backNormalWS, float3 viewDirectionWS, uint renderingLayers, float weightHierarchy, inout float3 bakeDiffuseLighting, inout float3 backBakeDiffuseLighting)
+void ProbeVolumeEvaluateSphericalHarmonics(PositionInputs posInput, float3 normalWS, float3 backNormalWS, float3 reflectionDirectionWS, float3 viewDirectionWS, uint renderingLayers, float weightHierarchy, inout float3 bakeDiffuseLighting, inout float3 backBakeDiffuseLighting, inout float3 reflectionProbeNormalizationLighting, out float reflectionProbeNormalizationWeight)
 {
 #if PROBE_VOLUMES_SAMPLING_MODE == PROBEVOLUMESENCODINGMODES_SPHERICAL_HARMONICS_L0
-        ProbeVolumeSphericalHarmonicsL0 coefficients;
-        ProbeVolumeAccumulateSphericalHarmonicsL0(posInput, normalWS, viewDirectionWS, renderingLayers, coefficients, weightHierarchy);
-        bakeDiffuseLighting += ProbeVolumeEvaluateSphericalHarmonicsL0(normalWS, coefficients);
-        backBakeDiffuseLighting += ProbeVolumeEvaluateSphericalHarmonicsL0(backNormalWS, coefficients);
+    ProbeVolumeSphericalHarmonicsL0 coefficients;
+    ProbeVolumeAccumulateSphericalHarmonicsL0(posInput, normalWS, viewDirectionWS, renderingLayers, coefficients, weightHierarchy);
+    bakeDiffuseLighting += ProbeVolumeEvaluateSphericalHarmonicsL0(normalWS, coefficients);
+    backBakeDiffuseLighting += ProbeVolumeEvaluateSphericalHarmonicsL0(backNormalWS, coefficients);
+    reflectionProbeNormalizationLighting += ProbeVolumeEvaluateSphericalHarmonicsL0(reflectionDirectionWS, coefficients);
 
 #elif PROBE_VOLUMES_SAMPLING_MODE == PROBEVOLUMESENCODINGMODES_SPHERICAL_HARMONICS_L1
-        ProbeVolumeSphericalHarmonicsL1 coefficients;
-        ProbeVolumeAccumulateSphericalHarmonicsL1(posInput, normalWS, viewDirectionWS, renderingLayers, coefficients, weightHierarchy);
-        bakeDiffuseLighting += ProbeVolumeEvaluateSphericalHarmonicsL1(normalWS, coefficients);
-        backBakeDiffuseLighting += ProbeVolumeEvaluateSphericalHarmonicsL1(backNormalWS, coefficients);
+    ProbeVolumeSphericalHarmonicsL1 coefficients;
+    ProbeVolumeAccumulateSphericalHarmonicsL1(posInput, normalWS, viewDirectionWS, renderingLayers, coefficients, weightHierarchy);
+    bakeDiffuseLighting += ProbeVolumeEvaluateSphericalHarmonicsL1(normalWS, coefficients);
+    backBakeDiffuseLighting += ProbeVolumeEvaluateSphericalHarmonicsL1(backNormalWS, coefficients);
+    reflectionProbeNormalizationLighting += ProbeVolumeGetReflectionProbeNormalizationDCOnly()
+        ? ProbeVolumeEvaluateSphericalHarmonicsL0(reflectionDirectionWS, ProbeVolumeSphericalHarmonicsL0FromL1(coefficients))
+        : ProbeVolumeEvaluateSphericalHarmonicsL1(reflectionDirectionWS, coefficients);
 
 #elif PROBE_VOLUMES_SAMPLING_MODE == PROBEVOLUMESENCODINGMODES_SPHERICAL_HARMONICS_L2
-        ProbeVolumeSphericalHarmonicsL2 coefficients;
-        ProbeVolumeAccumulateSphericalHarmonicsL2(posInput, normalWS, viewDirectionWS, renderingLayers, coefficients, weightHierarchy);
-        bakeDiffuseLighting += ProbeVolumeEvaluateSphericalHarmonicsL2(normalWS, coefficients);
-        backBakeDiffuseLighting += ProbeVolumeEvaluateSphericalHarmonicsL2(backNormalWS, coefficients);
+    ProbeVolumeSphericalHarmonicsL2 coefficients;
+    ProbeVolumeAccumulateSphericalHarmonicsL2(posInput, normalWS, viewDirectionWS, renderingLayers, coefficients, weightHierarchy);
+    bakeDiffuseLighting += ProbeVolumeEvaluateSphericalHarmonicsL2(normalWS, coefficients);
+    backBakeDiffuseLighting += ProbeVolumeEvaluateSphericalHarmonicsL2(backNormalWS, coefficients);
+    reflectionProbeNormalizationLighting += ProbeVolumeGetReflectionProbeNormalizationDCOnly()
+        ? ProbeVolumeEvaluateSphericalHarmonicsL0(reflectionDirectionWS, ProbeVolumeSphericalHarmonicsL0FromL2(coefficients))
+        : ProbeVolumeEvaluateSphericalHarmonicsL2(reflectionDirectionWS, coefficients);
 
 #endif
 
-        bakeDiffuseLighting += ProbeVolumeEvaluateAmbientProbeFallback(normalWS, weightHierarchy);
-        backBakeDiffuseLighting += ProbeVolumeEvaluateAmbientProbeFallback(backNormalWS, weightHierarchy);
+    bakeDiffuseLighting += ProbeVolumeEvaluateAmbientProbeFallback(normalWS, weightHierarchy);
+    backBakeDiffuseLighting += ProbeVolumeEvaluateAmbientProbeFallback(backNormalWS, weightHierarchy);
+
+    // The ambient probe fallback does not contribute to reflection probe normalization.
+    // The idea here is that probe volume samples are higher frequency than reflection probes, so normalization is useful,
+    // but the ambient probe fallback is lower frequency than reflection probes (there is only 1 ambient probe)
+    // so normalizing by the ambient probe is not useful.
+    // This also handles the common case where a scene may contain reflection probes but no probe volumes.
+    reflectionProbeNormalizationWeight = weightHierarchy * ProbeVolumeGetReflectionProbeNormalizationWeight();
+}
+
+// Ref: "Efficient Evaluation of Irradiance Environment Maps" from ShaderX 2
+real3 SHEvalLinearL0L1Luminance(real3 N, real4 shA)
+{
+    // Linear (L1) + constant (L0) polynomial terms
+    return dot(shA, N) + shA.w;
+}
+
+real3 SHEvalLinearL2Luminance(real3 N, real4 shB, real shC)
+{
+    // 4 of the quadratic (L2) polynomials
+    real4 vB = N.xyzz * N.yzzx;
+    real x2 = dot(shB, vB);
+
+    // Final (5th) quadratic (L2) polynomial
+    real vC = N.x * N.x - N.y * N.y;
+    real x3 = shC * vC;
+
+    return x2 + x3;
+}
+
+half3 SampleSH9Luminance(half3 N, half4 shA, half4 shB, half shC)
+{
+    // Linear + constant polynomial terms
+    half3 res = SHEvalLinearL0L1Luminance(N, shA);
+
+    // Quadratic polynomials
+    res += SHEvalLinearL2Luminance(N, shB, shC);
+
+    return res;
+}
+
+// Same idea as in Rendering of COD:IW [Drobot 2017]
+float GetReflectionProbeNormalizationFactor(float3 sampleDirectionWS, float4 reflProbeSHL0L1, float4 reflProbeSHL2_1, float reflProbeSHL2_2)
+{
+    float outFactor = 0;
+    float L0 = reflProbeSHL0L1.x;
+
+    if (ProbeVolumeGetReflectionProbeNormalizationDCOnly())
+    {
+        return L0;
+    }
+
+#if PROBE_VOLUMES_SAMPLING_MODE == PROBEVOLUMESENCODINGMODES_SPHERICAL_HARMONICS_L0
+    outFactor = L0;
+
+#elif PROBE_VOLUMES_SAMPLING_MODE == PROBEVOLUMESENCODINGMODES_SPHERICAL_HARMONICS_L1
+    // SHEvalLinearL0L1() expects coefficients in real4 shAr, real4 shAg, real4 shAb vectors whos channels are laid out {x, y, z, DC}
+    float4 shALuminance = float4(reflProbeSHL0L1.y, reflProbeSHL0L1.z, reflProbeSHL0L1.w, reflProbeSHL0L1.x);
+    outFactor = SHEvalLinearL0L1Luminance(sampleDirectionWS, shALuminance);
+
+#else PROBE_VOLUMES_SAMPLING_MODE == PROBEVOLUMESENCODINGMODES_SPHERICAL_HARMONICS_L2
+    // SHEvalLinearL0L1() expects coefficients in real4 shAr, real4 shAg, real4 shAb vectors whos channels are laid out {x, y, z, DC}
+    float4 shALuminance = float4(reflProbeSHL0L1.y, reflProbeSHL0L1.z, reflProbeSHL0L1.w, reflProbeSHL0L1.x);
+    float4 shBLuminance = reflProbeSHL2_1;
+    float shCLuminance = reflProbeSHL2_2;
+
+    // Normalize DC term:
+    shALuminance.w -= shBLuminance.z;
+
+    // Normalize Quadratic term:
+    shBLuminance.z *= 3.0f;
+
+    outFactor = SampleSH9Luminance(sampleDirectionWS, shALuminance, shBLuminance, shCLuminance);
+#endif
+
+    // Avoid negative values which can happen due to SH ringing.
+    // Avoid divide by zero in caller.
+    return max(1e-5f, outFactor);
+}
+
+float GetReflectionProbeNormalizationFactor(float3 reflectionProbeNormalizationLighting, float reflectionProbeNormalizationWeight, float3 sampleDirectionWS, float4 reflProbeSHL0L1, float4 reflProbeSHL2_1, float reflProbeSHL2_2)
+{
+    float refProbeNormalization = GetReflectionProbeNormalizationFactor(sampleDirectionWS, reflProbeSHL0L1, reflProbeSHL2_1, reflProbeSHL2_2);
+    float localNormalization = max(0.0f, Luminance(reflectionProbeNormalizationLighting));
+
+    float normalization = localNormalization / refProbeNormalization;
+    normalization = clamp(normalization, ProbeVolumeGetReflectionProbeNormalizationMin(), ProbeVolumeGetReflectionProbeNormalizationMax());
+
+    return lerp(1.0f, normalization, reflectionProbeNormalizationWeight);
 }
 
 #endif // __PROBEVOLUME_HLSL__

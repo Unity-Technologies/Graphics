@@ -174,15 +174,21 @@ void SampleBakedGI(
         #endif
 
         float3 viewDirectionWS = GetWorldSpaceNormalizeViewDir(posInput.positionWS);
+        float3 reflectionDirectionWSUnused = normalWS;
+        float3 reflectionProbeNormalizationLightingUnused = 0.0f;
+        float reflectionProbeNormalizationWeightUnused = 0.0f;
         ProbeVolumeEvaluateSphericalHarmonics(
             posInputs,
             normalWS,
             backNormalWS,
+            reflectionDirectionWSUnused,
             viewDirectionWS,
             renderingLayers,
             probeVolumeHierarchyWeight,
             bakeDiffuseLighting,
-            backBakeDiffuseLighting
+            backBakeDiffuseLighting,
+            reflectionProbeNormalizationLightingUnused,
+            reflectionProbeNormalizationWeightUnused
         );
 #endif
 
