@@ -12,7 +12,7 @@ URP_Lighting_Android_Vulkan_Standalone_il2cpp_Linear_trunk:
     name: URP_Lighting on Android_Vulkan_Standalone_il2cpp_Linear on version trunk
     agent:
         type: Unity::mobile::samsung
-        model: s10e-us
+        model: s10e-eu
         image: mobile/android-execution-r19:stable
         flavor: b1.large
     variables:
@@ -26,7 +26,6 @@ URP_Lighting_Android_Vulkan_Standalone_il2cpp_Linear_trunk:
       -  NetSh Advfirewall set allprofiles state off
       -  curl -s https://artifactory.prd.it.unity3d.com/artifactory/unity-tools-local/utr-standalone/utr.bat --output utr.bat
       -  |5-
-              set ANDROID_DEVICE_CONNECTION=%BOKKEN_DEVICE_IP%
               git rev-parse HEAD | git show -s --format=%%cI > revdate.tmp
               set /p GIT_REVISIONDATE=<revdate.tmp
               echo %GIT_REVISIONDATE%
@@ -60,7 +59,6 @@ Build_URP_Lighting_Android_Vulkan_Standalone_il2cpp_Linear_trunk:
       -  choco install unity-downloader-cli -y -s https://artifactory.prd.it.unity3d.com/artifactory/api/nuget/unity-choco-local
       -  unity-downloader-cli --source-file unity_revision.txt -p WindowsEditor -c editor -c il2cpp -c android  --wait --published-only
       -  |5-
-              set ANDROID_DEVICE_CONNECTION=%BOKKEN_DEVICE_IP%
               git rev-parse HEAD | git show -s --format=%%cI > revdate.tmp
               set /p GIT_REVISIONDATE=<revdate.tmp
               echo %GIT_REVISIONDATE%
@@ -81,7 +79,7 @@ URP_Lighting_Android_Vulkan_Standalone_cache_il2cpp_Linear_trunk:
     name: URP_Lighting on Android_Vulkan_Standalone_cache_il2cpp_Linear on version trunk
     agent:
         type: Unity::mobile::samsung
-        model: s10e-us
+        model: s10e-eu
         image: mobile/android-execution-r19:stable
         flavor: b1.large
     variables:
@@ -95,7 +93,6 @@ URP_Lighting_Android_Vulkan_Standalone_cache_il2cpp_Linear_trunk:
       -  NetSh Advfirewall set allprofiles state off
       -  curl -s https://artifactory.prd.it.unity3d.com/artifactory/unity-tools-local/utr-standalone/utr.bat --output utr.bat
       -  |5-
-              set ANDROID_DEVICE_CONNECTION=%BOKKEN_DEVICE_IP%
               git rev-parse HEAD | git show -s --format=%%cI > revdate.tmp
               set /p GIT_REVISIONDATE=<revdate.tmp
               echo %GIT_REVISIONDATE%
@@ -129,7 +126,6 @@ Build_URP_Lighting_Android_Vulkan_Standalone_cache_il2cpp_Linear_trunk:
       -  choco install unity-downloader-cli -y -s https://artifactory.prd.it.unity3d.com/artifactory/api/nuget/unity-choco-local
       -  unity-downloader-cli --source-file unity_revision.txt -p WindowsEditor -c editor -c il2cpp -c android  --wait --published-only
       -  |5-
-              set ANDROID_DEVICE_CONNECTION=%BOKKEN_DEVICE_IP%
               git rev-parse HEAD | git show -s --format=%%cI > revdate.tmp
               set /p GIT_REVISIONDATE=<revdate.tmp
               echo %GIT_REVISIONDATE%
@@ -150,7 +146,7 @@ URP_Lighting_Android_Vulkan_Standalone_XR_cache_il2cpp_Linear_trunk:
     name: URP_Lighting on Android_Vulkan_Standalone_XR_cache_il2cpp_Linear on version trunk
     agent:
         type: Unity::mobile::samsung
-        model: s10e-us
+        model: s10e-eu
         image: mobile/android-execution-r19:stable
         flavor: b1.large
     variables:
@@ -164,7 +160,6 @@ URP_Lighting_Android_Vulkan_Standalone_XR_cache_il2cpp_Linear_trunk:
       -  NetSh Advfirewall set allprofiles state off
       -  curl -s https://artifactory.prd.it.unity3d.com/artifactory/unity-tools-local/utr-standalone/utr.bat --output utr.bat
       -  |5-
-              set ANDROID_DEVICE_CONNECTION=%BOKKEN_DEVICE_IP%
               git rev-parse HEAD | git show -s --format=%%cI > revdate.tmp
               set /p GIT_REVISIONDATE=<revdate.tmp
               echo %GIT_REVISIONDATE%
@@ -198,7 +193,6 @@ Build_URP_Lighting_Android_Vulkan_Standalone_XR_cache_il2cpp_Linear_trunk:
       -  choco install unity-downloader-cli -y -s https://artifactory.prd.it.unity3d.com/artifactory/api/nuget/unity-choco-local
       -  unity-downloader-cli --source-file unity_revision.txt -p WindowsEditor -c editor -c il2cpp -c android  --wait --published-only
       -  |5-
-              set ANDROID_DEVICE_CONNECTION=%BOKKEN_DEVICE_IP%
               git rev-parse HEAD | git show -s --format=%%cI > revdate.tmp
               set /p GIT_REVISIONDATE=<revdate.tmp
               echo %GIT_REVISIONDATE%
@@ -219,7 +213,7 @@ URP_Lighting_Android_Vulkan_Standalone_il2cpp_Linear_CUSTOM-REVISION:
     name: URP_Lighting on Android_Vulkan_Standalone_il2cpp_Linear on version CUSTOM-REVISION
     agent:
         type: Unity::mobile::samsung
-        model: s10e-us
+        model: s10e-eu
         image: mobile/android-execution-r19:stable
         flavor: b1.large
     variables:
@@ -233,7 +227,6 @@ URP_Lighting_Android_Vulkan_Standalone_il2cpp_Linear_CUSTOM-REVISION:
       -  NetSh Advfirewall set allprofiles state off
       -  curl -s https://artifactory.prd.it.unity3d.com/artifactory/unity-tools-local/utr-standalone/utr.bat --output utr.bat
       -  |5-
-              set ANDROID_DEVICE_CONNECTION=%BOKKEN_DEVICE_IP%
               git rev-parse HEAD | git show -s --format=%%cI > revdate.tmp
               set /p GIT_REVISIONDATE=<revdate.tmp
               echo %GIT_REVISIONDATE%
@@ -267,7 +260,6 @@ Build_URP_Lighting_Android_Vulkan_Standalone_il2cpp_Linear_CUSTOM-REVISION:
       -  choco install unity-downloader-cli -y -s https://artifactory.prd.it.unity3d.com/artifactory/api/nuget/unity-choco-local
       -  unity-downloader-cli --source-file unity_revision.txt -p WindowsEditor -c editor -c il2cpp -c android  --wait --published-only
       -  |5-
-              set ANDROID_DEVICE_CONNECTION=%BOKKEN_DEVICE_IP%
               git rev-parse HEAD | git show -s --format=%%cI > revdate.tmp
               set /p GIT_REVISIONDATE=<revdate.tmp
               echo %GIT_REVISIONDATE%
@@ -288,7 +280,7 @@ URP_Lighting_Android_Vulkan_Standalone_cache_il2cpp_Linear_CUSTOM-REVISION:
     name: URP_Lighting on Android_Vulkan_Standalone_cache_il2cpp_Linear on version CUSTOM-REVISION
     agent:
         type: Unity::mobile::samsung
-        model: s10e-us
+        model: s10e-eu
         image: mobile/android-execution-r19:stable
         flavor: b1.large
     variables:
@@ -302,7 +294,6 @@ URP_Lighting_Android_Vulkan_Standalone_cache_il2cpp_Linear_CUSTOM-REVISION:
       -  NetSh Advfirewall set allprofiles state off
       -  curl -s https://artifactory.prd.it.unity3d.com/artifactory/unity-tools-local/utr-standalone/utr.bat --output utr.bat
       -  |5-
-              set ANDROID_DEVICE_CONNECTION=%BOKKEN_DEVICE_IP%
               git rev-parse HEAD | git show -s --format=%%cI > revdate.tmp
               set /p GIT_REVISIONDATE=<revdate.tmp
               echo %GIT_REVISIONDATE%
@@ -336,7 +327,6 @@ Build_URP_Lighting_Android_Vulkan_Standalone_cache_il2cpp_Linear_CUSTOM-REVISION
       -  choco install unity-downloader-cli -y -s https://artifactory.prd.it.unity3d.com/artifactory/api/nuget/unity-choco-local
       -  unity-downloader-cli --source-file unity_revision.txt -p WindowsEditor -c editor -c il2cpp -c android  --wait --published-only
       -  |5-
-              set ANDROID_DEVICE_CONNECTION=%BOKKEN_DEVICE_IP%
               git rev-parse HEAD | git show -s --format=%%cI > revdate.tmp
               set /p GIT_REVISIONDATE=<revdate.tmp
               echo %GIT_REVISIONDATE%
@@ -357,7 +347,7 @@ URP_Lighting_Android_Vulkan_Standalone_XR_cache_il2cpp_Linear_CUSTOM-REVISION:
     name: URP_Lighting on Android_Vulkan_Standalone_XR_cache_il2cpp_Linear on version CUSTOM-REVISION
     agent:
         type: Unity::mobile::samsung
-        model: s10e-us
+        model: s10e-eu
         image: mobile/android-execution-r19:stable
         flavor: b1.large
     variables:
@@ -371,7 +361,6 @@ URP_Lighting_Android_Vulkan_Standalone_XR_cache_il2cpp_Linear_CUSTOM-REVISION:
       -  NetSh Advfirewall set allprofiles state off
       -  curl -s https://artifactory.prd.it.unity3d.com/artifactory/unity-tools-local/utr-standalone/utr.bat --output utr.bat
       -  |5-
-              set ANDROID_DEVICE_CONNECTION=%BOKKEN_DEVICE_IP%
               git rev-parse HEAD | git show -s --format=%%cI > revdate.tmp
               set /p GIT_REVISIONDATE=<revdate.tmp
               echo %GIT_REVISIONDATE%
@@ -405,7 +394,6 @@ Build_URP_Lighting_Android_Vulkan_Standalone_XR_cache_il2cpp_Linear_CUSTOM-REVIS
       -  choco install unity-downloader-cli -y -s https://artifactory.prd.it.unity3d.com/artifactory/api/nuget/unity-choco-local
       -  unity-downloader-cli --source-file unity_revision.txt -p WindowsEditor -c editor -c il2cpp -c android  --wait --published-only
       -  |5-
-              set ANDROID_DEVICE_CONNECTION=%BOKKEN_DEVICE_IP%
               git rev-parse HEAD | git show -s --format=%%cI > revdate.tmp
               set /p GIT_REVISIONDATE=<revdate.tmp
               echo %GIT_REVISIONDATE%
