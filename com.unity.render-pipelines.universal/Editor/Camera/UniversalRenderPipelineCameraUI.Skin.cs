@@ -6,10 +6,6 @@ namespace UnityEditor.Rendering.Universal
     {
         public class Styles
         {
-            public static GUIContent projectionSettingsText = EditorGUIUtility.TrTextContent("Projection", "These settings control how the camera views the world.");
-            public static GUIContent environmentSettingsText = EditorGUIUtility.TrTextContent("Environment", "These settings control what the camera background looks like.");
-            public static GUIContent outputSettingsText = EditorGUIUtility.TrTextContent("Output", "These settings control how the camera output is formatted.");
-            public static GUIContent renderingSettingsText = EditorGUIUtility.TrTextContent("Rendering", "These settings control for the specific rendering features for this camera.");
             public static GUIContent stackSettingsText = EditorGUIUtility.TrTextContent("Stack", "The list of overlay cameras assigned to this camera.");
 
             public static GUIContent backgroundType = EditorGUIUtility.TrTextContent("Background Type", "Controls how to initialize the Camera's background.\n\nSkybox initializes camera with Skybox, defaulting to a background color if no skybox is found.\n\nSolid Color initializes background with the background color.\n\nUninitialized has undefined values for the camera background. Use this only if you are rendering all pixels in the Camera's view.");
@@ -55,15 +51,6 @@ namespace UnityEditor.Rendering.Universal
             public static readonly string disabledPostprocessing = "Post Processing is currently disabled on the current Universal Render Pipeline renderer.";
 
             public static readonly string pixelPerfectInfo = "Projection settings have been overriden by the Pixel Perfect Camera.";
-
-            public static GUIContent[] cameraBackgroundType =
-            {
-                EditorGUIUtility.TrTextContent("Skybox"),
-                EditorGUIUtility.TrTextContent("Solid Color"),
-                EditorGUIUtility.TrTextContent("Uninitialized"),
-            };
-
-            public static int[] cameraBackgroundValues = { 0, 1, 2 };
 
             // Using the pipeline Settings
             public static GUIContent[] displayedCameraOptions =

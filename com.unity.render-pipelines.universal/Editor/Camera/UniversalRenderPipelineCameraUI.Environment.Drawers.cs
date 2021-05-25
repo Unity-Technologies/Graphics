@@ -1,5 +1,3 @@
-using UnityEditorInternal;
-
 namespace UnityEditor.Rendering.Universal
 {
     using UnityEngine;
@@ -14,6 +12,7 @@ namespace UnityEditor.Rendering.Universal
             {
                 Skybox = 0,
                 SolidColor,
+                [InspectorName("Uninitialized")]
                 DontCare,
             }
 
