@@ -348,17 +348,18 @@ namespace UnityEditor.Rendering.Universal
 
         bool StripUnused(ShaderFeatures features, Shader shader, ShaderSnippetData snippetData, ShaderCompilerData compilerData)
         {
-            if (StripUnusedFeatures(features, shader, snippetData, compilerData))
+            if (StripUnusedPass(features, snippetData))
                 return true;
 
             if (StripInvalidVariants(compilerData))
                 return true;
 
+            if (StripUnusedFeatures(features, shader, snippetData, compilerData))
+                return true;
+
             if (StripUnsupportedVariants(compilerData))
                 return true;
 
-            if (StripUnusedPass(features, snippetData))
-                return true;
 
             // Strip terrain holes
             // TODO: checking for the string name here is expensive
