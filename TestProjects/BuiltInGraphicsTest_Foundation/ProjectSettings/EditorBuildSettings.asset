@@ -30,6 +30,9 @@ EditorBuildSettings:
     path: Assets/Scenes/055_Lighting_BasicUnlit.unity
     guid: b26153a0dfe8c4448835dd5d89134dd4
   - enabled: 1
+    path: Assets/Scenes/055_Lighting_BasicUnlit_Override.unity
+    guid: 81a5c26d5da321d48b11784a11789c64
+  - enabled: 1
     path: Assets/Scenes/056_Lighting_BasicAlphaCut.unity
     guid: ba30e2ead57624e42a64622b129e06fe
   - enabled: 1
