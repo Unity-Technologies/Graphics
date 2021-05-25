@@ -433,6 +433,28 @@ namespace UnityEngine.Rendering.Universal
         // To enable it - override SupportsNativeRenderPass method in the feature and return true
         internal bool disableNativeRenderPassInFeatures = false;
 
+        class PassFrameData
+        {
+            public int width = 0;
+            public int height = 0;
+            public int numSamples = 0;
+        }
+
+        class CameraFrameData
+        {
+            public int width = 0;
+            public int height = 0;
+            public int numSamples = 0;
+        }
+
+        private int m_LastFrameNumPasses = 0;
+        private int[] m_LastFramePassesHashes = new int[kRenderPassMaxCount];
+        private int[][] m_LastFramePassColorAttachmentsHashes = new int[kRenderPassMaxCount][];
+        private int[] m_LastFramePassDepthAttachmentsHashes = new int[kRenderPassMaxCount];
+
+        private PassFrameData[] m_LastFramePassesData = new PassFrameData[kRenderPassMaxCount];
+        private CameraFrameData m_LastFrameCameraData = new CameraFrameData();
+
         internal bool useRenderPassEnabled = false;
         static RenderTargetIdentifier[] m_ActiveColorAttachments = new RenderTargetIdentifier[] {0, 0, 0, 0, 0, 0, 0, 0 };
         static RenderTargetIdentifier m_ActiveDepthAttachment;
@@ -477,6 +499,9 @@ namespace UnityEngine.Rendering.Universal
 
         internal bool useDepthPriming { get; set; } = false;
 
+        private bool firstFrame = true;
+        private CameraData lastCameraData = new CameraData();
+
         public ScriptableRenderer(ScriptableRendererData data)
         {
             if (Debug.isDebugBuild)
@@ -503,6 +528,35 @@ namespace UnityEngine.Rendering.Universal
                 m_StoreActionsOptimizationSetting = UniversalRenderPipeline.asset.storeActionsOptimization;
 
             m_UseOptimizedStoreActions = m_StoreActionsOptimizationSetting != StoreActionsOptimization.Store;
+
+            // initialize last frame data
+
+            m_LastFrameNumPasses = 0;
+            m_LastFrameCameraData.width = 0;
+            m_LastFrameCameraData.height = 0;
+            m_LastFrameCameraData.numSamples = 0;
+
+            for (int i = 0; i < kRenderPassMaxCount; ++i)
+            {
+                m_LastFramePassesHashes[i] = 0;
+
+                if (m_LastFramePassColorAttachmentsHashes[i] == null)
+                    m_LastFramePassColorAttachmentsHashes[i] = new int[kRenderPassAttachmentsMaxCount];
+
+                for (int j = 0; j < kRenderPassAttachmentsMaxCount; ++j)
+                {
+                    m_LastFramePassColorAttachmentsHashes[i][j] = 0;
+                }
+
+                m_LastFramePassDepthAttachmentsHashes[i] = 0;
+
+                if (m_LastFramePassesData[i] == null)
+                    m_LastFramePassesData[i] = new PassFrameData();
+
+                m_LastFramePassesData[i].width = 0;
+                m_LastFramePassesData[i].height = 0;
+                m_LastFramePassesData[i].numSamples = 0;
+            }
         }
 
         public void Dispose()
@@ -635,7 +689,96 @@ namespace UnityEngine.Rendering.Universal
                     SortStable(m_ActiveRenderPassQueue);
                 }
 
-                SetupNativeRenderPassFrameData(cameraData, useRenderPassEnabled);
+                // check num passes
+
+                bool setDirty = false;
+
+                // if the number of passes is different, flag it dirty
+                setDirty = m_LastFrameNumPasses != m_ActiveRenderPassQueue.Count;
+
+                m_LastFrameNumPasses = m_ActiveRenderPassQueue.Count;
+
+                // check camera data
+
+                RenderTextureDescriptor cameraDesc = cameraData.cameraTargetDescriptor;
+
+                setDirty = m_LastFrameCameraData.width != cameraDesc.width || m_LastFrameCameraData.height != cameraDesc.height || m_LastFrameCameraData.numSamples != cameraDesc.msaaSamples;
+
+                m_LastFrameCameraData.width = cameraDesc.width;
+                m_LastFrameCameraData.height = cameraDesc.height;
+                m_LastFrameCameraData.numSamples = cameraDesc.msaaSamples;
+
+                // check passes ID/names
+                // check attachments hash
+
+                for (int i = 0; i < kRenderPassMaxCount; ++i)
+                {
+                    if (i < m_ActiveRenderPassQueue.Count)
+                    {
+                        setDirty = m_LastFramePassesData[i].width != m_ActiveRenderPassQueue[i].renderTargetWidth ||
+                            m_LastFramePassesData[i].height != m_ActiveRenderPassQueue[i].renderTargetHeight ||
+                            m_LastFramePassesData[i].numSamples != m_ActiveRenderPassQueue[i].renderTargetSampleCount;
+
+                        m_LastFramePassesData[i].width = m_ActiveRenderPassQueue[i].renderTargetWidth;
+                        m_LastFramePassesData[i].height = m_ActiveRenderPassQueue[i].renderTargetHeight;
+                        m_LastFramePassesData[i].numSamples = m_ActiveRenderPassQueue[i].renderTargetSampleCount;
+
+                        if (m_LastFramePassesHashes[i] != m_ActiveRenderPassQueue[i].GetHashCode())
+                        {
+                            // the passes are different, flag it dirty
+
+                            setDirty = true;
+                            m_LastFramePassesHashes[i] = m_ActiveRenderPassQueue[i].GetHashCode();
+                        }
+
+                        // check that the attachments are the same too
+
+                        for (int j = 0; j < kRenderPassAttachmentsMaxCount; ++j)
+                        {
+                            if (j < m_ActiveRenderPassQueue[i].colorAttachments.Length)
+                            {
+                                if (m_LastFramePassColorAttachmentsHashes[i][j] != m_ActiveRenderPassQueue[i].colorAttachments[j].GetHashCode())
+                                {
+                                    setDirty = true;
+                                    m_LastFramePassColorAttachmentsHashes[i][j] = m_ActiveRenderPassQueue[i].colorAttachments[j].GetHashCode();
+                                }
+                            }
+                            else
+                            {
+                                m_LastFramePassColorAttachmentsHashes[i][j] = 0;
+                            }
+                        }
+
+                        m_LastFramePassDepthAttachmentsHashes[i] = m_ActiveRenderPassQueue[i].depthAttachment.GetHashCode();
+                    }
+                    else
+                    {
+                        m_LastFramePassesData[i].width = 0;
+                        m_LastFramePassesData[i].height = 0;
+                        m_LastFramePassesData[i].numSamples = 0;
+
+                        m_LastFramePassesHashes[i] = 0;
+
+                        for (int j = 0; j < kRenderPassAttachmentsMaxCount; ++j)
+                            m_LastFramePassColorAttachmentsHashes[i][j] = 0;
+
+                        m_LastFramePassDepthAttachmentsHashes[i] = 0;
+                    }
+                }
+
+                // TODO: check camera MSAA and dynamic scaling?
+                // check pass width/height/numSamples
+
+                if (setDirty)
+                    firstFrame = true;
+
+
+                if (firstFrame && cameraData.cameraType == CameraType.Game)
+                {
+                    ResetNativeRenderPassFrameData();
+                    SetupNativeRenderPassFrameData(cameraData, useRenderPassEnabled);
+                }
+
 
                 using var renderBlocks = new RenderBlocks(m_ActiveRenderPassQueue);
 
@@ -735,6 +878,8 @@ namespace UnityEngine.Rendering.Universal
                 }
 
                 InternalFinishRendering(context, cameraData.resolveFinalTarget);
+                if (cameraData.cameraType == CameraType.Game && Application.isPlaying)
+                    firstFrame = false;
             }
 
             context.ExecuteCommandBuffer(cmd);
@@ -1032,7 +1177,11 @@ namespace UnityEngine.Rendering.Universal
                 finalClearFlag |= needCustomCameraColorClear ? (IsRenderPassEnabled(renderPass) ? (cameraClearFlag & ClearFlag.Color) : 0) : (renderPass.clearFlag & ClearFlag.Color);
 
                 if (IsRenderPassEnabled(renderPass) && cameraData.cameraType == CameraType.Game)
-                    SetNativeRenderPassMRTAttachmentList(renderPass, ref cameraData, needCustomCameraColorClear, finalClearFlag);
+                {
+                    if (firstFrame)
+                        SetNativeRenderPassMRTAttachmentList(renderPass, ref cameraData, needCustomCameraColorClear, finalClearFlag);
+                }
+
 
                 // Only setup render target if current render pass attachments are different from the active ones.
                 if (!RenderingUtils.SequenceEqual(renderPass.colorAttachments, m_ActiveColorAttachments) || renderPass.depthAttachment != m_ActiveDepthAttachment || finalClearFlag != ClearFlag.None)
@@ -1148,7 +1297,8 @@ namespace UnityEngine.Rendering.Universal
 
                 if (IsRenderPassEnabled(renderPass) && cameraData.cameraType == CameraType.Game)
                 {
-                    SetNativeRenderPassAttachmentList(renderPass, ref cameraData, passColorAttachment, passDepthAttachment, finalClearFlag, finalClearColor);
+                    if (firstFrame)
+                        SetNativeRenderPassAttachmentList(renderPass, ref cameraData, passColorAttachment, passDepthAttachment, finalClearFlag, finalClearColor);
                 }
                 else
                 {
@@ -1356,8 +1506,6 @@ namespace UnityEngine.Rendering.Universal
                 }
                 m_ActiveRenderPassQueue.Clear();
             }
-
-            ResetNativeRenderPassFrameData();
 
             context.ExecuteCommandBuffer(cmd);
             CommandBufferPool.Release(cmd);

@@ -187,6 +187,13 @@ namespace UnityEngine.Rendering.Universal
                 if (currentMergeablePasses.First() != currentPassIndex)
                     return;
 
+                for (int i = 0; i < m_ActiveColorAttachmentDescriptorsMap[currentPassHash].Length; ++i)
+                {
+                    m_ActiveColorAttachmentDescriptorsMap[currentPassHash][i] = RenderingUtils.emptyAttachment;
+                }
+
+                m_ActiveDepthAttachmentDescriptorMap[currentPassHash] = RenderingUtils.emptyAttachment;
+
                 m_RenderPassesAttachmentCount[currentPassHash] = 0;
 
                 int currentAttachmentIdx = 0;
@@ -264,6 +271,13 @@ namespace UnityEngine.Rendering.Universal
                 // Skip if not the first pass
                 if (currentMergeablePasses.First() != currentPassIndex)
                     return;
+
+                for (int i = 0; i < m_ActiveColorAttachmentDescriptorsMap[currentPassHash].Length; ++i)
+                {
+                    m_ActiveColorAttachmentDescriptorsMap[currentPassHash][i] = RenderingUtils.emptyAttachment;
+                }
+
+                m_ActiveDepthAttachmentDescriptorMap[currentPassHash] = RenderingUtils.emptyAttachment;
 
                 m_RenderPassesAttachmentCount[currentPassHash] = 0;
 
