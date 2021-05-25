@@ -57,9 +57,9 @@ namespace UnityEngine.Rendering.Universal
 
             // Core blitter shaders, adapted from HDRP
             // TODO: move to core and share with HDRP
-            [Reload("Shaders/Utils/CoreBlit.shader")]
+            [Reload("Shaders/Utils/CoreBlit.shader"), SerializeField]
             internal Shader coreBlitPS;
-            [Reload("Shaders/Utils/CoreBlitColorAndDepth.shader")]
+            [Reload("Shaders/Utils/CoreBlitColorAndDepth.shader"), SerializeField]
             internal Shader coreBlitColorAndDepthPS;
 
 
