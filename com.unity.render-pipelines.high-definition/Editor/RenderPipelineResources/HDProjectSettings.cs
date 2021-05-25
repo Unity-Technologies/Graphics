@@ -137,7 +137,7 @@ namespace UnityEditor.Rendering.HighDefinition
             // Make sure the cached last seen plugin versions (capped to codebase versions) and their sum is valid
             // on assembly reload.
             instance.FillPresentPluginMaterialVersions();
-            HDProjectSettingsProxy.projectSettingsFolderPath = () => projectSettingsFolderPath;
+            HDProjectSettingsProxy.Init(() => projectSettingsFolderPath);
         }
 
         void FillPresentPluginMaterialVersions()

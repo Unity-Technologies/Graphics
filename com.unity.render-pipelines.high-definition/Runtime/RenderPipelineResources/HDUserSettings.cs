@@ -12,9 +12,6 @@ namespace UnityEngine.Rendering.HighDefinition
     {
         const string filePath = "UserSettings/HDRPUserSettings.asset";
 
-        // Use a proxy for HDProjectSettings living in editor assembly
-        string m_ProjectSettingFolderPath => HDProjectSettingsProxy.projectSettingsFolderPath();
-
         [SerializeField]
         bool m_WizardPopupAlreadyShownOnce = false;
         [SerializeField]
@@ -62,12 +59,6 @@ namespace UnityEngine.Rendering.HighDefinition
                 instance.m_WizardNeedRestartAfterChangingToDX12 = value;
                 Save();
             }
-        }
-
-        // Use a proxy for HDProjectSettings living in editor assembly
-        public static string projectSettingsFolderPath
-        {
-            get => instance.m_ProjectSettingFolderPath;
         }
 
         //singleton pattern
