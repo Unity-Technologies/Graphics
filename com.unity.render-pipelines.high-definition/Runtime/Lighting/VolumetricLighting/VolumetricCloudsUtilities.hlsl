@@ -287,6 +287,74 @@ CloudReprojectionData GetCloudReprojectionDataSample(uint2 groupThreadId, int2 o
 }
 
 // Function that fills the struct as we cannot use arrays
+void FillCloudReprojectionNeighborhoodData_NOLDS(int2 traceCoord, out NeighborhoodUpsampleData3x3 neighborhoodData)
+{
+    // Fill the sample data
+    neighborhoodData.lowValue0 = LOAD_TEXTURE2D_X(_CloudsLightingTexture, traceCoord + int2(-1, -1));
+    neighborhoodData.lowValue1 = LOAD_TEXTURE2D_X(_CloudsLightingTexture, traceCoord + int2(0, -1));
+    neighborhoodData.lowValue2 = LOAD_TEXTURE2D_X(_CloudsLightingTexture, traceCoord + int2(1, -1));
+
+    neighborhoodData.lowValue3 = LOAD_TEXTURE2D_X(_CloudsLightingTexture, traceCoord + int2(-1, 0));
+    neighborhoodData.lowValue4 = LOAD_TEXTURE2D_X(_CloudsLightingTexture, traceCoord + int2(0, 0));
+    neighborhoodData.lowValue5 = LOAD_TEXTURE2D_X(_CloudsLightingTexture, traceCoord + int2(1, 0));
+
+    neighborhoodData.lowValue6 = LOAD_TEXTURE2D_X(_CloudsLightingTexture, traceCoord + int2(-1, 1));
+    neighborhoodData.lowValue7 = LOAD_TEXTURE2D_X(_CloudsLightingTexture, traceCoord + int2(0, 1));
+    neighborhoodData.lowValue8 = LOAD_TEXTURE2D_X(_CloudsLightingTexture, traceCoord + int2(1, 1));
+
+    int2 traceTapCoord = traceCoord + int2(-1, -1);
+    int checkerBoardIndex = ComputeCheckerBoardIndex(traceTapCoord, _SubPixelIndex);
+    int2 representativeCoord = traceTapCoord * 2 + HalfResIndexToCoordinateShift[checkerBoardIndex];
+    neighborhoodData.lowDepthA.x = LOAD_TEXTURE2D_X(_HalfResDepthBuffer, representativeCoord).x;
+
+    traceTapCoord = traceCoord + int2(0, -1);
+    checkerBoardIndex = ComputeCheckerBoardIndex(traceTapCoord, _SubPixelIndex);
+    representativeCoord = traceTapCoord * 2 + HalfResIndexToCoordinateShift[checkerBoardIndex];
+    neighborhoodData.lowDepthA.y = LOAD_TEXTURE2D_X(_HalfResDepthBuffer, representativeCoord).x;
+
+    traceTapCoord = traceCoord + int2(1, -1);
+    checkerBoardIndex = ComputeCheckerBoardIndex(traceTapCoord, _SubPixelIndex);
+    representativeCoord = traceTapCoord * 2 + HalfResIndexToCoordinateShift[checkerBoardIndex];
+    neighborhoodData.lowDepthA.z = LOAD_TEXTURE2D_X(_HalfResDepthBuffer, representativeCoord).x;
+
+    traceTapCoord = traceCoord + int2(-1, 0);
+    checkerBoardIndex = ComputeCheckerBoardIndex(traceTapCoord, _SubPixelIndex);
+    representativeCoord = traceTapCoord * 2 + HalfResIndexToCoordinateShift[checkerBoardIndex];
+    neighborhoodData.lowDepthA.w = LOAD_TEXTURE2D_X(_HalfResDepthBuffer, representativeCoord).x;
+
+    traceTapCoord = traceCoord + int2(0, 0);
+    checkerBoardIndex = ComputeCheckerBoardIndex(traceTapCoord, _SubPixelIndex);
+    representativeCoord = traceTapCoord * 2 + HalfResIndexToCoordinateShift[checkerBoardIndex];
+    neighborhoodData.lowDepthB.x = LOAD_TEXTURE2D_X(_HalfResDepthBuffer, representativeCoord).x;
+
+    traceTapCoord = traceCoord + int2(1, 0);
+    checkerBoardIndex = ComputeCheckerBoardIndex(traceTapCoord, _SubPixelIndex);
+    representativeCoord = traceTapCoord * 2 + HalfResIndexToCoordinateShift[checkerBoardIndex];
+    neighborhoodData.lowDepthB.y = LOAD_TEXTURE2D_X(_HalfResDepthBuffer, representativeCoord).x;
+
+    traceTapCoord = traceCoord + int2(-1, 1);
+    checkerBoardIndex = ComputeCheckerBoardIndex(traceTapCoord, _SubPixelIndex);
+    representativeCoord = traceTapCoord * 2 + HalfResIndexToCoordinateShift[checkerBoardIndex];
+    neighborhoodData.lowDepthB.z = LOAD_TEXTURE2D_X(_HalfResDepthBuffer, representativeCoord).x;
+
+    traceTapCoord = traceCoord + int2(0, 1);
+    checkerBoardIndex = ComputeCheckerBoardIndex(traceTapCoord, _SubPixelIndex);
+    representativeCoord = traceTapCoord * 2 + HalfResIndexToCoordinateShift[checkerBoardIndex];
+    neighborhoodData.lowDepthB.w = LOAD_TEXTURE2D_X(_HalfResDepthBuffer, representativeCoord).x;
+
+    traceTapCoord = traceCoord + int2(1, 1);
+    checkerBoardIndex = ComputeCheckerBoardIndex(traceTapCoord, _SubPixelIndex);
+    representativeCoord = traceTapCoord * 2 + HalfResIndexToCoordinateShift[checkerBoardIndex];
+    neighborhoodData.lowDepthC = LOAD_TEXTURE2D_X(_HalfResDepthBuffer, representativeCoord).x;
+
+    // In the reprojection case, all masks are valid
+    neighborhoodData.lowMasksA = 1.0f;
+    neighborhoodData.lowMasksB = 1.0f;
+    neighborhoodData.lowMasksC = 1.0f;
+}
+
+
+// Function that fills the struct as we cannot use arrays
 void FillCloudReprojectionNeighborhoodData(int2 groupThreadId, out NeighborhoodUpsampleData3x3 neighborhoodData)
 {
     // Fill the sample data

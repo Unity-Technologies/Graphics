@@ -48,8 +48,8 @@ namespace UnityEngine.Rendering.HighDefinition
         public int _PhysicallyBasedSun;
         // Factor for the multi scattering
         public float _MultiScattering;
-        // Padding 0
-        public float _Padding0;
+        // Strength of the erosion occlusion
+        public float _ErosionOcclusion;
         // Controls the strength of the powder effect intensity
         public float _PowderEffectIntensity;
 

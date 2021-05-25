@@ -86,7 +86,7 @@ void EvaluateMaskValidity(float linearHighDepth, float lowDepth, int currentInde
         currentDistance = candidateDistance;
     }
 
-    bool validSample = candidateDistance < (linearHighDepth * 0.1);
+    bool validSample = candidateDistance < (linearHighDepth * 0.3);
     inputMask = validSample ? 1.0f : 0.0f;
     rejectedNeighborhood *= (validSample ? 0.0f : 1.0f);
 }
