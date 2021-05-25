@@ -257,13 +257,13 @@ void ProbeVolumeEvaluateSphericalHarmonics(PositionInputs posInput, float3 norma
 }
 
 // Ref: "Efficient Evaluation of Irradiance Environment Maps" from ShaderX 2
-real3 SHEvalLinearL0L1Luminance(real3 N, real4 shA)
+real SHEvalLinearL0L1Luminance(real3 N, real4 shA)
 {
     // Linear (L1) + constant (L0) polynomial terms
-    return dot(shA, N) + shA.w;
+    return dot(shA.xyz, N) + shA.w;
 }
 
-real3 SHEvalLinearL2Luminance(real3 N, real4 shB, real shC)
+real SHEvalLinearL2Luminance(real3 N, real4 shB, real shC)
 {
     // 4 of the quadratic (L2) polynomials
     real4 vB = N.xyzz * N.yzzx;
@@ -276,7 +276,7 @@ real3 SHEvalLinearL2Luminance(real3 N, real4 shB, real shC)
     return x2 + x3;
 }
 
-half3 SampleSH9Luminance(half3 N, half4 shA, half4 shB, half shC)
+half SampleSH9Luminance(half3 N, half4 shA, half4 shB, half shC)
 {
     // Linear + constant polynomial terms
     half3 res = SHEvalLinearL0L1Luminance(N, shA);
