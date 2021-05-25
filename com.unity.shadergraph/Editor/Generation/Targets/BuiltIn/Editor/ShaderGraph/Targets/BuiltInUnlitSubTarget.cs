@@ -66,7 +66,7 @@ namespace UnityEditor.Rendering.BuiltIn.ShaderGraph
 
         public override void CollectShaderProperties(PropertyCollector collector, GenerationMode generationMode)
         {
-            if(target.allowMaterialOverride)
+            if (target.allowMaterialOverride)
             {
                 base.CollectShaderProperties(collector, generationMode);
 

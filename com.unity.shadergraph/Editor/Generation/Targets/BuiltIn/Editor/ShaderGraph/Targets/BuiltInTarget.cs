@@ -478,14 +478,13 @@ namespace UnityEditor.Rendering.BuiltIn.ShaderGraph
     #region Passes
     static class CorePasses
     {
-
         internal static void AddSurfaceTypeControlToPass(ref PassDescriptor pass, BuiltInTarget target)
         {
             if (target.allowMaterialOverride)
             {
                 pass.keywords.Add(CoreKeywordDescriptors.SurfaceTypeTransparent);
             }
-            else if(target.surfaceType == SurfaceType.Transparent)
+            else if (target.surfaceType == SurfaceType.Transparent)
             {
                 pass.defines.Add(CoreKeywordDescriptors.SurfaceTypeTransparent, 1);
             }
@@ -502,6 +501,7 @@ namespace UnityEditor.Rendering.BuiltIn.ShaderGraph
                 pass.defines.Add(CoreKeywordDescriptors.AlphaPremultiplyOn, 1);
             }
         }
+
         internal static void AddAlphaClipControlToPass(ref PassDescriptor pass, BuiltInTarget target)
         {
             if (target.allowMaterialOverride)
@@ -630,7 +630,7 @@ namespace UnityEditor.Rendering.BuiltIn.ShaderGraph
                 // Conditional State
                 renderStates = CoreRenderStates.SceneSelection(target),
                 pragmas = CorePragmas.Instanced,
-                defines = new DefineCollection{ CoreDefines.SceneSelection },
+                defines = new DefineCollection { CoreDefines.SceneSelection },
                 keywords = new KeywordCollection(),
                 includes = CoreIncludes.SceneSelection,
 
@@ -668,7 +668,7 @@ namespace UnityEditor.Rendering.BuiltIn.ShaderGraph
                 // Conditional State
                 renderStates = CoreRenderStates.ScenePicking(target),
                 pragmas = CorePragmas.Instanced,
-                defines = new DefineCollection{ CoreDefines.ScenePicking },
+                defines = new DefineCollection { CoreDefines.ScenePicking },
                 keywords = new KeywordCollection(),
                 includes = CoreIncludes.ScenePicking,
 
@@ -853,7 +853,7 @@ namespace UnityEditor.Rendering.BuiltIn.ShaderGraph
                 AddUberSwitchedZWrite(target, result);
                 AddUberSwitchedCull(target, result);
                 AddUberSwitchedBlend(target, result);
-                if(target.surfaceType != SurfaceType.Opaque)
+                if (target.surfaceType != SurfaceType.Opaque)
                     result.Add(RenderState.ColorMask("ColorMask RGB"));
                 return result;
             }
@@ -901,7 +901,7 @@ namespace UnityEditor.Rendering.BuiltIn.ShaderGraph
             AddUberSwitchedBlend(target, result);
             result.Add(RenderState.ColorMask("ColorMask 0"));
             return result;
-        }   
+        }
 
         public static RenderStateCollection SceneSelection(BuiltInTarget target)
         {
