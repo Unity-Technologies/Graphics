@@ -258,6 +258,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Added `Compute Deformation` Node to read deformed vertex data from Dots Deformations.
 - Added new graph nodes that allow sampling Virtual Textures
 - Shader Graph now uses a new file format that is much friendlier towards version control systems and humans. Existing Shader Graphs and will use the new format next time they are saved.
+- Added 'Allow Material Override' option to the built-in target for shader graph.
 
 ### Changed
 - Changed the `Branch` node so that it uses a ternary operator (`Out = bool ? a : B`) instead of a linear interpolate function.
