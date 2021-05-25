@@ -17,6 +17,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - New tool : Signed Distance Field baker.
 - Provide explicit access to spawnCount in graph
 - Support of direct link event to initialize context (which support several event within the same frame)
+- Structured Graphics Buffer support as exposed type
 
 ### Changed
 - Allow remaking an existing link.
