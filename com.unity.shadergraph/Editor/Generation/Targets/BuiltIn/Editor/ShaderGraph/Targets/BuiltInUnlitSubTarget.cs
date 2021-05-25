@@ -7,10 +7,11 @@ using UnityEngine.Rendering;
 using UnityEditor.UIElements;
 using UnityEngine.UIElements;
 using UnityEditor.ShaderGraph.Legacy;
+using static UnityEditor.Rendering.BuiltIn.ShaderUtils;
 
 namespace UnityEditor.Rendering.BuiltIn.ShaderGraph
 {
-    sealed class BuiltInUnlitSubTarget : SubTarget<BuiltInTarget>
+    sealed class BuiltInUnlitSubTarget : BuiltInSubTarget
     {
         static readonly GUID kSourceCodeGuid = new GUID("3af09b75886c549dbad6eaaaaf342387"); // BuiltInUnlitSubTarget.cs
 
@@ -18,6 +19,8 @@ namespace UnityEditor.Rendering.BuiltIn.ShaderGraph
         {
             displayName = "Unlit";
         }
+
+        protected override ShaderID shaderID => ShaderID.SG_Unlit;
 
         public override bool IsActive() => true;
 
