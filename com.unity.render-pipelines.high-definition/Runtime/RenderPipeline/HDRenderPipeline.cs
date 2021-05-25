@@ -1542,6 +1542,9 @@ namespace UnityEngine.Rendering.HighDefinition
                                 visibleProbe.SetProbeExposureValue(1.0f);
                                 additionalCameraData.deExposureMultiplier = 1.0f / hdParentCamera.GpuDeExposureValue();
                             }
+
+                            // Make sure that the volumetric cloud animation data is in sync with the parent camera.
+                            hdCamera.volumetricCloudsAnimationData = hdParentCamera.volumetricCloudsAnimationData;
                         }
 
                         HDAdditionalCameraData hdCam;
