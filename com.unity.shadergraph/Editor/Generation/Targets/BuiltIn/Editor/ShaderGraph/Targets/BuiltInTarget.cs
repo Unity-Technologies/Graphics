@@ -840,7 +840,6 @@ namespace UnityEditor.Rendering.BuiltIn.ShaderGraph
             { RenderState.ZWrite(Uniforms.zWrite) },
             { RenderState.Cull(Uniforms.cullMode) },
             { RenderState.Blend(Uniforms.srcBlend, Uniforms.dstBlend) },
-            { RenderState.ColorMask("ColorMask RGB"), new FieldCondition(BuiltInFields.SurfaceOpaque, false) },
         };
 
         public static RenderStateCollection Default(BuiltInTarget target)
@@ -854,20 +853,28 @@ namespace UnityEditor.Rendering.BuiltIn.ShaderGraph
                 AddUberSwitchedZWrite(target, result);
                 AddUberSwitchedCull(target, result);
                 AddUberSwitchedBlend(target, result);
-                result.Add(RenderState.ColorMask("ColorMask RGB"), new FieldCondition(BuiltInFields.SurfaceOpaque, false));
+                if(target.surfaceType != SurfaceType.Opaque)
+                    result.Add(RenderState.ColorMask("ColorMask RGB"));
                 return result;
             }
         }
 
-        public static readonly RenderStateCollection ForwardAdd = new RenderStateCollection
+        public static RenderStateCollection ForwardAdd(BuiltInTarget target)
         {
-            { RenderState.ZWrite(ZWrite.Off) },
-            { RenderState.ColorMask("ColorMask RGB"), new FieldCondition(BuiltInFields.SurfaceOpaque, false) },
-            { RenderState.Blend(Blend.One, Blend.One) },
+            var result = new RenderStateCollection();
 
-            { RenderState.Blend(Blend.SrcAlpha, Blend.One, Blend.One, Blend.One), new FieldCondition(BuiltInFields.SurfaceOpaque, true) },
-            { RenderState.Blend(Blend.SrcAlpha, Blend.One), new FieldCondition(BuiltInFields.SurfaceOpaque, false) },
-        };
+            result.Add(RenderState.ZWrite(ZWrite.Off));
+            if (target.surfaceType != SurfaceType.Opaque)
+            {
+                result.Add(RenderState.Blend(Blend.SrcAlpha, Blend.One));
+                result.Add(RenderState.ColorMask("ColorMask RGB"));
+            }
+            else
+            {
+                result.Add(RenderState.Blend(Blend.SrcAlpha, Blend.One, Blend.One, Blend.One));
+            }
+            return result;
+        }
 
         public static readonly RenderStateCollection Meta = new RenderStateCollection
         {

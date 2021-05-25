@@ -53,14 +53,6 @@ namespace UnityEditor.Rendering.BuiltIn.ShaderGraph
 
         public override void GetFields(ref TargetFieldContext context)
         {
-            // Surface Type & Blend Mode
-            // These must be set per SubTarget as Sprite SubTargets override them
-            context.AddField(BuiltInFields.SurfaceOpaque,       target.surfaceType == SurfaceType.Opaque);
-            context.AddField(BuiltInFields.SurfaceTransparent,  target.surfaceType != SurfaceType.Opaque);
-            context.AddField(BuiltInFields.BlendAdd,            target.surfaceType != SurfaceType.Opaque && target.alphaMode == AlphaMode.Additive);
-            context.AddField(Fields.BlendAlpha,                 target.surfaceType != SurfaceType.Opaque && target.alphaMode == AlphaMode.Alpha);
-            context.AddField(BuiltInFields.BlendMultiply,       target.surfaceType != SurfaceType.Opaque && target.alphaMode == AlphaMode.Multiply);
-            context.AddField(BuiltInFields.BlendPremultiply,    target.surfaceType != SurfaceType.Opaque && target.alphaMode == AlphaMode.Premultiply);
         }
 
         public override void GetActiveBlocks(ref TargetActiveBlockContext context)
