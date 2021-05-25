@@ -10,7 +10,7 @@ using UnityEngine.VFX;
 namespace UnityEditor.VFX.HDRP
 {
     [VFXInfo(experimental = true)]
-    class VFXDecalHDRPOutput : VFXAbstractParticleHDRPLitOutput
+    class VFXDecalHDRPOutput : VFXAbstractParticleHDRPOutput
     {
         public override string name { get { return "Output Particle HDRP Decal"; } }
         public override string codeGeneratorTemplate { get { return RenderPipeTemplate("VFXParticleHDRPDecal"); } }
@@ -20,6 +20,7 @@ namespace UnityEditor.VFX.HDRP
         {
             base.OnEnable();
             blendMode = BlendMode.Opaque;
+            useNormalScale = false;
         }
 
         public override IEnumerable<VFXAttributeInfo> attributes
@@ -47,6 +48,27 @@ namespace UnityEditor.VFX.HDRP
             }
         }
 
+        public class WithoutMaskMapProperties
+        {
+            [Range(0, 1), Tooltip("Controls the metallic of the decal.")]
+            public float metallic = 0.0f;
+            [Range(0, 1), Tooltip("Controls the ambient occlusion of the decal.")]
+            public float ambientOcclusion = 0.0f;
+            [Range(0, 1), Tooltip("Controls the smoothness of the decal.")]
+            public float smoothness = 0.5f;
+        }
+
+        public class WithMaskMapProperties
+        {
+            [Range(0, 1), Tooltip("Controls the scale factor for the particle’s metallic.")]
+            public float metallic = 1.0f;
+            [Range(0, 1), Tooltip("Controls the scale factor for the particle’s ambient occlusion.")]
+            public float ambientOcclusion = 1.0f;
+            [Range(0, 1), Tooltip("Controls the scale factor for the particle’s smoothness.")]
+            public float smoothness = 1.0f;
+        }
+
+
         public enum BlendSource
         {
             BaseColorMapAlpha,
@@ -65,16 +87,6 @@ namespace UnityEditor.VFX.HDRP
          Tooltip("Specifies the layer mask of the decal.")]
         private DecalLayerEnum decalLayer = DecalLayerEnum.LightLayerDefault;
 
-        public class NoMaskMapProperties
-        {
-            [Range(0, 1), Tooltip("Controls the metallic of the decal.")]
-            public float metallic = 0.0f;
-            [Range(0, 1), Tooltip("Controls the ambient occlusion of the decal.")]
-            public float ambientOcclusion = 0.0f;
-            [Range(0, 1), Tooltip("Controls the smoothness of the decal.")]
-            public float smoothness = 0.0f;
-        }
-
         public class FadingProperties
         {
             [Tooltip("Angle Fade. Between 0 and 180.")] //TODO : create range attribute?
@@ -82,13 +94,17 @@ namespace UnityEditor.VFX.HDRP
             [Range(0, 1), Tooltip("Fade Factor.")]
             public float fadeFactor = 1.0f;
         }
-
         protected override IEnumerable<VFXPropertyWithValue> inputProperties
         {
             get
             {
-                var properties = base.inputProperties;
+                var properties = Enumerable.Empty<VFXPropertyWithValue>();
+
                 properties = properties.Concat(PropertiesFromType("FadingProperties"));
+                properties = properties.Concat(base.inputProperties);
+                properties =
+                    properties.Concat(
+                        PropertiesFromType(useMaskMap ? "WithMaskMapProperties" : "WithoutMaskMapProperties"));
                 return properties;
             }
         }
@@ -101,6 +117,8 @@ namespace UnityEditor.VFX.HDRP
             if (GetOrRefreshShaderGraphObject() == null)
             {
                 yield return slotExpressions.First(o => o.name == "fadeFactor");
+                yield return slotExpressions.First(o => o.name == "metallic");
+                yield return slotExpressions.First(o => o.name == "ambientOcclusion");
                 if(enableDecalLayers)
                 {
                     var angleFadeExp = slotExpressions.First(o => o.name == "angleFade");
@@ -128,7 +146,6 @@ namespace UnityEditor.VFX.HDRP
             {
                 foreach (var setting in base.filteredOutSettings)
                     yield return setting;
-
                 yield return "cullMode";
                 yield return "blendMode";
                 yield return "useAlphaClipping";
@@ -173,8 +190,6 @@ namespace UnityEditor.VFX.HDRP
                 }
             }
         }
-
-
         protected override void WriteBlendMode(VFXShaderWriter writer)  //TODO : Not sure we need to do it here : different for DBuffer and ForwardEmissive pass
         {
             // using alpha compositing https://developer.nvidia.com/gpugems/GPUGems3/gpugems3_ch23.html
