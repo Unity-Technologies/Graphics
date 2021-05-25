@@ -4,37 +4,8 @@
 // Lighting structure for light accumulation
 //-----------------------------------------------------------------------------
 
-// These structure allow to accumulate lighting accross the Lit material
-// AggregateLighting is init to zero and transfer to EvaluateBSDF, but the LightLoop can't access its content.
-struct DirectLighting
-{
-    real3 diffuse;
-    real3 specular;
-};
-
-struct IndirectLighting
-{
-    real3 specularReflected;
-    real3 specularTransmitted;
-};
-
-struct AggregateLighting
-{
-    DirectLighting   direct;
-    IndirectLighting indirect;
-};
-
-void AccumulateDirectLighting(DirectLighting src, inout AggregateLighting dst)
-{
-    dst.direct.diffuse += src.diffuse;
-    dst.direct.specular += src.specular;
-}
-
-void AccumulateIndirectLighting(IndirectLighting src, inout AggregateLighting dst)
-{
-    dst.indirect.specularReflected += src.specularReflected;
-    dst.indirect.specularTransmitted += src.specularTransmitted;
-}
+#define AGGREGATE_LIGHTING_ENABLE_16BIT_PACKING_SOFTWARE 1
+#include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/AggregateLighting.hlsl"
 
 //-----------------------------------------------------------------------------
 // Ambient occlusion helper

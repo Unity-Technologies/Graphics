@@ -242,8 +242,8 @@ void LightLoop( float3 V, PositionInputs posInput, PreLightData preLightData, BS
 
     // This struct is define in the material. the Lightloop must not access it
     // PostEvaluateBSDF call at the end will convert Lighting to diffuse and specular lighting
-    AggregateLighting aggregateLighting;
-    ZERO_INITIALIZE(AggregateLighting, aggregateLighting); // LightLoop is in charge of initializing the struct
+    PackedAggregateLighting aggregateLighting;
+    InitPackedAggregateLighting(aggregateLighting, GetCurrentExposureMultiplier(), GetInverseCurrentExposureMultiplier());
 
     if (featureFlags & LIGHTFEATUREFLAGS_PUNCTUAL)
     {
@@ -297,7 +297,7 @@ void LightLoop( float3 V, PositionInputs posInput, PreLightData preLightData, BS
                 if (IsMatchingLightLayer(s_lightData.lightLayers, builtinData.renderingLayers))
                 {
                     DirectLighting lighting = EvaluateBSDF_Punctual(context, V, posInput, preLightData, s_lightData, bsdfData, builtinData);
-                    AccumulateDirectLighting(lighting, aggregateLighting);
+                    PackedAccumulateDirect(lighting, aggregateLighting);
                 }
             }
         }
@@ -308,7 +308,7 @@ void LightLoop( float3 V, PositionInputs posInput, PreLightData preLightData, BS
     // TODO: this code is now much harder to understand...
 #define EVALUATE_BSDF_ENV_SKY(envLightData, TYPE, type) \
         IndirectLighting lighting = EvaluateBSDF_Env(context, V, posInput, preLightData, envLightData, bsdfData, envLightData.influenceShapeType, MERGE_NAME(GPUIMAGEBASEDLIGHTINGTYPE_, TYPE), MERGE_NAME(type, HierarchyWeight)); \
-        AccumulateIndirectLighting(lighting, aggregateLighting);
+        PackedAccumulateIndirect(lighting, aggregateLighting);
 
 // Environment cubemap test lightlayers, sky don't test it
 #define EVALUATE_BSDF_ENV(envLightData, TYPE, type) if (IsMatchingLightLayer(envLightData.lightLayers, builtinData.renderingLayers)) { EVALUATE_BSDF_ENV_SKY(envLightData, TYPE, type) }
@@ -345,7 +345,7 @@ void LightLoop( float3 V, PositionInputs posInput, PreLightData preLightData, BS
         {
             IndirectLighting indirect = EvaluateBSDF_ScreenSpaceReflection(posInput, preLightData, bsdfData,
                                                                            reflectionHierarchyWeight);
-            AccumulateIndirectLighting(indirect, aggregateLighting);
+            PackedAccumulateIndirect(indirect, aggregateLighting);
         }
     #endif
 
@@ -362,7 +362,7 @@ void LightLoop( float3 V, PositionInputs posInput, PreLightData preLightData, BS
         if ((featureFlags & LIGHTFEATUREFLAGS_SSREFRACTION) && (_EnableSSRefraction > 0))
         {
             IndirectLighting lighting = EvaluateBSDF_ScreenspaceRefraction(context, V, posInput, preLightData, bsdfData, envLightData, refractionHierarchyWeight);
-            AccumulateIndirectLighting(lighting, aggregateLighting);
+            PackedAccumulateIndirect(lighting, aggregateLighting);
         }
 
         // Reflection probes are sorted by volume (in the increasing order).
@@ -449,7 +449,7 @@ void LightLoop( float3 V, PositionInputs posInput, PreLightData preLightData, BS
             if (IsMatchingLightLayer(_DirectionalLightDatas[i].lightLayers, builtinData.renderingLayers))
             {
                 DirectLighting lighting = EvaluateBSDF_Directional(context, V, posInput, preLightData, _DirectionalLightDatas[i], bsdfData, builtinData);
-                AccumulateDirectLighting(lighting, aggregateLighting);
+                PackedAccumulateDirect(lighting, aggregateLighting);
             }
         }
     }
@@ -486,7 +486,7 @@ void LightLoop( float3 V, PositionInputs posInput, PreLightData preLightData, BS
                 if (IsMatchingLightLayer(lightData.lightLayers, builtinData.renderingLayers))
                 {
                     DirectLighting lighting = EvaluateBSDF_Area(context, V, posInput, preLightData, lightData, bsdfData, builtinData);
-                    AccumulateDirectLighting(lighting, aggregateLighting);
+                    PackedAccumulateDirect(lighting, aggregateLighting);
                 }
 
                 lightData = FetchLight(lightStart, min(++i, last));
@@ -499,7 +499,7 @@ void LightLoop( float3 V, PositionInputs posInput, PreLightData preLightData, BS
                 if (IsMatchingLightLayer(lightData.lightLayers, builtinData.renderingLayers))
                 {
                     DirectLighting lighting = EvaluateBSDF_Area(context, V, posInput, preLightData, lightData, bsdfData, builtinData);
-                    AccumulateDirectLighting(lighting, aggregateLighting);
+                    PackedAccumulateDirect(lighting, aggregateLighting);
                 }
 
                 lightData = FetchLight(lightStart, min(++i, last));
@@ -609,15 +609,17 @@ void LightLoop( float3 V, PositionInputs posInput, PreLightData preLightData, BS
     }
 #endif
 
-    ApplyDebugToLighting(context, builtinData, aggregateLighting);
+    AggregateLighting fullAggregate;
+    UnpackAggregateLighting(aggregateLighting, fullAggregate);
+    ApplyDebugToLighting(context, builtinData, fullAggregate);
 
     // Note: We can't apply the IndirectDiffuseMultiplier here as with GBuffer, Emissive is part of the bakeDiffuseLighting.
     // so IndirectDiffuseMultiplier is apply in PostInitBuiltinData or related location (like for probe volume)
-    aggregateLighting.indirect.specularReflected *= GetIndirectSpecularMultiplier(builtinData.renderingLayers);
+    fullAggregate.indirect.specularReflected *= GetIndirectSpecularMultiplier(builtinData.renderingLayers);
 
     // Also Apply indiret diffuse (GI)
     // PostEvaluateBSDF will perform any operation wanted by the material and sum everything into diffuseLighting and specularLighting
-    PostEvaluateBSDF(context, V, posInput, preLightData, bsdfData, builtinData, aggregateLighting, lightLoopOutput);
+    PostEvaluateBSDF(context, V, posInput, preLightData, bsdfData, builtinData, fullAggregate, lightLoopOutput);
 
     ApplyDebug(context, posInput, bsdfData, lightLoopOutput);
 }
