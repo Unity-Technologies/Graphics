@@ -160,7 +160,8 @@ namespace UnityEditor.VFX
 
         bool DisplayProperty(ref VFXParameterInfo parameter, GUIContent nameContent, SerializedProperty overridenProperty, SerializedProperty valueProperty, bool overrideMixed, bool valueMixed, out bool overriddenChanged)
         {
-            if (parameter.realType == typeof(Matrix4x4).Name)
+            if (parameter.realType == typeof(Matrix4x4).Name
+                ||  parameter.realType == typeof(GraphicsBuffer).Name)
             {
                 overriddenChanged = false;
                 return false;
@@ -1333,7 +1334,7 @@ namespace UnityEditor.VFX
                     if (m_RenderingLayerMask != null)
                     {
                         string[] layerNames = null;
-                        var srpAsset = GraphicsSettings.currentRenderPipeline;
+                        var srpAsset = QualitySettings.renderPipeline ?? GraphicsSettings.currentRenderPipeline;
                         if (srpAsset != null)
                             layerNames = srpAsset.renderingLayerMaskNames;
 

@@ -79,7 +79,8 @@ namespace UnityEditor.Rendering.HighDefinition
             ApplyAdditionalComponentsVisibility(true);
 
             EditorGUI.BeginChangeCheck();
-            HDLightUI.Inspector.Draw(m_SerializedHDLight, this);
+            using (new EditorGUILayout.VerticalScope())
+                HDLightUI.Inspector.Draw(m_SerializedHDLight, this);
             if (EditorGUI.EndChangeCheck())
             {
                 m_SerializedHDLight.Apply();
