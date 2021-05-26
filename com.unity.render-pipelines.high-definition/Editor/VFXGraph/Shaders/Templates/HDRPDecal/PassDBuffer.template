@@ -9,10 +9,10 @@ Pass
     ZTest Greater
 
 
-    // ColorMask [_DecalColorMask0]
-    // ColorMask [_DecalColorMask1] 1
-    // ColorMask [_DecalColorMask2] 2
-    // ColorMask [_DecalColorMask3] 3
+    ColorMask ${VFXDecalColorMask0}
+    ColorMask ${VFXDecalColorMask1} 1
+    ColorMask ${VFXDecalColorMask2} 2
+    ColorMask ${VFXDecalColorMask3} 3
 
 	HLSLPROGRAM
 	#pragma target 4.5
