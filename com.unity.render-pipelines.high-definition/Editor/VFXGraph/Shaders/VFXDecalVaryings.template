@@ -7,10 +7,17 @@ ${VFXBegin:VFXHDRPDecalVaryingsMacros}
 #define VFX_VARYING_ALPHA color.a
 #endif
 
-
+#if AFFECT_METALLIC
 #define VFX_VARYING_METALLIC materialProperties.x
+#endif
+
+#if AFFECT_AMBIENT_OCCLUSION
 #define VFX_VARYING_AMBIENT_OCCLUSION materialProperties.y
+#endif
+
+#if AFFECT_SMOOTHNESS
 #define VFX_VARYING_SMOOTHNESS materialProperties.z
+#endif
 
 #if HDRP_USE_EMISSIVE_MAP
 #define VFX_VARYING_EMISSIVESCALE materialProperties.w

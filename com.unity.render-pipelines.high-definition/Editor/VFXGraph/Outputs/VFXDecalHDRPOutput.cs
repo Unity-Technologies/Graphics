@@ -66,6 +66,37 @@ namespace UnityEditor.VFX.HDRP
             public float smoothness = 1.0f;
         }
 
+        protected IEnumerable<VFXPropertyWithValue> materialProperties
+        {
+            get
+            {
+                if(affectMetal)
+                    yield return new VFXPropertyWithValue(new VFXProperty(typeof(float),
+                    "metallic",
+                    new TooltipAttribute(useMaskMap ?
+                        "Controls the scale factor for the particle’s metallic." :
+                        "Controls the metallic of the decal."),
+                    new RangeAttribute(0,1)), 0.0f);
+
+                if(affectAmbientOcclusion)
+                    yield return new VFXPropertyWithValue(new VFXProperty(typeof(float),
+                        "ambientOcclusion",
+                        new TooltipAttribute(useMaskMap ?
+                            "Controls the scale factor for the particle’s ambient occlusion." :
+                            "Controls the ambient occlusion of the decal."),
+                        new RangeAttribute(0,1)), 1.0f);
+
+                if(affectSmoothness)
+                    yield return new VFXPropertyWithValue(new VFXProperty(typeof(float),
+                        "smoothness",
+                        new TooltipAttribute(useMaskMap ?
+                            "Controls the scale factor for the particle’s smoothness." :
+                            "Controls the smoothness of the decal."),
+                        new RangeAttribute(0,1)), 0.5f);
+            }
+        }
+
+
 
         public enum BlendSource
         {
@@ -125,8 +156,7 @@ namespace UnityEditor.VFX.HDRP
 
                 properties = properties.Concat(base.inputProperties);
                 properties =
-                    properties.Concat(
-                        PropertiesFromType(useMaskMap ? "WithMaskMapProperties" : "WithoutMaskMapProperties"));
+                    properties.Concat(materialProperties);
                 return properties;
             }
         }
@@ -139,8 +169,13 @@ namespace UnityEditor.VFX.HDRP
             if (GetOrRefreshShaderGraphObject() == null)
             {
                 yield return slotExpressions.First(o => o.name == "fadeFactor");
-                yield return slotExpressions.First(o => o.name == "metallic");
-                yield return slotExpressions.First(o => o.name == "ambientOcclusion");
+                if(affectMetal)
+                    yield return slotExpressions.First(o => o.name == "metallic");
+                if(affectAmbientOcclusion)
+                    yield return slotExpressions.First(o => o.name == "ambientOcclusion");
+                if(affectSmoothness)
+                    yield return slotExpressions.First(o => o.name == "smoothness");
+
                 if(enableDecalLayers)
                 {
                     var angleFadeExp = slotExpressions.First(o => o.name == "angleFade");
@@ -190,21 +225,21 @@ namespace UnityEditor.VFX.HDRP
                 foreach (var def in base.additionalDefines)
                     yield return def;
                 if (maskOpacityChannel == BlendSource.BaseColorMapAlpha)
-                {
                     yield return "VFX_MASK_BLEND_BASE_COLOR_ALPHA";
-                }
                 else
-                {
                     yield return "VFX_MASK_BLEND_MASK_BLUE";
-                }
+
                 if (normalOpacityChannel == BlendSource.BaseColorMapAlpha)
-                {
                     yield return "VFX_NORMAL_BLEND_BASE_COLOR_ALPHA";
-                }
                 else
-                {
                     yield return "VFX_NORMAL_BLEND_MASK_BLUE";
-                }
+
+                if (affectMetal)
+                    yield return "AFFECT_METALLIC";
+                if (affectAmbientOcclusion)
+                    yield return "AFFECT_AMBIENT_OCCLUSION";
+                if (affectSmoothness)
+                    yield return "AFFECT_SMOOTHNESS";
 
                 if(enableDecalLayers)
                 {

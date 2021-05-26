@@ -118,6 +118,8 @@ namespace UnityEditor.VFX.HDRP
 
             if (GetOrRefreshShaderGraphObject() == null)
             {
+                yield return slotExpressions.First(o => o.name == "smoothness");
+
                 switch (materialType)
                 {
                     case MaterialType.Standard:

@@ -153,8 +153,6 @@ namespace UnityEditor.VFX.HDRP
 
             if (GetOrRefreshShaderGraphObject() == null)
             {
-                yield return slotExpressions.First(o => o.name == "smoothness");
-
                 if (allowTextures)
                 {
                     if (useBaseColorMap != BaseColorMapMode.None)
