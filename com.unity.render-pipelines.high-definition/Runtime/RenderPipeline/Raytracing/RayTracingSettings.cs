@@ -7,6 +7,7 @@ namespace UnityEngine.Rendering.HighDefinition
     /// A volume component that holds the general settings for ray traced effects.
     /// </summary>
     [Serializable, VolumeComponentMenu("Ray Tracing/Ray Tracing Settings (Preview)")]
+    [HDRPHelpURLAttribute("Ray-Tracing-Settings")]
     public sealed class RayTracingSettings : VolumeComponent
     {
         /// <summary>

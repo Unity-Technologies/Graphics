@@ -20,6 +20,13 @@ namespace UnityEditor.Rendering.HighDefinition
 
         public override void OnInspectorGUI()
         {
+            if (!(RenderPipelineManager.currentPipeline is HDRenderPipeline hdRenderPipeline))
+            {
+                EditorGUILayout.Space();
+                EditorGUILayout.HelpBox("The current pipeline is not HDRP", MessageType.Error, wide: true);
+                return;
+            }
+
             HDRenderPipelineAsset currentAsset = HDRenderPipeline.currentAsset;
             if (!currentAsset?.currentPlatformRenderPipelineSettings.supportRayTracing ?? false)
             {
@@ -29,7 +36,7 @@ namespace UnityEditor.Rendering.HighDefinition
             }
 
             // If ray tracing is supported display the content of the volume component
-            if (RenderPipelineManager.currentPipeline != null && (RenderPipelineManager.currentPipeline as HDRenderPipeline).rayTracingSupported)
+            if (hdRenderPipeline.rayTracingSupported)
             {
                 PropertyField(m_RayTracing);
                 if (m_RayTracing.overrideState.boolValue && m_RayTracing.value.boolValue)
