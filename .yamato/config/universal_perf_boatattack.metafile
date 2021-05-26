@@ -200,7 +200,7 @@ platforms:
       default:
         type: Unity::VM::GPU
         image: sdet/gamecode_win10:stable
-        flavor: b1.large
+        flavor: b1.xlarge
         model: rtx2080
       standalone_build:
         type: Unity::VM

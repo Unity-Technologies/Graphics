@@ -17,9 +17,9 @@ namespace UnityEditor.Rendering.HighDefinition
 
         // Stable hash to avoid having different result after upgrading mono
         // Source: https://github.com/Unity-Technologies/mono/blob/unity-2021.2-mbe-pre-upgrade/mcs/class/referencesource/mscorlib/system/string.cs#L824
-        unsafe static int MonoStringHash(string s)
+        unsafe static int MonoStringHash(string guid)
         {
-            fixed(char *src = this)
+            fixed(char *src = guid)
             {
                 int hash1 = 5381;
                 int hash2 = hash1;
