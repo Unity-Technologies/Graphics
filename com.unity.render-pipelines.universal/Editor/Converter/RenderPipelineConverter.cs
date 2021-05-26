@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 
 namespace UnityEditor.Rendering.Universal.Converters
 {
@@ -19,6 +20,11 @@ namespace UnityEditor.Rendering.Universal.Converters
         /// A check if the converter is enabled or not. Can be used to do a check if prerequisites are met to have it enabled or disabled.
         /// </summary>
         public virtual bool IsEnabled => true;
+
+        /// <summary>
+        /// A check if the converter UI is collapsed.
+        /// </summary>
+        public virtual bool Collapsed => false;
 
         /// <summary>
         /// A check to see if the converter needs to create the index.
@@ -54,11 +60,25 @@ namespace UnityEditor.Rendering.Universal.Converters
         /// <param name="context">The context that will be used when executing converter.</param>
         public abstract void OnRun(ref RunItemContext context);
 
-
         /// <summary>
         /// The method that will be run after the converters are done if needed.
         /// </summary>
         public virtual void OnPostRun()
+        {
+        }
+
+        /// <summary>
+        /// The method that will be run after the converters are done if needed.
+        /// </summary>
+        public virtual void OnPostRun(ConverterState converterState)
+        {
+        }
+
+        /// <summary>
+        /// The method that will be run after the converters are done if needed.
+        /// This is for Animation Clip Converter only.
+        /// </summary>
+        public virtual void OnPostRun(ConverterState converterState, List<ConverterItemDescriptor> itemsToConvert)
         {
         }
     }

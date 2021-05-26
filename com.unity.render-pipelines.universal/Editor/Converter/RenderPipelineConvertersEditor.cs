@@ -269,6 +269,14 @@ namespace UnityEditor.Rendering.Universal.Converters
                     var bindable = (BindableElement)element;
                     bindable.Unbind();
                 };
+                if (conv.Collapsed)
+                {
+                    listView.style.display = DisplayStyle.None;
+                }
+                else
+                {
+                    item.style.height = 300;
+                }
 
                 m_ScrollView.Add(item);
             }
@@ -568,6 +576,9 @@ namespace UnityEditor.Rendering.Universal.Converters
                 }
 
                 EditorUtility.ClearProgressBar();
+                // Right now this is only for Animation Clip Converter
+                m_CoreConvertersList[index].OnPostRun(activeConverterState, m_ItemsToConvert[index]);
+                m_CoreConvertersList[index].OnPostRun();
             }
         }
 
