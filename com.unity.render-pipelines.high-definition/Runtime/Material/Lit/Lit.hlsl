@@ -2014,7 +2014,7 @@ IndirectLighting EvaluateBSDF_Env(  LightLoopContext lightLoopContext,
         lighting.specularReflected = envLighting;
 #if HAS_REFRACTION
     else
-        lighting.specularTransmitted = envLighting * preLightData.transparentTransmittance;
+        lighting.specularTransmitted = envLighting;
 #endif
 
     return lighting;
