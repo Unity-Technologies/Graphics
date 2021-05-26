@@ -88,10 +88,6 @@ namespace UnityEditor.VFX.HDRP
             public float thickness = 1.0f;
         }
 
-        protected override bool needsExposureWeight { get { return GetOrRefreshShaderGraphObject() == null && ((colorMode & ColorMode.Emissive) != 0 || useEmissive || useEmissiveMap); } }
-
-        protected override bool bypassExposure { get { return false; } }
-
         protected override RPInfo currentRP
         {
             get { return hdrpLitInfo; }

@@ -111,11 +111,6 @@ namespace UnityEditor.VFX.HDRP
 
         protected override bool bypassExposure { get { return false; } }
 
-        protected override RPInfo currentRP
-        {
-            get { return hdrpLitInfo; }
-        }
-
         protected override IEnumerable<VFXPropertyWithValue> inputProperties
         {
             get
