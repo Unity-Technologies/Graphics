@@ -109,9 +109,14 @@ namespace UnityEngine.Rendering.Universal
         public CameraType cameraType;
         public bool isDefaultViewport;
         public bool isHdrEnabled;
-        public bool postProcessRequiresDepthTexture;
         public bool requiresDepthTexture;
         public bool requiresOpaqueTexture;
+
+        /// <summary>
+        /// it is true if the post processing passes require the scene depth texture.
+        /// </summary>
+        public bool postProcessingRequiresDepthTexture;
+
 #if ENABLE_VR && ENABLE_XR_MODULE
         public bool xrRendering;
 #endif

@@ -415,7 +415,7 @@ namespace UnityEngine.Rendering.Universal
             bool anyPostProcessing = renderingData.postProcessingEnabled && m_PostProcessPasses.isCreated;
 
             // If Camera's PostProcessing is enabled and if there any enabled PostProcessing requires depth texture as shader read resource (Motion Blur/DoF)
-            bool cameraHasPostProcessingWithDepth = applyPostProcessing && cameraData.postProcessRequiresDepthTexture;
+            bool cameraHasPostProcessingWithDepth = applyPostProcessing && cameraData.postProcessingRequiresDepthTexture;
 
             // TODO: We could cache and generate the LUT before rendering the stack
             bool generateColorGradingLUT = cameraData.postProcessEnabled && m_PostProcessPasses.isCreated;
@@ -461,12 +461,6 @@ namespace UnityEngine.Rendering.Universal
             if (requiresDepthTexture)
             {
                 RenderPassEvent copyDepthPassEvent = RenderPassEvent.AfterRenderingTransparents;
-                // CameraData's requiresDepthTexture is based on the URP Pipeline Asset UI checkbox value.
-                if (cameraData.requiresDepthTexture)
-                {
-                    // If user explicitly enable the setting, we force the depth copy to be AfterRenderingSkybox
-                    copyDepthPassEvent = (RenderPassEvent)Mathf.Min((int)copyDepthPassEvent, (int)RenderPassEvent.AfterRenderingSkybox);
-                }
                 // RenderPassInputs's requiresDepthTexture is configured through ScriptableRenderPass's ConfigureInput function
                 if (renderPassInputs.requiresDepthTexture)
                 {
