@@ -54,6 +54,11 @@ ${VFXLoadParameter:{metallic}}
 o.VFX_VARYING_METALLIC = metallic;
 #endif
 
+#ifdef VFX_VARYING_AMBIENT_OCCLUSION
+${VFXLoadParameter:{ambientOcclusion}}
+o.VFX_VARYING_AMBIENT_OCCLUSION = ambientOcclusion;
+#endif
+
 #if HDRP_USE_EMISSIVE_MAP
 #ifdef VFX_VARYING_EMISSIVESCALE
 ${VFXLoadParameter:{emissiveScale}}

@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
+using UnityEngine.Rendering;
 using UnityEngine.Rendering.HighDefinition;
 
 namespace UnityEditor.VFX.HDRP
@@ -50,7 +51,7 @@ namespace UnityEditor.VFX.HDRP
             [Range(0, 1), Tooltip("Controls the metallic of the decal.")]
             public float metallic = 0.0f;
             [Range(0, 1), Tooltip("Controls the ambient occlusion of the decal.")]
-            public float ambientOcclusion = 0.0f;
+            public float ambientOcclusion = 1.0f;
             [Range(0, 1), Tooltip("Controls the smoothness of the decal.")]
             public float smoothness = 0.5f;
         }
@@ -76,6 +77,23 @@ namespace UnityEditor.VFX.HDRP
 
         [VFXSetting(VFXSettingAttribute.VisibleFlags.InInspector), SerializeField, Tooltip("Specifies the source this Material uses as opacity for its Mask Map.")]
         BlendSource maskOpacityChannel = BlendSource.BaseColorMapAlpha;
+
+        [VFXSetting(VFXSettingAttribute.VisibleFlags.InInspector), SerializeField,
+         Tooltip("When enabled, this decal uses its base color. When disabled, the decal has no base color effect.")]
+        private bool affectBaseColor = true;
+
+        [VFXSetting(VFXSettingAttribute.VisibleFlags.InInspector), SerializeField,
+         Tooltip("When enabled, this decal uses the metallic channel of its Mask Map. When disabled, the decal has no metallic effect.")]
+        private bool affectMetal = true;
+
+        [VFXSetting(VFXSettingAttribute.VisibleFlags.InInspector), SerializeField,
+         Tooltip("When enabled, this decal uses the ambient occlusion channel of its Mask Map. When disabled, the decal has no ambient occlusion effect.")]
+        private bool affectAmbientOcclusion = true;
+
+        [VFXSetting(VFXSettingAttribute.VisibleFlags.InInspector), SerializeField,
+         Tooltip("When enabled, this decal uses the smoothness channel of its Mask Map. When disabled, the decal has no smoothness effect.")]
+        private bool affectSmoothness = true;
+
 
         private bool enableDecalLayers => HDRenderPipeline.currentAsset.currentPlatformRenderPipelineSettings.supportDecals
                                                   && HDRenderPipeline.currentAsset.currentPlatformRenderPipelineSettings.supportDecalLayers;
@@ -202,6 +220,75 @@ namespace UnityEditor.VFX.HDRP
                 writer.WriteLineFormat("Blend {0} SrcAlpha OneMinusSrcAlpha, Zero OneMinusSrcAlpha", i);
             }
             writer.WriteLine("Blend 3 Zero OneMinusSrcColor");
+        }
+
+        protected VFXShaderWriter GetDecalMaskColor(int maskIndex)
+        {
+            var rs = new VFXShaderWriter();
+            var maskString = "";
+            switch (maskIndex)
+            {
+                case 0 :
+                    // rs.Write(affectBaseColor ? ((int)ColorWriteMask.All).ToString() : "0"); break;
+                    rs.Write(affectBaseColor ? "RBGA" : "0"); break;
+                case 1 :
+                    rs.Write(useNormalMap ? "RGBA" : "0"); break;
+                case 2:
+                {
+                    ColorWriteMask mask2 = 0;
+                    if (affectMetal)
+                    {
+                        maskString += "R";
+                    }
+
+                    if (affectAmbientOcclusion)
+                    {
+                        maskString += "G";
+                    }
+
+                    if (affectSmoothness)
+                    {
+                        maskString += "BA";
+                    }
+
+                    if (String.IsNullOrEmpty(maskString))
+                        maskString = "0";
+                    rs.Write(maskString);
+                    break;
+                }
+                case 3 :
+                    ColorWriteMask mask3 = 0;
+                    if (affectMetal)
+                    {
+                        maskString += "R";
+                    }
+
+                    if (affectAmbientOcclusion)
+                    {
+                        maskString += "G";
+                    }
+                    if (String.IsNullOrEmpty(maskString))
+                        maskString = "0";
+                    rs.Write(maskString);
+                    break;
+            }
+
+            return rs;
+        }
+
+
+        public override IEnumerable<KeyValuePair<string, VFXShaderWriter>> additionalReplacements
+        {
+            get
+            {
+                foreach (var rep in base.additionalReplacements)
+                    yield return rep;
+
+                for (int i = 0; i < 4; i++)
+                {
+                    yield return new KeyValuePair<string, VFXShaderWriter>("${VFXDecalColorMask" + i + "}", GetDecalMaskColor(i));
+                }
+            }
         }
     }
 }
