@@ -64,6 +64,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fix unexpected Spawn context execution ordering
 - Fix incorrect buffer type for strips
 - Enabled an optimization for motion vectors, storing projected positions for vertices instead of the transform matrix
+- Fix potential NaNs in Sample Multiple Position Map subgraph operator (VFX Additions)
 
 ## [11.0.0] - 2020-10-21
 ### Added
