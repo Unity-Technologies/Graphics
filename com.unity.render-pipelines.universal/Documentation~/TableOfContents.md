@@ -71,10 +71,11 @@
   * [Shader stripping](shader-stripping.md)
   * [Writing custom shaders](writing-custom-shaders-urp.md)
     * [Creating a sample scene](writing-shaders-urp-basic-prerequisites.md)
-    * [URP basic unlit shader](writing-shaders-urp-basic-unlit-structure.md)    
+    * [URP basic unlit shader](writing-shaders-urp-basic-unlit-structure.md)
     * [URP unlit shader with color input](writing-shaders-urp-unlit-color.md)
     * [Drawing a texture](writing-shaders-urp-unlit-texture.md)
     * [Visualizing normal vectors](writing-shaders-urp-unlit-normals.md)
+    * [Reconstruct the world space positions](writing-shaders-urp-reconstruct-world-position.md)
   * [URP ShaderLab Pass tags](urp-shaders/urp-shaderlab-pass-tags.md)
 
 * [Customizing URP](customizing-urp.md)
@@ -92,12 +93,12 @@
 
     * [HDR emulation scale](HDREmulationScale.md)
     * [Light Blend Styles](LightBlendStyles.md)
-    
+
     * [2D Shadows](2DShadows.md)
   * [2D Renderer and Shader Graph](ShaderGraph.md)
   * [2D Pixel Perfect](2d-pixelperfect.md)
     * [Cinemachine Pixel Perfect extension](pixel-cinemachine.md)
 
 * [Building for consoles](Building-For-Consoles.md)
-  
+
 * [Frequently asked questions (FAQ)](faq.md)

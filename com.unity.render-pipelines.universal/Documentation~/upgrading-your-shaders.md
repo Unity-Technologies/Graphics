@@ -1,12 +1,12 @@
 # Upgrading your Shaders
 
-Lit shaders from the Built-in Render Pipeline are not compatible with URP shaders. When migrating a project from the Built-in Render Pipeline to URP, it's necessary to convert the shaders. 
+Lit shaders from the Built-in Render Pipeline are not compatible with URP shaders. When migrating a project from the Built-in Render Pipeline to URP, it's necessary to convert the shaders.
 
 Unity provides the option to convert the built-in (non-custom) Built-in Render Pipeline shaders to URP-compatible shaders. If your project uses custom shaders, you need to convert them manually yo URP-compatible shaders. For information on writing  URP-compatible shaders, see [Writing custom shaders](writing-custom-shaders-urp.md).
 
 To convert the built-in (non-custom) Built-in Render Pipeline shaders:
 
-1. Open your Project in Unity, and go to __Edit__ > __Render Pipeline__ > **Universal Render Pipeline**. 
+1. Open your Project in Unity, and go to __Edit__ > __Render Pipeline__ > **Universal Render Pipeline**.
 2. According to your needs, select either __Upgrade Project Materials to URP Materials__ or __Upgrade Selected Materials to URP Materials__.
 
 For an overview of the mapping between Built-in Render Pipeline shaders and URP shaders, see [Shader mappings](#shader-mappings).

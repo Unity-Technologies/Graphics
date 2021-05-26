@@ -25,7 +25,7 @@ To create a Universal Render Pipeline Asset:
 
 To use the Universal Render Pipeline, you have to add the newly created URP Asset to your Graphics settings in Unity. If you don't, Unity still tries to use the built-in render pipeline.
 
-1. Navigate to __Edit__ > __Project Settings__ > __Graphics__. 
+1. Navigate to __Edit__ > __Project Settings__ > __Graphics__.
 2. In the __Scriptable Render Pipeline Settings__ field, add the URP Asset you created earlier.
 
 **Note:** When you add the UP Asset, the available settings in URP immediately changes. This is because you've effectively instructed Unity to use the URP specific settings instead of those for the built-in render pipeline.
