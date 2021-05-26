@@ -11,7 +11,7 @@ There are two target audiences for Custom Interpolators:
 
 
 ## Supported data types
-Custom interpolators support float, vec1, vec2, vec 3, and vec4 options.
+Custom interpolators support float, vec2, vec3, and vec4 options.
 
 ## Channel limits
 The Custom Interpolator feature supports a maximum of 32 channels. A channel is equivalent to four floats. Each float is an interpolator variable.
