@@ -400,7 +400,7 @@ void ClosestHit(inout PathIntersection pathIntersection : SV_RayPayload, Attribu
         ComputeSurfaceScattering(pathIntersection, attributeData, inputSample);
 
     // Apply the volume/surface pdf
-   // pathIntersection.value /= pdf;
+    pathIntersection.value /= pdf;
 
 #else // HAS_LIGHTLOOP
 
