@@ -279,7 +279,7 @@ real SHEvalLinearL2Luminance(real3 N, real4 shB, real shC)
 half SampleSH9Luminance(half3 N, half4 shA, half4 shB, half shC)
 {
     // Linear + constant polynomial terms
-    half3 res = SHEvalLinearL0L1Luminance(N, shA);
+    half res = SHEvalLinearL0L1Luminance(N, shA);
 
     // Quadratic polynomials
     res += SHEvalLinearL2Luminance(N, shB, shC);
