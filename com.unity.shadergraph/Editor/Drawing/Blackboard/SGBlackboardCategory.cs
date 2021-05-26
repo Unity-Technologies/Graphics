@@ -66,6 +66,9 @@ namespace UnityEditor.ShaderGraph.Drawing
         int m_InsertIndex;
         SGBlackboard blackboard => m_ViewModel.parentView as SGBlackboard;
 
+        bool m_IsDragInProgress;
+        bool m_WasHoverExpanded;
+
         public delegate bool CanAcceptDropDelegate(ISelectable selected);
 
         public CanAcceptDropDelegate canAcceptDrop { get; set; }
@@ -298,10 +301,23 @@ namespace UnityEditor.ShaderGraph.Drawing
         void OnHoverStartEvent(MouseEnterEvent evt)
         {
             AddToClassList("hovered");
+            if (selection.OfType<SGBlackboardField>().Any()
+                && controller.Model.IsNamedCategory()
+                && m_IsDragInProgress
+                && !viewModel.isExpanded)
+            {
+                m_WasHoverExpanded = true;
+                TryDoFoldout(true);
+            }
         }
 
         void OnHoverEndEvent(MouseLeaveEvent evt)
         {
+            if (m_WasHoverExpanded && m_IsDragInProgress)
+            {
+                m_WasHoverExpanded = false;
+                TryDoFoldout(false);
+            }
             RemoveFromClassList("hovered");
         }
 
@@ -309,30 +325,22 @@ namespace UnityEditor.ShaderGraph.Drawing
         {
             var selection = DragAndDrop.GetGenericData("DragSelection") as List<ISelectable>;
 
-            VisualElement sourceItem = null;
-
-            bool fieldInSelection = false;
-
-            foreach (ISelectable selectedElement in selection)
-            {
-                sourceItem = selectedElement as VisualElement;
-                if (sourceItem is SGBlackboardField blackboardField)
-                    fieldInSelection = true;
-                // Don't show drag indicator if selection has categories,
-                // We don't want category drag & drop to be ambiguous with shader input drag & drop
-                if (sourceItem is SGBlackboardCategory blackboardCategory)
-                {
-                    SetDragIndicatorVisible(false);
-                    return;
-                }
-            }
-
-            // If can't find at least one blackboard field in the selection, don't update drag indicator
-            if (fieldInSelection == false)
+            // Don't show drag indicator if selection has categories,
+            // We don't want category drag & drop to be ambiguous with shader input drag & drop
+            if(selection.OfType<SGBlackboardCategory>().Any())
             {
                 SetDragIndicatorVisible(false);
                 return;
             }
+
+            // If can't find at least one blackboard field in the selection, don't update drag indicator
+            if(selection.OfType<SGBlackboardField>().Any() == false)
+            {
+                SetDragIndicatorVisible(false);
+                return;
+            }
+
+            m_IsDragInProgress = true;
 
             Vector2 localPosition = evt.localMousePosition;
 
@@ -383,16 +391,14 @@ namespace UnityEditor.ShaderGraph.Drawing
         {
             var selection = DragAndDrop.GetGenericData("DragSelection") as List<ISelectable>;
 
-            foreach (ISelectable selectedElement in selection)
-            {
-                var sourceItem = selectedElement as VisualElement;
+            m_IsDragInProgress = false;
 
-                // Don't show drag indicator if selection has categories,
-                // We don't want category drag & drop to be ambiguous with shader input drag & drop
-                if (sourceItem is SGBlackboardCategory blackboardCategory)
-                {
-                    SetDragIndicatorVisible(false);
-                }
+            // Don't show drag indicator if selection has categories,
+            // We don't want category drag & drop to be ambiguous with shader input drag & drop
+            if(selection.OfType<SGBlackboardCategory>().Any())
+            {
+                SetDragIndicatorVisible(false);
+                return;
             }
 
             if (m_InsertIndex == -1)
@@ -503,6 +509,7 @@ namespace UnityEditor.ShaderGraph.Drawing
         internal void OnDragActionCanceled()
         {
             SetDragIndicatorVisible(false);
+            m_IsDragInProgress = false;
         }
 
         public override void Select(VisualElement selectionContainer, bool additive)

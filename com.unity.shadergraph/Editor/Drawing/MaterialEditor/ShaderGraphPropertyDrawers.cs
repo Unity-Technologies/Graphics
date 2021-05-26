@@ -12,7 +12,7 @@ namespace UnityEditor.ShaderGraph.Drawing
 {
     internal static class ShaderGraphPropertyDrawers
     {
-        static Dictionary<MinimalCategoryData.GraphInputData, bool> s_CompoundPropertyFoldoutStates = new Dictionary<MinimalCategoryData.GraphInputData, bool>();
+        static Dictionary<GraphInputData, bool> s_CompoundPropertyFoldoutStates = new();
 
         public static void DrawShaderGraphGUI(MaterialEditor materialEditor, IEnumerable<MaterialProperty> properties)
         {
@@ -116,7 +116,7 @@ namespace UnityEditor.ShaderGraph.Drawing
             EditorGUILayout.EndFoldoutHeaderGroup();
         }
 
-        static void DrawCompoundProperty(MaterialEditor materialEditor, IEnumerable<MaterialProperty> properties, MinimalCategoryData.GraphInputData compoundPropertyData)
+        static void DrawCompoundProperty(MaterialEditor materialEditor, IEnumerable<MaterialProperty> properties, GraphInputData compoundPropertyData)
         {
             EditorGUI.indentLevel++;
 
