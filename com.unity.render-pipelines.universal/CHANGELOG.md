@@ -64,6 +64,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Enabled subsurface scattering with GI on handwritten Universal ST8 shader.
 - Material upgrader now also upgrades AnimationClips in the project that have curves bound to renamed material properties.
 - 2D Lights now inherit from Light2DBase.
+- Stripping shader variants per renderer features instead of combined renderer features.
 
 ### Fixed
 - Camera Inspector Stack list edition fixes.
