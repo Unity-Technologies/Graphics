@@ -26,7 +26,7 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
             context.AddAssetDependency(kSourceCodeGuid, AssetCollection.Flags.SourceDependency);
 
             // Process SubShaders
-            SubShaderDescriptor[] subShaders = { SubShaders.Unlit, SubShaders.UnlitDOTS };
+            SubShaderDescriptor[] subShaders = { SubShaders.UnlitDOTS, SubShaders.Unlit };
             for(int i = 0; i < subShaders.Length; i++)
             {
                 // Update Render State
