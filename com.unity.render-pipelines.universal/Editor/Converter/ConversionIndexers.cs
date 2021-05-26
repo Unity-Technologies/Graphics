@@ -6,9 +6,9 @@ namespace UnityEditor.Rendering.Universal.Converters
 {
     static class ConversionIndexers
     {
-        private const int Version = 8;
+        private const int k_Version = 8;
 
-        [CustomObjectIndexer(typeof(Object), version = Version)]
+        [CustomObjectIndexer(typeof(Object), version = k_Version)]
         internal static void ConversionIndexer(CustomObjectIndexerTarget context, ObjectIndexer indexer)
         {
             //Custom finding of all default Material properties on every single object type including custom types
@@ -23,7 +23,7 @@ namespace UnityEditor.Rendering.Universal.Converters
 
                     if (result is Material materialResult)
                     {
-                        if (MaterialReferenceBuilder.GetIsReadonlyMaterial(materialResult))
+                        if (materialResult != null && MaterialReferenceBuilder.GetIsReadonlyMaterial(materialResult))
                         {
                             indexer.AddProperty("urp", "convert-readonly", context.documentIndex);
                         }

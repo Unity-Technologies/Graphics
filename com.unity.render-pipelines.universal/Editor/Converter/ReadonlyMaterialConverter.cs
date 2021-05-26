@@ -44,81 +44,84 @@ namespace UnityEditor.Rendering.Universal.Converters
         public override Type container => typeof(BuiltInToURPConverterContainer);
         public override bool NeedsIndexing => true;
 
-        private bool _startingSceneIsClosed;
+        private bool m_StartingSceneIsClosed;
 
         public override void OnInitialize(InitializeConverterContext ctx, Action callback)
         {
-            var context = Search.SearchService.CreateContext("asset", "urp:convert-readonly");
-
-            Search.SearchService.Request(context,  (c, items) =>
+            using (var context = Search.SearchService.CreateContext("asset", "urp:convert-readonly"))
             {
-                // we're going to do this step twice in order to get them ordered, but it should be fast
-                var orderedRequest = items.OrderBy(req =>
+                Search.SearchService.Request(context,  (c, items) =>
                 {
-                    GlobalObjectId.TryParse(req.id, out var gid);
-                    return gid.assetGUID;
-                })
-                    .ToList();
+                    // we're going to do this step twice in order to get them ordered, but it should be fast
+                    var orderedRequest = items.OrderBy(req =>
+                        {
+                            GlobalObjectId.TryParse(req.id, out var gid);
+                            return gid.assetGUID;
+                        })
+                        .ToList();
 
-                foreach (var r in orderedRequest)
-                {
-                    if (r == null || !GlobalObjectId.TryParse(r.id, out var gid))
+                    foreach (var r in orderedRequest)
                     {
-                        continue;
+                        if (r == null || !GlobalObjectId.TryParse(r.id, out var gid))
+                        {
+                            continue;
+                        }
+
+                        var label = r.provider.fetchLabel(r, r.context);
+                        var description = r.provider.fetchDescription(r, r.context);
+
+                        var item = new ConverterItemDescriptor()
+                        {
+                            name = $"{label} : {description}",
+                            info = gid.ToString(),
+                        };
+
+                        ctx.AddAssetToConvert(item);
                     }
 
-                    var label = r.provider.fetchLabel(r, r.context);
-                    var description = r.provider.fetchDescription(r, r.context);
-
-                    var item = new ConverterItemDescriptor()
-                    {
-                        name = $"{label} : {description}",
-                        info = gid.ToString(),
-                    };
-
-                    ctx.AddAssetToConvert(item);
-                }
-
-                callback.Invoke();
-            });
+                    callback.Invoke();
+                });
+            }
         }
 
         public override void OnRun(ref RunItemContext ctx)
         {
-            // order by the assetGuid so that they run in order
-            //var items = ctx.items.ToList();
-            //var items = ctx.item.ToList();
-            List<ConverterItemInfo> items = new List<ConverterItemInfo>();
-            items.Add(ctx.item);
-            foreach (var(index, obj) in EnumerateObjects(items, ctx).Where(item => item != null))
+            var obj = LoadObject(ctx.item, ctx);
+            var result = true;
+            var errorString = new StringBuilder();
+
+            if (obj != null)
             {
                 var materials = MaterialReferenceBuilder.GetMaterialsFromObject(obj);
 
-                var result = true;
-                var errorString = new StringBuilder();
                 foreach (var material in materials)
                 {
                     // there might be multiple materials on this object, we only care about the ones we explicitly try to remap that fail
                     if (!MaterialReferenceBuilder.GetIsReadonlyMaterial(material)) continue;
                     if (!ReadonlyMaterialMap.Map.ContainsKey(material.name)) continue;
-                    if (!ReAssignMaterial(obj, material.name, ReadonlyMaterialMap.Map[material.name]))
+                    if (!ReassignMaterial(obj, material.name, ReadonlyMaterialMap.Map[material.name]))
                     {
                         result = false;
                         errorString.AppendLine($"Material {material.name} failed to be reassigned");
                     }
                 }
+            }
+            else
+            {
+                result = false;
+                errorString.AppendLine($"Object {ctx.item.descriptor.name} could not be loaded");
+            }
 
-                if (!result)
-                {
-                    ctx.didFail = true;
-                    ctx.info = errorString.ToString();
-                }
+            if (!result)
+            {
+                ctx.didFail = true;
+                ctx.info = errorString.ToString();
             }
         }
 
-        private static bool ReAssignMaterial(Object obj, string oldMaterialName, string newMaterialPath)
+        private static bool ReassignMaterial(Object obj, string oldMaterialName, string newMaterialPath)
         {
-            var result = false;
+            var result = true;
 
             // do the reflection to make sure we get the right material reference
             if (obj is GameObject go)
@@ -128,16 +131,15 @@ namespace UnityEditor.Rendering.Universal.Converters
                     var components = go.GetComponentsInChildren(key);
                     foreach (var component in components)
                     {
-                        result = ReassignMaterialOnComponentOrObject(component,
+                        result &= ReassignMaterialOnComponentOrObject(component,
                             oldMaterialName,
-                            newMaterialPath,
-                            result);
+                            newMaterialPath);
                     }
                 }
             }
             else
             {
-                result = ReassignMaterialOnComponentOrObject(obj,
+                result &= ReassignMaterialOnComponentOrObject(obj,
                     oldMaterialName,
                     newMaterialPath);
             }
@@ -147,9 +149,10 @@ namespace UnityEditor.Rendering.Universal.Converters
 
         private static bool ReassignMaterialOnComponentOrObject(Object obj,
             string oldMaterialName,
-            string newMaterialPath,
-            bool result = false)
+            string newMaterialPath)
         {
+            var result = true;
+
             var materialProperties = obj.GetType().GetMaterialPropertiesWithoutLeaking();
 
             foreach (var property in materialProperties)
@@ -169,8 +172,17 @@ namespace UnityEditor.Rendering.Universal.Converters
                             if (setMethod != null)
                             {
                                 setMethod.Invoke(obj, new object[] { newMaterial });
-                                result = true;
                             }
+                            else
+                            {
+                                // failed to set the material from the SetMethod
+                                result = false;
+                            }
+                        }
+                        else
+                        {
+                            // a material we expected to exist does not
+                            result = false;
                         }
                     }
                 }
@@ -187,6 +199,11 @@ namespace UnityEditor.Rendering.Universal.Converters
                             {
                                 materialList[i] = newMaterial;
                             }
+                            else
+                            {
+                                // a material we expected to exist does not
+                                result = false;
+                            }
                         }
                     }
 
@@ -194,7 +211,11 @@ namespace UnityEditor.Rendering.Universal.Converters
                     if (setMethod != null)
                     {
                         setMethod.Invoke(obj, new object[] { materialList });
-                        result = true;
+                    }
+                    else
+                    {
+                        // failed to set the material from the SetMethod
+                        result = false;
                     }
                 }
             }
@@ -202,74 +223,63 @@ namespace UnityEditor.Rendering.Universal.Converters
             return result;
         }
 
-        private IEnumerable<Tuple<int, Object>> EnumerateObjects(IReadOnlyList<ConverterItemInfo> items, RunItemContext ctx)
+        private Object LoadObject(ConverterItemInfo item, RunItemContext ctx)
         {
-            for (var i = 0; i < items.Count; i++)
+            if (GlobalObjectId.TryParse(item.descriptor.info, out var gid))
             {
-                var item = items[i];
-
-                if (GlobalObjectId.TryParse(item.descriptor.info, out var gid))
+                var obj = GlobalObjectId.GlobalObjectIdentifierToObjectSlow(gid);
+                if (!obj)
                 {
-                    var obj = GlobalObjectId.GlobalObjectIdentifierToObjectSlow(gid);
-                    if (!obj)
+                    // Open container scene
+                    if (gid.identifierType == (int)IdentifierType.kSceneObject)
                     {
-                        // Open container scene
-                        if (gid.identifierType == (int)IdentifierType.kSceneObject)
+                        // Before we open a new scene, we need to save.
+                        // However, we shouldn't save the first scene.
+                        // Todo: This should probably be expanded to the context of all converters. This is an example for now.
+                        if (m_StartingSceneIsClosed)
                         {
-                            // Before we open a new scene, we need to save.
-                            // However, we shouldn't save the first scene.
-                            // Todo: This should probably be expanded to the context of all converters. This is an example for now.
-                            if (_startingSceneIsClosed)
-                            {
-                                var currentScene = SceneManager.GetActiveScene();
-                                EditorSceneManager.SaveScene(currentScene);
-                            }
-
-                            _startingSceneIsClosed = true;
-
-                            var containerPath = AssetDatabase.GUIDToAssetPath(gid.assetGUID);
-
-                            var mainInstanceID = AssetDatabase.LoadAssetAtPath<Object>(containerPath);
-                            AssetDatabase.OpenAsset(mainInstanceID);
-                            yield return null;
-
-                            // if we have a prefab open, then we already have the object we need to update
-                            var prefabStage = PrefabStageUtility.GetCurrentPrefabStage();
-                            if (prefabStage != null)
-                            {
-                                obj = mainInstanceID;
-                            }
-                            else
-                            {
-                                var scene = SceneManager.GetActiveScene();
-                                while (!scene.isLoaded)
-                                {
-                                    yield return null;
-                                }
-                            }
+                            var currentScene = SceneManager.GetActiveScene();
+                            EditorSceneManager.SaveScene(currentScene);
                         }
 
-                        // Reload object if it is still null
-                        if (obj == null)
+                        m_StartingSceneIsClosed = true;
+
+                        var containerPath = AssetDatabase.GUIDToAssetPath(gid.assetGUID);
+
+                        var mainInstanceID = AssetDatabase.LoadAssetAtPath<Object>(containerPath);
+                        AssetDatabase.OpenAsset(mainInstanceID);
+
+                        // if we have a prefab open, then we already have the object we need to update
+                        var prefabStage = PrefabStageUtility.GetCurrentPrefabStage();
+                        if (prefabStage != null)
                         {
-                            obj = GlobalObjectId.GlobalObjectIdentifierToObjectSlow(gid);
-                            if (!obj)
-                            {
-                                ctx.didFail = true;
-                                ctx.info = $"{i}, Object {gid.assetGUID} failed to load...";
-                                continue;
-                            }
+                            obj = mainInstanceID;
+                        }
+                        else
+                        {
+                            SceneManager.GetActiveScene();
                         }
                     }
 
-                    yield return new Tuple<int, Object>(i, obj);
+                    // Reload object if it is still null
+                    if (obj == null)
+                    {
+                        obj = GlobalObjectId.GlobalObjectIdentifierToObjectSlow(gid);
+                        if (!obj)
+                        {
+                            ctx.didFail = true;
+                            ctx.info = $"Object {gid.assetGUID} failed to load...";
+                        }
+                    }
                 }
-                else
-                {
-                    ctx.didFail = true;
-                    ctx.info = $"{i}, Failed to parse Global ID {item.descriptor.info}...";
-                }
+
+                return obj;
             }
+
+            ctx.didFail = true;
+            ctx.info = $"Failed to parse Global ID {item.descriptor.info}...";
+
+            return null;
         }
     }
 }

@@ -3,9 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
 using System;
-
 using Object = UnityEngine.Object;
-
 
 namespace UnityEditor.Rendering.Universal.Converters
 {
@@ -89,11 +87,8 @@ namespace UnityEditor.Rendering.Universal.Converters
         {
             var result = new List<Material>();
 
-            var allMaterialProperties = new List<PropertyInfo>();
             if (obj is GameObject go)
             {
-                var componentList = new List<Component>();
-
                 foreach (var key in GetComponentTypes())
                 {
                     var components = go.GetComponentsInChildren(key);
