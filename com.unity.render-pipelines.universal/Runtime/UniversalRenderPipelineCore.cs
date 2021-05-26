@@ -454,7 +454,7 @@ namespace UnityEngine.Rendering.Universal
                 if (platform == RuntimePlatform.WSAPlayerX86 || platform == RuntimePlatform.WSAPlayerARM || platform == RuntimePlatform.WSAPlayerX64)
                 {
                     var displaySubsystem = GetFirstXRDisplaySubsystem();
-                    
+
                     if (displaySubsystem != null && !displaySubsystem.displayOpaque)
                         return true;
                 }
@@ -462,6 +462,7 @@ namespace UnityEngine.Rendering.Universal
 #endif
             return false;
         }
+
 #endif
 
         Comparison<Camera> cameraComparison = (camera1, camera2) => { return (int)camera1.depth - (int)camera2.depth; };
