@@ -5,6 +5,19 @@ namespace UnityEngine.Rendering.HighDefinition
 {
     class HDTemporalFilter
     {
+        [GenerateHLSL]
+        enum HistoryRejectionFlags
+        {
+            Depth = 0x1,
+            Reprojection = 0x2,
+            PreviousDepth = 0x4,
+            Position = 0x8,
+            Normal = 0x10,
+            Motion = 0x20,
+            Combined = Depth | Reprojection | PreviousDepth | Position | Normal | Motion,
+            CombinedNoMotion = Depth | Reprojection | PreviousDepth | Position | Normal
+        }
+
         // Resources used for the denoiser
         ComputeShader m_TemporalFilterCS;
 
@@ -47,6 +60,14 @@ namespace UnityEngine.Rendering.HighDefinition
 
         public void Release()
         {
+        }
+
+        internal struct TemporalFilterParameters
+        {
+            public bool singleChannel;
+            public float historyValidity;
+            public bool occluderMotionRejection;
+            public bool receiverMotionRejection;
         }
 
         class HistoryValidityPassData
@@ -107,7 +128,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 passData.historyNormalTexture = builder.ReadTexture(renderGraph.ImportTexture(hdCamera.GetCurrentFrameRT((int)HDCameraFrameHistoryType.Normal)));
 
                 // Output buffers
-                passData.validationBuffer = builder.WriteTexture(renderGraph.CreateTexture(new TextureDesc(Vector2.one, true, true) { colorFormat = GraphicsFormat.R8_UNorm, enableRandomWrite = true, name = "ValidationTexture" }));
+                passData.validationBuffer = builder.WriteTexture(renderGraph.CreateTexture(new TextureDesc(Vector2.one, true, true) { colorFormat = GraphicsFormat.R8_UInt, enableRandomWrite = true, name = "ValidationTexture" }));
 
                 builder.SetRenderFunc(
                     (HistoryValidityPassData data, RenderGraphContext ctx) =>
@@ -160,6 +181,8 @@ namespace UnityEngine.Rendering.HighDefinition
             // Denoising parameters
             public float historyValidity;
             public float pixelSpreadTangent;
+            public bool occluderMotionRejection;
+            public bool receiverMotionRejection;
 
             // Kernels
             public int temporalAccKernel;
@@ -179,7 +202,7 @@ namespace UnityEngine.Rendering.HighDefinition
         }
 
         // Denoiser variant for non history array
-        public TextureHandle Denoise(RenderGraph renderGraph, HDCamera hdCamera, bool singleChannel, float historyValidity,
+        internal TextureHandle Denoise(RenderGraph renderGraph, HDCamera hdCamera, TemporalFilterParameters filterParams,
             TextureHandle noisyBuffer, TextureHandle velocityBuffer,
             TextureHandle historyBuffer,
             TextureHandle depthBuffer, TextureHandle normalBuffer, TextureHandle motionVectorBuffer, TextureHandle historyValidationBuffer)
@@ -196,11 +219,13 @@ namespace UnityEngine.Rendering.HighDefinition
 
                 // Denoising parameters
                 passData.pixelSpreadTangent = HDRenderPipeline.GetPixelSpreadTangent(hdCamera.camera.fieldOfView, hdCamera.actualWidth, hdCamera.actualHeight);
-                passData.historyValidity = historyValidity;
+                passData.historyValidity = filterParams.historyValidity;
+                passData.receiverMotionRejection = filterParams.receiverMotionRejection;
+                passData.occluderMotionRejection = filterParams.occluderMotionRejection;
 
                 // Kernels
-                passData.temporalAccKernel = singleChannel ? m_TemporalAccumulationSingleKernel : m_TemporalAccumulationColorKernel;
-                passData.copyHistoryKernel = singleChannel ? m_CopyHistorySingleKernel : m_CopyHistoryColorKernel;
+                passData.temporalAccKernel = filterParams.singleChannel ? m_TemporalAccumulationSingleKernel : m_TemporalAccumulationColorKernel;
+                passData.copyHistoryKernel = filterParams.singleChannel ? m_CopyHistorySingleKernel : m_CopyHistoryColorKernel;
 
                 // Other parameters
                 passData.temporalFilterCS = m_TemporalFilterCS;
@@ -239,6 +264,8 @@ namespace UnityEngine.Rendering.HighDefinition
                         ctx.cmd.SetComputeTextureParam(data.temporalFilterCS, data.temporalAccKernel, HDShaderIDs._VelocityBuffer, data.velocityBuffer);
                         ctx.cmd.SetComputeTextureParam(data.temporalFilterCS, data.temporalAccKernel, HDShaderIDs._CameraMotionVectorsTexture, data.motionVectorBuffer);
                         ctx.cmd.SetComputeFloatParam(data.temporalFilterCS, HDShaderIDs._HistoryValidity, data.historyValidity);
+                        ctx.cmd.SetComputeIntParam(data.temporalFilterCS, HDShaderIDs._ReceiverMotionRejection, data.receiverMotionRejection ? 1 : 0);
+                        ctx.cmd.SetComputeIntParam(data.temporalFilterCS, HDShaderIDs._OccluderMotionRejection, data.occluderMotionRejection ? 1 : 0);
 
                         // Bind the output buffer
                         ctx.cmd.SetComputeTextureParam(data.temporalFilterCS, data.temporalAccKernel, HDShaderIDs._DenoiseOutputTextureRW, data.outputBuffer);
@@ -385,6 +412,8 @@ namespace UnityEngine.Rendering.HighDefinition
                         ctx.cmd.SetComputeIntParam(data.temporalFilterCS, HDShaderIDs._DenoisingHistorySlice, data.sliceIndex);
                         ctx.cmd.SetComputeVectorParam(data.temporalFilterCS, HDShaderIDs._DenoisingHistoryMask, data.channelMask);
                         ctx.cmd.SetComputeFloatParam(data.temporalFilterCS, HDShaderIDs._HistoryValidity, data.historyValidity);
+                        ctx.cmd.SetComputeIntParam(data.temporalFilterCS, HDShaderIDs._ReceiverMotionRejection, 1);
+                        ctx.cmd.SetComputeIntParam(data.temporalFilterCS, HDShaderIDs._OccluderMotionRejection, 1);
 
                         // Bind the output buffer
                         ctx.cmd.SetComputeTextureParam(data.temporalFilterCS, data.temporalAccKernel, HDShaderIDs._DenoiseOutputTextureRW, data.outputBuffer);

@@ -24,6 +24,7 @@
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Builtin/BuiltinData.hlsl"
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/PostProcessing/Shaders/TemporalAntialiasing.hlsl"
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/Raytracing/Shaders/Denoising/DenoisingUtils.hlsl"
+#include "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/Raytracing/HDTemporalFilter.cs.hlsl"
 
 #pragma only_renderers d3d11
 // #pragma enable_d3d11_debug_symbols
@@ -41,18 +42,22 @@ TEXTURE2D_X(_HistoryDepthTexture);
 // Normal buffer of the previous frame
 TEXTURE2D_X(_HistoryNormalTexture);
 // Buffer that stores the result of the validation pass of the history
-RW_TEXTURE2D_X(float, _ValidationBufferRW);
+RW_TEXTURE2D_X(uint, _ValidationBufferRW);
 // Velocity buffer for history rejection
 TEXTURE2D_X(_VelocityBuffer);
 // This holds the fov angle of a pixel
 float _PixelSpreadAngleTangent;
 // Value that tells us if the current history should be discarded based on scene-level data
 float _HistoryValidity;
+// Controls if the motion of the receiver is a valid rejection codition.
+int _ReceiverMotionRejection;
+// Controls if the motion of the receiver is a valid rejection codition.
+int _OccluderMotionRejection;
 
 // The maximal normal difference threshold
 #define MAX_NORMAL_DIFFERENCE 0.65
 // The minimal motion distance
-#define MINIMAL_MOTION_DISTANCE 0.001
+#define MINIMAL_MOTION_DISTANCE 0.0001
 
 [numthreads(TEMPORAL_FILTER_TILE_SIZE, TEMPORAL_FILTER_TILE_SIZE, 1)]
 void ValidateHistory(uint3 dispatchThreadId : SV_DispatchThreadID, uint2 groupThreadId : SV_GroupThreadID, uint2 groupId : SV_GroupID)
@@ -66,10 +71,13 @@ void ValidateHistory(uint3 dispatchThreadId : SV_DispatchThreadID, uint2 groupTh
     float depth = LOAD_TEXTURE2D_X(_DepthTexture, centerCoord).r;
     PositionInputs posInputs = GetPositionInput(centerCoord, _ScreenSize.zw, depth, UNITY_MATRIX_I_VP, GetWorldToViewMatrix());
 
+    // Initialize the history validation result
+    uint historyRejectionResult = 0;
+
     // If the current point we are processing is a background point or the whole history should be discarded for an other reason, we invalidate the history
     if (depth == UNITY_RAW_FAR_CLIP_VALUE || _HistoryValidity == 0.0f)
     {
-        _ValidationBufferRW[COORD_TEXTURE2D_X(centerCoord)] = 0;
+        _ValidationBufferRW[COORD_TEXTURE2D_X(centerCoord)] = HISTORYREJECTIONFLAGS_COMBINED;
         return;
     }
 
@@ -83,7 +91,7 @@ void ValidateHistory(uint3 dispatchThreadId : SV_DispatchThreadID, uint2 groupTh
     // If the pixel was outside of the screen during the previous frame, invalidate the history
     if (historyTapCoord.x > _ScreenSize.x || historyTapCoord.x < 0 || historyTapCoord.y > _ScreenSize.y || historyTapCoord.y < 0)
     {
-        _ValidationBufferRW[COORD_TEXTURE2D_X(centerCoord)] = 0;
+        _ValidationBufferRW[COORD_TEXTURE2D_X(centerCoord)] = HISTORYREJECTIONFLAGS_REPROJECTION | HISTORYREJECTIONFLAGS_PREVIOUS_DEPTH | HISTORYREJECTIONFLAGS_POSITION | HISTORYREJECTIONFLAGS_NORMAL | HISTORYREJECTIONFLAGS_MOTION;
         return;
     }
 
@@ -91,7 +99,7 @@ void ValidateHistory(uint3 dispatchThreadId : SV_DispatchThreadID, uint2 groupTh
     float historyDepth = SAMPLE_TEXTURE2D_X_LOD(_HistoryDepthTexture, s_linear_clamp_sampler, historyTapCoord * _ScreenSize.zw * _RTHandleScaleHistory.zw, 0).r;
     if (historyDepth == UNITY_RAW_FAR_CLIP_VALUE)
     {
-        _ValidationBufferRW[COORD_TEXTURE2D_X(centerCoord)] = 0;
+        _ValidationBufferRW[COORD_TEXTURE2D_X(centerCoord)] = HISTORYREJECTIONFLAGS_PREVIOUS_DEPTH | HISTORYREJECTIONFLAGS_POSITION | HISTORYREJECTIONFLAGS_NORMAL | HISTORYREJECTIONFLAGS_MOTION;
         return;
     }
 
@@ -107,10 +115,7 @@ void ValidateHistory(uint3 dispatchThreadId : SV_DispatchThreadID, uint2 groupTh
 
     // Is it too far from the current position?
     if (length(historyPositionWS - posInputs.positionWS) > maxRadius)
-    {
-        _ValidationBufferRW[COORD_TEXTURE2D_X(centerCoord)] = 0;
-        return;
-    }
+        historyRejectionResult = historyRejectionResult | HISTORYREJECTIONFLAGS_POSITION;
 
     // Compute the world space normal (from previous frame)
     float4 historyNormal = LOAD_TEXTURE2D_X(_HistoryNormalTexture, historyTapCoord);
@@ -119,25 +124,19 @@ void ValidateHistory(uint3 dispatchThreadId : SV_DispatchThreadID, uint2 groupTh
 
     // If the current normal is too different from the previous one, discard the history.
     if (dot(normalData.normalWS, historyNormalData.normalWS) < MAX_NORMAL_DIFFERENCE)
-    {
-        _ValidationBufferRW[COORD_TEXTURE2D_X(centerCoord)] = 0;
-        return;
-    }
+        historyRejectionResult = historyRejectionResult | HISTORYREJECTIONFLAGS_NORMAL;
 
     // Was the object of this pixel moving?
     uint stencilValue = GetStencilValue(LOAD_TEXTURE2D_X(_StencilTexture, centerCoord));
     if ((stencilValue & _ObjectMotionStencilBit) != 0)
-    {
-        _ValidationBufferRW[COORD_TEXTURE2D_X(centerCoord)] = 0;
-        return;
-    }
+        historyRejectionResult = historyRejectionResult | HISTORYREJECTIONFLAGS_MOTION;
 
     // If none of the previous conditions have failed, the the history is valid
-    _ValidationBufferRW[COORD_TEXTURE2D_X(centerCoord)] = 1;
+    _ValidationBufferRW[COORD_TEXTURE2D_X(centerCoord)] = historyRejectionResult;
 }
 
 // Validation buffer that tells us if the history should be ignored for a given pixel.
-TEXTURE2D_X(_ValidationBuffer);
+TEXTURE2D_X_UINT(_ValidationBuffer);
 #ifdef HISTORY_IS_ARRAY
 // This buffer holds the previously accumualted signal
 TEXTURE2D_ARRAY(_HistoryBuffer);
@@ -207,13 +206,16 @@ void TEMPORAL_ACCUMULATION(uint3 dispatchThreadId : SV_DispatchThreadID, uint2 g
 #endif
 
     // Get the velocity of the current sample
-    float movingIntersection = LOAD_TEXTURE2D_X(_VelocityBuffer, centerCoord).r > MINIMAL_MOTION_DISTANCE;
+    float movingIntersection = _OccluderMotionRejection ? LOAD_TEXTURE2D_X(_VelocityBuffer, centerCoord).r > MINIMAL_MOTION_DISTANCE : 0.0f;
 
     // Accumulation factor that tells us how much we need to keep the history data
     float accumulationFactor = 0.0;
 
-    // Combine the history validity from both sources
-    bool historyInvalid = (_ValidationBuffer[COORD_TEXTURE2D_X(centerCoord)].x * _HistoryValidity) < 1.0f;
+    // Evaluate our validation mask
+    float validationMask = (_ReceiverMotionRejection ? (LOAD_TEXTURE2D_X(_ValidationBuffer, centerCoord).x) : (LOAD_TEXTURE2D_X(_ValidationBuffer, centerCoord).x & (~HISTORYREJECTIONFLAGS_MOTION))) != 0 ? 0.0f : 1.0f;
+
+    // Combine the validation mask with the history validity
+    bool historyInvalid = ((float)validationMask * _HistoryValidity) < 1.0f;
 
     // If the history is invalid or the history was flagged as moving (sampleCount == 0.0)
     if (historyInvalid || sampleCount == 0.0 || movingIntersection)

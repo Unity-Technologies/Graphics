@@ -28,12 +28,14 @@ namespace UnityEditor.Rendering.HighDefinition
         // Ray Tracing parameters
         SerializedDataParameter m_RayTracing;
         SerializedDataParameter m_LayerMask;
+        SerializedDataParameter m_OccluderMotionRejection;
+        SerializedDataParameter m_ReceiverMotionRejection;
         SerializedDataParameter m_RayLength;
         SerializedDataParameter m_SampleCount;
         SerializedDataParameter m_Denoise;
         SerializedDataParameter m_DenoiserRadius;
 
-        public override bool hasAdditionalProperties => (m_RayTracing == null || !(HDRenderPipeline.pipelineSupportsRayTracing && m_RayTracing.overrideState.boolValue && m_RayTracing.value.boolValue));
+        public override bool hasAdditionalProperties => true;
 
         public override void OnEnable()
         {
@@ -55,6 +57,8 @@ namespace UnityEditor.Rendering.HighDefinition
 
             m_RayTracing = Unpack(o.Find(x => x.rayTracing));
             m_LayerMask = Unpack(o.Find(x => x.layerMask));
+            m_OccluderMotionRejection = Unpack(o.Find(x => x.occluderMotionRejection));
+            m_ReceiverMotionRejection = Unpack(o.Find(x => x.receiverMotionRejection));
             m_RayLength = Unpack(o.Find(x => x.rayLength));
             m_Denoise = Unpack(o.Find(x => x.denoise));
             m_SampleCount = Unpack(o.Find(x => x.sampleCount));
@@ -97,6 +101,9 @@ namespace UnityEditor.Rendering.HighDefinition
                         }
                     }
                 }
+
+                PropertyField(m_OccluderMotionRejection, EditorGUIUtility.TrTextContent("Occluder Motion Rejection", "When enabled, the occluder's movement should be considered a valid rejection condition."));
+                PropertyField(m_ReceiverMotionRejection, EditorGUIUtility.TrTextContent("Receiver Motion Rejection", "When enabled, the receiver's movement should be considered a valid rejection condition."));
             }
             else
             {

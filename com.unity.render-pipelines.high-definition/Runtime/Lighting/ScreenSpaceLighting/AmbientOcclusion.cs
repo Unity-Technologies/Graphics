@@ -197,6 +197,18 @@ namespace UnityEngine.Rendering.HighDefinition
             set { m_DirectionCount.value = value; }
         }
 
+        /// <summary>
+        /// When enabled, the occluder's movement should be considered a valid rejection condition.
+        /// </summary>
+        [AdditionalProperty]
+        public BoolParameter occluderMotionRejection = new BoolParameter(true);
+
+        /// <summary>
+        /// When enabled, the receiver's movement should be considered a valid rejection condition.
+        /// </summary>
+        [AdditionalProperty]
+        public BoolParameter receiverMotionRejection = new BoolParameter(true);
+
         // SSAO
         [SerializeField, FormerlySerializedAs("stepCount")]
         private ClampedIntParameter m_StepCount = new ClampedIntParameter(6, 2, 32);

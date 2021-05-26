@@ -520,7 +520,14 @@ namespace UnityEngine.Rendering.HighDefinition
 
                 // Run the temporal denoiser
                 TextureHandle historyBufferHF = renderGraph.ImportTexture(RequestIndirectDiffuseHistoryTextureHF(hdCamera));
-                TextureHandle denoisedRTGI = temporalFilter.Denoise(renderGraph, hdCamera, singleChannel: false, historyValidity0, rtGIBuffer, renderGraph.defaultResources.blackTextureXR, historyBufferHF, depthPyramid, normalBuffer, motionVectorBuffer, historyValidationTexture);
+                HDTemporalFilter.TemporalFilterParameters filterParams;
+                filterParams.singleChannel = false;
+                filterParams.historyValidity = historyValidity0;
+                filterParams.occluderMotionRejection = false;
+                filterParams.receiverMotionRejection = true;
+                TextureHandle denoisedRTGI = temporalFilter.Denoise(renderGraph, hdCamera, filterParams,
+                    rtGIBuffer, renderGraph.defaultResources.blackTextureXR, historyBufferHF,
+                    depthPyramid, normalBuffer, motionVectorBuffer, historyValidationTexture);
 
                 // Apply the diffuse denoiser
                 rtGIBuffer = diffuseDenoiser.Denoise(renderGraph, hdCamera, singleChannel: false, kernelSize: giSettings.denoiserRadius, halfResolutionFilter: giSettings.halfResolutionDenoiser, jitterFilter: giSettings.secondDenoiserPass, denoisedRTGI, depthPyramid, normalBuffer, rtGIBuffer);
@@ -532,7 +539,13 @@ namespace UnityEngine.Rendering.HighDefinition
 
                     // Run the temporal denoiser
                     TextureHandle historyBufferLF = renderGraph.ImportTexture(RequestIndirectDiffuseHistoryTextureLF(hdCamera));
-                    denoisedRTGI = temporalFilter.Denoise(renderGraph, hdCamera, singleChannel: false, historyValidity1, rtGIBuffer, renderGraph.defaultResources.blackTextureXR, historyBufferLF, depthPyramid, normalBuffer, motionVectorBuffer, historyValidationTexture);
+                    filterParams.singleChannel = false;
+                    filterParams.historyValidity = historyValidity1;
+                    filterParams.occluderMotionRejection = false;
+                    filterParams.receiverMotionRejection = true;
+                    denoisedRTGI = temporalFilter.Denoise(renderGraph, hdCamera, filterParams,
+                        rtGIBuffer, renderGraph.defaultResources.blackTextureXR, historyBufferLF,
+                        depthPyramid, normalBuffer, motionVectorBuffer, historyValidationTexture);
 
                     // Apply the diffuse denoiser
                     rtGIBuffer = diffuseDenoiser.Denoise(renderGraph, hdCamera, singleChannel: false, kernelSize: giSettings.denoiserRadius * 0.5f, halfResolutionFilter: giSettings.halfResolutionDenoiser, jitterFilter: false, denoisedRTGI, depthPyramid, normalBuffer, rtGIBuffer);
