@@ -957,7 +957,7 @@ namespace UnityEditor.Rendering
         //forceLowRes should be deprecated as soon as this is fixed in UIElement
         internal static Texture2D LoadIcon(string path, string name, string extention = ".png", bool forceLowRes = false)
         {
-            if (String.IsNullOrEmpty(path) || String.IsNullOrEmpty(name))
+            if (string.IsNullOrEmpty(path) || string.IsNullOrEmpty(name))
                 return null;
 
             string prefix = "";
@@ -970,18 +970,18 @@ namespace UnityEditor.Rendering
             float pixelsPerPoint = GetGUIStatePixelsPerPoint();
             if (pixelsPerPoint > 1.0f && !forceLowRes)
             {
-                icon = EditorGUIUtility.Load(String.Format("{0}/{1}{2}@2x{3}", path, prefix, name, extention)) as Texture2D;
+                icon = EditorGUIUtility.Load($"{path}/{prefix}{name}@2x{extention}") as Texture2D;
                 if (icon == null && !string.IsNullOrEmpty(prefix))
-                    icon = EditorGUIUtility.Load(String.Format("{0}/{1}@2x{2}", path, name, extention)) as Texture2D;
+                    icon = EditorGUIUtility.Load($"{path}/{name}@2x{extention}") as Texture2D;
                 if (icon != null)
                     SetTexturePixelPerPoint(icon, 2.0f);
             }
 
             if (icon == null)
-                icon = EditorGUIUtility.Load(String.Format("{0}/{1}{2}{3}", path, prefix, name, extention)) as Texture2D;
+                icon = EditorGUIUtility.Load($"{path}/{prefix}{name}{extention}") as Texture2D;
 
             if (icon == null && !string.IsNullOrEmpty(prefix))
-                icon = EditorGUIUtility.Load(String.Format("{0}/{1}{2}", path, name, extention)) as Texture2D;
+                icon = EditorGUIUtility.Load($"{path}/{name}{extention}") as Texture2D;
 
             if (icon != null &&
                 !Mathf.Approximately(GetTexturePixelPerPoint(icon), pixelsPerPoint) && //scaling are different

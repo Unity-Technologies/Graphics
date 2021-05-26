@@ -12,6 +12,7 @@ namespace UnityEditor.Rendering.Universal
                 public static GUIContent volumesSettingsText = EditorGUIUtility.TrTextContent("Volumes", "These settings define how Volumes affect this Camera.");
                 public static GUIContent volumeTrigger = EditorGUIUtility.TrTextContent("Volume Trigger", "A transform that will act as a trigger for volume blending. If none is set, the camera itself will act as a trigger.");
                 public static GUIContent volumeUpdates = EditorGUIUtility.TrTextContent("Update Mode", "Select how Unity updates Volumes: every frame or when triggered via scripting. In the Editor, Unity updates Volumes every frame when not in the Play mode.");
+                public static GUIContent volumeLayerMask = EditorGUIUtility.TrTextContent("Mask", "This Camera is only affected by Volumes in the Layers that are assigned to the Camera.");
             }
         }
     }
