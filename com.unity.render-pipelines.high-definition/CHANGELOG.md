@@ -201,7 +201,8 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed issue with velocity rejection when using physically-based DoF.
 - Fixed HDRP's ShaderGraphVersion migration management which was broken.
 - Fixed missing API documentation for LTC area light code.
-- Fix white flash when camera is reset and SSR Accumulation mode is on.
+- Fixed AxF debug output in certain configurations (case 1333780).
+- Fixed white flash when camera is reset and SSR Accumulation mode is on.
 
 ### Changed
 - Changed Window/Render Pipeline/HD Render Pipeline Wizard to Window/Rendering/HDRP Wizard
