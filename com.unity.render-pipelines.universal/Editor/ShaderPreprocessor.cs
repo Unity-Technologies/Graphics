@@ -507,7 +507,6 @@ namespace UnityEditor.Rendering.Universal
 
             s_SupportedFeaturesList.Clear();
 
-            // Must reset flags.
             foreach (UniversalRenderPipelineAsset urp in urps)
             {
                 if (urp != null)
