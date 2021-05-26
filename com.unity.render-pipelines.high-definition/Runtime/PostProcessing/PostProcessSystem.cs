@@ -136,12 +136,12 @@ namespace UnityEngine.Rendering.HighDefinition
 
         HDRenderPipeline m_HDInstance;
 
-        void FillEmptyExposureTexture()
+        static void SetExposureTextureToEmpty(RTHandle exposureTexture)
         {
             var tex = new Texture2D(1, 1, TextureFormat.RGHalf, false, true);
             tex.SetPixel(0, 0, new Color(1f, ColorUtils.ConvertExposureToEV100(1f), 0f, 0f));
             tex.Apply();
-            Graphics.Blit(tex, m_EmptyExposureTexture);
+            Graphics.Blit(tex, exposureTexture);
             CoreUtils.Destroy(tex);
         }
 
@@ -218,7 +218,7 @@ namespace UnityEngine.Rendering.HighDefinition
             // TODO: Write a version that uses structured buffer instead of texture to do atomic as Metal doesn't support atomics on textures.
             m_MotionBlurSupportsScattering = m_MotionBlurSupportsScattering && (SystemInfo.graphicsDeviceType != GraphicsDeviceType.Metal);
 
-            FillEmptyExposureTexture();
+            SetExposureTextureToEmpty(m_EmptyExposureTexture);
 
             // Initialize our target pool to ease RT management
             m_Pool = new TargetPool();
@@ -305,7 +305,7 @@ namespace UnityEngine.Rendering.HighDefinition
         void CheckRenderTexturesValidity()
         {
             if (!m_EmptyExposureTexture.rt.IsCreated())
-                FillEmptyExposureTexture();
+                SetExposureTextureToEmpty(m_EmptyExposureTexture);
 
             HDUtils.CheckRTCreated(m_InternalLogLut.rt);
             HDUtils.CheckRTCreated(m_TempTexture1024.rt);
@@ -827,9 +827,11 @@ namespace UnityEngine.Rendering.HighDefinition
             RTHandle Allocator(string id, int frameIndex, RTHandleSystem rtHandleSystem)
             {
                 // r: multiplier, g: EV100
-                return rtHandleSystem.Alloc(1, 1, colorFormat: k_ExposureFormat,
+                var rt = rtHandleSystem.Alloc(1, 1, colorFormat: k_ExposureFormat,
                     enableRandomWrite: true, name: $"Exposure Texture ({id}) {frameIndex}"
                 );
+                SetExposureTextureToEmpty(rt);
+                return rt;
             }
 
             // We rely on the RT history system that comes with HDCamera, but because it is swapped
@@ -1727,7 +1729,7 @@ namespace UnityEngine.Rendering.HighDefinition
             using (new ProfilingScope(cmd, ProfilingSampler.Get(HDProfileId.MotionBlurKernel)))
             {
                 cs = m_Resources.shaders.motionBlurCS;
-                kernel = cs.FindKernel("MotionBlurCS");
+                kernel =  cs.FindKernel(m_EnableAlpha ?  "MotionBlurF4CS": "MotionBlurF3CS");
                 cmd.SetComputeVectorParam(cs, HDShaderIDs._TileTargetSize, tileTargetSize);
                 cmd.SetComputeTextureParam(cs, kernel, HDShaderIDs._MotionVecAndDepth, preppedMotionVec);
                 cmd.SetComputeTextureParam(cs, kernel, HDShaderIDs._OutputTexture, destination);
@@ -2229,7 +2231,11 @@ namespace UnityEngine.Rendering.HighDefinition
 
             // Generate the lut
             // See the note about Metal & Intel in LutBuilder3D.compute
-            builderCS.GetKernelThreadGroupSizes(builderKernel, out uint threadX, out uint threadY, out uint threadZ);
+            // GetKernelThreadGroupSizes  is currently broken on some binary versions. 
+            //builderCS.GetKernelThreadGroupSizes(builderKernel, out uint threadX, out uint threadY, out uint threadZ);
+            uint threadX = 4;
+            uint threadY = 4;
+            uint threadZ = 4;
             cmd.DispatchCompute(builderCS, builderKernel,
                 (int)((m_LutSize + threadX - 1u) / threadX),
                 (int)((m_LutSize + threadY - 1u) / threadY),

@@ -331,7 +331,7 @@ namespace UnityEditor.Rendering
         /// <param name="flags">Material Upgrader flags.</param>
         public static void UpgradeProjectFolder(List<MaterialUpgrader> upgraders, HashSet<string> shaderNamesToIgnore, string progressBarName, UpgradeFlags flags = UpgradeFlags.None)
         {
-            if (!EditorUtility.DisplayDialog(DialogText.title, "The upgrade will overwrite materials in your project. " + DialogText.projectBackMessage, DialogText.proceed, DialogText.cancel))
+            if ((!Application.isBatchMode) && (!EditorUtility.DisplayDialog(DialogText.title, "The upgrade will overwrite materials in your project. " + DialogText.projectBackMessage, DialogText.proceed, DialogText.cancel)))
                 return;
 
             int totalMaterialCount = 0;
@@ -359,6 +359,13 @@ namespace UnityEditor.Rendering
 
                     //SaveAssetsAndFreeMemory();
                 }
+            }
+
+            // Upgrade terrain specifically since it is a builtin material
+            if (Terrain.activeTerrains.Length > 0)
+            {
+                Material terrainMat = Terrain.activeTerrain.materialTemplate;
+                Upgrade(terrainMat, upgraders, flags);
             }
 
             UnityEditor.EditorUtility.ClearProgressBar();

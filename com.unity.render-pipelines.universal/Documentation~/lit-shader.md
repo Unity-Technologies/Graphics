@@ -1,17 +1,17 @@
 # Lit Shader
 
-The Lit Shader lets you render real-world surfaces like stone, wood, glass, plastic, and metals in photo-realistic quality. Your light levels and reflections look lifelike and react properly across various lighting conditions, for example bright sunlight, or a dark cave. This Shader uses the most computationally heavy [shading model](shading-model.md) in the Universal Render Pipeline (URP). 
+The Lit Shader lets you render real-world surfaces like stone, wood, glass, plastic, and metals in photo-realistic quality. Your light levels and reflections look lifelike and react properly across various lighting conditions, for example bright sunlight, or a dark cave. This Shader uses the most computationally heavy [shading model](shading-model.md) in the Universal Render Pipeline (URP).
 
-## Using the Lit Shader in the Editor 
+## Using the Lit Shader in the Editor
 
 To select and use this Shader:
 
-1. In your Project, create or find the Material you want to use the Shader on.  Select the __Material__. A Material Inspector window opens. 
+1. In your Project, create or find the Material you want to use the Shader on.  Select the __Material__. A Material Inspector window opens.
 2. Click __Shader__, and select __Universal Render Pipeline__ > __Lit__.
 
-## UI overview  
+## UI overview
 
-The Inspector window for this Shader contains these elements: 
+The Inspector window for this Shader contains these elements:
 
 - __[Surface Options](#surface-options)__
 - __[Surface Inputs](#surface-inputs)__
@@ -21,9 +21,9 @@ The Inspector window for this Shader contains these elements:
 
 
 
-### Surface Options 
+### Surface Options
 
-The __Surface Options__ control how URP renders the Material on a screen. 
+The __Surface Options__ control how URP renders the Material on a screen.
 
 | Property            | Description                                                  |
 | ------------------- | ------------------------------------------------------------ |
@@ -38,7 +38,7 @@ The __Surface Options__ control how URP renders the Material on a screen.
 
 ### Surface Inputs
 
-The __Surface Inputs__ describe the surface itself. For example, you can use these properties to make your surface look wet, dry, rough, or smooth. 
+The __Surface Inputs__ describe the surface itself. For example, you can use these properties to make your surface look wet, dry, rough, or smooth.
 
 **Note:** If you are used to the [Standard Shader](https://docs.unity3d.com/Manual/Shader-StandardShader.html) in the built-in Unity render pipeline, these options are similar to the Main Maps settings in the [Material Editor](https://docs.unity3d.com/Manual/StandardShaderContextAndContent.html).
 
@@ -50,7 +50,7 @@ The __Surface Inputs__ describe the surface itself. For example, you can use the
 | __Metallic / Specular Map__ | Shows a map input for your chosen __Workflow Mode__ in the __Surface Options__.<br/>For the [__Metallic Map__](https://docs.unity3d.com/Manual/StandardShaderMaterialParameterMetallic.html) workflow, the map gets the color from the __Base Map__ assigned above. Use the slider to control how metallic the surface appears. 1 is fully metallic, like silver or copper, and 0 is fully dielectric, like plastic or wood. You can generally use values in between 0 and 1 for dirty or corroded metals.<br/>For the [__Specular Map__](https://docs.unity3d.com/Manual/StandardShaderMaterialParameterSpecular.html) setting, you can assign a texture to it by clicking the object picker next to it. This opens the Asset Browser, where you can select from the Textures in your Project. Alternatively, you can use the [color picker](https://docs.unity3d.com/Manual/EditingValueProperties.html).<br/>For both workflows, you can use the __Smoothness__ slider to control the spread of highlights on the surface. 0 gives a wide, rough highlight. 1 gives a small, sharp highlight like glass. Values in between produce semi-glossy looks. For example, 0.5 produces a plastic-like glossiness.<br/>Use the __Source__ drop-down menu to select where the shader samples a smoothness map from. Options are: __Metallic Alpha__ (alpha channel from the metallic map), and __Albedo Alpha__ (alpha channel from the base map). The default value is __Metallic Alpha__.<br/>If the selected source has the alpha channel, the shader samples the channel and multiplies each sample by the __Smoothness__ value. |
 | __Normal Map__              | Adds a normal map to the surface. With a [normal map](https://docs.unity3d.com/Manual/StandardShaderMaterialParameterNormalMap.html?), you can add surface details like bumps, scratches and grooves. To add the map, click the object picker next to it. The normal map picks up ambient lighting in the environment. <br/>The float value next to the setting is a multiplier for the effect of the  __Normal Map__. Low values decrease the effect of the normal map. High values create stronger effects. |
 | __Occlusion Map__           | Select an [occlusion map](https://docs.unity3d.com/Manual/StandardShaderMaterialParameterOcclusionMap.html).  This simulates shadows from ambient light and reflection, which makes lighting look more realistic as less light reaches corners and crevices of objects. To select the occlusion map, click the object picker next to it. |
-| __Emission__                | Makes the surface look like it emits lights. When enabled, the  __Emission Map__ and __Emission Color__ settings appear.<br/>To assign an __Emission Map__, click the object picture next to it. This opens the Asset Browser, where you can select from the textures in your Project.<br/>For __Emission Color__, you can choose the color picker](https://docs.unity3d.com/Manual/EditingValueProperties.html) to assign a tint on top of the color. This can be more than 100% white, which is useful for effects like lava, that shines brighter than white while still being another color.<br/>If you have not assigned an __Emission Map__, the __Emission__ setting only uses the tint you’ve assigned in __Emission Color__.<br/>If you do not enable __Emission__, URP sets the emission to black and does not calculate emission. |
+| __Emission__                | Makes the surface look like it emits lights. When enabled, the  __Emission Map__ and __Emission Color__ settings appear.<br/>To assign an __Emission Map__, click the object picture next to it. This opens the Asset Browser, where you can select from the textures in your Project.<br/>For __Emission Color__, you can use the [color picker](https://docs.unity3d.com/Manual/EditingValueProperties.html) to assign a tint on top of the color. This can be more than 100% white, which is useful for effects like lava, that shines brighter than white while still being another color.<br/>If you have not assigned an __Emission Map__, the __Emission__ setting only uses the tint you’ve assigned in __Emission Color__.<br/>If you do not enable __Emission__, URP sets the emission to black and does not calculate emission. |
 | __Tiling__                  | A 2D multiplier value that scales the Texture to fit across a mesh according to the U and V axes. This is good for surfaces like floors and walls. The default value is 1, which means no scaling. Set a higher value to make the Texture repeat across your mesh. Set a lower value to stretch the Texture. Try different values until you reach your desired effect. |
 | __Offset__                  | The 2D offset that positions the Texture on the mesh.  To adjust the position on your mesh, move the Texture across the U or V axes. |
 

@@ -3,7 +3,7 @@
 //--------------------------------------------------------------------------------------------------
 
 // #pragma enable_d3d11_debug_symbols
-#pragma only_renderers d3d11 ps4 xboxone vulkan metal switch
+#pragma only_renderers d3d11 playstation xboxone xboxseries vulkan metal switch
 
 #pragma kernel VolumetricLightingBruteforceMQ            VolumetricLighting=VolumetricLightingBruteforceMQ            LIGHTLOOP_DISABLE_TILE_AND_CLUSTER ENABLE_REPROJECTION=0 ENABLE_ANISOTROPY=0 VL_PRESET_MQ
 #pragma kernel VolumetricLightingTiledMQ                 VolumetricLighting=VolumetricLightingTiledMQ                 ENABLE_REPROJECTION=0 ENABLE_ANISOTROPY=0 VL_PRESET_MQ
@@ -783,10 +783,15 @@ void FilterVolumetricLighting(uint3 dispatchThreadId : SV_DispatchThreadID,
 
             // If this is outside of the image, force the weight to 0
             #ifdef VERTICAL_PASS
-            if (tapCoord.y < 0.0 || tapCoord.y >= _VBufferViewportSize.y) weight = 0;
+            if (tapCoord.y < 0.0 || tapCoord.y >= _VBufferViewportSize.y)
             #else
-            if (tapCoord.x < 0.0|| tapCoord.x >= _VBufferViewportSize.x) weight = 0;
+            if (tapCoord.x < 0.0 || tapCoord.x >= _VBufferViewportSize.x)
             #endif
+            {
+                // To avoid NaNs, we have to override this value
+                currentValue = 0.0f;
+                weight = 0.0f;
+            }
 
             // Accumulate the value and weight
             value += currentValue * weight;

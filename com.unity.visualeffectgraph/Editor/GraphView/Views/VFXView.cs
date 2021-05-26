@@ -433,12 +433,12 @@ namespace UnityEditor.VFX.UI
             RegisterCallback<DragPerformEvent>(OnDragPerform);
             RegisterCallback<ValidateCommandEvent>(ValidateCommand);
             RegisterCallback<ExecuteCommandEvent>(ExecuteCommand);
+            RegisterCallback<AttachToPanelEvent>(OnEnterPanel);
+            RegisterCallback<DetachFromPanelEvent>(OnLeavePanel);
 
             graphViewChanged = VFXGraphViewChanged;
 
             elementResized = VFXElementResized;
-
-            Undo.undoRedoPerformed = OnUndoPerformed;
 
             viewDataKey = "VFXView";
 
@@ -741,6 +741,8 @@ namespace UnityEditor.VFX.UI
 
         void FrameAfterAWhile()
         {
+
+
             var rectToFit = contentViewContainer.layout;
             var frameTranslation = Vector3.zero;
             var frameScaling = Vector3.one;
@@ -752,7 +754,16 @@ namespace UnityEditor.VFX.UI
                 return;
             }
 
-            CalculateFrameTransform(rectToFit, layout, 30, out frameTranslation, out frameScaling);
+            Rect rectAvailable = layout;
+
+            float validateFloat = rectAvailable.x + rectAvailable.y + rectAvailable.width + rectAvailable.height;
+            if (float.IsInfinity(validateFloat) || float.IsNaN(validateFloat))
+            {
+                schedule.Execute(FrameAfterAWhile);
+                return;
+            }
+
+            CalculateFrameTransform(rectToFit, rectAvailable, 30, out frameTranslation, out frameScaling);
 
             Matrix4x4.TRS(frameTranslation, Quaternion.identity, frameScaling);
 
@@ -1661,6 +1672,16 @@ namespace UnityEditor.VFX.UI
             {
                 return canCopySelection && !selection.Any(t => t is Group);
             }
+        }
+
+        void OnEnterPanel(AttachToPanelEvent e)
+        {
+            Undo.undoRedoPerformed += OnUndoPerformed;
+        }
+
+        void OnLeavePanel(DetachFromPanelEvent e)
+        {
+            Undo.undoRedoPerformed -= OnUndoPerformed;
         }
 
         public void ValidateCommand(ValidateCommandEvent evt)

@@ -88,7 +88,7 @@ namespace UnityEngine.Rendering.Universal
                 //GraphicsDeviceType deviceType = SystemInfo.graphicsDeviceType;
                 //return !Application.isMobilePlatform &&
                 //    (deviceType == GraphicsDeviceType.Metal || deviceType == GraphicsDeviceType.Vulkan ||
-                //     deviceType == GraphicsDeviceType.PlayStation4 || deviceType == GraphicsDeviceType.XboxOne);
+                //     deviceType == GraphicsDeviceType.PlayStation4 || deviceType == GraphicsDeviceType.PlayStation5 || deviceType == GraphicsDeviceType.XboxOne);
             }
         }
 
@@ -226,7 +226,7 @@ namespace UnityEngine.Rendering.Universal
 
         // Caches render texture format support. SystemInfo.SupportsRenderTextureFormat and IsFormatSupported allocate memory due to boxing.
         static Dictionary<RenderTextureFormat, bool> m_RenderTextureFormatSupport = new Dictionary<RenderTextureFormat, bool>();
-        static Dictionary<GraphicsFormat, bool> m_GraphicsFormatSupport = new Dictionary<GraphicsFormat, bool>();
+        static Dictionary<GraphicsFormat, Dictionary<FormatUsage, bool> > m_GraphicsFormatSupport = new Dictionary<GraphicsFormat, Dictionary<FormatUsage, bool> >();
 
         internal static void ClearSystemInfoCache()
         {
@@ -260,10 +260,21 @@ namespace UnityEngine.Rendering.Universal
         /// <returns>Returns true if the graphics card supports the given <c>GraphicsFormat</c></returns>
         public static bool SupportsGraphicsFormat(GraphicsFormat format, FormatUsage usage)
         {
-            if (!m_GraphicsFormatSupport.TryGetValue(format, out var support))
+            bool support = false;
+            if (!m_GraphicsFormatSupport.TryGetValue(format, out var uses))
             {
+                uses = new Dictionary<FormatUsage, bool>();
                 support = SystemInfo.IsFormatSupported(format, usage);
-                m_GraphicsFormatSupport.Add(format, support);
+                uses.Add(usage, support);
+                m_GraphicsFormatSupport.Add(format, uses);
+            }
+            else
+            {
+                if (!uses.TryGetValue(usage, out support))
+                {
+                    support = SystemInfo.IsFormatSupported(format, usage);
+                    uses.Add(usage, support);
+                }
             }
 
             return support;

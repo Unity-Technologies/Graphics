@@ -65,7 +65,7 @@ Shader "Universal Render Pipeline/Nature/SpeedTree8"
             #pragma shader_feature_local _WINDQUALITY_NONE _WINDQUALITY_FASTEST _WINDQUALITY_FAST _WINDQUALITY_BETTER _WINDQUALITY_BEST _WINDQUALITY_PALM
             #pragma shader_feature_local EFFECT_BILLBOARD
             #pragma shader_feature_local EFFECT_HUE_VARIATION
-            //#pragma shader_feature_local EFFECT_SUBSURFACE // GI dependent.
+            #pragma shader_feature_local EFFECT_SUBSURFACE // GI dependent.
             #pragma shader_feature_local EFFECT_BUMP
             #pragma shader_feature_local EFFECT_EXTRA_TEX
 
@@ -82,8 +82,6 @@ Shader "Universal Render Pipeline/Nature/SpeedTree8"
         {
             Name "SceneSelectionPass"
             Tags{"LightMode" = "SceneSelectionPass"}
-
-            ColorMask 0
 
             HLSLPROGRAM
 
@@ -112,6 +110,8 @@ Shader "Universal Render Pipeline/Nature/SpeedTree8"
         {
             Name "ShadowCaster"
             Tags{"LightMode" = "ShadowCaster"}
+
+            ColorMask 0
 
             HLSLPROGRAM
 

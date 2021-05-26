@@ -42,13 +42,13 @@ namespace UnityEditor.VFX.Block
 
                 VFXExpression theta = null;
                 if (spawnMode == SpawnMode.Random)
-                    theta = arcCircle_arc * new VFXExpressionRandom(true);
+                    theta = arcCircle_arc * new VFXExpressionRandom(true, new RandId(this,0));
                 else
                     theta = arcCircle_arc * arcSequencer;
 
                 var one = VFXOperatorUtility.OneExpression[UnityEngine.VFX.VFXValueType.Float];
 
-                var rNorm = VFXOperatorUtility.Sqrt(volumeFactor + (one - volumeFactor) * new VFXExpressionRandom(true)) * arcCircleRadius;
+                var rNorm = VFXOperatorUtility.Sqrt(volumeFactor + (one - volumeFactor) * new VFXExpressionRandom(true, new RandId(this, 1))) * arcCircleRadius;
                 var sinTheta = new VFXExpressionSin(theta);
                 var cosTheta = new VFXExpressionCos(theta);
 

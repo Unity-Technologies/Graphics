@@ -205,6 +205,13 @@ namespace UnityEditor.Rendering.HighDefinition
 		
         public override Texture2D RenderStaticPreview(string assetPath, Object[] subAssets, int width, int height)
         {
+            // If we attempted to render hdr cubemap previews in batchmode,
+            // we will error out with Texture creation failed. 'R16G16B16A16_SFloat' is not supported for Render usage on this platform.
+            // This would then trigger us to eject out of this function, without restoring the render pipeline asset.
+            // This causes GraphicsSettings to lose the reference to the HDRenderPipelineAsset, which causes all sorts of graphics build issues.
+            if (Application.isBatchMode)
+                return null;
+
             m_CameraDistance = 1.25f;
             m_CameraPhi = Mathf.PI * 0.33f;
             m_CameraTheta = Mathf.PI;

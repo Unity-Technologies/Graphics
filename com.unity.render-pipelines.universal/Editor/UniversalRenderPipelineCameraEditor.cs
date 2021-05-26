@@ -197,7 +197,7 @@ namespace UnityEditor.Rendering.Universal
 
         public new void OnEnable()
         {
-            m_UniversalRenderPipeline = GraphicsSettings.renderPipelineAsset as UniversalRenderPipelineAsset;
+            m_UniversalRenderPipeline = UniversalRenderPipeline.asset;
 
             m_CommonCameraSettingsFoldout = new SavedBool($"{target.GetType()}.CommonCameraSettingsFoldout", false);
             m_EnvironmentSettingsFoldout = new SavedBool($"{target.GetType()}.EnvironmentSettingsFoldout", false);
@@ -322,23 +322,62 @@ namespace UnityEditor.Rendering.Universal
             }
             else
             {
-                // HIG doesnt allow us to remove data on a re-draw and without a user input.
-                GUIStyle errorStyle = new GUIStyle(EditorStyles.label) { padding = new RectOffset { left = -16 } };
-                m_NameContent.text = "MISSING CAMERA";
-                string warningInfo = "Camera is missing";
-                EditorGUI.LabelField(rect, m_NameContent, TempContent("", warningInfo, m_ErrorIcon), errorStyle);
+                camera.GetComponent<UniversalAdditionalCameraData>().UpdateCameraStack();
 
                 // Need to clean out the errorCamera list here.
                 errorCameras.Clear();
             }
         }
 
+        // Modified version of StageHandle.FindComponentsOfType<T>()
+        // This version more closely represents unity object referencing restrictions.
+        // I added these restrictions:
+        // - Can not reference scene object outside scene
+        // - Can not reference cross scenes
+        // - Can reference child objects if it is prefab
+        Camera[] FindCamerasToReference(GameObject gameObject)
+        {
+            var scene = gameObject.scene;
+
+            var inScene = !EditorUtility.IsPersistent(camera) || scene.IsValid();
+            var inPreviewScene = EditorSceneManager.IsPreviewScene(scene) && scene.IsValid();
+            var inCurrentScene = !EditorUtility.IsPersistent(camera) && scene.IsValid();
+
+            Camera[] cameras = Resources.FindObjectsOfTypeAll<Camera>();
+            List<Camera> result = new List<Camera>();
+            if (!inScene)
+            {
+                foreach (var camera in cameras)
+                {
+                    if (camera.transform.IsChildOf(gameObject.transform))
+                        result.Add(camera);
+                }
+            }
+            else if (inPreviewScene)
+            {
+                foreach (var camera in cameras)
+                {
+                    if (camera.gameObject.scene == scene)
+                        result.Add(camera);
+                }
+            }
+            else if (inCurrentScene)
+            {
+                foreach (var camera in cameras)
+                {
+                    if (!EditorUtility.IsPersistent(camera) && !EditorSceneManager.IsPreviewScene(camera.gameObject.scene) && camera.gameObject.scene == scene)
+                        result.Add(camera);
+                }
+            }
+
+            return result.ToArray();
+        }
+
         void AddCameraToCameraList(Rect rect, ReorderableList list)
         {
             // Need to do clear the list here otherwise the meu just fills up with more and more entries
             validCameras.Clear();
-            StageHandle stageHandle = StageUtility.GetStageHandle(camera.gameObject);
-            var allCameras = stageHandle.FindComponentsOfType<Camera>();
+            var allCameras = FindCamerasToReference(camera.gameObject);
             foreach (var camera in allCameras)
             {
                 var component = camera.gameObject.GetComponent<UniversalAdditionalCameraData>();
@@ -654,12 +693,20 @@ namespace UnityEditor.Rendering.Universal
         void DrawCameraType(CameraRenderType camType)
         {
             EditorGUI.BeginChangeCheck();
-            int selCameraType = EditorGUILayout.IntPopup(Styles.cameraType, (int)camType, Styles.m_CameraTypeNames.ToArray(), Styles.additionalDataCameraTypeOptions);
+            Rect controlRect = EditorGUILayout.GetControlRect(true);
+            EditorGUI.BeginProperty(controlRect, Styles.cameraType, m_AdditionalCameraDataCameraTypeProp);
+            int selCameraType = EditorGUI.IntPopup(controlRect, Styles.cameraType, (int)camType, Styles.m_CameraTypeNames.ToArray(), Styles.additionalDataCameraTypeOptions);
+            EditorGUI.EndProperty();
             if (EditorGUI.EndChangeCheck())
             {
                 m_AdditionalCameraDataCameraTypeProp.intValue = selCameraType;
                 m_AdditionalCameraDataSO.ApplyModifiedProperties();
                 UpdateCameras();
+
+                // ScriptableRenderContext.SetupCameraProperties still depends on camera target texture
+                // In order for overlay camera not to override base camera target texture we null it here
+                if (camType == CameraRenderType.Overlay && settings.targetTexture.objectReferenceValue != null)
+                    settings.targetTexture.objectReferenceValue = null;
             }
         }
 
@@ -669,8 +716,12 @@ namespace UnityEditor.Rendering.Universal
             BackgroundType backgroundType = GetBackgroundType((CameraClearFlags) settings.clearFlags.intValue);
 
             EditorGUI.BeginChangeCheck();
-            BackgroundType selectedType = (BackgroundType)EditorGUILayout.IntPopup(Styles.backgroundType, (int)backgroundType,
+            Rect controlRect = EditorGUILayout.GetControlRect(true);
+            EditorGUI.BeginProperty(controlRect, Styles.backgroundType, settings.clearFlags);
+
+            BackgroundType selectedType = (BackgroundType)EditorGUI.IntPopup(controlRect, Styles.backgroundType, (int)backgroundType,
                 Styles.cameraBackgroundType, Styles.cameraBackgroundValues);
+            EditorGUI.EndProperty();
 
             if (EditorGUI.EndChangeCheck())
             {
@@ -787,7 +838,13 @@ namespace UnityEditor.Rendering.Universal
 
             EditorGUI.BeginChangeCheck();
 
-            int selectedRenderer = EditorGUILayout.IntPopup(Styles.rendererType, selectedRendererOption, m_UniversalRenderPipeline.rendererDisplayList, UniversalRenderPipeline.asset.rendererIndexList);
+            Rect controlRect = EditorGUILayout.GetControlRect(true);
+            EditorGUI.BeginProperty(controlRect, Styles.rendererType, m_AdditionalCameraDataRendererProp);
+
+            EditorGUI.showMixedValue = m_AdditionalCameraDataRendererProp.hasMultipleDifferentValues;
+            int selectedRenderer = EditorGUI.IntPopup(controlRect, Styles.rendererType, selectedRendererOption, m_UniversalRenderPipeline.rendererDisplayList, UniversalRenderPipeline.asset.rendererIndexList);
+
+            EditorGUI.EndProperty();
             if (!m_UniversalRenderPipeline.ValidateRendererDataList())
             {
                 EditorGUILayout.HelpBox(Styles.noRendererError, MessageType.Error);

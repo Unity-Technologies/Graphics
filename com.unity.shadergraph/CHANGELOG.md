@@ -4,10 +4,32 @@ All notable changes to this package are documented in this file.
 The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.html).
 
-## [7.5.0] - 2020-06-08
+
+## [7.7.0] - 2021-04-28
 
 ### Fixed
-Fixed a bug where the object selector for Custom Function Nodes did not update correctly. [1176129](https://issuetracker.unity3d.com/product/unity/issues/guid/1176129/)
+ - Fixed a bug where closing the editor with an open graph with changes would not notify the user to save the graph.
+
+## [7.6.0] - 2021-03-25
+
+Version Updated
+The version number for this package has increased due to a version update of a related graphics package.
+
+## [7.5.3] - 2021-01-11
+
+Version Updated
+The version number for this package has increased due to a version update of a related graphics package.
+
+## [7.5.2] - 2020-11-16
+
+Version Updated
+The version number for this package has increased due to a version update of a related graphics package.
+
+## [7.5.1] - 2020-09-02
+
+### Fixed
+- Fixed a bug where the object selector for Custom Function Nodes did not update correctly. [1176129](https://issuetracker.unity3d.com/product/unity/issues/guid/1176129/)
+- Fixed a bug where the Create Node menu would override the Object Field selection window. [1176125](https://issuetracker.unity3d.com/issues/shader-graph-object-input-field-with-space-bar-shortcut-opens-shader-graph-search-window-and-object-select-window)
 
 ## [7.4.1] - 2020-06-03
 

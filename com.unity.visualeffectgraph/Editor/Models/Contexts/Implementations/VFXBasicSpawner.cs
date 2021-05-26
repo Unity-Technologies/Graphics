@@ -223,9 +223,9 @@ namespace UnityEditor.VFX
             }
         }
 
-        static VFXExpression RandomFromVector2(VFXExpression input)
+        static VFXExpression RandomFromVector2(VFXExpression input, RandId randId)
         {
-            return VFXOperatorUtility.Lerp(input.x, input.y, new VFXExpressionRandom());
+            return VFXOperatorUtility.Lerp(input.x, input.y, new VFXExpressionRandom(false, randId));
         }
 
         public override VFXExpressionMapper GetExpressionMapper(VFXDeviceTarget target)
@@ -241,7 +241,7 @@ namespace UnityEditor.VFX
                 {
                     var expression = mapperFromContext.FromNameAndId("LoopDuration", -1);
                     if (loopDuration == LoopMode.Random)
-                        expression = RandomFromVector2(expression);
+                        expression = RandomFromVector2(expression, new RandId(this, 0));
                     mapper.AddExpression(expression, "LoopDuration", -1);
                 }
 
@@ -249,7 +249,7 @@ namespace UnityEditor.VFX
                 {
                     var expression = mapperFromContext.FromNameAndId("LoopCount", -1);
                     if (loopCount == LoopMode.Random)
-                        expression = new VFXExpressionCastFloatToInt(RandomFromVector2(expression));
+                        expression = new VFXExpressionCastFloatToInt(RandomFromVector2(expression, new RandId(this, 1)));
                     mapper.AddExpression(expression, "LoopCount", -1);
                 }
 
@@ -257,7 +257,7 @@ namespace UnityEditor.VFX
                 {
                     var expression = mapperFromContext.FromNameAndId("DelayBeforeLoop", -1);
                     if (delayBeforeLoop == DelayMode.Random)
-                        expression = RandomFromVector2(expression);
+                        expression = RandomFromVector2(expression, new RandId(this, 2));
                     mapper.AddExpression(expression, "DelayBeforeLoop", -1);
                 }
 
@@ -265,7 +265,7 @@ namespace UnityEditor.VFX
                 {
                     var expression = mapperFromContext.FromNameAndId("DelayAfterLoop", -1);
                     if (delayAfterLoop == DelayMode.Random)
-                        expression = RandomFromVector2(expression);
+                        expression = RandomFromVector2(expression, new RandId(this, 3));
                     mapper.AddExpression(expression, "DelayAfterLoop", -1);
                 }
                 return mapper;

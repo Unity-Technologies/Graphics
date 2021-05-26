@@ -129,7 +129,7 @@ namespace UnityEditor.Rendering.HighDefinition
                 AssetVersion assetVersion = null;
                 foreach (var subAsset in assetVersions)
                 {
-                    if (subAsset.GetType() == typeof(AssetVersion))
+                    if (subAsset != null && subAsset.GetType() == typeof(AssetVersion))
                     {
                         assetVersion = subAsset as AssetVersion;
                         break;
@@ -152,6 +152,9 @@ namespace UnityEditor.Rendering.HighDefinition
                         //due to FB 1175514, this not work. It is being fixed though.
                         //delayed call of the following work in some case and cause infinite loop in other cases.
                         AssetDatabase.AddObjectToAsset(assetVersion, asset);
+
+                        // Init material in case it's used before an inspector window is opened
+                        HDShaderUtils.ResetMaterialKeywords(material);
                     }
                     else
                     {

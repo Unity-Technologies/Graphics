@@ -26,6 +26,7 @@ The majority of changes are introduced within metafiles (*.yamato/config/\*.meta
 ### ABV related changes (_abv.metafile)
 - Add a new project to ABV: add the project name (the one used inside the project’s own metafile, e.g. Universal) under abv.projects 
 - Add a new job to Nightly: add the dependency under nightly.extra_dependencies (these dependencies run in addition to ABV)
+- Add a new job to Weekly: add the dependency under weekly.extra_dependencies
 - Add job to trunk verification: add the dependency under trunk_verification.dependencies
 
 ### Project related changes (project_name.metafile)
@@ -41,12 +42,107 @@ The majority of changes are introduced within metafiles (*.yamato/config/\*.meta
 ### Changes when branching out
 - When branching out (e.g. moving from *master* to *9.x.x/release* branch), the following steps must be done:
   - In *__shared.metafile* :
-    - Change `editors` section to contain the correct editor versions
-    - Change `target_editor` to the target editor version for this branch (this is used e.g. for dependencies of *packages#publish_*, *preview_publish#publish_*  and *preview_publish#wait_for_nightly*) (e.g. for 9.x.x this would correspond to `2020.1`)
+    - Change `editors` section to contain the correct editors
+    - Change `target_editor` to the target editor track for this branch (this is used e.g. for dependencies of *packages#publish_*, *preview_publish#publish_*  and *preview_publish#wait_for_nightly*) (e.g. for 9.x.x this would correspond to `2020.1`)
     - Change `target_branch` to the current branch (this is used for ci triggers, such as ABV  (*all_project_ci*) jobs) (e.g. for 9.x.x this would correspond to `9.x.x/release`)
-  - In *__abv.metafile* :
-    - Change `abv.trigger_editors` to the editor against which to trigger the ABV (*all_project_ci*) job (typically `fast-*` editor)  (e.g. for 9.x.x this would correspond to `fast-2020.1`)
-    - Change `nightly.allowed_editors` to contain the editors for which to run nightly (*all_project_ci_nightly*) jobs (e.g. for 9.x.x this would correspond to `2020.1`)
+    - Change `target_branch_editor_ci` to the correct ci branch (editor pinning branch)
+  - In *__editor.metafile*:
+    - Change `editor_tracks` to correct track (trunk, 2020.1, etc)
+  - In *_packages.metafile*:
+    - Change `publish_all_track` to correct track (trunk, 2020.1, etc), on which package publish job depends on. This track is also used for setting a separate PR trigger on all package CI job (but it is currently commented out/disabled, as it is already covered by ABV).
+
+### If trunk track changes:
+  - Change `trunk_track` in `_editor.metafile`
+
+### Custom test platforms:
+- There are 3 base test platforms to choose from: standalone (build), playmode, editmode. These can be extended by renaming them, and/or adding additional utr on top of existing ones. Their corresponding base UTR flags are found in `ruamel/jobs/shared/utr_utils.py`
+- If name not specified, name it set to type. Name is used for creating Yamato job ids and excluding testplatforms. If setting up e.g. two playmode types with different flags, renaming must be used, otherwise (due to matching job id) one job overrides the other.
+- If a specific platform requires flags different from what is marked in `utr_utils.py`, they are to be configured in the corresponding platform cmd file. Either _a)_ override flag value with the optional parameters _b)_ cancel the flag by overriding with `None` (make sure the function expects such value for such flag though), or _c)_ append additional platform specific flags to the utr_flags list 
+- Exclude testplatforms for platforms by specifying the testplatform NAME (not type) in `__shared.metafile`
+- Example: extending the default playmode for a specific project performance tests (this takes base playmode flags, and appends these for all platforms, unless specified otherwise in platform cmd file.) Note: when adding extra args to a standalone job, build flags can be specified separately by `utr_flags_build` (scroll down to see project metafile docs)
+  ```
+    - type: playmode
+      name: playmode_perf_build
+      utr_flags:
+        - --scripting-backend=il2cpp
+        - --timeout=1200
+        - --performance-project-id=URP_Performance
+        - --testfilter=Build
+        - --suite=Editor
+  ```
+  If this platform should not be included eg for IPhone, then specify it in `__shared.metafile` like
+  ```
+  iPhone:
+    name: iPhone
+    os: ios
+    apis:
+      - name: Metal
+        exclude_test_platforms:
+        - editmode
+        - ...
+        - playmode_perf_build
+  ```
+
+
+### Custom test platforms:
+- There are 3 base test platforms to choose from: standalone (build), playmode, editmode. These can be extended by renaming them, and/or adding additional utr on top of existing ones. Their corresponding base UTR flags are found in `ruamel/jobs/shared/utr_utils.py`
+- If name not specified, name it set to type. Name is used for creating Yamato job ids and excluding testplatforms. If setting up e.g. two playmode types with different flags, renaming must be used, otherwise (due to matching job id) one job overrides the other.
+- If a specific platform requires flags different from what is marked in `utr_utils.py`, they are to be configured in the corresponding platform cmd file. Either _a)_ override flag value with the optional parameters _b)_ cancel the flag by overriding with `None` (make sure the function expects such value for such flag though), or _c)_ append additional platform specific flags to the utr_flags list 
+- Exclude testplatforms for platforms by specifying the testplatform NAME (not type) in `__shared.metafile`
+- Example: extending the default playmode for a specific project performance tests (this takes base playmode flags, and appends these for all platforms, unless specified otherwise in platform cmd file.) Note: when adding extra args to a standalone job, build flags can be specified separately by `utr_flags_build` (scroll down to see project metafile docs)
+  ```
+    - type: playmode
+      name: playmode_perf_build
+      utr_flags:
+        - --scripting-backend=il2cpp
+        - --timeout=1200
+        - --performance-project-id=URP_Performance
+        - --testfilter=Build
+        - --suite=Editor
+  ```
+  If this platform should not be included eg for IPhone, then specify it in `__shared.metafile` like
+  ```
+  iPhone:
+    name: iPhone
+    os: ios
+    apis:
+      - name: Metal
+        exclude_test_platforms:
+        - editmode
+        - ...
+        - playmode_perf_build
+  ```
+
+
+### Custom test platforms:
+- There are 3 base test platforms to choose from: standalone (build), playmode, editmode. These can be extended by renaming them, and/or adding additional utr on top of existing ones. Their corresponding base UTR flags are found in `ruamel/jobs/shared/utr_utils.py`
+- If name not specified, name it set to type. Name is used for creating Yamato job ids and excluding testplatforms. If setting up e.g. two playmode types with different flags, renaming must be used, otherwise (due to matching job id) one job overrides the other.
+- If a specific platform requires flags different from what is marked in `utr_utils.py`, they are to be configured in the corresponding platform cmd file. Either _a)_ override flag value with the optional parameters _b)_ cancel the flag by overriding with `None` (make sure the function expects such value for such flag though), or _c)_ append additional platform specific flags to the utr_flags list 
+- Exclude testplatforms for platforms by specifying the testplatform NAME (not type) in `__shared.metafile`
+- Example: extending the default playmode for a specific project performance tests (this takes base playmode flags, and appends these for all platforms, unless specified otherwise in platform cmd file.) Note: when adding extra args to a standalone job, build flags can be specified separately by `extra_utr_flags_build` (scroll down to see project metafile docs)
+  ```
+    - type: playmode
+      name: playmode_perf_build
+      extra_utr_flags:
+        - --scripting-backend=il2cpp
+        - --timeout=1200
+        - --performance-project-id=URP_Performance
+        - --testfilter=Build
+        - --suite=Editor
+  ```
+  If this platform should not be included eg for IPhone, then specify it in `__shared.metafile` like
+  ```
+  iPhone:
+    name: iPhone
+    os: ios
+    apis:
+      - name: Metal
+        exclude_test_platforms:
+        - editmode
+        - ...
+        - playmode_perf_build
+  ```
+
 
 ### Other changes to metafiles
 - All files follow a similar structure and changes can be done according to the metafile descriptions given below. 
@@ -67,11 +163,48 @@ The majority of changes are introduced within metafiles (*.yamato/config/\*.meta
     - Each of these files contains functions for 3 commandsets (for standalone, standalone_build, not_standalone), which are then used according to which job is being created. 
     - The mapping of which commands to use for which platform is done under _cmd_mapper.py. This also makes it easy to switch the set of commands for a specific platform, such as to switch to new split built/test, without completely losing the old solution.
 
+## Editor priming vs editor pinning
+- Editor priming:
+    - Gets the editor in a separate job to save on the compute resources, stores the editor version in a .txt file which is then picked up by the parent job which calls unity-downloader-cli
+    - Still used for custom-revision jobs, because we don't want to hold on to expensive compute resources the job itself requires, while waiting for the editor 
+- Editor pinning:
+    - Updates editor revisions (`_latest_editor_versions_[track].metafile`) on a nightly basis, on the condition that ABV for this editor track passes. This way, if e.g. trunk breaks, it is discovered by the nightly update job (and revisions for this platform won't be updated), and we continue using the latest working revision, until a new working one becomes available.
+    - There are 3 types of revisions retrieved from _unity-downloader-cli_: `staging` corresponds to `--fast`, `latest_public` corresponds to `--published-only`, and `latest_internal` corresponds to no flags
+    - There are 2 `merge-all` jobs, which are identical except for triggers and dependencies:
+        - _[ABV] [CI]_ is the main one used in the CI flow. It is has the branch trigger for versions file, and the dependent merge revision jobs have ABV as dependency (updated revisions only get merged on green ABV)
+        - _[no ABV] [no CI]_ is the manual counterpart of CI flow. It has no triggers, and it does not have ABV dependencies, i.e. it is essentially a forced push of updated revisions (since no ABV is run, it merges whatever revisions are on ci branch into target). It is useful for either testing the editor pinning, or to force updating the revisions when ABV dependency is seen as blocking.
+    - Workflow in short:
+        - Update job runs nightly on target-branch. It merges target-branch into ci-branch (syncs), gets new revisions for all tracks and pushes these to ci branch
+        - Merge job is triggered on changes to editor version files on ci-branch. It runs a merge job per each track, which (if the ABV with updated revisions passes green) pushes the corresponding editor revisions file to target-branch. 
+    - Workflow in details is on figure below (figure is for 2 tracks, but currently master works with 1 track)
+    ![Editor pinning flow](editor_pinning.png)
+
+- Running editor pinning locally:
+  - Make sure you have the latest version of unity-downloader-cli
+  - Update job: `python .yamato\ruamel\editor_pinning\update_revisions.py --target-branch [localbranch] --local`
+    - _--local_ flag specifies that no git pull/push/commit gets executed
+    - _--target-branch_ would usually correspond to CI branch, but when running locally, just set it to the one you have checked out locally
+    - This job updates `_latest_editor_versions.metafile` locally, and also runs `build.py` again to regenerate all ymls with the updated revisions. You can either keep all of the latest revisions, or only the ones you want, and rerun ymls. Once ready, merge like normal PR (i.e. no need to run the merge_revisions job)
+  - Merge job: `python .yamato\ruamel\editor_pinning\merge_revisions.py --target-branch [targetbranch] --local --revision [git sha] --track [editortrack]` 
+    - _--local_ flag skips checkout/pull of the target branch (but still makes commit on the currently checkout branch, if there is something to commit)
+    - _--target-branch_ the target branch into which the revisions get merged to from the ci branch (after jobs passed on ci branch, when CI context used). But due to the local flag, this branch won't get checked out/pulled.
+    - _--revision_ the git SHA of the updated revisions commit (the one made on the ci branch by update job). The job runs `git diff HEAD..[revision] -- [path]`, i.e. diff between the current checked out branch vs that SHA (revision). (The _path_ corresponds to yml files or the latest editor versions metafile, but this is already setup within the job). Therefore the merge job only cares about these two paths, and will not merge other changes. This works, because in general, if merge job gets triggered, then CI branch is 1 commit ahead of target branch (which is the updated revisions commit).
+    - _--track_ specifies which editor track the merge job runs for (i.e which editor file it aims to merge)
+    - In general there is no need to run this file locally. It is only handy when wanting to test the script for syntax errors/functionality etc.
+
+
 # FAQ
 
 - How is Nightly ABV set up (all_project_ci_nightly)? Nightly contains the normal ABV (all_project_ci), smoke tests, plus any additional jobs specified in the _abv.metafile under nightly extra dependencies.
 - What are smoke tests? Blank Unity projects containing all SRP packages (and default packages) to make sure all packages work with each other
 - Why does OpenGLCore not have standalone? Because the GPU is simulated and this job is too resource heavy for these machines
+- What happens to editor pinning if ABV is red? If ABV is red, then editor pinning merge job fails, i.e. the target branch (on which ABV runs) will not get editor revisions updated automatically. To remedy this, there are 2 merge jobs, one postfixed with \[ABV\] (triggered automatically, dependent on ABV), other with \[manual\] (triggered manually, not dependent on ABV). If editor revisions must be updated despite the red ABV, then the manual job must be triggered.
+- How to UTR flags work? UTR flag order is preserved while parsing in metafiles, and shared metafile is parsed before project metafile. Thus, if shared metafile has `[all]: --timeout=1200, [Win_DX11, Win_DX12]: --timeout=3000` and project metafile has `[Win_DX11]: --timeout=5000`, this will result in DX11 having 5000, DX12 having 3000, and everything else 1200. Note that flags end up alphabetically sorted in the final ymls.
+- How are nested UTR flags overriden? Flags are overriden if they are specified multiple times: checking if a flag is already specified is done by checking the flag 'key', which is the flag without its value. This applies also for nested keys, see below cases that are supported (refer to _utr_utils.py_ for implementation logic):
+  - `--timeout=1800`: key is `--timeout`
+  - `--extra-editor-arg="-executemethod CustomBuild.BuildLinuxOpenGlCoreLinear"`: key is `--extra-editor-arg="-executemethod`
+  - `--extra-editor-arg="-playergraphicsapi=Direct3D11"`: key is `--extra-editor-arg="-playergraphicsapi"`
+
 
 # Configuration files (metafiles)
 
@@ -80,35 +213,86 @@ The majority of changes are introduced within metafiles (*.yamato/config/\*.meta
 # main branch for ci triggers etc
 target_branch: master 
 
+# specifies the branch on which editor pinning ci runs
+target_branch_editor_ci: ci/editor-pinning 
+
 # target editor version used for this branch 
 target_editor: trunk
 
-# editors applied for all yml files (overridable) (list)
+# editors applied for all yml files (overridable) (bunch of examples)
 editors: 
-  - version: trunk
-    rerun_strategy: always
-    cmd: -u trunk # used only by editor job
-  - ...
+  # run editor pinning for trunk, and set up a recurrent nightly and weekly
+  - track: trunk 
+    name: trunk #name used in job ids
+    rerun_strategy: on-new-revision
+    editor_pinning: True  #use editor pinning for this track
+    nightly: True  #run the _Nightly job nightly
+    weekly: True  #run the _Weekly job weekly
+    abv_pr: True  #trigger ABV on PRs 
+  
+  # run editor pinning for 2020.2, and set up a recurrent nightly
+  - track: 2020.2
+    name: 2020.2
+    rerun_strategy: on-new-revision
+    editor_pinning: True
+    nightly: True
+  
+  # don't use editor pinning for 2020.2, use --fast flag with editor priming instead. 
+  # trigger ABV on fast-2020.2 on PRs, but disable the recurrent _Nightly job
+  - track: 2020.2
+    name: fast-2020.2
+    rerun_strategy: on-new-revision
+    editor_pinning: False  #don't use editor pinning, let it use editor-priming instead
+    fast: True  #use --fast flag (so get the latest built revision)
+    abv_pr: True  #trigger ABV on PRs (so run fast-2020.2 like before editor pinning)
+    nightly: False  #don't run nightly on this editor
 
-# test platforms with their corresponding command args (dict)
-test_platforms:   
-  Standalone: --suite=playmode --platform=Standalone
-  playmode: --suite=playmode
-  playmode_XR: --suite=playmode --extra-editor-arg="-xr-tests"
-  editmode: --suite=editor --platform=editmode
+  # don't use editor pinning for 2020.2, use editor priming instead 
+  # don't trigger ABV on latest-2020.2 on PRs, and disable the recurrent _Nightly job
+  - track: 2020.2
+    name: latest-2020.2
+    rerun_strategy: on-new-revision
+    editor_pinning: False
+    fast: False #don't use --fast flag (get the latest possibly not-build revision)
+    abv_pr: False  #dont trigger ABV on PRs for this editor
+    nightly: False  #dont run nightly for this editor
+
+  # run custom revision as usual (editor priming)
+  - track: CUSTOM-REVISION
+    name: CUSTOM-REVISION
+    rerun_strategy: always
+    editor_pinning: False #custom revision always has editor pinning as false
+    fast: False  #custom revision always has fast as false
+
+# specify  list of build configs as follows (name is used to retrieve the configuration in project files)
+build_configs:
+  - name: il2cpp_apiNet2
+    scripting_backend: IL2CPP
+    api_level: NET_2_0
+
+# specify utr flags for 3 base testplatforms
+test_platforms:
+  - type: Standalone
+    utr_flags: # flags for standalone jobs
+      - [all]: --scripting-backend=<SCRIPTING_BACKEND> # use <> for values which must be replaced inside python (check utr_utils.py)
+      - [all]: --timeout=1200 # use [all] if flag applies to all platform_api combinations
+      - [Win_DX11, OSX_Metal]: --timeout=2000 # use list of [platform_api] to add a flag for specific platform_api combinations. If flag is specified multiple times, last specification overwrites preceding ones
+      - ...
+    utr_flags_build: # flags for standaline split build jobs
+      - ...
+  - type: playmode
+    utr_flags:
+      - ...
+  - type: editmode
+    utr_flags:
+      - ...
+
 
 # specifies platform details for each platform 
 platforms:
   Win:
     name: Win
     os: windows
-    apis:
-      - name: DX11
-        cmd: -force-d3d11
-      - name: DX12
-        cmd: -force-d3d12
-      - name: Vulkan
-        cmd: -force-vulkan
     components:
       - editor
       - il2cpp
@@ -142,11 +326,6 @@ platforms:
   OSX:
     name: OSX
     os: macos
-    apis:
-      - name: Metal
-      - name: OpenGLCore
-        exclude_test_platforms: # specify which test platforms to exclude for this api
-          - Standalone
     components:
       - editor
       - il2cpp
@@ -158,7 +337,7 @@ platforms:
     agents_project_OpenGLCore: # agents used by all OSX OpenGLCore project jobs
       default:
         type: Unity::VM::osx
-        image: buildfarm/mac:stable
+        image: package-ci/mac:stable
         flavor: m1.mac
     agent_package: 
       type: Unity::VM::osx
@@ -173,7 +352,7 @@ platforms:
 non_project_agents:
   cds_ops_ubuntu_small:
     type: Unity::VM
-    image: cds-ops/ubuntu-16.04-base:stable
+    image: package-ci/ubuntu:stable
     flavor: b1.small  
   package_ci_ubuntu_large:
     type: Unity::VM
@@ -193,16 +372,12 @@ non_project_agents:
 ### _abv.metafile: contains configurations for ABV jobs
 ```
 abv: # all_project_ci (ABV) job configuration 
-  trigger_editors: # editor(s) for which to create a PR trigger
-    - fast-trunk
   projects: # projects to include in ABV by calling All_{project} jobs
     - name: Universal
     - name: Universal_Stereo
     - ...
 
 nightly: # all_project_ci_nightly job configuration
-  allowed_editors: # editor(s) for which to create nightly jobs
-    - trunk
   extra_dependencies: # project jobs to run in addition to ABV
     - project: Universal # use this format to run a specific job
       platform: Android
@@ -213,14 +388,14 @@ nightly: # all_project_ci_nightly job configuration
       all: true  
     - ...  
 
-smoke_test: # smoke tests configuration. Agents refer back to __shared.metafile
-  folder: SRP_SmokeTest
-  agent: sdet_win_large # (used for editmode)
-  agent_gpu: sdet_win_large_gpu 
-  test_platforms: # test platforms to create smoke tests for
-    - Standalone
-    - playmode
-    - editmode
+weekly: # all_project_ci_nightly job configuration
+  extra_dependencies: # project jobs to run in addition to ABV
+    - project: HDRP # use this format to run a specific job
+      platform: Win
+      api: DX11
+      test_platforms:
+        - playmode_NonRenderGraph
+    - ...
 
 trunk_verification: # jobs to include in trunk verification job
   dependencies:
@@ -232,16 +407,13 @@ trunk_verification: # jobs to include in trunk verification job
         - editmode
     - ...
 
-# optionally to override editors from __shared.metafile
-override_editors:
-  - version: trunk
-    rerun_strategy: always
 ```
 
 ### _editor.metafile: configuration for editor priming jobs
 
 ```
-# all platforms for editor priming jobs
+## EDITOR PRIMING
+# All platforms for editor priming jobs
 platforms:
   # Exhaustive list of operating systems and editor components used by all jobs so the preparation jobs
   # can make sure all editors are cached on cheap vms before starting the heavy duty machines for running tests
@@ -250,13 +422,53 @@ platforms:
   - name: Win
   - name: Linux
   - name: iPhone
-agent: cds_ops_ubuntu_small # agent for editor priming, refers to __shared.metafile
+editor_priming_agent: cds_ops_ubuntu_small # agent for editor priming
 
-# optionally to override editors from __shared.metafile
-override_editors:
-  - version: trunk
-    rerun_strategy: always
-    cmd: -u trunk
+
+
+## EDITOR PINNING
+editor_pin_agent: package_ci_ubuntu_small # agent for editor pinning
+
+# Overrides for target and ci branch used for editor pinning (the actual branches are marked in shared metafile)
+# This is useful when testing editor pinning on other branches
+target_branch_editor_ci: yamato/editor-pin-ci # the branch on which the ci job runs (merge job)
+target_branch: yamato/editor-pin # the branch which gets the updated revisions pushed into 
+
+
+# Configuration required by update_revisions.py
+trunk_track: '2020.2' # track running on trunk: this must match across all release branches
+editor_tracks: # specifies tracks which go in _latest_editor_versions: this must differ per release branches (e.g. 2020.1, 2020.2 etc)
+- trunk
+
+# Paths relative to the root. Use forward slashes as directory separators.
+editor_versions_file: .yamato/config/_latest_editor_versions.metafile
+ruamel_build_file: .yamato/ruamel/build.py
+yml_files_path: .yamato/*.yml
+
+# Components to have unity-downloader-cli to trigger.
+unity_downloader_components:
+  windows:
+  - editor
+  - il2cpp
+  macos:
+  - editor
+  - il2cpp
+  linux:
+  - editor
+  - il2cpp
+  android:
+  - editor
+  - il2cpp
+  - android
+  ios:
+  - editor
+  - ios
+
+versions_file_header: |
+  # WARNING: This file is automatically generated.
+  # To add new Unity Editor tracks, the script needs to be updated.
+
+
 ```
 
 
@@ -289,9 +501,9 @@ agent_pack: package_ci_win_large
 agent_publish: package_ci_win_large
 agent_publish_all: package_ci_ubuntu_large
 
-# optionally to override editors from __shared.metafile
-override_editors:
-  - version: trunk
+# specify track on which publish job dependencies run on
+publish_all_tracks:
+  - trunk
 
 ```
 
@@ -320,9 +532,6 @@ packages:
 agent_promote: package_ci_win_large
 agent_auto_version: package_ci_ubuntu_large
 
-# override editors from __shared.metafile file
-override_editors:
-  - version: trunk
 ```
 
 ### _templates.metafile: template jobs configuration (highly similar for packages configuration)
@@ -351,9 +560,6 @@ agent_pack: package_ci_win_large
 agent_test:  package_ci_win_large
 agent_all_ci: package_ci_win_large
 
-# optionally to override editors from __shared.metafile
-override_editors:
-  - version: trunk
 ```
 
 
@@ -368,76 +574,45 @@ project:
 
 # test platforms to generate jobs for
 test_platforms:
-  - Standalone
-  - playmode
-  - editmode
-  - playmode_XR
+  test_platforms:
+  - type: Standalone
+    utr_flags: # specify flags same way as in shared.metafile
+      - [OSX_Metal]: --timeout=2400 # override timeout flag from shared.metafile for standalone job OSX_Metal
+    utr_flags_build:
+      - [Android_OpenGles3, Android_Vulkan]: --timeout=2700
+      - [Win_DX11, Win_DX12, Win_Vulkan]: --timeout=2000
+      - [iPhone_Metal]: --timeout=1800
+  - type: playmode
+  - type: editmode
+  - type: playmode
+    name: playmode_XR
+    utr_flags:
+      - [all]: --extra-editor-arg="-xr-tests" # add additional flag to playmode XR on top of normal playmode flags 
 
 # platforms to use (platform details obtained from __shared.metafile)
 # platforms can be overridden by using the same structure from shared
 platforms:
-  - name: OSX 
-    apis:
-      - Metal
-      - OpenGLCore
-  - name: Linux
-    apis: 
-      - Vulkan
-      - OpenGLCore
-  - name: Android
-    apis: 
-      - Vulkan
-      - OpenGLES3
-  - name: iPhone
-    apis: 
-      - Metal
   - name: Win
     apis:
-      - DX11
-      - DX12
-      - Vulkan
-  - name: Win
-    apis:
-      - DX11
-      - DX12
-      - Vulkan
-    ## override example for Win
-    # overrides: # allows to override keys under __shared platform section (copycmd, editorpath, agent_package, agents_project)
-    #  copycmd: your new copy cmd
-    #  editorpath: your new editor path
-    #  agents_project:
-    #    default:
-    #      type: Unity::VM::GPU
-    #      image: graphics-foundation/win10-dxr:stable
-    #      flavor: b1.xlarge
-    #      model: rtx2080
-    #    editmode:
-    #      type: Unity::VM
-    #      image: graphics-foundation/win10-dxr:stable
-    #      flavor: b1.xlarge
-    #    standalone:
-    #      type: Unity::VM::GPU
-    #      image: graphics-foundation/win10-dxr:stable
-    #      flavor: b1.xlarge
-    #      model: rtx2080
-    #    standalone_build:
-    #      type: Unity::VM
-    #      image: graphics-foundation/win10-dxr:stable
-    #      flavor: b1.xlarge
-    #      model: rtx2080
+      - name: DX11
+        exclude_test_platforms: # exclude testplatforms for this specific api by referencing their name
+          - name: editmode
+      - name: DX12
+      - name: Vulkan
+    build_configs: # specify build configs for this platform by their name in shared.metafile
+      - name: il2cpp_apiNet4
+      - name: mono_apiNet2
+    color_spaces: # specify color spaces 
+      - Linear
+      - Gamma
+  - name: OSX
+    ...
 
 # which jobs to run under All_{project_name} job
 # this is the same structure as in abv nightly extra dependencies
 all: 
   dependencies:
-    - platform: Win
-      api: DX11
-      test_platforms:
-        - Standalone
-        - editmode
-        - playmode
-        - playmode_XR
-    - platform: OSX
+    - platform: OSX # use this to refer to the current project 
       api: Metal
       test_platforms:
         - Standalone
@@ -450,11 +625,6 @@ all:
     - project: HDRP_DXR # use this if there is a dependency to another project
       all: true
     - ...  
-
-# optionally to override editors from __shared.metafile
-override_editors:
-  - version: trunk
-    rerun_strategy: always
 
 ```
 

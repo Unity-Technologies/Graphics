@@ -59,7 +59,13 @@ You can find these options in either:
 
 * The Render Pipeline Wizard window, inside the **Project Migration Quick-links** section.
 
-This process can not automatically upgrade custom Materials or Shaders to HDRP. You must [convert custom Materials and Shaders manually](#ManualConversion).
+This process cannot automatically upgrade custom Materials or Shaders to HDRP. You must [convert custom Materials and Shaders manually](#ManualConversion). Also, since HDRP supports more height map displacement techniques and decompression options, this processes cannot upgrade heightmap related properties correctly. This means your height mapped materials may look incorrect. If you upgrade a Material that uses a heightmap, modify the Material's **Amplitude** and **Base** properties until the result more closely matches the Built-in Renderer version.
+
+This process also cannot upgrade particle shaders. Even though HDRP does not support particle shaders, it does provide some Shader Graphs that are compatible with the [Built-in Particle System](https://docs.unity3d.com/Manual/Built-inParticleSystem.html). These Shader Graphs work in a similar way to the built-in particle shaders. To use these Shader Graphs, import the **Particle System Shader Samples** sample:
+
+1. Open the Package Manager window (menu: **Window > Package Manager**).
+2. Find and click the **High Definition RP** entry.
+3. In the package information for **High Definition RP**, go to the **Samples** section and click the **Import into Project** button next to **Particle System Shader Samples**.
 
 <a name="ManualConversion"></a>
 
@@ -101,7 +107,7 @@ To set up lighting in your HDRP Project:
     2. Create a new Volume Profile for this Volume. To do this, open the Inspector for the Volume and click the **New** button.
 
     3. Add a **Shadows** override (**Add Override > Shadowing > Shadows**), then enable **Max Distance** and set it to **50**.
-4. On the Light that represents the Sun (which is the Light component on the **Directional Light** GameObject), set the **Intensity** to **100000** and the **Color** to white. Then, to see the sun in the sky, go to the **General** panel, enable [More Options](More-Options.html), and set the **Angular Diameter** to **3**.
+4. On the Light that represents the Sun (which is the Light component on the **Directional Light** GameObject), set the **Intensity** to **100000** and the **Color** to white. Then, to see the sun in the sky, go to the **Shape** section, enable [More Options](More-Options.html), and set the **Angular Diameter** to **3**.
 5. The Scene is now over-exposed. To fix this, select the **Global Settings** GameObject you created in step **3a** and add an **Exposure** override to its Volume component (**Add Override > Exposure**). Then, set the **Mode** to **Automatic**.
 6. To refresh the exposure, go to the Scene view and enable **Animate Materials**.
     ![](Images/UpgradingToHDRP2.png)

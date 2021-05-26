@@ -1,13 +1,127 @@
-# Changelog
+﻿# Changelog
 All notable changes to this package will be documented in this file.
 
 The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.html).
 
-## [7.5.0] - 2020-07-02
+## [7.7.0] - 2021-04-28
+
+### Added
+- Support for the XboxSeries platform has been added.
+
+### Fixed
+- Fixed lights shadow frustum near and far planes.
+- Fixed motionblur issue when  both color and post-porcessing buffers format are with alpha.  (case 1333592)
+
+## [7.6.0] - 2021-03-25
+
+### Added
+- Support for the PlayStation 5 platform has been added.
+
+### Fixed
+- Fixed light layer issue when performing editing on multiple lights.
+
+## Changed
+- Tidy up of platform abstraction code for shader optimization.
+
+## [7.5.3] - 2021-01-11
+
+### Fixed
+- Fixed case where material keywords would not get setup before usage.
+- Fixed shader warning in ReflectionDenoiser
+- Fixed XR depth copy (case 1286908).
+
+## [7.5.2] - 2020-11-16
+
+### Added
+- Added a warning when trying to bake with static lighting being in an invalid state.
+
+### Fixed
+- Fixed a null ref exception when baking reflection probes.
+- Fixed shadow resolution settings level in the light explorer.
+- Fixed rendering of custom passes in the Custom Pass Volume inspector
+- Fixed issue with volume manager trying to access a null volume.
+- Fixed an issue that caused a null reference when deleting camera component in a prefab. (case 1244430)
+- Fixed nan in pbr sky
+- Fixed Light skin not properly applied on the LookDev when switching from Dark Skin (case 1278802)
+- Fixed Custom Post Processes affecting preview cameras.
+- Fixed serialization issue with matcap scale intensity.
+- Fixed XR shadows culling
+- Fixed volument component creation via script.
+- Fixed issue with exposure history being uninitialized on second frame.
+- Fixed error Maximum allowed thread group count is 65535 when resolution is very high. 
+- Fixed an issue with opaque material using a shader graph with Transparent SurfaceType selected. FPTL was not working for this case.
+- Fixed NullReferenceException when loading multipel scene async
+- Fixed an issue where a warning about the static sky not being ready was wrongly displayed.
+- Fixed NullReferenceException in HDRenderPipeline.UpgradeResourcesIfNeeded (case 1292524)
+- VFX : Debug material view were rendering pink for albedo. (case 1290752)
+- Fixed NaNs happening when upscaling ray tracing reflections in performance mode (case 1294076).
+- Fixed LayeredLit shader compilation issue with metal shader and raytracing
+- Fixed nan in reflection probe when volumetric fog filtering is enabled, causing the whole probe to be invalid.
+- Fixed case where material keywords would not get setup before usage.
+
+### Changed
+- Removed XRSystemTests. The GC verification is now done during playmode tests (case 1285012).
+
+## [7.5.1] - 2020-09-02
+
+### Fixed
+- Pre-warm the RTHandle system to reduce the amount of memory allocations and the total memory needed at all points. 
+- Appropriately constraint blend distance of reflection probe while editing with the inspector (case 1248931)
+- Fixed fallback for ray tracing and light layers (1258837).
+- Fixed Sorting Priority not displayed correctly in the DrawRenderers custom pass UI.
+- Fixed default frame settings MSAA toggle for reflection probes (case 1247631)
+- Fixed regression where moving face of the probe gizmo was not moving its position anymore.
+- Remove MSAA debug mode when renderpipeline asset has no MSAA
+- Fixed issue that failed compilation when XR is disabled.
+- Fixed an issue where only one of the two lookdev views would update when changing the default lookdev volume profile
+- Fix Amplitude -> Min/Max parametrization conversion
+- Fixed sky asserts with XR multipass
+- Fixed "Screen position out of view frustum" error when camera is at exactly the planar reflection probe location.
+- Fixed issue when undoing a change in diffuse profile list after deleting the volume profile.
+- Fixed a static lighting flickering issue caused by having an active planar probe in the scene while rendering inspector preview.
+- Fixed an issue where even when set to OnDemand, the sky lighting would still be updated when changing sky parameters.
+- Fixed TAA issue and hardware dynamic resolution.
+- Fixed warning with area mesh (case 1268379)
+- Fixed an issue that lead to corrupted refraction in some scenarios on xbox.
+- Fixed issue in Material Postprocess which may fail due to empty SubAsset.
+- Fixed built-in shaders when using XR single-pass (1268962).
+
+### Changed
+- The `CustomPassLoadCameraColor` and `CustomPassSampleCameraColor` functions now returns the correct color buffer when used in after post process instead of the color pyramid (which didn't had post processes).
+
+## [7.4.3] - 2020-08-06
 
 ### Fixed
 - Fixed a bug where connections to the `Normal` slot on *Stack Lit Master* node would be lost when changing normal space. 
+- Fixed an issue where manipulating the color wheels in a volume component would reset the cursor every time.
+- Fixed an issue where static sky lighting would not be updated for a new scene until it's reloaded at least once.
+- Fixed missing include guards in shadow hlsl files.
+- Fixed issue with light layers bigger than 8 (and above the supported range).
+- Fixed issues with scene view and transparent motion vectors.
+- Fix reflection probe frame settings override
+- Workaround an issue caused by GetKernelThreadGroupSizes  failing to retrieve correct group size. 
+- Fixed transparent motion vector framesetting not sanitized.
+- Fix issue causing blocky artifacts when decals affect metallic and are applied on material with specular color workflow.
+- Fixed wrong order of post process frame settings.
+- Fixed warning in HDAdditionalLightData OnValidate (cases 1250864, 1244578)
+- Fixed issue with blue line in prefabs for volume mode.
+- Fix issue that caused sky to incorrectly render when using a custom projection matrix.
+- Fixed issue with completely black AO on double sided materials when normal mode is set to None.
+- Fixed issue with culling layer mask of area light's emissive mesh 
+- Fixed for area light not updating baked light result when modifying with gizmo.
+- Fixed errors when switching area light to disk shape while an area emissive mesh was displayed.
+- PBR Sky now doesn't go black when going below sea level, but it instead freezes calculation as if on the horizon.
+- Fixed XR single-pass macros in tessellation shaders.
+- Fixed XR Display providers not getting zNear and zFar plane distances passed to them when in HDRP.
+- Fixed issue with white flash when enabling SSR.
+- Fixed issue with depth pyramid generation and dynamic resolution.
+- Fixed an issue where opening the look dev window with the light theme would make the window blink and eventually crash unity.
+- Fixed a serialization issue, preventing quality level parameters to undo/redo and update scene view on change.
+- Fixed an issue where look dev lighting would go black when a new scene is loaded.
+
+### Changed
+- Changed extensions of shader CAS include files.
 
 ## [7.4.1] - 2020-06-03
 

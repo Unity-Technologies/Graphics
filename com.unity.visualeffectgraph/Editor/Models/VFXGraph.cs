@@ -681,30 +681,15 @@ namespace UnityEditor.VFX
         {
             Profiler.BeginSample("VFXGraph.CheckShaderReferences");
             // Try to reimport all shadergraph at compilation if they are missing
-
-            //For shadergraph outputs
-
             VFXShaderGraphPostProcessor.disableImportDependentVFX = true;
             try
             {
+                //For shader graph outputs : TODO; not needed anymore but keep the same pattern of importing.
                 foreach (var output in children.OfType<VFXShaderGraphParticleOutput>())
                 {
-                    if (!object.ReferenceEquals(output.shaderGraph, null) && output.shaderGraph == null)
-                    {
-                        int instanceID = output.shaderGraph.GetInstanceID();
-
-                        string shaderAssetPath = AssetDatabase.GetAssetPath(instanceID);
-                        if (!string.IsNullOrEmpty(shaderAssetPath))
-                        {
-                            Debug.Log("forcing ShaderGraph to reimport : " + shaderAssetPath);
-                            AssetDatabase.ImportAsset(shaderAssetPath);
-
-                            var realAsset = AssetDatabase.LoadAssetAtPath<ShaderGraphVfxAsset>(shaderAssetPath);
-                            if (realAsset != null)
-                                output.shaderGraph = realAsset;
-                        }
-                    }
+                    output.GetOrRefreshShaderGraphObject();
                 }
+
                 //For static meshes
                 foreach (var output in children.OfType<VFXStaticMeshOutput>())
                 {

@@ -88,6 +88,8 @@ namespace UnityEngine.Rendering.HighDefinition
                 return false;
 
             Shader.SetGlobalFloat(HDShaderIDs._CustomPassInjectionPoint, (float)injectionPoint);
+            if (injectionPoint == CustomPassInjectionPoint.AfterPostProcess)
+                Shader.SetGlobalTexture(HDShaderIDs._AfterPostProcessColorBuffer, targets.cameraColorBuffer);
 
             foreach (var pass in customPasses)
             {

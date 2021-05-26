@@ -13,6 +13,8 @@ To work with physically-based lighting and Materials, you need to set up the Sce
 
 ![](Images/Override-Exposure1.png)
 
+[!include[](snippets/Volume-Override-Enable-Properties.md)]
+
 | **Property** | **Description**                                              |
 | ------------ | ------------------------------------------------------------ |
 | **Mode**     | Use the drop-down to select the method that HDRP uses to process exposure: <br/>&#8226;  [**Fixed**](#FixedProperties): Allows you to manually sets the Scene exposure.<br/>&#8226;  [**Automatic**](#AutomaticProperties): Automatically sets the exposure depending on what is on screen.<br/>&#8226;  [**Curve Mapping**](#CurveMappingProperties): Maps the current Scene exposure to a custom curve.<br/>&#8226;  [**Use Physical Camera**](#UsePhysicalCameraProperties): Uses the current physical Camera settings to set the Scene exposure. |

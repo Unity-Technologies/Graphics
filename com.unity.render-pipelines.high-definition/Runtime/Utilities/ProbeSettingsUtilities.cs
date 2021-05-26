@@ -108,13 +108,6 @@ namespace UnityEngine.Rendering.HighDefinition
                     cameraSettings.defaultFrameSettings = FrameSettingsRenderType.CustomOrBakedReflection;
                     break;
             }
-
-            switch (settings.type)
-            {
-                case ProbeSettings.ProbeType.ReflectionProbe:
-                    cameraSettings.customRenderingSettings = true;
-                    break;
-            }
         }
 
         internal static void ApplyMirroredReferenceTransform(

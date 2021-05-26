@@ -508,6 +508,10 @@ namespace UnityEngine.Rendering.HighDefinition
             // This function is NOT fast, but it is illustrative, and can be optimized later.
             public void ComputePackedMipChainInfo(Vector2Int viewportSize)
             {
+                // No work needed.
+                if (viewportSize == mipLevelSizes[0])
+                    return;
+
                 textureSize = viewportSize;
                 mipLevelSizes[0] = viewportSize;
                 mipLevelOffsets[0] = Vector2Int.zero;
@@ -576,8 +580,11 @@ namespace UnityEngine.Rendering.HighDefinition
             return (graphicDevice == GraphicsDeviceType.Direct3D11 ||
                     graphicDevice == GraphicsDeviceType.Direct3D12 ||
                     graphicDevice == GraphicsDeviceType.PlayStation4 ||
+                    graphicDevice == GraphicsDeviceType.PlayStation5 ||
                     graphicDevice == GraphicsDeviceType.XboxOne ||
                     graphicDevice == GraphicsDeviceType.XboxOneD3D12 ||
+                    graphicDevice == GraphicsDeviceType.GameCoreXboxOne ||
+                    graphicDevice == GraphicsDeviceType.GameCoreXboxSeries ||
                     graphicDevice == GraphicsDeviceType.Metal ||
                     graphicDevice == GraphicsDeviceType.Vulkan
                     // Switch isn't supported currently (19.3)
@@ -618,9 +625,13 @@ namespace UnityEngine.Rendering.HighDefinition
                     buildTarget == UnityEditor.BuildTarget.StandaloneOSX ||
                     buildTarget == UnityEditor.BuildTarget.WSAPlayer ||
                     buildTarget == UnityEditor.BuildTarget.XboxOne ||
+                    buildTarget == UnityEditor.BuildTarget.GameCoreXboxOne ||
+                    buildTarget == UnityEditor.BuildTarget.GameCoreXboxSeries  ||
                     buildTarget == UnityEditor.BuildTarget.PS4 ||
-                    buildTarget == UnityEditor.BuildTarget.iOS ||
-                    buildTarget == UnityEditor.BuildTarget.Switch);
+                    buildTarget == UnityEditor.BuildTarget.PS5 ||
+                    // buildTarget == UnityEditor.BuildTarget.iOS || // IOS isn't supported
+                    // buildTarget == UnityEditor.BuildTarget.Switch || // Switch isn't supported
+                    buildTarget == UnityEditor.BuildTarget.CloudRendering);
         }
 
         internal static bool AreGraphicsAPIsSupported(UnityEditor.BuildTarget target, out GraphicsDeviceType unsupportedGraphicDevice)
@@ -692,6 +703,15 @@ namespace UnityEngine.Rendering.HighDefinition
 
             return true;
         }
+
+        // Can UAVs can be assigned from slot 0 irrespective of the number of render targets
+        internal static bool RWTargetsAlwaysStartFromZero()
+        {
+            GraphicsDeviceType device = SystemInfo.graphicsDeviceType;
+            
+            return ((device == GraphicsDeviceType.GameCoreXboxSeries ) || ( device == GraphicsDeviceType.GameCoreXboxOne));
+        }
+
 
         /// <summary>
         /// Extract scale and bias from a fade distance to achieve a linear fading starting at 90% of the fade distance.

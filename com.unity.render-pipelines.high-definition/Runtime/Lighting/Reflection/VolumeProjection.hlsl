@@ -27,6 +27,9 @@ float IntersectSphereProxy(EnvLightData lightData, float3 dirPS, float3 position
 {
     float sphereOuterDistance = lightData.proxyExtents.x;
     float projectionDistance = IntersectRaySphereSimple(positionPS, dirPS, sphereOuterDistance);
+    projectionDistance = IsNaN(projectionDistance) ? -1.0f : projectionDistance; // Note that because we use IntersectRaySphereSimple, in case of a ill-set proxy, it could be that
+                                                                                // the determinant in the ray-sphere intersection code ends up negative, leading to a NaN.
+                                                                                // Rather than complicating the IntersectRaySphereSimple or switching to a more complex case, we cover that case this way.
     projectionDistance = max(projectionDistance, lightData.minProjectionDistance); // Setup projection to infinite if requested (mean no projection shape)
 
     return projectionDistance;

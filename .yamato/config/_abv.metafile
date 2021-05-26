@@ -1,51 +1,87 @@
 abv: # specify the editor versions for which to create the expression trigger for all_project_ci job
-  trigger_editors:
-    - fast-2019.3
   projects:
     - name: Universal
     - name: ShaderGraph
     - name: HDRP
     - name: VFX_HDRP
     - name: VFX_URP
+  build_configs:
+    - mono
+    - il2cpp
+  color_spaces: 
+    - Linear
+weekly:
+  extra_dependencies: # additional project jobs to run weekly
+    - project: Smoke_Test
+      platform: Win
+      api: DX11
+      build_config: mono
+      color_space: Linear
+      test_platforms:
+        - playmode
+        - editmode
+        - Standalone
+    - project: Universal
+      platform: Android
+      api: OpenGLES3
+      build_config: il2cpp
+      color_space: Linear
+      test_platforms:
+        - Standalone
+    - project: Universal
+      platform: Android
+      api: Vulkan
+      build_config: il2cpp
+      color_space: Linear
+      test_platforms:
+        - Standalone
+    - project: Universal
+      platform: iPhone
+      api: Metal
+      build_config: il2cpp
+      color_space: Linear
+      test_platforms:
+        - Standalone
 nightly:
-  allowed_editors: # specify the editor versions for which to create nightly jobs
-    - 2019.3
-smoke_test: # specifications for smoke tests
-  folder: SRP_SmokeTest
-  agent: sdet_win_large # used for editmode
-  agent_gpu: sdet_win_large_gpu  # used for non-editmode
-  test_platforms:
-    - Standalone
-    - playmode
-    - editmode
+  extra_dependencies: [] # additional project jobs to run nightly (in addition to ABV)
 trunk_verification: # jobs to include in trunk verification job
   dependencies:
     - project: Universal
       platform: Win
       api: DX11
+      build_config: mono
+      color_space: Linear
       test_platforms:
         - playmode
         - editmode
     - project: ShaderGraph
       platform: Win
       api: DX11
+      build_config: mono
+      color_space: Linear
       test_platforms:
         - playmode
         - editmode
     - project: HDRP
       platform: Win
       api: DX11
+      build_config: mono
+      color_space: Linear
       test_platforms:
         - playmode
         - editmode
     - project: VFX_HDRP
       platform: Win
       api: DX11
+      build_config: mono
+      color_space: Linear
       test_platforms:
         - playmode
         - editmode
     - project: VFX_URP
       platform: Win
       api: DX11
+      build_config: mono
+      color_space: Linear
       test_platforms:
         - playmode

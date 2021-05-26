@@ -1,3 +1,4 @@
+using System;
 using UnityEngine.Scripting.APIUpdating;
 
 namespace UnityEngine.Rendering.Universal

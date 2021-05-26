@@ -9,7 +9,7 @@ Universal Render Pipeline (URP) only blurs camera motions.
 **Motion Blur** uses the [Volume](Volumes.md) system, so to enable and modify **Motion Blur** properties, you must add a **Motion Blur** override to a [Volume](Volumes.md) in your Scene. To add **Motion Blur** to a Volume:
 
 1. In the Scene or Hierarchy view, select a GameObject that contains a Volume component to view it in the Inspector.
-2. In the Inspector, navigate to **Add Override** &gt; **Post-processing**, and click on **Motion Blur**. URP now applies **Motion Blur** to any Camera this Volume affects.
+2. In the Inspector, navigate to **Add Override > Post-processing**, and click on **Motion Blur**. URP now applies **Motion Blur** to any Camera this Volume affects.
 
 ## Properties
 
@@ -23,7 +23,7 @@ Universal Render Pipeline (URP) only blurs camera motions.
 
 ## Troubleshooting performance issues
 
-To decrease the performance impact of Motion Blur, you can: 
+To decrease the performance impact of Motion Blur, you can:
 
 * Reduce the **Quality**. A lower quality setting gives higher performance but may exhibit more visual artifacts.
 * Decrease the **Clamp** to reduce the maximum velocity that Unity takes into account. Lower values give higher performance.

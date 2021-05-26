@@ -15,6 +15,8 @@ The **Indirect Lighting Controller** uses the [Volume](Volumes.html) framework, 
 
 ![](Images/Override-IndirectLightingController1.png)
 
+[!include[](snippets/Volume-Override-Enable-Properties.md)]
+
 | Property                        | Description                                                  |
 | ------------------------------- | ------------------------------------------------------------ |
 | **Indirect Diffuse Intensity**  | A multiplier for baked and realtime Global Illumination lightmaps and Light Probes. HDRP multiplies the lightmap and Light Probe data by this value. |

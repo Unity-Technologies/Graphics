@@ -14,6 +14,10 @@ Point cache Assets follow the Open Source [Point Cache](https://github.com/peewe
 
 ![](Images/PointCacheImporter.png)
 
+### Limitations and Caveats
+
+Currently, only the `float` and `uchar` property types are supported by the Importer. Any property of other types will return an error.
+
 ## Point Cache Operator
 
 Point cache Assets can be referenced in a Point Cache Operator so it displays its point count and the list of Attribute Maps contained in the Point Cache Asset. The Number and the Name of the Outputs will dynamically change depending on the Asset set in the settings field.

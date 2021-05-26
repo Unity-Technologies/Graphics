@@ -1,16 +1,28 @@
 # Volumes
 
-The Universal Render Pipeline (URP) uses a Volume framework. Each Volume can either be global or have local boundaries. They each contain Scene setting property values that URP interpolates between, depending on the position of the Camera, in order to calculate a final value. For example, you can use local Volumes to change environment settings, such as fog color and density, to alter the mood of different areas of your Scene. 
+The Universal Render Pipeline (URP) uses the Volume framework. Volumes can override or extend Scene properties depending on the Camera position relative to each Volume.
 
-You can add a __Volume__ component to any GameObject, including a Camera, although it is good practice to create a dedicated GameObject for each Volume. The Volume component itself contains no actual data itself and instead references a [Volume Profile](Volume-Profile.html) which contains the values to interpolate between. The Volume Profile contains default values for every property and hides them by default. To view or alter these properties, you must add [Volume overrides](Volume-Components.html), which are structures containing overrides for the default values, to the Volume Profile.
+URP uses the Volume framework for [post-processing](integration-with-post-processing.md#post-proc-how-to) effects.
 
-Volumes also contain properties that control how they interact with other Volumes. A Scene can contain many Volumes. **Global** Volumes affect the Camera wherever the Camera is in the Scene and **Local** Volumes affect the Camera if they encapsulate the Camera within the bounds of their Collider.
+URP implements dedicated GameObjects for Volumes: **Global Volume**, **Box Volume**, **Sphere Volume**, **Convex Mesh Volume**.
 
-At run time, URP looks at all of the enabled Volumes attached to active GameObjects in the Scene and determines each Volume’s contribution to the final Scene settings. URP uses the Camera position and the Volume properties described above to calculate this contribution. It then uses all Volumes with a non-zero contribution to calculate interpolated final values for every property in all Volume Components.
+![Volume types](Images/post-proc/volume-volume-types.png)
 
-Volumes can contain different combinations of Volume Components. For example, one Volume may hold a Procedural Sky Volume Component while other Volumes hold an Exponential Fog Volume Component.
+The Volume component contains the **Mode** property that defines whether the Volume is Global or Local.
 
-## Properties
+![Volume Mode property](Images/post-proc/volume-mode-prop.png)
+
+With Mode set to **Global**, Volumes affect the Camera everywhere in the Scene. With Mode set to **Local**, Volumes affect the Camera if the Camera is within the bounds of the Collider. For more information, see [How to use Local Volumes](#volume-local).
+
+You can add a __Volume__ component to any GameObject. A Scene can contain multiple GameObjects with Volume components. You can add multiple Volume components to a GameObject.
+
+The Volume component references a [Volume Profile](VolumeProfile.md), which contains the Scene properties. A Volume Profile contains default values for every property and hides them by default. [Volume Overrides](VolumeOverrides.md) let you change or extend the default properties in a [Volume Profile](VolumeProfile.md).
+
+At runtime, URP goes through all of the enabled Volume components attached to active GameObjects in the Scene, and determines each Volume's contribution to the final Scene settings. URP uses the Camera position and the Volume component properties to calculate the contribution. URP interpolates values from all Volumes with a non-zero contribution to calculate the final property values.
+
+## Volume component properties
+
+Volumes components contain properties that control how they affect Cameras and how they interact with other Volumes.
 
 ![](/Images/Inspectors/Volume1.png)
 
@@ -24,8 +36,34 @@ Volumes can contain different combinations of Volume Components. For example, on
 
 ## Volume Profiles
 
-The __Profile__ field stores a [Volume Profile](Volume-Profile.html), which is an Asset that contains the properties that URP uses to render the Scene. You can edit this Volume Profile, or assign a different Volume Profile to the **Profile** field. You can also create a Volume Profile or clone the current one by clicking the __New__ and __Clone__ buttons respectively.
+The __Profile__ field stores a [Volume Profile](VolumeProfile.md), which is an Asset that contains the properties that URP uses to render the Scene. You can edit this Volume Profile, or assign a different Volume Profile to the __Profile__ field. You can also create a Volume Profile or clone the current one by clicking the __New__ and __Clone__ buttons respectively.
 
-## Configuring a local Volume
+## <a name="volume-local"></a>How to use Local Volumes
 
-If your select **Local** from the **Mode** drop-down on your Volume, you must attach a Trigger Collider to the GameObject to define its boundaries. Click the Volume to open it in the Inspector and then select __Add Component__ &gt; __Physics__ &gt; __Box Collider__. To define the boundary of the Volume, adjust the __Size__ field of the Box Collider, and the __Scale__ field of the Transform.  You can use any type of 3D collider, from simple Box Colliders to more complex convex Mesh Colliders. However, for performance reasons, you should use simple colliders because traversing Mesh Colliders with many vertices is resource intensive. Local volumes also have a __Blend Distance__ that represents the outer distance from the Collider surface where URP begins to blend the settings for that Volume with the others affecting the Camera.
+This section describes how to use a Local Volume to implement a location-based post-processing effect.
+
+In this example, URP applies a post-processing effect when the Camera is within a certain Box Collider.
+
+1. In the Scene, create a new Box Volume (**GameObject > Volume > Box Volume**).
+
+2. Select the Box Volume. In Inspector, In the **Volume** component, In the **Profile** field, click **New**.
+
+    ![Create new Volume Profile.](Images/post-proc/volume-box-new-profile.png)
+
+    Unity creates the new Volume Profile and adds the **Add Override** button to the Volume component.
+
+    ![New Volume Profile created.](Images/post-proc/volume-new-profile-created.png)
+
+3. If you have other Volumes in the Scene, change the value of the Priority property to ensure that the Overrides from this Volume have higher priority than those of other Volumes.
+
+    ![Volume priority](Images/post-proc/volume-priority.png)
+
+3. Click [Add Override](VolumeOverrides.md#volume-add-override). In the Volume Overrides dialog box, select a post-processing effect.
+
+4. In the Collider component, adjust the Size and the Center properties so that the Collider occupies the volume where you want the local post-processing effect to be.
+
+    ![Adjust the Box Collider size and position.](Images/post-proc/volume-box-collider.png)
+
+    Ensure that the **Is Trigger** check box is selected.
+
+Now, when the Camera is within the bounds of the Volume's Box Collider, URP uses the Volume Overrides from the Box Volume.

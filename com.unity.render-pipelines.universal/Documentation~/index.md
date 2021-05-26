@@ -8,7 +8,7 @@ The Universal Render Pipeline (URP) is a prebuilt Scriptable Render Pipeline, ma
 
 For information about requirements and compatibility, see section [Requirements](requirements.md).
 
-## What's new in URP 
+## What's new in URP
 For information on what's new in the latest version of URP, see the [Changelog](../changelog/CHANGELOG.html).
 
 ## Getting started with URP

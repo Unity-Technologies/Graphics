@@ -2,23 +2,29 @@ project:
   name: HDRP_DXR
   folder: HDRP_DXR_Tests
 test_platforms:
-  - Standalone
-  - playmode
+  - type: Standalone
+  - type: playmode
 platforms:
   - name: Win
     apis:
-      - DX12
-    overrides:
-      agents_project:
-        default:
-          type: Unity::VM::GPU
-          image: graphics-foundation/win10-dxr:stable
-          flavor: b1.large
-          model: rtx2080
+      - name: DX12
+    build_configs:
+      - name: mono
+    color_spaces:
+      - Linear
+    agents_project:
+      default:
+        type: Unity::VM::GPU
+        image: graphics-foundation/win10-dxr:stable
+        flavor: b1.large
+        model: rtx2080
 all:
   dependencies:
     - platform: Win
       api: DX12
+      build_config: mono
+      color_space: Linear
       test_platforms:
         - Standalone
         - playmode
+

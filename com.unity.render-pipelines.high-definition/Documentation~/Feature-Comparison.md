@@ -4,11 +4,12 @@ The tables that follow provide an overview of the **Features** that the High Def
 
 ## Camera
 
-| **Feature**                 | **Built-in Render Pipeline**                                     | **High Definition Render Pipeline (HDRP)** (HDRP)                       |
+| **Feature**                 | **Built-in Render Pipeline**                                     | **High Definition Render Pipeline (HDRP)**                      |
 | ----------------------- | ------------------------------------------------------------ | ------------------------------------------------------------ |
-| HDR                     | Yes. The Built-in Renderer uses an HDR Texture Format.       | Yes.                                               |
-| Anti-Aliasing           | Yes. The Built-in Renderer supports multi-sample anti-aliasing (MSAA) for the Forward Renderer.<br/><br/>If you use the Post-processing v2 package, this Render Pipeline also supports:<br/>&#8226;Temporal anti-aliasing (TAA).<br/>&#8226;Fast approximate anti-aliasing(FXAA).<br/>&#8226;Subpixel morphological anti-aliasing (SMAA). | Yes. HDRP supports:<br/>&#8226;MSAA, for the Forward Renderer.<br/>&#8226;TAA.<br/>&#8226;FXAA.<br/>&#8226;SMAA. |
-| Physical Camera         | Yes. The **Built-in Render Pipeline** only uses physical camera properties to calculate the Camera's field of view. | Yes. HDRP uses physical camera properties to:<br/>&#8226;Calculate the Camera's field of view.<br/>&#8226;Calculate the exposure of the Scene.<br/>&#8226;Calculate the result of certain post-processing effects.. |
+| HDR rendering           | Yes. The Built-in Renderer uses an HDR Texture Format.       | Yes |
+| HDR output | Yes | No, however this feature is in research for HDRP. For more information, see [High dynamic range](https://docs.unity3d.com/Manual/HDR.html). |
+| Anti-Aliasing           | Yes. The Built-in Renderer supports multi-sample anti-aliasing (MSAA) for the Forward Renderer.<br/><br/>If you use the Post-processing v2 package, this Render Pipeline also supports:<br/>&#8226; Temporal anti-aliasing (TAA).<br/>&#8226; Fast approximate anti-aliasing(FXAA).<br/>&#8226; Subpixel morphological anti-aliasing (SMAA). | Yes. HDRP supports:<br/>&#8226; MSAA, for the Forward Renderer.<br/>&#8226; TAA.<br/>&#8226; FXAA.<br/>&#8226; SMAA. |
+| Physical Camera         | Yes. The **Built-in Render Pipeline** only uses physical camera properties to calculate the Camera's field of view. | Yes. HDRP uses physical camera properties to:<br/>&#8226; Calculate the Camera's field of view.<br/>&#8226; Calculate the exposure of the Scene.<br/>&#8226; Calculate the result of certain post-processing effects.. |
 | Dynamic Resolution      |                                                              |                                                              |
 | Hardware                | Not supported                                                | Yes but only for consoles.                                   |
 | Software                | Yes. Limited.                                                | Yes. On all platforms.                                       |
@@ -26,9 +27,9 @@ The tables that follow provide an overview of the **Features** that the High Def
 | ---------------------- | ------------------------------------------------------------ | ------------------------------------------------------------ |
 | Light Types            |                                                              |                                                              |
 | Directional            | Yes                                                          | Yes                                                          |
-| Spot                   | Yes                                                          | Yes. Supports the following shapes:<br/>&#8226;Cone.<br/>&#8226;Pyramid.<br/>&#8226;Box. |
+| Spot                   | Yes                                                          | Yes. Supports the following shapes:<br/>&#8226; Cone.<br/>&#8226; Pyramid.<br/>&#8226; Box. |
 | Point                  | Yes                                                          | Yes                                                          |
-| Area                   | Yes. Supports the following shapes:<br/>&#8226;Rectangle.<br/>&#8226;Disk (baked only). | Yes. Supports the following shapes:<br/>&#8226;Rectangle.<br/>&#8226;Tube.<br/>&#8226;Disk (baked only). |
+| Area                   | Yes. Supports the following shapes:<br/>&#8226; Rectangle.<br/>&#8226; Disk (baked only). | Yes. Supports the following shapes:<br/>&#8226; Rectangle.<br/>&#8226; Tube.<br/>&#8226; Disk (baked only). |
 | Inner Spot Angle       | Not supported                                                | Yes                                                          |
 | Shading                | Multiple Passes                                              | Tiled/Clustered                                              |
 | Culling                |                                                              |                                                              |
@@ -61,7 +62,7 @@ The tables that follow provide an overview of the **Features** that the High Def
 | Shadow Resolve Type   |                                                              |                                                           |
 | Lighting Pass         | Yes                                                          | Yes                                                       |
 | Screen Space Pass     | Yes                                                          | Yes                                                       |
-| Shadow Bias           | Yes. Supports the following types:<br/>&#8226;Constant clip space offset.<br/>&#8226;Normal bias. | Yes. Supports the following types:<br/>&#8226;Slope bias.<br/>&#8226;Normal bias. |
+| Shadow Bias           | Yes. Supports the following types:<br/>&#8226; Constant clip space offset.<br/>&#8226; Normal bias. | Yes. Supports the following types:<br/>&#8226; Slope bias.<br/>&#8226; Normal bias. |
 
 ## Batching
 
@@ -115,14 +116,14 @@ The tables that follow provide an overview of the **Features** that the High Def
 | Realtime                | Yes                                                          | yes                                                          |
 | Baked                   | Yes                                                          | Yes                                                          |
 | Sampling                |                                                              |                                                              |
-| Simple                  | Yes                                                          | See [Reflection Hierarchy](https://docs.unity3d.com/Packages/com.unity.render-pipelines.high-definition@latest/index.html?subfolder=/manual/Reflection-in-HDRP.html). |
-| Blend Probes            | Yes                                                          | See [Reflection Hierarchy](https://docs.unity3d.com/Packages/com.unity.render-pipelines.high-definition@latest/index.html?subfolder=/manual/Reflection-in-HDRP.html). |
-| Blend Probes and Skybox | Yes                                                          | See [Reflection Hierarchy](https://docs.unity3d.com/Packages/com.unity.render-pipelines.high-definition@latest/index.html?subfolder=/manual/Reflection-in-HDRP.html). |
+| Simple                  | Yes                                                          | See [Reflection Hierarchy](Reflection-in-HDRP.md). |
+| Blend Probes            | Yes                                                          | See [Reflection Hierarchy](Reflection-in-HDRP.md). |
+| Blend Probes and Skybox | Yes                                                          | See [Reflection Hierarchy](Reflection-in-HDRP.md). |
 | Projection              |                                                              |                                                              |
 | Box                     | Yes                                                          | Yes                                                          |
 | Sphere                  | No                                                           | Yes                                                          |
 | Proxy Volume            | Not supported                                                | Yes                                                          |
-| Other Reflections       | The **Built-in Render Pipeline** also supports screen space reflection. | HDRP supports the following other reflection methods:<br/>&#8226;Planar Reflection Probes.<br/>&#8226;Screen space reflection.<br/>&#8226;Ray-traced reflection. |
+| Other Reflections       | The **Built-in Render Pipeline** also supports screen space reflection. | HDRP supports the following other reflection methods:<br/>&#8226; Planar Reflection Probes.<br/>&#8226; Screen space reflection.<br/>&#8226; Ray-traced reflection. |
 
 ## Global Illumination (Lightmap Modes)
 
@@ -136,9 +137,9 @@ The tables that follow provide an overview of the **Features** that the High Def
 | **Feature**      | **Built-in Render Pipeline** | **High Definition Render Pipeline (HDRP)**                              |
 | ------------ | ------------------------ | ------------------------------------------------------------ |
 | Source       |                          |                                                              |
-| Skybox       | Yes                      | Uses a single sky to bake global illumination, otherwise uses sky settings per Volume. You can [create own sky via script](https://docs.unity3d.com/Packages/com.unity.render-pipelines.high-definition@7.1/manual/Creating-a-Custom-Sky.html) and Material. |
-| Gradient     | Yes                      | Uses a single sky to bake global illumination, otherwise uses sky settings per Volume. You can [create own sky via script](https://docs.unity3d.com/Packages/com.unity.render-pipelines.high-definition@7.1/manual/Creating-a-Custom-Sky.html) and Material. |
-| Color        | Yes                      | Uses a single sky to bake global illumination, otherwise uses sky settings per Volume. You can [create own sky via script](https://docs.unity3d.com/Packages/com.unity.render-pipelines.high-definition@7.1/manual/Creating-a-Custom-Sky.html) and Material. |
+| Skybox       | Yes                      | Uses a single sky to bake global illumination, otherwise uses sky settings per Volume. You can [create own sky via script](Creating-a-Custom-Sky.md) and Material. |
+| Gradient     | Yes                      | Uses a single sky to bake global illumination, otherwise uses sky settings per Volume. You can [create own sky via script](Creating-a-Custom-Sky.md) and Material. |
+| Color        | Yes                      | Uses a single sky to bake global illumination, otherwise uses sky settings per Volume. You can [create own sky via script](Creating-a-Custom-Sky.md) and Material. |
 | Ambient Mode |                          |                                                              |
 | Realtime     | Yes                      | Yes                                                          |
 | Baked        | Yes                      | Yes                                                          |
@@ -159,7 +160,7 @@ The tables that follow provide an overview of the **Features** that the High Def
 | **Feature**             | **Built-in Render Pipeline** | **High Definition Render Pipeline (HDRP)**                              |
 | ------------------- | ------------------------ | ------------------------------------------------------------ |
 | Linear              | Yes                      | Not supported                                                |
-| Exponential         | Yes                      | Yes. The [Fog Override](https://docs.unity3d.com/Packages/com.unity.render-pipelines.high-definition@latest/index.html?subfolder=/manual/Override-Fog.html) uses exponential fog. |
+| Exponential         | Yes                      | Yes. The [Fog Override](Override-Fog.md) uses exponential fog. |
 | Exponential Squared | Yes                      | Not supported                                                |
 | Local Volumetric    | No                       | Yes                                                          |
 
@@ -169,7 +170,7 @@ The tables that follow provide an overview of the **Features** that the High Def
 | --------------------------- | --------------------------------------------- | ------------------------------------------------------------ |
 | Shader Graph                | Not supported                                 | Yes                                                          |
 | Surface Shaders             | Yes                                           | Not supported                                                |
-| Camera-relative Rendering   | Not supported                                 | Yes. See [Camera Relative Rendering](https://docs.unity3d.com/Packages/com.unity.render-pipelines.high-definition@latest/index.html?subfolder=/manual/Camera-Relative-Rendering.html). |
+| Camera-relative Rendering   | Not supported                                 | Yes. See [Camera Relative Rendering](Camera-Relative-Rendering.md). |
 | Standard Lit Shader         |                                               |                                                              |
 | Metallic Workflow           | Yes                                           | Yes                                                          |
 | Specular Workflow           | Yes                                           | Yes                                                          |
@@ -181,8 +182,8 @@ The tables that follow provide an overview of the **Features** that the High Def
 | Additive                    | Not supported                                 | Yes                                                          |
 | Multiply                    | Not supported                                 | Not supported                                                |
 | Decals                      | Not supported                                 | Yes. To create decals in HDRP, you can use a decal Mesh or a decal projector. |
-| Detail Maps                 | Yes. You can assigned albedo and normal maps. | Yes. HDRP uses the [mask and detail maps](<https://docs.unity3d.com/Packages/com.unity.render-pipelines.high-definition@latest/index.html?subfolder=/manual/Mask-Map-and-Detail-Map.html>) to combine maps such ask albedo, normals, and smoothness |
-| Advanced Material Options   | None                                          | HDRP supports the following advanced Materials:<br/>&#8226;Anisotropic.<br/>&#8226;Subsurface Scattering.<br/>&#8226;Iridescence.<br/>&#8226;Translucence. |
+| Detail Maps                 | Yes. You can assigned albedo and normal maps. | Yes. HDRP uses the [mask and detail maps](Mask-Map-and-Detail-Map.md) to combine maps such ask albedo, normals, and smoothness |
+| Advanced Material Options   | None                                          | HDRP supports the following advanced Materials:<br/>&#8226; Anisotropic.<br/>&#8226; Subsurface Scattering.<br/>&#8226; Iridescence.<br/>&#8226; Translucence. |
 | Surface Inputs              |                                               |                                                              |
 | Albedo (Base Map)           | Yes                                           | Yes                                                          |
 | Specular                    | Yes                                           | Yes                                                          |
@@ -241,8 +242,8 @@ The tables that follow provide an overview of the **Features** that the High Def
 | **Feature**                     | **Built-in Render Pipeline**                                     | **High Definition Render Pipeline (HDRP)**                              |
 | --------------------------- | ------------------------------------------------------------ | ------------------------------------------------------------ |
 | Implementation              | Uses Post-Processing Version 2 package.                      | Native Post-Processing solution embedded in HDRP package     |
-| Ambient Occlusion           | Yes. The **Built-in Render Pipeline** supports:<br/>&#8226;Multi-scale ambient occlusion. | Yes. HDRP supports:<br/>&#8226;Ground truth ambient occlusion.<br/>&#8226;[Ray-traced ambient occlusion](https://docs.unity3d.com/Packages/com.unity.render-pipelines.high-definition@7.1/manual/Ray-Traced-Ambient-Occlusion.html). |
-| Exposure                    | Yes. The **Built-in Render Pipeline** supports:<br/>&#8226;Fixed exposure.<br/>&#8226;Automatic exposure. | Yes. HDRP supports:<br/>&#8226;Fixed exposure.<br/>&#8226;Automatic (Eye adaptation).<br/>&#8226;Curve Mapping.<br/>&#8226;Physical Camera settings |
+| Ambient Occlusion           | Yes. The **Built-in Render Pipeline** supports:<br/>&#8226; Multi-scale ambient occlusion. | Yes. HDRP supports:<br/>&#8226; Ground truth ambient occlusion.<br/>&#8226; [Ray-traced ambient occlusion](Ray-Traced-Ambient-Occlusion.md). |
+| Exposure                    | Yes. The **Built-in Render Pipeline** supports:<br/>&#8226; Fixed exposure.<br/>&#8226; Automatic exposure. | Yes. HDRP supports:<br/>&#8226; Fixed exposure.<br/>&#8226; Automatic (Eye adaptation).<br/>&#8226; Curve Mapping.<br/>&#8226; Physical Camera settings |
 | Bloom                       | Yes                                                          | Yes                                                          |
 | Chromatic Aberration        | Yes                                                          | Yes                                                          |
 | Color Grading / Tonemapping | Yes                                                          | Yes                                                          |

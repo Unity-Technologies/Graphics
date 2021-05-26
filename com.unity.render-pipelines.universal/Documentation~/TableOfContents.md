@@ -5,11 +5,17 @@
 * [Getting started](InstallingAndConfiguringURP.md)
   * [Create a Project from a Template](creating-a-new-project-with-urp.md)
   * [Install URP into an existing Project](InstallURPIntoAProject.md)
-  * [The Universal Render Pipeline Asset](universalrp-asset.md)
+* [Render Pipeline Concepts](urp-concepts.md)
+  * [The URP Asset](universalrp-asset.md)
+  * [Forward Renderer](urp-forward-renderer.md)
+  * [Renderer Feature](urp-renderer-feature.md)
+    * [How to add a Renderer Feature](urp-renderer-feature-how-to-add.md)
 * [Upgrade guides](upgrade-guides.md)
   * [Upgrading to URP 9.0.x](upgrade-guide-9-0-x.md)
   * [Upgrading to URP 8.1.0](upgrade-guide-8-1-0.md)
   * [Upgrading to URP 8.0.0](upgrade-guide-8-0-0.md)
+  * [Upgrading to URP 7.7.x](upgrade-guide-7-7-x.md)
+  * [Upgrading to URP 7.5.x](upgrade-guide-7-5-x.md)
   * [Upgrading to URP 7.4.0](upgrade-guide-7-4-0.md)
   * [Upgrading to URP 7.3.0](upgrade-guide-7-3-0.md)
   * [Upgrading to URP 7.2.0](upgrade-guide-7-2-0.md)
@@ -18,6 +24,7 @@
 * [Lighting](lighting.md)
   * [Light component reference](light-component)
   * [The Universal Additional Light Data component](universal-additional-light-data.md)
+  * [Lighting Mode](urp-lighting-mode.md)
 * [Cameras](cameras.md)
   * [The Universal Additional Camera Data component](universal-additional-camera-data.md)
   * [Render Type](camera-types-and-render-type.md)
@@ -29,6 +36,7 @@
   * [Camera component reference](camera-component-reference.md)
 
 * [Post-processing](integration-with-post-processing.md)
+  * [How to configure](integration-with-post-processing.md#post-proc-how-to)
   * [Volumes](Volumes.md)
     * [Volume Profile](VolumeProfile.md)
     * [Volume Overrides](VolumeOverrides.md)
@@ -61,6 +69,14 @@
   * [Particles Unlit](particles-unlit-shader.md)
   * [Upgrading shaders from Built-in](upgrading-your-shaders.md)
   * [Shader stripping](shader-stripping.md)
+  * [Writing custom shaders](writing-custom-shaders-urp.md)
+    * [Creating a sample scene](writing-shaders-urp-basic-prerequisites.md)
+    * [URP basic unlit shader](writing-shaders-urp-basic-unlit-structure.md)
+    * [URP unlit shader with color input](writing-shaders-urp-unlit-color.md)
+    * [Drawing a texture](writing-shaders-urp-unlit-texture.md)
+    * [Visualizing normal vectors](writing-shaders-urp-unlit-normals.md)
+    * [Reconstruct the world space positions](writing-shaders-urp-reconstruct-world-position.md)
+  * [URP ShaderLab Pass tags](urp-shaders/urp-shaderlab-pass-tags.md)
 
 * [Customizing URP](customizing-urp.md)
   * [beginCameraRendering event](using-begincamerarendering.md)
@@ -77,14 +93,12 @@
 
     * [HDR emulation scale](HDREmulationScale.md)
     * [Light Blend Styles](LightBlendStyles.md)
-    
+
     * [2D Shadows](2DShadows.md)
   * [2D Renderer and Shader Graph](ShaderGraph.md)
   * [2D Pixel Perfect](2d-pixelperfect.md)
     * [Cinemachine Pixel Perfect extension](pixel-cinemachine.md)
 
 * [Building for consoles](Building-For-Consoles.md)
-  
-* [Frequently asked questions (FAQ)](faq.md)
 
-* [Feature comparison with the Built-in Render Pipeline](universalrp-builtin-feature-comparison.md)
+* [Frequently asked questions (FAQ)](faq.md)

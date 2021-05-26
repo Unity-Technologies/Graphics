@@ -122,12 +122,11 @@ namespace UnityEditor.VFX.Block
 float3x3 viewRot = GetVFXToViewRotMatrix();
 axisX = viewRot[0].xyz;
 axisY = viewRot[1].xyz;
+axisZ = -viewRot[2].xyz;
 #if VFX_LOCAL_SPACE // Need to remove potential scale in local transform
 axisX = normalize(axisX);
 axisY = normalize(axisY);
-axisZ = cross(axisX,axisY);
-#else
-axisZ = -viewRot[2].xyz;
+axisZ = normalize(axisZ);
 #endif
 ";
 
@@ -138,12 +137,11 @@ if (unity_OrthoParams.w == 1.0f) // Face plane for ortho
     float3x3 viewRot = GetVFXToViewRotMatrix();
     axisX = viewRot[0].xyz;
     axisY = viewRot[1].xyz;
+    axisZ = -viewRot[2].xyz;
     #if VFX_LOCAL_SPACE // Need to remove potential scale in local transform
     axisX = normalize(axisX);
     axisY = normalize(axisY);
-    axisZ = cross(axisX,axisY);
-    #else
-    axisZ = -viewRot[2].xyz;
+    axisZ = normalize(axisZ);
     #endif
 }
 else

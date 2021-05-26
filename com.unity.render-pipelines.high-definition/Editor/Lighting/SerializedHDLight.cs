@@ -464,8 +464,10 @@ namespace UnityEditor.Rendering.HighDefinition
             settings.Update();
 
             lightGameObject.Update();
-            deportedAreaLightEmissiveMeshMotionVector?.serializedObject.Update();
-            deportedAreaLightEmissiveMeshLayer?.serializedObject.Update();
+            if (deportedAreaLightEmissiveMeshMotionVector.IsTargetAlive())
+                deportedAreaLightEmissiveMeshMotionVector?.serializedObject.Update();
+            if (deportedAreaLightEmissiveMeshLayer.IsTargetAlive())
+                deportedAreaLightEmissiveMeshLayer?.serializedObject.Update();
         }
 
         void ApplyInternal(bool withDeportedEmissiveMeshData)
@@ -474,8 +476,10 @@ namespace UnityEditor.Rendering.HighDefinition
             settings.ApplyModifiedProperties();
             if (withDeportedEmissiveMeshData)
             {
-                deportedAreaLightEmissiveMeshMotionVector?.serializedObject.ApplyModifiedProperties();
-                deportedAreaLightEmissiveMeshLayer?.serializedObject.ApplyModifiedProperties();
+                if (deportedAreaLightEmissiveMeshMotionVector.IsTargetAlive())
+                    deportedAreaLightEmissiveMeshMotionVector?.serializedObject.ApplyModifiedProperties();
+                if (deportedAreaLightEmissiveMeshLayer.IsTargetAlive())
+                    deportedAreaLightEmissiveMeshLayer?.serializedObject.ApplyModifiedProperties();
             }
         }
 

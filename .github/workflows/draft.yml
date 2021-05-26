@@ -9,7 +9,7 @@ jobs:
     runs-on: ubuntu-latest
     if: github.event.pull_request.draft == false && github.event.pull_request.ready_for_review == false
     steps:
-    - uses: thollander/actions-comment-pull-request@1.0.0
+    - uses: thollander/actions-comment-pull-request@master
       with:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         message: |
