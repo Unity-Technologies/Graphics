@@ -460,12 +460,12 @@ namespace UnityEngine.Rendering.Universal
             // Aim to have the most optimized render pass event for Depth Copy (The aim is to minimize the number of render passes)
             if (requiresDepthTexture)
             {
-                RenderPassEvent copyDepthPassEvent = RenderPassEvent.AfterRenderingTransparents;
+                RenderPassEvent copyDepthPassEvent = RenderPassEvent.AfterRenderingOpaques;
                 // RenderPassInputs's requiresDepthTexture is configured through ScriptableRenderPass's ConfigureInput function
                 if (renderPassInputs.requiresDepthTexture)
                 {
                     // Do depth copy before the render pass that requires depth texture as shader read resource
-                    copyDepthPassEvent = (RenderPassEvent)Mathf.Min((int)copyDepthPassEvent, ((int)renderPassInputs.requiresDepthTextureEarliestEvent) - 1);
+                    copyDepthPassEvent = (RenderPassEvent)Mathf.Min((int)RenderPassEvent.AfterRenderingTransparents, ((int)renderPassInputs.requiresDepthTextureEarliestEvent) - 1);
                 }
                 m_CopyDepthPass.renderPassEvent = copyDepthPassEvent;
             }
