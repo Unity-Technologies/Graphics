@@ -126,20 +126,25 @@ void VFXGetSurfaceDecalData(out DecalSurfaceData surfaceData, VFX_VARYING_PS_INP
     ao = i.VFX_VARYING_AMBIENT_OCCLUSION;
 #endif
 
-    #if HDRP_USE_MASK_MAP
+#if HDRP_USE_MASK_MAP
     float4 mask = SampleTexture(VFX_SAMPLER(maskMap), uvData);
     mask.xyz *= float3(metallic, ao, smoothness);
 
 	surfaceData.mask = mask;
 	surfaceData.mask.z = surfaceData.mask.w;
 	maskMapBlend = mask.z * fadeFactor;
-	#if VFX_MASK_BLEND_BASE_COLOR_ALPHA
-	surfaceData.mask.w = albedoMapBlend;
-	#elif VFX_MASK_BLEND_MASK_BLUE // TODO : Careful, not the only two cases, e.g. when using opacity
-	surfaceData.mask.w = maskMapBlend;
-	#endif
 
-    #endif
+
+#else //HDRP_USE_MASK_MAP
+    surfaceData.mask.xyz = float3(metallic, ao, smoothness);
+#endif
+
+#if VFX_MASK_BLEND_BASE_COLOR_ALPHA
+	surfaceData.mask.w = albedoMapBlend;
+#elif VFX_MASK_BLEND_MASK_BLUE // TODO : Careful, not the only two cases, e.g. when using opacity
+	surfaceData.mask.w = maskMapBlend;
+#endif
+
 
 	#if USE_NORMAL_MAP
 	float3 normalTS = SampleNormalMap(VFX_SAMPLER(normalMap),uvData);

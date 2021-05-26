@@ -84,12 +84,16 @@ namespace UnityEditor.VFX.HDRP
          Tooltip("Specifies the layer mask of the decal.")]
         private DecalLayerEnum decalLayer = DecalLayerEnum.LightLayerDefault;
 
-        public class FadingProperties
+        public class FadeFactorProperty
+        {
+            [Range(0, 1), Tooltip("Fade Factor.")]
+            public float fadeFactor = 1.0f;
+        }
+
+        public class AngleFadeProperty
         {
             [Tooltip("Angle Fade. Between 0 and 180.")] //TODO : create range attribute?
             public Vector2 angleFade = Vector2.zero;
-            [Range(0, 1), Tooltip("Fade Factor.")]
-            public float fadeFactor = 1.0f;
         }
         protected override IEnumerable<VFXPropertyWithValue> inputProperties
         {
@@ -97,7 +101,10 @@ namespace UnityEditor.VFX.HDRP
             {
                 var properties = Enumerable.Empty<VFXPropertyWithValue>();
 
-                properties = properties.Concat(PropertiesFromType("FadingProperties"));
+                properties = properties.Concat(PropertiesFromType("FadeFactorProperty"));
+                if(enableDecalLayers)
+                    properties = properties.Concat(PropertiesFromType("AngleFadeProperty"));
+
                 properties = properties.Concat(base.inputProperties);
                 properties =
                     properties.Concat(
