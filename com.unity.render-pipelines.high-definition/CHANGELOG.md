@@ -74,6 +74,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed material keywords with fbx importer.
 - Fixed lightmaps not working properly with shader graphs in ray traced reflections (case 1305335).
 - Fixed skybox for ortho cameras.
+- Fixed crash on SubSurfaceScattering Editor when the selected pipeline is not HDRP
 - Fixed model import by adding additional data if needed.
 - Fix screen being over-exposed when changing very different skies.
 - Fixed pixelated appearance of Contrast Adaptive Sharpen upscaler and several other issues when Hardware DRS is on
