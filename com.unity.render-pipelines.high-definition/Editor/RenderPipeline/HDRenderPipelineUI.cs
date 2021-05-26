@@ -1138,16 +1138,25 @@ namespace UnityEditor.Rendering.HighDefinition
             // MSAA is an option that is only available in full forward but Camera can be set in Full Forward only. Thus MSAA have no dependency currently
             //Note: do not use SerializedProperty.enumValueIndex here as this enum not start at 0 as it is used as flags.
             bool msaaAllowed = true;
+            bool hasRayTracing = false;
             for (int index = 0; index < serialized.serializedObject.targetObjects.Length && msaaAllowed; ++index)
             {
-                var litShaderMode = (serialized.serializedObject.targetObjects[index] as HDRenderPipelineAsset).currentPlatformRenderPipelineSettings.supportedLitShaderMode;
-                msaaAllowed &= litShaderMode == SupportedLitShaderMode.ForwardOnly || litShaderMode == SupportedLitShaderMode.Both;
+                var settings = (serialized.serializedObject.targetObjects[index] as HDRenderPipelineAsset).currentPlatformRenderPipelineSettings;
+                var litShaderMode = settings.supportedLitShaderMode;
+                bool rayTracedSupported = settings.supportRayTracing;
+                hasRayTracing |= rayTracedSupported;
+                msaaAllowed &= (litShaderMode == SupportedLitShaderMode.ForwardOnly || litShaderMode == SupportedLitShaderMode.Both) && !rayTracedSupported;
             }
+
             using (new EditorGUI.DisabledScope(!msaaAllowed))
             {
                 ++EditorGUI.indentLevel;
                 EditorGUILayout.PropertyField(serialized.renderPipelineSettings.MSAASampleCount, Styles.MSAASampleCountContent);
                 --EditorGUI.indentLevel;
+            }
+            if (hasRayTracing && serialized.renderPipelineSettings.MSAASampleCount.intValue != (int)MSAASamples.None)
+            {
+                EditorGUILayout.HelpBox(Styles.rayTracingMSAAUnsupported.text, MessageType.Info, wide: true);
             }
 
             EditorGUILayout.PropertyField(serialized.renderPipelineSettings.supportMotionVectors, Styles.supportMotionVectorContent);
