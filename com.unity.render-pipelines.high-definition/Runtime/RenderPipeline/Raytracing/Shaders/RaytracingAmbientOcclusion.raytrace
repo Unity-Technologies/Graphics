@@ -89,6 +89,9 @@ void RayGenAmbientOcclusion()
 		rayDescriptor.TMin = 0;
 		rayDescriptor.TMax = _RaytracingRayMaxLength;
 
+        // Adjust world-space position to match the RAS setup with XR single-pass and camera relative
+        ApplyCameraRelativeXR(rayDescriptor.Origin);
+
 		// Create and init the RayIntersection structure for this
 		RayIntersection rayIntersection;
 		rayIntersection.color = float3(0.0, 0.0, 0.0);
