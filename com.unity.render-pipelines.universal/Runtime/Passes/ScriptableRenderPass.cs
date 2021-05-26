@@ -460,6 +460,21 @@ namespace UnityEngine.Rendering.Universal
         }
 
         /// <summary>
+        /// Add a blit command to the context for execution. This applies the material to the color target.
+        /// </summary>
+        /// <param name="cmd">Command buffer to record command for execution.</param>
+        /// <param name="data">RenderingData to access the active renderer.</param>
+        /// <param name="material">Material to use.</param>
+        /// <param name="passIndex">Shader pass to use. Default is 0.</param>
+        public void Blit(CommandBuffer cmd, ref RenderingData data, Material material, int passIndex = 0)
+        {
+            var renderer = data.cameraData.renderer;
+
+            Blit(cmd, renderer.cameraColorTarget, renderer.GetCameraColorFrontBuffer(cmd), material, passIndex);
+            renderer.SwapColorBuffer(cmd);
+        }
+
+        /// <summary>
         /// Creates <c>DrawingSettings</c> based on current the rendering state.
         /// </summary>
         /// <param name="shaderTagId">Shader pass tag to render.</param>
