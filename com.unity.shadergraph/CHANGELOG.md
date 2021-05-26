@@ -89,6 +89,9 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed an issue where the ShaderGraph transform node would generate incorrect results when transforming a direction from view space to object space [1333781] (https://issuetracker.unity3d.com/product/unity/issues/guid/1333781/)
 - Fixed a ShaderGraph issue where keyword properties could get stuck highlighted when deleted [1333738].
 - Fixed issue with ShaderGraph custom interpolator node dependency ordering [1332553].
+- Fixed SubGraph SamplerState property defaults not being respected [1336119]
+- Fixed an issue where nested subgraphs with identical SamplerState property settings could cause compile failures [1336089]
+- Fixed an issue where SamplerState properties could not be renamed after creation [1336126]
 
 ## [11.0.0] - 2020-10-21
 
