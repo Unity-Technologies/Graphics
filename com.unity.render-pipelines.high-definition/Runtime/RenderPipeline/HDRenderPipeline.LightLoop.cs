@@ -403,6 +403,7 @@ namespace UnityEngine.Rendering.HighDefinition
             public bool usePBRAlgo;
             public bool accumNeedClear;
             public bool previousAccumNeedClear;
+            public bool validColorPyramid;
 
             public int width, height, viewCount;
 
@@ -511,6 +512,7 @@ namespace UnityEngine.Rendering.HighDefinition
                     passData.accumNeedClear = usePBRAlgo;
                     passData.previousAccumNeedClear = usePBRAlgo && (hdCamera.currentSSRAlgorithm == ScreenSpaceReflectionAlgorithm.Approximation || hdCamera.isFirstFrame || hdCamera.resetPostProcessingHistory);
                     hdCamera.currentSSRAlgorithm = volumeSettings.usedAlgorithm.value; // Store for next frame comparison
+                    passData.validColorPyramid = hdCamera.colorPyramidHistoryValidFrames > 1;
 
                     passData.depthBuffer = builder.ReadTexture(prepassOutput.depthBuffer);
                     passData.depthPyramid = builder.ReadTexture(prepassOutput.depthPyramidTexture);
@@ -603,22 +605,30 @@ namespace UnityEngine.Rendering.HighDefinition
 
                             if (data.usePBRAlgo)
                             {
-                                using (new ProfilingScope(ctx.cmd, ProfilingSampler.Get(HDProfileId.SsrAccumulate)))
+                                if (!data.validColorPyramid)
                                 {
-                                    ctx.cmd.SetComputeTextureParam(cs, data.accumulateKernel, HDShaderIDs._DepthTexture, data.depthBuffer);
-                                    ctx.cmd.SetComputeTextureParam(cs, data.accumulateKernel, HDShaderIDs._CameraDepthTexture, data.depthPyramid);
-                                    ctx.cmd.SetComputeTextureParam(cs, data.accumulateKernel, HDShaderIDs._NormalBufferTexture, data.normalBuffer);
-                                    ctx.cmd.SetComputeTextureParam(cs, data.accumulateKernel, HDShaderIDs._ColorPyramidTexture, data.colorPyramid);
-                                    ctx.cmd.SetComputeTextureParam(cs, data.accumulateKernel, HDShaderIDs._SsrHitPointTexture, data.hitPointsTexture);
-                                    ctx.cmd.SetComputeTextureParam(cs, data.accumulateKernel, HDShaderIDs._SSRAccumTexture, data.ssrAccum);
-                                    ctx.cmd.SetComputeTextureParam(cs, data.accumulateKernel, HDShaderIDs._SsrLightingTextureRW, data.lightingTexture);
-                                    ctx.cmd.SetComputeTextureParam(cs, data.accumulateKernel, HDShaderIDs._SsrAccumPrev, data.ssrAccumPrev);
-                                    ctx.cmd.SetComputeTextureParam(cs, data.accumulateKernel, HDShaderIDs._SsrClearCoatMaskTexture, data.clearCoatMask);
-                                    ctx.cmd.SetComputeTextureParam(cs, data.accumulateKernel, HDShaderIDs._CameraMotionVectorsTexture, data.motionVectorsBuffer);
+                                    CoreUtils.SetRenderTarget(ctx.cmd, data.ssrAccum, ClearFlag.Color, Color.clear);
+                                    CoreUtils.SetRenderTarget(ctx.cmd, data.ssrAccumPrev, ClearFlag.Color, Color.clear);
+                                }
+                                else
+                                {
+                                    using (new ProfilingScope(ctx.cmd, ProfilingSampler.Get(HDProfileId.SsrAccumulate)))
+                                    {
+                                        ctx.cmd.SetComputeTextureParam(cs, data.accumulateKernel, HDShaderIDs._DepthTexture, data.depthBuffer);
+                                        ctx.cmd.SetComputeTextureParam(cs, data.accumulateKernel, HDShaderIDs._CameraDepthTexture, data.depthPyramid);
+                                        ctx.cmd.SetComputeTextureParam(cs, data.accumulateKernel, HDShaderIDs._NormalBufferTexture, data.normalBuffer);
+                                        ctx.cmd.SetComputeTextureParam(cs, data.accumulateKernel, HDShaderIDs._ColorPyramidTexture, data.colorPyramid);
+                                        ctx.cmd.SetComputeTextureParam(cs, data.accumulateKernel, HDShaderIDs._SsrHitPointTexture, data.hitPointsTexture);
+                                        ctx.cmd.SetComputeTextureParam(cs, data.accumulateKernel, HDShaderIDs._SSRAccumTexture, data.ssrAccum);
+                                        ctx.cmd.SetComputeTextureParam(cs, data.accumulateKernel, HDShaderIDs._SsrLightingTextureRW, data.lightingTexture);
+                                        ctx.cmd.SetComputeTextureParam(cs, data.accumulateKernel, HDShaderIDs._SsrAccumPrev, data.ssrAccumPrev);
+                                        ctx.cmd.SetComputeTextureParam(cs, data.accumulateKernel, HDShaderIDs._SsrClearCoatMaskTexture, data.clearCoatMask);
+                                        ctx.cmd.SetComputeTextureParam(cs, data.accumulateKernel, HDShaderIDs._CameraMotionVectorsTexture, data.motionVectorsBuffer);
 
-                                    ConstantBuffer.Push(ctx.cmd, data.cb, cs, HDShaderIDs._ShaderVariablesScreenSpaceReflection);
+                                        ConstantBuffer.Push(ctx.cmd, data.cb, cs, HDShaderIDs._ShaderVariablesScreenSpaceReflection);
 
-                                    ctx.cmd.DispatchCompute(cs, data.accumulateKernel, HDUtils.DivRoundUp(data.width, 8), HDUtils.DivRoundUp(data.height, 8), data.viewCount);
+                                        ctx.cmd.DispatchCompute(cs, data.accumulateKernel, HDUtils.DivRoundUp(data.width, 8), HDUtils.DivRoundUp(data.height, 8), data.viewCount);
+                                    }
                                 }
                             }
                         });
@@ -639,7 +649,12 @@ namespace UnityEngine.Rendering.HighDefinition
                 if (!hdCamera.colorPyramidHistoryIsValid)
                 {
                     hdCamera.colorPyramidHistoryIsValid = true; // For the next frame...
+                    hdCamera.colorPyramidHistoryValidFrames = 0;
                     result = renderGraph.defaultResources.blackTextureXR;
+                }
+                else
+                {
+                    hdCamera.colorPyramidHistoryValidFrames++;
                 }
             }
 
