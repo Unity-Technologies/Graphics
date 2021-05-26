@@ -86,4 +86,11 @@ MonoBehaviour:
   shaderVariantLogLevel: 0
   lensAttenuationMode: 0
   diffusionProfileSettingsList: []
-  m_Version: 2
+  DLSSProjectId: 000000
+  useDLSSCustomProjectId: 0
+  supportProbeVolumes: 0
+  supportRuntimeDebugDisplay: 1
+  apvScenesBounds:
+    serializedBounds: []
+    serializedHasVolumes: []
+  m_Version: 3
