@@ -3,7 +3,7 @@
 ## Description
 You can use the Blackboard to define, order, and categorize the [Properties](Property-Types) and [Keywords](Keywords) in a graph. From the Blackboard, you can also edit the path for the selected Shader Graph Asset or Sub Graph.
 
-[IMAGE]
+![image](images/blackboardcategories1.png)
 
 ## Accessing the Blackboard
 The Blackboard is visible by default, and you cannot hide it. However, you are able to position it anywhere in the [Shader Graph Window](Shader-Graph-Window). It always maintains the same distance from the nearest corner, even if you resize the window.
@@ -41,7 +41,8 @@ To make the properties in your shader more discoverable, organize them into cate
 
 ### Adding, removing, and reordering properties and keywords
 * To add a property or keyword to a category, expand the category with the foldout (⌄) symbol, then drag and drop the property or keyword onto the expanded category.
-[IMAGE]
+![image](images/blackboardcategories2.png)
+
 * To remove a property or keyword, select it and press **Delete**, or right-click and select **Delete**.
 * To re-order properties or keywords, drag and drop them within a category or move them into other categories.
 
@@ -63,8 +64,8 @@ To copy a specific set of properties:
 
 ### Using categories in the Material Inspector
 To modify a material you have created with a Shader Graph, you can adjust specific property or keyword values in the Material Inspector, or edit the graph itself.
+![image](images/blackboardcategories3.png)
 
-[IMAGE]
 
 #### Working with Streaming Virtual Textures
 [Streaming Virtual Texture Properties](https://docs.unity3d.com/Documentation/Manual/svt-use-in-shader-graph.html) sample texture layers. To access these layers in the Material Inspector, expand the relevant **Virtual Texture** section with the ⌄ symbol next to its name. You can add and remove layers via the Inspector.
