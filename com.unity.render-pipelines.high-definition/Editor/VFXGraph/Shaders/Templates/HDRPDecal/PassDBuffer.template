@@ -38,7 +38,7 @@ Pass
 		float3 fadeParameters : TEXCOORD3;
 		uint decalLayerMask : TEXCOORD4;
         #else
-        float fadeParamaters : TEXCOORD3;
+        float fadeParameters : TEXCOORD3;
 		#endif
 
 

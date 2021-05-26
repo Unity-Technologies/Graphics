@@ -33,6 +33,8 @@ Pass
 		#if VFX_ENABLE_DECAL_LAYERS
 		float3 fadeParameters : TEXCOORD3;
 		uint decalLayerMask : TEXCOORD4;
+        #else
+        float fadeParameters : TEXCOORD3;
 		#endif
 
 		nointerpolation float4 viewToDecal0 : TEXCOORD5;
@@ -48,9 +50,9 @@ Pass
 	#define VFX_VARYING_POSCS pos
 	#define VFX_VARYING_UV uv
 	#define VFX_VARYING_POSWS posWS
-	#define VFX_VARYING_FADEFACTOR fadeParameters.z
+	#define VFX_VARYING_FADEFACTOR fadeParameters.x
 	#if VFX_ENABLE_DECAL_LAYERS
-	#define VFX_VARYING_ANGLEFADE fadeParameters.xy
+	#define VFX_VARYING_ANGLEFADE fadeParameters.yz
 	#define VFX_VARYING_DECALLAYER decalLayerMask
 	#endif
 
