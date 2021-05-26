@@ -767,19 +767,32 @@ namespace UnityEditor.Rendering.HighDefinition
             {
                 serialized.settings.DrawCookie();
 
-                // When directional light use a cookie, it can control the size
-                if (serialized.settings.cookie != null && lightType == HDLightType.Directional)
+                if (serialized.settings.cookie is Texture cookie && cookie != null)
                 {
-                    EditorGUI.indentLevel++;
-                    EditorGUI.BeginChangeCheck();
-                    var size = new Vector2(serialized.shapeWidth.floatValue, serialized.shapeHeight.floatValue);
-                    size = EditorGUILayout.Vector2Field(s_Styles.cookieSize, size);
-                    if (EditorGUI.EndChangeCheck())
+                    // When directional light use a cookie, it can control the size
+                    if (lightType == HDLightType.Directional)
                     {
-                        serialized.shapeWidth.floatValue = size.x;
-                        serialized.shapeHeight.floatValue = size.y;
+                        EditorGUI.indentLevel++;
+                        EditorGUI.BeginChangeCheck();
+                        var size = new Vector2(serialized.shapeWidth.floatValue, serialized.shapeHeight.floatValue);
+                        size = EditorGUILayout.Vector2Field(s_Styles.cookieSize, size);
+                        if (EditorGUI.EndChangeCheck())
+                        {
+                            serialized.shapeWidth.floatValue = size.x;
+                            serialized.shapeHeight.floatValue = size.y;
+                        }
+                        EditorGUI.indentLevel--;
                     }
-                    EditorGUI.indentLevel--;
+                    else if (lightType == HDLightType.Point && cookie.dimension != TextureDimension.Cube)
+                    {
+                        Debug.LogError($"The cookie texture '{cookie.name}' isn't compatible with the Point Light type. Only Cube textures are supported.");
+                        serialized.settings.cookieProp.objectReferenceValue = null;
+                    }
+                    else if (lightType == HDLightType.Spot && cookie.dimension != TextureDimension.Tex2D)
+                    {
+                        Debug.LogError($"The cookie texture '{cookie.name}' isn't compatible with the Spot Light type. Only 2D textures are supported.");
+                        serialized.settings.cookieProp.objectReferenceValue = null;
+                    }
                 }
 
                 ShowCookieTextureWarnings(serialized.settings.cookie, serialized.settings.isCompletelyBaked || serialized.settings.isBakedOrMixed);
