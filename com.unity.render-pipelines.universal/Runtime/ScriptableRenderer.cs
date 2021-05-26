@@ -447,6 +447,13 @@ namespace UnityEngine.Rendering.Universal
             public int numSamples = 0;
         }
 
+        class DynamicScalingData
+        {
+            public bool enabled;
+            public float widthScaleFactor;
+            public float heightScaleFactor;
+        }
+
         private int m_LastFrameNumPasses = 0;
         private int[] m_LastFramePassesHashes = new int[kRenderPassMaxCount];
         private int[][] m_LastFramePassColorAttachmentsHashes = new int[kRenderPassMaxCount][];
@@ -454,6 +461,8 @@ namespace UnityEngine.Rendering.Universal
 
         private PassFrameData[] m_LastFramePassesData = new PassFrameData[kRenderPassMaxCount];
         private CameraFrameData m_LastFrameCameraData = new CameraFrameData();
+
+        private DynamicScalingData m_LastFrameDynamicScalingData = new DynamicScalingData();
 
         internal bool useRenderPassEnabled = false;
         static RenderTargetIdentifier[] m_ActiveColorAttachments = new RenderTargetIdentifier[] {0, 0, 0, 0, 0, 0, 0, 0 };
@@ -535,6 +544,10 @@ namespace UnityEngine.Rendering.Universal
             m_LastFrameCameraData.width = 0;
             m_LastFrameCameraData.height = 0;
             m_LastFrameCameraData.numSamples = 0;
+
+            m_LastFrameDynamicScalingData.enabled = false;
+            m_LastFrameDynamicScalingData.widthScaleFactor = 0;
+            m_LastFrameDynamicScalingData.heightScaleFactor = 0;
 
             for (int i = 0; i < kRenderPassMaxCount; ++i)
             {
@@ -707,6 +720,17 @@ namespace UnityEngine.Rendering.Universal
                 m_LastFrameCameraData.width = cameraDesc.width;
                 m_LastFrameCameraData.height = cameraDesc.height;
                 m_LastFrameCameraData.numSamples = cameraDesc.msaaSamples;
+
+                // check dynamic scaling
+
+                setDirty = m_LastFrameDynamicScalingData.enabled != cameraDesc.useDynamicScale;
+
+                if (cameraDesc.useDynamicScale)
+                    setDirty = m_LastFrameDynamicScalingData.widthScaleFactor != ScalableBufferManager.widthScaleFactor || m_LastFrameDynamicScalingData.heightScaleFactor != ScalableBufferManager.heightScaleFactor;
+
+                m_LastFrameDynamicScalingData.enabled = cameraDesc.useDynamicScale;
+                m_LastFrameDynamicScalingData.widthScaleFactor = ScalableBufferManager.widthScaleFactor;
+                m_LastFrameDynamicScalingData.heightScaleFactor = ScalableBufferManager.heightScaleFactor;
 
                 // check passes ID/names
                 // check attachments hash
