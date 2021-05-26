@@ -1730,7 +1730,9 @@ namespace UnityEditor.ShaderGraph
                 position.y += 30;
 
                 StickyNoteData pastedStickyNote = new StickyNoteData(stickyNote.title, stickyNote.content, position);
-                if (groupMap.ContainsKey(stickyNote.group))
+                pastedStickyNote.textSize = stickyNote.textSize;
+                pastedStickyNote.theme = stickyNote.theme;
+                if (stickyNote.group != null && groupMap.ContainsKey(stickyNote.group))
                 {
                     pastedStickyNote.group = groupMap[stickyNote.group];
                 }
