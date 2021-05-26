@@ -1,8 +1,6 @@
 {
 	SubShader
-	{	
-		Cull Back
-		
+	{
 		${VFXInclude("Shaders/VFXParticleHeader.template")}
 		${VFXInclude("Shaders/ParticleHexahedron/PassSelection.template")}
 		${VFXIncludeRP("Templates/HDRPDecal/PassDBuffer.template")}

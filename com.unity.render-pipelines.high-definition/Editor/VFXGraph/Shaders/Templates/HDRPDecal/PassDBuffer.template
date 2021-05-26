@@ -1,5 +1,5 @@
 Pass
-{		
+{
 	Name "DBufferMesh"
 	Tags {"LightMode"="DBufferMesh"}
 
@@ -13,15 +13,15 @@ Pass
     // ColorMask [_DecalColorMask1] 1
     // ColorMask [_DecalColorMask2] 2
     // ColorMask [_DecalColorMask3] 3
-		
+
 	HLSLPROGRAM
 	#pragma target 4.5
 	#pragma multi_compile _ LIGHT_LAYERS
 	#pragma multi_compile _ DEBUG_DISPLAY
-	
+
 	#define UNITY_MATERIAL_LIT
-		
-	${VFXIncludeRP("VFXLitVaryings.template")}		
+
+	${VFXIncludeRP("VFXDecalVaryings.template")}
     #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Decal/Decal.hlsl"
 	#include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Decal/DecalPrepassBuffer.hlsl"
 
@@ -29,9 +29,9 @@ Pass
 	struct ps_input
 	{
 		float4 pos : SV_POSITION;
-		
-		${VFXHDRPLitDeclareVaryings}
-		
+
+		${VFXHDRPDecalDeclareVaryings}
+
 		float2 uv : TEXCOORD1; //unsure about the necessity of this one
 		float3 posWS : TEXCOORD2;
 		#if VFX_ENABLE_DECAL_LAYERS
@@ -45,9 +45,9 @@ Pass
 
 		UNITY_VERTEX_OUTPUT_STEREO
 	};
-	
-	${VFXHDRPLitVaryingsMacros}	
-		
+
+	${VFXHDRPDecalVaryingsMacros}
+
 	#define VFX_VARYING_PS_INPUTS ps_input
 	#define VFX_VARYING_POSCS pos
 	#define VFX_VARYING_UV uv
@@ -68,7 +68,7 @@ Pass
 		float3(attributes.pivotX,attributes.pivotY,attributes.pivotZ),
 		size3,
 		attributes.position);
-		
+
 	#if VFX_LOCAL_SPACE
 	viewToDecal = mul(viewToDecal, VFXGetWorldToObjectMatrix());
 	#endif
@@ -77,19 +77,19 @@ Pass
 	o.viewToDecal1 = viewToDecal[1];
 	o.viewToDecal2 = viewToDecal[2];
 
-	${VFXHDRPLitFillVaryings}
+	${VFXHDRPDecalFillVaryings}
 	${VFXEnd}
 
 
 //TODO : Vertex shader of decal must perform z bias or view bias (BiasType), need to create one
-${VFXInclude("Shaders/ParticleHexahedron/Pass.template")}	
+${VFXInclude("Shaders/ParticleHexahedron/Pass.template")}
 #define SHADERPASS SHADERPASS_VFX_DBUFFER_PROJECTOR
 ${VFXIncludeRP("VFXDecal.template")}
 
 
 
 //EndTODO
-					
+
 	#pragma fragment frag
 	void frag(ps_input i, OUTPUT_DBUFFER(outDBuffer))
 	{

@@ -1,0 +1,80 @@
+#define HDRP_NEEDS_UVS (HDRP_USE_BASE_COLOR_MAP || HDRP_USE_MASK_MAP || USE_NORMAL_MAP || HDRP_USE_EMISSIVE_MAP)
+#define HDRP_USE_EMISSIVE (HDRP_USE_EMISSIVE_MAP || HDRP_USE_EMISSIVE_COLOR || HDRP_USE_ADDITIONAL_EMISSIVE_COLOR)
+
+${VFXBegin:VFXHDRPDecalVaryingsMacros}
+#if (VFX_NEEDS_COLOR_INTERPOLATOR && HDRP_USE_BASE_COLOR) || HDRP_USE_ADDITIONAL_BASE_COLOR
+#define VFX_VARYING_COLOR color.rgb
+#define VFX_VARYING_ALPHA color.a
+#endif
+
+
+#define VFX_VARYING_METALLIC materialProperties.x
+#define VFX_VARYING_AMBIENT_OCCLUSION materialProperties.y
+#define VFX_VARYING_SMOOTHNESS materialProperties.z
+
+#if HDRP_USE_EMISSIVE_MAP
+#define VFX_VARYING_EMISSIVESCALE materialProperties.w
+#endif
+
+#if HDRP_USE_EMISSIVE_COLOR || HDRP_USE_ADDITIONAL_EMISSIVE_COLOR
+#define VFX_VARYING_EMISSIVE emissiveColor.rgb
+#endif
+
+#if USE_EXPOSURE_WEIGHT
+#define VFX_VARYING_EXPOSUREWEIGHT emissiveColor.a
+#endif
+${VFXEnd}
+
+${VFXBegin:VFXHDRPDecalDeclareVaryings}
+
+#if (VFX_NEEDS_COLOR_INTERPOLATOR && HDRP_USE_BASE_COLOR) || HDRP_USE_ADDITIONAL_BASE_COLOR
+VFX_OPTIONAL_INTERPOLATION float4 color : COLOR0;
+#endif
+#if HDRP_USE_EMISSIVE
+VFX_OPTIONAL_INTERPOLATION float4 emissiveColor : COLOR1;
+#endif
+
+// x: metallic
+// y: AO
+// z: smoothness
+// w: emissive scale
+VFX_OPTIONAL_INTERPOLATION float4 materialProperties : TEXCOORD0;
+${VFXEnd}
+
+${VFXBegin:VFXHDRPDecalFillVaryings}
+#ifndef VFX_SHADERGRAPH
+
+#ifdef VFX_VARYING_SMOOTHNESS
+${VFXLoadParameter:{smoothness}}
+o.VFX_VARYING_SMOOTHNESS = smoothness;
+#endif
+
+#ifdef VFX_VARYING_METALLIC
+${VFXLoadParameter:{metallic}}
+o.VFX_VARYING_METALLIC = metallic;
+#endif
+
+#if HDRP_USE_EMISSIVE_MAP
+#ifdef VFX_VARYING_EMISSIVESCALE
+${VFXLoadParameter:{emissiveScale}}
+o.VFX_VARYING_EMISSIVESCALE = emissiveScale;
+#endif
+#endif
+
+#ifdef VFX_VARYING_EMISSIVE
+#if HDRP_USE_EMISSIVE_COLOR
+o.VFX_VARYING_EMISSIVE = attributes.color;
+#elif HDRP_USE_ADDITIONAL_EMISSIVE_COLOR
+${VFXLoadParameter:{emissiveColor}}
+o.VFX_VARYING_EMISSIVE = emissiveColor.rgb;
+#endif
+#endif
+
+#if HDRP_USE_ADDITIONAL_BASE_COLOR
+#ifdef VFX_VARYING_COLOR
+${VFXLoadParameter:{baseColor}}
+o.VFX_VARYING_COLOR = baseColor;
+#endif
+#endif
+#endif
+${VFXEnd}
