@@ -418,12 +418,12 @@ namespace UnityEditor.Rendering.Universal
             var inputShaderVariantCount = compilerDataList.Count;
             for (int i = 0; i < inputShaderVariantCount;)
             {
-                bool removeInput = false;
+                bool removeInput = true;
                 foreach (var supportedFeatures in ShaderBuildPreprocessor.supportedFeaturesList)
                 {
-                    if (StripUnused(supportedFeatures, shader, snippetData, compilerDataList[i]))
+                    if (!StripUnused(supportedFeatures, shader, snippetData, compilerDataList[i]))
                     {
-                        removeInput = true;
+                        removeInput = false;
                         break;
                     }
                 }
