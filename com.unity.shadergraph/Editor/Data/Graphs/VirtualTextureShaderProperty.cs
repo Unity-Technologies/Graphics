@@ -75,7 +75,7 @@ namespace UnityEditor.ShaderGraph
             int numLayers = value.layers.Count;
             if (numLayers > 0)
             {
-                action(new HLSLProperty(HLSLType._CUSTOM, referenceName, HLSLDeclaration.UnityPerMaterial, concretePrecision)
+                action(new HLSLProperty(HLSLType._CUSTOM, referenceName + "_CBDecl", HLSLDeclaration.UnityPerMaterial, concretePrecision)
                 {
                     customDeclaration = (ssb) =>
                     {
@@ -132,7 +132,7 @@ namespace UnityEditor.ShaderGraph
                     builder.AppendNewLine();
                 };
 
-                action(new HLSLProperty(HLSLType._CUSTOM, referenceName, HLSLDeclaration.Global, concretePrecision)
+                action(new HLSLProperty(HLSLType._CUSTOM, referenceName + "_Global", HLSLDeclaration.Global, concretePrecision)
                 {
                     customDeclaration = customDecl
                 });
