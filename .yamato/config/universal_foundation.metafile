@@ -211,6 +211,46 @@ pr:
       color_space: Linear
       test_platforms:
         - Standalone_cache
+        #- Standalone_XR_cache
+        #- playmode_XR_cache
+        #- editmode
+
+nightly:
+  dependencies:
+    - project: URP_Foundation
+      pr: true
+    - platform: Win
+      api: DX11
+      build_config: mono
+      color_space: Linear
+      test_platforms:
+        - playmode_cache
+    - platform: Win
+      api: DX12
+      build_config: mono
+      color_space: Linear
+      test_platforms:
+        - playmode_cache
+        # - playmode_XR_cache
+    - platform: Win
+      api: Vulkan
+      build_config: mono
+      color_space: Linear
+      test_platforms:
+        - playmode_cache
+        # - playmode_XR_cache
+    - platform: Linux
+      api: Vulkan
+      build_config: mono
+      color_space: Linear
+      test_platforms:
+        - playmode_cache
+### TODO: MOVE THE FOLLOWING JOBS BACK TO PR JOBS
+    - platform: Win
+      api: DX11
+      build_config: mono
+      color_space: Linear
+      test_platforms:
         - Standalone_XR_cache
         - playmode_XR_cache
         - editmode
@@ -282,33 +322,3 @@ pr:
       color_space: Linear
       test_platforms:
         - Standalone_cache
-nightly:
-  dependencies:
-    - project: URP_Foundation
-      pr: true
-    - platform: Win
-      api: DX11
-      build_config: mono
-      color_space: Linear
-      test_platforms:
-        - playmode_cache
-    - platform: Win
-      api: DX12
-      build_config: mono
-      color_space: Linear
-      test_platforms:
-        - playmode_cache
-        # - playmode_XR_cache
-    - platform: Win
-      api: Vulkan
-      build_config: mono
-      color_space: Linear
-      test_platforms:
-        - playmode_cache
-        # - playmode_XR_cache
-    - platform: Linux
-      api: Vulkan
-      build_config: mono
-      color_space: Linear
-      test_platforms:
-        - playmode_cache
