@@ -39,7 +39,7 @@ namespace UnityEditor.Rendering.BuiltIn.ShaderGraph
 
     enum ZTestMode  // the values here match UnityEngine.Rendering.CompareFunction
     {
-        Disabled = 0,
+        // Disabled = 0, "Disabled" option is invalid for actual use in shaders
         Never = 1,
         Less = 2,
         Equal = 3,

@@ -35,6 +35,8 @@ namespace UnityEditor.Rendering.BuiltIn.ShaderGraph
             public static readonly string[] blendModeNames = Enum.GetNames(typeof(BlendMode));
             public static readonly string[] renderFaceNames = Enum.GetNames(typeof(RenderFace));
             public static readonly string[] zwriteNames = Enum.GetNames(typeof(UnityEditor.Rendering.BuiltIn.ShaderGraph.ZWriteControl));
+            // need to skip the first entry for ztest (ZTestMode.Disabled is not a valid value)
+            public static readonly int[] ztestValues = (int[])Enum.GetValues(typeof(UnityEditor.Rendering.BuiltIn.ShaderGraph.ZTestMode));
             public static readonly string[] ztestNames = Enum.GetNames(typeof(UnityEditor.Rendering.BuiltIn.ShaderGraph.ZTestMode));
 
             public static readonly GUIContent surfaceType = EditorGUIUtility.TrTextContent("Surface Type",
@@ -109,7 +111,7 @@ namespace UnityEditor.Rendering.BuiltIn.ShaderGraph
             DoPopup(Styles.zwriteText, materialEditor, zWriteProp, Styles.zwriteNames);
 
             var ztestProp = FindProperty(Property.ZTest(), properties, false);
-            DoPopup(Styles.ztestText, materialEditor, ztestProp, Styles.ztestNames);
+            DoIntPopup(Styles.ztestText, materialEditor, ztestProp, Styles.ztestNames, Styles.ztestValues);
 
             var alphaClipProp = FindProperty(Property.AlphaClip(), properties, false);
             DrawFloatToggleProperty(Styles.alphaClipText, alphaClipProp);
@@ -231,6 +233,14 @@ namespace UnityEditor.Rendering.BuiltIn.ShaderGraph
             materialEditor.PopupShaderProperty(property, label, options);
         }
 
+        public static void DoIntPopup(GUIContent label, MaterialEditor materialEditor, MaterialProperty property, string[] options, int[] optionValues)
+        {
+            if (property == null)
+                return;
+
+            materialEditor.IntPopupShaderProperty(property, label.text, options, optionValues);
+        }
+
         public static void DrawFloatToggleProperty(GUIContent styles, MaterialProperty prop)
         {
             if (prop == null)
@@ -259,6 +269,23 @@ namespace UnityEditor.Rendering.BuiltIn.ShaderGraph
             if (EditorGUI.EndChangeCheck() && (newValue != val || prop.hasMixedValue))
             {
                 editor.RegisterPropertyChangeUndo(label.text);
+                prop.floatValue = val = newValue;
+            }
+
+            return val;
+        }
+
+        public static int IntPopupShaderProperty(this MaterialEditor editor, MaterialProperty prop, string label, string[] displayedOptions, int[] optionValues)
+        {
+            int val = (int)prop.floatValue;
+
+            EditorGUI.BeginChangeCheck();
+            EditorGUI.showMixedValue = prop.hasMixedValue;
+            int newValue = EditorGUILayout.IntPopup(label, val, displayedOptions, optionValues);
+            EditorGUI.showMixedValue = false;
+            if (EditorGUI.EndChangeCheck() && (newValue != val || prop.hasMixedValue))
+            {
+                editor.RegisterPropertyChangeUndo(label);
                 prop.floatValue = val = newValue;
             }
 
