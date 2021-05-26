@@ -50,7 +50,7 @@ namespace UnityEditor.ShaderGraph.Internal
         {
             HLSLDeclaration decl = GetDefaultHLSLDeclaration();
             if (decl == HLSLDeclaration.HybridPerInstance)
-                return $"UNITY_ACCESS_HYBRID_INSTANCED_PROP({referenceName})";
+                return $"UNITY_ACCESS_HYBRID_INSTANCED_PROP({referenceName}, {concretePrecision.ToShaderString()})";
             else
                 return referenceName;
         }
