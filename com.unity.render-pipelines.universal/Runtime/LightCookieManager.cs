@@ -199,7 +199,8 @@ namespace UnityEngine.Rendering.Universal
             {
                 unsafe
                 {
-                    int len = bitCapacity;
+                    Debug.Assert(bitCapacity < 4096, "Bit string too long! It was truncated!");
+                    int len = Math.Min(bitCapacity, 4096);
                     byte* buf = stackalloc byte[len];
                     for (int i = 0; i < len; i++)
                     {
