@@ -19,3 +19,12 @@ void TerrainLitDebug(float2 uv, inout float3 baseColor)
     baseColor = GetTextureDataDebug(_DebugMipMapMode, uv, _MainTex, _MainTex_TexelSize, _MainTex_MipInfo, baseColor);
 #endif
 }
+
+void TerrainTexelDensityDebug(float3 worldPosition, float2 uv, inout float3 baseColor)
+{
+#ifdef DEBUG_DISPLAY
+    float2 texDimension;
+    _MainTex.GetDimensions(texDimension.x, texDimension.y);
+    baseColor = DebugTexelDensityColor(worldPosition, uv, texDimension);
+#endif
+}

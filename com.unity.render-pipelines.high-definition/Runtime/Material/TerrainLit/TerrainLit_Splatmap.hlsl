@@ -258,3 +258,10 @@ void TerrainLitDebug(float2 uv, inout float3 baseColor)
     #endif
 #endif
 }
+
+void TerrainTexelDensityDebug(float3 worldPosition, float2 uv, inout float3 baseColor)
+{
+#ifdef DEBUG_DISPLAY
+    baseColor *= 0.25; // NYI
+#endif
+}

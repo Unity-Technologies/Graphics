@@ -36,6 +36,9 @@ namespace UnityEngine.Rendering.HighDefinition
         public Vector4 _MouseClickPixelCoord;  // xy unorm, zw norm
         public Vector4 _DebugLutParams; // x: 1/width, y: 1/height, z: height-1, w: unused
         public Vector4 _DebugShowHeightMaps; // xyz = color to use for materials not using heightmaps, w = albedo blend
+        public Vector4 _DebugTexelDensityTarget; // xyz = color for surfaces at the target density, w = target density
+        public Vector4 _DebugTexelDensityLower; // xyx = color for surfaces below the target density, w = log2 step limit
+        public Vector4 _DebugTexelDensityHigher; // xyx = color for surfaces above the target density, w = checkerboard texel size
 
         public int _MatcapMixAlbedo;
         public float _MatcapViewScale;
@@ -123,6 +126,8 @@ namespace UnityEngine.Rendering.HighDefinition
         ValidateSpecularColor,
         /// <summary>Display material heightmaps.</summary>
         Heightmaps,
+        /// <summary>Display texel density.</summary>
+        TexelDensity,
         /// <summary>Maximum Full Screen Material debug mode value (used internally).</summary>
         MaxMaterialFullScreenDebug,
         // TODO: Move before count for 11.0
@@ -336,6 +341,7 @@ namespace UnityEngine.Rendering.HighDefinition
             s_MaterialFullScreenDebugStrings[(int)FullScreenDebugMode.ValidateDiffuseColor - ((int)FullScreenDebugMode.MinMaterialFullScreenDebug)] = new GUIContent("Diffuse Color");
             s_MaterialFullScreenDebugStrings[(int)FullScreenDebugMode.ValidateSpecularColor - ((int)FullScreenDebugMode.MinMaterialFullScreenDebug)] = new GUIContent("Metal or SpecularColor");
             s_MaterialFullScreenDebugStrings[(int)FullScreenDebugMode.Heightmaps - ((int)FullScreenDebugMode.MinMaterialFullScreenDebug)] = new GUIContent("Show Heightmaps");
+            s_MaterialFullScreenDebugStrings[(int)FullScreenDebugMode.TexelDensity - ((int)FullScreenDebugMode.MinMaterialFullScreenDebug)] = new GUIContent("Texel Density");
 
             s_MsaaSamplesDebugStrings = Enum.GetNames(typeof(MSAASamples))
                 .Select(t => new GUIContent(t))
@@ -518,7 +524,7 @@ namespace UnityEngine.Rendering.HighDefinition
         /// <returns>True if any material validation is enabled.</returns>
         public bool IsMaterialValidationEnabled()
         {
-            return (data.fullScreenDebugMode == FullScreenDebugMode.ValidateDiffuseColor) || (data.fullScreenDebugMode == FullScreenDebugMode.ValidateSpecularColor) || (data.fullScreenDebugMode == FullScreenDebugMode.Heightmaps);
+            return (data.fullScreenDebugMode == FullScreenDebugMode.ValidateDiffuseColor) || (data.fullScreenDebugMode == FullScreenDebugMode.ValidateSpecularColor) || (data.fullScreenDebugMode == FullScreenDebugMode.Heightmaps) || (data.fullScreenDebugMode == FullScreenDebugMode.TexelDensity);
         }
 
         /// <summary>
@@ -1025,6 +1031,21 @@ namespace UnityEngine.Rendering.HighDefinition
                     {
                         new DebugUI.ColorField { displayName = "No HeightMap Color", getter = () => data.materialDebugSettings.showHeightMapsDefaultColor, setter = value => data.materialDebugSettings.showHeightMapsDefaultColor = value, showAlpha = false, hdr = false },
                         new DebugUI.FloatField { displayName = "Blend Albedo", getter = () => data.materialDebugSettings.showHeightMapsBlendAlbedo, setter = (v) => data.materialDebugSettings.showHeightMapsBlendAlbedo = v, min = () => 0.0f, max = () => 1.0f, },
+                    }
+                });
+            }
+            else if (data.fullScreenDebugMode == FullScreenDebugMode.TexelDensity)
+            {
+                list.Add(new DebugUI.Container
+                {
+                    children =
+                    {
+                        new DebugUI.FloatField { displayName = "Target Density", getter = () => data.materialDebugSettings.texelDensityTarget, setter = (v) => data.materialDebugSettings.texelDensityTarget = v, min = () => 256.0f, max = () => 16384.0f, },
+                        new DebugUI.FloatField { displayName = "Log2 Step Limit", getter = () => data.materialDebugSettings.texelDensityLog2StepsLimit, setter = (v) => data.materialDebugSettings.texelDensityLog2StepsLimit = v, min = () => 1.0f, max = () => 8.0f, },
+                        new DebugUI.ColorField { displayName = "Target Density Color", getter = () => data.materialDebugSettings.texelDensityTargetColor, setter = value => data.materialDebugSettings.texelDensityTargetColor = value, showAlpha = false, hdr = false },
+                        new DebugUI.ColorField { displayName = "Lower Density Color", getter = () => data.materialDebugSettings.texelDensityLowerColor, setter = value => data.materialDebugSettings.texelDensityLowerColor = value, showAlpha = false, hdr = false },
+                        new DebugUI.ColorField { displayName = "Higher Density Color", getter = () => data.materialDebugSettings.texelDensityHigherColor, setter = value => data.materialDebugSettings.texelDensityHigherColor = value, showAlpha = false, hdr = false },
+                        new DebugUI.FloatField { displayName = "Checkerboard Texels", getter = () => data.materialDebugSettings.texelDensityCheckerboardTexels, setter = (v) => data.materialDebugSettings.texelDensityCheckerboardTexels = v, min = () => 1.0f, max = () => 4096.0f, },
                     }
                 });
             }

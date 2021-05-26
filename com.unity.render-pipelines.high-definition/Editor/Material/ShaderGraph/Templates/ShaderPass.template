@@ -290,6 +290,18 @@ Pass
         ApplyDebugToBuiltinData(builtinData);
         #endif
 
+        #ifdef DEBUG_DISPLAY
+        if (_DebugFullScreenMode == FULLSCREENDEBUGMODE_TEXEL_DENSITY)
+        {
+			// ShaderGraph texel density debug relies on the convention that the main color texture is named _BaseColorMap
+            float3 wsPosition = posInput.positionWS;
+            float2 uv = fragInputs.texCoord0;
+            float2 texDimension;
+            _BaseColorMap.GetDimensions(texDimension.x, texDimension.y);
+            surfaceData.baseColor.rgb = DebugTexelDensityColor(wsPosition, uv, texDimension);
+        }
+        #endif
+
         RAY_TRACING_OPTIONAL_ALPHA_TEST_PASS
     }
 

@@ -1030,6 +1030,11 @@ float4 GetHeightMapDebug(SurfaceData surfaceData)
     return float4(surfaceData.baseColor, 1);
 }
 
+float4 GetTexelDensityDebug(SurfaceData surfaceData)
+{
+    return float4(surfaceData.baseColor, 1);
+}
+
 //-----------------------------------------------------------------------------
 // PreLightData
 //-----------------------------------------------------------------------------

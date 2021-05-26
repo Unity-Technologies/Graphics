@@ -5387,6 +5387,24 @@ namespace UnityEngine.Rendering.HighDefinition
                     materialDebugSettings.showHeightMapsDefaultColor.b,
                     materialDebugSettings.showHeightMapsBlendAlbedo);
 
+                cb._DebugTexelDensityTarget = new Vector4(
+                    materialDebugSettings.texelDensityTargetColor.r,
+                    materialDebugSettings.texelDensityTargetColor.g,
+                    materialDebugSettings.texelDensityTargetColor.b,
+                    materialDebugSettings.texelDensityTarget);
+
+                cb._DebugTexelDensityLower = new Vector4(
+                    materialDebugSettings.texelDensityLowerColor.r,
+                    materialDebugSettings.texelDensityLowerColor.g,
+                    materialDebugSettings.texelDensityLowerColor.b,
+                    materialDebugSettings.texelDensityLog2StepsLimit);
+
+                cb._DebugTexelDensityHigher = new Vector4(
+                    materialDebugSettings.texelDensityHigherColor.r,
+                    materialDebugSettings.texelDensityHigherColor.g,
+                    materialDebugSettings.texelDensityHigherColor.b,
+                    materialDebugSettings.texelDensityCheckerboardTexels);
+
                 ConstantBuffer.PushGlobal(cmd, m_ShaderVariablesDebugDisplayCB, HDShaderIDs._ShaderVariablesDebugDisplay);
 
                 cmd.SetGlobalTexture(HDShaderIDs._DebugFont, defaultResources.textures.debugFontTex);

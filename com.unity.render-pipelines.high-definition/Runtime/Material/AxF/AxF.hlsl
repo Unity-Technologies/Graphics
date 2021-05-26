@@ -345,6 +345,11 @@ float4 GetHeightMapDebug(SurfaceData surfaceData)
     return float4(surfaceData.diffuseColor, 1);
 }
 
+float4 GetTexelDensityDebug(SurfaceData surfaceData)
+{
+    return float4(surfaceData.diffuseColor, 1);
+}
+
 
 // This function is used to help with debugging and must be implemented by any lit material
 // Implementer must take into account what are the current override component and

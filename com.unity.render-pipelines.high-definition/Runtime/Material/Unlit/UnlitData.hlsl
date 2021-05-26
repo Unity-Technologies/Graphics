@@ -97,6 +97,15 @@ void GetSurfaceAndBuiltinData(FragInputs input, float3 V, inout PositionInputs p
 #endif
         surfaceData.color = lerp(heightmap, surfaceData.color, _DebugShowHeightMaps.a);
     }
+
+    if (_DebugFullScreenMode == FULLSCREENDEBUGMODE_TEXEL_DENSITY)
+    {
+        float3 wsPosition = posInput.positionWS;
+        float2 uv = input.texCoord0.xy;
+        float2 texDimension;
+        _UnlitColorMap.GetDimensions(texDimension.x, texDimension.y);
+        surfaceData.color.rgb = DebugTexelDensityColor(wsPosition, uv, texDimension);
+    }
 #endif
 
     RAY_TRACING_OPTIONAL_ALPHA_TEST_PASS

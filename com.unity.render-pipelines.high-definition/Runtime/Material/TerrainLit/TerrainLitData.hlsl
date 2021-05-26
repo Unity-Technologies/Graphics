@@ -133,6 +133,7 @@ AttributesMesh ApplyMeshModification(AttributesMesh input, float3 timeParameters
 
 void TerrainLitShade(float2 uv, inout TerrainLitSurfaceData surfaceData);
 void TerrainLitDebug(float2 uv, inout float3 baseColor);
+void TerrainTexelDensityDebug(float3 worldPosition, float2 uv, inout float3 baseColor);
 
 float3 ConvertToNormalTS(float3 normalData, float3 tangentWS, float3 bitangentWS)
 {
@@ -246,6 +247,11 @@ void GetSurfaceAndBuiltinData(inout FragInputs input, float3 V, inout PositionIn
         heightmap = SAMPLE_TEXTURE2D_LOD(_HeightMap, sampler_HeightMap, layerTexCoord.base.uvZY, lod).rrr;
 #endif
         surfaceData.baseColor = lerp(heightmap, surfaceData.baseColor, _DebugShowHeightMaps.a);
+    }
+
+    if (_DebugFullScreenMode == FULLSCREENDEBUGMODE_TEXEL_DENSITY)
+    {
+        TerrainTexelDensityDebug(posInput.positionWS, input.texCoord0.xy, surfaceData.baseColor);
     }
 #endif
 
