@@ -153,7 +153,8 @@ namespace UnityEditor.Rendering.Universal
 
         bool StripUnusedFeatures(ShaderFeatures features, Shader shader, ShaderSnippetData snippetData, ShaderCompilerData compilerData)
         {
-            bool stripDebugDisplayShaders = !Debug.isDebugBuild || !UniversalRenderPipelineGlobalSettings.instance.supportRuntimeDebugDisplay;
+            var globalSettings = UniversalRenderPipelineGlobalSettings.Ensure();
+            bool stripDebugDisplayShaders = !Debug.isDebugBuild || !globalSettings.supportRuntimeDebugDisplay;
 
 #if XR_MANAGEMENT_4_0_1_OR_NEWER
             var buildTargetSettings = XRGeneralSettingsPerBuildTarget.XRGeneralSettingsForBuildTarget(BuildTargetGroup.Standalone);

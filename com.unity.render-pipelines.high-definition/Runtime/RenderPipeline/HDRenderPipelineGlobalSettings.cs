@@ -702,7 +702,6 @@ namespace UnityEngine.Rendering.HighDefinition
         /// <summary>
         /// Controls whether debug display shaders for Rendering Debugger are available in Player builds.
         /// </summary>
-        [SerializeField]
         public bool supportRuntimeDebugDisplay = false;
 
         #endregion
