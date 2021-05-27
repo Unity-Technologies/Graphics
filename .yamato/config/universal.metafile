@@ -1,19 +1,54 @@
 project:
   name: Universal
   folder: UniversalGraphicsTest
+reuse_blocks:
+  setup_with_utr:
+    - [Win_DX11, Win_DX12, Win_Vulkan, Android_OpenGLES3, Android_Vulkan]: <shared.platform.commands.turn_off_firewall>
+    - [Win_DX11, Win_DX12, Win_Vulkan]: cd Tools && powershell -command ". .\Unity.ps1; Set-ScreenResolution -width 1920 -Height 1080"
+    - [all]: <shared.platform.commands.setup_utr>
+    - [all]: <shared.platform.commands.unity_downloader_cli>
+    - [all]: <shared.platform.commands.call_utr>
+  setup_without_utr:
+    - [Win_DX11, Win_DX12, Win_Vulkan, Android_OpenGLES3, Android_Vulkan]: <shared.platform.commands.turn_off_firewall>
+    - [Win_DX11, Win_DX12, Win_Vulkan]: cd Tools && powershell -command ". .\Unity.ps1; Set-ScreenResolution -width 1920 -Height 1080"
+    - [all]: <shared.platform.commands.setup_utr>
+    - [all]: <shared.platform.commands.unity_downloader_cli>
+
 test_platforms:
   - type: Standalone
-    utr_flags:
-      - [OSX_Metal]: --timeout=2400
-    utr_flags_build:
-      - [Android_OpenGles3, Android_Vulkan]: --timeout=2700
-      - [Win_DX11, Win_DX12, Win_Vulkan]: --timeout=2000
+    commands:
+      - [Android_OpenGLES3, Android_Vulkan]: <shared.platform.commands.connect_bokken>
+      - [Win_DX11, Win_DX12, Win_Vulkan, Android_OpenGLES3, Android_Vulkan]: <shared.platform.commands.turn_off_firewall>
+      - [Win_DX11, Win_DX12, Win_Vulkan]: cd Tools && powershell -command ". .\Unity.ps1; Set-ScreenResolution -width 1920 -Height 1080"
+      - [all]: <shared.platform.commands.setup_utr>
+      - [OSX_Metal]: <shared.platform.commands.unity_downloader_cli>
+      - [all]: <shared.platform.commands.call_utr>
+        flags:
+          - [OSX_Metal]: --timeout=2400
+      - [Android_OpenGLES3, Android_Vulkan]: <shared.platform.commands.kill_server>
+    commands_build:
+      - <reuse_blocks.setup_without_utr>
+      - [all]: <shared.platform.commands.call_utr>
+        flags:
+          - [Android_OpenGles3, Android_Vulkan]: --timeout=2700
+          - [Win_DX11, Win_DX12, Win_Vulkan]: --timeout=2000
+
   - type: playmode
+    commands:
+      - <reuse_blocks.setup_with_utr>
+
   - type: editmode
+    commands:
+      - <reuse_blocks.setup_with_utr>
+
   - type: playmode
     name: playmode_XR
-    utr_flags:
-      - [all]: --extra-editor-arg="-xr-tests"
+    commands:
+      - <reuse_blocks.setup_without_utr>
+      - [all]: <shared.platform.commands.call_utr>
+        flags:
+          - [all]: --extra-editor-arg="-xr-tests"
+
 expression_trigger:
   expression: ""
 platforms:
