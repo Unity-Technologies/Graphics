@@ -678,15 +678,6 @@ void GetSurfaceAndBuiltinData(FragInputs input, float3 V, inout PositionInputs p
 #endif
         surfaceData.diffuseColor = lerp(heightmap, surfaceData.diffuseColor, _DebugShowHeightMaps.a);
     }
-
-    if (_DebugFullScreenMode == FULLSCREENDEBUGMODE_TEXEL_DENSITY)
-    {
-        float3 wsPosition = posInput.positionWS;
-        float2 uv = uvMapping.uvBase;
-        float2 texDimension;
-        _SVBRDF_DiffuseColorMap.GetDimensions(texDimension.x, texDimension.y);
-        surfaceData.diffuseColor = DebugTexelDensityColor(wsPosition, uv, texDimension);
-    }
 #endif
 
     // -------------------------------------------------------------

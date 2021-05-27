@@ -204,10 +204,6 @@ void Frag(PackedVaryingsToPS packedInput,
         {
             outColor = GetHeightMapDebug(surfaceData);
         }
-        else if (_DebugFullScreenMode == FULLSCREENDEBUGMODE_TEXEL_DENSITY)
-        {
-            outColor = GetTexelDensityDebug(surfaceData);
-        }
         else if (_DebugFullScreenMode == FULLSCREENDEBUGMODE_TRANSPARENCY_OVERDRAW)
         {
             float4 result = _DebugTransparencyOverdrawWeight * float4(TRANSPARENCY_OVERDRAW_COST, TRANSPARENCY_OVERDRAW_COST, TRANSPARENCY_OVERDRAW_COST, TRANSPARENCY_OVERDRAW_A);

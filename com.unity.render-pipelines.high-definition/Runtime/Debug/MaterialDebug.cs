@@ -445,19 +445,6 @@ namespace UnityEngine.Rendering.HighDefinition
         public Color showHeightMapsDefaultColor = new Color(0.5f, 0.5f, 0.5f);
         /// <summary>How much from the albedo map is used to tint the heightmap.</summary>
         public float showHeightMapsBlendAlbedo = 0.2f;
-        /// <summary>Target texel density.</summary>
-        public float texelDensityTarget = 1024.0f;
-        /// <summary>How many orders of magnitude (in base 2) away from the target are considered within the acceptable margin.</summary>
-        /// Eg: With TexelDensityTarget=1024 and Log2StepsLimit=2, the valid range would be between 256 and 4096
-        public float texelDensityLog2StepsLimit = 2.0f;
-        /// <summary>Color for displaying surfaces at the target texel density.</summary>
-        public Color texelDensityTargetColor = new Color(0.0f, 0.0f, 1.0f);
-        /// <summary>Color for displaying surfaces below the target texel density.</summary>
-        public Color texelDensityLowerColor = new Color(1.0f, 0.0f, 0.0f);
-        /// <summary>Color for displaying surfaces above the target texel density.</summary>
-        public Color texelDensityHigherColor = new Color(0.0f, 1.0f, 0.0f);
-        /// <summary>How many texels each square of the checkerboard represents.</summary>
-        public float texelDensityCheckerboardTexels = 32.0f;
 
         /// <summary>
         /// Current Debug View Material.

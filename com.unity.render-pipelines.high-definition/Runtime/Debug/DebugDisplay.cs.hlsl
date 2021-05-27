@@ -38,10 +38,9 @@
 #define FULLSCREENDEBUGMODE_VALIDATE_DIFFUSE_COLOR (28)
 #define FULLSCREENDEBUGMODE_VALIDATE_SPECULAR_COLOR (29)
 #define FULLSCREENDEBUGMODE_HEIGHTMAPS (30)
-#define FULLSCREENDEBUGMODE_TEXEL_DENSITY (31)
-#define FULLSCREENDEBUGMODE_MAX_MATERIAL_FULL_SCREEN_DEBUG (32)
-#define FULLSCREENDEBUGMODE_SCREEN_SPACE_REFLECTIONS_PREV (33)
-#define FULLSCREENDEBUGMODE_SCREEN_SPACE_REFLECTIONS_ACCUM (34)
+#define FULLSCREENDEBUGMODE_MAX_MATERIAL_FULL_SCREEN_DEBUG (31)
+#define FULLSCREENDEBUGMODE_SCREEN_SPACE_REFLECTIONS_PREV (32)
+#define FULLSCREENDEBUGMODE_SCREEN_SPACE_REFLECTIONS_ACCUM (33)
 
 // Generated from UnityEngine.Rendering.HighDefinition.ShaderVariablesDebugDisplay
 // PackingRules = Exact
@@ -69,9 +68,6 @@ CBUFFER_START(ShaderVariablesDebugDisplay)
     float4 _MouseClickPixelCoord;
     float4 _DebugLutParams;
     float4 _DebugShowHeightMaps;
-    float4 _DebugTexelDensityTarget;
-    float4 _DebugTexelDensityLower;
-    float4 _DebugTexelDensityHigher;
     int _MatcapMixAlbedo;
     float _MatcapViewScale;
     int _DebugSingleShadowIndex;

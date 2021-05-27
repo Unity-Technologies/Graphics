@@ -847,27 +847,6 @@ void GetSurfaceAndBuiltinData(FragInputs input, float3 V, inout PositionInputs p
 
         surfaceData.baseColor = lerp(heightmap, surfaceData.baseColor, _DebugShowHeightMaps.a);
     }
-
-
-    if (_DebugFullScreenMode == FULLSCREENDEBUGMODE_TEXEL_DENSITY)
-    {
-        float3 wsPosition = posInput.positionWS;
-        float2 texDimension;
-
-        _BaseColorMap0.GetDimensions(texDimension.x, texDimension.y);
-        float3 texDensity0 = DebugTexelDensityColor(wsPosition, layerTexCoord.base0.uv, texDimension);
-
-        _BaseColorMap1.GetDimensions(texDimension.x, texDimension.y);
-        float3 texDensity1 = DebugTexelDensityColor(wsPosition, layerTexCoord.base1.uv, texDimension);
-
-        _BaseColorMap2.GetDimensions(texDimension.x, texDimension.y);
-        float3 texDensity2 = DebugTexelDensityColor(wsPosition, layerTexCoord.base2.uv, texDimension);
-
-        _BaseColorMap3.GetDimensions(texDimension.x, texDimension.y);
-        float3 texDensity3 = DebugTexelDensityColor(wsPosition, layerTexCoord.base3.uv, texDimension);
-
-        surfaceData.baseColor = BlendLayeredVector3(texDensity0, texDensity1, texDensity2, texDensity3, weights);
-    }
 #endif
 
     // By default we use the ambient occlusion with Tri-ace trick (apply outside) for specular occlusion.
