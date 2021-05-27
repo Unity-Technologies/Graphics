@@ -128,6 +128,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed shaderGraph shaders to render into correct depthNormals passes when deferred rendering mode and SSAO are enabled.
 - Fixed ordering of subshaders in the Unlit Shader Graph, such that shader target 4.5 takes priority over 2.0. [case 1328636](https://issuetracker.unity3d.com/product/unity/issues/guid/1328636/)
 - Fixed issue where it will clear camera color if post processing is happening on XR [case 1324451]
+- Fixed a case where camere dimension can be zero. [case 1321168](https://issuetracker.unity3d.com/issues/urp-attempting-to-get-camera-relative-temporary-rendertexture-is-thrown-when-tweening-the-viewport-rect-values-of-a-camera)
 
 ### Changed
 - Change Asset/Create/Shader/Universal Render Pipeline/Lit Shader Graph to Asset/Create/Shader Graph/URP/Lit Shader Graph
