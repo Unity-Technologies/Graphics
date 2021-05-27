@@ -109,11 +109,12 @@ namespace UnityEngine.Rendering.Universal
             if (assetCreated == null)
             {
                 assetCreated = ScriptableObject.CreateInstance<UniversalRenderPipelineGlobalSettings>();
-                AssetDatabase.CreateAsset(assetCreated, path);
                 if (assetCreated != null)
                 {
                     assetCreated.name = System.IO.Path.GetFileName(path);
                 }
+                AssetDatabase.CreateAsset(assetCreated, path);
+                Debug.Assert(assetCreated);
             }
 
             if (assetCreated)

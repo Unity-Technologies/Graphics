@@ -30,6 +30,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Added URP Global Settings Asset to the Graphics Settings - a common place for project-wide URP settings.
 - Added possibility to rename light layer values.
 - Added Light cookies support to directional, point and spot light. Directional light cookie is main light only feature.
+- Added GetUniversalAdditionalLightData, a method that returns the additional data component for a given light or create one if it doesn't exist yet.
 - VFX: Basic support of Lit output.
 - Added Motion Vector render pass for URP.
 - VFX: Fix light cookies integration.
@@ -63,6 +64,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Enabled subsurface scattering with GI on handwritten Universal ST8 shader.
 - Material upgrader now also upgrades AnimationClips in the project that have curves bound to renamed material properties.
 - 2D Lights now inherit from Light2DBase.
+- When MSAA is enabled and a depth texture is required, the opaque pass depth will be copied instead of scheduling a depth prepass.
 
 ### Fixed
 - Camera Inspector Stack list edition fixes.
@@ -124,6 +126,8 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed renderer post processing option to work with asset selector re-assing. [case 1319454](https://issuetracker.unity3d.com/issues/urp-universal-renderer-post-processing-doesnt-enable-when-postprocessdata-reassigned-from-the-asset-selector-window)
 - Fixed post processing to be enabled by default in the renderer when creating URP asset option. [case 1333461](https://issuetracker.unity3d.com/issues/post-processing-is-disabled-by-default-in-the-forward-renderer-when-creating-a-new-urp-asset)
 - Fixed shaderGraph shaders to render into correct depthNormals passes when deferred rendering mode and SSAO are enabled.
+- Fixed ordering of subshaders in the Unlit Shader Graph, such that shader target 4.5 takes priority over 2.0. [case 1328636](https://issuetracker.unity3d.com/product/unity/issues/guid/1328636/)
+- Fixed issue where it will clear camera color if post processing is happening on XR [case 1324451]
 
 ### Changed
 - Change Asset/Create/Shader/Universal Render Pipeline/Lit Shader Graph to Asset/Create/Shader Graph/URP/Lit Shader Graph

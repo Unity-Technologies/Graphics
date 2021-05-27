@@ -129,9 +129,9 @@ namespace UnityEngine.Rendering.HighDefinition
 
             //asset creation
             assetCreated = ScriptableObject.CreateInstance<HDRenderPipelineGlobalSettings>();
+            assetCreated.name = Path.GetFileName(path);
             AssetDatabase.CreateAsset(assetCreated, path);
             Debug.Assert(assetCreated);
-            assetCreated.name = Path.GetFileName(path);
 
             // copy data from provided source
             if (dataSource != null)
