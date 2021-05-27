@@ -132,7 +132,7 @@ namespace UnityEditor.Rendering.Universal.Converters
 
             // this need to be sorted by Priority property
             m_CoreConvertersList = m_CoreConvertersList
-                .OrderByDescending(o => o.GetType().GetProperty("priority").GetValue(o, null)).ToList();
+                .OrderBy(o => o.GetType().GetProperty("priority").GetValue(o, null)).ToList();
 
             for (int i = 0; i < m_CoreConvertersList.Count; i++)
             {

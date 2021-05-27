@@ -21,7 +21,7 @@ namespace UnityEditor.Rendering.Universal.Converters
         public virtual bool isEnabled => true;
 
         /// <summary>
-        /// A priority of the converter. The higher the number, the earlier it will be executed. Can be used to make sure that a converter runs before another converter.
+        /// A priority of the converter. The lower the number (can be negative), the earlier it will be executed. Can be used to make sure that a converter runs before another converter.
         /// </summary>
         public virtual int priority => 0;
 
