@@ -3,8 +3,10 @@ using UnityEngine.Serialization;
 using UnityEditor.Experimental;
 using Unity.Collections;
 using System.Collections.Generic;
+#if UNITY_EDITOR
 using UnityEngine.SceneManagement;
 using UnityEditor;
+#endif
 
 namespace UnityEngine.Experimental.Rendering
 {
