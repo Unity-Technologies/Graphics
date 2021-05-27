@@ -103,7 +103,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed errors when the Profiler is used with XR multipass. [case 1322916](https://issuetracker.unity3d.com/issues/xr-urp-profiler-spams-errors-in-the-console-upon-entering-play-mode)
 - Fixed an issue where SMAA did not work for OpenGL [case 1336708](https://issuetracker.unity3d.com/issues/urp-there-is-no-effect-when-using-smaa-in-urp-with-opengles-api)
 - Fixed an issue where changing camera's position in the BeginCameraRendering do not apply properly. [case 1318629] (https://issuetracker.unity3d.com/issues/camera-doesnt-move-when-changing-its-position-in-the-begincamerarendering-and-the-endcamerarendering-methods)
-- Fixed an issue where Particle Lit shader had an incorrect fallback shader [case 1312459]
+- Fixed an issue where Particle Lit shader had an incorrect fallback shader [case 1331780]
 
 ## [10.2.0] - 2020-10-19
 
