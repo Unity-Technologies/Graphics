@@ -39,7 +39,7 @@ void InitializeInputData(Varyings input, out InputData inputData)
     inputData.viewDirectionWS = half3(0, 0, 1);
 
     #if defined(REQUIRES_VERTEX_SHADOW_COORD_INTERPOLATOR)
-        inputData.shadowCoord = IN.shadowCoord;
+        inputData.shadowCoord = input.shadowCoord;
     #elif defined(MAIN_LIGHT_CALCULATE_SHADOWS)
         inputData.shadowCoord = TransformWorldToShadowCoord(input.PositionWS);
     #else
