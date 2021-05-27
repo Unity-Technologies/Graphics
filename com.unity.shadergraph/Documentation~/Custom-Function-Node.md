@@ -123,9 +123,7 @@ Four structures are for the texture types, and one is for the sampler state:
 * UnityTextureCube
 * UnitySamplerState
 
-CFNs you create with earlier versions of Shader Graph continue to work after this change. As part of the automatic update, Unity transitions them to the new **Bare** node type. This type replicates the old input and output behavior. All other types pass the new structs.
-
-However, you should manually upgrade CFNs that produce texture or samplerstate types as output to ensure that they behave consistently—and to gain the benefits of the new design. Unity flags this type of outdated Custom Function Nodes with a warning when you open your Shader Graph in 10.3 or later. 
+Custom Function Nodes you create with earlier versions of Shader Graph continue to work after this change. As part of the automatic update, Unity transitions them to the new **Bare** node type. This type replicates the old input and output behavior. All other types pass the new structs. However, you should manually upgrade CFNs that produce texture or samplerstate types as output to ensure that they behave consistently—and to gain the benefits of the new design. Unity flags this type of outdated Custom Function Nodes with a warning when you open your Shader Graph in 10.3 or later.
 
 #### How to upgrade
 
@@ -139,6 +137,3 @@ However, you should manually upgrade CFNs that produce texture or samplerstate t
 
 
 From version 10.3, you can access data associated with textures via `myInputTex.samplerstate` and `myInputTex.texelSize`.
-
-
-
