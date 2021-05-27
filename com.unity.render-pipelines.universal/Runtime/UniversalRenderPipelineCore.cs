@@ -113,7 +113,7 @@ namespace UnityEngine.Rendering.Universal
         public bool requiresOpaqueTexture;
 
         /// <summary>
-        /// it is true if the post processing passes require the scene depth texture.
+        /// Returns true if post processing passes require depth texture.
         /// </summary>
         public bool postProcessingRequiresDepthTexture;
 
