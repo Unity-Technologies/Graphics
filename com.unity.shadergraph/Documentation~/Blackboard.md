@@ -64,6 +64,7 @@ To copy a specific set of properties:
 
 ### Using categories in the Material Inspector
 To modify a material you have created with a Shader Graph, you can adjust specific property or keyword values in the Material Inspector, or edit the graph itself.
+
 ![image](images/blackboardcategories3.png)
 
 
