@@ -44,8 +44,6 @@ namespace UnityEditor.Rendering.Universal.Converters
         public override Type container => typeof(BuiltInToURPConverterContainer);
         public override bool NeedsIndexing => true;
 
-        private bool m_StartingSceneIsClosed;
-
         public override void OnInitialize(InitializeConverterContext ctx, Action callback)
         {
             using (var context = Search.SearchService.CreateContext("asset", "urp:convert-readonly"))
@@ -116,6 +114,13 @@ namespace UnityEditor.Rendering.Universal.Converters
             {
                 ctx.didFail = true;
                 ctx.info = errorString.ToString();
+            }
+            else
+            {
+                // make sure the changes get saved
+                EditorUtility.SetDirty(obj);
+                var currentScene = SceneManager.GetActiveScene();
+                EditorSceneManager.SaveScene(currentScene);
             }
         }
 
@@ -233,17 +238,6 @@ namespace UnityEditor.Rendering.Universal.Converters
                     // Open container scene
                     if (gid.identifierType == (int)IdentifierType.kSceneObject)
                     {
-                        // Before we open a new scene, we need to save.
-                        // However, we shouldn't save the first scene.
-                        // Todo: This should probably be expanded to the context of all converters. This is an example for now.
-                        if (m_StartingSceneIsClosed)
-                        {
-                            var currentScene = SceneManager.GetActiveScene();
-                            EditorSceneManager.SaveScene(currentScene);
-                        }
-
-                        m_StartingSceneIsClosed = true;
-
                         var containerPath = AssetDatabase.GUIDToAssetPath(gid.assetGUID);
 
                         var mainInstanceID = AssetDatabase.LoadAssetAtPath<Object>(containerPath);
