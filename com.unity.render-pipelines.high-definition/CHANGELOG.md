@@ -203,6 +203,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed missing API documentation for LTC area light code.
 - Fixed AxF debug output in certain configurations (case 1333780).
 - Fixed white flash when camera is reset and SSR Accumulation mode is on.
+- Fixed a compilation issue for AxF carpaints on Vulkan (case 1314040).
 
 ### Changed
 - Changed Window/Render Pipeline/HD Render Pipeline Wizard to Window/Rendering/HDRP Wizard

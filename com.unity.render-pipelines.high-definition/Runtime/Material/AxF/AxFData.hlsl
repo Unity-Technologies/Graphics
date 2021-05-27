@@ -98,10 +98,23 @@ struct TextureUVMapping
 #endif
 
 #define GETSURFACEANDBUILTINDATA_RAYCONE_PARAM ((RayCone)0)
+
+#if !defined(SHADER_API_VULKAN)
 #define AXF_CALCULATE_TEXTURE2D_LOD(a,b,c,duvdx,duvdy,scales,texelSize,rayCone) CALCULATE_TEXTURE2D_LOD(a,b,c)
+#else
+// case 1335737: For Vulkan, our HLSLcc is missing an overloaded version when the texture object is a Texture2DArray.
+// This won't create a problem anyway if we use gradients instead of LOD sampling, we just make sure the shader is
+// configured as such on this platform. We also place a dummy macro since although eventually optimized out, HLSLcc
+// will fail before the optimization prunes it out.
+#define AXF_CALCULATE_TEXTURE2D_LOD(a,b,c,duvdx,duvdy,scales,texelSize,rayCone) (0)
+
+#ifndef FLAKES_USE_DDXDDY
+#define FLAKES_USE_DDXDDY
+#endif
+
+#endif // #if !defined(SHADER_API_VULKAN)
 
 #else
-
 //-----------------------------------------------------------------------------
 //defined(SHADER_STAGE_RAY_TRACING)
 
