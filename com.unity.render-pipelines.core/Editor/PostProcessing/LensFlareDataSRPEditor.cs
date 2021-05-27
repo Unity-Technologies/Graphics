@@ -121,7 +121,8 @@ namespace UnityEditor.Rendering
         SerializedProperty m_Elements;
         ReorderableList m_List;
         Rect? m_ReservedListSizeRect;
-        static readonly Shader k_ProceduralThumbnailShader = Shader.Find("Hidden/Core/LensFlareDataDrivenPreview");
+        static Shader s_ProceduralThumbnailShader;
+        static Shader s_ImageTinterShader;
         static readonly int k_PreviewSize = 128;
         static readonly int k_FlareColorValue = Shader.PropertyToID("_FlareColorValue");
         static readonly int k_FlareData0 = Shader.PropertyToID("_FlareData0");
@@ -130,6 +131,9 @@ namespace UnityEditor.Rendering
         static readonly int k_FlareData3 = Shader.PropertyToID("_FlareData3");
         static readonly int k_FlareData4 = Shader.PropertyToID("_FlareData4");
         static readonly int k_FlareData5 = Shader.PropertyToID("_FlareData5");
+        static readonly int k_ImageTintr = Shader.PropertyToID("_Color");
+        static readonly int k_ImageTexture = Shader.PropertyToID("_MainTex");
+        static readonly int k_ImageRotation = Shader.PropertyToID("_Angle");
 
         class TextureCacheElement
         {
@@ -137,8 +141,9 @@ namespace UnityEditor.Rendering
             public Texture2D computedTexture = new Texture2D(k_PreviewSize, k_PreviewSize, UnityEngine.Experimental.Rendering.GraphicsFormat.R8G8B8A8_SRGB, UnityEngine.Experimental.Rendering.TextureCreationFlags.None);
         }
 
-        Material m_ProceduralThumbnailMaterial = null;
-        RTHandle m_PreviewTexture = null;
+        Material m_ProceduralThumbnailMaterial;
+        Material m_ImageTinterMaterial;
+        RTHandle m_PreviewTexture;
         List<TextureCacheElement> m_PreviewTextureCache;
 
         void OnEnable()
@@ -154,7 +159,12 @@ namespace UnityEditor.Rendering
             m_List.drawElementCallback = DrawElement;
             m_List.elementHeightCallback = ElementHeight;
 
-            m_ProceduralThumbnailMaterial = new Material(k_ProceduralThumbnailShader);
+            if (s_ProceduralThumbnailShader == null)
+                s_ProceduralThumbnailShader = Shader.Find("Hidden/Core/LensFlareDataDrivenPreview");
+            if (s_ImageTinterShader == null)
+                s_ImageTinterShader = Shader.Find("Hidden/Core/TintedTexture");
+            m_ProceduralThumbnailMaterial = new Material(s_ProceduralThumbnailShader);
+            m_ImageTinterMaterial = new Material(s_ImageTinterShader);
             if (m_PreviewTexture == null)
             {
                 m_PreviewTexture = RTHandles.Alloc(k_PreviewSize, k_PreviewSize, colorFormat: UnityEngine.Experimental.Rendering.GraphicsFormat.R8G8B8A8_SRGB);
@@ -359,7 +369,29 @@ namespace UnityEditor.Rendering
         void DrawElementBackground(Rect rect, int index, bool isActive, bool isFocused)
             => EditorGUI.DrawRect(rect, Styles.elementBackgroundColor);
 
-        void ComputeThumbnailProceduralTexture(Rect rect, SerializedProperty element, SRPLensFlareType type, int index, ref Texture2D computedTexture)
+        void ComputeImageThumbnailProceduralTexture(ref Texture2D computedTexture, SerializedProperty element)
+        {
+            SerializedProperty colorProp = element.FindPropertyRelative("tint");
+            SerializedProperty sizeXYProp = element.FindPropertyRelative("sizeXY");
+            Vector2 sizeXY = sizeXYProp.vector2Value;
+
+            SerializedProperty flareTextureProp = element.FindPropertyRelative("lensFlareTexture");
+            SerializedProperty preserveAspectRatiPropo = element.FindPropertyRelative("preserveAspectRatio");
+            float aspectRatio = ((flareTextureProp.objectReferenceValue is Texture texture) && preserveAspectRatiPropo.boolValue)
+                ? texture.width / (float)texture.height
+                : sizeXY.x / Mathf.Max(sizeXY.y, 1e-6f);
+
+            SerializedProperty rotationProp = element.FindPropertyRelative("rotation");
+
+            m_ImageTinterMaterial.SetColor(k_ImageTintr, colorProp.colorValue);
+            m_ImageTinterMaterial.SetTexture(k_ImageTexture, flareTextureProp.objectReferenceValue as Texture2D);
+            m_ImageTinterMaterial.SetFloat(k_ImageRotation, rotationProp.floatValue * Mathf.Deg2Rad);
+            m_ImageTinterMaterial.SetPass(0);
+
+            RenderToTexture2D(ref computedTexture);
+        }
+
+        void ComputeCircleOrPolygonalThumbnailProceduralTexture(ref Texture2D computedTexture, SerializedProperty element, SRPLensFlareType type)
         {
             switch (type)
             {
@@ -371,8 +403,6 @@ namespace UnityEditor.Rendering
                     m_ProceduralThumbnailMaterial.DisableKeyword("FLARE_CIRCLE");
                     m_ProceduralThumbnailMaterial.EnableKeyword("FLARE_POLYGON");
                     break;
-                default:
-                    throw new Exception("Unknown procedural flare type");
             }
 
             SerializedProperty inverseSDFProp = element.FindPropertyRelative("inverseSDF");
@@ -382,13 +412,13 @@ namespace UnityEditor.Rendering
                 m_ProceduralThumbnailMaterial.DisableKeyword("FLARE_INVERSE_SDF");
 
             SerializedProperty colorProp = element.FindPropertyRelative("tint");
+            SerializedProperty sizeXYProp = element.FindPropertyRelative("sizeXY");
             SerializedProperty intensityProp = element.FindPropertyRelative("m_LocalIntensity");
             SerializedProperty sideCountProp = element.FindPropertyRelative("m_SideCount");
             SerializedProperty rotationProp = element.FindPropertyRelative("rotation");
             SerializedProperty edgeOffsetProp = element.FindPropertyRelative("m_EdgeOffset");
             SerializedProperty fallOffProp = element.FindPropertyRelative("m_FallOff");
             SerializedProperty sdfRoundnessProp = element.FindPropertyRelative("m_SdfRoundness");
-            SerializedProperty sizeXYProp = element.FindPropertyRelative("sizeXY");
 
             float invSideCount = 1f / ((float)sideCountProp.intValue);
             float intensity = intensityProp.floatValue;
@@ -423,6 +453,29 @@ namespace UnityEditor.Rendering
 
             m_ProceduralThumbnailMaterial.SetPass(0);
 
+            RenderToTexture2D(ref computedTexture);
+        }
+
+        void UpdateThumbnailProceduralTexture(ref Texture2D computedTexture, SerializedProperty element, SRPLensFlareType type)
+        {
+            switch (type)
+            {
+                case SRPLensFlareType.Image:
+                    ComputeImageThumbnailProceduralTexture(ref computedTexture, element);
+                    return;
+
+                case SRPLensFlareType.Circle:
+                case SRPLensFlareType.Polygon:
+                    ComputeCircleOrPolygonalThumbnailProceduralTexture(ref computedTexture, element, type);
+                    break;
+
+                default:
+                    throw new Exception("Unknown procedural flare type");
+            }
+        }
+
+        void RenderToTexture2D(ref Texture2D computedTexture)
+        {
             RenderTexture oldActive = RenderTexture.active;
             RenderTexture.active = m_PreviewTexture.rt;
 
@@ -450,13 +503,13 @@ namespace UnityEditor.Rendering
             RenderTexture.active = oldActive;
         }
 
-        Texture2D GetCachedThumbnailProceduralTexture(Rect rect, SerializedProperty element, SRPLensFlareType type, int index)
+        Texture2D GetCachedThumbnailProceduralTexture(SerializedProperty element, SRPLensFlareType type, int index)
         {
             TextureCacheElement tce = m_PreviewTextureCache[index];
             if (!tce.needUpdate)
                 return tce.computedTexture;
 
-            ComputeThumbnailProceduralTexture(rect, element, type, index, ref tce.computedTexture);
+            UpdateThumbnailProceduralTexture(ref tce.computedTexture, element, type);
             tce.needUpdate = false;
             return tce.computedTexture;
         }
@@ -464,15 +517,21 @@ namespace UnityEditor.Rendering
         void DrawThumbnailProcedural(Rect rect, SerializedProperty element, SRPLensFlareType type, int index)
         {
             EditorGUI.DrawRect(rect, Color.black);
+            Color oldGuiColor = GUI.color;
+            GUI.color = Color.black; //set background color for transparency
 
-            Rect thumbnailIconeRect = rect;
-            thumbnailIconeRect.xMin += Styles.iconMargin;
-            thumbnailIconeRect.xMax -= Styles.iconMargin;
-            thumbnailIconeRect.yMin += Styles.iconMargin;
-            thumbnailIconeRect.yMax -= Styles.iconMargin;
+            if (type != SRPLensFlareType.Image)
+            {
+                EditorGUI.DrawRect(rect, GUI.color); //draw margin
+                rect.xMin += Styles.iconMargin;
+                rect.xMax -= Styles.iconMargin;
+                rect.yMin += Styles.iconMargin;
+                rect.yMax -= Styles.iconMargin;
+            }
 
-            Texture2D previewTecture = GetCachedThumbnailProceduralTexture(rect, element, type, index);
-            EditorGUI.DrawTextureTransparent(thumbnailIconeRect, previewTecture, ScaleMode.ScaleToFit, 1f);
+            Texture2D previewTecture = GetCachedThumbnailProceduralTexture(element, type, index);
+            EditorGUI.DrawTextureTransparent(rect, previewTecture, ScaleMode.ScaleToFit, 1f);
+            GUI.color = oldGuiColor;
         }
 
         void DrawElement(Rect rect, int index, bool isActive, bool isFocused)
@@ -572,26 +631,7 @@ namespace UnityEditor.Rendering
             SerializedProperty count = element.FindPropertyRelative("m_Count");
 
             Rect thumbnailRect = OffsetForThumbnail(ref summaryRect);
-            Color guiColor = GUI.color;
-            GUI.color = Color.black; //set background color for thunmbnail
-            switch (GetEnum<SRPLensFlareType>(type))
-            {
-                case SRPLensFlareType.Image:
-                    SerializedProperty flareTexture = element.FindPropertyRelative("lensFlareTexture");
-                    SerializedProperty preserveAspectRatio = element.FindPropertyRelative("preserveAspectRatio");
-                    SerializedProperty sizeXY = element.FindPropertyRelative("sizeXY");
-                    float aspectRatio = ((flareTexture.objectReferenceValue is Texture texture) && preserveAspectRatio.boolValue)
-                        ? texture.width / (float)texture.height
-                        : sizeXY.vector2Value.x / Mathf.Max(sizeXY.vector2Value.y, 1e-6f);
-                    EditorGUI.DrawTextureTransparent(thumbnailRect, flareTexture.objectReferenceValue as Texture, ScaleMode.ScaleToFit, aspectRatio);
-                    break;
-
-                case SRPLensFlareType.Circle:
-                case SRPLensFlareType.Polygon:
-                    DrawThumbnailProcedural(thumbnailRect, element, GetEnum<SRPLensFlareType>(type), index);
-                    break;
-            }
-            GUI.color = guiColor;
+            DrawThumbnailProcedural(thumbnailRect, element, GetEnum<SRPLensFlareType>(type), index);
 
             IEnumerator<Rect> fieldRect = ReserveFields(summaryRect, allowMultipleElement.boolValue ? 4 : 3);
             float oldLabelWidth = EditorGUIUtility.labelWidth;
