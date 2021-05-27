@@ -125,7 +125,6 @@ namespace UnityEditor.VFX.HDRP
          Tooltip("When enabled, this decal uses the smoothness channel of its Mask Map. When disabled, the decal has no smoothness effect.")]
         private bool affectSmoothness = true;
 
-
         private bool enableDecalLayers => HDRenderPipeline.currentAsset.currentPlatformRenderPipelineSettings.supportDecals
                                                   && HDRenderPipeline.currentAsset.currentPlatformRenderPipelineSettings.supportDecalLayers;
 
@@ -142,7 +141,7 @@ namespace UnityEditor.VFX.HDRP
         public class AngleFadeProperty
         {
             [Tooltip("Angle Fade. Between 0 and 180.")] //TODO : create range attribute?
-            public Vector2 angleFade = Vector2.zero;
+            public Vector2 angleFade = new Vector2(0.0f, 180.0f);
         }
         protected override IEnumerable<VFXPropertyWithValue> inputProperties
         {
@@ -264,7 +263,6 @@ namespace UnityEditor.VFX.HDRP
             switch (maskIndex)
             {
                 case 0 :
-                    // rs.Write(affectBaseColor ? ((int)ColorWriteMask.All).ToString() : "0"); break;
                     rs.Write(affectBaseColor ? "RBGA" : "0"); break;
                 case 1 :
                     rs.Write(useNormalMap ? "RGBA" : "0"); break;
