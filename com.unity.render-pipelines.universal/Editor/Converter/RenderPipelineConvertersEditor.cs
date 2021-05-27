@@ -391,7 +391,13 @@ namespace UnityEditor.Rendering.Universal.Converters
             // If we use search index, go async
             if (ShouldCreateSearchIndex())
             {
-                CreateSearchIndex(m_URPConverterIndex);
+                // This needs a big popup saying it takes a long time.
+                if (EditorUtility.DisplayDialog("Creating Index File",
+                    "This will create an .index file temporarily to be used by the converters. This can take a long time. Do you want to continue?",
+                    "Continue", "Cancel"))
+                {
+                    CreateSearchIndex(m_URPConverterIndex);
+                }
             }
             // Otherwise do everything directly
             else

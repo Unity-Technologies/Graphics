@@ -54,10 +54,10 @@ namespace UnityEditor.Rendering.Universal.Converters
                 {
                     // we're going to do this step twice in order to get them ordered, but it should be fast
                     var orderedRequest = items.OrderBy(req =>
-                        {
-                            GlobalObjectId.TryParse(req.id, out var gid);
-                            return gid.assetGUID;
-                        })
+                    {
+                        GlobalObjectId.TryParse(req.id, out var gid);
+                        return gid.assetGUID;
+                    })
                         .ToList();
 
                     foreach (var r in orderedRequest)
