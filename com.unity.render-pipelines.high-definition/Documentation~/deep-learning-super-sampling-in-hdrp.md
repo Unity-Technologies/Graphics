@@ -44,14 +44,14 @@ After you install the NVIDIA package, more properties appear in [HDRP Assets](HD
 Your Unity project now supports DLSS and you can now enable DLSS for Cameras in your scene. Enabling DLSS in the HDRP Asset exposes other properties that you can use to customize DLSS. For information about these properties, see the [HDRP Asset](HDRP-Asset.md) documentation.
 
 1. In the Hierarchy or Scene view, select a Camera and view it in the Inspector.
-2. Select **Allow Dynamic Resolution** to expose the DLSS settings. For more information see the [Dynamic Resolution](Dynamic-Resolution.md) guide. 
+2. Select **Allow Dynamic Resolution** to expose the DLSS settings. For more information see the [Dynamic Resolution](Dynamic-Resolution.md) guide.
 3. Select **Allow DLSS**.
-4. Enabling **Allow DLSS** exposes other properties that you can use to customize DLSS for the Camera. For information about these properties, see the [Camera](HDRP-Camera.md) documentation.
+4. Enable **Allow DLSS** to expose other properties that you can use to customize DLSS for the Camera. For information about these properties, see the [Camera](HDRP-Camera.md) documentation.
 
 ### DLSS and Dynamic Resolution
 
-By default the [HDRP Assets](HDRP-Asset.md) has the **Use Optimal Settings** checkbox enabled. This means that DLSS will try and set the dynamic resolution scale automatically. If this checkbox is disabled,
-DLSS will utilize the same dynamic resolution scale set by the project. For more information see the [Dynamic Resolution](Dynamic-Resolution.md) guide.
+The **Use Optimal Settings** checkbox in the [HDRP Assets](HDRP-Asset.md) is enabled by default. This means that DLSS sets the dynamic resolution scale automatically.
+If you disable this checkbox DLSS uses the same dynamic resolution scale set by the project. For more information see the [Dynamic Resolution](Dynamic-Resolution.md) guide.
 
 ### Setting the DLSS quality mode
 
