@@ -38,7 +38,7 @@ namespace UnityEditor.VFX
     class VFXExpressionRandom : VFXExpression
     {
         public VFXExpressionRandom(bool perElement, RandId id)
-            : base(perElement ? VFXExpression.Flags.PerElement | VFXExpression.Flags.InvalidOnCPU /* read/write isn't supported during CPU evaluation without SetAttributeSpawner */ : VFXExpression.Flags.None)
+            : base(perElement ? VFXExpression.Flags.PerElement : VFXExpression.Flags.None)
         {
             m_Id = id;
         }
@@ -79,6 +79,7 @@ namespace UnityEditor.VFX
         }
 
         private RandId m_Id;
+        public RandId id => m_Id;
     }
 
     class VFXExpressionFixedRandom : VFXExpression

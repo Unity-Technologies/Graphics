@@ -172,19 +172,39 @@ namespace UnityEditor.VFX
                     }
                 }
 
-                if (patchReadAttributeForSpawn && input is VFXAttributeExpression)
+                if (patchReadAttributeForSpawn && input.GetNeededAttributes().Any())
                 {
-                    var attribute = input as VFXAttributeExpression;
-                    if (attribute.attributeLocation == VFXAttributeLocation.Current)
+                    if (input is VFXAttributeExpression)
                     {
-                        if (globalEventAttribute == null)
-                            throw new InvalidOperationException("m_GlobalEventAttribute is null");
+                        var attribute = input as VFXAttributeExpression;
+                        if (attribute.attributeLocation == VFXAttributeLocation.Current)
+                        {
+                            if (globalEventAttribute == null)
+                                throw new InvalidOperationException("m_GlobalEventAttribute is null");
 
-                        var layoutDesc = globalEventAttribute.FirstOrDefault(o => o.name == attribute.attributeName);
-                        if (layoutDesc.name != attribute.attributeName)
-                            throw new InvalidOperationException("Unable to find " + attribute.attributeName + " in globalEventAttribute");
+                            var layoutDesc = globalEventAttribute.FirstOrDefault(o => o.name == attribute.attributeName);
+                            if (layoutDesc.name != attribute.attributeName)
+                                throw new InvalidOperationException("Unable to find " + attribute.attributeName + " in globalEventAttribute");
 
-                        input = new VFXReadEventAttributeExpression(attribute.attribute, layoutDesc.offset.element);
+                            input = new VFXReadEventAttributeExpression(attribute.attribute, layoutDesc.offset.element);
+                        }
+                        else
+                        {
+                            throw new InvalidOperationException("Unexpected read of source attribute in spawn context : " + attribute.attributeName);
+                        }
+                    }
+                    else if (input is VFXExpressionRandom)
+                    {
+                        if (!input.Is(Flags.PerElement))
+                            throw new InvalidOperationException("VFXExpressionRandom needs an attribute but isn't flag per element.");
+
+                        var random = input as VFXExpressionRandom;
+                        //Read/write seed isn't supported during CPU evaluation without SetAttributeSpawner, switching this branch to a classic per component random
+                        input = new VFXExpressionRandom(false, random.id);
+                    }
+                    else
+                    {
+                        throw new InvalidOperationException("Unexpected unhandled needed attribute from expression : " + input);
                     }
                 }
 
