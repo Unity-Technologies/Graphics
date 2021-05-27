@@ -53,7 +53,6 @@ Shader "Hidden/Core/TintedTexture"
 
             fixed4 frag (v2f i) : SV_Target
             {
-                _Color.a = 1;
                 return tex2D(_MainTex, i.uv) * _Color;
             }
             ENDCG

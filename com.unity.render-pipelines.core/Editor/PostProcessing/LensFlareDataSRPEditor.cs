@@ -373,17 +373,19 @@ namespace UnityEditor.Rendering
         {
             SerializedProperty colorProp = element.FindPropertyRelative("tint");
             SerializedProperty sizeXYProp = element.FindPropertyRelative("sizeXY");
-            Vector2 sizeXY = sizeXYProp.vector2Value;
-
             SerializedProperty flareTextureProp = element.FindPropertyRelative("lensFlareTexture");
             SerializedProperty preserveAspectRatiPropo = element.FindPropertyRelative("preserveAspectRatio");
+            SerializedProperty rotationProp = element.FindPropertyRelative("rotation");
+            SerializedProperty intensityProp = element.FindPropertyRelative("m_LocalIntensity");
+
+            Color color = colorProp.colorValue;
+            Vector2 sizeXY = sizeXYProp.vector2Value;
             float aspectRatio = ((flareTextureProp.objectReferenceValue is Texture texture) && preserveAspectRatiPropo.boolValue)
                 ? texture.width / (float)texture.height
                 : sizeXY.x / Mathf.Max(sizeXY.y, 1e-6f);
+            float intensity = intensityProp.floatValue;
 
-            SerializedProperty rotationProp = element.FindPropertyRelative("rotation");
-
-            m_ImageTinterMaterial.SetColor(k_ImageTintr, colorProp.colorValue);
+            m_ImageTinterMaterial.SetColor(k_ImageTintr, new Vector4(color.r * intensity, color.g * intensity, color.b * intensity, 1f));
             m_ImageTinterMaterial.SetTexture(k_ImageTexture, flareTextureProp.objectReferenceValue as Texture2D);
             m_ImageTinterMaterial.SetFloat(k_ImageRotation, rotationProp.floatValue * Mathf.Deg2Rad);
             m_ImageTinterMaterial.SetPass(0);
