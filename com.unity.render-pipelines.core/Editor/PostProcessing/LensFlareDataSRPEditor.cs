@@ -171,6 +171,12 @@ namespace UnityEditor.Rendering
             }
         }
 
+        void OnDisable()
+        {
+            m_PreviewTexture.Release();
+            m_PreviewTexture = null;
+        }
+
         public override void OnInspectorGUI()
         {
             serializedObject.Update();
