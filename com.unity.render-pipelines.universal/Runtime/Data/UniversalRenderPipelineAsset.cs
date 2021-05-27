@@ -288,6 +288,7 @@ namespace UnityEngine.Rendering.Universal
             else
                 dataPath = path;
             AssetDatabase.CreateAsset(data, dataPath);
+            ResourceReloader.ReloadAllNullIn(data, packagePath);
             return data;
         }
 
