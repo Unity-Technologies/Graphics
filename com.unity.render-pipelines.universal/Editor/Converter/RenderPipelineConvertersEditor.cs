@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Reflection;
 using UnityEngine;
 using UnityEditor.Search;
@@ -91,8 +92,8 @@ namespace UnityEditor.Rendering.Universal.Converters
             RenderPipelineConvertersEditor wnd = GetWindow<RenderPipelineConvertersEditor>();
             wnd.titleContent = new GUIContent("Render Pipeline Converter");
             DontSaveToLayout(wnd);
-            wnd.maxSize = new Vector2(645f, 4000f);
-            wnd.minSize = new Vector2(645f, 400f);
+            wnd.maxSize = new Vector2(650f, 4000f);
+            wnd.minSize = new Vector2(650f, 400f);
             wnd.Show();
         }
 
@@ -120,18 +121,25 @@ namespace UnityEditor.Rendering.Universal.Converters
 
             // This is the drop down choices.
             m_ConverterContainers = TypeCache.GetTypesDerivedFrom<RenderPipelineConverterContainer>();
+            var converterList = TypeCache.GetTypesDerivedFrom<RenderPipelineConverter>();
 
-            var converters = TypeCache.GetTypesDerivedFrom<RenderPipelineConverter>();
-            for (int i = 0; i < converters.Count; ++i)
+            for (int i = 0; i < converterList.Count; ++i)
             {
                 // Iterate over the converters
-                RenderPipelineConverter conv = (RenderPipelineConverter)Activator.CreateInstance(converters[i]);
+                RenderPipelineConverter conv = (RenderPipelineConverter)Activator.CreateInstance(converterList[i]);
                 m_CoreConvertersList.Add(conv);
+            }
 
+            // this need to be sorted by Priority property
+            m_CoreConvertersList = m_CoreConvertersList
+                .OrderBy(o => o.priority).ToList();
+
+            for (int i = 0; i < m_CoreConvertersList.Count; i++)
+            {
                 // Create a new ConvertState which holds the active state of the converter
                 var converterState = new ConverterState
                 {
-                    isEnabled = conv.IsEnabled,
+                    isEnabled = m_CoreConvertersList[i].isEnabled,
                     isActive = true,
                     isInitialized = false,
                     items = new List<ConverterItemState>(),
@@ -168,7 +176,7 @@ namespace UnityEditor.Rendering.Universal.Converters
                 VisualElement item = new VisualElement();
                 converterListAsset.CloneTree(item);
                 var conv = m_CoreConvertersList[i];
-                item.SetEnabled(conv.IsEnabled);
+                item.SetEnabled(conv.isEnabled);
                 item.Q<Label>("converterName").text = conv.name;
                 item.Q<Label>("converterInfo").text = conv.info;
                 item.Q<VisualElement>("converterTopVisualElement").tooltip = conv.info;
@@ -485,7 +493,7 @@ namespace UnityEditor.Rendering.Universal.Converters
                 if (m_ConverterStates[i].requiresInitialization)
                 {
                     var converter = m_CoreConvertersList[i];
-                    if (converter.NeedsIndexing)
+                    if (converter.needsIndexing)
                     {
                         return true;
                     }
