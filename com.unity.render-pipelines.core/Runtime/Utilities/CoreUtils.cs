@@ -159,6 +159,25 @@ namespace UnityEngine.Rendering
             }
         }
 
+        static RenderTexture m_EmptyVolumeUAV;
+        /// <summary>
+        /// Empty 1x1 texture usable as a dummy UAV.
+        /// </summary>
+        public static RenderTexture emptyVolumeUAV
+        {
+            get
+            {
+                if (m_EmptyVolumeUAV == null)
+                {
+                    m_EmptyVolumeUAV = new RenderTexture(1, 1, 1);
+                    m_EmptyVolumeUAV.enableRandomWrite = true;
+                    m_EmptyVolumeUAV.Create();
+                }
+
+                return m_EmptyVolumeUAV;
+            }
+        }
+
         static Texture3D m_BlackVolumeTexture;
         /// <summary>
         /// Black 3D texture.
