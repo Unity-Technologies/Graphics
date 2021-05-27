@@ -124,7 +124,7 @@ namespace UnityEngine.Experimental.Rendering
 
 
             var sceneBounds = ProbeReferenceVolume.instance.sceneBounds;
-            HashSet<string> scenesToConsider = new HashSet<Scene>();
+            HashSet<string> scenesToConsider = new HashSet<string>();
 
             for (int i = 0; i < EditorSceneManager.sceneCount; ++i)
             {
