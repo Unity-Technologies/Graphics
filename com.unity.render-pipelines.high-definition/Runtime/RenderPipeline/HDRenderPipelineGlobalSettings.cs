@@ -512,6 +512,8 @@ namespace UnityEngine.Rendering.HighDefinition
         [SerializeField]
         internal List<string> beforePostProcessCustomPostProcesses = new List<string>();
         [SerializeField]
+        internal List<string> afterPostProcessBlursCustomPostProcesses = new List<string>();
+        [SerializeField]
         internal List<string> afterPostProcessCustomPostProcesses = new List<string>();
         [SerializeField]
         internal List<string> beforeTAACustomPostProcesses = new List<string>();

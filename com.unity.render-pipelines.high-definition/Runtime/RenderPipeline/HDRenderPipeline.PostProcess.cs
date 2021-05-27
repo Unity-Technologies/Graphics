@@ -472,6 +472,8 @@ namespace UnityEngine.Rendering.HighDefinition
                 // blurred bokeh rather than out of focus motion blur)
                 source = MotionBlurPass(renderGraph, hdCamera, depthBuffer, motionVectors, source);
 
+                source = CustomPostProcessPass(renderGraph, hdCamera, source, depthBuffer, normalBuffer, m_GlobalSettings.afterPostProcessBlursCustomPostProcesses, HDProfileId.CustomPostProcessAfterPPBlurs);
+
                 // Panini projection is done as a fullscreen pass after all depth-based effects are
                 // done and before bloom kicks in
                 // This is one effect that would benefit from an overscan mode or supersampling in

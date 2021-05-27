@@ -54,6 +54,7 @@ namespace UnityEditor.Rendering.HighDefinition
         internal ReorderableList uiBeforeTransparentCustomPostProcesses;
         internal ReorderableList uiBeforeTAACustomPostProcesses;
         internal ReorderableList uiBeforePostProcessCustomPostProcesses;
+        internal ReorderableList uiAfterPostProcessBlursCustomPostProcesses;
         internal ReorderableList uiAfterPostProcessCustomPostProcesses;
 
         //RenderPipelineResources not always exist and thus cannot be serialized normally.
@@ -156,6 +157,7 @@ namespace UnityEditor.Rendering.HighDefinition
             var globalSettings = serializedObject.targetObject as HDRenderPipelineGlobalSettings;
             InitList(ref uiBeforeTransparentCustomPostProcesses, globalSettings.beforeTransparentCustomPostProcesses, "After Opaque And Sky", CustomPostProcessInjectionPoint.AfterOpaqueAndSky);
             InitList(ref uiBeforePostProcessCustomPostProcesses, globalSettings.beforePostProcessCustomPostProcesses, "Before Post Process", CustomPostProcessInjectionPoint.BeforePostProcess);
+            InitList(ref uiAfterPostProcessBlursCustomPostProcesses, globalSettings.afterPostProcessBlursCustomPostProcesses, "After Post Process Blurs", CustomPostProcessInjectionPoint.AfterPostProcessBlurs);
             InitList(ref uiAfterPostProcessCustomPostProcesses, globalSettings.afterPostProcessCustomPostProcesses, "After Post Process", CustomPostProcessInjectionPoint.AfterPostProcess);
             InitList(ref uiBeforeTAACustomPostProcesses, globalSettings.beforeTAACustomPostProcesses, "Before TAA", CustomPostProcessInjectionPoint.BeforeTAA);
 

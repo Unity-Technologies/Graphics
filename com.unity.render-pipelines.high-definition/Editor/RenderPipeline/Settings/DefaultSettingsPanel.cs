@@ -359,6 +359,12 @@ namespace UnityEditor.Rendering.HighDefinition
             using (new EditorGUILayout.HorizontalScope())
             {
                 GUILayout.Space(5);
+                serialized.uiAfterPostProcessBlursCustomPostProcesses.DoLayoutList();
+            }
+            GUILayout.Space(2);
+            using (new EditorGUILayout.HorizontalScope())
+            {
+                GUILayout.Space(5);
                 serialized.uiAfterPostProcessCustomPostProcesses.DoLayoutList();
             }
         }
