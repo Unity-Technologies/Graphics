@@ -67,7 +67,7 @@ URP_Performance_BoatAttack_OSX_Metal_performance_playmode_runtime_mono_Linear_tr
       # Get UTR into the test folder.
       - curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr --output $YAMATO_SOURCE_DIR/TestProjects/BoatAttack/utr
       - chmod +x $YAMATO_SOURCE_DIR/TestProjects/BoatAttack/utr
-      
+
       # -  curl -s https://artifactory.prd.it.unity3d.com/artifactory/unity-tools-local/utr-standalone/utr --output utr
       # -  chmod +x utr
       
@@ -76,7 +76,7 @@ URP_Performance_BoatAttack_OSX_Metal_performance_playmode_runtime_mono_Linear_tr
 
       # Install the Unity Downloader.
       - ssh bokken@$BOKKEN_DEVICE_IP "bash -lc 'pip3 install unity-downloader-cli --user --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade'"    
-      
+      - export PATH=$PATH:/Users/bokken/Library/Python/3.8/bin
       # -  scp -i ~/.ssh/id_rsa_macmini -r $YAMATO_SOURCE_DIR bokken@$BOKKEN_DEVICE_IP:~/Graphics
       # -  scp -i ~/.ssh/id_rsa_macmini ~/.ssh/id_rsa_macmini bokken@$BOKKEN_DEVICE_IP:~/.ssh/id_rsa_macmini
       # -  ssh -i ~/.ssh/id_rsa_macmini bokken@$BOKKEN_DEVICE_IP "bash -lc 'pip3 install unity-downloader-cli --user --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade'"      
@@ -84,7 +84,7 @@ URP_Performance_BoatAttack_OSX_Metal_performance_playmode_runtime_mono_Linear_tr
       # Get the Editor and required components for the project. This will be rendered as a single line command. Beware of the quotes! They bite, repeatedly. :(
       - >
         ssh bokken@$BOKKEN_DEVICE_IP
-        "\$(/usr/local/bin/python3 -m site --user-base)/bin/unity-downloader-cli    \\
+        "/Users/bokken/Library/Python/3.8/bin/unity-downloader-cli    \\
             --source-file ~/Graphics/unity_revision.txt                             \\
             -c editor                                                               \\
             -c il2cpp                                                               \\
