@@ -278,6 +278,7 @@ namespace UnityEngine.Experimental.Rendering
                 return;
             }
 
+            onAdditionalProbesBakeCompletedCalled = true;
 
             // Fetch results of all cells
             for (int c = 0; c < numCells; ++c)
