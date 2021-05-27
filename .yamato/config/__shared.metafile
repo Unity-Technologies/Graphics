@@ -254,7 +254,7 @@ platforms:
           - command: unity-downloader-cli <EDITOR_REVISION_CMD> -c editor -c il2cpp  --wait --published-only
             retries: 3
         turn_off_firewall:
-          - NetSh Advfirewall set allprofiles state off
+          - command: NetSh Advfirewall set allprofiles state off
 
   OSX:
     name: OSX
@@ -321,7 +321,7 @@ platforms:
           - command: ./utr  <UTR_FLAGS>
             retries: 3
         unity_downloader_cli:
-          - brew tap --force-auto-update unity/unity git@github.cds.internal.unity3d.com:unity/homebrew-unity.git
+          - command: brew tap --force-auto-update unity/unity git@github.cds.internal.unity3d.com:unity/homebrew-unity.git
           - command: brew install unity-downloader-cli
             retries: 3
           - command: unity-downloader-cli <EDITOR_REVISION_CMD> -c editor -c il2cpp  --wait --published-only
@@ -352,7 +352,7 @@ platforms:
         setup_utr:
           - command: curl -s https://artifactory.prd.it.unity3d.com/artifactory/unity-tools-local/utr-standalone/utr --output utr
             retries: 3
-          - chmod +x utr
+          - command: chmod +x utr
         call_utr:
           - command: DISPLAY=:0.0 ./utr <UTR_FLAGS> # TODO include git commands when needed
             retries: 3
@@ -360,10 +360,10 @@ platforms:
           - command: DISPLAY=:0.0 ./utr <UTR_FLAGS>
             retries: 3
         unity_downloader_cli:
-          - sudo rm -f /etc/apt/sources.list /etc/apt/sources.list.d/{nodesource,teamviewer,deadsnakes-ubuntu-ppa-}*
-          - curl -L https://artifactory.prd.it.unity3d.com/artifactory/api/gpg/key/public | sudo apt-key add -
-          - sudo sh -c "echo 'deb https://artifactory.prd.it.unity3d.com/artifactory/unity-apt-local bionic main' > /etc/apt/sources.list.d/unity.list"
-          - sudo apt update
+          - command: sudo rm -f /etc/apt/sources.list /etc/apt/sources.list.d/{nodesource,teamviewer,deadsnakes-ubuntu-ppa-}*
+          - command: curl -L https://artifactory.prd.it.unity3d.com/artifactory/api/gpg/key/public | sudo apt-key add -
+          - command: sudo sh -c "echo 'deb https://artifactory.prd.it.unity3d.com/artifactory/unity-apt-local bionic main' > /etc/apt/sources.list.d/unity.list"
+          - command: sudo apt update
           - command: sudo apt install unity-downloader-cli
             retries: 3
           - command: sudo unity-downloader-cli <EDITOR_REVISION_CMD> -c editor -c il2cpp  --wait --published-only
@@ -409,7 +409,7 @@ platforms:
           - command: unity-downloader-cli <EDITOR_REVISION_CMD> -p WindowsEditor -c editor -c il2cpp -c android  --wait --published-only
             retries: 3
         turn_off_firewall:
-          - NetSh Advfirewall set allprofiles state off
+          - command: NetSh Advfirewall set allprofiles state off
         connect_bokken:
           - command: '%ANDROID_SDK_ROOT%\platform-tools\adb.exe connect %BOKKEN_DEVICE_IP%'
             retries: 3
@@ -439,8 +439,8 @@ platforms:
     commands:
       [OpenGLES3, Vulkan]:
         setup_utr:
-          - pip install pywin32 --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple
-          - pip install requests --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple
+          - command: pip install pywin32 --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple
+          - command: pip install requests --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple
           - command: git clone -b xrperf-urp git@github.cds.internal.unity3d.com:unity/xr.xrautomatedtests.git
             retries: 3
         call_utr:
@@ -462,7 +462,7 @@ platforms:
           - command: unity-downloader-cli <EDITOR_REVISION_CMD> -p WindowsEditor -c editor -c il2cpp -c android  --wait --published-only
             retries: 3
         turn_off_firewall:
-          - NetSh Advfirewall set allprofiles state off
+          - command: NetSh Advfirewall set allprofiles state off
         connect_bokken:
           - command: '%ANDROID_SDK_ROOT%\platform-tools\adb.exe connect %BOKKEN_DEVICE_IP%'
             retries: 3
@@ -493,7 +493,7 @@ platforms:
         setup_utr:
           - command: curl -s https://artifactory.prd.it.unity3d.com/artifactory/unity-tools-local/utr-standalone/utr --output utr
             retries: 3
-          - chmod +x ./utr
+          - command: chmod +x ./utr
         call_utr:
           - command: |5-
                     export GIT_REVISIONDATE=`git rev-parse HEAD | git show -s --format=%cI`

@@ -22,7 +22,8 @@ URP_Performance_LostCrypt_OSX_Metal_performance_playmode_runtime_mono_Linear_tru
         UTR_VERSION: "current"
         TEST_FILTER: .*
     commands:
-      -  git clone https://github.com/Unity-Technologies/2d-sara.git -b $LOST_CRYPT_BRANCH TestProjects/2d-sara
+      -  command: git clone https://github.com/Unity-Technologies/2d-sara.git -b $LOST_CRYPT_BRANCH TestProjects/2d-sara
+         retries: 3
       -  cd TestProjects/2d-sara && git checkout $LOST_CRYPT_REVISION
       -  brew tap --force-auto-update unity/unity git@github.cds.internal.unity3d.com:unity/homebrew-unity.git
       -  brew install unity-config
@@ -98,7 +99,8 @@ URP_Performance_LostCrypt_OSX_Metal_performance_playmode_editor_mono_Linear_trun
         UTR_VERSION: "current"
         TEST_FILTER: .*
     commands:
-      -  git clone https://github.com/Unity-Technologies/2d-sara.git -b $LOST_CRYPT_BRANCH TestProjects/2d-sara
+      -  command: git clone https://github.com/Unity-Technologies/2d-sara.git -b $LOST_CRYPT_BRANCH TestProjects/2d-sara
+         retries: 3
       -  cd TestProjects/2d-sara && git checkout $LOST_CRYPT_REVISION
       -  brew tap --force-auto-update unity/unity git@github.cds.internal.unity3d.com:unity/homebrew-unity.git
       -  brew install unity-config
@@ -167,7 +169,8 @@ URP_Performance_LostCrypt_OSX_Metal_performance_build_editmode_mono_Linear_trunk
         UTR_VERSION: "current"
         TEST_FILTER: .*
     commands:
-      -  git clone https://github.com/Unity-Technologies/2d-sara.git -b $LOST_CRYPT_BRANCH TestProjects/2d-sara
+      -  command: git clone https://github.com/Unity-Technologies/2d-sara.git -b $LOST_CRYPT_BRANCH TestProjects/2d-sara
+         retries: 3
       -  cd TestProjects/2d-sara && git checkout $LOST_CRYPT_REVISION
       -  brew tap --force-auto-update unity/unity git@github.cds.internal.unity3d.com:unity/homebrew-unity.git
       -  brew install unity-config
@@ -236,7 +239,8 @@ URP_Performance_LostCrypt_OSX_Metal_performance_playmode_runtime_mono_Linear_CUS
         UTR_VERSION: "current"
         TEST_FILTER: .*
     commands:
-      -  git clone https://github.com/Unity-Technologies/2d-sara.git -b $LOST_CRYPT_BRANCH TestProjects/2d-sara
+      -  command: git clone https://github.com/Unity-Technologies/2d-sara.git -b $LOST_CRYPT_BRANCH TestProjects/2d-sara
+         retries: 3
       -  cd TestProjects/2d-sara && git checkout $LOST_CRYPT_REVISION
       -  brew tap --force-auto-update unity/unity git@github.cds.internal.unity3d.com:unity/homebrew-unity.git
       -  brew install unity-config
@@ -312,7 +316,8 @@ URP_Performance_LostCrypt_OSX_Metal_performance_playmode_editor_mono_Linear_CUST
         UTR_VERSION: "current"
         TEST_FILTER: .*
     commands:
-      -  git clone https://github.com/Unity-Technologies/2d-sara.git -b $LOST_CRYPT_BRANCH TestProjects/2d-sara
+      -  command: git clone https://github.com/Unity-Technologies/2d-sara.git -b $LOST_CRYPT_BRANCH TestProjects/2d-sara
+         retries: 3
       -  cd TestProjects/2d-sara && git checkout $LOST_CRYPT_REVISION
       -  brew tap --force-auto-update unity/unity git@github.cds.internal.unity3d.com:unity/homebrew-unity.git
       -  brew install unity-config
@@ -381,7 +386,8 @@ URP_Performance_LostCrypt_OSX_Metal_performance_build_editmode_mono_Linear_CUSTO
         UTR_VERSION: "current"
         TEST_FILTER: .*
     commands:
-      -  git clone https://github.com/Unity-Technologies/2d-sara.git -b $LOST_CRYPT_BRANCH TestProjects/2d-sara
+      -  command: git clone https://github.com/Unity-Technologies/2d-sara.git -b $LOST_CRYPT_BRANCH TestProjects/2d-sara
+         retries: 3
       -  cd TestProjects/2d-sara && git checkout $LOST_CRYPT_REVISION
       -  brew tap --force-auto-update unity/unity git@github.cds.internal.unity3d.com:unity/homebrew-unity.git
       -  brew install unity-config

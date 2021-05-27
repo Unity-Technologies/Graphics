@@ -24,7 +24,7 @@ VikingVillage_BuiltIn_iPhone_Metal_performance_playmode_runtime_il2cpp_Linear_tr
     commands:
       -  command: curl -s https://artifactory.prd.it.unity3d.com/artifactory/unity-tools-local/utr-standalone/utr --output utr
          retries: 3
-      -  chmod +x ./utr
+      -  command: chmod +x ./utr
       -  command: |5-
                 export GIT_REVISIONDATE=`git rev-parse HEAD | git show -s --format=%cI`
                 ./utr --artifacts_path=TestProjects/Viking-Village-Perf/test-results --build-only --editor-location=.Editor --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-executemethod" --extra-editor-arg="SetupProject.ApplySettings" --extra-editor-arg="metal" --extra-editor-arg="Linear" --extra-editor-arg="-playergraphicsapi=Metal" --platform=iOS --player-save-path=players --scripting-backend=IL2CPP --suite=playmode --testfilter=$TEST_FILTER --testproject=./TestProjects/Viking-Village-Perf --timeout=1200
@@ -53,7 +53,8 @@ Build_VikingVillage_BuiltIn_iPhone_Metal_performance_playmode_runtime_il2cpp_Lin
         UTR_VERSION: "current"
         TEST_FILTER: .*
     commands:
-      -  git clone https://github.cds.internal.unity3d.com/andrew-theisen/Viking-Village-Perf.git -b $VV_BUILTIN_BRANCH TestProjects/Viking-Village-Perf
+      -  command: git clone https://github.cds.internal.unity3d.com/andrew-theisen/Viking-Village-Perf.git -b $VV_BUILTIN_BRANCH TestProjects/Viking-Village-Perf
+         retries: 3
       -  cd TestProjects/Viking-Village-Perf && git checkout $VV_BUILTIN_REVISION
       -  brew tap --force-auto-update unity/unity git@github.cds.internal.unity3d.com:unity/homebrew-unity.git
       -  brew install unity-config
@@ -73,11 +74,13 @@ Build_VikingVillage_BuiltIn_iPhone_Metal_performance_playmode_runtime_il2cpp_Lin
       -  cd TestProjects/Viking-Village-Perf && unity-config project add testable com.unity.render-pipelines.core  --project-path .
       -  cd TestProjects/Viking-Village-Perf && unity-config project add testable unity.graphictests.performance.universal  --project-path .
       -  cd TestProjects/Viking-Village-Perf && unity-config project set project-update false --project-path .
-      -  pip install unity-downloader-cli --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade
-      -  unity-downloader-cli --source-file unity_revision.txt -c editor -c iOS -c il2cpp   --wait --published-only
+      -  command: pip install unity-downloader-cli --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade
+         retries: 3
+      -  command: unity-downloader-cli --source-file unity_revision.txt -c editor -c iOS -c il2cpp   --wait --published-only
+         retries: 3
       -  command: curl -s https://artifactory.prd.it.unity3d.com/artifactory/unity-tools-local/utr-standalone/utr --output utr
          retries: 3
-      -  chmod +x ./utr
+      -  command: chmod +x ./utr
       -  command: |5-
                 export GIT_REVISIONDATE=`git rev-parse HEAD | git show -s --format=%cI`
                 ./utr --artifacts_path=TestProjects/Viking-Village-Perf/test-results --build-only --editor-location=.Editor --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-executemethod" --extra-editor-arg="SetupProject.ApplySettings" --extra-editor-arg="metal" --extra-editor-arg="Linear" --extra-editor-arg="-playergraphicsapi=Metal" --platform=iOS --player-save-path=players --scripting-backend=IL2CPP --suite=playmode --testfilter=$TEST_FILTER --testproject=./TestProjects/Viking-Village-Perf --timeout=1200
@@ -107,7 +110,8 @@ VikingVillage_BuiltIn_iPhone_Metal_performance_build_editmode_il2cpp_Linear_trun
         UTR_VERSION: "current"
         TEST_FILTER: .*
     commands:
-      -  git clone https://github.cds.internal.unity3d.com/andrew-theisen/Viking-Village-Perf.git -b $VV_BUILTIN_BRANCH TestProjects/Viking-Village-Perf
+      -  command: git clone https://github.cds.internal.unity3d.com/andrew-theisen/Viking-Village-Perf.git -b $VV_BUILTIN_BRANCH TestProjects/Viking-Village-Perf
+         retries: 3
       -  cd TestProjects/Viking-Village-Perf && git checkout $VV_BUILTIN_REVISION
       -  brew tap --force-auto-update unity/unity git@github.cds.internal.unity3d.com:unity/homebrew-unity.git
       -  brew install unity-config
@@ -129,7 +133,7 @@ VikingVillage_BuiltIn_iPhone_Metal_performance_build_editmode_il2cpp_Linear_trun
       -  cd TestProjects/Viking-Village-Perf && unity-config project set project-update false --project-path .
       -  command: curl -s https://artifactory.prd.it.unity3d.com/artifactory/unity-tools-local/utr-standalone/utr --output utr
          retries: 3
-      -  chmod +x ./utr
+      -  command: chmod +x ./utr
       -  command: brew tap --force-auto-update unity/unity git@github.cds.internal.unity3d.com:unity/homebrew-unity.git
          retries: 3
       -  command: brew install unity/unity/unity-downloader-cli
@@ -164,7 +168,7 @@ VikingVillage_BuiltIn_iPhone_Metal_performance_playmode_runtime_il2cpp_Linear_CU
     commands:
       -  command: curl -s https://artifactory.prd.it.unity3d.com/artifactory/unity-tools-local/utr-standalone/utr --output utr
          retries: 3
-      -  chmod +x ./utr
+      -  command: chmod +x ./utr
       -  command: |5-
                 export GIT_REVISIONDATE=`git rev-parse HEAD | git show -s --format=%cI`
                 ./utr --artifacts_path=TestProjects/Viking-Village-Perf/test-results --build-only --editor-location=.Editor --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-executemethod" --extra-editor-arg="SetupProject.ApplySettings" --extra-editor-arg="metal" --extra-editor-arg="Linear" --extra-editor-arg="-playergraphicsapi=Metal" --platform=iOS --player-save-path=players --scripting-backend=IL2CPP --suite=playmode --testfilter=$TEST_FILTER --testproject=./TestProjects/Viking-Village-Perf --timeout=1200
@@ -193,7 +197,8 @@ Build_VikingVillage_BuiltIn_iPhone_Metal_performance_playmode_runtime_il2cpp_Lin
         UTR_VERSION: "current"
         TEST_FILTER: .*
     commands:
-      -  git clone https://github.cds.internal.unity3d.com/andrew-theisen/Viking-Village-Perf.git -b $VV_BUILTIN_BRANCH TestProjects/Viking-Village-Perf
+      -  command: git clone https://github.cds.internal.unity3d.com/andrew-theisen/Viking-Village-Perf.git -b $VV_BUILTIN_BRANCH TestProjects/Viking-Village-Perf
+         retries: 3
       -  cd TestProjects/Viking-Village-Perf && git checkout $VV_BUILTIN_REVISION
       -  brew tap --force-auto-update unity/unity git@github.cds.internal.unity3d.com:unity/homebrew-unity.git
       -  brew install unity-config
@@ -213,11 +218,13 @@ Build_VikingVillage_BuiltIn_iPhone_Metal_performance_playmode_runtime_il2cpp_Lin
       -  cd TestProjects/Viking-Village-Perf && unity-config project add testable com.unity.render-pipelines.core  --project-path .
       -  cd TestProjects/Viking-Village-Perf && unity-config project add testable unity.graphictests.performance.universal  --project-path .
       -  cd TestProjects/Viking-Village-Perf && unity-config project set project-update false --project-path .
-      -  pip install unity-downloader-cli --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade
-      -  unity-downloader-cli --source-file unity_revision.txt -c editor -c iOS -c il2cpp   --wait --published-only
+      -  command: pip install unity-downloader-cli --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade
+         retries: 3
+      -  command: unity-downloader-cli --source-file unity_revision.txt -c editor -c iOS -c il2cpp   --wait --published-only
+         retries: 3
       -  command: curl -s https://artifactory.prd.it.unity3d.com/artifactory/unity-tools-local/utr-standalone/utr --output utr
          retries: 3
-      -  chmod +x ./utr
+      -  command: chmod +x ./utr
       -  command: |5-
                 export GIT_REVISIONDATE=`git rev-parse HEAD | git show -s --format=%cI`
                 ./utr --artifacts_path=TestProjects/Viking-Village-Perf/test-results --build-only --editor-location=.Editor --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-executemethod" --extra-editor-arg="SetupProject.ApplySettings" --extra-editor-arg="metal" --extra-editor-arg="Linear" --extra-editor-arg="-playergraphicsapi=Metal" --platform=iOS --player-save-path=players --scripting-backend=IL2CPP --suite=playmode --testfilter=$TEST_FILTER --testproject=./TestProjects/Viking-Village-Perf --timeout=1200
@@ -247,7 +254,8 @@ VikingVillage_BuiltIn_iPhone_Metal_performance_build_editmode_il2cpp_Linear_CUST
         UTR_VERSION: "current"
         TEST_FILTER: .*
     commands:
-      -  git clone https://github.cds.internal.unity3d.com/andrew-theisen/Viking-Village-Perf.git -b $VV_BUILTIN_BRANCH TestProjects/Viking-Village-Perf
+      -  command: git clone https://github.cds.internal.unity3d.com/andrew-theisen/Viking-Village-Perf.git -b $VV_BUILTIN_BRANCH TestProjects/Viking-Village-Perf
+         retries: 3
       -  cd TestProjects/Viking-Village-Perf && git checkout $VV_BUILTIN_REVISION
       -  brew tap --force-auto-update unity/unity git@github.cds.internal.unity3d.com:unity/homebrew-unity.git
       -  brew install unity-config
@@ -269,7 +277,7 @@ VikingVillage_BuiltIn_iPhone_Metal_performance_build_editmode_il2cpp_Linear_CUST
       -  cd TestProjects/Viking-Village-Perf && unity-config project set project-update false --project-path .
       -  command: curl -s https://artifactory.prd.it.unity3d.com/artifactory/unity-tools-local/utr-standalone/utr --output utr
          retries: 3
-      -  chmod +x ./utr
+      -  command: chmod +x ./utr
       -  command: brew tap --force-auto-update unity/unity git@github.cds.internal.unity3d.com:unity/homebrew-unity.git
          retries: 3
       -  command: brew install unity/unity/unity-downloader-cli

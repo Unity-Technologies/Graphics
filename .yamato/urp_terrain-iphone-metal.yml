@@ -22,7 +22,7 @@ URP_Terrain_iPhone_Metal_Standalone_il2cpp_Linear_trunk:
     commands:
       -  command: curl -s https://artifactory.prd.it.unity3d.com/artifactory/unity-tools-local/utr-standalone/utr --output utr
          retries: 3
-      -  chmod +x ./utr
+      -  command: chmod +x ./utr
       -  command: |5-
                 export GIT_REVISIONDATE=`git rev-parse HEAD | git show -s --format=%cI`
                 ./utr --artifacts_path=TestProjects/UniversalGraphicsTest_Terrain/test-results --build-only --editor-location=.Editor --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-executemethod" --extra-editor-arg="SetupProject.ApplySettings" --extra-editor-arg="metal" --extra-editor-arg="Linear" --extra-editor-arg="-playergraphicsapi=Metal" --platform=iOS --player-save-path=players --scripting-backend=IL2CPP --suite=playmode --testfilter=$TEST_FILTER --testproject=./TestProjects/UniversalGraphicsTest_Terrain --timeout=1200
@@ -51,7 +51,7 @@ Build_URP_Terrain_iPhone_Metal_Standalone_il2cpp_Linear_trunk:
     commands:
       -  command: curl -s https://artifactory.prd.it.unity3d.com/artifactory/unity-tools-local/utr-standalone/utr --output utr
          retries: 3
-      -  chmod +x ./utr
+      -  command: chmod +x ./utr
       -  command: brew tap --force-auto-update unity/unity git@github.cds.internal.unity3d.com:unity/homebrew-unity.git
          retries: 3
       -  command: brew install unity/unity/unity-downloader-cli
@@ -87,7 +87,7 @@ URP_Terrain_iPhone_Metal_Standalone_cache_il2cpp_Linear_trunk:
     commands:
       -  command: curl -s https://artifactory.prd.it.unity3d.com/artifactory/unity-tools-local/utr-standalone/utr --output utr
          retries: 3
-      -  chmod +x ./utr
+      -  command: chmod +x ./utr
       -  command: |5-
                 export GIT_REVISIONDATE=`git rev-parse HEAD | git show -s --format=%cI`
                 ./utr --artifacts_path=TestProjects/UniversalGraphicsTest_Terrain/test-results --build-only --editor-location=.Editor --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-executemethod" --extra-editor-arg="SetupProject.ApplySettings" --extra-editor-arg="metal" --extra-editor-arg="Linear" --extra-editor-arg="-playergraphicsapi=Metal" --platform=iOS --player-save-path=players --scripting-backend=IL2CPP --suite=playmode --testfilter=$TEST_FILTER --testproject=./TestProjects/UniversalGraphicsTest_Terrain --timeout=1200
@@ -116,7 +116,7 @@ Build_URP_Terrain_iPhone_Metal_Standalone_cache_il2cpp_Linear_trunk:
     commands:
       -  command: curl -s https://artifactory.prd.it.unity3d.com/artifactory/unity-tools-local/utr-standalone/utr --output utr
          retries: 3
-      -  chmod +x ./utr
+      -  command: chmod +x ./utr
       -  command: brew tap --force-auto-update unity/unity git@github.cds.internal.unity3d.com:unity/homebrew-unity.git
          retries: 3
       -  command: brew install unity/unity/unity-downloader-cli
@@ -152,7 +152,7 @@ URP_Terrain_iPhone_Metal_Standalone_il2cpp_Linear_CUSTOM-REVISION:
     commands:
       -  command: curl -s https://artifactory.prd.it.unity3d.com/artifactory/unity-tools-local/utr-standalone/utr --output utr
          retries: 3
-      -  chmod +x ./utr
+      -  command: chmod +x ./utr
       -  command: |5-
                 export GIT_REVISIONDATE=`git rev-parse HEAD | git show -s --format=%cI`
                 ./utr --artifacts_path=TestProjects/UniversalGraphicsTest_Terrain/test-results --build-only --editor-location=.Editor --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-executemethod" --extra-editor-arg="SetupProject.ApplySettings" --extra-editor-arg="metal" --extra-editor-arg="Linear" --extra-editor-arg="-playergraphicsapi=Metal" --platform=iOS --player-save-path=players --scripting-backend=IL2CPP --suite=playmode --testfilter=$TEST_FILTER --testproject=./TestProjects/UniversalGraphicsTest_Terrain --timeout=1200
@@ -181,7 +181,7 @@ Build_URP_Terrain_iPhone_Metal_Standalone_il2cpp_Linear_CUSTOM-REVISION:
     commands:
       -  command: curl -s https://artifactory.prd.it.unity3d.com/artifactory/unity-tools-local/utr-standalone/utr --output utr
          retries: 3
-      -  chmod +x ./utr
+      -  command: chmod +x ./utr
       -  command: brew tap --force-auto-update unity/unity git@github.cds.internal.unity3d.com:unity/homebrew-unity.git
          retries: 3
       -  command: brew install unity/unity/unity-downloader-cli
@@ -217,7 +217,7 @@ URP_Terrain_iPhone_Metal_Standalone_cache_il2cpp_Linear_CUSTOM-REVISION:
     commands:
       -  command: curl -s https://artifactory.prd.it.unity3d.com/artifactory/unity-tools-local/utr-standalone/utr --output utr
          retries: 3
-      -  chmod +x ./utr
+      -  command: chmod +x ./utr
       -  command: |5-
                 export GIT_REVISIONDATE=`git rev-parse HEAD | git show -s --format=%cI`
                 ./utr --artifacts_path=TestProjects/UniversalGraphicsTest_Terrain/test-results --build-only --editor-location=.Editor --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-executemethod" --extra-editor-arg="SetupProject.ApplySettings" --extra-editor-arg="metal" --extra-editor-arg="Linear" --extra-editor-arg="-playergraphicsapi=Metal" --platform=iOS --player-save-path=players --scripting-backend=IL2CPP --suite=playmode --testfilter=$TEST_FILTER --testproject=./TestProjects/UniversalGraphicsTest_Terrain --timeout=1200
@@ -246,7 +246,7 @@ Build_URP_Terrain_iPhone_Metal_Standalone_cache_il2cpp_Linear_CUSTOM-REVISION:
     commands:
       -  command: curl -s https://artifactory.prd.it.unity3d.com/artifactory/unity-tools-local/utr-standalone/utr --output utr
          retries: 3
-      -  chmod +x ./utr
+      -  command: chmod +x ./utr
       -  command: brew tap --force-auto-update unity/unity git@github.cds.internal.unity3d.com:unity/homebrew-unity.git
          retries: 3
       -  command: brew install unity/unity/unity-downloader-cli

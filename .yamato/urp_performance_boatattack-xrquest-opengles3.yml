@@ -22,8 +22,8 @@ URP_Performance_BoatAttack_XRQuest_OpenGLES3_performance_playmode_runtime_il2cpp
         UTR_VERSION: "current"
         TEST_FILTER: .*
     commands:
-      -  pip install pywin32 --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple
-      -  pip install requests --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple
+      -  command: pip install pywin32 --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple
+      -  command: pip install requests --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple
       -  command: git clone -b xrperf-urp git@github.cds.internal.unity3d.com:unity/xr.xrautomatedtests.git
          retries: 3
       -  command: |5-
@@ -74,7 +74,8 @@ Build_URP_Performance_BoatAttack_XRQuest_OpenGLES3_performance_playmode_runtime_
         UTR_VERSION: "current"
         TEST_FILTER: .*
     commands:
-      -  git clone https://github.com/Unity-Technologies/BoatAttack.git -b %BOAT_ATTACK_BRANCH% TestProjects/BoatAttack
+      -  command: git clone https://github.com/Unity-Technologies/BoatAttack.git -b %BOAT_ATTACK_BRANCH% TestProjects/BoatAttack
+         retries: 3
       -  cd TestProjects/BoatAttack && git checkout %BOAT_ATTACK_REVISION%
       -  choco source add -n Unity -s https://artifactory.prd.it.unity3d.com/artifactory/api/nuget/unity-choco-local
       -  choco install unity-config
@@ -100,9 +101,9 @@ Build_URP_Performance_BoatAttack_XRQuest_OpenGLES3_performance_playmode_runtime_
       -  cd TestProjects/BoatAttack && unity-config project set project-update false --project-path .
       -  cd TestProjects/BoatAttack && unity-config project set registry "https://artifactory.prd.it.unity3d.com/artifactory/api/npm/upm-candidates" --project-path .
       -  cd TestProjects/BoatAttack && unity-config project set setting ProjectSettings.asset AndroidMinSdkVersion 23 --project-path .
-      -  NetSh Advfirewall set allprofiles state off
-      -  pip install pywin32 --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple
-      -  pip install requests --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple
+      -  command: NetSh Advfirewall set allprofiles state off
+      -  command: pip install pywin32 --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple
+      -  command: pip install requests --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple
       -  command: git clone -b xrperf-urp git@github.cds.internal.unity3d.com:unity/xr.xrautomatedtests.git
          retries: 3
       -  command: pip install unity-downloader-cli --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade
@@ -158,7 +159,8 @@ URP_Performance_BoatAttack_XRQuest_OpenGLES3_performance_build_editmode_il2cpp_L
         UTR_VERSION: "current"
         TEST_FILTER: .*
     commands:
-      -  git clone https://github.com/Unity-Technologies/BoatAttack.git -b %BOAT_ATTACK_BRANCH% TestProjects/BoatAttack
+      -  command: git clone https://github.com/Unity-Technologies/BoatAttack.git -b %BOAT_ATTACK_BRANCH% TestProjects/BoatAttack
+         retries: 3
       -  cd TestProjects/BoatAttack && git checkout %BOAT_ATTACK_REVISION%
       -  choco source add -n Unity -s https://artifactory.prd.it.unity3d.com/artifactory/api/nuget/unity-choco-local
       -  choco install unity-config
@@ -184,8 +186,8 @@ URP_Performance_BoatAttack_XRQuest_OpenGLES3_performance_build_editmode_il2cpp_L
       -  cd TestProjects/BoatAttack && unity-config project set project-update false --project-path .
       -  cd TestProjects/BoatAttack && unity-config project set registry "https://artifactory.prd.it.unity3d.com/artifactory/api/npm/upm-candidates" --project-path .
       -  cd TestProjects/BoatAttack && unity-config project set setting ProjectSettings.asset AndroidMinSdkVersion 23 --project-path .
-      -  pip install pywin32 --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple
-      -  pip install requests --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple
+      -  command: pip install pywin32 --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple
+      -  command: pip install requests --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple
       -  command: git clone -b xrperf-urp git@github.cds.internal.unity3d.com:unity/xr.xrautomatedtests.git
          retries: 3
       -  command: pip install unity-downloader-cli --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade
@@ -238,8 +240,8 @@ URP_Performance_BoatAttack_XRQuest_OpenGLES3_performance_playmode_runtime_il2cpp
         UTR_VERSION: "current"
         TEST_FILTER: .*
     commands:
-      -  pip install pywin32 --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple
-      -  pip install requests --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple
+      -  command: pip install pywin32 --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple
+      -  command: pip install requests --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple
       -  command: git clone -b xrperf-urp git@github.cds.internal.unity3d.com:unity/xr.xrautomatedtests.git
          retries: 3
       -  command: |5-
@@ -290,7 +292,8 @@ Build_URP_Performance_BoatAttack_XRQuest_OpenGLES3_performance_playmode_runtime_
         UTR_VERSION: "current"
         TEST_FILTER: .*
     commands:
-      -  git clone https://github.com/Unity-Technologies/BoatAttack.git -b %BOAT_ATTACK_BRANCH% TestProjects/BoatAttack
+      -  command: git clone https://github.com/Unity-Technologies/BoatAttack.git -b %BOAT_ATTACK_BRANCH% TestProjects/BoatAttack
+         retries: 3
       -  cd TestProjects/BoatAttack && git checkout %BOAT_ATTACK_REVISION%
       -  choco source add -n Unity -s https://artifactory.prd.it.unity3d.com/artifactory/api/nuget/unity-choco-local
       -  choco install unity-config
@@ -316,9 +319,9 @@ Build_URP_Performance_BoatAttack_XRQuest_OpenGLES3_performance_playmode_runtime_
       -  cd TestProjects/BoatAttack && unity-config project set project-update false --project-path .
       -  cd TestProjects/BoatAttack && unity-config project set registry "https://artifactory.prd.it.unity3d.com/artifactory/api/npm/upm-candidates" --project-path .
       -  cd TestProjects/BoatAttack && unity-config project set setting ProjectSettings.asset AndroidMinSdkVersion 23 --project-path .
-      -  NetSh Advfirewall set allprofiles state off
-      -  pip install pywin32 --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple
-      -  pip install requests --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple
+      -  command: NetSh Advfirewall set allprofiles state off
+      -  command: pip install pywin32 --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple
+      -  command: pip install requests --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple
       -  command: git clone -b xrperf-urp git@github.cds.internal.unity3d.com:unity/xr.xrautomatedtests.git
          retries: 3
       -  command: pip install unity-downloader-cli --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade
@@ -374,7 +377,8 @@ URP_Performance_BoatAttack_XRQuest_OpenGLES3_performance_build_editmode_il2cpp_L
         UTR_VERSION: "current"
         TEST_FILTER: .*
     commands:
-      -  git clone https://github.com/Unity-Technologies/BoatAttack.git -b %BOAT_ATTACK_BRANCH% TestProjects/BoatAttack
+      -  command: git clone https://github.com/Unity-Technologies/BoatAttack.git -b %BOAT_ATTACK_BRANCH% TestProjects/BoatAttack
+         retries: 3
       -  cd TestProjects/BoatAttack && git checkout %BOAT_ATTACK_REVISION%
       -  choco source add -n Unity -s https://artifactory.prd.it.unity3d.com/artifactory/api/nuget/unity-choco-local
       -  choco install unity-config
@@ -400,8 +404,8 @@ URP_Performance_BoatAttack_XRQuest_OpenGLES3_performance_build_editmode_il2cpp_L
       -  cd TestProjects/BoatAttack && unity-config project set project-update false --project-path .
       -  cd TestProjects/BoatAttack && unity-config project set registry "https://artifactory.prd.it.unity3d.com/artifactory/api/npm/upm-candidates" --project-path .
       -  cd TestProjects/BoatAttack && unity-config project set setting ProjectSettings.asset AndroidMinSdkVersion 23 --project-path .
-      -  pip install pywin32 --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple
-      -  pip install requests --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple
+      -  command: pip install pywin32 --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple
+      -  command: pip install requests --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple
       -  command: git clone -b xrperf-urp git@github.cds.internal.unity3d.com:unity/xr.xrautomatedtests.git
          retries: 3
       -  command: pip install unity-downloader-cli --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade

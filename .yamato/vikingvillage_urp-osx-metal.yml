@@ -22,7 +22,8 @@ VikingVillage_URP_OSX_Metal_performance_playmode_runtime_mono_Linear_trunk:
         UTR_VERSION: "current"
         TEST_FILTER: .*
     commands:
-      -  git clone https://github.cds.internal.unity3d.com/andrew-theisen/Viking-Village-Perf.git -b $VV_URP_BRANCH TestProjects/Viking-Village-Perf
+      -  command: git clone https://github.cds.internal.unity3d.com/andrew-theisen/Viking-Village-Perf.git -b $VV_URP_BRANCH TestProjects/Viking-Village-Perf
+         retries: 3
       -  cd TestProjects/Viking-Village-Perf && git checkout $VV_URP_REVISION
       -  brew tap --force-auto-update unity/unity git@github.cds.internal.unity3d.com:unity/homebrew-unity.git
       -  brew install unity-config
@@ -82,7 +83,8 @@ VikingVillage_URP_OSX_Metal_performance_playmode_editor_mono_Linear_trunk:
         UTR_VERSION: "current"
         TEST_FILTER: .*
     commands:
-      -  git clone https://github.cds.internal.unity3d.com/andrew-theisen/Viking-Village-Perf.git -b $VV_URP_BRANCH TestProjects/Viking-Village-Perf
+      -  command: git clone https://github.cds.internal.unity3d.com/andrew-theisen/Viking-Village-Perf.git -b $VV_URP_BRANCH TestProjects/Viking-Village-Perf
+         retries: 3
       -  cd TestProjects/Viking-Village-Perf && git checkout $VV_URP_REVISION
       -  brew tap --force-auto-update unity/unity git@github.cds.internal.unity3d.com:unity/homebrew-unity.git
       -  brew install unity-config
@@ -142,7 +144,8 @@ VikingVillage_URP_OSX_Metal_performance_build_editmode_mono_Linear_trunk:
         UTR_VERSION: "current"
         TEST_FILTER: .*
     commands:
-      -  git clone https://github.cds.internal.unity3d.com/andrew-theisen/Viking-Village-Perf.git -b $VV_URP_BRANCH TestProjects/Viking-Village-Perf
+      -  command: git clone https://github.cds.internal.unity3d.com/andrew-theisen/Viking-Village-Perf.git -b $VV_URP_BRANCH TestProjects/Viking-Village-Perf
+         retries: 3
       -  cd TestProjects/Viking-Village-Perf && git checkout $VV_URP_REVISION
       -  brew tap --force-auto-update unity/unity git@github.cds.internal.unity3d.com:unity/homebrew-unity.git
       -  brew install unity-config
@@ -202,7 +205,8 @@ VikingVillage_URP_OSX_Metal_performance_playmode_runtime_mono_Linear_CUSTOM-REVI
         UTR_VERSION: "current"
         TEST_FILTER: .*
     commands:
-      -  git clone https://github.cds.internal.unity3d.com/andrew-theisen/Viking-Village-Perf.git -b $VV_URP_BRANCH TestProjects/Viking-Village-Perf
+      -  command: git clone https://github.cds.internal.unity3d.com/andrew-theisen/Viking-Village-Perf.git -b $VV_URP_BRANCH TestProjects/Viking-Village-Perf
+         retries: 3
       -  cd TestProjects/Viking-Village-Perf && git checkout $VV_URP_REVISION
       -  brew tap --force-auto-update unity/unity git@github.cds.internal.unity3d.com:unity/homebrew-unity.git
       -  brew install unity-config
@@ -262,7 +266,8 @@ VikingVillage_URP_OSX_Metal_performance_playmode_editor_mono_Linear_CUSTOM-REVIS
         UTR_VERSION: "current"
         TEST_FILTER: .*
     commands:
-      -  git clone https://github.cds.internal.unity3d.com/andrew-theisen/Viking-Village-Perf.git -b $VV_URP_BRANCH TestProjects/Viking-Village-Perf
+      -  command: git clone https://github.cds.internal.unity3d.com/andrew-theisen/Viking-Village-Perf.git -b $VV_URP_BRANCH TestProjects/Viking-Village-Perf
+         retries: 3
       -  cd TestProjects/Viking-Village-Perf && git checkout $VV_URP_REVISION
       -  brew tap --force-auto-update unity/unity git@github.cds.internal.unity3d.com:unity/homebrew-unity.git
       -  brew install unity-config
@@ -322,7 +327,8 @@ VikingVillage_URP_OSX_Metal_performance_build_editmode_mono_Linear_CUSTOM-REVISI
         UTR_VERSION: "current"
         TEST_FILTER: .*
     commands:
-      -  git clone https://github.cds.internal.unity3d.com/andrew-theisen/Viking-Village-Perf.git -b $VV_URP_BRANCH TestProjects/Viking-Village-Perf
+      -  command: git clone https://github.cds.internal.unity3d.com/andrew-theisen/Viking-Village-Perf.git -b $VV_URP_BRANCH TestProjects/Viking-Village-Perf
+         retries: 3
       -  cd TestProjects/Viking-Village-Perf && git checkout $VV_URP_REVISION
       -  brew tap --force-auto-update unity/unity git@github.cds.internal.unity3d.com:unity/homebrew-unity.git
       -  brew install unity-config

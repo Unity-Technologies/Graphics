@@ -23,7 +23,7 @@ VikingVillage_URP_Win_Vulkan_performance_playmode_runtime_mono_Linear_trunk:
         UTR_VERSION: "current"
         TEST_FILTER: .*
     commands:
-      -  NetSh Advfirewall set allprofiles state off
+      -  command: NetSh Advfirewall set allprofiles state off
       -  command: curl -s https://artifactory.prd.it.unity3d.com/artifactory/unity-tools-local/utr-standalone/utr.bat --output utr.bat
          retries: 3
       -  command: |5-
@@ -57,7 +57,8 @@ Build_VikingVillage_URP_Win_Vulkan_performance_playmode_runtime_mono_Linear_trun
         UTR_VERSION: "current"
         TEST_FILTER: .*
     commands:
-      -  git clone https://github.cds.internal.unity3d.com/andrew-theisen/Viking-Village-Perf.git  -b %VV_URP_BRANCH% TestProjects/Viking-Village-Perf
+      -  command: git clone https://github.cds.internal.unity3d.com/andrew-theisen/Viking-Village-Perf.git  -b %VV_URP_BRANCH% TestProjects/Viking-Village-Perf
+         retries: 3
       -  cd TestProjects/Viking-Village-Perf && git checkout %VV_URP_REVISION%
       -  choco source add -n Unity -s https://artifactory.prd.it.unity3d.com/artifactory/api/nuget/unity-choco-local
       -  choco install unity-config
@@ -77,7 +78,7 @@ Build_VikingVillage_URP_Win_Vulkan_performance_playmode_runtime_mono_Linear_trun
       -  cd TestProjects/Viking-Village-Perf && unity-config project add testable com.unity.render-pipelines.core  --project-path .
       -  cd TestProjects/Viking-Village-Perf && unity-config project add testable unity.graphictests.performance.universal  --project-path .
       -  cd TestProjects/Viking-Village-Perf && unity-config project set project-update false --project-path .
-      -  NetSh Advfirewall set allprofiles state off
+      -  command: NetSh Advfirewall set allprofiles state off
       -  command: curl -s https://artifactory.prd.it.unity3d.com/artifactory/unity-tools-local/utr-standalone/utr.bat --output utr.bat
          retries: 3
       -  command: choco install unity-downloader-cli -y -s https://artifactory.prd.it.unity3d.com/artifactory/api/nuget/unity-choco-local
@@ -116,7 +117,8 @@ VikingVillage_URP_Win_Vulkan_performance_build_editmode_mono_Linear_trunk:
         UTR_VERSION: "current"
         TEST_FILTER: .*
     commands:
-      -  git clone https://github.cds.internal.unity3d.com/andrew-theisen/Viking-Village-Perf.git  -b %VV_URP_BRANCH% TestProjects/Viking-Village-Perf
+      -  command: git clone https://github.cds.internal.unity3d.com/andrew-theisen/Viking-Village-Perf.git  -b %VV_URP_BRANCH% TestProjects/Viking-Village-Perf
+         retries: 3
       -  cd TestProjects/Viking-Village-Perf && git checkout %VV_URP_REVISION%
       -  choco source add -n Unity -s https://artifactory.prd.it.unity3d.com/artifactory/api/nuget/unity-choco-local
       -  choco install unity-config
@@ -136,7 +138,7 @@ VikingVillage_URP_Win_Vulkan_performance_build_editmode_mono_Linear_trunk:
       -  cd TestProjects/Viking-Village-Perf && unity-config project add testable com.unity.render-pipelines.core  --project-path .
       -  cd TestProjects/Viking-Village-Perf && unity-config project add testable unity.graphictests.performance.universal  --project-path .
       -  cd TestProjects/Viking-Village-Perf && unity-config project set project-update false --project-path .
-      -  NetSh Advfirewall set allprofiles state off
+      -  command: NetSh Advfirewall set allprofiles state off
       -  command: curl -s https://artifactory.prd.it.unity3d.com/artifactory/unity-tools-local/utr-standalone/utr.bat --output utr.bat
          retries: 3
       -  command: choco install unity-downloader-cli -y -s https://artifactory.prd.it.unity3d.com/artifactory/api/nuget/unity-choco-local
@@ -173,7 +175,7 @@ VikingVillage_URP_Win_Vulkan_performance_playmode_runtime_mono_Linear_CUSTOM-REV
         UTR_VERSION: "current"
         TEST_FILTER: .*
     commands:
-      -  NetSh Advfirewall set allprofiles state off
+      -  command: NetSh Advfirewall set allprofiles state off
       -  command: curl -s https://artifactory.prd.it.unity3d.com/artifactory/unity-tools-local/utr-standalone/utr.bat --output utr.bat
          retries: 3
       -  command: |5-
@@ -207,7 +209,8 @@ Build_VikingVillage_URP_Win_Vulkan_performance_playmode_runtime_mono_Linear_CUST
         UTR_VERSION: "current"
         TEST_FILTER: .*
     commands:
-      -  git clone https://github.cds.internal.unity3d.com/andrew-theisen/Viking-Village-Perf.git  -b %VV_URP_BRANCH% TestProjects/Viking-Village-Perf
+      -  command: git clone https://github.cds.internal.unity3d.com/andrew-theisen/Viking-Village-Perf.git  -b %VV_URP_BRANCH% TestProjects/Viking-Village-Perf
+         retries: 3
       -  cd TestProjects/Viking-Village-Perf && git checkout %VV_URP_REVISION%
       -  choco source add -n Unity -s https://artifactory.prd.it.unity3d.com/artifactory/api/nuget/unity-choco-local
       -  choco install unity-config
@@ -227,7 +230,7 @@ Build_VikingVillage_URP_Win_Vulkan_performance_playmode_runtime_mono_Linear_CUST
       -  cd TestProjects/Viking-Village-Perf && unity-config project add testable com.unity.render-pipelines.core  --project-path .
       -  cd TestProjects/Viking-Village-Perf && unity-config project add testable unity.graphictests.performance.universal  --project-path .
       -  cd TestProjects/Viking-Village-Perf && unity-config project set project-update false --project-path .
-      -  NetSh Advfirewall set allprofiles state off
+      -  command: NetSh Advfirewall set allprofiles state off
       -  command: curl -s https://artifactory.prd.it.unity3d.com/artifactory/unity-tools-local/utr-standalone/utr.bat --output utr.bat
          retries: 3
       -  command: choco install unity-downloader-cli -y -s https://artifactory.prd.it.unity3d.com/artifactory/api/nuget/unity-choco-local
@@ -266,7 +269,8 @@ VikingVillage_URP_Win_Vulkan_performance_build_editmode_mono_Linear_CUSTOM-REVIS
         UTR_VERSION: "current"
         TEST_FILTER: .*
     commands:
-      -  git clone https://github.cds.internal.unity3d.com/andrew-theisen/Viking-Village-Perf.git  -b %VV_URP_BRANCH% TestProjects/Viking-Village-Perf
+      -  command: git clone https://github.cds.internal.unity3d.com/andrew-theisen/Viking-Village-Perf.git  -b %VV_URP_BRANCH% TestProjects/Viking-Village-Perf
+         retries: 3
       -  cd TestProjects/Viking-Village-Perf && git checkout %VV_URP_REVISION%
       -  choco source add -n Unity -s https://artifactory.prd.it.unity3d.com/artifactory/api/nuget/unity-choco-local
       -  choco install unity-config
@@ -286,7 +290,7 @@ VikingVillage_URP_Win_Vulkan_performance_build_editmode_mono_Linear_CUSTOM-REVIS
       -  cd TestProjects/Viking-Village-Perf && unity-config project add testable com.unity.render-pipelines.core  --project-path .
       -  cd TestProjects/Viking-Village-Perf && unity-config project add testable unity.graphictests.performance.universal  --project-path .
       -  cd TestProjects/Viking-Village-Perf && unity-config project set project-update false --project-path .
-      -  NetSh Advfirewall set allprofiles state off
+      -  command: NetSh Advfirewall set allprofiles state off
       -  command: curl -s https://artifactory.prd.it.unity3d.com/artifactory/unity-tools-local/utr-standalone/utr.bat --output utr.bat
          retries: 3
       -  command: choco install unity-downloader-cli -y -s https://artifactory.prd.it.unity3d.com/artifactory/api/nuget/unity-choco-local

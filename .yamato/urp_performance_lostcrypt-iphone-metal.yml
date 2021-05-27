@@ -24,7 +24,7 @@ URP_Performance_LostCrypt_iPhone_Metal_performance_playmode_runtime_il2cpp_Linea
     commands:
       -  command: curl -s https://artifactory.prd.it.unity3d.com/artifactory/unity-tools-local/utr-standalone/utr --output utr
          retries: 3
-      -  chmod +x ./utr
+      -  command: chmod +x ./utr
       -  command: |5-
                 export GIT_REVISIONDATE=`git rev-parse HEAD | git show -s --format=%cI`
                 ./utr --artifacts_path=TestProjects/2d-sara/test-results --build-only --editor-location=.Editor --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-executemethod" --extra-editor-arg="SetupProject.ApplySettings" --extra-editor-arg="metal" --extra-editor-arg="Linear" --extra-editor-arg="-playergraphicsapi=Metal" --platform=iOS --player-save-path=players --scripting-backend=IL2CPP --suite=playmode --testfilter=$TEST_FILTER --testproject=./TestProjects/2d-sara --timeout=1200
@@ -57,7 +57,8 @@ Build_URP_Performance_LostCrypt_iPhone_Metal_performance_playmode_runtime_il2cpp
         UTR_VERSION: "current"
         TEST_FILTER: .*
     commands:
-      -  git clone https://github.com/Unity-Technologies/2d-sara.git -b $LOST_CRYPT_BRANCH TestProjects/2d-sara
+      -  command: git clone https://github.com/Unity-Technologies/2d-sara.git -b $LOST_CRYPT_BRANCH TestProjects/2d-sara
+         retries: 3
       -  cd TestProjects/2d-sara && git checkout $LOST_CRYPT_REVISION
       -  brew tap --force-auto-update unity/unity git@github.cds.internal.unity3d.com:unity/homebrew-unity.git
       -  brew install unity-config
@@ -79,11 +80,13 @@ Build_URP_Performance_LostCrypt_iPhone_Metal_performance_playmode_runtime_il2cpp
       -  cd TestProjects/2d-sara && unity-config project add testable com.unity.render-pipelines.core  --project-path .
       -  cd TestProjects/2d-sara && unity-config project add testable unity.graphictests.performance.universal  --project-path .
       -  cd TestProjects/2d-sara && unity-config project set project-update false --project-path .
-      -  pip install unity-downloader-cli --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade
-      -  unity-downloader-cli --source-file unity_revision.txt -c editor -c iOS -c il2cpp   --wait --published-only
+      -  command: pip install unity-downloader-cli --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade
+         retries: 3
+      -  command: unity-downloader-cli --source-file unity_revision.txt -c editor -c iOS -c il2cpp   --wait --published-only
+         retries: 3
       -  command: curl -s https://artifactory.prd.it.unity3d.com/artifactory/unity-tools-local/utr-standalone/utr --output utr
          retries: 3
-      -  chmod +x ./utr
+      -  command: chmod +x ./utr
       -  command: |5-
                 export GIT_REVISIONDATE=`git rev-parse HEAD | git show -s --format=%cI`
                 ./utr --artifacts_path=TestProjects/2d-sara/test-results --build-only --editor-location=.Editor --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-executemethod" --extra-editor-arg="SetupProject.ApplySettings" --extra-editor-arg="metal" --extra-editor-arg="Linear" --extra-editor-arg="-playergraphicsapi=Metal" --platform=iOS --player-save-path=players --scripting-backend=IL2CPP --suite=playmode --testfilter=$TEST_FILTER --testproject=./TestProjects/2d-sara --timeout=1200
@@ -117,7 +120,8 @@ URP_Performance_LostCrypt_iPhone_Metal_performance_build_editmode_il2cpp_Linear_
         UTR_VERSION: "current"
         TEST_FILTER: .*
     commands:
-      -  git clone https://github.com/Unity-Technologies/2d-sara.git -b $LOST_CRYPT_BRANCH TestProjects/2d-sara
+      -  command: git clone https://github.com/Unity-Technologies/2d-sara.git -b $LOST_CRYPT_BRANCH TestProjects/2d-sara
+         retries: 3
       -  cd TestProjects/2d-sara && git checkout $LOST_CRYPT_REVISION
       -  brew tap --force-auto-update unity/unity git@github.cds.internal.unity3d.com:unity/homebrew-unity.git
       -  brew install unity-config
@@ -141,7 +145,7 @@ URP_Performance_LostCrypt_iPhone_Metal_performance_build_editmode_il2cpp_Linear_
       -  cd TestProjects/2d-sara && unity-config project set project-update false --project-path .
       -  command: curl -s https://artifactory.prd.it.unity3d.com/artifactory/unity-tools-local/utr-standalone/utr --output utr
          retries: 3
-      -  chmod +x ./utr
+      -  command: chmod +x ./utr
       -  command: brew tap --force-auto-update unity/unity git@github.cds.internal.unity3d.com:unity/homebrew-unity.git
          retries: 3
       -  command: brew install unity/unity/unity-downloader-cli
@@ -180,7 +184,7 @@ URP_Performance_LostCrypt_iPhone_Metal_performance_playmode_runtime_il2cpp_Linea
     commands:
       -  command: curl -s https://artifactory.prd.it.unity3d.com/artifactory/unity-tools-local/utr-standalone/utr --output utr
          retries: 3
-      -  chmod +x ./utr
+      -  command: chmod +x ./utr
       -  command: |5-
                 export GIT_REVISIONDATE=`git rev-parse HEAD | git show -s --format=%cI`
                 ./utr --artifacts_path=TestProjects/2d-sara/test-results --build-only --editor-location=.Editor --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-executemethod" --extra-editor-arg="SetupProject.ApplySettings" --extra-editor-arg="metal" --extra-editor-arg="Linear" --extra-editor-arg="-playergraphicsapi=Metal" --platform=iOS --player-save-path=players --scripting-backend=IL2CPP --suite=playmode --testfilter=$TEST_FILTER --testproject=./TestProjects/2d-sara --timeout=1200
@@ -213,7 +217,8 @@ Build_URP_Performance_LostCrypt_iPhone_Metal_performance_playmode_runtime_il2cpp
         UTR_VERSION: "current"
         TEST_FILTER: .*
     commands:
-      -  git clone https://github.com/Unity-Technologies/2d-sara.git -b $LOST_CRYPT_BRANCH TestProjects/2d-sara
+      -  command: git clone https://github.com/Unity-Technologies/2d-sara.git -b $LOST_CRYPT_BRANCH TestProjects/2d-sara
+         retries: 3
       -  cd TestProjects/2d-sara && git checkout $LOST_CRYPT_REVISION
       -  brew tap --force-auto-update unity/unity git@github.cds.internal.unity3d.com:unity/homebrew-unity.git
       -  brew install unity-config
@@ -235,11 +240,13 @@ Build_URP_Performance_LostCrypt_iPhone_Metal_performance_playmode_runtime_il2cpp
       -  cd TestProjects/2d-sara && unity-config project add testable com.unity.render-pipelines.core  --project-path .
       -  cd TestProjects/2d-sara && unity-config project add testable unity.graphictests.performance.universal  --project-path .
       -  cd TestProjects/2d-sara && unity-config project set project-update false --project-path .
-      -  pip install unity-downloader-cli --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade
-      -  unity-downloader-cli --source-file unity_revision.txt -c editor -c iOS -c il2cpp   --wait --published-only
+      -  command: pip install unity-downloader-cli --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade
+         retries: 3
+      -  command: unity-downloader-cli --source-file unity_revision.txt -c editor -c iOS -c il2cpp   --wait --published-only
+         retries: 3
       -  command: curl -s https://artifactory.prd.it.unity3d.com/artifactory/unity-tools-local/utr-standalone/utr --output utr
          retries: 3
-      -  chmod +x ./utr
+      -  command: chmod +x ./utr
       -  command: |5-
                 export GIT_REVISIONDATE=`git rev-parse HEAD | git show -s --format=%cI`
                 ./utr --artifacts_path=TestProjects/2d-sara/test-results --build-only --editor-location=.Editor --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-executemethod" --extra-editor-arg="SetupProject.ApplySettings" --extra-editor-arg="metal" --extra-editor-arg="Linear" --extra-editor-arg="-playergraphicsapi=Metal" --platform=iOS --player-save-path=players --scripting-backend=IL2CPP --suite=playmode --testfilter=$TEST_FILTER --testproject=./TestProjects/2d-sara --timeout=1200
@@ -273,7 +280,8 @@ URP_Performance_LostCrypt_iPhone_Metal_performance_build_editmode_il2cpp_Linear_
         UTR_VERSION: "current"
         TEST_FILTER: .*
     commands:
-      -  git clone https://github.com/Unity-Technologies/2d-sara.git -b $LOST_CRYPT_BRANCH TestProjects/2d-sara
+      -  command: git clone https://github.com/Unity-Technologies/2d-sara.git -b $LOST_CRYPT_BRANCH TestProjects/2d-sara
+         retries: 3
       -  cd TestProjects/2d-sara && git checkout $LOST_CRYPT_REVISION
       -  brew tap --force-auto-update unity/unity git@github.cds.internal.unity3d.com:unity/homebrew-unity.git
       -  brew install unity-config
@@ -297,7 +305,7 @@ URP_Performance_LostCrypt_iPhone_Metal_performance_build_editmode_il2cpp_Linear_
       -  cd TestProjects/2d-sara && unity-config project set project-update false --project-path .
       -  command: curl -s https://artifactory.prd.it.unity3d.com/artifactory/unity-tools-local/utr-standalone/utr --output utr
          retries: 3
-      -  chmod +x ./utr
+      -  command: chmod +x ./utr
       -  command: brew tap --force-auto-update unity/unity git@github.cds.internal.unity3d.com:unity/homebrew-unity.git
          retries: 3
       -  command: brew install unity/unity/unity-downloader-cli

@@ -23,7 +23,7 @@ URP_Performance_LostCrypt_Win_Vulkan_performance_playmode_runtime_mono_Linear_tr
         UTR_VERSION: "current"
         TEST_FILTER: .*
     commands:
-      -  NetSh Advfirewall set allprofiles state off
+      -  command: NetSh Advfirewall set allprofiles state off
       -  command: curl -s https://artifactory.prd.it.unity3d.com/artifactory/unity-tools-local/utr-standalone/utr.bat --output utr.bat
          retries: 3
       -  command: |5-
@@ -71,7 +71,8 @@ Build_URP_Performance_LostCrypt_Win_Vulkan_performance_playmode_runtime_mono_Lin
         UTR_VERSION: "current"
         TEST_FILTER: .*
     commands:
-      -  git clone https://github.com/Unity-Technologies/2d-sara.git -b %LOST_CRYPT_BRANCH% TestProjects/2d-sara
+      -  command: git clone https://github.com/Unity-Technologies/2d-sara.git -b %LOST_CRYPT_BRANCH% TestProjects/2d-sara
+         retries: 3
       -  cd TestProjects/2d-sara && git checkout %LOST_CRYPT_REVISION%
       -  choco source add -n Unity -s https://artifactory.prd.it.unity3d.com/artifactory/api/nuget/unity-choco-local
       -  choco install unity-config
@@ -93,7 +94,7 @@ Build_URP_Performance_LostCrypt_Win_Vulkan_performance_playmode_runtime_mono_Lin
       -  cd TestProjects/2d-sara && unity-config project add testable com.unity.render-pipelines.core  --project-path .
       -  cd TestProjects/2d-sara && unity-config project add testable unity.graphictests.performance.universal  --project-path .
       -  cd TestProjects/2d-sara && unity-config project set project-update false --project-path .
-      -  NetSh Advfirewall set allprofiles state off
+      -  command: NetSh Advfirewall set allprofiles state off
       -  command: curl -s https://artifactory.prd.it.unity3d.com/artifactory/unity-tools-local/utr-standalone/utr.bat --output utr.bat
          retries: 3
       -  command: choco install unity-downloader-cli -y -s https://artifactory.prd.it.unity3d.com/artifactory/api/nuget/unity-choco-local
@@ -146,7 +147,8 @@ URP_Performance_LostCrypt_Win_Vulkan_performance_build_editmode_mono_Linear_trun
         UTR_VERSION: "current"
         TEST_FILTER: .*
     commands:
-      -  git clone https://github.com/Unity-Technologies/2d-sara.git -b %LOST_CRYPT_BRANCH% TestProjects/2d-sara
+      -  command: git clone https://github.com/Unity-Technologies/2d-sara.git -b %LOST_CRYPT_BRANCH% TestProjects/2d-sara
+         retries: 3
       -  cd TestProjects/2d-sara && git checkout %LOST_CRYPT_REVISION%
       -  choco source add -n Unity -s https://artifactory.prd.it.unity3d.com/artifactory/api/nuget/unity-choco-local
       -  choco install unity-config
@@ -168,7 +170,7 @@ URP_Performance_LostCrypt_Win_Vulkan_performance_build_editmode_mono_Linear_trun
       -  cd TestProjects/2d-sara && unity-config project add testable com.unity.render-pipelines.core  --project-path .
       -  cd TestProjects/2d-sara && unity-config project add testable unity.graphictests.performance.universal  --project-path .
       -  cd TestProjects/2d-sara && unity-config project set project-update false --project-path .
-      -  NetSh Advfirewall set allprofiles state off
+      -  command: NetSh Advfirewall set allprofiles state off
       -  command: curl -s https://artifactory.prd.it.unity3d.com/artifactory/unity-tools-local/utr-standalone/utr.bat --output utr.bat
          retries: 3
       -  command: choco install unity-downloader-cli -y -s https://artifactory.prd.it.unity3d.com/artifactory/api/nuget/unity-choco-local
@@ -219,7 +221,7 @@ URP_Performance_LostCrypt_Win_Vulkan_performance_playmode_runtime_mono_Linear_CU
         UTR_VERSION: "current"
         TEST_FILTER: .*
     commands:
-      -  NetSh Advfirewall set allprofiles state off
+      -  command: NetSh Advfirewall set allprofiles state off
       -  command: curl -s https://artifactory.prd.it.unity3d.com/artifactory/unity-tools-local/utr-standalone/utr.bat --output utr.bat
          retries: 3
       -  command: |5-
@@ -267,7 +269,8 @@ Build_URP_Performance_LostCrypt_Win_Vulkan_performance_playmode_runtime_mono_Lin
         UTR_VERSION: "current"
         TEST_FILTER: .*
     commands:
-      -  git clone https://github.com/Unity-Technologies/2d-sara.git -b %LOST_CRYPT_BRANCH% TestProjects/2d-sara
+      -  command: git clone https://github.com/Unity-Technologies/2d-sara.git -b %LOST_CRYPT_BRANCH% TestProjects/2d-sara
+         retries: 3
       -  cd TestProjects/2d-sara && git checkout %LOST_CRYPT_REVISION%
       -  choco source add -n Unity -s https://artifactory.prd.it.unity3d.com/artifactory/api/nuget/unity-choco-local
       -  choco install unity-config
@@ -289,7 +292,7 @@ Build_URP_Performance_LostCrypt_Win_Vulkan_performance_playmode_runtime_mono_Lin
       -  cd TestProjects/2d-sara && unity-config project add testable com.unity.render-pipelines.core  --project-path .
       -  cd TestProjects/2d-sara && unity-config project add testable unity.graphictests.performance.universal  --project-path .
       -  cd TestProjects/2d-sara && unity-config project set project-update false --project-path .
-      -  NetSh Advfirewall set allprofiles state off
+      -  command: NetSh Advfirewall set allprofiles state off
       -  command: curl -s https://artifactory.prd.it.unity3d.com/artifactory/unity-tools-local/utr-standalone/utr.bat --output utr.bat
          retries: 3
       -  command: choco install unity-downloader-cli -y -s https://artifactory.prd.it.unity3d.com/artifactory/api/nuget/unity-choco-local
@@ -342,7 +345,8 @@ URP_Performance_LostCrypt_Win_Vulkan_performance_build_editmode_mono_Linear_CUST
         UTR_VERSION: "current"
         TEST_FILTER: .*
     commands:
-      -  git clone https://github.com/Unity-Technologies/2d-sara.git -b %LOST_CRYPT_BRANCH% TestProjects/2d-sara
+      -  command: git clone https://github.com/Unity-Technologies/2d-sara.git -b %LOST_CRYPT_BRANCH% TestProjects/2d-sara
+         retries: 3
       -  cd TestProjects/2d-sara && git checkout %LOST_CRYPT_REVISION%
       -  choco source add -n Unity -s https://artifactory.prd.it.unity3d.com/artifactory/api/nuget/unity-choco-local
       -  choco install unity-config
@@ -364,7 +368,7 @@ URP_Performance_LostCrypt_Win_Vulkan_performance_build_editmode_mono_Linear_CUST
       -  cd TestProjects/2d-sara && unity-config project add testable com.unity.render-pipelines.core  --project-path .
       -  cd TestProjects/2d-sara && unity-config project add testable unity.graphictests.performance.universal  --project-path .
       -  cd TestProjects/2d-sara && unity-config project set project-update false --project-path .
-      -  NetSh Advfirewall set allprofiles state off
+      -  command: NetSh Advfirewall set allprofiles state off
       -  command: curl -s https://artifactory.prd.it.unity3d.com/artifactory/unity-tools-local/utr-standalone/utr.bat --output utr.bat
          retries: 3
       -  command: choco install unity-downloader-cli -y -s https://artifactory.prd.it.unity3d.com/artifactory/api/nuget/unity-choco-local
