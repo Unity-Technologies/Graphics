@@ -36,7 +36,9 @@ namespace UnityEngine.Rendering.HighDefinition
 
         private static List<SphericalHarmonicsL2> m_SHCoefficients = new List<SphericalHarmonicsL2>();
         private static List<Vector3> m_RequestPositions = new List<Vector3>();
+        private static Vector3[] m_RequestPositionsSanitized;
         private static int m_FreelistHead = -1;
+        private static bool m_RequestToLightmapperIsSet = false;
 
         private static readonly Vector2 s_FreelistSentinel = new Vector2(float.MaxValue, float.MaxValue);
 
@@ -162,7 +164,18 @@ namespace UnityEngine.Rendering.HighDefinition
 
         internal void AddRequestsToLightmapper()
         {
-            UnityEditor.Experimental.Lightmapping.SetAdditionalBakedProbes(s_BakingID, m_RequestPositions.ToArray());
+            RemoveRequestsFromLightmapper();
+
+            int validRequestCount = ComputeValidRequestCount();
+            if (validRequestCount == 0)
+            {
+                return;
+            }
+
+            EnsureRequestPositionsSanitized();
+
+            UnityEditor.Experimental.Lightmapping.SetAdditionalBakedProbes(s_BakingID, m_RequestPositionsSanitized);
+            m_RequestToLightmapperIsSet = true;
 
             Lightmapping.bakeCompleted -= OnAdditionalProbesBakeCompleted;
             Lightmapping.bakeCompleted += OnAdditionalProbesBakeCompleted;
@@ -171,11 +184,14 @@ namespace UnityEngine.Rendering.HighDefinition
         private void RemoveRequestsFromLightmapper()
         {
             UnityEditor.Experimental.Lightmapping.SetAdditionalBakedProbes(s_BakingID, null);
+            m_RequestToLightmapperIsSet = false;
         }
 
         private void OnAdditionalProbesBakeCompleted()
         {
             Lightmapping.bakeCompleted -= OnAdditionalProbesBakeCompleted;
+
+            if (!m_RequestToLightmapperIsSet) { return; }
 
             var sh = new NativeArray<SphericalHarmonicsL2>(m_RequestPositions.Count, Allocator.Temp, NativeArrayOptions.UninitializedMemory);
             var validity = new NativeArray<float>(m_RequestPositions.Count, Allocator.Temp, NativeArrayOptions.UninitializedMemory);
@@ -206,6 +222,51 @@ namespace UnityEngine.Rendering.HighDefinition
             foreach (var hdProbe in hdProbes)
             {
                 hdProbe.TryUpdateLuminanceSHL2ForNormalization();
+            }
+        }
+
+        private int ComputeValidRequestCount()
+        {
+            int count = m_RequestPositions.Count;
+            int freelistIndex = m_FreelistHead;
+
+            // count > 0 check not technically necessary.
+            // Added here as a safe guard in case the freelist gets corrupted - we don't want to hang unity.
+            while (freelistIndex != -1 && count > 0)
+            {
+                Debug.Assert(freelistIndex >= 0 && freelistIndex < m_RequestPositions.Count);
+
+                --count;
+                freelistIndex = ComputeFreelistNext(m_RequestPositions[freelistIndex]);   
+            }
+            return count;
+        }
+
+        private int FindFirstValidCapturePositionIndex()
+        {
+            for (int i = 0; i < m_RequestPositions.Count; ++i)
+            {
+                if (ComputeCapturePositionIsValid(m_RequestPositions[i]))
+                {
+                    return i;
+                }
+            }
+            return -1;
+        }
+
+        private void EnsureRequestPositionsSanitized()
+        {
+            if (m_RequestPositionsSanitized == null || m_RequestPositionsSanitized.Length != m_RequestPositions.Count)
+            {
+                m_RequestPositionsSanitized = new Vector3[m_RequestPositions.Count];
+            }
+
+            int firstValidCapturePositionIndex = FindFirstValidCapturePositionIndex();
+            Vector3 firstValidCapturePosition = (firstValidCapturePositionIndex == -1) ? Vector3.zero : m_RequestPositions[firstValidCapturePositionIndex];
+
+            for (int i = 0; i < m_RequestPositions.Count; ++i)
+            {
+                m_RequestPositionsSanitized[i] = ComputeCapturePositionIsValid(m_RequestPositions[i]) ? m_RequestPositions[i] : firstValidCapturePosition;
             }
         }
     }
