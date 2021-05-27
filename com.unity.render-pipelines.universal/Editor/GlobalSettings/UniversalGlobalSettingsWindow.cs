@@ -223,10 +223,15 @@ namespace UnityEditor.Rendering.Universal
 
         static void DrawMiscSettings(SerializedUniversalRenderPipelineGlobalSettings serialized, Editor owner)
         {
+            var oldWidth = EditorGUIUtility.labelWidth;
+            EditorGUIUtility.labelWidth = Styles.labelWidth;
+
             using (new EditorGUI.IndentLevelScope())
             {
                 EditorGUILayout.PropertyField(serialized.supportRuntimeDebugDisplay, Styles.supportRuntimeDebugDisplayContentLabel);
             }
+
+            EditorGUIUtility.labelWidth = oldWidth;
         }
 
         #endregion
