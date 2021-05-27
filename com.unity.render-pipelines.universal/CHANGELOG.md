@@ -12,6 +12,7 @@ The version number for this package has increased due to a version update of a r
 ### Fixed
 - Fixed an issue where changing camera's position in the BeginCameraRendering do not apply properly. [case 1318629]
 - Fixed an issue where SMAA did not work for OpenGL [case 1336710](https://issuetracker.unity3d.com/issues/urp-there-is-no-effect-when-using-smaa-in-urp-with-opengles-api)
+- Fixed an issue where Particle Lit shader had an incorrect fallback shader [case 1331779]
 
 ## [10.5.0] - 2021-04-19
 
