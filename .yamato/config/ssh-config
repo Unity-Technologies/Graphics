@@ -1,0 +1,5 @@
+host github.cds.internal.unity3d.com
+  HostName github.cds.internal.unity3d.com
+  IdentityFile /Users/bokken/.ssh/id_rsa_cds_github
+  StrictHostKeyChecking no
+  User git

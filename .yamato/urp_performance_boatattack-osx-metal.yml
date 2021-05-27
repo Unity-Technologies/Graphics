@@ -56,8 +56,9 @@ URP_Performance_BoatAttack_OSX_Metal_performance_playmode_runtime_mono_Linear_tr
       # - rm -rf ~/.utr_result
       # - ssh bokken@$BOKKEN_DEVICE_IP "rm -rf ~/RepoName"
 
+      - touch 
       # Setup SSH config. Sets the key to use for github.cds.internal.unity3d.com.
-      - scp .yamato/files/ssh-config bokken@$BOKKEN_DEVICE_IP:~/.ssh/config
+      - scp .yamato/config/ssh-config bokken@$BOKKEN_DEVICE_IP:~/.ssh/config
 
       # Get Github CDS SSH privkey.
       - echo $SEANS_KEY | base64 -D -i - -o id_rsa_cds_github
