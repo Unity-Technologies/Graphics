@@ -41,6 +41,7 @@ To make the properties in your shader more discoverable, organize them into cate
 
 ### Adding, removing, and reordering properties and keywords
 * To add a property or keyword to a category, expand the category with the foldout (⌄) symbol, then drag and drop the property or keyword onto the expanded category.
+
 ![image](images/blackboardcategories2.png)
 
 * To remove a property or keyword, select it and press **Delete**, or right-click and select **Delete**.
