@@ -400,6 +400,7 @@ namespace UnityEngine.Rendering
                 foreach (LensFlareDataElementSRP element in data.elements)
                 {
                     if (element == null ||
+                        element.visible == false ||
                         (element.lensFlareTexture == null && element.flareType == SRPLensFlareType.Image) ||
                         element.localIntensity <= 0.0f ||
                         element.count <= 0)

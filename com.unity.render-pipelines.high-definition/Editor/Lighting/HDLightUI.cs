@@ -65,8 +65,6 @@ namespace UnityEditor.Rendering.HighDefinition
 
         public static readonly CED.IDrawer Inspector;
 
-        static Action<GUIContent, SerializedProperty, LightEditor.Settings> SliderWithTexture;
-
         internal static void RegisterEditor(HDLightEditor editor)
         {
             k_AdditionalPropertiesState.RegisterEditor(editor);
@@ -129,30 +127,6 @@ namespace UnityEditor.Rendering.HighDefinition
                     )
                 )
             );
-
-            //quicker than standard reflection as it is compiled
-            var paramLabel = Expression.Parameter(typeof(GUIContent), "label");
-            var paramProperty = Expression.Parameter(typeof(SerializedProperty), "property");
-            var paramSettings = Expression.Parameter(typeof(LightEditor.Settings), "settings");
-            System.Reflection.MethodInfo sliderWithTextureInfo = typeof(EditorGUILayout)
-                .GetMethod(
-                "SliderWithTexture",
-                System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Static,
-                null,
-                System.Reflection.CallingConventions.Any,
-                new[] { typeof(GUIContent), typeof(SerializedProperty), typeof(float), typeof(float), typeof(float), typeof(Texture2D), typeof(GUILayoutOption[]) },
-                null);
-            var sliderWithTextureCall = Expression.Call(
-                sliderWithTextureInfo,
-                paramLabel,
-                paramProperty,
-                Expression.Constant((float)typeof(LightEditor.Settings).GetField("kMinKelvin", System.Reflection.BindingFlags.Static | System.Reflection.BindingFlags.NonPublic).GetRawConstantValue()),
-                Expression.Constant((float)typeof(LightEditor.Settings).GetField("kMaxKelvin", System.Reflection.BindingFlags.Static | System.Reflection.BindingFlags.NonPublic).GetRawConstantValue()),
-                Expression.Constant((float)typeof(LightEditor.Settings).GetField("kSliderPower", System.Reflection.BindingFlags.Static | System.Reflection.BindingFlags.NonPublic).GetRawConstantValue()),
-                Expression.Field(paramSettings, typeof(LightEditor.Settings).GetField("m_KelvinGradientTexture", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance)),
-                Expression.Constant(null, typeof(GUILayoutOption[])));
-            var lambda = Expression.Lambda<Action<GUIContent, SerializedProperty, LightEditor.Settings>>(sliderWithTextureCall, paramLabel, paramProperty, paramSettings);
-            SliderWithTexture = lambda.Compile();
 
             Type lightMappingType = typeof(Lightmapping);
             var getLightingSettingsOrDefaultsFallbackInfo = lightMappingType.GetMethod("GetLightingSettingsOrDefaultsFallback", BindingFlags.Static | BindingFlags.NonPublic);
@@ -1055,13 +1029,21 @@ namespace UnityEditor.Rendering.HighDefinition
             {
                 EditorGUILayout.PropertyField(serialized.shadowUpdateMode, s_Styles.shadowUpdateMode);
 
+                EditorGUI.indentLevel++;
+
                 if (serialized.shadowUpdateMode.intValue > 0 && serialized.type != HDLightType.Directional)
                 {
 #if UNITY_2021_1_OR_NEWER
                     EditorGUILayout.PropertyField(serialized.shadowAlwaysDrawDynamic, s_Styles.shadowAlwaysDrawDynamic);
 #endif
                 }
-                EditorGUILayout.PropertyField(serialized.shadowUpdateUponTransformChange, s_Styles.shadowUpdateOnLightTransformChange);
+
+                if (serialized.shadowUpdateMode.intValue > 0)
+                {
+                    EditorGUILayout.PropertyField(serialized.shadowUpdateUponTransformChange, s_Styles.shadowUpdateOnLightTransformChange);
+                }
+
+                EditorGUI.indentLevel--;
 
                 HDLightType lightType = serialized.type;
 

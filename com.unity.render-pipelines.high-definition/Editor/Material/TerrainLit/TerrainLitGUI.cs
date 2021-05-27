@@ -31,20 +31,16 @@ namespace UnityEditor.Rendering.HighDefinition
         protected override void OnMaterialGUI(MaterialEditor materialEditor, MaterialProperty[] props)
         {
             FindMaterialProperties(props);
-            using (var changed = new EditorGUI.ChangeCheckScope())
-            {
-                uiBlocks.Initialize(materialEditor, props);
-                uiBlocks.FetchUIBlock<SurfaceOptionUIBlock>().UpdateMaterialProperties(props);
-                uiBlocks.FetchUIBlock<SurfaceOptionUIBlock>().OnGUI();
 
-                // TODO: move the terrain UI to a MaterialUIBlock to clarify the code
-                DrawTerrainGUI(materialEditor);
+            uiBlocks.Initialize(materialEditor, props);
+            uiBlocks.FetchUIBlock<SurfaceOptionUIBlock>().UpdateMaterialProperties(props);
+            uiBlocks.FetchUIBlock<SurfaceOptionUIBlock>().OnGUI();
 
-                uiBlocks.FetchUIBlock<AdvancedOptionsUIBlock>().UpdateMaterialProperties(props);
-                uiBlocks.FetchUIBlock<AdvancedOptionsUIBlock>().OnGUI();
+            // TODO: move the terrain UI to a MaterialUIBlock to clarify the code
+            DrawTerrainGUI(materialEditor);
 
-                ApplyKeywordsAndPassesIfNeeded(changed.changed, uiBlocks.materials);
-            }
+            uiBlocks.FetchUIBlock<AdvancedOptionsUIBlock>().UpdateMaterialProperties(props);
+            uiBlocks.FetchUIBlock<AdvancedOptionsUIBlock>().OnGUI();
         }
 
         private class StylesLayer
@@ -374,6 +370,6 @@ namespace UnityEditor.Rendering.HighDefinition
             return true;
         }
 
-        protected override void SetupMaterialKeywordsAndPass(Material material) => SetupTerrainLitKeywordsAndPass(material);
+        public override void ValidateMaterial(Material material) => SetupTerrainLitKeywordsAndPass(material);
     }
 } // namespace UnityEditor

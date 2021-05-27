@@ -67,6 +67,11 @@ namespace UnityEditor.Rendering.Universal
 
             public static readonly GUIContent LightCookieSize = EditorGUIUtility.TrTextContent("Cookie Size", "Controls the size of the cookie mask currently assigned to the light.");
             public static readonly GUIContent LightCookieOffset = EditorGUIUtility.TrTextContent("Cookie Offset", "Controls the offset of the cookie mask currently assigned to the light.");
+
+            public static readonly GUIContent colorTemperature = new GUIContent("Temperature", "Specifies a temperature (in Kelvin) used to correlate a color for the Light. For reference, White is 6500K.");
+            public static readonly GUIContent lightAppearance = new GUIContent("Light Appearance", "Specifies the mode for how this Light's color is calculated.");
+            public static readonly GUIContent color = new GUIContent("Color", "Specifies the color this Light emits.");
+            public static readonly GUIContent colorFilter = new GUIContent("Filter", "Specifies a color which tints the Light source.");
         }
     }
 }

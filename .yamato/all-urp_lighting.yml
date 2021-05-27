@@ -13,6 +13,23 @@ PR_URP_Lighting_trunk:
     dependencies:
       -  path: .yamato/urp_lighting-win-dx11.yml#URP_Lighting_Win_DX11_Standalone_cache_mono_Linear_trunk
          rerun: on_new_revision
+    variables:
+        CUSTOM_REVISION: '{{trunk.changeset.id}}'
+        UTR_VERSION: "current"
+        TEST_FILTER: .*
+Nightly_URP_Lighting_trunk:
+    name: Nightly URP_Lighting - trunk
+    dependencies:
+      -  path: .yamato/all-urp_lighting.yml#PR_URP_Lighting_trunk
+         rerun: on_new_revision
+      -  path: .yamato/urp_lighting-win-dx11.yml#URP_Lighting_Win_DX11_playmode_cache_mono_Linear_trunk
+         rerun: on_new_revision
+      -  path: .yamato/urp_lighting-win-dx12.yml#URP_Lighting_Win_DX12_playmode_cache_mono_Linear_trunk
+         rerun: on_new_revision
+      -  path: .yamato/urp_lighting-win-vulkan.yml#URP_Lighting_Win_Vulkan_playmode_cache_mono_Linear_trunk
+         rerun: on_new_revision
+      -  path: .yamato/urp_lighting-linux-vulkan.yml#URP_Lighting_Linux_Vulkan_playmode_cache_mono_Linear_trunk
+         rerun: on_new_revision
       -  path: .yamato/urp_lighting-win-dx11.yml#URP_Lighting_Win_DX11_Standalone_XR_cache_mono_Linear_trunk
          rerun: on_new_revision
       -  path: .yamato/urp_lighting-win-dx11.yml#URP_Lighting_Win_DX11_playmode_XR_cache_mono_Linear_trunk
@@ -47,27 +64,27 @@ PR_URP_Lighting_trunk:
         CUSTOM_REVISION: '{{trunk.changeset.id}}'
         UTR_VERSION: "current"
         TEST_FILTER: .*
-Nightly_URP_Lighting_trunk:
-    name: Nightly URP_Lighting - trunk
-    dependencies:
-      -  path: .yamato/all-urp_lighting.yml#PR_URP_Lighting_trunk
-         rerun: on_new_revision
-      -  path: .yamato/urp_lighting-win-dx11.yml#URP_Lighting_Win_DX11_playmode_cache_mono_Linear_trunk
-         rerun: on_new_revision
-      -  path: .yamato/urp_lighting-win-dx12.yml#URP_Lighting_Win_DX12_playmode_cache_mono_Linear_trunk
-         rerun: on_new_revision
-      -  path: .yamato/urp_lighting-win-vulkan.yml#URP_Lighting_Win_Vulkan_playmode_cache_mono_Linear_trunk
-         rerun: on_new_revision
-      -  path: .yamato/urp_lighting-linux-vulkan.yml#URP_Lighting_Linux_Vulkan_playmode_cache_mono_Linear_trunk
-         rerun: on_new_revision
-    variables:
-        CUSTOM_REVISION: '{{trunk.changeset.id}}'
-        UTR_VERSION: "current"
-        TEST_FILTER: .*
 PR_URP_Lighting_CUSTOM-REVISION:
     name: URP_Lighting PR Job - CUSTOM-REVISION
     dependencies:
       -  path: .yamato/urp_lighting-win-dx11.yml#URP_Lighting_Win_DX11_Standalone_cache_mono_Linear_CUSTOM-REVISION
+         rerun: on_new_revision
+    variables:
+        CUSTOM_REVISION: custom_revision_not_set
+        UTR_VERSION: "current"
+        TEST_FILTER: .*
+Nightly_URP_Lighting_CUSTOM-REVISION:
+    name: Nightly URP_Lighting - CUSTOM-REVISION
+    dependencies:
+      -  path: .yamato/all-urp_lighting.yml#PR_URP_Lighting_CUSTOM-REVISION
+         rerun: on_new_revision
+      -  path: .yamato/urp_lighting-win-dx11.yml#URP_Lighting_Win_DX11_playmode_cache_mono_Linear_CUSTOM-REVISION
+         rerun: on_new_revision
+      -  path: .yamato/urp_lighting-win-dx12.yml#URP_Lighting_Win_DX12_playmode_cache_mono_Linear_CUSTOM-REVISION
+         rerun: on_new_revision
+      -  path: .yamato/urp_lighting-win-vulkan.yml#URP_Lighting_Win_Vulkan_playmode_cache_mono_Linear_CUSTOM-REVISION
+         rerun: on_new_revision
+      -  path: .yamato/urp_lighting-linux-vulkan.yml#URP_Lighting_Linux_Vulkan_playmode_cache_mono_Linear_CUSTOM-REVISION
          rerun: on_new_revision
       -  path: .yamato/urp_lighting-win-dx11.yml#URP_Lighting_Win_DX11_Standalone_XR_cache_mono_Linear_CUSTOM-REVISION
          rerun: on_new_revision
@@ -98,23 +115,6 @@ PR_URP_Lighting_CUSTOM-REVISION:
       -  path: .yamato/urp_lighting-android-vulkan.yml#URP_Lighting_Android_Vulkan_Standalone_cache_il2cpp_Linear_CUSTOM-REVISION
          rerun: on_new_revision
       -  path: .yamato/urp_lighting-iphone-metal.yml#URP_Lighting_iPhone_Metal_Standalone_cache_il2cpp_Linear_CUSTOM-REVISION
-         rerun: on_new_revision
-    variables:
-        CUSTOM_REVISION: custom_revision_not_set
-        UTR_VERSION: "current"
-        TEST_FILTER: .*
-Nightly_URP_Lighting_CUSTOM-REVISION:
-    name: Nightly URP_Lighting - CUSTOM-REVISION
-    dependencies:
-      -  path: .yamato/all-urp_lighting.yml#PR_URP_Lighting_CUSTOM-REVISION
-         rerun: on_new_revision
-      -  path: .yamato/urp_lighting-win-dx11.yml#URP_Lighting_Win_DX11_playmode_cache_mono_Linear_CUSTOM-REVISION
-         rerun: on_new_revision
-      -  path: .yamato/urp_lighting-win-dx12.yml#URP_Lighting_Win_DX12_playmode_cache_mono_Linear_CUSTOM-REVISION
-         rerun: on_new_revision
-      -  path: .yamato/urp_lighting-win-vulkan.yml#URP_Lighting_Win_Vulkan_playmode_cache_mono_Linear_CUSTOM-REVISION
-         rerun: on_new_revision
-      -  path: .yamato/urp_lighting-linux-vulkan.yml#URP_Lighting_Linux_Vulkan_playmode_cache_mono_Linear_CUSTOM-REVISION
          rerun: on_new_revision
     variables:
         CUSTOM_REVISION: custom_revision_not_set
