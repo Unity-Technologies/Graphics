@@ -59,13 +59,13 @@ float4 VFXTransformPositionWorldToClip(float3 posWS)
 float4 VFXTransformPositionObjectToNonJitteredClip(float3 posOS)
 {
     float3 posWS = TransformObjectToWorld(posOS);
-    return mul(_NonJitteredViewProjMatrix, float4(posWS, 1.0f));
+    return mul(UNITY_MATRIX_UNJITTERED_VP, float4(posWS, 1.0f));
 }
 
 float4 VFXTransformPositionObjectToPreviousClip(float3 posOS)
 {
     float3 posWS = TransformPreviousObjectToWorld(posOS);
-    return mul(_PrevViewProjMatrix, float4(posWS, 1.0f));
+    return mul(UNITY_MATRIX_PREV_VP, float4(posWS, 1.0f));
 }
 
 float4 VFXTransformPositionObjectToClip(float3 posOS)
@@ -131,6 +131,13 @@ float4x4 VFXGetViewToWorldMatrix()
     viewToWorld._14_24_34 = VFXGetViewWorldPosition();
     return viewToWorld;
 }
+
+#ifdef USING_STEREO_MATRICES
+float3 GetWorldStereoOffset()
+{
+    return _XRWorldSpaceCameraPos[0].xyz - _XRWorldSpaceCameraPos[1].xyz;
+}
+#endif
 
 float VFXSampleDepth(float4 posSS)
 {

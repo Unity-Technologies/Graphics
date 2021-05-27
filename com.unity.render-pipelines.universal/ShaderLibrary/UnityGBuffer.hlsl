@@ -16,6 +16,23 @@
 #else
 #endif
 
+#if _RENDER_PASS_ENABLED
+    #define GBUFFER_OPTIONAL_SLOT_1 GBuffer4
+    #define GBUFFER_OPTIONAL_SLOT_1_TYPE float
+#if OUTPUT_SHADOWMASK && defined(_LIGHT_LAYERS)
+    #define GBUFFER_OPTIONAL_SLOT_2 GBuffer5
+    #define GBUFFER_OPTIONAL_SLOT_3 GBuffer6
+    #define GBUFFER_LIGHT_LAYERS GBuffer5
+    #define GBUFFER_SHADOWMASK GBuffer6
+#elif OUTPUT_SHADOWMASK
+    #define GBUFFER_OPTIONAL_SLOT_2 GBuffer5
+    #define GBUFFER_SHADOWMASK GBuffer5
+#elif defined(_LIGHT_LAYERS)
+    #define GBUFFER_OPTIONAL_SLOT_2 GBuffer5
+    #define GBUFFER_LIGHT_LAYERS GBuffer5
+#endif //#if OUTPUT_SHADOWMASK && defined(_LIGHT_LAYERS)
+#else
+    #define GBUFFER_OPTIONAL_SLOT_1_TYPE half4
 #if OUTPUT_SHADOWMASK && defined(_LIGHT_LAYERS)
     #define GBUFFER_OPTIONAL_SLOT_1 GBuffer4
     #define GBUFFER_OPTIONAL_SLOT_2 GBuffer5
@@ -27,8 +44,8 @@
 #elif defined(_LIGHT_LAYERS)
     #define GBUFFER_OPTIONAL_SLOT_1 GBuffer4
     #define GBUFFER_LIGHT_LAYERS GBuffer4
-#endif
-
+#endif //#if OUTPUT_SHADOWMASK && defined(_LIGHT_LAYERS)
+#endif //#if _RENDER_PASS_ENABLED
 #define kLightingInvalid  -1  // No dynamic lighting: can aliase any other material type as they are skipped using stencil
 #define kLightingLit       1  // lit shader
 #define kLightingSimpleLit 2  // Simple lit shader
@@ -51,11 +68,15 @@ struct FragmentOutput
     half4 GBuffer1 : SV_Target1;
     half4 GBuffer2 : SV_Target2;
     half4 GBuffer3 : SV_Target3; // Camera color attachment
+
     #ifdef GBUFFER_OPTIONAL_SLOT_1
-    half4 GBuffer4 : SV_Target4;
+    GBUFFER_OPTIONAL_SLOT_1_TYPE GBuffer4 : SV_Target4;
     #endif
     #ifdef GBUFFER_OPTIONAL_SLOT_2
     half4 GBuffer5 : SV_Target5;
+    #endif
+    #ifdef GBUFFER_OPTIONAL_SLOT_3
+    half4 GBuffer6 : SV_Target6;
     #endif
 };
 
@@ -114,6 +135,9 @@ FragmentOutput SurfaceDataToGbuffer(SurfaceData surfaceData, InputData inputData
     output.GBuffer1 = half4(surfaceData.specular.rgb, surfaceData.occlusion);            // specular        specular        specular        occlusion
     output.GBuffer2 = half4(packedNormalWS, surfaceData.smoothness);                     // encoded-normal  encoded-normal  encoded-normal  smoothness
     output.GBuffer3 = half4(globalIllumination, 1);                                      // GI              GI              GI              [optional: see OutputAlpha()] (lighting buffer)
+    #if _RENDER_PASS_ENABLED
+    output.GBuffer4 = inputData.positionCS.z;
+    #endif
     #if OUTPUT_SHADOWMASK
     output.GBUFFER_SHADOWMASK = inputData.shadowMask; // will have unity_ProbesOcclusion value if subtractive lighting is used (baked)
     #endif
@@ -185,6 +209,9 @@ FragmentOutput BRDFDataToGbuffer(BRDFData brdfData, InputData inputData, half sm
     output.GBuffer1 = half4(packedSpecular, occlusion);                              // metallic/specular specular        specular        occlusion
     output.GBuffer2 = half4(packedNormalWS, smoothness);                             // encoded-normal    encoded-normal  encoded-normal  smoothness
     output.GBuffer3 = half4(globalIllumination, 1);                                  // GI                GI              GI              [optional: see OutputAlpha()] (lighting buffer)
+    #if _RENDER_PASS_ENABLED
+    output.GBuffer4 = inputData.positionCS.z;
+    #endif
     #if OUTPUT_SHADOWMASK
     output.GBUFFER_SHADOWMASK = inputData.shadowMask; // will have unity_ProbesOcclusion value if subtractive lighting is used (baked)
     #endif

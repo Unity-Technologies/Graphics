@@ -28,6 +28,10 @@ test_platforms:
     - [all]: --extra-editor-arg="-cacheServerEnableDownload" --extra-editor-arg="true"
     - [all]: --extra-editor-arg="-cacheServerEnableUpload" --extra-editor-arg="true"
   - type: editmode
+  - type: editmode
+    name: editmode_XR
+    utr_flags:
+      - [all]: --extra-editor-arg="-xr-reuse-tests"
   - type: Standalone
     utr_flags:
       - [OSX_Metal]: --timeout=2400
@@ -42,8 +46,8 @@ test_platforms:
     - [all]: --extra-editor-arg="-cacheServerEnableDownload" --extra-editor-arg="true"
     - [all]: --extra-editor-arg="-cacheServerEnableUpload" --extra-editor-arg="true"
 expression_trigger:
-  # expression: 'pull_request.target eq "<TARGET_BRANCH>" AND NOT pull_request.draft AND pull_request.changes.any match ["com.unity.render-pipelines.high-definition/**/*", "com.unity.render-pipelines.high-definition-config/**/*",  "TestProjects/HDRP_Tests/**/*"] AND NOT pull_request.changes.all match ["*.md", "**/*.md", "doc/**/*", "**/Documentation*/**/*"]'
-    expression: ''
+    expression: 'pull_request.target eq "<TARGET_BRANCH>" AND NOT pull_request.draft AND pull_request.changes.any match ["com.unity.render-pipelines.high-definition/**/*", "com.unity.render-pipelines.high-definition-config/**/*",  "TestProjects/HDRP_Tests/**/*"] AND NOT pull_request.changes.all match ["*.md", "**/*.md", "doc/**/*", "**/Documentation*/**/*"]'
+
 platforms:
   - name: Win
     apis:
@@ -100,6 +104,54 @@ pr:
       color_space: Linear
       test_platforms:
         - Standalone_cache
+        #- playmode_cache
+        #- playmode_XR_cache
+        #- editmode
+    - project: VFX_HDRP
+      pr: true
+nightly:
+  dependencies:
+    - project: HDRP
+      pr: true
+    - project: HDRP_DXR
+      nightly: true
+    - project: VFX_HDRP
+      nightly: true
+    - project: Smoke_Test
+      nightly: true
+    - platform: Win
+      api: DX12
+      build_config: mono
+      color_space: Linear
+      test_platforms:
+        - Standalone_cache
+        - playmode_XR_cache
+        - editmode_XR
+    - platform: Win
+      api: Vulkan
+      build_config: mono
+      color_space: Linear
+      test_platforms:
+        - Standalone_cache
+        - playmode_XR_cache
+    - platform: Linux
+      api: Vulkan
+      build_config: mono
+      color_space: Linear
+      test_platforms:
+        - editmode
+    - platform: OSX
+      api: Metal
+      build_config: mono
+      color_space: Linear
+      test_platforms:
+        - Standalone_cache
+### TODO: MOVE THE FOLLOWING JOBS BACK TO PR JOBS
+    - platform: Win
+      api: DX11
+      build_config: mono
+      color_space: Linear
+      test_platforms:
         - playmode_cache
         - playmode_XR_cache
         - editmode
@@ -127,45 +179,7 @@ pr:
       build_config: mono
       color_space: Linear
       test_platforms:
-        - Standalone
+        - Standalone_cache
         - playmode_cache
     - project: HDRP_DXR
       pr: true
-    - project: VFX_HDRP
-      pr: true
-nightly:
-  dependencies:
-    - project: HDRP
-      pr: true
-    - project: HDRP_DXR
-      nightly: true
-    - project: VFX_HDRP
-      nightly: true
-    - project: Smoke_Test
-      nightly: true
-    - platform: Win
-      api: DX12
-      build_config: mono
-      color_space: Linear
-      test_platforms:
-        - Standalone_cache
-        - playmode_XR_cache
-    - platform: Win
-      api: Vulkan
-      build_config: mono
-      color_space: Linear
-      test_platforms:
-        - Standalone_cache
-        - playmode_XR_cache
-    - platform: Linux
-      api: Vulkan
-      build_config: mono
-      color_space: Linear
-      test_platforms:
-        - editmode
-    - platform: OSX
-      api: Metal
-      build_config: mono
-      color_space: Linear
-      test_platforms:
-        - Standalone_cache

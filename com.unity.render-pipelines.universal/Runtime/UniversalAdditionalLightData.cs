@@ -27,10 +27,40 @@ namespace UnityEngine.Rendering.Universal
         Everything = 0xFF, // Custom name for "Everything" option
     }
 
+    /// <summary>
+    /// Contains extension methods for Light class.
+    /// </summary>
+    public static class LightExtensions
+    {
+        /// <summary>
+        /// Universal Render Pipeline exposes additional light data in a separate component.
+        /// This method returns the additional data component for the given light or create one if it doesn't exist yet.
+        /// </summary>
+        /// <param name="light"></param>
+        /// <returns>The <c>UniversalAdditionalLightData</c> for this light.</returns>
+        /// <see cref="UniversalAdditionalLightData"/>
+        public static UniversalAdditionalLightData GetUniversalAdditionalLightData(this Light light)
+        {
+            var gameObject = light.gameObject;
+            bool componentExists = gameObject.TryGetComponent<UniversalAdditionalLightData>(out var lightData);
+            if (!componentExists)
+                lightData = gameObject.AddComponent<UniversalAdditionalLightData>();
+
+            return lightData;
+        }
+    }
+
     [DisallowMultipleComponent]
     [RequireComponent(typeof(Light))]
     public class UniversalAdditionalLightData : MonoBehaviour
     {
+        // Version 0 means serialized data before the version field.
+        [SerializeField] int m_Version = 1;
+        internal int version
+        {
+            get => m_Version;
+        }
+
         [Tooltip("Controls if light Shadow Bias parameters use pipeline settings.")]
         [SerializeField] bool m_UsePipelineSettings = true;
 
@@ -81,6 +111,22 @@ namespace UnityEngine.Rendering.Universal
         {
             get { return m_ShadowLayerMask; }
             set { m_ShadowLayerMask = value; }
+        }
+
+        [Tooltip("Controls the size of the cookie mask currently assigned to the light.")]
+        [SerializeField] Vector2 m_LightCookieSize = Vector2.one;
+        public Vector2 lightCookieSize
+        {
+            get => m_LightCookieSize;
+            set => m_LightCookieSize = value;
+        }
+
+        [Tooltip("Controls the offset of the cookie mask currently assigned to the light.")]
+        [SerializeField] Vector2 m_LightCookieOffset = Vector2.zero;
+        public Vector2 lightCookieOffset
+        {
+            get => m_LightCookieOffset;
+            set => m_LightCookieOffset = value;
         }
     }
 }

@@ -34,6 +34,7 @@ void InitializeInputData(Varyings input, out InputData inputData)
 {
     inputData = (InputData)0;
 
+    inputData.positionCS = input.PositionCS;
     inputData.normalWS = half3(0, 1, 0);
     inputData.viewDirectionWS = half3(0, 0, 1);
 

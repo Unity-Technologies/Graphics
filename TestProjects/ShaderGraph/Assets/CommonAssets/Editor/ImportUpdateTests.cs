@@ -72,6 +72,7 @@ namespace UnityEditor.ShaderGraph.UnitTests
             string targetDir = Application.dataPath + "/Testing/ImportTests/" + dirName;
             try
             {
+                // pause asset database, until everything is copied
                 AssetDatabase.StartAssetEditing();
                 DirectoryCopy(sourceDir, targetDir, true, true);
             }
@@ -79,7 +80,6 @@ namespace UnityEditor.ShaderGraph.UnitTests
             {
                 AssetDatabase.StopAssetEditing();
             }
-
             // import all the files in the directory
             // NOTE: this is important, as our shader generation relies on the AssetDatabase being fully populated
             // so we can lookup file paths by GUID.
@@ -116,7 +116,7 @@ namespace UnityEditor.ShaderGraph.UnitTests
             graphData.ValidateGraph();
 
             string fileExtension = Path.GetExtension(fullPath).ToLower();
-            bool isSubgraph = (fileExtension == "shadersubgraph");
+            bool isSubgraph = (fileExtension.Contains("shadersubgraph"));
             if (isSubgraph)
             {
                 // check that the SubGraphAsset is the same after versioning twice
@@ -177,6 +177,7 @@ namespace UnityEditor.ShaderGraph.UnitTests
                     var mat = new Material(compiledShader) { hideFlags = HideFlags.HideAndDontSave };
                     for (int pass = 0; pass < mat.passCount; pass++)
                         ShaderUtil.CompilePass(mat, pass, true);
+                    Object.DestroyImmediate(mat);
                 }
             }
         }
@@ -206,7 +207,7 @@ namespace UnityEditor.ShaderGraph.UnitTests
 
             DirectoryInfo[] dirs = dir.GetDirectories();
 
-            // If the destination directory doesn't exist, create it.       
+            // If the destination directory doesn't exist, create it.
             Directory.CreateDirectory(destDirName);
 
             // Get the files in the directory and copy them to the new location.

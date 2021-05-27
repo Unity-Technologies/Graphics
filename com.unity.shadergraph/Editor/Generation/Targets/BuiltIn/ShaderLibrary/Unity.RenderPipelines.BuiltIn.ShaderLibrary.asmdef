@@ -1,0 +1,16 @@
+{
+    "name": "Unity.RenderPipeline.BuiltIn.ShaderLibrary",
+    "references": [
+        "GUID:49BED1005D6B405BAD68370DBDD7A3F8"
+    ],
+    "includePlatforms": [
+        "Editor"
+    ],
+    "excludePlatforms": [],
+    "allowUnsafeCode": false,
+    "overrideReferences": false,
+    "precompiledReferences": [],
+    "autoReferenced": true,
+    "defineConstraints": [],
+    "versionDefines": []
+}

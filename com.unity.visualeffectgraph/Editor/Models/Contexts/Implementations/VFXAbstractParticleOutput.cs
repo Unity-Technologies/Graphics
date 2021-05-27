@@ -605,8 +605,29 @@ namespace UnityEditor.VFX
                     vertsCount = 0;
                     break;
             }
-            // TODO: @gabriel.delacruz - Temporarily disable per vertex optimization
-            return false; //vertsCount != 0;
+            return vertsCount != 0;
+        }
+
+        protected override void GenerateErrors(VFXInvalidateErrorReporter manager)
+        {
+            base.GenerateErrors(manager);
+            var dataParticle = GetData() as VFXDataParticle;
+
+            if (dataParticle != null && dataParticle.boundsSettingMode != BoundsSettingMode.Manual)
+            {
+                var modifiedBounds = children
+                    .SelectMany(b =>
+                    b.attributes)
+                    .Any(attr => attr.mode.HasFlag(VFXAttributeMode.Write) &&
+                        (attr.attrib.name.Contains("size")
+                            || attr.attrib.name.Contains("position")
+                            || attr.attrib.name.Contains("scale")
+                            || attr.attrib.name.Contains("pivot")));
+                if (modifiedBounds && CanBeCompiled())
+                    manager.RegisterError("WarningBoundsComputation", VFXErrorType.Warning, $"Bounds computation during recording is based on Position and Size in the Update Context." +
+                        $" Changing these properties now could lead to incorrect bounds." +
+                        $" Use padding to mitigate this discrepancy.");
+            }
         }
     }
 }

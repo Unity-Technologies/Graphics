@@ -15,30 +15,52 @@ namespace UnityEditor.Experimental.Rendering
         SerializedProbeVolume m_SerializedProbeVolume;
         internal const EditMode.SceneViewEditMode k_EditShape = EditMode.SceneViewEditMode.ReflectionProbeBox;
 
-        static HierarchicalBox s_ShapeBox;
+        static HierarchicalBox _ShapeBox;
+        static HierarchicalBox s_ShapeBox
+        {
+            get
+            {
+                if (_ShapeBox == null)
+                    _ShapeBox = new HierarchicalBox(ProbeVolumeUI.Styles.k_GizmoColorBase, ProbeVolumeUI.Styles.k_BaseHandlesColor);
+                return _ShapeBox;
+            }
+        }
 
         protected void OnEnable()
         {
             m_SerializedProbeVolume = new SerializedProbeVolume(serializedObject);
-
-            s_ShapeBox = new HierarchicalBox(ProbeVolumeUI.Styles.k_GizmoColorBase, ProbeVolumeUI.Styles.k_BaseHandlesColor);
         }
 
         public override void OnInspectorGUI()
         {
+            ProbeVolume probeVolume = target as ProbeVolume;
+
+            bool hasChanges = false;
+            if (probeVolume.cachedTransform != probeVolume.gameObject.transform.worldToLocalMatrix)
+            {
+                hasChanges = true;
+            }
+
+            if (probeVolume.cachedHashCode != probeVolume.GetHashCode())
+            {
+                hasChanges = true;
+            }
+
+            probeVolume.mightNeedRebaking = hasChanges;
+
             var renderPipelineAsset = GraphicsSettings.renderPipelineAsset;
             if (renderPipelineAsset != null && renderPipelineAsset.GetType().Name == "HDRenderPipelineAsset")
             {
                 serializedObject.Update();
 
                 ProbeVolumeUI.Inspector.Draw(m_SerializedProbeVolume, this);
-
-                m_SerializedProbeVolume.Apply();
             }
             else
             {
                 EditorGUILayout.HelpBox("Probe Volume is not a supported feature by this SRP.", MessageType.Error, wide: true);
             }
+
+            m_SerializedProbeVolume.Apply();
         }
 
         [DrawGizmo(GizmoType.InSelectionHierarchy)]
@@ -48,7 +70,7 @@ namespace UnityEditor.Experimental.Rendering
             {
                 // Bounding box.
                 s_ShapeBox.center = Vector3.zero;
-                s_ShapeBox.size = probeVolume.parameters.size;
+                s_ShapeBox.size = probeVolume.size;
                 s_ShapeBox.DrawHull(EditMode.editMode == k_EditShape);
             }
         }
@@ -63,7 +85,7 @@ namespace UnityEditor.Experimental.Rendering
             {
                 //contained must be initialized in all case
                 s_ShapeBox.center = Quaternion.Inverse(probeVolume.transform.rotation) * probeVolume.transform.position;
-                s_ShapeBox.size = probeVolume.parameters.size;
+                s_ShapeBox.size = probeVolume.size;
 
                 s_ShapeBox.monoHandle = false;
                 EditorGUI.BeginChangeCheck();
@@ -72,8 +94,7 @@ namespace UnityEditor.Experimental.Rendering
                 {
                     Undo.RecordObjects(new Object[] { probeVolume, probeVolume.transform }, "Change Probe Volume Bounding Box");
 
-                    probeVolume.parameters.size = s_ShapeBox.size;
-
+                    probeVolume.size = s_ShapeBox.size;
                     Vector3 delta = probeVolume.transform.rotation * s_ShapeBox.center - probeVolume.transform.position;
                     probeVolume.transform.position += delta;;
                 }
