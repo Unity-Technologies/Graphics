@@ -51,20 +51,9 @@ namespace UnityEditor.Rendering.BuiltIn.ShaderGraph
                 "Makes your Material act like a Cutout shader. Use this to create a transparent effect with hard edges between opaque and transparent areas.");
         }
 
-        bool m_FirstTimeApply = true;
-
         override public void OnGUI(MaterialEditor materialEditor, MaterialProperty[] properties)
         {
             Material targetMat = materialEditor.target as Material;
-            // Make sure that needed setup (ie keywords/renderqueue) are set up if we're switching some existing
-            // material to a universal shader.
-            if (m_FirstTimeApply)
-            {
-                DrawGui(materialEditor, targetMat, properties);
-                UpdateMaterials(materialEditor);
-
-                m_FirstTimeApply = false;
-            }
 
             ShaderPropertiesGUI(materialEditor, targetMat, properties);
         }
@@ -83,10 +72,7 @@ namespace UnityEditor.Rendering.BuiltIn.ShaderGraph
 
         static void ShaderPropertiesGUI(MaterialEditor materialEditor, Material material, MaterialProperty[] properties)
         {
-            EditorGUI.BeginChangeCheck();
             DrawGui(materialEditor, material, properties);
-            if (EditorGUI.EndChangeCheck())
-                UpdateMaterials(materialEditor);
         }
 
         static void DrawGui(MaterialEditor materialEditor, Material material, MaterialProperty[] properties)
@@ -125,11 +111,7 @@ namespace UnityEditor.Rendering.BuiltIn.ShaderGraph
             ShaderGraphPropertyDrawers.DrawShaderGraphGUI(materialEditor, properties);
         }
 
-        static void UpdateMaterials(MaterialEditor materialEditor)
-        {
-            foreach (var obj in materialEditor.targets)
-                SetupSurface((Material)obj);
-        }
+        public override void ValidateMaterial(Material material) => SetupSurface(material);
 
         public static void SetupSurface(Material material)
         {
