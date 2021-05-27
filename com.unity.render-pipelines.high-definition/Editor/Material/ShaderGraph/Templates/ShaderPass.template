@@ -24,10 +24,10 @@ Pass
     $splice(PassKeywords)
     $splice(GraphKeywords)
 
-    // Dots Instancing Defines
+    // Early Instancing Defines
     $splice(DotsInstancingOptions)
 
-    // Graph Instanced properties (must be included before UnityInstancing.hlsl)
+    // Injected Instanced Properties (must be included before UnityInstancing.hlsl)
     $splice(HybridV1InjectedBuiltinProperties)
 
     #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Common.hlsl"
