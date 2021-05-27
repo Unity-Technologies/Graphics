@@ -25,6 +25,9 @@ namespace UnityEngine.Rendering.HighDefinition
     {
         #region Global Settings
         private HDRenderPipelineGlobalSettings m_GlobalSettings;
+        /// <summary>
+        /// Accessor to the active Global Settings for the HD Render Pipeline.
+        /// </summary>
         public override RenderPipelineGlobalSettings defaultSettings => m_GlobalSettings;
 
         internal static HDRenderPipelineAsset currentAsset
@@ -231,7 +234,7 @@ namespace UnityEngine.Rendering.HighDefinition
         /// HDRenderPipeline constructor.
         /// </summary>
         /// <param name="asset">Source HDRenderPipelineAsset.</param>
-        /// <param name="defaultAsset">Default HDRenderPipelineAsset. [Obsolete]</param>
+        /// <param name="obsolete_defaultAsset">Default HDRenderPipelineAsset. [Obsolete]</param>
         public HDRenderPipeline(HDRenderPipelineAsset asset, HDRenderPipelineAsset obsolete_defaultAsset) : this(asset)
         {
         }

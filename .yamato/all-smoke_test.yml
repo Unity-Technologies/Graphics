@@ -11,12 +11,10 @@
 PR_Smoke_Test_trunk:
     name: Smoke_Test PR Job - trunk
     dependencies:
-      -  path: .yamato/smoke_test-win-dx11.yml#Smoke_Test_Win_DX11_playmode_mono_Linear_trunk
-         rerun: on_new_revision
-      -  path: .yamato/smoke_test-win-dx11.yml#Smoke_Test_Win_DX11_editmode_mono_Linear_trunk
-         rerun: on_new_revision
       -  path: .yamato/smoke_test-win-dx11.yml#Smoke_Test_Win_DX11_Standalone_mono_Linear_trunk
          rerun: on_new_revision
+    triggers:
+        expression: pull_request.target eq "master" AND NOT pull_request.draft AND pull_request.changes.any match ["TestProjects/SRP_SmokeTest/**/*"] AND NOT pull_request.changes.all match ["*.md", "**/*.md", "doc/**/*", "**/Documentation*/**/*"]
     variables:
         CUSTOM_REVISION: '{{trunk.changeset.id}}'
         UTR_VERSION: "current"
@@ -26,6 +24,10 @@ Nightly_Smoke_Test_trunk:
     dependencies:
       -  path: .yamato/all-smoke_test.yml#PR_Smoke_Test_trunk
          rerun: on_new_revision
+      -  path: .yamato/smoke_test-win-dx11.yml#Smoke_Test_Win_DX11_playmode_mono_Linear_trunk
+         rerun: on_new_revision
+      -  path: .yamato/smoke_test-win-dx11.yml#Smoke_Test_Win_DX11_editmode_mono_Linear_trunk
+         rerun: on_new_revision
     variables:
         CUSTOM_REVISION: '{{trunk.changeset.id}}'
         UTR_VERSION: "current"
@@ -33,10 +35,6 @@ Nightly_Smoke_Test_trunk:
 PR_Smoke_Test_CUSTOM-REVISION:
     name: Smoke_Test PR Job - CUSTOM-REVISION
     dependencies:
-      -  path: .yamato/smoke_test-win-dx11.yml#Smoke_Test_Win_DX11_playmode_mono_Linear_CUSTOM-REVISION
-         rerun: on_new_revision
-      -  path: .yamato/smoke_test-win-dx11.yml#Smoke_Test_Win_DX11_editmode_mono_Linear_CUSTOM-REVISION
-         rerun: on_new_revision
       -  path: .yamato/smoke_test-win-dx11.yml#Smoke_Test_Win_DX11_Standalone_mono_Linear_CUSTOM-REVISION
          rerun: on_new_revision
     variables:
@@ -47,6 +45,10 @@ Nightly_Smoke_Test_CUSTOM-REVISION:
     name: Nightly Smoke_Test - CUSTOM-REVISION
     dependencies:
       -  path: .yamato/all-smoke_test.yml#PR_Smoke_Test_CUSTOM-REVISION
+         rerun: on_new_revision
+      -  path: .yamato/smoke_test-win-dx11.yml#Smoke_Test_Win_DX11_playmode_mono_Linear_CUSTOM-REVISION
+         rerun: on_new_revision
+      -  path: .yamato/smoke_test-win-dx11.yml#Smoke_Test_Win_DX11_editmode_mono_Linear_CUSTOM-REVISION
          rerun: on_new_revision
     variables:
         CUSTOM_REVISION: custom_revision_not_set
