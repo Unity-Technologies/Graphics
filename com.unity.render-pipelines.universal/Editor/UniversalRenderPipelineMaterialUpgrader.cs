@@ -11,7 +11,7 @@ namespace UnityEditor.Rendering.Universal
     {
         public override string name => "Material Upgrade";
         public override string info => "This will upgrade your materials.";
-        public override int priority => - 1000;
+        public override int priority => -1000;
         public override Type container => typeof(BuiltInToURPConverterContainer);
 
         List<string> m_AssetsToConvert = new List<string>();
