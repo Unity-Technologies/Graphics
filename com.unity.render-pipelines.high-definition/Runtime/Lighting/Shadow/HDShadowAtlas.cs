@@ -9,7 +9,11 @@ namespace UnityEngine.Rendering.HighDefinition
     // custom-end
     abstract partial class HDShadowAtlas
     {
-        internal struct HDShadowAtlasInitParameters
+        // custom-begin
+        public
+        // internal
+        // custom-end
+        struct HDShadowAtlasInitParameters
         {
             internal RenderPipelineResources renderPipelineResources;
             internal int width;
