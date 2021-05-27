@@ -122,22 +122,32 @@ namespace UnityEngine.Experimental.Rendering
         {
             ProbeReferenceVolume.instance.clearAssetsOnVolumeClear = true;
 
-            var sceneBounds = ProbeReferenceVolume.instance.sceneBounds;
 
-            var prevScenes = new List<string>();
+            var sceneBounds = ProbeReferenceVolume.instance.sceneBounds;
+            HashSet<string> scenesToConsider = new HashSet<Scene>();
+
             for (int i = 0; i < EditorSceneManager.sceneCount; ++i)
             {
                 var scene = EditorSceneManager.GetSceneAt(i);
                 sceneBounds.UpdateSceneBounds(scene);
-                prevScenes.Add(scene.path);
+                // !!! IMPORTANT TODO !!!
+                // When we will have the concept of baking set this should be reverted, if a scene is not in the bake set it should not be considered
+                // As of now we include all open scenes as the workflow is not nice or clear. When it'll be we should *NOT* do it.
+                scenesToConsider.Add(scene.path);
             }
+
+
+            foreach (var scene in EditorBuildSettings.scenes)
+            {
+                scenesToConsider.Add(scene.path);
+            }
+
 
             List<Scene> openedScenes = new List<Scene>();
             hasFoundBounds = false;
 
-            foreach (var buildScene in EditorBuildSettings.scenes)
+            foreach (var scenePath in scenesToConsider)
             {
-                var scenePath = buildScene.path;
                 bool hasProbeVolumes = false;
                 if (sceneBounds.hasProbeVolumes.TryGetValue(scenePath, out hasProbeVolumes))
                 {
@@ -160,10 +170,10 @@ namespace UnityEngine.Experimental.Rendering
                 }
                 else // we need to open the scene to test.
                 {
-                    var scene = EditorSceneManager.OpenScene(buildScene.path, OpenSceneMode.Additive);
+                    var scene = EditorSceneManager.OpenScene(scenePath, OpenSceneMode.Additive);
                     openedScenes.Add(scene);
                     sceneBounds.UpdateSceneBounds(scene);
-                    Bounds localBound = sceneBounds.sceneBounds[buildScene.path];
+                    Bounds localBound = sceneBounds.sceneBounds[scene.path];
                     if (hasFoundBounds)
                         globalBounds.Encapsulate(localBound);
                     else
