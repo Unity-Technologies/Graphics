@@ -440,14 +440,7 @@ namespace UnityEngine.Rendering.Universal
             public int numSamples = 0;
         }
 
-        class CameraFrameData
-        {
-            public int width = 0;
-            public int height = 0;
-            public int numSamples = 0;
-        }
-
-        class DynamicScalingData
+        class DynamicScalingFrameData
         {
             public bool enabled;
             public float widthScaleFactor;
@@ -460,9 +453,153 @@ namespace UnityEngine.Rendering.Universal
         private int[] m_LastFramePassDepthAttachmentsHashes = new int[kRenderPassMaxCount];
 
         private PassFrameData[] m_LastFramePassesData = new PassFrameData[kRenderPassMaxCount];
-        private CameraFrameData m_LastFrameCameraData = new CameraFrameData();
+        private PassFrameData m_LastFrameCameraData = new PassFrameData();
 
-        private DynamicScalingData m_LastFrameDynamicScalingData = new DynamicScalingData();
+
+        private void InitializeLastFrameData()
+        {
+            // initialize last frame data
+
+            m_LastFrameNumPasses = 0;
+            m_LastFrameCameraData.width = 0;
+            m_LastFrameCameraData.height = 0;
+            m_LastFrameCameraData.numSamples = 0;
+
+            m_LastFrameDynamicScalingData.enabled = false;
+            m_LastFrameDynamicScalingData.widthScaleFactor = 0;
+            m_LastFrameDynamicScalingData.heightScaleFactor = 0;
+
+            for (int i = 0; i < kRenderPassMaxCount; ++i)
+            {
+                m_LastFramePassesHashes[i] = 0;
+
+                if (m_LastFramePassColorAttachmentsHashes[i] == null)
+                    m_LastFramePassColorAttachmentsHashes[i] = new int[kRenderPassAttachmentsMaxCount];
+
+                for (int j = 0; j < kRenderPassAttachmentsMaxCount; ++j)
+                {
+                    m_LastFramePassColorAttachmentsHashes[i][j] = 0;
+                }
+
+                m_LastFramePassDepthAttachmentsHashes[i] = 0;
+
+                if (m_LastFramePassesData[i] == null)
+                    m_LastFramePassesData[i] = new PassFrameData();
+
+                m_LastFramePassesData[i].width = 0;
+                m_LastFramePassesData[i].height = 0;
+                m_LastFramePassesData[i].numSamples = 0;
+            }
+        }
+
+        private bool IsFrameDirty(CameraData cameraData)
+        {
+            // if the number of passes is different, flag it dirty
+            if (m_LastFrameNumPasses != m_ActiveRenderPassQueue.Count)
+                return true;
+
+            // check camera data
+
+            RenderTextureDescriptor cameraDesc = cameraData.cameraTargetDescriptor;
+
+            if (m_LastFrameCameraData.width != cameraDesc.width || m_LastFrameCameraData.height != cameraDesc.height || m_LastFrameCameraData.numSamples != cameraDesc.msaaSamples)
+                return true;
+
+            // check dynamic scaling
+
+            if (m_LastFrameDynamicScalingData.enabled != cameraDesc.useDynamicScale)
+                return true;
+
+            if (cameraDesc.useDynamicScale &&
+                (m_LastFrameDynamicScalingData.widthScaleFactor != ScalableBufferManager.widthScaleFactor || m_LastFrameDynamicScalingData.heightScaleFactor != ScalableBufferManager.heightScaleFactor))
+                return true;
+
+            // check passes ID/names
+            // check attachments hash
+
+            for (int i = 0; i < m_ActiveRenderPassQueue.Count; ++i)
+            {
+                if (m_LastFramePassesData[i].width != m_ActiveRenderPassQueue[i].renderTargetWidth ||
+                    m_LastFramePassesData[i].height != m_ActiveRenderPassQueue[i].renderTargetHeight ||
+                    m_LastFramePassesData[i].numSamples != m_ActiveRenderPassQueue[i].renderTargetSampleCount)
+                    return true;
+
+                if (m_LastFramePassesHashes[i] != m_ActiveRenderPassQueue[i].GetHashCode())
+                    return true;
+
+                // check that the color attachments are the same
+
+                for (int j = 0; j < m_ActiveRenderPassQueue[i].colorAttachments.Length; ++j)
+                {
+                    if (m_LastFramePassColorAttachmentsHashes[i][j] != m_ActiveRenderPassQueue[i].colorAttachments[j].GetHashCode())
+                        return true;
+                }
+
+                // check depth attachment
+
+                if (m_LastFramePassDepthAttachmentsHashes[i] != m_ActiveRenderPassQueue[i].depthAttachment.GetHashCode())
+                    return true;
+            }
+
+            return false;
+        }
+
+        private void UpdateLastFrameData(CameraData cameraData)
+        {
+            m_LastFrameNumPasses = m_ActiveRenderPassQueue.Count;
+
+            RenderTextureDescriptor cameraDesc = cameraData.cameraTargetDescriptor;
+
+            m_LastFrameCameraData.width = cameraDesc.width;
+            m_LastFrameCameraData.height = cameraDesc.height;
+            m_LastFrameCameraData.numSamples = cameraDesc.msaaSamples;
+
+            m_LastFrameDynamicScalingData.enabled = cameraDesc.useDynamicScale;
+            m_LastFrameDynamicScalingData.widthScaleFactor = ScalableBufferManager.widthScaleFactor;
+            m_LastFrameDynamicScalingData.heightScaleFactor = ScalableBufferManager.heightScaleFactor;
+
+            // check passes ID/names
+            // check attachments hash
+
+            for (int i = 0; i < kRenderPassMaxCount; ++i)
+            {
+                if (i < m_ActiveRenderPassQueue.Count)
+                {
+                    m_LastFramePassesData[i].width = m_ActiveRenderPassQueue[i].renderTargetWidth;
+                    m_LastFramePassesData[i].height = m_ActiveRenderPassQueue[i].renderTargetHeight;
+                    m_LastFramePassesData[i].numSamples = m_ActiveRenderPassQueue[i].renderTargetSampleCount;
+
+                    m_LastFramePassesHashes[i] = m_ActiveRenderPassQueue[i].GetHashCode();
+
+                    // check that the attachments are the same too
+
+                    for (int j = 0; j < kRenderPassAttachmentsMaxCount; ++j)
+                    {
+                        if (j < m_ActiveRenderPassQueue[i].colorAttachments.Length)
+                            m_LastFramePassColorAttachmentsHashes[i][j] = m_ActiveRenderPassQueue[i].colorAttachments[j].GetHashCode();
+                        else
+                            m_LastFramePassColorAttachmentsHashes[i][j] = 0;
+                    }
+
+                    m_LastFramePassDepthAttachmentsHashes[i] = m_ActiveRenderPassQueue[i].depthAttachment.GetHashCode();
+                }
+                else
+                {
+                    m_LastFramePassesData[i].width = 0;
+                    m_LastFramePassesData[i].height = 0;
+                    m_LastFramePassesData[i].numSamples = 0;
+
+                    m_LastFramePassesHashes[i] = 0;
+
+                    for (int j = 0; j < kRenderPassAttachmentsMaxCount; ++j)
+                        m_LastFramePassColorAttachmentsHashes[i][j] = 0;
+
+                    m_LastFramePassDepthAttachmentsHashes[i] = 0;
+                }
+            }
+        }
+
+        private DynamicScalingFrameData m_LastFrameDynamicScalingData = new DynamicScalingFrameData();
 
         internal bool useRenderPassEnabled = false;
         static RenderTargetIdentifier[] m_ActiveColorAttachments = new RenderTargetIdentifier[] {0, 0, 0, 0, 0, 0, 0, 0 };
@@ -508,8 +645,7 @@ namespace UnityEngine.Rendering.Universal
 
         internal bool useDepthPriming { get; set; } = false;
 
-        private bool firstFrame = true;
-        private CameraData lastCameraData = new CameraData();
+        private bool m_NativeRenderPassDataNeedsSetup = true;
 
         public ScriptableRenderer(ScriptableRendererData data)
         {
@@ -538,38 +674,7 @@ namespace UnityEngine.Rendering.Universal
 
             m_UseOptimizedStoreActions = m_StoreActionsOptimizationSetting != StoreActionsOptimization.Store;
 
-            // initialize last frame data
-
-            m_LastFrameNumPasses = 0;
-            m_LastFrameCameraData.width = 0;
-            m_LastFrameCameraData.height = 0;
-            m_LastFrameCameraData.numSamples = 0;
-
-            m_LastFrameDynamicScalingData.enabled = false;
-            m_LastFrameDynamicScalingData.widthScaleFactor = 0;
-            m_LastFrameDynamicScalingData.heightScaleFactor = 0;
-
-            for (int i = 0; i < kRenderPassMaxCount; ++i)
-            {
-                m_LastFramePassesHashes[i] = 0;
-
-                if (m_LastFramePassColorAttachmentsHashes[i] == null)
-                    m_LastFramePassColorAttachmentsHashes[i] = new int[kRenderPassAttachmentsMaxCount];
-
-                for (int j = 0; j < kRenderPassAttachmentsMaxCount; ++j)
-                {
-                    m_LastFramePassColorAttachmentsHashes[i][j] = 0;
-                }
-
-                m_LastFramePassDepthAttachmentsHashes[i] = 0;
-
-                if (m_LastFramePassesData[i] == null)
-                    m_LastFramePassesData[i] = new PassFrameData();
-
-                m_LastFramePassesData[i].width = 0;
-                m_LastFramePassesData[i].height = 0;
-                m_LastFramePassesData[i].numSamples = 0;
-            }
+            InitializeLastFrameData();
         }
 
         public void Dispose()
@@ -702,102 +807,16 @@ namespace UnityEngine.Rendering.Universal
                     SortStable(m_ActiveRenderPassQueue);
                 }
 
-                // check num passes
+                bool frameIsDirty = IsFrameDirty(cameraData);
 
-                bool setDirty = false;
+                if (frameIsDirty || m_NativeRenderPassDataNeedsSetup)
+                    UpdateLastFrameData(cameraData);
 
-                // if the number of passes is different, flag it dirty
-                setDirty = m_LastFrameNumPasses != m_ActiveRenderPassQueue.Count;
-
-                m_LastFrameNumPasses = m_ActiveRenderPassQueue.Count;
-
-                // check camera data
-
-                RenderTextureDescriptor cameraDesc = cameraData.cameraTargetDescriptor;
-
-                setDirty = m_LastFrameCameraData.width != cameraDesc.width || m_LastFrameCameraData.height != cameraDesc.height || m_LastFrameCameraData.numSamples != cameraDesc.msaaSamples;
-
-                m_LastFrameCameraData.width = cameraDesc.width;
-                m_LastFrameCameraData.height = cameraDesc.height;
-                m_LastFrameCameraData.numSamples = cameraDesc.msaaSamples;
-
-                // check dynamic scaling
-
-                setDirty = m_LastFrameDynamicScalingData.enabled != cameraDesc.useDynamicScale;
-
-                if (cameraDesc.useDynamicScale)
-                    setDirty = m_LastFrameDynamicScalingData.widthScaleFactor != ScalableBufferManager.widthScaleFactor || m_LastFrameDynamicScalingData.heightScaleFactor != ScalableBufferManager.heightScaleFactor;
-
-                m_LastFrameDynamicScalingData.enabled = cameraDesc.useDynamicScale;
-                m_LastFrameDynamicScalingData.widthScaleFactor = ScalableBufferManager.widthScaleFactor;
-                m_LastFrameDynamicScalingData.heightScaleFactor = ScalableBufferManager.heightScaleFactor;
-
-                // check passes ID/names
-                // check attachments hash
-
-                for (int i = 0; i < kRenderPassMaxCount; ++i)
-                {
-                    if (i < m_ActiveRenderPassQueue.Count)
-                    {
-                        setDirty = m_LastFramePassesData[i].width != m_ActiveRenderPassQueue[i].renderTargetWidth ||
-                            m_LastFramePassesData[i].height != m_ActiveRenderPassQueue[i].renderTargetHeight ||
-                            m_LastFramePassesData[i].numSamples != m_ActiveRenderPassQueue[i].renderTargetSampleCount;
-
-                        m_LastFramePassesData[i].width = m_ActiveRenderPassQueue[i].renderTargetWidth;
-                        m_LastFramePassesData[i].height = m_ActiveRenderPassQueue[i].renderTargetHeight;
-                        m_LastFramePassesData[i].numSamples = m_ActiveRenderPassQueue[i].renderTargetSampleCount;
-
-                        if (m_LastFramePassesHashes[i] != m_ActiveRenderPassQueue[i].GetHashCode())
-                        {
-                            // the passes are different, flag it dirty
-
-                            setDirty = true;
-                            m_LastFramePassesHashes[i] = m_ActiveRenderPassQueue[i].GetHashCode();
-                        }
-
-                        // check that the attachments are the same too
-
-                        for (int j = 0; j < kRenderPassAttachmentsMaxCount; ++j)
-                        {
-                            if (j < m_ActiveRenderPassQueue[i].colorAttachments.Length)
-                            {
-                                if (m_LastFramePassColorAttachmentsHashes[i][j] != m_ActiveRenderPassQueue[i].colorAttachments[j].GetHashCode())
-                                {
-                                    setDirty = true;
-                                    m_LastFramePassColorAttachmentsHashes[i][j] = m_ActiveRenderPassQueue[i].colorAttachments[j].GetHashCode();
-                                }
-                            }
-                            else
-                            {
-                                m_LastFramePassColorAttachmentsHashes[i][j] = 0;
-                            }
-                        }
-
-                        m_LastFramePassDepthAttachmentsHashes[i] = m_ActiveRenderPassQueue[i].depthAttachment.GetHashCode();
-                    }
-                    else
-                    {
-                        m_LastFramePassesData[i].width = 0;
-                        m_LastFramePassesData[i].height = 0;
-                        m_LastFramePassesData[i].numSamples = 0;
-
-                        m_LastFramePassesHashes[i] = 0;
-
-                        for (int j = 0; j < kRenderPassAttachmentsMaxCount; ++j)
-                            m_LastFramePassColorAttachmentsHashes[i][j] = 0;
-
-                        m_LastFramePassDepthAttachmentsHashes[i] = 0;
-                    }
-                }
-
-                // TODO: check camera MSAA and dynamic scaling?
-                // check pass width/height/numSamples
-
-                if (setDirty)
-                    firstFrame = true;
+                if (frameIsDirty)
+                    m_NativeRenderPassDataNeedsSetup = true;
 
 
-                if (firstFrame && cameraData.cameraType == CameraType.Game)
+                if (m_NativeRenderPassDataNeedsSetup && cameraData.cameraType == CameraType.Game)
                 {
                     ResetNativeRenderPassFrameData();
                     SetupNativeRenderPassFrameData(cameraData, useRenderPassEnabled);
@@ -903,7 +922,7 @@ namespace UnityEngine.Rendering.Universal
 
                 InternalFinishRendering(context, cameraData.resolveFinalTarget);
                 if (cameraData.cameraType == CameraType.Game && Application.isPlaying)
-                    firstFrame = false;
+                    m_NativeRenderPassDataNeedsSetup = false;
             }
 
             context.ExecuteCommandBuffer(cmd);
@@ -1202,7 +1221,7 @@ namespace UnityEngine.Rendering.Universal
 
                 if (IsRenderPassEnabled(renderPass) && cameraData.cameraType == CameraType.Game)
                 {
-                    if (firstFrame)
+                    if (m_NativeRenderPassDataNeedsSetup)
                         SetNativeRenderPassMRTAttachmentList(renderPass, ref cameraData, needCustomCameraColorClear, finalClearFlag);
                 }
 
@@ -1321,7 +1340,7 @@ namespace UnityEngine.Rendering.Universal
 
                 if (IsRenderPassEnabled(renderPass) && cameraData.cameraType == CameraType.Game)
                 {
-                    if (firstFrame)
+                    if (m_NativeRenderPassDataNeedsSetup)
                         SetNativeRenderPassAttachmentList(renderPass, ref cameraData, passColorAttachment, passDepthAttachment, finalClearFlag, finalClearColor);
                 }
                 else
