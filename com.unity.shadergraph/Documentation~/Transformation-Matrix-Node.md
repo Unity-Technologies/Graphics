@@ -4,6 +4,9 @@
 
 Defines a constant **Matrix 4x4** value for a common **Transformation Matrix** in the shader. The **Transformation Matrix** can be selected from the dropdown parameter.
 
+Two output value options for this node, **Inverse Projection** and **Inverse View Projection**, are not compatible with the Built-In Render Pipeline target. When you choose either of these options and target the Built-In Render Pipeline, this node produces an entirely black result.
+
+
 ## Ports
 
 | Name        | Direction           | Type  | Binding | Description |
