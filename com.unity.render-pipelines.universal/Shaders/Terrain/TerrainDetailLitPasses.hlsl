@@ -51,18 +51,8 @@ void InitializeInputData(Varyings input, out InputData inputData)
     inputData.bakedGI = SAMPLE_GI(input.staticLightmapUV, input.vertexSH, input.NormalWS.xyz);
     inputData.normalizedScreenSpaceUV = GetNormalizedScreenSpaceUV(input.PositionCS);
     inputData.shadowMask = SAMPLE_SHADOWMASK(input.staticLightmapUV);
-
-    #if defined(LIGHTMAP_ON)
-    inputData.lightmapUV = input.staticLightmapUV;
-    #else
-    inputData.vertexSH = float3(1, 1, 1);
-    #endif
-
-    #if defined(_NORMALMAP)
-    inputData.tangentToWorld;
-    #endif
-
     inputData.positionWS = input.PositionWS;
+
     #if defined(DEBUG_DISPLAY)
     inputData.uv = input.UV01;
     #endif
