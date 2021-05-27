@@ -180,14 +180,17 @@ namespace UnityEngine.Rendering.HighDefinition
             public DepthBits shadowAtlasDepthBits;
             /// <summary>Enable dynamic rescale of the atlas.</summary>
             public bool useDynamicViewportRescale;
+            /// <summary>Cached Resolution</summary>
+            public int cachedResolution;
 
-            internal static HDShadowAtlasInitParams GetDefault()
+            internal static HDShadowAtlasInitParams GetDefault(int _cachedResolution)
             {
                 return new HDShadowAtlasInitParams()
                 {
                     shadowAtlasResolution = k_DefaultShadowAtlasResolution,
                     shadowAtlasDepthBits = k_DefaultShadowMapDepthBits,
-                    useDynamicViewportRescale = true
+                    useDynamicViewportRescale = true,
+                    cachedResolution = _cachedResolution
                 };
             }
         }
@@ -196,10 +199,8 @@ namespace UnityEngine.Rendering.HighDefinition
         {
             maxShadowRequests                   = k_DefaultMaxShadowRequests,
             directionalShadowsDepthBits         = k_DefaultShadowMapDepthBits,
-            punctualLightShadowAtlas            = HDShadowAtlasInitParams.GetDefault(),
-            areaLightShadowAtlas                = HDShadowAtlasInitParams.GetDefault(),
-            cachedPunctualLightShadowAtlas      = 2048,
-            cachedAreaLightShadowAtlas          = 1024,
+            punctualLightShadowAtlas            = HDShadowAtlasInitParams.GetDefault(2048),
+            areaLightShadowAtlas                = HDShadowAtlasInitParams.GetDefault(1024),
             shadowResolutionDirectional         = new IntScalableSetting(new[] { 256, 512, 1024, 2048 }, ScalableSettingSchemaId.With4Levels),
             shadowResolutionArea                = new IntScalableSetting(new[] { 256, 512, 1024, 2048 }, ScalableSettingSchemaId.With4Levels),
             shadowResolutionPunctual            = new IntScalableSetting(new[] { 256, 512, 1024, 2048 }, ScalableSettingSchemaId.With4Levels),
@@ -230,11 +231,19 @@ namespace UnityEngine.Rendering.HighDefinition
         /// <summary>Initialization parameters for area shadows atlas.</summary>
         public HDShadowAtlasInitParams areaLightShadowAtlas;
 
+        [FormerlySerializedAs("cachedPunctualLightShadowAtlas")]
+        internal int m_ObsoleteCachedPunctualLightShadowAtlas;
+
+        [FormerlySerializedAs("cachedAreaLightShadowAtlas")]
+        internal int m_ObsoleteCachedAreaLightShadowAtlas;
+
         /// <summary>Resolution for the punctual lights cached shadow maps atlas.</summary>
-        public int cachedPunctualLightShadowAtlas;
+        [Obsolete("Use punctualLightShadowAtlas.cachedResolution", false)] // TODO API UPGRADER
+        public int cachedPunctualLightShadowAtlas => punctualLightShadowAtlas.cachedResolution;
 
         /// <summary>Resolution for the area lights cached shadow maps atlas.</summary>
-        public int cachedAreaLightShadowAtlas;
+        [Obsolete("Use areaLightShadowAtlas.cachedResolution", false)]
+        public int cachedAreaLightShadowAtlas => areaLightShadowAtlas.cachedResolution;
 
         /// <summary>Shadow scalable resolution for directional lights.</summary>
         public IntScalableSetting shadowResolutionDirectional;

@@ -36,6 +36,7 @@ namespace UnityEngine.Rendering.HighDefinition
             VirtualTexturing,
             AddedHDRenderPipelineGlobalSettings,
             DecalSurfaceGradient,
+            CachedShadowAtlasMigration,
             // If you add more steps here, do not clear settings that are used for the migration to the HDRP Global Settings asset
         }
 
@@ -208,6 +209,11 @@ namespace UnityEngine.Rendering.HighDefinition
             MigrationStep.New(Version.DecalSurfaceGradient, (HDRenderPipelineAsset data) =>
             {
                 data.m_RenderPipelineSettings.supportSurfaceGradient = false;
+            }) ,
+            MigrationStep.New(Version.CachedShadowAtlasMigration, (HDRenderPipelineAsset data) =>
+            {
+                data.m_RenderPipelineSettings.hdShadowInitParams.punctualLightShadowAtlas.cachedResolution = data.m_RenderPipelineSettings.hdShadowInitParams.m_ObsoleteCachedPunctualLightShadowAtlas;
+                data.m_RenderPipelineSettings.hdShadowInitParams.areaLightShadowAtlas.cachedResolution = data.m_RenderPipelineSettings.hdShadowInitParams.m_ObsoleteCachedAreaLightShadowAtlas;
             })
         );
         #endregion
