@@ -20,7 +20,7 @@ For nodes:
 For SubGraphs
 * Select a mode in the [Sub Graph](Sub-graph) [Graph Settings](Graph-Settings-Menu) menu.
 
-IMAGE
+![](images/previiewmodecontrol.png)
 
 Related
 [Preview node](Preview-Node)
