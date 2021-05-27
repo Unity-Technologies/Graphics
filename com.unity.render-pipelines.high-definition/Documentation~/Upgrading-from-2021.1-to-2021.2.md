@@ -32,6 +32,8 @@ From 2021.2, the HDRP Asset assigned in the Graphics Settings no longer acts as 
 
 Also, to ensure your build will use up to date data, HDRenderPipelineAsset and HDRenderPipelineGlobalSettings can raise a build error if they are not up to date when building. They can only be upgraded in Editor. Just opening the editor will upgrade them if they are used in your project (in a QualitySettings or in GraphicsSettings). The error can be raised when building from command line.
 
+The Runtime Debug Display toggle has also been migrated from HDRP Asset to HDRP Global Settings Asset, using the currently active HDRP Asset as the source.
+
 ## Materials
 
 ### Transparent Surface Type
