@@ -310,6 +310,16 @@ Shader ""Hidden/GraphErrorShader2""
                 sgMetadata.categoryDatas.Insert(0, new MinimalCategoryData() { categoryName = "", propertyDatas = inputInspectorDataList });
             }
 
+            sgMetadata.graphInputOrderData = new List<GraphInputData>();
+            // Create flat list of GraphInputDatas in order to store the ordering information of the graph inputs
+            foreach (var categoryData in sgMetadata.categoryDatas)
+            {
+                foreach (var childInputData in categoryData.propertyDatas)
+                {
+                    sgMetadata.graphInputOrderData.Add(childInputData);
+                }
+            }
+
             ctx.AddObjectToAsset("SGInternal:Metadata", sgMetadata);
 
             // declare dependencies
