@@ -351,6 +351,7 @@
     * Random
       * [Random Number](Operator-RandomNumber.md)
     * Sampling
+      * [Buffer Count](Operator-BufferCount.md)
       * [Get Texture Dimensions](Operator-GetTextureDimensions.md)
       * [Load CameraBuffer](Operator-LoadCameraBuffer.md)
       * [Mesh Index Count](Operator-MeshIndexCount.md)
@@ -359,6 +360,7 @@
       * [Load Texture2DArray](Operator-LoadTexture2DArray.md)
       * [Load Texture3D](Operator-LoadTexture3D.md)
       * [Position (Depth)](Operator-Position(Depth).md)
+      * [Sample Buffer](Operator-SampleBuffer.md )
       * [Sample CameraBuffer](Operator-SampleCameraBuffer.md)
       * [Sample Curve](Operator-SampleCurve.md)
       * [Sample Gradient](Operator-SampleGradient.md)

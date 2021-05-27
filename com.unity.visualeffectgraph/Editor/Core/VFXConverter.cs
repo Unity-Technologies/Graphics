@@ -81,6 +81,9 @@ namespace UnityEditor.VFX
             if (castedValue == null) // null object don't have necessarly the correct type
                 return null;
 
+            if (toType == typeof(GraphicsBuffer))
+                return null; //This reference isn't serializable
+
             if (!toType.IsInstanceOfType(value))
             {
                 Debug.LogErrorFormat("Cannot cast from {0} to {1}", value.GetType(), toType);
@@ -188,6 +191,9 @@ namespace UnityEditor.VFX
                 return null;
             if (value is UnityObject obj && obj == null)
                 return null;
+            if (type == typeof(GraphicsBuffer))
+                return null;
+
             var fromType = value.GetType();
 
             var converter = GetConverter(fromType, type);

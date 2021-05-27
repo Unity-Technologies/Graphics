@@ -6,30 +6,6 @@ using System.Collections.Generic;
 
 namespace UnityEngine.Experimental.Rendering
 {
-    [Serializable]
-    internal struct ProbeVolumeArtistParameters
-    {
-        public Vector3  size;
-        [HideInInspector]
-        public float    maxSubdivisionMultiplier;
-        [HideInInspector]
-        public float    minSubdivisionMultiplier;
-
-        public ProbeVolumeArtistParameters(Color debugColor, float maxSubdivision = 1, float minSubdivision = 0)
-        {
-            this.size = Vector3.one;
-            this.maxSubdivisionMultiplier = maxSubdivision;
-            this.minSubdivisionMultiplier = minSubdivision;
-        }
-
-        public bool IsEquivalent(ProbeVolumeArtistParameters other)
-        {
-            return other.size == size &&
-                other.maxSubdivisionMultiplier == maxSubdivisionMultiplier &&
-                other.minSubdivisionMultiplier == minSubdivisionMultiplier;
-        }
-    } // class ProbeVolumeArtistParameters
-
     /// <summary>
     /// A marker to determine what area of the scene is considered by the Probe Volumes system
     /// </summary>
@@ -37,12 +13,20 @@ namespace UnityEngine.Experimental.Rendering
     [AddComponentMenu("Light/Probe Volume (Experimental)")]
     public class ProbeVolume : MonoBehaviour
     {
-        [SerializeField] internal ProbeVolumeArtistParameters parameters = new ProbeVolumeArtistParameters(Color.white);
+        public Vector3      size = new Vector3(10, 10, 10);
+        [HideInInspector]
+        public float        maxSubdivisionMultiplier = 1;
+        [HideInInspector]
+        public float        minSubdivisionMultiplier = 0;
+        [HideInInspector, Range(0f, 2f)]
+        public float        geometryDistanceOffset = 0.2f;
+
+        public LayerMask    objectLayerMask = -1;
 
         [SerializeField] internal bool mightNeedRebaking = false;
 
         [SerializeField] internal Matrix4x4 cachedTransform;
-        [SerializeField] internal ProbeVolumeArtistParameters cachedParameters;
+        [SerializeField] internal int cachedHashCode;
 
         /// <summary>
         /// Returns the extents of the volume.
@@ -50,7 +34,7 @@ namespace UnityEngine.Experimental.Rendering
         /// <returns>The extents of the ProbeVolume.</returns>
         public Vector3 GetExtents()
         {
-            return parameters.size;
+            return size;
         }
 
 #if UNITY_EDITOR
@@ -63,8 +47,24 @@ namespace UnityEngine.Experimental.Rendering
         {
             // We cache the data of last bake completed.
             cachedTransform = gameObject.transform.worldToLocalMatrix;
-            cachedParameters = parameters;
+            cachedHashCode = GetHashCode();
             mightNeedRebaking = false;
+        }
+
+        public override int GetHashCode()
+        {
+            int hash = 17;
+
+            unchecked
+            {
+                hash = hash * 23 + size.GetHashCode();
+                hash = hash * 23 + maxSubdivisionMultiplier.GetHashCode();
+                hash = hash * 23 + minSubdivisionMultiplier.GetHashCode();
+                hash = hash * 23 + geometryDistanceOffset.GetHashCode();
+                hash = hash * 23 + objectLayerMask.GetHashCode();
+            }
+
+            return hash;
         }
 
 #endif

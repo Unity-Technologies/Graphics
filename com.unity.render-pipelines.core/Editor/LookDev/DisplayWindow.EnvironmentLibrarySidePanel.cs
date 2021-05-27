@@ -55,7 +55,7 @@ namespace UnityEditor.Rendering.LookDev
         }
 
         static int FirstVisibleIndex(ListView listView)
-            => (int)(listView.Q<ScrollView>().scrollOffset.y / listView.itemHeight);
+            => (int)(listView.Q<ScrollView>().scrollOffset.y / (int)listView.fixedItemHeight);
 
         void CreateEnvironment()
         {
@@ -75,7 +75,7 @@ namespace UnityEditor.Rendering.LookDev
             m_EnvironmentList = new ListView();
             m_EnvironmentList.AddToClassList("list-environment");
             m_EnvironmentList.selectionType = SelectionType.Single;
-            m_EnvironmentList.itemHeight = EnvironmentElement.k_SkyThumbnailHeight;
+            m_EnvironmentList.fixedItemHeight = EnvironmentElement.k_SkyThumbnailHeight;
             m_EnvironmentList.makeItem = () =>
             {
                 var preview = new Image();
@@ -229,7 +229,7 @@ namespace UnityEditor.Rendering.LookDev
             //add ability to unselect
             m_EnvironmentList.RegisterCallback<MouseDownEvent>(evt =>
             {
-                var clickedIndex = (int)(evt.localMousePosition.y / m_EnvironmentList.itemHeight);
+                var clickedIndex = (int)(evt.localMousePosition.y / (int)m_EnvironmentList.fixedItemHeight);
                 if (clickedIndex >= m_EnvironmentList.itemsSource.Count)
                 {
                     m_EnvironmentList.selectedIndex = -1;
@@ -300,7 +300,7 @@ namespace UnityEditor.Rendering.LookDev
                 item as Image,
                 //note: this even can come before the selection event of the
                 //ListView. Reconstruct index by looking at target of the event.
-                (int)item.layout.y / m_EnvironmentList.itemHeight,
+                (int)item.layout.y / (int)m_EnvironmentList.fixedItemHeight,
                 worldPosition);
 
         void EndDragging(DraggingContext context, Vector2 mouseWorldPosition)

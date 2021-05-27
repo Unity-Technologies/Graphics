@@ -296,7 +296,7 @@ namespace UnityEditor.ShaderGraph.Drawing.Inspector.PropertyDrawers
                 m_ReferenceNameDrawer = new TextPropertyDrawer();
                 propertySheet.Add(m_ReferenceNameDrawer.CreateGUI(
                     null,
-                    (string)shaderInput.referenceName,
+                    (string)shaderInput.referenceNameForEditing,
                     "Reference"));
 
                 m_ReferenceNameField = m_ReferenceNameDrawer.textField;
@@ -330,7 +330,7 @@ namespace UnityEditor.ShaderGraph.Drawing.Inspector.PropertyDrawers
                     m_ReferenceNameDrawer.textField.AddToClassList("modified");
                     m_ReferenceNameDrawer.label.AddToClassList("modified");
                 }
-                m_ReferenceNameDrawer.textField.SetEnabled(shaderInput.isRenamable);
+                m_ReferenceNameDrawer.textField.SetEnabled(shaderInput.isReferenceRenamable);
 
                 // add the right click context menu to the label
                 IManipulator contextMenuManipulator = new ContextualMenuManipulator((evt) => AddShaderInputOptionsToContextMenu(shaderInput, evt));

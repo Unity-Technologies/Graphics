@@ -582,9 +582,19 @@ namespace UnityEngine.Experimental.Rendering
         {
             if (!m_ProbeReferenceVolumeInit)
             {
+                int indexSize = 0;
+                try
+                {
+                    indexSize = checked(indexDimensions.x * (indexDimensions.y + 1) * indexDimensions.z);
+                }
+                catch
+                {
+                    Debug.LogError($"Index Dimension too big: {indexDimensions}. Please reduce the area covered by the probe volumes.");
+                    return;
+                }
                 Profiler.BeginSample("Initialize Reference Volume");
                 m_Pool = new ProbeBrickPool(allocationSize, memoryBudget);
-                if ((indexDimensions.x * (indexDimensions.y + 1) * indexDimensions.z) == 0)
+                if (indexSize == 0)
                 {
                     // Give a momentarily dummy size to allow the system to function with no asset assigned.
                     indexDimensions = new Vector3Int(1, 1, 1);
@@ -660,22 +670,23 @@ namespace UnityEngine.Experimental.Rendering
             m_Transform.refSpaceToWS = Matrix4x4.TRS(m_Transform.posWS, m_Transform.rot, Vector3.one * m_Transform.scale);
         }
 
-        internal void SetMaxSubdivision(int maxSubdivision) { m_MaxSubdivision = System.Math.Min(maxSubdivision, ProbeBrickIndex.kMaxSubdivisionLevels); }
-        internal static int CellSize(int subdivisionLevel) { return (int)Mathf.Pow(ProbeBrickPool.kBrickCellCount, subdivisionLevel); }
-        internal float BrickSize(int subdivisionLevel) { return m_Transform.scale * CellSize(subdivisionLevel); }
-        internal float MinBrickSize() { return m_Transform.scale; }
-        internal float MaxBrickSize() { return BrickSize(m_MaxSubdivision); }
-        internal Matrix4x4 GetRefSpaceToWS() { return m_Transform.refSpaceToWS; }
-        internal RefVolTransform GetTransform() { return m_Transform; }
+        internal void SetMaxSubdivision(int maxSubdivision) => m_MaxSubdivision = System.Math.Min(maxSubdivision, ProbeBrickIndex.kMaxSubdivisionLevels);
+        internal static int CellSize(int subdivisionLevel) => (int)Mathf.Pow(ProbeBrickPool.kBrickCellCount, subdivisionLevel);
+        internal float BrickSize(int subdivisionLevel) => m_Transform.scale * CellSize(subdivisionLevel);
+        internal float MinBrickSize() => m_Transform.scale;
+        internal float MaxBrickSize() => BrickSize(m_MaxSubdivision - 1);
+        internal Matrix4x4 GetRefSpaceToWS() => m_Transform.refSpaceToWS;
+        internal RefVolTransform GetTransform() => m_Transform;
         internal int GetMaxSubdivision() => m_MaxSubdivision;
         internal int GetMaxSubdivision(float multiplier) => Mathf.CeilToInt(m_MaxSubdivision * multiplier);
-        internal float MinDistanceBetweenProbes() { return MinBrickSize() / (ProbeBrickPool.kBrickProbeCountPerDim - 1); }
+        internal float GetDistanceBetweenProbes(int subdivisionLevel) => BrickSize(subdivisionLevel) / 3.0f;
+        internal float MinDistanceBetweenProbes() => GetDistanceBetweenProbes(0);
 
         /// <summary>
         /// Returns whether any brick data has been loaded.
         /// </summary>
         /// <returns></returns>
-        public bool DataHasBeenLoaded() { return m_BricksLoaded; }
+        public bool DataHasBeenLoaded() => m_BricksLoaded;
 
         internal delegate void SubdivisionDel(RefVolTransform refSpaceToWS, int subdivisionLevel, List<Brick> inBricks, List<BrickFlags> outControlFlags);
 
@@ -802,7 +813,7 @@ namespace UnityEngine.Experimental.Rendering
                     Profiler.BeginSample("Cull bricks");
                     for (int i = m_TmpBricks[0].Count - 1; i >= 0; i--)
                     {
-                        if (!ProbeVolumePositioning.OBBIntersect(ref m_Transform, m_TmpBricks[0][i], ref cellVolume))
+                        if (!ProbeVolumePositioning.OBBIntersect(m_Transform, m_TmpBricks[0][i], cellVolume))
                         {
                             m_TmpBricks[0].RemoveAt(i);
                         }
@@ -818,9 +829,9 @@ namespace UnityEngine.Experimental.Rendering
 #endif
 
         // Converts brick information into positional data at kBrickProbeCountPerDim * kBrickProbeCountPerDim * kBrickProbeCountPerDim resolution
-        internal void ConvertBricks(List<Brick> bricks, Vector3[] outProbePositions)
+        internal void ConvertBricksToPositions(List<Brick> bricks, Vector3[] outProbePositions)
         {
-            Profiler.BeginSample("ConvertBricks");
+            Profiler.BeginSample("ConvertBricksToPositions");
             Matrix4x4 m = GetRefSpaceToWS();
             int posIdx = 0;
 

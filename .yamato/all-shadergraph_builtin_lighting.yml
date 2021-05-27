@@ -19,8 +19,6 @@ PR_ShaderGraph_BuiltIn_Lighting_trunk:
          rerun: on_new_revision
       -  path: .yamato/shadergraph_builtin_lighting-osx-metal.yml#ShaderGraph_BuiltIn_Lighting_OSX_Metal_playmode_cache_mono_Linear_trunk
          rerun: on_new_revision
-    triggers:
-        expression: pull_request.target eq "master" AND NOT pull_request.draft AND pull_request.changes.any match ["com.unity.shadergraph/**/*", "TestProjects/BuiltInGraphicsTest_Lighting/**/*"] AND NOT pull_request.push.changes.all match ["*.md", "**/*.md", "doc/**/*", "**/Documentation*/**/*"]
     variables:
         CUSTOM_REVISION: '{{trunk.changeset.id}}'
         UTR_VERSION: "current"
