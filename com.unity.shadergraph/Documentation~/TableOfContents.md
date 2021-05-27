@@ -13,6 +13,7 @@
     * [Sub Graph](Sub-graph)
     * [Color Modes](Color-Modes)
     * [Precision Modes](Precision-Modes)
+    * [Preview Mode Control](Preview-Mode-Control)
     * [Custom Function Node](Custom-Function-Node)
     * [Shader Graph Preferences](Shader-Graph-Preferences)
     * [Samples](ShaderGraph-Samples.md)
