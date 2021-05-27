@@ -7,6 +7,8 @@ test_platforms:
       - [OSX_Metal]: --timeout=2400
   - type: playmode
 #  - type: editmode
+expression_trigger:
+  expression: ""
 platforms:
   - name: Win
     apis:
@@ -17,7 +19,7 @@ platforms:
       - name: mono
     color_spaces:
       - Linear
-  - name: OSX 
+  - name: OSX
     apis:
       - name: OpenGLCore
         exclude_test_platforms:
@@ -28,7 +30,7 @@ platforms:
     color_spaces:
       - Linear
   - name: Linux
-    apis: 
+    apis:
       - name: OpenGLCore
         exclude_test_platforms:
           - name: Standalone
@@ -37,7 +39,7 @@ platforms:
       - name: mono
     color_spaces:
       - Linear
-all:
+pr:
   dependencies:
     - platform: Win
       api: DX11

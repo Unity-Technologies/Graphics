@@ -13,7 +13,9 @@ test_platforms:
   - type: playmode
     name: playmode_XR
     utr_flags:
-      - [all]: --extra-editor-arg="-xr-tests" 
+      - [all]: --extra-editor-arg="-xr-tests"
+expression_trigger:
+  expression: ""
 platforms:
   - name: Win
     apis:
@@ -37,7 +39,7 @@ platforms:
     color_spaces:
       - Linear
   - name: Linux
-    apis: 
+    apis:
       - name: OpenGLCore
         exclude_test_platforms:
           - name: Standalone
@@ -76,7 +78,7 @@ platforms:
       - name: il2cpp
     color_spaces:
       - Linear
-all:
+pr:
   dependencies:
     - platform: Win
       api: DX11
@@ -92,12 +94,12 @@ all:
       color_space: Linear
       test_platforms:
         - Standalone
-        - playmode 
+        - playmode
     - platform: OSX
       api: OpenGLCore
       build_config: mono
       color_space: Linear
       test_platforms:
-        - editmode  
+        - editmode
     - project: Universal_Stereo
-      all: true
+      pr: true

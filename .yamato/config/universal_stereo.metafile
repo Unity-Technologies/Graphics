@@ -5,14 +5,16 @@ test_platforms:
   - type: Standalone
  # - type: playmode
   - type: editmode
+expression_trigger:
+  expression: ""
 platforms:
   - name: Win
-    apis: 
+    apis:
     build_configs:
       - name: mono
     color_spaces:
       - Linear
-all:
+pr:
   dependencies:
     - platform: Win
       api: ''

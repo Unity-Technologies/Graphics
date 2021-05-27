@@ -1,6 +1,6 @@
 # all_package_ci needs dependencies for package_test_dependencies (currently commented out due to breaking)
 packages:
-  - name: Core  
+  - name: Core
     id: core
     packagename: com.unity.render-pipelines.core
     dependencies:
@@ -57,8 +57,14 @@ packages:
 platforms:
   - name: Win
   - name: OSX
-agent_pack: package_ci_win_large 
-agent_publish: package_ci_win_large 
-agent_publish_all: package_ci_ubuntu_large 
+agent_pack: package_ci_win_large
+agent_publish: package_ci_win_large
+agent_publish_all: package_ci_ubuntu_large
+
 publish_all_tracks:
   - 2019.4
+
+
+# upm-ci command flags
+projectcontext_test_min_upmci_flags: --project-path TestProjects/SRP_SmokeTest --type vetting-tests
+projectcontext_test_upmci_flags: --project-path TestProjects/SRP_SmokeTest --type vetting-tests
