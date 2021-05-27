@@ -59,6 +59,9 @@
             * [Normal Unpack](Normal-Unpack-Node)
         * Utility
             * [Colorspace Conversion](Colorspace-Conversion-Node)
+            * [Sub Graph Dropdown](Sub-Graph-Dropdown-Node)
+            * [Calculate Level Of Detail Texture 2D Node](Calculate-Level-Of-Detail-Texture-2D-Node)
+            * [Gather Texture 2D Node](Gather-Texture-2D-Node)
     * [Channel](Channel-Nodes)
         * [Combine](Combine-Node)
         * [Flip](Flip-Node)
@@ -229,6 +232,7 @@
             * [Nand](Nand-Node)
             * [Not](Not-Node)
             * [Or](Or-Node)
+            * [Branch On Input Connection](Branch-On-Input-Connection-Node)
         * High Definition Render Pipeline
             * [Emission](Emission-Node.md)
             * Eye
