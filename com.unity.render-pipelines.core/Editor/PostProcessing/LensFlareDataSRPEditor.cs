@@ -173,8 +173,14 @@ namespace UnityEditor.Rendering
 
         void OnDisable()
         {
-            m_PreviewTexture.Release();
+            m_PreviewTexture?.Release();
             m_PreviewTexture = null;
+            if (m_PreviewTextureCache != null)
+            {
+                foreach (TextureCacheElement tce in m_PreviewTextureCache)
+                    DestroyImmediate(tce.computedTexture);
+                m_PreviewTextureCache = null;
+            }
         }
 
         public override void OnInspectorGUI()
@@ -203,6 +209,7 @@ namespace UnityEditor.Rendering
 
             list.serializedProperty.DeleteArrayElementAtIndex(deletedIndex);
             list.serializedProperty.serializedObject.ApplyModifiedProperties();
+            DestroyImmediate(m_PreviewTextureCache[deletedIndex].computedTexture);
             m_PreviewTextureCache.RemoveAt(deletedIndex);
 
             list.index = Mathf.Clamp(deletedIndex - 1, 0, list.count - 1);
