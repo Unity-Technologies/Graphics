@@ -120,24 +120,24 @@ namespace UnityEditor.Rendering
 
         SerializedProperty m_Elements;
         ReorderableList m_List;
-        Rect? reservedListSizeRect;
-        static Shader m_PreviewShader = null;
-        static int m_PreviewSize = 128;
-        static int _FlareColorValue = Shader.PropertyToID("_FlareColorValue");
-        static int _FlareData0 = Shader.PropertyToID("_FlareData0");
-        static int _FlareData1 = Shader.PropertyToID("_FlareData1");
-        static int _FlareData2 = Shader.PropertyToID("_FlareData2");
-        static int _FlareData3 = Shader.PropertyToID("_FlareData3");
-        static int _FlareData4 = Shader.PropertyToID("_FlareData4");
-        static int _FlareData5 = Shader.PropertyToID("_FlareData5");
+        Rect? m_ReservedListSizeRect;
+        static readonly Shader k_ProceduralThumbnailShader = Shader.Find("Hidden/Core/LensFlareDataDrivenPreview");
+        static readonly int k_PreviewSize = 128;
+        static readonly int k_FlareColorValue = Shader.PropertyToID("_FlareColorValue");
+        static readonly int k_FlareData0 = Shader.PropertyToID("_FlareData0");
+        static readonly int k_FlareData1 = Shader.PropertyToID("_FlareData1");
+        static readonly int k_FlareData2 = Shader.PropertyToID("_FlareData2");
+        static readonly int k_FlareData3 = Shader.PropertyToID("_FlareData3");
+        static readonly int k_FlareData4 = Shader.PropertyToID("_FlareData4");
+        static readonly int k_FlareData5 = Shader.PropertyToID("_FlareData5");
 
         class TextureCacheElement
         {
             public bool needUpdate = true;  //we need to update it first time it is created
-            public Texture2D computedTexture = new Texture2D(m_PreviewSize, m_PreviewSize, UnityEngine.Experimental.Rendering.GraphicsFormat.R8G8B8A8_SRGB, UnityEngine.Experimental.Rendering.TextureCreationFlags.None);
+            public Texture2D computedTexture = new Texture2D(k_PreviewSize, k_PreviewSize, UnityEngine.Experimental.Rendering.GraphicsFormat.R8G8B8A8_SRGB, UnityEngine.Experimental.Rendering.TextureCreationFlags.None);
         }
 
-        Material m_PreviewMaterial = null;
+        Material m_ProceduralThumbnailMaterial = null;
         RTHandle m_PreviewTexture = null;
         List<TextureCacheElement> m_PreviewTextureCache;
 
@@ -154,12 +154,10 @@ namespace UnityEditor.Rendering
             m_List.drawElementCallback = DrawElement;
             m_List.elementHeightCallback = ElementHeight;
 
-            if (m_PreviewShader == null)
-                m_PreviewShader = Shader.Find("Hidden/Core/LensFlareDataDrivenPreview");
-            m_PreviewMaterial = new Material(m_PreviewShader);
+            m_ProceduralThumbnailMaterial = new Material(k_ProceduralThumbnailShader);
             if (m_PreviewTexture == null)
             {
-                m_PreviewTexture = RTHandles.Alloc(m_PreviewSize, m_PreviewSize, colorFormat: UnityEngine.Experimental.Rendering.GraphicsFormat.R8G8B8A8_SRGB);
+                m_PreviewTexture = RTHandles.Alloc(k_PreviewSize, k_PreviewSize, colorFormat: UnityEngine.Experimental.Rendering.GraphicsFormat.R8G8B8A8_SRGB);
             }
             if (m_PreviewTextureCache == null)
             {
@@ -224,7 +222,7 @@ namespace UnityEditor.Rendering
 
             // If we draw the size now, and the user decrease it,
             // it can lead to out of range issue. See Footer.
-            reservedListSizeRect = sizeRect;
+            m_ReservedListSizeRect = sizeRect;
 
             Rect labelRect = rect;
             labelRect.xMax = sizeRect.xMin;
@@ -261,10 +259,10 @@ namespace UnityEditor.Rendering
 
             // Display the size in the footer. So the list will be able to refresh and
             // it should not do out of range when removing.
-            if (!reservedListSizeRect.HasValue)
+            if (!m_ReservedListSizeRect.HasValue)
                 return;
 
-            DrawListSize(reservedListSizeRect.Value);
+            DrawListSize(m_ReservedListSizeRect.Value);
         }
 
         #endregion
@@ -366,12 +364,12 @@ namespace UnityEditor.Rendering
             switch (type)
             {
                 case SRPLensFlareType.Circle:
-                    m_PreviewMaterial.EnableKeyword("FLARE_CIRCLE");
-                    m_PreviewMaterial.DisableKeyword("FLARE_POLYGON");
+                    m_ProceduralThumbnailMaterial.EnableKeyword("FLARE_CIRCLE");
+                    m_ProceduralThumbnailMaterial.DisableKeyword("FLARE_POLYGON");
                     break;
                 case SRPLensFlareType.Polygon:
-                    m_PreviewMaterial.DisableKeyword("FLARE_CIRCLE");
-                    m_PreviewMaterial.EnableKeyword("FLARE_POLYGON");
+                    m_ProceduralThumbnailMaterial.DisableKeyword("FLARE_CIRCLE");
+                    m_ProceduralThumbnailMaterial.EnableKeyword("FLARE_POLYGON");
                     break;
                 default:
                     throw new Exception("Unknown procedural flare type");
@@ -379,9 +377,9 @@ namespace UnityEditor.Rendering
 
             SerializedProperty inverseSDFProp = element.FindPropertyRelative("inverseSDF");
             if (inverseSDFProp.boolValue)
-                m_PreviewMaterial.EnableKeyword("FLARE_INVERSE_SDF");
+                m_ProceduralThumbnailMaterial.EnableKeyword("FLARE_INVERSE_SDF");
             else
-                m_PreviewMaterial.DisableKeyword("FLARE_INVERSE_SDF");
+                m_ProceduralThumbnailMaterial.DisableKeyword("FLARE_INVERSE_SDF");
 
             SerializedProperty colorProp = element.FindPropertyRelative("tint");
             SerializedProperty intensityProp = element.FindPropertyRelative("m_LocalIntensity");
@@ -412,18 +410,18 @@ namespace UnityEditor.Rendering
             Vector4 flareData0 = LensFlareCommonSRP.GetFlareData0(Vector2.zero, Vector2.zero, Vector2.one, rotationProp.floatValue, 0f, 0f, Vector2.zero, false);
 
             //Set here what need to be setup in the material
-            m_PreviewMaterial.SetVector(_FlareColorValue, new Vector4(colorProp.colorValue.r * intensity, colorProp.colorValue.g * intensity, colorProp.colorValue.b * intensity, 1f));
-            m_PreviewMaterial.SetVector(_FlareData0, flareData0);
-            m_PreviewMaterial.SetVector(_FlareData1, new Vector4(0f, 0f, 0f, 1f));
-            m_PreviewMaterial.SetVector(_FlareData2, new Vector4(0f, 0f, localSize.x, localSize.y));
-            m_PreviewMaterial.SetVector(_FlareData3, new Vector4(0f, 0f, invSideCount, 0f));
+            m_ProceduralThumbnailMaterial.SetVector(k_FlareColorValue, new Vector4(colorProp.colorValue.r * intensity, colorProp.colorValue.g * intensity, colorProp.colorValue.b * intensity, 1f));
+            m_ProceduralThumbnailMaterial.SetVector(k_FlareData0, flareData0);
+            m_ProceduralThumbnailMaterial.SetVector(k_FlareData1, new Vector4(0f, 0f, 0f, 1f));
+            m_ProceduralThumbnailMaterial.SetVector(k_FlareData2, new Vector4(0f, 0f, localSize.x, localSize.y));
+            m_ProceduralThumbnailMaterial.SetVector(k_FlareData3, new Vector4(0f, 0f, invSideCount, 0f));
             if (type == SRPLensFlareType.Polygon)
-                m_PreviewMaterial.SetVector(_FlareData4, new Vector4(usedSDFRoundness, r, an, he));
+                m_ProceduralThumbnailMaterial.SetVector(k_FlareData4, new Vector4(usedSDFRoundness, r, an, he));
             else
-                m_PreviewMaterial.SetVector(_FlareData4, new Vector4(usedSDFRoundness, 0f, 0f, 0f));
-            m_PreviewMaterial.SetVector(_FlareData5, new Vector4(0f, usedGradientPosition, Mathf.Exp(Mathf.Lerp(0.0f, 4.0f, Mathf.Clamp01(1.0f - fallOffProp.floatValue))), 0f));
+                m_ProceduralThumbnailMaterial.SetVector(k_FlareData4, new Vector4(usedSDFRoundness, 0f, 0f, 0f));
+            m_ProceduralThumbnailMaterial.SetVector(k_FlareData5, new Vector4(0f, usedGradientPosition, Mathf.Exp(Mathf.Lerp(0.0f, 4.0f, Mathf.Clamp01(1.0f - fallOffProp.floatValue))), 0f));
 
-            m_PreviewMaterial.SetPass(0);
+            m_ProceduralThumbnailMaterial.SetPass(0);
 
             RenderTexture oldActive = RenderTexture.active;
             RenderTexture.active = m_PreviewTexture.rt;
@@ -432,7 +430,7 @@ namespace UnityEditor.Rendering
 
             GL.PushMatrix();
             GL.LoadOrtho();
-            GL.Viewport(new Rect(0, 0, m_PreviewSize, m_PreviewSize));
+            GL.Viewport(new Rect(0, 0, k_PreviewSize, k_PreviewSize));
 
             GL.Begin(GL.QUADS);
             GL.TexCoord2(0, 0);
@@ -446,7 +444,7 @@ namespace UnityEditor.Rendering
             GL.End();
             GL.PopMatrix();
 
-            computedTexture.ReadPixels(new Rect(0, 0, m_PreviewSize, m_PreviewSize), 0, 0, false);
+            computedTexture.ReadPixels(new Rect(0, 0, k_PreviewSize, k_PreviewSize), 0, 0, false);
             computedTexture.Apply(false);
 
             RenderTexture.active = oldActive;
