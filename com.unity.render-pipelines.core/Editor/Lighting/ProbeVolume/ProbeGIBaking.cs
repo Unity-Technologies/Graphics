@@ -71,6 +71,8 @@ namespace UnityEngine.Experimental.Rendering
         static Bounds globalBounds = new Bounds();
         static bool hasFoundBounds = false;
 
+        static bool onAdditionalProbesBakeCompletedCalled = false;
+
         static ProbeGIBaking()
         {
             Init();
@@ -249,7 +251,6 @@ namespace UnityEngine.Experimental.Rendering
         {
             UnityEditor.Experimental.Lightmapping.additionalBakedProbesCompleted -= OnAdditionalProbesBakeCompleted;
             UnityEngine.Profiling.Profiler.BeginSample("OnAdditionalProbesBakeCompleted");
-
             var bakingCells = m_BakingBatch.cells;
             var numCells = bakingCells.Count;
 
@@ -259,7 +260,14 @@ namespace UnityEngine.Experimental.Rendering
             var validity = new NativeArray<float>(numUniqueProbes, Allocator.Temp, NativeArrayOptions.UninitializedMemory);
             var bakedProbeOctahedralDepth = new NativeArray<float>(numUniqueProbes * 64, Allocator.Temp, NativeArrayOptions.UninitializedMemory);
 
-            UnityEditor.Experimental.Lightmapping.GetAdditionalBakedProbes(m_BakingBatch.index, sh, validity, bakedProbeOctahedralDepth);
+            bool validBakedProbes = UnityEditor.Experimental.Lightmapping.GetAdditionalBakedProbes(m_BakingBatch.index, sh, validity, bakedProbeOctahedralDepth);
+
+            if (!validBakedProbes)
+            {
+                Debug.LogError("Lightmapper failed to produce valid probe data.  Please consider clearing lighting data and rebake.");
+                return;
+            }
+
 
             // Fetch results of all cells
             for (int c = 0; c < numCells; ++c)
@@ -591,9 +599,21 @@ namespace UnityEngine.Experimental.Rendering
             }
         }
 
+        public static void OnBakeCompletedCleanup()
+        {
+            if (!onAdditionalProbesBakeCompletedCalled)
+            {
+                // Dequeue the call if something has failed.
+                UnityEditor.Experimental.Lightmapping.additionalBakedProbesCompleted -= OnAdditionalProbesBakeCompleted;
+                UnityEditor.Experimental.Lightmapping.SetAdditionalBakedProbes(m_BakingBatch.index, null);
+            }
+        }
+
         public static void RunPlacement()
         {
+            onAdditionalProbesBakeCompletedCalled = false;
             UnityEditor.Experimental.Lightmapping.additionalBakedProbesCompleted += OnAdditionalProbesBakeCompleted;
+            UnityEditor.Lightmapping.bakeCompleted += OnBakeCompletedCleanup;
 
             // Clear baked data
             Clear();
