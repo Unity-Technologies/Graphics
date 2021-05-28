@@ -29,6 +29,7 @@ namespace Unity.Rendering.Universal
             // ShaderGraph IDs start at 1000, correspond to subtargets
             SG_Unlit = 1000,        // UniversalUnlitSubTarget
             SG_Lit,                 // UniversalLitSubTarget
+            SG_Skybox,              // UniversalSkyboxSubTarget
         }
 
         internal static bool IsShaderGraph(this ShaderID id)
