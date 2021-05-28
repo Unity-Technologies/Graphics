@@ -68,7 +68,7 @@ namespace UnityEngine.Rendering.HighDefinition
     /// <summary>
     /// A volume component that holds settings for the Depth Of Field effect.
     /// </summary>
-    [Serializable, VolumeComponentMenu("Post-processing/Depth Of Field")]
+    [Serializable, VolumeComponentMenu("Post-processing/Depth Of Field"), SupportedOn(typeof(HDRenderPipeline))]
     [HDRPHelpURLAttribute("Post-Processing-Depth-of-Field")]
     public sealed class DepthOfField : VolumeComponentWithQuality, IPostProcessComponent
     {

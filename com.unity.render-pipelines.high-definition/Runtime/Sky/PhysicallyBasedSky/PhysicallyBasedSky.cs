@@ -34,7 +34,7 @@ namespace UnityEngine.Rendering.HighDefinition
     /// <summary>
     /// Physically Based Sky Volume Component.
     /// </summary>
-    [VolumeComponentMenu("Sky/Physically Based Sky")]
+    [VolumeComponentMenu("Sky/Physically Based Sky"), SupportedOn(typeof(HDRenderPipeline))]
     [SkyUniqueID((int)SkyType.PhysicallyBased)]
     [HDRPHelpURLAttribute("Override-Physically-Based-Sky")]
     public partial class PhysicallyBasedSky : SkySettings

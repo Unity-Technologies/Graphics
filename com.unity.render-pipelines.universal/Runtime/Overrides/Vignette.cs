@@ -2,7 +2,7 @@ using System;
 
 namespace UnityEngine.Rendering.Universal
 {
-    [Serializable, VolumeComponentMenu("Post-processing/Vignette")]
+    [Serializable, VolumeComponentMenu("Post-processing/Vignette"), SupportedOn(typeof(UniversalRenderPipeline))]
     public sealed class Vignette : VolumeComponent, IPostProcessComponent
     {
         [Tooltip("Vignette color.")]

@@ -17,7 +17,7 @@ namespace UnityEngine.Rendering.Universal
         Custom
     }
 
-    [Serializable, VolumeComponentMenu("Post-processing/FilmGrain")]
+    [Serializable, VolumeComponentMenu("Post-processing/FilmGrain"), SupportedOn(typeof(UniversalRenderPipeline))]
     public sealed class FilmGrain : VolumeComponent, IPostProcessComponent
     {
         [Tooltip("The type of grain to use. You can select a preset or provide your own texture by selecting Custom.")]

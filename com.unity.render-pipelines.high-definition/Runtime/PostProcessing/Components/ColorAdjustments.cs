@@ -5,7 +5,7 @@ namespace UnityEngine.Rendering.HighDefinition
     /// <summary>
     /// A volume component that holds settings for the Color Adjustments effect.
     /// </summary>
-    [Serializable, VolumeComponentMenu("Post-processing/Color Adjustments")]
+    [Serializable, VolumeComponentMenu("Post-processing/Color Adjustments"), SupportedOn(typeof(HDRenderPipeline))]
     [HDRPHelpURLAttribute("Post-Processing-Color-Adjustments")]
     public sealed class ColorAdjustments : VolumeComponent, IPostProcessComponent
     {

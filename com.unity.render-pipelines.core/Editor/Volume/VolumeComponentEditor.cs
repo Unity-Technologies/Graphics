@@ -366,12 +366,17 @@ namespace UnityEditor.Rendering
 
         /// <summary>
         /// Sets the label for the component header. Override this method to provide
-        /// a custom label. If you don't, Unity automatically inferres one from the class name.
+        /// a custom label. If you don't, Unity automatically obtains one from the class name.
         /// </summary>
         /// <returns>A label to display in the component header.</returns>
-        public virtual string GetDisplayTitle()
+        public virtual GUIContent GetDisplayTitle()
         {
-            return target.displayName == "" ? ObjectNames.NicifyVariableName(target.GetType().Name) : target.displayName;
+            var targetType = target.GetType();
+            string title = string.IsNullOrEmpty(target.displayName) ? ObjectNames.NicifyVariableName(target.GetType().Name) : target.displayName;
+            string tooltip = targetType.GetCustomAttribute(typeof(SupportedOnAttribute), false) is SupportedOnAttribute supportedOn
+                ? string.Join(", ", supportedOn.pipelineTypes.Select(t => ObjectNames.NicifyVariableName(t.Name)))
+                : string.Empty;
+            return EditorGUIUtility.TrTextContent(title, tooltip);
         }
 
         void AddToogleState(GUIContent content, bool state)

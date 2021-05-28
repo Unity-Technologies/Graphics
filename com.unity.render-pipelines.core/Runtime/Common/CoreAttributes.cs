@@ -3,6 +3,28 @@ using System;
 namespace UnityEngine.Rendering
 {
     /// <summary>
+    /// This attribute allows you to add information for a class to be supported on a render pipeline
+    /// </summary>
+    [AttributeUsage(AttributeTargets.Class)]
+    public sealed class SupportedOnAttribute : Attribute
+    {
+        /// <summary>
+        /// The pipeline types that define the support
+        /// </summary>
+        public Type[] pipelineTypes { get; }
+
+        /// <summary>
+        /// Creates a new <seealso cref="SupportedOn"/> instance.
+        /// </summary>
+        /// <param name="pipelineTypes">The list of pipeline types
+        /// create sub-menus.</param>
+        public SupportedOnAttribute(params Type[] pipelineTypes)
+        {
+            this.pipelineTypes = pipelineTypes;
+        }
+    }
+
+    /// <summary>
     /// Attribute used to customize UI display.
     /// </summary>
     [AttributeUsage(AttributeTargets.Field)]

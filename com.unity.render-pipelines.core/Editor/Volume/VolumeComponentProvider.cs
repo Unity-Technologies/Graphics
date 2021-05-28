@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using UnityEngine;
 using UnityEngine.Rendering;
 
@@ -49,6 +50,15 @@ namespace UnityEditor.Rendering
 
         public void CreateComponentTree(List<Element> tree)
         {
+            var currentPipeline = RenderPipelineManager.currentPipeline;
+            if (currentPipeline == null)
+            {
+                tree.Add(new GroupElement(0, "No SRP in use"));
+                return;
+            }
+
+            var pipelineType = currentPipeline.GetType();
+
             tree.Add(new GroupElement(0, "Volume Overrides"));
 
             var types = VolumeManager.instance.baseComponentTypeArray;
@@ -62,20 +72,28 @@ namespace UnityEditor.Rendering
 
                 string path = string.Empty;
 
-                // Look for a VolumeComponentMenu attribute
                 var attrs = t.GetCustomAttributes(false);
 
                 bool skipComponent = false;
+
+                // Look for the attributes of this volume component and decide how is added and if it needs to be skipped
                 foreach (var attr in attrs)
                 {
-                    if (attr is VolumeComponentMenu attrMenu)
-                        path = attrMenu.menu;
-
-                    if (attr is HideInInspector attrHide)
-                        skipComponent = true;
-
-                    if (attr is ObsoleteAttribute attrDeprecated)
-                        skipComponent = true;
+                    switch (attr)
+                    {
+                        case VolumeComponentMenu attrMenu:
+                        {
+                            path = attrMenu.menu;
+                            break;
+                        }
+                        case HideInInspector attrHide:
+                        case ObsoleteAttribute attrDeprecated:
+                            skipComponent = true;
+                            break;
+                        case SupportedOnAttribute supportedOn:
+                            skipComponent = !supportedOn.pipelineTypes.Contains(pipelineType);
+                            break;
+                    }
                 }
 
                 if (skipComponent)

@@ -15,7 +15,7 @@ namespace UnityEngine.Rendering.Universal
         High
     }
 
-    [Serializable, VolumeComponentMenu("Post-processing/Motion Blur")]
+    [Serializable, VolumeComponentMenu("Post-processing/Motion Blur"), SupportedOn(typeof(UniversalRenderPipeline))]
     public sealed class MotionBlur : VolumeComponent, IPostProcessComponent
     {
         [Tooltip("The motion blur technique to use. If you don't need object motion blur, CameraOnly will result in better performance.")]

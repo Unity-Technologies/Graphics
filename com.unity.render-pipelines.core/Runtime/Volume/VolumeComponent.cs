@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Reflection;
 using System.Linq;
+using Codice.CM.SEIDInfo;
 
 namespace UnityEngine.Rendering
 {
@@ -17,6 +18,7 @@ namespace UnityEngine.Rendering
         /// The name of the entry in the override list. You can use slashes to create sub-menus.
         /// </summary>
         public readonly string menu;
+
         // TODO: Add support for component icons
 
         /// <summary>
