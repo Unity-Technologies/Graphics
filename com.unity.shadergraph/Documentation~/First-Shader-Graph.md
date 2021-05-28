@@ -30,7 +30,7 @@ Start by connecting the Color node to the **Base Color** [block]() of our [Fragm
 
 ## Change node output
 
-Notice that the connection updated the master preview, and the 3D Object in the **Main Preview** is now black, which is the color specified in the Color node. You can click on the color bar in that node, and use the color picker to change the color. Any changes you make on the node updates the object in the **Main Preview** in real time.
+Notice that the connection updated the main preview, and the 3D Object in the **Main Preview** is now black, which is the color specified in the Color node. You can click on the color bar in that node, and use the color picker to change the color. Any changes you make on the node updates the object in the **Main Preview** in real time.
 
 For example, if you pick red, the 3D Object immediately reflects this change.
 

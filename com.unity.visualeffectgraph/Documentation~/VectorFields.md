@@ -25,7 +25,7 @@ When importing VF Files, unity provides the following settings in the Inspector:
 
 ## Generating Vector Field Files
 
-You can generate point cache using various methods:
+You can generate vector fields using various methods:
 
 - Using the Houdini VF Exporter bundled with [VFXToolbox](https://github.com/Unity-Technologies/VFXToolbox) (located in the /DCC~ folder)
 - By writing your own exporter to write [VF Files](https://github.com/peeweek/VectorFieldFile/blob/master/README.md) files that follow the specification.

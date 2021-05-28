@@ -69,9 +69,9 @@ namespace UnityEngine.Rendering.HighDefinition
             m_ShadowType = type;
         }
 
-        public override void InitAtlas(RenderPipelineResources renderPipelineResources, int width, int height, int atlasShaderID, Material clearMaterial, int maxShadowRequests, HDShadowInitParameters initParams, BlurAlgorithm blurAlgorithm = BlurAlgorithm.None, FilterMode filterMode = FilterMode.Bilinear, DepthBits depthBufferBits = DepthBits.Depth16, RenderTextureFormat format = RenderTextureFormat.Shadowmap, string name = "")
+        public override void InitAtlas(HDShadowAtlasInitParameters atlasInitParams)
         {
-            base.InitAtlas(renderPipelineResources, width, height, atlasShaderID, clearMaterial, maxShadowRequests, initParams, blurAlgorithm, filterMode, depthBufferBits, format, name);
+            base.InitAtlas(atlasInitParams);
             m_IsACacheForShadows = true;
 
             m_AtlasResolutionInSlots = HDUtils.DivRoundUp(width, m_MinSlotSize);
@@ -83,7 +83,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
             // Note: If changing the characteristics of the atlas via HDRP asset, the lights OnEnable will not be called again so we are missing them, however we can explicitly
             // put them back up for placement. If this is the first Init of the atlas, the lines below do nothing.
-            DefragmentAtlasAndReRender(initParams);
+            DefragmentAtlasAndReRender(atlasInitParams.initParams);
             m_CanTryPlacement = true;
             m_NeedOptimalPacking = true;
         }

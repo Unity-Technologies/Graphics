@@ -167,8 +167,21 @@ namespace UnityEditor.VFX.UI
             pasteOffset = (serializableGraph.bounds.width > 0 && serializableGraph.bounds.height > 0) ? center - serializableGraph.bounds.center : Vector2.zero;
             MakePasteOffsetUnique(viewController, serializableGraph);
 
-            // Paste all nodes
-            PasteContexts(viewController, ref serializableGraph);
+            // Can't paste context within subgraph block/operator
+            if (viewController.model.visualEffectObject is VisualEffectSubgraphOperator || viewController.model.visualEffectObject is VisualEffectSubgraphBlock)
+            {
+                if (serializableGraph.contexts != null)
+                {
+                    var count = serializableGraph.contexts.Count();
+                    if (count != 0)
+                        Debug.LogWarningFormat("{0} context{1} been skipped during the paste operation. Contexts aren't available in this kind of subgraph.", count, count > 1 ? "s have" : " has");
+                }
+            }
+            else
+            {
+                PasteContexts(viewController, ref serializableGraph);
+            }
+
             PasteOperators(viewController, ref serializableGraph);
             PasteParameters(viewController, ref serializableGraph);
 
@@ -626,7 +639,7 @@ namespace UnityEditor.VFX.UI
                         var block = newContexts[i].Value[j];
                         if (block != null)
                         {
-                            VFXBlockController blockController = controller.blockControllers.First(t => t.model == block);
+                            VFXBlockController blockController = controller.blockControllers.FirstOrDefault(t => t.model == block);
                             if (blockController != null)
                                 newControllers[GetBlockID((uint)i, (uint)j)] = blockController;
                         }

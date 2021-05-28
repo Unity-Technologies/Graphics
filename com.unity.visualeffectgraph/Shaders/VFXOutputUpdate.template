@@ -45,6 +45,9 @@ CBUFFER_END
 
 ${VFXGeneratedBlockFunction}
 
+#if VFX_FEATURE_FRUSTUM_CULL || VFX_FEATURE_LOD
+#include "Packages/com.unity.render-pipelines.core/ShaderLibrary/GeometricTools.hlsl"
+
 bool IsSphereOutsideFrustum(float3 pos, float radius, float4 frustumPlanes[6])
 {
     bool outside = false;
@@ -53,6 +56,7 @@ bool IsSphereOutsideFrustum(float3 pos, float radius, float4 frustumPlanes[6])
         outside = outside || DistanceFromPlane(pos, frustumPlanes[i]) < -radius;
     return outside;
 }
+#endif
 
 [numthreads(NB_THREADS_PER_GROUP,1,1)]
 void CSMain(uint3 groupId		: SV_GroupID,

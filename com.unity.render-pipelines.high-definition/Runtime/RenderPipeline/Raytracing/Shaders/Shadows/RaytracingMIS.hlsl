@@ -188,9 +188,9 @@ bool GenerateMISSample(inout MISSamplingInput misInput, SphQuad squad, float3 vi
     return validity;
 }
 
-void GenerateLightSample(float3 positionWS, float2 sample, SphQuad squad, float3 viewVector, out LightSamplingOutput lightSamplingOutput)
+void GenerateLightSample(float3 positionWS, float2 theSample, SphQuad squad, float3 viewVector, out LightSamplingOutput lightSamplingOutput)
 {
-    lightSamplingOutput.pos = SphQuadSample(squad, sample.x, sample.y);
+    lightSamplingOutput.pos = SphQuadSample(squad, theSample.x, theSample.y);
     lightSamplingOutput.dir = normalize(lightSamplingOutput.pos - positionWS);
     lightSamplingOutput.lightPDF = 1.0f / squad.S;
 }

@@ -4,24 +4,19 @@ This page covers how to use the RTHandle system to manage render textures in you
 
 ### Initializing the RTHandle System
 
-All operations related to `RTHandles` require an instance of the `RTHandleSystem` class. This class contains all the APIs necessary to allocate and release RTHandles as well as setting the **Reference Size** for the frame. This means that you need to create and maintain an instance of `RTHandleSystem` in your render pipeline or make use of the static RTHandles class mentioned later in this section. To create your own instance of `RTHandleSystem`, see the following code sample:
+All operations related to `RTHandles` require an instance of the `RTHandleSystem` class. This class contains all the APIs necessary to allocate RTHandles, release RTHandles, and set the reference size for the frame. This means that you must create and maintain an instance of `RTHandleSystem` in your render pipeline or make use of the static RTHandles class mentioned later in this section. To create your own instance of `RTHandleSystem`, see the following code sample:
 
 ```c#
 RTHandleSystem m_RTHandleSystem = new RTHandleSystem();
 m_RTHandleSystem.Initialize(Screen.width, Screen.height, scaledRTsupportsMSAA: true, scaledRTMSAASamples: MSAASamples.MSAA4x);
 ```
+When you initialize the system, you must supply the starting resolution. The above code example uses the width and height of the screen. Because the RTHandle system only reallocates render textures when a Camera requires a resolution larger than the current maximum size, the internal `RTHandle` resolution can only increase from the value you pass in here. It is good practice to initialize this resolution to be the resolution of the main display. This means the system does not need to unnecessarily reallocate the render textures (and cause unwanted memory spikes) at the beginning of the application.
 
-When you initialize the system, you need to supply the starting resolution. The above code example uses the width and height of the screen. Since the RTHandle system only reallocates render textures when a camera requires a resolution larger than the current maximum size, the internal `RTHandle` resolution can only increase from the value you pass in here. It is good practice to initialize this resolution to be the resolution of the main display. This means the system does not need to unnecessarily reallocate the render textures (and cause unwanted memory spikes) at the beginning of the application.
+If you want to use multi-sample anti-aliasing (MSAA), you must declare the MSAA sample mode during initialization. In the example code above, the RTHandle system supports MSAA and uses the MSAA4x mode. The RTHandle system allocates all textures with the same number of samples. You can change the sample mode later, but this changes the sample mode for all automatically resized textures.
 
+You must only call the `Initialize` function once at the beginning of the application. After this, you can use the initialized instance to allocate textures.
 
-If you want to use multi-sample anti-aliasing (MSAA), you need to declare the MSAA sample mode during initialization. In the example code above, the RTHandle system supports MSAA and uses the MSAA4x mode. The RTHandle system allocates all textures with the same number of samples. You can change the sample mode later, but note that this changes the sample mode for all automatically resized textures.
-
-
-Note that you must only call the `Initialize` function once at the beginning of the application.
-
-After this, you can use the initialized instance to allocate textures.
-
-Since you allocate the majority of `RTHandles` from the same `RTHandleSystem` instance, the RTHandle system also provides a default global instance through the `RTHandles` static class. Rather than maintain your own instance of `RTHandleSystem`, this allows you to use the same API as you get with an instance, but not worry about the lifetime of the instance. Using the static instance, initialization becomes this:
+Because you allocate the majority of `RTHandles` from the same `RTHandleSystem` instance, the RTHandle system also provides a default global instance through the `RTHandles` static class. Rather than maintain your own instance of `RTHandleSystem`, this allows you to use the same API that you get with an instance, but not worry about the lifetime of the instance. Using the static instance, the initialization becomes this:
 
 ```c#
 RTHandles.Initialize(Screen.width, Screen.height, scaledRTsupportsMSAA: true, scaledRTMSAASamples: MSAASamples.MSAA4x);
@@ -31,7 +26,7 @@ The code examples in the rest of this page use the default global instance.
 
 ### Updating the RTHandle System
 
-Before rendering with a camera, you need to set what resolution the RTHandle system uses as a reference size. To do so, call the `SetReferenceSize` function.
+Before rendering with a Camera, you need to set the resolution the RTHandle system uses as a reference size. To do so, call the `SetReferenceSize` function.
 
 ```c#
 RTHandles.SetReferenceSize(width, hight, msaaSamples);
@@ -48,11 +43,11 @@ After you initialize an instance of `RTHandleSystem`, whether this is your own i
 
 There are three main ways to allocate an `RTHandle`. They all use the same `Alloc` method on the RTHandleSystem instance. Most of the parameters of these functions are the same as the regular Unity RenderTexture ones, so for more information see the [RenderTexture API documentation](https://docs.unity3d.com/ScriptReference/RenderTexture.html). This section focuses on the parameters that relate to the size of the `RTHandle`:
 
-- **Vector2 scaleFactor**: This variant requires a constant 2D scale for width and height. The RTHandle system uses this to calculate the resolution of the texture against the maximum reference size. For example, a scale of (1.0f, 1.0f) generates a full-screen texture. A scale of (0.5f 0.5f) generates a quarter-resolution texture.
-- **ScaleFunc scaleFunc**: For cases when you don't want to use a constant scale to calculate the size of an `RTHandle`, you can provide a functor that calculates the size of the texture. The functor should take a Vector2Int as a parameter, which is the maximum reference size, and return a Vector2Int, which represents the size you want the texture to be.
-- **Int width, int height**: This is for fixed-size textures. If you allocate a texture like this, it behaves like any regular RenderTexture.
+- `Vector2 scaleFactor`: This variant requires a constant 2D scale for width and height. The RTHandle system uses this to calculate the resolution of the texture against the maximum reference size. For example, a scale of (1.0f, 1.0f) generates a full-screen texture. A scale of (0.5f 0.5f) generates a quarter-resolution texture.
+- `ScaleFunc scaleFunc`: For cases when you don't want to use a constant scale to calculate the size of an `RTHandle`, you can provide a functor that calculates the size of the texture. The functor should take a `Vector2Int` as a parameter, which is the maximum reference size, and return a `Vector2In`t, which represents the size you want the texture to be.
+- `int width, int height`: This is for fixed-size textures. If you allocate a texture like this, it behaves like any regular RenderTexture.
 
-There are also overrides that create RTHandles from [RenderTargetIdentifier](https://docs.unity3d.com/ScriptReference/Rendering.RenderTargetIdentifier.html)*,* [RenderTextures](https://docs.unity3d.com/ScriptReference/RenderTexture.html), or [Textures](https://docs.unity3d.com/Manual/Textures.html)*.* These are useful when you want to use the RTHandle API to interact with all your textures, even though the texture might not be an actual `RTHandle`*.*
+There are also overrides that create RTHandles from [RenderTargetIdentifier](https://docs.unity3d.com/ScriptReference/Rendering.RenderTargetIdentifier.html). [RenderTextures](https://docs.unity3d.com/ScriptReference/RenderTexture.html), or [Textures](https://docs.unity3d.com/Manual/Textures.html). These are useful when you want to use the RTHandle API to interact with all your textures, even though the texture might not be an actual `RTHandle`.
 
 The following code sample contains example uses of the `Alloc` function: 
 
@@ -80,25 +75,22 @@ myRTHandle.Release();
 
 ## Using RTHandles
 
-After you allocate an RTHandle, you can use it exactly like a regular RenderTexture. There are implicit conversions to `RenderTargetIdentifier` as well as `RenderTexture` you can even use them with regular related Unity APIs.
+After you allocate an RTHandle, you can use it exactly like a regular RenderTexture. There are implicit conversions to `RenderTargetIdentifier` and `RenderTexture`, which means you can use them with regular related Unity APIs.
 
-
-However, when you use the RTHandle system, the actual resolution of the `RTHandle` might be different from the current resolution. For example, if the main camera renders at 1920x1080 and a secondary camera renders at 512x512, all RTHandle resolutions are based on the 1920x1080 resolution, even when rendering at lower resolutions. Because of this, take care when you set an RTHandle up as a render target. There are a number of APIs available in the [CoreUtils](../api/UnityEngine.Rendering.CoreUtils.html) class to help you with this. For example:
+However, when you use the RTHandle system, the actual resolution of the `RTHandle` might be different from the current resolution. For example, if the main Camera renders at 1920x1080 and a secondary Camera renders at 512x512, all RTHandle resolutions are based on the 1920x1080 resolution, even when rendering at lower resolutions. Because of this, take care when you set an RTHandle up as a render target. There are a number of APIs available in the [CoreUtils](../api/UnityEngine.Rendering.CoreUtils.html) class to help you with this. For example:
 
 ```c#
 public static void SetRenderTarget(CommandBuffer cmd, RTHandle buffer, ClearFlag clearFlag, Color clearColor, int miplevel = 0, CubemapFace cubemapFace = CubemapFace.Unknown, int depthSlice = -1)
 ```
-
 This function sets the `RTHandle` as the active render target but also sets up the viewport based on the scale of the `RTHandle` and the current reference size, not the maximum size.
 
-
-For example, when the reference size is 512x512, even if the maximum size is 1920x1080, a texture of scale (1.0f, 1.0f) uses the 512x512 size and therefore a 512x512 viewport. A (0.5f, 0.5f) scaled texture sets a viewport of 256x256 and so on. This means that, when using these helper functions, the RTHandle system generates the correct viewport based on the `RTHandle` parameters.
+For example, when the reference size is 512x512, even if the maximum size is 1920x1080, a texture of scale (1.0f, 1.0f) uses the 512x512 size and therefore sets up a 512x512 viewport. A (0.5f, 0.5f) scaled texture sets up a viewport of 256x256 and so on. This means that, when using these helper functions, the RTHandle system generates the correct viewport based on the `RTHandle` parameters.
 
 This example is one of many different overrides for the `SetRenderTarget` function. For the full list of overrides, see the [documentation](../api/UnityEngine.Rendering.CoreUtils.html#UnityEngine_Rendering_CoreUtils_SetRenderTarget_CommandBuffer_RenderTargetIdentifier_RenderBufferLoadAction_RenderBufferStoreAction_RenderTargetIdentifier_RenderBufferLoadAction_RenderBufferStoreAction_UnityEngine_Rendering_ClearFlag_).
 
 ## Using RTHandles in shaders
 
-Usually, when sampling from a full-screen render texture in a shader, UVs span the whole 0 to 1 range. This is no longer always the case with `RTHandles`. It is possible that the current rendering only occurs in a partial viewport. To take this into account, you need to apply a scale to UVs when you sample `RTHandles` that use a scale. All the information necessary to handle `RTHandles` specificity inside shaders is in the `RTHandeProperties` structure that the `RTHandleSystem` instance provides. To access it, use:
+When you sample from a full-screen render texture in a shader in the usual way, UVs span the whole 0 to 1 range. This is not always the case with `RTHandles`. The current rendering might only occur in a partial viewport. To take this into account, you must apply a scale to UVs when you sample `RTHandles` that use a scale. All the information necessary to handle `RTHandles` specificity inside shaders is in the `RTHandeProperties` structure that the `RTHandleSystem` instance provides. To access it, use:
 
 ```c#
 RTHandleProperties rtHandleProperties = RTHandles.rtHandleProperties;
@@ -117,7 +109,7 @@ public struct RTHandleProperties
 }
 ```
 
-It provides:
+This structure provides:
 
 - The current viewport size. This is the reference size you set for rendering.
 - The current render target size. This is the actual size of the render texture based on the maximum reference size.
@@ -131,19 +123,19 @@ float2 scaledUVs = fullScreenUVs * rtHandleScale.xy;
 
 However, because the partial viewport always starts at (0, 0), when you use integer pixel coordinates within the viewport to load content from a texture, there is no need to rescale them.
 
-Another important thing to consider is that, when rendering a full-screen quad into a partial viewport, there is no benefit from standard UV addressing mechanisms such as wrap or clamp. This is because the texture might be bigger than the viewport. For this reason, take care when sampling pixels outside of the viewport.
+Another important thing to consider is that, when you render a full-screen quad into a partial viewport, there is no benefit from standard UV addressing mechanisms such as wrap or clamp. This is because the texture might be bigger than the viewport. For this reason, take care when you sample pixels outside of the viewport.
 
 ### Custom SRP specific information
 
-There are no shader constants provided by default with SRP. So, when you use RTHandles with your own SRP, you need to provide these constants to their shaders themselves.
+There are no shader constants provided by default with SRP. So, when you use RTHandles with your own SRP, you must provide these constants to their shaders themselves.
 
 ## Camera specific RTHandles
 
-Most of the render textures that a rendering loop uses can be shared by all cameras. As long as their content does not need to carry from one frame to another, this is fine. However, some render textures need persistence. A good example of this is using the main color buffer in subsequent frames for Temporal Anti-aliasing. This means that the camera cannot share its RTHandle with other cameras. Most of the time, this also means that these RTHandles need to be at least double-buffered (written to in the current frame, read from the previous frame). To address this problem, the RTHandle system includes `BufferedRTHandleSystems`. 
+Most of the render textures that a rendering loop uses can be shared by all Cameras. If their content does not need to carry from one frame to another, this is fine. However, some render textures need persistence. A good example of this is using the main color buffer in subsequent frames for Temporal Anti-aliasing. This means that the Camera cannot share its RTHandle with other Cameras. Most of the time, this also means that these RTHandles must be at least double-buffered (written to during the current frame, read from during the previous frame). To address this problem, the RTHandle system includes `BufferedRTHandleSystems`. 
 
-A `BufferedRTHandleSystem` is an `RTHandleSystem` that can multi-buffer RTHandles. The idea is to identify a buffer by a unique id and provide APIs to allocate a number of instances of the same buffer and retrieve them from previous frames. These are **history buffers**. Usually, you need to allocate one `BufferedRTHandleSystem` for each camera. Each one owns their camera-specific RTHandles.
+A `BufferedRTHandleSystem` is an `RTHandleSystem` that can multi-buffer RTHandles. The principle is to identify a buffer by a unique ID and provide APIs to allocate a number of instances of the same buffer then retrieve them from previous frames. These are history buffers. Usually, you must allocate one `BufferedRTHandleSystem` for each Camera. Each one owns their Camera-specific RTHandles.
 
-One of the other consequences is that these history buffers don’t need to be allocated for every camera. For example, if a camera does not need Temporal Anti-aliasing, you can save the memory for it. Another consequence is that the system only allocates history buffers at the resolution of the camera. If the main camera is 1920x1080 and another camera renders in 256x256 and needs a history color buffer, this one only uses a 256x256 buffer and not a 1920*1080 buffer as the non-camera specific RTHandles would. To create an instance of a `BufferedRTHandleSystem`, see the following code sample:
+Not every Camera needs history buffers. For example, if a Camera does not need Temporal Anti-aliasing, you do not need to assign a `BufferedRTHandleSystem` to it. History buffers require memory which means you can save memory by not assigning history buffers to Cameras that do not need them. Another consequence is that the system only allocates history buffers at the resolution of the Camera that the buffers are for. If the main Camera is 1920x1080 and another Camera renders in 256x256 and needs a history color buffer, the second Camera only uses a 256x256 buffer and not a 1920x1080 buffer as the non-Camera specific RTHandles would. To create an instance of a `BufferedRTHandleSystem`, see the following code sample:
 
 ```c#
 BufferedRTHandleSystem  m_HistoryRTSystem = new BufferedRTHandleSystem();
@@ -155,9 +147,9 @@ To allocate an `RTHandle` using a `BufferedRTHandleSystem`, the process is diffe
 public void AllocBuffer(int bufferId, Func<RTHandleSystem, int, RTHandle> allocator, int bufferCount);
 ```
 
-The `bufferId` is a unique id the system uses to identify the buffer. The allocator is a function you provide to actually allocate the `RTHandles` when needed (all instances are not allocated upfront), and the `bufferCount` is the number of instances requested.
+The `bufferId` is a unique ID that the system uses to identify the buffer. The allocator is a function you provide to allocate the `RTHandles` when needed (all instances are not allocated upfront), and the `bufferCount` is the number of instances requested.
 
-From there, you can retrieve each `RTHandle` by its id and instance index like so:
+From there, you can retrieve each `RTHandle` by its ID and instance index like so:
 
 ```c#
 public RTHandle GetFrameRT(int bufferId, int frameIndex);
@@ -165,25 +157,25 @@ public RTHandle GetFrameRT(int bufferId, int frameIndex);
 
 The frame index is between zero and the number of buffers minus one. Zero always represents the current frame buffer, one the previous frame buffer, two the one before that, and so on.
 
-To release a buffered RTHandle, call the `Release` function on the `BufferedRTHandleSystem`, passing in the id of the buffer to release:
+To release a buffered RTHandle, call the `Release` function on the `BufferedRTHandleSystem`, passing in the ID of the buffer to release:
 
 ```c#
 public void ReleaseBuffer(int bufferId);
 ```
 
-In the same way that you provide the reference size for regular `RTHandleSystems`, you need to do the same for each instance of `BufferedRTHandleSystem`*.*
+In the same way that you provide the reference size for regular `RTHandleSystems`, you must do this for each instance of `BufferedRTHandleSystem`.
 
 ```c#
 public void SwapAndSetReferenceSize(int width, int height, MSAASamples msaaSamples);
 ```
 
-This works the same way as regular RTHandleSystem but it also swaps the buffers internally so that the 0 index for `GetFrameRT` still references the current frame buffer. This slightly different way of handling camera-specific buffers also has implications when writing shader code.
+This works the same way as regular RTHandleSystem but it also swaps the buffers internally so that the 0 index for `GetFrameRT` still references the current frame buffer. This slightly different way of handling Camera-specific buffers also has implications when you write shader code.
 
-With a multi-buffered approach like this, it means that `RTHandles` from a previous frame may have a different size to the one from the current frame (for example, this can happen with dynamic resolution or even just when resizing the window in the editor). This means that when you access a buffered `RTHandle` from a previous frame, you need to scale it accordingly. The scale used to do this is in `RTHandleProperties.rtHandleScale.zw`. It is used exactly the same way as `xy` for regular RTHandles. This is also the reason why `RTHandleProperties` contains the viewport and resolution of the previous frame. It can be useful when doing computation with history buffers.
+With a multi-buffered approach like this, `RTHandles` from a previous frame might have a different size to the one from the current frame. For example, this can happen with dynamic resolution or even when you resize the window in the Editor. This means that when you access a buffered `RTHandle` from a previous frame, you must scale it accordingly. The scale Unity uses to do this is in `RTHandleProperties.rtHandleScale.zw`. Unity uses this in exactly the same way as `xy` for regular RTHandles. This is also the reason why `RTHandleProperties` contains the viewport and resolution of the previous frame. It can be useful when doing computation with history buffers.
 
 ## Dynamic Resolution
 
-One of the byproducts of the RTHandle System design is that it can also be used to simulate software dynamic resolution. Since the current resolution of the camera is not directly correlated to the actual render texture objects, you can provide any resolution you want at the beginning of the frame and all render textures scale accordingly.
+One of the byproducts of the RTHandle System design is that you can also use it to simulate software dynamic resolution. Because the current resolution of the Camera is not directly correlated to the actual render texture objects, you can provide any resolution you want at the beginning of the frame and all render textures scale accordingly.
 
 ## Reset Reference Size
 
@@ -193,4 +185,4 @@ Sometimes, you might need to render to a higher resolution than normal for a sho
 RTHandles.ResetReferenceSize(newWidth, newHeight);
 ```
 
-This forces the RTHandle system to reallocate all RTHandles to the new provided size. This is the only way to shrink down the size of `RTHandles`.
+This forces the RTHandle system to reallocate all RTHandles to the new provided size. This is the only way to shrink the size of `RTHandles`.

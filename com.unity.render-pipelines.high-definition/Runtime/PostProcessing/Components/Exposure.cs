@@ -49,14 +49,14 @@ namespace UnityEngine.Rendering.HighDefinition
         /// This parameter is only used when <see cref="ExposureMode.Automatic"/> or <see cref="ExposureMode.CurveMapping"/> is set.
         /// </summary>
         [Tooltip("Sets the minimum value that the Scene exposure can be set to.")]
-        public FloatParameter limitMin = new FloatParameter(-10f);
+        public FloatParameter limitMin = new FloatParameter(-1f);
 
         /// <summary>
         /// Sets the maximum value that the Scene exposure can be set to.
         /// This parameter is only used when <see cref="ExposureMode.Automatic"/> or <see cref="ExposureMode.CurveMapping"/> is set.
         /// </summary>
         [Tooltip("Sets the maximum value that the Scene exposure can be set to.")]
-        public FloatParameter limitMax = new FloatParameter(20f);
+        public FloatParameter limitMax = new FloatParameter(14f);
 
         /// <summary>
         /// Specifies a curve that remaps the Scene exposure on the x-axis to the exposure you want on the y-axis.

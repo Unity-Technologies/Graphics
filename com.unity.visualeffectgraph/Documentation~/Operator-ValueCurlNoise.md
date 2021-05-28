@@ -12,7 +12,7 @@ A good use case for Curl Noise is emulating fluid or gas simulation, without hav
 
 | **Property**   | **Type** | **Description**                                              |
 | -------------- | -------- | ------------------------------------------------------------ |
-| **Dimensions** | Enum     | Specify whether the noise should be two, or three dimensional. |
+| **Dimensions** | Enum     | Specify whether the noise is two, or three dimensional. |
 | **Type**       | Enum     | Specify what type of noise to use.                           |
 
 ## Operator properties

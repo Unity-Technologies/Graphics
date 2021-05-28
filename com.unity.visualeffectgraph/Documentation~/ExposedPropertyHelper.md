@@ -21,6 +21,6 @@ void Start()
 
 void Update()
 {
-    vfx.SetFloat(m_MyProperty, someValue); // Uses the property ID.
+    m_VFX.SetFloat(m_MyProperty, someValue); // Uses the property ID.
 }
 ```

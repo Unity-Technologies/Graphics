@@ -4,10 +4,45 @@ All notable changes to this package will be documented in this file.
 The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.html).
 
-## [10.3.0] - 2020-11-16
+## [10.6.0] - 2021-04-29
 
 Version Updated
 The version number for this package has increased due to a version update of a related graphics package.
+
+### Fixed
+- Fixed ACES filter artefact due to half floating point error on some mobile platforms.
+
+## [10.5.0] - 2021-04-19
+
+Version Updated
+The version number for this package has increased due to a version update of a related graphics package.
+
+## [10.4.0] - 2021-03-11
+
+### Added
+- Support for the XboxSeries platform has been added.
+- New API in DynamicResolutionHandler to handle multicamera rendering for hardware mode. Changing cameras and resetting scaling per camera should be safe.
+- New API functions with no side effects in DynamicResolutionHandler, to retrieve resolved drs scale and to apply DRS on a size.
+
+### Fixed
+- Fixed parameters order on inspectors for Volume Components without custom editor
+- Fixed the display name of a Volume Parameter when is defined the attribute InspectorName
+- Calculating correct rtHandleScale by considering the possible pixel rounding when DRS is on
+
+## [10.3.1] - 2021-01-26
+
+Version Updated
+The version number for this package has increased due to a version update of a related graphics package.
+
+## [10.3.0] - 2020-11-16
+
+### Added
+- New function in GeometryTools.hlsl to calculate triangle edge and full triangle culling.
+- Support for the PlayStation 5 platform has been added.
+
+### Fixed
+- Fixed a bug in FreeCamera which would only provide a speed boost for the first frame when pressing the Shfit key.
+- Fixed missing warning UI about Projector component being unsupported (case 1300327).
 
 ## [10.2.0] - 2020-10-19
 

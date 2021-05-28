@@ -44,15 +44,15 @@ namespace UnityEngine.Rendering.HighDefinition
             SSRMaxRaySteps[(int)ScalableSettingLevelParameter.Level.High] = 64;
 
             /* Screen Space Global Illumination */
-            SSGIRaySteps[(int)ScalableSettingLevelParameter.Level.Low] = 24;
-            SSGIRaySteps[(int)ScalableSettingLevelParameter.Level.Medium] = 32;
-            SSGIRaySteps[(int)ScalableSettingLevelParameter.Level.High] = 64;
+            SSGIRaySteps[(int)ScalableSettingLevelParameter.Level.Low] = 32;
+            SSGIRaySteps[(int)ScalableSettingLevelParameter.Level.Medium] = 64;
+            SSGIRaySteps[(int)ScalableSettingLevelParameter.Level.High] = 96;
 
             SSGIFullResolution[(int)ScalableSettingLevelParameter.Level.Low] = false;
             SSGIFullResolution[(int)ScalableSettingLevelParameter.Level.Medium] = true;
             SSGIFullResolution[(int)ScalableSettingLevelParameter.Level.High] = true;
 
-            SSGIFilterRadius[(int)ScalableSettingLevelParameter.Level.Low] = 2;
+            SSGIFilterRadius[(int)ScalableSettingLevelParameter.Level.Low] = 3;
             SSGIFilterRadius[(int)ScalableSettingLevelParameter.Level.Medium] = 5;
             SSGIFilterRadius[(int)ScalableSettingLevelParameter.Level.High] = 7;
 

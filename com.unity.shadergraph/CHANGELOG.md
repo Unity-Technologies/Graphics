@@ -4,13 +4,54 @@ All notable changes to this package are documented in this file.
 The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.html).
 
+## [10.6.0] - 2021-04-29
+
+Version Updated
+The version number for this package has increased due to a version update of a related graphics package.
+
+### Fixed
+- Fixed an issue where an integer property would be exposed in the material inspector as a float [1332564]
+
+## [10.5.0] - 2021-04-19
+
+### Fixed
+- Fixed a bug where property deduplication was failing and spamming errors [1317809] (https://issuetracker.unity3d.com/issues/console-error-when-adding-a-sample-texture-operator-when-a-sampler-state-property-is-present-in-blackboard)
+- Fixed a bug where synchronously compiling an unencountered shader variant for preview was causing long delays in graph updates [1324388]
+- Fixed an issue where double clicking a category or drop down arrow closes the searcher [1302267] (https://issuetracker.unity3d.com/issues/shadergraph-double-clicking-a-category-or-drop-down-arrow-closes-the-searcher)
+
+### Changed
+- Updated searcher package dependency to 4.3.2
+
+## [10.4.0] - 2021-03-11
+
+### Added
+- Added padding to the shader graph blackboard window to prevent scrollbars from being overlapped by the resize region at the boundaries of the window
+- Support for the XboxSeries platform has been added.
+
+### Fixed
+- Fixed an issue where the "Node Settings" tab get switched to, overriding the "Graph Settings" tab, when user tries to modify a graph setting [1318844] (https://issuetracker.unity3d.com/issues/shader-graph-graph-settings-window-loses-focus-on-expanding-universal-dropdown-in-graph-inspector)
+- Fixed an issue where the exposed checkbox was removed from keyword inspectors [1312779] (https://issuetracker.unity3d.com/issues/shader-graph-exposed-parameter-for-keywords-removed-by-accident)
+- Fixed issue with SRP Batcher compatibility [1310624]
+- Fixed issue with Hybrid renderer compatibility [1296776]
+- Fixed an issue where the shader variant limit exceeded message was not getting passed [1304168] (https://issuetracker.unity3d.com/product/unity/issues/guid/1304168)
+- Fixed an issue where generated `BuildVertexDescriptionInputs()` produced an HLSL warning, "implicit truncation of vector type" [1299179](https://issuetracker.unity3d.com/product/unity/issues/guid/1299179/)
+- Fixed a bug in master node preview generation that failed compilation when a block was deleted [1319066] (https://issuetracker.unity3d.com/issues/shadergraph-deleting-stack-blocks-of-universal-rp-targeted-shadergraph-causes-the-main-preview-to-fail-to-compile)
+
+## [10.3.1] - 2021-01-26
+
+Version Updated
+The version number for this package has increased due to a version update of a related graphics package.
+
 ## [10.3.0] - 2020-11-03
 
 ### Added
 - Users can now manually control the preview mode of nodes in the graph, and subgraphs
 
 ### Changed
+- Adjusted and expanded Swizzle Node article as reviewed by docs editorial. (DOC-2695)
+- Adjusted docs for SampleTexture2D, SampleTexture2DLOD, SampleTexture2DArray, SampleTexture3D, SampleCubemap, SampleReflectedCubemap, TexelSize, NormalFromTexture, ParallaxMapping, ParallaxOcclusionMapping, Triplanar, Sub Graphs, and Custom Function Nodes to reflect changes to texture wire data structures. (DOC-2568)
 - Texture and SamplerState types are now HLSL structures (defined in com.unity.render-pipelines.core/ShaderLibrary/Texture.hlsl).  CustomFunctionNode use of the old plain types is supported, but the user should upgrade to structures to avoid bugs.
+- The shader graph inspector window will now switch to the "Node Settings" tab whenever a property/node/other selectable item in the graph is clicked on to save the user a click
 
 ### Fixed
 - Fixed an issue where shaders could be generated with CR/LF ("\r\n") instead of just LF ("\n") line endings [1286430]
@@ -21,6 +62,20 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed Custom Function Node to display the name of the custom function. [1293575]
 - Fixed an issue with inactive node deletion throwing a superfluous exception.
 - Fixed Graph Inspector scaling that was allocating too much space to the labels [1268134]
+- Fixed issue where a NullReferenceException would be thrown on resetting reference name for a Shader Graph property [1281831]
+- Fixed an issue on upgrading graphs with inactive Master Nodes causing null ref errors. [1298867](https://issuetracker.unity3d.com/product/unity/issues/guid/1298867/)
+- Fixed a broken link in the TOC to Main Preview
+- Fixed an issue where the horizontal scrollbar at the bottom of the graph inspector window could not be used due to the resizing widget always taking priority over it [1291760]
+- Fixed an issue where the graph inspector window could be resized past the edges of the shader graph view
+- Fixed an issue where resizing the graph inspector window sometimes had unexpected results [1257036]
+- Fixed an issue where blackboard properties when dragged wouldn't scroll the list of properties to show the user more of the property list [1293632]
+- Fixed an issue where, when blackboard properties were dragged and then the user hit the "Escape" key, the drag indicator would still be visible 
+- Fixed an issue where renaming blackboard properties through the Blackboard wouldn't actually change the underlying property name
+- Fixed an issue where blackboard wasn't resizable from all directions like the Inspector and Main Preview 
+- Fixed an issue where deleting a property node while your mouse is over it leaves the property highlighted in the blackboard [1238635]
+- Fixed an issue where Float/Vector1 properties did not have the ability to be edited using a slider in the Inspector like the other Vector types 
+- Fixed rounded rectangle shape not rendering correctly on Nintendo Switch.
+- Fixed an issue where SampleRawCubemapNode were requiring the Normal in Object space instead of World space [1307962]
 
 ## [10.2.0] - 2020-10-19
 
@@ -51,6 +106,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed an issue where unknown type Nodes (i.e. HDRP-only nodes used without HDRP package) could be copied, resulting in an unloadable graph [1288475]
 - Fixed an issue where dropping HDRP-only properties from the blackboard field into the graph would soft-lock the graph [1288887]
 - Fixed Parallax Occlusion Mapping not working in sub graphs. [1221317](https://issuetracker.unity3d.com/product/unity/issues/guid/1221317/)
+- Fixed an issue using the sample gradient macros in custom function nodes, which was using a scalar value instead of a vector value for the gradients [1299830]
 
 ## [10.1.0] - 2020-10-12
 

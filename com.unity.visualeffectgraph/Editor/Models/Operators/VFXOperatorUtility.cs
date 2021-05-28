@@ -33,6 +33,8 @@ namespace UnityEditor.VFX
         public static readonly Dictionary<VFXValueType, VFXExpression> TauExpression = GenerateExpressionConstant(2.0f * Mathf.PI);
         public static readonly Dictionary<VFXValueType, VFXExpression> E_NapierConstantExpression = GenerateExpressionConstant(Mathf.Exp(1));
         public static readonly Dictionary<VFXValueType, VFXExpression> EpsilonExpression = GenerateExpressionConstant(1e-5f);
+        public static readonly Dictionary<VFXValueType, VFXExpression> EpsilonSqrExpression = GenerateExpressionConstant(1e-10f);
+
 
         public enum Base
         {
@@ -269,7 +271,7 @@ namespace UnityEditor.VFX
         static public VFXExpression SafeNormalize(VFXExpression v)
         {
             var sqrDist = Dot(v,v);
-            var condition = new VFXExpressionCondition(VFXValueType.Float, VFXCondition.Equal, VFXOperatorUtility.ZeroExpression[VFXValueType.Float], sqrDist);
+            var condition = new VFXExpressionCondition(VFXValueType.Float, VFXCondition.Less, sqrDist, VFXOperatorUtility.EpsilonSqrExpression[VFXValueType.Float]);
             return new VFXExpressionBranch(condition, VFXOperatorUtility.ZeroExpression[v.valueType], Normalize(v));
         }
 

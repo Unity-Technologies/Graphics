@@ -41,7 +41,7 @@ namespace UnityEngine.Rendering.HighDefinition
             }
             else
             {
-                camera.lastFrame = Time.frameCount;
+                camera.lastFrame = frameCount;
                 m_Cache[key] = camera;
             }
             return camera.camera;
@@ -65,7 +65,7 @@ namespace UnityEngine.Rendering.HighDefinition
             {
                 if (m_Cache.TryGetValue(key, out var value))
                 {
-                    if ((frameCount - value.lastFrame) > frameWindow)
+                    if (Math.Abs(frameCount - value.lastFrame) > frameWindow)
                     {
                         if (value.camera != null)
                         {

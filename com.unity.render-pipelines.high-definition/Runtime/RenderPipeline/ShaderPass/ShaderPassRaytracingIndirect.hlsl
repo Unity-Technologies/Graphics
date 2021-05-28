@@ -56,18 +56,18 @@ void ClosestHitMain(inout RayIntersection rayIntersection : SV_RayPayload, Attri
     if (rayIntersection.remainingDepth < _RaytracingMaxRecursion)
     {
         // Generate the new sample (follwing values of the sequence)
-        float2 sample = float2(0.0, 0.0);
-        sample.x = GetBNDSequenceSample(rayIntersection.pixelCoord, rayIntersection.sampleIndex, rayIntersection.remainingDepth * 2);
-        sample.y = GetBNDSequenceSample(rayIntersection.pixelCoord, rayIntersection.sampleIndex, rayIntersection.remainingDepth * 2 + 1);
+        float2 theSample = float2(0.0, 0.0);
+        theSample.x = GetBNDSequenceSample(rayIntersection.pixelCoord, rayIntersection.sampleIndex, rayIntersection.remainingDepth * 2);
+        theSample.y = GetBNDSequenceSample(rayIntersection.pixelCoord, rayIntersection.sampleIndex, rayIntersection.remainingDepth * 2 + 1);
 
         float3 sampleDir;
         if (_RayTracingDiffuseLightingOnly)
         {
-            sampleDir = SampleHemisphereCosine(sample.x, sample.y, bsdfData.normalWS);
+            sampleDir = SampleHemisphereCosine(theSample.x, theSample.y, bsdfData.normalWS);
         }
         else
         {
-            sampleDir = SampleSpecularBRDF(bsdfData, sample, viewWS);
+            sampleDir = SampleSpecularBRDF(bsdfData, theSample, viewWS);
         }
 
         // Create the ray descriptor for this pixel

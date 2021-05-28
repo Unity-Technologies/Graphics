@@ -49,10 +49,14 @@ namespace UnityEditor.Rendering.LookDev
             }
         }
 
-        public ComparisonGizmoController(ComparisonGizmoState state, SwitchableCameraController switcher)
+        public ComparisonGizmoController(SwitchableCameraController switcher)
+        {
+            m_Switcher = switcher;
+        }
+
+        public void UpdateGizmoState(ComparisonGizmoState state)
         {
             m_State = state;
-            m_Switcher = switcher;
         }
 
         protected override void RegisterCallbacksOnTarget()

@@ -6,7 +6,28 @@ test_platforms:
     utr_flags:
       - [OSX_Metal]: --timeout=2400
   - type: playmode
+  - type: playmode
+    name: playmode_cache
+    utr_flags:
+    - [all]: --extra-editor-arg="-adb2"
+    - [all]: --extra-editor-arg="-enableCacheServer"
+    - [all]: --extra-editor-arg="-cacheServerEndpoint" --extra-editor-arg="cacheserver-slo.hq.unity3d.com"
+    - [all]: --extra-editor-arg="-cacheServerNamespacePrefix" --extra-editor-arg="{{cache.cacheServerNamespacePrefix}}"
+    - [all]: --extra-editor-arg="-cacheServerEnableDownload" --extra-editor-arg="true"
+    - [all]: --extra-editor-arg="-cacheServerEnableUpload" --extra-editor-arg="true"
+  - type: Standalone
+    name: Standalone_cache
+    utr_flags_build:
+    - [all]: --timeout=3000
+    - [all]: --extra-editor-arg="-adb2"
+    - [all]: --extra-editor-arg="-enableCacheServer"
+    - [all]: --extra-editor-arg="-cacheServerEndpoint" --extra-editor-arg="cacheserver-slo.hq.unity3d.com"
+    - [all]: --extra-editor-arg="-cacheServerNamespacePrefix" --extra-editor-arg="{{cache.cacheServerNamespacePrefix}}"
+    - [all]: --extra-editor-arg="-cacheServerEnableDownload" --extra-editor-arg="true"
+    - [all]: --extra-editor-arg="-cacheServerEnableUpload" --extra-editor-arg="true"
 #  - type: editmode
+expression_trigger:
+  expression: 'pull_request.target eq "<TARGET_BRANCH>" AND NOT pull_request.draft AND pull_request.changes.any match ["com.unity.visualeffectgraph/**/*", "TestProjects/VisualEffectGraph_URP/**/*"] AND NOT pull_request.changes.all match ["*.md", "**/*.md", "doc/**/*", "**/Documentation*/**/*"]'
 platforms:
   - name: Win
     apis:
@@ -17,7 +38,38 @@ platforms:
       - name: mono
     color_spaces:
       - Linear
-  - name: OSX 
+    agents_project:
+      default:
+        type: Unity::VM::GPU
+        image: sdet/gamecode_win10:stable
+        flavor: b1.large
+      editmode:
+        type: Unity::VM
+        image: sdet/gamecode_win10:stable
+        flavor: b1.large
+      playmode:
+        type: Unity::VM::GPU
+        image: sdet/gamecode_win10:stable
+        flavor: b1.xlarge
+        model: rtx2080
+      playmode_cache:
+        type: Unity::VM::GPU
+        image: sdet/gamecode_win10:stable
+        flavor: b1.xlarge
+        model: rtx2080
+      standalone:
+        type: Unity::VM::GPU
+        image: sdet/gamecode_win10:stable
+        flavor: b1.large
+      standalone_cache:
+        type: Unity::VM::GPU
+        image: sdet/gamecode_win10:stable
+        flavor: b1.large
+      standalone_build:
+        type: Unity::VM
+        image: sdet/gamecode_win10:stable
+        flavor: b1.xlarge
+  - name: OSX
     apis:
       - name: Metal
         exclude_test_platforms:
@@ -26,15 +78,17 @@ platforms:
         exclude_test_platforms:
           - name: playmode_XR
           - name: Standalone
+          - name: Standalone_cache
     build_configs:
       - name: mono
     color_spaces:
       - Linear
   - name: Linux
-    apis: 
+    apis:
       - name: OpenGLCore
         exclude_test_platforms:
           - name: Standalone
+          - name: Standalone_cache
           - name: playmode_XR
       - name: Vulkan
         exclude_test_platforms:
@@ -43,27 +97,41 @@ platforms:
       - name: mono
     color_spaces:
       - Linear
+  - name: iPhone
+    apis:
+      - name: Metal
+        exclude_test_platforms:
+          - name: playmode
+          - name: editmode
+          - name: playmode_XR
+          - name: playmode_cache
+    build_configs:
+      - name: il2cpp
+    color_spaces:
+      - Linear
 #  - name: Android
-#    apis: 
+#    apis:
 #      - name: Vulkan
 #      - name: OpenGLES3
 #    build_configs:
 #      - name: mono
 #    color_spaces:
 #      - Linear
-#  - name: iPhone
-#    apis: 
-#      - name: Metal
-#    build_configs:
-#      - name: mono
-#    color_spaces:
-#      - Linear
-all:
+pr:
   dependencies:
     - platform: Win
       api: DX11
       build_config: mono
       color_space: Linear
       test_platforms:
-        - Standalone
-        - playmode
+        - Standalone_cache
+nightly:
+  dependencies:
+    - project: VFX_URP
+      pr: true
+    - platform: Win
+      api: DX11
+      build_config: mono
+      color_space: Linear
+      test_platforms:
+        - playmode_cache

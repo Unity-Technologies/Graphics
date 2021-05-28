@@ -38,7 +38,8 @@ namespace UnityEditor.VFX
 
         public virtual void OnBeforeSerialize()
         {
-            m_SerializableType = m_Type != null ? m_Type.AssemblyQualifiedName : string.Empty;
+            if (m_Type != null)
+                m_SerializableType = m_Type.AssemblyQualifiedName;
         }
 
         public virtual void OnAfterDeserialize()

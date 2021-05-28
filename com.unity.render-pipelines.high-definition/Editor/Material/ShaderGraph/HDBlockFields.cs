@@ -45,8 +45,6 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                 new FloatControl(0.0f), ShaderStage.Fragment);
             public static BlockFieldDescriptor IridescenceThickness = new BlockFieldDescriptor(SurfaceDescription.name, "IridescenceThickness", "Iridescence Thickness", "SURFACEDESCRIPTION_IRIDESCENCETHICKNESS", 
                 new FloatControl(0.0f), ShaderStage.Fragment);
-            public static BlockFieldDescriptor CoatMask = new BlockFieldDescriptor(SurfaceDescription.name, "CoatMask", "Coat Mask", "SURFACEDESCRIPTION_COATMASK", 
-                new FloatControl(0.0f), ShaderStage.Fragment);
             public static BlockFieldDescriptor SpecularOcclusion = new BlockFieldDescriptor(SurfaceDescription.name, "SpecularOcclusion", "Specular Occlusion", "SURFACEDESCRIPTION_SPECULAROCCLUSION", 
                 new FloatControl(1.0f), ShaderStage.Fragment);
             public static BlockFieldDescriptor AlphaClipThresholdDepthPrepass = new BlockFieldDescriptor(SurfaceDescription.name, "AlphaClipThresholdDepthPrepass", "Alpha Clip Threshold Depth Prepass", "SURFACEDESCRIPTION_ALPHACLIPTHRESHOLDDEPTHPREPASS", 
@@ -118,11 +116,11 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
             // StackLit
 
             public static BlockFieldDescriptor CoatNormalOS = new BlockFieldDescriptor(SurfaceDescription.name, "CoatNormalOS", "Coat Normal (Object Space)", "SURFACEDESCRIPTION_COATNORMALOS",
-                new NormalControl(CoordinateSpace.Tangent), ShaderStage.Fragment);
+                new NormalControl(CoordinateSpace.Object), ShaderStage.Fragment);
             public static BlockFieldDescriptor CoatNormalTS = new BlockFieldDescriptor(SurfaceDescription.name, "CoatNormalTS", "Coat Normal (Tangent Space)", "SURFACEDESCRIPTION_COATNORMALTS",
                 new NormalControl(CoordinateSpace.Tangent), ShaderStage.Fragment);
             public static BlockFieldDescriptor CoatNormalWS = new BlockFieldDescriptor(SurfaceDescription.name, "CoatNormalWS", "Coat Normal (World Space)", "SURFACEDESCRIPTION_COATNORMALWS",
-                new NormalControl(CoordinateSpace.Tangent), ShaderStage.Fragment);
+                new NormalControl(CoordinateSpace.World), ShaderStage.Fragment);
             public static BlockFieldDescriptor DielectricIor = new BlockFieldDescriptor(SurfaceDescription.name, "DielectricIor", "Dielectric IOR", "SURFACEDESCRIPTION_DIELECTRICIOR", 
                 new FloatControl(1.5f), ShaderStage.Fragment);
             public static BlockFieldDescriptor SmoothnessB = new BlockFieldDescriptor(SurfaceDescription.name, "SmoothnessB", "Smoothness B", "SURFACEDESCRIPTION_SMOOTHNESSB", 
@@ -137,8 +135,6 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                 new FloatControl(1.0f), ShaderStage.Fragment);
             public static BlockFieldDescriptor SOFixupMaxAddedRoughness = new BlockFieldDescriptor(SurfaceDescription.name, "SOFixupMaxAddedRoughness", "SO Fixup Max Added Roughness", "SURFACEDESCRIPTION_SOFIXUPMAXADDEDROUGHNESS", 
                 new FloatControl(0.2f), ShaderStage.Fragment);
-            public static BlockFieldDescriptor CoatSmoothness = new BlockFieldDescriptor(SurfaceDescription.name, "CoatSmoothness", "Coat Smoothness", "SURFACEDESCRIPTION_COATSMOOTHNESS", 
-                new FloatControl(1.0f), ShaderStage.Fragment);
             public static BlockFieldDescriptor CoatIor = new BlockFieldDescriptor(SurfaceDescription.name, "CoatIor", "Coat IOR", "SURFACEDESCRIPTION_COATIOR", 
                 new FloatControl(1.4f), ShaderStage.Fragment);
             public static BlockFieldDescriptor CoatThickness = new BlockFieldDescriptor(SurfaceDescription.name, "CoatThickness", "Coat Thickness", "SURFACEDESCRIPTION_COATTHICKNESS", 

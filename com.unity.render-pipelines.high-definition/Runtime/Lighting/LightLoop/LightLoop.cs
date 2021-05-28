@@ -118,6 +118,7 @@ namespace UnityEngine.Rendering.HighDefinition
         public static uint s_MaterialFeatureMaskFlags = 0x000FFF;   // don't use all bits just to be safe from signed and/or float conversions :/
 
         // Screen space shadow flags
+        public static uint s_RayTracedScreenSpaceShadowFlag = 0x1000;
         public static uint s_ScreenSpaceColorShadowFlag = 0x100;
         public static uint s_InvalidScreenSpaceShadow = 0xff;
         public static uint s_ScreenSpaceShadowIndexMask = 0xff;
@@ -319,13 +320,9 @@ namespace UnityEngine.Rendering.HighDefinition
             public List<Vector4>                env2DCaptureForward { get; private set; }
             public List<Vector4>                env2DAtlasScaleOffset {get; private set; } = new List<Vector4>();
 
-            Material m_CubeToPanoMaterial;
-
             public void Initialize(HDRenderPipelineAsset hdrpAsset, RenderPipelineResources defaultResources,  IBLFilterBSDF[] iBLFilterBSDFArray)
             {
                 var lightLoopSettings = hdrpAsset.currentPlatformRenderPipelineSettings.lightLoopSettings;
-
-                m_CubeToPanoMaterial = CoreUtils.CreateEngineMaterial(defaultResources.shaders.cubeToPanoPS);
 
                 lightCookieManager = new LightCookieManager(hdrpAsset, k_MaxCacheSize);
 
@@ -365,8 +362,6 @@ namespace UnityEngine.Rendering.HighDefinition
                 reflectionProbeCache.Release();
                 reflectionPlanarProbeCache.Release();
                 lightCookieManager.Release();
-
-                CoreUtils.Destroy(m_CubeToPanoMaterial);
             }
 
             public void NewFrame()
@@ -1334,6 +1329,11 @@ namespace UnityEngine.Rendering.HighDefinition
                     {
                         screenSpaceShadowslot++;
                     }
+					
+                    // Raise the ray tracing flag in case the light is ray traced
+                    if (additionalLightData.WillRenderRayTracedShadow())
+                        lightData.screenSpaceShadowIndex |= (int)LightDefinitions.s_RayTracedScreenSpaceShadowFlag;
+					
                     screenSpaceShadowIndex++;
                     m_ScreenSpaceShadowsUnion.Add(additionalLightData);
                 }

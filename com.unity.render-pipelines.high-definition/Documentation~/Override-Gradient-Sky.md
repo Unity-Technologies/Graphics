@@ -13,6 +13,8 @@ You can alter these values at runtime. This component also exposes options that 
 
 After you add a **Gradient Sky** override, you must set the Volume to use **Gradient Sky**. The [Visual Environment](Override-Visual-Environment.md) override controls which type of sky the Volume uses. In the **Visual Environment** override, navigate to the **Sky** section and set the **Type** to **Gradient Sky**. HDRP now renders a **Gradient Sky** for any Camera this Volume affects.
 
+[!include[](snippets/volume-override-api.md)]
+
 ## Properties
 
 ![](Images/Override-GradientSky1.png)

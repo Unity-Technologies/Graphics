@@ -266,6 +266,14 @@ namespace UnityEditor.Rendering.HighDefinition
             return result;
         }
 
+        public static bool IsValidRenderingPassValue(HDRenderQueue.RenderQueueType value, bool needAfterPostProcess)
+        {
+            if (!needAfterPostProcess && (value == HDRenderQueue.RenderQueueType.AfterPostProcessOpaque || value == HDRenderQueue.RenderQueueType.AfterPostprocessTransparent))
+                return false;
+
+            return true;
+        }
+
         public static bool UpgradeLegacyAlphaClip(IMasterNode1 masterNode)
         {
             var clipThresholdId = 8;

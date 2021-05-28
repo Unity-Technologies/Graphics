@@ -31,7 +31,7 @@ namespace UnityEngine.Rendering.HighDefinition
         /// Defines the maximum number of paths cast within each pixel, over time (one per frame).
         /// </summary>
         [Tooltip("Defines the maximum number of paths cast within each pixel, over time (one per frame).")]
-        public ClampedIntParameter maximumSamples = new ClampedIntParameter(256, 1, 4096);
+        public ClampedIntParameter maximumSamples = new ClampedIntParameter(256, 1, 16384);
 
         /// <summary>
         /// Defines the minimum number of bounces for each path, in [1, 10].
@@ -198,6 +198,13 @@ namespace UnityEngine.Rendering.HighDefinition
                 return;
             }
 
+            // Check light or geometry transforms dirtiness
+            if (m_TransformDirty)
+            {
+                m_TransformDirty = false;
+                ResetPathTracing();
+            }
+
             // Check lights dirtiness
             if (m_CacheLightCount != m_RayTracingLights.lightCount)
             {
@@ -208,10 +215,9 @@ namespace UnityEngine.Rendering.HighDefinition
 
             // Check geometry dirtiness
             ulong accelSize = m_CurrentRAS.GetSize();
-            if (accelSize != m_CacheAccelSize || m_TransformDirty)
+            if (accelSize != m_CacheAccelSize)
             {
                 m_CacheAccelSize = accelSize;
-                m_TransformDirty = false;
                 ResetPathTracing();
             }
         }
@@ -365,12 +371,6 @@ namespace UnityEngine.Rendering.HighDefinition
             // Check the validity of the state before moving on with the computation
             if (!pathTracingShader || !m_PathTracingSettings.enable.value)
                 return TextureHandle.nullHandle;
-
-            if (hdCamera.viewCount > 1)
-            {
-                Debug.LogError("Path Tracing is not supported when using XR single-pass rendering.");
-                return TextureHandle.nullHandle;
-            }
 
             CheckDirtiness(hdCamera);
 

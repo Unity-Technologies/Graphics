@@ -13,6 +13,7 @@
 /com.unity.shadergraph/ @Unity-Technologies/shader-graph
 
 # Test systems
+/.github/ @Unity-Technologies/gfx-sdets
 /.yamato/ @Unity-Technologies/gfx-sdets
 /katana-ci/ @Unity-Technologies/gfx-sdets
 /Tools/ @Unity-Technologies/gfx-sdets
