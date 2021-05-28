@@ -30,6 +30,16 @@ ${VFXBegin:VFXHDRPDecalVaryingsMacros}
 #if USE_EXPOSURE_WEIGHT
 #define VFX_VARYING_EXPOSUREWEIGHT emissiveColor.a
 #endif
+
+#define VFX_VARYING_PS_INPUTS ps_input
+#define VFX_VARYING_POSCS pos
+#define VFX_VARYING_UV uv
+#define VFX_VARYING_POSWS posWS
+#define VFX_VARYING_FADEFACTOR fadeParameters.x
+#if VFX_ENABLE_DECAL_LAYERS
+#define VFX_VARYING_ANGLEFADE fadeParameters.yz
+#define VFX_VARYING_DECALLAYER decalLayerMask
+#endif
 ${VFXEnd}
 
 ${VFXBegin:VFXHDRPDecalDeclareVaryings}
@@ -46,6 +56,19 @@ VFX_OPTIONAL_INTERPOLATION float4 emissiveColor : COLOR1;
 // z: smoothness
 // w: emissive scale
 VFX_OPTIONAL_INTERPOLATION float4 materialProperties : TEXCOORD0;
+float2 uv : TEXCOORD1; //unsure about the necessity of this one
+float3 posWS : TEXCOORD2;
+#if VFX_ENABLE_DECAL_LAYERS
+float3 fadeParameters : TEXCOORD3;
+uint decalLayerMask : TEXCOORD4;
+#else
+float fadeParameters : TEXCOORD3;
+#endif
+
+nointerpolation float4 viewToDecal0 : TEXCOORD5;
+nointerpolation float4 viewToDecal1 : TEXCOORD6;
+nointerpolation float4 viewToDecal2 : TEXCOORD7;
+
 ${VFXEnd}
 
 ${VFXBegin:VFXHDRPDecalFillVaryings}
@@ -89,4 +112,21 @@ o.VFX_VARYING_COLOR = baseColor;
 #endif
 #endif
 #endif
+float4x4 viewToDecal = GetVFXToElementMatrix(
+	attributes.axisX,
+	attributes.axisY,
+	attributes.axisZ,
+	float3(attributes.angleX,attributes.angleY,attributes.angleZ),
+	float3(attributes.pivotX,attributes.pivotY,attributes.pivotZ),
+	size3,
+	attributes.position);
+
+#if VFX_LOCAL_SPACE
+viewToDecal = mul(viewToDecal, VFXGetWorldToObjectMatrix());
+#endif
+viewToDecal = mul(viewToDecal, VFXGetViewToWorldMatrix());
+o.viewToDecal0 = viewToDecal[0];
+o.viewToDecal1 = viewToDecal[1];
+o.viewToDecal2 = viewToDecal[2];
+
 ${VFXEnd}
