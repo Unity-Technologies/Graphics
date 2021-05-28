@@ -644,11 +644,6 @@ namespace UnityEngine.Rendering.HighDefinition
             Reset();
         }
 
-        internal bool IsTAAEnabled()
-        {
-            return antialiasing == AntialiasingMode.TemporalAntialiasing;
-        }
-
         internal bool IsDLSSEnabled()
         {
             return m_AdditionalCameraData == null ? false : m_AdditionalCameraData.cameraCanRenderDLSS;
