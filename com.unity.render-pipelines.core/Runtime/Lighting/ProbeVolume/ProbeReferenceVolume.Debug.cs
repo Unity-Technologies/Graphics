@@ -235,7 +235,7 @@ namespace UnityEngine.Experimental.Rendering
                 if (cell.sh == null || cell.sh.Length == 0)
                     continue;
 
-                float largestBrickSize = cell.bricks.Count == 0 ? 0 : cell.bricks[0].subdivisionLevel;
+                float largestBrickSize = cell.bricks.Length == 0 ? 0 : cell.bricks[0].subdivisionLevel;
 
                 List<Matrix4x4[]> probeBuffers = new List<Matrix4x4[]>();
                 List<MaterialPropertyBlock> props = new List<MaterialPropertyBlock>();

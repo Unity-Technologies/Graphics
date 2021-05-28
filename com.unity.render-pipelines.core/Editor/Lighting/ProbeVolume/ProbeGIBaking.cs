@@ -1,5 +1,25 @@
 #if UNITY_EDITOR
 
+// Options to force disable paths (don't know which packages are available, don't want to force any)
+//#define DISABLE_BURST
+//#define DISABLE_COLLECTIONS
+//#define DISABLE_JOBS
+//#define DISABLE_MATHEMATICS
+
+// Use Burst, Collections, Jobs, Mathematics?
+#if HAS_BURST && !DISABLE_BURST
+    #define USE_BURST
+#endif
+#if HAS_COLLECTIONS && !DISABLE_COLLECTIONS
+    #define USE_COLLECTIONS
+#endif
+#if !DISABLE_JOBS
+    #define USE_JOBS
+#endif
+#if HAS_MATHEMATICS && !DISABLE_MATHEMATICS
+    #define USE_MATHEMATICS
+#endif
+
 using System.Collections.Generic;
 using Unity.Collections;
 using System;
@@ -10,10 +30,38 @@ using UnityEditor.SceneManagement;
 using Brick = UnityEngine.Experimental.Rendering.ProbeBrickIndex.Brick;
 using UnityEngine.SceneManagement;
 using UnityEngine.Rendering;
+using ProfilerMarker = Unity.Profiling.ProfilerMarker;
+
+// We'll use NativeArrays and Job structs no matter what
+using Unity.Collections.LowLevel.Unsafe;
+using Unity.Jobs;
+
+// Use Burst only if available.
+#if USE_BURST
+    using Unity.Burst;
+#endif
+
+// Use Mathematics only if available.
+#if USE_MATHEMATICS
+    using Unity.Mathematics;
+#else
+    using int3 = UnityEngine.Vector3Int;
+    using float3 = UnityEngine.Vector3;
+    static class math
+    {
+        internal static float distancesq(float3 a, float3 b) => float3.Dot(a, b);
+        internal static float rcp(float a) => 1f / a;
+        internal static float ceil(float a) => UnityEngine.Mathf.Ceil(a);
+        internal static float pow(float a, float b) => UnityEngine.Mathf.Pow(a, b);
+    }
+#endif
 
 namespace UnityEngine.Experimental.Rendering
 {
     struct DilationProbe : IComparable<DilationProbe>
+#if USE_COLLECTIONS
+        , IEquatable<DilationProbe>
+#endif
     {
         public int idx;
         public float dist;
@@ -28,16 +76,73 @@ namespace UnityEngine.Experimental.Rendering
         {
             return dist.CompareTo(other.dist);
         }
-    }
 
-    struct BakingCell
-    {
-        public ProbeReferenceVolume.Cell cell;
-        public int[] probeIndices;
+#if USE_COLLECTIONS
+        public bool Equals(DilationProbe other)
+        {
+            return idx == other.idx && dist.Equals(other.dist);
+        }
+
+        public override bool Equals(object obj)
+        {
+            return obj is DilationProbe other && Equals(other);
+        }
+
+        public override int GetHashCode()
+        {
+            unchecked
+            {
+                return (idx * 397) ^ dist.GetHashCode();
+            }
+        }
+#endif
     }
 
     class BakingBatch
     {
+        public struct BakingBrick
+        {
+            public int3 position;
+            public int subdivisionLevel;
+        }
+
+        public struct BakingCell : IDisposable
+        {
+            public int index;
+            public int3 position;
+        
+            [ReadOnly] public NativeArray<BakingBrick> bricks;
+            [ReadOnly] public NativeArray<float3> probePositions;
+        
+            public NativeArray<SphericalHarmonicsL2> sh;
+            public NativeArray<float> validity;
+
+            [ReadOnly] public NativeArray<int> probeIndices;
+
+            internal ProbeReferenceVolume.Cell ToCell()
+            {
+                var cell = new ProbeReferenceVolume.Cell();
+                cell.index = index;
+                cell.position = new Vector3Int(position.x, position.y, position.z);
+                cell.bricks = bricks.Reinterpret<Brick>().ToArray();
+                cell.sh = sh.ToArray();
+            
+                cell.probePositions = probePositions.Reinterpret<Vector3>().ToArray();
+                cell.validity = validity.ToArray();
+            
+                return cell;
+            }
+
+            public void Dispose()
+            {
+                if (bricks.IsCreated) bricks.Dispose();
+                if (probePositions.IsCreated) probePositions.Dispose();
+                if (sh.IsCreated) sh.Dispose();
+                if (validity.IsCreated) validity.Dispose();
+                if (probeIndices.IsCreated) probeIndices.Dispose();
+            }
+        }
+        
         public int index;
         public Dictionary<int, List<Scene>> cellIndex2SceneReferences = new Dictionary<int, List<Scene>>();
         public List<BakingCell> cells = new List<BakingCell>();
@@ -53,6 +158,10 @@ namespace UnityEngine.Experimental.Rendering
         public void Clear()
         {
             UnityEditor.Experimental.Lightmapping.SetAdditionalBakedProbes(index, null);
+
+            foreach (var cell in cells)
+                cell.Dispose();
+            
             cells.Clear();
             cellIndex2SceneReferences.Clear();
         }
@@ -83,6 +192,7 @@ namespace UnityEngine.Experimental.Rendering
                 m_IsInit = true;
                 Lightmapping.lightingDataCleared += OnLightingDataCleared;
                 Lightmapping.bakeStarted += OnBakeStarted;
+                Lightmapping.bakeCompleted += OnBakeCompleted;
             }
         }
 
@@ -108,11 +218,11 @@ namespace UnityEngine.Experimental.Rendering
             {
                 probeVolume.OnLightingDataAssetCleared();
             }
+        }
 
-
-            if (m_BakingBatch != null)
-                m_BakingBatch.Clear();
-
+        static public void ClearBakingBatch()
+        {
+            m_BakingBatch?.Clear();
             m_BakingBatchIndex = 0;
         }
 
@@ -227,9 +337,13 @@ namespace UnityEngine.Experimental.Rendering
                 Debug.Log("Scene(s) have multiple inconsistent ProbeReferenceVolumeAuthoring components. Please ensure they use identical profiles and transforms before baking.");
                 return;
             }
-
-
+            
             RunPlacement();
+        }
+
+        static void OnBakeCompleted()
+        {
+            ClearBakingBatch();
         }
 
         static void CellCountInDirections(out Vector3Int cellsInXYZ, float cellSizeInMeters)
@@ -245,91 +359,91 @@ namespace UnityEngine.Experimental.Rendering
             cellsInXYZ.z = Mathf.Max(Mathf.CeilToInt(Mathf.Abs(centeredMin.z / cellSizeInMeters)), Mathf.CeilToInt(Mathf.Abs(centeredMax.z / cellSizeInMeters))) * 2;
         }
 
+        static readonly ProfilerMarker sPMOnAdditionalProbesBakeCompleted = new("OnAdditionalProbesBakeCompleted");
+        static readonly ProfilerMarker sPMSyncProbeJobs = new("SyncProbeJobs");
+
         static void OnAdditionalProbesBakeCompleted()
         {
+            using var pmOnAdditionalProbesBakeCompleted = sPMOnAdditionalProbesBakeCompleted.Auto();
+           
             UnityEditor.Experimental.Lightmapping.additionalBakedProbesCompleted -= OnAdditionalProbesBakeCompleted;
-            UnityEngine.Profiling.Profiler.BeginSample("OnAdditionalProbesBakeCompleted");
-
+            
             var bakingCells = m_BakingBatch.cells;
             var numCells = bakingCells.Count;
 
             int numUniqueProbes = m_BakingBatch.uniqueProbeCount;
 
-            var sh = new NativeArray<SphericalHarmonicsL2>(numUniqueProbes, Allocator.Temp, NativeArrayOptions.UninitializedMemory);
-            var validity = new NativeArray<float>(numUniqueProbes, Allocator.Temp, NativeArrayOptions.UninitializedMemory);
-            var bakedProbeOctahedralDepth = new NativeArray<float>(numUniqueProbes * 64, Allocator.Temp, NativeArrayOptions.UninitializedMemory);
+            using var sh = new NativeArray<SphericalHarmonicsL2>(numUniqueProbes, Allocator.TempJob, NativeArrayOptions.UninitializedMemory);
+            using var validity = new NativeArray<float>(numUniqueProbes, Allocator.TempJob, NativeArrayOptions.UninitializedMemory);
+            using var bakedProbeOctahedralDepth = new NativeArray<float>(numUniqueProbes * 64, Allocator.TempJob, NativeArrayOptions.UninitializedMemory);
 
             UnityEditor.Experimental.Lightmapping.GetAdditionalBakedProbes(m_BakingBatch.index, sh, validity, bakedProbeOctahedralDepth);
 
-            // Fetch results of all cells
+            var dilationSettings = m_BakingReferenceVolumeAuthoring.GetDilationSettings();
+            var jobHandles = new NativeArray<JobHandle>(numCells, Allocator.Temp, NativeArrayOptions.UninitializedMemory);
+            
+            // Schedule processing jobs for all cells
             for (int c = 0; c < numCells; ++c)
             {
-                var cell = bakingCells[c].cell;
+                var bakingCell = bakingCells[c];
 
-                if (cell.probePositions == null)
-                    continue;
-
-                int numProbes = cell.probePositions.Length;
-                Debug.Assert(numProbes > 0);
-
-                cell.sh = new SphericalHarmonicsL2[numProbes];
-                cell.validity = new float[numProbes];
-
-                for (int i = 0; i < numProbes; ++i)
+                if (!bakingCell.probePositions.IsCreated)
                 {
-                    int j = bakingCells[c].probeIndices[i];
-                    SphericalHarmonicsL2 shv = sh[j];
-
-                    // Compress the range of all coefficients but the DC component to [0..1]
-                    // Upper bounds taken from http://ppsloan.org/publications/Sig20_Advances.pptx
-                    // Divide each coefficient by DC*f to get to [-1,1] where f is from slide 33
-                    for (int rgb = 0; rgb < 3; ++rgb)
-                    {
-                        var l0 = sh[j][rgb, 0];
-
-                        if (l0 == 0.0f)
-                            continue;
-
-                        // TODO: We're working on irradiance instead of radiance coefficients
-                        //       Add safety margin 2 to avoid out-of-bounds values
-                        float l1scale = 2.0f; // Should be: 3/(2*sqrt(3)) * 2, but rounding to 2 to issues we are observing.
-                        float l2scale = 3.5777088f; // 4/sqrt(5) * 2
-
-                        // L_1^m
-                        shv[rgb, 1] = sh[j][rgb, 1] / (l0 * l1scale * 2.0f) + 0.5f;
-                        shv[rgb, 2] = sh[j][rgb, 2] / (l0 * l1scale * 2.0f) + 0.5f;
-                        shv[rgb, 3] = sh[j][rgb, 3] / (l0 * l1scale * 2.0f) + 0.5f;
-
-                        // L_2^-2
-                        shv[rgb, 4] = sh[j][rgb, 4] / (l0 * l2scale * 2.0f) + 0.5f;
-                        shv[rgb, 5] = sh[j][rgb, 5] / (l0 * l2scale * 2.0f) + 0.5f;
-                        shv[rgb, 6] = sh[j][rgb, 6] / (l0 * l2scale * 2.0f) + 0.5f;
-                        shv[rgb, 7] = sh[j][rgb, 7] / (l0 * l2scale * 2.0f) + 0.5f;
-                        shv[rgb, 8] = sh[j][rgb, 8] / (l0 * l2scale * 2.0f) + 0.5f;
-
-                        for (int coeff = 1; coeff < 9; ++coeff)
-                            Debug.Assert(shv[rgb, coeff] >= 0.0f && shv[rgb, coeff] <= 1.0f);
-                    }
-
-                    SphericalHarmonicsL2Utils.SetL0(ref cell.sh[i], new Vector3(shv[0, 0], shv[1, 0], shv[2, 0]));
-                    SphericalHarmonicsL2Utils.SetL1R(ref cell.sh[i], new Vector3(shv[0, 3], shv[0, 1], shv[0, 2]));
-                    SphericalHarmonicsL2Utils.SetL1G(ref cell.sh[i], new Vector3(shv[1, 3], shv[1, 1], shv[1, 2]));
-                    SphericalHarmonicsL2Utils.SetL1B(ref cell.sh[i], new Vector3(shv[2, 3], shv[2, 1], shv[2, 2]));
-
-                    SphericalHarmonicsL2Utils.SetCoefficient(ref cell.sh[i], 4, new Vector3(shv[0, 4], shv[1, 4], shv[2, 4]));
-                    SphericalHarmonicsL2Utils.SetCoefficient(ref cell.sh[i], 5, new Vector3(shv[0, 5], shv[1, 5], shv[2, 5]));
-                    SphericalHarmonicsL2Utils.SetCoefficient(ref cell.sh[i], 6, new Vector3(shv[0, 6], shv[1, 6], shv[2, 6]));
-                    SphericalHarmonicsL2Utils.SetCoefficient(ref cell.sh[i], 7, new Vector3(shv[0, 7], shv[1, 7], shv[2, 7]));
-                    SphericalHarmonicsL2Utils.SetCoefficient(ref cell.sh[i], 8, new Vector3(shv[0, 8], shv[1, 8], shv[2, 8]));
-
-                    cell.validity[i] = validity[j];
+                    jobHandles[c] = default;
+                    continue;
                 }
 
-                // Performance warning: this function is super slow (probably 90% of loading time after baking)
-                DilateInvalidProbes(cell.probePositions, cell.bricks, cell.sh, cell.validity, m_BakingReferenceVolumeAuthoring.GetDilationSettings());
+                int numProbes = bakingCell.probePositions.Length;
+                if (numProbes == 0)
+                {
+                    Debug.LogError("Expected numProbes > 0");
+                    continue;
+                }
 
-                ProbeReferenceVolume.instance.cells[cell.index] = cell;
-                UnityEngine.Profiling.Profiler.EndSample();
+                // Allocate output arrays for processing
+                bakingCell.sh = new NativeArray<SphericalHarmonicsL2>(numProbes, Allocator.TempJob);
+                bakingCell.validity = new NativeArray<float>(numProbes, Allocator.TempJob);
+                bakingCells[c] = bakingCell;
+
+                // Ideally we'd use IJobParallelFor directly over the cells. But because we're trying to stick to non-preview / opt-in
+                // packages we don't have access to the Unsafe* containers of the collections package. It's a bit cumbersome to set up
+                // the data structures for that with naked memory so we're doing one explicit schedule per cell for now.
+                var job = new ProcessCellProbesJob
+                {
+                    dilationSettings = dilationSettings,
+                    
+                    sh = sh,
+                    validity = validity,
+                    bakedProbeOctahedralDepth = bakedProbeOctahedralDepth,
+
+                    bakingCell = bakingCell,
+                };
+                
+                // Either schedule or execute the work.
+#if USE_JOBS
+                jobHandles[c] = job.Schedule();
+#else
+                job.Execute();           
+#endif
+            }
+
+            // Sync jobs if enabled.
+#if USE_JOBS
+            {
+                using var pmSyncProbeJobs = sPMSyncProbeJobs.Auto();
+                JobHandle.CombineDependencies(jobHandles).Complete();
+            }
+#endif
+            
+            // Convert processed cells to their serializable formats
+            for (int c = 0; c < numCells; ++c)
+            {
+                var bakingCell = bakingCells[c];
+
+                if (bakingCell.probePositions.IsCreated)
+                    ProbeReferenceVolume.instance.cells[bakingCell.index] = bakingCell.ToCell();
+                else
+                    ProbeReferenceVolume.instance.cells[bakingCell.index] = null;
             }
 
             m_BakingBatchIndex = 0;
@@ -353,6 +467,9 @@ namespace UnityEngine.Experimental.Rendering
             // Put cells into the respective assets
             foreach (var cell in ProbeReferenceVolume.instance.cells.Values)
             {
+                if(cell == null)
+                    continue;
+                
                 foreach (var scene in m_BakingBatch.cellIndex2SceneReferences[cell.index])
                 {
                     // This scene has a reference volume authoring component in it?
@@ -446,132 +563,253 @@ namespace UnityEngine.Experimental.Rendering
 
             return (float)(sum / 2.0);
         }
-
-        static void DilateInvalidProbes(Vector3[] probePositions,
-            List<Brick> bricks, SphericalHarmonicsL2[] sh, float[] validity, ProbeDilationSettings dilationSettings)
+        
+#if USE_BURST
+        [BurstCompile]
+#endif
+        struct ProcessCellProbesJob : IJob
         {
-            UnityEngine.Profiling.Profiler.BeginSample("DilateProbes");
-            // For each brick
-            List<DilationProbe> culledProbes = new List<DilationProbe>();
-            List<DilationProbe> nearProbes = new List<DilationProbe>(dilationSettings.maxDilationSamples);
-            for (int brickIdx = 0; brickIdx < bricks.Count; brickIdx++)
+            static readonly ProfilerMarker sPMDilateProbes = new("DilateProbes");
+
+            internal const int k64 = 64;
+            
+            internal ProbeDilationSettings dilationSettings;
+            
+            [ReadOnly] internal NativeArray<SphericalHarmonicsL2> sh;
+            [ReadOnly] internal NativeArray<float> validity;
+            [ReadOnly] internal NativeArray<float> bakedProbeOctahedralDepth;
+
+            internal BakingBatch.BakingCell bakingCell;
+
+#if USE_BURST
+            [BurstCompile]
+#endif
+            public unsafe void Execute()
             {
-                // Find probes that are in bricks nearby
-                CullDilationProbes(brickIdx, bricks, validity, dilationSettings, culledProbes);
-
-                // Iterate probes in current brick
-                for (int probeOffset = 0; probeOffset < 64; probeOffset++)
+                int numProbes = bakingCell.probePositions.Length;
+                for (int i = 0; i < numProbes; ++i)
                 {
-                    int probeIdx = brickIdx * 64 + probeOffset;
+                    int j = bakingCell.probeIndices[i];
+                    SphericalHarmonicsL2 shv = sh[j];
 
-                    // Skip valid probes
-                    if (validity[probeIdx] <= dilationSettings.dilationValidityThreshold)
+                    // Compress the range of all coefficients but the DC component to [0..1]
+                    // Upper bounds taken from http://ppsloan.org/publications/Sig20_Advances.pptx
+                    // Divide each coefficient by DC*f to get to [-1,1] where f is from slide 33
+                    for (int rgb = 0; rgb < 3; ++rgb)
+                    {
+                        var l0 = sh[j][rgb, 0];
+
+                        if (l0 == 0.0f)
+                        {
+							// Since we're now allocating uninitialized memory we need to fully clear these.
+                            bakingCell.sh[i] = default;
+                            bakingCell.validity[i] = default;
+                            continue;
+                        }
+
+                        // TODO: We're working on irradiance instead of radiance coefficients
+                        //       Add safety margin 2 to avoid out-of-bounds values
+                        float l1scale = 2.0f; // Should be: 3/(2*sqrt(3)) * 2, but rounding to 2 to issues we are observing.
+                        float l2scale = 3.5777088f; // 4/sqrt(5) * 2
+                        
+                        float rcpL0L1 = math.rcp(l0 * l1scale * 2.0f);
+                        float rcpL0L2 = math.rcp(l0 * l2scale * 2.0f);
+
+                        // L_1^m
+                        shv[rgb, 1] = sh[j][rgb, 1] * rcpL0L1 + 0.5f;
+                        shv[rgb, 2] = sh[j][rgb, 2] * rcpL0L1 + 0.5f;
+                        shv[rgb, 3] = sh[j][rgb, 3] * rcpL0L1 + 0.5f;
+
+                        // L_2^-2
+                        shv[rgb, 4] = sh[j][rgb, 4] * rcpL0L2 + 0.5f;
+                        shv[rgb, 5] = sh[j][rgb, 5] * rcpL0L2 + 0.5f;
+                        shv[rgb, 6] = sh[j][rgb, 6] * rcpL0L2 + 0.5f;
+                        shv[rgb, 7] = sh[j][rgb, 7] * rcpL0L2 + 0.5f;
+                        shv[rgb, 8] = sh[j][rgb, 8] * rcpL0L2 + 0.5f;
+
+                        for (int coeff = 1; coeff < 9; ++coeff)
+                            Debug.Assert(shv[rgb, coeff] >= 0.0f && shv[rgb, coeff] <= 1.0f);
+                    }
+
+                    ref SphericalHarmonicsL2 sho = ref UnsafeUtility.ArrayElementAsRef<SphericalHarmonicsL2>(bakingCell.sh.GetUnsafePtr(), i);
+                    SphericalHarmonicsL2Utils.SetL0(ref sho, new Vector3(shv[0, 0], shv[1, 0], shv[2, 0]));
+                    SphericalHarmonicsL2Utils.SetL1R(ref sho, new Vector3(shv[0, 3], shv[0, 1], shv[0, 2]));
+                    SphericalHarmonicsL2Utils.SetL1G(ref sho, new Vector3(shv[1, 3], shv[1, 1], shv[1, 2]));
+                    SphericalHarmonicsL2Utils.SetL1B(ref sho, new Vector3(shv[2, 3], shv[2, 1], shv[2, 2]));
+                    
+                    SphericalHarmonicsL2Utils.SetCoefficient(ref sho, 4, new Vector3(shv[0, 4], shv[1, 4], shv[2, 4]));
+                    SphericalHarmonicsL2Utils.SetCoefficient(ref sho, 5, new Vector3(shv[0, 5], shv[1, 5], shv[2, 5]));
+                    SphericalHarmonicsL2Utils.SetCoefficient(ref sho, 6, new Vector3(shv[0, 6], shv[1, 6], shv[2, 6]));
+                    SphericalHarmonicsL2Utils.SetCoefficient(ref sho, 7, new Vector3(shv[0, 7], shv[1, 7], shv[2, 7]));
+                    SphericalHarmonicsL2Utils.SetCoefficient(ref sho, 8, new Vector3(shv[0, 8], shv[1, 8], shv[2, 8]));
+                    
+                    bakingCell.validity[i] = validity[j];
+                }
+
+                // Performance warning: this function is super slow (probably 90% of loading time after baking)
+                // This is less of a problem after moving it to bursted jobs, but it's still algorithmically really slow.
+                DilateInvalidProbes(ref bakingCell, dilationSettings);
+            }
+        
+            static void DilateInvalidProbes(ref BakingBatch.BakingCell bakingCell, ProbeDilationSettings dilationSettings)
+            {
+                using var pmDilateProbes = sPMDilateProbes.Auto();
+                
+                // For each brick
+                using NativeArray<DilationProbe> culledProbes = new NativeArray<DilationProbe>(bakingCell.bricks.Length * k64, Allocator.Temp, NativeArrayOptions.UninitializedMemory);
+                using NativeArray<DilationProbe> nearProbes = new NativeArray<DilationProbe>(dilationSettings.maxDilationSamples, Allocator.Temp, NativeArrayOptions.UninitializedMemory);
+#if USE_COLLECTIONS
+                using NativeHashSet<DilationProbe> nearProbesHash = new NativeHashSet<DilationProbe>(bakingCell.bricks.Length * k64, Allocator.Temp);
+#endif
+                for (int brickIdx = 0; brickIdx < bakingCell.bricks.Length; brickIdx++)
+                {
+                    // Find probes that are in bricks nearby
+                    CullDilationProbes(bakingCell.bricks[brickIdx], bakingCell.bricks, bakingCell.validity, dilationSettings, culledProbes, out int culledProbesCount);
+                    
+                    // Iterate probes in current brick
+                    for (int probeOffset = 0; probeOffset < k64; probeOffset++)
+                    {
+                        int probeIdx = brickIdx * k64 + probeOffset;
+
+                        // Skip valid probes
+                        if (bakingCell.validity[probeIdx] <= dilationSettings.dilationValidityThreshold)
+                            continue;
+
+                        // Find distance weighted probes nearest to current probe
+                        FindNearProbes(bakingCell.probePositions[probeIdx], bakingCell.probePositions, culledProbes, culledProbesCount, ref dilationSettings, 
+    #if USE_COLLECTIONS
+                            nearProbesHash,
+    #endif
+                            nearProbes, out int nearProbesCount, out float invDistSum);
+
+                        // Set invalid probe to weighted average of found neighboring probes
+                        var shAverage = new SphericalHarmonicsL2();
+                        for (int nearProbeIdx = 0; nearProbeIdx < nearProbesCount; nearProbeIdx++)
+                        {
+                            var nearProbe = nearProbes[nearProbeIdx];
+                            float weight = nearProbe.dist / invDistSum;
+                            var target = bakingCell.sh[nearProbe.idx];
+
+                            for (int c = 0; c < 9; ++c)
+                            {
+                                shAverage[0, c] += target[0, c] * weight;
+                                shAverage[1, c] += target[1, c] * weight;
+                                shAverage[2, c] += target[2, c] * weight;
+                            }
+                        }
+
+                        bakingCell.sh[probeIdx] = shAverage;
+                        
+                        // This seems rather pointless, so disabled.
+                        //bakingCell.validity[probeIdx] = bakingCell.validity[probeIdx];
+                    }
+                }
+            }
+            
+            // Given a brick index, find and accumulate probes in nearby bricks
+            static void CullDilationProbes(BakingBatch.BakingBrick currentBrick, NativeArray<BakingBatch.BakingBrick> bricks, NativeArray<float> validity, ProbeDilationSettings dilationSettings,
+                NativeArray<DilationProbe> outProbeIndices, out int culledProbesCount)
+            {
+                culledProbesCount = 0;
+                
+                for (int otherBrickIdx = 0; otherBrickIdx < bricks.Length; otherBrickIdx++)
+                {
+                    var otherBrick = bricks[otherBrickIdx];
+
+                    float currentBrickSize = math.pow(3f, currentBrick.subdivisionLevel);
+                    float otherBrickSize = math.pow(3f, otherBrick.subdivisionLevel);
+
+                    // TODO: This should probably be revisited.
+                    float sqrt2 = 1.41421356237f;
+                    float maxDistance = sqrt2 * currentBrickSize + sqrt2 * otherBrickSize;
+                    float interval = dilationSettings.maxDilationSampleDistance / dilationSettings.brickSize;
+                    maxDistance = interval * math.ceil(maxDistance / interval);
+                    float maxDistanceSqr = maxDistance * maxDistance;
+
+                    float halfCurrentBrickSize = currentBrickSize / 2f;
+                    float halfOtherBrickSize = otherBrickSize / 2f;
+                    float3 currentBrickCenter = currentBrick.position + new float3(halfCurrentBrickSize, halfCurrentBrickSize, halfCurrentBrickSize);
+                    float3 otherBrickCenter = otherBrick.position + new float3(halfOtherBrickSize, halfOtherBrickSize, halfOtherBrickSize);
+
+                    if (math.distancesq(currentBrickCenter, otherBrickCenter) <= maxDistanceSqr)
+                    {
+                        for (int probeOffset = 0; probeOffset < k64; probeOffset++)
+                        {
+                            int otherProbeIdx = otherBrickIdx * k64 + probeOffset;
+
+                            if (validity[otherProbeIdx] <= dilationSettings.dilationValidityThreshold)
+                            {
+                                outProbeIndices[culledProbesCount++] = new DilationProbe(otherProbeIdx, 0);
+                            }
+                        }
+                    }
+                }
+            }
+
+            // Given a probe index, find nearby probes weighted by inverse distance
+            static void FindNearProbes(float3 probePosition, NativeArray<float3> probePositions, NativeArray<DilationProbe> culledProbes, int culledProbesCount, ref ProbeDilationSettings dilationSettings,
+    #if USE_COLLECTIONS
+                NativeHashSet<DilationProbe> nearProbesHash, 
+    #endif
+                NativeArray<DilationProbe> outNearProbes, out int nearProbesCount, out float invDistSum)
+            {
+    #if USE_COLLECTIONS
+                nearProbesHash.Clear();
+    #endif
+               
+                nearProbesCount = 0;
+                invDistSum = 0;
+                
+#if !USE_COLLECTIONS
+                int dilationProbesCount = 0;
+#endif
+                // Sort probes by distance to prioritize closer ones
+                for (int culledProbeIdx = 0; culledProbeIdx < culledProbesCount; ++culledProbeIdx)
+                {
+                    int culledProbePosIdx = culledProbes[culledProbeIdx].idx;
+                    float distSqr = math.distancesq(probePositions[culledProbePosIdx], probePosition);
+                    
+                    // Algorithmic tweak: don't collect probes we already know are too far away
+                    if (distSqr > dilationSettings.maxDilationSampleDistanceSqr)
                         continue;
 
-                    // Find distance weighted probes nearest to current probe
-                    FindNearProbes(probeIdx, probePositions, dilationSettings, culledProbes, nearProbes, out float invDistSum);
-
-                    // Set invalid probe to weighted average of found neighboring probes
-                    var shAverage = new SphericalHarmonicsL2();
-                    for (int nearProbeIdx = 0; nearProbeIdx < nearProbes.Count; nearProbeIdx++)
-                    {
-                        var nearProbe = nearProbes[nearProbeIdx];
-                        float weight = nearProbe.dist / invDistSum;
-                        var target = sh[nearProbe.idx];
-
-                        for (int c = 0; c < 9; ++c)
-                        {
-                            shAverage[0, c] += target[0, c] * weight;
-                            shAverage[1, c] += target[1, c] * weight;
-                            shAverage[2, c] += target[2, c] * weight;
-                        }
-                    }
-
-                    sh[probeIdx] = shAverage;
-                    validity[probeIdx] = validity[probeIdx];
+    #if USE_COLLECTIONS
+                    nearProbesHash.Add(new DilationProbe(culledProbePosIdx, distSqr));
+    #else
+                    culledProbes[dilationProbesCount++] = new DilationProbe(culledProbePosIdx, distSqr);
+    #endif
                 }
-            }
-            UnityEngine.Profiling.Profiler.EndSample();
-        }
 
-        // Given a brick index, find and accumulate probes in nearby bricks
-        static void CullDilationProbes(int brickIdx, List<Brick> bricks,
-            float[] validity, ProbeDilationSettings dilationSettings, List<DilationProbe> outProbeIndices)
-        {
-            outProbeIndices.Clear();
-            for (int otherBrickIdx = 0; otherBrickIdx < bricks.Count; otherBrickIdx++)
-            {
-                var currentBrick = bricks[brickIdx];
-                var otherBrick = bricks[otherBrickIdx];
-
-                float currentBrickSize = Mathf.Pow(3f, currentBrick.subdivisionLevel);
-                float otherBrickSize = Mathf.Pow(3f, otherBrick.subdivisionLevel);
-
-                // TODO: This should probably be revisited.
-                float sqrt2 = 1.41421356237f;
-                float maxDistance = sqrt2 * currentBrickSize + sqrt2 * otherBrickSize;
-                float interval = dilationSettings.maxDilationSampleDistance / dilationSettings.brickSize;
-                maxDistance = interval * Mathf.Ceil(maxDistance / interval);
-
-                Vector3 currentBrickCenter = currentBrick.position + Vector3.one * currentBrickSize / 2f;
-                Vector3 otherBrickCenter = otherBrick.position + Vector3.one * otherBrickSize / 2f;
-
-                if (Vector3.Distance(currentBrickCenter, otherBrickCenter) <= maxDistance)
+    #if USE_COLLECTIONS
+                ref NativeHashSet<DilationProbe> orderedProbes = ref nearProbesHash;
+    #else
+                NativeArray<DilationProbe> orderedProbes = culledProbes.GetSubArray(0, dilationProbesCount);
+                if (!dilationSettings.greedyDilation)
                 {
-                    for (int probeOffset = 0; probeOffset < 64; probeOffset++)
-                    {
-                        int otherProbeIdx = otherBrickIdx * 64 + probeOffset;
-
-                        if (validity[otherProbeIdx] <= dilationSettings.dilationValidityThreshold)
-                        {
-                            outProbeIndices.Add(new DilationProbe(otherProbeIdx, 0));
-                        }
-                    }
+                    orderedProbes.Sort();
                 }
-            }
-        }
+    #endif
 
-        // Given a probe index, find nearby probes weighted by inverse distance
-        static void FindNearProbes(int probeIdx, Vector3[] probePositions,
-            ProbeDilationSettings dilationSettings, List<DilationProbe> culledProbes, List<DilationProbe> outNearProbes, out float invDistSum)
-        {
-            outNearProbes.Clear();
-            invDistSum = 0;
-
-            // Sort probes by distance to prioritize closer ones
-            for (int culledProbeIdx = 0; culledProbeIdx < culledProbes.Count; culledProbeIdx++)
-            {
-                float dist = Vector3.Distance(probePositions[culledProbes[culledProbeIdx].idx], probePositions[probeIdx]);
-                culledProbes[culledProbeIdx] = new DilationProbe(culledProbes[culledProbeIdx].idx, dist);
-            }
-
-            if (!dilationSettings.greedyDilation)
-            {
-                culledProbes.Sort();
-            }
-
-            // Return specified amount of probes under given max distance
-            int numSamples = 0;
-            for (int sortedProbeIdx = 0; sortedProbeIdx < culledProbes.Count; sortedProbeIdx++)
-            {
-                if (numSamples >= dilationSettings.maxDilationSamples)
-                    return;
-
-                var current = culledProbes[sortedProbeIdx];
-                if (current.dist <= dilationSettings.maxDilationSampleDistance)
+                // Return specified amount of probes under given max distance
+                int numSamples = 0;
+                foreach (var current in orderedProbes)
                 {
-                    var invDist = 1f / (current.dist * current.dist);
+                    if (numSamples >= dilationSettings.maxDilationSamples)
+                        return;
+
+                    // Algorithmic tweak: we've already discarded probes that are too far away, and dist is already squared
+                    var invDist = math.rcp(current.dist);
                     invDistSum += invDist;
-                    outNearProbes.Add(new DilationProbe(current.idx, invDist));
+                    outNearProbes[nearProbesCount++] = new DilationProbe(current.idx, invDist);
 
                     numSamples++;
                 }
             }
         }
 
-        private static void DeduplicateProbePositions(in Vector3[] probePositions, Dictionary<Vector3, int> uniquePositions, out int[] indices)
+        private static void DeduplicateProbePositions(in Vector3[] probePositions, Dictionary<Vector3, int> uniquePositions, out NativeArray<int> indices)
         {
-            indices = new int[probePositions.Length];
+            indices = new NativeArray<int>(probePositions.Length, Allocator.Persistent, NativeArrayOptions.UninitializedMemory);
             int uniqueIndex = uniquePositions.Count;
 
             for (int i = 0; i < probePositions.Length; i++)
@@ -590,7 +828,7 @@ namespace UnityEngine.Experimental.Rendering
                 }
             }
         }
-
+            
         public static void RunPlacement()
         {
             UnityEditor.Experimental.Lightmapping.additionalBakedProbesCompleted += OnAdditionalProbesBakeCompleted;
@@ -706,31 +944,26 @@ namespace UnityEngine.Experimental.Rendering
             // The reason is that the baker is not deterministic so the same probe position baked in two different cells may have different values causing seams artefacts.
             m_BakingBatch = new BakingBatch(m_BakingBatchIndex++);
 
-            foreach (var cellPos in results.cellPositions)
+            for (var cellIdx = 0; cellIdx < results.cellPositions.Count; ++cellIdx)
             {
+                var cellPos = results.cellPositions[cellIdx];
                 var bricks = results.bricksPerCells[cellPos];
-                var cell = new ProbeReferenceVolume.Cell();
-
-                cell.position = cellPos;
-                cell.index = index++;
+                
+                var bakingCell = new BakingBatch.BakingCell();
+                bakingCell.position = new int3(cellPos.x, cellPos.y, cellPos.z);
+                bakingCell.index = index++;
                 if (bricks.Count > 0)
                 {
                     // Convert bricks to positions
                     var probePositionsArr = new Vector3[bricks.Count * ProbeBrickPool.kBrickProbeCountTotal];
                     ProbeReferenceVolume.instance.ConvertBricksToPositions(bricks, probePositionsArr);
 
-                    int[] indices = null;
-                    DeduplicateProbePositions(in probePositionsArr, m_BakingBatch.uniquePositions, out indices);
-
-                    cell.probePositions = probePositionsArr;
-                    cell.bricks = bricks;
-
-                    BakingCell bakingCell = new BakingCell();
-                    bakingCell.cell = cell;
-                    bakingCell.probeIndices = indices;
+                    DeduplicateProbePositions(in probePositionsArr, m_BakingBatch.uniquePositions, out bakingCell.probeIndices);
+                    bakingCell.probePositions = new NativeArray<Vector3>(probePositionsArr, Allocator.Persistent).Reinterpret<float3>();
+                    bakingCell.bricks = new NativeArray<Brick>(bricks.ToArray(), Allocator.Persistent).Reinterpret<BakingBatch.BakingBrick>();
 
                     m_BakingBatch.cells.Add(bakingCell);
-                    m_BakingBatch.cellIndex2SceneReferences[cell.index] = new List<Scene>(results.sortedRefs.Values);
+                    m_BakingBatch.cellIndex2SceneReferences[bakingCell.index] = new List<Scene>(results.sortedRefs.Values);
                 }
             }
 

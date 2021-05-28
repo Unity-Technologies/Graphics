@@ -87,9 +87,11 @@ namespace UnityEngine.Experimental.Rendering
         {
             public int index;
             public Vector3Int position;
-            public List<Brick> bricks;
-            public Vector3[] probePositions;
+            public Brick[] bricks;
             public SphericalHarmonicsL2[] sh;
+            
+            // These are only used for debugging, so it would be nice to store them separately and not deploy them to player builds/
+            public Vector3[] probePositions;
             public float[] validity;
         }
 

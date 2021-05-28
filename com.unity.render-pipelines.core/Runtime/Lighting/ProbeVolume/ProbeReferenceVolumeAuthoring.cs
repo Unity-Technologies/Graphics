@@ -14,10 +14,11 @@ namespace UnityEngine.Experimental.Rendering
     internal struct ProbeDilationSettings
     {
         public bool dilate;
+        public bool greedyDilation;
         public int maxDilationSamples;
         public float maxDilationSampleDistance;
+        public float maxDilationSampleDistanceSqr;
         public float dilationValidityThreshold;
-        public bool greedyDilation;
 
         public float brickSize;   // Not really a dilation setting, but used during dilation.
     }
@@ -327,6 +328,7 @@ namespace UnityEngine.Experimental.Rendering
             settings.dilationValidityThreshold = m_DilationValidityThreshold;
             settings.greedyDilation = m_GreedyDilation;
             settings.maxDilationSampleDistance = m_MaxDilationSampleDistance;
+            settings.maxDilationSampleDistanceSqr = m_MaxDilationSampleDistance * m_MaxDilationSampleDistance;
             settings.maxDilationSamples = m_MaxDilationSamples;
             settings.brickSize = brickSize;
 
