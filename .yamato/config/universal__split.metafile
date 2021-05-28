@@ -16,8 +16,6 @@ pr:
       pr: true
     - project: Universal_Stereo
       pr: true
-    - project: Universal_Hybrid
-      pr: true
     - project: VFX_URP
       pr: true
     - project: ShaderGraph
@@ -37,8 +35,6 @@ nightly:
     - project: URP_Terrain
       nightly: true
     - project: Universal_Stereo
-      nightly: true
-    - project: Universal_Hybrid
       nightly: true
     - project: VFX_URP
       nightly: true

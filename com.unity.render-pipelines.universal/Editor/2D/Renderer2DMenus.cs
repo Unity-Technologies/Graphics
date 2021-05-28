@@ -2,12 +2,11 @@ using System;
 using UnityEditor.ProjectWindowCallback;
 using UnityEditor.SceneManagement;
 using UnityEngine;
-using UnityEngine.Experimental.Rendering.Universal;
-using UnityEngine.Rendering;
 using UnityEngine.Rendering.Universal;
+using UnityEngine.Rendering;
 
 
-namespace UnityEditor.Experimental.Rendering.Universal
+namespace UnityEditor.Rendering.Universal
 {
     static class Renderer2DMenus
     {
@@ -24,9 +23,7 @@ namespace UnityEditor.Experimental.Rendering.Universal
 
             public override void Action(int instanceId, string pathName, string resourceFile)
             {
-                var instance = CreateInstance<Renderer2DData>();
-                instance.postProcessData = PostProcessData.GetDefaultPostProcessData();
-                AssetDatabase.CreateAsset(instance, pathName);
+                var instance = UniversalRenderPipelineAsset.CreateRendererAsset(pathName, RendererType._2DRenderer, false) as Renderer2DData;
                 Selection.activeObject = instance;
 
                 onCreated?.Invoke(instance);

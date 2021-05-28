@@ -1,13 +1,14 @@
-using System.Collections.Generic;
-using UnityEngine;
+using UnityEngine.Rendering;
 using UnityEngine.SceneManagement;
 using System.IO;
+using System;
 
 #if UNITY_EDITOR
 using UnityEditor;
+using System.Collections.Generic;
 #endif
 
-namespace UnityEngine.Rendering
+namespace UnityEngine.Experimental.Rendering
 {
     // TODO: Use this structure in the actual authoring component rather than just a mean to group output parameters.
     internal struct ProbeDilationSettings
@@ -18,11 +19,11 @@ namespace UnityEngine.Rendering
         public float dilationValidityThreshold;
         public bool greedyDilation;
 
-        public int brickSize;   // Not really a dilation setting, but used during dilation.
+        public float brickSize;   // Not really a dilation setting, but used during dilation.
     }
 
     [ExecuteAlways]
-    [AddComponentMenu("Light/Experimental/Probe Reference Volume")]
+    [AddComponentMenu("Light/Probe Reference Volume (Experimental)")]
     internal class ProbeReferenceVolumeAuthoring : MonoBehaviour
     {
 #if UNITY_EDITOR
@@ -66,69 +67,61 @@ namespace UnityEngine.Rendering
         }
 
 #endif
-        public enum ProbeShadingMode
-        {
-            Size,
-            SH,
-            Validity
-        }
 
         [SerializeField]
-        private ProbeReferenceVolumeProfile m_Profile = null;
+        ProbeReferenceVolumeProfile m_Profile = null;
 #if UNITY_EDITOR
-        private ProbeReferenceVolumeProfile m_PrevProfile = null;
+        ProbeReferenceVolumeProfile m_PrevProfile = null;
 #endif
 
         internal ProbeReferenceVolumeProfile profile { get { return m_Profile; } }
-        internal int brickSize { get { return m_Profile.brickSize; } }
-        internal int cellSize { get { return m_Profile.cellSize; } }
+        internal float brickSize { get { return m_Profile.minBrickSize; } }
+        internal float cellSizeInMeters { get { return m_Profile.cellSizeInMeters; } }
         internal int maxSubdivision { get { return m_Profile.maxSubdivision; } }
-        internal float normalBias { get { return m_Profile.normalBias; } }
 
 #if UNITY_EDITOR
-        [SerializeField]
-        private bool m_DrawProbes;
-        [SerializeField]
-        private bool m_DrawBricks;
-        [SerializeField]
-        private bool m_DrawCells;
-
-        // Debug shading
-        [SerializeField]
-        private ProbeShadingMode m_ProbeShading;
-        [SerializeField]
-        private float m_CullingDistance = 200;
-        [SerializeField]
-        private float m_Exposure;
-
         // Dilation
         [SerializeField]
-        private bool m_Dilate = false;
+        bool m_Dilate = false;
         [SerializeField]
-        private int m_MaxDilationSamples = 16;
+        int m_MaxDilationSamples = 16;
         [SerializeField]
-        private float m_MaxDilationSampleDistance = 1f;
+        float m_MaxDilationSampleDistance = 1f;
         [SerializeField]
-        private float m_DilationValidityThreshold = 0.25f;
+        float m_DilationValidityThreshold = 0.25f;
         [SerializeField]
-        private bool m_GreedyDilation = false;
+        bool m_GreedyDilation = false;
 
-        private ProbeVolumeAsset m_PrevAsset = null;
+        // Field used for the realtime subdivision preview
+        [NonSerialized]
+        internal Dictionary<ProbeReferenceVolume.Volume, List<ProbeBrickIndex.Brick>> realtimeSubdivisionInfo = new Dictionary<ProbeReferenceVolume.Volume, List<ProbeBrickIndex.Brick>>();
+
+        MeshGizmo brickGizmos;
+        MeshGizmo cellGizmo;
+
+        // In some cases Unity will magically popuplate this private field with a correct value even though it should not be serialized.
+        // The [NonSerialized] attribute allows to force the asset to be null in case a domain reload happens.
+        [NonSerialized]
+        ProbeVolumeAsset m_PrevAsset = null;
 #endif
         public ProbeVolumeAsset volumeAsset = null;
 
-        internal void QueueAssetLoading()
+        internal void LoadProfileInformation()
         {
-            if (volumeAsset == null || m_Profile == null)
+            if (m_Profile == null)
                 return;
 
             var refVol = ProbeReferenceVolume.instance;
-            refVol.Clear();
-            refVol.SetTRS(transform.position, transform.rotation, m_Profile.brickSize);
+            refVol.SetTRS(Vector3.zero, Quaternion.identity, m_Profile.minBrickSize);
             refVol.SetMaxSubdivision(m_Profile.maxSubdivision);
-            refVol.SetNormalBias(m_Profile.normalBias);
+        }
 
-            refVol.AddPendingAssetLoading(volumeAsset);
+        internal void QueueAssetLoading()
+        {
+            LoadProfileInformation();
+
+            if (volumeAsset != null)
+                ProbeReferenceVolume.instance.AddPendingAssetLoading(volumeAsset);
         }
 
         internal void QueueAssetRemoval()
@@ -137,13 +130,18 @@ namespace UnityEngine.Rendering
                 return;
 
 #if UNITY_EDITOR
+            brickGizmos?.Dispose();
+            brickGizmos = null;
+            cellGizmo?.Dispose();
+            cellGizmo = null;
+
             m_PrevAsset = null;
 #endif
 
             ProbeReferenceVolume.instance.AddPendingAssetRemoval(volumeAsset);
         }
 
-        private void Start()
+        void OnEnable()
         {
 #if UNITY_EDITOR
             if (m_Profile == null)
@@ -154,7 +152,7 @@ namespace UnityEngine.Rendering
 
 #if UNITY_EDITOR
 
-        private void OnValidate()
+        void OnValidate()
         {
             if (!enabled || !gameObject.activeSelf)
                 return;
@@ -177,77 +175,148 @@ namespace UnityEngine.Rendering
             m_PrevAsset = volumeAsset;
         }
 
-        private void OnDisable()
+        void OnDisable()
         {
             QueueAssetRemoval();
         }
 
-        private void OnDestroy()
+        void OnDestroy()
         {
             QueueAssetRemoval();
         }
 
-        internal bool ShouldCull(Vector3 cellPosition, Vector3 originWS = default(Vector3))
+        internal bool ShouldCullCell(Vector3 cellPosition, Vector3 originWS = default(Vector3))
         {
             if (m_Profile == null)
                 return true;
 
-            Vector3 cellCenterWS = cellPosition * m_Profile.cellSize + originWS + Vector3.one * (m_Profile.cellSize / 2.0f);
-            if (Vector3.Distance(SceneView.lastActiveSceneView.camera.transform.position, cellCenterWS) > m_CullingDistance)
+            var cameraTransform = SceneView.lastActiveSceneView.camera.transform;
+
+            Vector3 cellCenterWS = cellPosition * m_Profile.cellSizeInMeters + originWS + Vector3.one * (m_Profile.cellSizeInMeters / 2.0f);
+
+            // Round down to cell size distance
+            float roundedDownDist = Mathf.Floor(Vector3.Distance(cameraTransform.position, cellCenterWS) / m_Profile.cellSizeInMeters) * m_Profile.cellSizeInMeters;
+
+            if (roundedDownDist > ProbeReferenceVolume.instance.debugDisplay.subdivisionViewCullingDistance)
                 return true;
 
             var frustumPlanes = GeometryUtility.CalculateFrustumPlanes(SceneView.lastActiveSceneView.camera);
-            var volumeAABB = new Bounds(cellCenterWS, m_Profile.cellSize * Vector3.one);
+            var volumeAABB = new Bounds(cellCenterWS, m_Profile.cellSizeInMeters * Vector3.one);
 
             return !GeometryUtility.TestPlanesAABB(frustumPlanes, volumeAABB);
         }
 
-        private void OnDrawGizmos()
+        // TODO: We need to get rid of Handles.DrawWireCube to be able to have those at runtime as well.
+        void OnDrawGizmos()
         {
-            if (!enabled || !gameObject.activeSelf)
+            if (!enabled || !gameObject.activeSelf || !ProbeReferenceVolume.instance.isInitialized)
                 return;
 
-            Handles.zTest = CompareFunction.LessEqual;
+            var debugDisplay = ProbeReferenceVolume.instance.debugDisplay;
 
-            if (m_DrawCells)
+            if (debugDisplay.drawBricks)
             {
-                // Fetching this from components instead of from the reference volume allows the user to
-                // preview how cells will look before they commit to a bake.
-                using (new Handles.DrawingScope(Color.green, ProbeReferenceVolume.instance.GetRefSpaceToWS()))
+                var subdivColors = ProbeReferenceVolume.instance.subdivisionDebugColors;
+
+                IEnumerable<ProbeBrickIndex.Brick> GetVisibleBricks()
                 {
-                    foreach (var cell in ProbeReferenceVolume.instance.cells.Values)
+                    if (debugDisplay.realtimeSubdivision)
                     {
-                        if (ShouldCull(cell.position, transform.position))
-                            continue;
-
-                        var positionF = new Vector3(cell.position.x, cell.position.y, cell.position.z);
-                        var center = positionF * m_Profile.cellSize + m_Profile.cellSize * 0.5f * Vector3.one;
-                        Handles.DrawWireCube(center, Vector3.one * m_Profile.cellSize);
-                    }
-                }
-            }
-
-            if (m_DrawBricks)
-            {
-                using (new Handles.DrawingScope(Color.blue, ProbeReferenceVolume.instance.GetRefSpaceToWS()))
-                {
-                    // Read refvol transform
-                    foreach (var cell in ProbeReferenceVolume.instance.cells.Values)
-                    {
-                        if (ShouldCull(cell.position, ProbeReferenceVolume.instance.GetTransform().posWS))
-                            continue;
-
-                        if (cell.bricks == null)
-                            continue;
-
-                        foreach (var brick in cell.bricks)
+                        // realtime subdiv cells are already culled
+                        foreach (var kp in realtimeSubdivisionInfo)
                         {
-                            Vector3 scaledSize = Vector3.one * Mathf.Pow(3, brick.size);
-                            Vector3 scaledPos = brick.position + scaledSize / 2;
-                            Handles.DrawWireCube(scaledPos, scaledSize);
+                            var cellVolume = kp.Key;
+
+                            foreach (var brick in kp.Value)
+                            {
+                                yield return brick;
+                            }
+                        }
+                    }
+                    else
+                    {
+                        foreach (var cell in ProbeReferenceVolume.instance.cells.Values)
+                        {
+                            if (ShouldCullCell(cell.position, ProbeReferenceVolume.instance.GetTransform().posWS))
+                                continue;
+
+                            if (cell.bricks == null)
+                                continue;
+
+                            foreach (var brick in cell.bricks)
+                                yield return brick;
                         }
                     }
                 }
+
+                if (brickGizmos == null)
+                    brickGizmos = new MeshGizmo((int)(Mathf.Pow(3, ProbeBrickIndex.kMaxSubdivisionLevels) * MeshGizmo.vertexCountPerCube));
+
+                brickGizmos.Clear();
+                foreach (var brick in GetVisibleBricks())
+                {
+                    if (brick.subdivisionLevel < 0)
+                        continue;
+
+                    Vector3 scaledSize = Vector3.one * Mathf.Pow(3, brick.subdivisionLevel);
+                    Vector3 scaledPos = brick.position + scaledSize / 2;
+                    brickGizmos.AddWireCube(scaledPos, scaledSize, subdivColors[brick.subdivisionLevel]);
+                }
+
+                Matrix4x4 trs = ProbeReferenceVolume.instance.GetRefSpaceToWS();
+
+                // For realtime subdivision, the matrix from ProbeReferenceVolume.instance can be wrong if the profile changed since the last bake
+                if (debugDisplay.realtimeSubdivision)
+                    trs = Matrix4x4.TRS(transform.position, Quaternion.identity, Vector3.one * m_Profile.minBrickSize);
+
+                brickGizmos.RenderWireframe(trs, gizmoName: "Brick Gizmo Rendering");
+            }
+
+            if (debugDisplay.drawCells)
+            {
+                IEnumerable<Vector3> GetVisibleCellCenters()
+                {
+                    if (debugDisplay.realtimeSubdivision)
+                    {
+                        foreach (var kp in realtimeSubdivisionInfo)
+                        {
+                            kp.Key.CalculateCenterAndSize(out var center, out var _);
+                            yield return center;
+                        }
+                    }
+                    else
+                    {
+                        foreach (var cell in ProbeReferenceVolume.instance.cells.Values)
+                        {
+                            if (ShouldCullCell(cell.position, ProbeReferenceVolume.instance.GetTransform().posWS))
+                                continue;
+
+                            var positionF = new Vector3(cell.position.x, cell.position.y, cell.position.z);
+                            var center = positionF * m_Profile.cellSizeInMeters + m_Profile.cellSizeInMeters * 0.5f * Vector3.one;
+                            yield return center;
+                        }
+                    }
+                }
+
+                Matrix4x4 trs = Matrix4x4.TRS(ProbeReferenceVolume.instance.GetTransform().posWS, ProbeReferenceVolume.instance.GetTransform().rot, Vector3.one);
+
+                // For realtime subdivision, the matrix from ProbeReferenceVolume.instance can be wrong if the profile changed since the last bake
+                if (debugDisplay.realtimeSubdivision)
+                    trs = Matrix4x4.TRS(transform.position, Quaternion.identity, Vector3.one);
+
+                // Fetching this from components instead of from the reference volume allows the user to
+                // preview how cells will look before they commit to a bake.
+                Gizmos.color = new Color(0, 1, 0.5f, 0.2f);
+                Gizmos.matrix = trs;
+                if (cellGizmo == null)
+                    cellGizmo = new MeshGizmo();
+                cellGizmo.Clear();
+                foreach (var center in GetVisibleCellCenters())
+                {
+                    Gizmos.DrawCube(center, Vector3.one * m_Profile.cellSizeInMeters);
+                    cellGizmo.AddWireCube(center, Vector3.one * m_Profile.cellSizeInMeters, new Color(0, 1, 0.5f, 1));
+                }
+                cellGizmo.RenderWireframe(Gizmos.matrix, gizmoName: "Brick Gizmo Rendering");
             }
         }
 

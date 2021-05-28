@@ -154,5 +154,36 @@ namespace UnityEditor.ShaderGraph.Drawing.Inspector
                 parentElement.Add(propertyRow);
             }
         }
+
+        internal static void AddCustomCheckboxProperty(
+            VisualElement parentElement, AbstractMaterialNode node,
+            Action setNodesAsDirtyCallback, Action updateNodeViewsCallback,
+            String label,
+            String undoLabel,
+            Func<bool> GetterFn,
+            Action<bool> SetterFn)
+        {
+            var fieldObj = new Toggle();
+            fieldObj.value = GetterFn();
+            var propertyRow = new PropertyRow(new Label(label));
+            propertyRow.Add(fieldObj, (field) =>
+            {
+                field.RegisterValueChangedCallback(evt =>
+                {
+                    if (evt.newValue.Equals(GetterFn()))
+                        return;
+
+                    setNodesAsDirtyCallback?.Invoke();
+                    node.owner.owner.RegisterCompleteObjectUndo("Change Disable Global Mip Bias");
+                    SetterFn((bool)evt.newValue);
+                    node.owner.ValidateGraph();
+                    updateNodeViewsCallback?.Invoke();
+                    node.Dirty(ModificationScope.Graph);
+                });
+            });
+            if (node is Serialization.MultiJsonInternal.UnknownNodeType)
+                fieldObj.SetEnabled(false);
+            parentElement.Add(propertyRow);
+        }
     }
 }

@@ -3,13 +3,13 @@ project:
   folder: URP-Update-Testing/Top-URP-Assets
   variables:
     ASSETSTORE_UPDATE_PROJECT_BRANCH: master
-    ASSETSTORE_UPDATE_PROJECT_REVISION: a69ec8d913e4953d91fd47763f35703d0ceb67ce
+    ASSETSTORE_UPDATE_PROJECT_REVISION: 818b6345d6bf46cf3e5644aceff134e866c6150e
 
 reuse_blocks:
   setup_with_utr:
     - [iPhone_Metal, OSX_Metal, Linux_Vulkan]: git clone https://github.cds.internal.unity3d.com/sophia/URP-Update-testing.git -b $ASSETSTORE_UPDATE_PROJECT_BRANCH TestProjects/URP-Update-Testing
     - [Win_DX11, Win_DX12, Win_Vulkan, Android_OpenGLES3, Android_Vulkan]: git clone https://github.cds.internal.unity3d.com/sophia/URP-Update-testing.git -b %ASSETSTORE_UPDATE_PROJECT_BRANCH% TestProjects/URP-Update-Testing
-      
+
     - [iPhone_Metal, OSX_Metal, Linux_Vulkan]: cd TestProjects/URP-Update-Testing && git checkout $ASSETSTORE_UPDATE_PROJECT_REVISION
     - [Win_DX11, Win_DX12, Win_Vulkan, Android_OpenGLES3, Android_Vulkan]: cd TestProjects/URP-Update-Testing && git checkout %ASSETSTORE_UPDATE_PROJECT_REVISION%
 
@@ -28,7 +28,7 @@ test_platforms:
   - type: editmode
     commands:
       - <reuse_blocks.setup_with_utr>
-expression_trigger: 
+expression_trigger:
   expression: ""
 platforms:
   - name: Win

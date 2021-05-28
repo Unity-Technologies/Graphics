@@ -21,6 +21,7 @@ namespace UnityEditor.Rendering.HighDefinition
         public SerializedProperty maximumLODLevelMode;
         public SerializedProperty maximumLODLevelQualityLevel;
         public SerializedProperty materialQuality;
+        public SerializedProperty msaaMode;
 
         public SerializedObject serializedObject => m_RootData.serializedObject;
 
@@ -46,9 +47,9 @@ namespace UnityEditor.Rendering.HighDefinition
             => m_BitDatas.HasBitMultipleDifferentValue((uint)field);
 
         public bool GetOverrides(FrameSettingsField field)
-            => m_BitOverrides?.GetBitAt((uint)field) ?? false; //rootOverride can be null in case of hdrpAsset defaults
+            => m_BitOverrides?.GetBitAt((uint)field) ?? false; //rootOverride can be null in case of hdrp global settings
         public void SetOverrides(FrameSettingsField field, bool value)
-            => m_BitOverrides?.SetBitAt((uint)field, value); //rootOverride can be null in case of hdrpAsset defaults
+            => m_BitOverrides?.SetBitAt((uint)field, value); //rootOverride can be null in case of hdrp global settings
         public bool HaveMultipleOverride(FrameSettingsField field)
             => m_BitOverrides?.HasBitMultipleDifferentValue((uint)field) ?? false;
 
@@ -92,6 +93,7 @@ namespace UnityEditor.Rendering.HighDefinition
             maximumLODLevelMode         = rootData.FindPropertyRelative("maximumLODLevelMode");
             maximumLODLevelQualityLevel = rootData.FindPropertyRelative("maximumLODLevelQualityLevel");
             materialQuality             = rootData.Find((FrameSettings s) => s.materialQuality);
+            msaaMode                    = rootData.FindPropertyRelative("msaaMode");
         }
 
         public struct TitleDrawingScope : IDisposable

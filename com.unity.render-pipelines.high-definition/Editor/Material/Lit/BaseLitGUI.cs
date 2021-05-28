@@ -18,9 +18,6 @@ namespace UnityEditor.Rendering.HighDefinition
         // Wind
         protected const string kWindEnabled = "_EnableWind";
 
-        // tessellation params
-        protected const string kTessellationMode = "_TessellationMode";
-
         // Decal
         protected const string kEnableGeometricSpecularAA = "_EnableGeometricSpecularAA";
 
@@ -71,8 +68,8 @@ namespace UnityEditor.Rendering.HighDefinition
                 // Only set if tessellation exist
                 CoreUtils.SetKeyword(material, "_TESSELLATION_DISPLACEMENT", enableTessellationDisplacement);
 
-                bool displacementLockObjectScale = material.GetFloat(kDisplacementLockObjectScale) > 0.0;
-                bool displacementLockTilingScale = material.GetFloat(kDisplacementLockTilingScale) > 0.0;
+                bool displacementLockObjectScale = material.GetFloat(kDisplacementLockObjectScale) > 0.0f;
+                bool displacementLockTilingScale = material.GetFloat(kDisplacementLockTilingScale) > 0.0f;
                 // Tessellation reuse vertex flag.
                 CoreUtils.SetKeyword(material, "_VERTEX_DISPLACEMENT_LOCK_OBJECT_SCALE", displacementLockObjectScale && (enableVertexDisplacement || enableTessellationDisplacement));
                 CoreUtils.SetKeyword(material, "_PIXEL_DISPLACEMENT_LOCK_OBJECT_SCALE", displacementLockObjectScale && enablePixelDisplacement);
@@ -85,19 +82,13 @@ namespace UnityEditor.Rendering.HighDefinition
 
             CoreUtils.SetKeyword(material, "_VERTEX_WIND", false);
 
-            if (material.HasProperty(kTessellationMode))
-            {
-                TessellationMode tessMode = (TessellationMode)material.GetFloat(kTessellationMode);
-                CoreUtils.SetKeyword(material, "_TESSELLATION_PHONG", tessMode == TessellationMode.Phong);
-            }
-
             material.SetupMainTexForAlphaTestGI("_BaseColorMap", "_BaseColor");
 
             // Use negation so we don't create keyword by default
-            CoreUtils.SetKeyword(material, "_DISABLE_DECALS", material.HasProperty(kSupportDecals) && material.GetFloat(kSupportDecals) == 0.0);
-            CoreUtils.SetKeyword(material, "_DISABLE_SSR", material.HasProperty(kReceivesSSR) && material.GetFloat(kReceivesSSR) == 0.0);
-            CoreUtils.SetKeyword(material, "_DISABLE_SSR_TRANSPARENT", material.HasProperty(kReceivesSSRTransparent) && material.GetFloat(kReceivesSSRTransparent) == 0.0);
-            CoreUtils.SetKeyword(material, "_ENABLE_GEOMETRIC_SPECULAR_AA", material.HasProperty(kEnableGeometricSpecularAA) && material.GetFloat(kEnableGeometricSpecularAA) == 1.0);
+            CoreUtils.SetKeyword(material, "_DISABLE_DECALS", material.HasProperty(kSupportDecals) && material.GetFloat(kSupportDecals) == 0.0f);
+            CoreUtils.SetKeyword(material, "_DISABLE_SSR", material.HasProperty(kReceivesSSR) && material.GetFloat(kReceivesSSR) == 0.0f);
+            CoreUtils.SetKeyword(material, "_DISABLE_SSR_TRANSPARENT", material.HasProperty(kReceivesSSRTransparent) && material.GetFloat(kReceivesSSRTransparent) == 0.0f);
+            CoreUtils.SetKeyword(material, "_ENABLE_GEOMETRIC_SPECULAR_AA", material.HasProperty(kEnableGeometricSpecularAA) && material.GetFloat(kEnableGeometricSpecularAA) == 1.0f);
 
             if (material.HasProperty(kRefractionModel))
             {

@@ -119,7 +119,7 @@ namespace UnityEditor.Rendering.HighDefinition
             get
             {
                 if (s_uvHandles == null || s_uvHandles.Equals(null))
-                    s_uvHandles = new DisplacableRectHandles(s_LastColor);
+                    s_uvHandles = new DisplacableRectHandles(s_LastColor, allowsNegative: true);
                 return s_uvHandles;
             }
         }

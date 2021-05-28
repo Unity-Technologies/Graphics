@@ -2,11 +2,11 @@
 
 Menu Path : **GPU Event > Trigger Event Always**
 
-The **Trigger Event Always** Block triggers the continual creation of a specified number of particles each frame via a [GPU Event](Context-GPUEvent.md). Trigger blocks always execute at the end of Update, regardless of where the block is on the [blackboard](Blackboard.md).
+The **Trigger Event Always** Block triggers the continual creation of a specified number of particles each frame via a [GPU Event](Context-GPUEvent.md). Trigger Block always execute at the end of Update, regardless of where the Block is on the [blackboard](Blackboard.md).
 
 
 
-You can also use the Trigger block with various conditions to create more complex spawning behavior. For example:
+You can also use the Trigger Block with various conditions to create more complex spawning behavior. For example:
 
 ![](Images/Block-TriggerEventAlwaysExample.png)
 
