@@ -41,6 +41,7 @@ namespace UnityEngine.Rendering
                     case GraphicsDeviceType.PlayStation4:
                     case GraphicsDeviceType.PlayStation5:
                     case GraphicsDeviceType.Vulkan:
+                    case GraphicsDeviceType.GameCoreXboxSeries:
                         return true;
 
                     default:
