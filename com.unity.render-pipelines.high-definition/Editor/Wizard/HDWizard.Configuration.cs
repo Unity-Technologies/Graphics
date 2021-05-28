@@ -629,7 +629,16 @@ namespace UnityEditor.Rendering.HighDefinition
             => FixAllEntryInScope(InclusiveMode.DXR);
 
         bool IsDXRAutoGraphicsAPICorrect()
-            => !PlayerSettings.GetUseDefaultGraphicsAPIs(CalculateSelectedBuildTarget());
+        {
+            var buildTarget = CalculateSelectedBuildTarget();
+            
+            if ( buildTarget == BuildTarget.GameCoreXboxSeries)
+            {
+                return true;
+            }
+            
+            return !PlayerSettings.GetUseDefaultGraphicsAPIs(buildTarget);
+        }
 
         void FixDXRAutoGraphicsAPI(bool fromAsyncUnused)
             => PlayerSettings.SetUseDefaultGraphicsAPIs(CalculateSelectedBuildTarget(), false);
@@ -768,7 +777,7 @@ namespace UnityEditor.Rendering.HighDefinition
         }
 
         bool IsArchitecture64Bits()
-            => EditorUserBuildSettings.activeBuildTarget == BuildTarget.StandaloneWindows64;
+            => (EditorUserBuildSettings.activeBuildTarget == BuildTarget.StandaloneWindows64) || (EditorUserBuildSettings.activeBuildTarget == BuildTarget.GameCoreXboxSeries);
 
         void FixArchitecture64Bits(bool fromAsyncUnused)
         {

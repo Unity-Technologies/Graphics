@@ -675,7 +675,9 @@ namespace UnityEngine.Rendering.HighDefinition
             => UnityEngine.SystemInfo.supportsRayTracing
 #if UNITY_EDITOR
             && (UnityEditor.EditorUserBuildSettings.activeBuildTarget == UnityEditor.BuildTarget.StandaloneWindows64
-                || UnityEditor.EditorUserBuildSettings.activeBuildTarget == UnityEditor.BuildTarget.StandaloneWindows)
+                || UnityEditor.EditorUserBuildSettings.activeBuildTarget == UnityEditor.BuildTarget.StandaloneWindows
+                || UnityEditor.EditorUserBuildSettings.activeBuildTarget == UnityEditor.BuildTarget.GameCoreXboxSeries
+                )
 #endif
         ;
 
