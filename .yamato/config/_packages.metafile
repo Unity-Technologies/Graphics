@@ -66,5 +66,5 @@ publish_all_tracks:
 
 
 # upm-ci command flags
-projectcontext_test_min_upmci_flags: --project-path TestProjects/SRP_SmokeTest --type vetting-tests
-projectcontext_test_upmci_flags: --project-path TestProjects/SRP_SmokeTest --type vetting-tests
+projectcontext_test_min_upmci_flags: --project-path TestProjects/SRP_SmokeTest --type vetting-tests --extra-create-project-arg="-upmNoDefaultPackages"
+projectcontext_test_upmci_flags: --project-path TestProjects/SRP_SmokeTest --type vetting-tests --extra-create-project-arg="-upmNoDefaultPackages"
