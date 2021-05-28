@@ -27,10 +27,9 @@ namespace UnityEditor.Rendering.BuiltIn.ShaderGraph
         {
             get
             {
-                // Ideally this should be used to cause every material using a shader graph to get updated when the built-in target is added to it.
-                // There's currently no good path for this (the methods URP and HDRP use are flawed) so instead this is always run
-                // on save while waiting for upcoming changes for import dependencies.
-                bool needsUpdate = true;
+                // Currently all SG properties are duplicated inside the material, so changing a value on the SG does not
+                // impact any already created material
+                bool needsUpdate = false;
                 return new BuiltInShaderGraphSaveContext { updateMaterials = needsUpdate };
             }
         }

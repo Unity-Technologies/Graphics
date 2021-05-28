@@ -5,7 +5,7 @@ namespace UnityEditor.Rendering.Universal
 {
     internal static class CreateDecalProjector
     {
-        [MenuItem("GameObject/Rendering/Decal Projector", priority = CoreUtils.Priorities.gameObjectMenuPriority)]
+        [MenuItem("GameObject/Rendering/URP Decal Projector", priority = CoreUtils.Priorities.gameObjectMenuPriority)]
         public static void CreateDecal(MenuCommand menuCommand)
         {
             var go = CoreEditorUtils.CreateGameObject("Decal Projector", menuCommand.context);
