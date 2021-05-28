@@ -147,6 +147,7 @@ namespace UnityEditor.Rendering.HighDefinition
             public static readonly GUIContent supportedRayTracingMode = EditorGUIUtility.TrTextContent("Supported Ray Tracing Mode (Preview)");
             public static readonly GUIContent rayTracingUnsupportedWarning = EditorGUIUtility.TrTextContent("Ray tracing is not supported on your device. Please refer to the documentation.");
             public static readonly GUIContent rayTracingDX12OnlyWarning = EditorGUIUtility.TrTextContent("Ray tracing is currently only supported on DX12.");
+            public static readonly GUIContent rayTracingMSAAUnsupported = EditorGUIUtility.TrTextContent("When Ray tracing is enabled in asset, MSAA is not supported. Please refer to the documentation.");
             public static readonly GUIContent maximumLODLevel = EditorGUIUtility.TrTextContent("Maximum LOD Level");
             public static readonly GUIContent LODBias = EditorGUIUtility.TrTextContent("LOD Bias");
             public static readonly GUIContent supportProbeVolumeContent = EditorGUIUtility.TrTextContent("Enable", "When enabled, HDRP allocates Shader variants and memory for probe volume based GI. This allows you to use probe volumes in your Unity Project.");
