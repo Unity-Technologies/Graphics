@@ -97,7 +97,7 @@ namespace UnityEngine.Rendering.Universal.Internal
 
             // A camera could be rendered multiple times per frame, only updates the previous view proj & pos if needed
 #if ENABLE_VR && ENABLE_XR_MODULE
-            if (cameraData.xr.enabled)
+            if (cameraData.xr.enabled && cameraData.xr.singlePassEnabled)
             {
                 var gpuVP0 = GL.GetGPUProjectionMatrix(cameraData.GetProjectionMatrix(0), true) * cameraData.GetViewMatrix(0);
                 var gpuVP1 = GL.GetGPUProjectionMatrix(cameraData.GetProjectionMatrix(1), true) * cameraData.GetViewMatrix(1);
