@@ -63,6 +63,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Added ValidateMaterial callbacks to ShaderGUI.
 - Added support for internal plugin materials and HDSubTarget with their versioning system.
 - Added two toggles to control occluder rejection and receiver rejection for the ray traced ambient occlusion (case 1330168).
+- Added the receiver motion rejection toggle to RTGI (case 1330168).
 
 ### Fixed
 - Fixed Intensity Multiplier not affecting realtime global illumination.
