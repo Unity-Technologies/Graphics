@@ -381,7 +381,7 @@ namespace UnityEngine.Rendering.Universal.Internal
             bool hasNormalPrepass,
             RTHandle depthCopyTexture,
             RTHandle depthAttachment,
-            RenderTargetHandle colorAttachment)
+            RTHandle colorAttachment)
         {
             m_AdditionalLightsShadowCasterPass = additionalLightsShadowCasterPass;
             this.HasDepthPrepass = hasDepthPrepass;
@@ -389,7 +389,7 @@ namespace UnityEngine.Rendering.Universal.Internal
 
             this.DepthCopyTexture = new RenderTargetHandle(depthCopyTexture);
 
-            this.GbufferAttachments[this.GBufferLightingIndex] = colorAttachment;
+            this.GbufferAttachments[this.GBufferLightingIndex] = new RenderTargetHandle(colorAttachment);
             this.DepthAttachment = new RenderTargetHandle(depthAttachment);
 
             this.DepthCopyTextureIdentifier = this.DepthCopyTexture.Identifier();
