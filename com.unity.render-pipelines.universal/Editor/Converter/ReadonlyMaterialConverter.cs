@@ -42,7 +42,7 @@ namespace UnityEditor.Rendering.Universal.Converters
         public override string name => "Readonly Material Converter";
         public override string info => "Converts references to Built-In readonly materials to URP readonly materials";
         public override Type container => typeof(BuiltInToURPConverterContainer);
-        public override bool NeedsIndexing => true;
+        public override bool needsIndexing => true;
 
         public override void OnInitialize(InitializeConverterContext ctx, Action callback)
         {
