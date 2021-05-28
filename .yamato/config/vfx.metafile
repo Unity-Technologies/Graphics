@@ -1,0 +1,19 @@
+project:
+  name: VFX
+
+jobs:
+  - name: PR <PROJECT_NAME>
+    dependencies:
+      - .yamato/all-vfx_hdrp.yml#PR_VFX_HDRP_<TRACK>
+      - .yamato/all-vfx_urp.yml#PR_VFX_URP_<TRACK>
+  - name: Extra <PROJECT_NAME>
+    dependencies:
+      - .yamato/all-vfx_hdrp.yml#Extra_VFX_HDRP_<TRACK>
+      - .yamato/all-vfx_urp.yml#Extra_VFX_URP_<TRACK>
+  - name: <PROJECT_NAME>
+    dependencies:
+      - <PROJECT_ALL_YML_FILE>#PR_<PROJECT_NAME>_<TRACK>
+      - <PROJECT_ALL_YML_FILE>#Extra_<PROJECT_NAME>_<TRACK>
+  - name: Nightly <PROJECT_NAME>
+    dependencies:
+      - <PROJECT_ALL_YML_FILE>#<PROJECT_NAME>_<TRACK>

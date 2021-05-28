@@ -96,90 +96,94 @@ platforms:
       - name: mono
     color_spaces:
       - Linear
-pr:
-  dependencies:
-    - platform: Win
-      api: DX11
-      build_config: mono
-      color_space: Linear
-      test_platforms:
-        - Standalone_cache
-        #- playmode_cache
-        #- playmode_XR_cache
-        #- editmode
-    - project: VFX_HDRP
-      pr: true
-nightly:
-  dependencies:
-    - project: HDRP
-      pr: true
-    - project: HDRP_DXR
-      nightly: true
-    - project: VFX_HDRP
-      nightly: true
-    - project: Smoke_Test
-      nightly: true
-    - platform: Win
-      api: DX12
-      build_config: mono
-      color_space: Linear
-      test_platforms:
-        - Standalone_cache
-        - playmode_XR_cache
-        - editmode_XR
-    - platform: Win
-      api: Vulkan
-      build_config: mono
-      color_space: Linear
-      test_platforms:
-        - Standalone_cache
-        - playmode_XR_cache
-    - platform: Linux
-      api: Vulkan
-      build_config: mono
-      color_space: Linear
-      test_platforms:
-        - editmode
-    - platform: OSX
-      api: Metal
-      build_config: mono
-      color_space: Linear
-      test_platforms:
-        - Standalone_cache
-### TODO: MOVE THE FOLLOWING JOBS BACK TO PR JOBS
-    - platform: Win
-      api: DX11
-      build_config: mono
-      color_space: Linear
-      test_platforms:
-        - playmode_cache
-        - playmode_XR_cache
-        - editmode
-    - platform: Win
-      api: DX12
-      build_config: mono
-      color_space: Linear
-      test_platforms:
-        - playmode_cache
-    - platform: Win
-      api: Vulkan
-      build_config: mono
-      color_space: Linear
-      test_platforms:
-        - playmode_cache
-    - platform: OSX
-      api: Metal
-      build_config: mono
-      color_space: Linear
-      test_platforms:
-        # - Standalone
-        - playmode_cache
-    - platform: Linux
-      api: Vulkan
-      build_config: mono
-      color_space: Linear
-      test_platforms:
-        - Standalone_cache
-        - playmode_cache
-    - project: HDRP_DXR
-      pr: true
+
+jobs:
+  - name: PR <PROJECT_NAME>
+    dependencies:
+      - platform: Win
+        api: DX11
+        build_config: mono
+        color_space: Linear
+        test_platforms:
+          - Standalone_cache
+          #- playmode_cache
+          #- playmode_XR_cache
+          #- editmode
+      - .yamato/all-hdrp_dxr.yml#PR_HDRP_DXR_<TRACK>
+      - .yamato/all-hdrp_hybrid.yml#PR_HDRP_Hybrid_<TRACK>
+      - .yamato/all-vfx_hdrp.yml#PR_VFX_HDRP_<TRACK>
+  - name: Extra <PROJECT_NAME>
+    dependencies:
+      - platform: Win
+        api: DX12
+        build_config: mono
+        color_space: Linear
+        test_platforms:
+          - Standalone_cache
+          - playmode_XR_cache
+          - editmode_XR
+      - platform: Win
+        api: Vulkan
+        build_config: mono
+        color_space: Linear
+        test_platforms:
+          - Standalone_cache
+          - playmode_XR_cache
+      - platform: Linux
+        api: Vulkan
+        build_config: mono
+        color_space: Linear
+        test_platforms:
+          - editmode
+      - platform: OSX
+        api: Metal
+        build_config: mono
+        color_space: Linear
+        test_platforms:
+          - Standalone_cache
+  ### TODO: MOVE THE FOLLOWING JOBS BACK TO PR JOBS
+      - platform: Win
+        api: DX11
+        build_config: mono
+        color_space: Linear
+        test_platforms:
+          - playmode_cache
+          - playmode_XR_cache
+          - editmode
+      - platform: Win
+        api: DX12
+        build_config: mono
+        color_space: Linear
+        test_platforms:
+          - playmode_cache
+      - platform: Win
+        api: Vulkan
+        build_config: mono
+        color_space: Linear
+        test_platforms:
+          - playmode_cache
+      - platform: OSX
+        api: Metal
+        build_config: mono
+        color_space: Linear
+        test_platforms:
+          # - Standalone
+          - playmode_cache
+      - platform: Linux
+        api: Vulkan
+        build_config: mono
+        color_space: Linear
+        test_platforms:
+          - Standalone_cache
+          - playmode_cache
+  - name: <PROJECT_NAME>
+    dependencies:
+      - <PROJECT_ALL_YML_FILE>#PR_<PROJECT_NAME>_<TRACK>
+      - <PROJECT_ALL_YML_FILE>#Extra_<PROJECT_NAME>_<TRACK>
+
+  - name: Nightly <PROJECT_NAME>
+    dependencies:
+      - .yamato/all-hdrp_performancetests.yml#HDRP_PerformanceTests_<TRACK>
+      - .yamato/all-hdrp_hybrid.yml#HDRP_Hybrid_<TRACK>
+      - .yamato/all-hdrp_dxr.yml#HDRP_DXR_<TRACK>
+      - .yamato/all-hdrp.yml#HDRP_<TRACK>

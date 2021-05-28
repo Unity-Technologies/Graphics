@@ -26,16 +26,21 @@ platforms:
       - name: mono
     color_spaces:
       - Linear
-pr:
-  dependencies:
-    - platform: Win
-      api: ''
-      build_config: mono
-      color_space: Linear
-      test_platforms:
-        - Standalone_cache
-        - editmode
-nightly:
-  dependencies:
-    - project: Universal_Stereo
-      pr: true
+
+jobs:
+  - name: PR <PROJECT_NAME>
+    dependencies:
+      - platform: Win
+        api: ''
+        build_config: mono
+        color_space: Linear
+        test_platforms:
+          - Standalone_cache
+          - editmode
+  - name: Extra <PROJECT_NAME>
+    dependencies:
+      []
+  - name: <PROJECT_NAME>
+    dependencies:
+      - <PROJECT_ALL_YML_FILE>#PR_<PROJECT_NAME>_<TRACK>
+      - <PROJECT_ALL_YML_FILE>#Extra_<PROJECT_NAME>_<TRACK>
