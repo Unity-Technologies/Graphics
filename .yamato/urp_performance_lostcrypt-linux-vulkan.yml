@@ -23,14 +23,14 @@ URP_Performance_LostCrypt_Linux_Vulkan_performance_playmode_runtime_mono_Linear_
         TEST_FILTER: .*
     commands:
       -  command: curl -s https://artifactory.prd.it.unity3d.com/artifactory/unity-tools-local/utr-standalone/utr --output utr
-         retries: 3
+         retries: 2
       -  command: chmod +x utr
       -  command: DISPLAY=:0.0 ./utr --artifacts_path=TestProjects/2d-sara/test-results --editor-location=.Editor --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-force-vulkan" --scripting-backend=Mono2x --suite=playmode --testfilter=$TEST_FILTER --testproject=./TestProjects/2d-sara --zero-tests-are-ok=1
-         retries: 3
+         retries: 2
       -  command: DISPLAY=:0.0 ./utr --artifacts_path=TestProjects/2d-sara/test-results --editor-location=.Editor --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-force-vulkan" --scripting-backend=Mono2x --suite=playmode --testfilter=$TEST_FILTER --testproject=./TestProjects/2d-sara --zero-tests-are-ok=1
-         retries: 3
+         retries: 2
       -  command: DISPLAY=:0.0 ./utr --artifacts_path=TestProjects/2d-sara/test-results --editor-location=.Editor --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-force-vulkan" --scripting-backend=Mono2x --suite=playmode --testfilter=$TEST_FILTER --testproject=./TestProjects/2d-sara --zero-tests-are-ok=1
-         retries: 3
+         retries: 2
     artifacts:
         logs:
             paths:
@@ -82,22 +82,22 @@ Build_URP_Performance_LostCrypt_Linux_Vulkan_performance_playmode_runtime_mono_L
       -  cd TestProjects/2d-sara && unity-config project add testable unity.graphictests.performance.universal  --project-path .
       -  cd TestProjects/2d-sara && unity-config project set project-update false --project-path .
       -  command: curl -s https://artifactory.prd.it.unity3d.com/artifactory/unity-tools-local/utr-standalone/utr --output utr
-         retries: 3
+         retries: 2
       -  command: chmod +x utr
       -  command: sudo rm -f /etc/apt/sources.list /etc/apt/sources.list.d/{nodesource,teamviewer,deadsnakes-ubuntu-ppa-}*
       -  command: curl -L https://artifactory.prd.it.unity3d.com/artifactory/api/gpg/key/public | sudo apt-key add -
       -  command: sudo sh -c "echo 'deb https://artifactory.prd.it.unity3d.com/artifactory/unity-apt-local bionic main' > /etc/apt/sources.list.d/unity.list"
       -  command: sudo apt update
       -  command: sudo apt install unity-downloader-cli
-         retries: 3
+         retries: 2
       -  command: sudo unity-downloader-cli --source-file unity_revision.txt -c editor -c il2cpp  --wait --published-only
-         retries: 3
+         retries: 2
       -  command: DISPLAY=:0.0 ./utr --artifacts_path=TestProjects/2d-sara/test-results --editor-location=.Editor --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-force-vulkan" --scripting-backend=Mono2x --suite=playmode --testfilter=$TEST_FILTER --testproject=./TestProjects/2d-sara --zero-tests-are-ok=1
-         retries: 3
+         retries: 2
       -  command: DISPLAY=:0.0 ./utr --artifacts_path=TestProjects/2d-sara/test-results --editor-location=.Editor --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-force-vulkan" --scripting-backend=Mono2x --suite=playmode --testfilter=$TEST_FILTER --testproject=./TestProjects/2d-sara --zero-tests-are-ok=1
-         retries: 3
+         retries: 2
       -  command: DISPLAY=:0.0 ./utr --artifacts_path=TestProjects/2d-sara/test-results --editor-location=.Editor --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-force-vulkan" --scripting-backend=Mono2x --suite=playmode --testfilter=$TEST_FILTER --testproject=./TestProjects/2d-sara --zero-tests-are-ok=1
-         retries: 3
+         retries: 2
     artifacts:
         logs:
             paths:
@@ -150,20 +150,20 @@ URP_Performance_LostCrypt_Linux_Vulkan_performance_playmode_editor_mono_Linear_t
       -  cd TestProjects/2d-sara && unity-config project add testable unity.graphictests.performance.universal  --project-path .
       -  cd TestProjects/2d-sara && unity-config project set project-update false --project-path .
       -  command: curl -s https://artifactory.prd.it.unity3d.com/artifactory/unity-tools-local/utr-standalone/utr --output utr
-         retries: 3
+         retries: 2
       -  command: chmod +x utr
       -  command: sudo rm -f /etc/apt/sources.list /etc/apt/sources.list.d/{nodesource,teamviewer,deadsnakes-ubuntu-ppa-}*
       -  command: curl -L https://artifactory.prd.it.unity3d.com/artifactory/api/gpg/key/public | sudo apt-key add -
       -  command: sudo sh -c "echo 'deb https://artifactory.prd.it.unity3d.com/artifactory/unity-apt-local bionic main' > /etc/apt/sources.list.d/unity.list"
       -  command: sudo apt update
       -  command: sudo apt install unity-downloader-cli
-         retries: 3
+         retries: 2
       -  command: sudo unity-downloader-cli --source-file unity_revision.txt -c editor -c il2cpp  --wait --published-only
-         retries: 3
+         retries: 2
       -  command: DISPLAY=:0.0 ./utr --artifacts_path=TestProjects/2d-sara/test-results --editor-location=.Editor --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-force-vulkan" --scripting-backend=Mono2x --suite=playmode --testfilter=$TEST_FILTER --testproject=./TestProjects/2d-sara --zero-tests-are-ok=1
-         retries: 3
+         retries: 2
       -  command: DISPLAY=:0.0 ./utr --artifacts_path=TestProjects/2d-sara/test-results --editor-location=.Editor --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-force-vulkan" --scripting-backend=Mono2x --suite=playmode --testfilter=$TEST_FILTER --testproject=./TestProjects/2d-sara --zero-tests-are-ok=1
-         retries: 3
+         retries: 2
     artifacts:
         logs:
             paths:
@@ -213,20 +213,20 @@ URP_Performance_LostCrypt_Linux_Vulkan_performance_build_editmode_mono_Linear_tr
       -  cd TestProjects/2d-sara && unity-config project add testable unity.graphictests.performance.universal  --project-path .
       -  cd TestProjects/2d-sara && unity-config project set project-update false --project-path .
       -  command: curl -s https://artifactory.prd.it.unity3d.com/artifactory/unity-tools-local/utr-standalone/utr --output utr
-         retries: 3
+         retries: 2
       -  command: chmod +x utr
       -  command: sudo rm -f /etc/apt/sources.list /etc/apt/sources.list.d/{nodesource,teamviewer,deadsnakes-ubuntu-ppa-}*
       -  command: curl -L https://artifactory.prd.it.unity3d.com/artifactory/api/gpg/key/public | sudo apt-key add -
       -  command: sudo sh -c "echo 'deb https://artifactory.prd.it.unity3d.com/artifactory/unity-apt-local bionic main' > /etc/apt/sources.list.d/unity.list"
       -  command: sudo apt update
       -  command: sudo apt install unity-downloader-cli
-         retries: 3
+         retries: 2
       -  command: sudo unity-downloader-cli --source-file unity_revision.txt -c editor -c il2cpp  --wait --published-only
-         retries: 3
+         retries: 2
       -  command: DISPLAY=:0.0 ./utr --artifacts_path=TestProjects/2d-sara/test-results --editor-location=.Editor --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-force-vulkan" --scripting-backend=Mono2x --suite=playmode --testfilter=$TEST_FILTER --testproject=./TestProjects/2d-sara --zero-tests-are-ok=1
-         retries: 3
+         retries: 2
       -  command: DISPLAY=:0.0 ./utr --artifacts_path=TestProjects/2d-sara/test-results --editor-location=.Editor --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-force-vulkan" --scripting-backend=Mono2x --suite=playmode --testfilter=$TEST_FILTER --testproject=./TestProjects/2d-sara --zero-tests-are-ok=1
-         retries: 3
+         retries: 2
     artifacts:
         logs:
             paths:
@@ -250,14 +250,14 @@ URP_Performance_LostCrypt_Linux_Vulkan_performance_playmode_runtime_mono_Linear_
         TEST_FILTER: .*
     commands:
       -  command: curl -s https://artifactory.prd.it.unity3d.com/artifactory/unity-tools-local/utr-standalone/utr --output utr
-         retries: 3
+         retries: 2
       -  command: chmod +x utr
       -  command: DISPLAY=:0.0 ./utr --artifacts_path=TestProjects/2d-sara/test-results --editor-location=.Editor --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-force-vulkan" --scripting-backend=Mono2x --suite=playmode --testfilter=$TEST_FILTER --testproject=./TestProjects/2d-sara --zero-tests-are-ok=1
-         retries: 3
+         retries: 2
       -  command: DISPLAY=:0.0 ./utr --artifacts_path=TestProjects/2d-sara/test-results --editor-location=.Editor --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-force-vulkan" --scripting-backend=Mono2x --suite=playmode --testfilter=$TEST_FILTER --testproject=./TestProjects/2d-sara --zero-tests-are-ok=1
-         retries: 3
+         retries: 2
       -  command: DISPLAY=:0.0 ./utr --artifacts_path=TestProjects/2d-sara/test-results --editor-location=.Editor --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-force-vulkan" --scripting-backend=Mono2x --suite=playmode --testfilter=$TEST_FILTER --testproject=./TestProjects/2d-sara --zero-tests-are-ok=1
-         retries: 3
+         retries: 2
     artifacts:
         logs:
             paths:
@@ -309,22 +309,22 @@ Build_URP_Performance_LostCrypt_Linux_Vulkan_performance_playmode_runtime_mono_L
       -  cd TestProjects/2d-sara && unity-config project add testable unity.graphictests.performance.universal  --project-path .
       -  cd TestProjects/2d-sara && unity-config project set project-update false --project-path .
       -  command: curl -s https://artifactory.prd.it.unity3d.com/artifactory/unity-tools-local/utr-standalone/utr --output utr
-         retries: 3
+         retries: 2
       -  command: chmod +x utr
       -  command: sudo rm -f /etc/apt/sources.list /etc/apt/sources.list.d/{nodesource,teamviewer,deadsnakes-ubuntu-ppa-}*
       -  command: curl -L https://artifactory.prd.it.unity3d.com/artifactory/api/gpg/key/public | sudo apt-key add -
       -  command: sudo sh -c "echo 'deb https://artifactory.prd.it.unity3d.com/artifactory/unity-apt-local bionic main' > /etc/apt/sources.list.d/unity.list"
       -  command: sudo apt update
       -  command: sudo apt install unity-downloader-cli
-         retries: 3
+         retries: 2
       -  command: sudo unity-downloader-cli --source-file unity_revision.txt -c editor -c il2cpp  --wait --published-only
-         retries: 3
+         retries: 2
       -  command: DISPLAY=:0.0 ./utr --artifacts_path=TestProjects/2d-sara/test-results --editor-location=.Editor --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-force-vulkan" --scripting-backend=Mono2x --suite=playmode --testfilter=$TEST_FILTER --testproject=./TestProjects/2d-sara --zero-tests-are-ok=1
-         retries: 3
+         retries: 2
       -  command: DISPLAY=:0.0 ./utr --artifacts_path=TestProjects/2d-sara/test-results --editor-location=.Editor --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-force-vulkan" --scripting-backend=Mono2x --suite=playmode --testfilter=$TEST_FILTER --testproject=./TestProjects/2d-sara --zero-tests-are-ok=1
-         retries: 3
+         retries: 2
       -  command: DISPLAY=:0.0 ./utr --artifacts_path=TestProjects/2d-sara/test-results --editor-location=.Editor --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-force-vulkan" --scripting-backend=Mono2x --suite=playmode --testfilter=$TEST_FILTER --testproject=./TestProjects/2d-sara --zero-tests-are-ok=1
-         retries: 3
+         retries: 2
     artifacts:
         logs:
             paths:
@@ -377,20 +377,20 @@ URP_Performance_LostCrypt_Linux_Vulkan_performance_playmode_editor_mono_Linear_C
       -  cd TestProjects/2d-sara && unity-config project add testable unity.graphictests.performance.universal  --project-path .
       -  cd TestProjects/2d-sara && unity-config project set project-update false --project-path .
       -  command: curl -s https://artifactory.prd.it.unity3d.com/artifactory/unity-tools-local/utr-standalone/utr --output utr
-         retries: 3
+         retries: 2
       -  command: chmod +x utr
       -  command: sudo rm -f /etc/apt/sources.list /etc/apt/sources.list.d/{nodesource,teamviewer,deadsnakes-ubuntu-ppa-}*
       -  command: curl -L https://artifactory.prd.it.unity3d.com/artifactory/api/gpg/key/public | sudo apt-key add -
       -  command: sudo sh -c "echo 'deb https://artifactory.prd.it.unity3d.com/artifactory/unity-apt-local bionic main' > /etc/apt/sources.list.d/unity.list"
       -  command: sudo apt update
       -  command: sudo apt install unity-downloader-cli
-         retries: 3
+         retries: 2
       -  command: sudo unity-downloader-cli --source-file unity_revision.txt -c editor -c il2cpp  --wait --published-only
-         retries: 3
+         retries: 2
       -  command: DISPLAY=:0.0 ./utr --artifacts_path=TestProjects/2d-sara/test-results --editor-location=.Editor --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-force-vulkan" --scripting-backend=Mono2x --suite=playmode --testfilter=$TEST_FILTER --testproject=./TestProjects/2d-sara --zero-tests-are-ok=1
-         retries: 3
+         retries: 2
       -  command: DISPLAY=:0.0 ./utr --artifacts_path=TestProjects/2d-sara/test-results --editor-location=.Editor --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-force-vulkan" --scripting-backend=Mono2x --suite=playmode --testfilter=$TEST_FILTER --testproject=./TestProjects/2d-sara --zero-tests-are-ok=1
-         retries: 3
+         retries: 2
     artifacts:
         logs:
             paths:
@@ -440,20 +440,20 @@ URP_Performance_LostCrypt_Linux_Vulkan_performance_build_editmode_mono_Linear_CU
       -  cd TestProjects/2d-sara && unity-config project add testable unity.graphictests.performance.universal  --project-path .
       -  cd TestProjects/2d-sara && unity-config project set project-update false --project-path .
       -  command: curl -s https://artifactory.prd.it.unity3d.com/artifactory/unity-tools-local/utr-standalone/utr --output utr
-         retries: 3
+         retries: 2
       -  command: chmod +x utr
       -  command: sudo rm -f /etc/apt/sources.list /etc/apt/sources.list.d/{nodesource,teamviewer,deadsnakes-ubuntu-ppa-}*
       -  command: curl -L https://artifactory.prd.it.unity3d.com/artifactory/api/gpg/key/public | sudo apt-key add -
       -  command: sudo sh -c "echo 'deb https://artifactory.prd.it.unity3d.com/artifactory/unity-apt-local bionic main' > /etc/apt/sources.list.d/unity.list"
       -  command: sudo apt update
       -  command: sudo apt install unity-downloader-cli
-         retries: 3
+         retries: 2
       -  command: sudo unity-downloader-cli --source-file unity_revision.txt -c editor -c il2cpp  --wait --published-only
-         retries: 3
+         retries: 2
       -  command: DISPLAY=:0.0 ./utr --artifacts_path=TestProjects/2d-sara/test-results --editor-location=.Editor --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-force-vulkan" --scripting-backend=Mono2x --suite=playmode --testfilter=$TEST_FILTER --testproject=./TestProjects/2d-sara --zero-tests-are-ok=1
-         retries: 3
+         retries: 2
       -  command: DISPLAY=:0.0 ./utr --artifacts_path=TestProjects/2d-sara/test-results --editor-location=.Editor --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-force-vulkan" --scripting-backend=Mono2x --suite=playmode --testfilter=$TEST_FILTER --testproject=./TestProjects/2d-sara --zero-tests-are-ok=1
-         retries: 3
+         retries: 2
     artifacts:
         logs:
             paths:

@@ -25,28 +25,28 @@ URP_Performance_LostCrypt_Win_DX11_performance_playmode_runtime_mono_Linear_trun
     commands:
       -  command: NetSh Advfirewall set allprofiles state off
       -  command: curl -s https://artifactory.prd.it.unity3d.com/artifactory/unity-tools-local/utr-standalone/utr.bat --output utr.bat
-         retries: 3
+         retries: 2
       -  command: |5-
                 git rev-parse HEAD | git show -s --format=%%cI > revdate.tmp
                 set /p GIT_REVISIONDATE=<revdate.tmp
                 echo %GIT_REVISIONDATE%
                 del revdate.tmp
                 utr --artifacts_path=TestProjects/2d-sara/test-results --editor-location=.Editor --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-force-d3d11" --scripting-backend=Mono2x --suite=playmode --testfilter=%TEST_FILTER% --testproject=./TestProjects/2d-sara --zero-tests-are-ok=1
-         retries: 3
+         retries: 2
       -  command: |5-
                 git rev-parse HEAD | git show -s --format=%%cI > revdate.tmp
                 set /p GIT_REVISIONDATE=<revdate.tmp
                 echo %GIT_REVISIONDATE%
                 del revdate.tmp
                 utr --artifacts_path=TestProjects/2d-sara/test-results --editor-location=.Editor --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-force-d3d11" --scripting-backend=Mono2x --suite=playmode --testfilter=%TEST_FILTER% --testproject=./TestProjects/2d-sara --zero-tests-are-ok=1
-         retries: 3
+         retries: 2
       -  command: |5-
                 git rev-parse HEAD | git show -s --format=%%cI > revdate.tmp
                 set /p GIT_REVISIONDATE=<revdate.tmp
                 echo %GIT_REVISIONDATE%
                 del revdate.tmp
                 utr --artifacts_path=TestProjects/2d-sara/test-results --editor-location=.Editor --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-force-d3d11" --scripting-backend=Mono2x --suite=playmode --testfilter=%TEST_FILTER% --testproject=./TestProjects/2d-sara --zero-tests-are-ok=1
-         retries: 3
+         retries: 2
     artifacts:
         logs:
             paths:
@@ -96,32 +96,32 @@ Build_URP_Performance_LostCrypt_Win_DX11_performance_playmode_runtime_mono_Linea
       -  cd TestProjects/2d-sara && unity-config project set project-update false --project-path .
       -  command: NetSh Advfirewall set allprofiles state off
       -  command: curl -s https://artifactory.prd.it.unity3d.com/artifactory/unity-tools-local/utr-standalone/utr.bat --output utr.bat
-         retries: 3
+         retries: 2
       -  command: choco install unity-downloader-cli -y -s https://artifactory.prd.it.unity3d.com/artifactory/api/nuget/unity-choco-local
-         retries: 3
+         retries: 2
       -  command: unity-downloader-cli --source-file unity_revision.txt -c editor -c il2cpp  --wait --published-only
-         retries: 3
+         retries: 2
       -  command: |5-
                 git rev-parse HEAD | git show -s --format=%%cI > revdate.tmp
                 set /p GIT_REVISIONDATE=<revdate.tmp
                 echo %GIT_REVISIONDATE%
                 del revdate.tmp
                 utr --artifacts_path=TestProjects/2d-sara/test-results --editor-location=.Editor --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-force-d3d11" --scripting-backend=Mono2x --suite=playmode --testfilter=%TEST_FILTER% --testproject=./TestProjects/2d-sara --zero-tests-are-ok=1
-         retries: 3
+         retries: 2
       -  command: |5-
                 git rev-parse HEAD | git show -s --format=%%cI > revdate.tmp
                 set /p GIT_REVISIONDATE=<revdate.tmp
                 echo %GIT_REVISIONDATE%
                 del revdate.tmp
                 utr --artifacts_path=TestProjects/2d-sara/test-results --editor-location=.Editor --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-force-d3d11" --scripting-backend=Mono2x --suite=playmode --testfilter=%TEST_FILTER% --testproject=./TestProjects/2d-sara --zero-tests-are-ok=1
-         retries: 3
+         retries: 2
       -  command: |5-
                 git rev-parse HEAD | git show -s --format=%%cI > revdate.tmp
                 set /p GIT_REVISIONDATE=<revdate.tmp
                 echo %GIT_REVISIONDATE%
                 del revdate.tmp
                 utr --artifacts_path=TestProjects/2d-sara/test-results --editor-location=.Editor --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-force-d3d11" --scripting-backend=Mono2x --suite=playmode --testfilter=%TEST_FILTER% --testproject=./TestProjects/2d-sara --zero-tests-are-ok=1
-         retries: 3
+         retries: 2
     artifacts:
         logs:
             paths:
@@ -173,32 +173,32 @@ URP_Performance_LostCrypt_Win_DX11_performance_playmode_editor_mono_Linear_trunk
       -  cd TestProjects/2d-sara && unity-config project set project-update false --project-path .
       -  command: NetSh Advfirewall set allprofiles state off
       -  command: curl -s https://artifactory.prd.it.unity3d.com/artifactory/unity-tools-local/utr-standalone/utr.bat --output utr.bat
-         retries: 3
+         retries: 2
       -  command: choco install unity-downloader-cli -y -s https://artifactory.prd.it.unity3d.com/artifactory/api/nuget/unity-choco-local
-         retries: 3
+         retries: 2
       -  command: unity-downloader-cli --source-file unity_revision.txt -c editor -c il2cpp  --wait --published-only
-         retries: 3
+         retries: 2
       -  command: |5-
                 git rev-parse HEAD | git show -s --format=%%cI > revdate.tmp
                 set /p GIT_REVISIONDATE=<revdate.tmp
                 echo %GIT_REVISIONDATE%
                 del revdate.tmp
                 utr --artifacts_path=TestProjects/2d-sara/test-results --editor-location=.Editor --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-force-d3d11" --scripting-backend=Mono2x --suite=playmode --testfilter=%TEST_FILTER% --testproject=./TestProjects/2d-sara --zero-tests-are-ok=1
-         retries: 3
+         retries: 2
       -  command: |5-
                 git rev-parse HEAD | git show -s --format=%%cI > revdate.tmp
                 set /p GIT_REVISIONDATE=<revdate.tmp
                 echo %GIT_REVISIONDATE%
                 del revdate.tmp
                 utr --artifacts_path=TestProjects/2d-sara/test-results --editor-location=.Editor --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-force-d3d11" --scripting-backend=Mono2x --suite=playmode --testfilter=%TEST_FILTER% --testproject=./TestProjects/2d-sara --zero-tests-are-ok=1
-         retries: 3
+         retries: 2
       -  command: |5-
                 git rev-parse HEAD | git show -s --format=%%cI > revdate.tmp
                 set /p GIT_REVISIONDATE=<revdate.tmp
                 echo %GIT_REVISIONDATE%
                 del revdate.tmp
                 utr --artifacts_path=TestProjects/2d-sara/test-results --editor-location=.Editor --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-force-d3d11" --scripting-backend=Mono2x --suite=playmode --testfilter=%TEST_FILTER% --testproject=./TestProjects/2d-sara --zero-tests-are-ok=1
-         retries: 3
+         retries: 2
     artifacts:
         logs:
             paths:
@@ -246,32 +246,32 @@ URP_Performance_LostCrypt_Win_DX11_performance_build_editmode_mono_Linear_trunk:
       -  cd TestProjects/2d-sara && unity-config project set project-update false --project-path .
       -  command: NetSh Advfirewall set allprofiles state off
       -  command: curl -s https://artifactory.prd.it.unity3d.com/artifactory/unity-tools-local/utr-standalone/utr.bat --output utr.bat
-         retries: 3
+         retries: 2
       -  command: choco install unity-downloader-cli -y -s https://artifactory.prd.it.unity3d.com/artifactory/api/nuget/unity-choco-local
-         retries: 3
+         retries: 2
       -  command: unity-downloader-cli --source-file unity_revision.txt -c editor -c il2cpp  --wait --published-only
-         retries: 3
+         retries: 2
       -  command: |5-
                 git rev-parse HEAD | git show -s --format=%%cI > revdate.tmp
                 set /p GIT_REVISIONDATE=<revdate.tmp
                 echo %GIT_REVISIONDATE%
                 del revdate.tmp
                 utr --artifacts_path=TestProjects/2d-sara/test-results --editor-location=.Editor --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-force-d3d11" --scripting-backend=Mono2x --suite=playmode --testfilter=%TEST_FILTER% --testproject=./TestProjects/2d-sara --zero-tests-are-ok=1
-         retries: 3
+         retries: 2
       -  command: |5-
                 git rev-parse HEAD | git show -s --format=%%cI > revdate.tmp
                 set /p GIT_REVISIONDATE=<revdate.tmp
                 echo %GIT_REVISIONDATE%
                 del revdate.tmp
                 utr --artifacts_path=TestProjects/2d-sara/test-results --editor-location=.Editor --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-force-d3d11" --scripting-backend=Mono2x --suite=playmode --testfilter=%TEST_FILTER% --testproject=./TestProjects/2d-sara --zero-tests-are-ok=1
-         retries: 3
+         retries: 2
       -  command: |5-
                 git rev-parse HEAD | git show -s --format=%%cI > revdate.tmp
                 set /p GIT_REVISIONDATE=<revdate.tmp
                 echo %GIT_REVISIONDATE%
                 del revdate.tmp
                 utr --artifacts_path=TestProjects/2d-sara/test-results --editor-location=.Editor --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-force-d3d11" --scripting-backend=Mono2x --suite=playmode --testfilter=%TEST_FILTER% --testproject=./TestProjects/2d-sara --zero-tests-are-ok=1
-         retries: 3
+         retries: 2
     artifacts:
         logs:
             paths:
@@ -297,28 +297,28 @@ URP_Performance_LostCrypt_Win_DX11_performance_playmode_runtime_mono_Linear_CUST
     commands:
       -  command: NetSh Advfirewall set allprofiles state off
       -  command: curl -s https://artifactory.prd.it.unity3d.com/artifactory/unity-tools-local/utr-standalone/utr.bat --output utr.bat
-         retries: 3
+         retries: 2
       -  command: |5-
                 git rev-parse HEAD | git show -s --format=%%cI > revdate.tmp
                 set /p GIT_REVISIONDATE=<revdate.tmp
                 echo %GIT_REVISIONDATE%
                 del revdate.tmp
                 utr --artifacts_path=TestProjects/2d-sara/test-results --editor-location=.Editor --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-force-d3d11" --scripting-backend=Mono2x --suite=playmode --testfilter=%TEST_FILTER% --testproject=./TestProjects/2d-sara --zero-tests-are-ok=1
-         retries: 3
+         retries: 2
       -  command: |5-
                 git rev-parse HEAD | git show -s --format=%%cI > revdate.tmp
                 set /p GIT_REVISIONDATE=<revdate.tmp
                 echo %GIT_REVISIONDATE%
                 del revdate.tmp
                 utr --artifacts_path=TestProjects/2d-sara/test-results --editor-location=.Editor --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-force-d3d11" --scripting-backend=Mono2x --suite=playmode --testfilter=%TEST_FILTER% --testproject=./TestProjects/2d-sara --zero-tests-are-ok=1
-         retries: 3
+         retries: 2
       -  command: |5-
                 git rev-parse HEAD | git show -s --format=%%cI > revdate.tmp
                 set /p GIT_REVISIONDATE=<revdate.tmp
                 echo %GIT_REVISIONDATE%
                 del revdate.tmp
                 utr --artifacts_path=TestProjects/2d-sara/test-results --editor-location=.Editor --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-force-d3d11" --scripting-backend=Mono2x --suite=playmode --testfilter=%TEST_FILTER% --testproject=./TestProjects/2d-sara --zero-tests-are-ok=1
-         retries: 3
+         retries: 2
     artifacts:
         logs:
             paths:
@@ -368,32 +368,32 @@ Build_URP_Performance_LostCrypt_Win_DX11_performance_playmode_runtime_mono_Linea
       -  cd TestProjects/2d-sara && unity-config project set project-update false --project-path .
       -  command: NetSh Advfirewall set allprofiles state off
       -  command: curl -s https://artifactory.prd.it.unity3d.com/artifactory/unity-tools-local/utr-standalone/utr.bat --output utr.bat
-         retries: 3
+         retries: 2
       -  command: choco install unity-downloader-cli -y -s https://artifactory.prd.it.unity3d.com/artifactory/api/nuget/unity-choco-local
-         retries: 3
+         retries: 2
       -  command: unity-downloader-cli --source-file unity_revision.txt -c editor -c il2cpp  --wait --published-only
-         retries: 3
+         retries: 2
       -  command: |5-
                 git rev-parse HEAD | git show -s --format=%%cI > revdate.tmp
                 set /p GIT_REVISIONDATE=<revdate.tmp
                 echo %GIT_REVISIONDATE%
                 del revdate.tmp
                 utr --artifacts_path=TestProjects/2d-sara/test-results --editor-location=.Editor --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-force-d3d11" --scripting-backend=Mono2x --suite=playmode --testfilter=%TEST_FILTER% --testproject=./TestProjects/2d-sara --zero-tests-are-ok=1
-         retries: 3
+         retries: 2
       -  command: |5-
                 git rev-parse HEAD | git show -s --format=%%cI > revdate.tmp
                 set /p GIT_REVISIONDATE=<revdate.tmp
                 echo %GIT_REVISIONDATE%
                 del revdate.tmp
                 utr --artifacts_path=TestProjects/2d-sara/test-results --editor-location=.Editor --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-force-d3d11" --scripting-backend=Mono2x --suite=playmode --testfilter=%TEST_FILTER% --testproject=./TestProjects/2d-sara --zero-tests-are-ok=1
-         retries: 3
+         retries: 2
       -  command: |5-
                 git rev-parse HEAD | git show -s --format=%%cI > revdate.tmp
                 set /p GIT_REVISIONDATE=<revdate.tmp
                 echo %GIT_REVISIONDATE%
                 del revdate.tmp
                 utr --artifacts_path=TestProjects/2d-sara/test-results --editor-location=.Editor --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-force-d3d11" --scripting-backend=Mono2x --suite=playmode --testfilter=%TEST_FILTER% --testproject=./TestProjects/2d-sara --zero-tests-are-ok=1
-         retries: 3
+         retries: 2
     artifacts:
         logs:
             paths:
@@ -445,32 +445,32 @@ URP_Performance_LostCrypt_Win_DX11_performance_playmode_editor_mono_Linear_CUSTO
       -  cd TestProjects/2d-sara && unity-config project set project-update false --project-path .
       -  command: NetSh Advfirewall set allprofiles state off
       -  command: curl -s https://artifactory.prd.it.unity3d.com/artifactory/unity-tools-local/utr-standalone/utr.bat --output utr.bat
-         retries: 3
+         retries: 2
       -  command: choco install unity-downloader-cli -y -s https://artifactory.prd.it.unity3d.com/artifactory/api/nuget/unity-choco-local
-         retries: 3
+         retries: 2
       -  command: unity-downloader-cli --source-file unity_revision.txt -c editor -c il2cpp  --wait --published-only
-         retries: 3
+         retries: 2
       -  command: |5-
                 git rev-parse HEAD | git show -s --format=%%cI > revdate.tmp
                 set /p GIT_REVISIONDATE=<revdate.tmp
                 echo %GIT_REVISIONDATE%
                 del revdate.tmp
                 utr --artifacts_path=TestProjects/2d-sara/test-results --editor-location=.Editor --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-force-d3d11" --scripting-backend=Mono2x --suite=playmode --testfilter=%TEST_FILTER% --testproject=./TestProjects/2d-sara --zero-tests-are-ok=1
-         retries: 3
+         retries: 2
       -  command: |5-
                 git rev-parse HEAD | git show -s --format=%%cI > revdate.tmp
                 set /p GIT_REVISIONDATE=<revdate.tmp
                 echo %GIT_REVISIONDATE%
                 del revdate.tmp
                 utr --artifacts_path=TestProjects/2d-sara/test-results --editor-location=.Editor --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-force-d3d11" --scripting-backend=Mono2x --suite=playmode --testfilter=%TEST_FILTER% --testproject=./TestProjects/2d-sara --zero-tests-are-ok=1
-         retries: 3
+         retries: 2
       -  command: |5-
                 git rev-parse HEAD | git show -s --format=%%cI > revdate.tmp
                 set /p GIT_REVISIONDATE=<revdate.tmp
                 echo %GIT_REVISIONDATE%
                 del revdate.tmp
                 utr --artifacts_path=TestProjects/2d-sara/test-results --editor-location=.Editor --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-force-d3d11" --scripting-backend=Mono2x --suite=playmode --testfilter=%TEST_FILTER% --testproject=./TestProjects/2d-sara --zero-tests-are-ok=1
-         retries: 3
+         retries: 2
     artifacts:
         logs:
             paths:
@@ -518,32 +518,32 @@ URP_Performance_LostCrypt_Win_DX11_performance_build_editmode_mono_Linear_CUSTOM
       -  cd TestProjects/2d-sara && unity-config project set project-update false --project-path .
       -  command: NetSh Advfirewall set allprofiles state off
       -  command: curl -s https://artifactory.prd.it.unity3d.com/artifactory/unity-tools-local/utr-standalone/utr.bat --output utr.bat
-         retries: 3
+         retries: 2
       -  command: choco install unity-downloader-cli -y -s https://artifactory.prd.it.unity3d.com/artifactory/api/nuget/unity-choco-local
-         retries: 3
+         retries: 2
       -  command: unity-downloader-cli --source-file unity_revision.txt -c editor -c il2cpp  --wait --published-only
-         retries: 3
+         retries: 2
       -  command: |5-
                 git rev-parse HEAD | git show -s --format=%%cI > revdate.tmp
                 set /p GIT_REVISIONDATE=<revdate.tmp
                 echo %GIT_REVISIONDATE%
                 del revdate.tmp
                 utr --artifacts_path=TestProjects/2d-sara/test-results --editor-location=.Editor --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-force-d3d11" --scripting-backend=Mono2x --suite=playmode --testfilter=%TEST_FILTER% --testproject=./TestProjects/2d-sara --zero-tests-are-ok=1
-         retries: 3
+         retries: 2
       -  command: |5-
                 git rev-parse HEAD | git show -s --format=%%cI > revdate.tmp
                 set /p GIT_REVISIONDATE=<revdate.tmp
                 echo %GIT_REVISIONDATE%
                 del revdate.tmp
                 utr --artifacts_path=TestProjects/2d-sara/test-results --editor-location=.Editor --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-force-d3d11" --scripting-backend=Mono2x --suite=playmode --testfilter=%TEST_FILTER% --testproject=./TestProjects/2d-sara --zero-tests-are-ok=1
-         retries: 3
+         retries: 2
       -  command: |5-
                 git rev-parse HEAD | git show -s --format=%%cI > revdate.tmp
                 set /p GIT_REVISIONDATE=<revdate.tmp
                 echo %GIT_REVISIONDATE%
                 del revdate.tmp
                 utr --artifacts_path=TestProjects/2d-sara/test-results --editor-location=.Editor --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-force-d3d11" --scripting-backend=Mono2x --suite=playmode --testfilter=%TEST_FILTER% --testproject=./TestProjects/2d-sara --zero-tests-are-ok=1
-         retries: 3
+         retries: 2
     artifacts:
         logs:
             paths:

@@ -21,14 +21,14 @@ ShaderGraph_Stereo_Win_Standalone_mono_Linear_trunk:
         TEST_FILTER: .*
     commands:
       -  command: curl -s https://artifactory.prd.it.unity3d.com/artifactory/unity-tools-local/utr-standalone/utr.bat --output utr.bat
-         retries: 3
+         retries: 2
       -  command: |5-
                 git rev-parse HEAD | git show -s --format=%%cI > revdate.tmp
                 set /p GIT_REVISIONDATE=<revdate.tmp
                 echo %GIT_REVISIONDATE%
                 del revdate.tmp
                 utr --artifacts_path=TestProjects/ShaderGraphUniversalStereo/test-results --editor-location=.Editor --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-force-d3d11" --scripting-backend=Mono2x --suite=playmode --testfilter=%TEST_FILTER% --testproject=./TestProjects/ShaderGraphUniversalStereo --zero-tests-are-ok=1
-         retries: 3
+         retries: 2
     artifacts:
         logs:
             paths:
@@ -52,18 +52,18 @@ Build_ShaderGraph_Stereo_Win_Standalone_mono_Linear_trunk:
         TEST_FILTER: .*
     commands:
       -  command: curl -s https://artifactory.prd.it.unity3d.com/artifactory/unity-tools-local/utr-standalone/utr.bat --output utr.bat
-         retries: 3
+         retries: 2
       -  command: choco install unity-downloader-cli -y -s https://artifactory.prd.it.unity3d.com/artifactory/api/nuget/unity-choco-local
-         retries: 3
+         retries: 2
       -  command: unity-downloader-cli --source-file unity_revision.txt -c editor -c il2cpp  --wait --published-only
-         retries: 3
+         retries: 2
       -  command: |5-
                 git rev-parse HEAD | git show -s --format=%%cI > revdate.tmp
                 set /p GIT_REVISIONDATE=<revdate.tmp
                 echo %GIT_REVISIONDATE%
                 del revdate.tmp
                 utr --artifacts_path=TestProjects/ShaderGraphUniversalStereo/test-results --editor-location=.Editor --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-force-d3d11" --scripting-backend=Mono2x --suite=playmode --testfilter=%TEST_FILTER% --testproject=./TestProjects/ShaderGraphUniversalStereo --zero-tests-are-ok=1
-         retries: 3
+         retries: 2
     artifacts:
         logs:
             paths:
@@ -88,18 +88,18 @@ ShaderGraph_Stereo_Win_editmode_mono_Linear_trunk:
         TEST_FILTER: .*
     commands:
       -  command: curl -s https://artifactory.prd.it.unity3d.com/artifactory/unity-tools-local/utr-standalone/utr.bat --output utr.bat
-         retries: 3
+         retries: 2
       -  command: choco install unity-downloader-cli -y -s https://artifactory.prd.it.unity3d.com/artifactory/api/nuget/unity-choco-local
-         retries: 3
+         retries: 2
       -  command: unity-downloader-cli --source-file unity_revision.txt -c editor -c il2cpp  --wait --published-only
-         retries: 3
+         retries: 2
       -  command: |5-
                 git rev-parse HEAD | git show -s --format=%%cI > revdate.tmp
                 set /p GIT_REVISIONDATE=<revdate.tmp
                 echo %GIT_REVISIONDATE%
                 del revdate.tmp
                 utr --artifacts_path=TestProjects/ShaderGraphUniversalStereo/test-results --editor-location=.Editor --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-force-d3d11" --scripting-backend=Mono2x --suite=playmode --testfilter=%TEST_FILTER% --testproject=./TestProjects/ShaderGraphUniversalStereo --zero-tests-are-ok=1
-         retries: 3
+         retries: 2
     artifacts:
         logs:
             paths:
@@ -121,14 +121,14 @@ ShaderGraph_Stereo_Win_Standalone_cache_mono_Linear_trunk:
         TEST_FILTER: .*
     commands:
       -  command: curl -s https://artifactory.prd.it.unity3d.com/artifactory/unity-tools-local/utr-standalone/utr.bat --output utr.bat
-         retries: 3
+         retries: 2
       -  command: |5-
                 git rev-parse HEAD | git show -s --format=%%cI > revdate.tmp
                 set /p GIT_REVISIONDATE=<revdate.tmp
                 echo %GIT_REVISIONDATE%
                 del revdate.tmp
                 utr --artifacts_path=TestProjects/ShaderGraphUniversalStereo/test-results --editor-location=.Editor --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-force-d3d11" --scripting-backend=Mono2x --suite=playmode --testfilter=%TEST_FILTER% --testproject=./TestProjects/ShaderGraphUniversalStereo --zero-tests-are-ok=1
-         retries: 3
+         retries: 2
     artifacts:
         logs:
             paths:
@@ -152,18 +152,18 @@ Build_ShaderGraph_Stereo_Win_Standalone_cache_mono_Linear_trunk:
         TEST_FILTER: .*
     commands:
       -  command: curl -s https://artifactory.prd.it.unity3d.com/artifactory/unity-tools-local/utr-standalone/utr.bat --output utr.bat
-         retries: 3
+         retries: 2
       -  command: choco install unity-downloader-cli -y -s https://artifactory.prd.it.unity3d.com/artifactory/api/nuget/unity-choco-local
-         retries: 3
+         retries: 2
       -  command: unity-downloader-cli --source-file unity_revision.txt -c editor -c il2cpp  --wait --published-only
-         retries: 3
+         retries: 2
       -  command: |5-
                 git rev-parse HEAD | git show -s --format=%%cI > revdate.tmp
                 set /p GIT_REVISIONDATE=<revdate.tmp
                 echo %GIT_REVISIONDATE%
                 del revdate.tmp
                 utr --artifacts_path=TestProjects/ShaderGraphUniversalStereo/test-results --editor-location=.Editor --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-force-d3d11" --scripting-backend=Mono2x --suite=playmode --testfilter=%TEST_FILTER% --testproject=./TestProjects/ShaderGraphUniversalStereo --zero-tests-are-ok=1
-         retries: 3
+         retries: 2
     artifacts:
         logs:
             paths:
@@ -188,14 +188,14 @@ ShaderGraph_Stereo_Win_Standalone_mono_Linear_CUSTOM-REVISION:
         TEST_FILTER: .*
     commands:
       -  command: curl -s https://artifactory.prd.it.unity3d.com/artifactory/unity-tools-local/utr-standalone/utr.bat --output utr.bat
-         retries: 3
+         retries: 2
       -  command: |5-
                 git rev-parse HEAD | git show -s --format=%%cI > revdate.tmp
                 set /p GIT_REVISIONDATE=<revdate.tmp
                 echo %GIT_REVISIONDATE%
                 del revdate.tmp
                 utr --artifacts_path=TestProjects/ShaderGraphUniversalStereo/test-results --editor-location=.Editor --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-force-d3d11" --scripting-backend=Mono2x --suite=playmode --testfilter=%TEST_FILTER% --testproject=./TestProjects/ShaderGraphUniversalStereo --zero-tests-are-ok=1
-         retries: 3
+         retries: 2
     artifacts:
         logs:
             paths:
@@ -219,18 +219,18 @@ Build_ShaderGraph_Stereo_Win_Standalone_mono_Linear_CUSTOM-REVISION:
         TEST_FILTER: .*
     commands:
       -  command: curl -s https://artifactory.prd.it.unity3d.com/artifactory/unity-tools-local/utr-standalone/utr.bat --output utr.bat
-         retries: 3
+         retries: 2
       -  command: choco install unity-downloader-cli -y -s https://artifactory.prd.it.unity3d.com/artifactory/api/nuget/unity-choco-local
-         retries: 3
+         retries: 2
       -  command: unity-downloader-cli --source-file unity_revision.txt -c editor -c il2cpp  --wait --published-only
-         retries: 3
+         retries: 2
       -  command: |5-
                 git rev-parse HEAD | git show -s --format=%%cI > revdate.tmp
                 set /p GIT_REVISIONDATE=<revdate.tmp
                 echo %GIT_REVISIONDATE%
                 del revdate.tmp
                 utr --artifacts_path=TestProjects/ShaderGraphUniversalStereo/test-results --editor-location=.Editor --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-force-d3d11" --scripting-backend=Mono2x --suite=playmode --testfilter=%TEST_FILTER% --testproject=./TestProjects/ShaderGraphUniversalStereo --zero-tests-are-ok=1
-         retries: 3
+         retries: 2
     artifacts:
         logs:
             paths:
@@ -255,18 +255,18 @@ ShaderGraph_Stereo_Win_editmode_mono_Linear_CUSTOM-REVISION:
         TEST_FILTER: .*
     commands:
       -  command: curl -s https://artifactory.prd.it.unity3d.com/artifactory/unity-tools-local/utr-standalone/utr.bat --output utr.bat
-         retries: 3
+         retries: 2
       -  command: choco install unity-downloader-cli -y -s https://artifactory.prd.it.unity3d.com/artifactory/api/nuget/unity-choco-local
-         retries: 3
+         retries: 2
       -  command: unity-downloader-cli --source-file unity_revision.txt -c editor -c il2cpp  --wait --published-only
-         retries: 3
+         retries: 2
       -  command: |5-
                 git rev-parse HEAD | git show -s --format=%%cI > revdate.tmp
                 set /p GIT_REVISIONDATE=<revdate.tmp
                 echo %GIT_REVISIONDATE%
                 del revdate.tmp
                 utr --artifacts_path=TestProjects/ShaderGraphUniversalStereo/test-results --editor-location=.Editor --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-force-d3d11" --scripting-backend=Mono2x --suite=playmode --testfilter=%TEST_FILTER% --testproject=./TestProjects/ShaderGraphUniversalStereo --zero-tests-are-ok=1
-         retries: 3
+         retries: 2
     artifacts:
         logs:
             paths:
@@ -288,14 +288,14 @@ ShaderGraph_Stereo_Win_Standalone_cache_mono_Linear_CUSTOM-REVISION:
         TEST_FILTER: .*
     commands:
       -  command: curl -s https://artifactory.prd.it.unity3d.com/artifactory/unity-tools-local/utr-standalone/utr.bat --output utr.bat
-         retries: 3
+         retries: 2
       -  command: |5-
                 git rev-parse HEAD | git show -s --format=%%cI > revdate.tmp
                 set /p GIT_REVISIONDATE=<revdate.tmp
                 echo %GIT_REVISIONDATE%
                 del revdate.tmp
                 utr --artifacts_path=TestProjects/ShaderGraphUniversalStereo/test-results --editor-location=.Editor --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-force-d3d11" --scripting-backend=Mono2x --suite=playmode --testfilter=%TEST_FILTER% --testproject=./TestProjects/ShaderGraphUniversalStereo --zero-tests-are-ok=1
-         retries: 3
+         retries: 2
     artifacts:
         logs:
             paths:
@@ -319,18 +319,18 @@ Build_ShaderGraph_Stereo_Win_Standalone_cache_mono_Linear_CUSTOM-REVISION:
         TEST_FILTER: .*
     commands:
       -  command: curl -s https://artifactory.prd.it.unity3d.com/artifactory/unity-tools-local/utr-standalone/utr.bat --output utr.bat
-         retries: 3
+         retries: 2
       -  command: choco install unity-downloader-cli -y -s https://artifactory.prd.it.unity3d.com/artifactory/api/nuget/unity-choco-local
-         retries: 3
+         retries: 2
       -  command: unity-downloader-cli --source-file unity_revision.txt -c editor -c il2cpp  --wait --published-only
-         retries: 3
+         retries: 2
       -  command: |5-
                 git rev-parse HEAD | git show -s --format=%%cI > revdate.tmp
                 set /p GIT_REVISIONDATE=<revdate.tmp
                 echo %GIT_REVISIONDATE%
                 del revdate.tmp
                 utr --artifacts_path=TestProjects/ShaderGraphUniversalStereo/test-results --editor-location=.Editor --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-force-d3d11" --scripting-backend=Mono2x --suite=playmode --testfilter=%TEST_FILTER% --testproject=./TestProjects/ShaderGraphUniversalStereo --zero-tests-are-ok=1
-         retries: 3
+         retries: 2
     artifacts:
         logs:
             paths:

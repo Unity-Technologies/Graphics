@@ -21,15 +21,15 @@ URP_Lighting_OSX_OpenGLCore_playmode_mono_Linear_trunk:
         TEST_FILTER: .*
     commands:
       -  command: curl -s https://artifactory.prd.it.unity3d.com/artifactory/unity-tools-local/utr-standalone/utr --output utr
-         retries: 3
+         retries: 2
       -  chmod +x utr
       -  command: brew tap --force-auto-update unity/unity git@github.cds.internal.unity3d.com:unity/homebrew-unity.git
       -  command: brew install unity-downloader-cli
-         retries: 3
+         retries: 2
       -  command: unity-downloader-cli --source-file unity_revision.txt -c editor -c il2cpp  --wait --published-only
-         retries: 3
+         retries: 2
       -  command: ./utr  --artifacts_path=TestProjects/UniversalGraphicsTest_Lighting/test-results --editor-location=.Editor --extra-editor-arg="-colorspace=Linear" --scripting-backend=Mono2x --suite=playmode --testfilter=$TEST_FILTER --testproject=./TestProjects/UniversalGraphicsTest_Lighting --zero-tests-are-ok=1
-         retries: 3
+         retries: 2
     artifacts:
         logs:
             paths:
@@ -51,15 +51,15 @@ URP_Lighting_OSX_OpenGLCore_playmode_cache_mono_Linear_trunk:
         TEST_FILTER: .*
     commands:
       -  command: curl -s https://artifactory.prd.it.unity3d.com/artifactory/unity-tools-local/utr-standalone/utr --output utr
-         retries: 3
+         retries: 2
       -  chmod +x utr
       -  command: brew tap --force-auto-update unity/unity git@github.cds.internal.unity3d.com:unity/homebrew-unity.git
       -  command: brew install unity-downloader-cli
-         retries: 3
+         retries: 2
       -  command: unity-downloader-cli --source-file unity_revision.txt -c editor -c il2cpp  --wait --published-only
-         retries: 3
+         retries: 2
       -  command: ./utr  --artifacts_path=TestProjects/UniversalGraphicsTest_Lighting/test-results --editor-location=.Editor --extra-editor-arg="-colorspace=Linear" --scripting-backend=Mono2x --suite=playmode --testfilter=$TEST_FILTER --testproject=./TestProjects/UniversalGraphicsTest_Lighting --zero-tests-are-ok=1
-         retries: 3
+         retries: 2
     artifacts:
         logs:
             paths:
@@ -81,15 +81,15 @@ URP_Lighting_OSX_OpenGLCore_editmode_mono_Linear_trunk:
         TEST_FILTER: .*
     commands:
       -  command: curl -s https://artifactory.prd.it.unity3d.com/artifactory/unity-tools-local/utr-standalone/utr --output utr
-         retries: 3
+         retries: 2
       -  chmod +x utr
       -  command: brew tap --force-auto-update unity/unity git@github.cds.internal.unity3d.com:unity/homebrew-unity.git
       -  command: brew install unity-downloader-cli
-         retries: 3
+         retries: 2
       -  command: unity-downloader-cli --source-file unity_revision.txt -c editor -c il2cpp  --wait --published-only
-         retries: 3
+         retries: 2
       -  command: ./utr  --artifacts_path=TestProjects/UniversalGraphicsTest_Lighting/test-results --editor-location=.Editor --extra-editor-arg="-colorspace=Linear" --scripting-backend=Mono2x --suite=playmode --testfilter=$TEST_FILTER --testproject=./TestProjects/UniversalGraphicsTest_Lighting --zero-tests-are-ok=1
-         retries: 3
+         retries: 2
     artifacts:
         logs:
             paths:
@@ -111,15 +111,15 @@ URP_Lighting_OSX_OpenGLCore_playmode_mono_Linear_CUSTOM-REVISION:
         TEST_FILTER: .*
     commands:
       -  command: curl -s https://artifactory.prd.it.unity3d.com/artifactory/unity-tools-local/utr-standalone/utr --output utr
-         retries: 3
+         retries: 2
       -  chmod +x utr
       -  command: brew tap --force-auto-update unity/unity git@github.cds.internal.unity3d.com:unity/homebrew-unity.git
       -  command: brew install unity-downloader-cli
-         retries: 3
+         retries: 2
       -  command: unity-downloader-cli --source-file unity_revision.txt -c editor -c il2cpp  --wait --published-only
-         retries: 3
+         retries: 2
       -  command: ./utr  --artifacts_path=TestProjects/UniversalGraphicsTest_Lighting/test-results --editor-location=.Editor --extra-editor-arg="-colorspace=Linear" --scripting-backend=Mono2x --suite=playmode --testfilter=$TEST_FILTER --testproject=./TestProjects/UniversalGraphicsTest_Lighting --zero-tests-are-ok=1
-         retries: 3
+         retries: 2
     artifacts:
         logs:
             paths:
@@ -141,15 +141,15 @@ URP_Lighting_OSX_OpenGLCore_playmode_cache_mono_Linear_CUSTOM-REVISION:
         TEST_FILTER: .*
     commands:
       -  command: curl -s https://artifactory.prd.it.unity3d.com/artifactory/unity-tools-local/utr-standalone/utr --output utr
-         retries: 3
+         retries: 2
       -  chmod +x utr
       -  command: brew tap --force-auto-update unity/unity git@github.cds.internal.unity3d.com:unity/homebrew-unity.git
       -  command: brew install unity-downloader-cli
-         retries: 3
+         retries: 2
       -  command: unity-downloader-cli --source-file unity_revision.txt -c editor -c il2cpp  --wait --published-only
-         retries: 3
+         retries: 2
       -  command: ./utr  --artifacts_path=TestProjects/UniversalGraphicsTest_Lighting/test-results --editor-location=.Editor --extra-editor-arg="-colorspace=Linear" --scripting-backend=Mono2x --suite=playmode --testfilter=$TEST_FILTER --testproject=./TestProjects/UniversalGraphicsTest_Lighting --zero-tests-are-ok=1
-         retries: 3
+         retries: 2
     artifacts:
         logs:
             paths:
@@ -171,15 +171,15 @@ URP_Lighting_OSX_OpenGLCore_editmode_mono_Linear_CUSTOM-REVISION:
         TEST_FILTER: .*
     commands:
       -  command: curl -s https://artifactory.prd.it.unity3d.com/artifactory/unity-tools-local/utr-standalone/utr --output utr
-         retries: 3
+         retries: 2
       -  chmod +x utr
       -  command: brew tap --force-auto-update unity/unity git@github.cds.internal.unity3d.com:unity/homebrew-unity.git
       -  command: brew install unity-downloader-cli
-         retries: 3
+         retries: 2
       -  command: unity-downloader-cli --source-file unity_revision.txt -c editor -c il2cpp  --wait --published-only
-         retries: 3
+         retries: 2
       -  command: ./utr  --artifacts_path=TestProjects/UniversalGraphicsTest_Lighting/test-results --editor-location=.Editor --extra-editor-arg="-colorspace=Linear" --scripting-backend=Mono2x --suite=playmode --testfilter=$TEST_FILTER --testproject=./TestProjects/UniversalGraphicsTest_Lighting --zero-tests-are-ok=1
-         retries: 3
+         retries: 2
     artifacts:
         logs:
             paths:

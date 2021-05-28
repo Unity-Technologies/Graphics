@@ -21,18 +21,18 @@ PostProcessing_Linux_Vulkan_playmode_mono_Linear_trunk:
         TEST_FILTER: .*
     commands:
       -  command: curl -s https://artifactory.prd.it.unity3d.com/artifactory/unity-tools-local/utr-standalone/utr --output utr
-         retries: 3
+         retries: 2
       -  command: chmod +x utr
       -  command: sudo rm -f /etc/apt/sources.list /etc/apt/sources.list.d/{nodesource,teamviewer,deadsnakes-ubuntu-ppa-}*
       -  command: curl -L https://artifactory.prd.it.unity3d.com/artifactory/api/gpg/key/public | sudo apt-key add -
       -  command: sudo sh -c "echo 'deb https://artifactory.prd.it.unity3d.com/artifactory/unity-apt-local bionic main' > /etc/apt/sources.list.d/unity.list"
       -  command: sudo apt update
       -  command: sudo apt install unity-downloader-cli
-         retries: 3
+         retries: 2
       -  command: sudo unity-downloader-cli --source-file unity_revision.txt -c editor -c il2cpp  --wait --published-only
-         retries: 3
+         retries: 2
       -  command: DISPLAY=:0.0 ./utr --artifacts_path=TestProjects/PostProcessing_Tests/test-results --editor-location=.Editor --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-force-vulkan" --scripting-backend=Mono2x --suite=playmode --testfilter=$TEST_FILTER --testproject=./TestProjects/PostProcessing_Tests --zero-tests-are-ok=1
-         retries: 3
+         retries: 2
     artifacts:
         logs:
             paths:
@@ -54,18 +54,18 @@ PostProcessing_Linux_Vulkan_playmode_cache_mono_Linear_trunk:
         TEST_FILTER: .*
     commands:
       -  command: curl -s https://artifactory.prd.it.unity3d.com/artifactory/unity-tools-local/utr-standalone/utr --output utr
-         retries: 3
+         retries: 2
       -  command: chmod +x utr
       -  command: sudo rm -f /etc/apt/sources.list /etc/apt/sources.list.d/{nodesource,teamviewer,deadsnakes-ubuntu-ppa-}*
       -  command: curl -L https://artifactory.prd.it.unity3d.com/artifactory/api/gpg/key/public | sudo apt-key add -
       -  command: sudo sh -c "echo 'deb https://artifactory.prd.it.unity3d.com/artifactory/unity-apt-local bionic main' > /etc/apt/sources.list.d/unity.list"
       -  command: sudo apt update
       -  command: sudo apt install unity-downloader-cli
-         retries: 3
+         retries: 2
       -  command: sudo unity-downloader-cli --source-file unity_revision.txt -c editor -c il2cpp  --wait --published-only
-         retries: 3
+         retries: 2
       -  command: DISPLAY=:0.0 ./utr --artifacts_path=TestProjects/PostProcessing_Tests/test-results --editor-location=.Editor --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-force-vulkan" --scripting-backend=Mono2x --suite=playmode --testfilter=$TEST_FILTER --testproject=./TestProjects/PostProcessing_Tests --zero-tests-are-ok=1
-         retries: 3
+         retries: 2
     artifacts:
         logs:
             paths:
@@ -87,18 +87,18 @@ PostProcessing_Linux_Vulkan_editmode_mono_Linear_trunk:
         TEST_FILTER: .*
     commands:
       -  command: curl -s https://artifactory.prd.it.unity3d.com/artifactory/unity-tools-local/utr-standalone/utr --output utr
-         retries: 3
+         retries: 2
       -  command: chmod +x utr
       -  command: sudo rm -f /etc/apt/sources.list /etc/apt/sources.list.d/{nodesource,teamviewer,deadsnakes-ubuntu-ppa-}*
       -  command: curl -L https://artifactory.prd.it.unity3d.com/artifactory/api/gpg/key/public | sudo apt-key add -
       -  command: sudo sh -c "echo 'deb https://artifactory.prd.it.unity3d.com/artifactory/unity-apt-local bionic main' > /etc/apt/sources.list.d/unity.list"
       -  command: sudo apt update
       -  command: sudo apt install unity-downloader-cli
-         retries: 3
+         retries: 2
       -  command: sudo unity-downloader-cli --source-file unity_revision.txt -c editor -c il2cpp  --wait --published-only
-         retries: 3
+         retries: 2
       -  command: DISPLAY=:0.0 ./utr --artifacts_path=TestProjects/PostProcessing_Tests/test-results --editor-location=.Editor --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-force-vulkan" --scripting-backend=Mono2x --suite=playmode --testfilter=$TEST_FILTER --testproject=./TestProjects/PostProcessing_Tests --zero-tests-are-ok=1
-         retries: 3
+         retries: 2
     artifacts:
         logs:
             paths:
@@ -120,10 +120,10 @@ PostProcessing_Linux_Vulkan_Standalone_mono_Linear_trunk:
         TEST_FILTER: .*
     commands:
       -  command: curl -s https://artifactory.prd.it.unity3d.com/artifactory/unity-tools-local/utr-standalone/utr --output utr
-         retries: 3
+         retries: 2
       -  command: chmod +x utr
       -  command: DISPLAY=:0.0 ./utr --artifacts_path=TestProjects/PostProcessing_Tests/test-results --editor-location=.Editor --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-force-vulkan" --scripting-backend=Mono2x --suite=playmode --testfilter=$TEST_FILTER --testproject=./TestProjects/PostProcessing_Tests --zero-tests-are-ok=1
-         retries: 3
+         retries: 2
     artifacts:
         logs:
             paths:
@@ -147,18 +147,18 @@ Build_PostProcessing_Linux_Vulkan_Standalone_mono_Linear_trunk:
         TEST_FILTER: .*
     commands:
       -  command: curl -s https://artifactory.prd.it.unity3d.com/artifactory/unity-tools-local/utr-standalone/utr --output utr
-         retries: 3
+         retries: 2
       -  command: chmod +x utr
       -  command: sudo rm -f /etc/apt/sources.list /etc/apt/sources.list.d/{nodesource,teamviewer,deadsnakes-ubuntu-ppa-}*
       -  command: curl -L https://artifactory.prd.it.unity3d.com/artifactory/api/gpg/key/public | sudo apt-key add -
       -  command: sudo sh -c "echo 'deb https://artifactory.prd.it.unity3d.com/artifactory/unity-apt-local bionic main' > /etc/apt/sources.list.d/unity.list"
       -  command: sudo apt update
       -  command: sudo apt install unity-downloader-cli
-         retries: 3
+         retries: 2
       -  command: sudo unity-downloader-cli --source-file unity_revision.txt -c editor -c il2cpp  --wait --published-only
-         retries: 3
+         retries: 2
       -  command: DISPLAY=:0.0 ./utr --artifacts_path=TestProjects/PostProcessing_Tests/test-results --editor-location=.Editor --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-force-vulkan" --scripting-backend=Mono2x --suite=playmode --testfilter=$TEST_FILTER --testproject=./TestProjects/PostProcessing_Tests --zero-tests-are-ok=1
-         retries: 3
+         retries: 2
     artifacts:
         logs:
             paths:
@@ -183,10 +183,10 @@ PostProcessing_Linux_Vulkan_Standalone_cache_mono_Linear_trunk:
         TEST_FILTER: .*
     commands:
       -  command: curl -s https://artifactory.prd.it.unity3d.com/artifactory/unity-tools-local/utr-standalone/utr --output utr
-         retries: 3
+         retries: 2
       -  command: chmod +x utr
       -  command: DISPLAY=:0.0 ./utr --artifacts_path=TestProjects/PostProcessing_Tests/test-results --editor-location=.Editor --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-force-vulkan" --scripting-backend=Mono2x --suite=playmode --testfilter=$TEST_FILTER --testproject=./TestProjects/PostProcessing_Tests --zero-tests-are-ok=1
-         retries: 3
+         retries: 2
     artifacts:
         logs:
             paths:
@@ -210,18 +210,18 @@ Build_PostProcessing_Linux_Vulkan_Standalone_cache_mono_Linear_trunk:
         TEST_FILTER: .*
     commands:
       -  command: curl -s https://artifactory.prd.it.unity3d.com/artifactory/unity-tools-local/utr-standalone/utr --output utr
-         retries: 3
+         retries: 2
       -  command: chmod +x utr
       -  command: sudo rm -f /etc/apt/sources.list /etc/apt/sources.list.d/{nodesource,teamviewer,deadsnakes-ubuntu-ppa-}*
       -  command: curl -L https://artifactory.prd.it.unity3d.com/artifactory/api/gpg/key/public | sudo apt-key add -
       -  command: sudo sh -c "echo 'deb https://artifactory.prd.it.unity3d.com/artifactory/unity-apt-local bionic main' > /etc/apt/sources.list.d/unity.list"
       -  command: sudo apt update
       -  command: sudo apt install unity-downloader-cli
-         retries: 3
+         retries: 2
       -  command: sudo unity-downloader-cli --source-file unity_revision.txt -c editor -c il2cpp  --wait --published-only
-         retries: 3
+         retries: 2
       -  command: DISPLAY=:0.0 ./utr --artifacts_path=TestProjects/PostProcessing_Tests/test-results --editor-location=.Editor --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-force-vulkan" --scripting-backend=Mono2x --suite=playmode --testfilter=$TEST_FILTER --testproject=./TestProjects/PostProcessing_Tests --zero-tests-are-ok=1
-         retries: 3
+         retries: 2
     artifacts:
         logs:
             paths:
@@ -246,18 +246,18 @@ PostProcessing_Linux_Vulkan_playmode_mono_Linear_CUSTOM-REVISION:
         TEST_FILTER: .*
     commands:
       -  command: curl -s https://artifactory.prd.it.unity3d.com/artifactory/unity-tools-local/utr-standalone/utr --output utr
-         retries: 3
+         retries: 2
       -  command: chmod +x utr
       -  command: sudo rm -f /etc/apt/sources.list /etc/apt/sources.list.d/{nodesource,teamviewer,deadsnakes-ubuntu-ppa-}*
       -  command: curl -L https://artifactory.prd.it.unity3d.com/artifactory/api/gpg/key/public | sudo apt-key add -
       -  command: sudo sh -c "echo 'deb https://artifactory.prd.it.unity3d.com/artifactory/unity-apt-local bionic main' > /etc/apt/sources.list.d/unity.list"
       -  command: sudo apt update
       -  command: sudo apt install unity-downloader-cli
-         retries: 3
+         retries: 2
       -  command: sudo unity-downloader-cli --source-file unity_revision.txt -c editor -c il2cpp  --wait --published-only
-         retries: 3
+         retries: 2
       -  command: DISPLAY=:0.0 ./utr --artifacts_path=TestProjects/PostProcessing_Tests/test-results --editor-location=.Editor --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-force-vulkan" --scripting-backend=Mono2x --suite=playmode --testfilter=$TEST_FILTER --testproject=./TestProjects/PostProcessing_Tests --zero-tests-are-ok=1
-         retries: 3
+         retries: 2
     artifacts:
         logs:
             paths:
@@ -279,18 +279,18 @@ PostProcessing_Linux_Vulkan_playmode_cache_mono_Linear_CUSTOM-REVISION:
         TEST_FILTER: .*
     commands:
       -  command: curl -s https://artifactory.prd.it.unity3d.com/artifactory/unity-tools-local/utr-standalone/utr --output utr
-         retries: 3
+         retries: 2
       -  command: chmod +x utr
       -  command: sudo rm -f /etc/apt/sources.list /etc/apt/sources.list.d/{nodesource,teamviewer,deadsnakes-ubuntu-ppa-}*
       -  command: curl -L https://artifactory.prd.it.unity3d.com/artifactory/api/gpg/key/public | sudo apt-key add -
       -  command: sudo sh -c "echo 'deb https://artifactory.prd.it.unity3d.com/artifactory/unity-apt-local bionic main' > /etc/apt/sources.list.d/unity.list"
       -  command: sudo apt update
       -  command: sudo apt install unity-downloader-cli
-         retries: 3
+         retries: 2
       -  command: sudo unity-downloader-cli --source-file unity_revision.txt -c editor -c il2cpp  --wait --published-only
-         retries: 3
+         retries: 2
       -  command: DISPLAY=:0.0 ./utr --artifacts_path=TestProjects/PostProcessing_Tests/test-results --editor-location=.Editor --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-force-vulkan" --scripting-backend=Mono2x --suite=playmode --testfilter=$TEST_FILTER --testproject=./TestProjects/PostProcessing_Tests --zero-tests-are-ok=1
-         retries: 3
+         retries: 2
     artifacts:
         logs:
             paths:
@@ -312,18 +312,18 @@ PostProcessing_Linux_Vulkan_editmode_mono_Linear_CUSTOM-REVISION:
         TEST_FILTER: .*
     commands:
       -  command: curl -s https://artifactory.prd.it.unity3d.com/artifactory/unity-tools-local/utr-standalone/utr --output utr
-         retries: 3
+         retries: 2
       -  command: chmod +x utr
       -  command: sudo rm -f /etc/apt/sources.list /etc/apt/sources.list.d/{nodesource,teamviewer,deadsnakes-ubuntu-ppa-}*
       -  command: curl -L https://artifactory.prd.it.unity3d.com/artifactory/api/gpg/key/public | sudo apt-key add -
       -  command: sudo sh -c "echo 'deb https://artifactory.prd.it.unity3d.com/artifactory/unity-apt-local bionic main' > /etc/apt/sources.list.d/unity.list"
       -  command: sudo apt update
       -  command: sudo apt install unity-downloader-cli
-         retries: 3
+         retries: 2
       -  command: sudo unity-downloader-cli --source-file unity_revision.txt -c editor -c il2cpp  --wait --published-only
-         retries: 3
+         retries: 2
       -  command: DISPLAY=:0.0 ./utr --artifacts_path=TestProjects/PostProcessing_Tests/test-results --editor-location=.Editor --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-force-vulkan" --scripting-backend=Mono2x --suite=playmode --testfilter=$TEST_FILTER --testproject=./TestProjects/PostProcessing_Tests --zero-tests-are-ok=1
-         retries: 3
+         retries: 2
     artifacts:
         logs:
             paths:
@@ -345,10 +345,10 @@ PostProcessing_Linux_Vulkan_Standalone_mono_Linear_CUSTOM-REVISION:
         TEST_FILTER: .*
     commands:
       -  command: curl -s https://artifactory.prd.it.unity3d.com/artifactory/unity-tools-local/utr-standalone/utr --output utr
-         retries: 3
+         retries: 2
       -  command: chmod +x utr
       -  command: DISPLAY=:0.0 ./utr --artifacts_path=TestProjects/PostProcessing_Tests/test-results --editor-location=.Editor --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-force-vulkan" --scripting-backend=Mono2x --suite=playmode --testfilter=$TEST_FILTER --testproject=./TestProjects/PostProcessing_Tests --zero-tests-are-ok=1
-         retries: 3
+         retries: 2
     artifacts:
         logs:
             paths:
@@ -372,18 +372,18 @@ Build_PostProcessing_Linux_Vulkan_Standalone_mono_Linear_CUSTOM-REVISION:
         TEST_FILTER: .*
     commands:
       -  command: curl -s https://artifactory.prd.it.unity3d.com/artifactory/unity-tools-local/utr-standalone/utr --output utr
-         retries: 3
+         retries: 2
       -  command: chmod +x utr
       -  command: sudo rm -f /etc/apt/sources.list /etc/apt/sources.list.d/{nodesource,teamviewer,deadsnakes-ubuntu-ppa-}*
       -  command: curl -L https://artifactory.prd.it.unity3d.com/artifactory/api/gpg/key/public | sudo apt-key add -
       -  command: sudo sh -c "echo 'deb https://artifactory.prd.it.unity3d.com/artifactory/unity-apt-local bionic main' > /etc/apt/sources.list.d/unity.list"
       -  command: sudo apt update
       -  command: sudo apt install unity-downloader-cli
-         retries: 3
+         retries: 2
       -  command: sudo unity-downloader-cli --source-file unity_revision.txt -c editor -c il2cpp  --wait --published-only
-         retries: 3
+         retries: 2
       -  command: DISPLAY=:0.0 ./utr --artifacts_path=TestProjects/PostProcessing_Tests/test-results --editor-location=.Editor --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-force-vulkan" --scripting-backend=Mono2x --suite=playmode --testfilter=$TEST_FILTER --testproject=./TestProjects/PostProcessing_Tests --zero-tests-are-ok=1
-         retries: 3
+         retries: 2
     artifacts:
         logs:
             paths:
@@ -408,10 +408,10 @@ PostProcessing_Linux_Vulkan_Standalone_cache_mono_Linear_CUSTOM-REVISION:
         TEST_FILTER: .*
     commands:
       -  command: curl -s https://artifactory.prd.it.unity3d.com/artifactory/unity-tools-local/utr-standalone/utr --output utr
-         retries: 3
+         retries: 2
       -  command: chmod +x utr
       -  command: DISPLAY=:0.0 ./utr --artifacts_path=TestProjects/PostProcessing_Tests/test-results --editor-location=.Editor --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-force-vulkan" --scripting-backend=Mono2x --suite=playmode --testfilter=$TEST_FILTER --testproject=./TestProjects/PostProcessing_Tests --zero-tests-are-ok=1
-         retries: 3
+         retries: 2
     artifacts:
         logs:
             paths:
@@ -435,18 +435,18 @@ Build_PostProcessing_Linux_Vulkan_Standalone_cache_mono_Linear_CUSTOM-REVISION:
         TEST_FILTER: .*
     commands:
       -  command: curl -s https://artifactory.prd.it.unity3d.com/artifactory/unity-tools-local/utr-standalone/utr --output utr
-         retries: 3
+         retries: 2
       -  command: chmod +x utr
       -  command: sudo rm -f /etc/apt/sources.list /etc/apt/sources.list.d/{nodesource,teamviewer,deadsnakes-ubuntu-ppa-}*
       -  command: curl -L https://artifactory.prd.it.unity3d.com/artifactory/api/gpg/key/public | sudo apt-key add -
       -  command: sudo sh -c "echo 'deb https://artifactory.prd.it.unity3d.com/artifactory/unity-apt-local bionic main' > /etc/apt/sources.list.d/unity.list"
       -  command: sudo apt update
       -  command: sudo apt install unity-downloader-cli
-         retries: 3
+         retries: 2
       -  command: sudo unity-downloader-cli --source-file unity_revision.txt -c editor -c il2cpp  --wait --published-only
-         retries: 3
+         retries: 2
       -  command: DISPLAY=:0.0 ./utr --artifacts_path=TestProjects/PostProcessing_Tests/test-results --editor-location=.Editor --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-force-vulkan" --scripting-backend=Mono2x --suite=playmode --testfilter=$TEST_FILTER --testproject=./TestProjects/PostProcessing_Tests --zero-tests-are-ok=1
-         retries: 3
+         retries: 2
     artifacts:
         logs:
             paths:

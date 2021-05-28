@@ -46,37 +46,37 @@ URP_Performance_BoatAttack_OSX_Metal_performance_playmode_runtime_mono_Linear_tr
       -  cd TestProjects/BoatAttack && unity-config project add testable unity.graphictests.performance.universal  --project-path .
       -  cd TestProjects/BoatAttack && unity-config project set project-update false --project-path .
       -  command: curl -s https://artifactory.prd.it.unity3d.com/artifactory/unity-tools-local/utr-standalone/utr --output utr
-         retries: 3
+         retries: 2
       -  chmod +x utr
       -  command: scp -i ~/.ssh/id_rsa_macmini -r $YAMATO_SOURCE_DIR bokken@$BOKKEN_DEVICE_IP:~/Graphics
-         retries: 3
+         retries: 2
       -  command: scp -i ~/.ssh/id_rsa_macmini ~/.ssh/id_rsa_macmini bokken@$BOKKEN_DEVICE_IP:~/.ssh/id_rsa_macmini
-         retries: 3
+         retries: 2
       -  command: ssh -i ~/.ssh/id_rsa_macmini bokken@$BOKKEN_DEVICE_IP "bash -lc 'pip3 install unity-downloader-cli --user --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade'"
-         retries: 3
+         retries: 2
       -  command: ssh -i ~/.ssh/id_rsa_macmini bokken@$BOKKEN_DEVICE_IP '$(python3 -m site --user-base)/bin/unity-downloader-cli --source-file ~/Graphics/unity_revision.txt -c editor -c il2cpp  --wait --published-only'
-         retries: 3
+         retries: 2
       -  command: |5-
                 ssh -i ~/.ssh/id_rsa_macmini bokken@$BOKKEN_DEVICE_IP "export UPM_REGISTRY=https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates; ~/Graphics/utr  --artifacts_path=/Users/bokken/Graphics/TestProjects/BoatAttack/test-results --editor-location=/Users/bokken/.Editor --extra-editor-arg="-colorspace=Linear" --scripting-backend=Mono2x --suite=playmode --testfilter=$TEST_FILTER --testproject=/Users/bokken/Graphics/TestProjects/BoatAttack --zero-tests-are-ok=1 "
                 UTR_RESULT=$?
                 mkdir -p TestProjects/BoatAttack/test-results/
                 scp -i ~/.ssh/id_rsa_macmini -r bokken@$BOKKEN_DEVICE_IP:/Users/bokken/Graphics/TestProjects/BoatAttack/test-results/ TestProjects/BoatAttack/test-results/
                 exit $UTR_RESULT
-         retries: 3
+         retries: 2
       -  command: |5-
                 ssh -i ~/.ssh/id_rsa_macmini bokken@$BOKKEN_DEVICE_IP "export UPM_REGISTRY=https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates; ~/Graphics/utr  --artifacts_path=/Users/bokken/Graphics/TestProjects/BoatAttack/test-results --editor-location=/Users/bokken/.Editor --extra-editor-arg="-colorspace=Linear" --scripting-backend=Mono2x --suite=playmode --testfilter=$TEST_FILTER --testproject=/Users/bokken/Graphics/TestProjects/BoatAttack --zero-tests-are-ok=1 "
                 UTR_RESULT=$?
                 mkdir -p TestProjects/BoatAttack/test-results/
                 scp -i ~/.ssh/id_rsa_macmini -r bokken@$BOKKEN_DEVICE_IP:/Users/bokken/Graphics/TestProjects/BoatAttack/test-results/ TestProjects/BoatAttack/test-results/
                 exit $UTR_RESULT
-         retries: 3
+         retries: 2
       -  command: |5-
                 ssh -i ~/.ssh/id_rsa_macmini bokken@$BOKKEN_DEVICE_IP "export UPM_REGISTRY=https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates; ~/Graphics/utr  --artifacts_path=/Users/bokken/Graphics/TestProjects/BoatAttack/test-results --editor-location=/Users/bokken/.Editor --extra-editor-arg="-colorspace=Linear" --scripting-backend=Mono2x --suite=playmode --testfilter=$TEST_FILTER --testproject=/Users/bokken/Graphics/TestProjects/BoatAttack --zero-tests-are-ok=1 "
                 UTR_RESULT=$?
                 mkdir -p TestProjects/BoatAttack/test-results/
                 scp -i ~/.ssh/id_rsa_macmini -r bokken@$BOKKEN_DEVICE_IP:/Users/bokken/Graphics/TestProjects/BoatAttack/test-results/ TestProjects/BoatAttack/test-results/
                 exit $UTR_RESULT
-         retries: 3
+         retries: 2
     artifacts:
         logs:
             paths:
@@ -123,30 +123,30 @@ URP_Performance_BoatAttack_OSX_Metal_performance_playmode_editor_mono_Linear_tru
       -  cd TestProjects/BoatAttack && unity-config project add testable unity.graphictests.performance.universal  --project-path .
       -  cd TestProjects/BoatAttack && unity-config project set project-update false --project-path .
       -  command: curl -s https://artifactory.prd.it.unity3d.com/artifactory/unity-tools-local/utr-standalone/utr --output utr
-         retries: 3
+         retries: 2
       -  chmod +x utr
       -  command: scp -i ~/.ssh/id_rsa_macmini -r $YAMATO_SOURCE_DIR bokken@$BOKKEN_DEVICE_IP:~/Graphics
-         retries: 3
+         retries: 2
       -  command: scp -i ~/.ssh/id_rsa_macmini ~/.ssh/id_rsa_macmini bokken@$BOKKEN_DEVICE_IP:~/.ssh/id_rsa_macmini
-         retries: 3
+         retries: 2
       -  command: ssh -i ~/.ssh/id_rsa_macmini bokken@$BOKKEN_DEVICE_IP "bash -lc 'pip3 install unity-downloader-cli --user --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade'"
-         retries: 3
+         retries: 2
       -  command: ssh -i ~/.ssh/id_rsa_macmini bokken@$BOKKEN_DEVICE_IP '$(python3 -m site --user-base)/bin/unity-downloader-cli --source-file ~/Graphics/unity_revision.txt -c editor -c il2cpp  --wait --published-only'
-         retries: 3
+         retries: 2
       -  command: |5-
                 ssh -i ~/.ssh/id_rsa_macmini bokken@$BOKKEN_DEVICE_IP "export UPM_REGISTRY=https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates; ~/Graphics/utr  --artifacts_path=/Users/bokken/Graphics/TestProjects/BoatAttack/test-results --editor-location=/Users/bokken/.Editor --extra-editor-arg="-colorspace=Linear" --scripting-backend=Mono2x --suite=playmode --testfilter=$TEST_FILTER --testproject=/Users/bokken/Graphics/TestProjects/BoatAttack --zero-tests-are-ok=1 "
                 UTR_RESULT=$?
                 mkdir -p TestProjects/BoatAttack/test-results/
                 scp -i ~/.ssh/id_rsa_macmini -r bokken@$BOKKEN_DEVICE_IP:/Users/bokken/Graphics/TestProjects/BoatAttack/test-results/ TestProjects/BoatAttack/test-results/
                 exit $UTR_RESULT
-         retries: 3
+         retries: 2
       -  command: |5-
                 ssh -i ~/.ssh/id_rsa_macmini bokken@$BOKKEN_DEVICE_IP "export UPM_REGISTRY=https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates; ~/Graphics/utr  --artifacts_path=/Users/bokken/Graphics/TestProjects/BoatAttack/test-results --editor-location=/Users/bokken/.Editor --extra-editor-arg="-colorspace=Linear" --scripting-backend=Mono2x --suite=playmode --testfilter=$TEST_FILTER --testproject=/Users/bokken/Graphics/TestProjects/BoatAttack --zero-tests-are-ok=1 "
                 UTR_RESULT=$?
                 mkdir -p TestProjects/BoatAttack/test-results/
                 scp -i ~/.ssh/id_rsa_macmini -r bokken@$BOKKEN_DEVICE_IP:/Users/bokken/Graphics/TestProjects/BoatAttack/test-results/ TestProjects/BoatAttack/test-results/
                 exit $UTR_RESULT
-         retries: 3
+         retries: 2
     artifacts:
         logs:
             paths:
@@ -193,30 +193,30 @@ URP_Performance_BoatAttack_OSX_Metal_performance_build_editmode_mono_Linear_trun
       -  cd TestProjects/BoatAttack && unity-config project add testable unity.graphictests.performance.universal  --project-path .
       -  cd TestProjects/BoatAttack && unity-config project set project-update false --project-path .
       -  command: curl -s https://artifactory.prd.it.unity3d.com/artifactory/unity-tools-local/utr-standalone/utr --output utr
-         retries: 3
+         retries: 2
       -  chmod +x utr
       -  command: scp -i ~/.ssh/id_rsa_macmini -r $YAMATO_SOURCE_DIR bokken@$BOKKEN_DEVICE_IP:~/Graphics
-         retries: 3
+         retries: 2
       -  command: scp -i ~/.ssh/id_rsa_macmini ~/.ssh/id_rsa_macmini bokken@$BOKKEN_DEVICE_IP:~/.ssh/id_rsa_macmini
-         retries: 3
+         retries: 2
       -  command: ssh -i ~/.ssh/id_rsa_macmini bokken@$BOKKEN_DEVICE_IP "bash -lc 'pip3 install unity-downloader-cli --user --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade'"
-         retries: 3
+         retries: 2
       -  command: ssh -i ~/.ssh/id_rsa_macmini bokken@$BOKKEN_DEVICE_IP '$(python3 -m site --user-base)/bin/unity-downloader-cli --source-file ~/Graphics/unity_revision.txt -c editor -c il2cpp  --wait --published-only'
-         retries: 3
+         retries: 2
       -  command: |5-
                 ssh -i ~/.ssh/id_rsa_macmini bokken@$BOKKEN_DEVICE_IP "export UPM_REGISTRY=https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates; ~/Graphics/utr  --artifacts_path=/Users/bokken/Graphics/TestProjects/BoatAttack/test-results --editor-location=/Users/bokken/.Editor --extra-editor-arg="-colorspace=Linear" --scripting-backend=Mono2x --suite=playmode --testfilter=$TEST_FILTER --testproject=/Users/bokken/Graphics/TestProjects/BoatAttack --zero-tests-are-ok=1 "
                 UTR_RESULT=$?
                 mkdir -p TestProjects/BoatAttack/test-results/
                 scp -i ~/.ssh/id_rsa_macmini -r bokken@$BOKKEN_DEVICE_IP:/Users/bokken/Graphics/TestProjects/BoatAttack/test-results/ TestProjects/BoatAttack/test-results/
                 exit $UTR_RESULT
-         retries: 3
+         retries: 2
       -  command: |5-
                 ssh -i ~/.ssh/id_rsa_macmini bokken@$BOKKEN_DEVICE_IP "export UPM_REGISTRY=https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates; ~/Graphics/utr  --artifacts_path=/Users/bokken/Graphics/TestProjects/BoatAttack/test-results --editor-location=/Users/bokken/.Editor --extra-editor-arg="-colorspace=Linear" --scripting-backend=Mono2x --suite=playmode --testfilter=$TEST_FILTER --testproject=/Users/bokken/Graphics/TestProjects/BoatAttack --zero-tests-are-ok=1 "
                 UTR_RESULT=$?
                 mkdir -p TestProjects/BoatAttack/test-results/
                 scp -i ~/.ssh/id_rsa_macmini -r bokken@$BOKKEN_DEVICE_IP:/Users/bokken/Graphics/TestProjects/BoatAttack/test-results/ TestProjects/BoatAttack/test-results/
                 exit $UTR_RESULT
-         retries: 3
+         retries: 2
     artifacts:
         logs:
             paths:
@@ -263,37 +263,37 @@ URP_Performance_BoatAttack_OSX_Metal_performance_playmode_runtime_mono_Linear_CU
       -  cd TestProjects/BoatAttack && unity-config project add testable unity.graphictests.performance.universal  --project-path .
       -  cd TestProjects/BoatAttack && unity-config project set project-update false --project-path .
       -  command: curl -s https://artifactory.prd.it.unity3d.com/artifactory/unity-tools-local/utr-standalone/utr --output utr
-         retries: 3
+         retries: 2
       -  chmod +x utr
       -  command: scp -i ~/.ssh/id_rsa_macmini -r $YAMATO_SOURCE_DIR bokken@$BOKKEN_DEVICE_IP:~/Graphics
-         retries: 3
+         retries: 2
       -  command: scp -i ~/.ssh/id_rsa_macmini ~/.ssh/id_rsa_macmini bokken@$BOKKEN_DEVICE_IP:~/.ssh/id_rsa_macmini
-         retries: 3
+         retries: 2
       -  command: ssh -i ~/.ssh/id_rsa_macmini bokken@$BOKKEN_DEVICE_IP "bash -lc 'pip3 install unity-downloader-cli --user --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade'"
-         retries: 3
+         retries: 2
       -  command: ssh -i ~/.ssh/id_rsa_macmini bokken@$BOKKEN_DEVICE_IP '$(python3 -m site --user-base)/bin/unity-downloader-cli --source-file ~/Graphics/unity_revision.txt -c editor -c il2cpp  --wait --published-only'
-         retries: 3
+         retries: 2
       -  command: |5-
                 ssh -i ~/.ssh/id_rsa_macmini bokken@$BOKKEN_DEVICE_IP "export UPM_REGISTRY=https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates; ~/Graphics/utr  --artifacts_path=/Users/bokken/Graphics/TestProjects/BoatAttack/test-results --editor-location=/Users/bokken/.Editor --extra-editor-arg="-colorspace=Linear" --scripting-backend=Mono2x --suite=playmode --testfilter=$TEST_FILTER --testproject=/Users/bokken/Graphics/TestProjects/BoatAttack --zero-tests-are-ok=1 "
                 UTR_RESULT=$?
                 mkdir -p TestProjects/BoatAttack/test-results/
                 scp -i ~/.ssh/id_rsa_macmini -r bokken@$BOKKEN_DEVICE_IP:/Users/bokken/Graphics/TestProjects/BoatAttack/test-results/ TestProjects/BoatAttack/test-results/
                 exit $UTR_RESULT
-         retries: 3
+         retries: 2
       -  command: |5-
                 ssh -i ~/.ssh/id_rsa_macmini bokken@$BOKKEN_DEVICE_IP "export UPM_REGISTRY=https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates; ~/Graphics/utr  --artifacts_path=/Users/bokken/Graphics/TestProjects/BoatAttack/test-results --editor-location=/Users/bokken/.Editor --extra-editor-arg="-colorspace=Linear" --scripting-backend=Mono2x --suite=playmode --testfilter=$TEST_FILTER --testproject=/Users/bokken/Graphics/TestProjects/BoatAttack --zero-tests-are-ok=1 "
                 UTR_RESULT=$?
                 mkdir -p TestProjects/BoatAttack/test-results/
                 scp -i ~/.ssh/id_rsa_macmini -r bokken@$BOKKEN_DEVICE_IP:/Users/bokken/Graphics/TestProjects/BoatAttack/test-results/ TestProjects/BoatAttack/test-results/
                 exit $UTR_RESULT
-         retries: 3
+         retries: 2
       -  command: |5-
                 ssh -i ~/.ssh/id_rsa_macmini bokken@$BOKKEN_DEVICE_IP "export UPM_REGISTRY=https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates; ~/Graphics/utr  --artifacts_path=/Users/bokken/Graphics/TestProjects/BoatAttack/test-results --editor-location=/Users/bokken/.Editor --extra-editor-arg="-colorspace=Linear" --scripting-backend=Mono2x --suite=playmode --testfilter=$TEST_FILTER --testproject=/Users/bokken/Graphics/TestProjects/BoatAttack --zero-tests-are-ok=1 "
                 UTR_RESULT=$?
                 mkdir -p TestProjects/BoatAttack/test-results/
                 scp -i ~/.ssh/id_rsa_macmini -r bokken@$BOKKEN_DEVICE_IP:/Users/bokken/Graphics/TestProjects/BoatAttack/test-results/ TestProjects/BoatAttack/test-results/
                 exit $UTR_RESULT
-         retries: 3
+         retries: 2
     artifacts:
         logs:
             paths:
@@ -340,30 +340,30 @@ URP_Performance_BoatAttack_OSX_Metal_performance_playmode_editor_mono_Linear_CUS
       -  cd TestProjects/BoatAttack && unity-config project add testable unity.graphictests.performance.universal  --project-path .
       -  cd TestProjects/BoatAttack && unity-config project set project-update false --project-path .
       -  command: curl -s https://artifactory.prd.it.unity3d.com/artifactory/unity-tools-local/utr-standalone/utr --output utr
-         retries: 3
+         retries: 2
       -  chmod +x utr
       -  command: scp -i ~/.ssh/id_rsa_macmini -r $YAMATO_SOURCE_DIR bokken@$BOKKEN_DEVICE_IP:~/Graphics
-         retries: 3
+         retries: 2
       -  command: scp -i ~/.ssh/id_rsa_macmini ~/.ssh/id_rsa_macmini bokken@$BOKKEN_DEVICE_IP:~/.ssh/id_rsa_macmini
-         retries: 3
+         retries: 2
       -  command: ssh -i ~/.ssh/id_rsa_macmini bokken@$BOKKEN_DEVICE_IP "bash -lc 'pip3 install unity-downloader-cli --user --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade'"
-         retries: 3
+         retries: 2
       -  command: ssh -i ~/.ssh/id_rsa_macmini bokken@$BOKKEN_DEVICE_IP '$(python3 -m site --user-base)/bin/unity-downloader-cli --source-file ~/Graphics/unity_revision.txt -c editor -c il2cpp  --wait --published-only'
-         retries: 3
+         retries: 2
       -  command: |5-
                 ssh -i ~/.ssh/id_rsa_macmini bokken@$BOKKEN_DEVICE_IP "export UPM_REGISTRY=https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates; ~/Graphics/utr  --artifacts_path=/Users/bokken/Graphics/TestProjects/BoatAttack/test-results --editor-location=/Users/bokken/.Editor --extra-editor-arg="-colorspace=Linear" --scripting-backend=Mono2x --suite=playmode --testfilter=$TEST_FILTER --testproject=/Users/bokken/Graphics/TestProjects/BoatAttack --zero-tests-are-ok=1 "
                 UTR_RESULT=$?
                 mkdir -p TestProjects/BoatAttack/test-results/
                 scp -i ~/.ssh/id_rsa_macmini -r bokken@$BOKKEN_DEVICE_IP:/Users/bokken/Graphics/TestProjects/BoatAttack/test-results/ TestProjects/BoatAttack/test-results/
                 exit $UTR_RESULT
-         retries: 3
+         retries: 2
       -  command: |5-
                 ssh -i ~/.ssh/id_rsa_macmini bokken@$BOKKEN_DEVICE_IP "export UPM_REGISTRY=https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates; ~/Graphics/utr  --artifacts_path=/Users/bokken/Graphics/TestProjects/BoatAttack/test-results --editor-location=/Users/bokken/.Editor --extra-editor-arg="-colorspace=Linear" --scripting-backend=Mono2x --suite=playmode --testfilter=$TEST_FILTER --testproject=/Users/bokken/Graphics/TestProjects/BoatAttack --zero-tests-are-ok=1 "
                 UTR_RESULT=$?
                 mkdir -p TestProjects/BoatAttack/test-results/
                 scp -i ~/.ssh/id_rsa_macmini -r bokken@$BOKKEN_DEVICE_IP:/Users/bokken/Graphics/TestProjects/BoatAttack/test-results/ TestProjects/BoatAttack/test-results/
                 exit $UTR_RESULT
-         retries: 3
+         retries: 2
     artifacts:
         logs:
             paths:
@@ -410,30 +410,30 @@ URP_Performance_BoatAttack_OSX_Metal_performance_build_editmode_mono_Linear_CUST
       -  cd TestProjects/BoatAttack && unity-config project add testable unity.graphictests.performance.universal  --project-path .
       -  cd TestProjects/BoatAttack && unity-config project set project-update false --project-path .
       -  command: curl -s https://artifactory.prd.it.unity3d.com/artifactory/unity-tools-local/utr-standalone/utr --output utr
-         retries: 3
+         retries: 2
       -  chmod +x utr
       -  command: scp -i ~/.ssh/id_rsa_macmini -r $YAMATO_SOURCE_DIR bokken@$BOKKEN_DEVICE_IP:~/Graphics
-         retries: 3
+         retries: 2
       -  command: scp -i ~/.ssh/id_rsa_macmini ~/.ssh/id_rsa_macmini bokken@$BOKKEN_DEVICE_IP:~/.ssh/id_rsa_macmini
-         retries: 3
+         retries: 2
       -  command: ssh -i ~/.ssh/id_rsa_macmini bokken@$BOKKEN_DEVICE_IP "bash -lc 'pip3 install unity-downloader-cli --user --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade'"
-         retries: 3
+         retries: 2
       -  command: ssh -i ~/.ssh/id_rsa_macmini bokken@$BOKKEN_DEVICE_IP '$(python3 -m site --user-base)/bin/unity-downloader-cli --source-file ~/Graphics/unity_revision.txt -c editor -c il2cpp  --wait --published-only'
-         retries: 3
+         retries: 2
       -  command: |5-
                 ssh -i ~/.ssh/id_rsa_macmini bokken@$BOKKEN_DEVICE_IP "export UPM_REGISTRY=https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates; ~/Graphics/utr  --artifacts_path=/Users/bokken/Graphics/TestProjects/BoatAttack/test-results --editor-location=/Users/bokken/.Editor --extra-editor-arg="-colorspace=Linear" --scripting-backend=Mono2x --suite=playmode --testfilter=$TEST_FILTER --testproject=/Users/bokken/Graphics/TestProjects/BoatAttack --zero-tests-are-ok=1 "
                 UTR_RESULT=$?
                 mkdir -p TestProjects/BoatAttack/test-results/
                 scp -i ~/.ssh/id_rsa_macmini -r bokken@$BOKKEN_DEVICE_IP:/Users/bokken/Graphics/TestProjects/BoatAttack/test-results/ TestProjects/BoatAttack/test-results/
                 exit $UTR_RESULT
-         retries: 3
+         retries: 2
       -  command: |5-
                 ssh -i ~/.ssh/id_rsa_macmini bokken@$BOKKEN_DEVICE_IP "export UPM_REGISTRY=https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates; ~/Graphics/utr  --artifacts_path=/Users/bokken/Graphics/TestProjects/BoatAttack/test-results --editor-location=/Users/bokken/.Editor --extra-editor-arg="-colorspace=Linear" --scripting-backend=Mono2x --suite=playmode --testfilter=$TEST_FILTER --testproject=/Users/bokken/Graphics/TestProjects/BoatAttack --zero-tests-are-ok=1 "
                 UTR_RESULT=$?
                 mkdir -p TestProjects/BoatAttack/test-results/
                 scp -i ~/.ssh/id_rsa_macmini -r bokken@$BOKKEN_DEVICE_IP:/Users/bokken/Graphics/TestProjects/BoatAttack/test-results/ TestProjects/BoatAttack/test-results/
                 exit $UTR_RESULT
-         retries: 3
+         retries: 2
     artifacts:
         logs:
             paths:

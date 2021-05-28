@@ -23,12 +23,12 @@ VikingVillage_URP_Android_Vulkan_performance_playmode_runtime_il2cpp_Linear_trun
         TEST_FILTER: .*
     commands:
       -  command: '%ANDROID_SDK_ROOT%\platform-tools\adb.exe connect %BOKKEN_DEVICE_IP%'
-         retries: 3
+         retries: 2
       -  command: powershell %ANDROID_SDK_ROOT%\platform-tools\adb.exe devices
-         retries: 3
+         retries: 2
       -  command: NetSh Advfirewall set allprofiles state off
       -  command: curl -s https://artifactory.prd.it.unity3d.com/artifactory/unity-tools-local/utr-standalone/utr.bat --output utr.bat
-         retries: 3
+         retries: 2
       -  command: |5-
                 set ANDROID_DEVICE_CONNECTION=%BOKKEN_DEVICE_IP%
                 git rev-parse HEAD | git show -s --format=%%cI > revdate.tmp
@@ -36,9 +36,9 @@ VikingVillage_URP_Android_Vulkan_performance_playmode_runtime_il2cpp_Linear_trun
                 echo %GIT_REVISIONDATE%
                 del revdate.tmp
                 utr --architecture=ARM64 --artifacts_path=TestProjects/Viking-Village-Perf/test-results --build-only --editor-location=./WindowsEditor --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-executemethod" --extra-editor-arg="SetupProject.ApplySettings" --extra-editor-arg="gles3" --extra-editor-arg="Linear" --extra-editor-arg="-playergraphicsapi=OpenGLES3" --platform=Android --player-save-path=players --scripting-backend=IL2CPP --suite=playmode --testfilter=%TEST_FILTER% --testproject=./TestProjects/Viking-Village-Perf --timeout=2700
-         retries: 3
+         retries: 2
       -  command: start %ANDROID_SDK_ROOT%\platform-tools\adb.exe kill-server
-         retries: 3
+         retries: 2
     artifacts:
         logs:
             paths:
@@ -86,11 +86,11 @@ Build_VikingVillage_URP_Android_Vulkan_performance_playmode_runtime_il2cpp_Linea
       -  cd TestProjects/Viking-Village-Perf && unity-config project set project-update false --project-path .
       -  command: NetSh Advfirewall set allprofiles state off
       -  command: curl -s https://artifactory.prd.it.unity3d.com/artifactory/unity-tools-local/utr-standalone/utr.bat --output utr.bat
-         retries: 3
+         retries: 2
       -  command: choco install unity-downloader-cli -y -s https://artifactory.prd.it.unity3d.com/artifactory/api/nuget/unity-choco-local
-         retries: 3
+         retries: 2
       -  command: unity-downloader-cli --source-file unity_revision.txt -p WindowsEditor -c editor -c il2cpp -c android  --wait --published-only
-         retries: 3
+         retries: 2
       -  command: |5-
                 set ANDROID_DEVICE_CONNECTION=%BOKKEN_DEVICE_IP%
                 git rev-parse HEAD | git show -s --format=%%cI > revdate.tmp
@@ -98,7 +98,7 @@ Build_VikingVillage_URP_Android_Vulkan_performance_playmode_runtime_il2cpp_Linea
                 echo %GIT_REVISIONDATE%
                 del revdate.tmp
                 utr --architecture=ARM64 --artifacts_path=TestProjects/Viking-Village-Perf/test-results --build-only --editor-location=./WindowsEditor --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-executemethod" --extra-editor-arg="SetupProject.ApplySettings" --extra-editor-arg="gles3" --extra-editor-arg="Linear" --extra-editor-arg="-playergraphicsapi=OpenGLES3" --platform=Android --player-save-path=players --scripting-backend=IL2CPP --suite=playmode --testfilter=%TEST_FILTER% --testproject=./TestProjects/Viking-Village-Perf --timeout=2700
-         retries: 3
+         retries: 2
     artifacts:
         logs:
             paths:
@@ -147,11 +147,11 @@ VikingVillage_URP_Android_Vulkan_performance_build_editmode_il2cpp_Linear_trunk:
       -  cd TestProjects/Viking-Village-Perf && unity-config project set project-update false --project-path .
       -  command: NetSh Advfirewall set allprofiles state off
       -  command: curl -s https://artifactory.prd.it.unity3d.com/artifactory/unity-tools-local/utr-standalone/utr.bat --output utr.bat
-         retries: 3
+         retries: 2
       -  command: choco install unity-downloader-cli -y -s https://artifactory.prd.it.unity3d.com/artifactory/api/nuget/unity-choco-local
-         retries: 3
+         retries: 2
       -  command: unity-downloader-cli --source-file unity_revision.txt -p WindowsEditor -c editor -c il2cpp -c android  --wait --published-only
-         retries: 3
+         retries: 2
       -  command: |5-
                 set ANDROID_DEVICE_CONNECTION=%BOKKEN_DEVICE_IP%
                 git rev-parse HEAD | git show -s --format=%%cI > revdate.tmp
@@ -159,7 +159,7 @@ VikingVillage_URP_Android_Vulkan_performance_build_editmode_il2cpp_Linear_trunk:
                 echo %GIT_REVISIONDATE%
                 del revdate.tmp
                 utr --architecture=ARM64 --artifacts_path=TestProjects/Viking-Village-Perf/test-results --build-only --editor-location=./WindowsEditor --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-executemethod" --extra-editor-arg="SetupProject.ApplySettings" --extra-editor-arg="gles3" --extra-editor-arg="Linear" --extra-editor-arg="-playergraphicsapi=OpenGLES3" --platform=Android --player-save-path=players --scripting-backend=IL2CPP --suite=playmode --testfilter=%TEST_FILTER% --testproject=./TestProjects/Viking-Village-Perf --timeout=2700
-         retries: 3
+         retries: 2
     artifacts:
         logs:
             paths:
@@ -183,12 +183,12 @@ VikingVillage_URP_Android_Vulkan_performance_playmode_runtime_il2cpp_Linear_CUST
         TEST_FILTER: .*
     commands:
       -  command: '%ANDROID_SDK_ROOT%\platform-tools\adb.exe connect %BOKKEN_DEVICE_IP%'
-         retries: 3
+         retries: 2
       -  command: powershell %ANDROID_SDK_ROOT%\platform-tools\adb.exe devices
-         retries: 3
+         retries: 2
       -  command: NetSh Advfirewall set allprofiles state off
       -  command: curl -s https://artifactory.prd.it.unity3d.com/artifactory/unity-tools-local/utr-standalone/utr.bat --output utr.bat
-         retries: 3
+         retries: 2
       -  command: |5-
                 set ANDROID_DEVICE_CONNECTION=%BOKKEN_DEVICE_IP%
                 git rev-parse HEAD | git show -s --format=%%cI > revdate.tmp
@@ -196,9 +196,9 @@ VikingVillage_URP_Android_Vulkan_performance_playmode_runtime_il2cpp_Linear_CUST
                 echo %GIT_REVISIONDATE%
                 del revdate.tmp
                 utr --architecture=ARM64 --artifacts_path=TestProjects/Viking-Village-Perf/test-results --build-only --editor-location=./WindowsEditor --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-executemethod" --extra-editor-arg="SetupProject.ApplySettings" --extra-editor-arg="gles3" --extra-editor-arg="Linear" --extra-editor-arg="-playergraphicsapi=OpenGLES3" --platform=Android --player-save-path=players --scripting-backend=IL2CPP --suite=playmode --testfilter=%TEST_FILTER% --testproject=./TestProjects/Viking-Village-Perf --timeout=2700
-         retries: 3
+         retries: 2
       -  command: start %ANDROID_SDK_ROOT%\platform-tools\adb.exe kill-server
-         retries: 3
+         retries: 2
     artifacts:
         logs:
             paths:
@@ -246,11 +246,11 @@ Build_VikingVillage_URP_Android_Vulkan_performance_playmode_runtime_il2cpp_Linea
       -  cd TestProjects/Viking-Village-Perf && unity-config project set project-update false --project-path .
       -  command: NetSh Advfirewall set allprofiles state off
       -  command: curl -s https://artifactory.prd.it.unity3d.com/artifactory/unity-tools-local/utr-standalone/utr.bat --output utr.bat
-         retries: 3
+         retries: 2
       -  command: choco install unity-downloader-cli -y -s https://artifactory.prd.it.unity3d.com/artifactory/api/nuget/unity-choco-local
-         retries: 3
+         retries: 2
       -  command: unity-downloader-cli --source-file unity_revision.txt -p WindowsEditor -c editor -c il2cpp -c android  --wait --published-only
-         retries: 3
+         retries: 2
       -  command: |5-
                 set ANDROID_DEVICE_CONNECTION=%BOKKEN_DEVICE_IP%
                 git rev-parse HEAD | git show -s --format=%%cI > revdate.tmp
@@ -258,7 +258,7 @@ Build_VikingVillage_URP_Android_Vulkan_performance_playmode_runtime_il2cpp_Linea
                 echo %GIT_REVISIONDATE%
                 del revdate.tmp
                 utr --architecture=ARM64 --artifacts_path=TestProjects/Viking-Village-Perf/test-results --build-only --editor-location=./WindowsEditor --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-executemethod" --extra-editor-arg="SetupProject.ApplySettings" --extra-editor-arg="gles3" --extra-editor-arg="Linear" --extra-editor-arg="-playergraphicsapi=OpenGLES3" --platform=Android --player-save-path=players --scripting-backend=IL2CPP --suite=playmode --testfilter=%TEST_FILTER% --testproject=./TestProjects/Viking-Village-Perf --timeout=2700
-         retries: 3
+         retries: 2
     artifacts:
         logs:
             paths:
@@ -307,11 +307,11 @@ VikingVillage_URP_Android_Vulkan_performance_build_editmode_il2cpp_Linear_CUSTOM
       -  cd TestProjects/Viking-Village-Perf && unity-config project set project-update false --project-path .
       -  command: NetSh Advfirewall set allprofiles state off
       -  command: curl -s https://artifactory.prd.it.unity3d.com/artifactory/unity-tools-local/utr-standalone/utr.bat --output utr.bat
-         retries: 3
+         retries: 2
       -  command: choco install unity-downloader-cli -y -s https://artifactory.prd.it.unity3d.com/artifactory/api/nuget/unity-choco-local
-         retries: 3
+         retries: 2
       -  command: unity-downloader-cli --source-file unity_revision.txt -p WindowsEditor -c editor -c il2cpp -c android  --wait --published-only
-         retries: 3
+         retries: 2
       -  command: |5-
                 set ANDROID_DEVICE_CONNECTION=%BOKKEN_DEVICE_IP%
                 git rev-parse HEAD | git show -s --format=%%cI > revdate.tmp
@@ -319,7 +319,7 @@ VikingVillage_URP_Android_Vulkan_performance_build_editmode_il2cpp_Linear_CUSTOM
                 echo %GIT_REVISIONDATE%
                 del revdate.tmp
                 utr --architecture=ARM64 --artifacts_path=TestProjects/Viking-Village-Perf/test-results --build-only --editor-location=./WindowsEditor --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-executemethod" --extra-editor-arg="SetupProject.ApplySettings" --extra-editor-arg="gles3" --extra-editor-arg="Linear" --extra-editor-arg="-playergraphicsapi=OpenGLES3" --platform=Android --player-save-path=players --scripting-backend=IL2CPP --suite=playmode --testfilter=%TEST_FILTER% --testproject=./TestProjects/Viking-Village-Perf --timeout=2700
-         retries: 3
+         retries: 2
     artifacts:
         logs:
             paths:

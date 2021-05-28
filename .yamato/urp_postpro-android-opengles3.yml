@@ -21,12 +21,12 @@ URP_PostPro_Android_OpenGLES3_Standalone_il2cpp_Linear_trunk:
         TEST_FILTER: .*
     commands:
       -  command: '%ANDROID_SDK_ROOT%\platform-tools\adb.exe connect %BOKKEN_DEVICE_IP%'
-         retries: 3
+         retries: 2
       -  command: powershell %ANDROID_SDK_ROOT%\platform-tools\adb.exe devices
-         retries: 3
+         retries: 2
       -  command: NetSh Advfirewall set allprofiles state off
       -  command: curl -s https://artifactory.prd.it.unity3d.com/artifactory/unity-tools-local/utr-standalone/utr.bat --output utr.bat
-         retries: 3
+         retries: 2
       -  command: |5-
                 set ANDROID_DEVICE_CONNECTION=%BOKKEN_DEVICE_IP%
                 git rev-parse HEAD | git show -s --format=%%cI > revdate.tmp
@@ -34,9 +34,9 @@ URP_PostPro_Android_OpenGLES3_Standalone_il2cpp_Linear_trunk:
                 echo %GIT_REVISIONDATE%
                 del revdate.tmp
                 utr --architecture=ARM64 --artifacts_path=TestProjects/UniversalGraphicsTest_PostPro/test-results --build-only --editor-location=./WindowsEditor --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-executemethod" --extra-editor-arg="SetupProject.ApplySettings" --extra-editor-arg="gles3" --extra-editor-arg="Linear" --extra-editor-arg="-playergraphicsapi=OpenGLES3" --platform=Android --player-save-path=players --scripting-backend=IL2CPP --suite=playmode --testfilter=%TEST_FILTER% --testproject=./TestProjects/UniversalGraphicsTest_PostPro --timeout=2700
-         retries: 3
+         retries: 2
       -  command: start %ANDROID_SDK_ROOT%\platform-tools\adb.exe kill-server
-         retries: 3
+         retries: 2
     artifacts:
         logs:
             paths:
@@ -61,11 +61,11 @@ Build_URP_PostPro_Android_OpenGLES3_Standalone_il2cpp_Linear_trunk:
     commands:
       -  command: NetSh Advfirewall set allprofiles state off
       -  command: curl -s https://artifactory.prd.it.unity3d.com/artifactory/unity-tools-local/utr-standalone/utr.bat --output utr.bat
-         retries: 3
+         retries: 2
       -  command: choco install unity-downloader-cli -y -s https://artifactory.prd.it.unity3d.com/artifactory/api/nuget/unity-choco-local
-         retries: 3
+         retries: 2
       -  command: unity-downloader-cli --source-file unity_revision.txt -p WindowsEditor -c editor -c il2cpp -c android  --wait --published-only
-         retries: 3
+         retries: 2
       -  command: |5-
                 set ANDROID_DEVICE_CONNECTION=%BOKKEN_DEVICE_IP%
                 git rev-parse HEAD | git show -s --format=%%cI > revdate.tmp
@@ -73,7 +73,7 @@ Build_URP_PostPro_Android_OpenGLES3_Standalone_il2cpp_Linear_trunk:
                 echo %GIT_REVISIONDATE%
                 del revdate.tmp
                 utr --architecture=ARM64 --artifacts_path=TestProjects/UniversalGraphicsTest_PostPro/test-results --build-only --editor-location=./WindowsEditor --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-executemethod" --extra-editor-arg="SetupProject.ApplySettings" --extra-editor-arg="gles3" --extra-editor-arg="Linear" --extra-editor-arg="-playergraphicsapi=OpenGLES3" --platform=Android --player-save-path=players --scripting-backend=IL2CPP --suite=playmode --testfilter=%TEST_FILTER% --testproject=./TestProjects/UniversalGraphicsTest_PostPro --timeout=2700
-         retries: 3
+         retries: 2
     artifacts:
         logs:
             paths:
@@ -98,12 +98,12 @@ URP_PostPro_Android_OpenGLES3_Standalone_cache_il2cpp_Linear_trunk:
         TEST_FILTER: .*
     commands:
       -  command: '%ANDROID_SDK_ROOT%\platform-tools\adb.exe connect %BOKKEN_DEVICE_IP%'
-         retries: 3
+         retries: 2
       -  command: powershell %ANDROID_SDK_ROOT%\platform-tools\adb.exe devices
-         retries: 3
+         retries: 2
       -  command: NetSh Advfirewall set allprofiles state off
       -  command: curl -s https://artifactory.prd.it.unity3d.com/artifactory/unity-tools-local/utr-standalone/utr.bat --output utr.bat
-         retries: 3
+         retries: 2
       -  command: |5-
                 set ANDROID_DEVICE_CONNECTION=%BOKKEN_DEVICE_IP%
                 git rev-parse HEAD | git show -s --format=%%cI > revdate.tmp
@@ -111,9 +111,9 @@ URP_PostPro_Android_OpenGLES3_Standalone_cache_il2cpp_Linear_trunk:
                 echo %GIT_REVISIONDATE%
                 del revdate.tmp
                 utr --architecture=ARM64 --artifacts_path=TestProjects/UniversalGraphicsTest_PostPro/test-results --build-only --editor-location=./WindowsEditor --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-executemethod" --extra-editor-arg="SetupProject.ApplySettings" --extra-editor-arg="gles3" --extra-editor-arg="Linear" --extra-editor-arg="-playergraphicsapi=OpenGLES3" --platform=Android --player-save-path=players --scripting-backend=IL2CPP --suite=playmode --testfilter=%TEST_FILTER% --testproject=./TestProjects/UniversalGraphicsTest_PostPro --timeout=2700
-         retries: 3
+         retries: 2
       -  command: start %ANDROID_SDK_ROOT%\platform-tools\adb.exe kill-server
-         retries: 3
+         retries: 2
     artifacts:
         logs:
             paths:
@@ -138,11 +138,11 @@ Build_URP_PostPro_Android_OpenGLES3_Standalone_cache_il2cpp_Linear_trunk:
     commands:
       -  command: NetSh Advfirewall set allprofiles state off
       -  command: curl -s https://artifactory.prd.it.unity3d.com/artifactory/unity-tools-local/utr-standalone/utr.bat --output utr.bat
-         retries: 3
+         retries: 2
       -  command: choco install unity-downloader-cli -y -s https://artifactory.prd.it.unity3d.com/artifactory/api/nuget/unity-choco-local
-         retries: 3
+         retries: 2
       -  command: unity-downloader-cli --source-file unity_revision.txt -p WindowsEditor -c editor -c il2cpp -c android  --wait --published-only
-         retries: 3
+         retries: 2
       -  command: |5-
                 set ANDROID_DEVICE_CONNECTION=%BOKKEN_DEVICE_IP%
                 git rev-parse HEAD | git show -s --format=%%cI > revdate.tmp
@@ -150,7 +150,7 @@ Build_URP_PostPro_Android_OpenGLES3_Standalone_cache_il2cpp_Linear_trunk:
                 echo %GIT_REVISIONDATE%
                 del revdate.tmp
                 utr --architecture=ARM64 --artifacts_path=TestProjects/UniversalGraphicsTest_PostPro/test-results --build-only --editor-location=./WindowsEditor --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-executemethod" --extra-editor-arg="SetupProject.ApplySettings" --extra-editor-arg="gles3" --extra-editor-arg="Linear" --extra-editor-arg="-playergraphicsapi=OpenGLES3" --platform=Android --player-save-path=players --scripting-backend=IL2CPP --suite=playmode --testfilter=%TEST_FILTER% --testproject=./TestProjects/UniversalGraphicsTest_PostPro --timeout=2700
-         retries: 3
+         retries: 2
     artifacts:
         logs:
             paths:
@@ -175,12 +175,12 @@ URP_PostPro_Android_OpenGLES3_Standalone_XR_cache_il2cpp_Linear_trunk:
         TEST_FILTER: .*
     commands:
       -  command: '%ANDROID_SDK_ROOT%\platform-tools\adb.exe connect %BOKKEN_DEVICE_IP%'
-         retries: 3
+         retries: 2
       -  command: powershell %ANDROID_SDK_ROOT%\platform-tools\adb.exe devices
-         retries: 3
+         retries: 2
       -  command: NetSh Advfirewall set allprofiles state off
       -  command: curl -s https://artifactory.prd.it.unity3d.com/artifactory/unity-tools-local/utr-standalone/utr.bat --output utr.bat
-         retries: 3
+         retries: 2
       -  command: |5-
                 set ANDROID_DEVICE_CONNECTION=%BOKKEN_DEVICE_IP%
                 git rev-parse HEAD | git show -s --format=%%cI > revdate.tmp
@@ -188,9 +188,9 @@ URP_PostPro_Android_OpenGLES3_Standalone_XR_cache_il2cpp_Linear_trunk:
                 echo %GIT_REVISIONDATE%
                 del revdate.tmp
                 utr --architecture=ARM64 --artifacts_path=TestProjects/UniversalGraphicsTest_PostPro/test-results --build-only --editor-location=./WindowsEditor --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-executemethod" --extra-editor-arg="SetupProject.ApplySettings" --extra-editor-arg="gles3" --extra-editor-arg="Linear" --extra-editor-arg="-playergraphicsapi=OpenGLES3" --platform=Android --player-save-path=players --scripting-backend=IL2CPP --suite=playmode --testfilter=%TEST_FILTER% --testproject=./TestProjects/UniversalGraphicsTest_PostPro --timeout=2700
-         retries: 3
+         retries: 2
       -  command: start %ANDROID_SDK_ROOT%\platform-tools\adb.exe kill-server
-         retries: 3
+         retries: 2
     artifacts:
         logs:
             paths:
@@ -215,11 +215,11 @@ Build_URP_PostPro_Android_OpenGLES3_Standalone_XR_cache_il2cpp_Linear_trunk:
     commands:
       -  command: NetSh Advfirewall set allprofiles state off
       -  command: curl -s https://artifactory.prd.it.unity3d.com/artifactory/unity-tools-local/utr-standalone/utr.bat --output utr.bat
-         retries: 3
+         retries: 2
       -  command: choco install unity-downloader-cli -y -s https://artifactory.prd.it.unity3d.com/artifactory/api/nuget/unity-choco-local
-         retries: 3
+         retries: 2
       -  command: unity-downloader-cli --source-file unity_revision.txt -p WindowsEditor -c editor -c il2cpp -c android  --wait --published-only
-         retries: 3
+         retries: 2
       -  command: |5-
                 set ANDROID_DEVICE_CONNECTION=%BOKKEN_DEVICE_IP%
                 git rev-parse HEAD | git show -s --format=%%cI > revdate.tmp
@@ -227,7 +227,7 @@ Build_URP_PostPro_Android_OpenGLES3_Standalone_XR_cache_il2cpp_Linear_trunk:
                 echo %GIT_REVISIONDATE%
                 del revdate.tmp
                 utr --architecture=ARM64 --artifacts_path=TestProjects/UniversalGraphicsTest_PostPro/test-results --build-only --editor-location=./WindowsEditor --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-executemethod" --extra-editor-arg="SetupProject.ApplySettings" --extra-editor-arg="gles3" --extra-editor-arg="Linear" --extra-editor-arg="-playergraphicsapi=OpenGLES3" --platform=Android --player-save-path=players --scripting-backend=IL2CPP --suite=playmode --testfilter=%TEST_FILTER% --testproject=./TestProjects/UniversalGraphicsTest_PostPro --timeout=2700
-         retries: 3
+         retries: 2
     artifacts:
         logs:
             paths:
@@ -252,12 +252,12 @@ URP_PostPro_Android_OpenGLES3_Standalone_il2cpp_Linear_CUSTOM-REVISION:
         TEST_FILTER: .*
     commands:
       -  command: '%ANDROID_SDK_ROOT%\platform-tools\adb.exe connect %BOKKEN_DEVICE_IP%'
-         retries: 3
+         retries: 2
       -  command: powershell %ANDROID_SDK_ROOT%\platform-tools\adb.exe devices
-         retries: 3
+         retries: 2
       -  command: NetSh Advfirewall set allprofiles state off
       -  command: curl -s https://artifactory.prd.it.unity3d.com/artifactory/unity-tools-local/utr-standalone/utr.bat --output utr.bat
-         retries: 3
+         retries: 2
       -  command: |5-
                 set ANDROID_DEVICE_CONNECTION=%BOKKEN_DEVICE_IP%
                 git rev-parse HEAD | git show -s --format=%%cI > revdate.tmp
@@ -265,9 +265,9 @@ URP_PostPro_Android_OpenGLES3_Standalone_il2cpp_Linear_CUSTOM-REVISION:
                 echo %GIT_REVISIONDATE%
                 del revdate.tmp
                 utr --architecture=ARM64 --artifacts_path=TestProjects/UniversalGraphicsTest_PostPro/test-results --build-only --editor-location=./WindowsEditor --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-executemethod" --extra-editor-arg="SetupProject.ApplySettings" --extra-editor-arg="gles3" --extra-editor-arg="Linear" --extra-editor-arg="-playergraphicsapi=OpenGLES3" --platform=Android --player-save-path=players --scripting-backend=IL2CPP --suite=playmode --testfilter=%TEST_FILTER% --testproject=./TestProjects/UniversalGraphicsTest_PostPro --timeout=2700
-         retries: 3
+         retries: 2
       -  command: start %ANDROID_SDK_ROOT%\platform-tools\adb.exe kill-server
-         retries: 3
+         retries: 2
     artifacts:
         logs:
             paths:
@@ -292,11 +292,11 @@ Build_URP_PostPro_Android_OpenGLES3_Standalone_il2cpp_Linear_CUSTOM-REVISION:
     commands:
       -  command: NetSh Advfirewall set allprofiles state off
       -  command: curl -s https://artifactory.prd.it.unity3d.com/artifactory/unity-tools-local/utr-standalone/utr.bat --output utr.bat
-         retries: 3
+         retries: 2
       -  command: choco install unity-downloader-cli -y -s https://artifactory.prd.it.unity3d.com/artifactory/api/nuget/unity-choco-local
-         retries: 3
+         retries: 2
       -  command: unity-downloader-cli --source-file unity_revision.txt -p WindowsEditor -c editor -c il2cpp -c android  --wait --published-only
-         retries: 3
+         retries: 2
       -  command: |5-
                 set ANDROID_DEVICE_CONNECTION=%BOKKEN_DEVICE_IP%
                 git rev-parse HEAD | git show -s --format=%%cI > revdate.tmp
@@ -304,7 +304,7 @@ Build_URP_PostPro_Android_OpenGLES3_Standalone_il2cpp_Linear_CUSTOM-REVISION:
                 echo %GIT_REVISIONDATE%
                 del revdate.tmp
                 utr --architecture=ARM64 --artifacts_path=TestProjects/UniversalGraphicsTest_PostPro/test-results --build-only --editor-location=./WindowsEditor --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-executemethod" --extra-editor-arg="SetupProject.ApplySettings" --extra-editor-arg="gles3" --extra-editor-arg="Linear" --extra-editor-arg="-playergraphicsapi=OpenGLES3" --platform=Android --player-save-path=players --scripting-backend=IL2CPP --suite=playmode --testfilter=%TEST_FILTER% --testproject=./TestProjects/UniversalGraphicsTest_PostPro --timeout=2700
-         retries: 3
+         retries: 2
     artifacts:
         logs:
             paths:
@@ -329,12 +329,12 @@ URP_PostPro_Android_OpenGLES3_Standalone_cache_il2cpp_Linear_CUSTOM-REVISION:
         TEST_FILTER: .*
     commands:
       -  command: '%ANDROID_SDK_ROOT%\platform-tools\adb.exe connect %BOKKEN_DEVICE_IP%'
-         retries: 3
+         retries: 2
       -  command: powershell %ANDROID_SDK_ROOT%\platform-tools\adb.exe devices
-         retries: 3
+         retries: 2
       -  command: NetSh Advfirewall set allprofiles state off
       -  command: curl -s https://artifactory.prd.it.unity3d.com/artifactory/unity-tools-local/utr-standalone/utr.bat --output utr.bat
-         retries: 3
+         retries: 2
       -  command: |5-
                 set ANDROID_DEVICE_CONNECTION=%BOKKEN_DEVICE_IP%
                 git rev-parse HEAD | git show -s --format=%%cI > revdate.tmp
@@ -342,9 +342,9 @@ URP_PostPro_Android_OpenGLES3_Standalone_cache_il2cpp_Linear_CUSTOM-REVISION:
                 echo %GIT_REVISIONDATE%
                 del revdate.tmp
                 utr --architecture=ARM64 --artifacts_path=TestProjects/UniversalGraphicsTest_PostPro/test-results --build-only --editor-location=./WindowsEditor --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-executemethod" --extra-editor-arg="SetupProject.ApplySettings" --extra-editor-arg="gles3" --extra-editor-arg="Linear" --extra-editor-arg="-playergraphicsapi=OpenGLES3" --platform=Android --player-save-path=players --scripting-backend=IL2CPP --suite=playmode --testfilter=%TEST_FILTER% --testproject=./TestProjects/UniversalGraphicsTest_PostPro --timeout=2700
-         retries: 3
+         retries: 2
       -  command: start %ANDROID_SDK_ROOT%\platform-tools\adb.exe kill-server
-         retries: 3
+         retries: 2
     artifacts:
         logs:
             paths:
@@ -369,11 +369,11 @@ Build_URP_PostPro_Android_OpenGLES3_Standalone_cache_il2cpp_Linear_CUSTOM-REVISI
     commands:
       -  command: NetSh Advfirewall set allprofiles state off
       -  command: curl -s https://artifactory.prd.it.unity3d.com/artifactory/unity-tools-local/utr-standalone/utr.bat --output utr.bat
-         retries: 3
+         retries: 2
       -  command: choco install unity-downloader-cli -y -s https://artifactory.prd.it.unity3d.com/artifactory/api/nuget/unity-choco-local
-         retries: 3
+         retries: 2
       -  command: unity-downloader-cli --source-file unity_revision.txt -p WindowsEditor -c editor -c il2cpp -c android  --wait --published-only
-         retries: 3
+         retries: 2
       -  command: |5-
                 set ANDROID_DEVICE_CONNECTION=%BOKKEN_DEVICE_IP%
                 git rev-parse HEAD | git show -s --format=%%cI > revdate.tmp
@@ -381,7 +381,7 @@ Build_URP_PostPro_Android_OpenGLES3_Standalone_cache_il2cpp_Linear_CUSTOM-REVISI
                 echo %GIT_REVISIONDATE%
                 del revdate.tmp
                 utr --architecture=ARM64 --artifacts_path=TestProjects/UniversalGraphicsTest_PostPro/test-results --build-only --editor-location=./WindowsEditor --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-executemethod" --extra-editor-arg="SetupProject.ApplySettings" --extra-editor-arg="gles3" --extra-editor-arg="Linear" --extra-editor-arg="-playergraphicsapi=OpenGLES3" --platform=Android --player-save-path=players --scripting-backend=IL2CPP --suite=playmode --testfilter=%TEST_FILTER% --testproject=./TestProjects/UniversalGraphicsTest_PostPro --timeout=2700
-         retries: 3
+         retries: 2
     artifacts:
         logs:
             paths:
@@ -406,12 +406,12 @@ URP_PostPro_Android_OpenGLES3_Standalone_XR_cache_il2cpp_Linear_CUSTOM-REVISION:
         TEST_FILTER: .*
     commands:
       -  command: '%ANDROID_SDK_ROOT%\platform-tools\adb.exe connect %BOKKEN_DEVICE_IP%'
-         retries: 3
+         retries: 2
       -  command: powershell %ANDROID_SDK_ROOT%\platform-tools\adb.exe devices
-         retries: 3
+         retries: 2
       -  command: NetSh Advfirewall set allprofiles state off
       -  command: curl -s https://artifactory.prd.it.unity3d.com/artifactory/unity-tools-local/utr-standalone/utr.bat --output utr.bat
-         retries: 3
+         retries: 2
       -  command: |5-
                 set ANDROID_DEVICE_CONNECTION=%BOKKEN_DEVICE_IP%
                 git rev-parse HEAD | git show -s --format=%%cI > revdate.tmp
@@ -419,9 +419,9 @@ URP_PostPro_Android_OpenGLES3_Standalone_XR_cache_il2cpp_Linear_CUSTOM-REVISION:
                 echo %GIT_REVISIONDATE%
                 del revdate.tmp
                 utr --architecture=ARM64 --artifacts_path=TestProjects/UniversalGraphicsTest_PostPro/test-results --build-only --editor-location=./WindowsEditor --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-executemethod" --extra-editor-arg="SetupProject.ApplySettings" --extra-editor-arg="gles3" --extra-editor-arg="Linear" --extra-editor-arg="-playergraphicsapi=OpenGLES3" --platform=Android --player-save-path=players --scripting-backend=IL2CPP --suite=playmode --testfilter=%TEST_FILTER% --testproject=./TestProjects/UniversalGraphicsTest_PostPro --timeout=2700
-         retries: 3
+         retries: 2
       -  command: start %ANDROID_SDK_ROOT%\platform-tools\adb.exe kill-server
-         retries: 3
+         retries: 2
     artifacts:
         logs:
             paths:
@@ -446,11 +446,11 @@ Build_URP_PostPro_Android_OpenGLES3_Standalone_XR_cache_il2cpp_Linear_CUSTOM-REV
     commands:
       -  command: NetSh Advfirewall set allprofiles state off
       -  command: curl -s https://artifactory.prd.it.unity3d.com/artifactory/unity-tools-local/utr-standalone/utr.bat --output utr.bat
-         retries: 3
+         retries: 2
       -  command: choco install unity-downloader-cli -y -s https://artifactory.prd.it.unity3d.com/artifactory/api/nuget/unity-choco-local
-         retries: 3
+         retries: 2
       -  command: unity-downloader-cli --source-file unity_revision.txt -p WindowsEditor -c editor -c il2cpp -c android  --wait --published-only
-         retries: 3
+         retries: 2
       -  command: |5-
                 set ANDROID_DEVICE_CONNECTION=%BOKKEN_DEVICE_IP%
                 git rev-parse HEAD | git show -s --format=%%cI > revdate.tmp
@@ -458,7 +458,7 @@ Build_URP_PostPro_Android_OpenGLES3_Standalone_XR_cache_il2cpp_Linear_CUSTOM-REV
                 echo %GIT_REVISIONDATE%
                 del revdate.tmp
                 utr --architecture=ARM64 --artifacts_path=TestProjects/UniversalGraphicsTest_PostPro/test-results --build-only --editor-location=./WindowsEditor --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-executemethod" --extra-editor-arg="SetupProject.ApplySettings" --extra-editor-arg="gles3" --extra-editor-arg="Linear" --extra-editor-arg="-playergraphicsapi=OpenGLES3" --platform=Android --player-save-path=players --scripting-backend=IL2CPP --suite=playmode --testfilter=%TEST_FILTER% --testproject=./TestProjects/UniversalGraphicsTest_PostPro --timeout=2700
-         retries: 3
+         retries: 2
     artifacts:
         logs:
             paths:

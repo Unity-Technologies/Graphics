@@ -23,12 +23,12 @@ URP_Performance_LostCrypt_Android_Vulkan_performance_playmode_runtime_il2cpp_Lin
         TEST_FILTER: .*
     commands:
       -  command: '%ANDROID_SDK_ROOT%\platform-tools\adb.exe connect %BOKKEN_DEVICE_IP%'
-         retries: 3
+         retries: 2
       -  command: powershell %ANDROID_SDK_ROOT%\platform-tools\adb.exe devices
-         retries: 3
+         retries: 2
       -  command: NetSh Advfirewall set allprofiles state off
       -  command: curl -s https://artifactory.prd.it.unity3d.com/artifactory/unity-tools-local/utr-standalone/utr.bat --output utr.bat
-         retries: 3
+         retries: 2
       -  command: |5-
                 set ANDROID_DEVICE_CONNECTION=%BOKKEN_DEVICE_IP%
                 git rev-parse HEAD | git show -s --format=%%cI > revdate.tmp
@@ -36,7 +36,7 @@ URP_Performance_LostCrypt_Android_Vulkan_performance_playmode_runtime_il2cpp_Lin
                 echo %GIT_REVISIONDATE%
                 del revdate.tmp
                 utr --architecture=ARM64 --artifacts_path=TestProjects/2d-sara/test-results --build-only --editor-location=./WindowsEditor --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-executemethod" --extra-editor-arg="SetupProject.ApplySettings" --extra-editor-arg="gles3" --extra-editor-arg="Linear" --extra-editor-arg="-playergraphicsapi=OpenGLES3" --platform=Android --player-save-path=players --scripting-backend=IL2CPP --suite=playmode --testfilter=%TEST_FILTER% --testproject=./TestProjects/2d-sara --timeout=2700
-         retries: 3
+         retries: 2
       -  command: |5-
                 set ANDROID_DEVICE_CONNECTION=%BOKKEN_DEVICE_IP%
                 git rev-parse HEAD | git show -s --format=%%cI > revdate.tmp
@@ -44,9 +44,9 @@ URP_Performance_LostCrypt_Android_Vulkan_performance_playmode_runtime_il2cpp_Lin
                 echo %GIT_REVISIONDATE%
                 del revdate.tmp
                 utr --architecture=ARM64 --artifacts_path=TestProjects/2d-sara/test-results --build-only --editor-location=./WindowsEditor --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-executemethod" --extra-editor-arg="SetupProject.ApplySettings" --extra-editor-arg="gles3" --extra-editor-arg="Linear" --extra-editor-arg="-playergraphicsapi=OpenGLES3" --platform=Android --player-save-path=players --scripting-backend=IL2CPP --suite=playmode --testfilter=%TEST_FILTER% --testproject=./TestProjects/2d-sara --timeout=2700
-         retries: 3
+         retries: 2
       -  command: start %ANDROID_SDK_ROOT%\platform-tools\adb.exe kill-server
-         retries: 3
+         retries: 2
     artifacts:
         logs:
             paths:
@@ -96,11 +96,11 @@ Build_URP_Performance_LostCrypt_Android_Vulkan_performance_playmode_runtime_il2c
       -  cd TestProjects/2d-sara && unity-config project set project-update false --project-path .
       -  command: NetSh Advfirewall set allprofiles state off
       -  command: curl -s https://artifactory.prd.it.unity3d.com/artifactory/unity-tools-local/utr-standalone/utr.bat --output utr.bat
-         retries: 3
+         retries: 2
       -  command: choco install unity-downloader-cli -y -s https://artifactory.prd.it.unity3d.com/artifactory/api/nuget/unity-choco-local
-         retries: 3
+         retries: 2
       -  command: unity-downloader-cli --source-file unity_revision.txt -p WindowsEditor -c editor -c il2cpp -c android  --wait --published-only
-         retries: 3
+         retries: 2
       -  command: |5-
                 set ANDROID_DEVICE_CONNECTION=%BOKKEN_DEVICE_IP%
                 git rev-parse HEAD | git show -s --format=%%cI > revdate.tmp
@@ -108,7 +108,7 @@ Build_URP_Performance_LostCrypt_Android_Vulkan_performance_playmode_runtime_il2c
                 echo %GIT_REVISIONDATE%
                 del revdate.tmp
                 utr --architecture=ARM64 --artifacts_path=TestProjects/2d-sara/test-results --build-only --editor-location=./WindowsEditor --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-executemethod" --extra-editor-arg="SetupProject.ApplySettings" --extra-editor-arg="gles3" --extra-editor-arg="Linear" --extra-editor-arg="-playergraphicsapi=OpenGLES3" --platform=Android --player-save-path=players --scripting-backend=IL2CPP --suite=playmode --testfilter=%TEST_FILTER% --testproject=./TestProjects/2d-sara --timeout=2700
-         retries: 3
+         retries: 2
       -  command: |5-
                 set ANDROID_DEVICE_CONNECTION=%BOKKEN_DEVICE_IP%
                 git rev-parse HEAD | git show -s --format=%%cI > revdate.tmp
@@ -116,7 +116,7 @@ Build_URP_Performance_LostCrypt_Android_Vulkan_performance_playmode_runtime_il2c
                 echo %GIT_REVISIONDATE%
                 del revdate.tmp
                 utr --architecture=ARM64 --artifacts_path=TestProjects/2d-sara/test-results --build-only --editor-location=./WindowsEditor --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-executemethod" --extra-editor-arg="SetupProject.ApplySettings" --extra-editor-arg="gles3" --extra-editor-arg="Linear" --extra-editor-arg="-playergraphicsapi=OpenGLES3" --platform=Android --player-save-path=players --scripting-backend=IL2CPP --suite=playmode --testfilter=%TEST_FILTER% --testproject=./TestProjects/2d-sara --timeout=2700
-         retries: 3
+         retries: 2
     artifacts:
         logs:
             paths:
@@ -167,11 +167,11 @@ URP_Performance_LostCrypt_Android_Vulkan_performance_build_editmode_il2cpp_Linea
       -  cd TestProjects/2d-sara && unity-config project set project-update false --project-path .
       -  command: NetSh Advfirewall set allprofiles state off
       -  command: curl -s https://artifactory.prd.it.unity3d.com/artifactory/unity-tools-local/utr-standalone/utr.bat --output utr.bat
-         retries: 3
+         retries: 2
       -  command: choco install unity-downloader-cli -y -s https://artifactory.prd.it.unity3d.com/artifactory/api/nuget/unity-choco-local
-         retries: 3
+         retries: 2
       -  command: unity-downloader-cli --source-file unity_revision.txt -p WindowsEditor -c editor -c il2cpp -c android  --wait --published-only
-         retries: 3
+         retries: 2
       -  command: |5-
                 set ANDROID_DEVICE_CONNECTION=%BOKKEN_DEVICE_IP%
                 git rev-parse HEAD | git show -s --format=%%cI > revdate.tmp
@@ -179,7 +179,7 @@ URP_Performance_LostCrypt_Android_Vulkan_performance_build_editmode_il2cpp_Linea
                 echo %GIT_REVISIONDATE%
                 del revdate.tmp
                 utr --architecture=ARM64 --artifacts_path=TestProjects/2d-sara/test-results --build-only --editor-location=./WindowsEditor --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-executemethod" --extra-editor-arg="SetupProject.ApplySettings" --extra-editor-arg="gles3" --extra-editor-arg="Linear" --extra-editor-arg="-playergraphicsapi=OpenGLES3" --platform=Android --player-save-path=players --scripting-backend=IL2CPP --suite=playmode --testfilter=%TEST_FILTER% --testproject=./TestProjects/2d-sara --timeout=2700
-         retries: 3
+         retries: 2
       -  command: |5-
                 set ANDROID_DEVICE_CONNECTION=%BOKKEN_DEVICE_IP%
                 git rev-parse HEAD | git show -s --format=%%cI > revdate.tmp
@@ -187,7 +187,7 @@ URP_Performance_LostCrypt_Android_Vulkan_performance_build_editmode_il2cpp_Linea
                 echo %GIT_REVISIONDATE%
                 del revdate.tmp
                 utr --architecture=ARM64 --artifacts_path=TestProjects/2d-sara/test-results --build-only --editor-location=./WindowsEditor --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-executemethod" --extra-editor-arg="SetupProject.ApplySettings" --extra-editor-arg="gles3" --extra-editor-arg="Linear" --extra-editor-arg="-playergraphicsapi=OpenGLES3" --platform=Android --player-save-path=players --scripting-backend=IL2CPP --suite=playmode --testfilter=%TEST_FILTER% --testproject=./TestProjects/2d-sara --timeout=2700
-         retries: 3
+         retries: 2
     artifacts:
         logs:
             paths:
@@ -211,12 +211,12 @@ URP_Performance_LostCrypt_Android_Vulkan_performance_playmode_runtime_il2cpp_Lin
         TEST_FILTER: .*
     commands:
       -  command: '%ANDROID_SDK_ROOT%\platform-tools\adb.exe connect %BOKKEN_DEVICE_IP%'
-         retries: 3
+         retries: 2
       -  command: powershell %ANDROID_SDK_ROOT%\platform-tools\adb.exe devices
-         retries: 3
+         retries: 2
       -  command: NetSh Advfirewall set allprofiles state off
       -  command: curl -s https://artifactory.prd.it.unity3d.com/artifactory/unity-tools-local/utr-standalone/utr.bat --output utr.bat
-         retries: 3
+         retries: 2
       -  command: |5-
                 set ANDROID_DEVICE_CONNECTION=%BOKKEN_DEVICE_IP%
                 git rev-parse HEAD | git show -s --format=%%cI > revdate.tmp
@@ -224,7 +224,7 @@ URP_Performance_LostCrypt_Android_Vulkan_performance_playmode_runtime_il2cpp_Lin
                 echo %GIT_REVISIONDATE%
                 del revdate.tmp
                 utr --architecture=ARM64 --artifacts_path=TestProjects/2d-sara/test-results --build-only --editor-location=./WindowsEditor --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-executemethod" --extra-editor-arg="SetupProject.ApplySettings" --extra-editor-arg="gles3" --extra-editor-arg="Linear" --extra-editor-arg="-playergraphicsapi=OpenGLES3" --platform=Android --player-save-path=players --scripting-backend=IL2CPP --suite=playmode --testfilter=%TEST_FILTER% --testproject=./TestProjects/2d-sara --timeout=2700
-         retries: 3
+         retries: 2
       -  command: |5-
                 set ANDROID_DEVICE_CONNECTION=%BOKKEN_DEVICE_IP%
                 git rev-parse HEAD | git show -s --format=%%cI > revdate.tmp
@@ -232,9 +232,9 @@ URP_Performance_LostCrypt_Android_Vulkan_performance_playmode_runtime_il2cpp_Lin
                 echo %GIT_REVISIONDATE%
                 del revdate.tmp
                 utr --architecture=ARM64 --artifacts_path=TestProjects/2d-sara/test-results --build-only --editor-location=./WindowsEditor --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-executemethod" --extra-editor-arg="SetupProject.ApplySettings" --extra-editor-arg="gles3" --extra-editor-arg="Linear" --extra-editor-arg="-playergraphicsapi=OpenGLES3" --platform=Android --player-save-path=players --scripting-backend=IL2CPP --suite=playmode --testfilter=%TEST_FILTER% --testproject=./TestProjects/2d-sara --timeout=2700
-         retries: 3
+         retries: 2
       -  command: start %ANDROID_SDK_ROOT%\platform-tools\adb.exe kill-server
-         retries: 3
+         retries: 2
     artifacts:
         logs:
             paths:
@@ -284,11 +284,11 @@ Build_URP_Performance_LostCrypt_Android_Vulkan_performance_playmode_runtime_il2c
       -  cd TestProjects/2d-sara && unity-config project set project-update false --project-path .
       -  command: NetSh Advfirewall set allprofiles state off
       -  command: curl -s https://artifactory.prd.it.unity3d.com/artifactory/unity-tools-local/utr-standalone/utr.bat --output utr.bat
-         retries: 3
+         retries: 2
       -  command: choco install unity-downloader-cli -y -s https://artifactory.prd.it.unity3d.com/artifactory/api/nuget/unity-choco-local
-         retries: 3
+         retries: 2
       -  command: unity-downloader-cli --source-file unity_revision.txt -p WindowsEditor -c editor -c il2cpp -c android  --wait --published-only
-         retries: 3
+         retries: 2
       -  command: |5-
                 set ANDROID_DEVICE_CONNECTION=%BOKKEN_DEVICE_IP%
                 git rev-parse HEAD | git show -s --format=%%cI > revdate.tmp
@@ -296,7 +296,7 @@ Build_URP_Performance_LostCrypt_Android_Vulkan_performance_playmode_runtime_il2c
                 echo %GIT_REVISIONDATE%
                 del revdate.tmp
                 utr --architecture=ARM64 --artifacts_path=TestProjects/2d-sara/test-results --build-only --editor-location=./WindowsEditor --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-executemethod" --extra-editor-arg="SetupProject.ApplySettings" --extra-editor-arg="gles3" --extra-editor-arg="Linear" --extra-editor-arg="-playergraphicsapi=OpenGLES3" --platform=Android --player-save-path=players --scripting-backend=IL2CPP --suite=playmode --testfilter=%TEST_FILTER% --testproject=./TestProjects/2d-sara --timeout=2700
-         retries: 3
+         retries: 2
       -  command: |5-
                 set ANDROID_DEVICE_CONNECTION=%BOKKEN_DEVICE_IP%
                 git rev-parse HEAD | git show -s --format=%%cI > revdate.tmp
@@ -304,7 +304,7 @@ Build_URP_Performance_LostCrypt_Android_Vulkan_performance_playmode_runtime_il2c
                 echo %GIT_REVISIONDATE%
                 del revdate.tmp
                 utr --architecture=ARM64 --artifacts_path=TestProjects/2d-sara/test-results --build-only --editor-location=./WindowsEditor --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-executemethod" --extra-editor-arg="SetupProject.ApplySettings" --extra-editor-arg="gles3" --extra-editor-arg="Linear" --extra-editor-arg="-playergraphicsapi=OpenGLES3" --platform=Android --player-save-path=players --scripting-backend=IL2CPP --suite=playmode --testfilter=%TEST_FILTER% --testproject=./TestProjects/2d-sara --timeout=2700
-         retries: 3
+         retries: 2
     artifacts:
         logs:
             paths:
@@ -355,11 +355,11 @@ URP_Performance_LostCrypt_Android_Vulkan_performance_build_editmode_il2cpp_Linea
       -  cd TestProjects/2d-sara && unity-config project set project-update false --project-path .
       -  command: NetSh Advfirewall set allprofiles state off
       -  command: curl -s https://artifactory.prd.it.unity3d.com/artifactory/unity-tools-local/utr-standalone/utr.bat --output utr.bat
-         retries: 3
+         retries: 2
       -  command: choco install unity-downloader-cli -y -s https://artifactory.prd.it.unity3d.com/artifactory/api/nuget/unity-choco-local
-         retries: 3
+         retries: 2
       -  command: unity-downloader-cli --source-file unity_revision.txt -p WindowsEditor -c editor -c il2cpp -c android  --wait --published-only
-         retries: 3
+         retries: 2
       -  command: |5-
                 set ANDROID_DEVICE_CONNECTION=%BOKKEN_DEVICE_IP%
                 git rev-parse HEAD | git show -s --format=%%cI > revdate.tmp
@@ -367,7 +367,7 @@ URP_Performance_LostCrypt_Android_Vulkan_performance_build_editmode_il2cpp_Linea
                 echo %GIT_REVISIONDATE%
                 del revdate.tmp
                 utr --architecture=ARM64 --artifacts_path=TestProjects/2d-sara/test-results --build-only --editor-location=./WindowsEditor --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-executemethod" --extra-editor-arg="SetupProject.ApplySettings" --extra-editor-arg="gles3" --extra-editor-arg="Linear" --extra-editor-arg="-playergraphicsapi=OpenGLES3" --platform=Android --player-save-path=players --scripting-backend=IL2CPP --suite=playmode --testfilter=%TEST_FILTER% --testproject=./TestProjects/2d-sara --timeout=2700
-         retries: 3
+         retries: 2
       -  command: |5-
                 set ANDROID_DEVICE_CONNECTION=%BOKKEN_DEVICE_IP%
                 git rev-parse HEAD | git show -s --format=%%cI > revdate.tmp
@@ -375,7 +375,7 @@ URP_Performance_LostCrypt_Android_Vulkan_performance_build_editmode_il2cpp_Linea
                 echo %GIT_REVISIONDATE%
                 del revdate.tmp
                 utr --architecture=ARM64 --artifacts_path=TestProjects/2d-sara/test-results --build-only --editor-location=./WindowsEditor --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-executemethod" --extra-editor-arg="SetupProject.ApplySettings" --extra-editor-arg="gles3" --extra-editor-arg="Linear" --extra-editor-arg="-playergraphicsapi=OpenGLES3" --platform=Android --player-save-path=players --scripting-backend=IL2CPP --suite=playmode --testfilter=%TEST_FILTER% --testproject=./TestProjects/2d-sara --timeout=2700
-         retries: 3
+         retries: 2
     artifacts:
         logs:
             paths:
