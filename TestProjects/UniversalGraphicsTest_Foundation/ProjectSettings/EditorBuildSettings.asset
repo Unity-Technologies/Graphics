@@ -221,4 +221,7 @@ EditorBuildSettings:
   - enabled: 1
     path: Assets/Scenes/206_Motion_Vectors.unity
     guid: aa08e99a89c77574e9a00b9888fc75ce
+  - enabled: 1
+    path: Assets/Scenes/240_DepthPriming.unity
+    guid: ba9690ce0c2060144b1fc63bfd2893b8
   m_configObjects: {}
