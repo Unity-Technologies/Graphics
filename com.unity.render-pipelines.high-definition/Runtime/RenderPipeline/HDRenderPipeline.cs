@@ -303,15 +303,13 @@ namespace UnityEngine.Rendering.HighDefinition
             {
                 if (m_DebugDisplaySettings == null)
                 {
-                    return new DebugDisplaySettings();
+                    m_DebugDisplaySettings = new DebugDisplaySettings();
                 }
-                else
-                {
-                    return m_DebugDisplaySettings;
-                }
+                
+                return m_DebugDisplaySettings;
             }
         }
-        public static DebugDisplaySettings s_NeutralDebugDisplaySettings = new DebugDisplaySettings();
+        static DebugDisplaySettings s_NeutralDebugDisplaySettings = new DebugDisplaySettings();
         internal DebugDisplaySettings m_CurrentDebugDisplaySettings;
         RTHandle                        m_DebugColorPickerBuffer;
         RTHandle                        m_DebugFullScreenTempBuffer;

@@ -32,7 +32,7 @@ public class DebugViewController : MonoBehaviour
                 hdPipeline.debugDisplaySettings.SetDebugViewGBuffer(gBuffer);
                 break;
             case SettingType.Lighting:
-                hdPipeline.debugDisplaySettings.SetDebugLightLayersMode(true);
+                hdPipeline.debugDisplaySettings.SetDebugLightLayersMode(lightlayers);
                 hdPipeline.debugDisplaySettings.data.lightingDebugSettings.debugLightLayersFilterMask = (DebugLightLayersMask)0b10111101;
                 hdPipeline.debugDisplaySettings.SetFullScreenDebugMode((FullScreenDebugMode) lightingFullScreenDebugMode);
 				break;
