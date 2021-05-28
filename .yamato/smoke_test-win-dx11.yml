@@ -66,7 +66,7 @@ Smoke_Test_Win_DX11_editmode_mono_Linear_trunk:
                 set /p GIT_REVISIONDATE=<revdate.tmp
                 echo %GIT_REVISIONDATE%
                 del revdate.tmp
-                utr --artifacts_path=TestProjects/SRP_SmokeTest/test-results --editor-location=.Editor --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-force-d3d11" --scripting-backend=Mono2x --suite=playmode --testfilter=%TEST_FILTER% --testproject=./TestProjects/SRP_SmokeTest --zero-tests-are-ok=1
+                utr --artifacts_path=TestProjects/SRP_SmokeTest/test-results --editor-location=.Editor --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-force-d3d11" --extra-editor-arg="-playergraphicsapi=Direct3D11" --platform=editmode --scripting-backend=Mono2x --suite=editor --testfilter=%TEST_FILTER% --testproject=./TestProjects/SRP_SmokeTest --zero-tests-are-ok=1
          retries: 2
     artifacts:
         logs:
@@ -96,7 +96,7 @@ Smoke_Test_Win_DX11_Standalone_mono_Linear_trunk:
                 set /p GIT_REVISIONDATE=<revdate.tmp
                 echo %GIT_REVISIONDATE%
                 del revdate.tmp
-                utr --artifacts_path=TestProjects/SRP_SmokeTest/test-results --editor-location=.Editor --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-force-d3d11" --scripting-backend=Mono2x --suite=playmode --testfilter=%TEST_FILTER% --testproject=./TestProjects/SRP_SmokeTest --zero-tests-are-ok=1
+                utr --artifacts_path=TestProjects/SRP_SmokeTest/test-results --platform=StandaloneWindows64 --player-connection-ip=auto --player-load-path=players --suite=playmode --timeout=1200 --zero-tests-are-ok=1
          retries: 2
     artifacts:
         logs:
@@ -134,7 +134,7 @@ Build_Smoke_Test_Win_DX11_Standalone_mono_Linear_trunk:
                 del revdate.tmp
                 utr --artifacts_path=TestProjects/SRP_SmokeTest/test-results --build-only --editor-location=.Editor --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-executemethod" --extra-editor-arg="SetupProject.ApplySettings" --extra-editor-arg="d3d11" --extra-editor-arg="Linear" --extra-editor-arg="-playergraphicsapi=Direct3D11" --platform=StandaloneWindows64 --player-save-path=players --scripting-backend=Mono2x --suite=playmode --testfilter=%TEST_FILTER% --testproject=./TestProjects/SRP_SmokeTest --timeout=1200 & exit 0
          retries: 2
-      -  command: utr --artifacts_path=TestProjects/SRP_SmokeTest/test-results --editor-location=.Editor --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-force-d3d11" --loglevel=verbose --performance-project-version=. --report-performance-data --performance-project-id=HDRP --platform=StandaloneWindows64 --scripting-backend=Mono2x --suite=playmode --testfilter=Memory --testproject=./TestProjects/SRP_SmokeTest --timeout=7200 --zero-tests-are-ok=1
+      -  command: utr --artifacts_path=TestProjects/SRP_SmokeTest/test-results --build-only --editor-location=.Editor --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-executemethod" --extra-editor-arg="SetupProject.ApplySettings" --extra-editor-arg="d3d11" --extra-editor-arg="Linear" --extra-editor-arg="-playergraphicsapi=Direct3D11" --platform=StandaloneWindows64 --player-save-path=players --scripting-backend=Mono2x --suite=playmode --testfilter=%TEST_FILTER% --testproject=./TestProjects/SRP_SmokeTest --timeout=1200
          retries: 2
     artifacts:
         logs:
@@ -205,7 +205,7 @@ Smoke_Test_Win_DX11_editmode_mono_Linear_CUSTOM-REVISION:
                 set /p GIT_REVISIONDATE=<revdate.tmp
                 echo %GIT_REVISIONDATE%
                 del revdate.tmp
-                utr --artifacts_path=TestProjects/SRP_SmokeTest/test-results --editor-location=.Editor --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-force-d3d11" --scripting-backend=Mono2x --suite=playmode --testfilter=%TEST_FILTER% --testproject=./TestProjects/SRP_SmokeTest --zero-tests-are-ok=1
+                utr --artifacts_path=TestProjects/SRP_SmokeTest/test-results --editor-location=.Editor --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-force-d3d11" --extra-editor-arg="-playergraphicsapi=Direct3D11" --platform=editmode --scripting-backend=Mono2x --suite=editor --testfilter=%TEST_FILTER% --testproject=./TestProjects/SRP_SmokeTest --zero-tests-are-ok=1
          retries: 2
     artifacts:
         logs:
@@ -235,7 +235,7 @@ Smoke_Test_Win_DX11_Standalone_mono_Linear_CUSTOM-REVISION:
                 set /p GIT_REVISIONDATE=<revdate.tmp
                 echo %GIT_REVISIONDATE%
                 del revdate.tmp
-                utr --artifacts_path=TestProjects/SRP_SmokeTest/test-results --editor-location=.Editor --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-force-d3d11" --scripting-backend=Mono2x --suite=playmode --testfilter=%TEST_FILTER% --testproject=./TestProjects/SRP_SmokeTest --zero-tests-are-ok=1
+                utr --artifacts_path=TestProjects/SRP_SmokeTest/test-results --platform=StandaloneWindows64 --player-connection-ip=auto --player-load-path=players --suite=playmode --timeout=1200 --zero-tests-are-ok=1
          retries: 2
     artifacts:
         logs:
@@ -273,7 +273,7 @@ Build_Smoke_Test_Win_DX11_Standalone_mono_Linear_CUSTOM-REVISION:
                 del revdate.tmp
                 utr --artifacts_path=TestProjects/SRP_SmokeTest/test-results --build-only --editor-location=.Editor --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-executemethod" --extra-editor-arg="SetupProject.ApplySettings" --extra-editor-arg="d3d11" --extra-editor-arg="Linear" --extra-editor-arg="-playergraphicsapi=Direct3D11" --platform=StandaloneWindows64 --player-save-path=players --scripting-backend=Mono2x --suite=playmode --testfilter=%TEST_FILTER% --testproject=./TestProjects/SRP_SmokeTest --timeout=1200 & exit 0
          retries: 2
-      -  command: utr --artifacts_path=TestProjects/SRP_SmokeTest/test-results --editor-location=.Editor --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-force-d3d11" --loglevel=verbose --performance-project-version=. --report-performance-data --performance-project-id=HDRP --platform=StandaloneWindows64 --scripting-backend=Mono2x --suite=playmode --testfilter=Memory --testproject=./TestProjects/SRP_SmokeTest --timeout=7200 --zero-tests-are-ok=1
+      -  command: utr --artifacts_path=TestProjects/SRP_SmokeTest/test-results --build-only --editor-location=.Editor --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-executemethod" --extra-editor-arg="SetupProject.ApplySettings" --extra-editor-arg="d3d11" --extra-editor-arg="Linear" --extra-editor-arg="-playergraphicsapi=Direct3D11" --platform=StandaloneWindows64 --player-save-path=players --scripting-backend=Mono2x --suite=playmode --testfilter=%TEST_FILTER% --testproject=./TestProjects/SRP_SmokeTest --timeout=1200
          retries: 2
     artifacts:
         logs:
