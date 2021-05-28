@@ -194,15 +194,19 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
         }
 
         [SerializeField]
-        bool m_FirstTimeMigrationExecuted = false;
-        public bool firstTimeMigrationExecuted
-        {
-            get => m_FirstTimeMigrationExecuted;
-            set => m_FirstTimeMigrationExecuted = value;
-        }
-
-        [SerializeField]
         internal int inspectorFoldoutMask;
+
+        public override void OnBeforeDeserialize()
+        {
+            // If we have created a target and its objects but intend to deserialize into it, then we overwrite the default
+            // version initializer (which is set equal to the latest version) to the never migrated version, such that we can
+            // effectively detect a shadergraph that never had that version field in the SystemData data chunk while also
+            // defaulting new graphs to the latest version.
+            // The master node migration (see *SubTarget.Migration.cs files) doesn't do that (forcing version to never migrated)
+            // for now, as we assume that the code there will handle the full conversion to the latest version.
+            base.OnBeforeDeserialize();
+            m_Version = ShaderGraphVersion.NeverMigrated;
+        }
     }
 
     static class HDSystemDataExtensions

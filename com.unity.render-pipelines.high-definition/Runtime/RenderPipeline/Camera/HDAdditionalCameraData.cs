@@ -132,8 +132,9 @@ namespace UnityEngine.Rendering.HighDefinition
         }
 
         /// <summary>
-        /// Returns a set of default physical camera parameters
+        /// A set of default physical camera parameters.
         /// </summary>
+        /// <returns>Returns a set of default physical camera parameters.</returns>
         public static HDPhysicalCamera GetDefaults()
         {
             HDPhysicalCamera val = new HDPhysicalCamera();
