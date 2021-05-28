@@ -103,17 +103,17 @@ namespace UnityEngine.Rendering.Universal.Internal
                 var gpuVP1 = GL.GetGPUProjectionMatrix(cameraData.GetProjectionMatrix(1), true) * cameraData.GetViewMatrix(1);
 
                 // Last frame data
+                var viewProjStereo = motionData.viewProjectionMatrixStereo;
                 if (motionData.lastFrameActive != Time.frameCount)
                 {
                     bool firstFrame = motionData.isFirstFrame;
                     var prevViewProjStereo = motionData.previousViewProjectionMatrixStereo;
-                    prevViewProjStereo[0] = firstFrame ? gpuVP0 : prevViewProjStereo[0];
-                    prevViewProjStereo[1] = firstFrame ? gpuVP1 : prevViewProjStereo[1];
+                    prevViewProjStereo[0] = firstFrame ? gpuVP0 : viewProjStereo[0];
+                    prevViewProjStereo[1] = firstFrame ? gpuVP1 : viewProjStereo[1];
                     motionData.isFirstFrame = false;
                 }
 
                 // Current frame data
-                var viewProjStereo = motionData.viewProjectionMatrixStereo;
                 viewProjStereo[0] = gpuVP0;
                 viewProjStereo[1] = gpuVP1;
             }
