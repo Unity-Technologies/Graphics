@@ -52,6 +52,8 @@
     min-height: 4px;
     left:0;
     right:0;
+    padding-top: 2px;
+    padding-bottom: 2px;
 }
 
 #SGBlackboard:selected {
@@ -229,6 +231,7 @@
     background-color: #44C0FF;
     position: absolute;
     min-height: 2px;
+    margin-bottom: 8px;
 }
 
 .blackboardCategory.selected {

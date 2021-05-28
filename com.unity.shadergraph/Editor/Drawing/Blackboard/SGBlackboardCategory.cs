@@ -69,6 +69,8 @@ namespace UnityEditor.ShaderGraph.Drawing
         bool m_IsDragInProgress;
         bool m_WasHoverExpanded;
 
+        bool m_RenameInProgress;
+
         public delegate bool CanAcceptDropDelegate(ISelectable selected);
 
         public CanAcceptDropDelegate canAcceptDrop { get; set; }
@@ -277,6 +279,8 @@ namespace UnityEditor.ShaderGraph.Drawing
             m_TitleLabel.visible = false;
             m_TextField.Q(TextField.textInputUssName).Focus();
             m_TextField.SelectAll();
+
+            m_RenameInProgress = true;
         }
 
         void OnEditTextFinished()
@@ -296,6 +300,8 @@ namespace UnityEditor.ShaderGraph.Drawing
                 // Reset text field to original name
                 m_TextField.value = title;
             }
+
+            m_RenameInProgress = false;
         }
 
         void OnHoverStartEvent(MouseEnterEvent evt)
@@ -539,12 +545,25 @@ namespace UnityEditor.ShaderGraph.Drawing
 
         public void AddToSelection(ISelectable selectable)
         {
-            // Don't add the un-named/default category to graph selections
+            // Don't add the un-named/default category to graph selections, or if a rename op is in progress
             if (controller.Model.IsNamedCategory() == false && selectable == this)
                 return;
 
+            if (m_RenameInProgress)
+            {
+                RemoveFromSelection(this);
+                return;
+            }
+
+            if(selectable != this)
+                Inspector.InspectorView.forceNodeView = true;
+
             var materialGraphView = m_ViewModel.parentView.GetFirstAncestorOfType<MaterialGraphView>();
             materialGraphView?.AddToSelection(selectable);
+
+            if(materialGraphView.selection.OfType<SGBlackboardCategory>().Any())
+                // Turns off the inspector being forced to trigger so user can still use Graph Settings tab if they want, on category selection
+                Inspector.InspectorView.forceNodeView = false;
         }
 
         public void RemoveFromSelection(ISelectable selectable)
