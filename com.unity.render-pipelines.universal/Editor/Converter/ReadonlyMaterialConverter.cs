@@ -40,7 +40,7 @@ namespace UnityEditor.Rendering.Universal.Converters
     internal class ReadonlyMaterialConverter : RenderPipelineConverter
     {
         public override string name => "Readonly Material Converter";
-        public override string info => "Converts references to Built-In readonly materials to URP readonly materials";
+        public override string info => "Converts references to Built-In readonly materials to URP readonly materials. This will create a .index file and that can take a long time.";
         public override Type container => typeof(BuiltInToURPConverterContainer);
         public override bool needsIndexing => true;
 
