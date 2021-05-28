@@ -92,7 +92,7 @@ URP_Performance_BoatAttack_OSX_Metal_performance_playmode_runtime_mono_Linear_tr
             --published-only"      
 
       # Setup app signing.
-      - scp $YAMATO_SOURCE_DIR/.yamato/files/setup_codesign.sh bokken@$BOKKEN_DEVICE_IP:~/setup_codesign.sh
+      - scp $YAMATO_SOURCE_DIR/.yamato/script/setup_codesign.sh bokken@$BOKKEN_DEVICE_IP:~/setup_codesign.sh
       - ssh bokken@$BOKKEN_DEVICE_IP "bash ~/setup_codesign.sh"
 
       # -  ssh -i ~/.ssh/id_rsa_macmini bokken@$BOKKEN_DEVICE_IP '$(python3 -m site --user-base)/bin/unity-downloader-cli --source-file ~/Graphics/unity_revision.txt -c editor -c il2cpp  --wait --published-only'
