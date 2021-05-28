@@ -254,9 +254,15 @@ namespace UnityEditor.ShaderGraph.Drawing
         {
             m_Foldout.SetValueWithoutNotify(expand);
             if (!expand)
+            {
+                m_DragIndicator.visible = true;
                 m_RowsContainer.RemoveFromHierarchy();
+            }
             else
+            {
+                m_DragIndicator.visible = false;
                 m_MainContainer.Add(m_RowsContainer);
+            }
 
             var key = $"{blackboard.controller.editorPrefsBaseKey}.{viewDataKey}.{ChangeCategoryIsExpandedAction.kEditorPrefKey}";
             EditorPrefs.SetBool(key, expand);
