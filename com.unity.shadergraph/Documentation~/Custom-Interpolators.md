@@ -26,7 +26,7 @@ To read the HLSL you use to replicate this behavior with the Built In Render Pip
 ### Creating channel warnings and errors
 
 It is not possible to limit the number of channels a user can create in a Shader Graph. However, it is possible to create alerts to let users know when they are close to or exceeding a certain number of channels.
-The **Error Threshold** lets users know that they are approaching the channel limit, and the **Warning Threshold** informs them if they have reached or surpassed that limit. The **Error Threshold** value must be between 8 and 32 channels. The **Warning Threshold** value must be higher than the **Error Threshold**, and has a minimum value of 8 channels.
+The **Warning Threshold** lets users know that they are approaching the channel limit, and the **Error Threshold** informs them if they have reached or surpassed that limit. The **Warning Threshold** value must be between 8 and 32 channels. The **Error Threshold** value must be higher than the **Warning Threshold**, and has a minimum value of 8 channels.
 To configure these parameters, go to the Unity Editor [Project Settings](https://docs.unity3d.com/Manual/comp-ManagerGroup.html) menu and open the **Custom Interpolator Channel Settings**.
 
 ### Adding a Custom Interpolator block to the Master Stack
