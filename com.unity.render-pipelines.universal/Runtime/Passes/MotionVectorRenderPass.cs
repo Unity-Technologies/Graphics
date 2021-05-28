@@ -14,7 +14,7 @@ namespace UnityEngine.Rendering.Universal.Internal
 
         static readonly string[] s_ShaderTags = new string[] { "MotionVectors" };
 
-        RenderTargetHandle m_Destination;
+        RTHandle m_Destination;
         readonly Material m_CameraMaterial;
         readonly Material m_ObjectMaterial;
 
@@ -33,7 +33,7 @@ namespace UnityEngine.Rendering.Universal.Internal
         #endregion
 
         #region State
-        internal void Setup(RenderTargetHandle destination, PreviousFrameData frameData)
+        internal void Setup(RTHandle destination, PreviousFrameData frameData)
         {
             m_MotionData = frameData;
             m_Destination = destination;
@@ -44,8 +44,8 @@ namespace UnityEngine.Rendering.Universal.Internal
             var rtd = cameraTextureDescriptor;
             rtd.graphicsFormat = m_TargetFormat;
             // Configure Render Target
-            cmd.GetTemporaryRT(m_Destination.id, rtd, FilterMode.Point);
-            ConfigureTarget(m_Destination.Identifier());
+            cmd.GetTemporaryRT(Shader.PropertyToID(m_Destination.name), rtd, FilterMode.Point);
+            ConfigureTarget(m_Destination);
         }
 
         #endregion
@@ -142,10 +142,10 @@ namespace UnityEngine.Rendering.Universal.Internal
                 throw new ArgumentNullException("cmd");
 
             // Reset Render Target
-            if (m_Destination != RenderTargetHandle.CameraTarget)
+            if (m_Destination != null)
             {
-                cmd.ReleaseTemporaryRT(m_Destination.id);
-                m_Destination = RenderTargetHandle.CameraTarget;
+                cmd.ReleaseTemporaryRT(Shader.PropertyToID(m_Destination.name));
+                m_Destination = null;
             }
         }
 

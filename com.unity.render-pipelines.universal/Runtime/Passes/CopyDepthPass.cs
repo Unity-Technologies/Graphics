@@ -36,7 +36,46 @@ namespace UnityEngine.Rendering.Universal.Internal
         {
             this.source = source;
             this.destination = destination;
-            this.AllocateRT = !destination.HasInternalRenderTargetId();
+            this.AllocateRT = !this.destination.HasInternalRenderTargetId();
+            this.MssaSamples = -1;
+        }
+
+        /// <summary>
+        /// Configure the pass with the source and destination to execute on.
+        /// </summary>
+        /// <param name="source">Source Render Target</param>
+        /// <param name="destination">Destination Render Targt</param>
+        public void Setup(RenderTargetHandle source, RTHandle destination)
+        {
+            this.source = source;
+            this.destination = new RenderTargetHandle(destination);
+            this.AllocateRT = !this.destination.HasInternalRenderTargetId();
+            this.MssaSamples = -1;
+        }
+
+        /// <summary>
+        /// Configure the pass with the source and destination to execute on.
+        /// </summary>
+        /// <param name="source">Source Render Target</param>
+        /// <param name="destination">Destination Render Targt</param>
+        public void Setup(RTHandle source, RenderTargetHandle destination)
+        {
+            this.source = new RenderTargetHandle(source);
+            this.destination = destination;
+            this.AllocateRT = !this.destination.HasInternalRenderTargetId();
+            this.MssaSamples = -1;
+        }
+
+        /// <summary>
+        /// Configure the pass with the source and destination to execute on.
+        /// </summary>
+        /// <param name="source">Source Render Target</param>
+        /// <param name="destination">Destination Render Targt</param>
+        public void Setup(RTHandle source, RTHandle destination)
+        {
+            this.source = new RenderTargetHandle(source);
+            this.destination = new RenderTargetHandle(destination);
+            this.AllocateRT = !this.destination.HasInternalRenderTargetId();
             this.MssaSamples = -1;
         }
 

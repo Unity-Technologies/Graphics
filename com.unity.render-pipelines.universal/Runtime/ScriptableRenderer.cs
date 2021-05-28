@@ -427,6 +427,7 @@ namespace UnityEngine.Rendering.Universal
         private static bool m_UseOptimizedStoreActions = false;
 
         const int k_RenderPassBlockCount = 4;
+        protected static readonly RTHandle k_CameraTarget = RTHandles.Alloc(BuiltinRenderTextureType.CameraTarget);
 
         List<ScriptableRenderPass> m_ActiveRenderPassQueue = new List<ScriptableRenderPass>(32);
         List<ScriptableRendererFeature> m_RendererFeatures = new List<ScriptableRendererFeature>(10);

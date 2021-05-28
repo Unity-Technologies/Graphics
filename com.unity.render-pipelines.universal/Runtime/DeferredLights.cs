@@ -1,3 +1,4 @@
+using System;
 using System.Runtime.CompilerServices;
 using UnityEngine.Experimental.Rendering;
 using UnityEngine.Profiling;
@@ -378,7 +379,7 @@ namespace UnityEngine.Rendering.Universal.Internal
             AdditionalLightsShadowCasterPass additionalLightsShadowCasterPass,
             bool hasDepthPrepass,
             bool hasNormalPrepass,
-            RenderTargetHandle depthCopyTexture,
+            RTHandle depthCopyTexture,
             RenderTargetHandle depthAttachment,
             RenderTargetHandle colorAttachment)
         {
@@ -386,7 +387,7 @@ namespace UnityEngine.Rendering.Universal.Internal
             this.HasDepthPrepass = hasDepthPrepass;
             this.HasNormalPrepass = hasNormalPrepass;
 
-            this.DepthCopyTexture = depthCopyTexture;
+            this.DepthCopyTexture = new RenderTargetHandle(depthCopyTexture);
 
             this.GbufferAttachments[this.GBufferLightingIndex] = colorAttachment;
             this.DepthAttachment = depthAttachment;

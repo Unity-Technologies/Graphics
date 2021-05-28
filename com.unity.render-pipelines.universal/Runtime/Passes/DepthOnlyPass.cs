@@ -52,6 +52,25 @@ namespace UnityEngine.Rendering.Universal.Internal
             this.shaderTagId = k_ShaderTagId;
         }
 
+        /// <summary>
+        /// Configure the pass
+        /// </summary>
+        public void Setup(
+            RenderTextureDescriptor baseDescriptor,
+            RTHandle depthAttachmentHandle)
+        {
+            this.destination = new RenderTargetHandle(depthAttachmentHandle);
+            baseDescriptor.colorFormat = RenderTextureFormat.Depth;
+            baseDescriptor.depthBufferBits = k_DepthBufferBits;
+
+            // Depth-Only pass don't use MSAA
+            baseDescriptor.msaaSamples = 1;
+            descriptor = baseDescriptor;
+
+            this.allocateDepth = true;
+            this.shaderTagId = k_ShaderTagId;
+        }
+
         public override void OnCameraSetup(CommandBuffer cmd, ref RenderingData renderingData)
         {
             if (this.allocateDepth)

@@ -46,6 +46,18 @@ namespace UnityEngine.Rendering.Universal.Internal
             m_DownsamplingMethod = downsampling;
         }
 
+        /// <summary>
+        /// Configure the pass with the source and destination to execute on.
+        /// </summary>
+        /// <param name="source">Source Render Target</param>
+        /// <param name="destination">Destination Render Target</param>
+        public void Setup(RenderTargetIdentifier source, RTHandle destination, Downsampling downsampling)
+        {
+            this.source = source;
+            this.destination = new RenderTargetHandle(destination);
+            m_DownsamplingMethod = downsampling;
+        }
+
         public override void OnCameraSetup(CommandBuffer cmd, ref RenderingData renderingData)
         {
             RenderTextureDescriptor descriptor = renderingData.cameraData.cameraTargetDescriptor;

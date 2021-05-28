@@ -12,7 +12,7 @@ namespace UnityEngine.Rendering.Universal.Internal
     {
         struct SwapBuffer
         {
-            public RenderTargetHandle rt;
+            public RTHandle rt;
             public int name;
             public int msaa;
         }
@@ -29,25 +29,33 @@ namespace UnityEngine.Rendering.Universal.Internal
 
         public RenderTargetBufferSystem(string name)
         {
-            m_A.name = Shader.PropertyToID(name + "A");
-            m_B.name = Shader.PropertyToID(name + "B");
-            m_A.rt.Init(name + "A");
-            m_B.rt.Init(name + "B");
+            string nameA = name + "A";
+            string nameB = name + "B";
+            m_A.name = Shader.PropertyToID(nameA);
+            m_B.name = Shader.PropertyToID(nameB);
+            m_A.rt = RTHandles.Alloc(new RenderTargetIdentifier(m_A.name, 0, CubemapFace.Unknown, -1), nameA);
+            m_B.rt = RTHandles.Alloc(new RenderTargetIdentifier(m_B.name, 0, CubemapFace.Unknown, -1), nameB);
         }
 
-        public RenderTargetHandle GetBackBuffer()
+        public void Dispose()
+        {
+            m_A.rt?.Release();
+            m_B.rt?.Release();
+        }
+
+        public RTHandle GetBackBuffer()
         {
             return backBuffer.rt;
         }
 
-        public RenderTargetHandle GetBackBuffer(CommandBuffer cmd)
+        public RTHandle GetBackBuffer(CommandBuffer cmd)
         {
             if (!m_RTisAllocated)
                 Initialize(cmd);
             return backBuffer.rt;
         }
 
-        public RenderTargetHandle GetFrontBuffer(CommandBuffer cmd)
+        public RTHandle GetFrontBuffer(CommandBuffer cmd)
         {
             if (!m_RTisAllocated)
                 Initialize(cmd);
@@ -125,7 +133,7 @@ namespace UnityEngine.Rendering.Universal.Internal
             Initialize(cmd);
         }
 
-        public RenderTargetHandle GetBufferA()
+        public RTHandle GetBufferA()
         {
             return m_A.rt;
         }
