@@ -19,6 +19,7 @@ namespace UnityEditor.VFX.HDRP
             base.OnEnable();
             blendMode = BlendMode.Opaque;
             useNormalScale = false;
+            // AssetDatabase.RegisterCustomDependency("HDRPSetting/supportDecalLayers", Hash128.Compute());
         }
 
         public override IEnumerable<VFXAttributeInfo> attributes
@@ -150,8 +151,7 @@ namespace UnityEditor.VFX.HDRP
                 var properties = Enumerable.Empty<VFXPropertyWithValue>();
 
                 properties = properties.Concat(PropertiesFromType("FadeFactorProperty"));
-                if(enableDecalLayers)
-                    properties = properties.Concat(PropertiesFromType("AngleFadeProperty"));
+                properties = properties.Concat(PropertiesFromType("AngleFadeProperty"));
 
                 properties = properties.Concat(base.inputProperties);
                 properties =
@@ -175,12 +175,15 @@ namespace UnityEditor.VFX.HDRP
                 if(affectSmoothness)
                     yield return slotExpressions.First(o => o.name == "smoothness");
 
-                if(enableDecalLayers)
-                {
+                // if(enableDecalLayers)
+                // {
                     var angleFadeExp = slotExpressions.First(o => o.name == "angleFade");
                     yield return new VFXNamedExpression(AngleFadeSimplification(angleFadeExp.exp), "angleFade");
                     yield return new VFXNamedExpression(VFXValue.Constant((uint)decalLayer), "decalLayerMask");
-                }
+                // }
+                // yield return new VFXNamedExpression(VFXValue.Constant(enableDecalLayers), "enableDecalLayers");
+                yield return new VFXNamedExpression(new VFXValue<uint>(enableDecalLayers ? 1u : 0u, VFXValue.Mode.Variable), "enableDecalLayers");
+
             }
         }
 
@@ -240,10 +243,6 @@ namespace UnityEditor.VFX.HDRP
                 if (affectSmoothness)
                     yield return "AFFECT_SMOOTHNESS";
 
-                if(enableDecalLayers)
-                {
-                    yield return "VFX_ENABLE_DECAL_LAYERS";
-                }
             }
         }
         protected override void WriteBlendMode(VFXShaderWriter writer)  //TODO : Not sure we need to do it here : different for DBuffer and ForwardEmissive pass
