@@ -35,7 +35,7 @@ namespace UnityEngine.Rendering.Universal.Internal
         /// <summary>
         /// Configure the pass
         /// </summary>
-        public void Setup(RenderTextureDescriptor baseDescriptor, RenderTargetHandle depthHandle, RenderTargetHandle normalHandle)
+        public void Setup(RenderTextureDescriptor baseDescriptor, RTHandle depthHandle, RenderTargetHandle normalHandle)
         {
             // Find compatible render-target format for storing normals.
             // Shader code outputs normals in signed format to be compatible with deferred gbuffer layout.
@@ -48,7 +48,7 @@ namespace UnityEngine.Rendering.Universal.Internal
             else
                 normalsFormat = GraphicsFormat.R32G32B32A32_SFloat; // fallback
 
-            this.depthHandle = depthHandle;
+            this.depthHandle = new RenderTargetHandle(depthHandle);
 
             m_RendererMSAASamples = baseDescriptor.msaaSamples;
 

@@ -158,6 +158,22 @@ namespace UnityEngine.Rendering.Universal.Internal
             m_UseSwapBuffer = true;
         }
 
+        public void Setup(in RenderTextureDescriptor baseDescriptor, in RenderTargetHandle source, bool resolveToScreen, in RTHandle depth, in RenderTargetHandle internalLut, bool hasFinalPass, bool enableSRGBConversion)
+        {
+            m_Descriptor = baseDescriptor;
+            m_Descriptor.useMipMap = false;
+            m_Descriptor.autoGenerateMips = false;
+            m_Source = source.Identifier();
+            m_Depth = new RenderTargetHandle(depth);
+            m_InternalLut = internalLut;
+            m_IsFinalPass = false;
+            m_HasFinalPass = hasFinalPass;
+            m_EnableSRGBConversionIfNeeded = enableSRGBConversion;
+            m_ResolveToScreen = resolveToScreen;
+            m_Destination = RenderTargetHandle.CameraTarget;
+            m_UseSwapBuffer = true;
+        }
+
         public void Setup(in RenderTextureDescriptor baseDescriptor, in RTHandle source, bool resolveToScreen, in RTHandle depth, in RTHandle internalLut, bool hasFinalPass, bool enableSRGBConversion)
         {
             m_Descriptor = baseDescriptor;
