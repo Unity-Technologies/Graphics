@@ -16,7 +16,7 @@
       * [How to use Render Objects Renderer Feature](renderer-features/how-to-custom-effect-render-objects.md)
       * [Ambient Occlusion](post-processing-ssao.md)
       * [Decal](renderer-feature-decal.md)
-        * [Decal Shader](decal-shader.md)
+        * [Decal Shader Graph](decal-shader.md)
 * [Upgrade guides](upgrade-guides.md)
   * [Upgrading to URP 12.0.x](upgrade-guide-12-0-x.md)
   * [Upgrading to URP 11.0.x](upgrade-guide-11-0-x.md)

@@ -13,7 +13,7 @@ URP_Performance_LostCrypt_Win_Vulkan_performance_playmode_runtime_mono_Linear_tr
     agent:
         type: Unity::VM::GPU
         image: sdet/gamecode_win10:stable
-        flavor: b1.large
+        flavor: b1.xlarge
         model: rtx2080
     variables:
         UPM_REGISTRY: https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates
@@ -193,7 +193,7 @@ URP_Performance_LostCrypt_Win_Vulkan_performance_playmode_runtime_mono_Linear_CU
     agent:
         type: Unity::VM::GPU
         image: sdet/gamecode_win10:stable
-        flavor: b1.large
+        flavor: b1.xlarge
         model: rtx2080
     variables:
         UPM_REGISTRY: https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates
