@@ -92,9 +92,15 @@ Shader "Hidden/HDRP/ApplyDistortion"
             float mip = (_ColorPyramidLodCount - 1) * saturate(distortionBlur) * _RoughDistortion;
 
             uint mipCeiled = ceil(mip);
-            float texelsToClamp = (1u << mipCeiled);
 
-            float2 uv = ClampAndScaleUV(distordedUV, _Size.zw, texelsToClamp);
+            int2 mipSize = int2(_Size.xy) >> mipCeiled;
+            // Clamp to the max size that is safe on the lowest mip. Note we recompute the full size this way to account for the
+            // rounding that can happen to sizes (and that _RTHandleScale won't represent correctly as we descend the mip chain)
+            float2 maxCoord = (mipSize << mipCeiled) * _Size.zw;
+            // Take of the half pixel for bilinear
+            maxCoord -= 0.5 * rcp(mipSize);
+
+            float2 uv = min(distordedUV, maxCoord) * _RTHandleScale.xy;
             float4 sampled = SAMPLE_TEXTURE2D_X_LOD(_ColorPyramidTexture, s_trilinear_clamp_sampler, uv, mip);
             return sampled;
         }

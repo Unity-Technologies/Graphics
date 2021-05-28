@@ -40,7 +40,7 @@ namespace UnityEditor.ShaderGraph
 {
     $precision3 color = Gradient.colors[0].rgb;
     [unroll]
-    for (int c = 1; c < 8; c++)
+    for (int c = 1; c < Gradient.colorsLength; c++)
     {
         $precision colorPos = saturate((Time - Gradient.colors[c - 1].w) / (Gradient.colors[c].w - Gradient.colors[c - 1].w)) * step(c, Gradient.colorsLength - 1);
         color = lerp(color, Gradient.colors[c].rgb, lerp(colorPos, step(0.01, colorPos), Gradient.type));
@@ -50,7 +50,7 @@ namespace UnityEditor.ShaderGraph
 #endif
     $precision alpha = Gradient.alphas[0].x;
     [unroll]
-    for (int a = 1; a < 8; a++)
+    for (int a = 1; a < Gradient.alphasLength; a++)
     {
         $precision alphaPos = saturate((Time - Gradient.alphas[a - 1].y) / (Gradient.alphas[a].y - Gradient.alphas[a - 1].y)) * step(a, Gradient.alphasLength - 1);
         alpha = lerp(alpha, Gradient.alphas[a].x, lerp(alphaPos, step(0.01, alphaPos), Gradient.type));
@@ -71,7 +71,7 @@ namespace UnityEditor.ShaderGraph
 {
     $precision3 color = Gradient.colors[0].rgb;
     [unroll]
-    for (int c = 1; c < 8; c++)
+    for (int c = 1; c < Gradient.colorsLength; c++)
     {
         $precision colorPos = saturate((Time - Gradient.colors[c - 1].w) / (Gradient.colors[c].w - Gradient.colors[c - 1].w)) * step(c, Gradient.colorsLength - 1);
         color = lerp(color, Gradient.colors[c].rgb, lerp(colorPos, step(0.01, colorPos), Gradient.type));
@@ -81,7 +81,7 @@ namespace UnityEditor.ShaderGraph
 #endif
     $precision alpha = Gradient.alphas[0].x;
     [unroll]
-    for (int a = 1; a < 8; a++)
+    for (int a = 1; a < Gradient.alphasLength; a++)
     {
         $precision alphaPos = saturate((Time - Gradient.alphas[a - 1].y) / (Gradient.alphas[a].y - Gradient.alphas[a - 1].y)) * step(a, Gradient.alphasLength - 1);
         alpha = lerp(alpha, Gradient.alphas[a].x, lerp(alphaPos, step(0.01, alphaPos), Gradient.type));

@@ -16,12 +16,25 @@ namespace UnityEditor.ShaderGraph
             AssertHelpers.IsNotNull(inlinePropertiesToConvert, "InlinePropertiesToConvert is null while carrying out ConvertToPropertyAction");
             graphData.owner.RegisterCompleteObjectUndo("Convert to Property");
 
+            var defaultCategory = graphData.categories.FirstOrDefault();
+            AssertHelpers.IsNotNull(defaultCategory, "Default Category is null while carrying out ConvertToPropertyAction");
+
             foreach (var converter in inlinePropertiesToConvert)
             {
                 var convertedProperty = converter.AsShaderProperty();
                 var node = converter as AbstractMaterialNode;
 
                 graphData.AddGraphInput(convertedProperty);
+
+                // Also insert this input into the default category
+                if (defaultCategory != null)
+                {
+                    var addItemToCategoryAction = new AddItemToCategoryAction();
+                    addItemToCategoryAction.categoryGuid = defaultCategory.categoryGuid;
+                    addItemToCategoryAction.itemToAdd = convertedProperty;
+                    graphData.owner.graphDataStore.Dispatch(addItemToCategoryAction);
+                }
+
                 // Add reference to converted property for use in responding to this action later
                 convertedPropertyReferences.Add(convertedProperty);
 
@@ -120,6 +133,30 @@ namespace UnityEditor.ShaderGraph
 
                     // Setting the guid requires the graph to be set first.
                     node.keyword = keyword;
+                    break;
+                }
+                case ShaderDropdown dropdown:
+                {
+                    if (graphData.IsInputAllowedInGraph(dropdown))
+                    {
+                        // This could be from another graph, in which case we add a copy of the ShaderInput to this graph.
+                        if (graphData.dropdowns.FirstOrDefault(d => d == dropdown) == null)
+                        {
+                            var copyShaderInputAction = new CopyShaderInputAction();
+                            copyShaderInputAction.shaderInputToCopy = dropdown;
+                            graphData.owner.graphDataStore.Dispatch(copyShaderInputAction);
+                            dropdown = (ShaderDropdown)copyShaderInputAction.copiedShaderInput;
+                        }
+
+                        var node = new DropdownNode();
+                        var drawState = node.drawState;
+                        drawState.position = new Rect(nodePosition, drawState.position.size);
+                        node.drawState = drawState;
+                        graphData.AddNode(node);
+
+                        // Setting the guid requires the graph to be set first.
+                        node.dropdown = dropdown;
+                    }
                     break;
                 }
                 default:

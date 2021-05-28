@@ -107,6 +107,23 @@ namespace UnityEditor.ShaderGraph.Drawing.Inspector.PropertyDrawers
                 }
             }
 
+#if VFX_GRAPH_10_0_0_OR_NEWER
+            // Inform the user that VFXTarget is deprecated, if they are using one.
+            if (graphData.m_ActiveTargets.Count(t => t.value.SupportsVFX()) == 1 &&
+                graphData.m_ActiveTargets.Count(t => t.value is VFXTarget) == 1)
+            {
+                var vfxWarning = new HelpBoxRow(MessageType.Info);
+
+                var vfxWarningLabel = new Label("The Visual Effect target is deprecated. \n" +
+                    "Add a Universal or HDRP target instead, and enable 'Support VFX Graph' in the Graph Inspector.");
+
+                vfxWarningLabel.style.color = new StyleColor(Color.white);
+
+                vfxWarning.Add(vfxWarningLabel);
+                element.Add(vfxWarning);
+            }
+#endif
+
             return element;
         }
 

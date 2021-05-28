@@ -77,24 +77,121 @@ namespace UnityEditor.ShaderGraph
                 var propNode = node as PropertyNode;
                 var graph = node.owner as GraphData;
 
-                shaderInputPropertyDrawer.GetPropertyData(
-                    graph.isSubGraph,
-                    graph,
-                    this.ChangeExposedField,
-                    () => graph.ValidateGraph(),
-                    () => graph.OnKeywordChanged(),
-                    this.ChangePropertyValue,
-                    this.MarkNodesAsDirty);
+                var shaderInputViewModel = new ShaderInputViewModel()
+                {
+                    model = property,
+                    parentView = null,
+                    isSubGraph = graph.isSubGraph,
+                    isInputExposed = property.isExposed,
+                    inputName = property.displayName,
+                    inputTypeName = property.GetPropertyTypeString(),
+                    requestModelChangeAction = this.RequestModelChange
+                };
+                shaderInputPropertyDrawer.GetViewModel(shaderInputViewModel, node.owner, this.MarkNodesAsDirty);
 
                 this.m_propertyViewUpdateTrigger = inspectorUpdateDelegate;
                 this.m_ResetReferenceNameAction = shaderInputPropertyDrawer.ResetReferenceName;
             }
         }
 
+        void RequestModelChange(IGraphDataAction changeAction)
+        {
+            node.owner?.owner.graphDataStore.Dispatch(changeAction);
+        }
+
         void ChangeExposedField(bool newValue)
         {
             property.generatePropertyBlock = newValue;
             UpdateIcon();
+        }
+
+        void ChangeDisplayName(string newValue)
+        {
+            property.displayName = newValue;
+        }
+
+        internal static void AddMainColorMenuOptions(ContextualMenuPopulateEvent evt, ColorShaderProperty colorProp, GraphData graphData, Action inspectorUpdateAction)
+        {
+            if (!graphData.isSubGraph)
+            {
+                if (!colorProp.isMainColor)
+                {
+                    evt.menu.AppendAction(
+                        "Set as Main Color",
+                        e =>
+                        {
+                            ColorShaderProperty col = graphData.GetMainColor();
+                            if (col != null)
+                            {
+                                if (EditorUtility.DisplayDialog("Change Main Color Action", $"Are you sure you want to change the Main Color from {col.displayName} to {colorProp.displayName}?", "Yes", "Cancel"))
+                                {
+                                    graphData.owner.RegisterCompleteObjectUndo("Change Main Color");
+                                    col.isMainColor = false;
+                                    colorProp.isMainColor = true;
+                                    inspectorUpdateAction();
+                                }
+                                return;
+                            }
+
+                            graphData.owner.RegisterCompleteObjectUndo("Set Main Color");
+                            colorProp.isMainColor = true;
+                            inspectorUpdateAction();
+                        });
+                }
+                else
+                {
+                    evt.menu.AppendAction(
+                        "Clear Main Color",
+                        e =>
+                        {
+                            graphData.owner.RegisterCompleteObjectUndo("Clear Main Color");
+                            colorProp.isMainColor = false;
+                            inspectorUpdateAction();
+                        });
+                }
+            }
+        }
+
+        internal static void AddMainTextureMenuOptions(ContextualMenuPopulateEvent evt, Texture2DShaderProperty texProp, GraphData graphData, Action inspectorUpdateAction)
+        {
+            if (!graphData.isSubGraph)
+            {
+                if (!texProp.isMainTexture)
+                {
+                    evt.menu.AppendAction(
+                        "Set as Main Texture",
+                        e =>
+                        {
+                            Texture2DShaderProperty tex = graphData.GetMainTexture();
+                            if (tex.isMainTexture)
+                            {
+                                if (EditorUtility.DisplayDialog("Change Main Texture Action", $"Are you sure you want to change the Main Texture from {tex.displayName} to {texProp.displayName}?", "Yes", "Cancel"))
+                                {
+                                    graphData.owner.RegisterCompleteObjectUndo("Change Main Texture");
+                                    tex.isMainTexture = false;
+                                    texProp.isMainTexture = true;
+                                    inspectorUpdateAction();
+                                }
+                                return;
+                            }
+
+                            graphData.owner.RegisterCompleteObjectUndo("Set Main Texture");
+                            texProp.isMainTexture = true;
+                            inspectorUpdateAction();
+                        });
+                }
+                else
+                {
+                    evt.menu.AppendAction(
+                        "Clear Main Texture",
+                        e =>
+                        {
+                            graphData.owner.RegisterCompleteObjectUndo("Clear Main Texture");
+                            texProp.isMainTexture = false;
+                            inspectorUpdateAction();
+                        });
+                }
+            }
         }
 
         void AddContextMenuOptions(ContextualMenuPopulateEvent evt)
@@ -111,6 +208,16 @@ namespace UnityEditor.ShaderGraph
                         DirtyNodes(ModificationScope.Graph);
                     },
                     DropdownMenuAction.AlwaysEnabled);
+            }
+
+            if (property is ColorShaderProperty colorProp)
+            {
+                AddMainColorMenuOptions(evt, colorProp, node.owner, m_propertyViewUpdateTrigger);
+            }
+
+            if (property is Texture2DShaderProperty texProp)
+            {
+                AddMainTextureMenuOptions(evt, texProp, node.owner, m_propertyViewUpdateTrigger);
             }
         }
 
@@ -213,6 +320,10 @@ namespace UnityEditor.ShaderGraph
         }
 
         public void UpdatePortInputTypes()
+        {
+        }
+
+        public void UpdateDropdownEntries()
         {
         }
 

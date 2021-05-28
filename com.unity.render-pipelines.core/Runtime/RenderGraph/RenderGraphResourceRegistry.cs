@@ -497,14 +497,6 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
             {
                 if (desc.width == 0 || desc.height == 0)
                     throw new ArgumentException("Texture using Explicit size mode was create with either width or height at zero.");
-                if (desc.enableMSAA)
-                    throw new ArgumentException("enableMSAA TextureDesc parameter is not supported for textures using Explicit size mode.");
-            }
-
-            if (desc.sizeMode == TextureSizeMode.Scale || desc.sizeMode == TextureSizeMode.Functor)
-            {
-                if (desc.msaaSamples != MSAASamples.None)
-                    throw new ArgumentException("msaaSamples TextureDesc parameter is not supported for textures using Scale or Functor size mode.");
             }
 #endif
         }

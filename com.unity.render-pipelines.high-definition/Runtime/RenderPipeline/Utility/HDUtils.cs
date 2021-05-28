@@ -568,6 +568,7 @@ namespace UnityEngine.Rendering.HighDefinition
         internal struct PackedMipChainInfo
         {
             public Vector2Int textureSize;
+            public Vector2Int hardwareTextureSize;
             public int mipLevelCount;
             public Vector2Int[] mipLevelSizes;
             public Vector2Int[] mipLevelOffsets;
@@ -590,12 +591,15 @@ namespace UnityEngine.Rendering.HighDefinition
                 if (viewportSize == mipLevelSizes[0])
                     return;
 
-                textureSize = viewportSize;
-                mipLevelSizes[0] = viewportSize;
+                bool isHardwareDrsOn = DynamicResolutionHandler.instance.HardwareDynamicResIsEnabled();
+                hardwareTextureSize = isHardwareDrsOn ? DynamicResolutionHandler.instance.ApplyScalesOnSize(viewportSize) : viewportSize;
+                Vector2 textureScale = isHardwareDrsOn ? new Vector2((float)viewportSize.x / (float)hardwareTextureSize.x, (float)viewportSize.y / (float)hardwareTextureSize.y) : new Vector2(1.0f, 1.0f);
+
+                mipLevelSizes[0] = hardwareTextureSize;
                 mipLevelOffsets[0] = Vector2Int.zero;
 
                 int mipLevel = 0;
-                Vector2Int mipSize = viewportSize;
+                Vector2Int mipSize = hardwareTextureSize;
 
                 do
                 {
@@ -625,10 +629,12 @@ namespace UnityEngine.Rendering.HighDefinition
 
                     mipLevelOffsets[mipLevel] = mipBegin;
 
-                    textureSize.x = Math.Max(textureSize.x, mipBegin.x + mipSize.x);
-                    textureSize.y = Math.Max(textureSize.y, mipBegin.y + mipSize.y);
+                    hardwareTextureSize.x = Math.Max(hardwareTextureSize.x, mipBegin.x + mipSize.x);
+                    hardwareTextureSize.y = Math.Max(hardwareTextureSize.y, mipBegin.y + mipSize.y);
                 }
                 while ((mipSize.x > 1) || (mipSize.y > 1));
+
+                textureSize = new Vector2Int((int)((float)hardwareTextureSize.x * textureScale.x), (int)((float)hardwareTextureSize.y * textureScale.y));
 
                 mipLevelCount = mipLevel + 1;
                 m_OffsetBufferWillNeedUpdate = true;

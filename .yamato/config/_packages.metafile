@@ -5,15 +5,6 @@ packages:
     packagename: com.unity.render-pipelines.core
     dependencies:
       - core
-  - name: Lightweight
-    id: lwrp
-    packagename: com.unity.render-pipelines.lightweight
-    dependencies:
-      - core
-      - shadergraph
-      - universal
-      - lwrp
-    hascodependencies: 1
   - name: ShaderGraph
     id: shadergraph
     packagename: com.unity.shadergraph

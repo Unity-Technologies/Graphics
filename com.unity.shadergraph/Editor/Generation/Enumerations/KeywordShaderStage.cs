@@ -3,6 +3,8 @@ namespace UnityEditor.ShaderGraph
     [GenerationAPI]
     internal enum KeywordShaderStage
     {
+        Default = 0,        // equivalent to ALL
+
         Vertex = (1 << 0),
         Fragment = (1 << 1),
         Geometry = (1 << 2),

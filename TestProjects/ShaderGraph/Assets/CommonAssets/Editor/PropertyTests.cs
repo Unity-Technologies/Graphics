@@ -74,8 +74,8 @@ namespace UnityEditor.ShaderGraph.UnitTests
         public void Cleanup()
         {
             // Don't spawn ask-to-save dialog
-            //m_Window.graphObject = null;
-            //m_Window.Close();
+            m_Window.graphObject = null;
+            m_Window.Close();
         }
 
         [Test]
@@ -97,7 +97,7 @@ namespace UnityEditor.ShaderGraph.UnitTests
             var fieldViewElements = m_GraphEditorView.Query("blackboardFieldView");
             foreach (var visualElement in fieldViewElements.ToList())
             {
-                var blackboardPropertyView = (BlackboardPropertyView)visualElement;
+                var blackboardPropertyView = (SGBlackboardField)visualElement;
                 if (blackboardPropertyView == null) continue;
 
                 var shaderInput = (AbstractShaderProperty)blackboardPropertyView.shaderInput;
@@ -154,6 +154,7 @@ namespace UnityEditor.ShaderGraph.UnitTests
             var menuItems = m_BlackboardTestController.addBlackboardItemsMenu.GetPrivateProperty<IList>("menuItems");
             Assert.IsNotNull(menuItems, "Could not retrieve reference to the menu items of the Blackboard Add Items menu");
 
+            // invoke all menu items on the "add Blackboard Items Menu" to add all property types
             foreach (var item in menuItems)
             {
                 var menuFunction = item.GetNonPrivateField<GenericMenu.MenuFunction>("func");
@@ -166,7 +167,7 @@ namespace UnityEditor.ShaderGraph.UnitTests
             {
                 var blackboardRow = m_BlackboardTestController.GetBlackboardRow(property);
                 Assert.IsNotNull(blackboardRow, "No blackboard row found associated with blackboard property.");
-                var blackboardPropertyView = blackboardRow.Q<BlackboardPropertyView>();
+                var blackboardPropertyView = blackboardRow.Q<SGBlackboardField>();
                 Assert.IsNotNull(blackboardPropertyView, "No blackboard property view found in the blackboard row.");
                 ShaderGraphUITestHelpers.SendMouseEvent(m_Window, blackboardPropertyView, EventType.MouseDown, MouseButton.LeftMouse, 1, EventModifiers.None, new Vector2(5, 1));
                 ShaderGraphUITestHelpers.SendMouseEvent(m_Window, blackboardPropertyView, EventType.MouseUp, MouseButton.LeftMouse, 1, EventModifiers.None, new Vector2(5, 1));
@@ -174,7 +175,6 @@ namespace UnityEditor.ShaderGraph.UnitTests
 
                 ShaderGraphUITestHelpers.SendDeleteCommand(m_Window, m_GraphEditorView.graphView);
                 yield return null;
-
             }
 
             var cachedKeywordList = m_Window.graphObject.graph.keywords.ToList();
@@ -182,7 +182,7 @@ namespace UnityEditor.ShaderGraph.UnitTests
             {
                 var blackboardRow = m_BlackboardTestController.GetBlackboardRow(keyword);
                 Assert.IsNotNull(blackboardRow, "No blackboard row found associated with blackboard keyword.");
-                var blackboardPropertyView = blackboardRow.Q<BlackboardPropertyView>();
+                var blackboardPropertyView = blackboardRow.Q<SGBlackboardField>();
                 Assert.IsNotNull(blackboardPropertyView, "No blackboard property view found in the blackboard row.");
                 ShaderGraphUITestHelpers.SendMouseEvent(m_Window, blackboardPropertyView, EventType.MouseDown, MouseButton.LeftMouse, 1, EventModifiers.None, new Vector2(5, 1));
                 ShaderGraphUITestHelpers.SendMouseEvent(m_Window, blackboardPropertyView, EventType.MouseUp, MouseButton.LeftMouse, 1, EventModifiers.None, new Vector2(5, 1));
@@ -190,7 +190,6 @@ namespace UnityEditor.ShaderGraph.UnitTests
 
                 ShaderGraphUITestHelpers.SendDeleteCommand(m_Window, m_GraphEditorView.graphView);
                 yield return null;
-
             }
 
 

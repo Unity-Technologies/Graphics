@@ -1,4 +1,4 @@
-﻿using System.Collections.Generic;
+using System.Collections.Generic;
 using UnityEngine;
 using System.Reflection;
 using System;
@@ -39,7 +39,14 @@ public class DocChecker : EditorWindow
         get => EditorPrefs.GetBool($"{key} excludeTests", true);
         set => EditorPrefs.SetBool($"{key} excludeTests", value);
     }
-    
+
+    [SerializeField]
+    bool showOnOutput
+    {
+        get => EditorPrefs.GetBool($"{key} showOnOutput", true);
+        set => EditorPrefs.SetBool($"{key} showOnOutput", value);
+    }
+
     public string undocumentedEntitiesFilePath => outputFolder + "/" + "undocumented_entities.txt";
 
     [MenuItem ("Window/Doc Checker")]
@@ -78,6 +85,7 @@ public class DocChecker : EditorWindow
                     Application.OpenURL(outputFolder);
             }
             excludeTests = EditorGUILayout.Toggle("Exclude Tests", excludeTests);
+            showOnOutput = EditorGUILayout.Toggle("Show on output", showOnOutput);
         }
 
         EditorGUILayout.Space();
@@ -192,7 +200,8 @@ public class DocChecker : EditorWindow
         if (stdoutLines.Length > 0)
         {
             var errorMessage = FormatErrorMessage(stdoutLines);
-            // Debug.Log(errorMessage);
+            if (showOnOutput)
+                Debug.Log(errorMessage);
             File.WriteAllText(undocumentedEntitiesFilePath, errorMessage);
         }
 
