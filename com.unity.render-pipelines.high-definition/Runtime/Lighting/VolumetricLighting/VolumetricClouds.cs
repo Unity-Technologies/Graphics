@@ -264,13 +264,13 @@ namespace UnityEngine.Rendering.HighDefinition
         /// Controls the erosion (Y axis) of the volumetric clouds as a function of the height (X Axis) inside the cloud volume.
         /// </summary>
         [Tooltip("Controls the erosion (Y axis) of the volumetric clouds as a function of the height (X Axis) inside the cloud volume.")]
-        public AnimationCurveParameter customErosionCurve = new AnimationCurveParameter(new AnimationCurve(new Keyframe(-1f, 0f), new Keyframe(0f, 1f), new Keyframe(1.0f, 1.0f)), false);
+        public AnimationCurveParameter customErosionCurve = new AnimationCurveParameter(new AnimationCurve(new Keyframe(0f, 0f), new Keyframe(0f, 1f), new Keyframe(1.0f, 1.0f)), false);
 
         /// <summary>
         /// Controls the ambient occlusion (Y axis) of the volumetric clouds as a function of the height (X Axis) inside the cloud volume.
         /// </summary>
         [Tooltip("Controls the ambient occlusion (Y axis) of the volumetric clouds as a function of the height (X Axis) inside the cloud volume.")]
-        public AnimationCurveParameter customAmbientOcclusionCurve = new AnimationCurveParameter(new AnimationCurve(new Keyframe(-1f, 0f), new Keyframe(0f, 1f), new Keyframe(1.0f, 1.0f)), false);
+        public AnimationCurveParameter customAmbientOcclusionCurve = new AnimationCurveParameter(new AnimationCurve(new Keyframe(0f, 1f), new Keyframe(0f, 0f), new Keyframe(1.0f, 0.0f)), false);
 
         /// <summary>
         /// Specifies the tint of the cloud scattering color.
@@ -327,9 +327,9 @@ namespace UnityEngine.Rendering.HighDefinition
         public ClampedFloatParameter ambientLightProbeDimmer = new ClampedFloatParameter(1.0f, 0.0f, 1.0f);
 
         /// <summary>
-        /// Controls the ambient occlusion strength of the erosion
+        /// Controls how much Erosion Factor is taken into account when computing ambient occlusion. The Erosion Factor parameter is editable in the custom preset, Advanced and Manual Modes.
         /// </summary>
-        [Tooltip("Controls the erosion occlusion strength.")]
+        [Tooltip("Controls how much Erosion Factor is taken into account when computing ambient occlusion. The Erosion Factor parameter is editable in the custom preset, Advanced and Manual Modes.")]
         public ClampedFloatParameter erosionOcclusion = new ClampedFloatParameter(0.5f, 0.0f, 1.0f);
 
         /// <summary>
