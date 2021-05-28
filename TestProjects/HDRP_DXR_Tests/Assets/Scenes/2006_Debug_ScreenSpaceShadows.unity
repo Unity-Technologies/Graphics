@@ -155,7 +155,7 @@ MonoBehaviour:
   settingType: 1
   gBuffer: 0
   fullScreenDebugMode: 0
-  lightlayers: 1
+  lightlayers: 0
   lightingFullScreenDebugMode: 7
 --- !u!4 &90695168
 Transform:
@@ -182,6 +182,11 @@ PrefabInstance:
         type: 3}
       propertyPath: m_Name
       value: ShadowTestScene
+      objectReference: {fileID: 0}
+    - target: {fileID: 6209802546477248631, guid: 0b1a9cbbeabf35a41824425f06bfc137,
+        type: 3}
+      propertyPath: m_RootOrder
+      value: 1
       objectReference: {fileID: 0}
     - target: {fileID: 6727135330431752688, guid: 0b1a9cbbeabf35a41824425f06bfc137,
         type: 3}
@@ -417,6 +422,16 @@ PrefabInstance:
         type: 3}
       propertyPath: far clip plane
       value: 30
+      objectReference: {fileID: 0}
+    - target: {fileID: 1838665344073080247, guid: 331e07d695ca55a4081f1b96408bb7a0,
+        type: 3}
+      propertyPath: waitFrames
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 1838665344073080247, guid: 331e07d695ca55a4081f1b96408bb7a0,
+        type: 3}
+      propertyPath: xrCompatible
+      value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 1838665344073080247, guid: 331e07d695ca55a4081f1b96408bb7a0,
         type: 3}
