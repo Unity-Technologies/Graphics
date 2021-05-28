@@ -7,7 +7,9 @@ struct AttributesLensFlare
 {
     uint vertexID : SV_VertexID;
 
+#ifndef FLARE_PREVIEW
     UNITY_VERTEX_INPUT_INSTANCE_ID
+#endif
 };
 
 struct VaryingsLensFlare
@@ -16,7 +18,9 @@ struct VaryingsLensFlare
     float2 texcoord : TEXCOORD0;
     float occlusion : TEXCOORD1;
 
+#ifndef FLARE_PREVIEW
     UNITY_VERTEX_OUTPUT_STEREO
+#endif
 };
 
 TEXTURE2D(_FlareTex);
@@ -29,6 +33,13 @@ float4 _FlareData2; // xy: ScreenPos, zw: FlareSize
 float4 _FlareData3; // xy: RayOffset, z: invSideCount
 float4 _FlareData4; // x: SDF Roundness, y: SDF Frequency
 float4 _FlareData5; // x: Allow Offscreen, y: Edge Offset, z: Falloff
+
+#ifdef FLARE_PREVIEW
+float4 _FlarePreviewData;
+
+#define _ScreenSize     _FlarePreviewData.xy;
+#define _ScreenRatio    _FlarePreviewData.z;
+#endif
 
 #define _FlareColor             _FlareColorValue
 
@@ -65,7 +76,7 @@ float2 Rotate(float2 v, float cos0, float sin0)
 #if FLARE_OCCLUSION
 float GetLinearDepthValue(float2 uv)
 {
-#ifdef HDRP_FLARE
+#if defined(HDRP_FLARE) || defined(FLARE_PREVIEW)
     float depth = LOAD_TEXTURE2D_X_LOD(_CameraDepthTexture, uint2(uv * _ScreenSize.xy), 0).x;
 #else
     float depth = LOAD_TEXTURE2D_X_LOD(_CameraDepthTexture, uint2(uv * GetScaledScreenParams().xy), 0).x;
@@ -116,10 +127,12 @@ VaryingsLensFlare vert(AttributesLensFlare input, uint instanceID : SV_InstanceI
 {
     VaryingsLensFlare output;
 
+#ifndef FLARE_PREVIEW
     UNITY_SETUP_INSTANCE_ID(input);
     UNITY_INITIALIZE_VERTEX_OUTPUT_STEREO(output);
+#endif
 
-#ifdef HDRP_FLARE
+#if defined(HDRP_FLARE) || defined(FLARE_PREVIEW)
     float screenRatio = _ScreenRatio;
 #else
     float2 screenParam = GetScaledScreenParams().xy;
@@ -183,7 +196,7 @@ float4 ComputeCircle(float2 uv)
 
     float sdf = saturate((x - 1.0f) / ((_FlareEdgeOffset - 1.0f)));
 
-#if FLARE_INVERSE_SDF
+#if defined(FLARE_INVERSE_SDF)
     sdf = saturate(sdf);
     sdf = InverseGradient(sdf);
 #endif
@@ -212,7 +225,7 @@ float4 ComputePolygon(float2 uv_)
 
     sdf *= _FlareEdgeOffset;
 
-#if FLARE_INVERSE_SDF
+#if defined(FLARE_INVERSE_SDF)
     sdf = saturate(-sdf);
     sdf = InverseGradient(sdf);
 #else
@@ -224,12 +237,10 @@ float4 ComputePolygon(float2 uv_)
 
 float4 GetFlareShape(float2 uv)
 {
-#if FLARE_CIRCLE
+#ifdef FLARE_CIRCLE
     return ComputeCircle(uv);
-#elif FLARE_POLYGON
+#elif defined(FLARE_POLYGON)
     return ComputePolygon(uv);
-#elif FLARE_SHIMMER
-    return ComputeShimmer(uv);
 #else
     return SAMPLE_TEXTURE2D(_FlareTex, sampler_FlareTex, uv);
 #endif
@@ -237,7 +248,9 @@ float4 GetFlareShape(float2 uv)
 
 float4 frag(VaryingsLensFlare input) : SV_Target
 {
+#ifndef FLARE_PREVIEW
     UNITY_SETUP_STEREO_EYE_INDEX_POST_VERTEX(input);
+#endif
 
     float4 col = GetFlareShape(input.texcoord);
     return col * _FlareColor * input.occlusion;
