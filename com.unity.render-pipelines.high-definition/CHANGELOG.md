@@ -62,6 +62,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Added support for tessellation for all master node in shader graph.
 - Added ValidateMaterial callbacks to ShaderGUI.
 - Added support for internal plugin materials and HDSubTarget with their versioning system.
+- Added support for the camera bridge in the graphics compositor
 
 ### Fixed
 - Fixed Intensity Multiplier not affecting realtime global illumination.
