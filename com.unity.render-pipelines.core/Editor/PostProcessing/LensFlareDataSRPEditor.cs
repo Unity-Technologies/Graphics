@@ -122,7 +122,6 @@ namespace UnityEditor.Rendering
         ReorderableList m_List;
         Rect? m_ReservedListSizeRect;
         static Shader s_ProceduralThumbnailShader;
-        static Shader s_ImageTinterShader;
         static readonly int k_PreviewSize = 128;
         static readonly int k_FlareColorValue = Shader.PropertyToID("_FlareColorValue");
         static readonly int k_FlareTex = Shader.PropertyToID("_FlareTex");
@@ -138,11 +137,11 @@ namespace UnityEditor.Rendering
         {
             public bool needUpdate = true;  //we need to update it first time it is created
             public Texture2D computedTexture = new Texture2D(k_PreviewSize, k_PreviewSize, UnityEngine.Experimental.Rendering.GraphicsFormat.R8G8B8A8_SRGB, UnityEngine.Experimental.Rendering.TextureCreationFlags.None);
-            public Material usedMaterial = new Material(s_ProceduralThumbnailShader);
         }
 
         RTHandle m_PreviewTexture;
         List<TextureCacheElement> m_PreviewTextureCache;
+        Material m_PreviewLensFlare = null;
 
         void OnEnable()
         {
@@ -160,8 +159,8 @@ namespace UnityEditor.Rendering
 
             if (s_ProceduralThumbnailShader == null)
                 s_ProceduralThumbnailShader = Shader.Find("Hidden/Core/LensFlareDataDrivenPreview");
-            if (s_ImageTinterShader == null)
-                s_ImageTinterShader = Shader.Find("Hidden/Core/TintedTexture");
+            m_PreviewLensFlare = new Material(s_ProceduralThumbnailShader);
+
             if (m_PreviewTexture == null)
             {
                 m_PreviewTexture = RTHandles.Alloc(k_PreviewSize, k_PreviewSize, colorFormat: UnityEngine.Experimental.Rendering.GraphicsFormat.R8G8B8A8_SRGB);
@@ -377,47 +376,8 @@ namespace UnityEditor.Rendering
         void DrawElementBackground(Rect rect, int index, bool isActive, bool isFocused)
             => EditorGUI.DrawRect(rect, Styles.elementBackgroundColor);
 
-        void ComputeImageThumbnailProceduralTexture(ref Texture2D computedTexture, SerializedProperty element, int index)
+        void ComputeThumbnail(ref Texture2D computedTexture, SerializedProperty element, SRPLensFlareType type, int index)
         {
-            SerializedProperty colorProp = element.FindPropertyRelative("tint");
-            SerializedProperty sizeXYProp = element.FindPropertyRelative("sizeXY");
-            SerializedProperty flareTextureProp = element.FindPropertyRelative("lensFlareTexture");
-            SerializedProperty preserveAspectRatiPropo = element.FindPropertyRelative("preserveAspectRatio");
-            SerializedProperty rotationProp = element.FindPropertyRelative("rotation");
-            SerializedProperty intensityProp = element.FindPropertyRelative("m_LocalIntensity");
-
-            Color color = colorProp.colorValue;
-            Vector2 sizeXY = sizeXYProp.vector2Value;
-            float aspectRatio = ((flareTextureProp.objectReferenceValue is Texture texture) && preserveAspectRatiPropo.boolValue)
-                ? texture.width / (float)texture.height
-                : sizeXY.x / Mathf.Max(sizeXY.y, 1e-6f);
-            float intensity = intensityProp.floatValue;
-
-            Vector2 sizeXYAbs = new Vector2(Mathf.Abs(sizeXY.x), Mathf.Abs(sizeXY.y));
-            Vector2 localSize = new Vector2(sizeXY.x / Mathf.Max(sizeXYAbs.x, sizeXYAbs.y), sizeXY.y / Mathf.Max(sizeXYAbs.x, sizeXYAbs.y));
-
-            Vector4 flareData0 = LensFlareCommonSRP.GetFlareData0(Vector2.zero, Vector2.zero, Vector2.one, rotationProp.floatValue, 0f, 0f, Vector2.zero, false);
-
-            Material usedMaterial = m_PreviewTextureCache[index].usedMaterial;
-
-            usedMaterial.SetTexture(k_FlareTex, flareTextureProp.objectReferenceValue as Texture2D);
-            usedMaterial.SetVector(k_FlareColorValue, new Vector4(colorProp.colorValue.r * intensity, colorProp.colorValue.g * intensity, colorProp.colorValue.b * intensity, 1f));
-            usedMaterial.SetVector(k_FlareData0, flareData0);
-            usedMaterial.SetVector(k_FlareData1, new Vector4(0f, 0f, 0f, 1f));
-            usedMaterial.SetVector(k_FlareData2, new Vector4(0f, 0f, localSize.x, localSize.y));
-            usedMaterial.SetVector(k_FlareData3, new Vector4(0f, 0f, 0f, 0f));
-            usedMaterial.SetVector(k_FlareData4, new Vector4(0f, 0f, 0f, 0f));
-            usedMaterial.SetVector(k_FlareData5, new Vector4(0f, 0f, 0f, 0f));
-            usedMaterial.SetVector(k_FlarePreviewData, new Vector4(k_PreviewSize, k_PreviewSize, 1f, 0f));
-            usedMaterial.SetPass((int)SRPLensFlareType.Image);
-
-            RenderToTexture2D(ref computedTexture);
-        }
-
-        void ComputeCircleOrPolygonalThumbnailProceduralTexture(ref Texture2D computedTexture, SerializedProperty element, SRPLensFlareType type, int index)
-        {
-            Material usedMaterial = m_PreviewTextureCache[index].usedMaterial;
-
             SerializedProperty colorProp = element.FindPropertyRelative("tint");
             SerializedProperty sizeXYProp = element.FindPropertyRelative("sizeXY");
             SerializedProperty intensityProp = element.FindPropertyRelative("m_LocalIntensity");
@@ -448,40 +408,28 @@ namespace UnityEditor.Rendering
             Vector4 flareData0 = LensFlareCommonSRP.GetFlareData0(Vector2.zero, Vector2.zero, Vector2.one, rotationProp.floatValue, 0f, 0f, Vector2.zero, false);
 
             //Set here what need to be setup in the material
-            usedMaterial.SetTexture(k_FlareTex, null);
-            usedMaterial.SetVector(k_FlareColorValue, new Vector4(colorProp.colorValue.r * intensity, colorProp.colorValue.g * intensity, colorProp.colorValue.b * intensity, 1f));
-            usedMaterial.SetVector(k_FlareData0, flareData0);
-            usedMaterial.SetVector(k_FlareData1, new Vector4(0f, 0f, 0f, 1f));
-            usedMaterial.SetVector(k_FlareData2, new Vector4(0f, 0f, localSize.x, localSize.y));
-            usedMaterial.SetVector(k_FlareData3, new Vector4(0f, 0f, invSideCount, 0f));
-            if (type == SRPLensFlareType.Polygon)
-                usedMaterial.SetVector(k_FlareData4, new Vector4(usedSDFRoundness, r, an, he));
-            else
-                usedMaterial.SetVector(k_FlareData4, new Vector4(usedSDFRoundness, 0f, 0f, 0f));
-            usedMaterial.SetVector(k_FlareData5, new Vector4(0f, usedGradientPosition, Mathf.Exp(Mathf.Lerp(0.0f, 4.0f, Mathf.Clamp01(1.0f - fallOffProp.floatValue))), 0f));
-            usedMaterial.SetVector(k_FlarePreviewData, new Vector4(k_PreviewSize, k_PreviewSize, 1f, 0f));
+            m_PreviewLensFlare.SetTexture(k_FlareTex, null);
+            m_PreviewLensFlare.SetVector(k_FlareColorValue, new Vector4(colorProp.colorValue.r * intensity, colorProp.colorValue.g * intensity, colorProp.colorValue.b * intensity, 1f));
+            m_PreviewLensFlare.SetVector(k_FlareData0, flareData0);
+            m_PreviewLensFlare.SetVector(k_FlareData1, new Vector4(0f, 0f, 0f, 1f));
+            m_PreviewLensFlare.SetVector(k_FlareData2, new Vector4(0f, 0f, localSize.x, localSize.y));
+            m_PreviewLensFlare.SetVector(k_FlareData3, new Vector4(0f, 0f, invSideCount, 0f));
 
-            usedMaterial.SetPass((int)type + (inverseSDFProp.boolValue ? 2 : 0));
+            if (type == SRPLensFlareType.Polygon)
+                m_PreviewLensFlare.SetVector(k_FlareData4, new Vector4(usedSDFRoundness, r, an, he));
+            else
+                m_PreviewLensFlare.SetVector(k_FlareData4, new Vector4(usedSDFRoundness, 0f, 0f, 0f));
+
+            if (type == SRPLensFlareType.Polygon)
+                m_PreviewLensFlare.SetVector(k_FlareData5, new Vector4(0f, usedGradientPosition, Mathf.Exp(Mathf.Lerp(0.0f, 4.0f, Mathf.Clamp01(1.0f - fallOffProp.floatValue))), 0f));
+            else
+                m_PreviewLensFlare.SetVector(k_FlareData5, new Vector4(0f, 0f, 0f, 0f));
+
+            m_PreviewLensFlare.SetVector(k_FlarePreviewData, new Vector4(k_PreviewSize, k_PreviewSize, 1f, 0f));
+
+            m_PreviewLensFlare.SetPass((int)type + ((type != SRPLensFlareType.Image && inverseSDFProp.boolValue) ? 2 : 0));
 
             RenderToTexture2D(ref computedTexture);
-        }
-
-        void UpdateThumbnailProceduralTexture(ref Texture2D computedTexture, SerializedProperty element, SRPLensFlareType type, int index)
-        {
-            switch (type)
-            {
-                case SRPLensFlareType.Image:
-                    ComputeImageThumbnailProceduralTexture(ref computedTexture, element, index);
-                    return;
-
-                case SRPLensFlareType.Circle:
-                case SRPLensFlareType.Polygon:
-                    ComputeCircleOrPolygonalThumbnailProceduralTexture(ref computedTexture, element, type, index);
-                    break;
-
-                default:
-                    throw new Exception("Unknown procedural flare type");
-            }
         }
 
         void RenderToTexture2D(ref Texture2D computedTexture)
@@ -519,7 +467,7 @@ namespace UnityEditor.Rendering
             if (!tce.needUpdate)
                 return tce.computedTexture;
 
-            UpdateThumbnailProceduralTexture(ref tce.computedTexture, element, type, index);
+            ComputeThumbnail(ref tce.computedTexture, element, type, index);
             tce.needUpdate = false;
             return tce.computedTexture;
         }
