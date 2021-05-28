@@ -12,6 +12,7 @@ using UnityEngine.Rendering;
 
 using Object = UnityEngine.Object;
 using System.IO;
+using System.Collections.ObjectModel;
 
 namespace UnityEditor.VFX
 {
@@ -20,6 +21,7 @@ namespace UnityEditor.VFX
         public VFXExpressionMapper cpuMapper;
         public VFXExpressionMapper gpuMapper;
         public VFXUniformMapper uniformMapper;
+        public ReadOnlyDictionary<VFXExpression, Type> graphicsBufferUsage;
         public VFXMapping[] parameters;
         public int indexInShaderSource;
     }
@@ -144,7 +146,8 @@ namespace UnityEditor.VFX
                         case VFXValueType.Mesh: value = CreateObjectValueDesc<Mesh>(exp, i); break;
                         case VFXValueType.SkinnedMeshRenderer: value = CreateObjectValueDesc<SkinnedMeshRenderer>(exp, i); break;
                         case VFXValueType.Boolean: value = CreateValueDesc<bool>(exp, i); break;
-                        default: throw new InvalidOperationException("Invalid type");
+                        case VFXValueType.Buffer: value = CreateValueDesc<GraphicsBuffer>(exp, i); break;
+                        default: throw new InvalidOperationException("Invalid type : " + exp.valueType);
                     }
                     value.expressionIndex = (uint)i;
                     outValueDescs.Add(value);
@@ -775,6 +778,7 @@ namespace UnityEditor.VFX
                     var contextData = contextToCompiledData[context];
                     contextData.gpuMapper = gpuMapper;
                     contextData.uniformMapper = uniformMapper;
+                    contextData.graphicsBufferUsage = graph.GraphicsBufferTypeUsage;
                     contextToCompiledData[context] = contextData;
 
                     if (context.doesGenerateShader)
@@ -992,17 +996,22 @@ namespace UnityEditor.VFX
                     yield return index;
         }
 
+        private void CleanRuntimeData()
+        {
+            if (m_Graph.visualEffectResource != null)
+                m_Graph.visualEffectResource.ClearRuntimeData();
+
+            m_ExpressionGraph = new VFXExpressionGraph();
+            m_ExpressionValues = new VFXExpressionValueContainerDesc[] {};
+        }
+
         public void Compile(VFXCompilationMode compilationMode, bool forceShaderValidation)
         {
-            // Prevent doing anything ( and especially showing progress) in an empty graph.
-            if (m_Graph.children.Count() < 1)
+            // Early out in case: (Not even displaying the popup)
+            if (m_Graph.children.Count() < 1 ||         // Graph is empty
+                VFXLibrary.currentSRPBinder == null)    // One of supported SRPs is not current SRP
             {
-                // Cleaning
-                if (m_Graph.visualEffectResource != null)
-                    m_Graph.visualEffectResource.ClearRuntimeData();
-
-                m_ExpressionGraph = new VFXExpressionGraph();
-                m_ExpressionValues = new VFXExpressionValueContainerDesc[] {};
+                CleanRuntimeData();
                 return;
             }
 
@@ -1213,12 +1222,7 @@ namespace UnityEditor.VFX
 
                 Debug.LogError(string.Format("{2} : Exception while compiling expression graph: {0}: {1}", e, e.StackTrace, (asset != null) ? asset.name : "(Null Asset)"), asset);
 
-                // Cleaning
-                if (m_Graph.visualEffectResource != null)
-                    m_Graph.visualEffectResource.ClearRuntimeData();
-
-                m_ExpressionGraph = new VFXExpressionGraph();
-                m_ExpressionValues = new VFXExpressionValueContainerDesc[] {};
+                CleanRuntimeData();
             }
             finally
             {
@@ -1266,6 +1270,7 @@ namespace UnityEditor.VFX
                         case VFXValueType.Mesh: SetObjectValueDesc<Mesh>(desc, exp); break;
                         case VFXValueType.SkinnedMeshRenderer: SetObjectValueDesc<SkinnedMeshRenderer>(desc, exp); break;
                         case VFXValueType.Boolean: SetValueDesc<bool>(desc, exp); break;
+                        case VFXValueType.Buffer: break; //The GraphicsBuffer type isn't serialized
                         default: throw new InvalidOperationException("Invalid type");
                     }
                 }

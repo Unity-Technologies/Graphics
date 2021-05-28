@@ -90,7 +90,8 @@ namespace UnityEditor.VFX
             if ((uint)capacitySetting.value > 1000000)
                 manager.RegisterError("CapacityOver1M", VFXErrorType.PerfWarning, "Systems with large capacities can be slow to simulate");
             var data = GetData() as VFXDataParticle;
-            if (data != null && data.boundsSettingMode == BoundsSettingMode.Recorded)
+            if (data != null && data.boundsSettingMode == BoundsSettingMode.Recorded
+                && CanBeCompiled())
             {
                 if (VFXViewWindow.currentWindow?.graphView?.attachedComponent == null ||
                     !BoardPreferenceHelper.IsVisible(BoardPreferenceHelper.Board.componentBoard, false))

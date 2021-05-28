@@ -324,8 +324,14 @@ namespace UnityEditor.Rendering
 
         bool DrawElementHeader(Rect headerRect, SerializedProperty isFoldOpened, bool selectedInList, SerializedProperty element)
         {
+            Rect visibilityRect = headerRect;
+            visibilityRect.xMin += 16;
+            visibilityRect.width = 13;
+            visibilityRect.y += 2;
+            visibilityRect.height = 13;
+
             Rect labelRect = headerRect;
-            labelRect.xMin += 16;
+            labelRect.xMin = visibilityRect.xMax + 5;
             labelRect.xMax -= 16;
 
             Rect contextMenuRect = labelRect;
@@ -368,6 +374,12 @@ namespace UnityEditor.Rendering
                 isFoldOpened.boolValue = newState;
 
             EditorGUI.EndProperty();
+
+            SerializedProperty visible = element.FindPropertyRelative("visible");
+            EditorGUI.BeginChangeCheck();
+            bool newVisibility = GUI.Toggle(visibilityRect, visible.boolValue, GUIContent.none, CoreEditorStyles.smallTickbox);
+            if (EditorGUI.EndChangeCheck())
+                visible.boolValue = newVisibility;
 
             return newState;
         }
