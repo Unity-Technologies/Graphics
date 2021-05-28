@@ -30,7 +30,7 @@ To select the Rendering Path, use the property **Lighting** > **Rendering Path**
 
 When you select the Deferred Rendering Path, Unity shows the [Accurate G-buffer normals](#accurate-g-buffer-normals) property.
 
-The **Accurate G-buffer normals** property lets you configure how Unity encodes the normals when storing them in the G-buffer.
+The **Accurate G-buffer normals** property lets you configure how Unity encodes the normals when storing them in the geometry buffer (G-buffer).
 
 * **Accurate G-buffer normals** off: This option increases performance, especially on mobile GPUs, but might lead to color banding artifacts on smooth surfaces.
 
@@ -126,11 +126,21 @@ The Subtractive and the Shadow mask modes are optimized for the Forward Renderin
 
 Unity adds this render target to the G-buffer layout when the Light Layers feature is enabled (URP Asset, **Advanced** > **Light Layers**). The Light Layers feature might have a significant impact on the GPU performance. For more information, see section [Light Layers](#light-layers).
 
+**Depth as Color**
+
+Unity adds this render target to the G-buffer layout when Native Render Pass is enabled on platforms that support it. Unity renders depth as a color into this render target. This render target has the following purpose:
+
+* Improves performance on Vulkan devices.
+
+* Lets Unity get the depth buffer on Metal API, which does not allow fetching the depth from the DepthStencil buffer within the same render pass.
+
+The format of the Depth as Color render target is `GraphicsFormat.R32_SFloat`.
+
 **DepthStencil**
 
 Unity reserves the four highest bits of this render target to mark the Material type. See also [URP Pass tags: UniversalMaterialType](../urp-shaders/urp-shaderlab-pass-tags.md#universalmaterialtype).
 
-For this render target, Unity selects either the D32F_S8 format, or the D24S8 format depending on the platform.
+For this render target, Unity selects either the `D32F_S8` format, or the `D24S8` format depending on the platform.
 
 ### <a name="accurate-g-buffer-normals"></a>Encoding of normals in G-buffer
 
@@ -301,7 +311,7 @@ Examples of such shaders:
 
 * **Complex Lit**: the Lighting model of this shader (for example, the Clear Coat effect) is too complex and extra Material properties cannot fit into the G-buffer.
 
-* **Baked Lit** and **Unlit**: these shaders do not receive dynamic lighting, so writing them directly into the Lighting buffer instead of the G-buffer is faster.
+* **Baked Lit** and **Unlit**: these shaders do not calculate real-time lighting, that's why Unity renders them into the Emissive/GI/Lighting buffer directly during the Forward-only pass. This is faster than evaluating the shaders in the Deferred rendering (stencil) pass.
 
 * **Custom shaders**: Unity renders the shaders that do not declare the Pass tags required by the Deferred Rendering Path as Forward-only. The required Pass tags are: `LightMode`, and `UniversalMaterialType`. For more information, see [URP Pass tags](../urp-shaders/urp-shaderlab-pass-tags.md).
 
