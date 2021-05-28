@@ -440,6 +440,7 @@ namespace UnityEngine.Rendering.Universal
             requiresDepthPrepass |= isPreviewCamera;
             requiresDepthPrepass |= renderPassInputs.requiresDepthPrepass;
             requiresDepthPrepass |= renderPassInputs.requiresNormalsTexture;
+            requiresDepthPrepass |= renderPassInputs.requiresMotionVectors;
 
             // Current aim of depth prepass is to generate a copy of depth buffer, it is NOT to prime depth buffer and reduce overdraw on non-mobile platforms.
             // When deferred renderer is enabled, depth buffer is already accessible so depth prepass is not needed.
