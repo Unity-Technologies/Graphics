@@ -98,11 +98,12 @@ namespace UnityEditor.Rendering.HighDefinition
             public static GUIContent transparentSortPriorityText = new GUIContent("Sorting Priority", "Sets the sort priority (from -100 to 100) of transparent meshes using this Material. HDRP uses this value to calculate the sorting order of all transparent meshes on screen.");
             public static GUIContent enableTransparentFogText = new GUIContent("Receive fog", "When enabled, this Material can receive fog.");
             public static GUIContent transparentCullModeText = new GUIContent("Cull Mode", "For transparent objects, change the cull mode of the object.");
-            public static GUIContent enableBlendModePreserveSpecularLightingText = new GUIContent("Preserve specular lighting", "When enabled, blending only affects diffuse lighting, allowing for correct specular lighting on transparent meshes that use this Material.");
+            public static GUIContent enableBlendModePreserveSpecularLightingText = new GUIContent("Preserve specular lighting", "When enabled, blending only affects diffuse lighting, allowing for correct specular lighting on transparent meshes that use this Material. This parameter is only supported when the material's refraction model is set to None.");
 
             // Lit properties
             public static GUIContent doubleSidedNormalModeText = new GUIContent("Normal Mode", "Specifies the method HDRP uses to modify the normal base.\nMirror: Mirrors the normals with the vertex normal plane.\nFlip: Flips the normal.");
             public static GUIContent depthOffsetEnableText = new GUIContent("Depth Offset", "When enabled, HDRP uses the Height Map to calculate the depth offset for this Material.");
+
             public static GUIContent doubleSidedGIText = new GUIContent("Double-Sided GI", "When selecting Auto, Double-Sided GI is enabled if the material is Double-Sided, otherwise On enables it and Off disables it.\n" +
                 "When enabled, the lightmapper accounts for both sides of the geometry when calculating Global Illumination. Backfaces are not rendered or added to lightmaps, but get treated as valid when seen from other objects. When using the Progressive Lightmapper backfaces bounce light using the same emission and albedo as frontfaces. (Currently this setting is only available when baking with the Progressive Lightmapper backend.).");
             public static GUIContent conservativeDepthOffsetEnableText = new GUIContent("Conservative", "When enabled, only positive depth offsets will be applied in order to take advantage of the early depth test mechanic.");
@@ -223,7 +224,6 @@ namespace UnityEditor.Rendering.HighDefinition
         MaterialProperty conservativeDepthOffsetEnable = null;
 
         MaterialProperty tessellationMode = null;
-        const string kTessellationMode = "_TessellationMode";
 
         MaterialProperty[] heightMap = new MaterialProperty[kMaxLayerCount];
         const string kHeightMap = "_HeightMap";
@@ -433,7 +433,7 @@ namespace UnityEditor.Rendering.HighDefinition
             DrawLitSurfaceOptions();
         }
 
-        bool AreMaterialsShaderGraphs() => materials.All(m => m.shader.IsShaderGraph());
+        bool AreMaterialsShaderGraphs() => materials.All(m => m.IsShaderGraph());
 
         /// <summary>Returns false if there are multiple materials selected and they have different default values for propName</summary>
         float GetShaderDefaultFloatValue(string propName)
@@ -581,7 +581,7 @@ namespace UnityEditor.Rendering.HighDefinition
                 }
 
                 if (transparentSortPriority != null)
-                    materialEditor.IntShaderProperty(transparentSortPriority, Styles.transparentSortPriorityText, HDRenderQueue.ClampsTransparentRangePriority);
+                    materialEditor.IntSliderShaderProperty(transparentSortPriority, -HDRenderQueue.sortingPriortyRange, HDRenderQueue.sortingPriortyRange, Styles.transparentSortPriorityText);
 
                 if (enableFogOnTransparent != null)
                     materialEditor.ShaderProperty(enableFogOnTransparent, Styles.enableTransparentFogText);

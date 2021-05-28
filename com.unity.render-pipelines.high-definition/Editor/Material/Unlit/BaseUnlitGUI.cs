@@ -253,19 +253,19 @@ namespace UnityEditor.Rendering.HighDefinition
                 }
             }
 
+            if (material.HasProperty(kTessellationMode))
+            {
+                TessellationMode tessMode = (TessellationMode)material.GetFloat(kTessellationMode);
+                CoreUtils.SetKeyword(material, "_TESSELLATION_PHONG", tessMode == TessellationMode.Phong);
+            }
+
             // DoubleSidedGI has to be synced with our double sided toggle
-            var serializedObject = new SerializedObject(material);
-            bool doubleSidedGI = false;
             if (doubleSidedGIMode == DoubleSidedGIMode.Auto)
-                doubleSidedGI = doubleSidedEnable;
+                material.doubleSidedGI = doubleSidedEnable;
             else if (doubleSidedGIMode == DoubleSidedGIMode.On)
-                doubleSidedGI = true;
+                material.doubleSidedGI = true;
             else if (doubleSidedGIMode == DoubleSidedGIMode.Off)
-                doubleSidedGI = false;
-            // material always call setdirty, so set only if new value is different
-            if (doubleSidedGI != material.doubleSidedGI)
-                material.doubleSidedGI = doubleSidedGI;
-            serializedObject.ApplyModifiedProperties();
+                material.doubleSidedGI = false;
         }
 
         // This is a hack for GI. PVR looks in the shader for a texture named "_MainTex" to extract the opacity of the material for baking. In the same manner, "_Cutoff" and "_Color" are also necessary.
@@ -297,7 +297,7 @@ namespace UnityEditor.Rendering.HighDefinition
 
         static public void SetupBaseUnlitPass(this Material material)
         {
-            if (material.shader.IsShaderGraph())
+            if (material.IsShaderGraph())
             {
                 // Shader graph generate distortion pass only if required. So we can safely enable it
                 // all the time here.
@@ -360,7 +360,7 @@ namespace UnityEditor.Rendering.HighDefinition
 
             // Shader graphs materials have their own management of motion vector pass in the material inspector
             // (see DrawMotionVectorToggle())
-            if (!material.shader.IsShaderGraph())
+            if (!material.IsShaderGraph())
             {
                 //In the case of additional velocity data we will enable the motion vector pass.
                 bool addPrecomputedVelocity = false;

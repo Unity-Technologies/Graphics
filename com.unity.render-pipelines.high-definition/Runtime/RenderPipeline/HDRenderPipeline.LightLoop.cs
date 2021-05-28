@@ -254,12 +254,13 @@ namespace UnityEngine.Rendering.HighDefinition
             return result;
         }
 
-        TextureHandle CreateDiffuseLightingBuffer(RenderGraph renderGraph, bool msaa)
+        TextureHandle CreateDiffuseLightingBuffer(RenderGraph renderGraph, MSAASamples msaaSamples)
         {
+            bool msaa = msaaSamples != MSAASamples.None;
             return renderGraph.CreateTexture(new TextureDesc(Vector2.one, true, true)
             {
                 colorFormat = GraphicsFormat.B10G11R11_UFloatPack32, enableRandomWrite = !msaa,
-                bindTextureMS = msaa, enableMSAA = msaa, clearBuffer = true, clearColor = Color.clear, name = msaa ? "CameraSSSDiffuseLightingMSAA" : "CameraSSSDiffuseLighting"
+                bindTextureMS = msaa, msaaSamples = msaaSamples, clearBuffer = true, clearColor = Color.clear, name = msaa ? "CameraSSSDiffuseLightingMSAA" : "CameraSSSDiffuseLighting"
             });
         }
 
@@ -466,11 +467,11 @@ namespace UnityEngine.Rendering.HighDefinition
 
             var settings = hdCamera.volumeStack.GetComponent<ScreenSpaceReflection>();
 
-            bool usesRaytracedReflections = hdCamera.frameSettings.IsEnabled(FrameSettingsField.RayTracing) && settings.rayTracing.value;
+            bool usesRaytracedReflections = hdCamera.frameSettings.IsEnabled(FrameSettingsField.RayTracing) && ScreenSpaceReflection.RayTracingActive(settings);
             if (usesRaytracedReflections)
             {
                 result = RenderRayTracedReflections(renderGraph, hdCamera,
-                    prepassOutput.depthBuffer, prepassOutput.stencilBuffer, prepassOutput.normalBuffer, prepassOutput.resolvedMotionVectorsBuffer, clearCoatMask, skyTexture, rayCountTexture,
+                    prepassOutput, clearCoatMask, skyTexture, rayCountTexture,
                     m_ShaderVariablesRayTracingCB, transparent);
             }
             else
@@ -685,10 +686,11 @@ namespace UnityEngine.Rendering.HighDefinition
 
                 // Avoid garbage when visualizing contact shadows.
                 bool clearBuffer = m_CurrentDebugDisplaySettings.data.fullScreenDebugMode == FullScreenDebugMode.ContactShadows;
+                bool msaa = hdCamera.msaaEnabled;
 
                 passData.contactShadowsCS = contactShadowComputeShader;
                 passData.contactShadowsCS.shaderKeywords = null;
-                if (hdCamera.frameSettings.IsEnabled(FrameSettingsField.MSAA))
+                if (msaa)
                 {
                     passData.contactShadowsCS.EnableKeyword("ENABLE_MSAA");
                 }
@@ -696,7 +698,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 passData.rayTracingEnabled = RayTracedContactShadowsRequired();
                 if (hdCamera.frameSettings.IsEnabled(FrameSettingsField.RayTracing))
                 {
-                    passData.contactShadowsRTS = HDRenderPipelineGlobalSettings.instance.renderPipelineRayTracingResources.contactShadowRayTracingRT;
+                    passData.contactShadowsRTS = m_GlobalSettings.renderPipelineRayTracingResources.contactShadowRayTracingRT;
                     passData.accelerationStructure = RequestAccelerationStructure();
 
                     passData.actualWidth = hdCamera.actualWidth;
@@ -721,7 +723,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 passData.numTilesY = (hdCamera.actualHeight + (deferredShadowTileSize - 1)) / deferredShadowTileSize;
                 passData.viewCount = hdCamera.viewCount;
 
-                passData.depthTextureParameterName = hdCamera.frameSettings.IsEnabled(FrameSettingsField.MSAA) ? HDShaderIDs._CameraDepthValuesTexture : HDShaderIDs._CameraDepthTexture;
+                passData.depthTextureParameterName = msaa ? HDShaderIDs._CameraDepthValuesTexture : HDShaderIDs._CameraDepthTexture;
 
                 passData.lightLoopLightData = m_LightLoopLightData;
                 passData.lightList = builder.ReadComputeBuffer(lightLists.lightList);
@@ -840,13 +842,15 @@ namespace UnityEngine.Rendering.HighDefinition
 
                 using (var builder = renderGraph.AddRenderPass<GenerateMaxZMaskPassData>("Generate Max Z Mask for Volumetric", out var passData))
                 {
+                    //TODO: move the entire vbuffer to hardware DRS mode. When Hardware DRS is enabled we will save performance
+                    // on these buffers, however the final vbuffer will be wasting resolution. This requires a bit of more work to optimize.
                     passData.parameters = PrepareGenerateMaxZParameters(hdCamera, depthMipInfo);
                     passData.depthTexture = builder.ReadTexture(depthTexture);
-                    passData.maxZ8xBuffer = builder.CreateTransientTexture(new TextureDesc(Vector2.one * 0.125f, false, true)
+                    passData.maxZ8xBuffer = builder.CreateTransientTexture(new TextureDesc(Vector2.one * 0.125f, true, true)
                         { colorFormat = GraphicsFormat.R32_SFloat, enableRandomWrite = true, name = "MaxZ mask 8x" });
-                    passData.maxZBuffer = builder.CreateTransientTexture(new TextureDesc(Vector2.one * 0.125f, false, true)
+                    passData.maxZBuffer = builder.CreateTransientTexture(new TextureDesc(Vector2.one * 0.125f, true, true)
                         { colorFormat = GraphicsFormat.R32_SFloat, enableRandomWrite = true, name = "MaxZ mask" });
-                    passData.dilatedMaxZBuffer = builder.ReadWriteTexture(renderGraph.CreateTexture(new TextureDesc(Vector2.one / 16.0f, false, true)
+                    passData.dilatedMaxZBuffer = builder.ReadWriteTexture(renderGraph.CreateTexture(new TextureDesc(Vector2.one / 16.0f, true, true)
                         { colorFormat = GraphicsFormat.R32_SFloat, enableRandomWrite = true, name = "Dilated MaxZ mask" }));
 
                     builder.SetRenderFunc(

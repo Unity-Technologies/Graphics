@@ -27,6 +27,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
         };
         protected override GUID subTargetAssetGuid => kSubTargetSourceCodeGuid;
         protected override string customInspector => "Rendering.HighDefinition.DecalShaderGraphGUI";
+        internal override MaterialResetter setupMaterialKeywordsAndPassFunc => DecalShaderGraphGUI.SetupDecalKeywordsAndPass;
         protected override string renderType => HDRenderTypeTags.Opaque.ToString();
         protected override string renderQueue => HDRenderQueue.GetShaderTagValue(HDRenderQueue.ChangeType(HDRenderQueue.RenderQueueType.Opaque, decalData.drawOrder, false, false));
         protected override ShaderID shaderID => HDShaderUtils.ShaderID.SG_Decal;
@@ -250,8 +251,9 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                 useInPreview = false,
 
                 // Collections
+                structs = CoreStructCollections.Basic,
                 renderStates = DecalRenderStates.ScenePicking,
-                pragmas = DecalPragmas.Instanced,
+                pragmas = DecalPragmas.InstancedDecal,
                 defines = CoreDefines.ScenePicking,
                 includes = DecalIncludes.ScenePicking,
                 customInterpolators = CoreCustomInterpolators.Common,
@@ -268,11 +270,9 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                 // Port mask
                 validPixelBlocks = DecalBlockMasks.FragmentDefault,
 
-                //Fields
-                structs = CoreStructCollections.Default,
-                fieldDependencies = CoreFieldDependencies.Default,
+                structs = CoreStructCollections.Basic,
                 renderStates = DecalRenderStates.DBufferProjector,
-                pragmas = DecalPragmas.Instanced,
+                pragmas = DecalPragmas.InstancedDecal,
                 keywords = DecalDefines.Decals,
                 includes = DecalIncludes.Default,
                 customInterpolators = CoreCustomInterpolators.Common,
@@ -289,13 +289,10 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                 // Port mask
                 validPixelBlocks = DecalBlockMasks.FragmentEmissive,
 
-                //Fields
-                structs = CoreStructCollections.Default,
-                fieldDependencies = CoreFieldDependencies.Default,
-
                 // Conditional State
+                structs = CoreStructCollections.Basic,
                 renderStates = DecalRenderStates.DecalProjectorForwardEmissive,
-                pragmas = DecalPragmas.Instanced,
+                pragmas = DecalPragmas.InstancedDecal,
                 defines = DecalDefines.Emission,
                 includes = DecalIncludes.Default,
                 customInterpolators = CoreCustomInterpolators.Common,
@@ -313,13 +310,12 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                 validPixelBlocks = DecalBlockMasks.FragmentDefault,
 
                 //Fields
-                structs = CoreStructCollections.Default,
                 requiredFields = DecalRequiredFields.Mesh,
-                fieldDependencies = CoreFieldDependencies.Default,
 
                 // Conditional State
+                structs = CoreStructCollections.Basic,
                 renderStates = DecalRenderStates.DBufferMesh,
-                pragmas = DecalPragmas.Instanced,
+                pragmas = DecalPragmas.InstancedDecal,
                 keywords = DecalDefines.Decals,
                 includes = DecalIncludes.Default,
                 customInterpolators = CoreCustomInterpolators.Common,
@@ -337,13 +333,12 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                 validPixelBlocks = DecalBlockMasks.FragmentMeshEmissive,
 
                 //Fields
-                structs = CoreStructCollections.Default,
                 requiredFields = DecalRequiredFields.Mesh,
-                fieldDependencies = CoreFieldDependencies.Default,
 
                 // Conditional State
+                structs = CoreStructCollections.Basic,
                 renderStates = DecalRenderStates.DecalMeshForwardEmissive,
-                pragmas = DecalPragmas.Instanced,
+                pragmas = DecalPragmas.InstancedDecal,
                 defines = DecalDefines.Emission,
                 includes = DecalIncludes.Default,
                 customInterpolators = CoreCustomInterpolators.Common,
@@ -361,13 +356,12 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                 validPixelBlocks = DecalBlockMasks.FragmentMeshEmissive,
 
                 //Fields
-                structs = CoreStructCollections.Default,
                 requiredFields = DecalRequiredFields.Mesh,
-                fieldDependencies = CoreFieldDependencies.Default,
 
                 // Render state overrides
+                structs = CoreStructCollections.Basic,
                 renderStates = DecalRenderStates.Preview,
-                pragmas = DecalPragmas.Instanced,
+                pragmas = DecalPragmas.InstancedDecal,
                 includes = DecalIncludes.Default,
                 customInterpolators = CoreCustomInterpolators.Common,
             };
@@ -492,10 +486,9 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
         #region Pragmas
         static class DecalPragmas
         {
-            public static PragmaCollection Instanced = new PragmaCollection
+            public static PragmaCollection InstancedDecal = new PragmaCollection
             {
                 { CorePragmas.Basic },
-                { Pragma.MultiCompileInstancing },
 #if ENABLE_HYBRID_RENDERER_V2
                 { Pragma.DOTSInstancing },
 #endif
@@ -564,7 +557,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
             public static KeywordCollection Maskmap = new KeywordCollection { { Descriptors.AffectsMaskmap, new FieldCondition(AffectsMaskMap, true) } };
             public static DefineCollection Emission = new DefineCollection { { Descriptors.AffectsEmission, 1 } };
 
-            public static KeywordCollection Decals = new KeywordCollection { { Descriptors.Decals } };
+            public static KeywordCollection Decals = new KeywordCollection { { Descriptors.Decals } , { CoreKeywordDescriptors.DecalSurfaceGradient } };
         }
         #endregion
 

@@ -36,6 +36,12 @@ namespace UnityEditor.Rendering.HighDefinition
             // To avoid duplicating init code we copy default settings to Reset additional data
             // Note: we can't call this code inside the HDAdditionalLightData, thus why we don't wrap it in a Reset() function
             HDUtils.s_DefaultHDAdditionalLightData.CopyTo(lightAdditionalData);
+
+            //reinit default intensity
+            HDAdditionalLightData.InitDefaultHDAdditionalLightData(lightAdditionalData);
+
+            //patch missing cookie texture reset in built-in light reset
+            light.cookie = null;
         }
 
         [MenuItem("CONTEXT/Light/Show All Additional Properties...", false, 100)]

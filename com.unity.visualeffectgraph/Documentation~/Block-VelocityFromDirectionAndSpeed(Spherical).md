@@ -28,7 +28,7 @@ This Block is compatible with the following Contexts:
 
 | **Input**           | **Type** | **Description**                                              |
 | ------------------- | -------- | ------------------------------------------------------------ |
-| **Center**          | Vector3  | The position (in the same space as the system) of the center this block uses to calculate the spherical vector. |
+| **Center**          | Vector3  | The position (in the same space as the system) of the center this Block uses to calculate the spherical vector. |
 | **Speed**           | float    | The speed multiplier to apply to the direction vector in order to calculate the velocity.<br/>This property only appears if you set **Speed Mode** to **Constant**. |
 | **Min Speed**       | float    | The minimum speed multiplier to apply to the direction vector in order to calculate the velocity.<br/>This property only appears if you set **Speed Mode** to **Random**. |
 | **Max Speed**       | float    | The maximum speed multiplier to apply to the direction vector in order to calculate the velocity.<br/>This property only appears if you set **Speed Mode** to **Random**. |

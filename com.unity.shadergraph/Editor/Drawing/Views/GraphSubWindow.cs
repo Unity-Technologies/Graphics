@@ -191,14 +191,14 @@ namespace UnityEditor.ShaderGraph.Drawing.Views
         {
             if (scrollable)
             {
-                // Remove the sections container from the content item and add it to the scrollview
+                // Remove the categories container from the content item and add it to the scrollview
                 m_ContentContainer.RemoveFromHierarchy();
                 m_ScrollView.Add(m_ContentContainer);
                 AddToClassList("scrollable");
             }
             else
             {
-                // Remove the sections container from the scrollview and add it to the content item
+                // Remove the categories container from the scrollview and add it to the content item
                 m_ContentContainer.RemoveFromHierarchy();
                 m_Root.Add(m_ContentContainer);
 

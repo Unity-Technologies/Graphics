@@ -1,8 +1,6 @@
 using UnityEditor;
-using UnityEngine.Rendering;
-using UnityEngine.Rendering.Universal;
 
-namespace UnityEngine.Experimental.Rendering.Universal
+namespace UnityEngine.Rendering.Universal
 {
     public partial class Renderer2DData
     {
@@ -19,6 +17,9 @@ namespace UnityEngine.Experimental.Rendering.Universal
         [SerializeField, Reload("Runtime/Materials/Sprite-Unlit-Default.mat")]
         Material m_DefaultUnlitMaterial = null;
 
+        [SerializeField, Reload("Runtime/Materials/SpriteMask-Default.mat")]
+        Material m_DefaultMaskMaterial = null;
+
         internal override Shader GetDefaultShader()
         {
             return Shader.Find("Universal Render Pipeline/2D/Sprite-Lit-Default");
@@ -34,6 +35,10 @@ namespace UnityEngine.Experimental.Rendering.Universal
                     return m_DefaultUnlitMaterial;
                 else
                     return m_DefaultCustomMaterial;
+            }
+            if (materialType == DefaultMaterialType.SpriteMask)
+            {
+                return m_DefaultMaskMaterial;
             }
 
             return null;

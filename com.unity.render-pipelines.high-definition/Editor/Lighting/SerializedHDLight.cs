@@ -5,9 +5,12 @@ using System.Collections.Generic;
 
 namespace UnityEditor.Rendering.HighDefinition
 {
-    internal class SerializedHDLight
+    internal class SerializedHDLight : ISerializedLight
     {
-        public SerializedProperty intensity;
+        // Common properties
+        public SerializedProperty intensity { get; }
+
+        // HDRP specific properties
         public SerializedProperty enableSpotReflector;
         public SerializedProperty luxAtDistance;
         public SerializedProperty spotInnerPercent;
@@ -83,7 +86,7 @@ namespace UnityEditor.Rendering.HighDefinition
         public SerializedProperty useVolumetric;
 
         // Layers
-        public SerializedProperty linkLightLayers;
+        public SerializedProperty linkShadowLayers;
         public SerializedProperty lightlayersMask;
 
         // Shadow datas
@@ -110,13 +113,14 @@ namespace UnityEditor.Rendering.HighDefinition
 
         public bool needUpdateAreaLightEmissiveMeshComponents = false;
 
-        public SerializedObject serializedObject;
+        public SerializedObject serializedObject { get; }
+        public SerializedObject serializedAdditionalDataObject { get; }
 
         public SerializedProperty lightLayer;
         private SerializedObject lightGameObject;
 
         //contain serialized property that are mainly used to draw inspector
-        public LightEditor.Settings settings;
+        public LightEditor.Settings settings { get; }
 
         //type is converted on the fly each time so we cannot have SerializedProperty on it
         public HDLightType type
@@ -399,7 +403,7 @@ namespace UnityEditor.Rendering.HighDefinition
                 renderingLayerMask = settings.renderingLayerMask;
 
                 // Layers
-                linkLightLayers = o.Find("m_LinkShadowLayers");
+                linkShadowLayers = o.Find("m_LinkShadowLayers");
                 lightlayersMask = o.Find("m_LightlayersMask");
 
                 // Shadow datas:
