@@ -37,7 +37,9 @@ public class DebugViewController : MonoBehaviour
                     hdPipeline.debugDisplaySettings.SetDebugLightLayersMode(true);
                     hdPipeline.debugDisplaySettings.data.lightingDebugSettings.debugLightLayersFilterMask = (DebugLightLayersMask)0b10111101;
                 }
-				hdPipeline.debugDisplaySettings.SetFullScreenDebugMode((FullScreenDebugMode) lightingFullScreenDebugMode);
+                Debug.Log("hdPipeline:"+(hdPipeline != null));
+                Debug.Log("hdPipeline.debugDisplaySettings:" + (hdPipeline.debugDisplaySettings != null));
+                hdPipeline.debugDisplaySettings.SetFullScreenDebugMode((FullScreenDebugMode) lightingFullScreenDebugMode);
 				break;
             case SettingType.Rendering:
                 hdPipeline.debugDisplaySettings.SetFullScreenDebugMode((FullScreenDebugMode) fullScreenDebugMode);
