@@ -94,8 +94,8 @@ Pass
     // --------------------------------------------------
     // Build Graph Inputs
 
-    $features.graphVertex:  $include("VertexAnimation.template.hlsl")
-    $features.graphPixel:   $include("SharedCode.template.hlsl")
+    $features.graphVertex:  $include("Vertex.template.hlsl")
+    $features.graphPixel:   $include("Pixel.template.hlsl")
 
     // --------------------------------------------------
     // Build Surface Data

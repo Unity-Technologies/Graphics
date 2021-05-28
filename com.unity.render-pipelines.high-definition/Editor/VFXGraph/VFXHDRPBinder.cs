@@ -20,52 +20,18 @@ namespace UnityEditor.VFX.HDRP
         public override string SRPAssetTypeStr  { get { return typeof(HDRenderPipelineAsset).Name; } }
         public override Type SRPOutputDataType  { get { return typeof(VFXHDRPSubOutput); } }
 
-        static Dictionary<HDShaderUtils.ShaderID, string> s_ShaderNames = new Dictionary<HDShaderUtils.ShaderID, string>()
-        {
-            { HDShaderUtils.ShaderID.SG_Lit,      "Lit"      },
-            { HDShaderUtils.ShaderID.SG_StackLit, "StackLit" },
-            { HDShaderUtils.ShaderID.SG_Hair,     "Hair"     },
-            { HDShaderUtils.ShaderID.SG_Eye,      "Eye"      },
-            { HDShaderUtils.ShaderID.SG_Fabric,   "Fabric"   },
-            { HDShaderUtils.ShaderID.SG_Unlit,    "Unlit"    },
-        };
-
-        HDShaderUtils.ShaderID GetShaderEnumFromShaderGraph(ShaderGraphVfxAsset shaderGraph)
-        {
-            bool TryGetHDMetadata(out HDMetadata obj)
-            {
-                obj = null;
-
-                var path = AssetDatabase.GetAssetPath(shaderGraph);
-                foreach (var asset in AssetDatabase.LoadAllAssetsAtPath(path))
-                {
-                    if (asset is HDMetadata metadataAsset)
-                    {
-                        obj = metadataAsset;
-                        return true;
-                    }
-                }
-
-                return false;
-            }
-
-            HDMetadata obj;
-
-            if (!TryGetHDMetadata(out obj))
-                throw new ArgumentException("Unknown shader");
-
-            return obj.shaderID;
-        }
-
         public override void SetupMaterial(Material mat, bool hasMotionVector = false, bool hasShadowCasting = false, ShaderGraphVfxAsset shaderGraph = null)
         {
             try
             {
                 if (shaderGraph != null)
                 {
-                    // Recover the HDRP Shader Enum from the VFX Shader Graph.
-                    var shaderID = GetShaderEnumFromShaderGraph(shaderGraph);
-                    HDShaderUtils.ResetMaterialKeywords(mat, shaderID);
+                    // The following will throw an exception if the given shaderGraph object actually doesn't contain an HDMetaData object.
+                    // It thus bypasses the check to see if the shader assigned to the material is a shadergraph: this is necessary because this later check
+                    // uses GraphUtil's IsShaderGraphAsset(shader) which check for a shadergraph importer (cf IsShaderGraph(material) which check for a material
+                    // tag "ShaderGraphShader").
+                    // In our context, IsShaderGraphAsset() will fail even though the ShaderGraphVfxAsset does have an HDMetaData object so we need to bypass the check:
+                    HDShaderUtils.ResetMaterialKeywords(mat, assetWithHDMetaData: shaderGraph);
 
                     // Configure HDRP Shadow + MV
                     mat.SetShaderPassEnabled(HDShaderPassNames.s_MotionVectorsStr, hasMotionVector);
@@ -126,13 +92,9 @@ namespace UnityEditor.VFX.HDRP
 
         public override string GetShaderName(ShaderGraphVfxAsset shaderGraph)
         {
-            // Recover the HDRP Shader Enum from the VFX Shader Graph.
-            var shaderID = GetShaderEnumFromShaderGraph(shaderGraph);
-
-            if (s_ShaderNames.ContainsKey(shaderID))
-                return s_ShaderNames[shaderID];
-
-            return string.Empty;
+            // Recover the HDRP Shader ids from the VFX Shader Graph.
+            (HDShaderUtils.ShaderID shaderID, GUID subTargetGUID) = HDShaderUtils.GetShaderIDsFromHDMetadata(shaderGraph);
+            return HDShaderUtils.GetMaterialSubTargetDisplayName(subTargetGUID);
         }
 
         // List of shader properties that currently are not supported for exposure in VFX shaders.
