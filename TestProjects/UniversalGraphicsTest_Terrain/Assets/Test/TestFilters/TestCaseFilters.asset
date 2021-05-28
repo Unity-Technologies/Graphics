@@ -88,3 +88,12 @@ MonoBehaviour:
     XrSdk: 
     StereoModes: 7
     Reason: 'XR : unstable'
+  - FilteredScene: {fileID: 0}
+    FilteredScenes:
+    - {fileID: 102900000, guid: e04a7c287e4c08242a5511645a045ed4, type: 3}
+    ColorSpace: -1
+    BuildPlatform: 13
+    GraphicsDevice: 11
+    XrSdk: 
+    StereoModes: 7
+    Reason: 'XR : broken feature'
