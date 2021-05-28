@@ -22,6 +22,7 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
         Unlit,
         SpriteLit,
         SpriteUnlit,
+        Skybox
     }
 
     public enum WorkflowMode
