@@ -143,7 +143,20 @@ CBUFFER_END
 #define UNITY_MATRIX_I_V   unity_MatrixInvV
 #define UNITY_MATRIX_P     OptimizeProjectionMatrix(glstate_matrix_projection)
 #define UNITY_MATRIX_I_P   unity_MatrixInvP
+#if defined(STEREO_INSTANCING_ON) && defined(USING_BUILTIN_STEREO_MATRICES) && (defined(SHADER_API_D3D11) || defined(SHADER_API_D3D12))
+// XRTODO : Port the skybox renderpass to URP (instead of using the built-in skybox renderpass)
+// The rotation in the view need to be transposed for URP to to work with built-in matrices
+float4x4 transpose3x3(float4x4 M)
+{
+    const float3 temp = M._m01_m02_m12;
+    M._m01_m02_m12 = M._m10_m20_m21;
+    M._m10_m20_m21 = temp;
+    return M;
+}
+#define UNITY_MATRIX_VP    mul(glstate_matrix_projection, transpose3x3(UNITY_MATRIX_V))
+#else
 #define UNITY_MATRIX_VP    unity_MatrixVP
+#endif
 #define UNITY_MATRIX_I_VP  unity_MatrixInvVP
 #define UNITY_MATRIX_MV    mul(UNITY_MATRIX_V, UNITY_MATRIX_M)
 #define UNITY_MATRIX_T_MV  transpose(UNITY_MATRIX_MV)
