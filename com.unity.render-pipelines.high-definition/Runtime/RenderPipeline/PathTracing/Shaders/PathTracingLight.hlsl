@@ -388,7 +388,7 @@ bool SampleBeam(
     payload.beamRadius = wz;
     payload.beamDepth = zFromAperture;
 
-#if 1 /*Debug values*/
+#if 0 /*Debug values*/
     payload.diffuseColor = float3(ctheta, zFromAperture, rSq);
     payload.fresnel0 = float3(distToWaist, w0, zr);
     payload.transmittance = float3(zFromWaist, zRatio, wz);
