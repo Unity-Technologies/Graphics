@@ -32,7 +32,7 @@ public class ShaderGraphIndividualTests
     private GameObject mesh;
 
 
-    [UnityTest, Category("ShaderGraph")]
+    [UnityTest, Category("ShaderGraph"), Category("Individual")]
     [PrebuildSetup("SetupTestAssetTestCases")]
     [UseTestAssetTestCase]
     public IEnumerator RunIndividualTests(TestAssetTestData data) //reference image, test hash, reference hash
