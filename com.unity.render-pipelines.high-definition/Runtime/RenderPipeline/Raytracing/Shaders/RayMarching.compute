@@ -22,7 +22,7 @@
 
 #pragma enable_d3d11_debug_symbols
 
-#pragma kernel RayMarch RAY_MARCH=RayMarch
+#pragma kernel RayMarchFull RAY_MARCH=RayMarchFull
 #pragma kernel RayMarchHalf RAY_MARCH=RayMarchHalf HALF_RESOLUTION
 
 // The dispatch tile resolution
