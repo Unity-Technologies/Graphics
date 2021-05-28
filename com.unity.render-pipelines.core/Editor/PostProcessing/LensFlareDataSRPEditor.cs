@@ -420,7 +420,7 @@ namespace UnityEditor.Rendering
             else
                 m_PreviewLensFlare.SetVector(k_FlareData4, new Vector4(usedSDFRoundness, 0f, 0f, 0f));
 
-            if (type == SRPLensFlareType.Polygon)
+            if (type != SRPLensFlareType.Image)
                 m_PreviewLensFlare.SetVector(k_FlareData5, new Vector4(0f, usedGradientPosition, Mathf.Exp(Mathf.Lerp(0.0f, 4.0f, Mathf.Clamp01(1.0f - fallOffProp.floatValue))), 0f));
             else
                 m_PreviewLensFlare.SetVector(k_FlareData5, new Vector4(0f, 0f, 0f, 0f));
