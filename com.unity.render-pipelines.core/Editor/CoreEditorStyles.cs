@@ -68,8 +68,17 @@ namespace UnityEditor.Rendering
         /// <summary>Help icon style</summary>
         public static GUIStyle iconHelpStyle => GUI.skin.FindStyle("IconButton") ?? EditorGUIUtility.GetBuiltinSkin(EditorSkin.Inspector).FindStyle("IconButton");
 
+        /// <summary>Style of Section Headers.</summary>
+        public static GUIStyle sectionHeaderStyle = new GUIStyle(EditorStyles.largeLabel) { richText = true, fontSize = 18, fixedHeight = 42 };
+        /// <summary>Style of Sub-Section Headers.</summary>
+        public static GUIStyle subSectionHeaderStyle = new GUIStyle(EditorStyles.boldLabel);
+
         /// <summary>RenderPipeline Global Settings icon</summary>
         public static readonly Texture2D globalSettingsIcon;
+
+        public static readonly GUIContent resetButtonLabel = EditorGUIUtility.TrTextContent("Reset");
+        public static readonly GUIContent resetAllButtonLabel = EditorGUIUtility.TrTextContent("Reset All");
+
 
         static CoreEditorStyles()
         {
