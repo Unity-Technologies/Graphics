@@ -25,6 +25,9 @@ namespace UnityEngine.Rendering.HighDefinition
     {
         #region Global Settings
         private HDRenderPipelineGlobalSettings m_GlobalSettings;
+        /// <summary>
+        /// Accessor to the active Global Settings for the HD Render Pipeline.
+        /// </summary>
         public override RenderPipelineGlobalSettings defaultSettings => m_GlobalSettings;
 
         internal static HDRenderPipelineAsset currentAsset
@@ -231,7 +234,7 @@ namespace UnityEngine.Rendering.HighDefinition
         /// HDRenderPipeline constructor.
         /// </summary>
         /// <param name="asset">Source HDRenderPipelineAsset.</param>
-        /// <param name="defaultAsset">Default HDRenderPipelineAsset. [Obsolete]</param>
+        /// <param name="obsolete_defaultAsset">Default HDRenderPipelineAsset. [Obsolete]</param>
         public HDRenderPipeline(HDRenderPipelineAsset asset, HDRenderPipelineAsset obsolete_defaultAsset) : this(asset)
         {
         }
@@ -1170,8 +1173,6 @@ namespace UnityEngine.Rendering.HighDefinition
 
                     RTHandles.SetHardwareDynamicResolutionState(dynResHandler.HardwareDynamicResIsEnabled());
 
-                    VFXManager.PrepareCamera(camera);
-
                     // Reset pooled variables
                     cameraSettings.Clear();
                     cameraPositionSettings.Clear();
@@ -1187,6 +1188,13 @@ namespace UnityEngine.Rendering.HighDefinition
                         out var additionalCameraData,
                         out var hdCamera,
                         out var cullingParameters);
+
+                    VFXCameraXRSettings cameraXRSettings;
+                    cameraXRSettings.viewTotal = hdCamera.xr.enabled ? 2U : 1U;
+                    cameraXRSettings.viewCount = (uint)hdCamera.viewCount;
+                    cameraXRSettings.viewOffset = (uint)hdCamera.xr.multipassId;
+
+                    VFXManager.PrepareCamera(camera, cameraXRSettings);
 
                     // Note: In case of a custom render, we have false here and 'TryCull' is not executed
                     if (!skipRequest)
@@ -1987,7 +1995,12 @@ namespace UnityEngine.Rendering.HighDefinition
                 else
                     cmd.SetGlobalTexture(HDShaderIDs._SkyTexture, CoreUtils.magentaCubeTextureArray);
 
-                VFXManager.ProcessCameraCommand(camera, cmd);
+                VFXCameraXRSettings cameraXRSettings;
+                cameraXRSettings.viewTotal = hdCamera.xr.enabled ? 2U : 1U;
+                cameraXRSettings.viewCount = (uint)hdCamera.viewCount;
+                cameraXRSettings.viewOffset = (uint)hdCamera.xr.multipassId;
+
+                VFXManager.ProcessCameraCommand(camera, cmd, cameraXRSettings);
 
                 if (GL.wireframe)
                 {
