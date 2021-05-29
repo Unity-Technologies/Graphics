@@ -62,6 +62,8 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Added support for tessellation for all master node in shader graph.
 - Added ValidateMaterial callbacks to ShaderGUI.
 - Added support for internal plugin materials and HDSubTarget with their versioning system.
+- Added a slider that controls how much the volumetric clouds erosion value affects the ambient occlusion term.
+- Added three animation curves to control the density, erosion, and ambient occlusion in the custom submode of the simple controls.
 
 ### Fixed
 - Fixed Intensity Multiplier not affecting realtime global illumination.
@@ -203,6 +205,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed missing API documentation for LTC area light code.
 - Fixed diffusion profile breaking after upgrading HDRP (case 1337892).
 - Fixed undo on light anchor.
+- Fixed some depth comparison instabilities with volumetric clouds.
 
 ### Changed
 - Changed Window/Render Pipeline/HD Render Pipeline Wizard to Window/Rendering/HDRP Wizard
@@ -280,6 +283,10 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Removed redundant Show Inactive Objects and Isolate Selection checkboxes from the Emissive Materials tab of the Light Explorer (case 1331750).
 - Renaming Decal Projector to HDRP Decal Projector.
 - The HDRP Render Graph now uses the new RendererList API for rendering and (optional) pass culling.
+- Increased the minimal density of the volumetric clouds.
+- Changed the storage format of volumetric clouds presets for easier editing.
+- Reduced the maximum distance per ray step of volumetric clouds.
+- Improved the fly through ghosting artifacts in the volumetric clouds.
 
 ## [11.0.0] - 2020-10-21
 
