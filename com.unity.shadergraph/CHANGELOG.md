@@ -38,6 +38,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed an issue where an integer property would be exposed in the material inspector as a float [1332563]
 - Fixed an issue where upgrading from an older version of ShaderGraph would cause Enum keywords to be not exposed [1332510]
 - Fixed a bug in ShaderGraph where sticky notes couldn't be copied and pasted [1221042].
+- Fixed GPU instancing support in Shadergraph [1319655] (https://issuetracker.unity3d.com/issues/shader-graph-errors-are-thrown-when-a-propertys-shader-declaration-is-set-to-hybrid-per-instance-and-exposed-is-disabled).
 
 ## [10.3.0] - 2020-11-03
 

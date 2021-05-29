@@ -186,6 +186,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed blocky looking bloom when dynamic resolution scaling was used.
 - Fixed material Emission properties not begin animated when recording an animation (case 1328108).
 - Fixed issue with history buffer allocation for AOVs when the request does not come in first frame.
+- Fixed an issue where enabling GPU Instancing on a ShaderGraph Material would cause compile failures [1338695].
 
 ### Changed
 - Removed the material pass probe volumes evaluation mode.
