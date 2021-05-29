@@ -206,11 +206,11 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed undo on light anchor.
 - Fixed AxF debug output in certain configurations (case 1333780).
 - Fixed white flash when camera is reset and SSR Accumulation mode is on.
-- Fixed distortion when resizing the window in player builds with the Graphics Compositor enabled (case 1328968).
 - Fixed an issue with TAA causing objects not to render at extremely high far flip plane values.
 - Fixed a memory leak related to not disposing of the RTAS at the end HDRP's lifecycle.
 - Fixed overdraw in custom pass utils blur and Copy functions (case 1333648);
 - Fixed invalid pass index 1 in DrawProcedural error.
+- Fixed a compilation issue for AxF carpaints on Vulkan (case 1314040).
 - Fixed support of Distortion with MSAA
 
 ### Changed
@@ -289,6 +289,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Removed redundant Show Inactive Objects and Isolate Selection checkboxes from the Emissive Materials tab of the Light Explorer (case 1331750).
 - Renaming Decal Projector to HDRP Decal Projector.
 - Display an info box and disable MSAA  asset entry when ray tracing is enabled.
+- Changed light reset to preserve type.
 
 ## [11.0.0] - 2020-10-21
 
