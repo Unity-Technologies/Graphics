@@ -1168,23 +1168,26 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
         // - Cull unused render passes.
         internal void CompileRenderGraph()
         {
-            InitializeCompilationData();
-            CountReferences();
+            using (new ProfilingScope(m_RenderGraphContext.cmd, ProfilingSampler.Get(RenderGraphProfileId.CompileRenderGraph)))
+            {
+                InitializeCompilationData();
+                CountReferences();
 
-            // First cull all passes thet produce unused output
-            CullUnusedPasses();
+                // First cull all passes thet produce unused output
+                CullUnusedPasses();
 
-            // Create the renderer lists of the remaining passes
-            CreateRendererLists();
+                // Create the renderer lists of the remaining passes
+                CreateRendererLists();
 
-            // Cull dynamically the graph passes based on the renderer list visibility
-            if (rendererListCulling)
-                CullRendererLists();
+                // Cull dynamically the graph passes based on the renderer list visibility
+                if (rendererListCulling)
+                    CullRendererLists();
 
-            // After all culling passes, allocate the resources for this frame
-            UpdateResourceAllocationAndSynchronization();
+                // After all culling passes, allocate the resources for this frame
+                UpdateResourceAllocationAndSynchronization();
 
-            LogRendererListsCreation();
+                LogRendererListsCreation();
+            }
         }
 
         ref CompiledPassInfo CompilePassImmediatly(RenderGraphPass pass)
@@ -1287,9 +1290,12 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
         // Execute the compiled render graph
         void ExecuteRenderGraph()
         {
-            for (int passIndex = 0; passIndex < m_CompiledPassInfos.size; ++passIndex)
+            using (new ProfilingScope(m_RenderGraphContext.cmd, ProfilingSampler.Get(RenderGraphProfileId.ExecuteRenderGraph)))
             {
-                ExecuteCompiledPass(ref m_CompiledPassInfos[passIndex], passIndex);
+                for (int passIndex = 0; passIndex < m_CompiledPassInfos.size; ++passIndex)
+                {
+                    ExecuteCompiledPass(ref m_CompiledPassInfos[passIndex], passIndex);
+                }
             }
         }
 
