@@ -203,6 +203,8 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed issue with velocity rejection when using physically-based DoF.
 - Fixed HDRP's ShaderGraphVersion migration management which was broken.
 - Fixed missing API documentation for LTC area light code.
+- Fixed diffusion profile breaking after upgrading HDRP (case 1337892).
+- Fixed undo on light anchor.
 - Fixed some depth comparison instabilities with volumetric clouds.
 
 ### Changed
@@ -280,6 +282,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Splited HDProjectSettings with new HDUserSettings in UserProject. Now Wizard working variable should not bother versioning tool anymore (case 1330640)
 - Removed redundant Show Inactive Objects and Isolate Selection checkboxes from the Emissive Materials tab of the Light Explorer (case 1331750).
 - Renaming Decal Projector to HDRP Decal Projector.
+- The HDRP Render Graph now uses the new RendererList API for rendering and (optional) pass culling.
 - Increased the minimal density of the volumetric clouds.
 - Changed the storage format of volumetric clouds presets for easier editing.
 - Reduced the maximum distance per ray step of volumetric clouds.
