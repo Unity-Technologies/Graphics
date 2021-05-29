@@ -13,9 +13,6 @@ namespace UnityEngine.Rendering.Universal.Internal
     /// </summary>
     public class ForwardLights
     {
-        /// <summary>Default UniversalAdditionalLightData</summary>
-        static internal UniversalAdditionalLightData s_DefaultAdditionalLightData { get { return ComponentSingleton<UniversalAdditionalLightData>.instance; } }
-
         static class LightConstantBuffer
         {
             public static int _MainLightPosition;   // DeferredLights.LightConstantBuffer also refers to the same ShaderPropertyID - TODO: move this definition to a common location shared by other UniversalRP classes
@@ -391,21 +388,6 @@ namespace UnityEngine.Rendering.Universal.Internal
             }
         }
 
-        static internal UniversalAdditionalLightData GetAdditionalLightData(Light light)
-        {
-            UniversalAdditionalLightData add = null;
-
-            // Light reference can be null for particle lights.
-            if (light != null)
-                light.TryGetComponent<UniversalAdditionalLightData>(out add);
-
-            // Light should always have additional data, however preview light right don't have, so we must handle the case by assigning HDUtils.s_DefaultHDAdditionalLightData
-            if (add == null)
-                add = s_DefaultAdditionalLightData;
-
-            return add;
-        }
-
         void InitializeLightConstants(NativeArray<VisibleLight> lights, int lightIndex, out Vector4 lightPos, out Vector4 lightColor, out Vector4 lightAttenuation, out Vector4 lightSpotDir, out Vector4 lightOcclusionProbeChannel, out uint lightLayerMask)
         {
             UniversalRenderPipeline.InitializeLightConstants_Common(lights, lightIndex, out lightPos, out lightColor, out lightAttenuation, out lightSpotDir, out lightOcclusionProbeChannel);
@@ -437,7 +419,7 @@ namespace UnityEngine.Rendering.Universal.Internal
                 }
             }
 
-            UniversalAdditionalLightData additionalLightData = GetAdditionalLightData(light);
+            var additionalLightData = light.GetUniversalAdditionalLightData();
             lightLayerMask = (uint)additionalLightData.lightLayerMask;
         }
 
