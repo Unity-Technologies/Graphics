@@ -207,6 +207,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed AxF debug output in certain configurations (case 1333780).
 - Fixed white flash when camera is reset and SSR Accumulation mode is on.
 - Fixed distortion when resizing the window in player builds with the Graphics Compositor enabled (case 1328968).
+- Fixed an issue with TAA causing objects not to render at extremely high far flip plane values.
 
 ### Changed
 - Changed Window/Render Pipeline/HD Render Pipeline Wizard to Window/Rendering/HDRP Wizard
