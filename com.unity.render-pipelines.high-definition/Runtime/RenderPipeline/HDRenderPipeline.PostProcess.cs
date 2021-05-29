@@ -523,7 +523,7 @@ namespace UnityEngine.Rendering.HighDefinition
             // We render AfterPostProcess objects first into a separate buffer that will be composited in the final post process pass
             using (var builder = renderGraph.AddRenderPass<AfterPostProcessPassData>("After Post-Process Objects", out var passData, ProfilingSampler.Get(HDProfileId.AfterPostProcessingObjects)))
             {
-                bool useDepthBuffer = !hdCamera.IsTAAEnabled() && hdCamera.frameSettings.IsEnabled(FrameSettingsField.ZTestAfterPostProcessTAA);
+                bool useDepthBuffer = !hdCamera.RequiresCameraJitter() && hdCamera.frameSettings.IsEnabled(FrameSettingsField.ZTestAfterPostProcessTAA);
 
                 passData.globalCB = m_ShaderVariablesGlobalCB;
                 passData.hdCamera = hdCamera;
@@ -536,6 +536,10 @@ namespace UnityEngine.Rendering.HighDefinition
                     new TextureDesc(Vector2.one, true, true) { colorFormat = GraphicsFormat.R8G8B8A8_SRGB, clearBuffer = true, clearColor = Color.black, name = "OffScreen AfterPostProcess" }), 0);
                 if (useDepthBuffer)
                     builder.UseDepthBuffer(prepassOutput.resolvedDepthBuffer, DepthAccess.ReadWrite);
+
+                // If the pass is culled at runtime from the RendererList API, set the appropriate fall-back for the output
+                // Here we need an opaque black texture as default (alpha = 1) due to the way the output of this pass is composed with the post-process output (see FinalPass.shader)
+                output.SetFallBackResource(renderGraph.defaultResources.blackTextureXR);
 
                 builder.SetRenderFunc(
                     (AfterPostProcessPassData data, RenderGraphContext ctx) =>
