@@ -646,11 +646,6 @@ namespace UnityEngine.Rendering.HighDefinition
             Reset();
         }
 
-        internal bool IsTAAEnabled()
-        {
-            return antialiasing == AntialiasingMode.TemporalAntialiasing;
-        }
-
         internal bool IsDLSSEnabled()
         {
             return m_AdditionalCameraData == null ? false : m_AdditionalCameraData.cameraCanRenderDLSS;
@@ -1051,6 +1046,7 @@ namespace UnityEngine.Rendering.HighDefinition
             cb._TaaJitterStrength = taaJitter;
             cb._ColorPyramidLodCount = colorPyramidHistoryMipCount;
             cb._GlobalMipBias = globalMipBias;
+            cb._GlobalMipBiasPow2 = (float)Math.Pow(2.0f, globalMipBias);
 
             float ct = time;
             float pt = lastTime;
@@ -1679,6 +1675,11 @@ namespace UnityEngine.Rendering.HighDefinition
                 planes.right += planeJitter.x;
                 planes.top += planeJitter.y;
                 planes.bottom += planeJitter.y;
+
+                // Reconstruct the far plane for the jittered matrix.
+                // For extremely high far clip planes, the decomposed projection zFar evaluates to infinity.
+                if (float.IsInfinity(planes.zFar))
+                    planes.zFar = frustum.planes[5].distance;
 
                 proj = Matrix4x4.Frustum(planes);
             }
