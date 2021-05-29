@@ -7,9 +7,13 @@ project:
 
 reuse_blocks:
   setup_with_utr:
-    - [iPhone_Metal, OSX_Metal, Linux_Vulkan]: git clone https://github.cds.internal.unity3d.com/sophia/URP-Update-testing.git -b $BA_UPDATE_PROJECT_BRANCH TestProjects/URP-Update-Testing
-    - [Win_DX11, Win_DX12, Win_Vulkan, Android_OpenGLES3, Android_Vulkan]: git clone https://github.cds.internal.unity3d.com/sophia/URP-Update-testing.git -b %BA_UPDATE_PROJECT_BRANCH% TestProjects/URP-Update-Testing
-      
+    - [iPhone_Metal, OSX_Metal, Linux_Vulkan]:
+      - command: git clone https://github.cds.internal.unity3d.com/sophia/URP-Update-testing.git -b $BA_UPDATE_PROJECT_BRANCH TestProjects/URP-Update-Testing
+        retries: 3
+    - [Win_DX11, Win_DX12, Win_Vulkan, Android_OpenGLES3, Android_Vulkan]:
+      - command: git clone https://github.cds.internal.unity3d.com/sophia/URP-Update-testing.git -b %BA_UPDATE_PROJECT_BRANCH% TestProjects/URP-Update-Testing
+        retries: 3
+
     - [iPhone_Metal, OSX_Metal, Linux_Vulkan]: cd TestProjects/URP-Update-Testing && git checkout $BA_UPDATE_PROJECT_REVISION
     - [Win_DX11, Win_DX12, Win_Vulkan, Android_OpenGLES3, Android_Vulkan]: cd TestProjects/URP-Update-Testing && git checkout %BA_UPDATE_PROJECT_REVISION%
 
@@ -28,7 +32,7 @@ test_platforms:
   - type: editmode
     commands:
       - <reuse_blocks.setup_with_utr>
-expression_trigger: 
+expression_trigger:
   expression: ""
 platforms:
   - name: Win
