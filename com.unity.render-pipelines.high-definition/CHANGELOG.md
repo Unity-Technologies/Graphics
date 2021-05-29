@@ -218,6 +218,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed issue with hierarchy object filtering.
 - Fixed a lack of syncronization between the camera and the planar camera for volumetric cloud animation data.
 - Fixed for wrong cached area light initialization.
+- Fixed unexpected rendering of 2D cookies when switching from Spot to Point light type (case 1333947).
 
 ### Changed
 - Changed Window/Render Pipeline/HD Render Pipeline Wizard to Window/Rendering/HDRP Wizard
