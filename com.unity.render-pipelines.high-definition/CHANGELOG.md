@@ -64,6 +64,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Added support for internal plugin materials and HDSubTarget with their versioning system.
 - Added a slider that controls how much the volumetric clouds erosion value affects the ambient occlusion term.
 - Added three animation curves to control the density, erosion, and ambient occlusion in the custom submode of the simple controls.
+- Added support for the camera bridge in the graphics compositor
 
 ### Fixed
 - Fixed Intensity Multiplier not affecting realtime global illumination.
@@ -207,7 +208,13 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed diffusion profile breaking after upgrading HDRP (case 1337892).
 - Fixed undo on light anchor.
 - Fixed some depth comparison instabilities with volumetric clouds.
-- Make LitTessellation and LayeredLitTessellation fallback on Lit and LayeredLit respectively in DXR.
+- Fixed AxF debug output in certain configurations (case 1333780).
+- Fixed white flash when camera is reset and SSR Accumulation mode is on.
+- Fixed an issue with TAA causing objects not to render at extremely high far flip plane values.
+- Fixed a memory leak related to not disposing of the RTAS at the end HDRP's lifecycle.
+- Fixed overdraw in custom pass utils blur and Copy functions (case 1333648);
+- Fixed invalid pass index 1 in DrawProcedural error.
+- Fixed a compilation issue for AxF carpaints on Vulkan (case 1314040).
 
 ### Changed
 - Changed Window/Render Pipeline/HD Render Pipeline Wizard to Window/Rendering/HDRP Wizard
@@ -289,6 +296,9 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Changed the storage format of volumetric clouds presets for easier editing.
 - Reduced the maximum distance per ray step of volumetric clouds.
 - Improved the fly through ghosting artifacts in the volumetric clouds.
+- Make LitTessellation and LayeredLitTessellation fallback on Lit and LayeredLit respectively in DXR.
+- Display an info box and disable MSAA  asset entry when ray tracing is enabled.
+- Changed light reset to preserve type.
 
 ## [11.0.0] - 2020-10-21
 
