@@ -203,6 +203,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed HDRP's ShaderGraphVersion migration management which was broken.
 - Fixed missing API documentation for LTC area light code.
 - Fixed diffusion profile breaking after upgrading HDRP (case 1337892).
+- Fixed undo on light anchor.
 
 ### Changed
 - Changed Window/Render Pipeline/HD Render Pipeline Wizard to Window/Rendering/HDRP Wizard
@@ -279,6 +280,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Splited HDProjectSettings with new HDUserSettings in UserProject. Now Wizard working variable should not bother versioning tool anymore (case 1330640)
 - Removed redundant Show Inactive Objects and Isolate Selection checkboxes from the Emissive Materials tab of the Light Explorer (case 1331750).
 - Renaming Decal Projector to HDRP Decal Projector.
+- The HDRP Render Graph now uses the new RendererList API for rendering and (optional) pass culling.
 
 ## [11.0.0] - 2020-10-21
 
