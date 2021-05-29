@@ -344,6 +344,18 @@ namespace UnityEngine.Rendering.Universal
             }
         }
 
+
+        /// <summary>
+        /// Returns the frontbuffer color target. Returns 0 if not implemented by the renderer.
+        /// It's only valid to call GetCameraColorFrontBuffer in the scope of <c>ScriptableRenderPass</c>.
+        /// </summary>
+        /// <param name="cmd"></param>
+        /// <returns></returns>
+        virtual internal RenderTargetIdentifier GetCameraColorFrontBuffer(CommandBuffer cmd)
+        {
+            return 0;
+        }
+
         /// <summary>
         /// Returns the camera depth target for this renderer.
         /// It's only valid to call cameraDepthTarget in the scope of <c>ScriptableRenderPass</c>.
@@ -1302,6 +1314,8 @@ namespace UnityEngine.Rendering.Universal
 
             CoreUtils.SetRenderTarget(cmd, colorAttachments, depthAttachment, clearFlag, clearColor);
         }
+
+        internal virtual void SwapColorBuffer(CommandBuffer cmd) {}
 
         [Conditional("UNITY_EDITOR")]
         void DrawGizmos(ScriptableRenderContext context, Camera camera, GizmoSubset gizmoSubset)
