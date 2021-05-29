@@ -13,6 +13,9 @@ namespace UnityEditor.Rendering
     /// <summary>Class containing style definition</summary>
     public static class CoreEditorStyles
     {
+        /// <summary>Standard UI spacing</summary>
+        public static float standardSpacing => EditorGUIUtility.standardVerticalSpacing;
+
         /// <summary>Style for a small checkbox</summary>
         public static readonly GUIStyle smallTickbox;
         /// <summary>Style for a small checkbox in mixed state</summary>
