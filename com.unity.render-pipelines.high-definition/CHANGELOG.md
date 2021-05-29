@@ -210,6 +210,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed an issue with TAA causing objects not to render at extremely high far flip plane values.
 - Fixed a memory leak related to not disposing of the RTAS at the end HDRP's lifecycle.
 - Fixed overdraw in custom pass utils blur and Copy functions (case 1333648);
+- Fixed invalid pass index 1 in DrawProcedural error.
 
 ### Changed
 - Changed Window/Render Pipeline/HD Render Pipeline Wizard to Window/Rendering/HDRP Wizard
