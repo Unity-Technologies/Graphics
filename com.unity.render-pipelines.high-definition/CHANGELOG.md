@@ -60,6 +60,10 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Added path tracing support for AxF material.
 - Added support for surface gradient based normal blending for decals.
 - Added support for tessellation for all master node in shader graph.
+- Added ValidateMaterial callbacks to ShaderGUI.
+- Added support for internal plugin materials and HDSubTarget with their versioning system.
+- Added a slider that controls how much the volumetric clouds erosion value affects the ambient occlusion term.
+- Added three animation curves to control the density, erosion, and ambient occlusion in the custom submode of the simple controls.
 
 ### Fixed
 - Fixed Intensity Multiplier not affecting realtime global illumination.
@@ -72,6 +76,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed material keywords with fbx importer.
 - Fixed lightmaps not working properly with shader graphs in ray traced reflections (case 1305335).
 - Fixed skybox for ortho cameras.
+- Fixed crash on SubSurfaceScattering Editor when the selected pipeline is not HDRP
 - Fixed model import by adding additional data if needed.
 - Fix screen being over-exposed when changing very different skies.
 - Fixed pixelated appearance of Contrast Adaptive Sharpen upscaler and several other issues when Hardware DRS is on
@@ -197,6 +202,12 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed multi cameras using cloud layers shadows.
 - Fixed HDAdditionalLightData's CopyTo and HDAdditionalCameraData's CopyTo missing copy.
 - Fixed issue with velocity rejection when using physically-based DoF.
+- Fixed HDRP's ShaderGraphVersion migration management which was broken.
+- Fixed missing API documentation for LTC area light code.
+- Fixed diffusion profile breaking after upgrading HDRP (case 1337892).
+- Fixed undo on light anchor.
+- Fixed some depth comparison instabilities with volumetric clouds.
+- Make LitTessellation and LayeredLitTessellation fallback on Lit and LayeredLit respectively in DXR.
 
 ### Changed
 - Changed Window/Render Pipeline/HD Render Pipeline Wizard to Window/Rendering/HDRP Wizard
@@ -272,6 +283,12 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Global Camera shader constants are now pushed when doing a custom render callback.
 - Splited HDProjectSettings with new HDUserSettings in UserProject. Now Wizard working variable should not bother versioning tool anymore (case 1330640)
 - Removed redundant Show Inactive Objects and Isolate Selection checkboxes from the Emissive Materials tab of the Light Explorer (case 1331750).
+- Renaming Decal Projector to HDRP Decal Projector.
+- The HDRP Render Graph now uses the new RendererList API for rendering and (optional) pass culling.
+- Increased the minimal density of the volumetric clouds.
+- Changed the storage format of volumetric clouds presets for easier editing.
+- Reduced the maximum distance per ray step of volumetric clouds.
+- Improved the fly through ghosting artifacts in the volumetric clouds.
 
 ## [11.0.0] - 2020-10-21
 

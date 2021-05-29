@@ -279,7 +279,7 @@ namespace UnityEditor.Rendering
         /// <param name="hasMoreOptions"> [optional] Delegate used to draw the right state of the advanced button. If null, no button drawn. </param>
         /// <param name="toggleMoreOptions"> [optional] Callback call when advanced button clicked. Should be used to toggle its state. </param>
         /// <returns>return the state of the foldout header</returns>
-        public static bool DrawHeaderFoldout(GUIContent title, bool state, bool isBoxed = false, Func<bool> hasMoreOptions = null, Action toggleMoreOptions = null, string documentationURL = "")
+        public static bool DrawHeaderFoldout(GUIContent title, bool state, bool isBoxed = false, Func<bool> hasMoreOptions = null, Action toggleMoreOptions = null, string documentationURL = "", Action<Vector2> contextAction = null)
         {
             const float height = 17f;
             var backgroundRect = GUILayoutUtility.GetRect(1f, height);
@@ -322,8 +322,7 @@ namespace UnityEditor.Rendering
             var menuRect = new Rect(labelRect.xMax + 3f, labelRect.y + 1f, 16, 16);
 
             // Add context menu for "Additional Properties"
-            Action<Vector2> contextAction = null;
-            if (hasMoreOptions != null)
+            if (contextAction == null && hasMoreOptions != null)
             {
                 contextAction = pos => OnContextClick(pos, hasMoreOptions, toggleMoreOptions);
             }
@@ -562,6 +561,48 @@ namespace UnityEditor.Rendering
             }
 
             return group.isExpanded;
+        }
+
+        /// <summary>Draw a header section like in Global Settings</summary>
+        /// <param name="title"> The title of the header </param>
+        /// <param name="documentationURL">Documentation URL</param>
+        /// <param name="contextAction">The context action</param>
+        /// <param name="hasMoreOptions">Delegate saying if we have MoreOptions</param>
+        /// <param name="toggleMoreOptions">Callback called when the MoreOptions is toggled</param>
+        /// <returns>return the state of the foldout header</returns>
+        public static void DrawSectionHeader(GUIContent title, string documentationURL = null, Action<Vector2> contextAction = null, Func<bool> hasMoreOptions = null, Action toggleMoreOptions = null)
+        {
+            var backgroundRect = EditorGUI.IndentedRect(GUILayoutUtility.GetRect(1f, 17f));
+            float iconSize = 16f;
+
+            var contextMenuRect = new Rect(backgroundRect.xMax - (iconSize + 5), backgroundRect.y + iconSize + 8f, iconSize, iconSize);
+
+            using (new EditorGUILayout.HorizontalScope())
+            {
+                EditorGUILayout.LabelField(title, CoreEditorStyles.sectionHeaderStyle);
+
+                // Context menu
+                var contextMenuIcon = CoreEditorStyles.contextMenuIcon.image;
+                if (contextAction != null)
+                {
+                    if (GUI.Button(contextMenuRect, CoreEditorStyles.contextMenuIcon, CoreEditorStyles.contextMenuStyle))
+                        contextAction(new Vector2(contextMenuRect.x, contextMenuRect.yMax));
+                }
+                ShowHelpButton(contextMenuRect, documentationURL, title);
+            }
+
+            // Handle events
+            var e = Event.current;
+
+            if (e.type == EventType.MouseDown)
+            {
+                if (contextMenuRect.Contains(e.mousePosition))
+                {
+                    // Right click: Context menu
+                    contextAction?.Invoke(new Vector2(contextMenuRect.x, contextMenuRect.yMax));
+                    e.Use();
+                }
+            }
         }
 
         static void ShowHelpButton(Rect contextMenuRect, string documentationURL, GUIContent title)
@@ -828,9 +869,9 @@ namespace UnityEditor.Rendering
         /// <summary>
         /// Draw an EnumPopup handling multiEdition
         /// </summary>
-        /// <param name="property"></param>
-        /// <param name="type"></param>
-        /// <param name="label"></param>
+        /// <param name="property">The data displayed</param>
+        /// <param name="type">Type of the property</param>
+        /// <param name="label">The label</param>
         public static void DrawEnumPopup(SerializedProperty property, System.Type type, GUIContent label = null)
         {
             EditorGUI.showMixedValue = property.hasMultipleDifferentValues;
