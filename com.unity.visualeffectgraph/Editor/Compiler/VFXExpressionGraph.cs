@@ -7,6 +7,7 @@ using UnityEngine.Profiling;
 
 using Object = UnityEngine.Object;
 using UnityEditor.Graphs;
+using System.Collections.ObjectModel;
 
 namespace UnityEditor.VFX
 {
@@ -81,6 +82,19 @@ namespace UnityEditor.VFX
 
             foreach (var exp in expressionsToReduced.Values)
                 AddExpressionDataRecursively(m_ExpressionsData, exp);
+
+            var graphicsBufferUsageType = m_GraphicsBufferUsageType
+                .Concat(expressionContext.GraphicsBufferUsageType)
+                .GroupBy(o => o.Key).ToArray();
+
+            m_GraphicsBufferUsageType.Clear();
+            foreach (var expression in graphicsBufferUsageType)
+            {
+                var types = expression.Select(o => o.Value);
+                if (types.Count() != 1)
+                    throw new InvalidOperationException("Diverging type usage for GraphicsBuffer : " + types.Select(o => o.ToString()).Aggregate((a, b) => a + b));
+                m_GraphicsBufferUsageType.Add(expression.Key, types.First());
+            }
         }
 
         public void CompileExpressions(VFXGraph graph, VFXExpressionContextOption options, bool filterOutInvalidContexts = false)
@@ -319,6 +333,15 @@ namespace UnityEditor.VFX
             }
         }
 
+        public ReadOnlyDictionary<VFXExpression, Type> GraphicsBufferTypeUsage
+        {
+            get
+            {
+                return new ReadOnlyDictionary<VFXExpression, Type>(m_GraphicsBufferUsageType);
+            }
+        }
+
+        private Dictionary<VFXExpression, Type> m_GraphicsBufferUsageType = new Dictionary<VFXExpression, Type>();
         private HashSet<VFXExpression> m_Expressions = new HashSet<VFXExpression>();
         private Dictionary<VFXExpression, VFXExpression> m_CPUExpressionsToReduced = new Dictionary<VFXExpression, VFXExpression>();
         private Dictionary<VFXExpression, VFXExpression> m_GPUExpressionsToReduced = new Dictionary<VFXExpression, VFXExpression>();
