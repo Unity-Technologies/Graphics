@@ -217,6 +217,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed a compilation issue for AxF carpaints on Vulkan (case 1314040).
 - Fixed issue with hierarchy object filtering.
 - Fixed a lack of syncronization between the camera and the planar camera for volumetric cloud animation data.
+- Fixed for wrong cached area light initialization.
 
 ### Changed
 - Changed Window/Render Pipeline/HD Render Pipeline Wizard to Window/Rendering/HDRP Wizard
