@@ -523,7 +523,7 @@ namespace UnityEngine.Rendering.HighDefinition
             // We render AfterPostProcess objects first into a separate buffer that will be composited in the final post process pass
             using (var builder = renderGraph.AddRenderPass<AfterPostProcessPassData>("After Post-Process Objects", out var passData, ProfilingSampler.Get(HDProfileId.AfterPostProcessingObjects)))
             {
-                bool useDepthBuffer = !hdCamera.IsTAAEnabled() && hdCamera.frameSettings.IsEnabled(FrameSettingsField.ZTestAfterPostProcessTAA);
+                bool useDepthBuffer = !hdCamera.RequiresCameraJitter() && hdCamera.frameSettings.IsEnabled(FrameSettingsField.ZTestAfterPostProcessTAA);
 
                 passData.globalCB = m_ShaderVariablesGlobalCB;
                 passData.hdCamera = hdCamera;
