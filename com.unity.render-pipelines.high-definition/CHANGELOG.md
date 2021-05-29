@@ -215,8 +215,6 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed overdraw in custom pass utils blur and Copy functions (case 1333648);
 - Fixed invalid pass index 1 in DrawProcedural error.
 - Fixed a compilation issue for AxF carpaints on Vulkan (case 1314040).
-- Fixed AxF debug output in certain configurations (case 1333780).
-- Fixed white flash when camera is reset and SSR Accumulation mode is on.
 
 ### Changed
 - Changed Window/Render Pipeline/HD Render Pipeline Wizard to Window/Rendering/HDRP Wizard
@@ -301,7 +299,6 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Make LitTessellation and LayeredLitTessellation fallback on Lit and LayeredLit respectively in DXR.
 - Display an info box and disable MSAA  asset entry when ray tracing is enabled.
 - Changed light reset to preserve type.
-- Display an info box and disable MSAA  asset entry when ray tracing is enabled.
 
 ## [11.0.0] - 2020-10-21
 
