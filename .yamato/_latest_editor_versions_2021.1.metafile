@@ -9,13 +9,13 @@ editor_versions:
       updated_at: '2021-05-28 23:28:47.389695'
       version: 2021.1.10f1
     Linux:
-      revision: 7a790e367ab3
-      updated_at: '2021-05-24 23:16:40.887093'
-      version: 2021.1.9f1
+      revision: c0fc5c88b3b1
+      updated_at: '2021-05-29 23:29:39.802965'
+      version: 2021.1.10f1
     OSX:
-      revision: 7a790e367ab3
-      updated_at: '2021-05-24 23:16:40.887093'
-      version: 2021.1.9f1
+      revision: c0fc5c88b3b1
+      updated_at: '2021-05-29 23:29:39.802965'
+      version: 2021.1.10f1
     Win:
       revision: c0fc5c88b3b1
       updated_at: '2021-05-28 23:28:47.389695'
