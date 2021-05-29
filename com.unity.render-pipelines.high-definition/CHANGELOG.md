@@ -207,6 +207,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed diffusion profile breaking after upgrading HDRP (case 1337892).
 - Fixed undo on light anchor.
 - Fixed some depth comparison instabilities with volumetric clouds.
+- Make LitTessellation and LayeredLitTessellation fallback on Lit and LayeredLit respectively in DXR.
 
 ### Changed
 - Changed Window/Render Pipeline/HD Render Pipeline Wizard to Window/Rendering/HDRP Wizard
