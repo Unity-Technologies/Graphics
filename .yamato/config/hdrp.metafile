@@ -127,7 +127,7 @@ pr:
       build_config: mono
       color_space: Linear
       test_platforms:
-        - Standalone
+        - Standalone_cache
         - playmode_cache
     - project: HDRP_DXR
       pr: true

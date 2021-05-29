@@ -11,6 +11,8 @@ The version number for this package has increased due to a version update of a r
 
 ### Fixed
 - Fixed an issue where an integer property would be exposed in the material inspector as a float [1332564]
+- Fixed an issue where the normal vector in object space would scale with the objects scale, causing non-normalized normal vectors
+- Fixed a bug in ShaderGraph where sticky notes couldn't be copied and pasted [1221042].
 
 ## [10.5.0] - 2021-04-19
 
@@ -18,6 +20,7 @@ The version number for this package has increased due to a version update of a r
 - Fixed a bug where property deduplication was failing and spamming errors [1317809] (https://issuetracker.unity3d.com/issues/console-error-when-adding-a-sample-texture-operator-when-a-sampler-state-property-is-present-in-blackboard)
 - Fixed a bug where synchronously compiling an unencountered shader variant for preview was causing long delays in graph updates [1324388]
 - Fixed an issue where double clicking a category or drop down arrow closes the searcher [1302267] (https://issuetracker.unity3d.com/issues/shadergraph-double-clicking-a-category-or-drop-down-arrow-closes-the-searcher)
+- Fixed a ShaderGraph issue where unused blocks get removed on edge replacement [1336831].
 
 ### Changed
 - Updated searcher package dependency to 4.3.2

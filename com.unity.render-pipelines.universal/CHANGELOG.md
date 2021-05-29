@@ -9,11 +9,17 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 Version Updated
 The version number for this package has increased due to a version update of a related graphics package.
 
+### Fixed
+- Fixed an issue where changing camera's position in the BeginCameraRendering do not apply properly. [case 1318629]
+- Fixed an issue where SMAA did not work for OpenGL [case 1336710](https://issuetracker.unity3d.com/issues/urp-there-is-no-effect-when-using-smaa-in-urp-with-opengles-api)
+- Fixed an issue where Particle Lit shader had an incorrect fallback shader [case 1331779]
+
 ## [10.5.0] - 2021-04-19
 
 ### Fixed
 - Fixed an issue where having "Opaque Texture" and MSAA enabled would cause the opaque texture to be rendered black on old Apple GPUs [case 1247423](https://issuetracker.unity3d.com/issues/urp-metal-opaque-objects-are-rendered-black-when-msaa-is-enabled)
 - Fixed errors when the Profiler is used with XR multipass. [case 1322918](https://issuetracker.unity3d.com/issues/xr-urp-profiler-spams-errors-in-the-console-upon-entering-play-mode)
+- Fixed ordering of subshaders in the Unlit Shader Graph, such that shader target 4.5 takes priority over 2.0. [case 1328636](https://issuetracker.unity3d.com/product/unity/issues/guid/1328636/)
 
 ## [10.4.0] - 2021-03-11
 
@@ -31,6 +37,7 @@ The version number for this package has increased due to a version update of a r
 - Fixed a regression where the precision was changed. [case 1313942](https://issuetracker.unity3d.com/issues/urp-shader-precision-is-reduced-to-half-when-scriptablerenderfeature-class-is-in-the-project)
 - Fixed issue causing missing shaders on DirectX 11 feature level 10 GPUs. [case 1278390](https://issuetracker.unity3d.com/product/unity/issues/guid/1278390/)
 - Fixed an issue where modified splat weights for Terrain were  zero in some areas and greater than one in others when using the Opacity as Density blending feature.
+- Fixed a performance issue in Hololens when using renderer with custom render passes.
 
 ## [10.3.1] - 2021-01-26
 
