@@ -537,6 +537,10 @@ namespace UnityEngine.Rendering.HighDefinition
                 if (useDepthBuffer)
                     builder.UseDepthBuffer(prepassOutput.resolvedDepthBuffer, DepthAccess.ReadWrite);
 
+                // If the pass is culled at runtime from the RendererList API, set the appropriate fall-back for the output
+                // Here we need an opaque black texture as default (alpha = 1) due to the way the output of this pass is composed with the post-process output (see FinalPass.shader)
+                output.SetFallBackResource(renderGraph.defaultResources.blackTextureXR);
+
                 builder.SetRenderFunc(
                     (AfterPostProcessPassData data, RenderGraphContext ctx) =>
                     {
