@@ -33,8 +33,15 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed path traced transparent unlit material (case 1335500).
 - Fixed support of Distortion with MSAA
 - Fixed contact shadow debug views not displaying correctly upon resizing of view.
+- Fixed white flash when camera is reset and SSR Accumulation mode is on.
+- Fixed an issue with TAA causing objects not to render at extremely high far flip plane values.
+- Fixed a memory leak related to not disposing of the RTAS at the end HDRP's lifecycle.
+- Fixed overdraw in custom pass utils blur and Copy functions (case 1333648);
+- Fixed invalid pass index 1 in DrawProcedural error.
 
 ### Changed
+- Display an info box and disable MSAA  asset entry when ray tracing is enabled.
+- Changed light reset to preserve type.
 
 ## [10.5.0] - 2021-04-19
 
