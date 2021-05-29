@@ -288,6 +288,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Removed redundant Show Inactive Objects and Isolate Selection checkboxes from the Emissive Materials tab of the Light Explorer (case 1331750).
 - Renaming Decal Projector to HDRP Decal Projector.
 - Display an info box and disable MSAA  asset entry when ray tracing is enabled.
+- Changed light reset to preserve type.
 
 ## [11.0.0] - 2020-10-21
 
