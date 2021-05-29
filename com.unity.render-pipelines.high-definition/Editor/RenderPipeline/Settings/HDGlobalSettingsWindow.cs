@@ -12,91 +12,40 @@ namespace UnityEditor.Rendering.HighDefinition
 {
     using CED = CoreEditorDrawer<SerializedHDRenderPipelineGlobalSettings>;
 
-    class DefaultSettingsPanelProvider
+    class HDGlobalSettingsPanelProvider
     {
-        static DefaultSettingsPanelIMGUI s_IMGUIImpl = new DefaultSettingsPanelIMGUI();
+        static HDGlobalSettingsPanelIMGUI s_IMGUIImpl = new HDGlobalSettingsPanelIMGUI();
 
         [SettingsProvider]
         public static SettingsProvider CreateSettingsProvider()
         {
-            return new SettingsProvider("Project/Graphics/HDRP Settings", SettingsScope.Project)
+            return new SettingsProvider("Project/Graphics/HDRP Global Settings", SettingsScope.Project)
             {
                 activateHandler = s_IMGUIImpl.OnActivate,
-                keywords = SettingsProvider.GetSearchKeywordsFromGUIContentProperties<DefaultSettingsPanelIMGUI.Styles>()
+                keywords = SettingsProvider.GetSearchKeywordsFromGUIContentProperties<HDGlobalSettingsPanelIMGUI.Styles>()
                     .Concat(OverridableFrameSettingsArea.frameSettingsKeywords)
                     .ToArray(),
-                guiHandler = s_IMGUIImpl.DoGUI
+                guiHandler = s_IMGUIImpl.DoGUI,
+                titleBarGuiHandler = s_IMGUIImpl.OnTitleBarGUI
             };
         }
     }
-    internal class DefaultSettingsPanelIMGUI
+
+    internal partial class HDGlobalSettingsPanelIMGUI
     {
-        public class Styles
-        {
-            public const int labelWidth = 220;
-            internal static GUIStyle sectionHeaderStyle = new GUIStyle(EditorStyles.largeLabel) { richText = true, fontSize = 18, fixedHeight = 42 };
-            internal static GUIStyle subSectionHeaderStyle = new GUIStyle(EditorStyles.boldLabel);
-
-            internal static readonly GUIContent defaultVolumeProfileLabel = EditorGUIUtility.TrTextContent("Default Volume Profile Asset");
-            internal static readonly GUIContent lookDevVolumeProfileLabel = EditorGUIUtility.TrTextContent("LookDev Volume Profile Asset");
-
-            internal static readonly GUIContent frameSettingsLabel = EditorGUIUtility.TrTextContent("Frame Settings (Default Values)");
-            internal static readonly GUIContent frameSettingsLabel_Camera = EditorGUIUtility.TrTextContent("Camera");
-            internal static readonly GUIContent frameSettingsLabel_RTProbe = EditorGUIUtility.TrTextContent("Realtime Reflection");
-            internal static readonly GUIContent frameSettingsLabel_BakedProbe = EditorGUIUtility.TrTextContent("Baked or Custom Reflection");
-            internal static readonly GUIContent renderingSettingsHeaderContent = EditorGUIUtility.TrTextContent("Rendering");
-            internal static readonly GUIContent lightSettingsHeaderContent = EditorGUIUtility.TrTextContent("Lighting");
-            internal static readonly GUIContent asyncComputeSettingsHeaderContent = EditorGUIUtility.TrTextContent("Asynchronous Compute Shaders");
-            internal static readonly GUIContent lightLoopSettingsHeaderContent = EditorGUIUtility.TrTextContent("Light Loop Debug");
-
-            internal static readonly GUIContent volumeComponentsLabel = EditorGUIUtility.TrTextContent("Volume Profiles");
-            internal static readonly GUIContent customPostProcessOrderLabel = EditorGUIUtility.TrTextContent("Custom Post Process Orders");
-
-            internal static readonly GUIContent resourceLabel = EditorGUIUtility.TrTextContent("Resources");
-            internal static readonly GUIContent renderPipelineResourcesContent = EditorGUIUtility.TrTextContent("Player Resources", "Set of resources that need to be loaded when creating stand alone");
-            internal static readonly GUIContent renderPipelineRayTracingResourcesContent = EditorGUIUtility.TrTextContent("Ray Tracing Resources", "Set of resources that need to be loaded when using ray tracing");
-            internal static readonly GUIContent renderPipelineEditorResourcesContent = EditorGUIUtility.TrTextContent("Editor Resources", "Set of resources that need to be loaded for working in editor");
-
-            internal static readonly GUIContent generalSettingsLabel = EditorGUIUtility.TrTextContent("Miscellaneous");
-
-            internal static readonly GUIContent layerNamesLabel = EditorGUIUtility.TrTextContent("Layers Names");
-            internal static readonly GUIContent lightLayersLabel = EditorGUIUtility.TrTextContent("Light Layers Names", "When enabled, HDRP allocates memory for processing Light Layers. For deferred rendering, this allocation includes an extra render target in memory and extra cost. See the Quality Settings window to enable Decal Layers on your Render pipeline asset.");
-            internal static readonly GUIContent lightLayerName0 = EditorGUIUtility.TrTextContent("Light Layer 0", "The display name for Light Layer 0. This is purely cosmetic, and can be used to articulate intended use of Light Layer 0");
-            internal static readonly GUIContent lightLayerName1 = EditorGUIUtility.TrTextContent("Light Layer 1", "The display name for Light Layer 1. This is purely cosmetic, and can be used to articulate intended use of Light Layer 1");
-            internal static readonly GUIContent lightLayerName2 = EditorGUIUtility.TrTextContent("Light Layer 2", "The display name for Light Layer 2. This is purely cosmetic, and can be used to articulate intended use of Light Layer 2");
-            internal static readonly GUIContent lightLayerName3 = EditorGUIUtility.TrTextContent("Light Layer 3", "The display name for Light Layer 3. This is purely cosmetic, and can be used to articulate intended use of Light Layer 3");
-            internal static readonly GUIContent lightLayerName4 = EditorGUIUtility.TrTextContent("Light Layer 4", "The display name for Light Layer 4. This is purely cosmetic, and can be used to articulate intended use of Light Layer 4");
-            internal static readonly GUIContent lightLayerName5 = EditorGUIUtility.TrTextContent("Light Layer 5", "The display name for Light Layer 5. This is purely cosmetic, and can be used to articulate intended use of Light Layer 5");
-            internal static readonly GUIContent lightLayerName6 = EditorGUIUtility.TrTextContent("Light Layer 6", "The display name for Light Layer 6. This is purely cosmetic, and can be used to articulate intended use of Light Layer 6");
-            internal static readonly GUIContent lightLayerName7 = EditorGUIUtility.TrTextContent("Light Layer 7", "The display name for Light Layer 7. This is purely cosmetic, and can be used to articulate intended use of Light Layer 7");
-
-            internal static readonly GUIContent decalLayersLabel = EditorGUIUtility.TrTextContent("Decal Layers Names", "When enabled, HDRP allocates Shader variants and memory to the decals buffer and cluster decal. See the Quality Settings window to enable Decal Layers on your Render pipeline asset.");
-            internal static readonly GUIContent decalLayerName0 = EditorGUIUtility.TrTextContent("Decal Layer 0", "The display name for Decal Layer 0. This is purely cosmetic, and can be used to articulate intended use of Decal Layer 0");
-            internal static readonly GUIContent decalLayerName1 = EditorGUIUtility.TrTextContent("Decal Layer 1", "The display name for Decal Layer 1. This is purely cosmetic, and can be used to articulate intended use of Decal Layer 1");
-            internal static readonly GUIContent decalLayerName2 = EditorGUIUtility.TrTextContent("Decal Layer 2", "The display name for Decal Layer 2. This is purely cosmetic, and can be used to articulate intended use of Decal Layer 2");
-            internal static readonly GUIContent decalLayerName3 = EditorGUIUtility.TrTextContent("Decal Layer 3", "The display name for Decal Layer 3. This is purely cosmetic, and can be used to articulate intended use of Decal Layer 3");
-            internal static readonly GUIContent decalLayerName4 = EditorGUIUtility.TrTextContent("Decal Layer 4", "The display name for Decal Layer 4. This is purely cosmetic, and can be used to articulate intended use of Decal Layer 4");
-            internal static readonly GUIContent decalLayerName5 = EditorGUIUtility.TrTextContent("Decal Layer 5", "The display name for Decal Layer 5. This is purely cosmetic, and can be used to articulate intended use of Decal Layer 5");
-            internal static readonly GUIContent decalLayerName6 = EditorGUIUtility.TrTextContent("Decal Layer 6", "The display name for Decal Layer 6. This is purely cosmetic, and can be used to articulate intended use of Decal Layer 6");
-            internal static readonly GUIContent decalLayerName7 = EditorGUIUtility.TrTextContent("Decal Layer 7", "The display name for Decal Layer 7. This is purely cosmetic, and can be used to articulate intended use of Decal Layer 7");
-
-            internal static readonly GUIContent shaderVariantLogLevelLabel = EditorGUIUtility.TrTextContent("Shader Variant Log Level", "Controls the level logging in of shader variants information is outputted when a build is performed. Information appears in the Unity Console when the build finishes..");
-
-            internal static readonly GUIContent lensAttenuationModeContentLabel = EditorGUIUtility.TrTextContent("Lens Attenuation Mode", "Set the attenuation mode of the lens that is used to compute exposure. With imperfect lens some energy is lost when converting from EV100 to the exposure multiplier.");
-            internal static readonly GUIContent probeVolumeSupportContentLabel = EditorGUIUtility.TrTextContent("Probe Volumes (Experimental)", "Set whether Probe volumes are supported by the project. The feature is highly experimental and subject to changes.");
-
-            internal static readonly GUIContent useDLSSCustomProjectIdLabel = EditorGUIUtility.TrTextContent("Use DLSS Custom Project Id", "Set to utilize a custom project Id for the NVIDIA Deep Learning Super Sampling extension.");
-            internal static readonly GUIContent DLSSProjectIdLabel = EditorGUIUtility.TrTextContent("DLSS Custom Project Id", "The custom project ID string to utilize for the NVIDIA Deep Learning Super Sampling extension.");
-
-            internal static readonly GUIContent diffusionProfileSettingsLabel = EditorGUIUtility.TrTextContent("Diffusion Profile Assets");
-            internal static readonly string warningHdrpNotActive = "No HD Render Pipeline currently active. Verify your Graphics Settings and active Quality Level.";
-            internal static readonly string warningGlobalSettingsMissing = "No active settings for HDRP. Rendering may be broken until a new one is assigned.";
-            internal static readonly string infoGlobalSettingsMissing = "No active Global Settings for HDRP. You may assign one below.";
-        }
-
         public static readonly CED.IDrawer Inspector;
 
-        static DefaultSettingsPanelIMGUI()
+        public class DocumentationUrls
+        {
+            public static readonly string k_Volumes = "Volume-Profile";
+            public static readonly string k_DiffusionProfiles = "Override-Diffusion-Profile";
+            public static readonly string k_FrameSettings = "Frame-Settings";
+            public static readonly string k_LightLayers = "Light-Layers";
+            public static readonly string k_DecalLayers = "Decal";
+            public static readonly string k_CustomPostProcesses = "Custom-Post-Process";
+        }
+
+        static HDGlobalSettingsPanelIMGUI()
         {
             Inspector = CED.Group(
                 VolumeSection,
@@ -117,6 +66,13 @@ namespace UnityEditor.Rendering.HighDefinition
 
         SerializedHDRenderPipelineGlobalSettings serializedSettings;
         HDRenderPipelineGlobalSettings settingsSerialized;
+
+        public void OnTitleBarGUI()
+        {
+            if (GUILayout.Button(CoreEditorStyles.iconHelp, CoreEditorStyles.iconHelpStyle))
+                Help.BrowseURL(Documentation.GetPageLink("Default-Settings-Window"));
+        }
+
         public void DoGUI(string searchContext)
         {
             // When the asset being serialized has been deleted before its reconstruction
@@ -193,14 +149,14 @@ namespace UnityEditor.Rendering.HighDefinition
                         EditorUtility.SetDirty(settingsSerialized);
                 }
 
-                if (GUILayout.Button(EditorGUIUtility.TrTextContent("New", "Create a HD Global Settings Asset in your default resource folder (defined in Wizard)"), GUILayout.Width(45), GUILayout.Height(18)))
+                if (GUILayout.Button(Styles.newAssetButtonLabel, GUILayout.Width(45), GUILayout.Height(18)))
                 {
                     HDAssetFactory.HDRenderPipelineGlobalSettingsCreator.Create(useProjectSettingsFolder: true, assignToActiveAsset: true);
                 }
 
                 bool guiEnabled = GUI.enabled;
                 GUI.enabled = guiEnabled && (settingsSerialized != null);
-                if (GUILayout.Button(EditorGUIUtility.TrTextContent("Clone", "Clone a HD Global Settings Asset in your default resource folder (defined in Wizard)"), GUILayout.Width(45), GUILayout.Height(18)))
+                if (GUILayout.Button(Styles.cloneAssetButtonLabel, GUILayout.Width(45), GUILayout.Height(18)))
                 {
                     HDAssetFactory.HDRenderPipelineGlobalSettingsCreator.Clone(settingsSerialized, assignToActiveAsset: true);
                 }
@@ -215,7 +171,7 @@ namespace UnityEditor.Rendering.HighDefinition
         #region Resources
 
         static readonly CED.IDrawer ResourcesSection = CED.Group(
-            CED.Group((serialized, owner) => EditorGUILayout.LabelField(Styles.resourceLabel, Styles.sectionHeaderStyle)),
+            CED.Group((serialized, owner) => CoreEditorUtils.DrawSectionHeader(Styles.resourceLabel)),
             CED.Group((serialized, owner) => EditorGUILayout.Space()),
             CED.Group(DrawResourcesSection),
             CED.Group((serialized, owner) => EditorGUILayout.Space())
@@ -249,26 +205,25 @@ namespace UnityEditor.Rendering.HighDefinition
         #region Frame Settings
 
         static readonly CED.IDrawer FrameSettingsSection = CED.Group(
+            CED.Group((serialized, owner) => CoreEditorUtils.DrawSectionHeader(Styles.frameSettingsLabel, Documentation.GetPageLink(DocumentationUrls.k_FrameSettings))),
+            CED.Group((serialized, owner) => EditorGUILayout.Space()),
             CED.Group(DrawFrameSettings),
             CED.Group((serialized, owner) => EditorGUILayout.Space())
         );
 
         static void DrawFrameSettings(SerializedHDRenderPipelineGlobalSettings serialized, Editor owner)
         {
-            EditorGUILayout.LabelField(Styles.frameSettingsLabel, Styles.sectionHeaderStyle);
-            EditorGUILayout.Space();
-
             using (new EditorGUI.IndentLevelScope())
             {
-                EditorGUILayout.LabelField(Styles.frameSettingsLabel_Camera, Styles.subSectionHeaderStyle);
+                EditorGUILayout.LabelField(Styles.frameSettingsLabel_Camera, CoreEditorStyles.subSectionHeaderStyle);
                 DrawFrameSettingsSubsection(0, serialized.defaultCameraFrameSettings, owner);
                 EditorGUILayout.Space();
 
-                EditorGUILayout.LabelField(Styles.frameSettingsLabel_RTProbe, Styles.subSectionHeaderStyle);
+                EditorGUILayout.LabelField(Styles.frameSettingsLabel_RTProbe, CoreEditorStyles.subSectionHeaderStyle);
                 DrawFrameSettingsSubsection(1, serialized.defaultRealtimeReflectionFrameSettings, owner);
                 EditorGUILayout.Space();
 
-                EditorGUILayout.LabelField(Styles.frameSettingsLabel_BakedProbe, Styles.subSectionHeaderStyle);
+                EditorGUILayout.LabelField(Styles.frameSettingsLabel_BakedProbe, CoreEditorStyles.subSectionHeaderStyle);
                 DrawFrameSettingsSubsection(2, serialized.defaultBakedOrCustomReflectionFrameSettings, owner);
                 EditorGUILayout.Space();
             }
@@ -332,7 +287,7 @@ namespace UnityEditor.Rendering.HighDefinition
         #region Custom Post Processes
 
         static readonly CED.IDrawer CustomPostProcessesSection = CED.Group(
-            CED.Group((serialized, owner) => EditorGUILayout.LabelField(Styles.customPostProcessOrderLabel, Styles.sectionHeaderStyle)),
+            CED.Group((serialized, owner) => CoreEditorUtils.DrawSectionHeader(Styles.customPostProcessOrderLabel, Documentation.GetPageLink(DocumentationUrls.k_CustomPostProcesses))),
             CED.Group((serialized, owner) => EditorGUILayout.Space()),
             CED.Group(DrawCustomPostProcess)
         );
@@ -368,7 +323,7 @@ namespace UnityEditor.Rendering.HighDefinition
         #region Diffusion Profile Settings List
 
         static readonly CED.IDrawer DiffusionProfileSettingsSection = CED.Group(
-            CED.Group((serialized, owner) => EditorGUILayout.LabelField(Styles.diffusionProfileSettingsLabel, Styles.sectionHeaderStyle)),
+            CED.Group((serialized, owner) => CoreEditorUtils.DrawSectionHeader(Styles.diffusionProfileSettingsLabel, Documentation.GetPageLink(DocumentationUrls.k_DiffusionProfiles))),
             CED.Group((serialized, owner) => EditorGUILayout.Space()),
             CED.Group(DrawDiffusionProfileSettings)
         );
@@ -389,7 +344,7 @@ namespace UnityEditor.Rendering.HighDefinition
         static int m_CurrentVolumeProfileInstanceID;
 
         static readonly CED.IDrawer VolumeSection = CED.Group(
-            CED.Group((serialized, owner) => EditorGUILayout.LabelField(Styles.volumeComponentsLabel, Styles.sectionHeaderStyle)),
+            CED.Group((serialized, owner) => CoreEditorUtils.DrawSectionHeader(Styles.volumeComponentsLabel, Documentation.GetPageLink(DocumentationUrls.k_Volumes))),
             CED.Group((serialized, owner) => EditorGUILayout.Space()),
             CED.Group(DrawVolumeSection),
             CED.Group((serialized, owner) => EditorGUILayout.Space())
@@ -415,7 +370,7 @@ namespace UnityEditor.Rendering.HighDefinition
                         serialized.defaultVolumeProfile.objectReferenceValue = oldAssetValue;
                     }
 
-                    if (GUILayout.Button(EditorGUIUtility.TrTextContent("New", "Create a new Volume Profile for default in your default resource folder (defined in Wizard)"), GUILayout.Width(38), GUILayout.Height(18)))
+                    if (GUILayout.Button(Styles.newVolumeProfileLabel, GUILayout.Width(38), GUILayout.Height(18)))
                     {
                         HDAssetFactory.VolumeProfileCreator.CreateAndAssign(HDAssetFactory.VolumeProfileCreator.Kind.Default, globalSettings);
                     }
@@ -450,7 +405,7 @@ namespace UnityEditor.Rendering.HighDefinition
                         serialized.lookDevVolumeProfile.objectReferenceValue = oldAssetValue;
                     }
 
-                    if (GUILayout.Button(EditorGUIUtility.TrTextContent("New", "Create a new Volume Profile for default in your default resource folder (defined in Wizard)"), GUILayout.Width(38), GUILayout.Height(18)))
+                    if (GUILayout.Button(Styles.newVolumeProfileLabel, GUILayout.Width(38), GUILayout.Height(18)))
                     {
                         HDAssetFactory.VolumeProfileCreator.CreateAndAssign(HDAssetFactory.VolumeProfileCreator.Kind.LookDev, globalSettings);
                     }
@@ -476,8 +431,10 @@ namespace UnityEditor.Rendering.HighDefinition
 
         #region Misc Settings
 
+        static MethodInfo s_CleanupRenderPipelineMethod = typeof(RenderPipelineManager).GetMethod("CleanupRenderPipeline", BindingFlags.Static | BindingFlags.NonPublic | BindingFlags.Public);
+
         static readonly CED.IDrawer MiscSection = CED.Group(
-            CED.Group((serialized, owner) => EditorGUILayout.LabelField(Styles.generalSettingsLabel, Styles.sectionHeaderStyle)),
+            CED.Group((serialized, owner) => CoreEditorUtils.DrawSectionHeader(Styles.generalSettingsLabel)),
             CED.Group((serialized, owner) => EditorGUILayout.Space()),
             CED.Group(DrawMiscSettings),
             CED.Group((serialized, owner) => EditorGUILayout.Space())
@@ -491,23 +448,22 @@ namespace UnityEditor.Rendering.HighDefinition
             {
                 EditorGUILayout.PropertyField(serialized.shaderVariantLogLevel, Styles.shaderVariantLogLevelLabel);
                 EditorGUILayout.PropertyField(serialized.lensAttenuation, Styles.lensAttenuationModeContentLabel);
+                EditorGUILayout.PropertyField(serialized.rendererListCulling, Styles.rendererListCulling);
 
 #if ENABLE_NVIDIA && ENABLE_NVIDIA_MODULE
                 EditorGUILayout.PropertyField(serialized.useDLSSCustomProjectId, Styles.useDLSSCustomProjectIdLabel);
                 if (serialized.useDLSSCustomProjectId.boolValue)
                     EditorGUILayout.PropertyField(serialized.DLSSProjectId, Styles.DLSSProjectIdLabel);
 #endif
+                EditorGUI.BeginChangeCheck();
+                EditorGUILayout.PropertyField(serialized.supportProbeVolumes, Styles.probeVolumeSupportContentLabel);
+                if (EditorGUI.EndChangeCheck())
+                {
+                    // If we are running HDRP, we need to make sure the RP is reinitialized
+                    if (HDRenderPipeline.currentPipeline != null)
+                        s_CleanupRenderPipelineMethod?.Invoke(null, null);
+                }
             }
-
-            Type renderPipeManagerType = typeof(RenderPipelineManager);
-            var cleanupRenderPipeline = renderPipeManagerType.GetMethod("CleanupRenderPipeline", BindingFlags.Static | BindingFlags.NonPublic | BindingFlags.Public);
-            EditorGUI.BeginChangeCheck();
-            EditorGUILayout.PropertyField(serialized.supportProbeVolumes, Styles.probeVolumeSupportContentLabel);
-            if (EditorGUI.EndChangeCheck())
-            {
-                cleanupRenderPipeline?.Invoke(null, null);
-            }
-
             EditorGUIUtility.labelWidth = oldWidth;
         }
 
@@ -516,7 +472,7 @@ namespace UnityEditor.Rendering.HighDefinition
         #region Rendering Layer Names
 
         static readonly CED.IDrawer LayerNamesSection = CED.Group(
-            CED.Group((serialized, owner) => EditorGUILayout.LabelField(Styles.layerNamesLabel, Styles.sectionHeaderStyle)),
+            CED.Group((serialized, owner) => CoreEditorUtils.DrawSectionHeader(Styles.layerNamesLabel, contextAction: pos => OnContextClickRenderingLayerNames(pos, serialized), documentationURL: Documentation.GetPageLink(DocumentationUrls.k_LightLayers))),
             CED.Group((serialized, owner) => EditorGUILayout.Space()),
             CED.Group(DrawLayerNamesSettings),
             CED.Group((serialized, owner) => EditorGUILayout.Space())
@@ -527,13 +483,13 @@ namespace UnityEditor.Rendering.HighDefinition
             var oldWidth = EditorGUIUtility.labelWidth;
             EditorGUIUtility.labelWidth = Styles.labelWidth;
 
-            using (new EditorGUI.IndentLevelScope())
-            {
-                DrawLightLayerNames(serialized, owner);
-                EditorGUILayout.Space();
-                DrawDecalLayerNames(serialized, owner);
-                EditorGUILayout.Space();
-            }
+            CoreEditorUtils.DrawSplitter();
+            DrawLightLayerNames(serialized, owner);
+            CoreEditorUtils.DrawSplitter();
+            DrawDecalLayerNames(serialized, owner);
+            CoreEditorUtils.DrawSplitter();
+            EditorGUILayout.Space();
+
             EditorGUIUtility.labelWidth = oldWidth;
         }
 
@@ -541,54 +497,57 @@ namespace UnityEditor.Rendering.HighDefinition
         static private bool m_ShowDecalLayerNames = false;
         static void DrawLightLayerNames(SerializedHDRenderPipelineGlobalSettings serialized, Editor owner)
         {
-            m_ShowLightLayerNames = EditorGUILayout.Foldout(m_ShowLightLayerNames, Styles.lightLayersLabel, true);
+            m_ShowLightLayerNames = CoreEditorUtils.DrawHeaderFoldout(Styles.lightLayersLabel,
+                m_ShowLightLayerNames,
+                documentationURL: DocumentationUrls.k_DecalLayers,
+                contextAction: pos => OnContextClickRenderingLayerNames(pos, serialized, section: 1)
+            );
             if (m_ShowLightLayerNames)
             {
                 using (new EditorGUI.IndentLevelScope())
                 {
-                    HDEditorUtils.DrawDelayedTextField(Styles.lightLayerName0, serialized.lightLayerName0);
-                    GUILayout.Space(2);
-                    HDEditorUtils.DrawDelayedTextField(Styles.lightLayerName1, serialized.lightLayerName1);
-                    GUILayout.Space(2);
-                    HDEditorUtils.DrawDelayedTextField(Styles.lightLayerName2, serialized.lightLayerName2);
-                    GUILayout.Space(2);
-                    HDEditorUtils.DrawDelayedTextField(Styles.lightLayerName3, serialized.lightLayerName3);
-                    GUILayout.Space(2);
-                    HDEditorUtils.DrawDelayedTextField(Styles.lightLayerName4, serialized.lightLayerName4);
-                    GUILayout.Space(2);
-                    HDEditorUtils.DrawDelayedTextField(Styles.lightLayerName5, serialized.lightLayerName5);
-                    GUILayout.Space(2);
-                    HDEditorUtils.DrawDelayedTextField(Styles.lightLayerName6, serialized.lightLayerName6);
-                    GUILayout.Space(2);
-                    HDEditorUtils.DrawDelayedTextField(Styles.lightLayerName7, serialized.lightLayerName7);
+                    EditorGUILayout.DelayedTextField(serialized.lightLayerName0, Styles.lightLayerName0, GUILayout.ExpandWidth(true));
+                    EditorGUILayout.DelayedTextField(serialized.lightLayerName1, Styles.lightLayerName1, GUILayout.ExpandWidth(true));
+                    EditorGUILayout.DelayedTextField(serialized.lightLayerName2, Styles.lightLayerName2, GUILayout.ExpandWidth(true));
+                    EditorGUILayout.DelayedTextField(serialized.lightLayerName3, Styles.lightLayerName3, GUILayout.ExpandWidth(true));
+                    EditorGUILayout.DelayedTextField(serialized.lightLayerName4, Styles.lightLayerName4, GUILayout.ExpandWidth(true));
+                    EditorGUILayout.DelayedTextField(serialized.lightLayerName5, Styles.lightLayerName5, GUILayout.ExpandWidth(true));
+                    EditorGUILayout.DelayedTextField(serialized.lightLayerName6, Styles.lightLayerName6, GUILayout.ExpandWidth(true));
+                    EditorGUILayout.DelayedTextField(serialized.lightLayerName7, Styles.lightLayerName7, GUILayout.ExpandWidth(true));
                 }
             }
         }
 
         static void DrawDecalLayerNames(SerializedHDRenderPipelineGlobalSettings serialized, Editor owner)
         {
-            m_ShowDecalLayerNames = EditorGUILayout.Foldout(m_ShowDecalLayerNames, Styles.decalLayersLabel, true);
+            m_ShowDecalLayerNames = CoreEditorUtils.DrawHeaderFoldout(Styles.decalLayersLabel, m_ShowDecalLayerNames,
+                documentationURL: DocumentationUrls.k_DecalLayers,
+                contextAction: pos => OnContextClickRenderingLayerNames(pos, serialized, section: 2));
             if (m_ShowDecalLayerNames)
             {
                 using (new EditorGUI.IndentLevelScope())
                 {
-                    HDEditorUtils.DrawDelayedTextField(Styles.decalLayerName0, serialized.decalLayerName0);
-                    GUILayout.Space(2);
-                    HDEditorUtils.DrawDelayedTextField(Styles.decalLayerName1, serialized.decalLayerName1);
-                    GUILayout.Space(2);
-                    HDEditorUtils.DrawDelayedTextField(Styles.decalLayerName2, serialized.decalLayerName2);
-                    GUILayout.Space(2);
-                    HDEditorUtils.DrawDelayedTextField(Styles.decalLayerName3, serialized.decalLayerName3);
-                    GUILayout.Space(2);
-                    HDEditorUtils.DrawDelayedTextField(Styles.decalLayerName4, serialized.decalLayerName4);
-                    GUILayout.Space(2);
-                    HDEditorUtils.DrawDelayedTextField(Styles.decalLayerName5, serialized.decalLayerName5);
-                    GUILayout.Space(2);
-                    HDEditorUtils.DrawDelayedTextField(Styles.decalLayerName6, serialized.decalLayerName6);
-                    GUILayout.Space(2);
-                    HDEditorUtils.DrawDelayedTextField(Styles.decalLayerName7, serialized.decalLayerName7);
+                    EditorGUILayout.DelayedTextField(serialized.decalLayerName0, Styles.decalLayerName0, GUILayout.ExpandWidth(true));
+                    EditorGUILayout.DelayedTextField(serialized.decalLayerName1, Styles.decalLayerName1, GUILayout.ExpandWidth(true));
+                    EditorGUILayout.DelayedTextField(serialized.decalLayerName2, Styles.decalLayerName2, GUILayout.ExpandWidth(true));
+                    EditorGUILayout.DelayedTextField(serialized.decalLayerName3, Styles.decalLayerName3, GUILayout.ExpandWidth(true));
+                    EditorGUILayout.DelayedTextField(serialized.decalLayerName4, Styles.decalLayerName4, GUILayout.ExpandWidth(true));
+                    EditorGUILayout.DelayedTextField(serialized.decalLayerName5, Styles.decalLayerName5, GUILayout.ExpandWidth(true));
+                    EditorGUILayout.DelayedTextField(serialized.decalLayerName6, Styles.decalLayerName6, GUILayout.ExpandWidth(true));
+                    EditorGUILayout.DelayedTextField(serialized.decalLayerName7, Styles.decalLayerName7, GUILayout.ExpandWidth(true));
                 }
             }
+        }
+
+        static void OnContextClickRenderingLayerNames(Vector2 position, SerializedHDRenderPipelineGlobalSettings serialized, int section = 0)
+        {
+            var menu = new GenericMenu();
+            menu.AddItem(section == 0 ? CoreEditorStyles.resetAllButtonLabel : CoreEditorStyles.resetButtonLabel, false, () =>
+            {
+                var globalSettings = (serialized.serializedObject.targetObject as HDRenderPipelineGlobalSettings);
+                globalSettings.ResetRenderingLayerNames(lightLayers: section < 2, decalLayers: section != 1);
+            });
+            menu.DropDown(new Rect(position, Vector2.zero));
         }
 
         #endregion
