@@ -20,6 +20,13 @@ namespace UnityEngine.Rendering.Universal
         const ComponentVersions k_CurrentComponentVersion = ComponentVersions.Version_1;
         [SerializeField] ComponentVersions m_ComponentVersion = ComponentVersions.Version_Unserialized;
 
+        public enum CastingSources
+        {
+            None,
+            ShapeEditor,
+            ShapeProvider
+        }
+
         [SerializeField] bool m_HasRenderer = false;
         [SerializeField] bool m_UseRendererSilhouette = true;
         [SerializeField] bool m_CastsShadows = true;
@@ -29,6 +36,8 @@ namespace UnityEngine.Rendering.Universal
         [SerializeField] int m_ShapePathHash = 0;
         [SerializeField] Mesh m_Mesh;
         [SerializeField] int m_InstanceId;
+        [SerializeField] Component m_ShadowShapeOverride;
+        [SerializeField] CastingSources m_ShadowCastingSource = CastingSources.ShapeEditor;
 
         internal ShadowCasterGroup2D m_ShadowCasterGroup = null;
         internal ShadowCasterGroup2D m_PreviousShadowCasterGroup = null;

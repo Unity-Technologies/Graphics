@@ -53,12 +53,15 @@ namespace UnityEditor.Rendering.Universal
             public static GUIContent selfShadows = EditorGUIUtility.TrTextContent("Self Shadows", "When enabled, the Renderer casts shadows on itself.");
             public static GUIContent castsShadows = EditorGUIUtility.TrTextContent("Casts Shadows", "Specifies if this renderer will cast shadows");
             public static GUIContent sortingLayerPrefixLabel = EditorGUIUtility.TrTextContent("Target Sorting Layers", "Apply shadows to the specified sorting layers.");
+            public static GUIContent shadowShapeOverride = EditorGUIUtility.TrTextContent("Shape Provider", "This allows a selected component provide a different shape from the Shadow Caster 2D shape. This component must implement IShadowShape2DProvider");
+            public static GUIContent castingSource = EditorGUIUtility.TrTextContent("Casting Source", "Specifies the source of the shape used for projected shadows");
         }
 
         SerializedProperty m_UseRendererSilhouette;
         SerializedProperty m_CastsShadows;
         SerializedProperty m_SelfShadows;
-
+        SerializedProperty m_ShadowShapeOverride;
+        SerializedProperty m_CastingSource;
 
         SortingLayerDropDown m_SortingLayerDropDown;
 
@@ -68,9 +71,13 @@ namespace UnityEditor.Rendering.Universal
             m_UseRendererSilhouette = serializedObject.FindProperty("m_UseRendererSilhouette");
             m_SelfShadows = serializedObject.FindProperty("m_SelfShadows");
             m_CastsShadows = serializedObject.FindProperty("m_CastsShadows");
+            m_ShadowShapeOverride = serializedObject.FindProperty("m_ShadowShapeOverride");
+            m_CastingSource = serializedObject.FindProperty("m_ShadowCastingSource");
 
             m_SortingLayerDropDown = new SortingLayerDropDown();
             m_SortingLayerDropDown.OnEnable(serializedObject, "m_ApplyToSortingLayers");
+
+            
         }
 
         public void ShadowCaster2DSceneGUI()
@@ -128,12 +135,16 @@ namespace UnityEditor.Rendering.Universal
                 EditorGUILayout.PropertyField(m_UseRendererSilhouette, Styles.shadowMode);
             }
 
-            EditorGUILayout.PropertyField(m_CastsShadows, Styles.castsShadows);
+            EditorGUILayout.PropertyField(m_CastingSource, Styles.castingSource);
+
+            //EditorGUILayout.PropertyField(m_CastsShadows, Styles.castsShadows);
             EditorGUILayout.PropertyField(m_SelfShadows, Styles.selfShadows);
 
             m_SortingLayerDropDown.OnTargetSortingLayers(serializedObject, targets, Styles.sortingLayerPrefixLabel, null);
 
-            if (m_CastsShadows.boolValue)
+            if ((ShadowCaster2D.CastingSources)m_CastingSource.intValue == ShadowCaster2D.CastingSources.ShapeProvider)
+                EditorGUILayout.PropertyField(m_ShadowShapeOverride, Styles.shadowShapeOverride);
+            else if((ShadowCaster2D.CastingSources)m_CastingSource.intValue == ShadowCaster2D.CastingSources.ShapeEditor)
                 ShadowCaster2DInspectorGUI<ShadowCaster2DShadowCasterShapeTool>();
 
             serializedObject.ApplyModifiedProperties();
