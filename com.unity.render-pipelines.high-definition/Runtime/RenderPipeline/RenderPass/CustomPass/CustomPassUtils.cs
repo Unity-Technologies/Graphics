@@ -96,7 +96,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 propertyBlock.SetTexture(HDShaderIDs._Source, source);
                 propertyBlock.SetVector(HDShaderIDs._SourceScaleBias, sourceScaleBias);
                 SetSourceSize(propertyBlock, source);
-                ctx.cmd.DrawProcedural(Matrix4x4.identity, customPassUtilsMaterial, downSamplePassIndex, MeshTopology.Quads, 4, 1, propertyBlock);
+                ctx.cmd.DrawProcedural(Matrix4x4.identity, customPassUtilsMaterial, downSamplePassIndex, MeshTopology.Triangles, 3, 1, propertyBlock);
             }
         }
 
@@ -137,7 +137,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 propertyBlock.SetTexture(HDShaderIDs._Source, source);
                 propertyBlock.SetVector(HDShaderIDs._SourceScaleBias, sourceScaleBias);
                 SetSourceSize(propertyBlock, source);
-                ctx.cmd.DrawProcedural(Matrix4x4.identity, customPassUtilsMaterial, copyPassIndex, MeshTopology.Quads, 4, 1, propertyBlock);
+                ctx.cmd.DrawProcedural(Matrix4x4.identity, customPassUtilsMaterial, copyPassIndex, MeshTopology.Triangles, 3, 1, propertyBlock);
             }
         }
 
@@ -183,7 +183,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 propertyBlock.SetFloat(HDShaderIDs._SampleCount, sampleCount);
                 propertyBlock.SetFloat(HDShaderIDs._Radius, radius);
                 SetSourceSize(propertyBlock, source);
-                ctx.cmd.DrawProcedural(Matrix4x4.identity, customPassUtilsMaterial, verticalBlurPassIndex, MeshTopology.Quads, 4, 1, propertyBlock);
+                ctx.cmd.DrawProcedural(Matrix4x4.identity, customPassUtilsMaterial, verticalBlurPassIndex, MeshTopology.Triangles, 3, 1, propertyBlock);
             }
         }
 
@@ -229,7 +229,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 propertyBlock.SetFloat(HDShaderIDs._SampleCount, sampleCount);
                 propertyBlock.SetFloat(HDShaderIDs._Radius, radius);
                 SetSourceSize(propertyBlock, source);
-                ctx.cmd.DrawProcedural(Matrix4x4.identity, customPassUtilsMaterial, horizontalBlurPassIndex, MeshTopology.Quads, 4, 1, propertyBlock);
+                ctx.cmd.DrawProcedural(Matrix4x4.identity, customPassUtilsMaterial, horizontalBlurPassIndex, MeshTopology.Triangles, 3, 1, propertyBlock);
             }
         }
 
@@ -313,7 +313,7 @@ namespace UnityEngine.Rendering.HighDefinition
         {
             PerObjectData renderConfig = ctx.hdCamera.frameSettings.IsEnabled(FrameSettingsField.Shadowmask) ? HDUtils.k_RendererConfigurationBakedLightingWithShadowMask : HDUtils.k_RendererConfigurationBakedLighting;
 
-            var result = new RendererListDesc(litForwardTags, ctx.cullingResults, ctx.hdCamera.camera)
+            var result = new RendererUtils.RendererListDesc(litForwardTags, ctx.cullingResults, ctx.hdCamera.camera)
             {
                 rendererConfiguration = renderConfig,
                 renderQueueRange = GetRenderQueueRangeFromRenderQueueType(renderQueueFilter),
@@ -325,7 +325,8 @@ namespace UnityEngine.Rendering.HighDefinition
                 stateBlock = overrideRenderState,
             };
 
-            CoreUtils.DrawRendererList(ctx.renderContext, ctx.cmd, RendererList.Create(result));
+            var renderCtx = ctx.renderContext;
+            CoreUtils.DrawRendererList(ctx.renderContext, ctx.cmd, renderCtx.CreateRendererList(result));
         }
 
         /// <summary>
