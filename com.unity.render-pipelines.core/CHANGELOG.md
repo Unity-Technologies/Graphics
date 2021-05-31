@@ -12,6 +12,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Platform ShaderLibrary API headers now have a new macro layer for 2d texture sampling macros. This layer starts with PLATFORM_SAMPLE2D definition, and it gives the possibility of injecting sampling behavior on a render pipeline level. For example: being able to a global mip bias for temporal upscalers.
 - Update icon for IES, LightAnchor and LensFlare
 - LensFlare (SRP) can be now disabled per element
+- LensFlare (SRP) tooltips now refer to meters.
 - Serialize the Probe Volume asset as binary to improve footprint on disk and loading speed.
 
 ### Fixed
