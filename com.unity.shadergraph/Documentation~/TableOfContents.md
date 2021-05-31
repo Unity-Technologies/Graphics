@@ -22,6 +22,7 @@
     * [Shader Graph Asset](Shader-Graph-Asset)
     * [Graph Target](Graph-Target.md)
     * [Sub Graph Asset](Sub-graph-Asset)
+        * [SpeedTree 8 Sub Graph Assets](SpeedTree8-SubGraphAssets)
     * [Node](Node)
         * [Port](Port)
         * [Custom Port Menu](Custom-Port-Menu)
