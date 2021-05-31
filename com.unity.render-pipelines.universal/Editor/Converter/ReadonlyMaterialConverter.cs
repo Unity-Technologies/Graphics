@@ -44,6 +44,8 @@ namespace UnityEditor.Rendering.Universal.Converters
         public override Type container => typeof(BuiltInToURPConverterContainer);
         public override bool needsIndexing => true;
 
+        List<string> guids = new List<string>();
+
         public override void OnInitialize(InitializeConverterContext ctx, Action callback)
         {
             using (var context = Search.SearchService.CreateContext("asset", "urp:convert-readonly"))
@@ -70,9 +72,11 @@ namespace UnityEditor.Rendering.Universal.Converters
 
                         var item = new ConverterItemDescriptor()
                         {
-                            name = $"{label} : {description}",
-                            info = gid.ToString(),
+                            name = description.Split('/').Last(),
+                            info = $"{label} : {description}",
+                            //info = gid.ToString(),
                         };
+                        guids.Add(gid.ToString());
 
                         ctx.AddAssetToConvert(item);
                     }
@@ -230,7 +234,9 @@ namespace UnityEditor.Rendering.Universal.Converters
 
         private Object LoadObject(ConverterItemInfo item, RunItemContext ctx)
         {
-            if (GlobalObjectId.TryParse(item.descriptor.info, out var gid))
+            string guid = guids[ctx.item.index];
+            //if (GlobalObjectId.TryParse(item.descriptor.info, out var gid))
+            if (GlobalObjectId.TryParse(guid, out var gid))
             {
                 var obj = GlobalObjectId.GlobalObjectIdentifierToObjectSlow(gid);
                 if (!obj)
