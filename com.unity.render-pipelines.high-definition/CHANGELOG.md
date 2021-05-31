@@ -220,6 +220,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed a divide-by-zero warning for anisotropic shaders (Fabric, Lit).
 - Fixed VfX lit particle AOV output color space.
 - Fixed path traced transparent unlit material (case 1335500).
+- Fixed the double sided option moving when toggling it in the material UI (case 1328877).
 
 ### Changed
 - Changed Window/Render Pipeline/HD Render Pipeline Wizard to Window/Rendering/HDRP Wizard
