@@ -439,7 +439,6 @@ namespace UnityEngine.Rendering
                     Vector2 screenPos = new Vector2(2.0f * viewportPos.x - 1.0f, 1.0f - 2.0f * viewportPos.y);
                     Vector2 translationScale = new Vector2(element.translationScale.x, element.translationScale.y);
                     Texture texture = element.lensFlareTexture;
-                    float elemAspectRatio = element.sizeXY.x / element.sizeXY.y;
                     float usedAspectRatio;
                     if (element.flareType == SRPLensFlareType.Image)
                         usedAspectRatio = element.preserveAspectRatio ? ((((float)texture.height) / (float)texture.width)) : 1.0f;
