@@ -27,7 +27,6 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed ACES filter artefact due to half float error on some mobile platforms.
 - Fixed issue displaying a warning of different probe reference volume profiles even when they are equivalent.
 - Fixed missing increment/decrement controls from DebugUIIntField & DebugUIUIntField widget prefabs.
-- Fixed a large, visible stretch ratio in a LensFlare Image thumbnail.
 
 ### Added
 - Support for the PlayStation 5 platform has been added.
