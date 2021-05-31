@@ -124,6 +124,11 @@ float VFXLinearEyeDepth(float depth)
     return LinearEyeDepth(depth, _ZBufferParams);
 }
 
+float VFXLinearEyeDepthOrthographic(float depth)
+{
+    return LinearDepthToEyeDepth(depth);
+}
+
 void VFXApplyShadowBias(inout float4 posCS, inout float3 posWS, float3 normalWS)
 {
     posWS = ApplyShadowBias(posWS, normalWS, _LightDirection);
