@@ -417,13 +417,13 @@ namespace UnityEngine.Rendering.Universal
 
         private LightCookieShaderFormat GetLightCookieShaderFormat(GraphicsFormat cookieFormat)
         {
-            // RGB 0, A 1, R 2, (G 3), (B 4)
             switch (cookieFormat)
             {
                 default:
                     return LightCookieShaderFormat.RGB;
-                case (GraphicsFormat)54:    // A8_Unorm TODO: GraphicsFormat does not expose yet.
-                case (GraphicsFormat)55:    // A16_Unorm TODO: GraphicsFormat does not expose yet.
+                // A8, A16 GraphicsFormat does not expose yet.
+                case (GraphicsFormat)54:
+                case (GraphicsFormat)55:
                     return LightCookieShaderFormat.Alpha;
                 case GraphicsFormat.R8_SRGB:
                 case GraphicsFormat.R8_UNorm:
@@ -575,9 +575,9 @@ namespace UnityEngine.Rendering.Universal
                     m_AdditionalLightsCookieAtlas.ResetAllocator();
 
                     // Try to reinsert in priority order
-                    i = 0;
                     uvRectCount = 0;
                     atlasResetBefore = true;
+                    i = -1; // Incremented right after continue
                     continue;
                 }
 
