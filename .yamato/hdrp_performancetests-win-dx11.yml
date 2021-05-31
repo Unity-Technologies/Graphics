@@ -21,12 +21,16 @@ HDRP_PerformanceTests_Win_DX11_performance_memory_il2cpp_Linear_trunk:
         UTR_VERSION: "current"
         TEST_FILTER: .*
     commands:
-      -  NetSh Advfirewall set allprofiles state off
-      -  curl -s https://artifactory.prd.it.unity3d.com/artifactory/unity-tools-local/utr-standalone/utr.bat --output utr.bat
-      -  choco install unity-downloader-cli -y -s https://artifactory.prd.it.unity3d.com/artifactory/api/nuget/unity-choco-local
-      -  unity-downloader-cli --source-file unity_revision.txt -c editor -c il2cpp  --wait --published-only
-      -  git checkout %GIT_BRANCH%
-      -  utr --artifacts_path=TestProjects/HDRP_PerformanceTests/test-results --editor-location=.Editor --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-force-d3d11" --loglevel=verbose --performance-project-version=. --report-performance-data --performance-project-id=HDRP --platform=StandaloneWindows64 --scripting-backend=IL2CPP --suite=playmode --testfilter=Memory --testproject=./TestProjects/HDRP_PerformanceTests --timeout=7200 --zero-tests-are-ok=1
+      -  command: NetSh Advfirewall set allprofiles state off
+      -  command: curl -s https://artifactory.prd.it.unity3d.com/artifactory/unity-tools-local/utr-standalone/utr.bat --output utr.bat
+         retries: 2
+      -  command: choco install unity-downloader-cli -y -s https://artifactory.prd.it.unity3d.com/artifactory/api/nuget/unity-choco-local
+         retries: 2
+      -  command: unity-downloader-cli --source-file unity_revision.txt -c editor -c il2cpp  --wait --published-only
+         retries: 2
+      -  command: git checkout %GIT_BRANCH%
+      -  command: utr --artifacts_path=TestProjects/HDRP_PerformanceTests/test-results --editor-location=.Editor --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-force-d3d11" --loglevel=verbose --performance-project-version=. --report-performance-data --performance-project-id=HDRP --platform=StandaloneWindows64 --scripting-backend=IL2CPP --suite=playmode --testfilter=Memory --testproject=./TestProjects/HDRP_PerformanceTests --timeout=7200 --zero-tests-are-ok=1
+         retries: 2
     artifacts:
         logs:
             paths:
@@ -49,12 +53,16 @@ HDRP_PerformanceTests_Win_DX11_performance_memory_cache_il2cpp_Linear_trunk:
         UTR_VERSION: "current"
         TEST_FILTER: .*
     commands:
-      -  NetSh Advfirewall set allprofiles state off
-      -  curl -s https://artifactory.prd.it.unity3d.com/artifactory/unity-tools-local/utr-standalone/utr.bat --output utr.bat
-      -  choco install unity-downloader-cli -y -s https://artifactory.prd.it.unity3d.com/artifactory/api/nuget/unity-choco-local
-      -  unity-downloader-cli --source-file unity_revision.txt -c editor -c il2cpp  --wait --published-only
-      -  git checkout %GIT_BRANCH%
-      -  utr --artifacts_path=TestProjects/HDRP_PerformanceTests/test-results --editor-location=.Editor --extra-editor-arg="-adb2" --extra-editor-arg="-cacheServerEnableDownload" --extra-editor-arg="true" --extra-editor-arg="-cacheServerEnableUpload" --extra-editor-arg="true" --extra-editor-arg="-cacheServerEndpoint" --extra-editor-arg="cacheserver-slo.hq.unity3d.com" --extra-editor-arg="-cacheServerNamespacePrefix" --extra-editor-arg="{{cache.cacheServerNamespacePrefix}}" --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-enableCacheServer" --extra-editor-arg="-force-d3d11" --loglevel=verbose --performance-project-version=. --report-performance-data --performance-project-id=HDRP --platform=StandaloneWindows64 --scripting-backend=IL2CPP --suite=playmode --testfilter=Memory --testproject=./TestProjects/HDRP_PerformanceTests --timeout=14400 --zero-tests-are-ok=1
+      -  command: NetSh Advfirewall set allprofiles state off
+      -  command: curl -s https://artifactory.prd.it.unity3d.com/artifactory/unity-tools-local/utr-standalone/utr.bat --output utr.bat
+         retries: 2
+      -  command: choco install unity-downloader-cli -y -s https://artifactory.prd.it.unity3d.com/artifactory/api/nuget/unity-choco-local
+         retries: 2
+      -  command: unity-downloader-cli --source-file unity_revision.txt -c editor -c il2cpp  --wait --published-only
+         retries: 2
+      -  command: git checkout %GIT_BRANCH%
+      -  command: utr --artifacts_path=TestProjects/HDRP_PerformanceTests/test-results --editor-location=.Editor --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-force-d3d11" --loglevel=verbose --performance-project-version=. --report-performance-data --performance-project-id=HDRP --platform=StandaloneWindows64 --scripting-backend=IL2CPP --suite=playmode --testfilter=Memory --testproject=./TestProjects/HDRP_PerformanceTests --timeout=7200 --zero-tests-are-ok=1
+         retries: 2
     artifacts:
         logs:
             paths:
@@ -77,12 +85,16 @@ HDRP_PerformanceTests_Win_DX11_performance_run_build_il2cpp_Linear_trunk:
         UTR_VERSION: "current"
         TEST_FILTER: .*
     commands:
-      -  NetSh Advfirewall set allprofiles state off
-      -  curl -s https://artifactory.prd.it.unity3d.com/artifactory/unity-tools-local/utr-standalone/utr.bat --output utr.bat
-      -  choco install unity-downloader-cli -y -s https://artifactory.prd.it.unity3d.com/artifactory/api/nuget/unity-choco-local
-      -  unity-downloader-cli --source-file unity_revision.txt -c editor -c il2cpp  --wait --published-only
-      -  git checkout %GIT_BRANCH%
-      -  utr --artifacts_path=TestProjects/HDRP_PerformanceTests/test-results --editor-location=.Editor --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-force-d3d11" --extra-editor-arg="-playergraphicsapi=Direct3D11" --loglevel=verbose --performance-project-version=. --report-performance-data --performance-project-id=HDRP --platform=editmode --scripting-backend=IL2CPP --suite=editor --testfilter=Build --testproject=./TestProjects/HDRP_PerformanceTests --timeout=14400 --zero-tests-are-ok=1
+      -  command: NetSh Advfirewall set allprofiles state off
+      -  command: curl -s https://artifactory.prd.it.unity3d.com/artifactory/unity-tools-local/utr-standalone/utr.bat --output utr.bat
+         retries: 2
+      -  command: choco install unity-downloader-cli -y -s https://artifactory.prd.it.unity3d.com/artifactory/api/nuget/unity-choco-local
+         retries: 2
+      -  command: unity-downloader-cli --source-file unity_revision.txt -c editor -c il2cpp  --wait --published-only
+         retries: 2
+      -  command: git checkout %GIT_BRANCH%
+      -  command: utr --artifacts_path=TestProjects/HDRP_PerformanceTests/test-results --editor-location=.Editor --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-force-d3d11" --loglevel=verbose --performance-project-version=. --report-performance-data --performance-project-id=HDRP --platform=StandaloneWindows64 --scripting-backend=IL2CPP --suite=playmode --testfilter=Memory --testproject=./TestProjects/HDRP_PerformanceTests --timeout=7200 --zero-tests-are-ok=1
+         retries: 2
     artifacts:
         logs:
             paths:
@@ -105,12 +117,16 @@ HDRP_PerformanceTests_Win_DX11_performance_run_build_cache_il2cpp_Linear_trunk:
         UTR_VERSION: "current"
         TEST_FILTER: .*
     commands:
-      -  NetSh Advfirewall set allprofiles state off
-      -  curl -s https://artifactory.prd.it.unity3d.com/artifactory/unity-tools-local/utr-standalone/utr.bat --output utr.bat
-      -  choco install unity-downloader-cli -y -s https://artifactory.prd.it.unity3d.com/artifactory/api/nuget/unity-choco-local
-      -  unity-downloader-cli --source-file unity_revision.txt -c editor -c il2cpp  --wait --published-only
-      -  git checkout %GIT_BRANCH%
-      -  utr --artifacts_path=TestProjects/HDRP_PerformanceTests/test-results --editor-location=.Editor --extra-editor-arg="-adb2" --extra-editor-arg="-cacheServerEnableDownload" --extra-editor-arg="true" --extra-editor-arg="-cacheServerEnableUpload" --extra-editor-arg="true" --extra-editor-arg="-cacheServerEndpoint" --extra-editor-arg="cacheserver-slo.hq.unity3d.com" --extra-editor-arg="-cacheServerNamespacePrefix" --extra-editor-arg="{{cache.cacheServerNamespacePrefix}}" --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-enableCacheServer" --extra-editor-arg="-force-d3d11" --extra-editor-arg="-playergraphicsapi=Direct3D11" --loglevel=verbose --performance-project-version=. --report-performance-data --performance-project-id=HDRP --platform=editmode --scripting-backend=IL2CPP --suite=editor --testfilter=Build --testproject=./TestProjects/HDRP_PerformanceTests --timeout=14400 --zero-tests-are-ok=1
+      -  command: NetSh Advfirewall set allprofiles state off
+      -  command: curl -s https://artifactory.prd.it.unity3d.com/artifactory/unity-tools-local/utr-standalone/utr.bat --output utr.bat
+         retries: 2
+      -  command: choco install unity-downloader-cli -y -s https://artifactory.prd.it.unity3d.com/artifactory/api/nuget/unity-choco-local
+         retries: 2
+      -  command: unity-downloader-cli --source-file unity_revision.txt -c editor -c il2cpp  --wait --published-only
+         retries: 2
+      -  command: git checkout %GIT_BRANCH%
+      -  command: utr --artifacts_path=TestProjects/HDRP_PerformanceTests/test-results --editor-location=.Editor --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-force-d3d11" --loglevel=verbose --performance-project-version=. --report-performance-data --performance-project-id=HDRP --platform=StandaloneWindows64 --scripting-backend=IL2CPP --suite=playmode --testfilter=Memory --testproject=./TestProjects/HDRP_PerformanceTests --timeout=7200 --zero-tests-are-ok=1
+         retries: 2
     artifacts:
         logs:
             paths:
@@ -133,12 +149,16 @@ HDRP_PerformanceTests_Win_DX11_performance_memory_il2cpp_Linear_CUSTOM-REVISION:
         UTR_VERSION: "current"
         TEST_FILTER: .*
     commands:
-      -  NetSh Advfirewall set allprofiles state off
-      -  curl -s https://artifactory.prd.it.unity3d.com/artifactory/unity-tools-local/utr-standalone/utr.bat --output utr.bat
-      -  choco install unity-downloader-cli -y -s https://artifactory.prd.it.unity3d.com/artifactory/api/nuget/unity-choco-local
-      -  unity-downloader-cli --source-file unity_revision.txt -c editor -c il2cpp  --wait --published-only
-      -  git checkout %GIT_BRANCH%
-      -  utr --artifacts_path=TestProjects/HDRP_PerformanceTests/test-results --editor-location=.Editor --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-force-d3d11" --loglevel=verbose --performance-project-version=. --report-performance-data --performance-project-id=HDRP --platform=StandaloneWindows64 --scripting-backend=IL2CPP --suite=playmode --testfilter=Memory --testproject=./TestProjects/HDRP_PerformanceTests --timeout=7200 --zero-tests-are-ok=1
+      -  command: NetSh Advfirewall set allprofiles state off
+      -  command: curl -s https://artifactory.prd.it.unity3d.com/artifactory/unity-tools-local/utr-standalone/utr.bat --output utr.bat
+         retries: 2
+      -  command: choco install unity-downloader-cli -y -s https://artifactory.prd.it.unity3d.com/artifactory/api/nuget/unity-choco-local
+         retries: 2
+      -  command: unity-downloader-cli --source-file unity_revision.txt -c editor -c il2cpp  --wait --published-only
+         retries: 2
+      -  command: git checkout %GIT_BRANCH%
+      -  command: utr --artifacts_path=TestProjects/HDRP_PerformanceTests/test-results --editor-location=.Editor --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-force-d3d11" --loglevel=verbose --performance-project-version=. --report-performance-data --performance-project-id=HDRP --platform=StandaloneWindows64 --scripting-backend=IL2CPP --suite=playmode --testfilter=Memory --testproject=./TestProjects/HDRP_PerformanceTests --timeout=7200 --zero-tests-are-ok=1
+         retries: 2
     artifacts:
         logs:
             paths:
@@ -161,12 +181,16 @@ HDRP_PerformanceTests_Win_DX11_performance_memory_cache_il2cpp_Linear_CUSTOM-REV
         UTR_VERSION: "current"
         TEST_FILTER: .*
     commands:
-      -  NetSh Advfirewall set allprofiles state off
-      -  curl -s https://artifactory.prd.it.unity3d.com/artifactory/unity-tools-local/utr-standalone/utr.bat --output utr.bat
-      -  choco install unity-downloader-cli -y -s https://artifactory.prd.it.unity3d.com/artifactory/api/nuget/unity-choco-local
-      -  unity-downloader-cli --source-file unity_revision.txt -c editor -c il2cpp  --wait --published-only
-      -  git checkout %GIT_BRANCH%
-      -  utr --artifacts_path=TestProjects/HDRP_PerformanceTests/test-results --editor-location=.Editor --extra-editor-arg="-adb2" --extra-editor-arg="-cacheServerEnableDownload" --extra-editor-arg="true" --extra-editor-arg="-cacheServerEnableUpload" --extra-editor-arg="true" --extra-editor-arg="-cacheServerEndpoint" --extra-editor-arg="cacheserver-slo.hq.unity3d.com" --extra-editor-arg="-cacheServerNamespacePrefix" --extra-editor-arg="{{cache.cacheServerNamespacePrefix}}" --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-enableCacheServer" --extra-editor-arg="-force-d3d11" --loglevel=verbose --performance-project-version=. --report-performance-data --performance-project-id=HDRP --platform=StandaloneWindows64 --scripting-backend=IL2CPP --suite=playmode --testfilter=Memory --testproject=./TestProjects/HDRP_PerformanceTests --timeout=14400 --zero-tests-are-ok=1
+      -  command: NetSh Advfirewall set allprofiles state off
+      -  command: curl -s https://artifactory.prd.it.unity3d.com/artifactory/unity-tools-local/utr-standalone/utr.bat --output utr.bat
+         retries: 2
+      -  command: choco install unity-downloader-cli -y -s https://artifactory.prd.it.unity3d.com/artifactory/api/nuget/unity-choco-local
+         retries: 2
+      -  command: unity-downloader-cli --source-file unity_revision.txt -c editor -c il2cpp  --wait --published-only
+         retries: 2
+      -  command: git checkout %GIT_BRANCH%
+      -  command: utr --artifacts_path=TestProjects/HDRP_PerformanceTests/test-results --editor-location=.Editor --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-force-d3d11" --loglevel=verbose --performance-project-version=. --report-performance-data --performance-project-id=HDRP --platform=StandaloneWindows64 --scripting-backend=IL2CPP --suite=playmode --testfilter=Memory --testproject=./TestProjects/HDRP_PerformanceTests --timeout=7200 --zero-tests-are-ok=1
+         retries: 2
     artifacts:
         logs:
             paths:
@@ -189,12 +213,16 @@ HDRP_PerformanceTests_Win_DX11_performance_run_build_il2cpp_Linear_CUSTOM-REVISI
         UTR_VERSION: "current"
         TEST_FILTER: .*
     commands:
-      -  NetSh Advfirewall set allprofiles state off
-      -  curl -s https://artifactory.prd.it.unity3d.com/artifactory/unity-tools-local/utr-standalone/utr.bat --output utr.bat
-      -  choco install unity-downloader-cli -y -s https://artifactory.prd.it.unity3d.com/artifactory/api/nuget/unity-choco-local
-      -  unity-downloader-cli --source-file unity_revision.txt -c editor -c il2cpp  --wait --published-only
-      -  git checkout %GIT_BRANCH%
-      -  utr --artifacts_path=TestProjects/HDRP_PerformanceTests/test-results --editor-location=.Editor --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-force-d3d11" --extra-editor-arg="-playergraphicsapi=Direct3D11" --loglevel=verbose --performance-project-version=. --report-performance-data --performance-project-id=HDRP --platform=editmode --scripting-backend=IL2CPP --suite=editor --testfilter=Build --testproject=./TestProjects/HDRP_PerformanceTests --timeout=14400 --zero-tests-are-ok=1
+      -  command: NetSh Advfirewall set allprofiles state off
+      -  command: curl -s https://artifactory.prd.it.unity3d.com/artifactory/unity-tools-local/utr-standalone/utr.bat --output utr.bat
+         retries: 2
+      -  command: choco install unity-downloader-cli -y -s https://artifactory.prd.it.unity3d.com/artifactory/api/nuget/unity-choco-local
+         retries: 2
+      -  command: unity-downloader-cli --source-file unity_revision.txt -c editor -c il2cpp  --wait --published-only
+         retries: 2
+      -  command: git checkout %GIT_BRANCH%
+      -  command: utr --artifacts_path=TestProjects/HDRP_PerformanceTests/test-results --editor-location=.Editor --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-force-d3d11" --loglevel=verbose --performance-project-version=. --report-performance-data --performance-project-id=HDRP --platform=StandaloneWindows64 --scripting-backend=IL2CPP --suite=playmode --testfilter=Memory --testproject=./TestProjects/HDRP_PerformanceTests --timeout=7200 --zero-tests-are-ok=1
+         retries: 2
     artifacts:
         logs:
             paths:
@@ -217,12 +245,16 @@ HDRP_PerformanceTests_Win_DX11_performance_run_build_cache_il2cpp_Linear_CUSTOM-
         UTR_VERSION: "current"
         TEST_FILTER: .*
     commands:
-      -  NetSh Advfirewall set allprofiles state off
-      -  curl -s https://artifactory.prd.it.unity3d.com/artifactory/unity-tools-local/utr-standalone/utr.bat --output utr.bat
-      -  choco install unity-downloader-cli -y -s https://artifactory.prd.it.unity3d.com/artifactory/api/nuget/unity-choco-local
-      -  unity-downloader-cli --source-file unity_revision.txt -c editor -c il2cpp  --wait --published-only
-      -  git checkout %GIT_BRANCH%
-      -  utr --artifacts_path=TestProjects/HDRP_PerformanceTests/test-results --editor-location=.Editor --extra-editor-arg="-adb2" --extra-editor-arg="-cacheServerEnableDownload" --extra-editor-arg="true" --extra-editor-arg="-cacheServerEnableUpload" --extra-editor-arg="true" --extra-editor-arg="-cacheServerEndpoint" --extra-editor-arg="cacheserver-slo.hq.unity3d.com" --extra-editor-arg="-cacheServerNamespacePrefix" --extra-editor-arg="{{cache.cacheServerNamespacePrefix}}" --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-enableCacheServer" --extra-editor-arg="-force-d3d11" --extra-editor-arg="-playergraphicsapi=Direct3D11" --loglevel=verbose --performance-project-version=. --report-performance-data --performance-project-id=HDRP --platform=editmode --scripting-backend=IL2CPP --suite=editor --testfilter=Build --testproject=./TestProjects/HDRP_PerformanceTests --timeout=14400 --zero-tests-are-ok=1
+      -  command: NetSh Advfirewall set allprofiles state off
+      -  command: curl -s https://artifactory.prd.it.unity3d.com/artifactory/unity-tools-local/utr-standalone/utr.bat --output utr.bat
+         retries: 2
+      -  command: choco install unity-downloader-cli -y -s https://artifactory.prd.it.unity3d.com/artifactory/api/nuget/unity-choco-local
+         retries: 2
+      -  command: unity-downloader-cli --source-file unity_revision.txt -c editor -c il2cpp  --wait --published-only
+         retries: 2
+      -  command: git checkout %GIT_BRANCH%
+      -  command: utr --artifacts_path=TestProjects/HDRP_PerformanceTests/test-results --editor-location=.Editor --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-force-d3d11" --loglevel=verbose --performance-project-version=. --report-performance-data --performance-project-id=HDRP --platform=StandaloneWindows64 --scripting-backend=IL2CPP --suite=playmode --testfilter=Memory --testproject=./TestProjects/HDRP_PerformanceTests --timeout=7200 --zero-tests-are-ok=1
+         retries: 2
     artifacts:
         logs:
             paths:
