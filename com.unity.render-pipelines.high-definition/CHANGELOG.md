@@ -226,6 +226,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed VfX lit particle AOV output color space.
 - Fixed path traced transparent unlit material (case 1335500).
 - Fixed support of Distortion with MSAA
+- Fixed contact shadow debug views not displaying correctly upon resizing of view.
 
 ### Changed
 - Changed Window/Render Pipeline/HD Render Pipeline Wizard to Window/Rendering/HDRP Wizard
