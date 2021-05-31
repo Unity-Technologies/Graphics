@@ -61,7 +61,7 @@ namespace UnityEngine.Experimental.Rendering
     }
 
     [InitializeOnLoad]
-    class ProbeGIBaking
+    partial class ProbeGIBaking
     {
         static bool m_IsInit = false;
         static BakingBatch m_BakingBatch;
