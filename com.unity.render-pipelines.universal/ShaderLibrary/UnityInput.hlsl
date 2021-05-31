@@ -99,6 +99,8 @@ float4x4 unity_CameraToWorld;
 // ----------------------------------------------------------------------------
 
 // Block Layout should be respected due to SRP Batcher
+#define unity_PrevObjectToWorld unity_MatrixPreviousM   // for renaming unity_MatrixPreviousM => unity_PrevObjectToWorld
+#define unity_PrevWorldToObject unity_MatrixPreviousMI  // for renaming unity_MatrixPreviousMI => unity_PrevWorldToObject
 CBUFFER_START(UnityPerDraw)
 // Space block Feature
 float4x4 unity_ObjectToWorld;
