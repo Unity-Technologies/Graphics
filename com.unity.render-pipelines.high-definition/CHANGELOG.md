@@ -220,6 +220,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed for wrong cached area light initialization.
 - Fixed unexpected rendering of 2D cookies when switching from Spot to Point light type (case 1333947).
 - Fixed the fallback to custom went changing a quality settings not workings properly (case 1338657).
+- Fixed incorrect RTHandle scale in DoF when TAA is enabled.
 
 ### Changed
 - Changed Window/Render Pipeline/HD Render Pipeline Wizard to Window/Rendering/HDRP Wizard

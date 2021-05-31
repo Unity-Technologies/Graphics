@@ -83,14 +83,14 @@ namespace UnityEngine.Rendering.HighDefinition
         private class PostProcessTextureAllocator
         {
             private String m_Name;
-            private Vector2Int m_Size;
+            private Vector2 m_Scale;
             private bool m_EnableMips = false;
             private bool m_UseDynamicScale = false;
 
             public String name { set { m_Name = value; } }
             public bool enableMips { set { m_EnableMips = value; } }
             public bool useDynamicScale { set { m_UseDynamicScale = value; } }
-            public Vector2Int size { set { m_Size = value; } }
+            public Vector2 scale { set { m_Scale = value; } }
 
             public Func<string, int, RTHandleSystem, RTHandle> allocatorFunction;
 
@@ -99,7 +99,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 allocatorFunction = (string id, int frameIndex, RTHandleSystem rtHandleSystem) =>
                 {
                     return rtHandleSystem.Alloc(
-                        m_Size.x, m_Size.y, TextureXR.slices, DepthBits.None, GraphicsFormat.R16_SFloat,
+                        m_Scale, TextureXR.slices, DepthBits.None, GraphicsFormat.R16_SFloat,
                         dimension: TextureXR.dimension, enableRandomWrite: true, useMipMap: m_EnableMips, useDynamicScale: m_UseDynamicScale, name: $"{id} {m_Name}"
                     );
                 };
@@ -2377,7 +2377,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 if (next != null)
                     camera.ReleaseHistoryFrameRT((int)HDCameraFrameHistoryType.DepthOfFieldCoC);
 
-                m_PostProcessTextureAllocator.size = Vector2Int.CeilToInt(new Vector2(camera.postProcessScreenSize.x, camera.postProcessScreenSize.y));
+                m_PostProcessTextureAllocator.scale = new Vector2(camera.postProcessScreenSize.x / camera.screenSize.x, camera.postProcessScreenSize.y / camera.screenSize.y);
                 m_PostProcessTextureAllocator.enableMips = useMips;
                 m_PostProcessTextureAllocator.useDynamicScale = resGroup == ResolutionGroup.BeforeDynamicResUpscale;
                 m_PostProcessTextureAllocator.name = $"CoC History";
