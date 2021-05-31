@@ -28,6 +28,8 @@ Nightly_trunk:
          rerun: on_new_revision
       -  path: .yamato/all-shadergraph.yml#Nightly_ShaderGraph_trunk
          rerun: on_new_revision
+      -  path: .yamato/_abv.yml#General_Checks_trunk
+         rerun: on_new_revision
 General_Checks_trunk:
     name: General Checks on trunk
     variables:
@@ -94,6 +96,8 @@ Nightly_CUSTOM-REVISION:
       -  path: .yamato/all-urp.yml#Nightly_URP_CUSTOM-REVISION
          rerun: on_new_revision
       -  path: .yamato/all-shadergraph.yml#Nightly_ShaderGraph_CUSTOM-REVISION
+         rerun: on_new_revision
+      -  path: .yamato/_abv.yml#General_Checks_CUSTOM-REVISION
          rerun: on_new_revision
 General_Checks_CUSTOM-REVISION:
     name: General Checks on CUSTOM-REVISION

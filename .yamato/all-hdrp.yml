@@ -25,6 +25,8 @@ PR_HDRP_trunk:
          rerun: on_new_revision
       -  path: .yamato/all-vfx_hdrp.yml#PR_VFX_HDRP_trunk
          rerun: on_new_revision
+      -  path: .yamato/_abv.yml#General_Checks_trunk
+         rerun: on_new_revision
 Extra_HDRP_trunk:
     name: Extra HDRP on trunk
     variables:
@@ -102,6 +104,8 @@ PR_HDRP_CUSTOM-REVISION:
       -  path: .yamato/all-hdrp_hybrid.yml#PR_HDRP_Hybrid_CUSTOM-REVISION
          rerun: on_new_revision
       -  path: .yamato/all-vfx_hdrp.yml#PR_VFX_HDRP_CUSTOM-REVISION
+         rerun: on_new_revision
+      -  path: .yamato/_abv.yml#General_Checks_CUSTOM-REVISION
          rerun: on_new_revision
 Extra_HDRP_CUSTOM-REVISION:
     name: Extra HDRP on CUSTOM-REVISION

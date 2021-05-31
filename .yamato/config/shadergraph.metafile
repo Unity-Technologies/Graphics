@@ -125,6 +125,7 @@ jobs:
         test_platforms:
           - Standalone_cache
       - .yamato/all-shadergraph_stereo.yml#PR_ShaderGraph_Stereo_<TRACK>
+      - .yamato/_abv.yml#General_Checks_<TRACK>
   - name: Extra <PROJECT_NAME>
     dependencies:
       - platform: Win

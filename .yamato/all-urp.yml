@@ -29,6 +29,8 @@ PR_URP_trunk:
          rerun: on_new_revision
       -  path: .yamato/all-vfx_urp.yml#PR_VFX_URP_trunk
          rerun: on_new_revision
+      -  path: .yamato/_abv.yml#General_Checks_trunk
+         rerun: on_new_revision
 Extra_URP_trunk:
     name: Extra URP on trunk
     variables:
@@ -84,6 +86,8 @@ PR_URP_CUSTOM-REVISION:
       -  path: .yamato/all-shadergraph.yml#PR_ShaderGraph_CUSTOM-REVISION
          rerun: on_new_revision
       -  path: .yamato/all-vfx_urp.yml#PR_VFX_URP_CUSTOM-REVISION
+         rerun: on_new_revision
+      -  path: .yamato/_abv.yml#General_Checks_CUSTOM-REVISION
          rerun: on_new_revision
 Extra_URP_CUSTOM-REVISION:
     name: Extra URP on CUSTOM-REVISION

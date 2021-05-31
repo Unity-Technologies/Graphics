@@ -21,6 +21,8 @@ PR_ShaderGraph_trunk:
          rerun: on_new_revision
       -  path: .yamato/all-shadergraph_stereo.yml#PR_ShaderGraph_Stereo_trunk
          rerun: on_new_revision
+      -  path: .yamato/_abv.yml#General_Checks_trunk
+         rerun: on_new_revision
 Extra_ShaderGraph_trunk:
     name: Extra ShaderGraph on trunk
     variables:
@@ -78,6 +80,8 @@ PR_ShaderGraph_CUSTOM-REVISION:
       -  path: .yamato/shadergraph-win-dx11.yml#ShaderGraph_Win_DX11_Standalone_cache_mono_Linear_CUSTOM-REVISION
          rerun: on_new_revision
       -  path: .yamato/all-shadergraph_stereo.yml#PR_ShaderGraph_Stereo_CUSTOM-REVISION
+         rerun: on_new_revision
+      -  path: .yamato/_abv.yml#General_Checks_CUSTOM-REVISION
          rerun: on_new_revision
 Extra_ShaderGraph_CUSTOM-REVISION:
     name: Extra ShaderGraph on CUSTOM-REVISION

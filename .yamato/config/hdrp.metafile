@@ -112,7 +112,7 @@ jobs:
       - .yamato/all-hdrp_dxr.yml#PR_HDRP_DXR_<TRACK>
       - .yamato/all-hdrp_hybrid.yml#PR_HDRP_Hybrid_<TRACK>
       - .yamato/all-vfx_hdrp.yml#PR_VFX_HDRP_<TRACK>
-
+      - .yamato/_abv.yml#General_Checks_<TRACK>
   - name: Extra <PROJECT_NAME>
     dependencies:
       - platform: Win
@@ -181,7 +181,6 @@ jobs:
     dependencies:
       - <PROJECT_ALL_YML_FILE>#PR_<PROJECT_NAME>_<TRACK>
       - <PROJECT_ALL_YML_FILE>#Extra_<PROJECT_NAME>_<TRACK>
-
   - name: Nightly <PROJECT_NAME>
     dependencies:
       - .yamato/all-hdrp_performancetests.yml#HDRP_PerformanceTests_<TRACK>

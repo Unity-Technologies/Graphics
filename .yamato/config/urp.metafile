@@ -12,6 +12,7 @@ jobs:
       - .yamato/all-urpupdate.yml#PR_URPUpdate_<TRACK>
       - .yamato/all-shadergraph.yml#PR_ShaderGraph_<TRACK>
       - .yamato/all-vfx_urp.yml#PR_VFX_URP_<TRACK>
+      - .yamato/_abv.yml#General_Checks_<TRACK>
   - name: Extra <PROJECT_NAME>
     dependencies:
       - .yamato/all-universal_split.yml#Extra_Universal_Split_<TRACK>

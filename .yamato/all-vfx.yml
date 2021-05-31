@@ -21,6 +21,8 @@ PR_VFX_trunk:
          rerun: on_new_revision
       -  path: .yamato/all-vfx_urp.yml#PR_VFX_URP_trunk
          rerun: on_new_revision
+      -  path: .yamato/_abv.yml#General_Checks_trunk
+         rerun: on_new_revision
 Extra_VFX_trunk:
     name: Extra VFX on trunk
     variables:
@@ -62,6 +64,8 @@ PR_VFX_CUSTOM-REVISION:
       -  path: .yamato/all-vfx_hdrp.yml#PR_VFX_HDRP_CUSTOM-REVISION
          rerun: on_new_revision
       -  path: .yamato/all-vfx_urp.yml#PR_VFX_URP_CUSTOM-REVISION
+         rerun: on_new_revision
+      -  path: .yamato/_abv.yml#General_Checks_CUSTOM-REVISION
          rerun: on_new_revision
 Extra_VFX_CUSTOM-REVISION:
     name: Extra VFX on CUSTOM-REVISION
