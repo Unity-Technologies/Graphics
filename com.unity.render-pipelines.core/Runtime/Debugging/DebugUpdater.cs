@@ -48,12 +48,24 @@ namespace UnityEngine.Rendering
                 }
 
                 go.SetActive(true);
-                EnhancedTouchSupport.Enable();
 #else
                 go.AddComponent<StandaloneInputModule>();
 #endif
             }
+            else
+            {
+#if USE_INPUT_SYSTEM
+                if (es.GetComponent<InputSystemUIInputModule>() == null)
+                    Debug.LogWarning("Found a game object with EventSystem component but no corresponding InputSystemUIInputModule component - Debug UI input may not work correctly.");
+#else
+                if (es.GetComponent<StandaloneInputModule>() == null)
+                    Debug.LogWarning("Found a game object with EventSystem component but no corresponding StandaloneInputModule component - Debug UI input may not work correctly.");
+#endif
+            }
 
+#if USE_INPUT_SYSTEM
+            EnhancedTouchSupport.Enable();
+#endif
             debugUpdater.m_Orientation = Screen.orientation;
 
             DontDestroyOnLoad(go);
