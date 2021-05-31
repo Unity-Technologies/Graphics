@@ -25,7 +25,7 @@ CBUFFER_START(ShaderVariablesClouds)
     float4 _SunDirection;
     int _PhysicallyBasedSun;
     float _MultiScattering;
-    float _Padding0;
+    float _ErosionOcclusion;
     float _PowderEffectIntensity;
     float _NormalizationFactor;
     float _MaxCloudDistance;
