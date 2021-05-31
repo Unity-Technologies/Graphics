@@ -1,6 +1,0 @@
-<UXML xmlns:ui="UnityEngine.UIElements">
-    <ui:VisualElement name="mainContainer">
-        <ui:VisualElement name="contentContainer">
-        </ui:VisualElement>
-    </ui:VisualElement>
-</UXML>

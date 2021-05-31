@@ -1,5 +1,0 @@
-{
-        "displayName" : "OutputEvent Helpers",
-        "description" : "Additional Helper Scripts that intercept Output Events and interact with Game Objects",
-        "createSeparatePackage": false
-}
