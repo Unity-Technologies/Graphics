@@ -134,6 +134,33 @@ void Frag(PackedVaryingsToPS packedInput,
     BSDFData bsdfData = ConvertSurfaceDataToBSDFData(input.positionSS.xy, surfaceData);
 
     PreLightData preLightData = GetPreLightData(V, posInput, bsdfData);
+#if HAS_REFRACTION
+    preLightData.refractionEnvDataToUse = -1;
+
+    if (_EnableSSRefraction > 0)
+    {
+        float4x4 modelMat = GetObjectToWorldMatrix();
+        float3 objPos = modelMat._m03_m13_m23;
+        float4 posClip = TransformWorldToHClip(objPos);
+        posClip.xyz = posClip.xyz / posClip.w;
+
+        uint2 tileObj = (saturate(posClip.xy * 0.5f + 0.5f) * _ScreenSize.xy) / GetTileSize();
+
+        uint envLightStart, envLightCount;
+
+        // Fetch first env light to provide the scene proxy for screen space computation
+        PositionInputs localInput;
+        ZERO_INITIALIZE(PositionInputs, localInput);
+
+        localInput.tileCoord = tileObj.xy;
+        localInput.linearDepth = posClip.w;
+
+        GetCountAndStart(localInput, LIGHTCATEGORY_ENV, envLightStart, envLightCount);
+        if (envLightCount > 0)
+            preLightData.refractionEnvDataToUse = FetchIndex(envLightStart, 0);
+    }
+
+#endif
 
     outColor = float4(0.0, 0.0, 0.0, 0.0);
 
