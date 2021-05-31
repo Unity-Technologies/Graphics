@@ -195,6 +195,22 @@ namespace UnityEditor.VFX.HDRP
             return simplifiedAngleFade;
         }
 
+        public override void OnSettingModified(VFXSetting setting)
+        {
+            base.OnSettingModified(setting);
+            if (setting.name == "affectBaseColor")
+            {
+                if (!affectBaseColor)
+                {
+                    useBaseColorMap = BaseColorMapMode.Alpha;
+                }
+                else
+                {
+                    useBaseColorMap = BaseColorMapMode.ColorAndAlpha;
+                }
+            }
+        }
+
         protected override IEnumerable<string> filteredOutSettings
         {
             get
@@ -213,6 +229,8 @@ namespace UnityEditor.VFX.HDRP
 
                 if (!enableDecalLayers)
                     yield return "decalLayer";
+                if (!affectBaseColor)
+                    yield return "useBaseColorMap";
             }
         }
 
