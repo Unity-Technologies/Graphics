@@ -24,6 +24,12 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed contact shadows tile coordinates calculations.
 - Fixed blocky looking bloom when dynamic resolution scaling was used.
 
+### Fixed
+
+- Fix for wrong cached area light initialization.
+
+
+
 ## [10.5.0] - 2021-04-19
 
 ### Added
@@ -76,7 +82,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Changed ray tracing acceleration structure build, so that only meshes with HDRP materials are included (case 1322365).
 - Default black texture XR is now opaque (alpha = 1).
 - Changed default sidedness to double, when a mesh with a mix of single and double-sided materials is added to the ray tracing acceleration structure (case 1323451).
- 
+
 ## [10.4.0] - 2021-03-11
 
 ### Added
