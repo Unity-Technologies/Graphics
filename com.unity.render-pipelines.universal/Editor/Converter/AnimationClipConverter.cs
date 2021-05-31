@@ -58,8 +58,6 @@ namespace UnityEditor.Rendering.Universal
                     clipSceneDependents, sceneDependencies, clipData, allUpgradePathsToNewShaders, default, default);
             }
 
-            SerializedShaderPropertyUsage filterFlags = ~(SerializedShaderPropertyUsage.UsedByUpgraded |
-                SerializedShaderPropertyUsage.UsedByNonUpgraded);
             foreach (var cd in clipData)
             {
                 var item = new ConverterItemDescriptor()
@@ -67,71 +65,26 @@ namespace UnityEditor.Rendering.Universal
                     name = cd.Key.Clip.name, // We should add name property to IAnimationClip
                     info = cd.Value.Path,
                 };
-                if ((cd.Value.Usage & filterFlags) == filterFlags)
-                {
-                    item.warningMessage = cd.Value.Usage.ToString();
-                }
-                m_AssetsToConvert.Add(cd.Value.Path);
+                // Can make this a bit better with a warning if pre populate list of materials
+                // And check cd.value.usage
+                m_AssetsToConvert.Add($"{cd.Value.Path}|{cd.Key.Clip.name}");
+
                 ctx.AddAssetToConvert(item);
             }
 
-            //Debug.Log("Init Animation Clip");
             callback.Invoke();
         }
 
         public override void OnRun(ref RunItemContext ctx)
         {
-            Debug.Log("Running Animation clip");
+            //convert(m_AssetsToConvert[ctx.item.index])
         }
 
         public override void OnClicked(int index)
         {
-            EditorGUIUtility.PingObject(AssetDatabase.LoadAssetAtPath<AnimationClip>(m_AssetsToConvert[index]));
+            string[] tokenizedString = m_AssetsToConvert[index].Split('|');
+            var clips = AssetDatabase.LoadAllAssetsAtPath(tokenizedString[0]).Where(o => o is AnimationClip).Select(o => o as AnimationClip).ToList();
+            EditorGUIUtility.PingObject(clips.Find(o => o.name == tokenizedString[1]));
         }
-
-        // public override void OnPostRun(ConverterState converterState, List<ConverterItemDescriptor> itemsToConvert)
-        // {
-        //     //var matUpgraders = new List<MaterialUpgrader>();
-        //     //UniversalRenderPipelineMaterialUpgrader urpUpgrader = new UniversalRenderPipelineMaterialUpgrader();
-        //     //matUpgraders = urpUpgrader.upgraders;
-        //
-        //     //AnimationClipUpgrader.DoUpgradeAllClipsMenuItem(matUpgraders, "Upgrade Animation Clips to URP Materials");
-        //
-        //     // Create a list here with all our data
-        //     // Populate that into items
-        //     // The Converter need to know the items it supposed to show
-        //     converterState.items = new List<ConverterItemState>();
-        //
-        //     for (int i = 0; i < 15; i++)
-        //     {
-        //         itemsToConvert.Add(new ConverterItemDescriptor
-        //         {
-        //             name = "Muppet : 12345678910111213141516171819 ::  " + i,
-        //             info = "",
-        //             warningMessage = "",
-        //             helpLink = "",
-        //         });
-        //
-        //         Status status;
-        //         string msg;
-        //         status = i % 2 == 0 ? Status.Success : Status.Error;
-        //         msg = i % 2 == 0 ? "Status.Success" : "Status.Error";
-        //         converterState.items.Add(new ConverterItemState
-        //         {
-        //             isActive = true,
-        //             message = msg,
-        //             status = status,
-        //             hasConverted = true,
-        //         });
-        //         if (status == Status.Success)
-        //         {
-        //             converterState.success++;
-        //         }
-        //         else
-        //         {
-        //             converterState.errors++;
-        //         }
-        //     }
-        // }
     }
 }
