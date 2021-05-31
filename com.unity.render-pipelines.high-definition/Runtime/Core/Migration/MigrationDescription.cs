@@ -26,6 +26,7 @@ namespace UnityEngine.Rendering.HighDefinition
     }
 
     // Moving the example here as it seems to not be parsed correctly by the doc validation tool...
+    //
     // <example>
     // <code>
     //
@@ -33,6 +34,7 @@ namespace UnityEngine.Rendering.HighDefinition
     // {
     //     enum Version
     //     {
+    //         NeverMigrated,
     //         First,
     //         Second
     //     }
@@ -60,6 +62,14 @@ namespace UnityEngine.Rendering.HighDefinition
     // }
     // </code>
     // </example>
+    //
+    // About the NeverMigrated entry:
+    // When using this generic versionable framework, it is better to use 0 as a place holder to detect a never migrated version
+    // (and thus a step never to be executed for that enum entry) instead of eg -1 because underlying enum values are ordered as unsigned and
+    // MigrationDescription.LastVersion<Version>() will not work properly - ie it can return -1 if this "-1" value exist in the enum, instead
+    // of other positive values that are intended to be more recent migration steps.
+    // (The enum symbol with -1 will be listed as the last enum values in UnityEngine.Rendering.HighDefinition.TypeInfo.GetEnumLastValue<T>())
+
 
     /// <summary>Describe migration steps to perform when upgrading from one version of an object to another.</summary>
     /// <typeparam name="TVersion">An enum identifying the version.</typeparam>

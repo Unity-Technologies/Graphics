@@ -52,6 +52,8 @@ Nightly_HDRP_trunk:
          rerun: on_new_revision
       -  path: .yamato/hdrp-win-dx12.yml#HDRP_Win_DX12_playmode_XR_cache_mono_Linear_trunk
          rerun: on_new_revision
+      -  path: .yamato/hdrp-win-dx12.yml#HDRP_Win_DX12_editmode_XR_mono_Linear_trunk
+         rerun: on_new_revision
       -  path: .yamato/hdrp-win-vulkan.yml#HDRP_Win_Vulkan_Standalone_cache_mono_Linear_trunk
          rerun: on_new_revision
       -  path: .yamato/hdrp-win-vulkan.yml#HDRP_Win_Vulkan_playmode_XR_cache_mono_Linear_trunk
@@ -107,6 +109,8 @@ Nightly_HDRP_CUSTOM-REVISION:
       -  path: .yamato/hdrp-win-dx12.yml#HDRP_Win_DX12_Standalone_cache_mono_Linear_CUSTOM-REVISION
          rerun: on_new_revision
       -  path: .yamato/hdrp-win-dx12.yml#HDRP_Win_DX12_playmode_XR_cache_mono_Linear_CUSTOM-REVISION
+         rerun: on_new_revision
+      -  path: .yamato/hdrp-win-dx12.yml#HDRP_Win_DX12_editmode_XR_mono_Linear_CUSTOM-REVISION
          rerun: on_new_revision
       -  path: .yamato/hdrp-win-vulkan.yml#HDRP_Win_Vulkan_Standalone_cache_mono_Linear_CUSTOM-REVISION
          rerun: on_new_revision

@@ -166,9 +166,36 @@ namespace UnityEditor.VFX
                                 }
                             } //else sourceExpression is null, we can't determine usage but it's possible if value is declared but not used.
                             break;
+
+                        case VFXValueType.Buffer:
+                        {
+                            //Save expression usage for later HLSL shader generation
+                            if (targetExpression is VFXExpressionSampleBuffer)
+                            {
+                                var sampledType = (targetExpression as VFXExpressionSampleBuffer).GetSampledType();
+                                if (!m_GraphicsBufferUsageType.TryGetValue(input, out var registeredType))
+                                {
+                                    m_GraphicsBufferUsageType.Add(input, sampledType);
+                                }
+                                else if (registeredType != sampledType)
+                                {
+                                    throw new InvalidOperationException(string.Format("Diverging type usage for GraphicsBuffer : {0}, {1}", registeredType, sampledType));
+                                }
+                            }
+                        }
+                        break;
+
                         default:
                             //Nothing to patch on this type
                             break;
+                    }
+
+                    if (input.valueType == VFXValueType.Buffer && targetExpression is VFXExpressionSampleBuffer)
+                    {
+                        if (!m_GraphicsBufferUsageType.ContainsKey(input))
+                        {
+                            m_GraphicsBufferUsageType.Add(input, (targetExpression as VFXExpressionSampleBuffer).GetSampledType());
+                        }
                     }
                 }
 
@@ -230,6 +257,7 @@ namespace UnityEditor.VFX
             public void Invalidate()
             {
                 m_ReducedCache.Clear();
+                m_GraphicsBufferUsageType.Clear();
             }
 
             public void Invalidate(VFXExpression expression)
@@ -265,8 +293,11 @@ namespace UnityEditor.VFX
 
             public ReadOnlyCollection<VFXExpression> RegisteredExpressions { get { return m_EndExpressions.ToList().AsReadOnly(); } }
 
+            public IEnumerable<KeyValuePair<VFXExpression, Type>> GraphicsBufferUsageType { get { return m_GraphicsBufferUsageType; } }
+
             private Dictionary<VFXExpression, VFXExpression> m_ReducedCache = new Dictionary<VFXExpression, VFXExpression>();
             private HashSet<VFXExpression> m_EndExpressions = new HashSet<VFXExpression>();
+            private Dictionary<VFXExpression, Type> m_GraphicsBufferUsageType = new Dictionary<VFXExpression, Type>();
 
             private IEnumerable<VFXLayoutElementDesc> m_GlobalEventAttribute;
             private VFXExpressionContextOption m_ReductionOptions;

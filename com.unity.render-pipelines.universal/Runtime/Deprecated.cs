@@ -46,6 +46,16 @@ namespace UnityEngine.Rendering.Universal
         {
             throw new NotSupportedException(k_ErrorMessage);
         }
+
+        internal override void SwapColorBuffer(CommandBuffer cmd)
+        {
+            throw new NotSupportedException(k_ErrorMessage);
+        }
+
+        internal override RenderTargetIdentifier GetCameraColorFrontBuffer(CommandBuffer cmd)
+        {
+            throw new NotImplementedException();
+        }
     }
 
     namespace Internal

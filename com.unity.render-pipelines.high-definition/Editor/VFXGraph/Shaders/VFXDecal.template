@@ -14,22 +14,23 @@ void VFXGetSurfaceDecalData(out DecalSurfaceData surfaceData, VFX_VARYING_PS_INP
 	ZERO_INITIALIZE(DecalSurfaceData, surfaceData);
 	VFXTransformPSInputs(i);
 
+${VFXLoadParameter:{enableDecalLayers}}
+${VFXLoadParameter:{decalLayerMask}}
+
+DecalPrepassData material;
+ZERO_INITIALIZE(DecalPrepassData, material);
 //Check light layer
-#if VFX_ENABLE_DECAL_LAYERS
-	DecalPrepassData material;
-    ZERO_INITIALIZE(DecalPrepassData, material);
+if(_EnableDecalLayers)
+{
 	// Clip the decal if it does not pass the decal layer mask of the receiving material.
 	// Decal layer of the decal
-	uint decalLayerMask = i.VFX_VARYING_DECALLAYER; //TODO : Does it really need to be a Varying ? Can't I use VFXLoadParameter here ?
-
 	DecodeFromDecalPrepass(i.pos.xy, material);
 
 	if ((decalLayerMask & material.decalLayerMask) == 0)
 	{
 		clip(-1);
 	}
-
-#endif
+}
 
 	float3 clipPos;
 	clipPos.xy = (i.pos.xy / _ScreenParams.xy) * 2.0f - 1.0f;
@@ -72,7 +73,9 @@ void VFXGetSurfaceDecalData(out DecalSurfaceData surfaceData, VFX_VARYING_PS_INP
 	float3x3 worldToElement = mul((float3x3)viewToElement, VFXGetWorldToViewRotMatrix()); //Transposed//TODO: Won't be correct for non-uniform scalings
 	worldToElement[2] *= -1.0f; //Z points TOWARDS the surface, so we need to revert it
 
-#if VFX_ENABLE_DECAL_LAYERS
+//#if VFX_ENABLE_DECAL_LAYERS
+if(_EnableDecalLayers)
+{
 	if (i.VFX_VARYING_ANGLEFADE.y < 0.0f) // if angle fade is enabled
 	{
 		float3 decalNormal = normalize(worldToElement[2].xyz);
@@ -80,7 +83,8 @@ void VFXGetSurfaceDecalData(out DecalSurfaceData surfaceData, VFX_VARYING_PS_INP
 		// See equation in DecalSystem.cs - simplified to a madd mul add here
 		angleFadeFactor = saturate(i.VFX_VARYING_ANGLEFADE.x + i.VFX_VARYING_ANGLEFADE.y * (dotAngle * (dotAngle - 2.0f)));
 	}
-#endif
+}
+//#endif
 	float fadeFactor = i.VFX_VARYING_FADEFACTOR;
 	fadeFactor *= angleFadeFactor;
 	#if SHADERPASS == SHADERPASS_VFX_DBUFFER_PROJECTOR
@@ -113,18 +117,38 @@ void VFXGetSurfaceDecalData(out DecalSurfaceData surfaceData, VFX_VARYING_PS_INP
 	float albedoMapBlend = surfaceData.baseColor.a;
 	float maskMapBlend = fadeFactor;
 
-    #if HDRP_USE_MASK_MAP
+    float metallic = 0.0f;
+    float smoothness = 0.5f;
+    float ao = 0.0f;
+#ifdef VFX_VARYING_METALLIC
+    metallic = i.VFX_VARYING_METALLIC;
+#endif
+#ifdef VFX_VARYING_SMOOTHNESS
+    smoothness = i.VFX_VARYING_SMOOTHNESS;
+#endif
+#ifdef VFX_VARYING_AMBIENT_OCCLUSION
+    ao = i.VFX_VARYING_AMBIENT_OCCLUSION;
+#endif
+
+#if HDRP_USE_MASK_MAP
     float4 mask = SampleTexture(VFX_SAMPLER(maskMap), uvData);
+    mask.xyz *= float3(metallic, ao, smoothness);
+
 	surfaceData.mask = mask;
 	surfaceData.mask.z = surfaceData.mask.w;
 	maskMapBlend = mask.z * fadeFactor;
-	#if VFX_MASK_BLEND_BASE_COLOR_ALPHA
-	surfaceData.mask.w = albedoMapBlend;
-	#elif VFX_MASK_BLEND_MASK_BLUE // TODO : Careful, not the only two cases, e.g. when using opacity
-	surfaceData.mask.w = maskMapBlend;
-	#endif
 
-    #endif
+
+#else //HDRP_USE_MASK_MAP
+    surfaceData.mask.xyz = float3(metallic, ao, smoothness);
+#endif
+
+#if VFX_MASK_BLEND_BASE_COLOR_ALPHA
+	surfaceData.mask.w = albedoMapBlend;
+#elif VFX_MASK_BLEND_MASK_BLUE // TODO : Careful, not the only two cases, e.g. when using opacity
+	surfaceData.mask.w = maskMapBlend;
+#endif
+
 
 	#if USE_NORMAL_MAP
 	float3 normalTS = SampleNormalMap(VFX_SAMPLER(normalMap),uvData);

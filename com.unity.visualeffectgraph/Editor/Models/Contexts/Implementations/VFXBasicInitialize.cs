@@ -34,6 +34,8 @@ namespace UnityEditor.VFX
 
         private bool hasGPUSpawner => inputContexts.Any(o => o.contextType == VFXContextType.SpawnerGPU);
 
+        private bool hasDynamicSourceCount => GetData() != null ? ((VFXDataParticle)GetData()).hasDynamicSourceCount : false;
+
         public override IEnumerable<string> additionalDefines
         {
             get
@@ -41,8 +43,13 @@ namespace UnityEditor.VFX
                 if (hasGPUSpawner)
                     yield return "VFX_USE_SPAWNER_FROM_GPU";
 
+                if (hasDynamicSourceCount)
+                    yield return "VFX_USE_DYNAMIC_SOURCE_COUNT";
+
                 if (ownedType == VFXDataType.ParticleStrip)
                     yield return "HAS_STRIPS";
+
+                yield return "VFX_STATIC_SOURCE_COUNT (" + GetData().staticSourceCount + ")";
             }
         }
 
@@ -83,7 +90,8 @@ namespace UnityEditor.VFX
             if ((uint)capacitySetting.value > 1000000)
                 manager.RegisterError("CapacityOver1M", VFXErrorType.PerfWarning, "Systems with large capacities can be slow to simulate");
             var data = GetData() as VFXDataParticle;
-            if (data != null && data.boundsSettingMode == BoundsSettingMode.Recorded)
+            if (data != null && data.boundsSettingMode == BoundsSettingMode.Recorded
+                && CanBeCompiled())
             {
                 if (VFXViewWindow.currentWindow?.graphView?.attachedComponent == null ||
                     !BoardPreferenceHelper.IsVisible(BoardPreferenceHelper.Board.componentBoard, false))
@@ -132,6 +140,15 @@ namespace UnityEditor.VFX
                 if (ownedType == VFXDataType.ParticleStrip && !hasGPUSpawner)
                     prop = prop.Concat(PropertiesFromType("StripInputProperties"));
                 return prop;
+            }
+        }
+
+        public override IEnumerable<VFXAttributeInfo> attributes
+        {
+            get
+            {
+                foreach (var attribute in base.attributes)
+                    yield return attribute;
             }
         }
 

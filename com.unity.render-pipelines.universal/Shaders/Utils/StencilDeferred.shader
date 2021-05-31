@@ -133,21 +133,20 @@ Shader "Hidden/Universal Render Pipeline/StencilDeferred"
     FRAMEBUFFER_INPUT_HALF(GBUFFER1);
     FRAMEBUFFER_INPUT_HALF(GBUFFER2);
     FRAMEBUFFER_INPUT_FLOAT(GBUFFER3);
-
-    #ifdef GBUFFER_OPTIONAL_SLOT_1
-    TEXTURE2D_X_HALF(_GBuffer5);
-    #endif
-    #ifdef GBUFFER_OPTIONAL_SLOT_2
-    TEXTURE2D_X(_GBuffer6);
-    #endif
 #else
     #ifdef GBUFFER_OPTIONAL_SLOT_1
     TEXTURE2D_X_HALF(_GBuffer4);
     #endif
-    #ifdef GBUFFER_OPTIONAL_SLOT_2
+#endif
+
+    #if defined(GBUFFER_OPTIONAL_SLOT_2) && _RENDER_PASS_ENABLED
+    TEXTURE2D_X_HALF(_GBuffer5);
+    #elif defined(GBUFFER_OPTIONAL_SLOT_2)
     TEXTURE2D_X(_GBuffer5);
     #endif
-#endif
+    #ifdef GBUFFER_OPTIONAL_SLOT_3
+    TEXTURE2D_X(_GBuffer6);
+    #endif
 
     float4x4 _ScreenToWorld[2];
     SamplerState my_point_clamp_sampler;

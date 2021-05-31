@@ -1,6 +1,6 @@
 # Decal Shader Graph
 
-The Decal Shader Graph material type enables you to author decals that you can [project](Decal-Projector.md) or place into your Scene.
+If you assign the Decal Shader Graph to a Material, the [Decal Projector](renderer-feature-decal.md#decal-projector-component) component can project such Material as a decal onto meshes in a Scene.
 
 ### Advanced Options
 

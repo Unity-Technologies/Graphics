@@ -72,7 +72,7 @@ namespace UnityEngine.Rendering.Universal
     {
         /// <summary>
         /// Universal Render Pipeline exposes additional rendering data in a separate component.
-        /// This method returns the additional data component for the given camera or create one if it doesn't exists yet.
+        /// This method returns the additional data component for the given camera or create one if it doesn't exist yet.
         /// </summary>
         /// <param name="camera"></param>
         /// <returns>The <c>UniversalAdditionalCameraData</c> for this camera.</returns>

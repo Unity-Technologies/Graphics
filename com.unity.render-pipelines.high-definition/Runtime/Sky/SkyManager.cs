@@ -930,9 +930,6 @@ namespace UnityEngine.Rendering.HighDefinition
         public bool TryGetCloudSettings(HDCamera hdCamera, out CloudSettings cloudSettings, out CloudRenderer cloudRenderer)
         {
             var skyContext = hdCamera.visualSky;
-            //SkyAmbientMode ambientMode = hdCamera.volumeStack.GetComponent<VisualEnvironment>().skyAmbientMode.value;
-            //int skyHash = ComputeSkyHash(hdCamera, skyContext, sunLight, ambientMode);
-            //AcquireSkyRenderingContext(skyContext, skyHash);
             cloudSettings = skyContext.cloudSettings;
             cloudRenderer = skyContext.cloudRenderer;
             return skyContext.HasClouds();
