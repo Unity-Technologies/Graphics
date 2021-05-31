@@ -30,7 +30,6 @@ public class MoveCameraOnAwake : MonoBehaviour
     {
         for (int i = 0; i < WaitFrames; i++)
         {
-            Debug.Log("Waiting! " + i);
             yield return new WaitForEndOfFrame();
         }
 
