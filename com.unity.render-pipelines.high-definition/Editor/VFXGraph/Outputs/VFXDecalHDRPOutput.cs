@@ -19,7 +19,6 @@ namespace UnityEditor.VFX.HDRP
             base.OnEnable();
             blendMode = BlendMode.Opaque;
             useNormalScale = false;
-            // AssetDatabase.RegisterCustomDependency("HDRPSetting/supportDecalLayers", Hash128.Compute());
         }
 
         public override IEnumerable<VFXAttributeInfo> attributes
@@ -175,14 +174,11 @@ namespace UnityEditor.VFX.HDRP
                 if(affectSmoothness)
                     yield return slotExpressions.First(o => o.name == "smoothness");
 
-                // if(enableDecalLayers)
-                // {
-                    var angleFadeExp = slotExpressions.First(o => o.name == "angleFade");
-                    yield return new VFXNamedExpression(AngleFadeSimplification(angleFadeExp.exp), "angleFade");
-                    yield return new VFXNamedExpression(VFXValue.Constant((uint)decalLayer), "decalLayerMask");
-                // }
-                // yield return new VFXNamedExpression(VFXValue.Constant(enableDecalLayers), "enableDecalLayers");
-                yield return new VFXNamedExpression(new VFXValue<uint>(enableDecalLayers ? 1u : 0u, VFXValue.Mode.Variable), "enableDecalLayers");
+
+                var angleFadeExp = slotExpressions.First(o => o.name == "angleFade");
+                yield return new VFXNamedExpression(AngleFadeSimplification(angleFadeExp.exp), "angleFade");
+                yield return new VFXNamedExpression(VFXValue.Constant((uint)decalLayer), "decalLayerMask");
+
 
             }
         }
@@ -267,7 +263,6 @@ namespace UnityEditor.VFX.HDRP
                     rs.Write(useNormalMap ? "RGBA" : "0"); break;
                 case 2:
                 {
-                    ColorWriteMask mask2 = 0;
                     if (affectMetal)
                     {
                         maskString += "R";
@@ -289,7 +284,6 @@ namespace UnityEditor.VFX.HDRP
                     break;
                 }
                 case 3 :
-                    ColorWriteMask mask3 = 0;
                     if (affectMetal)
                     {
                         maskString += "R";

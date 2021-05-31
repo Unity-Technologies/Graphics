@@ -20,7 +20,7 @@ ${VFXLoadParameter:{decalLayerMask}}
 DecalPrepassData material;
 ZERO_INITIALIZE(DecalPrepassData, material);
 //Check light layer
-if(enableDecalLayers)
+if(_EnableDecalLayers)
 {
 	// Clip the decal if it does not pass the decal layer mask of the receiving material.
 	// Decal layer of the decal
@@ -73,14 +73,18 @@ if(enableDecalLayers)
 	float3x3 worldToElement = mul((float3x3)viewToElement, VFXGetWorldToViewRotMatrix()); //Transposed//TODO: Won't be correct for non-uniform scalings
 	worldToElement[2] *= -1.0f; //Z points TOWARDS the surface, so we need to revert it
 
-
-	if (enableDecalLayers && i.VFX_VARYING_ANGLEFADE.y < 0.0f) // if angle fade is enabled
+//#if VFX_ENABLE_DECAL_LAYERS
+if(_EnableDecalLayers)
+{
+	if (i.VFX_VARYING_ANGLEFADE.y < 0.0f) // if angle fade is enabled
 	{
 		float3 decalNormal = normalize(worldToElement[2].xyz);
 		float dotAngle = dot(material.geomNormalWS, decalNormal);
 		// See equation in DecalSystem.cs - simplified to a madd mul add here
 		angleFadeFactor = saturate(i.VFX_VARYING_ANGLEFADE.x + i.VFX_VARYING_ANGLEFADE.y * (dotAngle * (dotAngle - 2.0f)));
 	}
+}
+//#endif
 	float fadeFactor = i.VFX_VARYING_FADEFACTOR;
 	fadeFactor *= angleFadeFactor;
 	#if SHADERPASS == SHADERPASS_VFX_DBUFFER_PROJECTOR
