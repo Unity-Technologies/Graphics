@@ -379,7 +379,6 @@ namespace UnityEditor.Rendering
         void ComputeThumbnail(ref Texture2D computedTexture, SerializedProperty element, SRPLensFlareType type, int index)
         {
             SerializedProperty colorProp = element.FindPropertyRelative("tint");
-            SerializedProperty sizeXYProp = element.FindPropertyRelative("sizeXY");
             SerializedProperty intensityProp = element.FindPropertyRelative("m_LocalIntensity");
             SerializedProperty sideCountProp = element.FindPropertyRelative("m_SideCount");
             SerializedProperty rotationProp = element.FindPropertyRelative("rotation");
@@ -392,9 +391,6 @@ namespace UnityEditor.Rendering
             float invSideCount = 1f / ((float)sideCountProp.intValue);
             float intensity = intensityProp.floatValue;
             float usedSDFRoundness = sdfRoundnessProp.floatValue;
-            Vector2 sizeXY = sizeXYProp.vector2Value;
-            Vector2 sizeXYAbs = new Vector2(Mathf.Abs(sizeXY.x), Mathf.Abs(sizeXY.y));
-            Vector2 localSize = new Vector2(sizeXY.x / Mathf.Max(sizeXYAbs.x, sizeXYAbs.y), sizeXY.y / Mathf.Max(sizeXYAbs.x, sizeXYAbs.y));
 
             float rCos = Mathf.Cos(Mathf.PI * invSideCount);
             float roundValue = rCos * usedSDFRoundness;
@@ -423,7 +419,7 @@ namespace UnityEditor.Rendering
             m_PreviewLensFlare.SetVector(k_FlareColorValue, new Vector4(colorProp.colorValue.r * intensity, colorProp.colorValue.g * intensity, colorProp.colorValue.b * intensity, 1f));
             m_PreviewLensFlare.SetVector(k_FlareData0, flareData0);
             m_PreviewLensFlare.SetVector(k_FlareData1, new Vector4(0f, 0f, 0f, 1f));
-            m_PreviewLensFlare.SetVector(k_FlareData2, new Vector4(0f, 0f, localSize.x, localSize.y));
+            m_PreviewLensFlare.SetVector(k_FlareData2, new Vector4(0f, 0f, 1f, 1f));
             m_PreviewLensFlare.SetVector(k_FlareData3, new Vector4(0f, 0f, invSideCount, 0f));
 
             if (type == SRPLensFlareType.Polygon)
@@ -499,7 +495,29 @@ namespace UnityEditor.Rendering
             }
 
             Texture2D previewTecture = GetCachedThumbnailProceduralTexture(element, type, index);
-            EditorGUI.DrawTextureTransparent(rect, previewTecture, ScaleMode.ScaleToFit, 1f);
+
+            SerializedProperty flareTexture = element.FindPropertyRelative("lensFlareTexture");
+            SerializedProperty preserveAspectRatio = element.FindPropertyRelative("preserveAspectRatio");
+            SerializedProperty sizeXY = element.FindPropertyRelative("sizeXY");
+            const float maxStretch = 50.0f;
+            float aspectRatio;
+            if (type == SRPLensFlareType.Image && (flareTexture.objectReferenceValue is Texture texture) && preserveAspectRatio.boolValue)
+            {
+                aspectRatio = texture.width / (float)texture.height;
+            }
+            else if (sizeXY.vector2Value.x > sizeXY.vector2Value.y)
+            {
+                aspectRatio = Mathf.Min(sizeXY.vector2Value.x, maxStretch * sizeXY.vector2Value.y) / Mathf.Max(sizeXY.vector2Value.y, 1e-6f);
+            }
+            else if (sizeXY.vector2Value.x < sizeXY.vector2Value.y)
+            {
+                aspectRatio = sizeXY.vector2Value.x / Mathf.Max(Mathf.Min(sizeXY.vector2Value.y, maxStretch * sizeXY.vector2Value.x), 1e-6f);
+            }
+            else
+            {
+                aspectRatio = 1.0f;
+            }
+            EditorGUI.DrawTextureTransparent(rect, previewTecture, ScaleMode.ScaleToFit, aspectRatio);
             GUI.color = oldGuiColor;
         }
 
