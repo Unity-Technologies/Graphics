@@ -106,6 +106,17 @@ The screenshot on the left below do not use additive normal blending, whereas th
 
 ![](Images/HDRPFeatures-SurfGrad.png)
 
+### Physical Camera
+
+HDRP 12.0 includes the following physical camera improvements:
+- Many physical camera properties can now be animated with keyframes using a Unity Timeline.
+- The focus distance of the lens was added in the physical camera properties. For better compatibiity with older HDRP versions, this property is used in DoF computations only if the **Focus Distance Mode** in the [Depth of Field](Post-Processing-Depth-of-Field.md) volume component is set to **Camera**. |
+
+### Depth Of Field
+
+The quality of the physically-based Depth Of Field has been improved.
+![](Images/HDRPFeatures-BetterDoF.png)
+
 
 ## Issues resolved
 
