@@ -37,6 +37,7 @@
     * [Artistic](Artistic-Nodes)
         * Adjustment
             * [Channel Mixer](Channel-Mixer-Node)
+            * [Split Texture Transform](Split-Texture-Transform-Node)
             * [Contrast](Contrast-Node)
             * [Hue](Hue-Node)
             * [Invert Colors](Invert-Colors-Node)
