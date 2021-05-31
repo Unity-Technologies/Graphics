@@ -2,7 +2,15 @@
 
 ## Description
 
-Provides access to the **Instance ID** assigned when rendering with GPU instancing.
+When Unity renders with GPU instancing, it assigns an **Instance ID** to each geometry.
+
+Use this node to capture **Instance ID** values in <code>[Graphics.DrawMeshInstanced](https://docs.unity3d.com/ScriptReference/Graphics.DrawMeshInstanced.html</code> API calls.
+
+When Unity does not render with GPU instancing, this ID is 0.
+
+When Unity uses dynamic instancing, instance IDs might not be consistent across multiple frames.
+
+When you use an XR camera setup, this node has the same behavior as the [Stereo Eye Index](Eye-Index-Node).
 
 ## Ports
 
