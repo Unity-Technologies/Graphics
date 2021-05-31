@@ -35,6 +35,8 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Added Motion Vector render pass for URP.
 - VFX: Fix light cookies integration.
 - Added Lights 2D to the Light Explorer window.
+- Added a "Skybox" material type to ShaderGraph in URP that fix making skybox shaders with ShaderGraph so that it work with XR single-pass instancing [case 1328062](https://issuetracker.unity3d.com/product/unity/issues/guid/1338441)
+- Added a new define "USING_BUILTIN_STEREO_MATRICES" to allow custom URP HLSL shaders skybox to use built-in XR single-pass instancing matrices to display correctly [case 1299691](https://issuetracker.unity3d.com/product/unity/issues/guid/1299691)
 
 ### Changed
 - Moved fog evaluation from vertex shader to pixel shader. This improves rendering of fog for big triangles and fog quality. This can change the look of the fog slightly.
