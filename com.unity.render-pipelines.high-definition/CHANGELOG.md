@@ -26,6 +26,14 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed blocky looking bloom when dynamic resolution scaling was used.
 - Fixrf for wrong cached area light initialization.
 - Fixed an issue where auto baking of ambient and reflection probe done for builtin renderer would cause wrong baking in HDRP.
+- Fixed the ray traced sub subsurface scattering debug mode not displaying only the RTSSS Data (case 1332904).
+- Fixed for discrepancies in intensity and saturation between screen space refraction and probe refraction.
+- Fixed a divide-by-zero warning for anisotropic shaders (Fabric, Lit).
+- Fixed VfX lit particle AOV output color space.
+- Fixed path traced transparent unlit material (case 1335500).
+- Fixed support of Distortion with MSAA
+- Fixed contact shadow debug views not displaying correctly upon resizing of view.
+- Fixed an error when deleting the 3D Texture mask of a local volumetric fog volume (case 1339330).
 
 ### Changed
 
