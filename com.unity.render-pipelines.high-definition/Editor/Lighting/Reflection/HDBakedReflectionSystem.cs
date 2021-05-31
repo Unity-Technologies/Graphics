@@ -274,7 +274,7 @@ namespace UnityEditor.Rendering.HighDefinition
                     var probe = (HDProbe)EditorUtility.InstanceIDToObject(instanceId);
                     var cacheFile = GetGICacheFileForHDProbe(states[index].probeBakingHash);
 
-                    if (probe.gameObject.scene == null)
+                    if (string.IsNullOrEmpty(probe.gameObject.scene.path))
                         continue;
 
                     Assert.IsTrue(File.Exists(cacheFile));
@@ -299,7 +299,7 @@ namespace UnityEditor.Rendering.HighDefinition
                         var index = toBakeIndicesList.GetUnchecked(i);
                         var instanceId = states[index].instanceID;
                         var probe = (HDProbe)EditorUtility.InstanceIDToObject(instanceId);
-                        if (probe.gameObject.scene == null)
+                        if (string.IsNullOrEmpty(probe.gameObject.scene.path))
                             continue;
 
                         var bakedTexturePath = HDBakingUtilities.GetBakedTextureFilePath(probe);
@@ -315,7 +315,7 @@ namespace UnityEditor.Rendering.HighDefinition
                     var index = toBakeIndicesList.GetUnchecked(i);
                     var instanceId = states[index].instanceID;
                     var probe = (HDProbe)EditorUtility.InstanceIDToObject(instanceId);
-                    if (probe.gameObject.scene == null)
+                    if (string.IsNullOrEmpty(probe.gameObject.scene.path))
                         continue;
 
                     var bakedTexturePath = HDBakingUtilities.GetBakedTextureFilePath(probe);
@@ -402,7 +402,7 @@ namespace UnityEditor.Rendering.HighDefinition
             // Render and write the result to disk
             foreach (var probe in bakedProbes)
             {
-                if (probe.gameObject.scene == null)
+                if (string.IsNullOrEmpty(probe.gameObject.scene.path))
                     continue;
 
                 var bakedTexturePath = HDBakingUtilities.GetBakedTextureFilePath(probe);
@@ -420,7 +420,7 @@ namespace UnityEditor.Rendering.HighDefinition
                 AssetDatabase.StartAssetEditing();
                 foreach (var probe in bakedProbes)
                 {
-                    if (probe.gameObject.scene == null)
+                    if (string.IsNullOrEmpty(probe.gameObject.scene.path))
                         continue;
 
                     var bakedTexturePath = HDBakingUtilities.GetBakedTextureFilePath(probe);
@@ -433,7 +433,7 @@ namespace UnityEditor.Rendering.HighDefinition
             AssetDatabase.StartAssetEditing();
             foreach (var probe in bakedProbes)
             {
-                if (probe.gameObject.scene == null)
+                if (string.IsNullOrEmpty(probe.gameObject.scene.path))
                     continue;
 
                 var bakedTexturePath = HDBakingUtilities.GetBakedTextureFilePath(probe);
