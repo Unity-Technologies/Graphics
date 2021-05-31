@@ -19,14 +19,7 @@ MonoBehaviour:
         m_Untranslated: 
       Text:
         m_Untranslated: 
-      m_Summary: 
-      m_Description: 
-      m_InstructionBoxTitle: 
-      m_InstructionText: 
-      m_TutorialButtonText: 
       m_Tutorial: {fileID: 0}
-      m_Icons:
-        m_Items: []
       m_Image: {fileID: 2800000, guid: d6ce199728e307c40a8648be6fba7989, type: 3}
       m_Video: {fileID: 0}
       m_CriteriaCompletion: 0
@@ -35,29 +28,27 @@ MonoBehaviour:
       m_MaskingSettings:
         m_MaskingEnabled: 0
         m_UnmaskedViews: []
+      m_Summary: 
+      m_Description: 
+      m_InstructionBoxTitle: 
+      m_InstructionText: 
+      m_TutorialButtonText: 
     - m_Type: 0
       Title:
         m_Untranslated: Setup the quality settings
       Text:
         m_Untranslated: "It\u2019s good practice to have multiple HDRP assets with
           different settings for different performance targets.\r\n\r\n1) Go to <b>Edit</b>
-          > <b>Project Settings</b> > <b>Quality</b>, we have 3 quality levels <b>High,
-          Medium,</b> and <b>Low</b>. <b>Medium</b> is currently active and the default
+          > <b>Project Settings</b> > <b>Quality,</b> we have 3 quality levels <b>High,
+          Medium,</b> and <b>Low.</b> <b>Medium</b> is currently active and the default
           one. \r\n\r\n2) Switch to <b>Low Quality</b> and observe the Fog disappearing.
           This occurs because in the Low Quality HDRP asset the Fog is disabled.
-          \r\n\r\n3) Change back to <b>Medium Quality</b>.\r\n\r\nAlternatively,
+          \r\n\r\n3) Change back to <b>Medium Quality.</b>\r\n\r\nAlternatively,
           you can locate the <b>Low</b> asset in the Settings folder and verify that
           indeed <b>Lighting</b> > <b>Volumetrics</b> is off in the <b>Low Quality</b>
           level. You can also try switching to <b>High Quality</b> and see what effect
           it has on the shadow filtering quality.\r"
-      m_Summary: 
-      m_Description: 
-      m_InstructionBoxTitle: 
-      m_InstructionText: 
-      m_TutorialButtonText: 
       m_Tutorial: {fileID: 0}
-      m_Icons:
-        m_Items: []
       m_Image: {fileID: 0}
       m_Video: {fileID: 0}
       m_CriteriaCompletion: 0
@@ -66,6 +57,11 @@ MonoBehaviour:
       m_MaskingSettings:
         m_MaskingEnabled: 0
         m_UnmaskedViews: []
+      m_Summary: 
+      m_Description: 
+      m_InstructionBoxTitle: 
+      m_InstructionText: 
+      m_TutorialButtonText: 
   m_CameraSettings:
     m_CameraMode: 1
     m_FocusMode: 0

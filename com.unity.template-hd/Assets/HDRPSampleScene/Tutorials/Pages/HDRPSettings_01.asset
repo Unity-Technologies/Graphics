@@ -19,14 +19,7 @@ MonoBehaviour:
         m_Untranslated: 
       Text:
         m_Untranslated: 
-      m_Summary: 
-      m_Description: 
-      m_InstructionBoxTitle: 
-      m_InstructionText: 
-      m_TutorialButtonText: 
       m_Tutorial: {fileID: 0}
-      m_Icons:
-        m_Items: []
       m_Image: {fileID: 2800000, guid: fe95a7a8bd7b1f44288442c6a4f60bee, type: 3}
       m_Video: {fileID: 0}
       m_CriteriaCompletion: 0
@@ -35,23 +28,21 @@ MonoBehaviour:
       m_MaskingSettings:
         m_MaskingEnabled: 0
         m_UnmaskedViews: []
+      m_Summary: 
+      m_Description: 
+      m_InstructionBoxTitle: 
+      m_InstructionText: 
+      m_TutorialButtonText: 
     - m_Type: 0
       Title:
         m_Untranslated: HDRP asset
       Text:
         m_Untranslated: "First, make sure Unity is set to run the High Definition
           Render Pipeline.\r\n\r\n1) Go to <b>Edit</b> > <b>Project Settings</b>
-          > <b>Graphics</b>.\r\n\r\n2) Verify that in the <i>Scriptable Render Pipeline
+          > <b>Graphics.</b>\r\n\r\n2) Verify that in the <i>Scriptable Render Pipeline
           Settings</i> field, an HDRP asset is assigned.\r\n\r\nFor more information
           about Scriptable Pipelines, visit <a href=\"https://unity.com/srp\">https://unity.com/srp</a>\r"
-      m_Summary: 
-      m_Description: 
-      m_InstructionBoxTitle: 
-      m_InstructionText: 
-      m_TutorialButtonText: 
       m_Tutorial: {fileID: 0}
-      m_Icons:
-        m_Items: []
       m_Image: {fileID: 0}
       m_Video: {fileID: 0}
       m_CriteriaCompletion: 0
@@ -60,6 +51,11 @@ MonoBehaviour:
       m_MaskingSettings:
         m_MaskingEnabled: 0
         m_UnmaskedViews: []
+      m_Summary: 
+      m_Description: 
+      m_InstructionBoxTitle: 
+      m_InstructionText: 
+      m_TutorialButtonText: 
   m_CameraSettings:
     m_CameraMode: 0
     m_FocusMode: 0

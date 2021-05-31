@@ -19,14 +19,7 @@ MonoBehaviour:
         m_Untranslated: 
       Text:
         m_Untranslated: 
-      m_Summary: 
-      m_Description: 
-      m_InstructionBoxTitle: 
-      m_InstructionText: 
-      m_TutorialButtonText: 
       m_Tutorial: {fileID: 0}
-      m_Icons:
-        m_Items: []
       m_Image: {fileID: 2800000, guid: 32e996e62ec9f404f8c0020d0156e947, type: 3}
       m_Video: {fileID: 0}
       m_CriteriaCompletion: 0
@@ -35,27 +28,25 @@ MonoBehaviour:
       m_MaskingSettings:
         m_MaskingEnabled: 0
         m_UnmaskedViews: []
-    - m_Type: 0
-      Title:
-        m_Untranslated: Explore the Global Volume
-      Text:
-        m_Untranslated: "Let\u2019s see how volumes are being used in this Scene.\r\n\r\n1)
-          In the <i>Hierarchy</i>, expand <b>Lighting</b> > <b>Volumes</b>.\r\n\r\n2)
-          Select the <b>Volume Global</b> GameObject.\r\n\r\n3) Notice the <b>Mode</b>
-          is <b>Global</b> in the <i>Inspector</i>.\r\nDisable the <b>Tonemapping</b>
-          Override.\r\n\r\n4) Undo your change.\r\n\r\nNotice that Global volume
-          has an effect no matter where the camera is located. This is important
-          for setting up a baseline for effects which usually remain constant, no
-          matter the location of the camera, such as Shadows, Motion Blur, Bloom,
-          Ambient Occlusion, Film Grain, etc. \r"
       m_Summary: 
       m_Description: 
       m_InstructionBoxTitle: 
       m_InstructionText: 
       m_TutorialButtonText: 
+    - m_Type: 0
+      Title:
+        m_Untranslated: Explore the Global Volume
+      Text:
+        m_Untranslated: "Let\u2019s see how volumes are being used in this Scene.\r\n\r\n1)
+          In the <i>Hierarchy,</i> expand <b>Lighting</b> > <b>Volumes.</b>\r\n\r\n2)
+          Select the <b>Volume Global</b> GameObject.\r\n\r\n3) Notice the <b>Mode</b>
+          is <b>Global</b> in the <i>Inspector,</i>\r\nDisable the <b>Tonemapping</b>
+          Override.\r\n\r\n4) Undo your change.\r\n\r\nNotice that Global volume
+          has an effect no matter where the camera is located. This is important
+          for setting up a baseline for effects which usually remain constant, no
+          matter the location of the camera, such as Shadows, Motion Blur, Bloom,
+          Ambient Occlusion, Film Grain, etc. \r"
       m_Tutorial: {fileID: 0}
-      m_Icons:
-        m_Items: []
       m_Image: {fileID: 0}
       m_Video: {fileID: 0}
       m_CriteriaCompletion: 0
@@ -64,6 +55,11 @@ MonoBehaviour:
       m_MaskingSettings:
         m_MaskingEnabled: 0
         m_UnmaskedViews: []
+      m_Summary: 
+      m_Description: 
+      m_InstructionBoxTitle: 
+      m_InstructionText: 
+      m_TutorialButtonText: 
   m_CameraSettings:
     m_CameraMode: 0
     m_FocusMode: 0

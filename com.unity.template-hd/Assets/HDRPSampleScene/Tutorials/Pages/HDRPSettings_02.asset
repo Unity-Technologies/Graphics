@@ -19,14 +19,7 @@ MonoBehaviour:
         m_Untranslated: 
       Text:
         m_Untranslated: 
-      m_Summary: 
-      m_Description: 
-      m_InstructionBoxTitle: 
-      m_InstructionText: 
-      m_TutorialButtonText: 
       m_Tutorial: {fileID: 0}
-      m_Icons:
-        m_Items: []
       m_Image: {fileID: 2800000, guid: 749ba053606eca64ca35059b95caa4db, type: 3}
       m_Video: {fileID: 0}
       m_CriteriaCompletion: 0
@@ -35,26 +28,24 @@ MonoBehaviour:
       m_MaskingSettings:
         m_MaskingEnabled: 0
         m_UnmaskedViews: []
-    - m_Type: 0
-      Title:
-        m_Untranslated: HDRP Asset configuration
-      Text:
-        m_Untranslated: "It\u2019s highly recommended to turn off unused features
-          in your project to avoid impacting performance, reduce memory consumption,
-          and minimize build time.\r\n\r\n1) Go to <b>Edit</b> > <b>Project Settings</b>
-          > <b>Quality</b>.\r\n\r\n2) Double-click the asset assigned to the <b>Render
-          Pipeline Asset</b> field.\r\n\r\n3) In the <i>Inspector</i>, expand the
-          <b>Lighting</b> foldout and disable the <b>Screen Space Ambient Occlusion</b>.\r\n\r\n4)
-          Notice the darkening effect on the flower pot disappear.\r\n\r\n5) Re-enable
-          the feature.\r"
       m_Summary: 
       m_Description: 
       m_InstructionBoxTitle: 
       m_InstructionText: 
       m_TutorialButtonText: 
+    - m_Type: 0
+      Title:
+        m_Untranslated: HDRP Asset configuration
+      Text:
+        m_Untranslated: "It\u2019s highly recommended to turn off unused features
+          in your project to reduce the impact on performance, memory consumption
+          and build time..\r\n\r\n1) Go to <b>Edit</b> > <b>Project Settings</b>
+          > <b>Quality.</b>\r\n\r\n2) Double-click the asset assigned to the <b>Render
+          Pipeline Asset</b> field.\r\n\r\n3) In the <i>Inspector</i>, expand the
+          <b>Lighting</b> foldout and disable the <b>Screen Space Ambient Occlusion.</b>\r\n\r\n4)
+          Notice the darkening effect on the flower pot disappear.\r\n\r\n5) Re-enable
+          the feature.\r"
       m_Tutorial: {fileID: 0}
-      m_Icons:
-        m_Items: []
       m_Image: {fileID: 0}
       m_Video: {fileID: 0}
       m_CriteriaCompletion: 0
@@ -63,6 +54,11 @@ MonoBehaviour:
       m_MaskingSettings:
         m_MaskingEnabled: 0
         m_UnmaskedViews: []
+      m_Summary: 
+      m_Description: 
+      m_InstructionBoxTitle: 
+      m_InstructionText: 
+      m_TutorialButtonText: 
   m_CameraSettings:
     m_CameraMode: 1
     m_FocusMode: 0

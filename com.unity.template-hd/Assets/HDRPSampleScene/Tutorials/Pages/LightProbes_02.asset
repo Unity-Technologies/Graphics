@@ -19,14 +19,7 @@ MonoBehaviour:
         m_Untranslated: 
       Text:
         m_Untranslated: 
-      m_Summary: 
-      m_Description: 
-      m_InstructionBoxTitle: 
-      m_InstructionText: 
-      m_TutorialButtonText: 
       m_Tutorial: {fileID: 0}
-      m_Icons:
-        m_Items: []
       m_Image: {fileID: 2800000, guid: e395edaca0f6b2f4da74526a548c576f, type: 3}
       m_Video: {fileID: 0}
       m_CriteriaCompletion: 0
@@ -35,6 +28,11 @@ MonoBehaviour:
       m_MaskingSettings:
         m_MaskingEnabled: 0
         m_UnmaskedViews: []
+      m_Summary: 
+      m_Description: 
+      m_InstructionBoxTitle: 
+      m_InstructionText: 
+      m_TutorialButtonText: 
     - m_Type: 0
       Title:
         m_Untranslated: Explore the Light Probes
@@ -42,11 +40,11 @@ MonoBehaviour:
         m_Untranslated: "Let\u2019s take a look at how Light Probes are set up in
           this Scene.\r\n\r\n<b>Tip:</b> If you'd like your Scene to match the image
           above, make sure Gizmos are on, Light Probes are not selected, and at the
-          bottom of the <b>Window</b> > <b>Rendering</b> > <b>Lighting</b>, set <b>Light
-          Probe Visualization</b> to <b>All probes no cells</b>.\r\n\r\nThe <b>Light
+          bottom of the <b>Window</b> > <b>Rendering</b> > <b>Lighting,</b> set <b>Light
+          Probe Visualization</b> to <b>All probes no cells.</b>\r\n\r\nThe <b>Light
           Probe Group</b> can be found in the <i>Hierarchy</i> <b>Lighting</b> >
-          <b>Light Probe Group</b>. These Light Probes were placed by hand. Select
-          the Light Probe Group, then in the <i>Inspector</i>, click the <b>Edit
+          <b>Light Probe Group.</b> These Light Probes were placed by hand. Select
+          the Light Probe Group, then in the <i>Inspector,</i> click the <b>Edit
           Light Probes</b> button to select, move or add new probes.\r\n\r\n<b>Tips:</b>\r\n\r\n\u2022
           Light Probes are not real-time, so remember to generate the lighting again
           if you have made noticeable changes to it\r\n\r\n\u2022 The spheres in
@@ -63,14 +61,7 @@ MonoBehaviour:
           most objects in this sample Scene are tagged to receive Global Illumination
           from Light Probes. This will reduce baking times and the overall memory
           footprint of the lighting."
-      m_Summary: 
-      m_Description: 
-      m_InstructionBoxTitle: 
-      m_InstructionText: 
-      m_TutorialButtonText: 
       m_Tutorial: {fileID: 0}
-      m_Icons:
-        m_Items: []
       m_Image: {fileID: 0}
       m_Video: {fileID: 0}
       m_CriteriaCompletion: 0
@@ -79,6 +70,11 @@ MonoBehaviour:
       m_MaskingSettings:
         m_MaskingEnabled: 0
         m_UnmaskedViews: []
+      m_Summary: 
+      m_Description: 
+      m_InstructionBoxTitle: 
+      m_InstructionText: 
+      m_TutorialButtonText: 
   m_CameraSettings:
     m_CameraMode: 1
     m_FocusMode: 0

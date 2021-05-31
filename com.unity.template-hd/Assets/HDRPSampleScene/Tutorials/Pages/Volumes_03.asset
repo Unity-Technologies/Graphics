@@ -19,14 +19,7 @@ MonoBehaviour:
         m_Untranslated: 
       Text:
         m_Untranslated: 
-      m_Summary: 
-      m_Description: 
-      m_InstructionBoxTitle: 
-      m_InstructionText: 
-      m_TutorialButtonText: 
       m_Tutorial: {fileID: 0}
-      m_Icons:
-        m_Items: []
       m_Image: {fileID: 2800000, guid: 32e996e62ec9f404f8c0020d0156e947, type: 3}
       m_Video: {fileID: 0}
       m_CriteriaCompletion: 0
@@ -35,32 +28,33 @@ MonoBehaviour:
       m_MaskingSettings:
         m_MaskingEnabled: 0
         m_UnmaskedViews: []
-    - m_Type: 0
-      Title:
-        m_Untranslated: Explore the Local Volume
-      Text:
-        m_Untranslated: "In addition to the <b>Global Volume</b> object, there are
-          6 <b>Local</b> volumes used to control effects in specific rooms.\r\n\r\n1)
-          Enable Gizmos in order to see the boundaries of <b>Local</b> volumes.\r\n\r\n2)
-          Select <b>Volume Room 3</b> and turn it on and off. Notice that the volume
-          covers the 3rd room fully.\r\n\r\n3) Take a look at the overrides in <b>Volume
-          Room 3</b>: Exposure, White Balance and Fog.\r\n\r\n4) Disable the Exposure
-          override. Notice that the Scene gets darker.\r\n\r\n5) Undo your change.\r\n\r\nWhen
-          the Exposure override for Room 3 is disabled, this area of the Scene inherits
-          its Exposure settings directly from the <b>Global</b> volume. \r\n\r\nHowever,
-          these particular settings might not be acceptable for a relatively dark
-          room, such as Room 3. Therefore, a <b>Local</b> volume for Room 3 has been
-          created, with dedicated exposure settings, among others.\r\n\r\nWhen you
-          move the camera outside of <b>Volume Room 3</b>, the settings that were
-          applied to this room will no longer be applied to the camera.\r"
       m_Summary: 
       m_Description: 
       m_InstructionBoxTitle: 
       m_InstructionText: 
       m_TutorialButtonText: 
+    - m_Type: 0
+      Title:
+        m_Untranslated: Explore the Local Volume
+      Text:
+        m_Untranslated: 'In addition to the <b>Global Volume</b> object, there are
+          6 <b>Local</b> volumes used to control effects in specific rooms.
+
+          
+
+          1)
+          Enable Gizmos in order to see the boundaries of <b>Local</b> volumes.
+
+          
+
+          2)
+          Select <b>Volume Room 3</b> and turn it on and off. Notice that the volume
+          covers the 3rd room fully.
+
+          
+
+'
       m_Tutorial: {fileID: 0}
-      m_Icons:
-        m_Items: []
       m_Image: {fileID: 0}
       m_Video: {fileID: 0}
       m_CriteriaCompletion: 0
@@ -69,6 +63,11 @@ MonoBehaviour:
       m_MaskingSettings:
         m_MaskingEnabled: 0
         m_UnmaskedViews: []
+      m_Summary: 
+      m_Description: 
+      m_InstructionBoxTitle: 
+      m_InstructionText: 
+      m_TutorialButtonText: 
   m_CameraSettings:
     m_CameraMode: 1
     m_FocusMode: 0

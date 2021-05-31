@@ -19,14 +19,7 @@ MonoBehaviour:
         m_Untranslated: 
       Text:
         m_Untranslated: 
-      m_Summary: 
-      m_Description: 
-      m_InstructionBoxTitle: 
-      m_InstructionText: 
-      m_TutorialButtonText: 
       m_Tutorial: {fileID: 0}
-      m_Icons:
-        m_Items: []
       m_Image: {fileID: 2800000, guid: 291314cf660f5b047bacb4dafc9ae4ef, type: 3}
       m_Video: {fileID: 0}
       m_CriteriaCompletion: 0
@@ -35,27 +28,25 @@ MonoBehaviour:
       m_MaskingSettings:
         m_MaskingEnabled: 0
         m_UnmaskedViews: []
+      m_Summary: 
+      m_Description: 
+      m_InstructionBoxTitle: 
+      m_InstructionText: 
+      m_TutorialButtonText: 
     - m_Type: 0
       Title:
         m_Untranslated: Refraction model
       Text:
         m_Untranslated: "The High Definition Render Pipeline (HDRP) uses a refraction
           algorithm to simulate light deviation and absorption within Materials.\r\n\r\nSelect
-          the glass by following the steps:\r\n1) In the <i>Hierarchy</i>, expand
-          <b>Props</b> > <b>Room 3</b> > <b>RoundTable_01</b> > <b>RoundTable_01_LOD0</b>.\r\n\r\n2)
+          the glass by following the steps:\r\n1) In the <i>Hierarchy,</i> expand
+          <b>Props</b> > <b>Room 3</b> > <b>RoundTable_01</b> > <b>RoundTable_01_LOD0.</b>\r\n\r\n2)
           Select the <b>RoundTable_GLass_01_LOD00</b> GameObject.\r\n\r\n3) In the
-          <i>Inspector</i>, expand the <i>Glass Dark_Mat Material</i>.\r\n\r\n4)
+          <i>Inspector,</i> expand the <i>Glass Dark_Mat Material.</i>\r\n\r\n4)
           Set the <b>Refraction Model</b> to None to disable the refraction entirely.
           \r\n\r\n5) Undo your change.\r\n\r\nRefraction allows us to create a frosted
           glass effect which you can adjust by tuning the Smoothness of the material.\r"
-      m_Summary: 
-      m_Description: 
-      m_InstructionBoxTitle: 
-      m_InstructionText: 
-      m_TutorialButtonText: 
       m_Tutorial: {fileID: 0}
-      m_Icons:
-        m_Items: []
       m_Image: {fileID: 0}
       m_Video: {fileID: 0}
       m_CriteriaCompletion: 0
@@ -64,6 +55,11 @@ MonoBehaviour:
       m_MaskingSettings:
         m_MaskingEnabled: 0
         m_UnmaskedViews: []
+      m_Summary: 
+      m_Description: 
+      m_InstructionBoxTitle: 
+      m_InstructionText: 
+      m_TutorialButtonText: 
   m_CameraSettings:
     m_CameraMode: 1
     m_FocusMode: 0

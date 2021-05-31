@@ -19,14 +19,7 @@ MonoBehaviour:
         m_Untranslated: 
       Text:
         m_Untranslated: 
-      m_Summary: 
-      m_Description: 
-      m_InstructionBoxTitle: 
-      m_InstructionText: 
-      m_TutorialButtonText: 
       m_Tutorial: {fileID: 0}
-      m_Icons:
-        m_Items: []
       m_Image: {fileID: 2800000, guid: e8a7362729469b144bd110fb4265703b, type: 3}
       m_Video: {fileID: 0}
       m_CriteriaCompletion: 0
@@ -35,16 +28,21 @@ MonoBehaviour:
       m_MaskingSettings:
         m_MaskingEnabled: 0
         m_UnmaskedViews: []
+      m_Summary: 
+      m_Description: 
+      m_InstructionBoxTitle: 
+      m_InstructionText: 
+      m_TutorialButtonText: 
     - m_Type: 0
       Title:
         m_Untranslated: Light Layers
       Text:
         m_Untranslated: "In the next steps you can find out how the lights and the
           pieces of glass are set up.\r\n\r\n1) Select the glass by going to <b>Props</b>
-          > <b>Room3</b> > <b>CeilingLamp_01</b> > <b>CeilingLamp_Lamp_01</b> > <b>CeilingLamp_Glass_01_LOD0</b>.\r\n\r\n2)
-          Notice that the <b>Rendering Layer Mask</b> parameter is set to <b>LampsOnly</b>.\r\n\r\n3)
+          > <b>Room3</b> > <b>CeilingLamp_01</b> > <b>CeilingLamp_Lamp_01</b> > <b>CeilingLamp_Glass_01_LOD0.</b>\r\n\r\n2)
+          Notice that the <b>Rendering Layer Mask</b> parameter is set to <b>LampsOnly.</b>\r\n\r\n3)
           Go to <b>Props</b> > <b>Room3</b> > <b>CeilingLamp_01</b>  and select the
-          spotlight <b>Light_Spot_1200lm</b>.\r\n\r\n4) Notice that the <b>Rendering
+          spotlight <b>Light_Spot_1200lm.</b>\r\n\r\n4) Notice that the <b>Rendering
           Layer Mask</b> is set to <b>Mixed...</b> and that the <b>Lamp Only</b>
           layer is disabled.\r\n\r\nBecause the spotlight is unable to affect the
           <b>Lamp Only</b> layer, the glass placed on the <b>Lamps Only</b> layer
@@ -52,15 +50,8 @@ MonoBehaviour:
           shadows are produced.\r\n\r\nObviously, Light layers are not physically
           correct, as they would not work in real life. However, in practice, this
           feature is extremely useful to avoid unwanted illumination, shadowing and
-          light leaking. \r\n"
-      m_Summary: 
-      m_Description: 
-      m_InstructionBoxTitle: 
-      m_InstructionText: 
-      m_TutorialButtonText: 
+          light leaking. \r"
       m_Tutorial: {fileID: 0}
-      m_Icons:
-        m_Items: []
       m_Image: {fileID: 0}
       m_Video: {fileID: 0}
       m_CriteriaCompletion: 0
@@ -69,6 +60,11 @@ MonoBehaviour:
       m_MaskingSettings:
         m_MaskingEnabled: 0
         m_UnmaskedViews: []
+      m_Summary: 
+      m_Description: 
+      m_InstructionBoxTitle: 
+      m_InstructionText: 
+      m_TutorialButtonText: 
   m_CameraSettings:
     m_CameraMode: 1
     m_FocusMode: 0

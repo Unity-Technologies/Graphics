@@ -19,14 +19,7 @@ MonoBehaviour:
         m_Untranslated: 
       Text:
         m_Untranslated: 
-      m_Summary: 
-      m_Description: 
-      m_InstructionBoxTitle: 
-      m_InstructionText: 
-      m_TutorialButtonText: 
       m_Tutorial: {fileID: 0}
-      m_Icons:
-        m_Items: []
       m_Image: {fileID: 2800000, guid: 71e3f6c059b17a048811a3a5d860f624, type: 3}
       m_Video: {fileID: 0}
       m_CriteriaCompletion: 0
@@ -35,25 +28,23 @@ MonoBehaviour:
       m_MaskingSettings:
         m_MaskingEnabled: 0
         m_UnmaskedViews: []
+      m_Summary: 
+      m_Description: 
+      m_InstructionBoxTitle: 
+      m_InstructionText: 
+      m_TutorialButtonText: 
     - m_Type: 0
       Title:
         m_Untranslated: Butterflies
       Text:
         m_Untranslated: "Open the VFX graph to see how the butterflies are generated
           using a nodal system.\r\n\r\n1) In the <i>Project</i> window, go to <b>Art</b>
-          > <b>Particles</b> and open <b>ButterFlies.vfx</b>.\r\n\r\n2) Find the
+          > <b>Particles</b> and open <b>ButterFlies.vfx.</b>\r\n\r\n2) Find the
           <b>Spawn</b> block at the top of the graph and delete the <b>Count</b>
           node.\r\n\r\n3) In the Spawn block, increase the <b>Count</b> from 10 to
           50.\r\n\r\n4) Select <b>Compile</b> at the top left of the window.\r\n\r\nYou
           can now notice many more butterflies flying around the trees.\r"
-      m_Summary: 
-      m_Description: 
-      m_InstructionBoxTitle: 
-      m_InstructionText: 
-      m_TutorialButtonText: 
       m_Tutorial: {fileID: 0}
-      m_Icons:
-        m_Items: []
       m_Image: {fileID: 0}
       m_Video: {fileID: 0}
       m_CriteriaCompletion: 0
@@ -62,6 +53,11 @@ MonoBehaviour:
       m_MaskingSettings:
         m_MaskingEnabled: 0
         m_UnmaskedViews: []
+      m_Summary: 
+      m_Description: 
+      m_InstructionBoxTitle: 
+      m_InstructionText: 
+      m_TutorialButtonText: 
   m_CameraSettings:
     m_CameraMode: 1
     m_FocusMode: 0

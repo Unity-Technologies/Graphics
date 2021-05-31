@@ -19,14 +19,7 @@ MonoBehaviour:
         m_Untranslated: 
       Text:
         m_Untranslated: 
-      m_Summary: 
-      m_Description: 
-      m_InstructionBoxTitle: 
-      m_InstructionText: 
-      m_TutorialButtonText: 
       m_Tutorial: {fileID: 0}
-      m_Icons:
-        m_Items: []
       m_Image: {fileID: 0}
       m_Video: {fileID: 32900000, guid: 1973bd32fe28a7541b6e4582e2ed70c9, type: 3}
       m_CriteriaCompletion: 0
@@ -35,23 +28,21 @@ MonoBehaviour:
       m_MaskingSettings:
         m_MaskingEnabled: 0
         m_UnmaskedViews: []
-    - m_Type: 0
-      Title:
-        m_Untranslated: Inspect the Light cookie
-      Text:
-        m_Untranslated: "You can assign Light cookies in the Light component.\r\n\r\n1)
-          Select <b>Light_Spot_1600lm</b>, the spotlight illuminating the wall.\r\n\r\n2)
-          In the Inspector, scroll down until you see the <b>Cookie</b> field, in
-          the <b>Emission</b> foldout.\r\n\r\n3) Notice that a texture called <b>SpotLight_Cookie</b>
-          is assigned.\r"
       m_Summary: 
       m_Description: 
       m_InstructionBoxTitle: 
       m_InstructionText: 
       m_TutorialButtonText: 
+    - m_Type: 0
+      Title:
+        m_Untranslated: Inspect the Light cookie
+      Text:
+        m_Untranslated: "You can assign Light cookies in the Light component.\r\n\r\n1)
+          Select <b>Light_Spot_1600lm,</b> the spotlight illuminating the wall.\r\n\r\n2)
+          In the Inspector, scroll down until you see the <b>Cookie</b> field, in
+          the <b>Emission</b> foldout.\r\n\r\n3) Notice that a texture called <b>SpotLight_Cookie</b>
+          is assigned.\r"
       m_Tutorial: {fileID: 0}
-      m_Icons:
-        m_Items: []
       m_Image: {fileID: 0}
       m_Video: {fileID: 0}
       m_CriteriaCompletion: 0
@@ -60,6 +51,11 @@ MonoBehaviour:
       m_MaskingSettings:
         m_MaskingEnabled: 0
         m_UnmaskedViews: []
+      m_Summary: 
+      m_Description: 
+      m_InstructionBoxTitle: 
+      m_InstructionText: 
+      m_TutorialButtonText: 
   m_CameraSettings:
     m_CameraMode: 0
     m_FocusMode: 0
