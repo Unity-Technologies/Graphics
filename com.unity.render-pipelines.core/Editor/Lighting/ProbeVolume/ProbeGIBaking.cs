@@ -71,6 +71,8 @@ namespace UnityEngine.Experimental.Rendering
         static Bounds globalBounds = new Bounds();
         static bool hasFoundBounds = false;
 
+        static bool onAdditionalProbesBakeCompletedCalled = false;
+
         static ProbeGIBaking()
         {
             Init();
@@ -120,22 +122,32 @@ namespace UnityEngine.Experimental.Rendering
         {
             ProbeReferenceVolume.instance.clearAssetsOnVolumeClear = true;
 
-            var sceneBounds = ProbeReferenceVolume.instance.sceneBounds;
 
-            var prevScenes = new List<string>();
+            var sceneBounds = ProbeReferenceVolume.instance.sceneBounds;
+            HashSet<string> scenesToConsider = new HashSet<string>();
+
             for (int i = 0; i < EditorSceneManager.sceneCount; ++i)
             {
                 var scene = EditorSceneManager.GetSceneAt(i);
                 sceneBounds.UpdateSceneBounds(scene);
-                prevScenes.Add(scene.path);
+                // !!! IMPORTANT TODO !!!
+                // When we will have the concept of baking set this should be reverted, if a scene is not in the bake set it should not be considered
+                // As of now we include all open scenes as the workflow is not nice or clear. When it'll be we should *NOT* do it.
+                scenesToConsider.Add(scene.path);
             }
+
+
+            foreach (var scene in EditorBuildSettings.scenes)
+            {
+                scenesToConsider.Add(scene.path);
+            }
+
 
             List<Scene> openedScenes = new List<Scene>();
             hasFoundBounds = false;
 
-            foreach (var buildScene in EditorBuildSettings.scenes)
+            foreach (var scenePath in scenesToConsider)
             {
-                var scenePath = buildScene.path;
                 bool hasProbeVolumes = false;
                 if (sceneBounds.hasProbeVolumes.TryGetValue(scenePath, out hasProbeVolumes))
                 {
@@ -158,10 +170,10 @@ namespace UnityEngine.Experimental.Rendering
                 }
                 else // we need to open the scene to test.
                 {
-                    var scene = EditorSceneManager.OpenScene(buildScene.path, OpenSceneMode.Additive);
+                    var scene = EditorSceneManager.OpenScene(scenePath, OpenSceneMode.Additive);
                     openedScenes.Add(scene);
                     sceneBounds.UpdateSceneBounds(scene);
-                    Bounds localBound = sceneBounds.sceneBounds[buildScene.path];
+                    Bounds localBound = sceneBounds.sceneBounds[scene.path];
                     if (hasFoundBounds)
                         globalBounds.Encapsulate(localBound);
                     else
@@ -249,7 +261,6 @@ namespace UnityEngine.Experimental.Rendering
         {
             UnityEditor.Experimental.Lightmapping.additionalBakedProbesCompleted -= OnAdditionalProbesBakeCompleted;
             UnityEngine.Profiling.Profiler.BeginSample("OnAdditionalProbesBakeCompleted");
-
             var bakingCells = m_BakingBatch.cells;
             var numCells = bakingCells.Count;
 
@@ -259,7 +270,15 @@ namespace UnityEngine.Experimental.Rendering
             var validity = new NativeArray<float>(numUniqueProbes, Allocator.Temp, NativeArrayOptions.UninitializedMemory);
             var bakedProbeOctahedralDepth = new NativeArray<float>(numUniqueProbes * 64, Allocator.Temp, NativeArrayOptions.UninitializedMemory);
 
-            UnityEditor.Experimental.Lightmapping.GetAdditionalBakedProbes(m_BakingBatch.index, sh, validity, bakedProbeOctahedralDepth);
+            bool validBakedProbes = UnityEditor.Experimental.Lightmapping.GetAdditionalBakedProbes(m_BakingBatch.index, sh, validity, bakedProbeOctahedralDepth);
+
+            if (!validBakedProbes)
+            {
+                Debug.LogError("Lightmapper failed to produce valid probe data.  Please consider clearing lighting data and rebake.");
+                return;
+            }
+
+            onAdditionalProbesBakeCompletedCalled = true;
 
             // Fetch results of all cells
             for (int c = 0; c < numCells; ++c)
@@ -591,9 +610,21 @@ namespace UnityEngine.Experimental.Rendering
             }
         }
 
+        public static void OnBakeCompletedCleanup()
+        {
+            if (!onAdditionalProbesBakeCompletedCalled)
+            {
+                // Dequeue the call if something has failed.
+                UnityEditor.Experimental.Lightmapping.additionalBakedProbesCompleted -= OnAdditionalProbesBakeCompleted;
+                UnityEditor.Experimental.Lightmapping.SetAdditionalBakedProbes(m_BakingBatch.index, null);
+            }
+        }
+
         public static void RunPlacement()
         {
+            onAdditionalProbesBakeCompletedCalled = false;
             UnityEditor.Experimental.Lightmapping.additionalBakedProbesCompleted += OnAdditionalProbesBakeCompleted;
+            UnityEditor.Lightmapping.bakeCompleted += OnBakeCompletedCleanup;
 
             // Clear baked data
             Clear();
