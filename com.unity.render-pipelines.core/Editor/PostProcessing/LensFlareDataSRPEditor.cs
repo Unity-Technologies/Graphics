@@ -387,6 +387,7 @@ namespace UnityEditor.Rendering
             SerializedProperty fallOffProp = element.FindPropertyRelative("m_FallOff");
             SerializedProperty sdfRoundnessProp = element.FindPropertyRelative("m_SdfRoundness");
             SerializedProperty inverseSDFProp = element.FindPropertyRelative("inverseSDF");
+            SerializedProperty flareTextureProp = element.FindPropertyRelative("lensFlareTexture");
 
             float invSideCount = 1f / ((float)sideCountProp.intValue);
             float intensity = intensityProp.floatValue;
@@ -408,7 +409,17 @@ namespace UnityEditor.Rendering
             Vector4 flareData0 = LensFlareCommonSRP.GetFlareData0(Vector2.zero, Vector2.zero, Vector2.one, rotationProp.floatValue, 0f, 0f, Vector2.zero, false);
 
             //Set here what need to be setup in the material
-            m_PreviewLensFlare.SetTexture(k_FlareTex, null);
+            if (type == SRPLensFlareType.Image)
+            {
+                if (flareTextureProp.objectReferenceValue != null)
+                    m_PreviewLensFlare.SetTexture(k_FlareTex, flareTextureProp.objectReferenceValue as Texture2D);
+                else
+                    m_PreviewLensFlare.SetTexture(k_FlareTex, Texture2D.blackTexture);
+            }
+            else
+            {
+                m_PreviewLensFlare.SetTexture(k_FlareTex, null);
+            }
             m_PreviewLensFlare.SetVector(k_FlareColorValue, new Vector4(colorProp.colorValue.r * intensity, colorProp.colorValue.g * intensity, colorProp.colorValue.b * intensity, 1f));
             m_PreviewLensFlare.SetVector(k_FlareData0, flareData0);
             m_PreviewLensFlare.SetVector(k_FlareData1, new Vector4(0f, 0f, 0f, 1f));
