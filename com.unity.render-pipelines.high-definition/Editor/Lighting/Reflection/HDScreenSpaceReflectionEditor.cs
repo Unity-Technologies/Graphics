@@ -253,22 +253,17 @@ namespace UnityEditor.Rendering.HighDefinition
                 settings = new QualitySettingsBlob();
 
             // RTR
-            if (HDRenderPipeline.pipelineSupportsRayTracing && m_Tracing.overrideState.boolValue &&
-                m_Tracing.value.GetEnumValue<RayCastingMode>() == RayCastingMode.RayMarching)
-            {
-                settings.Save<float>(m_MinSmoothness);
-                settings.Save<float>(m_SmoothnessFadeStart);
-                settings.Save<float>(m_RayLength);
-                settings.Save<float>(m_ClampValue);
-                settings.Save<bool>(m_FullResolution);
-                settings.Save<bool>(m_RayMaxIterationsRT);
-                settings.Save<bool>(m_Denoise);
-                settings.Save<int>(m_DenoiserRadius);
-                settings.Save<bool>(m_AffectsSmoothSurfaces);
-            }
+            settings.Save<float>(m_MinSmoothness);
+            settings.Save<float>(m_SmoothnessFadeStart);
+            settings.Save<float>(m_RayLength);
+            settings.Save<float>(m_ClampValue);
+            settings.Save<bool>(m_FullResolution);
+            settings.Save<bool>(m_RayMaxIterationsRT);
+            settings.Save<bool>(m_Denoise);
+            settings.Save<int>(m_DenoiserRadius);
+            settings.Save<bool>(m_AffectsSmoothSurfaces);
             // SSR
-            else
-                settings.Save<int>(m_RayMaxIterations);
+            settings.Save<int>(m_RayMaxIterations);
 
             return settings;
         }
