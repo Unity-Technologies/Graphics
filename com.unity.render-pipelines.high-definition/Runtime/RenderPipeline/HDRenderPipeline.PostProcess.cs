@@ -2377,7 +2377,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 if (next != null)
                     camera.ReleaseHistoryFrameRT((int)HDCameraFrameHistoryType.DepthOfFieldCoC);
 
-                m_PostProcessTextureAllocator.scale = new Vector2(camera.postProcessScreenSize.x / camera.screenSize.x, camera.postProcessScreenSize.y / camera.screenSize.y);
+                m_PostProcessTextureAllocator.scale = new Vector2(camera.postProcessScreenSize.x * camera.screenSize.z, camera.postProcessScreenSize.y * camera.screenSize.w);
                 m_PostProcessTextureAllocator.enableMips = useMips;
                 m_PostProcessTextureAllocator.useDynamicScale = resGroup == ResolutionGroup.BeforeDynamicResUpscale;
                 m_PostProcessTextureAllocator.name = $"CoC History";
