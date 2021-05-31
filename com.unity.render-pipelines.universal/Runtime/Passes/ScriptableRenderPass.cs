@@ -163,12 +163,12 @@ namespace UnityEngine.Rendering.Universal
             get => m_DepthStoreAction;
         }
 
-        public bool[] overriddenColorStoreActions
+        internal bool[] overriddenColorStoreActions
         {
             get => m_OverriddenColorStoreActions;
         }
 
-        public bool overriddenDepthStoreAction
+        internal bool overriddenDepthStoreAction
         {
             get => m_OverriddenDepthStoreAction;
         }
