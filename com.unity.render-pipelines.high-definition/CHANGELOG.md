@@ -220,6 +220,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed for wrong cached area light initialization.
 - Fixed unexpected rendering of 2D cookies when switching from Spot to Point light type (case 1333947).
 - Fixed the fallback to custom went changing a quality settings not workings properly (case 1338657).
+- Fixed ray tracing with XR and camera relative rendering (case 1336608).
 - Fixed the ray traced sub subsurface scattering debug mode not displaying only the RTSSS Data (case 1332904).
 - Fixed for discrepancies in intensity and saturation between screen space refraction and probe refraction.
 - Fixed a divide-by-zero warning for anisotropic shaders (Fabric, Lit).
