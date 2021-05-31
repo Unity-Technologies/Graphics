@@ -144,7 +144,7 @@ namespace UnityEngine.Rendering.Universal
 
         internal void UpdateFinalStoreActions(int[] currentMergeablePasses, CameraData cameraData)
         {
-            for (int i = 0; i < 8; ++i)
+            for (int i = 0; i < m_FinalColorStoreAction.Length; ++i)
                 m_FinalColorStoreAction[i] = RenderBufferStoreAction.Store;
             m_FinalDepthStoreAction = RenderBufferStoreAction.Store;
 
@@ -163,7 +163,7 @@ namespace UnityEngine.Rendering.Universal
                     : cameraData.cameraTargetDescriptor.msaaSamples;
 
                 // only override existing non destructive actions
-                for (int i = 0; i < 8; ++i)
+                for (int i = 0; i < m_FinalColorStoreAction.Length; ++i)
                 {
                     if (m_FinalColorStoreAction[i] == RenderBufferStoreAction.Store || m_FinalColorStoreAction[i] == RenderBufferStoreAction.StoreAndResolve || pass.overriddenColorStoreActions[i])
                         m_FinalColorStoreAction[i] = pass.colorStoreActions[i];
