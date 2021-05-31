@@ -37,8 +37,6 @@ test_platforms:
     - [all]: --extra-editor-arg="-cacheServerNamespacePrefix" --extra-editor-arg="{{cache.cacheServerNamespacePrefix}}"
     - [all]: --extra-editor-arg="-cacheServerEnableDownload" --extra-editor-arg="true"
     - [all]: --extra-editor-arg="-cacheServerEnableUpload" --extra-editor-arg="true"
-expression_trigger:
-  expression: ""
 platforms:
   - name: Win
     apis:

@@ -8,7 +8,86 @@ jobs:
       - .yamato/all-vfx.yml#Nightly_VFX_<TRACK>
       - .yamato/all-urp.yml#Nightly_URP_<TRACK>
       - .yamato/all-shadergraph.yml#Nightly_ShaderGraph_<TRACK>
+    triggers:
+        recurring:
+          -  branch: master
+             frequency: 1 * * ?
+
   - name: General Checks
     dependencies:
       - .yamato/_projectcontext.yml#all_package_ci_project_<TRACK>
       - .yamato/all-smoke_test.yml#Smoke_Test_<TRACK>
+
+  - name: Trunk verification
+    dependencies:
+      - project: URP_2D
+        platform: Win
+        api: DX11
+        build_config: mono
+        color_space: Linear
+        test_platforms:
+            - playmode_cache
+            - editmode
+      - project: URP_Foundation
+        platform: Win
+        api: DX11
+        build_config: mono
+        color_space: Linear
+        test_platforms:
+            - playmode_cache
+            - editmode
+      - project: URP_Lighting
+        platform: Win
+        api: DX11
+        build_config: mono
+        color_space: Linear
+        test_platforms:
+            - playmode_cache
+            - editmode
+      - project: URP_PostPro
+        platform: Win
+        api: DX11
+        build_config: mono
+        color_space: Linear
+        test_platforms:
+            - playmode_cache
+            - editmode
+      - project: URP_Terrain
+        platform: Win
+        api: DX11
+        build_config: mono
+        color_space: Linear
+        test_platforms:
+            - playmode_cache
+            - editmode
+      - project: ShaderGraph
+        platform: Win
+        api: DX11
+        build_config: mono
+        color_space: Linear
+        test_platforms:
+            - playmode_cache
+            - editmode
+      - project: HDRP
+        platform: Win
+        api: DX11
+        build_config: mono
+        color_space: Linear
+        test_platforms:
+            - playmode_cache
+            - editmode
+      - project: VFX_HDRP
+        platform: Win
+        api: DX11
+        build_config: mono
+        color_space: Linear
+        test_platforms:
+            - playmode_cache
+            - editmode
+      - project: VFX_URP
+        platform: Win
+        api: DX11
+        build_config: mono
+        color_space: Linear
+        test_platforms:
+            - playmode_cache

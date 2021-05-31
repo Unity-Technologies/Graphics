@@ -14,6 +14,8 @@ PR_ShaderGraph_trunk:
         CUSTOM_REVISION: '{{trunk.changeset.id}}'
         UTR_VERSION: "current"
         TEST_FILTER: .*
+    triggers:
+        expression: pull_request.target eq "master" AND NOT pull_request.draft AND pull_request.changes.any match ["com.unity.shadergraph/**/*", "TestProjects/ShaderGraph/**/*"] AND NOT pull_request.changes.all match ["*.md", "**/*.md", "doc/**/*", "**/Documentation*/**/*"]
     dependencies:
       -  path: .yamato/shadergraph-win-dx11.yml#ShaderGraph_Win_DX11_Standalone_cache_mono_Linear_trunk
          rerun: on_new_revision

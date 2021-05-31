@@ -14,6 +14,8 @@ PR_HDRP_trunk:
         CUSTOM_REVISION: '{{trunk.changeset.id}}'
         UTR_VERSION: "current"
         TEST_FILTER: .*
+    triggers:
+        expression: pull_request.target eq "master" AND NOT pull_request.draft AND pull_request.changes.any match ["com.unity.render-pipelines.high-definition/**/*", "com.unity.render-pipelines.high-definition-config/**/*",  "TestProjects/HDRP_Tests/**/*"] AND NOT pull_request.changes.all match ["*.md", "**/*.md", "doc/**/*", "**/Documentation*/**/*"]
     dependencies:
       -  path: .yamato/hdrp-win-dx11.yml#HDRP_Win_DX11_Standalone_cache_mono_Linear_trunk
          rerun: on_new_revision

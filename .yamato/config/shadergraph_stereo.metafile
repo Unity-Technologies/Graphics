@@ -21,9 +21,6 @@ platforms:
       - name: mono
     color_spaces:
       - Linear
-expression_trigger:
-  expression: ""
-
 jobs:
   - name: PR <PROJECT_NAME>
     dependencies:

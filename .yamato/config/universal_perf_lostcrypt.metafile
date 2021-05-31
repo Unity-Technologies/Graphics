@@ -176,8 +176,7 @@ test_platforms:
           - [all]: --performance-project-id=LostCryptLostCrypt
           - <reuse_blocks.perf_utr_flags>
           - [all]: --testfilter=High
-expression_trigger:
-  expression: ""
+
 platforms:
   - name: Win
     apis:

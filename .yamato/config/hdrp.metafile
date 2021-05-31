@@ -45,8 +45,6 @@ test_platforms:
     - [all]: --extra-editor-arg="-cacheServerNamespacePrefix" --extra-editor-arg="{{cache.cacheServerNamespacePrefix}}"
     - [all]: --extra-editor-arg="-cacheServerEnableDownload" --extra-editor-arg="true"
     - [all]: --extra-editor-arg="-cacheServerEnableUpload" --extra-editor-arg="true"
-expression_trigger:
-    expression: 'pull_request.target eq "<TARGET_BRANCH>" AND NOT pull_request.draft AND pull_request.changes.any match ["com.unity.render-pipelines.high-definition/**/*", "com.unity.render-pipelines.high-definition-config/**/*",  "TestProjects/HDRP_Tests/**/*"] AND NOT pull_request.changes.all match ["*.md", "**/*.md", "doc/**/*", "**/Documentation*/**/*"]'
 
 platforms:
   - name: Win
@@ -99,6 +97,8 @@ platforms:
 
 jobs:
   - name: PR <PROJECT_NAME>
+    triggers:
+      expression: 'pull_request.target eq "<TARGET_BRANCH>" AND NOT pull_request.draft AND pull_request.changes.any match ["com.unity.render-pipelines.high-definition/**/*", "com.unity.render-pipelines.high-definition-config/**/*",  "TestProjects/HDRP_Tests/**/*"] AND NOT pull_request.changes.all match ["*.md", "**/*.md", "doc/**/*", "**/Documentation*/**/*"]'
     dependencies:
       - platform: Win
         api: DX11
@@ -112,6 +112,7 @@ jobs:
       - .yamato/all-hdrp_dxr.yml#PR_HDRP_DXR_<TRACK>
       - .yamato/all-hdrp_hybrid.yml#PR_HDRP_Hybrid_<TRACK>
       - .yamato/all-vfx_hdrp.yml#PR_VFX_HDRP_<TRACK>
+
   - name: Extra <PROJECT_NAME>
     dependencies:
       - platform: Win

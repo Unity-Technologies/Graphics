@@ -109,8 +109,7 @@ test_platforms:
           - [all]: --report-performance-data
           - [all]: --performance-project-id=VikingVillage_BuiltIn
           - <reuse_blocks.perf_utr_flags>
-expression_trigger:
-  expression: ""
+
 platforms:
   - name: Win
     apis:

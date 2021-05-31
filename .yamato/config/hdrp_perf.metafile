@@ -80,8 +80,6 @@ test_platforms:
           - [all]: --platform=editmode
           - [all]: --loglevel=verbose
           - [all]: <reuse_blocks.cache_server>
-expression_trigger:
-  expression: ""
 platforms:
   - name: Win
     apis:

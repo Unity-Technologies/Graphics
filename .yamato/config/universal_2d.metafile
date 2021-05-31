@@ -86,8 +86,6 @@ test_platforms:
         flags:
           - [all]: --timeout=3000
           - <reuse_blocks.cache_server>
-expression_trigger:
-  expression: ''
 platforms:
   - name: Win
     apis:

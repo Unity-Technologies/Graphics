@@ -15,12 +15,12 @@ platforms:
       - name: mono
     color_spaces:
       - Linear
-expression_trigger:
-  expression: 'pull_request.target eq "<TARGET_BRANCH>" AND NOT pull_request.draft AND pull_request.changes.any match ["TestProjects/SRP_SmokeTest/**/*"] AND NOT pull_request.changes.all match ["*.md", "**/*.md", "doc/**/*", "**/Documentation*/**/*"]'
 
 
 jobs:
   - name: PR <PROJECT_NAME>
+    triggers:
+      expression: 'pull_request.target eq "<TARGET_BRANCH>" AND NOT pull_request.draft AND pull_request.changes.any match ["TestProjects/SRP_SmokeTest/**/*"] AND NOT pull_request.changes.all match ["*.md", "**/*.md", "doc/**/*", "**/Documentation*/**/*"]'
     dependencies:
       - platform: Win
         api: DX11

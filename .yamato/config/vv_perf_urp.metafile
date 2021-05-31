@@ -113,8 +113,7 @@ test_platforms:
           - [all]: --performance-project-id=VikingVillage_URP
           - <reuse_blocks.perf_utr_flags>
           - [all]: --testfilter=Medium
-expression_trigger:
-  expression: ""
+
 platforms:
   - name: Win
     apis:
