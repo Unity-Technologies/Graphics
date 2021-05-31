@@ -660,7 +660,6 @@ namespace UnityEngine.Rendering.HighDefinition
                 {
                     UpdateRenderingLayerNames();
                 }
-
                 return m_RenderingLayerNames;
             }
         }
@@ -727,32 +726,6 @@ namespace UnityEngine.Rendering.HighDefinition
                     m_PrefixedLightLayerNames[i] = m_PrefixedRenderingLayerNames[i];
                 else if (i < 16)
                     m_PrefixedDecalLayerNames[i - 8] = string.Format("{0}: {1}", i - 8, m_RenderingLayerNames[i]);
-            }
-        }
-
-        internal void ResetRenderingLayerNames(bool lightLayers, bool decalLayers)
-        {
-            if (lightLayers)
-            {
-                lightLayerName0 = k_DefaultLightLayerNames[0];
-                lightLayerName1 = k_DefaultLightLayerNames[1];
-                lightLayerName2 = k_DefaultLightLayerNames[2];
-                lightLayerName3 = k_DefaultLightLayerNames[3];
-                lightLayerName4 = k_DefaultLightLayerNames[4];
-                lightLayerName5 = k_DefaultLightLayerNames[5];
-                lightLayerName6 = k_DefaultLightLayerNames[6];
-                lightLayerName7 = k_DefaultLightLayerNames[7];
-            }
-            if (decalLayers)
-            {
-                decalLayerName0 = k_DefaultDecalLayerNames[0];
-                decalLayerName1 = k_DefaultDecalLayerNames[1];
-                decalLayerName2 = k_DefaultDecalLayerNames[2];
-                decalLayerName3 = k_DefaultDecalLayerNames[3];
-                decalLayerName4 = k_DefaultDecalLayerNames[4];
-                decalLayerName5 = k_DefaultDecalLayerNames[5];
-                decalLayerName6 = k_DefaultDecalLayerNames[6];
-                decalLayerName7 = k_DefaultDecalLayerNames[7];
             }
         }
 

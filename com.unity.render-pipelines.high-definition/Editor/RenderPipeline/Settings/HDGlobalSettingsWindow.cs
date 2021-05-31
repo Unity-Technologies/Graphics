@@ -498,7 +498,7 @@ namespace UnityEditor.Rendering.HighDefinition
         {
             m_ShowLightLayerNames = CoreEditorUtils.DrawHeaderFoldout(Styles.lightLayersLabel,
                 m_ShowLightLayerNames,
-                documentationURL: DocumentationUrls.k_DecalLayers,
+                documentationURL: Documentation.GetPageLink(DocumentationUrls.k_LightLayers),
                 contextAction: pos => OnContextClickRenderingLayerNames(pos, serialized, section: 1)
             );
             if (m_ShowLightLayerNames)
@@ -520,7 +520,7 @@ namespace UnityEditor.Rendering.HighDefinition
         static void DrawDecalLayerNames(SerializedHDRenderPipelineGlobalSettings serialized, Editor owner)
         {
             m_ShowDecalLayerNames = CoreEditorUtils.DrawHeaderFoldout(Styles.decalLayersLabel, m_ShowDecalLayerNames,
-                documentationURL: DocumentationUrls.k_DecalLayers,
+                documentationURL: Documentation.GetPageLink(DocumentationUrls.k_DecalLayers),
                 contextAction: pos => OnContextClickRenderingLayerNames(pos, serialized, section: 2));
             if (m_ShowDecalLayerNames)
             {
