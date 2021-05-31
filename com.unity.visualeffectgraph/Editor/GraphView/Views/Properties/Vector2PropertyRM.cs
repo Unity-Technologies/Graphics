@@ -28,7 +28,7 @@ namespace UnityEditor.VFX.UI
 
         public override float GetPreferredControlWidth()
         {
-            return 100;
+            return 120;
         }
 
         public override INotifyValueChanged<Vector2> CreateField()

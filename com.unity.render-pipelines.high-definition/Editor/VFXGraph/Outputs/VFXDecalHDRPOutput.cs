@@ -140,7 +140,7 @@ namespace UnityEditor.VFX.HDRP
 
         public class AngleFadeProperty
         {
-            [Tooltip("Angle Fade. Between 0 and 180.")] //TODO : create range attribute?
+            [Tooltip("Angle Fade. Between 0 and 180."), MinMax(0.0f, 180.0f)] //TODO : create range attribute?
             public Vector2 angleFade = new Vector2(0.0f, 180.0f);
         }
         protected override IEnumerable<VFXPropertyWithValue> inputProperties
