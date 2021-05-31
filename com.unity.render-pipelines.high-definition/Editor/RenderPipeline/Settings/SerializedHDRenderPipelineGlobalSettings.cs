@@ -47,6 +47,8 @@ namespace UnityEditor.Rendering.HighDefinition
         public SerializedProperty supportProbeVolumes;
         public SerializedProperty supportRuntimeDebugDisplay;
 
+        public SerializedProperty rendererListCulling;
+
         public SerializedProperty DLSSProjectId;
         public SerializedProperty useDLSSCustomProjectId;
 
@@ -135,6 +137,7 @@ namespace UnityEditor.Rendering.HighDefinition
                 drawElement = DrawDiffusionProfileElement
             };
             supportProbeVolumes = serializedObject.Find((HDRenderPipelineGlobalSettings s) => s.supportProbeVolumes);
+            rendererListCulling = serializedObject.FindProperty("rendererListCulling");
 
             supportRuntimeDebugDisplay = serializedObject.Find((HDRenderPipelineGlobalSettings s) => s.supportRuntimeDebugDisplay);
 
