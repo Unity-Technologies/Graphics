@@ -36,6 +36,11 @@ EditorBuildSettings:
     path: Assets/Scenes/107_ReflectionLodBias.unity
     guid: 90aecc5cbceb3d848aa073e5163fb936
   - enabled: 1
+    path: Assets/Scenes/107_ReflectionsHybridFullRes.unity
+    guid: c1f9cf56879c30640b5cd30f5b500b52
+  - enabled: 1
+    path: Assets/Scenes/108_ReflectionsHybridHalfRes.unity
+    guid: 4a71d9b31d3fb4e40a56b5be93a15b8d
     path: Assets/Scenes/108_ReflectionEmissive_Perf_Exposure_0.unity
     guid: 84d0d38a16a53224e9a6612392dafaa7
   - enabled: 1
@@ -86,6 +91,12 @@ EditorBuildSettings:
   - enabled: 1
     path: Assets/Scenes/307_GlobalIlluminationFog.unity
     guid: 8a5a48512a640734394f6427d94fd0f8
+  - enabled: 1
+    path: Assets/Scenes/309_GlobalIlluminationHybridFullRes.unity
+    guid: aa9a4cec1f3d4be47a47231d92e562b2
+  - enabled: 1
+    path: Assets/Scenes/310_GlobalIlluminationHybridHalfRes.unity
+    guid: 0f27d8beeae29414bb547dd3447e9767
   - enabled: 1
     path: Assets/Scenes/406_RayTracedShadows.unity
     guid: 4aaf485f4ac39ff4e9fd997caff44abe

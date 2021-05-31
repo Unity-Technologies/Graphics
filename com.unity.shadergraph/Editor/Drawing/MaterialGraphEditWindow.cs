@@ -730,7 +730,8 @@ namespace UnityEditor.ShaderGraph.Drawing
             bounds.center = Vector2.zero;
 
             // Collect graph inputs
-            var graphInputs = graphView.selection.OfType<BlackboardPropertyView>().Select(x => x.userData as ShaderInput);
+            var graphInputs = graphView.selection.OfType<SGBlackboardField>().Select(x => x.userData as ShaderInput);
+            var categories = graphView.selection.OfType<SGBlackboardCategory>().Select(x => x.userData as CategoryData);
 
             // Collect the property nodes and get the corresponding properties
             var propertyNodes = graphView.selection.OfType<IShaderNodeView>().Where(x => (x.node is PropertyNode)).Select(x => ((PropertyNode)x.node).property);
@@ -747,6 +748,7 @@ namespace UnityEditor.ShaderGraph.Drawing
                 nodes,
                 graphView.selection.OfType<Edge>().Select(x => x.userData as Graphing.Edge),
                 graphInputs,
+                categories,
                 metaProperties,
                 metaKeywords,
                 metaDropdowns,

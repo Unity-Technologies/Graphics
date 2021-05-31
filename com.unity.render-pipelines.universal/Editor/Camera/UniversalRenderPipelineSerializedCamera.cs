@@ -48,21 +48,28 @@ namespace UnityEditor.Rendering.Universal
             }
         }
 
-        public int numCameras => cameras.arraySize;
+        public int numCameras => cameras?.arraySize ?? 0;
 
         UniversalRenderPipelineSerializedCamera[] cameraSerializedObjects { get; set; }
 
         public UniversalAdditionalCameraData[] camerasAdditionalData { get; }
 
-        public UniversalRenderPipelineSerializedCamera(SerializedObject serializedObject)
+        public UniversalRenderPipelineSerializedCamera(SerializedObject serializedObject, CameraEditor.Settings settings = null)
         {
             this.serializedObject = serializedObject;
             projectionMatrixMode = serializedObject.FindProperty("m_projectionMatrixMode");
 
             allowDynamicResolution = serializedObject.FindProperty("m_AllowDynamicResolution");
 
-            baseCameraSettings = new CameraEditor.Settings(serializedObject);
-            baseCameraSettings.OnEnable();
+            if (settings == null)
+            {
+                baseCameraSettings = new CameraEditor.Settings(serializedObject);
+                baseCameraSettings.OnEnable();
+            }
+            else
+            {
+                baseCameraSettings = settings;
+            }
 
             camerasAdditionalData = CoreEditorUtils
                 .GetAdditionalData<UniversalAdditionalCameraData>(serializedObject.targetObjects);
@@ -90,8 +97,6 @@ namespace UnityEditor.Rendering.Universal
 #if ENABLE_VR && ENABLE_XR_MODULE
             allowXRRendering = serializedAdditionalDataObject.FindProperty("m_AllowXRRendering");
 #endif
-
-            Refresh();
         }
 
         /// <summary>
@@ -135,8 +140,8 @@ namespace UnityEditor.Rendering.Universal
             cameraSerializedObjects = new UniversalRenderPipelineSerializedCamera[numCameras];
             for (int i = 0; i < numCameras; ++i)
             {
-                cameraSerializedObjects[i] = new UniversalRenderPipelineSerializedCamera(
-                    new SerializedObject(cameras.GetArrayElementAtIndex(i).objectReferenceValue as Camera));
+                Camera cam = cameras.GetArrayElementAtIndex(i).objectReferenceValue as Camera;
+                cameraSerializedObjects[i] = new UniversalRenderPipelineSerializedCamera(new SerializedObject(cam));
             }
         }
     }

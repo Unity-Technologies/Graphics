@@ -129,6 +129,11 @@ namespace UnityEngine.Rendering.Universal
             }
         }
 
+        // Match with values in Input.hlsl
+        internal static int lightsPerTile => ((maxVisibleAdditionalLights + 31) / 32) * 32;
+        internal static int maxZBins => 1024 * 4;
+        internal static int maxTileVec4s => 4096;
+
         internal const int k_DefaultRenderingLayerMask = 0x00000001;
         private readonly DebugDisplaySettingsUI m_DebugDisplaySettingsUI = new DebugDisplaySettingsUI();
 
@@ -225,6 +230,7 @@ namespace UnityEngine.Rendering.Universal
 #endif
 
             GraphicsSettings.lightsUseLinearIntensity = (QualitySettings.activeColorSpace == ColorSpace.Linear);
+            GraphicsSettings.lightsUseColorTemperature = true;
             GraphicsSettings.useScriptableRenderPipelineBatching = asset.useSRPBatcher;
             GraphicsSettings.defaultRenderingLayerMask = k_DefaultRenderingLayerMask;
             SetupPerFrameShaderConstants();
@@ -404,6 +410,7 @@ namespace UnityEngine.Rendering.Universal
 
                 // Timing scope inside
                 renderer.Execute(context, ref renderingData);
+                CleanupLightData(ref renderingData.lightData);
             } // When ProfilingSample goes out of scope, an "EndSample" command is enqueued into CommandBuffer cmd
 
             cameraData.xr.EndCamera(cmd, cameraData);
@@ -415,6 +422,7 @@ namespace UnityEngine.Rendering.Universal
                 if (renderer.useRenderPassEnabled && !context.SubmitForRenderPassValidation())
                 {
                     renderer.useRenderPassEnabled = false;
+                    CoreUtils.SetKeyword(cmd, ShaderKeywordStrings.RenderPassEnabled, false);
                     Debug.LogWarning("Rendering command not supported inside a native RenderPass found. Falling back to non-RenderPass rendering path");
                 }
                 context.Submit(); // Actually execute the commands that we previously sent to the ScriptableRenderContext context
@@ -1064,6 +1072,16 @@ namespace UnityEngine.Rendering.Universal
             lightData.reflectionProbeBlending = settings.reflectionProbeBlending;
             lightData.reflectionProbeBoxProjection = settings.reflectionProbeBoxProjection;
             lightData.supportsLightLayers = RenderingUtils.SupportsLightLayers(SystemInfo.graphicsDeviceType) && settings.supportsLightLayers;
+            lightData.originalIndices = new NativeArray<int>(visibleLights.Length, Allocator.Temp);
+            for (var i = 0; i < lightData.originalIndices.Length; i++)
+            {
+                lightData.originalIndices[i] = i;
+            }
+        }
+
+        static void CleanupLightData(ref LightData lightData)
+        {
+            lightData.originalIndices.Dispose();
         }
 
         static void UpdateCameraStereoMatrices(CameraData cameraData)

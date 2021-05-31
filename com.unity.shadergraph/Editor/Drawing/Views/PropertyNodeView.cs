@@ -77,25 +77,37 @@ namespace UnityEditor.ShaderGraph
                 var propNode = node as PropertyNode;
                 var graph = node.owner as GraphData;
 
-                shaderInputPropertyDrawer.GetPropertyData(
-                    graph.isSubGraph,
-                    graph,
-                    this.ChangeExposedField,
-                    () => graph.ValidateGraph(),
-                    () => graph.OnKeywordChanged(),
-                    () => graph.OnDropdownChanged(),
-                    this.ChangePropertyValue,
-                    this.MarkNodesAsDirty);
+                var shaderInputViewModel = new ShaderInputViewModel()
+                {
+                    model = property,
+                    parentView = null,
+                    isSubGraph = graph.isSubGraph,
+                    isInputExposed = property.isExposed,
+                    inputName = property.displayName,
+                    inputTypeName = property.GetPropertyTypeString(),
+                    requestModelChangeAction = this.RequestModelChange
+                };
+                shaderInputPropertyDrawer.GetViewModel(shaderInputViewModel, node.owner, this.MarkNodesAsDirty);
 
                 this.m_propertyViewUpdateTrigger = inspectorUpdateDelegate;
                 this.m_ResetReferenceNameAction = shaderInputPropertyDrawer.ResetReferenceName;
             }
         }
 
+        void RequestModelChange(IGraphDataAction changeAction)
+        {
+            node.owner?.owner.graphDataStore.Dispatch(changeAction);
+        }
+
         void ChangeExposedField(bool newValue)
         {
             property.generatePropertyBlock = newValue;
             UpdateIcon();
+        }
+
+        void ChangeDisplayName(string newValue)
+        {
+            property.displayName = newValue;
         }
 
         internal static void AddMainColorMenuOptions(ContextualMenuPopulateEvent evt, ColorShaderProperty colorProp, GraphData graphData, Action inspectorUpdateAction)

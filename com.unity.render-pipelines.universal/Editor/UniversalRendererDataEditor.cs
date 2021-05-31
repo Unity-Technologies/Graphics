@@ -19,12 +19,13 @@ namespace UnityEditor.Rendering.Universal
             public static readonly GUIContent RenderingModeLabel = new GUIContent("Rendering Path", "Select a rendering path.");
             public static readonly GUIContent DepthPrimingModeLabel = new GUIContent("Depth Priming Mode", "With depth priming enabled, Unity uses the depth buffer generated in the depth prepass to determine if a fragment should be rendered or skipped during the Base Camera opaque pass. Disabled: Unity does not perform depth priming. Auto: If there is a Render Pass that requires a depth prepass, Unity performs the depth prepass and depth priming. Forced: Unity performs the depth prepass and depth priming.");
             public static readonly GUIContent DepthPrimingModeInfo = new GUIContent("On Android, iOS, and Apple TV, Unity performs depth priming only in the Forced mode. On tiled GPUs, which are common to those platforms, depth priming might reduce performance when combined with MSAA.");
-            public static readonly GUIContent RenderPassLabel = new GUIContent("Native RenderPass", "Enables URP to use RenderPass API");
+            public static readonly GUIContent RenderPassLabel = new GUIContent("Native RenderPass", "Enables URP to use RenderPass API. Has no effect on OpenGLES2");
             public static readonly GUIContent accurateGbufferNormalsLabel = EditorGUIUtility.TrTextContent("Accurate G-buffer normals", "Normals in G-buffer use octahedron encoding/decoding. This improves visual quality but might reduce performance.");
             //public static readonly GUIContent tiledDeferredShadingLabel = EditorGUIUtility.TrTextContent("Tiled Deferred Shading (Experimental)", "Allows Tiled Deferred Shading on appropriate lights");
             public static readonly GUIContent defaultStencilStateLabel = EditorGUIUtility.TrTextContent("Default Stencil State", "Configure the stencil state for the opaque and transparent render passes.");
             public static readonly GUIContent shadowTransparentReceiveLabel = EditorGUIUtility.TrTextContent("Transparent Receive Shadows", "When disabled, none of the transparent objects will receive shadows.");
             public static readonly GUIContent invalidStencilOverride = EditorGUIUtility.TrTextContent("Error: When using the deferred rendering path, the Renderer requires the control over the 4 highest bits of the stencil buffer to store Material types. The current combination of the stencil override options prevents the Renderer from controlling the required bits. Try changing one of the options to Replace.");
+            public static readonly GUIContent clusteredRenderingLabel = EditorGUIUtility.TrTextContent("Clustered (experimental)", "(Experimental) Enables clustered rendering, allowing for more lights per object and more accurate light cullling.");
         }
 
         SerializedProperty m_OpaqueLayerMask;
@@ -33,13 +34,19 @@ namespace UnityEditor.Rendering.Universal
         SerializedProperty m_DepthPrimingMode;
         SerializedProperty m_AccurateGbufferNormals;
         //SerializedProperty m_TiledDeferredShading;
-#if ENABLE_RENDER_PASS_UI
+        SerializedProperty m_ClusteredRendering;
+        SerializedProperty m_TileSize;
         SerializedProperty m_UseNativeRenderPass;
-#endif
         SerializedProperty m_DefaultStencilState;
         SerializedProperty m_PostProcessData;
         SerializedProperty m_Shaders;
         SerializedProperty m_ShadowTransparentReceiveProp;
+
+#if URP_ENABLE_CLUSTERED_UI
+        static bool s_EnableClusteredUI => true;
+#else
+        static bool s_EnableClusteredUI => false;
+#endif
 
         private void OnEnable()
         {
@@ -50,9 +57,9 @@ namespace UnityEditor.Rendering.Universal
             m_AccurateGbufferNormals = serializedObject.FindProperty("m_AccurateGbufferNormals");
             // Not exposed yet.
             //m_TiledDeferredShading = serializedObject.FindProperty("m_TiledDeferredShading");
-#if ENABLE_RENDER_PASS_UI
+            m_ClusteredRendering = serializedObject.FindProperty("m_ClusteredRendering");
+            m_TileSize = serializedObject.FindProperty("m_TileSize");
             m_UseNativeRenderPass = serializedObject.FindProperty("m_UseNativeRenderPass");
-#endif
             m_DefaultStencilState = serializedObject.FindProperty("m_DefaultStencilState");
             m_PostProcessData = serializedObject.FindProperty("postProcessData");
             m_Shaders = serializedObject.FindProperty("shaders");
@@ -86,24 +93,32 @@ namespace UnityEditor.Rendering.Universal
             if (m_RenderingMode.intValue == (int)RenderingMode.Forward)
             {
                 EditorGUI.indentLevel++;
+
+                if (s_EnableClusteredUI)
+                {
+                    EditorGUILayout.PropertyField(m_ClusteredRendering, Styles.clusteredRenderingLabel);
+                    EditorGUI.BeginDisabledGroup(!m_ClusteredRendering.boolValue);
+                    EditorGUILayout.PropertyField(m_TileSize);
+                    EditorGUI.EndDisabledGroup();
+                }
+
                 EditorGUILayout.PropertyField(m_DepthPrimingMode, Styles.DepthPrimingModeLabel);
                 if (m_DepthPrimingMode.intValue != (int)DepthPrimingMode.Disabled)
                 {
                     EditorGUILayout.HelpBox(Styles.DepthPrimingModeInfo.text, MessageType.Info);
                 }
+
                 EditorGUI.indentLevel--;
             }
 
 
             EditorGUI.indentLevel--;
             EditorGUILayout.Space();
-#if ENABLE_RENDER_PASS_UI
             EditorGUILayout.LabelField("RenderPass", EditorStyles.boldLabel);
             EditorGUI.indentLevel++;
             EditorGUILayout.PropertyField(m_UseNativeRenderPass, Styles.RenderPassLabel);
             EditorGUI.indentLevel--;
             EditorGUILayout.Space();
-#endif
             EditorGUILayout.LabelField("Shadows", EditorStyles.boldLabel);
             EditorGUI.indentLevel++;
             EditorGUILayout.PropertyField(m_ShadowTransparentReceiveProp, Styles.shadowTransparentReceiveLabel);
@@ -118,11 +133,9 @@ namespace UnityEditor.Rendering.Universal
             {
                 m_PostProcessData.objectReferenceValue = postProcessIncluded ? PostProcessData.GetDefaultPostProcessData() : null;
             }
-            if (postProcessIncluded)
-            {
-                EditorGUILayout.PropertyField(m_PostProcessData, Styles.PostProcessLabel);
-            }
-            //m_PostProcessData.objectReferenceValue = PostProcessData.GetDefaultPostProcessData();
+            EditorGUI.indentLevel++;
+            EditorGUILayout.PropertyField(m_PostProcessData, Styles.PostProcessLabel);
+            EditorGUI.indentLevel--;
             EditorGUI.indentLevel--;
             EditorGUILayout.Space();
 

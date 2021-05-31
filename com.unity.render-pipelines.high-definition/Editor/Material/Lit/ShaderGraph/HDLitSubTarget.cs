@@ -60,11 +60,12 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
         {
             var descriptor = base.GetSubShaderDescriptor();
 
-            descriptor.passes.Add(HDShaderPasses.GenerateLitDepthOnly());
-            descriptor.passes.Add(HDShaderPasses.GenerateGBuffer());
-            descriptor.passes.Add(HDShaderPasses.GenerateLitForward());
-            descriptor.passes.Add(HDShaderPasses.GenerateForwardEmissiveForDeferredPass(), new FieldCondition(HDFields.EmissionOverriden, true));
-            descriptor.passes.Add(HDShaderPasses.GenerateLitRaytracingPrepass());
+            descriptor.passes.Add(HDShaderPasses.GenerateLitDepthOnly(TargetsVFX(), systemData.tessellation));
+            descriptor.passes.Add(HDShaderPasses.GenerateGBuffer(TargetsVFX(), systemData.tessellation));
+            descriptor.passes.Add(HDShaderPasses.GenerateLitForward(TargetsVFX(), systemData.tessellation));
+            descriptor.passes.Add(HDShaderPasses.GenerateForwardEmissiveForDeferredPass(TargetsVFX(), systemData.tessellation), new FieldCondition(HDFields.EmissionOverriden, true));
+            if (!systemData.tessellation) // Raytracing don't support tessellation neither VFX
+                descriptor.passes.Add(HDShaderPasses.GenerateLitRaytracingPrepass());
 
             return descriptor;
         }
@@ -74,7 +75,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
             var descriptor = base.GetRaytracingSubShaderDescriptor();
 
             if (litData.materialType == HDLitData.MaterialType.SubsurfaceScattering)
-                descriptor.passes.Add(HDShaderPasses.GenerateRaytracingSubsurface(true));
+                descriptor.passes.Add(HDShaderPasses.GenerateRaytracingSubsurface());
 
             return descriptor;
         }
