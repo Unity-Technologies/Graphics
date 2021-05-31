@@ -350,9 +350,10 @@ void LightLoop( float3 V, PositionInputs posInput, PreLightData preLightData, BS
     #endif
 
         EnvLightData envLightData;
-        if (envLightCount > 0)
+#if HAS_REFRACTION
+        if (preLightData.refractionEnvDataToUse >= 0)
         {
-            envLightData = FetchEnvLight(envLightStart, 0);
+            envLightData = FetchEnvLight(preLightData.refractionEnvDataToUse);
         }
         else
         {
@@ -364,6 +365,7 @@ void LightLoop( float3 V, PositionInputs posInput, PreLightData preLightData, BS
             IndirectLighting lighting = EvaluateBSDF_ScreenspaceRefraction(context, V, posInput, preLightData, bsdfData, envLightData, refractionHierarchyWeight);
             AccumulateIndirectLighting(lighting, aggregateLighting);
         }
+#endif
 
         // Reflection probes are sorted by volume (in the increasing order).
         if (featureFlags & LIGHTFEATUREFLAGS_ENV)
