@@ -814,7 +814,8 @@ namespace UnityEditor.VFX.UI
             var contextType = controller.model.GetType();
             foreach (var setting in newContextController.model.GetSettings(true))
             {
-                if ((newContextController.model is VFXPlanarPrimitiveOutput || newContextController.model.GetType().Name == "VFXLitPlanarPrimitiveOutput") && setting.field.Name == "primitiveType")
+                if (((newContextController.model is VFXPlanarPrimitiveOutput || newContextController.model.GetType().Name == "VFXLitPlanarPrimitiveOutput") && setting.field.Name == "primitiveType") ||
+                    (newContextController.model.GetType().Name == "VFXDecalHDRPOutput" && setting.field.Name == "blendMode")) //TODO : These are not the only outputs/settings that do not support conversion correctly, need a cleaner way to handle those
                     continue;
 
                 if (!setting.valid || setting.field.GetCustomAttributes(typeof(VFXSettingAttribute), true).Length == 0)
