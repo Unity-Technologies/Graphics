@@ -10,7 +10,8 @@
 #pragma multi_compile _ PLANAR_REFLECTION_CAMERA
 #pragma multi_compile _ LOCAL_VOLUMETRIC_CLOUDS
 
-// #pragma enable_d3d11_debug_symbols
+//#define WITHOUT_LDS
+//#pragma enable_d3d11_debug_symbols
 
 // The vertical distortion as upper strat-clouds move faster than lower strats
 #define MOTION_DISTORTION 0.05
@@ -18,24 +19,22 @@
 #define NUM_MULTI_SCATTERING_OCTAVES 2
 // Bias in the light sample distribution to exagerate the darkening effect of the clouds
 #define WEIGHTED_LIGHT_SAMPLE_DISTRIBUTION_FACTOR 1.5f
-// The number of times the low frequency noise is repeated
-#define CLOUD_SCALE_FACTOR 5.0
-// The number of times the high frequency noise is repeated
-#define EROSION_SCALE_FACTOR 50.0
 // Global offset to the high frequency noise
 #define CLOUD_DETAIL_MIP_OFFSET 0.0
 // Global offset for reaching the LUT/AO
 #define CLOUD_LUT_MIP_OFFSET 1.0
 // Density blow wich we consider the density is zero (optimization reasons)
-#define CLOUD_DENSITY_TRESHOLD 0.001f
+#define CLOUD_DENSITY_TRESHOLD 0.01f
 // Number of steps before we start the large steps
 #define EMPTY_STEPS_BEFORE_LARGE_STEPS 4
 // Forward eccentricity
 #define FORWARD_ECCENTRICITY 0.8
 // Forward eccentricity
 #define BACKWARD_ECCENTRICITY 0.5
+// Minimal size of a step
+#define MINIMAL_RAY_MARCHING_STEP 50.0f
 // Minimal distance before which clouds are dislayed
-#define MIN_CLOUD_DISTANCE 10.0
+#define MIN_CLOUD_DISTANCE 1000.0
 // Distance until which the erosion texture i used
 #define MIN_EROSION_DISTANCE 3000.0
 #define MAX_EROSION_DISTANCE 300000.0
@@ -58,9 +57,6 @@
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Lighting/ScreenSpaceLighting/BilateralUpsample.hlsl"
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/Raytracing/Shaders/RayTracingCommon.hlsl"
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Lighting/AtmosphericScattering/AtmosphericScattering.hlsl"
-
-#define REAL_TIME_VOLUMETRIC_CLOUDS
-#include "Packages/com.unity.render-pipelines.high-definition/Runtime/Lighting/VolumetricLighting/VolumetricCloudsUtilities.hlsl"
 
 // Input textures
 TEXTURE2D_X(_HalfResDepthBuffer);
@@ -86,6 +82,9 @@ RW_TEXTURE2D_X(float, _HalfResDepthBufferRW);
 RW_TEXTURE2D_X(float4, _CloudsLightingTextureRW);
 RW_TEXTURE2D_X(float, _CloudsDepthTextureRW);
 RW_TEXTURE2D_X(float3, _CloudsAdditionalTextureRW);
+
+#define REAL_TIME_VOLUMETRIC_CLOUDS
+#include "Packages/com.unity.render-pipelines.high-definition/Runtime/Lighting/VolumetricLighting/VolumetricCloudsUtilities.hlsl"
 
 float ConvertObliqueDepthToNonOblique(int2 currentCoord, float obliqueDepth)
 {
@@ -318,7 +317,6 @@ bool GetCloudVolumeIntersection(float3 org, float3 dir, float insideClouds, floa
 
     // Mke sure we cannot go beyond what the number of samples
     rayMarchRange.distance = clamp(0, rayMarchRange.distance, _MaxRayMarchingDistance);
-
     // Return if we have an intersection
     return intersect;
 }
@@ -463,7 +461,7 @@ void EvaluateCloudProperties(float3 positionWS, float noiseMipOffset, float eros
     properties.height = EvaluateNormalizedCloudHeight(positionWS);
 
     // Evaluate the generic sampling coordinates
-    float3 baseNoiseSamplingCoordinates = float3(AnimateBaseNoisePosition(positionWS).xzy / NOISE_TEXTURE_NORMALIZATION_FACTOR) * CLOUD_SCALE_FACTOR * _ShapeScale;
+    float3 baseNoiseSamplingCoordinates = float3(AnimateBaseNoisePosition(positionWS).xzy / NOISE_TEXTURE_NORMALIZATION_FACTOR) * _ShapeScale;
 
     // Evaluate the coordinates at which the noise will be sampled and apply wind displacement
     baseNoiseSamplingCoordinates += properties.height * float3(_WindDirection.x, 0.0f, _WindDirection.y) * MOTION_DISTORTION;
@@ -508,12 +506,13 @@ void EvaluateCloudProperties(float3 positionWS, float noiseMipOffset, float eros
     // Apply the erosion for nifer details
     if (!cheapVersion)
     {
-        float3 fineNoiseSamplingCoordinates = AnimateFineNoisePosition(positionWS) / NOISE_TEXTURE_NORMALIZATION_FACTOR * EROSION_SCALE_FACTOR * _ErosionScale;
+        float3 fineNoiseSamplingCoordinates = AnimateFineNoisePosition(positionWS) / NOISE_TEXTURE_NORMALIZATION_FACTOR * _ErosionScale;
         float highFrequencyNoise = 1.0 - SAMPLE_TEXTURE3D_LOD(_Worley32RGB, s_linear_repeat_sampler, fineNoiseSamplingCoordinates, CLOUD_DETAIL_MIP_OFFSET + erosionMipOffset).x;
 
         // Compute the weight of the low frequency noise
         highFrequencyNoise = lerp(0.0, highFrequencyNoise, erosionFactor * 0.75f * cloudCoverageData.coverage.x);
         base_cloud = remap(base_cloud, highFrequencyNoise, 1.0, 0.0, 1.0);
+        properties.ambientOcclusion = saturate(properties.ambientOcclusion - sqrt(highFrequencyNoise * 2.0f * _ErosionOcclusion));
     }
 
     // Given that we are not sampling the erosion texture, we compensate by substracting an erosion value
@@ -642,7 +641,7 @@ VolumetricRayResult TraceVolumetricRay(CloudRay cloudRay, float offset)
             totalDistance = min(totalDistance, cloudRay.maxRayLength - rayMarchRange.start);
 
             // Evaluate our integration step
-            float stepS = totalDistance / (float)_NumPrimarySteps;
+            float stepS = max(totalDistance / (float)_NumPrimarySteps, MINIMAL_RAY_MARCHING_STEP);
 
             // Offset the starting point using our dithering pattern.
             rayMarchRange.start += stepS * offset;
@@ -677,7 +676,7 @@ VolumetricRayResult TraceVolumetricRay(CloudRay cloudRay, float offset)
             float currentDistance = stepS;
 
             // Initialize the values for the optimized ray marching
-            bool activeSampling = false;
+            bool activeSampling = true;
             int sequentialEmptySamples = 0;
 
             // Do the ray march for every step that we can.
@@ -815,8 +814,10 @@ void FillCloudReprojectionLDS(uint groupIndex, uint2 groupOrigin)
 
     // Read the sample value
     int checkerBoardIndex = ComputeCheckerBoardIndex(sampleCoord, _SubPixelIndex);
+    int2 representativeCoord = sampleCoord * 2 + HalfResIndexToCoordinateShift[checkerBoardIndex];
+    float sampleDP = LOAD_TEXTURE2D_X(_HalfResDepthBuffer, representativeCoord).x;
+
     float4 sampleVal = LOAD_TEXTURE2D_X(_CloudsLightingTexture, sampleCoord);
-    float sampleDP = LOAD_TEXTURE2D_X(_HalfResDepthBuffer, sampleCoord * 2 + HalfResIndexToCoordinateShift[checkerBoardIndex]).x;
     float sampleDC = LOAD_TEXTURE2D_X(_CloudsDepthTexture, sampleCoord).x;
 
     // Store into the LDS
@@ -841,18 +842,24 @@ void ReprojectClouds(uint3 dispatchThreadId : SV_DispatchThreadID,
     uint2 fullResCoord = intermediateCoord * 2;
     uint2 traceCoord = intermediateCoord / 2;
 
+#ifndef WITHOUT_LDS
     // Only 36 workers of the 64 do the pre-fetching
     if (groupIndex < 36)
     {
         // Load 1 value per thread
         FillCloudReprojectionLDS(groupIndex, groupId * 8);
     }
-
     // Make sure all values are loaded in LDS by now.
     GroupMemoryBarrierWithGroupSync();
+#endif
 
+#ifdef WITHOUT_LDS
+    // Average the depth of the cloud
+    float currentCloudDepth = LOAD_TEXTURE2D_X(_CloudsDepthTexture, traceCoord).x;
+#else
     // Average the depth of the cloud
     float currentCloudDepth = GetCloudDepth_LDS(groupThreadId, int2(0, 0));
+#endif
 
     // Compute the motionVector of the clouds
 #ifdef LOCAL_VOLUMETRIC_CLOUDS
@@ -898,7 +905,7 @@ void ReprojectClouds(uint3 dispatchThreadId : SV_DispatchThreadID,
     float linearCurrentDepth = Linear01Depth(currentDepth, _ZBufferParams);
 
     // We only need to check if the pixel depth coherence if the clouds can be behind and in front of the pixel
-    if (abs(linearPrevDepth - linearCurrentDepth) > linearCurrentDepth * 0.01)
+    if (abs(linearPrevDepth - linearCurrentDepth) > linearCurrentDepth * 0.2)
         validHistory = false;
 
     // Compute the local index that tells us the index of this pixel, the strategy for reprojection is a bit different in both cases
@@ -912,8 +919,13 @@ void ReprojectClouds(uint3 dispatchThreadId : SV_DispatchThreadID,
         {
             for (int x = -1; x <= 1; ++x)
             {
+                #ifdef WITHOUT_LDS
+                if (LOAD_TEXTURE2D_X(_CloudsDepthTexture, traceCoord + int2(x, y)).x != 0.0f)
+                    cloudNeighborhood += 1.0f;
+                #else
                 if (GetCloudDepth_LDS(groupThreadId, int2(x, y)) != 0.0f)
                     cloudNeighborhood += 1.0f;
+                #endif
             }
         }
 
@@ -929,7 +941,11 @@ void ReprojectClouds(uint3 dispatchThreadId : SV_DispatchThreadID,
         }
 
         // Accumulate the result with the previous frame
+        #ifdef WITHOUT_LDS
+        previousResult = accumulationFactor * previousResult + (1.0 - accumulationFactor) * LOAD_TEXTURE2D_X(_CloudsLightingTexture, traceCoord);
+        #else
         previousResult = accumulationFactor * previousResult + (1.0 - accumulationFactor) * GetCloudLighting_LDS(groupThreadId, int2(0, 0));
+        #endif
         previousSampleCount = sampleCount;
         previousDepth = currentDepth;
         previousCloudDepth = currentCloudDepth;
@@ -945,8 +961,11 @@ void ReprojectClouds(uint3 dispatchThreadId : SV_DispatchThreadID,
         {
             // Structure that will hold everything
             NeighborhoodUpsampleData3x3 upsampleData;
+            #ifdef WITHOUT_LDS
+            FillCloudReprojectionNeighborhoodData_NOLDS(traceCoord, upsampleData);
+            #else
             FillCloudReprojectionNeighborhoodData(groupThreadId, upsampleData);
-
+            #endif
             // Make sure that at least one of the pixels in the neighborhood can be used
             float rejectNeighborhood = 0.0f;
             int closestNeighbor = 4;
@@ -967,7 +986,11 @@ void ReprojectClouds(uint3 dispatchThreadId : SV_DispatchThreadID,
                 previousSampleCount = 1.0f;
                 previousResult = BilUpColor3x3(currentDepth, upsampleData);
             }
+            #ifdef WITHOUT_LDS
+            previousCloudDepth = LOAD_TEXTURE2D_X(_CloudsDepthTexture, traceCoord + IndexToLocalOffsetCoords[closestNeighbor]).x;
+            #else
             previousCloudDepth = GetCloudDepth_LDS(groupThreadId, IndexToLocalOffsetCoords[closestNeighbor]);
+            #endif
         }
         previousDepth = currentDepth;
     }
