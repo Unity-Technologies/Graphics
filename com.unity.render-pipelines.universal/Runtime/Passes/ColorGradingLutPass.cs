@@ -58,9 +58,9 @@ namespace UnityEngine.Rendering.Universal.Internal
                 m_AllowColorGradingACESHDR = false;
         }
 
-        public void Setup(in RenderTargetHandle internalLut)
+        public void Setup(in RTHandle internalLut)
         {
-            m_InternalLut = internalLut;
+            m_InternalLut = new RenderTargetHandle(internalLut);
         }
 
         /// <inheritdoc/>

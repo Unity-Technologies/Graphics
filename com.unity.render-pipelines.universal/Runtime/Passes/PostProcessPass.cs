@@ -158,22 +158,6 @@ namespace UnityEngine.Rendering.Universal.Internal
             m_UseSwapBuffer = true;
         }
 
-        public void Setup(in RenderTextureDescriptor baseDescriptor, in RTHandle source, bool resolveToScreen, in RTHandle depth, in RenderTargetHandle internalLut, bool hasFinalPass, bool enableSRGBConversion)
-        {
-            m_Descriptor = baseDescriptor;
-            m_Descriptor.useMipMap = false;
-            m_Descriptor.autoGenerateMips = false;
-            m_Source = source.nameID;
-            m_Depth = new RenderTargetHandle(depth);
-            m_InternalLut = internalLut;
-            m_IsFinalPass = false;
-            m_HasFinalPass = hasFinalPass;
-            m_EnableSRGBConversionIfNeeded = enableSRGBConversion;
-            m_ResolveToScreen = resolveToScreen;
-            m_Destination = RenderTargetHandle.CameraTarget;
-            m_UseSwapBuffer = true;
-        }
-
         public void Setup(in RenderTextureDescriptor baseDescriptor, in RTHandle source, bool resolveToScreen, in RTHandle depth, in RTHandle internalLut, bool hasFinalPass, bool enableSRGBConversion)
         {
             m_Descriptor = baseDescriptor;
@@ -205,6 +189,21 @@ namespace UnityEngine.Rendering.Universal.Internal
             m_UseSwapBuffer = false;
         }
 
+        public void Setup(in RenderTextureDescriptor baseDescriptor, in RenderTargetHandle source, RTHandle destination, in RenderTargetHandle depth, in RTHandle internalLut, bool hasFinalPass, bool enableSRGBConversion)
+        {
+            m_Descriptor = baseDescriptor;
+            m_Descriptor.useMipMap = false;
+            m_Descriptor.autoGenerateMips = false;
+            m_Source = source.Identifier();
+            m_Destination = new RenderTargetHandle(destination);
+            m_Depth = depth;
+            m_InternalLut = new RenderTargetHandle(internalLut);
+            m_IsFinalPass = false;
+            m_HasFinalPass = hasFinalPass;
+            m_EnableSRGBConversionIfNeeded = enableSRGBConversion;
+            m_UseSwapBuffer = false;
+        }
+
         public void Setup(in RenderTextureDescriptor baseDescriptor, in RTHandle source, RTHandle destination, in RTHandle depth, in RTHandle internalLut, bool hasFinalPass, bool enableSRGBConversion)
         {
             m_Descriptor = baseDescriptor;
@@ -228,6 +227,15 @@ namespace UnityEngine.Rendering.Universal.Internal
             m_HasFinalPass = false;
             m_EnableSRGBConversionIfNeeded = true;
             m_UseSwapBuffer = useSwapBuffer;
+        }
+
+        public void SetupFinalPass(in RTHandle source)
+        {
+            m_Source = source.nameID;
+            m_Destination = RenderTargetHandle.CameraTarget;
+            m_IsFinalPass = true;
+            m_HasFinalPass = false;
+            m_EnableSRGBConversionIfNeeded = true;
         }
 
         /// <inheritdoc/>

@@ -21,9 +21,9 @@ namespace UnityEngine.Rendering.Universal
         /// Configure the pass
         /// </summary>
         /// <param name="actions"></param>
-        public void Setup(RenderTargetHandle colorHandle)
+        public void Setup(RTHandle colorHandle)
         {
-            m_CameraColorHandle = colorHandle;
+            m_CameraColorHandle = new RenderTargetHandle(colorHandle);
         }
 
         /// <inheritdoc/>
