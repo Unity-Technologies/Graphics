@@ -133,12 +133,10 @@ namespace UnityEditor.VFX.UI
             {
                 m_Range = value;
                 m_IgnoreNotification = true;
-                if (m_Slider.minValue != m_Range.x || m_Slider.maxValue != m_Range.y)
+                if (m_Slider.lowLimit != m_Range.x || m_Slider.highLimit != m_Range.y)
                 {
-                    m_Slider.minValue = m_Range.x;
-                    m_Slider.maxValue = m_Range.y;
-
-                    m_Slider.value = m_Range;
+                    m_Slider.lowLimit = m_Range.x;
+                    m_Slider.highLimit = m_Range.y;
                 }
                 m_IgnoreNotification = false;
             }
