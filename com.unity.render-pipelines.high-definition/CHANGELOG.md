@@ -215,6 +215,11 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed overdraw in custom pass utils blur and Copy functions (case 1333648);
 - Fixed invalid pass index 1 in DrawProcedural error.
 - Fixed a compilation issue for AxF carpaints on Vulkan (case 1314040).
+- Fixed issue with hierarchy object filtering.
+- Fixed a lack of syncronization between the camera and the planar camera for volumetric cloud animation data.
+- Fixed for wrong cached area light initialization.
+- Fixed unexpected rendering of 2D cookies when switching from Spot to Point light type (case 1333947).
+- Fixed the fallback to custom went changing a quality settings not workings properly (case 1338657).
 - Fixed the ray traced sub subsurface scattering debug mode not displaying only the RTSSS Data (case 1332904).
 - Fixed for discrepancies in intensity and saturation between screen space refraction and probe refraction.
 - Fixed a divide-by-zero warning for anisotropic shaders (Fabric, Lit).
