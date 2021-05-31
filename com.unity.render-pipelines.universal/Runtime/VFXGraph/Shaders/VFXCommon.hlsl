@@ -116,7 +116,18 @@ float3 GetWorldStereoOffset()
 
 float VFXSampleDepth(float4 posSS)
 {
-    return LoadSceneDepth(uint2(posSS.xy));
+    float2 screenUV = posSS.xy * frac(_ScreenParams.zw);
+
+#if UNITY_UV_STARTS_AT_TOP
+    if (_ProjectionParams.x == 1.0f)
+        screenUV.y = 1.0f - screenUV.y;
+#endif
+
+    //In URP, the depth texture is optionnal and could be 4x4 white texture, Load isn't approriate in that case.
+    //float depth = LoadSceneDepth(screenUV * _ScreenParams.xy);
+    float depth = SampleSceneDepth(screenUV);
+
+    return depth;
 }
 
 float VFXLinearEyeDepth(float depth)

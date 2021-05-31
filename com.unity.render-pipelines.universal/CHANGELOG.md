@@ -132,6 +132,8 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed renderer creation in playmode to have its property reloaded. [case 1333463]
 - Fixed gizmos no longer allocate memory in game view. [case 1328852]
 - Fixed an issue where shadow artefacts appeared between cascades on Terrain Detail objects.
+- VFX: Fixed soft particles when HDR or Opaque texture isn't enabled
+- VFX: Fixed OpenGL soft particles fallback when depth texture isn't avaiable
 
 ### Changed
 - Change Asset/Create/Shader/Universal Render Pipeline/Lit Shader Graph to Asset/Create/Shader Graph/URP/Lit Shader Graph
