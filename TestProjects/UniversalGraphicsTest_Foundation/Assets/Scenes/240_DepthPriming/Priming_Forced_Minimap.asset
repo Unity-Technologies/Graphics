@@ -10,7 +10,7 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: f971995892640ec4f807ef396269e91e, type: 3}
-  m_Name: Priming_Forced
+  m_Name: Priming_Forced_Minimap
   m_EditorClassIdentifier: 
   debugShaders:
     debugReplacementPS: {fileID: 4800000, guid: cf852408f2e174538bcd9b7fda1c5ae7,
@@ -37,10 +37,10 @@ MonoBehaviour:
       type: 3}
   m_OpaqueLayerMask:
     serializedVersion: 2
-    m_Bits: 4294967295
+    m_Bits: 8192
   m_TransparentLayerMask:
     serializedVersion: 2
-    m_Bits: 4294967295
+    m_Bits: 8192
   m_DefaultStencilState:
     overrideStencilState: 0
     stencilReference: 0
