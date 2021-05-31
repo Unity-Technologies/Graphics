@@ -13,8 +13,6 @@ namespace UnityEditor.VFX.UI
     {
         protected MinMaxSlider m_Slider;
         VisualElement m_IndeterminateLabel;
-        Vector2Field m_Vector2Field;
-
 
         class StartFinishSliderManipulator : Manipulator
         {
@@ -76,32 +74,24 @@ namespace UnityEditor.VFX.UI
 
         public VFXMinMaxSliderField()
         {
-            AddToClassList("sliderField");
-            m_Slider = new MinMaxSlider(0,1, Single.MinValue, 1);
-            // m_Slider = new MinMaxSlider("Value");
+            AddToClassList("sliderMinMaxField");
+            m_Slider = new MinMaxSlider(1,10, 0, 100);
+
             m_Slider.AddToClassList("textfield");
             m_Slider.RegisterValueChangedCallback(evt => ValueChanged(evt.newValue));
-
-            m_Vector2Field = new Vector2Field();
-            m_Vector2Field.RegisterValueChangedCallback(ValueChanged);
-            m_Vector2Field.name = "Field";
-
-
             m_IndeterminateLabel = new Label()
             {
                 name = "indeterminate",
                 text = VFXControlConstants.indeterminateText
             };
             m_IndeterminateLabel.SetEnabled(false);
+            m_Slider.RegisterValueChangedCallback(ValueChanged);
 
             Add(m_Slider);
-            Add(m_Vector2Field);
             RegisterCallBack();
         }
         protected void RegisterCallBack()
         {
-            (m_Vector2Field as VisualElement).RegisterCallback<BlurEvent>(OnFocusLost);
-
             m_Slider.Children().First().AddManipulator(new StartFinishSliderManipulator());
         }
 
@@ -174,8 +164,6 @@ namespace UnityEditor.VFX.UI
             m_IgnoreNotification = true;
             m_Value = newValue;
             tooltip = newValue.ToString();
-            if (!hasFocus)
-                m_Vector2Field.value = newValue;
             m_Slider.value = value;
             m_IgnoreNotification = false;
         }
@@ -218,7 +206,7 @@ namespace UnityEditor.VFX.UI
         {
             get
             {
-                return m_Slider.HasFocus() || m_Vector2Field.HasFocus() || (panel != null && panel.focusController.focusedElement == m_Vector2Field as VisualElement);
+                return m_Slider.HasFocus();
             }
         }
     }
