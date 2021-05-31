@@ -65,6 +65,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Added a slider that controls how much the volumetric clouds erosion value affects the ambient occlusion term.
 - Added three animation curves to control the density, erosion, and ambient occlusion in the custom submode of the simple controls.
 - Added support for the camera bridge in the graphics compositor
+- Added slides to control the shape noise offset.
 
 ### Fixed
 - Fixed Intensity Multiplier not affecting realtime global illumination.
@@ -220,6 +221,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed for wrong cached area light initialization.
 - Fixed unexpected rendering of 2D cookies when switching from Spot to Point light type (case 1333947).
 - Fixed the fallback to custom went changing a quality settings not workings properly (case 1338657).
+- Fixed some aliasing ussues with the volumetric clouds.
 
 ### Changed
 - Changed Window/Render Pipeline/HD Render Pipeline Wizard to Window/Rendering/HDRP Wizard
