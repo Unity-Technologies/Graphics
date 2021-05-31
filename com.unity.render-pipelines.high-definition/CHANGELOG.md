@@ -62,6 +62,8 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Added support for tessellation for all master node in shader graph.
 - Added ValidateMaterial callbacks to ShaderGUI.
 - Added support for internal plugin materials and HDSubTarget with their versioning system.
+- Added a slider that controls how much the volumetric clouds erosion value affects the ambient occlusion term.
+- Added three animation curves to control the density, erosion, and ambient occlusion in the custom submode of the simple controls.
 - Added support for the camera bridge in the graphics compositor
 
 ### Fixed
@@ -75,6 +77,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed material keywords with fbx importer.
 - Fixed lightmaps not working properly with shader graphs in ray traced reflections (case 1305335).
 - Fixed skybox for ortho cameras.
+- Fixed crash on SubSurfaceScattering Editor when the selected pipeline is not HDRP
 - Fixed model import by adding additional data if needed.
 - Fix screen being over-exposed when changing very different skies.
 - Fixed pixelated appearance of Contrast Adaptive Sharpen upscaler and several other issues when Hardware DRS is on
@@ -204,6 +207,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed missing API documentation for LTC area light code.
 - Fixed diffusion profile breaking after upgrading HDRP (case 1337892).
 - Fixed undo on light anchor.
+- Fixed some depth comparison instabilities with volumetric clouds.
 - Fixed AxF debug output in certain configurations (case 1333780).
 - Fixed white flash when camera is reset and SSR Accumulation mode is on.
 - Fixed an issue with TAA causing objects not to render at extremely high far flip plane values.
@@ -211,6 +215,16 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed overdraw in custom pass utils blur and Copy functions (case 1333648);
 - Fixed invalid pass index 1 in DrawProcedural error.
 - Fixed a compilation issue for AxF carpaints on Vulkan (case 1314040).
+- Fixed issue with hierarchy object filtering.
+- Fixed a lack of syncronization between the camera and the planar camera for volumetric cloud animation data.
+- Fixed for wrong cached area light initialization.
+- Fixed unexpected rendering of 2D cookies when switching from Spot to Point light type (case 1333947).
+- Fixed the fallback to custom went changing a quality settings not workings properly (case 1338657).
+- Fixed the ray traced sub subsurface scattering debug mode not displaying only the RTSSS Data (case 1332904).
+- Fixed for discrepancies in intensity and saturation between screen space refraction and probe refraction.
+- Fixed a divide-by-zero warning for anisotropic shaders (Fabric, Lit).
+- Fixed VfX lit particle AOV output color space.
+- Fixed path traced transparent unlit material (case 1335500).
 - Fixed support of Distortion with MSAA
 
 ### Changed
@@ -288,6 +302,12 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Splited HDProjectSettings with new HDUserSettings in UserProject. Now Wizard working variable should not bother versioning tool anymore (case 1330640)
 - Removed redundant Show Inactive Objects and Isolate Selection checkboxes from the Emissive Materials tab of the Light Explorer (case 1331750).
 - Renaming Decal Projector to HDRP Decal Projector.
+- The HDRP Render Graph now uses the new RendererList API for rendering and (optional) pass culling.
+- Increased the minimal density of the volumetric clouds.
+- Changed the storage format of volumetric clouds presets for easier editing.
+- Reduced the maximum distance per ray step of volumetric clouds.
+- Improved the fly through ghosting artifacts in the volumetric clouds.
+- Make LitTessellation and LayeredLitTessellation fallback on Lit and LayeredLit respectively in DXR.
 - Display an info box and disable MSAA  asset entry when ray tracing is enabled.
 - Changed light reset to preserve type.
 

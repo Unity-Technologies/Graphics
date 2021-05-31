@@ -356,6 +356,9 @@ namespace UnityEngine.Rendering.HighDefinition
         {
             get
             {
+                if (CoreUtils.IsSceneFilteringEnabled())
+                    return HDAdditionalCameraData.ClearColorMode.Color;
+
                 if (m_AdditionalCameraData != null)
                 {
                     return m_AdditionalCameraData.clearColorMode;
@@ -1046,6 +1049,7 @@ namespace UnityEngine.Rendering.HighDefinition
             cb._TaaJitterStrength = taaJitter;
             cb._ColorPyramidLodCount = colorPyramidHistoryMipCount;
             cb._GlobalMipBias = globalMipBias;
+            cb._GlobalMipBiasPow2 = (float)Math.Pow(2.0f, globalMipBias);
 
             float ct = time;
             float pt = lastTime;

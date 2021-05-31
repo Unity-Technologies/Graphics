@@ -76,7 +76,7 @@ namespace UnityEngine.Rendering.HighDefinition
             if (instance == null || instance.Equals(null))
             {
                 //try load at default path
-                HDRenderPipelineGlobalSettings loaded = AssetDatabase.LoadAssetAtPath<HDRenderPipelineGlobalSettings>($"Assets/{HDUserSettings.projectSettingsFolderPath}/HDRenderPipelineGlobalSettings.asset");
+                HDRenderPipelineGlobalSettings loaded = AssetDatabase.LoadAssetAtPath<HDRenderPipelineGlobalSettings>($"Assets/{HDProjectSettingsProxy.projectSettingsFolderPath}/HDRenderPipelineGlobalSettings.asset");
 
                 if (loaded == null)
                 {
@@ -92,7 +92,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 // No migration available and no asset available? Create one if allowed
                 if (canCreateNewAsset && instance == null)
                 {
-                    var createdAsset = Create($"Assets/{HDUserSettings.projectSettingsFolderPath}/HDRenderPipelineGlobalSettings.asset");
+                    var createdAsset = Create($"Assets/{HDProjectSettingsProxy.projectSettingsFolderPath}/HDRenderPipelineGlobalSettings.asset");
                     UpdateGraphicsSettings(createdAsset);
 
                     Debug.LogWarning("No HDRP Global Settings Asset is assigned. One has been created for you. If you want to modify it, go to Project Settings > Graphics > HDRP Settings.");
@@ -706,6 +706,9 @@ namespace UnityEngine.Rendering.HighDefinition
 
         [SerializeField]
         internal DiffusionProfileSettings[] diffusionProfileSettingsList = new DiffusionProfileSettings[0];
+
+        [SerializeField]
+        internal bool rendererListCulling;
 
 #if UNITY_EDITOR
         internal bool AddDiffusionProfile(DiffusionProfileSettings profile)
