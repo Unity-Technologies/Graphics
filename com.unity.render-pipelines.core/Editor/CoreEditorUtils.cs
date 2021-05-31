@@ -124,17 +124,25 @@ namespace UnityEditor.Rendering
         /// </summary>
         /// <param name="label">Label of the whole</param>
         /// <param name="ppts">Properties</param>
-        /// <param name="lbls">Sub-labels</param>
-        public static void DrawMultipleFields(string label, SerializedProperty[] ppts, GUIContent[] lbls)
-            => DrawMultipleFields(EditorGUIUtility.TrTextContent(label), ppts, lbls);
+        /// <param name="labels">Sub-labels</param>
+        public static void DrawMultipleFields(string label, SerializedProperty[] ppts, GUIContent[] labels)
+            => DrawMultipleFields(EditorGUIUtility.TrTextContent(label), ppts, labels);
+
+        private static float GetLongestLabelWidth(GUIContent[] labels)
+        {
+            float labelWidth = 0.0f;
+            for (var i = 0; i < labels.Length; ++i)
+                labelWidth = Mathf.Max(EditorStyles.label.CalcSize(labels[i]).x, labelWidth);
+            return labelWidth;
+        }
 
         /// <summary>
         /// Draw a multiple field property
         /// </summary>
         /// <param name="label">Label of the whole</param>
         /// <param name="ppts">Properties</param>
-        /// <param name="lbls">Sub-labels</param>
-        public static void DrawMultipleFields(GUIContent label, SerializedProperty[] ppts, GUIContent[] lbls)
+        /// <param name="labels">Sub-labels</param>
+        public static void DrawMultipleFields(GUIContent label, SerializedProperty[] ppts, GUIContent[] labels)
         {
             var labelWidth = EditorGUIUtility.labelWidth;
 
@@ -144,11 +152,52 @@ namespace UnityEditor.Rendering
 
                 using (new EditorGUILayout.VerticalScope())
                 {
-                    EditorGUIUtility.labelWidth = 40;
+                    EditorGUIUtility.labelWidth = GetLongestLabelWidth(labels) + CoreEditorStyles.standardSpacing;
                     int oldIndentLevel = EditorGUI.indentLevel;
                     EditorGUI.indentLevel = 0;
                     for (var i = 0; i < ppts.Length; ++i)
-                        EditorGUILayout.PropertyField(ppts[i], lbls[i]);
+                        EditorGUILayout.PropertyField(ppts[i], labels[i]);
+                    EditorGUI.indentLevel = oldIndentLevel;
+                }
+            }
+
+            EditorGUIUtility.labelWidth = labelWidth;
+        }
+
+        /// <summary>
+        /// Draw a multiple field property
+        /// </summary>
+        /// <param name="label">Label of the whole</param>
+        /// <param name="labels">The labels mapping the values</param>
+        /// <param name="values">The values to be displayed</param>
+        public static void DrawMultipleFields<T>(GUIContent label, GUIContent[] labels, T[] values)
+            where T : struct
+        {
+            var labelWidth = EditorGUIUtility.labelWidth;
+
+            using (new EditorGUILayout.HorizontalScope())
+            {
+                EditorGUILayout.PrefixLabel(label);
+
+                using (new EditorGUILayout.VerticalScope())
+                {
+                    EditorGUIUtility.labelWidth = GetLongestLabelWidth(labels) + CoreEditorStyles.standardSpacing;
+                    int oldIndentLevel = EditorGUI.indentLevel;
+                    EditorGUI.indentLevel = 0;
+                    for (var i = 0; i < values.Length; ++i)
+                    {
+                        // Draw the right field depending on its type.
+                        if (typeof(T) == typeof(int))
+                            values[i] = (T)(object)EditorGUILayout.DelayedIntField(labels[i], (int)(object)values[i]);
+                        else if (typeof(T) == typeof(bool))
+                            values[i] = (T)(object)EditorGUILayout.Toggle(labels[i], (bool)(object)values[i]);
+                        else if (typeof(T) == typeof(float))
+                            values[i] = (T)(object)EditorGUILayout.FloatField(labels[i], (float)(object)values[i]);
+                        else if (typeof(T).IsEnum)
+                            values[i] = (T)(object)EditorGUILayout.EnumPopup(labels[i], (Enum)(object)values[i]);
+                        else
+                            throw new ArgumentOutOfRangeException($"<{typeof(T)}> is not a supported type for multi field");
+                    }
                     EditorGUI.indentLevel = oldIndentLevel;
                 }
             }
@@ -230,7 +279,7 @@ namespace UnityEditor.Rendering
         /// <param name="hasMoreOptions"> [optional] Delegate used to draw the right state of the advanced button. If null, no button drawn. </param>
         /// <param name="toggleMoreOptions"> [optional] Callback call when advanced button clicked. Should be used to toggle its state. </param>
         /// <returns>return the state of the foldout header</returns>
-        public static bool DrawHeaderFoldout(GUIContent title, bool state, bool isBoxed = false, Func<bool> hasMoreOptions = null, Action toggleMoreOptions = null, string documentationURL = "")
+        public static bool DrawHeaderFoldout(GUIContent title, bool state, bool isBoxed = false, Func<bool> hasMoreOptions = null, Action toggleMoreOptions = null, string documentationURL = "", Action<Vector2> contextAction = null)
         {
             const float height = 17f;
             var backgroundRect = GUILayoutUtility.GetRect(1f, height);
@@ -273,8 +322,7 @@ namespace UnityEditor.Rendering
             var menuRect = new Rect(labelRect.xMax + 3f, labelRect.y + 1f, 16, 16);
 
             // Add context menu for "Additional Properties"
-            Action<Vector2> contextAction = null;
-            if (hasMoreOptions != null)
+            if (contextAction == null && hasMoreOptions != null)
             {
                 contextAction = pos => OnContextClick(pos, hasMoreOptions, toggleMoreOptions);
             }
@@ -513,6 +561,48 @@ namespace UnityEditor.Rendering
             }
 
             return group.isExpanded;
+        }
+
+        /// <summary>Draw a header section like in Global Settings</summary>
+        /// <param name="title"> The title of the header </param>
+        /// <param name="documentationURL">Documentation URL</param>
+        /// <param name="contextAction">The context action</param>
+        /// <param name="hasMoreOptions">Delegate saying if we have MoreOptions</param>
+        /// <param name="toggleMoreOptions">Callback called when the MoreOptions is toggled</param>
+        /// <returns>return the state of the foldout header</returns>
+        public static void DrawSectionHeader(GUIContent title, string documentationURL = null, Action<Vector2> contextAction = null, Func<bool> hasMoreOptions = null, Action toggleMoreOptions = null)
+        {
+            var backgroundRect = EditorGUI.IndentedRect(GUILayoutUtility.GetRect(1f, 17f));
+            float iconSize = 16f;
+
+            var contextMenuRect = new Rect(backgroundRect.xMax - (iconSize + 5), backgroundRect.y + iconSize + 8f, iconSize, iconSize);
+
+            using (new EditorGUILayout.HorizontalScope())
+            {
+                EditorGUILayout.LabelField(title, CoreEditorStyles.sectionHeaderStyle);
+
+                // Context menu
+                var contextMenuIcon = CoreEditorStyles.contextMenuIcon.image;
+                if (contextAction != null)
+                {
+                    if (GUI.Button(contextMenuRect, CoreEditorStyles.contextMenuIcon, CoreEditorStyles.contextMenuStyle))
+                        contextAction(new Vector2(contextMenuRect.x, contextMenuRect.yMax));
+                }
+                ShowHelpButton(contextMenuRect, documentationURL, title);
+            }
+
+            // Handle events
+            var e = Event.current;
+
+            if (e.type == EventType.MouseDown)
+            {
+                if (contextMenuRect.Contains(e.mousePosition))
+                {
+                    // Right click: Context menu
+                    contextAction?.Invoke(new Vector2(contextMenuRect.x, contextMenuRect.yMax));
+                    e.Use();
+                }
+            }
         }
 
         static void ShowHelpButton(Rect contextMenuRect, string documentationURL, GUIContent title)
@@ -779,9 +869,9 @@ namespace UnityEditor.Rendering
         /// <summary>
         /// Draw an EnumPopup handling multiEdition
         /// </summary>
-        /// <param name="property"></param>
-        /// <param name="type"></param>
-        /// <param name="label"></param>
+        /// <param name="property">The data displayed</param>
+        /// <param name="type">Type of the property</param>
+        /// <param name="label">The label</param>
         public static void DrawEnumPopup(SerializedProperty property, System.Type type, GUIContent label = null)
         {
             EditorGUI.showMixedValue = property.hasMultipleDifferentValues;
