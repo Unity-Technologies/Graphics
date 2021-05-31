@@ -40,7 +40,7 @@ namespace UnityEditor.Rendering.Universal.Converters
     internal class ReadonlyMaterialConverter : RenderPipelineConverter
     {
         public override string name => "Readonly Material Converter";
-        public override string info => "Converts references to Built-In readonly materials to URP readonly materials. This will create a .index file and that can take a long time.";
+        public override string info => "Converts references to Built-In readonly materials to URP readonly materials. This will create temporarily a .index file and that can take a long time.";
         public override Type container => typeof(BuiltInToURPConverterContainer);
         public override bool needsIndexing => true;
 
@@ -72,9 +72,8 @@ namespace UnityEditor.Rendering.Universal.Converters
 
                         var item = new ConverterItemDescriptor()
                         {
-                            name = description.Split('/').Last(),
-                            info = $"{label} : {description}",
-                            //info = gid.ToString(),
+                            name = description.Split('/').Last().Split('.').First(),
+                            info = $"{label}",
                         };
                         guids.Add(gid.ToString());
 
@@ -125,6 +124,15 @@ namespace UnityEditor.Rendering.Universal.Converters
                 EditorUtility.SetDirty(obj);
                 var currentScene = SceneManager.GetActiveScene();
                 EditorSceneManager.SaveScene(currentScene);
+            }
+        }
+
+        public override void OnClicked(int index)
+        {
+            if (GlobalObjectId.TryParse(guids[index], out var gid))
+            {
+                var containerPath = AssetDatabase.GUIDToAssetPath(gid.assetGUID);
+                EditorGUIUtility.PingObject(AssetDatabase.LoadAssetAtPath<Object>(containerPath));
             }
         }
 
