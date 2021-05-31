@@ -197,5 +197,57 @@ namespace UnityEngine.Rendering.HighDefinition
                     throw new ArgumentException("Unknown DebugFullScreen");
             }
         }
+
+        /// <summary>
+        /// Equality operator.
+        /// </summary>
+        /// <param name="obj">The AOV request to compare to.</param>
+        /// <returns>True if the provided AOV request is equal to this.</returns>
+        public override bool Equals(object obj)
+        {
+            return obj is AOVRequest && ((AOVRequest)obj) == this;
+        }
+
+        /// <summary>
+        /// Compares if two AOV requests have the same settings.
+        /// </summary>
+        /// <param name="a">The first AOVRequest to compare.</param>
+        /// <param name="b">The second AOVRequest to compare.</param>
+        /// <returns>True if the two AOV requests have the same settings.</returns>
+        public static bool operator==(AOVRequest a, AOVRequest b)
+        {
+            return a.m_DebugFullScreen == b.m_DebugFullScreen &&
+                a.m_LightFilterProperty == b.m_LightFilterProperty &&
+                a.m_LightingProperty == b.m_LightingProperty &&
+                a.m_MaterialProperty == b.m_MaterialProperty &&
+                a.m_OverrideRenderFormat == b.m_OverrideRenderFormat;
+        }
+
+        /// <summary>
+        /// Compares if two AOV requests have the same settings.
+        /// </summary>
+        /// <param name="a">The first AOVRequest to compare.</param>
+        /// <param name="b">The second AOVRequest to compare.</param>
+        /// <returns>True if the two AOV requests have not the same settings.</returns>
+        public static bool operator!=(AOVRequest a, AOVRequest b)
+        {
+            return !(a == b);
+        }
+
+        /// <summary>
+        /// Computes a hash code for the AOV Request.
+        /// </summary>
+        /// <returns>A hash code for the AOV Request.</returns>
+        public override int GetHashCode()
+        {
+            int hash = 17;
+            hash = hash * 23 + (int)m_DebugFullScreen;
+            hash = hash * 23 + (int)m_LightFilterProperty;
+            hash = hash * 23 + (int)m_LightingProperty;
+            hash = hash * 23 + (int)m_MaterialProperty;
+            hash = m_OverrideRenderFormat ? hash * 23 + 1 : hash;
+
+            return hash;
+        }
     }
 }

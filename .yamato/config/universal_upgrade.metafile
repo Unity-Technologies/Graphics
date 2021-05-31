@@ -1,0 +1,32 @@
+project:
+  name: urp-upgrade
+  folder: UniversalUpgradeTest
+test_platforms:
+  - type: editmode
+    commands:
+      - [all]: npm install upm-ci-utils@stable -g --registry https://artifactory.prd.cds.internal.unity3d.com/artifactory/api/npm/upm-npm
+      - [all]: upm-ci project pack --project-path TestProjects/UniversalUpgradeTest
+      - [all]: upm-ci package test -u trunk --package-path com.unity.testing.urp-upgrade --type package-tests --extra-create-project-arg=-upmNoDefaultPackages
+platforms:
+  - name: Win
+    apis:
+      - name: DX11
+    build_configs:
+      - name: mono
+    color_spaces:
+      - Linear
+expression_trigger:
+  expression: 'pull_request.target eq "<TARGET_BRANCH>" AND NOT pull_request.draft AND pull_request.changes.any match ["TestProjects/SRP_SmokeTest/**/*"] AND NOT pull_request.changes.all match ["*.md", "**/*.md", "doc/**/*", "**/Documentation*/**/*"]'
+pr:
+  dependencies:
+    - platform: Win
+      api: DX11
+      build_config: mono
+      color_space: Linear
+      test_platforms:
+        - editmode
+nightly:
+  dependencies:
+    - project: urp-upgrade
+      pr: true
+

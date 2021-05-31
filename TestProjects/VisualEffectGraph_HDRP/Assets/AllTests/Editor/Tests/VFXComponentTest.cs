@@ -170,6 +170,141 @@ namespace UnityEditor.VFX.Test
             return graph;
         }
 
+        VFXGraph CreateTemporaryGraph_With_GraphicsBuffer(string name)
+        {
+            var graph = VFXTestCommon.MakeTemporaryGraph();
+
+            var graphicsBufferDesc = VFXLibrary.GetParameters().Where(o => o.name.ToLowerInvariant().Contains("graphicsbuffer")).FirstOrDefault();
+            Assert.IsNotNull(graphicsBufferDesc);
+
+            var targetGraphicsBuffer = "my_exposed_graphics_buffer";
+
+            var parameter = graphicsBufferDesc.CreateInstance();
+            parameter.SetSettingValue("m_ExposedName", targetGraphicsBuffer);
+            parameter.SetSettingValue("m_Exposed", true);
+            graph.AddChild(parameter);
+            AssetDatabase.ImportAsset(AssetDatabase.GetAssetPath(graph));
+
+            return graph;
+        }
+
+        // Deactivated test by now as GetGraphicsBuffer is not public
+        //[UnityTest]
+        public IEnumerator CreateComponent_And_BindGraphicsBuffer()
+        {
+            var targetGraphicsBuffer = "my_exposed_graphics_buffer";
+            var graph = CreateTemporaryGraph_With_GraphicsBuffer(targetGraphicsBuffer);
+
+            while (m_mainObject.GetComponent<VisualEffect>() != null)
+                UnityEngine.Object.DestroyImmediate(m_mainObject.GetComponent<VisualEffect>());
+            var vfx = m_mainObject.AddComponent<VisualEffect>();
+            vfx.visualEffectAsset = graph.visualEffectResource.asset;
+
+            yield return null;
+
+            Assert.IsTrue(vfx.HasGraphicsBuffer(targetGraphicsBuffer));
+            Assert.IsNull(vfx.GetGraphicsBuffer(targetGraphicsBuffer));
+
+            var newGraphicsBuffer = new GraphicsBuffer(GraphicsBuffer.Target.Structured, 1, 4);
+            vfx.SetGraphicsBuffer(targetGraphicsBuffer, newGraphicsBuffer);
+            Assert.IsNotNull(vfx.GetGraphicsBuffer(targetGraphicsBuffer));
+
+            var readGraphicBuffer = vfx.GetGraphicsBuffer(targetGraphicsBuffer);
+            Assert.IsNotNull(readGraphicBuffer);
+            Assert.AreEqual(newGraphicsBuffer.count, readGraphicBuffer.count);
+            Assert.AreEqual(newGraphicsBuffer.stride, readGraphicBuffer.stride);
+            Assert.AreEqual(newGraphicsBuffer.GetNativeBufferPtr(), readGraphicBuffer.GetNativeBufferPtr());
+
+            newGraphicsBuffer.Release();
+            yield return null;
+
+        }
+
+        public enum GraphicsBufferResetCase
+        {
+            Reinit,
+            DisableAndRenable,
+            ChangeVisualEffectAsset,
+            EditSerializedObject
+        }
+
+        static GraphicsBufferResetCase[] s_GraphicsBufferResetCase = Enum.GetValues(typeof(GraphicsBufferResetCase)).Cast<GraphicsBufferResetCase>().ToArray();
+
+        // Deactivated test by now as GetGraphicsBuffer is not public
+        //[UnityTest]
+        public IEnumerator CreateComponent_And_BindGraphicsBuffer_And_([ValueSource("s_GraphicsBufferResetCase")] GraphicsBufferResetCase resetCase)
+        {
+            var targetGraphicsBuffer = "my_exposed_graphics_buffer";
+            var graph = CreateTemporaryGraph_With_GraphicsBuffer(targetGraphicsBuffer);
+            var targetInteger = "my_exposed_graphics_integer";
+
+            if (resetCase == GraphicsBufferResetCase.EditSerializedObject)
+            {
+                //Other value used for vfx editor update
+                var intDesc = VFXLibrary.GetParameters().Where(o => o.name.ToLowerInvariant().Contains("int")).FirstOrDefault();
+                Assert.IsNotNull(intDesc);
+                var parameterInteger = intDesc.CreateInstance();
+                parameterInteger.SetSettingValue("m_ExposedName", targetInteger);
+                parameterInteger.SetSettingValue("m_Exposed", true);
+                graph.AddChild(parameterInteger);
+
+                AssetDatabase.ImportAsset(AssetDatabase.GetAssetPath(graph));
+            }
+
+            while (m_mainObject.GetComponent<VisualEffect>() != null)
+                UnityEngine.Object.DestroyImmediate(m_mainObject.GetComponent<VisualEffect>());
+            var vfx = m_mainObject.AddComponent<VisualEffect>();
+            vfx.visualEffectAsset = graph.visualEffectResource.asset;
+
+            var newGraphicsBuffer = new GraphicsBuffer(GraphicsBuffer.Target.Structured, 1, 4);
+            vfx.SetGraphicsBuffer(targetGraphicsBuffer, newGraphicsBuffer);
+            Assert.IsNotNull(vfx.GetGraphicsBuffer(targetGraphicsBuffer));
+
+            switch (resetCase)
+            {
+                case GraphicsBufferResetCase.Reinit:
+                    vfx.Reinit();
+                    break;
+                case GraphicsBufferResetCase.DisableAndRenable:
+                    vfx.enabled = false;
+                    vfx.enabled = true;
+                    break;
+                case GraphicsBufferResetCase.ChangeVisualEffectAsset:
+                    vfx.visualEffectAsset = CreateTemporaryGraph_With_GraphicsBuffer(targetGraphicsBuffer).visualEffectResource.asset;
+                    vfx.visualEffectAsset = graph.visualEffectResource.asset;
+                    break;
+                case GraphicsBufferResetCase.EditSerializedObject:
+                    {
+                        vfx.SetInt(targetInteger, 123);
+
+                        var editor = Editor.CreateEditor(vfx);
+                        editor.serializedObject.Update();
+
+                        var propertySheet = editor.serializedObject.FindProperty("m_PropertySheet");
+                        var fieldName = VisualEffectSerializationUtility.GetTypeField(VFXExpression.TypeToType(VFXValueType.Int32)) + ".m_Array";
+                        var vfxField = propertySheet.FindPropertyRelative(fieldName);
+
+                        Assert.AreEqual(1, vfxField.arraySize);
+
+                        var property = vfxField.GetArrayElementAtIndex(0);
+                        property = property.FindPropertyRelative("m_Value");
+                        property.intValue = 666;
+                        editor.serializedObject.ApplyModifiedPropertiesWithoutUndo();
+
+                        GameObject.DestroyImmediate(editor);
+                    }
+                    break;
+            }
+
+            Assert.IsNotNull(vfx.GetGraphicsBuffer(targetGraphicsBuffer));
+
+            var readGraphicBuffer = vfx.GetGraphicsBuffer(targetGraphicsBuffer);
+            Assert.AreEqual(newGraphicsBuffer.GetNativeBufferPtr(), readGraphicBuffer.GetNativeBufferPtr());
+            newGraphicsBuffer.Release();
+
+            yield return null;
+        }
+
         [UnityTest]
         public IEnumerator CreateComponent_And_Graph_Restart_Component_Expected()
         {

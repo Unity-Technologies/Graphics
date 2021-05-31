@@ -27,7 +27,7 @@ class RuntimeTests
         Object.DestroyImmediate(go);
     }
 
-    // When LWRP pipeline is active, lightsUseLinearIntensity must match active color space.
+    // When URP pipeline is active, lightsUseLinearIntensity must match active color space.
     [UnityTest]
     public IEnumerator PipelineHasCorrectColorSpace()
     {
@@ -40,7 +40,7 @@ class RuntimeTests
             "GraphicsSettings.lightsUseLinearIntensity must match active color space.");
     }
 
-    // When switching to LWRP it sets "UniversalPipeline" as global shader tag.
+    // When switching to URP it sets "UniversalPipeline" as global shader tag.
     // When switching to Built-in it sets "" as global shader tag.
 #if UNITY_EDITOR // TODO This API call does not reset in player
     [UnityTest]
@@ -51,7 +51,7 @@ class RuntimeTests
         camera.Render();
         yield return null;
 
-        Assert.AreEqual("UniversalPipeline,LightweightPipeline", Shader.globalRenderPipeline, "Wrong render pipeline shader tag.");
+        Assert.AreEqual("UniversalPipeline", Shader.globalRenderPipeline, "Wrong render pipeline shader tag.");
 
         GraphicsSettings.renderPipelineAsset = null;
         camera.Render();

@@ -99,7 +99,6 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
                 lightMode = "Universal2D",
                 useInPreview = true,
 
-
                 // Template
                 passTemplatePath = GenerationUtils.GetDefaultTemplatePath("PassMesh.template"),
                 sharedTemplateDirectories = GenerationUtils.GetDefaultSharedTemplateDirectories(),
@@ -116,6 +115,7 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
                 // Conditional State
                 renderStates = CoreRenderStates.Default,
                 pragmas = CorePragmas._2DDefault,
+                keywords = SpriteUnlitKeywords.Unlit,
                 includes = SpriteUnlitIncludes.Unlit,
 
                 // Custom Interpolator Support
@@ -130,7 +130,6 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
                 lightMode = "UniversalForward",
                 useInPreview = true,
 
-
                 // Template
                 passTemplatePath = GenerationUtils.GetDefaultTemplatePath("PassMesh.template"),
                 sharedTemplateDirectories = GenerationUtils.GetDefaultSharedTemplateDirectories(),
@@ -147,6 +146,7 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
                 // Conditional State
                 renderStates = CoreRenderStates.Default,
                 pragmas = CorePragmas._2DDefault,
+                keywords = SpriteUnlitKeywords.Unlit,
                 includes = SpriteUnlitIncludes.Unlit,
 
                 // Custom Interpolator Support
@@ -174,8 +174,19 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
             {
                 StructFields.Attributes.color,
                 StructFields.Attributes.uv0,
+                StructFields.Varyings.positionWS,
                 StructFields.Varyings.color,
                 StructFields.Varyings.texCoord0,
+            };
+        }
+        #endregion
+
+        #region Keywords
+        static class SpriteUnlitKeywords
+        {
+            public static KeywordCollection Unlit = new KeywordCollection
+            {
+                { CoreKeywordDescriptors.DebugDisplay },
             };
         }
         #endregion

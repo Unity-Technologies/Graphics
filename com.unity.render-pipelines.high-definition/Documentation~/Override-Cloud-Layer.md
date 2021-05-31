@@ -4,7 +4,9 @@ The **Cloud Layer** [Volume component override](Volume-Components.md) controls s
 
 This component also exposes an option to project cloud shadows on the ground.
 
-## Using Cloud Layer
+![](Images/HDRPFeatures-CloudLayer.png)
+
+## Using the Cloud Layer
 
 The **Cloud Layer** uses the [Volume](Volumes.md) framework, so to enable and modify **Cloud Layer** properties, you must add a **Cloud Layer** override to a [Volume](Volumes.md) in your Scene. To add **Cloud Layer** to a Volume:
 
@@ -68,10 +70,11 @@ The Inspector shows the following properties for each cloud layer. The **Layers*
 | **Lighting**           | Indicates whether HDRP calculates lighting for the clouds using the main directional light. When enabled, HDRP uses 2D raymarching on the Cloud Map to approximate self-shadowing from the sun light.<br /> The lighting computations are baked inside a texture and only recomputed when any of the relevant parameter changes. |
 | - **Steps**            | The number of raymarching steps HDRP uses to calculate lighting for the clouds. The higher the value, the greater the travelled distance is. |
 | - **Thickness**        | The thickness of the clouds. The larger the value, the darker the clouds appear. |
-| **Cast Shadows**       | Indicates whether clouds cast shadows for the main directional light.<br/>This calculates the shadow texture and sets it as the light cookie for the main direction Light. The tiling of the shadow texture can be controlled through the **Cookie Size** parameter on the light component. |
+| **Cast Shadows**       | Indicates whether clouds cast shadows for the main directional light.<br/>This calculates the shadow texture and sets it as the light cookie for the main direction Light. |
 
 | Shadows Property      | Description                                                  |
 | --------------------- | ------------------------------------------------------------ |
 | **Shadow Multiplier** | The opacity of the cloud shadows. The higher the value, the darker the shadows. |
 | **Shadow Tint**       | The tint HDRP applies to the cloud shadows.                  |
 | **Shadow Resolution** | The resolution of the cloud shadows texture.                 |
+| **Shadow Size**       | The size of the projected cloud shadows.                     |

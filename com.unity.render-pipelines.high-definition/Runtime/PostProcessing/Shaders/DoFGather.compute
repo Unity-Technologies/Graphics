@@ -73,7 +73,7 @@ float GetCoCRadius(int2 positionSS)
 CTYPE GetColorSample(float2 sampleTC, float lod)
 {
 #ifndef FORCE_POINT_SAMPLING
-    return SAMPLE_TEXTURE2D_X_LOD(_InputTexture, s_trilinear_clamp_sampler, ClampAndScaleUVForBilinear(sampleTC * _ScreenSize.zw), lod).CTYPE_SWIZZLE;
+    return SAMPLE_TEXTURE2D_X_LOD(_InputTexture, s_trilinear_clamp_sampler, ClampAndScaleUVForBilinearPostProcessTexture(sampleTC * _PostProcessScreenSize.zw), lod).CTYPE_SWIZZLE;
 #else
     return LOAD_TEXTURE2D_X(_InputTexture, sampleTC).CTYPE_SWIZZLE;
 #endif
@@ -334,7 +334,8 @@ void KMain(uint3 dispatchThreadId : SV_DispatchThreadID)
 {
     UNITY_XR_ASSIGN_VIEW_INDEX(dispatchThreadId.z);
 
-    PositionInputs posInputs = GetPositionInput(float2(dispatchThreadId.xy), _ScreenSize.zw, uint2(GROUP_RES, GROUP_RES));
+    PositionInputs posInputs = GetPositionInput(float2(dispatchThreadId.xy), _PostProcessScreenSize.zw, uint2(GROUP_RES, GROUP_RES));
+
 
     SampleData centerSample;
     centerSample.color = GetColorSample(posInputs.positionSS, 0);

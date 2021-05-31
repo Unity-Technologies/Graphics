@@ -20,27 +20,15 @@ namespace UnityEditor.Rendering.Universal.ShaderGUI
             particleProps = new ParticleGUI.ParticleProperties(properties);
         }
 
-        public override void MaterialChanged(Material material)
+        public override void ValidateMaterial(Material material)
         {
-            if (material == null)
-                throw new ArgumentNullException("material");
-
             SetMaterialKeywords(material, SimpleLitGUI.SetMaterialKeywords, ParticleGUI.SetMaterialKeywords);
         }
 
         public override void DrawSurfaceOptions(Material material)
         {
-            // Detect any changes to the material
-            EditorGUI.BeginChangeCheck();
-            {
-                base.DrawSurfaceOptions(material);
-                DoPopup(ParticleGUI.Styles.colorMode, particleProps.colorMode, Enum.GetNames(typeof(ParticleGUI.ColorMode)));
-            }
-            if (EditorGUI.EndChangeCheck())
-            {
-                foreach (var obj in blendModeProp.targets)
-                    MaterialChanged((Material)obj);
-            }
+            base.DrawSurfaceOptions(material);
+            DoPopup(ParticleGUI.Styles.colorMode, particleProps.colorMode, Enum.GetNames(typeof(ParticleGUI.ColorMode)));
         }
 
         public override void DrawSurfaceInputs(Material material)
@@ -53,17 +41,10 @@ namespace UnityEditor.Rendering.Universal.ShaderGUI
         public override void DrawAdvancedOptions(Material material)
         {
             SimpleLitGUI.Advanced(shadingModelProperties);
-            EditorGUI.BeginChangeCheck();
-            {
-                materialEditor.ShaderProperty(particleProps.flipbookMode, ParticleGUI.Styles.flipbookMode);
-                ParticleGUI.FadingOptions(material, materialEditor, particleProps);
-                ParticleGUI.DoVertexStreamsArea(material, m_RenderersUsingThisMaterial, true);
 
-                if (EditorGUI.EndChangeCheck())
-                {
-                    MaterialChanged(material);
-                }
-            }
+            materialEditor.ShaderProperty(particleProps.flipbookMode, ParticleGUI.Styles.flipbookMode);
+            ParticleGUI.FadingOptions(material, materialEditor, particleProps);
+            ParticleGUI.DoVertexStreamsArea(material, m_RenderersUsingThisMaterial, true);
 
             DrawQueueOffsetField();
         }

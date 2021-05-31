@@ -75,16 +75,18 @@ namespace UnityEngine.VFX.Test
             //Setup frame rate capture
             float simulateTime = VFXGraphicsTestSettings.defaultSimulateTime;
             int captureFrameRate = VFXGraphicsTestSettings.defaultCaptureFrameRate;
+            float fixedTimeStepScale = VFXGraphicsTestSettings.defaultFixedTimeStepScale;
 
             if (vfxTestSettingsInScene != null)
             {
                 simulateTime = vfxTestSettingsInScene.simulateTime;
                 captureFrameRate = vfxTestSettingsInScene.captureFrameRate;
+                fixedTimeStepScale = vfxTestSettingsInScene.fixedTimeStepScale;
             }
             float period = 1.0f / captureFrameRate;
 
             Time.captureFramerate = captureFrameRate;
-            UnityEngine.VFX.VFXManager.fixedTimeStep = period;
+            UnityEngine.VFX.VFXManager.fixedTimeStep = period * fixedTimeStepScale;
             UnityEngine.VFX.VFXManager.maxDeltaTime = period;
 
             //Waiting for the capture frame rate to be effective

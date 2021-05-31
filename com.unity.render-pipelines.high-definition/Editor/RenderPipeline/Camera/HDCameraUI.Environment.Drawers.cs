@@ -9,13 +9,13 @@ namespace UnityEditor.Rendering.HighDefinition
         partial class Environment
         {
             public static readonly CED.IDrawer Drawer = CED.FoldoutGroup(
-                Styles.header,
-                Expandable.Environment,
+                CameraUI.Environment.Styles.header,
+                CameraUI.Expandable.Environment,
                 k_ExpandedState,
                 FoldoutOption.Indent,
                 CED.Group(
                     Drawer_Environment_Background,
-                    Drawer_Environment_VolumeLayerMask,
+                    CameraUI.Environment.Drawer_Environment_VolumeLayerMask,
                     Drawer_Environment_VolumeAnchorOverride,
                     Drawer_Environment_ProbeLayerMask
                 )
@@ -33,11 +33,6 @@ namespace UnityEditor.Rendering.HighDefinition
 
                 if (p.clearDepth.boolValue == false)
                     p.clearDepth.boolValue = true;
-            }
-
-            static void Drawer_Environment_VolumeLayerMask(SerializedHDCamera p, Editor owner)
-            {
-                EditorGUILayout.PropertyField(p.volumeLayerMask, Styles.volumeLayerMask);
             }
 
             static void Drawer_Environment_VolumeAnchorOverride(SerializedHDCamera p, Editor owner)

@@ -27,7 +27,7 @@ Visual Effect Graphs used as Subgraphs appear as a [Context](Contexts.md) that p
 You can create a System Subgraph using the following:
 
 * Creating a Visual Effect Graph in the Project Window
-* Selecting one or Many Systems in a Visual Effect Graph, then selecting "Convert to Subgraph" in the Right-Click context menu, then saving the Graph Asset in the Save File Dialog.
+* Selecting one or many Systems in a Visual Effect Graph, then selecting "Convert to Subgraph" in the Right-Click context menu, then saving the Graph Asset in the Save File Dialog.
   * Creating a subgraph using this method will replace all converted content with a System Subgraph Node.
 
 ### Editing System Subgraphs
@@ -59,7 +59,7 @@ You can create a Block Subgraph using the following:
 
 - Creating a Visual Effect Subgraph Block in the Project Window
   - Using the Menu `Asset/Create/Visual Effects/Visual Effect Subgraph Block`
-- Selecting one or Many Blocks and optionally operators in a Visual Effect Graph, then selecting "Convert to Subgraph Block" in the Right-Click context menu, then saving the Sub Graph Asset in the Save File Dialog.
+- Selecting one or many Blocks and optionally Operators in a Visual Effect Graph, then selecting "Convert to Subgraph Block" in the Right-Click context menu, then saving the Sub Graph Asset in the Save File Dialog.
   - Creating a subgraph using this method will replace all converted content with a Block Subgraph Node.
 
 ### Editing Block Subgraphs
@@ -75,11 +75,11 @@ You can edit a Block Subgraph by opening it in the Visual Effect Graph window:
 
 Block Subgraphs display a non-removable Context named "Block Subgraph" where Blocks can be added.
 
-* All Blocks present in the context will be executed in their order when used as a subgraph
+* All Blocks present in the Context will be executed in their order when used as a subgraph
 * Context can be customized using the following Properties:
   * **Suitable Contexts** : Determine Which Context types are compatible with the Block Subgraph
 
-You can define the Menu Category the subgraph block will appear in the [Blackboard](Blackboard.md)
+You can define the Menu Category the subgraph Block appears in the [Blackboard](Blackboard.md)
 
 ### Using Block Subgraphs
 
@@ -104,7 +104,7 @@ You can create an Operator Subgraph using the following:
 
 - Creating a Visual Effect Subgraph Operator in the Project Window
   - Using the Menu `Asset/Create/Visual Effects/Visual Effect Subgraph Operator`
-- Selecting one or Many Operator and optionally operators in a Visual Effect Graph, then selecting "Convert to Subgraph Operator" in the Right-Click context menu, then saving the Sub Graph Asset in the Save File Dialog.
+- Selecting one or many Operators and optionally Operators in a Visual Effect Graph, then selecting "Convert to Subgraph Operator" in the Right-Click context menu, then saving the Sub Graph Asset in the Save File Dialog.
   - Creating a subgraph using this method will replace all converted content with an Operator Subgraph Node.
 
 ### Editing Operator Subgraphs
@@ -119,7 +119,7 @@ You can set up Input and Output Properties for the Operator using the Blackboard
 * You can create **Input** Properties by adding new Properties and enabling their **Exposed** Flag.
 * You can create **Output** Properties by adding new Properties, and moving them to the **Output Category**.
 
-You can define the Menu Category the subgraph block will appear in the [Blackboard](Blackboard.md)
+You can define the Menu Category the subgraph Block appears in the [Blackboard](Blackboard.md)
 
 ### Using Operator Subgraphs
 
