@@ -167,6 +167,13 @@ For more information, including the full list of light properties, see the [Ligh
 
 HDRP supports the Illuminating Engineering Society's (IES) file format for describing the distribution of light from a light source. HDRP supports the IES profile for Point, Spot (Cone, Pyramid, and Box), and rectangular Area [Lights](Light-Component.md). You can also mix the IES profile with [cookies](https://docs.unity3d.com/Manual/Cookies.html) and even use the profile and cookie mix for [light map baking](https://docs.unity3d.com/Manual/LightMode-Baked.html).
 
+### Lens Flare
+
+![](Images/LensFlareSamples2.png)
+
+From HDRP 12.0, HDRP (and URP) introduces a new Lens Flare system. You can attach an Lens Flare (SRP) Component to any GameObject.
+Some properties only appear when you attach this component to a light. Each LensFlare can be compose with multiple elements for simpler and deeper control for any situation. We provide a [new asset](lens-flare-data-driven-asset.md) and a [new component](lens-flare-data-driven-component.md) which can be attached to any GameObject.
+
 ### Reflection probes
 
 ![](Images/HDRPFeatures-ReflectionProbes.png)
@@ -464,6 +471,11 @@ In MatCap mode, HDRP replaces the functionality of the Scene window's Lighting b
 
 From the [HDRI Sky](Override-HDRI-Sky.md), you can directly project the bottom part onto a plane with various shapes such as a Rectangle, Circle, Ellipse, or Infinite plane.
 To match the scale of the GameObjects in your Scene, you can vary the pixel footprint.
+
+### LichrAnchor
+![](Images/lightanchor0.png)
+
+From HDRP 12.0, HDRP (and URP) introduces a new [Light Anchor](light-anchor.md) component. You can attach to any light to control the light on Main Camera view.
 
 ### Light Explorer
 
