@@ -10,7 +10,7 @@ namespace UnityEditor.VFX.HDRP
     [VFXInfo(experimental = true)]
     class VFXDecalHDRPOutput : VFXAbstractParticleHDRPOutput
     {
-        public override string name { get { return "Output Particle HDRP Decal"; } }
+        public override string name { get { return "Output Particle HDRP Lit Decal"; } }
         public override string codeGeneratorTemplate { get { return RenderPipeTemplate("VFXParticleHDRPDecal"); } }
         public override VFXTaskType taskType { get { return VFXTaskType.ParticleHexahedronOutput; } }
 

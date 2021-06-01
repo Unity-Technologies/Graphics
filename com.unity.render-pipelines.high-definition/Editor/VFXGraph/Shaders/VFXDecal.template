@@ -170,8 +170,9 @@ if(_EnableDecalLayers)
 	    surfaceData.MAOSBlend.xy = float2(surfaceData.mask.w, surfaceData.mask.w);
 	#endif
 	#if SHADERPASS == SHADERPASS_VFX_DECAL_FORWARD_EMISSIVE
-		#if defined(VFX_VARYING_EMISSIVE)
-		surfaceData.emissive = i.VFX_VARYING_EMISSIVE * fadeFactor;
+        surfaceData.emissive = float3(1,1,1) * fadeFactor;
+        #if defined(VFX_VARYING_EMISSIVE) && (HDRP_USE_EMISSIVE_COLOR || HDRP_USE_ADDITIONAL_EMISSIVE_COLOR)
+		surfaceData.emissive = i.VFX_VARYING_EMISSIVE;
 		#endif
 		#ifdef HDRP_USE_EMISSIVE_MAP
 		float emissiveScale = 1.0f;
