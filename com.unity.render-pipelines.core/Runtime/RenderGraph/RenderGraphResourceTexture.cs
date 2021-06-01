@@ -20,7 +20,9 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
 
         internal ResourceHandle handle;
 
-        internal TextureHandle(int handle, bool shared = false) { this.handle = new ResourceHandle(handle, RenderGraphResourceType.Texture, shared); }
+        internal ResourceHandle fallBackResource;
+
+        internal TextureHandle(int handle, bool shared = false) {this.handle = new ResourceHandle(handle, RenderGraphResourceType.Texture, shared); fallBackResource = s_NullHandle.handle; }
 
         /// <summary>
         /// Cast to RenderTargetIdentifier
@@ -55,6 +57,8 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
         /// </summary>
         /// <returns>True if the handle is valid.</returns>
         public bool IsValid() => handle.IsValid();
+
+        public void SetFallBackResource(TextureHandle texture) { fallBackResource = texture.handle; }
     }
 
     /// <summary>
