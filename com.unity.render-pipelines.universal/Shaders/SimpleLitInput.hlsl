@@ -10,6 +10,7 @@ CBUFFER_START(UnityPerMaterial)
     half4 _SpecColor;
     half4 _EmissionColor;
     half _Cutoff;
+    half _Smoothness;
     half _Surface;
 CBUFFER_END
 
@@ -26,6 +27,7 @@ CBUFFER_END
     #define _SpecColor          UNITY_ACCESS_DOTS_INSTANCED_PROP_FROM_MACRO(float4 , Metadata__SpecColor)
     #define _EmissionColor      UNITY_ACCESS_DOTS_INSTANCED_PROP_FROM_MACRO(float4 , Metadata__EmissionColor)
     #define _Cutoff             UNITY_ACCESS_DOTS_INSTANCED_PROP_FROM_MACRO(float  , Metadata__Cutoff)
+    #define _Smoothness         UNITY_ACCESS_DOTS_INSTANCED_PROP_FROM_MACRO(float  , Metadata__Smoothness)
     #define _Surface            UNITY_ACCESS_DOTS_INSTANCED_PROP_FROM_MACRO(float  , Metadata__Surface)
 #endif
 
@@ -41,7 +43,9 @@ half4 SampleSpecularSmoothness(float2 uv, half alpha, half4 specColor, TEXTURE2D
 #endif
 
 #ifdef _GLOSSINESS_FROM_BASE_ALPHA
-    specularSmoothness.a = alpha;
+    specularSmoothness.a = alpha* _Smoothness;
+#else
+    specularSmoothness.a *= _Smoothness;
 #endif
 
     return specularSmoothness;
