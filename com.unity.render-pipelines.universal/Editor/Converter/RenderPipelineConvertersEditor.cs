@@ -60,6 +60,12 @@ namespace UnityEditor.Rendering.Universal.Converters
     }
 
     [Serializable]
+    internal struct ConverterItems
+    {
+        public List<ConverterItemDescriptor> itemDescriptors;
+    }
+
+    [Serializable]
     [EditorWindowTitle(title = "Render Pipeline Converters")]
     internal class RenderPipelineConvertersEditor : EditorWindow
     {
@@ -73,7 +79,9 @@ namespace UnityEditor.Rendering.Universal.Converters
         List<RenderPipelineConverter> m_CoreConvertersList;
 
         // This list needs to be as long as the amount of converters
-        List<List<ConverterItemDescriptor>> m_ItemsToConvert = new List<List<ConverterItemDescriptor>>();
+
+        List<ConverterItems> m_ItemsToConvert = new List<ConverterItems>();
+        //List<List<ConverterItemDescriptor>> m_ItemsToConvert = new List<List<ConverterItemDescriptor>>();
         SerializedObject m_SerializedObject;
 
         List<string> m_ConversionsChoices = new List<string>();
@@ -151,7 +159,8 @@ namespace UnityEditor.Rendering.Universal.Converters
                 // This just creates empty entries in the m_ItemsToConvert.
                 // This list need to have the same amount of entries as the converters
                 List<ConverterItemDescriptor> converterItemInfos = new List<ConverterItemDescriptor>();
-                m_ItemsToConvert.Add(converterItemInfos);
+                //m_ItemsToConvert.Add(converterItemInfos);
+                m_ItemsToConvert.Add(new ConverterItems {itemDescriptors = converterItemInfos});
             }
         }
 
@@ -240,9 +249,9 @@ namespace UnityEditor.Rendering.Universal.Converters
                     string info = property.FindPropertyRelative("message").stringValue;
 
                     // Update the amount of things to convert
-                    child.Q<Label>("converterStats").text = $"{m_ItemsToConvert[id].Count} items";
+                    child.Q<Label>("converterStats").text = $"{m_ItemsToConvert[id].itemDescriptors.Count} items";
 
-                    ConverterItemDescriptor convItemDesc = m_ItemsToConvert[id][index];
+                    ConverterItemDescriptor convItemDesc = m_ItemsToConvert[id].itemDescriptors[index];
 
                     element.Q<Label>("converterItemName").text = convItemDesc.name;
                     element.Q<Label>("converterItemPath").text = convItemDesc.info;
@@ -312,7 +321,7 @@ namespace UnityEditor.Rendering.Universal.Converters
             void OnConverterCompleteDataCollection()
             {
                 // Set the item infos list to to the right index
-                m_ItemsToConvert[id] = converterItemInfos;
+                m_ItemsToConvert[id] = new ConverterItems {itemDescriptors = converterItemInfos};
                 m_ConverterStates[id].items = new List<ConverterItemState>(converterItemInfos.Count);
 
                 // Default all the entries to true
@@ -414,23 +423,24 @@ namespace UnityEditor.Rendering.Universal.Converters
                 EditorUtility.DisplayProgressBar(title, "Creating search index...", -1f);
 
                 // Private implementation of a file naming function which puts the file at the selected path.
-                Type assetdatabase = typeof(AssetDatabase);
-                var indexPath = (string)assetdatabase.GetMethod("GetUniquePathNameAtSelectedPath", BindingFlags.NonPublic | BindingFlags.Static).Invoke(assetdatabase, new object[] { $"Assets/{name}.index" });
+                //Type assetdatabase = typeof(AssetDatabase);
+                //var indexPath = (string)assetdatabase.GetMethod("GetUniquePathNameAtSelectedPath", BindingFlags.NonPublic | BindingFlags.Static).Invoke(assetdatabase, new object[] { $"Assets/{name}.index" });
+                var indexPath =  $"Assets/{name}.index";
 
                 // Write search index manifest
-                System.IO.File.WriteAllText(indexPath,
-@"{
-                ""roots"": [""Assets""],
-                ""includes"": [],
-                ""excludes"": [],
-                ""options"": {
-                    ""types"": true,
-                    ""properties"": true,
-                    ""extended"": true,
-                    ""dependencies"": true
-                    },
-                ""baseScore"": 9999
-                }");
+//                 System.IO.File.WriteAllText(indexPath,
+// @"{
+//                 ""roots"": [""Assets""],
+//                 ""includes"": [],
+//                 ""excludes"": [],
+//                 ""options"": {
+//                     ""types"": true,
+//                     ""properties"": true,
+//                     ""extended"": true,
+//                     ""dependencies"": true
+//                     },
+//                 ""baseScore"": 9999
+//                 }");
 
                 // Import the search index
                 AssetDatabase.ImportAsset(indexPath, ImportAssetOptions.ForceSynchronousImport | ImportAssetOptions.DontDownloadFromCacheServer);
@@ -482,7 +492,7 @@ namespace UnityEditor.Rendering.Universal.Converters
             {
                 context?.Dispose();
                 // Client code has finished with the created index. We can delete it.
-                AssetDatabase.DeleteAsset(indexPath);
+                //AssetDatabase.DeleteAsset(indexPath);
                 EditorUtility.ClearProgressBar();
             }
         }
@@ -562,20 +572,20 @@ namespace UnityEditor.Rendering.Universal.Converters
                 currentCount++;
                 var index = activeConverterState.index;
                 var converterName = m_CoreConvertersList[index].name;
-                var itemCount = m_ItemsToConvert[index].Count;
+                var itemCount = m_ItemsToConvert[index].itemDescriptors.Count;
                 string progressTitle = $"{converterName}           Converter : {currentCount}/{activeConvertersCount}";
                 for (var j = 0; j < itemCount; j++)
                 {
                     if (activeConverterState.items[j].isActive)
                     {
                         if (EditorUtility.DisplayCancelableProgressBar(progressTitle,
-                            string.Format("({0} of {1}) {2}", j, itemCount, m_ItemsToConvert[index][j].info),
+                            string.Format("({0} of {1}) {2}", j, itemCount, m_ItemsToConvert[index].itemDescriptors[j].info),
                             (float)j / (float)itemCount))
                             break;
                         ConvertIndex(index, j);
                     }
                 }
-
+                m_CoreConvertersList[index].OnPostRun();
                 EditorUtility.ClearProgressBar();
             }
         }
@@ -588,7 +598,7 @@ namespace UnityEditor.Rendering.Universal.Converters
                 var item = new ConverterItemInfo()
                 {
                     index = index,
-                    descriptor = m_ItemsToConvert[coreConverterIndex][index],
+                    descriptor = m_ItemsToConvert[coreConverterIndex].itemDescriptors[index],
                 };
                 var ctx = new RunItemContext(item);
                 m_CoreConvertersList[coreConverterIndex].OnRun(ref ctx);
