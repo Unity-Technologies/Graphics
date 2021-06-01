@@ -3745,8 +3745,8 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   ImageComparisonSettings:
-    TargetWidth: 1024
-    TargetHeight: 1024
+    TargetWidth: 1920
+    TargetHeight: 1080
     PerPixelCorrectnessThreshold: 0.0005
     PerPixelGammaThreshold: 0.003921569
     PerPixelAlphaThreshold: 0.003921569
