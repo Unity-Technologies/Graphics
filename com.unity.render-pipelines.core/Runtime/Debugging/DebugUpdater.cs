@@ -56,13 +56,14 @@ namespace UnityEngine.Rendering
                 debugManager.displayRuntimeUI = !debugManager.displayRuntimeUI;
             }
 
-            if (debugManager.displayRuntimeUI && debugManager.GetAction(DebugAction.ResetAll) != 0.0f)
+            if (debugManager.displayRuntimeUI)
             {
-                debugManager.Reset();
-            }
+                if (debugManager.GetAction(DebugAction.ResetAll) != 0.0f)
+                    debugManager.Reset();
 
-            if (debugManager.GetActionReleaseScrollTarget())
-                debugManager.SetScrollTarget(null); // Allow mouse wheel scroll without causing auto-scroll
+                if (debugManager.GetActionReleaseScrollTarget())
+                    debugManager.SetScrollTarget(null); // Allow mouse wheel scroll without causing auto-scroll
+            }
 
             if (m_Orientation != Screen.orientation)
             {

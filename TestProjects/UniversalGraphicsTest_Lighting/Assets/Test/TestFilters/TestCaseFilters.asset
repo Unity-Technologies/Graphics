@@ -15,6 +15,15 @@ MonoBehaviour:
   filters:
   - FilteredScene: {fileID: 0}
     FilteredScenes:
+    - {fileID: 102900000, guid: e23c793ace3c4a146a73360af1600fbd, type: 3}
+    ColorSpace: -1
+    BuildPlatform: 24
+    GraphicsDevice: 21
+    XrSdk: None
+    StereoModes: 0
+    Reason: https://fogbugz.unity3d.com/f/cases/1305533/
+  - FilteredScene: {fileID: 0}
+    FilteredScenes:
     - {fileID: 102900000, guid: 3bbe19bef8dcc4e65b7aaa710c4114c6, type: 3}
     - {fileID: 102900000, guid: 95be3ed4f14c543b389e8e5a2e3d5187, type: 3}
     - {fileID: 102900000, guid: dafa2658c5a644673a2697d24ad96ffe, type: 3}
@@ -45,3 +54,15 @@ MonoBehaviour:
     XrSdk: None
     StereoModes: 0
     Reason: https://fogbugz.unity3d.com/f/cases/1305639/
+  - FilteredScene: {fileID: 0}
+    FilteredScenes:
+    - {fileID: 102900000, guid: b2a47910b2788df489a1f84de6e4486c, type: 3}
+    - {fileID: 102900000, guid: a1c09e3c33ec7fc4084de318357c2fa0, type: 3}
+    - {fileID: 102900000, guid: fb8f8e7cc18a5314f8d66d2ddfbfbaec, type: 3}
+    - {fileID: 102900000, guid: 4cd2c01cabdfb47d5a3ac05309090490, type: 3}
+    ColorSpace: -1
+    BuildPlatform: 13
+    GraphicsDevice: 11
+    XrSdk: 
+    StereoModes: 7
+    Reason: 'XR : development build text issue'

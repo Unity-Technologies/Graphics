@@ -202,6 +202,7 @@ real3 UnpackNormalmapRGorAG(real4 packedNormal, real scale = 1.0)
     return UnpackNormalAG(packedNormal, scale);
 }
 
+#ifndef BUILTIN_TARGET_API
 real3 UnpackNormal(real4 packedNormal)
 {
 #if defined(UNITY_ASTC_NORMALMAP_ENCODING)
@@ -213,6 +214,7 @@ real3 UnpackNormal(real4 packedNormal)
     return UnpackNormalmapRGorAG(packedNormal, 1.0);
 #endif
 }
+#endif
 
 real3 UnpackNormalScale(real4 packedNormal, real bumpScale)
 {
