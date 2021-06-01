@@ -657,9 +657,7 @@ namespace UnityEngine.Rendering.HighDefinition
             get
             {
                 if (m_RenderingLayerNames == null)
-                {
                     UpdateRenderingLayerNames();
-                }
                 return m_RenderingLayerNames;
             }
         }
@@ -684,9 +682,11 @@ namespace UnityEngine.Rendering.HighDefinition
         /// <summary>Names used for display of rendering layer masks with a prefix.</summary>
         public string[] prefixedRenderingLayerMaskNames => prefixedRenderingLayerNames;
 
-        void UpdateRenderingLayerNames()
+        /// <summary>Regenerate Rendering Layer names and their prefixed versions.</summary>
+        internal void UpdateRenderingLayerNames()
         {
-            m_RenderingLayerNames = new string[32];
+            if (m_RenderingLayerNames == null)
+                m_RenderingLayerNames = new string[32];
 
             m_RenderingLayerNames[0] = lightLayerName0;
             m_RenderingLayerNames[1] = lightLayerName1;
@@ -753,6 +753,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 decalLayerName6 = k_DefaultDecalLayerNames[6];
                 decalLayerName7 = k_DefaultDecalLayerNames[7];
             }
+            UpdateRenderingLayerNames();
         }
 
         #endregion

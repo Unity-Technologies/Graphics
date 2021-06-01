@@ -152,9 +152,7 @@ namespace UnityEngine.Rendering.Universal
             get
             {
                 if (m_RenderingLayerNames == null)
-                {
                     UpdateRenderingLayerNames();
-                }
                 return m_RenderingLayerNames;
             }
         }
@@ -174,7 +172,8 @@ namespace UnityEngine.Rendering.Universal
         /// <summary>Names used for display of rendering layer masks with a prefix.</summary>
         public string[] prefixedRenderingLayerMaskNames => prefixedRenderingLayerNames;
 
-        void UpdateRenderingLayerNames()
+        /// <summary>Regenerate Rendering Layer names and their prefixed versions.</summary>
+        internal void UpdateRenderingLayerNames()
         {
             if (m_RenderingLayerNames == null)
                 m_RenderingLayerNames = new string[32];
