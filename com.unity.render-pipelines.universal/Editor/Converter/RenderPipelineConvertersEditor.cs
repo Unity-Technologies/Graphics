@@ -78,8 +78,9 @@ namespace UnityEditor.Rendering.Universal.Converters
 
         List<RenderPipelineConverter> m_CoreConvertersList;
 
-        // This list needs to be as long as the amount of converters
+        private bool convertButtonActive = false;
 
+        // This list needs to be as long as the amount of converters
         List<ConverterItems> m_ItemsToConvert = new List<ConverterItems>();
         //List<List<ConverterItemDescriptor>> m_ItemsToConvert = new List<List<ConverterItemDescriptor>>();
         SerializedObject m_SerializedObject;
@@ -294,7 +295,7 @@ namespace UnityEditor.Rendering.Universal.Converters
             rootVisualElement.Bind(m_SerializedObject);
             var button = rootVisualElement.Q<Button>("convertButton");
             button.RegisterCallback<ClickEvent>(Convert);
-            button.SetEnabled(false);
+            button.SetEnabled(convertButtonActive);
 
             var initButton = rootVisualElement.Q<Button>("initializeButton");
             initButton.RegisterCallback<ClickEvent>(InitializeAllActiveConverters);
@@ -362,10 +363,10 @@ namespace UnityEditor.Rendering.Universal.Converters
                 m_SerializedObject.ApplyModifiedProperties();
 
                 CheckAllConvertersCompleted();
-
+                convertButtonActive = true;
                 // Make sure that the Convert Button is turned back on
                 var button = rootVisualElement.Q<Button>("convertButton");
-                button.SetEnabled(true);
+                button.SetEnabled(convertButtonActive);
             }
 
             void CheckAllConvertersCompleted()
