@@ -59,10 +59,10 @@
 #define DEBUGVIEW_AXF_BSDFDATA_NORMAL_WS (1252)
 #define DEBUGVIEW_AXF_BSDFDATA_NORMAL_VIEW_SPACE (1253)
 #define DEBUGVIEW_AXF_BSDFDATA_TANGENT_WS (1254)
-#define DEBUGVIEW_AXF_BSDFDATA_BI_TANGENT_WS (1255)
+#define DEBUGVIEW_AXF_BSDFDATA_BITANGENT_WS (1255)
 #define DEBUGVIEW_AXF_BSDFDATA_DIFFUSE_COLOR (1256)
 #define DEBUGVIEW_AXF_BSDFDATA_SPECULAR_COLOR (1257)
-#define DEBUGVIEW_AXF_BSDFDATA_FRESNEL_F0 (1258)
+#define DEBUGVIEW_AXF_BSDFDATA_FRESNEL0 (1258)
 #define DEBUGVIEW_AXF_BSDFDATA_PERCEPTUAL_ROUGHNESS (1259)
 #define DEBUGVIEW_AXF_BSDFDATA_ROUGHNESS (1260)
 #define DEBUGVIEW_AXF_BSDFDATA_HEIGHT_MM (1261)
@@ -96,7 +96,7 @@ struct SurfaceData
     float3 tangentWS;
     float3 diffuseColor;
     float3 specularColor;
-    float3 fresnelF0;
+    float3 fresnel0;
     float3 specularLobe;
     float height_mm;
     float anisotropyAngle;
@@ -128,10 +128,10 @@ struct BSDFData
     float specularOcclusion;
     float3 normalWS;
     float3 tangentWS;
-    float3 biTangentWS;
+    float3 bitangentWS;
     float3 diffuseColor;
     float3 specularColor;
-    float3 fresnelF0;
+    float3 fresnel0;
     float perceptualRoughness;
     float3 roughness;
     float height_mm;
@@ -188,7 +188,7 @@ void GetGeneratedSurfaceDataDebug(uint paramId, SurfaceData surfacedata, inout f
             needLinearToSRGB = true;
             break;
         case DEBUGVIEW_AXF_SURFACEDATA_FRESNEL_F0:
-            result = surfacedata.fresnelF0;
+            result = surfacedata.fresnel0;
             break;
         case DEBUGVIEW_AXF_SURFACEDATA_SPECULAR_LOBE:
             result = surfacedata.specularLobe;
@@ -281,8 +281,8 @@ void GetGeneratedBSDFDataDebug(uint paramId, BSDFData bsdfdata, inout float3 res
         case DEBUGVIEW_AXF_BSDFDATA_TANGENT_WS:
             result = bsdfdata.tangentWS * 0.5 + 0.5;
             break;
-        case DEBUGVIEW_AXF_BSDFDATA_BI_TANGENT_WS:
-            result = bsdfdata.biTangentWS * 0.5 + 0.5;
+        case DEBUGVIEW_AXF_BSDFDATA_BITANGENT_WS:
+            result = bsdfdata.bitangentWS * 0.5 + 0.5;
             break;
         case DEBUGVIEW_AXF_BSDFDATA_DIFFUSE_COLOR:
             result = bsdfdata.diffuseColor;
@@ -290,8 +290,8 @@ void GetGeneratedBSDFDataDebug(uint paramId, BSDFData bsdfdata, inout float3 res
         case DEBUGVIEW_AXF_BSDFDATA_SPECULAR_COLOR:
             result = bsdfdata.specularColor;
             break;
-        case DEBUGVIEW_AXF_BSDFDATA_FRESNEL_F0:
-            result = bsdfdata.fresnelF0;
+        case DEBUGVIEW_AXF_BSDFDATA_FRESNEL0:
+            result = bsdfdata.fresnel0;
             break;
         case DEBUGVIEW_AXF_BSDFDATA_PERCEPTUAL_ROUGHNESS:
             result = bsdfdata.perceptualRoughness.xxx;

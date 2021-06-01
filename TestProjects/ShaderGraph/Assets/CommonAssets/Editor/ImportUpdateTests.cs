@@ -5,6 +5,7 @@ using System.Linq;
 using UnityEditor.Graphing.Util;
 using UnityEditor.ShaderGraph.Serialization;
 using UnityEngine;
+using GraphicsDeviceType = UnityEngine.Rendering.GraphicsDeviceType;
 
 namespace UnityEditor.ShaderGraph.UnitTests
 {
@@ -67,8 +68,22 @@ namespace UnityEditor.ShaderGraph.UnitTests
             string sourceDir = Path.GetFullPath(directory).TrimEnd(Path.DirectorySeparatorChar);
             string dirName = Path.GetFileName(sourceDir);
 
+            string targetUnityDir = "Assets/Testing/ImportTests/" + dirName;
             string targetDir = Application.dataPath + "/Testing/ImportTests/" + dirName;
-            DirectoryCopy(sourceDir, targetDir, true, true);
+            try
+            {
+                // pause asset database, until everything is copied
+                AssetDatabase.StartAssetEditing();
+                DirectoryCopy(sourceDir, targetDir, true, true);
+            }
+            finally
+            {
+                AssetDatabase.StopAssetEditing();
+            }
+            // import all the files in the directory
+            // NOTE: this is important, as our shader generation relies on the AssetDatabase being fully populated
+            // so we can lookup file paths by GUID.
+            AssetDatabase.ImportAsset(targetUnityDir, ImportAssetOptions.ImportRecursive | ImportAssetOptions.ForceUpdate | ImportAssetOptions.ForceSynchronousImport);
 
             foreach (var assetFullPath in Directory.GetFiles(targetDir, "*.shader*", SearchOption.TopDirectoryOnly))
             {
@@ -101,7 +116,7 @@ namespace UnityEditor.ShaderGraph.UnitTests
             graphData.ValidateGraph();
 
             string fileExtension = Path.GetExtension(fullPath).ToLower();
-            bool isSubgraph = (fileExtension == "shadersubgraph");
+            bool isSubgraph = (fileExtension.Contains("shadersubgraph"));
             if (isSubgraph)
             {
                 // check that the SubGraphAsset is the same after versioning twice
@@ -133,6 +148,37 @@ namespace UnityEditor.ShaderGraph.UnitTests
                 string shader2 = generator2.generatedShader;
 
                 Assert.AreEqual(shader, shader2, $"Importing the graph {unityLocalPath} twice resulted in different generated shaders.");
+
+                // Texture test won't work on platforms that don't support more than 16 samplers
+
+                bool isGL =
+                    (SystemInfo.graphicsDeviceType == GraphicsDeviceType.OpenGLCore) ||
+                    (SystemInfo.graphicsDeviceType == GraphicsDeviceType.OpenGLES2) ||
+                    (SystemInfo.graphicsDeviceType == GraphicsDeviceType.OpenGLES3);
+
+                bool isOSX =
+                    (Application.platform == RuntimePlatform.OSXEditor) ||
+                    (Application.platform == RuntimePlatform.OSXPlayer);
+
+                bool samplersSupported = !(isOSX && isGL);
+                if (!samplersSupported && fullPath.Contains("TextureTest"))
+                {
+                    // skip the compile test -- we know this shader won't compile on these platforms
+                }
+                else
+                {
+                    // now create a Unity Shader from the string
+                    var compiledShader = ShaderUtil.CreateShaderAsset(shader, true);
+                    compiledShader.hideFlags = HideFlags.HideAndDontSave;
+
+                    Assert.NotNull(compiledShader);
+
+                    // compile all the shader passes to see if there are any errors
+                    var mat = new Material(compiledShader) { hideFlags = HideFlags.HideAndDontSave };
+                    for (int pass = 0; pass < mat.passCount; pass++)
+                        ShaderUtil.CompilePass(mat, pass, true);
+                    Object.DestroyImmediate(mat);
+                }
             }
         }
 
@@ -161,7 +207,7 @@ namespace UnityEditor.ShaderGraph.UnitTests
 
             DirectoryInfo[] dirs = dir.GetDirectories();
 
-            // If the destination directory doesn't exist, create it.       
+            // If the destination directory doesn't exist, create it.
             Directory.CreateDirectory(destDirName);
 
             // Get the files in the directory and copy them to the new location.

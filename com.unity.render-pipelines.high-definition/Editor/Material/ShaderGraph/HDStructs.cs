@@ -29,6 +29,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
         {
             name = "VaryingsMeshToPS",
             packFields = true,
+            populateWithCustomInterpolators = true,
             fields = new FieldDescriptor[]
             {
                 HDStructFields.VaryingsMeshToPS.positionCS,
@@ -48,9 +49,11 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
         {
             name = "VaryingsMeshToDS",
             packFields = true,
+            populateWithCustomInterpolators = true,
             fields = new FieldDescriptor[]
             {
                 HDStructFields.VaryingsMeshToDS.positionRWS,
+                HDStructFields.VaryingsMeshToDS.tessellationFactor,
                 HDStructFields.VaryingsMeshToDS.normalWS,
                 HDStructFields.VaryingsMeshToDS.tangentWS,
                 HDStructFields.VaryingsMeshToDS.texCoord0,

@@ -56,7 +56,7 @@ namespace UnityEngine.Rendering.HighDefinition
         /// Returns the cloud type unique ID.
         /// Use this to override the cloudType in the Visual Environment volume component.
         /// </summary>
-        /// <param name="T">Type of clouds.</param>
+        /// <param name="type">Type of clouds.</param>
         /// <returns>The unique ID for the requested cloud type.</returns>
         public static int GetUniqueID(Type type)
         {

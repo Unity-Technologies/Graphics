@@ -189,5 +189,19 @@ namespace UnityEditor.Rendering.HighDefinition
                 material.SetColor(kEmissiveColor, emissiveColorLDRLinear * material.GetFloat(kEmissiveIntensity));
             }
         }
+
+        public static void UpdateEmissiveColorLDRFromIntensityAndEmissiveColor(this Material material)
+        {
+            const string kEmissiveColorLDR = "_EmissiveColorLDR";
+            const string kEmissiveColor = "_EmissiveColor";
+            const string kEmissiveIntensity = "_EmissiveIntensity";
+
+            if (material.HasProperty(kEmissiveColorLDR) && material.HasProperty(kEmissiveIntensity) && material.HasProperty(kEmissiveColor))
+            {
+                Color emissiveColorLDRLinear = material.GetColor(kEmissiveColor) / material.GetFloat(kEmissiveIntensity);
+                Color emissiveColorLDR = new Color(Mathf.LinearToGammaSpace(emissiveColorLDRLinear.r), Mathf.LinearToGammaSpace(emissiveColorLDRLinear.g), Mathf.LinearToGammaSpace(emissiveColorLDRLinear.b));
+                material.SetColor(kEmissiveColorLDR, emissiveColorLDR);
+            }
+        }
     }
 }

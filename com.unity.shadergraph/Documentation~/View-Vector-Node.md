@@ -2,8 +2,8 @@
 
 ## Description
 
-This node provides access to the mesh vertex or fragment's **View Direction** vector. It does not normalize any of the values it stores. 
-Select a **Space** to modify the coordinate space of the output value. 
+This node provides access to the mesh vertex or fragment's **View Direction** vector. It does not normalize any of the values it stores.
+Select a **Space** to modify the coordinate space of the output value.
 
 ## Ports
 
@@ -17,5 +17,4 @@ Select a **Space** to modify the coordinate space of the output value.
 | Name        | Type           | Options  | Description |
 |:------------ |:-------------|:-----|:---|
 | Space | Dropdown | Object, View, World, Tangent | Selects coordinate space of View Direction to output. |
-
 

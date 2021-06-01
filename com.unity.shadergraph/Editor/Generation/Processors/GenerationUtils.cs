@@ -55,6 +55,12 @@ namespace UnityEditor.ShaderGraph
                     builder.AppendLine($"\"Queue\"=\"{descriptor.renderQueue}\"");
                 else
                     builder.AppendLine("// Queue: <None>");
+
+                // ShaderGraphShader tag (so we can tell what shadergraph built)
+                builder.AppendLine("\"ShaderGraphShader\"=\"true\"");
+
+                if (target is IHasMetadata metadata)
+                    builder.AppendLine($"\"ShaderGraphTargetId\"=\"{metadata.identifier}\"");
             }
         }
 
@@ -102,7 +108,7 @@ namespace UnityEditor.ShaderGraph
 
                         //check for a semantic, build string if valid
                         string semantic = subscript.HasSemantic() ? $" : {subscript.semantic}" : string.Empty;
-                        structBuilder.AppendLine($"{subscript.type} {subscript.name}{semantic};");
+                        structBuilder.AppendLine($"{subscript.interpolation} {subscript.type} {subscript.name}{semantic};");
 
                         //if in permutation, add permutation endif
                         if (!string.IsNullOrEmpty(keywordIfDefs))
@@ -121,8 +127,8 @@ namespace UnityEditor.ShaderGraph
                 name = "Packed" + shaderStruct.name, packFields = true,
                 fields = new FieldDescriptor[] {} };
             List<FieldDescriptor> packedSubscripts = new List<FieldDescriptor>();
+            List<FieldDescriptor> postUnpackedSubscripts = new List<FieldDescriptor>();
             List<int> packedCounts = new List<int>();
-
             foreach (FieldDescriptor subscript in shaderStruct.fields)
             {
                 var fieldIsActive = false;
@@ -143,8 +149,12 @@ namespace UnityEditor.ShaderGraph
 
                 if (fieldIsActive)
                 {
-                    //if field is active:
-                    if (subscript.HasSemantic() || subscript.vectorCount == 0)
+                    // special case, "SHADER_STAGE_FRAGMENT" fields must be packed at the end of the struct,
+                    // otherwise the vertex output struct will have different semantic ordering than the fragment input struct.
+                    //
+                    if (subscript.HasPreprocessor() && (subscript.preprocessor.Contains("SHADER_STAGE_FRAGMENT")))
+                        postUnpackedSubscripts.Add(subscript);
+                    else if (subscript.HasSemantic() || subscript.vectorCount == 0)
                         packedSubscripts.Add(subscript);
                     else
                     {
@@ -166,13 +176,16 @@ namespace UnityEditor.ShaderGraph
                             firstChannel = packedCounts[interpIndex];
                             packedCounts[interpIndex] += vectorCount;
                         }
-                        var packedSubscript = new FieldDescriptor(packStruct.name, "interp" + interpIndex, "", subscript.type,
-                            "TEXCOORD" + interpIndex, subscript.preprocessor, StructFieldOptions.Static);
-                        packedSubscripts.Add(packedSubscript);
                     }
                 }
             }
-            packStruct.fields = packedSubscripts.ToArray();
+            for (int i = 0; i < packedCounts.Count(); ++i)
+            {
+                // todo: ensure this packing adjustment doesn't waste interpolators when many preprocessors are in use.
+                var packedSubscript = new FieldDescriptor(packStruct.name, "interp" + i, "", "float" + packedCounts[i], "INTERP" + i, "", StructFieldOptions.Static);
+                packedSubscripts.Add(packedSubscript);
+            }
+            packStruct.fields = packedSubscripts.Concat(postUnpackedSubscripts).ToArray();
         }
 
         internal static void GenerateInterpolatorFunctions(StructDescriptor shaderStruct, IActiveFields activeFields, out ShaderStringBuilder interpolatorBuilder)
@@ -189,6 +202,7 @@ namespace UnityEditor.ShaderGraph
             packBuilder.AppendLine("{");
             packBuilder.IncreaseIndent();
             packBuilder.AppendLine($"{packedStruct} output;");
+            packBuilder.AppendLine($"ZERO_INITIALIZE({packedStruct}, output);");
 
             unpackBuilder.AppendLine($"{shaderStruct.name} Unpack{shaderStruct.name} ({packedStruct} input)");
             unpackBuilder.AppendLine("{");
@@ -246,10 +260,12 @@ namespace UnityEditor.ShaderGraph
             packBuilder.AppendLine("return output;");
             packBuilder.DecreaseIndent();
             packBuilder.AppendLine("}");
+            packBuilder.AppendNewLine();
 
             unpackBuilder.AppendLine("return output;");
             unpackBuilder.DecreaseIndent();
             unpackBuilder.AppendLine("}");
+            unpackBuilder.AppendNewLine();
 
             interpolatorBuilder.Concat(packBuilder);
             interpolatorBuilder.Concat(unpackBuilder);
@@ -397,6 +413,9 @@ namespace UnityEditor.ShaderGraph
                 new ConditionalField(StructFields.VertexDescriptionInputs.BoneWeights,              requirements.requiresVertexSkinning),
                 new ConditionalField(StructFields.VertexDescriptionInputs.BoneIndices,              requirements.requiresVertexSkinning),
                 new ConditionalField(StructFields.VertexDescriptionInputs.VertexID,                 requirements.requiresVertexID),
+
+                new ConditionalField(Fields.ObjectToWorld, requirements.requiresTransforms.Contains(NeededTransform.ObjectToWorld)),
+                new ConditionalField(Fields.WorldToObject, requirements.requiresTransforms.Contains(NeededTransform.WorldToObject)),
             };
         }
 
@@ -444,6 +463,9 @@ namespace UnityEditor.ShaderGraph
                 new ConditionalField(StructFields.SurfaceDescriptionInputs.BoneWeights,             requirements.requiresVertexSkinning),
                 new ConditionalField(StructFields.SurfaceDescriptionInputs.BoneIndices,             requirements.requiresVertexSkinning),
                 new ConditionalField(StructFields.SurfaceDescriptionInputs.VertexID,                requirements.requiresVertexID),
+
+                new ConditionalField(Fields.ObjectToWorld, requirements.requiresTransforms.Contains(NeededTransform.ObjectToWorld)),
+                new ConditionalField(Fields.WorldToObject, requirements.requiresTransforms.Contains(NeededTransform.WorldToObject)),
             };
         }
 
@@ -559,6 +581,8 @@ namespace UnityEditor.ShaderGraph
                     return rawOutput;
                 case ConcreteSlotValueType.Matrix2:
                     return rawOutput;
+                case ConcreteSlotValueType.PropertyConnectionState:
+                    return node.GetConnnectionStateVariableNameForSlot(outputSlotId);
                 default:
                     return kErrorString;
             }
@@ -566,7 +590,7 @@ namespace UnityEditor.ShaderGraph
 
         internal static string AdaptNodeOutputForPreview(AbstractMaterialNode node, int outputSlotId)
         {
-            var rawOutput = node.GetVariableNameForSlot(outputSlotId);
+            string rawOutput = node.GetVariableNameForSlot(outputSlotId);
             return AdaptNodeOutputForPreview(node, outputSlotId, rawOutput);
         }
 
@@ -793,7 +817,14 @@ namespace UnityEditor.ShaderGraph
 
             graph.CollectShaderProperties(shaderProperties, mode);
 
-            surfaceDescriptionFunction.AppendLine(String.Format("{0} {1}(SurfaceDescriptionInputs IN)", surfaceDescriptionName, functionName), false);
+            if (mode == GenerationMode.VFX)
+            {
+                const string k_GraphProperties = "GraphProperties";
+                surfaceDescriptionFunction.AppendLine(String.Format("{0} {1}(SurfaceDescriptionInputs IN, {2} PROP)", surfaceDescriptionName, functionName, k_GraphProperties), false);
+            }
+            else
+                surfaceDescriptionFunction.AppendLine(String.Format("{0} {1}(SurfaceDescriptionInputs IN)", surfaceDescriptionName, functionName), false);
+
             using (surfaceDescriptionFunction.BlockScope())
             {
                 surfaceDescriptionFunction.AppendLine("{0} surface = ({0})0;", surfaceDescriptionName);
@@ -897,7 +928,7 @@ namespace UnityEditor.ShaderGraph
                     surfaceDescriptionFunction.AppendLine($"surface.Out = all(isfinite(surface.{hlslName})) ? {GenerationUtils.AdaptNodeOutputForPreview(rootNode, slot.id, "surface." + hlslName)} : float4(1.0f, 0.0f, 1.0f, 1.0f);");
                 }
             }
-            else if (rootNode.hasPreview)
+            else
             {
                 var slot = rootNode.GetOutputSlots<MaterialSlot>().FirstOrDefault();
                 if (slot != null)
@@ -927,7 +958,7 @@ namespace UnityEditor.ShaderGraph
             {
                 foreach (var slot in slots)
                 {
-                    string hlslName = NodeUtils.GetHLSLSafeName(slot.shaderOutputName);
+                    string hlslName = NodeUtils.ConvertToValidHLSLIdentifier(slot.shaderOutputName);
                     builder.AppendLine("{0} {1};", slot.concreteValueType.ToShaderString(slot.owner.concretePrecision), hlslName);
 
                     if (activeFields != null)
@@ -959,7 +990,14 @@ namespace UnityEditor.ShaderGraph
 
             graph.CollectShaderProperties(shaderProperties, mode);
 
-            builder.AppendLine("{0} {1}({2} IN)", graphOutputStructName, functionName, graphInputStructName);
+            if (mode == GenerationMode.VFX)
+            {
+                const string k_GraphProperties = "GraphProperties";
+                builder.AppendLine("{0} {1}({2} IN, {3} PROP)", graphOutputStructName, functionName, graphInputStructName, k_GraphProperties);
+            }
+            else
+                builder.AppendLine("{0} {1}({2} IN)", graphOutputStructName, functionName, graphInputStructName);
+
             using (builder.BlockScope())
             {
                 builder.AppendLine("{0} description = ({0})0;", graphOutputStructName);
@@ -978,7 +1016,7 @@ namespace UnityEditor.ShaderGraph
                     foreach (var slot in slots)
                     {
                         var isSlotConnected = graph.GetEdges(slot.slotReference).Any();
-                        var slotName = NodeUtils.GetHLSLSafeName(slot.shaderOutputName);
+                        var slotName = NodeUtils.ConvertToValidHLSLIdentifier(slot.shaderOutputName);
                         var slotValue = isSlotConnected ?
                             ((AbstractMaterialNode)slot.owner).GetSlotValue(slot.id, mode, slot.owner.concretePrecision) : slot.GetDefaultValue(mode, slot.owner.concretePrecision);
                         builder.AppendLine("description.{0} = {1};", slotName, slotValue);

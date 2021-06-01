@@ -3,7 +3,7 @@
 //--------------------------------------------------------------------------------------------------
 
 // #pragma enable_d3d11_debug_symbols
-#pragma only_renderers d3d11 playstation xboxone vulkan metal switch
+#pragma only_renderers d3d11 playstation xboxone xboxseries vulkan metal switch
 
 #pragma kernel ScreenSpaceReflectionsTracing        SSR_TRACE
 #pragma kernel ScreenSpaceReflectionsReprojection   SSR_REPROJECT
@@ -19,7 +19,7 @@
 #ifndef SSR_APPROX
     #define SAMPLES_VNDF
 #endif
-#define SSR_TRACE_EPS               0.00024414 // 2^-12, should be good up to 4K
+#define SSR_TRACE_EPS               0.000488281f // 2^-11, should be good up to 4K
 #define MIN_GGX_ROUGHNESS           0.00001f
 #define MAX_GGX_ROUGHNESS           0.99999f
 
@@ -120,7 +120,7 @@ bool SampleGGX_VNDF(float roughness_,
 
     float VdotH;
     float3 localV, localH;
-    SampleGGXVisibleNormal(inputSample, V, localToWorld, roughness, localV, localH, VdotH);
+    SampleGGXVisibleNormal(inputSample.xy, V, localToWorld, roughness, localV, localH, VdotH);
 
     // Compute the reflection direction
     float3 localL = 2.0 * VdotH * localH - localV;
@@ -687,8 +687,10 @@ void ScreenSpaceReflectionsAccumulate(uint3 dispatchThreadId : SV_DispatchThread
     DecodeFromNormalBuffer(hitSS, hitNormalData);
     float3 hitN = hitNormalData.normalWS;
 
+    float2 prevHistoryScale = _RTHandleScaleHistory.zw / _RTHandleScaleHistory.xy;
+
     float4 original = _SSRAccumTexture[COORD_TEXTURE2D_X(positionSS)];
-    float4 previous = _SsrAccumPrev[COORD_TEXTURE2D_X(positionSS * _RTHandleScaleHistory.zw / _RTHandleScaleHistory.xy)];
+    float4 previous = _SsrAccumPrev[COORD_TEXTURE2D_X(positionSS * prevHistoryScale + 0.5f / prevHistoryScale)];
 
     float2 motionVectorNDC;
     DecodeMotionVector(SAMPLE_TEXTURE2D_X_LOD(_CameraMotionVectorsTexture, s_linear_clamp_sampler, min(hitPositionNDC.xy, 1.0f - 0.5f * _ScreenSize.zw) * _RTHandleScale.xy, 0), motionVectorNDC);
@@ -698,7 +700,7 @@ void ScreenSpaceReflectionsAccumulate(uint3 dispatchThreadId : SV_DispatchThread
     float2 positionNDC = positionSS * _ScreenSize.zw + (0.5 * _ScreenSize.zw);
     DecodeMotionVector(SAMPLE_TEXTURE2D_X_LOD(_CameraMotionVectorsTexture, s_linear_clamp_sampler, min(positionNDC, 1.0f - 0.5f * _ScreenSize.zw) * _RTHandleScale.xy, 0), motionVectorCenterNDC);
     float speedSrc = length(motionVectorCenterNDC);
-    float speed = saturate((speedDst + speedDst) * 128.0f); // 128 is arbitrary
+    float speed = saturate((speedDst + speedSrc) * 128.0f); // 128 is arbitrary
 
     float coefExpAvg = lerp(_SsrAccumulationAmount, 1.0f, speed);
 

@@ -8,8 +8,14 @@
 PackedVaryingsType Vert(AttributesMesh inputMesh, AttributesPass inputPass)
 {
     VaryingsType varyingsType;
+#ifdef HAVE_VFX_MODIFICATION
+    AttributesElement inputElement;
+    varyingsType.vmesh = VertMesh(inputMesh, inputElement);
+    return MotionVectorVS(varyingsType, inputMesh, inputPass, inputElement);
+#else
     varyingsType.vmesh = VertMesh(inputMesh);
     return MotionVectorVS(varyingsType, inputMesh, inputPass);
+#endif
 }
 
 #ifdef TESSELLATION_ON
@@ -18,12 +24,7 @@ PackedVaryingsToPS VertTesselation(VaryingsToDS input)
 {
     VaryingsToPS output;
     output.vmesh = VertMeshTesselation(input.vmesh);
-    MotionVectorPositionZBias(output);
-
-    output.vpass.positionCS = input.vpass.positionCS;
-    output.vpass.previousPositionCS = input.vpass.previousPositionCS;
-
-    return PackVaryingsToPS(output);
+    return MotionVectorTessellation(output, input);
 }
 
 #endif // TESSELLATION_ON
@@ -64,7 +65,6 @@ PackedVaryingsToPS VertTesselation(VaryingsToDS input)
     return PackVaryingsToPS(output);
 }
 
-
 #endif // TESSELLATION_ON
 
 #endif // _WRITE_TRANSPARENT_MOTION_VECTOR
@@ -99,7 +99,7 @@ void Frag(PackedVaryingsToPS packedInput,
         #endif // _WRITE_TRANSPARENT_MOTION_VECTOR
         #endif // OUTPUT_SPLIT_LIGHTING
         #ifdef _DEPTHOFFSET_ON
-            , out float outputDepth : SV_Depth
+            , out float outputDepth : DEPTH_OFFSET_SEMANTIC
         #endif
 )
 {
@@ -183,8 +183,8 @@ void Frag(PackedVaryingsToPS packedInput,
 
         // TEMP!
         // For now, the final blit in the backbuffer performs an sRGB write
-        // So in the meantime we apply the inverse transform to linear data to compensate.
-        if (!needLinearToSRGB)
+        // So in the meantime we apply the inverse transform to linear data to compensate, unless we output to AOVs.
+        if (!needLinearToSRGB && _DebugAOVOutput == 0)
             result = SRGBToLinear(max(0, result));
 
         outColor = float4(result, 1.0);

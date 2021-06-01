@@ -8,7 +8,7 @@ namespace UnityEngine.Rendering.HighDefinition
     /// Fog Volume Component.
     /// </summary>
     [Serializable, VolumeComponentMenu("Fog")]
-    [HelpURL(Documentation.baseURL + Documentation.version + Documentation.subURL + "Override-Fog" + Documentation.endURL)]
+    [HDRPHelpURLAttribute("Override-Fog")]
     public class Fog : VolumeComponentWithQuality
     {
         /// <summary>Enable fog.</summary>
@@ -220,8 +220,8 @@ namespace UnityEngine.Rendering.HighDefinition
             cb._FogColor = new Color(fogColor.r, fogColor.g, fogColor.b, 0.0f);
             cb._MipFogParameters  = new Vector4(mipFogNear.value, mipFogFar.value, mipFogMaxMip.value, 0.0f);
 
-            DensityVolumeArtistParameters param = new DensityVolumeArtistParameters(albedo.value, meanFreePath.value, anisotropy.value);
-            DensityVolumeEngineData data = param.ConvertToEngineData();
+            LocalVolumetricFogArtistParameters param = new LocalVolumetricFogArtistParameters(albedo.value, meanFreePath.value, anisotropy.value);
+            LocalVolumetricFogEngineData data = param.ConvertToEngineData();
 
             cb._HeightFogBaseScattering = data.scattering;
             cb._HeightFogBaseExtinction = data.extinction;

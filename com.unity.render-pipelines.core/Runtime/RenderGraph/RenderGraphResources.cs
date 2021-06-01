@@ -113,6 +113,7 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
         public virtual void ReleaseGraphicsResource() {}
         public virtual void LogCreation(RenderGraphLogger logger) {}
         public virtual void LogRelease(RenderGraphLogger logger) {}
+        public virtual int GetSortIndex() { return 0; }
     }
 
     [DebuggerDisplay("Resource ({GetType().Name}:{GetName()})")]

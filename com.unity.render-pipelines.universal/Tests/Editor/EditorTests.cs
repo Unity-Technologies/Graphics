@@ -110,6 +110,14 @@ class EditorTests
 
         var shader = AssetDatabase.LoadAssetAtPath<Shader>(path);
         Assert.AreEqual(shader.name, ShaderUtils.GetShaderPath(shaderPathID));
+
+        var propertyNames = new System.Collections.Generic.HashSet<string>();
+        for (int j = 0; j < shader.GetPropertyCount(); ++j)
+        {
+            string propertyName = shader.GetPropertyName(j);
+            Assert.IsFalse(propertyNames.Contains(propertyName), $"{shader.name} has duplicated property {propertyName}!");
+            propertyNames.Add(propertyName);
+        }
     }
 
     // When creating URP all required resources should be initialized.

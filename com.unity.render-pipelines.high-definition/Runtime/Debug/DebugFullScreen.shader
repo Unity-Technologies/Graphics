@@ -12,7 +12,7 @@ Shader "Hidden/HDRP/DebugFullScreen"
 
             HLSLPROGRAM
             #pragma target 4.5
-            #pragma only_renderers d3d11 playstation xboxone vulkan metal switch
+            #pragma only_renderers d3d11 playstation xboxone xboxseries vulkan metal switch
 
             #pragma vertex Vert
             #pragma fragment Frag
@@ -301,7 +301,7 @@ Shader "Hidden/HDRP/DebugFullScreen"
                 }
                 if (_FullScreenDebugMode == FULLSCREENDEBUGMODE_CONTACT_SHADOWS)
                 {
-                    uint contactShadowData = LOAD_TEXTURE2D_X(_ContactShadowTexture, input.texcoord * _ScreenSize.xy).r;
+                    uint contactShadowData = LOAD_TEXTURE2D_X(_ContactShadowTexture, (uint2)input.positionCS.xy).r;
 
                     // when the index is -1 we display all contact shadows
                     uint mask = (_DebugContactShadowLightIndex == -1) ? -1 : 1 << _DebugContactShadowLightIndex;
@@ -311,7 +311,7 @@ Shader "Hidden/HDRP/DebugFullScreen"
                 }
                 if (_FullScreenDebugMode == FULLSCREENDEBUGMODE_CONTACT_SHADOWS_FADE)
                 {
-                    uint contactShadowData = LOAD_TEXTURE2D_X(_ContactShadowTexture, input.texcoord * _ScreenSize.xy).r;
+                    uint contactShadowData = LOAD_TEXTURE2D_X(_ContactShadowTexture, (uint2)input.positionCS.xy).r;
                     float fade = float((contactShadowData >> 24)) / 255.0;
 
                     return float4(fade.xxx, 0.0);
@@ -421,6 +421,11 @@ Shader "Hidden/HDRP/DebugFullScreen"
 
                     return float4(HsvToRgb(hsv), 1.0f);
 
+                }
+
+                if (_FullScreenDebugMode == FULLSCREENDEBUGMODE_LENS_FLARE_DATA_DRIVEN)
+                {
+                    return SAMPLE_TEXTURE2D_X(_DebugFullScreenTexture, s_point_clamp_sampler, input.texcoord);
                 }
 
                 return float4(0.0, 0.0, 0.0, 0.0);

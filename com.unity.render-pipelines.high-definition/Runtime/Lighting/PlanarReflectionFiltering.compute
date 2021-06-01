@@ -2,7 +2,7 @@
 #pragma kernel DownScale
 #pragma kernel DepthConversion
 
-#pragma only_renderers d3d11 playstation xboxone vulkan metal switch
+#pragma only_renderers d3d11 playstation xboxone xboxseries vulkan metal switch
 // #pragma enable_d3d11_debug_symbols
 
 // The process is done in 3 steps. We start by converting the depth from oblique to regular frustum depth.
@@ -148,8 +148,8 @@ void DownScale(uint3 dispatchThreadId : SV_DispatchThreadID, uint2 groupThreadId
         {
             const int2 tapCoord = currentCoord * 2 + uint2(x, y);
             // If the pixel is outside the current screen size, its weight becomes zero
-            float weight =  tapCoord.x > _CaptureCurrentScreenSize.x ||  tapCoord.x < 0
-                            || tapCoord.y > _CaptureCurrentScreenSize.y ||  tapCoord.y < 0 ? 0.0 : 1.0;
+            float weight =  tapCoord.x >= _CaptureCurrentScreenSize.x ||  tapCoord.x < 0
+                            || tapCoord.y >= _CaptureCurrentScreenSize.y ||  tapCoord.y < 0 ? 0.0 : 1.0;
             averageColor += LOAD_TEXTURE2D_LOD(_ReflectionColorMipChain, tapCoord, _SourceMipIndex).xyz * weight;
             sumW += weight;
         }

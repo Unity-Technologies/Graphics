@@ -6,7 +6,7 @@ void ApplyDecalToSurfaceData(DecalSurfaceData decalSurfaceData, float3 vtxNormal
     // Always test the normal as we can have decompression artifact
     if (decalSurfaceData.normalWS.w < 1.0)
     {
-        surfaceData.normalWS.xyz = normalize(surfaceData.normalWS.xyz * decalSurfaceData.normalWS.w + decalSurfaceData.normalWS.xyz);
+        surfaceData.normalWS.xyz = SafeNormalize(surfaceData.normalWS.xyz * decalSurfaceData.normalWS.w + decalSurfaceData.normalWS.xyz);
     }
 
 #ifdef DECALS_4RT // only smoothness in 3RT mode
@@ -41,12 +41,23 @@ void BuildSurfaceData(FragInputs fragInputs, inout SurfaceDescription surfaceDes
     $SurfaceDescription.SecondarySpecularTint:          surfaceData.secondarySpecularTint =         surfaceDescription.SecondarySpecularTint;
     $SurfaceDescription.SecondarySpecularShift:         surfaceData.secondarySpecularShift =        surfaceDescription.SecondarySpecularShift;
 
+    // TODO: Adopt smoothness nomenclature + factorization?
+    $SurfaceDescription.LongitudinalRoughness:          surfaceData.roughnessLongitudinal =         surfaceDescription.LongitudinalRoughness;
+    $SurfaceDescription.AzimuthalRoughness:             surfaceData.roughnessAzimuthal =            surfaceDescription.AzimuthalRoughness;
+    $SurfaceDescription.PrimaryReflectionRoughness:     surfaceData.roughnessPrimaryReflection =    surfaceDescription.PrimaryReflectionRoughness;
+    $SurfaceDescription.RefractionIndex:                surfaceData.ior =                           surfaceDescription.RefractionIndex;
+    $SurfaceDescription.CuticleAngle:                   surfaceData.cuticleAngle =                  surfaceDescription.CuticleAngle;
+
     // These static material feature allow compile time optimization
     surfaceData.materialFeatures = 0;
 
     // Transform the preprocess macro into a material feature
     #ifdef _MATERIAL_FEATURE_HAIR_KAJIYA_KAY
         surfaceData.materialFeatures |= MATERIALFEATUREFLAGS_HAIR_KAJIYA_KAY;
+    #endif
+
+    #ifdef _MATERIAL_FEATURE_HAIR_MARSCHNER
+        surfaceData.materialFeatures |= MATERIALFEATUREFLAGS_HAIR_MARSCHNER;
     #endif
 
     #ifdef _DOUBLESIDED_ON
@@ -56,9 +67,9 @@ void BuildSurfaceData(FragInputs fragInputs, inout SurfaceDescription surfaceDes
     #endif
 
     // normal delivered to master node
-    $SurfaceDescription.NormalOS: surfaceData.normalWS = TransformObjectToWorldNormal(surfaceDescription.NormalOS);
+    $SurfaceDescription.NormalOS: GetNormalWS_SrcOS(fragInputs, surfaceDescription.NormalOS, surfaceData.normalWS, doubleSidedConstants);
     $SurfaceDescription.NormalTS: GetNormalWS(fragInputs, surfaceDescription.NormalTS, surfaceData.normalWS, doubleSidedConstants);
-    $SurfaceDescription.NormalWS: surfaceData.normalWS = surfaceDescription.NormalWS;
+    $SurfaceDescription.NormalWS: GetNormalWS_SrcWS(fragInputs, surfaceDescription.NormalWS, surfaceData.normalWS, doubleSidedConstants);
 
     surfaceData.geomNormalWS = fragInputs.tangentToWorld[2];
 
@@ -103,7 +114,7 @@ void BuildSurfaceData(FragInputs fragInputs, inout SurfaceDescription surfaceDes
             $SurfaceDescription.Alpha: alpha = surfaceDescription.Alpha;
 
             // Both uses and modifies 'surfaceData.normalWS'.
-            DecalSurfaceData decalSurfaceData = GetDecalSurfaceData(posInput, fragInputs.tangentToWorld[2], alpha);
+            DecalSurfaceData decalSurfaceData = GetDecalSurfaceData(posInput, fragInputs, alpha);
             ApplyDecalToSurfaceData(decalSurfaceData, fragInputs.tangentToWorld[2], surfaceData);
         }
     #endif

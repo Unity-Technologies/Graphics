@@ -3,7 +3,7 @@ namespace UnityEngine.Rendering.HighDefinition
     /// <summary>
     /// Use this components to define a proxy volume for the reflection probes.
     /// </summary>
-    [HelpURL(Documentation.baseURL + Documentation.version + Documentation.subURL + "Reflection-Proxy-Volume" + Documentation.endURL)]
+    [HDRPHelpURLAttribute("Reflection-Proxy-Volume")]
     [AddComponentMenu("Rendering/Reflection Proxy Volume")]
     public class ReflectionProxyVolumeComponent : MonoBehaviour
     {

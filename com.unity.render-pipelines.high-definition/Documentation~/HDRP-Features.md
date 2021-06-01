@@ -386,6 +386,19 @@ Path tracing now supports fog absorption. Like SSS, to use this feature, enable 
 
 For information on fog in HDRP, see [fog](Override-Fog.md).
 
+#### Materials support
+
+![](Images/Path-traced-materials-Feature.png)
+
+Path tracing can render the following rasterization engine [Materials](#Material):
+- Lit
+- Layered Lit
+- Unlit
+- Stacklit
+- Fabric
+- AxF
+When path tracing is enabled, objects that use non-HDRP Materials won't appear in the final image.
+
 <a name="Tools"></a>
 
 ## Tools
@@ -454,7 +467,7 @@ To match the scale of the GameObjects in your Scene, you can vary the pixel foot
 
 ### Light Explorer
 
-The Light Explorer allows you to select and edit light sources: Directional lights, Point lights, Spot lights, Area lights, Reflection Probes, Planar Probes and Sky and Fog volumes
+The Light Explorer allows you to select and edit light sources: Directional lights, Point lights, Spot lights, Area lights, Reflection Probes, Planar Probes and Sky and Fog Global Volumes
 
 ![](Images/LightExplorer.png)
 

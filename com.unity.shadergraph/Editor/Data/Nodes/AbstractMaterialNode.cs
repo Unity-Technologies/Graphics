@@ -13,7 +13,7 @@ using UnityEngine.Pool;
 namespace UnityEditor.ShaderGraph
 {
     [Serializable]
-    abstract class AbstractMaterialNode : JsonObject, IGroupItem
+    abstract class AbstractMaterialNode : JsonObject, IGroupItem, IRectInterface
     {
         [SerializeField]
         JsonRef<GroupData> m_Group = null;
@@ -37,6 +37,8 @@ namespace UnityEditor.ShaderGraph
         List<JsonData<MaterialSlot>> m_Slots = new List<JsonData<MaterialSlot>>();
 
         public GraphData owner { get; set; }
+
+        internal virtual bool ExposeToSearcher => true;
 
         OnNodeModified m_OnModified;
 
@@ -89,6 +91,17 @@ namespace UnityEditor.ShaderGraph
             {
                 m_DrawState = value;
                 Dirty(ModificationScope.Layout);
+            }
+        }
+
+        Rect IRectInterface.rect
+        {
+            get => drawState.position;
+            set
+            {
+                var state = drawState;
+                state.position = value;
+                drawState = state;
             }
         }
 
@@ -445,8 +458,12 @@ namespace UnityEditor.ShaderGraph
                 return null;
 
             var edges = owner.GetEdges(inputSlot.slotReference).ToArray();
-            var fromSocketRef = edges[0].outputSlot;
-            var fromNode = fromSocketRef.node;
+            AbstractMaterialNode fromNode = null;
+            if (edges.Count() > 0)
+            {
+                var fromSocketRef = edges[0].outputSlot;
+                fromNode = fromSocketRef.node;
+            }
             return fromNode;
         }
 
@@ -738,6 +755,11 @@ namespace UnityEditor.ShaderGraph
             if (slot == null)
                 throw new ArgumentException(string.Format("Attempting to use MaterialSlot({0}) on node of type {1} where this slot can not be found", slotId, this), "slotId");
             return string.Format("_{0}_{1}_{2}", GetVariableNameForNode(), NodeUtils.GetHLSLSafeName(slot.shaderOutputName), unchecked((uint)slotId));
+        }
+
+        public string GetConnnectionStateVariableNameForSlot(int slotId)
+        {
+            return ShaderInput.GetConnectionStateVariableName(GetVariableNameForSlot(slotId));
         }
 
         public virtual string GetVariableNameForNode()

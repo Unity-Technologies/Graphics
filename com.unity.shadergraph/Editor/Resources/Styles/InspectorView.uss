@@ -7,12 +7,12 @@
     border-bottom-width: 1px;
     border-radius: 5px;
     flex-direction: column;
-    background-color: #2E2E2E;
+    background-color: #2e2e2e;
     border-color: #191919;
     min-width: 100px;
     min-height: 100px;
     width: 300px;
-    height: 400px;
+    height: 275px;
 }
 
 .InspectorView > .mainContainer {
@@ -31,7 +31,6 @@
     flex-grow: 1;
     align-items: stretch;
     padding-bottom: 15px;
-
 }
 
 .InspectorView > .mainContainer > #content > #header {
@@ -43,18 +42,21 @@
     border-top-right-radius: 6px;
 }
 
-.InspectorView.scrollable > .mainContainer > #content > .unity-scroll-view > {
-    padding-bottom: 12;
-}
-
 .InspectorView.scrollable > .mainContainer > #content > .unity-scroll-view > .unity-scroller--horizontal {
     background-color: #393939;
-    bottom: 12;
 }
 
 .InspectorView.scrollable > .mainContainer > #content > .unity-scroll-view > .unity-scroller--vertical {
     background-color: #393939;
-    right: 12;
+}
+
+#maxItemsMessageLabel
+{
+    visibility: hidden;
+    padding: 8px 4px 4px 4px;
+    color: rgb(180, 180, 180);
+    align-self: center;
+    border-color: #1F1F1F;
 }
 
 #labelContainer {
@@ -77,6 +79,8 @@
 
 .InspectorView #NodeSettingsContainer
 {
+    padding-left: 3px;
+    padding-right: 6px;
     width: 0;
     min-width: 100%;
 }

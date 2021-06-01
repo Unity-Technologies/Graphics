@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.IO;
 using UnityEditor.ShaderAnalysis.Internal;
 using UnityEngine;
+using System.Linq;
 
 namespace UnityEditor.ShaderAnalysis
 {
@@ -155,7 +156,9 @@ namespace UnityEditor.ShaderAnalysis
 
             var temporaryDirectory = ShaderAnalysisUtils.GetTemporaryDirectory(material, buildTarget);
 
-            var e = DoTick_Shader_Internal(material.shaderKeywords, temporaryDirectory);
+            var keywords = filter.includedKeywords.SelectMany(k => (HashSet<string>)k).ToList();
+            keywords.AddRange(material.shaderKeywords);
+            var e = DoTick_Shader_Internal(keywords.ToArray(), temporaryDirectory);
 
             while (e.MoveNext()) yield return null;
             if (isCancelled) yield break;

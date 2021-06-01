@@ -5,6 +5,7 @@ namespace UnityEditor.ShaderGraph
     {
         public string name;
         public bool packFields;
+        public bool populateWithCustomInterpolators;
         public FieldDescriptor[] fields;
     }
 }

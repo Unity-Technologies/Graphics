@@ -131,14 +131,10 @@ namespace UnityEditor.Rendering.HighDefinition
                         {
                             PropertyField(m_SpatialBilateralAggressiveness, EditorGUIUtility.TrTextContent("Bilateral Aggressiveness", "Higher this value, the less lenient with depth differences the spatial filter is. Increase if for example noticing white halos where AO should be."));
                             PropertyField(m_GhostingAdjustement, EditorGUIUtility.TrTextContent("Ghosting reduction", "Moving this factor closer to 0 will increase the amount of accepted samples during temporal accumulation, increasing the ghosting, but reducing the temporal noise."));
-                            if (BeginAdditionalPropertiesScope())
+                            if (!m_FullResolution.value.boolValue)
                             {
-                                if (!m_FullResolution.value.boolValue)
-                                {
-                                    PropertyField(m_BilateralUpsample, EditorGUIUtility.TrTextContent("Bilateral Upsample", "This upsample method preserves sharp edges better, however can result in visible aliasing and it is slightly more expensive."));
-                                }
+                                PropertyField(m_BilateralUpsample, EditorGUIUtility.TrTextContent("Bilateral Upsample", "This upsample method preserves sharp edges better, however can result in visible aliasing and it is slightly more expensive."));
                             }
-                            EndAdditionalPropertiesScope();
                         }
                     }
                 }

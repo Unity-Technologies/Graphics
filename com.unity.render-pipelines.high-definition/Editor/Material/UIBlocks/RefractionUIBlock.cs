@@ -19,7 +19,7 @@ namespace UnityEditor.Rendering.HighDefinition
         {
             public static string refractionModelText = "Refraction Model";
             public static GUIContent refractionIorText = new GUIContent("Index Of Refraction", "Controls the index of refraction for this Material.");
-            public static GUIContent refractionThicknessText = new GUIContent("Thickness", "Controls the thickness for rough refraction.");
+            public static GUIContent refractionThicknessText = new GUIContent("Thickness", "Controls the thickness for rough refraction.\nFor a Sphere model, this is the diameter of the sphere.");
             public static GUIContent refractionThicknessMapText = new GUIContent("Thickness Map", "Specifies the Refraction Thickness Map (R) for this Material - This acts as a thickness multiplier map.");
             public static GUIContent refractionThicknessRemappingText = new GUIContent("Thickness Remapping", "Controls the maximum thickness for rough refraction.");
             public static GUIContent thicknessMapText = new GUIContent("Thickness Map", "Specifies the Thickness Map (R) for this Material - This map describes the thickness of the object. When subsurface scattering is enabled, low values allow some light to transmit through the object.");
@@ -101,13 +101,7 @@ namespace UnityEditor.Rendering.HighDefinition
                             {
                                 materialEditor.TexturePropertySingleLine(Styles.refractionThicknessMapText, thicknessMap[0]);
                                 // Display the remap of texture values.
-                                Vector2 remap = thicknessRemap[0].vectorValue;
-                                EditorGUI.BeginChangeCheck();
-                                EditorGUILayout.MinMaxSlider(Styles.refractionThicknessRemappingText, ref remap.x, ref remap.y, 0.0f, 1.0f);
-                                if (EditorGUI.EndChangeCheck())
-                                {
-                                    thicknessRemap[0].vectorValue = remap;
-                                }
+                                materialEditor.MinMaxShaderProperty(thicknessRemap[0], 0.0f, 1.0f, Styles.refractionThicknessRemappingText);
                             }
                         }
 

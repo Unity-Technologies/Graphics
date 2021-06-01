@@ -6,7 +6,7 @@ void ApplyDecalToSurfaceData(DecalSurfaceData decalSurfaceData, float3 vtxNormal
     // Always test the normal as we can have decompression artifact
     if (decalSurfaceData.normalWS.w < 1.0)
     {
-        surfaceData.normalWS.xyz = normalize(surfaceData.normalWS.xyz * decalSurfaceData.normalWS.w + decalSurfaceData.normalWS.xyz);
+        surfaceData.normalWS.xyz = SafeNormalize(surfaceData.normalWS.xyz * decalSurfaceData.normalWS.w + decalSurfaceData.normalWS.xyz);
     }
 
     // TODOTODO: _MATERIAL_FEATURE_SPECULAR_COLOR and _MATERIAL_FEATURE_HAZY_GLOSS
@@ -118,16 +118,16 @@ void BuildSurfaceData(FragInputs fragInputs, inout SurfaceDescription surfaceDes
     #endif
 
     // normal delivered to master node
-    $SurfaceDescription.NormalOS: surfaceData.normalWS = TransformObjectToWorldNormal(surfaceDescription.NormalOS);
+    $SurfaceDescription.NormalOS: GetNormalWS_SrcOS(fragInputs, surfaceDescription.NormalOS, surfaceData.normalWS, doubleSidedConstants);
     $SurfaceDescription.NormalTS: GetNormalWS(fragInputs, surfaceDescription.NormalTS, surfaceData.normalWS, doubleSidedConstants);
-    $SurfaceDescription.NormalWS: surfaceData.normalWS = surfaceDescription.NormalWS;
+    $SurfaceDescription.NormalWS: GetNormalWS_SrcWS(fragInputs, surfaceDescription.NormalWS, surfaceData.normalWS, doubleSidedConstants);
 
     surfaceData.geomNormalWS = fragInputs.tangentToWorld[2];
 
     surfaceData.coatNormalWS = surfaceData.geomNormalWS;
-    $SurfaceDescription.CoatNormalOS: surfaceData.coatNormalWS = TransformObjectToWorldNormal(surfaceDescription.CoatNormalOS);
+    $SurfaceDescription.CoatNormalOS: GetNormalWS_SrcOS(fragInputs, surfaceDescription.CoatNormalOS, surfaceData.coatNormalWS, doubleSidedConstants);
     $SurfaceDescription.CoatNormalTS: GetNormalWS(fragInputs, surfaceDescription.CoatNormalTS, surfaceData.coatNormalWS, doubleSidedConstants);
-    $SurfaceDescription.CoatNormalWS: surfaceData.coatNormalWS = surfaceDescription.CoatNormalWS;
+    $SurfaceDescription.CoatNormalWS: GetNormalWS_SrcWS(fragInputs, surfaceDescription.CoatNormalWS, surfaceData.CoatNormalWS, doubleSidedConstants);
 
     // surfaceData.tangentWS = normalize(fragInputs.tangentToWorld[0].xyz);
     // ...We don't need to normalize if we're going to call Orthonormalize anyways as long as
@@ -147,7 +147,7 @@ void BuildSurfaceData(FragInputs fragInputs, inout SurfaceDescription surfaceDes
             $SurfaceDescription.Alpha: alpha = surfaceDescription.Alpha;
 
             // Both uses and modifies 'surfaceData.normalWS'.
-            DecalSurfaceData decalSurfaceData = GetDecalSurfaceData(posInput, fragInputs.tangentToWorld[2], alpha);
+            DecalSurfaceData decalSurfaceData = GetDecalSurfaceData(posInput, fragInputs, alpha);
             ApplyDecalToSurfaceData(decalSurfaceData, fragInputs.tangentToWorld[2], surfaceData);
         }
     #endif

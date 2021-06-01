@@ -9,8 +9,6 @@ From 11.0 onwards, this node stores all vectors normalized in both the **High-De
 
 If you want to keep using the old behavior in URP outside of object space, replace this node with a [View Vector Node](View-Vector-Node).
 
-
-
 ## Ports
 
 | Name        | Direction           | Type  | Binding | Description |
