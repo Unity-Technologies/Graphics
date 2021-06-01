@@ -416,6 +416,33 @@ PreLightData GetPreLightData(float3 V, PositionInputs posInput, inout BSDFData b
 }
 
 //-----------------------------------------------------------------------------
+// bake lighting function
+//-----------------------------------------------------------------------------
+
+// This define allow to say that we implement a ModifyBakedDiffuseLighting function to be call in PostInitBuiltinData
+#define MODIFY_BAKED_DIFFUSE_LIGHTING
+
+void ModifyBakedDiffuseLighting(float3 V, PositionInputs posInput, PreLightData preLightData, BSDFData bsdfData, inout BuiltinData builtinData)
+{
+    // Add GI transmission contribution to bakeDiffuseLighting, we then drop backBakeDiffuseLighting (i.e it is not used anymore, this save VGPR)
+    {
+        // TODO: disabled until further notice (not clear how to handle occlusion).
+        //builtinData.bakeDiffuseLighting += builtinData.backBakeDiffuseLighting * bsdfData.transmittance;
+    }
+
+    if (HasFlag(bsdfData.materialFeatures, MATERIALFEATUREFLAGS_HAIR_MARSCHNER))
+    {
+        // See: [NOTE-MARSCHNER-IBL]
+        builtinData.bakeDiffuseLighting *= PI;
+    }
+    else
+    {
+        // Premultiply (back) bake diffuse lighting information with diffuse pre-integration
+        builtinData.bakeDiffuseLighting *= preLightData.diffuseFGD * bsdfData.diffuseColor;
+    }
+}
+
+//-----------------------------------------------------------------------------
 // light transport functions
 //-----------------------------------------------------------------------------
 
@@ -628,49 +655,25 @@ CBSDF EvaluateBSDF(float3 V, float3 L, PreLightData preLightData, BSDFData bsdfD
         // Transmission event is built into the model.
         cbsdf.specR = S;
     #endif
+
+        // Multiple Scattering
+    #if _USE_DENSITY_VOLUME_SCATTERING
+        cbsdf.diffR = 0;
+    #else
+    #if _USE_LIGHT_FACING_NORMAL
+        // See "Analytic Tangent Irradiance Environment Maps for Anisotropic Surfaces".
+        cbsdf.diffR = rcp(PI * PI) * clampedNdotL;
+        // Transmission is built into the model, and it's not exactly clear how to split it.
+        cbsdf.diffT = 0;
+    #else
+        // Double-sided Lambert.
+        cbsdf.diffR = Lambert() * clampedNdotL;
+    #endif // _USE_LIGHT_FACING_NORMAL
+    #endif // _USE_DENSITY_VOLUME_SCATTERING
     }
 
     return cbsdf;
 }
-
-//-----------------------------------------------------------------------------
-// bake lighting function
-//-----------------------------------------------------------------------------
-
-// This define allow to say that we implement a ModifyBakedDiffuseLighting function to be call in PostInitBuiltinData
-#define MODIFY_BAKED_DIFFUSE_LIGHTING
-
-void ModifyBakedDiffuseLighting(float3 V, PositionInputs posInput, PreLightData preLightData, BSDFData bsdfData, inout BuiltinData builtinData)
-{
-    // Add GI transmission contribution to bakeDiffuseLighting, we then drop backBakeDiffuseLighting (i.e it is not used anymore, this save VGPR)
-    {
-        // TODO: disabled until further notice (not clear how to handle occlusion).
-        //builtinData.bakeDiffuseLighting += builtinData.backBakeDiffuseLighting * bsdfData.transmittance;
-    }
-
-    if (HasFlag(bsdfData.materialFeatures, MATERIALFEATUREFLAGS_HAIR_MARSCHNER))
-    {
-        // [NOTE-MARSCHNER-IBL]
-        // For now we approximate Marschner IBL as proposed by Brian Karis in "Physically Based Hair Shading in Unreal":
-
-        // Modify the roughness
-        bsdfData.roughnessR   = saturate(bsdfData.roughnessR   + 0.2);
-        bsdfData.roughnessTRT = saturate(bsdfData.roughnessTRT + 0.2);
-
-        // This sample is treated as a directional light source and we evaluate the BSDF with it directly.
-        // TODO: Lobe mask for the TT lobe.
-        CBSDF cbsdf = EvaluateBSDF(V, bsdfData.normalWS, preLightData, bsdfData);
-
-        // Repurpose the spherical harmonic sample of the environment lighting (sampled with the modified normal).
-        builtinData.bakeDiffuseLighting *= PI * cbsdf.specR;
-    }
-    else
-    {
-        // Premultiply (back) bake diffuse lighting information with diffuse pre-integration
-        builtinData.bakeDiffuseLighting *= preLightData.diffuseFGD * bsdfData.diffuseColor;
-    }
-}
-
 
 //-----------------------------------------------------------------------------
 // Surface shading (all light types) below
@@ -1005,7 +1008,6 @@ IndirectLighting EvaluateBSDF_Env(  LightLoopContext lightLoopContext,
 
     envLighting = preLightData.specularFGD * preLD.rgb;
 
-    // TODO: Marschner BSDF Env
     if (HasFlag(bsdfData.materialFeatures, MATERIALFEATUREFLAGS_HAIR_KAJIYA_KAY))
     {
         // We tint the HDRI with the secondary lob specular as it is more representatative of indirect lighting on hair.
@@ -1032,10 +1034,31 @@ void PostEvaluateBSDF(  LightLoopContext lightLoopContext,
     GetScreenSpaceAmbientOcclusionMultibounce(posInput.positionSS, preLightData.NdotV, bsdfData.perceptualRoughness, bsdfData.ambientOcclusion, bsdfData.specularOcclusion, bsdfData.diffuseColor, bsdfData.fresnel0, aoFactor);
     ApplyAmbientOcclusionFactor(aoFactor, builtinData, lighting);
 
+    float3 indirectDiffuse  = builtinData.bakeDiffuseLighting;
+    float3 indirectSpecular = lighting.indirect.specularReflected;
+
+    if (HasFlag(bsdfData.materialFeatures, MATERIALFEATUREFLAGS_HAIR_MARSCHNER))
+    {
+        // [NOTE-MARSCHNER-IBL]
+        // For now we approximate Marschner IBL as proposed by Brian Karis in "Physically Based Hair Shading in Unreal":
+
+        // Modify the roughness
+        bsdfData.roughnessR   = saturate(bsdfData.roughnessR   + 0.2);
+        bsdfData.roughnessTRT = saturate(bsdfData.roughnessTRT + 0.2);
+
+        // This sample is treated as a directional light source and we evaluate the BSDF with it directly.
+        // TODO: Lobe mask for the TT lobe.
+        CBSDF cbsdf = EvaluateBSDF(V, bsdfData.normalWS, preLightData, bsdfData);
+
+        // Repurpose the spherical harmonic sample of the environment lighting (sampled with the modified normal).
+        indirectDiffuse  = cbsdf.diffR * builtinData.bakeDiffuseLighting * bsdfData.diffuseColor;
+        indirectSpecular = cbsdf.specR * builtinData.bakeDiffuseLighting;
+    }
+
     // Apply the albedo to the direct diffuse lighting (only once). The indirect (baked)
     // diffuse lighting has already multiply the albedo in ModifyBakedDiffuseLighting().
-    lightLoopOutput.diffuseLighting = bsdfData.diffuseColor * lighting.direct.diffuse + builtinData.bakeDiffuseLighting + builtinData.emissiveColor;
-    lightLoopOutput.specularLighting = lighting.direct.specular + lighting.indirect.specularReflected;
+    lightLoopOutput.diffuseLighting = bsdfData.diffuseColor * lighting.direct.diffuse + indirectDiffuse + builtinData.emissiveColor;
+    lightLoopOutput.specularLighting = lighting.direct.specular + indirectSpecular;
 
 #ifdef DEBUG_DISPLAY
     PostEvaluateBSDFDebugDisplay(aoFactor, builtinData, lighting, bsdfData.diffuseColor, lightLoopOutput);
