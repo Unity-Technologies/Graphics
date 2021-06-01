@@ -84,7 +84,7 @@ URP_Performance_BoatAttack_OSX_Metal_performance_playmode_runtime_mono_Linear_tr
       # Get the Editor and required components for the project. This will be rendered as a single line command. Beware of the quotes! They bite, repeatedly. :(
       - >
         ssh bokken@$BOKKEN_DEVICE_IP
-        "\$(/usr/local/bin/python3 -m site --user-base)/bin/unity-downloader-cli    \\
+        "\$(python3 -m site --user-base)/bin/unity-downloader-cli    \\
             --source-file ~/Graphics/unity_revision.txt                             \\
             -c editor                                                               \\
             -c il2cpp                                                               \\
