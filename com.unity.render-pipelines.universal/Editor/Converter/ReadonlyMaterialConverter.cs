@@ -48,41 +48,41 @@ namespace UnityEditor.Rendering.Universal.Converters
 
         public override void OnInitialize(InitializeConverterContext ctx, Action callback)
         {
-            using (var context = Search.SearchService.CreateContext("asset", "urp:convert-readonly"))
+            var context = Search.SearchService.CreateContext("asset", "urp:convert-readonly");
+
+            Search.SearchService.Request(context,  (c, items) =>
             {
-                Search.SearchService.Request(context,  (c, items) =>
+                // we're going to do this step twice in order to get them ordered, but it should be fast
+                var orderedRequest = items.OrderBy(req =>
                 {
-                    // we're going to do this step twice in order to get them ordered, but it should be fast
-                    var orderedRequest = items.OrderBy(req =>
+                    GlobalObjectId.TryParse(req.id, out var gid);
+                    return gid.assetGUID;
+                })
+                    .ToList();
+
+                foreach (var r in orderedRequest)
+                {
+                    if (r == null || !GlobalObjectId.TryParse(r.id, out var gid))
                     {
-                        GlobalObjectId.TryParse(req.id, out var gid);
-                        return gid.assetGUID;
-                    })
-                        .ToList();
-
-                    foreach (var r in orderedRequest)
-                    {
-                        if (r == null || !GlobalObjectId.TryParse(r.id, out var gid))
-                        {
-                            continue;
-                        }
-
-                        var label = r.provider.fetchLabel(r, r.context);
-                        var description = r.provider.fetchDescription(r, r.context);
-
-                        var item = new ConverterItemDescriptor()
-                        {
-                            name = description.Split('/').Last().Split('.').First(),
-                            info = $"{label}",
-                        };
-                        guids.Add(gid.ToString());
-
-                        ctx.AddAssetToConvert(item);
+                        continue;
                     }
 
-                    callback.Invoke();
-                });
-            }
+                    var label = r.provider.fetchLabel(r, r.context);
+                    var description = r.provider.fetchDescription(r, r.context);
+
+                    var item = new ConverterItemDescriptor()
+                    {
+                        name = description.Split('/').Last().Split('.').First(),
+                        info = $"{label}",
+                    };
+                    guids.Add(gid.ToString());
+
+                    ctx.AddAssetToConvert(item);
+                }
+
+                callback.Invoke();
+            });
+            context?.Dispose();
         }
 
         public override void OnRun(ref RunItemContext ctx)
