@@ -56,7 +56,7 @@ Shader "Hidden/HDRP/VolumetricCloudsCombine"
                 UNITY_SETUP_STEREO_EYE_INDEX_POST_VERTEX(input);
 
                 // Composite the result via hardware blending.
-                return LOAD_TEXTURE2D_X(_VolumetricCloudsUpscaleTextureRW, input.positionCS.xy);;
+                return LOAD_TEXTURE2D_X(_VolumetricCloudsUpscaleTextureRW, input.positionCS.xy);
             }
             ENDHLSL
         }
