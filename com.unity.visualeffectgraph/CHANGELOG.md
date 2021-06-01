@@ -65,6 +65,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fix incorrect buffer type for strips
 - Fix Exception on trying to invert a degenerate TRS matrix [Case 1307068](https://issuetracker.unity3d.com/product/unity/issues/guid/1307068/)
 - Enabled an optimization for motion vectors, storing projected positions for vertices instead of the transform matrix
+- Compilation issue when normal is used in shadergraph for opacity with unlit output
 
 ## [11.0.0] - 2020-10-21
 ### Added
