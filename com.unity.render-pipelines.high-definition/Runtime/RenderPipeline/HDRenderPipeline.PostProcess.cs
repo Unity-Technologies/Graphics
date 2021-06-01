@@ -449,6 +449,9 @@ namespace UnityEngine.Rendering.HighDefinition
 
             TextureHandle alphaTexture = DoCopyAlpha(renderGraph, hdCamera, source);
 
+            // Save the post process screen size before any resolution group change
+            var postProcessScreenSize = hdCamera.postProcessScreenSize;
+
             //default always to downsampled resolution group.
             //when DRS is off this resolution group is the same.
             SetCurrentResolutionGroup(renderGraph, hdCamera, ResolutionGroup.BeforeDynamicResUpscale);
@@ -524,6 +527,10 @@ namespace UnityEngine.Rendering.HighDefinition
             FinalPass(renderGraph, hdCamera, afterPostProcessBuffer, alphaTexture, dest, source, m_BlueNoise, flipYInPostProcess);
 
             renderGraph.EndProfilingSampler(ProfilingSampler.Get(HDProfileId.PostProcessing));
+
+            // Reset the post process size if needed, so any passes that read this data during Render Graph execute will have the expected data
+            if (postProcessScreenSize != hdCamera.postProcessScreenSize)
+                hdCamera.SetPostProcessScreenSize((int)postProcessScreenSize.x, (int)postProcessScreenSize.y);
 
             return dest;
         }
@@ -3374,6 +3381,11 @@ namespace UnityEngine.Rendering.HighDefinition
                 return;
 
             resGroup = newResGroup;
+
+            // Change the post process resolution for any passes that read it during Render Graph setup
+            camera.SetPostProcessScreenSize(postProcessViewportSize.x, postProcessViewportSize.y);
+
+            // Change the post process resolution for any passes that read it during Render Graph execution
             UpdatePostProcessScreenSize(renderGraph, camera, postProcessViewportSize.x, postProcessViewportSize.y);
         }
 
