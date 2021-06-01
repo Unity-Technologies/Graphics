@@ -90,9 +90,6 @@ MonoBehaviour:
   cloudMapResolution:
     m_OverrideState: 0
     m_Value: 64
-  scatteringDirection:
-    m_OverrideState: 0
-    m_Value: 0.5
   scatteringTint:
     m_OverrideState: 0
     m_Value: {r: 0, g: 0, b: 0, a: 1}
@@ -120,6 +117,9 @@ MonoBehaviour:
   ambientLightProbeDimmer:
     m_OverrideState: 0
     m_Value: 1
+  erosionOcclusion:
+    m_OverrideState: 1
+    m_Value: 0
   globalWindSpeed:
     m_OverrideState: 0
     m_Value: 100
