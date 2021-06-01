@@ -22,39 +22,38 @@ float3 GetPositionBias(float3 geomNormal, float bias, bool below)
 
 #ifdef _ENABLE_SHADOW_MATTE
 
-// Compute visibility for shadow mattes, between 0 and 1
+// Compute scalar visibility for shadow mattes, between 0 and 1
 float ComputeVisibility(float3 position, float3 normal, float3 inputSample)
 {
     LightList lightList = CreateLightList(position, normal);
-
-    float3 value = 0.0;
-    float pdf;
 
     RayDesc rayDescriptor;
     rayDescriptor.Origin = position + normal * _RaytracingRayBias;
     rayDescriptor.TMin = 0.0;
 
+    // By default, full visibility
+    float visibility = 1.0;
+
+    // We will ignore value and pdf here, as we only want to catch occluders (no distance falloffs, cosines, etc.)
+    float3 value;
+    float pdf;
+
     if (SampleLights(lightList, inputSample, rayDescriptor.Origin, normal, false, rayDescriptor.Direction, value, pdf, rayDescriptor.TMax))
     {
-        value /= TWO_PI * pdf;
+        // Shoot a transmission ray (to mark it as such, purposedly set remaining depth to an invalid value)
+        PathIntersection intersection;
+        intersection.remainingDepth = _RaytracingMaxRecursion + 1;
+        rayDescriptor.TMax -= _RaytracingRayBias;
+        intersection.value = 1.0;
 
-        if (Luminance(value) > 0.001)
-        {
-            // Shoot a transmission ray (to mark it as such, purposedly set remaining depth to an invalid value)
-            PathIntersection intersection;
-            intersection.remainingDepth = _RaytracingMaxRecursion + 1;
-            rayDescriptor.TMax -= _RaytracingRayBias;
-            intersection.value = 1.0;
+        // FIXME: For the time being, we choose not to apply any back/front-face culling for shadows, will possibly change in the future
+        TraceRay(_RaytracingAccelerationStructure, RAY_FLAG_ACCEPT_FIRST_HIT_AND_END_SEARCH | RAY_FLAG_FORCE_NON_OPAQUE | RAY_FLAG_SKIP_CLOSEST_HIT_SHADER,
+                 RAYTRACINGRENDERERFLAG_CAST_SHADOW, 0, 1, 1, rayDescriptor, intersection);
 
-            // FIXME: For the time being, we choose not to apply any back/front-face culling for shadows, will possibly change in the future
-            TraceRay(_RaytracingAccelerationStructure, RAY_FLAG_ACCEPT_FIRST_HIT_AND_END_SEARCH | RAY_FLAG_FORCE_NON_OPAQUE | RAY_FLAG_SKIP_CLOSEST_HIT_SHADER,
-                     RAYTRACINGRENDERERFLAG_CAST_SHADOW, 0, 1, 1, rayDescriptor, intersection);
-
-            value *= intersection.value;
-        }
+        visibility = Luminance(intersection.value);
     }
 
-    return saturate(Luminance(value));
+    return visibility;
 }
 
 #endif // _ENABLE_SHADOW_MATTE
