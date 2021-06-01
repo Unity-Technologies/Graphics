@@ -47,9 +47,9 @@ namespace UnityEditor.VFX
                         slotValue = m_FieldInfoCache.GetValue(parentValue);
                     }
 
-                    if (slotValue == null && !typeof(UnityEngine.Object).IsAssignableFrom(property.type))
+                    if (slotValue == null && !typeof(UnityEngine.Object).IsAssignableFrom(property.type) && property.type != typeof(GraphicsBuffer))
                     {
-                        Debug.Log("null value in slot of type" + property.type.UserFriendlyName());
+                        Debug.Log("null value in slot of type " + property.type.UserFriendlyName());
                     }
                     return slotValue;
                 }
