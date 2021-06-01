@@ -1,15 +1,15 @@
 
 //TODO : Check for unnecessary includes / and for necessary ones
-#define VFXComputePixelOutputToDBuffer(i, normalWS,outDBuffer) \
+#define VFXComputePixelOutputToDBuffer(i,outDBuffer) \
 { \
 	DecalSurfaceData surfaceData; \
     ZERO_INITIALIZE(DecalSurfaceData, surfaceData); \
-    VFXGetSurfaceDecalData(surfaceData,i,normalWS); \
+    VFXGetSurfaceDecalData(surfaceData,i); \
  \
     ENCODE_INTO_DBUFFER(surfaceData, outDBuffer); \
 }
 
-void VFXGetSurfaceDecalData(out DecalSurfaceData surfaceData, VFX_VARYING_PS_INPUTS i, float3 normalWS)
+void VFXGetSurfaceDecalData(out DecalSurfaceData surfaceData, VFX_VARYING_PS_INPUTS i)
 {
 	ZERO_INITIALIZE(DecalSurfaceData, surfaceData);
 	VFXTransformPSInputs(i);
@@ -43,7 +43,7 @@ if(_EnableDecalLayers)
 
 	if(IsPerspectiveProjection())
 	{
-		clipPos *= VFXLinearEyeDepth(clipPos.z); //TODO: Does not work with Orthographic projection
+		clipPos *= VFXLinearEyeDepth(clipPos.z);
 		viewPos.x = clipPos.x / UNITY_MATRIX_P[0][0];
 		viewPos.y = clipPos.y / UNITY_MATRIX_P[1][1];
 		viewPos.z = (clipPos.z - UNITY_MATRIX_P[2][3]) / UNITY_MATRIX_P[2][2];
@@ -73,7 +73,6 @@ if(_EnableDecalLayers)
 	float3x3 worldToElement = mul((float3x3)viewToElement, VFXGetWorldToViewRotMatrix()); //Transposed//TODO: Won't be correct for non-uniform scalings
 	worldToElement[2] *= -1.0f; //Z points TOWARDS the surface, so we need to revert it
 
-//#if VFX_ENABLE_DECAL_LAYERS
 if(_EnableDecalLayers)
 {
 	if (i.VFX_VARYING_ANGLEFADE.y < 0.0f) // if angle fade is enabled
@@ -84,10 +83,9 @@ if(_EnableDecalLayers)
 		angleFadeFactor = saturate(i.VFX_VARYING_ANGLEFADE.x + i.VFX_VARYING_ANGLEFADE.y * (dotAngle * (dotAngle - 2.0f)));
 	}
 }
-//#endif
 	float fadeFactor = i.VFX_VARYING_FADEFACTOR;
 	fadeFactor *= angleFadeFactor;
-	#if SHADERPASS == SHADERPASS_VFX_DBUFFER_PROJECTOR
+#if SHADERPASS == SHADERPASS_VFX_DBUFFER_PROJECTOR
 
 	float4 color = float4(1,1,1,1);
     #if HDRP_USE_BASE_COLOR
@@ -116,55 +114,60 @@ if(_EnableDecalLayers)
 
 	float albedoMapBlend = surfaceData.baseColor.a;
 	float maskMapBlend = fadeFactor;
+    #ifdef DECALS_4RT
+        float metallic = 0.0f;
+        float ao = 0.0f;
+        #ifdef VFX_VARYING_METALLIC
+            metallic = i.VFX_VARYING_METALLIC;
+        #endif
+        #ifdef VFX_VARYING_AMBIENT_OCCLUSION
+            ao = i.VFX_VARYING_AMBIENT_OCCLUSION;
+        #endif
+    #endif
 
-    float metallic = 0.0f;
-    float smoothness = 0.5f;
-    float ao = 0.0f;
-#ifdef VFX_VARYING_METALLIC
-    metallic = i.VFX_VARYING_METALLIC;
-#endif
-#ifdef VFX_VARYING_SMOOTHNESS
-    smoothness = i.VFX_VARYING_SMOOTHNESS;
-#endif
-#ifdef VFX_VARYING_AMBIENT_OCCLUSION
-    ao = i.VFX_VARYING_AMBIENT_OCCLUSION;
-#endif
-
-#if HDRP_USE_MASK_MAP
-    float4 mask = SampleTexture(VFX_SAMPLER(maskMap), uvData);
-    mask.xyz *= float3(metallic, ao, smoothness);
-
-	surfaceData.mask = mask;
-	surfaceData.mask.z = surfaceData.mask.w;
-	maskMapBlend = mask.z * fadeFactor;
+        float smoothness = 0.5f;
+    #ifdef VFX_VARYING_SMOOTHNESS
+        smoothness = i.VFX_VARYING_SMOOTHNESS;
+    #endif
 
 
-#else //HDRP_USE_MASK_MAP
-    surfaceData.mask.xyz = float3(metallic, ao, smoothness);
-#endif
+    #if HDRP_USE_MASK_MAP
+        surfaceData.mask = SampleTexture(VFX_SAMPLER(maskMap), uvData);
+	    maskMapBlend = surfaceData.mask.z * fadeFactor;
+    #ifdef DECALS_4RT
+	    surfaceData.mask.x = lerp(0, metallic, surfaceData.mask.x);
+	    surfaceData.mask.y = lerp(0, ao, surfaceData.mask.y);
+    #endif
+	    surfaceData.mask.z = lerp(0, smoothness, surfaceData.mask.w);
+    #else //HDRP_USE_MASK_MAP
+    #ifdef DECALS_4RT
+        surfaceData.mask.xy = float2(metallic, ao);
+    #endif
+        surfaceData.mask.z = smoothness;
+    #endif
 
-#if VFX_MASK_BLEND_BASE_COLOR_ALPHA
-	surfaceData.mask.w = albedoMapBlend;
-#elif VFX_MASK_BLEND_MASK_BLUE // TODO : Careful, not the only two cases, e.g. when using opacity
-	surfaceData.mask.w = maskMapBlend;
-#endif
+    #if VFX_MASK_BLEND_BASE_COLOR_ALPHA
+	    surfaceData.mask.w = albedoMapBlend;
+    #elif VFX_MASK_BLEND_MASK_BLUE // TODO : Careful, not the only two cases, e.g. when using opacity
+	    surfaceData.mask.w = maskMapBlend;
+    #endif
 
 
-	#if USE_NORMAL_MAP
-	float3 normalTS = SampleNormalMap(VFX_SAMPLER(normalMap),uvData);
-	#else
-	float3 normalTS = float3(0.0f,0.0f,1.0f);
-	#endif
-	normalWS = normalize(mul(transpose(worldToElement), normalTS));
+	    #if USE_NORMAL_MAP
+	    float3 normalTS = SampleNormalMap(VFX_SAMPLER(normalMap),uvData);
+	    #else
+	    float3 normalTS = float3(0.0f,0.0f,1.0f);
+	    #endif
+	    float3 normalWS = normalize(mul(transpose(worldToElement), normalTS));
 
-	surfaceData.normalWS.xyz = normalWS;
-	#if VFX_NORMAL_BLEND_BASE_COLOR_ALPHA
-	surfaceData.normalWS.w = albedoMapBlend;
-	#elif VFX_NORMAL_BLEND_MASK_BLUE // TODO : Careful, not the only two cases, e.g. when using opacity	surfaceData.mask.w = maskMapBlend;
-	surfaceData.normalWS.w = maskMapBlend;
-	#endif
+	    surfaceData.normalWS.xyz = normalWS;
+	    #if VFX_NORMAL_BLEND_BASE_COLOR_ALPHA
+	    surfaceData.normalWS.w = albedoMapBlend;
+	    #elif VFX_NORMAL_BLEND_MASK_BLUE // TODO : Careful, not the only two cases, e.g. when using opacity	surfaceData.mask.w = maskMapBlend;
+	    surfaceData.normalWS.w = maskMapBlend;
+	    #endif
 
-	surfaceData.MAOSBlend.xy = float2(surfaceData.mask.w, surfaceData.mask.w);
+	    surfaceData.MAOSBlend.xy = float2(surfaceData.mask.w, surfaceData.mask.w);
 	#endif
 	#if SHADERPASS == SHADERPASS_VFX_DECAL_FORWARD_EMISSIVE
 		#if defined(VFX_VARYING_EMISSIVE)

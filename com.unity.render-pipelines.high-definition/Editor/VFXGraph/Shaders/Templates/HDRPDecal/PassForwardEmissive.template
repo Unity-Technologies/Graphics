@@ -50,10 +50,9 @@ ${VFXIncludeRP("VFXDecal.template")}
 	void frag(ps_input i, out float4 outEmissive : SV_Target0)
 	{
 		UNITY_SETUP_STEREO_EYE_INDEX_POST_VERTEX(i);
-		float3 normalWS = float3(0,1,0); //TODO : useless
 		DecalSurfaceData surfaceData;
     	ZERO_INITIALIZE(DecalSurfaceData, surfaceData);
-		VFXGetSurfaceDecalData(surfaceData,i,normalWS);
+		VFXGetSurfaceDecalData(surfaceData,i);
 		outEmissive.rgb = surfaceData.emissive * GetCurrentExposureMultiplier();
 		outEmissive.a = 1.0f;
 	}

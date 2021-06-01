@@ -19,6 +19,7 @@ namespace UnityEditor.VFX.HDRP
             base.OnEnable();
             blendMode = BlendMode.Opaque;
             useNormalScale = false;
+            sort = SortMode.Off;
         }
 
         public override IEnumerable<VFXAttributeInfo> attributes
@@ -226,6 +227,8 @@ namespace UnityEditor.VFX.HDRP
                 yield return "zWriteMode";
                 yield return "castShadows";
                 yield return "materialType";
+                yield return "sort";
+                // yield return "useSoftParticle";
 
                 if (!enableDecalLayers)
                     yield return "decalLayer";
@@ -256,6 +259,8 @@ namespace UnityEditor.VFX.HDRP
                     yield return "AFFECT_AMBIENT_OCCLUSION";
                 if (affectSmoothness)
                     yield return "AFFECT_SMOOTHNESS";
+                if (useEmissive || useEmissiveMap)
+                    yield return "NEEDS_FORWARD_EMISSIVE_PASS";
 
             }
         }
