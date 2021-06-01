@@ -822,7 +822,7 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
                 // Conditional State
                 renderStates = CoreRenderStates.SceneSelection(target),
                 pragmas = CorePragmas.Instanced,
-                defines = new DefineCollection { CoreDefines.SceneSelection },
+                defines = new DefineCollection { CoreDefines.SceneSelection, {CoreKeywordDescriptors.AlphaClipThreshold, 1 } },
                 keywords = new KeywordCollection(),
                 includes = CoreIncludes.SceneSelection,
 
@@ -860,7 +860,7 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
                 // Conditional State
                 renderStates = CoreRenderStates.ScenePicking(target),
                 pragmas = CorePragmas.Instanced,
-                defines = new DefineCollection { CoreDefines.ScenePicking },
+                defines = new DefineCollection { CoreDefines.ScenePicking, {CoreKeywordDescriptors.AlphaClipThreshold, 1 } },
                 keywords = new KeywordCollection(),
                 includes = CoreIncludes.ScenePicking,
 
@@ -898,9 +898,9 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
                 // Conditional State
                 renderStates = CoreRenderStates.SceneSelection(target),
                 pragmas = CorePragmas._2DDefault,
-                defines = new DefineCollection { CoreDefines.SceneSelection },
+                defines = new DefineCollection { CoreDefines.SceneSelection, {CoreKeywordDescriptors.AlphaClipThreshold, 0 } },
                 keywords = new KeywordCollection(),
-                includes = CoreIncludes._2DDepthOnly,
+                includes = CoreIncludes.ScenePicking,
 
                 // Custom Interpolator Support
                 customInterpolators = CoreCustomInterpDescriptors.Common
@@ -936,9 +936,9 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
                 // Conditional State
                 renderStates = CoreRenderStates.ScenePicking(target),
                 pragmas = CorePragmas._2DDefault,
-                defines = new DefineCollection { CoreDefines.ScenePicking },
+                defines = new DefineCollection { CoreDefines.ScenePicking, {CoreKeywordDescriptors.AlphaClipThreshold, 0 } },
                 keywords = new KeywordCollection(),
-                includes = CoreIncludes._2DDepthOnly,
+                includes = CoreIncludes.SceneSelection,
 
                 // Custom Interpolator Support
                 customInterpolators = CoreCustomInterpDescriptors.Common
@@ -1302,7 +1302,7 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
         const string kShadowCasterPass = "Packages/com.unity.render-pipelines.universal/Editor/ShaderGraph/Includes/ShadowCasterPass.hlsl";
         const string kTextureStack = "Packages/com.unity.render-pipelines.core/ShaderLibrary/TextureStack.hlsl";
         const string kDBuffer = "Packages/com.unity.render-pipelines.universal/ShaderLibrary/DBuffer.hlsl";
-        const string kSpriteDepthOnlyPass = "Packages/com.unity.render-pipelines.universal/Editor/2D/ShaderGraph/Includes/SpriteDepthOnlyPass.hlsl";
+        const string kSelectionPickingPass = "Packages/com.unity.render-pipelines.universal/Editor/ShaderGraph/Includes/SelectionPickingPass.hlsl";
 
         public static readonly IncludeCollection CorePregraph = new IncludeCollection
         {
@@ -1370,7 +1370,7 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
 
             // Post-graph
             { CorePostgraph },
-            { kDepthOnlyPass, IncludeLocation.Postgraph },
+            { kSelectionPickingPass, IncludeLocation.Postgraph },
         };
 
         public static readonly IncludeCollection ScenePicking = new IncludeCollection
@@ -1381,18 +1381,7 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
 
             // Post-graph
             { CorePostgraph },
-            { kDepthOnlyPass, IncludeLocation.Postgraph },
-        };
-
-        public static IncludeCollection _2DDepthOnly = new IncludeCollection
-        {
-            // Pre-graph
-            { CoreIncludes.CorePregraph },
-            { CoreIncludes.ShaderGraphPregraph },
-
-            // Post-graph
-            { CoreIncludes.CorePostgraph },
-            { kSpriteDepthOnlyPass, IncludeLocation.Postgraph },
+            { kSelectionPickingPass, IncludeLocation.Postgraph },
         };
     }
     #endregion
@@ -1414,6 +1403,7 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
         {
             { CoreKeywordDescriptors.SceneSelectionPass, 1 },
         };
+
         public static readonly DefineCollection ScenePicking = new DefineCollection
         {
             { CoreKeywordDescriptors.ScenePickingPass, 1 },
@@ -1708,6 +1698,15 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
             referenceName = "SCENEPICKINGPASS",
             type = KeywordType.Boolean,
         };
+
+        public static readonly KeywordDescriptor AlphaClipThreshold = new KeywordDescriptor()
+        {
+            displayName = "AlphaClipThreshold",
+            referenceName = "ALPHA_CLIP_THRESHOLD",
+            type = KeywordType.Boolean,
+            definition = KeywordDefinition.Predefined,
+        };
+
         public static readonly KeywordDescriptor LightCookies = new KeywordDescriptor()
         {
             displayName = "Light Cookies",

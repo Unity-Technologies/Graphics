@@ -23,15 +23,7 @@ half4 frag(PackedVaryings packedInput) : SV_TARGET
         clip(surfaceDescription.Alpha - surfaceDescription.AlphaClipThreshold);
     #endif
 
-    half4 outColor = 0;
-    #ifdef SCENESELECTIONPASS
-        // We use depth prepass for scene selection in the editor, this code allow to output the outline correctly
-        outColor = half4(_ObjectId, _PassValue, 1.0, 1.0);
-    #elif defined(SCENEPICKINGPASS)
-        outColor = _SelectionID;
-    #endif
-
-    return outColor;
+    return 0;
 }
 
 #endif
