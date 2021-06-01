@@ -57,8 +57,7 @@ namespace UnityEditor.Rendering.Universal.Converters
                 {
                     GlobalObjectId.TryParse(req.id, out var gid);
                     return gid.assetGUID;
-                })
-                    .ToList();
+                });
 
                 foreach (var r in orderedRequest)
                 {
