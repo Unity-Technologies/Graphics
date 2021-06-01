@@ -424,24 +424,23 @@ namespace UnityEditor.Rendering.Universal.Converters
                 EditorUtility.DisplayProgressBar(title, "Creating search index...", -1f);
 
                 // Private implementation of a file naming function which puts the file at the selected path.
-                //Type assetdatabase = typeof(AssetDatabase);
-                //var indexPath = (string)assetdatabase.GetMethod("GetUniquePathNameAtSelectedPath", BindingFlags.NonPublic | BindingFlags.Static).Invoke(assetdatabase, new object[] { $"Assets/{name}.index" });
-                var indexPath =  $"Assets/{name}.index";
+                Type assetdatabase = typeof(AssetDatabase);
+                var indexPath = (string)assetdatabase.GetMethod("GetUniquePathNameAtSelectedPath", BindingFlags.NonPublic | BindingFlags.Static).Invoke(assetdatabase, new object[] { $"Assets/{name}.index" });
 
                 // Write search index manifest
-//                 System.IO.File.WriteAllText(indexPath,
-// @"{
-//                 ""roots"": [""Assets""],
-//                 ""includes"": [],
-//                 ""excludes"": [],
-//                 ""options"": {
-//                     ""types"": true,
-//                     ""properties"": true,
-//                     ""extended"": true,
-//                     ""dependencies"": true
-//                     },
-//                 ""baseScore"": 9999
-//                 }");
+                System.IO.File.WriteAllText(indexPath,
+@"{
+                ""roots"": [""Assets""],
+                ""includes"": [],
+                ""excludes"": [],
+                ""options"": {
+                    ""types"": true,
+                    ""properties"": true,
+                    ""extended"": true,
+                    ""dependencies"": true
+                    },
+                ""baseScore"": 9999
+                }");
 
                 // Import the search index
                 AssetDatabase.ImportAsset(indexPath, ImportAssetOptions.ForceSynchronousImport | ImportAssetOptions.DontDownloadFromCacheServer);
