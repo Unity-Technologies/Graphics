@@ -19,6 +19,7 @@ namespace UnityEngine.Rendering.UI
         RectTransform m_ScrollTransform;
         RectTransform m_ContentTransform;
         RectTransform m_MaskTransform;
+        DebugUIHandlerWidget m_ScrollTarget;
 
         internal protected DebugUI.Panel m_Panel;
 
@@ -56,13 +57,26 @@ namespace UnityEngine.Rendering.UI
             Canvas.SelectPreviousPanel();
         }
 
-        // TODO: Jumps around with foldouts and the likes, fix me
-        internal void ScrollTo(DebugUIHandlerWidget target)
+        /// <summary>
+        /// Scrollbar value clicked via mouse/touch.
+        /// </summary>
+        public void OnScrollbarClicked()
         {
-            if (target == null)
+            DebugManager.instance.SetScrollTarget(null); // Release scroll target
+        }
+
+        internal void SetScrollTarget(DebugUIHandlerWidget target)
+        {
+            m_ScrollTarget = target;
+        }
+
+        // TODO: Jumps around with foldouts and the likes, fix me
+        internal void UpdateScroll()
+        {
+            if (m_ScrollTarget == null)
                 return;
 
-            var targetTransform = target.GetComponent<RectTransform>();
+            var targetTransform = m_ScrollTarget.GetComponent<RectTransform>();
 
             float itemY = GetYPosInScroll(targetTransform);
             float targetY = GetYPosInScroll(m_MaskTransform);
@@ -88,6 +102,14 @@ namespace UnityEngine.Rendering.UI
         {
             return GetComponent<DebugUIHandlerContainer>()
                 .GetFirstItem();
+        }
+
+        /// <summary>
+        /// Function to reset DebugManager, provided for UI.
+        /// </summary>
+        public void ResetDebugManager()
+        {
+            DebugManager.instance.Reset();
         }
     }
 }

@@ -120,6 +120,8 @@ namespace UnityEngine.Rendering.HighDefinition
         VertexDensity,
         /// <summary>Display Requested Virtual Texturing tiles, colored by the mip</summary>
         RequestedVirtualTextureTiles,
+        /// <summary>Black background to visualize the Lens Flare</summary>
+        LensFlareDataDriven,
         /// <summary>Maximum Full Screen Rendering debug mode value (used internally).</summary>
         MaxRenderingFullScreenDebug,
 
@@ -205,6 +207,10 @@ namespace UnityEngine.Rendering.HighDefinition
             InlineCPU
         }
 
+#if ENABLE_NVIDIA && ENABLE_NVIDIA_MODULE
+        internal UnityEngine.NVIDIA.DebugView nvidiaDebugView { get; } = new UnityEngine.NVIDIA.DebugView();
+#endif
+
         /// <summary>
         /// Debug data.
         /// </summary>
@@ -251,6 +257,8 @@ namespace UnityEngine.Rendering.HighDefinition
             public uint maxVertexDensity = 10;
             /// <summary>Display ray tracing ray count per frame.</summary>
             public bool countRays = false;
+            /// <summary>Display Show Lens Flare Data Driven Only.</summary>
+            public bool showLensFlareDataDrivenOnly = false;
 
             /// <summary>Index of the camera to freeze for visibility.</summary>
             public int debugCameraToFreeze = 0;
@@ -280,6 +288,46 @@ namespace UnityEngine.Rendering.HighDefinition
             internal int debugCameraToFreezeEnumIndex;
             internal int volumeComponentEnumIndex;
             internal int volumeCameraEnumIndex;
+
+            private float m_DebugGlobalMipBiasOverride = 0.0f;
+
+            /// <summary>
+            /// Returns the current mip bias override specified in the debug panel.
+            /// </summary>
+            /// <returns>Mip bias override</returns>
+            public float GetDebugGlobalMipBiasOverride()
+            {
+                return m_DebugGlobalMipBiasOverride;
+            }
+
+            /// <summary>
+            /// Sets the mip bias override to be imposed in the rendering pipeline.
+            /// </summary>
+            /// <param name="value">mip bias override value.</param>
+            public void SetDebugGlobalMipBiasOverride(float value)
+            {
+                m_DebugGlobalMipBiasOverride = value;
+            }
+
+            private bool m_UseDebugGlobalMipBiasOverride = false;
+
+            /// <summary>
+            /// Returns true if the rendering pipeline should apply the mip bias override from the debug settings.
+            /// </summary>
+            /// <returns>True if mip bias override should be applied, false otherwise</returns>
+            public bool UseDebugGlobalMipBiasOverride()
+            {
+                return m_UseDebugGlobalMipBiasOverride;
+            }
+
+            /// <summary>
+            /// Sets whether to use or not use the mip bias override in the rendering pipeline.
+            /// </summary>
+            /// <param name="value">True to tell the rendering pipeline to use the mip bias override, false otherwise</returns>
+            public void SetUseDebugGlobalMipBiasOverride(bool value)
+            {
+                m_UseDebugGlobalMipBiasOverride = value;
+            }
 
             // When settings mutually exclusives enum values, we need to reset the other ones.
             internal void ResetExclusiveEnumIndices()
@@ -1000,6 +1048,30 @@ namespace UnityEngine.Rendering.HighDefinition
                         new DebugUI.BoolField  { displayName = "Pure Metals", getter = () => data.materialDebugSettings.materialValidateTrueMetal, setter = (v) => data.materialDebugSettings.materialValidateTrueMetal = v },
                     }
                 });
+            }
+
+            if (ShaderConfig.s_GlobalMipBias)
+            {
+                list.Add(
+                    new DebugUI.BoolField
+                    {
+                        displayName = "Override Global Material Texture Mip Bias",
+                        getter = ()      => data.UseDebugGlobalMipBiasOverride(),
+                        setter = (value) => data.SetUseDebugGlobalMipBiasOverride(value),
+                        onValueChanged = RefreshMaterialDebug
+                    });
+
+                if (data.UseDebugGlobalMipBiasOverride())
+                {
+                    list.Add(
+                        new DebugUI.FloatField
+                        {
+                            displayName = "Debug Global Material Texture Mip Bias Value",
+                            getter = ()      => data.GetDebugGlobalMipBiasOverride(),
+                            setter = (value) => data.SetDebugGlobalMipBiasOverride(value),
+                            onValueChanged = RefreshMaterialDebug
+                        });
+                }
             }
 
             m_DebugMaterialItems = list.ToArray();
@@ -1805,6 +1877,11 @@ namespace UnityEngine.Rendering.HighDefinition
             {
                 widgetList.Add(new DebugUI.BoolField { displayName = "XR single-pass test mode", getter = () => data.xrSinglePassTestMode, setter = value => data.xrSinglePassTestMode = value });
             }
+
+
+#if ENABLE_NVIDIA && ENABLE_NVIDIA_MODULE
+            widgetList.Add(nvidiaDebugView.CreateWidget());
+#endif
 
             m_DebugRenderingItems = widgetList.ToArray();
             var panel = DebugManager.instance.GetPanel(k_PanelRendering, true);

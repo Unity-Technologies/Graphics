@@ -5,7 +5,7 @@
 #ifndef PROBEREFERENCEVOLUME_DEBUG_CS_HLSL
 #define PROBEREFERENCEVOLUME_DEBUG_CS_HLSL
 //
-// UnityEngine.Rendering.DebugProbeShadingMode:  static fields
+// UnityEngine.Experimental.Rendering.DebugProbeShadingMode:  static fields
 //
 #define DEBUGPROBESHADINGMODE_SH (0)
 #define DEBUGPROBESHADINGMODE_VALIDITY (1)

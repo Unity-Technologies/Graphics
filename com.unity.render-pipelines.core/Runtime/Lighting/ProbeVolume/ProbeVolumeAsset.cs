@@ -5,6 +5,7 @@ using System.Collections.Generic;
 
 namespace UnityEngine.Experimental.Rendering
 {
+    [PreferBinarySerialization]
     internal class ProbeVolumeAsset : ScriptableObject
     {
         [Serializable]
@@ -26,7 +27,7 @@ namespace UnityEngine.Experimental.Rendering
 
         [SerializeField] internal ProbeVolumeSHBands bands;
 
-        [SerializeField] private string m_AssetFullPath = "UNINITIALIZED!";
+        [SerializeField] string m_AssetFullPath = "UNINITIALIZED!";
 
         public string GetSerializedFullPath()
         {

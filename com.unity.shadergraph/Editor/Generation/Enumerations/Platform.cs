@@ -63,5 +63,11 @@ namespace UnityEditor.ShaderGraph
         {
             return new Platform[] { Platform.D3D11, Platform.Playstation, Platform.XboxOne, Platform.GameCoreXboxSeries, Platform.Vulkan, Platform.Metal, Platform.Switch };
         }
+
+        // Return platform list not compatible with DXC (The list use by HDRP)
+        internal static Platform[] GetNeverUseDXCPlatformArray()
+        {
+            return new Platform[] { Platform.Metal };
+        }
     }
 }

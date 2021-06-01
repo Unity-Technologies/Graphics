@@ -23,6 +23,8 @@ namespace UnityEditor.Rendering
             Rendering = 1 << 5,
             /// <summary> Environment</summary>
             Environment = 1 << 6,
+            /// <summary> Stack</summary>
+            Stack = 1 << 7,
         }
 
         /// <summary>Camera Projection type</summary>

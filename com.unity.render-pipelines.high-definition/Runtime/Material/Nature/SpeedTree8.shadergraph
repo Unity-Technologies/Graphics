@@ -258,9 +258,6 @@
             "m_Id": "4700338116c44a85bff15bb374054167"
         },
         {
-            "m_Id": "bacf0acc21f348e18cd60c49f5943271"
-        },
-        {
             "m_Id": "4412f1dc4aa7492f86114fbffca3cf80"
         },
         {
@@ -877,20 +874,6 @@
         {
             "m_OutputSlot": {
                 "m_Node": {
-                    "m_Id": "bacf0acc21f348e18cd60c49f5943271"
-                },
-                "m_SlotId": 0
-            },
-            "m_InputSlot": {
-                "m_Node": {
-                    "m_Id": "4412f1dc4aa7492f86114fbffca3cf80"
-                },
-                "m_SlotId": -84633316
-            }
-        },
-        {
-            "m_OutputSlot": {
-                "m_Node": {
                     "m_Id": "bae0ebd9222a4d1c9ef454ecbeea558c"
                 },
                 "m_SlotId": 0
@@ -1202,8 +1185,8 @@
     "m_ObjectId": "003b4ef77bba4db8a2543888cf83d33c",
     "m_Title": "Normals",
     "m_Position": {
-        "x": -1671.33349609375,
-        "y": 422.6667785644531
+        "x": -1671.0,
+        "y": 423.0
     }
 }
 
@@ -2812,7 +2795,7 @@
     "m_Group": {
         "m_Id": "003b4ef77bba4db8a2543888cf83d33c"
     },
-    "m_Name": "SpeedTree8BacksideInterpolatedNormals",
+    "m_Name": "SpeedTree8InterpolatedNormals",
     "m_DrawState": {
         "m_Expanded": true,
         "m_Position": {
@@ -2840,7 +2823,10 @@
             "m_Id": "c15eee43ef6243649ab3cbce74e91955"
         },
         {
-            "m_Id": "cb16feec1a7845b5b04a9bbbd30eacda"
+            "m_Id": "c1ff2b46380d4d2b8bc7aa92ef78b42d"
+        },
+        {
+            "m_Id": "f31e649e6d3f46c5911669455eb56daa"
         },
         {
             "m_Id": "732101b9dd9b4691912c590ad2aef916"
@@ -2863,7 +2849,8 @@
         "443a8276-ebab-492f-8944-92c7d0176480",
         "1819fe46-eaf2-4a0a-8410-726a791cf9a4",
         "ed11de33-81e5-477a-9781-96cfb424ce55",
-        "f530f069-4b92-4c68-9e07-c51aba95e28f"
+        "f530f069-4b92-4c68-9e07-c51aba95e28f",
+        "b6c0e362-24b8-4762-a71b-e3406a96c645"
     ],
     "m_PropertyIds": [
         2064554629,
@@ -2871,7 +2858,8 @@
         1032965081,
         -2132036376,
         -84633316,
-        2074262670
+        2074262670,
+        1903731781
     ]
 }
 
@@ -3819,31 +3807,6 @@
     "m_ClearCoat": false,
     "m_EmissionOverriden": false,
     "m_ForceForwardEmissive": false
-}
-
-{
-    "m_SGVersion": 0,
-    "m_Type": "UnityEditor.ShaderGraph.Vector4MaterialSlot",
-    "m_ObjectId": "65bc48f8b72848f18c290f9f8c3154ee",
-    "m_Id": 0,
-    "m_DisplayName": "DoubleSidedConstants",
-    "m_SlotType": 1,
-    "m_Hidden": false,
-    "m_ShaderOutputName": "DoubleSidedConstants",
-    "m_StageCapability": 3,
-    "m_Value": {
-        "x": 0.0,
-        "y": 0.0,
-        "z": 0.0,
-        "w": 0.0
-    },
-    "m_DefaultValue": {
-        "x": 0.0,
-        "y": 0.0,
-        "z": 0.0,
-        "w": 0.0
-    },
-    "m_Labels": []
 }
 
 {
@@ -6065,42 +6028,6 @@
 }
 
 {
-    "m_SGVersion": 1,
-    "m_Type": "UnityEditor.ShaderGraph.CustomFunctionNode",
-    "m_ObjectId": "bacf0acc21f348e18cd60c49f5943271",
-    "m_Group": {
-        "m_Id": "003b4ef77bba4db8a2543888cf83d33c"
-    },
-    "m_Name": "GetDoubleSidedConstants (Custom Function)",
-    "m_DrawState": {
-        "m_Expanded": true,
-        "m_Position": {
-            "serializedVersion": "2",
-            "x": -1646.0001220703125,
-            "y": 813.3333740234375,
-            "width": 311.3334045410156,
-            "height": 94.00000762939453
-        }
-    },
-    "m_Slots": [
-        {
-            "m_Id": "65bc48f8b72848f18c290f9f8c3154ee"
-        }
-    ],
-    "synonyms": [],
-    "m_Precision": 0,
-    "m_PreviewExpanded": false,
-    "m_PreviewMode": 0,
-    "m_CustomColors": {
-        "m_SerializableColors": []
-    },
-    "m_SourceType": 1,
-    "m_FunctionName": "GetDoubleSidedConstants",
-    "m_FunctionSource": "",
-    "m_FunctionBody": "DoubleSidedConstants = _DoubleSidedConstants;"
-}
-
-{
     "m_SGVersion": 0,
     "m_Type": "UnityEditor.ShaderGraph.PropertyNode",
     "m_ObjectId": "bae0ebd9222a4d1c9ef454ecbeea558c",
@@ -6291,6 +6218,31 @@
         "x": 0.0,
         "y": 0.0,
         "z": 0.0
+    },
+    "m_Labels": []
+}
+
+{
+    "m_SGVersion": 0,
+    "m_Type": "UnityEditor.ShaderGraph.Vector4MaterialSlot",
+    "m_ObjectId": "c1ff2b46380d4d2b8bc7aa92ef78b42d",
+    "m_Id": -84633316,
+    "m_DisplayName": "Backside Normal Transform (TS)",
+    "m_SlotType": 0,
+    "m_Hidden": false,
+    "m_ShaderOutputName": "Backside_Normal_Transform_TS",
+    "m_StageCapability": 2,
+    "m_Value": {
+        "x": 1.0,
+        "y": 1.0,
+        "z": -1.0,
+        "w": 1.0
+    },
+    "m_DefaultValue": {
+        "x": 0.0,
+        "y": 0.0,
+        "z": 0.0,
+        "w": 0.0
     },
     "m_Labels": []
 }
@@ -6669,31 +6621,6 @@
         "x": 0.0,
         "y": 0.0,
         "z": 0.0
-    },
-    "m_Labels": []
-}
-
-{
-    "m_SGVersion": 0,
-    "m_Type": "UnityEditor.ShaderGraph.Vector4MaterialSlot",
-    "m_ObjectId": "cb16feec1a7845b5b04a9bbbd30eacda",
-    "m_Id": -84633316,
-    "m_DisplayName": "Backside Normal Transform (TS)",
-    "m_SlotType": 0,
-    "m_Hidden": false,
-    "m_ShaderOutputName": "Backside_Normal_Transform_TS",
-    "m_StageCapability": 2,
-    "m_Value": {
-        "x": 0.0,
-        "y": 0.0,
-        "z": 0.0,
-        "w": 0.0
-    },
-    "m_DefaultValue": {
-        "x": 0.0,
-        "y": 0.0,
-        "z": 0.0,
-        "w": 0.0
     },
     "m_Labels": []
 }
@@ -7596,6 +7523,20 @@
     "m_Labels": [
         "X"
     ]
+}
+
+{
+    "m_SGVersion": 0,
+    "m_Type": "UnityEditor.ShaderGraph.BooleanMaterialSlot",
+    "m_ObjectId": "f31e649e6d3f46c5911669455eb56daa",
+    "m_Id": 1903731781,
+    "m_DisplayName": "Transform Backside Normals",
+    "m_SlotType": 0,
+    "m_Hidden": false,
+    "m_ShaderOutputName": "Transform_Backside_Normals",
+    "m_StageCapability": 2,
+    "m_Value": false,
+    "m_DefaultValue": false
 }
 
 {

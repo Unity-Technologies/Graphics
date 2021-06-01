@@ -9,9 +9,17 @@ using UnityEditor.ShaderGraph.Serialization;
 
 namespace UnityEditor.ShaderGraph
 {
+    enum CopyPasteGraphSource
+    {
+        Default,
+        Duplicate
+    }
+
     [Serializable]
     sealed class CopyPasteGraph : JsonObject
     {
+        CopyPasteGraphSource m_CopyPasteGraphSource;
+
         [SerializeField]
         List<Edge> m_Edges = new List<Edge>();
 
@@ -26,6 +34,9 @@ namespace UnityEditor.ShaderGraph
 
         [SerializeField]
         List<JsonRef<ShaderInput>> m_Inputs = new List<JsonRef<ShaderInput>>();
+
+        [SerializeField]
+        List<JsonData<CategoryData>> m_Categories = new List<JsonData<CategoryData>>();
 
         // The meta properties are properties that are not copied into the target graph
         // but sent along to allow property nodes to still hvae the data from the original
@@ -52,10 +63,20 @@ namespace UnityEditor.ShaderGraph
 
         public CopyPasteGraph() {}
 
-        public CopyPasteGraph(IEnumerable<GroupData> groups, IEnumerable<AbstractMaterialNode> nodes, IEnumerable<Edge> edges,
-                              IEnumerable<ShaderInput> inputs, IEnumerable<AbstractShaderProperty> metaProperties, IEnumerable<ShaderKeyword> metaKeywords, IEnumerable<ShaderDropdown> metaDropdowns, IEnumerable<StickyNoteData> notes,
-                              bool keepOutputEdges = false, bool removeOrphanEdges = true)
+        public CopyPasteGraph(IEnumerable<GroupData> groups,
+                              IEnumerable<AbstractMaterialNode> nodes,
+                              IEnumerable<Edge> edges,
+                              IEnumerable<ShaderInput> inputs,
+                              IEnumerable<CategoryData> categories,
+                              IEnumerable<AbstractShaderProperty> metaProperties,
+                              IEnumerable<ShaderKeyword> metaKeywords,
+                              IEnumerable<ShaderDropdown> metaDropdowns,
+                              IEnumerable<StickyNoteData> notes,
+                              bool keepOutputEdges = false,
+                              bool removeOrphanEdges = true,
+                              CopyPasteGraphSource copyPasteGraphSource = CopyPasteGraphSource.Default)
         {
+            m_CopyPasteGraphSource = copyPasteGraphSource;
             if (groups != null)
             {
                 foreach (var groupData in groups)
@@ -98,6 +119,12 @@ namespace UnityEditor.ShaderGraph
                     AddInput(input);
             }
 
+            if (categories != null)
+            {
+                foreach (var category in categories)
+                    AddCategory(category);
+            }
+
             if (metaProperties != null)
             {
                 foreach (var metaProperty in metaProperties.Distinct())
@@ -124,6 +151,36 @@ namespace UnityEditor.ShaderGraph
             m_Edges = distinct.ToList();
         }
 
+        public bool IsInputCategorized(ShaderInput shaderInput)
+        {
+            foreach (var category in categories)
+            {
+                if (category.IsItemInCategory(shaderInput))
+                    return true;
+            }
+
+            return false;
+        }
+
+        // The only situation in which an input has an identical reference name to another input in a category, while not being the same instance, is if they are duplicates
+        public bool IsInputDuplicatedFromCategory(ShaderInput shaderInput, CategoryData inputCategory, GraphData targetGraphData)
+        {
+            foreach (var child in inputCategory.Children)
+            {
+                if (child.referenceName.Equals(shaderInput.referenceName, StringComparison.Ordinal) && child.objectId != shaderInput.objectId)
+                {
+                    return true;
+                }
+            }
+
+            // Need to check if they share same graph owner as well, if not then we can early out
+            bool inputBelongsToTargetGraph = targetGraphData.ContainsInput(shaderInput);
+            if (inputBelongsToTargetGraph == false)
+                return false;
+
+            return false;
+        }
+
         void AddGroup(GroupData group)
         {
             m_Groups.Add(group);
@@ -147,6 +204,11 @@ namespace UnityEditor.ShaderGraph
         void AddInput(ShaderInput input)
         {
             m_Inputs.Add(input);
+        }
+
+        void AddCategory(CategoryData category)
+        {
+            m_Categories.Add(category);
         }
 
         void AddMetaProperty(AbstractShaderProperty metaProperty)
@@ -186,6 +248,11 @@ namespace UnityEditor.ShaderGraph
             get { return m_Inputs.SelectValue(); }
         }
 
+        public DataValueEnumerable<CategoryData> categories
+        {
+            get { return m_Categories.SelectValue(); }
+        }
+
         public DataValueEnumerable<AbstractShaderProperty> metaProperties
         {
             get { return m_MetaProperties.SelectValue(); }
@@ -204,6 +271,8 @@ namespace UnityEditor.ShaderGraph
         public IEnumerable<string> metaPropertyIds => m_MetaPropertyIds;
 
         public IEnumerable<string> metaKeywordIds => m_MetaKeywordIds;
+
+        public CopyPasteGraphSource copyPasteGraphSource => m_CopyPasteGraphSource;
 
         public override void OnAfterMultiDeserialize(string json)
         {

@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using UnityEngine.Rendering;
+using UnityEngine.Rendering.Universal;
 using UnityEngine.Scripting.APIUpdating;
 
 namespace UnityEngine.Experimental.Rendering.Universal
@@ -9,9 +10,9 @@ namespace UnityEngine.Experimental.Rendering.Universal
     /// </summary>
     [ExecuteInEditMode]
     [DisallowMultipleComponent]
-    [AddComponentMenu("Rendering/2D/Pixel Perfect Camera (Experimental)")]
+    [AddComponentMenu("Rendering/2D/Pixel Perfect Camera")]
     [RequireComponent(typeof(Camera))]
-    [MovedFrom("UnityEngine.Experimental.Rendering.LWRP")]
+    [MovedFrom("UnityEngine.Experimental.Rendering")]
     [HelpURL("https://docs.unity3d.com/Packages/com.unity.render-pipelines.universal@latest/index.html?subfolder=/manual/2d-pixelperfect.html%23properties")]
     public class PixelPerfectCamera : MonoBehaviour, IPixelPerfectCamera, ISerializationCallbackReceiver
     {
@@ -295,35 +296,36 @@ namespace UnityEngine.Experimental.Rendering.Universal
             m_Camera = GetComponent<Camera>();
             m_Internal = new PixelPerfectCameraInternal(this);
 
-
             // Case 1249076: Initialize internals immediately after the scene is loaded,
             // as the Cinemachine extension may need them before OnBeginContextRendering is called.
-            var rtSize = cameraRTSize;
-            m_Internal.CalculateCameraProperties(rtSize.x, rtSize.y);
+            UpdateCameraProperties();
         }
 
-        void OnBeginContextRendering(ScriptableRenderContext context, List<Camera> cameras)
+        void UpdateCameraProperties()
         {
             var rtSize = cameraRTSize;
             m_Internal.CalculateCameraProperties(rtSize.x, rtSize.y);
-
-            PixelSnap();
 
             if (m_Internal.useOffscreenRT)
                 m_Camera.pixelRect = m_Internal.CalculateFinalBlitPixelRect(rtSize.x, rtSize.y);
             else
                 m_Camera.rect = new Rect(0.0f, 0.0f, 1.0f, 1.0f);
-
-            if (!m_CinemachineCompatibilityMode)
-            {
-                m_Camera.orthographicSize = m_Internal.orthoSize;
-            }
         }
 
         void OnBeginCameraRendering(ScriptableRenderContext context, Camera camera)
         {
             if (camera == m_Camera)
+            {
+                UpdateCameraProperties();
+                PixelSnap();
+
+                if (!m_CinemachineCompatibilityMode)
+                {
+                    m_Camera.orthographicSize = m_Internal.orthoSize;
+                }
+
                 UnityEngine.U2D.PixelPerfectRendering.pixelSnapSpacing = m_Internal.unitsPerPixel;
+            }
         }
 
         void OnEndCameraRendering(ScriptableRenderContext context, Camera camera)
@@ -336,14 +338,12 @@ namespace UnityEngine.Experimental.Rendering.Universal
         {
             m_CinemachineCompatibilityMode = false;
 
-            RenderPipelineManager.beginContextRendering += OnBeginContextRendering;
             RenderPipelineManager.beginCameraRendering += OnBeginCameraRendering;
             RenderPipelineManager.endCameraRendering += OnEndCameraRendering;
         }
 
         internal void OnDisable()
         {
-            RenderPipelineManager.beginContextRendering -= OnBeginContextRendering;
             RenderPipelineManager.beginCameraRendering -= OnBeginCameraRendering;
             RenderPipelineManager.endCameraRendering -= OnEndCameraRendering;
 

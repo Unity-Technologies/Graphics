@@ -27,7 +27,7 @@ namespace UnityEngine.Rendering
             vertices = new List<Vector3>(capacity);
             indices = new List<int>(capacity);
             colors = new List<Color>(capacity);
-            mesh = new Mesh();
+            mesh = new Mesh {indexFormat = IndexFormat.UInt32, hideFlags = HideFlags.HideAndDontSave};
 #if UNITY_EDITOR
             wireMaterial = (Material)UnityEditor.EditorGUIUtility.LoadRequired("SceneView/HandleLines.mat");
             dottedWireMaterial = (Material)UnityEditor.EditorGUIUtility.LoadRequired("SceneView/HandleDottedLines.mat");

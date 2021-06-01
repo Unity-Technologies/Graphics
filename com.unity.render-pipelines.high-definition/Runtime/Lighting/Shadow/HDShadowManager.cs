@@ -23,6 +23,10 @@ namespace UnityEngine.Rendering.HighDefinition
         /// High Shadow Filtering Quality
         /// </summary>
         High = 2,
+        /// <summary>
+        /// Very High Shadow Filtering Quality
+        /// </summary>
+        VeryHigh = 3,
     }
 
     enum ShadowMapType
@@ -388,11 +392,11 @@ namespace UnityEngine.Rendering.HighDefinition
             if (ShaderConfig.s_AreaLights == 1)
             {
                 HDShadowAtlas.HDShadowAtlasInitParameters cachedAreaAtlasInitParams = areaAtlasInitParams;
-                areaAtlasInitParams.useSharedTexture = true;
-                areaAtlasInitParams.width = initParams.cachedAreaLightShadowAtlas;
-                areaAtlasInitParams.height = initParams.cachedAreaLightShadowAtlas;
-                areaAtlasInitParams.atlasShaderID = HDShaderIDs._CachedAreaLightShadowmapAtlas;
-                areaAtlasInitParams.name = "Cached Area Light Shadow Map Atlas";
+                cachedAreaAtlasInitParams.useSharedTexture = true;
+                cachedAreaAtlasInitParams.width = initParams.cachedAreaLightShadowAtlas;
+                cachedAreaAtlasInitParams.height = initParams.cachedAreaLightShadowAtlas;
+                cachedAreaAtlasInitParams.atlasShaderID = HDShaderIDs._CachedAreaLightShadowmapAtlas;
+                cachedAreaAtlasInitParams.name = "Cached Area Light Shadow Map Atlas";
 
                 cachedShadowManager.InitAreaLightShadowAtlas(cachedAreaAtlasInitParams);
             }
@@ -431,6 +435,10 @@ namespace UnityEngine.Rendering.HighDefinition
                     return DirectionalShadowAlgorithm.PCF7x7;
                 }
                 case HDShadowFilteringQuality.High:
+                {
+                    return DirectionalShadowAlgorithm.PCSS;
+                }
+                case HDShadowFilteringQuality.VeryHigh:
                 {
                     return DirectionalShadowAlgorithm.PCSS;
                 }

@@ -3,8 +3,6 @@
 
 The Visual Effect Component creates an instance of a Visual Effect in the scene, based on a Visual Effect Graph Asset. It controls how the effect plays, renders and let the user customize the instance by editing [Exposed Properties](PropertiesAndBlackboard.md#exposed-properties)
 
-![Visual Effect Component](Images/VisualEffectComponent.png)
-
 ## How to create a Visual Effect
 
 In order to create a Visual Effect, you can manually add the component via the Add Component Menu in the Inspector or in the menu : Component / Effects / Visual Effect, then Click the **New** Button, next to the Asset Template property Field : after saving the new Visual Effect Graph asset, the visual effect graph window will open the newly created asset.
@@ -34,11 +32,14 @@ Rendering properties controls how the visual effect instance will render and rec
 
 | Item                  | Description                                                  |
 | --------------------- | ------------------------------------------------------------ |
-| Transparency Priority | **High Definition SRP Only**: Controls the Transparency ordering of the effect. |
-| Lighting Layer Mask   | **High Definition SRP Only**: Controls the Lighting Layer Mask, if it is configured in the High Definition SRP Asset. |
+| Priority              | Controls the Transparency ordering of the effect.<br/><br/>This property only appears if the Project uses the High Definition Render Pipeline.|
+| Rendering Layer Mask  | This property functions differently depending on which render pipeline your Project uses.<br/>&#8226; **High Definition Render Pipeline**: Controls the Lighting Layer Mask, if it is configured in the HDRP Asset.<br />&#8226; **Universal Render Pipeline**: Determines which rendering layer this Renderer lives on.
+| Reflection Probes     | Specifies how reflections in the Scene affect the Renderer. <br/><br/>This property only appears if the Project uses the Universal Render Pipeline.|
 | Light Probes          | Controls the Use of Light probes to compute the Ambient Lighting of the Effect. |
 | Anchor Override       | (Visible Only using Blend Probes option for Light Probes) : Defines an alternative transform to compute the position of the probe sampling. |
 | Proxy Volume Override | (Visible Only using Proxy Volume option for Light Probes) : Defines an alternative Light Probe Proxy volume in order to compute the probe sampling. |
+| Sorting Layer         | Specifies the Renderer's group among other [SpriteRenderer](https://docs.unity3d.com/ScriptReference/SpriteRenderer.html) components. |
+| Order in Layer        | Specifies the Renderer's order with a sorting layer relative to other [SpriteRenderer](https://docs.unity3d.com/ScriptReference/SpriteRenderer.html) components. See also [Renderer.sortingOrder](https://docs.unity3d.com/ScriptReference/Renderer-sortingOrder.html). |
 
 #### Properties
 

@@ -39,8 +39,19 @@ When you create a new Lit Master Stack, the Vertex Context contains the followin
 </table>
 
 #### Relevant
+Depending on the [Graph Settings](#graph-settings) you use, Shader Graph can add the following Blocks to the Vertex Context:
 
-This Master Stack material type adds all its Vertex Blocks to the Vertex Context by default and has no extra relevant Blocks.
+<table>
+<tr>
+<th>Property</th>
+<th>Description</th>
+<th>Setting Dependency</th>
+<th>Default Value</th>
+</tr>
+[!include[](snippets/shader-graph-blocks/tessellation-factor.md)]
+[!include[](snippets/shader-graph-blocks/tessellation-displacement.md)]
+</table>
+
 
 ### Fragment Context
 
@@ -141,6 +152,7 @@ Depending on the [Graph Settings](#graph-settings) you use, Shader Graph can add
 [!include[](snippets/shader-properties/surface-options/geometric-specular-aa.md)]
 [!include[](snippets/shader-properties/surface-options/ss-depth-offset.md)]
 [!include[](snippets/shader-properties/surface-options/conservative-depth-offset.md)]
+[!include[](snippets/shader-properties/surface-options/tessellation.md)]
 [!include[](snippets/shader-properties/surface-options/clear-coat.md)]
 [!include[](snippets/shader-properties/surface-options/transmission.md)]
 [!include[](snippets/shader-properties/transparency-inputs/refraction-model.md)]
