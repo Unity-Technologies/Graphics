@@ -79,7 +79,12 @@ void UnityEditorVizData(float3 positionOS, float2 uv0, float2 uv1, float2 uv2, f
 
 void UnityEditorVizData(float3 positionOS, float2 uv0, float2 uv1, float2 uv2, out float2 VizUV, out float4 LightCoord)
 {
-    UnityEditorVizData(positionOS, uv0, uv1, uv2, unity_LightmapST, VizUV, LightCoord);
+    float4 st = 0;
+    if (unity_MetaVertexControl.x)
+        st = unity_LightmapST;
+    if (unity_MetaVertexControl.y)
+        st = unity_DynamicLightmapST;
+    UnityEditorVizData(positionOS, uv0, uv1, uv2, st, VizUV, LightCoord);
 }
 
 float4 UnityMetaVertexPosition(float3 vertex, float2 uv1, float2 uv2, float4 lightmapST, float4 dynlightmapST)
