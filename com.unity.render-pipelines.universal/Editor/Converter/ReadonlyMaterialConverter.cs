@@ -40,46 +40,48 @@ namespace UnityEditor.Rendering.Universal.Converters
     internal class ReadonlyMaterialConverter : RenderPipelineConverter
     {
         public override string name => "Readonly Material Converter";
-        public override string info => "Converts references to Built-In readonly materials to URP readonly materials";
+        public override string info => "Converts references to Built-In readonly materials to URP readonly materials. This will create temporarily a .index file and that can take a long time.";
         public override Type container => typeof(BuiltInToURPConverterContainer);
-        public override bool NeedsIndexing => true;
+        public override bool needsIndexing => true;
+
+        List<string> guids = new List<string>();
 
         public override void OnInitialize(InitializeConverterContext ctx, Action callback)
         {
-            using (var context = Search.SearchService.CreateContext("asset", "urp:convert-readonly"))
+            var context = Search.SearchService.CreateContext("asset", "urp:convert-readonly");
+
+            Search.SearchService.Request(context,  (c, items) =>
             {
-                Search.SearchService.Request(context,  (c, items) =>
+                // we're going to do this step twice in order to get them ordered, but it should be fast
+                var orderedRequest = items.OrderBy(req =>
                 {
-                    // we're going to do this step twice in order to get them ordered, but it should be fast
-                    var orderedRequest = items.OrderBy(req =>
+                    GlobalObjectId.TryParse(req.id, out var gid);
+                    return gid.assetGUID;
+                });
+
+                foreach (var r in orderedRequest)
+                {
+                    if (r == null || !GlobalObjectId.TryParse(r.id, out var gid))
                     {
-                        GlobalObjectId.TryParse(req.id, out var gid);
-                        return gid.assetGUID;
-                    })
-                        .ToList();
-
-                    foreach (var r in orderedRequest)
-                    {
-                        if (r == null || !GlobalObjectId.TryParse(r.id, out var gid))
-                        {
-                            continue;
-                        }
-
-                        var label = r.provider.fetchLabel(r, r.context);
-                        var description = r.provider.fetchDescription(r, r.context);
-
-                        var item = new ConverterItemDescriptor()
-                        {
-                            name = $"{label} : {description}",
-                            info = gid.ToString(),
-                        };
-
-                        ctx.AddAssetToConvert(item);
+                        continue;
                     }
 
-                    callback.Invoke();
-                });
-            }
+                    var label = r.provider.fetchLabel(r, r.context);
+                    var description = r.provider.fetchDescription(r, r.context);
+
+                    var item = new ConverterItemDescriptor()
+                    {
+                        name = description.Split('/').Last().Split('.').First(),
+                        info = $"{label}",
+                    };
+                    guids.Add(gid.ToString());
+
+                    ctx.AddAssetToConvert(item);
+                }
+
+                callback.Invoke();
+            });
+            context?.Dispose();
         }
 
         public override void OnRun(ref RunItemContext ctx)
@@ -121,6 +123,15 @@ namespace UnityEditor.Rendering.Universal.Converters
                 EditorUtility.SetDirty(obj);
                 var currentScene = SceneManager.GetActiveScene();
                 EditorSceneManager.SaveScene(currentScene);
+            }
+        }
+
+        public override void OnClicked(int index)
+        {
+            if (GlobalObjectId.TryParse(guids[index], out var gid))
+            {
+                var containerPath = AssetDatabase.GUIDToAssetPath(gid.assetGUID);
+                EditorGUIUtility.PingObject(AssetDatabase.LoadAssetAtPath<Object>(containerPath));
             }
         }
 
@@ -230,7 +241,9 @@ namespace UnityEditor.Rendering.Universal.Converters
 
         private Object LoadObject(ConverterItemInfo item, RunItemContext ctx)
         {
-            if (GlobalObjectId.TryParse(item.descriptor.info, out var gid))
+            string guid = guids[ctx.item.index];
+            //if (GlobalObjectId.TryParse(item.descriptor.info, out var gid))
+            if (GlobalObjectId.TryParse(guid, out var gid))
             {
                 var obj = GlobalObjectId.GlobalObjectIdentifierToObjectSlow(gid);
                 if (!obj)
