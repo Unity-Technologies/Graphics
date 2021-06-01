@@ -6,17 +6,6 @@
 #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/UnityGBuffer.hlsl"
 #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/DBuffer.hlsl"
 
-#ifdef _ALPHATEST_ON
-TEXTURE2D(_TerrainHolesTexture);
-SAMPLER(sampler_TerrainHolesTexture);
-
-void ClipHoles(float2 uv)
-{
-    float hole = SAMPLE_TEXTURE2D(_TerrainHolesTexture, sampler_TerrainHolesTexture, uv).r;
-    clip(hole == 0.0f ? -1 : 1);
-}
-#endif
-
 struct Attributes
 {
     float4 positionOS : POSITION;
