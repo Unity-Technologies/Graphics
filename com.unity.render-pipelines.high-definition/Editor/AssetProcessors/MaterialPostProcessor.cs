@@ -362,7 +362,8 @@ namespace UnityEditor.Rendering.HighDefinition
                 if (!HDShaderUtils.IsHDRPShader(material.shader, upgradable: true))
                     continue;
 
-                if (material.HasProperty("_DiffusionProfileAsset"))
+                bool diffusionProfileCanBeAdded = HDRenderPipelineGlobalSettings.instance.diffusionProfileSettingsList.Length < 15;
+                if (material.HasProperty("_DiffusionProfileAsset") && diffusionProfileCanBeAdded)
                 {
                     var diffusionProfileAsset = material.GetVector("_DiffusionProfileAsset");
                     string guid = HDUtils.ConvertVector4ToGUID(diffusionProfileAsset);
@@ -376,7 +377,7 @@ namespace UnityEditor.Rendering.HighDefinition
                             (EditorUtility.DisplayDialog("Diffusion Profile Import",
                                 "A Material (" + materialName + ") is being imported with a diffusion profile (" + diffusionProfileName + ") not already added to the HDRP Global Settings.\n If the Diffusion Profile is not referenced in the global settings, HDRP cannot use it.\nDo you want to add the diffusion profile to the HDRP Global Settings asset?", "Yes", "No")))
                         {
-                            HDRenderPipelineGlobalSettings.instance.AddDiffusionProfile(diffusionProfile);
+                            diffusionProfileCanBeAdded = HDRenderPipelineGlobalSettings.instance.AddDiffusionProfile(diffusionProfile);
                         }
                     }
                 }
