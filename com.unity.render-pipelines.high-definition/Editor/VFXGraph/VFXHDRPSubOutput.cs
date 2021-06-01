@@ -81,7 +81,7 @@ namespace UnityEditor.VFX.HDRP
         }
 
         protected bool isLit => owner is VFXAbstractParticleHDRPLitOutput;
-        protected bool supportsQueueSelection => !(owner is VFXAbstractDistortionOutput); // TODO Should be made in a more abstract way
+        protected bool supportsQueueSelection => !((owner is VFXAbstractDistortionOutput) || (owner is VFXDecalHDRPOutput)); // TODO Should be made in a more abstract way
 
         public override IEnumerable<int> GetFilteredOutEnumerators(string name)
         {
