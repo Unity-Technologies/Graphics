@@ -88,8 +88,8 @@ CBUFFER_START(UnityPerDraw)
     float4 unity_ProbesOcclusion;
 
     // Velocity
-    float4x4 unity_PrevObjectToWorld;
-    float4x4 unity_PrevWorldToObject;
+    float4x4 unity_MatrixPreviousM;
+    float4x4 unity_MatrixPreviousMI;
     //X : Use last frame positions (right now skinned meshes are the only objects that use this
     //Y : Force No Motion
     //Z : Z bias value
@@ -431,8 +431,8 @@ uint Get1DAddressFromPixelCoord(uint2 pixCoord, uint2 screenSize)
 // We need to declare inline function. Using uniform directly mean they are expand with the macro
 float4x4 GetRawUnityObjectToWorld()     { return unity_ObjectToWorld; }
 float4x4 GetRawUnityWorldToObject()     { return unity_WorldToObject; }
-float4x4 GetRawUnityPrevObjectToWorld() { return unity_PrevObjectToWorld; }
-float4x4 GetRawUnityPrevWorldToObject() { return unity_PrevWorldToObject; }
+float4x4 GetRawUnityPrevObjectToWorld() { return unity_MatrixPreviousM; }
+float4x4 GetRawUnityPrevWorldToObject() { return unity_MatrixPreviousMI; }
 
 #define UNITY_MATRIX_M         ApplyCameraTranslationToMatrix(GetRawUnityObjectToWorld())
 #define UNITY_MATRIX_I_M       ApplyCameraTranslationToInverseMatrix(GetRawUnityWorldToObject())
@@ -442,10 +442,6 @@ float4x4 GetRawUnityPrevWorldToObject() { return unity_PrevWorldToObject; }
 // To get instancing working, we must use UNITY_MATRIX_M / UNITY_MATRIX_I_M as UnityInstancing.hlsl redefine them
 #define unity_ObjectToWorld Use_Macro_UNITY_MATRIX_M_instead_of_unity_ObjectToWorld
 #define unity_WorldToObject Use_Macro_UNITY_MATRIX_I_M_instead_of_unity_WorldToObject
-#define unity_PrevObjectToWorld Use_Macro_UNITY_PREV_MATRIX_M_instead_of_unity_PrevObjectToWorld
-#define unity_PrevWorldToObject Use_Macro_UNITY_PREV_MATRIX_I_M_instead_of_unity_PrevWorldToObject
-#define unity_MatrixPreviousM unity_PrevObjectToWorld  // to support code using deprecated unity_MatrixPreviousM, please change code to use UNITY_PREV_MATRIX_M instead
-#define unity_MatrixPreviousMI unity_PrevWorldToObject // to support code using deprecated unity_MatrixPreviousMI, please change code to use UNITY_PREV_MATRIX_I_M instead
 
 // This define allow to tell to unity instancing that we will use our camera relative functions (ApplyCameraTranslationToMatrix and  ApplyCameraTranslationToInverseMatrix) for the model view matrix
 #define MODIFY_MATRIX_FOR_CAMERA_RELATIVE_RENDERING
@@ -475,8 +471,8 @@ UNITY_DOTS_INSTANCING_START(BuiltinPropertyMetadata)
     UNITY_DOTS_INSTANCED_PROP(float4,   unity_SHBb)
     UNITY_DOTS_INSTANCED_PROP(float4,   unity_SHC)
     UNITY_DOTS_INSTANCED_PROP(float4,   unity_ProbesOcclusion)
-    UNITY_DOTS_INSTANCED_PROP(float3x4, unity_PrevObjectToWorld)
-    UNITY_DOTS_INSTANCED_PROP(float3x4, unity_PrevWorldToObject)
+    UNITY_DOTS_INSTANCED_PROP(float3x4, unity_MatrixPreviousM)
+    UNITY_DOTS_INSTANCED_PROP(float3x4, unity_MatrixPreviousMI)
 UNITY_DOTS_INSTANCING_END(BuiltinPropertyMetadata)
 
 // Note: Macros for unity_ObjectToWorld and unity_WorldToObject are declared elsewhere
@@ -494,8 +490,8 @@ UNITY_DOTS_INSTANCING_END(BuiltinPropertyMetadata)
 #define unity_SHBb                  UNITY_ACCESS_DOTS_INSTANCED_PROP_FROM_MACRO(float4,   Metadata_unity_SHBb)
 #define unity_SHC                   UNITY_ACCESS_DOTS_INSTANCED_PROP_FROM_MACRO(float4,   Metadata_unity_SHC)
 #define unity_ProbesOcclusion       UNITY_ACCESS_DOTS_INSTANCED_PROP_FROM_MACRO(float4,   Metadata_unity_ProbesOcclusion)
-#define unity_PrevObjectToWorld     LoadDOTSInstancedData_float4x4_from_float3x4(UNITY_DOTS_INSTANCED_METADATA_NAME_FROM_MACRO(float3x4, Metadata_unity_PrevObjectToWorld))
-#define unity_PrevWorldToObject     LoadDOTSInstancedData_float4x4_from_float3x4(UNITY_DOTS_INSTANCED_METADATA_NAME_FROM_MACRO(float3x4, Metadata_unity_PrevWorldToObject))
+#define unity_MatrixPreviousM       LoadDOTSInstancedData_float4x4_from_float3x4(UNITY_DOTS_INSTANCED_METADATA_NAME_FROM_MACRO(float3x4, Metadata_unity_MatrixPreviousM))
+#define unity_MatrixPreviousMI      LoadDOTSInstancedData_float4x4_from_float3x4(UNITY_DOTS_INSTANCED_METADATA_NAME_FROM_MACRO(float3x4, Metadata_unity_MatrixPreviousMI))
 
 #endif
 
