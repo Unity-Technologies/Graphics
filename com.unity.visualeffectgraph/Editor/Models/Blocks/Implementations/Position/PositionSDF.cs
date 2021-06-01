@@ -105,7 +105,7 @@ for(uint proj_step=0; proj_step < n_steps; proj_step++){
 
     //Projection on surface/volume
     float3 delta;
-    worldNormal = normalize(mul(float4(n, 0), InvFieldTransform).xyz);
+    worldNormal = VFXSafeNormalize(mul(float4(n, 0), InvFieldTransform).xyz);
     if (dist > 0)
         delta = dist * worldNormal;
     else
