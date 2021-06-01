@@ -32,6 +32,7 @@
     * [Precision Types](Precision-Types)
     * [Port Bindings](Port-Bindings)
     * [Shader Stage](Shader-Stage)
+    * [Surface options](surface-options.md)
 
 * [Node Library](Node-Library)
     * [Artistic](Artistic-Nodes)
