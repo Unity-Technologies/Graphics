@@ -4,13 +4,12 @@
 
 Creates a new [vector](https://docs.unity3d.com/Manual/VectorCookbook.html) from the reordered elements of the input vector. This is called swizzling.
 
-To specify how input elements should be swizzled, enter a formatting string in the input mask. 
-To invert the order of the input elements, for example, use the string "wzyx" or "abgr".
+To specify how input elements should be swizzled, enter a formatting string in the input mask.
+To invert the order of the input elements, for example, use the string <code>wzyx</code> or <code>abgr</code>.
 
 The length of the input mask determines the dimensions of the output vector. The error "Invalid Mask" indicates an input mask value which includes one or more channels that do not exist in the input vector.
 
 To output a vector3 with the x, y and z elements of the input vector, for example, use the input mask “xyz” or “rgb”.
-
 
 
 ## Ports
