@@ -10,6 +10,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Modified state in the VFX tab has now a correct state
 - Remove unexpected expression in spawn context evaluation [Case 1318412](https://issuetracker.unity3d.com/product/unity/issues/guid/1318412/)
 - Fix incorrect buffer type for strips
+- Compilation issue when normal is used in shadergraph for opacity with unlit output
 
 ## [10.6.0] - 2021-04-29
 
