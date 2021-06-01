@@ -4,9 +4,9 @@
 You can use Keywords to create different variants for your Shader Graph. Depending on the settings for a Keyword and settings in the Editor, the build pipeline might strip these variants.
 
 Keywords are useful for many reasons, such as:
-- Creating shaders with features that you can turn on or off for each Material instance.
-- Creating shaders with features that behave differently on certain platforms.
-- Creating shaders that scale in complexity based on various conditions.
+* *Creating shaders with features that you can turn on or off for each Material instance.
+* Creating shaders with features that behave differently on certain platforms.
+* Creating shaders that scale in complexity based on various conditions.
 
 There are three types of Keyword: Boolean, Enum, and Built-in. Based on its type, Unity defines a Keyword in the graph, shader, and optionally, the Material Inspector. See [Boolean Keyword](#BooleanKeywords), [Enum Keyword](#EnumKeywords), and [Built-in Keyword](#BuiltinKeywords) for more information about Keyword types. For more information about how these Keywords affect the final shader, see documentation on [Making multiple shader program variants](https://docs.unity3d.com/Manual/SL-MultipleProgramVariants.html).
 
@@ -42,9 +42,9 @@ In addition to the common parameters listed above, Boolean Keywords have the fol
 ## Enum Keywords
 Enum Keywords can have two or more states, which you define in the **Entries** list. If you expose an Enum Keyword, the **Display Names** in its **Entries** list appear in a dropdown menu in the Material Inspector.
 
-When you define an Enum Keyword, Shader Graph appends a sanitized version of the **Entry Name** to the main **Reference** name to define each state. You can see the sanitized version of the **Entry Name** to the right, under **Reference Suffix**. Shader Graph uses the `{Reference}_{ReferenceSuffix}` pattern to define most entries, but be aware that it uses an `else` statement to select the last entry, which it regards as the off state.
+When you define an Enum Keyword, Shader Graph appends a sanitized version of the **Entry Name** to the main **Reference** name to define each state. You can see the sanitized version of the **Entry Name** under **Reference Suffix**. Shader Graph uses the `{Reference}_{ReferenceSuffix}` pattern to define most entries, but be aware that it uses an `else` statement to select the last entry, which it regards as the off state.
 
-Special characters such as `( )` or `! @` are not valid in the **Entry Name** of an Enum Keyword. Shader Graph converts invalid characters to underscores ( `_` ).
+Special characters such as `( )` or `! @` are not valid in the **Entry Name** of an Enum Keyword. Shader Graph converts invalid characters to underscores ( `_` ) and capitalizes all letters. This means that reference names are not case sensitive. Both "A 1" and "a_1" are converted to "A_1”. Instead of silently adjusting a duplicate **Entry Name**, Unity will indicate that you have entered a duplicate and require you to supply an alternative **Entry Name**.
 
 ![](images/keywords_enum.png)
 
