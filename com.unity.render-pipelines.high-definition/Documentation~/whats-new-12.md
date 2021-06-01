@@ -117,8 +117,7 @@ Some properties only appear when you attach this component to a light. Each Lens
 
 ![](Images/LightAnchor0.png)
 
-From HDRP 12.0, HDRP (and URP) introduces a new Lens Flare system. You can attach an Lens Flare (SRP) Component to any GameObject.
-Some properties only appear when you attach this component to a light. Each LensFlare can be compose with multiple elements for simpler and deeper control for any situation. We provide a [new asset](lens-flare-data-driven-asset.md) and a [new component](lens-flare-data-driven-component.md) which can be attached to any GameObject.
+From HDRP 12.0, HDRP (and URP) introduces a new [Light Anchor](light-anchor.md) component. You can attach to any light to control the light on Main Camera view.
 
 ## Issues resolved
 
