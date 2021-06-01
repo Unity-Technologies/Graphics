@@ -24,7 +24,6 @@ Universal_Hybrid_Linux_Vulkan_Standalone_mono_Linear_trunk:
          retries: 2
       -  command: chmod +x utr
       -  command: DISPLAY=:0.0 ./utr --artifacts_path=TestProjects/UniversalHybridTest/test-results --compilation-errors-as-warnings --platform=StandaloneLinux64 --player-connection-ip=auto --player-load-path=players --suite=playmode --timeout=1200 --zero-tests-are-ok=1
-         retries: 2
     artifacts:
         logs:
             paths:
@@ -59,7 +58,6 @@ Build_Universal_Hybrid_Linux_Vulkan_Standalone_mono_Linear_trunk:
       -  command: sudo unity-downloader-cli --source-file unity_revision.txt -c editor -c il2cpp  --wait --published-only
          retries: 2
       -  command: DISPLAY=:0.0 ./utr --artifacts_path=TestProjects/UniversalHybridTest/test-results --build-only --compilation-errors-as-warnings --editor-location=.Editor --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-executemethod" --extra-editor-arg="SetupProject.ApplySettings" --extra-editor-arg="vulkan" --extra-editor-arg="Linear" --extra-editor-arg="-playergraphicsapi=Vulkan" --platform=StandaloneLinux64 --player-save-path=players --scripting-backend=Mono2x --suite=playmode --testfilter=$TEST_FILTER --testproject=./TestProjects/UniversalHybridTest --timeout=1200
-         retries: 2
     artifacts:
         logs:
             paths:
@@ -95,7 +93,6 @@ Universal_Hybrid_Linux_Vulkan_playmode_mono_Linear_trunk:
       -  command: sudo unity-downloader-cli --source-file unity_revision.txt -c editor -c il2cpp  --wait --published-only
          retries: 2
       -  command: DISPLAY=:0.0 ./utr --artifacts_path=TestProjects/UniversalHybridTest/test-results --compilation-errors-as-warnings --editor-location=.Editor --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-force-vulkan" --scripting-backend=Mono2x --suite=playmode --testfilter=$TEST_FILTER --testproject=./TestProjects/UniversalHybridTest --zero-tests-are-ok=1
-         retries: 2
     artifacts:
         logs:
             paths:
@@ -128,7 +125,6 @@ Universal_Hybrid_Linux_Vulkan_playmode_cache_mono_Linear_trunk:
       -  command: sudo unity-downloader-cli --source-file unity_revision.txt -c editor -c il2cpp  --wait --published-only
          retries: 2
       -  command: DISPLAY=:0.0 ./utr --artifacts_path=TestProjects/UniversalHybridTest/test-results --compilation-errors-as-warnings --editor-location=.Editor --extra-editor-arg="-adb2" --extra-editor-arg="-cacheServerEnableDownload" --extra-editor-arg="true" --extra-editor-arg="-cacheServerEnableUpload" --extra-editor-arg="true" --extra-editor-arg="-cacheServerEndpoint" --extra-editor-arg="cacheserver-slo.hq.unity3d.com" --extra-editor-arg="-cacheServerNamespacePrefix" --extra-editor-arg="{{cache.cacheServerNamespacePrefix}}" --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-enableCacheServer" --extra-editor-arg="-force-vulkan" --scripting-backend=Mono2x --suite=playmode --testfilter=$TEST_FILTER --testproject=./TestProjects/UniversalHybridTest --zero-tests-are-ok=1
-         retries: 2
     artifacts:
         logs:
             paths:
@@ -153,7 +149,6 @@ Universal_Hybrid_Linux_Vulkan_Standalone_cache_mono_Linear_trunk:
          retries: 2
       -  command: chmod +x utr
       -  command: DISPLAY=:0.0 ./utr --artifacts_path=TestProjects/UniversalHybridTest/test-results --platform=StandaloneLinux64 --player-connection-ip=auto --player-load-path=players --suite=playmode --timeout=1200 --zero-tests-are-ok=1
-         retries: 2
     artifacts:
         logs:
             paths:
@@ -188,7 +183,6 @@ Build_Universal_Hybrid_Linux_Vulkan_Standalone_cache_mono_Linear_trunk:
       -  command: sudo unity-downloader-cli --source-file unity_revision.txt -c editor -c il2cpp  --wait --published-only
          retries: 2
       -  command: DISPLAY=:0.0 ./utr --artifacts_path=TestProjects/UniversalHybridTest/test-results --build-only --editor-location=.Editor --extra-editor-arg="-adb2" --extra-editor-arg="-cacheServerEnableDownload" --extra-editor-arg="true" --extra-editor-arg="-cacheServerEnableUpload" --extra-editor-arg="true" --extra-editor-arg="-cacheServerEndpoint" --extra-editor-arg="cacheserver-slo.hq.unity3d.com" --extra-editor-arg="-cacheServerNamespacePrefix" --extra-editor-arg="{{cache.cacheServerNamespacePrefix}}" --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-enableCacheServer" --extra-editor-arg="-executemethod" --extra-editor-arg="SetupProject.ApplySettings" --extra-editor-arg="vulkan" --extra-editor-arg="Linear" --extra-editor-arg="-playergraphicsapi=Vulkan" --platform=StandaloneLinux64 --player-save-path=players --scripting-backend=Mono2x --suite=playmode --testfilter=$TEST_FILTER --testproject=./TestProjects/UniversalHybridTest --timeout=3000
-         retries: 2
     artifacts:
         logs:
             paths:
@@ -216,7 +210,6 @@ Universal_Hybrid_Linux_Vulkan_Standalone_mono_Linear_CUSTOM-REVISION:
          retries: 2
       -  command: chmod +x utr
       -  command: DISPLAY=:0.0 ./utr --artifacts_path=TestProjects/UniversalHybridTest/test-results --compilation-errors-as-warnings --platform=StandaloneLinux64 --player-connection-ip=auto --player-load-path=players --suite=playmode --timeout=1200 --zero-tests-are-ok=1
-         retries: 2
     artifacts:
         logs:
             paths:
@@ -251,7 +244,6 @@ Build_Universal_Hybrid_Linux_Vulkan_Standalone_mono_Linear_CUSTOM-REVISION:
       -  command: sudo unity-downloader-cli --source-file unity_revision.txt -c editor -c il2cpp  --wait --published-only
          retries: 2
       -  command: DISPLAY=:0.0 ./utr --artifacts_path=TestProjects/UniversalHybridTest/test-results --build-only --compilation-errors-as-warnings --editor-location=.Editor --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-executemethod" --extra-editor-arg="SetupProject.ApplySettings" --extra-editor-arg="vulkan" --extra-editor-arg="Linear" --extra-editor-arg="-playergraphicsapi=Vulkan" --platform=StandaloneLinux64 --player-save-path=players --scripting-backend=Mono2x --suite=playmode --testfilter=$TEST_FILTER --testproject=./TestProjects/UniversalHybridTest --timeout=1200
-         retries: 2
     artifacts:
         logs:
             paths:
@@ -287,7 +279,6 @@ Universal_Hybrid_Linux_Vulkan_playmode_mono_Linear_CUSTOM-REVISION:
       -  command: sudo unity-downloader-cli --source-file unity_revision.txt -c editor -c il2cpp  --wait --published-only
          retries: 2
       -  command: DISPLAY=:0.0 ./utr --artifacts_path=TestProjects/UniversalHybridTest/test-results --compilation-errors-as-warnings --editor-location=.Editor --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-force-vulkan" --scripting-backend=Mono2x --suite=playmode --testfilter=$TEST_FILTER --testproject=./TestProjects/UniversalHybridTest --zero-tests-are-ok=1
-         retries: 2
     artifacts:
         logs:
             paths:
@@ -320,7 +311,6 @@ Universal_Hybrid_Linux_Vulkan_playmode_cache_mono_Linear_CUSTOM-REVISION:
       -  command: sudo unity-downloader-cli --source-file unity_revision.txt -c editor -c il2cpp  --wait --published-only
          retries: 2
       -  command: DISPLAY=:0.0 ./utr --artifacts_path=TestProjects/UniversalHybridTest/test-results --compilation-errors-as-warnings --editor-location=.Editor --extra-editor-arg="-adb2" --extra-editor-arg="-cacheServerEnableDownload" --extra-editor-arg="true" --extra-editor-arg="-cacheServerEnableUpload" --extra-editor-arg="true" --extra-editor-arg="-cacheServerEndpoint" --extra-editor-arg="cacheserver-slo.hq.unity3d.com" --extra-editor-arg="-cacheServerNamespacePrefix" --extra-editor-arg="{{cache.cacheServerNamespacePrefix}}" --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-enableCacheServer" --extra-editor-arg="-force-vulkan" --scripting-backend=Mono2x --suite=playmode --testfilter=$TEST_FILTER --testproject=./TestProjects/UniversalHybridTest --zero-tests-are-ok=1
-         retries: 2
     artifacts:
         logs:
             paths:
@@ -345,7 +335,6 @@ Universal_Hybrid_Linux_Vulkan_Standalone_cache_mono_Linear_CUSTOM-REVISION:
          retries: 2
       -  command: chmod +x utr
       -  command: DISPLAY=:0.0 ./utr --artifacts_path=TestProjects/UniversalHybridTest/test-results --platform=StandaloneLinux64 --player-connection-ip=auto --player-load-path=players --suite=playmode --timeout=1200 --zero-tests-are-ok=1
-         retries: 2
     artifacts:
         logs:
             paths:
@@ -380,7 +369,6 @@ Build_Universal_Hybrid_Linux_Vulkan_Standalone_cache_mono_Linear_CUSTOM-REVISION
       -  command: sudo unity-downloader-cli --source-file unity_revision.txt -c editor -c il2cpp  --wait --published-only
          retries: 2
       -  command: DISPLAY=:0.0 ./utr --artifacts_path=TestProjects/UniversalHybridTest/test-results --build-only --editor-location=.Editor --extra-editor-arg="-adb2" --extra-editor-arg="-cacheServerEnableDownload" --extra-editor-arg="true" --extra-editor-arg="-cacheServerEnableUpload" --extra-editor-arg="true" --extra-editor-arg="-cacheServerEndpoint" --extra-editor-arg="cacheserver-slo.hq.unity3d.com" --extra-editor-arg="-cacheServerNamespacePrefix" --extra-editor-arg="{{cache.cacheServerNamespacePrefix}}" --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-enableCacheServer" --extra-editor-arg="-executemethod" --extra-editor-arg="SetupProject.ApplySettings" --extra-editor-arg="vulkan" --extra-editor-arg="Linear" --extra-editor-arg="-playergraphicsapi=Vulkan" --platform=StandaloneLinux64 --player-save-path=players --scripting-backend=Mono2x --suite=playmode --testfilter=$TEST_FILTER --testproject=./TestProjects/UniversalHybridTest --timeout=3000
-         retries: 2
     artifacts:
         logs:
             paths:
