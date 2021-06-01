@@ -110,14 +110,14 @@ The screenshot on the left below do not use additive normal blending, whereas th
 
 ![](Images/LensFlareSamples2.png)
 
-From HDRP 12.0, HDRP (and URP) introduces a new Lens Flare system. You can attach an Lens Flare (SRP) Component to any GameObject.
-Some properties only appear when you attach this component to a light. Each LensFlare can be compose with multiple elements for simpler and deeper control for any situation. We provide a [new asset](lens-flare-data-driven-asset.md) and a [new component](lens-flare-data-driven-component.md) which can be attached to any GameObject.
+From HDRP 12.0, HDRP (and URP) introduces a new Lens Flare system. You can attach a Lens Flare (SRP) component to any GameObject.
+Some Lens Flare properties only appear when you attach this component to a light. Each Lens Flare can have with multiple elements that you can control individually. HDRP also provides a [new asset](lens-flare-data-driven-asset.md) and a [new component](lens-flare-data-driven-component.md) which you can attach to any GameObject.
 
 ### Light Anchor
 
 ![](Images/LightAnchor0.png)
 
-From HDRP 12.0, HDRP (and URP) introduces a new [Light Anchor](light-anchor.md) component. You can attach to any light to control the light on Main Camera view.
+From HDRP 12.0, HDRP (and URP) introduces a new [Light Anchor](light-anchor.md) component. You can attach this component to any light to control the light in Main Camera view.
 
 ## Issues resolved
 
