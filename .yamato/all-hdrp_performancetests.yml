@@ -44,6 +44,7 @@ PR_HDRP_PerformanceTests_CUSTOM-REVISION:
         UTR_VERSION: "current"
         TEST_FILTER: .*
         GIT_BRANCH: master
+        CACHE_ARGS: '{{cache.flags}}'
 Nightly_HDRP_PerformanceTests_CUSTOM-REVISION:
     name: Nightly HDRP_PerformanceTests - CUSTOM-REVISION
     dependencies:
@@ -54,3 +55,4 @@ Nightly_HDRP_PerformanceTests_CUSTOM-REVISION:
         UTR_VERSION: "current"
         TEST_FILTER: .*
         GIT_BRANCH: master
+        CACHE_ARGS: '{{cache.flags}}'

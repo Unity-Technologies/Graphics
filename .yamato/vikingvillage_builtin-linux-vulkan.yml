@@ -232,6 +232,7 @@ VikingVillage_BuiltIn_Linux_Vulkan_performance_playmode_runtime_mono_Linear_CUST
         CUSTOM_REVISION: custom_revision_not_set
         VV_BUILTIN_BRANCH: built-in
         VV_BUILTIN_REVISION: c61a43cd7ad4ef36f38a0219730d53e8f6e281de
+        CACHE_ARGS: '{{cache.flags}}'
         UTR_VERSION: "current"
         TEST_FILTER: .*
     commands:
@@ -261,6 +262,7 @@ Build_VikingVillage_BuiltIn_Linux_Vulkan_performance_playmode_runtime_mono_Linea
         CUSTOM_REVISION: custom_revision_not_set
         VV_BUILTIN_BRANCH: built-in
         VV_BUILTIN_REVISION: c61a43cd7ad4ef36f38a0219730d53e8f6e281de
+        CACHE_ARGS: '{{cache.flags}}'
         UTR_VERSION: "current"
         TEST_FILTER: .*
     commands:
@@ -323,6 +325,7 @@ VikingVillage_BuiltIn_Linux_Vulkan_performance_playmode_editor_mono_Linear_CUSTO
         CUSTOM_REVISION: custom_revision_not_set
         VV_BUILTIN_BRANCH: built-in
         VV_BUILTIN_REVISION: c61a43cd7ad4ef36f38a0219730d53e8f6e281de
+        CACHE_ARGS: '{{cache.flags}}'
         UTR_VERSION: "current"
         TEST_FILTER: .*
     commands:
@@ -382,6 +385,7 @@ VikingVillage_BuiltIn_Linux_Vulkan_performance_build_editmode_mono_Linear_CUSTOM
         CUSTOM_REVISION: custom_revision_not_set
         VV_BUILTIN_BRANCH: built-in
         VV_BUILTIN_REVISION: c61a43cd7ad4ef36f38a0219730d53e8f6e281de
+        CACHE_ARGS: '{{cache.flags}}'
         UTR_VERSION: "current"
         TEST_FILTER: .*
     commands:

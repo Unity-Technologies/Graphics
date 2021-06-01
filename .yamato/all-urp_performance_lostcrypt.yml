@@ -95,6 +95,7 @@ PR_URP_Performance_LostCrypt_CUSTOM-REVISION:
         TEST_FILTER: .*
         LOST_CRYPT_BRANCH: 21.2/urp-perf-test
         LOST_CRYPT_REVISION: eb3405aada97fdaf2b033e4f7bc7e47fb4589c3a
+        CACHE_ARGS: '{{cache.flags}}'
 Nightly_URP_Performance_LostCrypt_CUSTOM-REVISION:
     name: Nightly URP_Performance_LostCrypt - CUSTOM-REVISION
     dependencies:
@@ -106,3 +107,4 @@ Nightly_URP_Performance_LostCrypt_CUSTOM-REVISION:
         TEST_FILTER: .*
         LOST_CRYPT_BRANCH: 21.2/urp-perf-test
         LOST_CRYPT_REVISION: eb3405aada97fdaf2b033e4f7bc7e47fb4589c3a
+        CACHE_ARGS: '{{cache.flags}}'

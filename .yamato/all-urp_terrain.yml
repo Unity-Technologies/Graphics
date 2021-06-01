@@ -71,6 +71,7 @@ PR_URP_Terrain_CUSTOM-REVISION:
         CUSTOM_REVISION: custom_revision_not_set
         UTR_VERSION: "current"
         TEST_FILTER: .*
+        CACHE_ARGS: '{{cache.flags}}'
 Nightly_URP_Terrain_CUSTOM-REVISION:
     name: Nightly URP_Terrain - CUSTOM-REVISION
     dependencies:
@@ -114,3 +115,4 @@ Nightly_URP_Terrain_CUSTOM-REVISION:
         CUSTOM_REVISION: custom_revision_not_set
         UTR_VERSION: "current"
         TEST_FILTER: .*
+        CACHE_ARGS: '{{cache.flags}}'

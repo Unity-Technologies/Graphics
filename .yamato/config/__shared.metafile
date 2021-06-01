@@ -30,6 +30,8 @@ editors: # applied for all yml files
       pr_triggers_allowed: False
       nightly_job_trigger: False
       weekly_job_trigger: False
+    variables:
+      CACHE_ARGS: '{{cache.flags}}'
 build_configs:
   - name: il2cpp_apiNet2
     scripting_backend: IL2CPP

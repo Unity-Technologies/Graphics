@@ -59,6 +59,7 @@ PR_PostProcessing_CUSTOM-REVISION:
         CUSTOM_REVISION: custom_revision_not_set
         UTR_VERSION: "current"
         TEST_FILTER: .*
+        CACHE_ARGS: '{{cache.flags}}'
 Nightly_PostProcessing_CUSTOM-REVISION:
     name: Nightly PostProcessing - CUSTOM-REVISION
     dependencies:
@@ -88,3 +89,4 @@ Nightly_PostProcessing_CUSTOM-REVISION:
         CUSTOM_REVISION: custom_revision_not_set
         UTR_VERSION: "current"
         TEST_FILTER: .*
+        CACHE_ARGS: '{{cache.flags}}'

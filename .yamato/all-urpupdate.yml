@@ -51,6 +51,7 @@ PR_URPUpdate_CUSTOM-REVISION:
         TEST_FILTER: .*
         TEMPLATE_UPDATE_PROJECT_BRANCH: master
         TEMPLATE_UPDATE_PROJECT_REVISION: 818b6345d6bf46cf3e5644aceff134e866c6150e
+        CACHE_ARGS: '{{cache.flags}}'
 Nightly_URPUpdate_CUSTOM-REVISION:
     name: Nightly URPUpdate - CUSTOM-REVISION
     dependencies:
@@ -62,3 +63,4 @@ Nightly_URPUpdate_CUSTOM-REVISION:
         TEST_FILTER: .*
         TEMPLATE_UPDATE_PROJECT_BRANCH: master
         TEMPLATE_UPDATE_PROJECT_REVISION: 818b6345d6bf46cf3e5644aceff134e866c6150e
+        CACHE_ARGS: '{{cache.flags}}'

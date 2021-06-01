@@ -89,6 +89,7 @@ PR_Universal_Split_CUSTOM-REVISION:
         CUSTOM_REVISION: custom_revision_not_set
         UTR_VERSION: "current"
         TEST_FILTER: .*
+        CACHE_ARGS: '{{cache.flags}}'
 Nightly_Universal_Split_CUSTOM-REVISION:
     name: Nightly Universal_Split - CUSTOM-REVISION
     dependencies:
@@ -116,3 +117,4 @@ Nightly_Universal_Split_CUSTOM-REVISION:
         CUSTOM_REVISION: custom_revision_not_set
         UTR_VERSION: "current"
         TEST_FILTER: .*
+        CACHE_ARGS: '{{cache.flags}}'

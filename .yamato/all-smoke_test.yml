@@ -43,6 +43,7 @@ PR_Smoke_Test_CUSTOM-REVISION:
         CUSTOM_REVISION: custom_revision_not_set
         UTR_VERSION: "current"
         TEST_FILTER: .*
+        CACHE_ARGS: '{{cache.flags}}'
 Nightly_Smoke_Test_CUSTOM-REVISION:
     name: Nightly Smoke_Test - CUSTOM-REVISION
     dependencies:
@@ -56,3 +57,4 @@ Nightly_Smoke_Test_CUSTOM-REVISION:
         CUSTOM_REVISION: custom_revision_not_set
         UTR_VERSION: "current"
         TEST_FILTER: .*
+        CACHE_ARGS: '{{cache.flags}}'

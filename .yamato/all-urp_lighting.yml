@@ -75,6 +75,7 @@ PR_URP_Lighting_CUSTOM-REVISION:
         CUSTOM_REVISION: custom_revision_not_set
         UTR_VERSION: "current"
         TEST_FILTER: .*
+        CACHE_ARGS: '{{cache.flags}}'
 Nightly_URP_Lighting_CUSTOM-REVISION:
     name: Nightly URP_Lighting - CUSTOM-REVISION
     dependencies:
@@ -122,3 +123,4 @@ Nightly_URP_Lighting_CUSTOM-REVISION:
         CUSTOM_REVISION: custom_revision_not_set
         UTR_VERSION: "current"
         TEST_FILTER: .*
+        CACHE_ARGS: '{{cache.flags}}'

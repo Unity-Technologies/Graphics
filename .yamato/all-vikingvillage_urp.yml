@@ -79,6 +79,7 @@ PR_VikingVillage_URP_CUSTOM-REVISION:
         TEST_FILTER: .*
         VV_URP_BRANCH: master
         VV_URP_REVISION: eebe6db7d9b186603b63095a926d76ded2bf1110
+        CACHE_ARGS: '{{cache.flags}}'
 Nightly_VikingVillage_URP_CUSTOM-REVISION:
     name: Nightly VikingVillage_URP - CUSTOM-REVISION
     dependencies:
@@ -90,3 +91,4 @@ Nightly_VikingVillage_URP_CUSTOM-REVISION:
         TEST_FILTER: .*
         VV_URP_BRANCH: master
         VV_URP_REVISION: eebe6db7d9b186603b63095a926d76ded2bf1110
+        CACHE_ARGS: '{{cache.flags}}'

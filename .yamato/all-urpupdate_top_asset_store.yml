@@ -47,6 +47,7 @@ PR_URPUpdate_Top_Asset_Store_CUSTOM-REVISION:
         TEST_FILTER: .*
         ASSETSTORE_UPDATE_PROJECT_BRANCH: master
         ASSETSTORE_UPDATE_PROJECT_REVISION: 818b6345d6bf46cf3e5644aceff134e866c6150e
+        CACHE_ARGS: '{{cache.flags}}'
 Nightly_URPUpdate_Top_Asset_Store_CUSTOM-REVISION:
     name: Nightly URPUpdate_Top_Asset_Store - CUSTOM-REVISION
     dependencies:
@@ -58,3 +59,4 @@ Nightly_URPUpdate_Top_Asset_Store_CUSTOM-REVISION:
         TEST_FILTER: .*
         ASSETSTORE_UPDATE_PROJECT_BRANCH: master
         ASSETSTORE_UPDATE_PROJECT_REVISION: 818b6345d6bf46cf3e5644aceff134e866c6150e
+        CACHE_ARGS: '{{cache.flags}}'

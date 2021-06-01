@@ -115,6 +115,7 @@ all_project_ci_CUSTOM-REVISION:
          rerun: on_new_revision
     variables:
         CUSTOM_REVISION: custom_revision_not_set
+        CACHE_ARGS: '{{cache.flags}}'
 all_project_ci_nightly_CUSTOM-REVISION:
     name: _Nightly ABV against CUSTOM-REVISION
     dependencies:
@@ -142,6 +143,7 @@ all_project_ci_nightly_CUSTOM-REVISION:
          rerun: on_new_revision
     variables:
         CUSTOM_REVISION: custom_revision_not_set
+        CACHE_ARGS: '{{cache.flags}}'
 trunk_verification_CUSTOM-REVISION:
     name: Trunk verification - CUSTOM-REVISION
     dependencies:
@@ -180,4 +182,5 @@ trunk_verification_CUSTOM-REVISION:
       -  path: .yamato/vfx_urp-win-dx11.yml#VFX_URP_Win_DX11_playmode_mono_Linear_CUSTOM-REVISION
          rerun: on_new_revision
     variables:
+        CACHE_ARGS: '{{cache.flags}}'
         CUSTOM_REVISION: custom_revision_not_set
