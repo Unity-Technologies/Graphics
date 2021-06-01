@@ -32,7 +32,6 @@ URP_PostPro_Linux_OpenGLCore_playmode_mono_Linear_trunk:
       -  command: sudo unity-downloader-cli --source-file unity_revision.txt -c editor -c il2cpp  --wait --published-only
          retries: 2
       -  command: DISPLAY=:0.0 ./utr --artifacts_path=TestProjects/UniversalGraphicsTest_PostPro/test-results --editor-location=.Editor --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-force-glcore" --scripting-backend=Mono2x --suite=playmode --testfilter=$TEST_FILTER --testproject=./TestProjects/UniversalGraphicsTest_PostPro --zero-tests-are-ok=1
-         retries: 2
     artifacts:
         logs:
             paths:
@@ -65,7 +64,6 @@ URP_PostPro_Linux_OpenGLCore_playmode_cache_mono_Linear_trunk:
       -  command: sudo unity-downloader-cli --source-file unity_revision.txt -c editor -c il2cpp  --wait --published-only
          retries: 2
       -  command: DISPLAY=:0.0 ./utr --artifacts_path=TestProjects/UniversalGraphicsTest_PostPro/test-results --editor-location=.Editor --extra-editor-arg="-adb2" --extra-editor-arg="-cacheServerEnableDownload" --extra-editor-arg="true" --extra-editor-arg="-cacheServerEnableUpload" --extra-editor-arg="true" --extra-editor-arg="-cacheServerEndpoint" --extra-editor-arg="cacheserver-slo.hq.unity3d.com" --extra-editor-arg="-cacheServerNamespacePrefix" --extra-editor-arg="{{cache.cacheServerNamespacePrefix}}" --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-enableCacheServer" --extra-editor-arg="-force-glcore" --scripting-backend=Mono2x --suite=playmode --testfilter=$TEST_FILTER --testproject=./TestProjects/UniversalGraphicsTest_PostPro --zero-tests-are-ok=1
-         retries: 2
     artifacts:
         logs:
             paths:
@@ -98,7 +96,6 @@ URP_PostPro_Linux_OpenGLCore_editmode_mono_Linear_trunk:
       -  command: sudo unity-downloader-cli --source-file unity_revision.txt -c editor -c il2cpp  --wait --published-only
          retries: 2
       -  command: DISPLAY=:0.0 ./utr --artifacts_path=TestProjects/UniversalGraphicsTest_PostPro/test-results --editor-location=.Editor --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-force-glcore" --platform=editmode --scripting-backend=Mono2x --suite=editor --testfilter=$TEST_FILTER --testproject=./TestProjects/UniversalGraphicsTest_PostPro --zero-tests-are-ok=1
-         retries: 2
     artifacts:
         logs:
             paths:
@@ -131,7 +128,6 @@ URP_PostPro_Linux_OpenGLCore_playmode_mono_Linear_CUSTOM-REVISION:
       -  command: sudo unity-downloader-cli --source-file unity_revision.txt -c editor -c il2cpp  --wait --published-only
          retries: 2
       -  command: DISPLAY=:0.0 ./utr --artifacts_path=TestProjects/UniversalGraphicsTest_PostPro/test-results --editor-location=.Editor --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-force-glcore" --scripting-backend=Mono2x --suite=playmode --testfilter=$TEST_FILTER --testproject=./TestProjects/UniversalGraphicsTest_PostPro --zero-tests-are-ok=1
-         retries: 2
     artifacts:
         logs:
             paths:
@@ -164,7 +160,6 @@ URP_PostPro_Linux_OpenGLCore_playmode_cache_mono_Linear_CUSTOM-REVISION:
       -  command: sudo unity-downloader-cli --source-file unity_revision.txt -c editor -c il2cpp  --wait --published-only
          retries: 2
       -  command: DISPLAY=:0.0 ./utr --artifacts_path=TestProjects/UniversalGraphicsTest_PostPro/test-results --editor-location=.Editor --extra-editor-arg="-adb2" --extra-editor-arg="-cacheServerEnableDownload" --extra-editor-arg="true" --extra-editor-arg="-cacheServerEnableUpload" --extra-editor-arg="true" --extra-editor-arg="-cacheServerEndpoint" --extra-editor-arg="cacheserver-slo.hq.unity3d.com" --extra-editor-arg="-cacheServerNamespacePrefix" --extra-editor-arg="{{cache.cacheServerNamespacePrefix}}" --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-enableCacheServer" --extra-editor-arg="-force-glcore" --scripting-backend=Mono2x --suite=playmode --testfilter=$TEST_FILTER --testproject=./TestProjects/UniversalGraphicsTest_PostPro --zero-tests-are-ok=1
-         retries: 2
     artifacts:
         logs:
             paths:
@@ -197,7 +192,6 @@ URP_PostPro_Linux_OpenGLCore_editmode_mono_Linear_CUSTOM-REVISION:
       -  command: sudo unity-downloader-cli --source-file unity_revision.txt -c editor -c il2cpp  --wait --published-only
          retries: 2
       -  command: DISPLAY=:0.0 ./utr --artifacts_path=TestProjects/UniversalGraphicsTest_PostPro/test-results --editor-location=.Editor --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-force-glcore" --platform=editmode --scripting-backend=Mono2x --suite=editor --testfilter=$TEST_FILTER --testproject=./TestProjects/UniversalGraphicsTest_PostPro --zero-tests-are-ok=1
-         retries: 2
     artifacts:
         logs:
             paths:

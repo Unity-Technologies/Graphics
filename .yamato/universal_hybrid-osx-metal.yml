@@ -37,7 +37,6 @@ Universal_Hybrid_OSX_Metal_Standalone_mono_Linear_trunk:
                 mkdir -p TestProjects/UniversalHybridTest/test-results/
                 scp -i ~/.ssh/id_rsa_macmini -r bokken@$BOKKEN_DEVICE_IP:/Users/bokken/Graphics/TestProjects/UniversalHybridTest/test-results/ TestProjects/UniversalHybridTest/test-results/
                 exit $UTR_RESULT
-         retries: 2
     artifacts:
         logs:
             paths:
@@ -75,7 +74,6 @@ Universal_Hybrid_OSX_Metal_playmode_mono_Linear_trunk:
                 mkdir -p TestProjects/UniversalHybridTest/test-results/
                 scp -i ~/.ssh/id_rsa_macmini -r bokken@$BOKKEN_DEVICE_IP:/Users/bokken/Graphics/TestProjects/UniversalHybridTest/test-results/ TestProjects/UniversalHybridTest/test-results/
                 exit $UTR_RESULT
-         retries: 2
     artifacts:
         logs:
             paths:
@@ -113,7 +111,6 @@ Universal_Hybrid_OSX_Metal_playmode_cache_mono_Linear_trunk:
                 mkdir -p TestProjects/UniversalHybridTest/test-results/
                 scp -i ~/.ssh/id_rsa_macmini -r bokken@$BOKKEN_DEVICE_IP:/Users/bokken/Graphics/TestProjects/UniversalHybridTest/test-results/ TestProjects/UniversalHybridTest/test-results/
                 exit $UTR_RESULT
-         retries: 2
     artifacts:
         logs:
             paths:
@@ -151,7 +148,6 @@ Universal_Hybrid_OSX_Metal_Standalone_cache_mono_Linear_trunk:
                 mkdir -p TestProjects/UniversalHybridTest/test-results/
                 scp -i ~/.ssh/id_rsa_macmini -r bokken@$BOKKEN_DEVICE_IP:/Users/bokken/Graphics/TestProjects/UniversalHybridTest/test-results/ TestProjects/UniversalHybridTest/test-results/
                 exit $UTR_RESULT
-         retries: 2
     artifacts:
         logs:
             paths:
@@ -189,7 +185,6 @@ Universal_Hybrid_OSX_Metal_Standalone_mono_Linear_CUSTOM-REVISION:
                 mkdir -p TestProjects/UniversalHybridTest/test-results/
                 scp -i ~/.ssh/id_rsa_macmini -r bokken@$BOKKEN_DEVICE_IP:/Users/bokken/Graphics/TestProjects/UniversalHybridTest/test-results/ TestProjects/UniversalHybridTest/test-results/
                 exit $UTR_RESULT
-         retries: 2
     artifacts:
         logs:
             paths:
@@ -227,7 +222,6 @@ Universal_Hybrid_OSX_Metal_playmode_mono_Linear_CUSTOM-REVISION:
                 mkdir -p TestProjects/UniversalHybridTest/test-results/
                 scp -i ~/.ssh/id_rsa_macmini -r bokken@$BOKKEN_DEVICE_IP:/Users/bokken/Graphics/TestProjects/UniversalHybridTest/test-results/ TestProjects/UniversalHybridTest/test-results/
                 exit $UTR_RESULT
-         retries: 2
     artifacts:
         logs:
             paths:
@@ -265,7 +259,6 @@ Universal_Hybrid_OSX_Metal_playmode_cache_mono_Linear_CUSTOM-REVISION:
                 mkdir -p TestProjects/UniversalHybridTest/test-results/
                 scp -i ~/.ssh/id_rsa_macmini -r bokken@$BOKKEN_DEVICE_IP:/Users/bokken/Graphics/TestProjects/UniversalHybridTest/test-results/ TestProjects/UniversalHybridTest/test-results/
                 exit $UTR_RESULT
-         retries: 2
     artifacts:
         logs:
             paths:
@@ -303,7 +296,6 @@ Universal_Hybrid_OSX_Metal_Standalone_cache_mono_Linear_CUSTOM-REVISION:
                 mkdir -p TestProjects/UniversalHybridTest/test-results/
                 scp -i ~/.ssh/id_rsa_macmini -r bokken@$BOKKEN_DEVICE_IP:/Users/bokken/Graphics/TestProjects/UniversalHybridTest/test-results/ TestProjects/UniversalHybridTest/test-results/
                 exit $UTR_RESULT
-         retries: 2
     artifacts:
         logs:
             paths:
