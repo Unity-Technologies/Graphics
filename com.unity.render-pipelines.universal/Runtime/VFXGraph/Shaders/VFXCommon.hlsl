@@ -118,7 +118,7 @@ float VFXSampleDepth(float4 posSS)
 {
     float2 screenUV = GetNormalizedScreenSpaceUV(posSS.xy);
 
-    //In URP, the depth texture is optionnal and could be 4x4 white texture, Load isn't approriate in that case.
+    // In URP, the depth texture is optional and could be 4x4 white texture, Load isn't appropriate in that case.
     //float depth = LoadSceneDepth(screenUV * _ScreenParams.xy);
     float depth = SampleSceneDepth(screenUV);
 
