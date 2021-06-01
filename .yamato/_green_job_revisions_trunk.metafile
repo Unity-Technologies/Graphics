@@ -13,7 +13,7 @@ shadergraph_pr_job_-_trunk:
       id: 961bbd167d68a1b4f85e1702a4cd6152ac9b7660
       date: '2021-05-12T22:20:13'
 vfx_urp_pr_job_-_trunk:
-  updated_at: '2021-05-18 07:36:10.831586'
+  updated_at: '2021-05-20 07:24:09.626458'
   last_green_revisions:
     updated_at_UTC: '2021-05-16 23:26:00.395251'
     changeset:
@@ -27,7 +27,7 @@ vfx_hdrp_pr_job_-_trunk:
       id: 5605789000ce1782e51b3ba9117b468a6eda07b9
       date: '2021-05-16T09:07:00'
 nightly_vfx_urp_-_trunk:
-  updated_at: '2021-05-18 07:36:10.831586'
+  updated_at: '2021-05-20 07:24:09.626458'
   last_green_revisions:
     updated_at_UTC: '2021-05-16 23:26:00.395251'
     changeset:

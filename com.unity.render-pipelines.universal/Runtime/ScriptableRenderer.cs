@@ -800,6 +800,10 @@ namespace UnityEngine.Rendering.Universal
             if (debugHandler != null && debugHandler.IsActiveForCamera(ref cameraData) && debugHandler.IsScreenClearNeeded)
                 return ClearFlag.All;
 
+            // XRTODO: remove once we have visible area of occlusion mesh available
+            if (cameraClearFlags == CameraClearFlags.Skybox && RenderSettings.skybox != null && cameraData.postProcessEnabled && cameraData.xr.enabled)
+                return ClearFlag.All;
+
             if ((cameraClearFlags == CameraClearFlags.Skybox && RenderSettings.skybox != null) ||
                 cameraClearFlags == CameraClearFlags.Nothing)
                 return ClearFlag.DepthStencil;
