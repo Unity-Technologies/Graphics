@@ -4,9 +4,9 @@
 You can use Keywords to create different variants for your Shader Graph. Depending on the settings for a Keyword and settings in the Editor, the build pipeline might strip these variants.
 
 Keywords are useful for many reasons, such as:
-- Creating shaders with features that you can turn on or off for each Material instance.
-- Creating shaders with features that behave differently on certain platforms.
-- Creating shaders that scale in complexity based on various conditions.
+* *Creating shaders with features that you can turn on or off for each Material instance.
+* Creating shaders with features that behave differently on certain platforms.
+* Creating shaders that scale in complexity based on various conditions.
 
 There are three types of Keyword: Boolean, Enum, and Built-in. Based on its type, Unity defines a Keyword in the graph, shader, and optionally, the Material Inspector. See [Boolean Keyword](#BooleanKeywords), [Enum Keyword](#EnumKeywords), and [Built-in Keyword](#BuiltinKeywords) for more information about Keyword types. For more information about how these Keywords affect the final shader, see documentation on [Making multiple shader program variants](https://docs.unity3d.com/Manual/SL-MultipleProgramVariants.html).
 
