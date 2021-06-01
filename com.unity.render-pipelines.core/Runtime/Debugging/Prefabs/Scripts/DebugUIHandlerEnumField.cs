@@ -35,8 +35,10 @@ namespace UnityEngine.Rendering.UI
         /// <returns>State of the widget.</returns>
         public override bool OnSelection(bool fromNext, DebugUIHandlerWidget previous)
         {
-            nextButtonText.color = colorSelected;
-            previousButtonText.color = colorSelected;
+            if (nextButtonText != null)
+                nextButtonText.color = colorSelected;
+            if (previousButtonText != null)
+                previousButtonText.color = colorSelected;
             nameLabel.color = colorSelected;
             valueLabel.color = colorSelected;
             return true;
@@ -47,8 +49,10 @@ namespace UnityEngine.Rendering.UI
         /// </summary>
         public override void OnDeselection()
         {
-            nextButtonText.color = colorDefault;
-            previousButtonText.color = colorDefault;
+            if (nextButtonText != null)
+                nextButtonText.color = colorDefault;
+            if (previousButtonText != null)
+                previousButtonText.color = colorDefault;
             nameLabel.color = colorDefault;
             valueLabel.color = colorDefault;
         }
@@ -183,7 +187,16 @@ namespace UnityEngine.Rendering.UI
             if (index < 0)
                 index = 0;
 
-            valueLabel.text = m_Field.enumNames[index].text;
+            string text = m_Field.enumNames[index].text;
+
+            // The UI implementation is tight with space, so let's just truncate the string here if too long.
+            const int maxLength = 26;
+            if (text.Length > maxLength)
+            {
+                text = text.Substring(0, maxLength - 3) + "...";
+            }
+
+            valueLabel.text = text;
         }
     }
 }

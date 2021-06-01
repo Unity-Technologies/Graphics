@@ -18,7 +18,7 @@ MonoBehaviour:
   m_RenderingPathDefaultCameraFrameSettings:
     bitDatas:
       data1: 140649441525597
-      data2: 4539628425463136280
+      data2: 4539628434053070872
     lodBias: 1
     lodBiasMode: 0
     lodBiasQualityLevel: 0
@@ -86,4 +86,4 @@ MonoBehaviour:
   shaderVariantLogLevel: 0
   lensAttenuationMode: 0
   diffusionProfileSettingsList: []
-  m_Version: 1
+  m_Version: 2

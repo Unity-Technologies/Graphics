@@ -1,0 +1,33 @@
+#pragma kernel MainUpsample
+
+#include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Common.hlsl"
+#include "Packages/com.unity.render-pipelines.high-definition/Runtime/ShaderLibrary/ShaderVariables.hlsl"
+#include "Packages/com.unity.render-pipelines.high-definition/Runtime/PostProcessing/Shaders/RTUpscale.hlsl"
+
+#pragma multi_compile _ UPSAMPLE_COLOR
+
+TEXTURE2D_X(_InputTexture);
+TEXTURE2D_X(_InputDepthTexture);
+
+#if defined(UPSAMPLE_COLOR)
+RW_TEXTURE2D_X(CTYPE, _OutputTexture);
+#endif
+
+RW_TEXTURE2D_X(float, _OutputDepthTexture);
+RW_TEXTURE2D_X(float2, _OutputMotionVectorTexture);
+
+float4 _ViewPortSize;
+
+[numthreads(8,4,1)]
+void MainUpsample (uint3 dti : SV_DispatchThreadID)
+{
+    UNITY_XR_ASSIGN_VIEW_INDEX(dti.z);
+
+    float2 uvs = ((float2)dti.xy + 0.5f) * _ViewPortSize.zw;
+#if defined(UPSAMPLE_COLOR)
+    _OutputTexture[COORD_TEXTURE2D_X(dti.xy)] = Bilinear(_InputTexture, uvs);
+#endif
+
+    _OutputDepthTexture[COORD_TEXTURE2D_X(dti.xy)] = Nearest(_InputDepthTexture, uvs).x;
+    _OutputMotionVectorTexture[COORD_TEXTURE2D_X(dti.xy)] = Bilinear(_CameraMotionVectorsTexture, uvs).xy;
+}

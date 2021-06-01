@@ -11,11 +11,15 @@ namespace UnityEditor.Rendering.HighDefinition
     {
         // General
         SerializedDataParameter m_Enable;
+        SerializedDataParameter m_LocalClouds;
 
         // Shape
         SerializedDataParameter m_CloudControl;
 
         SerializedDataParameter m_CloudPreset;
+        SerializedDataParameter m_CustomDensityCurve;
+        SerializedDataParameter m_CustomErosionCurve;
+        SerializedDataParameter m_CustomAmbientOcclusionCurve;
 
         SerializedDataParameter m_CumulusMap;
         SerializedDataParameter m_CumulusMapMultiplier;
@@ -43,11 +47,11 @@ namespace UnityEditor.Rendering.HighDefinition
         SerializedDataParameter m_ErosionScale;
 
         // Lighting
-        SerializedDataParameter m_ScatteringDirection;
         SerializedDataParameter m_ScatteringTint;
         SerializedDataParameter m_PowderEffectIntensity;
         SerializedDataParameter m_MultiScattering;
         SerializedDataParameter m_AmbientLightProbeDimmer;
+        SerializedDataParameter m_ErosionOcclusion;
 
         // Wind
         SerializedDataParameter m_GlobalWindSpeed;
@@ -75,11 +79,15 @@ namespace UnityEditor.Rendering.HighDefinition
 
             // General
             m_Enable = Unpack(o.Find(x => x.enable));
+            m_LocalClouds = Unpack(o.Find(x => x.localClouds));
 
             // Shape
             m_CloudControl = Unpack(o.Find(x => x.cloudControl));
 
             m_CloudPreset = Unpack(o.Find(x => x.cloudPreset));
+            m_CustomDensityCurve = Unpack(o.Find(x => x.customDensityCurve));
+            m_CustomErosionCurve = Unpack(o.Find(x => x.customErosionCurve));
+            m_CustomAmbientOcclusionCurve = Unpack(o.Find(x => x.customAmbientOcclusionCurve));
 
             m_CumulusMap = Unpack(o.Find(x => x.cumulusMap));
             m_CumulusMapMultiplier = Unpack(o.Find(x => x.cumulusMapMultiplier));
@@ -107,11 +115,11 @@ namespace UnityEditor.Rendering.HighDefinition
             m_ErosionScale = Unpack(o.Find(x => x.erosionScale));
 
             // Lighting
-            m_ScatteringDirection = Unpack(o.Find(x => x.scatteringDirection));
             m_ScatteringTint = Unpack(o.Find(x => x.scatteringTint));
             m_PowderEffectIntensity = Unpack(o.Find(x => x.powderEffectIntensity));
             m_MultiScattering = Unpack(o.Find(x => x.multiScattering));
             m_AmbientLightProbeDimmer = Unpack(o.Find(x => x.ambientLightProbeDimmer));
+            m_ErosionOcclusion = Unpack(o.Find(x => x.erosionOcclusion));
 
             // Wind
             m_GlobalWindSpeed = Unpack(o.Find(x => x.globalWindSpeed));
@@ -145,10 +153,12 @@ namespace UnityEditor.Rendering.HighDefinition
                 return;
             }
 
-            EditorGUILayout.HelpBox("Volumetric Clouds are only displayed up to the far plane of the used camera. Make sure to increase the far and near planes accordingly.", MessageType.Info);
 
             EditorGUILayout.LabelField("General", EditorStyles.miniLabel);
             PropertyField(m_Enable);
+            PropertyField(m_LocalClouds);
+            if (m_LocalClouds.value.boolValue)
+                EditorGUILayout.HelpBox("Volumetric Clouds are only displayed up to the far plane of the used camera. Make sure to increase the far and near planes accordingly.", MessageType.Info);
             EditorGUILayout.Space();
 
             EditorGUILayout.LabelField("Shape", EditorStyles.miniLabel);
@@ -190,6 +200,12 @@ namespace UnityEditor.Rendering.HighDefinition
                 {
                     using (new HDEditorUtils.IndentScope(needsIntendation ? 16 : 0))
                     {
+                        if (controlMode == VolumetricClouds.CloudControl.Simple)
+                        {
+                            PropertyField(m_CustomDensityCurve);
+                            PropertyField(m_CustomErosionCurve);
+                            PropertyField(m_CustomAmbientOcclusionCurve);
+                        }
                         PropertyField(m_DensityMultiplier);
                         PropertyField(m_ShapeFactor);
                         PropertyField(m_ShapeScale);
@@ -224,7 +240,7 @@ namespace UnityEditor.Rendering.HighDefinition
             DrawHeader("Lighting");
             {
                 PropertyField(m_AmbientLightProbeDimmer);
-                PropertyField(m_ScatteringDirection);
+                PropertyField(m_ErosionOcclusion);
                 PropertyField(m_ScatteringTint);
                 PropertyField(m_PowderEffectIntensity);
                 PropertyField(m_MultiScattering);

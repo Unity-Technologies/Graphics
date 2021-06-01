@@ -1,11 +1,8 @@
-using System;
-using System.Linq;
 using UnityEngine;
-using UnityEngine.Rendering.Universal;
 
 namespace UnityEditor.Rendering.Universal
 {
-    internal static partial class UniversalRenderPipelineCameraUI
+    static partial class UniversalRenderPipelineCameraUI
     {
         public class Styles
         {
@@ -27,8 +24,8 @@ namespace UnityEditor.Rendering.Universal
 
             public static GUIContent rendererType = EditorGUIUtility.TrTextContent("Renderer", "Controls which renderer this camera uses.");
 
-            public static GUIContent volumeLayerMask = EditorGUIUtility.TrTextContent("Volume Mask", "This camera will only be affected by volumes in the selected scene-layers.");
-            public static GUIContent volumeTrigger = EditorGUIUtility.TrTextContent("Volume Trigger", "A transform that will act as a trigger for volume blending. If none is set, the camera itself will act as a trigger.");
+            public static GUIContent volumeLayerMask = EditorGUIUtility.TrTextContent("Mask", "This Camera is only affected by Volumes in the Layers that are assigned to the Camera.");
+            public static GUIContent volumeTrigger = EditorGUIUtility.TrTextContent("Trigger", "A Transform component that acts as a trigger for Volume blending. If none is set, the Camera itself acts as a trigger.");
 
             public static GUIContent renderPostProcessing = EditorGUIUtility.TrTextContent("Post Processing", "Enable this to make this camera render post-processing effects.");
             public static GUIContent antialiasing = EditorGUIUtility.TrTextContent("Anti-aliasing", "The anti-aliasing method to use.");
@@ -47,6 +44,7 @@ namespace UnityEditor.Rendering.Universal
             public static int[] xrTargetEyeValues = { 0, 1 };
             public static readonly GUIContent xrTargetEye = EditorGUIUtility.TrTextContent("Target Eye", "Allows XR rendering if target eye sets to both eye. Disable XR for this camera otherwise.");
 #endif
+
             public static readonly GUIContent targetTextureLabel = EditorGUIUtility.TrTextContent("Output Texture", "The texture to render this camera into, if none then this camera renders to screen.");
 
             public static readonly string hdrDisabledWarning = "HDR rendering is disabled in the Universal Render Pipeline asset.";
@@ -86,6 +84,9 @@ namespace UnityEditor.Rendering.Universal
             public static int[] antialiasingValues = { 0, 1, 2 };
 
             public static string inspectorOverlayCameraText = L10n.Tr("Inspector Overlay Camera");
+            public static string cameraTargetTextureMSAA = L10n.Tr("Camera target texture requires {0}x MSAA. Universal pipeline {1}.");
+            public static string pipelineMSAACapsSupportSamples = L10n.Tr("is set to support {0}x");
+            public static string pipelineMSAACapsDisabled = L10n.Tr("has MSAA disabled");
         }
     }
 }

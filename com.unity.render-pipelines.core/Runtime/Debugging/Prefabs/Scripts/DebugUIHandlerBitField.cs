@@ -43,7 +43,6 @@ namespace UnityEngine.Rendering.UI
                 toggle.Init();
                 toggleIndex++;
             }
-            ;
 
             // Destroy the remaining toggles outside of the range of the displayed enum.
             for (; toggleIndex < toggles.Count; ++toggleIndex)
@@ -78,7 +77,7 @@ namespace UnityEngine.Rendering.UI
                 m_Field.SetValue(System.Enum.ToObject(m_Field.enumType, 0));
                 foreach (var toggle in toggles)
                 {
-                    if (toggle.getter != null)
+                    if (toggle?.getter != null)
                         toggle.UpdateValueLabel();
                 }
             }

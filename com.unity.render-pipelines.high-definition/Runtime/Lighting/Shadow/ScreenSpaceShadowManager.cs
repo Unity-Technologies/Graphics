@@ -234,6 +234,9 @@ namespace UnityEngine.Rendering.HighDefinition
                 case HDShadowFilteringQuality.High:
                     s_ScreenSpaceShadowsMat.EnableKeyword("SHADOW_HIGH");
                     break;
+                case HDShadowFilteringQuality.VeryHigh:
+                    s_ScreenSpaceShadowsMat.EnableKeyword("SHADOW_VERY_HIGH");
+                    break;
                 default:
                     s_ScreenSpaceShadowsMat.EnableKeyword("SHADOW_MEDIUM");
                     break;

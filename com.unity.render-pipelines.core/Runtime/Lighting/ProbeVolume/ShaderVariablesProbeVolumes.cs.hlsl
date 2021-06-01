@@ -12,6 +12,8 @@ GLOBAL_CBUFFER_START(ShaderVariablesProbeVolumes, b5)
     float _NormalBias;
     float3 _PoolDim;
     float _ViewBias;
+    float _PVSamplingNoise;
+    float3 pad0;
 CBUFFER_END
 
 

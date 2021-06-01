@@ -28,5 +28,11 @@ namespace UnityEngine.Experimental.Rendering
         /// </summary>
         [AdditionalProperty, Tooltip("Whether the scale the bias for Probe Volumes by the minimum distance between probes.")]
         public BoolParameter scaleBiasWithMinProbeDistance = new BoolParameter(false);
+
+        /// <summary>
+        /// Noise to be applied to the sampling position. It can hide seams issues between subdivision levels, but introduces noise.
+        /// </summary>
+        [AdditionalProperty, Tooltip("Noise to be applied to the sampling position. It can hide seams issues between subdivision levels, but introduces noise.")]
+        public ClampedFloatParameter samplingNoise = new ClampedFloatParameter(0.125f, 0.0f, 1.0f);
     }
 }

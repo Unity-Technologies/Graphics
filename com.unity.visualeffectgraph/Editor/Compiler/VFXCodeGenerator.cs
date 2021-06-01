@@ -239,38 +239,6 @@ namespace UnityEditor.VFX
             return matches.Cast<Match>().GroupBy(m => m.Groups[0].Value).Select(g => g.First());
         }
 
-        static private VFXShaderWriter GenerateComputeSourceIndex(VFXContext context)
-        {
-            var r = new VFXShaderWriter();
-            var spawnCountAttribute = new VFXAttribute("spawnCount", VFXValueType.Float);
-            if (!context.GetData().dependenciesIn.Any())
-            {
-                var spawnLinkCount = context.GetData().sourceCount;
-                r.WriteLine("int sourceIndex = 0;");
-
-                if (spawnLinkCount <= 1)
-                    r.WriteLine("/*//Loop with 1 iteration generate a wrong IL Assembly (and actually, useless code)");
-
-                r.WriteLine("uint currentSumSpawnCount = 0u;");
-                r.WriteLineFormat("for (sourceIndex=0; sourceIndex<{0}; sourceIndex++)", spawnLinkCount);
-                r.EnterScope();
-                r.WriteLineFormat("currentSumSpawnCount += uint({0});", context.GetData().GetLoadAttributeCode(spawnCountAttribute, VFXAttributeLocation.Source));
-                r.WriteLine("if (id < currentSumSpawnCount)");
-                r.EnterScope();
-                r.WriteLine("break;");
-                r.ExitScope();
-                r.ExitScope();
-
-                if (spawnLinkCount <= 1)
-                    r.WriteLine("*/");
-            }
-            else
-            {
-                /* context invalid or GPU event */
-            }
-            return r;
-        }
-
         static private StringBuilder GetFlattenedTemplateContent(string path, List<string> includes, IEnumerable<string> defines, HashSet<string> dependencies)
         {
             var formattedPath = FormatPath(path);
@@ -569,9 +537,11 @@ namespace UnityEditor.VFX
             var allSourceAttributes = context.GetData().GetAttributes().Where(a => (context.GetData().IsSourceAttributeUsed(a.attrib, context)));
 
             var globalDeclaration = new VFXShaderWriter();
+            globalDeclaration.WriteBufferTypeDeclaration(contextData.graphicsBufferUsage.Values.Distinct());
+            globalDeclaration.WriteLine();
             globalDeclaration.WriteCBuffer(contextData.uniformMapper, "parameters");
             globalDeclaration.WriteLine();
-            globalDeclaration.WriteBuffer(contextData.uniformMapper);
+            globalDeclaration.WriteBuffer(contextData.uniformMapper, contextData.graphicsBufferUsage);
             globalDeclaration.WriteLine();
             globalDeclaration.WriteTexture(contextData.uniformMapper);
             globalDeclaration.WriteAttributeStruct(allCurrentAttributes.Select(a => a.attrib), "Attributes");
@@ -702,13 +672,6 @@ namespace UnityEditor.VFX
             ReplaceMultiline(stringBuilder, "${VFXAdditionalInterpolantsGeneration}", additionalInterpolantsGeneration.builder);
             ReplaceMultiline(stringBuilder, "${VFXAdditionalInterpolantsDeclaration}", additionalInterpolantsDeclaration.builder);
             ReplaceMultiline(stringBuilder, "${VFXAdditionalInterpolantsPreparation}", additionalInterpolantsPreparation.builder);
-
-            //< Compute sourceIndex
-            if (stringBuilder.ToString().Contains("${VFXComputeSourceIndex}"))
-            {
-                var r = GenerateComputeSourceIndex(context);
-                ReplaceMultiline(stringBuilder, "${VFXComputeSourceIndex}", r.builder);
-            }
 
             //< Load Attribute
             if (stringBuilder.ToString().Contains("${VFXLoadAttributes}"))

@@ -34,7 +34,8 @@ namespace UnityEngine.Rendering.HighDefinition
             RemoveCookieCubeAtlasToOctahedral2D,
             RoughDistortion,
             VirtualTexturing,
-            AddedHDRenderPipelineGlobalSettings
+            AddedHDRenderPipelineGlobalSettings,
+            DecalSurfaceGradient,
             // If you add more steps here, do not clear settings that are used for the migration to the HDRP Global Settings asset
         }
 
@@ -203,6 +204,10 @@ namespace UnityEngine.Rendering.HighDefinition
                 data.m_RenderPipelineSettings.m_ObsoleteDecalLayerName6 = null;
                 data.m_RenderPipelineSettings.m_ObsoleteDecalLayerName7 = null;
 #pragma warning restore 618
+            }) ,
+            MigrationStep.New(Version.DecalSurfaceGradient, (HDRenderPipelineAsset data) =>
+            {
+                data.m_RenderPipelineSettings.supportSurfaceGradient = false;
             })
         );
         #endregion
@@ -295,8 +300,11 @@ namespace UnityEngine.Rendering.HighDefinition
                 }
             }
 
-            for (int i = 0; i <= packageRegistrationEventArgs.changedFrom.Count; i++)
+            for (int i = 0; i <= packageRegistrationEventArgs.changedTo.Count; i++)
             {
+                if (i >= packageRegistrationEventArgs.changedTo.Count)
+                    continue;
+
                 if (packageRegistrationEventArgs.changedTo[i].name == packageName)
                 {
                     MigrateDueToHDRPPackageUpdate();

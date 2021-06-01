@@ -13,9 +13,40 @@ namespace UnityEngine.Experimental.Rendering
     /// </summary>
     public struct ProbeVolumeSystemParameters
     {
+        /// <summary>
+        /// The memory budget determining the size of the textures containing SH data.
+        /// </summary>
         public ProbeVolumeTextureMemoryBudget memoryBudget;
+        /// <summary>
+        /// The debug mesh used to draw probes in the debug view.
+        /// </summary>
         public Mesh probeDebugMesh;
+        /// <summary>
+        /// The shader used to visualize the probes in the debug view.
+        /// </summary>
         public Shader probeDebugShader;
+
+        public ProbeVolumeSceneBounds sceneBounds;
+    }
+
+    public struct ProbeVolumeShadingParameters
+    {
+        /// <summary>
+        /// Normal bias to apply to the position used to sample probe volumes.
+        /// </summary>
+        public float normalBias;
+        /// <summary>
+        /// View bias to apply to the position used to sample probe volumes.
+        /// </summary>
+        public float viewBias;
+        /// <summary>
+        /// Whether to scale the biases with the minimum distance between probes.
+        /// </summary>
+        public bool scaleBiasByMinDistanceBetweenProbes;
+        /// <summary>
+        /// Noise to be applied to the sampling position. It can hide seams issues between subdivision levels, but introduces noise.
+        /// </summary>
+        public float samplingNoise;
     }
 
     /// <summary>
@@ -262,6 +293,7 @@ namespace UnityEngine.Experimental.Rendering
         Dictionary<RegId, List<Chunk>>  m_Registry = new Dictionary<RegId, List<Chunk>>();
 
         internal Dictionary<int, Cell> cells = new Dictionary<int, Cell>();
+        internal ProbeVolumeSceneBounds sceneBounds;
 
         bool m_BricksLoaded = false;
         Dictionary<string, List<RegId>> m_AssetPathToBricks = new Dictionary<string, List<RegId>>();
@@ -277,16 +309,21 @@ namespace UnityEngine.Experimental.Rendering
 
         bool m_NeedLoadAsset = false;
         bool m_ProbeReferenceVolumeInit = false;
+        internal bool isInitialized => m_ProbeReferenceVolumeInit;
+
         // Similarly the index dimensions come from the authoring component; if a change happens
         // a pending request for re-init (and what it implies) is added from the editor.
         Vector3Int m_PendingIndexDimChange;
         bool m_NeedsIndexDimChange = false;
+        bool m_HasChangedIndexDim = false;
 
-        private int m_CBShaderID = Shader.PropertyToID("ShaderVariablesProbeVolumes");
+        int m_CBShaderID = Shader.PropertyToID("ShaderVariablesProbeVolumes");
 
         private int m_NumberOfCellsLoadedPerFrame = 2;
 
         ProbeVolumeTextureMemoryBudget m_MemoryBudget;
+
+        internal bool clearAssetsOnVolumeClear = false;
 
         /// <summary>
         /// Get the memory budget for the Probe Volume system.
@@ -330,6 +367,13 @@ namespace UnityEngine.Experimental.Rendering
             InitializeDebug(parameters.probeDebugMesh, parameters.probeDebugShader);
             InitProbeReferenceVolume(kProbeIndexPoolAllocationSize, m_MemoryBudget, m_PendingIndexDimChange);
             m_IsInitialized = true;
+            sceneBounds = parameters.sceneBounds;
+#if UNITY_EDITOR
+            if (sceneBounds != null)
+            {
+                UnityEditor.SceneManagement.EditorSceneManager.sceneSaved += sceneBounds.UpdateSceneBounds;
+            }
+#endif
         }
 
         /// Cleanup the Probe Volume system.
@@ -365,7 +409,7 @@ namespace UnityEngine.Experimental.Rendering
                 indexDimension = Vector3Int.Max(indexDimension, a.maxCellIndex);
 
             m_PendingIndexDimChange = indexDimension;
-            m_NeedsIndexDimChange = true;
+            m_NeedsIndexDimChange = m_Index == null || (m_Index != null && indexDimension != m_Index.GetIndexDimension());
         }
 
         internal void AddPendingAssetRemoval(ProbeVolumeAsset asset)
@@ -417,7 +461,12 @@ namespace UnityEngine.Experimental.Rendering
             {
                 CleanupLoadedData();
                 InitProbeReferenceVolume(kProbeIndexPoolAllocationSize, m_MemoryBudget, m_PendingIndexDimChange);
+                m_HasChangedIndexDim = true;
                 m_NeedsIndexDimChange = false;
+            }
+            else
+            {
+                m_HasChangedIndexDim = false;
             }
         }
 
@@ -440,17 +489,18 @@ namespace UnityEngine.Experimental.Rendering
 
         void PerformPendingLoading()
         {
-            LoadPendingCells();
-
             if ((m_PendingAssetsToBeLoaded.Count == 0 && m_ActiveAssets.Count == 0) || !m_NeedLoadAsset || !m_ProbeReferenceVolumeInit)
                 return;
 
             m_Pool.EnsureTextureValidity();
 
             // Load the ones that are already active but reload if we said we need to load
-            foreach (var asset in m_ActiveAssets.Values)
+            if (m_HasChangedIndexDim)
             {
-                LoadAsset(asset);
+                foreach (var asset in m_ActiveAssets.Values)
+                {
+                    LoadAsset(asset);
+                }
             }
 
             foreach (var asset in m_PendingAssetsToBeLoaded.Values)
@@ -519,6 +569,7 @@ namespace UnityEngine.Experimental.Rendering
             PerformPendingDeletion();
             PerformPendingIndexDimensionChangeAndInit();
             PerformPendingLoading();
+            LoadPendingCells();
         }
 
         /// <summary>
@@ -531,9 +582,19 @@ namespace UnityEngine.Experimental.Rendering
         {
             if (!m_ProbeReferenceVolumeInit)
             {
+                int indexSize = 0;
+                try
+                {
+                    indexSize = checked(indexDimensions.x * (indexDimensions.y + 1) * indexDimensions.z);
+                }
+                catch
+                {
+                    Debug.LogError($"Index Dimension too big: {indexDimensions}. Please reduce the area covered by the probe volumes.");
+                    return;
+                }
                 Profiler.BeginSample("Initialize Reference Volume");
                 m_Pool = new ProbeBrickPool(allocationSize, memoryBudget);
-                if ((indexDimensions.x * (indexDimensions.y + 1) * indexDimensions.z) == 0)
+                if (indexSize == 0)
                 {
                     // Give a momentarily dummy size to allow the system to function with no asset assigned.
                     indexDimensions = new Vector3Int(1, 1, 1);
@@ -555,8 +616,10 @@ namespace UnityEngine.Experimental.Rendering
                 m_ProbeReferenceVolumeInit = true;
 
                 ClearDebugData();
+
+                m_NeedLoadAsset = true;
+                m_NeedsIndexDimChange = true;
             }
-            m_NeedLoadAsset = true;
         }
 
         /// <summary>
@@ -607,22 +670,23 @@ namespace UnityEngine.Experimental.Rendering
             m_Transform.refSpaceToWS = Matrix4x4.TRS(m_Transform.posWS, m_Transform.rot, Vector3.one * m_Transform.scale);
         }
 
-        internal void SetMaxSubdivision(int maxSubdivision) { m_MaxSubdivision = System.Math.Min(maxSubdivision, ProbeBrickIndex.kMaxSubdivisionLevels); }
-        internal static int CellSize(int subdivisionLevel) { return (int)Mathf.Pow(ProbeBrickPool.kBrickCellCount, subdivisionLevel); }
-        internal float BrickSize(int subdivisionLevel) { return m_Transform.scale * CellSize(subdivisionLevel); }
-        internal float MinBrickSize() { return m_Transform.scale; }
-        internal float MaxBrickSize() { return BrickSize(m_MaxSubdivision); }
-        internal Matrix4x4 GetRefSpaceToWS() { return m_Transform.refSpaceToWS; }
-        internal RefVolTransform GetTransform() { return m_Transform; }
+        internal void SetMaxSubdivision(int maxSubdivision) => m_MaxSubdivision = System.Math.Min(maxSubdivision, ProbeBrickIndex.kMaxSubdivisionLevels);
+        internal static int CellSize(int subdivisionLevel) => (int)Mathf.Pow(ProbeBrickPool.kBrickCellCount, subdivisionLevel);
+        internal float BrickSize(int subdivisionLevel) => m_Transform.scale * CellSize(subdivisionLevel);
+        internal float MinBrickSize() => m_Transform.scale;
+        internal float MaxBrickSize() => BrickSize(m_MaxSubdivision - 1);
+        internal Matrix4x4 GetRefSpaceToWS() => m_Transform.refSpaceToWS;
+        internal RefVolTransform GetTransform() => m_Transform;
         internal int GetMaxSubdivision() => m_MaxSubdivision;
         internal int GetMaxSubdivision(float multiplier) => Mathf.CeilToInt(m_MaxSubdivision * multiplier);
-        internal float MinDistanceBetweenProbes() { return MinBrickSize() / (ProbeBrickPool.kBrickProbeCountPerDim - 1); }
+        internal float GetDistanceBetweenProbes(int subdivisionLevel) => BrickSize(subdivisionLevel) / 3.0f;
+        internal float MinDistanceBetweenProbes() => GetDistanceBetweenProbes(0);
 
         /// <summary>
         /// Returns whether any brick data has been loaded.
         /// </summary>
         /// <returns></returns>
-        public bool DataHasBeenLoaded() { return m_BricksLoaded; }
+        public bool DataHasBeenLoaded() => m_BricksLoaded;
 
         internal delegate void SubdivisionDel(RefVolTransform refSpaceToWS, int subdivisionLevel, List<Brick> inBricks, List<BrickFlags> outControlFlags);
 
@@ -633,6 +697,12 @@ namespace UnityEngine.Experimental.Rendering
                 m_Pool.Clear();
                 m_Index.Clear();
                 cells.Clear();
+            }
+
+            if (clearAssetsOnVolumeClear)
+            {
+                m_PendingAssetsToBeLoaded.Clear();
+                m_ActiveAssets.Clear();
             }
         }
 
@@ -743,7 +813,7 @@ namespace UnityEngine.Experimental.Rendering
                     Profiler.BeginSample("Cull bricks");
                     for (int i = m_TmpBricks[0].Count - 1; i >= 0; i--)
                     {
-                        if (!ProbeVolumePositioning.OBBIntersect(ref m_Transform, m_TmpBricks[0][i], ref cellVolume))
+                        if (!ProbeVolumePositioning.OBBIntersect(m_Transform, m_TmpBricks[0][i], cellVolume))
                         {
                             m_TmpBricks[0].RemoveAt(i);
                         }
@@ -759,9 +829,9 @@ namespace UnityEngine.Experimental.Rendering
 #endif
 
         // Converts brick information into positional data at kBrickProbeCountPerDim * kBrickProbeCountPerDim * kBrickProbeCountPerDim resolution
-        internal void ConvertBricks(List<Brick> bricks, Vector3[] outProbePositions)
+        internal void ConvertBricksToPositions(List<Brick> bricks, Vector3[] outProbePositions)
         {
-            Profiler.BeginSample("ConvertBricks");
+            Profiler.BeginSample("ConvertBricksToPositions");
             Matrix4x4 m = GetRefSpaceToWS();
             int posIdx = 0;
 
@@ -917,12 +987,13 @@ namespace UnityEngine.Experimental.Rendering
         /// Update the constant buffer used by Probe Volumes in shaders.
         /// </summary>
         /// <param name="cmd">A command buffer used to perform the data update.</param>
-        /// <param name="normalBias">Normal bias to apply to the position used to sample probe volumes.</param>
-        /// <param name="viewBias">View bias to apply to the position used to sample probe volumes.</param>
-        /// <param name="scaleBiasByMinDistanceBetweenProbes">Whether to scale the biases with the minimum distance between probes.</param>
-        public void UpdateConstantBuffer(CommandBuffer cmd, float normalBias, float viewBias, bool scaleBiasByMinDistanceBetweenProbes)
+        /// <param name="parameters">Parameters to be used when sampling the probe volume.</param>
+        public void UpdateConstantBuffer(CommandBuffer cmd, ProbeVolumeShadingParameters parameters)
         {
-            if (scaleBiasByMinDistanceBetweenProbes)
+            float normalBias = parameters.normalBias;
+            float viewBias = parameters.viewBias;
+
+            if (parameters.scaleBiasByMinDistanceBetweenProbes)
             {
                 normalBias *= MinDistanceBetweenProbes();
                 viewBias *= MinDistanceBetweenProbes();
@@ -934,6 +1005,8 @@ namespace UnityEngine.Experimental.Rendering
             shaderVars._NormalBias = normalBias;
             shaderVars._PoolDim = m_Pool.GetPoolDimensions();
             shaderVars._ViewBias = viewBias;
+            shaderVars._PVSamplingNoise = parameters.samplingNoise;
+            shaderVars.pad0 = Vector2.zero;
 
             ConstantBuffer.PushGlobal(cmd, shaderVars, m_CBShaderID);
         }

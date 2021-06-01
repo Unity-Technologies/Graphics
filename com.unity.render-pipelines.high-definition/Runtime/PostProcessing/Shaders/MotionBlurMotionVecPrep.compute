@@ -162,7 +162,7 @@ void MotionVecPreppingCS(uint3 dispatchThreadId : SV_DispatchThreadID)
         )
     {
 
-        PositionInputs posInput = GetPositionInput(dispatchThreadId.xy, _ScreenSize.zw, depth, UNITY_MATRIX_I_VP, UNITY_MATRIX_V);
+        PositionInputs posInput = GetPositionInput(dispatchThreadId.xy, _PostProcessScreenSize.zw, depth, UNITY_MATRIX_I_VP, UNITY_MATRIX_V);
 
         float2 finalMotionVec = ComputeMotionVec(posInput, motionVec);
         motionVecAndDepth.xy = EncodeMotionVector(finalMotionVec);

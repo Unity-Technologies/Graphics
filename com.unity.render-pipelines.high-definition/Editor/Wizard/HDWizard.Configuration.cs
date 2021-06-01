@@ -298,14 +298,14 @@ namespace UnityEditor.Rendering.HighDefinition
         void RestartFixAllAfterDomainReload()
         {
             if (m_Fixer.remainingFixes > 0)
-                HDProjectSettings.wizardNeedToRunFixAllAgainAfterDomainReload = true;
+                HDUserSettings.wizardNeedToRunFixAllAgainAfterDomainReload = true;
         }
 
         void CheckPersistentFixAll()
         {
-            if (HDProjectSettings.wizardNeedToRunFixAllAgainAfterDomainReload)
+            if (HDUserSettings.wizardNeedToRunFixAllAgainAfterDomainReload)
             {
-                switch ((Configuration)HDProjectSettings.wizardActiveTab)
+                switch ((Configuration)HDUserSettings.wizardActiveTab)
                 {
                     case Configuration.HDRP:
                         FixHDRPAll();
@@ -317,7 +317,7 @@ namespace UnityEditor.Rendering.HighDefinition
                         FixDXRAll();
                         break;
                 }
-                m_Fixer.Add(() => HDProjectSettings.wizardNeedToRunFixAllAgainAfterDomainReload = false);
+                m_Fixer.Add(() => HDUserSettings.wizardNeedToRunFixAllAgainAfterDomainReload = false);
             }
         }
 
@@ -635,7 +635,7 @@ namespace UnityEditor.Rendering.HighDefinition
             => PlayerSettings.SetUseDefaultGraphicsAPIs(CalculateSelectedBuildTarget(), false);
 
         bool IsDXRDirect3D12Correct()
-            => (SystemInfo.graphicsDeviceType == GraphicsDeviceType.Direct3D12) && !HDProjectSettings.wizardNeedRestartAfterChangingToDX12;
+            => (SystemInfo.graphicsDeviceType == GraphicsDeviceType.Direct3D12) && !HDUserSettings.wizardNeedRestartAfterChangingToDX12;
 
         void FixDXRDirect3D12(bool fromAsyncUnused)
         {
@@ -660,7 +660,7 @@ namespace UnityEditor.Rendering.HighDefinition
                             .Concat(PlayerSettings.GetGraphicsAPIs(buidTarget))
                             .ToArray());
                 }
-                HDProjectSettings.wizardNeedRestartAfterChangingToDX12 = true;
+                HDUserSettings.wizardNeedRestartAfterChangingToDX12 = true;
                 m_Fixer.Add(() => ChangedFirstGraphicAPI(buidTarget)); //register reboot at end of operations
             }
         }
@@ -678,18 +678,18 @@ namespace UnityEditor.Rendering.HighDefinition
                     "You've changed the active graphics API. This requires a restart of the Editor. After restarting, finish fixing DXR configuration by launching the wizard again.",
                     "Restart Editor", "Not now"))
                 {
-                    HDProjectSettings.wizardNeedRestartAfterChangingToDX12 = false;
+                    HDUserSettings.wizardNeedRestartAfterChangingToDX12 = false;
                     RequestCloseAndRelaunchWithCurrentArguments();
                 }
                 else
-                    EditorApplication.quitting += () => HDProjectSettings.wizardNeedRestartAfterChangingToDX12 = false;
+                    EditorApplication.quitting += () => HDUserSettings.wizardNeedRestartAfterChangingToDX12 = false;
             }
         }
 
         void CheckPersistantNeedReboot()
         {
-            if (HDProjectSettings.wizardNeedRestartAfterChangingToDX12)
-                EditorApplication.quitting += () => HDProjectSettings.wizardNeedRestartAfterChangingToDX12 = false;
+            if (HDUserSettings.wizardNeedRestartAfterChangingToDX12)
+                EditorApplication.quitting += () => HDUserSettings.wizardNeedRestartAfterChangingToDX12 = false;
         }
 
         bool IsDXRResourcesCorrect()
@@ -709,7 +709,7 @@ namespace UnityEditor.Rendering.HighDefinition
             // The D3D12 is a separate check in the wizard, so it is fine not to display an error in case we are not D3D12.
             if (!SystemInfo.supportsRayTracing && IsDXRDirect3D12Correct())
                 Debug.LogError("Your hardware and/or OS don't support DXR!");
-            if (!HDProjectSettings.wizardNeedRestartAfterChangingToDX12 && PlayerSettings.GetGraphicsAPIs(CalculateSelectedBuildTarget()).FirstOrDefault() != GraphicsDeviceType.Direct3D12)
+            if (!HDUserSettings.wizardNeedRestartAfterChangingToDX12 && PlayerSettings.GetGraphicsAPIs(CalculateSelectedBuildTarget()).FirstOrDefault() != GraphicsDeviceType.Direct3D12)
             {
                 Debug.LogWarning("DXR is supported only with DX12");
             }

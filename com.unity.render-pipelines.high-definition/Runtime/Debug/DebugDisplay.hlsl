@@ -100,22 +100,25 @@ float3 GetTextureDataDebug(uint paramId, float2 uv, Texture2D tex, float4 texelS
 {
     float3 outColor = originalColor;
 
+    // TEXTURE2D_ARGS macro required for gles2 compatibility (URP), sampler is not used.
+    uint mipCount = GetMipCount(TEXTURE2D_ARGS(tex, s_point_clamp_sampler));
+
     switch (paramId)
     {
     case DEBUGMIPMAPMODE_MIP_RATIO:
-        outColor = GetDebugMipColorIncludingMipReduction(originalColor, TEXTURE2D_ARGS(tex, s_point_clamp_sampler), texelSize, uv, mipInfo);
+        outColor = GetDebugMipColorIncludingMipReduction(originalColor, mipCount, texelSize, uv, mipInfo);
         break;
     case DEBUGMIPMAPMODE_MIP_COUNT:
-        outColor = GetDebugMipCountColor(originalColor, TEXTURE2D_ARGS(tex, s_point_clamp_sampler));
+        outColor = GetDebugMipCountColor(originalColor, mipCount);
         break;
     case DEBUGMIPMAPMODE_MIP_COUNT_REDUCTION:
-        outColor = GetDebugMipReductionColor(TEXTURE2D_ARGS(tex, s_point_clamp_sampler), mipInfo);
+        outColor = GetDebugMipReductionColor(mipCount, mipInfo);
         break;
     case DEBUGMIPMAPMODE_STREAMING_MIP_BUDGET:
-        outColor = GetDebugStreamingMipColor(TEXTURE2D_ARGS(tex, s_point_clamp_sampler), mipInfo);
+        outColor = GetDebugStreamingMipColor(mipCount, mipInfo);
         break;
     case DEBUGMIPMAPMODE_STREAMING_MIP:
-        outColor = GetDebugStreamingMipColorBlended(originalColor, TEXTURE2D_ARGS(tex, s_point_clamp_sampler), mipInfo);
+        outColor = GetDebugStreamingMipColorBlended(originalColor, mipCount, mipInfo);
         break;
     }
 

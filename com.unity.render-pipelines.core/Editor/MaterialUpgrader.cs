@@ -37,6 +37,14 @@ namespace UnityEditor.Rendering
         string m_OldShader;
         string m_NewShader;
 
+        /// <summary>
+        /// Retrieves path to new shader.
+        /// </summary>
+        public string NewShaderPath
+        {
+            get => m_NewShader;
+        }
+
         MaterialFinalizer m_Finalizer;
 
         Dictionary<string, string> m_TextureRename = new Dictionary<string, string>();
@@ -56,6 +64,36 @@ namespace UnityEditor.Rendering
             public float setVal, unsetVal;
         }
         List<KeywordFloatRename> m_KeywordFloatRename = new List<KeywordFloatRename>();
+
+        /// <summary>
+        /// Type of property to rename.
+        /// </summary>
+        public enum MaterialPropertyType
+        {
+            /// <summary>Texture reference property.</summary>
+            Texture,
+            /// <summary>Float property.</summary>
+            Float,
+            /// <summary>Color property.</summary>
+            Color
+        }
+
+        /// <summary>
+        /// Retrieves a collection of renamed parameters of a specific MaterialPropertyType.
+        /// </summary>
+        /// <param name="type">Material Property Type</param>
+        /// <returns>Dictionary of property names to their renamed values.</returns>
+        /// <exception cref="ArgumentException">type is not valid.</exception>
+        public IReadOnlyDictionary<string, string> GetPropertyRenameMap(MaterialPropertyType type)
+        {
+            switch (type)
+            {
+                case MaterialPropertyType.Texture: return m_TextureRename;
+                case MaterialPropertyType.Float: return m_FloatRename;
+                case MaterialPropertyType.Color: return m_ColorRename;
+                default: throw new ArgumentException(nameof(type));
+            }
+        }
 
         /// <summary>
         /// Upgrade Flags
