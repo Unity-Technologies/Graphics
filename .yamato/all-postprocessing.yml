@@ -19,7 +19,7 @@ PR_PostProcessing_trunk:
         CUSTOM_REVISION: '{{trunk.changeset.id}}'
         UTR_VERSION: "current"
         TEST_FILTER: .*
-        USE_CACHE: true
+        CACHE_ARGS: '{{cache.flags}}'
 Nightly_PostProcessing_trunk:
     name: Nightly PostProcessing - trunk
     dependencies:
@@ -49,7 +49,7 @@ Nightly_PostProcessing_trunk:
         CUSTOM_REVISION: '{{trunk.changeset.id}}'
         UTR_VERSION: "current"
         TEST_FILTER: .*
-        USE_CACHE: true
+        CACHE_ARGS: '{{cache.flags}}'
 PR_PostProcessing_CUSTOM-REVISION:
     name: PostProcessing PR Job - CUSTOM-REVISION
     dependencies:

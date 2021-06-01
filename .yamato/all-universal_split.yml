@@ -35,7 +35,7 @@ PR_Universal_Split_trunk:
         CUSTOM_REVISION: '{{trunk.changeset.id}}'
         UTR_VERSION: "current"
         TEST_FILTER: .*
-        USE_CACHE: true
+        CACHE_ARGS: '{{cache.flags}}'
 Nightly_Universal_Split_trunk:
     name: Nightly Universal_Split - trunk
     dependencies:
@@ -63,7 +63,7 @@ Nightly_Universal_Split_trunk:
         CUSTOM_REVISION: '{{trunk.changeset.id}}'
         UTR_VERSION: "current"
         TEST_FILTER: .*
-        USE_CACHE: true
+        CACHE_ARGS: '{{cache.flags}}'
 PR_Universal_Split_CUSTOM-REVISION:
     name: Universal_Split PR Job - CUSTOM-REVISION
     dependencies:

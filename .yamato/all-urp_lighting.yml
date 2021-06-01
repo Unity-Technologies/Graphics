@@ -17,7 +17,7 @@ PR_URP_Lighting_trunk:
         CUSTOM_REVISION: '{{trunk.changeset.id}}'
         UTR_VERSION: "current"
         TEST_FILTER: .*
-        USE_CACHE: true
+        CACHE_ARGS: '{{cache.flags}}'
 Nightly_URP_Lighting_trunk:
     name: Nightly URP_Lighting - trunk
     dependencies:
@@ -65,7 +65,7 @@ Nightly_URP_Lighting_trunk:
         CUSTOM_REVISION: '{{trunk.changeset.id}}'
         UTR_VERSION: "current"
         TEST_FILTER: .*
-        USE_CACHE: true
+        CACHE_ARGS: '{{cache.flags}}'
 PR_URP_Lighting_CUSTOM-REVISION:
     name: URP_Lighting PR Job - CUSTOM-REVISION
     dependencies:

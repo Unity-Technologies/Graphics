@@ -20,7 +20,7 @@ PR_HDRP_PerformanceTests_trunk:
         UTR_VERSION: "current"
         TEST_FILTER: .*
         GIT_BRANCH: master
-        USE_CACHE: true
+        CACHE_ARGS: '{{cache.flags}}'
 Nightly_HDRP_PerformanceTests_trunk:
     name: Nightly HDRP_PerformanceTests - trunk
     dependencies:
@@ -31,7 +31,7 @@ Nightly_HDRP_PerformanceTests_trunk:
         UTR_VERSION: "current"
         TEST_FILTER: .*
         GIT_BRANCH: master
-        USE_CACHE: true
+        CACHE_ARGS: '{{cache.flags}}'
 PR_HDRP_PerformanceTests_CUSTOM-REVISION:
     name: HDRP_PerformanceTests PR Job - CUSTOM-REVISION
     dependencies:

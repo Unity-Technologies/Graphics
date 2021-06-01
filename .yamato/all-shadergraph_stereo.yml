@@ -19,7 +19,7 @@ PR_ShaderGraph_Stereo_trunk:
         CUSTOM_REVISION: '{{trunk.changeset.id}}'
         UTR_VERSION: "current"
         TEST_FILTER: .*
-        USE_CACHE: true
+        CACHE_ARGS: '{{cache.flags}}'
 Nightly_ShaderGraph_Stereo_trunk:
     name: Nightly ShaderGraph_Stereo - trunk
     dependencies:
@@ -29,7 +29,7 @@ Nightly_ShaderGraph_Stereo_trunk:
         CUSTOM_REVISION: '{{trunk.changeset.id}}'
         UTR_VERSION: "current"
         TEST_FILTER: .*
-        USE_CACHE: true
+        CACHE_ARGS: '{{cache.flags}}'
 PR_ShaderGraph_Stereo_CUSTOM-REVISION:
     name: ShaderGraph_Stereo PR Job - CUSTOM-REVISION
     dependencies:

@@ -17,7 +17,7 @@ HDRP_Hybrid_Linux_Vulkan_playmode_mono_Linear_trunk:
     variables:
         UPM_REGISTRY: https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates
         CUSTOM_REVISION: '{{trunk.changeset.id}}'
-        USE_CACHE: true
+        CACHE_ARGS: '{{cache.flags}}'
         UTR_VERSION: "current"
         TEST_FILTER: .*
     commands:
@@ -32,7 +32,7 @@ HDRP_Hybrid_Linux_Vulkan_playmode_mono_Linear_trunk:
          retries: 2
       -  command: sudo unity-downloader-cli --source-file unity_revision.txt -c editor -c il2cpp  --wait --published-only
          retries: 2
-      -  command: DISPLAY=:0.0 ./utr --artifacts_path=TestProjects/HDRP_HybridTests/test-results --compilation-errors-as-warnings --editor-location=.Editor --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-force-vulkan" --scripting-backend=Mono2x --suite=playmode --testfilter=$TEST_FILTER --testproject=./TestProjects/HDRP_HybridTests --zero-tests-are-ok=1 {% if $USE_CACHE==true %} {{cache.flags}} {% endif %}
+      -  command: DISPLAY=:0.0 ./utr --artifacts_path=TestProjects/HDRP_HybridTests/test-results --compilation-errors-as-warnings --editor-location=.Editor --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-force-vulkan" --scripting-backend=Mono2x --suite=playmode --testfilter=$TEST_FILTER --testproject=./TestProjects/HDRP_HybridTests --zero-tests-are-ok=1
          retries: 2
     artifacts:
         logs:
@@ -51,7 +51,7 @@ HDRP_Hybrid_Linux_Vulkan_Standalone_mono_Linear_trunk:
     variables:
         UPM_REGISTRY: https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates
         CUSTOM_REVISION: '{{trunk.changeset.id}}'
-        USE_CACHE: true
+        CACHE_ARGS: '{{cache.flags}}'
         UTR_VERSION: "current"
         TEST_FILTER: .*
     commands:
@@ -79,7 +79,7 @@ Build_HDRP_Hybrid_Linux_Vulkan_Standalone_mono_Linear_trunk:
     variables:
         UPM_REGISTRY: https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates
         CUSTOM_REVISION: '{{trunk.changeset.id}}'
-        USE_CACHE: true
+        CACHE_ARGS: '{{cache.flags}}'
         UTR_VERSION: "current"
         TEST_FILTER: .*
     commands:
@@ -94,7 +94,7 @@ Build_HDRP_Hybrid_Linux_Vulkan_Standalone_mono_Linear_trunk:
          retries: 2
       -  command: sudo unity-downloader-cli --source-file unity_revision.txt -c editor -c il2cpp  --wait --published-only
          retries: 2
-      -  command: DISPLAY=:0.0 ./utr --artifacts_path=TestProjects/HDRP_HybridTests/test-results --build-only --compilation-errors-as-warnings --editor-location=.Editor --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-executemethod" --extra-editor-arg="SetupProject.ApplySettings" --extra-editor-arg="vulkan" --extra-editor-arg="Linear" --extra-editor-arg="-playergraphicsapi=Vulkan" --platform=StandaloneLinux64 --player-save-path=players --scripting-backend=Mono2x --suite=playmode --testfilter=$TEST_FILTER --testproject=./TestProjects/HDRP_HybridTests --timeout=1200 {% if $USE_CACHE==true %} {{cache.flags}} {% endif %}
+      -  command: DISPLAY=:0.0 ./utr --artifacts_path=TestProjects/HDRP_HybridTests/test-results --build-only --compilation-errors-as-warnings --editor-location=.Editor --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-executemethod" --extra-editor-arg="SetupProject.ApplySettings" --extra-editor-arg="vulkan" --extra-editor-arg="Linear" --extra-editor-arg="-playergraphicsapi=Vulkan" --platform=StandaloneLinux64 --player-save-path=players --scripting-backend=Mono2x --suite=playmode --testfilter=$TEST_FILTER --testproject=./TestProjects/HDRP_HybridTests --timeout=1200
          retries: 2
     artifacts:
         logs:
@@ -130,7 +130,7 @@ HDRP_Hybrid_Linux_Vulkan_playmode_mono_Linear_CUSTOM-REVISION:
          retries: 2
       -  command: sudo unity-downloader-cli --source-file unity_revision.txt -c editor -c il2cpp  --wait --published-only
          retries: 2
-      -  command: DISPLAY=:0.0 ./utr --artifacts_path=TestProjects/HDRP_HybridTests/test-results --compilation-errors-as-warnings --editor-location=.Editor --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-force-vulkan" --scripting-backend=Mono2x --suite=playmode --testfilter=$TEST_FILTER --testproject=./TestProjects/HDRP_HybridTests --zero-tests-are-ok=1 {% if $USE_CACHE==true %} {{cache.flags}} {% endif %}
+      -  command: DISPLAY=:0.0 ./utr --artifacts_path=TestProjects/HDRP_HybridTests/test-results --compilation-errors-as-warnings --editor-location=.Editor --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-force-vulkan" --scripting-backend=Mono2x --suite=playmode --testfilter=$TEST_FILTER --testproject=./TestProjects/HDRP_HybridTests --zero-tests-are-ok=1
          retries: 2
     artifacts:
         logs:
@@ -190,7 +190,7 @@ Build_HDRP_Hybrid_Linux_Vulkan_Standalone_mono_Linear_CUSTOM-REVISION:
          retries: 2
       -  command: sudo unity-downloader-cli --source-file unity_revision.txt -c editor -c il2cpp  --wait --published-only
          retries: 2
-      -  command: DISPLAY=:0.0 ./utr --artifacts_path=TestProjects/HDRP_HybridTests/test-results --build-only --compilation-errors-as-warnings --editor-location=.Editor --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-executemethod" --extra-editor-arg="SetupProject.ApplySettings" --extra-editor-arg="vulkan" --extra-editor-arg="Linear" --extra-editor-arg="-playergraphicsapi=Vulkan" --platform=StandaloneLinux64 --player-save-path=players --scripting-backend=Mono2x --suite=playmode --testfilter=$TEST_FILTER --testproject=./TestProjects/HDRP_HybridTests --timeout=1200 {% if $USE_CACHE==true %} {{cache.flags}} {% endif %}
+      -  command: DISPLAY=:0.0 ./utr --artifacts_path=TestProjects/HDRP_HybridTests/test-results --build-only --compilation-errors-as-warnings --editor-location=.Editor --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-executemethod" --extra-editor-arg="SetupProject.ApplySettings" --extra-editor-arg="vulkan" --extra-editor-arg="Linear" --extra-editor-arg="-playergraphicsapi=Vulkan" --platform=StandaloneLinux64 --player-save-path=players --scripting-backend=Mono2x --suite=playmode --testfilter=$TEST_FILTER --testproject=./TestProjects/HDRP_HybridTests --timeout=1200
          retries: 2
     artifacts:
         logs:

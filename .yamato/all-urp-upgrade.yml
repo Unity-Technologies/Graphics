@@ -19,7 +19,7 @@ PR_urp-upgrade_trunk:
         CUSTOM_REVISION: '{{trunk.changeset.id}}'
         UTR_VERSION: "current"
         TEST_FILTER: .*
-        USE_CACHE: true
+        CACHE_ARGS: '{{cache.flags}}'
 Nightly_urp-upgrade_trunk:
     name: Nightly urp-upgrade - trunk
     dependencies:
@@ -29,7 +29,7 @@ Nightly_urp-upgrade_trunk:
         CUSTOM_REVISION: '{{trunk.changeset.id}}'
         UTR_VERSION: "current"
         TEST_FILTER: .*
-        USE_CACHE: true
+        CACHE_ARGS: '{{cache.flags}}'
 PR_urp-upgrade_CUSTOM-REVISION:
     name: urp-upgrade PR Job - CUSTOM-REVISION
     dependencies:

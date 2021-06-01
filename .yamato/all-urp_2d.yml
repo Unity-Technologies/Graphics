@@ -17,7 +17,7 @@ PR_URP_2D_trunk:
         CUSTOM_REVISION: '{{trunk.changeset.id}}'
         UTR_VERSION: "current"
         TEST_FILTER: .*
-        USE_CACHE: true
+        CACHE_ARGS: '{{cache.flags}}'
 Nightly_URP_2D_trunk:
     name: Nightly URP_2D - trunk
     dependencies:
@@ -61,7 +61,7 @@ Nightly_URP_2D_trunk:
         CUSTOM_REVISION: '{{trunk.changeset.id}}'
         UTR_VERSION: "current"
         TEST_FILTER: .*
-        USE_CACHE: true
+        CACHE_ARGS: '{{cache.flags}}'
 PR_URP_2D_CUSTOM-REVISION:
     name: URP_2D PR Job - CUSTOM-REVISION
     dependencies:

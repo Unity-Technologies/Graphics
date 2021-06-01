@@ -17,7 +17,7 @@ PR_HDRP_Hybrid_trunk:
         CUSTOM_REVISION: '{{trunk.changeset.id}}'
         UTR_VERSION: "current"
         TEST_FILTER: .*
-        USE_CACHE: true
+        CACHE_ARGS: '{{cache.flags}}'
 Nightly_HDRP_Hybrid_trunk:
     name: Nightly HDRP_Hybrid - trunk
     dependencies:
@@ -29,7 +29,7 @@ Nightly_HDRP_Hybrid_trunk:
         CUSTOM_REVISION: '{{trunk.changeset.id}}'
         UTR_VERSION: "current"
         TEST_FILTER: .*
-        USE_CACHE: true
+        CACHE_ARGS: '{{cache.flags}}'
 PR_HDRP_Hybrid_CUSTOM-REVISION:
     name: HDRP_Hybrid PR Job - CUSTOM-REVISION
     dependencies:

@@ -17,7 +17,7 @@ PR_URP_Terrain_trunk:
         CUSTOM_REVISION: '{{trunk.changeset.id}}'
         UTR_VERSION: "current"
         TEST_FILTER: .*
-        USE_CACHE: true
+        CACHE_ARGS: '{{cache.flags}}'
 Nightly_URP_Terrain_trunk:
     name: Nightly URP_Terrain - trunk
     dependencies:
@@ -61,7 +61,7 @@ Nightly_URP_Terrain_trunk:
         CUSTOM_REVISION: '{{trunk.changeset.id}}'
         UTR_VERSION: "current"
         TEST_FILTER: .*
-        USE_CACHE: true
+        CACHE_ARGS: '{{cache.flags}}'
 PR_URP_Terrain_CUSTOM-REVISION:
     name: URP_Terrain PR Job - CUSTOM-REVISION
     dependencies:

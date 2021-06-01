@@ -19,7 +19,7 @@ VikingVillage_BuiltIn_Linux_Vulkan_performance_playmode_runtime_mono_Linear_trun
         CUSTOM_REVISION: '{{trunk.changeset.id}}'
         VV_BUILTIN_BRANCH: built-in
         VV_BUILTIN_REVISION: c61a43cd7ad4ef36f38a0219730d53e8f6e281de
-        USE_CACHE: true
+        CACHE_ARGS: '{{cache.flags}}'
         UTR_VERSION: "current"
         TEST_FILTER: .*
     commands:
@@ -49,7 +49,7 @@ Build_VikingVillage_BuiltIn_Linux_Vulkan_performance_playmode_runtime_mono_Linea
         CUSTOM_REVISION: '{{trunk.changeset.id}}'
         VV_BUILTIN_BRANCH: built-in
         VV_BUILTIN_REVISION: c61a43cd7ad4ef36f38a0219730d53e8f6e281de
-        USE_CACHE: true
+        CACHE_ARGS: '{{cache.flags}}'
         UTR_VERSION: "current"
         TEST_FILTER: .*
     commands:
@@ -88,7 +88,7 @@ Build_VikingVillage_BuiltIn_Linux_Vulkan_performance_playmode_runtime_mono_Linea
          retries: 2
       -  command: sudo unity-downloader-cli --source-file unity_revision.txt -c editor -c il2cpp  --wait --published-only
          retries: 2
-      -  command: DISPLAY=:0.0 ./utr --artifacts_path=TestProjects/Viking-Village-Perf/test-results --build-only --category=URP --editor-location=.Editor --extra-editor-arg="-addscenetobuild=Assets/Scenes/The_Viking_Village.unity" --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-executemethod" --extra-editor-arg="Editor.Setup" --extra-editor-arg="-packageundertestbranch=$GIT_BRANCH" --extra-editor-arg="-packageundertestname=com.unity.render-pipelines.universal" --extra-editor-arg="-packageundertestrev=$GIT_REVISION" --extra-editor-arg="-packageundertestrevdate=$GIT_REVISIONDATE" --extra-editor-arg="-playergraphicsapi=Vulkan" --extra-editor-arg="-scriptingbackend=Mono2x" --platform=StandaloneLinux64 --player-save-path=players --scripting-backend=Mono2x --suite=playmode --testfilter=$TEST_FILTER --testproject=./TestProjects/Viking-Village-Perf --timeout=1200 {% if $USE_CACHE==true %} {{cache.flags}} {% endif %}
+      -  command: DISPLAY=:0.0 ./utr --artifacts_path=TestProjects/Viking-Village-Perf/test-results --build-only --category=URP --editor-location=.Editor --extra-editor-arg="-addscenetobuild=Assets/Scenes/The_Viking_Village.unity" --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-executemethod" --extra-editor-arg="Editor.Setup" --extra-editor-arg="-packageundertestbranch=$GIT_BRANCH" --extra-editor-arg="-packageundertestname=com.unity.render-pipelines.universal" --extra-editor-arg="-packageundertestrev=$GIT_REVISION" --extra-editor-arg="-packageundertestrevdate=$GIT_REVISIONDATE" --extra-editor-arg="-playergraphicsapi=Vulkan" --extra-editor-arg="-scriptingbackend=Mono2x" --platform=StandaloneLinux64 --player-save-path=players --scripting-backend=Mono2x --suite=playmode --testfilter=$TEST_FILTER --testproject=./TestProjects/Viking-Village-Perf --timeout=1200
          retries: 2
     artifacts:
         logs:
@@ -112,7 +112,7 @@ VikingVillage_BuiltIn_Linux_Vulkan_performance_playmode_editor_mono_Linear_trunk
         CUSTOM_REVISION: '{{trunk.changeset.id}}'
         VV_BUILTIN_BRANCH: built-in
         VV_BUILTIN_REVISION: c61a43cd7ad4ef36f38a0219730d53e8f6e281de
-        USE_CACHE: true
+        CACHE_ARGS: '{{cache.flags}}'
         UTR_VERSION: "current"
         TEST_FILTER: .*
     commands:
@@ -151,7 +151,7 @@ VikingVillage_BuiltIn_Linux_Vulkan_performance_playmode_editor_mono_Linear_trunk
          retries: 2
       -  command: sudo unity-downloader-cli --source-file unity_revision.txt -c editor -c il2cpp  --wait --published-only
          retries: 2
-      -  command: DISPLAY=:0.0 ./utr --artifacts_path=TestProjects/Viking-Village-Perf/test-results --category=URP --editor-location=.Editor --extra-editor-arg="-addscenetobuild=Assets/Scenes/The_Viking_Village.unity" --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-executemethod" --extra-editor-arg="Editor.Setup" --extra-editor-arg="-force-vulkan" --extra-editor-arg="-packageundertestbranch=$GIT_BRANCH" --extra-editor-arg="-packageundertestname=com.unity.render-pipelines.universal" --extra-editor-arg="-packageundertestrev=$GIT_REVISION" --extra-editor-arg="-packageundertestrevdate=$GIT_REVISIONDATE" --extra-editor-arg="-scriptingbackend=Mono2x" --performance-project-id=VikingVillage_BuiltIn --report-performance-data --scripting-backend=Mono2x --suite=playmode --testfilter="MemoryAllocation;RuntimeProfilerMetrics" --testproject=./TestProjects/Viking-Village-Perf --zero-tests-are-ok=1 {% if $USE_CACHE==true %} {{cache.flags}} {% endif %}
+      -  command: DISPLAY=:0.0 ./utr --artifacts_path=TestProjects/Viking-Village-Perf/test-results --category=URP --editor-location=.Editor --extra-editor-arg="-addscenetobuild=Assets/Scenes/The_Viking_Village.unity" --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-executemethod" --extra-editor-arg="Editor.Setup" --extra-editor-arg="-force-vulkan" --extra-editor-arg="-packageundertestbranch=$GIT_BRANCH" --extra-editor-arg="-packageundertestname=com.unity.render-pipelines.universal" --extra-editor-arg="-packageundertestrev=$GIT_REVISION" --extra-editor-arg="-packageundertestrevdate=$GIT_REVISIONDATE" --extra-editor-arg="-scriptingbackend=Mono2x" --performance-project-id=VikingVillage_BuiltIn --report-performance-data --scripting-backend=Mono2x --suite=playmode --testfilter="MemoryAllocation;RuntimeProfilerMetrics" --testproject=./TestProjects/Viking-Village-Perf --zero-tests-are-ok=1
          retries: 2
     artifacts:
         logs:
@@ -172,7 +172,7 @@ VikingVillage_BuiltIn_Linux_Vulkan_performance_build_editmode_mono_Linear_trunk:
         CUSTOM_REVISION: '{{trunk.changeset.id}}'
         VV_BUILTIN_BRANCH: built-in
         VV_BUILTIN_REVISION: c61a43cd7ad4ef36f38a0219730d53e8f6e281de
-        USE_CACHE: true
+        CACHE_ARGS: '{{cache.flags}}'
         UTR_VERSION: "current"
         TEST_FILTER: .*
     commands:
@@ -211,7 +211,7 @@ VikingVillage_BuiltIn_Linux_Vulkan_performance_build_editmode_mono_Linear_trunk:
          retries: 2
       -  command: sudo unity-downloader-cli --source-file unity_revision.txt -c editor -c il2cpp  --wait --published-only
          retries: 2
-      -  command: DISPLAY=:0.0 ./utr --artifacts_path=TestProjects/Viking-Village-Perf/test-results --category=URP --editor-location=.Editor --extra-editor-arg="-addscenetobuild=Assets/Scenes/The_Viking_Village.unity" --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-executemethod" --extra-editor-arg="Editor.Setup" --extra-editor-arg="-force-vulkan" --extra-editor-arg="-packageundertestbranch=$GIT_BRANCH" --extra-editor-arg="-packageundertestname=com.unity.render-pipelines.universal" --extra-editor-arg="-packageundertestrev=$GIT_REVISION" --extra-editor-arg="-packageundertestrevdate=$GIT_REVISIONDATE" --extra-editor-arg="-playergraphicsapi=Vulkan" --extra-editor-arg="-scriptingbackend=Mono2x" --performance-project-id=VikingVillage_BuiltIn --platform=editmode --report-performance-data --scripting-backend=Mono2x --suite=editor --testfilter=Build --testproject=./TestProjects/Viking-Village-Perf --zero-tests-are-ok=1 {% if $USE_CACHE==true %} {{cache.flags}} {% endif %}
+      -  command: DISPLAY=:0.0 ./utr %CACHE_ARGS% --artifacts_path=TestProjects/Viking-Village-Perf/test-results --category=URP --editor-location=.Editor --extra-editor-arg="-addscenetobuild=Assets/Scenes/The_Viking_Village.unity" --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-executemethod" --extra-editor-arg="Editor.Setup" --extra-editor-arg="-force-vulkan" --extra-editor-arg="-packageundertestbranch=$GIT_BRANCH" --extra-editor-arg="-packageundertestname=com.unity.render-pipelines.universal" --extra-editor-arg="-packageundertestrev=$GIT_REVISION" --extra-editor-arg="-packageundertestrevdate=$GIT_REVISIONDATE" --extra-editor-arg="-playergraphicsapi=Vulkan" --extra-editor-arg="-scriptingbackend=Mono2x" --performance-project-id=VikingVillage_BuiltIn --platform=editmode --report-performance-data --scripting-backend=Mono2x --suite=editor --testfilter=Build --testproject=./TestProjects/Viking-Village-Perf --zero-tests-are-ok=1
          retries: 2
     artifacts:
         logs:
@@ -299,7 +299,7 @@ Build_VikingVillage_BuiltIn_Linux_Vulkan_performance_playmode_runtime_mono_Linea
          retries: 2
       -  command: sudo unity-downloader-cli --source-file unity_revision.txt -c editor -c il2cpp  --wait --published-only
          retries: 2
-      -  command: DISPLAY=:0.0 ./utr --artifacts_path=TestProjects/Viking-Village-Perf/test-results --build-only --category=URP --editor-location=.Editor --extra-editor-arg="-addscenetobuild=Assets/Scenes/The_Viking_Village.unity" --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-executemethod" --extra-editor-arg="Editor.Setup" --extra-editor-arg="-packageundertestbranch=$GIT_BRANCH" --extra-editor-arg="-packageundertestname=com.unity.render-pipelines.universal" --extra-editor-arg="-packageundertestrev=$GIT_REVISION" --extra-editor-arg="-packageundertestrevdate=$GIT_REVISIONDATE" --extra-editor-arg="-playergraphicsapi=Vulkan" --extra-editor-arg="-scriptingbackend=Mono2x" --platform=StandaloneLinux64 --player-save-path=players --scripting-backend=Mono2x --suite=playmode --testfilter=$TEST_FILTER --testproject=./TestProjects/Viking-Village-Perf --timeout=1200 {% if $USE_CACHE==true %} {{cache.flags}} {% endif %}
+      -  command: DISPLAY=:0.0 ./utr --artifacts_path=TestProjects/Viking-Village-Perf/test-results --build-only --category=URP --editor-location=.Editor --extra-editor-arg="-addscenetobuild=Assets/Scenes/The_Viking_Village.unity" --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-executemethod" --extra-editor-arg="Editor.Setup" --extra-editor-arg="-packageundertestbranch=$GIT_BRANCH" --extra-editor-arg="-packageundertestname=com.unity.render-pipelines.universal" --extra-editor-arg="-packageundertestrev=$GIT_REVISION" --extra-editor-arg="-packageundertestrevdate=$GIT_REVISIONDATE" --extra-editor-arg="-playergraphicsapi=Vulkan" --extra-editor-arg="-scriptingbackend=Mono2x" --platform=StandaloneLinux64 --player-save-path=players --scripting-backend=Mono2x --suite=playmode --testfilter=$TEST_FILTER --testproject=./TestProjects/Viking-Village-Perf --timeout=1200
          retries: 2
     artifacts:
         logs:
@@ -361,7 +361,7 @@ VikingVillage_BuiltIn_Linux_Vulkan_performance_playmode_editor_mono_Linear_CUSTO
          retries: 2
       -  command: sudo unity-downloader-cli --source-file unity_revision.txt -c editor -c il2cpp  --wait --published-only
          retries: 2
-      -  command: DISPLAY=:0.0 ./utr --artifacts_path=TestProjects/Viking-Village-Perf/test-results --category=URP --editor-location=.Editor --extra-editor-arg="-addscenetobuild=Assets/Scenes/The_Viking_Village.unity" --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-executemethod" --extra-editor-arg="Editor.Setup" --extra-editor-arg="-force-vulkan" --extra-editor-arg="-packageundertestbranch=$GIT_BRANCH" --extra-editor-arg="-packageundertestname=com.unity.render-pipelines.universal" --extra-editor-arg="-packageundertestrev=$GIT_REVISION" --extra-editor-arg="-packageundertestrevdate=$GIT_REVISIONDATE" --extra-editor-arg="-scriptingbackend=Mono2x" --performance-project-id=VikingVillage_BuiltIn --report-performance-data --scripting-backend=Mono2x --suite=playmode --testfilter="MemoryAllocation;RuntimeProfilerMetrics" --testproject=./TestProjects/Viking-Village-Perf --zero-tests-are-ok=1 {% if $USE_CACHE==true %} {{cache.flags}} {% endif %}
+      -  command: DISPLAY=:0.0 ./utr --artifacts_path=TestProjects/Viking-Village-Perf/test-results --category=URP --editor-location=.Editor --extra-editor-arg="-addscenetobuild=Assets/Scenes/The_Viking_Village.unity" --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-executemethod" --extra-editor-arg="Editor.Setup" --extra-editor-arg="-force-vulkan" --extra-editor-arg="-packageundertestbranch=$GIT_BRANCH" --extra-editor-arg="-packageundertestname=com.unity.render-pipelines.universal" --extra-editor-arg="-packageundertestrev=$GIT_REVISION" --extra-editor-arg="-packageundertestrevdate=$GIT_REVISIONDATE" --extra-editor-arg="-scriptingbackend=Mono2x" --performance-project-id=VikingVillage_BuiltIn --report-performance-data --scripting-backend=Mono2x --suite=playmode --testfilter="MemoryAllocation;RuntimeProfilerMetrics" --testproject=./TestProjects/Viking-Village-Perf --zero-tests-are-ok=1
          retries: 2
     artifacts:
         logs:
@@ -420,7 +420,7 @@ VikingVillage_BuiltIn_Linux_Vulkan_performance_build_editmode_mono_Linear_CUSTOM
          retries: 2
       -  command: sudo unity-downloader-cli --source-file unity_revision.txt -c editor -c il2cpp  --wait --published-only
          retries: 2
-      -  command: DISPLAY=:0.0 ./utr --artifacts_path=TestProjects/Viking-Village-Perf/test-results --category=URP --editor-location=.Editor --extra-editor-arg="-addscenetobuild=Assets/Scenes/The_Viking_Village.unity" --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-executemethod" --extra-editor-arg="Editor.Setup" --extra-editor-arg="-force-vulkan" --extra-editor-arg="-packageundertestbranch=$GIT_BRANCH" --extra-editor-arg="-packageundertestname=com.unity.render-pipelines.universal" --extra-editor-arg="-packageundertestrev=$GIT_REVISION" --extra-editor-arg="-packageundertestrevdate=$GIT_REVISIONDATE" --extra-editor-arg="-playergraphicsapi=Vulkan" --extra-editor-arg="-scriptingbackend=Mono2x" --performance-project-id=VikingVillage_BuiltIn --platform=editmode --report-performance-data --scripting-backend=Mono2x --suite=editor --testfilter=Build --testproject=./TestProjects/Viking-Village-Perf --zero-tests-are-ok=1 {% if $USE_CACHE==true %} {{cache.flags}} {% endif %}
+      -  command: DISPLAY=:0.0 ./utr %CACHE_ARGS% --artifacts_path=TestProjects/Viking-Village-Perf/test-results --category=URP --editor-location=.Editor --extra-editor-arg="-addscenetobuild=Assets/Scenes/The_Viking_Village.unity" --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-executemethod" --extra-editor-arg="Editor.Setup" --extra-editor-arg="-force-vulkan" --extra-editor-arg="-packageundertestbranch=$GIT_BRANCH" --extra-editor-arg="-packageundertestname=com.unity.render-pipelines.universal" --extra-editor-arg="-packageundertestrev=$GIT_REVISION" --extra-editor-arg="-packageundertestrevdate=$GIT_REVISIONDATE" --extra-editor-arg="-playergraphicsapi=Vulkan" --extra-editor-arg="-scriptingbackend=Mono2x" --performance-project-id=VikingVillage_BuiltIn --platform=editmode --report-performance-data --scripting-backend=Mono2x --suite=editor --testfilter=Build --testproject=./TestProjects/Viking-Village-Perf --zero-tests-are-ok=1
          retries: 2
     artifacts:
         logs:

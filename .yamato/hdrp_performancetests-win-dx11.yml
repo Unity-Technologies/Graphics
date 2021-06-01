@@ -18,7 +18,7 @@ HDRP_PerformanceTests_Win_DX11_performance_memory_il2cpp_Linear_trunk:
         UPM_REGISTRY: https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates
         CUSTOM_REVISION: '{{trunk.changeset.id}}'
         GIT_BRANCH: master
-        USE_CACHE: true
+        CACHE_ARGS: '{{cache.flags}}'
         UTR_VERSION: "current"
         TEST_FILTER: .*
     commands:
@@ -30,7 +30,7 @@ HDRP_PerformanceTests_Win_DX11_performance_memory_il2cpp_Linear_trunk:
       -  command: unity-downloader-cli --source-file unity_revision.txt -c editor -c il2cpp  --wait --published-only
          retries: 2
       -  command: git checkout %GIT_BRANCH%
-      -  command: utr --artifacts_path=TestProjects/HDRP_PerformanceTests/test-results --editor-location=.Editor --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-force-d3d11" --loglevel=verbose --performance-project-version=. --report-performance-data --performance-project-id=HDRP --platform=StandaloneWindows64 --scripting-backend=IL2CPP --suite=playmode --testfilter=Memory --testproject=./TestProjects/HDRP_PerformanceTests --timeout=7200 --zero-tests-are-ok=1 {% if %USE_CACHE%==true %} {{cache.flags}} {% endif %}
+      -  command: utr --artifacts_path=TestProjects/HDRP_PerformanceTests/test-results --editor-location=.Editor --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-force-d3d11" --loglevel=verbose --performance-project-version=. --report-performance-data --performance-project-id=HDRP --platform=StandaloneWindows64 --scripting-backend=IL2CPP --suite=playmode --testfilter=Memory --testproject=./TestProjects/HDRP_PerformanceTests --timeout=7200 --zero-tests-are-ok=1
          retries: 2
     artifacts:
         logs:
@@ -51,7 +51,7 @@ HDRP_PerformanceTests_Win_DX11_performance_run_build_il2cpp_Linear_trunk:
         UPM_REGISTRY: https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates
         CUSTOM_REVISION: '{{trunk.changeset.id}}'
         GIT_BRANCH: master
-        USE_CACHE: true
+        CACHE_ARGS: '{{cache.flags}}'
         UTR_VERSION: "current"
         TEST_FILTER: .*
     commands:
@@ -63,7 +63,7 @@ HDRP_PerformanceTests_Win_DX11_performance_run_build_il2cpp_Linear_trunk:
       -  command: unity-downloader-cli --source-file unity_revision.txt -c editor -c il2cpp  --wait --published-only
          retries: 2
       -  command: git checkout %GIT_BRANCH%
-      -  command: utr --artifacts_path=TestProjects/HDRP_PerformanceTests/test-results --editor-location=.Editor --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-force-d3d11" --extra-editor-arg="-playergraphicsapi=Direct3D11" --loglevel=verbose --performance-project-version=. --report-performance-data --performance-project-id=HDRP --platform=editmode --scripting-backend=IL2CPP --suite=editor --testfilter=Build --testproject=./TestProjects/HDRP_PerformanceTests --timeout=14400 --zero-tests-are-ok=1 {% if %USE_CACHE%==true %} {{cache.flags}} {% endif %}
+      -  command: utr %CACHE_ARGS% --artifacts_path=TestProjects/HDRP_PerformanceTests/test-results --editor-location=.Editor --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-force-d3d11" --extra-editor-arg="-playergraphicsapi=Direct3D11" --loglevel=verbose --performance-project-version=. --report-performance-data --performance-project-id=HDRP --platform=editmode --scripting-backend=IL2CPP --suite=editor --testfilter=Build --testproject=./TestProjects/HDRP_PerformanceTests --timeout=14400 --zero-tests-are-ok=1
          retries: 2
     artifacts:
         logs:
@@ -95,7 +95,7 @@ HDRP_PerformanceTests_Win_DX11_performance_memory_il2cpp_Linear_CUSTOM-REVISION:
       -  command: unity-downloader-cli --source-file unity_revision.txt -c editor -c il2cpp  --wait --published-only
          retries: 2
       -  command: git checkout %GIT_BRANCH%
-      -  command: utr --artifacts_path=TestProjects/HDRP_PerformanceTests/test-results --editor-location=.Editor --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-force-d3d11" --loglevel=verbose --performance-project-version=. --report-performance-data --performance-project-id=HDRP --platform=StandaloneWindows64 --scripting-backend=IL2CPP --suite=playmode --testfilter=Memory --testproject=./TestProjects/HDRP_PerformanceTests --timeout=7200 --zero-tests-are-ok=1 {% if %USE_CACHE%==true %} {{cache.flags}} {% endif %}
+      -  command: utr --artifacts_path=TestProjects/HDRP_PerformanceTests/test-results --editor-location=.Editor --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-force-d3d11" --loglevel=verbose --performance-project-version=. --report-performance-data --performance-project-id=HDRP --platform=StandaloneWindows64 --scripting-backend=IL2CPP --suite=playmode --testfilter=Memory --testproject=./TestProjects/HDRP_PerformanceTests --timeout=7200 --zero-tests-are-ok=1
          retries: 2
     artifacts:
         logs:
@@ -127,7 +127,7 @@ HDRP_PerformanceTests_Win_DX11_performance_run_build_il2cpp_Linear_CUSTOM-REVISI
       -  command: unity-downloader-cli --source-file unity_revision.txt -c editor -c il2cpp  --wait --published-only
          retries: 2
       -  command: git checkout %GIT_BRANCH%
-      -  command: utr --artifacts_path=TestProjects/HDRP_PerformanceTests/test-results --editor-location=.Editor --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-force-d3d11" --extra-editor-arg="-playergraphicsapi=Direct3D11" --loglevel=verbose --performance-project-version=. --report-performance-data --performance-project-id=HDRP --platform=editmode --scripting-backend=IL2CPP --suite=editor --testfilter=Build --testproject=./TestProjects/HDRP_PerformanceTests --timeout=14400 --zero-tests-are-ok=1 {% if %USE_CACHE%==true %} {{cache.flags}} {% endif %}
+      -  command: utr %CACHE_ARGS% --artifacts_path=TestProjects/HDRP_PerformanceTests/test-results --editor-location=.Editor --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-force-d3d11" --extra-editor-arg="-playergraphicsapi=Direct3D11" --loglevel=verbose --performance-project-version=. --report-performance-data --performance-project-id=HDRP --platform=editmode --scripting-backend=IL2CPP --suite=editor --testfilter=Build --testproject=./TestProjects/HDRP_PerformanceTests --timeout=14400 --zero-tests-are-ok=1
          retries: 2
     artifacts:
         logs:

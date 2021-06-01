@@ -18,7 +18,7 @@ URP_Lighting_Win_Vulkan_Standalone_mono_Linear_trunk:
     variables:
         UPM_REGISTRY: https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates
         CUSTOM_REVISION: '{{trunk.changeset.id}}'
-        USE_CACHE: true
+        CACHE_ARGS: '{{cache.flags}}'
         UTR_VERSION: "current"
         TEST_FILTER: .*
     commands:
@@ -52,7 +52,7 @@ Build_URP_Lighting_Win_Vulkan_Standalone_mono_Linear_trunk:
     variables:
         UPM_REGISTRY: https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates
         CUSTOM_REVISION: '{{trunk.changeset.id}}'
-        USE_CACHE: true
+        CACHE_ARGS: '{{cache.flags}}'
         UTR_VERSION: "current"
         TEST_FILTER: .*
     commands:
@@ -69,7 +69,7 @@ Build_URP_Lighting_Win_Vulkan_Standalone_mono_Linear_trunk:
                 set /p GIT_REVISIONDATE=<revdate.tmp
                 echo %GIT_REVISIONDATE%
                 del revdate.tmp
-                utr --artifacts_path=TestProjects/UniversalGraphicsTest_Lighting/test-results --build-only --editor-location=.Editor --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-executemethod" --extra-editor-arg="SetupProject.ApplySettings" --extra-editor-arg="vulkan" --extra-editor-arg="Linear" --extra-editor-arg="-playergraphicsapi=Vulkan" --platform=StandaloneWindows64 --player-save-path=players --scripting-backend=Mono2x --suite=playmode --testfilter=%TEST_FILTER% --testproject=./TestProjects/UniversalGraphicsTest_Lighting --timeout=3000 {% if %USE_CACHE%==true %} {{cache.flags}} {% endif %}
+                utr --artifacts_path=TestProjects/UniversalGraphicsTest_Lighting/test-results --build-only --editor-location=.Editor --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-executemethod" --extra-editor-arg="SetupProject.ApplySettings" --extra-editor-arg="vulkan" --extra-editor-arg="Linear" --extra-editor-arg="-playergraphicsapi=Vulkan" --platform=StandaloneWindows64 --player-save-path=players --scripting-backend=Mono2x --suite=playmode --testfilter=%TEST_FILTER% --testproject=./TestProjects/UniversalGraphicsTest_Lighting --timeout=3000
          retries: 2
     artifacts:
         logs:
@@ -92,7 +92,7 @@ URP_Lighting_Win_Vulkan_playmode_mono_Linear_trunk:
     variables:
         UPM_REGISTRY: https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates
         CUSTOM_REVISION: '{{trunk.changeset.id}}'
-        USE_CACHE: true
+        CACHE_ARGS: '{{cache.flags}}'
         UTR_VERSION: "current"
         TEST_FILTER: .*
     commands:
@@ -109,7 +109,7 @@ URP_Lighting_Win_Vulkan_playmode_mono_Linear_trunk:
                 set /p GIT_REVISIONDATE=<revdate.tmp
                 echo %GIT_REVISIONDATE%
                 del revdate.tmp
-                utr --artifacts_path=TestProjects/UniversalGraphicsTest_Lighting/test-results --editor-location=.Editor --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-force-vulkan" --scripting-backend=Mono2x --suite=playmode --testfilter=%TEST_FILTER% --testproject=./TestProjects/UniversalGraphicsTest_Lighting --zero-tests-are-ok=1 {% if %USE_CACHE%==true %} {{cache.flags}} {% endif %}
+                utr --artifacts_path=TestProjects/UniversalGraphicsTest_Lighting/test-results --editor-location=.Editor --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-force-vulkan" --scripting-backend=Mono2x --suite=playmode --testfilter=%TEST_FILTER% --testproject=./TestProjects/UniversalGraphicsTest_Lighting --zero-tests-are-ok=1
          retries: 2
     artifacts:
         logs:
@@ -129,7 +129,7 @@ URP_Lighting_Win_Vulkan_editmode_mono_Linear_trunk:
     variables:
         UPM_REGISTRY: https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates
         CUSTOM_REVISION: '{{trunk.changeset.id}}'
-        USE_CACHE: true
+        CACHE_ARGS: '{{cache.flags}}'
         UTR_VERSION: "current"
         TEST_FILTER: .*
     commands:
@@ -146,7 +146,7 @@ URP_Lighting_Win_Vulkan_editmode_mono_Linear_trunk:
                 set /p GIT_REVISIONDATE=<revdate.tmp
                 echo %GIT_REVISIONDATE%
                 del revdate.tmp
-                utr --artifacts_path=TestProjects/UniversalGraphicsTest_Lighting/test-results --editor-location=.Editor --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-force-vulkan" --extra-editor-arg="-playergraphicsapi=Vulkan" --platform=editmode --scripting-backend=Mono2x --suite=editor --testfilter=%TEST_FILTER% --testproject=./TestProjects/UniversalGraphicsTest_Lighting --zero-tests-are-ok=1 {% if %USE_CACHE%==true %} {{cache.flags}} {% endif %}
+                utr %CACHE_ARGS% --artifacts_path=TestProjects/UniversalGraphicsTest_Lighting/test-results --editor-location=.Editor --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-force-vulkan" --extra-editor-arg="-playergraphicsapi=Vulkan" --platform=editmode --scripting-backend=Mono2x --suite=editor --testfilter=%TEST_FILTER% --testproject=./TestProjects/UniversalGraphicsTest_Lighting --zero-tests-are-ok=1
          retries: 2
     artifacts:
         logs:
@@ -166,7 +166,7 @@ URP_Lighting_Win_Vulkan_playmode_XR_mono_Linear_trunk:
     variables:
         UPM_REGISTRY: https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates
         CUSTOM_REVISION: '{{trunk.changeset.id}}'
-        USE_CACHE: true
+        CACHE_ARGS: '{{cache.flags}}'
         UTR_VERSION: "current"
         TEST_FILTER: .*
     commands:
@@ -183,7 +183,7 @@ URP_Lighting_Win_Vulkan_playmode_XR_mono_Linear_trunk:
                 set /p GIT_REVISIONDATE=<revdate.tmp
                 echo %GIT_REVISIONDATE%
                 del revdate.tmp
-                utr --artifacts_path=TestProjects/UniversalGraphicsTest_Lighting/test-results --editor-location=.Editor --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-force-vulkan" --extra-editor-arg="-xr-reuse-tests" --scripting-backend=Mono2x --suite=playmode --testfilter=%TEST_FILTER% --testproject=./TestProjects/UniversalGraphicsTest_Lighting --zero-tests-are-ok=1 {% if %USE_CACHE%==true %} {{cache.flags}} {% endif %}
+                utr --artifacts_path=TestProjects/UniversalGraphicsTest_Lighting/test-results --editor-location=.Editor --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-force-vulkan" --extra-editor-arg="-xr-reuse-tests" --scripting-backend=Mono2x --suite=playmode --testfilter=%TEST_FILTER% --testproject=./TestProjects/UniversalGraphicsTest_Lighting --zero-tests-are-ok=1
          retries: 2
     artifacts:
         logs:
@@ -203,7 +203,7 @@ URP_Lighting_Win_Vulkan_Standalone_XR_mono_Linear_trunk:
     variables:
         UPM_REGISTRY: https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates
         CUSTOM_REVISION: '{{trunk.changeset.id}}'
-        USE_CACHE: true
+        CACHE_ARGS: '{{cache.flags}}'
         UTR_VERSION: "current"
         TEST_FILTER: .*
     commands:
@@ -237,7 +237,7 @@ Build_URP_Lighting_Win_Vulkan_Standalone_XR_mono_Linear_trunk:
     variables:
         UPM_REGISTRY: https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates
         CUSTOM_REVISION: '{{trunk.changeset.id}}'
-        USE_CACHE: true
+        CACHE_ARGS: '{{cache.flags}}'
         UTR_VERSION: "current"
         TEST_FILTER: .*
     commands:
@@ -254,7 +254,7 @@ Build_URP_Lighting_Win_Vulkan_Standalone_XR_mono_Linear_trunk:
                 set /p GIT_REVISIONDATE=<revdate.tmp
                 echo %GIT_REVISIONDATE%
                 del revdate.tmp
-                utr --artifacts_path=TestProjects/UniversalGraphicsTest_Lighting/test-results --build-only --editor-location=.Editor --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-executemethod" --extra-editor-arg="SetupProject.ApplySettings" --extra-editor-arg="vulkan" --extra-editor-arg="Linear" --extra-editor-arg="-playergraphicsapi=Vulkan" --extra-editor-arg="-xr-reuse-tests" --platform=StandaloneWindows64 --player-save-path=players --scripting-backend=Mono2x --suite=playmode --testfilter=%TEST_FILTER% --testproject=./TestProjects/UniversalGraphicsTest_Lighting --timeout=3000 {% if %USE_CACHE%==true %} {{cache.flags}} {% endif %}
+                utr --artifacts_path=TestProjects/UniversalGraphicsTest_Lighting/test-results --build-only --editor-location=.Editor --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-executemethod" --extra-editor-arg="SetupProject.ApplySettings" --extra-editor-arg="vulkan" --extra-editor-arg="Linear" --extra-editor-arg="-playergraphicsapi=Vulkan" --extra-editor-arg="-xr-reuse-tests" --platform=StandaloneWindows64 --player-save-path=players --scripting-backend=Mono2x --suite=playmode --testfilter=%TEST_FILTER% --testproject=./TestProjects/UniversalGraphicsTest_Lighting --timeout=3000
          retries: 2
     artifacts:
         logs:
@@ -326,7 +326,7 @@ Build_URP_Lighting_Win_Vulkan_Standalone_mono_Linear_CUSTOM-REVISION:
                 set /p GIT_REVISIONDATE=<revdate.tmp
                 echo %GIT_REVISIONDATE%
                 del revdate.tmp
-                utr --artifacts_path=TestProjects/UniversalGraphicsTest_Lighting/test-results --build-only --editor-location=.Editor --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-executemethod" --extra-editor-arg="SetupProject.ApplySettings" --extra-editor-arg="vulkan" --extra-editor-arg="Linear" --extra-editor-arg="-playergraphicsapi=Vulkan" --platform=StandaloneWindows64 --player-save-path=players --scripting-backend=Mono2x --suite=playmode --testfilter=%TEST_FILTER% --testproject=./TestProjects/UniversalGraphicsTest_Lighting --timeout=3000 {% if %USE_CACHE%==true %} {{cache.flags}} {% endif %}
+                utr --artifacts_path=TestProjects/UniversalGraphicsTest_Lighting/test-results --build-only --editor-location=.Editor --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-executemethod" --extra-editor-arg="SetupProject.ApplySettings" --extra-editor-arg="vulkan" --extra-editor-arg="Linear" --extra-editor-arg="-playergraphicsapi=Vulkan" --platform=StandaloneWindows64 --player-save-path=players --scripting-backend=Mono2x --suite=playmode --testfilter=%TEST_FILTER% --testproject=./TestProjects/UniversalGraphicsTest_Lighting --timeout=3000
          retries: 2
     artifacts:
         logs:
@@ -365,7 +365,7 @@ URP_Lighting_Win_Vulkan_playmode_mono_Linear_CUSTOM-REVISION:
                 set /p GIT_REVISIONDATE=<revdate.tmp
                 echo %GIT_REVISIONDATE%
                 del revdate.tmp
-                utr --artifacts_path=TestProjects/UniversalGraphicsTest_Lighting/test-results --editor-location=.Editor --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-force-vulkan" --scripting-backend=Mono2x --suite=playmode --testfilter=%TEST_FILTER% --testproject=./TestProjects/UniversalGraphicsTest_Lighting --zero-tests-are-ok=1 {% if %USE_CACHE%==true %} {{cache.flags}} {% endif %}
+                utr --artifacts_path=TestProjects/UniversalGraphicsTest_Lighting/test-results --editor-location=.Editor --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-force-vulkan" --scripting-backend=Mono2x --suite=playmode --testfilter=%TEST_FILTER% --testproject=./TestProjects/UniversalGraphicsTest_Lighting --zero-tests-are-ok=1
          retries: 2
     artifacts:
         logs:
@@ -401,7 +401,7 @@ URP_Lighting_Win_Vulkan_editmode_mono_Linear_CUSTOM-REVISION:
                 set /p GIT_REVISIONDATE=<revdate.tmp
                 echo %GIT_REVISIONDATE%
                 del revdate.tmp
-                utr --artifacts_path=TestProjects/UniversalGraphicsTest_Lighting/test-results --editor-location=.Editor --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-force-vulkan" --extra-editor-arg="-playergraphicsapi=Vulkan" --platform=editmode --scripting-backend=Mono2x --suite=editor --testfilter=%TEST_FILTER% --testproject=./TestProjects/UniversalGraphicsTest_Lighting --zero-tests-are-ok=1 {% if %USE_CACHE%==true %} {{cache.flags}} {% endif %}
+                utr %CACHE_ARGS% --artifacts_path=TestProjects/UniversalGraphicsTest_Lighting/test-results --editor-location=.Editor --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-force-vulkan" --extra-editor-arg="-playergraphicsapi=Vulkan" --platform=editmode --scripting-backend=Mono2x --suite=editor --testfilter=%TEST_FILTER% --testproject=./TestProjects/UniversalGraphicsTest_Lighting --zero-tests-are-ok=1
          retries: 2
     artifacts:
         logs:
@@ -437,7 +437,7 @@ URP_Lighting_Win_Vulkan_playmode_XR_mono_Linear_CUSTOM-REVISION:
                 set /p GIT_REVISIONDATE=<revdate.tmp
                 echo %GIT_REVISIONDATE%
                 del revdate.tmp
-                utr --artifacts_path=TestProjects/UniversalGraphicsTest_Lighting/test-results --editor-location=.Editor --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-force-vulkan" --extra-editor-arg="-xr-reuse-tests" --scripting-backend=Mono2x --suite=playmode --testfilter=%TEST_FILTER% --testproject=./TestProjects/UniversalGraphicsTest_Lighting --zero-tests-are-ok=1 {% if %USE_CACHE%==true %} {{cache.flags}} {% endif %}
+                utr --artifacts_path=TestProjects/UniversalGraphicsTest_Lighting/test-results --editor-location=.Editor --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-force-vulkan" --extra-editor-arg="-xr-reuse-tests" --scripting-backend=Mono2x --suite=playmode --testfilter=%TEST_FILTER% --testproject=./TestProjects/UniversalGraphicsTest_Lighting --zero-tests-are-ok=1
          retries: 2
     artifacts:
         logs:
@@ -506,7 +506,7 @@ Build_URP_Lighting_Win_Vulkan_Standalone_XR_mono_Linear_CUSTOM-REVISION:
                 set /p GIT_REVISIONDATE=<revdate.tmp
                 echo %GIT_REVISIONDATE%
                 del revdate.tmp
-                utr --artifacts_path=TestProjects/UniversalGraphicsTest_Lighting/test-results --build-only --editor-location=.Editor --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-executemethod" --extra-editor-arg="SetupProject.ApplySettings" --extra-editor-arg="vulkan" --extra-editor-arg="Linear" --extra-editor-arg="-playergraphicsapi=Vulkan" --extra-editor-arg="-xr-reuse-tests" --platform=StandaloneWindows64 --player-save-path=players --scripting-backend=Mono2x --suite=playmode --testfilter=%TEST_FILTER% --testproject=./TestProjects/UniversalGraphicsTest_Lighting --timeout=3000 {% if %USE_CACHE%==true %} {{cache.flags}} {% endif %}
+                utr --artifacts_path=TestProjects/UniversalGraphicsTest_Lighting/test-results --build-only --editor-location=.Editor --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-executemethod" --extra-editor-arg="SetupProject.ApplySettings" --extra-editor-arg="vulkan" --extra-editor-arg="Linear" --extra-editor-arg="-playergraphicsapi=Vulkan" --extra-editor-arg="-xr-reuse-tests" --platform=StandaloneWindows64 --player-save-path=players --scripting-backend=Mono2x --suite=playmode --testfilter=%TEST_FILTER% --testproject=./TestProjects/UniversalGraphicsTest_Lighting --timeout=3000
          retries: 2
     artifacts:
         logs:
