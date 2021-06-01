@@ -11,7 +11,7 @@
 PR_VFX_HDRP_trunk:
     name: VFX_HDRP PR Job - trunk
     dependencies:
-      -  path: .yamato/vfx_hdrp-win-dx11.yml#VFX_HDRP_Win_DX11_Standalone_cache_mono_Linear_trunk
+      -  path: .yamato/vfx_hdrp-win-dx11.yml#VFX_HDRP_Win_DX11_Standalone_mono_Linear_trunk
          rerun: on_new_revision
     triggers:
         expression: pull_request.target eq "master" AND NOT pull_request.draft AND pull_request.changes.any match ["com.unity.visualeffectgraph/**/*", "TestProjects/VisualEffectGraph_HDRP/**/*"] AND NOT pull_request.changes.all match ["*.md", "**/*.md", "doc/**/*", "**/Documentation*/**/*"]
@@ -19,6 +19,7 @@ PR_VFX_HDRP_trunk:
         CUSTOM_REVISION: '{{trunk.changeset.id}}'
         UTR_VERSION: "current"
         TEST_FILTER: .*
+        USE_CACHE: true
 Nightly_VFX_HDRP_trunk:
     name: Nightly VFX_HDRP - trunk
     dependencies:
@@ -26,7 +27,7 @@ Nightly_VFX_HDRP_trunk:
          rerun: on_new_revision
       -  path: .yamato/vfx_hdrp-win-dx11.yml#VFX_HDRP_Win_DX11_editmode_mono_Linear_trunk
          rerun: on_new_revision
-      -  path: .yamato/vfx_hdrp-win-dx11.yml#VFX_HDRP_Win_DX11_playmode_cache_mono_Linear_trunk
+      -  path: .yamato/vfx_hdrp-win-dx11.yml#VFX_HDRP_Win_DX11_playmode_mono_Linear_trunk
          rerun: on_new_revision
       -  path: .yamato/vfx_hdrp-win-dx11.yml#VFX_HDRP_Win_DX11_editmode_PerformanceTests_mono_Linear_trunk
          rerun: on_new_revision
@@ -34,22 +35,23 @@ Nightly_VFX_HDRP_trunk:
          rerun: on_new_revision
       -  path: .yamato/vfx_hdrp-win-dx11.yml#VFX_HDRP_Win_DX11_Standalone_PerformanceTests_mono_Linear_trunk
          rerun: on_new_revision
-      -  path: .yamato/vfx_hdrp-win-dx12.yml#VFX_HDRP_Win_DX12_playmode_cache_mono_Linear_trunk
+      -  path: .yamato/vfx_hdrp-win-dx12.yml#VFX_HDRP_Win_DX12_playmode_mono_Linear_trunk
          rerun: on_new_revision
-      -  path: .yamato/vfx_hdrp-osx-metal.yml#VFX_HDRP_OSX_Metal_playmode_cache_mono_Linear_trunk
+      -  path: .yamato/vfx_hdrp-osx-metal.yml#VFX_HDRP_OSX_Metal_playmode_mono_Linear_trunk
          rerun: on_new_revision
-      -  path: .yamato/vfx_hdrp-win-dx11.yml#VFX_HDRP_Win_DX11_playmode_XR_cache_mono_Linear_trunk
+      -  path: .yamato/vfx_hdrp-win-dx11.yml#VFX_HDRP_Win_DX11_playmode_XR_mono_Linear_trunk
          rerun: on_new_revision
-      -  path: .yamato/vfx_hdrp-win-dx12.yml#VFX_HDRP_Win_DX12_Standalone_cache_mono_Linear_trunk
+      -  path: .yamato/vfx_hdrp-win-dx12.yml#VFX_HDRP_Win_DX12_Standalone_mono_Linear_trunk
          rerun: on_new_revision
     variables:
         CUSTOM_REVISION: '{{trunk.changeset.id}}'
         UTR_VERSION: "current"
         TEST_FILTER: .*
+        USE_CACHE: true
 PR_VFX_HDRP_CUSTOM-REVISION:
     name: VFX_HDRP PR Job - CUSTOM-REVISION
     dependencies:
-      -  path: .yamato/vfx_hdrp-win-dx11.yml#VFX_HDRP_Win_DX11_Standalone_cache_mono_Linear_CUSTOM-REVISION
+      -  path: .yamato/vfx_hdrp-win-dx11.yml#VFX_HDRP_Win_DX11_Standalone_mono_Linear_CUSTOM-REVISION
          rerun: on_new_revision
     variables:
         CUSTOM_REVISION: custom_revision_not_set
@@ -62,7 +64,7 @@ Nightly_VFX_HDRP_CUSTOM-REVISION:
          rerun: on_new_revision
       -  path: .yamato/vfx_hdrp-win-dx11.yml#VFX_HDRP_Win_DX11_editmode_mono_Linear_CUSTOM-REVISION
          rerun: on_new_revision
-      -  path: .yamato/vfx_hdrp-win-dx11.yml#VFX_HDRP_Win_DX11_playmode_cache_mono_Linear_CUSTOM-REVISION
+      -  path: .yamato/vfx_hdrp-win-dx11.yml#VFX_HDRP_Win_DX11_playmode_mono_Linear_CUSTOM-REVISION
          rerun: on_new_revision
       -  path: .yamato/vfx_hdrp-win-dx11.yml#VFX_HDRP_Win_DX11_editmode_PerformanceTests_mono_Linear_CUSTOM-REVISION
          rerun: on_new_revision
@@ -70,13 +72,13 @@ Nightly_VFX_HDRP_CUSTOM-REVISION:
          rerun: on_new_revision
       -  path: .yamato/vfx_hdrp-win-dx11.yml#VFX_HDRP_Win_DX11_Standalone_PerformanceTests_mono_Linear_CUSTOM-REVISION
          rerun: on_new_revision
-      -  path: .yamato/vfx_hdrp-win-dx12.yml#VFX_HDRP_Win_DX12_playmode_cache_mono_Linear_CUSTOM-REVISION
+      -  path: .yamato/vfx_hdrp-win-dx12.yml#VFX_HDRP_Win_DX12_playmode_mono_Linear_CUSTOM-REVISION
          rerun: on_new_revision
-      -  path: .yamato/vfx_hdrp-osx-metal.yml#VFX_HDRP_OSX_Metal_playmode_cache_mono_Linear_CUSTOM-REVISION
+      -  path: .yamato/vfx_hdrp-osx-metal.yml#VFX_HDRP_OSX_Metal_playmode_mono_Linear_CUSTOM-REVISION
          rerun: on_new_revision
-      -  path: .yamato/vfx_hdrp-win-dx11.yml#VFX_HDRP_Win_DX11_playmode_XR_cache_mono_Linear_CUSTOM-REVISION
+      -  path: .yamato/vfx_hdrp-win-dx11.yml#VFX_HDRP_Win_DX11_playmode_XR_mono_Linear_CUSTOM-REVISION
          rerun: on_new_revision
-      -  path: .yamato/vfx_hdrp-win-dx12.yml#VFX_HDRP_Win_DX12_Standalone_cache_mono_Linear_CUSTOM-REVISION
+      -  path: .yamato/vfx_hdrp-win-dx12.yml#VFX_HDRP_Win_DX12_Standalone_mono_Linear_CUSTOM-REVISION
          rerun: on_new_revision
     variables:
         CUSTOM_REVISION: custom_revision_not_set

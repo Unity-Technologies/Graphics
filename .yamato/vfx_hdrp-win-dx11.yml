@@ -18,6 +18,7 @@ VFX_HDRP_Win_DX11_Standalone_mono_Linear_trunk:
     variables:
         UPM_REGISTRY: https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates
         CUSTOM_REVISION: '{{trunk.changeset.id}}'
+        USE_CACHE: true
         UTR_VERSION: "current"
         TEST_FILTER: .*
     commands:
@@ -50,6 +51,7 @@ Build_VFX_HDRP_Win_DX11_Standalone_mono_Linear_trunk:
     variables:
         UPM_REGISTRY: https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates
         CUSTOM_REVISION: '{{trunk.changeset.id}}'
+        USE_CACHE: true
         UTR_VERSION: "current"
         TEST_FILTER: .*
     commands:
@@ -65,7 +67,7 @@ Build_VFX_HDRP_Win_DX11_Standalone_mono_Linear_trunk:
                 set /p GIT_REVISIONDATE=<revdate.tmp
                 echo %GIT_REVISIONDATE%
                 del revdate.tmp
-                utr --artifacts_path=TestProjects/VisualEffectGraph_HDRP/test-results --build-only --editor-location=.Editor --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-executemethod" --extra-editor-arg="SetupProject.ApplySettings" --extra-editor-arg="d3d11" --extra-editor-arg="Linear" --extra-editor-arg="-playergraphicsapi=Direct3D11" --platform=StandaloneWindows64 --player-save-path=players --scripting-backend=Mono2x --suite=playmode --testfilter="VFX.Test" --testproject=./TestProjects/VisualEffectGraph_HDRP --timeout=1200
+                utr --artifacts_path=TestProjects/VisualEffectGraph_HDRP/test-results --build-only --editor-location=.Editor --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-executemethod" --extra-editor-arg="SetupProject.ApplySettings" --extra-editor-arg="d3d11" --extra-editor-arg="Linear" --extra-editor-arg="-playergraphicsapi=Direct3D11" --platform=StandaloneWindows64 --player-save-path=players --scripting-backend=Mono2x --suite=playmode --testfilter="VFX.Test" --testproject=./TestProjects/VisualEffectGraph_HDRP --timeout=1200 {% if %USE_CACHE%==true %} {{cache.flags}} {% endif %}
          retries: 2
     artifacts:
         logs:
@@ -88,6 +90,7 @@ VFX_HDRP_Win_DX11_Standalone_PerformanceTests_mono_Linear_trunk:
     variables:
         UPM_REGISTRY: https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates
         CUSTOM_REVISION: '{{trunk.changeset.id}}'
+        USE_CACHE: true
         UTR_VERSION: "current"
         TEST_FILTER: .*
     commands:
@@ -120,6 +123,7 @@ Build_VFX_HDRP_Win_DX11_Standalone_PerformanceTests_mono_Linear_trunk:
     variables:
         UPM_REGISTRY: https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates
         CUSTOM_REVISION: '{{trunk.changeset.id}}'
+        USE_CACHE: true
         UTR_VERSION: "current"
         TEST_FILTER: .*
     commands:
@@ -135,7 +139,7 @@ Build_VFX_HDRP_Win_DX11_Standalone_PerformanceTests_mono_Linear_trunk:
                 set /p GIT_REVISIONDATE=<revdate.tmp
                 echo %GIT_REVISIONDATE%
                 del revdate.tmp
-                utr --artifacts_path=TestProjects/VisualEffectGraph_HDRP/test-results --build-only --editor-location=.Editor --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-executemethod" --extra-editor-arg="SetupProject.ApplySettings" --extra-editor-arg="d3d11" --extra-editor-arg="Linear" --extra-editor-arg="-playergraphicsapi=Direct3D11" --platform=StandaloneWindows64 --player-save-path=players --scripting-backend=Mono2x --suite=playmode --testfilter="VFX.PerformanceTest" --testproject=./TestProjects/VisualEffectGraph_HDRP --timeout=1200
+                utr --artifacts_path=TestProjects/VisualEffectGraph_HDRP/test-results --build-only --editor-location=.Editor --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-executemethod" --extra-editor-arg="SetupProject.ApplySettings" --extra-editor-arg="d3d11" --extra-editor-arg="Linear" --extra-editor-arg="-playergraphicsapi=Direct3D11" --platform=StandaloneWindows64 --player-save-path=players --scripting-backend=Mono2x --suite=playmode --testfilter="VFX.PerformanceTest" --testproject=./TestProjects/VisualEffectGraph_HDRP --timeout=1200 {% if %USE_CACHE%==true %} {{cache.flags}} {% endif %}
          retries: 2
     artifacts:
         logs:
@@ -158,6 +162,7 @@ VFX_HDRP_Win_DX11_playmode_mono_Linear_trunk:
     variables:
         UPM_REGISTRY: https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates
         CUSTOM_REVISION: '{{trunk.changeset.id}}'
+        USE_CACHE: true
         UTR_VERSION: "current"
         TEST_FILTER: .*
     commands:
@@ -173,42 +178,7 @@ VFX_HDRP_Win_DX11_playmode_mono_Linear_trunk:
                 set /p GIT_REVISIONDATE=<revdate.tmp
                 echo %GIT_REVISIONDATE%
                 del revdate.tmp
-                utr --artifacts_path=TestProjects/VisualEffectGraph_HDRP/test-results --editor-location=.Editor --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-force-d3d11" --scripting-backend=Mono2x --suite=playmode --testfilter="VFX.Test" --testproject=./TestProjects/VisualEffectGraph_HDRP --zero-tests-are-ok=1
-         retries: 2
-    artifacts:
-        logs:
-            paths:
-              -  "**/test-results/**"
-              -  "TestProjects/VisualEffectGraph_HDRP/Logs/*.log"
-    dependencies:
-      -  path: .yamato/_editor_priming.yml#editor:priming:trunk:Win
-         rerun: on_new_revision
-VFX_HDRP_Win_DX11_playmode_cache_mono_Linear_trunk:
-    name: VFX_HDRP on Win_DX11_playmode_cache_mono_Linear on version trunk
-    agent:
-        type: Unity::VM::GPU
-        image: sdet/gamecode_win10:stable
-        flavor: b1.xlarge
-        model: rtx2080
-    variables:
-        UPM_REGISTRY: https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates
-        CUSTOM_REVISION: '{{trunk.changeset.id}}'
-        UTR_VERSION: "current"
-        TEST_FILTER: .*
-    commands:
-      -  command: NetSh Advfirewall set allprofiles state off
-      -  command: curl -s https://artifactory.prd.it.unity3d.com/artifactory/unity-tools-local/utr-standalone/utr.bat --output utr.bat
-         retries: 2
-      -  command: choco install unity-downloader-cli -y -s https://artifactory.prd.it.unity3d.com/artifactory/api/nuget/unity-choco-local
-         retries: 2
-      -  command: unity-downloader-cli --source-file unity_revision.txt -c editor -c il2cpp  --wait --published-only
-         retries: 2
-      -  command: |5-
-                git rev-parse HEAD | git show -s --format=%%cI > revdate.tmp
-                set /p GIT_REVISIONDATE=<revdate.tmp
-                echo %GIT_REVISIONDATE%
-                del revdate.tmp
-                utr --artifacts_path=TestProjects/VisualEffectGraph_HDRP/test-results --editor-location=.Editor --extra-editor-arg="-adb2" --extra-editor-arg="-cacheServerEnableDownload" --extra-editor-arg="true" --extra-editor-arg="-cacheServerEnableUpload" --extra-editor-arg="true" --extra-editor-arg="-cacheServerEndpoint" --extra-editor-arg="cacheserver-slo.hq.unity3d.com" --extra-editor-arg="-cacheServerNamespacePrefix" --extra-editor-arg="{{cache.cacheServerNamespacePrefix}}" --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-enableCacheServer" --extra-editor-arg="-force-d3d11" --scripting-backend=Mono2x --suite=playmode --testfilter="VFX.Test" --testproject=./TestProjects/VisualEffectGraph_HDRP --zero-tests-are-ok=1
+                utr --artifacts_path=TestProjects/VisualEffectGraph_HDRP/test-results --editor-location=.Editor --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-force-d3d11" --scripting-backend=Mono2x --suite=playmode --testfilter="VFX.Test" --testproject=./TestProjects/VisualEffectGraph_HDRP --zero-tests-are-ok=1 {% if %USE_CACHE%==true %} {{cache.flags}} {% endif %}
          retries: 2
     artifacts:
         logs:
@@ -228,6 +198,7 @@ VFX_HDRP_Win_DX11_playmode_XR_mono_Linear_trunk:
     variables:
         UPM_REGISTRY: https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates
         CUSTOM_REVISION: '{{trunk.changeset.id}}'
+        USE_CACHE: true
         UTR_VERSION: "current"
         TEST_FILTER: .*
     commands:
@@ -243,42 +214,7 @@ VFX_HDRP_Win_DX11_playmode_XR_mono_Linear_trunk:
                 set /p GIT_REVISIONDATE=<revdate.tmp
                 echo %GIT_REVISIONDATE%
                 del revdate.tmp
-                utr --artifacts_path=TestProjects/VisualEffectGraph_HDRP/test-results --editor-location=.Editor --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-force-d3d11" --extra-editor-arg="-xr-reuse-tests" --scripting-backend=Mono2x --suite=playmode --testfilter="VFX.Test" --testproject=./TestProjects/VisualEffectGraph_HDRP --zero-tests-are-ok=1
-         retries: 2
-    artifacts:
-        logs:
-            paths:
-              -  "**/test-results/**"
-              -  "TestProjects/VisualEffectGraph_HDRP/Logs/*.log"
-    dependencies:
-      -  path: .yamato/_editor_priming.yml#editor:priming:trunk:Win
-         rerun: on_new_revision
-VFX_HDRP_Win_DX11_playmode_XR_cache_mono_Linear_trunk:
-    name: VFX_HDRP on Win_DX11_playmode_XR_cache_mono_Linear on version trunk
-    agent:
-        type: Unity::VM::GPU
-        image: sdet/gamecode_win10:stable
-        flavor: b1.xlarge
-        model: rtx2080
-    variables:
-        UPM_REGISTRY: https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates
-        CUSTOM_REVISION: '{{trunk.changeset.id}}'
-        UTR_VERSION: "current"
-        TEST_FILTER: .*
-    commands:
-      -  command: NetSh Advfirewall set allprofiles state off
-      -  command: curl -s https://artifactory.prd.it.unity3d.com/artifactory/unity-tools-local/utr-standalone/utr.bat --output utr.bat
-         retries: 2
-      -  command: choco install unity-downloader-cli -y -s https://artifactory.prd.it.unity3d.com/artifactory/api/nuget/unity-choco-local
-         retries: 2
-      -  command: unity-downloader-cli --source-file unity_revision.txt -c editor -c il2cpp  --wait --published-only
-         retries: 2
-      -  command: |5-
-                git rev-parse HEAD | git show -s --format=%%cI > revdate.tmp
-                set /p GIT_REVISIONDATE=<revdate.tmp
-                echo %GIT_REVISIONDATE%
-                del revdate.tmp
-                utr --artifacts_path=TestProjects/VisualEffectGraph_HDRP/test-results --editor-location=.Editor --extra-editor-arg="-adb2" --extra-editor-arg="-cacheServerEnableDownload" --extra-editor-arg="true" --extra-editor-arg="-cacheServerEnableUpload" --extra-editor-arg="true" --extra-editor-arg="-cacheServerEndpoint" --extra-editor-arg="cacheserver-slo.hq.unity3d.com" --extra-editor-arg="-cacheServerNamespacePrefix" --extra-editor-arg="{{cache.cacheServerNamespacePrefix}}" --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-enableCacheServer" --extra-editor-arg="-force-d3d11" --extra-editor-arg="-xr-reuse-tests" --scripting-backend=Mono2x --suite=playmode --testfilter="VFX.Test" --testproject=./TestProjects/VisualEffectGraph_HDRP --zero-tests-are-ok=1
+                utr --artifacts_path=TestProjects/VisualEffectGraph_HDRP/test-results --editor-location=.Editor --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-force-d3d11" --extra-editor-arg="-xr-reuse-tests" --scripting-backend=Mono2x --suite=playmode --testfilter="VFX.Test" --testproject=./TestProjects/VisualEffectGraph_HDRP --zero-tests-are-ok=1 {% if %USE_CACHE%==true %} {{cache.flags}} {% endif %}
          retries: 2
     artifacts:
         logs:
@@ -298,6 +234,7 @@ VFX_HDRP_Win_DX11_playmode_PerformanceTests_mono_Linear_trunk:
     variables:
         UPM_REGISTRY: https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates
         CUSTOM_REVISION: '{{trunk.changeset.id}}'
+        USE_CACHE: true
         UTR_VERSION: "current"
         TEST_FILTER: .*
     commands:
@@ -313,7 +250,7 @@ VFX_HDRP_Win_DX11_playmode_PerformanceTests_mono_Linear_trunk:
                 set /p GIT_REVISIONDATE=<revdate.tmp
                 echo %GIT_REVISIONDATE%
                 del revdate.tmp
-                utr --artifacts_path=TestProjects/VisualEffectGraph_HDRP/test-results --editor-location=.Editor --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-force-d3d11" --performance-project-version=. --report-performance-data --performance-project-id=VFX --scripting-backend=Mono2x --suite=playmode --testfilter="VFX.PerformanceTest" --testproject=./TestProjects/VisualEffectGraph_HDRP --zero-tests-are-ok=1
+                utr --artifacts_path=TestProjects/VisualEffectGraph_HDRP/test-results --editor-location=.Editor --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-force-d3d11" --performance-project-version=. --report-performance-data --performance-project-id=VFX --scripting-backend=Mono2x --suite=playmode --testfilter="VFX.PerformanceTest" --testproject=./TestProjects/VisualEffectGraph_HDRP --zero-tests-are-ok=1 {% if %USE_CACHE%==true %} {{cache.flags}} {% endif %}
          retries: 2
     artifacts:
         logs:
@@ -332,6 +269,7 @@ VFX_HDRP_Win_DX11_editmode_mono_Linear_trunk:
     variables:
         UPM_REGISTRY: https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates
         CUSTOM_REVISION: '{{trunk.changeset.id}}'
+        USE_CACHE: true
         UTR_VERSION: "current"
         TEST_FILTER: .*
     commands:
@@ -347,7 +285,7 @@ VFX_HDRP_Win_DX11_editmode_mono_Linear_trunk:
                 set /p GIT_REVISIONDATE=<revdate.tmp
                 echo %GIT_REVISIONDATE%
                 del revdate.tmp
-                utr --artifacts_path=TestProjects/VisualEffectGraph_HDRP/test-results --editor-location=.Editor --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-force-d3d11" --extra-editor-arg="-playergraphicsapi=Direct3D11" --platform=editmode --scripting-backend=Mono2x --suite=editor --testfilter="VFX.Test" --testproject=./TestProjects/VisualEffectGraph_HDRP --zero-tests-are-ok=1
+                utr --artifacts_path=TestProjects/VisualEffectGraph_HDRP/test-results --editor-location=.Editor --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-force-d3d11" --extra-editor-arg="-playergraphicsapi=Direct3D11" --platform=editmode --scripting-backend=Mono2x --suite=editor --testfilter="VFX.Test" --testproject=./TestProjects/VisualEffectGraph_HDRP --zero-tests-are-ok=1 {% if %USE_CACHE%==true %} {{cache.flags}} {% endif %}
          retries: 2
     artifacts:
         logs:
@@ -367,6 +305,7 @@ VFX_HDRP_Win_DX11_editmode_PerformanceTests_mono_Linear_trunk:
     variables:
         UPM_REGISTRY: https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates
         CUSTOM_REVISION: '{{trunk.changeset.id}}'
+        USE_CACHE: true
         UTR_VERSION: "current"
         TEST_FILTER: .*
     commands:
@@ -382,83 +321,13 @@ VFX_HDRP_Win_DX11_editmode_PerformanceTests_mono_Linear_trunk:
                 set /p GIT_REVISIONDATE=<revdate.tmp
                 echo %GIT_REVISIONDATE%
                 del revdate.tmp
-                utr --artifacts_path=TestProjects/VisualEffectGraph_HDRP/test-results --editor-location=.Editor --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-force-d3d11" --extra-editor-arg="-playergraphicsapi=Direct3D11" --performance-project-version=. --report-performance-data --performance-project-id=VFX --platform=editmode --scripting-backend=Mono2x --suite=editor --testfilter="VFX.PerformanceTest" --testproject=./TestProjects/VisualEffectGraph_HDRP --zero-tests-are-ok=1
+                utr --artifacts_path=TestProjects/VisualEffectGraph_HDRP/test-results --editor-location=.Editor --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-force-d3d11" --extra-editor-arg="-playergraphicsapi=Direct3D11" --performance-project-version=. --report-performance-data --performance-project-id=VFX --platform=editmode --scripting-backend=Mono2x --suite=editor --testfilter="VFX.PerformanceTest" --testproject=./TestProjects/VisualEffectGraph_HDRP --zero-tests-are-ok=1 {% if %USE_CACHE%==true %} {{cache.flags}} {% endif %}
          retries: 2
     artifacts:
         logs:
             paths:
               -  "**/test-results/**"
               -  "TestProjects/VisualEffectGraph_HDRP/Logs/*.log"
-    dependencies:
-      -  path: .yamato/_editor_priming.yml#editor:priming:trunk:Win
-         rerun: on_new_revision
-VFX_HDRP_Win_DX11_Standalone_cache_mono_Linear_trunk:
-    name: VFX_HDRP on Win_DX11_Standalone_cache_mono_Linear on version trunk
-    agent:
-        type: Unity::VM::GPU
-        image: sdet/gamecode_win10:stable
-        flavor: b1.xlarge
-        model: rtx2080
-    variables:
-        UPM_REGISTRY: https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates
-        CUSTOM_REVISION: '{{trunk.changeset.id}}'
-        UTR_VERSION: "current"
-        TEST_FILTER: .*
-    commands:
-      -  command: NetSh Advfirewall set allprofiles state off
-      -  command: curl -s https://artifactory.prd.it.unity3d.com/artifactory/unity-tools-local/utr-standalone/utr.bat --output utr.bat
-         retries: 2
-      -  command: |5-
-                git rev-parse HEAD | git show -s --format=%%cI > revdate.tmp
-                set /p GIT_REVISIONDATE=<revdate.tmp
-                echo %GIT_REVISIONDATE%
-                del revdate.tmp
-                utr --artifacts_path=TestProjects/VisualEffectGraph_HDRP/test-results --platform=StandaloneWindows64 --player-connection-ip=auto --player-load-path=players --suite=playmode --timeout=1200 --zero-tests-are-ok=1
-         retries: 2
-    artifacts:
-        logs:
-            paths:
-              -  "**/test-results/**"
-              -  "TestProjects/VisualEffectGraph_HDRP/Logs/*.log"
-    dependencies:
-      -  path: .yamato/_editor_priming.yml#editor:priming:trunk:Win
-         rerun: on_new_revision
-      -  path: .yamato/vfx_hdrp-win-dx11.yml#Build_VFX_HDRP_Win_DX11_Standalone_cache_mono_Linear_trunk
-         rerun: on_new_revision
-Build_VFX_HDRP_Win_DX11_Standalone_cache_mono_Linear_trunk:
-    name: Build VFX_HDRP on Win_DX11_mono_Linear_Standalone_cache_build_Player on version trunk
-    agent:
-        type: Unity::VM
-        image: sdet/gamecode_win10:stable
-        flavor: b1.xlarge
-    variables:
-        UPM_REGISTRY: https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates
-        CUSTOM_REVISION: '{{trunk.changeset.id}}'
-        UTR_VERSION: "current"
-        TEST_FILTER: .*
-    commands:
-      -  command: NetSh Advfirewall set allprofiles state off
-      -  command: curl -s https://artifactory.prd.it.unity3d.com/artifactory/unity-tools-local/utr-standalone/utr.bat --output utr.bat
-         retries: 2
-      -  command: choco install unity-downloader-cli -y -s https://artifactory.prd.it.unity3d.com/artifactory/api/nuget/unity-choco-local
-         retries: 2
-      -  command: unity-downloader-cli --source-file unity_revision.txt -c editor -c il2cpp  --wait --published-only
-         retries: 2
-      -  command: |5-
-                git rev-parse HEAD | git show -s --format=%%cI > revdate.tmp
-                set /p GIT_REVISIONDATE=<revdate.tmp
-                echo %GIT_REVISIONDATE%
-                del revdate.tmp
-                utr --artifacts_path=TestProjects/VisualEffectGraph_HDRP/test-results --build-only --editor-location=.Editor --extra-editor-arg="-adb2" --extra-editor-arg="-cacheServerEnableDownload" --extra-editor-arg="true" --extra-editor-arg="-cacheServerEnableUpload" --extra-editor-arg="true" --extra-editor-arg="-cacheServerEndpoint" --extra-editor-arg="cacheserver-slo.hq.unity3d.com" --extra-editor-arg="-cacheServerNamespacePrefix" --extra-editor-arg="{{cache.cacheServerNamespacePrefix}}" --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-enableCacheServer" --extra-editor-arg="-executemethod" --extra-editor-arg="SetupProject.ApplySettings" --extra-editor-arg="d3d11" --extra-editor-arg="Linear" --extra-editor-arg="-playergraphicsapi=Direct3D11" --platform=StandaloneWindows64 --player-save-path=players --scripting-backend=Mono2x --suite=playmode --testfilter="VFX.Test" --testproject=./TestProjects/VisualEffectGraph_HDRP --timeout=3000
-         retries: 2
-    artifacts:
-        logs:
-            paths:
-              -  "**/test-results/**"
-              -  "TestProjects/VisualEffectGraph_HDRP/Logs/*.log"
-        players:
-            paths:
-              -  "players*/**"
     dependencies:
       -  path: .yamato/_editor_priming.yml#editor:priming:trunk:Win
          rerun: on_new_revision
@@ -519,7 +388,7 @@ Build_VFX_HDRP_Win_DX11_Standalone_mono_Linear_CUSTOM-REVISION:
                 set /p GIT_REVISIONDATE=<revdate.tmp
                 echo %GIT_REVISIONDATE%
                 del revdate.tmp
-                utr --artifacts_path=TestProjects/VisualEffectGraph_HDRP/test-results --build-only --editor-location=.Editor --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-executemethod" --extra-editor-arg="SetupProject.ApplySettings" --extra-editor-arg="d3d11" --extra-editor-arg="Linear" --extra-editor-arg="-playergraphicsapi=Direct3D11" --platform=StandaloneWindows64 --player-save-path=players --scripting-backend=Mono2x --suite=playmode --testfilter="VFX.Test" --testproject=./TestProjects/VisualEffectGraph_HDRP --timeout=1200
+                utr --artifacts_path=TestProjects/VisualEffectGraph_HDRP/test-results --build-only --editor-location=.Editor --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-executemethod" --extra-editor-arg="SetupProject.ApplySettings" --extra-editor-arg="d3d11" --extra-editor-arg="Linear" --extra-editor-arg="-playergraphicsapi=Direct3D11" --platform=StandaloneWindows64 --player-save-path=players --scripting-backend=Mono2x --suite=playmode --testfilter="VFX.Test" --testproject=./TestProjects/VisualEffectGraph_HDRP --timeout=1200 {% if %USE_CACHE%==true %} {{cache.flags}} {% endif %}
          retries: 2
     artifacts:
         logs:
@@ -589,7 +458,7 @@ Build_VFX_HDRP_Win_DX11_Standalone_PerformanceTests_mono_Linear_CUSTOM-REVISION:
                 set /p GIT_REVISIONDATE=<revdate.tmp
                 echo %GIT_REVISIONDATE%
                 del revdate.tmp
-                utr --artifacts_path=TestProjects/VisualEffectGraph_HDRP/test-results --build-only --editor-location=.Editor --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-executemethod" --extra-editor-arg="SetupProject.ApplySettings" --extra-editor-arg="d3d11" --extra-editor-arg="Linear" --extra-editor-arg="-playergraphicsapi=Direct3D11" --platform=StandaloneWindows64 --player-save-path=players --scripting-backend=Mono2x --suite=playmode --testfilter="VFX.PerformanceTest" --testproject=./TestProjects/VisualEffectGraph_HDRP --timeout=1200
+                utr --artifacts_path=TestProjects/VisualEffectGraph_HDRP/test-results --build-only --editor-location=.Editor --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-executemethod" --extra-editor-arg="SetupProject.ApplySettings" --extra-editor-arg="d3d11" --extra-editor-arg="Linear" --extra-editor-arg="-playergraphicsapi=Direct3D11" --platform=StandaloneWindows64 --player-save-path=players --scripting-backend=Mono2x --suite=playmode --testfilter="VFX.PerformanceTest" --testproject=./TestProjects/VisualEffectGraph_HDRP --timeout=1200 {% if %USE_CACHE%==true %} {{cache.flags}} {% endif %}
          retries: 2
     artifacts:
         logs:
@@ -627,42 +496,7 @@ VFX_HDRP_Win_DX11_playmode_mono_Linear_CUSTOM-REVISION:
                 set /p GIT_REVISIONDATE=<revdate.tmp
                 echo %GIT_REVISIONDATE%
                 del revdate.tmp
-                utr --artifacts_path=TestProjects/VisualEffectGraph_HDRP/test-results --editor-location=.Editor --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-force-d3d11" --scripting-backend=Mono2x --suite=playmode --testfilter="VFX.Test" --testproject=./TestProjects/VisualEffectGraph_HDRP --zero-tests-are-ok=1
-         retries: 2
-    artifacts:
-        logs:
-            paths:
-              -  "**/test-results/**"
-              -  "TestProjects/VisualEffectGraph_HDRP/Logs/*.log"
-    dependencies:
-      -  path: .yamato/_editor_priming.yml#editor:priming:CUSTOM-REVISION:Win
-         rerun: on_new_revision
-VFX_HDRP_Win_DX11_playmode_cache_mono_Linear_CUSTOM-REVISION:
-    name: VFX_HDRP on Win_DX11_playmode_cache_mono_Linear on version CUSTOM-REVISION
-    agent:
-        type: Unity::VM::GPU
-        image: sdet/gamecode_win10:stable
-        flavor: b1.xlarge
-        model: rtx2080
-    variables:
-        UPM_REGISTRY: https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates
-        CUSTOM_REVISION: custom_revision_not_set
-        UTR_VERSION: "current"
-        TEST_FILTER: .*
-    commands:
-      -  command: NetSh Advfirewall set allprofiles state off
-      -  command: curl -s https://artifactory.prd.it.unity3d.com/artifactory/unity-tools-local/utr-standalone/utr.bat --output utr.bat
-         retries: 2
-      -  command: choco install unity-downloader-cli -y -s https://artifactory.prd.it.unity3d.com/artifactory/api/nuget/unity-choco-local
-         retries: 2
-      -  command: unity-downloader-cli --source-file unity_revision.txt -c editor -c il2cpp  --wait --published-only
-         retries: 2
-      -  command: |5-
-                git rev-parse HEAD | git show -s --format=%%cI > revdate.tmp
-                set /p GIT_REVISIONDATE=<revdate.tmp
-                echo %GIT_REVISIONDATE%
-                del revdate.tmp
-                utr --artifacts_path=TestProjects/VisualEffectGraph_HDRP/test-results --editor-location=.Editor --extra-editor-arg="-adb2" --extra-editor-arg="-cacheServerEnableDownload" --extra-editor-arg="true" --extra-editor-arg="-cacheServerEnableUpload" --extra-editor-arg="true" --extra-editor-arg="-cacheServerEndpoint" --extra-editor-arg="cacheserver-slo.hq.unity3d.com" --extra-editor-arg="-cacheServerNamespacePrefix" --extra-editor-arg="{{cache.cacheServerNamespacePrefix}}" --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-enableCacheServer" --extra-editor-arg="-force-d3d11" --scripting-backend=Mono2x --suite=playmode --testfilter="VFX.Test" --testproject=./TestProjects/VisualEffectGraph_HDRP --zero-tests-are-ok=1
+                utr --artifacts_path=TestProjects/VisualEffectGraph_HDRP/test-results --editor-location=.Editor --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-force-d3d11" --scripting-backend=Mono2x --suite=playmode --testfilter="VFX.Test" --testproject=./TestProjects/VisualEffectGraph_HDRP --zero-tests-are-ok=1 {% if %USE_CACHE%==true %} {{cache.flags}} {% endif %}
          retries: 2
     artifacts:
         logs:
@@ -697,42 +531,7 @@ VFX_HDRP_Win_DX11_playmode_XR_mono_Linear_CUSTOM-REVISION:
                 set /p GIT_REVISIONDATE=<revdate.tmp
                 echo %GIT_REVISIONDATE%
                 del revdate.tmp
-                utr --artifacts_path=TestProjects/VisualEffectGraph_HDRP/test-results --editor-location=.Editor --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-force-d3d11" --extra-editor-arg="-xr-reuse-tests" --scripting-backend=Mono2x --suite=playmode --testfilter="VFX.Test" --testproject=./TestProjects/VisualEffectGraph_HDRP --zero-tests-are-ok=1
-         retries: 2
-    artifacts:
-        logs:
-            paths:
-              -  "**/test-results/**"
-              -  "TestProjects/VisualEffectGraph_HDRP/Logs/*.log"
-    dependencies:
-      -  path: .yamato/_editor_priming.yml#editor:priming:CUSTOM-REVISION:Win
-         rerun: on_new_revision
-VFX_HDRP_Win_DX11_playmode_XR_cache_mono_Linear_CUSTOM-REVISION:
-    name: VFX_HDRP on Win_DX11_playmode_XR_cache_mono_Linear on version CUSTOM-REVISION
-    agent:
-        type: Unity::VM::GPU
-        image: sdet/gamecode_win10:stable
-        flavor: b1.xlarge
-        model: rtx2080
-    variables:
-        UPM_REGISTRY: https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates
-        CUSTOM_REVISION: custom_revision_not_set
-        UTR_VERSION: "current"
-        TEST_FILTER: .*
-    commands:
-      -  command: NetSh Advfirewall set allprofiles state off
-      -  command: curl -s https://artifactory.prd.it.unity3d.com/artifactory/unity-tools-local/utr-standalone/utr.bat --output utr.bat
-         retries: 2
-      -  command: choco install unity-downloader-cli -y -s https://artifactory.prd.it.unity3d.com/artifactory/api/nuget/unity-choco-local
-         retries: 2
-      -  command: unity-downloader-cli --source-file unity_revision.txt -c editor -c il2cpp  --wait --published-only
-         retries: 2
-      -  command: |5-
-                git rev-parse HEAD | git show -s --format=%%cI > revdate.tmp
-                set /p GIT_REVISIONDATE=<revdate.tmp
-                echo %GIT_REVISIONDATE%
-                del revdate.tmp
-                utr --artifacts_path=TestProjects/VisualEffectGraph_HDRP/test-results --editor-location=.Editor --extra-editor-arg="-adb2" --extra-editor-arg="-cacheServerEnableDownload" --extra-editor-arg="true" --extra-editor-arg="-cacheServerEnableUpload" --extra-editor-arg="true" --extra-editor-arg="-cacheServerEndpoint" --extra-editor-arg="cacheserver-slo.hq.unity3d.com" --extra-editor-arg="-cacheServerNamespacePrefix" --extra-editor-arg="{{cache.cacheServerNamespacePrefix}}" --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-enableCacheServer" --extra-editor-arg="-force-d3d11" --extra-editor-arg="-xr-reuse-tests" --scripting-backend=Mono2x --suite=playmode --testfilter="VFX.Test" --testproject=./TestProjects/VisualEffectGraph_HDRP --zero-tests-are-ok=1
+                utr --artifacts_path=TestProjects/VisualEffectGraph_HDRP/test-results --editor-location=.Editor --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-force-d3d11" --extra-editor-arg="-xr-reuse-tests" --scripting-backend=Mono2x --suite=playmode --testfilter="VFX.Test" --testproject=./TestProjects/VisualEffectGraph_HDRP --zero-tests-are-ok=1 {% if %USE_CACHE%==true %} {{cache.flags}} {% endif %}
          retries: 2
     artifacts:
         logs:
@@ -767,7 +566,7 @@ VFX_HDRP_Win_DX11_playmode_PerformanceTests_mono_Linear_CUSTOM-REVISION:
                 set /p GIT_REVISIONDATE=<revdate.tmp
                 echo %GIT_REVISIONDATE%
                 del revdate.tmp
-                utr --artifacts_path=TestProjects/VisualEffectGraph_HDRP/test-results --editor-location=.Editor --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-force-d3d11" --performance-project-version=. --report-performance-data --performance-project-id=VFX --scripting-backend=Mono2x --suite=playmode --testfilter="VFX.PerformanceTest" --testproject=./TestProjects/VisualEffectGraph_HDRP --zero-tests-are-ok=1
+                utr --artifacts_path=TestProjects/VisualEffectGraph_HDRP/test-results --editor-location=.Editor --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-force-d3d11" --performance-project-version=. --report-performance-data --performance-project-id=VFX --scripting-backend=Mono2x --suite=playmode --testfilter="VFX.PerformanceTest" --testproject=./TestProjects/VisualEffectGraph_HDRP --zero-tests-are-ok=1 {% if %USE_CACHE%==true %} {{cache.flags}} {% endif %}
          retries: 2
     artifacts:
         logs:
@@ -801,7 +600,7 @@ VFX_HDRP_Win_DX11_editmode_mono_Linear_CUSTOM-REVISION:
                 set /p GIT_REVISIONDATE=<revdate.tmp
                 echo %GIT_REVISIONDATE%
                 del revdate.tmp
-                utr --artifacts_path=TestProjects/VisualEffectGraph_HDRP/test-results --editor-location=.Editor --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-force-d3d11" --extra-editor-arg="-playergraphicsapi=Direct3D11" --platform=editmode --scripting-backend=Mono2x --suite=editor --testfilter="VFX.Test" --testproject=./TestProjects/VisualEffectGraph_HDRP --zero-tests-are-ok=1
+                utr --artifacts_path=TestProjects/VisualEffectGraph_HDRP/test-results --editor-location=.Editor --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-force-d3d11" --extra-editor-arg="-playergraphicsapi=Direct3D11" --platform=editmode --scripting-backend=Mono2x --suite=editor --testfilter="VFX.Test" --testproject=./TestProjects/VisualEffectGraph_HDRP --zero-tests-are-ok=1 {% if %USE_CACHE%==true %} {{cache.flags}} {% endif %}
          retries: 2
     artifacts:
         logs:
@@ -836,83 +635,13 @@ VFX_HDRP_Win_DX11_editmode_PerformanceTests_mono_Linear_CUSTOM-REVISION:
                 set /p GIT_REVISIONDATE=<revdate.tmp
                 echo %GIT_REVISIONDATE%
                 del revdate.tmp
-                utr --artifacts_path=TestProjects/VisualEffectGraph_HDRP/test-results --editor-location=.Editor --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-force-d3d11" --extra-editor-arg="-playergraphicsapi=Direct3D11" --performance-project-version=. --report-performance-data --performance-project-id=VFX --platform=editmode --scripting-backend=Mono2x --suite=editor --testfilter="VFX.PerformanceTest" --testproject=./TestProjects/VisualEffectGraph_HDRP --zero-tests-are-ok=1
+                utr --artifacts_path=TestProjects/VisualEffectGraph_HDRP/test-results --editor-location=.Editor --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-force-d3d11" --extra-editor-arg="-playergraphicsapi=Direct3D11" --performance-project-version=. --report-performance-data --performance-project-id=VFX --platform=editmode --scripting-backend=Mono2x --suite=editor --testfilter="VFX.PerformanceTest" --testproject=./TestProjects/VisualEffectGraph_HDRP --zero-tests-are-ok=1 {% if %USE_CACHE%==true %} {{cache.flags}} {% endif %}
          retries: 2
     artifacts:
         logs:
             paths:
               -  "**/test-results/**"
               -  "TestProjects/VisualEffectGraph_HDRP/Logs/*.log"
-    dependencies:
-      -  path: .yamato/_editor_priming.yml#editor:priming:CUSTOM-REVISION:Win
-         rerun: on_new_revision
-VFX_HDRP_Win_DX11_Standalone_cache_mono_Linear_CUSTOM-REVISION:
-    name: VFX_HDRP on Win_DX11_Standalone_cache_mono_Linear on version CUSTOM-REVISION
-    agent:
-        type: Unity::VM::GPU
-        image: sdet/gamecode_win10:stable
-        flavor: b1.xlarge
-        model: rtx2080
-    variables:
-        UPM_REGISTRY: https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates
-        CUSTOM_REVISION: custom_revision_not_set
-        UTR_VERSION: "current"
-        TEST_FILTER: .*
-    commands:
-      -  command: NetSh Advfirewall set allprofiles state off
-      -  command: curl -s https://artifactory.prd.it.unity3d.com/artifactory/unity-tools-local/utr-standalone/utr.bat --output utr.bat
-         retries: 2
-      -  command: |5-
-                git rev-parse HEAD | git show -s --format=%%cI > revdate.tmp
-                set /p GIT_REVISIONDATE=<revdate.tmp
-                echo %GIT_REVISIONDATE%
-                del revdate.tmp
-                utr --artifacts_path=TestProjects/VisualEffectGraph_HDRP/test-results --platform=StandaloneWindows64 --player-connection-ip=auto --player-load-path=players --suite=playmode --timeout=1200 --zero-tests-are-ok=1
-         retries: 2
-    artifacts:
-        logs:
-            paths:
-              -  "**/test-results/**"
-              -  "TestProjects/VisualEffectGraph_HDRP/Logs/*.log"
-    dependencies:
-      -  path: .yamato/_editor_priming.yml#editor:priming:CUSTOM-REVISION:Win
-         rerun: on_new_revision
-      -  path: .yamato/vfx_hdrp-win-dx11.yml#Build_VFX_HDRP_Win_DX11_Standalone_cache_mono_Linear_CUSTOM-REVISION
-         rerun: on_new_revision
-Build_VFX_HDRP_Win_DX11_Standalone_cache_mono_Linear_CUSTOM-REVISION:
-    name: Build VFX_HDRP on Win_DX11_mono_Linear_Standalone_cache_build_Player on version CUSTOM-REVISION
-    agent:
-        type: Unity::VM
-        image: sdet/gamecode_win10:stable
-        flavor: b1.xlarge
-    variables:
-        UPM_REGISTRY: https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates
-        CUSTOM_REVISION: custom_revision_not_set
-        UTR_VERSION: "current"
-        TEST_FILTER: .*
-    commands:
-      -  command: NetSh Advfirewall set allprofiles state off
-      -  command: curl -s https://artifactory.prd.it.unity3d.com/artifactory/unity-tools-local/utr-standalone/utr.bat --output utr.bat
-         retries: 2
-      -  command: choco install unity-downloader-cli -y -s https://artifactory.prd.it.unity3d.com/artifactory/api/nuget/unity-choco-local
-         retries: 2
-      -  command: unity-downloader-cli --source-file unity_revision.txt -c editor -c il2cpp  --wait --published-only
-         retries: 2
-      -  command: |5-
-                git rev-parse HEAD | git show -s --format=%%cI > revdate.tmp
-                set /p GIT_REVISIONDATE=<revdate.tmp
-                echo %GIT_REVISIONDATE%
-                del revdate.tmp
-                utr --artifacts_path=TestProjects/VisualEffectGraph_HDRP/test-results --build-only --editor-location=.Editor --extra-editor-arg="-adb2" --extra-editor-arg="-cacheServerEnableDownload" --extra-editor-arg="true" --extra-editor-arg="-cacheServerEnableUpload" --extra-editor-arg="true" --extra-editor-arg="-cacheServerEndpoint" --extra-editor-arg="cacheserver-slo.hq.unity3d.com" --extra-editor-arg="-cacheServerNamespacePrefix" --extra-editor-arg="{{cache.cacheServerNamespacePrefix}}" --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-enableCacheServer" --extra-editor-arg="-executemethod" --extra-editor-arg="SetupProject.ApplySettings" --extra-editor-arg="d3d11" --extra-editor-arg="Linear" --extra-editor-arg="-playergraphicsapi=Direct3D11" --platform=StandaloneWindows64 --player-save-path=players --scripting-backend=Mono2x --suite=playmode --testfilter="VFX.Test" --testproject=./TestProjects/VisualEffectGraph_HDRP --timeout=3000
-         retries: 2
-    artifacts:
-        logs:
-            paths:
-              -  "**/test-results/**"
-              -  "TestProjects/VisualEffectGraph_HDRP/Logs/*.log"
-        players:
-            paths:
-              -  "players*/**"
     dependencies:
       -  path: .yamato/_editor_priming.yml#editor:priming:CUSTOM-REVISION:Win
          rerun: on_new_revision

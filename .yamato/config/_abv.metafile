@@ -46,7 +46,7 @@ trunk_verification: # jobs to include in trunk verification job
       build_config: mono
       color_space: Linear
       test_platforms:
-        - playmode_cache
+        - playmode
         - editmode
     - project: URP_Foundation
       platform: Win
@@ -54,7 +54,7 @@ trunk_verification: # jobs to include in trunk verification job
       build_config: mono
       color_space: Linear
       test_platforms:
-        - playmode_cache
+        - playmode
         - editmode
     - project: URP_Lighting
       platform: Win
@@ -62,7 +62,7 @@ trunk_verification: # jobs to include in trunk verification job
       build_config: mono
       color_space: Linear
       test_platforms:
-        - playmode_cache
+        - playmode
         - editmode
     - project: URP_PostPro
       platform: Win
@@ -70,7 +70,7 @@ trunk_verification: # jobs to include in trunk verification job
       build_config: mono
       color_space: Linear
       test_platforms:
-        - playmode_cache
+        - playmode
         - editmode
     - project: URP_Terrain
       platform: Win
@@ -78,7 +78,7 @@ trunk_verification: # jobs to include in trunk verification job
       build_config: mono
       color_space: Linear
       test_platforms:
-        - playmode_cache
+        - playmode
         - editmode
     - project: ShaderGraph
       platform: Win
@@ -86,7 +86,7 @@ trunk_verification: # jobs to include in trunk verification job
       build_config: mono
       color_space: Linear
       test_platforms:
-        - playmode_cache
+        - playmode
         - editmode
     - project: HDRP
       platform: Win
@@ -94,7 +94,7 @@ trunk_verification: # jobs to include in trunk verification job
       build_config: mono
       color_space: Linear
       test_platforms:
-        - playmode_cache
+        - playmode
         - editmode
     - project: VFX_HDRP
       platform: Win
@@ -102,7 +102,7 @@ trunk_verification: # jobs to include in trunk verification job
       build_config: mono
       color_space: Linear
       test_platforms:
-        - playmode_cache
+        - playmode
         - editmode
     - project: VFX_URP
       platform: Win
@@ -110,4 +110,4 @@ trunk_verification: # jobs to include in trunk verification job
       build_config: mono
       color_space: Linear
       test_platforms:
-        - playmode_cache
+        - playmode

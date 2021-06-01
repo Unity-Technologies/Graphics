@@ -23,6 +23,7 @@ PR_URPUpdate_trunk:
         TEST_FILTER: .*
         TEMPLATE_UPDATE_PROJECT_BRANCH: master
         TEMPLATE_UPDATE_PROJECT_REVISION: 818b6345d6bf46cf3e5644aceff134e866c6150e
+        USE_CACHE: true
 Nightly_URPUpdate_trunk:
     name: Nightly URPUpdate - trunk
     dependencies:
@@ -34,6 +35,7 @@ Nightly_URPUpdate_trunk:
         TEST_FILTER: .*
         TEMPLATE_UPDATE_PROJECT_BRANCH: master
         TEMPLATE_UPDATE_PROJECT_REVISION: 818b6345d6bf46cf3e5644aceff134e866c6150e
+        USE_CACHE: true
 PR_URPUpdate_CUSTOM-REVISION:
     name: URPUpdate PR Job - CUSTOM-REVISION
     dependencies:

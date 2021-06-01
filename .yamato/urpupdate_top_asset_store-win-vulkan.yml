@@ -19,6 +19,7 @@ URPUpdate_Top_Asset_Store_Win_Vulkan_playmode_mono_Linear_trunk:
         CUSTOM_REVISION: '{{trunk.changeset.id}}'
         ASSETSTORE_UPDATE_PROJECT_BRANCH: master
         ASSETSTORE_UPDATE_PROJECT_REVISION: 818b6345d6bf46cf3e5644aceff134e866c6150e
+        USE_CACHE: true
         UTR_VERSION: "current"
         TEST_FILTER: .*
     commands:
@@ -40,7 +41,7 @@ URPUpdate_Top_Asset_Store_Win_Vulkan_playmode_mono_Linear_trunk:
                 set /p GIT_REVISIONDATE=<revdate.tmp
                 echo %GIT_REVISIONDATE%
                 del revdate.tmp
-                utr --artifacts_path=TestProjects/URP-Update-Testing/Top-URP-Assets/test-results --editor-location=.Editor --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-force-vulkan" --scripting-backend=Mono2x --suite=playmode --testfilter=%TEST_FILTER% --testproject=./TestProjects/URP-Update-Testing/Top-URP-Assets --zero-tests-are-ok=1
+                utr --artifacts_path=TestProjects/URP-Update-Testing/Top-URP-Assets/test-results --editor-location=.Editor --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-force-vulkan" --scripting-backend=Mono2x --suite=playmode --testfilter=%TEST_FILTER% --testproject=./TestProjects/URP-Update-Testing/Top-URP-Assets --zero-tests-are-ok=1 {% if %USE_CACHE%==true %} {{cache.flags}} {% endif %}
          retries: 2
     artifacts:
         logs:
@@ -61,6 +62,7 @@ URPUpdate_Top_Asset_Store_Win_Vulkan_editmode_mono_Linear_trunk:
         CUSTOM_REVISION: '{{trunk.changeset.id}}'
         ASSETSTORE_UPDATE_PROJECT_BRANCH: master
         ASSETSTORE_UPDATE_PROJECT_REVISION: 818b6345d6bf46cf3e5644aceff134e866c6150e
+        USE_CACHE: true
         UTR_VERSION: "current"
         TEST_FILTER: .*
     commands:
@@ -82,7 +84,7 @@ URPUpdate_Top_Asset_Store_Win_Vulkan_editmode_mono_Linear_trunk:
                 set /p GIT_REVISIONDATE=<revdate.tmp
                 echo %GIT_REVISIONDATE%
                 del revdate.tmp
-                utr --artifacts_path=TestProjects/URP-Update-Testing/Top-URP-Assets/test-results --editor-location=.Editor --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-force-vulkan" --extra-editor-arg="-playergraphicsapi=Vulkan" --platform=editmode --scripting-backend=Mono2x --suite=editor --testfilter=%TEST_FILTER% --testproject=./TestProjects/URP-Update-Testing/Top-URP-Assets --zero-tests-are-ok=1
+                utr --artifacts_path=TestProjects/URP-Update-Testing/Top-URP-Assets/test-results --editor-location=.Editor --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-force-vulkan" --extra-editor-arg="-playergraphicsapi=Vulkan" --platform=editmode --scripting-backend=Mono2x --suite=editor --testfilter=%TEST_FILTER% --testproject=./TestProjects/URP-Update-Testing/Top-URP-Assets --zero-tests-are-ok=1 {% if %USE_CACHE%==true %} {{cache.flags}} {% endif %}
          retries: 2
     artifacts:
         logs:
@@ -124,7 +126,7 @@ URPUpdate_Top_Asset_Store_Win_Vulkan_playmode_mono_Linear_CUSTOM-REVISION:
                 set /p GIT_REVISIONDATE=<revdate.tmp
                 echo %GIT_REVISIONDATE%
                 del revdate.tmp
-                utr --artifacts_path=TestProjects/URP-Update-Testing/Top-URP-Assets/test-results --editor-location=.Editor --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-force-vulkan" --scripting-backend=Mono2x --suite=playmode --testfilter=%TEST_FILTER% --testproject=./TestProjects/URP-Update-Testing/Top-URP-Assets --zero-tests-are-ok=1
+                utr --artifacts_path=TestProjects/URP-Update-Testing/Top-URP-Assets/test-results --editor-location=.Editor --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-force-vulkan" --scripting-backend=Mono2x --suite=playmode --testfilter=%TEST_FILTER% --testproject=./TestProjects/URP-Update-Testing/Top-URP-Assets --zero-tests-are-ok=1 {% if %USE_CACHE%==true %} {{cache.flags}} {% endif %}
          retries: 2
     artifacts:
         logs:
@@ -166,7 +168,7 @@ URPUpdate_Top_Asset_Store_Win_Vulkan_editmode_mono_Linear_CUSTOM-REVISION:
                 set /p GIT_REVISIONDATE=<revdate.tmp
                 echo %GIT_REVISIONDATE%
                 del revdate.tmp
-                utr --artifacts_path=TestProjects/URP-Update-Testing/Top-URP-Assets/test-results --editor-location=.Editor --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-force-vulkan" --extra-editor-arg="-playergraphicsapi=Vulkan" --platform=editmode --scripting-backend=Mono2x --suite=editor --testfilter=%TEST_FILTER% --testproject=./TestProjects/URP-Update-Testing/Top-URP-Assets --zero-tests-are-ok=1
+                utr --artifacts_path=TestProjects/URP-Update-Testing/Top-URP-Assets/test-results --editor-location=.Editor --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-force-vulkan" --extra-editor-arg="-playergraphicsapi=Vulkan" --platform=editmode --scripting-backend=Mono2x --suite=editor --testfilter=%TEST_FILTER% --testproject=./TestProjects/URP-Update-Testing/Top-URP-Assets --zero-tests-are-ok=1 {% if %USE_CACHE%==true %} {{cache.flags}} {% endif %}
          retries: 2
     artifacts:
         logs:

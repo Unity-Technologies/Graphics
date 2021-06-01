@@ -11,7 +11,7 @@
 PR_Universal_Stereo_trunk:
     name: Universal_Stereo PR Job - trunk
     dependencies:
-      -  path: .yamato/universal_stereo-win.yml#Universal_Stereo_Win_Standalone_cache_mono_Linear_trunk
+      -  path: .yamato/universal_stereo-win.yml#Universal_Stereo_Win_Standalone_mono_Linear_trunk
          rerun: on_new_revision
       -  path: .yamato/universal_stereo-win.yml#Universal_Stereo_Win_editmode_mono_Linear_trunk
          rerun: on_new_revision
@@ -19,6 +19,7 @@ PR_Universal_Stereo_trunk:
         CUSTOM_REVISION: '{{trunk.changeset.id}}'
         UTR_VERSION: "current"
         TEST_FILTER: .*
+        USE_CACHE: true
 Nightly_Universal_Stereo_trunk:
     name: Nightly Universal_Stereo - trunk
     dependencies:
@@ -28,10 +29,11 @@ Nightly_Universal_Stereo_trunk:
         CUSTOM_REVISION: '{{trunk.changeset.id}}'
         UTR_VERSION: "current"
         TEST_FILTER: .*
+        USE_CACHE: true
 PR_Universal_Stereo_CUSTOM-REVISION:
     name: Universal_Stereo PR Job - CUSTOM-REVISION
     dependencies:
-      -  path: .yamato/universal_stereo-win.yml#Universal_Stereo_Win_Standalone_cache_mono_Linear_CUSTOM-REVISION
+      -  path: .yamato/universal_stereo-win.yml#Universal_Stereo_Win_Standalone_mono_Linear_CUSTOM-REVISION
          rerun: on_new_revision
       -  path: .yamato/universal_stereo-win.yml#Universal_Stereo_Win_editmode_mono_Linear_CUSTOM-REVISION
          rerun: on_new_revision

@@ -21,6 +21,7 @@ PR_URPUpdate_BoatAttack_trunk:
         TEST_FILTER: .*
         BA_UPDATE_PROJECT_BRANCH: master
         BA_UPDATE_PROJECT_REVISION: 06c67d682225354dd909728e2511ac17115b18b9
+        USE_CACHE: true
 Nightly_URPUpdate_BoatAttack_trunk:
     name: Nightly URPUpdate_BoatAttack - trunk
     dependencies:
@@ -32,6 +33,7 @@ Nightly_URPUpdate_BoatAttack_trunk:
         TEST_FILTER: .*
         BA_UPDATE_PROJECT_BRANCH: master
         BA_UPDATE_PROJECT_REVISION: 06c67d682225354dd909728e2511ac17115b18b9
+        USE_CACHE: true
 PR_URPUpdate_BoatAttack_CUSTOM-REVISION:
     name: URPUpdate_BoatAttack PR Job - CUSTOM-REVISION
     dependencies:

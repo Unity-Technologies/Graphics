@@ -19,6 +19,7 @@ PR_Smoke_Test_trunk:
         CUSTOM_REVISION: '{{trunk.changeset.id}}'
         UTR_VERSION: "current"
         TEST_FILTER: .*
+        USE_CACHE: true
 Nightly_Smoke_Test_trunk:
     name: Nightly Smoke_Test - trunk
     dependencies:
@@ -32,6 +33,7 @@ Nightly_Smoke_Test_trunk:
         CUSTOM_REVISION: '{{trunk.changeset.id}}'
         UTR_VERSION: "current"
         TEST_FILTER: .*
+        USE_CACHE: true
 PR_Smoke_Test_CUSTOM-REVISION:
     name: Smoke_Test PR Job - CUSTOM-REVISION
     dependencies:

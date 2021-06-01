@@ -37,6 +37,7 @@ PR_VikingVillage_URP_trunk:
         TEST_FILTER: .*
         VV_URP_BRANCH: master
         VV_URP_REVISION: eebe6db7d9b186603b63095a926d76ded2bf1110
+        USE_CACHE: true
 Nightly_VikingVillage_URP_trunk:
     name: Nightly VikingVillage_URP - trunk
     dependencies:
@@ -48,6 +49,7 @@ Nightly_VikingVillage_URP_trunk:
         TEST_FILTER: .*
         VV_URP_BRANCH: master
         VV_URP_REVISION: eebe6db7d9b186603b63095a926d76ded2bf1110
+        USE_CACHE: true
 PR_VikingVillage_URP_CUSTOM-REVISION:
     name: VikingVillage_URP PR Job - CUSTOM-REVISION
     dependencies:

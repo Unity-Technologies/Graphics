@@ -11,18 +11,19 @@
 PR_ShaderGraph_BuiltIn_Lighting_trunk:
     name: ShaderGraph_BuiltIn_Lighting PR Job - trunk
     dependencies:
-      -  path: .yamato/shadergraph_builtin_lighting-win-dx11.yml#ShaderGraph_BuiltIn_Lighting_Win_DX11_playmode_cache_mono_Linear_trunk
+      -  path: .yamato/shadergraph_builtin_lighting-win-dx11.yml#ShaderGraph_BuiltIn_Lighting_Win_DX11_playmode_mono_Linear_trunk
          rerun: on_new_revision
-      -  path: .yamato/shadergraph_builtin_lighting-osx-openglcore.yml#ShaderGraph_BuiltIn_Lighting_OSX_OpenGLCore_playmode_cache_mono_Linear_trunk
+      -  path: .yamato/shadergraph_builtin_lighting-osx-openglcore.yml#ShaderGraph_BuiltIn_Lighting_OSX_OpenGLCore_playmode_mono_Linear_trunk
          rerun: on_new_revision
-      -  path: .yamato/shadergraph_builtin_lighting-linux-vulkan.yml#ShaderGraph_BuiltIn_Lighting_Linux_Vulkan_playmode_cache_mono_Linear_trunk
+      -  path: .yamato/shadergraph_builtin_lighting-linux-vulkan.yml#ShaderGraph_BuiltIn_Lighting_Linux_Vulkan_playmode_mono_Linear_trunk
          rerun: on_new_revision
-      -  path: .yamato/shadergraph_builtin_lighting-osx-metal.yml#ShaderGraph_BuiltIn_Lighting_OSX_Metal_playmode_cache_mono_Linear_trunk
+      -  path: .yamato/shadergraph_builtin_lighting-osx-metal.yml#ShaderGraph_BuiltIn_Lighting_OSX_Metal_playmode_mono_Linear_trunk
          rerun: on_new_revision
     variables:
         CUSTOM_REVISION: '{{trunk.changeset.id}}'
         UTR_VERSION: "current"
         TEST_FILTER: .*
+        USE_CACHE: true
 Nightly_ShaderGraph_BuiltIn_Lighting_trunk:
     name: Nightly ShaderGraph_BuiltIn_Lighting - trunk
     dependencies:
@@ -32,16 +33,17 @@ Nightly_ShaderGraph_BuiltIn_Lighting_trunk:
         CUSTOM_REVISION: '{{trunk.changeset.id}}'
         UTR_VERSION: "current"
         TEST_FILTER: .*
+        USE_CACHE: true
 PR_ShaderGraph_BuiltIn_Lighting_CUSTOM-REVISION:
     name: ShaderGraph_BuiltIn_Lighting PR Job - CUSTOM-REVISION
     dependencies:
-      -  path: .yamato/shadergraph_builtin_lighting-win-dx11.yml#ShaderGraph_BuiltIn_Lighting_Win_DX11_playmode_cache_mono_Linear_CUSTOM-REVISION
+      -  path: .yamato/shadergraph_builtin_lighting-win-dx11.yml#ShaderGraph_BuiltIn_Lighting_Win_DX11_playmode_mono_Linear_CUSTOM-REVISION
          rerun: on_new_revision
-      -  path: .yamato/shadergraph_builtin_lighting-osx-openglcore.yml#ShaderGraph_BuiltIn_Lighting_OSX_OpenGLCore_playmode_cache_mono_Linear_CUSTOM-REVISION
+      -  path: .yamato/shadergraph_builtin_lighting-osx-openglcore.yml#ShaderGraph_BuiltIn_Lighting_OSX_OpenGLCore_playmode_mono_Linear_CUSTOM-REVISION
          rerun: on_new_revision
-      -  path: .yamato/shadergraph_builtin_lighting-linux-vulkan.yml#ShaderGraph_BuiltIn_Lighting_Linux_Vulkan_playmode_cache_mono_Linear_CUSTOM-REVISION
+      -  path: .yamato/shadergraph_builtin_lighting-linux-vulkan.yml#ShaderGraph_BuiltIn_Lighting_Linux_Vulkan_playmode_mono_Linear_CUSTOM-REVISION
          rerun: on_new_revision
-      -  path: .yamato/shadergraph_builtin_lighting-osx-metal.yml#ShaderGraph_BuiltIn_Lighting_OSX_Metal_playmode_cache_mono_Linear_CUSTOM-REVISION
+      -  path: .yamato/shadergraph_builtin_lighting-osx-metal.yml#ShaderGraph_BuiltIn_Lighting_OSX_Metal_playmode_mono_Linear_CUSTOM-REVISION
          rerun: on_new_revision
     variables:
         CUSTOM_REVISION: custom_revision_not_set

@@ -17,6 +17,8 @@ editors: # applied for all yml files
       pr_triggers_allowed: True # if expression_triggers on PRs allowed
       nightly_job_trigger: True # if true, adds recurrent trigger to nightly job
       weekly_job_trigger: False # if true, adds recurrent trigger to weekly job
+    variables:
+      USE_CACHE: true
   - track: CUSTOM-REVISION
     name: CUSTOM-REVISION
     rerun_strategy: on_new_revision
@@ -53,6 +55,7 @@ color_spaces:
 test_platforms:
   - type: Standalone
     utr_flags:
+      - [OSX_Metal]: '{% if %USE_CACHE%==true %} {{cache.flags}} {% endif %}'
       - [all]: --suite=playmode
       - [all]: --timeout=1200
       # - [all]: --reruncount=2
@@ -79,6 +82,7 @@ test_platforms:
       - [Win_DX11, Win_DX12, Win_Vulkan, Win_, Linux_OpenGlCore, Linux_Vulkan]: --player-connection-ip=auto
 
     utr_flags_build:
+      - [all]: '{% if %USE_CACHE%==true %} {{cache.flags}} {% endif %}'
       - [all]: --testfilter=%TEST_FILTER%
       - [all]: --suite=playmode
       - [all]: --build-only
@@ -133,6 +137,7 @@ test_platforms:
       - [all]: <shared.platform.commands.call_utr>
   - type: playmode
     utr_flags:
+      - [all]: '{% if %USE_CACHE%==true %} {{cache.flags}} {% endif %}'
       - [all]: --testfilter=%TEST_FILTER%
       - [all]: --zero-tests-are-ok=1
       - [all]: --suite=playmode
@@ -162,6 +167,7 @@ test_platforms:
 
   - type: editmode
     utr_flags:
+      - [all]: '{% if %USE_CACHE%==true %} {{cache.flags}} {% endif %}'
       - [all]: --testfilter=%TEST_FILTER%
       - [all]: --zero-tests-are-ok=1
       - [all]: --suite=editor
