@@ -259,15 +259,6 @@ namespace UnityEditor.VFX.HDRP
 
             }
         }
-        protected override void WriteBlendMode(VFXShaderWriter writer)  //TODO : Not sure we need to do it here : different for DBuffer and ForwardEmissive pass
-        {
-            // using alpha compositing https://developer.nvidia.com/gpugems/GPUGems3/gpugems3_ch23.html
-            for (int i = 0; i < 3; i++)
-            {
-                writer.WriteLineFormat("Blend {0} SrcAlpha OneMinusSrcAlpha, Zero OneMinusSrcAlpha", i);
-            }
-            writer.WriteLine("Blend 3 Zero OneMinusSrcColor");
-        }
 
         protected VFXShaderWriter GetDecalMaskColor(int maskIndex)
         {

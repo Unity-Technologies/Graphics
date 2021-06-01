@@ -9,6 +9,13 @@ Pass
     ZTest Greater
 
 
+    // using alpha compositing https://developer.nvidia.com/gpugems/GPUGems3/gpugems3_ch23.html
+    Blend 0 SrcAlpha OneMinusSrcAlpha, Zero OneMinusSrcAlpha
+    Blend 1 SrcAlpha OneMinusSrcAlpha, Zero OneMinusSrcAlpha
+    Blend 2 SrcAlpha OneMinusSrcAlpha, Zero OneMinusSrcAlpha
+    Blend 3 Zero OneMinusSrcColor
+
+
     ColorMask ${VFXDecalColorMask0}
     ColorMask ${VFXDecalColorMask1} 1
     ColorMask ${VFXDecalColorMask2} 2
