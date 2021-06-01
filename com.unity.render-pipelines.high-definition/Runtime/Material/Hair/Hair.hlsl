@@ -416,25 +416,6 @@ PreLightData GetPreLightData(float3 V, PositionInputs posInput, inout BSDFData b
 }
 
 //-----------------------------------------------------------------------------
-// bake lighting function
-//-----------------------------------------------------------------------------
-
-// This define allow to say that we implement a ModifyBakedDiffuseLighting function to be call in PostInitBuiltinData
-#define MODIFY_BAKED_DIFFUSE_LIGHTING
-
-void ModifyBakedDiffuseLighting(float3 V, PositionInputs posInput, PreLightData preLightData, BSDFData bsdfData, inout BuiltinData builtinData)
-{
-    // Add GI transmission contribution to bakeDiffuseLighting, we then drop backBakeDiffuseLighting (i.e it is not used anymore, this save VGPR)
-    {
-        // TODO: disabled until further notice (not clear how to handle occlusion).
-        //builtinData.bakeDiffuseLighting += builtinData.backBakeDiffuseLighting * bsdfData.transmittance;
-    }
-
-    // Premultiply (back) bake diffuse lighting information with diffuse pre-integration
-    builtinData.bakeDiffuseLighting *= preLightData.diffuseFGD * bsdfData.diffuseColor;
-}
-
-//-----------------------------------------------------------------------------
 // light transport functions
 //-----------------------------------------------------------------------------
 
@@ -651,6 +632,45 @@ CBSDF EvaluateBSDF(float3 V, float3 L, PreLightData preLightData, BSDFData bsdfD
 
     return cbsdf;
 }
+
+//-----------------------------------------------------------------------------
+// bake lighting function
+//-----------------------------------------------------------------------------
+
+// This define allow to say that we implement a ModifyBakedDiffuseLighting function to be call in PostInitBuiltinData
+#define MODIFY_BAKED_DIFFUSE_LIGHTING
+
+void ModifyBakedDiffuseLighting(float3 V, PositionInputs posInput, PreLightData preLightData, BSDFData bsdfData, inout BuiltinData builtinData)
+{
+    // Add GI transmission contribution to bakeDiffuseLighting, we then drop backBakeDiffuseLighting (i.e it is not used anymore, this save VGPR)
+    {
+        // TODO: disabled until further notice (not clear how to handle occlusion).
+        //builtinData.bakeDiffuseLighting += builtinData.backBakeDiffuseLighting * bsdfData.transmittance;
+    }
+
+    if (HasFlag(bsdfData.materialFeatures, MATERIALFEATUREFLAGS_HAIR_MARSCHNER))
+    {
+        // [NOTE-MARSCHNER-IBL]
+        // For now we approximate Marschner IBL as proposed by Brian Karis in "Physically Based Hair Shading in Unreal":
+
+        // Modify the roughness
+        bsdfData.roughnessR   = saturate(bsdfData.roughnessR   + 0.2);
+        bsdfData.roughnessTRT = saturate(bsdfData.roughnessTRT + 0.2);
+
+        // This sample is treated as a directional light source and we evaluate the BSDF with it directly.
+        // TODO: Lobe mask for the TT lobe.
+        CBSDF cbsdf = EvaluateBSDF(V, bsdfData.normalWS, preLightData, bsdfData);
+
+        // Repurpose the spherical harmonic sample of the environment lighting (sampled with the modified normal).
+        builtinData.bakeDiffuseLighting *= PI * cbsdf.specR;
+    }
+    else
+    {
+        // Premultiply (back) bake diffuse lighting information with diffuse pre-integration
+        builtinData.bakeDiffuseLighting *= preLightData.diffuseFGD * bsdfData.diffuseColor;
+    }
+}
+
 
 //-----------------------------------------------------------------------------
 // Surface shading (all light types) below
@@ -964,6 +984,12 @@ IndirectLighting EvaluateBSDF_Env(  LightLoopContext lightLoopContext,
 
     if (GPUImageBasedLightingType == GPUIMAGEBASEDLIGHTINGTYPE_REFRACTION)
         return lighting;
+
+    if (HasFlag(bsdfData.materialFeatures, MATERIALFEATUREFLAGS_HAIR_MARSCHNER))
+    {
+        // See: [NOTE-MARSCHNER-IBL]
+        return lighting;
+    }
 
     float3 envLighting;
     float3 positionWS = posInput.positionWS;
