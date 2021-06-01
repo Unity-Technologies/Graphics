@@ -428,6 +428,43 @@ namespace UnityEngine.Rendering.Universal
             return false;
         }
 
+#if ENABLE_VR && ENABLE_VR_MODULE
+        static List<XR.XRDisplaySubsystem> displaySubsystemList = new List<XR.XRDisplaySubsystem>();
+        static XR.XRDisplaySubsystem GetFirstXRDisplaySubsystem()
+        {
+            XR.XRDisplaySubsystem display = null;
+            SubsystemManager.GetInstances(displaySubsystemList);
+
+            if (displaySubsystemList.Count > 0)
+                display = displaySubsystemList[0];
+
+            return display;
+        }
+
+        // NB: This method is required for a hotfix in Hololens to prevent creating a render texture when using a renderer
+        // with custom render pass.
+        // TODO: Remove this method and usages when we have proper dependency tracking in the pipeline to know
+        // when a render pass requires camera color as input.
+        internal static bool IsRunningHololens(CameraData cameraData)
+        {
+#if PLATFORM_WINRT
+            if (cameraData.xr.enabled)
+            {
+                var platform = Application.platform;
+                if (platform == RuntimePlatform.WSAPlayerX86 || platform == RuntimePlatform.WSAPlayerARM || platform == RuntimePlatform.WSAPlayerX64)
+                {
+                    var displaySubsystem = GetFirstXRDisplaySubsystem();
+
+                    if (displaySubsystem != null && !displaySubsystem.displayOpaque)
+                        return true;
+                }
+            }
+#endif
+            return false;
+        }
+
+#endif
+
         Comparison<Camera> cameraComparison = (camera1, camera2) => { return (int)camera1.depth - (int)camera2.depth; };
 #if UNITY_2021_1_OR_NEWER
         void SortCameras(List<Camera> cameras)
