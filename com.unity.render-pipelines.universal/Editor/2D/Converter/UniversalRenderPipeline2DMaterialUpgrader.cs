@@ -7,17 +7,14 @@ using UnityEngine.Rendering;
 using UnityEngine.Rendering.Universal;
 using System.Diagnostics;
 using UnityEditor.SceneManagement;
-
+using UnityEngine.SceneManagement;
 
 namespace UnityEditor.Rendering.Universal
 {
     internal sealed class UniversalRenderPipeline2DMaterialUpgrader : RenderPipelineConverter
     {
-        const string k_SpriteDefaultShaderId = "fileID: 10753, guid: 0000000000000000f000000000000000";
-        const string k_SpriteDefaultMatId = "fileID: 10754, guid: 0000000000000000f000000000000000";
-
-        public override string name => "Material Upgrade";
-        public override string info => "This will upgrade your materials.";
+        public override string name => "Material and Material Reference Upgrade";
+        public override string info => "This will upgrade your materials and all material references.";
         public override int priority => - 1000;
         public override Type container => typeof(BuiltInToURP2DConverterContainer);
 
@@ -26,11 +23,20 @@ namespace UnityEditor.Rendering.Universal
         Material m_SpriteLitDefaultMat;
         Material m_SpritesDefaultMat;
         Shader   m_SpriteLitDefaultShader;
+        Shader   m_SpritesDefaultShader;
+
+        string m_SpritesDefaultShaderId;
+        string m_SpritesDefaultMatId;
 
         bool DoesFileContainString(string path, string str)
         {
-            string file = File.ReadAllText(path);
-            return file.Contains(str);
+            if (str != null)
+            {
+                string file = File.ReadAllText(path);
+                return file.Contains(str);
+            }
+
+            return false;
         }
 
         bool IsMaterialPath(string path)
@@ -41,7 +47,7 @@ namespace UnityEditor.Rendering.Universal
             }
 
             if(path.EndsWith(".mat"))
-                return DoesFileContainString(path, k_SpriteDefaultShaderId);
+                return DoesFileContainString(path, m_SpritesDefaultShaderId);
 
             return false;
         }
@@ -54,9 +60,34 @@ namespace UnityEditor.Rendering.Universal
             }
 
             if(path.EndsWith(".prefab", StringComparison.OrdinalIgnoreCase) || path.EndsWith(".unity", StringComparison.OrdinalIgnoreCase) || path.EndsWith(".mat"))
-                return DoesFileContainString(path, k_SpriteDefaultMatId);
+                return DoesFileContainString(path, m_SpritesDefaultMatId);
 
             return false;
+        }
+
+        void UpgradeGameObject(GameObject go)
+        {
+            Renderer[] renderers = go.GetComponentsInChildren<Renderer>();
+            foreach (Renderer renderer in renderers)
+            {
+                int materialCount = renderer.sharedMaterials.Length;
+                Material[] newMaterials = new Material[materialCount];
+                bool updateMaterials = false;
+
+                for (int matIndex = 0; matIndex < materialCount; matIndex++)
+                {
+                    if (renderer.sharedMaterials[matIndex] == m_SpritesDefaultMat)
+                    {
+                        newMaterials[matIndex] = m_SpriteLitDefaultMat;
+                        updateMaterials = true;
+                    }
+                    else
+                        newMaterials[matIndex] = renderer.sharedMaterials[matIndex];
+                }
+
+                if(updateMaterials)
+                    renderer.sharedMaterials = newMaterials;
+            }
         }
 
         void UpgradePrefab(string path)
@@ -67,19 +98,7 @@ namespace UnityEditor.Rendering.Universal
                 GameObject go = objects[objIndex] as GameObject;
                 if (go != null)
                 {
-                    Renderer renderer = go.GetComponent<Renderer>();
-                    int materialCount = renderer.sharedMaterials.Length;
-                    Material[] newMaterials = new Material[materialCount];
-
-                    for (int matIndex = 0; matIndex < materialCount; matIndex++)
-                    {
-                        if (renderer.sharedMaterials[matIndex] == m_SpritesDefaultMat)
-                            newMaterials[matIndex] = m_SpriteLitDefaultMat;
-                        else
-                            newMaterials[matIndex] = renderer.sharedMaterials[matIndex];
-                    }
-
-                    renderer.sharedMaterials = newMaterials;
+                    UpgradeGameObject(go);
                 }
             }
 
@@ -89,23 +108,33 @@ namespace UnityEditor.Rendering.Universal
 
         void UpgradeScene(string path)
         {
-            //SceneAsset asset = AssetDatabase.LoadAssetAtPath<SceneAsset>(path);
-            //EditorSceneManagement.
+            Scene scene = EditorSceneManager.OpenScene(path, OpenSceneMode.Additive);
+            GameObject[] gameObjects = scene.GetRootGameObjects();
+            foreach(GameObject go in gameObjects)
+                UpgradeGameObject(go);
+            EditorSceneManager.SaveScene(scene);
+            EditorSceneManager.CloseScene(scene, true);
         }
 
         void UpgradeMaterial(string path)
         {
             Material material = AssetDatabase.LoadAssetAtPath<Material>(path);
+            if (material.shader == m_SpritesDefaultShader)
+                material.shader = m_SpriteLitDefaultShader;
+        }
 
+        string GetObjectIDString(UnityEngine.Object obj)
+        {
+            string guid;
+            long localId;
+            if(AssetDatabase.TryGetGUIDAndLocalFileIdentifier(obj.GetInstanceID(), out guid, out localId))
+                return "fileID: " + localId + ", guid: " + guid;
+
+            return null;
         }
 
         public override void OnInitialize(InitializeConverterContext context, Action calback)
         {
-            //string spriteDefaultGUID;
-            //long spriteDefaultLocalId;
-            //Material mat = AssetDatabase.GetBuiltinExtraResource<Material>("Sprites-Default.mat");
-            //AssetDatabase.TryGetGUIDAndLocalFileIdentifier(mat.GetInstanceID(), out spriteDefaultGUID, out spriteDefaultLocalId);
-
             Renderer2DData data = Light2DEditorUtility.GetRenderer2DData();
             if(data != null)
                 m_SpriteLitDefaultMat = data.GetDefaultMaterial(DefaultMaterialType.Sprite);
@@ -113,6 +142,10 @@ namespace UnityEditor.Rendering.Universal
                 m_SpriteLitDefaultMat = AssetDatabase.LoadAssetAtPath<Material>("Packages/com.unity.render-pipelines.universal/Runtime/Materials/Sprite-Lit-Default.mat");
 
             m_SpritesDefaultMat = AssetDatabase.GetBuiltinExtraResource<Material>("Sprites-Default.mat");
+            m_SpriteLitDefaultShader = m_SpriteLitDefaultMat.shader;
+            m_SpritesDefaultShader = m_SpritesDefaultMat.shader;
+            m_SpritesDefaultShaderId = GetObjectIDString(m_SpritesDefaultShader);
+            m_SpritesDefaultMatId = GetObjectIDString(m_SpritesDefaultMat);
 
             string[] allAssetPaths = AssetDatabase.GetAllAssetPaths();
             
@@ -150,10 +183,6 @@ namespace UnityEditor.Rendering.Universal
                 UpgradeScene(context.item.descriptor.info);
             else if(ext == ".mat")
                 UpgradeMaterial(context.item.descriptor.info);
-
-            //if(ext == ".mat")
-
-            //    Material mat = AssetDatabase.LoadAssetAtPath<Material>(context.item.descriptor.info);
         }
 
         public override void OnClicked(int index)
@@ -163,6 +192,7 @@ namespace UnityEditor.Rendering.Universal
 
         public override void OnPostRun()
         {
+            UnityEngine.Debug.Log("OnPostRun");
             AssetDatabase.SaveAssets();
             Resources.UnloadUnusedAssets();
         }
