@@ -48,7 +48,7 @@ An Overlay Camera is a Camera that renders its view on top of another Camera's o
 
 You must use Overlay Cameras in conjunction with one or more Base Cameras using the [Camera Stacking](camera-stacking.md) system. You cannot use Overlay Cameras on their own. An Overlay Camera that is not part of a Camera Stack does not perform any steps of its render loop, and is known as an orphan Camera.
 
-__Important note:__ In this version of URP, Overlay Cameras and Camera Stacking are supported only when using the Forward Renderer.
+__Important note:__ In this version of URP, Overlay Cameras and Camera Stacking are supported only when using the Universal Renderer.
 
 When you have an active Overlay Camera in your Scene, this icon appears next to the Camera Gizmo in the Scene view:
 

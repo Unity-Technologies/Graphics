@@ -139,4 +139,17 @@ namespace UnityEditor.VFX
             return copy;
         }
     }
+
+    class VFXGraphicsBufferValue : VFXObjectValue
+    {
+        public VFXGraphicsBufferValue(int instanceID = 0, Mode mode = Mode.FoldableVariable) : base(instanceID, mode, VFXValueType.Buffer)
+        {
+        }
+
+        sealed public override VFXValue CopyExpression(Mode mode)
+        {
+            var copy = new VFXGraphicsBufferValue(Get(), mode);
+            return copy;
+        }
+    }
 }
