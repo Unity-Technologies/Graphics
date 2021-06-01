@@ -919,6 +919,16 @@ DirectLighting EvaluateBSDF_Area(LightLoopContext lightLoopContext,
     PreLightData preLightData, LightData lightData,
     BSDFData bsdfData, BuiltinData builtinData)
 {
+    if (HasFlag(bsdfData.materialFeatures, MATERIALFEATUREFLAGS_HAIR_MARSCHNER))
+    {
+        DirectLighting lighting;
+        ZERO_INITIALIZE(DirectLighting, lighting);
+
+        // Currently, this model does not support area lights. Add the support once an issue is
+        // fixed with making an LTC fit for anisotropic materials.
+        return lighting;
+    }
+
     if (lightData.lightType == GPULIGHTTYPE_TUBE)
     {
         return EvaluateBSDF_Line(lightLoopContext, V, posInput, preLightData, lightData, bsdfData, builtinData);
