@@ -17,6 +17,7 @@ jobs:
   - name: General Checks
     dependencies:
       - .yamato/_projectcontext.yml#all_package_ci_project_<TRACK>
+      - .yamato/_formatting.yml#formatting
       - .yamato/all-smoke_test.yml#Smoke_Test_<TRACK>
 
   - name: Trunk verification
