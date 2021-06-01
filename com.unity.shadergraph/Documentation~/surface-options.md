@@ -24,7 +24,7 @@ These are the Universal Render Pipeline Unlit shader properties you can override
 * Alpha Clipping
 * Cast Shadows
 
-The Universal Render Pipeline documentation for [Unlit](https://docs.unity3d.com/Packages/com.unity.render-pipelines.universal@11.0/manual/unlit-shader.html) and [Lit](https://docs.unity3d.com/Packages/com.unity.render-pipelines.universal@11.0/manual/lit-shader.html) shaders explains these properties, that also correspond to specific [ShaderLab](https://docs.unity3d.com/Manual/SL-Reference.html) tags and commands that are also applicable to the Built-In Render Pipeline.
+The Universal Render Pipeline documentation for [Unlit](https://docs.unity3d.com/Packages/com.unity.render-pipelines.universal@11.0/manual/unlit-shader.html) and [Lit](https://docs.unity3d.com/Packages/com.unity.render-pipelines.universal@11.0/manual/lit-shader.html) shaders explains these properties, that correspond to specific [ShaderLab](https://docs.unity3d.com/Manual/SL-Reference.html) tags and commands that are also applicable to the Built-In Render Pipeline.
 
 ## How to use
 
