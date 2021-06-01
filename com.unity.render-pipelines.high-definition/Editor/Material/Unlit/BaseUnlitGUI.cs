@@ -148,13 +148,27 @@ namespace UnityEditor.Rendering.HighDefinition
                         // DualBlending
                         case BlendMode.DualBlending:
                             //One, Src1Color Premultiplied
-                            //Src1Color, OneMinusSrc1Color NonPremultiplied
+                            // color: src * src1 + dst * (1 - src1)
+                            material.SetInt("_SrcBlend", (int)UnityEngine.Rendering.BlendMode.Src1Color);
+                            material.SetInt("_DstBlend", (int)UnityEngine.Rendering.BlendMode.OneMinusSrc1Color);
+                            if (needOffScreenBlendFactor)
+                            {
+                                material.SetInt("_AlphaSrcBlend", (int)UnityEngine.Rendering.BlendMode.Zero);
+                                material.SetInt("_AlphaDstBlend", (int)UnityEngine.Rendering.BlendMode.OneMinusSrcAlpha);
+                            }
+                            else
+                            {
+                                material.SetInt("_AlphaSrcBlend", (int)UnityEngine.Rendering.BlendMode.One);
+                                material.SetInt("_AlphaDstBlend", (int)UnityEngine.Rendering.BlendMode.OneMinusSrcAlpha);
+                            }
+                            break;
+
+                        // DualBlendingPremultiplied
+                        case BlendMode.DualBlendingPremultiplied:
+                            //One, Src1Color Premultiplied
                             // color: src + dst * src1
                             material.SetInt("_SrcBlend", (int)UnityEngine.Rendering.BlendMode.One);
                             material.SetInt("_DstBlend", (int)UnityEngine.Rendering.BlendMode.Src1Color);
-                            // color: src * src1 + dst * (1 - src1)
-                            //material.SetInt("_SrcBlend", (int)UnityEngine.Rendering.BlendMode.Src1Color);
-                            //material.SetInt("_DstBlend", (int)UnityEngine.Rendering.BlendMode.OneMinusSrc1Color);
                             if (needOffScreenBlendFactor)
                             {
                                 material.SetInt("_AlphaSrcBlend", (int)UnityEngine.Rendering.BlendMode.Zero);
