@@ -32,7 +32,7 @@ Graph elements that currently work with the Graph Inspector:
 
 - [Per-node precision](Precision-Types.md)
 
-    ![](images/Ins  pector-PerNodePrecision.png)
+    ![](images/Inspector-PerNodePrecision.png)
 
 
 Graph elements that currently do not work with the Graph Inspector:
