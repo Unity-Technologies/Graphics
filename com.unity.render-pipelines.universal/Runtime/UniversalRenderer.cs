@@ -485,21 +485,15 @@ namespace UnityEngine.Rendering.Universal
             createDepthTexture |= m_DepthPrimingMode == DepthPrimingMode.Forced;
 
 #if ENABLE_VR && ENABLE_XR_MODULE
+            // URP can't handle msaa/size mismatch between depth RT and color RT(for now we create intermediate textures to ensure they match)
             if (cameraData.xr.enabled)
-            {
-                // URP can't handle msaa/size mismatch between depth RT and color RT(for now we create intermediate textures to ensure they match)
-                createDepthTexture |= createColorTexture;
-                createColorTexture = createDepthTexture;
-            }
-#endif
-
-#if UNITY_ANDROID || UNITY_WEBGL
-            if (SystemInfo.graphicsDeviceType != GraphicsDeviceType.Vulkan)
-            {
-                // GLES can not use render texture's depth buffer with the color buffer of the backbuffer
-                // in such case we create a color texture for it too.
                 createColorTexture |= createDepthTexture;
-            }
+#endif
+#if UNITY_ANDROID || UNITY_WEBGL
+            // GLES can not use render texture's depth buffer with the color buffer of the backbuffer
+            // in such case we create a color texture for it too.
+            if (SystemInfo.graphicsDeviceType != GraphicsDeviceType.Vulkan)
+                createColorTexture |= createDepthTexture;
 #endif
             bool useDepthPriming = (m_DepthPrimingRecommended && m_DepthPrimingMode == DepthPrimingMode.Auto) || (m_DepthPrimingMode == DepthPrimingMode.Forced);
             useDepthPriming &= requiresDepthPrepass && (createDepthTexture || createColorTexture) && m_RenderingMode == RenderingMode.Forward && (cameraData.renderType == CameraRenderType.Base || cameraData.clearDepth);
@@ -509,13 +503,17 @@ namespace UnityEngine.Rendering.Universal
 
             if (useRenderPassEnabled || useDepthPriming)
             {
-                createDepthTexture |= createColorTexture;
-                createColorTexture = createDepthTexture;
+                createColorTexture |= createDepthTexture;
             }
 
             // Configure all settings require to start a new camera stack (base camera only)
             if (cameraData.renderType == CameraRenderType.Base)
             {
+                bool intermediateRenderTexture = createColorTexture || createDepthTexture;
+
+                // RTHandles do not support combining color and depth in the same texture so we create them separately
+                createDepthTexture = intermediateRenderTexture;
+
                 RenderTargetIdentifier targetId = cameraData.xr.renderTarget;
                 if (m_XRTargetHandleAlias == null || m_XRTargetHandleAlias.nameID != targetId)
                 {
@@ -525,8 +523,6 @@ namespace UnityEngine.Rendering.Universal
 
                 m_ActiveCameraColorAttachment = createColorTexture ? m_ColorBufferSystem.GetBackBuffer() : m_XRTargetHandleAlias;
                 m_ActiveCameraDepthAttachment = createDepthTexture ? m_CameraDepthAttachment : m_XRTargetHandleAlias;
-
-                bool intermediateRenderTexture = createColorTexture || createDepthTexture;
 
                 // Doesn't create texture for Overlay cameras as they are already overlaying on top of created textures.
                 if (intermediateRenderTexture)
@@ -971,20 +967,13 @@ namespace UnityEngine.Rendering.Universal
             {
                 if (m_ActiveCameraColorAttachment.nameID != BuiltinRenderTextureType.CameraTarget)
                 {
-                    bool useDepthRenderBuffer = m_ActiveCameraDepthAttachment.nameID == k_CameraTarget.nameID;
                     var colorDescriptor = descriptor;
                     colorDescriptor.useMipMap = false;
                     colorDescriptor.autoGenerateMips = false;
-                    colorDescriptor.depthBufferBits = (useDepthRenderBuffer) ? k_DepthStencilBufferBits : 0;
+                    colorDescriptor.depthBufferBits = 0;
                     m_ColorBufferSystem.SetCameraSettings(cmd, colorDescriptor, FilterMode.Bilinear);
-
-                    if (useDepthRenderBuffer)
-                        ConfigureCameraTarget(m_ColorBufferSystem.GetBackBuffer(cmd).nameID, m_ColorBufferSystem.GetBufferA().nameID);
-                    else
-                        ConfigureCameraColorTarget(m_ColorBufferSystem.GetBackBuffer(cmd).nameID);
-
-
                     m_ActiveCameraColorAttachment = m_ColorBufferSystem.GetBackBuffer(cmd);
+                    ConfigureCameraColorTarget(m_ActiveCameraColorAttachment.nameID);
                     cmd.SetGlobalTexture("_CameraColorTexture", m_ActiveCameraColorAttachment.nameID);
                     //Set _AfterPostProcessTexture, users might still rely on this although it is now always the cameratarget due to swapbuffer
                     cmd.SetGlobalTexture("_AfterPostProcessTexture", m_ActiveCameraColorAttachment.nameID);
