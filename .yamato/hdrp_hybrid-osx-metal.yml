@@ -37,7 +37,6 @@ HDRP_Hybrid_OSX_Metal_playmode_mono_Linear_trunk:
                 mkdir -p TestProjects/HDRP_HybridTests/test-results/
                 scp -i ~/.ssh/id_rsa_macmini -r bokken@$BOKKEN_DEVICE_IP:/Users/bokken/Graphics/TestProjects/HDRP_HybridTests/test-results/ TestProjects/HDRP_HybridTests/test-results/
                 exit $UTR_RESULT
-         retries: 2
     artifacts:
         logs:
             paths:
@@ -75,7 +74,6 @@ HDRP_Hybrid_OSX_Metal_playmode_cache_mono_Linear_trunk:
                 mkdir -p TestProjects/HDRP_HybridTests/test-results/
                 scp -i ~/.ssh/id_rsa_macmini -r bokken@$BOKKEN_DEVICE_IP:/Users/bokken/Graphics/TestProjects/HDRP_HybridTests/test-results/ TestProjects/HDRP_HybridTests/test-results/
                 exit $UTR_RESULT
-         retries: 2
     artifacts:
         logs:
             paths:
@@ -113,7 +111,6 @@ HDRP_Hybrid_OSX_Metal_playmode_XR_mono_Linear_trunk:
                 mkdir -p TestProjects/HDRP_HybridTests/test-results/
                 scp -i ~/.ssh/id_rsa_macmini -r bokken@$BOKKEN_DEVICE_IP:/Users/bokken/Graphics/TestProjects/HDRP_HybridTests/test-results/ TestProjects/HDRP_HybridTests/test-results/
                 exit $UTR_RESULT
-         retries: 2
     artifacts:
         logs:
             paths:
@@ -151,7 +148,6 @@ HDRP_Hybrid_OSX_Metal_playmode_XR_cache_mono_Linear_trunk:
                 mkdir -p TestProjects/HDRP_HybridTests/test-results/
                 scp -i ~/.ssh/id_rsa_macmini -r bokken@$BOKKEN_DEVICE_IP:/Users/bokken/Graphics/TestProjects/HDRP_HybridTests/test-results/ TestProjects/HDRP_HybridTests/test-results/
                 exit $UTR_RESULT
-         retries: 2
     artifacts:
         logs:
             paths:
@@ -189,7 +185,6 @@ HDRP_Hybrid_OSX_Metal_Standalone_mono_Linear_trunk:
                 mkdir -p TestProjects/HDRP_HybridTests/test-results/
                 scp -i ~/.ssh/id_rsa_macmini -r bokken@$BOKKEN_DEVICE_IP:/Users/bokken/Graphics/TestProjects/HDRP_HybridTests/test-results/ TestProjects/HDRP_HybridTests/test-results/
                 exit $UTR_RESULT
-         retries: 2
     artifacts:
         logs:
             paths:
@@ -227,7 +222,6 @@ HDRP_Hybrid_OSX_Metal_Standalone_cache_mono_Linear_trunk:
                 mkdir -p TestProjects/HDRP_HybridTests/test-results/
                 scp -i ~/.ssh/id_rsa_macmini -r bokken@$BOKKEN_DEVICE_IP:/Users/bokken/Graphics/TestProjects/HDRP_HybridTests/test-results/ TestProjects/HDRP_HybridTests/test-results/
                 exit $UTR_RESULT
-         retries: 2
     artifacts:
         logs:
             paths:
@@ -265,7 +259,6 @@ HDRP_Hybrid_OSX_Metal_playmode_mono_Linear_CUSTOM-REVISION:
                 mkdir -p TestProjects/HDRP_HybridTests/test-results/
                 scp -i ~/.ssh/id_rsa_macmini -r bokken@$BOKKEN_DEVICE_IP:/Users/bokken/Graphics/TestProjects/HDRP_HybridTests/test-results/ TestProjects/HDRP_HybridTests/test-results/
                 exit $UTR_RESULT
-         retries: 2
     artifacts:
         logs:
             paths:
@@ -303,7 +296,6 @@ HDRP_Hybrid_OSX_Metal_playmode_cache_mono_Linear_CUSTOM-REVISION:
                 mkdir -p TestProjects/HDRP_HybridTests/test-results/
                 scp -i ~/.ssh/id_rsa_macmini -r bokken@$BOKKEN_DEVICE_IP:/Users/bokken/Graphics/TestProjects/HDRP_HybridTests/test-results/ TestProjects/HDRP_HybridTests/test-results/
                 exit $UTR_RESULT
-         retries: 2
     artifacts:
         logs:
             paths:
@@ -341,7 +333,6 @@ HDRP_Hybrid_OSX_Metal_playmode_XR_mono_Linear_CUSTOM-REVISION:
                 mkdir -p TestProjects/HDRP_HybridTests/test-results/
                 scp -i ~/.ssh/id_rsa_macmini -r bokken@$BOKKEN_DEVICE_IP:/Users/bokken/Graphics/TestProjects/HDRP_HybridTests/test-results/ TestProjects/HDRP_HybridTests/test-results/
                 exit $UTR_RESULT
-         retries: 2
     artifacts:
         logs:
             paths:
@@ -379,7 +370,6 @@ HDRP_Hybrid_OSX_Metal_playmode_XR_cache_mono_Linear_CUSTOM-REVISION:
                 mkdir -p TestProjects/HDRP_HybridTests/test-results/
                 scp -i ~/.ssh/id_rsa_macmini -r bokken@$BOKKEN_DEVICE_IP:/Users/bokken/Graphics/TestProjects/HDRP_HybridTests/test-results/ TestProjects/HDRP_HybridTests/test-results/
                 exit $UTR_RESULT
-         retries: 2
     artifacts:
         logs:
             paths:
@@ -417,7 +407,6 @@ HDRP_Hybrid_OSX_Metal_Standalone_mono_Linear_CUSTOM-REVISION:
                 mkdir -p TestProjects/HDRP_HybridTests/test-results/
                 scp -i ~/.ssh/id_rsa_macmini -r bokken@$BOKKEN_DEVICE_IP:/Users/bokken/Graphics/TestProjects/HDRP_HybridTests/test-results/ TestProjects/HDRP_HybridTests/test-results/
                 exit $UTR_RESULT
-         retries: 2
     artifacts:
         logs:
             paths:
@@ -455,7 +444,6 @@ HDRP_Hybrid_OSX_Metal_Standalone_cache_mono_Linear_CUSTOM-REVISION:
                 mkdir -p TestProjects/HDRP_HybridTests/test-results/
                 scp -i ~/.ssh/id_rsa_macmini -r bokken@$BOKKEN_DEVICE_IP:/Users/bokken/Graphics/TestProjects/HDRP_HybridTests/test-results/ TestProjects/HDRP_HybridTests/test-results/
                 exit $UTR_RESULT
-         retries: 2
     artifacts:
         logs:
             paths:

@@ -37,7 +37,6 @@ ShaderGraph_BuiltIn_Lighting_OSX_Metal_playmode_mono_Linear_trunk:
                 mkdir -p TestProjects/BuiltInGraphicsTest_Lighting/test-results/
                 scp -i ~/.ssh/id_rsa_macmini -r bokken@$BOKKEN_DEVICE_IP:/Users/bokken/Graphics/TestProjects/BuiltInGraphicsTest_Lighting/test-results/ TestProjects/BuiltInGraphicsTest_Lighting/test-results/
                 exit $UTR_RESULT
-         retries: 2
     artifacts:
         logs:
             paths:
@@ -75,7 +74,6 @@ ShaderGraph_BuiltIn_Lighting_OSX_Metal_playmode_cache_mono_Linear_trunk:
                 mkdir -p TestProjects/BuiltInGraphicsTest_Lighting/test-results/
                 scp -i ~/.ssh/id_rsa_macmini -r bokken@$BOKKEN_DEVICE_IP:/Users/bokken/Graphics/TestProjects/BuiltInGraphicsTest_Lighting/test-results/ TestProjects/BuiltInGraphicsTest_Lighting/test-results/
                 exit $UTR_RESULT
-         retries: 2
     artifacts:
         logs:
             paths:
@@ -113,7 +111,6 @@ ShaderGraph_BuiltIn_Lighting_OSX_Metal_playmode_mono_Linear_CUSTOM-REVISION:
                 mkdir -p TestProjects/BuiltInGraphicsTest_Lighting/test-results/
                 scp -i ~/.ssh/id_rsa_macmini -r bokken@$BOKKEN_DEVICE_IP:/Users/bokken/Graphics/TestProjects/BuiltInGraphicsTest_Lighting/test-results/ TestProjects/BuiltInGraphicsTest_Lighting/test-results/
                 exit $UTR_RESULT
-         retries: 2
     artifacts:
         logs:
             paths:
@@ -151,7 +148,6 @@ ShaderGraph_BuiltIn_Lighting_OSX_Metal_playmode_cache_mono_Linear_CUSTOM-REVISIO
                 mkdir -p TestProjects/BuiltInGraphicsTest_Lighting/test-results/
                 scp -i ~/.ssh/id_rsa_macmini -r bokken@$BOKKEN_DEVICE_IP:/Users/bokken/Graphics/TestProjects/BuiltInGraphicsTest_Lighting/test-results/ TestProjects/BuiltInGraphicsTest_Lighting/test-results/
                 exit $UTR_RESULT
-         retries: 2
     artifacts:
         logs:
             paths:

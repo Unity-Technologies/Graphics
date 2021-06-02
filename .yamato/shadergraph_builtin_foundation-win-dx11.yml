@@ -34,7 +34,6 @@ ShaderGraph_BuiltIn_Foundation_Win_DX11_playmode_mono_Linear_trunk:
                 echo %GIT_REVISIONDATE%
                 del revdate.tmp
                 utr --artifacts_path=TestProjects/BuiltInGraphicsTest_Foundation/test-results --editor-location=.Editor --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-force-d3d11" --scripting-backend=Mono2x --suite=playmode --testfilter=%TEST_FILTER% --testproject=./TestProjects/BuiltInGraphicsTest_Foundation --zero-tests-are-ok=1
-         retries: 2
     artifacts:
         logs:
             paths:
@@ -69,7 +68,6 @@ ShaderGraph_BuiltIn_Foundation_Win_DX11_playmode_cache_mono_Linear_trunk:
                 echo %GIT_REVISIONDATE%
                 del revdate.tmp
                 utr --artifacts_path=TestProjects/BuiltInGraphicsTest_Foundation/test-results --editor-location=.Editor --extra-editor-arg="-adb2" --extra-editor-arg="-cacheServerEnableDownload" --extra-editor-arg="true" --extra-editor-arg="-cacheServerEnableUpload" --extra-editor-arg="true" --extra-editor-arg="-cacheServerEndpoint" --extra-editor-arg="cacheserver-slo.hq.unity3d.com" --extra-editor-arg="-cacheServerNamespacePrefix" --extra-editor-arg="SRP" --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-enableCacheServer" --extra-editor-arg="-force-d3d11" --scripting-backend=Mono2x --suite=playmode --testfilter=%TEST_FILTER% --testproject=./TestProjects/BuiltInGraphicsTest_Foundation --zero-tests-are-ok=1
-         retries: 2
     artifacts:
         logs:
             paths:
@@ -104,7 +102,6 @@ ShaderGraph_BuiltIn_Foundation_Win_DX11_playmode_mono_Linear_CUSTOM-REVISION:
                 echo %GIT_REVISIONDATE%
                 del revdate.tmp
                 utr --artifacts_path=TestProjects/BuiltInGraphicsTest_Foundation/test-results --editor-location=.Editor --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-force-d3d11" --scripting-backend=Mono2x --suite=playmode --testfilter=%TEST_FILTER% --testproject=./TestProjects/BuiltInGraphicsTest_Foundation --zero-tests-are-ok=1
-         retries: 2
     artifacts:
         logs:
             paths:
@@ -139,7 +136,6 @@ ShaderGraph_BuiltIn_Foundation_Win_DX11_playmode_cache_mono_Linear_CUSTOM-REVISI
                 echo %GIT_REVISIONDATE%
                 del revdate.tmp
                 utr --artifacts_path=TestProjects/BuiltInGraphicsTest_Foundation/test-results --editor-location=.Editor --extra-editor-arg="-adb2" --extra-editor-arg="-cacheServerEnableDownload" --extra-editor-arg="true" --extra-editor-arg="-cacheServerEnableUpload" --extra-editor-arg="true" --extra-editor-arg="-cacheServerEndpoint" --extra-editor-arg="cacheserver-slo.hq.unity3d.com" --extra-editor-arg="-cacheServerNamespacePrefix" --extra-editor-arg="SRP" --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-enableCacheServer" --extra-editor-arg="-force-d3d11" --scripting-backend=Mono2x --suite=playmode --testfilter=%TEST_FILTER% --testproject=./TestProjects/BuiltInGraphicsTest_Foundation --zero-tests-are-ok=1
-         retries: 2
     artifacts:
         logs:
             paths:
