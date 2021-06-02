@@ -28,32 +28,8 @@ namespace UnityEditor.Rendering.Universal
                 .Select(p => (ClipPath)AssetDatabase.GUIDToAssetPath(p))
                 .ToArray();
 
-            // get paths to all prefabs and scenes in order to inspect clip usage
-            var prefabPaths = AssetDatabase.FindAssets("t:Prefab")
-                .Select(p => (AnimationClipUpgrader.PrefabPath)AssetDatabase.GUIDToAssetPath(p))
-                .ToArray();
-            var scenePaths = AssetDatabase.FindAssets("t:Scene")
-                .Select(p => (AnimationClipUpgrader.ScenePath)AssetDatabase.GUIDToAssetPath(p))
-                .ToArray();
-
             // retrieve clip assets with material animation
             m_ClipData = AnimationClipUpgrader.GetAssetDataForClipsFiltered(clipPaths);
-
-            // create table mapping all upgrade paths to new shaders
-            var upgraders = new UniversalRenderPipelineMaterialUpgrader().upgraders;
-            var allUpgradePathsToNewShaders = UpgradeUtility.GetAllUpgradePathsToShaders(upgraders);
-
-            // TODO: could pass in upgrade paths used by materials in the future
-
-            // retrieve interdependencies with prefabs to figure out which clips can be safely upgraded
-            AnimationClipUpgrader.GetClipDependencyMappings(clipPaths, prefabPaths, out var clipPrefabDependents, out var prefabDependencies);
-            AnimationClipUpgrader.GatherClipsUsageInDependentPrefabs(
-                clipPrefabDependents, prefabDependencies, m_ClipData, allUpgradePathsToNewShaders, default, default);
-
-            // do the same for clips used by scenes
-            AnimationClipUpgrader.GetClipDependencyMappings(clipPaths, scenePaths, out var clipSceneDependents, out var sceneDependencies);
-            AnimationClipUpgrader.GatherClipsUsageInDependentScenes(
-                clipSceneDependents, sceneDependencies, m_ClipData, allUpgradePathsToNewShaders, default, default);
 
             // collect all clips and add them to the context
             var keys = m_ClipData.Keys.ToArray();
