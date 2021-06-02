@@ -8,10 +8,10 @@ LightmapParameters:
   m_PrefabAsset: {fileID: 0}
   m_Name: CurveWall
   serializedVersion: 3
-  resolution: 1.5
-  clusterResolution: 0.5
+  resolution: 1
+  clusterResolution: 1
   irradianceBudget: 256
-  irradianceQuality: 8192
+  irradianceQuality: 16384
   backFaceTolerance: 0.9
   isTransparent: 0
   modellingTolerance: 0.01
