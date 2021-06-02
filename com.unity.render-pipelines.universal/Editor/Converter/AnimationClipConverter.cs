@@ -78,6 +78,40 @@ namespace UnityEditor.Rendering.Universal
             callback.Invoke();
         }
 
+        public override void OnPreRun()
+        {
+            // get paths to all animation clips
+            var clipPaths = AssetDatabase.FindAssets("t:AnimationClip")
+                .Select(p => (ClipPath)AssetDatabase.GUIDToAssetPath(p))
+                .ToArray();
+
+            // get paths to all prefabs and scenes in order to inspect clip usage
+            var prefabPaths = AssetDatabase.FindAssets("t:Prefab")
+                .Select(p => (AnimationClipUpgrader.PrefabPath)AssetDatabase.GUIDToAssetPath(p))
+                .ToArray();
+            var scenePaths = AssetDatabase.FindAssets("t:Scene")
+                .Select(p => (AnimationClipUpgrader.ScenePath)AssetDatabase.GUIDToAssetPath(p))
+                .ToArray();
+
+            // retrieve clip assets with material animation
+            m_ClipData = AnimationClipUpgrader.GetAssetDataForClipsFiltered(clipPaths);
+
+            // create table mapping all upgrade paths to new shaders
+            var upgraders = new UniversalRenderPipelineMaterialUpgrader().upgraders;
+            var allUpgradePathsToNewShaders = UpgradeUtility.GetAllUpgradePathsToShaders(upgraders);
+
+            // TODO: could pass in upgrade paths used by materials in the future
+
+            // retrieve interdependencies with prefabs to figure out which clips can be safely upgraded
+            AnimationClipUpgrader.GetClipDependencyMappings(clipPaths, prefabPaths, out var clipPrefabDependents, out var prefabDependencies);
+            AnimationClipUpgrader.GatherClipsUsageInDependentPrefabs(
+                clipPrefabDependents, prefabDependencies, m_ClipData, allUpgradePathsToNewShaders, default, default);
+
+            // do the same for clips used by scenes
+            AnimationClipUpgrader.GetClipDependencyMappings(clipPaths, scenePaths, out var clipSceneDependents, out var sceneDependencies);
+            AnimationClipUpgrader.GatherClipsUsageInDependentScenes(
+                clipSceneDependents, sceneDependencies, m_ClipData, allUpgradePathsToNewShaders, default, default);
+        }
 
         HashSet<(AnimationClipUpgrader.IAnimationClip Clip, ClipPath Path, SerializedShaderPropertyUsage Usage)> m_Upgraded =
             new HashSet<(AnimationClipUpgrader.IAnimationClip Clip, ClipPath Path, SerializedShaderPropertyUsage Usage)>();
@@ -93,8 +127,8 @@ namespace UnityEditor.Rendering.Universal
             // only upgrade clips used only by renderers with materials that have been upgraded non-ambiguously
             const SerializedShaderPropertyUsage kFilterFlags =
                 ~(
-                SerializedShaderPropertyUsage.UsedByUpgraded
-                //| SerializedShaderPropertyUsage.UsedByNonUpgraded
+                    SerializedShaderPropertyUsage.UsedByUpgraded
+                    //| SerializedShaderPropertyUsage.UsedByNonUpgraded
                 );
 
             var clipKey = (ClipProxy)GlobalObjectId.GlobalObjectIdentifierToObjectSlow(m_AssetsToConvert[ctx.item.index]);
@@ -132,7 +166,7 @@ namespace UnityEditor.Rendering.Universal
                     sb.Append(L10n.Tr("\n - Clip is used by objects with materials that took different upgrade paths for the animated property."));
                 }
 
-                if ((usage & SerializedShaderPropertyUsage.UsedByNonUpgraded) !=0)
+                if ((usage & SerializedShaderPropertyUsage.UsedByNonUpgraded) != 0)
                 {
                     sb.Append(L10n.Tr("\n - Clip is used by objects with materials that have not been upgraded."));
                 }
