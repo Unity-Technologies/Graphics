@@ -13,7 +13,6 @@ MonoBehaviour:
   m_Name: defaultDiffusionProfile
   m_EditorClassIdentifier: 
   profile:
-    name: Diffusion Profile
     scatteringDistance: {r: 0, g: 1, b: 0, a: 1}
     transmissionTint: {r: 0, g: 1, b: 0, a: 1}
     texturingMode: 1
@@ -23,4 +22,3 @@ MonoBehaviour:
     ior: 1.4
     hash: 1080714638
   m_Version: 1
-  profiles: []

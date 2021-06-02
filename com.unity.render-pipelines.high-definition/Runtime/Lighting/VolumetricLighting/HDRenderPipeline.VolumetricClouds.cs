@@ -388,7 +388,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
             // The density multiplier is not used linearly
             cb._DensityMultiplier = cloudModelData.densityMultiplier * cloudModelData.densityMultiplier * 4.0f;
-            cb._ShapeFactor = cloudModelData.shapeFactor;
+            cb._ShapeFactor = Mathf.Sqrt(cloudModelData.shapeFactor);
             cb._ShapeScale = cloudModelData.shapeScale;
             cb._ErosionFactor = cloudModelData.erosionFactor;
             cb._ErosionScale = cloudModelData.erosionScale;
