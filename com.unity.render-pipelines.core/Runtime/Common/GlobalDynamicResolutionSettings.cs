@@ -60,6 +60,8 @@ namespace UnityEngine.Rendering
             dynResType = DynamicResolutionType.Hardware,
             upsampleFilter = DynamicResUpscaleFilter.CatmullRom,
             forcedPercentage = 100.0f,
+            enableLowResTransparencyThreshold = false,
+            lowResTransparencyMinimumThreshold = 0.0f,
 
             //Defaults for dlss
             enableDLSS = false,
@@ -73,7 +75,7 @@ namespace UnityEngine.Rendering
         /// <summary>Offsets the mip bias to recover mode detail. This only works if the camera is utilizing TAA.</summary>
         public bool useMipBias;
 
-        /// <summary>ToggleNVIDIA Deep Learning Super Sampling (DLSS).</summary>
+        /// <summary>Toggle NVIDIA Deep Learning Super Sampling (DLSS).</summary>
         public bool enableDLSS;
 
         /// <summary>Opaque quality setting of NVIDIA Deep Learning Super Sampling (DLSS). Use the system enum UnityEngine.NVIDIA.DLSSQuality to set the quality.</summary>
@@ -102,5 +104,12 @@ namespace UnityEngine.Rendering
         public bool forceResolution;
         /// <summary>The resolution percentage forced in case forceResolution is set to true.</summary>
         public float forcedPercentage;
+
+        /// <summary>Toggle a threshold to turn off low res transparency when the resolution scale falls below a certain percentage.</summary>
+        public bool enableLowResTransparencyThreshold;
+
+        /// <summary>When enableLowResTransparencyThreshold is enabled and the resolution percentage falls below this threshold, half res transparency is turned off. </summary>
+        [Range(0.0f, 100.0f)]
+        public float lowResTransparencyMinimumThreshold;
     }
 }

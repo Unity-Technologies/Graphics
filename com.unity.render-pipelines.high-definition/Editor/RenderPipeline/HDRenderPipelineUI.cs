@@ -566,6 +566,27 @@ namespace UnityEditor.Rendering.HighDefinition
                     using (new EditorGUI.DisabledGroupScope(true))
                         EditorGUILayout.LabelField(Styles.multipleDifferenteValueMessage);
                 }
+
+                EditorGUILayout.PropertyField(serialized.renderPipelineSettings.dynamicResolutionSettings.enableLowResTransparencyThreshold, Styles.enableLowResTransparencyThreshold);
+                if (!serialized.renderPipelineSettings.dynamicResolutionSettings.enableLowResTransparencyThreshold.hasMultipleDifferentValues &&
+                    serialized.renderPipelineSettings.dynamicResolutionSettings.enableLowResTransparencyThreshold.boolValue)
+                {
+                    if (!serialized.renderPipelineSettings.lowresTransparentSettings.enabled.boolValue)
+                        EditorGUILayout.HelpBox(Styles.lowResTransparencyThresholdDisabledMsg, MessageType.Info);
+
+                    EditorGUI.showMixedValue = serialized.renderPipelineSettings.dynamicResolutionSettings.lowResTransparencyMinimumThreshold.hasMultipleDifferentValues;
+                    float lowResTransparencyMinimumThreshold = serialized.renderPipelineSettings.dynamicResolutionSettings.lowResTransparencyMinimumThreshold.floatValue;
+                    EditorGUI.BeginChangeCheck();
+                    lowResTransparencyMinimumThreshold = EditorGUILayout.DelayedFloatField(Styles.lowResTransparencyMinimumThreshold, lowResTransparencyMinimumThreshold);
+                    if (EditorGUI.EndChangeCheck())
+                        serialized.renderPipelineSettings.dynamicResolutionSettings.lowResTransparencyMinimumThreshold.floatValue = Mathf.Clamp(lowResTransparencyMinimumThreshold, 0.0f, 100.0f);
+                }
+
+                if (serialized.renderPipelineSettings.dynamicResolutionSettings.lowResTransparencyMinimumThreshold.hasMultipleDifferentValues)
+                {
+                    using (new EditorGUI.DisabledGroupScope(true))
+                        EditorGUILayout.LabelField(Styles.multipleDifferenteValueMessage);
+                }
             }
             --EditorGUI.indentLevel;
 

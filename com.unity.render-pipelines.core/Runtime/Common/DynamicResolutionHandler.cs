@@ -544,5 +544,16 @@ namespace UnityEngine.Rendering
         {
             return m_LastScaledSize;
         }
+
+        /// <summary>
+        /// Returns true if the current configuration should allow for low res transparency, returns false otherwise.
+        /// </summary>
+        /// <returns>True if the current configuration should allow for low res transparency, returns false otherwise.</returns>
+        public bool AllowLowResTransparency()
+        {
+            return !m_Enabled
+                || !m_CachedSettings.enableLowResTransparencyThreshold
+                || m_CurrentFraction >= (m_CachedSettings.lowResTransparencyMinimumThreshold / 100.0f);
+        }
     }
 }
