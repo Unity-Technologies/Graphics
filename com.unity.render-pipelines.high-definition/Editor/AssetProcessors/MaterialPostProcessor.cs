@@ -362,22 +362,48 @@ namespace UnityEditor.Rendering.HighDefinition
                 if (!HDShaderUtils.IsHDRPShader(material.shader, upgradable: true))
                     continue;
 
-                bool diffusionProfileCanBeAdded = HDRenderPipelineGlobalSettings.instance.diffusionProfileSettingsList.Length < 15;
-                if (material.HasProperty("_DiffusionProfileAsset") && diffusionProfileCanBeAdded)
-                {
-                    var diffusionProfileAsset = material.GetVector("_DiffusionProfileAsset");
-                    string guid = HDUtils.ConvertVector4ToGUID(diffusionProfileAsset);
-                    DiffusionProfileSettings diffusionProfile = AssetDatabase.LoadAssetAtPath<DiffusionProfileSettings>(AssetDatabase.GUIDToAssetPath(guid));
 
-                    if (diffusionProfile != null && !HDRenderPipelineGlobalSettings.instance.diffusionProfileSettingsList.Any(d => d == diffusionProfile))
+                void AddDiffusionProfileToSettings(string propName)
+                {
+                    bool diffusionProfileCanBeAdded = HDRenderPipelineGlobalSettings.instance.diffusionProfileSettingsList.Length < 15;
+                    DiffusionProfileSettings diffusionProfile = null;
+
+                    if (material.HasProperty(propName))
                     {
-                        string materialName = material.name;
-                        string diffusionProfileName = diffusionProfile.name;
-                        if ((!Application.isBatchMode) &&
-                            (EditorUtility.DisplayDialog("Diffusion Profile Import",
-                                "A Material (" + materialName + ") is being imported with a diffusion profile (" + diffusionProfileName + ") not already added to the HDRP Global Settings.\n If the Diffusion Profile is not referenced in the global settings, HDRP cannot use it.\nDo you want to add the diffusion profile to the HDRP Global Settings asset?", "Yes", "No")))
+                        var diffusionProfileAsset = material.GetVector(propName);
+                        string guid = HDUtils.ConvertVector4ToGUID(diffusionProfileAsset);
+                        diffusionProfile = AssetDatabase.LoadAssetAtPath<DiffusionProfileSettings>(AssetDatabase.GUIDToAssetPath(guid));
+
+                        if (diffusionProfile != null && !HDRenderPipelineGlobalSettings.instance.diffusionProfileSettingsList.Any(d => d == diffusionProfile))
                         {
-                            diffusionProfileCanBeAdded = HDRenderPipelineGlobalSettings.instance.AddDiffusionProfile(diffusionProfile);
+                            string materialName = material.name;
+                            string diffusionProfileName = diffusionProfile.name;
+
+                            if (!diffusionProfileCanBeAdded)
+                                Debug.LogWarning("There is no space in the global settings to add the diffusion profile " + diffusionProfileName);
+                            else if ((!Application.isBatchMode) &&
+                                     (EditorUtility.DisplayDialog("Diffusion Profile Import",
+                                         "A Material (" + materialName + ") is being imported with a diffusion profile (" + diffusionProfileName + ") not already added to the HDRP Global Settings.\n If the Diffusion Profile is not referenced in the global settings, HDRP cannot use it.\nDo you want to add the diffusion profile to the HDRP Global Settings asset?", "Yes", "No")))
+                            {
+                                diffusionProfileCanBeAdded = HDRenderPipelineGlobalSettings.instance.AddDiffusionProfile(diffusionProfile);
+                            }
+                        }
+                    }
+                }
+
+                AddDiffusionProfileToSettings("_DiffusionProfileAsset");
+
+                // Special Eye case that uses a node with diffusion profiles.
+                if (HDShaderUtils.GetShaderIDsFromShader(material.shader).Item1 == HDShaderUtils.ShaderID.SG_Eye)
+                {
+                    var matProperties = MaterialEditor.GetMaterialProperties(new UnityEngine.Object[] { material });
+                    for (int propIdx = 0; propIdx < matProperties.Length; ++propIdx)
+                    {
+                        var propName = ShaderUtil.GetPropertyName(material.shader, propIdx);
+                        if (propName.Contains("DiffusionProfile") &&
+                            ShaderUtil.GetPropertyType(material.shader, propIdx) == ShaderUtil.ShaderPropertyType.Vector)
+                        {
+                            AddDiffusionProfileToSettings(propName);
                         }
                     }
                 }
