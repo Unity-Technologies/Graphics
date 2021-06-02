@@ -1,15 +1,15 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using UnityEditor.Rendering;
-using UnityEngine;
-using UnityEngine.Rendering;
 using UnityEditor.Rendering.Universal;
 using UnityEditor.ShaderGraph;
-using RenderQueue = UnityEngine.Rendering.RenderQueue;
+using UnityEditor.ShaderGraph.Drawing;
+using UnityEngine;
+using UnityEngine.Rendering;
 using UnityEngine.Rendering.Universal;
 using static Unity.Rendering.Universal.ShaderUtils;
-using System.Linq;
-using UnityEditor.ShaderGraph.Drawing;
+using RenderQueue = UnityEngine.Rendering.RenderQueue;
 
 namespace UnityEditor
 {
@@ -128,6 +128,8 @@ namespace UnityEditor
 
             public static readonly GUIContent queueControl = EditorGUIUtility.TrTextContent("Queue Control",
                 "Controls whether render queue is automatically set based on material surface type, or explicitly set by the user.");
+
+            public static readonly GUIContent documentationIcon = EditorGUIUtility.TrIconContent("_Help", $"Open Reference for URP Shaders.");
         }
 
         #endregion
@@ -176,6 +178,8 @@ namespace UnityEditor
         #endregion
 
         private const int queueOffsetRange = 50;
+
+        private static string s_DocumentationURL = Documentation.GetPageLink("shaders-in-universalrp");
         ////////////////////////////////////
         // General Functions              //
         ////////////////////////////////////
@@ -248,8 +252,23 @@ namespace UnityEditor
             m_MaterialScopeList.RegisterHeaderScope(Styles.AdvancedLabel, (uint)Expandable.Advanced, DrawAdvancedOptions);
         }
 
+        Rect helpButtonRect
+        {
+            get
+            {
+                var iconSize = CoreEditorStyles.iconHelpStyle.CalcSize(Styles.documentationIcon);
+                var rect = GUILayoutUtility.GetRect(1f, iconSize.y * 0.6f);
+                rect = new Rect(rect.xMax - iconSize.x, rect.y + 1f, iconSize.x, iconSize.y);
+                rect.yMin = rect.y - iconSize.y * 0.5f;
+                return rect;
+            }
+        }
+
         public void ShaderPropertiesGUI(Material material)
         {
+            if (GUI.Button(helpButtonRect, Styles.documentationIcon, CoreEditorStyles.iconHelpStyle))
+                Help.BrowseURL(s_DocumentationURL);
+
             m_MaterialScopeList.DrawHeaders(materialEditor, material);
         }
 
