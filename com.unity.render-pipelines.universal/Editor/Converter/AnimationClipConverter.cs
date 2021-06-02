@@ -57,9 +57,7 @@ namespace UnityEditor.Rendering.Universal
         public override void OnPreRun()
         {
             // get paths to all animation clips
-            var clipPaths = AssetDatabase.FindAssets("t:AnimationClip")
-                .Select(p => (ClipPath)AssetDatabase.GUIDToAssetPath(p))
-                .ToArray();
+            var clipPaths = new HashSet<ClipPath>(m_ClipData.Values.Select(cd => cd.Path));
 
             // get paths to all prefabs and scenes in order to inspect clip usage
             var prefabPaths = AssetDatabase.FindAssets("t:Prefab")
@@ -68,9 +66,6 @@ namespace UnityEditor.Rendering.Universal
             var scenePaths = AssetDatabase.FindAssets("t:Scene")
                 .Select(p => (AnimationClipUpgrader.ScenePath)AssetDatabase.GUIDToAssetPath(p))
                 .ToArray();
-
-            // retrieve clip assets with material animation
-            m_ClipData = AnimationClipUpgrader.GetAssetDataForClipsFiltered(clipPaths);
 
             // create table mapping all upgrade paths to new shaders
             var upgraders = new UniversalRenderPipelineMaterialUpgrader().upgraders;
