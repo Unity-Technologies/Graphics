@@ -1893,16 +1893,6 @@ namespace UnityEngine.Rendering.HighDefinition
             public static readonly NameAndTooltip FalseColorRangeThreshold3 = new() { name = "Range Threshold 3", tooltip = "" };
 
             public static readonly NameAndTooltip FreezeCameraForCulling = new() { name = "Freeze Camera For Culling", tooltip = "Use the drop-down to select a Camera to freeze in order to check its culling. To check if the Camera's culling works correctly, freeze the Camera and move occluders around it." };
-            public static readonly NameAndTooltip foo = new() { name = "asd", tooltip = "" };
-            public static readonly NameAndTooltip foo = new() { name = "asd", tooltip = "" };
-
-            public static readonly NameAndTooltip foo = new() { name = "asd", tooltip = "" };
-
-
-            public static readonly NameAndTooltip foo = new() { name = "asd", tooltip = "" };
-            public static readonly NameAndTooltip foo = new() { name = "asd", tooltip = "" };
-            public static readonly NameAndTooltip foo = new() { name = "asd", tooltip = "" };
-            public static readonly NameAndTooltip foo = new() { name = "asd", tooltip = "" };
         }
 
         void RegisterRenderingDebug()
@@ -2093,11 +2083,6 @@ namespace UnityEngine.Rendering.HighDefinition
                 values[index] = i;
                 index++;
             }
-        }
-
-        static string FormatVector(Vector3 v)
-        {
-            return string.Format("({0:F6}, {1:F6}, {2:F6})", v.x, v.y, v.z);
         }
 
         internal static void RegisterCamera(IFrameSettingsHistoryContainer container)
