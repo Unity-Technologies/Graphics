@@ -456,8 +456,6 @@ namespace UnityEditor.Rendering.HighDefinition
                     EditorGUILayout.PropertyField(serialized.DLSSProjectId, Styles.DLSSProjectIdLabel);
 #endif
 
-                Type renderPipeManagerType = typeof(RenderPipelineManager);
-                var cleanupRenderPipeline = renderPipeManagerType.GetMethod("CleanupRenderPipeline", BindingFlags.Static | BindingFlags.NonPublic | BindingFlags.Public);
                 EditorGUI.BeginChangeCheck();
                 EditorGUILayout.PropertyField(serialized.supportProbeVolumes, Styles.probeVolumeSupportContentLabel);
                 if (EditorGUI.EndChangeCheck())
@@ -465,7 +463,6 @@ namespace UnityEditor.Rendering.HighDefinition
                     // If we are running HDRP, we need to make sure the RP is reinitialized
                     if (HDRenderPipeline.currentPipeline != null)
                         s_CleanupRenderPipelineMethod?.Invoke(null, null);
-                    cleanupRenderPipeline?.Invoke(null, null);
                 }
 
                 EditorGUILayout.PropertyField(serialized.supportRuntimeDebugDisplay, Styles.supportRuntimeDebugDisplayContentLabel);
