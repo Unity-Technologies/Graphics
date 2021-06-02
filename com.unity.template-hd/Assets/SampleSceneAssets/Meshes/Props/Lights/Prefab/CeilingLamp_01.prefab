@@ -45,6 +45,14 @@ PrefabInstance:
   m_Modification:
     m_TransformParent: {fileID: 8707388281747785984}
     m_Modifications:
+    - target: {fileID: 2162550225338865518, guid: cf82a8e1669110c419edd18ee94bbbce, type: 3}
+      propertyPath: m_ReceiveGI
+      value: 2
+      objectReference: {fileID: 0}
+    - target: {fileID: 2535815498370239137, guid: cf82a8e1669110c419edd18ee94bbbce, type: 3}
+      propertyPath: m_StaticEditorFlags
+      value: 65
+      objectReference: {fileID: 0}
     - target: {fileID: 8317171192691987090, guid: cf82a8e1669110c419edd18ee94bbbce, type: 3}
       propertyPath: m_LocalPosition.x
       value: 0
@@ -123,6 +131,10 @@ PrefabInstance:
       propertyPath: m_IsActive
       value: 1
       objectReference: {fileID: 0}
+    - target: {fileID: 4913237776817256236, guid: b868dedbc9c0a3f469e82cc2ad6f200a, type: 3}
+      propertyPath: m_StaticEditorFlags
+      value: 64
+      objectReference: {fileID: 0}
     m_RemovedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: b868dedbc9c0a3f469e82cc2ad6f200a, type: 3}
 --- !u!4 &2059510699080700851 stripped
@@ -188,6 +200,10 @@ PrefabInstance:
     - target: {fileID: 8645195672665254029, guid: dbe8cbbfe4750f4429ff7e163423dfe6, type: 3}
       propertyPath: m_Name
       value: Light_Spot_1200lm
+      objectReference: {fileID: 0}
+    - target: {fileID: 8645195672665254029, guid: dbe8cbbfe4750f4429ff7e163423dfe6, type: 3}
+      propertyPath: m_StaticEditorFlags
+      value: 64
       objectReference: {fileID: 0}
     m_RemovedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: dbe8cbbfe4750f4429ff7e163423dfe6, type: 3}
@@ -255,6 +271,10 @@ PrefabInstance:
       propertyPath: m_Name
       value: Light_Spot_1200lm
       objectReference: {fileID: 0}
+    - target: {fileID: 8645195672665254029, guid: dbe8cbbfe4750f4429ff7e163423dfe6, type: 3}
+      propertyPath: m_StaticEditorFlags
+      value: 64
+      objectReference: {fileID: 0}
     m_RemovedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: dbe8cbbfe4750f4429ff7e163423dfe6, type: 3}
 --- !u!4 &816027149252574580 stripped
@@ -320,6 +340,10 @@ PrefabInstance:
     - target: {fileID: 4913237776817256236, guid: b868dedbc9c0a3f469e82cc2ad6f200a, type: 3}
       propertyPath: m_IsActive
       value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 4913237776817256236, guid: b868dedbc9c0a3f469e82cc2ad6f200a, type: 3}
+      propertyPath: m_StaticEditorFlags
+      value: 64
       objectReference: {fileID: 0}
     m_RemovedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: b868dedbc9c0a3f469e82cc2ad6f200a, type: 3}
@@ -399,6 +423,10 @@ PrefabInstance:
       propertyPath: m_Name
       value: Light_Spot_1200lm
       objectReference: {fileID: 0}
+    - target: {fileID: 8645195672665254029, guid: dbe8cbbfe4750f4429ff7e163423dfe6, type: 3}
+      propertyPath: m_StaticEditorFlags
+      value: 64
+      objectReference: {fileID: 0}
     m_RemovedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: dbe8cbbfe4750f4429ff7e163423dfe6, type: 3}
 --- !u!4 &2720023507811775789 stripped
@@ -465,6 +493,10 @@ PrefabInstance:
       propertyPath: m_IsActive
       value: 1
       objectReference: {fileID: 0}
+    - target: {fileID: 4913237776817256236, guid: b868dedbc9c0a3f469e82cc2ad6f200a, type: 3}
+      propertyPath: m_StaticEditorFlags
+      value: 64
+      objectReference: {fileID: 0}
     - target: {fileID: 7880006503359350210, guid: b868dedbc9c0a3f469e82cc2ad6f200a, type: 3}
       propertyPath: m_AreaSize.x
       value: 0.5
@@ -475,7 +507,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 7880006503359350210, guid: b868dedbc9c0a3f469e82cc2ad6f200a, type: 3}
       propertyPath: m_RenderingLayerMask
-      value: 255
+      value: 8
       objectReference: {fileID: 0}
     m_RemovedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: b868dedbc9c0a3f469e82cc2ad6f200a, type: 3}

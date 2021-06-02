@@ -8,6 +8,10 @@ PrefabInstance:
     m_TransformParent: {fileID: 0}
     m_Modifications:
     - target: {fileID: -4216859302048453862, guid: 729b08ff66518024f98cf8a1414b0629, type: 3}
+      propertyPath: m_RootOrder
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: -4216859302048453862, guid: 729b08ff66518024f98cf8a1414b0629, type: 3}
       propertyPath: m_LocalPosition.x
       value: 55.105
       objectReference: {fileID: 0}
@@ -20,6 +24,10 @@ PrefabInstance:
       value: 1.991
       objectReference: {fileID: 0}
     - target: {fileID: -4216859302048453862, guid: 729b08ff66518024f98cf8a1414b0629, type: 3}
+      propertyPath: m_LocalRotation.w
+      value: 0.98443806
+      objectReference: {fileID: 0}
+    - target: {fileID: -4216859302048453862, guid: 729b08ff66518024f98cf8a1414b0629, type: 3}
       propertyPath: m_LocalRotation.x
       value: 0.0000000801928
       objectReference: {fileID: 0}
@@ -30,14 +38,6 @@ PrefabInstance:
     - target: {fileID: -4216859302048453862, guid: 729b08ff66518024f98cf8a1414b0629, type: 3}
       propertyPath: m_LocalRotation.z
       value: -0.000000014315224
-      objectReference: {fileID: 0}
-    - target: {fileID: -4216859302048453862, guid: 729b08ff66518024f98cf8a1414b0629, type: 3}
-      propertyPath: m_LocalRotation.w
-      value: 0.98443806
-      objectReference: {fileID: 0}
-    - target: {fileID: -4216859302048453862, guid: 729b08ff66518024f98cf8a1414b0629, type: 3}
-      propertyPath: m_RootOrder
-      value: 0
       objectReference: {fileID: 0}
     - target: {fileID: -4216859302048453862, guid: 729b08ff66518024f98cf8a1414b0629, type: 3}
       propertyPath: m_LocalEulerAnglesHint.x
@@ -58,6 +58,10 @@ PrefabInstance:
     - target: {fileID: -927199367670048503, guid: 729b08ff66518024f98cf8a1414b0629, type: 3}
       propertyPath: m_Name
       value: BarStool_03
+      objectReference: {fileID: 0}
+    - target: {fileID: -927199367670048503, guid: 729b08ff66518024f98cf8a1414b0629, type: 3}
+      propertyPath: m_StaticEditorFlags
+      value: 64
       objectReference: {fileID: 0}
     m_RemovedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: 729b08ff66518024f98cf8a1414b0629, type: 3}
