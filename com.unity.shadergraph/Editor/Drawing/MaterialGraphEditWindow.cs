@@ -1256,7 +1256,7 @@ namespace UnityEditor.ShaderGraph.Drawing
                 // If there are unsaved modifications, ask the user what to do.
                 // If the editor has already handled this check we'll no longer have unsaved changes
                 // (either they saved or they discarded, both of which will set hasUnsavedChanges to false).
-                if (this.hasUnsavedChanges)
+                if (hasUnsavedChanges)
                 {
                     int option = EditorUtility.DisplayDialogComplex(
                         "Shader Graph Has Been Modified",
