@@ -95,11 +95,12 @@ namespace UnityEditor.Rendering.Universal
 
         public override void OnRun(ref RunItemContext ctx)
         {
-            // only upgrade clips used only by renderers with materials that have been upgraded non-ambiguously
+            // filter flags are used to determine which clips to skip over during upgrade process
+            // we want to process all clips that are not ambiguously upgraded
             const SerializedShaderPropertyUsage kFilterFlags =
                 ~(
                     SerializedShaderPropertyUsage.UsedByUpgraded
-                    //| SerializedShaderPropertyUsage.UsedByNonUpgraded
+                    | SerializedShaderPropertyUsage.UsedByNonUpgraded
                 );
 
             var clipKey = (ClipProxy)GlobalObjectId.GlobalObjectIdentifierToObjectSlow(m_AssetsToConvert[ctx.item.index]);
