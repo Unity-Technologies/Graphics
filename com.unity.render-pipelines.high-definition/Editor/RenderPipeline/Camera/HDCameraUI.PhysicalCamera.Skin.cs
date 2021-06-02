@@ -15,6 +15,7 @@ namespace UnityEditor.Rendering.HighDefinition
 
                 // Lens
                 public static readonly GUIContent aperture = EditorGUIUtility.TrTextContent("Aperture", "The f-stop (f-number) of the lens. Lower values give a wider lens aperture.");
+                public static readonly GUIContent focusDistance = EditorGUIUtility.TrTextContent("Focus Distance", "The distance from the camera where objects appear sharp when Depth Of Field is enabled.");
 
                 // Aperture Shape
                 public static readonly GUIContent apertureShape = EditorGUIUtility.TrTextContent("Aperture Shape", "Common sensor sizes. Choose an item to set Sensor Size, or edit Sensor Size for your custom settings.");

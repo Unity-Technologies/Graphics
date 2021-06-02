@@ -1,6 +1,6 @@
 
-#ifndef GLOBAL_ILLUMINATION_INCLUDED
-#define GLOBAL_ILLUMINATION_INCLUDED
+#ifndef UNIVERSAL_GLOBAL_ILLUMINATION_INCLUDED
+#define UNIVERSAL_GLOBAL_ILLUMINATION_INCLUDED
 
 #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/EntityLighting.hlsl"
 #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/ImageBasedLighting.hlsl"
@@ -221,11 +221,11 @@ half3 CalculateIrradianceFromReflectionProbes(half3 reflectVector, float3 positi
 
         half4 encodedIrradiance = half4(SAMPLE_TEXTURECUBE_LOD(unity_SpecCube0, samplerunity_SpecCube0, reflectVector, mip));
 
-#if defined(UNITY_USE_NATIVE_HDR) || defined(UNITY_DOTS_INSTANCING_ENABLED)
+#if defined(UNITY_USE_NATIVE_HDR)
         irradiance += weightProbe0 * encodedIrradiance.rbg;
 #else
         irradiance += weightProbe0 * DecodeHDREnvironment(encodedIrradiance, unity_SpecCube0_HDR);
-#endif // UNITY_USE_NATIVE_HDR || UNITY_DOTS_INSTANCING_ENABLED
+#endif // UNITY_USE_NATIVE_HDR
     }
 
     // Sample the second reflection probe
@@ -272,12 +272,11 @@ half3 GlossyEnvironmentReflection(half3 reflectVector, float3 positionWS, half p
     half mip = PerceptualRoughnessToMipmapLevel(perceptualRoughness);
     half4 encodedIrradiance = half4(SAMPLE_TEXTURECUBE_LOD(unity_SpecCube0, samplerunity_SpecCube0, reflectVector, mip));
 
-    //TODO:DOTS - we need to port probes to live in c# so we can manage this manually.
-#if defined(UNITY_USE_NATIVE_HDR) || defined(UNITY_DOTS_INSTANCING_ENABLED)
+#if defined(UNITY_USE_NATIVE_HDR)
     irradiance = encodedIrradiance.rgb;
 #else
     irradiance = DecodeHDREnvironment(encodedIrradiance, unity_SpecCube0_HDR);
-#endif // UNITY_USE_NATIVE_HDR || UNITY_DOTS_INSTANCING_ENABLED
+#endif // UNITY_USE_NATIVE_HDR
 #endif // _REFLECTION_PROBE_BLENDING
     return irradiance * occlusion;
 #else
@@ -292,12 +291,11 @@ half3 GlossyEnvironmentReflection(half3 reflectVector, half perceptualRoughness,
     half mip = PerceptualRoughnessToMipmapLevel(perceptualRoughness);
     half4 encodedIrradiance = half4(SAMPLE_TEXTURECUBE_LOD(unity_SpecCube0, samplerunity_SpecCube0, reflectVector, mip));
 
-    //TODO:DOTS - we need to port probes to live in c# so we can manage this manually.
-#if defined(UNITY_USE_NATIVE_HDR) || defined(UNITY_DOTS_INSTANCING_ENABLED)
+#if defined(UNITY_USE_NATIVE_HDR)
     irradiance = encodedIrradiance.rgb;
 #else
     irradiance = DecodeHDREnvironment(encodedIrradiance, unity_SpecCube0_HDR);
-#endif // UNITY_USE_NATIVE_HDR || UNITY_DOTS_INSTANCING_ENABLED
+#endif // UNITY_USE_NATIVE_HDR
 
     return irradiance * occlusion;
 #else
@@ -346,6 +344,11 @@ half3 GlobalIllumination(BRDFData brdfData, BRDFData brdfDataClearCoat, float cl
     half3 indirectSpecular = GlossyEnvironmentReflection(reflectVector, positionWS, brdfData.perceptualRoughness, 1.0h);
 
     half3 color = EnvironmentBRDF(brdfData, indirectDiffuse, indirectSpecular, fresnelTerm);
+
+    if (IsOnlyAOLightingFeatureEnabled())
+    {
+        color = half3(1,1,1); // "Base white" for AO debug lighting mode
+    }
 
 #if defined(_CLEARCOAT) || defined(_CLEARCOATMAP)
     half3 coatIndirectSpecular = GlossyEnvironmentReflection(reflectVector, positionWS, brdfDataClearCoat.perceptualRoughness, 1.0h);

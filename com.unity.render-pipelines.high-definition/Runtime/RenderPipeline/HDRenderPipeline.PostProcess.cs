@@ -147,9 +147,8 @@ namespace UnityEngine.Rendering.HighDefinition
         // Debug Exposure compensation (Drive by debug menu) to add to all exposure processed value
         float m_DebugExposureCompensation;
 
-        // Physical camera ref
+        // Physical camera copy
         HDPhysicalCamera m_PhysicalCamera;
-        static readonly HDPhysicalCamera m_DefaultPhysicalCamera = new HDPhysicalCamera();
 
         // HDRP has the following behavior regarding alpha:
         // - If post processing is disabled, the alpha channel of the rendering passes (if any) will be passed to the frame buffer by the final pass
@@ -245,6 +244,28 @@ namespace UnityEngine.Rendering.HighDefinition
             m_DLSSPass = DLSSPass.Create(m_GlobalSettings);
         }
 
+        GraphicsFormat GetPostprocessTextureFormat()
+        {
+            if (CoreUtils.IsSceneFilteringEnabled())
+            {
+                return GraphicsFormat.R16G16B16A16_SFloat;
+            }
+            else
+            {
+                return m_PostProcessColorFormat;
+            }
+        }
+
+        bool PostProcessEnableAlpha()
+        {
+            if (CoreUtils.IsSceneFilteringEnabled())
+            {
+                return true;
+            }
+
+            return m_EnableAlpha;
+        }
+
         void CleanupPostProcess()
         {
             RTHandles.Release(m_EmptyExposureTexture);
@@ -290,9 +311,8 @@ namespace UnityEngine.Rendering.HighDefinition
             m_AfterDynamicResUpscaleRes = new Vector2Int((int)Mathf.Round(camera.finalViewport.width), (int)Mathf.Round(camera.finalViewport.height));
             m_BeforeDynamicResUpscaleRes = new Vector2Int(camera.actualWidth, camera.actualHeight);
 
-            // Grab physical camera settings or a default instance if it's null (should only happen
-            // in rare occasions due to how HDAdditionalCameraData is added to the camera)
-            m_PhysicalCamera = camera.physicalParameters ?? m_DefaultPhysicalCamera;
+            // Grab a copy of the physical camera settings
+            m_PhysicalCamera = camera.physicalParameters;
 
             // Prefetch all the volume components we need to save some cycles as most of these will
             // be needed in multiple places
@@ -392,7 +412,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
         TextureHandle GetPostprocessOutputHandle(RenderGraph renderGraph, string name, bool useMipMap = false)
         {
-            return GetPostprocessOutputHandle(renderGraph, name, IsDynamicResUpscaleTargetEnabled(), m_PostProcessColorFormat, useMipMap);
+            return GetPostprocessOutputHandle(renderGraph, name, IsDynamicResUpscaleTargetEnabled(), GetPostprocessTextureFormat(), useMipMap);
         }
 
         TextureHandle GetPostprocessOutputHandle(RenderGraph renderGraph, string name, GraphicsFormat colorFormat, bool useMipMap = false)
@@ -402,7 +422,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
         TextureHandle GetPostprocessUpsampledOutputHandle(RenderGraph renderGraph, string name)
         {
-            return GetPostprocessOutputHandle(renderGraph, name, false, m_PostProcessColorFormat, false);
+            return GetPostprocessOutputHandle(renderGraph, name, false, GetPostprocessTextureFormat(), false);
         }
 
         TextureHandle RenderPostProcess(RenderGraph     renderGraph,
@@ -525,7 +545,7 @@ namespace UnityEngine.Rendering.HighDefinition
             // We render AfterPostProcess objects first into a separate buffer that will be composited in the final post process pass
             using (var builder = renderGraph.AddRenderPass<AfterPostProcessPassData>("After Post-Process Objects", out var passData, ProfilingSampler.Get(HDProfileId.AfterPostProcessingObjects)))
             {
-                bool useDepthBuffer = !hdCamera.IsTAAEnabled() && hdCamera.frameSettings.IsEnabled(FrameSettingsField.ZTestAfterPostProcessTAA);
+                bool useDepthBuffer = !hdCamera.RequiresCameraJitter() && hdCamera.frameSettings.IsEnabled(FrameSettingsField.ZTestAfterPostProcessTAA);
 
                 passData.globalCB = m_ShaderVariablesGlobalCB;
                 passData.hdCamera = hdCamera;
@@ -538,6 +558,10 @@ namespace UnityEngine.Rendering.HighDefinition
                     new TextureDesc(Vector2.one, true, true) { colorFormat = GraphicsFormat.R8G8B8A8_SRGB, clearBuffer = true, clearColor = Color.black, name = "OffScreen AfterPostProcess" }), 0);
                 if (useDepthBuffer)
                     builder.UseDepthBuffer(prepassOutput.resolvedDepthBuffer, DepthAccess.ReadWrite);
+
+                // If the pass is culled at runtime from the RendererList API, set the appropriate fall-back for the output
+                // Here we need an opaque black texture as default (alpha = 1) due to the way the output of this pass is composed with the post-process output (see FinalPass.shader)
+                output.SetFallBackResource(renderGraph.defaultResources.blackTextureXR);
 
                 builder.SetRenderFunc(
                     (AfterPostProcessPassData data, RenderGraphContext ctx) =>
@@ -680,7 +704,7 @@ namespace UnityEngine.Rendering.HighDefinition
                     passData.height = postProcessViewportSize.y;
                     passData.viewCount = hdCamera.viewCount;
                     passData.nanKillerCS.shaderKeywords = null;
-                    if (m_EnableAlpha)
+                    if (PostProcessEnableAlpha())
                         passData.nanKillerCS.EnableKeyword("ENABLE_ALPHA");
                     passData.source = builder.ReadTexture(source);
                     passData.destination = builder.WriteTexture(GetPostprocessOutputHandle(renderGraph, "Stop NaNs Destination"));;
@@ -741,7 +765,7 @@ namespace UnityEngine.Rendering.HighDefinition
             return GetExposureTextureHandle(camera.currentExposureTextures.current);
         }
 
-        public RTHandle GetExposureTextureHandle(RTHandle rt)
+        internal RTHandle GetExposureTextureHandle(RTHandle rt)
         {
             return rt ?? m_EmptyExposureTexture;
         }
@@ -1277,7 +1301,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
                                 passData.source = builder.ReadTexture(source);
                                 passData.destination = builder.UseColorBuffer(renderGraph.CreateTexture(new TextureDesc(Vector2.one, true, true)
-                                    { colorFormat = m_PostProcessColorFormat, enableRandomWrite = true, name = "CustomPostProcesDestination" }), 0);
+                                    { colorFormat = GetPostprocessTextureFormat(), enableRandomWrite = true, name = "CustomPostProcesDestination" }), 0);
                                 passData.hdCamera = hdCamera;
                                 passData.customPostProcess = customPP;
                                 builder.SetRenderFunc(
@@ -1324,7 +1348,7 @@ namespace UnityEngine.Rendering.HighDefinition
             {
                 return rtHandleSystem.Alloc(
                     Vector2.one, TextureXR.slices, DepthBits.None, dimension: TextureXR.dimension,
-                    filterMode: FilterMode.Bilinear, colorFormat: m_PostProcessColorFormat,
+                    filterMode: FilterMode.Bilinear, colorFormat: GetPostprocessTextureFormat(),
                     enableRandomWrite: true, useDynamicScale: true, name: $"{id} TAA History"
                 );
             }
@@ -1413,7 +1437,7 @@ namespace UnityEngine.Rendering.HighDefinition
             passData.temporalAAMaterial = m_TemporalAAMaterial;
             passData.temporalAAMaterial.shaderKeywords = null;
 
-            if (m_EnableAlpha)
+            if (PostProcessEnableAlpha())
             {
                 passData.temporalAAMaterial.EnableKeyword("ENABLE_ALPHA");
             }
@@ -1472,17 +1496,11 @@ namespace UnityEngine.Rendering.HighDefinition
                 passData.prevHistory = builder.WriteTexture(passData.prevHistory);
             }
             passData.nextHistory = builder.WriteTexture(renderGraph.ImportTexture(nextHistory));
-            if (!postDoF)
-            {
-                GrabVelocityMagnitudeHistoryTextures(camera, out var prevMVLen, out var nextMVLen);
-                passData.prevMVLen = builder.ReadTexture(renderGraph.ImportTexture(prevMVLen));
-                passData.nextMVLen = builder.WriteTexture(renderGraph.ImportTexture(nextMVLen));
-            }
-            else
-            {
-                passData.prevMVLen = TextureHandle.nullHandle;
-                passData.nextMVLen = TextureHandle.nullHandle;
-            }
+
+            // Note: In case we run TAA for a second time (post-dof), we can use the same velocity history (and not write the output)
+            GrabVelocityMagnitudeHistoryTextures(camera, out var prevMVLen, out var nextMVLen);
+            passData.prevMVLen = builder.ReadTexture(renderGraph.ImportTexture(prevMVLen));
+            passData.nextMVLen = (!postDoF) ? builder.WriteTexture(renderGraph.ImportTexture(nextMVLen)) : TextureHandle.nullHandle;
 
             passData.destination = builder.WriteTexture(GetPostprocessOutputHandle(renderGraph, outputName));;
 
@@ -1726,11 +1744,11 @@ namespace UnityEngine.Rendering.HighDefinition
             parameters.dofMipCS = defaultResources.shaders.depthOfFieldMipCS;
             if (!m_DepthOfField.physicallyBased)
             {
-                parameters.dofMipColorKernel = parameters.dofMipCS.FindKernel(m_EnableAlpha ? "KMainColorAlpha" : "KMainColor");
+                parameters.dofMipColorKernel = parameters.dofMipCS.FindKernel(PostProcessEnableAlpha() ? "KMainColorAlpha" : "KMainColor");
             }
             else
             {
-                parameters.dofMipColorKernel = parameters.dofMipCS.FindKernel(m_EnableAlpha ? "KMainColorCopyAlpha" : "KMainColorCopy");
+                parameters.dofMipColorKernel = parameters.dofMipCS.FindKernel(PostProcessEnableAlpha() ? "KMainColorCopyAlpha" : "KMainColorCopy");
             }
             parameters.dofMipCoCKernel = parameters.dofMipCS.FindKernel("KMainCoC");
             parameters.dofMipSafeCS = defaultResources.shaders.depthOfFieldMipSafeCS;
@@ -1796,7 +1814,11 @@ namespace UnityEngine.Rendering.HighDefinition
             parameters.nearFocusEnd = m_DepthOfField.nearFocusEnd.value;
             parameters.farFocusStart = m_DepthOfField.farFocusStart.value;
             parameters.farFocusEnd = m_DepthOfField.farFocusEnd.value;
-            parameters.focusDistance = m_DepthOfField.focusDistance.value;
+
+            if (m_DepthOfField.focusDistanceMode.value == FocusDistanceMode.Volume)
+                parameters.focusDistance = m_DepthOfField.focusDistance.value;
+            else
+                parameters.focusDistance = m_PhysicalCamera.focusDistance;
 
             parameters.focusMode = m_DepthOfField.focusMode.value;
 
@@ -2597,10 +2619,10 @@ namespace UnityEngine.Rendering.HighDefinition
                         if (passData.parameters.nearLayerActive)
                         {
                             passData.pingNearRGB = builder.CreateTransientTexture(new TextureDesc(screenScale, IsDynamicResUpscaleTargetEnabled(), true)
-                                { colorFormat = m_PostProcessColorFormat, enableRandomWrite = true, name = "Ping Near RGB" });
+                                { colorFormat = GetPostprocessTextureFormat(), enableRandomWrite = true, name = "Ping Near RGB" });
 
                             passData.pongNearRGB = builder.CreateTransientTexture(new TextureDesc(screenScale, IsDynamicResUpscaleTargetEnabled(), true)
-                                { colorFormat = m_PostProcessColorFormat, enableRandomWrite = true, name = "Pong Near RGB" });
+                                { colorFormat = GetPostprocessTextureFormat(), enableRandomWrite = true, name = "Pong Near RGB" });
 
                             passData.nearCoC = builder.CreateTransientTexture(new TextureDesc(screenScale, IsDynamicResUpscaleTargetEnabled(), true)
                                 { colorFormat = k_CoCFormat, enableRandomWrite = true, name = "Near CoC" });
@@ -2623,10 +2645,10 @@ namespace UnityEngine.Rendering.HighDefinition
                         if (passData.parameters.farLayerActive)
                         {
                             passData.pingFarRGB = builder.CreateTransientTexture(new TextureDesc(screenScale, IsDynamicResUpscaleTargetEnabled(), true)
-                                { colorFormat = m_PostProcessColorFormat, useMipMap = true, enableRandomWrite = true, name = "Ping Far RGB" });
+                                { colorFormat = GetPostprocessTextureFormat(), useMipMap = true, enableRandomWrite = true, name = "Ping Far RGB" });
 
                             passData.pongFarRGB = builder.CreateTransientTexture(new TextureDesc(screenScale, IsDynamicResUpscaleTargetEnabled(), true)
-                                { colorFormat = m_PostProcessColorFormat, enableRandomWrite = true, name = "Pong Far RGB" });
+                                { colorFormat = GetPostprocessTextureFormat(), enableRandomWrite = true, name = "Pong Far RGB" });
 
                             passData.farCoC = builder.CreateTransientTexture(new TextureDesc(screenScale, IsDynamicResUpscaleTargetEnabled(), true)
                                 { colorFormat = k_CoCFormat, useMipMap = true, enableRandomWrite = true, name = "Far CoC" });
@@ -2668,7 +2690,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
                             passData.mips[i] = builder.CreateTransientTexture(new TextureDesc(new Vector2(mipScale, mipScale), IsDynamicResUpscaleTargetEnabled(), true)
                             {
-                                colorFormat = m_PostProcessColorFormat,
+                                colorFormat = GetPostprocessTextureFormat(),
                                 enableRandomWrite = true,
                                 name = "CoC Mip"
                             });
@@ -2714,7 +2736,7 @@ namespace UnityEngine.Rendering.HighDefinition
                             debugCocTextureScales = hdCamera.postProcessRTScalesHistory;
                         }
 
-                        passData.pingFarRGB = builder.CreateTransientTexture(GetPostprocessOutputHandle(renderGraph, "DoF Source Pyramid", m_PostProcessColorFormat, true));
+                        passData.pingFarRGB = builder.CreateTransientTexture(GetPostprocessOutputHandle(renderGraph, "DoF Source Pyramid", GetPostprocessTextureFormat(), true));
 
                         float scaleFactor = 1.0f / passData.parameters.minMaxCoCTileSize;
                         passData.pingNearRGB = builder.CreateTransientTexture(new TextureDesc(Vector2.one * scaleFactor, true, true)
@@ -2776,20 +2798,23 @@ namespace UnityEngine.Rendering.HighDefinition
                     passData.parameters = PrepareLensFlareParameters(hdCamera);
                     passData.hdCamera = hdCamera;
                     TextureHandle dest = GetPostprocessOutputHandle(renderGraph, "Lens Flare Destination");
-                    //passData.destination = builder.WriteTexture(dest);
 
                     builder.SetRenderFunc(
                         (LensFlareData data, RenderGraphContext ctx) =>
                         {
+                            float width = (float)data.hdCamera.actualWidth;
+                            float height = (float)data.hdCamera.actualHeight;
+
                             LensFlareCommonSRP.DoLensFlareDataDrivenCommon(
-                                data.parameters.lensFlareShader, data.parameters.lensFlares, data.hdCamera.camera, (float)data.hdCamera.actualWidth, (float)data.hdCamera.actualHeight,
+                                data.parameters.lensFlareShader, data.parameters.lensFlares, data.hdCamera.camera, width, height,
                                 data.parameters.usePanini, data.parameters.paniniDistance, data.parameters.paniniCropToFit,
                                 ctx.cmd, data.source,
                                 // If you pass directly 'GetLensFlareLightAttenuation' that create alloc apparently to cast to System.Func
                                 // And here the lambda setup like that seem to not alloc anything.
                                 (a, b, c) => { return GetLensFlareLightAttenuation(a, b, c); },
                                 HDShaderIDs._FlareTex, HDShaderIDs._FlareColorValue,
-                                HDShaderIDs._FlareData0, HDShaderIDs._FlareData1, HDShaderIDs._FlareData2, HDShaderIDs._FlareData3, HDShaderIDs._FlareData4, HDShaderIDs._FlareData5, data.parameters.skipCopy);
+                                HDShaderIDs._FlareData0, HDShaderIDs._FlareData1, HDShaderIDs._FlareData2, HDShaderIDs._FlareData3, HDShaderIDs._FlareData4, HDShaderIDs._FlareData5,
+                                data.parameters.skipCopy);
                         });
 
                     PushFullScreenDebugTexture(renderGraph, source, FullScreenDebugMode.LensFlareDataDriven);
@@ -3005,7 +3030,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
             data.motionBlurCS = defaultResources.shaders.motionBlurCS;
             data.motionBlurCS.shaderKeywords = null;
-            CoreUtils.SetKeyword(data.motionBlurCS, "ENABLE_ALPHA", m_EnableAlpha);
+            CoreUtils.SetKeyword(data.motionBlurCS, "ENABLE_ALPHA", PostProcessEnableAlpha());
             data.motionBlurKernel = data.motionBlurCS.FindKernel("MotionBlurCS");
 
             data.motionblurSupportScattering = m_MotionBlurSupportsScattering;
@@ -3445,7 +3470,7 @@ namespace UnityEngine.Rendering.HighDefinition
                     else
                         passData.paniniProjectionCS.EnableKeyword("UNITDISTANCE");
 
-                    if (m_EnableAlpha)
+                    if (PostProcessEnableAlpha())
                         passData.paniniProjectionCS.EnableKeyword("ENABLE_ALPHA");
 
                     passData.paniniParams = new Vector4(viewExtents.x, viewExtents.y, paniniD, paniniS);
@@ -3511,7 +3536,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 passData.bloomPrefilterCS.EnableKeyword("HIGH_QUALITY");
             else
                 passData.bloomPrefilterCS.EnableKeyword("LOW_QUALITY");
-            if (m_EnableAlpha)
+            if (PostProcessEnableAlpha())
                 passData.bloomPrefilterCS.EnableKeyword("ENABLE_ALPHA");
 
             passData.bloomBlurCS = defaultResources.shaders.bloomBlurCS;
@@ -3579,12 +3604,12 @@ namespace UnityEngine.Rendering.HighDefinition
 
                 passData.bloomMipInfo[i] = new Vector4(pw, ph, sw, sh);
                 passData.mipsDown[i] = builder.CreateTransientTexture(new TextureDesc(scale, IsDynamicResUpscaleTargetEnabled(), true)
-                    { colorFormat = m_PostProcessColorFormat, enableRandomWrite = true, name = "BloomMipDown" });
+                    { colorFormat = GetPostprocessTextureFormat(), enableRandomWrite = true, name = "BloomMipDown" });
 
                 if (i != 0)
                 {
                     passData.mipsUp[i] = builder.CreateTransientTexture(new TextureDesc(scale, IsDynamicResUpscaleTargetEnabled(), true)
-                        { colorFormat = m_PostProcessColorFormat, enableRandomWrite = true, name = "BloomMipUp" });
+                        { colorFormat = GetPostprocessTextureFormat(), enableRandomWrite = true, name = "BloomMipUp" });
                 }
             }
 
@@ -3604,7 +3629,7 @@ namespace UnityEngine.Rendering.HighDefinition
             passData.mipsUp[0] = builder.WriteTexture(renderGraph.CreateTexture(new TextureDesc(mip0Scale, IsDynamicResUpscaleTargetEnabled(), true)
             {
                 name = "Bloom final mip up",
-                colorFormat = m_PostProcessColorFormat,
+                colorFormat = GetPostprocessTextureFormat(),
                 useMipMap = false,
                 enableRandomWrite = true
             }));
@@ -4038,7 +4063,7 @@ namespace UnityEngine.Rendering.HighDefinition
             if (m_LensDistortion.IsActive() && !isSceneView && m_LensDistortionFS)
                 flags |= UberPostFeatureFlags.LensDistortion;
 
-            if (m_EnableAlpha)
+            if (PostProcessEnableAlpha())
             {
                 flags |= UberPostFeatureFlags.EnableAlpha;
             }
@@ -4180,7 +4205,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
         void PrepareAlphaScaleParameters(UberPostPassData data, HDCamera camera)
         {
-            if (m_EnableAlpha)
+            if (PostProcessEnableAlpha())
                 data.alphaScaleBias = Compositor.CompositionManager.GetAlphaScaleAndBiasForCamera(camera);
             else
                 data.alphaScaleBias = new Vector4(1.0f, 0.0f, 0.0f, 0.0f);
@@ -4236,7 +4261,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 passData.uberPostCS.shaderKeywords = null;
                 var featureFlags = GetUberFeatureFlags(isSceneView);
                 passData.uberPostKernel = passData.uberPostCS.FindKernel("Uber");
-                if (m_EnableAlpha)
+                if (PostProcessEnableAlpha())
                 {
                     passData.uberPostCS.EnableKeyword("ENABLE_ALPHA");
                 }
@@ -4343,7 +4368,7 @@ namespace UnityEngine.Rendering.HighDefinition
                     passData.destination = builder.WriteTexture(GetPostprocessOutputHandle(renderGraph, "FXAA Destination"));;
 
                     passData.fxaaCS.shaderKeywords = null;
-                    if (m_EnableAlpha)
+                    if (PostProcessEnableAlpha())
                         passData.fxaaCS.EnableKeyword("ENABLE_ALPHA");
 
                     builder.SetRenderFunc(
@@ -4383,8 +4408,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
         TextureHandle ContrastAdaptiveSharpeningPass(RenderGraph renderGraph, HDCamera hdCamera, TextureHandle source)
         {
-            if (hdCamera.DynResRequest.enabled &&
-                hdCamera.DynResRequest.filter == DynamicResUpscaleFilter.ContrastAdaptiveSharpen)
+            if (hdCamera.DynResRequest.enabled && (hdCamera.DynResRequest.filter == DynamicResUpscaleFilter.ContrastAdaptiveSharpen || hdCamera.DynResRequest.filter == DynamicResUpscaleFilter.EdgeAdaptiveScalingUpres))
             {
                 using (var builder = renderGraph.AddRenderPass<CASData>("Contrast Adaptive Sharpen", out var passData, ProfilingSampler.Get(HDProfileId.ContrastAdaptiveSharpen)))
                 {
@@ -4470,7 +4494,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 passData.blueNoise = blueNoise;
                 passData.flipY = flipY;
                 passData.random = m_Random;
-                passData.enableAlpha = m_EnableAlpha;
+                passData.enableAlpha = PostProcessEnableAlpha();
                 passData.keepAlpha = m_KeepAlpha;
                 passData.dynamicResIsOn = hdCamera.canDoDynamicResolution && hdCamera.DynResRequest.enabled;
                 passData.dynamicResFilter = hdCamera.DynResRequest.filter;
@@ -4520,6 +4544,7 @@ namespace UnityEngine.Rendering.HighDefinition
                                         finalPassMaterial.EnableKeyword("LANCZOS");
                                         break;
                                     case DynamicResUpscaleFilter.ContrastAdaptiveSharpen:
+                                    case DynamicResUpscaleFilter.EdgeAdaptiveScalingUpres:
                                         finalPassMaterial.EnableKeyword("BYPASS");
                                         break;
                                 }

@@ -16,7 +16,7 @@ namespace UnityEngine.Experimental.Rendering
         internal const int kMaxSubdivisionLevels = 7; // 3 bits
 
         [System.Serializable]
-        public struct Brick
+        public struct Brick : IEquatable<Brick>
         {
             public Vector3Int position;   // refspace index, indices are cell coordinates at max resolution
             public int subdivisionLevel;              // size as factor covered elementary cells
@@ -26,6 +26,8 @@ namespace UnityEngine.Experimental.Rendering
                 this.position = position;
                 this.subdivisionLevel = subdivisionLevel;
             }
+
+            public bool Equals(Brick other) => position == other.position && subdivisionLevel == other.subdivisionLevel;
         }
 
         struct ReservedBrick
@@ -412,7 +414,7 @@ namespace UnityEngine.Experimental.Rendering
 
                             if (shift_cnt == 0)
                             {
-                                hr.cnt = Mathf.Min(m_IndexDim.y, brick_min.y + brick_cell_size - hr.min);
+                                hr.cnt = Mathf.Max(0, Mathf.Min(m_IndexDim.y, brick_min.y + brick_cell_size - hr.min));
                                 UpdateIndexData(m_TmpUpdater, 0, base_offset + TranslateIndex(mx, brick_min.y - hr.min, mz), Mathf.Min(brick_cell_size, highest_limit - brick_min.y));
                             }
                             else

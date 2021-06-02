@@ -94,6 +94,7 @@ namespace UnityEngine.Rendering.HighDefinition
         public bool                 volumetricHistoryIsValid = false;
 
         internal int                volumetricValidFrames = 0;
+        internal int                colorPyramidHistoryValidFrames = 0;
 
         /// <summary>Width actually used for rendering after dynamic resolution and XR is applied.</summary>
         public int                  actualWidth { get; private set; }
@@ -147,6 +148,8 @@ namespace UnityEngine.Rendering.HighDefinition
             volumetricHistoryIsValid = false;
             volumetricValidFrames = 0;
             colorPyramidHistoryIsValid = false;
+            colorPyramidHistoryValidFrames = 0;
+            dofHistoryIsValid = false;
 
             // Reset the volumetric cloud offset animation data
             volumetricCloudsAnimationData.lastTime = -1.0f;
@@ -353,6 +356,9 @@ namespace UnityEngine.Rendering.HighDefinition
         {
             get
             {
+                if (CoreUtils.IsSceneFilteringEnabled())
+                    return HDAdditionalCameraData.ClearColorMode.Color;
+
                 if (m_AdditionalCameraData != null)
                 {
                     return m_AdditionalCameraData.clearColorMode;
@@ -550,7 +556,9 @@ namespace UnityEngine.Rendering.HighDefinition
 
         internal bool allowDynamicResolution => m_AdditionalCameraData != null && m_AdditionalCameraData.allowDynamicResolution;
 
-        internal HDPhysicalCamera physicalParameters { get; private set; }
+        // We set the values of the physical camera in the Update() call. Here we initialize with
+        // the defaults, in case someone is trying to access the values before the first Update
+        internal HDPhysicalCamera physicalParameters { get; private set; } = HDPhysicalCamera.GetDefaults();
 
         internal IEnumerable<AOVRequestData> aovRequests =>
             m_AdditionalCameraData != null && !m_AdditionalCameraData.Equals(null)
@@ -639,11 +647,6 @@ namespace UnityEngine.Rendering.HighDefinition
             volumeStack = VolumeManager.instance.CreateStack();
 
             Reset();
-        }
-
-        internal bool IsTAAEnabled()
-        {
-            return antialiasing == AntialiasingMode.TemporalAntialiasing;
         }
 
         internal bool IsDLSSEnabled()
@@ -859,10 +862,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 Vector2Int scaledSize = DynamicResolutionHandler.instance.GetScaledSize(new Vector2Int(actualWidth, actualHeight));
                 actualWidth = scaledSize.x;
                 actualHeight = scaledSize.y;
-                if (IsDLSSEnabled())
-                {
-                    globalMipBias += (float)Math.Log((double)actualWidth / (double)nonScaledViewport.x, 2.0);
-                }
+                globalMipBias += DynamicResolutionHandler.instance.CalculateMipBias(scaledSize, nonScaledViewport, IsDLSSEnabled());
             }
 
             var screenWidth = actualWidth;
@@ -1049,6 +1049,7 @@ namespace UnityEngine.Rendering.HighDefinition
             cb._TaaJitterStrength = taaJitter;
             cb._ColorPyramidLodCount = colorPyramidHistoryMipCount;
             cb._GlobalMipBias = globalMipBias;
+            cb._GlobalMipBiasPow2 = (float)Math.Pow(2.0f, globalMipBias);
 
             float ct = time;
             float pt = lastTime;
@@ -1557,7 +1558,6 @@ namespace UnityEngine.Rendering.HighDefinition
         {
             volumeAnchor = null;
             volumeLayerMask = -1;
-            physicalParameters = null;
 
             if (m_AdditionalCameraData != null)
             {
@@ -1597,8 +1597,8 @@ namespace UnityEngine.Rendering.HighDefinition
                             // Remove lighting override mask and layer 31 which is used by preview/lookdev
                             volumeLayerMask = (-1 & ~(hdPipeline.asset.currentPlatformRenderPipelineSettings.lightLoopSettings.skyLightingOverrideLayerMask | (1 << 31)));
 
-                        // No fallback for the physical camera as we can't assume anything in this regard
-                        // Kept at null so the exposure will just use the default physical camera values
+                        // Use the default physical camera values so the exposure will look reasonable
+                        physicalParameters = HDPhysicalCamera.GetDefaults();
                     }
                 }
             }
@@ -1678,6 +1678,11 @@ namespace UnityEngine.Rendering.HighDefinition
                 planes.right += planeJitter.x;
                 planes.top += planeJitter.y;
                 planes.bottom += planeJitter.y;
+
+                // Reconstruct the far plane for the jittered matrix.
+                // For extremely high far clip planes, the decomposed projection zFar evaluates to infinity.
+                if (float.IsInfinity(planes.zFar))
+                    planes.zFar = frustum.planes[5].distance;
 
                 proj = Matrix4x4.Frustum(planes);
             }

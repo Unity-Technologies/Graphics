@@ -2,6 +2,7 @@ using System;
 using System.Diagnostics;
 using System.Collections.Generic;
 using UnityEngine.Rendering;
+using UnityEngine.Rendering.RendererUtils;
 
 namespace UnityEngine.Experimental.Rendering.RenderGraphModule
 {
@@ -184,6 +185,7 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
             public List<int>    producers;
             public List<int>    consumers;
             public int          refCount;
+            public bool         imported;
 
             public void Reset()
             {
@@ -195,6 +197,7 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
                 producers.Clear();
                 consumers.Clear();
                 refCount = 0;
+                imported = false;
             }
         }
 
@@ -303,6 +306,9 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
         public string name { get; private set; } = "RenderGraph";
         /// <summary>If true, the Render Graph will generate execution debug information.</summary>
         internal static bool requireDebugData { get; set; } = false;
+
+        ///<summary> Controls whether to enable Renderer List culling or not.</summary>
+        public bool rendererListCulling;
 
         /// <summary>
         /// Set of default resources usable in a pass rendering code.
@@ -784,6 +790,7 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
                     foreach (var resource in resourceRead)
                     {
                         ref CompiledResourceInfo info = ref m_CompiledResourcesInfos[type][resource];
+                        info.imported = m_Resources.IsRenderGraphResourceImported(resource);
                         info.consumers.Add(passIndex);
                         info.refCount++;
 
@@ -796,12 +803,12 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
                     foreach (var resource in resourceWrite)
                     {
                         ref CompiledResourceInfo info = ref m_CompiledResourcesInfos[type][resource];
+                        info.imported = m_Resources.IsRenderGraphResourceImported(resource);
                         info.producers.Add(passIndex);
-                        passInfo.refCount++;
 
                         // Writing to an imported texture is considered as a side effect because we don't know what users will do with it outside of render graph.
-                        if (m_Resources.IsRenderGraphResourceImported(resource))
-                            passInfo.hasSideEffect = true;
+                        passInfo.hasSideEffect = info.imported;
+                        passInfo.refCount++;
 
 #if DEVELOPMENT_BUILD || UNITY_EDITOR
                         passInfo.debugResourceWrites[type].Add(m_Resources.GetRenderGraphResourceName(resource));
@@ -979,6 +986,23 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
             return -1;
         }
 
+        void CreateRendererLists()
+        {
+            for (int passIndex = 0; passIndex < m_CompiledPassInfos.size; ++passIndex)
+            {
+                ref CompiledPassInfo passInfo = ref m_CompiledPassInfos[passIndex];
+
+                if (passInfo.culled)
+                    continue;
+
+                // Gather all renderer lists
+                m_RendererLists.AddRange(passInfo.pass.usedRendererListList);
+            }
+
+            // Creates all renderer lists
+            m_Resources.CreateRendererLists(m_RendererLists, m_RenderGraphContext.renderContext, rendererListCulling);
+        }
+
         void UpdateResourceAllocationAndSynchronization()
         {
             int lastGraphicsPipeSync = -1;
@@ -1008,9 +1032,6 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
                         UpdateResourceSynchronization(ref lastGraphicsPipeSync, ref lastComputePipeSync, passIndex, resourcesInfo[resource]);
                     }
                 }
-
-                // Gather all renderer lists
-                m_RendererLists.AddRange(passInfo.pass.usedRendererListList);
             }
 
             for (int type = 0; type < (int)RenderGraphResourceType.Count; ++type)
@@ -1024,6 +1045,7 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
                     // Resource creation
                     int firstWriteIndex = GetFirstValidWriteIndex(resourceInfo);
                     // Index -1 can happen for imported resources (for example an imported dummy black texture will never be written to but does not need creation anyway)
+                    // Or when the only pass that was writting to this resource was culled dynamically by renderer lists
                     if (firstWriteIndex != -1)
                         m_CompiledPassInfos[firstWriteIndex].resourceCreateList[type].Add(i);
 
@@ -1045,7 +1067,9 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
                     //    Debug.LogError($"Resource {name} is written again after the last pass that reads it.\nLast pass read: {lastPassReadName}\nLast pass write: {lastPassWriteName}");
                     //}
 
-                    int lastReadPassIndex = Math.Max(latestValidWriteIndex, latestValidReadIndex);
+                    // For not imported resources, make sure we don't try to release them if they were never created (due to culling).
+                    bool shouldRelease = !(firstWriteIndex == -1 && !resourceInfo.imported);
+                    int lastReadPassIndex = shouldRelease ? Math.Max(latestValidWriteIndex, latestValidReadIndex) : -1;
 
                     // Texture release
                     if (lastReadPassIndex != -1)
@@ -1089,9 +1113,52 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
                     }
                 }
             }
+        }
 
-            // Creates all renderer lists
-            m_Resources.CreateRendererLists(m_RendererLists);
+        bool AreRendererListsEmpty(List<RendererListHandle> rendererLists)
+        {
+            foreach (RendererListHandle handle in rendererLists)
+            {
+                var rendererList = m_Resources.GetRendererList(handle);
+                if (m_RenderGraphContext.renderContext.QueryRendererListStatus(rendererList) == RendererListStatus.kRendererListPopulated)
+                {
+                    return false;
+                }
+            }
+
+            // If the list of RendererLists is empty, then the default behavior is to not cull, so return false.
+            return rendererLists.Count > 0 ? true : false;
+        }
+
+        void TryCullPassAtIndex(int passIndex)
+        {
+            var pass = m_CompiledPassInfos[passIndex].pass;
+            if (!m_CompiledPassInfos[passIndex].culled &&
+                pass.allowPassCulling &&
+                pass.allowRendererListCulling &&
+                !m_CompiledPassInfos[passIndex].hasSideEffect)
+            {
+                if (AreRendererListsEmpty(pass.usedRendererListList) || AreRendererListsEmpty(pass.dependsOnRendererListList))
+                {
+                    //Debug.Log($"Culling pass <color=red> {pass.name} </color>");
+                    m_CompiledPassInfos[passIndex].culled = true;
+                }
+            }
+        }
+
+        void CullRendererLists()
+        {
+            for (int passIndex = 0; passIndex < m_CompiledPassInfos.size; ++passIndex)
+            {
+                if (!m_CompiledPassInfos[passIndex].culled && !m_CompiledPassInfos[passIndex].hasSideEffect)
+                {
+                    var pass = m_CompiledPassInfos[passIndex].pass;
+                    if (pass.usedRendererListList.Count > 0 || pass.dependsOnRendererListList.Count > 0)
+                    {
+                        TryCullPassAtIndex(passIndex);
+                    }
+                }
+            }
         }
 
         // Internal visibility for testing purpose only
@@ -1101,11 +1168,26 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
         // - Cull unused render passes.
         internal void CompileRenderGraph()
         {
-            InitializeCompilationData();
-            CountReferences();
-            CullUnusedPasses();
-            UpdateResourceAllocationAndSynchronization();
-            LogRendererListsCreation();
+            using (new ProfilingScope(m_RenderGraphContext.cmd, ProfilingSampler.Get(RenderGraphProfileId.CompileRenderGraph)))
+            {
+                InitializeCompilationData();
+                CountReferences();
+
+                // First cull all passes thet produce unused output
+                CullUnusedPasses();
+
+                // Create the renderer lists of the remaining passes
+                CreateRendererLists();
+
+                // Cull dynamically the graph passes based on the renderer list visibility
+                if (rendererListCulling)
+                    CullRendererLists();
+
+                // After all culling passes, allocate the resources for this frame
+                UpdateResourceAllocationAndSynchronization();
+
+                LogRendererListsCreation();
+            }
         }
 
         ref CompiledPassInfo CompilePassImmediatly(RenderGraphPass pass)
@@ -1162,7 +1244,7 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
                 if (!m_Resources.IsRendererListCreated(rl))
                     m_RendererLists.Add(rl);
             }
-            m_Resources.CreateRendererLists(m_RendererLists);
+            m_Resources.CreateRendererLists(m_RendererLists, m_RenderGraphContext.renderContext);
             m_RendererLists.Clear();
 
             return ref passInfo;
@@ -1208,9 +1290,12 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
         // Execute the compiled render graph
         void ExecuteRenderGraph()
         {
-            for (int passIndex = 0; passIndex < m_CompiledPassInfos.size; ++passIndex)
+            using (new ProfilingScope(m_RenderGraphContext.cmd, ProfilingSampler.Get(RenderGraphProfileId.ExecuteRenderGraph)))
             {
-                ExecuteCompiledPass(ref m_CompiledPassInfos[passIndex], passIndex);
+                for (int passIndex = 0; passIndex < m_CompiledPassInfos.size; ++passIndex)
+                {
+                    ExecuteCompiledPass(ref m_CompiledPassInfos[passIndex], passIndex);
+                }
             }
         }
 

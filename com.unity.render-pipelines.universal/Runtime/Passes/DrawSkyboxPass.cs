@@ -20,11 +20,12 @@ namespace UnityEngine.Rendering.Universal
             CameraData cameraData = renderingData.cameraData;
             Camera camera = cameraData.camera;
 
-            if ((DebugHandler != null) && DebugHandler.IsActiveForCamera(ref cameraData))
+            var activeDebugHandler = GetActiveDebugHandler(renderingData);
+            if (activeDebugHandler != null)
             {
                 // TODO: The skybox needs to work the same as the other shaders, but until it does we'll not render it
                 // when certain debug modes are active (e.g. wireframe/overdraw modes)
-                if (DebugHandler.IsScreenClearNeeded)
+                if (activeDebugHandler.IsScreenClearNeeded)
                 {
                     return;
                 }

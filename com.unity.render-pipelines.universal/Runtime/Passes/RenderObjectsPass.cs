@@ -1,5 +1,4 @@
 using System.Collections.Generic;
-using UnityEditor.Rendering;
 using UnityEngine.Rendering.Universal;
 using UnityEngine.Rendering;
 using UnityEngine.Scripting.APIUpdating;
@@ -120,21 +119,14 @@ namespace UnityEngine.Experimental.Rendering.Universal
                     }
                 }
 
-                if ((DebugHandler != null) && DebugHandler.IsActiveForCamera(ref cameraData))
+                var activeDebugHandler = GetActiveDebugHandler(renderingData);
+                if (activeDebugHandler != null)
                 {
-                    foreach (DebugRenderSetup debugRenderSetup in DebugHandler.CreateDebugRenderSetupEnumerable(context, cmd))
-                    {
-                        DrawingSettings debugDrawingSettings = debugRenderSetup.CreateDrawingSettings(ref renderingData, drawingSettings);
-
-                        if (debugRenderSetup.GetRenderStateBlock(out RenderStateBlock renderStateBlock))
+                    activeDebugHandler.DrawWithDebugRenderState(context, cmd, ref renderingData, ref drawingSettings,  ref m_FilteringSettings, ref m_RenderStateBlock,
+                        (ScriptableRenderContext ctx, ref RenderingData data, ref DrawingSettings ds, ref FilteringSettings fs, ref RenderStateBlock rsb) =>
                         {
-                            context.DrawRenderers(renderingData.cullResults, ref debugDrawingSettings, ref m_FilteringSettings, ref renderStateBlock);
-                        }
-                        else
-                        {
-                            context.DrawRenderers(renderingData.cullResults, ref debugDrawingSettings, ref m_FilteringSettings, ref m_RenderStateBlock);
-                        }
-                    }
+                            ctx.DrawRenderers(data.cullResults, ref ds, ref fs, ref rsb);
+                        });
                 }
                 else
                 {
