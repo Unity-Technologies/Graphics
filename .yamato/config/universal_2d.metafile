@@ -86,8 +86,6 @@ platforms:
       - name: OpenGLCore
         exclude_test_platforms:
           - name: playmode_XR
-          - name: playmode_XR
-          - name: Standalone
           - name: Standalone
     build_configs:
       - name: mono
@@ -98,12 +96,9 @@ platforms:
       - name: OpenGLCore
         exclude_test_platforms:
           - name: Standalone
-          - name: Standalone
-          - name: playmode_XR
           - name: playmode_XR
       - name: Vulkan
         exclude_test_platforms:
-          - name: playmode_XR
           - name: playmode_XR
     build_configs:
       - name: mono
@@ -116,15 +111,11 @@ platforms:
           - name: playmode
           - name: editmode
           - name: playmode_XR
-          - name: playmode_XR
-          - name: playmode
       - name: Vulkan
         exclude_test_platforms:
           - name: playmode
           - name: editmode
           - name: playmode_XR
-          - name: playmode_XR
-          - name: playmode
     build_configs:
       - name: il2cpp
     color_spaces:
@@ -136,8 +127,6 @@ platforms:
           - name: playmode
           - name: editmode
           - name: playmode_XR
-          - name: playmode_XR
-          - name: playmode
     build_configs:
       - name: il2cpp
     color_spaces:

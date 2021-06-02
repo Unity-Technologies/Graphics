@@ -75,7 +75,6 @@ platforms:
       - name: Vulkan
         exclude_test_platforms:
           - name: playmode_XR
-          - name: playmode_XR
     build_configs:
       - name: mono
     color_spaces:

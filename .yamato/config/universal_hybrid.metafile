@@ -37,7 +37,6 @@ platforms:
       - name: OpenGLCore
         exclude_test_platforms:
           - name: Standalone
-          - name: Standalone
           - name: playmode_XR
       - name: Vulkan
         exclude_test_platforms:
@@ -52,12 +51,10 @@ platforms:
         exclude_test_platforms:
           - name: playmode
           - name: playmode_XR
-          - name: playmode
       - name: Vulkan
         exclude_test_platforms:
           - name: playmode
           - name: playmode_XR
-          - name: playmode
     build_configs:
       - name: mono
     color_spaces:
