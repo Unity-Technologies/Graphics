@@ -97,7 +97,7 @@ URP_Performance_BoatAttack_OSX_Metal_performance_playmode_runtime_mono_Linear_tr
         echo ==================================================;
         echo UPM Registry: \$UPM_REGISTRY;
         echo ==================================================;
-        cd ~/Graphics/TestProjects/BoatAttack
+        cd $YAMATO_SOURCE_DIR/TestProjects/BoatAttack
         export GIT_REVISIONDATE=`git rev-parse HEAD | git show -s --format=%cI`
         ./utr                                                                                           \\
             --artifacts_path=$YAMATO_SOURCE_DIR/TestProjects/BoatAttack/test-results                                       \\
@@ -144,7 +144,7 @@ URP_Performance_BoatAttack_OSX_Metal_performance_playmode_runtime_mono_Linear_tr
         echo ==================================================;
         echo UPM Registry: \$UPM_REGISTRY;
         echo ==================================================;
-        cd ~/Graphics/TestProjects/BoatAttack/;
+        cd $YAMATO_SOURCE_DIR/TestProjects/BoatAttack;
         ./utr                                     \\
             --artifacts_path=test-results         \\
             --category=URP                                                                       \\
@@ -160,7 +160,7 @@ URP_Performance_BoatAttack_OSX_Metal_performance_playmode_runtime_mono_Linear_tr
     
       # Read UTR result and data from test device.
       - scp bokken@$BOKKEN_DEVICE_IP:~/.utr_result ~/.utr_result
-      - rsync -aqP bokken@$BOKKEN_DEVICE_IP:~/Graphics/TestProjects/BoatAttack/test-results $YAMATO_SOURCE_DIR/TestProjects/BoatAttack/
+      - rsync -aqP bokken@$BOKKEN_DEVICE_IP:$YAMATO_SOURCE_DIR/TestProjects/BoatAttack/test-results $YAMATO_SOURCE_DIR/TestProjects/BoatAttack/
 
       # Print status and exit with UTR's exit code.
       - |
