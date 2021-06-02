@@ -8,6 +8,14 @@ namespace UnityEditor.Rendering.BuiltIn.ShaderGraph
 {
     public class BuiltInBaseShaderGUI : ShaderGUI
     {
+        [Flags]
+        protected enum Expandable
+        {
+            SurfaceOptions = 1 << 0,
+            SurfaceInputs = 1 << 1,
+            Advanced = 1 << 2
+        }
+
         public enum SurfaceType
         {
             Opaque,
@@ -39,6 +47,16 @@ namespace UnityEditor.Rendering.BuiltIn.ShaderGraph
             public static readonly int[] ztestValues = (int[])Enum.GetValues(typeof(UnityEditor.Rendering.BuiltIn.ShaderGraph.ZTestMode));
             public static readonly string[] ztestNames = Enum.GetNames(typeof(UnityEditor.Rendering.BuiltIn.ShaderGraph.ZTestMode));
 
+            // Categories
+            public static readonly GUIContent SurfaceOptions =
+                EditorGUIUtility.TrTextContent("Surface Options", "Controls how Built-In RP renders the Material on a screen.");
+
+            public static readonly GUIContent SurfaceInputs = EditorGUIUtility.TrTextContent("Surface Inputs",
+                "These settings describe the look and feel of the surface itself.");
+
+            public static readonly GUIContent AdvancedLabel = EditorGUIUtility.TrTextContent("Advanced Options",
+                "These settings affect behind-the-scenes rendering and underlying calculations.");
+
             public static readonly GUIContent surfaceType = EditorGUIUtility.TrTextContent("Surface Type",
                 "Select a surface type for your texture. Choose between Opaque or Transparent.");
             public static readonly GUIContent blendingMode = EditorGUIUtility.TrTextContent("Blending Mode",
@@ -51,13 +69,43 @@ namespace UnityEditor.Rendering.BuiltIn.ShaderGraph
                 "Specifies the depth test mode.  The default is LEqual.");
             public static readonly GUIContent alphaClipText = EditorGUIUtility.TrTextContent("Alpha Clipping",
                 "Makes your Material act like a Cutout shader. Use this to create a transparent effect with hard edges between opaque and transparent areas.");
+
+            public static readonly GUIContent queueSlider = EditorGUIUtility.TrTextContent("Sorting Priority",
+                "Determines the chronological rendering order for a Material. Materials with lower value are rendered first.");
         }
+
+        public bool m_FirstTimeApply = true;
+
+        // By default, everything is expanded, except advanced
+        readonly MaterialHeaderScopeList m_MaterialScopeList = new MaterialHeaderScopeList(uint.MaxValue & ~(uint)Expandable.Advanced);
+
+        private const int queueOffsetRange = 50;
+
+        MaterialEditor m_MaterialEditor;
+        MaterialProperty[] m_Properties;
 
         override public void OnGUI(MaterialEditor materialEditor, MaterialProperty[] properties)
         {
+            m_MaterialEditor = materialEditor;
+            m_Properties = properties;
+
             Material targetMat = materialEditor.target as Material;
 
+            if (m_FirstTimeApply)
+            {
+                OnOpenGUI(targetMat, materialEditor, properties);
+                m_FirstTimeApply = false;
+            }
+
             ShaderPropertiesGUI(materialEditor, targetMat, properties);
+        }
+
+        public virtual void OnOpenGUI(Material material, MaterialEditor materialEditor, MaterialProperty[] properties)
+        {
+            // Generate the foldouts
+            m_MaterialScopeList.RegisterHeaderScope(Styles.SurfaceOptions, (uint)Expandable.SurfaceOptions, DrawSurfaceOptions);
+            m_MaterialScopeList.RegisterHeaderScope(Styles.SurfaceInputs, (uint)Expandable.SurfaceInputs, DrawSurfaceInputs);
+            m_MaterialScopeList.RegisterHeaderScope(Styles.AdvancedLabel, (uint)Expandable.Advanced, DrawAdvancedOptions);
         }
 
         public override void AssignNewShaderToMaterial(Material material, Shader oldShader, Shader newShader)
@@ -72,13 +120,16 @@ namespace UnityEditor.Rendering.BuiltIn.ShaderGraph
             UnityEditor.Rendering.BuiltIn.ShaderUtils.ResetMaterialKeywords(material);
         }
 
-        static void ShaderPropertiesGUI(MaterialEditor materialEditor, Material material, MaterialProperty[] properties)
+        void ShaderPropertiesGUI(MaterialEditor materialEditor, Material material, MaterialProperty[] properties)
         {
-            DrawGui(materialEditor, material, properties);
+            m_MaterialScopeList.DrawHeaders(materialEditor, material);
         }
 
-        static void DrawGui(MaterialEditor materialEditor, Material material, MaterialProperty[] properties)
+        protected virtual void DrawSurfaceOptions(Material material)
         {
+            var materialEditor = m_MaterialEditor;
+            var properties = m_Properties;
+
             var surfaceTypeProp = FindProperty(Property.Surface(), properties, false);
             if (surfaceTypeProp != null)
             {
@@ -101,8 +152,24 @@ namespace UnityEditor.Rendering.BuiltIn.ShaderGraph
 
             var alphaClipProp = FindProperty(Property.AlphaClip(), properties, false);
             DrawFloatToggleProperty(Styles.alphaClipText, alphaClipProp);
+        }
 
-            DrawShaderGraphProperties(materialEditor, material, properties);
+        protected virtual void DrawSurfaceInputs(Material material)
+        {
+            DrawShaderGraphProperties(m_MaterialEditor, material, m_Properties);
+        }
+
+        protected virtual void DrawAdvancedOptions(Material material)
+        {
+            m_MaterialEditor.RenderQueueField();
+            DrawQueueOffsetField(m_MaterialEditor, material, m_Properties);
+        }
+
+        protected void DrawQueueOffsetField(MaterialEditor materialEditor, Material material, MaterialProperty[] properties)
+        {
+            var queueOffsetProp = FindProperty(Property.QueueOffset(), properties, false);
+            if (queueOffsetProp != null)
+                materialEditor.IntSliderShaderProperty(queueOffsetProp, -queueOffsetRange, queueOffsetRange, Styles.queueSlider);
         }
 
         static void DrawShaderGraphProperties(MaterialEditor materialEditor, Material material, MaterialProperty[] properties)
@@ -234,44 +301,6 @@ namespace UnityEditor.Rendering.BuiltIn.ShaderGraph
             if (EditorGUI.EndChangeCheck())
                 prop.floatValue = newValue ? 1.0f : 0.0f;
             EditorGUI.showMixedValue = false;
-        }
-    }
-
-    // Currently the shader graph project doesn't have a reference to the necessary assembly to access this (RenderPipelines.Core.Editor)
-    public static partial class MaterialEditorExtension
-    {
-        public static int PopupShaderProperty(this MaterialEditor editor, MaterialProperty prop, GUIContent label, string[] displayedOptions)
-        {
-            int val = (int)prop.floatValue;
-
-            EditorGUI.BeginChangeCheck();
-            EditorGUI.showMixedValue = prop.hasMixedValue;
-            int newValue = EditorGUILayout.Popup(label, val, displayedOptions);
-            EditorGUI.showMixedValue = false;
-            if (EditorGUI.EndChangeCheck() && (newValue != val || prop.hasMixedValue))
-            {
-                editor.RegisterPropertyChangeUndo(label.text);
-                prop.floatValue = val = newValue;
-            }
-
-            return val;
-        }
-
-        public static int IntPopupShaderProperty(this MaterialEditor editor, MaterialProperty prop, string label, string[] displayedOptions, int[] optionValues)
-        {
-            int val = (int)prop.floatValue;
-
-            EditorGUI.BeginChangeCheck();
-            EditorGUI.showMixedValue = prop.hasMixedValue;
-            int newValue = EditorGUILayout.IntPopup(label, val, displayedOptions, optionValues);
-            EditorGUI.showMixedValue = false;
-            if (EditorGUI.EndChangeCheck() && (newValue != val || prop.hasMixedValue))
-            {
-                editor.RegisterPropertyChangeUndo(label);
-                prop.floatValue = val = newValue;
-            }
-
-            return val;
         }
     }
 }
