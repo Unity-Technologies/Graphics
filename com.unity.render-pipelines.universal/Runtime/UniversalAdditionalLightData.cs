@@ -27,6 +27,29 @@ namespace UnityEngine.Rendering.Universal
         Everything = 0xFF, // Custom name for "Everything" option
     }
 
+    /// <summary>
+    /// Contains extension methods for Light class.
+    /// </summary>
+    public static class LightExtensions
+    {
+        /// <summary>
+        /// Universal Render Pipeline exposes additional light data in a separate component.
+        /// This method returns the additional data component for the given light or create one if it doesn't exist yet.
+        /// </summary>
+        /// <param name="light"></param>
+        /// <returns>The <c>UniversalAdditionalLightData</c> for this light.</returns>
+        /// <see cref="UniversalAdditionalLightData"/>
+        public static UniversalAdditionalLightData GetUniversalAdditionalLightData(this Light light)
+        {
+            var gameObject = light.gameObject;
+            bool componentExists = gameObject.TryGetComponent<UniversalAdditionalLightData>(out var lightData);
+            if (!componentExists)
+                lightData = gameObject.AddComponent<UniversalAdditionalLightData>();
+
+            return lightData;
+        }
+    }
+
     [DisallowMultipleComponent]
     [RequireComponent(typeof(Light))]
     public class UniversalAdditionalLightData : MonoBehaviour

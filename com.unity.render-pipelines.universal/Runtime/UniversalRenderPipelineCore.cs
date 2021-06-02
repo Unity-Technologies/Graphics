@@ -543,6 +543,10 @@ namespace UnityEngine.Rendering.Universal
                 // is given.
             }
 
+            // Make sure dimension is non zero
+            desc.width = Mathf.Max(1, desc.width);
+            desc.height = Mathf.Max(1, desc.height);
+
             desc.enableRandomWrite = false;
             desc.bindMS = false;
             desc.useDynamicScale = camera.allowDynamicResolution;
@@ -568,13 +572,7 @@ namespace UnityEngine.Rendering.Universal
             for (int i = 0; i < requests.Length; i++)
             {
                 Light light = requests[i];
-
-                UniversalAdditionalLightData additionalLightData;
-                light.TryGetComponent(out additionalLightData);
-                if (additionalLightData == null)
-                {
-                    additionalLightData = ComponentSingleton<UniversalAdditionalLightData>.instance;
-                }
+                var additionalLightData = light.GetUniversalAdditionalLightData();
 
                 LightmapperUtils.Extract(light, out Cookie cookie);
 
@@ -835,6 +833,7 @@ namespace UnityEngine.Rendering.Universal
         UberPostProcess,
         Bloom,
         LensFlareDataDriven,
+        MotionVectors,
 
         FinalBlit
     }

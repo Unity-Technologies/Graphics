@@ -23,11 +23,8 @@ namespace UnityEditor
             BaseShaderGUI.UpdateMaterialSurfaceOptions(material, automaticRenderQueue: false);
         }
 
-        public override void MaterialChanged(Material material)
+        public override void ValidateMaterial(Material material)
         {
-            if (material == null)
-                throw new ArgumentNullException("material");
-
             UpdateMaterial(material, MaterialUpdateType.ModifiedMaterial);
         }
 

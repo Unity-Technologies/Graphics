@@ -14,6 +14,16 @@ float3 GetCoatNormal(MaterialData mtlData)
     return mtlData.bsdfData.coatNormalWS;
 }
 
+float3 GetSpecularCompensationA(MaterialData mtlData)
+{
+    return 1.0 + mtlData.bsdfData.specularOcclusionCustomInput * mtlData.bsdfData.fresnel0;
+}
+
+float3 GetSpecularCompensationB(MaterialData mtlData)
+{
+    return 1.0 + mtlData.bsdfData.soFixupStrengthFactor * mtlData.bsdfData.fresnel0;
+}
+
 void ProcessBSDFData(PathIntersection pathIntersection, BuiltinData builtinData, MaterialData mtlData, inout BSDFData bsdfData)
 {
     // Adjust roughness to reduce fireflies
@@ -32,20 +42,10 @@ void ProcessBSDFData(PathIntersection pathIntersection, BuiltinData builtinData,
 #ifdef STACK_LIT_USE_GGX_ENERGY_COMPENSATION
     float sqrtNdotV = sqrt(NdotV);
 
-    if (bsdfData.lobeMix  < 1.0)
-    {
-        float roughness = 0.5 * (bsdfData.roughnessAT + bsdfData.roughnessAB);
-        float2 coordLUT = Remap01ToHalfTexelCoord(float2(sqrtNdotV, roughness), FGDTEXTURE_RESOLUTION);
-        float E = SAMPLE_TEXTURE2D_LOD(_PreIntegratedFGD_GGXDisneyDiffuse, s_linear_clamp_sampler, coordLUT, 0).y;
-        bsdfData.specularOcclusionCustomInput = (1.0 - E) / E;
-    }
+    if (bsdfData.lobeMix < 1.0)
+        bsdfData.specularOcclusionCustomInput = BRDF::GetGGXMultipleScatteringEnergy(0.5 * (bsdfData.roughnessAT + bsdfData.roughnessAB), sqrtNdotV);
     if (bsdfData.lobeMix > 0.0)
-    {
-        float roughness = 0.5 * (bsdfData.roughnessBT + bsdfData.roughnessBB);
-        float2 coordLUT = Remap01ToHalfTexelCoord(float2(sqrtNdotV, roughness), FGDTEXTURE_RESOLUTION);
-        float E = SAMPLE_TEXTURE2D_LOD(_PreIntegratedFGD_GGXDisneyDiffuse, s_linear_clamp_sampler, coordLUT, 0).y;
-        bsdfData.soFixupStrengthFactor = (1.0 - E) / E;
-    }
+        bsdfData.soFixupStrengthFactor = BRDF::GetGGXMultipleScatteringEnergy(0.5 * (bsdfData.roughnessBT + bsdfData.roughnessBB), sqrtNdotV);
 #else
     bsdfData.specularOcclusionCustomInput = 0.0;
     bsdfData.soFixupStrengthFactor = 0.0;
@@ -88,8 +88,8 @@ bool CreateMaterialData(PathIntersection pathIntersection, BuiltinData builtinDa
         mtlData.bsdfWeight[1] = Fcoat * mtlData.bsdfData.coatMask;
         coatingTransmission = (1.0 - mtlData.bsdfWeight[1]) * mtlData.bsdfData.coatExtinction;
         float coatingTransmissionWeight = Luminance(coatingTransmission);
-        mtlData.bsdfWeight[2] = coatingTransmissionWeight * (1.0 - mtlData.bsdfData.lobeMix) * lerp(Fspec, 0.5, 0.5 * (mtlData.bsdfData.roughnessAT + mtlData.bsdfData.roughnessAB)) * (1.0 + Fspec * mtlData.bsdfData.specularOcclusionCustomInput);
-        mtlData.bsdfWeight[3] = coatingTransmissionWeight * mtlData.bsdfData.lobeMix * lerp(Fspec, 0.5, 0.5 * (mtlData.bsdfData.roughnessBT + mtlData.bsdfData.roughnessBB)) * (1.0 + Fspec * mtlData.bsdfData.soFixupStrengthFactor);
+        mtlData.bsdfWeight[2] = coatingTransmissionWeight * (1.0 - mtlData.bsdfData.lobeMix) * lerp(Fspec, 0.5, 0.5 * (mtlData.bsdfData.roughnessAT + mtlData.bsdfData.roughnessAB)) * GetSpecularCompensationA(mtlData);
+        mtlData.bsdfWeight[3] = coatingTransmissionWeight * mtlData.bsdfData.lobeMix * lerp(Fspec, 0.5, 0.5 * (mtlData.bsdfData.roughnessBT + mtlData.bsdfData.roughnessBB)) * GetSpecularCompensationB(mtlData);
         mtlData.bsdfWeight[0] = coatingTransmissionWeight * Luminance(mtlData.bsdfData.diffuseColor) * mtlData.bsdfData.ambientOcclusion;
     }
 
@@ -140,18 +140,6 @@ bool CreateMaterialData(PathIntersection pathIntersection, BuiltinData builtinDa
     return true;
 }
 
-// Couple little helpers to get the specular compensation term
-
-float3 GetSpecularCompensationA(BSDFData bsdfData)
-{
-    return 1.0 + bsdfData.specularOcclusionCustomInput * bsdfData.fresnel0;
-}
-
-float3 GetSpecularCompensationB(BSDFData bsdfData)
-{
-    return 1.0 + bsdfData.soFixupStrengthFactor * bsdfData.fresnel0;
-}
-
 bool SampleMaterial(MaterialData mtlData, float3 inputSample, out float3 sampleDir, out MaterialResult result)
 {
     Init(result);
@@ -195,14 +183,14 @@ bool SampleMaterial(MaterialData mtlData, float3 inputSample, out float3 sampleD
             if (mtlData.bsdfWeight[2] > BSDF_WEIGHT_EPSILON)
             {
                 BRDF::EvaluateAnisoGGX(mtlData, GetSpecularNormal(mtlData), mtlData.bsdfData.roughnessAT, mtlData.bsdfData.roughnessAB, mtlData.bsdfData.fresnel0, sampleDir, value, pdf);
-                result.specValue += value * coatingTransmission * (1.0 - mtlData.bsdfData.lobeMix) * GetSpecularCompensationA(mtlData.bsdfData);
+                result.specValue += value * coatingTransmission * (1.0 - mtlData.bsdfData.lobeMix) * GetSpecularCompensationA(mtlData);
                 result.specPdf += mtlData.bsdfWeight[2] * pdf;
             }
 
             if (mtlData.bsdfWeight[3] > BSDF_WEIGHT_EPSILON)
             {
                 BRDF::EvaluateAnisoGGX(mtlData, GetSpecularNormal(mtlData), mtlData.bsdfData.roughnessBT, mtlData.bsdfData.roughnessBB, mtlData.bsdfData.fresnel0, sampleDir, value, pdf);
-                result.specValue += value * coatingTransmission * mtlData.bsdfData.lobeMix * GetSpecularCompensationB(mtlData.bsdfData);
+                result.specValue += value * coatingTransmission * mtlData.bsdfData.lobeMix * GetSpecularCompensationB(mtlData);
                 result.specPdf += mtlData.bsdfWeight[3] * pdf;
             }
         }
@@ -225,14 +213,14 @@ bool SampleMaterial(MaterialData mtlData, float3 inputSample, out float3 sampleD
             if (mtlData.bsdfWeight[2] > BSDF_WEIGHT_EPSILON)
             {
                 BRDF::EvaluateAnisoGGX(mtlData, GetSpecularNormal(mtlData), mtlData.bsdfData.roughnessAT, mtlData.bsdfData.roughnessAB, mtlData.bsdfData.fresnel0, sampleDir, value, pdf);
-                result.specValue += value * coatingTransmission * (1.0 - mtlData.bsdfData.lobeMix) * GetSpecularCompensationA(mtlData.bsdfData);
+                result.specValue += value * coatingTransmission * (1.0 - mtlData.bsdfData.lobeMix) * GetSpecularCompensationA(mtlData);
                 result.specPdf += mtlData.bsdfWeight[2] * pdf;
             }
 
             if (mtlData.bsdfWeight[3] > BSDF_WEIGHT_EPSILON)
             {
                 BRDF::EvaluateAnisoGGX(mtlData, GetSpecularNormal(mtlData), mtlData.bsdfData.roughnessBT, mtlData.bsdfData.roughnessBB, mtlData.bsdfData.fresnel0, sampleDir, value, pdf);
-                result.specValue += value * coatingTransmission * mtlData.bsdfData.lobeMix * GetSpecularCompensationB(mtlData.bsdfData);
+                result.specValue += value * coatingTransmission * mtlData.bsdfData.lobeMix * GetSpecularCompensationB(mtlData);
                 result.specPdf += mtlData.bsdfWeight[3] * pdf;
             }
         }
@@ -241,13 +229,13 @@ bool SampleMaterial(MaterialData mtlData, float3 inputSample, out float3 sampleD
             if (!BRDF::SampleAnisoGGX(mtlData, GetSpecularNormal(mtlData), mtlData.bsdfData.roughnessAT, mtlData.bsdfData.roughnessAB, mtlData.bsdfData.fresnel0, inputSample, sampleDir, result.specValue, result.specPdf))
                 return false;
 
-            result.specValue *= (1.0 - mtlData.bsdfData.lobeMix) * GetSpecularCompensationA(mtlData.bsdfData);
+            result.specValue *= (1.0 - mtlData.bsdfData.lobeMix) * GetSpecularCompensationA(mtlData);
             result.specPdf *= mtlData.bsdfWeight[2];
 
             if (mtlData.bsdfWeight[3] > BSDF_WEIGHT_EPSILON)
             {
                 BRDF::EvaluateAnisoGGX(mtlData, GetSpecularNormal(mtlData), mtlData.bsdfData.roughnessBT, mtlData.bsdfData.roughnessBB, mtlData.bsdfData.fresnel0, sampleDir, value, pdf);
-                result.specValue += value * mtlData.bsdfData.lobeMix * GetSpecularCompensationB(mtlData.bsdfData);
+                result.specValue += value * mtlData.bsdfData.lobeMix * GetSpecularCompensationB(mtlData);
                 result.specPdf += mtlData.bsdfWeight[3] * pdf;
             }
 
@@ -271,13 +259,13 @@ bool SampleMaterial(MaterialData mtlData, float3 inputSample, out float3 sampleD
             if (!BRDF::SampleAnisoGGX(mtlData, GetSpecularNormal(mtlData), mtlData.bsdfData.roughnessBT, mtlData.bsdfData.roughnessBB, mtlData.bsdfData.fresnel0, inputSample, sampleDir, result.specValue, result.specPdf))
                 return false;
 
-            result.specValue *= mtlData.bsdfData.lobeMix * GetSpecularCompensationB(mtlData.bsdfData);
+            result.specValue *= mtlData.bsdfData.lobeMix * GetSpecularCompensationB(mtlData);
             result.specPdf *= mtlData.bsdfWeight[3];
 
             if (mtlData.bsdfWeight[2] > BSDF_WEIGHT_EPSILON)
             {
                 BRDF::EvaluateAnisoGGX(mtlData, GetSpecularNormal(mtlData), mtlData.bsdfData.roughnessAT, mtlData.bsdfData.roughnessAB, mtlData.bsdfData.fresnel0, sampleDir, value, pdf);
-                result.specValue += value * (1.0 - mtlData.bsdfData.lobeMix) * GetSpecularCompensationA(mtlData.bsdfData);
+                result.specValue += value * (1.0 - mtlData.bsdfData.lobeMix) * GetSpecularCompensationA(mtlData);
                 result.specPdf += mtlData.bsdfWeight[2] * pdf;
             }
 
@@ -342,14 +330,14 @@ void EvaluateMaterial(MaterialData mtlData, float3 sampleDir, out MaterialResult
         if (mtlData.bsdfWeight[2] > BSDF_WEIGHT_EPSILON)
         {
             BRDF::EvaluateAnisoGGX(mtlData, GetSpecularNormal(mtlData), mtlData.bsdfData.roughnessAT, mtlData.bsdfData.roughnessAB, mtlData.bsdfData.fresnel0, sampleDir, value, pdf);
-            result.specValue += value * coatingTransmission * (1.0 - mtlData.bsdfData.lobeMix) * GetSpecularCompensationA(mtlData.bsdfData);
+            result.specValue += value * coatingTransmission * (1.0 - mtlData.bsdfData.lobeMix) * GetSpecularCompensationA(mtlData);
             result.specPdf += mtlData.bsdfWeight[2] * pdf;
         }
 
         if (mtlData.bsdfWeight[3] > BSDF_WEIGHT_EPSILON)
         {
             BRDF::EvaluateAnisoGGX(mtlData, GetSpecularNormal(mtlData), mtlData.bsdfData.roughnessBT, mtlData.bsdfData.roughnessBB, mtlData.bsdfData.fresnel0, sampleDir, value, pdf);
-            result.specValue += value * coatingTransmission * mtlData.bsdfData.lobeMix * GetSpecularCompensationB(mtlData.bsdfData);
+            result.specValue += value * coatingTransmission * mtlData.bsdfData.lobeMix * GetSpecularCompensationB(mtlData);
             result.specPdf += mtlData.bsdfWeight[3] * pdf;
         }
 

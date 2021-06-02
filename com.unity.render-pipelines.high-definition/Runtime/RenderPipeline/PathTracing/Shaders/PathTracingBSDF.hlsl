@@ -38,6 +38,13 @@ float D_AnisoGGX(float roughnessX,
 namespace BRDF
 {
 
+float GetGGXMultipleScatteringEnergy(float roughness, float sqrtNdotV)
+{
+    float2 coordLUT = Remap01ToHalfTexelCoord(float2(sqrtNdotV, roughness), FGDTEXTURE_RESOLUTION);
+    float E = SAMPLE_TEXTURE2D_LOD(_PreIntegratedFGD_GGXDisneyDiffuse, s_linear_clamp_sampler, coordLUT, 0).y;
+    return (1.0 - E) / E;
+}
+
 bool SampleAnisoGGX(MaterialData mtlData,
                     float3 normal,
                     float roughnessX,

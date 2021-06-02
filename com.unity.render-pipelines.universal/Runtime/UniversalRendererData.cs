@@ -17,10 +17,7 @@ namespace UnityEngine.Rendering.Universal
         {
             public override void Action(int instanceId, string pathName, string resourceFile)
             {
-                var instance = CreateInstance<UniversalRendererData>();
-                instance.postProcessData = PostProcessData.GetDefaultPostProcessData();
-                AssetDatabase.CreateAsset(instance, pathName);
-                ResourceReloader.ReloadAllNullIn(instance, UniversalRenderPipelineAsset.packagePath);
+                var instance = UniversalRenderPipelineAsset.CreateRendererAsset(pathName, RendererType.UniversalRenderer, false) as UniversalRendererData;
                 Selection.activeObject = instance;
             }
         }
@@ -59,10 +56,17 @@ namespace UnityEngine.Rendering.Universal
 
             // Core blitter shaders, adapted from HDRP
             // TODO: move to core and share with HDRP
-            [Reload("Shaders/Utils/CoreBlit.shader")]
-            public Shader coreBlitPS;
-            [Reload("Shaders/Utils/CoreBlitColorAndDepth.shader")]
-            public Shader coreBlitColorAndDepthPS;
+            [Reload("Shaders/Utils/CoreBlit.shader"), SerializeField]
+            internal Shader coreBlitPS;
+            [Reload("Shaders/Utils/CoreBlitColorAndDepth.shader"), SerializeField]
+            internal Shader coreBlitColorAndDepthPS;
+
+
+            [Reload("Shaders/CameraMotionVectors.shader")]
+            public Shader cameraMotionVector;
+
+            [Reload("Shaders/ObjectMotionVectors.shader")]
+            public Shader objectMotionVector;
         }
 
         public PostProcessData postProcessData = null;

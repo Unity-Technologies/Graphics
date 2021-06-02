@@ -23,50 +23,14 @@ namespace UnityEditor.Rendering.HighDefinition
     /// </summary>
     public abstract class HDShaderGUI : ShaderGUI
     {
-        internal protected bool m_FirstFrame = true;
-
-        // The following set of functions are call by the ShaderGraph
-        // It will allow to display our common parameters + setup keyword correctly for them
-
         /// <summary>
         /// Sets up the keywords and passes for the material you pass in as a parameter.
         /// </summary>
         /// <param name="material">Target material.</param>
-        protected abstract void SetupMaterialKeywordsAndPass(Material material);
-
-        /// <summary>
-        /// Unity calls this function when you assign a new shader to the material.
-        /// </summary>
-        /// <param name="material">The current material.</param>
-        /// <param name="oldShader">The shader the material currently uses.</param>
-        /// <param name="newShader">The new shader to assign to the material.</param>
-        public override void AssignNewShaderToMaterial(Material material, Shader oldShader, Shader newShader)
+        [Obsolete("SetupMaterialKeywordsAndPass has been renamed ValidateMaterial", false)]
+        protected virtual void SetupMaterialKeywordsAndPass(Material material)
         {
-            base.AssignNewShaderToMaterial(material, oldShader, newShader);
-
-            SetupMaterialKeywordsAndPass(material);
-        }
-
-        /// <summary>
-        /// Sets up the keywords and passes for the material. You must call this function after you change a property on a material to ensure it's validity.
-        /// </summary>
-        /// <param name="changed">GUI.changed is the usual value for this parameter. If this value is false, the function just exits.</param>
-        /// <param name="materials">The materials to perform the setup on.</param>
-        protected void ApplyKeywordsAndPassesIfNeeded(bool changed, Material[] materials)
-        {
-            // !!! HACK !!!
-            // When a user creates a new Material from the contextual menu, the material is created from the editor code and the appropriate shader is applied to it.
-            // This means that we never setup keywords and passes for a newly created material. The material is then in an invalid state.
-            // To work around this, as the material is automatically selected when created, we force an update of the keyword at the first "frame" of the editor.
-
-            // Apply material keywords and pass:
-            if (changed || m_FirstFrame)
-            {
-                m_FirstFrame = false;
-
-                foreach (var material in materials)
-                    SetupMaterialKeywordsAndPass(material);
-            }
+            ValidateMaterial(material);
         }
 
         /// <summary>
