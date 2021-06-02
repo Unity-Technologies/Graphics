@@ -496,9 +496,7 @@ namespace UnityEngine.Experimental.Rendering
                         props.SetTexture("_TerrainHolesTexture", terrainData.holesTexture);
                         props.SetVector("_TerrainSize", terrainData.size);
                         props.SetFloat("_TerrainHeightmapResolution", terrainData.heightmapResolution);
-                        Debug.Log(terrainData.heightmapScale + " | " + terrainData.size);
 
-                        // if (cellAABB.Intersects(terrainData.bounds))
                         int terrainTileCount = terrainData.heightmapResolution * terrainData.heightmapResolution;
                         props.SetInt(_AxisSwizzle, 0);
                         cmd.DrawProcedural(transform, voxelizeMaterial, shaderPass: 1, MeshTopology.Quads, 4 * terrainTileCount, 1, props);

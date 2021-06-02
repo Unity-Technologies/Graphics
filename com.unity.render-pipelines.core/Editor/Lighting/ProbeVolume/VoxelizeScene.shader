@@ -122,6 +122,7 @@ Shader "Hidden/ProbeVolume/VoxelizeScene"
                 uint quadID = vertexID / 4;
                 uint2 quadPos = uint2(quadID % uint(_TerrainHeightmapResolution), quadID / uint(_TerrainHeightmapResolution));
                 float4 vertex = GetQuadVertexPosition(vertexID % 4);
+                uint2 heightmapLoadPosition = quadPos + vertex.xy;
 
                 // flip quad to xz axis (default terrain orientation without rotation)
                 vertex = float4(vertex.x, 0, vertex.y, 1);
@@ -130,12 +131,10 @@ Shader "Hidden/ProbeVolume/VoxelizeScene"
                 vertex.xz += (float2(quadPos) / float(_TerrainHeightmapResolution)) * _TerrainSize.xz;
 
                 uint2 id = (quadPos / _TerrainSize.xz) * _TerrainHeightmapResolution;
-                float height = UnpackHeightmap(_TerrainHeightmapTexture.Load(uint3(quadPos, 0)));
+                float height = UnpackHeightmap(_TerrainHeightmapTexture.Load(uint3(heightmapLoadPosition, 0)));
                 vertex.y += height * _TerrainSize.y * 2;
 
-                o.uv = vertex.xz;
-                // TODO: multiply by terrain size
-                // vertex.xyz *= _TerrainSize.xz;
+                o.uv = heightmapLoadPosition / _TerrainHeightmapResolution;
 
                 float3 cellPos = mul(GetRawUnityObjectToWorld(), vertex).xyz;
                 cellPos -= _VolumeWorldOffset;
@@ -170,8 +169,9 @@ Shader "Hidden/ProbeVolume/VoxelizeScene"
                     return 0;
 
                 // Offset the cellposition with the heightmap
-                // float height = UnpackHeightmap(_TerrainHeightmapTexture.Sample(s_point_clamp_sampler, float3(i.uv, 0)));
+                float hole = _TerrainHolesTexture.Sample(s_point_clamp_sampler, float3(i.uv, 0));
 
+                clip(hole == 0.0f ? -1 : 1);
                 // i.cellPos01.y += height * _TerrainSize.y;
 
                 // TODO: discard pixels above a hole
