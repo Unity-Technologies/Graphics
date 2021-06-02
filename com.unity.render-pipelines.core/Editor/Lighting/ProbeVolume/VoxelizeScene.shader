@@ -60,7 +60,7 @@ Shader "Hidden/ProbeVolume/VoxelizeScene"
                 }
                 o.vertex = float4(p.xyz / _VolumeSize, 1);
 
-                // trasnform pos between 0 1 to -1 1
+                // trasnform pos from 0 1 to -1 1
                 o.vertex.xyz = o.vertex.xyz * 2 - 1;
 
                 return o;
