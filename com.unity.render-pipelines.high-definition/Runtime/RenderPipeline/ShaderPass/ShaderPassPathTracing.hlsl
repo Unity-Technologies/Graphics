@@ -241,7 +241,7 @@ void ComputeSurfaceScattering(inout PathIntersection pathIntersection : SV_RayPa
                     // value is in radian (w/sr) not in lumen (cd/sr) and only the r channel is used
                     value *= (mtlResult.diffValue + mtlResult.specValue) / pdf;
 
-                    pathIntersection.value = value;
+                    pathIntersection.value += value;
                 }
             }
 #else

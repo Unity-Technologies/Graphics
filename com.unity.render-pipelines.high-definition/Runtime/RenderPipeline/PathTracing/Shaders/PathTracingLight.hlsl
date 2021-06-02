@@ -345,8 +345,8 @@ bool SampleBeam(
     out float dist,
     inout PathIntersection payload)
 {
-    const float NM_TO_MM = 1e-6;
     const float MM_TO_M = 1e-3;
+    const float M_TO_MM = 1e3;
 
     float3 lightDirection = payload.beamDirection;
     float3 lightPosition = payload.beamOrigin;
@@ -367,7 +367,7 @@ bool SampleBeam(
     float rSq = Sq(dist) - Sq(zFromAperture);
     float3 radialDirection = dist * outgoingDir - zFromAperture*lightDirection;
 
-    float zFromWaist = abs(zFromAperture / MM_TO_M - distToWaist);
+    float zFromWaist = abs(zFromAperture * M_TO_MM - distToWaist);
     if (dot(normal, -outgoingDir) < 0.001)
         return false;
 
@@ -377,13 +377,10 @@ bool SampleBeam(
     const float zRatio = Sq(zFromWaist / zr);
     const float wz = w0 * sqrt(1 + zRatio) * MM_TO_M;
     const float Eoz = 2 * P;
-   // const float rMM = r / MM_TO_M;
-
     const float wzSq = wz*wz;
 
-    // returning in milimeters here because the value might be too large otherwise..
-    float gaussianFactor = exp(-2 * rSq / wzSq) / (PI * Sq(wz)); // 1/mm^2
-    value = gaussianFactor * Eoz; // W/mm^2
+    float gaussianFactor = exp(-2 * rSq / wzSq) / (PI * wzSq); // 1/m^2
+    value = gaussianFactor * Eoz; // W/m^2
 
     payload.beamRadius = wz;
     payload.beamDepth = zFromAperture;
@@ -391,7 +388,7 @@ bool SampleBeam(
 #if 0 /*Debug values*/
     payload.diffuseColor = float3(ctheta, zFromAperture, rSq);
     payload.fresnel0 = float3(distToWaist, w0, zr);
-    payload.transmittance = float3(zFromWaist, zRatio, wz);
+    payload.transmittance = float3(zFromWaist, zRatio, wzSq);
     payload.tangentWS = float3(Eoz, wzSq, gaussianFactor);
 #endif
 
