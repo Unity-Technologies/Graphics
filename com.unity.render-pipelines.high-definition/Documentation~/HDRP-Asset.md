@@ -90,6 +90,8 @@ These settings control the draw distance and resolution of the decals atlas that
 | **- Maximum Screen Percentage** | The maximum screen percentage that dynamic resolution can reach. This value must be higher than the **Min Screen Percentage**. |
 | **- Force Screen Percentage**   | Enable the checkbox to force HDRP to use a specific screen percentage for dynamic resolution. This feature is useful for debugging dynamic resolution. |
 | **- Forced Screen Percentage**  | The specific screen percentage that HDRP uses for dynamic resolution. This property is only visible when you enable the **Force Screen Percentage**.. |
+| **- Enable Low Res Transparency Threshold"**  | Enable the checkbox to support **Low Res Transparency Min Threshold**. |
+| **- Low Res Transparency Min Threshold**      | The minimum percentage threshold allowed to support low resolution transparency. When the resolution percentage falls below this threshold, HDRP will turn off low resolution transparency. |
 
 ## Lighting
 

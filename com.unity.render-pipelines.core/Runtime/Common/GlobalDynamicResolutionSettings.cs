@@ -105,11 +105,10 @@ namespace UnityEngine.Rendering
         /// <summary>The resolution percentage forced in case forceResolution is set to true.</summary>
         public float forcedPercentage;
 
-        /// <summary>Toggle a threshold to turn off low res transparency when the resolution scale falls below a certain percentage.</summary>
+        /// <summary>Enable to support lowResTransparencyMinimumThreshold</summary>
         public bool enableLowResTransparencyThreshold;
 
-        /// <summary>When enableLowResTransparencyThreshold is enabled and the resolution percentage falls below this threshold, half res transparency is turned off. </summary>
-        [Range(0.0f, 100.0f)]
+        /// <summary>The minimum percentage threshold allowed to support low resolution transparency. When the resolution percentage falls below this threshold, HDRP will turn off low resolution transparency.</summary>
         public float lowResTransparencyMinimumThreshold;
     }
 }

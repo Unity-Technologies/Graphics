@@ -68,7 +68,7 @@ namespace UnityEditor.Rendering.HighDefinition
             public const string renderingPassText = "Rendering Pass";
             public const string blendModeText = "Blending Mode";
             public const string notSupportedInMultiEdition = "Multiple Different Values";
-            public const string lowResTransparencyNotSupportedText = "Low res transparency is not enabled in the current HDRP Asset. The selected Pass will be Default.";
+            public const string lowResTransparencyNotSupportedText = "Low resolution transparency is not enabled in the current HDRP Asset. The selected Pass will be Default.";
 
             public static readonly string[] surfaceTypeNames = Enum.GetNames(typeof(SurfaceType));
             public static readonly string[] blendModeNames = Enum.GetNames(typeof(BlendMode));
