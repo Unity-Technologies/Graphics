@@ -8,7 +8,7 @@ Prior to version 11.0, the **View Direction Node** works differently in HDRP tha
 
 From 11.0 onwards, this node stores all vectors normalized in both the **High-Definition Render Pipeline** and the **Universal Render Pipeline**.
 
-If you want to keep using the old behavior in URP outside of object space, replace this node with a [View Vector Node](View-Vector-Node).
+If you want to keep using the old behavior in URP outside of object space, replace this node with a [View Vector Node](View-Vector-Node.md).
 
 ## Ports
 
