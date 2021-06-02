@@ -40,7 +40,7 @@ namespace Unity.Testing.XR.Runtime
 #if UNITY_EDITOR
                     UnityEditor.TestTools.Graphics.SetupGraphicsTestCases.SetGameViewSize(w, h);
 #else
-                    Screen.SetResolution(w, h, FullScreenMode.Windowed);
+                    Screen.SetResolution(w, h, FullScreenMode.FullScreenWindow);
 #endif
                 }
                 else
