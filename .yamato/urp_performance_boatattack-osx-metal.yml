@@ -120,9 +120,9 @@ URP_Performance_BoatAttack_OSX_Metal_performance_playmode_runtime_mono_Linear_tr
             --player-save-path=playersLow                                                               \\
             --scripting-backend=Mono2x                                                                  \\
             --suite=playmode                                                                            \\ 
-            #--testfilter=Low                                                                            \\
-            --testproject=~/Graphics/TestProjects/BoatAttack                                                    \\
-            --timeout=2400;                                                                              \\
+            #--testfilter=Low                                                                           \\
+            --testproject=$YAMATO_SOURCE_DIR/TestProjects/BoatAttack                                    \\
+            --timeout=2400;                                                                             \\
 
         echo \$? > ~/.utr_result"
 
