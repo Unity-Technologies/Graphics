@@ -96,6 +96,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed an issue where nested subgraphs with identical SamplerState property settings could cause compile failures [1336089]
 - Fixed an issue where SamplerState properties could not be renamed after creation [1336126]
 - Fixed loading all materials from project when saving a ShaderGraph.
+- Fixed issues with double prompts for "do you want to save" when closing Shader Graph windows [1316104].
 
 ## [11.0.0] - 2020-10-21
 
