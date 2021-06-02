@@ -394,14 +394,27 @@ namespace UnityEditor.Rendering.HighDefinition
                 AddDiffusionProfileToSettings("_DiffusionProfileAsset");
 
                 // Special Eye case that uses a node with diffusion profiles.
-                if (HDShaderUtils.GetShaderIDsFromShader(material.shader).Item1 == HDShaderUtils.ShaderID.SG_Eye)
+                if (material.shader.IsShaderGraphAsset())
                 {
                     var matProperties = MaterialEditor.GetMaterialProperties(new UnityEngine.Object[] { material });
                     for (int propIdx = 0; propIdx < matProperties.Length; ++propIdx)
                     {
+                        var attributes = material.shader.GetPropertyAttributes(propIdx);
+                        bool hasDiffusionProfileAttribute = false;
+                        foreach (var attribute in attributes)
+                        {
+                            if (attribute == "DiffusionProfile")
+                            {
+                                propIdx++;
+                                hasDiffusionProfileAttribute = true;
+                                break;
+                            }
+                        }
+
                         var propName = ShaderUtil.GetPropertyName(material.shader, propIdx);
-                        if (propName.Contains("DiffusionProfile") &&
-                            ShaderUtil.GetPropertyType(material.shader, propIdx) == ShaderUtil.ShaderPropertyType.Vector)
+                        var type = ShaderUtil.GetPropertyType(material.shader, propIdx);
+                        if (hasDiffusionProfileAttribute &&
+                            type == ShaderUtil.ShaderPropertyType.Vector)
                         {
                             AddDiffusionProfileToSettings(propName);
                         }
