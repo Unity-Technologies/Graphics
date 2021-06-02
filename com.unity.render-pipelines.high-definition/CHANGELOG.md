@@ -313,6 +313,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Make LitTessellation and LayeredLitTessellation fallback on Lit and LayeredLit respectively in DXR.
 - Display an info box and disable MSAA  asset entry when ray tracing is enabled.
 - Changed light reset to preserve type.
+- Updated the recursive rendering documentation (case 1338639).
 
 ## [11.0.0] - 2020-10-21
 
