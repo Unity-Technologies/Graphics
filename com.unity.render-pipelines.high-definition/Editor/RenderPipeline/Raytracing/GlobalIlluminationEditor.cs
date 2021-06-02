@@ -17,6 +17,8 @@ namespace UnityEditor.Rendering.HighDefinition
         SerializedDataParameter m_DepthBufferThickness;
         SerializedDataParameter m_RaySteps;
         SerializedDataParameter m_FilterRadius;
+        SerializedDataParameter m_SampleSaturationModifier;
+        SerializedDataParameter m_SampleBrightnessModifier;
 
         // Ray tracing generic attributes
         SerializedDataParameter m_LayerMask;
@@ -53,6 +55,8 @@ namespace UnityEditor.Rendering.HighDefinition
             m_DepthBufferThickness = Unpack(o.Find(x => x.depthBufferThickness));
             m_RaySteps = Unpack(o.Find(x => x.maxRaySteps));
             m_FilterRadius = Unpack(o.Find(x => x.filterRadius));
+            m_SampleSaturationModifier = Unpack(o.Find(x => x.sampleSaturationModifier));
+            m_SampleBrightnessModifier = Unpack(o.Find(x => x.sampleBrightnessModfier));
 
             // Ray Tracing shared parameters
             m_LayerMask = Unpack(o.Find(x => x.layerMask));
@@ -203,6 +207,8 @@ namespace UnityEditor.Rendering.HighDefinition
                     {
                         PropertyField(m_RaySteps);
                         PropertyField(m_FilterRadius);
+                        PropertyField(m_SampleSaturationModifier);
+                        PropertyField(m_SampleBrightnessModifier);
                     }
                     PropertyField(m_DepthBufferThickness, k_DepthBufferThicknessText);
                 }
@@ -228,7 +234,8 @@ namespace UnityEditor.Rendering.HighDefinition
             // SSGI
             settings.Save<int>(m_RaySteps);
             settings.Save<int>(m_FilterRadius);
-
+            settings.Save<float>(m_SampleSaturationModifier);
+            settings.Save<float>(m_SampleBrightnessModifier);
             return settings;
         }
 
@@ -253,6 +260,8 @@ namespace UnityEditor.Rendering.HighDefinition
                 // SSGI
                 settings.TryLoad<int>(ref m_RaySteps);
                 settings.TryLoad<int>(ref m_FilterRadius);
+                settings.TryLoad<float>(ref m_SampleSaturationModifier);
+                settings.TryLoad<float>(ref m_SampleBrightnessModifier);
             }
         }
 

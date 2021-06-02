@@ -618,6 +618,8 @@ namespace UnityEngine.Rendering.HighDefinition
         public static readonly int _AffectSmoothSurfaces            = Shader.PropertyToID("_AffectSmoothSurfaces");
         public static readonly int _ObjectMotionStencilBit          = Shader.PropertyToID("_ObjectMotionStencilBit");
 
+        public static readonly int _SSGISampleSaturationModifier            = Shader.PropertyToID("_SSGISampleSaturationModifier");
+        public static readonly int _SSGISampleBrightnessModifier            = Shader.PropertyToID("_SSGISampleBrightnessModifier");
         // Reflections
         public static readonly int _ReflectionHistorybufferRW       = Shader.PropertyToID("_ReflectionHistorybufferRW");
         public static readonly int _CurrentFrameTexture             = Shader.PropertyToID("_CurrentFrameTexture");

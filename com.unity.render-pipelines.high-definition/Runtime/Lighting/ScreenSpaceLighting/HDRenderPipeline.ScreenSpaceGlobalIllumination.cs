@@ -105,6 +105,8 @@ namespace UnityEngine.Rendering.HighDefinition
             public int raySteps;
             public int frameIndex;
             public Vector4 colorPyramidUvScaleAndLimitPrevFrame;
+            public float sampleSaturationModifier;
+            public float sampleBrightnessModifier;
 
             // Compute Shader
             public ComputeShader ssGICS;
@@ -170,6 +172,8 @@ namespace UnityEngine.Rendering.HighDefinition
                 passData.raySteps = giSettings.maxRaySteps;
                 passData.frameIndex = RayTracingFrameIndex(hdCamera, 16);
                 passData.colorPyramidUvScaleAndLimitPrevFrame = HDUtils.ComputeViewportScaleAndLimit(hdCamera.historyRTHandleProperties.previousViewportSize, hdCamera.historyRTHandleProperties.previousRenderTargetSize);
+                passData.sampleSaturationModifier = giSettings.sampleSaturationModifier.value;
+                passData.sampleBrightnessModifier = giSettings.sampleBrightnessModfier.value;
 
                 // Grab the right kernel
                 passData.ssGICS = asset.renderPipelineResources.shaders.screenSpaceGlobalIlluminationCS;
@@ -250,7 +254,8 @@ namespace UnityEngine.Rendering.HighDefinition
                         // Inject all the input scalars
                         ctx.cmd.SetComputeVectorParam(data.ssGICS, HDShaderIDs._ColorPyramidUvScaleAndLimitPrevFrame, data.colorPyramidUvScaleAndLimitPrevFrame);
                         ctx.cmd.SetComputeIntParam(data.ssGICS, HDShaderIDs._ObjectMotionStencilBit, (int)StencilUsage.ObjectMotionVector);
-
+                        ctx.cmd.SetComputeFloatParam(data.ssGICS, HDShaderIDs._SSGISampleSaturationModifier, data.sampleSaturationModifier);
+                        ctx.cmd.SetComputeFloatParam(data.ssGICS, HDShaderIDs._SSGISampleBrightnessModifier, data.sampleBrightnessModifier);
                         // Bind all the input buffers
                         ctx.cmd.SetComputeTextureParam(data.ssGICS, data.projectKernel, HDShaderIDs._DepthTexture, data.depthTexture);
                         ctx.cmd.SetComputeTextureParam(data.ssGICS, data.projectKernel, HDShaderIDs._StencilTexture, data.stencilBuffer, 0, RenderTextureSubElement.Stencil);

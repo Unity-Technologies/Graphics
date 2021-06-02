@@ -54,6 +54,8 @@ CBUFFER_START(UnityScreenSpaceGlobalIllumination)
     int _SsrStencilBit;
     int _IndirectDiffuseFrameIndex;
     int _ObjectMotionStencilBit;
+    float _SSGISampleSaturationModifier;
+    float _SSGISampleBrightnessModifier;
 CBUFFER_END
 
 // Must be included after the declaration of variables
@@ -225,6 +227,15 @@ void REPROJECT_GLOBAL_ILLUMINATION(uint3 dispatchThreadId : SV_DispatchThreadID,
 
     // Convert to HSV space
     color = RgbToHsv(color);
+#if defined(PROBE_VOLUMES_L1) || defined(PROBE_VOLUMES_L2)
+    if(!_EnableProbeVolumes)
+#endif
+    {
+        //Modify brightness
+        color.z *= _SSGISampleBrightnessModifier;
+        // Desaturate
+        color.y *= _SSGISampleSaturationModifier;
+    }
     // Expose and clamp the final color
     color.z = clamp(color.z, 0.0, SSGI_CLAMP_VALUE);
     // Convert back to HSV space
