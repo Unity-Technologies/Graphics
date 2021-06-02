@@ -95,7 +95,6 @@ void RayGenAmbientOcclusion()
 		// Create and init the RayIntersection structure for this
 		RayIntersection rayIntersection;
 		rayIntersection.color = float3(0.0, 0.0, 0.0);
-		rayIntersection.incidentDirection = rayDescriptor.Direction;
 		rayIntersection.origin = rayDescriptor.Origin;
 		rayIntersection.t = 0.0f;
         rayIntersection.pixelCoord = posInput.positionSS;
