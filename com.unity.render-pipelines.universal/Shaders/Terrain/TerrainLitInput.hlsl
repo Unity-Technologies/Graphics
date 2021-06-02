@@ -39,6 +39,16 @@ CBUFFER_START(_Terrain)
     #endif
 CBUFFER_END
 
+#ifdef _ALPHATEST_ON
+TEXTURE2D(_TerrainHolesTexture);
+SAMPLER(sampler_TerrainHolesTexture);
+
+void ClipHoles(float2 uv)
+{
+    float hole = SAMPLE_TEXTURE2D(_TerrainHolesTexture, sampler_TerrainHolesTexture, uv).r;
+    clip(hole == 0.0f ? -1 : 1);
+}
+#endif
 
 TEXTURE2D(_Control);    SAMPLER(sampler_Control);
 TEXTURE2D(_Splat0);     SAMPLER(sampler_Splat0);

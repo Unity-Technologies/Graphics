@@ -30,6 +30,7 @@ Varyings UniversalVertexMeta(Attributes input)
 #ifdef EDITOR_VISUALIZATION
     UnityEditorVizData(input.positionOS.xyz, input.uv0, input.uv1, input.uv2, output.VizUV, output.LightCoord);
 #endif
+    output.uv = input.uv0;
     return output;
 }
 

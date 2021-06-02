@@ -14,7 +14,9 @@ Varyings TerrainVertexMeta(Attributes input)
 
 half4 TerrainFragmentMeta(Varyings input) : SV_Target
 {
-
+#ifdef _ALPHATEST_ON
+    ClipHoles(input.uv);
+#endif
     return UniversalFragmentMetaLit(input);
 }
 
