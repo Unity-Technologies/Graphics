@@ -26,7 +26,7 @@ Graph elements that currently work with the Graph Inspector:
 
     ![](images/Custom-Function-Node-File.png)
 
-- [Subgraph Output nodes](Subgraph-Output-Node.md)
+- [Subgraph Output nodes](Sub-graph.md)
 
     ![](images/Inspector-SubgraphOutput.png)
 
@@ -43,7 +43,7 @@ Graph elements that currently do not work with the Graph Inspector:
 
 ## Material Override
 
-Enabling the [Allow Material Override](surface-options) option in the Graph Settings makes it possible for you to override certain graph properties via the Material Inspector.
+Enabling the [Allow Material Override](surface-options.md) option in the Graph Settings makes it possible for you to override certain graph properties via the Material Inspector.
 
 ![](images/materialoverride1.PNG)
 
