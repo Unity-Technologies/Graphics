@@ -108,7 +108,7 @@ namespace UnityEngine.Experimental.Rendering
         internal void Clear()
         {
             Profiler.BeginSample("Clear Index");
-            int index_size = m_IndexDim.x * (m_IndexDim.y + 1) * m_IndexDim.z;
+            int index_size = m_IndexDim.x * m_IndexDim.y * m_IndexDim.z;
 #if USE_INDEX_NATIVE_ARRAY
             NativeArray<int> arr = m_IndexBuffer.BeginWrite<int>(0, index_size);
             for (int i = 0; i < index_size; i++)

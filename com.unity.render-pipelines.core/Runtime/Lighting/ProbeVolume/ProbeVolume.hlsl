@@ -132,7 +132,8 @@ bool TryToGetPoolUVWAndSubdiv(APVResources apvRes, float3 posWS, float3 normalWS
     bool hasValidUVW = true;
 
     // transform into APV space
-    float3 posRS = mul(_WStoRS, float4(posWS + normalWS * _NormalBias + viewDirWS * _ViewBias, 1.0)).xyz;
+    float3 posRS = mul(_WStoRS, float4(posWS + normalWS * _NormalBias
+                                             + viewDirWS * _ViewBias, 1.0)).xyz;
 
     uint3 indexDim = (uint3)_IndexDim;
     uint3 poolDim = (uint3)_PoolDim;
