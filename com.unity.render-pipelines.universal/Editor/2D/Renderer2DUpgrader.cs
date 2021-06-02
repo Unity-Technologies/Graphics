@@ -75,6 +75,7 @@ namespace UnityEditor.Rendering.Universal
 
                 light.shapePath = shapePath;
                 light.UpdateMesh(true);
+                EditorSceneManager.MarkSceneDirty(light.gameObject.scene);
             }
         }
 
