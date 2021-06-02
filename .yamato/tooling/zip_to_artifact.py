@@ -30,5 +30,6 @@ if __name__ == "__main__":
                     reference_img_path = path.join(getcwd(), args.root, "Assets", "ReferenceImages",
                                                    colorspace, editor, test_platform, vr, test_name)
                     z.write(actual_img_path, reference_img_path)
-                    z.write(actual_img_path + ".meta", reference_img_path + ".meta")
+                    if path.exists(actual_img_path + ".meta"):
+                        z.write(actual_img_path + ".meta", reference_img_path + ".meta")
     pass
