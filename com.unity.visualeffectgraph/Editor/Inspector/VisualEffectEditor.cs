@@ -160,7 +160,8 @@ namespace UnityEditor.VFX
 
         bool DisplayProperty(ref VFXParameterInfo parameter, GUIContent nameContent, SerializedProperty overridenProperty, SerializedProperty valueProperty, bool overrideMixed, bool valueMixed, out bool overriddenChanged)
         {
-            if (parameter.realType == typeof(Matrix4x4).Name)
+            if (parameter.realType == typeof(Matrix4x4).Name
+                ||  parameter.realType == typeof(GraphicsBuffer).Name)
             {
                 overriddenChanged = false;
                 return false;
@@ -561,14 +562,12 @@ namespace UnityEditor.VFX
         static VisualEffectEditor s_EffectUi;
 
         [Overlay(typeof(SceneView), k_OverlayId, k_DisplayName)]
-        class SceneViewVFXSlotContainerOverlay : TransientSceneViewOverlay
+        class SceneViewVFXSlotContainerOverlay : IMGUIOverlay, ITransientOverlay
         {
             const string k_OverlayId = "Scene View/Visual Effect";
             const string k_DisplayName = "Visual Effect";
-            public override bool ShouldDisplay()
-            {
-                return s_EffectUi != null;
-            }
+
+            public bool visible => s_EffectUi != null;
 
             public override void OnGUI()
             {
@@ -1275,7 +1274,17 @@ namespace UnityEditor.VFX
 
                 if (m_ShowProbesCategory)
                 {
-                    if (m_ReflectionProbeUsage != null && SupportedRenderingFeatures.active.reflectionProbes)
+                    bool showReflectionProbeUsage = m_ReflectionProbeUsage != null && SupportedRenderingFeatures.active.reflectionProbes;
+
+                    var srpAsset = QualitySettings.renderPipeline ?? GraphicsSettings.renderPipelineAsset;
+                    if (srpAsset && srpAsset.GetType().ToString().Contains("UniversalRenderPipeline"))
+                    {
+                        //Reflection Probe Usage option has been removed in URP but the VFXRenderer uses ReflectionProbeUsage.Off by default
+                        //We are temporarily letting this option reachable until the C++ doesn't change the default value
+                        showReflectionProbeUsage = m_ReflectionProbeUsage != null;
+                    }
+
+                    if (showReflectionProbeUsage)
                     {
                         Rect r = EditorGUILayout.GetControlRect(true, EditorGUI.kSingleLineHeight, EditorStyles.popup);
                         EditorGUI.BeginProperty(r, Contents.reflectionProbeUsageStyle, m_ReflectionProbeUsage);
@@ -1325,7 +1334,7 @@ namespace UnityEditor.VFX
                     if (m_RenderingLayerMask != null)
                     {
                         string[] layerNames = null;
-                        var srpAsset = GraphicsSettings.currentRenderPipeline;
+                        var srpAsset = QualitySettings.renderPipeline ?? GraphicsSettings.currentRenderPipeline;
                         if (srpAsset != null)
                             layerNames = srpAsset.renderingLayerMaskNames;
 

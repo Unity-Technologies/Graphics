@@ -85,6 +85,7 @@ These settings control the draw distance and resolution of the decals atlas that
 | **-- Sharpness**                | Controls how the DLSS upsampler renders edges on the image. More sharpness usually means more contrast and a clearer image but can increase flickering and fireflies. Unity ignores this property if you enable **Use Optimal Settings**. |
 | **- Dynamic Resolution Type**   | Use the drop-down to select the type of dynamic resolution HDRP uses:<br />&#8226; **Software**: This option allocates render targets to accommodate the maximum resolution possible, then rescales the viewport accordingly. This allows the viewport to render at varying resolutions. |
 | **- Upscale Filter**            | Use the drop-down to select the filter that HDRP uses for upscaling.<br />&#8226; **Bilinear**: A low quality upsample. The least resource intensive option.<br />&#8226; **Catmull-Rom**: A bicubic upsample with 4 taps.<br />&#8226; **Lanczos**: A sharp upsample. This method can potentially introduce artifacts so you should not use it for extreme upsampling cases for example, when the screen percentage is less than 50%.<br />&#8226; **Contrast Adaptive Sharpen**: An ultra sharp upsample. This option is not meant for screen percentages less than 50% and still sharpens when the screen percentage is set to 100%. This uses **FidelityFX (CAS) AMD™**. For information about FidelityFX and Contrast Adaptive Sharpening, see [AMD FidelityFX](https://www.amd.com/en/technologies/radeon-software-fidelityfx). |
+| **- Use Mip Bias**              | Apply a negative bias on the texture samplers of deferred, opaque and transparent passes. This improves detail on textures but increases the texture fetching cost. Cost varies per platform. |
 | **- Minimum Screen Percentage** | The minimum screen percentage that dynamic resolution can reach. |
 | **- Maximum Screen Percentage** | The maximum screen percentage that dynamic resolution can reach. This value must be higher than the **Min Screen Percentage**. |
 | **- Force Screen Percentage**   | Enable the checkbox to force HDRP to use a specific screen percentage for dynamic resolution. This feature is useful for debugging dynamic resolution. |
@@ -163,7 +164,7 @@ The three sections here are:
 - **Punctual Light Shadows**
 - **Area Light Shadows**
 
-They all share the same properties, except **Directional Light Shadows** which does not include **Resolution** or **Dynamic Rescale**.
+They all share the same properties, except **Directional Light Shadows** which does not include **Resolution** or **Dynamic Rescale** and **Cached Shadow Atlas Resolution**.
 
 | **Property**        | **Description**                                              |
 | ------------------- | ------------------------------------------------------------ |
@@ -172,13 +173,14 @@ They all share the same properties, except **Directional Light Shadows** which d
 | **Precision**       | Use the drop-down to select the precision of the shadow map. This sets the bit depth of each pixel of the shadow map. **16 bit** is faster and uses less memory at the expense of precision. |
 | **Dynamic Rescale** | Enable the checkbox to allow HDRP to rescale the shadow atlas if all the shadows on the screen don’t currently fit onto it. |
 
-| ***Shadow Resolution Tiers*** |                                                              |
-| ----------------------------- | ------------------------------------------------------------ |
-| **L**                         | Set the resolution of shadows set to this quality. Light's with their **Resolution** set to **Low** use this resolution for their shadows. |
-| **M**                         | Set the resolution of shadows set to this quality. Light's with their **Resolution** set to **Medium** use this resolution for their shadows. |
-| **H**                         | Set the resolution of shadows set to this quality. Light's with their **Resolution** set to **High** use this resolution for their shadows. |
-| **U**                         | Set the resolution of shadows set to this quality. Light's with their **Resolution** set to **Ultra** use this resolution for their shadows. |
-| **Maximum Shadow Resolution** | Set the maximum resolution of any shadow map of this Light type. If you set any shadow resolution to a value higher than this, HDRP clamps it to this value. |
+| ***Shadow Resolution Tiers***      |                                                              |
+| ---------------------------------- | ------------------------------------------------------------ |
+| **L**                              | Set the resolution of shadows set to this quality. Light's with their **Resolution** set to **Low** use this resolution for their shadows. |
+| **M**                              | Set the resolution of shadows set to this quality. Light's with their **Resolution** set to **Medium** use this resolution for their shadows. |
+| **H**                              | Set the resolution of shadows set to this quality. Light's with their **Resolution** set to **High** use this resolution for their shadows. |
+| **U**                              | Set the resolution of shadows set to this quality. Light's with their **Resolution** set to **Ultra** use this resolution for their shadows. |
+| **Maximum Shadow Resolution**      | Set the maximum resolution of any shadow map of this Light type. If you set any shadow resolution to a value higher than this, HDRP clamps it to this value. |
+| **Cached Shadow Atlas Resolution** | Use the drop-down to select the resolution of the shadow atlas used for cached shadows (Update mode set to OnEnable or OnDemand). |
 
 #### Filtering Qualities
 

@@ -37,7 +37,7 @@ namespace UnityEditor
             LitGUI.SetupSpecularWorkflowKeyword(material, out bool isSpecularWorkflow);
         }
 
-        public override void MaterialChanged(Material material)
+        public override void ValidateMaterial(Material material)
         {
             if (material == null)
                 throw new ArgumentNullException("material");
@@ -54,16 +54,8 @@ namespace UnityEditor
             EditorGUIUtility.labelWidth = 0f;
 
             // Detect any changes to the material
-            EditorGUI.BeginChangeCheck();
             if (workflowMode != null)
-            {
                 DoPopup(LitGUI.Styles.workflowModeText, workflowMode, Enum.GetNames(typeof(LitGUI.WorkflowMode)));
-            }
-            if (EditorGUI.EndChangeCheck())
-            {
-                foreach (var obj in blendModeProp.targets)
-                    MaterialChanged((Material)obj);
-            }
             base.DrawSurfaceOptions(material);
         }
 
