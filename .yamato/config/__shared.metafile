@@ -370,7 +370,7 @@ platforms:
         call_utr_without_git:
           - utr <UTR_FLAGS>
         unity_downloader_cli:
-          - pip install unity-downloader-cli --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade
+          - choco install unity-downloader-cli -y -s https://artifactory.prd.it.unity3d.com/artifactory/api/nuget/unity-choco-local
           - unity-downloader-cli <EDITOR_REVISION_CMD> -p WindowsEditor -c editor -c il2cpp -c android  --wait --published-only
         turn_off_firewall:
           - NetSh Advfirewall set allprofiles state off

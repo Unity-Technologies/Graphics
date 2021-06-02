@@ -4,12 +4,38 @@ All notable changes to this package will be documented in this file.
 The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.html).
 
+## [10.6.0] - 2021-04-29
+
+### Added
+- Added support for lighting full screen debug mode in automated tests.
+- Added Speed Tree 8 shader graph as default Speed Tree 8 shader for HDRP.
+
+### Fixed
+- Fixed null reference exception in Raytracing SSS volume component.
+- Fixed artifact appearing when diffuse and specular normal differ too much for eye shader with area lights
+- Fixed LightCluster debug view for ray tracing.
+- Fixed issue with RAS build fail when LOD was missing a renderer
+- Fixed an issue where sometime a docked lookdev could be rendered at zero size and break.
+- Fixed an issue where runtime debug window UI would leak game objects.
+- Fixed NaNs when denoising pixels where the dot product between normal and view direction is near zero (case 1329624).
+- Fixed ray traced reflections that were too dark for unlit materials. Reflections are now more consistent with the material emissiveness.
+- Fixed pyramid color being incorrect when hardware dynamic resolution is enabled.
+- Fixed SSR Accumulation with Offset with Viewport Rect Offset on Camera
+- Fixed fog precision in some camera positions (case 1329603).
+- Fixed contact shadows tile coordinates calculations.
+- Fixed blocky looking bloom when dynamic resolution scaling was used.
+
+### Fixed
+
+- Fix for wrong cached area light initialization.
+
+
+
 ## [10.5.0] - 2021-04-19
 
 ### Added
 - Added a fallback for the ray traced directional shadow in case of a transmission (case 1307870).
-- Added support for alpha channel in FXAA (case 1323941).
-- Added Speed Tree 8 shader graph as default Speed Tree 8 shader for HDRP.
+- Added an info box for micro shadow editor (case 1322830).
 
 ### Fixed
 - Fixed grey screen on playstation platform when histogram exposure is enabled but the curve mapping is not used.
@@ -34,10 +60,25 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fix potential NaN on apply distortion pass.
 - Fixed the camera controller in the template with the old input system (case 1326816).
 - Fixed broken Lanczos filter artifacts on ps4, caused by a very aggressive epsilon (case 1328904)
+- Fixed Decal's UV edit mode with negative UV
+- Fixed issue with the color space of AOVs (case 1324759)
+- Fixed issue with history buffers when using multiple AOVs (case 1323684).
+- Fixed camera preview with multi selection (case 1324126).
+- Fixed GBuffer clear option in FrameSettings not working
+- Fixed usage of Panini Projection with floating point HDRP and Post Processing color buffers.
+- Fixed a NaN generating in Area light code.
+- Fixed CustomPassUtils scaling issues when used with RTHandles allocated from a RenderTexture.
+- Fixed undo of some properties on light editor.
+- Fixed material Emission properties not begin animated when recording an animation (case 1328108).
 
 ### Changed
 - Reduced the maximal number of bounces for both RTGI and RTR (case 1318876).
 - Updated Wizard to better handle RenderPipelineAsset in Quality Settings
+- Disable TAA sharpening on alpha channel.
+- Increased path tracing max samples from 4K to 16K (case 1327729).
+- Changed ray tracing acceleration structure build, so that only meshes with HDRP materials are included (case 1322365).
+- Default black texture XR is now opaque (alpha = 1).
+- Changed default sidedness to double, when a mesh with a mix of single and double-sided materials is added to the ray tracing acceleration structure (case 1323451).
 
 ## [10.4.0] - 2021-03-11
 
@@ -189,6 +230,20 @@ The version number for this package has increased due to a version update of a r
 - Fixed a bug with Reflection Probe baking would result in an incorrect baking reusing other's Reflection Probe baking
 - Fixed volumetric fog being visually chopped or missing when using hardware Dynamic Resolution Scaling.
 - Fixed generation of the packed depth pyramid when hardware Dynamic Resolution Scaling is enabled.
+- Fixed null reference exception in Raytracing SSS volume component.
+- Fixed artifact appearing when diffuse and specular normal differ too much for eye shader with area lights
+- Fixed LightCluster debug view for ray tracing.
+- Fixed issue with RAS build fail when LOD was missing a renderer
+- Fixed an issue where sometime a docked lookdev could be rendered at zero size and break.
+- Fixed an issue where runtime debug window UI would leak game objects.
+- Fixed NaNs when denoising pixels where the dot product between normal and view direction is near zero (case 1329624).
+- Fixed ray traced reflections that were too dark for unlit materials. Reflections are now more consistent with the material emissiveness.
+- Fixed pyramid color being incorrect when hardware dynamic resolution is enabled.
+- Fixed SSR Accumulation with Offset with Viewport Rect Offset on Camera
+- Fixed fog precision in some camera positions (case 1329603).
+- Fixed contact shadows tile coordinates calculations.
+- Fixed blocky looking bloom when dynamic resolution scaling was used.
+- Fixed issue with history buffer allocation for AOVs when the request does not come in first frame.
 
 ### Changed
 - Now reflection probes cannot have SSAO, SSGI, SSR, ray tracing effects or volumetric reprojection.

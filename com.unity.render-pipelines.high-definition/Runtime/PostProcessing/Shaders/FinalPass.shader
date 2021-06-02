@@ -71,7 +71,7 @@ Shader "Hidden/HDRP/FinalPass"
             #elif CATMULL_ROM_4
                 return CatmullRomFourSamples(_InputTexture, UV);
             #elif LANCZOS
-                return Lanczos(_InputTexture, UV, _ViewPortSize);
+                return Lanczos(_InputTexture, UV, _ViewPortSize.xy);
             #else
                 return Nearest(_InputTexture, UV);
             #endif

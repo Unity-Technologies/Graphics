@@ -114,6 +114,15 @@ namespace UnityEditor.Rendering.HighDefinition
             materialEditor.serializedObject.Update();
         }
 
+        internal static void UpdateEmissiveColorFromIntensityAndEmissiveColorLDR(MaterialProperty emissiveColorLDR, MaterialProperty emissiveIntensity, MaterialProperty emissiveColor)
+            => emissiveColor.colorValue = emissiveColorLDR.colorValue.linear * emissiveIntensity.floatValue;
+
+        internal static void UpdateEmissiveColorLDRFromIntensityAndEmissiveColor(MaterialProperty emissiveColorLDR, MaterialProperty emissiveIntensity, MaterialProperty emissiveColor)
+        {
+            Color emissiveColorLDRLinear = emissiveColorLDR.colorValue / emissiveIntensity.floatValue;
+            emissiveColorLDR.colorValue = emissiveColorLDRLinear.gamma;
+        }
+
         void UpdateEmissionUnit(float newUnitFloat)
         {
             foreach (Material target in materials)
@@ -211,7 +220,7 @@ namespace UnityEditor.Rendering.HighDefinition
                     if (intensityChanged && !unitIsMixed)
                         emissiveIntensity.floatValue = newIntensity;
 
-                    UpdateEmissiveColorFromIntensityAndEmissiveColorLDR();
+                    UpdateEmissiveColorFromIntensityAndEmissiveColorLDR(emissiveColorLDR, emissiveIntensity, emissiveColor);
                 }
             }
 

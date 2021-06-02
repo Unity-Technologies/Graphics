@@ -15,7 +15,7 @@ namespace UnityEngine.Rendering
         /// <summary>
         /// Current version of the documentation.
         /// </summary>
-        public const string version = "10.5";
+        public const string version = "10.6";
     }
 
     //Need to live in Runtime as Attribute of documentation is on Runtime classes \o/
