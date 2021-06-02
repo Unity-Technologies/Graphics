@@ -263,13 +263,19 @@ In HDRP, you set up clouds inside a [Volume](Volumes.md), so you can change clou
 In HDRP, you set up fog, inside a [Volume](Volumes.md), so you can change fog settings, or even the fog type itself, depending on the position of the Camera in the Scene. You can set the color of the fog yourself or use the color of the sky. HDRP fog affects Materials with both opaque and transparent surfaces. HDRP implements an exponential [fog](Override-Fog.md) with optional volumetric effects.
 
 
+### Local Volumetric Fog
+
+![](Images/LocalVolumetricFog.png)
+
+In addition to fog, HDRP supports local volumetric fog which helps you control the density of the fog in an area. To allow more fine grained control, it's also possible to use a 3D Mask texture to control the color and the density inside the volume itself. For more information on the Local Volumetric Fog volume, see the [Local Volumetric Fog section](Local-Volumetric-Fog.md).
+
 ### Light Layers
 
 ![](Images/HDRPFeatures-LightLayers.png)
 
 Light Layers are LayerMasks that you specify for Lights and Meshes. Lights only illuminate Meshes that are on Light Layers that you enable on the Light. You can also use Light Layers in the shadow map settings to decouple shadows from lighting. For more information on Light Layers, see the [Light Layers documentation](Light-Layers.md).
 
-Light layers In the shadow map dropdown can also be used to control which object receives a shadow from which light. By default both Light Layers and Shadow Map Light Layers are synchronized so the result is coherent (When an object receives light it also casts shadows). For more information on Shadow Map Light Layers, see the [Shadow Light Layer section](Light-Layers.md#ShadowLightLayers)
+Light layers In the shadow map dropdown can also be used to control which object receives a shadow from which light. By default both Light Layers and Shadow Map Light Layers are synchronized so the result is coherent (When an object receives light it also casts shadows). For more information on Shadow Map Light Layers, see the [Shadow Light Layer section](Light-Layers.md#ShadowLightLayers).
 
 ### Screen space ambient occlusion
 
