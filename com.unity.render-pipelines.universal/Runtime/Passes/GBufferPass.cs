@@ -53,7 +53,7 @@ namespace UnityEngine.Rendering.Universal.Internal
 
         public override void Configure(CommandBuffer cmd, RenderTextureDescriptor cameraTextureDescriptor)
         {
-            RenderTargetHandle[] gbufferAttachments = m_DeferredLights.GbufferAttachments;
+            RTHandle[] gbufferAttachments = m_DeferredLights.GbufferAttachments;
 
             if (cmd != null)
             {
@@ -77,7 +77,7 @@ namespace UnityEngine.Rendering.Universal.Internal
                     gbufferSlice.depthBufferBits = 0; // make sure no depth surface is actually created
                     gbufferSlice.stencilFormat = GraphicsFormat.None;
                     gbufferSlice.graphicsFormat = m_DeferredLights.GetGBufferFormat(i);
-                    cmd.GetTemporaryRT(m_DeferredLights.GbufferAttachments[i].id, gbufferSlice);
+                    cmd.GetTemporaryRT(Shader.PropertyToID(m_DeferredLights.GbufferAttachments[i].name), gbufferSlice);
                 }
             }
 
@@ -135,9 +135,7 @@ namespace UnityEngine.Rendering.Universal.Internal
 
         public override void OnCameraCleanup(CommandBuffer cmd)
         {
-            RenderTargetHandle[] gbufferAttachments = m_DeferredLights.GbufferAttachments;
-
-            for (int i = 0; i < gbufferAttachments.Length; ++i)
+            for (int i = 0; i < m_DeferredLights.GbufferAttachments.Length; ++i)
             {
                 if (i == m_DeferredLights.GBufferLightingIndex)
                     continue;
@@ -145,7 +143,7 @@ namespace UnityEngine.Rendering.Universal.Internal
                 if (i == m_DeferredLights.GBufferNormalSmoothnessIndex && m_DeferredLights.HasNormalPrepass)
                     continue;
 
-                cmd.ReleaseTemporaryRT(gbufferAttachments[i].id);
+                cmd.ReleaseTemporaryRT(Shader.PropertyToID(m_DeferredLights.GbufferAttachments[i].name));
             }
         }
     }

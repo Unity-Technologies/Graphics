@@ -187,10 +187,10 @@ namespace UnityEngine.Rendering.Universal.Internal
         internal int RenderHeight { get; set; }
 
         // Output lighting result.
-        internal RenderTargetHandle[] GbufferAttachments { get; set; }
+        internal RTHandle[] GbufferAttachments { get; set; }
         internal RenderTargetIdentifier[] DeferredInputAttachments { get; set; }
         // Input depth texture, also bound as read-only RT
-        internal RenderTargetHandle DepthAttachment { get; set; }
+        internal RTHandle DepthAttachment { get; set; }
         //
         internal RenderTargetHandle DepthCopyTexture { get; set; }
 
@@ -362,9 +362,9 @@ namespace UnityEngine.Rendering.Universal.Internal
             int gbufferSliceCount = this.GBufferSliceCount;
             if (this.GbufferAttachments == null || this.GbufferAttachments.Length != gbufferSliceCount)
             {
-                this.GbufferAttachments = new RenderTargetHandle[gbufferSliceCount];
+                this.GbufferAttachments = new RTHandle[gbufferSliceCount];
                 for (int i = 0; i < gbufferSliceCount; ++i)
-                    this.GbufferAttachments[i].Init(k_GBufferNames[i]);
+                    this.GbufferAttachments[i] = RTHandles.Alloc(k_GBufferNames[i], name: k_GBufferNames[i]);
             }
         }
 
@@ -389,8 +389,8 @@ namespace UnityEngine.Rendering.Universal.Internal
 
             this.DepthCopyTexture = new RenderTargetHandle(depthCopyTexture);
 
-            this.GbufferAttachments[this.GBufferLightingIndex] = new RenderTargetHandle(colorAttachment);
-            this.DepthAttachment = new RenderTargetHandle(depthAttachment);
+            this.GbufferAttachments[this.GBufferLightingIndex] = colorAttachment;
+            this.DepthAttachment = depthAttachment;
 
             this.DepthCopyTextureIdentifier = this.DepthCopyTexture.Identifier();
             if (this.GbufferAttachmentIdentifiers == null || this.GbufferAttachmentIdentifiers.Length != this.GbufferAttachments.Length)
@@ -400,7 +400,7 @@ namespace UnityEngine.Rendering.Universal.Internal
             }
             for (int i = 0; i < this.GbufferAttachments.Length; ++i)
             {
-                this.GbufferAttachmentIdentifiers[i] = this.GbufferAttachments[i].Identifier();
+                this.GbufferAttachmentIdentifiers[i] = this.GbufferAttachments[i].nameID;
                 this.GbufferFormats[i] = this.GetGBufferFormat(i);
             }
             if (this.DeferredInputAttachments == null && this.UseRenderPass && this.GbufferAttachments.Length >= 5)
@@ -411,7 +411,7 @@ namespace UnityEngine.Rendering.Universal.Internal
                     this.GbufferAttachmentIdentifiers[2], this.GbufferAttachmentIdentifiers[4]
                 };
             }
-            this.DepthAttachmentIdentifier = this.DepthAttachment.Identifier();
+            this.DepthAttachmentIdentifier = this.DepthAttachment.nameID;
 #if ENABLE_VR && ENABLE_XR_MODULE
             // In XR SinglePassInstance mode, the RTs are texture-array and all slices must be bound.
             if (renderingData.cameraData.xr.enabled)
