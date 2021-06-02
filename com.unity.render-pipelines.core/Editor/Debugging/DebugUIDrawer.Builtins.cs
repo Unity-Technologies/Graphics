@@ -1,4 +1,5 @@
 using System;
+using System.Linq;
 using UnityEngine;
 using UnityEngine.Rendering;
 
@@ -442,7 +443,9 @@ namespace UnityEditor.Rendering
                     var columnRect = drawRect;
                     columnRect.x += EditorGUIUtility.labelWidth + i * oneColumnWidth;
                     columnRect.width = oneColumnWidth;
-                    EditorGUI.LabelField(columnRect, w.columnLabels[i] ?? "", EditorStyles.miniBoldLabel);
+                    string label = w.columnLabels[i] ?? "";
+                    string tooltip = w.columnTooltips?.ElementAtOrDefault(i) ?? "";
+                    EditorGUI.LabelField(columnRect, EditorGUIUtility.TrTextContent(label, tooltip), EditorStyles.miniBoldLabel);
                 }
                 EditorGUI.indentLevel = indent;
             }
