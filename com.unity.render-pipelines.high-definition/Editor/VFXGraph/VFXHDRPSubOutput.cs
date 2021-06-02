@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
@@ -42,7 +43,7 @@ namespace UnityEditor.VFX.HDRP
         {
             get
             {
-                if (owner.isBlendModeOpaque)
+                if (owner.isBlendModeOpaque && !(owner is VFXDecalHDRPOutput))
                     return false;
                 return true;
             }
@@ -146,7 +147,13 @@ namespace UnityEditor.VFX.HDRP
         private int GetRenderQueueOffset()
         {
             var renderQueueType = GetRenderQueueType();
-            return HDRenderQueue.ChangeType(renderQueueType, GetMaterialOffset(), owner.hasAlphaClipping);
+            int renderQueueOffset;
+
+            if (owner is VFXDecalHDRPOutput)
+                renderQueueOffset = HDRenderQueue.Clamps(HDRenderQueue.k_RenderQueue_AllOpaque, HDRenderQueue.ChangeType(renderQueueType, 0, owner.hasAlphaClipping) + GetMaterialOffset());
+            else
+                renderQueueOffset = HDRenderQueue.ChangeType(renderQueueType, GetMaterialOffset(), owner.hasAlphaClipping);
+            return renderQueueOffset;
         }
 
         private int GetMaterialOffset()

@@ -47,26 +47,6 @@ namespace UnityEditor.VFX.HDRP
             }
         }
 
-        public class WithoutMaskMapProperties
-        {
-            [Range(0, 1), Tooltip("Controls the metallic of the decal.")]
-            public float metallic = 0.0f;
-            [Range(0, 1), Tooltip("Controls the ambient occlusion of the decal.")]
-            public float ambientOcclusion = 1.0f;
-            [Range(0, 1), Tooltip("Controls the smoothness of the decal.")]
-            public float smoothness = 0.5f;
-        }
-
-        public class WithMaskMapProperties
-        {
-            [Range(0, 1), Tooltip("Controls the scale factor for the particle’s metallic.")]
-            public float metallic = 1.0f;
-            [Range(0, 1), Tooltip("Controls the scale factor for the particle’s ambient occlusion.")]
-            public float ambientOcclusion = 1.0f;
-            [Range(0, 1), Tooltip("Controls the scale factor for the particle’s smoothness.")]
-            public float smoothness = 1.0f;
-        }
-
         protected IEnumerable<VFXPropertyWithValue> materialProperties
         {
             get
@@ -141,7 +121,7 @@ namespace UnityEditor.VFX.HDRP
 
         public class AngleFadeProperty
         {
-            [Tooltip("Angle Fade. Between 0 and 180."), MinMax(0.0f, 180.0f)] //TODO : create range attribute?
+            [Tooltip("Angle Fade. Between 0 and 180."), MinMax(0.0f, 180.0f)]
             public Vector2 angleFade = new Vector2(0.0f, 180.0f);
         }
         protected override IEnumerable<VFXPropertyWithValue> inputProperties
