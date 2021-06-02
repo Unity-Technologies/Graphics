@@ -1025,7 +1025,7 @@ namespace UnityEngine.Rendering.HighDefinition
             panel.children.Add(m_DebugDisplayStatsItems);
         }
 
-        private static class MaterialStrings
+        static class MaterialStrings
         {
             public static readonly NameAndTooltip CommonMaterialProperties = new() { name = "Common Material Properties", tooltip = "Use the drop-down to select and debug a Material property to visualize on every GameObject on screen." };
             public static readonly NameAndTooltip Material = new() { name = "Material", tooltip = "Use the drop-down to select a Material property to visualize on every GameObject on screen using a specific Shader." };
@@ -1129,7 +1129,7 @@ namespace UnityEngine.Rendering.HighDefinition
             RegisterVolumeDebug();
         }
 
-        private static class LightingStrings
+        static class LightingStrings
         {
             // Shadows
             public static readonly NameAndTooltip ShadowDebugMode = new() { name = "Shadow Debug Mode", tooltip = "Use the drop-down to select which shadow debug information to overlay on the screen." };
@@ -1620,7 +1620,7 @@ namespace UnityEngine.Rendering.HighDefinition
             panel.children.Add(m_DebugLightingItems);
         }
 
-        private static class VolumeStrings
+        static class VolumeStrings
         {
             public static readonly NameAndTooltip foo = new() { name = "asd", tooltip = "" };
         }
@@ -1870,7 +1870,7 @@ namespace UnityEngine.Rendering.HighDefinition
             panel.children.Add(m_DebugVolumeItems);
         }
 
-        private static class RenderingStrings
+        static class RenderingStrings
         {
             public static readonly NameAndTooltip FullscreenDebugMode = new() { name = "Fullscreen Debug Mode", tooltip = "Use the drop-down to select a rendering mode to display as an overlay on the screen." };
             public static readonly NameAndTooltip MaxPixelCost = new() { name = "Max Pixel Cost", tooltip = "" };
@@ -2012,7 +2012,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 graph.UnRegisterDebug();
         }
 
-        private static class DecalStrings
+        static class DecalStrings
         {
             public static readonly NameAndTooltip DisplayAtlas = new() { name = "Display Atlas", tooltip = "Enable the checkbox to debug and display the decal atlas for a Camera in the top left of that Camera's view." };
             public static readonly NameAndTooltip MipLevel = new() { name = "Mip Level", tooltip = "Use the slider to select the mip level for the decal atlas." };
