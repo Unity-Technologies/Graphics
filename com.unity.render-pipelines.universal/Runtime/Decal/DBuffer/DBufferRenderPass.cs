@@ -27,9 +27,9 @@ namespace UnityEngine.Rendering.Universal
         internal DeferredLights deferredLights { get; set; }
         private bool isDeferred => deferredLights != null;
         internal RenderTargetIdentifier[] dBufferColorIndentifiers { get; private set; }
-        internal RenderTargetIdentifier dBufferDepthIndentifier { get; private set; }
-        internal RenderTargetIdentifier cameraDepthTextureIndentifier { get; private set; }
-        internal RenderTargetIdentifier cameraDepthAttachmentIndentifier { get; private set; }
+        internal RTHandle dBufferDepthIndentifier { get; private set; }
+        internal RTHandle cameraDepthTextureIndentifier { get; private set; }
+        internal RTHandle cameraDepthAttachmentIndentifier { get; private set; }
 
         public DBufferRenderPass(Material dBufferClear, DBufferSettings settings, DecalDrawDBufferSystem drawSystem)
         {
@@ -51,9 +51,16 @@ namespace UnityEngine.Rendering.Universal
                 dBufferColorIndentifiers[dbufferIndex] = new RenderTargetIdentifier(s_DBufferNames[dbufferIndex]);
             m_DBufferCount = dBufferCount;
 
-            dBufferDepthIndentifier = new RenderTargetIdentifier(s_DBufferDepthName);
-            cameraDepthTextureIndentifier = new RenderTargetIdentifier("_CameraDepthTexture");
-            cameraDepthAttachmentIndentifier = new RenderTargetIdentifier("_CameraDepthAttachment");
+            dBufferDepthIndentifier = RTHandles.Alloc(s_DBufferDepthName, name: s_DBufferDepthName);
+            cameraDepthTextureIndentifier = RTHandles.Alloc("_CameraDepthTexture", name: "_CameraDepthTexture");
+            cameraDepthAttachmentIndentifier = RTHandles.Alloc("_CameraDepthAttachment", name: "_CameraDepthAttachment");
+        }
+
+        public void Dispose()
+        {
+            dBufferDepthIndentifier.Release();
+            cameraDepthTextureIndentifier.Release();
+            cameraDepthAttachmentIndentifier.Release();
         }
 
         public override void OnCameraSetup(CommandBuffer cmd, ref RenderingData renderingData)

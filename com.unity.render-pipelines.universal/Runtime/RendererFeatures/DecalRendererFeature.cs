@@ -463,15 +463,15 @@ namespace UnityEngine.Rendering.Universal
                     if (universalRenderer.actualRenderingMode == RenderingMode.Deferred)
                     {
                         m_CopyDepthPass.Setup(
-                            new RenderTargetHandle(m_DBufferRenderPass.cameraDepthAttachmentIndentifier),
-                            new RenderTargetHandle(m_DBufferRenderPass.cameraDepthTextureIndentifier)
+                            m_DBufferRenderPass.cameraDepthAttachmentIndentifier,
+                            m_DBufferRenderPass.cameraDepthTextureIndentifier
                         );
                     }
                     else
                     {
                         m_CopyDepthPass.Setup(
-                            new RenderTargetHandle(m_DBufferRenderPass.cameraDepthTextureIndentifier),
-                            new RenderTargetHandle(m_DBufferRenderPass.dBufferDepthIndentifier)
+                            m_DBufferRenderPass.cameraDepthTextureIndentifier,
+                            m_DBufferRenderPass.dBufferDepthIndentifier
                         );
                     }
                     m_CopyDepthPass.MssaSamples = 1;
