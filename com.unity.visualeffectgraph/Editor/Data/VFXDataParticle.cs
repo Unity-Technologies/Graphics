@@ -222,7 +222,9 @@ namespace UnityEditor.VFX
 
         public bool NeedsComputeBounds() => needsComputeBounds;
 
-        [VFXSetting(VFXSettingAttribute.VisibleFlags.All), SerializeField]
+        [VFXSetting(VFXSettingAttribute.VisibleFlags.All),
+         Tooltip("Specifies how the bounds are set. They can be set manually, recorded in the Target GameObject window, or computed automatically at a small performance cost."),
+         SerializeField]
         public BoundsSettingMode boundsSettingMode = BoundsSettingMode.Recorded;
 
         public bool hasStrip { get { return dataType == DataType.ParticleStrip; } }

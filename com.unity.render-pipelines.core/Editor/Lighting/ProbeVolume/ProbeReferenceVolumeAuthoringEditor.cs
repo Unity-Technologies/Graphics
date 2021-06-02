@@ -1,5 +1,3 @@
-#if UNITY_EDITOR
-
 using UnityEditor;
 using System.Reflection;
 using System;
@@ -12,6 +10,48 @@ namespace UnityEngine.Experimental.Rendering
     [CustomEditor(typeof(ProbeReferenceVolumeAuthoring))]
     internal class ProbeReferenceVolumeAuthoringEditor : Editor
     {
+        [InitializeOnLoad]
+        class RealtimeProbeSubdivisionDebug
+        {
+            static RealtimeProbeSubdivisionDebug()
+            {
+                EditorApplication.update -= UpdateRealtimeSubdivisionDebug;
+                EditorApplication.update += UpdateRealtimeSubdivisionDebug;
+            }
+
+            static void UpdateRealtimeSubdivisionDebug()
+            {
+                if (ProbeReferenceVolume.instance.debugDisplay.realtimeSubdivision)
+                {
+                    var probeVolumeAuthoring = FindObjectOfType<ProbeReferenceVolumeAuthoring>();
+                    var ctx = ProbeGIBaking.PrepareProbeSubdivisionContext(probeVolumeAuthoring);
+
+                    // Cull all the cells that are not visible (we don't need them for realtime debug)
+                    ctx.cells.RemoveAll(c => {
+                        return probeVolumeAuthoring.ShouldCullCell(c.position);
+                    });
+
+                    Camera activeCamera = Camera.current ?? SceneView.lastActiveSceneView.camera;
+
+                    if (activeCamera != null)
+                    {
+                        var cameraPos = activeCamera.transform.position;
+                        ctx.cells.Sort((c1, c2) => {
+                            c1.volume.CalculateCenterAndSize(out var c1Center, out var _);
+                            float c1Distance = Vector3.Distance(cameraPos, c1Center);
+
+                            c2.volume.CalculateCenterAndSize(out var c2Center, out var _);
+                            float c2Distance = Vector3.Distance(cameraPos, c2Center);
+
+                            return c1Distance.CompareTo(c2Distance);
+                        });
+                    }
+
+                    ProbeGIBaking.BakeBricks(ctx);
+                }
+            }
+        }
+
         private SerializedProperty m_Dilate;
         private SerializedProperty m_MaxDilationSamples;
         private SerializedProperty m_MaxDilationSampleDistance;
@@ -33,11 +73,9 @@ namespace UnityEngine.Experimental.Rendering
         private void OnEnable()
         {
             m_Profile = serializedObject.FindProperty("m_Profile");
-            m_Dilate = serializedObject.FindProperty("m_Dilate");
             m_MaxDilationSamples = serializedObject.FindProperty("m_MaxDilationSamples");
             m_MaxDilationSampleDistance = serializedObject.FindProperty("m_MaxDilationSampleDistance");
             m_DilationValidityThreshold = serializedObject.FindProperty("m_DilationValidityThreshold");
-            m_GreedyDilation = serializedObject.FindProperty("m_GreedyDilation");
             m_VolumeAsset = serializedObject.FindProperty("volumeAsset");
 
             DilationValidityThresholdInverted = 1f - m_DilationValidityThreshold.floatValue;
@@ -116,13 +154,8 @@ namespace UnityEngine.Experimental.Rendering
                 DilationGroupEnabled = EditorGUILayout.BeginFoldoutHeaderGroup(DilationGroupEnabled, "Dilation");
                 if (DilationGroupEnabled)
                 {
-                    m_Dilate.boolValue = EditorGUILayout.Toggle("Dilate", m_Dilate.boolValue);
-                    EditorGUI.BeginDisabledGroup(!m_Dilate.boolValue);
-                    m_MaxDilationSamples.intValue = EditorGUILayout.IntField("Max Dilation Samples", m_MaxDilationSamples.intValue);
-                    m_MaxDilationSampleDistance.floatValue = EditorGUILayout.FloatField("Max Dilation Sample Distance", m_MaxDilationSampleDistance.floatValue);
+                    m_MaxDilationSampleDistance.floatValue = EditorGUILayout.FloatField("Dilation Distance", m_MaxDilationSampleDistance.floatValue);
                     DilationValidityThresholdInverted = EditorGUILayout.Slider("Dilation Validity Threshold", DilationValidityThresholdInverted, 0f, 1f);
-                    m_GreedyDilation.boolValue = EditorGUILayout.Toggle("Greedy Dilation", m_GreedyDilation.boolValue);
-                    EditorGUI.EndDisabledGroup();
                 }
                 EditorGUILayout.EndFoldoutHeaderGroup();
 
@@ -140,11 +173,8 @@ namespace UnityEngine.Experimental.Rendering
 
         private void Constrain()
         {
-            m_MaxDilationSamples.intValue = Mathf.Max(m_MaxDilationSamples.intValue, 0);
             m_MaxDilationSampleDistance.floatValue = Mathf.Max(m_MaxDilationSampleDistance.floatValue, 0);
             m_DilationValidityThreshold.floatValue = 1f - DilationValidityThresholdInverted;
         }
     }
 }
-
-#endif

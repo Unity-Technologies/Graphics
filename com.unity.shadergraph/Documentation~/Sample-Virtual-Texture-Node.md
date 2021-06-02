@@ -33,7 +33,8 @@ The Sample Virtual Texture node has several settings available for you to specif
 |:------------ |:-------------|:-----|:---|
 |  Lod Mode   | Dropdown | Automatic, Lod Level, Lod Bias, Derivatives | Sets the specific Lod mode to use when sampling the textures. |
 |  Quality   | Dropdown | Low, High | Sets the quality mode to use when sampling the textures.  |
-|  Manual Streaming  | Toggle | Enabled/Disabled | Determines whether the node should use automatic streaming or manual streaming. |
+|  Automatic Streaming  | Toggle | Enabled/Disabled | Determines whether the node uses automatic streaming or manual streaming. |
+|  Enable Global Mip Bias   | Toggle | Enabled/Disabled |  Enables the global mipmap bias that Unity automatically imposes at runtime. Unity sets this bias during certain dynamic resolution scaling algorithms to improve detail reconstruction. |
 | Layer 1 Type | Dropdown | Default, Normal | The texture type of layer 1. |
 | Layer 2 Type | Dropdown | Default, Normal | The texture type of layer 2. |
 | Layer 3 Type | Dropdown | Default, Normal | The texture type of layer 3. This option only appears if the Virtual Texture has at least 3 layers. |

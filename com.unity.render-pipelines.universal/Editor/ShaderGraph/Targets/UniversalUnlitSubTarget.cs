@@ -33,8 +33,8 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
             }
 
             // Process SubShaders
-            context.AddSubShader(SubShaders.Unlit(target, target.renderType, target.renderQueue));
             context.AddSubShader(SubShaders.UnlitDOTS(target, target.renderType, target.renderQueue));
+            context.AddSubShader(SubShaders.Unlit(target, target.renderType, target.renderQueue));
         }
 
         public override void ProcessPreviewMaterial(Material material)
