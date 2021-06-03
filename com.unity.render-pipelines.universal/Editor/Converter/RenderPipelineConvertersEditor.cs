@@ -500,7 +500,7 @@ namespace UnityEditor.Rendering.Universal.Converters
             {
                 context?.Dispose();
                 // Client code has finished with the created index. We can delete it.
-                //AssetDatabase.DeleteAsset(indexPath);
+                AssetDatabase.DeleteAsset(indexPath);
                 EditorUtility.ClearProgressBar();
             }
         }
