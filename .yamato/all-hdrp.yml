@@ -14,10 +14,11 @@ PR_HDRP_trunk:
         CUSTOM_REVISION: '{{trunk.changeset.id}}'
         UTR_VERSION: "current"
         TEST_FILTER: .*
+        CACHE_ARGS: '{{cache.flags}}'
     triggers:
         expression: pull_request.target eq "master" AND NOT pull_request.draft AND pull_request.changes.any match ["com.unity.render-pipelines.high-definition/**/*", "com.unity.render-pipelines.high-definition-config/**/*",  "TestProjects/HDRP_Tests/**/*", "TestProjects/HDRP_RuntimeTests/**/*"] AND NOT pull_request.changes.all match ["*.md", "**/*.md", "doc/**/*", "**/Documentation*/**/*"]
     dependencies:
-      -  path: .yamato/hdrp-win-dx11.yml#HDRP_Win_DX11_Standalone_cache_mono_Linear_trunk
+      -  path: .yamato/hdrp-win-dx11.yml#HDRP_Win_DX11_Standalone_mono_Linear_trunk
          rerun: on_new_revision
       -  path: .yamato/all-hdrp_dxr.yml#PR_HDRP_DXR_trunk
          rerun: on_new_revision
@@ -33,36 +34,37 @@ Extra_HDRP_trunk:
         CUSTOM_REVISION: '{{trunk.changeset.id}}'
         UTR_VERSION: "current"
         TEST_FILTER: .*
+        CACHE_ARGS: '{{cache.flags}}'
     dependencies:
-      -  path: .yamato/hdrp-win-dx12.yml#HDRP_Win_DX12_Standalone_cache_mono_Linear_trunk
+      -  path: .yamato/hdrp-win-dx12.yml#HDRP_Win_DX12_Standalone_mono_Linear_trunk
          rerun: on_new_revision
-      -  path: .yamato/hdrp-win-dx12.yml#HDRP_Win_DX12_playmode_XR_cache_mono_Linear_trunk
+      -  path: .yamato/hdrp-win-dx12.yml#HDRP_Win_DX12_playmode_XR_mono_Linear_trunk
          rerun: on_new_revision
       -  path: .yamato/hdrp-win-dx12.yml#HDRP_Win_DX12_editmode_XR_mono_Linear_trunk
          rerun: on_new_revision
-      -  path: .yamato/hdrp-win-vulkan.yml#HDRP_Win_Vulkan_Standalone_cache_mono_Linear_trunk
+      -  path: .yamato/hdrp-win-vulkan.yml#HDRP_Win_Vulkan_Standalone_mono_Linear_trunk
          rerun: on_new_revision
-      -  path: .yamato/hdrp-win-vulkan.yml#HDRP_Win_Vulkan_playmode_XR_cache_mono_Linear_trunk
+      -  path: .yamato/hdrp-win-vulkan.yml#HDRP_Win_Vulkan_playmode_XR_mono_Linear_trunk
          rerun: on_new_revision
       -  path: .yamato/hdrp-linux-vulkan.yml#HDRP_Linux_Vulkan_editmode_mono_Linear_trunk
          rerun: on_new_revision
-      -  path: .yamato/hdrp-osx-metal.yml#HDRP_OSX_Metal_Standalone_cache_mono_Linear_trunk
+      -  path: .yamato/hdrp-osx-metal.yml#HDRP_OSX_Metal_Standalone_mono_Linear_trunk
          rerun: on_new_revision
-      -  path: .yamato/hdrp-win-dx11.yml#HDRP_Win_DX11_playmode_cache_mono_Linear_trunk
+      -  path: .yamato/hdrp-win-dx11.yml#HDRP_Win_DX11_playmode_mono_Linear_trunk
          rerun: on_new_revision
-      -  path: .yamato/hdrp-win-dx11.yml#HDRP_Win_DX11_playmode_XR_cache_mono_Linear_trunk
+      -  path: .yamato/hdrp-win-dx11.yml#HDRP_Win_DX11_playmode_XR_mono_Linear_trunk
          rerun: on_new_revision
       -  path: .yamato/hdrp-win-dx11.yml#HDRP_Win_DX11_editmode_mono_Linear_trunk
          rerun: on_new_revision
-      -  path: .yamato/hdrp-win-dx12.yml#HDRP_Win_DX12_playmode_cache_mono_Linear_trunk
+      -  path: .yamato/hdrp-win-dx12.yml#HDRP_Win_DX12_playmode_mono_Linear_trunk
          rerun: on_new_revision
-      -  path: .yamato/hdrp-win-vulkan.yml#HDRP_Win_Vulkan_playmode_cache_mono_Linear_trunk
+      -  path: .yamato/hdrp-win-vulkan.yml#HDRP_Win_Vulkan_playmode_mono_Linear_trunk
          rerun: on_new_revision
-      -  path: .yamato/hdrp-osx-metal.yml#HDRP_OSX_Metal_playmode_cache_mono_Linear_trunk
+      -  path: .yamato/hdrp-osx-metal.yml#HDRP_OSX_Metal_playmode_mono_Linear_trunk
          rerun: on_new_revision
-      -  path: .yamato/hdrp-linux-vulkan.yml#HDRP_Linux_Vulkan_Standalone_cache_mono_Linear_trunk
+      -  path: .yamato/hdrp-linux-vulkan.yml#HDRP_Linux_Vulkan_Standalone_mono_Linear_trunk
          rerun: on_new_revision
-      -  path: .yamato/hdrp-linux-vulkan.yml#HDRP_Linux_Vulkan_playmode_cache_mono_Linear_trunk
+      -  path: .yamato/hdrp-linux-vulkan.yml#HDRP_Linux_Vulkan_playmode_mono_Linear_trunk
          rerun: on_new_revision
 HDRP_trunk:
     name: HDRP on trunk
@@ -70,6 +72,7 @@ HDRP_trunk:
         CUSTOM_REVISION: '{{trunk.changeset.id}}'
         UTR_VERSION: "current"
         TEST_FILTER: .*
+        CACHE_ARGS: '{{cache.flags}}'
     dependencies:
       -  path: .yamato/all-hdrp.yml#PR_HDRP_trunk
          rerun: on_new_revision
@@ -81,6 +84,7 @@ Nightly_HDRP_trunk:
         CUSTOM_REVISION: '{{trunk.changeset.id}}'
         UTR_VERSION: "current"
         TEST_FILTER: .*
+        CACHE_ARGS: '{{cache.flags}}'
     dependencies:
       -  path: .yamato/all-hdrp_performancetests.yml#HDRP_PerformanceTests_trunk
          rerun: on_new_revision
@@ -96,8 +100,9 @@ PR_HDRP_CUSTOM-REVISION:
         CUSTOM_REVISION: custom_revision_not_set
         UTR_VERSION: "current"
         TEST_FILTER: .*
+        CACHE_ARGS: '{{cache.flags}}'
     dependencies:
-      -  path: .yamato/hdrp-win-dx11.yml#HDRP_Win_DX11_Standalone_cache_mono_Linear_CUSTOM-REVISION
+      -  path: .yamato/hdrp-win-dx11.yml#HDRP_Win_DX11_Standalone_mono_Linear_CUSTOM-REVISION
          rerun: on_new_revision
       -  path: .yamato/all-hdrp_dxr.yml#PR_HDRP_DXR_CUSTOM-REVISION
          rerun: on_new_revision
@@ -113,36 +118,37 @@ Extra_HDRP_CUSTOM-REVISION:
         CUSTOM_REVISION: custom_revision_not_set
         UTR_VERSION: "current"
         TEST_FILTER: .*
+        CACHE_ARGS: '{{cache.flags}}'
     dependencies:
-      -  path: .yamato/hdrp-win-dx12.yml#HDRP_Win_DX12_Standalone_cache_mono_Linear_CUSTOM-REVISION
+      -  path: .yamato/hdrp-win-dx12.yml#HDRP_Win_DX12_Standalone_mono_Linear_CUSTOM-REVISION
          rerun: on_new_revision
-      -  path: .yamato/hdrp-win-dx12.yml#HDRP_Win_DX12_playmode_XR_cache_mono_Linear_CUSTOM-REVISION
+      -  path: .yamato/hdrp-win-dx12.yml#HDRP_Win_DX12_playmode_XR_mono_Linear_CUSTOM-REVISION
          rerun: on_new_revision
       -  path: .yamato/hdrp-win-dx12.yml#HDRP_Win_DX12_editmode_XR_mono_Linear_CUSTOM-REVISION
          rerun: on_new_revision
-      -  path: .yamato/hdrp-win-vulkan.yml#HDRP_Win_Vulkan_Standalone_cache_mono_Linear_CUSTOM-REVISION
+      -  path: .yamato/hdrp-win-vulkan.yml#HDRP_Win_Vulkan_Standalone_mono_Linear_CUSTOM-REVISION
          rerun: on_new_revision
-      -  path: .yamato/hdrp-win-vulkan.yml#HDRP_Win_Vulkan_playmode_XR_cache_mono_Linear_CUSTOM-REVISION
+      -  path: .yamato/hdrp-win-vulkan.yml#HDRP_Win_Vulkan_playmode_XR_mono_Linear_CUSTOM-REVISION
          rerun: on_new_revision
       -  path: .yamato/hdrp-linux-vulkan.yml#HDRP_Linux_Vulkan_editmode_mono_Linear_CUSTOM-REVISION
          rerun: on_new_revision
-      -  path: .yamato/hdrp-osx-metal.yml#HDRP_OSX_Metal_Standalone_cache_mono_Linear_CUSTOM-REVISION
+      -  path: .yamato/hdrp-osx-metal.yml#HDRP_OSX_Metal_Standalone_mono_Linear_CUSTOM-REVISION
          rerun: on_new_revision
-      -  path: .yamato/hdrp-win-dx11.yml#HDRP_Win_DX11_playmode_cache_mono_Linear_CUSTOM-REVISION
+      -  path: .yamato/hdrp-win-dx11.yml#HDRP_Win_DX11_playmode_mono_Linear_CUSTOM-REVISION
          rerun: on_new_revision
-      -  path: .yamato/hdrp-win-dx11.yml#HDRP_Win_DX11_playmode_XR_cache_mono_Linear_CUSTOM-REVISION
+      -  path: .yamato/hdrp-win-dx11.yml#HDRP_Win_DX11_playmode_XR_mono_Linear_CUSTOM-REVISION
          rerun: on_new_revision
       -  path: .yamato/hdrp-win-dx11.yml#HDRP_Win_DX11_editmode_mono_Linear_CUSTOM-REVISION
          rerun: on_new_revision
-      -  path: .yamato/hdrp-win-dx12.yml#HDRP_Win_DX12_playmode_cache_mono_Linear_CUSTOM-REVISION
+      -  path: .yamato/hdrp-win-dx12.yml#HDRP_Win_DX12_playmode_mono_Linear_CUSTOM-REVISION
          rerun: on_new_revision
-      -  path: .yamato/hdrp-win-vulkan.yml#HDRP_Win_Vulkan_playmode_cache_mono_Linear_CUSTOM-REVISION
+      -  path: .yamato/hdrp-win-vulkan.yml#HDRP_Win_Vulkan_playmode_mono_Linear_CUSTOM-REVISION
          rerun: on_new_revision
-      -  path: .yamato/hdrp-osx-metal.yml#HDRP_OSX_Metal_playmode_cache_mono_Linear_CUSTOM-REVISION
+      -  path: .yamato/hdrp-osx-metal.yml#HDRP_OSX_Metal_playmode_mono_Linear_CUSTOM-REVISION
          rerun: on_new_revision
-      -  path: .yamato/hdrp-linux-vulkan.yml#HDRP_Linux_Vulkan_Standalone_cache_mono_Linear_CUSTOM-REVISION
+      -  path: .yamato/hdrp-linux-vulkan.yml#HDRP_Linux_Vulkan_Standalone_mono_Linear_CUSTOM-REVISION
          rerun: on_new_revision
-      -  path: .yamato/hdrp-linux-vulkan.yml#HDRP_Linux_Vulkan_playmode_cache_mono_Linear_CUSTOM-REVISION
+      -  path: .yamato/hdrp-linux-vulkan.yml#HDRP_Linux_Vulkan_playmode_mono_Linear_CUSTOM-REVISION
          rerun: on_new_revision
 HDRP_CUSTOM-REVISION:
     name: HDRP on CUSTOM-REVISION
@@ -150,6 +156,7 @@ HDRP_CUSTOM-REVISION:
         CUSTOM_REVISION: custom_revision_not_set
         UTR_VERSION: "current"
         TEST_FILTER: .*
+        CACHE_ARGS: '{{cache.flags}}'
     dependencies:
       -  path: .yamato/all-hdrp.yml#PR_HDRP_CUSTOM-REVISION
          rerun: on_new_revision
@@ -161,6 +168,7 @@ Nightly_HDRP_CUSTOM-REVISION:
         CUSTOM_REVISION: custom_revision_not_set
         UTR_VERSION: "current"
         TEST_FILTER: .*
+        CACHE_ARGS: '{{cache.flags}}'
     dependencies:
       -  path: .yamato/all-hdrp_performancetests.yml#HDRP_PerformanceTests_CUSTOM-REVISION
          rerun: on_new_revision

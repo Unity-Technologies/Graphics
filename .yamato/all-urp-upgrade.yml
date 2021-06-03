@@ -14,6 +14,7 @@ PR_urp-upgrade_trunk:
         CUSTOM_REVISION: '{{trunk.changeset.id}}'
         UTR_VERSION: "current"
         TEST_FILTER: .*
+        CACHE_ARGS: '{{cache.flags}}'
     triggers:
         expression: pull_request.target eq "master" AND NOT pull_request.draft AND pull_request.changes.any match ["TestProjects/SRP_SmokeTest/**/*"] AND NOT pull_request.changes.all match ["*.md", "**/*.md", "doc/**/*", "**/Documentation*/**/*"]
     dependencies:
@@ -25,6 +26,7 @@ Extra_urp-upgrade_trunk:
         CUSTOM_REVISION: '{{trunk.changeset.id}}'
         UTR_VERSION: "current"
         TEST_FILTER: .*
+        CACHE_ARGS: '{{cache.flags}}'
     dependencies: []
 urp-upgrade_trunk:
     name: urp-upgrade on trunk
@@ -32,6 +34,7 @@ urp-upgrade_trunk:
         CUSTOM_REVISION: '{{trunk.changeset.id}}'
         UTR_VERSION: "current"
         TEST_FILTER: .*
+        CACHE_ARGS: '{{cache.flags}}'
     dependencies:
       -  path: .yamato/all-urp-upgrade.yml#PR_urp-upgrade_trunk
          rerun: on_new_revision
@@ -43,6 +46,7 @@ PR_urp-upgrade_CUSTOM-REVISION:
         CUSTOM_REVISION: custom_revision_not_set
         UTR_VERSION: "current"
         TEST_FILTER: .*
+        CACHE_ARGS: '{{cache.flags}}'
     dependencies:
       -  path: .yamato/urp-upgrade-win-dx11.yml#urp-upgrade_Win_DX11_editmode_mono_Linear_CUSTOM-REVISION
          rerun: on_new_revision
@@ -52,6 +56,7 @@ Extra_urp-upgrade_CUSTOM-REVISION:
         CUSTOM_REVISION: custom_revision_not_set
         UTR_VERSION: "current"
         TEST_FILTER: .*
+        CACHE_ARGS: '{{cache.flags}}'
     dependencies: []
 urp-upgrade_CUSTOM-REVISION:
     name: urp-upgrade on CUSTOM-REVISION
@@ -59,6 +64,7 @@ urp-upgrade_CUSTOM-REVISION:
         CUSTOM_REVISION: custom_revision_not_set
         UTR_VERSION: "current"
         TEST_FILTER: .*
+        CACHE_ARGS: '{{cache.flags}}'
     dependencies:
       -  path: .yamato/all-urp-upgrade.yml#PR_urp-upgrade_CUSTOM-REVISION
          rerun: on_new_revision

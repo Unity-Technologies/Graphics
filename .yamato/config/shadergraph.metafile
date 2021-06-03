@@ -6,26 +6,7 @@ test_platforms:
     utr_flags:
       - [OSX_Metal]: --timeout=2400
   - type: playmode
-  - type: playmode
-    name: playmode_cache
-    utr_flags:
-    - [all]: --extra-editor-arg="-adb2"
-    - [all]: --extra-editor-arg="-enableCacheServer"
-    - [all]: --extra-editor-arg="-cacheServerEndpoint" --extra-editor-arg="cacheserver-slo.hq.unity3d.com"
-    - [all]: --extra-editor-arg="-cacheServerNamespacePrefix" --extra-editor-arg="{{cache.cacheServerNamespacePrefix}}"
-    - [all]: --extra-editor-arg="-cacheServerEnableDownload" --extra-editor-arg="true"
-    - [all]: --extra-editor-arg="-cacheServerEnableUpload" --extra-editor-arg="true"
   - type: editmode
-  - type: Standalone
-    name: Standalone_cache
-    utr_flags_build:
-    - [all]: --timeout=3000
-    - [all]: --extra-editor-arg="-adb2"
-    - [all]: --extra-editor-arg="-enableCacheServer"
-    - [all]: --extra-editor-arg="-cacheServerEndpoint" --extra-editor-arg="cacheserver-slo.hq.unity3d.com"
-    - [all]: --extra-editor-arg="-cacheServerNamespacePrefix" --extra-editor-arg="{{cache.cacheServerNamespacePrefix}}"
-    - [all]: --extra-editor-arg="-cacheServerEnableDownload" --extra-editor-arg="true"
-    - [all]: --extra-editor-arg="-cacheServerEnableUpload" --extra-editor-arg="true"
 
 platforms:
   - name: Win
@@ -50,10 +31,6 @@ platforms:
         type: Unity::VM::GPU
         image: sdet/gamecode_win10:stable
         flavor: b1.large
-      standalone_cache:
-        type: Unity::VM::GPU
-        image: sdet/gamecode_win10:stable
-        flavor: b1.large
       standalone_build:
         type: Unity::VM
         image: sdet/gamecode_win10:stable
@@ -66,7 +43,6 @@ platforms:
       - name: OpenGLCore
         exclude_test_platforms:
           - name: Standalone
-          - name: Standalone_cache
     build_configs:
       - name: mono
     color_spaces:
@@ -76,7 +52,6 @@ platforms:
       - name: OpenGLCore
         exclude_test_platforms:
           - name: Standalone
-          - name: Standalone_cache
       - name: Vulkan
     build_configs:
       - name: mono
@@ -89,7 +64,6 @@ platforms:
           - name: playmode
           - name: editmode
           - name: playmode_XR
-          - name: playmode_cache
     build_configs:
       - name: il2cpp
     color_spaces:
@@ -101,13 +75,11 @@ platforms:
           - name: playmode
           - name: editmode
           - name: playmode_XR
-          - name: playmode_cache
       - name: Vulkan
         exclude_test_platforms:
           - name: playmode
           - name: editmode
           - name: playmode_XR
-          - name: playmode_cache
     build_configs:
       - name: il2cpp
     color_spaces:
@@ -123,7 +95,7 @@ jobs:
         build_config: mono
         color_space: Linear
         test_platforms:
-          - Standalone_cache
+          - Standalone
       - .yamato/all-shadergraph_stereo.yml#PR_ShaderGraph_Stereo_<TRACK>
       - .yamato/_abv.yml#General_Checks_<TRACK>
   - name: Extra <PROJECT_NAME>
@@ -134,20 +106,20 @@ jobs:
         color_space: Linear
         test_platforms:
           - editmode
-          - playmode_cache
+          - playmode
       - platform: Linux
         api: Vulkan
         build_config: mono
         color_space: Linear
         test_platforms:
           - editmode
-          - playmode_cache
+          - playmode
       - platform: Android
         api: Vulkan
         build_config: il2cpp
         color_space: Linear
         test_platforms:
-          - Standalone_cache
+          - Standalone
   ### TODO: MOVE THE FOLLOWING JOBS BACK TO PR JOBS
       - platform: OSX
         api: OpenGLCore
@@ -160,20 +132,20 @@ jobs:
         build_config: mono
         color_space: Linear
         test_platforms:
-          - Standalone_cache
+          - Standalone
       - platform: OSX
         api: Metal
         build_config: mono
         color_space: Linear
         test_platforms:
-          # - Standalone_cache
-          - playmode_cache
+          # - Standalone
+          - playmode
       - platform: iPhone
         api: Metal
         build_config: il2cpp
         color_space: Linear
         test_platforms:
-          - Standalone_cache
+          - Standalone
   - name: <PROJECT_NAME>
     dependencies:
       - <PROJECT_ALL_YML_FILE>#PR_<PROJECT_NAME>_<TRACK>
