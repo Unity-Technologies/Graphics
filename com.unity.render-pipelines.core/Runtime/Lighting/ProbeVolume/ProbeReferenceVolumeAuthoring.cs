@@ -82,6 +82,9 @@ namespace UnityEngine.Experimental.Rendering
         [SerializeField]
         float m_DilationValidityThreshold = 0.25f;
 
+        [SerializeField]
+        bool m_EnableDilation = true;
+
         // Field used for the realtime subdivision preview
         [NonSerialized]
         internal Dictionary<ProbeReferenceVolume.Volume, List<ProbeBrickIndex.Brick>> realtimeSubdivisionInfo = new Dictionary<ProbeReferenceVolume.Volume, List<ProbeBrickIndex.Brick>>();
@@ -104,6 +107,7 @@ namespace UnityEngine.Experimental.Rendering
             var refVol = ProbeReferenceVolume.instance;
             refVol.SetTRS(Vector3.zero, Quaternion.identity, m_Profile.minBrickSize);
             refVol.SetMaxSubdivision(m_Profile.maxSubdivision);
+            refVol.dilationValidtyThreshold = m_DilationValidityThreshold;
         }
 
         internal void QueueAssetLoading()
