@@ -546,14 +546,24 @@ namespace UnityEngine.Rendering
         }
 
         /// <summary>
-        /// Returns true if the current configuration should allow for low res transparency, returns false otherwise.
+        /// Returns the resolved low res multiplier based on the low transparency threshold settings.
         /// </summary>
-        /// <returns>True if the current configuration should allow for low res transparency, returns false otherwise.</returns>
-        public bool AllowLowResTransparency()
+        /// <param name="targetLowRes"> the target low resolution.
+        ///     If by any chance thresholding is disabled or clamped, the exact same resolution is returned.
+        ///     This allows the caller to directly compare the float result safely with the floating point target resolution.
+        /// </param>
+        /// <returns>Returns the resolved low res multiplier based on the low transparency threshold settings.</returns>
+        public float GetLowResMultiplier(float targetLowRes)
         {
-            return !m_Enabled
-                || !m_CachedSettings.enableLowResTransparencyThreshold
-                || m_CurrentFraction >= (m_CachedSettings.lowResTransparencyMinimumThreshold / 100.0f);
+            if (!m_Enabled || !m_CachedSettings.enableLowResTransparencyThreshold)
+                return targetLowRes;
+
+            float thresholdPercentage = Math.Min(m_CachedSettings.lowResTransparencyMinimumThreshold / 100.0f, targetLowRes);
+            float targetPercentage = targetLowRes * m_CurrentFraction;
+            if (targetPercentage >= thresholdPercentage)
+                return targetLowRes;
+
+            return Mathf.Clamp(thresholdPercentage / m_CurrentFraction, 0.0f, 1.0f);
         }
     }
 }

@@ -263,7 +263,7 @@ namespace UnityEngine.Rendering.HighDefinition
                     SystemInfo.graphicsDeviceType == GraphicsDeviceType.GameCoreXboxOne ||
                     SystemInfo.graphicsDeviceType == GraphicsDeviceType.GameCoreXboxSeries;
 
-                mip1FromDownsampleForLowResTrans = mip1FromDownsampleForLowResTrans && hdCamera.frameSettings.IsEnabled(FrameSettingsField.LowResTransparent);
+                mip1FromDownsampleForLowResTrans = mip1FromDownsampleForLowResTrans && hdCamera.frameSettings.IsEnabled(FrameSettingsField.LowResTransparent) && hdCamera.isLowResScaleHalf;
 
                 ResetCameraMipBias(hdCamera);
 
@@ -1036,6 +1036,9 @@ namespace UnityEngine.Rendering.HighDefinition
 
         class DownsampleDepthForLowResPassData
         {
+            public float sourceWidth;
+            public float sourceHeight;
+            public float downsampleScale;
             public Material downsampleDepthMaterial;
             public TextureHandle depthTexture;
             public TextureHandle downsampledDepthBuffer;
@@ -1052,10 +1055,14 @@ namespace UnityEngine.Rendering.HighDefinition
 
             using (var builder = renderGraph.AddRenderPass<DownsampleDepthForLowResPassData>("Downsample Depth Buffer for Low Res Transparency", out var passData, ProfilingSampler.Get(HDProfileId.DownsampleDepth)))
             {
-                // TODO: Add option to switch modes at runtime
-                if (m_Asset.currentPlatformRenderPipelineSettings.lowresTransparentSettings.checkerboardDepthBuffer)
+                if (hdCamera.isLowResScaleHalf)
                 {
                     m_DownsampleDepthMaterial.EnableKeyword("CHECKERBOARD_DOWNSAMPLE");
+                    m_DownsampleDepthMaterial.DisableKeyword("GREATER_THAN_HALF_DOWNSAMPLE");
+                }
+                else if (m_Asset.currentPlatformRenderPipelineSettings.lowresTransparentSettings.checkerboardDepthBuffer)
+                {
+                    m_DownsampleDepthMaterial.EnableKeyword("GREATER_THAN_HALF_DOWNSAMPLE");
                 }
 
                 passData.computesMip1OfAtlas = computeMip1OfPyramid;
@@ -1065,14 +1072,18 @@ namespace UnityEngine.Rendering.HighDefinition
                     m_DownsampleDepthMaterial.EnableKeyword("OUTPUT_FIRST_MIP_OF_MIPCHAIN");
                 }
 
+                passData.downsampleScale = hdCamera.lowResScale;
+                passData.sourceWidth = hdCamera.actualWidth;
+                passData.sourceHeight = hdCamera.actualHeight;
                 passData.downsampleDepthMaterial = m_DownsampleDepthMaterial;
                 passData.depthTexture = builder.ReadTexture(output.depthPyramidTexture);
                 if (computeMip1OfPyramid)
                 {
                     passData.depthTexture = builder.WriteTexture(passData.depthTexture);
                 }
+
                 passData.downsampledDepthBuffer = builder.UseDepthBuffer(renderGraph.CreateTexture(
-                    new TextureDesc(Vector2.one * 0.5f, true, true) { depthBufferBits = DepthBits.Depth32, name = "LowResDepthBuffer" }), DepthAccess.Write);
+                    new TextureDesc(Vector2.one * hdCamera.lowResScale, true, true) { depthBufferBits = DepthBits.Depth32, name = "LowResDepthBuffer" }), DepthAccess.Write);
 
                 builder.SetRenderFunc(
                     (DownsampleDepthForLowResPassData data, RenderGraphContext context) =>
@@ -1083,6 +1094,18 @@ namespace UnityEngine.Rendering.HighDefinition
                             context.cmd.SetRandomWriteTarget(1, data.depthTexture);
                         }
 
+                        {
+                            RenderTexture srcTexture = data.depthTexture;
+                            RenderTexture destTexture = data.downsampledDepthBuffer;
+                            float uvScaleX = (float)destTexture.width / (float)srcTexture.width;
+                            float uvScaleY = (float)destTexture.height / (float)srcTexture.height;
+                            data.downsampleDepthMaterial.SetVector(HDShaderIDs._ScaleBias, new Vector4(uvScaleX, uvScaleY, 0.0f, 0.0f));
+                        }
+
+                        float destWidth = data.sourceWidth * data.downsampleScale;
+                        float destHeight = data.sourceHeight * data.downsampleScale;
+                        Rect targetViewport = new Rect(0.0f, 0.0f, destWidth, destHeight);
+                        context.cmd.SetViewport(targetViewport);
                         context.cmd.DrawProcedural(Matrix4x4.identity, data.downsampleDepthMaterial, 0, MeshTopology.Triangles, 3, 1, null);
 
                         if (data.computesMip1OfAtlas)

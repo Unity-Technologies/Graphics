@@ -2148,10 +2148,6 @@ namespace UnityEngine.Rendering.HighDefinition
             if (additionalCameraData != null)
                 currentFrameSettings.SetEnabled(FrameSettingsField.Antialiasing, currentFrameSettings.IsEnabled(FrameSettingsField.Antialiasing) && !additionalCameraData.cameraCanRenderDLSS);
 
-            DynamicResolutionHandler dynResHandler = DynamicResolutionHandler.instance;
-            if (dynResHandler != null)
-                currentFrameSettings.SetEnabled(FrameSettingsField.LowResTransparent, currentFrameSettings.IsEnabled(FrameSettingsField.LowResTransparent) && dynResHandler.AllowLowResTransparency());
-
             // From this point, we should only use frame settings from the camera
             hdCamera.Update(currentFrameSettings, this, xrPass);
 

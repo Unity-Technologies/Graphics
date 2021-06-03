@@ -108,7 +108,7 @@ namespace UnityEngine.Rendering
         /// <summary>Enable to support lowResTransparencyMinimumThreshold</summary>
         public bool enableLowResTransparencyThreshold;
 
-        /// <summary>The minimum percentage threshold allowed to support low resolution transparency. When the resolution percentage falls below this threshold, HDRP will turn off low resolution transparency.</summary>
+        /// <summary>The minimum percentage threshold allowed to clamp low resolution transparency. When the resolution percentage falls below this threshold, HDRP will clamp the low resolution to this percentage.</summary>
         public float lowResTransparencyMinimumThreshold;
     }
 }
