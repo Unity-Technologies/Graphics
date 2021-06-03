@@ -534,11 +534,9 @@ namespace UnityEngine.Rendering.Universal
                         UpdateVolumeFramework(baseCamera, baseCameraAdditionalData);
                     }
                 }
+            m_XRSystem.BeginLateLatching(baseCamera, xrPass);
 #endif
 
-#if ENABLE_VR && ENABLE_XR_MODULE
-            m_XRSystem.BeginXRCamera(baseCamera, xrPass);
-#endif
             using (new ProfilingScope(null, Profiling.Pipeline.beginCameraRendering))
             {
                 BeginCameraRendering(context, baseCamera);
@@ -557,8 +555,9 @@ namespace UnityEngine.Rendering.Universal
             {
                 EndCameraRendering(context, baseCamera);
             }
+
 #if ENABLE_VR && ENABLE_XR_MODULE
-            m_XRSystem.EndXRCamera(baseCamera);
+            m_XRSystem.EndLateLatching(baseCamera);
 #endif
 
             if (isStackedRendering)
