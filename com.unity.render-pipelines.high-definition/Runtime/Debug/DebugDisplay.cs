@@ -1034,6 +1034,12 @@ namespace UnityEngine.Rendering.HighDefinition
             public static readonly NameAndTooltip Properties = new() { name = "Properties", tooltip = "Use the drop-down to select a property that the debugger uses to highlight GameObjects on screen. The debugger highlights GameObjects that use a Material with the property that you select." };
             public static readonly NameAndTooltip GBuffer = new() { name = "GBuffer", tooltip = "Use the drop-down to select a property from the GBuffer to visualize for deferred Materials." };
             public static readonly NameAndTooltip MaterialValidator = new() { name = "Material Validator", tooltip = "Use the drop-down to select which properties show validation colors." };
+            public static readonly NameAndTooltip ValidatorTooHighColor = new() { name = "Too High Color", tooltip = "Select the color that the debugger displays when a Material's diffuse color is above the acceptable PBR range." };
+            public static readonly NameAndTooltip ValidatorTooLowColor = new() { name = "Too Low Color", tooltip = "Select the color that the debugger displays when a Material's diffuse color is below the acceptable PBR range." };
+            public static readonly NameAndTooltip ValidatorNotAPureMetalColor = new() { name = "Not A Pure Metal Color", tooltip = "Select the color that the debugger displays if a pixel defined as metallic has a non-zero albedo value." };
+            public static readonly NameAndTooltip ValidatorPureMetals = new() { name = "Pure Metals", tooltip = "Enable to make the debugger highlight any pixels which Unity defines as metallic, but which have a non-zero albedo value." };
+            public static readonly NameAndTooltip OverrideGlobalMaterialTextureMipBias = new() { name = "Override Global Material Texture Mip Bias", tooltip = "Enable to override the mipmap level bias of texture samplers in material shaders." };
+            public static readonly NameAndTooltip DebugGlobalMaterialTextureMipBiasValue = new() { name = "Debug Global Material Texture Mip Bias Value", tooltip = "Use the slider to control the amount of mip bias of texture samplers in material shaders." };
         }
 
         void RegisterMaterialDebug()
@@ -1054,10 +1060,10 @@ namespace UnityEngine.Rendering.HighDefinition
                 {
                     children =
                     {
-                        new DebugUI.ColorField { displayName = "Too High Color", getter = () => data.materialDebugSettings.materialValidateHighColor, setter = value => data.materialDebugSettings.materialValidateHighColor = value, showAlpha = false, hdr = true },
-                        new DebugUI.ColorField { displayName = "Too Low Color", getter = () => data.materialDebugSettings.materialValidateLowColor, setter = value => data.materialDebugSettings.materialValidateLowColor = value, showAlpha = false, hdr = true },
-                        new DebugUI.ColorField { displayName = "Not A Pure Metal Color", getter = () => data.materialDebugSettings.materialValidateTrueMetalColor, setter = value => data.materialDebugSettings.materialValidateTrueMetalColor = value, showAlpha = false, hdr = true },
-                        new DebugUI.BoolField  { displayName = "Pure Metals", getter = () => data.materialDebugSettings.materialValidateTrueMetal, setter = (v) => data.materialDebugSettings.materialValidateTrueMetal = v },
+                        new DebugUI.ColorField { nameAndTooltip = MaterialStrings.ValidatorTooHighColor, getter = () => data.materialDebugSettings.materialValidateHighColor, setter = value => data.materialDebugSettings.materialValidateHighColor = value, showAlpha = false, hdr = true },
+                        new DebugUI.ColorField { nameAndTooltip = MaterialStrings.ValidatorTooLowColor, getter = () => data.materialDebugSettings.materialValidateLowColor, setter = value => data.materialDebugSettings.materialValidateLowColor = value, showAlpha = false, hdr = true },
+                        new DebugUI.ColorField { nameAndTooltip = MaterialStrings.ValidatorNotAPureMetalColor, getter = () => data.materialDebugSettings.materialValidateTrueMetalColor, setter = value => data.materialDebugSettings.materialValidateTrueMetalColor = value, showAlpha = false, hdr = true },
+                        new DebugUI.BoolField  { nameAndTooltip = MaterialStrings.ValidatorPureMetals, getter = () => data.materialDebugSettings.materialValidateTrueMetal, setter = (v) => data.materialDebugSettings.materialValidateTrueMetal = v },
                     }
                 });
             }
@@ -1067,7 +1073,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 list.Add(
                     new DebugUI.BoolField
                     {
-                        displayName = "Override Global Material Texture Mip Bias",
+                        nameAndTooltip = MaterialStrings.OverrideGlobalMaterialTextureMipBias,
                         getter = ()      => data.UseDebugGlobalMipBiasOverride(),
                         setter = (value) => data.SetUseDebugGlobalMipBiasOverride(value),
                         onValueChanged = RefreshMaterialDebug
@@ -1078,7 +1084,7 @@ namespace UnityEngine.Rendering.HighDefinition
                     list.Add(
                         new DebugUI.FloatField
                         {
-                            displayName = "Debug Global Material Texture Mip Bias Value",
+                            nameAndTooltip = MaterialStrings.DebugGlobalMaterialTextureMipBiasValue,
                             getter = ()      => data.GetDebugGlobalMipBiasOverride(),
                             setter = (value) => data.SetDebugGlobalMipBiasOverride(value),
                             onValueChanged = RefreshMaterialDebug
