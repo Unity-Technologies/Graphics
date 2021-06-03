@@ -547,6 +547,7 @@ namespace UnityEngine.Rendering
 
         /// <summary>
         /// Returns the resolved low res multiplier based on the low res transparency threshold settings.
+        /// Note: The pipeline can use this to drive the scale for low res transparency if available.
         /// </summary>
         /// <param name="targetLowRes"> the target low resolution.
         ///     If by any chance thresholding is disabled or clamped, the exact same resolution is returned.
