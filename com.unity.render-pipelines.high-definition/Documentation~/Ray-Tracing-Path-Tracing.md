@@ -1,6 +1,6 @@
 # Path tracing
 
-Path tracing is a ray tracing algorithm that sends rays from the Camera and, when a ray hits a reflective or refractive surface, recurses the process until it reaches a light source. The series of rays from the Camera to the Light forms a "path".
+Path tracing is a ray tracing algorithm that sends rays from the Camera and, when a ray hits a reflective or refractive surface, recurses the process until it reaches a light source. The series of rays from the Camera to the Light form a "path".
 
 It enables HDRP to compute many different effects (such as hard or soft shadows, mirror or glossy reflections and refractions, and indirect illumination) in one single unified process.
 
@@ -14,7 +14,7 @@ Noisy image with **Maximum Samples** set to 1
 
 Clean image with **Maximum Samples** set to 256
 
-The current implementation for path tracing in the High Definition Render Pipeline (HDRP) accumulates paths for every pixel up to a maximum count, unless the Camera moves. If the Camera moves, HDRP restarts the path accumulation. Path tracing supports Lit, LayeredLit and Unlit materials, and area, point, directional and environment lights.
+The current implementation for path tracing in the High Definition Render Pipeline (HDRP) accumulates paths for every pixel up to a maximum count unless the Camera moves. If the Camera moves, HDRP restarts the path accumulation. Path tracing supports Lit, LayeredLit, and Unlit materials, and area, point, directional, and environment lights.
 
 ## Set up path tracing
 
@@ -62,11 +62,12 @@ There is no support for path tracing on platforms other than DX12 for now.
 
 HDRP path tracing in Unity 2020.2 has the following limitations:
 
+- If a Mesh in your scene has a Material assigned that does not have the `HDRenderPipeline` tag, the mesh will not appear in your scene. For more information, see [Ray tracing and Meshes](Ray-Tracing-Getting-Started.md#RayTracingMeshes).
 - Does not support 3D Text and TextMeshPro.
-- Does not support Shader Graph nodes that use derivatives (ex : normal from textures).
+- Does not support Shader Graph nodes that use derivatives (for example, a normal map that derives from a texture).
 - Does not support decals.
 - Does not support tessellation.
-- Does not support Tube and Disc shaped Area Light.
+- Does not support Tube and Disc-shaped Area Lights.
 - Does not support Translucent Opaque Materials.
 - Does not support several of HDRP's Materials. This includes Fabric, Eye, StackLit, Hair, Decal.
 - Does not support per-pixel displacement (parallax occlusion mapping, height map, depth offset).

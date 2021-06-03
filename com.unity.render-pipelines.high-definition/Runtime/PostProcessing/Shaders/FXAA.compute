@@ -1,13 +1,14 @@
 // Each #kernel tells which function to compile; you can have many kernels
 #pragma kernel FXAA
+#pragma multi_compile _ ENABLE_ALPHA
 
 #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Common.hlsl"
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/ShaderLibrary/ShaderVariables.hlsl"
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Builtin/BuiltinData.hlsl"
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/PostProcessing/Shaders/FXAA.hlsl"
+#include "Packages/com.unity.render-pipelines.high-definition/Runtime/PostProcessing/Shaders/PostProcessDefines.hlsl"
 
-
-RW_TEXTURE2D_X(float3, _OutputTexture);
+RW_TEXTURE2D_X(CTYPE, _OutputTexture);
 TEXTURE2D_X(_InputTexture);
 
 [numthreads(8,8,1)]
@@ -17,9 +18,15 @@ void FXAA(uint3 dispatchThreadId : SV_DispatchThreadID)
     uint2 positionSS = dispatchThreadId.xy;
     float2 positionNDC = positionSS * _ScreenSize.zw + (0.5 * _ScreenSize.zw);
 
-    float3 outColor = Load(_InputTexture, positionSS, 0, 0);
+    CTYPE outColor = Load(_InputTexture, positionSS, 0, 0).CTYPE_SWIZZLE;
+    CTYPE beforeFXAA = outColor;
 
     RunFXAA(_InputTexture, s_linear_clamp_sampler, outColor, positionSS, positionNDC);
+
+#if defined(ENABLE_ALPHA)
+    // When alpha processing is enabled, FXAA should not affect pixels with zero alpha
+    outColor.xyz = outColor.a > 0 ? outColor.xyz : beforeFXAA.xyz;
+#endif
 
     _OutputTexture[COORD_TEXTURE2D_X(positionSS)] = outColor;
 }

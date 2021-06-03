@@ -64,23 +64,8 @@ namespace UnityEditor.ShaderGraph
                 else
                 {
                     var bh = bHLSLProps[i];
-                    if ((ah.name != bh.name) ||
-                        (ah.type != bh.type) ||
-                        (ah.precision != bh.precision) ||
-                        (ah.declaration != bh.declaration) ||
-                        ((ah.customDeclaration == null) != (bh.customDeclaration == null)))
-                    {
+                    if (!ah.ValueEquals(bh))
                         equivalent = false;
-                    }
-                    else if (ah.customDeclaration != null)
-                    {
-                        var ssba = new ShaderStringBuilder();
-                        var ssbb = new ShaderStringBuilder();
-                        ah.customDeclaration(ssba);
-                        bh.customDeclaration(ssbb);
-                        if (ssba.ToCodeBlock() != ssbb.ToCodeBlock())
-                            equivalent = false;
-                    }
                     bHLSLProps.RemoveAt(i);
                 }
             });
@@ -129,8 +114,24 @@ namespace UnityEditor.ShaderGraph
             if (m_HLSLProperties == null)
             {
                 m_HLSLProperties = new List<HLSLProperty>();
+                var dict = new Dictionary<string, int>();
                 foreach (var p in m_Properties)
-                    p.ForeachHLSLProperty(h => m_HLSLProperties.Add(h));
+                {
+                    p.ForeachHLSLProperty(
+                        h =>
+                        {
+                            if (dict.TryGetValue(h.name, out int index))
+                            {
+                                // check if same property
+                                if (!h.ValueEquals(m_HLSLProperties[index]))
+                                    Debug.LogError("Two different HLSL Properties declared with the same name: " + h.name + " and " +  m_HLSLProperties[index].name);
+                                return;
+                            }
+                            dict.Add(h.name, m_HLSLProperties.Count);
+                            m_HLSLProperties.Add(h);
+                        }
+                    );
+                }
             }
             return m_HLSLProperties;
         }

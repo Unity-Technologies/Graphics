@@ -2450,6 +2450,9 @@ namespace UnityEngine.Rendering.HighDefinition
                 parameters.paniniProjectionCS.EnableKeyword("UNITDISTANCE");
             }
 
+            if (m_EnableAlpha)
+                parameters.paniniProjectionCS.EnableKeyword("ENABLE_ALPHA");
+
             parameters.paniniParams = new Vector4(viewExtents.x, viewExtents.y, paniniD, paniniS);
             parameters.paniniProjectionKernel = parameters.paniniProjectionCS.FindKernel("KMain");
 
@@ -2671,6 +2674,15 @@ namespace UnityEngine.Rendering.HighDefinition
             parameters.bloomDirtTileOffset = dirtTileOffset;
             parameters.bloomThreshold = GetBloomThresholdParams();
             parameters.bloomBicubicParams = new Vector4(m_BloomMipsInfo[0].x, m_BloomMipsInfo[0].y, 1.0f / m_BloomMipsInfo[0].x, 1.0f / m_BloomMipsInfo[0].y);
+
+            // We undo the scale here, because bloom uses these parameters for its bicubic filtering offset.
+            // The bicubic filtering function is SampleTexture2DBicubic, and it requires the underlying texture's
+            // unscaled pixel sizes to compute the offsets of the samples.
+            // For more info please see the implementation of SampleTexture2DBicubic
+            parameters.bloomBicubicParams.x /= RTHandles.rtHandleProperties.rtHandleScale.x;
+            parameters.bloomBicubicParams.y /= RTHandles.rtHandleProperties.rtHandleScale.y;
+            parameters.bloomBicubicParams.z *= RTHandles.rtHandleProperties.rtHandleScale.x;
+            parameters.bloomBicubicParams.w *= RTHandles.rtHandleProperties.rtHandleScale.y;
         }
 
         static void DoBloom(in BloomParameters bloomParameters, CommandBuffer cmd, RTHandle source, RTHandle[] bloomMipsDown, RTHandle[] bloomMipsUp)
@@ -3163,6 +3175,8 @@ namespace UnityEngine.Rendering.HighDefinition
         {
             FXAAParameters parameters = new FXAAParameters();
             parameters.fxaaCS = m_Resources.shaders.FXAACS;
+            parameters.fxaaCS.shaderKeywords = null;
+            CoreUtils.SetKeyword(parameters.fxaaCS, "ENABLE_ALPHA", m_EnableAlpha);
             parameters.fxaaKernel = parameters.fxaaCS.FindKernel("FXAA");
 
             parameters.width = camera.actualWidth;
