@@ -56,6 +56,8 @@ Extra_HDRP_trunk:
          rerun: on_new_revision
       -  path: .yamato/hdrp-win-dx11.yml#HDRP_Win_DX11_editmode_mono_Linear_trunk
          rerun: on_new_revision
+      -  path: .yamato/hdrp-win-dx11.yml#HDRP_Win_DX11_Standalone_XR_mono_Linear_trunk
+         rerun: on_new_revision
       -  path: .yamato/hdrp-win-dx12.yml#HDRP_Win_DX12_playmode_mono_Linear_trunk
          rerun: on_new_revision
       -  path: .yamato/hdrp-win-vulkan.yml#HDRP_Win_Vulkan_playmode_mono_Linear_trunk
@@ -139,6 +141,8 @@ Extra_HDRP_CUSTOM-REVISION:
       -  path: .yamato/hdrp-win-dx11.yml#HDRP_Win_DX11_playmode_XR_mono_Linear_CUSTOM-REVISION
          rerun: on_new_revision
       -  path: .yamato/hdrp-win-dx11.yml#HDRP_Win_DX11_editmode_mono_Linear_CUSTOM-REVISION
+         rerun: on_new_revision
+      -  path: .yamato/hdrp-win-dx11.yml#HDRP_Win_DX11_Standalone_XR_mono_Linear_CUSTOM-REVISION
          rerun: on_new_revision
       -  path: .yamato/hdrp-win-dx12.yml#HDRP_Win_DX12_playmode_mono_Linear_CUSTOM-REVISION
          rerun: on_new_revision
