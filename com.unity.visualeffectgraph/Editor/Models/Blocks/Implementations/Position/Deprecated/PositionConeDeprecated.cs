@@ -16,7 +16,7 @@ namespace UnityEditor.VFX.Block
         [VFXSetting, Tooltip("Controls whether particles are spawned on the base of the cone, or throughout the entire volume.")]
         public HeightMode heightMode;
 
-        public override string name { get { return string.Format(base.name, "Cone"); } }
+        public override string name { get { return string.Format(base.name, "Cone") + " - Old (will be sanitize)"; } }
         protected override float thicknessDimensions { get { return 2.0f; } }
 
         public class InputProperties
