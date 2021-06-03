@@ -113,7 +113,22 @@ namespace UnityEditor.Rendering.HighDefinition
         }
 
         //singleton pattern
-        static HDProjectSettings instance => (s_Instance as HDProjectSettings) ?? CreateOrLoad();
+        static HDProjectSettings instance
+        {
+            get
+            {
+                //In case we are early loading it through HDProjectSettingsReadOnlyBase, migration can have not been done.
+                //To not create an infinite callstack loop through "instance", destroy it to force reloading it.
+                //(migration is done at loading time)
+                if (!(s_Instance is HDProjectSettings inst) || inst.m_Version != MigrationDescription.LastVersion<Version>())
+                {
+                    DestroyImmediate(s_Instance);
+                    s_Instance = null;
+                }
+
+                return s_Instance as HDProjectSettings ?? CreateOrLoad();
+            }
+        }
 
         HDProjectSettings()
         {
@@ -245,6 +260,9 @@ namespace UnityEditor.Rendering.HighDefinition
             Save();
         }
 
+        //Note: if created from HDProjectSettingsReadOnlyBase, it can be loaded fully and such as a HDProjectSettings
+        //Thus it is not loaded again and we need to ensure the migration is done when accessing data too (see instance).
+        //Never use "instance" here as it can create infinite call loop. Use s_Instance instead.
         static HDProjectSettings CreateOrLoad()
         {
             //try load: if it exists, this will trigger the call to the private ctor
@@ -302,16 +320,19 @@ namespace UnityEditor.Rendering.HighDefinition
         Version m_Version = MigrationDescription.LastVersion<Version>();
 #pragma warning restore 414
 
-        Version IVersionable<Version>.version { get => instance.m_Version; set => instance.m_Version = value; }
+        //Never use "instance" here as it can create infinite call loop. Use s_Instance instead.
+        Version IVersionable<Version>.version { get => (s_Instance as HDProjectSettings).m_Version; set => (s_Instance as HDProjectSettings).m_Version = value; }
 
+        //Never use "instance" here as it can create infinite call loop. Use s_Instance instead.
         static readonly MigrationDescription<Version, HDProjectSettings> k_Migration = MigrationDescription.New(
             MigrationStep.New(Version.SplittedWithHDUserSettings, (HDProjectSettings data) =>
             {
+                HDProjectSettings inst = s_Instance as HDProjectSettings;
 #pragma warning disable 618 // Type or member is obsolete
-                HDUserSettings.wizardPopupAlreadyShownOnce = instance.m_ObsoleteWizardPopupAlreadyShownOnce;
-                HDUserSettings.wizardActiveTab = instance.m_ObsoleteWizardActiveTab;
-                HDUserSettings.wizardNeedRestartAfterChangingToDX12 = instance.m_ObsoleteWizardNeedRestartAfterChangingToDX12;
-                HDUserSettings.wizardNeedToRunFixAllAgainAfterDomainReload = instance.m_ObsoleteWizardNeedToRunFixAllAgainAfterDomainReload;
+                HDUserSettings.wizardPopupAlreadyShownOnce = inst.m_ObsoleteWizardPopupAlreadyShownOnce;
+                HDUserSettings.wizardActiveTab = inst.m_ObsoleteWizardActiveTab;
+                HDUserSettings.wizardNeedRestartAfterChangingToDX12 = inst.m_ObsoleteWizardNeedRestartAfterChangingToDX12;
+                HDUserSettings.wizardNeedToRunFixAllAgainAfterDomainReload = inst.m_ObsoleteWizardNeedToRunFixAllAgainAfterDomainReload;
 #pragma warning restore 618 // Type or member is obsolete
             })
         );
