@@ -1899,10 +1899,10 @@ MonoBehaviour:
   ImageComparisonSettings:
     TargetWidth: 1920
     TargetHeight: 1080
-    PerPixelCorrectnessThreshold: 0.0034
+    PerPixelCorrectnessThreshold: 0.004
     PerPixelGammaThreshold: 0.003921569
     PerPixelAlphaThreshold: 0.003921569
-    AverageCorrectnessThreshold: 0.0034
+    AverageCorrectnessThreshold: 0.004
     IncorrectPixelsThreshold: 0.0000038146973
     UseHDR: 0
     UseBackBuffer: 0
@@ -1916,7 +1916,7 @@ MonoBehaviour:
   waitFrames: 150
   xrCompatible: 1
   xrThresholdMultiplier: 1
-  checkMemoryAllocation: 1
+  checkMemoryAllocation: 0
   renderPipelineAsset: {fileID: 11400000, guid: bf08b3ceba5e80046afeaa3a6f108557,
     type: 2}
 --- !u!1 &1828164204
