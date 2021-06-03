@@ -119,28 +119,28 @@ namespace UnityEditor.Rendering.Universal
 
                 if (usage == 0)
                 {
-                    ctx.info = L10n.Tr("Clip is not used by any objects currently in the project, so it may not be safe to automatically upgrade.");
+                    ctx.info = L10n.Tr("The animation clip is not used by any objects currently in the project, so it may not be safe to automatically upgrade.");
                     return;
                 }
 
                 if ((usage & SerializedShaderPropertyUsage.Unknown) != 0)
                 {
-                    ctx.info = L10n.Tr("Clip failed to upgrade for unknown reasons.");
+                    ctx.info = L10n.Tr("The animation clip has failed to upgrade for unknown reasons.");
                     return;
                 }
 
                 var sb = new StringBuilder();
 
-                sb.Append(L10n.Tr("Clip failed to upgrade for one or more reasons:"));
+                sb.Append(L10n.Tr("The animation clip failed to upgrade for one or more reasons:"));
 
                 if ((usage & SerializedShaderPropertyUsage.UsedByAmbiguouslyUpgraded) != 0)
                 {
-                    sb.Append(L10n.Tr("\n - Clip is used by objects with materials that took different upgrade paths for the animated property."));
+                    sb.Append(L10n.Tr("\n - The animation clip is used by objects with materials that took different upgrade paths for the animated property"));
                 }
 
                 if ((usage & SerializedShaderPropertyUsage.UsedByNonUpgraded) != 0)
                 {
-                    sb.Append(L10n.Tr("\n - Clip is used by objects with materials that have not been upgraded."));
+                    sb.Append(L10n.Tr("\n - The animation clip is used by objects with materials that have not been upgraded."));
                 }
 
                 ctx.info = sb.ToString();
