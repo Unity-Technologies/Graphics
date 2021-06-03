@@ -587,6 +587,9 @@ namespace UnityEngine.Experimental.Rendering
             var result = new ProbeSubdivisionResult();
             var sceneRefs = new Dictionary<Scene, int>();
 
+            if (ctx.probeVolumes.Count == 0)
+                return result;
+
             bool realtimeSubdivision = ProbeReferenceVolume.instance.debugDisplay.realtimeSubdivision;
             if (realtimeSubdivision)
                 ctx.refVolume.realtimeSubdivisionInfo.Clear();
