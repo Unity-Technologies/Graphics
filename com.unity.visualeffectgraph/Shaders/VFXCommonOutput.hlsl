@@ -96,6 +96,20 @@ float4 VFXGetParticleColor(VFX_VARYING_PS_INPUTS i)
     return color;
 }
 
+float VFXLinearEyeDepth(float depth)
+{
+    return LinearEyeDepth(depth, _ZBufferParams);
+}
+
+float VFXLinearEyeDepthOrthographic(float depth)
+{
+#if UNITY_REVERSED_Z
+    return float(_ProjectionParams.z - (_ProjectionParams.z - _ProjectionParams.y) * depth);
+#else
+    return float(_ProjectionParams.y + (_ProjectionParams.z - _ProjectionParams.y) * depth);
+#endif
+}
+
 float VFXGetSoftParticleFade(VFX_VARYING_PS_INPUTS i)
 {
     float fade = 1.0f;
@@ -105,7 +119,6 @@ float VFXGetSoftParticleFade(VFX_VARYING_PS_INPUTS i)
     {
         sceneZ = VFXLinearEyeDepth(VFXSampleDepth(i.VFX_VARYING_POSCS));
         selfZ = i.VFX_VARYING_POSCS.w;
-
     }
     else
     {
