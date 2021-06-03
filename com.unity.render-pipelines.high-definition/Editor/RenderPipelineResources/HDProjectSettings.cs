@@ -123,16 +123,13 @@ namespace UnityEditor.Rendering.HighDefinition
         }
 
         //// We force the instance to be loaded/created and ready with valid values on assembly reload.
-        //// We also use this so that the HDUserSettings.cs on the runtime assembly will have the HDProjectSettings proxy
-        //// injected before it is used.
-        //[InitializeOnLoadMethod]
-        //static void Reset()
-        //{
-        //    // Make sure the cached last seen plugin versions (capped to codebase versions) and their sum is valid
-        //    // on assembly reload.
-        //    instance.FillPresentPluginMaterialVersions();
-        //    HDProjectSettingsProxy.Init(() => projectSettingsFolderPath);
-        //}
+        [InitializeOnLoadMethod]
+        static void Reset()
+        {
+            // Make sure the cached last seen plugin versions (capped to codebase versions) and their sum is valid
+            // on assembly reload.
+            instance.FillPresentPluginMaterialVersions();
+        }
 
         void FillPresentPluginMaterialVersions()
         {
@@ -158,7 +155,6 @@ namespace UnityEditor.Rendering.HighDefinition
                 {
                     try
                     {
-                        //
                         // We clamp from above the last seen version saved in HDRP project settings by the latest
                         // known version of the code base as a precaution so we don't constantly try to upgrade
                         // potentially newer materials while the code base was seemingly downgraded (an unsupported
