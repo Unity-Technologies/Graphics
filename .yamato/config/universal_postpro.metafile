@@ -107,8 +107,6 @@ test_platforms:
           - [all]: --timeout=3000
           - <reuse_blocks.cache_server>
 
-expression_trigger:
-  expression: ''
 platforms:
   - name: Win
     apis:
@@ -204,122 +202,125 @@ platforms:
       - name: il2cpp
     color_spaces:
       - Linear
-pr:
-  dependencies:
-    - platform: Win
-      api: DX11
-      build_config: mono
-      color_space: Linear
-      test_platforms:
-        - Standalone_cache
-        #- Standalone_XR_cache
-        #- playmode_XR_cache
-        #- editmode
 
-nightly:
-  dependencies:
-    - project: URP_PostPro
-      pr: true
-    - platform: Win
-      api: DX11
-      build_config: mono
-      color_space: Linear
-      test_platforms:
-        - playmode_cache
-    - platform: Win
-      api: DX12
-      build_config: mono
-      color_space: Linear
-      test_platforms:
-        - playmode_cache
-        # - playmode_XR_cache
-    - platform: Win
-      api: Vulkan
-      build_config: mono
-      color_space: Linear
-      test_platforms:
-        - playmode_cache
-        # - playmode_XR_cache
-    - platform: Linux
-      api: Vulkan
-      build_config: mono
-      color_space: Linear
-      test_platforms:
-        - playmode_cache
-### TODO: MOVE THE FOLLOWING JOBS BACK TO PR JOBS
-    - platform: Win
-      api: DX11
-      build_config: mono
-      color_space: Linear
-      test_platforms:
-        - Standalone_XR_cache
-        - playmode_XR_cache
-        - editmode
-    - platform: Win
-      api: DX12
-      build_config: mono
-      color_space: Linear
-      test_platforms:
-        - Standalone_cache
-        - Standalone_XR_cache
-    - platform: Win
-      api: Vulkan
-      build_config: mono
-      color_space: Linear
-      test_platforms:
-        - Standalone_cache
-    - platform: Linux
-      api: Vulkan
-      build_config: mono
-      color_space: Linear
-      test_platforms:
-        - Standalone_cache
-    - platform: Android
-      api: OpenGLES3
-      build_config: il2cpp
-      color_space: Linear
-      test_platforms:
-        - Standalone_cache
-    - platform: Android
-      api: Vulkan
-      build_config: il2cpp
-      color_space: Linear
-      test_platforms:
-        - Standalone_cache
-    - platform: iPhone
-      api: Metal
-      build_config: il2cpp
-      color_space: Linear
-      test_platforms:
-        - Standalone_cache
-    - platform: OSX
-      api: Metal
-      build_config: mono
-      color_space: Linear
-      test_platforms:
-        # - Standalone_cache
-        - playmode_cache
-    - platform: OSX
-      api: OpenGLCore
-      build_config: mono
-      color_space: Linear
-      test_platforms:
-        - editmode
-    - platform: Android
-      api: OpenGLES3
-      build_config: il2cpp
-      color_space: Linear
-      test_platforms:
-        - Standalone_cache
-    - platform: Android
-      api: Vulkan
-      build_config: il2cpp
-      color_space: Linear
-      test_platforms:
-        - Standalone_cache
-    - platform: iPhone
-      api: Metal
-      build_config: il2cpp
-      color_space: Linear
-      test_platforms:
-        - Standalone_cache
+jobs:
+  - name: PR <PROJECT_NAME>
+    dependencies:
+      - platform: Win
+        api: DX11
+        build_config: mono
+        color_space: Linear
+        test_platforms:
+          - Standalone_cache
+          #- playmode_XR_cache
+          #- editmode
+
+  - name: Extra <PROJECT_NAME>
+    dependencies:
+      - platform: Win
+        api: DX11
+        build_config: mono
+        color_space: Linear
+        test_platforms:
+          - playmode_cache
+      - platform: Win
+        api: DX12
+        build_config: mono
+        color_space: Linear
+        test_platforms:
+          - playmode_cache
+          # - playmode_XR_cache
+      - platform: Win
+        api: Vulkan
+        build_config: mono
+        color_space: Linear
+        test_platforms:
+          - playmode_cache
+          # - playmode_XR_cache
+      - platform: Linux
+        api: Vulkan
+        build_config: mono
+        color_space: Linear
+        test_platforms:
+          - playmode_cache
+  ### TODO: MOVE THE FOLLOWING JOBS BACK TO PR JOBS
+      - platform: Win
+        api: DX11
+        build_config: mono
+        color_space: Linear
+        test_platforms:
+          - Standalone_XR_cache
+          - playmode_XR_cache
+          - editmode
+      - platform: Win
+        api: DX12
+        build_config: mono
+        color_space: Linear
+        test_platforms:
+          - Standalone_cache
+          - Standalone_XR_cache
+      - platform: Win
+        api: Vulkan
+        build_config: mono
+        color_space: Linear
+        test_platforms:
+          - Standalone_cache
+      - platform: Linux
+        api: Vulkan
+        build_config: mono
+        color_space: Linear
+        test_platforms:
+          - Standalone_cache
+      - platform: Android
+        api: OpenGLES3
+        build_config: il2cpp
+        color_space: Linear
+        test_platforms:
+          - Standalone_cache
+      - platform: Android
+        api: Vulkan
+        build_config: il2cpp
+        color_space: Linear
+        test_platforms:
+          - Standalone_cache
+      - platform: iPhone
+        api: Metal
+        build_config: il2cpp
+        color_space: Linear
+        test_platforms:
+          - Standalone_cache
+      - platform: OSX
+        api: Metal
+        build_config: mono
+        color_space: Linear
+        test_platforms:
+          # - Standalone_cache
+          - playmode_cache
+      - platform: OSX
+        api: OpenGLCore
+        build_config: mono
+        color_space: Linear
+        test_platforms:
+          - editmode
+      - platform: Android
+        api: OpenGLES3
+        build_config: il2cpp
+        color_space: Linear
+        test_platforms:
+          - Standalone_cache
+      - platform: Android
+        api: Vulkan
+        build_config: il2cpp
+        color_space: Linear
+        test_platforms:
+          - Standalone_cache
+      - platform: iPhone
+        api: Metal
+        build_config: il2cpp
+        color_space: Linear
+        test_platforms:
+          - Standalone_cache
+  - name: <PROJECT_NAME>
+    dependencies:
+      - <PROJECT_ALL_YML_FILE>#PR_<PROJECT_NAME>_<TRACK>
+      - <PROJECT_ALL_YML_FILE>#Extra_<PROJECT_NAME>_<TRACK>
