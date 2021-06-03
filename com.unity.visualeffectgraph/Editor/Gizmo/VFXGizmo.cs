@@ -26,6 +26,8 @@ namespace UnityEditor.VFX
             bool isEditable { get; }
 
             void SetValue(T value);
+
+            T GetValue();
         }
 
         public interface IContext
@@ -42,14 +44,21 @@ namespace UnityEditor.VFX
 
         public VFXCoordinateSpace currentSpace { get; set; }
         public bool spaceLocalByDefault { get; set; }
-        public VisualEffect component {get; set; }
+        public VisualEffect component { get; set; }
 
-        public bool PositionGizmo(ref Vector3 position, bool always)
+        private Quaternion GetHandleRotation(Quaternion localRotation)
+        {
+            if (Tools.pivotRotation == PivotRotation.Local)
+                return localRotation;
+            return Handles.matrix.inverse.rotation;
+        }
+
+        public bool PositionGizmo(ref Vector3 position, Vector3 rotation, bool always)
         {
             if (always || Tools.current == Tool.Move || Tools.current == Tool.Transform || Tools.current == Tool.None)
             {
                 EditorGUI.BeginChangeCheck();
-                position = Handles.PositionHandle(position, Tools.pivotRotation == PivotRotation.Local ? Quaternion.identity : Handles.matrix.inverse.rotation);
+                position = Handles.PositionHandle(position, GetHandleRotation(Quaternion.Euler(rotation)));
                 return EditorGUI.EndChangeCheck();
             }
             return false;
@@ -60,7 +69,7 @@ namespace UnityEditor.VFX
             if (always || Tools.current == Tool.Scale || Tools.current == Tool.Transform || Tools.current == Tool.None)
             {
                 EditorGUI.BeginChangeCheck();
-                scale = Handles.ScaleHandle(scale, position , rotation, Tools.current == Tool.Transform || Tools.current == Tool.None ? HandleUtility.GetHandleSize(position) * 0.75f : HandleUtility.GetHandleSize(position));
+                scale = Handles.ScaleHandle(scale, position, GetHandleRotation(rotation), Tools.current == Tool.Transform || Tools.current == Tool.None ? HandleUtility.GetHandleSize(position) * 0.75f : HandleUtility.GetHandleSize(position));
                 return EditorGUI.EndChangeCheck();
             }
             return false;
@@ -68,7 +77,7 @@ namespace UnityEditor.VFX
 
         public bool ScaleGizmo(Vector3 position, Vector3 scale, Quaternion rotation, IProperty<Vector3> scaleProperty, bool always)
         {
-            if (scaleProperty.isEditable && ScaleGizmo(position, ref scale, rotation, always))
+            if (scaleProperty != null && scaleProperty.isEditable && ScaleGizmo(position, ref scale, rotation, always))
             {
                 scaleProperty.SetValue(scale);
                 return true;
@@ -76,9 +85,9 @@ namespace UnityEditor.VFX
             return false;
         }
 
-        public bool PositionGizmo(Vector3 position, IProperty<Vector3> positionProperty, bool always)
+        public bool PositionGizmo(Vector3 position, Vector3 rotation, IProperty<Vector3> positionProperty, bool always)
         {
-            if (positionProperty.isEditable && PositionGizmo(ref position, always))
+            if (positionProperty != null && positionProperty.isEditable && PositionGizmo(ref position, rotation, always))
             {
                 positionProperty.SetValue(position);
                 return true;
@@ -88,7 +97,7 @@ namespace UnityEditor.VFX
 
         public bool RotationGizmo(Vector3 position, Vector3 rotation, IProperty<Vector3> anglesProperty, bool always)
         {
-            if (anglesProperty.isEditable && RotationGizmo(position, ref rotation, always))
+            if (anglesProperty != null && anglesProperty.isEditable && RotationGizmo(position, ref rotation, always))
             {
                 anglesProperty.SetValue(rotation);
                 return true;
@@ -109,53 +118,133 @@ namespace UnityEditor.VFX
             return false;
         }
 
+        static Color ToActiveColorSpace(Color color)
+        {
+            return (QualitySettings.activeColorSpace == ColorSpace.Linear) ? color.linear : color;
+        }
+
+        static readonly Color[] s_AxisColor = new Color[] { Handles.xAxisColor, Handles.yAxisColor, Handles.zAxisColor, Handles.centerColor };
+        static Vector3[] s_AxisVector = { Vector3.right, Vector3.up, Vector3.forward, Vector3.zero };
+        static int[] s_AxisId = { "VFX_RotateAxis_X".GetHashCode(), "VFX_RotateAxis_Y".GetHashCode(), "VFX_RotateAxis_Z".GetHashCode(), "VFX_RotateAxis_Camera".GetHashCode() };
+        static Color s_DisabledHandleColor = new Color(0.5f, 0.5f, 0.5f, 0.5f);
+        static Quaternion CustomRotationHandle(Quaternion rotation, Vector3 position, bool onlyCameraAxis = false)
+        {
+            //Equivalent of Rotation Handle but with explicit id & *without* free rotate.
+            var evt = Event.current;
+            var isRepaint = evt.type == EventType.Repaint;
+            var camForward = Handles.inverseMatrix.MultiplyVector(Camera.current != null ? Camera.current.transform.forward : Vector3.forward);
+            var size = HandleUtility.GetHandleSize(position);
+            var isHot = s_AxisId.Any(id => id == GUIUtility.hotControl);
+
+            var previousColor = Handles.color;
+            for (var i = onlyCameraAxis ? 3 : 0; i < 4; ++i)
+            {
+                Handles.color = ToActiveColorSpace(s_AxisColor[i]);
+                var axisDir = i == 3 ? camForward : rotation * s_AxisVector[i];
+                rotation = Handles.Disc(s_AxisId[i], rotation, position, axisDir, size, true, EditorSnapSettings.rotate);
+            }
+
+            if (isHot && evt.type == EventType.Repaint)
+            {
+                Handles.color = ToActiveColorSpace(s_DisabledHandleColor);
+                Handles.DrawWireDisc(position, camForward, size, Handles.lineThickness);
+            }
+
+            Handles.color = previousColor;
+            return rotation;
+        }
+
+        static int s_FreeRotationID = "VFX_FreeRotation_Id".GetHashCode();
+        static Quaternion CustomFreeRotationHandle(Quaternion rotation, Vector3 position)
+        {
+            var previousColor = Handles.color;
+            Handles.color = ToActiveColorSpace(s_DisabledHandleColor);
+            var newRotation = Handles.FreeRotateHandle(s_FreeRotationID, rotation, position, HandleUtility.GetHandleSize(position));
+            Handles.color = previousColor;
+            return newRotation;
+        }
+
+        bool m_IsRotating = false;
+        Quaternion m_StartRotation = Quaternion.identity;
+        int m_HotControlRotation = -1;
+
         public bool RotationGizmo(Vector3 position, ref Quaternion rotation, bool always)
         {
             if (always || Tools.current == Tool.Rotate || Tools.current == Tool.Transform || Tools.current == Tool.None)
             {
+                bool usingFreeRotation = GUIUtility.hotControl == s_FreeRotationID;
+                var handleRotation = GetHandleRotation(rotation);
+
                 EditorGUI.BeginChangeCheck();
+                var rotationFromFreeHandle = CustomFreeRotationHandle(rotation, position);
+                var rotationFromAxis = CustomRotationHandle(handleRotation, position);
+                var newRotation = usingFreeRotation ? rotationFromFreeHandle : rotationFromAxis;
 
-                rotation = Handles.RotationHandle(rotation, position);
+                if (EditorGUI.EndChangeCheck())
+                {
+                    if (!m_IsRotating)
+                    {
+                        //Save first rotation state to avoid rotation accumulation while dragging in global space.
+                        m_StartRotation = rotation;
+                        m_HotControlRotation = GUIUtility.hotControl;
+                    }
 
-                return EditorGUI.EndChangeCheck();
+                    if (!usingFreeRotation /* Free rotation are always in local */ && Tools.pivotRotation == PivotRotation.Global)
+                        rotation = newRotation * Handles.matrix.rotation * m_StartRotation;
+                    else
+                        rotation = newRotation;
+
+                    m_IsRotating = true;
+                    return true;
+                }
+
+                if (GUIUtility.hotControl != m_HotControlRotation)
+                {
+                    //If hotControl has changed, the dragging has been terminated.
+                    m_StartRotation = Quaternion.identity;
+                    m_IsRotating = false;
+                    m_HotControlRotation = -1;
+                }
             }
             return false;
         }
 
-        public bool ArcGizmo(Vector3 center, float radius, float degArc, IProperty<float> arcProperty, Quaternion rotation, bool always)
+        private static readonly int s_ArcGizmoName = "VFX_ArcGizmo".GetHashCode();
+
+        public void ArcGizmo(Vector3 center, float radius, float degArc, IProperty<float> arcProperty, Quaternion rotation)
         {
             // Arc handle control
-            if (arcProperty.isEditable && (always || Tools.current == Tool.Rotate || Tools.current == Tool.Transform))
+            if (arcProperty.isEditable)
             {
                 using (new Handles.DrawingScope(Handles.matrix * Matrix4x4.Translate(center) * Matrix4x4.Rotate(rotation)))
                 {
                     EditorGUI.BeginChangeCheck();
-                    Vector3 arcHandlePosition =  Quaternion.AngleAxis(degArc, Vector3.up) * Vector3.forward * radius;
+                    Vector3 arcHandlePosition = Quaternion.AngleAxis(degArc, Vector3.up) * Vector3.forward * radius;
                     arcHandlePosition = Handles.Slider2D(
+                        s_ArcGizmoName,
                         arcHandlePosition,
                         Vector3.up,
                         Vector3.forward,
                         Vector3.right,
                         handleSize * arcHandleSizeMultiplier * HandleUtility.GetHandleSize(arcHandlePosition),
                         DefaultAngleHandleDrawFunction,
-                        0
+                        Vector2.zero
                     );
+
                     if (EditorGUI.EndChangeCheck())
                     {
                         float newArc = Vector3.Angle(Vector3.forward, arcHandlePosition) * Mathf.Sign(Vector3.Dot(Vector3.right, arcHandlePosition));
                         degArc += Mathf.DeltaAngle(degArc, newArc);
                         degArc = Mathf.Repeat(degArc, 360.0f);
                         arcProperty.SetValue(degArc * Mathf.Deg2Rad);
-                        return true;
                     }
                 }
             }
-            return false;
         }
 
         static Vector3 m_InitialNormal;
 
-        public bool NormalGizmo(Vector3 position,  ref Vector3 normal , bool always)
+        public bool NormalGizmo(Vector3 position, ref Vector3 normal, bool always)
         {
             if (Event.current.type == EventType.MouseDown)
             {

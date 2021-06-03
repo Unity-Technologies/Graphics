@@ -1,3 +1,4 @@
+#if _WIP_TODOPAUL
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -45,7 +46,7 @@ namespace UnityEditor.VFX
             }
             Handles.ArrowHandleCap(0, plane.position, normalQuat, 5, Event.current.type);
 
-            PositionGizmo(plane.position, m_PositionProperty, false);
+            PositionGizmo(plane.position, Vector3.zero, m_PositionProperty, false);
 
             if (m_NormalProperty.isEditable && NormalGizmo(plane.position, ref normal, false))
             {
@@ -60,3 +61,4 @@ namespace UnityEditor.VFX
         }
     }
 }
+#endif

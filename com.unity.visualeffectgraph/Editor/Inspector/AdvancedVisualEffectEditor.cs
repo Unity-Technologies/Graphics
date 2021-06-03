@@ -655,6 +655,11 @@ namespace UnityEditor.VFX
                     }
                     m_SerializedObject.ApplyModifiedProperties();
                 }
+
+                public T GetValue()
+                {
+                    return default(T); //TODOPAUL : Check when this code is used
+                }
             }
 
             VFXParameter m_Parameter;
