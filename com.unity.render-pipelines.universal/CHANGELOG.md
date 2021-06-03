@@ -6,8 +6,8 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ## [10.5.1] - 2021-05-28
 
-Version Updated
-The version number for this package has increased due to a version update of a related graphics package.
+### Fixed
+- Fixed a performance issue in Hololens when using renderer with custom render passes.
 
 ## [10.5.0] - 2021-04-19
 
@@ -32,7 +32,6 @@ The version number for this package has increased due to a version update of a r
 - Fixed a regression where the precision was changed. [case 1313942](https://issuetracker.unity3d.com/issues/urp-shader-precision-is-reduced-to-half-when-scriptablerenderfeature-class-is-in-the-project)
 - Fixed issue causing missing shaders on DirectX 11 feature level 10 GPUs. [case 1278390](https://issuetracker.unity3d.com/product/unity/issues/guid/1278390/)
 - Fixed an issue where modified splat weights for Terrain were  zero in some areas and greater than one in others when using the Opacity as Density blending feature.
-- Fixed a performance issue in Hololens when using renderer with custom render passes.
 
 ## [10.3.1] - 2021-01-26
 
