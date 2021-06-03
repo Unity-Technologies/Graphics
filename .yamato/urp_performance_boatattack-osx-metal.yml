@@ -71,7 +71,7 @@ URP_Performance_BoatAttack_OSX_Metal_performance_playmode_runtime_mono_Linear_tr
       
       # Upload the RepoName repo to the device or update it. The folder will be at ~/RepoName in the remote. Ignore dot files to keep it snappy (especially for Yamato Remote).
       - | 
-        rsync -uaqP --exclude=".*" --inplace $YAMATO_SOURCE_DIR bokken@$BOKKEN_DEVICE_IP:~/
+        rsync -uap --exclude=".*" --inplace $YAMATO_SOURCE_DIR bokken@$BOKKEN_DEVICE_IP:~/
 
         # Install the Unity Downloader.
         ssh bokken@$BOKKEN_DEVICE_IP "bash -lc 'pip3 install unity-downloader-cli --user --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade'"
