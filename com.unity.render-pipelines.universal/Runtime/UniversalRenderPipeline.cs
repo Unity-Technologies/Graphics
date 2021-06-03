@@ -523,27 +523,27 @@ namespace UnityEngine.Rendering.Universal
                 }
 #endif
 
-                using (new ProfilingScope(null, Profiling.Pipeline.beginCameraRendering))
-                {
-                    BeginCameraRendering(context, baseCamera);
-                }
-                // Update volumeframework before initializing additional camera data
-                UpdateVolumeFramework(baseCamera, baseCameraAdditionalData);
-                InitializeCameraData(baseCamera, baseCameraAdditionalData, !isStackedRendering, out var baseCameraData);
-                RenderTextureDescriptor originalTargetDesc = baseCameraData.cameraTargetDescriptor;
+            using (new ProfilingScope(null, Profiling.Pipeline.beginCameraRendering))
+            {
+                BeginCameraRendering(context, baseCamera);
+            }
+            // Update volumeframework before initializing additional camera data
+            UpdateVolumeFramework(baseCamera, baseCameraAdditionalData);
+            InitializeCameraData(baseCamera, baseCameraAdditionalData, !isStackedRendering, out var baseCameraData);
+            RenderTextureDescriptor originalTargetDesc = baseCameraData.cameraTargetDescriptor;
 
 #if ENABLE_VR && ENABLE_XR_MODULE
-                if (xrPass.enabled)
-                {
-                    baseCameraData.xr = xrPass;
-                    // XRTODO: remove isStereoEnabled in 2021.x
+            if (xrPass.enabled)
+            {
+                baseCameraData.xr = xrPass;
+                // XRTODO: remove isStereoEnabled in 2021.x
 #pragma warning disable 0618
-                    baseCameraData.isStereoEnabled = xrPass.enabled;
+                baseCameraData.isStereoEnabled = xrPass.enabled;
 #pragma warning restore 0618
 
-                    // Helper function for updating cameraData with xrPass Data
-                    m_XRSystem.UpdateCameraData(ref baseCameraData, baseCameraData.xr);
-                }
+                // Helper function for updating cameraData with xrPass Data
+                m_XRSystem.UpdateCameraData(ref baseCameraData, baseCameraData.xr);
+            }
 #endif
 
 #if VISUAL_EFFECT_GRAPH_0_0_1_OR_NEWER
