@@ -389,12 +389,14 @@ namespace UnityEngine.Rendering.Universal
                 m_DeferredLights.IsOverlay = cameraData.renderType == CameraRenderType.Overlay;
             }
 
+            CommandBuffer cmd = CommandBufferPool.Get();
+
             // Assign the camera color target early in case it is needed during AddRenderPasses.
             bool isPreviewCamera = cameraData.isPreviewCamera;
             var createColorTexture = rendererFeatures.Count != 0 && !isPreviewCamera;
             if (createColorTexture)
             {
-                m_ActiveCameraColorAttachment = m_ColorBufferSystem.GetBackBuffer();
+                m_ActiveCameraColorAttachment = m_ColorBufferSystem.GetBackBuffer(cmd);
                 var activeColorRenderTargetId = m_ActiveCameraColorAttachment.Identifier();
 #if ENABLE_VR && ENABLE_XR_MODULE
                 if (cameraData.xr.enabled) activeColorRenderTargetId = new RenderTargetIdentifier(activeColorRenderTargetId, 0, CubemapFace.Unknown, -1);
@@ -505,7 +507,7 @@ namespace UnityEngine.Rendering.Universal
             {
                 RenderTargetHandle cameraTargetHandle = RenderTargetHandle.GetCameraTarget(cameraData.xr);
 
-                m_ActiveCameraColorAttachment = (createColorTexture) ? m_ColorBufferSystem.GetBackBuffer() : cameraTargetHandle;
+                m_ActiveCameraColorAttachment = (createColorTexture) ? m_ColorBufferSystem.GetBackBuffer(cmd) : cameraTargetHandle;
                 m_ActiveCameraDepthAttachment = (createDepthTexture) ? m_CameraDepthAttachment : cameraTargetHandle;
 
                 bool intermediateRenderTexture = createColorTexture || createDepthTexture;
@@ -516,9 +518,12 @@ namespace UnityEngine.Rendering.Universal
             }
             else
             {
-                m_ActiveCameraColorAttachment = m_ColorBufferSystem.GetBackBuffer();
+                m_ActiveCameraColorAttachment = m_ColorBufferSystem.GetBackBuffer(cmd);
                 m_ActiveCameraDepthAttachment = m_CameraDepthAttachment;
             }
+
+            context.ExecuteCommandBuffer(cmd);
+            cmd.Clear();
 
             cameraData.renderer.useDepthPriming = useDepthPriming;
 
@@ -1085,7 +1090,7 @@ namespace UnityEngine.Rendering.Universal
                 ConfigureCameraTarget(m_ColorBufferSystem.GetBackBuffer(cmd).id, m_ColorBufferSystem.GetBufferA().id);
             else ConfigureCameraColorTarget(m_ColorBufferSystem.GetBackBuffer(cmd).id);
 
-            m_ActiveCameraColorAttachment = m_ColorBufferSystem.GetBackBuffer();
+            m_ActiveCameraColorAttachment = m_ColorBufferSystem.GetBackBuffer(cmd);
             cmd.SetGlobalTexture("_CameraColorTexture", m_ActiveCameraColorAttachment.id);
         }
 

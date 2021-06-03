@@ -29,11 +29,6 @@ namespace UnityEngine.Rendering.Universal.Internal
             RTB.Init(name + "B");
         }
 
-        public RenderTargetHandle GetBackBuffer()
-        {
-            return m_FirstIsBackBuffer ? RTA : RTB;
-        }
-
         public RenderTargetHandle GetBackBuffer(CommandBuffer cmd)
         {
             if (!m_RTisAllocated)
@@ -55,11 +50,14 @@ namespace UnityEngine.Rendering.Universal.Internal
 
         void Initialize(CommandBuffer cmd)
         {
-            cmd.GetTemporaryRT(m_NameA, m_Desc, m_FilterMode);
-            var descB = m_Desc;
-            descB.depthBufferBits = 0;
-            cmd.GetTemporaryRT(m_NameB, m_Desc, m_FilterMode);
-            m_RTisAllocated = true;
+            if(m_Desc.width > 0 && m_Desc.height > 0)
+            {
+                cmd.GetTemporaryRT(m_NameA, m_Desc, m_FilterMode);
+                var descB = m_Desc;
+                descB.depthBufferBits = 0;
+                cmd.GetTemporaryRT(m_NameB, m_Desc, m_FilterMode);
+                m_RTisAllocated = true;
+            }
         }
 
         public void Clear(CommandBuffer cmd)
@@ -68,6 +66,7 @@ namespace UnityEngine.Rendering.Universal.Internal
             cmd.ReleaseTemporaryRT(m_NameB);
 
             m_FirstIsBackBuffer = true;
+            m_RTisAllocated = false;
         }
 
         public void SetCameraSettings(CommandBuffer cmd, RenderTextureDescriptor desc, FilterMode filterMode)
