@@ -97,9 +97,9 @@ URP_Performance_BoatAttack_OSX_Metal_performance_playmode_runtime_mono_Linear_tr
         echo ==================================================;
         echo UPM Registry: \$UPM_REGISTRY;
         echo ==================================================;
-        pwd
+        pwd;
         cd ~/TestProjects/BoatAttack
-        pwd
+        pwd;
         export GIT_REVISIONDATE=`git rev-parse HEAD | git show -s --format=%cI`
         ./utr                                                                                           \\
             --artifacts_path=~/TestProjects/BoatAttack/test-results                                       \\
