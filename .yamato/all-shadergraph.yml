@@ -9,26 +9,29 @@
 ---
 
 PR_ShaderGraph_trunk:
-    name: ShaderGraph PR Job - trunk
-    dependencies:
-      -  path: .yamato/shadergraph-win-dx11.yml#ShaderGraph_Win_DX11_Standalone_mono_Linear_trunk
-         rerun: on_new_revision
-      -  path: .yamato/all-shadergraph_stereo.yml#PR_ShaderGraph_Stereo_trunk
-         rerun: on_new_revision
-    triggers:
-        expression: pull_request.target eq "master" AND NOT pull_request.draft AND pull_request.changes.any match ["com.unity.shadergraph/**/*", "TestProjects/ShaderGraph/**/*"] AND NOT pull_request.changes.all match ["*.md", "**/*.md", "doc/**/*", "**/Documentation*/**/*"]
+    name: PR ShaderGraph on trunk
     variables:
         CUSTOM_REVISION: '{{trunk.changeset.id}}'
         UTR_VERSION: "current"
         TEST_FILTER: .*
         CACHE_ARGS: '{{cache.flags}}'
-Nightly_ShaderGraph_trunk:
-    name: Nightly ShaderGraph - trunk
+    triggers:
+        expression: pull_request.target eq "master" AND NOT pull_request.draft AND pull_request.changes.any match ["com.unity.shadergraph/**/*", "TestProjects/ShaderGraph/**/*"] AND NOT pull_request.changes.all match ["*.md", "**/*.md", "doc/**/*", "**/Documentation*/**/*"]
     dependencies:
-      -  path: .yamato/all-shadergraph.yml#PR_ShaderGraph_trunk
+      -  path: .yamato/shadergraph-win-dx11.yml#ShaderGraph_Win_DX11_Standalone_mono_Linear_trunk
          rerun: on_new_revision
-      -  path: .yamato/all-shadergraph_stereo.yml#Nightly_ShaderGraph_Stereo_trunk
+      -  path: .yamato/all-shadergraph_stereo.yml#PR_ShaderGraph_Stereo_trunk
          rerun: on_new_revision
+      -  path: .yamato/_abv.yml#General_Checks_trunk
+         rerun: on_new_revision
+Extra_ShaderGraph_trunk:
+    name: Extra ShaderGraph on trunk
+    variables:
+        CUSTOM_REVISION: '{{trunk.changeset.id}}'
+        UTR_VERSION: "current"
+        TEST_FILTER: .*
+        CACHE_ARGS: '{{cache.flags}}'
+    dependencies:
       -  path: .yamato/shadergraph-win-dx11.yml#ShaderGraph_Win_DX11_editmode_mono_Linear_trunk
          rerun: on_new_revision
       -  path: .yamato/shadergraph-win-dx11.yml#ShaderGraph_Win_DX11_playmode_mono_Linear_trunk
@@ -47,30 +50,52 @@ Nightly_ShaderGraph_trunk:
          rerun: on_new_revision
       -  path: .yamato/shadergraph-iphone-metal.yml#ShaderGraph_iPhone_Metal_Standalone_il2cpp_Linear_trunk
          rerun: on_new_revision
+ShaderGraph_trunk:
+    name: ShaderGraph on trunk
     variables:
         CUSTOM_REVISION: '{{trunk.changeset.id}}'
         UTR_VERSION: "current"
         TEST_FILTER: .*
         CACHE_ARGS: '{{cache.flags}}'
-PR_ShaderGraph_CUSTOM-REVISION:
-    name: ShaderGraph PR Job - CUSTOM-REVISION
     dependencies:
-      -  path: .yamato/shadergraph-win-dx11.yml#ShaderGraph_Win_DX11_Standalone_mono_Linear_CUSTOM-REVISION
+      -  path: .yamato/all-shadergraph.yml#PR_ShaderGraph_trunk
          rerun: on_new_revision
-      -  path: .yamato/all-shadergraph_stereo.yml#PR_ShaderGraph_Stereo_CUSTOM-REVISION
+      -  path: .yamato/all-shadergraph.yml#Extra_ShaderGraph_trunk
          rerun: on_new_revision
+Nightly_ShaderGraph_trunk:
+    name: Nightly ShaderGraph on trunk
+    variables:
+        CUSTOM_REVISION: '{{trunk.changeset.id}}'
+        UTR_VERSION: "current"
+        TEST_FILTER: .*
+        CACHE_ARGS: '{{cache.flags}}'
+    dependencies:
+      -  path: .yamato/all-shadergraph.yml#ShaderGraph_trunk
+         rerun: on_new_revision
+      -  path: .yamato/all-shadergraph_stereo.yml#ShaderGraph_Stereo_trunk
+         rerun: on_new_revision
+PR_ShaderGraph_CUSTOM-REVISION:
+    name: PR ShaderGraph on CUSTOM-REVISION
     variables:
         CUSTOM_REVISION: custom_revision_not_set
         UTR_VERSION: "current"
         TEST_FILTER: .*
         CACHE_ARGS: '{{cache.flags}}'
-Nightly_ShaderGraph_CUSTOM-REVISION:
-    name: Nightly ShaderGraph - CUSTOM-REVISION
     dependencies:
-      -  path: .yamato/all-shadergraph.yml#PR_ShaderGraph_CUSTOM-REVISION
+      -  path: .yamato/shadergraph-win-dx11.yml#ShaderGraph_Win_DX11_Standalone_mono_Linear_CUSTOM-REVISION
          rerun: on_new_revision
-      -  path: .yamato/all-shadergraph_stereo.yml#Nightly_ShaderGraph_Stereo_CUSTOM-REVISION
+      -  path: .yamato/all-shadergraph_stereo.yml#PR_ShaderGraph_Stereo_CUSTOM-REVISION
          rerun: on_new_revision
+      -  path: .yamato/_abv.yml#General_Checks_CUSTOM-REVISION
+         rerun: on_new_revision
+Extra_ShaderGraph_CUSTOM-REVISION:
+    name: Extra ShaderGraph on CUSTOM-REVISION
+    variables:
+        CUSTOM_REVISION: custom_revision_not_set
+        UTR_VERSION: "current"
+        TEST_FILTER: .*
+        CACHE_ARGS: '{{cache.flags}}'
+    dependencies:
       -  path: .yamato/shadergraph-win-dx11.yml#ShaderGraph_Win_DX11_editmode_mono_Linear_CUSTOM-REVISION
          rerun: on_new_revision
       -  path: .yamato/shadergraph-win-dx11.yml#ShaderGraph_Win_DX11_playmode_mono_Linear_CUSTOM-REVISION
@@ -89,8 +114,27 @@ Nightly_ShaderGraph_CUSTOM-REVISION:
          rerun: on_new_revision
       -  path: .yamato/shadergraph-iphone-metal.yml#ShaderGraph_iPhone_Metal_Standalone_il2cpp_Linear_CUSTOM-REVISION
          rerun: on_new_revision
+ShaderGraph_CUSTOM-REVISION:
+    name: ShaderGraph on CUSTOM-REVISION
     variables:
         CUSTOM_REVISION: custom_revision_not_set
         UTR_VERSION: "current"
         TEST_FILTER: .*
         CACHE_ARGS: '{{cache.flags}}'
+    dependencies:
+      -  path: .yamato/all-shadergraph.yml#PR_ShaderGraph_CUSTOM-REVISION
+         rerun: on_new_revision
+      -  path: .yamato/all-shadergraph.yml#Extra_ShaderGraph_CUSTOM-REVISION
+         rerun: on_new_revision
+Nightly_ShaderGraph_CUSTOM-REVISION:
+    name: Nightly ShaderGraph on CUSTOM-REVISION
+    variables:
+        CUSTOM_REVISION: custom_revision_not_set
+        UTR_VERSION: "current"
+        TEST_FILTER: .*
+        CACHE_ARGS: '{{cache.flags}}'
+    dependencies:
+      -  path: .yamato/all-shadergraph.yml#ShaderGraph_CUSTOM-REVISION
+         rerun: on_new_revision
+      -  path: .yamato/all-shadergraph_stereo.yml#ShaderGraph_Stereo_CUSTOM-REVISION
+         rerun: on_new_revision

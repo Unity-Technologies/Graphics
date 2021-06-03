@@ -29,7 +29,6 @@ ShaderGraph_Stereo_Win_Standalone_mono_Linear_trunk:
                 echo %GIT_REVISIONDATE%
                 del revdate.tmp
                 utr --artifacts_path=TestProjects/ShaderGraphUniversalStereo/test-results --platform=StandaloneWindows64 --player-connection-ip=auto --player-load-path=players --suite=playmode --timeout=1200 --zero-tests-are-ok=1
-         retries: 2
     artifacts:
         logs:
             paths:
@@ -65,7 +64,6 @@ Build_ShaderGraph_Stereo_Win_Standalone_mono_Linear_trunk:
                 echo %GIT_REVISIONDATE%
                 del revdate.tmp
                 utr %CACHE_ARGS% --artifacts_path=TestProjects/ShaderGraphUniversalStereo/test-results --build-only --editor-location=.Editor --extra-editor-arg="-colorspace=Linear" --platform=StandaloneWindows64 --player-save-path=players --scripting-backend=Mono2x --suite=playmode --testfilter=%TEST_FILTER% --testproject=./TestProjects/ShaderGraphUniversalStereo --timeout=1200
-         retries: 2
     artifacts:
         logs:
             paths:
@@ -102,7 +100,6 @@ ShaderGraph_Stereo_Win_editmode_mono_Linear_trunk:
                 echo %GIT_REVISIONDATE%
                 del revdate.tmp
                 utr %CACHE_ARGS% --artifacts_path=TestProjects/ShaderGraphUniversalStereo/test-results --editor-location=.Editor --extra-editor-arg="-colorspace=Linear" --platform=editmode --scripting-backend=Mono2x --suite=editor --testfilter=%TEST_FILTER% --testproject=./TestProjects/ShaderGraphUniversalStereo --zero-tests-are-ok=1
-         retries: 2
     artifacts:
         logs:
             paths:
@@ -132,7 +129,6 @@ ShaderGraph_Stereo_Win_Standalone_mono_Linear_CUSTOM-REVISION:
                 echo %GIT_REVISIONDATE%
                 del revdate.tmp
                 utr --artifacts_path=TestProjects/ShaderGraphUniversalStereo/test-results --platform=StandaloneWindows64 --player-connection-ip=auto --player-load-path=players --suite=playmode --timeout=1200 --zero-tests-are-ok=1
-         retries: 2
     artifacts:
         logs:
             paths:
@@ -168,7 +164,6 @@ Build_ShaderGraph_Stereo_Win_Standalone_mono_Linear_CUSTOM-REVISION:
                 echo %GIT_REVISIONDATE%
                 del revdate.tmp
                 utr %CACHE_ARGS% --artifacts_path=TestProjects/ShaderGraphUniversalStereo/test-results --build-only --editor-location=.Editor --extra-editor-arg="-colorspace=Linear" --platform=StandaloneWindows64 --player-save-path=players --scripting-backend=Mono2x --suite=playmode --testfilter=%TEST_FILTER% --testproject=./TestProjects/ShaderGraphUniversalStereo --timeout=1200
-         retries: 2
     artifacts:
         logs:
             paths:
@@ -205,7 +200,6 @@ ShaderGraph_Stereo_Win_editmode_mono_Linear_CUSTOM-REVISION:
                 echo %GIT_REVISIONDATE%
                 del revdate.tmp
                 utr %CACHE_ARGS% --artifacts_path=TestProjects/ShaderGraphUniversalStereo/test-results --editor-location=.Editor --extra-editor-arg="-colorspace=Linear" --platform=editmode --scripting-backend=Mono2x --suite=editor --testfilter=%TEST_FILTER% --testproject=./TestProjects/ShaderGraphUniversalStereo --zero-tests-are-ok=1
-         retries: 2
     artifacts:
         logs:
             paths:

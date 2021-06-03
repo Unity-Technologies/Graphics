@@ -120,8 +120,7 @@ test_platforms:
           - [all]: --report-performance-data
           - [all]: --performance-project-id=VikingVillage_BuiltIn
           - <reuse_blocks.perf_utr_flags>
-expression_trigger:
-  expression: ""
+
 platforms:
   - name: Win
     apis:
@@ -210,57 +209,55 @@ platforms:
       - name: mono
     color_spaces:
       - Linear
-pr:
-  dependencies:
-    - platform: Win
-      api: DX11
-      build_config: mono
-      color_space: Linear
-      test_platforms:
-        - performance_playmode_runtime
-        - performance_playmode_editor
-        - performance_build_editmode
-    - platform: Win
-      api: Vulkan
-      build_config: mono
-      color_space: Linear
-      test_platforms:
-        - performance_playmode_runtime
-        #- performance_playmode_editor
-        - performance_build_editmode
-    - platform: Android
-      api: OpenGLES3
-      build_config: il2cpp
-      color_space: Linear
-      test_platforms:
-        # runtime disabled until solution for urp failures found
-        #- performance_playmode_runtime
-        - performance_build_editmode
-    - platform: Android
-      api: Vulkan
-      build_config: il2cpp
-      color_space: Linear
-      test_platforms:
-        # runtime disabled until solution for urp failures found
-        #- performance_playmode_runtime
-        - performance_build_editmode
-    - platform: iPhone
-      api: Metal
-      build_config: il2cpp
-      color_space: Linear
-      test_platforms:
-        # runtime disabled until solution for urp failures found
-        #- performance_playmode_runtime
-        - performance_build_editmode
-    - platform: Linux
-      api: Vulkan
-      build_config: mono
-      color_space: Linear
-      test_platforms:
-        - performance_playmode_runtime
-        #- performance_playmode_editor
-        - performance_build_editmode
-nightly:
-  dependencies:
-    - project: VikingVillage_BuiltIn
-      pr: true
+
+jobs:
+  - name: <PROJECT_NAME>
+    dependencies:
+      - platform: Win
+        api: DX11
+        build_config: mono
+        color_space: Linear
+        test_platforms:
+          - performance_playmode_runtime
+          - performance_playmode_editor
+          - performance_build_editmode
+      - platform: Win
+        api: Vulkan
+        build_config: mono
+        color_space: Linear
+        test_platforms:
+          - performance_playmode_runtime
+          #- performance_playmode_editor
+          - performance_build_editmode
+      - platform: Android
+        api: OpenGLES3
+        build_config: il2cpp
+        color_space: Linear
+        test_platforms:
+          # runtime disabled until solution for urp failures found
+          #- performance_playmode_runtime
+          - performance_build_editmode
+      - platform: Android
+        api: Vulkan
+        build_config: il2cpp
+        color_space: Linear
+        test_platforms:
+          # runtime disabled until solution for urp failures found
+          #- performance_playmode_runtime
+          - performance_build_editmode
+      - platform: iPhone
+        api: Metal
+        build_config: il2cpp
+        color_space: Linear
+        test_platforms:
+          # runtime disabled until solution for urp failures found
+          #- performance_playmode_runtime
+          - performance_build_editmode
+      - platform: Linux
+        api: Vulkan
+        build_config: mono
+        color_space: Linear
+        test_platforms:
+          - performance_playmode_runtime
+          #- performance_playmode_editor
+          - performance_build_editmode

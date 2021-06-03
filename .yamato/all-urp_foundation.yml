@@ -9,20 +9,23 @@
 ---
 
 PR_URP_Foundation_trunk:
-    name: URP_Foundation PR Job - trunk
-    dependencies:
-      -  path: .yamato/urp_foundation-win-dx11.yml#URP_Foundation_Win_DX11_Standalone_mono_Linear_trunk
-         rerun: on_new_revision
+    name: PR URP_Foundation on trunk
     variables:
         CUSTOM_REVISION: '{{trunk.changeset.id}}'
         UTR_VERSION: "current"
         TEST_FILTER: .*
         CACHE_ARGS: '{{cache.flags}}'
-Nightly_URP_Foundation_trunk:
-    name: Nightly URP_Foundation - trunk
     dependencies:
-      -  path: .yamato/all-urp_foundation.yml#PR_URP_Foundation_trunk
+      -  path: .yamato/urp_foundation-win-dx11.yml#URP_Foundation_Win_DX11_Standalone_mono_Linear_trunk
          rerun: on_new_revision
+Extra_URP_Foundation_trunk:
+    name: Extra URP_Foundation on trunk
+    variables:
+        CUSTOM_REVISION: '{{trunk.changeset.id}}'
+        UTR_VERSION: "current"
+        TEST_FILTER: .*
+        CACHE_ARGS: '{{cache.flags}}'
+    dependencies:
       -  path: .yamato/urp_foundation-win-dx11.yml#URP_Foundation_Win_DX11_playmode_mono_Linear_trunk
          rerun: on_new_revision
       -  path: .yamato/urp_foundation-win-dx12.yml#URP_Foundation_Win_DX12_playmode_mono_Linear_trunk
@@ -61,26 +64,36 @@ Nightly_URP_Foundation_trunk:
          rerun: on_new_revision
       -  path: .yamato/urp_foundation-iphone-metal.yml#URP_Foundation_iPhone_Metal_Standalone_il2cpp_Linear_trunk
          rerun: on_new_revision
+URP_Foundation_trunk:
+    name: URP_Foundation on trunk
     variables:
         CUSTOM_REVISION: '{{trunk.changeset.id}}'
         UTR_VERSION: "current"
         TEST_FILTER: .*
         CACHE_ARGS: '{{cache.flags}}'
-PR_URP_Foundation_CUSTOM-REVISION:
-    name: URP_Foundation PR Job - CUSTOM-REVISION
     dependencies:
-      -  path: .yamato/urp_foundation-win-dx11.yml#URP_Foundation_Win_DX11_Standalone_mono_Linear_CUSTOM-REVISION
+      -  path: .yamato/all-urp_foundation.yml#PR_URP_Foundation_trunk
          rerun: on_new_revision
+      -  path: .yamato/all-urp_foundation.yml#Extra_URP_Foundation_trunk
+         rerun: on_new_revision
+PR_URP_Foundation_CUSTOM-REVISION:
+    name: PR URP_Foundation on CUSTOM-REVISION
     variables:
         CUSTOM_REVISION: custom_revision_not_set
         UTR_VERSION: "current"
         TEST_FILTER: .*
         CACHE_ARGS: '{{cache.flags}}'
-Nightly_URP_Foundation_CUSTOM-REVISION:
-    name: Nightly URP_Foundation - CUSTOM-REVISION
     dependencies:
-      -  path: .yamato/all-urp_foundation.yml#PR_URP_Foundation_CUSTOM-REVISION
+      -  path: .yamato/urp_foundation-win-dx11.yml#URP_Foundation_Win_DX11_Standalone_mono_Linear_CUSTOM-REVISION
          rerun: on_new_revision
+Extra_URP_Foundation_CUSTOM-REVISION:
+    name: Extra URP_Foundation on CUSTOM-REVISION
+    variables:
+        CUSTOM_REVISION: custom_revision_not_set
+        UTR_VERSION: "current"
+        TEST_FILTER: .*
+        CACHE_ARGS: '{{cache.flags}}'
+    dependencies:
       -  path: .yamato/urp_foundation-win-dx11.yml#URP_Foundation_Win_DX11_playmode_mono_Linear_CUSTOM-REVISION
          rerun: on_new_revision
       -  path: .yamato/urp_foundation-win-dx12.yml#URP_Foundation_Win_DX12_playmode_mono_Linear_CUSTOM-REVISION
@@ -119,8 +132,15 @@ Nightly_URP_Foundation_CUSTOM-REVISION:
          rerun: on_new_revision
       -  path: .yamato/urp_foundation-iphone-metal.yml#URP_Foundation_iPhone_Metal_Standalone_il2cpp_Linear_CUSTOM-REVISION
          rerun: on_new_revision
+URP_Foundation_CUSTOM-REVISION:
+    name: URP_Foundation on CUSTOM-REVISION
     variables:
         CUSTOM_REVISION: custom_revision_not_set
         UTR_VERSION: "current"
         TEST_FILTER: .*
         CACHE_ARGS: '{{cache.flags}}'
+    dependencies:
+      -  path: .yamato/all-urp_foundation.yml#PR_URP_Foundation_CUSTOM-REVISION
+         rerun: on_new_revision
+      -  path: .yamato/all-urp_foundation.yml#Extra_URP_Foundation_CUSTOM-REVISION
+         rerun: on_new_revision

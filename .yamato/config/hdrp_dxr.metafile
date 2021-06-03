@@ -8,8 +8,7 @@ test_platforms:
     name: playmode_XR
     utr_flags:
       - [all]: --extra-editor-arg="-xr-reuse-tests"
-expression_trigger:
-  expression: ""
+
 platforms:
   - name: Win
     apis:
@@ -24,22 +23,26 @@ platforms:
         image: graphics-foundation/win10-dxr:stable
         flavor: b1.large
         model: rtx2080
-pr:
-  dependencies:
-    - platform: Win
-      api: DX12
-      build_config: mono
-      color_space: Linear
-      test_platforms:
-        - playmode
-nightly:
-  dependencies:
-    - project: HDRP_DXR
-      pr: true
-    - platform: Win
-      api: DX12
-      build_config: mono
-      color_space: Linear
-      test_platforms:
-        - playmode_XR
-        # - Standalone
+
+jobs:
+  - name: PR <PROJECT_NAME>
+    dependencies: # add any dependencies
+      - platform: Win
+        api: DX12
+        build_config: mono
+        color_space: Linear
+        test_platforms:
+          - playmode
+  - name: Extra <PROJECT_NAME>
+    dependencies: # add any dependencies
+      - platform: Win
+        api: DX12
+        build_config: mono
+        color_space: Linear
+        test_platforms:
+          - playmode_XR
+          # - Standalone
+  - name: <PROJECT_NAME>
+    dependencies:
+      - <PROJECT_ALL_YML_FILE>#PR_<PROJECT_NAME>_<TRACK>
+      - <PROJECT_ALL_YML_FILE>#Extra_<PROJECT_NAME>_<TRACK>
