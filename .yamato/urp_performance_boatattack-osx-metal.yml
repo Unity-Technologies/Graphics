@@ -139,7 +139,7 @@ URP_Performance_BoatAttack_OSX_Metal_performance_playmode_runtime_mono_Linear_tr
         echo "==================================================";
         echo "UTR build exit code: $UTR_RESULT";
         echo "==================================================";
-        if [ "$UTR_RESULT" != "0" ]; then exit $UTR_RESULT; fi
+        if [ "$UTR_RESULT" != "0" ]; then scp bokken@$BOKKEN_DEVICE_IP:~/.utr_result ~/.utr_result; rsync -aqP bokken@$BOKKEN_DEVICE_IP:$YAMATO_SOURCE_DIR/TestProjects/BoatAttack/test-results $YAMATO_SOURCE_DIR/TestProjects/BoatAttack/; exit $UTR_RESULT; fi
                       
     # Run tests on the device and capture exit code. This will be rendered as a single line command. Beware of the backslashes and the semicolons too.
       - >
