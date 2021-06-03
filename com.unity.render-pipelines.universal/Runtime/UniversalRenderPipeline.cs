@@ -521,6 +521,7 @@ namespace UnityEngine.Rendering.Universal
                     xrActive = true;
                     UpdateCameraStereoMatrices(baseCamera, xrPass);
                 }
+#endif
 
                 using (new ProfilingScope(null, Profiling.Pipeline.beginCameraRendering))
                 {
@@ -531,6 +532,7 @@ namespace UnityEngine.Rendering.Universal
                 InitializeCameraData(baseCamera, baseCameraAdditionalData, !isStackedRendering, out var baseCameraData);
                 RenderTextureDescriptor originalTargetDesc = baseCameraData.cameraTargetDescriptor;
 
+#if ENABLE_VR && ENABLE_XR_MODULE
                 if (xrPass.enabled)
                 {
                     baseCameraData.xr = xrPass;
@@ -574,7 +576,9 @@ namespace UnityEngine.Rendering.Universal
                         CameraData overlayCameraData = baseCameraData;
                         bool lastCamera = i == lastActiveOverlayCameraIndex;
 
+#if ENABLE_VR && ENABLE_XR_MODULE
                         UpdateCameraStereoMatrices(currCameraData.camera, xrPass);
+#endif
 
                         using (new ProfilingScope(null, Profiling.Pipeline.beginCameraRendering))
                         {
@@ -634,9 +638,9 @@ namespace UnityEngine.Rendering.Universal
             bool shouldUpdate = camera.cameraType == CameraType.SceneView;
             shouldUpdate |= additionalCameraData != null && additionalCameraData.requiresVolumeFrameworkUpdate;
 
-            #if UNITY_EDITOR
+#if UNITY_EDITOR
             shouldUpdate |= Application.isPlaying == false;
-            #endif
+#endif
 
             // When we have volume updates per-frame disabled...
             if (!shouldUpdate && additionalCameraData)
