@@ -15,6 +15,7 @@ namespace UnityEngine.Experimental.Rendering
     {
         public float dilationDistance;
         public float dilationValidityThreshold;
+        public float dilationIterations;
         public float brickSize;   // Not really a dilation setting, but used during dilation.
     }
 
@@ -81,6 +82,8 @@ namespace UnityEngine.Experimental.Rendering
         float m_MaxDilationSampleDistance = 1f;
         [SerializeField]
         float m_DilationValidityThreshold = 0.25f;
+        [SerializeField]
+        int m_DilationIterations = 1;
 
         [SerializeField]
         bool m_EnableDilation = true;
@@ -317,8 +320,9 @@ namespace UnityEngine.Experimental.Rendering
         public ProbeDilationSettings GetDilationSettings()
         {
             ProbeDilationSettings settings;
-            settings.dilationValidityThreshold = m_DilationValidityThreshold;
+            settings.dilationValidityThreshold = m_EnableDilation ? m_DilationValidityThreshold : 0.0f;
             settings.dilationDistance = m_MaxDilationSampleDistance;
+            settings.dilationIterations = m_DilationIterations;
             settings.brickSize = brickSize;
 
             return settings;
