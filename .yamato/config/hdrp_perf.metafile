@@ -84,8 +84,6 @@ test_platforms:
           - [all]: --platform=editmode
           - [all]: --loglevel=verbose
           - [all]: <reuse_blocks.cache_server>
-expression_trigger:
-  expression: ""
 platforms:
   - name: Win
     apis:
@@ -107,16 +105,14 @@ platforms:
         type: Unity::VM
         image: sdet/gamecode_win10:stable
         flavor: b1.large
-pr:
-  dependencies:
-    - platform: Win
-      api: DX11
-      build_config: il2cpp
-      color_space: Linear
-      test_platforms:
-        - performance_memory_cache
-        - performance_run_build_cache
-nightly:
-  dependencies:
-    - project: HDRP_PerformanceTests
-      pr: true
+
+jobs:
+  - name: <PROJECT_NAME>
+    dependencies:
+      - platform: Win
+        api: DX11
+        build_config: il2cpp
+        color_space: Linear
+        test_platforms:
+          - performance_memory_cache
+          - performance_run_build_cache

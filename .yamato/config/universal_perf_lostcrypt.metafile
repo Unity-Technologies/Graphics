@@ -184,8 +184,7 @@ test_platforms:
           - [all]: --performance-project-id=LostCryptLostCrypt
           - <reuse_blocks.perf_utr_flags>
           - [all]: --testfilter=High
-expression_trigger:
-  expression: ""
+
 platforms:
   - name: Win
     apis:
@@ -274,54 +273,52 @@ platforms:
       - name: mono
     color_spaces:
       - Linear
-pr:
-  dependencies:
-    - platform: Win
-      api: DX11
-      build_config: mono
-      color_space: Linear
-      test_platforms:
-        - performance_playmode_runtime
-        - performance_playmode_editor
-        - performance_build_editmode
-    - platform: Win
-      api: Vulkan
-      build_config: mono
-      color_space: Linear
-      test_platforms:
-        - performance_playmode_runtime
-        #- performance_playmode_editor
-        - performance_build_editmode
-    - platform: Win
-      api: DX12
-      build_config: mono
-      color_space: Linear
-      test_platforms:
-        - performance_playmode_runtime
-        - performance_playmode_editor
-        - performance_build_editmode
-    - platform: Android
-      api: OpenGLES3
-      build_config: il2cpp
-      color_space: Linear
-      test_platforms:
-        - performance_playmode_runtime
-        - performance_build_editmode
-    - platform: Android
-      api: Vulkan
-      build_config: il2cpp
-      color_space: Linear
-      test_platforms:
-        - performance_playmode_runtime
-        - performance_build_editmode
-    - platform: iPhone
-      api: Metal
-      build_config: il2cpp
-      color_space: Linear
-      test_platforms:
-        - performance_playmode_runtime
-        - performance_build_editmode
-nightly:
-  dependencies:
-    - project: URP_Performance_LostCrypt
-      pr: true
+
+jobs:
+  - name: <PROJECT_NAME>
+    dependencies:
+      - platform: Win
+        api: DX11
+        build_config: mono
+        color_space: Linear
+        test_platforms:
+          - performance_playmode_runtime
+          - performance_playmode_editor
+          - performance_build_editmode
+      - platform: Win
+        api: Vulkan
+        build_config: mono
+        color_space: Linear
+        test_platforms:
+          - performance_playmode_runtime
+          #- performance_playmode_editor
+          - performance_build_editmode
+      - platform: Win
+        api: DX12
+        build_config: mono
+        color_space: Linear
+        test_platforms:
+          - performance_playmode_runtime
+          - performance_playmode_editor
+          - performance_build_editmode
+      - platform: Android
+        api: OpenGLES3
+        build_config: il2cpp
+        color_space: Linear
+        test_platforms:
+          - performance_playmode_runtime
+          - performance_build_editmode
+      - platform: Android
+        api: Vulkan
+        build_config: il2cpp
+        color_space: Linear
+        test_platforms:
+          - performance_playmode_runtime
+          - performance_build_editmode
+      - platform: iPhone
+        api: Metal
+        build_config: il2cpp
+        color_space: Linear
+        test_platforms:
+          - performance_playmode_runtime
+          - performance_build_editmode
