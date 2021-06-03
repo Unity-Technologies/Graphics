@@ -8,7 +8,28 @@
 
 ---
 
-Nightly_trunk:
+all_project_ci_trunk:
+    name: ABV (all PR jobs) on trunk
+    variables:
+        CUSTOM_REVISION: '{{trunk.changeset.id}}'
+        UTR_VERSION: "current"
+        TEST_FILTER: .*
+        CACHE_ARGS: '{{cache.flags}}'
+    triggers:
+        expression: pull_request.target eq "master" AND NOT pull_request.draft AND pull_request.changes.any match ["com.unity.render-pipelines.core/**/*"] AND NOT pull_request.changes.all match ["*.md", "**/*.md", "doc/**/*", "**/Documentation*/**/*"]
+
+    dependencies:
+      -  path: .yamato/all-hdrp.yml#PR_HDRP_trunk
+         rerun: on_new_revision
+      -  path: .yamato/all-vfx.yml#PR_VFX_trunk
+         rerun: on_new_revision
+      -  path: .yamato/all-urp.yml#PR_URP_trunk
+         rerun: on_new_revision
+      -  path: .yamato/all-shadergraph.yml#PR_ShaderGraph_trunk
+         rerun: on_new_revision
+      -  path: .yamato/_abv.yml#General_Checks_trunk
+         rerun: on_new_revision
+all_project_ci_nightly_trunk:
     name: Nightly on trunk
     variables:
         CUSTOM_REVISION: '{{trunk.changeset.id}}'
@@ -28,27 +49,6 @@ Nightly_trunk:
       -  path: .yamato/all-urp.yml#Nightly_URP_trunk
          rerun: on_new_revision
       -  path: .yamato/all-shadergraph.yml#Nightly_ShaderGraph_trunk
-         rerun: on_new_revision
-      -  path: .yamato/_abv.yml#General_Checks_trunk
-         rerun: on_new_revision
-ABV_(all_PR_jobs)_trunk:
-    name: ABV (all PR jobs) on trunk
-    variables:
-        CUSTOM_REVISION: '{{trunk.changeset.id}}'
-        UTR_VERSION: "current"
-        TEST_FILTER: .*
-        CACHE_ARGS: '{{cache.flags}}'
-    triggers:
-        expression: pull_request.target eq "master" AND NOT pull_request.draft AND pull_request.changes.any match ["com.unity.render-pipelines.core/**/*"] AND NOT pull_request.changes.all match ["*.md", "**/*.md", "doc/**/*", "**/Documentation*/**/*"]
-
-    dependencies:
-      -  path: .yamato/all-hdrp.yml#PR_HDRP_trunk
-         rerun: on_new_revision
-      -  path: .yamato/all-vfx.yml#PR_VFX_trunk
-         rerun: on_new_revision
-      -  path: .yamato/all-urp.yml#PR_URP_trunk
-         rerun: on_new_revision
-      -  path: .yamato/all-shadergraph.yml#PR_ShaderGraph_trunk
          rerun: on_new_revision
       -  path: .yamato/_abv.yml#General_Checks_trunk
          rerun: on_new_revision
@@ -110,25 +110,7 @@ Trunk_verification_trunk:
          rerun: on_new_revision
       -  path: .yamato/vfx_urp-win-dx11.yml#VFX_URP_Win_DX11_playmode_mono_Linear_trunk
          rerun: on_new_revision
-Nightly_CUSTOM-REVISION:
-    name: Nightly on CUSTOM-REVISION
-    variables:
-        CUSTOM_REVISION: custom_revision_not_set
-        UTR_VERSION: "current"
-        TEST_FILTER: .*
-        CACHE_ARGS: '{{cache.flags}}'
-    dependencies:
-      -  path: .yamato/all-hdrp.yml#Nightly_HDRP_CUSTOM-REVISION
-         rerun: on_new_revision
-      -  path: .yamato/all-vfx.yml#Nightly_VFX_CUSTOM-REVISION
-         rerun: on_new_revision
-      -  path: .yamato/all-urp.yml#Nightly_URP_CUSTOM-REVISION
-         rerun: on_new_revision
-      -  path: .yamato/all-shadergraph.yml#Nightly_ShaderGraph_CUSTOM-REVISION
-         rerun: on_new_revision
-      -  path: .yamato/_abv.yml#General_Checks_CUSTOM-REVISION
-         rerun: on_new_revision
-ABV_(all_PR_jobs)_CUSTOM-REVISION:
+all_project_ci_CUSTOM-REVISION:
     name: ABV (all PR jobs) on CUSTOM-REVISION
     variables:
         CUSTOM_REVISION: custom_revision_not_set
@@ -143,6 +125,24 @@ ABV_(all_PR_jobs)_CUSTOM-REVISION:
       -  path: .yamato/all-urp.yml#PR_URP_CUSTOM-REVISION
          rerun: on_new_revision
       -  path: .yamato/all-shadergraph.yml#PR_ShaderGraph_CUSTOM-REVISION
+         rerun: on_new_revision
+      -  path: .yamato/_abv.yml#General_Checks_CUSTOM-REVISION
+         rerun: on_new_revision
+all_project_ci_nightly_CUSTOM-REVISION:
+    name: Nightly on CUSTOM-REVISION
+    variables:
+        CUSTOM_REVISION: custom_revision_not_set
+        UTR_VERSION: "current"
+        TEST_FILTER: .*
+        CACHE_ARGS: '{{cache.flags}}'
+    dependencies:
+      -  path: .yamato/all-hdrp.yml#Nightly_HDRP_CUSTOM-REVISION
+         rerun: on_new_revision
+      -  path: .yamato/all-vfx.yml#Nightly_VFX_CUSTOM-REVISION
+         rerun: on_new_revision
+      -  path: .yamato/all-urp.yml#Nightly_URP_CUSTOM-REVISION
+         rerun: on_new_revision
+      -  path: .yamato/all-shadergraph.yml#Nightly_ShaderGraph_CUSTOM-REVISION
          rerun: on_new_revision
       -  path: .yamato/_abv.yml#General_Checks_CUSTOM-REVISION
          rerun: on_new_revision
