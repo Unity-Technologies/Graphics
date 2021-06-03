@@ -16,6 +16,10 @@ The version number for this package has increased due to a version update of a r
 
 ## [10.5.0] - 2021-04-19
 
+### Added
+- Added subshadergraphs for SpeedTree 8 shadergraph support: SpeedTree8Wind, SpeedTree8ColorAlpha, SpeedTree8Billboard. 
+- Added an HLSL file implementing a version of the Unity core LODDitheringTransition function which can be used in a Shader Graph
+
 ### Fixed
 - Fixed a bug where property deduplication was failing and spamming errors [1317809] (https://issuetracker.unity3d.com/issues/console-error-when-adding-a-sample-texture-operator-when-a-sampler-state-property-is-present-in-blackboard)
 - Fixed a bug where synchronously compiling an unencountered shader variant for preview was causing long delays in graph updates [1324388]

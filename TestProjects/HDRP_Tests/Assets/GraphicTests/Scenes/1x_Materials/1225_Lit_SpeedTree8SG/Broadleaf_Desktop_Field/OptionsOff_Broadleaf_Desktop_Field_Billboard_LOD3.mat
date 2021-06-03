@@ -1,0 +1,155 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &-9168581127986231277
+MonoBehaviour:
+  m_ObjectHideFlags: 11
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: aa486462e6be1764e89c788ba30e61f7, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  m_DiffusionProfileReferences:
+  - {fileID: 11400000, guid: 09c63d8f96a14884e8efd2f01004f491, type: 2}
+  m_MaterialReferences: []
+--- !u!21 &2100000
+Material:
+  serializedVersion: 6
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_Name: OptionsOff_Broadleaf_Desktop_Field_Billboard_LOD3
+  m_Shader: {fileID: -6465566751694194690, guid: 4819724840ee9444f9da841b477038ce,
+    type: 3}
+  m_ShaderKeywords: EFFECT_BILLBOARD _ALPHATEST_ON _DISABLE_SSR_TRANSPARENT _WINDQUALITY_FASTEST
+  m_LightmapFlags: 4
+  m_EnableInstancingVariants: 1
+  m_DoubleSidedGI: 0
+  m_CustomRenderQueue: 2475
+  stringTagMap:
+    MotionVector: User
+    RenderType: TransparentCutout
+  disabledShaderPasses:
+  - TransparentDepthPrepass
+  - TransparentDepthPostpass
+  - TransparentBackface
+  - MOTIONVECTORS
+  - RayTracingPrepass
+  m_SavedProperties:
+    serializedVersion: 3
+    m_TexEnvs:
+    - _BumpMap:
+        m_Texture: {fileID: 2800000, guid: 6b5d1ea1c71b0ee40a2979835ca5d6d6, type: 3}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
+    - _ExtraTex:
+        m_Texture: {fileID: 2800000, guid: 6a7c4fae79f55494ead02ca106fa363c, type: 3}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
+    - _MainTex:
+        m_Texture: {fileID: 2800000, guid: 04e0044fe17f66f46809838c3bb5dc07, type: 3}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
+    - _SubsurfaceTex:
+        m_Texture: {fileID: 2800000, guid: 45836da1bc2a3024d90ad21a3521c381, type: 3}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
+    - unity_Lightmaps:
+        m_Texture: {fileID: 0}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
+    - unity_LightmapsInd:
+        m_Texture: {fileID: 0}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
+    - unity_ShadowMasks:
+        m_Texture: {fileID: 0}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
+    m_Floats:
+    - BOOLEAN_86F6FC0667E94E908D51DCBDE6FC09D4: 0
+    - Diffusion_Profile: 2.8699825
+    - EFFECT_EXTRA_TEX: 0
+    - _AddPrecomputedVelocity: 0
+    - _AlphaClipThreshold: 0.1
+    - _AlphaCutoffEnable: 1
+    - _AlphaDstBlend: 0
+    - _AlphaSrcBlend: 1
+    - _AlphaToMask: 0
+    - _AlphaToMaskInspectorValue: 0
+    - _BlendMode: 0
+    - _CullMode: 2
+    - _CullModeForward: 2
+    - _DepthOffsetEnable: 0
+    - _DiffusionProfileHash: 2.8699825
+    - _DoubleSidedEnable: 0
+    - _DoubleSidedNormalMode: 0
+    - _DstBlend: 0
+    - _EnableBlendModePreserveSpecularLighting: 1
+    - _EnableFogOnTransparent: 1
+    - _Glossiness: 0.5
+    - _HueVariationKwToggle: 0
+    - _NormalMapKwToggle: 0
+    - _OpaqueCullMode: 2
+    - _RayTracing: 0
+    - _ReceivesSSR: 1
+    - _ReceivesSSRTransparent: 0
+    - _RefractionModel: 0
+    - _RenderQueueType: 1
+    - _RequireSplitLighting: 0
+    - _SrcBlend: 1
+    - _StencilRef: 0
+    - _StencilRefDepth: 8
+    - _StencilRefDistortionVec: 4
+    - _StencilRefGBuffer: 10
+    - _StencilRefMV: 40
+    - _StencilWriteMask: 6
+    - _StencilWriteMaskDepth: 8
+    - _StencilWriteMaskDistortionVec: 4
+    - _StencilWriteMaskGBuffer: 14
+    - _StencilWriteMaskMV: 40
+    - _SubsurfaceKwToggle: 0
+    - _SubsurfaceScale: 1
+    - _SupportDecals: 1
+    - _SurfaceType: 0
+    - _TransparentBackfaceEnable: 0
+    - _TransparentCullMode: 2
+    - _TransparentDepthPostpassEnable: 0
+    - _TransparentDepthPrepassEnable: 0
+    - _TransparentSortPriority: 0
+    - _TransparentWritingMotionVec: 0
+    - _TransparentZWrite: 0
+    - _UseShadowThreshold: 0
+    - _WINDQUALITY: 1
+    - _WindQuality: 0
+    - _ZTestDepthEqualForOpaque: 3
+    - _ZTestGBuffer: 3
+    - _ZTestTransparent: 4
+    - _ZWrite: 1
+    m_Colors:
+    - Diffusion_Profile_Asset: {r: -9.35656e-30, g: -2.3584084e-36, b: -5.2225505e+29,
+        a: -3.8498916e-28}
+    - _Color: {r: 1, g: 1, b: 1, a: 1}
+    - _DiffusionProfileAsset: {r: -9.35656e-30, g: -2.3584084e-36, b: -5.2225505e+29,
+        a: -3.8498916e-28}
+    - _DoubleSidedConstants: {r: -1, g: -1, b: -1, a: 0}
+    - _EmissionColor: {r: 1, g: 1, b: 1, a: 1}
+    - _HueVariationColor: {r: 1, g: 0.5, b: 0, a: 0.1}
+  m_BuildTextureStacks: []
+--- !u!114 &3902567511799838614
+MonoBehaviour:
+  m_ObjectHideFlags: 11
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: da692e001514ec24dbc4cca1949ff7e8, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  version: 11
