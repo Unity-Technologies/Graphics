@@ -100,7 +100,7 @@ URP_Performance_BoatAttack_OSX_Metal_performance_playmode_runtime_mono_Linear_tr
         pwd;
         cd ~/TestProjects/BoatAttack
         pwd;
-        export GIT_REVISIONDATE=`git rev-parse HEAD | git show -s --format=%cI`
+        export GIT_REVISIONDATE=`git rev-parse HEAD | git show -s --format=%cI`;
         ./utr                                                                                           \\
             --artifacts_path=~/TestProjects/BoatAttack/test-results                                       \\
             --build-only                                                                                \\
@@ -123,20 +123,19 @@ URP_Performance_BoatAttack_OSX_Metal_performance_playmode_runtime_mono_Linear_tr
             --scripting-backend=Mono2x                                                                  \\
             --suite=playmode                                                                            \\ 
             #--testfilter=Low                                                                           \\
-            --testproject=~/TestProjects/BoatAttack    \\
+            --testproject=~/TestProjects/BoatAttack    \\ 
             --timeout=2400;                                                                             \\
-
-        echo \$? > ~/.utr_result"
+        echo \$? > ~/.utr_result;"
 
       # Read UTR result and data from test device.
       - scp bokken@$BOKKEN_DEVICE_IP:~/.utr_result ~/.utr_result
 
       # Print status and exit with UTR's exit code.
       - |
-        UTR_RESULT=$(cat ~/.utr_result)
-        echo "=================================================="
-        echo "UTR build exit code: $UTR_RESULT"
-        echo "=================================================="
+        UTR_RESULT=$(cat ~/.utr_result);
+        echo "==================================================";
+        echo "UTR build exit code: $UTR_RESULT";
+        echo "==================================================";
         if [ "$UTR_RESULT" != "0" ]; then exit $UTR_RESULT; fi
                       
     # Run tests on the device and capture exit code. This will be rendered as a single line command. Beware of the backslashes and the semicolons too.
@@ -158,7 +157,7 @@ URP_Performance_BoatAttack_OSX_Metal_performance_playmode_runtime_mono_Linear_tr
             --reruncount=2                        \\
             --suite=playmode                      \\
             --timeout=2400;
-        echo \$? > ~/.utr_result"
+        echo \$? > ~/.utr_result;"
     
       # Read UTR result and data from test device.
       - scp bokken@$BOKKEN_DEVICE_IP:~/.utr_result ~/.utr_result
@@ -167,9 +166,9 @@ URP_Performance_BoatAttack_OSX_Metal_performance_playmode_runtime_mono_Linear_tr
       # Print status and exit with UTR's exit code.
       - |
         UTR_RESULT=$(cat ~/.utr_result)
-        echo "=================================================="
-        echo "UTR test exit code: $UTR_RESULT"
-        echo "=================================================="
+        echo "==================================================";
+        echo "UTR test exit code: $UTR_RESULT";
+        echo "==================================================";
         exit $UTR_RESULT
         
     artifacts:
