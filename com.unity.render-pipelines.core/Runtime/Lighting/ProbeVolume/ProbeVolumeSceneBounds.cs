@@ -173,9 +173,6 @@ namespace UnityEngine.Experimental.Rendering
                     hasProbeVolumes = new Dictionary<string, bool>();
                 }
 
-                // If previous inflations were successful, this should be unnecessary, but still do it for safeguard.
-                InflateBound(ref newBound);
-
                 if (sceneBounds.ContainsKey(scene.path))
                 {
                     sceneBounds[scene.path] = newBound;
