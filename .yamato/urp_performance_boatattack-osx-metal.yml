@@ -102,7 +102,7 @@ URP_Performance_BoatAttack_OSX_Metal_performance_playmode_runtime_mono_Linear_tr
         pwd;
         export GIT_REVISIONDATE=`git rev-parse HEAD | git show -s --format=%cI`;
         ./utr                                                                                           \\
-            --artifacts_path=./TestProjects/BoatAttack/test-results                                     \\
+            --artifacts_path=TestProjects/BoatAttack/test-results                                     \\
             --build-only                                                                                \\
             --category=URP                                                                              \\
             --editor-location=.Editor                                                                   \\
@@ -123,7 +123,7 @@ URP_Performance_BoatAttack_OSX_Metal_performance_playmode_runtime_mono_Linear_tr
             --scripting-backend=Mono2x                                                                  \\
             --suite=playmode                                                                            \\ 
             #--testfilter=Low                                                                           \\
-            --testproject=./TestProjects/BoatAttack    \\ 
+            --testproject=TestProjects/BoatAttack    \\ 
             --timeout=2400;                                                                             \\
         echo \$? > ~/.utr_result;"
 
