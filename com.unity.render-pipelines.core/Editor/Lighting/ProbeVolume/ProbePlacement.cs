@@ -276,22 +276,11 @@ namespace UnityEngine.Experimental.Rendering
                             {
                                 Vector3 subCellPos = (subVolume.parentPosition / parentSubdivLevel);
                                 // Add the sub-cell offset:
-                                int t = (int)Mathf.Pow(3, i + 1);
-                                Vector3Int subCellPosInt = new Vector3Int(Mathf.FloorToInt(subCellPos.x), Mathf.FloorToInt(subCellPos.y), Mathf.FloorToInt(subCellPos.z)) * t;
+                                int brickSize = (int)Mathf.Pow(3, i + 1);
+                                Vector3Int subCellPosInt = new Vector3Int(Mathf.FloorToInt(subCellPos.x), Mathf.FloorToInt(subCellPos.y), Mathf.FloorToInt(subCellPos.z)) * brickSize;
                                 Vector3Int parentSubCellPos = new Vector3Int(Mathf.RoundToInt(cellID.x), Mathf.RoundToInt(cellID.y), Mathf.RoundToInt(cellID.z)) + subCellPosInt;
 
-                                // We only generate the parent brick if it's completely contained inside a probe volume
-                                var v = ProbeVolumePositioning.CalculateBrickVolume(ProbeReferenceVolume.instance.GetTransform(), new Brick(parentSubCellPos, i + 1));
-                                var aabb = v.CalculateAABB();
-                                bool generateParentBrick = false;
-                                foreach (var probeVolume in probeVolumes)
-                                {
-                                    var pvAABB = probeVolume.volume.CalculateAABB();
-                                    if (pvAABB.Contains(aabb.min) && pvAABB.Contains(aabb.max))
-                                        generateParentBrick = true;
-                                }
-
-                                if (generateParentBrick)
+                                if (IsParentBrickInProbeVolume(parentSubCellPos, minBrickSize, brickSize))
                                 {
                                     // Find the corner in bricks of the parent volume:
                                     brickSet.Add(new Brick(parentSubCellPos, i + 1));
@@ -304,6 +293,22 @@ namespace UnityEngine.Experimental.Rendering
                 else
                 {
                     SubdivideSubCell(cellVolume, subdivisionCtx, ctx, renderers, probeVolumes, brickSet);
+                }
+
+                bool IsParentBrickInProbeVolume(Vector3Int parentSubCellPos, float minBrickSize, int brickSize)
+                {
+                    Vector3 center = (Vector3)parentSubCellPos * minBrickSize + Vector3.one * brickSize * minBrickSize / 2.0f;
+                    Bounds parentAABB = new Bounds(center, Vector3.one * brickSize * minBrickSize);
+
+                    bool generateParentBrick = false;
+                    foreach (var probeVolume in probeVolumes)
+                    {
+                        var pvAABB = probeVolume.volume.CalculateAABB();
+                        if (pvAABB.Contains(parentAABB.min) && pvAABB.Contains(parentAABB.max))
+                            generateParentBrick = true;
+                    }
+
+                    return generateParentBrick;
                 }
 
                 finalBricks = brickSet.ToList();
