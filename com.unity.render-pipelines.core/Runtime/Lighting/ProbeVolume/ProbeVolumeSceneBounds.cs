@@ -110,7 +110,7 @@ namespace UnityEngine.Experimental.Rendering
             float minBrickSize = refVol.MinBrickSize();
 
             float minSideInBricks = Mathf.CeilToInt(minSizedDim / minBrickSize);
-            int subdivLevel = Mathf.CeilToInt(Mathf.Log(minSideInBricks, 3));
+            int subdivLevel = Mathf.FloorToInt(Mathf.Log(minSideInBricks, 3));
 
             return subdivLevel;
         }
