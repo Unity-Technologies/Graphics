@@ -101,10 +101,10 @@ URP_Performance_BoatAttack_OSX_Metal_performance_playmode_runtime_mono_Linear_tr
         echo UPM Registry: \$UPM_REGISTRY;
         echo ==================================================;
         pwd;
-        cd TestProjects/BoatAttack;
+        cd Graphics/TestProjects/BoatAttack;
         pwd;
         export GIT_REVISIONDATE=`git rev-parse HEAD | git show -s --format=%cI`;
-        ~/TestProjects/BoatAttack/utr                                                                 \\
+        Graphics/TestProjects/BoatAttack/utr                                                                 \\
             --artifacts_path=TestProjects/BoatAttack/test-results                                     \\
             --build-only                                                                                \\
             --category=URP                                                                              \\
@@ -148,7 +148,7 @@ URP_Performance_BoatAttack_OSX_Metal_performance_playmode_runtime_mono_Linear_tr
         echo ==================================================;
         echo UPM Registry: \$UPM_REGISTRY;
         echo ==================================================;
-        cd ~/TestProjects/BoatAttack;
+        cd Graphics/TestProjects/BoatAttack;
         ./utr                                     \\
             --artifacts_path=test-results         \\
             --category=URP                                                                       \\
