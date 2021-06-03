@@ -265,32 +265,10 @@ namespace UnityEngine.Experimental.Rendering
             Vector3Int volMin, volMax;
             ClipToIndexSpace(pos, m_VoxelSubdivLevel, out volMin, out volMax);
 
-            int bsize_x = volMax.x - volMin.x;
-            int bsize_y = volMax.y - volMin.y;
-            int bsize_z = volMax.z - volMin.z;
+            Vector3Int bSize = volMax - volMin;
+            Vector3Int posIS = m_CenterIS + volMin;
 
-            if (bsize_x <= 0 || bsize_z <= 0 || bsize_y <= 0)
-                return;
-
-            int posIS_x = m_CenterIS.x + volMin.x;
-            int posIS_y = m_CenterIS.y + volMin.y;
-            int posIS_z = m_CenterIS.z + volMin.z;
-
-            for (int z = 0; z < bsize_z; z++)
-            {
-                for (int y = 0; y < bsize_y; y++)
-                {
-                    for (int x = 0; x < bsize_x; x++)
-                    {
-                        int mx = (posIS_x + x) % m_IndexDim.x;
-                        int my = (posIS_y + y) % m_IndexDim.y;
-                        int mz = (posIS_z + z) % m_IndexDim.z;
-                        int indexTrans = TranslateIndex(mx, my, mz);
-                        m_IndexBufferData[indexTrans] = -1;
-                        m_NeedUpdateIndexComputeBuffer = true;
-                    }
-                }
-            }
+            UpdateIndexData(posIS, bSize, -1);
         }
 
         void UpdateIndexForVoxel(Vector3Int voxel, List<ReservedBrick> bricks, List<ushort> indices)
@@ -312,33 +290,34 @@ namespace UnityEngine.Experimental.Rendering
                 brick_max.y = Mathf.Min(vx_max.y, brick_max.y);
                 brick_max.z = Mathf.Min(vx_max.z, brick_max.z - m_CenterRS.z);
 
-                int bsize_x = brick_max.x - brick_min.x;
-                int bsize_y = brick_max.y - brick_min.y;
-                int bsize_z = brick_max.z - brick_min.z;
+                Vector3Int bSize = brick_max - brick_min;
+                Vector3Int posIS = m_CenterIS + brick_min;
 
-                if (bsize_x <= 0 || bsize_z <= 0 || bsize_y <= 0)
-                    continue;
+                UpdateIndexData(posIS, bSize, rbrick.flattenedIdx);
+            }
+        }
 
-                int posIS_x = m_CenterIS.x + brick_min.x;
-                int posIS_y = m_CenterIS.y + brick_min.y;
-                int posIS_z = m_CenterIS.z + brick_min.z;
+        void UpdateIndexData(in Vector3Int pos, in Vector3Int size, int value)
+        {
+            if (size.x <= 0 || size.y <= 0 || size.z <= 0)
+                return;
 
-                for (int z = 0; z < bsize_z; z++)
+            for (int z = 0; z < size.z; z++)
+            {
+                for (int y = 0; y < size.y; y++)
                 {
-                    for (int y = 0; y < bsize_y; y++)
+                    for (int x = 0; x < size.x; x++)
                     {
-                        for (int x = 0; x < bsize_x; x++)
-                        {
-                            int mx = (posIS_x + x) % m_IndexDim.x;
-                            int my = (posIS_y + y) % m_IndexDim.y;
-                            int mz = (posIS_z + z) % m_IndexDim.z;
-                            int indexTrans = TranslateIndex(mx, my, mz);
-                            m_IndexBufferData[indexTrans] = rbrick.flattenedIdx;
-                            m_NeedUpdateIndexComputeBuffer = true;
-                        }
+                        int mx = (pos.x + x) % m_IndexDim.x;
+                        int my = (pos.y + y) % m_IndexDim.y;
+                        int mz = (pos.z + z) % m_IndexDim.z;
+                        int indexTrans = TranslateIndex(mx, my, mz);
+                        m_IndexBufferData[indexTrans] = value;
                     }
                 }
             }
+
+            m_NeedUpdateIndexComputeBuffer = true;
         }
 
         void ClipToIndexSpace(Vector3Int pos, int subdiv, out Vector3Int outMinpos, out Vector3Int outMaxpos)
