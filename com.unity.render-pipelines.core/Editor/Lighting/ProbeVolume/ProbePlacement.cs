@@ -237,9 +237,7 @@ namespace UnityEngine.Experimental.Rendering
                 {
                     foreach (var subVolume in SubdivideVolumeIntoSubVolume(ctx, cellVolume))
                     {
-                        var subVolumeAABB = subVolume.volume.CalculateAABB();
                         // redo the renderers and probe volume culling to avoid unnecessary work
-
                         // Calculate overlaping probe volumes to avoid unnecessary work
                         var overlappingProbeVolumes = new List<(ProbeVolume component, ProbeReferenceVolume.Volume volume)>();
                         foreach (var probeVolume in probeVolumes)
