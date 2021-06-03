@@ -89,6 +89,8 @@ URP_Performance_BoatAttack_OSX_Metal_performance_playmode_runtime_mono_Linear_tr
       # Setup app signing.
       - scp $YAMATO_SOURCE_DIR/.yamato/script/setup_codesign.sh bokken@$BOKKEN_DEVICE_IP:~/setup_codesign.sh
       - ssh bokken@$BOKKEN_DEVICE_IP "bash ~/setup_codesign.sh"
+      - ssh bokken@$BOKKEN_DEVICE_IP "bash -lc 'pwd'"
+      - ssh bokken@$BOKKEN_DEVICE_IP "bash -lc 'ls'"
 
                          
       # Build on the device and capture exit code. This will be rendered as a single line command. Beware of the backslashes and the semicolons too.
