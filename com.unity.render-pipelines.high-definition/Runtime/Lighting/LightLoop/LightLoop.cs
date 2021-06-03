@@ -884,6 +884,12 @@ namespace UnityEngine.Rendering.HighDefinition
             // Screen space shadow
             int numMaxShadows = Math.Max(m_Asset.currentPlatformRenderPipelineSettings.hdShadowInitParams.maxScreenSpaceShadowSlots, 1);
             m_CurrentScreenSpaceShadowData = new ScreenSpaceShadowData[numMaxShadows];
+
+            // Surface gradient decal blending
+            if (asset.currentPlatformRenderPipelineSettings.supportSurfaceGradient)
+                Shader.EnableKeyword("DECAL_SURFACE_GRADIENT");
+            else
+                Shader.DisableKeyword("DECAL_SURFACE_GRADIENT");
         }
 
         void CleanupLightLoop()
@@ -947,7 +953,7 @@ namespace UnityEngine.Rendering.HighDefinition
             }
 
             // We need to verify and flush any pending asset loading for probe volume.
-            if (m_Asset.currentPlatformRenderPipelineSettings.supportProbeVolume)
+            if (IsAPVEnabled())
             {
                 if (hdCamera.frameSettings.IsEnabled(FrameSettingsField.ProbeVolume))
                 {

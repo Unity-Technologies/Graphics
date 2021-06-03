@@ -250,7 +250,7 @@ namespace UnityEditor.Rendering.HighDefinition
             {
                 EditorApplication.update -= WizardBehaviourDelayed;
 
-                if (HDUserSettings.wizardIsStartPopup && !HDUserSettings.wizardPopupAlreadyShownOnce)
+                if (HDProjectSettings.wizardIsStartPopup && !HDUserSettings.wizardPopupAlreadyShownOnce)
                 {
                     //Application.isPlaying cannot be called in constructor. Do it here
                     if (Application.isPlaying)
@@ -444,11 +444,11 @@ namespace UnityEditor.Rendering.HighDefinition
         {
             var toggle = new Toggle(Style.showOnStartUp)
             {
-                value = HDUserSettings.wizardIsStartPopup,
+                value = HDProjectSettings.wizardIsStartPopup,
                 name = "WizardCheckbox"
             };
             toggle.RegisterValueChangedCallback(evt
-                => HDUserSettings.wizardIsStartPopup = evt.newValue);
+                => HDProjectSettings.wizardIsStartPopup = evt.newValue);
             return toggle;
         }
 

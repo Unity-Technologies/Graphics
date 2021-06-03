@@ -8,7 +8,7 @@ namespace UnityEngine.Rendering.HighDefinition
     /// Holds the physical settings set on cameras.
     /// </summary>
     [Serializable]
-    public class HDPhysicalCamera
+    public struct HDPhysicalCamera
     {
         /// <summary>
         /// The minimum allowed aperture.
@@ -31,18 +31,28 @@ namespace UnityEngine.Rendering.HighDefinition
         public const int kMaxBladeCount = 11;
 
         // Camera body
-        [SerializeField][Min(1f)] int m_Iso = 200;
-        [SerializeField][Min(0f)] float m_ShutterSpeed = 1f / 200f;
+        [SerializeField][Min(1f)] int m_Iso;
+        [SerializeField][Min(0f)] float m_ShutterSpeed;
 
         // Lens
         // Note: focalLength is already defined in the regular camera component
-        [SerializeField][Range(kMinAperture, kMaxAperture)] float m_Aperture = 16f;
+        [SerializeField][Range(kMinAperture, kMaxAperture)] float m_Aperture;
+        [SerializeField][Min(0.1f)] float m_FocusDistance;
 
         // Aperture shape
-        [SerializeField][Range(kMinBladeCount, kMaxBladeCount)] int m_BladeCount = 5;
-        [SerializeField] Vector2 m_Curvature = new Vector2(2f, 11f);
-        [SerializeField][Range(0f, 1f)] float m_BarrelClipping = 0.25f;
-        [SerializeField][Range(-1f, 1f)] float m_Anamorphism = 0f;
+        [SerializeField][Range(kMinBladeCount, kMaxBladeCount)] int m_BladeCount;
+        [SerializeField] Vector2 m_Curvature;
+        [SerializeField][Range(0f, 1f)] float m_BarrelClipping;
+        [SerializeField][Range(-1f, 1f)] float m_Anamorphism;
+
+        /// <summary>
+        /// The focus distance of the lens. The Depth of Field Volume override uses this value if you set focusDistanceMode to FocusDistanceMode.Camera.
+        /// </summary>
+        public float focusDistance
+        {
+            get => m_FocusDistance;
+            set => m_FocusDistance = Mathf.Max(value, 0.1f);
+        }
 
         /// <summary>
         /// The sensor sensitivity (ISO).
@@ -116,15 +126,28 @@ namespace UnityEngine.Rendering.HighDefinition
         /// Copies the settings of this instance to another instance.
         /// </summary>
         /// <param name="c">The instance to copy the settings to.</param>
+        [Obsolete("The CopyTo method is obsolete and does not work anymore. Use the assignement operator instead to get a copy of the HDPhysicalCamera parameters.", true)]
         public void CopyTo(HDPhysicalCamera c)
         {
-            c.iso = iso;
-            c.shutterSpeed = shutterSpeed;
-            c.aperture = aperture;
-            c.bladeCount = bladeCount;
-            c.curvature = curvature;
-            c.barrelClipping = barrelClipping;
-            c.anamorphism = anamorphism;
+        }
+
+        /// <summary>
+        /// A set of default physical camera parameters.
+        /// </summary>
+        /// <returns>Returns a set of default physical camera parameters.</returns>
+        public static HDPhysicalCamera GetDefaults()
+        {
+            HDPhysicalCamera val = new HDPhysicalCamera();
+            val.iso = 200;
+            val.shutterSpeed = 1f / 200f;
+            val.aperture = 16;
+            val.focusDistance = 10;
+            val.bladeCount = 5;
+            val.curvature = new Vector2(2f, 11f);
+            val.barrelClipping = 0.25f;
+            val.anamorphism = 0;
+
+            return val;
         }
     }
 
@@ -304,7 +327,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
         /// <summary>Physical camera parameters.</summary>
         [ValueCopy] // reference should not be same. only content.
-        public HDPhysicalCamera physicalParameters = new HDPhysicalCamera();
+        public HDPhysicalCamera physicalParameters = HDPhysicalCamera.GetDefaults();
 
         /// <summary>Vertical flip mode.</summary>
         public FlipYMode flipYMode;
@@ -575,7 +598,7 @@ namespace UnityEngine.Rendering.HighDefinition
             data.probeLayerMask = probeLayerMask;
             data.hasPersistentHistory = hasPersistentHistory;
             data.exposureTarget = exposureTarget;
-            physicalParameters.CopyTo(data.physicalParameters);
+            physicalParameters = data.physicalParameters;
 
             data.renderingPathCustomFrameSettings = renderingPathCustomFrameSettings;
             data.renderingPathCustomFrameSettingsOverrideMask = renderingPathCustomFrameSettingsOverrideMask;

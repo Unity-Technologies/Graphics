@@ -1,5 +1,3 @@
-#if UNITY_EDITOR
-
 using UnityEditor;
 using System.Reflection;
 using System;
@@ -12,6 +10,48 @@ namespace UnityEngine.Experimental.Rendering
     [CustomEditor(typeof(ProbeReferenceVolumeAuthoring))]
     internal class ProbeReferenceVolumeAuthoringEditor : Editor
     {
+        [InitializeOnLoad]
+        class RealtimeProbeSubdivisionDebug
+        {
+            static RealtimeProbeSubdivisionDebug()
+            {
+                EditorApplication.update -= UpdateRealtimeSubdivisionDebug;
+                EditorApplication.update += UpdateRealtimeSubdivisionDebug;
+            }
+
+            static void UpdateRealtimeSubdivisionDebug()
+            {
+                if (ProbeReferenceVolume.instance.debugDisplay.realtimeSubdivision)
+                {
+                    var probeVolumeAuthoring = FindObjectOfType<ProbeReferenceVolumeAuthoring>();
+                    var ctx = ProbeGIBaking.PrepareProbeSubdivisionContext(probeVolumeAuthoring);
+
+                    // Cull all the cells that are not visible (we don't need them for realtime debug)
+                    ctx.cells.RemoveAll(c => {
+                        return probeVolumeAuthoring.ShouldCullCell(c.position);
+                    });
+
+                    Camera activeCamera = Camera.current ?? SceneView.lastActiveSceneView.camera;
+
+                    if (activeCamera != null)
+                    {
+                        var cameraPos = activeCamera.transform.position;
+                        ctx.cells.Sort((c1, c2) => {
+                            c1.volume.CalculateCenterAndSize(out var c1Center, out var _);
+                            float c1Distance = Vector3.Distance(cameraPos, c1Center);
+
+                            c2.volume.CalculateCenterAndSize(out var c2Center, out var _);
+                            float c2Distance = Vector3.Distance(cameraPos, c2Center);
+
+                            return c1Distance.CompareTo(c2Distance);
+                        });
+                    }
+
+                    ProbeGIBaking.BakeBricks(ctx);
+                }
+            }
+        }
+
         private SerializedProperty m_Dilate;
         private SerializedProperty m_MaxDilationSamples;
         private SerializedProperty m_MaxDilationSampleDistance;
@@ -50,9 +90,14 @@ namespace UnityEngine.Experimental.Rendering
             {
                 serializedObject.Update();
 
+                if (!ProbeReferenceVolume.instance.isInitialized)
+                {
+                    EditorGUILayout.HelpBox("The probe volumes feature is disabled. The feature needs to be enabled in the HDRP Settings and on the used HDRP asset.", MessageType.Warning, wide: true);
+                    return;
+                }
+
                 var probeReferenceVolumes = FindObjectsOfType<ProbeReferenceVolumeAuthoring>();
                 bool mismatchedProfile = false;
-                bool mismatchedTransform = false;
                 if (probeReferenceVolumes.Length > 1)
                 {
                     foreach (var o1 in probeReferenceVolumes)
@@ -63,10 +108,6 @@ namespace UnityEngine.Experimental.Rendering
                             {
                                 mismatchedProfile = true;
                             }
-                            if (o1.transform.worldToLocalMatrix != o2.transform.worldToLocalMatrix)
-                            {
-                                mismatchedTransform = true;
-                            }
                         }
                     }
 
@@ -74,11 +115,6 @@ namespace UnityEngine.Experimental.Rendering
                     {
                         EditorGUILayout.HelpBox("Multiple Probe Reference Volume components are loaded, but they have different profiles. "
                             + "This is unsupported, please make sure all loaded Probe Reference Volume have the same profile or profiles with equal values.", MessageType.Error, wide: true);
-                    }
-                    if (mismatchedTransform)
-                    {
-                        EditorGUILayout.HelpBox("Multiple Probe Reference Volume components are loaded, but they have different transforms. "
-                            + "This is currently unsupported, please make sure all loaded Probe Reference Volume have the same transform.", MessageType.Error, wide: true);
                     }
                 }
 
@@ -150,5 +186,3 @@ namespace UnityEngine.Experimental.Rendering
         }
     }
 }
-
-#endif

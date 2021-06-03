@@ -467,11 +467,11 @@ namespace UnityEngine.Rendering.HighDefinition
 
             var settings = hdCamera.volumeStack.GetComponent<ScreenSpaceReflection>();
 
-            bool usesRaytracedReflections = hdCamera.frameSettings.IsEnabled(FrameSettingsField.RayTracing) && settings.rayTracing.value;
+            bool usesRaytracedReflections = hdCamera.frameSettings.IsEnabled(FrameSettingsField.RayTracing) && ScreenSpaceReflection.RayTracingActive(settings);
             if (usesRaytracedReflections)
             {
                 result = RenderRayTracedReflections(renderGraph, hdCamera,
-                    prepassOutput.depthBuffer, prepassOutput.stencilBuffer, prepassOutput.normalBuffer, prepassOutput.resolvedMotionVectorsBuffer, clearCoatMask, skyTexture, rayCountTexture,
+                    prepassOutput, clearCoatMask, skyTexture, rayCountTexture,
                     m_ShaderVariablesRayTracingCB, transparent);
             }
             else

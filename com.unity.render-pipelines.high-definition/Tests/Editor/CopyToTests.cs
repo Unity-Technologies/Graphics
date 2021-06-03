@@ -52,7 +52,6 @@ namespace UnityEngine.Rendering.HighDefinition.Tests
             // test object we want to test the CopyTo
             new TestTypeCase(typeof(ScalableSettingValue<int>)),
             new TestTypeCase(typeof(InfluenceVolume)),
-            new TestTypeCase(typeof(HDPhysicalCamera)),
             new TestTypeCase(typeof(HDAdditionalCameraData)),
             new TestTypeCase(typeof(HDAdditionalLightData)),
         };

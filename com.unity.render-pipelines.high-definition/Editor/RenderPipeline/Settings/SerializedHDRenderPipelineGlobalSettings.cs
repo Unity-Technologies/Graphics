@@ -44,9 +44,12 @@ namespace UnityEditor.Rendering.HighDefinition
         public SerializedProperty shaderVariantLogLevel;
         public SerializedProperty lensAttenuation;
         public SerializedProperty diffusionProfileSettingsList;
+        public SerializedProperty supportProbeVolumes;
 
         public SerializedProperty DLSSProjectId;
         public SerializedProperty useDLSSCustomProjectId;
+
+        public SerializedProperty apvSceneBounds;
 
         internal ReorderableList uiBeforeTransparentCustomPostProcesses;
         internal ReorderableList uiBeforeTAACustomPostProcesses;
@@ -130,10 +133,12 @@ namespace UnityEditor.Rendering.HighDefinition
             {
                 drawElement = DrawDiffusionProfileElement
             };
-
+            supportProbeVolumes = serializedObject.Find((HDRenderPipelineGlobalSettings s) => s.supportProbeVolumes);
 
             DLSSProjectId = serializedObject.Find((HDRenderPipelineGlobalSettings s) => s.DLSSProjectId);
             useDLSSCustomProjectId = serializedObject.Find((HDRenderPipelineGlobalSettings s) => s.useDLSSCustomProjectId);
+
+            apvSceneBounds = serializedObject.Find((HDRenderPipelineGlobalSettings s) => s.apvScenesBounds);
         }
 
         void InitializeCustomPostProcessesLists()

@@ -2,6 +2,7 @@ using System;
 using UnityEngine;
 using UnityEngine.Rendering;
 using RenderQueue = UnityEngine.Rendering.RenderQueue;
+using UnityEditor.ShaderGraph.Drawing;
 
 namespace UnityEditor.Rendering.BuiltIn.ShaderGraph
 {
@@ -121,16 +122,7 @@ namespace UnityEditor.Rendering.BuiltIn.ShaderGraph
             if (properties == null)
                 return;
 
-            for (var i = 0; i < properties.Length; i++)
-            {
-                if ((properties[i].flags & (MaterialProperty.PropFlags.HideInInspector | MaterialProperty.PropFlags.PerRendererData)) != 0)
-                    continue;
-
-                float h = materialEditor.GetPropertyHeight(properties[i], properties[i].displayName);
-                Rect r = EditorGUILayout.GetControlRect(true, h, EditorStyles.layerMaskField);
-
-                materialEditor.ShaderProperty(r, properties[i], properties[i].displayName);
-            }
+            ShaderGraphPropertyDrawers.DrawShaderGraphGUI(materialEditor, properties);
         }
 
         static void UpdateMaterials(MaterialEditor materialEditor)

@@ -177,7 +177,7 @@ test_platforms:
 
       - [all]: --editor-location=.Editor
       - [Android_OpenGLES3, Android_Vulkan]: --editor-location=./WindowsEditor
-      - [OSX_Metal]: --editor-location=Users/bokken/.Editor
+      - [OSX_Metal]: --editor-location=/Users/bokken/.Editor
 
       - [all]: --artifacts_path=TestProjects/<PROJECT_FOLDER>/test-results
       - [OSX_Metal]: --artifacts_path=/Users/bokken/Graphics/TestProjects/<PROJECT_FOLDER>/test-results

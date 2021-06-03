@@ -95,6 +95,35 @@ HDRP_Linux_Vulkan_editmode_mono_Linear_trunk:
     dependencies:
       -  path: .yamato/_editor_priming.yml#editor:priming:trunk:Linux
          rerun: on_new_revision
+HDRP_Linux_Vulkan_editmode_XR_mono_Linear_trunk:
+    name: HDRP on Linux_Vulkan_editmode_XR_mono_Linear on version trunk
+    agent:
+        type: Unity::VM::GPU
+        image: package-ci/ubuntu:stable
+        flavor: b1.large
+    variables:
+        UPM_REGISTRY: https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates
+        CUSTOM_REVISION: '{{trunk.changeset.id}}'
+        UTR_VERSION: "current"
+        TEST_FILTER: .*
+    commands:
+      -  curl -s https://artifactory.prd.it.unity3d.com/artifactory/unity-tools-local/utr-standalone/utr --output utr
+      -  chmod +x utr
+      -  sudo rm -f /etc/apt/sources.list /etc/apt/sources.list.d/{nodesource,teamviewer,deadsnakes-ubuntu-ppa-}*
+      -  curl -L https://artifactory.prd.it.unity3d.com/artifactory/api/gpg/key/public | sudo apt-key add -
+      -  sudo sh -c "echo 'deb https://artifactory.prd.it.unity3d.com/artifactory/unity-apt-local bionic main' > /etc/apt/sources.list.d/unity.list"
+      -  sudo apt update
+      -  sudo apt install unity-downloader-cli
+      -  sudo unity-downloader-cli --source-file unity_revision.txt -c editor -c il2cpp  --wait --published-only
+      -  DISPLAY=:0.0 ./utr --artifacts_path=TestProjects/HDRP_Tests/test-results --editor-location=.Editor --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-force-vulkan" --extra-editor-arg="-playergraphicsapi=Vulkan" --extra-editor-arg="-xr-reuse-tests" --platform=editmode --scripting-backend=Mono2x --suite=editor --testfilter=$TEST_FILTER --testproject=./TestProjects/HDRP_Tests --zero-tests-are-ok=1
+    artifacts:
+        logs:
+            paths:
+              -  "**/test-results/**"
+              -  "TestProjects/HDRP_Tests/Logs/*.log"
+    dependencies:
+      -  path: .yamato/_editor_priming.yml#editor:priming:trunk:Linux
+         rerun: on_new_revision
 HDRP_Linux_Vulkan_Standalone_mono_Linear_trunk:
     name: HDRP on Linux_Vulkan_Standalone_mono_Linear on version trunk
     agent:
@@ -288,6 +317,35 @@ HDRP_Linux_Vulkan_editmode_mono_Linear_CUSTOM-REVISION:
       -  sudo apt install unity-downloader-cli
       -  sudo unity-downloader-cli --source-file unity_revision.txt -c editor -c il2cpp  --wait --published-only
       -  DISPLAY=:0.0 ./utr --artifacts_path=TestProjects/HDRP_Tests/test-results --editor-location=.Editor --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-force-vulkan" --extra-editor-arg="-playergraphicsapi=Vulkan" --platform=editmode --scripting-backend=Mono2x --suite=editor --testfilter=$TEST_FILTER --testproject=./TestProjects/HDRP_Tests --zero-tests-are-ok=1
+    artifacts:
+        logs:
+            paths:
+              -  "**/test-results/**"
+              -  "TestProjects/HDRP_Tests/Logs/*.log"
+    dependencies:
+      -  path: .yamato/_editor_priming.yml#editor:priming:CUSTOM-REVISION:Linux
+         rerun: on_new_revision
+HDRP_Linux_Vulkan_editmode_XR_mono_Linear_CUSTOM-REVISION:
+    name: HDRP on Linux_Vulkan_editmode_XR_mono_Linear on version CUSTOM-REVISION
+    agent:
+        type: Unity::VM::GPU
+        image: package-ci/ubuntu:stable
+        flavor: b1.large
+    variables:
+        UPM_REGISTRY: https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates
+        CUSTOM_REVISION: custom_revision_not_set
+        UTR_VERSION: "current"
+        TEST_FILTER: .*
+    commands:
+      -  curl -s https://artifactory.prd.it.unity3d.com/artifactory/unity-tools-local/utr-standalone/utr --output utr
+      -  chmod +x utr
+      -  sudo rm -f /etc/apt/sources.list /etc/apt/sources.list.d/{nodesource,teamviewer,deadsnakes-ubuntu-ppa-}*
+      -  curl -L https://artifactory.prd.it.unity3d.com/artifactory/api/gpg/key/public | sudo apt-key add -
+      -  sudo sh -c "echo 'deb https://artifactory.prd.it.unity3d.com/artifactory/unity-apt-local bionic main' > /etc/apt/sources.list.d/unity.list"
+      -  sudo apt update
+      -  sudo apt install unity-downloader-cli
+      -  sudo unity-downloader-cli --source-file unity_revision.txt -c editor -c il2cpp  --wait --published-only
+      -  DISPLAY=:0.0 ./utr --artifacts_path=TestProjects/HDRP_Tests/test-results --editor-location=.Editor --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-force-vulkan" --extra-editor-arg="-playergraphicsapi=Vulkan" --extra-editor-arg="-xr-reuse-tests" --platform=editmode --scripting-backend=Mono2x --suite=editor --testfilter=$TEST_FILTER --testproject=./TestProjects/HDRP_Tests --zero-tests-are-ok=1
     artifacts:
         logs:
             paths:

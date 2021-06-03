@@ -76,6 +76,7 @@ Shader "Universal Render Pipeline/Terrain/Lit"
             #pragma multi_compile_fragment _ _DBUFFER_MRT1 _DBUFFER_MRT2 _DBUFFER_MRT3
             #pragma multi_compile_fragment _ _LIGHT_LAYERS
             #pragma multi_compile_fragment _ _LIGHT_COOKIES
+            #pragma multi_compile _ _CLUSTERED_RENDERING
 
             // -------------------------------------
             // Unity defined keywords
@@ -157,6 +158,8 @@ Shader "Universal Render Pipeline/Terrain/Lit"
             #pragma multi_compile _ LIGHTMAP_ON
             #pragma multi_compile _ DYNAMICLIGHTMAP_ON
             #pragma multi_compile_fragment _ _GBUFFER_NORMALS_OCT
+            #pragma multi_compile_fragment _ _RENDER_PASS_ENABLED
+
             //#pragma multi_compile_fog
             #pragma multi_compile_instancing
             #pragma instancing_options renderinglayer assumeuniformscaling nomatrices nolightprobe nolightmap

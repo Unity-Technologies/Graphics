@@ -80,7 +80,7 @@ namespace UnityEditor.VFX
             get
             {
                 if (m_CurrentSubOutput == null)
-                    GetOrCreateSubOutput();
+                    m_CurrentSubOutput = GetOrCreateSubOutput();
                 return m_CurrentSubOutput;
             }
         }
@@ -117,8 +117,19 @@ namespace UnityEditor.VFX
 
         public override void OnEnable()
         {
+            VFXLibrary.OnSRPChanged += OnSRPChanged;
             InitSubOutputs(m_SubOutputs, false);
             base.OnEnable();
+        }
+
+        public virtual void OnDisable()
+        {
+            VFXLibrary.OnSRPChanged -= OnSRPChanged;
+        }
+
+        private void OnSRPChanged()
+        {
+            m_CurrentSubOutput = null;
         }
 
         public List<VFXSRPSubOutput> GetSubOutputs()

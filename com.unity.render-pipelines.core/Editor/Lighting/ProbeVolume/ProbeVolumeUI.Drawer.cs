@@ -30,6 +30,8 @@ namespace UnityEditor.Experimental.Rendering
 
         static void Drawer_BakeToolBar(SerializedProbeVolume serialized, Editor owner)
         {
+            if (!ProbeReferenceVolume.instance.isInitialized) return;
+
             Bounds bounds = new Bounds();
             bool foundABound = false;
             bool performFitting = false;
@@ -119,6 +121,21 @@ namespace UnityEditor.Experimental.Rendering
 
         static void Drawer_VolumeContent(SerializedProbeVolume serialized, Editor owner)
         {
+            if (!ProbeReferenceVolume.instance.isInitialized)
+            {
+                var renderPipelineAsset = UnityEngine.Rendering.RenderPipelineManager.currentPipeline;
+                if (renderPipelineAsset != null && renderPipelineAsset.GetType().Name == "HDRenderPipeline")
+                {
+                    EditorGUILayout.HelpBox("The probe volumes feature is disabled. The feature needs to be enabled in the HDRP Settings and on the used HDRP asset.", MessageType.Warning, wide: true);
+                }
+                else
+                {
+                    EditorGUILayout.HelpBox("The probe volumes feature is not enabled or not available on current SRP.", MessageType.Warning, wide: true);
+                }
+
+                return;
+            }
+
             EditorGUI.BeginChangeCheck();
             if ((serialized.serializedObject.targetObject as ProbeVolume).mightNeedRebaking)
             {
@@ -137,12 +154,14 @@ namespace UnityEditor.Experimental.Rendering
             float max = Mathf.Round(serialized.maxSubdivisionMultiplier.floatValue * maxSubdiv) / maxSubdiv;
 
             EditorGUILayout.MinMaxSlider(Styles.s_MinMaxSubdivSlider, ref min, ref max, 0, 1);
-            serialized.minSubdivisionMultiplier.floatValue = Mathf.Max(0.01f, min);
+            serialized.minSubdivisionMultiplier.floatValue = Mathf.Max(0.00f, min);
             serialized.maxSubdivisionMultiplier.floatValue = Mathf.Max(0.01f, max);
             EditorGUI.EndProperty();
             EditorGUI.EndProperty();
 
-            EditorGUILayout.HelpBox($"The probe subdivision will fluctuate between {ProbeReferenceVolume.instance.GetMaxSubdivision(serialized.minSubdivisionMultiplier.floatValue)} and {ProbeReferenceVolume.instance.GetMaxSubdivision(serialized.maxSubdivisionMultiplier.floatValue)}", MessageType.Info);
+            int minSubdivInVolume = ProbeReferenceVolume.instance.GetMaxSubdivision(1 - serialized.minSubdivisionMultiplier.floatValue);
+            int maxSubdivInVolume = ProbeReferenceVolume.instance.GetMaxSubdivision(1 - serialized.maxSubdivisionMultiplier.floatValue);
+            EditorGUILayout.HelpBox($"The distance between probes will fluctuate between : {ProbeReferenceVolume.instance.GetDistanceBetweenProbes(maxSubdivInVolume)}m and {ProbeReferenceVolume.instance.GetDistanceBetweenProbes(minSubdivInVolume)}m", MessageType.Info);
             if (EditorGUI.EndChangeCheck())
             {
                 Vector3 tmpClamp = serialized.size.vector3Value;
@@ -151,6 +170,10 @@ namespace UnityEditor.Experimental.Rendering
                 tmpClamp.z = Mathf.Max(0f, tmpClamp.z);
                 serialized.size.vector3Value = tmpClamp;
             }
+
+            EditorGUILayout.PropertyField(serialized.objectLayerMask, Styles.s_ObjectLayerMask);
+
+            EditorGUILayout.PropertyField(serialized.geometryDistanceOffset, Styles.s_GeometryDistanceOffset);
         }
     }
 }

@@ -303,6 +303,11 @@ namespace UnityEditor.ShaderGraph
             return DeduplicateName(existingNames, duplicateFormat, name);
         }
 
+        internal static string SanitizeCategoryName(string categoryName, string disallowedPatternRegex = "\"")
+        {
+            return Regex.Replace(categoryName, disallowedPatternRegex, "_");
+        }
+
         internal static string DeduplicateName(IEnumerable<string> existingNames, string duplicateFormat, string name)
         {
             if (!existingNames.Contains(name))

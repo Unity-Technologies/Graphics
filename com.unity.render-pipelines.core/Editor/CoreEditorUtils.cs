@@ -521,8 +521,7 @@ namespace UnityEditor.Rendering
                 return;
 
             var documentationRect = contextMenuRect;
-            documentationRect.x -= 16 + 5;
-            documentationRect.y -= 1;
+            documentationRect.x -= 16 + 2;
 
             var documentationIcon = new GUIContent(CoreEditorStyles.iconHelp, $"Open Reference for {title.text}.");
 

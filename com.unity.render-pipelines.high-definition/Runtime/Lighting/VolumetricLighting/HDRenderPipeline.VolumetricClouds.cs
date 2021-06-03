@@ -164,6 +164,7 @@ namespace UnityEngine.Rendering.HighDefinition
             public int finalWidth;
             public int finalHeight;
             public int viewCount;
+            public bool localClouds;
             public bool historyValidity;
             public bool planarReflection;
             public bool needExtraColorBufferCopy;
@@ -215,19 +216,19 @@ namespace UnityEngine.Rendering.HighDefinition
                 }
                 case VolumetricClouds.CloudPresets.Cloudy:
                 {
-                    densityMultiplier = 0.9f;
+                    densityMultiplier = 0.7f;
                     shapeFactor = 0.75f;
                     shapeScale = 0.5f;
                     erosionFactor = 0.8f;
-                    erosionScale = 0.6f;
+                    erosionScale = 0.5f;
                     return;
                 }
                 case VolumetricClouds.CloudPresets.Overcast:
                 {
-                    densityMultiplier = 1.0f;
+                    densityMultiplier = 0.1f;
                     shapeFactor = 0.3f;
                     shapeScale = 0.7f;
-                    erosionFactor = 0.3f;
+                    erosionFactor = 0.0f;
                     erosionScale = 1.0f;
                     return;
                 }
@@ -236,7 +237,7 @@ namespace UnityEngine.Rendering.HighDefinition
                     densityMultiplier = 1.25f;
                     shapeFactor = 0.7f;
                     shapeScale = 0.7f;
-                    erosionFactor = 0.8f;
+                    erosionFactor = 0.6f;
                     erosionScale = 1.2f;
                     return;
                 }
@@ -267,7 +268,6 @@ namespace UnityEngine.Rendering.HighDefinition
             cb._MaxRayMarchingDistance = Mathf.Min(1500.0f * cb._NumPrimarySteps, hdCamera.camera.farClipPlane);
             cb._CloudMapTiling.Set(settings.cloudTiling.value.x, settings.cloudTiling.value.y, settings.cloudOffset.value.x, settings.cloudOffset.value.y);
 
-            cb._ScatteringDirection = settings.scatteringDirection.value;
             cb._ScatteringTint = Color.white - settings.scatteringTint.value * 0.75f;
             cb._PowderEffectIntensity = settings.powderEffectIntensity.value;
             cb._NormalizationFactor = ComputeNormalizationFactor(cb._EarthRadius, (cb._LowestCloudAltitude + cb._HighestCloudAltitude) * 0.5f);
@@ -438,6 +438,7 @@ namespace UnityEngine.Rendering.HighDefinition
             parameters.previousViewportSize = hdCamera.historyRTHandleProperties.previousViewportSize;
             parameters.historyValidity = historyValidity;
             parameters.planarReflection = (hdCamera.camera.cameraType == CameraType.Reflection);
+            parameters.localClouds = settings.localClouds.value;
 
             parameters.needExtraColorBufferCopy = (GetColorBufferFormat() == GraphicsFormat.B10G11R11_UFloatPack32 &&
                 // On PC and Metal, but not on console.
@@ -517,6 +518,7 @@ namespace UnityEngine.Rendering.HighDefinition
             // Bind the constant buffer
             ConstantBuffer.Push(cmd, parameters.cloudsCB, parameters.volumetricCloudsCS, HDShaderIDs._ShaderVariablesClouds);
             CoreUtils.SetKeyword(cmd, "PLANAR_REFLECTION_CAMERA", parameters.planarReflection);
+            CoreUtils.SetKeyword(cmd, "LOCAL_VOLUMETRIC_CLOUDS", parameters.localClouds);
 
             RTHandle currentDepthBuffer = depthPyramid;
 

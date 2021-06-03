@@ -25,6 +25,7 @@ namespace UnityEditor.ShaderGraph
         public static PragmaDescriptor Domain(string value) => new PragmaDescriptor { value = $"domain {value}" };
         public static PragmaDescriptor Raytracing(string value) => new PragmaDescriptor { value = $"raytracing {value}" };
         public static PragmaDescriptor OnlyRenderers(Platform[] renderers) => new PragmaDescriptor { value = $"only_renderers {GetPlatformList(renderers)}" };
+        public static PragmaDescriptor NeverUseDXC(Platform[] renderers) => new PragmaDescriptor { value = $"never_use_dxc {GetPlatformList(renderers)}" };
         public static PragmaDescriptor ExcludeRenderers(Platform[] renderers) => new PragmaDescriptor { value = $"exclude_renderers {GetPlatformList(renderers)}" };
         public static PragmaDescriptor PreferHlslCC(Platform[] renderers) => new PragmaDescriptor { value = $"prefer_hlslcc {GetPlatformList(renderers)}" };
         public static PragmaDescriptor InstancingOptions(InstancingOptions value) => new PragmaDescriptor { value = $"instancing_options {value.ToShaderString()}" };

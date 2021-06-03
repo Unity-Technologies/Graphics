@@ -38,12 +38,12 @@ namespace UnityEngine.Rendering
         /// Distance used to scale the Distance Attenuation Curve
         /// </summary>
         [Min(1e-5f)]
-        public float maxAttenuationDistance = 50.0f;
+        public float maxAttenuationDistance = 100.0f;
         /// <summary>
         /// Distance used to scale the Scale Attenuation Curve
         /// </summary>
         [Min(1e-5f)]
-        public float maxAttenuationScale = 50.0f;
+        public float maxAttenuationScale = 100.0f;
         /// <summary>
         /// Attenuation by distance
         /// </summary>
@@ -64,7 +64,7 @@ namespace UnityEngine.Rendering
         /// <summary>
         /// Enable Occlusion feature
         /// </summary>
-        public bool useOcclusion = true;
+        public bool useOcclusion = false;
         /// <summary>
         /// Radius around the light used to occlude the flare (value in world space)
         /// </summary>
