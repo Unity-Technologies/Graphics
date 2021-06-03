@@ -96,7 +96,7 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
                 // Conditional State
                 renderStates = CoreRenderStates.Default,
                 pragmas = CorePragmas._2DDefault,
-                // keywords = SpriteLitKeywords.Lit,
+                keywords = SpriteLitKeywords.Lit,
                 includes = SpriteLitIncludes.Lit,
             };
 
@@ -146,6 +146,7 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
                 // Fields
                 structs = CoreStructCollections.Default,
                 requiredFields = SpriteLitRequiredFields.Forward,
+                keywords = SpriteLitKeywords.Forward,
                 fieldDependencies = CoreFieldDependencies.Default,
 
                 // Conditional State
@@ -192,6 +193,7 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
             public static FieldCollection Lit = new FieldCollection()
             {
                 StructFields.Varyings.color,
+                StructFields.Varyings.positionWS,
                 StructFields.Varyings.texCoord0,
                 StructFields.Varyings.screenPosition,
             };
@@ -205,7 +207,23 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
             public static FieldCollection Forward = new FieldCollection()
             {
                 StructFields.Varyings.color,
+                StructFields.Varyings.positionWS,
                 StructFields.Varyings.texCoord0,
+            };
+        }
+        #endregion
+
+        #region Keywords
+        static class SpriteLitKeywords
+        {
+            public static KeywordCollection Lit = new KeywordCollection
+            {
+                { CoreKeywordDescriptors.DebugDisplay },
+            };
+
+            public static KeywordCollection Forward = new KeywordCollection
+            {
+                { CoreKeywordDescriptors.DebugDisplay },
             };
         }
         #endregion
