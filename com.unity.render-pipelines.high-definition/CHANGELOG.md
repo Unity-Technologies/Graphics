@@ -8,6 +8,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ### Added
 - Added support for lighting full screen debug mode in automated tests.
+- Added Speed Tree 8 shader graph as default Speed Tree 8 shader for HDRP.
 
 ### Fixed
 - Fixed null reference exception in Raytracing SSS volume component.
@@ -73,10 +74,6 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 ### Changed
 - Reduced the maximal number of bounces for both RTGI and RTR (case 1318876).
 - Updated Wizard to better handle RenderPipelineAsset in Quality Settings
-- Changed the behavior of the clear coat and SSR/RTR for the stack lit to mimic the Lit's behavior (case 1320154).
-- The default LookDev volume profile is now copied and referened in the Asset folder instead of the package folder.
-- Changed normal used in path tracing to create a local light list from the geometric to the smooth shading one.
-- Assets going through the migration system are now dirtied.
 - Disable TAA sharpening on alpha channel.
 - Increased path tracing max samples from 4K to 16K (case 1327729).
 - Changed ray tracing acceleration structure build, so that only meshes with HDRP materials are included (case 1322365).
