@@ -33,6 +33,7 @@ test_platforms:
           - [all]: --loglevel=verbose
   - type: editmode
     name: performance_run_build
+    allow_cache: True
     add_artifacts:
       - artifacts.logs.paths: "PrebuildLog/**"
     commands:
