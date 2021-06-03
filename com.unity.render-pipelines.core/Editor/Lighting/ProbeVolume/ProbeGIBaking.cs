@@ -263,6 +263,7 @@ namespace UnityEngine.Experimental.Rendering
 
             onAdditionalProbesBakeCompletedCalled = true;
 
+            var dilationSettings = m_BakingReferenceVolumeAuthoring.GetDilationSettings();
             // Fetch results of all cells
             for (int c = 0; c < numCells; ++c)
             {
@@ -292,7 +293,7 @@ namespace UnityEngine.Experimental.Rendering
                         if (l0 == 0.0f)
                             continue;
 
-                        if (validity[j] > m_BakingReferenceVolumeAuthoring.GetDilationSettings().dilationValidityThreshold)
+                        if (dilationSettings.dilationDistance > 0.0f && validity[j] > dilationSettings.dilationValidityThreshold)
                         {
                             for (int k = 0; k < 9; ++k)
                             {
@@ -428,8 +429,6 @@ namespace UnityEngine.Experimental.Rendering
             }
 
             // ---- Perform dilation ---
-            var dilationSettings = m_BakingReferenceVolumeAuthoring.GetDilationSettings();
-
             if (dilationSettings.dilationDistance > 0.0f)
             {
                 // TODO: This loop is very naive, can be optimized, but let's first verify if we indeed want this or not.

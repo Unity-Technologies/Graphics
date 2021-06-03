@@ -320,8 +320,8 @@ namespace UnityEngine.Experimental.Rendering
         public ProbeDilationSettings GetDilationSettings()
         {
             ProbeDilationSettings settings;
-            settings.dilationValidityThreshold = m_EnableDilation ? m_DilationValidityThreshold : 0.0f;
-            settings.dilationDistance = m_MaxDilationSampleDistance;
+            settings.dilationValidityThreshold =  m_DilationValidityThreshold;
+            settings.dilationDistance = m_EnableDilation ? m_MaxDilationSampleDistance : 0.0f;
             settings.dilationIterations = m_DilationIterations;
             settings.brickSize = brickSize;
 
