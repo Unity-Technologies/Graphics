@@ -261,6 +261,7 @@ jobs:
         build_config: mono
         color_space: Linear
         test_platforms:
+          - Standalone_XR_cache
           - playmode_XR_cache
           - editmode
       - platform: Win
@@ -269,6 +270,7 @@ jobs:
         color_space: Linear
         test_platforms:
           - Standalone_cache
+          - Standalone_XR_cache
       - platform: Win
         api: Vulkan
         build_config: mono

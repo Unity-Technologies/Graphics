@@ -32,11 +32,15 @@ Extra_URP_Foundation_trunk:
          rerun: on_new_revision
       -  path: .yamato/urp_foundation-linux-vulkan.yml#URP_Foundation_Linux_Vulkan_playmode_cache_mono_Linear_trunk
          rerun: on_new_revision
+      -  path: .yamato/urp_foundation-win-dx11.yml#URP_Foundation_Win_DX11_Standalone_XR_cache_mono_Linear_trunk
+         rerun: on_new_revision
       -  path: .yamato/urp_foundation-win-dx11.yml#URP_Foundation_Win_DX11_playmode_XR_cache_mono_Linear_trunk
          rerun: on_new_revision
       -  path: .yamato/urp_foundation-win-dx11.yml#URP_Foundation_Win_DX11_editmode_mono_Linear_trunk
          rerun: on_new_revision
       -  path: .yamato/urp_foundation-win-dx12.yml#URP_Foundation_Win_DX12_Standalone_cache_mono_Linear_trunk
+         rerun: on_new_revision
+      -  path: .yamato/urp_foundation-win-dx12.yml#URP_Foundation_Win_DX12_Standalone_XR_cache_mono_Linear_trunk
          rerun: on_new_revision
       -  path: .yamato/urp_foundation-win-vulkan.yml#URP_Foundation_Win_Vulkan_Standalone_cache_mono_Linear_trunk
          rerun: on_new_revision
@@ -93,11 +97,15 @@ Extra_URP_Foundation_CUSTOM-REVISION:
          rerun: on_new_revision
       -  path: .yamato/urp_foundation-linux-vulkan.yml#URP_Foundation_Linux_Vulkan_playmode_cache_mono_Linear_CUSTOM-REVISION
          rerun: on_new_revision
+      -  path: .yamato/urp_foundation-win-dx11.yml#URP_Foundation_Win_DX11_Standalone_XR_cache_mono_Linear_CUSTOM-REVISION
+         rerun: on_new_revision
       -  path: .yamato/urp_foundation-win-dx11.yml#URP_Foundation_Win_DX11_playmode_XR_cache_mono_Linear_CUSTOM-REVISION
          rerun: on_new_revision
       -  path: .yamato/urp_foundation-win-dx11.yml#URP_Foundation_Win_DX11_editmode_mono_Linear_CUSTOM-REVISION
          rerun: on_new_revision
       -  path: .yamato/urp_foundation-win-dx12.yml#URP_Foundation_Win_DX12_Standalone_cache_mono_Linear_CUSTOM-REVISION
+         rerun: on_new_revision
+      -  path: .yamato/urp_foundation-win-dx12.yml#URP_Foundation_Win_DX12_Standalone_XR_cache_mono_Linear_CUSTOM-REVISION
          rerun: on_new_revision
       -  path: .yamato/urp_foundation-win-vulkan.yml#URP_Foundation_Win_Vulkan_Standalone_cache_mono_Linear_CUSTOM-REVISION
          rerun: on_new_revision
