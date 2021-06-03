@@ -182,8 +182,6 @@ ShaderGraph_OSX_OpenGLCore_Standalone_cache_ref_images_mono_Linear_trunk:
     commands:
       -  curl -s https://artifactory.prd.it.unity3d.com/artifactory/unity-tools-local/utr-standalone/utr --output utr
       -  chmod +x utr
-      -  python .yamato/tooling/wrap_utr.py --artifacts_path=TestProjects/ShaderGraph/test-results --platform=StandaloneOSX --suite=playmode --timeout=1200 --zero-tests-are-ok=1
-      -  python .yamato/tooling/zip_to_artifact.py --artifacts TestProjects/ShaderGraph/test-results/ --root TestProjects/ShaderGraph/
     artifacts:
         logs:
             paths:
@@ -397,8 +395,6 @@ ShaderGraph_OSX_OpenGLCore_Standalone_cache_ref_images_mono_Linear_CUSTOM-REVISI
     commands:
       -  curl -s https://artifactory.prd.it.unity3d.com/artifactory/unity-tools-local/utr-standalone/utr --output utr
       -  chmod +x utr
-      -  python .yamato/tooling/wrap_utr.py --artifacts_path=TestProjects/ShaderGraph/test-results --platform=StandaloneOSX --suite=playmode --timeout=1200 --zero-tests-are-ok=1
-      -  python .yamato/tooling/zip_to_artifact.py --artifacts TestProjects/ShaderGraph/test-results/ --root TestProjects/ShaderGraph/
     artifacts:
         logs:
             paths:

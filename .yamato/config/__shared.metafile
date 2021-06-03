@@ -69,7 +69,7 @@ test_platforms:
       - [all]: --artifacts_path=TestProjects/<PROJECT_FOLDER>/test-results
       - [OSX_Metal]: --artifacts_path=/Users/bokken/Graphics/TestProjects/<PROJECT_FOLDER>/test-results
 
-      - [OSX_Metal]: --editor-location=.Editor
+      - [OSX_Metal]: --editor-location=.Editro
 
       - [OSX_Metal]: --scripting-backend=<SCRIPTING_BACKEND>
       - [OSX_Metal]: --testfilter=%TEST_FILTER%
