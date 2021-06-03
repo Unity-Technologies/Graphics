@@ -118,6 +118,7 @@ namespace UnityEngine.Experimental.Rendering
             for (int i = 0; i < m_TmpUpdater.Length; i++)
                 m_TmpUpdater[i] = -1;
 
+            // TODO: Replace with Array.Fill when available.
             for (int i = 0; i < m_IndexBuffer.count; i += m_TmpUpdater.Length)
                 UpdateIndexData(m_TmpUpdater, 0, i, Mathf.Min(m_TmpUpdater.Length, m_IndexBuffer.count - i));
 #endif
@@ -264,33 +265,30 @@ namespace UnityEngine.Experimental.Rendering
             Vector3Int volMin, volMax;
             ClipToIndexSpace(pos, m_VoxelSubdivLevel, out volMin, out volMax);
 
-            int volCellSize = ProbeReferenceVolume.CellSize(m_VoxelSubdivLevel);
-
             int bsize_x = volMax.x - volMin.x;
             int bsize_y = volMax.y - volMin.y;
             int bsize_z = volMax.z - volMin.z;
 
-            if (bsize_x <= 0 || bsize_z <= 0)
+            if (bsize_x <= 0 || bsize_z <= 0 || bsize_y <= 0)
                 return;
-
-            for (int idx = 0; idx < volCellSize; idx++)
-                m_TmpUpdater[idx] = -1;
 
             int posIS_x = m_CenterIS.x + volMin.x;
             int posIS_y = m_CenterIS.y + volMin.y;
             int posIS_z = m_CenterIS.z + volMin.z;
-            // iterate over z then x, as y needs special handling for updating the base offset
+
             for (int z = 0; z < bsize_z; z++)
             {
-                for (int x = 0; x < bsize_x; x++)
+                for (int y = 0; y < bsize_y; y++)
                 {
-                    int mx = (posIS_x + x) % m_IndexDim.x;
-                    int mz = (posIS_z + z) % m_IndexDim.z;
-
-                    int indexTrans = TranslateIndex(mx, posIS_y, mz);
-
-                    int count = Mathf.Min(volCellSize, m_IndexDim.y);
-                    UpdateIndexData(m_TmpUpdater, 0, indexTrans, count);
+                    for (int x = 0; x < bsize_x; x++)
+                    {
+                        int mx = (posIS_x + x) % m_IndexDim.x;
+                        int my = (posIS_y + y) % m_IndexDim.y;
+                        int mz = (posIS_z + z) % m_IndexDim.z;
+                        int indexTrans = TranslateIndex(mx, my, mz);
+                        m_IndexBufferData[indexTrans] = -1;
+                        m_NeedUpdateIndexComputeBuffer = true;
+                    }
                 }
             }
         }
@@ -315,13 +313,11 @@ namespace UnityEngine.Experimental.Rendering
                 brick_max.z = Mathf.Min(vx_max.z, brick_max.z - m_CenterRS.z);
 
                 int bsize_x = brick_max.x - brick_min.x;
+                int bsize_y = brick_max.y - brick_min.y;
                 int bsize_z = brick_max.z - brick_min.z;
 
-                if (bsize_x <= 0 || bsize_z <= 0)
+                if (bsize_x <= 0 || bsize_z <= 0 || bsize_y <= 0)
                     continue;
-
-                for (int idx = 0; idx < brick_cell_size; idx++)
-                    m_TmpUpdater[idx] = rbrick.flattenedIdx;
 
                 int posIS_x = m_CenterIS.x + brick_min.x;
                 int posIS_y = m_CenterIS.y + brick_min.y;
@@ -329,12 +325,17 @@ namespace UnityEngine.Experimental.Rendering
 
                 for (int z = 0; z < bsize_z; z++)
                 {
-                    for (int x = 0; x < bsize_x; x++)
+                    for (int y = 0; y < bsize_y; y++)
                     {
-                        int mx = (posIS_x + x) % m_IndexDim.x;
-                        int mz = (posIS_z + z) % m_IndexDim.z;
-                        int count = Mathf.Min(brick_cell_size, m_IndexDim.y);
-                        UpdateIndexData(m_TmpUpdater, 0, TranslateIndex(mx, posIS_y, mz), count);
+                        for (int x = 0; x < bsize_x; x++)
+                        {
+                            int mx = (posIS_x + x) % m_IndexDim.x;
+                            int my = (posIS_y + y) % m_IndexDim.y;
+                            int mz = (posIS_z + z) % m_IndexDim.z;
+                            int indexTrans = TranslateIndex(mx, my, mz);
+                            m_IndexBufferData[indexTrans] = rbrick.flattenedIdx;
+                            m_NeedUpdateIndexComputeBuffer = true;
+                        }
                     }
                 }
             }
@@ -353,8 +354,10 @@ namespace UnityEngine.Experimental.Rendering
             int maxpos_z = minpos_z + cellSize;
             // clip to index region
             minpos_x = Mathf.Max(minpos_x, -m_IndexDim.x / 2);
+            minpos_y = Mathf.Max(minpos_y, -m_IndexDim.y / 2);
             minpos_z = Mathf.Max(minpos_z, -m_IndexDim.z / 2);
             maxpos_x = Mathf.Min(maxpos_x,  m_IndexDim.x / 2);
+            maxpos_y = Mathf.Min(maxpos_y,  m_IndexDim.y / 2);
             maxpos_z = Mathf.Min(maxpos_z,  m_IndexDim.z / 2);
 
             outMinpos = new Vector3Int(minpos_x, minpos_y, minpos_z);
