@@ -60,7 +60,6 @@ namespace UnityEngine.Rendering
             dynResType = DynamicResolutionType.Hardware,
             upsampleFilter = DynamicResUpscaleFilter.CatmullRom,
             forcedPercentage = 100.0f,
-            enableLowResTransparencyThreshold = false,
             lowResTransparencyMinimumThreshold = 0.0f,
 
             //Defaults for dlss
@@ -104,9 +103,6 @@ namespace UnityEngine.Rendering
         public bool forceResolution;
         /// <summary>The resolution percentage forced in case forceResolution is set to true.</summary>
         public float forcedPercentage;
-
-        /// <summary>Enable to support lowResTransparencyMinimumThreshold</summary>
-        public bool enableLowResTransparencyThreshold;
 
         /// <summary>The minimum percentage threshold allowed to clamp low resolution transparency. When the resolution percentage falls below this threshold, HDRP will clamp the low resolution to this percentage.</summary>
         public float lowResTransparencyMinimumThreshold;

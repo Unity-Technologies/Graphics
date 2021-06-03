@@ -9,7 +9,8 @@ namespace UnityEngine.Rendering.HighDefinition
         Material m_DepthResolveMaterial;
         Material m_CameraMotionVectorsMaterial;
         Material m_DecalNormalBufferMaterial;
-        Material m_DownsampleDepthMaterial;
+        Material m_DownsampleDepthMaterialHalfresCheckerboard;
+        Material m_DownsampleDepthMaterialGather;
 
         // Need to cache to avoid alloc of arrays...
         GBufferOutput m_GBufferOutput;
@@ -32,7 +33,9 @@ namespace UnityEngine.Rendering.HighDefinition
             m_DepthResolveMaterial = CoreUtils.CreateEngineMaterial(asset.renderPipelineResources.shaders.depthValuesPS);
             m_CameraMotionVectorsMaterial = CoreUtils.CreateEngineMaterial(defaultResources.shaders.cameraMotionVectorsPS);
             m_DecalNormalBufferMaterial = CoreUtils.CreateEngineMaterial(defaultResources.shaders.decalNormalBufferPS);
-            m_DownsampleDepthMaterial = CoreUtils.CreateEngineMaterial(defaultResources.shaders.downsampleDepthPS);
+            m_DownsampleDepthMaterialHalfresCheckerboard = CoreUtils.CreateEngineMaterial(defaultResources.shaders.downsampleDepthPS);
+            m_DownsampleDepthMaterialGather = CoreUtils.CreateEngineMaterial(defaultResources.shaders.downsampleDepthPS);
+            m_DownsampleDepthMaterialGather.EnableKeyword("GATHER_DOWNSAMPLE");
 
             m_GBufferOutput = new GBufferOutput();
             m_GBufferOutput.mrt = new TextureHandle[RenderGraph.kMaxMRTCount];
@@ -53,7 +56,8 @@ namespace UnityEngine.Rendering.HighDefinition
             CoreUtils.Destroy(m_DepthResolveMaterial);
             CoreUtils.Destroy(m_CameraMotionVectorsMaterial);
             CoreUtils.Destroy(m_DecalNormalBufferMaterial);
-            CoreUtils.Destroy(m_DownsampleDepthMaterial);
+            CoreUtils.Destroy(m_DownsampleDepthMaterialHalfresCheckerboard);
+            CoreUtils.Destroy(m_DownsampleDepthMaterialGather);
         }
 
         bool NeedClearGBuffer(HDCamera hdCamera)
@@ -1036,6 +1040,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
         class DownsampleDepthForLowResPassData
         {
+            public bool useGatherDownsample;
             public float sourceWidth;
             public float sourceHeight;
             public float downsampleScale;
@@ -1055,27 +1060,35 @@ namespace UnityEngine.Rendering.HighDefinition
 
             using (var builder = renderGraph.AddRenderPass<DownsampleDepthForLowResPassData>("Downsample Depth Buffer for Low Res Transparency", out var passData, ProfilingSampler.Get(HDProfileId.DownsampleDepth)))
             {
+                passData.useGatherDownsample = false;
                 if (hdCamera.isLowResScaleHalf)
                 {
-                    m_DownsampleDepthMaterial.EnableKeyword("CHECKERBOARD_DOWNSAMPLE");
-                    m_DownsampleDepthMaterial.DisableKeyword("GREATER_THAN_HALF_DOWNSAMPLE");
+                    if (m_Asset.currentPlatformRenderPipelineSettings.lowresTransparentSettings.checkerboardDepthBuffer)
+                    {
+                        m_DownsampleDepthMaterialHalfresCheckerboard.EnableKeyword("CHECKERBOARD_DOWNSAMPLE");
+                    }
+                    else
+                    {
+                        m_DownsampleDepthMaterialHalfresCheckerboard.DisableKeyword("CHECKERBOARD_DOWNSAMPLE");
+                    }
+                    if (computeMip1OfPyramid)
+                    {
+                        passData.mip0Offset = GetDepthBufferMipChainInfo().mipLevelOffsets[1];
+                        m_DownsampleDepthMaterialHalfresCheckerboard.EnableKeyword("OUTPUT_FIRST_MIP_OF_MIPCHAIN");
+                    }
+                    passData.downsampleDepthMaterial = m_DownsampleDepthMaterialHalfresCheckerboard;
                 }
-                else if (m_Asset.currentPlatformRenderPipelineSettings.lowresTransparentSettings.checkerboardDepthBuffer)
+                else
                 {
-                    m_DownsampleDepthMaterial.EnableKeyword("GREATER_THAN_HALF_DOWNSAMPLE");
+                    m_DownsampleDepthMaterialGather.EnableKeyword("GATHER_DOWNSAMPLE");
+                    passData.downsampleDepthMaterial = m_DownsampleDepthMaterialGather;
+                    passData.useGatherDownsample = true;
                 }
 
                 passData.computesMip1OfAtlas = computeMip1OfPyramid;
-                if (computeMip1OfPyramid)
-                {
-                    passData.mip0Offset = GetDepthBufferMipChainInfo().mipLevelOffsets[1];
-                    m_DownsampleDepthMaterial.EnableKeyword("OUTPUT_FIRST_MIP_OF_MIPCHAIN");
-                }
-
                 passData.downsampleScale = hdCamera.lowResScale;
                 passData.sourceWidth = hdCamera.actualWidth;
                 passData.sourceHeight = hdCamera.actualHeight;
-                passData.downsampleDepthMaterial = m_DownsampleDepthMaterial;
                 passData.depthTexture = builder.ReadTexture(output.depthPyramidTexture);
                 if (computeMip1OfPyramid)
                 {
@@ -1094,11 +1107,13 @@ namespace UnityEngine.Rendering.HighDefinition
                             context.cmd.SetRandomWriteTarget(1, data.depthTexture);
                         }
 
+                        if (data.useGatherDownsample)
                         {
+                            float downsampleScaleInv = 1.0f / data.downsampleScale;
                             RenderTexture srcTexture = data.depthTexture;
                             RenderTexture destTexture = data.downsampledDepthBuffer;
-                            float uvScaleX = (float)destTexture.width / (float)srcTexture.width;
-                            float uvScaleY = (float)destTexture.height / (float)srcTexture.height;
+                            float uvScaleX = ((float)destTexture.width / (float)srcTexture.width) * downsampleScaleInv;
+                            float uvScaleY = ((float)destTexture.height / (float)srcTexture.height) * downsampleScaleInv;
                             data.downsampleDepthMaterial.SetVector(HDShaderIDs._ScaleBias, new Vector4(uvScaleX, uvScaleY, 0.0f, 0.0f));
                         }
 

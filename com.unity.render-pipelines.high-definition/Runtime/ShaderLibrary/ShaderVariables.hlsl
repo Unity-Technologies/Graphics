@@ -235,11 +235,6 @@ float SampleCameraDepth(float2 uv)
     return LoadCameraDepth(uint2(uv * _ScreenSize.xy));
 }
 
-float4 GatherCameraDepth(float2 uv)
-{
-    return GATHER_RED_TEXTURE2D_X(_CameraDepthTexture, s_trilinear_clamp_sampler, uv * _RTHandleScale.xy);
-}
-
 float3 LoadCameraColor(uint2 pixelCoords, uint lod)
 {
     return LOAD_TEXTURE2D_X_LOD(_ColorPyramidTexture, pixelCoords, lod).rgb;

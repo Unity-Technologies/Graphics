@@ -19,7 +19,6 @@ namespace UnityEditor.Rendering.HighDefinition
         public SerializedProperty softwareUpsamplingFilter;
         public SerializedProperty forcePercentage;
         public SerializedProperty forcedPercentage;
-        public SerializedProperty enableLowResTransparencyThreshold;
         public SerializedProperty lowResTransparencyMinimumThreshold;
 
         public SerializedDynamicResolutionSettings(SerializedProperty root)
@@ -38,7 +37,6 @@ namespace UnityEditor.Rendering.HighDefinition
             softwareUpsamplingFilter            = root.Find((GlobalDynamicResolutionSettings s) => s.upsampleFilter);
             forcePercentage                     = root.Find((GlobalDynamicResolutionSettings s) => s.forceResolution);
             forcedPercentage                    = root.Find((GlobalDynamicResolutionSettings s) => s.forcedPercentage);
-            enableLowResTransparencyThreshold   = root.Find((GlobalDynamicResolutionSettings s) => s.enableLowResTransparencyThreshold);
             lowResTransparencyMinimumThreshold  = root.Find((GlobalDynamicResolutionSettings s) => s.lowResTransparencyMinimumThreshold);
         }
     }

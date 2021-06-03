@@ -5,7 +5,7 @@ Shader "Hidden/HDRP/DownsampleDepth"
         #pragma target 4.5
         #pragma editor_sync_compilation
         #pragma multi_compile_local_fragment MIN_DOWNSAMPLE CHECKERBOARD_DOWNSAMPLE
-        #pragma multi_compile_local_fragment _ GREATER_THAN_HALF_DOWNSAMPLE
+        #pragma multi_compile_local_fragment _ GATHER_DOWNSAMPLE
         #pragma multi_compile_local_fragment _ OUTPUT_FIRST_MIP_OF_MIPCHAIN
         #pragma only_renderers d3d11 playstation xboxone xboxseries vulkan metal switch
         #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Common.hlsl"
@@ -66,8 +66,8 @@ Shader "Hidden/HDRP/DownsampleDepth"
         void Frag(Varyings input, out float outputDepth : SV_Depth)
         {
             UNITY_SETUP_STEREO_EYE_INDEX_POST_VERTEX(input);
-#if GREATER_THAN_HALF_DOWNSAMPLE
-            float4 depths = GATHER_RED_TEXTURE2D_X(_CameraDepthTexture, s_trilinear_clamp_sampler, input.texcoord * _ScaleBias.xy + _ScaleBias.zw);
+#ifdef GATHER_DOWNSAMPLE
+            float4 depths = GATHER_RED_TEXTURE2D_X(_CameraDepthTexture, s_linear_clamp_sampler, input.texcoord * _ScaleBias.xy + _ScaleBias.zw);
             outputDepth = MinDepth(depths);
 #else
             uint2 fullResUpperCorner = uint2(input.positionCS.xy * 2.0);
