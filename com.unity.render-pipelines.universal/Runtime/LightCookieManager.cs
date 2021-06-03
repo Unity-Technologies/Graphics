@@ -1,8 +1,8 @@
 using System;
 using System.Collections.Generic;
+using System.Runtime.InteropServices;
 using UnityEngine.Experimental.Rendering;
 using Unity.Mathematics;
-using System.Runtime.InteropServices;
 
 namespace UnityEngine.Rendering.Universal
 {
@@ -75,6 +75,7 @@ namespace UnityEngine.Rendering.Universal
         {
             public ushort visibleLightIndex; // Index into visible light (src)
             public ushort lightBufferIndex;  // Index into light shader data buffer (dst)
+            public Light legacyLight; // Cached legacy light for the visibleLightIndex to avoid getting it multiple times from costly native array
         }
 
         private readonly struct WorkSlice<T>
@@ -294,26 +295,27 @@ namespace UnityEngine.Rendering.Universal
                 }
 
                 cmd.SetGlobalFloatArray(ShaderProperty.additionalLightsCookieEnableBits, m_CookieEnableBitsCpuData.data);
-
-                for (int i = 0; i < 10; i++)
-                {
-                    Debug.Log($"setData: i:{i}, enabled:{m_CookieEnableBitsCpuData[i].ToString()} rect:{m_AtlasUVRectCpuData[i].ToString()}");
-                }
             }
         }
-
-        Texture2DAtlas m_AdditionalLightsCookieAtlas;
-        LightCookieShaderData m_AdditionalLightsCookieShaderData;
-        WorkMemory m_WorkMem;
-
-        // map[visibleLightIndex] = ShaderDataIndex
-        int[] m_VisibleLightIndexToShaderDataIndex;
-
-        readonly Settings m_Settings;
 
         // Unity defines directional light UVs over a unit box centered at light.
         // i.e. (0, 1) uv == (-0.5, 0.5) world area instead of the (0,1) world area.
         static readonly Matrix4x4 s_DirLightProj = Matrix4x4.Ortho(-0.5f, 0.5f, -0.5f, 0.5f, -0.5f, 0.5f);
+
+        Texture2DAtlas m_AdditionalLightsCookieAtlas;
+        LightCookieShaderData m_AdditionalLightsCookieShaderData;
+
+        readonly Settings m_Settings;
+        WorkMemory m_WorkMem;
+
+        // Mapping: map[visibleLightIndex] = ShaderDataIndex
+        int[] m_VisibleLightIndexToShaderDataIndex;
+
+        // Parameters for rescaling cookies to fit into the atlas.
+        const int k_MaxCookieSizeDivisor = 16;
+        int  m_CookieSizeDivisor = 1;
+        uint m_PrevCookieRequestPixelCount = 0xFFFFFFFF;
+        HashSet<int> m_UniqueCookieTextureIDs;
 
         public LightCookieManager(ref Settings settings)
         {
@@ -353,6 +355,10 @@ namespace UnityEngine.Rendering.Universal
             m_AdditionalLightsCookieShaderData = new LightCookieShaderData(size, m_Settings.useStructuredBuffer);
             const int mainLightCount = 1;
             m_VisibleLightIndexToShaderDataIndex = new int[m_Settings.maxAdditionalLights + mainLightCount];
+
+            m_CookieSizeDivisor = 1;
+            m_PrevCookieRequestPixelCount = 0xFFFFFFFF;
+            m_UniqueCookieTextureIDs = new HashSet<int>();
         }
 
         public bool isInitialized() => m_AdditionalLightsCookieAtlas != null && m_AdditionalLightsCookieShaderData != null;
@@ -479,7 +485,7 @@ namespace UnityEngine.Rendering.Universal
 
             // Update Atlas
             var validLights = new WorkSlice<LightCookieMapping>(m_WorkMem.lightMappings, validLightCount);
-            int validUVRectCount = UpdateAdditionalLightsAtlas(cmd, ref lightData, ref validLights, m_WorkMem.uvRects);
+            int validUVRectCount = UpdateAdditionalLightsAtlas(cmd, ref validLights, m_WorkMem.uvRects);
 
             // Upload shader data
             var validUvRects = new WorkSlice<Vector4>(m_WorkMem.uvRects, validUVRectCount);
