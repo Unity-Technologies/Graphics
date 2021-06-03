@@ -170,16 +170,9 @@ Shader "Hidden/ProbeVolume/VoxelizeScene"
 
                 // Offset the cellposition with the heightmap
                 float hole = _TerrainHolesTexture.Sample(s_point_clamp_sampler, float3(i.uv, 0));
-
                 clip(hole == 0.0f ? -1 : 1);
-                // i.cellPos01.y += height * _TerrainSize.y;
-
-                // TODO: discard pixels above a hole
-                // float hole = SAMPLE_TEXTURE2D(_TerrainHolesTexture, sampler_TerrainHolesTexture, uv).r;
-                // clip(hole == 0.0f ? -1 : 1);
 
                 uint3 pos = uint3(i.cellPos01 * _OutputSize);
-
                 _Output[pos] = 1;
 
                 return float4(i.cellPos01.xyz, 1);

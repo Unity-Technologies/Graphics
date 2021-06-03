@@ -487,7 +487,6 @@ namespace UnityEngine.Experimental.Rendering
                 {
                     foreach (var kp in terrains)
                     {
-                        // Only mesh renderers are supported for this voxelization pass.
                         var terrainData = kp.terrain.terrainData;
                         // Terrains can't be rotated or scaled
                         var transform = Matrix4x4.Translate(kp.terrain.GetPosition());
