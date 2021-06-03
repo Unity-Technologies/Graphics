@@ -45,18 +45,18 @@ float RecursiveRenderingReflectionPerceptualSmoothness(BSDFData bsdfData)
 #endif
 
 #if (SHADERPASS == SHADERPASS_RAYTRACING_GBUFFER)
-void FitToStandardLit( SurfaceData surfaceData
+void FitToStandardLit( BSDFData bsdfData
                         , BuiltinData builtinData
                         , uint2 positionSS
                         , out StandardBSDFData outStandardlit)
 {
-    outStandardlit.baseColor = surfaceData.baseColor;
-    outStandardlit.specularOcclusion = surfaceData.specularOcclusion;
-    outStandardlit.normalWS = surfaceData.normalWS;
-    outStandardlit.perceptualRoughness = PerceptualSmoothnessToPerceptualRoughness(surfaceData.perceptualSmoothness);
-    outStandardlit.fresnel0 = surfaceData.specularColor;
+    outStandardlit.baseColor = bsdfData.diffuseColor;
+    outStandardlit.specularOcclusion = bsdfData.specularOcclusion;
+    outStandardlit.normalWS = bsdfData.normalWS;
+    outStandardlit.perceptualRoughness = bsdfData.perceptualRoughness;
+    outStandardlit.fresnel0 = bsdfData.fresnel0;
     outStandardlit.coatMask = 0.0;
-    outStandardlit.emissiveAndBaked = builtinData.bakeDiffuseLighting * surfaceData.ambientOcclusion + builtinData.emissiveColor;
+    outStandardlit.emissiveAndBaked = builtinData.bakeDiffuseLighting * bsdfData.ambientOcclusion + builtinData.emissiveColor;
     outStandardlit.isUnlit = 0;
 }
 #endif

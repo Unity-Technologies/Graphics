@@ -191,10 +191,10 @@ namespace UnityEditor.ShaderGraph.Drawing
         {
             InitializeViewModel();
 
-            m_BlackboardPropertyView = new BlackboardPropertyView(ViewModel);
-            m_BlackboardPropertyView.controller = this;
+            m_SgBlackboardField = new SGBlackboardField(ViewModel);
+            m_SgBlackboardField.controller = this;
 
-            m_BlackboardRowView = new SGBlackboardRow(m_BlackboardPropertyView, null);
+            m_BlackboardRowView = new SGBlackboardRow(m_SgBlackboardField, null);
             m_BlackboardRowView.expanded = SessionState.GetBool($"Unity.ShaderGraph.Input.{shaderInput.objectId}.isExpanded", false);
         }
 
@@ -224,7 +224,7 @@ namespace UnityEditor.ShaderGraph.Drawing
         }
 
         SGBlackboardRow m_BlackboardRowView;
-        BlackboardPropertyView m_BlackboardPropertyView;
+        SGBlackboardField m_SgBlackboardField;
 
         internal SGBlackboardRow BlackboardItemView => m_BlackboardRowView;
 
@@ -241,12 +241,12 @@ namespace UnityEditor.ShaderGraph.Drawing
                 case ChangeExposedFlagAction changeExposedFlagAction:
                     ViewModel.isInputExposed = Model.generatePropertyBlock;
                     DirtyNodes(ModificationScope.Graph);
-                    m_BlackboardPropertyView.UpdateFromViewModel();
+                    m_SgBlackboardField.UpdateFromViewModel();
                     break;
 
                 case ChangePropertyValueAction changePropertyValueAction:
                     DirtyNodes(ModificationScope.Graph);
-                    m_BlackboardPropertyView.MarkDirtyRepaint();
+                    m_SgBlackboardField.MarkDirtyRepaint();
                     break;
 
                 case ResetReferenceNameAction resetReferenceNameAction:
@@ -259,7 +259,7 @@ namespace UnityEditor.ShaderGraph.Drawing
                 case ChangeDisplayNameAction changeDisplayNameAction:
                     ViewModel.inputName = Model.displayName;
                     DirtyNodes(ModificationScope.Topological);
-                    m_BlackboardPropertyView.UpdateFromViewModel();
+                    m_SgBlackboardField.UpdateFromViewModel();
                     break;
             }
         }
@@ -313,6 +313,12 @@ namespace UnityEditor.ShaderGraph.Drawing
                 default:
                     throw new ArgumentOutOfRangeException();
             }
+        }
+
+        public override void Destroy()
+        {
+            Cleanup();
+            BlackboardItemView.RemoveFromHierarchy();
         }
     }
 }

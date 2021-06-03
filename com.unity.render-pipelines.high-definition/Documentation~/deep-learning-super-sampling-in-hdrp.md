@@ -1,10 +1,10 @@
 # Deep learning super sampling
 
-NVIDIA Deep Learning Super Sampling (DLSS) is a rendering technology that uses artificial intelligence to increase graphics performance. The High Definition Render Pipeline (HDRP) natively supports DLSS. For more information about DLSS see [Deep learning super sampling](https://docs.unity3d.com/Manual/deep-learning-super-sampling.html).
+NVIDIA Deep Learning Super Sampling (DLSS) is a rendering technology that uses artificial intelligence to increase graphics performance. The High Definition Render Pipeline (HDRP) natively supports DLSS. For more information about DLSS see [Deep learning super sampling](https://docs.unity3d.com/2021.2/Documentation/Manual/deep-learning-super-sampling.html).
 
 ## Requirements and compatibility
 
-This section includes HDRP-specific requirements and compatibility information for DLSS. For information about the general requirements and compatibility of DLSS, see [Deep learning super sampling](https://docs.unity3d.com/Manual/deep-learning-super-sampling.html).
+This section includes HDRP-specific requirements and compatibility information for DLSS. For information about the general requirements and compatibility of DLSS, see [Deep learning super sampling](https://docs.unity3d.com/2021.2/Documentation/Manual/deep-learning-super-sampling.html).
 
 ### Platforms
 
@@ -44,12 +44,18 @@ After you install the NVIDIA package, more properties appear in [HDRP Assets](HD
 Your Unity project now supports DLSS and you can now enable DLSS for Cameras in your scene. Enabling DLSS in the HDRP Asset exposes other properties that you can use to customize DLSS. For information about these properties, see the [HDRP Asset](HDRP-Asset.md) documentation.
 
 1. In the Hierarchy or Scene view, select a Camera and view it in the Inspector.
-2. Select **Allow DLSS**.
-3. Enabling **Allow DLSS** exposes other properties that you can use to customize DLSS for the Camera. For information about these properties, see the [Camera](HDRP-Camera.md) documentation.
+2. Select **Allow Dynamic Resolution** to expose the DLSS settings. For more information see the [Dynamic Resolution](Dynamic-Resolution.md) guide.
+3. Select **Allow DLSS**.
+4. Enable **Allow DLSS** to expose other properties that you can use to customize DLSS for the Camera. For information about these properties, see the [Camera](HDRP-Camera.md) documentation.
+
+### DLSS and Dynamic Resolution
+
+The **Use Optimal Settings** checkbox in the [HDRP Assets](HDRP-Asset.md) is enabled by default. This means that DLSS sets the dynamic resolution scale automatically.
+If you disable this checkbox DLSS uses the same dynamic resolution scale set by the project. For more information see the [Dynamic Resolution](Dynamic-Resolution.md) guide.
 
 ### Setting the DLSS quality mode
 
-DLSS now works in your project, but you can change the quality mode to customize DLSS towards performance or quality. You can do this on a project level or a per-Camera level. For information about the available quality modes, see [Quality modes](https://docs.unity3d.com/Manual/deep-learning-super-sampling.html).
+DLSS now works in your project, but you can change the quality mode to customize DLSS towards performance or quality. You can do this on a project level or a per-Camera level. For information about the available quality modes, see [Quality modes](https://docs.unity3d.com/2021.2/Documentation/Manual/deep-learning-super-sampling.html).
 
 To change the DLSS quality mode for your whole project:
 

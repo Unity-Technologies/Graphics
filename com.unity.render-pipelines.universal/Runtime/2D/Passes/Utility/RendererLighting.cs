@@ -212,6 +212,7 @@ namespace UnityEngine.Rendering.Universal
                     batchedLights++;
                 }
 
+
                 // Set the current RT to the light RT
                 if (shadowLightCount > 0 || requiresRTInit)
                 {

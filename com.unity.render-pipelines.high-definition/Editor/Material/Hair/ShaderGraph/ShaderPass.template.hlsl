@@ -41,12 +41,23 @@ void BuildSurfaceData(FragInputs fragInputs, inout SurfaceDescription surfaceDes
     $SurfaceDescription.SecondarySpecularTint:          surfaceData.secondarySpecularTint =         surfaceDescription.SecondarySpecularTint;
     $SurfaceDescription.SecondarySpecularShift:         surfaceData.secondarySpecularShift =        surfaceDescription.SecondarySpecularShift;
 
+    // TODO: Adopt smoothness nomenclature + factorization?
+    $SurfaceDescription.LongitudinalRoughness:          surfaceData.roughnessLongitudinal =         surfaceDescription.LongitudinalRoughness;
+    $SurfaceDescription.AzimuthalRoughness:             surfaceData.roughnessAzimuthal =            surfaceDescription.AzimuthalRoughness;
+    $SurfaceDescription.PrimaryReflectionRoughness:     surfaceData.roughnessPrimaryReflection =    surfaceDescription.PrimaryReflectionRoughness;
+    $SurfaceDescription.RefractionIndex:                surfaceData.ior =                           surfaceDescription.RefractionIndex;
+    $SurfaceDescription.CuticleAngle:                   surfaceData.cuticleAngle =                  surfaceDescription.CuticleAngle;
+
     // These static material feature allow compile time optimization
     surfaceData.materialFeatures = 0;
 
     // Transform the preprocess macro into a material feature
     #ifdef _MATERIAL_FEATURE_HAIR_KAJIYA_KAY
         surfaceData.materialFeatures |= MATERIALFEATUREFLAGS_HAIR_KAJIYA_KAY;
+    #endif
+
+    #ifdef _MATERIAL_FEATURE_HAIR_MARSCHNER
+        surfaceData.materialFeatures |= MATERIALFEATUREFLAGS_HAIR_MARSCHNER;
     #endif
 
     #ifdef _DOUBLESIDED_ON
