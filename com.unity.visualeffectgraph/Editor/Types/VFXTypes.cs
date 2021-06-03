@@ -167,8 +167,8 @@ namespace UnityEditor.VFX
     {
         [Tooltip("Sets the transform of the cone.")]
         public Transform transform;
-        [Tooltip("Sets the center of the cone.") /*, VFXSpace(SpaceableType.Position) Space Ignored ! This is a relative value in transform space*/]
-        public Vector3 center;
+        //[Tooltip("Sets the center of the cone.") /*, VFXSpace(SpaceableType.Position) Space Ignored ! This is a relative value in transform space*/]
+        //public Vector3 center; //Could be considered as an optionnal offset
         [Min(0.0f), Tooltip("Sets the base radius of the cone.")]
         public float radius0;
         [Min(0.0f), Tooltip("Sets the top radius of the cone.")]

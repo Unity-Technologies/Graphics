@@ -140,10 +140,10 @@ float hNorm = HeightSequencer;
                 }
 
                 outSource += @"
-float3 finalPos = lerp(float3(pos * ArcCone_radius0, 0.0f), float3(pos * ArcCone_radius1, ArcCone_height), hNorm) + ArcCone_center;
+float3 finalPos = lerp(float3(pos * ArcCone_radius0, 0.0f), float3(pos * ArcCone_radius1, ArcCone_height), hNorm); /* + ArcCone_center; TODOPAUL, clarify why we removed it */
 float3 finalDir = normalize(float3(pos * sincosSlope.x, sincosSlope.y));
-finalPos = mul(ArcCone_transform, float4(finalPos, 1.0f)).xyz;
-finalDir = mul((float3x3)ArcCone_transform, finalDir);
+finalPos = mul(ArcCone_transform, float4(finalPos.xzy, 1.0f)).xyz;
+finalDir = mul((float3x3)ArcCone_transform, finalDir.xzy);
 ";
                 outSource += VFXBlockUtility.GetComposeString(compositionDirection, "direction", "finalDir", "blendDirection") + "\n";
                 outSource += VFXBlockUtility.GetComposeString(compositionPosition, "position", "finalPos", "blendPosition");

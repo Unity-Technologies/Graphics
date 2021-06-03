@@ -239,7 +239,7 @@ namespace UnityEditor.VFX
         public override void OnDrawSpacedGizmo(TArcCone arcCone)
         {
             var arc = arcCone.arc * Mathf.Rad2Deg;
-            var cone = new Cone { center = arcCone.center, radius0 = arcCone.radius0, radius1 = arcCone.radius1, height = arcCone.height };
+            var cone = new Cone { center = arcCone.transform.position, radius0 = arcCone.radius0, radius1 = arcCone.radius1, height = arcCone.height };
             extremities.Build(cone, arc);
             var arcDirection = Quaternion.AngleAxis(arc, Vector3.up) * Vector3.forward;
             if (Event.current != null && Event.current.type == EventType.MouseDown)
@@ -290,7 +290,7 @@ namespace UnityEditor.VFX
 
         public override Bounds OnGetSpacedGizmoBounds(TArcCone value)
         {
-            return new Bounds(value.center, new Vector3(Mathf.Max(value.radius0, value.radius1), Mathf.Max(value.radius0, value.radius1), value.height)); //TODO take orientation in account
+            return new Bounds(value.transform.position, new Vector3(Mathf.Max(value.radius0, value.radius1), Mathf.Max(value.radius0, value.radius1), value.height)); //TODO take orientation in account
         }
     }
 
