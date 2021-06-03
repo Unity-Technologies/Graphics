@@ -11,12 +11,8 @@ namespace UnityEditor.Rendering.HighDefinition
 {
     //As ScriptableSingleton is not usable due to internal FilePathAttribute,
     //copying mechanism here
-    class HDProjectSettings : ScriptableObject, IVersionable<HDProjectSettings.Version>
+    sealed class HDProjectSettings : HDProjectSettingsReadOnlyBase, IVersionable<HDProjectSettings.Version>
     {
-        const string filePath = "ProjectSettings/HDRPProjectSettings.asset";
-
-        [SerializeField]
-        string m_ProjectSettingFolderPath = "HDRPDefaultResources";
         [SerializeField]
         bool m_WizardPopupAtStart = true;
 
@@ -66,7 +62,7 @@ namespace UnityEditor.Rendering.HighDefinition
 
         internal const int k_NeverProcessedMaterialVersion = -1;
 
-        public static string projectSettingsFolderPath
+        public static new string projectSettingsFolderPath
         {
             get => instance.m_ProjectSettingFolderPath;
             set
@@ -85,7 +81,6 @@ namespace UnityEditor.Rendering.HighDefinition
                 Save();
             }
         }
-
 
         public static int materialVersionForUpgrade
         {
@@ -118,27 +113,26 @@ namespace UnityEditor.Rendering.HighDefinition
         }
 
         //singleton pattern
-        static HDProjectSettings s_Instance;
-        static HDProjectSettings instance => s_Instance ?? CreateOrLoad();
+        static HDProjectSettings instance => (s_Instance as HDProjectSettings) ?? CreateOrLoad();
 
         HDProjectSettings()
         {
-            s_Instance = this;
+            //s_Instance = this; //Todo: should be done in base static contstructor. To check
             // s_Instance.FillPresentPluginMaterialVersions(); <
             // We can't call this here as the scriptable object will not be deserialized in yet
         }
 
-        // We force the instance to be loaded/created and ready with valid values on assembly reload.
-        // We also use this so that the HDUserSettings.cs on the runtime assembly will have the HDProjectSettings proxy
-        // injected before it is used.
-        [InitializeOnLoadMethod]
-        static void Reset()
-        {
-            // Make sure the cached last seen plugin versions (capped to codebase versions) and their sum is valid
-            // on assembly reload.
-            instance.FillPresentPluginMaterialVersions();
-            HDProjectSettingsProxy.Init(() => projectSettingsFolderPath);
-        }
+        //// We force the instance to be loaded/created and ready with valid values on assembly reload.
+        //// We also use this so that the HDUserSettings.cs on the runtime assembly will have the HDProjectSettings proxy
+        //// injected before it is used.
+        //[InitializeOnLoadMethod]
+        //static void Reset()
+        //{
+        //    // Make sure the cached last seen plugin versions (capped to codebase versions) and their sum is valid
+        //    // on assembly reload.
+        //    instance.FillPresentPluginMaterialVersions();
+        //    HDProjectSettingsProxy.Init(() => projectSettingsFolderPath);
+        //}
 
         void FillPresentPluginMaterialVersions()
         {
@@ -260,20 +254,23 @@ namespace UnityEditor.Rendering.HighDefinition
             //try load: if it exists, this will trigger the call to the private ctor
             InternalEditorUtility.LoadSerializedFileAndForget(filePath);
 
+            HDProjectSettings inst = s_Instance as HDProjectSettings;
+
             //else create
-            if (s_Instance == null)
+            if (inst == null)
             {
                 HDProjectSettings created = CreateInstance<HDProjectSettings>();
                 created.hideFlags = HideFlags.HideAndDontSave;
+                inst = s_Instance as HDProjectSettings;
             }
 
             System.Diagnostics.Debug.Assert(s_Instance != null);
-            s_Instance.FillPresentPluginMaterialVersions();
+            inst.FillPresentPluginMaterialVersions();
 
-            if (k_Migration.Migrate(s_Instance))
+            if (k_Migration.Migrate(inst))
                 Save();
 
-            return s_Instance;
+            return inst;
         }
 
         static void Save()
