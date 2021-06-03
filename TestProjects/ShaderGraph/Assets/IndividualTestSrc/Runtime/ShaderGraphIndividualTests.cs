@@ -8,9 +8,7 @@ using UnityEngine.SceneManagement;
 using UnityEditor;
 using UnityEngine.Networking.PlayerConnection;
 using System;
-#if UNITY_EDITOR
 using System.IO;
-#endif
 
 public class ShaderGraphIndividualTests
 {

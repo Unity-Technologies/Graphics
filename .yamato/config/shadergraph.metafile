@@ -16,7 +16,6 @@ test_platforms:
       - [all]: <shared.platform.commands.setup_utr>
       - [OSX_Metal]: <shared.platform.commands.unity_downloader_cli>
       - [Win_DX11, Win_DX12, Win_Vulkan, Android_OpenGLES3, Android_Vulkan]: choco install python3 && refreshenv
-      - [OSX_Metal]: brew install python
       - [all]: python .yamato/tooling/wrap_utr.py <UTR_FLAGS>
       - [all]: python .yamato/tooling/zip_to_artifact.py --artifacts TestProjects/ShaderGraph/test-results/ --root TestProjects/ShaderGraph/
 
@@ -30,7 +29,6 @@ test_platforms:
     - [all]: <shared.platform.commands.setup_utr>
     - [all]: <shared.platform.commands.unity_downloader_cli>
     - [Win_DX11, Win_DX12, Win_Vulkan, Android_OpenGLES3, Android_Vulkan]: choco install python3 && refreshenv
-    - [OSX_Metal]: brew install python
     - [all]: python .yamato/tooling/wrap_utr.py <UTR_FLAGS>
     - [all]: python .yamato/tooling/zip_to_artifact.py --artifacts TestProjects/ShaderGraph/test-results/ --root TestProjects/ShaderGraph/
   - type: playmode
@@ -69,7 +67,6 @@ test_platforms:
     - [all]: <shared.platform.commands.setup_utr>
     - [OSX_Metal]: <shared.platform.commands.unity_downloader_cli>
     - [Win_DX11, Win_DX12, Win_Vulkan, Android_OpenGLES3, Android_Vulkan]: choco install python3 && refreshenv
-    - [OSX_Metal]: brew install python
     - [all]: python .yamato/tooling/wrap_utr.py <UTR_FLAGS>
     - [all]: python .yamato/tooling/zip_to_artifact.py --artifacts TestProjects/ShaderGraph/test-results/ --root TestProjects/ShaderGraph/
     - [Android_OpenGLES3, Android_Vulkan]: <shared.platform.commands.kill_server>
