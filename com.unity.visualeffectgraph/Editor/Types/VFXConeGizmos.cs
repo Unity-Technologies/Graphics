@@ -29,33 +29,33 @@ namespace UnityEditor.VFX
 
         public struct Extremities
         {
-            public void Build(Cone cone)
+            public void Build(float radius0, float radius1, float height)
             {
-                topCap = cone.height * Vector3.up;
+                topCap = height * Vector3.up;
                 bottomCap = Vector3.zero;
 
                 if (extremities == null)
                     extremities = new List<Vector3>(8);
                 extremities.Clear();
 
-                extremities.Add(topCap + Vector3.forward * cone.radius1);
-                extremities.Add(topCap - Vector3.forward * cone.radius1);
+                extremities.Add(topCap + Vector3.forward * radius1);
+                extremities.Add(topCap - Vector3.forward * radius1);
 
-                extremities.Add(topCap + Vector3.left * cone.radius1);
-                extremities.Add(topCap - Vector3.left * cone.radius1);
+                extremities.Add(topCap + Vector3.left * radius1);
+                extremities.Add(topCap - Vector3.left * radius1);
 
-                extremities.Add(bottomCap + Vector3.forward * cone.radius0);
-                extremities.Add(bottomCap - Vector3.forward * cone.radius0);
+                extremities.Add(bottomCap + Vector3.forward * radius0);
+                extremities.Add(bottomCap - Vector3.forward * radius0);
 
-                extremities.Add(bottomCap + Vector3.left * cone.radius0);
-                extremities.Add(bottomCap - Vector3.left * cone.radius0);
+                extremities.Add(bottomCap + Vector3.left * radius0);
+                extremities.Add(bottomCap - Vector3.left * radius0);
 
                 visibleCount = 4;
             }
 
-            public void Build(Cone cone, float degArc) //TODOPAUL : Remove cone here
+            public void Build(float radius0, float radius1, float height, float degArc)
             {
-                topCap = cone.height * Vector3.up;
+                topCap = height * Vector3.up;
                 bottomCap = Vector3.zero;
                 int count = 4;
 
@@ -69,29 +69,29 @@ namespace UnityEditor.VFX
                     extremities = new List<Vector3>(8);
                 extremities.Clear();
 
-                extremities.Add(topCap + Vector3.forward * cone.radius1);
+                extremities.Add(topCap + Vector3.forward * radius1);
                 if (count > 1)
                 {
-                    extremities.Add(topCap - Vector3.left * cone.radius1);
+                    extremities.Add(topCap - Vector3.left * radius1);
                     if (count > 2)
                     {
-                        extremities.Add(topCap - Vector3.forward * cone.radius1);
+                        extremities.Add(topCap - Vector3.forward * radius1);
                         if (count > 3)
                         {
-                            extremities.Add(topCap + Vector3.left * cone.radius1);
+                            extremities.Add(topCap + Vector3.left * radius1);
                         }
                     }
                 }
-                extremities.Add(bottomCap + Vector3.forward * cone.radius0);
+                extremities.Add(bottomCap + Vector3.forward * radius0);
                 if (count > 1)
                 {
-                    extremities.Add(bottomCap - Vector3.left * cone.radius0);
+                    extremities.Add(bottomCap - Vector3.left * radius0);
                     if (count > 2)
                     {
-                        extremities.Add(bottomCap - Vector3.forward * cone.radius0);
+                        extremities.Add(bottomCap - Vector3.forward * radius0);
                         if (count > 3)
                         {
-                            extremities.Add(bottomCap + Vector3.left * cone.radius0);
+                            extremities.Add(bottomCap + Vector3.left * radius0);
                         }
                     }
                 }
@@ -172,10 +172,9 @@ namespace UnityEditor.VFX
         }
 
         Extremities extremities;
-
         public override void OnDrawSpacedGizmo(Cone cone)
         {
-            extremities.Build(cone);
+            extremities.Build(cone.radius0, cone.radius1, cone.height);
 
             if (Event.current != null && Event.current.type == EventType.MouseDown)
             {
@@ -243,8 +242,7 @@ namespace UnityEditor.VFX
         public override void OnDrawSpacedGizmo(TArcCone arcCone)
         {
             var arc = arcCone.arc * Mathf.Rad2Deg;
-            var cone = new Cone { center = arcCone.transform.position, radius0 = arcCone.radius0, radius1 = arcCone.radius1, height = arcCone.height };
-            extremities.Build(cone, arc);
+            extremities.Build(arcCone.radius0, arcCone.radius1, arcCone.height, arc);
             var arcDirection = Quaternion.AngleAxis(arc, Vector3.up) * Vector3.forward;
             if (Event.current != null && Event.current.type == EventType.MouseDown)
             {
@@ -277,7 +275,6 @@ namespace UnityEditor.VFX
                 Handles.DrawLine(extremities.topCap, extremities.extremities[0]);
                 Handles.DrawLine(extremities.bottomCap, extremities.extremities[extremities.extremities.Count / 2]);
 
-
                 Handles.DrawLine(extremities.topCap, extremities.topCap + arcDirection * arcCone.radius1);
                 Handles.DrawLine(extremities.bottomCap, arcDirection * arcCone.radius0);
 
@@ -298,7 +295,7 @@ namespace UnityEditor.VFX
         }
     }
 
-    /*[VFXGizmo(typeof(ArcCone))]
+    [VFXGizmo(typeof(ArcCone))]
     class VFXArcConeGizmo : VFXSpaceableGizmo<ArcCone>
     {
         IProperty<Vector3> m_CenterProperty;
@@ -324,8 +321,7 @@ namespace UnityEditor.VFX
         public override void OnDrawSpacedGizmo(ArcCone arcCone)
         {
             float arc = arcCone.arc * Mathf.Rad2Deg;
-            Cone cone = new Cone { center = arcCone.center, radius0 = arcCone.radius0, radius1 = arcCone.radius1, height = arcCone.height };
-            extremities.Build(cone, arc);
+            extremities.Build(arcCone.radius0, arcCone.radius1, arcCone.height, arc);
             Vector3 arcDirection = Quaternion.AngleAxis(arc, Vector3.up) * Vector3.forward;
             if (Event.current != null && Event.current.type == EventType.MouseDown)
             {
@@ -338,8 +334,8 @@ namespace UnityEditor.VFX
 
             if (!m_Dragging)
             {
-                topRadiusScreen = (HandleUtility.WorldToGUIPoint(extremities.topCap) - HandleUtility.WorldToGUIPoint(extremities.topCap + Vector3.forward * cone.radius1)).magnitude;
-                baseRadiusScreen = (HandleUtility.WorldToGUIPoint(extremities.bottomCap) - HandleUtility.WorldToGUIPoint(extremities.bottomCap + Vector3.forward * cone.radius0)).magnitude;
+                topRadiusScreen = (HandleUtility.WorldToGUIPoint(extremities.topCap) - HandleUtility.WorldToGUIPoint(extremities.topCap + Vector3.forward * arcCone.radius1)).magnitude;
+                baseRadiusScreen = (HandleUtility.WorldToGUIPoint(extremities.bottomCap) - HandleUtility.WorldToGUIPoint(extremities.bottomCap + Vector3.forward * arcCone.radius0)).magnitude;
             }
 
             using (new Handles.DrawingScope(Handles.matrix * Matrix4x4.TRS(arcCone.center, Quaternion.identity, Vector3.one)))
@@ -370,7 +366,7 @@ namespace UnityEditor.VFX
                     ArcGizmo(center, radius, arc, m_ArcProperty, Quaternion.identity);
             }
 
-            VFXConeGizmo.DrawCone(this, ref extremities, m_CenterProperty, null, m_baseRadiusProperty, m_topRadiusProperty, m_HeightProperty, baseRadiusScreen, topRadiusScreen);
+            VFXConeGizmo.DrawCone(this, ref extremities, m_CenterProperty, null, null, m_baseRadiusProperty, m_topRadiusProperty, m_HeightProperty, baseRadiusScreen, topRadiusScreen);
         }
 
         public override Bounds OnGetSpacedGizmoBounds(ArcCone value)
@@ -378,5 +374,4 @@ namespace UnityEditor.VFX
             return new Bounds(value.center, new Vector3(Mathf.Max(value.radius0, value.radius1), Mathf.Max(value.radius0, value.radius1), value.height)); //TODO take orientation in account
         }
     }
-    */
 }
