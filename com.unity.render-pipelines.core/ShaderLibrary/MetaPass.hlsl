@@ -22,7 +22,6 @@ struct UnityMetaInput
 {
     half3 Albedo;
     half3 Emission;
-    half3 SpecularColor;
 #ifdef EDITOR_VISUALIZATION
     float2 VizUV;
     float4 LightCoord;

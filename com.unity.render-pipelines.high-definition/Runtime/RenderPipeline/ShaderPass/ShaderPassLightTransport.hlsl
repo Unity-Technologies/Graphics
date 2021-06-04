@@ -104,11 +104,6 @@ float4 Frag(PackedVaryingsToPS packedInput) : SV_Target
     UnityMetaInput metaInput;
     metaInput.Albedo = lightTransportData.diffuseColor.rgb;
     metaInput.Emission = lightTransportData.emissiveColor;
-#if defined(UNLIT_CS_HLSL) || defined(HAIR_CS_HLSL)
-    metaInput.SpecularColor = float3(0.0, 0.0, 0.0);
-#else
-    metaInput.SpecularColor = surfaceData.specularColor.rgb;
-#endif
 #ifdef EDITOR_VISUALIZATION
     metaInput.VizUV = input.texCoord1.xy;
     metaInput.LightCoord = float4(input.texCoord2.xy, input.texCoord3.xy);
