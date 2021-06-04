@@ -127,6 +127,13 @@ namespace UnityEditor.Rendering.Universal.Converters
 
         void OnEnable()
         {
+            InitIfNeeded();
+        }
+
+        void InitIfNeeded()
+        {
+            if (m_CoreConvertersList != null)
+                return;
             m_CoreConvertersList = new List<RenderPipelineConverter>();
 
             // This is the drop down choices.
@@ -167,6 +174,7 @@ namespace UnityEditor.Rendering.Universal.Converters
 
         public void CreateGUI()
         {
+            InitIfNeeded();
             m_SerializedObject = new SerializedObject(this);
             converterEditorAsset.CloneTree(rootVisualElement);
 
@@ -492,7 +500,7 @@ namespace UnityEditor.Rendering.Universal.Converters
             {
                 context?.Dispose();
                 // Client code has finished with the created index. We can delete it.
-                //AssetDatabase.DeleteAsset(indexPath);
+                AssetDatabase.DeleteAsset(indexPath);
                 EditorUtility.ClearProgressBar();
             }
         }
@@ -569,6 +577,7 @@ namespace UnityEditor.Rendering.Universal.Converters
             int activeConvertersCount = activeConverterStates.Count;
             foreach (ConverterState activeConverterState in activeConverterStates)
             {
+                AssetDatabase.StartAssetEditing();
                 currentCount++;
                 var index = activeConverterState.index;
                 var converterName = m_CoreConvertersList[index].name;
@@ -586,6 +595,8 @@ namespace UnityEditor.Rendering.Universal.Converters
                     }
                 }
                 m_CoreConvertersList[index].OnPostRun();
+                AssetDatabase.SaveAssets();
+                AssetDatabase.StopAssetEditing();
                 EditorUtility.ClearProgressBar();
             }
         }
