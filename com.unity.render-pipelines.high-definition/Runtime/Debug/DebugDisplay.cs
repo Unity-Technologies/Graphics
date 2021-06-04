@@ -40,7 +40,7 @@ namespace UnityEngine.Rendering.HighDefinition
         public int _DebugSingleShadowIndex;
 
         public int _DebugProbeVolumeMode;
-        public int _DebugAllowsRGBConversion;
+        public int _DebugAllowRGBConversion;
         public Vector3 _DebugDisplayPad0;
     }
 
