@@ -85,6 +85,7 @@
             * [UV](UV-Node)
             * [Vertex Color](Vertex-Color-Node)
             * [View Direction](View-Direction-Node)
+            * [View Vector](View-Vector-Node)
         * Gradient
             * [Blackbody](Blackbody-Node)
             * [Gradient](Gradient-Node)
