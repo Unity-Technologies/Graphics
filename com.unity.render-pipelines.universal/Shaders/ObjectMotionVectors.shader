@@ -26,10 +26,15 @@ Shader "Hidden/kMotion/ObjectMotionVectors"
 
 
 #if defined(USING_STEREO_MATRICES)
-        float4x4 _PrevViewProjMStereo[2];
-#define _PrevViewProjM _PrevViewProjMStereo[unity_StereoEyeIndex]
+            float4x4 _PrevViewProjStereo[2];
+            float4x4 _ViewProjStereo[2];
+
+            #define _PrevViewProjM  _PrevViewProjStereo[unity_StereoEyeIndex]
+            #define _ViewProjM      _ViewProjStereo[unity_StereoEyeIndex]
 #else
-#define  _PrevViewProjM _PrevViewProjMatrix
+
+            #define _PrevViewProjM _PrevViewProjMatrix
+            #define _ViewProjM     _ViewProjMatrix
 #endif
 
             // -------------------------------------
@@ -70,7 +75,7 @@ Shader "Hidden/kMotion/ObjectMotionVectors"
                     output.positionCS.z += unity_MotionVectorsParams.z * output.positionCS.w;
                 #endif
 
-                output.positionVP = mul(UNITY_MATRIX_VP, mul(UNITY_MATRIX_M, input.position));
+                output.positionVP = mul(_ViewProjM, mul(UNITY_MATRIX_M, input.position));
 
                 const float4 prevPos = (unity_MotionVectorsParams.x == 1) ? float4(input.positionOld, 1) : input.position;
                 output.previousPositionVP = mul(_PrevViewProjM, mul(unity_MatrixPreviousM, prevPos));

@@ -22,11 +22,16 @@ Shader "Hidden/kMotion/CameraMotionVectors"
             #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Core.hlsl"
             #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/DeclareDepthTexture.hlsl"
 
-        #if defined(USING_STEREO_MATRICES)
-        float4x4 _PrevViewProjMStereo[2];
-#define _PrevViewProjM _PrevViewProjMStereo[unity_StereoEyeIndex]
+#if defined(USING_STEREO_MATRICES)
+                float4x4 _PrevViewProjStereo[2];
+                float4x4 _ViewProjStereo[2];
+
+                #define  _PrevViewProjM  _PrevViewProjStereo[unity_StereoEyeIndex]
+                #define  _ViewProjM      _ViewProjStereo[unity_StereoEyeIndex]
 #else
-#define  _PrevViewProjM _PrevViewProjMatrix
+
+                #define  _PrevViewProjM _PrevViewProjMatrix
+                #define  _ViewProjM     _ViewProjMatrix
 #endif
 
             // -------------------------------------
@@ -57,12 +62,16 @@ Shader "Hidden/kMotion/CameraMotionVectors"
                 // Calculate PositionInputs
                 half depth = LoadSceneDepth(input.position.xy).x;
                 outDepth = depth;
-                half2 screenSize = _ScreenSize.zw;
-                PositionInputs positionInputs = GetPositionInput(input.position.xy, screenSize, depth, UNITY_MATRIX_I_VP, UNITY_MATRIX_V);
 
-                // Calculate positions
-                float4 previousPositionVP = mul(_PrevViewProjM, float4(positionInputs.positionWS, 1.0));
-                float4 positionVP = mul(UNITY_MATRIX_VP, float4(positionInputs.positionWS, 1.0));
+                // Transform to world space
+                float2 ndcpos = input.position.xy *= _ScreenSize.zw;
+                float4 cspos = ComputeClipSpacePosition(ndcpos, depth);
+                float4 wpos = mul(UNITY_MATRIX_I_VP, cspos);
+                wpos.xyz *= rcp(wpos.w);
+
+                // Multiply with projection
+                float4 previousPositionVP = mul(_PrevViewProjM, float4(wpos.xyz, 1.0));
+                float4 positionVP = mul(_ViewProjM, float4(wpos.xyz, 1.0));
 
                 previousPositionVP.xy *= rcp(previousPositionVP.w);
                 positionVP.xy *= rcp(positionVP.w);
