@@ -1,6 +1,10 @@
 #ifndef UNITY_COMMON_MATERIAL_INCLUDED
 #define UNITY_COMMON_MATERIAL_INCLUDED
 
+#if SHADER_API_MOBILE || SHADER_API_GLES || SHADER_API_GLES3
+#pragma warning (disable : 3205) // conversion of larger type to smaller
+#endif
+
 //-----------------------------------------------------------------------------
 // Define constants
 //-----------------------------------------------------------------------------
@@ -330,21 +334,8 @@ real3 LerpWhiteTo(real3 b, real t)
     return real3(oneMinusT, oneMinusT, oneMinusT) + b * t;
 }
 
-// ----------------------------------------------------------------------------
-// Helper methods to convert specular <-> metallic workflow
-// NOTE: Specular -> metallic is lossy, metallic can not fully represent all possible specular materials.
-// ----------------------------------------------------------------------------
-
-void ConvertSpecularToMetallic(float3 diffuseColor, float3 specularColor, out float3 baseColor, out float metallic)
-{
-    metallic = saturate( (Max3(specularColor.r, specularColor.g, specularColor.b) - 0.1F) / 0.45F);
-    baseColor = lerp(diffuseColor, specularColor, metallic);
-}
-
-void ConvertMetallicToSpecular(float3 baseColor, float metallic, out float3 diffuseColor, out float3 specularColor)
-{
-    diffuseColor = ComputeDiffuseColor(baseColor, metallic);
-    specularColor = ComputeFresnel0(baseColor, metallic, DEFAULT_SPECULAR_VALUE);
-}
+#if SHADER_API_MOBILE || SHADER_API_GLES || SHADER_API_GLES3
+#pragma warning (enable : 3205) // conversion of larger type to smaller
+#endif
 
 #endif // UNITY_COMMON_MATERIAL_INCLUDED

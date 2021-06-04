@@ -162,6 +162,8 @@ namespace UnityEngine.Rendering.HighDefinition
             public TextureHandle intermediateSummedAreaTexture;
             public TextureHandle summedAreaTexture;
 
+            public ConstantBuffer<ShaderVariablesGlobal> constantBuffer;
+
             public RenderShadowsParameters parameters;
             public ShadowDrawingSettings shadowDrawSettings;
 
@@ -188,7 +190,9 @@ namespace UnityEngine.Rendering.HighDefinition
                 passData.shadowDrawSettings = new ShadowDrawingSettings(cullResults, 0);
                 passData.shadowDrawSettings.useRenderingLayerMaskTest = frameSettings.IsEnabled(FrameSettingsField.LightLayers);
                 passData.isRenderingOnACache = m_IsACacheForShadows;
-                renderGraph.CreateTextureIfInvalid(GetTextureDesc(passData.parameters.debugClearAtlas), ref result);
+                passData.constantBuffer = m_GlobalConstantBuffer;
+
+                result = renderGraph.ImportTexture(m_Atlas);
 
                 passData.atlasTexture = builder.WriteTexture(result);
 
@@ -220,6 +224,7 @@ namespace UnityEngine.Rendering.HighDefinition
                                     data.shadowDrawSettings,
                                     context.renderContext,
                                     data.isRenderingOnACache,
+                                    data.constantBuffer,
                                     context.cmd);
 
                     if (data.parameters.blurAlgorithm == BlurAlgorithm.EVSM)

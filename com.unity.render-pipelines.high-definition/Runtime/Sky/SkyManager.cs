@@ -565,6 +565,11 @@ namespace UnityEngine.Rendering.HighDefinition
             if (context.renderingContext == null)
                 context.renderingContext = new SkyRenderingContext(m_Resolution, m_IBLFilterArray.Length, supportConvolution, previousAmbientProbe, name);
 
+            // If we detected a big difference with previous settings, then carrying over the previous ambient probe is probably going to lead to unexpected result.
+            // Instead we at least fallback to a neutral one until async readback has finished.
+            if (skyContext.settingsHadBigDifferenceWithPrev)
+                context.renderingContext.ClearAmbientProbe();
+
             skyContext.cachedSkyRenderingContextId = slot;
         }
 

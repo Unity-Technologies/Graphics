@@ -4,7 +4,7 @@ using UnityEngine.UI;
 namespace UnityEngine.Rendering.UI
 {
     /// <summary>
-    /// DebugUIHandler for Bitfield widget. Require the enum to have a None field set to 0 in it's values.
+    /// DebugUIHandler for Bitfield widget. Require the enum to have a None field set to 0 in its values.
     /// </summary>
     public class DebugUIHandlerBitField : DebugUIHandlerWidget
     {
@@ -44,9 +44,11 @@ namespace UnityEngine.Rendering.UI
                 toggleIndex++;
             };
 
+            // Destroy the remaining toggles outside of the range of the displayed enum.
             for (; toggleIndex < toggles.Count; ++toggleIndex)
             {
-                toggles[toggleIndex].transform.SetParent(null);
+                CoreUtils.Destroy(toggles[toggleIndex].gameObject);
+                toggles[toggleIndex] = null;
             }
         }
 

@@ -116,6 +116,14 @@ namespace UnityEditor.Rendering.HighDefinition
             s_NeedsSavingAssets = false;
         }
 
+        void OnPostprocessMaterial(Material material)
+        {
+            if (!HDShaderUtils.IsHDRPShader(material.shader, upgradable: true))
+                return;
+
+            HDShaderUtils.ResetMaterialKeywords(material);
+        }
+
         static void OnPostprocessAllAssets(string[] importedAssets, string[] deletedAssets, string[] movedAssets, string[] movedFromAssetPaths)
         {
             foreach (var asset in importedAssets)
@@ -184,6 +192,12 @@ namespace UnityEditor.Rendering.HighDefinition
                     s_NeedsSavingAssets = true;
                 }
             }
+        }
+
+        public void OnPostprocessSpeedTree(GameObject speedtree)
+        {
+            SpeedTreeImporter stImporter = assetImporter as SpeedTreeImporter;            
+            SpeedTree8MaterialUpgrader.PostprocessSpeedTree8Materials(speedtree, stImporter, HDSpeedTree8MaterialUpgrader.HDSpeedTree8MaterialFinalizer);	
         }
 
         // Note: It is not possible to separate migration step by kind of shader

@@ -69,8 +69,10 @@ CBUFFER_START(ShaderVariablesDebugDisplay)
     float _MatcapViewScale;
     int _DebugSingleShadowIndex;
     int _DebugProbeVolumeMode;
-    int _DebugAllowsRGBConversion;
-    float3 _DebugDisplayPad0;
+    int _DebugAllowRGBConversion;
+    int _DebugAOVOutput;
+    int _DebugDisplayPad0;
+    int _DebugDisplayPad1;
 CBUFFER_END
 
 

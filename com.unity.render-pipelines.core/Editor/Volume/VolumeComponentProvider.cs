@@ -51,7 +51,7 @@ namespace UnityEditor.Rendering
         {
             tree.Add(new GroupElement(0, "Volume Overrides"));
 
-            var types = VolumeManager.instance.baseComponentTypes;
+            var types = VolumeManager.instance.baseComponentTypeArray;
             var rootNode = new PathNode();
 
             foreach (var t in types)

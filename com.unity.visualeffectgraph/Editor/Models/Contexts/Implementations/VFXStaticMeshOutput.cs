@@ -92,7 +92,6 @@ namespace UnityEditor.VFX
                 yield return new VFXPropertyWithValue(new VFXProperty(typeof(Transform), "transform"), Transform.defaultValue);
                 yield return new VFXPropertyWithValue(new VFXProperty(typeof(uint), "subMeshMask", new BitFieldAttribute()), uint.MaxValue);
 
-
                 if (GetData() != null)
                 {
                     Shader copyShader = ((VFXDataMesh)GetData()).shader;
@@ -258,6 +257,7 @@ namespace UnityEditor.VFX
             get
             {
                 yield return new VFXMapping("sortPriority", sortPriority);
+                yield return new VFXMapping("castShadows", castShadows ? 1 : 0);
             }
         }
 

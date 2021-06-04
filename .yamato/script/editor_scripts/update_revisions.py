@@ -7,10 +7,21 @@ import os
 import re
 import subprocess
 import sys
-import yaml
 import datetime
+from ruamel.yaml import YAML
 
 from util.subprocess_helpers import run_cmd, git_cmd
+
+# EDITOR REVISION UPDATE SCRIPT
+# Updates .yamato/_latest_editor_versions_[TRACK].metafile for each editor specified in _editor.metafile editor_tracks.
+#
+# Run locally (updates the file, but does not add/commit/push to git):
+# python .\.yamato\script\editor_scripts\update_revisions.py
+#
+# Run in CI (updates the file, and adds/commits/pushes it to current branch):
+# python .\.yamato\script\editor_scripts\update_revisions.py --commit-and-push
+
+
 
 # These are by convention how the different revisions are categorized.
 # These should not be changed unless also updated in Yamato YAML.
@@ -24,6 +35,8 @@ DEFAULT_SHARED_FILE = os.path.join(os.path.abspath(git_cmd('rev-parse --show-top
 
 INVALID_VERSION_ERROR = 'Are you sure this is actually a valid unity version?'
 VERSION_PARSER_RE = re.compile(r'Grabbing unity release ([0-9\.a-z]+) which is revision')
+
+yaml = YAML()
 
 def generate_downloader_cmd(track, version, trunk_track, platform):
     """Generate a list of commmand arguments for the invovation of the unity-downloader-cli."""
@@ -41,7 +54,7 @@ def generate_downloader_cmd(track, version, trunk_track, platform):
     else:
         raise ValueError(f'Could not parse track: {track} version: {version}.')
     components = ' '.join('-c ' + c for c in platform["components"])
-    
+
     return (f'unity-downloader-cli -o {platform["os"]} {components} -s {target_str} --wait --skip-download').split()
 
 def create_version_files(config, root):
@@ -53,10 +66,10 @@ def create_version_files(config, root):
         editor_versions_filename_track = editor_versions_filename.replace('TRACK',str(track))
         editor_versions_file = load_yml(editor_versions_filename_track)
         versions = get_versions_from_unity_downloader([track], config['trunk_track'], config['platforms'], editor_versions_file)
-        
+
         print(f'INFO: Saving {editor_versions_filename_track}.')
         write_versions_file(os.path.join(root, editor_versions_filename_track), config['versions_file_header'], versions)
-        
+
         if versions_file_is_unchanged(editor_versions_filename_track, root):
                 print(f'INFO: No changes in {editor_versions_filename_track}, or file is not tracked by git diff')
         else:
@@ -92,13 +105,13 @@ def get_versions_from_unity_downloader(tracks, trunk_track, platforms, editor_ve
                     version: 2020.2.0a21
         }
     """
-    
+
     # load existing latest_editor_versions
     versions = editor_versions_file.get("editor_versions", {})
 
     # drop all the keys that don't correspond to specified tracks (useful when different tracks are used between branches)
-    false_keys = [key for key in versions if not key.startswith(tuple([str(t).replace('.','_') for t in tracks]))] 
-    for key in false_keys: del versions[key] 
+    false_keys = [key for key in versions if not key.startswith(tuple([str(t).replace('.','_') for t in tracks]))]
+    for key in false_keys: del versions[key]
 
     for track in tracks: # pylint: disable=too-many-nested-blocks
         for version_type in SUPPORTED_VERSION_TYPES:
@@ -112,17 +125,17 @@ def get_versions_from_unity_downloader(tracks, trunk_track, platforms, editor_ve
                 try:
                     platform_name = platform["name"]
                     timeout = 120
-                    result = subprocess.check_output(generate_downloader_cmd(track, version_type, trunk_track, platform), 
+                    result = subprocess.check_output(generate_downloader_cmd(track, version_type, trunk_track, platform),
                                                     stderr=subprocess.STDOUT, universal_newlines=True, timeout=timeout, cwd='.')
-                    
+
                     revision = result.strip().splitlines()[-1]
                     if not versions.get(key).get(platform["name"]):
                         versions[key][platform_name] = {}
-                    
+
                     if not versions.get(key).get(platform_name).get('revision') or versions[key][platform_name]['revision'] != revision:
                         versions[key][platform_name]['updated_at'] = UPDATED_AT
                         versions[key][platform_name]['revision'] = revision
-                   
+
                         # Parse for the version in stderr (only exists for some cases):
                         versions[key][platform_name]['version'] = ''
                         for line in result.strip().splitlines():
@@ -154,27 +167,6 @@ def get_versions_from_unity_downloader(tracks, trunk_track, platforms, editor_ve
     return versions
 
 
-def get_current_branch():
-    return git_cmd("rev-parse --abbrev-ref HEAD").strip()
-
-def checkout_and_push(editor_versions_files, target_branch, root, commit_message_details):
-    original_branch = get_current_branch()
-    git_cmd(f'checkout -B {target_branch}', cwd=root)
-    for editor_versions_file in editor_versions_files:
-        git_cmd(f'add {editor_versions_file}', cwd=root)
-
-    cmd = ['commit', '-m', f'[CI] Updated pinned editor versions \n\n{commit_message_details}']
-    git_cmd(cmd, cwd=root)
-
-    cmd = ['push', '--set-upstream', 'origin', target_branch]
-    assert not (target_branch in ('master', '2021.1/staging','10.x.x/release','8.x.x/release','7.x.x/release')), (
-            'Error: not allowed to force push to {target_branch}.')
-    cmd.append('--force')
-    git_cmd(cmd, cwd=root)
-    
-    git_cmd(f'checkout {original_branch}', cwd=root)
-
-
 def versions_file_is_unchanged(file_path, root):
     diff = git_cmd(f'diff {file_path}', cwd=root).strip()
     return len(diff) == 0
@@ -182,30 +174,23 @@ def versions_file_is_unchanged(file_path, root):
 
 def write_versions_file(file_path, header, versions):
     with open(file_path, 'w') as output_file:
-        output_file.write(header + os.linesep)
 
         # Write editor_version_names list:
         editor_version_names = {'editor_version_names': list(versions.keys())}
-        yaml.dump(editor_version_names, output_file, indent=2)
-        output_file.write(os.linesep)
+        yaml.dump(editor_version_names, output_file)
 
         # Write editor_versions dict:
-        # output_file.write(dict_comment + os.linesep)
         editor_version = {'editor_versions': versions}
-        yaml.dump(editor_version, output_file, indent=2)
+        yaml.dump(editor_version, output_file)
 
 def load_yml(filename):
     with open(filename) as yaml_file:
-        return yaml.safe_load(yaml_file)
+        return yaml.load(yaml_file)
 
 
 def parse_args(flags):
     parser = argparse.ArgumentParser()
-    parser.add_argument('--local', action='store_true',
-                        help='Running locally skips sanity checks that should be applied on CI')
-    parser.add_argument('--target-branch', required=True,
-                        help='Branch to push the updated editor revisions to, should run full ' +
-                        'CI on commit.')
+    parser.add_argument('--commit-and-push', action='store_true', help='Commits the changed revisions to current branch.')
     args = parser.parse_args(flags)
     return args
 
@@ -213,21 +198,30 @@ def parse_args(flags):
 def main(argv):
     args = parse_args(argv)
     config = load_yml(DEFAULT_CONFIG_FILE)
+    ROOT = os.path.abspath(git_cmd('rev-parse --show-toplevel', cwd='.').strip())
 
     print(f'INFO: Updating editor revisions to the latest found using unity-downloader-cli')
     print(f'INFO: Configuration file: {DEFAULT_CONFIG_FILE}')
-
-    ROOT = os.path.abspath(git_cmd('rev-parse --show-toplevel', cwd='.').strip())
-
     print(f'INFO: Running in {os.path.abspath(os.curdir)}')
 
     try:
-        
+
+        current_branch = git_cmd("rev-parse --abbrev-ref HEAD").strip()
+        print(f'INFO: Running on branch: {current_branch}')
+
         editor_version_files = create_version_files(config, ROOT)
-        if not args.local and len(editor_version_files) > 0:
-            checkout_and_push(editor_version_files, args.target_branch, ROOT, 'Updating pinned editor revisions')
+        if args.commit_and_push and len(editor_version_files) > 0:
+            print(f'INFO: Committing and pushing to branch.')
+            git_cmd(['add','.'], cwd=ROOT)
+            git_cmd(['commit', '-m', f'[CI] Updated pinned editor versions'], cwd=ROOT)
+            git_cmd(['pull'], cwd=ROOT)
+            git_cmd(['push'], cwd=ROOT)
+        else:
+            print(f'INFO: Will not commit or push to current branch. Use --commit-and-push to do so.')
+
         print(f'INFO: Done updating editor versions.')
         return 0
+
     except subprocess.CalledProcessError as err:
         print(f"ERROR: Failed to run '{err.cmd}'\nStdout:\n{err.stdout}\nStderr:\n{err.stderr}")
         return 1

@@ -1,0 +1,72 @@
+editor_version_names:
+- 2020_3_latest_internal
+- 2020_3_latest_public
+- 2020_3_staging
+editor_versions:
+  2020_3_latest_internal:
+    Android:
+      revision: ae2c062f2beb
+      updated_at: '2021-06-02 23:22:27.437322'
+      version: 2020.3.12f1
+    Linux:
+      revision: ae2c062f2beb
+      updated_at: '2021-06-03 23:42:06.591139'
+      version: 2020.3.12f1
+    OSX:
+      revision: ae2c062f2beb
+      updated_at: '2021-06-02 23:22:27.437322'
+      version: 2020.3.12f1
+    Win:
+      revision: ae2c062f2beb
+      updated_at: '2021-06-02 23:22:27.437322'
+      version: 2020.3.12f1
+    iPhone:
+      revision: ae2c062f2beb
+      updated_at: '2021-06-02 23:22:27.437322'
+      version: 2020.3.12f1
+  2020_3_latest_public:
+    Android:
+      revision: 99c7afb366b3
+      updated_at: '2021-06-01 23:44:22.561114'
+      version: 2020.3.11f1
+    Linux:
+      revision: 99c7afb366b3
+      updated_at: '2021-06-01 23:44:22.561114'
+      version: 2020.3.11f1
+    OSX:
+      revision: 99c7afb366b3
+      updated_at: '2021-06-01 23:44:22.561114'
+      version: 2020.3.11f1
+    Win:
+      revision: 99c7afb366b3
+      updated_at: '2021-06-01 23:44:22.561114'
+      version: 2020.3.11f1
+    android:
+      revision: c7b5465681fb
+      updated_at: '2021-02-03 23:59:16.124934'
+      version: 2020.3.0f1
+    iPhone:
+      revision: 99c7afb366b3
+      updated_at: '2021-06-01 23:44:22.561114'
+      version: 2020.3.11f1
+  2020_3_staging:
+    Android:
+      revision: dd8313923fce1a4c8076b1e4bc080b4b903bfb78
+      updated_at: '2021-06-03 23:42:06.591139'
+      version: ''
+    Linux:
+      revision: dd8313923fce1a4c8076b1e4bc080b4b903bfb78
+      updated_at: '2021-06-03 23:42:06.591139'
+      version: ''
+    OSX:
+      revision: dd8313923fce1a4c8076b1e4bc080b4b903bfb78
+      updated_at: '2021-06-03 23:42:06.591139'
+      version: ''
+    Win:
+      revision: dd8313923fce1a4c8076b1e4bc080b4b903bfb78
+      updated_at: '2021-06-03 23:42:06.591139'
+      version: ''
+    iPhone:
+      revision: dd8313923fce1a4c8076b1e4bc080b4b903bfb78
+      updated_at: '2021-06-03 23:42:06.591139'
+      version: ''

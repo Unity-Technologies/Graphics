@@ -110,7 +110,7 @@ bool SampleAnisoGGX(MaterialData mtlData,
     float VdotH;
     float3 localV, localH;
     float3x3 localToWorld = GetTangentFrame(mtlData);
-    SampleAnisoGGXVisibleNormal(inputSample, mtlData.V, localToWorld, roughnessX, roughnessY, localV, localH, VdotH);
+    SampleAnisoGGXVisibleNormal(inputSample.xy, mtlData.V, localToWorld, roughnessX, roughnessY, localV, localH, VdotH);
 
     // Compute the reflection direction
     float3 localL = 2.0 * VdotH * localH - localV;
@@ -336,7 +336,7 @@ bool SampleAnisoGGX(MaterialData mtlData,
     float VdotH;
     float3 localV, localH;
     float3x3 localToWorld = GetTangentFrame(mtlData);
-    SampleAnisoGGXVisibleNormal(inputSample, mtlData.V, localToWorld, roughnessX, roughnessY, localV, localH, VdotH);
+    SampleAnisoGGXVisibleNormal(inputSample.xy, mtlData.V, localToWorld, roughnessX, roughnessY, localV, localH, VdotH);
 
     // Compute refraction direction instead of reflection
     float3 localL = refract(-localV, localH, 1.0 / mtlData.bsdfData.ior);

@@ -10,7 +10,7 @@ Shader "Hidden/HDRP/DebugViewMaterialGBuffer"
 
             HLSLPROGRAM
             #pragma target 4.5
-            #pragma only_renderers d3d11 playstation xboxone vulkan metal switch
+            #pragma only_renderers d3d11 playstation xboxone xboxseries vulkan metal switch
 
             #pragma vertex Vert
             #pragma fragment Frag
@@ -119,7 +119,7 @@ Shader "Hidden/HDRP/DebugViewMaterialGBuffer"
                     // TEMP!
                     // For now, the final blit in the backbuffer performs an sRGB write
                     // So in the meantime we apply the inverse transform to linear data to compensate.
-                    if (!needLinearToSRGB && _DebugAllowsRGBConversion)
+                    if (!needLinearToSRGB && _DebugAllowRGBConversion)
                         result = SRGBToLinear(max(0, result));
 
                     return float4(result, 1.0);

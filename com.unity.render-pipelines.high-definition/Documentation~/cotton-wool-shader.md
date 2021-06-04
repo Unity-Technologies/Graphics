@@ -6,7 +6,7 @@ The type of fibers that make up the fabric, as well as the fabric's knit or weav
 
 ![](Images/HDRPFeatures-CottonShader.png)
 
-Under the hood, the Cotton/Wool shader is a pre-configured Shader Graph. To learn more about the Cotton/Wool shader implementation, or to create your own Fabric shader variant, see the Shader Graph documentation about the [Fabric Master Node](Master-Node-Fabric.md).
+Under the hood, the Cotton/Wool shader is a pre-configured Shader Graph. To learn more about the Cotton/Wool shader implementation, or to create your own Fabric shader variant, see the Shader Graph documentation about the [Fabric Master Stack](master-stack-fabric.md).
 
 ## Importing the Cotton/Wool Fabric Sample
 

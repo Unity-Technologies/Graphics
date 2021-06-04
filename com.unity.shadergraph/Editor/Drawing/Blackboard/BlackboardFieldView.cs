@@ -6,6 +6,7 @@ using UnityEditor.Graphing;
 using UnityEditor.Experimental.GraphView;
 using UnityEditor.ShaderGraph.Drawing.Controls;
 using UnityEditor.ShaderGraph.Drawing.Inspector.PropertyDrawers;
+using UnityEditor.ShaderGraph.Drawing.Inspector;
 using UnityEditor.ShaderGraph.Internal;
 
 namespace UnityEditor.ShaderGraph.Drawing.Views.Blackboard
@@ -168,7 +169,7 @@ namespace UnityEditor.ShaderGraph.Drawing.Views.Blackboard
         }
 
         #region PropertyDrawers
-        public void SupplyDataToPropertyDrawer(IPropertyDrawer propertyDrawer, Action inspectorUpdateDelegate)
+        public void SupplyDataToPropertyDrawer(IPropertyDrawer propertyDrawer, Action inspectorUpdateDelegate, Action<InspectorUpdateSource> scopedInspectorUpdateDelegate = null)
         {
             if(propertyDrawer is ShaderInputPropertyDrawer shaderInputPropertyDrawer)
             {

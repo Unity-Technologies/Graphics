@@ -861,6 +861,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                 referenceName = "SHADERPASS_RAYTRACING_INDIRECT",
                 lightMode = "IndirectDXR",
                 useInPreview = false,
+                requiredFields = supportLighting ? CoreRequiredFields.LitMinimal : null,
 
                 // Collections
                 pragmas = CorePragmas.RaytracingBasic,
@@ -973,6 +974,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                 referenceName = "SHADERPASS_RAYTRACING_FORWARD",
                 lightMode = "ForwardDXR",
                 useInPreview = false,
+                requiredFields = supportLighting ? CoreRequiredFields.LitMinimal : null,
 
                 // Port Mask
                 // validVertexBlocks = CoreBlockMasks.Vertex,
@@ -1039,6 +1041,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                 referenceName = "SHADERPASS_RAYTRACING_GBUFFER",
                 lightMode = "GBufferDXR",
                 useInPreview = false,
+                requiredFields = supportLighting ? CoreRequiredFields.LitMinimal : null,
 
                 // Port Mask
                 // validVertexBlocks = CoreBlockMasks.Vertex,
@@ -1152,7 +1155,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
 
 #region Raytracing Subsurface
 
-        public static PassDescriptor GenerateRaytracingSubsurface()
+        public static PassDescriptor GenerateRaytracingSubsurface(bool supportLighting)
         {
             return new PassDescriptor
             {
@@ -1161,6 +1164,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                 referenceName = "SHADERPASS_RAYTRACING_SUB_SURFACE",
                 lightMode = "SubSurfaceDXR",
                 useInPreview = false,
+                requiredFields = supportLighting ? CoreRequiredFields.LitMinimal : null,
 
                 // Template
                 // passTemplatePath = passTemplatePath,

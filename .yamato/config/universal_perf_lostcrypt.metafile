@@ -9,17 +9,18 @@ reuse_blocks:
   unity_config:
     - [iPhone_Metal, OSX_Metal, Linux_Vulkan]: git clone https://github.com/Unity-Technologies/2d-sara.git -b $LOST_CRYPT_BRANCH TestProjects/2d-sara
     - [Win_DX11, Win_DX12, Win_Vulkan, Android_OpenGLES3, Android_Vulkan]: git clone https://github.com/Unity-Technologies/2d-sara.git -b %LOST_CRYPT_BRANCH% TestProjects/2d-sara
-      
+
     - [iPhone_Metal, OSX_Metal, Linux_Vulkan]: cd TestProjects/2d-sara && git checkout $LOST_CRYPT_REVISION
     - [Win_DX11, Win_DX12, Win_Vulkan, Android_OpenGLES3, Android_Vulkan]: cd TestProjects/2d-sara && git checkout %LOST_CRYPT_REVISION%
-      
-      
+
+
     - [iPhone_Metal, OSX_Metal]: brew tap --force-auto-update unity/unity git@github.cds.internal.unity3d.com:unity/homebrew-unity.git
     - [iPhone_Metal, OSX_Metal]: brew install unity-config
 
     - [Win_DX11, Win_DX12, Win_Vulkan, Android_OpenGLES3, Android_Vulkan]: choco source add -n Unity -s https://artifactory.prd.it.unity3d.com/artifactory/api/nuget/unity-choco-local
     - [Win_DX11, Win_DX12, Win_Vulkan, Android_OpenGLES3, Android_Vulkan]: choco install unity-config
 
+    - [Linux_Vulkan]: sudo rm -f /etc/apt/sources.list /etc/apt/sources.list.d/{nodesource,teamviewer,deadsnakes-ubuntu-ppa-}*
     - [Linux_Vulkan]: curl -L https://artifactory.prd.it.unity3d.com/artifactory/api/gpg/key/public | sudo apt-key add -
     - [Linux_Vulkan]: sudo sh -c "echo 'deb https://artifactory.prd.it.unity3d.com/artifactory/unity-apt-local bionic main' > /etc/apt/sources.list.d/unity.list"
     - [Linux_Vulkan]: sudo apt update
@@ -51,11 +52,11 @@ reuse_blocks:
     - [all]: --extra-editor-arg="-packageundertestbranch=%GIT_BRANCH%"
     - [iPhone_Metal]: --extra-editor-arg="-buildtarget" --extra-editor-arg="iOS"
     - [Android_Vulkan, Android_OpenGLES3]: --extra-editor-arg="-buildtarget" --extra-editor-arg="Android"
-    - [all]: --extra-editor-arg="-scriptingbackend=<SCRIPTING_BACKEND>" 
+    - [all]: --extra-editor-arg="-scriptingbackend=<SCRIPTING_BACKEND>"
     - [all]: --category=URP
 
-    
-  
+
+
 test_platforms:
   - type: Standalone
     name: performance_playmode_runtime
@@ -98,30 +99,30 @@ test_platforms:
       - [all]: <shared.platform.commands.setup_utr>
       - [Android_Vulkan, Android_OpenGLES3, Win_DX11, Win_DX12, Win_Vulkan, OSX_Metal, Linux_Vulkan]: <shared.platform.commands.unity_downloader_cli>
       - [iPhone_Metal, Android_Vulkan, Android_OpenGLES3, Win_DX11, Win_DX12, Win_Vulkan, OSX_Metal, Linux_Vulkan]: <shared.platform.commands.call_utr>
-        flags: 
+        flags:
           - <reuse_blocks.perf_utr_flags>
-          - [Win_DX11, Win_DX12, Win_Vulkan]: --extra-editor-arg="-stripenginecode-" 
+          - [Win_DX11, Win_DX12, Win_Vulkan]: --extra-editor-arg="-stripenginecode-"
           - [Win_DX11, Win_DX12, Win_Vulkan]: --extra-editor-arg="-managedstrippinglevel=Low"
-          - [Win_DX11, Win_DX12, Win_Vulkan]: --extra-editor-arg="-allowdebugging-" 
+          - [Win_DX11, Win_DX12, Win_Vulkan]: --extra-editor-arg="-allowdebugging-"
           - [all]: --testfilter=Low
           - [all]: --player-save-path=playersLow
       - [iPhone_Metal, Android_Vulkan, Android_OpenGLES3, Win_DX11, Win_DX12, Win_Vulkan, OSX_Metal, Linux_Vulkan]: <shared.platform.commands.call_utr>
-        flags: 
+        flags:
           - <reuse_blocks.perf_utr_flags>
-          - [Win_DX11, Win_DX12, Win_Vulkan]: --extra-editor-arg="-stripenginecode-" 
+          - [Win_DX11, Win_DX12, Win_Vulkan]: --extra-editor-arg="-stripenginecode-"
           - [Win_DX11, Win_DX12, Win_Vulkan]: --extra-editor-arg="-managedstrippinglevel=Low"
-          - [Win_DX11, Win_DX12, Win_Vulkan]: --extra-editor-arg="-allowdebugging-" 
+          - [Win_DX11, Win_DX12, Win_Vulkan]: --extra-editor-arg="-allowdebugging-"
           - [all]: --testfilter=Medium
           - [all]: --player-save-path=playersMedium
       - [Win_DX11, Win_DX12, Win_Vulkan, OSX_Metal, Linux_Vulkan]: <shared.platform.commands.call_utr>
         flags:
           - <reuse_blocks.perf_utr_flags>
-          - [Win_DX11, Win_DX12, Win_Vulkan]: --extra-editor-arg="-stripenginecode-" 
+          - [Win_DX11, Win_DX12, Win_Vulkan]: --extra-editor-arg="-stripenginecode-"
           - [Win_DX11, Win_DX12, Win_Vulkan]: --extra-editor-arg="-managedstrippinglevel=Low"
-          - [Win_DX11, Win_DX12, Win_Vulkan]: --extra-editor-arg="-allowdebugging-" 
+          - [Win_DX11, Win_DX12, Win_Vulkan]: --extra-editor-arg="-allowdebugging-"
           - [all]: --testfilter=High
           - [all]: --player-save-path=playersHigh
-          
+
   - type: playmode
     name: performance_playmode_editor
     commands:
@@ -155,27 +156,27 @@ test_platforms:
       - [all]: <shared.platform.commands.setup_utr>
       - [all]: <shared.platform.commands.unity_downloader_cli>
       - [all]: <shared.platform.commands.call_utr>
-        flags: 
+        flags:
           - [all]: --testfilter=Build
           - [all]: --report-performance-data
           - [all]: --performance-project-id=LostCrypt
           - <reuse_blocks.perf_utr_flags>
           - [all]: --testfilter=Low
       - [all]: <shared.platform.commands.call_utr>
-        flags: 
+        flags:
           - [all]: --testfilter=Build
           - [all]: --report-performance-data
           - [all]: --performance-project-id=LostCrypt
           - <reuse_blocks.perf_utr_flags>
           - [all]: --testfilter=Medium
       - [Win_DX11, Win_DX12, Win_Vulkan]: <shared.platform.commands.call_utr>
-        flags: 
+        flags:
           - [all]: --testfilter=Build
           - [all]: --report-performance-data
           - [all]: --performance-project-id=LostCryptLostCrypt
           - <reuse_blocks.perf_utr_flags>
           - [all]: --testfilter=High
-expression_trigger: 
+expression_trigger:
   expression: ""
 platforms:
   - name: Win
@@ -203,9 +204,8 @@ platforms:
         type: Unity::VM
         image: sdet/gamecode_win10:stable
         flavor: b1.large
-        model: rtx2080
   - name: Android
-    apis: 
+    apis:
       - name: Vulkan
         exclude_test_platforms:
           - name: performance_playmode_editor
@@ -230,7 +230,7 @@ platforms:
         image: mobile/android-execution-r19:stable
         flavor: b1.large
   - name: iPhone
-    apis: 
+    apis:
       - name: Metal
         exclude_test_platforms:
           - name: performance_playmode_editor

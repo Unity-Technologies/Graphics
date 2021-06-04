@@ -12,19 +12,23 @@ ResizableElement
 ResizableElement #right
 {
     width: 12px;
+    margin-right: -8;
     flex-direction: column;
     align-items: stretch;
 }
 
 ResizableElement #left
 {
-    width: 12px;
+    width: 14px;
+    margin-left: -8;
     flex-direction: column;
     align-items: stretch;
 }
 ResizableElement #middle
 {
     flex:1 0 auto;
+    margin-top: -8;
+    margin-bottom: -12;
     flex-direction: column;
     align-items: stretch;
 }
@@ -32,7 +36,9 @@ ResizableElement #middle
 
 ResizableElement #left #top-left-resize
 {
-    height: 12px;
+    height: 14px;
+    margin: -4px;
+    margin-right: -4px;
     cursor: resize-up-left;
 }
 
@@ -45,12 +51,14 @@ ResizableElement #left #left-resize
 ResizableElement #left #bottom-left-resize
 {
     height: 12px;
+    margin: -4px;
+    margin-right: -4px;
     cursor: resize-up-right;
 }
 
 ResizableElement #middle #top-resize
 {
-    height: 12px;
+    height: 14px;
     cursor: resize-vertical;
 }
 
@@ -61,24 +69,30 @@ ResizableElement #middle #middle-center
 
 ResizableElement #middle #bottom-resize
 {
-    height: 12px;
+    height: 14px;
     cursor: resize-vertical;
 }
 
 ResizableElement #right #top-right-resize
 {
-    height: 12px;
+    height: 14px;
+    margin: -4px;
+    margin-left: -4px;
     cursor: resize-up-right;
 }
 
 ResizableElement #right #right-resize
 {
     flex:1 0 auto;
+    margin-right: -2px;
+    margin-left: 2px;
     cursor: resize-horizontal;
 }
 
 ResizableElement #right #bottom-right-resize
 {
-    height: 12px;
+    height: 14px;
+    margin: -4px;
+    margin-left: -8px;
     cursor: resize-up-left;
 }

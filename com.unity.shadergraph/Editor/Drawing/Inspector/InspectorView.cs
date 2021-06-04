@@ -10,6 +10,13 @@ using UnityEngine.UIElements;
 
 namespace UnityEditor.ShaderGraph.Drawing.Inspector
 {
+    enum InspectorUpdateSource
+    {
+        PropertyInspection,
+        GraphChanges,
+        GraphSettingsChange
+    }
+
     class InspectorView : GraphSubWindow
     {
         readonly List<Type> m_PropertyDrawerList = new List<Type>();
@@ -102,7 +109,7 @@ namespace UnityEditor.ShaderGraph.Drawing.Inspector
             return needUpdate;
         }
 
-        public void Update()
+        public void Update(InspectorUpdateSource inspectorUpdateSource)
         {
             ShowGraphSettings_Internal(m_GraphSettingsContainer);
 
@@ -119,7 +126,7 @@ namespace UnityEditor.ShaderGraph.Drawing.Inspector
                         anySelectables = true;
                     }
                 }
-                if (anySelectables)
+                if (anySelectables && inspectorUpdateSource != InspectorUpdateSource.GraphSettingsChange)
                 {
                     // Anything selectable in the graph (GraphSettings not included) is only ever interacted with through the
                     // Node Settings tab so we can make the assumption they want to see that tab
@@ -142,35 +149,41 @@ namespace UnityEditor.ShaderGraph.Drawing.Inspector
             IInspectable inspectable,
             IPropertyDrawer propertyDrawerToUse = null)
         {
-            InspectorUtils.GatherInspectorContent(m_PropertyDrawerList, outputVisualElement, inspectable, TriggerInspectorUpdate, propertyDrawerToUse);
+            InspectorUtils.GatherInspectorContent(
+                m_PropertyDrawerList,
+                outputVisualElement,
+                inspectable,
+                () => TriggerInspectorUpdate(InspectorUpdateSource.PropertyInspection),
+                TriggerInspectorUpdate,
+                propertyDrawerToUse);
         }
 
-        void TriggerInspectorUpdate()
+        void TriggerInspectorUpdate(InspectorUpdateSource inspectorUpdateSource = InspectorUpdateSource.PropertyInspection)
         {
-            Update();
+            Update(inspectorUpdateSource);
         }
 
         // This should be implemented by any inspector class that wants to define its own GraphSettings
         // which for SG, is a representation of the settings in GraphData
-        protected virtual void ShowGraphSettings_Internal(VisualElement contentContainer)
+        protected virtual void ShowGraphSettings_Internal(VisualElement inContentContainer)
         {
             var graphEditorView = m_GraphView.GetFirstAncestorOfType<GraphEditorView>();
             if(graphEditorView == null)
                 return;
 
-            contentContainer.Clear();
-            DrawInspectable(contentContainer, (IInspectable)graphView, m_graphSettingsPropertyDrawer);
-            contentContainer.MarkDirtyRepaint();
+            inContentContainer.Clear();
+            DrawInspectable(inContentContainer, (IInspectable)graphView, m_graphSettingsPropertyDrawer);
+            inContentContainer.MarkDirtyRepaint();
         }
     }
 
     public static class InspectorUtils
     {
-        internal static void GatherInspectorContent(
-            List<Type> propertyDrawerList,
+        internal static void GatherInspectorContent(List<Type> propertyDrawerList,
             VisualElement outputVisualElement,
             IInspectable inspectable,
-            Action propertyChangeCallback,
+            Action defaultPropertyChangeCallback,
+            Action<InspectorUpdateSource> scopedInspectorUpdateCallback,
             IPropertyDrawer propertyDrawerToUse = null)
         {
             var dataObject = inspectable.GetObjectToInspect();
@@ -194,9 +207,9 @@ namespace UnityEditor.ShaderGraph.Drawing.Inspector
                     var propertyDrawerInstance = propertyDrawerToUse ??
                                                  (IPropertyDrawer) Activator.CreateInstance(propertyDrawerTypeToUse);
                     // Assign the inspector update delegate so any property drawer can trigger an inspector update if it needs it
-                    propertyDrawerInstance.inspectorUpdateDelegate = propertyChangeCallback;
+                    propertyDrawerInstance.inspectorUpdateDelegate = defaultPropertyChangeCallback;
                     // Supply any required data to this particular kind of property drawer
-                    inspectable.SupplyDataToPropertyDrawer(propertyDrawerInstance, propertyChangeCallback);
+                    inspectable.SupplyDataToPropertyDrawer(propertyDrawerInstance, defaultPropertyChangeCallback, scopedInspectorUpdateCallback);
                     var propertyGUI = propertyDrawerInstance.DrawProperty(propertyInfo, dataObject, attribute);
                     outputVisualElement.Add(propertyGUI);
                 }

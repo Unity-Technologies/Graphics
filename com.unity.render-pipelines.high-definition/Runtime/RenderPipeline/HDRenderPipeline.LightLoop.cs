@@ -741,8 +741,10 @@ namespace UnityEngine.Rendering.HighDefinition
                             FilterVolumetricLighting(data.parameters, data.lightingBuffer, ctx.cmd);
                     });
 
-                    if (parameters.enableReprojection)
+                    if (parameters.enableReprojection && hdCamera.volumetricValidFrames > 1)
                         hdCamera.volumetricHistoryIsValid = true; // For the next frame..
+                    else
+                        hdCamera.volumetricValidFrames++;
 
                     return passData.lightingBuffer;
                 }
