@@ -3,12 +3,12 @@ using System.Linq;
 using UnityEditor.VFX.Block;
 using UnityEngine;
 
-namespace UnityEditor.VFX
+namespace UnityEditor.VFX.HDRP
 {
     [VFXInfo]
     class VFXLitMeshOutput : VFXAbstractParticleHDRPLitOutput, IVFXMultiMeshOutput
     {
-        public override string name { get { return "Output Particle Lit Mesh"; } }
+        public override string name { get { return "Output Particle HDRP Lit Mesh"; } }
         public override string codeGeneratorTemplate { get { return RenderPipeTemplate("VFXParticleLitMesh"); } }
         public override VFXTaskType taskType { get { return VFXTaskType.ParticleMeshOutput; } }
         public override bool supportsUV { get { return GetOrRefreshShaderGraphObject() == null; } }
@@ -116,6 +116,16 @@ namespace UnityEditor.VFX
             }
 
             return mapper;
+        }
+
+        protected override void GenerateErrors(VFXInvalidateErrorReporter manager)
+        {
+            base.GenerateErrors(manager);
+            var dataParticle = GetData() as VFXDataParticle;
+            if (dataParticle != null && dataParticle.boundsSettingMode != BoundsSettingMode.Manual)
+                manager.RegisterError("WarningBoundsComputation", VFXErrorType.Warning, $"Bounds computation have no sense of what the scale of the output mesh is," +
+                    $" so the resulted computed bounds can be too small or big" +
+                    $" Please use padding to mitigate this discrepancy.");
         }
     }
 }

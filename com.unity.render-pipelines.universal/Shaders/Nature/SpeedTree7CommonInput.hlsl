@@ -1,6 +1,10 @@
 #ifndef UNIVERSAL_SPEEDTREE7COMMON_INPUT_INCLUDED
 #define UNIVERSAL_SPEEDTREE7COMMON_INPUT_INCLUDED
 
+#if defined(SPEEDTREE_ALPHATEST)
+#define _ALPHATEST_ON
+#endif
+
 #ifdef EFFECT_BUMP
     #define _NORMALMAP
 #endif
@@ -24,6 +28,8 @@
 
 TEXTURE2D(_MainTex);
 SAMPLER(sampler_MainTex);
+float4 _MainTex_TexelSize;
+float4 _MainTex_MipInfo;
 
 #ifdef EFFECT_HUE_VARIATION
     half4 _HueVariation;

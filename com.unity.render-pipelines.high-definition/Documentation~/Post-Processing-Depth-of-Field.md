@@ -20,8 +20,9 @@ Depth Of Field includes [additional properties](More-Options.md) that you must m
 
 | **Property**       | **Description**                                              |
 | ------------------ | ------------------------------------------------------------ |
-| **Focus Mode**     | Use the drop-down to select the mode that HDRP uses to set the focus for the depth of field effect.<br />&#8226; **Off**: Select this option to disable depth of field.<br />&#8226; **Use Physical Camera**: Select this option to use the physical [Camera](HDRP-Camera.md) to set focusing properties for the depth of field effect. For information on what Camera properties affect depth of field, see [Physical Camera settings](#PhysicalCameraSettings).<br />&#8226; **Manual**: Select this option to use custom values to set the focus of the depth of field effect. |
-| **Focus Distance** | Set the distance to the focus point from the Camera.<br />This property only appears when you select **Use Physical Camera** from the **Focus Mode** drop-down. |
+| **Focus Mode**     | Use the drop-down to select the mode that HDRP uses to set the focus for the depth of field effect.<br />&#8226; **Off**: Select this option to disable depth of field.<br />&#8226; **Physical Camera**: Select this option to use the physical [Camera](HDRP-Camera.md) to set focusing properties for the depth of field effect. For information on what Camera properties affect depth of field, see [Physical Camera settings](#PhysicalCameraSettings).<br />&#8226; **Manual Ranges**: Select this option to use custom values to set the near and far range of the depth of field effect. |
+| **Focus Distance Mode** | Use the drop-down to select where the focus distance is specified.<br /> &#8226; **Volume**: Reads the focus distance from the Volume. <br /> &#8226; **Camera**: Reads the focus distance from the physical camera. <br /> This property only appears when you select **Physical Camera** from the **Focus Mode** drop-down. |
+| **Focus Distance** | Set the distance to the focus plane from the Camera.<br />This property only appears when you select **Volume** from the **Distance Mode** drop-down. |
 
 ### Near Blur
 

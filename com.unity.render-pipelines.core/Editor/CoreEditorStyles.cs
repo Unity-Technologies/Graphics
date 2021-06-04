@@ -13,6 +13,9 @@ namespace UnityEditor.Rendering
     /// <summary>Class containing style definition</summary>
     public static class CoreEditorStyles
     {
+        /// <summary>Standard UI spacing</summary>
+        public static float standardSpacing => EditorGUIUtility.standardVerticalSpacing;
+
         /// <summary>Style for a small checkbox</summary>
         public static readonly GUIStyle smallTickbox;
         /// <summary>Style for a small checkbox in mixed state</summary>
@@ -27,9 +30,13 @@ namespace UnityEditor.Rendering
         /// <summary><see cref="Texture2D"/> 1x1 pixel with blue color</summary>
         public static readonly Texture2D blueTexture;
 
-        /// <summary> PaneOption icon </summary>
+        /// <summary> PaneOption icon for dark skin</summary>
         static readonly Texture2D paneOptionsIconDark;
+
+        /// <summary> PaneOption icon for light skin</summary>
         static readonly Texture2D paneOptionsIconLight;
+
+        /// <summary> PaneOption icon </summary>
         public static Texture2D paneOptionsIcon => EditorGUIUtility.isProSkin ? paneOptionsIconDark : paneOptionsIconLight;
 
         /// <summary> Warning icon </summary>
@@ -61,10 +68,20 @@ namespace UnityEditor.Rendering
         /// <summary>Hightlited background color.</summary>
         public static Color backgroundHighlightColor { get { return EditorGUIUtility.isProSkin ? m_DarkThemeBackgroundHighlightColor : m_LightThemeBackgroundHighlightColor; } }
 
+        /// <summary>Help icon style</summary>
         public static GUIStyle iconHelpStyle => GUI.skin.FindStyle("IconButton") ?? EditorGUIUtility.GetBuiltinSkin(EditorSkin.Inspector).FindStyle("IconButton");
+
+        /// <summary>Style of Section Headers.</summary>
+        public static GUIStyle sectionHeaderStyle = new GUIStyle(EditorStyles.largeLabel) { richText = true, fontSize = 18, fixedHeight = 42 };
+        /// <summary>Style of Sub-Section Headers.</summary>
+        public static GUIStyle subSectionHeaderStyle = new GUIStyle(EditorStyles.boldLabel);
 
         /// <summary>RenderPipeline Global Settings icon</summary>
         public static readonly Texture2D globalSettingsIcon;
+
+        public static readonly GUIContent resetButtonLabel = EditorGUIUtility.TrTextContent("Reset");
+        public static readonly GUIContent resetAllButtonLabel = EditorGUIUtility.TrTextContent("Reset All");
+
 
         static CoreEditorStyles()
         {
@@ -122,7 +139,6 @@ namespace UnityEditor.Rendering
             iconFail = EditorGUIUtility.FindTexture("console.erroricon");
             iconSuccess = EditorGUIUtility.FindTexture("TestPassed");
             iconPending = EditorGUIUtility.FindTexture("Toolbar Minus");
-
 
             globalSettingsIcon = EditorGUIUtility.FindTexture("ScriptableObject Icon");
 

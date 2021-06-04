@@ -39,7 +39,7 @@ To create a new Lit Tessellation Material:
 
 ### Tessellation Options
 
-[!include[](snippets/shader-properties/tessellation-options.md)]
+For information on the properties in this section, see the [Tessellation documentation](Tessellation.md).
 
 ### Surface Inputs
 

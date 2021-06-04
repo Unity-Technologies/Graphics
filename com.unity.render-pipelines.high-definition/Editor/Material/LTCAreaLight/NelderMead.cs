@@ -8,7 +8,7 @@ namespace UnityEngine.Rendering.HighDefinition.LTC
     /// http://en.wikipedia.org/wiki/Nelder%E2%80%93Mead_method#One_possible_variation_of_the_NM_algorithm
     /// Using the termination criterion from Numerical Recipes in C++ (3rd Ed.)
     /// </summary>
-    public class NelderMead
+    internal class NelderMead
     {
         // standard coefficients from Nelder-Mead
         const double    reflect  = 1.0;

@@ -44,7 +44,19 @@ When you create a new Unlit Master Stack, the Vertex Context contains the follow
 
 #### Relevant
 
-This Master Stack material type adds all its Vertex Blocks to the Vertex Context by default and has no extra relevant Blocks.
+Depending on the [Graph Settings](#graph-settings) you use, Shader Graph can add the following Blocks to the Vertex Context:
+
+<table>
+<tr>
+<th>Property</th>
+<th>Description</th>
+<th>Setting Dependency</th>
+<th>Default Value</th>
+</tr>
+[!include[](snippets/shader-graph-blocks/tessellation-factor.md)]
+[!include[](snippets/shader-graph-blocks/tessellation-displacement.md)]
+</table>
+
 
 ### Fragment Context
 
@@ -112,6 +124,7 @@ Depending on the [Graph Settings](#graph-settings) you use, Shader Graph can add
 [!include[](snippets/shader-properties/surface-options/double-sided.md)]
 [!include[](snippets/shader-properties/surface-options/ss-depth-offset.md)]
 [!include[](snippets/shader-properties/surface-options/conservative-depth-offset.md)]
+[!include[](snippets/shader-properties/surface-options/tessellation.md)]
 [!include[](snippets/shader-properties/surface-options/shadow-matte.md)]
 </table>
 
@@ -139,4 +152,14 @@ This set of settings only appears if you set **Surface Type** to **Transparent**
 </tr>
 [!include[](snippets/shader-properties/advanced-options/support-lod-crossfade.md)]
 [!include[](snippets/shader-properties/advanced-options/add-precomputed-velocity.md)]
+</table>
+
+### Other top level settings
+
+<table>
+<tr>
+<th>Property</th>
+<th>Description</th>
+</tr>
+[!include[](snippets/shader-properties/support-vfx-graph.md)]
 </table>

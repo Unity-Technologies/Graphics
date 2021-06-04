@@ -105,7 +105,9 @@ Varyings BuildVaryings(Attributes input)
 #endif
 
 #ifdef VARYINGS_NEED_VIEWDIRECTION_WS
-    output.viewDirectionWS = GetWorldSpaceNormalizeViewDir(positionWS);
+    // Need the unnormalized direction here as otherwise interpolation is incorrect.
+    // It is normalized after interpolation in the fragment shader.
+    output.viewDirectionWS = GetWorldSpaceViewDir(positionWS);
 #endif
 
 #ifdef VARYINGS_NEED_SCREENPOSITION
@@ -113,7 +115,10 @@ Varyings BuildVaryings(Attributes input)
 #endif
 
 #if (SHADERPASS == SHADERPASS_FORWARD) || (SHADERPASS == SHADERPASS_GBUFFER)
-    OUTPUT_LIGHTMAP_UV(input.uv1, unity_LightmapST, output.lightmapUV);
+    OUTPUT_LIGHTMAP_UV(input.uv1, unity_LightmapST, output.staticLightmapUV);
+#if defined(DYNAMICLIGHTMAP_ON)
+    output.dynamicLightmapUV.xy = input.uv2.xy * unity_DynamicLightmapST.xy + unity_DynamicLightmapST.zw;
+#endif
     OUTPUT_SH(normalWS, output.sh);
 #endif
 

@@ -2,7 +2,7 @@
 
 Menu Path : **Position > Set Position (Shape : Sphere)**
 
-The **Set Position (Shape : Sphere)** block calculatesa position based on an input [ArcSphere](Type-ArcSphere.md) and stores the result in the [position attribute](Reference-Attributes.md), based on composition.
+The **Set Position (Shape : Sphere)** Block calculatesa position based on an input [ArcSphere](Type-ArcSphere.md) and stores the result in the [position attribute](Reference-Attributes.md), based on composition.
 
 The ArcSphere shape adds an arc property to the sphere to determine its arc angle, in radians. setting an arc value of pi creates a hemisphere.
 

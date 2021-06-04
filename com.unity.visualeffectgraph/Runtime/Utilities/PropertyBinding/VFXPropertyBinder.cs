@@ -11,6 +11,7 @@ namespace UnityEngine.VFX.Utility
     /// </summary>
     [RequireComponent(typeof(VisualEffect))]
     [DefaultExecutionOrder(1)]
+    [DisallowMultipleComponent]
     [ExecuteInEditMode]
     public class VFXPropertyBinder : MonoBehaviour
     {
@@ -33,28 +34,77 @@ namespace UnityEngine.VFX.Utility
 
         private void OnEnable()
         {
-            m_VisualEffect = GetComponent<VisualEffect>();
+            Reload();
+        }
+
+        private void OnValidate()
+        {
+            Reload();
         }
 
         static private void SafeDestroy(Object toDelete)
         {
+#if UNITY_EDITOR
             if (Application.isPlaying)
-                Destroy(toDelete);
+                Destroy(toDelete); //Undo.DestroyObjectImmediate is needed only for Reset, which can't be called in play mode
             else
-                DestroyImmediate(toDelete);
+                UnityEditor.Undo.DestroyObjectImmediate(toDelete);
+#else
+            Destroy(toDelete);
+#endif
+        }
+
+#if UNITY_EDITOR
+        List<VFXBinderBase> m_BinderToCopyPaste;
+#endif
+
+        private void Reload()
+        {
+            m_VisualEffect = GetComponent<VisualEffect>();
+#if UNITY_EDITOR
+            //Handle probable copy/paste component saving list of inappropriate entries.
+            m_BinderToCopyPaste = new List<VFXBinderBase>();
+            foreach (var bindings in m_Bindings)
+            {
+                if (bindings != null && bindings.gameObject != gameObject)
+                    m_BinderToCopyPaste.Add(bindings);
+            }
+            if (m_BinderToCopyPaste.Count == 0)
+                m_BinderToCopyPaste = null;
+#endif
+            m_Bindings = new List<VFXBinderBase>();
+            m_Bindings.AddRange(gameObject.GetComponents<VFXBinderBase>());
         }
 
         private void Reset()
         {
-            m_VisualEffect = GetComponent<VisualEffect>();
-            m_Bindings = new List<VFXBinderBase>();
-            m_Bindings.AddRange(gameObject.GetComponents<VFXBinderBase>());
+            Reload();
             ClearPropertyBinders();
         }
 
+#if UNITY_EDITOR
+        void Update()
+        {
+            if (m_BinderToCopyPaste != null)
+            {
+                //We can't add a component during a OnInvalidate, restore & copy linked binders (from copy/past) here
+                foreach (var copyPaste in m_BinderToCopyPaste)
+                {
+                    var type = copyPaste.GetType();
+                    var newComponent = gameObject.AddComponent(type);
+                    UnityEditor.EditorUtility.CopySerialized(copyPaste, newComponent);
+                }
+
+                m_BinderToCopyPaste = null;
+                Reload();
+            }
+        }
+
+#endif
         void LateUpdate()
         {
-            if (!m_ExecuteInEditor && Application.isEditor && !Application.isPlaying) return;
+            if (!m_ExecuteInEditor && Application.isEditor && !Application.isPlaying)
+                return;
 
             for (int i = 0; i < m_Bindings.Count; i++)
             {
