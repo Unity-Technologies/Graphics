@@ -50,7 +50,7 @@ namespace UnityEngine.Rendering.Universal.Internal
 
         void Initialize(CommandBuffer cmd)
         {
-            if(m_Desc.width > 0 && m_Desc.height > 0)
+            if (m_Desc.width > 0 && m_Desc.height > 0)
             {
                 cmd.GetTemporaryRT(m_NameA, m_Desc, m_FilterMode);
                 var descB = m_Desc;
@@ -62,9 +62,6 @@ namespace UnityEngine.Rendering.Universal.Internal
 
         public void Clear(CommandBuffer cmd)
         {
-            cmd.ReleaseTemporaryRT(m_NameA);
-            cmd.ReleaseTemporaryRT(m_NameB);
-
             m_FirstIsBackBuffer = true;
             m_RTisAllocated = false;
         }
