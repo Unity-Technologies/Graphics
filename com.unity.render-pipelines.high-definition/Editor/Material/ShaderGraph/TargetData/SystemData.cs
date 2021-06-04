@@ -118,6 +118,16 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
             set => m_DOTSInstancing = value;
         }
 
+        // Custom motion vector
+        [SerializeField]
+        bool m_PrecomputedVelocity = false;
+        public bool precomputedVelocity
+        {
+            get => m_PrecomputedVelocity;
+            set => m_PrecomputedVelocity = value;
+        }
+
+
         // Tessellation properties
         [SerializeField]
         bool m_Tessellation;

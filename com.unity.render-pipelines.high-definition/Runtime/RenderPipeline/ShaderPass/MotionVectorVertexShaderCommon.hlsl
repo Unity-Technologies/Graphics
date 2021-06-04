@@ -144,6 +144,10 @@ PackedVaryingsType MotionVectorVS(VaryingsType varyingsType, AttributesMesh inpu
 #if defined(_ADD_PRECOMPUTED_VELOCITY)
         effectivePositionOS -= inputPass.precomputedVelocity;
 #endif
+#if defined(_ADD_PRECOMPUTED_VELOCITY_SG) // For shader graph custom velocity
+        effectivePositionOS -= inputMesh.precomputedVelocityOS;
+#endif
+        
 
     // Need to apply any vertex animation to the previous worldspace position, if we want it to show up in the motion vector buffer
 #if defined(HAVE_MESH_MODIFICATION)

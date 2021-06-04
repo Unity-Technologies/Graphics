@@ -73,6 +73,7 @@ AttributesMesh ApplyMeshModification(AttributesMesh input, float3 timeParameters
 
     // copy graph output to the results
     $VertexDescription.Position: input.positionOS = vertexDescription.Position;
+    $VertexDescription.PrecomputedVelocity: input.precomputedVelocityOS = vertexDescription.PrecomputedVelocity;
     $VertexDescription.Normal:   input.normalOS = vertexDescription.Normal;
     $VertexDescription.Tangent:  input.tangentOS.xyz = vertexDescription.Tangent;
 
