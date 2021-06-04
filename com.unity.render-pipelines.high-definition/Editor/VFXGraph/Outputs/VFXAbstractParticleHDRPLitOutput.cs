@@ -3,8 +3,9 @@ using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
 using UnityEngine.Rendering;
+using UnityEngine.Rendering.HighDefinition;
 
-namespace UnityEditor.VFX
+namespace UnityEditor.VFX.HDRP
 {
     abstract class VFXAbstractParticleHDRPLitOutput : VFXShaderGraphParticleOutput
     {
@@ -43,6 +44,12 @@ namespace UnityEditor.VFX
             "StandardProperties",
             "TranslucentProperties",
         };
+
+        protected bool GeneratesWithShaderGraph()
+        {
+            return GetOrRefreshShaderGraphObject() != null &&
+                GetOrRefreshShaderGraphObject().generatesWithShaderGraph;
+        }
 
         [VFXSetting(VFXSettingAttribute.VisibleFlags.InInspector), SerializeField, Header("Lighting"), Tooltip("Specifies the surface type of this output. Surface types determine how the particle will react to light.")]
         protected MaterialType materialType = MaterialType.Standard;
@@ -162,6 +169,11 @@ namespace UnityEditor.VFX
         {
             [Tooltip("Sets the emissive color to make particles glow.")]
             public Color emissiveColor = Color.black;
+        }
+
+        public override sealed bool CanBeCompiled()
+        {
+            return (VFXLibrary.currentSRPBinder is VFXHDRPBinder) && base.CanBeCompiled();
         }
 
         protected override bool needsExposureWeight { get { return GetOrRefreshShaderGraphObject() == null && ((colorMode & ColorMode.Emissive) != 0 || useEmissive || useEmissiveMap); } }

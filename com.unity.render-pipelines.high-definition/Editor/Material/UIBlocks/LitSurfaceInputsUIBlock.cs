@@ -17,6 +17,7 @@ namespace UnityEditor.Rendering.HighDefinition
     public class LitSurfaceInputsUIBlock : MaterialUIBlock
     {
         /// <summary>Options for lit surface input features.</summary>
+        [Flags]
         public enum Features
         {
             /// <summary>Minimal Lit Surface Inputs fields.</summary>
@@ -37,7 +38,7 @@ namespace UnityEditor.Rendering.HighDefinition
 
         internal class Styles
         {
-            public const string header = "Surface Inputs";
+            public static GUIContent header { get; } = EditorGUIUtility.TrTextContent("Surface Inputs");
 
             public static GUIContent colorText = new GUIContent("Color", " Albedo (RGB) and Transparency (A).");
 
@@ -257,7 +258,6 @@ namespace UnityEditor.Rendering.HighDefinition
         MaterialProperty heightTransition = null;
         const string kHeightTransition = "_HeightTransition";
 
-        ExpandableBit  m_ExpandableBit;
         Features    m_Features;
         int         m_LayerCount;
         int         m_LayerIndex;
@@ -272,10 +272,9 @@ namespace UnityEditor.Rendering.HighDefinition
         /// <param name="layerCount">Number of layers in the shader.</param>
         /// <param name="layerIndex">Current layer index to display. 0 if it's not a layered shader</param>
         /// <param name="features">Features of the block.</param>
-        /// <param name="dotColor">Subheader dot color. See Layered Lit UI subheader for more info.</param>
         public LitSurfaceInputsUIBlock(ExpandableBit expandableBit, int layerCount = 1, int layerIndex = 0, Features features = Features.All)
+            : base(expandableBit, Styles.header)
         {
-            m_ExpandableBit = expandableBit;
             m_Features = features;
             m_LayerCount = layerCount;
             m_LayerIndex = layerIndex;
@@ -374,22 +373,19 @@ namespace UnityEditor.Rendering.HighDefinition
         }
 
         /// <summary>
+        /// Property that specifies if the scope is a subheader
+        /// </summary>
+        protected override bool isSubHeader => (m_Features & Features.SubHeader) != 0;
+
+        /// <summary>
         /// Renders the properties in the block.
         /// </summary>
-        public override void OnGUI()
+        protected override void OnGUIOpen()
         {
-            bool subHeader = (m_Features & Features.SubHeader) != 0;
-
-            using (var header = new MaterialHeaderScope(Styles.header, (uint)m_ExpandableBit, materialEditor, subHeader: subHeader))
-            {
-                if (header.expanded)
-                {
-                    if ((m_Features & Features.Standard) != 0)
-                        DrawSurfaceInputsGUI();
-                    if ((m_Features & Features.LayerOptions) != 0)
-                        DrawLayerOptionsGUI();
-                }
-            }
+            if ((m_Features & Features.Standard) != 0)
+                DrawSurfaceInputsGUI();
+            if ((m_Features & Features.LayerOptions) != 0)
+                DrawLayerOptionsGUI();
         }
 
         void DrawSurfaceInputsGUI()

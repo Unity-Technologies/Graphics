@@ -4,10 +4,10 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEditor;
 using UnityEditor.EditorTools;
-using UnityEditor.Experimental.Rendering.Universal.Path2D.GUIFramework;
+using UnityEditor.Rendering.Universal.Path2D.GUIFramework;
 using UnityObject = UnityEngine.Object;
 
-namespace UnityEditor.Experimental.Rendering.Universal.Path2D
+namespace UnityEditor.Rendering.Universal.Path2D
 {
     internal static class PathEditorToolExtensions
     {

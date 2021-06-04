@@ -7,8 +7,8 @@
 //
 // UnityEngine.Rendering.HighDefinition.LocalVolumetricFogFalloffMode:  static fields
 //
-#define DENSITYVOLUMEFALLOFFMODE_LINEAR (0)
-#define DENSITYVOLUMEFALLOFFMODE_EXPONENTIAL (1)
+#define LOCALVOLUMETRICFOGFALLOFFMODE_LINEAR (0)
+#define LOCALVOLUMETRICFOGFALLOFFMODE_EXPONENTIAL (1)
 
 // Generated from UnityEngine.Rendering.HighDefinition.LocalVolumetricFogEngineData
 // PackingRules = Exact

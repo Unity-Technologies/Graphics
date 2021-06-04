@@ -130,7 +130,7 @@ void ComputeVolumeScattering(inout PathIntersection pathIntersection : SV_RayPay
     // Light sampling
     if (computeDirect)
     {
-        if (SampleLights(lightList, inputSample, scatteringPosition, 0.0, ray.Direction, value, pdf, ray.TMax))
+        if (SampleLights(lightList, inputSample, scatteringPosition, 0.0, true, ray.Direction, value, pdf, ray.TMax))
         {
             // FIXME: Apply phase function and divide by pdf (only isotropic for now, and not sure about sigmaS value)
             value *= _HeightFogBaseScattering.xyz * ComputeHeightFogMultiplier(scatteringPosition.y) * INV_FOUR_PI / pdf;

@@ -44,3 +44,4 @@ TestProjects/VisualEffectGraph_HDRP/GraphViz/
 node_modules
 
 .yamato/script/path.config
+manifest-updater.py

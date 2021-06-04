@@ -16,6 +16,13 @@ To fix the causes in these cases:
 - Use `CoreUtils.SetRenderTarget` instead of `CommandBuffer.SetRenderTarget`.
 - Use `_RTHandleScale.xy` in your shader code when sampling an `RTHandle` buffer.
 
+## History buffer scaling issues
+
+Scaling issues can happen when you write a custom pass that uses or modifies a history buffer. This is because history buffers use different scale properties from RTHandles (_RTHandleScale.xy). To avoid scaling issues, use _RTHandleScaleHistory.xy to sample a history buffer.
+
+If you bind another buffer instead of a history buffer, make sure you allocate the buffer using the correct render texture size. The render texture size can be different for every camera. To get the correct size of the render texture to use for a history buffer, use HDCamera.historyRTHandleProperties.currentRenderTargetSize.
+
+
 ## Opaque objects disappear in build
 
 If GameObjects with an opaque material in your scene disappear when you build your program, you might need to reconfigure your HDRP Asset settings.

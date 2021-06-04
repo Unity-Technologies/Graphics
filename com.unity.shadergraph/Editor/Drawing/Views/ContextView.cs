@@ -33,6 +33,12 @@ namespace UnityEditor.ShaderGraph
             headerContainer.Add(headerLabel);
         }
 
+        public override void BuildContextualMenu(ContextualMenuPopulateEvent evt)
+        {
+            // Disable the context menu for the stack. This prevents a duplicate "disconnect all"
+            // option from getting registered which grays out stack block node's option.
+        }
+
         public ContextData contextData => m_ContextData;
         public Port port => m_Port;
 
@@ -94,6 +100,9 @@ namespace UnityEditor.ShaderGraph
             }
 
             contextData.blocks.InsertRange(insertIndex, refs);
+
+            var window = m_EditorWindow as MaterialGraphEditWindow;
+            window?.graphEditorView?.graphView?.graph?.ValidateCustomBlockLimit();
         }
 
         protected override bool AcceptsElement(GraphElement element, ref int proposedIndex, int maxIndex)

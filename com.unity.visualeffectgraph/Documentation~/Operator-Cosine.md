@@ -2,7 +2,7 @@
 
 Menu Path : **Operator > Math > Trigonometry > Cosine**
 
-The Cosine operator will compute the value of the cosine of the input in radians.
+The Cosine Operator will compute the value of the cosine of the input in radians.
 
 This Operator accepts input values of various types. For the list of types this Operator can use, see [Available Types](#available-types).
 

@@ -18,7 +18,7 @@ namespace UnityEngine.Rendering.HighDefinition
         {
         }
 
-        public void Init(RenderPipelineResources rpResources)
+        public void Init(HDRenderPipelineRuntimeResources rpResources)
         {
             // Keep track of the resources
             m_SSGIDenoiserCS = rpResources.shaders.ssGIDenoiserCS;

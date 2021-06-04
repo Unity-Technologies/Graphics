@@ -15,16 +15,6 @@ MonoBehaviour:
   filters:
   - FilteredScene: {fileID: 0}
     FilteredScenes:
-    - {fileID: 102900000, guid: 9f750aafa54d07a43b7601615bb2c7ea, type: 3}
-    ColorSpace: -1
-    BuildPlatform: 13
-    GraphicsDevice: 21
-    XrSdk: None
-    StereoModes: 0
-    Reason: 'Android Vulkan: expected less than or equal to 0.000500000024f but was
-      0.000877162092f (scene 059)'
-  - FilteredScene: {fileID: 0}
-    FilteredScenes:
     - {fileID: 102900000, guid: 4387c323b80b3f8479359d07b90f0031, type: 3}
     ColorSpace: -1
     BuildPlatform: -2

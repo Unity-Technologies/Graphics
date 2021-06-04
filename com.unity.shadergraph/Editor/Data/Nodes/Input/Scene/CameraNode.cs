@@ -4,7 +4,7 @@ using UnityEngine;
 namespace UnityEditor.ShaderGraph
 {
     [Title("Input", "Scene", "Camera")]
-    class CameraNode : AbstractMaterialNode
+    class CameraNode : AbstractMaterialNode, IMayRequireTransform
     {
         const string kOutputSlotName = "Position";
         const string kOutputSlot1Name = "Direction";
@@ -64,6 +64,15 @@ namespace UnityEditor.ShaderGraph
                 default:
                     return "_WorldSpaceCameraPos";
             }
+        }
+
+        public NeededTransform[] RequiresTransform(ShaderStageCapability stageCapability = ShaderStageCapability.All)
+        {
+            return new[]
+            {
+                NeededTransform.ObjectToWorld,
+                NeededTransform.WorldToObject
+            };
         }
     }
 }

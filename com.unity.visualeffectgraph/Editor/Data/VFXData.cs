@@ -26,7 +26,7 @@ namespace UnityEditor.VFX
     {
         public abstract VFXDataType type { get; }
 
-        public virtual uint sourceCount
+        public virtual uint staticSourceCount
         {
             get
             {
@@ -39,13 +39,12 @@ namespace UnityEditor.VFX
             get { return m_Owners; }
         }
 
-        public string title;
-
-
-        public IEnumerable<VFXContext> implicitContexts
+        public IEnumerable<VFXContext> compilableOwners
         {
-            get { return Enumerable.Empty<VFXContext>(); }
+            get { return owners.Where(o => o.CanBeCompiled()); }
         }
+
+        public string title;
 
         public virtual IEnumerable<string> additionalHeaders
         {
@@ -252,7 +251,7 @@ namespace UnityEditor.VFX
         // Create implicit contexts and initialize cached contexts list
         public virtual IEnumerable<VFXContext> InitImplicitContexts()
         {
-            m_Contexts = m_Owners;
+            m_Contexts = compilableOwners.ToList();
             return Enumerable.Empty<VFXContext>();
         }
 
@@ -376,7 +375,7 @@ namespace UnityEditor.VFX
         {
             if (!m_DependenciesIn.Any() && !m_DependenciesOut.Any())
             {
-                m_Layer = uint.MaxValue; //Completely independent system
+                m_Layer = 0; //Independent system, choose layer 0 anyway.
             }
             else
             {
@@ -397,11 +396,6 @@ namespace UnityEditor.VFX
             m_StoredCurrentAttributes.Clear();
             m_LocalCurrentAttributes.Clear();
             m_ReadSourceAttributes.Clear();
-            if ((type & VFXDataType.Particle) != 0)
-            {
-                m_ReadSourceAttributes.Add(new VFXAttribute("spawnCount", VFXValueType.Float)); // TODO dirty
-            }
-
             int contextCount = m_Contexts.Count;
             if (contextCount > 16)
                 throw new InvalidOperationException(string.Format("Too many contexts that use particle data {0} > 16", contextCount));
