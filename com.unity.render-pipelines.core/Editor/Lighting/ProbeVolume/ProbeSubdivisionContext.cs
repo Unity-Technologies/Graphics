@@ -15,6 +15,7 @@ namespace UnityEngine.Experimental.Rendering
         public List<(ProbeVolume component, ProbeReferenceVolume.Volume volume)> probeVolumes = new List<(ProbeVolume, ProbeReferenceVolume.Volume)>();
         public List<(Renderer component, ProbeReferenceVolume.Volume volume)> renderers = new List<(Renderer, ProbeReferenceVolume.Volume)>();
         public List<(Vector3Int position, ProbeReferenceVolume.Volume volume)> cells = new List<(Vector3Int, ProbeReferenceVolume.Volume)>();
+        public List<(Terrain, ProbeReferenceVolume.Volume volume)> terrains = new List<(Terrain, ProbeReferenceVolume.Volume)>();
         public ProbeReferenceVolumeAuthoring refVolume;
 
         // Limit the time we can spend in the subdivision for realtime debug subdivision
@@ -48,6 +49,16 @@ namespace UnityEngine.Experimental.Rendering
                 var volume = ProbePlacement.ToVolume(r.bounds);
 
                 renderers.Add((r, volume));
+            }
+
+            foreach (var terrain in UnityEngine.Object.FindObjectsOfType<Terrain>())
+            {
+                if (!terrain.isActiveAndEnabled)
+                    continue;
+
+                var volume = ProbePlacement.ToVolume(terrain.terrainData.bounds);
+
+                terrains.Add((terrain, volume));
             }
 
             // Generate all the unique cell positions from probe volumes:
