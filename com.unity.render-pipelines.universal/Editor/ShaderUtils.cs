@@ -97,6 +97,9 @@ namespace Unity.Rendering.Universal
                 case ShaderID.SG_Unlit:
                     ShaderGraphUnlitGUI.UpdateMaterial(material, updateType);
                     break;
+                case ShaderID.SG_Skybox:
+                    ShaderGraphSkyboxGUI.UpdateMaterial(material, updateType);
+                    break;
                 default:
                     break;
             }

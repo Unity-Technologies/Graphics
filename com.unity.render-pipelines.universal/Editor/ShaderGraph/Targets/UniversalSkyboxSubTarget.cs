@@ -10,7 +10,7 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
 {
     sealed class UniversalSkyboxSubTarget : UniversalSubTarget, ILegacyTarget
     {
-        static readonly GUID kSourceCodeGuid = new GUID("97c3f7dcb477ec842aa8785736403131"); // UniversalSkyboxSubTarget.cs
+        static readonly GUID kSourceCodeGuid = new GUID("68dcc7ee9c3f435595f48e12842914bb"); // UniversalSkyboxSubTarget.cs
 
         public UniversalSkyboxSubTarget()
         {
@@ -31,6 +31,11 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
             {
                 context.AddCustomEditorForRenderPipeline(typeof(ShaderGraphSkyboxGUI).FullName, universalRPType);
             }
+
+            // Skybox need to be opaque and not cast or receive shadows
+            target.surfaceType = SurfaceType.Opaque;
+            target.castShadows = false;
+            target.receiveShadows = false;
 
             // Process SubShaders
             context.AddSubShader(SubShaders.Skybox(target));
