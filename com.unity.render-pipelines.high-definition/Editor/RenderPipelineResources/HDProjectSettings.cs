@@ -132,7 +132,6 @@ namespace UnityEditor.Rendering.HighDefinition
 
         HDProjectSettings()
         {
-            //s_Instance = this; //Todo: should be done in base static contstructor. To check
             // s_Instance.FillPresentPluginMaterialVersions(); <
             // We can't call this here as the scriptable object will not be deserialized in yet
         }
@@ -320,19 +319,43 @@ namespace UnityEditor.Rendering.HighDefinition
         Version m_Version = MigrationDescription.LastVersion<Version>();
 #pragma warning restore 414
 
-        //Never use "instance" here as it can create infinite call loop. Use s_Instance instead.
+        // Migration Case 1:
+        //   - No early migration occured, we need to access one field here and this pass by a static accessor such as HDProjectSettings.materialVersionForUpgrade
+        //   - This will request the instance which is not loaded/created yet. So the LoadOrCreate will be called that should trigger the migration.
+        //
+        // Migration Case 2:
+        //   - When opening unity Editor, the package.json have changed and request a newer version of the HDRP package.
+        //     While evreything is reimported by the ADB, the render loop will start to be called (when modal say "Load Scene" in fact).
+        //  - This can trigger a migration from former system without GlobalSettings to the new one. In this case we will try to create a
+        //    HDRenderPipelineGlobalSettings out of the HDRenderPipelineAsset in the GraphicSettings. For this asset to be created, we must
+        //    access the m_ProjectSettingFolderPath. This is done from the RuntimeAssembly and we have no certitude that the editor assembly
+        //    is loaded. This is the reason we have a base class HDProjectSettingsReadonlyBase that lives in Runtime assembly.
+        //  - Though HDProjectSettingsReadonlyBase don't see every part of the object and can just try to load it. When this is the case,
+        //    the migration is NOT triggered.
+        //  - So next time we will need access to HDProjectSettings, we need to say "Hey migrate if you need".
+        //  - For this reason, in the instance, we need to check if we need to migrate or not. This is done by checking the version and remove
+        //    the static instance in this case to force its reloading in the HDProjectSettings way (which means with Migration)
+        //
+        // When migration is triggered:
+        //  - When we call the Migrate(), the System will try first to check the version to see if migration is needed. So if IVersionable.version
+        //    use instance, we will suppress the static instance to reload it if the version is not last (see Case 2). In the end, as it is loaded
+        //    again, it will request a Migration. This is a recursive call that will lead to stack overflow. So we must not use instance in IVersionable.version
+        //  - Then if version is not the last, we will execute missing migration steps. Once again if inside a step we use instance we will cause
+        //    a recursive call like in above and will produce a stack overflow. So no HDProjectSettings.materialVersionForUpgrade but we can safely
+        //    use (s_Instance as HDProjectSettings).m_LastMaterialVersion or the given data: data.m_LastMaterialVersion.
+
+        // NEVER USE "instance" HERE as it can create infinite call loop. Use s_Instance instead. (see comment above)
         Version IVersionable<Version>.version { get => (s_Instance as HDProjectSettings).m_Version; set => (s_Instance as HDProjectSettings).m_Version = value; }
 
-        //Never use "instance" here as it can create infinite call loop. Use s_Instance instead.
+        // NEVER USE "instance" HERE as it can create infinite call loop. Use s_Instance or data instead. (see comment above)
         static readonly MigrationDescription<Version, HDProjectSettings> k_Migration = MigrationDescription.New(
             MigrationStep.New(Version.SplittedWithHDUserSettings, (HDProjectSettings data) =>
             {
-                HDProjectSettings inst = s_Instance as HDProjectSettings;
 #pragma warning disable 618 // Type or member is obsolete
-                HDUserSettings.wizardPopupAlreadyShownOnce = inst.m_ObsoleteWizardPopupAlreadyShownOnce;
-                HDUserSettings.wizardActiveTab = inst.m_ObsoleteWizardActiveTab;
-                HDUserSettings.wizardNeedRestartAfterChangingToDX12 = inst.m_ObsoleteWizardNeedRestartAfterChangingToDX12;
-                HDUserSettings.wizardNeedToRunFixAllAgainAfterDomainReload = inst.m_ObsoleteWizardNeedToRunFixAllAgainAfterDomainReload;
+                HDUserSettings.wizardPopupAlreadyShownOnce = data.m_ObsoleteWizardPopupAlreadyShownOnce;
+                HDUserSettings.wizardActiveTab = data.m_ObsoleteWizardActiveTab;
+                HDUserSettings.wizardNeedRestartAfterChangingToDX12 = data.m_ObsoleteWizardNeedRestartAfterChangingToDX12;
+                HDUserSettings.wizardNeedToRunFixAllAgainAfterDomainReload = data.m_ObsoleteWizardNeedToRunFixAllAgainAfterDomainReload;
 #pragma warning restore 618 // Type or member is obsolete
             })
         );
