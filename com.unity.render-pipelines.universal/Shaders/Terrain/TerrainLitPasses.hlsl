@@ -383,7 +383,7 @@ half4 SplatmapFragment(Varyings IN) : SV_TARGET
     half4 maskOcclusion = half4(masks[0].g, masks[1].g, masks[2].g, masks[3].g);
     defaultOcclusion = lerp(defaultOcclusion, maskOcclusion, hasMask);
     half occlusion = dot(splatControl, defaultOcclusion);
-    
+
 #endif
 
     InputData inputData;
