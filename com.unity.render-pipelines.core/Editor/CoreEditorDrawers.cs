@@ -397,12 +397,7 @@ namespace UnityEditor.Rendering
                 m_State = state;
                 m_Mask = mask;
 
-                var helpUrlAttribute = (HelpURLAttribute)mask
-                    .GetType()
-                    .GetCustomAttributes(typeof(HelpURLAttribute), false)
-                    .FirstOrDefault();
-
-                m_HelpUrl = helpUrlAttribute == null ? string.Empty : $"{helpUrlAttribute.URL}#{mask}";
+                m_HelpUrl = DocumentationUtils.GetHelpURL<TEnum>(mask));
 
                 m_Enabler = enabler;
                 m_SwitchEnabler = switchEnabler;

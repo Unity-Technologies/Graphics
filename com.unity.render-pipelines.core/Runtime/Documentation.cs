@@ -56,12 +56,35 @@ namespace UnityEngine.Rendering
             }
         }
 
-        /// <summary>
+    /// <summary>
         /// Generates a help url for the given package and page name
-        /// </summary>
+    /// </summary>
         /// <param name="packageName">The package name</param>
         /// <param name="pageName">The page name</param>
         /// <returns>The full url page</returns>
         public static string GetPageLink(string packageName, string pageName) => string.Format(url, packageName, version, pageName);
+    }
+
+    /// <summary>
+    /// Set of utils for documentation
+    /// </summary>
+    public static class DocumentationUtils
+    {
+        /// <summary>
+        /// Obtains the help url from an enum
+        /// </summary>
+        /// <typeparam name="TEnum">The enum with a <see cref="HelpURLAttribute"/></typeparam>
+        /// <param name="mask">The current value of the enum</param>
+        /// <returns>The full url</returns>
+        public static string GetHelpURL<TEnum>(TEnum mask)
+            where TEnum : struct, IConvertible
+        {
+            var helpURLAttribute = (HelpURLAttribute)mask
+                .GetType()
+                .GetCustomAttributes(typeof(HelpURLAttribute), false)
+                .FirstOrDefault();
+
+            return helpURLAttribute == null ? string.Empty : $"{helpURLAttribute.URL}#{mask}";
+        }
     }
 }

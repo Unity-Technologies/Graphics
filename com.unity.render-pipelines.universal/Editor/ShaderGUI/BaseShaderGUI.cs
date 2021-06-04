@@ -18,6 +18,7 @@ namespace UnityEditor
         #region EnumsAndClasses
 
         [Flags]
+        [URPHelpURL("shaders-in-universalrp")]
         protected enum Expandable
         {
             SurfaceOptions = 1 << 0,
@@ -179,7 +180,6 @@ namespace UnityEditor
 
         private const int queueOffsetRange = 50;
 
-        private static string s_DocumentationURL = Documentation.GetPageLink("shaders-in-universalrp");
         ////////////////////////////////////
         // General Functions              //
         ////////////////////////////////////
@@ -244,31 +244,16 @@ namespace UnityEditor
         public virtual void OnOpenGUI(Material material, MaterialEditor materialEditor)
         {
             // Generate the foldouts
-            m_MaterialScopeList.RegisterHeaderScope(Styles.SurfaceOptions, (uint)Expandable.SurfaceOptions, DrawSurfaceOptions);
-            m_MaterialScopeList.RegisterHeaderScope(Styles.SurfaceInputs, (uint)Expandable.SurfaceInputs, DrawSurfaceInputs);
+            m_MaterialScopeList.RegisterHeaderScope(Styles.SurfaceOptions, Expandable.SurfaceOptions, DrawSurfaceOptions);
+            m_MaterialScopeList.RegisterHeaderScope(Styles.SurfaceInputs, Expandable.SurfaceInputs, DrawSurfaceInputs);
 
             FillAdditionalFoldouts(m_MaterialScopeList);
 
-            m_MaterialScopeList.RegisterHeaderScope(Styles.AdvancedLabel, (uint)Expandable.Advanced, DrawAdvancedOptions);
-        }
-
-        Rect helpButtonRect
-        {
-            get
-            {
-                var iconSize = CoreEditorStyles.iconHelpStyle.CalcSize(Styles.documentationIcon);
-                var rect = GUILayoutUtility.GetRect(1f, iconSize.y * 0.6f);
-                rect = new Rect(rect.xMax - iconSize.x, rect.y + 1f, iconSize.x, iconSize.y);
-                rect.yMin = rect.y - iconSize.y * 0.5f;
-                return rect;
-            }
+            m_MaterialScopeList.RegisterHeaderScope(Styles.AdvancedLabel, Expandable.Advanced, DrawAdvancedOptions);
         }
 
         public void ShaderPropertiesGUI(Material material)
         {
-            if (GUI.Button(helpButtonRect, Styles.documentationIcon, CoreEditorStyles.iconHelpStyle))
-                Help.BrowseURL(s_DocumentationURL);
-
             m_MaterialScopeList.DrawHeaders(materialEditor, material);
         }
 
