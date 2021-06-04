@@ -1,3 +1,4 @@
+{% metadata_file .yamato/_latest_editor_versions_trunk.metafile -%}
 
 name: URP_Upgrade
 test_editors:
