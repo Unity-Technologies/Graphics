@@ -28,7 +28,7 @@ Although some fields are specific to certain types of Keywords, all Keywords hav
 | **Scope**          | Enum     | Sets the scope at which to define the Keyword.<br/><br/>&#8226; **Global Keywords**: Defines Keyword for the entire project, and it counts towards the global keyword limit.<br/>&#8226; **Local Keywords**: Defines Keyword for only one shader, which has its own local keyword limit.<br/><br/>When you use Predefined Keywords, Unity disables this field. |
 | **Stages** |  | <br/>&#8226; **All** - Applies this keyword to all shader stages.
 <br/>&#8226;**Vertex** - Applies this keyword to the vertex stage.
-<br/>&#8226;**Fragment** - Applies this keyword to the fragment stag
+<br/>&#8226;**Fragment** - Applies this keyword to the fragment stage.
 |
 
 <a name="BooleanKeywords"></a>
