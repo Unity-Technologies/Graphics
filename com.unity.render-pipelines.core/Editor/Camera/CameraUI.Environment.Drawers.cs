@@ -13,7 +13,7 @@ namespace UnityEditor.Rendering
             /// <param name="owner"><see cref="Editor"/> The editor owner calling this drawer</param>
             public static void Drawer_Environment_VolumeLayerMask(ISerializedCamera p, Editor owner)
             {
-                EditorGUILayout.PropertyField(p.volumeLayerMask, Styles.volumeLayerMask);
+                CoreEditorUtils.LayerMaskField(p.volumeLayerMask, Styles.volumeLayerMask);
             }
         }
     }

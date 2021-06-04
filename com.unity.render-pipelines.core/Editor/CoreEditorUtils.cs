@@ -8,6 +8,7 @@ using System.Text;
 using UnityEditor.AnimatedValues;
 using UnityEngine;
 using UnityEngine.Rendering;
+using UnityEngine.Rendering.Utilities;
 
 namespace UnityEditor.Rendering
 {
@@ -884,6 +885,37 @@ namespace UnityEditor.Rendering
             if (EditorGUI.EndChangeCheck())
                 property.intValue = result;
             EditorGUI.showMixedValue = false;
+        }
+        
+        static Action<Rect, SerializedProperty, GUIContent> s_LayerMaskField = LayerMaskField();
+        static Action<Rect, SerializedProperty, GUIContent> LayerMaskField()
+        {
+            MethodInfo methodInfo = typeof(EditorGUI).GetMethod(
+                "LayerMaskField",
+                BindingFlags.NonPublic | BindingFlags.Static,
+                new Type[] { typeof(Rect), typeof(SerializedProperty), typeof(GUIContent) });
+
+            var rectParam = Expression.Parameter(typeof(Rect), "position");
+            var propertyParam = Expression.Parameter(typeof(SerializedProperty), "property");
+            var labelParam = Expression.Parameter(typeof(GUIContent), "label");
+
+            return Expression.Lambda<Action<Rect, SerializedProperty, GUIContent>>(
+                        Expression.Block(
+                            Expression.Call(null, methodInfo, rectParam, propertyParam, labelParam)
+                        ),
+                        rectParam, propertyParam, labelParam)
+                    .Compile();
+        }
+
+        /// <summary>
+        /// Draws the layer mask field
+        /// </summary>
+        /// <param name="property">The data displayed</param>
+        /// <param name="label">The label</param>
+        public static void LayerMaskField(SerializedProperty property, GUIContent label)
+        {
+            Rect r = EditorGUILayout.GetControlRect(true, EditorGUI.GetPropertyHeight(property));
+            s_LayerMaskField(r, property, label);
         }
 
         /// <summary>Remove the keywords on the given materials</summary>

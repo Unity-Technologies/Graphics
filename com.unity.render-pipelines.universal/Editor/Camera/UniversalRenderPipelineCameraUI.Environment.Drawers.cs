@@ -1,5 +1,3 @@
-using UnityEditorInternal;
-
 namespace UnityEditor.Rendering.Universal
 {
     using UnityEngine;

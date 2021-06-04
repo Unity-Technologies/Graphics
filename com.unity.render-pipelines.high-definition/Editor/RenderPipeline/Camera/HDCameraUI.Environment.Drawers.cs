@@ -42,7 +42,7 @@ namespace UnityEditor.Rendering.HighDefinition
 
             static void Drawer_Environment_ProbeLayerMask(SerializedHDCamera p, Editor owner)
             {
-                EditorGUILayout.PropertyField(p.probeLayerMask, Styles.probeLayerMask);
+                CoreEditorUtils.LayerMaskField(p.probeLayerMask, Styles.probeLayerMask);
             }
         }
     }

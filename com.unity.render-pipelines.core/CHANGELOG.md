@@ -14,6 +14,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - LensFlare (SRP) can be now disabled per element
 - LensFlare (SRP) tooltips now refer to meters.
 - Serialize the Probe Volume asset as binary to improve footprint on disk and loading speed.
+- Layer mask pop up to the standard popup
 
 ### Fixed
 - Fixed missing warning UI about Projector component being unsupported (case 1300327).
