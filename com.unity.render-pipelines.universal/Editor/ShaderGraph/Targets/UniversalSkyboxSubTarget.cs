@@ -76,15 +76,8 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
         public bool TryUpgradeFromMasterNode(IMasterNode1 masterNode, out Dictionary<BlockFieldDescriptor, int> blockMap)
         {
             blockMap = null;
-            if (!(masterNode is UnlitMasterNode1 unlitMasterNode))
-                return false;
-
-            blockMap = new Dictionary<BlockFieldDescriptor, int>()
-            {
-                { BlockFields.VertexDescription.Position, 9 }
-            };
-
-            return true;
+            // There is no legacy IMasterNode1 for Skybox shaders, so we don't need to try an upgrade
+            return false;
         }
 
         #region SubShader
