@@ -10,7 +10,7 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
 {
     sealed class UniversalSkyboxSubTarget : UniversalSubTarget, ILegacyTarget
     {
-        static readonly GUID kSourceCodeGuid = new GUID("68dcc7ee9c3f435595f48e12842914bb"); // UniversalSkyboxSubTarget.cs
+        static readonly GUID kSourceCodeGuid = new GUID("07d253789a9086344a2a6570843e17db"); // UniversalSkyboxSubTarget.cs
 
         public UniversalSkyboxSubTarget()
         {
