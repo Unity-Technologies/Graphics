@@ -4,7 +4,7 @@ Use this effect to tweak the overall tone, brightness, and contrast of the final
 
 ## Using Color Adjustments
 
-**Color Adjustments** uses the [Volume](Volumes.html) framework, so to enable and modify **Color Adjustments** properties, you must add a **Color Adjustments** override to a [Volume](Volumes.html) in your Scene. To add **Color Adjustments** to a Volume:
+**Color Adjustments** uses the [Volume](Volumes.md) framework, so to enable and modify **Color Adjustments** properties, you must add a **Color Adjustments** override to a [Volume](Volumes.md) in your Scene. To add **Color Adjustments** to a Volume:
 
 1. In the Scene or Hierarchy view, select a GameObject that contains a Volume component to view it in the Inspector.
 2. In the Inspector, navigate to **Add Override > Post-processing** and click on **Color Adjustments**. URP now applies **Color Adjustments** to any Camera this Volume affects.
