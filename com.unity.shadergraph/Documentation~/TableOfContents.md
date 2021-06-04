@@ -22,7 +22,6 @@
     * [Shader Graph Asset](Shader-Graph-Asset)
     * [Graph Target](Graph-Target.md)
     * [Sub Graph Asset](Sub-graph-Asset)
-        * [SpeedTree 8 Sub Graph Assets](SpeedTree8-SubGraphAssets)
     * [Node](Node)
         * [Port](Port)
         * [Custom Port Menu](Custom-Port-Menu)
@@ -38,7 +37,6 @@
     * [Artistic](Artistic-Nodes)
         * Adjustment
             * [Channel Mixer](Channel-Mixer-Node)
-            * [Split Texture Transform](Split-Texture-Transform-Node)
             * [Contrast](Contrast-Node)
             * [Hue](Hue-Node)
             * [Invert Colors](Invert-Colors-Node)
@@ -87,7 +85,6 @@
             * [UV](UV-Node)
             * [Vertex Color](Vertex-Color-Node)
             * [View Direction](View-Direction-Node)
-            * [View Vector](View-Vector-Node)
         * Gradient
             * [Blackbody](Blackbody-Node)
             * [Gradient](Gradient-Node)
