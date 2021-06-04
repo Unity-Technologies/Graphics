@@ -20,6 +20,7 @@ URP_Performance_LostCrypt_Win_DX12_performance_playmode_runtime_mono_Linear_trun
         CUSTOM_REVISION: '{{trunk.changeset.id}}'
         LOST_CRYPT_BRANCH: 21.2/urp-perf-test
         LOST_CRYPT_REVISION: eb3405aada97fdaf2b033e4f7bc7e47fb4589c3a
+        CACHE_ARGS: '{{cache.flags}}'
         UTR_VERSION: "current"
         TEST_FILTER: .*
     commands:
@@ -65,6 +66,7 @@ Build_URP_Performance_LostCrypt_Win_DX12_performance_playmode_runtime_mono_Linea
         CUSTOM_REVISION: '{{trunk.changeset.id}}'
         LOST_CRYPT_BRANCH: 21.2/urp-perf-test
         LOST_CRYPT_REVISION: eb3405aada97fdaf2b033e4f7bc7e47fb4589c3a
+        CACHE_ARGS: '{{cache.flags}}'
         UTR_VERSION: "current"
         TEST_FILTER: .*
     commands:
@@ -139,6 +141,7 @@ URP_Performance_LostCrypt_Win_DX12_performance_playmode_editor_mono_Linear_trunk
         CUSTOM_REVISION: '{{trunk.changeset.id}}'
         LOST_CRYPT_BRANCH: 21.2/urp-perf-test
         LOST_CRYPT_REVISION: eb3405aada97fdaf2b033e4f7bc7e47fb4589c3a
+        CACHE_ARGS: '{{cache.flags}}'
         UTR_VERSION: "current"
         TEST_FILTER: .*
     commands:
@@ -209,6 +212,7 @@ URP_Performance_LostCrypt_Win_DX12_performance_build_editmode_mono_Linear_trunk:
         CUSTOM_REVISION: '{{trunk.changeset.id}}'
         LOST_CRYPT_BRANCH: 21.2/urp-perf-test
         LOST_CRYPT_REVISION: eb3405aada97fdaf2b033e4f7bc7e47fb4589c3a
+        CACHE_ARGS: '{{cache.flags}}'
         UTR_VERSION: "current"
         TEST_FILTER: .*
     commands:
@@ -280,6 +284,7 @@ URP_Performance_LostCrypt_Win_DX12_performance_playmode_runtime_mono_Linear_CUST
         CUSTOM_REVISION: custom_revision_not_set
         LOST_CRYPT_BRANCH: 21.2/urp-perf-test
         LOST_CRYPT_REVISION: eb3405aada97fdaf2b033e4f7bc7e47fb4589c3a
+        CACHE_ARGS: '{{cache.flags}}'
         UTR_VERSION: "current"
         TEST_FILTER: .*
     commands:
@@ -325,6 +330,7 @@ Build_URP_Performance_LostCrypt_Win_DX12_performance_playmode_runtime_mono_Linea
         CUSTOM_REVISION: custom_revision_not_set
         LOST_CRYPT_BRANCH: 21.2/urp-perf-test
         LOST_CRYPT_REVISION: eb3405aada97fdaf2b033e4f7bc7e47fb4589c3a
+        CACHE_ARGS: '{{cache.flags}}'
         UTR_VERSION: "current"
         TEST_FILTER: .*
     commands:
@@ -399,6 +405,7 @@ URP_Performance_LostCrypt_Win_DX12_performance_playmode_editor_mono_Linear_CUSTO
         CUSTOM_REVISION: custom_revision_not_set
         LOST_CRYPT_BRANCH: 21.2/urp-perf-test
         LOST_CRYPT_REVISION: eb3405aada97fdaf2b033e4f7bc7e47fb4589c3a
+        CACHE_ARGS: '{{cache.flags}}'
         UTR_VERSION: "current"
         TEST_FILTER: .*
     commands:
@@ -469,6 +476,7 @@ URP_Performance_LostCrypt_Win_DX12_performance_build_editmode_mono_Linear_CUSTOM
         CUSTOM_REVISION: custom_revision_not_set
         LOST_CRYPT_BRANCH: 21.2/urp-perf-test
         LOST_CRYPT_REVISION: eb3405aada97fdaf2b033e4f7bc7e47fb4589c3a
+        CACHE_ARGS: '{{cache.flags}}'
         UTR_VERSION: "current"
         TEST_FILTER: .*
     commands:

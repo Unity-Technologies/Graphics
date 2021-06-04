@@ -20,6 +20,7 @@ URP_Performance_BoatAttack_Win_DX12_performance_playmode_runtime_mono_Linear_tru
         CUSTOM_REVISION: '{{trunk.changeset.id}}'
         BOAT_ATTACK_BRANCH: master
         BOAT_ATTACK_REVISION: ca18e346b30b365e90d1a9a149d07abfb15ac2a2
+        CACHE_ARGS: '{{cache.flags}}'
         UTR_VERSION: "current"
         TEST_FILTER: .*
     commands:
@@ -65,6 +66,7 @@ Build_URP_Performance_BoatAttack_Win_DX12_performance_playmode_runtime_mono_Line
         CUSTOM_REVISION: '{{trunk.changeset.id}}'
         BOAT_ATTACK_BRANCH: master
         BOAT_ATTACK_REVISION: ca18e346b30b365e90d1a9a149d07abfb15ac2a2
+        CACHE_ARGS: '{{cache.flags}}'
         UTR_VERSION: "current"
         TEST_FILTER: .*
     commands:
@@ -139,6 +141,7 @@ URP_Performance_BoatAttack_Win_DX12_performance_playmode_editor_mono_Linear_trun
         CUSTOM_REVISION: '{{trunk.changeset.id}}'
         BOAT_ATTACK_BRANCH: master
         BOAT_ATTACK_REVISION: ca18e346b30b365e90d1a9a149d07abfb15ac2a2
+        CACHE_ARGS: '{{cache.flags}}'
         UTR_VERSION: "current"
         TEST_FILTER: .*
     commands:
@@ -209,6 +212,7 @@ URP_Performance_BoatAttack_Win_DX12_performance_build_editmode_mono_Linear_trunk
         CUSTOM_REVISION: '{{trunk.changeset.id}}'
         BOAT_ATTACK_BRANCH: master
         BOAT_ATTACK_REVISION: ca18e346b30b365e90d1a9a149d07abfb15ac2a2
+        CACHE_ARGS: '{{cache.flags}}'
         UTR_VERSION: "current"
         TEST_FILTER: .*
     commands:
@@ -280,6 +284,7 @@ URP_Performance_BoatAttack_Win_DX12_performance_playmode_runtime_mono_Linear_CUS
         CUSTOM_REVISION: custom_revision_not_set
         BOAT_ATTACK_BRANCH: master
         BOAT_ATTACK_REVISION: ca18e346b30b365e90d1a9a149d07abfb15ac2a2
+        CACHE_ARGS: '{{cache.flags}}'
         UTR_VERSION: "current"
         TEST_FILTER: .*
     commands:
@@ -325,6 +330,7 @@ Build_URP_Performance_BoatAttack_Win_DX12_performance_playmode_runtime_mono_Line
         CUSTOM_REVISION: custom_revision_not_set
         BOAT_ATTACK_BRANCH: master
         BOAT_ATTACK_REVISION: ca18e346b30b365e90d1a9a149d07abfb15ac2a2
+        CACHE_ARGS: '{{cache.flags}}'
         UTR_VERSION: "current"
         TEST_FILTER: .*
     commands:
@@ -399,6 +405,7 @@ URP_Performance_BoatAttack_Win_DX12_performance_playmode_editor_mono_Linear_CUST
         CUSTOM_REVISION: custom_revision_not_set
         BOAT_ATTACK_BRANCH: master
         BOAT_ATTACK_REVISION: ca18e346b30b365e90d1a9a149d07abfb15ac2a2
+        CACHE_ARGS: '{{cache.flags}}'
         UTR_VERSION: "current"
         TEST_FILTER: .*
     commands:
@@ -469,6 +476,7 @@ URP_Performance_BoatAttack_Win_DX12_performance_build_editmode_mono_Linear_CUSTO
         CUSTOM_REVISION: custom_revision_not_set
         BOAT_ATTACK_BRANCH: master
         BOAT_ATTACK_REVISION: ca18e346b30b365e90d1a9a149d07abfb15ac2a2
+        CACHE_ARGS: '{{cache.flags}}'
         UTR_VERSION: "current"
         TEST_FILTER: .*
     commands:

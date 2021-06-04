@@ -454,6 +454,8 @@ namespace UnityEngine.Experimental.Rendering
 
                 m_AssetPathToBricks.Remove(key);
             }
+
+            ClearDebugData();
         }
 
         void PerformPendingIndexDimensionChangeAndInit()
@@ -539,6 +541,10 @@ namespace UnityEngine.Experimental.Rendering
         {
             int count = Mathf.Min(m_NumberOfCellsLoadedPerFrame, m_CellsToBeLoaded.Count);
             count = loadAll ? m_CellsToBeLoaded.Count : count;
+
+            if (count != 0)
+                ClearDebugData();
+
             for (int i = 0; i < count; ++i)
             {
                 // Pop from queue.
