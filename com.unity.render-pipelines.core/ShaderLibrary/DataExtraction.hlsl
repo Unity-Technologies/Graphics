@@ -21,7 +21,13 @@
 
 float4 ComputeSelectionMask(float objectGroupId, float3 ndcWithZ, TEXTURE2D_PARAM(depthBuffer, sampler_depthBuffer))
 {
-    float sceneZ = SAMPLE_TEXTURE2D(depthBuffer, sampler_depthBuffer, ndcWithZ.xy).r;
+    // float sceneZ = SAMPLE_TEXTURE2D(depthBuffer, sampler_depthBuffer, ndcWithZ.xy).r;
+    // Use LOAD so this is compatible with MSAA. Original SAMPLE kept here for reference.
+    float2 depthBufferSize;
+    depthBuffer.GetDimensions(depthBufferSize.x, depthBufferSize.y);
+    float2 unnormalizedUV = depthBufferSize * ndcWithZ.xy;
+    float sceneZ = LOAD_TEXTURE2D(depthBuffer, unnormalizedUV).r;
+
     // Use a small multiplicative Z bias to make it less likely for objects to self occlude in the outline buffer
     static const float zBias = 0.02;
 #if UNITY_REVERSED_Z
