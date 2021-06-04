@@ -94,6 +94,7 @@ namespace UnityEngine.Rendering.HighDefinition
         public bool                 volumetricHistoryIsValid = false;
 
         internal int                volumetricValidFrames = 0;
+        internal int                colorPyramidHistoryValidFrames = 0;
 
         /// <summary>Width actually used for rendering after dynamic resolution and XR is applied.</summary>
         public int                  actualWidth { get; private set; }
@@ -147,6 +148,7 @@ namespace UnityEngine.Rendering.HighDefinition
             volumetricHistoryIsValid = false;
             volumetricValidFrames = 0;
             colorPyramidHistoryIsValid = false;
+            colorPyramidHistoryValidFrames = 0;
             dofHistoryIsValid = false;
 
             // Reset the volumetric cloud offset animation data
@@ -354,6 +356,9 @@ namespace UnityEngine.Rendering.HighDefinition
         {
             get
             {
+                if (CoreUtils.IsSceneFilteringEnabled())
+                    return HDAdditionalCameraData.ClearColorMode.Color;
+
                 if (m_AdditionalCameraData != null)
                 {
                     return m_AdditionalCameraData.clearColorMode;
@@ -642,11 +647,6 @@ namespace UnityEngine.Rendering.HighDefinition
             volumeStack = VolumeManager.instance.CreateStack();
 
             Reset();
-        }
-
-        internal bool IsTAAEnabled()
-        {
-            return antialiasing == AntialiasingMode.TemporalAntialiasing;
         }
 
         internal bool IsDLSSEnabled()
@@ -1049,6 +1049,7 @@ namespace UnityEngine.Rendering.HighDefinition
             cb._TaaJitterStrength = taaJitter;
             cb._ColorPyramidLodCount = colorPyramidHistoryMipCount;
             cb._GlobalMipBias = globalMipBias;
+            cb._GlobalMipBiasPow2 = (float)Math.Pow(2.0f, globalMipBias);
 
             float ct = time;
             float pt = lastTime;
@@ -1677,6 +1678,11 @@ namespace UnityEngine.Rendering.HighDefinition
                 planes.right += planeJitter.x;
                 planes.top += planeJitter.y;
                 planes.bottom += planeJitter.y;
+
+                // Reconstruct the far plane for the jittered matrix.
+                // For extremely high far clip planes, the decomposed projection zFar evaluates to infinity.
+                if (float.IsInfinity(planes.zFar))
+                    planes.zFar = frustum.planes[5].distance;
 
                 proj = Matrix4x4.Frustum(planes);
             }

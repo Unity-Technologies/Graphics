@@ -10,4 +10,4 @@ In the Universal Render Pipeline (URP), you can work with multiple Cameras to:
 
 You can combine these ways of working for more complex effects. For example, you can define two Camera Stacks, and then set each of those to Camera Stacks that render to a different area of the same render target.
 
-For information on Camera rendering order when working with multiple Cameras, see [Rendering order and overdraw](cameras-advanced).
+For information on Camera rendering order when working with multiple Cameras, see [Rendering order and overdraw](cameras-advanced.md).

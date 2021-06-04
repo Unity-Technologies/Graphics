@@ -41,6 +41,7 @@ CBUFFER_START(updateParams)
 	uint nbMax;
 	uint dispatchWidth;
 	uint systemSeed;
+	float3 cameraXRSettings;
 CBUFFER_END
 
 ${VFXGeneratedBlockFunction}
@@ -189,32 +190,57 @@ void CSMain(uint3 groupId		: SV_GroupID,
 
 #if VFX_FEATURE_MOTION_VECTORS
 #ifdef VFX_FEATURE_MOTION_VECTORS_VERTS
-                uint elementToVFXBaseIndex = index * (VFX_FEATURE_MOTION_VECTORS_VERTS * 2 + 1);
+                uint viewTotal = asuint(cameraXRSettings.x);
+                uint viewCount = asuint(cameraXRSettings.y);
+                uint viewOffset = asuint(cameraXRSettings.z);
+                uint elementToVFXIndex = index * (VFX_FEATURE_MOTION_VECTORS_VERTS * 2 * viewTotal + 1);
 #else
-                uint elementToVFXBaseIndex = index * 13;
+                uint elementToVFXIndex = index * 13;
 #endif
-                elementToVFXBuffer.Store(elementToVFXBaseIndex++ << 2, attributes.alive ? asuint(currentFrameIndex) : 0u);
+                elementToVFXBuffer.Store(elementToVFXIndex++ << 2, attributes.alive ? asuint(currentFrameIndex) : 0u);
 #ifdef VFX_FEATURE_MOTION_VECTORS_VERTS
+                elementToVFXIndex += viewOffset * viewCount * VFX_FEATURE_MOTION_VECTORS_VERTS * 2;
                 ${VFXMotionVectorVerts}
-                UNITY_UNROLL
-                for (int itIndexVert = 0; itIndexVert < VFX_FEATURE_MOTION_VECTORS_VERTS - 1; itIndexVert += 2)
+#ifdef USING_STEREO_MATRICES
+                if (viewCount == 2)
                 {
-                    float4 vertPosA = TransformPositionVFXToNonJitteredClip(verts[itIndexVert]);
-                    float4 vertPosB = TransformPositionVFXToNonJitteredClip(verts[itIndexVert + 1]);
-                    elementToVFXBuffer.Store4((elementToVFXBaseIndex + itIndexVert * 2) << 2, asuint(float4(vertPosA.xy / vertPosA.w, vertPosB.xy / vertPosB.w)));
+                    float4 stereoOffset = float4(GetWorldStereoOffset(), 0.0f);
+                    UNITY_UNROLL
+                    for (int itIndexVert = 0; itIndexVert < VFX_FEATURE_MOTION_VECTORS_VERTS; ++itIndexVert)
+                    {
+                        float4 vertPosWorld = float4(TransformPositionVFXToWorld(verts[itIndexVert]), 1.0f);
+                        float4 vertPosA = mul(_XRNonJitteredViewProjMatrix[0], vertPosWorld);
+                        float4 vertPosB = mul(_XRNonJitteredViewProjMatrix[1], vertPosWorld + stereoOffset);
+                        elementToVFXBuffer.Store4(elementToVFXIndex << 2, asuint(float4(vertPosA.xy / vertPosA.w, vertPosB.xy / vertPosB.w)));
+                        elementToVFXIndex += 4; // 1 vert * 2 floats * 2 views
+                    }
                 }
-                if (VFX_FEATURE_MOTION_VECTORS_VERTS % 2 == 1)
+                else
+#endif
                 {
-                    int itIndexVert = VFX_FEATURE_MOTION_VECTORS_VERTS - 1;
-                    float4 vertPos = TransformPositionVFXToNonJitteredClip(verts[itIndexVert]);
-                    elementToVFXBuffer.Store2((elementToVFXBaseIndex + itIndexVert * 2) << 2, asuint(vertPos.xy / vertPos.w));
-                }
+                    UNITY_UNROLL
+                    for (int itIndexVert = 0; itIndexVert < VFX_FEATURE_MOTION_VECTORS_VERTS - 1; itIndexVert += 2)
+                    {
+                        float4 vertPosA = TransformPositionVFXToNonJitteredClip(verts[itIndexVert]);
+                        float4 vertPosB = TransformPositionVFXToNonJitteredClip(verts[itIndexVert + 1]);
+                        elementToVFXBuffer.Store4(elementToVFXIndex << 2, asuint(float4(vertPosA.xy / vertPosA.w, vertPosB.xy / vertPosB.w)));
+                        elementToVFXIndex += 4; // 2 verts * 2 floats
+                    }
+                    if (VFX_FEATURE_MOTION_VECTORS_VERTS % 2 == 1)
+                    {
+                        int itIndexVert = VFX_FEATURE_MOTION_VECTORS_VERTS - 1;
+                        float4 vertPos = TransformPositionVFXToNonJitteredClip(verts[itIndexVert]);
+                        elementToVFXBuffer.Store2(elementToVFXIndex << 2, asuint(vertPos.xy / vertPos.w));
+                        elementToVFXIndex += 2; // 1 verts * 2 floats
+                    }
+               }
 #else
                 UNITY_UNROLL
                 for (int itIndexMatrixRow = 0; itIndexMatrixRow < 3; ++itIndexMatrixRow)
                 {
                     float4 value = elementToVFX[itIndexMatrixRow] * attributes.alive;
-                    elementToVFXBuffer.Store4((elementToVFXBaseIndex + itIndexMatrixRow * 4) << 2, asuint(value));
+                    elementToVFXBuffer.Store4(elementToVFXIndex << 2, asuint(value));
+                    elementToVFXIndex += 4; // 1 row * 4 floats
                 }
 #endif
 #endif

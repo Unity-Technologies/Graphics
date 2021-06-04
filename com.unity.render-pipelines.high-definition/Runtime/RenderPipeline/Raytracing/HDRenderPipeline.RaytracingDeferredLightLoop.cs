@@ -155,7 +155,7 @@ namespace UnityEngine.Rendering.HighDefinition
         static void RayMarchGBuffer(CommandBuffer cmd, in DeferredLightingRTRPassData data, int texWidth, int texHeight)
         {
             // Now let's do the deferred shading pass on the samples
-            int marchingKernel = data.parameters.rayMarchingCS.FindKernel(data.parameters.halfResolution ? "RayMarchHalf" : "RayMarch");
+            int marchingKernel = data.parameters.rayMarchingCS.FindKernel(data.parameters.halfResolution ? "RayMarchHalfKernel" : "RayMarchKernel");
 
             // Evaluate the dispatch parameters
             int numTilesRayBinX = (texWidth + (8 - 1)) / 8;
