@@ -9,6 +9,7 @@ test_platforms:
     type: Unity::VM
     image: package-ci/win10:stable
     flavor: b1.large
+    editor_path: .\.Editor
 
 ---
 
@@ -31,7 +32,7 @@ test_platforms:
     commands:
       -  npm install upm-ci-utils@stable -g --registry https://artifactory.prd.cds.internal.unity3d.com/artifactory/api/npm/upm-npm
       -  upm-ci project pack --project-path TestProjects/UniversalUpgradeTest
-      -  upm-ci package test -u unity_revision.txt --package-path com.unity.testing.urp-upgrade --type package-tests --extra-create-project-arg=-upmNoDefaultPackages
+      -  upm-ci package test -u {{platform.editor_path}} --package-path com.unity.testing.urp-upgrade --type package-tests --extra-create-project-arg=-upmNoDefaultPackages
     artifacts:
         logs:
             paths:
