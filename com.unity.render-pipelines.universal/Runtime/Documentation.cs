@@ -23,6 +23,6 @@ namespace UnityEngine.Rendering.Universal
         /// </summary>
         /// <param name="pageName">The page name</param>
         /// <returns>The full url page</returns>
-        public static string GetPageLink(string pageName) => GetPageLink("com.unity.render-pipelines.universal", pageName);
+        public static string GetPageLink(string pageName) => GetPageLink(packageName, pageName);
     }
 }
