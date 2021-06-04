@@ -71,7 +71,7 @@ URP_Performance_BoatAttack_OSX_Metal_performance_playmode_runtime_mono_Linear_tr
       
       # Upload the RepoName repo to the device or update it. The folder will be at ~/RepoName in the remote. Ignore dot files to keep it snappy (especially for Yamato Remote).
       - | 
-        rsync -uap --exclude=".*" --inplace $YAMATO_SOURCE_DIR bokken@$BOKKEN_DEVICE_IP:~/
+        bash -lc 'rsync -uap --exclude=".*" --inplace $YAMATO_SOURCE_DIR bokken@$BOKKEN_DEVICE_IP:~/'
 
         # Install the Unity Downloader.
         ssh bokken@$BOKKEN_DEVICE_IP "bash -lc 'pip3 install unity-downloader-cli --user --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade'"
@@ -92,6 +92,15 @@ URP_Performance_BoatAttack_OSX_Metal_performance_playmode_runtime_mono_Linear_tr
       - ssh bokken@$BOKKEN_DEVICE_IP "bash -lc 'pwd'"
       - ssh bokken@$BOKKEN_DEVICE_IP "bash -lc 'ls'"
 
+      - >
+        ssh bokken@$BOKKEN_DEVICE_IP
+        "export UPM_REGISTRY=$UPM_REGISTRY;
+        cd Graphics;
+        bash -lc 'pwd';
+        bash -lc 'ls';"
+        cd TestProjects
+        bash -lc 'pwd';
+        bash -lc 'ls';"
                          
       # Build on the device and capture exit code. This will be rendered as a single line command. Beware of the backslashes and the semicolons too.
       - >
@@ -100,9 +109,7 @@ URP_Performance_BoatAttack_OSX_Metal_performance_playmode_runtime_mono_Linear_tr
         echo ==================================================;
         echo UPM Registry: \$UPM_REGISTRY;
         echo ==================================================;
-        pwd;
         cd Graphics/TestProjects/BoatAttack;
-        pwd;
         export GIT_REVISIONDATE=`git rev-parse HEAD | git show -s --format=%cI`;
         ~/Graphics/TestProjects/BoatAttack/utr                                                                 \\
             --artifacts_path=test-results                                     \\
