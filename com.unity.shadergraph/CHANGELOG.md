@@ -97,6 +97,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed an issue where SamplerState properties could not be renamed after creation [1336126]
 - Fixed loading all materials from project when saving a ShaderGraph.
 - Fixed a ShaderGraph issue where resize handles on blackboard and graph inspector were too small [1329247] (https://issuetracker.unity3d.com/issues/shadergraph-resize-bounds-for-blackboard-and-graph-inspector-are-too-small)
+- Fixed a Shader Graph issue where property auto generated reference names were not consistent across all property types [1336937].
 
 ## [11.0.0] - 2020-10-21
 
