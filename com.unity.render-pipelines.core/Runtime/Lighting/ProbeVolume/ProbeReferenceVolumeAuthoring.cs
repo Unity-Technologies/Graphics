@@ -81,8 +81,6 @@ namespace UnityEngine.Experimental.Rendering
         [SerializeField]
         float m_MaxDilationSampleDistance = 1f;
         [SerializeField]
-        float m_DilationValidityThreshold = 0.25f;
-        [SerializeField]
         int m_DilationIterations = 1;
 
         [SerializeField]
@@ -100,6 +98,9 @@ namespace UnityEngine.Experimental.Rendering
         [NonSerialized]
         ProbeVolumeAsset m_PrevAsset = null;
 #endif
+        [SerializeField]
+        float m_DilationValidityThreshold = 0.25f;
+
         public ProbeVolumeAsset volumeAsset = null;
 
         internal void LoadProfileInformation()
