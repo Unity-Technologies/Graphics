@@ -154,6 +154,10 @@ namespace UnityEditor.ShaderGraph
                     //
                     if (subscript.HasPreprocessor() && (subscript.preprocessor.Contains("SHADER_STAGE_FRAGMENT")))
                         postUnpackedSubscripts.Add(subscript);
+                    // special case, "UNITY_STEREO_INSTANCING_ENABLED" fields must be packed at the end of the struct because they are system generated semantics
+                    //
+                    else if(subscript.HasPreprocessor() && (subscript.preprocessor.Contains("UNITY_STEREO_INSTANCING_ENABLED")))
+                        postUnpackedSubscripts.Add(subscript);
                     else if (subscript.HasSemantic() || subscript.vectorCount == 0)
                         packedSubscripts.Add(subscript);
                     else
