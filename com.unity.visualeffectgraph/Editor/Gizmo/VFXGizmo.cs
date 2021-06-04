@@ -105,7 +105,7 @@ namespace UnityEditor.VFX
             return false;
         }
 
-        public bool RotationGizmo(Vector3 position, ref Vector3 rotation, bool always)
+        bool RotationGizmo(Vector3 position, ref Vector3 rotation, bool always)
         {
             Quaternion quaternion = Quaternion.Euler(rotation);
 
@@ -116,6 +116,22 @@ namespace UnityEditor.VFX
                 return true;
             }
             return false;
+        }
+
+        public bool ScaleGizmo(Vector3 position, Vector3 rotation, Vector3 scale, IProperty<Vector3> scaleProperty, bool always)
+        {
+            if (scaleProperty != null && scaleProperty.isEditable && ScaleGizmo(position, rotation, ref scale, always))
+            {
+                scaleProperty.SetValue(scale);
+                return true;
+            }
+            return false;
+        }
+
+        bool ScaleGizmo(Vector3 position, Vector3 rotation, ref Vector3 scale, bool always)
+        {
+            var quaternion = Quaternion.Euler(rotation);
+            return ScaleGizmo(position, quaternion, ref scale, always);
         }
 
         static Color ToActiveColorSpace(Color color)
@@ -206,6 +222,18 @@ namespace UnityEditor.VFX
                     m_HotControlRotation = -1;
                 }
             }
+            return false;
+        }
+
+        public bool ScaleGizmo(Vector3 position, Quaternion rotation, ref Vector3 scale, bool always)
+        {
+            if (always || Tools.current == Tool.Scale || Tools.current == Tool.Transform || Tools.current == Tool.None)
+            {
+                EditorGUI.BeginChangeCheck();
+                scale = Handles.ScaleHandle(scale, position, rotation);
+                return EditorGUI.EndChangeCheck();
+            }
+
             return false;
         }
 
