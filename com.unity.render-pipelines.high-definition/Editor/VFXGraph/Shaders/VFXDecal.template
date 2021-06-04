@@ -38,9 +38,8 @@ if(_EnableDecalLayers)
 	if (_ProjectionParams.x < 0)
         clipPos.y = -clipPos.y;
 
-    float4 positionCS = float4(clipPos, 1.0f);
-    float4 hpositionWS = mul(UNITY_MATRIX_I_VP, positionCS);
-    float3 positionWS = hpositionWS.xyz / hpositionWS.w;
+    float4 hpositionWS = mul(UNITY_MATRIX_I_VP, float4(clipPos,1.0f));
+    float4 worldPos = float4(hpositionWS.xyz / hpositionWS.w, 1.0f);
 
 	float4x4 viewToElement;
 	viewToElement[0] = i.viewToDecal0;
@@ -50,7 +49,7 @@ if(_EnableDecalLayers)
 
     float4x4 worldToElement = mul(viewToElement, UNITY_MATRIX_V);
     worldToElement[2] *= -1.0f; //Z points TOWARDS the surface, so we need to revert it
-    float3 elementPos = mul(worldToElement, float4(positionWS,1.0f)).xyz * 2.0f;
+    float3 elementPos = mul(worldToElement, worldPos).xyz * 2.0f;
 	clip(1.0f - abs(elementPos));
 
 	float2 uv = elementPos.xy * 0.5f + 0.5f;
