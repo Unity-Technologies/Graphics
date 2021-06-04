@@ -133,6 +133,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed renderer creation in playmode to have its property reloaded. [case 1333463]
 - Fixed gizmos no longer allocate memory in game view. [case 1328852]
 - Fixed an issue where shadow artefacts appeared between cascades on Terrain Detail objects.
+- Fixed ShaderGraph materials to select render queue in the same way as handwritten shader materials by default, but allows for a user override for custom behavior. [case 1335795]
 
 ### Changed
 - Change Asset/Create/Shader/Universal Render Pipeline/Lit Shader Graph to Asset/Create/Shader Graph/URP/Lit Shader Graph
