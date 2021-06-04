@@ -101,6 +101,9 @@ URP_Performance_BoatAttack_OSX_Metal_performance_playmode_runtime_mono_Linear_tr
         cd TestProjects;
         bash -lc 'pwd';
         bash -lc 'ls';"
+        cd BoatAttack;
+        bash -lc 'pwd';
+        bash -lc 'ls';"
                          
       # Build on the device and capture exit code. This will be rendered as a single line command. Beware of the backslashes and the semicolons too.
       - >
