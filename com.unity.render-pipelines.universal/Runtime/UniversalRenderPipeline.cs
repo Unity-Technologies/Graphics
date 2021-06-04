@@ -564,7 +564,7 @@ namespace UnityEngine.Rendering.Universal
             }
 
 #if ENABLE_VR && ENABLE_XR_MODULE
-            m_XRSystem.EndLateLatching(baseCamera);
+            m_XRSystem.EndLateLatching(baseCamera, xrPass);
 #endif
 
             if (isStackedRendering)

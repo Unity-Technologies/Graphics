@@ -140,14 +140,16 @@ namespace UnityEngine.Rendering.Universal
             if (display != null && xrPass.singlePassEnabled && xrPass.viewCount == 2)
             {
                 display.BeginRecordingIfLateLatched(camera);
+                xrPass.isLateLatchEnabled = true;
             }
         }
 
-        internal void EndLateLatching(Camera camera)
+        internal void EndLateLatching(Camera camera, XRPass xrPass)
         {
             if (display != null)
             {
                 display.EndRecordingIfLateLatched(camera);
+                xrPass.isLateLatchEnabled = false;
             }
         }
 
