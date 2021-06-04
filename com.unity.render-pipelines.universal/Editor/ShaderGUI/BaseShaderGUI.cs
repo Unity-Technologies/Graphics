@@ -328,7 +328,8 @@ namespace UnityEditor
 
         protected virtual void DrawEmissionProperties(Material material, bool keyword)
         {
-            var emissive = materialEditor.EmissionEnabledProperty(); // Emission for GI?
+            // Emission for GI?
+            var emissive = true;
 
             if (!keyword)
             {
@@ -336,6 +337,7 @@ namespace UnityEditor
             }
             else
             {
+                emissive = materialEditor.EmissionEnabledProperty(); 
                 using (new EditorGUI.DisabledGroupScope(!emissive))
                 {
                     DrawEmissionTextureProperty();
