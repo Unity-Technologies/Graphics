@@ -2984,7 +2984,7 @@ namespace UnityEngine.Rendering.HighDefinition
             RenderCustomPass(renderContext, cmd, hdCamera, customPassCullingResults, CustomPassInjectionPoint.BeforePostProcess, aovRequest, aovCustomPassBuffers);
 
             if (aovRequest.isValid)
-                aovRequest.PushCameraTexture(cmd, AOVBuffers.Color, hdCamera, GetDebugViewTargetBuffer(), aovBuffers);
+                aovRequest.PushCameraTexture(cmd, AOVBuffers.Color, hdCamera, m_CameraColorBuffer, aovBuffers);
 
             RenderTargetIdentifier postProcessDest = HDUtils.PostProcessIsFinalPass(hdCamera) ? target.id : m_IntermediateAfterPostProcessBuffer;
             RenderPostProcess(cullingResults, hdCamera, postProcessDest, renderContext, cmd);
@@ -4276,8 +4276,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 {
                     // When rendering debug material we shouldn't rely on a depth prepass for optimizing the alpha clip test. As it is control on the material inspector side
                     // we must override the state here.
-                    var debugViewTargetBuffer = GetDebugViewTargetBuffer();
-                    CoreUtils.SetRenderTarget(cmd, debugViewTargetBuffer, m_SharedRTManager.GetDepthStencilBuffer(), ClearFlag.All, Color.clear);
+                    CoreUtils.SetRenderTarget(cmd, m_CameraColorBuffer, m_SharedRTManager.GetDepthStencilBuffer(), ClearFlag.All, Color.clear);
 
                     // [case 1273223] When the camera is stacked on top of another one, we need to clear the debug view RT using the data from the previous camera in the stack
                     var clearColorTexture = Compositor.CompositionManager.GetClearTextureForStackedCamera(hdCamera);   // returns null if is not a stacked camera
@@ -4296,12 +4295,6 @@ namespace UnityEngine.Rendering.HighDefinition
                     DrawTransparentRendererList(renderContext, cmd, hdCamera.frameSettings, rendererListTransparent);
                 }
             }
-        }
-
-        private RTHandle GetDebugViewTargetBuffer()
-        {
-            // Used to contain a test whether to return a float16 target, but no longer needed
-            return m_CameraColorBuffer;
         }
 
         struct TransparencyOverdrawParameters
