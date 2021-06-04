@@ -24,16 +24,14 @@ namespace UnityEditor.Rendering.Universal.Converters
             {"Default-Terrain-Standard", "Packages/com.unity.render-pipelines.universal/Runtime/Materials/TerrainLit.mat"},
             {"Sprites-Default", "Packages/com.unity.render-pipelines.universal/Runtime/Materials/Sprite-Unlit-Default.mat"},
             {"Sprites-Mask", "Packages/com.unity.render-pipelines.universal/Runtime/Materials/Sprite-Unlit-Default.mat"},
-
-            // These are custom URP shaders right now, but the old BiRP ones do render in Unity. Do we need to convert?
             {"SpatialMappingOcclusion", "Packages/com.unity.render-pipelines.universal/Runtime/Materials/SpatialMappingOcclusion.mat"},
             {"SpatialMappingWireframe", "Packages/com.unity.render-pipelines.universal/Runtime/Materials/SpatialMappingWireframe.mat"},
 
-            // TODO: Replace these with something more appropriate
-            {"Default UI Material", "Packages/com.unity.render-pipelines.universal/Runtime/Materials/Lit.mat"},
-            {"ETC1 Supported UI Material", "Packages/com.unity.render-pipelines.universal/Runtime/Materials/Lit.mat"},
-            {"Default-Line", "Packages/com.unity.render-pipelines.universal/Runtime/Materials/Lit.mat"},
-            {"Default-Skybox", "Packages/com.unity.render-pipelines.universal/Runtime/Materials/Lit.mat"},
+            // TODO: These currently render in URP, but they are using BIRP shaders. Create a task to convert these.
+            // {"Default UI Material", "Packages/com.unity.render-pipelines.universal/Runtime/Materials/Lit.mat"},
+            // {"ETC1 Supported UI Material", "Packages/com.unity.render-pipelines.universal/Runtime/Materials/Lit.mat"},
+            // {"Default-Line", "Packages/com.unity.render-pipelines.universal/Runtime/Materials/Lit.mat"},
+            // {"Default-Skybox", "Packages/com.unity.render-pipelines.universal/Runtime/Materials/Lit.mat"},
         };
     }
 

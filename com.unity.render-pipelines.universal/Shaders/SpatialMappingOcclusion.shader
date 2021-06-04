@@ -1,11 +1,8 @@
 Shader "Universal Render Pipeline/SpatialMappingOcclusion"
 {
-    Properties
-    {
-    }
     SubShader
     {
-        Tags {"RenderType" = "Opaque" "IgnoreProjector" = "False" "RenderPipeline" = "UniversalPipeline" "ShaderModel"="2.0"}
+        Tags {"RenderType" = "Opaque" "IgnoreProjector" = "False" "RenderPipeline" = "UniversalPipeline" }
         LOD 100
 
         Blend One OneMinusSrcAlpha
@@ -19,19 +16,16 @@ Shader "Universal Render Pipeline/SpatialMappingOcclusion"
             Name "Spatial Mapping Occlusion"
 
             HLSLPROGRAM
-            #pragma exclude_renderers gles gles3 glcore
-            #pragma target 4.5
+            #pragma gles gles3 glcore
+            #pragma target 2.0
 
             #pragma vertex vert
             #pragma fragment frag
-            #pragma shader_feature_local_fragment _ALPHATEST_OFF
-            #pragma shader_feature_local_fragment _ALPHAPREMULTIPLY_OFF
 
             // -------------------------------------
             // Unity defined keywords
             #pragma multi_compile_fog
             #pragma multi_compile_instancing
-            #pragma multi_compile _ DOTS_INSTANCING_ON
 
             #include "UnlitInput.hlsl"
 
