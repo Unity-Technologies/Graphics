@@ -1,7 +1,7 @@
 Pass
 {
 	Name "DBufferMesh"
-	Tags {"LightMode"="DBufferMesh"}
+	Tags {"LightMode"="DBufferVFX"}
 
 
 	Cull Front

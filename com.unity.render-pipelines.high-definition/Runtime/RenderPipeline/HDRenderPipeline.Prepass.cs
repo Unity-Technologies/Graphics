@@ -859,6 +859,7 @@ namespace UnityEngine.Rendering.HighDefinition
         class RenderDBufferPassData
         {
             public RendererListHandle       meshDecalsRendererList;
+            public RendererListHandle       vfxDecalsRendererList;
             public TextureHandle            depthTexture;
             public TextureHandle            decalBuffer;
         }
@@ -941,11 +942,18 @@ namespace UnityEngine.Rendering.HighDefinition
             {
                 passData.meshDecalsRendererList = builder.UseRendererList(renderGraph.CreateRendererList(new RendererListDesc(m_MeshDecalsPassNames, cullingResults, hdCamera.camera)
                 {
-                    sortingCriteria = SortingCriteria.CommonOpaque
-                                      & ~SortingCriteria.OptimizeStateChanges,
+                    sortingCriteria = SortingCriteria.CommonOpaque,
                     rendererConfiguration = PerObjectData.None,
                     renderQueueRange = HDRenderQueue.k_RenderQueue_AllOpaque
                 }));
+
+                passData.vfxDecalsRendererList = builder.UseRendererList(renderGraph.CreateRendererList(
+                    new RendererListDesc(m_VfxDecalsPassNames, cullingResults, hdCamera.camera)
+                    {
+                        sortingCriteria = SortingCriteria.CommonOpaque & ~ SortingCriteria.OptimizeStateChanges,
+                        rendererConfiguration = PerObjectData.None,
+                        renderQueueRange = HDRenderQueue.k_RenderQueue_AllOpaque,
+                    }));
 
                 SetupDBufferTargets(renderGraph, use4RTs, ref output, builder);
                 passData.decalBuffer = builder.ReadTexture(decalBuffer);
@@ -958,6 +966,7 @@ namespace UnityEngine.Rendering.HighDefinition
                         context.cmd.SetGlobalTexture(HDShaderIDs._CameraDepthTexture, data.depthTexture);
 
                         CoreUtils.DrawRendererList(context.renderContext, context.cmd, data.meshDecalsRendererList);
+                        CoreUtils.DrawRendererList(context.renderContext, context.cmd, data.vfxDecalsRendererList);
                         DecalSystem.instance.RenderIntoDBuffer(context.cmd);
 
                         context.cmd.ClearRandomWriteTargets();
