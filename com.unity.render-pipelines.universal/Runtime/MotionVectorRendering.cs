@@ -97,13 +97,13 @@ namespace UnityEngine.Rendering.Universal.Internal
         {
             // The actual projection matrix used in shaders is actually massaged a bit to work across all platforms
             // (different Z value ranges etc.)
-            // A camera could be rendered multiple times per frame, only updates the previous view proj & pos if needed      
+            // A camera could be rendered multiple times per frame, only updates the previous view proj & pos if needed
 #if ENABLE_VR && ENABLE_XR_MODULE
             if (cameraData.xr.enabled && cameraData.xr.singlePassEnabled)
             {
                 var gpuVP0 = GL.GetGPUProjectionMatrix(cameraData.GetProjectionMatrix(0), true) * cameraData.GetViewMatrix(0);
                 var gpuVP1 = GL.GetGPUProjectionMatrix(cameraData.GetProjectionMatrix(1), true) * cameraData.GetViewMatrix(1);
-                
+
                 var viewProjStereo = motionData.viewProjectionStereo;
                 if (motionData.lastFrameActive != Time.frameCount)
                 {
@@ -112,11 +112,11 @@ namespace UnityEngine.Rendering.Universal.Internal
                     motionData.previousViewProjectionStereo[1] = firstFrame ? gpuVP1 : viewProjStereo[1];
                     motionData.isFirstFrame = false;
                 }
-                
+
                 viewProjStereo[0] = gpuVP0;
                 viewProjStereo[1] = gpuVP1;
             }
-            else if(cameraData.xr.enabled)
+            else if (cameraData.xr.enabled)
             {
                 var gpuVP = GL.GetGPUProjectionMatrix(camera.projectionMatrix, true) * camera.worldToCameraMatrix;
 
@@ -128,7 +128,7 @@ namespace UnityEngine.Rendering.Universal.Internal
                         gpuVP : motionData.viewProjectionStereo[matrixIndex];
                     motionData.isFirstFrame = false;
                 }
-                
+
                 motionData.viewProjectionStereo[matrixIndex] = gpuVP;
                 m_PreviousMultiPassId = matrixIndex;
             }
@@ -136,13 +136,13 @@ namespace UnityEngine.Rendering.Universal.Internal
 #endif
             {
                 var gpuVP = GL.GetGPUProjectionMatrix(camera.projectionMatrix, true) * camera.worldToCameraMatrix;
-                
+
                 if (motionData.lastFrameActive != Time.frameCount)
                 {
                     motionData.previousViewProjection = motionData.isFirstFrame ? gpuVP : motionData.viewProjection;
                     motionData.isFirstFrame = false;
                 }
-                
+
                 motionData.viewProjection = gpuVP;
             }
 
