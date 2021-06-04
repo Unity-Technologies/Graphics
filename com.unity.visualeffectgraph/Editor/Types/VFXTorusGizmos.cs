@@ -1,6 +1,4 @@
-#if _WIP_TODOPAUL
 using System;
-
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -13,14 +11,12 @@ namespace UnityEditor.VFX
     class VFXTorusGizmo : VFXSpaceableGizmo<Torus>
     {
         IProperty<Vector3> m_CenterProperty;
-        IProperty<Vector3> m_AnglesProperty;
         IProperty<float> m_ThicknessProperty;
         IProperty<float> m_RadiusProperty;
 
         public override void RegisterEditableMembers(IContext context)
         {
             m_CenterProperty = context.RegisterProperty<Vector3>("center");
-            m_AnglesProperty = context.RegisterProperty<Vector3>("angles");
             m_ThicknessProperty = context.RegisterProperty<float>("minorRadius");
             m_RadiusProperty = context.RegisterProperty<float>("majorRadius");
         }
@@ -49,11 +45,11 @@ namespace UnityEditor.VFX
 
         public static void DrawTorus(Torus torus, VFXGizmo gizmo, IProperty<Vector3> centerProperty, IProperty<Vector3> anglesProperty, IProperty<float> thicknessProperty, IProperty<float> radiusProperty, IEnumerable<float> angles, float maxAngle = Mathf.PI * 2)
         {
-            gizmo.PositionGizmo(torus.center, torus.angles, centerProperty, false);
-            gizmo.RotationGizmo(torus.center, torus.angles, anglesProperty, false);
+            gizmo.PositionGizmo(torus.center, Vector3.zero, centerProperty, false);
+            gizmo.RotationGizmo(torus.center, Vector3.zero, anglesProperty, false);
 
             // Radius controls
-            using (new Handles.DrawingScope(Handles.matrix * Matrix4x4.TRS(torus.center, Quaternion.Euler(torus.angles), Vector3.one) * Matrix4x4.Rotate(Quaternion.Euler(-90.0f, 0.0f, 0.0f))))
+            using (new Handles.DrawingScope(Handles.matrix * Matrix4x4.TRS(torus.center, Quaternion.identity, Vector3.one) * Matrix4x4.Rotate(Quaternion.Euler(-90.0f, 0.0f, 0.0f))))
             {
                 for (int i = 0; i < angles.Count(); ++i)
                 {
@@ -115,7 +111,7 @@ namespace UnityEditor.VFX
 
         public override void OnDrawSpacedGizmo(Torus torus)
         {
-            using (new Handles.DrawingScope(Handles.matrix * Matrix4x4.TRS(torus.center, Quaternion.Euler(torus.angles), Vector3.one)))
+            using (new Handles.DrawingScope(Handles.matrix * Matrix4x4.TRS(torus.center, Quaternion.identity, Vector3.one)))
             {
                 Handles.DrawWireDisc(Vector3.forward * torus.minorRadius, Vector3.forward, torus.majorRadius);
                 Handles.DrawWireDisc(Vector3.back * torus.minorRadius, Vector3.forward, torus.majorRadius);
@@ -123,7 +119,7 @@ namespace UnityEditor.VFX
                 Handles.DrawWireDisc(Vector3.zero, Vector3.forward, torus.majorRadius - torus.minorRadius);
             }
 
-            DrawTorus(torus, this, m_CenterProperty, m_AnglesProperty, m_ThicknessProperty, m_RadiusProperty, s_Angles);
+            DrawTorus(torus, this, m_CenterProperty, null, m_ThicknessProperty, m_RadiusProperty, s_Angles);
         }
 
         public override Bounds OnGetSpacedGizmoBounds(Torus value)
@@ -135,7 +131,6 @@ namespace UnityEditor.VFX
     class VFXArcTorusGizmo : VFXSpaceableGizmo<ArcTorus>
     {
         IProperty<Vector3> m_CenterProperty;
-        IProperty<Vector3> m_AnglesProperty;
         IProperty<float> m_thicknessProperty;
         IProperty<float> m_radiusProperty;
         IProperty<float> m_ArcProperty;
@@ -143,7 +138,6 @@ namespace UnityEditor.VFX
         public override void RegisterEditableMembers(IContext context)
         {
             m_CenterProperty = context.RegisterProperty<Vector3>("center");
-            m_AnglesProperty = context.RegisterProperty<Vector3>("angles");
             m_thicknessProperty = context.RegisterProperty<float>("minorRadius");
             m_radiusProperty = context.RegisterProperty<float>("majorRadius");
             m_ArcProperty = context.RegisterProperty<float>("arc");
@@ -153,7 +147,7 @@ namespace UnityEditor.VFX
         public override void OnDrawSpacedGizmo(ArcTorus arcTorus)
         {
             float arc = arcTorus.arc * Mathf.Rad2Deg;
-            using (new Handles.DrawingScope(Handles.matrix * Matrix4x4.TRS(arcTorus.center, Quaternion.Euler(arcTorus.angles), Vector3.one)))
+            using (new Handles.DrawingScope(Handles.matrix * Matrix4x4.TRS(arcTorus.center, Quaternion.identity, Vector3.one)))
             {
                 float excessAngle = arc % 360f;
                 float angle = Mathf.Abs(arc) >= 360f ? 360f : excessAngle;
@@ -166,8 +160,8 @@ namespace UnityEditor.VFX
                 ArcGizmo(Vector3.zero, arcTorus.majorRadius, arc, m_ArcProperty, Quaternion.Euler(-90.0f, 0.0f, 0.0f));
             }
 
-            var torus = new Torus() { center = arcTorus.center, angles = arcTorus.angles, minorRadius = arcTorus.minorRadius, majorRadius = arcTorus.majorRadius };
-            VFXTorusGizmo.DrawTorus(torus, this, m_CenterProperty, m_AnglesProperty, m_thicknessProperty, m_radiusProperty, VFXTorusGizmo.s_Angles.Concat(new float[] { arc }), arc);
+            var torus = new Torus() { center = arcTorus.center, minorRadius = arcTorus.minorRadius, majorRadius = arcTorus.majorRadius };
+            VFXTorusGizmo.DrawTorus(torus, this, m_CenterProperty, null, m_thicknessProperty, m_radiusProperty, VFXTorusGizmo.s_Angles.Concat(new float[] { arc }), arc);
         }
 
         public override Bounds OnGetSpacedGizmoBounds(ArcTorus value)
@@ -176,4 +170,3 @@ namespace UnityEditor.VFX
         }
     }
 }
-#endif

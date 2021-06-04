@@ -1,4 +1,3 @@
-#if _WIP_TODOPAUL
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -91,4 +90,3 @@ namespace UnityEditor.VFX
         }
     }
 }
-#endif

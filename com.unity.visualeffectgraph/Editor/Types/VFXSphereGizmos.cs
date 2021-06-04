@@ -1,5 +1,3 @@
-#if _WIP_TODOPAUL
-
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -13,12 +11,10 @@ namespace UnityEditor.VFX
     class VFXSphereGizmo : VFXSpaceableGizmo<Sphere>
     {
         IProperty<Vector3> m_CenterProperty;
-        IProperty<Vector3> m_AnglesProperty;
         IProperty<float> m_RadiusProperty;
         public override void RegisterEditableMembers(IContext context)
         {
             m_CenterProperty = context.RegisterProperty<Vector3>("center");
-            m_AnglesProperty = context.RegisterProperty<Vector3>("angles");
             m_RadiusProperty = context.RegisterProperty<float>("radius");
         }
 
@@ -27,13 +23,13 @@ namespace UnityEditor.VFX
 
         public static void DrawSphere(Sphere sphere, VFXGizmo gizmo, IProperty<Vector3> centerProperty, IProperty<Vector3> anglesProperty, IProperty<float> radiusProperty)
         {
-            gizmo.PositionGizmo(sphere.center, sphere.angles, centerProperty, false);
-            gizmo.RotationGizmo(sphere.center, sphere.angles, anglesProperty, false);
+            gizmo.PositionGizmo(sphere.center, Vector3.zero, centerProperty, false);
+            gizmo.RotationGizmo(sphere.center, Vector3.zero, anglesProperty, false);
 
             // Radius controls
             if (radiusProperty.isEditable)
             {
-                using (new Handles.DrawingScope(Handles.matrix * Matrix4x4.TRS(sphere.center, Quaternion.Euler(sphere.angles), Vector3.one)))
+                using (new Handles.DrawingScope(Handles.matrix * Matrix4x4.TRS(sphere.center, Quaternion.identity, Vector3.one)))
                 {
                     for (int i = 0; i < s_RadiusDirections.Length; ++i)
                     {
@@ -56,13 +52,13 @@ namespace UnityEditor.VFX
 
         public override void OnDrawSpacedGizmo(Sphere sphere)
         {
-            using (new Handles.DrawingScope(Handles.matrix * Matrix4x4.TRS(sphere.center, Quaternion.Euler(sphere.angles), Vector3.one)))
+            using (new Handles.DrawingScope(Handles.matrix * Matrix4x4.TRS(sphere.center, Quaternion.identity, Vector3.one)))
             {
                 Handles.DrawWireDisc(Vector3.zero, Vector3.forward, sphere.radius);
                 Handles.DrawWireDisc(Vector3.zero, Vector3.up, sphere.radius);
                 Handles.DrawWireDisc(Vector3.zero, Vector3.right, sphere.radius);
             }
-            DrawSphere(sphere, this, m_CenterProperty, m_AnglesProperty, m_RadiusProperty);
+            DrawSphere(sphere, this, m_CenterProperty, null, m_RadiusProperty);
         }
 
         public override Bounds OnGetSpacedGizmoBounds(Sphere value)
@@ -74,7 +70,6 @@ namespace UnityEditor.VFX
     class VFXArcSphereGizmo : VFXSpaceableGizmo<ArcSphere>
     {
         IProperty<Vector3> m_CenterProperty;
-        IProperty<Vector3> m_AnglesProperty;
         IProperty<float> m_RadiusProperty;
         IProperty<float> m_ArcProperty;
 
@@ -82,7 +77,6 @@ namespace UnityEditor.VFX
         {
             m_CenterProperty = context.RegisterProperty<Vector3>("sphere.center");
             m_RadiusProperty = context.RegisterProperty<float>("sphere.radius");
-            m_AnglesProperty = context.RegisterProperty<Vector3>("sphere.angles");
             m_ArcProperty = context.RegisterProperty<float>("arc");
         }
 
@@ -92,7 +86,7 @@ namespace UnityEditor.VFX
             float radius = arcSphere.sphere.radius;
             float arc = arcSphere.arc * Mathf.Rad2Deg;
 
-            using (new Handles.DrawingScope(Handles.matrix * Matrix4x4.TRS(arcSphere.sphere.center, Quaternion.Euler(arcSphere.sphere.angles), Vector3.one)))
+            using (new Handles.DrawingScope(Handles.matrix * Matrix4x4.TRS(arcSphere.sphere.center, Quaternion.identity, Vector3.one)))
             {
                 // Draw semi-circles at 90 degree angles
                 for (int i = 0; i < 4; i++)
@@ -112,7 +106,7 @@ namespace UnityEditor.VFX
                 ArcGizmo(Vector3.zero, radius, arc, m_ArcProperty, Quaternion.Euler(-90.0f, 0.0f, 0.0f));
             }
 
-            VFXSphereGizmo.DrawSphere(arcSphere.sphere, this, m_CenterProperty, m_AnglesProperty, m_RadiusProperty);
+            VFXSphereGizmo.DrawSphere(arcSphere.sphere, this, m_CenterProperty, null, m_RadiusProperty);
         }
 
         public override Bounds OnGetSpacedGizmoBounds(ArcSphere value)
@@ -121,4 +115,3 @@ namespace UnityEditor.VFX
         }
     }
 }
-#endif
