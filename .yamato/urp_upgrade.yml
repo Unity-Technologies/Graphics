@@ -10,6 +10,7 @@ test_platforms:
     image: package-ci/win10:stable
     flavor: b1.large
     editor_path: .\.Editor
+    editor_cmd: choco install unity-downloader-cli -y -s https://artifactory.prd.it.unity3d.com/artifactory/api/nuget/unity-choco-local
 
 ---
 
@@ -32,6 +33,8 @@ test_platforms:
     commands:
       -  npm install upm-ci-utils@stable -g --registry https://artifactory.prd.cds.internal.unity3d.com/artifactory/api/npm/upm-npm
       -  upm-ci project pack --project-path TestProjects/UniversalUpgradeTest
+      -  {{platform.editor_cmd}}
+      -  unity-downloader-cli --source-file unity_revision.txt -c editor --wait --published-only
       -  upm-ci package test -u {{platform.editor_path}} --package-path com.unity.testing.urp-upgrade --type package-tests --extra-create-project-arg=-upmNoDefaultPackages
     artifacts:
         logs:
