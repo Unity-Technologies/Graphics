@@ -116,10 +116,16 @@ URP_Performance_BoatAttack_OSX_Metal_performance_playmode_runtime_mono_Linear_tr
         export GIT_REVISIONDATE=`git rev-parse HEAD | git show -s --format=%cI`;
         ~/Graphics/TestProjects/BoatAttack/utr                                                          \\
             --testproject=/Users/bokken/Graphics/TestProjects/BoatAttack                                \\ 
-            --artifacts_path=test-results                                                               \\
+            --artifacts_path=/Users/bokken/Graphics/TestProjects/BoatAttack/test-results                \\
+            --suite=playmode                                                                            \\
+            --testfilter=Low                                                                            \\
             --build-only                                                                                \\
             --category=URP                                                                              \\
             --editor-location=.Editor                                                                   \\
+            --platform=StandaloneOSX                                                                    \\
+            --player-save-path=playersLow                                                               \\
+            --scripting-backend=Mono2x                                                                  \\
+            --timeout=2400                                                                              \\
             --extra-editor-arg="-colorspace=Linear"                                                     \\
             --extra-editor-arg="-buildtarget"                                                           \\
             --extra-editor-arg="StandaloneOSX"                                                          \\
@@ -131,12 +137,7 @@ URP_Performance_BoatAttack_OSX_Metal_performance_playmode_runtime_mono_Linear_tr
             --extra-editor-arg="-packageundertestrev=$GIT_REVISION"                                     \\
             --extra-editor-arg="-packageundertestrevdate=$GIT_REVISIONDATE"                             \\
             --extra-editor-arg="-playergraphicsapi=Metal"                                               \\
-            --extra-editor-arg="-scriptingbackend=mono"                                                 \\
-            --platform=StandaloneOSX                                                                    \\
-            --player-save-path=playersLow                                                               \\
-            --scripting-backend=Mono2x                                                                  \\
-            --suite=playmode                                                                            \\ 
-            --timeout=2400;                                                                             \\
+            --extra-editor-arg="-scriptingbackend=mono";                                                \\
         echo \$? > ~/.utr_result;"
 
       # Read UTR result and data from test device.
