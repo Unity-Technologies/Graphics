@@ -116,7 +116,7 @@ URP_Performance_BoatAttack_OSX_Metal_performance_playmode_runtime_mono_Linear_tr
         export GIT_REVISIONDATE=`git rev-parse HEAD | git show -s --format=%cI`;
         ~/Graphics/TestProjects/BoatAttack/utr                                                          \\
             --testproject=/Users/bokken/Graphics/TestProjects/BoatAttack                                \\ 
-            --artifacts_path=/Users/bokken/Graphics/TestProjects/BoatAttack/test-results                \\
+            --artifacts_path=test-results                                                               \\
             --suite=playmode                                                                            \\
             --testfilter=Low                                                                            \\
             --build-only                                                                                \\
