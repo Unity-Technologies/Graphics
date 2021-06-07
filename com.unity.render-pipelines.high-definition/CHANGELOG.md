@@ -39,10 +39,13 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed overdraw in custom pass utils blur and Copy functions (case 1333648);
 - Fixed invalid pass index 1 in DrawProcedural error.
 - Make LitTessellation and LayeredLitTessellation fallback on Lit and LayeredLit respectively in DXR.
+- Fixed reflection probes being injected into the ray tracing light cluster even if not baked (case 1329083).
+- Fixed the double sided option moving when toggling it in the material UI (case 1328877).
 
 ### Changed
 - Display an info box and disable MSAA  asset entry when ray tracing is enabled.
 - Changed light reset to preserve type.
+- Ignore hybrid duplicated reflection probes during light baking.
 
 ## [10.5.0] - 2021-04-19
 
