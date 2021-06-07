@@ -385,7 +385,7 @@ namespace UnityEditor.Rendering
             readonly SwitchEnabler m_SwitchEnabler;
 
             public FoldoutGroupDrawerInternal(GUIContent title, TEnum mask, ExpandedState<TEnum, TState> state,
-                Enabler enabler, SwitchEnabler switchEnabler, FoldoutOption options = FoldoutOption.None, params ActionDrawer[] actionDrawers)
+                                              Enabler enabler, SwitchEnabler switchEnabler, FoldoutOption options = FoldoutOption.None, params ActionDrawer[] actionDrawers)
             {
                 m_IsBoxed = (options & FoldoutOption.Boxed) != 0;
                 m_IsIndented = (options & FoldoutOption.Indent) != 0;
@@ -614,8 +614,6 @@ namespace UnityEditor.Rendering
         {
             return FoldoutGroup(title, mask, state, options, null, null, contentDrawers);
         }
-
-        
 
         // This one is private as we do not want to have unhandled advanced switch. Change it if necessary.
         static IDrawer FoldoutGroup<TEnum, TState>(GUIContent title, TEnum mask, ExpandedState<TEnum, TState> state, FoldoutOption options, Enabler showAdditionalProperties, SwitchEnabler switchAdditionalProperties, params ActionDrawer[] contentDrawers)
