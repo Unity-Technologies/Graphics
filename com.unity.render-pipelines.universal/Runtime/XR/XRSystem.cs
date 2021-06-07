@@ -146,7 +146,7 @@ namespace UnityEngine.Rendering.Universal
 
         internal void EndLateLatching(Camera camera, XRPass xrPass)
         {
-            if (display != null)
+            if (display != null && xrPass.isLateLatchEnabled)
             {
                 display.EndRecordingIfLateLatched(camera);
                 xrPass.isLateLatchEnabled = false;
