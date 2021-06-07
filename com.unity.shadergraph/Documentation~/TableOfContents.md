@@ -30,7 +30,7 @@
     * [Property Types](Property-Types)
     * [Keywords](Keywords)
     * [Data Types](Data-Types)
-    * [Precision Types](Precision-Types)
+    * [Precision Modes](Precision-Modes)
     * [Port Bindings](Port-Bindings)
     * [Shader Stage](Shader-Stage)
 
