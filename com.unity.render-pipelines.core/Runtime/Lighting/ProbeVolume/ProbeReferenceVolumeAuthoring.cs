@@ -13,12 +13,9 @@ namespace UnityEngine.Experimental.Rendering
     // TODO: Use this structure in the actual authoring component rather than just a mean to group output parameters.
     internal struct ProbeDilationSettings
     {
-        public bool dilate;
-        public int maxDilationSamples;
-        public float maxDilationSampleDistance;
+        public float dilationDistance;
         public float dilationValidityThreshold;
-        public bool greedyDilation;
-
+        public float dilationIterations;
         public float brickSize;   // Not really a dilation setting, but used during dilation.
     }
 
@@ -82,15 +79,12 @@ namespace UnityEngine.Experimental.Rendering
 #if UNITY_EDITOR
         // Dilation
         [SerializeField]
-        bool m_Dilate = false;
-        [SerializeField]
-        int m_MaxDilationSamples = 16;
-        [SerializeField]
         float m_MaxDilationSampleDistance = 1f;
         [SerializeField]
-        float m_DilationValidityThreshold = 0.25f;
+        int m_DilationIterations = 1;
+
         [SerializeField]
-        bool m_GreedyDilation = false;
+        bool m_EnableDilation = true;
 
         // Field used for the realtime subdivision preview
         [NonSerialized]
@@ -104,6 +98,9 @@ namespace UnityEngine.Experimental.Rendering
         [NonSerialized]
         ProbeVolumeAsset m_PrevAsset = null;
 #endif
+        [SerializeField]
+        float m_DilationValidityThreshold = 0.25f;
+
         public ProbeVolumeAsset volumeAsset = null;
 
         internal void LoadProfileInformation()
@@ -114,6 +111,7 @@ namespace UnityEngine.Experimental.Rendering
             var refVol = ProbeReferenceVolume.instance;
             refVol.SetTRS(Vector3.zero, Quaternion.identity, m_Profile.minBrickSize);
             refVol.SetMaxSubdivision(m_Profile.maxSubdivision);
+            refVol.dilationValidtyThreshold = m_DilationValidityThreshold;
         }
 
         internal void QueueAssetLoading()
@@ -323,11 +321,9 @@ namespace UnityEngine.Experimental.Rendering
         public ProbeDilationSettings GetDilationSettings()
         {
             ProbeDilationSettings settings;
-            settings.dilate = m_Dilate;
-            settings.dilationValidityThreshold = m_DilationValidityThreshold;
-            settings.greedyDilation = m_GreedyDilation;
-            settings.maxDilationSampleDistance = m_MaxDilationSampleDistance;
-            settings.maxDilationSamples = m_MaxDilationSamples;
+            settings.dilationValidityThreshold =  m_DilationValidityThreshold;
+            settings.dilationDistance = m_EnableDilation ? m_MaxDilationSampleDistance : 0.0f;
+            settings.dilationIterations = m_DilationIterations;
             settings.brickSize = brickSize;
 
             return settings;

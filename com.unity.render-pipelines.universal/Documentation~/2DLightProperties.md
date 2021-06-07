@@ -3,10 +3,10 @@ Each 2D Light Type has various properties and options to customize their appeara
 
  following are the common properties used by the different Light types. For properties specific to each of the available Light Types, refer to their respective sections:
 
-- [Freeform](LightTypes.html#freeform)
-- [Sprite](LightTypes.html#sprite)
-- [Spot](LightTypes.html#spot) (**Note:** The **Point** Light Type has been renamed to the **Spot** Light Type from URP 11 onwards.)
-- [Global](LightTypes.html#global)
+- [Freeform](LightTypes.md#freeform)
+- [Sprite](LightTypes.md#sprite)
+- [Spot](LightTypes.md#spot) (**Note:** The **Point** Light Type has been renamed to the **Spot** Light Type from URP 11 onwards.)
+- [Global](LightTypes.md#global)
 
 
 ## Creating a Light
