@@ -454,11 +454,11 @@ namespace UnityEditor
             int rawRenderQueue = MaterialAccess.ReadMaterialRawRenderQueue(material);
             if (!isShaderGraph || rawRenderQueue == -1)
             {
-                material.SetFloat(Property.QueueControl, 0); // Automatic behavior - surface type override
+                material.SetFloat(Property.QueueControl, (float)QueueControl.Auto); // Automatic behavior - surface type override
             }
             else
             {
-                material.SetFloat(Property.QueueControl, 1); // User has selected explicit render queue
+                material.SetFloat(Property.QueueControl, (float)QueueControl.UserOverride); // User has selected explicit render queue
             }
         }
 
@@ -472,9 +472,10 @@ namespace UnityEditor
                 var queueControl = material.GetFloat(Property.QueueControl);
                 if (queueControl < 0.0f)
                 {
+                    // The property was added with a negative value, indicating it needs to be validated for this material
                     UpdateMaterialRenderQueueControl(material);
                 }
-                automaticQueueControl = (material.GetFloat(Property.QueueControl) == 0.0f);
+                automaticQueueControl = (material.GetFloat(Property.QueueControl) == (float)QueueControl.Auto);
             }
             return automaticQueueControl;
         }

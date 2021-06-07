@@ -99,7 +99,7 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
             // Queue control & offset enable correct automatic render queue behavior
             // Control == 0 is automatic, 1 is user-specified render queue
             material.SetFloat(Property.QueueOffset, 0.0f);
-            material.SetFloat(Property.QueueControl, 0.0f);
+            material.SetFloat(Property.QueueControl, (float)BaseShaderGUI.QueueControl.Auto);
 
             // call the full unlit material setup function
             ShaderGraphLitGUI.UpdateMaterial(material, MaterialUpdateType.CreatedNewMaterial);
