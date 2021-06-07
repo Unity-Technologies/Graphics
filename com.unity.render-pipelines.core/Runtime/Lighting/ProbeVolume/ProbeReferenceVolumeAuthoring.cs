@@ -15,6 +15,7 @@ namespace UnityEngine.Experimental.Rendering
     {
         public float dilationDistance;
         public float dilationValidityThreshold;
+        public float dilationIterations;
         public float brickSize;   // Not really a dilation setting, but used during dilation.
     }
 
@@ -80,7 +81,10 @@ namespace UnityEngine.Experimental.Rendering
         [SerializeField]
         float m_MaxDilationSampleDistance = 1f;
         [SerializeField]
-        float m_DilationValidityThreshold = 0.25f;
+        int m_DilationIterations = 1;
+
+        [SerializeField]
+        bool m_EnableDilation = true;
 
         // Field used for the realtime subdivision preview
         [NonSerialized]
@@ -94,6 +98,9 @@ namespace UnityEngine.Experimental.Rendering
         [NonSerialized]
         ProbeVolumeAsset m_PrevAsset = null;
 #endif
+        [SerializeField]
+        float m_DilationValidityThreshold = 0.25f;
+
         public ProbeVolumeAsset volumeAsset = null;
 
         internal void LoadProfileInformation()
@@ -104,6 +111,7 @@ namespace UnityEngine.Experimental.Rendering
             var refVol = ProbeReferenceVolume.instance;
             refVol.SetTRS(Vector3.zero, Quaternion.identity, m_Profile.minBrickSize);
             refVol.SetMaxSubdivision(m_Profile.maxSubdivision);
+            refVol.dilationValidtyThreshold = m_DilationValidityThreshold;
         }
 
         internal void QueueAssetLoading()
@@ -313,8 +321,9 @@ namespace UnityEngine.Experimental.Rendering
         public ProbeDilationSettings GetDilationSettings()
         {
             ProbeDilationSettings settings;
-            settings.dilationValidityThreshold = m_DilationValidityThreshold;
-            settings.dilationDistance = m_MaxDilationSampleDistance;
+            settings.dilationValidityThreshold =  m_DilationValidityThreshold;
+            settings.dilationDistance = m_EnableDilation ? m_MaxDilationSampleDistance : 0.0f;
+            settings.dilationIterations = m_DilationIterations;
             settings.brickSize = brickSize;
 
             return settings;
