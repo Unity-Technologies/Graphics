@@ -23,16 +23,14 @@ namespace UnityEditor.Rendering.Universal.Converters
     internal class PPv2Converter : RenderPipelineConverter
     {
         public override string name => "Post-Processing Stack v2 Converter";
-
         public override string info =>
             "Converts PPv2 Volumes, Profiles, and Layers to URP Volumes, Profiles, and Cameras.";
-
         public override Type container => typeof(BuiltInToURPConverterContainer);
         public override bool needsIndexing => true;
 
         private bool _startingSceneHasBeenClosed;
         private IEnumerable<PostProcessEffectSettingsConverter> effectConverters = null;
-
+        List<string> guids = new List<string>();
         public override void OnInitialize(InitializeConverterContext context, Action callback)
         {
             // Converters should already be set to null on domain reload,
@@ -152,6 +150,15 @@ namespace UnityEditor.Rendering.Universal.Converters
             }
         }
 
+        public override void OnClicked(int index)
+        {
+            if (GlobalObjectId.TryParse(guids[index], out var gid))
+            {
+                var containerPath = AssetDatabase.GUIDToAssetPath(gid.assetGUID);
+                EditorGUIUtility.PingObject(AssetDatabase.LoadAssetAtPath<Object>(containerPath));
+            }
+        }
+
         private void AddSearchItemsAsConverterAssetEntries(ISearchList searchItems, InitializeConverterContext context)
         {
             foreach (var searchItem in searchItems)
@@ -161,21 +168,23 @@ namespace UnityEditor.Rendering.Universal.Converters
                     continue;
                 }
 
-                var label = searchItem.provider.fetchLabel(searchItem, searchItem.context);
                 var description = searchItem.provider.fetchDescription(searchItem, searchItem.context);
 
                 var item = new ConverterItemDescriptor()
                 {
-                    //name = $"{label} : {description}",
-                    //info = globalId.ToString(),
                     name = description.Split('/').Last().Split('.').First(),
-                    info = $"{label}",
-                    warningMessage = string.Empty,
-                    helpLink = string.Empty,
+                    info = $"{ReturnType(globalId)}",
                 };
 
+                guids.Add(globalId.ToString());
                 context.AddAssetToConvert(item);
             }
+        }
+
+        string ReturnType(GlobalObjectId gid)
+        {
+            var containerPath = AssetDatabase.GUIDToAssetPath(gid.assetGUID);
+            return AssetDatabase.LoadAssetAtPath<Object>(containerPath).GetType().ToString().Split('.').Last();
         }
 
         private IEnumerable<Tuple<int, Object>> EnumerateObjects(
