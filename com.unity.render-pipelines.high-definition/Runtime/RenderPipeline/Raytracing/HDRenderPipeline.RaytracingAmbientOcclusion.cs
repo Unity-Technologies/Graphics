@@ -178,8 +178,8 @@ namespace UnityEngine.Rendering.HighDefinition
                 filterParams.occluderMotionRejection = aoSettings.occluderMotionRejection.value;
                 filterParams.receiverMotionRejection = aoSettings.receiverMotionRejection.value;
                 TextureHandle denoisedRTAO = GetTemporalFilter().Denoise(renderGraph, hdCamera, filterParams,
-                                                                        traceAOResult.signalBuffer, traceAOResult.velocityBuffer, historyBuffer,
-                                                                         depthBuffer, normalBuffer, motionVectorBuffer, historyValidationBuffer);
+                    traceAOResult.signalBuffer, traceAOResult.velocityBuffer, historyBuffer,
+                    depthBuffer, normalBuffer, motionVectorBuffer, historyValidationBuffer);
 
                 // Apply the diffuse denoiser
                 HDDiffuseDenoiser diffuseDenoiser = GetDiffuseDenoiser();

@@ -279,7 +279,7 @@ namespace UnityEngine.Rendering.HighDefinition
         [AdditionalProperty]
         [Tooltip("When enabled, the receiver's movement should be considered a valid rejection condition.")]
         public BoolParameter receiverMotionRejection = new BoolParameter(true);
-        
+
         #endregion
 
         internal static bool RayTracingActive(GlobalIllumination volume)

@@ -42,7 +42,7 @@ namespace UnityEditor.Rendering.HighDefinition
         SerializedDataParameter m_HalfResolutionDenoiser;
         SerializedDataParameter m_DenoiserRadius;
         SerializedDataParameter m_SecondDenoiserPass;
-        
+
         public override bool hasAdditionalProperties => true;
 
         public override void OnEnable()
