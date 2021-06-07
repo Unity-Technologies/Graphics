@@ -552,6 +552,7 @@ namespace UnityEditor.VFX.UI
             RegisterCallback<ExecuteCommandEvent>(ExecuteCommand);
             RegisterCallback<AttachToPanelEvent>(OnEnterPanel);
             RegisterCallback<DetachFromPanelEvent>(OnLeavePanel);
+            RegisterCallback<KeyDownEvent>(OnKeyDownEvent);
 
             graphViewChanged = VFXGraphViewChanged;
 
@@ -2090,6 +2091,14 @@ namespace UnityEditor.VFX.UI
             Undo.undoRedoPerformed -= OnUndoPerformed;
         }
 
+        private void OnKeyDownEvent(KeyDownEvent evt)
+        {
+            if (evt.keyCode == KeyCode.D && evt.modifiers == EventModifiers.Control)
+            {
+                this.DuplicateBlackboardField();
+            }
+        }
+
         public void ValidateCommand(ValidateCommandEvent evt)
         {
             if (evt.commandName == "SelectAll")
@@ -2555,6 +2564,15 @@ namespace UnityEditor.VFX.UI
         {
             if (m_EdgeDragInfo != null)
                 m_EdgeDragInfo.StopEdgeDragInfo();
+        }
+
+        public void DuplicateBlackboardField()
+        {
+            if (selection.Count == 1 && selection[0] is VFXBlackboardField blackboardField)
+            {
+                var newVfxParameter = new VFXParameter(blackboardField.controller.model);
+                this.controller.AddVFXModel(Vector2.zero, newVfxParameter);
+            }
         }
     }
 }
