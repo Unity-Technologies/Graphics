@@ -235,6 +235,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed the double sided option moving when toggling it in the material UI (case 1328877).
 - Fixed volumetric fog in planar reflections.
 - Fixed error with motion blur and small render targets.
+- Fixed issue with on-demand directional shadow maps looking broken when a reflection probe is updated at the same time.
 
 ### Changed
 - Changed Window/Render Pipeline/HD Render Pipeline Wizard to Window/Rendering/HDRP Wizard
