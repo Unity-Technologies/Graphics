@@ -74,6 +74,10 @@ Nightly_ShaderGraph_trunk:
          rerun: on_new_revision
       -  path: .yamato/all-shadergraph_stereo.yml#ShaderGraph_Stereo_trunk
          rerun: on_new_revision
+      -  path: .yamato/all-shadergraph_builtin_foundation.yml#ShaderGraph_BuiltIn_Foundation_trunk
+         rerun: on_new_revision
+      -  path: .yamato/all-shadergraph_builtin_lighting.yml#ShaderGraph_BuiltIn_Lighting_trunk
+         rerun: on_new_revision
 PR_ShaderGraph_CUSTOM-REVISION:
     name: PR ShaderGraph on CUSTOM-REVISION
     variables:
@@ -137,4 +141,8 @@ Nightly_ShaderGraph_CUSTOM-REVISION:
       -  path: .yamato/all-shadergraph.yml#ShaderGraph_CUSTOM-REVISION
          rerun: on_new_revision
       -  path: .yamato/all-shadergraph_stereo.yml#ShaderGraph_Stereo_CUSTOM-REVISION
+         rerun: on_new_revision
+      -  path: .yamato/all-shadergraph_builtin_foundation.yml#ShaderGraph_BuiltIn_Foundation_CUSTOM-REVISION
+         rerun: on_new_revision
+      -  path: .yamato/all-shadergraph_builtin_lighting.yml#ShaderGraph_BuiltIn_Lighting_CUSTOM-REVISION
          rerun: on_new_revision

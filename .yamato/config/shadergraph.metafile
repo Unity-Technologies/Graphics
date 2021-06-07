@@ -154,3 +154,5 @@ jobs:
     dependencies:
       - <PROJECT_ALL_YML_FILE>#<PROJECT_NAME>_<TRACK>
       - .yamato/all-shadergraph_stereo.yml#ShaderGraph_Stereo_<TRACK>
+      - .yamato/all-shadergraph_builtin_foundation.yml#ShaderGraph_BuiltIn_Foundation_<TRACK>
+      - .yamato/all-shadergraph_builtin_lighting.yml#ShaderGraph_BuiltIn_Lighting_<TRACK>
