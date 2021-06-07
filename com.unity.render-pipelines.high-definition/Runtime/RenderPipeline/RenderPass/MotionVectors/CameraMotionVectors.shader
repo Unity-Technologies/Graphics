@@ -59,7 +59,6 @@ Shader "Hidden/HDRP/CameraMotionVectors"
             float2 motionVector = (positionCS - previousPositionCS);
 
 #ifdef KILL_MICRO_MOVEMENT
-            // We multiply by 2 as the motion vectors have been already converted to NDC when we reach this function.
             motionVector.x = abs(motionVector.x) < MICRO_MOVEMENT_THRESHOLD.x ? 0 : motionVector.x;
             motionVector.y = abs(motionVector.y) < MICRO_MOVEMENT_THRESHOLD.y ? 0 : motionVector.y;
 #endif

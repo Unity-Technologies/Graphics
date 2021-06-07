@@ -16,7 +16,6 @@ float2 CalculateMotionVector(float4 positionCS, float4 previousPositionCS)
     float2 motionVec = (positionCS.xy - previousPositionCS.xy);
 
 #ifdef KILL_MICRO_MOVEMENT
-    // We multiply by 2 as the motion vectors have been already converted to NDC when we reach this function.
     motionVec.x = abs(motionVec.x) < MICRO_MOVEMENT_THRESHOLD.x ? 0 : motionVec.x;
     motionVec.y = abs(motionVec.y) < MICRO_MOVEMENT_THRESHOLD.y ? 0 : motionVec.y;
 #endif
