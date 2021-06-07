@@ -35,6 +35,7 @@ Shader "Hidden/HDRP/DebugFullScreen"
             float _VertexDensityMaxPixelCost;
             uint _DebugContactShadowLightIndex;
             int _DebugDepthPyramidMip;
+            float _MinMotionVector;
             CBUFFER_END
 
             TEXTURE2D_X(_DebugFullScreenTexture);
@@ -219,7 +220,10 @@ Shader "Hidden/HDRP/DebugFullScreen"
                 if (_FullScreenDebugMode == FULLSCREENDEBUGMODE_MOTION_VECTORS)
                 {
                     float2 mv = SampleMotionVectors(input.texcoord);
-
+                    if (length(mv * _ScreenSize.xy) < _MinMotionVector)
+                    {
+                        return float4(0, 0, 0, 1);
+                    }
                     // Background color intensity - keep this low unless you want to make your eyes bleed
                     const float kMinIntensity = 0.03f;
                     const float kMaxIntensity = 0.50f;
