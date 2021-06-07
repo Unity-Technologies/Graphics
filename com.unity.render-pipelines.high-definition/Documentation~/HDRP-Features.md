@@ -233,6 +233,8 @@ To decrease aliasing for the main cascade shadow maps, you can apply different f
 
 For punctual and area light shadows, HDRP allows for dynamic resolution based on how much screen the light covers. HDRP rescales the content of the shadow atlas when it would be otherwise full.  For more information on the filtering algorithms that HDRP uses, see the [filtering qualities documentation](HDRP-Asset.md#filtering-qualities).
 
+HDRP also allows you to cache shadow maps. This means you can update shadow maps when you request an update or update them for dynamic objects only. This method can improve performance significantly. For more information, see [Shadows](Shadows-in-HDRP.md#ShadowUpdateMode).
+
 In the advanced settings of the shadow maps, there is also the possibility to apply a tint on the shadow or the penumbra of the shadow.
 
 ### Sky
