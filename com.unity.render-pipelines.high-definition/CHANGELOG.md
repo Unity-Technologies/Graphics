@@ -229,6 +229,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed support of Distortion with MSAA
 - Fixed contact shadow debug views not displaying correctly upon resizing of view.
 - Fixed an error when deleting the 3D Texture mask of a local volumetric fog volume (case 1339330).
+- Fixed issue with on-demand directional shadow maps looking broken when a reflection probe is updated at the same time.
 
 ### Changed
 - Changed Window/Render Pipeline/HD Render Pipeline Wizard to Window/Rendering/HDRP Wizard
