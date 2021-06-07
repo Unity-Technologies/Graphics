@@ -14,6 +14,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
   - Added information about selecting and unselecting items to the Blackboard article.
   - Added View Vector Node documentation
   - Added custom interpolator thresholds on shadergraph project settings page.
+  - Added custom interpolator documentation
   - Added subshadergraphs for SpeedTree 8 shadergraph support: SpeedTree8Wind, SpeedTree8ColorAlpha, SpeedTree8Billboard.
   - Added an HLSL file implementing a version of the Unity core LODDitheringTransition function which can be used in a Shader Graph
   - Added a new target for the built-in render pipeline, including Lit and Unlit sub-targets.
