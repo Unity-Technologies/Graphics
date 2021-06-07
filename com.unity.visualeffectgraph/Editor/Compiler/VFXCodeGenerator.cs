@@ -537,9 +537,11 @@ namespace UnityEditor.VFX
             var allSourceAttributes = context.GetData().GetAttributes().Where(a => (context.GetData().IsSourceAttributeUsed(a.attrib, context)));
 
             var globalDeclaration = new VFXShaderWriter();
+            globalDeclaration.WriteBufferTypeDeclaration(contextData.graphicsBufferUsage.Values.Distinct());
+            globalDeclaration.WriteLine();
             globalDeclaration.WriteCBuffer(contextData.uniformMapper, "parameters");
             globalDeclaration.WriteLine();
-            globalDeclaration.WriteBuffer(contextData.uniformMapper);
+            globalDeclaration.WriteBuffer(contextData.uniformMapper, contextData.graphicsBufferUsage);
             globalDeclaration.WriteLine();
             globalDeclaration.WriteTexture(contextData.uniformMapper);
             globalDeclaration.WriteAttributeStruct(allCurrentAttributes.Select(a => a.attrib), "Attributes");

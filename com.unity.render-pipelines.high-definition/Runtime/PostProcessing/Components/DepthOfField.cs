@@ -365,9 +365,17 @@ namespace UnityEngine.Rendering.HighDefinition
     }
 
 
+    /// <summary>
+    /// A <see cref="VolumeParameter"/> that holds a <see cref="FocusDistanceModeParameter"/> value.
+    /// </summary>
     [Serializable]
     public sealed class FocusDistanceModeParameter : VolumeParameter<FocusDistanceMode>
     {
+        /// <summary>
+        /// Creates a new <see cref="FocusDistanceModeParameter"/> instance.
+        /// </summary>
+        /// <param name="value">The initial value to store in the parameter.</param>
+        /// <param name="overrideState">The initial override state for the parameter.</param>
         public FocusDistanceModeParameter(FocusDistanceMode value, bool overrideState = false) : base(value, overrideState) {}
     }
 }

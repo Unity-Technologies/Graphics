@@ -102,6 +102,37 @@ namespace UnityEngine.Experimental.Rendering
         }
 
 #if UNITY_EDITOR
+        private int FindInflatingBrickSize(Bounds b)
+        {
+            var refVol = ProbeReferenceVolume.instance;
+            float minSizedDim = Mathf.Min(b.size.x, Mathf.Min(b.size.y, b.size.z));
+
+            float minBrickSize = refVol.MinBrickSize();
+
+            float minSideInBricks = Mathf.CeilToInt(minSizedDim / minBrickSize);
+            int subdivLevel = Mathf.FloorToInt(Mathf.Log(minSideInBricks, 3));
+
+            return subdivLevel;
+        }
+
+        private void InflateBound(ref Bounds bounds)
+        {
+            int brickSubDivLevel = FindInflatingBrickSize(bounds);
+
+            float roundingBrickSize = ProbeReferenceVolume.instance.BrickSize(brickSubDivLevel);
+
+            // Make sure we lock the bounds at a grid position.
+            bounds.Encapsulate(new Vector3(roundingBrickSize * Mathf.Floor(bounds.min.x / roundingBrickSize),
+                roundingBrickSize * Mathf.Floor(bounds.min.y / roundingBrickSize),
+                roundingBrickSize * Mathf.Floor(bounds.min.z / roundingBrickSize)));
+
+            Vector3 newSize = Vector3Int.CeilToInt(bounds.size / roundingBrickSize);
+
+            Vector3Int minPos = Vector3Int.FloorToInt(bounds.min);
+            Vector3 maxPos = minPos + newSize * roundingBrickSize;
+            bounds.Encapsulate(maxPos);
+        }
+
         internal void UpdateSceneBounds(Scene scene)
         {
             var volumes = UnityEngine.GameObject.FindObjectsOfType<ProbeVolume>();
@@ -109,12 +140,18 @@ namespace UnityEngine.Experimental.Rendering
             Bounds newBound = new Bounds();
             foreach (var volume in volumes)
             {
+                if (volume.globalVolume)
+                    volume.UpdateGlobalVolume(scene);
+
                 var scenePath = volume.gameObject.scene.path;
                 if (scenePath == scene.path)
                 {
                     var pos = volume.gameObject.transform.position;
                     var extent = volume.GetExtents();
+
                     Bounds localBounds = new Bounds(pos, extent);
+
+                    InflateBound(ref localBounds);
 
                     if (!boundFound)
                     {
@@ -135,6 +172,7 @@ namespace UnityEngine.Experimental.Rendering
                     sceneBounds = new Dictionary<string, Bounds>();
                     hasProbeVolumes = new Dictionary<string, bool>();
                 }
+
                 if (sceneBounds.ContainsKey(scene.path))
                 {
                     sceneBounds[scene.path] = newBound;
