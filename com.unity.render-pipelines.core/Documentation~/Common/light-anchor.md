@@ -2,15 +2,15 @@
 
 ![](Images/LightAnchor0.png)
 
-A Light Anchor must be conncted to a Light. Which allow us to light a scene on a Rendered Camera Space.
+You can use a Light Anchor to light a scene in Rendered Camera Space. To use a Light Anchor, you must connect it to a Light.
 
 ## Properties
 
 | **Property**    | **Description**                                              |
 | --------------- | ------------------------------------------------------------ |
-| Orbit | Control the Orbit of the light, can be controled with the first green knob. |
-| Evevation | Control the Elevation of the light, can be controled with the second blue knob. |
-| Roll | Control the roll, usefull if the light had an IES or a Cookie, can be controled with the third gray knob. |
-| Distance | Controls how far 'back', the light is placed from its anchor. |
+| Orbit | Use the first (green) knob to control the Orbit of the light. |
+| Evevation | Use the second (blue) knob to control the Elevation of the light. |
+| Roll | Use third (gray) knob to control the roll or the light. This is especially useful if the light has an IES or a Cookie. |
+| Distance | Controls the distance between the light and its anchor in world space. |
 | Up Direction | Specifies the space in which the up direction of the anchor is defined. Local is relative to the camera. |
 | Common | Common light preset: Rim Left, Kick Left, Bounce Left, Fill Left, Hair, Fill Right, Bounce Right, Kick Right, Rim Right. |
