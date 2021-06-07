@@ -443,6 +443,8 @@ namespace UnityEngine.Rendering.HighDefinition
 
                 using (var builder = renderGraph.AddRenderPass<DrawRendererListPassData>(deferredPassName, out var passData, ProfilingSampler.Get(HDProfileId.DeferredDepthPrepass)))
                 {
+                    builder.AllowRendererListCulling(false);
+
                     passData.frameSettings = hdCamera.frameSettings;
                     passData.rendererList = builder.UseRendererList(renderGraph.CreateRendererList(CreateOpaqueRendererListDesc(
                         cull, hdCamera.camera, m_DepthOnlyPassNames,
@@ -663,6 +665,8 @@ namespace UnityEngine.Rendering.HighDefinition
 
             using (var builder = renderGraph.AddRenderPass<GBufferPassData>("GBuffer", out var passData, ProfilingSampler.Get(HDProfileId.GBuffer)))
             {
+                builder.AllowRendererListCulling(false);
+
                 FrameSettings frameSettings = hdCamera.frameSettings;
 
                 passData.frameSettings = frameSettings;
@@ -939,7 +943,9 @@ namespace UnityEngine.Rendering.HighDefinition
 
             using (var builder = renderGraph.AddRenderPass<RenderDBufferPassData>("DBufferRender", out var passData, ProfilingSampler.Get(HDProfileId.DBufferRender)))
             {
-                passData.meshDecalsRendererList = builder.UseRendererList(renderGraph.CreateRendererList(new RendererListDesc(m_MeshDecalsPassNames, cullingResults, hdCamera.camera)
+                builder.AllowRendererListCulling(false);
+
+                passData.meshDecalsRendererList = builder.UseRendererList(renderGraph.CreateRendererList(new RendererUtils.RendererListDesc(m_MeshDecalsPassNames, cullingResults, hdCamera.camera)
                 {
                     sortingCriteria = SortingCriteria.CommonOpaque,
                     rendererConfiguration = PerObjectData.None,

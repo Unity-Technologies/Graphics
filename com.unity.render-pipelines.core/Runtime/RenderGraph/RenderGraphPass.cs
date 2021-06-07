@@ -27,11 +27,15 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
         public int              refCount { get; protected set; }
         public bool             generateDebugData { get; protected set; }
 
+        public bool             allowRendererListCulling { get; protected set; }
+
         public List<ResourceHandle>[] resourceReadLists = new List<ResourceHandle>[(int)RenderGraphResourceType.Count];
         public List<ResourceHandle>[] resourceWriteLists = new List<ResourceHandle>[(int)RenderGraphResourceType.Count];
         public List<ResourceHandle>[] transientResourceList = new List<ResourceHandle>[(int)RenderGraphResourceType.Count];
 
         public List<RendererListHandle> usedRendererListList = new List<RendererListHandle>();
+
+        public List<RendererListHandle> dependsOnRendererListList = new List<RendererListHandle>();
 
         public RenderGraphPass()
         {
@@ -56,8 +60,10 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
             }
 
             usedRendererListList.Clear();
+            dependsOnRendererListList.Clear();
             enableAsyncCompute = false;
             allowPassCulling = true;
+            allowRendererListCulling = true;
             generateDebugData = true;
             refCount = 0;
 
@@ -90,6 +96,11 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
             usedRendererListList.Add(rendererList);
         }
 
+        public void DependsOnRendererList(RendererListHandle rendererList)
+        {
+            dependsOnRendererListList.Add(rendererList);
+        }
+
         public void EnableAsyncCompute(bool value)
         {
             enableAsyncCompute = value;
@@ -98,6 +109,11 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
         public void AllowPassCulling(bool value)
         {
             allowPassCulling = value;
+        }
+
+        public void AllowRendererListCulling(bool value)
+        {
+            allowRendererListCulling = value;
         }
 
         public void GenerateDebugData(bool value)
