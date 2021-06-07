@@ -19,6 +19,7 @@ URPUpdate_BoatAttack_Win_Vulkan_playmode_mono_Linear_trunk:
         CUSTOM_REVISION: '{{trunk.changeset.id}}'
         BA_UPDATE_PROJECT_BRANCH: master
         BA_UPDATE_PROJECT_REVISION: 06c67d682225354dd909728e2511ac17115b18b9
+        CACHE_ARGS: '{{cache.flags}}'
         UTR_VERSION: "current"
         TEST_FILTER: .*
     commands:
@@ -40,8 +41,7 @@ URPUpdate_BoatAttack_Win_Vulkan_playmode_mono_Linear_trunk:
                 set /p GIT_REVISIONDATE=<revdate.tmp
                 echo %GIT_REVISIONDATE%
                 del revdate.tmp
-                utr --artifacts_path=TestProjects/URP-Update-Testing/BoatAttack-19-4/test-results --editor-location=.Editor --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-force-vulkan" --scripting-backend=Mono2x --suite=playmode --testfilter=%TEST_FILTER% --testproject=./TestProjects/URP-Update-Testing/BoatAttack-19-4 --zero-tests-are-ok=1
-         retries: 2
+                utr %CACHE_ARGS% --artifacts_path=TestProjects/URP-Update-Testing/BoatAttack-19-4/test-results --editor-location=.Editor --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-force-vulkan" --scripting-backend=Mono2x --suite=playmode --testfilter=%TEST_FILTER% --testproject=./TestProjects/URP-Update-Testing/BoatAttack-19-4 --zero-tests-are-ok=1
     artifacts:
         logs:
             paths:
@@ -61,6 +61,7 @@ URPUpdate_BoatAttack_Win_Vulkan_editmode_mono_Linear_trunk:
         CUSTOM_REVISION: '{{trunk.changeset.id}}'
         BA_UPDATE_PROJECT_BRANCH: master
         BA_UPDATE_PROJECT_REVISION: 06c67d682225354dd909728e2511ac17115b18b9
+        CACHE_ARGS: '{{cache.flags}}'
         UTR_VERSION: "current"
         TEST_FILTER: .*
     commands:
@@ -83,7 +84,6 @@ URPUpdate_BoatAttack_Win_Vulkan_editmode_mono_Linear_trunk:
                 echo %GIT_REVISIONDATE%
                 del revdate.tmp
                 utr --artifacts_path=TestProjects/URP-Update-Testing/BoatAttack-19-4/test-results --editor-location=.Editor --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-force-vulkan" --extra-editor-arg="-playergraphicsapi=Vulkan" --platform=editmode --scripting-backend=Mono2x --suite=editor --testfilter=%TEST_FILTER% --testproject=./TestProjects/URP-Update-Testing/BoatAttack-19-4 --zero-tests-are-ok=1
-         retries: 2
     artifacts:
         logs:
             paths:
@@ -103,6 +103,7 @@ URPUpdate_BoatAttack_Win_Vulkan_playmode_mono_Linear_CUSTOM-REVISION:
         CUSTOM_REVISION: custom_revision_not_set
         BA_UPDATE_PROJECT_BRANCH: master
         BA_UPDATE_PROJECT_REVISION: 06c67d682225354dd909728e2511ac17115b18b9
+        CACHE_ARGS: '{{cache.flags}}'
         UTR_VERSION: "current"
         TEST_FILTER: .*
     commands:
@@ -124,8 +125,7 @@ URPUpdate_BoatAttack_Win_Vulkan_playmode_mono_Linear_CUSTOM-REVISION:
                 set /p GIT_REVISIONDATE=<revdate.tmp
                 echo %GIT_REVISIONDATE%
                 del revdate.tmp
-                utr --artifacts_path=TestProjects/URP-Update-Testing/BoatAttack-19-4/test-results --editor-location=.Editor --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-force-vulkan" --scripting-backend=Mono2x --suite=playmode --testfilter=%TEST_FILTER% --testproject=./TestProjects/URP-Update-Testing/BoatAttack-19-4 --zero-tests-are-ok=1
-         retries: 2
+                utr %CACHE_ARGS% --artifacts_path=TestProjects/URP-Update-Testing/BoatAttack-19-4/test-results --editor-location=.Editor --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-force-vulkan" --scripting-backend=Mono2x --suite=playmode --testfilter=%TEST_FILTER% --testproject=./TestProjects/URP-Update-Testing/BoatAttack-19-4 --zero-tests-are-ok=1
     artifacts:
         logs:
             paths:
@@ -145,6 +145,7 @@ URPUpdate_BoatAttack_Win_Vulkan_editmode_mono_Linear_CUSTOM-REVISION:
         CUSTOM_REVISION: custom_revision_not_set
         BA_UPDATE_PROJECT_BRANCH: master
         BA_UPDATE_PROJECT_REVISION: 06c67d682225354dd909728e2511ac17115b18b9
+        CACHE_ARGS: '{{cache.flags}}'
         UTR_VERSION: "current"
         TEST_FILTER: .*
     commands:
@@ -167,7 +168,6 @@ URPUpdate_BoatAttack_Win_Vulkan_editmode_mono_Linear_CUSTOM-REVISION:
                 echo %GIT_REVISIONDATE%
                 del revdate.tmp
                 utr --artifacts_path=TestProjects/URP-Update-Testing/BoatAttack-19-4/test-results --editor-location=.Editor --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-force-vulkan" --extra-editor-arg="-playergraphicsapi=Vulkan" --platform=editmode --scripting-backend=Mono2x --suite=editor --testfilter=%TEST_FILTER% --testproject=./TestProjects/URP-Update-Testing/BoatAttack-19-4 --zero-tests-are-ok=1
-         retries: 2
     artifacts:
         logs:
             paths:
