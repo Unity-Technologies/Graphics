@@ -13,6 +13,23 @@ PR_URP_Foundation_trunk:
     dependencies:
       -  path: .yamato/urp_foundation-win-dx11.yml#URP_Foundation_Win_DX11_Standalone_cache_mono_Linear_trunk
          rerun: on_new_revision
+    variables:
+        CUSTOM_REVISION: '{{trunk.changeset.id}}'
+        UTR_VERSION: "current"
+        TEST_FILTER: .*
+Nightly_URP_Foundation_trunk:
+    name: Nightly URP_Foundation - trunk
+    dependencies:
+      -  path: .yamato/all-urp_foundation.yml#PR_URP_Foundation_trunk
+         rerun: on_new_revision
+      -  path: .yamato/urp_foundation-win-dx11.yml#URP_Foundation_Win_DX11_playmode_cache_mono_Linear_trunk
+         rerun: on_new_revision
+      -  path: .yamato/urp_foundation-win-dx12.yml#URP_Foundation_Win_DX12_playmode_cache_mono_Linear_trunk
+         rerun: on_new_revision
+      -  path: .yamato/urp_foundation-win-vulkan.yml#URP_Foundation_Win_Vulkan_playmode_cache_mono_Linear_trunk
+         rerun: on_new_revision
+      -  path: .yamato/urp_foundation-linux-vulkan.yml#URP_Foundation_Linux_Vulkan_playmode_cache_mono_Linear_trunk
+         rerun: on_new_revision
       -  path: .yamato/urp_foundation-win-dx11.yml#URP_Foundation_Win_DX11_Standalone_XR_cache_mono_Linear_trunk
          rerun: on_new_revision
       -  path: .yamato/urp_foundation-win-dx11.yml#URP_Foundation_Win_DX11_playmode_XR_cache_mono_Linear_trunk
@@ -47,27 +64,27 @@ PR_URP_Foundation_trunk:
         CUSTOM_REVISION: '{{trunk.changeset.id}}'
         UTR_VERSION: "current"
         TEST_FILTER: .*
-Nightly_URP_Foundation_trunk:
-    name: Nightly URP_Foundation - trunk
-    dependencies:
-      -  path: .yamato/all-urp_foundation.yml#PR_URP_Foundation_trunk
-         rerun: on_new_revision
-      -  path: .yamato/urp_foundation-win-dx11.yml#URP_Foundation_Win_DX11_playmode_cache_mono_Linear_trunk
-         rerun: on_new_revision
-      -  path: .yamato/urp_foundation-win-dx12.yml#URP_Foundation_Win_DX12_playmode_cache_mono_Linear_trunk
-         rerun: on_new_revision
-      -  path: .yamato/urp_foundation-win-vulkan.yml#URP_Foundation_Win_Vulkan_playmode_cache_mono_Linear_trunk
-         rerun: on_new_revision
-      -  path: .yamato/urp_foundation-linux-vulkan.yml#URP_Foundation_Linux_Vulkan_playmode_cache_mono_Linear_trunk
-         rerun: on_new_revision
-    variables:
-        CUSTOM_REVISION: '{{trunk.changeset.id}}'
-        UTR_VERSION: "current"
-        TEST_FILTER: .*
 PR_URP_Foundation_CUSTOM-REVISION:
     name: URP_Foundation PR Job - CUSTOM-REVISION
     dependencies:
       -  path: .yamato/urp_foundation-win-dx11.yml#URP_Foundation_Win_DX11_Standalone_cache_mono_Linear_CUSTOM-REVISION
+         rerun: on_new_revision
+    variables:
+        CUSTOM_REVISION: custom_revision_not_set
+        UTR_VERSION: "current"
+        TEST_FILTER: .*
+Nightly_URP_Foundation_CUSTOM-REVISION:
+    name: Nightly URP_Foundation - CUSTOM-REVISION
+    dependencies:
+      -  path: .yamato/all-urp_foundation.yml#PR_URP_Foundation_CUSTOM-REVISION
+         rerun: on_new_revision
+      -  path: .yamato/urp_foundation-win-dx11.yml#URP_Foundation_Win_DX11_playmode_cache_mono_Linear_CUSTOM-REVISION
+         rerun: on_new_revision
+      -  path: .yamato/urp_foundation-win-dx12.yml#URP_Foundation_Win_DX12_playmode_cache_mono_Linear_CUSTOM-REVISION
+         rerun: on_new_revision
+      -  path: .yamato/urp_foundation-win-vulkan.yml#URP_Foundation_Win_Vulkan_playmode_cache_mono_Linear_CUSTOM-REVISION
+         rerun: on_new_revision
+      -  path: .yamato/urp_foundation-linux-vulkan.yml#URP_Foundation_Linux_Vulkan_playmode_cache_mono_Linear_CUSTOM-REVISION
          rerun: on_new_revision
       -  path: .yamato/urp_foundation-win-dx11.yml#URP_Foundation_Win_DX11_Standalone_XR_cache_mono_Linear_CUSTOM-REVISION
          rerun: on_new_revision
@@ -98,23 +115,6 @@ PR_URP_Foundation_CUSTOM-REVISION:
       -  path: .yamato/urp_foundation-android-vulkan.yml#URP_Foundation_Android_Vulkan_Standalone_cache_il2cpp_Linear_CUSTOM-REVISION
          rerun: on_new_revision
       -  path: .yamato/urp_foundation-iphone-metal.yml#URP_Foundation_iPhone_Metal_Standalone_cache_il2cpp_Linear_CUSTOM-REVISION
-         rerun: on_new_revision
-    variables:
-        CUSTOM_REVISION: custom_revision_not_set
-        UTR_VERSION: "current"
-        TEST_FILTER: .*
-Nightly_URP_Foundation_CUSTOM-REVISION:
-    name: Nightly URP_Foundation - CUSTOM-REVISION
-    dependencies:
-      -  path: .yamato/all-urp_foundation.yml#PR_URP_Foundation_CUSTOM-REVISION
-         rerun: on_new_revision
-      -  path: .yamato/urp_foundation-win-dx11.yml#URP_Foundation_Win_DX11_playmode_cache_mono_Linear_CUSTOM-REVISION
-         rerun: on_new_revision
-      -  path: .yamato/urp_foundation-win-dx12.yml#URP_Foundation_Win_DX12_playmode_cache_mono_Linear_CUSTOM-REVISION
-         rerun: on_new_revision
-      -  path: .yamato/urp_foundation-win-vulkan.yml#URP_Foundation_Win_Vulkan_playmode_cache_mono_Linear_CUSTOM-REVISION
-         rerun: on_new_revision
-      -  path: .yamato/urp_foundation-linux-vulkan.yml#URP_Foundation_Linux_Vulkan_playmode_cache_mono_Linear_CUSTOM-REVISION
          rerun: on_new_revision
     variables:
         CUSTOM_REVISION: custom_revision_not_set
