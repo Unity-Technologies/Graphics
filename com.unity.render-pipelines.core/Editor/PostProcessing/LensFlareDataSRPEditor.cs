@@ -125,6 +125,7 @@ namespace UnityEditor.Rendering
         static readonly int k_PreviewSize = 128;
         static readonly int k_FlareColorValue = Shader.PropertyToID("_FlareColorValue");
         static readonly int k_FlareTex = Shader.PropertyToID("_FlareTex");
+        // cf. LensFlareCommon.hlsl
         static readonly int k_FlareData0 = Shader.PropertyToID("_FlareData0");
         static readonly int k_FlareData1 = Shader.PropertyToID("_FlareData1");
         static readonly int k_FlareData2 = Shader.PropertyToID("_FlareData2");
@@ -409,12 +410,6 @@ namespace UnityEditor.Rendering
                 }
             }
 
-            float rCos = Mathf.Cos(Mathf.PI * invSideCount);
-            float roundValue = rCos * usedSDFRoundness;
-            float r = rCos - roundValue;
-            float an = 2.0f * Mathf.PI * invSideCount;
-            float he = r * Mathf.Tan(0.5f * an);
-
             float usedGradientPosition = Mathf.Clamp01((1.0f - edgeOffsetProp.floatValue) - 1e-6f);
             if (type == SRPLensFlareType.Polygon)
                 usedGradientPosition = Mathf.Pow(usedGradientPosition + 1.0f, 5);
@@ -427,7 +422,7 @@ namespace UnityEditor.Rendering
             Vector2 rotQuadCorner = new Vector2(cos0 * localSize.x - sin0 * localSize.y, sin0 * localSize.x + cos0 * localSize.y);
             float rescale = 1.0f / Mathf.Max(Mathf.Abs(rotQuadCorner.x), Mathf.Abs(rotQuadCorner.y));
 
-            //Set here what need to be setup in the material
+            // Set here what need to be setup in the material
             if (type == SRPLensFlareType.Image)
             {
                 if (flareTextureProp.objectReferenceValue != null)
@@ -441,20 +436,38 @@ namespace UnityEditor.Rendering
             }
             m_PreviewLensFlare.SetVector(k_FlareColorValue, new Vector4(colorProp.colorValue.r * intensity, colorProp.colorValue.g * intensity, colorProp.colorValue.b * intensity, 1f));
             m_PreviewLensFlare.SetVector(k_FlareData0, flareData0);
+            // x: OcclusionRadius, y: OcclusionSampleCount, z: ScreenPosZ, w: ScreenRatio
             m_PreviewLensFlare.SetVector(k_FlareData1, new Vector4(0f, 0f, 0f, 1f));
+            // xy: ScreenPos, zw: FlareSize
             m_PreviewLensFlare.SetVector(k_FlareData2, new Vector4(0f, 0f, rescale * localSize.x, rescale * localSize.y));
+            // xy: RayOffset, z: invSideCount
             m_PreviewLensFlare.SetVector(k_FlareData3, new Vector4(0f, 0f, invSideCount, 0f));
 
             if (type == SRPLensFlareType.Polygon)
-                m_PreviewLensFlare.SetVector(k_FlareData4, new Vector4(usedSDFRoundness, r, an, he));
-            else
-                m_PreviewLensFlare.SetVector(k_FlareData4, new Vector4(usedSDFRoundness, 0f, 0f, 0f));
+            {
+                // Precompute data for Polygon SDF (cf. LensFlareCommon.hlsl)
+                float rCos = Mathf.Cos(Mathf.PI * invSideCount);
+                float roundValue = rCos * usedSDFRoundness;
+                float r = rCos - roundValue;
+                float an = 2.0f * Mathf.PI * invSideCount;
+                float he = r * Mathf.Tan(0.5f * an);
 
+                // x: SDF Roundness, y: Poly Radius, z: PolyParam0, w: PolyParam1
+                m_PreviewLensFlare.SetVector(k_FlareData4, new Vector4(usedSDFRoundness, r, an, he));
+            }
+            else
+            {
+                // x: SDF Roundness, yzw: Unused
+                m_PreviewLensFlare.SetVector(k_FlareData4, new Vector4(usedSDFRoundness, 0f, 0f, 0f));
+            }
+
+            // x: Allow Offscreen, y: Edge Offset, z: Falloff
             if (type != SRPLensFlareType.Image)
                 m_PreviewLensFlare.SetVector(k_FlareData5, new Vector4(0f, usedGradientPosition, Mathf.Exp(Mathf.Lerp(0.0f, 4.0f, Mathf.Clamp01(1.0f - fallOffProp.floatValue))), 0f));
             else
                 m_PreviewLensFlare.SetVector(k_FlareData5, new Vector4(0f, 0f, 0f, 0f));
 
+            // xy: _FlarePreviewData.xy, z: ScreenRatio
             m_PreviewLensFlare.SetVector(k_FlarePreviewData, new Vector4(k_PreviewSize, k_PreviewSize, 1f, 0f));
 
             m_PreviewLensFlare.SetPass((int)type + ((type != SRPLensFlareType.Image && inverseSDFProp.boolValue) ? 2 : 0));

@@ -31,7 +31,7 @@ float4 _FlareData0; // x: localCos0, y: localSin0, zw: PositionOffsetXY
 float4 _FlareData1; // x: OcclusionRadius, y: OcclusionSampleCount, z: ScreenPosZ, w: ScreenRatio
 float4 _FlareData2; // xy: ScreenPos, zw: FlareSize
 float4 _FlareData3; // xy: RayOffset, z: invSideCount
-float4 _FlareData4; // x: SDF Roundness, y: SDF Frequency
+float4 _FlareData4; // x: SDF Roundness, y: Poly Radius, z: PolyParam0, w: PolyParam1
 float4 _FlareData5; // x: Allow Offscreen, y: Edge Offset, z: Falloff
 
 #ifdef FLARE_PREVIEW
