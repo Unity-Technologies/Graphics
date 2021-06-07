@@ -594,7 +594,7 @@ namespace UnityEngine.Experimental.Rendering
                 int indexSize = 0;
                 try
                 {
-                    indexSize = checked(indexDimensions.x * (indexDimensions.y + 1) * indexDimensions.z);
+                    indexSize = checked(indexDimensions.x * indexDimensions.y * indexDimensions.z);
                 }
                 catch
                 {
