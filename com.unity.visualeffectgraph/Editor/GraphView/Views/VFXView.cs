@@ -2264,6 +2264,39 @@ namespace UnityEditor.VFX.UI
                 evt.menu.AppendAction("Collapse Operators", CollapseOperator, e => DropdownMenuAction.Status.Normal, true);
             if (selection.OfType<VFXOperatorUI>().Any(t => t.superCollapsed))
                 evt.menu.AppendAction("Uncollapse Operators", CollapseOperator, e => DropdownMenuAction.Status.Normal, false);
+            if (selection.OfType<VFXStickyNote>().Any() && evt.menu.MenuItems().OfType<DropdownMenuAction>().All(x => x.name != "Delete"))
+            {
+                evt.menu.AppendSeparator();
+                evt.menu.AppendAction("Delete", OnDeleteStickyNote, e => canDeleteSelection ? DropdownMenuAction.Status.Normal : DropdownMenuAction.Status.Disabled);
+            }
+        }
+
+        static readonly string s_DeleteEventCommandName = GetDeleteEventCommandName();
+
+        static string GetDeleteEventCommandName()
+        {
+            var fieldInfo = Type.GetType("UnityEngine.EventCommandNames, UnityEngine")?.GetField("Delete", BindingFlags.Static | BindingFlags.NonPublic | BindingFlags.Public);
+            if (fieldInfo != null)
+            {
+                if (fieldInfo.GetValue(null) is string commandName)
+                {
+                    return commandName;
+                }
+
+                Debug.Log("API has changed, Delete command name field is either null or not a string anymore");
+            }
+            else
+            {
+                Debug.Log("API has changed, could not retrieve Delete command name field using reflection");
+            }
+
+            return "Delete";
+        }
+
+        void OnDeleteStickyNote(DropdownMenuAction menuAction)
+        {
+            using var ev = ExecuteCommandEvent.GetPooled(s_DeleteEventCommandName);
+            SendEvent(ev);
         }
 
         void CollapseOperator(DropdownMenuAction a)
