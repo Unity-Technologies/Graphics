@@ -12,5 +12,5 @@ You can use a Light Anchor to light a scene in Rendered Camera Space. To use a L
 | Evevation | Use the second (blue) knob to control the Elevation of the light. |
 | Roll | Use third (gray) knob to control the roll or the light. This is especially useful if the light has an IES or a Cookie. |
 | Distance | Controls the distance between the light and its anchor in world space. |
-| Up Direction | Specifies the space in which the up direction of the anchor is defined. Local is relative to the camera. |
-| Common | Common light preset: Rim Left, Kick Left, Bounce Left, Fill Left, Hair, Fill Right, Bounce Right, Kick Right, Rim Right. |
+| Up Direction | Defines the space of the up direction of the anchor. When this value is set to Local, the Up Direction is relative to the camera. |
+| Common | Assigns a preset to the light component based on the behaviour of studio lights. |
