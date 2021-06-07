@@ -19,6 +19,7 @@ URP_Performance_BoatAttack_OSX_Metal_performance_playmode_runtime_mono_Linear_tr
         CUSTOM_REVISION: '{{trunk.changeset.id}}'
         BOAT_ATTACK_BRANCH: master
         BOAT_ATTACK_REVISION: ca18e346b30b365e90d1a9a149d07abfb15ac2a2
+        CACHE_ARGS: '{{cache.flags}}'
         UTR_VERSION: "current"
         TEST_FILTER: .*
     commands:
@@ -62,21 +63,18 @@ URP_Performance_BoatAttack_OSX_Metal_performance_playmode_runtime_mono_Linear_tr
                 mkdir -p TestProjects/BoatAttack/test-results/
                 scp -i ~/.ssh/id_rsa_macmini -r bokken@$BOKKEN_DEVICE_IP:/Users/bokken/Graphics/TestProjects/BoatAttack/test-results/ TestProjects/BoatAttack/test-results/
                 exit $UTR_RESULT
-         retries: 2
       -  command: |5-
                 ssh -i ~/.ssh/id_rsa_macmini bokken@$BOKKEN_DEVICE_IP "export UPM_REGISTRY=https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates; ~/Graphics/utr  --artifacts_path=/Users/bokken/Graphics/TestProjects/BoatAttack/test-results --category=URP --editor-location=.Editor --extra-editor-arg="-addscenetobuild=Assets/scenes/Testing/benchmark_island-static.unity" --extra-editor-arg="-executemethod" --extra-editor-arg="Editor.Setup" --extra-editor-arg="-packageundertestbranch=$GIT_BRANCH" --extra-editor-arg="-packageundertestname=com.unity.render-pipelines.universal" --extra-editor-arg="-packageundertestrev=$GIT_REVISION" --extra-editor-arg="-packageundertestrevdate=$GIT_REVISIONDATE" --extra-editor-arg="-scriptingbackend=Mono2x" --performance-project-id=BoatAttack --platform=StandaloneOSX --report-performance-data --scripting-backend=Mono2x --suite=playmode --testfilter=Medium --testproject=/Users/bokken/Graphics/TestProjects/BoatAttack --timeout=1200 --zero-tests-are-ok=1 "
                 UTR_RESULT=$?
                 mkdir -p TestProjects/BoatAttack/test-results/
                 scp -i ~/.ssh/id_rsa_macmini -r bokken@$BOKKEN_DEVICE_IP:/Users/bokken/Graphics/TestProjects/BoatAttack/test-results/ TestProjects/BoatAttack/test-results/
                 exit $UTR_RESULT
-         retries: 2
       -  command: |5-
                 ssh -i ~/.ssh/id_rsa_macmini bokken@$BOKKEN_DEVICE_IP "export UPM_REGISTRY=https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates; ~/Graphics/utr  --artifacts_path=/Users/bokken/Graphics/TestProjects/BoatAttack/test-results --category=URP --editor-location=.Editor --extra-editor-arg="-addscenetobuild=Assets/scenes/Testing/benchmark_island-static.unity" --extra-editor-arg="-executemethod" --extra-editor-arg="Editor.Setup" --extra-editor-arg="-packageundertestbranch=$GIT_BRANCH" --extra-editor-arg="-packageundertestname=com.unity.render-pipelines.universal" --extra-editor-arg="-packageundertestrev=$GIT_REVISION" --extra-editor-arg="-packageundertestrevdate=$GIT_REVISIONDATE" --extra-editor-arg="-scriptingbackend=Mono2x" --performance-project-id=BoatAttack --platform=StandaloneOSX --report-performance-data --scripting-backend=Mono2x --suite=playmode --testfilter=High --testproject=/Users/bokken/Graphics/TestProjects/BoatAttack --timeout=1200 --zero-tests-are-ok=1 "
                 UTR_RESULT=$?
                 mkdir -p TestProjects/BoatAttack/test-results/
                 scp -i ~/.ssh/id_rsa_macmini -r bokken@$BOKKEN_DEVICE_IP:/Users/bokken/Graphics/TestProjects/BoatAttack/test-results/ TestProjects/BoatAttack/test-results/
                 exit $UTR_RESULT
-         retries: 2
     artifacts:
         logs:
             paths:
@@ -96,6 +94,7 @@ URP_Performance_BoatAttack_OSX_Metal_performance_playmode_editor_mono_Linear_tru
         CUSTOM_REVISION: '{{trunk.changeset.id}}'
         BOAT_ATTACK_BRANCH: master
         BOAT_ATTACK_REVISION: ca18e346b30b365e90d1a9a149d07abfb15ac2a2
+        CACHE_ARGS: '{{cache.flags}}'
         UTR_VERSION: "current"
         TEST_FILTER: .*
     commands:
@@ -139,14 +138,12 @@ URP_Performance_BoatAttack_OSX_Metal_performance_playmode_editor_mono_Linear_tru
                 mkdir -p TestProjects/BoatAttack/test-results/
                 scp -i ~/.ssh/id_rsa_macmini -r bokken@$BOKKEN_DEVICE_IP:/Users/bokken/Graphics/TestProjects/BoatAttack/test-results/ TestProjects/BoatAttack/test-results/
                 exit $UTR_RESULT
-         retries: 2
       -  command: |5-
                 ssh -i ~/.ssh/id_rsa_macmini bokken@$BOKKEN_DEVICE_IP "export UPM_REGISTRY=https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates; ~/Graphics/utr  --artifacts_path=/Users/bokken/Graphics/TestProjects/BoatAttack/test-results --category=URP --editor-location=/Users/bokken/.Editor --extra-editor-arg="-addscenetobuild=Assets/scenes/Testing/benchmark_island-static.unity" --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-executemethod" --extra-editor-arg="Editor.Setup" --extra-editor-arg="-packageundertestbranch=$GIT_BRANCH" --extra-editor-arg="-packageundertestname=com.unity.render-pipelines.universal" --extra-editor-arg="-packageundertestrev=$GIT_REVISION" --extra-editor-arg="-packageundertestrevdate=$GIT_REVISIONDATE" --extra-editor-arg="-scriptingbackend=Mono2x" --performance-project-id=BoatAttack --report-performance-data --scripting-backend=Mono2x --suite=playmode --testfilter=Medium --testproject=/Users/bokken/Graphics/TestProjects/BoatAttack --zero-tests-are-ok=1 "
                 UTR_RESULT=$?
                 mkdir -p TestProjects/BoatAttack/test-results/
                 scp -i ~/.ssh/id_rsa_macmini -r bokken@$BOKKEN_DEVICE_IP:/Users/bokken/Graphics/TestProjects/BoatAttack/test-results/ TestProjects/BoatAttack/test-results/
                 exit $UTR_RESULT
-         retries: 2
     artifacts:
         logs:
             paths:
@@ -166,6 +163,7 @@ URP_Performance_BoatAttack_OSX_Metal_performance_build_editmode_mono_Linear_trun
         CUSTOM_REVISION: '{{trunk.changeset.id}}'
         BOAT_ATTACK_BRANCH: master
         BOAT_ATTACK_REVISION: ca18e346b30b365e90d1a9a149d07abfb15ac2a2
+        CACHE_ARGS: '{{cache.flags}}'
         UTR_VERSION: "current"
         TEST_FILTER: .*
     commands:
@@ -209,14 +207,12 @@ URP_Performance_BoatAttack_OSX_Metal_performance_build_editmode_mono_Linear_trun
                 mkdir -p TestProjects/BoatAttack/test-results/
                 scp -i ~/.ssh/id_rsa_macmini -r bokken@$BOKKEN_DEVICE_IP:/Users/bokken/Graphics/TestProjects/BoatAttack/test-results/ TestProjects/BoatAttack/test-results/
                 exit $UTR_RESULT
-         retries: 2
       -  command: |5-
                 ssh -i ~/.ssh/id_rsa_macmini bokken@$BOKKEN_DEVICE_IP "export UPM_REGISTRY=https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates; ~/Graphics/utr  --artifacts_path=/Users/bokken/Graphics/TestProjects/BoatAttack/test-results --category=URP --editor-location=/Users/bokken/.Editor --extra-editor-arg="-addscenetobuild=Assets/scenes/Testing/benchmark_island-static.unity" --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-executemethod" --extra-editor-arg="Editor.Setup" --extra-editor-arg="-packageundertestbranch=$GIT_BRANCH" --extra-editor-arg="-packageundertestname=com.unity.render-pipelines.universal" --extra-editor-arg="-packageundertestrev=$GIT_REVISION" --extra-editor-arg="-packageundertestrevdate=$GIT_REVISIONDATE" --extra-editor-arg="-scriptingbackend=Mono2x" --performance-project-id=BoatAttack --platform=editmode --report-performance-data --scripting-backend=Mono2x --suite=editor --testfilter=Medium --testproject=/Users/bokken/Graphics/TestProjects/BoatAttack --zero-tests-are-ok=1 "
                 UTR_RESULT=$?
                 mkdir -p TestProjects/BoatAttack/test-results/
                 scp -i ~/.ssh/id_rsa_macmini -r bokken@$BOKKEN_DEVICE_IP:/Users/bokken/Graphics/TestProjects/BoatAttack/test-results/ TestProjects/BoatAttack/test-results/
                 exit $UTR_RESULT
-         retries: 2
     artifacts:
         logs:
             paths:
@@ -236,6 +232,7 @@ URP_Performance_BoatAttack_OSX_Metal_performance_playmode_runtime_mono_Linear_CU
         CUSTOM_REVISION: custom_revision_not_set
         BOAT_ATTACK_BRANCH: master
         BOAT_ATTACK_REVISION: ca18e346b30b365e90d1a9a149d07abfb15ac2a2
+        CACHE_ARGS: '{{cache.flags}}'
         UTR_VERSION: "current"
         TEST_FILTER: .*
     commands:
@@ -279,21 +276,18 @@ URP_Performance_BoatAttack_OSX_Metal_performance_playmode_runtime_mono_Linear_CU
                 mkdir -p TestProjects/BoatAttack/test-results/
                 scp -i ~/.ssh/id_rsa_macmini -r bokken@$BOKKEN_DEVICE_IP:/Users/bokken/Graphics/TestProjects/BoatAttack/test-results/ TestProjects/BoatAttack/test-results/
                 exit $UTR_RESULT
-         retries: 2
       -  command: |5-
                 ssh -i ~/.ssh/id_rsa_macmini bokken@$BOKKEN_DEVICE_IP "export UPM_REGISTRY=https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates; ~/Graphics/utr  --artifacts_path=/Users/bokken/Graphics/TestProjects/BoatAttack/test-results --category=URP --editor-location=.Editor --extra-editor-arg="-addscenetobuild=Assets/scenes/Testing/benchmark_island-static.unity" --extra-editor-arg="-executemethod" --extra-editor-arg="Editor.Setup" --extra-editor-arg="-packageundertestbranch=$GIT_BRANCH" --extra-editor-arg="-packageundertestname=com.unity.render-pipelines.universal" --extra-editor-arg="-packageundertestrev=$GIT_REVISION" --extra-editor-arg="-packageundertestrevdate=$GIT_REVISIONDATE" --extra-editor-arg="-scriptingbackend=Mono2x" --performance-project-id=BoatAttack --platform=StandaloneOSX --report-performance-data --scripting-backend=Mono2x --suite=playmode --testfilter=Medium --testproject=/Users/bokken/Graphics/TestProjects/BoatAttack --timeout=1200 --zero-tests-are-ok=1 "
                 UTR_RESULT=$?
                 mkdir -p TestProjects/BoatAttack/test-results/
                 scp -i ~/.ssh/id_rsa_macmini -r bokken@$BOKKEN_DEVICE_IP:/Users/bokken/Graphics/TestProjects/BoatAttack/test-results/ TestProjects/BoatAttack/test-results/
                 exit $UTR_RESULT
-         retries: 2
       -  command: |5-
                 ssh -i ~/.ssh/id_rsa_macmini bokken@$BOKKEN_DEVICE_IP "export UPM_REGISTRY=https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates; ~/Graphics/utr  --artifacts_path=/Users/bokken/Graphics/TestProjects/BoatAttack/test-results --category=URP --editor-location=.Editor --extra-editor-arg="-addscenetobuild=Assets/scenes/Testing/benchmark_island-static.unity" --extra-editor-arg="-executemethod" --extra-editor-arg="Editor.Setup" --extra-editor-arg="-packageundertestbranch=$GIT_BRANCH" --extra-editor-arg="-packageundertestname=com.unity.render-pipelines.universal" --extra-editor-arg="-packageundertestrev=$GIT_REVISION" --extra-editor-arg="-packageundertestrevdate=$GIT_REVISIONDATE" --extra-editor-arg="-scriptingbackend=Mono2x" --performance-project-id=BoatAttack --platform=StandaloneOSX --report-performance-data --scripting-backend=Mono2x --suite=playmode --testfilter=High --testproject=/Users/bokken/Graphics/TestProjects/BoatAttack --timeout=1200 --zero-tests-are-ok=1 "
                 UTR_RESULT=$?
                 mkdir -p TestProjects/BoatAttack/test-results/
                 scp -i ~/.ssh/id_rsa_macmini -r bokken@$BOKKEN_DEVICE_IP:/Users/bokken/Graphics/TestProjects/BoatAttack/test-results/ TestProjects/BoatAttack/test-results/
                 exit $UTR_RESULT
-         retries: 2
     artifacts:
         logs:
             paths:
@@ -313,6 +307,7 @@ URP_Performance_BoatAttack_OSX_Metal_performance_playmode_editor_mono_Linear_CUS
         CUSTOM_REVISION: custom_revision_not_set
         BOAT_ATTACK_BRANCH: master
         BOAT_ATTACK_REVISION: ca18e346b30b365e90d1a9a149d07abfb15ac2a2
+        CACHE_ARGS: '{{cache.flags}}'
         UTR_VERSION: "current"
         TEST_FILTER: .*
     commands:
@@ -356,14 +351,12 @@ URP_Performance_BoatAttack_OSX_Metal_performance_playmode_editor_mono_Linear_CUS
                 mkdir -p TestProjects/BoatAttack/test-results/
                 scp -i ~/.ssh/id_rsa_macmini -r bokken@$BOKKEN_DEVICE_IP:/Users/bokken/Graphics/TestProjects/BoatAttack/test-results/ TestProjects/BoatAttack/test-results/
                 exit $UTR_RESULT
-         retries: 2
       -  command: |5-
                 ssh -i ~/.ssh/id_rsa_macmini bokken@$BOKKEN_DEVICE_IP "export UPM_REGISTRY=https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates; ~/Graphics/utr  --artifacts_path=/Users/bokken/Graphics/TestProjects/BoatAttack/test-results --category=URP --editor-location=/Users/bokken/.Editor --extra-editor-arg="-addscenetobuild=Assets/scenes/Testing/benchmark_island-static.unity" --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-executemethod" --extra-editor-arg="Editor.Setup" --extra-editor-arg="-packageundertestbranch=$GIT_BRANCH" --extra-editor-arg="-packageundertestname=com.unity.render-pipelines.universal" --extra-editor-arg="-packageundertestrev=$GIT_REVISION" --extra-editor-arg="-packageundertestrevdate=$GIT_REVISIONDATE" --extra-editor-arg="-scriptingbackend=Mono2x" --performance-project-id=BoatAttack --report-performance-data --scripting-backend=Mono2x --suite=playmode --testfilter=Medium --testproject=/Users/bokken/Graphics/TestProjects/BoatAttack --zero-tests-are-ok=1 "
                 UTR_RESULT=$?
                 mkdir -p TestProjects/BoatAttack/test-results/
                 scp -i ~/.ssh/id_rsa_macmini -r bokken@$BOKKEN_DEVICE_IP:/Users/bokken/Graphics/TestProjects/BoatAttack/test-results/ TestProjects/BoatAttack/test-results/
                 exit $UTR_RESULT
-         retries: 2
     artifacts:
         logs:
             paths:
@@ -383,6 +376,7 @@ URP_Performance_BoatAttack_OSX_Metal_performance_build_editmode_mono_Linear_CUST
         CUSTOM_REVISION: custom_revision_not_set
         BOAT_ATTACK_BRANCH: master
         BOAT_ATTACK_REVISION: ca18e346b30b365e90d1a9a149d07abfb15ac2a2
+        CACHE_ARGS: '{{cache.flags}}'
         UTR_VERSION: "current"
         TEST_FILTER: .*
     commands:
@@ -426,14 +420,12 @@ URP_Performance_BoatAttack_OSX_Metal_performance_build_editmode_mono_Linear_CUST
                 mkdir -p TestProjects/BoatAttack/test-results/
                 scp -i ~/.ssh/id_rsa_macmini -r bokken@$BOKKEN_DEVICE_IP:/Users/bokken/Graphics/TestProjects/BoatAttack/test-results/ TestProjects/BoatAttack/test-results/
                 exit $UTR_RESULT
-         retries: 2
       -  command: |5-
                 ssh -i ~/.ssh/id_rsa_macmini bokken@$BOKKEN_DEVICE_IP "export UPM_REGISTRY=https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates; ~/Graphics/utr  --artifacts_path=/Users/bokken/Graphics/TestProjects/BoatAttack/test-results --category=URP --editor-location=/Users/bokken/.Editor --extra-editor-arg="-addscenetobuild=Assets/scenes/Testing/benchmark_island-static.unity" --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-executemethod" --extra-editor-arg="Editor.Setup" --extra-editor-arg="-packageundertestbranch=$GIT_BRANCH" --extra-editor-arg="-packageundertestname=com.unity.render-pipelines.universal" --extra-editor-arg="-packageundertestrev=$GIT_REVISION" --extra-editor-arg="-packageundertestrevdate=$GIT_REVISIONDATE" --extra-editor-arg="-scriptingbackend=Mono2x" --performance-project-id=BoatAttack --platform=editmode --report-performance-data --scripting-backend=Mono2x --suite=editor --testfilter=Medium --testproject=/Users/bokken/Graphics/TestProjects/BoatAttack --zero-tests-are-ok=1 "
                 UTR_RESULT=$?
                 mkdir -p TestProjects/BoatAttack/test-results/
                 scp -i ~/.ssh/id_rsa_macmini -r bokken@$BOKKEN_DEVICE_IP:/Users/bokken/Graphics/TestProjects/BoatAttack/test-results/ TestProjects/BoatAttack/test-results/
                 exit $UTR_RESULT
-         retries: 2
     artifacts:
         logs:
             paths:

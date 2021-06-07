@@ -17,6 +17,7 @@ urp-upgrade_Win_DX11_editmode_mono_Linear_trunk:
     variables:
         UPM_REGISTRY: https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates
         CUSTOM_REVISION: '{{trunk.changeset.id}}'
+        CACHE_ARGS: '{{cache.flags}}'
         UTR_VERSION: "current"
         TEST_FILTER: .*
     commands:
@@ -40,6 +41,7 @@ urp-upgrade_Win_DX11_editmode_mono_Linear_CUSTOM-REVISION:
     variables:
         UPM_REGISTRY: https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates
         CUSTOM_REVISION: custom_revision_not_set
+        CACHE_ARGS: '{{cache.flags}}'
         UTR_VERSION: "current"
         TEST_FILTER: .*
     commands:

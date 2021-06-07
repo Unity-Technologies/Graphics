@@ -429,6 +429,10 @@ namespace UnityEngine.Rendering.HighDefinition
         {
             var parameters = new GenerateMaxZParameters();
             parameters.generateMaxZCS = defaultResources.shaders.maxZCS;
+            parameters.generateMaxZCS.shaderKeywords = null;
+            bool planarReflection = hdCamera.camera.cameraType == CameraType.Reflection && hdCamera.parentCamera != null;
+            CoreUtils.SetKeyword(parameters.generateMaxZCS, "PLANAR_OBLIQUE_DEPTH", planarReflection);
+
             parameters.maxZKernel = parameters.generateMaxZCS.FindKernel("ComputeMaxZ");
             parameters.maxZDownsampleKernel = parameters.generateMaxZCS.FindKernel("ComputeFinalMask");
             parameters.dilateMaxZKernel = parameters.generateMaxZCS.FindKernel("DilateMask");
