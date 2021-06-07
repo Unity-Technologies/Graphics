@@ -54,6 +54,11 @@ namespace UnityEditor.Rendering
                 /// exposureTarget content
                 /// </summary>
                 public static readonly GUIContent exposureTarget = EditorGUIUtility.TrTextContent("Exposure Target", "The object used as a target for centering the Exposure's Procedural Mask metering mode when target object option is set (See Exposure Volume Component).");
+
+                /// <summary>
+                /// Allow dynamic resolution content
+                /// </summary>
+                public static readonly GUIContent allowDynamicResolution = EditorGUIUtility.TrTextContent("Allow Dynamic Resolution", "Whether to support dynamic resolution.");
             }
         }
     }

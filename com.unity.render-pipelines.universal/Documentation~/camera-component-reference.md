@@ -52,10 +52,15 @@ The Camera Inspector has the following sections when the Camera has its **Render
 <a name="base-rendering"></a>
 ## Rendering
 
+Note that when a Camera's *Render Mode* is set to *Base* and its *Render Target* is set to *Texture*, Unity does not expose the following properties in the Inspector for the Camera:
+
+* Allow Dynamic Resolution
+
 | __Property__               | __Description__                                              |
 | -------------------------- | ------------------------------------------------------------ |
 |__Renderer__ |Controls which renderer this Camera uses. |
 |__Post Processing__ |Enables post-processing effects. |
+|__Allow Dynamic Resolution__|Enables Dynamic Resolution rendering for this Camera.<br/>This property only appears when you select **Screen** from the **Output Target** drop-down.|
 |__Anti-aliasing__          | Use the drop-down to select the method that this Camera uses for post-process anti-aliasing. A Camera can still use [multisample anti-aliasing](#base-output) (MSAA), which is a hardware feature, at the same time as post-process anti-aliasing.<br />&#8226; **None**: This Camera can process MSAA but does not process any post-process anti-aliasing.<br />&#8226; **Fast Approximate Anti-aliasing (FXAA)**: Smooths edges on a per-pixel level. This is the least resource intensive anti-aliasing technique in URP.<br />&#8226; **Subpixel Morphological Anti-aliasing (SMAA)**: Finds patterns in borders of the image and blends the pixels on these borders according to the pattern. |
 | &#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;_Quality_| Use the drop-down to select the quality of SMAA. The difference in resource intensity is fairly small between **Low** and **High**.<br />&#8226; **Low**: The lowest SMAA quality. This is the least resource-intensive option.<br />&#8226; **Medium**: A good balance between SMAA quality and resource intensity.<br />&#8226; **High**: The highest SMAA quality. This is the most resource-intensive option.<br /><br />This property only appears when you select **Subpixel Morphological Anti-aliasing (SMAA)** from the **Anti-aliasing** drop-down.|
 |__Stop NaN__| Enable the checkbox to make this Camera replace values that are Not a Number (NaN) with a black pixel. This stops certain effects from breaking, but is a resource-intensive process. Only enable this feature if you experience NaN issues that you can not fix. |
@@ -93,7 +98,6 @@ Note that when a Camera's *Render Mode* is set to *Base* and its *Render Target*
 
 * HDR
 * MSAA
-* Allow Dynamic Resolution
 * Target Display
 
 This is because the Render Texture determines these properties. To change them, do so on the Render Texture Asset.
@@ -108,7 +112,6 @@ This is because the Render Texture determines these properties. To change them, 
 |&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;_Y_ |The beginning vertical position that the camera view will be drawn. |
 |&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;_W_ (Width) |Width of the camera output on the screen. |
 |&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;_H_ (Height) |Height of the camera output on the screen. |
-|__Allow Dynamic Resolution__|Enables Dynamic Resolution rendering for this Camera.<br/>This property only appears when you select **Screen** from the **Output Target** drop-down.|
 |__Target Display__|Defines which external device to render to.  Between 1 and 8.<br/>This property only appears when you select **Screen** from the **Output Target** drop-down.|
 
 <a name="base-stack"></a>

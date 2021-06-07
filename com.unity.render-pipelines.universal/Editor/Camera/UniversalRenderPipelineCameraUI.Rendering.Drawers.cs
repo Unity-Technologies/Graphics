@@ -56,6 +56,9 @@ namespace UnityEditor.Rendering.Universal
                     ),
                 PostProcessingWarningDrawer,
                 CED.Group(
+                    DrawerRenderingAllowDynamicResolution
+                    ),
+                CED.Group(
                     DrawerRenderingAntialiasing
                     ),
                 PostProcessingAAWarningDrawer,
@@ -120,6 +123,29 @@ namespace UnityEditor.Rendering.Universal
                     CameraUI.Rendering.Drawer_Rendering_OcclusionCulling
                 )
             );
+
+            static void DrawerRenderingAllowDynamicResolution(UniversalRenderPipelineSerializedCamera p, Editor owner)
+            {
+                using (var checkScope = new EditorGUI.ChangeCheckScope())
+                {
+                    CameraUI.Rendering.Drawer_Rendering_AllowDynamicResolution(p, owner);
+                    if (checkScope.changed)
+                    {
+                        UniversalRenderPipelineCameraUI.Output.UpdateStackCamerasOutput(p, camera =>
+                        {
+                            bool allowDynamicResolution = p.allowDynamicResolution.boolValue;
+
+                            if (camera.allowDynamicResolution == p.allowDynamicResolution.boolValue)
+                                return false;
+
+                            EditorUtility.SetDirty(camera);
+
+                            camera.allowDynamicResolution = allowDynamicResolution;
+                            return true;
+                        });
+                    }
+                }
+            }
 
             static void DrawerRenderingRenderer(UniversalRenderPipelineSerializedCamera p, Editor owner)
             {

@@ -36,8 +36,7 @@ namespace UnityEditor.Rendering.Universal
                         (serialized, owner) => serialized.serializedObject.targetObject is Camera camera && camera.targetTexture == null,
                         CED.Group(
                             DrawerOutputHDR,
-                            DrawerOutputMSAA,
-                            DrawerOutputAllowDynamicResolution
+                            DrawerOutputMSAA
                         )
                     )
                 )
@@ -75,29 +74,6 @@ namespace UnityEditor.Rendering.Universal
                 }
             }
 
-            static void DrawerOutputAllowDynamicResolution(UniversalRenderPipelineSerializedCamera p, Editor owner)
-            {
-                using (var checkScope = new EditorGUI.ChangeCheckScope())
-                {
-                    CameraUI.Output.Drawer_Output_AllowDynamicResolution(p, owner);
-                    if (checkScope.changed)
-                    {
-                        UpdateStackCamerasOutput(p, camera =>
-                        {
-                            bool allowDynamicResolution = p.allowDynamicResolution.boolValue;
-
-                            if (camera.allowDynamicResolution == p.allowDynamicResolution.boolValue)
-                                return false;
-
-                            EditorUtility.SetDirty(camera);
-
-                            camera.allowDynamicResolution = allowDynamicResolution;
-                            return true;
-                        });
-                    }
-                }
-            }
-
             static void DrawerOutputNormalizedViewPort(UniversalRenderPipelineSerializedCamera p, Editor owner)
             {
                 using (var checkScope = new EditorGUI.ChangeCheckScope())
@@ -120,7 +96,7 @@ namespace UnityEditor.Rendering.Universal
                 }
             }
 
-            static void UpdateStackCamerasOutput(UniversalRenderPipelineSerializedCamera p, Func<Camera, bool> updateOutputProperty)
+            internal static void UpdateStackCamerasOutput(UniversalRenderPipelineSerializedCamera p, Func<Camera, bool> updateOutputProperty)
             {
                 int cameraCount = p.cameras.arraySize;
                 for (int i = 0; i < cameraCount; ++i)

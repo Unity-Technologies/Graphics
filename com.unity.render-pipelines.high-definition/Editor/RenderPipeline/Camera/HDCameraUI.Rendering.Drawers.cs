@@ -42,7 +42,7 @@ namespace UnityEditor.Rendering.HighDefinition
 
             static void Drawer_Rendering_AllowDynamicResolution(SerializedHDCamera p, Editor owner)
             {
-                CameraUI.Output.Drawer_Output_AllowDynamicResolution(p, owner);
+                CameraUI.Rendering.Drawer_Rendering_AllowDynamicResolution(p, owner);
 
 #if ENABLE_NVIDIA && ENABLE_NVIDIA_MODULE
                 EditorGUI.indentLevel++;
