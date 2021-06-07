@@ -350,8 +350,8 @@ namespace UnityEngine.Rendering.HighDefinition
                     record.shadowIndex = currentLightData.lightIdxForCachedShadows + i;
                     record.viewportSize = resolution;
                     record.offsetInAtlas = new Vector4(-1, -1, -1, -1); // Will be set later.
-                    // Only situation in which we allow not to render on placement if it is OnDemand and onDomandShadowRenderOnPlacement is false
-                    record.rendersOnPlacement = (currentLightData.shadowUpdateMode == ShadowUpdateMode.OnDemand) ? (currentLightData.forceRenderOnPlacement || currentLightData.onDomandShadowRenderOnPlacement) : true;
+                    // Only situation in which we allow not to render on placement if it is OnDemand and onDemandShadowRenderOnPlacement is false
+                    record.rendersOnPlacement = (currentLightData.shadowUpdateMode == ShadowUpdateMode.OnDemand) ? (currentLightData.forceRenderOnPlacement || currentLightData.onDemandShadowRenderOnPlacement) : true;
                     currentLightData.forceRenderOnPlacement = false; // reset the force flag as we scheduled the rendering forcefully already.
                     recordList.Add(record);
                 }

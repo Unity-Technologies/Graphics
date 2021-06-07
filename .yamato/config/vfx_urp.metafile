@@ -17,16 +17,6 @@ test_platforms:
     utr_flags:
       - [all]: --testfilter="VFX.Test"
   - type: playmode
-    name: playmode_cache
-    utr_flags:
-    - [all]: --testfilter="VFX.Test"
-    - [all]: --extra-editor-arg="-adb2"
-    - [all]: --extra-editor-arg="-enableCacheServer"
-    - [all]: --extra-editor-arg="-cacheServerEndpoint" --extra-editor-arg="cacheserver-slo.hq.unity3d.com"
-    - [all]: --extra-editor-arg="-cacheServerNamespacePrefix" --extra-editor-arg="{{cache.cacheServerNamespacePrefix}}"
-    - [all]: --extra-editor-arg="-cacheServerEnableDownload" --extra-editor-arg="true"
-    - [all]: --extra-editor-arg="-cacheServerEnableUpload" --extra-editor-arg="true"
-  - type: playmode
     name: playmode_PerformanceTests
     utr_flags:
       - [all]: --testfilter="VFX.PerformanceTest"
@@ -39,17 +29,6 @@ test_platforms:
     utr_flags:
       - [all]: --testfilter="VFX.PerformanceTest"
       - [all]: --performance-project-version=. --report-performance-data --performance-project-id=VFX
-  - type: Standalone
-    name: Standalone_cache
-    utr_flags_build:
-    - [all]: --testfilter="VFX.Test"
-    - [all]: --timeout=3000
-    - [all]: --extra-editor-arg="-adb2"
-    - [all]: --extra-editor-arg="-enableCacheServer"
-    - [all]: --extra-editor-arg="-cacheServerEndpoint" --extra-editor-arg="cacheserver-slo.hq.unity3d.com"
-    - [all]: --extra-editor-arg="-cacheServerNamespacePrefix" --extra-editor-arg="{{cache.cacheServerNamespacePrefix}}"
-    - [all]: --extra-editor-arg="-cacheServerEnableDownload" --extra-editor-arg="true"
-    - [all]: --extra-editor-arg="-cacheServerEnableUpload" --extra-editor-arg="true"
 #  - type: editmode
 
 platforms:
@@ -76,16 +55,7 @@ platforms:
         image: sdet/gamecode_win10:stable
         flavor: b1.xlarge
         model: rtx2080
-      playmode_cache:
-        type: Unity::VM::GPU
-        image: sdet/gamecode_win10:stable
-        flavor: b1.xlarge
-        model: rtx2080
       standalone:
-        type: Unity::VM::GPU
-        image: sdet/gamecode_win10:stable
-        flavor: b1.large
-      standalone_cache:
         type: Unity::VM::GPU
         image: sdet/gamecode_win10:stable
         flavor: b1.large
@@ -102,7 +72,6 @@ platforms:
         exclude_test_platforms:
           - name: playmode_XR
           - name: Standalone
-          - name: Standalone_cache
     build_configs:
       - name: mono
     color_spaces:
@@ -112,7 +81,6 @@ platforms:
       - name: OpenGLCore
         exclude_test_platforms:
           - name: Standalone
-          - name: Standalone_cache
           - name: playmode_XR
       - name: Vulkan
         exclude_test_platforms:
@@ -128,7 +96,6 @@ platforms:
           - name: playmode
           - name: editmode
           - name: playmode_XR
-          - name: playmode_cache
     build_configs:
       - name: il2cpp
     color_spaces:
@@ -150,7 +117,7 @@ jobs:
         build_config: mono
         color_space: Linear
         test_platforms:
-          - Standalone_cache
+          - Standalone
   - name: Extra <PROJECT_NAME>
     dependencies:
       - platform: Win
@@ -158,7 +125,7 @@ jobs:
         build_config: mono
         color_space: Linear
         test_platforms:
-          - playmode_cache
+          - playmode
           - editmode_PerformanceTests
           - playmode_PerformanceTests
           - Standalone_PerformanceTests
@@ -168,8 +135,8 @@ jobs:
         color_space: Linear
         test_platforms:
           # - Standalone
-          - playmode_cache
-          # - Standalone_cache
+          - playmode
+          # - Standalone
   - name: <PROJECT_NAME>
     dependencies:
       - <PROJECT_ALL_YML_FILE>#PR_<PROJECT_NAME>_<TRACK>

@@ -5,28 +5,9 @@ project:
 test_platforms:
   - type: playmode
   - type: playmode
-    name: playmode_cache
-    utr_flags:
-    - [all]: --extra-editor-arg="-adb2"
-    - [all]: --extra-editor-arg="-enableCacheServer"
-    - [all]: --extra-editor-arg="-cacheServerEndpoint" --extra-editor-arg="cacheserver-slo.hq.unity3d.com"
-    - [all]: --extra-editor-arg="-cacheServerNamespacePrefix" --extra-editor-arg="{{cache.cacheServerNamespacePrefix}}"
-    - [all]: --extra-editor-arg="-cacheServerEnableDownload" --extra-editor-arg="true"
-    - [all]: --extra-editor-arg="-cacheServerEnableUpload" --extra-editor-arg="true"
-  - type: playmode
     name: playmode_XR
     utr_flags:
       - [all]: --extra-editor-arg="-xr-reuse-tests"
-  - type: playmode
-    name: playmode_XR_cache
-    utr_flags:
-    - [all]: --extra-editor-arg="-xr-reuse-tests"
-    - [all]: --extra-editor-arg="-adb2"
-    - [all]: --extra-editor-arg="-enableCacheServer"
-    - [all]: --extra-editor-arg="-cacheServerEndpoint" --extra-editor-arg="cacheserver-slo.hq.unity3d.com"
-    - [all]: --extra-editor-arg="-cacheServerNamespacePrefix" --extra-editor-arg="{{cache.cacheServerNamespacePrefix}}"
-    - [all]: --extra-editor-arg="-cacheServerEnableDownload" --extra-editor-arg="true"
-    - [all]: --extra-editor-arg="-cacheServerEnableUpload" --extra-editor-arg="true"
   - type: editmode
   - type: editmode
     name: editmode_XR
@@ -35,16 +16,6 @@ test_platforms:
   - type: Standalone
     utr_flags:
       - [OSX_Metal]: --timeout=2400
-  - type: Standalone
-    name: Standalone_cache
-    utr_flags_build:
-    - [all]: --timeout=3000
-    - [all]: --extra-editor-arg="-adb2"
-    - [all]: --extra-editor-arg="-enableCacheServer"
-    - [all]: --extra-editor-arg="-cacheServerEndpoint" --extra-editor-arg="cacheserver-slo.hq.unity3d.com"
-    - [all]: --extra-editor-arg="-cacheServerNamespacePrefix" --extra-editor-arg="{{cache.cacheServerNamespacePrefix}}"
-    - [all]: --extra-editor-arg="-cacheServerEnableDownload" --extra-editor-arg="true"
-    - [all]: --extra-editor-arg="-cacheServerEnableUpload" --extra-editor-arg="true"
 
 platforms:
   - name: Win
@@ -89,7 +60,6 @@ platforms:
       - name: Vulkan
         exclude_test_platforms:
           - name: playmode_XR
-          - name: playmode_XR_cache
     build_configs:
       - name: mono
     color_spaces:
@@ -105,12 +75,12 @@ jobs:
         build_config: mono
         color_space: Linear
         test_platforms:
-          - Standalone_cache
-          #- playmode_cache
-          #- playmode_XR_cache
+          - Standalone
+          #- playmode
+          #- playmode_XR
           #- editmode
       - .yamato/all-hdrp_dxr.yml#PR_HDRP_DXR_<TRACK>
-      - .yamato/all-hdrp_hybrid.yml#PR_HDRP_Hybrid_<TRACK>
+#      - .yamato/all-hdrp_hybrid.yml#PR_HDRP_Hybrid_<TRACK>
       - .yamato/all-vfx_hdrp.yml#PR_VFX_HDRP_<TRACK>
       - .yamato/_abv.yml#General_Checks_<TRACK>
   - name: Extra <PROJECT_NAME>
@@ -120,16 +90,16 @@ jobs:
         build_config: mono
         color_space: Linear
         test_platforms:
-          - Standalone_cache
-          - playmode_XR_cache
+          - Standalone
+          - playmode_XR
           - editmode_XR
       - platform: Win
         api: Vulkan
         build_config: mono
         color_space: Linear
         test_platforms:
-          - Standalone_cache
-          - playmode_XR_cache
+          - Standalone
+          - playmode_XR
       - platform: Linux
         api: Vulkan
         build_config: mono
@@ -141,42 +111,42 @@ jobs:
         build_config: mono
         color_space: Linear
         test_platforms:
-          - Standalone_cache
+          - Standalone
   ### TODO: MOVE THE FOLLOWING JOBS BACK TO PR JOBS
       - platform: Win
         api: DX11
         build_config: mono
         color_space: Linear
         test_platforms:
-          - playmode_cache
-          - playmode_XR_cache
+          - playmode
+          - playmode_XR
           - editmode
       - platform: Win
         api: DX12
         build_config: mono
         color_space: Linear
         test_platforms:
-          - playmode_cache
+          - playmode
       - platform: Win
         api: Vulkan
         build_config: mono
         color_space: Linear
         test_platforms:
-          - playmode_cache
+          - playmode
       - platform: OSX
         api: Metal
         build_config: mono
         color_space: Linear
         test_platforms:
           # - Standalone
-          - playmode_cache
+          - playmode
       - platform: Linux
         api: Vulkan
         build_config: mono
         color_space: Linear
         test_platforms:
-          - Standalone_cache
-          - playmode_cache
+          - Standalone
+          - playmode
   - name: <PROJECT_NAME>
     dependencies:
       - <PROJECT_ALL_YML_FILE>#PR_<PROJECT_NAME>_<TRACK>
@@ -184,6 +154,6 @@ jobs:
   - name: Nightly <PROJECT_NAME>
     dependencies:
       - .yamato/all-hdrp_performancetests.yml#HDRP_PerformanceTests_<TRACK>
-      - .yamato/all-hdrp_hybrid.yml#HDRP_Hybrid_<TRACK>
+#      - .yamato/all-hdrp_hybrid.yml#HDRP_Hybrid_<TRACK>
       - .yamato/all-hdrp_dxr.yml#HDRP_DXR_<TRACK>
       - .yamato/all-hdrp.yml#HDRP_<TRACK>

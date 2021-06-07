@@ -14,8 +14,9 @@ PR_HDRP_DXR_trunk:
         CUSTOM_REVISION: '{{trunk.changeset.id}}'
         UTR_VERSION: "current"
         TEST_FILTER: .*
+        CACHE_ARGS: '{{cache.flags}}'
     dependencies:
-      -  path: .yamato/hdrp_dxr-win-dx12.yml#HDRP_DXR_Win_DX12_playmode_cache_mono_Linear_trunk
+      -  path: .yamato/hdrp_dxr-win-dx12.yml#HDRP_DXR_Win_DX12_playmode_mono_Linear_trunk
          rerun: on_new_revision
 Extra_HDRP_DXR_trunk:
     name: Extra HDRP_DXR on trunk
@@ -23,8 +24,9 @@ Extra_HDRP_DXR_trunk:
         CUSTOM_REVISION: '{{trunk.changeset.id}}'
         UTR_VERSION: "current"
         TEST_FILTER: .*
+        CACHE_ARGS: '{{cache.flags}}'
     dependencies:
-      -  path: .yamato/hdrp_dxr-win-dx12.yml#HDRP_DXR_Win_DX12_playmode_XR_cache_mono_Linear_trunk
+      -  path: .yamato/hdrp_dxr-win-dx12.yml#HDRP_DXR_Win_DX12_playmode_XR_mono_Linear_trunk
          rerun: on_new_revision
 HDRP_DXR_trunk:
     name: HDRP_DXR on trunk
@@ -32,6 +34,7 @@ HDRP_DXR_trunk:
         CUSTOM_REVISION: '{{trunk.changeset.id}}'
         UTR_VERSION: "current"
         TEST_FILTER: .*
+        CACHE_ARGS: '{{cache.flags}}'
     dependencies:
       -  path: .yamato/all-hdrp_dxr.yml#PR_HDRP_DXR_trunk
          rerun: on_new_revision
@@ -43,8 +46,9 @@ PR_HDRP_DXR_CUSTOM-REVISION:
         CUSTOM_REVISION: custom_revision_not_set
         UTR_VERSION: "current"
         TEST_FILTER: .*
+        CACHE_ARGS: '{{cache.flags}}'
     dependencies:
-      -  path: .yamato/hdrp_dxr-win-dx12.yml#HDRP_DXR_Win_DX12_playmode_cache_mono_Linear_CUSTOM-REVISION
+      -  path: .yamato/hdrp_dxr-win-dx12.yml#HDRP_DXR_Win_DX12_playmode_mono_Linear_CUSTOM-REVISION
          rerun: on_new_revision
 Extra_HDRP_DXR_CUSTOM-REVISION:
     name: Extra HDRP_DXR on CUSTOM-REVISION
@@ -52,8 +56,9 @@ Extra_HDRP_DXR_CUSTOM-REVISION:
         CUSTOM_REVISION: custom_revision_not_set
         UTR_VERSION: "current"
         TEST_FILTER: .*
+        CACHE_ARGS: '{{cache.flags}}'
     dependencies:
-      -  path: .yamato/hdrp_dxr-win-dx12.yml#HDRP_DXR_Win_DX12_playmode_XR_cache_mono_Linear_CUSTOM-REVISION
+      -  path: .yamato/hdrp_dxr-win-dx12.yml#HDRP_DXR_Win_DX12_playmode_XR_mono_Linear_CUSTOM-REVISION
          rerun: on_new_revision
 HDRP_DXR_CUSTOM-REVISION:
     name: HDRP_DXR on CUSTOM-REVISION
@@ -61,6 +66,7 @@ HDRP_DXR_CUSTOM-REVISION:
         CUSTOM_REVISION: custom_revision_not_set
         UTR_VERSION: "current"
         TEST_FILTER: .*
+        CACHE_ARGS: '{{cache.flags}}'
     dependencies:
       -  path: .yamato/all-hdrp_dxr.yml#PR_HDRP_DXR_CUSTOM-REVISION
          rerun: on_new_revision
