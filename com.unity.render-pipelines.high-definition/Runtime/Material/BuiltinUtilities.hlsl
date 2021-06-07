@@ -3,6 +3,16 @@
 
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/BuiltinGIUtilities.hlsl"
 
+
+// Due to various transform and conversions that happen, some precision is lost along the way.
+// as a result, motion vectors that would perfectly cancel out end up not doing so.
+// To workaround the issue, if the computed motion vector is less than MICRO_MOVEMENT_THRESHOLD (now 5% of a pixel width)
+// if  KILL_MICRO_MOVEMENT is == 1, we set the motion vector to 0 instead.
+// An alternative could be rounding the motion vectors (e.g. round(motionVec.xy * 1eX) / 1eX) with X varying on how many digits)
+// but that might lead to artifacts with mismatch between actual motion and written motion vectors on non trivial motion vector lengths.
+#define KILL_MICRO_MOVEMENT 1
+#define MICRO_MOVEMENT_THRESHOLD (0.05 * _ScreenSize.zw)
+
 // Calculate motion vector in Clip space [-1..1]
 float2 CalculateMotionVector(float4 positionCS, float4 previousPositionCS)
 {
@@ -14,6 +24,11 @@ float2 CalculateMotionVector(float4 positionCS, float4 previousPositionCS)
     previousPositionCS.xy = previousPositionCS.xy / previousPositionCS.w;
 
     float2 motionVec = (positionCS.xy - previousPositionCS.xy);
+#if KILL_MICRO_MOVEMENT == 1
+    motionVec.x = abs(motionVec.x) < MICRO_MOVEMENT_THRESHOLD.x ? 0 : motionVec.x;
+    motionVec.y = abs(motionVec.y) < MICRO_MOVEMENT_THRESHOLD.y ? 0 : motionVec.y;
+#endif
+
 #if UNITY_UV_STARTS_AT_TOP
     motionVec.y = -motionVec.y;
 #endif
