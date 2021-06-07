@@ -337,7 +337,7 @@ namespace UnityEditor
             else
             {
                 emissive = materialEditor.EmissionEnabledProperty();
-                using (new EditorGUI.DisabledGroupScope(!emissive))
+                using (new EditorGUI.DisabledScope(!emissive))
                 {
                     DrawEmissionTextureProperty();
                 }
