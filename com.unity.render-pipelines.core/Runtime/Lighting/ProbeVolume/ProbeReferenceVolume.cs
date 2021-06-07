@@ -93,6 +93,11 @@ namespace UnityEngine.Experimental.Rendering
             public float[] validity;
         }
 
+        class CellChunkInfo
+        {
+            public List<Chunk> chunks;
+        }
+
         private class CellSortInfo : IComparable
         {
             internal string sourceAsset;
@@ -293,6 +298,8 @@ namespace UnityEngine.Experimental.Rendering
         Dictionary<RegId, List<Chunk>>  m_Registry = new Dictionary<RegId, List<Chunk>>();
 
         internal Dictionary<int, Cell> cells = new Dictionary<int, Cell>();
+        private Dictionary<int, CellChunkInfo> chunkInfo = new Dictionary<int, CellChunkInfo>();
+
         internal ProbeVolumeSceneBounds sceneBounds;
 
 
@@ -390,6 +397,16 @@ namespace UnityEngine.Experimental.Rendering
             CleanupLoadedData();
             CleanupDebug();
             m_IsInitialized = false;
+        }
+
+        void RemoveCell(int cellIndex)
+        {
+            // TODO: Remove from cells and cellChunks
+        }
+
+        void AddCell(Cell cell)
+        {
+            // TODO: Add to cells and cellChunks
         }
 
         internal void AddPendingAssetLoading(ProbeVolumeAsset asset)
