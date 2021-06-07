@@ -328,7 +328,6 @@ namespace UnityEditor
 
         protected virtual void DrawEmissionProperties(Material material, bool keyword)
         {
-            // Emission for GI?
             var emissive = true;
 
             if (!keyword)
