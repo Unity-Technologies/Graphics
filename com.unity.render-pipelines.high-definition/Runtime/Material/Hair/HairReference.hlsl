@@ -316,7 +316,7 @@ CBSDF EvaluateMarschnerReference(float3 V, float3 L, BSDFData bsdfData)
         inputs.shifts[1] = bsdfData.cuticleAngleTT;
         inputs.shifts[2] = bsdfData.cuticleAngleTRT;
 
-        inputs.eta = bsdfData.ior;
+        inputs.eta = 1.55;
         inputs.fresnel0 = bsdfData.fresnel0;
 
         // The analysis of azimuthal scattering can be restricted to the normal plane by exploiting

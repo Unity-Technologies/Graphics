@@ -611,7 +611,7 @@ CBSDF EvaluateBSDF(float3 V, float3 L, PreLightData preLightData, BSDFData bsdfD
             M = D_LongitudinalScatteringGaussian(thetaH - bsdfData.cuticleAngleTT, bsdfData.roughnessTT);
 
         #if _USE_ROUGHENED_AZIMUTHAL_SCATTERING
-            // This lobe's distribution is determined by sampling gaussian weights from a pre-integrated LUT of the distribution and evaluating the gaussian.
+            // This lobe's distribution is determined by sampling coefficients from a pre-integrated LUT of the distribution and evaluating a gaussian.
             D = GetPreIntegratedAzimuthalScatteringTransmissionDistribution(bsdfData.roughnessRadial, cosThetaD, cosPhi);
         #else
             // Karis' approximation of Pixar's logisitic with scale of √0.35

@@ -157,33 +157,36 @@ namespace UnityEngine.Rendering.HighDefinition
         // Init precomputed texture
         //-----------------------------------------------------------------------------
 
+        private Texture2D m_PreIntegratedAzimuthalScatteringLUT;
+
         public Hair() {}
 
         public override void Build(HDRenderPipelineAsset hdAsset, HDRenderPipelineRuntimeResources defaultResources)
         {
             PreIntegratedFGD.instance.Build(PreIntegratedFGD.FGDIndex.FGD_GGXAndDisneyDiffuse);
             LTCAreaLight.instance.Build();
-            PreIntegratedAzimuthalScattering.instance.Build();
+
+            m_PreIntegratedAzimuthalScatteringLUT = defaultResources.textures.preintegratedAzimuthalScattering;
         }
 
         public override void Cleanup()
         {
             PreIntegratedFGD.instance.Cleanup(PreIntegratedFGD.FGDIndex.FGD_GGXAndDisneyDiffuse);
             LTCAreaLight.instance.Cleanup();
-            PreIntegratedAzimuthalScattering.instance.Cleanup();
         }
 
         public override void RenderInit(CommandBuffer cmd)
         {
             PreIntegratedFGD.instance.RenderInit(PreIntegratedFGD.FGDIndex.FGD_GGXAndDisneyDiffuse, cmd);
-            PreIntegratedAzimuthalScattering.instance.RenderInit(cmd);
         }
 
         public override void Bind(CommandBuffer cmd)
         {
             PreIntegratedFGD.instance.Bind(cmd, PreIntegratedFGD.FGDIndex.FGD_GGXAndDisneyDiffuse);
             LTCAreaLight.instance.Bind(cmd);
-            PreIntegratedAzimuthalScattering.instance.Bind(cmd);
+
+            if (m_PreIntegratedAzimuthalScatteringLUT != null)
+                cmd.SetGlobalTexture(HDShaderIDs._PreIntegratedAzimuthalScattering, m_PreIntegratedAzimuthalScatteringLUT);
         }
     }
 }
