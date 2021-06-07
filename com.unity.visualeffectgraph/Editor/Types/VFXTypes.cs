@@ -13,7 +13,9 @@ namespace UnityEditor.VFX
         Position,
         Direction,
         Matrix,
-        Vector
+        Vector,
+        Euler,
+        Scale
     }
 
     [AttributeUsage(AttributeTargets.Field | AttributeTargets.Struct)]
@@ -82,9 +84,9 @@ namespace UnityEditor.VFX
     {
         [Tooltip("Sets the center of the box."), VFXSpace(SpaceableType.Position)]
         public Vector3 center;
-        [Angle, Tooltip("Sets the orientation of the box.")]
+        [Angle, Tooltip("Sets the orientation of the box."), VFXSpace(SpaceableType.Euler)]
         public Vector3 angles;
-        [Tooltip("Sets the size of the box along each axis.")]
+        [Tooltip("Sets the size of the box along each axis."), VFXSpace(SpaceableType.Scale)]
         public Vector3 size;
 
         public static OrientedBox defaultValue = new OrientedBox { size = Vector3.one };
@@ -203,9 +205,9 @@ namespace UnityEditor.VFX
     {
         [Tooltip("Sets the transform position."), VFXSpace(SpaceableType.Position)]
         public Vector3 position;
-        [Angle, Tooltip("Sets the euler angles of the transform.")]
+        [Angle, Tooltip("Sets the euler angles of the transform."), VFXSpace(SpaceableType.Euler)]
         public Vector3 angles;
-        [Tooltip("Sets the scale of the transform along each axis.")]
+        [Tooltip("Sets the scale of the transform along each axis."), VFXSpace(SpaceableType.Scale)]
         public Vector3 scale;
 
         public static Transform defaultValue = new Transform { scale = Vector3.one };

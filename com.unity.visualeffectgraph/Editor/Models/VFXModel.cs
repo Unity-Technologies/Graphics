@@ -467,6 +467,20 @@ namespace UnityEditor.VFX
             {
                 input = new VFXExpressionTransformVector(matrix, input);
             }
+            else if (spaceType == SpaceableType.Euler)
+            {
+                var zeroF3 = VFXOperatorUtility.ZeroExpression[VFXValueType.Float3];
+                var oneF3 = VFXOperatorUtility.OneExpression[VFXValueType.Float3];
+                VFXExpression rotationMatrix = new VFXExpressionTRSToMatrix(zeroF3, input, oneF3);
+                var extractRotationMatrix = VFXOperatorUtility.GetRotationMatrixFromTRS(matrix);
+                rotationMatrix = new VFXExpressionTransformMatrix(extractRotationMatrix, rotationMatrix);
+                input = new VFXExpressionExtractAnglesFromMatrix(rotationMatrix);
+            }
+            else if (spaceType == SpaceableType.Scale)
+            {
+                var extractScale = new VFXExpressionExtractScaleFromMatrix(matrix);
+                input = input * extractScale;
+            }
             else
             {
                 //Not a transformable subSlot

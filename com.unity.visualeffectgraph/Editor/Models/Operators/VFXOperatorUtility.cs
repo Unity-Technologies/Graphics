@@ -666,6 +666,28 @@ namespace UnityEditor.VFX
             return new VFXExpressionVector4sToMatrix(m0, m1, m2, m3);
         }
 
+        static public VFXExpression GetRotationMatrixFromTRS(VFXExpression matrix, VFXExpression injectedTranslate = null)
+        {
+            var zeroF3 = ZeroExpression[VFXValueType.Float3];
+
+            //Equivalent of the following expression but without VFXExpressionExtractAnglesFromMatrix
+            //var euler = new VFXExpressionExtractAnglesFromMatrix(matrix);
+            //return new VFXExpressionTRSToMatrix(zeroF3, euler, OneExpression[VFXValueType.Float3]);
+
+            var lossyScale = new VFXExpressionExtractScaleFromMatrix(matrix);
+
+            VFXExpression i = new VFXExpressionMatrixToVector3s(matrix, VFXValue.Constant(0));
+            VFXExpression j = new VFXExpressionMatrixToVector3s(matrix, VFXValue.Constant(1));
+            VFXExpression k = new VFXExpressionMatrixToVector3s(matrix, VFXValue.Constant(2));
+
+            i = i / lossyScale.xxx;
+            j = j / lossyScale.yyy;
+            k = k / lossyScale.zzz;
+
+            var rotation = new VFXExpressionVector3sToMatrix(i, j, k, injectedTranslate != null ? injectedTranslate : zeroF3);
+            return rotation;
+        }
+
         static public VFXExpression Atan2(VFXExpression coord)
         {
             var components = ExtractComponents(coord).ToArray();
