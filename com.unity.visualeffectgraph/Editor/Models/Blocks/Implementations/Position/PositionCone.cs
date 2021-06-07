@@ -146,7 +146,9 @@ finalPos = mul(ArcCone_transform, float4(finalPos.xzy, 1.0f)).xyz;
 finalDir = mul((float3x3)ArcCone_transform, finalDir.xzy);
 ";
                 outSource += VFXBlockUtility.GetComposeString(compositionDirection, "direction", "finalDir", "blendDirection") + "\n";
-                outSource += VFXBlockUtility.GetComposeString(compositionPosition, "position", "finalPos", "blendPosition");
+                outSource += VFXBlockUtility.GetComposeString(compositionPosition, "position", "finalPos", "blendPosition") + "\n";
+
+                outSource += "direction = normalize(direction);";
 
                 return outSource;
             }
