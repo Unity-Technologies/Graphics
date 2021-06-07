@@ -35,7 +35,7 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: d7fd9488000d3734a9e00ee676215985, type: 3}
-  m_Name: Global Volume Profile 1
+  m_Name: Global Volume Profile_Sky
   m_EditorClassIdentifier: 
   components:
   - {fileID: -953996712319316773}
@@ -121,7 +121,7 @@ MonoBehaviour:
     m_OverrideState: 1
     m_Value: 1
   layerMask:
-    m_OverrideState: 0
+    m_OverrideState: 1
     m_Value:
       serializedVersion: 2
       m_Bits: 4294967295
