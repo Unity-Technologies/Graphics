@@ -4,7 +4,7 @@ This feature is a replacement pipeline for rendering Meshes in the High Definiti
 
 The smoothness of a Material does not affect the way a ray reflects or refracts, which makes this rendering mode useful for rendering multi-layered transparent GameObjects.
 
-If the ray-traced object is further than the maximal ray length defined in the volume component, the color of the sky is displayed. To solve this, increase the value of the maximal ray length.
+HDRP might display the sky color instead of a GameObject that has ray tracing applied. This happens when the GameObject is further away from the Camera than the Max Ray Length value set in the volume component. To make the GameObject appear correctly, increase the value of the Max Ray Length property.
 
 ![](Images/RayTracingRecursiveRendering1.png)
 
