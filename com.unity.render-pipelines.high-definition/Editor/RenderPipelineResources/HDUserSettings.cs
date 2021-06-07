@@ -1,19 +1,14 @@
-#if UNITY_EDITOR
+using UnityEngine;
 using UnityEditorInternal;
 using System.IO;
-#endif
 
-namespace UnityEngine.Rendering.HighDefinition
+namespace UnityEditor.Rendering.HighDefinition
 {
-#if UNITY_EDITOR
     //As ScriptableSingleton is not usable due to internal FilePathAttribute,
     //copying mechanism here
     class HDUserSettings : ScriptableObject
     {
         const string filePath = "UserSettings/HDRPUserSettings.asset";
-
-        // Use a proxy for HDProjectSettings living in editor assembly
-        string m_ProjectSettingFolderPath => HDProjectSettingsProxy.projectSettingsFolderPath();
 
         [SerializeField]
         bool m_WizardPopupAlreadyShownOnce = false;
@@ -64,12 +59,6 @@ namespace UnityEngine.Rendering.HighDefinition
             }
         }
 
-        // Use a proxy for HDProjectSettings living in editor assembly
-        public static string projectSettingsFolderPath
-        {
-            get => instance.m_ProjectSettingFolderPath;
-        }
-
         //singleton pattern
         static HDUserSettings s_Instance;
         static HDUserSettings instance => s_Instance ?? CreateOrLoad();
@@ -80,11 +69,8 @@ namespace UnityEngine.Rendering.HighDefinition
 
         static HDUserSettings CreateOrLoad()
         {
-            // Note: HDProjectSettings should load first but it sits in an editor assembly
-            // but its instance creation is triggered early on DLL load and this is sufficient.
-            // Otherwise we could check if the HDProjectSettingsProxy.projectSettingsFolderPath delegate is null,
-            // and force the assembly load otherwise.
-            // HDProjectSettings' migration can create and init the HDUserSettings file.
+            // force loading of HDProjectSetting first: its migration can create and init this file
+            int unused = HDProjectSettings.materialVersionForUpgrade;
 
             //try load
             InternalEditorUtility.LoadSerializedFileAndForget(filePath);
@@ -115,5 +101,4 @@ namespace UnityEngine.Rendering.HighDefinition
             InternalEditorUtility.SaveToSerializedFileAndForget(new[] { s_Instance }, filePath, allowTextSerialization: true);
         }
     }
-#endif
 }

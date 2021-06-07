@@ -215,11 +215,21 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed overdraw in custom pass utils blur and Copy functions (case 1333648);
 - Fixed invalid pass index 1 in DrawProcedural error.
 - Fixed a compilation issue for AxF carpaints on Vulkan (case 1314040).
+- Fixed issue with hierarchy object filtering.
+- Fixed a lack of syncronization between the camera and the planar camera for volumetric cloud animation data.
+- Fixed for wrong cached area light initialization.
+- Fixed unexpected rendering of 2D cookies when switching from Spot to Point light type (case 1333947).
+- Fixed the fallback to custom went changing a quality settings not workings properly (case 1338657).
+- Fixed ray tracing with XR and camera relative rendering (case 1336608).
 - Fixed the ray traced sub subsurface scattering debug mode not displaying only the RTSSS Data (case 1332904).
 - Fixed for discrepancies in intensity and saturation between screen space refraction and probe refraction.
 - Fixed a divide-by-zero warning for anisotropic shaders (Fabric, Lit).
 - Fixed VfX lit particle AOV output color space.
 - Fixed path traced transparent unlit material (case 1335500).
+- Fixed support of Distortion with MSAA
+- Fixed contact shadow debug views not displaying correctly upon resizing of view.
+- Fixed an error when deleting the 3D Texture mask of a local volumetric fog volume (case 1339330).
+- Fixed reflection probes being injected into the ray tracing light cluster even if not baked (case 1329083).
 - Fixed the double sided option moving when toggling it in the material UI (case 1328877).
 
 ### Changed
@@ -305,6 +315,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Make LitTessellation and LayeredLitTessellation fallback on Lit and LayeredLit respectively in DXR.
 - Display an info box and disable MSAA  asset entry when ray tracing is enabled.
 - Changed light reset to preserve type.
+- Ignore hybrid duplicated reflection probes during light baking.
 
 ## [11.0.0] - 2020-10-21
 
