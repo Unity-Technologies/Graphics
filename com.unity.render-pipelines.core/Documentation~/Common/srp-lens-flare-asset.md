@@ -111,10 +111,10 @@ The Lens Flare Element asset has the following properties:
 
 | **Property**    | **Description**                                              |
 | --------------- | ------------------------------------------------------------ |
-| Enable | True to use or not the radial distortion. |
-| Radial Edge Size | Target size used on the edge of the screen. |
-| Radial Edge Curve | Curve blending from screen center to the edges of the screen. |
-| Relative To Center | If true the distortion is relative to center of the screen otherwise relative to lensFlare source screen position. |
+| Enable | Set this property to True to enable distortion. |
+| Radial Edge Size | Controls the size of the distortion effect from the edge of the screen. |
+| Radial Edge Curve | Blends the distortion effect along a curve from the center of the screen to the edges of the screen. |
+| Relative To Center | Set this value to True to make distortion relative to the center of the screen. Otherwise, distortion is relative to the screen position of the lens flare. |
 
 <a name="Multiple-Elements"></a>
 
