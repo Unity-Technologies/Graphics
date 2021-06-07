@@ -66,6 +66,8 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Added three animation curves to control the density, erosion, and ambient occlusion in the custom submode of the simple controls.
 - Added support for the camera bridge in the graphics compositor
 - Added slides to control the shape noise offset.
+- Added two toggles to control occluder rejection and receiver rejection for the ray traced ambient occlusion (case 1330168).
+- Added the receiver motion rejection toggle to RTGI (case 1330168).
 
 ### Fixed
 - Fixed Intensity Multiplier not affecting realtime global illumination.
