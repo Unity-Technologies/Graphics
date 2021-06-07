@@ -53,10 +53,9 @@ namespace UnityEngine.Experimental.Rendering
         }
 
         private SerializedProperty m_Dilate;
-        private SerializedProperty m_MaxDilationSamples;
         private SerializedProperty m_MaxDilationSampleDistance;
         private SerializedProperty m_DilationValidityThreshold;
-        private SerializedProperty m_GreedyDilation;
+        private SerializedProperty m_DilationIterations;
         private SerializedProperty m_VolumeAsset;
 
         private SerializedProperty m_Profile;
@@ -73,11 +72,10 @@ namespace UnityEngine.Experimental.Rendering
         private void OnEnable()
         {
             m_Profile = serializedObject.FindProperty("m_Profile");
-            m_Dilate = serializedObject.FindProperty("m_Dilate");
-            m_MaxDilationSamples = serializedObject.FindProperty("m_MaxDilationSamples");
+            m_Dilate = serializedObject.FindProperty("m_EnableDilation");
+            m_DilationIterations = serializedObject.FindProperty("m_DilationIterations");
             m_MaxDilationSampleDistance = serializedObject.FindProperty("m_MaxDilationSampleDistance");
             m_DilationValidityThreshold = serializedObject.FindProperty("m_DilationValidityThreshold");
-            m_GreedyDilation = serializedObject.FindProperty("m_GreedyDilation");
             m_VolumeAsset = serializedObject.FindProperty("volumeAsset");
 
             DilationValidityThresholdInverted = 1f - m_DilationValidityThreshold.floatValue;
@@ -156,12 +154,12 @@ namespace UnityEngine.Experimental.Rendering
                 DilationGroupEnabled = EditorGUILayout.BeginFoldoutHeaderGroup(DilationGroupEnabled, "Dilation");
                 if (DilationGroupEnabled)
                 {
-                    m_Dilate.boolValue = EditorGUILayout.Toggle("Dilate", m_Dilate.boolValue);
+                    GUIContent dilateGUI = EditorGUIUtility.TrTextContent("Dilate", "Enable probe dilation. Disable only for debug purposes.");
+                    m_Dilate.boolValue = EditorGUILayout.Toggle(dilateGUI, m_Dilate.boolValue);
                     EditorGUI.BeginDisabledGroup(!m_Dilate.boolValue);
-                    m_MaxDilationSamples.intValue = EditorGUILayout.IntField("Max Dilation Samples", m_MaxDilationSamples.intValue);
-                    m_MaxDilationSampleDistance.floatValue = EditorGUILayout.FloatField("Max Dilation Sample Distance", m_MaxDilationSampleDistance.floatValue);
+                    m_MaxDilationSampleDistance.floatValue = EditorGUILayout.FloatField("Dilation Distance", m_MaxDilationSampleDistance.floatValue);
                     DilationValidityThresholdInverted = EditorGUILayout.Slider("Dilation Validity Threshold", DilationValidityThresholdInverted, 0f, 1f);
-                    m_GreedyDilation.boolValue = EditorGUILayout.Toggle("Greedy Dilation", m_GreedyDilation.boolValue);
+                    m_DilationIterations.intValue = EditorGUILayout.IntSlider("Dilation Iteration Count", m_DilationIterations.intValue, 1, 5);
                     EditorGUI.EndDisabledGroup();
                 }
                 EditorGUILayout.EndFoldoutHeaderGroup();
@@ -180,7 +178,6 @@ namespace UnityEngine.Experimental.Rendering
 
         private void Constrain()
         {
-            m_MaxDilationSamples.intValue = Mathf.Max(m_MaxDilationSamples.intValue, 0);
             m_MaxDilationSampleDistance.floatValue = Mathf.Max(m_MaxDilationSampleDistance.floatValue, 0);
             m_DilationValidityThreshold.floatValue = 1f - DilationValidityThresholdInverted;
         }

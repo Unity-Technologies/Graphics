@@ -2,7 +2,7 @@
 
 ![The 2D Renderer Data Asset property settings](Images/2D/2dRendererData_properties.png)
 
-The __2D Renderer Data__ Asset contains the settings that affect the way __2D Lights__ are applied to lit Sprites. You can set the way Lights emulate HDR lighting with the [HDR Emulation Scale](HDREmulationScale), or customize your own [Light Blend Styles](LightBlendStyles). Refer to their respective pages for more information about their properties and options.
+The __2D Renderer Data__ Asset contains the settings that affect the way __2D Lights__ are applied to lit Sprites. You can set the way Lights emulate HDR lighting with the [HDR Emulation Scale](HDREmulationScale.md), or customize your own [Light Blend Styles](LightBlendStyles.md). Refer to their respective pages for more information about their properties and options.
 
 ## Default Material Type
 
@@ -34,4 +34,4 @@ Downsampling will reduce the texture resolution used by _CameraSortingLayerTextu
 
 ## Renderer Features
 
-The 2D Renderer supports [URP Renderer Features](urp-renderer-features). The setup for the features are called before any of the 2D built-in passes are queued. Refer to the [URP Renderer Features](urp-renderer-features) documentation for more information.
+The 2D Renderer supports [URP Renderer Features](urp-renderer-feature.md). The setup for the features are called before any of the 2D built-in passes are queued. Refer to the [URP Renderer Features](urp-renderer-feature.md) documentation for more information.

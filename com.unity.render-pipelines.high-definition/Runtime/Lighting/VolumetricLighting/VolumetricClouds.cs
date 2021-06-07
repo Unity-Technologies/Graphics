@@ -255,6 +255,24 @@ namespace UnityEngine.Rendering.HighDefinition
         public CloudMapResolutionParameter cloudMapResolution = new CloudMapResolutionParameter(CloudMapResolution.Medium64x64);
 
         /// <summary>
+        /// Controls the density (Y axis) of the volumetric clouds as a function of the height (X Axis) inside the cloud volume.
+        /// </summary>
+        [Tooltip("Controls the density (Y axis) of the volumetric clouds as a function of the height (X Axis) inside the cloud volume.")]
+        public AnimationCurveParameter customDensityCurve = new AnimationCurveParameter(new AnimationCurve(new Keyframe(0f, 0f), new Keyframe(0.2f, 1.0f), new Keyframe(0.8f, 1.0f), new Keyframe(1.0f, 0.0f)), false);
+
+        /// <summary>
+        /// Controls the erosion (Y axis) of the volumetric clouds as a function of the height (X Axis) inside the cloud volume.
+        /// </summary>
+        [Tooltip("Controls the erosion (Y axis) of the volumetric clouds as a function of the height (X Axis) inside the cloud volume.")]
+        public AnimationCurveParameter customErosionCurve = new AnimationCurveParameter(new AnimationCurve(new Keyframe(0f, 0f), new Keyframe(0f, 1f), new Keyframe(1.0f, 1.0f)), false);
+
+        /// <summary>
+        /// Controls the ambient occlusion (Y axis) of the volumetric clouds as a function of the height (X Axis) inside the cloud volume.
+        /// </summary>
+        [Tooltip("Controls the ambient occlusion (Y axis) of the volumetric clouds as a function of the height (X Axis) inside the cloud volume.")]
+        public AnimationCurveParameter customAmbientOcclusionCurve = new AnimationCurveParameter(new AnimationCurve(new Keyframe(0f, 1f), new Keyframe(0f, 0f), new Keyframe(1.0f, 0.0f)), false);
+
+        /// <summary>
         /// Specifies the tint of the cloud scattering color.
         /// </summary>
         [Tooltip("Specifies the tint of the cloud scattering color.")]
@@ -288,7 +306,19 @@ namespace UnityEngine.Rendering.HighDefinition
         /// Controls the size of the larger noise passing through the cloud coverage.
         /// </summary>
         [Tooltip("Controls the size of the larger noise passing through the cloud coverage.")]
-        public ClampedFloatParameter shapeScale = new ClampedFloatParameter(0.5f, 0.0f, 1.0f);
+        public MinFloatParameter shapeScale = new MinFloatParameter(2.5f, 0.1f);
+
+        /// <summary>
+        /// Controls the offset (world X-axis) applied when evaluating the larger noise passing through the cloud coverage. The values "0", "-1" and "1" will give the same result.
+        /// </summary>
+        [Tooltip("Controls the offset (world X-axis) applied when evaluating the larger noise passing through the cloud coverage. The values \"0\", \"-1\" and \"1\" will give the same result.")]
+        public ClampedFloatParameter shapeOffsetX = new ClampedFloatParameter(0.0f, -1.0f, 1.0f);
+
+        /// <summary>
+        /// Controls the offset (world Z-axis) applied when evaluating the larger noise passing through the cloud coverage. The values "0", "-1" and "1" will give the same result.
+        /// </summary>
+        [Tooltip("Controls the offset (world Z-axis) applied when evaluating the larger noise passing through the cloud coverage. The values \"0\", \"-1\" and \"1\" will give the same result.")]
+        public ClampedFloatParameter shapeOffsetZ = new ClampedFloatParameter(0.0f, -1.0f, 1.0f);
 
         /// <summary>
         /// Controls the smaller noise on the edge of the clouds. A higher value will erode clouds more significantly.
@@ -300,13 +330,19 @@ namespace UnityEngine.Rendering.HighDefinition
         /// Controls the size of the smaller noise passing through the cloud coverage.
         /// </summary>
         [Tooltip("Controls the size of the smaller noise passing through the cloud coverage.")]
-        public ClampedFloatParameter erosionScale = new ClampedFloatParameter(0.5f, 0.0f, 1.0f);
+        public MinFloatParameter erosionScale = new MinFloatParameter(25.0f, 1.0f);
 
         /// <summary>
         /// Controls the influence of the light probes on the cloud volume. A lower value will suppress the ambient light and produce darker clouds overall.
         /// </summary>
         [Tooltip("Controls the influence of the light probes on the cloud volume. A lower value will suppress the ambient light and produce darker clouds overall.")]
         public ClampedFloatParameter ambientLightProbeDimmer = new ClampedFloatParameter(1.0f, 0.0f, 1.0f);
+
+        /// <summary>
+        /// Controls how much Erosion Factor is taken into account when computing ambient occlusion. The Erosion Factor parameter is editable in the custom preset, Advanced and Manual Modes.
+        /// </summary>
+        [Tooltip("Controls how much Erosion Factor is taken into account when computing ambient occlusion. The Erosion Factor parameter is editable in the custom preset, Advanced and Manual Modes.")]
+        public ClampedFloatParameter erosionOcclusion = new ClampedFloatParameter(0.5f, 0.0f, 1.0f);
 
         /// <summary>
         /// Sets the global wind speed in kilometers per hour.

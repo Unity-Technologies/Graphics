@@ -3,6 +3,7 @@
 ## Description
 Use Keywords to create different variants for your Shader Graph.
 
+
 Keywords enable you to create shaders:
 * With features that you can turn on or off for each Material instance.
 * With features that behave differently on certain platforms.
@@ -13,6 +14,7 @@ There are three types of Keywords: Boolean, Enum, and Built-in. Unity defines a 
 In Shader Graph, you first define a Keyword on the [Blackboard](Blackboard), then use a [Keyword Node](Keyword-Node) to create a branch in the graph.
 
 The Editor is able to compile variants on demand when it needs them to render content. If you declare many different variants, you can end up with millions or trillions of possibilities. However, the Player needs to determine at build time which variants are in use and include them when it pre-compiles your shaders. To manage memory effectively, the Player strips unused variants based on their keyword and Editor settings. See the next section, Common parameters, to learn more about how you can give the Player hints about what it needs to compile and what it can ignore. When the Player strips out a variant in the build process, it displays the pink error shader.
+
 
 ## Common parameters
 Although some fields are specific to certain types of Keywords, all Keywords have the following parameters.
@@ -30,6 +32,7 @@ Although some fields are specific to certain types of Keywords, all Keywords hav
 <br/>&#8226;**Vertex** - Applies this keyword to the vertex stage.
 <br/>&#8226;**Fragment** - Applies this keyword to the fragment stage.
 |
+
 
 <a name="BooleanKeywords"></a>
 ## Boolean Keywords
@@ -58,6 +61,7 @@ When you define an Enum Keyword, Shader Graph displays labels for each state con
 When controlling a keyword via script with a, <code>Material.EnableKeyword</code> or <code>Shader.EnableKeyword function</code>, enter the state label in the format <code>{REFERENCE}_{REFERENCESUFFIX}</code>. For example, if your reference name is MYENUM and the desired entry is OPTION1, then you would call <code>Material.EnableKeyword("MYENUM_OPTION1")</code>. When you select an option, this disables the other options.
 
 
+
 ![](images/keywords_enum.png)
 
 ### Type-specific parameters
@@ -67,6 +71,7 @@ In addition to the common parameters listed above, Enum Keywords have the follow
 | ----------- | ---------------- | ------------------------------------------------------------ |
 | **Default** | Enum             | Select an entry from the drop-down menu to determine which value to use for the Keyword when Shader Graph generates previews. This also defines the Keyword's default value when you use this shader to create a new Material. When you edit the Entries list, Shader Graph automatically updates the options in this control. |
 | **Entries** | Reorderable List | This list defines all the states for the Keyword. Each state has a separate **Display Name** and **Reference Suffix**.<br/><br/>&#8226; **Display Name**: Appears in drop-down menus for the Keyword on the [Internal Inspector](Internal-Inspector.md) and the Material Inspector. Shader Graph also uses this name for port labels on nodes that reference the Keyword.<br/>&#8226; **Reference Suffix**: This is the final keyword, presented in the format <code>Reference_ReferenceSuffix</code>. |
+
 
 <a name="BuiltinKeywords"></a>
 ## Built-in Keywords
