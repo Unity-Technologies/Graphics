@@ -244,7 +244,7 @@ namespace UnityEngine.Rendering.HighDefinition
 #if ENABLE_VIRTUALTEXTURES
                     // Note: This pass rely on availability of vtFeedbackBuffer buffer (i.e it need to be write before we read it here)
                     // We don't write it when doing debug mode, FullScreenDebug mode or path tracer. Thus why this pass is call here.
-                    m_VtBufferManager.Resolve(m_RenderGraph, hdCamera, vtFeedbackBuffer);
+                    hdCamera.ResolveVirtualTextureFeedback(m_RenderGraph, vtFeedbackBuffer);
                     PushFullScreenVTFeedbackDebugTexture(m_RenderGraph, vtFeedbackBuffer, msaa);
 #endif
                 }
