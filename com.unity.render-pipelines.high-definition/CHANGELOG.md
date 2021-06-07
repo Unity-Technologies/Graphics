@@ -65,6 +65,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Added a slider that controls how much the volumetric clouds erosion value affects the ambient occlusion term.
 - Added three animation curves to control the density, erosion, and ambient occlusion in the custom submode of the simple controls.
 - Added support for the camera bridge in the graphics compositor
+- Added a minimum motion vector length to the motion vector debug view.
 
 ### Fixed
 - Fixed Intensity Multiplier not affecting realtime global illumination.
@@ -231,6 +232,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed an error when deleting the 3D Texture mask of a local volumetric fog volume (case 1339330).
 - Fixed reflection probes being injected into the ray tracing light cluster even if not baked (case 1329083).
 - Fixed the double sided option moving when toggling it in the material UI (case 1328877).
+- Fixed cases in which object and camera motion vectors would cancel out, but didn't.
 
 ### Changed
 - Changed Window/Render Pipeline/HD Render Pipeline Wizard to Window/Rendering/HDRP Wizard
