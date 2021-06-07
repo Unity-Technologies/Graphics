@@ -219,6 +219,8 @@ TEXTURE2D(_PrevExposureTexture);
         #endif
     #endif
 
+    #define VT_GLOBAL_MIP_BIAS_MULTIPLIER (_GlobalMipBiasPow2)
+
 #endif
 
 // Note: To sample camera depth in HDRP we provide these utils functions because the way we store the depth mips can change

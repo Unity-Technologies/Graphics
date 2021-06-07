@@ -134,9 +134,8 @@ namespace UnityEngine.Rendering.Universal
             return maxViews;
         }
 
-        internal List<XRPass> SetupFrame(CameraData cameraData)
+        internal List<XRPass> SetupFrame(Camera camera, bool enableXRRendering)
         {
-            Camera camera = cameraData.camera;
             bool xrEnabled = RefreshXrSdk();
 
             if (display != null)
@@ -159,7 +158,7 @@ namespace UnityEngine.Rendering.Universal
 
             // Enable XR layout only for game camera
             bool isGameCamera = (camera.cameraType == CameraType.Game || camera.cameraType == CameraType.VR);
-            bool xrSupported = isGameCamera && camera.targetTexture == null && cameraData.xrRendering;
+            bool xrSupported = isGameCamera && camera.targetTexture == null && enableXRRendering;
 
             if (xrEnabled && xrSupported)
             {
