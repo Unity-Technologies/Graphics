@@ -30,12 +30,17 @@ namespace UnityEditor.Rendering.Universal.Converters
 
         private bool _startingSceneHasBeenClosed;
         private IEnumerable<PostProcessEffectSettingsConverter> effectConverters = null;
+
+        private List<Object> postConversionDestroyables = null;
+
         List<string> guids = new List<string>();
         public override void OnInitialize(InitializeConverterContext context, Action callback)
         {
             // Converters should already be set to null on domain reload,
             // but we're doing it here just in case anything somehow lingers.
             effectConverters = null;
+
+            postConversionDestroyables = new List<Object>();
 
             // We are using separate searchContexts here and Adding them in this order:
             //      - Components from Prefabs & Scenes (Volumes & Layers)
@@ -146,6 +151,16 @@ namespace UnityEditor.Rendering.Universal.Converters
                 context.didFail = true;
                 context.info = errorString.ToString();
             }
+        }
+
+        public override void OnPostRun()
+        {
+            for (var i = 0; i < postConversionDestroyables.Count; i++)
+            {
+                Object.DestroyImmediate(postConversionDestroyables[i], allowDestroyingAssets: true);
+            }
+
+            postConversionDestroyables.Clear();
         }
 
         public override void OnClicked(int index)
@@ -377,8 +392,15 @@ namespace UnityEditor.Rendering.Universal.Converters
             var success = true;
             newVolume.sharedProfile = ConvertVolumeProfileAsset(oldVolume.sharedProfile, errorString, ref success);
 
-            // TODO:
-            // Object.DestroyImmediate(oldVolume, allowDestroyingAssets: true);
+            if (PrefabUtility.IsPartOfPrefabAsset(oldVolume))
+            {
+                postConversionDestroyables.Add(oldVolume);
+            }
+            else
+            {
+                Object.DestroyImmediate(oldVolume, allowDestroyingAssets: true);
+            }
+
             EditorUtility.SetDirty(gameObject);
 
             return success;
@@ -482,8 +504,15 @@ namespace UnityEditor.Rendering.Universal.Converters
                     break;
             }
 
-            // TODO:
-            // Object.DestroyImmediate(oldLayer, allowDestroyingAssets: true);
+            if (PrefabUtility.IsPartOfPrefabAsset(oldLayer))
+            {
+                postConversionDestroyables.Add(oldLayer);
+            }
+            else
+            {
+                Object.DestroyImmediate(oldLayer, allowDestroyingAssets: true);
+            }
+
             EditorUtility.SetDirty(siblingCamera.gameObject);
 
             return true;
