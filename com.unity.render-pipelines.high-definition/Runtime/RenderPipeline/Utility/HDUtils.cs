@@ -939,7 +939,7 @@ namespace UnityEngine.Rendering.HighDefinition
         /// <param name="cmd">Command Buffer used for rendering.</param>
         /// <param name="rendererList">Renderer List to render.</param>
         [Obsolete("Please use CoreUtils.DrawRendererList instead.")]
-        public static void DrawRendererList(ScriptableRenderContext renderContext, CommandBuffer cmd, RendererList rendererList)
+        public static void DrawRendererList(ScriptableRenderContext renderContext, CommandBuffer cmd, RendererUtils.RendererList rendererList)
         {
             CoreUtils.DrawRendererList(renderContext, cmd, rendererList);
         }
