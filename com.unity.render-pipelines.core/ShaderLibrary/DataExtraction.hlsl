@@ -19,6 +19,14 @@
 #define RENDER_DIFFUSE_COLOR_RGBA      13
 #define RENDER_OUTLINE_MASK            14
 
+float4 ComputeEntityPickingValue(uint entityID)
+{
+    // Add 1 to the ID, so the entity ID 0 gets a value that is not equal
+    // to the clear value.
+    uint pickingValue = entityID + 1;
+    return PackId32ToRGBA8888(pickingValue);
+}
+
 float4 ComputeSelectionMask(float objectGroupId, float3 ndcWithZ, TEXTURE2D_PARAM(depthBuffer, sampler_depthBuffer))
 {
     // float sceneZ = SAMPLE_TEXTURE2D(depthBuffer, sampler_depthBuffer, ndcWithZ.xy).r;

@@ -110,7 +110,7 @@ void Frag(  PackedVaryingsToPS packedInput
     #ifdef UNITY_DOTS_INSTANCING_ENABLED
     // When rendering EntityIds, GameObjects output EntityId = 0
     if (_SelectionID.x == RENDER_ENTITY_ID)
-        outColor = PackId32ToRGBA8888(unity_EntityId.x);
+        outColor = ComputeEntityPickingValue(unity_EntityId.x);
     else
         outColor = float4(0, 0, 0, 0);
     #else

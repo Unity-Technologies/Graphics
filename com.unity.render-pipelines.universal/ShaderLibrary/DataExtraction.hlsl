@@ -91,7 +91,7 @@ float4 OutputExtraction(ExtractionInputs inputs)
         return float4(inputs.positionWS, 1.0);
 #ifdef UNITY_DOTS_INSTANCING_ENABLED
     if (UNITY_DataExtraction_Mode == RENDER_ENTITY_ID)
-        return PackId32ToRGBA8888(unity_EntityId.x);
+        return ComputeEntityPickingValue(unity_EntityId.x);
 #else
     // GameObjects always have zero EntityId
     if (UNITY_DataExtraction_Mode == RENDER_ENTITY_ID)
