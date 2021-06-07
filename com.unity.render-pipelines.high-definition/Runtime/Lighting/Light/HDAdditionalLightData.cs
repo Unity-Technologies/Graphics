@@ -2287,7 +2287,8 @@ namespace UnityEngine.Rendering.HighDefinition
 
                 manager.UpdateShadowRequest(shadowRequestIndex, shadowRequest, updateType);
 
-                if (needToUpdateCachedContent && hdCamera.camera.cameraType != CameraType.Reflection)
+                if (needToUpdateCachedContent && (lightType != HDLightType.Directional ||
+                                                  hdCamera.camera.cameraType != CameraType.Reflection))
                 {
                     // Handshake with the cached shadow manager to notify about the rendering.
                     // Technically the rendering has not happened yet, but it is scheduled.
