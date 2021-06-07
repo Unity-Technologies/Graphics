@@ -65,6 +65,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Added a slider that controls how much the volumetric clouds erosion value affects the ambient occlusion term.
 - Added three animation curves to control the density, erosion, and ambient occlusion in the custom submode of the simple controls.
 - Added support for the camera bridge in the graphics compositor
+- Added slides to control the shape noise offset.
 
 ### Fixed
 - Fixed Intensity Multiplier not affecting realtime global illumination.
@@ -220,6 +221,16 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed for wrong cached area light initialization.
 - Fixed unexpected rendering of 2D cookies when switching from Spot to Point light type (case 1333947).
 - Fixed the fallback to custom went changing a quality settings not workings properly (case 1338657).
+- Fixed ray tracing with XR and camera relative rendering (case 1336608).
+- Fixed the ray traced sub subsurface scattering debug mode not displaying only the RTSSS Data (case 1332904).
+- Fixed for discrepancies in intensity and saturation between screen space refraction and probe refraction.
+- Fixed a divide-by-zero warning for anisotropic shaders (Fabric, Lit).
+- Fixed VfX lit particle AOV output color space.
+- Fixed path traced transparent unlit material (case 1335500).
+- Fixed support of Distortion with MSAA
+- Fixed contact shadow debug views not displaying correctly upon resizing of view.
+- Fixed an error when deleting the 3D Texture mask of a local volumetric fog volume (case 1339330).
+- Fixed some aliasing ussues with the volumetric clouds.
 
 ### Changed
 - Changed Window/Render Pipeline/HD Render Pipeline Wizard to Window/Rendering/HDRP Wizard

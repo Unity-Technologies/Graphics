@@ -295,6 +295,7 @@ namespace UnityEngine.Experimental.Rendering
         internal Dictionary<int, Cell> cells = new Dictionary<int, Cell>();
         internal ProbeVolumeSceneBounds sceneBounds;
 
+
         bool m_BricksLoaded = false;
         Dictionary<string, List<RegId>> m_AssetPathToBricks = new Dictionary<string, List<RegId>>();
         // Information of the probe volume asset that is being loaded (if one is pending)
@@ -453,6 +454,8 @@ namespace UnityEngine.Experimental.Rendering
 
                 m_AssetPathToBricks.Remove(key);
             }
+
+            ClearDebugData();
         }
 
         void PerformPendingIndexDimensionChangeAndInit()
@@ -534,9 +537,14 @@ namespace UnityEngine.Experimental.Rendering
             m_PendingAssetsToBeUnloaded.Clear();
         }
 
-        void LoadPendingCells()
+        void LoadPendingCells(bool loadAll = false)
         {
             int count = Mathf.Min(m_NumberOfCellsLoadedPerFrame, m_CellsToBeLoaded.Count);
+            count = loadAll ? m_CellsToBeLoaded.Count : count;
+
+            if (count != 0)
+                ClearDebugData();
+
             for (int i = 0; i < count; ++i)
             {
                 // Pop from queue.
@@ -564,12 +572,13 @@ namespace UnityEngine.Experimental.Rendering
         /// <summary>
         /// Perform all the operations that are relative to changing the content or characteristics of the probe reference volume.
         /// </summary>
-        public void PerformPendingOperations()
+        /// <param name ="loadAllCells"> True when all cells are to be immediately loaded..</param>
+        public void PerformPendingOperations(bool loadAllCells = false)
         {
             PerformPendingDeletion();
             PerformPendingIndexDimensionChangeAndInit();
             PerformPendingLoading();
-            LoadPendingCells();
+            LoadPendingCells(loadAllCells);
         }
 
         /// <summary>
@@ -585,7 +594,7 @@ namespace UnityEngine.Experimental.Rendering
                 int indexSize = 0;
                 try
                 {
-                    indexSize = checked(indexDimensions.x * (indexDimensions.y + 1) * indexDimensions.z);
+                    indexSize = checked(indexDimensions.x * indexDimensions.y * indexDimensions.z);
                 }
                 catch
                 {
@@ -908,7 +917,7 @@ namespace UnityEngine.Experimental.Rendering
             id.id = m_ID;
             m_Registry.Add(id, ch_list);
 
-            // update the index
+            // Build index
             m_Index.AddBricks(id, bricks, ch_list, m_Pool.GetChunkSize(), m_Pool.GetPoolWidth(), m_Pool.GetPoolHeight());
 
             Profiler.EndSample();

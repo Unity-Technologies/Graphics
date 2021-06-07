@@ -374,6 +374,9 @@ namespace UnityEngine.Rendering.HighDefinition
             // Second pass to update elements where the texture content have changed
             foreach (var element in m_TextureElementsMap.Values)
             {
+                if (element.texture == null)
+                    continue;
+
                 int newHash = GetTextureHash(element.texture);
 
                 if (element.hash != newHash)
