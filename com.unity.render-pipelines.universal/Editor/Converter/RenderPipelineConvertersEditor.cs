@@ -414,8 +414,7 @@ namespace UnityEditor.Rendering.Universal.Converters
 
                 // Private implementation of a file naming function which puts the file at the selected path.
                 Type assetdatabase = typeof(AssetDatabase);
-                var indexPath = (string)assetdatabase.GetMethod("GetUniquePathNameAtSelectedPath", BindingFlags.NonPublic | BindingFlags.Static).Invoke(assetdatabase, new object[] { name });
-
+                var indexPath = (string)assetdatabase.GetMethod("GetUniquePathNameAtSelectedPath", BindingFlags.NonPublic | BindingFlags.Static).Invoke(assetdatabase, new object[] { $"Assets/{name}.index" });
                 // Write search index manifest
                 System.IO.File.WriteAllText(indexPath,
 @"{
@@ -535,7 +534,7 @@ namespace UnityEditor.Rendering.Universal.Converters
             ctx.hasConverted = true;
 
             VisualElement child = m_ScrollView[stateIndex];
-            child.Q<ListView>("converterItems").Refresh();
+            child.Q<ListView>("converterItems").Rebuild();
         }
 
         void Convert(ClickEvent evt)
