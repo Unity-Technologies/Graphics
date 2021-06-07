@@ -29,6 +29,11 @@ namespace UnityEngine.Rendering.Universal.Internal
             RTB.Init(name + "B");
         }
 
+        public RenderTargetHandle GetBackBuffer()
+        {
+            return m_FirstIsBackBuffer ? RTA : RTB;
+        }
+
         public RenderTargetHandle GetBackBuffer(CommandBuffer cmd)
         {
             if (!m_RTisAllocated)
@@ -62,6 +67,9 @@ namespace UnityEngine.Rendering.Universal.Internal
 
         public void Clear(CommandBuffer cmd)
         {
+            cmd.ReleaseTemporaryRT(m_NameA);
+            cmd.ReleaseTemporaryRT(m_NameB);
+
             m_FirstIsBackBuffer = true;
             m_RTisAllocated = false;
         }
