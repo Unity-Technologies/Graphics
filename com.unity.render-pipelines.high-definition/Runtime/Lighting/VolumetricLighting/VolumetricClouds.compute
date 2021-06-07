@@ -32,7 +32,7 @@
 // Forward eccentricity
 #define BACKWARD_ECCENTRICITY 0.5
 // Minimal size of a step
-#define MINIMAL_RAY_MARCHING_STEP 50.0f
+#define MINIMAL_RAY_MARCHING_STEP 100.0f
 // Minimal distance before which clouds are dislayed
 #define MIN_CLOUD_DISTANCE 1000.0
 // Distance until which the erosion texture i used
@@ -461,7 +461,7 @@ void EvaluateCloudProperties(float3 positionWS, float noiseMipOffset, float eros
     properties.height = EvaluateNormalizedCloudHeight(positionWS);
 
     // Evaluate the generic sampling coordinates
-    float3 baseNoiseSamplingCoordinates = float3(AnimateBaseNoisePosition(positionWS).xzy / NOISE_TEXTURE_NORMALIZATION_FACTOR) * _ShapeScale;
+    float3 baseNoiseSamplingCoordinates = float3(AnimateBaseNoisePosition(positionWS).xzy / NOISE_TEXTURE_NORMALIZATION_FACTOR) * _ShapeScale - float3(_ShapeNoiseOffset.x, _ShapeNoiseOffset.y, 0);
 
     // Evaluate the coordinates at which the noise will be sampled and apply wind displacement
     baseNoiseSamplingCoordinates += properties.height * float3(_WindDirection.x, 0.0f, _WindDirection.y) * MOTION_DISTORTION;
@@ -583,7 +583,7 @@ struct VolumetricRayResult
     float3 inScattering;
     float transmittance;
     float meanDistance;
-    float numRealSteps;
+    float finalStepCount;
     bool invalidRay;
 };
 
@@ -617,7 +617,7 @@ VolumetricRayResult TraceVolumetricRay(CloudRay cloudRay, float offset)
     volumetricRay.inScattering = 0.0;
     volumetricRay.transmittance = 1.0;
     volumetricRay.meanDistance = _MaxCloudDistance;
-    volumetricRay.numRealSteps = 0;
+    volumetricRay.finalStepCount = 0;
     volumetricRay.invalidRay = true;
 
     // Determine if ray intersects bounding volume, if the ray does not intersect the cloud volume AABB, skip right away
@@ -642,6 +642,7 @@ VolumetricRayResult TraceVolumetricRay(CloudRay cloudRay, float offset)
 
             // Evaluate our integration step
             float stepS = max(totalDistance / (float)_NumPrimarySteps, MINIMAL_RAY_MARCHING_STEP);
+            int numRealSteps = max((int)(totalDistance / MINIMAL_RAY_MARCHING_STEP), 32);
 
             // Offset the starting point using our dithering pattern.
             rayMarchRange.start += stepS * offset;
@@ -680,7 +681,7 @@ VolumetricRayResult TraceVolumetricRay(CloudRay cloudRay, float offset)
             int sequentialEmptySamples = 0;
 
             // Do the ray march for every step that we can.
-            while (currentIndex < _NumPrimarySteps && currentDistance < totalDistance)
+            while (currentIndex < numRealSteps && currentDistance < totalDistance)
             {
                 // Should we be evaluating the clouds or just doing the large ray marching
                 if (activeSampling)
@@ -746,7 +747,7 @@ VolumetricRayResult TraceVolumetricRay(CloudRay cloudRay, float offset)
             }
 
             // Compute the effective number of steps that have been marched
-            volumetricRay.numRealSteps = (float)currentIndex / _NumPrimarySteps;
+            volumetricRay.finalStepCount = (float)currentIndex / numRealSteps;
 
             // Normalized the depth we computed
             if (volumetricRay.meanDistance == 0.0)
