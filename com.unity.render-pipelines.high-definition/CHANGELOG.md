@@ -66,6 +66,8 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Added three animation curves to control the density, erosion, and ambient occlusion in the custom submode of the simple controls.
 - Added support for the camera bridge in the graphics compositor
 - Added slides to control the shape noise offset.
+- Added two toggles to control occluder rejection and receiver rejection for the ray traced ambient occlusion (case 1330168).
+- Added the receiver motion rejection toggle to RTGI (case 1330168).
 
 ### Fixed
 - Fixed Intensity Multiplier not affecting realtime global illumination.
@@ -231,6 +233,8 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed contact shadow debug views not displaying correctly upon resizing of view.
 - Fixed an error when deleting the 3D Texture mask of a local volumetric fog volume (case 1339330).
 - Fixed some aliasing ussues with the volumetric clouds.
+- Fixed reflection probes being injected into the ray tracing light cluster even if not baked (case 1329083).
+- Fixed the double sided option moving when toggling it in the material UI (case 1328877).
 - Fixed incorrect RTHandle scale in DoF when TAA is enabled.
 
 ### Changed
@@ -316,6 +320,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Make LitTessellation and LayeredLitTessellation fallback on Lit and LayeredLit respectively in DXR.
 - Display an info box and disable MSAA  asset entry when ray tracing is enabled.
 - Changed light reset to preserve type.
+- Ignore hybrid duplicated reflection probes during light baking.
 
 ## [11.0.0] - 2020-10-21
 
