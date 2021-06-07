@@ -166,6 +166,8 @@ namespace UnityEngine.Rendering.Universal
                 scaledCameraHeight = (float)cameraData.cameraTargetDescriptor.height;
                 cameraWidth = (float)cameraData.cameraTargetDescriptor.width;
                 cameraHeight = (float)cameraData.cameraTargetDescriptor.height;
+
+                useRenderPassEnabled = false;
             }
 
             if (camera.allowDynamicResolution)
@@ -646,8 +648,6 @@ namespace UnityEngine.Rendering.Universal
                     SortStable(m_ActiveRenderPassQueue);
                 }
 
-                if (cameraData.xr.enabled)
-                    useRenderPassEnabled = false;
                 SetupNativeRenderPassFrameData(cameraData, useRenderPassEnabled);
 
                 using var renderBlocks = new RenderBlocks(m_ActiveRenderPassQueue);
