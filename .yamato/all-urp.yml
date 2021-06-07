@@ -20,8 +20,6 @@ PR_URP_trunk:
     dependencies:
       -  path: .yamato/all-universal_split.yml#PR_Universal_Split_trunk
          rerun: on_new_revision
-      -  path: .yamato/all-universal_hybrid.yml#PR_Universal_Hybrid_trunk
-         rerun: on_new_revision
       -  path: .yamato/all-universal_stereo.yml#PR_Universal_Stereo_trunk
          rerun: on_new_revision
       -  path: .yamato/all-urpupdate.yml#PR_URPUpdate_trunk
@@ -64,15 +62,11 @@ Nightly_URP_trunk:
     dependencies:
       -  path: .yamato/all-urp.yml#URP_trunk
          rerun: on_new_revision
-      -  path: .yamato/all-universal_hybrid.yml#Universal_Hybrid_trunk
-         rerun: on_new_revision
       -  path: .yamato/all-universal_stereo.yml#Universal_Stereo_trunk
          rerun: on_new_revision
       -  path: .yamato/all-urpupdate.yml#URPUpdate_trunk
          rerun: on_new_revision
       -  path: .yamato/all-urp_perf.yml#URP_Perf_trunk
-         rerun: on_new_revision
-      -  path: .yamato/all-urpupdate_boatattack.yml#URPUpdate_BoatAttack_trunk
          rerun: on_new_revision
       -  path: .yamato/all-urpupdate_top_asset_store.yml#URPUpdate_Top_Asset_Store_trunk
          rerun: on_new_revision
@@ -85,8 +79,6 @@ PR_URP_CUSTOM-REVISION:
         CACHE_ARGS: '{{cache.flags}}'
     dependencies:
       -  path: .yamato/all-universal_split.yml#PR_Universal_Split_CUSTOM-REVISION
-         rerun: on_new_revision
-      -  path: .yamato/all-universal_hybrid.yml#PR_Universal_Hybrid_CUSTOM-REVISION
          rerun: on_new_revision
       -  path: .yamato/all-universal_stereo.yml#PR_Universal_Stereo_CUSTOM-REVISION
          rerun: on_new_revision
@@ -130,15 +122,11 @@ Nightly_URP_CUSTOM-REVISION:
     dependencies:
       -  path: .yamato/all-urp.yml#URP_CUSTOM-REVISION
          rerun: on_new_revision
-      -  path: .yamato/all-universal_hybrid.yml#Universal_Hybrid_CUSTOM-REVISION
-         rerun: on_new_revision
       -  path: .yamato/all-universal_stereo.yml#Universal_Stereo_CUSTOM-REVISION
          rerun: on_new_revision
       -  path: .yamato/all-urpupdate.yml#URPUpdate_CUSTOM-REVISION
          rerun: on_new_revision
       -  path: .yamato/all-urp_perf.yml#URP_Perf_CUSTOM-REVISION
-         rerun: on_new_revision
-      -  path: .yamato/all-urpupdate_boatattack.yml#URPUpdate_BoatAttack_CUSTOM-REVISION
          rerun: on_new_revision
       -  path: .yamato/all-urpupdate_top_asset_store.yml#URPUpdate_Top_Asset_Store_CUSTOM-REVISION
          rerun: on_new_revision
