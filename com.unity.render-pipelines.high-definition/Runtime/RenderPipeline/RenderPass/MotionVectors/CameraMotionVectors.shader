@@ -57,6 +57,13 @@ Shader "Hidden/HDRP/CameraMotionVectors"
 
             // Convert from Clip space (-1..1) to NDC 0..1 space
             float2 motionVector = (positionCS - previousPositionCS);
+
+#ifdef KILL_MICRO_MOVEMENT
+            // We multiply by 2 as the motion vectors have been already converted to NDC when we reach this function.
+            motionVector.x = abs(motionVector.x) < MICRO_MOVEMENT_THRESHOLD.x ? 0 : motionVector.x;
+            motionVector.y = abs(motionVector.y) < MICRO_MOVEMENT_THRESHOLD.y ? 0 : motionVector.y;
+#endif
+
 #if UNITY_UV_STARTS_AT_TOP
             motionVector.y = -motionVector.y;
 #endif
