@@ -61,6 +61,7 @@ namespace UnityEngine.Rendering.Universal.Internal
             depthDescriptor = baseDescriptor;
 
             this.normalHandle = normalHandle;
+            baseDescriptor.colorFormat = (RenderTextureFormat)0;
             baseDescriptor.graphicsFormat = normalsFormat;
             baseDescriptor.depthBufferBits = 0;
             normalDescriptor = baseDescriptor;
