@@ -23,7 +23,7 @@ PrefabInstance:
     m_Modifications:
     - target: {fileID: -8650417849087264602, guid: 5991ec3b02565304692b00788ab59fa9, type: 3}
       propertyPath: m_PreserveUVs
-      value: 1
+      value: 0
       objectReference: {fileID: 0}
     - target: {fileID: -8650417849087264602, guid: 5991ec3b02565304692b00788ab59fa9, type: 3}
       propertyPath: m_LightmapParameters
