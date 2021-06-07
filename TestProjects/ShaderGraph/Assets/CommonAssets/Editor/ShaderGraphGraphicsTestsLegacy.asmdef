@@ -1,8 +1,8 @@
 {
-    "name": "Unity.ShaderGraph.Editor.GraphicsTests",
+    "name": "Unity.ShaderGraph.Legacy.GraphicsTests",
     "references": [
         "UnityEditor.TestTools.Graphics",
-        "Unity.ShaderGraph.Editor",
+        "Unity.ShaderGraph.Legacy",
         "UnityEngine.TestRunner",
         "UnityEditor.TestRunner"
     ],

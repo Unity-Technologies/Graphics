@@ -2,7 +2,7 @@
     "name": "Unity.ShaderGraph.GraphicsTests",
     "references": [
         "UnityEngine.TestTools.Graphics",
-        "Unity.ShaderGraph.Editor",
+        "Unity.ShaderGraph.Legacy",
         "UnityEngine.TestRunner",
         "UnityEditor.TestRunner"
     ],

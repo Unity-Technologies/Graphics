@@ -1,5 +1,5 @@
 {
-    "name": "Unity.ShaderGraph.Editor.Tests",
+    "name": "Unity.ShaderGraph.Legacy.Tests",
     "references": [
         "GUID:be0903cd8e1546f498710afdc59db5eb",
         "GUID:27619889b8ba8c24980f49ee34dbb44a",
