@@ -23,7 +23,7 @@ namespace UnityEditor.VFX
         {
             get
             {
-                var exclude = new[] { typeof(GPUEvent), typeof(CameraBuffer) };
+                var exclude = new[] { typeof(GPUEvent), typeof(CameraBuffer), typeof(TArcCone) }; //TODOPAUL We can potentially factorize this
                 return VFXLibrary.GetSlotsType().Except(exclude);
             }
         }

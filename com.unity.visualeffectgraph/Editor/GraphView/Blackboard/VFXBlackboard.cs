@@ -458,7 +458,7 @@ namespace  UnityEditor.VFX.UI
                 VFXParameter model = parameter.model as VFXParameter;
 
                 var type = model.type;
-                if (type == typeof(GPUEvent) || type == typeof(CameraBuffer))
+                if (type == typeof(GPUEvent) || type == typeof(CameraBuffer) || type == typeof(TArcCone)) //TODOPAUL Use a flag or something
                     continue;
 
                 menu.AddItem(EditorGUIUtility.TextContent(type.UserFriendlyName()), false, OnAddParameter, parameter);
