@@ -4,12 +4,9 @@ using System.IO;
 
 namespace UnityEditor.Rendering.HighDefinition
 {
-    //As ScriptableSingleton is not usable due to internal FilePathAttribute,
-    //copying mechanism here
-    class HDUserSettings : ScriptableObject
+    [FilePath("UserSettings/HDRPUserSettings.asset", FilePathAttribute.Location.ProjectFolder)]
+    class HDUserSettings : ScriptableSingleton<HDUserSettings>
     {
-        const string filePath = "UserSettings/HDRPUserSettings.asset";
-
         [SerializeField]
         bool m_WizardPopupAlreadyShownOnce = false;
         [SerializeField]
@@ -25,7 +22,7 @@ namespace UnityEditor.Rendering.HighDefinition
             set
             {
                 instance.m_WizardActiveTab = value;
-                Save();
+                instance.Save();
             }
         }
 
@@ -35,7 +32,7 @@ namespace UnityEditor.Rendering.HighDefinition
             set
             {
                 instance.m_WizardPopupAlreadyShownOnce = value;
-                Save();
+                instance.Save();
             }
         }
 
@@ -45,7 +42,7 @@ namespace UnityEditor.Rendering.HighDefinition
             set
             {
                 instance.m_WizardNeedToRunFixAllAgainAfterDomainReload = value;
-                Save();
+                instance.Save();
             }
         }
 
@@ -55,50 +52,11 @@ namespace UnityEditor.Rendering.HighDefinition
             set
             {
                 instance.m_WizardNeedRestartAfterChangingToDX12 = value;
-                Save();
+                instance.Save();
             }
         }
 
-        //singleton pattern
-        static HDUserSettings s_Instance;
-        static HDUserSettings instance => s_Instance ?? CreateOrLoad();
-        HDUserSettings()
-        {
-            s_Instance = this;
-        }
-
-        static HDUserSettings CreateOrLoad()
-        {
-            // force loading of HDProjectSetting first: its migration can create and init this file
-            int unused = HDProjectSettings.materialVersionForUpgrade;
-
-            //try load
-            InternalEditorUtility.LoadSerializedFileAndForget(filePath);
-
-            //else create
-            if (s_Instance == null)
-            {
-                HDUserSettings created = CreateInstance<HDUserSettings>();
-                created.hideFlags = HideFlags.HideAndDontSave;
-            }
-
-            System.Diagnostics.Debug.Assert(s_Instance != null);
-            return s_Instance;
-        }
-
-        static void Save()
-        {
-            if (s_Instance == null)
-            {
-                Debug.Log("Cannot save ScriptableSingleton: no instance!");
-                return;
-            }
-
-            string folderPath = Path.GetDirectoryName(filePath);
-            if (!Directory.Exists(folderPath))
-                Directory.CreateDirectory(folderPath);
-
-            InternalEditorUtility.SaveToSerializedFileAndForget(new[] { s_Instance }, filePath, allowTextSerialization: true);
-        }
+        void Save()
+            => Save(true);
     }
 }
