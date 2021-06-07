@@ -100,8 +100,7 @@ namespace UnityEngine.Rendering.Universal
         {
             get
             {
-                return RenderingSettings.debugSceneOverrideMode == DebugSceneOverrideMode.None ||
-                       RenderingSettings.debugSceneOverrideMode == DebugSceneOverrideMode.Overdraw;
+                return RenderingSettings.debugSceneOverrideMode == DebugSceneOverrideMode.None || RenderingSettings.debugSceneOverrideMode == DebugSceneOverrideMode.Overdraw;
             }
         }
 
