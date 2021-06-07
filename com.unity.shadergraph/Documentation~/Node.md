@@ -14,7 +14,7 @@ There are many available **Nodes** in [Shader Graph](Shader-Graph.md). For a ful
 
 ## Preview
 
-Many nodes include a preview. This preview displays the main output value at that stage in the graph. Hide this preview with the Collapse control, which displays when you hover over the node. You can also collapse and expand node previews via the Context Menu in the [Shader Graph Window](Shader-Graph-Window.md).  To configure the appearance of node previews, see [Preview Mode Control](Preview-Mode-Control).
+Many nodes include a preview. This preview displays the main output value at that stage in the graph. Hide this preview with the Collapse control that displays when you hover over the node. You can also collapse and expand node previews via the Context Menu in the [Shader Graph Window](Shader-Graph-Window.md).  To configure the appearance of node previews, see [Preview Mode Control](Preview-Mode-Control).
 
 
 

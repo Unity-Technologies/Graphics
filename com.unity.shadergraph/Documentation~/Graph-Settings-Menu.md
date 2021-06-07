@@ -2,7 +2,7 @@
 
 ## Description
 
-The **Graph Settings** tab on the **[Graph Inspector](Internal-Inspector.md)** lets you change settings that affect the Shader Graph as a whole.
+The **Graph Settings** tab on the **[Graph Inspector](Internal-Inspector.md)** make it possible to change settings that affect the Shader Graph as a whole.
 
 ![](images/GraphSettings_Menu.png)
 
