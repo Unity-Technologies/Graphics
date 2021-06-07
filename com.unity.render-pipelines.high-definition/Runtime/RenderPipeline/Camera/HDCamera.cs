@@ -756,6 +756,9 @@ namespace UnityEngine.Rendering.HighDefinition
 
             UpdateAntialiasing();
 
+            // ORDER is importand: we read the upsamplerSchedule when we decide if we need to refresh the history buffers, so be careful when moving this
+            DynamicResolutionHandler.instance.upsamplerSchedule = IsDLSSEnabled() ? DynamicResolutionHandler.UpsamplerScheduleType.BeforePost : DynamicResolutionHandler.UpsamplerScheduleType.AfterPost;
+
             // Handle memory allocation.
             if (allocateHistoryBuffers)
             {
@@ -796,6 +799,13 @@ namespace UnityEngine.Rendering.HighDefinition
                         forceReallocPyramid = true;
                         break;
                     }
+                }
+
+                // If we change the upscale schedule, refresh the history buffers. We need to do this, because if postprocess is after upscale, the size of some buffers needs to change.
+                if (m_PrevUpsamplerSchedule != DynamicResolutionHandler.instance.upsamplerSchedule)
+                {
+                    forceReallocPyramid = true;
+                    m_PrevUpsamplerSchedule = DynamicResolutionHandler.instance.upsamplerSchedule;
                 }
 
                 // Handle the color buffers
@@ -856,7 +866,6 @@ namespace UnityEngine.Rendering.HighDefinition
                 actualHeight = Math.Max((int)finalViewport.size.y, 1);
             }
 
-            DynamicResolutionHandler.instance.upsamplerSchedule = IsDLSSEnabled() ? DynamicResolutionHandler.UpsamplerScheduleType.BeforePost : DynamicResolutionHandler.UpsamplerScheduleType.AfterPost;
             DynamicResolutionHandler.instance.finalViewport = new Vector2Int((int)finalViewport.width, (int)finalViewport.height);
 
             Vector2Int nonScaledViewport = new Vector2Int(actualWidth, actualHeight);
@@ -1307,6 +1316,9 @@ namespace UnityEngine.Rendering.HighDefinition
         int                     m_RecorderTempRT = Shader.PropertyToID("TempRecorder");
         MaterialPropertyBlock   m_RecorderPropertyBlock = new MaterialPropertyBlock();
         Rect?                   m_OverridePixelRect = null;
+
+        // Keep track of the previous DLSS state
+        private DynamicResolutionHandler.UpsamplerScheduleType m_PrevUpsamplerSchedule = DynamicResolutionHandler.UpsamplerScheduleType.AfterPost;
 
         void SetupCurrentMaterialQuality(CommandBuffer cmd)
         {

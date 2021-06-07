@@ -624,6 +624,12 @@ namespace UnityEditor.Rendering.HighDefinition
                 EditorGUI.indentLevel++;
                 if (doubleSidedEnable != null && doubleSidedEnable.floatValue == 0 && opaqueCullMode != null)
                     materialEditor.ShaderProperty(opaqueCullMode, Styles.opaqueCullModeText);
+                else
+                {
+                    EditorGUI.BeginDisabledGroup(true);
+                    EditorGUILayout.Popup(Styles.opaqueCullModeText, 0, new string[] { "Off" });
+                    EditorGUI.EndDisabledGroup();
+                }
                 EditorGUI.indentLevel--;
                 if (HDRenderQueue.k_RenderQueue_AfterPostProcessOpaque.Contains(renderQueue))
                 {
