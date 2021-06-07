@@ -42,6 +42,25 @@ namespace UnityEditor.VFX
             return VFXValue.Constant(matrix);
         }
 
+        sealed protected override VFXExpression Reduce(VFXExpression[] reducedParents)
+        {
+            var posReduce = reducedParents[0];
+            var rotReduce = reducedParents[1];
+            var scaleReduce = reducedParents[2];
+
+            var oneF3 = VFXOperatorUtility.OneExpression[VFXValueType.Float3];
+            if (scaleReduce == oneF3)
+            {
+                if (rotReduce is VFXExpressionExtractAnglesFromMatrix)
+                {
+                    var sourceMatrix = rotReduce.parents[0];
+                    return VFXOperatorUtility.GetRotationMatrixFromTRS(sourceMatrix, posReduce);
+                }
+            }
+
+            return base.Reduce(reducedParents);
+        }
+
         public override string GetCodeString(string[] parents)
         {
             return string.Format("GetTRSMatrix({0}, {1}, {2})", parents[0], parents[1], parents[2]);

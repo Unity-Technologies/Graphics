@@ -455,6 +455,20 @@ namespace UnityEditor.VFX
 
         public VFXExpression[] parents { get { return m_Parents; } }
 
+        public static bool operator==(VFXExpression lhs, VFXExpression rhs)
+        {
+            if (lhs is null)
+            {
+                if (rhs is null)
+                    return true;
+                return false;
+            }
+
+            return lhs.Equals(rhs);
+        }
+
+        public static bool operator!=(VFXExpression lhs, VFXExpression rhs) => !(lhs == rhs);
+
         public override bool Equals(object obj)
         {
             if (ReferenceEquals(this, obj))
