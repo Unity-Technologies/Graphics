@@ -24,6 +24,20 @@ struct ExtractionInputs
     float3 emission;
 };
 
+// These used to be in CommonMaterial.hlsl but no longer are. They are still
+// needed for DataExtraction, so we have them here now.
+void ConvertSpecularToMetallic(float3 diffuseColor, float3 specularColor, out float3 baseColor, out float metallic)
+{
+    metallic = saturate( (Max3(specularColor.r, specularColor.g, specularColor.b) - 0.1F) / 0.45F);
+    baseColor = lerp(diffuseColor, specularColor, metallic);
+}
+
+void ConvertMetallicToSpecular(float3 baseColor, float metallic, out float3 diffuseColor, out float3 specularColor)
+{
+    diffuseColor = ComputeDiffuseColor(baseColor, metallic);
+    specularColor = ComputeFresnel0(baseColor, metallic, DEFAULT_SPECULAR_VALUE);
+}
+
 float4 OutputExtraction(ExtractionInputs inputs)
 {
     float3 specular, diffuse, baseColor;
