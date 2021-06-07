@@ -141,6 +141,7 @@ namespace UnityEditor.ShaderGraph
             m_GraphData.CollectShaderProperties(shaderProperties, m_Mode);
             m_GraphData.CollectShaderKeywords(shaderKeywords, m_Mode);
 
+            ShaderGraphMetadata meta = null;
             if (m_GraphData.GetKeywordPermutationCount() > ShaderGraphPreferences.variantLimit)
             {
                 string graphName = "";
@@ -150,6 +151,14 @@ namespace UnityEditor.ShaderGraph
                     if (path != null)
                     {
                         graphName = Path.GetFileNameWithoutExtension(path);
+                        foreach(var asset in AssetDatabase.LoadAllAssetsAtPath(path))
+                        {
+                            meta = asset as ShaderGraphMetadata;
+                            if(meta != null)
+                            {
+                                break;
+                            }
+                        }
                     }
                 }
                 Debug.LogError($"Error in Shader Graph {graphName}:{ShaderKeyword.kVariantLimitWarning}");
@@ -179,7 +188,7 @@ namespace UnityEditor.ShaderGraph
             m_Builder.AppendLine(@"Shader ""{0}""", m_Name);
             using (m_Builder.BlockScope())
             {
-                GenerationUtils.GeneratePropertiesBlock(m_Builder, shaderProperties, shaderKeywords, m_Mode);
+                GenerationUtils.GeneratePropertiesBlock(m_Builder, shaderProperties, shaderKeywords, m_Mode, meta);
 
                 for (int i = 0; i < m_Targets.Length; i++)
                 {
