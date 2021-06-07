@@ -309,6 +309,18 @@ namespace UnityEngine.Rendering.HighDefinition
         public MinFloatParameter shapeScale = new MinFloatParameter(2.5f, 0.1f);
 
         /// <summary>
+        /// Controls the offset (world X-axis) applied when evaluating the larger noise passing through the cloud coverage. The values "0", "-1" and "1" will give the same result.
+        /// </summary>
+        [Tooltip("Controls the offset (world X-axis) applied when evaluating the larger noise passing through the cloud coverage. The values \"0\", \"-1\" and \"1\" will give the same result.")]
+        public ClampedFloatParameter shapeOffsetX = new ClampedFloatParameter(0.0f, -1.0f, 1.0f);
+
+        /// <summary>
+        /// Controls the offset (world Z-axis) applied when evaluating the larger noise passing through the cloud coverage. The values "0", "-1" and "1" will give the same result.
+        /// </summary>
+        [Tooltip("Controls the offset (world Z-axis) applied when evaluating the larger noise passing through the cloud coverage. The values \"0\", \"-1\" and \"1\" will give the same result.")]
+        public ClampedFloatParameter shapeOffsetZ = new ClampedFloatParameter(0.0f, -1.0f, 1.0f);
+
+        /// <summary>
         /// Controls the smaller noise on the edge of the clouds. A higher value will erode clouds more significantly.
         /// </summary>
         [Tooltip("Controls the smaller noise on the edge of the clouds. A higher value will erode clouds more significantly.")]

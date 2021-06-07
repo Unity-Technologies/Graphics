@@ -4,13 +4,13 @@
 You can use Keywords to create different variants for your Shader Graph. Depending on the settings for a Keyword and settings in the Editor, the build pipeline might strip these variants.
 
 Keywords are useful for many reasons, such as:
-- Creating shaders with features that you can turn on or off for each Material instance.
-- Creating shaders with features that behave differently on certain platforms.
-- Creating shaders that scale in complexity based on various conditions.
+* Creating shaders with features that you can turn on or off for each Material instance.
+* Creating shaders with features that behave differently on certain platforms.
+* Creating shaders that scale in complexity based on various conditions.
 
 There are three types of Keyword: Boolean, Enum, and Built-in. Based on its type, Unity defines a Keyword in the graph, shader, and optionally, the Material Inspector. See [Boolean Keyword](#BooleanKeywords), [Enum Keyword](#EnumKeywords), and [Built-in Keyword](#BuiltinKeywords) for more information about Keyword types. For more information about how these Keywords affect the final shader, see documentation on [Making multiple shader program variants](https://docs.unity3d.com/Manual/SL-MultipleProgramVariants.html).
 
-In Shader Graph, you first define a Keyword on the [Blackboard](Blackboard), and then use a [Keyword Node](Keyword-Node) to create a branch in the graph.
+In Shader Graph, you first define a Keyword on the [Blackboard](Blackboard.md), and then use a [Keyword Node](Keyword-Node.md) to create a branch in the graph.
 
 ## Common parameters
 Although some fields are specific to certain types of Keywords, all Keywords have the following parameters.
@@ -19,9 +19,9 @@ Although some fields are specific to certain types of Keywords, all Keywords hav
 | ------------------ | -------- | ------------------------------------------------------------ |
 | **Display Name**   | String   | The display name of the Keyword. Unity shows this name in the title bar of nodes that reference the corresponding Keyword, and also in the Material Inspector if you expose that Keyword. |
 | **Exposed**        | Boolean  | If you set this to **true**, Unity displays the corresponding Keyword in the Material Inspector. If you set it to **false**, the Keyword does not appear in the Material Inspector. |
-| **Reference Name** | String   | The internal name for the Keyword in the shader.<br/><br/>If you overwrite the Reference Name parameter, take note of the following:<br/>&#8226; Keyword Reference Names are always in full capitals, so Unity converts all lowercase letters to uppercase.<br/>&#8226; If the Reference Name contains any characters that HLSL does not support, Unity replaces those characters with underscores.<br/>&#8226; Right-click on a Reference Name, and select **Reset Reference** to revert to the default Reference Name. |
-| **Definition**     | Enum     | Sets how the Keyword is defined in the shader.<br/><br/>There are three available options.<br/>&#8226; **Shader Feature**: Unity strips unused shader variants at build time.<br/>&#8226; **Multi Compile**: Unity never strips any shader variants.<br/>&#8226; **Predefined**: Indicates that the active Render Pipeline has already defined this Keyword, so Shader Graph does not define it in the code it generates. |
-| **Scope**          | Enum     | Sets the scope at which to define the Keyword.<br/><br/>&#8226; **Global Keywords**: Defines Keyword for the entire project, and it counts towards the global keyword limit.<br/>&#8226; **Local Keywords**: Defines Keyword for only one shader, which has its own local keyword limit.<br/><br/>When you use Predefined Keywords, Unity disables this field. |
+| **Reference Name** | String   | The internal name for the Keyword in the shader.<br/>If you overwrite the Reference Name parameter, take note of the following:<br/>&#8226; Keyword Reference Names are always in full capitals, so Unity converts all lowercase letters to uppercase.<br/>&#8226; If the Reference Name contains any characters that HLSL does not support, Unity replaces those characters with underscores.<br/>&#8226; Right-click on a Reference Name, and select **Reset Reference** to revert to the default Reference Name. |
+| **Definition**     | Enum     | Sets how the Keyword is defined in the shader.<br/>There are three available options.<br/>&#8226; **Shader Feature**: Unity strips unused shader variants at build time.<br/>&#8226; **Multi Compile**: Unity never strips any shader variants.<br/>&#8226; **Predefined**: Indicates that the active Render Pipeline has already defined this Keyword, so Shader Graph does not define it in the code it generates. |
+| **Scope**          | Enum     | Sets the scope at which to define the Keyword.<br/>&#8226; **Global Keywords**: Defines Keyword for the entire project, and it counts towards the global keyword limit.<br/>&#8226; **Local Keywords**: Defines Keyword for only one shader, which has its own local keyword limit.<br/>When you use Predefined Keywords, Unity disables this field. |
 
 <a name="BooleanKeywords"></a>
 ## Boolean Keywords
@@ -36,15 +36,15 @@ In addition to the common parameters listed above, Boolean Keywords have the fol
 
 | **Name**    | **Type** | **Description**                                              |
 | ----------- | -------- | ------------------------------------------------------------ |
-| **Default** | Boolean  | Enable the checkbox to set the Keyword's default state to on, and disable the checkbox to set its default state to off.<br/><br/>This checkbox determines the value to use for the Keyword when Shader Graph generates previews. It also defines the Keyword's default value when you use this shader to create a new Material. |
+| **Default** | Boolean  | Enable the checkbox to set the Keyword's default state to on, and disable the checkbox to set its default state to off.<br/>This checkbox determines the value to use for the Keyword when Shader Graph generates previews. It also defines the Keyword's default value when you use this shader to create a new Material. |
 
 <a name="EnumKeywords"></a>
 ## Enum Keywords
 Enum Keywords can have two or more states, which you define in the **Entries** list. If you expose an Enum Keyword, the **Display Names** in its **Entries** list appear in a dropdown menu in the Material Inspector.
 
-When you define an Enum Keyword, Shader Graph appends a sanitized version of the **Entry Name** to the main **Reference** name to define each state. You can see the sanitized version of the **Entry Name** to the right, under **Reference Suffix**. Shader Graph uses the `{Reference}_{ReferenceSuffix}` pattern to define most entries, but be aware that it uses an `else` statement to select the last entry, which it regards as the off state.
+When you define an Enum Keyword, Shader Graph appends a sanitized version of the **Entry Name** to the main **Reference** name to define each state. You can see the sanitized version of the **Entry Name** under **Reference Suffix**. Shader Graph uses the `{Reference}_{ReferenceSuffix}` pattern to define most entries, but be aware that it uses an `else` statement to select the last entry, which it regards as the off state.
 
-Special characters such as `( )` or `! @` are not valid in the **Entry Name** of an Enum Keyword. Shader Graph converts invalid characters to underscores ( `_` ).
+Special characters such as `( )` or `! @` are not valid in the **Entry Name** of an Enum Keyword. Shader Graph converts invalid characters to underscores ( `_` ) and capitalizes all letters. This means that reference names are not case sensitive. Both "A 1" and "a_1" are converted to "A_1”. Instead of silently adjusting a duplicate **Entry Name**, Unity will indicate that you have entered a duplicate and require you to supply an alternative **Entry Name**.
 
 ![](images/keywords_enum.png)
 
@@ -54,7 +54,7 @@ In addition to the common parameters listed above, Enum Keywords have the follow
 | **Name**    | **Type**         | **Description**                                              |
 | ----------- | ---------------- | ------------------------------------------------------------ |
 | **Default** | Enum             | Select an entry from the drop-down menu to determine which value to use for the Keyword when Shader Graph generates previews. It also defines the Keyword's default value when you use this shader to create a new Material. When you edit the Entries list, Shader Graph automatically updates the options in this dropdown menu. |
-| **Entries** | Reorderable List | This list defines all the states for the Keyword. Each state has a separate **Display Name** and **Reference Suffix**.<br/><br/>&#8226; **Display Name**: Appears in drop-down menus for the Keyword on the [Internal Inspector](Internal-Inspector.md) and the Material Inspector. Shader Graph also uses this name for port labels on nodes that reference the Keyword.<br/>&#8226; **Reference Suffix**: Shader Graph uses this suffix to generate a Keyword state in the shader. |
+| **Entries** | Reorderable List | This list defines all the states for the Keyword. Each state has a separate **Display Name** and **Reference Suffix**.<br/>&#8226; **Display Name**: Appears in drop-down menus for the Keyword on the [Internal Inspector](Internal-Inspector.md) and the Material Inspector. Shader Graph also uses this name for port labels on nodes that reference the Keyword.<br/>&#8226; **Reference Suffix**: Shader Graph uses this suffix to generate a Keyword state in the shader. |
 
 <a name="BuiltinKeywords"></a>
 ## Built-in Keywords

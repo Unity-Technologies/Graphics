@@ -19,6 +19,7 @@ VikingVillage_URP_OSX_Metal_performance_playmode_runtime_mono_Linear_trunk:
         CUSTOM_REVISION: '{{trunk.changeset.id}}'
         VV_URP_BRANCH: master
         VV_URP_REVISION: eebe6db7d9b186603b63095a926d76ded2bf1110
+        CACHE_ARGS: '{{cache.flags}}'
         UTR_VERSION: "current"
         TEST_FILTER: .*
     commands:
@@ -60,7 +61,6 @@ VikingVillage_URP_OSX_Metal_performance_playmode_runtime_mono_Linear_trunk:
                 mkdir -p TestProjects/Viking-Village-Perf/test-results/
                 scp -i ~/.ssh/id_rsa_macmini -r bokken@$BOKKEN_DEVICE_IP:/Users/bokken/Graphics/TestProjects/Viking-Village-Perf/test-results/ TestProjects/Viking-Village-Perf/test-results/
                 exit $UTR_RESULT
-         retries: 2
     artifacts:
         logs:
             paths:
@@ -80,6 +80,7 @@ VikingVillage_URP_OSX_Metal_performance_playmode_editor_mono_Linear_trunk:
         CUSTOM_REVISION: '{{trunk.changeset.id}}'
         VV_URP_BRANCH: master
         VV_URP_REVISION: eebe6db7d9b186603b63095a926d76ded2bf1110
+        CACHE_ARGS: '{{cache.flags}}'
         UTR_VERSION: "current"
         TEST_FILTER: .*
     commands:
@@ -121,7 +122,6 @@ VikingVillage_URP_OSX_Metal_performance_playmode_editor_mono_Linear_trunk:
                 mkdir -p TestProjects/Viking-Village-Perf/test-results/
                 scp -i ~/.ssh/id_rsa_macmini -r bokken@$BOKKEN_DEVICE_IP:/Users/bokken/Graphics/TestProjects/Viking-Village-Perf/test-results/ TestProjects/Viking-Village-Perf/test-results/
                 exit $UTR_RESULT
-         retries: 2
     artifacts:
         logs:
             paths:
@@ -141,6 +141,7 @@ VikingVillage_URP_OSX_Metal_performance_build_editmode_mono_Linear_trunk:
         CUSTOM_REVISION: '{{trunk.changeset.id}}'
         VV_URP_BRANCH: master
         VV_URP_REVISION: eebe6db7d9b186603b63095a926d76ded2bf1110
+        CACHE_ARGS: '{{cache.flags}}'
         UTR_VERSION: "current"
         TEST_FILTER: .*
     commands:
@@ -182,7 +183,6 @@ VikingVillage_URP_OSX_Metal_performance_build_editmode_mono_Linear_trunk:
                 mkdir -p TestProjects/Viking-Village-Perf/test-results/
                 scp -i ~/.ssh/id_rsa_macmini -r bokken@$BOKKEN_DEVICE_IP:/Users/bokken/Graphics/TestProjects/Viking-Village-Perf/test-results/ TestProjects/Viking-Village-Perf/test-results/
                 exit $UTR_RESULT
-         retries: 2
     artifacts:
         logs:
             paths:
@@ -202,6 +202,7 @@ VikingVillage_URP_OSX_Metal_performance_playmode_runtime_mono_Linear_CUSTOM-REVI
         CUSTOM_REVISION: custom_revision_not_set
         VV_URP_BRANCH: master
         VV_URP_REVISION: eebe6db7d9b186603b63095a926d76ded2bf1110
+        CACHE_ARGS: '{{cache.flags}}'
         UTR_VERSION: "current"
         TEST_FILTER: .*
     commands:
@@ -243,7 +244,6 @@ VikingVillage_URP_OSX_Metal_performance_playmode_runtime_mono_Linear_CUSTOM-REVI
                 mkdir -p TestProjects/Viking-Village-Perf/test-results/
                 scp -i ~/.ssh/id_rsa_macmini -r bokken@$BOKKEN_DEVICE_IP:/Users/bokken/Graphics/TestProjects/Viking-Village-Perf/test-results/ TestProjects/Viking-Village-Perf/test-results/
                 exit $UTR_RESULT
-         retries: 2
     artifacts:
         logs:
             paths:
@@ -263,6 +263,7 @@ VikingVillage_URP_OSX_Metal_performance_playmode_editor_mono_Linear_CUSTOM-REVIS
         CUSTOM_REVISION: custom_revision_not_set
         VV_URP_BRANCH: master
         VV_URP_REVISION: eebe6db7d9b186603b63095a926d76ded2bf1110
+        CACHE_ARGS: '{{cache.flags}}'
         UTR_VERSION: "current"
         TEST_FILTER: .*
     commands:
@@ -304,7 +305,6 @@ VikingVillage_URP_OSX_Metal_performance_playmode_editor_mono_Linear_CUSTOM-REVIS
                 mkdir -p TestProjects/Viking-Village-Perf/test-results/
                 scp -i ~/.ssh/id_rsa_macmini -r bokken@$BOKKEN_DEVICE_IP:/Users/bokken/Graphics/TestProjects/Viking-Village-Perf/test-results/ TestProjects/Viking-Village-Perf/test-results/
                 exit $UTR_RESULT
-         retries: 2
     artifacts:
         logs:
             paths:
@@ -324,6 +324,7 @@ VikingVillage_URP_OSX_Metal_performance_build_editmode_mono_Linear_CUSTOM-REVISI
         CUSTOM_REVISION: custom_revision_not_set
         VV_URP_BRANCH: master
         VV_URP_REVISION: eebe6db7d9b186603b63095a926d76ded2bf1110
+        CACHE_ARGS: '{{cache.flags}}'
         UTR_VERSION: "current"
         TEST_FILTER: .*
     commands:
@@ -365,7 +366,6 @@ VikingVillage_URP_OSX_Metal_performance_build_editmode_mono_Linear_CUSTOM-REVISI
                 mkdir -p TestProjects/Viking-Village-Perf/test-results/
                 scp -i ~/.ssh/id_rsa_macmini -r bokken@$BOKKEN_DEVICE_IP:/Users/bokken/Graphics/TestProjects/Viking-Village-Perf/test-results/ TestProjects/Viking-Village-Perf/test-results/
                 exit $UTR_RESULT
-         retries: 2
     artifacts:
         logs:
             paths:
