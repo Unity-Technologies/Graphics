@@ -10,9 +10,20 @@ namespace UnityEditor.VFX.HDRP
     [VFXInfo(experimental = true)]
     class VFXDecalHDRPOutput : VFXAbstractParticleHDRPOutput
     {
-        public override string name { get { return "Output Particle HDRP Lit Decal"; } }
-        public override string codeGeneratorTemplate { get { return RenderPipeTemplate("VFXParticleHDRPDecal"); } }
-        public override VFXTaskType taskType { get { return VFXTaskType.ParticleHexahedronOutput; } }
+        public override string name
+        {
+            get { return "Output Particle HDRP Lit Decal"; }
+        }
+
+        public override string codeGeneratorTemplate
+        {
+            get { return RenderPipeTemplate("VFXParticleHDRPDecal"); }
+        }
+
+        public override VFXTaskType taskType
+        {
+            get { return VFXTaskType.ParticleHexahedronOutput; }
+        }
 
         public override void OnEnable()
         {
@@ -51,32 +62,31 @@ namespace UnityEditor.VFX.HDRP
         {
             get
             {
-                if(affectMetal)
+                if (affectMetal)
                     yield return new VFXPropertyWithValue(new VFXProperty(typeof(float),
-                    "metallic",
-                    new TooltipAttribute(useMaskMap ?
-                        "Controls the scale factor for the particle’s metallic." :
-                        "Controls the metallic of the decal."),
-                    new RangeAttribute(0,1)), 0.0f);
+                        "metallic",
+                        new TooltipAttribute(useMaskMap
+                            ? "Controls the scale factor for the particle’s metallic."
+                            : "Controls the metallic of the decal."),
+                        new RangeAttribute(0, 1)), 0.0f);
 
-                if(affectAmbientOcclusion)
+                if (affectAmbientOcclusion)
                     yield return new VFXPropertyWithValue(new VFXProperty(typeof(float),
                         "ambientOcclusion",
-                        new TooltipAttribute(useMaskMap ?
-                            "Controls the scale factor for the particle’s ambient occlusion." :
-                            "Controls the ambient occlusion of the decal."),
-                        new RangeAttribute(0,1)), 1.0f);
+                        new TooltipAttribute(useMaskMap
+                            ? "Controls the scale factor for the particle’s ambient occlusion."
+                            : "Controls the ambient occlusion of the decal."),
+                        new RangeAttribute(0, 1)), 1.0f);
 
-                if(affectSmoothness)
+                if (affectSmoothness)
                     yield return new VFXPropertyWithValue(new VFXProperty(typeof(float),
                         "smoothness",
-                        new TooltipAttribute(useMaskMap ?
-                            "Controls the scale factor for the particle’s smoothness." :
-                            "Controls the smoothness of the decal."),
-                        new RangeAttribute(0,1)), 0.5f);
+                        new TooltipAttribute(useMaskMap
+                            ? "Controls the scale factor for the particle’s smoothness."
+                            : "Controls the smoothness of the decal."),
+                        new RangeAttribute(0, 1)), 0.5f);
             }
         }
-
 
 
         public enum BlendSource
@@ -84,10 +94,13 @@ namespace UnityEditor.VFX.HDRP
             BaseColorMapAlpha,
             MaskMapBlue,
         }
-        [VFXSetting(VFXSettingAttribute.VisibleFlags.InInspector), SerializeField, Tooltip("Specifies the source this Material uses as opacity for its Normal Map.")]
+
+        [VFXSetting(VFXSettingAttribute.VisibleFlags.InInspector), SerializeField,
+         Tooltip("Specifies the source this Material uses as opacity for its Normal Map.")]
         BlendSource normalOpacityChannel = BlendSource.BaseColorMapAlpha;
 
-        [VFXSetting(VFXSettingAttribute.VisibleFlags.InInspector), SerializeField, Tooltip("Specifies the source this Material uses as opacity for its Mask Map.")]
+        [VFXSetting(VFXSettingAttribute.VisibleFlags.InInspector), SerializeField,
+         Tooltip("Specifies the source this Material uses as opacity for its Mask Map.")]
         BlendSource maskOpacityChannel = BlendSource.BaseColorMapAlpha;
 
         [VFXSetting(VFXSettingAttribute.VisibleFlags.InInspector), SerializeField,
@@ -95,19 +108,30 @@ namespace UnityEditor.VFX.HDRP
         private bool affectBaseColor = true;
 
         [VFXSetting(VFXSettingAttribute.VisibleFlags.InInspector), SerializeField,
-         Tooltip("When enabled, this decal uses the metallic channel of its Mask Map. When disabled, the decal has no metallic effect.")]
+         Tooltip(
+             "When enabled, this decal uses the metallic channel of its Mask Map. When disabled, the decal has no metallic effect.")]
         private bool affectMetal = true;
 
         [VFXSetting(VFXSettingAttribute.VisibleFlags.InInspector), SerializeField,
-         Tooltip("When enabled, this decal uses the ambient occlusion channel of its Mask Map. When disabled, the decal has no ambient occlusion effect.")]
+         Tooltip(
+             "When enabled, this decal uses the ambient occlusion channel of its Mask Map. When disabled, the decal has no ambient occlusion effect.")]
         private bool affectAmbientOcclusion = true;
 
         [VFXSetting(VFXSettingAttribute.VisibleFlags.InInspector), SerializeField,
-         Tooltip("When enabled, this decal uses the smoothness channel of its Mask Map. When disabled, the decal has no smoothness effect.")]
+         Tooltip(
+             "When enabled, this decal uses the smoothness channel of its Mask Map. When disabled, the decal has no smoothness effect.")]
         private bool affectSmoothness = true;
 
-        private bool enableDecalLayers => HDRenderPipeline.currentAsset.currentPlatformRenderPipelineSettings.supportDecals
-                                                  && HDRenderPipeline.currentAsset.currentPlatformRenderPipelineSettings.supportDecalLayers;
+
+        private bool supportDecals => HDRenderPipeline.currentAsset.currentPlatformRenderPipelineSettings.supportDecals;
+        private bool enableDecalLayers =>
+            supportDecals
+            && HDRenderPipeline.currentAsset.currentPlatformRenderPipelineSettings.supportDecalLayers;
+
+        private bool metalAndAODecals =>
+            supportDecals
+            && HDRenderPipeline.currentAsset.currentPlatformRenderPipelineSettings.decalSettings.perChannelMask;
+
 
         [VFXSetting(VFXSettingAttribute.VisibleFlags.InInspector), SerializeField,
          Tooltip("Specifies the layer mask of the decal.")]
@@ -115,8 +139,7 @@ namespace UnityEditor.VFX.HDRP
 
         public class FadeFactorProperty
         {
-            [Range(0, 1), Tooltip("Fade Factor.")]
-            public float fadeFactor = 1.0f;
+            [Range(0, 1), Tooltip("Fade Factor.")] public float fadeFactor = 1.0f;
         }
 
         public class AngleFadeProperty
@@ -124,6 +147,7 @@ namespace UnityEditor.VFX.HDRP
             [Tooltip("Angle Fade. Between 0 and 180."), MinMax(0.0f, 180.0f)]
             public Vector2 angleFade = new Vector2(0.0f, 180.0f);
         }
+
         protected override IEnumerable<VFXPropertyWithValue> inputProperties
         {
             get
@@ -140,7 +164,8 @@ namespace UnityEditor.VFX.HDRP
             }
         }
 
-        protected override IEnumerable<VFXNamedExpression> CollectGPUExpressions(IEnumerable<VFXNamedExpression> slotExpressions)
+        protected override IEnumerable<VFXNamedExpression> CollectGPUExpressions(
+            IEnumerable<VFXNamedExpression> slotExpressions)
         {
             foreach (var exp in base.CollectGPUExpressions(slotExpressions))
                 yield return exp;
@@ -148,31 +173,29 @@ namespace UnityEditor.VFX.HDRP
             if (GetOrRefreshShaderGraphObject() == null)
             {
                 yield return slotExpressions.First(o => o.name == "fadeFactor");
-                if(affectMetal)
+                if (affectMetal)
                     yield return slotExpressions.First(o => o.name == "metallic");
-                if(affectAmbientOcclusion)
+                if (affectAmbientOcclusion)
                     yield return slotExpressions.First(o => o.name == "ambientOcclusion");
-                if(affectSmoothness)
+                if (affectSmoothness)
                     yield return slotExpressions.First(o => o.name == "smoothness");
 
 
                 var angleFadeExp = slotExpressions.First(o => o.name == "angleFade");
                 yield return new VFXNamedExpression(AngleFadeSimplification(angleFadeExp.exp), "angleFade");
-                yield return new VFXNamedExpression(VFXValue.Constant((uint)decalLayer), "decalLayerMask");
-
-
+                yield return new VFXNamedExpression(VFXValue.Constant((uint) decalLayer), "decalLayerMask");
             }
         }
 
         VFXExpression AngleFadeSimplification(VFXExpression angleFadeExp)
         {
-            angleFadeExp = angleFadeExp / VFXValue.Constant(new Vector2(180.0f,180.0f));
+            angleFadeExp = angleFadeExp / VFXValue.Constant(new Vector2(180.0f, 180.0f));
             var angleStart = new VFXExpressionExtractComponent(angleFadeExp, 0);
             var angleEnd = new VFXExpressionExtractComponent(angleFadeExp, 1);
             var range = new VFXExpressionMax(VFXValue.Constant(0.0001f), angleEnd - angleStart);
             var simplifiedAngleFade = new VFXExpressionCombine(
                 VFXValue.Constant(1.0f) - (VFXValue.Constant(0.25f) - angleStart) / range,
-                VFXValue.Constant(-0.25f)/ range);
+                VFXValue.Constant(-0.25f) / range);
             return simplifiedAngleFade;
         }
 
@@ -241,7 +264,6 @@ namespace UnityEditor.VFX.HDRP
                     yield return "AFFECT_SMOOTHNESS";
                 if (useEmissive || useEmissiveMap)
                     yield return "NEEDS_FORWARD_EMISSIVE_PASS";
-
             }
         }
 
@@ -251,10 +273,12 @@ namespace UnityEditor.VFX.HDRP
             var maskString = "";
             switch (maskIndex)
             {
-                case 0 :
-                    rs.Write(affectBaseColor ? "RBGA" : "0"); break;
-                case 1 :
-                    rs.Write(useNormalMap ? "RGBA" : "0"); break;
+                case 0:
+                    rs.Write(affectBaseColor ? "RBGA" : "0");
+                    break;
+                case 1:
+                    rs.Write(useNormalMap ? "RGBA" : "0");
+                    break;
                 case 2:
                 {
                     if (affectMetal)
@@ -277,7 +301,7 @@ namespace UnityEditor.VFX.HDRP
                     rs.Write(maskString);
                     break;
                 }
-                case 3 :
+                case 3:
                     if (affectMetal)
                     {
                         maskString += "R";
@@ -287,6 +311,7 @@ namespace UnityEditor.VFX.HDRP
                     {
                         maskString += "G";
                     }
+
                     if (String.IsNullOrEmpty(maskString))
                         maskString = "0";
                     rs.Write(maskString);
@@ -306,8 +331,28 @@ namespace UnityEditor.VFX.HDRP
 
                 for (int i = 0; i < 4; i++)
                 {
-                    yield return new KeyValuePair<string, VFXShaderWriter>("${VFXDecalColorMask" + i + "}", GetDecalMaskColor(i));
+                    yield return new KeyValuePair<string, VFXShaderWriter>("${VFXDecalColorMask" + i + "}",
+                        GetDecalMaskColor(i));
                 }
+            }
+        }
+
+        protected override void GenerateErrors(VFXInvalidateErrorReporter manager)
+        {
+            base.GenerateErrors(manager);
+            if (!enableDecalLayers)
+            {
+                manager.RegisterError("DecalLayersDisabled", VFXErrorType.Warning,
+                    $"The Angle Fade parameter won't have any effect, because the 'Decal Layers' setting is disabled." +
+                    $" Enable 'Decal Layers' in your HDRP Asset if you want to control the Angle Fade." +
+                    $" There is a performance cost of enabling this option.");
+            }
+
+            if (!metalAndAODecals)
+            {
+                manager.RegisterError("DecalMetalAODisabled", VFXErrorType.Warning,
+                    $"The Metallic and Ambient Occlusion parameters won't have any effect, because the 'Metal and AO properties' setting is disabled." +
+                    $" Enable 'Metal and AO properties' in your HDRP Asset if you want to control the Metal and AO properties of decals. There is a performance cost of enabling this option.");
             }
         }
     }
