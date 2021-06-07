@@ -126,10 +126,13 @@ namespace UnityEditor.VFX
             var topRadius = topRadiusProperty != null ? topRadiusProperty.GetValue() : 1.0f;
             var height = heightProperty != null ? heightProperty.GetValue() : 1.0f;
 
+            var backupColor = Handles.color;
+
             gizmo.PositionGizmo(center, angles, centerProperty, false);
             gizmo.RotationGizmo(center, angles, anglesProperty, false);
             gizmo.ScaleGizmo(center, angles, scale, scaleProperty, false);
 
+            Handles.color = Color.white;
             using (new Handles.DrawingScope(Handles.matrix * Matrix4x4.TRS(center, Quaternion.Euler(angles), scale)))
             {
                 if (baseRadiusScreen > 2 && baseRadiusProperty.isEditable)
@@ -169,6 +172,7 @@ namespace UnityEditor.VFX
                         heightProperty.SetValue(result.magnitude);
                 }
             }
+            Handles.color = backupColor;
         }
 
         Extremities extremities;
