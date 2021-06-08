@@ -72,6 +72,8 @@ Nightly_URP_trunk:
          rerun: on_new_revision
       -  path: .yamato/all-urpupdate_top_asset_store.yml#URPUpdate_Top_Asset_Store_trunk
          rerun: on_new_revision
+      -  path: .yamato/urp_upgrade.yml#URP_Upgrade_test_win_trunk
+         rerun: on_new_revision
 PR_URP_CUSTOM-REVISION:
     name: PR URP on CUSTOM-REVISION
     variables:
@@ -133,4 +135,6 @@ Nightly_URP_CUSTOM-REVISION:
       -  path: .yamato/all-urpupdate_boatattack.yml#URPUpdate_BoatAttack_CUSTOM-REVISION
          rerun: on_new_revision
       -  path: .yamato/all-urpupdate_top_asset_store.yml#URPUpdate_Top_Asset_Store_CUSTOM-REVISION
+         rerun: on_new_revision
+      -  path: .yamato/urp_upgrade.yml#URP_Upgrade_test_win_CUSTOM-REVISION
          rerun: on_new_revision

@@ -34,3 +34,5 @@ jobs:
       - .yamato/all-urp_perf.yml#URP_Perf_<TRACK>
       - .yamato/all-urpupdate_boatattack.yml#URPUpdate_BoatAttack_<TRACK>
       - .yamato/all-urpupdate_top_asset_store.yml#URPUpdate_Top_Asset_Store_<TRACK>
+      - .yamato/urp_upgrade.yml#URP_Upgrade_test_win_<TRACK>
+
