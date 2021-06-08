@@ -160,6 +160,13 @@ namespace UnityEngine.Experimental.Rendering
                     m_MaxDilationSampleDistance.floatValue = EditorGUILayout.FloatField("Dilation Distance", m_MaxDilationSampleDistance.floatValue);
                     DilationValidityThresholdInverted = EditorGUILayout.Slider("Dilation Validity Threshold", DilationValidityThresholdInverted, 0f, 1f);
                     m_DilationIterations.intValue = EditorGUILayout.IntSlider("Dilation Iteration Count", m_DilationIterations.intValue, 1, 5);
+
+                    if (GUILayout.Button(EditorGUIUtility.TrTextContent("Reperform dilation"), EditorStyles.miniButton))
+                    {
+                        ProbeGIBaking.RevertDilation();
+                        ProbeGIBaking.PerformDilation();
+                    }
+
                     EditorGUI.EndDisabledGroup();
                 }
                 EditorGUILayout.EndFoldoutHeaderGroup();
