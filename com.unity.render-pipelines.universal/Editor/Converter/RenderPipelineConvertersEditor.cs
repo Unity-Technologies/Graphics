@@ -199,6 +199,7 @@ namespace UnityEditor.Rendering.Universal.Converters
 
         void ReCreateUI()
         {
+            m_SerializedObject.Update();
             // This is temp now to get the information filled in
             rootVisualElement.Q<DropdownField>("conversionsDropDown").RegisterCallback<ChangeEvent<string>>((evt) =>
             {
