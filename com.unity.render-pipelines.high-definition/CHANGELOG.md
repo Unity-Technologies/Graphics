@@ -243,6 +243,8 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed error with motion blur and small render targets.
 - Fixed issue with on-demand directional shadow maps looking broken when a reflection probe is updated at the same time.
 - Fixed cropping issue with the compositor camera bridge (case 1340549).
+- Fixed some resolution aliasing for physically based depth of field (case 1340551).
+- Fixed an issue with resolution dependence for physically based depth of field.
 
 ### Changed
 - Changed Window/Render Pipeline/HD Render Pipeline Wizard to Window/Rendering/HDRP Wizard
