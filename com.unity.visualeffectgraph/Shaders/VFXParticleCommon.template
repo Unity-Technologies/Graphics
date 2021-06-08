@@ -197,6 +197,8 @@ void frag(ps_input i
 {
 	UNITY_SETUP_STEREO_EYE_INDEX_POST_VERTEX(i);
 	VFXTransformPSInputs(i);
+	${VFXComputeNormalWS}
+
     #ifdef VFX_SHADERGRAPH
         ${VFXAdditionalInterpolantsPreparation}
         ${SHADERGRAPH_PIXEL_CALL_DEPTHONLY}
