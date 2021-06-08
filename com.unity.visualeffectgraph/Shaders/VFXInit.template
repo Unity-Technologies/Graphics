@@ -104,11 +104,13 @@ void CSMain(uint3 groupId          : SV_GroupID,
 
         #if USE_PREFIX_SUM
             //Experiment to identify a possible OOB
-            for (; sourceIndex < nbEvent; ++sourceIndex)
+            /*for (; sourceIndex < nbEvents; ++sourceIndex)
             {
                 if (id < prefixSumSpawnCount[sourceIndex])
                     break;
             }
+			*/
+			//^ Incorrect but more agressive
 
             /*
             uint left = 0;
