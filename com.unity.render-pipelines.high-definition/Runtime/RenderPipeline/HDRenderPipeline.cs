@@ -1774,6 +1774,7 @@ namespace UnityEngine.Rendering.HighDefinition
                                     var aovHistory = renderRequest.hdCamera.GetHistoryRTHandleSystem(aovRequest);
                                     renderRequest.hdCamera.BindHistoryRTHandleSystem(aovHistory);
                                     cmd.SetInvertCulling(renderRequest.cameraSettings.invertFaceCulling);
+                                    DebugData.StartRenderRequest(renderRequest.hdCamera, renderRequest.cameraSettings);
                                     ExecuteRenderRequest(renderRequest, renderContext, cmd, aovRequest);
                                     cmd.SetInvertCulling(false);
                                 }
@@ -1788,6 +1789,7 @@ namespace UnityEngine.Rendering.HighDefinition
                             using (new ProfilingScope(cmd, renderRequest.hdCamera.profilingSampler))
                             {
                                 cmd.SetInvertCulling(renderRequest.cameraSettings.invertFaceCulling);
+                                DebugData.StartRenderRequest(renderRequest.hdCamera, renderRequest.cameraSettings);
                                 ExecuteRenderRequest(renderRequest, renderContext, cmd, AOVRequestData.defaultAOVRequestDataNonAlloc);
                                 cmd.SetInvertCulling(false);
                             }

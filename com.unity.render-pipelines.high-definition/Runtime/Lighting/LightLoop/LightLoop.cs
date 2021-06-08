@@ -2388,6 +2388,9 @@ namespace UnityEngine.Rendering.HighDefinition
                         {
                             GetDirectionalLightData(cmd, hdCamera, light, lightComponent, lightIndex, shadowIndex, directionalLightcount, isPbrSkyActive, ref m_ScreenSpaceShadowIndex, ref m_ScreenSpaceShadowChannelSlot);
 
+                            // Assuming the last light is the only one added and exactly one added in the array above
+                            DebugData.AddDirectionalLight(lightComponent, m_lightList.directionalLights[m_lightList.directionalLights.Count - 1]);
+
                             directionalLightcount++;
 
                             // We make the light position camera-relative as late as possible in order
@@ -2410,6 +2413,8 @@ namespace UnityEngine.Rendering.HighDefinition
 
                             // Punctual, area, projector lights - the rendering side.
                             GetLightData(cmd, hdCamera, hdShadowSettings, light, lightComponent, in m_ProcessedLightData[lightIndex], shadowIndex, contactShadowScalableSetting, isRasterization: true, ref lightDimensions, ref m_ScreenSpaceShadowIndex, ref m_ScreenSpaceShadowChannelSlot, ref lightData);
+
+                            DebugData.AddLight(lightComponent, lightData);
 
                             // Add the previously created light data
                             m_lightList.lights.Add(lightData);
