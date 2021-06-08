@@ -365,6 +365,9 @@ namespace UnityEditor.Rendering.HighDefinition
 
                 void AddDiffusionProfileToSettings(string propName)
                 {
+                    if (Application.isBatchMode || HDRenderPipelineGlobalSettings.instance == null
+                        || HDRenderPipelineGlobalSettings.instance.diffusionProfileSettingsList == null) return;
+
                     bool diffusionProfileCanBeAdded = HDRenderPipelineGlobalSettings.instance.diffusionProfileSettingsList.Length < 15;
                     DiffusionProfileSettings diffusionProfile = null;
 
