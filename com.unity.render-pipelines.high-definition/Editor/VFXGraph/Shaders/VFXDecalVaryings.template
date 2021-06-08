@@ -31,9 +31,30 @@ ${VFXBegin:VFXHDRPDecalVaryingsMacros}
 #define VFX_VARYING_EXPOSUREWEIGHT emissiveColor.a
 #endif
 
+
+#if USE_FLIPBOOK
+#if USE_FLIPBOOK_ARRAY_LAYOUT
+	#define VFX_VARYING_FLIPBOOKSIZE flipBookSize
+#else
+	#define VFX_VARYING_FLIPBOOKSIZE flipBookSize.xy
+	#define VFX_VARYING_INVFLIPBOOKSIZE flipBookSize.zw
+#endif
+#if USE_FLIPBOOK_MOTIONVECTORS
+#define VFX_VARYING_MOTIONVECTORSCALE builtInInterpolants.xy
+#define VFX_VARYING_TEXINDEX builtInInterpolants.z
+#else
+#define VFX_VARYING_TEXINDEX texIndex
+#endif
+#endif
+
+#if USE_UV_SCALE_BIAS
+#define VFX_VARYING_UV_SCALE scaleBias.xy
+#define VFX_VARYING_UV_BIAS scaleBias.zw
+#endif
+
+
 #define VFX_VARYING_PS_INPUTS ps_input
 #define VFX_VARYING_POSCS pos
-#define VFX_VARYING_UV uv
 #define VFX_VARYING_POSWS posWS
 #define VFX_VARYING_FADEFACTOR fadeParameters.x
 #define VFX_VARYING_ANGLEFADE fadeParameters.yz
@@ -53,9 +74,28 @@ VFX_OPTIONAL_INTERPOLATION float4 emissiveColor : COLOR1;
 // z: smoothness
 // w: emissive scale
 VFX_OPTIONAL_INTERPOLATION float4 materialProperties : TEXCOORD0;
-float2 uv : TEXCOORD1; //unsure about the necessity of this one
-float3 posWS : TEXCOORD2;
-float3 fadeParameters : TEXCOORD3;
+#if USE_FLIPBOOK
+#if USE_FLIPBOOK_ARRAY_LAYOUT
+	nointerpolation float flipBookSize : TEXCOORD1;
+#else
+	nointerpolation float4 flipBookSize : TEXCOORD1;
+#endif
+#if USE_FLIPBOOK_MOTIONVECTORS
+// x: motion vectors scale X
+// y: motion vectors scale Y
+// z: texIndex
+nointerpolation float3 builtInInterpolants : TEXCOORD2;
+#else
+nointerpolation float texIndex : TEXCOORD2;
+#endif
+#endif
+
+#if USE_UV_SCALE_BIAS
+nointerpolation float4 scaleBias : TEXCOORD1;
+#endif
+
+float3 posWS : TEXCOORD3;
+float3 fadeParameters : TEXCOORD4;
 
 nointerpolation float4 viewToDecal0 : TEXCOORD5;
 nointerpolation float4 viewToDecal1 : TEXCOORD6;

@@ -55,38 +55,12 @@ namespace UnityEditor.VFX.HDRP
                 yield return new VFXAttributeInfo(VFXAttribute.ScaleX, VFXAttributeMode.Read);
                 yield return new VFXAttributeInfo(VFXAttribute.ScaleY, VFXAttributeMode.Read);
                 yield return new VFXAttributeInfo(VFXAttribute.ScaleZ, VFXAttributeMode.Read);
+                if (usesFlipbook)
+                    yield return new VFXAttributeInfo(VFXAttribute.TexIndex, VFXAttributeMode.Read);
             }
         }
 
-        protected IEnumerable<VFXPropertyWithValue> materialProperties
-        {
-            get
-            {
-                if (affectMetal)
-                    yield return new VFXPropertyWithValue(new VFXProperty(typeof(float),
-                        "metallic",
-                        new TooltipAttribute(useMaskMap
-                            ? "Controls the scale factor for the particle’s metallic."
-                            : "Controls the metallic of the decal."),
-                        new RangeAttribute(0, 1)), 0.0f);
 
-                if (affectAmbientOcclusion)
-                    yield return new VFXPropertyWithValue(new VFXProperty(typeof(float),
-                        "ambientOcclusion",
-                        new TooltipAttribute(useMaskMap
-                            ? "Controls the scale factor for the particle’s ambient occlusion."
-                            : "Controls the ambient occlusion of the decal."),
-                        new RangeAttribute(0, 1)), 1.0f);
-
-                if (affectSmoothness)
-                    yield return new VFXPropertyWithValue(new VFXProperty(typeof(float),
-                        "smoothness",
-                        new TooltipAttribute(useMaskMap
-                            ? "Controls the scale factor for the particle’s smoothness."
-                            : "Controls the smoothness of the decal."),
-                        new RangeAttribute(0, 1)), 0.5f);
-            }
-        }
 
 
         public enum BlendSource
@@ -137,6 +111,9 @@ namespace UnityEditor.VFX.HDRP
          Tooltip("Specifies the layer mask of the decal.")]
         private DecalLayerEnum decalLayer = DecalLayerEnum.LightLayerDefault;
 
+        public override bool supportsUV { get { return GetOrRefreshShaderGraphObject() == null; } }
+
+
         public class FadeFactorProperty
         {
             [Range(0, 1), Tooltip("Fade Factor.")] public float fadeFactor = 1.0f;
@@ -144,8 +121,39 @@ namespace UnityEditor.VFX.HDRP
 
         public class AngleFadeProperty
         {
-            [Tooltip("Angle Fade. Between 0 and 180."), MinMax(0.0f, 180.0f)]
+            [Tooltip("Use the min-max slider to control the fade out range of the decal based on the angle between the Decal backward direction and the vertex normal of the receiving surface." +
+                     " Only available if Decal Layers feature is enabled."), MinMax(0.0f, 180.0f)]
             public Vector2 angleFade = new Vector2(0.0f, 180.0f);
+        }
+
+        protected IEnumerable<VFXPropertyWithValue> materialProperties
+        {
+            get
+            {
+                if (affectMetal)
+                    yield return new VFXPropertyWithValue(new VFXProperty(typeof(float),
+                        "metallic",
+                        new TooltipAttribute(useMaskMap
+                            ? "Controls the scale factor for the particle’s metallic."
+                            : "Controls the metallic of the decal."),
+                        new RangeAttribute(0, 1)), 0.0f);
+
+                if (affectAmbientOcclusion)
+                    yield return new VFXPropertyWithValue(new VFXProperty(typeof(float),
+                        "ambientOcclusion",
+                        new TooltipAttribute(useMaskMap
+                            ? "Controls the scale factor for the particle’s ambient occlusion."
+                            : "Controls the ambient occlusion of the decal."),
+                        new RangeAttribute(0, 1)), 1.0f);
+
+                if (affectSmoothness)
+                    yield return new VFXPropertyWithValue(new VFXProperty(typeof(float),
+                        "smoothness",
+                        new TooltipAttribute(useMaskMap
+                            ? "Controls the scale factor for the particle’s smoothness."
+                            : "Controls the smoothness of the decal."),
+                        new RangeAttribute(0, 1)), 0.5f);
+            }
         }
 
         protected override IEnumerable<VFXPropertyWithValue> inputProperties

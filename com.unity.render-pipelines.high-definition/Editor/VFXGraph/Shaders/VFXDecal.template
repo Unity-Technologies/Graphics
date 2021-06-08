@@ -53,7 +53,7 @@ if(_EnableDecalLayers)
 	clip(1.0f - abs(elementPos));
 
 	float2 uv = elementPos.xy * 0.5f + 0.5f;
-	VFXUVData uvData = GetUVData(uv);
+	VFXUVData uvData = GetUVData(i,uv);
     float angleFadeFactor = 1.0f;
 
 if(_EnableDecalLayers)
