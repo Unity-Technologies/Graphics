@@ -8,6 +8,7 @@ namespace UnityEngine.Experimental.Rendering
     {
         SH,
         Validity,
+        ValidityOverDilationThreshold,
         Size
     }
 
@@ -48,6 +49,8 @@ namespace UnityEngine.Experimental.Rendering
         Material                        m_DebugMaterial;
         List<CellInstancedDebugProbes>  m_CellDebugData = new List<CellInstancedDebugProbes>();
         Plane[]                         m_DebugFrustumPlanes = new Plane[6];
+
+        internal float dilationValidtyThreshold = 0.25f; // We ned to store this here to access it
 
 
         /// <summary>
@@ -216,6 +219,7 @@ namespace UnityEngine.Experimental.Rendering
                         props.SetFloat("_ProbeSize", debugDisplay.probeSize);
                         props.SetFloat("_CullDistance", debugDisplay.probeCullingDistance);
                         props.SetInt("_MaxAllowedSubdiv", debugDisplay.maxSubdivToVisualize);
+                        props.SetFloat("_ValidityThreshold", dilationValidtyThreshold);
 
                         Graphics.DrawMeshInstanced(m_DebugMesh, 0, m_DebugMaterial, probeBuffer, probeBuffer.Length, props, ShadowCastingMode.Off, false, 0, camera, LightProbeUsage.Off, null);
                     }
@@ -279,7 +283,7 @@ namespace UnityEngine.Experimental.Rendering
                 debugData.cellPosition = cell.position;
 
                 Vector4[] positionBuffer = new Vector4[kProbesPerBatch];
-                Vector4[] validityColors = new Vector4[kProbesPerBatch];
+                float[] validity = new float[kProbesPerBatch];
 
                 for (int batchIndex = 0; batchIndex < probeMaps.Count; batchIndex++)
                 {
@@ -289,11 +293,11 @@ namespace UnityEngine.Experimental.Rendering
 
                         var pos = cell.probePositions[probeIdx];
                         positionBuffer[indexInBatch] = new Vector4(pos.x, pos.y, pos.z, 0.0f);
-                        validityColors[indexInBatch] = Color.Lerp(Color.green, Color.red, cell.validity[probeIdx]);
+                        validity[indexInBatch] = cell.validity[probeIdx];
                     }
 
                     debugData.props[batchIndex].SetVectorArray("_Position", positionBuffer);
-                    debugData.props[batchIndex].SetVectorArray("_Validity", validityColors);
+                    debugData.props[batchIndex].SetFloatArray("_Validity", validity);
                 }
 
                 m_CellDebugData.Add(debugData);
