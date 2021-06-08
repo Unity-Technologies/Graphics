@@ -108,7 +108,8 @@ void CSMain(uint3 groupId          : SV_GroupID,
             while (left <= right)
             {
                 sourceIndex = (int)((left + right) / 2);
-                if (id < prefixSumSpawnCount[sourceIndex] && (sourceIndex == 0 || id >= prefixSumSpawnCount[sourceIndex-1]))
+                int previousIndex = max(sourceIndex - 1, 0); //max is needed to prevent oob (branching evaluation isn't explicit here)
+                if (id < prefixSumSpawnCount[sourceIndex] && (sourceIndex == 0 || id >= prefixSumSpawnCount[previousIndex]))
                     break;
 
                 if (id < prefixSumSpawnCount[sourceIndex])
