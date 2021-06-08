@@ -38,18 +38,7 @@ namespace UnityEditor.Rendering.HighDefinition
         /// <param name="props">The list of properties the material has.</param>
         protected override void OnMaterialGUI(MaterialEditor materialEditor, MaterialProperty[] props)
         {
-            // always instanced
-            SerializedProperty instancing = materialEditor.serializedObject.FindProperty("m_EnableInstancingVariants");
-            instancing.boolValue = true;
-
-            using (var changed = new EditorGUI.ChangeCheckScope())
-            {
-                uiBlocks.OnGUI(materialEditor, props);
-                ApplyKeywordsAndPassesIfNeeded(changed.changed, uiBlocks.materials);
-            }
-
-            // We should always do this call at the end
-            materialEditor.serializedObject.ApplyModifiedProperties();
+            uiBlocks.OnGUI(materialEditor, props);
         }
 
         // All Setup Keyword functions must be static. It allow to create script to automatically update the shaders with a script if code change
@@ -63,6 +52,6 @@ namespace UnityEditor.Rendering.HighDefinition
         /// Sets up the keywords and passes for the current selected material.
         /// </summary>
         /// <param name="material">The selected material.</param>
-        protected override void SetupMaterialKeywordsAndPass(Material material) => SetupDecalKeywordsAndPass(material);
+        public override void ValidateMaterial(Material material) => SetupDecalKeywordsAndPass(material);
     }
 }

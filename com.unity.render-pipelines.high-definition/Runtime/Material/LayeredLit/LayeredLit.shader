@@ -95,7 +95,7 @@ Shader "HDRP/LayeredLit"
         _HeightMap3("HeightMap3", 2D) = "black" {}
 
         // Caution: Default value of _HeightAmplitude must be (_HeightMax - _HeightMin) * 0.01
-        // Those two properties are computed from the ones exposed in the UI and depends on the displaement mode so they are separate because we don't want to lose information upon displacement mode change.
+        // These two properties are computed from exposed properties by the UI block and are separated so we don't lose information by changing displacement mode in the UI block
         [HideInInspector] _HeightAmplitude0("Height Scale0", Float) = 0.02
         [HideInInspector] _HeightAmplitude1("Height Scale1", Float) = 0.02
         [HideInInspector] _HeightAmplitude2("Height Scale2", Float) = 0.02
@@ -698,6 +698,7 @@ Shader "HDRP/LayeredLit"
             #pragma multi_compile_fragment PROBE_VOLUMES_OFF PROBE_VOLUMES_L1 PROBE_VOLUMES_L2
             // Setup DECALS_OFF so the shader stripper can remove variants
             #pragma multi_compile_fragment DECALS_OFF DECALS_3RT DECALS_4RT
+            #pragma multi_compile_fragment _ DECAL_SURFACE_GRADIENT
             #pragma multi_compile_fragment _ LIGHT_LAYERS
 
         #ifndef DEBUG_DISPLAY
@@ -932,6 +933,7 @@ Shader "HDRP/LayeredLit"
             #pragma multi_compile_fragment SCREEN_SPACE_SHADOWS_OFF SCREEN_SPACE_SHADOWS_ON
             // Setup DECALS_OFF so the shader stripper can remove variants
             #pragma multi_compile_fragment DECALS_OFF DECALS_3RT DECALS_4RT
+            #pragma multi_compile_fragment _ DECAL_SURFACE_GRADIENT
 
             // Supported shadow modes per light type
             #pragma multi_compile_fragment SHADOW_LOW SHADOW_MEDIUM SHADOW_HIGH SHADOW_VERY_HIGH

@@ -55,6 +55,8 @@ namespace UnityEngine.Rendering.HighDefinition
         {
             using (new ProfilingScope(cmd, ProfilingSampler.Get(HDProfileId.VolumetricCloudsShadow)))
             {
+                CoreUtils.SetKeyword(cmd, "LOCAL_VOLUMETRIC_CLOUDS", parameters.localClouds);
+
                 // Bind the constant buffer
                 ConstantBuffer.Push(cmd, parameters.cloudsCB, parameters.volumetricCloudsCS, HDShaderIDs._ShaderVariablesClouds);
 

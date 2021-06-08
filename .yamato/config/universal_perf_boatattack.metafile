@@ -3,12 +3,16 @@ project:
   folder: BoatAttack
   variables:
     BOAT_ATTACK_BRANCH: master
-    BOAT_ATTACK_REVISION: d07745c0d9bc97cde5fc4ae86186d6c2f0c2a16c
+    BOAT_ATTACK_REVISION: ca18e346b30b365e90d1a9a149d07abfb15ac2a2
 
 reuse_blocks:
   unity_config:
-    - [iPhone_Metal, OSX_Metal, Linux_Vulkan]: git clone https://github.com/Unity-Technologies/BoatAttack.git -b $BOAT_ATTACK_BRANCH TestProjects/BoatAttack
-    - [Win_DX11, Win_DX12, Win_Vulkan, Android_OpenGLES3, Android_Vulkan, XRQuest_Vulkan, XRQuest_OpenGLES3]: git clone https://github.com/Unity-Technologies/BoatAttack.git -b %BOAT_ATTACK_BRANCH% TestProjects/BoatAttack
+    - [iPhone_Metal, OSX_Metal, Linux_Vulkan]:
+      - command: git clone https://github.com/Unity-Technologies/BoatAttack.git -b $BOAT_ATTACK_BRANCH TestProjects/BoatAttack
+        retries: 3
+    - [Win_DX11, Win_DX12, Win_Vulkan, Android_OpenGLES3, Android_Vulkan, XRQuest_Vulkan, XRQuest_OpenGLES3]:
+      - command: git clone https://github.com/Unity-Technologies/BoatAttack.git -b %BOAT_ATTACK_BRANCH% TestProjects/BoatAttack
+        retries: 3
 
     - [iPhone_Metal, OSX_Metal, Linux_Vulkan]: cd TestProjects/BoatAttack && git checkout $BOAT_ATTACK_REVISION
     - [Win_DX11, Win_DX12, Win_Vulkan, Android_OpenGLES3, Android_Vulkan, XRQuest_Vulkan, XRQuest_OpenGLES3]: cd TestProjects/BoatAttack && git checkout %BOAT_ATTACK_REVISION%
@@ -64,6 +68,7 @@ reuse_blocks:
 test_platforms:
   - type: Standalone
     name: performance_playmode_runtime
+    allow_cache: False
     commands:
       - [OSX_Metal]: <reuse_blocks.unity_config>
       - [Android_OpenGLES3, Android_Vulkan]: <shared.platform.commands.connect_bokken>
@@ -97,8 +102,12 @@ test_platforms:
 
     commands_build:
       - <reuse_blocks.unity_config>
-      - [iPhone_Metal]: pip install unity-downloader-cli --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade
-      - [iPhone_Metal]: unity-downloader-cli <EDITOR_REVISION_CMD> -c editor -c iOS -c il2cpp   --wait --published-only
+      - [iPhone_Metal]:
+        - command: pip install unity-downloader-cli --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade
+          retries: 2
+      - [iPhone_Metal]:
+        - command: unity-downloader-cli <EDITOR_REVISION_CMD> -c editor -c iOS -c il2cpp   --wait --published-only
+          retries: 2
       - [Win_DX11, Win_DX12, Win_Vulkan, Android_OpenGLES3, Android_Vulkan, XRQuest_Vulkan, XRQuest_OpenGLES3]: <shared.platform.commands.turn_off_firewall>
       - [all]: <shared.platform.commands.setup_utr>
       - [Android_Vulkan, Android_OpenGLES3, XRQuest_Vulkan, XRQuest_OpenGLES3, Win_DX11, Win_DX12, Win_Vulkan, OSX_Metal, Linux_Vulkan]: <shared.platform.commands.unity_downloader_cli>
@@ -131,6 +140,7 @@ test_platforms:
 
   - type: playmode
     name: performance_playmode_editor
+    allow_cache: False
     commands:
       - <reuse_blocks.unity_config>
       - [Win_DX11, Win_DX12, Win_Vulkan, Android_OpenGLES3, Android_Vulkan]: <shared.platform.commands.turn_off_firewall>
@@ -156,6 +166,7 @@ test_platforms:
           - [all]: --testfilter=High
   - type: editmode
     name: performance_build_editmode
+    allow_cache: False
     commands:
       - <reuse_blocks.unity_config>
       - [Win_DX11, Win_DX12, Win_Vulkan, Android_OpenGLES3, Android_Vulkan]: <shared.platform.commands.turn_off_firewall>
@@ -182,8 +193,7 @@ test_platforms:
           - [all]: --performance-project-id=BoatAttack
           - <reuse_blocks.perf_utr_flags>
           - [all]: --testfilter=High
-expression_trigger:
-  expression: ""
+
 platforms:
   - name: Win
     apis:
@@ -200,7 +210,7 @@ platforms:
       default:
         type: Unity::VM::GPU
         image: sdet/gamecode_win10:stable
-        flavor: b1.large
+        flavor: b1.xlarge
         model: rtx2080
       standalone_build:
         type: Unity::VM
@@ -277,7 +287,7 @@ platforms:
         flavor: b1.medium
       standalone_build:
         type: Unity::VM::osx
-        image: mobile/macos-10.13-testing:stable
+        image: mobile/macos-10.14-testing:stable
         flavor: b1.large
       performance_build_editmode:
         type: Unity::VM::osx
@@ -297,74 +307,72 @@ platforms:
       - name: mono
     color_spaces:
       - Linear
-pr:
-  dependencies:
-    - platform: Win
-      api: DX11
-      build_config: mono
-      color_space: Linear
-      test_platforms:
-        - performance_playmode_runtime
-        - performance_playmode_editor
-        - performance_build_editmode
-    - platform: Win
-      api: Vulkan
-      build_config: mono
-      color_space: Linear
-      test_platforms:
-        - performance_playmode_runtime
-        #- performance_playmode_editor
-        - performance_build_editmode
-    - platform: Win
-      api: DX12
-      build_config: mono
-      color_space: Linear
-      test_platforms:
-        - performance_playmode_runtime
-        - performance_playmode_editor
-        - performance_build_editmode
-    - platform: Android
-      api: OpenGLES3
-      build_config: il2cpp
-      color_space: Linear
-      test_platforms:
-        - performance_playmode_runtime
-        - performance_build_editmode
-    - platform: Android
-      api: Vulkan
-      build_config: il2cpp
-      color_space: Linear
-      test_platforms:
-        - performance_playmode_runtime
-        - performance_build_editmode
-    - platform: iPhone
-      api: Metal
-      build_config: il2cpp
-      color_space: Linear
-      test_platforms:
-        - performance_playmode_runtime
-        - performance_build_editmode
-    - platform: Linux
-      api: Vulkan
-      build_config: mono
-      color_space: Linear
-      test_platforms:
-        - performance_playmode_runtime
-        - performance_playmode_editor
-        - performance_build_editmode
-nightly:
-  dependencies:
-    - platform: XRQuest
-      api: OpenGLES3
-      build_config: il2cpp
-      color_space: Linear
-      test_platforms:
-        - performance_playmode_runtime
-    - platform: XRQuest
-      api: Vulkan
-      build_config: il2cpp
-      color_space: Linear
-      test_platforms:
-        - performance_playmode_runtime
-    - project: URP_Performance_BoatAttack
-      pr: true
+
+jobs:
+  - name: <PROJECT_NAME>
+    dependencies:
+      - platform: Win
+        api: DX11
+        build_config: mono
+        color_space: Linear
+        test_platforms:
+          - performance_playmode_runtime
+          - performance_playmode_editor
+          - performance_build_editmode
+      - platform: Win
+        api: Vulkan
+        build_config: mono
+        color_space: Linear
+        test_platforms:
+          - performance_playmode_runtime
+          #- performance_playmode_editor
+          - performance_build_editmode
+      - platform: Win
+        api: DX12
+        build_config: mono
+        color_space: Linear
+        test_platforms:
+          - performance_playmode_runtime
+          - performance_playmode_editor
+          - performance_build_editmode
+      - platform: Android
+        api: OpenGLES3
+        build_config: il2cpp
+        color_space: Linear
+        test_platforms:
+          - performance_playmode_runtime
+          - performance_build_editmode
+      - platform: Android
+        api: Vulkan
+        build_config: il2cpp
+        color_space: Linear
+        test_platforms:
+          - performance_playmode_runtime
+          - performance_build_editmode
+      - platform: iPhone
+        api: Metal
+        build_config: il2cpp
+        color_space: Linear
+        test_platforms:
+          - performance_playmode_runtime
+          - performance_build_editmode
+      - platform: Linux
+        api: Vulkan
+        build_config: mono
+        color_space: Linear
+        test_platforms:
+          - performance_playmode_runtime
+          - performance_playmode_editor
+          - performance_build_editmode
+      - platform: XRQuest
+        api: OpenGLES3
+        build_config: il2cpp
+        color_space: Linear
+        test_platforms:
+          - performance_playmode_runtime
+      - platform: XRQuest
+        api: Vulkan
+        build_config: il2cpp
+        color_space: Linear
+        test_platforms:
+          - performance_playmode_runtime

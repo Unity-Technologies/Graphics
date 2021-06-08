@@ -280,7 +280,7 @@ namespace UnityEngine.Rendering
         internal bool GetActionReleaseScrollTarget()
         {
 #if USE_INPUT_SYSTEM
-            bool mouseWheelActive = Mouse.current.scroll.ReadValue() != Vector2.zero;
+            bool mouseWheelActive = Mouse.current != null && Mouse.current.scroll.ReadValue() != Vector2.zero;
             bool touchSupported = Touchscreen.current != null;
 #else
             bool mouseWheelActive = Input.mouseScrollDelta != Vector2.zero;

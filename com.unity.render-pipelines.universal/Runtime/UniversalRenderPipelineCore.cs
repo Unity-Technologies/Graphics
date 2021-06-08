@@ -37,6 +37,7 @@ namespace UnityEngine.Rendering.Universal
         public int additionalLightsCount;
         public int maxPerObjectAdditionalLightsCount;
         public NativeArray<VisibleLight> visibleLights;
+        internal NativeArray<int> originalIndices;
         public bool shadeAdditionalLightsPerVertex;
         public bool supportsMixedLighting;
         public bool reflectionProbeBoxProjection;
@@ -222,6 +223,9 @@ namespace UnityEngine.Rendering.Universal
         public int shadowmapDepthBufferBits;
         public List<Vector4> bias;
         public List<int> resolution;
+
+        internal bool isKeywordAdditionalLightShadowsEnabled;
+        internal bool isKeywordSoftShadowsEnabled;
     }
 
     // Precomputed tile data.
@@ -329,6 +333,7 @@ namespace UnityEngine.Rendering.Universal
         public static readonly string CastingPunctualLightShadow = "_CASTING_PUNCTUAL_LIGHT_SHADOW"; // This is used during shadow map generation to differentiate between directional and punctual light shadows, as they use different formulas to apply Normal Bias
         public static readonly string AdditionalLightsVertex = "_ADDITIONAL_LIGHTS_VERTEX";
         public static readonly string AdditionalLightsPixel = "_ADDITIONAL_LIGHTS";
+        internal static readonly string ClusteredRendering = "_CLUSTERED_RENDERING";
         public static readonly string AdditionalLightShadows = "_ADDITIONAL_LIGHT_SHADOWS";
         public static readonly string ReflectionProbeBoxProjection = "_REFLECTION_PROBE_BOX_PROJECTION";
         public static readonly string ReflectionProbeBlending = "_REFLECTION_PROBE_BLENDING";
@@ -337,7 +342,9 @@ namespace UnityEngine.Rendering.Universal
         public static readonly string LightmapShadowMixing = "LIGHTMAP_SHADOW_MIXING";
         public static readonly string ShadowsShadowMask = "SHADOWS_SHADOWMASK";
         public static readonly string LightLayers = "_LIGHT_LAYERS";
+        public static readonly string RenderPassEnabled = "_RENDER_PASS_ENABLED";
         public static readonly string BillboardFaceCameraPos = "BILLBOARD_FACE_CAMERA_POS";
+        public static readonly string LightCookies = "_LIGHT_COOKIES";
 
         public static readonly string DepthNoMsaa = "_DEPTH_NO_MSAA";
         public static readonly string DepthMsaa2 = "_DEPTH_MSAA_2";
@@ -383,10 +390,9 @@ namespace UnityEngine.Rendering.Universal
         public static readonly string _SPOT = "_SPOT";
         public static readonly string _DIRECTIONAL = "_DIRECTIONAL";
         public static readonly string _POINT = "_POINT";
+        public static readonly string _DEFERRED_STENCIL = "_DEFERRED_STENCIL";
         public static readonly string _DEFERRED_FIRST_LIGHT = "_DEFERRED_FIRST_LIGHT";
         public static readonly string _DEFERRED_MAIN_LIGHT = "_DEFERRED_MAIN_LIGHT";
-        public static readonly string _DEFERRED_LIGHT_SHADOWS = "_DEFERRED_LIGHT_SHADOWS";
-        public static readonly string _DEFERRED_SHADOWS_SOFT = "_DEFERRED_SHADOWS_SOFT";
         public static readonly string _GBUFFER_NORMALS_OCT = "_GBUFFER_NORMALS_OCT";
         public static readonly string _DEFERRED_MIXED_LIGHTING = "_DEFERRED_MIXED_LIGHTING";
         public static readonly string LIGHTMAP_ON = "LIGHTMAP_ON";
@@ -538,6 +544,10 @@ namespace UnityEngine.Rendering.Universal
                 // is given.
             }
 
+            // Make sure dimension is non zero
+            desc.width = Mathf.Max(1, desc.width);
+            desc.height = Mathf.Max(1, desc.height);
+
             desc.enableRandomWrite = false;
             desc.bindMS = false;
             desc.useDynamicScale = camera.allowDynamicResolution;
@@ -555,7 +565,7 @@ namespace UnityEngine.Rendering.Universal
             return desc;
         }
 
-        static Lightmapping.RequestLightsDelegate lightsDelegate = (Light[] requests, NativeArray<LightDataGI> lightsOutput) =>
+        private static Lightmapping.RequestLightsDelegate lightsDelegate = (Light[] requests, NativeArray<LightDataGI> lightsOutput) =>
         {
             LightDataGI lightData = new LightDataGI();
 #if UNITY_EDITOR
@@ -563,24 +573,44 @@ namespace UnityEngine.Rendering.Universal
             for (int i = 0; i < requests.Length; i++)
             {
                 Light light = requests[i];
+                var additionalLightData = light.GetUniversalAdditionalLightData();
+
+                LightmapperUtils.Extract(light, out Cookie cookie);
+
                 switch (light.type)
                 {
                     case LightType.Directional:
                         DirectionalLight directionalLight = new DirectionalLight();
                         LightmapperUtils.Extract(light, ref directionalLight);
-                        lightData.Init(ref directionalLight);
+
+                        if (light.cookie != null)
+                        {
+                            // Size == 1 / Scale
+                            cookie.sizes = additionalLightData.lightCookieSize;
+                            // Offset, Map cookie UV offset to light position on along local axes.
+                            if (additionalLightData.lightCookieOffset != Vector2.zero)
+                            {
+                                var r = light.transform.right * additionalLightData.lightCookieOffset.x;
+                                var u = light.transform.up * additionalLightData.lightCookieOffset.y;
+                                var offset = r + u;
+
+                                directionalLight.position += offset;
+                            }
+                        }
+
+                        lightData.Init(ref directionalLight, ref cookie);
                         break;
                     case LightType.Point:
                         PointLight pointLight = new PointLight();
                         LightmapperUtils.Extract(light, ref pointLight);
-                        lightData.Init(ref pointLight);
+                        lightData.Init(ref pointLight, ref cookie);
                         break;
                     case LightType.Spot:
                         SpotLight spotLight = new SpotLight();
                         LightmapperUtils.Extract(light, ref spotLight);
                         spotLight.innerConeAngle = light.innerSpotAngle * Mathf.Deg2Rad;
                         spotLight.angularFalloff = AngularFalloffType.AnalyticAndInnerAngle;
-                        lightData.Init(ref spotLight);
+                        lightData.Init(ref spotLight, ref cookie);
                         break;
                     case LightType.Area:
                         RectangleLight rectangleLight = new RectangleLight();
@@ -788,6 +818,8 @@ namespace UnityEngine.Rendering.Universal
         // RenderObjectsPass
         //RenderObjects,
 
+        LightCookies,
+
         MainLightShadow,
         ResolveShadows,
         SSAO,
@@ -802,6 +834,7 @@ namespace UnityEngine.Rendering.Universal
         UberPostProcess,
         Bloom,
         LensFlareDataDriven,
+        MotionVectors,
 
         FinalBlit
     }

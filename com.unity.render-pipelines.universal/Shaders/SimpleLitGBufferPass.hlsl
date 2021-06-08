@@ -54,6 +54,7 @@ void InitializeInputData(Varyings input, half3 normalTS, out InputData inputData
     inputData = (InputData)0;
 
     inputData.positionWS = input.posWS;
+    inputData.positionCS = input.positionCS;
 
     #ifdef _NORMALMAP
         half3 viewDirWS = half3(input.normal.w, input.tangent.w, input.bitangent.w);

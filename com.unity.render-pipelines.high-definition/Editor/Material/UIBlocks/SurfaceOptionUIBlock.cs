@@ -68,6 +68,7 @@ namespace UnityEditor.Rendering.HighDefinition
             public const string renderingPassText = "Rendering Pass";
             public const string blendModeText = "Blending Mode";
             public const string notSupportedInMultiEdition = "Multiple Different Values";
+            public const string lowResTransparencyNotSupportedText = "Low resolution transparency is not enabled in the current HDRP Asset. The selected Pass will be Default.";
 
             public static readonly string[] surfaceTypeNames = Enum.GetNames(typeof(SurfaceType));
             public static readonly string[] blendModeNames = Enum.GetNames(typeof(BlendMode));
@@ -103,6 +104,7 @@ namespace UnityEditor.Rendering.HighDefinition
             // Lit properties
             public static GUIContent doubleSidedNormalModeText = new GUIContent("Normal Mode", "Specifies the method HDRP uses to modify the normal base.\nMirror: Mirrors the normals with the vertex normal plane.\nFlip: Flips the normal.");
             public static GUIContent depthOffsetEnableText = new GUIContent("Depth Offset", "When enabled, HDRP uses the Height Map to calculate the depth offset for this Material.");
+
             public static GUIContent doubleSidedGIText = new GUIContent("Double-Sided GI", "When selecting Auto, Double-Sided GI is enabled if the material is Double-Sided, otherwise On enables it and Off disables it.\n" +
                 "When enabled, the lightmapper accounts for both sides of the geometry when calculating Global Illumination. Backfaces are not rendered or added to lightmaps, but get treated as valid when seen from other objects. When using the Progressive Lightmapper backfaces bounce light using the same emission and albedo as frontfaces. (Currently this setting is only available when baking with the Progressive Lightmapper backend.).");
             public static GUIContent conservativeDepthOffsetEnableText = new GUIContent("Conservative", "When enabled, only positive depth offsets will be applied in order to take advantage of the early depth test mechanic.");
@@ -223,7 +225,6 @@ namespace UnityEditor.Rendering.HighDefinition
         MaterialProperty conservativeDepthOffsetEnable = null;
 
         MaterialProperty tessellationMode = null;
-        const string kTessellationMode = "_TessellationMode";
 
         MaterialProperty[] heightMap = new MaterialProperty[kMaxLayerCount];
         const string kHeightMap = "_HeightMap";
@@ -623,6 +624,12 @@ namespace UnityEditor.Rendering.HighDefinition
                 EditorGUI.indentLevel++;
                 if (doubleSidedEnable != null && doubleSidedEnable.floatValue == 0 && opaqueCullMode != null)
                     materialEditor.ShaderProperty(opaqueCullMode, Styles.opaqueCullModeText);
+                else
+                {
+                    EditorGUI.BeginDisabledGroup(true);
+                    EditorGUILayout.Popup(Styles.opaqueCullModeText, 0, new string[] { "Off" });
+                    EditorGUI.EndDisabledGroup();
+                }
                 EditorGUI.indentLevel--;
                 if (HDRenderQueue.k_RenderQueue_AfterPostProcessOpaque.Contains(renderQueue))
                 {
@@ -697,6 +704,14 @@ namespace UnityEditor.Rendering.HighDefinition
                         materialEditor.RegisterPropertyChangeUndo("Rendering Pass");
                         renderQueueType = HDRenderQueue.ConvertFromTransparentRenderQueue(newRenderQueueTransparentType);
                         renderQueue = HDRenderQueue.ChangeType(renderQueueType, offset: (int)transparentSortPriority.floatValue);
+                    }
+                    if (renderQueueTransparentType == HDRenderQueue.TransparentRenderQueue.LowResolution)
+                    {
+                        if (HDRenderPipeline.currentPipeline != null
+                            && !HDRenderPipeline.currentPipeline.currentPlatformRenderPipelineSettings.lowresTransparentSettings.enabled)
+                        {
+                            EditorGUILayout.HelpBox(Styles.lowResTransparencyNotSupportedText, MessageType.Info);
+                        }
                     }
                     break;
                 default:

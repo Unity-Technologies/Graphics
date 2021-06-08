@@ -129,6 +129,11 @@ namespace UnityEngine.Rendering.Universal
             }
         }
 
+        // Match with values in Input.hlsl
+        internal static int lightsPerTile => ((maxVisibleAdditionalLights + 31) / 32) * 32;
+        internal static int maxZBins => 1024 * 4;
+        internal static int maxTileVec4s => 4096;
+
         internal const int k_DefaultRenderingLayerMask = 0x00000001;
         private readonly DebugDisplaySettingsUI m_DebugDisplaySettingsUI = new DebugDisplaySettingsUI();
 
@@ -225,6 +230,7 @@ namespace UnityEngine.Rendering.Universal
 #endif
 
             GraphicsSettings.lightsUseLinearIntensity = (QualitySettings.activeColorSpace == ColorSpace.Linear);
+            GraphicsSettings.lightsUseColorTemperature = true;
             GraphicsSettings.useScriptableRenderPipelineBatching = asset.useSRPBatcher;
             GraphicsSettings.defaultRenderingLayerMask = k_DefaultRenderingLayerMask;
             SetupPerFrameShaderConstants();
@@ -404,6 +410,7 @@ namespace UnityEngine.Rendering.Universal
 
                 // Timing scope inside
                 renderer.Execute(context, ref renderingData);
+                CleanupLightData(ref renderingData.lightData);
             } // When ProfilingSample goes out of scope, an "EndSample" command is enqueued into CommandBuffer cmd
 
             cameraData.xr.EndCamera(cmd, cameraData);
@@ -415,6 +422,7 @@ namespace UnityEngine.Rendering.Universal
                 if (renderer.useRenderPassEnabled && !context.SubmitForRenderPassValidation())
                 {
                     renderer.useRenderPassEnabled = false;
+                    CoreUtils.SetKeyword(cmd, ShaderKeywordStrings.RenderPassEnabled, false);
                     Debug.LogWarning("Rendering command not supported inside a native RenderPass found. Falling back to non-RenderPass rendering path");
                 }
                 context.Submit(); // Actually execute the commands that we previously sent to the ScriptableRenderContext context
@@ -499,6 +507,22 @@ namespace UnityEngine.Rendering.Universal
             anyPostProcessingEnabled &= SystemInfo.graphicsDeviceType != GraphicsDeviceType.OpenGLES2;
 
             bool isStackedRendering = lastActiveOverlayCameraIndex != -1;
+
+#if ENABLE_VR && ENABLE_XR_MODULE
+            var xrActive = false;
+            var xrRendering = true;
+            if (baseCameraAdditionalData != null)
+                xrRendering = baseCameraAdditionalData.allowXRRendering;
+            var xrPasses = m_XRSystem.SetupFrame(baseCamera, xrRendering);
+            foreach (XRPass xrPass in xrPasses)
+            {
+                if (xrPass.enabled)
+                {
+                    xrActive = true;
+                    UpdateCameraStereoMatrices(baseCamera, xrPass);
+                }
+#endif
+
             using (new ProfilingScope(null, Profiling.Pipeline.beginCameraRendering))
             {
                 BeginCameraRendering(context, baseCamera);
@@ -506,34 +530,20 @@ namespace UnityEngine.Rendering.Universal
             // Update volumeframework before initializing additional camera data
             UpdateVolumeFramework(baseCamera, baseCameraAdditionalData);
             InitializeCameraData(baseCamera, baseCameraAdditionalData, !isStackedRendering, out var baseCameraData);
+            RenderTextureDescriptor originalTargetDesc = baseCameraData.cameraTargetDescriptor;
 
 #if ENABLE_VR && ENABLE_XR_MODULE
-            var originalTargetDesc = baseCameraData.cameraTargetDescriptor;
-            var xrActive = false;
-            var xrPasses = m_XRSystem.SetupFrame(baseCameraData);
-            foreach (XRPass xrPass in xrPasses)
+            if (xrPass.enabled)
             {
                 baseCameraData.xr = xrPass;
-
                 // XRTODO: remove isStereoEnabled in 2021.x
 #pragma warning disable 0618
                 baseCameraData.isStereoEnabled = xrPass.enabled;
 #pragma warning restore 0618
 
-                if (baseCameraData.xr.enabled)
-                {
-                    xrActive = true;
-                    // Helper function for updating cameraData with xrPass Data
-                    m_XRSystem.UpdateCameraData(ref baseCameraData, baseCameraData.xr);
-
-                    UpdateCameraStereoMatrices(baseCameraData);
-
-                    // Update volume manager to use baseCamera's settings for XR multipass rendering.
-                    if (baseCameraData.xr.multipassId > 0)
-                    {
-                        UpdateVolumeFramework(baseCamera, baseCameraAdditionalData);
-                    }
-                }
+                // Helper function for updating cameraData with xrPass Data
+                m_XRSystem.UpdateCameraData(ref baseCameraData, baseCameraData.xr);
+            }
 #endif
 
 #if VISUAL_EFFECT_GRAPH_0_0_1_OR_NEWER
@@ -566,7 +576,9 @@ namespace UnityEngine.Rendering.Universal
                         CameraData overlayCameraData = baseCameraData;
                         bool lastCamera = i == lastActiveOverlayCameraIndex;
 
-                        UpdateCameraStereoMatrices(overlayCameraData);
+#if ENABLE_VR && ENABLE_XR_MODULE
+                        UpdateCameraStereoMatrices(currCameraData.camera, xrPass);
+#endif
 
                         using (new ProfilingScope(null, Profiling.Pipeline.beginCameraRendering))
                         {
@@ -626,9 +638,9 @@ namespace UnityEngine.Rendering.Universal
             bool shouldUpdate = camera.cameraType == CameraType.SceneView;
             shouldUpdate |= additionalCameraData != null && additionalCameraData.requiresVolumeFrameworkUpdate;
 
-            #if UNITY_EDITOR
+#if UNITY_EDITOR
             shouldUpdate |= Application.isPlaying == false;
-            #endif
+#endif
 
             // When we have volume updates per-frame disabled...
             if (!shouldUpdate && additionalCameraData)
@@ -1024,6 +1036,10 @@ namespace UnityEngine.Rendering.Universal
             shadowData.additionalLightsShadowmapWidth = shadowData.additionalLightsShadowmapHeight = settings.additionalLightsShadowmapResolution;
             shadowData.supportsSoftShadows = settings.supportsSoftShadows && (shadowData.supportsMainLightShadows || shadowData.supportsAdditionalLightShadows);
             shadowData.shadowmapDepthBufferBits = 16;
+
+            // This will be setup in AdditionalLightsShadowCasterPass.
+            shadowData.isKeywordAdditionalLightShadowsEnabled = false;
+            shadowData.isKeywordSoftShadowsEnabled = false;
         }
 
         static void InitializePostProcessingData(UniversalRenderPipelineAsset settings, out PostProcessingData postProcessingData)
@@ -1064,17 +1080,27 @@ namespace UnityEngine.Rendering.Universal
             lightData.reflectionProbeBlending = settings.reflectionProbeBlending;
             lightData.reflectionProbeBoxProjection = settings.reflectionProbeBoxProjection;
             lightData.supportsLightLayers = RenderingUtils.SupportsLightLayers(SystemInfo.graphicsDeviceType) && settings.supportsLightLayers;
+            lightData.originalIndices = new NativeArray<int>(visibleLights.Length, Allocator.Temp);
+            for (var i = 0; i < lightData.originalIndices.Length; i++)
+            {
+                lightData.originalIndices[i] = i;
+            }
         }
 
-        static void UpdateCameraStereoMatrices(CameraData cameraData)
+        static void CleanupLightData(ref LightData lightData)
+        {
+            lightData.originalIndices.Dispose();
+        }
+
+        static void UpdateCameraStereoMatrices(Camera camera, XRPass xr)
         {
 #if ENABLE_VR && ENABLE_XR_MODULE
-            if (cameraData.xr.enabled)
+            if (xr.enabled)
             {
-                for (int i = 0; i < Mathf.Min(2, cameraData.xr.viewCount); i++)
+                for (int i = 0; i < Mathf.Min(2, xr.viewCount); i++)
                 {
-                    cameraData.camera.SetStereoProjectionMatrix((Camera.StereoscopicEye)i, cameraData.GetProjectionMatrix(i));
-                    cameraData.camera.SetStereoViewMatrix((Camera.StereoscopicEye)i, cameraData.GetViewMatrix(i));
+                    camera.SetStereoProjectionMatrix((Camera.StereoscopicEye)i, xr.GetProjMatrix(i));
+                    camera.SetStereoViewMatrix((Camera.StereoscopicEye)i, xr.GetViewMatrix(i));
                 }
             }
 #endif

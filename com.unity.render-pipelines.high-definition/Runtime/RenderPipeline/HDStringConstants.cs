@@ -387,6 +387,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
         // Still used by ray tracing.
         public static readonly int _SsrStencilBit = Shader.PropertyToID("_SsrStencilBit");
+        public static readonly int _DeferredStencilBit = Shader.PropertyToID("_DeferredStencilBit");
 
         public static readonly int _ShadowMaskTexture = Shader.PropertyToID("_ShadowMaskTexture");
         public static readonly int _LightLayersTexture = Shader.PropertyToID("_LightLayersTexture");
@@ -467,6 +468,7 @@ namespace UnityEngine.Rendering.HighDefinition
         public static readonly int _VolumetricCloudsTexture = Shader.PropertyToID("_VolumetricCloudsTexture");
         public static readonly int _VolumetricCloudsTextureRW = Shader.PropertyToID("_VolumetricCloudsTextureRW");
         public static readonly int _VolumetricCloudsShadowRW = Shader.PropertyToID("_VolumetricCloudsShadowRW");
+        public static readonly int _VolumetricCloudsUpscaleTextureRW = Shader.PropertyToID("_VolumetricCloudsUpscaleTextureRW");
         public static readonly int _HistoryVolumetricClouds0Texture = Shader.PropertyToID("_HistoryVolumetricClouds0Texture");
         public static readonly int _HistoryVolumetricClouds1Texture = Shader.PropertyToID("_HistoryVolumetricClouds1Texture");
         public static readonly int _Worley128RGBA = Shader.PropertyToID("_Worley128RGBA");
@@ -599,6 +601,8 @@ namespace UnityEngine.Rendering.HighDefinition
         public static readonly int _HalfResolutionFilter            = Shader.PropertyToID("_HalfResolutionFilter");
         public static readonly int _DenoisingHistorySlot            = Shader.PropertyToID("_DenoisingHistorySlot");
         public static readonly int _HistoryValidity                 = Shader.PropertyToID("_HistoryValidity");
+        public static readonly int _ReceiverMotionRejection         = Shader.PropertyToID("_ReceiverMotionRejection");
+        public static readonly int _OccluderMotionRejection         = Shader.PropertyToID("_OccluderMotionRejection");
         public static readonly int _ReflectionFilterMapping         = Shader.PropertyToID("_ReflectionFilterMapping");
         public static readonly int _DenoisingHistorySlice           = Shader.PropertyToID("_DenoisingHistorySlice");
         public static readonly int _DenoisingHistoryMask            = Shader.PropertyToID("_DenoisingHistoryMask");
@@ -687,9 +691,6 @@ namespace UnityEngine.Rendering.HighDefinition
         public static readonly int _UpscaledIndirectDiffuseTextureRW    = Shader.PropertyToID("_UpscaledIndirectDiffuseTextureRW");
         public static readonly int _IndirectDiffuseHitPointTexture      = Shader.PropertyToID("_IndirectDiffuseHitPointTexture");
         public static readonly int _IndirectDiffuseHitPointTextureRW    = Shader.PropertyToID("_IndirectDiffuseHitPointTextureRW");
-        public static readonly int _IndirectDiffuseThicknessScale       = Shader.PropertyToID("_IndirectDiffuseThicknessScale");
-        public static readonly int _IndirectDiffuseThicknessBias        = Shader.PropertyToID("_IndirectDiffuseThicknessBias");
-        public static readonly int _IndirectDiffuseSteps                = Shader.PropertyToID("_IndirectDiffuseSteps");
         public static readonly int _IndirectDiffuseFrameIndex           = Shader.PropertyToID("_IndirectDiffuseFrameIndex");
         public static readonly int _InputNoisyBuffer                    = Shader.PropertyToID("_InputNoisyBuffer");
         public static readonly int _InputNoisyBuffer0                   = Shader.PropertyToID("_InputNoisyBuffer0");
@@ -706,6 +707,12 @@ namespace UnityEngine.Rendering.HighDefinition
         public static readonly int _RaytracingLitBufferRW           = Shader.PropertyToID("_RaytracingLitBufferRW");
         public static readonly int _RayTracingDiffuseLightingOnly   = Shader.PropertyToID("_RayTracingDiffuseLightingOnly");
         public static readonly int _RaytracingHalfResolution        = Shader.PropertyToID("_RaytracingHalfResolution");
+
+        // Ray Marching
+        public static readonly int _RayMarchingThicknessScale           = Shader.PropertyToID("_RayMarchingThicknessScale");
+        public static readonly int _RayMarchingThicknessBias            = Shader.PropertyToID("_RayMarchingThicknessBias");
+        public static readonly int _RayMarchingSteps                    = Shader.PropertyToID("_RayMarchingSteps");
+        public static readonly int _RayMarchingReflectSky               = Shader.PropertyToID("_RayMarchingReflectSky");
 
         // Ray binning
         public static readonly int _RayBinResult                    = Shader.PropertyToID("_RayBinResult");
@@ -733,6 +740,8 @@ namespace UnityEngine.Rendering.HighDefinition
         // Preintegrated texture name
         public static readonly int _PreIntegratedFGD_GGXDisneyDiffuse = Shader.PropertyToID("_PreIntegratedFGD_GGXDisneyDiffuse");
         public static readonly int _PreIntegratedFGD_CharlieAndFabric = Shader.PropertyToID("_PreIntegratedFGD_CharlieAndFabric");
+        public static readonly int _PreIntegratedFGD_Marschner        = Shader.PropertyToID("_PreIntegratedFGD_Marschner");
+        public static readonly int _PreIntegratedAzimuthalScattering  = Shader.PropertyToID("_PreIntegratedAzimuthalScattering");
 
         public static readonly int _ExposureTexture                = Shader.PropertyToID("_ExposureTexture");
         public static readonly int _PrevExposureTexture            = Shader.PropertyToID("_PrevExposureTexture");
@@ -1098,5 +1107,15 @@ namespace UnityEngine.Rendering.HighDefinition
         // Emission
         internal const string kForceForwardEmissive = "_ForceForwardEmissive";
         internal const string kEmissiveColorMap = "_EmissiveColorMap";
+
+        // Tessellation
+        internal const string kTessellationMode = "_TessellationMode";
+        internal const string kTessellationFactor = "_TessellationFactor";
+        internal const string kTessellationFactorMinDistance = "_TessellationFactorMinDistance";
+        internal const string kTessellationFactorMaxDistance = "_TessellationFactorMaxDistance";
+        internal const string kTessellationFactorTriangleSize = "_TessellationFactorTriangleSize";
+        internal const string kTessellationShapeFactor = "_TessellationShapeFactor";
+        internal const string kTessellationBackFaceCullEpsilon = "_TessellationBackFaceCullEpsilon";
+        internal const string kTessellationMaxDisplacement = "_TessellationMaxDisplacement";
     }
 }

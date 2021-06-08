@@ -59,7 +59,14 @@ namespace UnityEngine.Rendering
             // It fall-backs to software when not supported, so it makes sense to have it on by default.
             dynResType = DynamicResolutionType.Hardware,
             upsampleFilter = DynamicResUpscaleFilter.CatmullRom,
-            forcedPercentage = 100.0f
+            forcedPercentage = 100.0f,
+            lowResTransparencyMinimumThreshold = 0.0f,
+
+            //Defaults for dlss
+            enableDLSS = false,
+            DLSSUseOptimalSettings = true,
+            DLSSPerfQualitySetting = 0,
+            DLSSSharpness = 0.5f
         };
 
         /// <summary>Select whether the dynamic resolution is enabled or not.</summary>
@@ -67,7 +74,7 @@ namespace UnityEngine.Rendering
         /// <summary>Offsets the mip bias to recover mode detail. This only works if the camera is utilizing TAA.</summary>
         public bool useMipBias;
 
-        /// <summary>ToggleNVIDIA Deep Learning Super Sampling (DLSS).</summary>
+        /// <summary>Toggle NVIDIA Deep Learning Super Sampling (DLSS).</summary>
         public bool enableDLSS;
 
         /// <summary>Opaque quality setting of NVIDIA Deep Learning Super Sampling (DLSS). Use the system enum UnityEngine.NVIDIA.DLSSQuality to set the quality.</summary>
@@ -96,5 +103,8 @@ namespace UnityEngine.Rendering
         public bool forceResolution;
         /// <summary>The resolution percentage forced in case forceResolution is set to true.</summary>
         public float forcedPercentage;
+
+        /// <summary>The minimum percentage threshold allowed to clamp low resolution transparency. When the resolution percentage falls below this threshold, HDRP will clamp the low resolution to this percentage.</summary>
+        public float lowResTransparencyMinimumThreshold;
     }
 }

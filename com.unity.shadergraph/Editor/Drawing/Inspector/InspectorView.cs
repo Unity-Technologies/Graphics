@@ -107,7 +107,6 @@ namespace UnityEditor.ShaderGraph.Drawing.Inspector
         public void TriggerInspectorUpdate(IEnumerable<ISelectable> selectionList)
         {
             // An optimization that prevents inspector updates from getting triggered every time a selection event is issued in the event of large selections
-            // As beyond a certain number of selections
             if (selectionList?.Count() > k_InspectorElementLimit)
                 return;
             doesInspectorNeedUpdate = true;
@@ -131,8 +130,13 @@ namespace UnityEditor.ShaderGraph.Drawing.Inspector
                         m_CurrentlyInspectedElementsCount++;
                         anySelectables = true;
                     }
+
                     if (m_CurrentlyInspectedElementsCount == k_InspectorElementLimit)
+                    {
                         m_NodeSettingsContainer.Add(m_MaxItemsMessageLabel);
+                        m_MaxItemsMessageLabel.style.visibility = Visibility.Visible;
+                        break;
+                    }
                 }
                 if (anySelectables && forceNodeView)
                 {
