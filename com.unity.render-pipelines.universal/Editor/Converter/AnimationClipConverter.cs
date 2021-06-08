@@ -103,6 +103,10 @@ namespace UnityEditor.Rendering.Universal
                     | SerializedShaderPropertyUsage.UsedByNonUpgraded
                 );
 
+            const SerializedShaderPropertyUsage kSuccessFlags =
+                SerializedShaderPropertyUsage.UsedByUpgraded
+                | SerializedShaderPropertyUsage.UsedByAlreadyUpgraded;
+
             var clipKey = (ClipProxy)GlobalObjectId.GlobalObjectIdentifierToObjectSlow(m_AssetsToConvert[ctx.item.index]);
 
             m_TempClipData.Clear();
@@ -114,6 +118,10 @@ namespace UnityEditor.Rendering.Universal
             AnimationClipUpgrader.UpgradeClips(m_TempClipData, kFilterFlags, m_Upgraded, m_NotUpgraded, default);
 
             var usage = m_TempClipData[clipKey].Usage;
+
+            // Success
+            if ((usage & kSuccessFlags) != 0 && (usage & kFilterFlags) == 0)
+                return;
 
             if (usage ==  SerializedShaderPropertyUsage.Unknown)
             {
