@@ -686,15 +686,18 @@ namespace UnityEditor.VFX
             return base.GetWorldBoundsOfTarget(targetObject);
         }
 
-        protected override void SceneViewGUICallback()
+        private void OnSceneGUI()
         {
-            base.SceneViewGUICallback();
-
             if (m_GizmoDisplayed && m_GizmoedParameter != null && m_GizmoableParameters.Count > 0 && ((VisualEffect)target).visualEffectAsset != null)
             {
                 ContextAndGizmo context = GetGizmo();
                 VFXGizmoUtility.Draw(context.context, (VisualEffect)target, context.gizmo);
             }
+        }
+
+        protected override void SceneViewGUICallback()
+        {
+            base.SceneViewGUICallback();
 
             if (m_GizmoableParameters.Count > 0)
             {
