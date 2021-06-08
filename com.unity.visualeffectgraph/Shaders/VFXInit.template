@@ -103,6 +103,14 @@ void CSMain(uint3 groupId          : SV_GroupID,
         #endif
 
         #if USE_PREFIX_SUM
+            //Experiment to identify a possible OOB
+            for (; sourceIndex < nbEvent; ++sourceIndex)
+            {
+                if (id < prefixSumSpawnCount[sourceIndex])
+                    break;
+            }
+
+            /*
             uint left = 0;
             uint right = max(nbEvents, 1) - 1;
             while (left <= right)
@@ -116,6 +124,7 @@ void CSMain(uint3 groupId          : SV_GroupID,
                 else
                     left = sourceIndex + 1;
             }
+            */
         #endif
 #endif
 
