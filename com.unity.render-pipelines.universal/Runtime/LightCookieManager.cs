@@ -414,7 +414,7 @@ namespace UnityEngine.Rendering.Universal
             }
         }
 
-        // Unity defines directional light UVs over a unit box centered at light.
+        internal bool IsKeywordLightCookieEnabled { get; private set; }
         // i.e. (0, 1) uv == (-0.5, 0.5) world area instead of the (0,1) world area.
         static readonly Matrix4x4 s_DirLightProj = Matrix4x4.Ortho(-0.5f, 0.5f, -0.5f, 0.5f, -0.5f, 0.5f);
 
@@ -514,8 +514,8 @@ namespace UnityEngine.Rendering.Universal
                 isAdditionalLightsAvailable = SetupAdditionalLights(cmd, ref lightData);
 
             // Main and additional lights are merged into one keyword to reduce variants.
-            bool isLightCookieEnabled = isMainLightAvailable || isAdditionalLightsAvailable;
-            CoreUtils.SetKeyword(cmd, ShaderKeywordStrings.LightCookies, isLightCookieEnabled);
+            IsKeywordLightCookieEnabled = isMainLightAvailable || isAdditionalLightsAvailable;
+            CoreUtils.SetKeyword(cmd, ShaderKeywordStrings.LightCookies, IsKeywordLightCookieEnabled);
         }
 
         bool SetupMainLight(CommandBuffer cmd, ref VisibleLight visibleMainLight)
