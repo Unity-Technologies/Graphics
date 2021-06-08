@@ -74,9 +74,9 @@ namespace UnityEngine.Rendering
         /// Obtains the help url from an enum
         /// </summary>
         /// <typeparam name="TEnum">The enum with a <see cref="HelpURLAttribute"/></typeparam>
-        /// <param name="mask">The current value of the enum</param>
+        /// <param name="mask">[Optional] The current value of the enum</param>
         /// <returns>The full url</returns>
-        public static string GetHelpURL<TEnum>(TEnum mask)
+        public static string GetHelpURL<TEnum>(TEnum mask = default)
             where TEnum : struct, IConvertible
         {
             var helpURLAttribute = (HelpURLAttribute)mask
