@@ -1,4 +1,4 @@
-//#if UNITY_POST_PROCESSING_STACK_V2
+#if UNITY_POST_PROCESSING_STACK_V2
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -73,83 +73,82 @@ namespace UnityEditor.Rendering.Universal.Converters
 
         public override void OnRun(ref RunItemContext context)
         {
-            if (context.item == null) return;
-
-            var obj = GetContextObject(context);
-
-            if (!obj)
+            foreach (var obj in GetContextObject(context))
             {
-                context.didFail = true;
-                context.info = "Could not be converted because the target object was lost.";
-                continue;
-            }
-
-            BIRPRendering.PostProcessVolume[] oldVolumes = null;
-            BIRPRendering.PostProcessLayer[] oldLayers = null;
-
-            // TODO: Upcoming changes to GlobalObjectIdentifierToObjectSlow will allow
-            //       this to be inverted, and the else to be deleted.
-#if false
-            if (obj is GameObject go)
-            {
-                oldVolumes = go.GetComponents<BIRPRendering.PostProcessVolume>();
-                oldLayers = go.GetComponents<BIRPRendering.PostProcessLayer>();
-            }
-            else if (obj is MonoBehaviour mb)
-            {
-                oldVolumes = mb.GetComponents<BIRPRendering.PostProcessVolume>();
-                oldLayers = mb.GetComponents<BIRPRendering.PostProcessLayer>();
-            }
-#else
-            if (obj is GameObject go)
-            {
-                oldVolumes = go.GetComponentsInChildren<BIRPRendering.PostProcessVolume>();
-                oldLayers = go.GetComponentsInChildren<BIRPRendering.PostProcessLayer>();
-            }
-            else if (obj is MonoBehaviour mb)
-            {
-                oldVolumes = mb.GetComponentsInChildren<BIRPRendering.PostProcessVolume>();
-                oldLayers = mb.GetComponentsInChildren<BIRPRendering.PostProcessLayer>();
-            }
-#endif
-
-            // Note: even if nothing needs to be converted, that should still count as success,
-            //       though it shouldn't ever actually occur.
-            var succeeded = true;
-            var errorString = new StringBuilder();
-
-            if (effectConverters == null ||
-                effectConverters.Count() == 0 ||
-                effectConverters.Any(converter => converter == null))
-            {
-                effectConverters = GetAllBIRPConverters();
-            }
-
-            if (oldVolumes != null)
-            {
-                foreach (var oldVolume in oldVolumes)
+                if (!obj)
                 {
-                    ConvertVolume(oldVolume, ref succeeded, errorString);
+                    context.didFail = true;
+                    context.info = "Could not be converted because the target object was lost.";
+                    return;
                 }
-            }
 
-            if (oldLayers != null)
-            {
-                foreach (var oldLayer in oldLayers)
+                BIRPRendering.PostProcessVolume[] oldVolumes = null;
+                BIRPRendering.PostProcessLayer[] oldLayers = null;
+
+                // TODO: Upcoming changes to GlobalObjectIdentifierToObjectSlow will allow
+                //       this to be inverted, and the else to be deleted.
+    #if false
+                if (obj is GameObject go)
                 {
-                    ConvertLayer(oldLayer, ref succeeded, errorString);
+                    oldVolumes = go.GetComponents<BIRPRendering.PostProcessVolume>();
+                    oldLayers = go.GetComponents<BIRPRendering.PostProcessLayer>();
                 }
-            }
+                else if (obj is MonoBehaviour mb)
+                {
+                    oldVolumes = mb.GetComponents<BIRPRendering.PostProcessVolume>();
+                    oldLayers = mb.GetComponents<BIRPRendering.PostProcessLayer>();
+                }
+    #else
+                if (obj is GameObject go)
+                {
+                    oldVolumes = go.GetComponentsInChildren<BIRPRendering.PostProcessVolume>();
+                    oldLayers = go.GetComponentsInChildren<BIRPRendering.PostProcessLayer>();
+                }
+                else if (obj is MonoBehaviour mb)
+                {
+                    oldVolumes = mb.GetComponentsInChildren<BIRPRendering.PostProcessVolume>();
+                    oldLayers = mb.GetComponentsInChildren<BIRPRendering.PostProcessLayer>();
+                }
+    #endif
 
-            if (obj is BIRPRendering.PostProcessProfile oldProfile)
-            {
-                ConvertProfile(oldProfile, ref succeeded, errorString);
-            }
+                // Note: even if nothing needs to be converted, that should still count as success,
+                //       though it shouldn't ever actually occur.
+                var succeeded = true;
+                var errorString = new StringBuilder();
 
-            if (!succeeded)
-            {
-                context.didFail = true;
-                context.info = errorString.ToString();
+                if (effectConverters == null ||
+                    effectConverters.Count() == 0 ||
+                    effectConverters.Any(converter => converter == null))
+                {
+                    effectConverters = GetAllBIRPConverters();
+                }
+
+                if (oldVolumes != null)
+                {
+                    foreach (var oldVolume in oldVolumes)
+                    {
+                        ConvertVolume(oldVolume, ref succeeded, errorString);
+                    }
+                }
+
+                if (oldLayers != null)
+                {
+                    foreach (var oldLayer in oldLayers)
+                    {
+                        ConvertLayer(oldLayer, ref succeeded, errorString);
+                    }
+                }
+
+                if (obj is BIRPRendering.PostProcessProfile oldProfile)
+                {
+                    ConvertProfile(oldProfile, ref succeeded, errorString);
+                }
+
+                if (!succeeded)
+                {
+                    context.didFail = true;
+                    context.info = errorString.ToString();
+                }
             }
         }
 
@@ -200,7 +199,7 @@ namespace UnityEditor.Rendering.Universal.Converters
             return AssetDatabase.LoadAssetAtPath<Object>(containerPath).GetType().ToString().Split('.').Last();
         }
 
-        private Object GetContextObject(RunItemContext ctx)
+        private IEnumerable<Object> GetContextObject(RunItemContext ctx)
         {
             var item = ctx.item;
 
@@ -270,7 +269,7 @@ namespace UnityEditor.Rendering.Universal.Converters
                 }
 
                 if (obj)
-                    yield return new Tuple<int, Object>(i, obj);
+                    yield return obj;
                 else
                 {
                     ctx.didFail = true;
