@@ -113,38 +113,33 @@ namespace UnityEditor.Rendering.Universal
 
             AnimationClipUpgrader.UpgradeClips(m_TempClipData, kFilterFlags, m_Upgraded, m_NotUpgraded, default);
 
-            if (ctx.didFail = m_NotUpgraded.Any())
+            var usage = m_TempClipData[clipKey].Usage;
+
+            if (usage ==  SerializedShaderPropertyUsage.Unknown)
             {
-                var usage = m_TempClipData[clipKey].Usage;
-
-                if (usage == 0)
-                {
-                    ctx.info = L10n.Tr("The animation clip is not used by any objects currently in the project, so it may not be safe to automatically upgrade.");
-                    return;
-                }
-
-                if ((usage & SerializedShaderPropertyUsage.Unknown) != 0)
-                {
-                    ctx.info = L10n.Tr("The animation clip has failed to upgrade for unknown reasons.");
-                    return;
-                }
-
-                var sb = new StringBuilder();
-
-                sb.Append(L10n.Tr("The animation clip failed to upgrade for one or more reasons:"));
-
-                if ((usage & SerializedShaderPropertyUsage.UsedByAmbiguouslyUpgraded) != 0)
-                {
-                    sb.Append(L10n.Tr("\n - The animation clip is used by objects with materials that took different upgrade paths for the animated property"));
-                }
-
-                if ((usage & SerializedShaderPropertyUsage.UsedByNonUpgraded) != 0)
-                {
-                    sb.Append(L10n.Tr("\n - The animation clip is used by objects with materials that have not been upgraded."));
-                }
-
-                ctx.info = sb.ToString();
+                ctx.didFail = true;
+                ctx.info = L10n.Tr("The animation clip is not used by any objects with renderers currently in the project, so it may not be safe to automatically upgrade.");
+                return;
             }
+
+            var sb = new StringBuilder();
+
+            sb.Append(L10n.Tr("The animation clip was not modified for one or more reasons:"));
+
+            if ((usage & SerializedShaderPropertyUsage.UsedByAmbiguouslyUpgraded) != 0)
+            {
+                ctx.didFail = true;
+                sb.Append(L10n.Tr("\n - The animation clip is used by objects with materials that took different upgrade paths for the animated property."));
+            }
+
+            if ((usage & SerializedShaderPropertyUsage.UsedByNonUpgraded) != 0)
+            {
+                ctx.didFail = true;
+                sb.Append(L10n.Tr("\n - The animation clip is used by objects with materials that have not been upgraded."));
+            }
+
+            if (ctx.didFail)
+                ctx.info = sb.ToString();
         }
 
         public override void OnClicked(int index)
