@@ -69,6 +69,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Added two toggles to control occluder rejection and receiver rejection for the ray traced ambient occlusion (case 1330168).
 - Added the receiver motion rejection toggle to RTGI (case 1330168).
 - Added info box when low resolution transparency is selected, but its not enabled in the HDRP settings. This will help new users find the correct knob in the HDRP Asset.
+- Added a dialog box when you import a Material that has a diffusion profile to add the diffusion profile to global settings.
 
 ### Fixed
 - Fixed Intensity Multiplier not affecting realtime global illumination.
