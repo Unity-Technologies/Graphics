@@ -3,8 +3,8 @@ using System;
 
 namespace UnityEngine.Rendering.HighDefinition
 {
-    [HelpURL(Documentation.baseURL + Documentation.version + Documentation.subURL + "HDRP-Asset" + Documentation.endURL)]
-    public partial class HDRenderPipelineEditorResources : ScriptableObject
+    [HDRPHelpURL("Default-Settings-Window")]
+    partial class HDRenderPipelineEditorResources : HDRenderPipelineResources
     {
         [Reload(new[]
         {
@@ -58,6 +58,8 @@ namespace UnityEngine.Rendering.HighDefinition
             public Shader autodeskInteractiveMasked;
             [Reload("Runtime/RenderPipelineResources/ShaderGraph/AutodeskInteractiveTransparent.shadergraph")]
             public Shader autodeskInteractiveTransparent;
+            [Reload("Runtime/Material/Nature/SpeedTree8.shadergraph")]
+            public Shader defaultSpeedTree8Shader;
         }
 
         [Serializable, ReloadGroup]
@@ -72,25 +74,6 @@ namespace UnityEngine.Rendering.HighDefinition
         public TextureResources textures;
         public ShaderGraphResources shaderGraphs;
         public LookDevResources lookDev;
-    }
-
-    [UnityEditor.CustomEditor(typeof(HDRenderPipelineEditorResources))]
-    class HDRenderPipelineEditorResourcesEditor : UnityEditor.Editor
-    {
-        public override void OnInspectorGUI()
-        {
-            DrawDefaultInspector();
-
-            // Add a "Reload All" button in inspector when we are in developer's mode
-            if (UnityEditor.EditorPrefs.GetBool("DeveloperMode")
-                && GUILayout.Button("Reload All"))
-            {
-                foreach (var field in typeof(HDRenderPipelineEditorResources).GetFields())
-                    field.SetValue(target, null);
-
-                ResourceReloader.ReloadAllNullIn(target, HDUtils.GetHDRenderPipelinePath());
-            }
-        }
     }
 }
 #endif

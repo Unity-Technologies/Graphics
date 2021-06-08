@@ -31,7 +31,6 @@ Pass
     $SurfaceType.Transparent:           #define _SURFACE_TYPE_TRANSPARENT 1
     $AlphaClip:                         #define _AlphaClip 1
     $Normal:                            #define _NORMALMAP 1
-    $SpecularSetup:                     #define _SPECULAR_SETUP
     $BlendMode.Add:                     #define _BLENDMODE_ADD 1
     $BlendMode.Premultiply:             #define _ALPHAPREMULTIPLY_ON 1
     $NormalDropOffTS:			        #define _NORMAL_DROPOFF_TS 1
@@ -67,10 +66,14 @@ Pass
     $splice(DotsInstancingVars)
 
     // Includes
+    $splice(CustomInterpolatorPreInclude)
+
     $splice(PreGraphIncludes)
 
     // --------------------------------------------------
     // Structs and Packing
+
+    $splice(CustomInterpolatorPrePacking)
 
     $splice(PassStructs)
 
@@ -82,11 +85,18 @@ Pass
     // Graph Properties
     $splice(GraphProperties)
 
+    // Graph Includes
+    $splice(GraphIncludes)
+
     // Graph Functions
     $splice(GraphFunctions)
 
+    $splice(CustomInterpolatorPreVertex)
+
     // Graph Vertex
     $splice(GraphVertex)
+
+    $splice(CustomInterpolatorPreSurface)
 
     // Graph Pixel
     $splice(GraphPixel)

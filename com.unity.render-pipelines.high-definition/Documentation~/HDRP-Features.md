@@ -91,13 +91,13 @@ The StackLit Shader improves on the Lit Shader in favor of quality over performa
 
 ![](Images/HDRPFeatures-HairShader.png)
 
-The Hair Shader is purpose-built to accurately render realistic hair in your Unity Project. It uses an improved Kajiya Kay lighting model which features better energy conservation and provides you with more flexibility. For more information, including a full list of Shader properties, see the [Hair Shader documentation](Master-Node-Hair.md).
+The Hair Shader is purpose-built to accurately render realistic hair in your Unity Project. It uses an improved Kajiya Kay lighting model which features better energy conservation and provides you with more flexibility. For more information, including a full list of Shader properties, see the [Hair Shader](hair-shader.md) and [Hair Master Stack](master-stack-hair.md) documentation.
 
 ### Fabric Shader
 
 ![](Images/HDRPFeatures-FabricShader.png)
 
-The Fabric Shader allows you to render realistic fabric Materials in HDRP. You can use the cotton wool or silk lighting model to create a wide variety of fabrics. For more information, including a full list of Shader properties, see the [Fabric Shader documentation](Master-Node-Fabric.md).
+The Fabric Shader allows you to render realistic fabric Materials in HDRP. You can use the cotton wool or silk lighting model to create a wide variety of fabrics. For more information, including a full list of Shader properties, see the [Cotton/Wool Shader](cotton-wool-shader.md), [Silk Shader](silk-shader.md), and [Fabric Master Stack](master-stack-fabric.md) documentation.
 
 ### AxF Shader
 
@@ -233,6 +233,8 @@ To decrease aliasing for the main cascade shadow maps, you can apply different f
 
 For punctual and area light shadows, HDRP allows for dynamic resolution based on how much screen the light covers. HDRP rescales the content of the shadow atlas when it would be otherwise full.  For more information on the filtering algorithms that HDRP uses, see the [filtering qualities documentation](HDRP-Asset.md#filtering-qualities).
 
+HDRP also allows you to cache shadow maps. This means you can update shadow maps when you request an update or update them for dynamic objects only. This method can improve performance significantly. For more information, see [Shadows](Shadows-in-HDRP.md#ShadowUpdateMode).
+
 In the advanced settings of the shadow maps, there is also the possibility to apply a tint on the shadow or the penumbra of the shadow.
 
 ### Sky
@@ -263,13 +265,19 @@ In HDRP, you set up clouds inside a [Volume](Volumes.md), so you can change clou
 In HDRP, you set up fog, inside a [Volume](Volumes.md), so you can change fog settings, or even the fog type itself, depending on the position of the Camera in the Scene. You can set the color of the fog yourself or use the color of the sky. HDRP fog affects Materials with both opaque and transparent surfaces. HDRP implements an exponential [fog](Override-Fog.md) with optional volumetric effects.
 
 
+### Local Volumetric Fog
+
+![](Images/LocalVolumetricFog.png)
+
+In addition to fog, HDRP also supports local volumetric fog. You can use this to control the density of fog in an area. For more detailed control, you can use a 3D Mask texture to control the color and the density inside the volume itself. For more information see the [Local Volumetric Fog section](Local-Volumetric-Fog.md)
+
 ### Light Layers
 
 ![](Images/HDRPFeatures-LightLayers.png)
 
 Light Layers are LayerMasks that you specify for Lights and Meshes. Lights only illuminate Meshes that are on Light Layers that you enable on the Light. You can also use Light Layers in the shadow map settings to decouple shadows from lighting. For more information on Light Layers, see the [Light Layers documentation](Light-Layers.md).
 
-Light layers In the shadow map dropdown can also be used to control which object receives a shadow from which light. By default both Light Layers and Shadow Map Light Layers are synchronized so the result is coherent (When an object receives light it also casts shadows). For more information on Shadow Map Light Layers, see the [Shadow Light Layer section](Light-Layers.md#ShadowLightLayers)
+You can use Light layers in the shadow map dropdown to control which GameObject receives a shadow from which light. By default, both Light Layers and Shadow Map Light Layers are synchronized so the result is coherent. This means that when a GameObject receives light it also casts shadows. For more information on Shadow Map Light Layers, see the [Shadow Light Layer section](Light-Layers.md#ShadowLightLayers).
 
 ### Screen space ambient occlusion
 
@@ -386,6 +394,19 @@ Path tracing now supports fog absorption. Like SSS, to use this feature, enable 
 
 For information on fog in HDRP, see [fog](Override-Fog.md).
 
+#### Materials support
+
+![](Images/Path-traced-materials-Feature.png)
+
+Path tracing can render the following rasterization engine [Materials](#Material):
+- Lit
+- Layered Lit
+- Unlit
+- Stacklit
+- Fabric
+- AxF
+When path tracing is enabled, objects that use non-HDRP Materials won't appear in the final image.
+
 <a name="Tools"></a>
 
 ## Tools
@@ -426,7 +447,7 @@ For more information, see the Lighting panel section in the [HDRP debug window](
 
 #### Volume debug mode
 
-The Render Pipeline Debug window has a Volume panel which you can use to visualize the Volume components that affect a specific Camera.
+The Render Pipeline Debugger window has a Volume panel which you can use to visualize the Volume components that affect a specific Camera.
 
 For each Volume that contributes to the final interpolated value, the Volume panel shows the value of each property and whether or not it is overridden. It also calculates the Volume's influence percentage using the Volume's weight and blend distance.
 
@@ -454,7 +475,7 @@ To match the scale of the GameObjects in your Scene, you can vary the pixel foot
 
 ### Light Explorer
 
-The Light Explorer allows you to select and edit light sources: Directional lights, Point lights, Spot lights, Area lights, Reflection Probes, Planar Probes and Sky and Fog volumes
+The Light Explorer allows you to select and edit light sources: Directional lights, Point lights, Spot lights, Area lights, Reflection Probes, Planar Probes and Sky and Fog Global Volumes
 
 ![](Images/LightExplorer.png)
 

@@ -61,7 +61,7 @@ namespace UnityEditor.Rendering.HighDefinition
 
         string GetFunctionName()
         {
-            return $"Unity_HDRP_SampleSceneColor_{concretePrecision.ToShaderString()}";
+            return "Unity_HDRP_SampleSceneColor_$precision";
         }
 
         public void GenerateNodeFunction(FunctionRegistry registry, GenerationMode generationMode)

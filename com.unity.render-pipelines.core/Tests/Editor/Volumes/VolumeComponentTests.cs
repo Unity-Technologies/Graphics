@@ -9,11 +9,13 @@ namespace UnityEngine.Rendering.Tests
 {
     public class VolumeComponentEditorTests
     {
+        [HideInInspector]
         class VolumeComponentNoAdditionalAttributes : VolumeComponent
         {
             public MinFloatParameter parameter = new MinFloatParameter(0f, 0f);
         }
 
+        [HideInInspector]
         class VolumeComponentAllAdditionalAttributes : VolumeComponent
         {
             [AdditionalProperty]
@@ -23,6 +25,7 @@ namespace UnityEngine.Rendering.Tests
             public FloatParameter parameter2 = new MinFloatParameter(0f, 0f);
         }
 
+        [HideInInspector]
         class VolumeComponentMixedAdditionalAttributes : VolumeComponent
         {
             public MinFloatParameter parameter1 = new MinFloatParameter(0f, 0f);
@@ -105,5 +108,56 @@ namespace UnityEngine.Rendering.Tests
 
             return fields;
         }
+
+        #region Decorators Handling Test
+
+        [HideInInspector]
+        class VolumeComponentDecorators : VolumeComponent
+        {
+            [Tooltip("Increase to make the noise texture appear bigger and less")]
+            public FloatParameter _NoiseTileSize = new FloatParameter(25.0f);
+
+            [InspectorName("Color")]
+            public ColorParameter _FogColor = new ColorParameter(Color.grey);
+
+            [InspectorName("Size and occurrence"), Tooltip("Increase to make patches SMALLER, and frequent")]
+            public ClampedFloatParameter _HighNoiseSpaceFreq = new ClampedFloatParameter(0.1f, 0.1f, 1f);
+        }
+
+        readonly (string displayName, string tooltip)[] k_ExpectedResults =
+        {
+            (string.Empty, "Increase to make the noise texture appear bigger and less"),
+            ("Color", string.Empty),
+            ("Size and occurrence", "Increase to make patches SMALLER, and frequent")
+        };
+
+        [Test]
+        public void TestHandleParameterDecorators()
+        {
+            var component = ScriptableObject.CreateInstance<VolumeComponentDecorators>();
+            var editor = (VolumeComponentEditor)Activator.CreateInstance(typeof(VolumeComponentEditor));
+            editor.Invoke("Init", component, null);
+
+            var parameters =
+                editor.GetField("m_Parameters") as List<(GUIContent displayName, int displayOrder,
+                    SerializedDataParameter param)>;
+
+            Assert.True(parameters != null && parameters.Count() == k_ExpectedResults.Count());
+
+            for (int i = 0; i < k_ExpectedResults.Count(); ++i)
+            {
+                var property = parameters[i].param;
+                var title = new GUIContent(parameters[i].displayName);
+
+                editor.Invoke("HandleDecorators", property, title);
+
+                Assert.True(k_ExpectedResults[i].displayName == title.text);
+                Assert.True(k_ExpectedResults[i].tooltip == title.tooltip);
+            }
+
+            ScriptableObject.DestroyImmediate(component);
+        }
+
+        #endregion
     }
 }

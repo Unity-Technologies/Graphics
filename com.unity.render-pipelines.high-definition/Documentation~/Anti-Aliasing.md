@@ -43,6 +43,12 @@ To select TAA for a Camera:
 1. Select the Camera in the Scene view or Hierarchy and view it in the Inspector.
 2. In the General section, select Temporal Anti-aliasing (TAA) from the Anti-aliasing drop-down.
 
+When using the same Camera GameObject for multiple Game Views TAA may not work as expected due to limitations of the history buffer system. Multiple game views using different Cameras will however work as expected.
+
+### Limitations
+In the Editor, if multiple Game views use the same Camera, TAA may not work as expected due to limitations of the history buffer system. However, if you use multiple Game views, where each Game view uses a unique Camera, TAA works as expected.
+
+
 <a name="SMAA"></a>
 
 ## Subpixel morphological anti-aliasing (SMAA)
@@ -75,8 +81,7 @@ When you use MSAA, be aware of the following:
   1. [Screen space reflection (SSR)](Override-Screen-Space-Reflection.md).
   2. Screen space shadows.
   3. [Temporal Anti-aliasing](#TAA).
-  4. Distortion.
-  5. Normal Buffer patch up by Decals.
+  4. Normal Buffer patch up by Decals. It mean Decal which affect material's normal will not affect Screen space reflection (SSR). This is not a problem as the effect is disabled, see 1.
 - MSAA does not affect the following features. HDRP does not disable these effects, it just does not process MSAA for them:
   1. [Post-processing](Post-Processing-Main.md).
   3. [Subsurface scattering](Subsurface-Scattering.md).

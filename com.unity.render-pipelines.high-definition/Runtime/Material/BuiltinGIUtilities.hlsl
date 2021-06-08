@@ -111,14 +111,12 @@ void EvaluateLightmap(float3 positionRWS, float3 normalWS, float3 backNormalWS, 
             TEXTURE2D_ARGS(unity_DynamicDirectionality, samplerunity_DynamicLightmap),
             uvDynamicLightmap, unity_DynamicLightmapST, normalWS, backNormalWS, false, decodeInstructions, bakeDiffuseLighting, backBakeDiffuseLighting);
     #else
-        float3 illuminance += SampleSingleLightmap(TEXTURE2D_ARGS(unity_DynamicLightmap, samplerunity_DynamicLightmap), uvDynamicLightmap, unity_DynamicLightmapST, false, decodeInstructions);
+        float3 illuminance = SampleSingleLightmap(TEXTURE2D_ARGS(unity_DynamicLightmap, samplerunity_DynamicLightmap), uvDynamicLightmap, unity_DynamicLightmapST, false, decodeInstructions);
         bakeDiffuseLighting += illuminance;
         backBakeDiffuseLighting += illuminance;
     #endif
 #endif
-
 #endif
-
 }
 
 void EvaluateLightProbeBuiltin(float3 positionRWS, float3 normalWS, float3 backNormalWS, inout float3 bakeDiffuseLighting, inout float3 backBakeDiffuseLighting)
@@ -172,7 +170,10 @@ void SampleBakedGI(
     // If probe volumes are evaluated in the lightloop, we place a sentinel value to detect that no lightmap data is present at the current pixel,
     // and we can safely overwrite baked data value with value from probe volume evaluation in light loop.
 #if !SAMPLE_LIGHTMAP
-    SetAsUninitializedGI(bakeDiffuseLighting);
+    if (_EnableProbeVolumes)
+        SetAsUninitializedGI(bakeDiffuseLighting);
+    else
+        EvaluateLightProbeBuiltin(positionRWS, normalWS, backNormalWS, bakeDiffuseLighting, backBakeDiffuseLighting);
     return;
 #endif
 

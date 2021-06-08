@@ -6,7 +6,7 @@ namespace UnityEditor.ShaderGraph
     [GenerationAPI]
     internal class DefineCollection : IEnumerable<DefineCollection.Item>
     {
-        public class Item : IConditional, IShaderString
+        public class Item : IConditional
         {
             public KeywordDescriptor descriptor { get; }
             public FieldCondition[] fieldConditions { get; }
@@ -28,6 +28,16 @@ namespace UnityEditor.ShaderGraph
         public DefineCollection()
         {
             m_Items = new List<Item>();
+        }
+
+        public DefineCollection(DefineCollection defines)
+        {
+            m_Items = new List<Item>();
+
+            foreach (DefineCollection.Item item in defines)
+            {
+                m_Items.Add(item);
+            }
         }
 
         public DefineCollection Add(DefineCollection defines)

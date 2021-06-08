@@ -56,6 +56,7 @@ namespace UnityEditor.ShaderGraph
             }
         }
 
+        // this node's precision is always controlled by the property precision
         public override bool canSetPrecision => false;
 
         public void UpdateNodeDisplayName(string newDisplayName)
@@ -147,34 +148,34 @@ namespace UnityEditor.ShaderGraph
             }
         }
 
-        public void GenerateNodeCode(ShaderStringBuilder sb, GenerationMode generationMode)
+        public void GenerateNodeCode(ShaderStringBuilder sb, GenerationMode mode)
         {
             // preview is always generating a full shader, even when previewing within a subgraph
-            bool isGeneratingSubgraph = owner.isSubGraph && (generationMode != GenerationMode.Preview);
+            bool isGeneratingSubgraph = owner.isSubGraph && (mode != GenerationMode.Preview);
 
             switch (property.propertyType)
             {
                 case PropertyType.Boolean:
-                    sb.AppendLine($"$precision {GetVariableNameForSlot(OutputSlotId)} = {property.GetHLSLVariableName(isGeneratingSubgraph)};");
+                    sb.AppendLine($"$precision {GetVariableNameForSlot(OutputSlotId)} = {property.GetHLSLVariableName(isGeneratingSubgraph, mode)};");
                     break;
                 case PropertyType.Float:
-                    sb.AppendLine($"$precision {GetVariableNameForSlot(OutputSlotId)} = {property.GetHLSLVariableName(isGeneratingSubgraph)};");
+                    sb.AppendLine($"$precision {GetVariableNameForSlot(OutputSlotId)} = {property.GetHLSLVariableName(isGeneratingSubgraph, mode)};");
                     break;
                 case PropertyType.Vector2:
-                    sb.AppendLine($"$precision2 {GetVariableNameForSlot(OutputSlotId)} = {property.GetHLSLVariableName(isGeneratingSubgraph)};");
+                    sb.AppendLine($"$precision2 {GetVariableNameForSlot(OutputSlotId)} = {property.GetHLSLVariableName(isGeneratingSubgraph, mode)};");
                     break;
                 case PropertyType.Vector3:
-                    sb.AppendLine($"$precision3 {GetVariableNameForSlot(OutputSlotId)} = {property.GetHLSLVariableName(isGeneratingSubgraph)};");
+                    sb.AppendLine($"$precision3 {GetVariableNameForSlot(OutputSlotId)} = {property.GetHLSLVariableName(isGeneratingSubgraph, mode)};");
                     break;
                 case PropertyType.Vector4:
-                    sb.AppendLine($"$precision4 {GetVariableNameForSlot(OutputSlotId)} = {property.GetHLSLVariableName(isGeneratingSubgraph)};");
+                    sb.AppendLine($"$precision4 {GetVariableNameForSlot(OutputSlotId)} = {property.GetHLSLVariableName(isGeneratingSubgraph, mode)};");
                     break;
                 case PropertyType.Color:
                     switch (property.sgVersion)
                     {
                         case 0:
                         case 2:
-                            sb.AppendLine($"$precision4 {GetVariableNameForSlot(OutputSlotId)} = {property.GetHLSLVariableName(isGeneratingSubgraph)};");
+                            sb.AppendLine($"$precision4 {GetVariableNameForSlot(OutputSlotId)} = {property.GetHLSLVariableName(isGeneratingSubgraph, mode)};");
                             break;
                         case 1:
                         case 3:
@@ -182,11 +183,11 @@ namespace UnityEditor.ShaderGraph
                             //for consistency with other places in the editor, we assume HDR colors are in linear space, and correct for gamma space here
                             if ((property as ColorShaderProperty).colorMode == ColorMode.HDR)
                             {
-                                sb.AppendLine($"$precision4 {GetVariableNameForSlot(OutputSlotId)} = IsGammaSpace() ? LinearToSRGB({property.GetHLSLVariableName(isGeneratingSubgraph)}) : {property.GetHLSLVariableName(isGeneratingSubgraph)};");
+                                sb.AppendLine($"$precision4 {GetVariableNameForSlot(OutputSlotId)} = IsGammaSpace() ? LinearToSRGB({property.GetHLSLVariableName(isGeneratingSubgraph, mode)}) : {property.GetHLSLVariableName(isGeneratingSubgraph, mode)};");
                             }
                             else
                             {
-                                sb.AppendLine($"$precision4 {GetVariableNameForSlot(OutputSlotId)} = {property.GetHLSLVariableName(isGeneratingSubgraph)};");
+                                sb.AppendLine($"$precision4 {GetVariableNameForSlot(OutputSlotId)} = {property.GetHLSLVariableName(isGeneratingSubgraph, mode)};");
                             }
                             break;
                         default:
@@ -218,11 +219,19 @@ namespace UnityEditor.ShaderGraph
                     sb.AppendLine($"UnitySamplerState {GetVariableNameForSlot(OutputSlotId)} = {property.GetHLSLVariableName(isGeneratingSubgraph)};");
                     break;
                 case PropertyType.Gradient:
-                    if (generationMode == GenerationMode.Preview)
+                    if (mode == GenerationMode.Preview)
                         sb.AppendLine($"Gradient {GetVariableNameForSlot(OutputSlotId)} = {GradientUtil.GetGradientForPreview(property.GetHLSLVariableName(isGeneratingSubgraph))};");
                     else
                         sb.AppendLine($"Gradient {GetVariableNameForSlot(OutputSlotId)} = {property.GetHLSLVariableName(isGeneratingSubgraph)};");
                     break;
+            }
+
+            if (property.isConnectionTestable)
+            {
+                // If in a subgraph, the value will be read from a function parameter.
+                // If generating preview mode code, we always inline the value, according to code gen requirements.
+                // The parent graph always sets the explicit value to be passed to a subgraph function.
+                sb.AppendLine("bool {0} = {1};", GetConnectionStateVariableNameForSlot(OutputSlotId), (mode == GenerationMode.Preview || !isGeneratingSubgraph) ? (IsSlotConnected(OutputSlotId) ? "true" : "false") : property.GetConnectionStateHLSLVariableName());
             }
         }
 
@@ -234,7 +243,13 @@ namespace UnityEditor.ShaderGraph
                 case PropertyType.VirtualTexture:
                     return property.GetHLSLVariableName(owner.isSubGraph);
             }
+
             return base.GetVariableNameForSlot(slotId);
+        }
+
+        public string GetConnectionStateVariableNameForSlot(int slotId)
+        {
+            return ShaderInput.GetConnectionStateVariableName(GetVariableNameForSlot(slotId));
         }
 
         protected override void CalculateNodeHasError()
@@ -249,7 +264,7 @@ namespace UnityEditor.ShaderGraph
             }
         }
 
-        public override void EvaluateConcretePrecision(List<MaterialSlot> inputSlots)
+        public override void UpdatePrecision(List<MaterialSlot> inputSlots)
         {
             // Get precision from Property
             if (property == null)
@@ -258,12 +273,12 @@ namespace UnityEditor.ShaderGraph
                 hasError = true;
                 return;
             }
-            // If Property has a precision override use that
+
+            // this node's precision is always controlled by the property precision
             precision = property.precision;
-            if (precision != Precision.Inherit)
-                concretePrecision = precision.ToConcrete();
-            else
-                concretePrecision = owner.concretePrecision;
+
+            graphPrecision = precision.ToGraphPrecision(GraphPrecision.Graph);
+            concretePrecision = graphPrecision.ToConcrete(owner.graphDefaultConcretePrecision);
         }
     }
 }

@@ -25,12 +25,13 @@ namespace UnityEngine.Rendering.HighDefinition
     /// A volume component that holds settings for the Bloom effect.
     /// </summary>
     [Serializable, VolumeComponentMenu("Post-processing/Bloom")]
-    [HelpURL(Documentation.baseURL + Documentation.version + Documentation.subURL + "Post-Processing-Bloom" + Documentation.endURL)]
+    [HDRPHelpURLAttribute("Post-Processing-Bloom")]
     public sealed class Bloom : VolumeComponentWithQuality, IPostProcessComponent
     {
         /// <summary>
         /// Set the level of brightness to filter out pixels under this level. This value is expressed in gamma-space. A value above 0 will disregard energy conservation rules.
         /// </summary>
+        [Header("Bloom")]
         [Tooltip("Set the level of brightness to filter out pixels under this level. This value is expressed in gamma-space. A value above 0 will disregard energy conservation rules.")]
         public MinFloatParameter threshold = new MinFloatParameter(0f, 0f);
 
@@ -55,6 +56,7 @@ namespace UnityEngine.Rendering.HighDefinition
         /// <summary>
         /// Specifies a Texture to add smudges or dust to the bloom effect.
         /// </summary>
+        [Header("Lens Dirt")]
         [Tooltip("Specifies a Texture to add smudges or dust to the bloom effect.")]
         public TextureParameter dirtTexture = new TextureParameter(null);
 
@@ -132,6 +134,7 @@ namespace UnityEngine.Rendering.HighDefinition
             set { m_HighQualityFiltering.value = value; }
         }
 
+        [Header("Advanced Tweaks")]
         [AdditionalProperty]
         [Tooltip("Specifies the resolution at which HDRP processes the effect. Quarter resolution is less resource intensive but can result in aliasing artifacts.")]
         [SerializeField, FormerlySerializedAs("resolution")]

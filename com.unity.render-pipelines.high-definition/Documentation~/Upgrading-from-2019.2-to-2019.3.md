@@ -10,7 +10,7 @@ If you use default prefab (the one created by the wizard) and rely on default **
 
 The easiest way is to ask the Wizard to recreate a new one:
 
-1. Open the Wizard (**Window > Render Pipeline > HD Render Pipeline Wizard**)
+1. Open the Wizard (**Window > Rendering > HDRP Wizard**)
 2. Remove the prefab set in **Default Scene Prefab**.
 3. [*Optional*] Keep a copy of your previous prefab if it have been customized to not lost your version. To do so, just rename the prefab. It will prevent to be overridden.
 4. Look at the **Configuration Checking** below for the line **Default Scene Prefab** and click on the **Fix** button.

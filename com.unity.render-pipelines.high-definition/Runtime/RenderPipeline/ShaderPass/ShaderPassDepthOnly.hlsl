@@ -73,7 +73,7 @@ void Frag(  PackedVaryingsToPS packedInput
             #endif
 
             #if defined(_DEPTHOFFSET_ON) && !defined(SCENEPICKINGPASS)
-            , out float outputDepth : SV_Depth
+            , out float outputDepth : DEPTH_OFFSET_SEMANTIC
             #endif
         )
 {

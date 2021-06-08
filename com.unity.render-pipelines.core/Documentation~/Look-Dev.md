@@ -14,7 +14,7 @@ You can load two different Assets into Look Dev at the same time and compare the
 
 ## Using Look Dev
 
-To open Look Dev in the Unity Editor, select **Window > Render Pipeline > Look Dev**. The first time you use Look Dev, you must either create a new [Environment Library](Look-Dev-Environment-Library.html) or load one. For information on how to create an Environment Library, see the [Environment Library documentation](Look-Dev-Environment-Library.html).
+To open Look Dev in the Unity Editor, select **Window > Rendering > Look Dev**. The first time you use Look Dev, you must either create a new [Environment Library](Look-Dev-Environment-Library.html) or load one. For information on how to create an Environment Library, see the [Environment Library documentation](Look-Dev-Environment-Library.html).
 
 ### Viewports
 

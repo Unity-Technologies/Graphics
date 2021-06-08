@@ -30,6 +30,7 @@
 [!include[](postpass-threshold.md)]
 [!include[](double-sided.md)]
 [!include[](normal-mode.md)]
+[!include[](double-sided-GI.md)]
 [!include[](material-type.md)]
 [!include[](transmission.md)]
 [!include[](receive-decals.md)]

@@ -4,8 +4,8 @@ If your Project uses shaders from the built-in render pipeline, and you want to 
 
 To upgrade built-in Shaders:
 
-1. Open your Project in Unity, and go to __Edit__ > __Render Pipeline__ > **Universal Render Pipeline**.
-2. According to your needs, select either __Upgrade Project Materials to URP Materials__ or __Upgrade Selected Materials to URP Materials__.
+1. Open your Project in Unity, and go to __Edit__ > __Rendering__ > **Materials**.
+2. According to your needs, select either __Convert All Built-in Project Materials to URP__ or __Convert Selected Built-in Materials to URP__.
 
 **Note:** These changes cannot be undone. Backup your Project before you upgrade it.
 

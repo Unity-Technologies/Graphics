@@ -70,24 +70,7 @@ namespace UnityEngine.Rendering.HighDefinition
         /// <returns>Returns SkySetting exposure.</returns>
         protected static float GetSkyIntensity(SkySettings skySettings, DebugDisplaySettings debugSettings)
         {
-            float skyIntensity = 1.0f;
-
-            switch (skySettings.skyIntensityMode.value)
-            {
-                case SkyIntensityMode.Exposure:
-                    // Note: Here we use EV100 of sky as a multiplier, so it is the opposite of when use with a Camera
-                    // because for sky/light, higher EV mean brighter, but for camera higher EV mean darker scene
-                    skyIntensity *= ColorUtils.ConvertEV100ToExposure(-skySettings.exposure.value);
-                    break;
-                case SkyIntensityMode.Multiplier:
-                    skyIntensity *= skySettings.multiplier.value;
-                    break;
-                case SkyIntensityMode.Lux:
-                    skyIntensity *= skySettings.desiredLuxValue.value / skySettings.upperHemisphereLuxValue.value;
-                    break;
-            }
-
-            return skyIntensity;
+            return skySettings.GetIntensityFromSettings();
         }
 
         /// <summary>

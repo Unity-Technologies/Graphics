@@ -1,5 +1,5 @@
 // #pragma enable_d3d11_debug_symbols
-#pragma only_renderers d3d11 playstation xboxone vulkan metal switch
+#pragma only_renderers d3d11 playstation xboxone xboxseries vulkan metal switch
 
 #pragma kernel main
 
@@ -116,6 +116,7 @@ float4x4 PerspectiveProjection4x4(float a, float g, float n, float f)
 // of wave intrinsics on Xbox until the Xbox compiler is fixed.
 #undef PLATFORM_SUPPORTS_WAVE_INTRINSICS
 #endif
+
 
 #define CLEAR_SIGN_BIT(X)  (asint(X) & INT_MAX)
 #define DIV_ROUND_UP(N, D) (((N) + (D) - 1) / (D)) // No division by 0 checks

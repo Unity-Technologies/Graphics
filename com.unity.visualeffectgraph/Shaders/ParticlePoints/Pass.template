@@ -26,10 +26,12 @@ VFX_VARYING_PS_INPUTS vert(uint id : SV_VertexID, vs_input i)
 			
 	if (!attributes.alive)
 		return o;
-				
+
+	float3 inputVertexPosition = float3(0.0f, 0.0f, 0.0f);
 	float3 vPos = attributes.position;
 	o.VFX_VARYING_POSCS = TransformPositionVFXToClip(vPos);
 
+	${VFXVertexComputeCurrentAndPreviousClipPos}
 	${VFXVertexCommonProcess}
 	${VFXVertexAdditionalProcess}
     
@@ -37,5 +39,3 @@ VFX_VARYING_PS_INPUTS vert(uint id : SV_VertexID, vs_input i)
 			
 	return o;
 }
-
-${VFXFragmentCommonFunctions}

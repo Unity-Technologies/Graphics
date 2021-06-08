@@ -49,7 +49,7 @@ namespace UnityEditor.Rendering.HighDefinition
 
         public override string GetOldDefaultReferenceName() => $"DiffusionProfile_{objectId}";
 
-        internal override string GetPropertyAsArgumentString()
+        internal override string GetPropertyAsArgumentString(string precisionString)
         {
             return $"float {referenceName}";
         }

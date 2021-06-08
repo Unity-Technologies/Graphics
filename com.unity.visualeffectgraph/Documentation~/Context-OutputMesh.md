@@ -11,7 +11,7 @@ To specify a shader for this mesh, assign a [Shader Graph](https://docs.unity3d.
 | **Setting**      | **Type**           | **Description**                                              |
 | ---------------- | ------------------ | ------------------------------------------------------------ |
 | **Shader**       | Shader Graph Asset | The Shader Graph to render the mesh with. When you assign a Shader Graph asset to this property, the Visual Effect Graph converts all exposed properties to input ports and displays them in this Context. |
-| **Cast Shadows** | bool               | **(Inspector)** Indicates whether the mesh should cast shadows. |
+| **Cast Shadows** | bool               | **(Inspector)** Indicates whether the mesh casts shadows. |
 
 ## Context properties
 

@@ -5,6 +5,12 @@ test_platforms:
   - type: playmode
   - type: editmode
   - type: Standalone
+    commands_build:
+      - [all]: <shared.platform.commands.turn_off_firewall>
+      - [all]: <shared.platform.commands.setup_utr>
+      - [all]: <shared.platform.commands.unity_downloader_cli>
+      - [Win_DX11, Win_DX12]: <shared.platform.commands.call_utr_and_exit_0>
+      - [all]: <shared.platform.commands.call_utr_without_git>
 platforms:
   - name: Win
     apis:
@@ -13,19 +19,29 @@ platforms:
       - name: mono
     color_spaces:
       - Linear
-expression_trigger: 
-  expression: ""     
-pr:
-  dependencies:
-    - platform: Win
-      api: DX11
-      build_config: mono
-      color_space: Linear
-      test_platforms:
-        - playmode
-        - editmode
-        - Standalone
-nightly:
-  dependencies:
-    - project: Smoke_Test
-      pr: true      
+jobs:
+  - name: PR <PROJECT_NAME>
+    triggers:
+      expression: 'pull_request.target eq "<TARGET_BRANCH>" AND NOT pull_request.draft AND pull_request.changes.any match ["TestProjects/SRP_SmokeTest/**/*"] AND NOT pull_request.changes.all match ["*.md", "**/*.md", "doc/**/*", "**/Documentation*/**/*"]'
+    dependencies:
+      - platform: Win
+        api: DX11
+        build_config: mono
+        color_space: Linear
+        test_platforms:
+          - Standalone
+  - name: Extra <PROJECT_NAME>
+    dependencies:
+      - project: Smoke_Test
+        pr: true
+      - platform: Win
+        api: DX11
+        build_config: mono
+        color_space: Linear
+        test_platforms:
+          - playmode
+          - editmode
+  - name: <PROJECT_NAME>
+    dependencies:
+      - <PROJECT_ALL_YML_FILE>#PR_<PROJECT_NAME>_<TRACK>
+      - <PROJECT_ALL_YML_FILE>#Extra_<PROJECT_NAME>_<TRACK>

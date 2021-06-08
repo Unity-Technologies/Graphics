@@ -44,6 +44,11 @@ namespace UnityEditor.VFX
             return new VFXTextureCubeArrayValue(value.GetInstanceID(), Mode.Constant);
         }
 
+        static public VFXValue<int> Constant(CameraBuffer value)
+        {
+            return new VFXCameraBufferValue(value, Mode.Constant);
+        }
+
         static public VFXValue<T> Constant<T>(T value = default(T))
         {
             return new VFXValue<T>(value, Mode.Constant);
@@ -199,6 +204,11 @@ namespace UnityEditor.VFX
             {
                 m_Content = (T)Convert.ChangeType(value, toType);
             }
+            else if (toType == typeof(GraphicsBuffer))
+            {
+                //We can't serialize a reference of GraphicsBuffer
+                m_Content = null;
+            }
             else
             {
                 var implicitMethod = fromType.GetMethods(System.Reflection.BindingFlags.Static | System.Reflection.BindingFlags.Public)
@@ -281,6 +291,11 @@ namespace UnityEditor.VFX
             if (value is UnityObject obj)
             {
                 m_Content = obj.GetInstanceID();
+                return;
+            }
+            if (value is GraphicsBuffer)
+            {
+                m_Content = (int)0;
                 return;
             }
 

@@ -1,5 +1,5 @@
 //
-// This file was automatically generated. Please don't edit by hand. Execute Editor command [ Edit / Render Pipeline / Generate Shader Includes ] instead
+// This file was automatically generated. Please don't edit by hand. Execute Editor command [ Edit > Rendering > Generate Shader Includes ] instead
 //
 
 #ifndef SHADERTYPES_CS_HLSL
@@ -13,6 +13,7 @@ struct LightData
     float4 attenuation;
     float4 spotDirection;
     float4 occlusionProbeChannels;
+    uint layerMask;
 };
 
 

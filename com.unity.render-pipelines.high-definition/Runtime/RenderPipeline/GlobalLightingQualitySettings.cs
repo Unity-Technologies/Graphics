@@ -46,15 +46,11 @@ namespace UnityEngine.Rendering.HighDefinition
             /* Screen Space Global Illumination */
             SSGIRaySteps[(int)ScalableSettingLevelParameter.Level.Low] = 32;
             SSGIRaySteps[(int)ScalableSettingLevelParameter.Level.Medium] = 64;
-            SSGIRaySteps[(int)ScalableSettingLevelParameter.Level.High] = 96;
+            SSGIRaySteps[(int)ScalableSettingLevelParameter.Level.High] = 128;
 
-            SSGIFullResolution[(int)ScalableSettingLevelParameter.Level.Low] = false;
-            SSGIFullResolution[(int)ScalableSettingLevelParameter.Level.Medium] = true;
-            SSGIFullResolution[(int)ScalableSettingLevelParameter.Level.High] = true;
-
-            SSGIFilterRadius[(int)ScalableSettingLevelParameter.Level.Low] = 3;
-            SSGIFilterRadius[(int)ScalableSettingLevelParameter.Level.Medium] = 5;
-            SSGIFilterRadius[(int)ScalableSettingLevelParameter.Level.High] = 7;
+            SSGIFilterRadius[(int)ScalableSettingLevelParameter.Level.Low] = 16;
+            SSGIFilterRadius[(int)ScalableSettingLevelParameter.Level.Medium] = 14;
+            SSGIFilterRadius[(int)ScalableSettingLevelParameter.Level.High] = 12;
 
             // Ray Traced Ambient Occlusion
             RTAORayLength[(int)ScalableSettingLevelParameter.Level.Low] = 0.5f;
@@ -89,6 +85,10 @@ namespace UnityEngine.Rendering.HighDefinition
             RTGIUpScaleRadius[(int)ScalableSettingLevelParameter.Level.Low] = 4;
             RTGIUpScaleRadius[(int)ScalableSettingLevelParameter.Level.Medium] = 4;
             RTGIUpScaleRadius[(int)ScalableSettingLevelParameter.Level.High] = 4;
+
+            RTGIRaySteps[(int)ScalableSettingLevelParameter.Level.Low] = 32;
+            RTGIRaySteps[(int)ScalableSettingLevelParameter.Level.Medium] = 48;
+            RTGIRaySteps[(int)ScalableSettingLevelParameter.Level.High] = 64;
 
             RTGIDenoise[(int)ScalableSettingLevelParameter.Level.Low] = true;
             RTGIDenoise[(int)ScalableSettingLevelParameter.Level.Medium] = true;
@@ -126,6 +126,10 @@ namespace UnityEngine.Rendering.HighDefinition
             RTRFullResolution[(int)ScalableSettingLevelParameter.Level.Low] = false;
             RTRFullResolution[(int)ScalableSettingLevelParameter.Level.Medium] = false;
             RTRFullResolution[(int)ScalableSettingLevelParameter.Level.High] = true;
+
+            RTRRayMaxIterations[(int)ScalableSettingLevelParameter.Level.Low] = 32;
+            RTRRayMaxIterations[(int)ScalableSettingLevelParameter.Level.Medium] = 48;
+            RTRRayMaxIterations[(int)ScalableSettingLevelParameter.Level.High] = 64;
 
             RTRDenoise[(int)ScalableSettingLevelParameter.Level.Low] = true;
             RTRDenoise[(int)ScalableSettingLevelParameter.Level.Medium] = true;
@@ -177,19 +181,8 @@ namespace UnityEngine.Rendering.HighDefinition
 
         // Screen Space Global Illumination
         /// <summary>Screen space global illumination step count for the ray marching.</summary>
-        [NonSerialized]
         public int[] SSGIRaySteps = new int[s_QualitySettingCount];
-        /// <summary>Screen space global illumination's world space maximal radius.</summary>
-        [NonSerialized]
-        public float[] SSGIRadius = new float[s_QualitySettingCount];
-        /// <summary>Screen space global illumination flag to define if the effect is computed at full resolution.</summary>
-        [NonSerialized]
-        public bool[] SSGIFullResolution = new bool[s_QualitySettingCount];
-        /// <summary>Screen space global illumination signal clamping value.</summary>
-        [NonSerialized]
-        public float[] SSGIClampValue = new float[s_QualitySettingCount];
         /// <summary>Screen space global illumination's filter size.</summary>
-        [NonSerialized]
         public int[] SSGIFilterRadius = new int[s_QualitySettingCount];
 
         // Ray Traced Ambient Occlusion
@@ -211,6 +204,8 @@ namespace UnityEngine.Rendering.HighDefinition
         public float[] RTGIClampValue = new float[s_QualitySettingCount];
         /// <summary>Radius for the up-sample pass.</summary>
         public int[] RTGIUpScaleRadius = new int[s_QualitySettingCount];
+        /// <summary>Controls the number of ray steps for hybrid tracing.</summary>
+        public int[] RTGIRaySteps = new int[s_QualitySettingCount];
         /// <summary>Flag that enables the first denoising pass.</summary>
         public bool[] RTGIDenoise = new bool[s_QualitySettingCount];
         /// <summary>Flag that defines if the denoiser should be evaluated at half resolution.</summary>
@@ -219,8 +214,6 @@ namespace UnityEngine.Rendering.HighDefinition
         public float[] RTGIDenoiserRadius = new float[s_QualitySettingCount];
         /// <summary>Flag that enables the second denoising pass.</summary>
         public bool[] RTGISecondDenoise = new bool[s_QualitySettingCount];
-        /// <summary>Flag that defines the radius of the second denoiser.</summary>
-        public float[] RTGISecondDenoiserRadius = new float[s_QualitySettingCount];
 
         // Ray Traced Reflections
         /// <summary>Controls the minimal smoothness.</summary>
@@ -233,6 +226,8 @@ namespace UnityEngine.Rendering.HighDefinition
         public float[] RTRClampValue = new float[s_QualitySettingCount];
         /// <summary>Controls if the effect should be computed at full resolution.</summary>
         public bool[] RTRFullResolution = new bool[s_QualitySettingCount];
+        /// <summary>Controls if the effect should be computed at full resolution.</summary>
+        public int[] RTRRayMaxIterations = new int[s_QualitySettingCount];
         /// <summary>Flag that enables the first denoising pass.</summary>
         public bool[] RTRDenoise = new bool[s_QualitySettingCount];
         /// <summary>Flag that defines the radius of the first denoiser.</summary>

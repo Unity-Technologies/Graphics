@@ -32,7 +32,7 @@ When creating a __Freeform__ Light, take care to avoid self-intersection as this
 
 ## Parametric
 
-The __Parametric__ light type has been deprecated. To convert existing Parametric lights to __Freeform__ lights, Edit->Render Pipeline->Universal Render Pipeline->Upgrade Project/Scene Parametric Lights to Freeform
+The __Parametric__ light type has been deprecated. To convert existing Parametric lights to __Freeform__ lights, Edit > Rendering > Lights > Upgrade Project/Scene URP Parametric Lights to Freeform
 
 
 ## Sprite
@@ -71,4 +71,4 @@ Select the __Spot__ Light type for great control over the angle and direction of
 
 ## Global
 
-Global Lights light all objects on the [targeted sorting layers](2DLightProperties.html#target-sorting-layers). Only one global Light can be used per [Blend Style](LightBlendStyles), and per sorting layer.
+Global Lights light all objects on the [targeted sorting layers](2DLightProperties.html#target-sorting-layers). Only one global Light can be used per [Blend Style](LightBlendStyles.md), and per sorting layer.

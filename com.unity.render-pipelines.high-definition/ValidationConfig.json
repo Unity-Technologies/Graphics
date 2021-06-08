@@ -1,0 +1,30 @@
+{
+	"FileContentKeywordValidation":
+	{
+		"Keywords":
+		[
+			{
+				"Targets": "+PS4",
+				"Files":
+				[
+					"Documentation~/Building-For-Consoles.md"
+				],
+				"Patterns":
+				[
+					"com\\.unity\\.render-pipelines\\.ps4"
+				]
+			},
+			{
+				"Targets": "+XboxOne",
+				"Files":
+				[
+					"Documentation~/Building-For-Consoles.md"
+				],
+				"Patterns":
+				[
+					"com\\.unity\\.render-pipelines\\.xboxone"
+				]
+			}
+		]
+	}
+}

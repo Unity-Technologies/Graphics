@@ -66,6 +66,21 @@ namespace UnityEditor.Rendering.HighDefinition
             });
         }
 
+        static void AddSliderProperty(this PropertyCollector collector, string referenceName, string displayName, float defaultValue, Vector2 range, HLSLDeclaration declarationType = HLSLDeclaration.DoNotDeclare)
+        {
+            collector.AddShaderProperty(new Vector1ShaderProperty
+            {
+                floatType = FloatType.Slider,
+                rangeValues = range,
+                value = defaultValue,
+                overrideReferenceName = referenceName,
+                hidden = true,
+                overrideHLSLDeclaration = true,
+                hlslDeclarationOverride = declarationType,
+                displayName = displayName,
+            });
+        }
+
         static void AddToggleProperty(this PropertyCollector collector, string referenceName, bool defaultValue, HLSLDeclaration declarationType = HLSLDeclaration.DoNotDeclare)
         {
             collector.AddShaderProperty(new BooleanShaderProperty
@@ -189,6 +204,30 @@ namespace UnityEditor.Rendering.HighDefinition
             collector.AddToggleProperty(kTransparentBackfaceEnable, backThenFrontRendering);
         }
 
+        public static void AddTessellationShaderProperties(PropertyCollector collector, TessellationMode tessellationMode,
+            float tessellationFactorMinDistance, float tessellationFactorMaxDistance, float tessellationFactorTriangleSize,
+            float tessellationShapeFactor, float tessellationBackFaceCullEpsilon, float tessellationMaxDisplacement)
+        {
+            collector.AddShaderProperty(new Vector1ShaderProperty
+            {
+                overrideReferenceName = kTessellationMode,
+                floatType = FloatType.Enum,
+                value = (int)tessellationMode,
+                enumNames = { "None", "Phong" },
+                enumValues = { (int)TessellationMode.None, (int)TessellationMode.Phong },
+                hidden = true,
+                overrideHLSLDeclaration = true,
+                hlslDeclarationOverride = HLSLDeclaration.DoNotDeclare,
+            });
+
+            collector.AddFloatProperty(kTessellationFactorMinDistance, tessellationFactorMinDistance, HLSLDeclaration.UnityPerMaterial);
+            collector.AddFloatProperty(kTessellationFactorMaxDistance, tessellationFactorMaxDistance, HLSLDeclaration.UnityPerMaterial);
+            collector.AddFloatProperty(kTessellationFactorTriangleSize, tessellationFactorTriangleSize, HLSLDeclaration.UnityPerMaterial);
+            collector.AddSliderProperty(kTessellationShapeFactor, "Tessellation shape factor", tessellationShapeFactor, new Vector2(0.0f, 1.0f), HLSLDeclaration.UnityPerMaterial);
+            collector.AddSliderProperty(kTessellationBackFaceCullEpsilon, "Tessellation back face epsilon", tessellationBackFaceCullEpsilon, new Vector2(-1.0f, 0.0f), HLSLDeclaration.UnityPerMaterial);
+            collector.AddFloatProperty(kTessellationMaxDisplacement, tessellationMaxDisplacement, HLSLDeclaration.UnityPerMaterial);
+        }
+
         public static void AddAlphaCutoffShaderProperties(PropertyCollector collector, bool alphaCutoff, bool shadowThreshold)
         {
             collector.AddToggleProperty("_AlphaCutoffEnable", alphaCutoff);
@@ -196,7 +235,7 @@ namespace UnityEditor.Rendering.HighDefinition
             collector.AddToggleProperty("_UseShadowThreshold", shadowThreshold, HLSLDeclaration.UnityPerMaterial);
         }
 
-        public static void AddDoubleSidedProperty(PropertyCollector collector, DoubleSidedMode mode = DoubleSidedMode.Enabled)
+        public static void AddDoubleSidedProperty(PropertyCollector collector, DoubleSidedMode mode = DoubleSidedMode.Enabled, DoubleSidedGIMode giMode = DoubleSidedGIMode.Auto)
         {
             var normalMode = ConvertDoubleSidedModeToDoubleSidedNormalMode(mode);
             collector.AddToggleProperty("_DoubleSidedEnable", mode != DoubleSidedMode.Disabled);
@@ -217,6 +256,16 @@ namespace UnityEditor.Rendering.HighDefinition
                 overrideHLSLDeclaration = true,
                 hlslDeclarationOverride = HLSLDeclaration.UnityPerMaterial,
                 value = new Vector4(1, 1, -1, 0)
+            });
+            collector.AddShaderProperty(new Vector1ShaderProperty
+            {
+                enumNames = { "Auto", "On", "Off" }, // values will be 0, 1 and 2
+                floatType = FloatType.Enum,
+                overrideReferenceName = "_DoubleSidedGIMode",
+                hidden = true,
+                overrideHLSLDeclaration = true,
+                hlslDeclarationOverride = HLSLDeclaration.DoNotDeclare,
+                value = (int)giMode
             });
         }
 

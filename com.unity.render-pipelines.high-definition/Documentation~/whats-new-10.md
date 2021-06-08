@@ -10,6 +10,10 @@ The following is a list of features Unity added to version 10 of the High Defini
 
 This version of HDRP includes support for the Playstation 5 platform. For more information, see [building for consoles](Building-For-Consoles.md).
 
+### Added support for the Game Core Xbox Series platform and Game Core Xbox One
+
+This version of HDRP includes support for the Game Core Xbox Series platform as well as support for Game Core for Xbox One. For more information, see [building for consoles](Building-For-Consoles.md).
+
 ### IES Profiles and light cookies
 
 ![](Images/HDRPFeatures-IESProfiles.png)
@@ -182,7 +186,7 @@ Note that the graph should not contain nodes that rely on screen-space different
 
 ## Improvements
 
-The following is a list of improvements Unity made to the High Definition Render Pipeline in version 10.0. Each entry includes a summary of the improvement and, if relevant, a link to any documentation.
+The following is a list of improvements Unity made to the High Definition Render Pipeline in version 10. Each entry includes a summary of the improvement and, if relevant, a link to any documentation.
 
 
 ### Scene view Camera properties
@@ -194,6 +198,13 @@ For information on HDRP's Scene view Camera properties, see [Scene view Camera](
 ### Shadow caching system
 
 This version of HDRP improves on shadow atlas and shadow caching management. You can now stagger cascade shadows which means you can update each cascade independently. Cached shadows (those that use **OnEnable**) render everything they can see independently of the main view. This version also introduces more API which you can use to more finely control cached shadows. For more information, see [Shadows](Shadows-in-HDRP.md).
+
+### Volumetric fog control modes
+
+Version 10.2 of HDRP introduces the concept of volumetric fog control modes to help you set up volumetric fog in a Scene. The control modes are:
+
+* **Balance**: Uses a performance-oriented approach to define the quality of the volumetric fog.
+* **Manual**: Gives you access to the internal set of properties which directly control the effect. This mode is equivalent to the behavior before this update.
 
 ### Custom post-processing: new injection point
 
@@ -239,7 +250,7 @@ In terms of performance, one of the most resource intensive operations for HDRP 
 
 ### Decal improvement
 
-HDRP no longer forces a full depth pre-pass when you enable decals in Deferred Lit Mode. Only materials with the **Receive Decals** property enabled render in the pre-pass. Decal shader code has improved and now produces fewer shader variants and includes better UI to control which material attributes the decal affects. Finally, the [Decal Shader Graph](Master-Node-Decal.md) now exposes affects flags control on the Material.
+HDRP no longer forces a full depth pre-pass when you enable decals in Deferred Lit Mode. Only materials with the **Receive Decals** property enabled render in the pre-pass. Decal shader code has improved and now produces fewer shader variants and includes better UI to control which material attributes the decal affects. Finally, the [Decal Master Stack](master-stack-decal.md) now exposes affects flags control on the Material.
 
 ### Constant buffer setup optimization
 

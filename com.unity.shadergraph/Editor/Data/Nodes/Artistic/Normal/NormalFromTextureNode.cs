@@ -31,7 +31,7 @@ namespace UnityEditor.ShaderGraph
 
         string GetFunctionName()
         {
-            return $"Unity_NormalFromTexture_{concretePrecision.ToShaderString()}";
+            return "Unity_NormalFromTexture_$precision";
         }
 
         public override bool hasPreview { get { return true; } }
@@ -64,7 +64,7 @@ namespace UnityEditor.ShaderGraph
                 samplerValue = textureValue;
 
             sb.AppendLine("{0} {1};", FindOutputSlot<MaterialSlot>(OutputSlotId).concreteValueType.ToShaderString(), GetVariableNameForSlot(OutputSlotId));
-            sb.AppendLine("{0}(TEXTURE2D_ARGS({1}.tex, {2}.samplerstate), {3}, {4}, {5}, {6});", GetFunctionName(), textureValue, samplerValue, uvValue, offsetValue, strengthValue, outputValue);
+            sb.AppendLine("{0}(TEXTURE2D_ARGS({1}.tex, {2}.samplerstate), {1}.GetTransformedUV({3}), {4}, {5}, {6});", GetFunctionName(), textureValue, samplerValue, uvValue, offsetValue, strengthValue, outputValue);
         }
 
         public void GenerateNodeFunction(FunctionRegistry registry, GenerationMode generationMode)

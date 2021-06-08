@@ -6,7 +6,7 @@ Shader "Hidden/HDRP/Sky/HDRISky"
 
     #pragma editor_sync_compilation
     #pragma target 4.5
-    #pragma only_renderers d3d11 playstation xboxone vulkan metal switch
+    #pragma only_renderers d3d11 playstation xboxone xboxseries vulkan metal switch
 
     #define LIGHTLOOP_DISABLE_TILE_AND_CLUSTER
 
@@ -14,7 +14,7 @@ Shader "Hidden/HDRP/Sky/HDRISky"
     #pragma multi_compile_local_fragment _ USE_FLOWMAP
 
     #pragma multi_compile_fragment _ DEBUG_DISPLAY
-    #pragma multi_compile_local_fragment SHADOW_LOW SHADOW_MEDIUM SHADOW_HIGH
+    #pragma multi_compile_local_fragment SHADOW_LOW SHADOW_MEDIUM SHADOW_HIGH SHADOW_VERY_HIGH
 
     #pragma multi_compile USE_FPTL_LIGHTLIST USE_CLUSTERED_LIGHTLIST
 

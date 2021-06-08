@@ -1,8 +1,12 @@
 * [Visual Effect Graph](index.md)
 * [Requirements](System-Requirements.md)
+* [What's new](whats-new.md)
+  * [10 / Unity 2020.2](whats-new-10.md)
+  * [11 / Unity 2021.1](whats-new-11.md)
 * [Getting Started](GettingStarted.md)
   * [Visual Effect Graph Assets](VisualEffectGraphAsset.md)
   * [Visual Effect Graph Window](VisualEffectGraphWindow.md)
+  * [Sample Content](sample-content.md)
 * [Graph Logic & Philosophy](GraphLogicAndPhilosophy.md)
   * [Systems](Systems.md)
   * [Contexts](Contexts.md)
@@ -16,20 +20,29 @@
   * [Sticky Notes](StickyNotes.md)
   * [Project Settings](VisualEffectProjectSettings.md)
   * [Preferences](VisualEffectPreferences.md)
+  * [Visual Effect Bounds](visual-effect-bounds.md)
 * [The Visual Effect Component](VisualEffectComponent.md)
   * [C# Component API](ComponentAPI.md)
   * [Using Visual Effects with Timeline](Timeline.md)
   * [Property Binders](PropertyBinders.md)
   * [Event Binders](EventBinders.md)
   * [Output Event Handlers](OutputEventHandlers.md)
+* Shader Graph Integration
+  * [Shader Graphs in Visual Effects](sg-working-with.md)
+  * [Visual Effect Target](sg-target-visual-effect.md)
 * Pipeline Tools
+  * [Representing Complex Shapes](representing-complex-shapes.md)
+    * [Signed Distance Fields](sdf-in-vfx-graph.md)
+      * [SDF Bake Tool](sdf-bake-tool.md)
+        * [SDF Bake Tool window](sdf-bake-tool-window.md)
+        * [SDF Bake Tool API](sdf-bake-tool-api.md)
+    * [Point Caches](point-cache-in-vfx-graph.md)
+      * [Point Cache asset](point-cache-asset.md)
+      * [Point Cache Bake Tool](point-cache-bake-tool.md)
   * [ExposedProperty Helper](ExposedPropertyHelper.md)
   * [Vector Fields](VectorFields.md)
-  * [Point Caches](PointCaches.md)
-  * [Point Cache Bake Tool](PointCacheBakeTool.md)
   * [Spawner Callbacks](SpawnerCallbacks.md)
-  * [Mesh Sampling](MeshSampling.md)
-* Node Library
+* [Node Library](node-library.md)
   * Context
     * [Event](Context-Event.md)
     * [GPU Event](Context-GPUEvent.md)
@@ -46,74 +59,96 @@
       * [Lit Output Settings](Context-OutputLitSettings.md)
     * [Spawn](Context-Spawn.md)
     * [Update Particle](Context-Update.md)
-    * Block
+  * Block
+    * Attribute
+      * [Curve](Block-SetAttributeFromCurve.md)
+      * Derived
+        * [Calculate Mass from Volume](Block-CalculateMassFromVolume.md)
+      * [Map](Block-SetAttributeFromMap.md)
+      * [Set](Block-SetAttribute.md)
+    * Collision
+      * [Collide with AABox](Block-CollideWithAABox.md)
+      * [Collide with Cylinder](Block-CollideWithCylinder.md)
+      * [Collide with Depth Buffer](Block-CollideWithDepthBuffer.md)
+      * [Collide with Plane](Block-CollideWithPlane.md)
+      * [Collide with Signed Distance Field](Block-CollideWithSignedDistanceField.md)
+      * [Collide with Sphere](Block-CollideWithSphere.md)
+    * Flipbook
+      * [Flipbook Player](Block-FlipbookPlayer.md)
+    * Force
+      * [Conform to Signed Distance Field](Block-ConformToSignedDistanceField.md)
+      * [Conform to Sphere](Block-ConformToSphere.md)
+      * [Force](Block-Force.md)
+      * [Gravity](Block-Gravity.md)
+      * [Linear Drag](Block-LinearDrag.md)
+      * [Turbulence](Block-Turbulence.md)
+      * [Vector Force Field](Block-VectorForceField.md)
+    * GPU Event
+      * [Trigger Event Always](Block-TriggerEventAlways.md)
+      * [Trigger Event On Die](Block-TriggerEventOnDie.md)
+      * [Trigger Event Rate](Block-TriggerEventRate.md)
+    * Implicit
+      * [Integration : Update Position](Block-UpdatePosition.md)
+      * [Integration : Update Rotation](Block-UpdateRotation.md)
+    * Kill
+      * [Kill (AABox)](Block-Kill(AABox).md)
+      * [Kill (Sphere)](Block-Kill(Sphere).md)
+    * Orientation
+      * [Connect Target](Block-ConnectTarget.md)
+      * [Orient](Block-Orient.md)
+    * Output
+      * [Camera Fade](Block-CameraFade.md)
+      * [Subpixel Anti-Aliasing](Block-SubpixelAntiAliasing.md)
+    * Position
+      * [Set Position (Depth)](Block-SetPosition(Depth).md)
+      * [Position (Mesh)](Block-SetPosition(Mesh).md)
+      * [Position (Signed Distance Field)](Block-SetPosition(SignedDistanceField).md)
+      * [Position (Skinned Mesh)](Block-SetPosition(Mesh).md)
+      * [Set Position (Sequential : Circle)](Block-SetPosition(Sequential).md)
+      * [Set Position (Sequential : Line)](Block-SetPosition(Sequential).md)
+      * [Set Position (Sequential : ThreeDimensional)](Block-SetPosition(Sequential).md)
+      * [Set Position (Shape : AABox)](Block-SetPosition(AABox).md)
+      * [Set Position (Shape : Circle)](Block-SetPosition(Circle).md)
+      * [Set Position (Shape : Cone)](Block-SetPosition(Cone).md)
+      * [Set Position (Shape : Line)](Block-SetPosition(Line).md)
+      * [Set Position (Shape : Sphere)](Block-SetPosition(Sphere).md)
+      * [Set Position (Sequential)](Block-SetPosition(Sequential).md)
+      * [Tile/Warp Positions](Block-TileWarpPositions.md)
+    * Size
+      * [Screen Space Size](Block-ScreenSpaceSize.md)
+    * Spawn
+      * [Constant Spawn Rate](Block-ConstantRate.md)
+      * [Periodic Burst](Block-Burst.md)
+      * [Single  Burst](Block-Burst.md)
+      * [Variable Spawn Rate](Block-VariableRate.md)
       * Attribute
-        * [Curve](Block-SetAttributeFromCurve.md)
-        * Derived
-          * [Calculate Mass from Volume](Block-CalculateMassFromVolume.md)
-        * [Map](Block-SetAttributeFromMap.md)
-        * [Set](Block-SetAttribute.md)
-      * Collision
-        * [Collide with AABox](Block-CollideWithAABox.md)
-        * [Collide with Cylinder](Block-CollideWithCylinder.md)
-        * [Collide with Depth Buffer](Block-CollideWithDepthBuffer.md)
-        * [Collide with Plane](Block-CollideWithPlane.md)
-        * [Collide with Signed Distance Field](Block-CollideWithSignedDistanceField.md)
-        * [Collide with Sphere](Block-CollideWithSphere.md)
-      * Flipbook
-        * [Flipbook Player](Block-FlipbookPlayer.md)
-      * Force
-        * [Conform to Signed Distance Field](Block-ConformToSignedDistanceField.md)
-        * [Conform to Sphere](Block-ConformToSphere.md)
-        * [Force](Block-Force.md)
-        * [Gravity](Block-Gravity.md)
-        * [Linear Drag](Block-LinearDrag.md)
-        * [Turbulence](Block-Turbulence.md)
-        * [Vector Force Field](Block-VectorForceField.md)
-      * GPU Event
-        * [Trigger Event Always](Block-TriggerEventAlways.md)
-        * [Trigger Event On Die](Block-TriggerEventOnDie.md)
-        * [Trigger Event Rate](Block-TriggerEventRate.md)
-      * Implicit
-        * [Integration : Update Position](Block-UpdatePosition.md)
-        * [Integration : Update Rotation](Block-UpdateRotation.md)
-      * Kill
-        * [Kill (AABox)](Block-Kill(AABox).md)
-        * [Kill (Sphere)](Block-Kill(Sphere).md)
-      * Orientation
-        * [Connect Target](Block-ConnectTarget.md)
-        * [Orient](Block-Orient.md)
-      * Output
-        * [Camera Fade](Block-CameraFade.md)
-        * [Subpixel Anti-Aliasing](Block-SubpixelAntiAliasing.md)
-      * Position
-        * [Set Position (Depth)](Block-SetPosition(Depth).md)
-        * [Set Position (Shape : AABox)](Block-SetPosition(AABox).md)
-        * [Set Position (Shape : Circle)](Block-SetPosition(Circle).md)
-        * [Set Position (Shape : Cone)](Block-SetPosition(Cone).md)
-        * [Set Position (Shape : Cone)](Block-SetPosition(Line).md)
-        * [Set Position (Shape : Sphere)](Block-SetPosition(Sphere).md)
-        * [Set Position (Sequential)](Block-SetPosition(Sequential).md)
-        * [Tile/Warp Positions](Block-TileWarpPositions.md)
-      * Size
-        * [Screen Space Size](Block-ScreenSpaceSize.md)
-      * Spawn
-        * [Constant Spawn Rate](Block-ConstantRate.md)
-        * [Periodic Burst](Block-Burst.md)
-        * [Single  Burst](Block-Burst.md)
-        * [Variable Spawn Rate](Block-VariableRate.md)
-        * Attribute
-          * [Set Spawn Event \<attribute>](Block-SetSpawnEvent.md)
-        * Custom
-          * [Increment Strip Index On Start](Block-IncrementStripIndexOnStart.md)
-          * [Set Spawn Time](Block-SetSpawnTime.md)
-          * [Spawn Over Distance](Block-SpawnOverDistance.md)
-      * Velocity
-        * [Velocity from Direction & Speed (Change Speed)](Block-VelocityFromDirectionAndSpeed(ChangeSpeed).md)
-        * [Velocity from Direction & Speed (New Direction)](Block-VelocityFromDirectionAndSpeed(NewDirection).md)
-        * [Velocity from Direction & Speed (Random Direction)](Block-VelocityFromDirectionAndSpeed(RandomDirection).md)
-        * [Velocity from Direction & Speed (Spherical)](Block-VelocityFromDirectionAndSpeed(Spherical).md)
-        * [Velocity from Direction & Speed (Tangent)](Block-VelocityFromDirectionAndSpeed(Tangent).md)
+        * [Set Spawn Event \<attribute>](Block-SetSpawnEvent.md)
+      * Custom
+        * [Increment Strip Index On Start](Block-IncrementStripIndexOnStart.md)
+        * [Set Spawn Time](Block-SetSpawnTime.md)
+        * [Spawn Over Distance](Block-SpawnOverDistance.md)
+    * Velocity
+      * [Velocity from Direction & Speed (Change Speed)](Block-VelocityFromDirectionAndSpeed(ChangeSpeed).md)
+      * [Velocity from Direction & Speed (New Direction)](Block-VelocityFromDirectionAndSpeed(NewDirection).md)
+      * [Velocity from Direction & Speed (Random Direction)](Block-VelocityFromDirectionAndSpeed(RandomDirection).md)
+      * [Velocity from Direction & Speed (Spherical)](Block-VelocityFromDirectionAndSpeed(Spherical).md)
+      * [Velocity from Direction & Speed (Tangent)](Block-VelocityFromDirectionAndSpeed(Tangent).md)
+  * Context
+    * [Event](Context-Event.md)
+    * [GPU Event](Context-GPUEvent.md)
+    * [Initialize Particle](Context-Initialize.md)
+    * [Output Mesh](Context-OutputMesh.md)
+    * [Output Distortion](Context-OutputDistortion.md)
+    * [Output Decal](Context-OutputForwardDecal.md)
+    * [Output Line](Context-OutputLine.md)
+    * [Output Particle Mesh](Context-OutputParticleMesh.md)
+    * [Output Point](Context-OutputPoint.md)
+    * [Output Primitive](Context-OutputPrimitive.md)
+    * Shared Output Settings
+      * [Global Settings](Context-OutputSharedSettings.md)
+      * [Lit Output Settings](Context-OutputLitSettings.md)
+    * [Spawn](Context-Spawn.md)
+    * [Update Particle](Context-Update.md)
   * Operator
     * Attribute
       * [Age Over Lifetime](Operator-AgeOverLifetime.md)
@@ -316,19 +351,33 @@
     * Random
       * [Random Number](Operator-RandomNumber.md)
     * Sampling
+      * [Buffer Count](Operator-BufferCount.md)
       * [Get Texture Dimensions](Operator-GetTextureDimensions.md)
+      * [Load CameraBuffer](Operator-LoadCameraBuffer.md)
+      * [Mesh Index Count](Operator-MeshIndexCount.md)
+      * [Mesh Vertex Count](Operator-MeshVertexCount.md)
       * [Load Texture2D](Operator-LoadTexture2D.md)
       * [Load Texture2DArray](Operator-LoadTexture2DArray.md)
       * [Load Texture3D](Operator-LoadTexture3D.md)
       * [Position (Depth)](Operator-Position(Depth).md)
+      * [Sample Buffer](Operator-SampleBuffer.md )
+      * [Sample CameraBuffer](Operator-SampleCameraBuffer.md)
       * [Sample Curve](Operator-SampleCurve.md)
       * [Sample Gradient](Operator-SampleGradient.md)
+      * [Sample Mesh](Operator-SampleMesh.md)
+      * [Sample Mesh Index](Operator-SampleMeshIndex.md)
+      * [Sample Skinned Mesh](Operator-SampleMesh.md)
+      * [Sample Skinned Mesh Renderer Index](Operator-SampleMesh.md)
       * [Sample Signed Distance Field](Operator-SampleSDF.md)
       * [Sample Texture2D](Operator-SampleTexture2D.md)
       * [Sample Texture2DArray](Operator-SampleTexture2DArray.md)
       * [Sample Texture3D](Operator-SampleTexture3D.md)
       * [Sample TextureCube](Operator-SampleTextureCube.md)
       * [Sample TextureCubeArray](Operator-SampleTextureCubeArray.md)
+      * [Skinned Mesh Index Count](Operator-MeshIndexCount.md)
+      * [Skinned Mesh Vertex Count](Operator-MeshVertexCount.md)
+    * Spawn
+      * [Spawn State](Operator-SpawnState.md)
     * Utility
       * [Point Cache](Operator-PointCache.md)
 * Reference
@@ -340,6 +389,7 @@
     * [ArcSphere](Type-ArcSphere.md)
     * [ArcTorus](Type-ArcTorus.md)
     * [Camera](Type-Camera.md)
+    * [CameraBuffer](Type-CameraBuffer.md)
     * [Circle](Type-Circle.md)
     * [Cone](Type-Cone.md)
     * [Cylinder](Type-Cylinder.md)

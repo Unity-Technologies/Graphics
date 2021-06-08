@@ -68,6 +68,10 @@ namespace UnityEditor.VFX
         {
             serializedObject.Update();
 
+            var referenceContext = serializedObject.targetObject as VFXContext;
+            var resource = referenceContext.GetResource();
+            GUI.enabled = resource != null ? resource.IsAssetEditable() : true;
+
             DisplaySpace();
             DisplayName();
 
@@ -162,6 +166,26 @@ namespace UnityEditor.VFX
 
                 if (GetData().IsCurrentAttributeWritten(VFXAttribute.Alive) && GetData().dependenciesOut.Any(d => ((VFXDataParticle)d).hasStrip))
                     yield return new VFXAttributeInfo(VFXAttribute.StripAlive, VFXAttributeMode.ReadWrite);
+
+                VFXDataParticle particleData = GetData() as VFXDataParticle;
+                if (particleData && particleData.NeedsComputeBounds())
+                {
+                    yield return new VFXAttributeInfo(VFXAttribute.Position, VFXAttributeMode.Read);
+                    yield return new VFXAttributeInfo(VFXAttribute.Alive, VFXAttributeMode.Read);
+                    yield return new VFXAttributeInfo(VFXAttribute.AxisX, VFXAttributeMode.Read);
+                    yield return new VFXAttributeInfo(VFXAttribute.AxisY, VFXAttributeMode.Read);
+                    yield return new VFXAttributeInfo(VFXAttribute.AxisZ, VFXAttributeMode.Read);
+                    yield return new VFXAttributeInfo(VFXAttribute.AngleX, VFXAttributeMode.Read);
+                    yield return new VFXAttributeInfo(VFXAttribute.AngleY, VFXAttributeMode.Read);
+                    yield return new VFXAttributeInfo(VFXAttribute.AngleZ, VFXAttributeMode.Read);
+                    yield return new VFXAttributeInfo(VFXAttribute.PivotX, VFXAttributeMode.Read);
+                    yield return new VFXAttributeInfo(VFXAttribute.PivotY, VFXAttributeMode.Read);
+                    yield return new VFXAttributeInfo(VFXAttribute.PivotZ, VFXAttributeMode.Read);
+                    yield return new VFXAttributeInfo(VFXAttribute.Size, VFXAttributeMode.Read);
+                    yield return new VFXAttributeInfo(VFXAttribute.ScaleX, VFXAttributeMode.Read);
+                    yield return new VFXAttributeInfo(VFXAttribute.ScaleY, VFXAttributeMode.Read);
+                    yield return new VFXAttributeInfo(VFXAttribute.ScaleZ, VFXAttributeMode.Read);
+                }
             }
         }
 
@@ -175,7 +199,7 @@ namespace UnityEditor.VFX
 
                 var data = GetData();
                 var lifeTime = data.IsCurrentAttributeWritten(VFXAttribute.Lifetime);
-                var age = data.IsCurrentAttributeRead(VFXAttribute.Age);
+                var age = data.IsCurrentAttributeUsed(VFXAttribute.Age);
                 var positionVelocity = data.IsCurrentAttributeWritten(VFXAttribute.Velocity);
                 var angularVelocity =   data.IsCurrentAttributeWritten(VFXAttribute.AngularVelocityX) ||
                     data.IsCurrentAttributeWritten(VFXAttribute.AngularVelocityY) ||
@@ -225,7 +249,7 @@ namespace UnityEditor.VFX
                     yield return VFXBlock.CreateImplicitBlock<AngularEulerIntegration>(data);
 
                 var lifeTime = GetData().IsCurrentAttributeWritten(VFXAttribute.Lifetime);
-                var age = GetData().IsCurrentAttributeRead(VFXAttribute.Age);
+                var age = GetData().IsCurrentAttributeUsed(VFXAttribute.Age);
 
                 if (age || lifeTime)
                 {
@@ -258,6 +282,8 @@ namespace UnityEditor.VFX
 
                 if (skipZeroDeltaUpdate)
                     yield return "VFX_UPDATE_SKIP_ZERO_DELTA_TIME";
+                if ((GetData() as VFXDataParticle).NeedsComputeBounds())
+                    yield return "VFX_COMPUTE_BOUNDS";
             }
         }
     }

@@ -1,5 +1,6 @@
 using System;
 using UnityEngine.Rendering.HighDefinition.Attributes;
+using UnityEngine.Experimental.Rendering;
 
 //-----------------------------------------------------------------------------
 // structure definition
@@ -73,7 +74,7 @@ namespace UnityEngine.Rendering.HighDefinition
             public Vector3  specularColor;
 
             [SurfaceDataAttributes("Fresnel F0")]
-            public Vector3  fresnelF0;
+            public Vector3  fresnel0;
 
             [SurfaceDataAttributes("Specular Lobe")]
             public Vector3  specularLobe; // .xy for SVBRDF, .xyz for CARPAINT2, for _CarPaint2_CTSpreads per lobe roughnesses
@@ -151,12 +152,12 @@ namespace UnityEngine.Rendering.HighDefinition
             [SurfaceDataAttributes("", true)]
             public Vector3  tangentWS;
             [SurfaceDataAttributes("", true)]
-            public Vector3  biTangentWS;
+            public Vector3  bitangentWS;
 
             // SVBRDF Variables
             public Vector3  diffuseColor;
             public Vector3  specularColor;
-            public Vector3  fresnelF0;
+            public Vector3  fresnel0;
             public float perceptualRoughness; // approximated for SSAO
             public Vector3  roughness; // .xy for SVBRDF, .xyz for CARPAINT2, for _CarPaint2_CTSpreads per lobe roughnesses
             public float    height_mm;
@@ -208,7 +209,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
         public AxF() {}
 
-        public override void Build(HDRenderPipelineAsset hdAsset, RenderPipelineResources defaultResources)
+        public override void Build(HDRenderPipelineAsset hdAsset, HDRenderPipelineRuntimeResources defaultResources)
         {
             // Create Materials
             m_preIntegratedFGDMaterial_Ward = CoreUtils.CreateEngineMaterial(defaultResources.shaders.preIntegratedFGD_WardPS);
@@ -220,34 +221,34 @@ namespace UnityEngine.Rendering.HighDefinition
                 throw new Exception("Failed to create material for Cook-Torrance BRDF pre-integration!");
 
             // Create render textures where we will render the FGD tables
-            m_preIntegratedFGD_Ward = new RenderTexture(128, 128, 0, RenderTextureFormat.ARGB2101010, RenderTextureReadWrite.Linear);
+            m_preIntegratedFGD_Ward = new RenderTexture(128, 128, 0, GraphicsFormat.A2B10G10R10_UNormPack32);
             m_preIntegratedFGD_Ward.hideFlags = HideFlags.HideAndDontSave;
             m_preIntegratedFGD_Ward.filterMode = FilterMode.Bilinear;
             m_preIntegratedFGD_Ward.wrapMode = TextureWrapMode.Clamp;
             m_preIntegratedFGD_Ward.hideFlags = HideFlags.DontSave;
-            m_preIntegratedFGD_Ward.name = CoreUtils.GetRenderTargetAutoName(128, 128, 1, RenderTextureFormat.ARGB2101010, "PreIntegratedFGD_Ward");
+            m_preIntegratedFGD_Ward.name = CoreUtils.GetRenderTargetAutoName(128, 128, 1, GraphicsFormat.A2B10G10R10_UNormPack32, "PreIntegratedFGD_Ward");
             m_preIntegratedFGD_Ward.Create();
 
-            m_preIntegratedFGD_CookTorrance = new RenderTexture(128, 128, 0, RenderTextureFormat.ARGB2101010, RenderTextureReadWrite.Linear);
+            m_preIntegratedFGD_CookTorrance = new RenderTexture(128, 128, 0, GraphicsFormat.A2B10G10R10_UNormPack32);
             m_preIntegratedFGD_CookTorrance.hideFlags = HideFlags.HideAndDontSave;
             m_preIntegratedFGD_CookTorrance.filterMode = FilterMode.Bilinear;
             m_preIntegratedFGD_CookTorrance.wrapMode = TextureWrapMode.Clamp;
             m_preIntegratedFGD_CookTorrance.hideFlags = HideFlags.DontSave;
-            m_preIntegratedFGD_CookTorrance.name = CoreUtils.GetRenderTargetAutoName(128, 128, 1, RenderTextureFormat.ARGB2101010, "PreIntegratedFGD_CookTorrance");
+            m_preIntegratedFGD_CookTorrance.name = CoreUtils.GetRenderTargetAutoName(128, 128, 1, GraphicsFormat.A2B10G10R10_UNormPack32, "PreIntegratedFGD_CookTorrance");
             m_preIntegratedFGD_CookTorrance.Create();
 
             // LTC data
 
-            m_LtcData = new Texture2DArray(LTCAreaLight.k_LtcLUTResolution, LTCAreaLight.k_LtcLUTResolution, 3, TextureFormat.RGBAHalf, false /*mipmap*/, true /* linear */)
+            m_LtcData = new Texture2DArray(LTCAreaLight.k_LtcLUTResolution, LTCAreaLight.k_LtcLUTResolution, 3, GraphicsFormat.R16G16B16A16_SFloat, TextureCreationFlags.None)
             {
                 hideFlags = HideFlags.HideAndDontSave,
                 wrapMode = TextureWrapMode.Clamp,
                 filterMode = FilterMode.Bilinear,
-                name = CoreUtils.GetTextureAutoName(LTCAreaLight.k_LtcLUTResolution, LTCAreaLight.k_LtcLUTResolution, TextureFormat.RGBAHalf, depth: 2, dim: TextureDimension.Tex2DArray, name: "LTC_LUT")
+                name = CoreUtils.GetTextureAutoName(LTCAreaLight.k_LtcLUTResolution, LTCAreaLight.k_LtcLUTResolution, GraphicsFormat.R16G16B16A16_SFloat, depth: 2, dim: TextureDimension.Tex2DArray, name: "LTC_LUT")
             };
 
             // Caution: This need to match order define in AxFLTCAreaLight
-            LTCAreaLight.LoadLUT(m_LtcData, 0, TextureFormat.RGBAHalf, LTCAreaLight.s_LtcMatrixData_GGX);
+            LTCAreaLight.LoadLUT(m_LtcData, 0, GraphicsFormat.R16G16B16A16_SFloat, LTCAreaLight.s_LtcMatrixData_GGX);
             // Warning: check /Material/AxF/AxFLTCAreaLight/LtcData.GGX2.cs: 5 columns are needed, the entries are NOT normalized!
             // For now, we patch for this in LoadLUT, which should affect the loading of s_LtcGGXMatrixData for the rest of the materials
             // (Lit, etc.)

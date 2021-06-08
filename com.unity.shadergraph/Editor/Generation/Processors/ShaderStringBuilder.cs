@@ -216,6 +216,11 @@ namespace UnityEditor.ShaderGraph
             m_StringBuilder.Replace(oldValue, newValue, start, end);
         }
 
+        public void Replace(string oldValue, string newValue, int start, int end)
+        {
+            m_StringBuilder.Replace(oldValue, newValue, start, end);
+        }
+
         public string ToCodeBlock()
         {
             // Remove new line

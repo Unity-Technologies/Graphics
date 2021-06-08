@@ -42,12 +42,6 @@ namespace UnityEditor.Rendering.HighDefinition
 
             material.shader = shader;
 
-            material.SetShaderPassEnabled("DistortionVectors", false);
-            material.SetShaderPassEnabled("TransparentDepthPrepass", false);
-            material.SetShaderPassEnabled("TransparentDepthPostpass", false);
-            material.SetShaderPassEnabled("TransparentBackface", false);
-            material.SetShaderPassEnabled("MOTIONVECTORS", false);
-
             Vector4 vectorProperty;
             float floatProperty;
             TexturePropertyDescription textureProperty;
@@ -78,17 +72,10 @@ namespace UnityEditor.Rendering.HighDefinition
 
             if (isTransparent)
             {
-                material.SetInt("_SrcBlend", (int)UnityEngine.Rendering.BlendMode.One);
-                material.SetInt("_DstBlend", (int)UnityEngine.Rendering.BlendMode.OneMinusSrcAlpha);
-                material.SetInt("_ZWrite", 0);
                 material.SetFloat("_BlendMode", (float)BlendMode.Alpha);
                 material.SetFloat("_EnableBlendModePreserveSpecularLighting", 1.0f);
-                material.EnableKeyword("_ALPHAPREMULTIPLY_ON");
-                material.EnableKeyword("_SURFACE_TYPE_TRANSPARENT");
-                material.EnableKeyword("_ENABLE_FOG_ON_TRANSPARENT");
-                material.EnableKeyword("_ALPHATEST_ON");
                 material.renderQueue = (int)UnityEngine.Rendering.RenderQueue.Transparent;
-                material.SetFloat("_SurfaceType", 1.0f);
+                material.SetFloat("_SurfaceType", (float)SurfaceType.Transparent);
                 material.SetFloat("_Cutoff", .0f);
                 material.SetFloat("_AlphaCutoffEnable", 1.0f);
                 material.SetFloat("_AlphaCutoff", .0f);
@@ -97,11 +84,11 @@ namespace UnityEditor.Rendering.HighDefinition
             }
             else
             {
-                material.SetInt("_SrcBlend", (int)UnityEngine.Rendering.BlendMode.One);
-                material.SetInt("_DstBlend", (int)UnityEngine.Rendering.BlendMode.Zero);
-                material.SetInt("_ZWrite", 1);
                 material.renderQueue = -1;
             }
+
+            if (description.TryGetProperty("ReflectionFactor", out floatProperty))
+                material.SetFloat("_Metallic", floatProperty);
 
             if (description.TryGetProperty("DiffuseColor", out textureProperty) && textureProperty.texture != null)
             {
@@ -125,7 +112,6 @@ namespace UnityEditor.Rendering.HighDefinition
             if (description.TryGetProperty("Bump", out textureProperty) && textureProperty.texture != null)
             {
                 SetMaterialTextureProperty("_BumpMap", material, textureProperty);
-                material.EnableKeyword("_NORMALMAP_TANGENT_SPACE");
 
                 if (description.TryGetProperty("BumpFactor", out floatProperty))
                     material.SetFloat("_BumpScale", floatProperty);
@@ -133,14 +119,9 @@ namespace UnityEditor.Rendering.HighDefinition
             else if (description.TryGetProperty("NormalMap", out textureProperty) && textureProperty.texture != null)
             {
                 SetMaterialTextureProperty("_BumpMap", material, textureProperty);
-                material.EnableKeyword("_NORMALMAP_TANGENT_SPACE");
 
                 if (description.TryGetProperty("BumpFactor", out floatProperty))
                     material.SetFloat("_BumpScale", floatProperty);
-            }
-            else
-            {
-                material.DisableKeyword("_NORMALMAP");
             }
 
             if (description.TryGetProperty("EmissiveColor", out textureProperty))
@@ -183,6 +164,8 @@ namespace UnityEditor.Rendering.HighDefinition
 
             RemapColorCurves(description, clips, "EmissiveColor", "_EmissionColor");
             RemapColorCurves(description, clips, "EmissiveColor", "_EmissiveColor");
+
+            HDShaderUtils.ResetMaterialKeywords(material);
         }
 
         static void RemapTransparencyCurves(MaterialDescription description, AnimationClip[] clips)

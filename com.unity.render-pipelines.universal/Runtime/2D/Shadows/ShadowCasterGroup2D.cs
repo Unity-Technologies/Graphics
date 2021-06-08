@@ -1,10 +1,10 @@
-using System.Collections;
 using System.Collections.Generic;
-using UnityEngine;
+using UnityEngine.Scripting.APIUpdating;
 
 
-namespace UnityEngine.Experimental.Rendering.Universal
+namespace UnityEngine.Rendering.Universal
 {
+    [MovedFrom("UnityEngine.Experimental.Rendering.Universal")]
     public abstract class ShadowCasterGroup2D : MonoBehaviour
     {
         [SerializeField] internal int m_ShadowGroup = 0;

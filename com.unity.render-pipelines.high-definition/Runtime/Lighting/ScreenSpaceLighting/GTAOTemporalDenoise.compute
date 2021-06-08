@@ -25,12 +25,7 @@ RW_TEXTURE2D_X(uint, _AOOutputHistory);
 
 TEXTURE2D_X(_AOPackedBlurred);
 TEXTURE2D_X_UINT(_AOPackedHistory);
-
-#if HALF_RES
 RW_TEXTURE2D_X(float, _OcclusionTexture);
-#else
-RW_TEXTURE2D_X(float, _OcclusionTexture);
-#endif
 
 float3 FindMinMaxAvgAO(float2 centralPos)
 {

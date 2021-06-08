@@ -28,7 +28,6 @@ Shader "Hidden/Light2d-Point-Volumetric"
             {
                 float4  positionCS      : SV_POSITION;
                 half2   uv              : TEXCOORD0;
-                half2   screenUV        : TEXCOORD1;
                 half2   lookupUV        : TEXCOORD2;  // This is used for light relative direction
 
                 SHADOW_COORDS(TEXCOORD5)
@@ -75,8 +74,6 @@ Shader "Hidden/Light2d-Point-Volumetric"
                 float4 lightSpaceNoRotPos = mul(_LightNoRotInvMatrix, worldSpacePos);
                 float halfTexelOffset = 0.5 * _LightLookup_TexelSize.x;
                 output.lookupUV = 0.5 * (lightSpacePos.xy + 1) + halfTexelOffset;
-
-                output.screenUV = ComputeNormalizedDeviceCoordinates(output.positionCS);
 
                 TRANSFER_SHADOWS(output)
 

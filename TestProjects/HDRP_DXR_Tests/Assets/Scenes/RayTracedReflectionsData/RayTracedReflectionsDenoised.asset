@@ -13,7 +13,6 @@ MonoBehaviour:
   m_Name: HDShadowSettings
   m_EditorClassIdentifier: 
   active: 1
-  m_AdvancedMode: 0
   maxShadowDistance:
     m_OverrideState: 0
     m_Value: 500
@@ -62,7 +61,6 @@ MonoBehaviour:
   m_Name: HDShadowSettings
   m_EditorClassIdentifier: 
   active: 1
-  m_AdvancedMode: 0
   maxShadowDistance:
     m_OverrideState: 0
     m_Value: 500
@@ -127,7 +125,6 @@ MonoBehaviour:
   m_Name: HDRISky
   m_EditorClassIdentifier: 
   active: 1
-  m_AdvancedMode: 0
   rotation:
     m_OverrideState: 0
     m_Value: 0
@@ -166,6 +163,27 @@ MonoBehaviour:
   hdriSky:
     m_OverrideState: 1
     m_Value: {fileID: 8900000, guid: 5fb993a599e7e9b4b825e1a28e6d2c07, type: 3}
+  enableDistortion:
+    m_OverrideState: 0
+    m_Value: 0
+  procedural:
+    m_OverrideState: 0
+    m_Value: 1
+  flowmap:
+    m_OverrideState: 0
+    m_Value: {fileID: 0}
+  upperHemisphereOnly:
+    m_OverrideState: 0
+    m_Value: 1
+  scrollDirection:
+    m_OverrideState: 0
+    m_Value: 0
+    min: 0
+    max: 360
+  scrollSpeed:
+    m_OverrideState: 0
+    m_Value: 2
+    min: 0
   enableBackplate:
     m_OverrideState: 0
     m_Value: 0
@@ -228,10 +246,12 @@ MonoBehaviour:
   m_Name: VisualEnvironment
   m_EditorClassIdentifier: 
   active: 1
-  m_AdvancedMode: 0
   skyType:
     m_OverrideState: 1
     m_Value: 1
+  cloudType:
+    m_OverrideState: 0
+    m_Value: 0
   skyAmbientMode:
     m_OverrideState: 0
     m_Value: 0
@@ -251,22 +271,21 @@ MonoBehaviour:
   m_Name: ScreenSpaceReflection
   m_EditorClassIdentifier: 
   active: 1
-  m_AdvancedMode: 0
   quality:
     m_OverrideState: 0
     m_Value: 1
   enabled:
     m_OverrideState: 1
     m_Value: 1
-  rayTracing:
+  tracing:
     m_OverrideState: 1
-    m_Value: 1
-  minSmoothness:
+    m_Value: 2
+  m_MinSmoothness:
     m_OverrideState: 1
     m_Value: 0.5
     min: 0
     max: 1
-  smoothnessFadeStart:
+  m_SmoothnessFadeStart:
     m_OverrideState: 1
     m_Value: 0.7
     min: 0
@@ -274,6 +293,9 @@ MonoBehaviour:
   reflectSky:
     m_OverrideState: 0
     m_Value: 1
+  usedAlgorithm:
+    m_OverrideState: 0
+    m_Value: 0
   depthBufferThickness:
     m_OverrideState: 0
     m_Value: 0.01
@@ -284,36 +306,44 @@ MonoBehaviour:
     m_Value: 0.018
     min: 0
     max: 1
+  accumulationFactor:
+    m_OverrideState: 0
+    m_Value: 0.75
+    min: 0
+    max: 1
+  m_RayMaxIterations:
+    m_OverrideState: 0
+    m_Value: 32
+    min: 0
   layerMask:
     m_OverrideState: 0
     m_Value:
       serializedVersion: 2
       m_Bits: 4294967295
-  rayLength:
+  m_RayLength:
     m_OverrideState: 1
     m_Value: 50
     min: 0.001
-    max: 50
-  clampValue:
+  m_ClampValue:
     m_OverrideState: 1
     m_Value: 0.75
     min: 0.001
     max: 10
-  denoise:
+  m_Denoise:
     m_OverrideState: 1
     m_Value: 1
-  denoiserRadius:
+  m_DenoiserRadius:
     m_OverrideState: 1
     m_Value: 8
     min: 1
     max: 32
+  m_AffectSmoothSurfaces:
+    m_OverrideState: 0
+    m_Value: 0
   mode:
     m_OverrideState: 1
     m_Value: 2
-  upscaleRadius:
-    m_OverrideState: 0
-    m_Value: 4
-  fullResolution:
+  m_FullResolution:
     m_OverrideState: 0
     m_Value: 0
   sampleCount:
@@ -326,6 +356,7 @@ MonoBehaviour:
     m_Value: 1
     min: 1
     max: 31
-  m_RayMaxIterations:
+  m_RayMaxIterationsRT:
     m_OverrideState: 0
-    m_Value: 166
+    m_Value: 32
+    min: 0

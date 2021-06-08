@@ -41,16 +41,4 @@ half4 UniversalFragmentMetaSimple(Varyings input) : SV_Target
     return MetaFragment(metaInput);
 }
 
-
-//LWRP -> Universal Backwards Compatibility
-Varyings LightweightVertexMeta(Attributes input)
-{
-    return UniversalVertexMeta(input);
-}
-
-half4 LightweightFragmentMetaSimple(Varyings input) : SV_Target
-{
-    return UniversalFragmentMetaSimple(input);
-}
-
 #endif

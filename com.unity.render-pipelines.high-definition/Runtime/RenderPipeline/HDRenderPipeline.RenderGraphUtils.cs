@@ -1,5 +1,6 @@
 using UnityEngine.Experimental.Rendering;
 using UnityEngine.Experimental.Rendering.RenderGraphModule;
+using UnityEngine.Rendering.RendererUtils;
 
 namespace UnityEngine.Rendering.HighDefinition
 {
@@ -59,6 +60,9 @@ namespace UnityEngine.Rendering.HighDefinition
             if (m_CurrentDebugDisplaySettings.data.lightingDebugSettings.debugLightingMode == DebugLightingMode.LuxMeter ||
                 m_CurrentDebugDisplaySettings.DebugHideSky(hdCamera))
                 clearColor = Color.black;
+
+            if (CoreUtils.IsSceneFilteringEnabled())
+                clearColor.a = 0.0f;
 
             return clearColor;
         }

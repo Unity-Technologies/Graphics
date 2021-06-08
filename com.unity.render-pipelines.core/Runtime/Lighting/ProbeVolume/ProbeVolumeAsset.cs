@@ -3,8 +3,9 @@ using UnityEngine.Serialization;
 using UnityEngine.SceneManagement;
 using System.Collections.Generic;
 
-namespace UnityEngine.Rendering
+namespace UnityEngine.Experimental.Rendering
 {
+    [PreferBinarySerialization]
     internal class ProbeVolumeAsset : ScriptableObject
     {
         [Serializable]
@@ -22,7 +23,11 @@ namespace UnityEngine.Rendering
 
         [SerializeField] internal List<ProbeReferenceVolume.Cell> cells = new List<ProbeReferenceVolume.Cell>();
 
-        [SerializeField] private string m_AssetFullPath = "UNINITIALIZED!";
+        [SerializeField] internal Vector3Int maxCellIndex;
+
+        [SerializeField] internal ProbeVolumeSHBands bands;
+
+        [SerializeField] string m_AssetFullPath = "UNINITIALIZED!";
 
         public string GetSerializedFullPath()
         {

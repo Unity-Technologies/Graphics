@@ -92,19 +92,18 @@ public class PerformanceTests : IPrebuildSetup
     {
         yield return typeof(RenderTexture);
         yield return typeof(Texture2D);
+        yield return typeof(Texture2DArray);
         yield return typeof(Texture3D);
         yield return typeof(CubemapArray);
+        yield return typeof(Cubemap);
         yield return typeof(Material);
         yield return typeof(Mesh);
         yield return typeof(Shader);
         yield return typeof(ComputeShader);
     }
 
-    protected IEnumerator ReportMemoryUsage(MemoryTestDescription testDescription)
+    protected IEnumerator ReportMemoryUsage(PerformanceTestSceneSettings sceneSettings, MemoryTestDescription testDescription)
     {
-        yield return LoadScene(testDescription.sceneData.scene, testDescription.assetData.asset);
-        var sceneSettings = SetupTestScene();
-
         long totalMemory = 0;
         var data = Resources.FindObjectsOfTypeAll(testDescription.assetType);
         var results = new List<(string name, long size)>();
@@ -124,9 +123,13 @@ public class PerformanceTests : IPrebuildSetup
 
         results.Sort((a, b) => b.size.CompareTo(a.size));
 
+        string resolution = $"{sceneSettings.cameraWidth}x{sceneSettings.cameraHeight}";
+
         // Report data
         foreach (var result in results)
-            Measure.Custom(new SampleGroup(FormatSampleGroupName(k_Memory, result.name), SampleUnit.Byte, false), result.size);
-        Measure.Custom(new SampleGroup(FormatSampleGroupName(k_TotalMemory, testDescription.assetType.Name), SampleUnit.Byte, false), totalMemory);
+            Measure.Custom(new SampleGroup(FormatSampleGroupName(k_Memory, result.name, resolution), SampleUnit.Byte, false), result.size);
+        Measure.Custom(new SampleGroup(FormatSampleGroupName(k_TotalMemory, testDescription.assetType.Name, resolution), SampleUnit.Byte, false), totalMemory);
+
+        yield return null;
     }
 }

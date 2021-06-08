@@ -296,7 +296,7 @@ namespace UnityEditor.VFX.Test
         [Test]
         public void ProcessOperatorSign([ValueSource("ProcessOperatorAbs_a")] float a)
         {
-            var r = Mathf.Sign(a);
+            var r = (a < 0.0f) ? -1.0f : (a > 0.0f) ? 1.0f : 0.0f;
             var value_a = new VFXValue<float>(a);
 
             var expression = new VFXExpressionSign(value_a);

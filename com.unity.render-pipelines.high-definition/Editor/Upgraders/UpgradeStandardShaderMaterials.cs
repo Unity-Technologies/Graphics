@@ -21,22 +21,24 @@ namespace UnityEditor.Rendering.HighDefinition
 
             upgraders.Add(new StandardsTerrainToHDTerrainLitUpgrader("Nature/Terrain/Standard", "HDRP/TerrainLit"));
 
+            upgraders.Add(new HDSpeedTree8MaterialUpgrader("Nature/SpeedTree8", "HDRP/Nature/SpeedTree8"));
+
             return upgraders;
         }
 
-        [MenuItem("Edit/Render Pipeline/HD Render Pipeline/Upgrade from Builtin pipeline/Upgrade Project Materials to High Definition Materials")]
+        [MenuItem("Edit/Rendering/Materials/Convert All Built-in Materials to HDRP", priority = CoreUtils.Priorities.editMenuPriority + 1)]
         internal static void UpgradeMaterialsProject()
         {
-            MaterialUpgrader.UpgradeProjectFolder(GetHDUpgraders(), "Upgrade to HD Material");
+            MaterialUpgrader.UpgradeProjectFolder(GetHDUpgraders(), "Upgrade to HDRP Material");
         }
 
-        [MenuItem("Edit/Render Pipeline/HD Render Pipeline/Upgrade from Builtin pipeline/Upgrade Selected Materials to High Definition Materials")]
+        [MenuItem("Edit/Rendering/Materials/Convert Selected Built-in Materials to HDRP", priority = CoreUtils.Priorities.editMenuPriority + 2)]
         internal static void UpgradeMaterialsSelection()
         {
-            MaterialUpgrader.UpgradeSelection(GetHDUpgraders(), "Upgrade to HD Material");
+            MaterialUpgrader.UpgradeSelection(GetHDUpgraders(), "Upgrade to HDRP Material");
         }
 
-        [MenuItem("Edit/Render Pipeline/HD Render Pipeline/Upgrade from Builtin pipeline/Upgrade Scene Terrains to High Definition Terrains")]
+        [MenuItem("Edit/Rendering/Materials/Convert Scene Terrains to HDRP Terrains", priority = CoreUtils.Priorities.editMenuPriority + 2)]
         static void UpgradeSceneTerrainsToHighDefinitionTerrains(MenuCommand menuCommand)
         {
             var LegacyDefaultTerrainMat = AssetDatabase.GetBuiltinExtraResource<Material>("Default-Terrain-Standard.mat");

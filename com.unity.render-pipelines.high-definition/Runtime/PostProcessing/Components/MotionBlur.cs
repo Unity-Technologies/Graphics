@@ -52,7 +52,7 @@ namespace UnityEngine.Rendering.HighDefinition
     /// A volume component that holds settings for the Motion Blur effect.
     /// </summary>
     [Serializable, VolumeComponentMenu("Post-processing/Motion Blur")]
-    [HelpURL(Documentation.baseURL + Documentation.version + Documentation.subURL + "Post-Processing-Motion-Blur" + Documentation.endURL)]
+    [HDRPHelpURLAttribute("Post-Processing-Motion-Blur")]
     public sealed class MotionBlur : VolumeComponentWithQuality, IPostProcessComponent
     {
         /// <summary>
@@ -76,6 +76,8 @@ namespace UnityEngine.Rendering.HighDefinition
         /// <summary>
         /// If toggled on camera rotation can be clamped differently.
         /// </summary>
+
+        [Header("Camera Velocity")]
         [AdditionalProperty]
         [Tooltip("If toggled off, the motion caused by the camera is not considered when doing motion blur.")]
         public BoolParameter cameraMotionBlur = new BoolParameter(true);

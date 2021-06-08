@@ -13,7 +13,7 @@ Install the following Editor and package versions to begin working with the __2D
 2. Create a new __Pipeline Asset__ by going to the __Assets__ menu and selecting __Create > Rendering > Universal Render Pipeline > Pipeline Asset__ and then name the Asset.![](Images/2D/image_2.png)
 
 
-3. Create a new __2D Renderer__ by going to __Assets > Create > Rendering > Universal Render Pipeline > 2D Renderer__. Give it a name when prompted.
+3. Create a new __2D Renderer__ by going to __Assets > Create > Rendering > URP 2D Renderer__. Give it a name when prompted.
 
    ![](Images/2D/image_3.png)
 

@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using UnityEngine.Assertions;
+using UnityEngine.Experimental.Rendering;
 using UnityEngine.Experimental.Rendering.RenderGraphModule;
 
 namespace UnityEngine.Rendering.HighDefinition
@@ -61,6 +62,9 @@ namespace UnityEngine.Rendering.HighDefinition
 
         /// <summary>Whether this frame pass is valid.</summary>
         public bool isValid => (m_RequestedAOVBuffers != null || m_CustomPassAOVBuffers != null) && (m_Callback != null || m_CallbackEx != null);
+
+        /// <summary>Whether internal rendering should be done at the same format as the user allocated AOV output buffer.</summary>
+        public bool overrideRenderFormat => m_Settings.overrideRenderFormat;
 
         /// <summary>Create a new frame pass.</summary>
         /// <param name="settings">Settings to use.</param>
@@ -167,6 +171,24 @@ namespace UnityEngine.Rendering.HighDefinition
                         Debug.LogError("Allocation for requested AOVBuffers ID: " + aovBufferId.ToString() + " have fail. Please ensure the callback for custom pass allocator do the correct allocation.");
                     }
                 }
+            }
+        }
+
+        internal void OverrideBufferFormatForAOVs(ref GraphicsFormat format, List<RTHandle> aovBuffers)
+        {
+            if (m_RequestedAOVBuffers == null || aovBuffers.Count == 0)
+            {
+                return;
+            }
+
+            var index = Array.IndexOf(m_RequestedAOVBuffers, AOVBuffers.Color);
+            if (index < 0)
+            {
+                index = Array.IndexOf(m_RequestedAOVBuffers, AOVBuffers.Output);
+            }
+            if (index >= 0)
+            {
+                format = aovBuffers[index].rt.graphicsFormat;
             }
         }
 
@@ -313,5 +335,44 @@ namespace UnityEngine.Rendering.HighDefinition
         /// <param name="gameObject">The game object of the light to be rendered.</param>
         /// <returns><c>true</c> when the light must be rendered, <c>false</c> when it should be ignored.</returns>
         public bool IsLightEnabled(GameObject gameObject) => m_LightFilter == null || m_LightFilter.Contains(gameObject);
+
+        internal int GetHash()
+        {
+            int hash = m_Settings.GetHashCode();
+
+            if (m_LightFilter != null)
+            {
+                foreach (var obj in m_LightFilter)
+                {
+                    hash += obj.GetHashCode();
+                }
+            }
+
+            return hash;
+        }
+
+        internal bool HasSameSettings(AOVRequestData other)
+        {
+            if (m_Settings != other.m_Settings)
+                return false;
+
+            if (m_LightFilter != null)
+                return m_LightFilter.Equals(other.m_LightFilter);
+
+            return true;
+        }
+    }
+
+    internal class AOVRequestDataComparer : IEqualityComparer<AOVRequestData>
+    {
+        public bool Equals(AOVRequestData x, AOVRequestData y)
+        {
+            return x.HasSameSettings(y);
+        }
+
+        public int GetHashCode(AOVRequestData obj)
+        {
+            return obj.GetHash();
+        }
     }
 }

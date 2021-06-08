@@ -45,6 +45,4 @@ normalWS = normalize(lerp(normalWS,mul(n,tbn),normalScale));
 #endif
 ${VFXEnd}
 
-${VFXFragmentCommonFunctions}
-
 ${VFXBegin:VFXVertexAdditionalProcess}${VFXEnd}

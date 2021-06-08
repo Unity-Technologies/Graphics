@@ -33,16 +33,12 @@ namespace UnityEditor.Rendering.HighDefinition
             new LayerListUIBlock(MaterialUIBlock.ExpandableBit.MaterialReferences),
             new LayersUIBlock(),
             new EmissionUIBlock(MaterialUIBlock.ExpandableBit.Emissive, features: emissionFeatures),
-            new AdvancedOptionsUIBlock(MaterialUIBlock.ExpandableBit.Advance),
+            new LitAdvancedOptionsUIBlock(MaterialUIBlock.ExpandableBit.Advance),
         };
 
         protected override void OnMaterialGUI(MaterialEditor materialEditor, MaterialProperty[] props)
         {
-            using (var changed = new EditorGUI.ChangeCheckScope())
-            {
-                uiBlocks.OnGUI(materialEditor, props);
-                ApplyKeywordsAndPassesIfNeeded(changed.changed, uiBlocks.materials);
-            }
+            uiBlocks.OnGUI(materialEditor, props);
         }
 
         // Material property name for Layered Lit keyword setup
@@ -77,7 +73,7 @@ namespace UnityEditor.Rendering.HighDefinition
 
         const string kSpecularOcclusionMode = "_SpecularOcclusionMode";
 
-        protected override void SetupMaterialKeywordsAndPass(Material material) => SetupLayeredLitKeywordsAndPass(material);
+        public override void ValidateMaterial(Material material) => SetupLayeredLitKeywordsAndPass(material);
 
         static public void SetupLayersMappingKeywords(Material material)
         {
@@ -165,12 +161,6 @@ namespace UnityEditor.Rendering.HighDefinition
             bool receiveSSR = material.GetSurfaceType() == SurfaceType.Opaque ? (material.HasProperty(kReceivesSSR) ? material.GetInt(kReceivesSSR) != 0 : false)
                 : (material.HasProperty(kReceivesSSRTransparent) ? material.GetInt(kReceivesSSRTransparent) != 0 : false);
             BaseLitGUI.SetupStencil(material, receiveSSR, material.GetMaterialId() == MaterialId.LitSSS);
-
-            if (material.HasProperty(kAddPrecomputedVelocity))
-            {
-                CoreUtils.SetKeyword(material, "_ADD_PRECOMPUTED_VELOCITY", material.GetInt(kAddPrecomputedVelocity) != 0);
-            }
-
 
             for (int i = 0; i < kMaxLayerCount; ++i)
             {
@@ -348,7 +338,7 @@ namespace UnityEditor.Rendering.HighDefinition
                         layers[i] = AssetDatabase.LoadAssetAtPath(AssetDatabase.GUIDToAssetPath(layersGUID.GUIDArray[i]), typeof(Material)) as Material;
                     }
                 }
-                if (layersGUID.withUV.Length > 0)
+                if (layersGUID.withUV != null && layersGUID.withUV.Length > 0)
                 {
                     withUV = new bool[layersGUID.withUV.Length];
                     for (int i = 0; i < layersGUID.withUV.Length; ++i)

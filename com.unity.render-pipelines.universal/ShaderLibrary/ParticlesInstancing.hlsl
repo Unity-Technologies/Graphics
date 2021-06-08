@@ -20,7 +20,7 @@ struct DefaultParticleInstanceData
 
 StructuredBuffer<UNITY_PARTICLE_INSTANCE_DATA> unity_ParticleInstanceData;
 float4 unity_ParticleUVShiftData;
-float unity_ParticleUseMeshColors;
+half unity_ParticleUseMeshColors;
 
 void ParticleInstancingMatrices(out float4x4 objectToWorld, out float4x4 worldToObject)
 {

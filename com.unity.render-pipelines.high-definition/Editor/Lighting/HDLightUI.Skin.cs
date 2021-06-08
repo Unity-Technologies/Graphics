@@ -32,7 +32,6 @@ namespace UnityEditor.Rendering.HighDefinition
             public readonly GUIContent bakedShadowRadius = new GUIContent("Radius", "Sets the amount of artificial softening the baking process applies to the edges of shadows cast by this Point or Spot Light.");
             public readonly GUIContent bakedShadowAngle = new GUIContent("Angle", "Controls the amount of artificial softening the baking process applies to the edges of shadows cast by Directional Lights.");
             public readonly GUIContent lightBounceIntensity = new GUIContent("Indirect Multiplier", "Controls the intensity of the indirect light this Light contributes to the Scene. A value of 0 with a Realtime Light causes HDRP to remove it from realtime global illumination. A value of 0 for Baked and Mixed Lights cause them to no longer emit indirect lighting. This has no effect if you disable both Realtime and Baked global illumination.");
-            public readonly GUIContent indirectBounceShadowWarning = new GUIContent("HDRP does not support real-time indirect bounce shadowing for Spot and Point lights.");
             public readonly GUIContent color = new GUIContent("Color", "Specifies the color this Light emits.");
             public readonly GUIContent lightAppearance = new GUIContent("Light Appearance", "Specifies the mode for how HDRP calculates this Light's color.");
             public readonly GUIContent colorFilter = new GUIContent("Filter", "Specifies a color which tints the Light source.");
@@ -153,11 +152,14 @@ namespace UnityEditor.Rendering.HighDefinition
             public readonly GUIContent maxDepthBias = new GUIContent("Max Depth Bias");
 
             // Layers
-            public readonly GUIContent linkLightAndShadowLayersText = new GUIContent("Link Light Layer", "When enabled, the Light Layer property in the General section specifies the light layers for both lighting and for shadows. When disabled, you can use the Light Layer property below to specify the light layers for shadows seperately to lighting.");
-            public readonly GUIContent shadowLayerMaskText = new GUIContent("Light Layer", "Specifies the light layer to use for shadows.");
+            public readonly GUIContent unlinkLightAndShadowLayersText = new GUIContent("Custom Shadow Layers", "When enabled, you can use the Layer property below to specify the layers for shadows seperately to lighting. When disabled, the Light Layer property in the General section specifies the layers for both lighting and for shadows.");
+            public readonly GUIContent shadowLayerMaskText = new GUIContent("Layer", "Specifies the light layer to use for shadows.");
 
             // Settings
             public readonly GUIContent enableShadowMap = new GUIContent("Enable", "When enabled, this Light casts shadows.");
+
+            // Warnings
+            public readonly string unsupportedLightShapeWarning = "This light shape is not supported by Realtime Global Illumination.";
 
             public Styles()
             {

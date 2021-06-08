@@ -15,13 +15,15 @@ namespace UnityEditor.ShaderGraph
     [Serializable]
     struct FunctionPair
     {
-        public string key;
-        public string value;
+        public string key;              // aka function name
+        public string value;            // aka function code
+        public int graphPrecisionFlags; // Flags<GraphPrecision> indicating which precision variants are requested by the subgraph
 
-        public FunctionPair(string key, string value)
+        public FunctionPair(string key, string value, int graphPrecisionFlags)
         {
             this.key = key;
             this.value = value;
+            this.graphPrecisionFlags = graphPrecisionFlags;
         }
     }
 
@@ -29,6 +31,7 @@ namespace UnityEditor.ShaderGraph
     {
         public List<JsonData<AbstractShaderProperty>> inputs = new List<JsonData<AbstractShaderProperty>>();
         public List<JsonData<ShaderKeyword>> keywords = new List<JsonData<ShaderKeyword>>();
+        public List<JsonData<ShaderDropdown>> dropdowns = new List<JsonData<ShaderDropdown>>();
         public List<JsonData<AbstractShaderProperty>> nodeProperties = new List<JsonData<AbstractShaderProperty>>();
         public List<JsonData<MaterialSlot>> outputs = new List<JsonData<MaterialSlot>>();
         public List<JsonData<Target>> unsupportedTargets = new List<JsonData<Target>>();
@@ -54,6 +57,8 @@ namespace UnityEditor.ShaderGraph
 
         public List<FunctionPair> functions = new List<FunctionPair>();
 
+        public IncludeCollection includes;
+
         public List<string> vtFeedbackVariables = new List<string>();
 
         private SubGraphData m_SubGraphData;
@@ -64,6 +69,8 @@ namespace UnityEditor.ShaderGraph
         public DataValueEnumerable<AbstractShaderProperty> inputs => m_SubGraphData.inputs.SelectValue();
 
         public DataValueEnumerable<ShaderKeyword> keywords => m_SubGraphData.keywords.SelectValue();
+
+        public DataValueEnumerable<ShaderDropdown> dropdowns => m_SubGraphData.dropdowns.SelectValue();
 
         public DataValueEnumerable<AbstractShaderProperty> nodeProperties => m_SubGraphData.nodeProperties.SelectValue();
 
@@ -77,13 +84,21 @@ namespace UnityEditor.ShaderGraph
 
         public ShaderStageCapability effectiveShaderStage;
 
-        public ConcretePrecision graphPrecision;
 
-        public ConcretePrecision outputPrecision;
+        // this is the precision that the entire subgraph is set to (indicates whether the graph is hard-coded or switchable)
+        public GraphPrecision subGraphGraphPrecision;
+
+        // this is the precision of the subgraph outputs
+        // NOTE: this may not be the same as subGraphGraphPrecision
+        // for example, a graph could allow switching precisions for internal calculations,
+        // but the output of the graph is always full float
+        // NOTE: we don't currently have a way to select the graph precision for EACH output
+        // there's a single shared precision for all of them
+        public GraphPrecision outputGraphPrecision;
 
         public PreviewMode previewMode;
 
-        public void WriteData(IEnumerable<AbstractShaderProperty> inputs, IEnumerable<ShaderKeyword> keywords, IEnumerable<AbstractShaderProperty> nodeProperties, IEnumerable<MaterialSlot> outputs, IEnumerable<Target> unsupportedTargets)
+        public void WriteData(IEnumerable<AbstractShaderProperty> inputs, IEnumerable<ShaderKeyword> keywords, IEnumerable<ShaderDropdown> dropdowns, IEnumerable<AbstractShaderProperty> nodeProperties, IEnumerable<MaterialSlot> outputs, IEnumerable<Target> unsupportedTargets)
         {
             if (m_SubGraphData == null)
             {
@@ -93,6 +108,7 @@ namespace UnityEditor.ShaderGraph
 
             m_SubGraphData.inputs.Clear();
             m_SubGraphData.keywords.Clear();
+            m_SubGraphData.dropdowns.Clear();
             m_SubGraphData.nodeProperties.Clear();
             m_SubGraphData.outputs.Clear();
             m_SubGraphData.unsupportedTargets.Clear();
@@ -105,6 +121,11 @@ namespace UnityEditor.ShaderGraph
             foreach (var keyword in keywords)
             {
                 m_SubGraphData.keywords.Add(keyword);
+            }
+
+            foreach (var dropdown in dropdowns)
+            {
+                m_SubGraphData.dropdowns.Add(dropdown);
             }
 
             foreach (var nodeProperty in nodeProperties)
