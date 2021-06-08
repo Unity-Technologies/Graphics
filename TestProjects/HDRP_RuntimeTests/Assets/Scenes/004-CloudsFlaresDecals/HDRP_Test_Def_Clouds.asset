@@ -42,7 +42,7 @@ MonoBehaviour:
     supportDecalLayers: 1
     supportSurfaceGradient: 0
     decalNormalBufferHP: 0
-    msaaSampleCount: 1
+    msaaSampleCount: 8
     supportMotionVectors: 1
     supportRuntimeDebugDisplay: 0
     supportRuntimeAOVAPI: 0
@@ -131,6 +131,7 @@ MonoBehaviour:
       upsampleFilter: 1
       forceResolution: 0
       forcedPercentage: 100
+      lowResTransparencyMinimumThreshold: 0
     lowresTransparentSettings:
       enabled: 1
       checkerboardDepthBuffer: 1
