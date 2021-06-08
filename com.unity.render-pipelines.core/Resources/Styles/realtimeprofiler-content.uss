@@ -14,5 +14,5 @@
     -unity-font-style: bold;
     margin-bottom: 4px;
     border-bottom-width: 0;
-    border-bottom-color: rgba(255, 255, 255, 255);
+    border-bottom-color: rgb(255, 255, 255);
 }

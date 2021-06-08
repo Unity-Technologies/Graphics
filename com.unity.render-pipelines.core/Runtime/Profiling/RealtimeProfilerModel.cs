@@ -39,11 +39,23 @@ public class RealtimeProfilerModel : MonoBehaviour
 
     public FrameTimeSample AverageSample = new FrameTimeSample();
 
+    // Contains proportional values [0, 1] that describe the amount of samples classified to each
+    // category over the size of the bottleneck history. Indeterminate values are discarded.
+    public struct BottleneckStat
+    {
+        public float PresentLimited;
+        public float CPU;
+        public float GPU;
+        public float Balanced;
+    };
+
+    public BottleneckStat BottleneckStats;
+
     FrameTiming[] m_Timing = new FrameTiming[1];
 
     public int HistorySize { get; set; } = 1;
 
-    public enum PerformanceBottleneck
+    enum PerformanceBottleneck
     {
         Indeterminate,      // Cannot be determined
         PresentLimited,     // Limited by presentation (vsync or framerate cap)
@@ -52,7 +64,9 @@ public class RealtimeProfilerModel : MonoBehaviour
         Balanced,           // Limited by both CPU and GPU, i.e. well balanced
     }
 
-    public PerformanceBottleneck Bottleneck = PerformanceBottleneck.Indeterminate;
+    List<PerformanceBottleneck> m_BottleneckHistory = new List<PerformanceBottleneck>();
+
+    public int BottleneckHistorySize { get; set; } = 100;
 
     void Update()
     {
@@ -72,7 +86,14 @@ public class RealtimeProfilerModel : MonoBehaviour
         Samples.Add(frameTime);
 
         ComputeAverages();
-        Bottleneck = DetermineBottleneck(AverageSample);
+        var bottleneck = DetermineBottleneck(AverageSample);
+
+        while (m_BottleneckHistory.Count > BottleneckHistorySize)
+        {
+            m_BottleneckHistory.RemoveAt(0);
+        }
+        m_BottleneckHistory.Add(bottleneck);
+        BottleneckStats = ComputeBottleneckStats();
 
         #if RTPROFILER_DEBUG
         const float msToNs = 1e6f;
@@ -86,10 +107,10 @@ public class RealtimeProfilerModel : MonoBehaviour
         m_AvgRenderThreadCPUFrameTimeCounter.Value = AverageSample.RenderThreadCPUFrameTime * msToNs;
         m_AvgGPUFrameTimeCounter.Value             = AverageSample.GPUFrameTime * msToNs;
 
-        m_CPUBoundCounter.Value         = Bottleneck == PerformanceBottleneck.CPU ? 100f : 0f;
-        m_GPUBoundCounter.Value         = Bottleneck == PerformanceBottleneck.GPU ? 100f : 0f;
-        m_PresentLimitedCounter.Value   = Bottleneck == PerformanceBottleneck.PresentLimited ? 100f : 0f;
-        m_BalancedCounter.Value         = Bottleneck == PerformanceBottleneck.Balanced ? 100f : 0f;
+        m_CPUBoundCounter.Value         = bottleneck == PerformanceBottleneck.CPU ? 100f : 0f;
+        m_GPUBoundCounter.Value         = bottleneck == PerformanceBottleneck.GPU ? 100f : 0f;
+        m_PresentLimitedCounter.Value   = bottleneck == PerformanceBottleneck.PresentLimited ? 100f : 0f;
+        m_BalancedCounter.Value         = bottleneck == PerformanceBottleneck.Balanced ? 100f : 0f;
         #endif
     }
 
@@ -99,6 +120,36 @@ public class RealtimeProfilerModel : MonoBehaviour
         AverageSample.MainThreadCPUFrameTime      = Samples.Average(s => s.MainThreadCPUFrameTime);
         AverageSample.RenderThreadCPUFrameTime    = Samples.Average(s => s.RenderThreadCPUFrameTime);
         AverageSample.GPUFrameTime                = Samples.Average(s => s.GPUFrameTime);
+    }
+
+    BottleneckStat ComputeBottleneckStats()
+    {
+        var stats = new BottleneckStat();
+        m_BottleneckHistory.ForEach((PerformanceBottleneck bottleneck) =>
+        {
+            switch (bottleneck)
+            {
+                case PerformanceBottleneck.Balanced:
+                    stats.Balanced++;
+                    break;
+                case PerformanceBottleneck.CPU:
+                    stats.CPU++;
+                    break;
+                case PerformanceBottleneck.GPU:
+                    stats.GPU++;
+                    break;
+                case PerformanceBottleneck.PresentLimited:
+                    stats.PresentLimited++;
+                    break;
+            }
+        });
+
+        stats.Balanced /= m_BottleneckHistory.Count;
+        stats.CPU /= m_BottleneckHistory.Count;
+        stats.GPU /= m_BottleneckHistory.Count;
+        stats.PresentLimited /= m_BottleneckHistory.Count;
+
+        return stats;
     }
 
     static PerformanceBottleneck DetermineBottleneck(FrameTimeSample s)

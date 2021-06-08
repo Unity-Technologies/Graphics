@@ -33,8 +33,13 @@ namespace UnityEditor.Rendering
             EditorApplication.playModeStateChanged += PlayModeStateChanged;
             m_ViewModel.PropertyChanged += (o, e) =>
             {
-                if (m_Model != null && e.PropertyName == "HistorySize")
-                    m_Model.HistorySize = m_ViewModel.HistorySize;
+                if (m_Model != null)
+                {
+                    if (e.PropertyName == "SampleHistorySize")
+                        m_Model.HistorySize = m_ViewModel.SampleHistorySize;
+                    if (e.PropertyName == "BottleneckHistorySize")
+                        m_Model.BottleneckHistorySize = m_ViewModel.BottleneckHistorySize;
+                }
             };
         }
 
