@@ -34,7 +34,6 @@ RW_TEXTURE2D_X(CTYPE, _OutputTexture);
 // A set of Defines to fine-tune the algorithm
 #define ADAPTIVE_SAMPLING
 #define STRATIFY
-#define FORCE_POINT_SAMPLING
 #define RING_OCCLUSION
 #define PER_TILE_BG_FG_CLASSIFICATION
 #define PHYSICAL_WEIGHTS
@@ -70,10 +69,14 @@ float GetCoCRadius(int2 positionSS)
     return CoCRadius;
 }
 
-CTYPE GetColorSample(float2 sampleTC, float lod)
+CTYPE GetColorSample(float2 sampleTC, float mip)
 {
 #ifndef FORCE_POINT_SAMPLING
-    return SAMPLE_TEXTURE2D_X_LOD(_InputTexture, s_trilinear_clamp_sampler, ClampAndScaleUVForBilinearPostProcessTexture(sampleTC * _PostProcessScreenSize.zw), lod).CTYPE_SWIZZLE;
+    uint mipCeiled = ceil(mip);
+    float texelsToClamp = (1u << mipCeiled) + 1;
+
+    float2 uv = ClampAndScaleUVPostProcessTexture(sampleTC * _PostProcessScreenSize.zw, _PostProcessScreenSize.zw, texelsToClamp);
+    return SAMPLE_TEXTURE2D_X_LOD(_InputTexture, s_trilinear_clamp_sampler, uv, mip).CTYPE_SWIZZLE;
 #else
     return LOAD_TEXTURE2D_X(_InputTexture, sampleTC).CTYPE_SWIZZLE;
 #endif
