@@ -69,13 +69,16 @@ namespace UnityEditor.Rendering.Universal.Converters
         ScrollView m_ScrollView;
         DropdownField m_ConversionsDropdownField;
 
-        List<RenderPipelineConverter> m_CoreConvertersList;
+        List<RenderPipelineConverter> m_CoreConvertersList = new List<RenderPipelineConverter>();
 
         // This list needs to be as long as the amount of converters
         List<List<ConverterItemDescriptor>> m_ItemsToConvert = new List<List<ConverterItemDescriptor>>();
         SerializedObject m_SerializedObject;
 
-        List<string> m_ConversionsChoices = new List<string>();
+        List<string> m_ContainerChoices = new List<string>();
+        List<RenderPipelineConverterContainer> m_Containers = new List<RenderPipelineConverterContainer>();
+        int m_ContainerChoiceIndex = 0;
+        private RenderPipelineConverterContainer m_CurrentContainer;
 
         // This is a list of Converter States which holds a list of which converter items/assets are active
         // There is one for each Converter.
@@ -117,17 +120,36 @@ namespace UnityEditor.Rendering.Universal.Converters
 
         void OnEnable()
         {
-            m_CoreConvertersList = new List<RenderPipelineConverter>();
-
             // This is the drop down choices.
             m_ConverterContainers = TypeCache.GetTypesDerivedFrom<RenderPipelineConverterContainer>();
+            foreach (var cont in m_ConverterContainers)
+            {
+                var container = (RenderPipelineConverterContainer)Activator.CreateInstance(cont);
+                m_Containers.Add(container);
+                m_ContainerChoices.Add(container.name);
+            }
+
+            if (m_ConverterContainers.Any())
+            {
+                GetConverters();
+            }
+        }
+
+        void GetConverters()
+        {
+            m_CoreConvertersList.Clear();
+            m_ConverterStates.Clear();
+            m_ItemsToConvert.Clear();
             var converterList = TypeCache.GetTypesDerivedFrom<RenderPipelineConverter>();
 
             for (int i = 0; i < converterList.Count; ++i)
             {
-                // Iterate over the converters
+                // Iterate over the converters that are used by the current container
                 RenderPipelineConverter conv = (RenderPipelineConverter)Activator.CreateInstance(converterList[i]);
-                m_CoreConvertersList.Add(conv);
+                if (conv.container == m_ConverterContainers[m_ContainerChoiceIndex])
+                {
+                    m_CoreConvertersList.Add(conv);
+                }
             }
 
             // this need to be sorted by Priority property
@@ -156,19 +178,44 @@ namespace UnityEditor.Rendering.Universal.Converters
 
         public void CreateGUI()
         {
-            m_SerializedObject = new SerializedObject(this);
-            converterEditorAsset.CloneTree(rootVisualElement);
+            if (m_ConverterContainers.Any())
+            {
+                m_SerializedObject = new SerializedObject(this);
+                converterEditorAsset.CloneTree(rootVisualElement);
 
+                rootVisualElement.Q<DropdownField>("conversionsDropDown").choices = m_ContainerChoices;
+                rootVisualElement.Q<DropdownField>("conversionsDropDown").index = m_ContainerChoiceIndex;
+                m_CurrentContainer = m_Containers[m_ContainerChoiceIndex];
+                ReCreateUI();
+
+                var button = rootVisualElement.Q<Button>("convertButton");
+                button.RegisterCallback<ClickEvent>(Convert);
+                button.SetEnabled(false);
+
+                var initButton = rootVisualElement.Q<Button>("initializeButton");
+                initButton.RegisterCallback<ClickEvent>(InitializeAllActiveConverters);
+            }
+        }
+
+        void ReCreateUI()
+        {
             // This is temp now to get the information filled in
-            RenderPipelineConverterContainer converterContainer =
-                (RenderPipelineConverterContainer)Activator.CreateInstance(m_ConverterContainers[0]);
-            rootVisualElement.Q<Label>("conversionName").text = converterContainer.name;
-            rootVisualElement.Q<TextElement>("conversionInfo").text = converterContainer.info;
+            rootVisualElement.Q<DropdownField>("conversionsDropDown").RegisterCallback<ChangeEvent<string>>((evt) =>
+            {
+                m_ContainerChoiceIndex = rootVisualElement.Q<DropdownField>("conversionsDropDown").index;
+                m_CurrentContainer = m_Containers[m_ContainerChoiceIndex];
+                GetConverters();
+                ReCreateUI();
+            });
+
+            rootVisualElement.Q<Label>("conversionName").text = m_CurrentContainer.name;
+            rootVisualElement.Q<TextElement>("conversionInfo").text = m_CurrentContainer.info;
 
             rootVisualElement.Q<Image>("converterContainerHelpIcon").image = CoreEditorStyles.iconHelp;
 
             // Getting the scrollview where the converters should be added
             m_ScrollView = rootVisualElement.Q<ScrollView>("convertersScrollView");
+            m_ScrollView.Clear();
             for (int i = 0; i < m_CoreConvertersList.Count; ++i)
             {
                 // Making an item using the converterListAsset as a template.
@@ -280,14 +327,7 @@ namespace UnityEditor.Rendering.Universal.Converters
 
                 m_ScrollView.Add(item);
             }
-
             rootVisualElement.Bind(m_SerializedObject);
-            var button = rootVisualElement.Q<Button>("convertButton");
-            button.RegisterCallback<ClickEvent>(Convert);
-            button.SetEnabled(false);
-
-            var initButton = rootVisualElement.Q<Button>("initializeButton");
-            initButton.RegisterCallback<ClickEvent>(InitializeAllActiveConverters);
         }
 
         void GetAndSetData(int i, Action onAllConvertersCompleted = null)
@@ -535,7 +575,7 @@ namespace UnityEditor.Rendering.Universal.Converters
             ctx.hasConverted = true;
 
             VisualElement child = m_ScrollView[stateIndex];
-            child.Q<ListView>("converterItems").Refresh();
+            child.Q<ListView>("converterItems").Rebuild();
         }
 
         void Convert(ClickEvent evt)
