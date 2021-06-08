@@ -58,6 +58,9 @@ ${VFXBegin:VFXHDRPDecalVaryingsMacros}
 #define VFX_VARYING_POSWS posWS
 #define VFX_VARYING_FADEFACTOR fadeParameters.x
 #define VFX_VARYING_ANGLEFADE fadeParameters.yz
+#if USE_ALPHA_TEST
+#define VFX_VARYING_ALPHATHRESHOLD fadeParameters.w
+#endif
 ${VFXEnd}
 
 ${VFXBegin:VFXHDRPDecalDeclareVaryings}
@@ -95,7 +98,19 @@ nointerpolation float4 scaleBias : TEXCOORD1;
 #endif
 
 float3 posWS : TEXCOORD3;
-float3 fadeParameters : TEXCOORD4;
+#if USE_ALPHA_TEST
+// x: fade factor
+// y: angle fade start
+// z: angle fade end
+// w: alpha threshold
+nointerpolation float4 fadeParameters : TEXCOORD4;
+#else
+// x: fade factor
+// y: angle fade start
+// z: angle fade end
+nointerpolation float3 fadeParameters : TEXCOORD4;
+#endif
+
 
 nointerpolation float4 viewToDecal0 : TEXCOORD5;
 nointerpolation float4 viewToDecal1 : TEXCOORD6;

@@ -231,7 +231,6 @@ namespace UnityEditor.VFX.HDRP
                     yield return setting;
                 yield return "cullMode";
                 yield return "blendMode";
-                yield return "useAlphaClipping";
                 yield return "doubleSided";
                 yield return "shaderGraph";
                 yield return "zTestMode";
@@ -239,7 +238,6 @@ namespace UnityEditor.VFX.HDRP
                 yield return "castShadows";
                 yield return "materialType";
                 yield return "sort";
-                // yield return "useSoftParticle";
 
                 if (!enableDecalLayers)
                     yield return "decalLayer";
