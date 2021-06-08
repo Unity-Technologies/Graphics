@@ -13,7 +13,6 @@ if __name__ == "__main__":
     if not path.exists(update_tests_file_path):
         print("No update file found")
         exit(1)
-
     with ZipFile(path.join(args.artifacts, "UpdatedTestData.zip"), 'w') as z:
         with open(update_tests_file_path) as f:
             while True:
@@ -32,4 +31,4 @@ if __name__ == "__main__":
                     z.write(actual_img_path, reference_img_path)
                     if path.exists(actual_img_path + ".meta"):
                         z.write(actual_img_path + ".meta", reference_img_path + ".meta")
-    pass
+
