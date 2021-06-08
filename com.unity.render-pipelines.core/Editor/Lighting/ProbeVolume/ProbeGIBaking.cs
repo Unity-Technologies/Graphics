@@ -244,14 +244,10 @@ namespace UnityEngine.Experimental.Rendering
         // It is only a first iteration of the concept that won't be as impactful on memory as other options.
         internal static void RevertDilation()
         {
-            if (m_BakingReferenceVolumeAuthoring == null)
-            {
-                var refVolsAuth = GameObject.FindObjectsOfType<ProbeReferenceVolumeAuthoring>();
-                if (refVolsAuth.Length > 0)
-                {
-                    m_BakingReferenceVolumeAuthoring = refVolsAuth[0];
-                }
-            }
+            var refVolAuthList = GameObject.FindObjectsOfType<ProbeReferenceVolumeAuthoring>();
+            m_BakingReferenceVolumeAuthoring = GetCardinalAuthoringComponent(refVolAuthList);
+            m_BakingReferenceVolumeAuthoring = GetCardinalAuthoringComponent(refVolAuthList);
+            if (m_BakingReferenceVolumeAuthoring == null) return;
 
             var dilationSettings = m_BakingReferenceVolumeAuthoring.GetDilationSettings();
 
@@ -273,12 +269,18 @@ namespace UnityEngine.Experimental.Rendering
         }
 
         // Can definitively be optimized later on.
+        // Also note that all the bookkeeping of all the reference volumes will likely need to change when we move to
+        // proper UX.
         internal static void PerformDilation()
         {
             HashSet<ProbeReferenceVolumeAuthoring> refVols = new HashSet<ProbeReferenceVolumeAuthoring>();
             Dictionary<int, List<string>> cell2Assets = new Dictionary<int, List<string>>();
+            var refVolAuthList = GameObject.FindObjectsOfType<ProbeReferenceVolumeAuthoring>();
 
-            foreach (var refVol in GameObject.FindObjectsOfType<ProbeReferenceVolumeAuthoring>())
+            m_BakingReferenceVolumeAuthoring = GetCardinalAuthoringComponent(refVolAuthList);
+            if (m_BakingReferenceVolumeAuthoring == null) return;
+
+            foreach (var refVol in refVolAuthList)
             {
                 if (m_BakingReferenceVolumeAuthoring == null)
                     m_BakingReferenceVolumeAuthoring = refVol;
