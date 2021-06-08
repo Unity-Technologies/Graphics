@@ -20,6 +20,7 @@ namespace UnityEditor.Rendering.HighDefinition
 
         // Ray tracing generic attributes
         SerializedDataParameter m_LayerMask;
+        SerializedDataParameter m_ReceiverMotionRejection;
         SerializedDataParameter m_TextureLodBias;
         SerializedDataParameter m_RayLength;
         SerializedDataParameter m_ClampValue;
@@ -42,6 +43,8 @@ namespace UnityEditor.Rendering.HighDefinition
         SerializedDataParameter m_DenoiserRadius;
         SerializedDataParameter m_SecondDenoiserPass;
 
+        public override bool hasAdditionalProperties => true;
+
         public override void OnEnable()
         {
             var o = new PropertyFetcher<GlobalIllumination>(serializedObject);
@@ -56,6 +59,7 @@ namespace UnityEditor.Rendering.HighDefinition
 
             // Ray Tracing shared parameters
             m_LayerMask = Unpack(o.Find(x => x.layerMask));
+            m_ReceiverMotionRejection = Unpack(o.Find(x => x.receiverMotionRejection));
             m_TextureLodBias = Unpack(o.Find(x => x.textureLodBias));
             m_RayLength = Unpack(o.Find(x => x.rayLength));
             m_ClampValue = Unpack(o.Find(x => x.clampValue));
@@ -193,6 +197,7 @@ namespace UnityEditor.Rendering.HighDefinition
                     {
                         RayTracingPerformanceModeGUI(tracingMode == RayCastingMode.Mixed);
                     }
+                    PropertyField(m_ReceiverMotionRejection);
                 }
                 else
                 {

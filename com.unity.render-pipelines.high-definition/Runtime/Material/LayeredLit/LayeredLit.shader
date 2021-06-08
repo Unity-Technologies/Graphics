@@ -95,7 +95,7 @@ Shader "HDRP/LayeredLit"
         _HeightMap3("HeightMap3", 2D) = "black" {}
 
         // Caution: Default value of _HeightAmplitude must be (_HeightMax - _HeightMin) * 0.01
-        // These two properties are computed from exposed properties by the UI block and are separated so we don't lose information by changing displacement mode in the UI block 
+        // These two properties are computed from exposed properties by the UI block and are separated so we don't lose information by changing displacement mode in the UI block
         [HideInInspector] _HeightAmplitude0("Height Scale0", Float) = 0.02
         [HideInInspector] _HeightAmplitude1("Height Scale1", Float) = 0.02
         [HideInInspector] _HeightAmplitude2("Height Scale2", Float) = 0.02

@@ -18,7 +18,7 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
         public override void Setup(ref TargetSetupContext context)
         {
             context.AddAssetDependency(kSourceCodeGuid, AssetCollection.Flags.SourceDependency);
-            context.AddSubShader(SubShaders.SpriteLit);
+            context.AddSubShader(SubShaders.SpriteLit(target));
         }
 
         public override void GetFields(ref TargetFieldContext context)
@@ -52,20 +52,26 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
         #region SubShader
         static class SubShaders
         {
-            public static SubShaderDescriptor SpriteLit = new SubShaderDescriptor()
+            public static SubShaderDescriptor SpriteLit(UniversalTarget target)
             {
-                pipelineTag = UniversalTarget.kPipelineTag,
-                customTags = UniversalTarget.kLitMaterialTypeTag,
-                renderType = $"{RenderType.Transparent}",
-                renderQueue = $"{UnityEditor.ShaderGraph.RenderQueue.Transparent}",
-                generatesPreview = true,
-                passes = new PassCollection
+                SubShaderDescriptor result = new SubShaderDescriptor()
                 {
-                    { SpriteLitPasses.Lit },
-                    { SpriteLitPasses.Normal },
-                    { SpriteLitPasses.Forward },
-                },
-            };
+                    pipelineTag = UniversalTarget.kPipelineTag,
+                    customTags = UniversalTarget.kLitMaterialTypeTag,
+                    renderType = $"{RenderType.Transparent}",
+                    renderQueue = $"{UnityEditor.ShaderGraph.RenderQueue.Transparent}",
+                    generatesPreview = true,
+                    passes = new PassCollection
+                    {
+                        { SpriteLitPasses.Lit },
+                        { SpriteLitPasses.Normal },
+                        { SpriteLitPasses.Forward },
+                        { CorePasses._2DSceneSelection(target) },
+                        { CorePasses._2DScenePicking(target) },
+                    },
+                };
+                return result;
+            }
         }
         #endregion
 
