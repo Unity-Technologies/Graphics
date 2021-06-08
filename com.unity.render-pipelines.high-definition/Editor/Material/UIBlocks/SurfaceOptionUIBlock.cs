@@ -68,6 +68,7 @@ namespace UnityEditor.Rendering.HighDefinition
             public const string renderingPassText = "Rendering Pass";
             public const string blendModeText = "Blending Mode";
             public const string notSupportedInMultiEdition = "Multiple Different Values";
+            public const string lowResTransparencyNotSupportedText = "Low resolution transparency is not enabled in the current HDRP Asset. The selected Pass will be Default.";
 
             public static readonly string[] surfaceTypeNames = Enum.GetNames(typeof(SurfaceType));
             public static readonly string[] blendModeNames = Enum.GetNames(typeof(BlendMode));
@@ -703,6 +704,14 @@ namespace UnityEditor.Rendering.HighDefinition
                         materialEditor.RegisterPropertyChangeUndo("Rendering Pass");
                         renderQueueType = HDRenderQueue.ConvertFromTransparentRenderQueue(newRenderQueueTransparentType);
                         renderQueue = HDRenderQueue.ChangeType(renderQueueType, offset: (int)transparentSortPriority.floatValue);
+                    }
+                    if (renderQueueTransparentType == HDRenderQueue.TransparentRenderQueue.LowResolution)
+                    {
+                        if (HDRenderPipeline.currentPipeline != null
+                            && !HDRenderPipeline.currentPipeline.currentPlatformRenderPipelineSettings.lowresTransparentSettings.enabled)
+                        {
+                            EditorGUILayout.HelpBox(Styles.lowResTransparencyNotSupportedText, MessageType.Info);
+                        }
                     }
                     break;
                 default:

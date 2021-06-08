@@ -68,6 +68,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Added slides to control the shape noise offset.
 - Added two toggles to control occluder rejection and receiver rejection for the ray traced ambient occlusion (case 1330168).
 - Added the receiver motion rejection toggle to RTGI (case 1330168).
+- Added info box when low resolution transparency is selected, but its not enabled in the HDRP settings. This will help new users find the correct knob in the HDRP Asset.
 - Added a dialog box when you import a Material that has a diffusion profile to add the diffusion profile to global settings.
 
 ### Fixed
@@ -237,6 +238,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed reflection probes being injected into the ray tracing light cluster even if not baked (case 1329083).
 - Fixed the double sided option moving when toggling it in the material UI (case 1328877).
 - Fixed incorrect RTHandle scale in DoF when TAA is enabled.
+- Fixed an incompatibility between MSAA and Volumetric Clouds.
 
 ### Changed
 - Changed Window/Render Pipeline/HD Render Pipeline Wizard to Window/Rendering/HDRP Wizard

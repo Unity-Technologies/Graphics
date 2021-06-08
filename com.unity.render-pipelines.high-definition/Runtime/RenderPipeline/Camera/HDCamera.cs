@@ -256,6 +256,9 @@ namespace UnityEngine.Rendering.HighDefinition
         private  Camera                 m_parentCamera = null; // Used for recursive rendering, e.g. a reflection in a scene view.
         internal  Camera                 parentCamera { get { return m_parentCamera; } }
 
+        internal float                  lowResScale = 0.5f;
+        internal bool                   isLowResScaleHalf { get { return lowResScale == 0.5f; } }
+
         //Setting a parent camera also tries to use the parent's camera exposure textures.
         //One example is planar reflection probe volume being pre exposed.
         internal void SetParentCamera(HDCamera parentHdCam)
@@ -632,6 +635,12 @@ namespace UnityEngine.Rendering.HighDefinition
 
         internal ProfilingSampler profilingSampler => m_AdditionalCameraData?.profilingSampler ?? ProfilingSampler.Get(HDProfileId.HDRenderPipelineRenderCamera);
 
+
+#if ENABLE_VIRTUALTEXTURES
+        VTBufferManager virtualTextureFeedback = new VTBufferManager();
+#endif
+
+
         internal HDCamera(Camera cam)
         {
             camera = cam;
@@ -866,12 +875,15 @@ namespace UnityEngine.Rendering.HighDefinition
             DynamicResolutionHandler.instance.finalViewport = new Vector2Int((int)finalViewport.width, (int)finalViewport.height);
 
             Vector2Int nonScaledViewport = new Vector2Int(actualWidth, actualHeight);
+
+            lowResScale = 0.5f;
             if (canDoDynamicResolution)
             {
                 Vector2Int scaledSize = DynamicResolutionHandler.instance.GetScaledSize(new Vector2Int(actualWidth, actualHeight));
                 actualWidth = scaledSize.x;
                 actualHeight = scaledSize.y;
                 globalMipBias += DynamicResolutionHandler.instance.CalculateMipBias(scaledSize, nonScaledViewport, IsDLSSEnabled());
+                lowResScale = DynamicResolutionHandler.instance.GetLowResMultiplier(lowResScale);
             }
 
             var screenWidth = actualWidth;
@@ -929,6 +941,10 @@ namespace UnityEngine.Rendering.HighDefinition
             SetupCurrentMaterialQuality(cmd);
 
             SetupExposureTextures();
+
+#if ENABLE_VIRTUALTEXTURES
+            virtualTextureFeedback.BeginRender(this);
+#endif
         }
 
         internal void UpdateAllViewConstants(bool jitterProjectionMatrix)
@@ -1765,6 +1781,10 @@ namespace UnityEngine.Rendering.HighDefinition
 
             if (visualSky != null)
                 visualSky.Cleanup();
+
+#if ENABLE_VIRTUALTEXTURES
+            virtualTextureFeedback?.Cleanup();
+#endif
         }
 
         // BufferedRTHandleSystem API expects an allocator function. We define it here.
@@ -1821,6 +1841,13 @@ namespace UnityEngine.Rendering.HighDefinition
             }
         }
 
+#if ENABLE_VIRTUALTEXTURES
+        internal void ResolveVirtualTextureFeedback(RenderGraph renderGraph, TextureHandle vtFeedbackBuffer)
+        {
+            virtualTextureFeedback.Resolve(renderGraph, this, vtFeedbackBuffer);
+        }
+
+#endif
         #endregion
     }
 }
