@@ -8,8 +8,8 @@
 
 ---
 
-ShaderGraph_Android_Vulkan_Standalone_ref_images_il2cpp_Linear_trunk:
-    name: ShaderGraph on Android_Vulkan_Standalone_ref_images_il2cpp_Linear on version trunk
+ShaderGraph_Android_Vulkan_Standalone_il2cpp_Linear_trunk:
+    name: ShaderGraph on Android_Vulkan_Standalone_il2cpp_Linear on version trunk
     agent:
         type: Unity::mobile::android
         image: mobile/android-execution-r19:stable
@@ -24,9 +24,13 @@ ShaderGraph_Android_Vulkan_Standalone_ref_images_il2cpp_Linear_trunk:
       -  powershell %ANDROID_SDK_ROOT%\platform-tools\adb.exe devices
       -  NetSh Advfirewall set allprofiles state off
       -  curl -s https://artifactory.prd.it.unity3d.com/artifactory/unity-tools-local/utr-standalone/utr.bat --output utr.bat
-      -  choco install python3 && refreshenv
-      -  python .yamato/tooling/wrap_utr.py --architecture=ARM64 --artifacts_path=TestProjects/ShaderGraph/test-results --platform=Android --player-load-path=players --suite=playmode --timeout=1200 --zero-tests-are-ok=1
-      -  python .yamato/tooling/zip_to_artifact.py --artifacts TestProjects/ShaderGraph/test-results/ --root TestProjects/ShaderGraph/
+      -  |5-
+                git rev-parse HEAD | git show -s --format=%%cI > revdate.tmp
+                set /p GIT_REVISIONDATE=<revdate.tmp
+                echo %GIT_REVISIONDATE%
+                del revdate.tmp
+                python .yamato/tooling/wrap_utr_check_update_file.py TestProjects/ShaderGraph --architecture=ARM64 --artifacts_path=TestProjects/ShaderGraph/test-results --platform=Android --player-load-path=players --suite=playmode --timeout=1200 --zero-tests-are-ok=1
+      -  start %ANDROID_SDK_ROOT%\platform-tools\adb.exe kill-server
     artifacts:
         logs:
             paths:
@@ -35,10 +39,10 @@ ShaderGraph_Android_Vulkan_Standalone_ref_images_il2cpp_Linear_trunk:
     dependencies:
       -  path: .yamato/_editor_priming.yml#editor:priming:trunk:Android
          rerun: on_new_revision
-      -  path: .yamato/shadergraph-android-vulkan.yml#Build_ShaderGraph_Android_Vulkan_Standalone_ref_images_il2cpp_Linear_trunk
+      -  path: .yamato/shadergraph-android-vulkan.yml#Build_ShaderGraph_Android_Vulkan_Standalone_il2cpp_Linear_trunk
          rerun: on_new_revision
-Build_ShaderGraph_Android_Vulkan_Standalone_ref_images_il2cpp_Linear_trunk:
-    name: Build ShaderGraph on Android_Vulkan_il2cpp_Linear_Standalone_ref_images_build_Player on version trunk
+Build_ShaderGraph_Android_Vulkan_Standalone_il2cpp_Linear_trunk:
+    name: Build ShaderGraph on Android_Vulkan_il2cpp_Linear_Standalone_build_Player on version trunk
     agent:
         type: Unity::VM
         image: mobile/android-execution-r19:stable
@@ -71,34 +75,8 @@ Build_ShaderGraph_Android_Vulkan_Standalone_ref_images_il2cpp_Linear_trunk:
     dependencies:
       -  path: .yamato/_editor_priming.yml#editor:priming:trunk:Android
          rerun: on_new_revision
-ShaderGraph_Android_Vulkan_playmode_ref_images_il2cpp_Linear_trunk:
-    name: ShaderGraph on Android_Vulkan_playmode_ref_images_il2cpp_Linear on version trunk
-    agent:
-        type: Unity::mobile::android
-        image: mobile/android-execution-r19:stable
-        flavor: b1.large
-    variables:
-        UPM_REGISTRY: https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates
-        CUSTOM_REVISION: '{{trunk.changeset.id}}'
-        UTR_VERSION: "current"
-        TEST_FILTER: .*
-    commands:
-      -  curl -s https://artifactory.prd.it.unity3d.com/artifactory/unity-tools-local/utr-standalone/utr.bat --output utr.bat
-      -  choco install unity-downloader-cli -y -s https://artifactory.prd.it.unity3d.com/artifactory/api/nuget/unity-choco-local
-      -  unity-downloader-cli --source-file unity_revision.txt -p WindowsEditor -c editor -c il2cpp -c android  --wait --published-only
-      -  choco install python3 && refreshenv
-      -  python .yamato/tooling/wrap_utr.py --artifacts_path=TestProjects/ShaderGraph/test-results --editor-location=./WindowsEditor --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-logfile C:/build/output/Unity-Technologies/Graphics/TestProjects/ShaderGraph/Logs/Editor.log" --testfilter="Individual" --scripting-backend=IL2CPP --suite=playmode --testfilter=%TEST_FILTER% --testproject=./TestProjects/ShaderGraph --zero-tests-are-ok=1
-      -  python .yamato/tooling/zip_to_artifact.py --artifacts TestProjects/ShaderGraph/test-results/ --root TestProjects/ShaderGraph/
-    artifacts:
-        logs:
-            paths:
-              -  "**/test-results/**"
-              -  "TestProjects/ShaderGraph/Logs/*.log"
-    dependencies:
-      -  path: .yamato/_editor_priming.yml#editor:priming:trunk:Android
-         rerun: on_new_revision
-ShaderGraph_Android_Vulkan_Standalone_cache_ref_images_il2cpp_Linear_trunk:
-    name: ShaderGraph on Android_Vulkan_Standalone_cache_ref_images_il2cpp_Linear on version trunk
+ShaderGraph_Android_Vulkan_Standalone_cache_il2cpp_Linear_trunk:
+    name: ShaderGraph on Android_Vulkan_Standalone_cache_il2cpp_Linear on version trunk
     agent:
         type: Unity::mobile::android
         image: mobile/android-execution-r19:stable
@@ -113,9 +91,13 @@ ShaderGraph_Android_Vulkan_Standalone_cache_ref_images_il2cpp_Linear_trunk:
       -  powershell %ANDROID_SDK_ROOT%\platform-tools\adb.exe devices
       -  NetSh Advfirewall set allprofiles state off
       -  curl -s https://artifactory.prd.it.unity3d.com/artifactory/unity-tools-local/utr-standalone/utr.bat --output utr.bat
-      -  choco install python3 && refreshenv
-      -  python .yamato/tooling/wrap_utr.py --architecture=ARM64 --artifacts_path=TestProjects/ShaderGraph/test-results --platform=Android --player-load-path=players --suite=playmode --timeout=1200 --zero-tests-are-ok=1
-      -  python .yamato/tooling/zip_to_artifact.py --artifacts TestProjects/ShaderGraph/test-results/ --root TestProjects/ShaderGraph/
+      -  |5-
+              set ANDROID_DEVICE_CONNECTION=%BOKKEN_DEVICE_IP%
+              git rev-parse HEAD | git show -s --format=%%cI > revdate.tmp
+              set /p GIT_REVISIONDATE=<revdate.tmp
+              echo %GIT_REVISIONDATE%
+              del revdate.tmp
+              utr --architecture=ARM64 --artifacts_path=TestProjects/ShaderGraph/test-results --platform=Android --player-load-path=players --suite=playmode --timeout=1200 --zero-tests-are-ok=1
       -  start %ANDROID_SDK_ROOT%\platform-tools\adb.exe kill-server
     artifacts:
         logs:
@@ -125,10 +107,10 @@ ShaderGraph_Android_Vulkan_Standalone_cache_ref_images_il2cpp_Linear_trunk:
     dependencies:
       -  path: .yamato/_editor_priming.yml#editor:priming:trunk:Android
          rerun: on_new_revision
-      -  path: .yamato/shadergraph-android-vulkan.yml#Build_ShaderGraph_Android_Vulkan_Standalone_cache_ref_images_il2cpp_Linear_trunk
+      -  path: .yamato/shadergraph-android-vulkan.yml#Build_ShaderGraph_Android_Vulkan_Standalone_cache_il2cpp_Linear_trunk
          rerun: on_new_revision
-Build_ShaderGraph_Android_Vulkan_Standalone_cache_ref_images_il2cpp_Linear_trunk:
-    name: Build ShaderGraph on Android_Vulkan_il2cpp_Linear_Standalone_cache_ref_images_build_Player on version trunk
+Build_ShaderGraph_Android_Vulkan_Standalone_cache_il2cpp_Linear_trunk:
+    name: Build ShaderGraph on Android_Vulkan_il2cpp_Linear_Standalone_cache_build_Player on version trunk
     agent:
         type: Unity::VM
         image: mobile/android-execution-r19:stable
@@ -161,8 +143,8 @@ Build_ShaderGraph_Android_Vulkan_Standalone_cache_ref_images_il2cpp_Linear_trunk
     dependencies:
       -  path: .yamato/_editor_priming.yml#editor:priming:trunk:Android
          rerun: on_new_revision
-ShaderGraph_Android_Vulkan_Standalone_ref_images_il2cpp_Linear_CUSTOM-REVISION:
-    name: ShaderGraph on Android_Vulkan_Standalone_ref_images_il2cpp_Linear on version CUSTOM-REVISION
+ShaderGraph_Android_Vulkan_Standalone_il2cpp_Linear_CUSTOM-REVISION:
+    name: ShaderGraph on Android_Vulkan_Standalone_il2cpp_Linear on version CUSTOM-REVISION
     agent:
         type: Unity::mobile::android
         image: mobile/android-execution-r19:stable
@@ -177,9 +159,13 @@ ShaderGraph_Android_Vulkan_Standalone_ref_images_il2cpp_Linear_CUSTOM-REVISION:
       -  powershell %ANDROID_SDK_ROOT%\platform-tools\adb.exe devices
       -  NetSh Advfirewall set allprofiles state off
       -  curl -s https://artifactory.prd.it.unity3d.com/artifactory/unity-tools-local/utr-standalone/utr.bat --output utr.bat
-      -  choco install python3 && refreshenv
-      -  python .yamato/tooling/wrap_utr.py --architecture=ARM64 --artifacts_path=TestProjects/ShaderGraph/test-results --platform=Android --player-load-path=players --suite=playmode --timeout=1200 --zero-tests-are-ok=1
-      -  python .yamato/tooling/zip_to_artifact.py --artifacts TestProjects/ShaderGraph/test-results/ --root TestProjects/ShaderGraph/
+      -  |5-
+                git rev-parse HEAD | git show -s --format=%%cI > revdate.tmp
+                set /p GIT_REVISIONDATE=<revdate.tmp
+                echo %GIT_REVISIONDATE%
+                del revdate.tmp
+                python .yamato/tooling/wrap_utr_check_update_file.py TestProjects/ShaderGraph --architecture=ARM64 --artifacts_path=TestProjects/ShaderGraph/test-results --platform=Android --player-load-path=players --suite=playmode --timeout=1200 --zero-tests-are-ok=1
+      -  start %ANDROID_SDK_ROOT%\platform-tools\adb.exe kill-server
     artifacts:
         logs:
             paths:
@@ -188,10 +174,10 @@ ShaderGraph_Android_Vulkan_Standalone_ref_images_il2cpp_Linear_CUSTOM-REVISION:
     dependencies:
       -  path: .yamato/_editor_priming.yml#editor:priming:CUSTOM-REVISION:Android
          rerun: on_new_revision
-      -  path: .yamato/shadergraph-android-vulkan.yml#Build_ShaderGraph_Android_Vulkan_Standalone_ref_images_il2cpp_Linear_CUSTOM-REVISION
+      -  path: .yamato/shadergraph-android-vulkan.yml#Build_ShaderGraph_Android_Vulkan_Standalone_il2cpp_Linear_CUSTOM-REVISION
          rerun: on_new_revision
-Build_ShaderGraph_Android_Vulkan_Standalone_ref_images_il2cpp_Linear_CUSTOM-REVISION:
-    name: Build ShaderGraph on Android_Vulkan_il2cpp_Linear_Standalone_ref_images_build_Player on version CUSTOM-REVISION
+Build_ShaderGraph_Android_Vulkan_Standalone_il2cpp_Linear_CUSTOM-REVISION:
+    name: Build ShaderGraph on Android_Vulkan_il2cpp_Linear_Standalone_build_Player on version CUSTOM-REVISION
     agent:
         type: Unity::VM
         image: mobile/android-execution-r19:stable
@@ -224,34 +210,8 @@ Build_ShaderGraph_Android_Vulkan_Standalone_ref_images_il2cpp_Linear_CUSTOM-REVI
     dependencies:
       -  path: .yamato/_editor_priming.yml#editor:priming:CUSTOM-REVISION:Android
          rerun: on_new_revision
-ShaderGraph_Android_Vulkan_playmode_ref_images_il2cpp_Linear_CUSTOM-REVISION:
-    name: ShaderGraph on Android_Vulkan_playmode_ref_images_il2cpp_Linear on version CUSTOM-REVISION
-    agent:
-        type: Unity::mobile::android
-        image: mobile/android-execution-r19:stable
-        flavor: b1.large
-    variables:
-        UPM_REGISTRY: https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates
-        CUSTOM_REVISION: custom_revision_not_set
-        UTR_VERSION: "current"
-        TEST_FILTER: .*
-    commands:
-      -  curl -s https://artifactory.prd.it.unity3d.com/artifactory/unity-tools-local/utr-standalone/utr.bat --output utr.bat
-      -  choco install unity-downloader-cli -y -s https://artifactory.prd.it.unity3d.com/artifactory/api/nuget/unity-choco-local
-      -  unity-downloader-cli --source-file unity_revision.txt -p WindowsEditor -c editor -c il2cpp -c android  --wait --published-only
-      -  choco install python3 && refreshenv
-      -  python .yamato/tooling/wrap_utr.py --artifacts_path=TestProjects/ShaderGraph/test-results --editor-location=./WindowsEditor --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-logfile C:/build/output/Unity-Technologies/Graphics/TestProjects/ShaderGraph/Logs/Editor.log" --testfilter="Individual" --scripting-backend=IL2CPP --suite=playmode --testfilter=%TEST_FILTER% --testproject=./TestProjects/ShaderGraph --zero-tests-are-ok=1
-      -  python .yamato/tooling/zip_to_artifact.py --artifacts TestProjects/ShaderGraph/test-results/ --root TestProjects/ShaderGraph/
-    artifacts:
-        logs:
-            paths:
-              -  "**/test-results/**"
-              -  "TestProjects/ShaderGraph/Logs/*.log"
-    dependencies:
-      -  path: .yamato/_editor_priming.yml#editor:priming:CUSTOM-REVISION:Android
-         rerun: on_new_revision
-ShaderGraph_Android_Vulkan_Standalone_cache_ref_images_il2cpp_Linear_CUSTOM-REVISION:
-    name: ShaderGraph on Android_Vulkan_Standalone_cache_ref_images_il2cpp_Linear on version CUSTOM-REVISION
+ShaderGraph_Android_Vulkan_Standalone_cache_il2cpp_Linear_CUSTOM-REVISION:
+    name: ShaderGraph on Android_Vulkan_Standalone_cache_il2cpp_Linear on version CUSTOM-REVISION
     agent:
         type: Unity::mobile::android
         image: mobile/android-execution-r19:stable
@@ -266,9 +226,13 @@ ShaderGraph_Android_Vulkan_Standalone_cache_ref_images_il2cpp_Linear_CUSTOM-REVI
       -  powershell %ANDROID_SDK_ROOT%\platform-tools\adb.exe devices
       -  NetSh Advfirewall set allprofiles state off
       -  curl -s https://artifactory.prd.it.unity3d.com/artifactory/unity-tools-local/utr-standalone/utr.bat --output utr.bat
-      -  choco install python3 && refreshenv
-      -  python .yamato/tooling/wrap_utr.py --architecture=ARM64 --artifacts_path=TestProjects/ShaderGraph/test-results --platform=Android --player-load-path=players --suite=playmode --timeout=1200 --zero-tests-are-ok=1
-      -  python .yamato/tooling/zip_to_artifact.py --artifacts TestProjects/ShaderGraph/test-results/ --root TestProjects/ShaderGraph/
+      -  |5-
+              set ANDROID_DEVICE_CONNECTION=%BOKKEN_DEVICE_IP%
+              git rev-parse HEAD | git show -s --format=%%cI > revdate.tmp
+              set /p GIT_REVISIONDATE=<revdate.tmp
+              echo %GIT_REVISIONDATE%
+              del revdate.tmp
+              utr --architecture=ARM64 --artifacts_path=TestProjects/ShaderGraph/test-results --platform=Android --player-load-path=players --suite=playmode --timeout=1200 --zero-tests-are-ok=1
       -  start %ANDROID_SDK_ROOT%\platform-tools\adb.exe kill-server
     artifacts:
         logs:
@@ -278,10 +242,10 @@ ShaderGraph_Android_Vulkan_Standalone_cache_ref_images_il2cpp_Linear_CUSTOM-REVI
     dependencies:
       -  path: .yamato/_editor_priming.yml#editor:priming:CUSTOM-REVISION:Android
          rerun: on_new_revision
-      -  path: .yamato/shadergraph-android-vulkan.yml#Build_ShaderGraph_Android_Vulkan_Standalone_cache_ref_images_il2cpp_Linear_CUSTOM-REVISION
+      -  path: .yamato/shadergraph-android-vulkan.yml#Build_ShaderGraph_Android_Vulkan_Standalone_cache_il2cpp_Linear_CUSTOM-REVISION
          rerun: on_new_revision
-Build_ShaderGraph_Android_Vulkan_Standalone_cache_ref_images_il2cpp_Linear_CUSTOM-REVISION:
-    name: Build ShaderGraph on Android_Vulkan_il2cpp_Linear_Standalone_cache_ref_images_build_Player on version CUSTOM-REVISION
+Build_ShaderGraph_Android_Vulkan_Standalone_cache_il2cpp_Linear_CUSTOM-REVISION:
+    name: Build ShaderGraph on Android_Vulkan_il2cpp_Linear_Standalone_cache_build_Player on version CUSTOM-REVISION
     agent:
         type: Unity::VM
         image: mobile/android-execution-r19:stable
