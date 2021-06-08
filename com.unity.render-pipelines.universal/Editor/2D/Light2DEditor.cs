@@ -748,7 +748,7 @@ namespace UnityEditor.Rendering.Universal
                         Handles.DrawLine(t.TransformPoint(falloffShape[i]), t.TransformPoint(falloffShape[i + 1]));
                     }
 
-                    if(falloffShape.Count > 0)
+                    if (falloffShape.Count > 0)
                         Handles.DrawLine(t.TransformPoint(falloffShape[falloffShape.Count - 1]), t.TransformPoint(falloffShape[0]));
 
                     for (int i = 0; i < light.shapePath.Length - 1; ++i)
