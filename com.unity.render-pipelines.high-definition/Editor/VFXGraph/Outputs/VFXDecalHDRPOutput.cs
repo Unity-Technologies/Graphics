@@ -363,5 +363,17 @@ namespace UnityEditor.VFX.HDRP
                     $" Enable 'Metal and AO properties' in your HDRP Asset if you want to control the Metal and AO properties of decals. There is a performance cost of enabling this option.");
             }
         }
+
+        protected override IEnumerable<string> untransferableSettings
+        {
+            get
+            {
+                foreach (var setting in base.untransferableSettings)
+                {
+                    yield return setting;
+                }
+                yield return "blendMode";
+            }
+        }
     }
 }
