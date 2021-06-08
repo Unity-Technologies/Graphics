@@ -413,8 +413,6 @@ platforms:
         turn_off_firewall:
           - command: NetSh Advfirewall set allprofiles state off
         connect_bokken:
-          - command: '%ANDROID_SDK_ROOT%\platform-tools\adb.exe connect %BOKKEN_DEVICE_IP%'
-            retries: 2
           - command: powershell %ANDROID_SDK_ROOT%\platform-tools\adb.exe devices
             retries: 2
         kill_server:

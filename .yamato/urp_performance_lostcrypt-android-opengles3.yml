@@ -23,8 +23,6 @@ URP_Performance_LostCrypt_Android_OpenGLES3_performance_playmode_runtime_il2cpp_
         UTR_VERSION: "current"
         TEST_FILTER: .*
     commands:
-      -  command: '%ANDROID_SDK_ROOT%\platform-tools\adb.exe connect %BOKKEN_DEVICE_IP%'
-         retries: 2
       -  command: powershell %ANDROID_SDK_ROOT%\platform-tools\adb.exe devices
          retries: 2
       -  command: NetSh Advfirewall set allprofiles state off
@@ -202,8 +200,6 @@ URP_Performance_LostCrypt_Android_OpenGLES3_performance_playmode_runtime_il2cpp_
         UTR_VERSION: "current"
         TEST_FILTER: .*
     commands:
-      -  command: '%ANDROID_SDK_ROOT%\platform-tools\adb.exe connect %BOKKEN_DEVICE_IP%'
-         retries: 2
       -  command: powershell %ANDROID_SDK_ROOT%\platform-tools\adb.exe devices
          retries: 2
       -  command: NetSh Advfirewall set allprofiles state off

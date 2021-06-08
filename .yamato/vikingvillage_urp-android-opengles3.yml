@@ -23,8 +23,6 @@ VikingVillage_URP_Android_OpenGLES3_performance_playmode_runtime_il2cpp_Linear_t
         UTR_VERSION: "current"
         TEST_FILTER: .*
     commands:
-      -  command: '%ANDROID_SDK_ROOT%\platform-tools\adb.exe connect %BOKKEN_DEVICE_IP%'
-         retries: 2
       -  command: powershell %ANDROID_SDK_ROOT%\platform-tools\adb.exe devices
          retries: 2
       -  command: NetSh Advfirewall set allprofiles state off
@@ -180,8 +178,6 @@ VikingVillage_URP_Android_OpenGLES3_performance_playmode_runtime_il2cpp_Linear_C
         UTR_VERSION: "current"
         TEST_FILTER: .*
     commands:
-      -  command: '%ANDROID_SDK_ROOT%\platform-tools\adb.exe connect %BOKKEN_DEVICE_IP%'
-         retries: 2
       -  command: powershell %ANDROID_SDK_ROOT%\platform-tools\adb.exe devices
          retries: 2
       -  command: NetSh Advfirewall set allprofiles state off
