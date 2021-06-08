@@ -83,14 +83,14 @@ namespace UnityEngine.Rendering.HighDefinition
         private class PostProcessTextureAllocator
         {
             private String m_Name;
-            private Vector2Int m_Size;
+            private Vector2 m_Scale;
             private bool m_EnableMips = false;
             private bool m_UseDynamicScale = false;
 
             public String name { set { m_Name = value; } }
             public bool enableMips { set { m_EnableMips = value; } }
             public bool useDynamicScale { set { m_UseDynamicScale = value; } }
-            public Vector2Int size { set { m_Size = value; } }
+            public Vector2 scale { set { m_Scale = value; } }
 
             public Func<string, int, RTHandleSystem, RTHandle> allocatorFunction;
 
@@ -99,7 +99,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 allocatorFunction = (string id, int frameIndex, RTHandleSystem rtHandleSystem) =>
                 {
                     return rtHandleSystem.Alloc(
-                        m_Size.x, m_Size.y, TextureXR.slices, DepthBits.None, GraphicsFormat.R16_SFloat,
+                        m_Scale, TextureXR.slices, DepthBits.None, GraphicsFormat.R16_SFloat,
                         dimension: TextureXR.dimension, enableRandomWrite: true, useMipMap: m_EnableMips, useDynamicScale: m_UseDynamicScale, name: $"{id} {m_Name}"
                     );
                 };
@@ -449,6 +449,9 @@ namespace UnityEngine.Rendering.HighDefinition
 
             TextureHandle alphaTexture = DoCopyAlpha(renderGraph, hdCamera, source);
 
+            // Save the post process screen size before any resolution group change
+            var postProcessScreenSize = hdCamera.postProcessScreenSize;
+
             //default always to downsampled resolution group.
             //when DRS is off this resolution group is the same.
             SetCurrentResolutionGroup(renderGraph, hdCamera, ResolutionGroup.BeforeDynamicResUpscale);
@@ -525,6 +528,10 @@ namespace UnityEngine.Rendering.HighDefinition
 
             renderGraph.EndProfilingSampler(ProfilingSampler.Get(HDProfileId.PostProcessing));
 
+            // Reset the post process size if needed, so any passes that read this data during Render Graph execute will have the expected data
+            if (postProcessScreenSize != hdCamera.postProcessScreenSize)
+                hdCamera.SetPostProcessScreenSize((int)postProcessScreenSize.x, (int)postProcessScreenSize.y);
+
             return dest;
         }
 
@@ -574,14 +581,14 @@ namespace UnityEngine.Rendering.HighDefinition
                         data.hdCamera.UpdateAllViewConstants(false);
                         data.hdCamera.UpdateShaderVariablesGlobalCB(ref data.globalCB);
 
-                        UpdateOffscreenRenderingConstants(ref data.globalCB, true, 1);
+                        UpdateOffscreenRenderingConstants(ref data.globalCB, true, 1.0f);
                         ConstantBuffer.PushGlobal(ctx.cmd, data.globalCB, HDShaderIDs._ShaderVariablesGlobal);
 
                         DrawOpaqueRendererList(ctx.renderContext, ctx.cmd, data.hdCamera.frameSettings, data.opaqueAfterPostprocessRL);
                         // Setup off-screen transparency here
                         DrawTransparentRendererList(ctx.renderContext, ctx.cmd, data.hdCamera.frameSettings, data.transparentAfterPostprocessRL);
 
-                        UpdateOffscreenRenderingConstants(ref data.globalCB, false, 1);
+                        UpdateOffscreenRenderingConstants(ref data.globalCB, false, 1.0f);
                         ConstantBuffer.PushGlobal(ctx.cmd, data.globalCB, HDShaderIDs._ShaderVariablesGlobal);
                     });
 
@@ -2377,7 +2384,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 if (next != null)
                     camera.ReleaseHistoryFrameRT((int)HDCameraFrameHistoryType.DepthOfFieldCoC);
 
-                m_PostProcessTextureAllocator.size = Vector2Int.CeilToInt(new Vector2(camera.postProcessScreenSize.x, camera.postProcessScreenSize.y));
+                m_PostProcessTextureAllocator.scale = new Vector2(camera.postProcessScreenSize.x * camera.screenSize.z, camera.postProcessScreenSize.y * camera.screenSize.w);
                 m_PostProcessTextureAllocator.enableMips = useMips;
                 m_PostProcessTextureAllocator.useDynamicScale = resGroup == ResolutionGroup.BeforeDynamicResUpscale;
                 m_PostProcessTextureAllocator.name = $"CoC History";
@@ -3374,6 +3381,11 @@ namespace UnityEngine.Rendering.HighDefinition
                 return;
 
             resGroup = newResGroup;
+
+            // Change the post process resolution for any passes that read it during Render Graph setup
+            camera.SetPostProcessScreenSize(postProcessViewportSize.x, postProcessViewportSize.y);
+
+            // Change the post process resolution for any passes that read it during Render Graph execution
             UpdatePostProcessScreenSize(renderGraph, camera, postProcessViewportSize.x, postProcessViewportSize.y);
         }
 
