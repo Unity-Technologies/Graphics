@@ -263,6 +263,7 @@ namespace UnityEngine.Experimental.Rendering
 
             onAdditionalProbesBakeCompletedCalled = true;
 
+            var dilationSettings = m_BakingReferenceVolumeAuthoring.GetDilationSettings();
             // Fetch results of all cells
             for (int c = 0; c < numCells; ++c)
             {
@@ -292,7 +293,7 @@ namespace UnityEngine.Experimental.Rendering
                         if (l0 == 0.0f)
                             continue;
 
-                        if (validity[j] > m_BakingReferenceVolumeAuthoring.GetDilationSettings().dilationValidityThreshold)
+                        if (dilationSettings.dilationDistance > 0.0f && validity[j] > dilationSettings.dilationValidityThreshold)
                         {
                             for (int k = 0; k < 9; ++k)
                             {
@@ -428,62 +429,69 @@ namespace UnityEngine.Experimental.Rendering
             }
 
             // ---- Perform dilation ---
-
-            // Make sure all is loaded before performing dilation.
-            ProbeReferenceVolume.instance.PerformPendingOperations(loadAllCells: true);
-
-            // Dilate all cells
-            List<ProbeReferenceVolume.Cell> dilatedCells = new List<ProbeReferenceVolume.Cell>(ProbeReferenceVolume.instance.cells.Values.Count);
-            foreach (var cell in ProbeReferenceVolume.instance.cells.Values)
+            if (dilationSettings.dilationDistance > 0.0f)
             {
-                PerformDilation(cell, m_BakingReferenceVolumeAuthoring.GetDilationSettings());
-                dilatedCells.Add(cell);
-            }
-
-            foreach (var sceneList in m_BakingBatch.cellIndex2SceneReferences.Values)
-            {
-                foreach (var scene in sceneList)
+                // TODO: This loop is very naive, can be optimized, but let's first verify if we indeed want this or not.
+                for (int iterations = 0; iterations < dilationSettings.dilationIterations; ++iterations)
                 {
-                    ProbeReferenceVolumeAuthoring refVol = null;
-                    if (scene2RefVol.TryGetValue(scene, out refVol))
+                    // Make sure all is loaded before performing dilation.
+                    ProbeReferenceVolume.instance.PerformPendingOperations(loadAllCells: true);
+
+                    // Dilate all cells
+                    List<ProbeReferenceVolume.Cell> dilatedCells = new List<ProbeReferenceVolume.Cell>(ProbeReferenceVolume.instance.cells.Values.Count);
+
+                    foreach (var cell in ProbeReferenceVolume.instance.cells.Values)
                     {
-                        ProbeReferenceVolume.instance.AddPendingAssetRemoval(refVol2Asset[refVol]);
+                        PerformDilation(cell, dilationSettings);
+                        dilatedCells.Add(cell);
                     }
-                }
-            }
 
-            // Make sure unloading happens.
-            ProbeReferenceVolume.instance.PerformPendingOperations();
-
-            Dictionary<string, bool> assetCleared = new Dictionary<string, bool>();
-            // Put back cells
-            foreach (var cell in dilatedCells)
-            {
-                foreach (var scene in m_BakingBatch.cellIndex2SceneReferences[cell.index])
-                {
-                    // This scene has a reference volume authoring component in it?
-                    ProbeReferenceVolumeAuthoring refVol = null;
-                    if (scene2RefVol.TryGetValue(scene, out refVol))
+                    foreach (var sceneList in m_BakingBatch.cellIndex2SceneReferences.Values)
                     {
-                        var asset = refVol2Asset[refVol];
-                        bool valueFound = false;
-                        if (!assetCleared.TryGetValue(asset.GetSerializedFullPath(), out valueFound))
+                        foreach (var scene in sceneList)
                         {
-                            asset.cells.Clear();
-                            assetCleared.Add(asset.GetSerializedFullPath(), true);
-                            UnityEditor.EditorUtility.SetDirty(asset);
+                            ProbeReferenceVolumeAuthoring refVol = null;
+                            if (scene2RefVol.TryGetValue(scene, out refVol))
+                            {
+                                ProbeReferenceVolume.instance.AddPendingAssetRemoval(refVol2Asset[refVol]);
+                            }
                         }
-                        asset.cells.Add(cell);
+                    }
+
+                    // Make sure unloading happens.
+                    ProbeReferenceVolume.instance.PerformPendingOperations();
+
+                    Dictionary<string, bool> assetCleared = new Dictionary<string, bool>();
+                    // Put back cells
+                    foreach (var cell in dilatedCells)
+                    {
+                        foreach (var scene in m_BakingBatch.cellIndex2SceneReferences[cell.index])
+                        {
+                            // This scene has a reference volume authoring component in it?
+                            ProbeReferenceVolumeAuthoring refVol = null;
+                            if (scene2RefVol.TryGetValue(scene, out refVol))
+                            {
+                                var asset = refVol2Asset[refVol];
+                                bool valueFound = false;
+                                if (!assetCleared.TryGetValue(asset.GetSerializedFullPath(), out valueFound))
+                                {
+                                    asset.cells.Clear();
+                                    assetCleared.Add(asset.GetSerializedFullPath(), true);
+                                    UnityEditor.EditorUtility.SetDirty(asset);
+                                }
+                                asset.cells.Add(cell);
+                            }
+                        }
+                    }
+                    UnityEditor.AssetDatabase.SaveAssets();
+                    UnityEditor.AssetDatabase.Refresh();
+
+                    foreach (var refVol in refVol2Asset.Keys)
+                    {
+                        if (refVol.enabled && refVol.gameObject.activeSelf)
+                            refVol.QueueAssetLoading();
                     }
                 }
-            }
-            UnityEditor.AssetDatabase.SaveAssets();
-            UnityEditor.AssetDatabase.Refresh();
-
-            foreach (var refVol in refVol2Asset.Keys)
-            {
-                if (refVol.enabled && refVol.gameObject.activeSelf)
-                    refVol.QueueAssetLoading();
             }
         }
 

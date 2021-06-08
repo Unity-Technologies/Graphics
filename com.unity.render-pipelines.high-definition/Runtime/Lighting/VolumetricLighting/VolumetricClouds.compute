@@ -9,6 +9,7 @@
 #pragma multi_compile _ PHYSICALLY_BASED_SUN
 #pragma multi_compile _ PLANAR_REFLECTION_CAMERA
 #pragma multi_compile _ LOCAL_VOLUMETRIC_CLOUDS
+#pragma multi_compile _ USE_INTERMEDIATE_BUFFER
 
 //#define WITHOUT_LDS
 //#pragma enable_d3d11_debug_symbols
@@ -32,7 +33,7 @@
 // Forward eccentricity
 #define BACKWARD_ECCENTRICITY 0.5
 // Minimal size of a step
-#define MINIMAL_RAY_MARCHING_STEP 50.0f
+#define MINIMAL_RAY_MARCHING_STEP 100.0f
 // Minimal distance before which clouds are dislayed
 #define MIN_CLOUD_DISTANCE 1000.0
 // Distance until which the erosion texture i used
@@ -461,7 +462,7 @@ void EvaluateCloudProperties(float3 positionWS, float noiseMipOffset, float eros
     properties.height = EvaluateNormalizedCloudHeight(positionWS);
 
     // Evaluate the generic sampling coordinates
-    float3 baseNoiseSamplingCoordinates = float3(AnimateBaseNoisePosition(positionWS).xzy / NOISE_TEXTURE_NORMALIZATION_FACTOR) * _ShapeScale;
+    float3 baseNoiseSamplingCoordinates = float3(AnimateBaseNoisePosition(positionWS).xzy / NOISE_TEXTURE_NORMALIZATION_FACTOR) * _ShapeScale - float3(_ShapeNoiseOffset.x, _ShapeNoiseOffset.y, 0);
 
     // Evaluate the coordinates at which the noise will be sampled and apply wind displacement
     baseNoiseSamplingCoordinates += properties.height * float3(_WindDirection.x, 0.0f, _WindDirection.y) * MOTION_DISTORTION;
@@ -583,7 +584,7 @@ struct VolumetricRayResult
     float3 inScattering;
     float transmittance;
     float meanDistance;
-    float numRealSteps;
+    float finalStepCount;
     bool invalidRay;
 };
 
@@ -617,7 +618,7 @@ VolumetricRayResult TraceVolumetricRay(CloudRay cloudRay, float offset)
     volumetricRay.inScattering = 0.0;
     volumetricRay.transmittance = 1.0;
     volumetricRay.meanDistance = _MaxCloudDistance;
-    volumetricRay.numRealSteps = 0;
+    volumetricRay.finalStepCount = 0;
     volumetricRay.invalidRay = true;
 
     // Determine if ray intersects bounding volume, if the ray does not intersect the cloud volume AABB, skip right away
@@ -642,6 +643,7 @@ VolumetricRayResult TraceVolumetricRay(CloudRay cloudRay, float offset)
 
             // Evaluate our integration step
             float stepS = max(totalDistance / (float)_NumPrimarySteps, MINIMAL_RAY_MARCHING_STEP);
+            int numRealSteps = max((int)(totalDistance / MINIMAL_RAY_MARCHING_STEP), 32);
 
             // Offset the starting point using our dithering pattern.
             rayMarchRange.start += stepS * offset;
@@ -680,7 +682,7 @@ VolumetricRayResult TraceVolumetricRay(CloudRay cloudRay, float offset)
             int sequentialEmptySamples = 0;
 
             // Do the ray march for every step that we can.
-            while (currentIndex < _NumPrimarySteps && currentDistance < totalDistance)
+            while (currentIndex < numRealSteps && currentDistance < totalDistance)
             {
                 // Should we be evaluating the clouds or just doing the large ray marching
                 if (activeSampling)
@@ -746,7 +748,7 @@ VolumetricRayResult TraceVolumetricRay(CloudRay cloudRay, float offset)
             }
 
             // Compute the effective number of steps that have been marched
-            volumetricRay.numRealSteps = (float)currentIndex / _NumPrimarySteps;
+            volumetricRay.finalStepCount = (float)currentIndex / numRealSteps;
 
             // Normalized the depth we computed
             if (volumetricRay.meanDistance == 0.0)
@@ -1012,11 +1014,15 @@ CBUFFER_END
 TEXTURE2D_X(_VolumetricCloudsTexture);
 TEXTURE2D_X(_DepthStatusTexture);
 
+#ifdef USE_INTERMEDIATE_BUFFER
+RW_TEXTURE2D_X(float4, _VolumetricCloudsUpscaleTextureRW);
+#else
 // Input output camera color buffer
 #ifndef CAN_RW_ON_COLOR_BUFFER
 TEXTURE2D_X(_CameraColorTexture);
 #endif
 RW_TEXTURE2D_X(float4, _CameraColorTextureRW);
+#endif
 
 void FillLDSUpscale(uint groupIndex, uint2 groupOrigin)
 {
@@ -1072,13 +1078,6 @@ void UPSAMPLE_KERNEL(uint3 finalCoord : SV_DispatchThreadID,
     // Grab the depth value of the pixel
     float highDepth = LOAD_TEXTURE2D_X(_DepthTexture, finalCoord.xy).x;
 
-    // Read the color buffer
-#ifdef CAN_RW_ON_COLOR_BUFFER
-    float4 currentColor = _CameraColorTextureRW[COORD_TEXTURE2D_X(finalCoord.xy)];
-#else
-    float4 currentColor = _CameraColorTexture[COORD_TEXTURE2D_X(finalCoord.xy)];
-#endif
-
     // Structure that will hold everything
     NeighborhoodUpsampleData3x3 upsampleData;
 
@@ -1129,8 +1128,19 @@ void UPSAMPLE_KERNEL(uint3 finalCoord : SV_DispatchThreadID,
     EvaluateAtmosphericScattering(cloudPosInput, viewDir, fogColor, fogOpacity);
     currentClouds.xyz = currentClouds.xyz * (1 - fogOpacity) + fogColor * (1.0 - currentClouds.a);
 
+#ifdef USE_INTERMEDIATE_BUFFER
+    // Store the upscaled result only, composite in later pass.
+    _VolumetricCloudsUpscaleTextureRW[COORD_TEXTURE2D_X(finalCoord.xy)] = currentClouds;
+#else
+    // Read the color buffer
+#ifdef CAN_RW_ON_COLOR_BUFFER
+    float4 currentColor = _CameraColorTextureRW[COORD_TEXTURE2D_X(finalCoord.xy)];
+#else
+    float4 currentColor = _CameraColorTexture[COORD_TEXTURE2D_X(finalCoord.xy)];
+#endif
     // If this is a background pixel, we want the cloud value, otherwise we do not.
     _CameraColorTextureRW[COORD_TEXTURE2D_X(finalCoord.xy)] = float4(currentColor.xyz * currentClouds.a + currentClouds.xyz, currentColor.a);
+#endif
 }
 
 RW_TEXTURE2D(float3, _VolumetricCloudsShadowRW);
