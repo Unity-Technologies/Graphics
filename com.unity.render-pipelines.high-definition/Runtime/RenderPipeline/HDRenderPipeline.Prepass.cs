@@ -9,7 +9,8 @@ namespace UnityEngine.Rendering.HighDefinition
         Material m_DepthResolveMaterial;
         Material m_CameraMotionVectorsMaterial;
         Material m_DecalNormalBufferMaterial;
-        Material m_DownsampleDepthMaterial;
+        Material m_DownsampleDepthMaterialHalfresCheckerboard;
+        Material m_DownsampleDepthMaterialGather;
 
         // Need to cache to avoid alloc of arrays...
         GBufferOutput m_GBufferOutput;
@@ -32,7 +33,9 @@ namespace UnityEngine.Rendering.HighDefinition
             m_DepthResolveMaterial = CoreUtils.CreateEngineMaterial(asset.renderPipelineResources.shaders.depthValuesPS);
             m_CameraMotionVectorsMaterial = CoreUtils.CreateEngineMaterial(defaultResources.shaders.cameraMotionVectorsPS);
             m_DecalNormalBufferMaterial = CoreUtils.CreateEngineMaterial(defaultResources.shaders.decalNormalBufferPS);
-            m_DownsampleDepthMaterial = CoreUtils.CreateEngineMaterial(defaultResources.shaders.downsampleDepthPS);
+            m_DownsampleDepthMaterialHalfresCheckerboard = CoreUtils.CreateEngineMaterial(defaultResources.shaders.downsampleDepthPS);
+            m_DownsampleDepthMaterialGather = CoreUtils.CreateEngineMaterial(defaultResources.shaders.downsampleDepthPS);
+            m_DownsampleDepthMaterialGather.EnableKeyword("GATHER_DOWNSAMPLE");
 
             m_GBufferOutput = new GBufferOutput();
             m_GBufferOutput.mrt = new TextureHandle[RenderGraph.kMaxMRTCount];
@@ -53,7 +56,8 @@ namespace UnityEngine.Rendering.HighDefinition
             CoreUtils.Destroy(m_DepthResolveMaterial);
             CoreUtils.Destroy(m_CameraMotionVectorsMaterial);
             CoreUtils.Destroy(m_DecalNormalBufferMaterial);
-            CoreUtils.Destroy(m_DownsampleDepthMaterial);
+            CoreUtils.Destroy(m_DownsampleDepthMaterialHalfresCheckerboard);
+            CoreUtils.Destroy(m_DownsampleDepthMaterialGather);
         }
 
         bool NeedClearGBuffer(HDCamera hdCamera)
@@ -263,7 +267,7 @@ namespace UnityEngine.Rendering.HighDefinition
                     SystemInfo.graphicsDeviceType == GraphicsDeviceType.GameCoreXboxOne ||
                     SystemInfo.graphicsDeviceType == GraphicsDeviceType.GameCoreXboxSeries;
 
-                mip1FromDownsampleForLowResTrans = mip1FromDownsampleForLowResTrans && hdCamera.frameSettings.IsEnabled(FrameSettingsField.LowResTransparent);
+                mip1FromDownsampleForLowResTrans = mip1FromDownsampleForLowResTrans && hdCamera.frameSettings.IsEnabled(FrameSettingsField.LowResTransparent) && hdCamera.isLowResScaleHalf;
 
                 ResetCameraMipBias(hdCamera);
 
@@ -443,6 +447,8 @@ namespace UnityEngine.Rendering.HighDefinition
 
                 using (var builder = renderGraph.AddRenderPass<DrawRendererListPassData>(deferredPassName, out var passData, ProfilingSampler.Get(HDProfileId.DeferredDepthPrepass)))
                 {
+                    builder.AllowRendererListCulling(false);
+
                     passData.frameSettings = hdCamera.frameSettings;
                     passData.rendererList = builder.UseRendererList(renderGraph.CreateRendererList(CreateOpaqueRendererListDesc(
                         cull, hdCamera.camera, m_DepthOnlyPassNames,
@@ -663,6 +669,8 @@ namespace UnityEngine.Rendering.HighDefinition
 
             using (var builder = renderGraph.AddRenderPass<GBufferPassData>("GBuffer", out var passData, ProfilingSampler.Get(HDProfileId.GBuffer)))
             {
+                builder.AllowRendererListCulling(false);
+
                 FrameSettings frameSettings = hdCamera.frameSettings;
 
                 passData.frameSettings = frameSettings;
@@ -939,7 +947,9 @@ namespace UnityEngine.Rendering.HighDefinition
 
             using (var builder = renderGraph.AddRenderPass<RenderDBufferPassData>("DBufferRender", out var passData, ProfilingSampler.Get(HDProfileId.DBufferRender)))
             {
-                passData.meshDecalsRendererList = builder.UseRendererList(renderGraph.CreateRendererList(new RendererListDesc(m_MeshDecalsPassNames, cullingResults, hdCamera.camera)
+                builder.AllowRendererListCulling(false);
+
+                passData.meshDecalsRendererList = builder.UseRendererList(renderGraph.CreateRendererList(new RendererUtils.RendererListDesc(m_MeshDecalsPassNames, cullingResults, hdCamera.camera)
                 {
                     sortingCriteria = SortingCriteria.CommonOpaque,
                     rendererConfiguration = PerObjectData.None,
@@ -1030,6 +1040,10 @@ namespace UnityEngine.Rendering.HighDefinition
 
         class DownsampleDepthForLowResPassData
         {
+            public bool useGatherDownsample;
+            public float sourceWidth;
+            public float sourceHeight;
+            public float downsampleScale;
             public Material downsampleDepthMaterial;
             public TextureHandle depthTexture;
             public TextureHandle downsampledDepthBuffer;
@@ -1046,27 +1060,43 @@ namespace UnityEngine.Rendering.HighDefinition
 
             using (var builder = renderGraph.AddRenderPass<DownsampleDepthForLowResPassData>("Downsample Depth Buffer for Low Res Transparency", out var passData, ProfilingSampler.Get(HDProfileId.DownsampleDepth)))
             {
-                // TODO: Add option to switch modes at runtime
-                if (m_Asset.currentPlatformRenderPipelineSettings.lowresTransparentSettings.checkerboardDepthBuffer)
+                passData.useGatherDownsample = false;
+                if (hdCamera.isLowResScaleHalf)
                 {
-                    m_DownsampleDepthMaterial.EnableKeyword("CHECKERBOARD_DOWNSAMPLE");
+                    if (m_Asset.currentPlatformRenderPipelineSettings.lowresTransparentSettings.checkerboardDepthBuffer)
+                    {
+                        m_DownsampleDepthMaterialHalfresCheckerboard.EnableKeyword("CHECKERBOARD_DOWNSAMPLE");
+                    }
+                    else
+                    {
+                        m_DownsampleDepthMaterialHalfresCheckerboard.DisableKeyword("CHECKERBOARD_DOWNSAMPLE");
+                    }
+                    if (computeMip1OfPyramid)
+                    {
+                        passData.mip0Offset = GetDepthBufferMipChainInfo().mipLevelOffsets[1];
+                        m_DownsampleDepthMaterialHalfresCheckerboard.EnableKeyword("OUTPUT_FIRST_MIP_OF_MIPCHAIN");
+                    }
+                    passData.downsampleDepthMaterial = m_DownsampleDepthMaterialHalfresCheckerboard;
+                }
+                else
+                {
+                    m_DownsampleDepthMaterialGather.EnableKeyword("GATHER_DOWNSAMPLE");
+                    passData.downsampleDepthMaterial = m_DownsampleDepthMaterialGather;
+                    passData.useGatherDownsample = true;
                 }
 
                 passData.computesMip1OfAtlas = computeMip1OfPyramid;
-                if (computeMip1OfPyramid)
-                {
-                    passData.mip0Offset = GetDepthBufferMipChainInfo().mipLevelOffsets[1];
-                    m_DownsampleDepthMaterial.EnableKeyword("OUTPUT_FIRST_MIP_OF_MIPCHAIN");
-                }
-
-                passData.downsampleDepthMaterial = m_DownsampleDepthMaterial;
+                passData.downsampleScale = hdCamera.lowResScale;
+                passData.sourceWidth = hdCamera.actualWidth;
+                passData.sourceHeight = hdCamera.actualHeight;
                 passData.depthTexture = builder.ReadTexture(output.depthPyramidTexture);
                 if (computeMip1OfPyramid)
                 {
                     passData.depthTexture = builder.WriteTexture(passData.depthTexture);
                 }
+
                 passData.downsampledDepthBuffer = builder.UseDepthBuffer(renderGraph.CreateTexture(
-                    new TextureDesc(Vector2.one * 0.5f, true, true) { depthBufferBits = DepthBits.Depth32, name = "LowResDepthBuffer" }), DepthAccess.Write);
+                    new TextureDesc(Vector2.one * hdCamera.lowResScale, true, true) { depthBufferBits = DepthBits.Depth32, name = "LowResDepthBuffer" }), DepthAccess.Write);
 
                 builder.SetRenderFunc(
                     (DownsampleDepthForLowResPassData data, RenderGraphContext context) =>
@@ -1077,6 +1107,20 @@ namespace UnityEngine.Rendering.HighDefinition
                             context.cmd.SetRandomWriteTarget(1, data.depthTexture);
                         }
 
+                        if (data.useGatherDownsample)
+                        {
+                            float downsampleScaleInv = 1.0f / data.downsampleScale;
+                            RenderTexture srcTexture = data.depthTexture;
+                            RenderTexture destTexture = data.downsampledDepthBuffer;
+                            float uvScaleX = ((float)destTexture.width / (float)srcTexture.width) * downsampleScaleInv;
+                            float uvScaleY = ((float)destTexture.height / (float)srcTexture.height) * downsampleScaleInv;
+                            data.downsampleDepthMaterial.SetVector(HDShaderIDs._ScaleBias, new Vector4(uvScaleX, uvScaleY, 0.0f, 0.0f));
+                        }
+
+                        float destWidth = data.sourceWidth * data.downsampleScale;
+                        float destHeight = data.sourceHeight * data.downsampleScale;
+                        Rect targetViewport = new Rect(0.0f, 0.0f, destWidth, destHeight);
+                        context.cmd.SetViewport(targetViewport);
                         context.cmd.DrawProcedural(Matrix4x4.identity, data.downsampleDepthMaterial, 0, MeshTopology.Triangles, 3, 1, null);
 
                         if (data.computesMip1OfAtlas)

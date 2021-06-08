@@ -22,6 +22,7 @@
     * [Shader Graph Asset](Shader-Graph-Asset)
     * [Graph Target](Graph-Target.md)
     * [Sub Graph Asset](Sub-graph-Asset)
+        * [SpeedTree 8 Sub Graph Assets](SpeedTree8-SubGraphAssets)
     * [Node](Node)
         * [Port](Port)
         * [Custom Port Menu](Custom-Port-Menu)
@@ -29,14 +30,16 @@
     * [Property Types](Property-Types)
     * [Keywords](Keywords)
     * [Data Types](Data-Types)
-    * [Precision Types](Precision-Types)
+    * [Precision Modes](Precision-Modes)
     * [Port Bindings](Port-Bindings)
     * [Shader Stage](Shader-Stage)
+    * [Custom Interpolators](Custom-Interpolators)
 
 * [Node Library](Node-Library)
     * [Artistic](Artistic-Nodes)
         * Adjustment
             * [Channel Mixer](Channel-Mixer-Node)
+            * [Split Texture Transform](Split-Texture-Transform-Node)
             * [Contrast](Contrast-Node)
             * [Hue](Hue-Node)
             * [Invert Colors](Invert-Colors-Node)
@@ -59,6 +62,9 @@
             * [Normal Unpack](Normal-Unpack-Node)
         * Utility
             * [Colorspace Conversion](Colorspace-Conversion-Node)
+            * [Sub Graph Dropdown](Sub-Graph-Dropdown-Node)
+            * [Calculate Level Of Detail Texture 2D Node](Calculate-Level-Of-Detail-Texture-2D-Node)
+            * [Gather Texture 2D Node](Gather-Texture-2D-Node)
     * [Channel](Channel-Nodes)
         * [Combine](Combine-Node)
         * [Flip](Flip-Node)
@@ -85,6 +91,7 @@
             * [UV](UV-Node)
             * [Vertex Color](Vertex-Color-Node)
             * [View Direction](View-Direction-Node)
+            * [View Vector](View-Vector-Node)
         * Gradient
             * [Blackbody](Blackbody-Node)
             * [Gradient](Gradient-Node)
@@ -229,6 +236,7 @@
             * [Nand](Nand-Node)
             * [Not](Not-Node)
             * [Or](Or-Node)
+            * [Branch On Input Connection](Branch-On-Input-Connection-Node)
         * High Definition Render Pipeline
             * [Emission](Emission-Node.md)
             * Eye
