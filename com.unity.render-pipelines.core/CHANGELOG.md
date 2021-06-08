@@ -29,6 +29,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed issue displaying a warning of different probe reference volume profiles even when they are equivalent.
 - Fixed missing increment/decrement controls from DebugUIIntField & DebugUIUIntField widget prefabs.
 - Fixed IES Importer related to new API on core.
+- Fixed memory leak when changing SRP pipeline settings, and having the player in pause mode.
 
 ### Added
 - Support for the PlayStation 5 platform has been added.
