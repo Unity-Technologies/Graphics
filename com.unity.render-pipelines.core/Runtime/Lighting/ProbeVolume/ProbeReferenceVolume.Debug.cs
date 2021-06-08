@@ -271,7 +271,7 @@ namespace UnityEngine.Experimental.Rendering
 
                     probeBuffer.Add(Matrix4x4.TRS(cell.probePositions[i], Quaternion.identity, Vector3.one * (0.3f * (brickSize + 1))));
                     validity[idxInBatch] = cell.validity[i];
-                    texels[idxInBatch] = new Vector4(texelLoc.x, texelLoc.y, texelLoc.z, 0.0f);
+                    texels[idxInBatch] = new Vector4(texelLoc.x, texelLoc.y, texelLoc.z, brickSize);
                     idxInBatch++;
 
                     if (probeBuffer.Count >= kProbesPerBatch || i == cell.probePositions.Length - 1)

@@ -63,8 +63,10 @@ Shader "Hidden/HDRP/ProbeVolumeDebug"
             // Finer culling, degenerate the vertices of the sphere if it lies over the max distance.
             // Coarser culling has already happened on CPU.
             float4 position = float4(UNITY_MATRIX_M._m03_m13_m23, 1);
+            int brickSize = UNITY_ACCESS_INSTANCED_PROP(Props, _IndexInAtlas).w;
+
             if (distance(position.xyz, _WorldSpaceCameraPos.xyz) > _CullDistance ||
-                _SubdivLevel > _MaxAllowedSubdiv)
+                brickSize > _MaxAllowedSubdiv)
             {
                 o.vertex = 0;
                 o.normal = 0;
