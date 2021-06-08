@@ -244,7 +244,7 @@ namespace UnityEngine.Rendering.HighDefinition
 #if ENABLE_VIRTUALTEXTURES
                     // Note: This pass rely on availability of vtFeedbackBuffer buffer (i.e it need to be write before we read it here)
                     // We don't write it when doing debug mode, FullScreenDebug mode or path tracer. Thus why this pass is call here.
-                    m_VtBufferManager.Resolve(m_RenderGraph, hdCamera, vtFeedbackBuffer);
+                    hdCamera.ResolveVirtualTextureFeedback(m_RenderGraph, vtFeedbackBuffer);
                     PushFullScreenVTFeedbackDebugTexture(m_RenderGraph, vtFeedbackBuffer, msaa);
 #endif
                 }
@@ -913,6 +913,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
         class RenderLowResTransparentPassData
         {
+            public float lowResScale;
             public ShaderVariablesGlobal    globalCB;
             public FrameSettings            frameSettings;
             public RendererListHandle       rendererList;
@@ -923,22 +924,23 @@ namespace UnityEngine.Rendering.HighDefinition
             using (var builder = renderGraph.AddRenderPass<RenderLowResTransparentPassData>("Low Res Transparent", out var passData, ProfilingSampler.Get(HDProfileId.LowResTransparent)))
             {
                 passData.globalCB = m_ShaderVariablesGlobalCB;
+                passData.lowResScale = hdCamera.lowResScale;
                 passData.frameSettings = hdCamera.frameSettings;
                 passData.rendererList = builder.UseRendererList(rendererList);
                 builder.UseDepthBuffer(downsampledDepth, DepthAccess.ReadWrite);
                 // We need R16G16B16A16_SFloat as we need a proper alpha channel for compositing.
-                var output = builder.UseColorBuffer(renderGraph.CreateTexture(new TextureDesc(Vector2.one * 0.5f, true, true)
+                var output = builder.UseColorBuffer(renderGraph.CreateTexture(new TextureDesc(Vector2.one * hdCamera.lowResScale, true, true)
                     { colorFormat = GraphicsFormat.R16G16B16A16_SFloat, enableRandomWrite = true, clearBuffer = true, clearColor = Color.black, name = "Low res transparent" }), 0);
 
                 builder.SetRenderFunc(
                     (RenderLowResTransparentPassData data, RenderGraphContext context) =>
                     {
-                        UpdateOffscreenRenderingConstants(ref data.globalCB, true, 2u);
+                        UpdateOffscreenRenderingConstants(ref data.globalCB, true, 1.0f / data.lowResScale);
                         ConstantBuffer.PushGlobal(context.cmd, data.globalCB, HDShaderIDs._ShaderVariablesGlobal);
 
                         DrawTransparentRendererList(context.renderContext, context.cmd, data.frameSettings,  data.rendererList);
 
-                        UpdateOffscreenRenderingConstants(ref data.globalCB, false, 1u);
+                        UpdateOffscreenRenderingConstants(ref data.globalCB, false, 1.0f);
                         ConstantBuffer.PushGlobal(context.cmd, data.globalCB, HDShaderIDs._ShaderVariablesGlobal);
                     });
 
@@ -948,6 +950,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
         class UpsampleTransparentPassData
         {
+            public Vector4 shaderParams;
             public Material         upsampleMaterial;
             public TextureHandle    lowResTransparentBuffer;
             public TextureHandle    downsampledDepthBuffer;
@@ -970,6 +973,7 @@ namespace UnityEngine.Rendering.HighDefinition
                     m_UpsampleTransparency.EnableKeyword("NEAREST_DEPTH");
                 }
 
+                passData.shaderParams = new Vector4(hdCamera.lowResScale, 1.0f / hdCamera.lowResScale, 0.0f, 0.0f);
                 passData.upsampleMaterial = m_UpsampleTransparency;
                 passData.lowResTransparentBuffer = builder.ReadTexture(lowResTransparentBuffer);
                 passData.downsampledDepthBuffer = builder.ReadTexture(downsampledDepthBuffer);
@@ -978,6 +982,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 builder.SetRenderFunc(
                     (UpsampleTransparentPassData data, RenderGraphContext context) =>
                     {
+                        data.upsampleMaterial.SetVector(HDShaderIDs._Params, data.shaderParams);
                         data.upsampleMaterial.SetTexture(HDShaderIDs._LowResTransparent, data.lowResTransparentBuffer);
                         data.upsampleMaterial.SetTexture(HDShaderIDs._LowResDepthTexture, data.downsampledDepthBuffer);
                         context.cmd.DrawProcedural(Matrix4x4.identity, data.upsampleMaterial, 0, MeshTopology.Triangles, 3, 1, null);
@@ -1843,7 +1848,7 @@ namespace UnityEngine.Rendering.HighDefinition
 #endif
         }
 
-        static void UpdateOffscreenRenderingConstants(ref ShaderVariablesGlobal cb, bool enabled, uint factor)
+        static void UpdateOffscreenRenderingConstants(ref ShaderVariablesGlobal cb, bool enabled, float factor)
         {
             cb._OffScreenRendering = enabled ? 1u : 0u;
             cb._OffScreenDownsampleFactor = factor;
