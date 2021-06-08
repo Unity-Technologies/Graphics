@@ -298,7 +298,7 @@ namespace UnityEngine.Experimental.Rendering
         Dictionary<RegId, List<Chunk>>  m_Registry = new Dictionary<RegId, List<Chunk>>();
 
         internal Dictionary<int, Cell> cells = new Dictionary<int, Cell>();
-        private Dictionary<int, CellChunkInfo> chunkInfo = new Dictionary<int, CellChunkInfo>();
+        Dictionary<int, CellChunkInfo> m_ChunkInfo = new Dictionary<int, CellChunkInfo>();
 
         internal ProbeVolumeSceneBounds sceneBounds;
 
@@ -404,8 +404,8 @@ namespace UnityEngine.Experimental.Rendering
             if (cells.ContainsKey(cellIndex))
                 cells.Remove(cellIndex);
 
-            if (chunkInfo.ContainsKey(cellIndex))
-                chunkInfo.Remove(cellIndex);
+            if (m_ChunkInfo.ContainsKey(cellIndex))
+                m_ChunkInfo.Remove(cellIndex);
         }
 
         void AddCell(Cell cell, List<Chunk> chunks)
@@ -414,7 +414,7 @@ namespace UnityEngine.Experimental.Rendering
 
             var cellChunks = new CellChunkInfo();
             cellChunks.chunks = chunks;
-            chunkInfo[cell.index] = cellChunks;
+            m_ChunkInfo[cell.index] = cellChunks;
         }
 
         internal void AddPendingAssetLoading(ProbeVolumeAsset asset)
@@ -731,7 +731,7 @@ namespace UnityEngine.Experimental.Rendering
                 m_Pool.Clear();
                 m_Index.Clear();
                 cells.Clear();
-                chunkInfo.Clear();
+                m_ChunkInfo.Clear();
             }
 
             if (clearAssetsOnVolumeClear)

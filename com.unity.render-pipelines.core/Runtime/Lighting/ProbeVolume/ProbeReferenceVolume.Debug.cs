@@ -243,7 +243,7 @@ namespace UnityEngine.Experimental.Rendering
                 List<Matrix4x4[]> probeBuffers = new List<Matrix4x4[]>();
                 List<MaterialPropertyBlock> props = new List<MaterialPropertyBlock>();
                 CellChunkInfo chunks;
-                chunkInfo.TryGetValue(cell.index, out chunks);
+                m_ChunkInfo.TryGetValue(cell.index, out chunks);
 
                 Vector4[] texels = new Vector4[kProbesPerBatch];
                 float[] validity = new float[kProbesPerBatch];
