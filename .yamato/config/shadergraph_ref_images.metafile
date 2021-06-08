@@ -1,6 +1,6 @@
 project:
-  name: ShaderGraph
-  folder: ShaderGraph
+  name: ShaderGraph_ref
+  folder: ShaderGraph_ref
 test_platforms:
   - type: Standalone
     name: Standalone_ref_images
@@ -51,8 +51,6 @@ test_platforms:
     - [OSX_Metal]: scp -i ~/.ssh/id_rsa_macmini -r bokken@$BOKKEN_DEVICE_IP:/Users/bokken/Graphics/TestProjects/Shadergraph/test-results/ TestProjects/Shadergraph/test-results/
     - [Android_OpenGLES3, Android_Vulkan]: <shared.platform.commands.kill_server>
 
-expression_trigger:
-  expression: ''
 platforms:
   - name: Win
     apis:
@@ -138,38 +136,3 @@ platforms:
       - name: il2cpp
     color_spaces:
       - Linear
-pr:
-  dependencies:
-    - platform: Win
-      api: DX11
-      build_config: mono
-      color_space: Linear
-      test_platforms:
-        - Standalone_cache
-    - platform: OSX
-      api: OpenGLCore
-      build_config: mono
-      color_space: Linear
-      test_platforms:
-        - editmode
-    - platform: Linux
-      api: Vulkan
-      build_config: mono
-      color_space: Linear
-      test_platforms:
-        - Standalone_cache
-    - platform: OSX
-      api: Metal
-      build_config: mono
-      color_space: Linear
-      test_platforms:
-        # - Standalone_cache
-        - playmode_cache
-    - platform: iPhone
-      api: Metal
-      build_config: il2cpp
-      color_space: Linear
-      test_platforms:
-        - Standalone_cache
-    - project: ShaderGraph_ref_Stereo
-      pr: true
