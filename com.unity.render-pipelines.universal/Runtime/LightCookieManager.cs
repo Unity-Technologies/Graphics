@@ -80,8 +80,9 @@ namespace UnityEngine.Rendering.Universal
                 QuickSort<T>(data, 0, data.Length - 1, compare);
             }
 
-            // A non-allocating sub-array sort with a predicate delegate
-            // NOTE: Similar to UnityEngine.Rendering.CoreUnsafeUtils.QuickSort in CoreUnsafeUtils.cs
+            // A non-allocating predicated sub-array quick sort.
+            // NOTE: Similar to UnityEngine.Rendering.CoreUnsafeUtils.QuickSort in CoreUnsafeUtils.cs,
+            // se should see if these could be merged in the future.
             // For example: Sorting.QuickSort(test, 0, test.Length - 1, (int a, int b) => a - b);
             public static void QuickSort<T>(T[] data, int start, int end, Func<T, T, int> compare)
             {
@@ -149,6 +150,7 @@ namespace UnityEngine.Rendering.Universal
                 }
             }
 
+            // A non-allocating predicated sub-array insertion sort.
             // Stable
             static public void InsertionSort<T>(T[] data, int start, int end, Func<T, T, int> compare)
             {
@@ -220,6 +222,7 @@ namespace UnityEngine.Rendering.Universal
             }
         }
 
+        // Persistent work/temp memory of [] data.
         private class WorkMemory
         {
             public LightCookieMapping[] lightMappings;
@@ -414,7 +417,6 @@ namespace UnityEngine.Rendering.Universal
             }
         }
 
-        internal bool IsKeywordLightCookieEnabled { get; private set; }
         // i.e. (0, 1) uv == (-0.5, 0.5) world area instead of the (0,1) world area.
         static readonly Matrix4x4 s_DirLightProj = Matrix4x4.Ortho(-0.5f, 0.5f, -0.5f, 0.5f, -0.5f, 0.5f);
 
@@ -425,6 +427,7 @@ namespace UnityEngine.Rendering.Universal
         WorkMemory m_WorkMem;
 
         // Mapping: map[visibleLightIndex] = ShaderDataIndex
+        // Mostly used by deferred rendering.
         int[] m_VisibleLightIndexToShaderDataIndex;
 
         // Parameters for rescaling cookies to fit into the atlas.
@@ -432,6 +435,8 @@ namespace UnityEngine.Rendering.Universal
         int  m_CookieSizeDivisor = 1;
         uint m_PrevCookieRequestPixelCount = 0xFFFFFFFF;
         HashSet<int> m_UniqueCookieTextureIDs;
+
+        internal bool IsKeywordLightCookieEnabled { get; private set; }
 
         public LightCookieManager(ref Settings settings)
         {
