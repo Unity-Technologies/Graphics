@@ -152,6 +152,8 @@ namespace UnityEngine.Rendering.HighDefinition.Compositor
 
         ShaderVariablesGlobal m_ShaderVariablesGlobalCB = new ShaderVariablesGlobal();
 
+        int m_RecorderTempRT = Shader.PropertyToID("TempRecorder");
+
         static private CompositionManager s_CompositorInstance;
 
         // Built-in Color.black has an alpha of 1, so defien here a fully transparent black 
@@ -824,14 +826,14 @@ namespace UnityEngine.Rendering.HighDefinition.Compositor
                 if (recorderCaptureActions != null)
                 {
                     m_ShaderVariablesGlobalCB._ViewProjMatrix = m_ViewProjMatrixFlipped;
-                    cmd.SetInvertCulling(true);
                     ConstantBuffer.PushGlobal(cmd, m_ShaderVariablesGlobalCB, HDShaderIDs._ShaderVariablesGlobal);
-                    cmd.Blit(null, BuiltinRenderTextureType.CameraTarget, m_Material, m_Material.FindPass("ForwardOnly"));
+                    var format = m_InputLayers[0].GetRenderTarget().format;
+                    cmd.GetTemporaryRT(m_RecorderTempRT, camera.camera.pixelWidth, camera.camera.pixelHeight, 0, FilterMode.Point, format);
+                    cmd.Blit(null, m_RecorderTempRT, m_Material, m_Material.FindPass("ForwardOnly"));
                     for (recorderCaptureActions.Reset(); recorderCaptureActions.MoveNext();)
                     {
-                        recorderCaptureActions.Current(BuiltinRenderTextureType.CameraTarget, cmd);
+                        recorderCaptureActions.Current(m_RecorderTempRT, cmd);
                     }
-                    cmd.SetInvertCulling(false);
                 }
 
                 // When we render directly to game view, we render the image flipped up-side-down, like other HDRP cameras
