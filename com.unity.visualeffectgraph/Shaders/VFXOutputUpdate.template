@@ -1,6 +1,11 @@
 #pragma kernel CSMain
 ${VFXGlobalInclude}
 ${VFXGlobalDeclaration}
+
+#if HAS_STRIPS
+RWStructuredBuffer<uint> stripDataBuffer;
+#endif
+
 ${VFXPerPassInclude}
 ${VFXInclude("Shaders/VFXParticleCommon.template")}
 
@@ -59,6 +64,10 @@ bool IsSphereOutsideFrustum(float3 pos, float radius, float4 frustumPlanes[6])
 }
 #endif
 
+#if HAS_STRIPS
+${VFXDeclareGetStripTangent}
+#endif
+
 [numthreads(NB_THREADS_PER_GROUP,1,1)]
 void CSMain(uint3 groupId		: SV_GroupID,
 			uint3 groupThreadId	: SV_GroupThreadID)
@@ -70,10 +79,16 @@ void CSMain(uint3 groupId		: SV_GroupID,
 		SourceAttributes sourceAttributes = (SourceAttributes)0;
 
         uint index = id;
+
 		${VFXLoadAttributes:{alive}}
 		if (attributes.alive)
 		{
 			${VFXLoadAttributes:{(?!(alive))(\b\w)}}
+#if HAS_STRIPS
+            const StripData stripData = GetStripDataFromParticleIndex(index, PARTICLE_PER_STRIP_COUNT);
+            InitStripAttributes(index, attributes, stripData);
+            uint relativeIndexInStrip = GetRelativeIndex(index, stripData);
+#endif
 			${VFXProcessBlocks}
 
             // Recheck alive as blocks can set it to false for manual culling.
@@ -81,6 +96,9 @@ void CSMain(uint3 groupId		: SV_GroupID,
             if (attributes.alive)
             {
                 ${VFXLoadSize}
+#if HAS_STRIPS
+                size3 += size3 < 0.0f ? -VFX_EPSILON : VFX_EPSILON; // Add an epsilon so that size is never 0 for strips
+#endif
                 float4x4 elementToVFX = GetElementToVFXMatrix(
                     attributes.axisX,
                     attributes.axisY,
