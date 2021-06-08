@@ -63,6 +63,8 @@ Shader "Hidden/HDRP/CameraMotionVectors"
             motionVector.y = abs(motionVector.y) < MICRO_MOVEMENT_THRESHOLD.y ? 0 : motionVector.y;
 #endif
 
+            motionVector = clamp(motionVector, -1.0f + MICRO_MOVEMENT_THRESHOLD, 1.0f - MICRO_MOVEMENT_THRESHOLD);
+
 #if UNITY_UV_STARTS_AT_TOP
             motionVector.y = -motionVector.y;
 #endif

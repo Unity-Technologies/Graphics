@@ -20,6 +20,8 @@ float2 CalculateMotionVector(float4 positionCS, float4 previousPositionCS)
     motionVec.y = abs(motionVec.y) < MICRO_MOVEMENT_THRESHOLD.y ? 0 : motionVec.y;
 #endif
 
+    motionVec = clamp(motionVec, -1.0f + MICRO_MOVEMENT_THRESHOLD, 1.0f - MICRO_MOVEMENT_THRESHOLD);
+
 #if UNITY_UV_STARTS_AT_TOP
     motionVec.y = -motionVec.y;
 #endif
