@@ -58,9 +58,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
         readonly List<RenderPipelineMaterial> m_MaterialList = new List<RenderPipelineMaterial>();
 
-#if ENABLE_VIRTUALTEXTURES
-        readonly VTBufferManager m_VtBufferManager;
-#endif
+
         readonly XRSystem m_XRSystem;
 
         // Keep track of previous Graphic and QualitySettings value to reset when switching to another pipeline
@@ -332,10 +330,6 @@ namespace UnityEngine.Rendering.HighDefinition
 
             // Scan material list and assign it
             m_MaterialList = HDUtils.GetRenderPipelineMaterialList();
-
-#if ENABLE_VIRTUALTEXTURES
-            m_VtBufferManager = new VTBufferManager(asset);
-#endif
 
             InitializePostProcess();
 
@@ -687,10 +681,6 @@ namespace UnityEngine.Rendering.HighDefinition
             m_EmptyIndexBuffer = null;
 
             m_MaterialList.ForEach(material => material.Cleanup());
-
-#if ENABLE_VIRTUALTEXTURES
-            m_VtBufferManager.Cleanup();
-#endif
 
             CleanupDebug();
 
@@ -1905,9 +1895,6 @@ namespace UnityEngine.Rendering.HighDefinition
                 CullForRayTracing(cmd, hdCamera);
             }
 
-#if ENABLE_VIRTUALTEXTURES
-            m_VtBufferManager.BeginRender(hdCamera);
-#endif
 
             using (ListPool<RTHandle>.Get(out var aovBuffers))
             using (ListPool<RTHandle>.Get(out var aovCustomPassBuffers))

@@ -180,7 +180,7 @@ namespace UnityEngine.Rendering.HighDefinition
         }
 
         [SerializeField]
-        DecalLayerEnum m_DecalLayerMask = DecalLayerEnum.LightLayerDefault;
+        DecalLayerEnum m_DecalLayerMask = DecalLayerEnum.DecalLayerDefault;
         /// <summary>
         /// The layer of the decal.
         /// </summary>
