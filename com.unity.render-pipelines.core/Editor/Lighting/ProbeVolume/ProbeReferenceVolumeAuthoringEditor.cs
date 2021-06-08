@@ -167,7 +167,7 @@ namespace UnityEngine.Experimental.Rendering
                     m_DilationInvSquaredWeight.boolValue = EditorGUILayout.Toggle("Squared Distance Weighting", m_DilationInvSquaredWeight.boolValue);
                     EditorGUI.indentLevel--;
 
-                    if (GUILayout.Button(EditorGUIUtility.TrTextContent("Reperform dilation"), EditorStyles.miniButton))
+                    if (GUILayout.Button(EditorGUIUtility.TrTextContent("Refresh dilation"), EditorStyles.miniButton))
                     {
                         ProbeGIBaking.RevertDilation();
                         ProbeGIBaking.PerformDilation();
