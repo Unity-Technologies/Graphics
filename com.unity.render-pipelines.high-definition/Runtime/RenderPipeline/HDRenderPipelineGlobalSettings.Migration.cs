@@ -58,7 +58,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
             if (assetToUpgrade == null || assetToUpgrade.Equals(null))
             {
-                assetToUpgrade = Create($"Assets/{HDProjectSettings.projectSettingsFolderPath}/HDRenderPipelineGlobalSettings.asset");
+                assetToUpgrade = Create($"Assets/{HDProjectSettingsReadOnlyBase.projectSettingsFolderPath}/HDRenderPipelineGlobalSettings.asset");
                 UpdateGraphicsSettings(assetToUpgrade);
             }
 

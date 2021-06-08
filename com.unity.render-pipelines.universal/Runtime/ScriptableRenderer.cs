@@ -344,6 +344,18 @@ namespace UnityEngine.Rendering.Universal
             }
         }
 
+
+        /// <summary>
+        /// Returns the frontbuffer color target. Returns 0 if not implemented by the renderer.
+        /// It's only valid to call GetCameraColorFrontBuffer in the scope of <c>ScriptableRenderPass</c>.
+        /// </summary>
+        /// <param name="cmd"></param>
+        /// <returns></returns>
+        virtual internal RenderTargetIdentifier GetCameraColorFrontBuffer(CommandBuffer cmd)
+        {
+            return 0;
+        }
+
         /// <summary>
         /// Returns the camera depth target for this renderer.
         /// It's only valid to call cameraDepthTarget in the scope of <c>ScriptableRenderPass</c>.
@@ -494,7 +506,6 @@ namespace UnityEngine.Rendering.Universal
             }
 
             ResetNativeRenderPassFrameData();
-
             useRenderPassEnabled = data.useNativeRenderPass && SystemInfo.graphicsDeviceType != GraphicsDeviceType.OpenGLES2;
             Clear(CameraRenderType.Base);
             m_ActiveRenderPassQueue.Clear();
@@ -635,6 +646,8 @@ namespace UnityEngine.Rendering.Universal
                     SortStable(m_ActiveRenderPassQueue);
                 }
 
+                if (cameraData.xr.enabled)
+                    useRenderPassEnabled = false;
                 SetupNativeRenderPassFrameData(cameraData, useRenderPassEnabled);
 
                 using var renderBlocks = new RenderBlocks(m_ActiveRenderPassQueue);
@@ -800,6 +813,10 @@ namespace UnityEngine.Rendering.Universal
             if (debugHandler != null && debugHandler.IsActiveForCamera(ref cameraData) && debugHandler.IsScreenClearNeeded)
                 return ClearFlag.All;
 
+            // XRTODO: remove once we have visible area of occlusion mesh available
+            if (cameraClearFlags == CameraClearFlags.Skybox && RenderSettings.skybox != null && cameraData.postProcessEnabled && cameraData.xr.enabled)
+                return ClearFlag.All;
+
             if ((cameraClearFlags == CameraClearFlags.Skybox && RenderSettings.skybox != null) ||
                 cameraClearFlags == CameraClearFlags.Nothing)
                 return ClearFlag.DepthStencil;
@@ -869,7 +886,6 @@ namespace UnityEngine.Rendering.Universal
             // Reset per-camera shader keywords. They are enabled depending on which render passes are executed.
             cmd.DisableShaderKeyword(ShaderKeywordStrings.MainLightShadows);
             cmd.DisableShaderKeyword(ShaderKeywordStrings.MainLightShadowCascades);
-            cmd.DisableShaderKeyword(ShaderKeywordStrings.MainLightShadowScreen);
             cmd.DisableShaderKeyword(ShaderKeywordStrings.AdditionalLightsVertex);
             cmd.DisableShaderKeyword(ShaderKeywordStrings.AdditionalLightsPixel);
             cmd.DisableShaderKeyword(ShaderKeywordStrings.ClusteredRendering);
@@ -1298,6 +1314,8 @@ namespace UnityEngine.Rendering.Universal
 
             CoreUtils.SetRenderTarget(cmd, colorAttachments, depthAttachment, clearFlag, clearColor);
         }
+
+        internal virtual void SwapColorBuffer(CommandBuffer cmd) {}
 
         [Conditional("UNITY_EDITOR")]
         void DrawGizmos(ScriptableRenderContext context, Camera camera, GizmoSubset gizmoSubset)

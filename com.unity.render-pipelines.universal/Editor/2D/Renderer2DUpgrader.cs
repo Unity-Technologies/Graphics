@@ -42,6 +42,10 @@ namespace UnityEditor.Rendering.Universal
             {
                 light.lightType = Light2D.LightType.Freeform;
 
+                // Parametric radius has to be > 0 in order mesh tessellation to be valid
+                if (light.shapeLightParametricRadius == 0)
+                    light.shapeLightParametricRadius = 0.01f;
+
                 float radius = light.shapeLightParametricRadius;
                 float angle = light.shapeLightParametricAngleOffset;
                 int   sides = light.shapeLightParametricSides;
@@ -75,6 +79,7 @@ namespace UnityEditor.Rendering.Universal
 
                 light.shapePath = shapePath;
                 light.UpdateMesh(true);
+                EditorSceneManager.MarkSceneDirty(light.gameObject.scene);
             }
         }
 

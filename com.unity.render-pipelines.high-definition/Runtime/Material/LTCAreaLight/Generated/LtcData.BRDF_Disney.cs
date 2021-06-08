@@ -3,7 +3,7 @@ using System;
 
 namespace UnityEngine.Rendering.HighDefinition
 {
-    public partial class LTCAreaLight
+    internal partial class LTCAreaLight
     {
         // [GENERATED CONTENT 22 Mar 2021 21:03:48]
         // Table contains 3x3 matrix coefficients of M^-1 for the fitting of the BRDF_Disney BRDF using the LTC technique
@@ -13,7 +13,7 @@ namespace UnityEngine.Rendering.HighDefinition
         //    • roughness = ( <roughnessIndex> / 63 )^2  (the table is indexed by perceptual roughness)
         //    • cosTheta = 1 - ( <thetaIndex> / 63 )^2
         //
-        public static double[,]    s_LtcMatrixData_BRDF_Disney = new double[64 * 64, 3 * 3]
+        internal static double[,]    s_LtcMatrixData_BRDF_Disney = new double[64 * 64, 3 * 3]
         {
             // Cos (theta) = 1
             { 1.01758636135223, 0, 0, 0, 1.01758636135223, 0, 0, 0, 1.0 },                                                          // alpha = 0.001

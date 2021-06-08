@@ -325,7 +325,7 @@ namespace UnityEngine.Rendering.HighDefinition.LTC
                 + "\n"
                 + "namespace UnityEngine.Rendering.HighDefinition\n"
                 + "{\n"
-                + "    public partial class LTCAreaLight\n"
+                + "    internal partial class LTCAreaLight\n"
                 + "    {\n"
                 + "        // [GENERATED CONTENT " + DateTime.Now.ToString("dd MMM yyyy HH:mm:ss") + "]\n"
                 + "        // Table contains 3x3 matrix coefficients of M^-1 for the fitting of the " + brdfName + " BRDF using the LTC technique\n"
