@@ -1,3 +1,4 @@
+import os
 import subprocess
 import platform
 import sys
@@ -6,6 +7,9 @@ from os import path
 if __name__ == "__main__":
     cur_sys = platform.system()
     output = 0
+
+    print("Working directory: " + os.getcwd())
+    print("Resources dir contents: " + os.listdir(path.join(sys.argv[1], "Assets/Resources/")))
 
     if cur_sys == 'Windows':
         output = subprocess.call(["utr.bat"] + sys.argv[2:])
