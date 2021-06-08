@@ -1274,6 +1274,7 @@ namespace UnityEngine.Rendering.HighDefinition
             public TextureHandle destination;
             public TextureHandle depthBuffer;
             public TextureHandle normalBuffer;
+            public TextureHandle motionVecTexture;
             public HDCamera hdCamera;
             public CustomPostProcessVolumeComponent customPostProcess;
         }
