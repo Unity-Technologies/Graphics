@@ -38,8 +38,8 @@ This option's functionality corresponds to the command <a href="https://docs.uni
 <tr><td><b>Depth Test</b></td><td colspan="3">This property is only exposed if <b>Allow Material Override</b> is enabled for this Shader Graph. <br/>Use this property to set the conditions under which pixels pass or fail depth testing. The GPU does not draw pixels that fail a depth test.  If you choose anything other than <b>LEqual</b> (the default setting for this property), consider also changing the rendering order of this material.  <br/> <br/>Options:
 <ul>
 <li><b>LEqual</b> (default): Unity draws the pixel, if its depth value is less than or equal to the value on the depth texture. Less: Unity draws pixels of the affected surface if their coordinates are less than the current depth buffer value.  </li>
-<li><b>Never</b>: x </li>
-<li><b>Less</b>: x </li>
+<li><b>Never</b>: Unity never draws the pixels of the affected surface. </li>
+<li><b>Less</b>: Unity draws pixels of the affected surface if their coordinates are less than the current depth buffer value. </li>
 <li><b>Greater</b>: Unity draws pixels of the affected surface if their coordinates are greater than the current depth buffer value. </li>
 <li><b>GEqual</b>: Unity draws pixels of the affected surface if their coordinates are greater than or equal to the current depth buffer value. </li>
 <li><b>Equal</b>: Unity draws pixels of the affected surface if their coordinates are equal to the current depth buffer value. </li>
