@@ -32,10 +32,6 @@ namespace UnityEditor.Rendering
         /// Asset is used by objects that have materials which may have been upgraded, but there is no unambiguous upgrade path.
         /// </summary>
         UsedByAmbiguouslyUpgraded = 8,
-        /// <summary>
-        /// Asset has already been upgraded.
-        /// </summary>
-        UsedByAlreadyUpgraded = 16
     }
 
     /// <summary>
@@ -188,7 +184,7 @@ namespace UnityEditor.Rendering
 
                         if (alreadyUpgraded)
                         {
-                            result |= SerializedShaderPropertyUsage.UsedByAlreadyUpgraded;
+                            result |= SerializedShaderPropertyUsage.UsedByUpgraded;
                         }
                     }
                 }

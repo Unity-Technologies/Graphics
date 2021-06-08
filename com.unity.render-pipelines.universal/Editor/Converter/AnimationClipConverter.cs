@@ -104,8 +104,7 @@ namespace UnityEditor.Rendering.Universal
                 );
 
             const SerializedShaderPropertyUsage kSuccessFlags =
-                SerializedShaderPropertyUsage.UsedByUpgraded
-                | SerializedShaderPropertyUsage.UsedByAlreadyUpgraded;
+                SerializedShaderPropertyUsage.UsedByUpgraded;
 
             var clipKey = (ClipProxy)GlobalObjectId.GlobalObjectIdentifierToObjectSlow(m_AssetsToConvert[ctx.item.index]);
 
