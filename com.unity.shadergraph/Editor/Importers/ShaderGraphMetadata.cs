@@ -64,7 +64,5 @@ namespace UnityEditor.ShaderGraph
         public List<Object> assetDependencies;
 
         public List<MinimalCategoryData> categoryDatas;
-
-        public List<GraphInputData> graphInputOrderData;
     }
 }

@@ -643,12 +643,12 @@ namespace UnityEditor.ShaderGraph
                 builder.AppendLine(format, CoordinateSpace.AbsoluteWorld.ToVariableName(interpolatorType));
         }
 
-        internal static void GeneratePropertiesBlock(ShaderStringBuilder sb, PropertyCollector propertyCollector, KeywordCollector keywordCollector, GenerationMode mode, ShaderGraphMetadata meta)
+        internal static void GeneratePropertiesBlock(ShaderStringBuilder sb, PropertyCollector propertyCollector, KeywordCollector keywordCollector, GenerationMode mode, List<GraphInputData> graphInputs)
         {
             sb.AppendLine("Properties");
             using (sb.BlockScope())
             {
-                if (meta == null || meta.graphInputOrderData == null || meta.graphInputOrderData.Count == 0)
+                if (graphInputs == null || graphInputs.Count == 0)
                 {
                     foreach (var prop in propertyCollector.properties.Where(x => x.generatePropertyBlock))
                     {
@@ -669,7 +669,7 @@ namespace UnityEditor.ShaderGraph
                 {
                     var propertyInputs = propertyCollector.properties.Where(x => x.generatePropertyBlock).ToList();
                     var keywordInputs = keywordCollector.keywords.Where(x => x.generatePropertyBlock).ToList();
-                    foreach(var input in meta.graphInputOrderData)
+                    foreach(var input in graphInputs)
                     {
                         if(input.isKeyword && mode != GenerationMode.Preview)
                         {
