@@ -22,13 +22,13 @@ ShaderGraph_ref_OSX_OpenGLCore_Standalone_ref_images_mono_Linear_trunk:
     commands:
       -  curl -s https://artifactory.prd.it.unity3d.com/artifactory/unity-tools-local/utr-standalone/utr --output utr
       -  chmod +x utr
-      -  python .yamato/tooling/wrap_utr.py --artifacts_path=TestProjects/ShaderGraph_ref/test-results --platform=StandaloneOSX --suite=playmode --timeout=1200 --zero-tests-are-ok=1
+      -  python .yamato/tooling/wrap_utr.py --artifacts_path=TestProjects/ShaderGraph/test-results --platform=StandaloneOSX --suite=playmode --timeout=1200 --zero-tests-are-ok=1
       -  python .yamato/tooling/zip_to_artifact.py --artifacts TestProjects/ShaderGraph/test-results/ --root TestProjects/ShaderGraph/
     artifacts:
         logs:
             paths:
               -  "**/test-results/**"
-              -  "TestProjects/ShaderGraph_ref/Logs/*.log"
+              -  "TestProjects/ShaderGraph/Logs/*.log"
     dependencies:
       -  path: .yamato/_editor_priming.yml#editor:priming:trunk:OSX
          rerun: on_new_revision
@@ -51,12 +51,12 @@ Build_ShaderGraph_ref_OSX_OpenGLCore_Standalone_ref_images_mono_Linear_trunk:
       -  brew tap --force-auto-update unity/unity git@github.cds.internal.unity3d.com:unity/homebrew-unity.git
       -  brew install unity-downloader-cli
       -  unity-downloader-cli --source-file unity_revision.txt -c editor -c il2cpp  --wait --published-only
-      -  ./utr  --artifacts_path=TestProjects/ShaderGraph_ref/test-results --build-only --editor-location=.Editor --extra-editor-arg="-colorspace=Linear" --platform=StandaloneOSX --scripting-backend=Mono2x --suite=playmode --testfilter=$TEST_FILTER --testproject=./TestProjects/ShaderGraph_ref --timeout=1200
+      -  ./utr  --artifacts_path=TestProjects/ShaderGraph/test-results --build-only --editor-location=.Editor --extra-editor-arg="-colorspace=Linear" --platform=StandaloneOSX --scripting-backend=Mono2x --suite=playmode --testfilter=$TEST_FILTER --testproject=./TestProjects/ShaderGraph --timeout=1200
     artifacts:
         logs:
             paths:
               -  "**/test-results/**"
-              -  "TestProjects/ShaderGraph_ref/Logs/*.log"
+              -  "TestProjects/ShaderGraph/Logs/*.log"
         players:
             paths:
               -  "players*/**"
@@ -80,13 +80,13 @@ ShaderGraph_ref_OSX_OpenGLCore_playmode_ref_images_mono_Linear_trunk:
       -  brew tap --force-auto-update unity/unity git@github.cds.internal.unity3d.com:unity/homebrew-unity.git
       -  brew install unity-downloader-cli
       -  unity-downloader-cli --source-file unity_revision.txt -c editor -c il2cpp  --wait --published-only
-      -  python .yamato/tooling/wrap_utr.py --artifacts_path=TestProjects/ShaderGraph_ref/test-results --editor-location=.Editor --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-logfile C:/build/output/Unity-Technologies/Graphics/TestProjects/ShaderGraph/Logs/Editor.log" --testfilter="Individual" --scripting-backend=Mono2x --suite=playmode --testfilter=$TEST_FILTER --testproject=./TestProjects/ShaderGraph_ref --zero-tests-are-ok=1
+      -  python .yamato/tooling/wrap_utr.py --artifacts_path=TestProjects/ShaderGraph/test-results --editor-location=.Editor --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-logfile C:/build/output/Unity-Technologies/Graphics/TestProjects/ShaderGraph/Logs/Editor.log" --testfilter="Individual" --scripting-backend=Mono2x --suite=playmode --testfilter=$TEST_FILTER --testproject=./TestProjects/ShaderGraph --zero-tests-are-ok=1
       -  python .yamato/tooling/zip_to_artifact.py --artifacts TestProjects/ShaderGraph/test-results/ --root TestProjects/ShaderGraph/
     artifacts:
         logs:
             paths:
               -  "**/test-results/**"
-              -  "TestProjects/ShaderGraph_ref/Logs/*.log"
+              -  "TestProjects/ShaderGraph/Logs/*.log"
     dependencies:
       -  path: .yamato/_editor_priming.yml#editor:priming:trunk:OSX
          rerun: on_new_revision
@@ -108,7 +108,7 @@ ShaderGraph_ref_OSX_OpenGLCore_Standalone_cache_ref_images_mono_Linear_trunk:
         logs:
             paths:
               -  "**/test-results/**"
-              -  "TestProjects/ShaderGraph_ref/Logs/*.log"
+              -  "TestProjects/ShaderGraph/Logs/*.log"
     dependencies:
       -  path: .yamato/_editor_priming.yml#editor:priming:trunk:OSX
          rerun: on_new_revision
@@ -131,12 +131,12 @@ Build_ShaderGraph_ref_OSX_OpenGLCore_Standalone_cache_ref_images_mono_Linear_tru
       -  brew tap --force-auto-update unity/unity git@github.cds.internal.unity3d.com:unity/homebrew-unity.git
       -  brew install unity-downloader-cli
       -  unity-downloader-cli --source-file unity_revision.txt -c editor -c il2cpp  --wait --published-only
-      -  ./utr  --artifacts_path=TestProjects/ShaderGraph_ref/test-results --build-only --editor-location=.Editor --extra-editor-arg="-adb2" --extra-editor-arg="-cacheServerEnableDownload" --extra-editor-arg="true" --extra-editor-arg="-cacheServerEnableUpload" --extra-editor-arg="true" --extra-editor-arg="-cacheServerEndpoint" --extra-editor-arg="cacheserver-slo.hq.unity3d.com" --extra-editor-arg="-cacheServerNamespacePrefix" --extra-editor-arg="{{cache.cacheServerNamespacePrefix}}" --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-enableCacheServer" --platform=StandaloneOSX --scripting-backend=Mono2x --suite=playmode --testfilter=$TEST_FILTER --testproject=./TestProjects/ShaderGraph_ref --timeout=3000
+      -  ./utr  --artifacts_path=TestProjects/ShaderGraph/test-results --build-only --editor-location=.Editor --extra-editor-arg="-adb2" --extra-editor-arg="-cacheServerEnableDownload" --extra-editor-arg="true" --extra-editor-arg="-cacheServerEnableUpload" --extra-editor-arg="true" --extra-editor-arg="-cacheServerEndpoint" --extra-editor-arg="cacheserver-slo.hq.unity3d.com" --extra-editor-arg="-cacheServerNamespacePrefix" --extra-editor-arg="{{cache.cacheServerNamespacePrefix}}" --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-enableCacheServer" --platform=StandaloneOSX --scripting-backend=Mono2x --suite=playmode --testfilter=$TEST_FILTER --testproject=./TestProjects/ShaderGraph --timeout=3000
     artifacts:
         logs:
             paths:
               -  "**/test-results/**"
-              -  "TestProjects/ShaderGraph_ref/Logs/*.log"
+              -  "TestProjects/ShaderGraph/Logs/*.log"
         players:
             paths:
               -  "players*/**"
@@ -157,13 +157,13 @@ ShaderGraph_ref_OSX_OpenGLCore_Standalone_ref_images_mono_Linear_CUSTOM-REVISION
     commands:
       -  curl -s https://artifactory.prd.it.unity3d.com/artifactory/unity-tools-local/utr-standalone/utr --output utr
       -  chmod +x utr
-      -  python .yamato/tooling/wrap_utr.py --artifacts_path=TestProjects/ShaderGraph_ref/test-results --platform=StandaloneOSX --suite=playmode --timeout=1200 --zero-tests-are-ok=1
+      -  python .yamato/tooling/wrap_utr.py --artifacts_path=TestProjects/ShaderGraph/test-results --platform=StandaloneOSX --suite=playmode --timeout=1200 --zero-tests-are-ok=1
       -  python .yamato/tooling/zip_to_artifact.py --artifacts TestProjects/ShaderGraph/test-results/ --root TestProjects/ShaderGraph/
     artifacts:
         logs:
             paths:
               -  "**/test-results/**"
-              -  "TestProjects/ShaderGraph_ref/Logs/*.log"
+              -  "TestProjects/ShaderGraph/Logs/*.log"
     dependencies:
       -  path: .yamato/_editor_priming.yml#editor:priming:CUSTOM-REVISION:OSX
          rerun: on_new_revision
@@ -186,12 +186,12 @@ Build_ShaderGraph_ref_OSX_OpenGLCore_Standalone_ref_images_mono_Linear_CUSTOM-RE
       -  brew tap --force-auto-update unity/unity git@github.cds.internal.unity3d.com:unity/homebrew-unity.git
       -  brew install unity-downloader-cli
       -  unity-downloader-cli --source-file unity_revision.txt -c editor -c il2cpp  --wait --published-only
-      -  ./utr  --artifacts_path=TestProjects/ShaderGraph_ref/test-results --build-only --editor-location=.Editor --extra-editor-arg="-colorspace=Linear" --platform=StandaloneOSX --scripting-backend=Mono2x --suite=playmode --testfilter=$TEST_FILTER --testproject=./TestProjects/ShaderGraph_ref --timeout=1200
+      -  ./utr  --artifacts_path=TestProjects/ShaderGraph/test-results --build-only --editor-location=.Editor --extra-editor-arg="-colorspace=Linear" --platform=StandaloneOSX --scripting-backend=Mono2x --suite=playmode --testfilter=$TEST_FILTER --testproject=./TestProjects/ShaderGraph --timeout=1200
     artifacts:
         logs:
             paths:
               -  "**/test-results/**"
-              -  "TestProjects/ShaderGraph_ref/Logs/*.log"
+              -  "TestProjects/ShaderGraph/Logs/*.log"
         players:
             paths:
               -  "players*/**"
@@ -215,13 +215,13 @@ ShaderGraph_ref_OSX_OpenGLCore_playmode_ref_images_mono_Linear_CUSTOM-REVISION:
       -  brew tap --force-auto-update unity/unity git@github.cds.internal.unity3d.com:unity/homebrew-unity.git
       -  brew install unity-downloader-cli
       -  unity-downloader-cli --source-file unity_revision.txt -c editor -c il2cpp  --wait --published-only
-      -  python .yamato/tooling/wrap_utr.py --artifacts_path=TestProjects/ShaderGraph_ref/test-results --editor-location=.Editor --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-logfile C:/build/output/Unity-Technologies/Graphics/TestProjects/ShaderGraph/Logs/Editor.log" --testfilter="Individual" --scripting-backend=Mono2x --suite=playmode --testfilter=$TEST_FILTER --testproject=./TestProjects/ShaderGraph_ref --zero-tests-are-ok=1
+      -  python .yamato/tooling/wrap_utr.py --artifacts_path=TestProjects/ShaderGraph/test-results --editor-location=.Editor --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-logfile C:/build/output/Unity-Technologies/Graphics/TestProjects/ShaderGraph/Logs/Editor.log" --testfilter="Individual" --scripting-backend=Mono2x --suite=playmode --testfilter=$TEST_FILTER --testproject=./TestProjects/ShaderGraph --zero-tests-are-ok=1
       -  python .yamato/tooling/zip_to_artifact.py --artifacts TestProjects/ShaderGraph/test-results/ --root TestProjects/ShaderGraph/
     artifacts:
         logs:
             paths:
               -  "**/test-results/**"
-              -  "TestProjects/ShaderGraph_ref/Logs/*.log"
+              -  "TestProjects/ShaderGraph/Logs/*.log"
     dependencies:
       -  path: .yamato/_editor_priming.yml#editor:priming:CUSTOM-REVISION:OSX
          rerun: on_new_revision
@@ -243,7 +243,7 @@ ShaderGraph_ref_OSX_OpenGLCore_Standalone_cache_ref_images_mono_Linear_CUSTOM-RE
         logs:
             paths:
               -  "**/test-results/**"
-              -  "TestProjects/ShaderGraph_ref/Logs/*.log"
+              -  "TestProjects/ShaderGraph/Logs/*.log"
     dependencies:
       -  path: .yamato/_editor_priming.yml#editor:priming:CUSTOM-REVISION:OSX
          rerun: on_new_revision
@@ -266,12 +266,12 @@ Build_ShaderGraph_ref_OSX_OpenGLCore_Standalone_cache_ref_images_mono_Linear_CUS
       -  brew tap --force-auto-update unity/unity git@github.cds.internal.unity3d.com:unity/homebrew-unity.git
       -  brew install unity-downloader-cli
       -  unity-downloader-cli --source-file unity_revision.txt -c editor -c il2cpp  --wait --published-only
-      -  ./utr  --artifacts_path=TestProjects/ShaderGraph_ref/test-results --build-only --editor-location=.Editor --extra-editor-arg="-adb2" --extra-editor-arg="-cacheServerEnableDownload" --extra-editor-arg="true" --extra-editor-arg="-cacheServerEnableUpload" --extra-editor-arg="true" --extra-editor-arg="-cacheServerEndpoint" --extra-editor-arg="cacheserver-slo.hq.unity3d.com" --extra-editor-arg="-cacheServerNamespacePrefix" --extra-editor-arg="{{cache.cacheServerNamespacePrefix}}" --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-enableCacheServer" --platform=StandaloneOSX --scripting-backend=Mono2x --suite=playmode --testfilter=$TEST_FILTER --testproject=./TestProjects/ShaderGraph_ref --timeout=3000
+      -  ./utr  --artifacts_path=TestProjects/ShaderGraph/test-results --build-only --editor-location=.Editor --extra-editor-arg="-adb2" --extra-editor-arg="-cacheServerEnableDownload" --extra-editor-arg="true" --extra-editor-arg="-cacheServerEnableUpload" --extra-editor-arg="true" --extra-editor-arg="-cacheServerEndpoint" --extra-editor-arg="cacheserver-slo.hq.unity3d.com" --extra-editor-arg="-cacheServerNamespacePrefix" --extra-editor-arg="{{cache.cacheServerNamespacePrefix}}" --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-enableCacheServer" --platform=StandaloneOSX --scripting-backend=Mono2x --suite=playmode --testfilter=$TEST_FILTER --testproject=./TestProjects/ShaderGraph --timeout=3000
     artifacts:
         logs:
             paths:
               -  "**/test-results/**"
-              -  "TestProjects/ShaderGraph_ref/Logs/*.log"
+              -  "TestProjects/ShaderGraph/Logs/*.log"
         players:
             paths:
               -  "players*/**"

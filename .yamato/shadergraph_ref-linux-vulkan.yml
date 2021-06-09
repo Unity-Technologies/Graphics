@@ -22,13 +22,13 @@ ShaderGraph_ref_Linux_Vulkan_Standalone_ref_images_mono_Linear_trunk:
     commands:
       -  curl -s https://artifactory.prd.it.unity3d.com/artifactory/unity-tools-local/utr-standalone/utr --output utr
       -  chmod +x utr
-      -  python .yamato/tooling/wrap_utr.py --artifacts_path=TestProjects/ShaderGraph_ref/test-results --platform=StandaloneLinux64 --player-connection-ip=auto --player-load-path=players --suite=playmode --timeout=1200 --zero-tests-are-ok=1
+      -  python .yamato/tooling/wrap_utr.py --artifacts_path=TestProjects/ShaderGraph/test-results --platform=StandaloneLinux64 --player-connection-ip=auto --player-load-path=players --suite=playmode --timeout=1200 --zero-tests-are-ok=1
       -  python .yamato/tooling/zip_to_artifact.py --artifacts TestProjects/ShaderGraph/test-results/ --root TestProjects/ShaderGraph/
     artifacts:
         logs:
             paths:
               -  "**/test-results/**"
-              -  "TestProjects/ShaderGraph_ref/Logs/*.log"
+              -  "TestProjects/ShaderGraph/Logs/*.log"
     dependencies:
       -  path: .yamato/_editor_priming.yml#editor:priming:trunk:Linux
          rerun: on_new_revision
@@ -54,12 +54,12 @@ Build_ShaderGraph_ref_Linux_Vulkan_Standalone_ref_images_mono_Linear_trunk:
       -  sudo apt update
       -  sudo apt install unity-downloader-cli
       -  sudo unity-downloader-cli --source-file unity_revision.txt -c editor -c il2cpp  --wait --published-only
-      -  DISPLAY=:0.0 ./utr --artifacts_path=TestProjects/ShaderGraph_ref/test-results --build-only --editor-location=.Editor --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-executemethod" --extra-editor-arg="SetupProject.ApplySettings" --extra-editor-arg="vulkan" --extra-editor-arg="Linear" --extra-editor-arg="-playergraphicsapi=Vulkan" --platform=StandaloneLinux64 --player-save-path=players --scripting-backend=Mono2x --suite=playmode --testfilter=$TEST_FILTER --testproject=./TestProjects/ShaderGraph_ref --timeout=1200
+      -  DISPLAY=:0.0 ./utr --artifacts_path=TestProjects/ShaderGraph/test-results --build-only --editor-location=.Editor --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-executemethod" --extra-editor-arg="SetupProject.ApplySettings" --extra-editor-arg="vulkan" --extra-editor-arg="Linear" --extra-editor-arg="-playergraphicsapi=Vulkan" --platform=StandaloneLinux64 --player-save-path=players --scripting-backend=Mono2x --suite=playmode --testfilter=$TEST_FILTER --testproject=./TestProjects/ShaderGraph --timeout=1200
     artifacts:
         logs:
             paths:
               -  "**/test-results/**"
-              -  "TestProjects/ShaderGraph_ref/Logs/*.log"
+              -  "TestProjects/ShaderGraph/Logs/*.log"
         players:
             paths:
               -  "players*/**"
@@ -86,13 +86,13 @@ ShaderGraph_ref_Linux_Vulkan_playmode_ref_images_mono_Linear_trunk:
       -  sudo apt update
       -  sudo apt install unity-downloader-cli
       -  sudo unity-downloader-cli --source-file unity_revision.txt -c editor -c il2cpp  --wait --published-only
-      -  python .yamato/tooling/wrap_utr.py --artifacts_path=TestProjects/ShaderGraph_ref/test-results --editor-location=.Editor --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-force-vulkan" --extra-editor-arg="-logfile C:/build/output/Unity-Technologies/Graphics/TestProjects/ShaderGraph/Logs/Editor.log" --testfilter="Individual" --scripting-backend=Mono2x --suite=playmode --testfilter=$TEST_FILTER --testproject=./TestProjects/ShaderGraph_ref --zero-tests-are-ok=1
+      -  python .yamato/tooling/wrap_utr.py --artifacts_path=TestProjects/ShaderGraph/test-results --editor-location=.Editor --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-force-vulkan" --extra-editor-arg="-logfile C:/build/output/Unity-Technologies/Graphics/TestProjects/ShaderGraph/Logs/Editor.log" --testfilter="Individual" --scripting-backend=Mono2x --suite=playmode --testfilter=$TEST_FILTER --testproject=./TestProjects/ShaderGraph --zero-tests-are-ok=1
       -  python .yamato/tooling/zip_to_artifact.py --artifacts TestProjects/ShaderGraph/test-results/ --root TestProjects/ShaderGraph/
     artifacts:
         logs:
             paths:
               -  "**/test-results/**"
-              -  "TestProjects/ShaderGraph_ref/Logs/*.log"
+              -  "TestProjects/ShaderGraph/Logs/*.log"
     dependencies:
       -  path: .yamato/_editor_priming.yml#editor:priming:trunk:Linux
          rerun: on_new_revision
@@ -110,13 +110,13 @@ ShaderGraph_ref_Linux_Vulkan_Standalone_cache_ref_images_mono_Linear_trunk:
     commands:
       -  curl -s https://artifactory.prd.it.unity3d.com/artifactory/unity-tools-local/utr-standalone/utr --output utr
       -  chmod +x utr
-      -  python .yamato/tooling/wrap_utr.py --artifacts_path=TestProjects/ShaderGraph_ref/test-results --platform=StandaloneLinux64 --player-connection-ip=auto --player-load-path=players --suite=playmode --timeout=1200 --zero-tests-are-ok=1
+      -  python .yamato/tooling/wrap_utr.py --artifacts_path=TestProjects/ShaderGraph/test-results --platform=StandaloneLinux64 --player-connection-ip=auto --player-load-path=players --suite=playmode --timeout=1200 --zero-tests-are-ok=1
       -  python .yamato/tooling/zip_to_artifact.py --artifacts TestProjects/ShaderGraph/test-results/ --root TestProjects/ShaderGraph/
     artifacts:
         logs:
             paths:
               -  "**/test-results/**"
-              -  "TestProjects/ShaderGraph_ref/Logs/*.log"
+              -  "TestProjects/ShaderGraph/Logs/*.log"
     dependencies:
       -  path: .yamato/_editor_priming.yml#editor:priming:trunk:Linux
          rerun: on_new_revision
@@ -142,12 +142,12 @@ Build_ShaderGraph_ref_Linux_Vulkan_Standalone_cache_ref_images_mono_Linear_trunk
       -  sudo apt update
       -  sudo apt install unity-downloader-cli
       -  sudo unity-downloader-cli --source-file unity_revision.txt -c editor -c il2cpp  --wait --published-only
-      -  DISPLAY=:0.0 ./utr --artifacts_path=TestProjects/ShaderGraph_ref/test-results --build-only --editor-location=.Editor --extra-editor-arg="-adb2" --extra-editor-arg="-cacheServerEnableDownload" --extra-editor-arg="true" --extra-editor-arg="-cacheServerEnableUpload" --extra-editor-arg="true" --extra-editor-arg="-cacheServerEndpoint" --extra-editor-arg="cacheserver-slo.hq.unity3d.com" --extra-editor-arg="-cacheServerNamespacePrefix" --extra-editor-arg="{{cache.cacheServerNamespacePrefix}}" --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-enableCacheServer" --extra-editor-arg="-executemethod" --extra-editor-arg="SetupProject.ApplySettings" --extra-editor-arg="vulkan" --extra-editor-arg="Linear" --extra-editor-arg="-playergraphicsapi=Vulkan" --platform=StandaloneLinux64 --player-save-path=players --scripting-backend=Mono2x --suite=playmode --testfilter=$TEST_FILTER --testproject=./TestProjects/ShaderGraph_ref --timeout=3000
+      -  DISPLAY=:0.0 ./utr --artifacts_path=TestProjects/ShaderGraph/test-results --build-only --editor-location=.Editor --extra-editor-arg="-adb2" --extra-editor-arg="-cacheServerEnableDownload" --extra-editor-arg="true" --extra-editor-arg="-cacheServerEnableUpload" --extra-editor-arg="true" --extra-editor-arg="-cacheServerEndpoint" --extra-editor-arg="cacheserver-slo.hq.unity3d.com" --extra-editor-arg="-cacheServerNamespacePrefix" --extra-editor-arg="{{cache.cacheServerNamespacePrefix}}" --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-enableCacheServer" --extra-editor-arg="-executemethod" --extra-editor-arg="SetupProject.ApplySettings" --extra-editor-arg="vulkan" --extra-editor-arg="Linear" --extra-editor-arg="-playergraphicsapi=Vulkan" --platform=StandaloneLinux64 --player-save-path=players --scripting-backend=Mono2x --suite=playmode --testfilter=$TEST_FILTER --testproject=./TestProjects/ShaderGraph --timeout=3000
     artifacts:
         logs:
             paths:
               -  "**/test-results/**"
-              -  "TestProjects/ShaderGraph_ref/Logs/*.log"
+              -  "TestProjects/ShaderGraph/Logs/*.log"
         players:
             paths:
               -  "players*/**"
@@ -168,13 +168,13 @@ ShaderGraph_ref_Linux_Vulkan_Standalone_ref_images_mono_Linear_CUSTOM-REVISION:
     commands:
       -  curl -s https://artifactory.prd.it.unity3d.com/artifactory/unity-tools-local/utr-standalone/utr --output utr
       -  chmod +x utr
-      -  python .yamato/tooling/wrap_utr.py --artifacts_path=TestProjects/ShaderGraph_ref/test-results --platform=StandaloneLinux64 --player-connection-ip=auto --player-load-path=players --suite=playmode --timeout=1200 --zero-tests-are-ok=1
+      -  python .yamato/tooling/wrap_utr.py --artifacts_path=TestProjects/ShaderGraph/test-results --platform=StandaloneLinux64 --player-connection-ip=auto --player-load-path=players --suite=playmode --timeout=1200 --zero-tests-are-ok=1
       -  python .yamato/tooling/zip_to_artifact.py --artifacts TestProjects/ShaderGraph/test-results/ --root TestProjects/ShaderGraph/
     artifacts:
         logs:
             paths:
               -  "**/test-results/**"
-              -  "TestProjects/ShaderGraph_ref/Logs/*.log"
+              -  "TestProjects/ShaderGraph/Logs/*.log"
     dependencies:
       -  path: .yamato/_editor_priming.yml#editor:priming:CUSTOM-REVISION:Linux
          rerun: on_new_revision
@@ -200,12 +200,12 @@ Build_ShaderGraph_ref_Linux_Vulkan_Standalone_ref_images_mono_Linear_CUSTOM-REVI
       -  sudo apt update
       -  sudo apt install unity-downloader-cli
       -  sudo unity-downloader-cli --source-file unity_revision.txt -c editor -c il2cpp  --wait --published-only
-      -  DISPLAY=:0.0 ./utr --artifacts_path=TestProjects/ShaderGraph_ref/test-results --build-only --editor-location=.Editor --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-executemethod" --extra-editor-arg="SetupProject.ApplySettings" --extra-editor-arg="vulkan" --extra-editor-arg="Linear" --extra-editor-arg="-playergraphicsapi=Vulkan" --platform=StandaloneLinux64 --player-save-path=players --scripting-backend=Mono2x --suite=playmode --testfilter=$TEST_FILTER --testproject=./TestProjects/ShaderGraph_ref --timeout=1200
+      -  DISPLAY=:0.0 ./utr --artifacts_path=TestProjects/ShaderGraph/test-results --build-only --editor-location=.Editor --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-executemethod" --extra-editor-arg="SetupProject.ApplySettings" --extra-editor-arg="vulkan" --extra-editor-arg="Linear" --extra-editor-arg="-playergraphicsapi=Vulkan" --platform=StandaloneLinux64 --player-save-path=players --scripting-backend=Mono2x --suite=playmode --testfilter=$TEST_FILTER --testproject=./TestProjects/ShaderGraph --timeout=1200
     artifacts:
         logs:
             paths:
               -  "**/test-results/**"
-              -  "TestProjects/ShaderGraph_ref/Logs/*.log"
+              -  "TestProjects/ShaderGraph/Logs/*.log"
         players:
             paths:
               -  "players*/**"
@@ -232,13 +232,13 @@ ShaderGraph_ref_Linux_Vulkan_playmode_ref_images_mono_Linear_CUSTOM-REVISION:
       -  sudo apt update
       -  sudo apt install unity-downloader-cli
       -  sudo unity-downloader-cli --source-file unity_revision.txt -c editor -c il2cpp  --wait --published-only
-      -  python .yamato/tooling/wrap_utr.py --artifacts_path=TestProjects/ShaderGraph_ref/test-results --editor-location=.Editor --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-force-vulkan" --extra-editor-arg="-logfile C:/build/output/Unity-Technologies/Graphics/TestProjects/ShaderGraph/Logs/Editor.log" --testfilter="Individual" --scripting-backend=Mono2x --suite=playmode --testfilter=$TEST_FILTER --testproject=./TestProjects/ShaderGraph_ref --zero-tests-are-ok=1
+      -  python .yamato/tooling/wrap_utr.py --artifacts_path=TestProjects/ShaderGraph/test-results --editor-location=.Editor --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-force-vulkan" --extra-editor-arg="-logfile C:/build/output/Unity-Technologies/Graphics/TestProjects/ShaderGraph/Logs/Editor.log" --testfilter="Individual" --scripting-backend=Mono2x --suite=playmode --testfilter=$TEST_FILTER --testproject=./TestProjects/ShaderGraph --zero-tests-are-ok=1
       -  python .yamato/tooling/zip_to_artifact.py --artifacts TestProjects/ShaderGraph/test-results/ --root TestProjects/ShaderGraph/
     artifacts:
         logs:
             paths:
               -  "**/test-results/**"
-              -  "TestProjects/ShaderGraph_ref/Logs/*.log"
+              -  "TestProjects/ShaderGraph/Logs/*.log"
     dependencies:
       -  path: .yamato/_editor_priming.yml#editor:priming:CUSTOM-REVISION:Linux
          rerun: on_new_revision
@@ -256,13 +256,13 @@ ShaderGraph_ref_Linux_Vulkan_Standalone_cache_ref_images_mono_Linear_CUSTOM-REVI
     commands:
       -  curl -s https://artifactory.prd.it.unity3d.com/artifactory/unity-tools-local/utr-standalone/utr --output utr
       -  chmod +x utr
-      -  python .yamato/tooling/wrap_utr.py --artifacts_path=TestProjects/ShaderGraph_ref/test-results --platform=StandaloneLinux64 --player-connection-ip=auto --player-load-path=players --suite=playmode --timeout=1200 --zero-tests-are-ok=1
+      -  python .yamato/tooling/wrap_utr.py --artifacts_path=TestProjects/ShaderGraph/test-results --platform=StandaloneLinux64 --player-connection-ip=auto --player-load-path=players --suite=playmode --timeout=1200 --zero-tests-are-ok=1
       -  python .yamato/tooling/zip_to_artifact.py --artifacts TestProjects/ShaderGraph/test-results/ --root TestProjects/ShaderGraph/
     artifacts:
         logs:
             paths:
               -  "**/test-results/**"
-              -  "TestProjects/ShaderGraph_ref/Logs/*.log"
+              -  "TestProjects/ShaderGraph/Logs/*.log"
     dependencies:
       -  path: .yamato/_editor_priming.yml#editor:priming:CUSTOM-REVISION:Linux
          rerun: on_new_revision
@@ -288,12 +288,12 @@ Build_ShaderGraph_ref_Linux_Vulkan_Standalone_cache_ref_images_mono_Linear_CUSTO
       -  sudo apt update
       -  sudo apt install unity-downloader-cli
       -  sudo unity-downloader-cli --source-file unity_revision.txt -c editor -c il2cpp  --wait --published-only
-      -  DISPLAY=:0.0 ./utr --artifacts_path=TestProjects/ShaderGraph_ref/test-results --build-only --editor-location=.Editor --extra-editor-arg="-adb2" --extra-editor-arg="-cacheServerEnableDownload" --extra-editor-arg="true" --extra-editor-arg="-cacheServerEnableUpload" --extra-editor-arg="true" --extra-editor-arg="-cacheServerEndpoint" --extra-editor-arg="cacheserver-slo.hq.unity3d.com" --extra-editor-arg="-cacheServerNamespacePrefix" --extra-editor-arg="{{cache.cacheServerNamespacePrefix}}" --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-enableCacheServer" --extra-editor-arg="-executemethod" --extra-editor-arg="SetupProject.ApplySettings" --extra-editor-arg="vulkan" --extra-editor-arg="Linear" --extra-editor-arg="-playergraphicsapi=Vulkan" --platform=StandaloneLinux64 --player-save-path=players --scripting-backend=Mono2x --suite=playmode --testfilter=$TEST_FILTER --testproject=./TestProjects/ShaderGraph_ref --timeout=3000
+      -  DISPLAY=:0.0 ./utr --artifacts_path=TestProjects/ShaderGraph/test-results --build-only --editor-location=.Editor --extra-editor-arg="-adb2" --extra-editor-arg="-cacheServerEnableDownload" --extra-editor-arg="true" --extra-editor-arg="-cacheServerEnableUpload" --extra-editor-arg="true" --extra-editor-arg="-cacheServerEndpoint" --extra-editor-arg="cacheserver-slo.hq.unity3d.com" --extra-editor-arg="-cacheServerNamespacePrefix" --extra-editor-arg="{{cache.cacheServerNamespacePrefix}}" --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-enableCacheServer" --extra-editor-arg="-executemethod" --extra-editor-arg="SetupProject.ApplySettings" --extra-editor-arg="vulkan" --extra-editor-arg="Linear" --extra-editor-arg="-playergraphicsapi=Vulkan" --platform=StandaloneLinux64 --player-save-path=players --scripting-backend=Mono2x --suite=playmode --testfilter=$TEST_FILTER --testproject=./TestProjects/ShaderGraph --timeout=3000
     artifacts:
         logs:
             paths:
               -  "**/test-results/**"
-              -  "TestProjects/ShaderGraph_ref/Logs/*.log"
+              -  "TestProjects/ShaderGraph/Logs/*.log"
         players:
             paths:
               -  "players*/**"

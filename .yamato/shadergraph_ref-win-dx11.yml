@@ -25,13 +25,13 @@ ShaderGraph_ref_Win_DX11_Standalone_ref_images_mono_Linear_trunk:
       -  cd Tools && powershell -command ". .\Unity.ps1; Set-ScreenResolution -width 1920 -Height 1080"
       -  curl -s https://artifactory.prd.it.unity3d.com/artifactory/unity-tools-local/utr-standalone/utr.bat --output utr.bat
       -  choco install python3 && refreshenv
-      -  python .yamato/tooling/wrap_utr.py --artifacts_path=TestProjects/ShaderGraph_ref/test-results --platform=StandaloneWindows64 --player-connection-ip=auto --player-load-path=players --suite=playmode --timeout=1200 --zero-tests-are-ok=1
+      -  python .yamato/tooling/wrap_utr.py --artifacts_path=TestProjects/ShaderGraph/test-results --platform=StandaloneWindows64 --player-connection-ip=auto --player-load-path=players --suite=playmode --timeout=1200 --zero-tests-are-ok=1
       -  python .yamato/tooling/zip_to_artifact.py --artifacts TestProjects/ShaderGraph/test-results/ --root TestProjects/ShaderGraph/
     artifacts:
         logs:
             paths:
               -  "**/test-results/**"
-              -  "TestProjects/ShaderGraph_ref/Logs/*.log"
+              -  "TestProjects/ShaderGraph/Logs/*.log"
     dependencies:
       -  path: .yamato/_editor_priming.yml#editor:priming:trunk:Win
          rerun: on_new_revision
@@ -58,12 +58,12 @@ Build_ShaderGraph_ref_Win_DX11_Standalone_ref_images_mono_Linear_trunk:
               set /p GIT_REVISIONDATE=<revdate.tmp
               echo %GIT_REVISIONDATE%
               del revdate.tmp
-              utr --artifacts_path=TestProjects/ShaderGraph_ref/test-results --build-only --editor-location=.Editor --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-executemethod" --extra-editor-arg="SetupProject.ApplySettings" --extra-editor-arg="d3d11" --extra-editor-arg="Linear" --extra-editor-arg="-playergraphicsapi=Direct3D11" --platform=StandaloneWindows64 --player-save-path=players --scripting-backend=Mono2x --suite=playmode --testfilter=%TEST_FILTER% --testproject=./TestProjects/ShaderGraph_ref --timeout=1200
+              utr --artifacts_path=TestProjects/ShaderGraph/test-results --build-only --editor-location=.Editor --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-executemethod" --extra-editor-arg="SetupProject.ApplySettings" --extra-editor-arg="d3d11" --extra-editor-arg="Linear" --extra-editor-arg="-playergraphicsapi=Direct3D11" --platform=StandaloneWindows64 --player-save-path=players --scripting-backend=Mono2x --suite=playmode --testfilter=%TEST_FILTER% --testproject=./TestProjects/ShaderGraph --timeout=1200
     artifacts:
         logs:
             paths:
               -  "**/test-results/**"
-              -  "TestProjects/ShaderGraph_ref/Logs/*.log"
+              -  "TestProjects/ShaderGraph/Logs/*.log"
         players:
             paths:
               -  "players*/**"
@@ -88,13 +88,13 @@ ShaderGraph_ref_Win_DX11_playmode_ref_images_mono_Linear_trunk:
       -  choco install unity-downloader-cli -y -s https://artifactory.prd.it.unity3d.com/artifactory/api/nuget/unity-choco-local
       -  unity-downloader-cli --source-file unity_revision.txt -c editor -c il2cpp  --wait --published-only
       -  choco install python3 && refreshenv
-      -  python .yamato/tooling/wrap_utr.py --artifacts_path=TestProjects/ShaderGraph_ref/test-results --editor-location=.Editor --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-force-d3d11" --extra-editor-arg="-logfile C:/build/output/Unity-Technologies/Graphics/TestProjects/ShaderGraph/Logs/Editor.log" --testfilter="Individual" --scripting-backend=Mono2x --suite=playmode --testfilter=%TEST_FILTER% --testproject=./TestProjects/ShaderGraph_ref --zero-tests-are-ok=1
+      -  python .yamato/tooling/wrap_utr.py --artifacts_path=TestProjects/ShaderGraph/test-results --editor-location=.Editor --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-force-d3d11" --extra-editor-arg="-logfile C:/build/output/Unity-Technologies/Graphics/TestProjects/ShaderGraph/Logs/Editor.log" --testfilter="Individual" --scripting-backend=Mono2x --suite=playmode --testfilter=%TEST_FILTER% --testproject=./TestProjects/ShaderGraph --zero-tests-are-ok=1
       -  python .yamato/tooling/zip_to_artifact.py --artifacts TestProjects/ShaderGraph/test-results/ --root TestProjects/ShaderGraph/
     artifacts:
         logs:
             paths:
               -  "**/test-results/**"
-              -  "TestProjects/ShaderGraph_ref/Logs/*.log"
+              -  "TestProjects/ShaderGraph/Logs/*.log"
     dependencies:
       -  path: .yamato/_editor_priming.yml#editor:priming:trunk:Win
          rerun: on_new_revision
@@ -114,13 +114,13 @@ ShaderGraph_ref_Win_DX11_Standalone_cache_ref_images_mono_Linear_trunk:
       -  NetSh Advfirewall set allprofiles state off
       -  curl -s https://artifactory.prd.it.unity3d.com/artifactory/unity-tools-local/utr-standalone/utr.bat --output utr.bat
       -  choco install python3 && refreshenv
-      -  python .yamato/tooling/wrap_utr.py --artifacts_path=TestProjects/ShaderGraph_ref/test-results --platform=StandaloneWindows64 --player-connection-ip=auto --player-load-path=players --suite=playmode --timeout=1200 --zero-tests-are-ok=1
+      -  python .yamato/tooling/wrap_utr.py --artifacts_path=TestProjects/ShaderGraph/test-results --platform=StandaloneWindows64 --player-connection-ip=auto --player-load-path=players --suite=playmode --timeout=1200 --zero-tests-are-ok=1
       -  python .yamato/tooling/zip_to_artifact.py --artifacts TestProjects/ShaderGraph/test-results/ --root TestProjects/ShaderGraph/
     artifacts:
         logs:
             paths:
               -  "**/test-results/**"
-              -  "TestProjects/ShaderGraph_ref/Logs/*.log"
+              -  "TestProjects/ShaderGraph/Logs/*.log"
     dependencies:
       -  path: .yamato/_editor_priming.yml#editor:priming:trunk:Win
          rerun: on_new_revision
@@ -147,12 +147,12 @@ Build_ShaderGraph_ref_Win_DX11_Standalone_cache_ref_images_mono_Linear_trunk:
               set /p GIT_REVISIONDATE=<revdate.tmp
               echo %GIT_REVISIONDATE%
               del revdate.tmp
-              utr --artifacts_path=TestProjects/ShaderGraph_ref/test-results --build-only --editor-location=.Editor --extra-editor-arg="-adb2" --extra-editor-arg="-cacheServerEnableDownload" --extra-editor-arg="true" --extra-editor-arg="-cacheServerEnableUpload" --extra-editor-arg="true" --extra-editor-arg="-cacheServerEndpoint" --extra-editor-arg="cacheserver-slo.hq.unity3d.com" --extra-editor-arg="-cacheServerNamespacePrefix" --extra-editor-arg="{{cache.cacheServerNamespacePrefix}}" --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-enableCacheServer" --extra-editor-arg="-executemethod" --extra-editor-arg="SetupProject.ApplySettings" --extra-editor-arg="d3d11" --extra-editor-arg="Linear" --extra-editor-arg="-playergraphicsapi=Direct3D11" --platform=StandaloneWindows64 --player-save-path=players --scripting-backend=Mono2x --suite=playmode --testfilter=%TEST_FILTER% --testproject=./TestProjects/ShaderGraph_ref --timeout=3000
+              utr --artifacts_path=TestProjects/ShaderGraph/test-results --build-only --editor-location=.Editor --extra-editor-arg="-adb2" --extra-editor-arg="-cacheServerEnableDownload" --extra-editor-arg="true" --extra-editor-arg="-cacheServerEnableUpload" --extra-editor-arg="true" --extra-editor-arg="-cacheServerEndpoint" --extra-editor-arg="cacheserver-slo.hq.unity3d.com" --extra-editor-arg="-cacheServerNamespacePrefix" --extra-editor-arg="{{cache.cacheServerNamespacePrefix}}" --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-enableCacheServer" --extra-editor-arg="-executemethod" --extra-editor-arg="SetupProject.ApplySettings" --extra-editor-arg="d3d11" --extra-editor-arg="Linear" --extra-editor-arg="-playergraphicsapi=Direct3D11" --platform=StandaloneWindows64 --player-save-path=players --scripting-backend=Mono2x --suite=playmode --testfilter=%TEST_FILTER% --testproject=./TestProjects/ShaderGraph --timeout=3000
     artifacts:
         logs:
             paths:
               -  "**/test-results/**"
-              -  "TestProjects/ShaderGraph_ref/Logs/*.log"
+              -  "TestProjects/ShaderGraph/Logs/*.log"
         players:
             paths:
               -  "players*/**"
@@ -176,13 +176,13 @@ ShaderGraph_ref_Win_DX11_Standalone_ref_images_mono_Linear_CUSTOM-REVISION:
       -  cd Tools && powershell -command ". .\Unity.ps1; Set-ScreenResolution -width 1920 -Height 1080"
       -  curl -s https://artifactory.prd.it.unity3d.com/artifactory/unity-tools-local/utr-standalone/utr.bat --output utr.bat
       -  choco install python3 && refreshenv
-      -  python .yamato/tooling/wrap_utr.py --artifacts_path=TestProjects/ShaderGraph_ref/test-results --platform=StandaloneWindows64 --player-connection-ip=auto --player-load-path=players --suite=playmode --timeout=1200 --zero-tests-are-ok=1
+      -  python .yamato/tooling/wrap_utr.py --artifacts_path=TestProjects/ShaderGraph/test-results --platform=StandaloneWindows64 --player-connection-ip=auto --player-load-path=players --suite=playmode --timeout=1200 --zero-tests-are-ok=1
       -  python .yamato/tooling/zip_to_artifact.py --artifacts TestProjects/ShaderGraph/test-results/ --root TestProjects/ShaderGraph/
     artifacts:
         logs:
             paths:
               -  "**/test-results/**"
-              -  "TestProjects/ShaderGraph_ref/Logs/*.log"
+              -  "TestProjects/ShaderGraph/Logs/*.log"
     dependencies:
       -  path: .yamato/_editor_priming.yml#editor:priming:CUSTOM-REVISION:Win
          rerun: on_new_revision
@@ -209,12 +209,12 @@ Build_ShaderGraph_ref_Win_DX11_Standalone_ref_images_mono_Linear_CUSTOM-REVISION
               set /p GIT_REVISIONDATE=<revdate.tmp
               echo %GIT_REVISIONDATE%
               del revdate.tmp
-              utr --artifacts_path=TestProjects/ShaderGraph_ref/test-results --build-only --editor-location=.Editor --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-executemethod" --extra-editor-arg="SetupProject.ApplySettings" --extra-editor-arg="d3d11" --extra-editor-arg="Linear" --extra-editor-arg="-playergraphicsapi=Direct3D11" --platform=StandaloneWindows64 --player-save-path=players --scripting-backend=Mono2x --suite=playmode --testfilter=%TEST_FILTER% --testproject=./TestProjects/ShaderGraph_ref --timeout=1200
+              utr --artifacts_path=TestProjects/ShaderGraph/test-results --build-only --editor-location=.Editor --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-executemethod" --extra-editor-arg="SetupProject.ApplySettings" --extra-editor-arg="d3d11" --extra-editor-arg="Linear" --extra-editor-arg="-playergraphicsapi=Direct3D11" --platform=StandaloneWindows64 --player-save-path=players --scripting-backend=Mono2x --suite=playmode --testfilter=%TEST_FILTER% --testproject=./TestProjects/ShaderGraph --timeout=1200
     artifacts:
         logs:
             paths:
               -  "**/test-results/**"
-              -  "TestProjects/ShaderGraph_ref/Logs/*.log"
+              -  "TestProjects/ShaderGraph/Logs/*.log"
         players:
             paths:
               -  "players*/**"
@@ -239,13 +239,13 @@ ShaderGraph_ref_Win_DX11_playmode_ref_images_mono_Linear_CUSTOM-REVISION:
       -  choco install unity-downloader-cli -y -s https://artifactory.prd.it.unity3d.com/artifactory/api/nuget/unity-choco-local
       -  unity-downloader-cli --source-file unity_revision.txt -c editor -c il2cpp  --wait --published-only
       -  choco install python3 && refreshenv
-      -  python .yamato/tooling/wrap_utr.py --artifacts_path=TestProjects/ShaderGraph_ref/test-results --editor-location=.Editor --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-force-d3d11" --extra-editor-arg="-logfile C:/build/output/Unity-Technologies/Graphics/TestProjects/ShaderGraph/Logs/Editor.log" --testfilter="Individual" --scripting-backend=Mono2x --suite=playmode --testfilter=%TEST_FILTER% --testproject=./TestProjects/ShaderGraph_ref --zero-tests-are-ok=1
+      -  python .yamato/tooling/wrap_utr.py --artifacts_path=TestProjects/ShaderGraph/test-results --editor-location=.Editor --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-force-d3d11" --extra-editor-arg="-logfile C:/build/output/Unity-Technologies/Graphics/TestProjects/ShaderGraph/Logs/Editor.log" --testfilter="Individual" --scripting-backend=Mono2x --suite=playmode --testfilter=%TEST_FILTER% --testproject=./TestProjects/ShaderGraph --zero-tests-are-ok=1
       -  python .yamato/tooling/zip_to_artifact.py --artifacts TestProjects/ShaderGraph/test-results/ --root TestProjects/ShaderGraph/
     artifacts:
         logs:
             paths:
               -  "**/test-results/**"
-              -  "TestProjects/ShaderGraph_ref/Logs/*.log"
+              -  "TestProjects/ShaderGraph/Logs/*.log"
     dependencies:
       -  path: .yamato/_editor_priming.yml#editor:priming:CUSTOM-REVISION:Win
          rerun: on_new_revision
@@ -265,13 +265,13 @@ ShaderGraph_ref_Win_DX11_Standalone_cache_ref_images_mono_Linear_CUSTOM-REVISION
       -  NetSh Advfirewall set allprofiles state off
       -  curl -s https://artifactory.prd.it.unity3d.com/artifactory/unity-tools-local/utr-standalone/utr.bat --output utr.bat
       -  choco install python3 && refreshenv
-      -  python .yamato/tooling/wrap_utr.py --artifacts_path=TestProjects/ShaderGraph_ref/test-results --platform=StandaloneWindows64 --player-connection-ip=auto --player-load-path=players --suite=playmode --timeout=1200 --zero-tests-are-ok=1
+      -  python .yamato/tooling/wrap_utr.py --artifacts_path=TestProjects/ShaderGraph/test-results --platform=StandaloneWindows64 --player-connection-ip=auto --player-load-path=players --suite=playmode --timeout=1200 --zero-tests-are-ok=1
       -  python .yamato/tooling/zip_to_artifact.py --artifacts TestProjects/ShaderGraph/test-results/ --root TestProjects/ShaderGraph/
     artifacts:
         logs:
             paths:
               -  "**/test-results/**"
-              -  "TestProjects/ShaderGraph_ref/Logs/*.log"
+              -  "TestProjects/ShaderGraph/Logs/*.log"
     dependencies:
       -  path: .yamato/_editor_priming.yml#editor:priming:CUSTOM-REVISION:Win
          rerun: on_new_revision
@@ -298,12 +298,12 @@ Build_ShaderGraph_ref_Win_DX11_Standalone_cache_ref_images_mono_Linear_CUSTOM-RE
               set /p GIT_REVISIONDATE=<revdate.tmp
               echo %GIT_REVISIONDATE%
               del revdate.tmp
-              utr --artifacts_path=TestProjects/ShaderGraph_ref/test-results --build-only --editor-location=.Editor --extra-editor-arg="-adb2" --extra-editor-arg="-cacheServerEnableDownload" --extra-editor-arg="true" --extra-editor-arg="-cacheServerEnableUpload" --extra-editor-arg="true" --extra-editor-arg="-cacheServerEndpoint" --extra-editor-arg="cacheserver-slo.hq.unity3d.com" --extra-editor-arg="-cacheServerNamespacePrefix" --extra-editor-arg="{{cache.cacheServerNamespacePrefix}}" --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-enableCacheServer" --extra-editor-arg="-executemethod" --extra-editor-arg="SetupProject.ApplySettings" --extra-editor-arg="d3d11" --extra-editor-arg="Linear" --extra-editor-arg="-playergraphicsapi=Direct3D11" --platform=StandaloneWindows64 --player-save-path=players --scripting-backend=Mono2x --suite=playmode --testfilter=%TEST_FILTER% --testproject=./TestProjects/ShaderGraph_ref --timeout=3000
+              utr --artifacts_path=TestProjects/ShaderGraph/test-results --build-only --editor-location=.Editor --extra-editor-arg="-adb2" --extra-editor-arg="-cacheServerEnableDownload" --extra-editor-arg="true" --extra-editor-arg="-cacheServerEnableUpload" --extra-editor-arg="true" --extra-editor-arg="-cacheServerEndpoint" --extra-editor-arg="cacheserver-slo.hq.unity3d.com" --extra-editor-arg="-cacheServerNamespacePrefix" --extra-editor-arg="{{cache.cacheServerNamespacePrefix}}" --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-enableCacheServer" --extra-editor-arg="-executemethod" --extra-editor-arg="SetupProject.ApplySettings" --extra-editor-arg="d3d11" --extra-editor-arg="Linear" --extra-editor-arg="-playergraphicsapi=Direct3D11" --platform=StandaloneWindows64 --player-save-path=players --scripting-backend=Mono2x --suite=playmode --testfilter=%TEST_FILTER% --testproject=./TestProjects/ShaderGraph --timeout=3000
     artifacts:
         logs:
             paths:
               -  "**/test-results/**"
-              -  "TestProjects/ShaderGraph_ref/Logs/*.log"
+              -  "TestProjects/ShaderGraph/Logs/*.log"
         players:
             paths:
               -  "players*/**"

@@ -1,6 +1,6 @@
 project:
   name: ShaderGraph_ref
-  folder: ShaderGraph_ref
+  folder: ShaderGraph
 test_platforms:
   - type: Standalone
     name: Standalone_ref_images
