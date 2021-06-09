@@ -9,7 +9,10 @@
 ---
 
 PR_URP_2D_2021.1:
-    name: URP_2D PR Job - 2021.1
+    name: PR URP_2D on 2021.1
+    variables:
+        UTR_VERSION: "current"
+        TEST_FILTER: .*
     dependencies:
       -  path: .yamato/urp_2d-win-dx11.yml#URP_2D_Win_DX11_Standalone_cache_mono_Linear_2021.1
          rerun: on_new_revision
@@ -33,14 +36,12 @@ PR_URP_2D_2021.1:
          rerun: on_new_revision
       -  path: .yamato/urp_2d-osx-openglcore.yml#URP_2D_OSX_OpenGLCore_editmode_mono_Linear_2021.1
          rerun: on_new_revision
+Extra_URP_2D_2021.1:
+    name: Extra URP_2D on 2021.1
     variables:
         UTR_VERSION: "current"
         TEST_FILTER: .*
-Nightly_URP_2D_2021.1:
-    name: Nightly URP_2D - 2021.1
     dependencies:
-      -  path: .yamato/all-urp_2d.yml#PR_URP_2D_2021.1
-         rerun: on_new_revision
       -  path: .yamato/urp_2d-win-dx11.yml#URP_2D_Win_DX11_playmode_cache_mono_Linear_2021.1
          rerun: on_new_revision
       -  path: .yamato/urp_2d-win-dx12.yml#URP_2D_Win_DX12_playmode_cache_mono_Linear_2021.1
@@ -49,11 +50,22 @@ Nightly_URP_2D_2021.1:
          rerun: on_new_revision
       -  path: .yamato/urp_2d-linux-vulkan.yml#URP_2D_Linux_Vulkan_playmode_cache_mono_Linear_2021.1
          rerun: on_new_revision
+URP_2D_2021.1:
+    name: URP_2D on 2021.1
     variables:
         UTR_VERSION: "current"
         TEST_FILTER: .*
+    dependencies:
+      -  path: .yamato/all-urp_2d.yml#PR_URP_2D_2021.1
+         rerun: on_new_revision
+      -  path: .yamato/all-urp_2d.yml#Extra_URP_2D_2021.1
+         rerun: on_new_revision
 PR_URP_2D_CUSTOM-REVISION:
-    name: URP_2D PR Job - CUSTOM-REVISION
+    name: PR URP_2D on CUSTOM-REVISION
+    variables:
+        CUSTOM_REVISION: custom_revision_not_set
+        UTR_VERSION: "current"
+        TEST_FILTER: .*
     dependencies:
       -  path: .yamato/urp_2d-win-dx11.yml#URP_2D_Win_DX11_Standalone_cache_mono_Linear_CUSTOM-REVISION
          rerun: on_new_revision
@@ -77,15 +89,13 @@ PR_URP_2D_CUSTOM-REVISION:
          rerun: on_new_revision
       -  path: .yamato/urp_2d-osx-openglcore.yml#URP_2D_OSX_OpenGLCore_editmode_mono_Linear_CUSTOM-REVISION
          rerun: on_new_revision
+Extra_URP_2D_CUSTOM-REVISION:
+    name: Extra URP_2D on CUSTOM-REVISION
     variables:
         CUSTOM_REVISION: custom_revision_not_set
         UTR_VERSION: "current"
         TEST_FILTER: .*
-Nightly_URP_2D_CUSTOM-REVISION:
-    name: Nightly URP_2D - CUSTOM-REVISION
     dependencies:
-      -  path: .yamato/all-urp_2d.yml#PR_URP_2D_CUSTOM-REVISION
-         rerun: on_new_revision
       -  path: .yamato/urp_2d-win-dx11.yml#URP_2D_Win_DX11_playmode_cache_mono_Linear_CUSTOM-REVISION
          rerun: on_new_revision
       -  path: .yamato/urp_2d-win-dx12.yml#URP_2D_Win_DX12_playmode_cache_mono_Linear_CUSTOM-REVISION
@@ -94,7 +104,14 @@ Nightly_URP_2D_CUSTOM-REVISION:
          rerun: on_new_revision
       -  path: .yamato/urp_2d-linux-vulkan.yml#URP_2D_Linux_Vulkan_playmode_cache_mono_Linear_CUSTOM-REVISION
          rerun: on_new_revision
+URP_2D_CUSTOM-REVISION:
+    name: URP_2D on CUSTOM-REVISION
     variables:
         CUSTOM_REVISION: custom_revision_not_set
         UTR_VERSION: "current"
         TEST_FILTER: .*
+    dependencies:
+      -  path: .yamato/all-urp_2d.yml#PR_URP_2D_CUSTOM-REVISION
+         rerun: on_new_revision
+      -  path: .yamato/all-urp_2d.yml#Extra_URP_2D_CUSTOM-REVISION
+         rerun: on_new_revision

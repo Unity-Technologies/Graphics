@@ -9,7 +9,10 @@
 ---
 
 PR_URP_PostPro_2021.1:
-    name: URP_PostPro PR Job - 2021.1
+    name: PR URP_PostPro on 2021.1
+    variables:
+        UTR_VERSION: "current"
+        TEST_FILTER: .*
     dependencies:
       -  path: .yamato/urp_postpro-win-dx11.yml#URP_PostPro_Win_DX11_Standalone_cache_mono_Linear_2021.1
          rerun: on_new_revision
@@ -33,14 +36,12 @@ PR_URP_PostPro_2021.1:
          rerun: on_new_revision
       -  path: .yamato/urp_postpro-osx-openglcore.yml#URP_PostPro_OSX_OpenGLCore_editmode_mono_Linear_2021.1
          rerun: on_new_revision
+Extra_URP_PostPro_2021.1:
+    name: Extra URP_PostPro on 2021.1
     variables:
         UTR_VERSION: "current"
         TEST_FILTER: .*
-Nightly_URP_PostPro_2021.1:
-    name: Nightly URP_PostPro - 2021.1
     dependencies:
-      -  path: .yamato/all-urp_postpro.yml#PR_URP_PostPro_2021.1
-         rerun: on_new_revision
       -  path: .yamato/urp_postpro-win-dx11.yml#URP_PostPro_Win_DX11_playmode_cache_mono_Linear_2021.1
          rerun: on_new_revision
       -  path: .yamato/urp_postpro-win-dx12.yml#URP_PostPro_Win_DX12_playmode_cache_mono_Linear_2021.1
@@ -49,11 +50,22 @@ Nightly_URP_PostPro_2021.1:
          rerun: on_new_revision
       -  path: .yamato/urp_postpro-linux-vulkan.yml#URP_PostPro_Linux_Vulkan_playmode_cache_mono_Linear_2021.1
          rerun: on_new_revision
+URP_PostPro_2021.1:
+    name: URP_PostPro on 2021.1
     variables:
         UTR_VERSION: "current"
         TEST_FILTER: .*
+    dependencies:
+      -  path: .yamato/all-urp_postpro.yml#PR_URP_PostPro_2021.1
+         rerun: on_new_revision
+      -  path: .yamato/all-urp_postpro.yml#Extra_URP_PostPro_2021.1
+         rerun: on_new_revision
 PR_URP_PostPro_CUSTOM-REVISION:
-    name: URP_PostPro PR Job - CUSTOM-REVISION
+    name: PR URP_PostPro on CUSTOM-REVISION
+    variables:
+        CUSTOM_REVISION: custom_revision_not_set
+        UTR_VERSION: "current"
+        TEST_FILTER: .*
     dependencies:
       -  path: .yamato/urp_postpro-win-dx11.yml#URP_PostPro_Win_DX11_Standalone_cache_mono_Linear_CUSTOM-REVISION
          rerun: on_new_revision
@@ -77,15 +89,13 @@ PR_URP_PostPro_CUSTOM-REVISION:
          rerun: on_new_revision
       -  path: .yamato/urp_postpro-osx-openglcore.yml#URP_PostPro_OSX_OpenGLCore_editmode_mono_Linear_CUSTOM-REVISION
          rerun: on_new_revision
+Extra_URP_PostPro_CUSTOM-REVISION:
+    name: Extra URP_PostPro on CUSTOM-REVISION
     variables:
         CUSTOM_REVISION: custom_revision_not_set
         UTR_VERSION: "current"
         TEST_FILTER: .*
-Nightly_URP_PostPro_CUSTOM-REVISION:
-    name: Nightly URP_PostPro - CUSTOM-REVISION
     dependencies:
-      -  path: .yamato/all-urp_postpro.yml#PR_URP_PostPro_CUSTOM-REVISION
-         rerun: on_new_revision
       -  path: .yamato/urp_postpro-win-dx11.yml#URP_PostPro_Win_DX11_playmode_cache_mono_Linear_CUSTOM-REVISION
          rerun: on_new_revision
       -  path: .yamato/urp_postpro-win-dx12.yml#URP_PostPro_Win_DX12_playmode_cache_mono_Linear_CUSTOM-REVISION
@@ -94,7 +104,14 @@ Nightly_URP_PostPro_CUSTOM-REVISION:
          rerun: on_new_revision
       -  path: .yamato/urp_postpro-linux-vulkan.yml#URP_PostPro_Linux_Vulkan_playmode_cache_mono_Linear_CUSTOM-REVISION
          rerun: on_new_revision
+URP_PostPro_CUSTOM-REVISION:
+    name: URP_PostPro on CUSTOM-REVISION
     variables:
         CUSTOM_REVISION: custom_revision_not_set
         UTR_VERSION: "current"
         TEST_FILTER: .*
+    dependencies:
+      -  path: .yamato/all-urp_postpro.yml#PR_URP_PostPro_CUSTOM-REVISION
+         rerun: on_new_revision
+      -  path: .yamato/all-urp_postpro.yml#Extra_URP_PostPro_CUSTOM-REVISION
+         rerun: on_new_revision

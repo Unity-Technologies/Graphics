@@ -9,40 +9,57 @@
 ---
 
 PR_Universal_Hybrid_2021.1:
-    name: Universal_Hybrid PR Job - 2021.1
+    name: PR Universal_Hybrid on 2021.1
+    variables:
+        UTR_VERSION: "current"
+        TEST_FILTER: .*
     dependencies:
       -  path: .yamato/universal_hybrid-win-dx11.yml#Universal_Hybrid_Win_DX11_playmode_mono_Linear_2021.1
          rerun: on_new_revision
       -  path: .yamato/universal_hybrid-osx-metal.yml#Universal_Hybrid_OSX_Metal_playmode_mono_Linear_2021.1
          rerun: on_new_revision
+Extra_Universal_Hybrid_2021.1:
+    name: Extra Universal_Hybrid on 2021.1
     variables:
         UTR_VERSION: "current"
         TEST_FILTER: .*
-Nightly_Universal_Hybrid_2021.1:
-    name: Nightly Universal_Hybrid - 2021.1
+    dependencies: []
+Universal_Hybrid_2021.1:
+    name: Universal_Hybrid on 2021.1
+    variables:
+        UTR_VERSION: "current"
+        TEST_FILTER: .*
     dependencies:
       -  path: .yamato/all-universal_hybrid.yml#PR_Universal_Hybrid_2021.1
          rerun: on_new_revision
+      -  path: .yamato/all-universal_hybrid.yml#Extra_Universal_Hybrid_2021.1
+         rerun: on_new_revision
+PR_Universal_Hybrid_CUSTOM-REVISION:
+    name: PR Universal_Hybrid on CUSTOM-REVISION
     variables:
+        CUSTOM_REVISION: custom_revision_not_set
         UTR_VERSION: "current"
         TEST_FILTER: .*
-PR_Universal_Hybrid_CUSTOM-REVISION:
-    name: Universal_Hybrid PR Job - CUSTOM-REVISION
     dependencies:
       -  path: .yamato/universal_hybrid-win-dx11.yml#Universal_Hybrid_Win_DX11_playmode_mono_Linear_CUSTOM-REVISION
          rerun: on_new_revision
       -  path: .yamato/universal_hybrid-osx-metal.yml#Universal_Hybrid_OSX_Metal_playmode_mono_Linear_CUSTOM-REVISION
          rerun: on_new_revision
+Extra_Universal_Hybrid_CUSTOM-REVISION:
+    name: Extra Universal_Hybrid on CUSTOM-REVISION
     variables:
         CUSTOM_REVISION: custom_revision_not_set
         UTR_VERSION: "current"
         TEST_FILTER: .*
-Nightly_Universal_Hybrid_CUSTOM-REVISION:
-    name: Nightly Universal_Hybrid - CUSTOM-REVISION
+    dependencies: []
+Universal_Hybrid_CUSTOM-REVISION:
+    name: Universal_Hybrid on CUSTOM-REVISION
+    variables:
+        CUSTOM_REVISION: custom_revision_not_set
+        UTR_VERSION: "current"
+        TEST_FILTER: .*
     dependencies:
       -  path: .yamato/all-universal_hybrid.yml#PR_Universal_Hybrid_CUSTOM-REVISION
          rerun: on_new_revision
-    variables:
-        CUSTOM_REVISION: custom_revision_not_set
-        UTR_VERSION: "current"
-        TEST_FILTER: .*
+      -  path: .yamato/all-universal_hybrid.yml#Extra_Universal_Hybrid_CUSTOM-REVISION
+         rerun: on_new_revision

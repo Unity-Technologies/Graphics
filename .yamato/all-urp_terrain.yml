@@ -9,7 +9,10 @@
 ---
 
 PR_URP_Terrain_2021.1:
-    name: URP_Terrain PR Job - 2021.1
+    name: PR URP_Terrain on 2021.1
+    variables:
+        UTR_VERSION: "current"
+        TEST_FILTER: .*
     dependencies:
       -  path: .yamato/urp_terrain-win-dx11.yml#URP_Terrain_Win_DX11_Standalone_cache_mono_Linear_2021.1
          rerun: on_new_revision
@@ -33,14 +36,12 @@ PR_URP_Terrain_2021.1:
          rerun: on_new_revision
       -  path: .yamato/urp_terrain-osx-openglcore.yml#URP_Terrain_OSX_OpenGLCore_editmode_mono_Linear_2021.1
          rerun: on_new_revision
+Extra_URP_Terrain_2021.1:
+    name: Extra URP_Terrain on 2021.1
     variables:
         UTR_VERSION: "current"
         TEST_FILTER: .*
-Nightly_URP_Terrain_2021.1:
-    name: Nightly URP_Terrain - 2021.1
     dependencies:
-      -  path: .yamato/all-urp_terrain.yml#PR_URP_Terrain_2021.1
-         rerun: on_new_revision
       -  path: .yamato/urp_terrain-win-dx11.yml#URP_Terrain_Win_DX11_playmode_cache_mono_Linear_2021.1
          rerun: on_new_revision
       -  path: .yamato/urp_terrain-win-dx12.yml#URP_Terrain_Win_DX12_playmode_cache_mono_Linear_2021.1
@@ -49,11 +50,22 @@ Nightly_URP_Terrain_2021.1:
          rerun: on_new_revision
       -  path: .yamato/urp_terrain-linux-vulkan.yml#URP_Terrain_Linux_Vulkan_playmode_cache_mono_Linear_2021.1
          rerun: on_new_revision
+URP_Terrain_2021.1:
+    name: URP_Terrain on 2021.1
     variables:
         UTR_VERSION: "current"
         TEST_FILTER: .*
+    dependencies:
+      -  path: .yamato/all-urp_terrain.yml#PR_URP_Terrain_2021.1
+         rerun: on_new_revision
+      -  path: .yamato/all-urp_terrain.yml#Extra_URP_Terrain_2021.1
+         rerun: on_new_revision
 PR_URP_Terrain_CUSTOM-REVISION:
-    name: URP_Terrain PR Job - CUSTOM-REVISION
+    name: PR URP_Terrain on CUSTOM-REVISION
+    variables:
+        CUSTOM_REVISION: custom_revision_not_set
+        UTR_VERSION: "current"
+        TEST_FILTER: .*
     dependencies:
       -  path: .yamato/urp_terrain-win-dx11.yml#URP_Terrain_Win_DX11_Standalone_cache_mono_Linear_CUSTOM-REVISION
          rerun: on_new_revision
@@ -77,15 +89,13 @@ PR_URP_Terrain_CUSTOM-REVISION:
          rerun: on_new_revision
       -  path: .yamato/urp_terrain-osx-openglcore.yml#URP_Terrain_OSX_OpenGLCore_editmode_mono_Linear_CUSTOM-REVISION
          rerun: on_new_revision
+Extra_URP_Terrain_CUSTOM-REVISION:
+    name: Extra URP_Terrain on CUSTOM-REVISION
     variables:
         CUSTOM_REVISION: custom_revision_not_set
         UTR_VERSION: "current"
         TEST_FILTER: .*
-Nightly_URP_Terrain_CUSTOM-REVISION:
-    name: Nightly URP_Terrain - CUSTOM-REVISION
     dependencies:
-      -  path: .yamato/all-urp_terrain.yml#PR_URP_Terrain_CUSTOM-REVISION
-         rerun: on_new_revision
       -  path: .yamato/urp_terrain-win-dx11.yml#URP_Terrain_Win_DX11_playmode_cache_mono_Linear_CUSTOM-REVISION
          rerun: on_new_revision
       -  path: .yamato/urp_terrain-win-dx12.yml#URP_Terrain_Win_DX12_playmode_cache_mono_Linear_CUSTOM-REVISION
@@ -94,7 +104,14 @@ Nightly_URP_Terrain_CUSTOM-REVISION:
          rerun: on_new_revision
       -  path: .yamato/urp_terrain-linux-vulkan.yml#URP_Terrain_Linux_Vulkan_playmode_cache_mono_Linear_CUSTOM-REVISION
          rerun: on_new_revision
+URP_Terrain_CUSTOM-REVISION:
+    name: URP_Terrain on CUSTOM-REVISION
     variables:
         CUSTOM_REVISION: custom_revision_not_set
         UTR_VERSION: "current"
         TEST_FILTER: .*
+    dependencies:
+      -  path: .yamato/all-urp_terrain.yml#PR_URP_Terrain_CUSTOM-REVISION
+         rerun: on_new_revision
+      -  path: .yamato/all-urp_terrain.yml#Extra_URP_Terrain_CUSTOM-REVISION
+         rerun: on_new_revision
