@@ -240,64 +240,53 @@ namespace UnityEngine.Experimental.Rendering
                     continue;
 
                 float largestBrickSize = cell.bricks.Count == 0 ? 0 : cell.bricks[0].subdivisionLevel;
-
                 List<Matrix4x4[]> probeBuffers = new List<Matrix4x4[]>();
                 List<MaterialPropertyBlock> props = new List<MaterialPropertyBlock>();
-                List<int[]> probeMaps = new List<int[]>();
+                CellChunkInfo chunks;
+                m_ChunkInfo.TryGetValue(cell.index, out chunks);
 
-                // Batch probes for instanced rendering
-                for (int brickSize = 0; brickSize < largestBrickSize + 1; brickSize++)
-                {
-                    List<Matrix4x4> probeBuffer = new List<Matrix4x4>();
-                    List<int> probeMap = new List<int>();
-
-                    for (int i = 0; i < cell.probePositions.Length; i++)
-                    {
-                        // Skip probes which aren't of current brick size
-                        if (cell.bricks[i / 64].subdivisionLevel == brickSize)
-                        {
-                            probeBuffer.Add(Matrix4x4.TRS(cell.probePositions[i], Quaternion.identity, Vector3.one * (0.3f * (brickSize + 1))));
-                            probeMap.Add(i);
-                        }
-
-                        // Batch limit reached or out of probes
-                        if (probeBuffer.Count >= kProbesPerBatch || i == cell.probePositions.Length - 1)
-                        {
-                            MaterialPropertyBlock prop = new MaterialPropertyBlock();
-                            float gradient = largestBrickSize == 0 ? 1 : brickSize / largestBrickSize;
-                            prop.SetColor("_Color", Color.Lerp(Color.red, Color.green, gradient));
-                            prop.SetInt("_SubdivLevel", brickSize);
-                            props.Add(prop);
-
-                            probeBuffers.Add(probeBuffer.ToArray());
-                            probeBuffer = new List<Matrix4x4>();
-                            probeMaps.Add(probeMap.ToArray());
-                            probeMap = new List<int>();
-                        }
-                    }
-                }
+                Vector4[] texels = new Vector4[kProbesPerBatch];
+                float[] validity = new float[kProbesPerBatch];
+                List<Matrix4x4> probeBuffer = new List<Matrix4x4>();
 
                 var debugData = new CellInstancedDebugProbes();
                 debugData.probeBuffers = probeBuffers;
                 debugData.props = props;
                 debugData.cellPosition = cell.position;
 
-                Vector4[] positionBuffer = new Vector4[kProbesPerBatch];
-                float[] validity = new float[kProbesPerBatch];
-
-                for (int batchIndex = 0; batchIndex < probeMaps.Count; batchIndex++)
+                int idxInBatch = 0;
+                for (int i = 0; i < cell.probePositions.Length; i++)
                 {
-                    for (int indexInBatch = 0; indexInBatch < probeMaps[batchIndex].Length; indexInBatch++)
+                    var brickSize = cell.bricks[i / 64].subdivisionLevel;
+
+                    int chunkIndex = i / m_Pool.GetChunkSizeInProbeCount();
+                    var chunk = chunks.chunks[chunkIndex];
+                    int indexInChunk = i % m_Pool.GetChunkSizeInProbeCount();
+                    int brickIdx = indexInChunk / 64;
+                    int indexInBrick = indexInChunk % 64;
+
+                    Vector2Int brickStart = new Vector2Int(chunk.x + brickIdx * 4, chunk.y);
+                    int indexInSlice = indexInBrick % 16;
+                    Vector3Int texelLoc = new Vector3Int(brickStart.x + (indexInSlice % 4), brickStart.y + (indexInSlice / 4), indexInBrick / 16);
+
+                    probeBuffer.Add(Matrix4x4.TRS(cell.probePositions[i], Quaternion.identity, Vector3.one * (0.3f * (brickSize + 1))));
+                    validity[idxInBatch] = cell.validity[i];
+                    texels[idxInBatch] = new Vector4(texelLoc.x, texelLoc.y, texelLoc.z, brickSize);
+                    idxInBatch++;
+
+                    if (probeBuffer.Count >= kProbesPerBatch || i == cell.probePositions.Length - 1)
                     {
-                        int probeIdx = probeMaps[batchIndex][indexInBatch];
+                        idxInBatch = 0;
+                        MaterialPropertyBlock prop = new MaterialPropertyBlock();
 
-                        var pos = cell.probePositions[probeIdx];
-                        positionBuffer[indexInBatch] = new Vector4(pos.x, pos.y, pos.z, 0.0f);
-                        validity[indexInBatch] = cell.validity[probeIdx];
+                        prop.SetFloatArray("_Validity", validity);
+                        prop.SetVectorArray("_IndexInAtlas", texels);
+
+                        props.Add(prop);
+
+                        probeBuffers.Add(probeBuffer.ToArray());
+                        probeBuffer = new List<Matrix4x4>();
                     }
-
-                    debugData.props[batchIndex].SetVectorArray("_Position", positionBuffer);
-                    debugData.props[batchIndex].SetFloatArray("_Validity", validity);
                 }
 
                 m_CellDebugData.Add(debugData);
