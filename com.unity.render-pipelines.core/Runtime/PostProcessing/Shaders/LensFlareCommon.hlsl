@@ -26,15 +26,14 @@ float4 _FlareColorValue;
 float4 _FlareData0; // x: localCos0, y: localSin0, zw: PositionOffsetXY
 float4 _FlareData1; // x: OcclusionRadius, y: OcclusionSampleCount, z: ScreenPosZ, w: ScreenRatio
 float4 _FlareData2; // xy: ScreenPos, zw: FlareSize
-float4 _FlareData3; // xy: RayOffset, z: invSideCount
+float4 _FlareData3; // x: Allow Offscreen, y: Edge Offset, z: Falloff, w: invSideCount
 float4 _FlareData4; // x: SDF Roundness, y: SDF Frequency
-float4 _FlareData5; // x: Allow Offscreen, y: Edge Offset, z: Falloff
 
 #define _FlareColor             _FlareColorValue
 
 #define _LocalCos0              _FlareData0.x
 #define _LocalSin0              _FlareData0.y
-#define _PositionOffset         _FlareData0.zw
+#define _PositionTranslate      _FlareData0.zw
 
 #define _OcclusionRadius        _FlareData1.x
 #define _OcclusionSampleCount   _FlareData1.y
@@ -44,17 +43,15 @@ float4 _FlareData5; // x: Allow Offscreen, y: Edge Offset, z: Falloff
 #define _ScreenPos              _FlareData2.xy
 #define _FlareSize              _FlareData2.zw
 
-#define _FlareRayOffset         _FlareData3.xy
+#define _OcclusionOffscreen     _FlareData3.x
+#define _FlareEdgeOffset        _FlareData3.y
+#define _FlareFalloff           _FlareData3.z
 #define _FlareShapeInvSide      _FlareData3.z
 
 #define _FlareSDFRoundness      _FlareData4.x
 #define _FlareSDFPolyRadius     _FlareData4.y
 #define _FlareSDFPolyParam0     _FlareData4.z
 #define _FlareSDFPolyParam1     _FlareData4.w
-
-#define _OcclusionOffscreen     _FlareData5.x
-#define _FlareEdgeOffset        _FlareData5.y
-#define _FlareFalloff           _FlareData5.z
 
 float2 Rotate(float2 v, float cos0, float sin0)
 {
@@ -85,7 +82,7 @@ float GetOcclusion(float2 screenPos, float flareDepth, float ratio)
 
     for (uint i = 0; i < (uint)_OcclusionSampleCount; i++)
     {
-        float2 dir = _OcclusionRadius * SampleDiskUniform(Hash(2 * i + 0 + 1), Hash(2 * i + 1 + 1));
+        float2 dir = _OcclusionRadius * SampleDiskUniform(Hash(2 * i + 0), Hash(2 * i + 1));
         float2 pos = screenPos + dir;
         pos.xy = pos * 0.5f + 0.5f;
 #ifdef UNITY_UV_STARTS_AT_TOP
@@ -142,7 +139,7 @@ VaryingsLensFlare vert(AttributesLensFlare input, uint instanceID : SV_InstanceI
 
     local.x *= screenRatio;
 
-    output.positionCS.xy = local + _ScreenPos + _FlareRayOffset + _PositionOffset;
+    output.positionCS.xy = local + _ScreenPos + _PositionTranslate;
     output.positionCS.z = 1.0f;
     output.positionCS.w = 1.0f;
 
