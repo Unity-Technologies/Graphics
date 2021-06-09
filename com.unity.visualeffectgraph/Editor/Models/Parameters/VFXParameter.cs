@@ -24,6 +24,29 @@ namespace UnityEditor.VFX
             m_UICollapsed = false;
         }
 
+        public VFXParameter(VFXParameter source)
+        {
+            m_ExposedName = source.m_ExposedName;
+            m_Exposed = source.m_Exposed;
+            m_UICollapsed = source.m_UICollapsed;
+            m_Order = source.m_Order;
+            m_Category = source.m_Category;
+            m_Min = source.m_Min;
+            m_Max = source.m_Max;
+            m_IsOutput = source.m_IsOutput;
+            m_EnumValues = source.m_EnumValues?.ToList();
+            m_Tooltip = source.m_Tooltip;
+            m_ValueFilter = source.m_ValueFilter;
+            subgraphMode = source.subgraphMode;
+            m_ValueExpr = source.m_ValueExpr;
+
+            this.Init(source.type);
+            for (var i=0; i < source.m_ExprSlots.Length;i++)
+            {
+                m_ExprSlots[i].value = source.m_ExprSlots[i].value;
+            }
+        }
+
         [VFXSetting(VFXSettingAttribute.VisibleFlags.None), SerializeField, FormerlySerializedAs("m_exposedName")]
         private string m_ExposedName;
         [VFXSetting(VFXSettingAttribute.VisibleFlags.InInspector), SerializeField, FormerlySerializedAs("m_exposed")]
