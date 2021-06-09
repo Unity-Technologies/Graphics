@@ -45,16 +45,7 @@ namespace UnityEditor.ShaderGraph
 
         public override void GenerateNodeFunction(FunctionRegistry registry, GenerationMode generationMode)
         {
-            registry.ProvideFunction("Unity_SimpleNoise_RandomValue_$precision", s => s.Append(@"
-inline $precision Unity_SimpleNoise_RandomValue_$precision ($precision2 uv)
-{
-    $precision angle = dot(uv, $precision2(12.9898, 78.233));
-    #if defined(SHADER_API_MOBILE) && (defined(SHADER_API_GLES) || defined(SHADER_API_GLES3) || defined(SHADER_API_VULKAN))
-        // 'sin()' has bad precision on Mali GPUs for inputs > 10000
-        angle = fmod(angle, TWO_PI); // Avoid large inputs to sin()
-    #endif
-    return frac(sin(angle)*43758.5453);
-}"));
+            registry.RequiresIncludePath("Packages/com.unity.render-pipelines.core/ShaderLibrary/Hashes.hlsl");
 
             registry.ProvideFunction($"Unity_SimpleNnoise_Interpolate_$precision", s => s.Append(@"
 inline $precision Unity_SimpleNnoise_Interpolate_$precision ($precision a, $precision b, $precision t)
@@ -75,10 +66,10 @@ inline $precision Unity_SimpleNoise_ValueNoise_$precision ($precision2 uv)
     $precision2 c1 = i + $precision2(1.0, 0.0);
     $precision2 c2 = i + $precision2(0.0, 1.0);
     $precision2 c3 = i + $precision2(1.0, 1.0);
-    $precision r0 = Unity_SimpleNoise_RandomValue_$precision(c0);
-    $precision r1 = Unity_SimpleNoise_RandomValue_$precision(c1);
-    $precision r2 = Unity_SimpleNoise_RandomValue_$precision(c2);
-    $precision r3 = Unity_SimpleNoise_RandomValue_$precision(c3);
+    $precision r0; Hash_LegacySine_2_1_$precision(c0, r0);
+    $precision r1; Hash_LegacySine_2_1_$precision(c1, r1);
+    $precision r2; Hash_LegacySine_2_1_$precision(c2, r2);
+    $precision r3; Hash_LegacySine_2_1_$precision(c3, r3);
 
     $precision bottomOfGrid = Unity_SimpleNnoise_Interpolate_$precision(r0, r1, f.x);
     $precision topOfGrid = Unity_SimpleNnoise_Interpolate_$precision(r2, r3, f.x);
