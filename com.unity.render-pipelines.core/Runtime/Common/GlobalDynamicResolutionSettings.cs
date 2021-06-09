@@ -59,7 +59,13 @@ namespace UnityEngine.Rendering
             // It fall-backs to software when not supported, so it makes sense to have it on by default.
             dynResType = DynamicResolutionType.Hardware,
             upsampleFilter = DynamicResUpscaleFilter.CatmullRom,
-            forcedPercentage = 100.0f
+            forcedPercentage = 100.0f,
+
+            //Defaults for dlss
+            enableDLSS = false,
+            DLSSUseOptimalSettings = true,
+            DLSSPerfQualitySetting = 0,
+            DLSSSharpness = 0.5f
         };
 
         /// <summary>Select whether the dynamic resolution is enabled or not.</summary>
