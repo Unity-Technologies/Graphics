@@ -2,7 +2,7 @@ import subprocess
 import platform
 import sys
 from os import path, listdir
-from pathlib import Path
+from os.path import expanduser
 
 if __name__ == "__main__":
     cur_sys = platform.system()
@@ -14,8 +14,8 @@ if __name__ == "__main__":
         output = subprocess.call(["utr"] + sys.argv[2:])
     else:
         print(listdir(".\\"))
-        # Path.home() is the same as ~
-        utr_path = path.join(str(Path.home()), "Graphics/utr")
+        # expanduser("~") is the same as ~
+        utr_path = path.join(expanduser("~"), "Graphics/utr")
         print(utr_path)
         output = subprocess.call([utr_path] + sys.argv[2:])
 
