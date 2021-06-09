@@ -318,6 +318,7 @@ namespace UnityEditor.ShaderGraph.Drawing
             if (!selection.OfType<SGBlackboardCategory>().Any())
             {
                 SetCategoryDragIndicatorVisible(false);
+                return;
             }
 
             Vector2 localPosition = evt.localMousePosition;

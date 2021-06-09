@@ -161,7 +161,15 @@ namespace UnityEditor.ShaderGraph.Drawing
                 case CopyShaderInputAction copyShaderInputAction:
                     // In the specific case of only-one keywords like Material Quality and Raytracing, they can get copied, but because only one can exist, the output copied value is null
                     if (copyShaderInputAction.copiedShaderInput != null && IsInputInCategory(copyShaderInputAction.copiedShaderInput))
-                        InsertBlackboardRow(copyShaderInputAction.copiedShaderInput, copyShaderInputAction.insertIndex);
+                    {
+                        var blackboardRow = InsertBlackboardRow(copyShaderInputAction.copiedShaderInput, copyShaderInputAction.insertIndex);
+                        if (blackboardRow != null)
+                        {
+                            var graphView = ViewModel.parentView.GetFirstAncestorOfType<MaterialGraphView>();
+                            var propertyView = blackboardRow.Q<SGBlackboardField>();
+                            graphView?.AddToSelectionNoUndoRecord(propertyView);
+                        }
+                    }
                     break;
 
                 case AddItemToCategoryAction addItemToCategoryAction:
