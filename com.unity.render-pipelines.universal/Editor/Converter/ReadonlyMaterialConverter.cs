@@ -84,7 +84,7 @@ namespace UnityEditor.Rendering.Universal.Converters
 
         public override void OnRun(ref RunItemContext ctx)
         {
-            var obj = LoadObject(ctx.item, ctx);
+            var obj = LoadObject(ref ctx);
             var result = true;
             var errorString = new StringBuilder();
 
@@ -237,10 +237,11 @@ namespace UnityEditor.Rendering.Universal.Converters
             return result;
         }
 
-        private Object LoadObject(ConverterItemInfo item, RunItemContext ctx)
+        private Object LoadObject(ref RunItemContext ctx)
         {
-            string guid = guids[ctx.item.index];
-            //if (GlobalObjectId.TryParse(item.descriptor.info, out var gid))
+            var item = ctx.item;
+            var guid = guids[item.index];
+
             if (GlobalObjectId.TryParse(guid, out var gid))
             {
                 var obj = GlobalObjectId.GlobalObjectIdentifierToObjectSlow(gid);
@@ -260,20 +261,16 @@ namespace UnityEditor.Rendering.Universal.Converters
                         {
                             obj = mainInstanceID;
                         }
-                        else
-                        {
-                            SceneManager.GetActiveScene();
-                        }
-                    }
 
-                    // Reload object if it is still null
-                    if (obj == null)
-                    {
-                        obj = GlobalObjectId.GlobalObjectIdentifierToObjectSlow(gid);
-                        if (!obj)
+                        // Reload object if it is still null
+                        if (obj == null)
                         {
-                            ctx.didFail = true;
-                            ctx.info = $"Object {gid.assetGUID} failed to load...";
+                            obj = GlobalObjectId.GlobalObjectIdentifierToObjectSlow(gid);
+                            if (!obj)
+                            {
+                                ctx.didFail = true;
+                                ctx.info = $"Object {gid.assetGUID} failed to load...";
+                            }
                         }
                     }
                 }
