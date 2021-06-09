@@ -137,7 +137,7 @@ nightly_vfx_hdrp_-_2021_1:
       updated_at: '2020-12-16 00:05:36.049181'
       version: ''
 nightly_vfx_hdrp_-_2021.1:
-  updated_at: '2021-06-08 08:05:45.169612'
+  updated_at: '2021-06-09 08:05:14.970859'
   last_green_revisions:
     Android:
       revision: afcadd793de6f8c780b0fefa7b06fbfd536d5577
@@ -160,7 +160,7 @@ nightly_vfx_hdrp_-_2021.1:
       updated_at: '2021-06-05 23:58:24.642304'
       version: ''
 vfx_hdrp_pr_job_-_2021.1:
-  updated_at: '2021-06-08 08:05:45.169612'
+  updated_at: '2021-06-09 08:05:14.970859'
   last_green_revisions:
     Android:
       revision: afcadd793de6f8c780b0fefa7b06fbfd536d5577
@@ -229,50 +229,50 @@ vfx_urp_pr_job_-_2021.1:
       updated_at: '2021-06-05 23:58:24.642304'
       version: ''
 shadergraph_pr_job_-_2021.1:
-  updated_at: '2021-06-04 07:34:28.889470'
+  updated_at: '2021-06-09 08:05:14.970859'
   last_green_revisions:
     Android:
-      revision: 4d8c25f7477e247c61393d194a9499a3650f4ef0
-      updated_at: '2021-06-03 23:18:16.331734'
+      revision: afcadd793de6f8c780b0fefa7b06fbfd536d5577
+      updated_at: '2021-06-05 23:58:24.642304'
       version: ''
     Linux:
-      revision: 4d8c25f7477e247c61393d194a9499a3650f4ef0
-      updated_at: '2021-06-03 23:41:36.280923'
+      revision: afcadd793de6f8c780b0fefa7b06fbfd536d5577
+      updated_at: '2021-06-06 23:57:48.669654'
       version: ''
     OSX:
-      revision: 4d8c25f7477e247c61393d194a9499a3650f4ef0
-      updated_at: '2021-06-03 23:41:36.280923'
+      revision: afcadd793de6f8c780b0fefa7b06fbfd536d5577
+      updated_at: '2021-06-06 23:57:48.669654'
       version: ''
     Win:
-      revision: 4d8c25f7477e247c61393d194a9499a3650f4ef0
-      updated_at: '2021-06-03 23:41:36.280923'
+      revision: afcadd793de6f8c780b0fefa7b06fbfd536d5577
+      updated_at: '2021-06-05 23:58:24.642304'
       version: ''
     iPhone:
-      revision: 4d8c25f7477e247c61393d194a9499a3650f4ef0
-      updated_at: '2021-06-03 23:18:16.331734'
+      revision: afcadd793de6f8c780b0fefa7b06fbfd536d5577
+      updated_at: '2021-06-05 23:58:24.642304'
       version: ''
 nightly_shadergraph_-_2021.1:
-  updated_at: '2021-06-04 07:34:28.889470'
+  updated_at: '2021-06-09 08:05:14.970859'
   last_green_revisions:
     Android:
-      revision: 4d8c25f7477e247c61393d194a9499a3650f4ef0
-      updated_at: '2021-06-03 23:18:16.331734'
+      revision: afcadd793de6f8c780b0fefa7b06fbfd536d5577
+      updated_at: '2021-06-05 23:58:24.642304'
       version: ''
     Linux:
-      revision: 4d8c25f7477e247c61393d194a9499a3650f4ef0
-      updated_at: '2021-06-03 23:41:36.280923'
+      revision: afcadd793de6f8c780b0fefa7b06fbfd536d5577
+      updated_at: '2021-06-06 23:57:48.669654'
       version: ''
     OSX:
-      revision: 4d8c25f7477e247c61393d194a9499a3650f4ef0
-      updated_at: '2021-06-03 23:41:36.280923'
+      revision: afcadd793de6f8c780b0fefa7b06fbfd536d5577
+      updated_at: '2021-06-06 23:57:48.669654'
       version: ''
     Win:
-      revision: 4d8c25f7477e247c61393d194a9499a3650f4ef0
-      updated_at: '2021-06-03 23:41:36.280923'
+      revision: afcadd793de6f8c780b0fefa7b06fbfd536d5577
+      updated_at: '2021-06-05 23:58:24.642304'
       version: ''
     iPhone:
-      revision: 4d8c25f7477e247c61393d194a9499a3650f4ef0
-      updated_at: '2021-06-03 23:18:16.331734'
+      revision: afcadd793de6f8c780b0fefa7b06fbfd536d5577
+      updated_at: '2021-06-05 23:58:24.642304'
       version: ''
 nightly_universal_-_2021.1:
   updated_at: '2021-03-01 07:18:00.340742'
