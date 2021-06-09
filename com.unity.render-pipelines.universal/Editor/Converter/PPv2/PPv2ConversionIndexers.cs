@@ -1,4 +1,4 @@
-//#if PPV2_EXISTS
+#if PPV2_EXISTS
 using UnityEditor.Search;
 using UnityEngine;
 using BIRPRendering = UnityEngine.Rendering.PostProcessing;
@@ -34,4 +34,4 @@ namespace UnityEditor.Rendering.Universal.Converters
         }
     }
 }
-//#endif
+#endif

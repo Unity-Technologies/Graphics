@@ -1,4 +1,4 @@
-#if UNITY_POST_PROCESSING_STACK_V2
+#if PPV2_EXISTS
 using System;
 using System.Collections.Generic;
 using System.IO;

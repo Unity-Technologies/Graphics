@@ -1,4 +1,4 @@
-//#if PPV2_EXISTS
+#if PPV2_EXISTS
 using System.Data;
 using UnityEngine;
 using UnityEngine.Rendering;
@@ -90,4 +90,4 @@ namespace BIRPToURPConversionExtensions
         }
     }
 }
-//#endif
+#endif

@@ -1,4 +1,4 @@
-//#if PPV2_EXISTS
+#if PPV2_EXISTS
 using System;
 using UnityEditor;
 using UnityEngine;
@@ -40,4 +40,4 @@ namespace UnityEditor.Rendering.Universal.Converters
         }
     }
 }
-//#endif
+#endif

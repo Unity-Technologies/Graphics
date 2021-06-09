@@ -1,4 +1,4 @@
-//#if PPV2_EXISTS
+#if PPV2_EXISTS
 using System;
 using BIRPToURPConversionExtensions;
 using UnityEngine.Rendering;
@@ -44,4 +44,4 @@ namespace UnityEditor.Rendering.Universal.Converters
         }
     }
 }
-//#endif
+#endif

@@ -1,4 +1,4 @@
-//#if PPV2_EXISTS
+#if PPV2_EXISTS
 using System;
 using BIRPToURPConversionExtensions;
 using UnityEditor;
@@ -10,7 +10,7 @@ namespace UnityEditor.Rendering.Universal.Converters
 {
     public class BloomConverter : PostProcessEffectSettingsConverter
     {
-//#if PPV2_EXISTS
+#if PPV2_EXISTS
         protected override Type OldSettingsType { get; } = typeof(BIRPRendering.Bloom);
 
         protected override void ConvertToTarget(BIRPRendering.PostProcessEffectSettings oldSettings, VolumeProfile targetProfile)
@@ -36,7 +36,7 @@ namespace UnityEditor.Rendering.Universal.Converters
             // newVolumeComponent.??? = oldBloom.softKnee;
         }
 
-//#endif
+#endif
     }
 }
-//#endif
+#endif
