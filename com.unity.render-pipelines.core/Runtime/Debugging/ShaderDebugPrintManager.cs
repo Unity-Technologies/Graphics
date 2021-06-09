@@ -2,10 +2,9 @@ using System;
 using System.Collections.Generic;
 using Unity.Collections;
 using Unity.Collections.LowLevel.Unsafe;
-using Unity.Mathematics;
 using UnityEngine.Assertions;
 
-namespace UnityEngine.Rendering.Universal
+namespace UnityEngine.Rendering
 {
     public sealed class ShaderDebugPrintManager
     {
@@ -153,68 +152,94 @@ namespace UnityEngine.Rendering.Universal
                         switch (type)
                         {
                             case DebugValueType.TypeUint:
+                            {
                                 outputLine += data[i + 1];
                                 i += 2;
                                 break;
+                            }
                             case DebugValueType.TypeInt:
+                            {
                                 int valueInt = *(int*)&ptr[i + 1];
                                 outputLine += valueInt;
                                 i += 2;
                                 break;
+                            }
                             case DebugValueType.TypeFloat:
+                            {
                                 float valueFloat = *(float*)&ptr[i + 1];
                                 outputLine += valueFloat;
                                 i += 2;
                                 break;
+                            }
                             case DebugValueType.TypeUint2:
-                                uint2 valueUint2 = *(uint2*)&ptr[i + 1];
-                                outputLine += valueUint2;
+                            {
+                                uint* valueUint2 = &ptr[i + 1];
+                                outputLine += $"({valueUint2[0]}, {valueUint2[1]})";
                                 i += 3;
                                 break;
+                            }
                             case DebugValueType.TypeInt2:
-                                int2 valueInt2 = *(int2*)&ptr[i + 1];
-                                outputLine += valueInt2;
+                            {
+                                int* valueInt2 = (int*)&ptr[i + 1];
+                                outputLine += $"({valueInt2[0]}, {valueInt2[1]})";
                                 i += 3;
                                 break;
+                            }
                             case DebugValueType.TypeFloat2:
-                                float2 valueFloat2 = *(float2*)&ptr[i + 1];
-                                outputLine += valueFloat2;
+                            {
+                                float* valueFloat2 = (float*)&ptr[i + 1];
+                                outputLine += $"({valueFloat2[0]}, {valueFloat2[1]})";
                                 i += 3;
                                 break;
+                            }
                             case DebugValueType.TypeUint3:
-                                uint3 valueUint3 = *(uint3*)&ptr[i + 1];
-                                outputLine += valueUint3;
+                            {
+                                uint* valueUint3 = &ptr[i + 1];
+                                outputLine += $"({valueUint3[0]}, {valueUint3[1]}, {valueUint3[2]})";
                                 i += 4;
                                 break;
+                            }
                             case DebugValueType.TypeInt3:
-                                int3 valueInt3 = *(int3*)&ptr[i + 1];
-                                outputLine += valueInt3;
+                            {
+                                int* valueInt3 = (int*)&ptr[i + 1];
+                                outputLine += $"({valueInt3[0]}, {valueInt3[1]}, {valueInt3[2]})";
                                 i += 4;
                                 break;
+                            }
                             case DebugValueType.TypeFloat3:
-                                float3 valueFloat3 = *(float3*)&ptr[i + 1];
-                                outputLine += valueFloat3;
+                            {
+                                float* valueFloat3 = (float*)&ptr[i + 1];
+                                outputLine += $"({valueFloat3[0]}, {valueFloat3[1]}, {valueFloat3[2]})";
                                 i += 4;
                                 break;
+                            }
                             case DebugValueType.TypeUint4:
-                                uint4 valueUint4 = *(uint4*)&ptr[i + 1];
-                                outputLine += valueUint4;
+                            {
+                                uint* valueUint4 = &ptr[i + 1];
+                                outputLine += $"({valueUint4[0]}, {valueUint4[1]}, {valueUint4[2]}, {valueUint4[3]})";
                                 i += 5;
                                 break;
+                            }
                             case DebugValueType.TypeInt4:
-                                int4 valueInt4 = *(int4*)&ptr[i + 1];
-                                outputLine += valueInt4;
+                            {
+                                int* valueInt4 = (int*)&ptr[i + 1];
+                                outputLine += $"({valueInt4[0]}, {valueInt4[1]}, {valueInt4[2]}, {valueInt4[3]})";
                                 i += 5;
                                 break;
+                            }
                             case DebugValueType.TypeFloat4:
-                                float4 valueFloat4 = *(float4*)&ptr[i + 1];
-                                outputLine += valueFloat4;
+                            {
+                                float* valueFloat4 = (float*)&ptr[i + 1];
+                                outputLine += $"({valueFloat4[0]}, {valueFloat4[1]}, {valueFloat4[2]}, {valueFloat4[3]})";
                                 i += 5;
                                 break;
+                            }
                             case DebugValueType.TypeBool:
+                            {
                                 outputLine += ((data[i + 1] == 0) ? "False" : "True");
                                 i += 2;
                                 break;
+                            }
                             default:
                                 i = (int)count;  // Cannot handle the rest if there is an unknown type
                                 break;

@@ -1,6 +1,9 @@
 #ifndef SHADER_DEBUG_PRINT_INCLUDED
 #define SHADER_DEBUG_PRINT_INCLUDED
 
+// NOTE: For URP - set ENABLE_SHADER_DEBUG_PRINT in the project to enable CPU-side integration.
+// NOTE: Currently works in game view/play mode.
+//
 // Include this header to any shader to enable debug printing values from shader code to console.
 //
 // Select threads/pixels to print using plain 'if'.
@@ -14,20 +17,20 @@
 // Frame #270497: Col  float4(0.1f, 0.2f, 0.3f, 0.4f)
 // ----
 //
-// Print pixel at mouse position.
-// 
 // Example:
+// #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/ShaderDebugPrint.hlsl"
 //
-// #include "Packages/.../ShaderDebugPrint.hlsl"
+// Print pixel at mouse position.
 // ShaderDebugPrintMouseOver(int2(thisPixel.xy), pixelColor);
 //
 // Print pixel at mouse position on button press.
 // ShaderDebugPrintMouseButtonOver(int2(thisPixel.xy), pixelColor);
 
-// Output buffer bound into "last" slot by convention
+// Output buffer bound into "last" (DX11) slot by convention.
+// Avoids extra editing elsewhere and allows to just include this header.
 RWStructuredBuffer<uint> shaderDebugOutputData : register(u7);
 
-static const uint MaxShaderDebugOutputElements = 1024 * 16; // Must match the C# side buffer size (16K / 6 (header+tag+payload) ~= 2730 uint4s)
+static const uint MaxShaderDebugOutputElements = 1024 * 16; // Must match the C# side buffer size (16K elems / 6 (header+tag+payload) ~= 2730 uint4s)
 
 // Input Constants
 CBUFFER_START(ShaderDebugPrintInput)
