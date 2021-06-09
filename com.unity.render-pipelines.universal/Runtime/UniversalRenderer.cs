@@ -53,6 +53,9 @@ namespace UnityEngine.Rendering.Universal
 
         internal bool accurateGbufferNormals => m_DeferredLights != null ? m_DeferredLights.AccurateGbufferNormals : false;
 
+#if ADAPTIVE_PERFORMANCE_2_1_0_OR_NEWER
+        internal bool needTransparencyPass { get { return !UniversalRenderPipeline.asset.useAdaptivePerformance || !AdaptivePerformance.AdaptivePerformanceRenderSettings.SkipTransparentObjects;; } }
+#endif
         /// <summary>Property to control the depth priming behavior of the forward rendering path.</summary>
         public DepthPrimingMode depthPrimingMode { get { return m_DepthPrimingMode; } set { m_DepthPrimingMode = value; } }
         DepthOnlyPass m_DepthPrepass;
@@ -238,7 +241,7 @@ namespace UnityEngine.Rendering.Universal
             m_DrawSkyboxPass = new DrawSkyboxPass(RenderPassEvent.BeforeRenderingSkybox);
             m_CopyColorPass = new CopyColorPass(RenderPassEvent.AfterRenderingSkybox, m_SamplingMaterial, m_BlitMaterial);
 #if ADAPTIVE_PERFORMANCE_2_1_0_OR_NEWER
-            if (!UniversalRenderPipeline.asset.useAdaptivePerformance || AdaptivePerformance.AdaptivePerformanceRenderSettings.SkipTransparentObjects == false)
+            if (needTransparencyPass)
 #endif
             {
                 m_TransparentSettingsPass = new TransparentSettingsPass(RenderPassEvent.BeforeRenderingTransparents, data.shadowTransparentReceive);
@@ -359,9 +362,6 @@ namespace UnityEngine.Rendering.Universal
 
             DebugHandler?.Setup(context, ref cameraData);
 
-#if ADAPTIVE_PERFORMANCE_2_1_0_OR_NEWER
-            bool needTransparencyPass = !UniversalRenderPipeline.asset.useAdaptivePerformance || !AdaptivePerformance.AdaptivePerformanceRenderSettings.SkipTransparentObjects;
-#endif
             if (cameraData.cameraType != CameraType.Game)
                 useRenderPassEnabled = false;
 
@@ -701,7 +701,6 @@ namespace UnityEngine.Rendering.Universal
                 m_MotionVectorPass.Setup(data);
                 EnqueuePass(m_MotionVectorPass);
             }
-
 
 #if ADAPTIVE_PERFORMANCE_2_1_0_OR_NEWER
             if (needTransparencyPass)
@@ -1068,6 +1067,10 @@ namespace UnityEngine.Rendering.Universal
             bool supportsDepthCopy = !msaaEnabledForCamera && (supportsDepthTarget || supportsTextureCopy);
 
             bool msaaDepthResolve = msaaEnabledForCamera && SystemInfo.supportsMultisampledTextures != 0;
+
+            // copying depth on GLES3 is giving invalid results. Needs investigation (Fogbugz issue 1339401)
+            if (SystemInfo.graphicsDeviceType == GraphicsDeviceType.OpenGLES3)
+                msaaDepthResolve = false;
 
             return supportsDepthCopy || msaaDepthResolve;
         }
