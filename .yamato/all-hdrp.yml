@@ -20,6 +20,8 @@ PR_HDRP_trunk:
     dependencies:
       -  path: .yamato/hdrp-win-dx11.yml#HDRP_Win_DX11_Standalone_mono_Linear_trunk
          rerun: on_new_revision
+      -  path: .yamato/hdrp-win-dx11.yml#HDRP_Win_DX11_Standalone_XR_mono_Linear_trunk
+         rerun: on_new_revision
       -  path: .yamato/hdrp-win-dx11.yml#HDRP_Win_DX11_playmode_mono_Linear_trunk
          rerun: on_new_revision
       -  path: .yamato/hdrp-win-dx11.yml#HDRP_Win_DX11_playmode_XR_mono_Linear_trunk
@@ -51,6 +53,8 @@ Extra_HDRP_trunk:
         CACHE_ARGS: '{{cache.flags}}'
     dependencies:
       -  path: .yamato/hdrp-win-dx12.yml#HDRP_Win_DX12_Standalone_mono_Linear_trunk
+         rerun: on_new_revision
+      -  path: .yamato/hdrp-win-dx12.yml#HDRP_Win_DX12_Standalone_XR_mono_Linear_trunk
          rerun: on_new_revision
       -  path: .yamato/hdrp-win-dx12.yml#HDRP_Win_DX12_playmode_XR_mono_Linear_trunk
          rerun: on_new_revision
@@ -100,6 +104,8 @@ PR_HDRP_CUSTOM-REVISION:
     dependencies:
       -  path: .yamato/hdrp-win-dx11.yml#HDRP_Win_DX11_Standalone_mono_Linear_CUSTOM-REVISION
          rerun: on_new_revision
+      -  path: .yamato/hdrp-win-dx11.yml#HDRP_Win_DX11_Standalone_XR_mono_Linear_CUSTOM-REVISION
+         rerun: on_new_revision
       -  path: .yamato/hdrp-win-dx11.yml#HDRP_Win_DX11_playmode_mono_Linear_CUSTOM-REVISION
          rerun: on_new_revision
       -  path: .yamato/hdrp-win-dx11.yml#HDRP_Win_DX11_playmode_XR_mono_Linear_CUSTOM-REVISION
@@ -131,6 +137,8 @@ Extra_HDRP_CUSTOM-REVISION:
         CACHE_ARGS: '{{cache.flags}}'
     dependencies:
       -  path: .yamato/hdrp-win-dx12.yml#HDRP_Win_DX12_Standalone_mono_Linear_CUSTOM-REVISION
+         rerun: on_new_revision
+      -  path: .yamato/hdrp-win-dx12.yml#HDRP_Win_DX12_Standalone_XR_mono_Linear_CUSTOM-REVISION
          rerun: on_new_revision
       -  path: .yamato/hdrp-win-dx12.yml#HDRP_Win_DX12_playmode_XR_mono_Linear_CUSTOM-REVISION
          rerun: on_new_revision
