@@ -605,6 +605,10 @@ namespace UnityEditor.VFX
                     vertsCount = 0;
                     break;
             }
+            if (HasStrips(false))
+            {
+                vertsCount /= 2;
+            }
             return vertsCount != 0;
         }
 
