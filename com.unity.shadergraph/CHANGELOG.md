@@ -101,6 +101,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed issues with double prompts for "do you want to save" when closing Shader Graph windows [1316104].
 - Fixed a ShaderGraph issue where resize handles on blackboard and graph inspector were too small [1329247] (https://issuetracker.unity3d.com/issues/shadergraph-resize-bounds-for-blackboard-and-graph-inspector-are-too-small)
 - Fixed a warning in ShaderGraph about BuiltIn Shader Library assembly having no scripts.
+- Fixed the incorrect value written to the VT feedback buffer if VT is not used.
 
 ## [11.0.0] - 2020-10-21
 
