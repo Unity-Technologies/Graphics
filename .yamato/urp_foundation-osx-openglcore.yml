@@ -20,12 +20,15 @@ URP_Foundation_OSX_OpenGLCore_playmode_mono_Linear_2021.1:
         UTR_VERSION: "current"
         TEST_FILTER: .*
     commands:
-      -  curl -s https://artifactory.prd.it.unity3d.com/artifactory/unity-tools-local/utr-standalone/utr --output utr
+      -  command: curl -s https://artifactory.prd.it.unity3d.com/artifactory/unity-tools-local/utr-standalone/utr --output utr
+         retries: 2
       -  chmod +x utr
-      -  brew tap --force-auto-update unity/unity git@github.cds.internal.unity3d.com:unity/homebrew-unity.git
-      -  brew install unity-downloader-cli
-      -  unity-downloader-cli -u {{editor_versions.2021_1_staging.OSX.revision}} -c editor -c il2cpp  --wait --published-only
-      -  ./utr  $CACHE_ARGS --artifacts_path=TestProjects/UniversalGraphicsTest_Foundation/test-results --editor-location=.Editor --extra-editor-arg="-colorspace=Linear" --reruncount=2 --scripting-backend=Mono2x --suite=playmode --testfilter=$TEST_FILTER --testproject=./TestProjects/UniversalGraphicsTest_Foundation --zero-tests-are-ok=1
+      -  command: brew tap --force-auto-update unity/unity git@github.cds.internal.unity3d.com:unity/homebrew-unity.git
+      -  command: brew install unity-downloader-cli
+         retries: 2
+      -  command: unity-downloader-cli -u {{editor_versions.2021_1_staging.OSX.revision}} -c editor -c il2cpp  --wait --published-only
+         retries: 2
+      -  command: ./utr  $CACHE_ARGS --artifacts_path=TestProjects/UniversalGraphicsTest_Foundation/test-results --editor-location=.Editor --extra-editor-arg="-colorspace=Linear" --reruncount=2 --scripting-backend=Mono2x --suite=playmode --testfilter=$TEST_FILTER --testproject=./TestProjects/UniversalGraphicsTest_Foundation --zero-tests-are-ok=1
     artifacts:
         logs:
             paths:
@@ -43,12 +46,15 @@ URP_Foundation_OSX_OpenGLCore_editmode_mono_Linear_2021.1:
         UTR_VERSION: "current"
         TEST_FILTER: .*
     commands:
-      -  curl -s https://artifactory.prd.it.unity3d.com/artifactory/unity-tools-local/utr-standalone/utr --output utr
+      -  command: curl -s https://artifactory.prd.it.unity3d.com/artifactory/unity-tools-local/utr-standalone/utr --output utr
+         retries: 2
       -  chmod +x utr
-      -  brew tap --force-auto-update unity/unity git@github.cds.internal.unity3d.com:unity/homebrew-unity.git
-      -  brew install unity-downloader-cli
-      -  unity-downloader-cli -u {{editor_versions.2021_1_staging.OSX.revision}} -c editor -c il2cpp  --wait --published-only
-      -  ./utr  --artifacts_path=TestProjects/UniversalGraphicsTest_Foundation/test-results --editor-location=.Editor --extra-editor-arg="-colorspace=Linear" --platform=editmode --reruncount=2 --scripting-backend=Mono2x --suite=editor --testfilter=$TEST_FILTER --testproject=./TestProjects/UniversalGraphicsTest_Foundation --zero-tests-are-ok=1
+      -  command: brew tap --force-auto-update unity/unity git@github.cds.internal.unity3d.com:unity/homebrew-unity.git
+      -  command: brew install unity-downloader-cli
+         retries: 2
+      -  command: unity-downloader-cli -u {{editor_versions.2021_1_staging.OSX.revision}} -c editor -c il2cpp  --wait --published-only
+         retries: 2
+      -  command: ./utr  --artifacts_path=TestProjects/UniversalGraphicsTest_Foundation/test-results --editor-location=.Editor --extra-editor-arg="-colorspace=Linear" --platform=editmode --reruncount=2 --scripting-backend=Mono2x --suite=editor --testfilter=$TEST_FILTER --testproject=./TestProjects/UniversalGraphicsTest_Foundation --zero-tests-are-ok=1
     artifacts:
         logs:
             paths:
@@ -67,12 +73,15 @@ URP_Foundation_OSX_OpenGLCore_playmode_mono_Linear_CUSTOM-REVISION:
         UTR_VERSION: "current"
         TEST_FILTER: .*
     commands:
-      -  curl -s https://artifactory.prd.it.unity3d.com/artifactory/unity-tools-local/utr-standalone/utr --output utr
+      -  command: curl -s https://artifactory.prd.it.unity3d.com/artifactory/unity-tools-local/utr-standalone/utr --output utr
+         retries: 2
       -  chmod +x utr
-      -  brew tap --force-auto-update unity/unity git@github.cds.internal.unity3d.com:unity/homebrew-unity.git
-      -  brew install unity-downloader-cli
-      -  unity-downloader-cli --source-file unity_revision.txt -c editor -c il2cpp  --wait --published-only
-      -  ./utr  $CACHE_ARGS --artifacts_path=TestProjects/UniversalGraphicsTest_Foundation/test-results --editor-location=.Editor --extra-editor-arg="-colorspace=Linear" --reruncount=2 --scripting-backend=Mono2x --suite=playmode --testfilter=$TEST_FILTER --testproject=./TestProjects/UniversalGraphicsTest_Foundation --zero-tests-are-ok=1
+      -  command: brew tap --force-auto-update unity/unity git@github.cds.internal.unity3d.com:unity/homebrew-unity.git
+      -  command: brew install unity-downloader-cli
+         retries: 2
+      -  command: unity-downloader-cli --source-file unity_revision.txt -c editor -c il2cpp  --wait --published-only
+         retries: 2
+      -  command: ./utr  $CACHE_ARGS --artifacts_path=TestProjects/UniversalGraphicsTest_Foundation/test-results --editor-location=.Editor --extra-editor-arg="-colorspace=Linear" --reruncount=2 --scripting-backend=Mono2x --suite=playmode --testfilter=$TEST_FILTER --testproject=./TestProjects/UniversalGraphicsTest_Foundation --zero-tests-are-ok=1
     artifacts:
         logs:
             paths:
@@ -94,12 +103,15 @@ URP_Foundation_OSX_OpenGLCore_editmode_mono_Linear_CUSTOM-REVISION:
         UTR_VERSION: "current"
         TEST_FILTER: .*
     commands:
-      -  curl -s https://artifactory.prd.it.unity3d.com/artifactory/unity-tools-local/utr-standalone/utr --output utr
+      -  command: curl -s https://artifactory.prd.it.unity3d.com/artifactory/unity-tools-local/utr-standalone/utr --output utr
+         retries: 2
       -  chmod +x utr
-      -  brew tap --force-auto-update unity/unity git@github.cds.internal.unity3d.com:unity/homebrew-unity.git
-      -  brew install unity-downloader-cli
-      -  unity-downloader-cli --source-file unity_revision.txt -c editor -c il2cpp  --wait --published-only
-      -  ./utr  --artifacts_path=TestProjects/UniversalGraphicsTest_Foundation/test-results --editor-location=.Editor --extra-editor-arg="-colorspace=Linear" --platform=editmode --reruncount=2 --scripting-backend=Mono2x --suite=editor --testfilter=$TEST_FILTER --testproject=./TestProjects/UniversalGraphicsTest_Foundation --zero-tests-are-ok=1
+      -  command: brew tap --force-auto-update unity/unity git@github.cds.internal.unity3d.com:unity/homebrew-unity.git
+      -  command: brew install unity-downloader-cli
+         retries: 2
+      -  command: unity-downloader-cli --source-file unity_revision.txt -c editor -c il2cpp  --wait --published-only
+         retries: 2
+      -  command: ./utr  --artifacts_path=TestProjects/UniversalGraphicsTest_Foundation/test-results --editor-location=.Editor --extra-editor-arg="-colorspace=Linear" --platform=editmode --reruncount=2 --scripting-backend=Mono2x --suite=editor --testfilter=$TEST_FILTER --testproject=./TestProjects/UniversalGraphicsTest_Foundation --zero-tests-are-ok=1
     artifacts:
         logs:
             paths:

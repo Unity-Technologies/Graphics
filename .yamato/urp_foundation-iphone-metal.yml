@@ -20,11 +20,12 @@ URP_Foundation_iPhone_Metal_Standalone_il2cpp_Linear_2021.1:
         UTR_VERSION: "current"
         TEST_FILTER: .*
     commands:
-      -  curl -s https://artifactory.prd.it.unity3d.com/artifactory/unity-tools-local/utr-standalone/utr --output utr
-      -  chmod +x ./utr
-      -  |5-
-              export GIT_REVISIONDATE=`git rev-parse HEAD | git show -s --format=%cI`
-              ./utr --artifacts_path=TestProjects/UniversalGraphicsTest_Foundation/test-results --platform=iOS --player-load-path=players --reruncount=2 --suite=playmode --timeout=1200 --zero-tests-are-ok=1
+      -  command: curl -s https://artifactory.prd.it.unity3d.com/artifactory/unity-tools-local/utr-standalone/utr --output utr
+         retries: 2
+      -  command: chmod +x ./utr
+      -  command: |5-
+                export GIT_REVISIONDATE=`git rev-parse HEAD | git show -s --format=%cI`
+                ./utr --artifacts_path=TestProjects/UniversalGraphicsTest_Foundation/test-results --platform=iOS --player-load-path=players --reruncount=2 --suite=playmode --timeout=1200 --zero-tests-are-ok=1
     artifacts:
         logs:
             paths:
@@ -45,15 +46,19 @@ Build_URP_Foundation_iPhone_Metal_Standalone_il2cpp_Linear_2021.1:
         UTR_VERSION: "current"
         TEST_FILTER: .*
     commands:
-      -  curl -s https://artifactory.prd.it.unity3d.com/artifactory/unity-tools-local/utr-standalone/utr --output utr
-      -  chmod +x ./utr
-      -  brew tap --force-auto-update unity/unity git@github.cds.internal.unity3d.com:unity/homebrew-unity.git
-      -  brew install unity/unity/unity-downloader-cli
-      -  unity-downloader-cli -u {{editor_versions.2021_1_staging.iPhone.revision}} -c editor -c iOS -c il2cpp  --wait --published-only
+      -  command: curl -s https://artifactory.prd.it.unity3d.com/artifactory/unity-tools-local/utr-standalone/utr --output utr
+         retries: 2
+      -  command: chmod +x ./utr
+      -  command: brew tap --force-auto-update unity/unity git@github.cds.internal.unity3d.com:unity/homebrew-unity.git
+         retries: 2
+      -  command: brew install unity/unity/unity-downloader-cli
+         retries: 2
+      -  command: unity-downloader-cli -u {{editor_versions.2021_1_staging.iPhone.revision}} -c editor -c iOS -c il2cpp  --wait --published-only
+         retries: 2
       -  --extra-editor-arg="-cacheServerEnableUpload" --extra-editor-arg="true"
-      -  |5-
-              export GIT_REVISIONDATE=`git rev-parse HEAD | git show -s --format=%cI`
-              ./utr $CACHE_ARGS --artifacts_path=TestProjects/UniversalGraphicsTest_Foundation/test-results --build-only --editor-location=.Editor --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-executemethod" --extra-editor-arg="SetupProject.ApplySettings" --extra-editor-arg="metal" --extra-editor-arg="Linear" --extra-editor-arg="-playergraphicsapi=Metal" --platform=iOS --player-save-path=players --scripting-backend=IL2CPP --suite=playmode --testfilter=$TEST_FILTER --testproject=./TestProjects/UniversalGraphicsTest_Foundation --timeout=3000
+      -  command: |5-
+                export GIT_REVISIONDATE=`git rev-parse HEAD | git show -s --format=%cI`
+                ./utr $CACHE_ARGS --artifacts_path=TestProjects/UniversalGraphicsTest_Foundation/test-results --build-only --editor-location=.Editor --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-executemethod" --extra-editor-arg="SetupProject.ApplySettings" --extra-editor-arg="metal" --extra-editor-arg="Linear" --extra-editor-arg="-playergraphicsapi=Metal" --platform=iOS --player-save-path=players --scripting-backend=IL2CPP --suite=playmode --testfilter=$TEST_FILTER --testproject=./TestProjects/UniversalGraphicsTest_Foundation --timeout=3000
     artifacts:
         logs:
             paths:
@@ -75,11 +80,12 @@ URP_Foundation_iPhone_Metal_Standalone_il2cpp_Linear_CUSTOM-REVISION:
         UTR_VERSION: "current"
         TEST_FILTER: .*
     commands:
-      -  curl -s https://artifactory.prd.it.unity3d.com/artifactory/unity-tools-local/utr-standalone/utr --output utr
-      -  chmod +x ./utr
-      -  |5-
-              export GIT_REVISIONDATE=`git rev-parse HEAD | git show -s --format=%cI`
-              ./utr --artifacts_path=TestProjects/UniversalGraphicsTest_Foundation/test-results --platform=iOS --player-load-path=players --reruncount=2 --suite=playmode --timeout=1200 --zero-tests-are-ok=1
+      -  command: curl -s https://artifactory.prd.it.unity3d.com/artifactory/unity-tools-local/utr-standalone/utr --output utr
+         retries: 2
+      -  command: chmod +x ./utr
+      -  command: |5-
+                export GIT_REVISIONDATE=`git rev-parse HEAD | git show -s --format=%cI`
+                ./utr --artifacts_path=TestProjects/UniversalGraphicsTest_Foundation/test-results --platform=iOS --player-load-path=players --reruncount=2 --suite=playmode --timeout=1200 --zero-tests-are-ok=1
     artifacts:
         logs:
             paths:
@@ -103,15 +109,19 @@ Build_URP_Foundation_iPhone_Metal_Standalone_il2cpp_Linear_CUSTOM-REVISION:
         UTR_VERSION: "current"
         TEST_FILTER: .*
     commands:
-      -  curl -s https://artifactory.prd.it.unity3d.com/artifactory/unity-tools-local/utr-standalone/utr --output utr
-      -  chmod +x ./utr
-      -  brew tap --force-auto-update unity/unity git@github.cds.internal.unity3d.com:unity/homebrew-unity.git
-      -  brew install unity/unity/unity-downloader-cli
-      -  unity-downloader-cli --source-file unity_revision.txt -c editor -c iOS -c il2cpp  --wait --published-only
+      -  command: curl -s https://artifactory.prd.it.unity3d.com/artifactory/unity-tools-local/utr-standalone/utr --output utr
+         retries: 2
+      -  command: chmod +x ./utr
+      -  command: brew tap --force-auto-update unity/unity git@github.cds.internal.unity3d.com:unity/homebrew-unity.git
+         retries: 2
+      -  command: brew install unity/unity/unity-downloader-cli
+         retries: 2
+      -  command: unity-downloader-cli --source-file unity_revision.txt -c editor -c iOS -c il2cpp  --wait --published-only
+         retries: 2
       -  --extra-editor-arg="-cacheServerEnableUpload" --extra-editor-arg="true"
-      -  |5-
-              export GIT_REVISIONDATE=`git rev-parse HEAD | git show -s --format=%cI`
-              ./utr $CACHE_ARGS --artifacts_path=TestProjects/UniversalGraphicsTest_Foundation/test-results --build-only --editor-location=.Editor --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-executemethod" --extra-editor-arg="SetupProject.ApplySettings" --extra-editor-arg="metal" --extra-editor-arg="Linear" --extra-editor-arg="-playergraphicsapi=Metal" --platform=iOS --player-save-path=players --scripting-backend=IL2CPP --suite=playmode --testfilter=$TEST_FILTER --testproject=./TestProjects/UniversalGraphicsTest_Foundation --timeout=3000
+      -  command: |5-
+                export GIT_REVISIONDATE=`git rev-parse HEAD | git show -s --format=%cI`
+                ./utr $CACHE_ARGS --artifacts_path=TestProjects/UniversalGraphicsTest_Foundation/test-results --build-only --editor-location=.Editor --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-executemethod" --extra-editor-arg="SetupProject.ApplySettings" --extra-editor-arg="metal" --extra-editor-arg="Linear" --extra-editor-arg="-playergraphicsapi=Metal" --platform=iOS --player-save-path=players --scripting-backend=IL2CPP --suite=playmode --testfilter=$TEST_FILTER --testproject=./TestProjects/UniversalGraphicsTest_Foundation --timeout=3000
     artifacts:
         logs:
             paths:

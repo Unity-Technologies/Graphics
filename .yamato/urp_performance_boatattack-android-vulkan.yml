@@ -22,25 +22,29 @@ URP_Performance_BoatAttack_Android_Vulkan_performance_playmode_runtime_il2cpp_Li
         UTR_VERSION: "current"
         TEST_FILTER: .*
     commands:
-      -  '%ANDROID_SDK_ROOT%\platform-tools\adb.exe connect %BOKKEN_DEVICE_IP%'
-      -  powershell %ANDROID_SDK_ROOT%\platform-tools\adb.exe devices
-      -  NetSh Advfirewall set allprofiles state off
-      -  curl -s https://artifactory.prd.it.unity3d.com/artifactory/unity-tools-local/utr-standalone/utr.bat --output utr.bat
-      -  |5-
-              set ANDROID_DEVICE_CONNECTION=%BOKKEN_DEVICE_IP%
-              git rev-parse HEAD | git show -s --format=%%cI > revdate.tmp
-              set /p GIT_REVISIONDATE=<revdate.tmp
-              echo %GIT_REVISIONDATE%
-              del revdate.tmp
-              utr --architecture=ARM64 --artifacts_path=TestProjects/BoatAttack/test-results --performance-project-id=BoatAttack --platform=Android --player-load-path=playersLow --report-performance-data --reruncount=2 --suite=playmode --timeout=1200 --zero-tests-are-ok=1
-      -  |5-
-              set ANDROID_DEVICE_CONNECTION=%BOKKEN_DEVICE_IP%
-              git rev-parse HEAD | git show -s --format=%%cI > revdate.tmp
-              set /p GIT_REVISIONDATE=<revdate.tmp
-              echo %GIT_REVISIONDATE%
-              del revdate.tmp
-              utr --architecture=ARM64 --artifacts_path=TestProjects/BoatAttack/test-results --performance-project-id=BoatAttack --platform=Android --player-load-path=playersMedium --report-performance-data --reruncount=2 --suite=playmode --timeout=1200 --zero-tests-are-ok=1
-      -  start %ANDROID_SDK_ROOT%\platform-tools\adb.exe kill-server
+      -  command: '%ANDROID_SDK_ROOT%\platform-tools\adb.exe connect %BOKKEN_DEVICE_IP%'
+         retries: 2
+      -  command: powershell %ANDROID_SDK_ROOT%\platform-tools\adb.exe devices
+         retries: 2
+      -  command: NetSh Advfirewall set allprofiles state off
+      -  command: curl -s https://artifactory.prd.it.unity3d.com/artifactory/unity-tools-local/utr-standalone/utr.bat --output utr.bat
+         retries: 2
+      -  command: |5-
+                set ANDROID_DEVICE_CONNECTION=%BOKKEN_DEVICE_IP%
+                git rev-parse HEAD | git show -s --format=%%cI > revdate.tmp
+                set /p GIT_REVISIONDATE=<revdate.tmp
+                echo %GIT_REVISIONDATE%
+                del revdate.tmp
+                utr --architecture=ARM64 --artifacts_path=TestProjects/BoatAttack/test-results --performance-project-id=BoatAttack --platform=Android --player-load-path=playersLow --report-performance-data --reruncount=2 --suite=playmode --timeout=1200 --zero-tests-are-ok=1
+      -  command: |5-
+                set ANDROID_DEVICE_CONNECTION=%BOKKEN_DEVICE_IP%
+                git rev-parse HEAD | git show -s --format=%%cI > revdate.tmp
+                set /p GIT_REVISIONDATE=<revdate.tmp
+                echo %GIT_REVISIONDATE%
+                del revdate.tmp
+                utr --architecture=ARM64 --artifacts_path=TestProjects/BoatAttack/test-results --performance-project-id=BoatAttack --platform=Android --player-load-path=playersMedium --report-performance-data --reruncount=2 --suite=playmode --timeout=1200 --zero-tests-are-ok=1
+      -  command: start %ANDROID_SDK_ROOT%\platform-tools\adb.exe kill-server
+         retries: 2
     artifacts:
         logs:
             paths:
@@ -63,7 +67,8 @@ Build_URP_Performance_BoatAttack_Android_Vulkan_performance_playmode_runtime_il2
         UTR_VERSION: "current"
         TEST_FILTER: .*
     commands:
-      -  git clone https://github.com/Unity-Technologies/BoatAttack.git -b %BOAT_ATTACK_BRANCH% TestProjects/BoatAttack
+      -  command: git clone https://github.com/Unity-Technologies/BoatAttack.git -b %BOAT_ATTACK_BRANCH% TestProjects/BoatAttack
+         retries: 3
       -  cd TestProjects/BoatAttack && git checkout %BOAT_ATTACK_REVISION%
       -  choco source add -n Unity -s https://artifactory.prd.it.unity3d.com/artifactory/api/nuget/unity-choco-local
       -  choco install unity-config
@@ -85,24 +90,27 @@ Build_URP_Performance_BoatAttack_Android_Vulkan_performance_playmode_runtime_il2
       -  cd TestProjects/BoatAttack && unity-config project add testable com.unity.render-pipelines.core  --project-path .
       -  cd TestProjects/BoatAttack && unity-config project add testable unity.graphictests.performance.universal  --project-path .
       -  cd TestProjects/BoatAttack && unity-config project set project-update false --project-path .
-      -  NetSh Advfirewall set allprofiles state off
-      -  curl -s https://artifactory.prd.it.unity3d.com/artifactory/unity-tools-local/utr-standalone/utr.bat --output utr.bat
-      -  choco install unity-downloader-cli -y -s https://artifactory.prd.it.unity3d.com/artifactory/api/nuget/unity-choco-local
-      -  unity-downloader-cli -u {{editor_versions.2021_1_staging.Android.revision}} -p WindowsEditor -c editor -c il2cpp -c android  --wait --published-only
-      -  |5-
-              set ANDROID_DEVICE_CONNECTION=%BOKKEN_DEVICE_IP%
-              git rev-parse HEAD | git show -s --format=%%cI > revdate.tmp
-              set /p GIT_REVISIONDATE=<revdate.tmp
-              echo %GIT_REVISIONDATE%
-              del revdate.tmp
-              utr --architecture=ARM64 --artifacts_path=TestProjects/BoatAttack/test-results --build-only --category=URP --editor-location=./WindowsEditor --extra-editor-arg="-addscenetobuild=Assets/scenes/Testing/benchmark_island-static.unity" --extra-editor-arg="-buildtarget" --extra-editor-arg="Android" --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-executemethod" --extra-editor-arg="Editor.Setup" --extra-editor-arg="-packageundertestbranch=%GIT_BRANCH%" --extra-editor-arg="-packageundertestname=com.unity.render-pipelines.universal" --extra-editor-arg="-packageundertestrev=%GIT_REVISION%" --extra-editor-arg="-packageundertestrevdate=%GIT_REVISIONDATE%" --extra-editor-arg="-playergraphicsapi=Vulkan" --extra-editor-arg="-scriptingbackend=IL2CPP" --platform=Android --player-save-path=playersLow --scripting-backend=IL2CPP --suite=playmode --testfilter=Low --testproject=./TestProjects/BoatAttack --timeout=2700
-      -  |5-
-              set ANDROID_DEVICE_CONNECTION=%BOKKEN_DEVICE_IP%
-              git rev-parse HEAD | git show -s --format=%%cI > revdate.tmp
-              set /p GIT_REVISIONDATE=<revdate.tmp
-              echo %GIT_REVISIONDATE%
-              del revdate.tmp
-              utr --architecture=ARM64 --artifacts_path=TestProjects/BoatAttack/test-results --build-only --category=URP --editor-location=./WindowsEditor --extra-editor-arg="-addscenetobuild=Assets/scenes/Testing/benchmark_island-static.unity" --extra-editor-arg="-buildtarget" --extra-editor-arg="Android" --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-executemethod" --extra-editor-arg="Editor.Setup" --extra-editor-arg="-packageundertestbranch=%GIT_BRANCH%" --extra-editor-arg="-packageundertestname=com.unity.render-pipelines.universal" --extra-editor-arg="-packageundertestrev=%GIT_REVISION%" --extra-editor-arg="-packageundertestrevdate=%GIT_REVISIONDATE%" --extra-editor-arg="-playergraphicsapi=Vulkan" --extra-editor-arg="-scriptingbackend=IL2CPP" --platform=Android --player-save-path=playersMedium --scripting-backend=IL2CPP --suite=playmode --testfilter=Medium --testproject=./TestProjects/BoatAttack --timeout=2700
+      -  command: NetSh Advfirewall set allprofiles state off
+      -  command: curl -s https://artifactory.prd.it.unity3d.com/artifactory/unity-tools-local/utr-standalone/utr.bat --output utr.bat
+         retries: 2
+      -  command: choco install unity-downloader-cli -y -s https://artifactory.prd.it.unity3d.com/artifactory/api/nuget/unity-choco-local
+         retries: 2
+      -  command: unity-downloader-cli -u {{editor_versions.2021_1_staging.Android.revision}} -p WindowsEditor -c editor -c il2cpp -c android  --wait --published-only
+         retries: 2
+      -  command: |5-
+                set ANDROID_DEVICE_CONNECTION=%BOKKEN_DEVICE_IP%
+                git rev-parse HEAD | git show -s --format=%%cI > revdate.tmp
+                set /p GIT_REVISIONDATE=<revdate.tmp
+                echo %GIT_REVISIONDATE%
+                del revdate.tmp
+                utr --architecture=ARM64 --artifacts_path=TestProjects/BoatAttack/test-results --build-only --category=URP --editor-location=./WindowsEditor --extra-editor-arg="-addscenetobuild=Assets/scenes/Testing/benchmark_island-static.unity" --extra-editor-arg="-buildtarget" --extra-editor-arg="Android" --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-executemethod" --extra-editor-arg="Editor.Setup" --extra-editor-arg="-packageundertestbranch=%GIT_BRANCH%" --extra-editor-arg="-packageundertestname=com.unity.render-pipelines.universal" --extra-editor-arg="-packageundertestrev=%GIT_REVISION%" --extra-editor-arg="-packageundertestrevdate=%GIT_REVISIONDATE%" --extra-editor-arg="-playergraphicsapi=Vulkan" --extra-editor-arg="-scriptingbackend=IL2CPP" --platform=Android --player-save-path=playersLow --scripting-backend=IL2CPP --suite=playmode --testfilter=Low --testproject=./TestProjects/BoatAttack --timeout=2700
+      -  command: |5-
+                set ANDROID_DEVICE_CONNECTION=%BOKKEN_DEVICE_IP%
+                git rev-parse HEAD | git show -s --format=%%cI > revdate.tmp
+                set /p GIT_REVISIONDATE=<revdate.tmp
+                echo %GIT_REVISIONDATE%
+                del revdate.tmp
+                utr --architecture=ARM64 --artifacts_path=TestProjects/BoatAttack/test-results --build-only --category=URP --editor-location=./WindowsEditor --extra-editor-arg="-addscenetobuild=Assets/scenes/Testing/benchmark_island-static.unity" --extra-editor-arg="-buildtarget" --extra-editor-arg="Android" --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-executemethod" --extra-editor-arg="Editor.Setup" --extra-editor-arg="-packageundertestbranch=%GIT_BRANCH%" --extra-editor-arg="-packageundertestname=com.unity.render-pipelines.universal" --extra-editor-arg="-packageundertestrev=%GIT_REVISION%" --extra-editor-arg="-packageundertestrevdate=%GIT_REVISIONDATE%" --extra-editor-arg="-playergraphicsapi=Vulkan" --extra-editor-arg="-scriptingbackend=IL2CPP" --platform=Android --player-save-path=playersMedium --scripting-backend=IL2CPP --suite=playmode --testfilter=Medium --testproject=./TestProjects/BoatAttack --timeout=2700
     artifacts:
         logs:
             paths:
@@ -125,7 +133,8 @@ URP_Performance_BoatAttack_Android_Vulkan_performance_build_editmode_il2cpp_Line
         UTR_VERSION: "current"
         TEST_FILTER: .*
     commands:
-      -  git clone https://github.com/Unity-Technologies/BoatAttack.git -b %BOAT_ATTACK_BRANCH% TestProjects/BoatAttack
+      -  command: git clone https://github.com/Unity-Technologies/BoatAttack.git -b %BOAT_ATTACK_BRANCH% TestProjects/BoatAttack
+         retries: 3
       -  cd TestProjects/BoatAttack && git checkout %BOAT_ATTACK_REVISION%
       -  choco source add -n Unity -s https://artifactory.prd.it.unity3d.com/artifactory/api/nuget/unity-choco-local
       -  choco install unity-config
@@ -147,24 +156,27 @@ URP_Performance_BoatAttack_Android_Vulkan_performance_build_editmode_il2cpp_Line
       -  cd TestProjects/BoatAttack && unity-config project add testable com.unity.render-pipelines.core  --project-path .
       -  cd TestProjects/BoatAttack && unity-config project add testable unity.graphictests.performance.universal  --project-path .
       -  cd TestProjects/BoatAttack && unity-config project set project-update false --project-path .
-      -  NetSh Advfirewall set allprofiles state off
-      -  curl -s https://artifactory.prd.it.unity3d.com/artifactory/unity-tools-local/utr-standalone/utr.bat --output utr.bat
-      -  choco install unity-downloader-cli -y -s https://artifactory.prd.it.unity3d.com/artifactory/api/nuget/unity-choco-local
-      -  unity-downloader-cli -u {{editor_versions.2021_1_staging.Android.revision}} -p WindowsEditor -c editor -c il2cpp -c android  --wait --published-only
-      -  |5-
-              set ANDROID_DEVICE_CONNECTION=%BOKKEN_DEVICE_IP%
-              git rev-parse HEAD | git show -s --format=%%cI > revdate.tmp
-              set /p GIT_REVISIONDATE=<revdate.tmp
-              echo %GIT_REVISIONDATE%
-              del revdate.tmp
-              utr --artifacts_path=TestProjects/BoatAttack/test-results --category=URP --editor-location=./WindowsEditor --extra-editor-arg="-addscenetobuild=Assets/scenes/Testing/benchmark_island-static.unity" --extra-editor-arg="-buildtarget" --extra-editor-arg="Android" --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-executemethod" --extra-editor-arg="Editor.Setup" --extra-editor-arg="-packageundertestbranch=%GIT_BRANCH%" --extra-editor-arg="-packageundertestname=com.unity.render-pipelines.universal" --extra-editor-arg="-packageundertestrev=%GIT_REVISION%" --extra-editor-arg="-packageundertestrevdate=%GIT_REVISIONDATE%" --extra-editor-arg="-playergraphicsapi=Vulkan" --extra-editor-arg="-scriptingbackend=IL2CPP" --performance-project-id=BoatAttack --platform=Android --report-performance-data --reruncount=2 --scripting-backend=IL2CPP --suite=editor --testfilter=Low --testproject=./TestProjects/BoatAttack --zero-tests-are-ok=1
-      -  |5-
-              set ANDROID_DEVICE_CONNECTION=%BOKKEN_DEVICE_IP%
-              git rev-parse HEAD | git show -s --format=%%cI > revdate.tmp
-              set /p GIT_REVISIONDATE=<revdate.tmp
-              echo %GIT_REVISIONDATE%
-              del revdate.tmp
-              utr --artifacts_path=TestProjects/BoatAttack/test-results --category=URP --editor-location=./WindowsEditor --extra-editor-arg="-addscenetobuild=Assets/scenes/Testing/benchmark_island-static.unity" --extra-editor-arg="-buildtarget" --extra-editor-arg="Android" --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-executemethod" --extra-editor-arg="Editor.Setup" --extra-editor-arg="-packageundertestbranch=%GIT_BRANCH%" --extra-editor-arg="-packageundertestname=com.unity.render-pipelines.universal" --extra-editor-arg="-packageundertestrev=%GIT_REVISION%" --extra-editor-arg="-packageundertestrevdate=%GIT_REVISIONDATE%" --extra-editor-arg="-playergraphicsapi=Vulkan" --extra-editor-arg="-scriptingbackend=IL2CPP" --performance-project-id=BoatAttack --platform=Android --report-performance-data --reruncount=2 --scripting-backend=IL2CPP --suite=editor --testfilter=Medium --testproject=./TestProjects/BoatAttack --zero-tests-are-ok=1
+      -  command: NetSh Advfirewall set allprofiles state off
+      -  command: curl -s https://artifactory.prd.it.unity3d.com/artifactory/unity-tools-local/utr-standalone/utr.bat --output utr.bat
+         retries: 2
+      -  command: choco install unity-downloader-cli -y -s https://artifactory.prd.it.unity3d.com/artifactory/api/nuget/unity-choco-local
+         retries: 2
+      -  command: unity-downloader-cli -u {{editor_versions.2021_1_staging.Android.revision}} -p WindowsEditor -c editor -c il2cpp -c android  --wait --published-only
+         retries: 2
+      -  command: |5-
+                set ANDROID_DEVICE_CONNECTION=%BOKKEN_DEVICE_IP%
+                git rev-parse HEAD | git show -s --format=%%cI > revdate.tmp
+                set /p GIT_REVISIONDATE=<revdate.tmp
+                echo %GIT_REVISIONDATE%
+                del revdate.tmp
+                utr --artifacts_path=TestProjects/BoatAttack/test-results --category=URP --editor-location=./WindowsEditor --extra-editor-arg="-addscenetobuild=Assets/scenes/Testing/benchmark_island-static.unity" --extra-editor-arg="-buildtarget" --extra-editor-arg="Android" --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-executemethod" --extra-editor-arg="Editor.Setup" --extra-editor-arg="-packageundertestbranch=%GIT_BRANCH%" --extra-editor-arg="-packageundertestname=com.unity.render-pipelines.universal" --extra-editor-arg="-packageundertestrev=%GIT_REVISION%" --extra-editor-arg="-packageundertestrevdate=%GIT_REVISIONDATE%" --extra-editor-arg="-playergraphicsapi=Vulkan" --extra-editor-arg="-scriptingbackend=IL2CPP" --performance-project-id=BoatAttack --platform=Android --report-performance-data --reruncount=2 --scripting-backend=IL2CPP --suite=editor --testfilter=Low --testproject=./TestProjects/BoatAttack --zero-tests-are-ok=1
+      -  command: |5-
+                set ANDROID_DEVICE_CONNECTION=%BOKKEN_DEVICE_IP%
+                git rev-parse HEAD | git show -s --format=%%cI > revdate.tmp
+                set /p GIT_REVISIONDATE=<revdate.tmp
+                echo %GIT_REVISIONDATE%
+                del revdate.tmp
+                utr --artifacts_path=TestProjects/BoatAttack/test-results --category=URP --editor-location=./WindowsEditor --extra-editor-arg="-addscenetobuild=Assets/scenes/Testing/benchmark_island-static.unity" --extra-editor-arg="-buildtarget" --extra-editor-arg="Android" --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-executemethod" --extra-editor-arg="Editor.Setup" --extra-editor-arg="-packageundertestbranch=%GIT_BRANCH%" --extra-editor-arg="-packageundertestname=com.unity.render-pipelines.universal" --extra-editor-arg="-packageundertestrev=%GIT_REVISION%" --extra-editor-arg="-packageundertestrevdate=%GIT_REVISIONDATE%" --extra-editor-arg="-playergraphicsapi=Vulkan" --extra-editor-arg="-scriptingbackend=IL2CPP" --performance-project-id=BoatAttack --platform=Android --report-performance-data --reruncount=2 --scripting-backend=IL2CPP --suite=editor --testfilter=Medium --testproject=./TestProjects/BoatAttack --zero-tests-are-ok=1
     artifacts:
         logs:
             paths:
@@ -185,25 +197,29 @@ URP_Performance_BoatAttack_Android_Vulkan_performance_playmode_runtime_il2cpp_Li
         UTR_VERSION: "current"
         TEST_FILTER: .*
     commands:
-      -  '%ANDROID_SDK_ROOT%\platform-tools\adb.exe connect %BOKKEN_DEVICE_IP%'
-      -  powershell %ANDROID_SDK_ROOT%\platform-tools\adb.exe devices
-      -  NetSh Advfirewall set allprofiles state off
-      -  curl -s https://artifactory.prd.it.unity3d.com/artifactory/unity-tools-local/utr-standalone/utr.bat --output utr.bat
-      -  |5-
-              set ANDROID_DEVICE_CONNECTION=%BOKKEN_DEVICE_IP%
-              git rev-parse HEAD | git show -s --format=%%cI > revdate.tmp
-              set /p GIT_REVISIONDATE=<revdate.tmp
-              echo %GIT_REVISIONDATE%
-              del revdate.tmp
-              utr --architecture=ARM64 --artifacts_path=TestProjects/BoatAttack/test-results --performance-project-id=BoatAttack --platform=Android --player-load-path=playersLow --report-performance-data --reruncount=2 --suite=playmode --timeout=1200 --zero-tests-are-ok=1
-      -  |5-
-              set ANDROID_DEVICE_CONNECTION=%BOKKEN_DEVICE_IP%
-              git rev-parse HEAD | git show -s --format=%%cI > revdate.tmp
-              set /p GIT_REVISIONDATE=<revdate.tmp
-              echo %GIT_REVISIONDATE%
-              del revdate.tmp
-              utr --architecture=ARM64 --artifacts_path=TestProjects/BoatAttack/test-results --performance-project-id=BoatAttack --platform=Android --player-load-path=playersMedium --report-performance-data --reruncount=2 --suite=playmode --timeout=1200 --zero-tests-are-ok=1
-      -  start %ANDROID_SDK_ROOT%\platform-tools\adb.exe kill-server
+      -  command: '%ANDROID_SDK_ROOT%\platform-tools\adb.exe connect %BOKKEN_DEVICE_IP%'
+         retries: 2
+      -  command: powershell %ANDROID_SDK_ROOT%\platform-tools\adb.exe devices
+         retries: 2
+      -  command: NetSh Advfirewall set allprofiles state off
+      -  command: curl -s https://artifactory.prd.it.unity3d.com/artifactory/unity-tools-local/utr-standalone/utr.bat --output utr.bat
+         retries: 2
+      -  command: |5-
+                set ANDROID_DEVICE_CONNECTION=%BOKKEN_DEVICE_IP%
+                git rev-parse HEAD | git show -s --format=%%cI > revdate.tmp
+                set /p GIT_REVISIONDATE=<revdate.tmp
+                echo %GIT_REVISIONDATE%
+                del revdate.tmp
+                utr --architecture=ARM64 --artifacts_path=TestProjects/BoatAttack/test-results --performance-project-id=BoatAttack --platform=Android --player-load-path=playersLow --report-performance-data --reruncount=2 --suite=playmode --timeout=1200 --zero-tests-are-ok=1
+      -  command: |5-
+                set ANDROID_DEVICE_CONNECTION=%BOKKEN_DEVICE_IP%
+                git rev-parse HEAD | git show -s --format=%%cI > revdate.tmp
+                set /p GIT_REVISIONDATE=<revdate.tmp
+                echo %GIT_REVISIONDATE%
+                del revdate.tmp
+                utr --architecture=ARM64 --artifacts_path=TestProjects/BoatAttack/test-results --performance-project-id=BoatAttack --platform=Android --player-load-path=playersMedium --report-performance-data --reruncount=2 --suite=playmode --timeout=1200 --zero-tests-are-ok=1
+      -  command: start %ANDROID_SDK_ROOT%\platform-tools\adb.exe kill-server
+         retries: 2
     artifacts:
         logs:
             paths:
@@ -229,7 +245,8 @@ Build_URP_Performance_BoatAttack_Android_Vulkan_performance_playmode_runtime_il2
         UTR_VERSION: "current"
         TEST_FILTER: .*
     commands:
-      -  git clone https://github.com/Unity-Technologies/BoatAttack.git -b %BOAT_ATTACK_BRANCH% TestProjects/BoatAttack
+      -  command: git clone https://github.com/Unity-Technologies/BoatAttack.git -b %BOAT_ATTACK_BRANCH% TestProjects/BoatAttack
+         retries: 3
       -  cd TestProjects/BoatAttack && git checkout %BOAT_ATTACK_REVISION%
       -  choco source add -n Unity -s https://artifactory.prd.it.unity3d.com/artifactory/api/nuget/unity-choco-local
       -  choco install unity-config
@@ -251,24 +268,27 @@ Build_URP_Performance_BoatAttack_Android_Vulkan_performance_playmode_runtime_il2
       -  cd TestProjects/BoatAttack && unity-config project add testable com.unity.render-pipelines.core  --project-path .
       -  cd TestProjects/BoatAttack && unity-config project add testable unity.graphictests.performance.universal  --project-path .
       -  cd TestProjects/BoatAttack && unity-config project set project-update false --project-path .
-      -  NetSh Advfirewall set allprofiles state off
-      -  curl -s https://artifactory.prd.it.unity3d.com/artifactory/unity-tools-local/utr-standalone/utr.bat --output utr.bat
-      -  choco install unity-downloader-cli -y -s https://artifactory.prd.it.unity3d.com/artifactory/api/nuget/unity-choco-local
-      -  unity-downloader-cli --source-file unity_revision.txt -p WindowsEditor -c editor -c il2cpp -c android  --wait --published-only
-      -  |5-
-              set ANDROID_DEVICE_CONNECTION=%BOKKEN_DEVICE_IP%
-              git rev-parse HEAD | git show -s --format=%%cI > revdate.tmp
-              set /p GIT_REVISIONDATE=<revdate.tmp
-              echo %GIT_REVISIONDATE%
-              del revdate.tmp
-              utr --architecture=ARM64 --artifacts_path=TestProjects/BoatAttack/test-results --build-only --category=URP --editor-location=./WindowsEditor --extra-editor-arg="-addscenetobuild=Assets/scenes/Testing/benchmark_island-static.unity" --extra-editor-arg="-buildtarget" --extra-editor-arg="Android" --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-executemethod" --extra-editor-arg="Editor.Setup" --extra-editor-arg="-packageundertestbranch=%GIT_BRANCH%" --extra-editor-arg="-packageundertestname=com.unity.render-pipelines.universal" --extra-editor-arg="-packageundertestrev=%GIT_REVISION%" --extra-editor-arg="-packageundertestrevdate=%GIT_REVISIONDATE%" --extra-editor-arg="-playergraphicsapi=Vulkan" --extra-editor-arg="-scriptingbackend=IL2CPP" --platform=Android --player-save-path=playersLow --scripting-backend=IL2CPP --suite=playmode --testfilter=Low --testproject=./TestProjects/BoatAttack --timeout=2700
-      -  |5-
-              set ANDROID_DEVICE_CONNECTION=%BOKKEN_DEVICE_IP%
-              git rev-parse HEAD | git show -s --format=%%cI > revdate.tmp
-              set /p GIT_REVISIONDATE=<revdate.tmp
-              echo %GIT_REVISIONDATE%
-              del revdate.tmp
-              utr --architecture=ARM64 --artifacts_path=TestProjects/BoatAttack/test-results --build-only --category=URP --editor-location=./WindowsEditor --extra-editor-arg="-addscenetobuild=Assets/scenes/Testing/benchmark_island-static.unity" --extra-editor-arg="-buildtarget" --extra-editor-arg="Android" --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-executemethod" --extra-editor-arg="Editor.Setup" --extra-editor-arg="-packageundertestbranch=%GIT_BRANCH%" --extra-editor-arg="-packageundertestname=com.unity.render-pipelines.universal" --extra-editor-arg="-packageundertestrev=%GIT_REVISION%" --extra-editor-arg="-packageundertestrevdate=%GIT_REVISIONDATE%" --extra-editor-arg="-playergraphicsapi=Vulkan" --extra-editor-arg="-scriptingbackend=IL2CPP" --platform=Android --player-save-path=playersMedium --scripting-backend=IL2CPP --suite=playmode --testfilter=Medium --testproject=./TestProjects/BoatAttack --timeout=2700
+      -  command: NetSh Advfirewall set allprofiles state off
+      -  command: curl -s https://artifactory.prd.it.unity3d.com/artifactory/unity-tools-local/utr-standalone/utr.bat --output utr.bat
+         retries: 2
+      -  command: choco install unity-downloader-cli -y -s https://artifactory.prd.it.unity3d.com/artifactory/api/nuget/unity-choco-local
+         retries: 2
+      -  command: unity-downloader-cli --source-file unity_revision.txt -p WindowsEditor -c editor -c il2cpp -c android  --wait --published-only
+         retries: 2
+      -  command: |5-
+                set ANDROID_DEVICE_CONNECTION=%BOKKEN_DEVICE_IP%
+                git rev-parse HEAD | git show -s --format=%%cI > revdate.tmp
+                set /p GIT_REVISIONDATE=<revdate.tmp
+                echo %GIT_REVISIONDATE%
+                del revdate.tmp
+                utr --architecture=ARM64 --artifacts_path=TestProjects/BoatAttack/test-results --build-only --category=URP --editor-location=./WindowsEditor --extra-editor-arg="-addscenetobuild=Assets/scenes/Testing/benchmark_island-static.unity" --extra-editor-arg="-buildtarget" --extra-editor-arg="Android" --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-executemethod" --extra-editor-arg="Editor.Setup" --extra-editor-arg="-packageundertestbranch=%GIT_BRANCH%" --extra-editor-arg="-packageundertestname=com.unity.render-pipelines.universal" --extra-editor-arg="-packageundertestrev=%GIT_REVISION%" --extra-editor-arg="-packageundertestrevdate=%GIT_REVISIONDATE%" --extra-editor-arg="-playergraphicsapi=Vulkan" --extra-editor-arg="-scriptingbackend=IL2CPP" --platform=Android --player-save-path=playersLow --scripting-backend=IL2CPP --suite=playmode --testfilter=Low --testproject=./TestProjects/BoatAttack --timeout=2700
+      -  command: |5-
+                set ANDROID_DEVICE_CONNECTION=%BOKKEN_DEVICE_IP%
+                git rev-parse HEAD | git show -s --format=%%cI > revdate.tmp
+                set /p GIT_REVISIONDATE=<revdate.tmp
+                echo %GIT_REVISIONDATE%
+                del revdate.tmp
+                utr --architecture=ARM64 --artifacts_path=TestProjects/BoatAttack/test-results --build-only --category=URP --editor-location=./WindowsEditor --extra-editor-arg="-addscenetobuild=Assets/scenes/Testing/benchmark_island-static.unity" --extra-editor-arg="-buildtarget" --extra-editor-arg="Android" --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-executemethod" --extra-editor-arg="Editor.Setup" --extra-editor-arg="-packageundertestbranch=%GIT_BRANCH%" --extra-editor-arg="-packageundertestname=com.unity.render-pipelines.universal" --extra-editor-arg="-packageundertestrev=%GIT_REVISION%" --extra-editor-arg="-packageundertestrevdate=%GIT_REVISIONDATE%" --extra-editor-arg="-playergraphicsapi=Vulkan" --extra-editor-arg="-scriptingbackend=IL2CPP" --platform=Android --player-save-path=playersMedium --scripting-backend=IL2CPP --suite=playmode --testfilter=Medium --testproject=./TestProjects/BoatAttack --timeout=2700
     artifacts:
         logs:
             paths:
@@ -295,7 +315,8 @@ URP_Performance_BoatAttack_Android_Vulkan_performance_build_editmode_il2cpp_Line
         UTR_VERSION: "current"
         TEST_FILTER: .*
     commands:
-      -  git clone https://github.com/Unity-Technologies/BoatAttack.git -b %BOAT_ATTACK_BRANCH% TestProjects/BoatAttack
+      -  command: git clone https://github.com/Unity-Technologies/BoatAttack.git -b %BOAT_ATTACK_BRANCH% TestProjects/BoatAttack
+         retries: 3
       -  cd TestProjects/BoatAttack && git checkout %BOAT_ATTACK_REVISION%
       -  choco source add -n Unity -s https://artifactory.prd.it.unity3d.com/artifactory/api/nuget/unity-choco-local
       -  choco install unity-config
@@ -317,24 +338,27 @@ URP_Performance_BoatAttack_Android_Vulkan_performance_build_editmode_il2cpp_Line
       -  cd TestProjects/BoatAttack && unity-config project add testable com.unity.render-pipelines.core  --project-path .
       -  cd TestProjects/BoatAttack && unity-config project add testable unity.graphictests.performance.universal  --project-path .
       -  cd TestProjects/BoatAttack && unity-config project set project-update false --project-path .
-      -  NetSh Advfirewall set allprofiles state off
-      -  curl -s https://artifactory.prd.it.unity3d.com/artifactory/unity-tools-local/utr-standalone/utr.bat --output utr.bat
-      -  choco install unity-downloader-cli -y -s https://artifactory.prd.it.unity3d.com/artifactory/api/nuget/unity-choco-local
-      -  unity-downloader-cli --source-file unity_revision.txt -p WindowsEditor -c editor -c il2cpp -c android  --wait --published-only
-      -  |5-
-              set ANDROID_DEVICE_CONNECTION=%BOKKEN_DEVICE_IP%
-              git rev-parse HEAD | git show -s --format=%%cI > revdate.tmp
-              set /p GIT_REVISIONDATE=<revdate.tmp
-              echo %GIT_REVISIONDATE%
-              del revdate.tmp
-              utr --artifacts_path=TestProjects/BoatAttack/test-results --category=URP --editor-location=./WindowsEditor --extra-editor-arg="-addscenetobuild=Assets/scenes/Testing/benchmark_island-static.unity" --extra-editor-arg="-buildtarget" --extra-editor-arg="Android" --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-executemethod" --extra-editor-arg="Editor.Setup" --extra-editor-arg="-packageundertestbranch=%GIT_BRANCH%" --extra-editor-arg="-packageundertestname=com.unity.render-pipelines.universal" --extra-editor-arg="-packageundertestrev=%GIT_REVISION%" --extra-editor-arg="-packageundertestrevdate=%GIT_REVISIONDATE%" --extra-editor-arg="-playergraphicsapi=Vulkan" --extra-editor-arg="-scriptingbackend=IL2CPP" --performance-project-id=BoatAttack --platform=Android --report-performance-data --reruncount=2 --scripting-backend=IL2CPP --suite=editor --testfilter=Low --testproject=./TestProjects/BoatAttack --zero-tests-are-ok=1
-      -  |5-
-              set ANDROID_DEVICE_CONNECTION=%BOKKEN_DEVICE_IP%
-              git rev-parse HEAD | git show -s --format=%%cI > revdate.tmp
-              set /p GIT_REVISIONDATE=<revdate.tmp
-              echo %GIT_REVISIONDATE%
-              del revdate.tmp
-              utr --artifacts_path=TestProjects/BoatAttack/test-results --category=URP --editor-location=./WindowsEditor --extra-editor-arg="-addscenetobuild=Assets/scenes/Testing/benchmark_island-static.unity" --extra-editor-arg="-buildtarget" --extra-editor-arg="Android" --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-executemethod" --extra-editor-arg="Editor.Setup" --extra-editor-arg="-packageundertestbranch=%GIT_BRANCH%" --extra-editor-arg="-packageundertestname=com.unity.render-pipelines.universal" --extra-editor-arg="-packageundertestrev=%GIT_REVISION%" --extra-editor-arg="-packageundertestrevdate=%GIT_REVISIONDATE%" --extra-editor-arg="-playergraphicsapi=Vulkan" --extra-editor-arg="-scriptingbackend=IL2CPP" --performance-project-id=BoatAttack --platform=Android --report-performance-data --reruncount=2 --scripting-backend=IL2CPP --suite=editor --testfilter=Medium --testproject=./TestProjects/BoatAttack --zero-tests-are-ok=1
+      -  command: NetSh Advfirewall set allprofiles state off
+      -  command: curl -s https://artifactory.prd.it.unity3d.com/artifactory/unity-tools-local/utr-standalone/utr.bat --output utr.bat
+         retries: 2
+      -  command: choco install unity-downloader-cli -y -s https://artifactory.prd.it.unity3d.com/artifactory/api/nuget/unity-choco-local
+         retries: 2
+      -  command: unity-downloader-cli --source-file unity_revision.txt -p WindowsEditor -c editor -c il2cpp -c android  --wait --published-only
+         retries: 2
+      -  command: |5-
+                set ANDROID_DEVICE_CONNECTION=%BOKKEN_DEVICE_IP%
+                git rev-parse HEAD | git show -s --format=%%cI > revdate.tmp
+                set /p GIT_REVISIONDATE=<revdate.tmp
+                echo %GIT_REVISIONDATE%
+                del revdate.tmp
+                utr --artifacts_path=TestProjects/BoatAttack/test-results --category=URP --editor-location=./WindowsEditor --extra-editor-arg="-addscenetobuild=Assets/scenes/Testing/benchmark_island-static.unity" --extra-editor-arg="-buildtarget" --extra-editor-arg="Android" --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-executemethod" --extra-editor-arg="Editor.Setup" --extra-editor-arg="-packageundertestbranch=%GIT_BRANCH%" --extra-editor-arg="-packageundertestname=com.unity.render-pipelines.universal" --extra-editor-arg="-packageundertestrev=%GIT_REVISION%" --extra-editor-arg="-packageundertestrevdate=%GIT_REVISIONDATE%" --extra-editor-arg="-playergraphicsapi=Vulkan" --extra-editor-arg="-scriptingbackend=IL2CPP" --performance-project-id=BoatAttack --platform=Android --report-performance-data --reruncount=2 --scripting-backend=IL2CPP --suite=editor --testfilter=Low --testproject=./TestProjects/BoatAttack --zero-tests-are-ok=1
+      -  command: |5-
+                set ANDROID_DEVICE_CONNECTION=%BOKKEN_DEVICE_IP%
+                git rev-parse HEAD | git show -s --format=%%cI > revdate.tmp
+                set /p GIT_REVISIONDATE=<revdate.tmp
+                echo %GIT_REVISIONDATE%
+                del revdate.tmp
+                utr --artifacts_path=TestProjects/BoatAttack/test-results --category=URP --editor-location=./WindowsEditor --extra-editor-arg="-addscenetobuild=Assets/scenes/Testing/benchmark_island-static.unity" --extra-editor-arg="-buildtarget" --extra-editor-arg="Android" --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-executemethod" --extra-editor-arg="Editor.Setup" --extra-editor-arg="-packageundertestbranch=%GIT_BRANCH%" --extra-editor-arg="-packageundertestname=com.unity.render-pipelines.universal" --extra-editor-arg="-packageundertestrev=%GIT_REVISION%" --extra-editor-arg="-packageundertestrevdate=%GIT_REVISIONDATE%" --extra-editor-arg="-playergraphicsapi=Vulkan" --extra-editor-arg="-scriptingbackend=IL2CPP" --performance-project-id=BoatAttack --platform=Android --report-performance-data --reruncount=2 --scripting-backend=IL2CPP --suite=editor --testfilter=Medium --testproject=./TestProjects/BoatAttack --zero-tests-are-ok=1
     artifacts:
         logs:
             paths:
