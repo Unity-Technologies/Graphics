@@ -1,5 +1,3 @@
-//#define VERBOSE_DEBUG
-
 using System;
 using System.Collections.Generic;
 using System.Runtime.InteropServices;
@@ -82,7 +80,7 @@ namespace UnityEngine.Rendering.Universal
 
             // A non-allocating predicated sub-array quick sort.
             // NOTE: Similar to UnityEngine.Rendering.CoreUnsafeUtils.QuickSort in CoreUnsafeUtils.cs,
-            // se should see if these could be merged in the future.
+            // we should see if these could be merged in the future.
             // For example: Sorting.QuickSort(test, 0, test.Length - 1, (int a, int b) => a - b);
             public static void QuickSort<T>(T[] data, int start, int end, Func<T, T, int> compare)
             {
@@ -98,7 +96,6 @@ namespace UnityEngine.Rendering.Universal
                 Assertions.Assert.IsTrue((uint)start < data.Length);
                 Assertions.Assert.IsTrue((uint)end   < data.Length); // end == inclusive
 
-                // For Recursion
                 if (start < end)
                 {
                     int pivot = Partition<T>(data, start, end, compare);
@@ -131,7 +128,6 @@ namespace UnityEngine.Rendering.Universal
                 int diff = end - start;
                 int pivot = start + diff / 2;
 
-                //var pivotValue = data[pivot];
                 var pivotValue = Median3Pivot(data, start, pivot, end, compare);
 
                 while (true)
@@ -151,7 +147,6 @@ namespace UnityEngine.Rendering.Universal
             }
 
             // A non-allocating predicated sub-array insertion sort.
-            // Stable
             static public void InsertionSort<T>(T[] data, int start, int end, Func<T, T, int> compare)
             {
                 Assertions.Assert.IsTrue((uint)start < data.Length);
@@ -175,12 +170,12 @@ namespace UnityEngine.Rendering.Universal
         {
             public ushort visibleLightIndex; // Index into visible light (src)
             public ushort lightBufferIndex;  // Index into light shader data buffer (dst)
-            public Light legacyLight; // Cached legacy light for the visibleLightIndex to avoid multiple copies on get from native array
+            public Light light; // Cached built-in light for the visibleLightIndex. Avoids multiple copies on all the gets from native array.
 
             public static Func<LightCookieMapping, LightCookieMapping, int> s_CompareByCookieSize = (LightCookieMapping a, LightCookieMapping b) =>
             {
-                int a2 = a.legacyLight.cookie.width * a.legacyLight.cookie.height;
-                int b2 = b.legacyLight.cookie.width * b.legacyLight.cookie.height;
+                int a2 = a.light.cookie.width * a.light.cookie.height;
+                int b2 = b.light.cookie.width * b.light.cookie.height;
                 return b2 - a2;
             };
 
@@ -417,6 +412,7 @@ namespace UnityEngine.Rendering.Universal
             }
         }
 
+        // Unity defines directional light UVs over a unit box centered at light.
         // i.e. (0, 1) uv == (-0.5, 0.5) world area instead of the (0,1) world area.
         static readonly Matrix4x4 s_DirLightProj = Matrix4x4.Ortho(-0.5f, 0.5f, -0.5f, 0.5f, -0.5f, 0.5f);
 
@@ -665,7 +661,7 @@ namespace UnityEngine.Rendering.Universal
                 LightCookieMapping lp;
                 lp.visibleLightIndex = (ushort)i;
                 lp.lightBufferIndex  = (ushort)(i + lightBufferOffset);
-                lp.legacyLight = light;
+                lp.light = light;
 
                 validLightMappings[validLightCount++] = lp;
             }
@@ -675,34 +671,18 @@ namespace UnityEngine.Rendering.Universal
 
         int UpdateAdditionalLightsAtlas(CommandBuffer cmd, ref WorkSlice<LightCookieMapping> validLightMappings, Vector4[] textureAtlasUVRects)
         {
-#if VERBOSE_DEBUG
-            Debug.Log($"---------------------------------------------------------------------------------------");
-#endif
             bool atlasReset = false;
-
-            int cookieSizeDivisorApprox = 1;
-            uint cookieRequestPixelCount = 0;
-            {
-                var atlasSize = m_AdditionalLightsCookieAtlas.AtlasTexture.referenceSize;
-                uint atlasPixelCount = (uint)atlasSize.x * (uint)atlasSize.y;
-                cookieRequestPixelCount = ComputeCookieRequestPixelCount(ref validLightMappings);
-
-                float requestAtlasRatio = cookieRequestPixelCount / (float)atlasPixelCount;
-                cookieSizeDivisorApprox = ApproximateCookieSizeDivisor(requestAtlasRatio);
-#if VERBOSE_DEBUG
-                Debug.Log($"Cookie edge divisor approx {cookieSizeDivisorApprox}, current {m_CookieSizeDivisor}. Request {cookieRequestPixelCount}, Capacity {atlasPixelCount}, Ratio {requestAtlasRatio}");
-#endif
-            }
+            uint cookieRequestPixelCount = ComputeCookieRequestPixelCount(ref validLightMappings);
+            var atlasSize = m_AdditionalLightsCookieAtlas.AtlasTexture.referenceSize;
+            float requestAtlasRatio = cookieRequestPixelCount / (float)(atlasSize.x * atlasSize.y);
+            int cookieSizeDivisorApprox = ApproximateCookieSizeDivisor(requestAtlasRatio);
 
             // Try to recover resolution and scale the cookies back up.
-            // If the cookies "should fit" and we have less requested pixels
-            // than the last time we found the correct divisor (guard against retrying every frame).
+            // If the cookies "should fit" and
+            // If we have less requested pixels than the last time we found the correct divisor (a guard against retrying every frame).
             if (cookieSizeDivisorApprox < m_CookieSizeDivisor &&
                 cookieRequestPixelCount < m_PrevCookieRequestPixelCount)
             {
-#if VERBOSE_DEBUG
-                Debug.Log($"Atlas scale up with new divisor {Mathf.Max(cookieSizeDivisorApprox, 1)}. approx {cookieSizeDivisorApprox} < current {m_CookieSizeDivisor}");
-#endif
                 m_AdditionalLightsCookieAtlas.ResetAllocator();
                 atlasReset = true;
 
@@ -720,7 +700,7 @@ namespace UnityEngine.Rendering.Universal
             {
                 var lcm = validLightMappings[i];
 
-                Light light = lcm.legacyLight;
+                Light light = lcm.light;
                 Texture cookie = light.cookie;
 
                 // NOTE: Currently we blit directly on addition (on atlas fetch cache miss).
@@ -753,31 +733,19 @@ namespace UnityEngine.Rendering.Universal
                         // Reduce cookie size even further and try to rebuild.
                         m_CookieSizeDivisor++;
                         m_PrevCookieRequestPixelCount = cookieRequestPixelCount;
-#if VERBOSE_DEBUG
-                        Debug.Log($"Increase cookie divisor to: {m_CookieSizeDivisor}");
-#endif
                     }
                     else
                     {
                         // Reduce cookie size to approximate value try to rebuild.
                         m_CookieSizeDivisor = Mathf.Max(m_CookieSizeDivisor + 1, cookieSizeDivisorApprox);
                         m_PrevCookieRequestPixelCount = cookieRequestPixelCount;
-#if VERBOSE_DEBUG
-                        Debug.Log($"Atlas full, increase divisor and try again: {m_CookieSizeDivisor}");
-#endif
                     }
-
-                    // Clear atlas and try to rebuild it.
-                    // NOTE:
 
                     // Clear atlas allocs
                     m_AdditionalLightsCookieAtlas.ResetAllocator();
                     atlasReset = true;
-#if VERBOSE_DEBUG
-                    Debug.Log($"Atlas reset, try again divisor: {m_CookieSizeDivisor}");
-#endif
 
-                    // Try to reinsert in priority order
+                    // Restart and try to rebuild
                     uvRectCount = 0;
                     i = -1; // Incremented right after continue
                     continue;
@@ -786,9 +754,6 @@ namespace UnityEngine.Rendering.Universal
                 // Adjust atlas UVs for OpenGL
                 if (!SystemInfo.graphicsUVStartsAtTop)
                     uvScaleOffset.w = 1.0f - uvScaleOffset.w - uvScaleOffset.y;
-#if VERBOSE_DEBUG
-                Debug.Log($"i: {i}, '{cookie.name}' {cookie.width}x{cookie.height} Rect: {uvScaleOffset}");
-#endif
 
                 uvRectCount++;
                 textureAtlasUVRects[lcm.lightBufferIndex] = uvScaleOffset;
@@ -808,8 +773,7 @@ namespace UnityEngine.Rendering.Universal
             for (int i = 0; i < validLightMappings.length; i++)
             {
                 var lcm = validLightMappings[i];
-                //Light light = lightData.visibleLights[lcm.visibleLightIndex].light;
-                Texture cookie = lcm.legacyLight.cookie;
+                Texture cookie = lcm.light.cookie;
                 int cookieID = cookie.GetInstanceID();
 
                 // Consider only unique textures as atlas request pixels
@@ -960,8 +924,8 @@ namespace UnityEngine.Rendering.Universal
             // Set all cookies disabled
             cookieEnableBits.Clear();
 
-            // TODO: technically, we don't need to upload constants again if we knew the lights, atlas (rects) or visible order haven't changed.
-            // TODO: but detecting that, might be as time consuming as just doing the work.
+            // NOTE: technically, we don't need to upload constants again if we knew the lights, atlas (rects) or visible order haven't changed.
+            // But detecting that, might be as time consuming as just doing the work.
 
             // Fill shader data. Layout should match primary light data for additional lights.
             // Currently it's the same as visible lights, but main light(s) dropped.
@@ -980,8 +944,6 @@ namespace UnityEngine.Rendering.Universal
                 worldToLights[bufIndex] = visLight.localToWorldMatrix.inverse;
                 atlasUVRects[bufIndex] = validUvRects[i];
                 cookieEnableBits[bufIndex] = true;
-
-                //Debug.Log($"setData: i:{i}, bufIndex:{bufIndex.ToString()} rect:{atlasUVRects[bufIndex].ToString()}");
 
                 // Spot projection
                 if (visLight.lightType == LightType.Spot)
