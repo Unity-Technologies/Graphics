@@ -34,7 +34,6 @@
     * [Precision Types](Precision-Types)
     * [Port Bindings](Port-Bindings)
     * [Shader Stage](Shader-Stage)
-
 * [Node Library](Node-Library)
     * [Artistic](Artistic-Nodes)
         * Adjustment
