@@ -128,7 +128,12 @@ o.VFX_VARYING_VELOCITY_CPOS = o.VFX_VARYING_VELOCITY_CPOS_PREVIOUS = float4(0.0f
 if (asuint(currentFrameIndex) - previousFrameIndex == 1u)    //if (dot(previousElementToVFX[0], 1) != 0)
 {
 #ifdef VFX_FEATURE_MOTION_VECTORS_VERTS
-	uint elementToVFXIndex = elementToVFXBaseIndex + (id % VFX_FEATURE_MOTION_VECTORS_VERTS) * viewCount * 2;
+#if HAS_STRIPS
+	uint vertIndex = (id / 2) % VFX_FEATURE_MOTION_VECTORS_VERTS;
+#else
+	uint vertIndex = id % VFX_FEATURE_MOTION_VECTORS_VERTS;
+#endif
+	uint elementToVFXIndex = elementToVFXBaseIndex + vertIndex * viewCount * 2;
 	elementToVFXIndex += viewOffset * viewCount * VFX_FEATURE_MOTION_VECTORS_VERTS * 2;
 	elementToVFXIndex += unity_StereoEyeIndex * 2;
 	uint2 read = elementToVFXBufferPrevious.Load2(elementToVFXIndex << 2);
