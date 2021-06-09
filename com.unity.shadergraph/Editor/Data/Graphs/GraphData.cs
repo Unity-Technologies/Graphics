@@ -1609,7 +1609,7 @@ namespace UnityEditor.ShaderGraph
                 if (categoryData.categoryGuid == associatedCategoryGuid && categoryData.IsItemInCategory(itemToMove))
                 {
                     // Validate new index to move the item to
-                    if (newIndex < 0 || newIndex >= categoryData.childCount)
+                    if (newIndex < -1 || newIndex >= categoryData.childCount)
                         return;
 
                     categoryData.MoveItemInCategory(itemToMove, newIndex);

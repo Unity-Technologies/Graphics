@@ -225,7 +225,7 @@ namespace UnityEditor.ShaderGraph.Drawing
 
         void OnMouseEnterEvent(MouseEnterEvent evt)
         {
-            if(m_IsUserDraggingItems)
+            if(m_IsUserDraggingItems && selection.OfType<SGBlackboardCategory>().Any())
                 SetCategoryDragIndicatorVisible(true);
         }
 

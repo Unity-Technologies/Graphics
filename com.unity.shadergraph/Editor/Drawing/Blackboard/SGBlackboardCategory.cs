@@ -520,22 +520,29 @@ namespace UnityEditor.ShaderGraph.Drawing
                     if (shaderInput == null || !this.Contains(blackboardField))
                         continue;
 
+                    bool listEndInsertion = false;
+
                     // Only find index for the first item
                     if (draggedElement == firstChild)
                     {
-                        // Handles edge case of inserting after item in list
-                        if (m_DroppedOnBottomEdge)
+                        // Handles case of inserting after last item in list
+                        if (insertIndex == contentContainer.childCount - 1 && m_DroppedOnBottomEdge)
+                        {
+                            listEndInsertion = true;
+                        }
+                        // Handles case of inserting after any item except the last in list
+                        else if (m_DroppedOnBottomEdge)
                             insertIndex = insertIndex + 1;
                         // Handles edge case of inserting before first/last item in list
-                        if (m_DroppedOnTopEdge && (insertIndex == 0 || insertIndex == childCount - 1))
-                            insertIndex = insertIndex - 1;
+                        //if (m_DroppedOnTopEdge && (insertIndex == 0 || insertIndex == childCount - 1))
+                        //    insertIndex = insertIndex - 1;
 
                         insertIndex = Mathf.Clamp(insertIndex, 0, childCount - 1);
 
                         if (insertIndex != indexOfDraggedElement)
                         {
                             // If ever placing it at end of list, make sure to place after last item
-                            if (insertIndex == contentContainer.childCount - 1)
+                            if (listEndInsertion)
                             {
                                 categoryDirectChild.PlaceInFront(this[insertIndex]);
                             }
@@ -552,10 +559,11 @@ namespace UnityEditor.ShaderGraph.Drawing
                         categoryDirectChild.PlaceInFront(this[indexOfFirstChild]);
                     }
 
+
                     var moveShaderInputAction = new MoveShaderInputAction();
                     moveShaderInputAction.associatedCategoryGuid = viewModel.associatedCategoryGuid;
                     moveShaderInputAction.shaderInputReference = shaderInput;
-                    moveShaderInputAction.newIndexValue = insertIndex;
+                    moveShaderInputAction.newIndexValue = listEndInsertion ? -1 : insertIndex;
                     m_ViewModel.requestModelChangeAction(moveShaderInputAction);
 
                     // Make sure to remove the element from the selection so it doesn't get re-handled by the blackboard as well, leads to duplicates
