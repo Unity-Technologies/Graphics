@@ -35,6 +35,7 @@ void InitBuiltinData(PositionInputs posInput, float alpha, float3 normalWS, floa
                         out BuiltinData builtinData)
 {
     ZERO_INITIALIZE(BuiltinData, builtinData);
+    INITIALIZE_VT_PACKED_FEEDBACK(builtinData);
 
     builtinData.opacity = alpha;
 

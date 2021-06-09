@@ -279,6 +279,7 @@ Pass
         BuildSurfaceData(fragInputs, surfaceDescription, V, posInput, surfaceData);
 
         ZERO_INITIALIZE(BuiltinData, builtinData); // No call to InitBuiltinData as we don't have any lighting
+        INITIALIZE_VT_PACKED_FEEDBACK(builtinData);
         builtinData.opacity = surfaceDescription.Alpha;
 
         #if defined(DEBUG_DISPLAY)

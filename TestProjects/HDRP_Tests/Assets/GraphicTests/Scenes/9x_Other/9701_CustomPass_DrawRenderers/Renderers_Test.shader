@@ -1,4 +1,4 @@
-﻿Shader "Renderers/Renderers_Test"
+Shader "Renderers/Renderers_Test"
 {
     Properties
     {
@@ -84,6 +84,7 @@
 
                 // Write back the data to the output structures
                 ZERO_INITIALIZE(BuiltinData, builtinData); // No call to InitBuiltinData as we don't have any lighting
+                INITIALIZE_VT_PACKED_FEEDBACK(builtinData);
                 builtinData.opacity = opacity;
                 builtinData.emissiveColor = float3(0, 1, 0);
                 surfaceData.color = color;

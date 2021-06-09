@@ -25,6 +25,7 @@ void GetSurfaceAndBuiltinData(FragInputs input, float3 V, inout PositionInputs p
 
     // Builtin Data
     ZERO_INITIALIZE(BuiltinData, builtinData); // No call to InitBuiltinData as we don't have any lighting
+    INITIALIZE_VT_PACKED_FEEDBACK(builtinData);
     builtinData.opacity = alpha;
 
 #ifdef _ALPHATEST_ON
