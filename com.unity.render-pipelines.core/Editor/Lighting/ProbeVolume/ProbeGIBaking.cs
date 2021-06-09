@@ -122,7 +122,9 @@ namespace UnityEngine.Experimental.Rendering
 
             foreach (var scene in EditorBuildSettings.scenes)
             {
-                scenesToConsider.Add(scene.path);
+                // We consider only scenes that exist.
+                if (System.IO.File.Exists(scene.path))
+                    scenesToConsider.Add(scene.path);
             }
 
 
