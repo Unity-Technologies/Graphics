@@ -45,7 +45,7 @@ You have one list per post processing injection point: `After Opaque And Sky`, `
 | Lens Attenuation Mode                 | Set the attenuation mode of the lens that is used to compute exposure. With imperfect lens some energy is lost when converting from EV100 to the exposure multiplier, while a perfect lens has no attenuation and no energy is lost. |
 | Use DLSS Custom Project Id            | Controls whether to use a custom project ID for the NVIDIA Deep Learning Super Sampling module. If you enable this property, you can use **DLSS Custom Project Id** to specify a custom project ID.<br/>This property only appears if you enable the NVIDIA package (com.unity.modules.nvidia) in your Unity project. |
 | DLSS Custom Project Id                | Controls whether to use a custom project ID for the NVIDIA Deep Learning Super Sampling (DLSS) module. If you enable this property, you can use **DLSS Custom Project Id** to specify a custom project ID. If you disable this property, Unity generates a unique project ID. <br/>This property only appears if you enable the NVIDIA package (com.unity.modules.nvidia) in your Unity project. |
-| Runtime Debug Shaders                 | Disable this property to remove all debug display shader variants when you build for the Unity Player. This decreases build time but as a result, you cannot use Rendering Debugger in Player builds. |
+| Runtime Debug Shaders                 | When enabled, Unity includes shader variants that let you use the Render Pipeline Debugger window to debug your build. When disabled, Unity excludes ("strips") these variants. Enable this when you want to debug your shaders in the Render Pipeline Debugger window, and disable it otherwise. |
 
 ## Resources
 
