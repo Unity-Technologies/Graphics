@@ -10,8 +10,6 @@ When Unity does not render with GPU instancing, this ID is 0.
 
 When Unity uses dynamic instancing, instance IDs might not be consistent across multiple frames.
 
-When you use an XR camera setup, this node has the same behavior as the [Eye Index Node](Eye-Index-Node).
-
 ## Ports
 
 | Name   | Direction  | Type  | Binding | Description |
