@@ -422,6 +422,16 @@ namespace UnityEngine.Rendering.Universal.Internal
                 }
             }
 
+            // Motion blur
+            if (m_MotionBlur.IsActive() && !isSceneViewCamera)
+            {
+                using (new ProfilingScope(cmd, ProfilingSampler.Get(URPProfileId.MotionBlur)))
+                {
+                    DoMotionBlur(cameraData, cmd, GetSource(), GetDestination());
+                    Swap(ref renderer);
+                }
+            }
+
             // Lens Flare
             if (!LensFlareCommonSRP.Instance.IsEmpty())
             {
@@ -444,16 +454,6 @@ namespace UnityEngine.Rendering.Universal.Internal
                 using (new ProfilingScope(cmd, ProfilingSampler.Get(URPProfileId.LensFlareDataDriven)))
                 {
                     DoLensFlareDatadriven(cameraData.camera, cmd, GetSource(), usePanini, paniniDistance, paniniCropToFit);
-                }
-            }
-
-            // Motion blur
-            if (m_MotionBlur.IsActive() && !isSceneViewCamera)
-            {
-                using (new ProfilingScope(cmd, ProfilingSampler.Get(URPProfileId.MotionBlur)))
-                {
-                    DoMotionBlur(cameraData, cmd, GetSource(), GetDestination());
-                    Swap(ref renderer);
                 }
             }
 
