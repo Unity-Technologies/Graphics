@@ -52,9 +52,10 @@ internal static class URP2DConverterUtility
             if (go != null)
             {
                 objectUpgrader(go);
+                PrefabUtility.SavePrefabAsset(go);
             }
         }
-
+        
         AssetDatabase.SaveAssets();
         Resources.UnloadUnusedAssets();
     }
@@ -76,6 +77,10 @@ internal static class URP2DConverterUtility
         {
             EditorSceneManager.SaveScene(scene);
             EditorSceneManager.CloseScene(scene, true);
+        }
+        else
+        {
+            EditorSceneManager.MarkSceneDirty(scene);
         }
     }
 

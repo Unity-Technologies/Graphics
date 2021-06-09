@@ -69,7 +69,7 @@ namespace UnityEditor.Rendering.Universal
             Light2D[] lights = go.GetComponentsInChildren<Light2D>();
             foreach (Light2D light in lights)
             {
-                if (light.lightType == Light2D.LightType.Parametric)
+                if (light.lightType == Light2D.LightType.Parametric && !PrefabUtility.IsPartOfPrefabInstance(light))
                     UpgradeParametricLight(light);
             }
         }

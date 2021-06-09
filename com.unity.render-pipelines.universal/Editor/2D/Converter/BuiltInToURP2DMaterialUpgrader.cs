@@ -55,23 +55,26 @@ namespace UnityEditor.Rendering.Universal
             Renderer[] renderers = go.GetComponentsInChildren<Renderer>();
             foreach (Renderer renderer in renderers)
             {
-                int materialCount = renderer.sharedMaterials.Length;
-                Material[] newMaterials = new Material[materialCount];
-                bool updateMaterials = false;
-
-                for (int matIndex = 0; matIndex < materialCount; matIndex++)
+                if (!PrefabUtility.IsPartOfPrefabInstance(renderer))
                 {
-                    if (renderer.sharedMaterials[matIndex] == m_SpritesDefaultMat)
-                    {
-                        newMaterials[matIndex] = m_SpriteLitDefaultMat;
-                        updateMaterials = true;
-                    }
-                    else
-                        newMaterials[matIndex] = renderer.sharedMaterials[matIndex];
-                }
+                    int materialCount = renderer.sharedMaterials.Length;
+                    Material[] newMaterials = new Material[materialCount];
+                    bool updateMaterials = false;
 
-                if(updateMaterials)
-                    renderer.sharedMaterials = newMaterials;
+                    for (int matIndex = 0; matIndex < materialCount; matIndex++)
+                    {
+                        if (renderer.sharedMaterials[matIndex] == m_SpritesDefaultMat)
+                        {
+                            newMaterials[matIndex] = m_SpriteLitDefaultMat;
+                            updateMaterials = true;
+                        }
+                        else
+                            newMaterials[matIndex] = renderer.sharedMaterials[matIndex];
+                    }
+
+                    if (updateMaterials)
+                        renderer.sharedMaterials = newMaterials;
+                }
             }
         }
 
