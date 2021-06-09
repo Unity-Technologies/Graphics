@@ -566,6 +566,39 @@ namespace UnityEngine.Rendering.Universal
                 ConfigureCameraTarget(activeColorRenderTargetId, activeDepthRenderTargetId);
             }
 
+            bool renderingToBackBufferTarget = camera.targetTexture == null;
+
+            // If Camera Renders to backbuffer and MSAA Sample Count is larger than 1 we may have to disable/enable MSAA backbuffer
+            // The condition depends on whether the intermediate MSAA render targets has been created or not
+            if (cameraTargetDescriptor.msaaSamples > 1 && renderingToBackBufferTarget)
+            {
+                int qualitySettingsMsaaSampleCount = QualitySettings.antiAliasing > 0 ? QualitySettings.antiAliasing : 1;
+
+                if (createColorTexture)
+                {
+                    if (qualitySettingsMsaaSampleCount > 1)
+                    {
+                        QualitySettings.antiAliasing = 1;
+#if ENABLE_VR && ENABLE_XR_MODULE
+                        XRSystem.UpdateMSAALevel(1);
+#endif
+                    }
+                }
+                else
+                {
+                    bool msaaSampleCountNeedsUpdate = (qualitySettingsMsaaSampleCount != cameraTargetDescriptor.msaaSamples);
+
+                    // Let engine know we have MSAA on for cases where we support MSAA backbuffer
+                    if (msaaSampleCountNeedsUpdate)
+                    {
+                        QualitySettings.antiAliasing = cameraTargetDescriptor.msaaSamples;
+#if ENABLE_VR && ENABLE_XR_MODULE
+                        XRSystem.UpdateMSAALevel(cameraTargetDescriptor.msaaSamples);
+#endif
+                    }
+                }
+            }
+
             bool hasPassesAfterPostProcessing = activeRenderPassQueue.Find(x => x.renderPassEvent == RenderPassEvent.AfterRenderingPostProcessing) != null;
 
             if (mainLightShadows)
