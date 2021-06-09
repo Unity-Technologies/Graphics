@@ -1,4 +1,4 @@
-Shader "Universal Render Pipeline/SpatialMappingWireframe"
+Shader "Universal Render Pipeline/VR/SpatialMapping/Wireframe"
 {
     Properties
     {
@@ -6,17 +6,18 @@ Shader "Universal Render Pipeline/SpatialMappingWireframe"
     }
     SubShader
     {
-        Tags {"RenderType" = "Opaque" "IgnoreProjector" = "False" "RenderPipeline" = "UniversalPipeline" }
+        Tags {"RenderType" = "Opaque" "RenderPipeline" = "UniversalPipeline" }
         LOD 100
 
         Pass
         {
             Name "Spatial Mapping Wireframe"
 
+            // Wireframe shader based on the the following
+            // http://developer.download.nvidia.com/SDK/10/direct3d/Source/SolidWireframe/Doc/SolidWireframe.pdf
+
             HLSLPROGRAM
             #pragma require geometry
-            #pragma gles gles3 glcore
-            #pragma target 2.0
 
             #pragma vertex vert
             #pragma geometry geom
@@ -24,7 +25,6 @@ Shader "Universal Render Pipeline/SpatialMappingWireframe"
 
             // -------------------------------------
             // Unity defined keywords
-            #pragma multi_compile_fog
             #pragma multi_compile_instancing
 
             #include "UnlitInput.hlsl"
