@@ -95,6 +95,8 @@
             * [View Direction](View-Direction-Node)
             * [View Vector](View-Vector-Node)
         * Gradient
+            * [Vertex ID](Vertex-ID-Node)
+            * [Instance ID](Instance-ID-Node)
             * [Blackbody](Blackbody-Node)
             * [Gradient](Gradient-Node)
             * [Sample Gradient](Sample-Gradient-Node)
@@ -124,6 +126,7 @@
             * [Screen](Screen-Node)
         * Texture
             * [Cubemap Asset](Cubemap-Asset-Node)
+            * [Eye Index](Eye-Index-Node)
             * [Sample Cubemap](Sample-Cubemap-Node)
             * [Sample Reflected Cubemap](Sample-Reflected-Cubemap-Node)
             * [Sample Texture 2D](Sample-Texture-2D-Node)
