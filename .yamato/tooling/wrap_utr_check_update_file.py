@@ -1,8 +1,7 @@
-import os
 import subprocess
 import platform
 import sys
-from os import path
+from os import path, listdir
 
 if __name__ == "__main__":
     cur_sys = platform.system()
@@ -11,6 +10,7 @@ if __name__ == "__main__":
     if cur_sys == 'Windows':
         output = subprocess.call(["utr.bat"] + sys.argv[2:])
     else:
+        print(listdir())
         output = subprocess.call(["utr"] + sys.argv[2:])
 
     update_tests_file_path = path.join(sys.argv[1], "Assets/Resources/UpdateTests.txt")
