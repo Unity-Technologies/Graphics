@@ -2828,6 +2828,7 @@ namespace UnityEditor.ShaderGraph
     class InspectorPreviewData
     {
         public SerializableMesh serializedMesh = new SerializableMesh();
+        public bool preventRotation;
 
         [NonSerialized]
         public Quaternion rotation = Quaternion.identity;
