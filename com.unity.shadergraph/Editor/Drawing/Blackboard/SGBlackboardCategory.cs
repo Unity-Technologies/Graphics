@@ -521,34 +521,35 @@ namespace UnityEditor.ShaderGraph.Drawing
                         continue;
 
                     bool listEndInsertion = false;
-
+                    var viewInsertIndex = insertIndex;
                     // Only find index for the first item
                     if (draggedElement == firstChild)
                     {
                         // Handles case of inserting after last item in list
-                        if (insertIndex == contentContainer.childCount - 1 && m_DroppedOnBottomEdge)
+                        viewInsertIndex = insertIndex;
+                        if (viewInsertIndex == contentContainer.childCount - 1 && m_DroppedOnBottomEdge)
                         {
                             listEndInsertion = true;
                         }
                         // Handles case of inserting after any item except the last in list
                         else if (m_DroppedOnBottomEdge)
-                            insertIndex = insertIndex + 1;
+                            viewInsertIndex = viewInsertIndex + 1;
                         // Handles edge case of inserting before first/last item in list
                         //if (m_DroppedOnTopEdge && (insertIndex == 0 || insertIndex == childCount - 1))
                         //    insertIndex = insertIndex - 1;
 
-                        insertIndex = Mathf.Clamp(insertIndex, 0, childCount - 1);
+                        viewInsertIndex = Mathf.Clamp(viewInsertIndex, 0, childCount - 1);
 
-                        if (insertIndex != indexOfDraggedElement)
+                        if (viewInsertIndex != indexOfDraggedElement)
                         {
                             // If ever placing it at end of list, make sure to place after last item
                             if (listEndInsertion)
                             {
-                                categoryDirectChild.PlaceInFront(this[insertIndex]);
+                                categoryDirectChild.PlaceInFront(this[viewInsertIndex]);
                             }
                             else
                             {
-                                categoryDirectChild.PlaceBehind(this[insertIndex]);
+                                categoryDirectChild.PlaceBehind(this[viewInsertIndex]);
                             }
                         }
                     }
@@ -560,10 +561,13 @@ namespace UnityEditor.ShaderGraph.Drawing
                     }
 
 
+                    if (insertIndex > childCount - 1)
+                        listEndInsertion = true;
+
                     var moveShaderInputAction = new MoveShaderInputAction();
                     moveShaderInputAction.associatedCategoryGuid = viewModel.associatedCategoryGuid;
                     moveShaderInputAction.shaderInputReference = shaderInput;
-                    moveShaderInputAction.newIndexValue = listEndInsertion ? -1 : insertIndex;
+                    moveShaderInputAction.newIndexValue = listEndInsertion ? -1 : viewInsertIndex;
                     m_ViewModel.requestModelChangeAction(moveShaderInputAction);
 
                     // Make sure to remove the element from the selection so it doesn't get re-handled by the blackboard as well, leads to duplicates

@@ -1610,7 +1610,10 @@ namespace UnityEditor.ShaderGraph
                 {
                     // Validate new index to move the item to
                     if (newIndex < -1 || newIndex >= categoryData.childCount)
+                    {
+                        AssertHelpers.Fail("Provided invalid index input to MoveItemInCategory.");
                         return;
+                    }
 
                     categoryData.MoveItemInCategory(itemToMove, newIndex);
                     break;

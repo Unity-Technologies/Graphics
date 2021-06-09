@@ -60,7 +60,12 @@ namespace UnityEditor.ShaderGraph
 
         public void MoveItemInCategory(ShaderInput itemToMove, int newIndex)
         {
-            RemoveItemFromCategory(itemToMove);
+            int oldIndex = m_ChildObjectList.IndexOf(itemToMove);
+            m_ChildObjectList.Remove(itemToMove);
+            m_ChildObjectIDSet.Remove(itemToMove.objectId);
+            // The actual index could have shifted due to the removal
+            if (newIndex > oldIndex)
+                newIndex--;
             InsertItemIntoCategory(itemToMove, newIndex);
         }
 
