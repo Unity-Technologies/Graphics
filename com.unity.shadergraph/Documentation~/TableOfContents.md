@@ -34,6 +34,8 @@
     * [Precision Types](Precision-Types)
     * [Port Bindings](Port-Bindings)
     * [Shader Stage](Shader-Stage)
+    * [Surface options](surface-options.md)
+    * [Custom Interpolators](Custom-Interpolators)
 * [Node Library](Node-Library)
     * [Artistic](Artistic-Nodes)
         * Adjustment
