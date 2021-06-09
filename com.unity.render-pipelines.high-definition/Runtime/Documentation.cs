@@ -23,7 +23,7 @@ namespace UnityEngine.Rendering.HighDefinition
     //Need to live in Runtime as Attribute of documentation is on Runtime classes \o/
     class Documentation : DocumentationInfo
     {
-        internal const string baseURL = "https://docs.unity3d.com/Packages/com.unity.render-pipelines.high-definition@";
+        internal const string baseURL = "http://docs.unity3d.com/Packages/com.unity.render-pipelines.high-definition@";
         internal const string subURL = "/manual/";
         internal const string endURL = ".html";
 
