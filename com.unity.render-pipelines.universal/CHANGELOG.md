@@ -35,6 +35,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Added Motion Vector render pass for URP.
 - VFX: Fix light cookies integration.
 - Added Lights 2D to the Light Explorer window.
+- Fixed missing stencil buffer in deferred rendering mode on Android Vulkan platform.
 
 ### Changed
 - Moved fog evaluation from vertex shader to pixel shader. This improves rendering of fog for big triangles and fog quality. This can change the look of the fog slightly.
