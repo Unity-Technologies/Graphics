@@ -13,6 +13,7 @@ PR_URPUpdate_BoatAttack_2021.1:
     variables:
         UTR_VERSION: "current"
         TEST_FILTER: .*
+        CACHE_ARGS: '{{cache.flags}}'
     dependencies:
       -  path: .yamato/urpupdate_boatattack-win-dx11.yml#URPUpdate_BoatAttack_Win_DX11_editmode_mono_Linear_2021.1
          rerun: on_new_revision
@@ -23,12 +24,14 @@ Extra_URPUpdate_BoatAttack_2021.1:
     variables:
         UTR_VERSION: "current"
         TEST_FILTER: .*
+        CACHE_ARGS: '{{cache.flags}}'
     dependencies: []
 URPUpdate_BoatAttack_2021.1:
     name: URPUpdate_BoatAttack on 2021.1
     variables:
         UTR_VERSION: "current"
         TEST_FILTER: .*
+        CACHE_ARGS: '{{cache.flags}}'
     dependencies:
       -  path: .yamato/all-urpupdate_boatattack.yml#PR_URPUpdate_BoatAttack_2021.1
          rerun: on_new_revision
@@ -40,6 +43,7 @@ PR_URPUpdate_BoatAttack_CUSTOM-REVISION:
         CUSTOM_REVISION: custom_revision_not_set
         UTR_VERSION: "current"
         TEST_FILTER: .*
+        CACHE_ARGS: '{{cache.flags}}'
     dependencies:
       -  path: .yamato/urpupdate_boatattack-win-dx11.yml#URPUpdate_BoatAttack_Win_DX11_editmode_mono_Linear_CUSTOM-REVISION
          rerun: on_new_revision
@@ -51,6 +55,7 @@ Extra_URPUpdate_BoatAttack_CUSTOM-REVISION:
         CUSTOM_REVISION: custom_revision_not_set
         UTR_VERSION: "current"
         TEST_FILTER: .*
+        CACHE_ARGS: '{{cache.flags}}'
     dependencies: []
 URPUpdate_BoatAttack_CUSTOM-REVISION:
     name: URPUpdate_BoatAttack on CUSTOM-REVISION
@@ -58,6 +63,7 @@ URPUpdate_BoatAttack_CUSTOM-REVISION:
         CUSTOM_REVISION: custom_revision_not_set
         UTR_VERSION: "current"
         TEST_FILTER: .*
+        CACHE_ARGS: '{{cache.flags}}'
     dependencies:
       -  path: .yamato/all-urpupdate_boatattack.yml#PR_URPUpdate_BoatAttack_CUSTOM-REVISION
          rerun: on_new_revision

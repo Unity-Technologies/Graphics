@@ -15,6 +15,7 @@ URP_Performance_BoatAttack_2021.1:
         TEST_FILTER: .*
         BOAT_ATTACK_BRANCH: master
         BOAT_ATTACK_REVISION: d07745c0d9bc97cde5fc4ae86186d6c2f0c2a16c
+        CACHE_ARGS: '{{cache.flags}}'
     dependencies:
       -  path: .yamato/urp_performance_boatattack-win-dx11.yml#URP_Performance_BoatAttack_Win_DX11_performance_playmode_runtime_mono_Linear_2021.1
          rerun: on_new_revision
@@ -58,6 +59,7 @@ URP_Performance_BoatAttack_CUSTOM-REVISION:
         TEST_FILTER: .*
         BOAT_ATTACK_BRANCH: master
         BOAT_ATTACK_REVISION: d07745c0d9bc97cde5fc4ae86186d6c2f0c2a16c
+        CACHE_ARGS: '{{cache.flags}}'
     dependencies:
       -  path: .yamato/urp_performance_boatattack-win-dx11.yml#URP_Performance_BoatAttack_Win_DX11_performance_playmode_runtime_mono_Linear_CUSTOM-REVISION
          rerun: on_new_revision

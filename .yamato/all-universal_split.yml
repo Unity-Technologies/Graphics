@@ -13,6 +13,7 @@ PR_Universal_Split_2021.1:
     variables:
         UTR_VERSION: "current"
         TEST_FILTER: .*
+        CACHE_ARGS: '{{cache.flags}}'
     dependencies:
       -  path: .yamato/all-urp_2d.yml#PR_URP_2D_2021.1
          rerun: on_new_revision
@@ -29,6 +30,7 @@ Extra_Universal_Split_2021.1:
     variables:
         UTR_VERSION: "current"
         TEST_FILTER: .*
+        CACHE_ARGS: '{{cache.flags}}'
     dependencies:
       -  path: .yamato/all-urp_2d.yml#Extra_URP_2D_2021.1
          rerun: on_new_revision
@@ -46,6 +48,7 @@ PR_Universal_Split_CUSTOM-REVISION:
         CUSTOM_REVISION: custom_revision_not_set
         UTR_VERSION: "current"
         TEST_FILTER: .*
+        CACHE_ARGS: '{{cache.flags}}'
     dependencies:
       -  path: .yamato/all-urp_2d.yml#PR_URP_2D_CUSTOM-REVISION
          rerun: on_new_revision
@@ -63,6 +66,7 @@ Extra_Universal_Split_CUSTOM-REVISION:
         CUSTOM_REVISION: custom_revision_not_set
         UTR_VERSION: "current"
         TEST_FILTER: .*
+        CACHE_ARGS: '{{cache.flags}}'
     dependencies:
       -  path: .yamato/all-urp_2d.yml#Extra_URP_2D_CUSTOM-REVISION
          rerun: on_new_revision

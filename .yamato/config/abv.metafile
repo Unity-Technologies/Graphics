@@ -42,7 +42,7 @@ jobs:
         build_config: mono
         color_space: Linear
         test_platforms:
-            - playmode_cache
+            - playmode
             - editmode
       - project: URP_Foundation
         platform: Win
@@ -50,7 +50,7 @@ jobs:
         build_config: mono
         color_space: Linear
         test_platforms:
-            - playmode_cache
+            - playmode
             - editmode
       - project: URP_Lighting
         platform: Win
@@ -58,7 +58,7 @@ jobs:
         build_config: mono
         color_space: Linear
         test_platforms:
-            - playmode_cache
+            - playmode
             - editmode
       - project: URP_PostPro
         platform: Win
@@ -66,7 +66,7 @@ jobs:
         build_config: mono
         color_space: Linear
         test_platforms:
-            - playmode_cache
+            - playmode
             - editmode
       - project: URP_Terrain
         platform: Win
@@ -74,7 +74,7 @@ jobs:
         build_config: mono
         color_space: Linear
         test_platforms:
-            - playmode_cache
+            - playmode
             - editmode
       - project: ShaderGraph
         platform: Win
@@ -82,7 +82,7 @@ jobs:
         build_config: mono
         color_space: Linear
         test_platforms:
-            - playmode_cache
+            - playmode
             - editmode
       - project: HDRP
         platform: Win
@@ -90,7 +90,7 @@ jobs:
         build_config: mono
         color_space: Linear
         test_platforms:
-            - playmode_cache
+            - playmode
             - editmode
       - project: VFX_HDRP
         platform: Win
@@ -106,4 +106,4 @@ jobs:
         build_config: mono
         color_space: Linear
         test_platforms:
-            - playmode_cache
+            - playmode

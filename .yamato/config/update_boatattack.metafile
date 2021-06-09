@@ -20,8 +20,7 @@ test_platforms:
   - type: editmode
     commands:
       - <reuse_blocks.setup_with_utr>
-expression_trigger:
-  expression: ""
+
 platforms:
   - name: Win
     apis:

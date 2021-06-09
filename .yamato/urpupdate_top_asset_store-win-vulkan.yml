@@ -18,6 +18,7 @@ URPUpdate_Top_Asset_Store_Win_Vulkan_playmode_mono_Linear_2021.1:
         UPM_REGISTRY: https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates
         ASSETSTORE_UPDATE_PROJECT_BRANCH: master
         ASSETSTORE_UPDATE_PROJECT_REVISION: 818b6345d6bf46cf3e5644aceff134e866c6150e
+        CACHE_ARGS: '{{cache.flags}}'
         UTR_VERSION: "current"
         TEST_FILTER: .*
     commands:
@@ -35,7 +36,7 @@ URPUpdate_Top_Asset_Store_Win_Vulkan_playmode_mono_Linear_2021.1:
               set /p GIT_REVISIONDATE=<revdate.tmp
               echo %GIT_REVISIONDATE%
               del revdate.tmp
-              utr --artifacts_path=TestProjects/URP-Update-Testing/Top-URP-Assets/test-results --editor-location=.Editor --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-force-vulkan" --reruncount=2 --scripting-backend=Mono2x --suite=playmode --testfilter=%TEST_FILTER% --testproject=./TestProjects/URP-Update-Testing/Top-URP-Assets --zero-tests-are-ok=1
+              utr %CACHE_ARGS% --artifacts_path=TestProjects/URP-Update-Testing/Top-URP-Assets/test-results --editor-location=.Editor --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-force-vulkan" --reruncount=2 --scripting-backend=Mono2x --suite=playmode --testfilter=%TEST_FILTER% --testproject=./TestProjects/URP-Update-Testing/Top-URP-Assets --zero-tests-are-ok=1
     artifacts:
         logs:
             paths:
@@ -51,6 +52,7 @@ URPUpdate_Top_Asset_Store_Win_Vulkan_editmode_mono_Linear_2021.1:
         UPM_REGISTRY: https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates
         ASSETSTORE_UPDATE_PROJECT_BRANCH: master
         ASSETSTORE_UPDATE_PROJECT_REVISION: 818b6345d6bf46cf3e5644aceff134e866c6150e
+        CACHE_ARGS: '{{cache.flags}}'
         UTR_VERSION: "current"
         TEST_FILTER: .*
     commands:
@@ -85,6 +87,7 @@ URPUpdate_Top_Asset_Store_Win_Vulkan_playmode_mono_Linear_CUSTOM-REVISION:
         CUSTOM_REVISION: custom_revision_not_set
         ASSETSTORE_UPDATE_PROJECT_BRANCH: master
         ASSETSTORE_UPDATE_PROJECT_REVISION: 818b6345d6bf46cf3e5644aceff134e866c6150e
+        CACHE_ARGS: '{{cache.flags}}'
         UTR_VERSION: "current"
         TEST_FILTER: .*
     commands:
@@ -102,7 +105,7 @@ URPUpdate_Top_Asset_Store_Win_Vulkan_playmode_mono_Linear_CUSTOM-REVISION:
               set /p GIT_REVISIONDATE=<revdate.tmp
               echo %GIT_REVISIONDATE%
               del revdate.tmp
-              utr --artifacts_path=TestProjects/URP-Update-Testing/Top-URP-Assets/test-results --editor-location=.Editor --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-force-vulkan" --reruncount=2 --scripting-backend=Mono2x --suite=playmode --testfilter=%TEST_FILTER% --testproject=./TestProjects/URP-Update-Testing/Top-URP-Assets --zero-tests-are-ok=1
+              utr %CACHE_ARGS% --artifacts_path=TestProjects/URP-Update-Testing/Top-URP-Assets/test-results --editor-location=.Editor --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-force-vulkan" --reruncount=2 --scripting-backend=Mono2x --suite=playmode --testfilter=%TEST_FILTER% --testproject=./TestProjects/URP-Update-Testing/Top-URP-Assets --zero-tests-are-ok=1
     artifacts:
         logs:
             paths:
@@ -122,6 +125,7 @@ URPUpdate_Top_Asset_Store_Win_Vulkan_editmode_mono_Linear_CUSTOM-REVISION:
         CUSTOM_REVISION: custom_revision_not_set
         ASSETSTORE_UPDATE_PROJECT_BRANCH: master
         ASSETSTORE_UPDATE_PROJECT_REVISION: 818b6345d6bf46cf3e5644aceff134e866c6150e
+        CACHE_ARGS: '{{cache.flags}}'
         UTR_VERSION: "current"
         TEST_FILTER: .*
     commands:

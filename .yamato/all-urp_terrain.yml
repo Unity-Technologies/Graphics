@@ -13,26 +13,27 @@ PR_URP_Terrain_2021.1:
     variables:
         UTR_VERSION: "current"
         TEST_FILTER: .*
+        CACHE_ARGS: '{{cache.flags}}'
     dependencies:
-      -  path: .yamato/urp_terrain-win-dx11.yml#URP_Terrain_Win_DX11_Standalone_cache_mono_Linear_2021.1
+      -  path: .yamato/urp_terrain-win-dx11.yml#URP_Terrain_Win_DX11_Standalone_mono_Linear_2021.1
          rerun: on_new_revision
-      -  path: .yamato/urp_terrain-win-dx11.yml#URP_Terrain_Win_DX11_playmode_XR_cache_mono_Linear_2021.1
+      -  path: .yamato/urp_terrain-win-dx11.yml#URP_Terrain_Win_DX11_playmode_XR_mono_Linear_2021.1
          rerun: on_new_revision
       -  path: .yamato/urp_terrain-win-dx11.yml#URP_Terrain_Win_DX11_editmode_mono_Linear_2021.1
          rerun: on_new_revision
-      -  path: .yamato/urp_terrain-win-dx12.yml#URP_Terrain_Win_DX12_Standalone_cache_mono_Linear_2021.1
+      -  path: .yamato/urp_terrain-win-dx12.yml#URP_Terrain_Win_DX12_Standalone_mono_Linear_2021.1
          rerun: on_new_revision
-      -  path: .yamato/urp_terrain-win-vulkan.yml#URP_Terrain_Win_Vulkan_Standalone_cache_mono_Linear_2021.1
+      -  path: .yamato/urp_terrain-win-vulkan.yml#URP_Terrain_Win_Vulkan_Standalone_mono_Linear_2021.1
          rerun: on_new_revision
-      -  path: .yamato/urp_terrain-linux-vulkan.yml#URP_Terrain_Linux_Vulkan_Standalone_cache_mono_Linear_2021.1
+      -  path: .yamato/urp_terrain-linux-vulkan.yml#URP_Terrain_Linux_Vulkan_Standalone_mono_Linear_2021.1
          rerun: on_new_revision
-      -  path: .yamato/urp_terrain-android-opengles3.yml#URP_Terrain_Android_OpenGLES3_Standalone_cache_il2cpp_Linear_2021.1
+      -  path: .yamato/urp_terrain-android-opengles3.yml#URP_Terrain_Android_OpenGLES3_Standalone_il2cpp_Linear_2021.1
          rerun: on_new_revision
-      -  path: .yamato/urp_terrain-android-vulkan.yml#URP_Terrain_Android_Vulkan_Standalone_cache_il2cpp_Linear_2021.1
+      -  path: .yamato/urp_terrain-android-vulkan.yml#URP_Terrain_Android_Vulkan_Standalone_il2cpp_Linear_2021.1
          rerun: on_new_revision
-      -  path: .yamato/urp_terrain-iphone-metal.yml#URP_Terrain_iPhone_Metal_Standalone_cache_il2cpp_Linear_2021.1
+      -  path: .yamato/urp_terrain-iphone-metal.yml#URP_Terrain_iPhone_Metal_Standalone_il2cpp_Linear_2021.1
          rerun: on_new_revision
-      -  path: .yamato/urp_terrain-osx-metal.yml#URP_Terrain_OSX_Metal_playmode_cache_mono_Linear_2021.1
+      -  path: .yamato/urp_terrain-osx-metal.yml#URP_Terrain_OSX_Metal_playmode_mono_Linear_2021.1
          rerun: on_new_revision
       -  path: .yamato/urp_terrain-osx-openglcore.yml#URP_Terrain_OSX_OpenGLCore_editmode_mono_Linear_2021.1
          rerun: on_new_revision
@@ -41,20 +42,22 @@ Extra_URP_Terrain_2021.1:
     variables:
         UTR_VERSION: "current"
         TEST_FILTER: .*
+        CACHE_ARGS: '{{cache.flags}}'
     dependencies:
-      -  path: .yamato/urp_terrain-win-dx11.yml#URP_Terrain_Win_DX11_playmode_cache_mono_Linear_2021.1
+      -  path: .yamato/urp_terrain-win-dx11.yml#URP_Terrain_Win_DX11_playmode_mono_Linear_2021.1
          rerun: on_new_revision
-      -  path: .yamato/urp_terrain-win-dx12.yml#URP_Terrain_Win_DX12_playmode_cache_mono_Linear_2021.1
+      -  path: .yamato/urp_terrain-win-dx12.yml#URP_Terrain_Win_DX12_playmode_mono_Linear_2021.1
          rerun: on_new_revision
-      -  path: .yamato/urp_terrain-win-vulkan.yml#URP_Terrain_Win_Vulkan_playmode_cache_mono_Linear_2021.1
+      -  path: .yamato/urp_terrain-win-vulkan.yml#URP_Terrain_Win_Vulkan_playmode_mono_Linear_2021.1
          rerun: on_new_revision
-      -  path: .yamato/urp_terrain-linux-vulkan.yml#URP_Terrain_Linux_Vulkan_playmode_cache_mono_Linear_2021.1
+      -  path: .yamato/urp_terrain-linux-vulkan.yml#URP_Terrain_Linux_Vulkan_playmode_mono_Linear_2021.1
          rerun: on_new_revision
 URP_Terrain_2021.1:
     name: URP_Terrain on 2021.1
     variables:
         UTR_VERSION: "current"
         TEST_FILTER: .*
+        CACHE_ARGS: '{{cache.flags}}'
     dependencies:
       -  path: .yamato/all-urp_terrain.yml#PR_URP_Terrain_2021.1
          rerun: on_new_revision
@@ -66,26 +69,27 @@ PR_URP_Terrain_CUSTOM-REVISION:
         CUSTOM_REVISION: custom_revision_not_set
         UTR_VERSION: "current"
         TEST_FILTER: .*
+        CACHE_ARGS: '{{cache.flags}}'
     dependencies:
-      -  path: .yamato/urp_terrain-win-dx11.yml#URP_Terrain_Win_DX11_Standalone_cache_mono_Linear_CUSTOM-REVISION
+      -  path: .yamato/urp_terrain-win-dx11.yml#URP_Terrain_Win_DX11_Standalone_mono_Linear_CUSTOM-REVISION
          rerun: on_new_revision
-      -  path: .yamato/urp_terrain-win-dx11.yml#URP_Terrain_Win_DX11_playmode_XR_cache_mono_Linear_CUSTOM-REVISION
+      -  path: .yamato/urp_terrain-win-dx11.yml#URP_Terrain_Win_DX11_playmode_XR_mono_Linear_CUSTOM-REVISION
          rerun: on_new_revision
       -  path: .yamato/urp_terrain-win-dx11.yml#URP_Terrain_Win_DX11_editmode_mono_Linear_CUSTOM-REVISION
          rerun: on_new_revision
-      -  path: .yamato/urp_terrain-win-dx12.yml#URP_Terrain_Win_DX12_Standalone_cache_mono_Linear_CUSTOM-REVISION
+      -  path: .yamato/urp_terrain-win-dx12.yml#URP_Terrain_Win_DX12_Standalone_mono_Linear_CUSTOM-REVISION
          rerun: on_new_revision
-      -  path: .yamato/urp_terrain-win-vulkan.yml#URP_Terrain_Win_Vulkan_Standalone_cache_mono_Linear_CUSTOM-REVISION
+      -  path: .yamato/urp_terrain-win-vulkan.yml#URP_Terrain_Win_Vulkan_Standalone_mono_Linear_CUSTOM-REVISION
          rerun: on_new_revision
-      -  path: .yamato/urp_terrain-linux-vulkan.yml#URP_Terrain_Linux_Vulkan_Standalone_cache_mono_Linear_CUSTOM-REVISION
+      -  path: .yamato/urp_terrain-linux-vulkan.yml#URP_Terrain_Linux_Vulkan_Standalone_mono_Linear_CUSTOM-REVISION
          rerun: on_new_revision
-      -  path: .yamato/urp_terrain-android-opengles3.yml#URP_Terrain_Android_OpenGLES3_Standalone_cache_il2cpp_Linear_CUSTOM-REVISION
+      -  path: .yamato/urp_terrain-android-opengles3.yml#URP_Terrain_Android_OpenGLES3_Standalone_il2cpp_Linear_CUSTOM-REVISION
          rerun: on_new_revision
-      -  path: .yamato/urp_terrain-android-vulkan.yml#URP_Terrain_Android_Vulkan_Standalone_cache_il2cpp_Linear_CUSTOM-REVISION
+      -  path: .yamato/urp_terrain-android-vulkan.yml#URP_Terrain_Android_Vulkan_Standalone_il2cpp_Linear_CUSTOM-REVISION
          rerun: on_new_revision
-      -  path: .yamato/urp_terrain-iphone-metal.yml#URP_Terrain_iPhone_Metal_Standalone_cache_il2cpp_Linear_CUSTOM-REVISION
+      -  path: .yamato/urp_terrain-iphone-metal.yml#URP_Terrain_iPhone_Metal_Standalone_il2cpp_Linear_CUSTOM-REVISION
          rerun: on_new_revision
-      -  path: .yamato/urp_terrain-osx-metal.yml#URP_Terrain_OSX_Metal_playmode_cache_mono_Linear_CUSTOM-REVISION
+      -  path: .yamato/urp_terrain-osx-metal.yml#URP_Terrain_OSX_Metal_playmode_mono_Linear_CUSTOM-REVISION
          rerun: on_new_revision
       -  path: .yamato/urp_terrain-osx-openglcore.yml#URP_Terrain_OSX_OpenGLCore_editmode_mono_Linear_CUSTOM-REVISION
          rerun: on_new_revision
@@ -95,14 +99,15 @@ Extra_URP_Terrain_CUSTOM-REVISION:
         CUSTOM_REVISION: custom_revision_not_set
         UTR_VERSION: "current"
         TEST_FILTER: .*
+        CACHE_ARGS: '{{cache.flags}}'
     dependencies:
-      -  path: .yamato/urp_terrain-win-dx11.yml#URP_Terrain_Win_DX11_playmode_cache_mono_Linear_CUSTOM-REVISION
+      -  path: .yamato/urp_terrain-win-dx11.yml#URP_Terrain_Win_DX11_playmode_mono_Linear_CUSTOM-REVISION
          rerun: on_new_revision
-      -  path: .yamato/urp_terrain-win-dx12.yml#URP_Terrain_Win_DX12_playmode_cache_mono_Linear_CUSTOM-REVISION
+      -  path: .yamato/urp_terrain-win-dx12.yml#URP_Terrain_Win_DX12_playmode_mono_Linear_CUSTOM-REVISION
          rerun: on_new_revision
-      -  path: .yamato/urp_terrain-win-vulkan.yml#URP_Terrain_Win_Vulkan_playmode_cache_mono_Linear_CUSTOM-REVISION
+      -  path: .yamato/urp_terrain-win-vulkan.yml#URP_Terrain_Win_Vulkan_playmode_mono_Linear_CUSTOM-REVISION
          rerun: on_new_revision
-      -  path: .yamato/urp_terrain-linux-vulkan.yml#URP_Terrain_Linux_Vulkan_playmode_cache_mono_Linear_CUSTOM-REVISION
+      -  path: .yamato/urp_terrain-linux-vulkan.yml#URP_Terrain_Linux_Vulkan_playmode_mono_Linear_CUSTOM-REVISION
          rerun: on_new_revision
 URP_Terrain_CUSTOM-REVISION:
     name: URP_Terrain on CUSTOM-REVISION
@@ -110,6 +115,7 @@ URP_Terrain_CUSTOM-REVISION:
         CUSTOM_REVISION: custom_revision_not_set
         UTR_VERSION: "current"
         TEST_FILTER: .*
+        CACHE_ARGS: '{{cache.flags}}'
     dependencies:
       -  path: .yamato/all-urp_terrain.yml#PR_URP_Terrain_CUSTOM-REVISION
          rerun: on_new_revision
