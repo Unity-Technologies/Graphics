@@ -98,6 +98,8 @@ float4x4 unity_CameraToWorld;
 
 // ----------------------------------------------------------------------------
 
+float4 unity_LightmapIndex;
+
 // Block Layout should be respected due to SRP Batcher
 CBUFFER_START(UnityPerDraw)
 // Space block Feature
@@ -119,7 +121,6 @@ real4 unity_SpecCube0_HDR;
 
 // Lightmap block feature
 float4 unity_LightmapST;
-float4 unity_LightmapIndex;
 float4 unity_DynamicLightmapST;
 
 // SH block feature
