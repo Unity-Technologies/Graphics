@@ -121,16 +121,13 @@ namespace UnityEngine.Experimental.Rendering
             // Round the probe volume bounds to cell size
             float cellSize = ProbeReferenceVolume.instance.MaxBrickSize();
 
-            // Make sure we lock the bounds at a grid position.
+            // Expand the probe volume bounds to snap on the cell size grid
             bounds.Encapsulate(new Vector3(cellSize * Mathf.Floor(bounds.min.x / cellSize),
                 cellSize * Mathf.Floor(bounds.min.y / cellSize),
                 cellSize * Mathf.Floor(bounds.min.z / cellSize)));
-
-            Vector3 newSize = Vector3Int.CeilToInt(bounds.size / cellSize);
-
-            Vector3Int minPos = Vector3Int.FloorToInt(bounds.min);
-            Vector3 maxPos = minPos + newSize * cellSize;
-            bounds.Encapsulate(maxPos);
+            bounds.Encapsulate(new Vector3(cellSize * Mathf.Ceil(bounds.max.x / cellSize),
+                cellSize * Mathf.Ceil(bounds.max.y / cellSize),
+                cellSize * Mathf.Ceil(bounds.max.z / cellSize)));
 
             // calculate how much padding we need to remove according to the brick generation in ProbePlacement.cs:
             var cellSizeVector = new Vector3(cellSize, cellSize, cellSize);
@@ -148,16 +145,16 @@ namespace UnityEngine.Experimental.Rendering
             float backPaddingSubdivLevel = ProbeReferenceVolume.instance.BrickSize(FindInflatingBrickSize(new Vector3(originalBounds.size.x, originalBounds.size.y, minPadding.z)));
 
             // Remove the extra padding caused by cell rounding
-            Vector3 min = bounds.min;
-            Vector3 max = bounds.max;
-            min.x -= leftPaddingSubdivLevel * Mathf.Floor((bounds.min.x - originalBounds.min.x) / (float)leftPaddingSubdivLevel);
-            min.y -= bottomPaddingSubdivLevel * Mathf.Floor((bounds.min.y - originalBounds.min.y) / (float)bottomPaddingSubdivLevel);
-            min.z -= backPaddingSubdivLevel * Mathf.Floor((bounds.min.z - originalBounds.min.z) / (float)backPaddingSubdivLevel);
-            max.x -= rightPaddingSubdivLevel * Mathf.Floor((bounds.max.x - originalBounds.max.x) / (float)rightPaddingSubdivLevel);
-            max.y -= topPaddingSubdivLevel * Mathf.Floor((bounds.max.y - originalBounds.max.y) / (float)topPaddingSubdivLevel);
-            max.z -= forwardPaddingSubdivLevel * Mathf.Floor((bounds.max.z - originalBounds.max.z) / (float)forwardPaddingSubdivLevel);
-            bounds.min = min;
-            bounds.max = max;
+            bounds.min = bounds.min + new Vector3(
+                leftPaddingSubdivLevel * Mathf.Floor(Mathf.Abs(bounds.min.x - originalBounds.min.x) / (float)leftPaddingSubdivLevel),
+                bottomPaddingSubdivLevel * Mathf.Floor(Mathf.Abs(bounds.min.y - originalBounds.min.y) / (float)bottomPaddingSubdivLevel),
+                backPaddingSubdivLevel * Mathf.Floor(Mathf.Abs(bounds.min.z - originalBounds.min.z) / (float)backPaddingSubdivLevel)
+            );
+            bounds.max = bounds.max - new Vector3(
+                rightPaddingSubdivLevel * Mathf.Floor(Mathf.Abs(bounds.max.x - originalBounds.max.x) / (float)rightPaddingSubdivLevel),
+                topPaddingSubdivLevel * Mathf.Floor(Mathf.Abs(bounds.max.y - originalBounds.max.y) / (float)topPaddingSubdivLevel),
+                forwardPaddingSubdivLevel * Mathf.Floor(Mathf.Abs(bounds.max.z - originalBounds.max.z) / (float)forwardPaddingSubdivLevel)
+            );
         }
 
         internal void UpdateSceneBounds(Scene scene)
