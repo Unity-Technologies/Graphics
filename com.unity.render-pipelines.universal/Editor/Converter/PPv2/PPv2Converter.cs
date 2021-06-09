@@ -28,7 +28,6 @@ namespace UnityEditor.Rendering.Universal.Converters
         public override Type container => typeof(BuiltInToURPConverterContainer);
         public override bool needsIndexing => true;
 
-        private bool _startingSceneHasBeenClosed;
         private IEnumerable<PostProcessEffectSettingsConverter> effectConverters = null;
 
         private List<Object> postConversionDestroyables = null;
@@ -73,82 +72,86 @@ namespace UnityEditor.Rendering.Universal.Converters
 
         public override void OnRun(ref RunItemContext context)
         {
-            foreach (var obj in GetContextObject(context))
+            var obj = GetContextObject(ref context);
+
+            if (!obj)
             {
-                if (!obj)
-                {
-                    context.didFail = true;
-                    context.info = "Could not be converted because the target object was lost.";
-                    return;
-                }
+                context.didFail = true;
+                context.info = "Could not be converted because the target object was lost.";
+                return;
+            }
 
-                BIRPRendering.PostProcessVolume[] oldVolumes = null;
-                BIRPRendering.PostProcessLayer[] oldLayers = null;
+            BIRPRendering.PostProcessVolume[] oldVolumes = null;
+            BIRPRendering.PostProcessLayer[] oldLayers = null;
 
-                // TODO: Upcoming changes to GlobalObjectIdentifierToObjectSlow will allow
-                //       this to be inverted, and the else to be deleted.
-    #if false
-                if (obj is GameObject go)
-                {
-                    oldVolumes = go.GetComponents<BIRPRendering.PostProcessVolume>();
-                    oldLayers = go.GetComponents<BIRPRendering.PostProcessLayer>();
-                }
-                else if (obj is MonoBehaviour mb)
-                {
-                    oldVolumes = mb.GetComponents<BIRPRendering.PostProcessVolume>();
-                    oldLayers = mb.GetComponents<BIRPRendering.PostProcessLayer>();
-                }
-    #else
-                if (obj is GameObject go)
-                {
-                    oldVolumes = go.GetComponentsInChildren<BIRPRendering.PostProcessVolume>();
-                    oldLayers = go.GetComponentsInChildren<BIRPRendering.PostProcessLayer>();
-                }
-                else if (obj is MonoBehaviour mb)
-                {
-                    oldVolumes = mb.GetComponentsInChildren<BIRPRendering.PostProcessVolume>();
-                    oldLayers = mb.GetComponentsInChildren<BIRPRendering.PostProcessLayer>();
-                }
-    #endif
+            // TODO: Upcoming changes to GlobalObjectIdentifierToObjectSlow will allow
+            //       this to be inverted, and the else to be deleted.
+#if false
+            if (obj is GameObject go)
+            {
+                oldVolumes = go.GetComponents<BIRPRendering.PostProcessVolume>();
+                oldLayers = go.GetComponents<BIRPRendering.PostProcessLayer>();
+            }
+            else if (obj is MonoBehaviour mb)
+            {
+                oldVolumes = mb.GetComponents<BIRPRendering.PostProcessVolume>();
+                oldLayers = mb.GetComponents<BIRPRendering.PostProcessLayer>();
+            }
+#else
+            if (obj is GameObject go)
+            {
+                oldVolumes = go.GetComponentsInChildren<BIRPRendering.PostProcessVolume>();
+                oldLayers = go.GetComponentsInChildren<BIRPRendering.PostProcessLayer>();
+            }
+            else if (obj is MonoBehaviour mb)
+            {
+                oldVolumes = mb.GetComponentsInChildren<BIRPRendering.PostProcessVolume>();
+                oldLayers = mb.GetComponentsInChildren<BIRPRendering.PostProcessLayer>();
+            }
+#endif
 
-                // Note: even if nothing needs to be converted, that should still count as success,
-                //       though it shouldn't ever actually occur.
-                var succeeded = true;
-                var errorString = new StringBuilder();
+            // Note: even if nothing needs to be converted, that should still count as success,
+            //       though it shouldn't ever actually occur.
+            var succeeded = true;
+            var errorString = new StringBuilder();
 
-                if (effectConverters == null ||
-                    effectConverters.Count() == 0 ||
-                    effectConverters.Any(converter => converter == null))
-                {
-                    effectConverters = GetAllBIRPConverters();
-                }
+            if (effectConverters == null ||
+                effectConverters.Count() == 0 ||
+                effectConverters.Any(converter => converter == null))
+            {
+                effectConverters = GetAllBIRPConverters();
+            }
 
-                if (oldVolumes != null)
+            if (oldVolumes != null)
+            {
+                foreach (var oldVolume in oldVolumes)
                 {
-                    foreach (var oldVolume in oldVolumes)
-                    {
-                        ConvertVolume(oldVolume, ref succeeded, errorString);
-                    }
+                    ConvertVolume(oldVolume, ref succeeded, errorString);
                 }
+            }
 
-                if (oldLayers != null)
+            if (oldLayers != null)
+            {
+                foreach (var oldLayer in oldLayers)
                 {
-                    foreach (var oldLayer in oldLayers)
-                    {
-                        ConvertLayer(oldLayer, ref succeeded, errorString);
-                    }
+                    ConvertLayer(oldLayer, ref succeeded, errorString);
                 }
+            }
 
-                if (obj is BIRPRendering.PostProcessProfile oldProfile)
-                {
-                    ConvertProfile(oldProfile, ref succeeded, errorString);
-                }
+            if (obj is BIRPRendering.PostProcessProfile oldProfile)
+            {
+                ConvertProfile(oldProfile, ref succeeded, errorString);
+            }
 
-                if (!succeeded)
-                {
-                    context.didFail = true;
-                    context.info = errorString.ToString();
-                }
+            if (!succeeded)
+            {
+                context.didFail = true;
+                context.info = errorString.ToString();
+            }
+            else
+            {
+                var currentScene = SceneManager.GetActiveScene();
+                EditorSceneManager.SaveScene(currentScene);
             }
         }
 
@@ -199,11 +202,12 @@ namespace UnityEditor.Rendering.Universal.Converters
             return AssetDatabase.LoadAssetAtPath<Object>(containerPath).GetType().ToString().Split('.').Last();
         }
 
-        private IEnumerable<Object> GetContextObject(RunItemContext ctx)
+        private Object GetContextObject(ref RunItemContext ctx)
         {
             var item = ctx.item;
+            var guid = guids[item.index];
 
-            if (GlobalObjectId.TryParse(item.descriptor.info, out var globalId))
+            if (GlobalObjectId.TryParse(guid, out var globalId))
             {
                 // Try loading the object
                 // TODO: Upcoming changes to GlobalObjectIdentifierToObjectSlow will allow it
@@ -217,70 +221,39 @@ namespace UnityEditor.Rendering.Universal.Converters
                 if (!obj &&
                     objIsInSceneOrPrefab)
                 {
-                    // Before we open a new scene, we need to save our changes;
-                    // however, we should discard any existing changes to the
-                    // scene that was open when conversion began.
-                    if (_startingSceneHasBeenClosed)
-                    {
-                        var currentScene = SceneManager.GetActiveScene();
-                        EditorSceneManager.SaveScene(currentScene);
-                    }
-
-                    _startingSceneHasBeenClosed = true;
-
                     // Open the Containing Scene Asset in the Hierarchy so the Object can be manipulated
                     var mainAssetPath = AssetDatabase.GUIDToAssetPath(globalId.assetGUID);
-                    if (mainAssetPath.EndsWith(".unity", StringComparison.InvariantCultureIgnoreCase))
+                    var mainAsset = AssetDatabase.LoadAssetAtPath<Object>(mainAssetPath);
+                    AssetDatabase.OpenAsset(mainAsset);
+
+                    // If a prefab stage was opened, then mainAsset is the root of the
+                    // prefab that contains the target object, so reference that for now,
+                    // until GlobalObjectIdentifierToObjectSlow is updated
+                    if (PrefabStageUtility.GetCurrentPrefabStage() != null)
                     {
-                        // TODO: There seems to be an issue where root-level Prefab-Instance
-                        //       property modifications will not be saved if they are in a scene
-                        //       that is already open when the entire conversion process is started.
-                        var mainAsset = AssetDatabase.LoadAssetAtPath<Object>(mainAssetPath);
-                        AssetDatabase.OpenAsset(mainAsset);
+                        obj = mainAsset;
+                    }
 
-                        yield return null;
-
-                        // Load the scene, as it cannot be operated on while closed
-                        var scene = SceneManager.GetActiveScene();
-                        while (!scene.isLoaded)
-                        {
-                            yield return null;
-                        }
-
+                    // Reload object if it is still null (because it's in a previously unopened scene)
+                    if (!obj)
+                    {
                         obj = GlobalObjectId.GlobalObjectIdentifierToObjectSlow(globalId);
-                    }
-                    // TODO: This block should be removed once GlobalObjectIdentifierToObjectSlow
-                    //       is updated to get proper direct references to prefabs and their child assets.
-                    else
-                    {
-                        var mainAsset = AssetDatabase.LoadAssetAtPath<Object>(mainAssetPath);
-                        AssetDatabase.OpenAsset(mainAsset);
-
-                        yield return null;
-
-                        // If a prefab stage was opened, then mainAsset is the root of the
-                        // prefab that contains the target object, so reference that for now,
-                        // until GlobalObjectIdentifierToObjectSlow is updated
-                        if (PrefabStageUtility.GetCurrentPrefabStage() != null)
+                        if (!obj)
                         {
-                            obj = mainAsset;
+
+                            ctx.didFail = true;
+                            ctx.info = $"Object {globalId.assetGUID} failed to load...";
                         }
                     }
                 }
 
-                if (obj)
-                    yield return obj;
-                else
-                {
-                    ctx.didFail = true;
-                    ctx.info = $"Object {globalId.assetGUID} failed to load...";
-                }
+                return obj;
             }
-            else
-            {
-                ctx.didFail = true;
-                ctx.info = $"Failed to parse Global ID {item.descriptor.info}...";
-            }
+
+            ctx.didFail = true;
+            ctx.info = $"Failed to parse Global ID {item.descriptor.info}...";
+
+            return null;
         }
 
         #region Conversion_Entry_Points
