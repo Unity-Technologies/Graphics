@@ -93,7 +93,7 @@ ShaderGraph_Win_DX11_playmode_mono_Linear_trunk:
                 set /p GIT_REVISIONDATE=<revdate.tmp
                 echo %GIT_REVISIONDATE%
                 del revdate.tmp
-                python .yamato/tooling/wrap_utr_check_update_file TestProjects/ShaderGraph --artifacts_path=TestProjects/ShaderGraph/test-results --editor-location=.Editor --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-force-d3d11" --scripting-backend=Mono2x --suite=playmode --testfilter=%TEST_FILTER% --testproject=./TestProjects/ShaderGraph --zero-tests-are-ok=1
+                python .yamato/tooling/wrap_utr_check_update_file.py TestProjects/ShaderGraph --artifacts_path=TestProjects/ShaderGraph/test-results --editor-location=.Editor --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-force-d3d11" --scripting-backend=Mono2x --suite=playmode --testfilter=%TEST_FILTER% --testproject=./TestProjects/ShaderGraph --zero-tests-are-ok=1
     artifacts:
         logs:
             paths:
@@ -124,7 +124,7 @@ ShaderGraph_Win_DX11_playmode_cache_mono_Linear_trunk:
                 set /p GIT_REVISIONDATE=<revdate.tmp
                 echo %GIT_REVISIONDATE%
                 del revdate.tmp
-                python .yamato/tooling/wrap_utr_check_update_file TestProjects/ShaderGraph --artifacts_path=TestProjects/ShaderGraph/test-results --editor-location=.Editor --extra-editor-arg="-adb2" --extra-editor-arg="-cacheServerEnableDownload" --extra-editor-arg="true" --extra-editor-arg="-cacheServerEnableUpload" --extra-editor-arg="true" --extra-editor-arg="-cacheServerEndpoint" --extra-editor-arg="cacheserver-slo.hq.unity3d.com" --extra-editor-arg="-cacheServerNamespacePrefix" --extra-editor-arg="{{cache.cacheServerNamespacePrefix}}" --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-enableCacheServer" --extra-editor-arg="-force-d3d11" --scripting-backend=Mono2x --suite=playmode --testfilter=%TEST_FILTER% --testproject=./TestProjects/ShaderGraph --zero-tests-are-ok=1
+                python .yamato/tooling/wrap_utr_check_update_file.py TestProjects/ShaderGraph --artifacts_path=TestProjects/ShaderGraph/test-results --editor-location=.Editor --extra-editor-arg="-adb2" --extra-editor-arg="-cacheServerEnableDownload" --extra-editor-arg="true" --extra-editor-arg="-cacheServerEnableUpload" --extra-editor-arg="true" --extra-editor-arg="-cacheServerEndpoint" --extra-editor-arg="cacheserver-slo.hq.unity3d.com" --extra-editor-arg="-cacheServerNamespacePrefix" --extra-editor-arg="{{cache.cacheServerNamespacePrefix}}" --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-enableCacheServer" --extra-editor-arg="-force-d3d11" --scripting-backend=Mono2x --suite=playmode --testfilter=%TEST_FILTER% --testproject=./TestProjects/ShaderGraph --zero-tests-are-ok=1
     artifacts:
         logs:
             paths:
@@ -154,7 +154,7 @@ ShaderGraph_Win_DX11_editmode_mono_Linear_trunk:
                 set /p GIT_REVISIONDATE=<revdate.tmp
                 echo %GIT_REVISIONDATE%
                 del revdate.tmp
-                python .yamato/tooling/wrap_utr_check_update_file TestProjects/ShaderGraph --artifacts_path=TestProjects/ShaderGraph/test-results --editor-location=.Editor --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-force-d3d11" --extra-editor-arg="-playergraphicsapi=Direct3D11" --platform=editmode --scripting-backend=Mono2x --suite=editor --testfilter=%TEST_FILTER% --testproject=./TestProjects/ShaderGraph --zero-tests-are-ok=1
+                python .yamato/tooling/wrap_utr_check_update_file.py TestProjects/ShaderGraph --artifacts_path=TestProjects/ShaderGraph/test-results --editor-location=.Editor --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-force-d3d11" --extra-editor-arg="-playergraphicsapi=Direct3D11" --platform=editmode --scripting-backend=Mono2x --suite=editor --testfilter=%TEST_FILTER% --testproject=./TestProjects/ShaderGraph --zero-tests-are-ok=1
     artifacts:
         logs:
             paths:
@@ -311,7 +311,7 @@ ShaderGraph_Win_DX11_playmode_mono_Linear_CUSTOM-REVISION:
                 set /p GIT_REVISIONDATE=<revdate.tmp
                 echo %GIT_REVISIONDATE%
                 del revdate.tmp
-                python .yamato/tooling/wrap_utr_check_update_file TestProjects/ShaderGraph --artifacts_path=TestProjects/ShaderGraph/test-results --editor-location=.Editor --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-force-d3d11" --scripting-backend=Mono2x --suite=playmode --testfilter=%TEST_FILTER% --testproject=./TestProjects/ShaderGraph --zero-tests-are-ok=1
+                python .yamato/tooling/wrap_utr_check_update_file.py TestProjects/ShaderGraph --artifacts_path=TestProjects/ShaderGraph/test-results --editor-location=.Editor --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-force-d3d11" --scripting-backend=Mono2x --suite=playmode --testfilter=%TEST_FILTER% --testproject=./TestProjects/ShaderGraph --zero-tests-are-ok=1
     artifacts:
         logs:
             paths:
@@ -342,7 +342,7 @@ ShaderGraph_Win_DX11_playmode_cache_mono_Linear_CUSTOM-REVISION:
                 set /p GIT_REVISIONDATE=<revdate.tmp
                 echo %GIT_REVISIONDATE%
                 del revdate.tmp
-                python .yamato/tooling/wrap_utr_check_update_file TestProjects/ShaderGraph --artifacts_path=TestProjects/ShaderGraph/test-results --editor-location=.Editor --extra-editor-arg="-adb2" --extra-editor-arg="-cacheServerEnableDownload" --extra-editor-arg="true" --extra-editor-arg="-cacheServerEnableUpload" --extra-editor-arg="true" --extra-editor-arg="-cacheServerEndpoint" --extra-editor-arg="cacheserver-slo.hq.unity3d.com" --extra-editor-arg="-cacheServerNamespacePrefix" --extra-editor-arg="{{cache.cacheServerNamespacePrefix}}" --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-enableCacheServer" --extra-editor-arg="-force-d3d11" --scripting-backend=Mono2x --suite=playmode --testfilter=%TEST_FILTER% --testproject=./TestProjects/ShaderGraph --zero-tests-are-ok=1
+                python .yamato/tooling/wrap_utr_check_update_file.py TestProjects/ShaderGraph --artifacts_path=TestProjects/ShaderGraph/test-results --editor-location=.Editor --extra-editor-arg="-adb2" --extra-editor-arg="-cacheServerEnableDownload" --extra-editor-arg="true" --extra-editor-arg="-cacheServerEnableUpload" --extra-editor-arg="true" --extra-editor-arg="-cacheServerEndpoint" --extra-editor-arg="cacheserver-slo.hq.unity3d.com" --extra-editor-arg="-cacheServerNamespacePrefix" --extra-editor-arg="{{cache.cacheServerNamespacePrefix}}" --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-enableCacheServer" --extra-editor-arg="-force-d3d11" --scripting-backend=Mono2x --suite=playmode --testfilter=%TEST_FILTER% --testproject=./TestProjects/ShaderGraph --zero-tests-are-ok=1
     artifacts:
         logs:
             paths:
@@ -372,7 +372,7 @@ ShaderGraph_Win_DX11_editmode_mono_Linear_CUSTOM-REVISION:
                 set /p GIT_REVISIONDATE=<revdate.tmp
                 echo %GIT_REVISIONDATE%
                 del revdate.tmp
-                python .yamato/tooling/wrap_utr_check_update_file TestProjects/ShaderGraph --artifacts_path=TestProjects/ShaderGraph/test-results --editor-location=.Editor --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-force-d3d11" --extra-editor-arg="-playergraphicsapi=Direct3D11" --platform=editmode --scripting-backend=Mono2x --suite=editor --testfilter=%TEST_FILTER% --testproject=./TestProjects/ShaderGraph --zero-tests-are-ok=1
+                python .yamato/tooling/wrap_utr_check_update_file.py TestProjects/ShaderGraph --artifacts_path=TestProjects/ShaderGraph/test-results --editor-location=.Editor --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-force-d3d11" --extra-editor-arg="-playergraphicsapi=Direct3D11" --platform=editmode --scripting-backend=Mono2x --suite=editor --testfilter=%TEST_FILTER% --testproject=./TestProjects/ShaderGraph --zero-tests-are-ok=1
     artifacts:
         logs:
             paths:

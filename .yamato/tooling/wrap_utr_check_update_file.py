@@ -13,7 +13,8 @@ if __name__ == "__main__":
     elif cur_sys == 'Linux':
         output = subprocess.call(["utr"] + sys.argv[2:])
     else:
-        print(listdir(".\\"))
+        # path = path.abspath('.')
+        # print([name for name in listdir(path) if path.isdir(path.join(path,name))])
         # expanduser("~") is the same as ~
         utr_path = path.join(expanduser("~"), "Graphics/utr")
         print(utr_path)
