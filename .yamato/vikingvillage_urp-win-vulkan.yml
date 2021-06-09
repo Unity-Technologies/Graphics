@@ -20,6 +20,7 @@ VikingVillage_URP_Win_Vulkan_performance_playmode_runtime_mono_Linear_trunk:
         CUSTOM_REVISION: '{{trunk.changeset.id}}'
         VV_URP_BRANCH: master
         VV_URP_REVISION: eebe6db7d9b186603b63095a926d76ded2bf1110
+        CACHE_ARGS: '{{cache.flags}}'
         UTR_VERSION: "current"
         TEST_FILTER: .*
     commands:
@@ -53,6 +54,7 @@ Build_VikingVillage_URP_Win_Vulkan_performance_playmode_runtime_mono_Linear_trun
         CUSTOM_REVISION: '{{trunk.changeset.id}}'
         VV_URP_BRANCH: master
         VV_URP_REVISION: eebe6db7d9b186603b63095a926d76ded2bf1110
+        CACHE_ARGS: '{{cache.flags}}'
         UTR_VERSION: "current"
         TEST_FILTER: .*
     commands:
@@ -112,6 +114,7 @@ VikingVillage_URP_Win_Vulkan_performance_build_editmode_mono_Linear_trunk:
         CUSTOM_REVISION: '{{trunk.changeset.id}}'
         VV_URP_BRANCH: master
         VV_URP_REVISION: eebe6db7d9b186603b63095a926d76ded2bf1110
+        CACHE_ARGS: '{{cache.flags}}'
         UTR_VERSION: "current"
         TEST_FILTER: .*
     commands:
@@ -169,6 +172,7 @@ VikingVillage_URP_Win_Vulkan_performance_playmode_runtime_mono_Linear_CUSTOM-REV
         CUSTOM_REVISION: custom_revision_not_set
         VV_URP_BRANCH: master
         VV_URP_REVISION: eebe6db7d9b186603b63095a926d76ded2bf1110
+        CACHE_ARGS: '{{cache.flags}}'
         UTR_VERSION: "current"
         TEST_FILTER: .*
     commands:
@@ -202,6 +206,7 @@ Build_VikingVillage_URP_Win_Vulkan_performance_playmode_runtime_mono_Linear_CUST
         CUSTOM_REVISION: custom_revision_not_set
         VV_URP_BRANCH: master
         VV_URP_REVISION: eebe6db7d9b186603b63095a926d76ded2bf1110
+        CACHE_ARGS: '{{cache.flags}}'
         UTR_VERSION: "current"
         TEST_FILTER: .*
     commands:
@@ -261,6 +266,7 @@ VikingVillage_URP_Win_Vulkan_performance_build_editmode_mono_Linear_CUSTOM-REVIS
         CUSTOM_REVISION: custom_revision_not_set
         VV_URP_BRANCH: master
         VV_URP_REVISION: eebe6db7d9b186603b63095a926d76ded2bf1110
+        CACHE_ARGS: '{{cache.flags}}'
         UTR_VERSION: "current"
         TEST_FILTER: .*
     commands:
