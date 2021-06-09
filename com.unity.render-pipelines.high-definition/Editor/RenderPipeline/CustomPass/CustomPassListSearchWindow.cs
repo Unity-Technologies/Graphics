@@ -11,19 +11,10 @@ namespace UnityEditor.Rendering.HighDefinition
     class CustomPassListSearchWindow : ScriptableObject, ISearchWindowProvider
     {
         Texture2D           icon;
-        CustomPassVolume    volume;
-        SerializedProperty  passList;
         Action<Type>        createCustomPassCallback;
 
-        // public void Initialize(CustomPassVolume volume, SerializedProperty passList)
-        // {
-        //     this.volume = volume;
-        //     this.passList = passList;
-        // }
         public void Initialize(Action<Type> createCustomPassCallback)
-        {
-            this.createCustomPassCallback = createCustomPassCallback;
-        }
+            => this.createCustomPassCallback = createCustomPassCallback;
 
         void OnEnable()
         {
@@ -49,7 +40,6 @@ namespace UnityEditor.Rendering.HighDefinition
             {
                 new SearchTreeGroupEntry(new GUIContent("Custom Passes"), 0),
             };
-
 
             foreach (var customPassType in TypeCache.GetTypesDerivedFrom<CustomPass>())
             {
