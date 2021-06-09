@@ -16,24 +16,6 @@ PR_URP_PostPro_trunk:
         TEST_FILTER: .*
         CACHE_ARGS: '{{cache.flags}}'
     dependencies:
-      -  path: .yamato/urp_postpro-win-dx11.yml#URP_PostPro_Win_DX11_Standalone_mono_Linear_trunk
-         rerun: on_new_revision
-Extra_URP_PostPro_trunk:
-    name: Extra URP_PostPro on trunk
-    variables:
-        CUSTOM_REVISION: '{{trunk.changeset.id}}'
-        UTR_VERSION: "current"
-        TEST_FILTER: .*
-        CACHE_ARGS: '{{cache.flags}}'
-    dependencies:
-      -  path: .yamato/urp_postpro-win-dx11.yml#URP_PostPro_Win_DX11_playmode_mono_Linear_trunk
-         rerun: on_new_revision
-      -  path: .yamato/urp_postpro-win-dx12.yml#URP_PostPro_Win_DX12_playmode_mono_Linear_trunk
-         rerun: on_new_revision
-      -  path: .yamato/urp_postpro-win-vulkan.yml#URP_PostPro_Win_Vulkan_playmode_mono_Linear_trunk
-         rerun: on_new_revision
-      -  path: .yamato/urp_postpro-linux-vulkan.yml#URP_PostPro_Linux_Vulkan_playmode_mono_Linear_trunk
-         rerun: on_new_revision
       -  path: .yamato/urp_postpro-win-dx11.yml#URP_PostPro_Win_DX11_Standalone_XR_mono_Linear_trunk
          rerun: on_new_revision
       -  path: .yamato/urp_postpro-win-dx11.yml#URP_PostPro_Win_DX11_playmode_XR_mono_Linear_trunk
@@ -64,6 +46,22 @@ Extra_URP_PostPro_trunk:
          rerun: on_new_revision
       -  path: .yamato/urp_postpro-iphone-metal.yml#URP_PostPro_iPhone_Metal_Standalone_il2cpp_Linear_trunk
          rerun: on_new_revision
+Extra_URP_PostPro_trunk:
+    name: Extra URP_PostPro on trunk
+    variables:
+        CUSTOM_REVISION: '{{trunk.changeset.id}}'
+        UTR_VERSION: "current"
+        TEST_FILTER: .*
+        CACHE_ARGS: '{{cache.flags}}'
+    dependencies:
+      -  path: .yamato/urp_postpro-win-dx11.yml#URP_PostPro_Win_DX11_playmode_mono_Linear_trunk
+         rerun: on_new_revision
+      -  path: .yamato/urp_postpro-win-dx12.yml#URP_PostPro_Win_DX12_playmode_mono_Linear_trunk
+         rerun: on_new_revision
+      -  path: .yamato/urp_postpro-win-vulkan.yml#URP_PostPro_Win_Vulkan_playmode_mono_Linear_trunk
+         rerun: on_new_revision
+      -  path: .yamato/urp_postpro-linux-vulkan.yml#URP_PostPro_Linux_Vulkan_playmode_mono_Linear_trunk
+         rerun: on_new_revision
 URP_PostPro_trunk:
     name: URP_PostPro on trunk
     variables:
@@ -84,24 +82,6 @@ PR_URP_PostPro_CUSTOM-REVISION:
         TEST_FILTER: .*
         CACHE_ARGS: '{{cache.flags}}'
     dependencies:
-      -  path: .yamato/urp_postpro-win-dx11.yml#URP_PostPro_Win_DX11_Standalone_mono_Linear_CUSTOM-REVISION
-         rerun: on_new_revision
-Extra_URP_PostPro_CUSTOM-REVISION:
-    name: Extra URP_PostPro on CUSTOM-REVISION
-    variables:
-        CUSTOM_REVISION: custom_revision_not_set
-        UTR_VERSION: "current"
-        TEST_FILTER: .*
-        CACHE_ARGS: '{{cache.flags}}'
-    dependencies:
-      -  path: .yamato/urp_postpro-win-dx11.yml#URP_PostPro_Win_DX11_playmode_mono_Linear_CUSTOM-REVISION
-         rerun: on_new_revision
-      -  path: .yamato/urp_postpro-win-dx12.yml#URP_PostPro_Win_DX12_playmode_mono_Linear_CUSTOM-REVISION
-         rerun: on_new_revision
-      -  path: .yamato/urp_postpro-win-vulkan.yml#URP_PostPro_Win_Vulkan_playmode_mono_Linear_CUSTOM-REVISION
-         rerun: on_new_revision
-      -  path: .yamato/urp_postpro-linux-vulkan.yml#URP_PostPro_Linux_Vulkan_playmode_mono_Linear_CUSTOM-REVISION
-         rerun: on_new_revision
       -  path: .yamato/urp_postpro-win-dx11.yml#URP_PostPro_Win_DX11_Standalone_XR_mono_Linear_CUSTOM-REVISION
          rerun: on_new_revision
       -  path: .yamato/urp_postpro-win-dx11.yml#URP_PostPro_Win_DX11_playmode_XR_mono_Linear_CUSTOM-REVISION
@@ -131,6 +111,22 @@ Extra_URP_PostPro_CUSTOM-REVISION:
       -  path: .yamato/urp_postpro-android-vulkan.yml#URP_PostPro_Android_Vulkan_Standalone_il2cpp_Linear_CUSTOM-REVISION
          rerun: on_new_revision
       -  path: .yamato/urp_postpro-iphone-metal.yml#URP_PostPro_iPhone_Metal_Standalone_il2cpp_Linear_CUSTOM-REVISION
+         rerun: on_new_revision
+Extra_URP_PostPro_CUSTOM-REVISION:
+    name: Extra URP_PostPro on CUSTOM-REVISION
+    variables:
+        CUSTOM_REVISION: custom_revision_not_set
+        UTR_VERSION: "current"
+        TEST_FILTER: .*
+        CACHE_ARGS: '{{cache.flags}}'
+    dependencies:
+      -  path: .yamato/urp_postpro-win-dx11.yml#URP_PostPro_Win_DX11_playmode_mono_Linear_CUSTOM-REVISION
+         rerun: on_new_revision
+      -  path: .yamato/urp_postpro-win-dx12.yml#URP_PostPro_Win_DX12_playmode_mono_Linear_CUSTOM-REVISION
+         rerun: on_new_revision
+      -  path: .yamato/urp_postpro-win-vulkan.yml#URP_PostPro_Win_Vulkan_playmode_mono_Linear_CUSTOM-REVISION
+         rerun: on_new_revision
+      -  path: .yamato/urp_postpro-linux-vulkan.yml#URP_PostPro_Linux_Vulkan_playmode_mono_Linear_CUSTOM-REVISION
          rerun: on_new_revision
 URP_PostPro_CUSTOM-REVISION:
     name: URP_PostPro on CUSTOM-REVISION

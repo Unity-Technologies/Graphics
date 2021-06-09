@@ -76,11 +76,36 @@ jobs:
         color_space: Linear
         test_platforms:
           - Standalone
-          #- playmode
-          #- playmode_XR
-          #- editmode
+          - playmode
+          - playmode_XR
+          - editmode
+      - platform: Win
+        api: DX12
+        build_config: mono
+        color_space: Linear
+        test_platforms:
+          - playmode
+      - platform: Win
+        api: Vulkan
+        build_config: mono
+        color_space: Linear
+        test_platforms:
+          - playmode
+      - platform: OSX
+        api: Metal
+        build_config: mono
+        color_space: Linear
+        test_platforms:
+          - playmode
+      - platform: Linux
+        api: Vulkan
+        build_config: mono
+        color_space: Linear
+        test_platforms:
+          - playmode
+          - Standalone
       - .yamato/all-hdrp_dxr.yml#PR_HDRP_DXR_<TRACK>
-#      - .yamato/all-hdrp_hybrid.yml#PR_HDRP_Hybrid_<TRACK>
+      - .yamato/all-hdrp_hybrid.yml#PR_HDRP_Hybrid_<TRACK>
       - .yamato/all-vfx_hdrp.yml#PR_VFX_HDRP_<TRACK>
       - .yamato/_abv.yml#General_Checks_<TRACK>
   - name: Extra <PROJECT_NAME>
@@ -112,41 +137,6 @@ jobs:
         color_space: Linear
         test_platforms:
           - Standalone
-  ### TODO: MOVE THE FOLLOWING JOBS BACK TO PR JOBS
-      - platform: Win
-        api: DX11
-        build_config: mono
-        color_space: Linear
-        test_platforms:
-          - playmode
-          - playmode_XR
-          - editmode
-      - platform: Win
-        api: DX12
-        build_config: mono
-        color_space: Linear
-        test_platforms:
-          - playmode
-      - platform: Win
-        api: Vulkan
-        build_config: mono
-        color_space: Linear
-        test_platforms:
-          - playmode
-      - platform: OSX
-        api: Metal
-        build_config: mono
-        color_space: Linear
-        test_platforms:
-          # - Standalone
-          - playmode
-      - platform: Linux
-        api: Vulkan
-        build_config: mono
-        color_space: Linear
-        test_platforms:
-          - Standalone
-          - playmode
   - name: <PROJECT_NAME>
     dependencies:
       - <PROJECT_ALL_YML_FILE>#PR_<PROJECT_NAME>_<TRACK>

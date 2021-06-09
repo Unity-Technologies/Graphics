@@ -30,17 +30,12 @@ jobs:
         color_space: Linear
         test_platforms:
           - Standalone
+          - playmode
+          - editmode
   - name: Extra <PROJECT_NAME>
     dependencies:
       - project: Smoke_Test
         pr: true
-      - platform: Win
-        api: DX11
-        build_config: mono
-        color_space: Linear
-        test_platforms:
-          - playmode
-          - editmode
   - name: <PROJECT_NAME>
     dependencies:
       - <PROJECT_ALL_YML_FILE>#PR_<PROJECT_NAME>_<TRACK>
