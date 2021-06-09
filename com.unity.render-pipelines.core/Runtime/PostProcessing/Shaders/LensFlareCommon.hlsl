@@ -71,7 +71,7 @@ float GetLinearDepthValue(float2 uv)
     return LinearEyeDepth(depth, _ZBufferParams);
 }
 
-float GetOcclusion(float2 screenPos, float flareDepth, float ratio)
+float GetOcclusion(float ratio)
 {
     if (_OcclusionSampleCount == 0.0f)
         return 1.0f;
@@ -83,7 +83,7 @@ float GetOcclusion(float2 screenPos, float flareDepth, float ratio)
     for (uint i = 0; i < (uint)_OcclusionSampleCount; i++)
     {
         float2 dir = _OcclusionRadius * SampleDiskUniform(Hash(2 * i + 0), Hash(2 * i + 1));
-        float2 pos = screenPos + dir;
+        float2 pos = _ScreenPos.xy + dir;
         pos.xy = pos * 0.5f + 0.5f;
 #ifdef UNITY_UV_STARTS_AT_TOP
         pos.y = 1.0f - pos.y;
@@ -93,9 +93,9 @@ float GetOcclusion(float2 screenPos, float flareDepth, float ratio)
         {
             float depth0 = GetLinearDepthValue(pos);
 #ifdef UNITY_REVERSED_Z
-            if (flareDepth < depth0)
+            if (_ScreenPosZ < depth0)
 #else
-            if (flareDepth > depth0)
+            if (_ScreenPosZ > depth0)
 #endif
                 contrib += sample_Contrib;
         }
@@ -149,14 +149,14 @@ VaryingsLensFlare vert(AttributesLensFlare input, uint instanceID : SV_InstanceI
 #endif
 
 #if FLARE_OCCLUSION
-    float occlusion = GetOcclusion(_ScreenPos.xy, _ScreenPosZ, screenRatio);
-#else
-    float occlusion = 1.0f;
-#endif
+    float occlusion = GetOcclusion(screenRatio);
 
     if (_OcclusionOffscreen < 0.0f && // No lens flare off screen
         (any(_ScreenPos.xy < -1) || any(_ScreenPos.xy >= 1)))
         occlusion = 0.0f;
+#else
+    float occlusion = 1.0f;
+#endif
 
     output.occlusion = occlusion;
 
