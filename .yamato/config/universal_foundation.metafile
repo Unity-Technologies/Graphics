@@ -166,6 +166,7 @@ jobs:
         build_config: mono
         color_space: Linear
         test_platforms:
+          - Standalone
           - Standalone_XR
           - playmode_XR
           - editmode

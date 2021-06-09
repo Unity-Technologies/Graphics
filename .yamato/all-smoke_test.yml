@@ -31,9 +31,7 @@ Extra_Smoke_Test_trunk:
         UTR_VERSION: "current"
         TEST_FILTER: .*
         CACHE_ARGS: '{{cache.flags}}'
-    dependencies:
-      -  path: .yamato/all-smoke_test.yml#PR_Smoke_Test_trunk
-         rerun: on_new_revision
+    dependencies: []
 Smoke_Test_trunk:
     name: Smoke_Test on trunk
     variables:
@@ -67,9 +65,7 @@ Extra_Smoke_Test_CUSTOM-REVISION:
         UTR_VERSION: "current"
         TEST_FILTER: .*
         CACHE_ARGS: '{{cache.flags}}'
-    dependencies:
-      -  path: .yamato/all-smoke_test.yml#PR_Smoke_Test_CUSTOM-REVISION
-         rerun: on_new_revision
+    dependencies: []
 Smoke_Test_CUSTOM-REVISION:
     name: Smoke_Test on CUSTOM-REVISION
     variables:

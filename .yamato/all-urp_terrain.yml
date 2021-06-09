@@ -16,6 +16,8 @@ PR_URP_Terrain_trunk:
         TEST_FILTER: .*
         CACHE_ARGS: '{{cache.flags}}'
     dependencies:
+      -  path: .yamato/urp_terrain-win-dx11.yml#URP_Terrain_Win_DX11_Standalone_mono_Linear_trunk
+         rerun: on_new_revision
       -  path: .yamato/urp_terrain-win-dx11.yml#URP_Terrain_Win_DX11_playmode_XR_mono_Linear_trunk
          rerun: on_new_revision
       -  path: .yamato/urp_terrain-win-dx11.yml#URP_Terrain_Win_DX11_editmode_mono_Linear_trunk
@@ -78,6 +80,8 @@ PR_URP_Terrain_CUSTOM-REVISION:
         TEST_FILTER: .*
         CACHE_ARGS: '{{cache.flags}}'
     dependencies:
+      -  path: .yamato/urp_terrain-win-dx11.yml#URP_Terrain_Win_DX11_Standalone_mono_Linear_CUSTOM-REVISION
+         rerun: on_new_revision
       -  path: .yamato/urp_terrain-win-dx11.yml#URP_Terrain_Win_DX11_playmode_XR_mono_Linear_CUSTOM-REVISION
          rerun: on_new_revision
       -  path: .yamato/urp_terrain-win-dx11.yml#URP_Terrain_Win_DX11_editmode_mono_Linear_CUSTOM-REVISION

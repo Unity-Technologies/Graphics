@@ -33,9 +33,7 @@ jobs:
           - playmode
           - editmode
   - name: Extra <PROJECT_NAME>
-    dependencies:
-      - project: Smoke_Test
-        pr: true
+    dependencies: []
   - name: <PROJECT_NAME>
     dependencies:
       - <PROJECT_ALL_YML_FILE>#PR_<PROJECT_NAME>_<TRACK>

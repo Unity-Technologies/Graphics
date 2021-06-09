@@ -16,6 +16,8 @@ PR_URP_Foundation_trunk:
         TEST_FILTER: .*
         CACHE_ARGS: '{{cache.flags}}'
     dependencies:
+      -  path: .yamato/urp_foundation-win-dx11.yml#URP_Foundation_Win_DX11_Standalone_mono_Linear_trunk
+         rerun: on_new_revision
       -  path: .yamato/urp_foundation-win-dx11.yml#URP_Foundation_Win_DX11_Standalone_XR_mono_Linear_trunk
          rerun: on_new_revision
       -  path: .yamato/urp_foundation-win-dx11.yml#URP_Foundation_Win_DX11_playmode_XR_mono_Linear_trunk
@@ -82,6 +84,8 @@ PR_URP_Foundation_CUSTOM-REVISION:
         TEST_FILTER: .*
         CACHE_ARGS: '{{cache.flags}}'
     dependencies:
+      -  path: .yamato/urp_foundation-win-dx11.yml#URP_Foundation_Win_DX11_Standalone_mono_Linear_CUSTOM-REVISION
+         rerun: on_new_revision
       -  path: .yamato/urp_foundation-win-dx11.yml#URP_Foundation_Win_DX11_Standalone_XR_mono_Linear_CUSTOM-REVISION
          rerun: on_new_revision
       -  path: .yamato/urp_foundation-win-dx11.yml#URP_Foundation_Win_DX11_playmode_XR_mono_Linear_CUSTOM-REVISION

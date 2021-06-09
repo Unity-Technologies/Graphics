@@ -160,6 +160,7 @@ jobs:
         build_config: mono
         color_space: Linear
         test_platforms:
+          - Standalone
           - playmode_XR
           - editmode
       - platform: Win

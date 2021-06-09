@@ -139,7 +139,6 @@ jobs:
         color_space: Linear
         test_platforms:
           - Standalone
-          - playmode
           - playmode_XR
           - editmode
       - platform: Win
