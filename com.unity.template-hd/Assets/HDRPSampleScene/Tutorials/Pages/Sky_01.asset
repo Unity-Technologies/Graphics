@@ -35,13 +35,13 @@ MonoBehaviour:
       m_TutorialButtonText: 
     - m_Type: 0
       Title:
-        m_Untranslated: Minimal set up
+        m_Untranslated: Minimal sky setup
       Text:
-        m_Untranslated: "In HDRP, the following steps are required to set up a <b>Sky:</b>\r\n\r\n1)
-          Choose the type of Sky with an <b>Visual Environment</b> override added
-          to a volume.\r\n\r\n2) Configure the selected Sky type by adding the corresponding
-          override, such as HDRI Sky.\r\n\r\nCurrently, there are 3 types of Sky
-          to choose from: HDRI Sky, Physically Based Sky, and Gradient Sky. \r"
+        m_Untranslated: "In HDRP, the following steps are required to set up a basic
+          <b>Sky:</b>\r\n\r\n<b>1.</b> First, choose a Sky type. Select any volume
+          and add a <b>Visual Environment</b> override.\r\n\r\n<b>2.</b> Configure
+          the selected Sky type by adding one of the 3 types of currently supported
+          Sky overrides: HDRI Sky, Physically Based Sky, and Gradient Sky. \r\n"
       m_Tutorial: {fileID: 0}
       m_Image: {fileID: 0}
       m_Video: {fileID: 0}

@@ -35,13 +35,24 @@ MonoBehaviour:
       m_TutorialButtonText: 
     - m_Type: 0
       Title:
-        m_Untranslated: Inspect the Light cookie
+        m_Untranslated: Inspect the Light Cookie
       Text:
-        m_Untranslated: "You can assign Light cookies in the Light component.\r\n\r\n1)
-          Select <b>Light_Spot_1600lm,</b> the spotlight illuminating the wall.\r\n\r\n2)
+        m_Untranslated: 'You can assign Light Cookies in the Light component.
+
+
+          <b>1.</b>
+          Select <b>Light_Spot_1600lm,</b> the spotlight illuminating the wall.
+
+
+          <b>2.</b>
           In the Inspector, scroll down until you see the <b>Cookie</b> field, in
-          the <b>Emission</b> foldout.\r\n\r\n3) Notice that a texture called <b>SpotLight_Cookie</b>
-          is assigned.\r"
+          the <b>Emission</b> foldout.
+
+
+          <b>3.</b> Notice that a texture
+          called <b>SpotLight_Cookie</b> is assigned.
+
+'
       m_Tutorial: {fileID: 0}
       m_Image: {fileID: 0}
       m_Video: {fileID: 0}

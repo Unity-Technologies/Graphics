@@ -47,7 +47,7 @@ MonoBehaviour:
           to the lighting conditions when leaving or entering dark areas. It\u2019s
           commonly used for set lighting, when lighting conditions remain constant.\r\n\r\n<b>Automatic
           Histogram:</b> Simulates how a camera automatically adapts to dynamic lighting
-          conditions within certain limits.\r"
+          conditions within certain limits.\r\n"
       m_Tutorial: {fileID: 0}
       m_Image: {fileID: 0}
       m_Video: {fileID: 0}

@@ -35,23 +35,24 @@ MonoBehaviour:
       m_TutorialButtonText: 
     - m_Type: 0
       Title:
-        m_Untranslated: Explore the Sky setup
+        m_Untranslated: Intensity values setup for the Sky
       Text:
         m_Untranslated: "Let\u2019s take a look at how the Sky is set up for this
-          sample Scene.\r\n\r\n1) In the <i>Hierarchy,</i> select <b>Lighting</b>
-          > <b>Volumes</b> > <b>Volume Global.</b>\r\n\r\n2) In the Inspector, check
-          that both Visual Environment and HDRI sky are listed as overrides.\r\n\r\n3)
-          Disable the Visual Environment override. The sky turns gray as a result,
-          because no sky at all is defined.\r\n\r\n<b>Visual Environment:</b> Defines
-          the type of sky to use\r\n\r\n<b>HDRI Sky:</b> Customizes specific sky
-          properties such as texture and exposure. A clear daylight sky exposure
-          is roughly between 12 and 14 EV, or 15.000 and 25.000 lux.\r\n\r\n4) Undo
-          your previous change, and set the exposure in the HDRI Sky override to
-          11 EV, to reduce the intensity of the sky. As a result, the sky appears
-          darker than the rest of the environment.\r\n\r\n5) Undo your change.\r\n\r\n6)
-          Go to <b>Window</b> > <b>Rendering</b> > <b>Lighting</b> > <b>Environment</b>
-          tab. Notice the same volume profile and sky type are applied, they will
-          be used to generate the lightmaps for this scene.\r"
+          sample Scene.\r\n\r\n<b>1.</b> In the <i>Hierarchy,</i> select <b>Lighting</b>
+          > <b>Volumes</b> > <b>Volume Global.</b>\r\n\r\n<b>2.</b> In the Inspector,
+          check that both Visual Environment and HDRI sky are listed as overrides.\r\n\r\n<b>3.</b>
+          Disable the Visual Environment override. The Sky turns gray as a result,
+          because no Sky at all is defined.\r\n\r\n<b>Visual Environment</b> defines
+          the type of sky being used.\r\n\r\n<b>HDRI Sky:</b> Customizes specific
+          sky properties such as texture and exposure. A clear daylight sky exposure
+          is roughly between 12 and 14 EV, or 15.000 and 25.000 lux.\r\n\r\n<b>4.</b>
+          Undo your previous change, and set the exposure in the HDRI Sky override
+          to 11 EV, to reduce the intensity of the sky. As a result, the sky appears
+          darker than the rest of the environment.\r\n\r\nUndo your changes for the
+          purpose of this tutorial.\n\r\n<b>6.</b> Go to <b>Window</b> > <b>Rendering</b>
+          > <b>Lighting</b> > <b>Environment</b> tab. Notice that the same volume
+          profile and sky type are applied. They will be used to generate the lightmaps
+          for this scene.\r\n"
       m_Tutorial: {fileID: 0}
       m_Image: {fileID: 0}
       m_Video: {fileID: 0}

@@ -37,20 +37,21 @@ MonoBehaviour:
       Title:
         m_Untranslated: Light Layers
       Text:
-        m_Untranslated: "In the next steps you can find out how the lights and the
-          pieces of glass are set up.\r\n\r\n1) Select the glass by going to <b>Props</b>
-          > <b>Room3</b> > <b>CeilingLamp_01</b> > <b>CeilingLamp_Lamp_01</b> > <b>CeilingLamp_Glass_01_LOD0.</b>\r\n\r\n2)
-          Notice that the <b>Rendering Layer Mask</b> parameter is set to <b>LampsOnly.</b>\r\n\r\n3)
-          Go to <b>Props</b> > <b>Room3</b> > <b>CeilingLamp_01</b>  and select the
-          spotlight <b>Light_Spot_1200lm.</b>\r\n\r\n4) Notice that the <b>Rendering
+        m_Untranslated: "In the next steps you can find out how the lights and lampshades
+          in this Scene are set up.\r\n\r\n<b>1.</b> Select the glass by going to
+          <b>Props</b> > <b>Room3</b> > <b>CeilingLamp_01</b> > <b>CeilingLamp_Lamp_01</b>
+          > <b>CeilingLamp_Glass_01_LOD0.</b>\r\n\r\n<b>2.</b> Notice that the <b>Rendering
+          Layer Mask</b> parameter is set to <b>LampsOnly.</b>\r\n\r\n<b>3.</b> Go
+          to <b>Props</b> > <b>Room3</b> > <b>CeilingLamp_01</b>  and select the
+          spotlight <b>Light_Spot_1200lm.</b>\r\n\r\n<b>4.</b> Notice that the <b>Rendering
           Layer Mask</b> is set to <b>Mixed...</b> and that the <b>Lamp Only</b>
           layer is disabled.\r\n\r\nBecause the spotlight is unable to affect the
           <b>Lamp Only</b> layer, the glass placed on the <b>Lamps Only</b> layer
           cannot receive lighting and shadowing from the spotlight. Thus, no unwanted
-          shadows are produced.\r\n\r\nObviously, Light layers are not physically
+          shadows are produced.\r\n\r\nObviously, Light Layers are not physically
           correct, as they would not work in real life. However, in practice, this
           feature is extremely useful to avoid unwanted illumination, shadowing and
-          light leaking. \r"
+          light leaking. \r\n"
       m_Tutorial: {fileID: 0}
       m_Image: {fileID: 0}
       m_Video: {fileID: 0}

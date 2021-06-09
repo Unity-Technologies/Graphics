@@ -37,11 +37,25 @@ MonoBehaviour:
       Title:
         m_Untranslated: Dust
       Text:
-        m_Untranslated: "Inspect the Dust visual effect created for this scene.\r\n\r\n1)
-          In the <i>Hierarchy</i> expand the <b>VFX</b> GameObject.\r\n\r\n2) Select
-          the <b>FloatingDust Cage</b> GameObject.\r\n\r\n3) Toggle it <b>on</b>
-          and <b>off</b> in the <i>Inspector.</i>\r\n\r\nNotice how the dust particles
-          contribute to the realism of the Scene.\r"
+        m_Untranslated: 'Inspect the Dust Visual Effect created for this scene.
+
+
+          <b>1.</b>
+          In the <i>Hierarchy</i> expand the <b>VFX</b> GameObject.
+
+
+          <b>2.</b>
+          Select the <b>FloatingDust Cage</b> GameObject.
+
+
+          <b>3.</b> Toggle
+          it <b>on</b> and <b>off</b> in the <i>Inspector.</i>
+
+
+          Notice
+          how the dust particles contribute to the realism of the Scene.
+
+'
       m_Tutorial: {fileID: 0}
       m_Image: {fileID: 0}
       m_Video: {fileID: 0}

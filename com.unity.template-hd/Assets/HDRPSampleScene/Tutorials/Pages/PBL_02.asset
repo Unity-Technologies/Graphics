@@ -41,13 +41,13 @@ MonoBehaviour:
           light. In HDRP, we provide physically based units for its intensity and
           color. The unit of intensity for the sunlight is set in Lux, whereas the
           one for its color temperature is set in Kelvin.\r\n\r\nLet\u2019s see how
-          the sun is set up in this scene.\r\n\r\n1) In the <i>Hierarchy,</i> select
-          <b>Lighting</b> > <b>Directional Light Sun.</b>\r\n\r\n2) Notice in the
-          <i>Inspector,</i> under <b>Emission</b> the <b>Intensity</b> is <b>100
-          000 lux</b> which is a common value for direct Sunlight on a clear day.\r\n\r\n3)
-          Take a look at the <b>Temperature,</b> it is <b>5500 Kelvin.</b>\r\n\r\nThese
-          two examples illustrate the values commonly used for a realistic clear
-          sky sun setup.\r"
+          the sun is set up in this scene.\r\n\r\n<b>1.</b> In the <i>Hierarchy,</i>
+          select <b>Lighting</b> > <b>Directional Light Sun.</b>\r\n\r\n<b>2.</b>
+          Notice that in the <i>Inspector,</i> under <b>Emission</b>, the <b>Intensity</b>
+          is <b>100 000 lux</b>. This is a common value for direct Sunlight on a
+          clear day.\r\n\r\n<b>3.</b> Take a look at the <b>Temperature,</b> which
+          is <b>5500 Kelvin.</b>\r\n\r\nThese two examples illustrate the values
+          commonly used for a realistic clear sky sun setup.\r\n"
       m_Tutorial: {fileID: 0}
       m_Image: {fileID: 0}
       m_Video: {fileID: 0}

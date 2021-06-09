@@ -40,18 +40,14 @@ MonoBehaviour:
         m_Untranslated: 'In addition to the <b>Global Volume</b> object, there are
           6 <b>Local</b> volumes used to control effects in specific rooms.
 
-          
 
-          1)
+          <b>1.</b>
           Enable Gizmos in order to see the boundaries of <b>Local</b> volumes.
 
-          
 
-          2)
+          <b>2.</b>
           Select <b>Volume Room 3</b> and turn it on and off. Notice that the volume
           covers the 3rd room fully.
-
-          
 
 '
       m_Tutorial: {fileID: 0}

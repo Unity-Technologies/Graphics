@@ -37,12 +37,12 @@ MonoBehaviour:
       Title:
         m_Untranslated: Disable decals
       Text:
-        m_Untranslated: "To preview the impact of Decals in the scene disable and
-          re-enable them in the Scene.\r\n\r\n1) In the <i>Hierarchy,</i> expand
-          the <b>Structure</b> GameObject.\r\n\r\n2) Select the <b>Decals</b> GameObject.\r\n\r\n3)
+        m_Untranslated: "To observe the impact of Decals, disable and re-enable them
+          in the Scene.\r\n\r\n<b>1.</b> In the <i>Hierarchy,</i> expand the <b>Structure</b>
+          GameObject.\r\n\r\n<b>2.</b> Select the <b>Decals</b> GameObject.\r\n\r\n<b>3.</b>
           Toggle it <b>on</b> and <b>off</b> in the <i>Inspector.</i>\r\n\r\nNotice
-          how the decals add variation to the large tiled concrete geometry in the
-          Scene. \r"
+          how the Decals add variation to the large tiled concrete geometry in the
+          Scene. \r\n"
       m_Tutorial: {fileID: 0}
       m_Image: {fileID: 0}
       m_Video: {fileID: 0}

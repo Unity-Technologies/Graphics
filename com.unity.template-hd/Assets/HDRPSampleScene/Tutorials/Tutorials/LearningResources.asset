@@ -36,9 +36,6 @@ MonoBehaviour:
     m_Enabled: 0
   m_ExitBehavior: 1
   m_SkipTutorialBehavior: 0
-  m_AssetSelectedOnExit: {fileID: 0}
-  m_WelcomePage: {fileID: 0}
-  m_CompletedPage: {fileID: 0}
   m_WindowLayout: {fileID: 0}
   m_Pages:
     m_Items:

@@ -19,14 +19,7 @@ MonoBehaviour:
         m_Untranslated: 
       Text:
         m_Untranslated: 
-      m_Summary: 
-      m_Description: 
-      m_InstructionBoxTitle: 
-      m_InstructionText: 
-      m_TutorialButtonText: 
       m_Tutorial: {fileID: 0}
-      m_Icons:
-        m_Items: []
       m_Image: {fileID: 2800000, guid: 2b5dc3cae63c2c448aa1d6350a6064c6, type: 3}
       m_Video: {fileID: 0}
       m_CriteriaCompletion: 0
@@ -35,6 +28,11 @@ MonoBehaviour:
       m_MaskingSettings:
         m_MaskingEnabled: 0
         m_UnmaskedViews: []
+      m_Summary: 
+      m_Description: 
+      m_InstructionBoxTitle: 
+      m_InstructionText: 
+      m_TutorialButtonText: 
     - m_Type: 0
       Title:
         m_Untranslated: What are Light Probes?
@@ -42,32 +40,22 @@ MonoBehaviour:
         m_Untranslated: '<b>Light Probes</b> are a part of baked lighting. You can
           use them to apply indirect lighting to dynamic objects in the Scene.
 
-          
 
-          1)
+          <b>1.</b>
           Add a cube in the Scene and set its coordinates to x:26 y:1.5 z:5.5.
 
-          
 
           You
           can see that the cube is appropriately lit and receives green indirect
           lighting from the wall nearby.
 
-          
 
-          2) Move the cube
-          closer to the tree cage. Notice how the indirect lighting affecting the
-          cube becomes brighter, as the cube approaches the strong pool of light.
+          <b>2.</b> Move the cube closer
+          to the tree cage. Notice how the indirect lighting affecting the cube becomes
+          brighter, as the cube approaches the strong pool of light.
 
 '
-      m_Summary: 
-      m_Description: 
-      m_InstructionBoxTitle: 
-      m_InstructionText: 
-      m_TutorialButtonText: 
       m_Tutorial: {fileID: 0}
-      m_Icons:
-        m_Items: []
       m_Image: {fileID: 0}
       m_Video: {fileID: 0}
       m_CriteriaCompletion: 0
@@ -76,6 +64,11 @@ MonoBehaviour:
       m_MaskingSettings:
         m_MaskingEnabled: 0
         m_UnmaskedViews: []
+      m_Summary: 
+      m_Description: 
+      m_InstructionBoxTitle: 
+      m_InstructionText: 
+      m_TutorialButtonText: 
   m_CameraSettings:
     m_CameraMode: 1
     m_FocusMode: 0

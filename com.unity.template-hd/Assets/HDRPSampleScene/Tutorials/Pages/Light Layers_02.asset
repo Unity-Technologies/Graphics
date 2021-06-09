@@ -37,16 +37,16 @@ MonoBehaviour:
       Title:
         m_Untranslated: Disabling the feature
       Text:
-        m_Untranslated: "The next steps look into how the Light layer system can
-          help solve common light leaking problems.\r\n\r\n1) Find your active HDRP
-          asset in the <b>Settings</b> folder of the <i>Project</i> window. If you
-          haven't switched to another in the quality settings, it should be <b>HDRP
-          Medium.</b>\r\n\r\n2) In your active HDRP Asset, uncheck <b>Lighting</b>
-          > <b>Light layers</b> to turn them off.\r\n\r\nWith the Light layers off,
-          notice that the top lamp\u2019s glass surface casts unwanted shadows on
-          its siblings.\r\n\r\nTurn the Light layers back on and notice how the glass
-          doesn\u2019t seem to cast shadow anymore. \r\n\r\n<b>Note:</b> By default,
-          Light layers are turned off for new projects.\r"
+        m_Untranslated: "The next steps look into how the Light Layer system can
+          help solve common light leaking problems.\r\n\r\n<b>1.</b> Find your active
+          HDRP asset in the <b>Settings</b> folder of the <i>Project</i> window.
+          If you haven't switched to another in the quality settings, the default
+          should be <b>HDRP Medium.</b>\r\n\r\n<b>2.</b> In your active HDRP Asset,
+          uncheck <b>Lighting</b> > <b>Light Layers</b> to turn them off.\r\n\r\nWith
+          the Light Layers off, notice that the top lamp\u2019s glass surface casts
+          unwanted shadows on its siblings.\r\n\r\nTurn the Light Layers back on
+          and notice how the glass doesn\u2019t seem to cast shadow anymore. \r\n\r\n<b>Note:</b>
+          By default, Light Layers are turned off for new projects.\r\n"
       m_Tutorial: {fileID: 0}
       m_Image: {fileID: 0}
       m_Video: {fileID: 0}

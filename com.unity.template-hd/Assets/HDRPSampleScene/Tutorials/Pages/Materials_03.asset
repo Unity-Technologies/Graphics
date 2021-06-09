@@ -38,14 +38,16 @@ MonoBehaviour:
         m_Untranslated: Refraction model
       Text:
         m_Untranslated: "The High Definition Render Pipeline (HDRP) uses a refraction
-          algorithm to simulate light deviation and absorption within Materials.\r\n\r\nSelect
-          the glass by following the steps:\r\n1) In the <i>Hierarchy,</i> expand
-          <b>Props</b> > <b>Room 3</b> > <b>RoundTable_01</b> > <b>RoundTable_01_LOD0.</b>\r\n\r\n2)
-          Select the <b>RoundTable_GLass_01_LOD00</b> GameObject.\r\n\r\n3) In the
-          <i>Inspector,</i> expand the <i>Glass Dark_Mat Material.</i>\r\n\r\n4)
-          Set the <b>Refraction Model</b> to None to disable the refraction entirely.
-          \r\n\r\n5) Undo your change.\r\n\r\nRefraction allows us to create a frosted
-          glass effect which you can adjust by tuning the Smoothness of the material.\r"
+          algorithm to simulate light deviation and absorption within Materials.\r\n\r\n<b>1.</b>
+          First, select the table. In the <i>Hierarchy,</i> expand <b>Props</b> >
+          <b>Room 3</b> > <b>RoundTable_01</b> > <b>RoundTable_01_LOD0.</b>\r\n\r\n<b>2.</b>
+          Select the glass part of the table by selecting the  <b>RoundTable_GLass_01_LOD00</b>
+          GameObject.\r\n\r\n<b>3.</b> In the <i>Inspector,</i> expand the <i>Glass
+          Dark_Mat Material.</i>\r\n\r\n<b>4.</b> Set the <b>Refraction Model</b>
+          to None to disable the refraction entirely. \r\n\r\n<b>5.</b> Undo your
+          changes for the purpose of this tutorial.\n\r\nRefraction allows us to
+          create a frosted glass effect which you can adjust by tuning the Smoothness
+          of the material.\r\n"
       m_Tutorial: {fileID: 0}
       m_Image: {fileID: 0}
       m_Video: {fileID: 0}

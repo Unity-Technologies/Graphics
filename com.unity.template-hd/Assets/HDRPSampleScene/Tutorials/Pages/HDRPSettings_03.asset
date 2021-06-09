@@ -38,16 +38,16 @@ MonoBehaviour:
         m_Untranslated: Setup the quality settings
       Text:
         m_Untranslated: "It\u2019s good practice to have multiple HDRP assets with
-          different settings for different performance targets.\r\n\r\n1) Go to <b>Edit</b>
-          > <b>Project Settings</b> > <b>Quality,</b> we have 3 quality levels <b>High,
-          Medium,</b> and <b>Low.</b> <b>Medium</b> is currently active and the default
-          one. \r\n\r\n2) Switch to <b>Low Quality</b> and observe the Fog disappearing.
-          This occurs because in the Low Quality HDRP asset the Fog is disabled.
-          \r\n\r\n3) Change back to <b>Medium Quality.</b>\r\n\r\nAlternatively,
-          you can locate the <b>Low</b> asset in the Settings folder and verify that
-          indeed <b>Lighting</b> > <b>Volumetrics</b> is off in the <b>Low Quality</b>
-          level. You can also try switching to <b>High Quality</b> and see what effect
-          it has on the shadow filtering quality.\r"
+          different settings for different performance targets.\r\n\r\n<b>1.</b>
+          Go to <b>Edit</b> > <b>Project Settings</b> > <b>Quality.</b> Review the 
+          3 quality levels: <b>High, Medium,</b> and <b>Low.</b> <b>Medium</b> is
+          currently active and the default. \r\n\r\n<b>2.</b> Switch to <b>Low Quality</b>
+          and observe the Fog disappearing. This occurs because the Fog is disabled
+          in the Low Quality HDRP asset. \r\n\r\n<b>3.</b> Change back to <b>Medium
+          Quality.</b>\r\n\r\nAlternatively, you can locate the <b>Low</b> asset
+          in the Settings folder and verify that <b>Lighting</b> > <b>Volumetrics</b>
+          is off in the <b>Low Quality</b> level. You can also try switching to <b>High
+          Quality</b> and see what effect it has on the shadow filtering quality.\r\n"
       m_Tutorial: {fileID: 0}
       m_Image: {fileID: 0}
       m_Video: {fileID: 0}

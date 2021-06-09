@@ -51,7 +51,7 @@ MonoBehaviour:
           you cannot see this checkbox, enable <i>More Options</i> for the Emission
           foldout.\r\n\r\n<b>Performance tip:</b> Keep the <b>Fade Distance</b> property
           as low as possible, so that the light disappears beyond a certain distance
-          (in meters).\r"
+          (in meters).\r\n"
       m_Tutorial: {fileID: 0}
       m_Image: {fileID: 0}
       m_Video: {fileID: 0}

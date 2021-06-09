@@ -19,14 +19,7 @@ MonoBehaviour:
         m_Untranslated: 
       Text:
         m_Untranslated: 
-      m_Summary: 
-      m_Description: 
-      m_InstructionBoxTitle: 
-      m_InstructionText: 
-      m_TutorialButtonText: 
       m_Tutorial: {fileID: 0}
-      m_Icons:
-        m_Items: []
       m_Image: {fileID: 2800000, guid: e395edaca0f6b2f4da74526a548c576f, type: 3}
       m_Video: {fileID: 0}
       m_CriteriaCompletion: 0
@@ -35,23 +28,33 @@ MonoBehaviour:
       m_MaskingSettings:
         m_MaskingEnabled: 0
         m_UnmaskedViews: []
-    - m_Type: 0
-      Title:
-        m_Untranslated: Congratulations!
-      Text:
-        m_Untranslated: "In this tutorial, you learned how to store and apply indirect
-          lighting to objects with Light Probes. \r\n\r\nFor more information, check
-          out the Light Probes <a href=\"https://docs.unity3d.com/Manual/LightProbes.html\">documentation</a>
-          and <a href=\"https://forum.unity.com/forums/global-illumination.85/\">forums</a>.\r\n\r\n<b>Note:</b>
-          You do not need to save your changes in order to follow other tutorials.\r"
       m_Summary: 
       m_Description: 
       m_InstructionBoxTitle: 
       m_InstructionText: 
       m_TutorialButtonText: 
+    - m_Type: 0
+      Title:
+        m_Untranslated: Explore the Light Probes
+      Text:
+        m_Untranslated: "When working with Light Probes there are a few considerations
+          to keep in mind. Below you can find few highlighted tips:\r\n\r\n\u2022
+          Light Probes are not real-time, so remember to generate the lighting again
+          if you have made noticeable changes to it.\r\n\r\n\u2022 The spheres in
+          the image above are a visualisation of the lighting captured by the Light
+          Probes at their corresponding locations. Objects are set by default to
+          receive lighting from Light Probes, and will receive the lighting as a
+          blend from the 4 closest probes. Therefore, it\u2019s important to increase
+          the density of probes in areas of high lighting contrast to ensure more
+          accurate interpolation between probes.\r\n\r\n\u2022 It\u2019s recommended
+          to set smaller stationary objects to receive Global Illumination from Light
+          Probes, rather than from Lightmaps. Light Probes are baked considerably
+          faster than lightmaps, and Light Probe data is considerably smaller than
+          that of lightmaps. Apart from the main structures (walls, floors, etc.),
+          most objects in this sample Scene are tagged to receive Global Illumination
+          from Light Probes. This will reduce baking times and the overall memory
+          footprint of the lighting."
       m_Tutorial: {fileID: 0}
-      m_Icons:
-        m_Items: []
       m_Image: {fileID: 0}
       m_Video: {fileID: 0}
       m_CriteriaCompletion: 0
@@ -60,6 +63,11 @@ MonoBehaviour:
       m_MaskingSettings:
         m_MaskingEnabled: 0
         m_UnmaskedViews: []
+      m_Summary: 
+      m_Description: 
+      m_InstructionBoxTitle: 
+      m_InstructionText: 
+      m_TutorialButtonText: 
   m_CameraSettings:
     m_CameraMode: 0
     m_FocusMode: 0

@@ -44,19 +44,7 @@ MonoBehaviour:
           Probe Light Dimmer:</b> Reduces the influence of the Sky ambient probe
           on the Fog. It\u2019s useful for darker indoor Scenes.\r\n\r\n<b>Volumetric
           Fog Distance:</b> Determines how far from the camera the volumetric fog
-          will be rendered. \r\n\r\n<b>Denoising Mode:</b> Reduces noise in the Fog,
-          at a cost of reducing details: \r\n\u2022 <b>Gaussian</b> applies blur
-          to smooth out the Fog, might lead to loss of detail.\r\n\u2022 <b>Reprojection</b>
-          preserves detail over multiple frames, which may result in ghosting during
-          movement.\r\n\u2022 <b>Both</b> can produce very smooth Fog. The <b>Both</b>
-          setting can introduce ghosting and is the most expensive solution.\r\n\r\n
-          <b>Slice Distribution Uniformity:</b> The lower the value, the more precise
-          the nearby Fog is, at the expense of the distant Fog. A value of 1 gives
-          an equal distribution of quality between the nearby and distant Fog.\r\n\r\n<b>Quality:</b>
-          Provides 3 presets that aim to balance quality and performance.\r\n\r\n<b>Directional
-          Lights Only:</b> Improves performance by discarding local lights. Use this
-          option if you only require volumetric effects from the main directional
-          light.\r"
+          will be rendered. \r\n"
       m_Tutorial: {fileID: 0}
       m_Image: {fileID: 0}
       m_Video: {fileID: 0}

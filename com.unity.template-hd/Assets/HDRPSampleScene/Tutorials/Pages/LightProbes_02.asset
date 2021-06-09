@@ -45,22 +45,7 @@ MonoBehaviour:
           Probe Group</b> can be found in the <i>Hierarchy</i> <b>Lighting</b> >
           <b>Light Probe Group.</b> These Light Probes were placed by hand. Select
           the Light Probe Group, then in the <i>Inspector,</i> click the <b>Edit
-          Light Probes</b> button to select, move or add new probes.\r\n\r\n<b>Tips:</b>\r\n\r\n\u2022
-          Light Probes are not real-time, so remember to generate the lighting again
-          if you have made noticeable changes to it\r\n\r\n\u2022 The spheres in
-          the image above are a visualisation of the lighting captured by the Light
-          Probes at their corresponding locations. Objects are set by default to
-          receive lighting from Light Probes, and will receive the lighting as a
-          blend from the 4 closest probes. Therefore, it\u2019s important to increase
-          the density of probes in areas of high lighting contrast to ensure more
-          accurate interpolation between probes.\r\n\r\n\u2022 It\u2019s recommended
-          to set smaller stationary objects to receive Global Illumination from Light
-          Probes, rather than from Lightmaps. Light Probes are baked considerably
-          faster than lightmaps, and Light Probe data is considerably smaller than
-          that of lightmaps. Apart from the main structures (walls, floors, etc.),
-          most objects in this sample Scene are tagged to receive Global Illumination
-          from Light Probes. This will reduce baking times and the overall memory
-          footprint of the lighting."
+          Light Probes</b> button to select, move or add new probes.\r\n"
       m_Tutorial: {fileID: 0}
       m_Image: {fileID: 0}
       m_Video: {fileID: 0}

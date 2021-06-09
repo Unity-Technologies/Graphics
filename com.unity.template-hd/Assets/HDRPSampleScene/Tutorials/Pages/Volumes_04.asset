@@ -37,17 +37,18 @@ MonoBehaviour:
       Title:
         m_Untranslated: Explore the Local Volume
       Text:
-        m_Untranslated: "Now to take a look at the effects of the volume inside Room
-          3:\r\n\r\n1) Take a look at the overrides in <b>Volume Room 3:</b> Exposure,
-          White Balance and Fog.\r\n\r\n2) Disable the Exposure override. Notice
-          that the Scene gets darker.\r\n\r\n3) Undo your change.\r\n\r\nWhen the
-          Exposure override for Room 3 is disabled, this area of the Scene inherits
-          its Exposure settings directly from the <b>Global</b> volume. \r\n\r\nHowever,
-          these particular settings might not be acceptable for a relatively dark
-          room, such as Room 3. Therefore, a <b>Local</b> volume for Room 3 has been
-          created, with dedicated exposure settings, among others.\r\n\r\nWhen you
-          move the camera outside of <b>Volume Room 3,</b> the settings that were
-          applied to this room will no longer be applied to the camera.\r"
+        m_Untranslated: "Let\u2019s take a look at the effects of the volume inside
+          Room 3:\r\n\r\n<b>1.</b> Take a look at the overrides in <b>Volume Room
+          3:</b> Exposure, White Balance and Fog.\r\n\r\n<b>2.</b> Disable the Exposure
+          override. Notice that the Scene gets darker.\r\n\r\n<b>3.</b> Undo your
+          changes for the purpose of this tutorial.\n\r\nWhen the Exposure override
+          for Room 3 is disabled, this area of the Scene inherits its Exposure settings
+          directly from the <b>Global</b> volume. \r\n\r\nHowever, these particular
+          settings might not be acceptable for a relatively dark room, such as Room
+          3. Therefore, a <b>Local</b> volume for Room 3 has been created, with dedicated
+          exposure settings, among others.\r\n\r\nWhen you move the camera outside
+          of <b>Volume Room 3,</b> the settings that were applied to this room will
+          no longer be applied to the camera.\r\n"
       m_Tutorial: {fileID: 0}
       m_Image: {fileID: 0}
       m_Video: {fileID: 0}

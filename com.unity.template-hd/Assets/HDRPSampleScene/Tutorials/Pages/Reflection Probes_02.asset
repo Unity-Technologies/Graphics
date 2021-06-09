@@ -35,16 +35,16 @@ MonoBehaviour:
       m_TutorialButtonText: 
     - m_Type: 0
       Title:
-        m_Untranslated: Reflection Probe
+        m_Untranslated: Reflection Probes
       Text:
-        m_Untranslated: "In HDRP, if an object is not affected by a reflection probe
+        m_Untranslated: "In HDRP, if an object is not affected by a Reflection Probe
           it automatically receives reflections from the sky. Therefore, placing
           local Reflection Probes in each room of the template is required to avoid
-          a phenomenon called \u201Clight leaking\u201D.\r\n\r\n1) In the <i>Hierarchy,</i>
-          expand <b>Lighting</b> > <b>Reflection Probes.</b>\r\n\r\n2) Disable the
-          <b>Room2</b> GameObject.\r\n\r\nYou can see that if the local Reflection
-          Probes in this room are disabled, the sky is automatically reflected on
-          all objects and therefore it creates unwanted light leaking.\r"
+          a phenomenon called \u201Clight leaking\u201D.\r\n\r\n<b>1.</b> In the
+          <i>Hierarchy,</i> expand <b>Lighting</b> > <b>Reflection Probes.</b>\r\n\r\n<b>2.</b>
+          Disable the <b>Room2</b> GameObject.\r\n\r\nYou can see that if the local
+          Reflection Probes in this room are disabled, the sky is automatically reflected
+          on all objects and therefore it creates unwanted light leaking.\r\n"
       m_Tutorial: {fileID: 0}
       m_Image: {fileID: 0}
       m_Video: {fileID: 0}

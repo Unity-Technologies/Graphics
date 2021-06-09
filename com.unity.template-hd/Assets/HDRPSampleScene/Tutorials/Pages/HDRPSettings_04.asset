@@ -37,16 +37,25 @@ MonoBehaviour:
       Title:
         m_Untranslated: HDRP Default settings
       Text:
-        m_Untranslated: "Settings for post-processing, Fog or Sky can be applied
-          to any scenes by default, by using a <b>Default Volume Profile Asset.</b>
-          Any scene in this project will automatically use such settings by default.\r\n\r\n1)
+        m_Untranslated: 'Settings for post-processing, Fog, or Sky can be applied
+          to any scene by default, using the <b>Default Volume Profile Asset.</b>
+          The settings will then be applied automatically to any scene in the project.
+
+
+          <b>1.</b>
           Go to <b>Edit</b> > <b>Project Settings</b> > <b>Graphics</b> > <b>HDRP
           Default Settings</b> and review the <b>Default Volume Profile Asset</b>
-          assigned to the project.\r\n\r\n2) Disable HDRI Sky. The Sky in the scene
-          will disappear.\r\n\r\n3) Undo your changes.\r\n\r\nFor convenience and
-          quick access, we also added an instance of these settings in the Scene.
-          You can use the search bar in the <i>Hierarchy</i> to find the <b>Lighting</b>
-          > <b>Volumes</b> > <b>Volume Global</b> GameObject. \r"
+          assigned to the project.
+
+
+          <b>2.</b> Disable HDRI Sky. The Sky
+          in the scene will disappear.
+
+
+          <b>3.</b> Undo your changes for
+          the purpose of this tutorial.
+
+'
       m_Tutorial: {fileID: 0}
       m_Image: {fileID: 0}
       m_Video: {fileID: 0}

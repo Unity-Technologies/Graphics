@@ -79,7 +79,7 @@ MonoBehaviour:
     Heading:
       m_Untranslated: Baked Lighting
     Text:
-      m_Untranslated: 'Learn how to simulate the Global Illumination with precomputed
+      m_Untranslated: 'Learn how to simulate Global Illumination with precomputed
         indirect lighting '
     LinkText: 
     Url: 
@@ -184,7 +184,7 @@ MonoBehaviour:
     Heading:
       m_Untranslated: Visual Effects
     Text:
-      m_Untranslated: 'Learn how dust and butterflies were added into the project
+      m_Untranslated: 'Learn how dust and butterflies were added to this project
         using the VFX graph '
     LinkText: 
     Url: 
@@ -196,7 +196,7 @@ MonoBehaviour:
       m_Untranslated: Decals
     Text:
       m_Untranslated: 'Learn how to add surface details by projecting textures onto
-        3D geometry in the Scene '
+        3D geometry '
     LinkText: 
     Url: 
     AuthorizedUrl: 0
@@ -206,7 +206,7 @@ MonoBehaviour:
     Heading:
       m_Untranslated: Explore other learning resources
     Text:
-      m_Untranslated: 'Find more resources here to continue learning about HDRP '
+      m_Untranslated: 'Learn more about HDRP with additional resources '
     LinkText: 
     Url: 
     AuthorizedUrl: 0

@@ -35,13 +35,22 @@ MonoBehaviour:
       m_TutorialButtonText: 
     - m_Type: 0
       Title:
-        m_Untranslated: HDRP asset
+        m_Untranslated: HDRP Asset
       Text:
-        m_Untranslated: "First, make sure Unity is set to run the High Definition
-          Render Pipeline.\r\n\r\n1) Go to <b>Edit</b> > <b>Project Settings</b>
-          > <b>Graphics.</b>\r\n\r\n2) Verify that in the <i>Scriptable Render Pipeline
-          Settings</i> field, an HDRP asset is assigned.\r\n\r\nFor more information
-          about Scriptable Pipelines, visit <a href=\"https://unity.com/srp\">https://unity.com/srp</a>\r"
+        m_Untranslated: 'First, make sure Unity is set to run the High Definition
+          Render Pipeline.
+
+
+          <b>1.</b> Go to <b>Edit</b> > <b>Project Settings</b>
+          > <b>Graphics.</b>
+
+
+          <b>2.</b> Verify that in the <i>Scriptable
+          Render Pipeline Settings</i> field, an HDRP asset is assigned.
+
+
+          For
+          more information about Scriptable Pipelines, visit <a href="https://unity.com/srp">https://unity.com/srp</a>'
       m_Tutorial: {fileID: 0}
       m_Image: {fileID: 0}
       m_Video: {fileID: 0}
