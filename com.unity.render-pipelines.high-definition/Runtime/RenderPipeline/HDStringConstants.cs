@@ -917,6 +917,9 @@ namespace UnityEngine.Rendering.HighDefinition
         public static readonly int _ProbeVolumeAtlasOctahedralDepthWriteTexture = Shader.PropertyToID("_ProbeVolumeAtlasOctahedralDepthWriteTexture");
         public static readonly int _ProbeVolumeAtlasOctahedralDepthScaleBiasTexels = Shader.PropertyToID("_ProbeVolumeAtlasOctahedralDepthScaleBiasTexels");
         public static readonly int _ProbeVolumeAtlasOctahedralDepthRWTexture = Shader.PropertyToID("_ProbeVolumeAtlasOctahedralDepthRWTexture");
+        public static readonly int _ProbeVolumeAtlasSHRotateRight = Shader.PropertyToID("_ProbeVolumeAtlasSHRotateRight");
+        public static readonly int _ProbeVolumeAtlasSHRotateUp = Shader.PropertyToID("_ProbeVolumeAtlasSHRotateUp");
+        public static readonly int _ProbeVolumeAtlasSHRotateForward = Shader.PropertyToID("_ProbeVolumeAtlasSHRotateForward");
         public static readonly int _FilterSampleCount              = Shader.PropertyToID("_FilterSampleCount");
         public static readonly int _FilterSharpness                = Shader.PropertyToID("_FilterSharpness");
         public static readonly int _TextureViewScale               = Shader.PropertyToID("_TextureViewScale");

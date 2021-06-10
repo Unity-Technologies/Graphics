@@ -139,7 +139,9 @@ namespace UnityEngine.Rendering.HighDefinition
         [SerializeField]
         SphericalHarmonicsL2 m_SHForNormalization;
         [SerializeField]
-        bool m_HasValidSHForNormalization;
+        Quaternion m_SHForNormalizationRotation = Quaternion.identity;
+        [SerializeField]
+        bool m_HasValidSHForNormalization = false;
 
         // Array of names that will be used in the Render Loop to name the probes in debug
         internal string[] probeName = new string[6];
@@ -576,6 +578,7 @@ namespace UnityEngine.Rendering.HighDefinition
             {
                 m_HasValidSHForNormalization = true;
                 m_SHForNormalization = shForNormalizationNext;
+                m_SHForNormalizationRotation = transform.rotation;
                 return true;
             }
 #endif
@@ -589,56 +592,108 @@ namespace UnityEngine.Rendering.HighDefinition
             bool hasValidSHData = hdrp.asset.currentPlatformRenderPipelineSettings.supportProbeVolume;
             hasValidSHData &= m_HasValidSHForNormalization;
 
-            var L0 = SphericalHarmonicsL2Utils.GetCoefficient(m_SHForNormalization, 0);
-            var L1_0 = SphericalHarmonicsL2Utils.GetCoefficient(m_SHForNormalization, 1);
-            var L1_1 = SphericalHarmonicsL2Utils.GetCoefficient(m_SHForNormalization, 2);
-            var L1_2 = SphericalHarmonicsL2Utils.GetCoefficient(m_SHForNormalization, 3);
-            var L2_0 = SphericalHarmonicsL2Utils.GetCoefficient(m_SHForNormalization, 4);
-            var L2_1 = SphericalHarmonicsL2Utils.GetCoefficient(m_SHForNormalization, 5);
-            var L2_2 = SphericalHarmonicsL2Utils.GetCoefficient(m_SHForNormalization, 6);
-            var L2_3 = SphericalHarmonicsL2Utils.GetCoefficient(m_SHForNormalization, 7);
-            var L2_4 = SphericalHarmonicsL2Utils.GetCoefficient(m_SHForNormalization, 8);
+            ComputeSHL2ForNormalizationWS(out SphericalHarmonicsL2 shWS);
 
-            outL0L1.x = ColorUtils.Luminance(new Vector4(L0.x, L0.y, L0.z, 1.0f));
-            outL0L1.y = ColorUtils.Luminance(new Vector4(L1_0.x, L1_0.y, L1_0.z, 1.0f));
-            outL0L1.z = ColorUtils.Luminance(new Vector4(L1_1.x, L1_1.y, L1_1.z, 1.0f));
-            outL0L1.w = ColorUtils.Luminance(new Vector4(L1_2.x, L1_2.y, L1_2.z, 1.0f));
+            var L0 = SphericalHarmonicsL2Utils.GetCoefficient(shWS, 0);
+            var L1_0 = SphericalHarmonicsL2Utils.GetCoefficient(shWS, 1);
+            var L1_1 = SphericalHarmonicsL2Utils.GetCoefficient(shWS, 2);
+            var L1_2 = SphericalHarmonicsL2Utils.GetCoefficient(shWS, 3);
+            var L2_0 = SphericalHarmonicsL2Utils.GetCoefficient(shWS, 4);
+            var L2_1 = SphericalHarmonicsL2Utils.GetCoefficient(shWS, 5);
+            var L2_2 = SphericalHarmonicsL2Utils.GetCoefficient(shWS, 6);
+            var L2_3 = SphericalHarmonicsL2Utils.GetCoefficient(shWS, 7);
+            var L2_4 = SphericalHarmonicsL2Utils.GetCoefficient(shWS, 8);
 
-            outL2_1.x = ColorUtils.Luminance(new Vector4(L2_0.x, L2_0.y, L2_0.z, 1.0f));
-            outL2_1.y = ColorUtils.Luminance(new Vector4(L2_1.x, L2_1.y, L2_1.z, 1.0f));
-            outL2_1.z = ColorUtils.Luminance(new Vector4(L2_2.x, L2_2.y, L2_2.z, 1.0f));
-            outL2_1.w = ColorUtils.Luminance(new Vector4(L2_3.x, L2_3.y, L2_3.z, 1.0f));
+            outL0L1.x = ComputeLuminance(new Vector4(L0.x, L0.y, L0.z, 1.0f));
+            outL0L1.y = ComputeLuminance(new Vector4(L1_0.x, L1_0.y, L1_0.z, 1.0f));
+            outL0L1.z = ComputeLuminance(new Vector4(L1_1.x, L1_1.y, L1_1.z, 1.0f));
+            outL0L1.w = ComputeLuminance(new Vector4(L1_2.x, L1_2.y, L1_2.z, 1.0f));
 
-            outL2_2 = ColorUtils.Luminance(new Vector4(L2_4.x, L2_4.y, L2_4.z, 1.0f));
+            outL2_1.x = ComputeLuminance(new Vector4(L2_0.x, L2_0.y, L2_0.z, 1.0f));
+            outL2_1.y = ComputeLuminance(new Vector4(L2_1.x, L2_1.y, L2_1.z, 1.0f));
+            outL2_1.z = ComputeLuminance(new Vector4(L2_2.x, L2_2.y, L2_2.z, 1.0f));
+            outL2_1.w = ComputeLuminance(new Vector4(L2_3.x, L2_3.y, L2_3.z, 1.0f));
+
+            outL2_2 = ComputeLuminance(new Vector4(L2_4.x, L2_4.y, L2_4.z, 1.0f));
 
             return hasValidSHData;
+        }
+
+        internal bool GetSH2ForNormalization(out SphericalHarmonicsL2 outSH)
+        {
+            var hdrp = (HDRenderPipeline)RenderPipelineManager.currentPipeline;
+
+            bool hasValidSHData = hdrp.asset.currentPlatformRenderPipelineSettings.supportProbeVolume;
+            hasValidSHData &= m_HasValidSHForNormalization;
+
+            ComputeSHL2ForNormalizationWS(out outSH);
+
+            return hasValidSHData;
+        }
+
+        private void ComputeSHL2ForNormalizationWS(out SphericalHarmonicsL2 res)
+        {
+            Quaternion sphericalHarmonicWSFromOS = ComputeSphericalHarmonicWSFromOS();
+            Matrix4x4 sphericalHarmonicWSFromOSMatrix = Matrix4x4.Rotate(sphericalHarmonicWSFromOS);
+            res = m_SHForNormalization;
+            SphericalHarmonicMath.Rotate(sphericalHarmonicWSFromOSMatrix, ref res);
+        }
+
+        private Quaternion ComputeSphericalHarmonicWSFromOS()
+        {
+            Quaternion sphericalHarmonicWSFromOS = Quaternion.Inverse(m_SHForNormalizationRotation) * transform.rotation;
+            return sphericalHarmonicWSFromOS;
+        }
+
+        private float ComputeLuminance(Vector4 color)
+        {
+            return ColorUtils.Luminance(color);
         }
 
 
 #if UNITY_EDITOR
         internal void SubscribeSHBaking()
         {
-            UnityEditor.Lightmapping.lightingDataCleared -= EnqueueSHBaking;
-            UnityEditor.Lightmapping.lightingDataCleared += EnqueueSHBaking;
+            UnityEditor.Lightmapping.lightingDataCleared -= ClearSHBaking;
+            UnityEditor.Lightmapping.lightingDataCleared += ClearSHBaking;
             EnqueueSHBaking();
         }
 
         internal void UnsubscribeSHBaking()
         {
-            UnityEditor.Lightmapping.lightingDataCleared -= EnqueueSHBaking;
+            UnityEditor.Lightmapping.lightingDataCleared -= ClearSHBaking;
             DequeueSHBaking();
         }
 
+        private void ClearSHBaking()
+        {
+            // Lighting data was cleared - clear out any stale SH data.
+            m_HasValidSHForNormalization = false;
+            m_SHForNormalizationRotation = Quaternion.identity;
+            SphericalHarmonicsL2Utils.SetCoefficient(ref m_SHForNormalization, 0, Vector3.zero);
+            SphericalHarmonicsL2Utils.SetCoefficient(ref m_SHForNormalization, 1, Vector3.zero);
+            SphericalHarmonicsL2Utils.SetCoefficient(ref m_SHForNormalization, 2, Vector3.zero);
+            SphericalHarmonicsL2Utils.SetCoefficient(ref m_SHForNormalization, 3, Vector3.zero);
+            SphericalHarmonicsL2Utils.SetCoefficient(ref m_SHForNormalization, 4, Vector3.zero);
+            SphericalHarmonicsL2Utils.SetCoefficient(ref m_SHForNormalization, 5, Vector3.zero);
+            SphericalHarmonicsL2Utils.SetCoefficient(ref m_SHForNormalization, 6, Vector3.zero);
+            SphericalHarmonicsL2Utils.SetCoefficient(ref m_SHForNormalization, 7, Vector3.zero);
+            SphericalHarmonicsL2Utils.SetCoefficient(ref m_SHForNormalization, 8, Vector3.zero);
+
+            EnqueueSHBaking();
+        }
 
         private void EnqueueSHBaking()
         {
+            Vector3 capturePositionWS = ComputeCapturePositionWS();
+
             if (m_SHRequestID < 0)
             {
-                m_SHRequestID = AdditionalGIBakeRequestsManager.instance.EnqueueRequest(transform.position);
+                m_SHRequestID = AdditionalGIBakeRequestsManager.instance.EnqueueRequest(capturePositionWS);
             }
             else
             {
-                m_SHRequestID = AdditionalGIBakeRequestsManager.instance.UpdatePositionForRequest(m_SHRequestID, transform.position);
+                m_SHRequestID = AdditionalGIBakeRequestsManager.instance.UpdatePositionForRequest(m_SHRequestID, capturePositionWS);
             }
         }
 
@@ -649,6 +704,16 @@ namespace UnityEngine.Rendering.HighDefinition
                 AdditionalGIBakeRequestsManager.instance.DequeueRequest(m_SHRequestID);
             }
             m_SHRequestID = -1;
+        }
+
+        private Vector3 ComputeCapturePositionWS()
+        {
+            var probePositionSettings = ProbeCapturePositionSettings.ComputeFrom(this, null);
+            HDRenderUtilities.ComputeCameraSettingsFromProbeSettings(
+                this.settings, probePositionSettings,
+                out _, out var cameraPositionSettings, 0
+            );
+            return cameraPositionSettings.position;
         }
 
 #endif

@@ -23,6 +23,7 @@ namespace UnityEditor.Rendering.HighDefinition
             MirrorPosition = 1 << 4,
             MirrorRotation = 1 << 5,
             ShowChromeGizmo = 1 << 6, //not really an edit mode. Should be move later to contextual tool overlay
+            ShowLuminanceSH = 1 << 7, //not really an edit mode. Should be move later to contextual tool overlay
         }
 
         internal interface IProbeUISettingsProvider
@@ -92,6 +93,10 @@ namespace UnityEditor.Rendering.HighDefinition
                             {
                                 listContent.Add(k_ToolbarContents[toolbarJ]);
                             }
+                            else if (toolBar == ToolBar.ShowLuminanceSH)
+                            {
+                                listContent.Add(k_ToolbarContents[toolbarJ]);
+                            }
                             else
                             {
                                 listMode.Add(k_ToolbarMode[toolbarJ]);
@@ -114,15 +119,23 @@ namespace UnityEditor.Rendering.HighDefinition
                 GUILayout.FlexibleSpace();
                 GUI.changed = false;
 
-                for (int i = 0; i < k_ListModes.Length - 1; ++i)
+                for (int i = 0; i < k_ListModes.Length - 2; ++i)
                     EditMode.DoInspectorToolbar(k_ListModes[i], k_ListContent[i], HDEditorUtils.GetBoundsGetter(owner), owner);
 
                 //Special case: show chrome gizmo should be mouved to overlay tool.
                 //meanwhile, display it as an option of toolbar
                 EditorGUI.BeginChangeCheck();
                 IHDProbeEditor probeEditor = owner as IHDProbeEditor;
-                int selected = probeEditor.showChromeGizmo ? 0 : -1;
-                int newSelected = GUILayout.Toolbar(selected, new[] { k_ListContent[k_ListModes.Length - 1][0] }, GUILayout.Height(20), GUILayout.Width(30));
+                int selected = -1;
+                if (probeEditor.showChromeGizmo)
+                {
+                    selected = 0;
+                }
+                else if (probeEditor.showLuminanceSH)
+                {
+                    selected = 1;
+                }
+                int newSelected = GUILayout.Toolbar(selected, new[] { k_ListContent[k_ListModes.Length - 2][0], k_ListContent[k_ListModes.Length - 1][0] }, GUILayout.Height(20), GUILayout.Width(30 * 2));
                 if(EditorGUI.EndChangeCheck())
                 {
                     //allow deselection
@@ -131,6 +144,7 @@ namespace UnityEditor.Rendering.HighDefinition
                     else
                         selected = newSelected;
                     probeEditor.showChromeGizmo = selected == 0;
+                    probeEditor.showLuminanceSH = selected == 1;
                     SceneView.RepaintAll();
                 }
 
