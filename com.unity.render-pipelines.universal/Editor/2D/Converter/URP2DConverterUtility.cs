@@ -55,33 +55,18 @@ internal static class URP2DConverterUtility
                 PrefabUtility.SavePrefabAsset(go);
             }
         }
-        
-        AssetDatabase.SaveAssets();
-        Resources.UnloadUnusedAssets();
     }
 
     public static void UpgradeScene(string path, Action<GameObject> objectUpgrader)
     {
-        Scene openScene = EditorSceneManager.GetActiveScene();
-        bool isOpenScene = openScene.path == path;
-
-        Scene scene = openScene;
-        if (!isOpenScene)
-            scene = EditorSceneManager.OpenScene(path, OpenSceneMode.Additive);
+        Scene scene = EditorSceneManager.OpenScene(path, OpenSceneMode.Additive);
 
         GameObject[] gameObjects = scene.GetRootGameObjects();
         foreach (GameObject go in gameObjects)
             objectUpgrader(go);
 
-        if (!isOpenScene)
-        {
-            EditorSceneManager.SaveScene(scene);
-            EditorSceneManager.CloseScene(scene, true);
-        }
-        else
-        {
-            EditorSceneManager.MarkSceneDirty(scene);
-        }
+        EditorSceneManager.SaveScene(scene);
+        EditorSceneManager.CloseScene(scene, true);
     }
 
     public static void UpgradeMaterial(string path, Shader oldShader, Shader newShader)

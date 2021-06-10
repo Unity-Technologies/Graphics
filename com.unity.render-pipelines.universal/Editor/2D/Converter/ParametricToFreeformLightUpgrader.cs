@@ -3,9 +3,8 @@ using System.IO;
 using System.Collections.Generic;
 using UnityEditor.Rendering.Universal.Converters;
 using UnityEngine;
-using UnityEngine.Rendering;
 using UnityEngine.Rendering.Universal;
-using System.Diagnostics;
+
 
 
 namespace UnityEditor.Rendering.Universal
@@ -63,7 +62,6 @@ namespace UnityEditor.Rendering.Universal
             }
         }
 
-
         void UpgradeGameObject(GameObject go)
         {
             Light2D[] lights = go.GetComponentsInChildren<Light2D>();
@@ -78,7 +76,6 @@ namespace UnityEditor.Rendering.Universal
         {
             string[] allAssetPaths = AssetDatabase.GetAllAssetPaths();
 
-            Stopwatch stopwatch = Stopwatch.StartNew();
             foreach (string path in allAssetPaths)
             {
                 if (URP2DConverterUtility.IsPrefabOrScenePath(path, "m_LightType: 0"))
@@ -96,9 +93,6 @@ namespace UnityEditor.Rendering.Universal
                     context.AddAssetToConvert(desc);
                 }
             }
-            stopwatch.Stop();
-
-            UnityEngine.Debug.Log("Initialization Time (ms): " + stopwatch.ElapsedMilliseconds);
 
             calback.Invoke();
         }
@@ -119,10 +113,7 @@ namespace UnityEditor.Rendering.Universal
 
         public override void OnPostRun()
         {
-            /*
-                        AssetDatabase.SaveAssets();
-                        Resources.UnloadUnusedAssets();
-            */
+            Resources.UnloadUnusedAssets();
         }
     }
 }

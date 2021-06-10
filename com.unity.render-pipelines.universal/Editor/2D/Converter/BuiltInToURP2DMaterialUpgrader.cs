@@ -137,10 +137,7 @@ namespace UnityEditor.Rendering.Universal
 
         public override void OnPostRun()
         {
-/*
-            AssetDatabase.SaveAssets();
             Resources.UnloadUnusedAssets();
-*/
         }
     }
 }
