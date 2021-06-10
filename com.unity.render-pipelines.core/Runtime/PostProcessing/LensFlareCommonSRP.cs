@@ -217,7 +217,20 @@ namespace UnityEngine.Rendering
             return ShapeAttenuationDirLight(forward, wo);
         }
 
-        static Vector4 GetFlareData0(Vector2 screenPos, Vector2 translationScale, Vector2 rayOff0, Vector2 vLocalScreenRatio, float angleDeg, float position, float angularOffset, Vector2 positionOffset, bool autoRotate)
+        /// <summary>
+        /// Compute internal parameters needed to render single flare
+        /// </summary>
+        /// <param name="screenPos"></param>
+        /// <param name="translationScale"></param>
+        /// <param name="rayOff0"></param>
+        /// <param name="vLocalScreenRatio"></param>
+        /// <param name="angleDeg"></param>
+        /// <param name="position"></param>
+        /// <param name="angularOffset"></param>
+        /// <param name="positionOffset"></param>
+        /// <param name="autoRotate"></param>
+        /// <returns>Parameter used on the shader for _FlareData0</returns>
+        static public Vector4 GetFlareData0(Vector2 screenPos, Vector2 translationScale, Vector2 rayOff0, Vector2 vLocalScreenRatio, float angleDeg, float position, float angularOffset, Vector2 positionOffset, bool autoRotate)
         {
             float globalCos0 = Mathf.Cos(-angularOffset * Mathf.Deg2Rad);
             float globalSin0 = Mathf.Sin(-angularOffset * Mathf.Deg2Rad);
@@ -439,7 +452,6 @@ namespace UnityEngine.Rendering
                     Vector2 screenPos = new Vector2(2.0f * viewportPos.x - 1.0f, 1.0f - 2.0f * viewportPos.y);
                     Vector2 translationScale = new Vector2(element.translationScale.x, element.translationScale.y);
                     Texture texture = element.lensFlareTexture;
-                    float elemAspectRatio = element.sizeXY.x / element.sizeXY.y;
                     float usedAspectRatio;
                     if (element.flareType == SRPLensFlareType.Image)
                         usedAspectRatio = element.preserveAspectRatio ? ((((float)texture.height) / (float)texture.width)) : 1.0f;

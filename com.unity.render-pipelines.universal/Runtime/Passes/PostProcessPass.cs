@@ -892,7 +892,6 @@ namespace UnityEngine.Rendering.Universal.Internal
 
         #region LensFlareDataDriven
 
-
         static float GetLensFlareLightAttenuation(Light light, Camera cam, Vector3 wo)
         {
             // Must always be true

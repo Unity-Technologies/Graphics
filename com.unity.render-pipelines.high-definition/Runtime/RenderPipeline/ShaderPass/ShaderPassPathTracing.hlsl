@@ -29,7 +29,7 @@ void ComputeSurfaceScattering(inout PathIntersection pathIntersection : SV_RayPa
 
     // Build the Frag inputs from the intersection vertex
     FragInputs fragInput;
-    BuildFragInputsFromIntersection(currentVertex, WorldRayDirection(), fragInput);
+    BuildFragInputsFromIntersection(currentVertex, fragInput);
 
     // Such an invalid remainingDepth value means we are called from a subsurface computation
     if (pathIntersection.remainingDepth > _RaytracingMaxRecursion)
@@ -298,7 +298,7 @@ void AnyHit(inout PathIntersection pathIntersection : SV_RayPayload, AttributeDa
 
     // Build the Frag inputs from the intersection vertex
     FragInputs fragInput;
-    BuildFragInputsFromIntersection(currentVertex, WorldRayDirection(), fragInput);
+    BuildFragInputsFromIntersection(currentVertex, fragInput);
 
     PositionInputs posInput;
     posInput.positionWS = fragInput.positionRWS;
