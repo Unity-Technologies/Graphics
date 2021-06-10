@@ -96,7 +96,7 @@ namespace UnityEditor.ShaderGraph.Drawing
             {
                 m_RenderDatas.TryGetValue(node.objectId, out result);
             }
-            
+
             return result;
         }
 
@@ -417,7 +417,7 @@ namespace UnityEditor.ShaderGraph.Drawing
                         }
                         break;
                 }
-            }   
+            }
         }
 
         private static readonly ProfilerMarker RenderPreviewsMarker = new ProfilerMarker("RenderPreviews");
@@ -1038,6 +1038,11 @@ namespace UnityEditor.ShaderGraph.Drawing
         {
             using (RenderPreviewMarker.Auto())
             {
+                // DOTSI - plu - 03/25/2021 - Backporting https://github.com/Unity-Technologies/Graphics/pull/4001/files
+                // it enables asynchronous shader compilation resulting in a reduction in ShaderGraph editor stalls
+                var wasAsyncAllowed = ShaderUtil.allowAsyncCompilation;
+                ShaderUtil.allowAsyncCompilation = true;
+
                 AssignPerMaterialPreviewProperties(renderData.shaderData.mat, perMaterialPreviewProperties);
 
                 var previousRenderTexture = RenderTexture.active;
@@ -1067,6 +1072,9 @@ namespace UnityEditor.ShaderGraph.Drawing
                 renderData.texture = renderData.renderTexture;
 
                 m_PreviewsToDraw.Remove(renderData);
+
+                ShaderUtil.allowAsyncCompilation = wasAsyncAllowed;
+                // DOTSI
             }
         }
 
@@ -1109,7 +1117,7 @@ namespace UnityEditor.ShaderGraph.Drawing
                     // TODO: Where to add errors to the stack??
                     if(shaderData.node == null)
                         return;
-                    
+
                     m_Messenger.AddOrAppendError(this, shaderData.node.objectId, messages[0]);
                 }
             }
@@ -1118,7 +1126,7 @@ namespace UnityEditor.ShaderGraph.Drawing
         void CompileMasterNodeShader()
         {
             var shaderData = masterRenderData?.shaderData;
-            
+
             // Skip generation for VFXTarget
             if(!m_Graph.isOnlyVFXTarget)
             {
