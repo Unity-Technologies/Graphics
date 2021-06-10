@@ -199,10 +199,10 @@ namespace UnityEditor.Rendering.Universal.Converters
                 GetEquivalentMainlightShadowResolution((int)settings.ShadowResolution);
 
             // Additional Lights
-            asset.additionalLightsRenderingMode = settings.PixelLightCount <= 1
-                ? LightRenderingMode.Disabled
+            asset.additionalLightsRenderingMode = settings.PixelLightCount == 0
+                ? LightRenderingMode.PerVertex
                 : LightRenderingMode.PerPixel;
-            asset.maxAdditionalLightsCount = Mathf.Max(0, settings.PixelLightCount - 1);
+            asset.maxAdditionalLightsCount = settings.PixelLightCount != 0 ? Mathf.Max(0, settings.PixelLightCount) : 4;
             asset.supportsAdditionalLightShadows = settings.Shadows != ShadowQuality.Disable;
             asset.additionalLightsShadowmapResolution =
                 GetEquivalentAdditionalLightAtlasShadowResolution((int)settings.ShadowResolution);
