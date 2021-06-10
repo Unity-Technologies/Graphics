@@ -49,7 +49,7 @@
       "path": "Samples~/LensFlareSamples"
     },
     {
-      "displayName": "Local Volumetric Fog Mask Textures",
+      "displayName": "Local Volumetric 3D Texture Samples",
       "description": "Adds a set of 3D mask textures to your project. These texture can be used for the Density Mask Texture input of the Local Volumetric Fog.",
       "path": "Samples~/LocalVolumetricFogMasks"
     }
