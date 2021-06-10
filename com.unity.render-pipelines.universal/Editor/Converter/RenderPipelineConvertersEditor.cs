@@ -67,7 +67,6 @@ namespace UnityEditor.Rendering.Universal.Converters
         public VisualTreeAsset converterItem;
 
         ScrollView m_ScrollView;
-        DropdownField m_ConversionsDropdownField;
 
         List<RenderPipelineConverter> m_CoreConvertersList = new List<RenderPipelineConverter>();
 
@@ -78,7 +77,6 @@ namespace UnityEditor.Rendering.Universal.Converters
         List<string> m_ContainerChoices = new List<string>();
         List<RenderPipelineConverterContainer> m_Containers = new List<RenderPipelineConverterContainer>();
         int m_ContainerChoiceIndex = 0;
-        private RenderPipelineConverterContainer m_CurrentContainer;
 
         // This is a list of Converter States which holds a list of which converter items/assets are active
         // There is one for each Converter.
@@ -122,9 +120,9 @@ namespace UnityEditor.Rendering.Universal.Converters
         {
             // This is the drop down choices.
             m_ConverterContainers = TypeCache.GetTypesDerivedFrom<RenderPipelineConverterContainer>();
-            foreach (var cont in m_ConverterContainers)
+            foreach (var continerType in m_ConverterContainers)
             {
-                var container = (RenderPipelineConverterContainer)Activator.CreateInstance(cont);
+                var container = (RenderPipelineConverterContainer)Activator.CreateInstance(continerType);
                 m_Containers.Add(container);
                 m_ContainerChoices.Add(container.name);
             }
@@ -133,13 +131,22 @@ namespace UnityEditor.Rendering.Universal.Converters
             {
                 GetConverters();
             }
+            else
+            {
+                ClearConverterStates();
+            }
         }
 
-        void GetConverters()
+        void ClearConverterStates()
         {
             m_CoreConvertersList.Clear();
             m_ConverterStates.Clear();
             m_ItemsToConvert.Clear();
+        }
+
+        void GetConverters()
+        {
+            ClearConverterStates();
             var converterList = TypeCache.GetTypesDerivedFrom<RenderPipelineConverter>();
 
             for (int i = 0; i < converterList.Count; ++i)
@@ -185,8 +192,7 @@ namespace UnityEditor.Rendering.Universal.Converters
 
                 rootVisualElement.Q<DropdownField>("conversionsDropDown").choices = m_ContainerChoices;
                 rootVisualElement.Q<DropdownField>("conversionsDropDown").index = m_ContainerChoiceIndex;
-                m_CurrentContainer = m_Containers[m_ContainerChoiceIndex];
-                ReCreateUI();
+                RecreateUI();
 
                 var button = rootVisualElement.Q<Button>("convertButton");
                 button.RegisterCallback<ClickEvent>(Convert);
@@ -197,20 +203,20 @@ namespace UnityEditor.Rendering.Universal.Converters
             }
         }
 
-        void ReCreateUI()
+        void RecreateUI()
         {
             m_SerializedObject.Update();
             // This is temp now to get the information filled in
             rootVisualElement.Q<DropdownField>("conversionsDropDown").RegisterCallback<ChangeEvent<string>>((evt) =>
             {
                 m_ContainerChoiceIndex = rootVisualElement.Q<DropdownField>("conversionsDropDown").index;
-                m_CurrentContainer = m_Containers[m_ContainerChoiceIndex];
                 GetConverters();
-                ReCreateUI();
+                RecreateUI();
             });
 
-            rootVisualElement.Q<Label>("conversionName").text = m_CurrentContainer.name;
-            rootVisualElement.Q<TextElement>("conversionInfo").text = m_CurrentContainer.info;
+            var currentContainer = m_Containers[m_ContainerChoiceIndex];
+            rootVisualElement.Q<Label>("conversionName").text = currentContainer.name;
+            rootVisualElement.Q<TextElement>("conversionInfo").text = currentContainer.info;
 
             rootVisualElement.Q<Image>("converterContainerHelpIcon").image = CoreEditorStyles.iconHelp;
 
