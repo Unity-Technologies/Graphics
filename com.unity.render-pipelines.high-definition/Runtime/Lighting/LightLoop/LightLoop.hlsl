@@ -504,7 +504,8 @@ void LightLoop( float3 V, PositionInputs posInput, PreLightData preLightData, BS
 #if SHADEROPTIONS_PROBE_VOLUMES_EVALUATION_MODE == PROBEVOLUMESEVALUATIONMODES_LIGHT_LOOP
                             if (s_envLightData.normalizeWithProbeVolumes > 0 && reflectionProbeNormalizationWeight >= 0)
                             {
-                                lighting.specularReflected *= GetReflectionProbeNormalizationFactor(reflectionProbeNormalizationLighting, reflectionProbeNormalizationWeight, bsdfData.normalWS, s_envLightData.L0L1, s_envLightData.L2_1, s_envLightData.L2_2);
+                                float3 R = reflect(-V, bsdfData.normalWS);
+                                lighting.specularReflected *= GetReflectionProbeNormalizationFactor(reflectionProbeNormalizationLighting, reflectionProbeNormalizationWeight, R, s_envLightData.L0L1, s_envLightData.L2_1, s_envLightData.L2_2);
                             }
 #endif
                             AccumulateIndirectLighting(lighting, aggregateLighting);
@@ -523,7 +524,8 @@ void LightLoop( float3 V, PositionInputs posInput, PreLightData preLightData, BS
 #if SHADEROPTIONS_PROBE_VOLUMES_EVALUATION_MODE == PROBEVOLUMESEVALUATIONMODES_LIGHT_LOOP
                             if (s_envLightData.normalizeWithProbeVolumes > 0 && reflectionProbeNormalizationWeight >= 0)
                             {
-                                lighting.specularTransmitted *= GetReflectionProbeNormalizationFactor(reflectionProbeNormalizationLighting, reflectionProbeNormalizationWeight, bsdfData.normalWS, s_envLightData.L0L1, s_envLightData.L2_1, s_envLightData.L2_2);
+                                float3 R = reflect(-V, bsdfData.normalWS);
+                                lighting.specularTransmitted *= GetReflectionProbeNormalizationFactor(reflectionProbeNormalizationLighting, reflectionProbeNormalizationWeight, R, s_envLightData.L0L1, s_envLightData.L2_1, s_envLightData.L2_2);
                             }
 #endif
                             AccumulateIndirectLighting(lighting, aggregateLighting);

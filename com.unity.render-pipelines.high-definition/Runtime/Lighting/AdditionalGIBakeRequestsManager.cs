@@ -26,12 +26,18 @@ namespace UnityEngine.Rendering.HighDefinition
 
         private AdditionalGIBakeRequestsManager()
         {
-            SubscribeOnBakeStarted();
+            if (!Application.isPlaying)
+            {
+                SubscribeOnBakeStarted();
+            }
         }
 
         ~AdditionalGIBakeRequestsManager()
         {
-            UnsubscribeOnBakeStarted();
+            if (!Application.isPlaying)
+            {
+                UnsubscribeOnBakeStarted();
+            }
         }
 
         private static List<SphericalHarmonicsL2> m_SHCoefficients = new List<SphericalHarmonicsL2>();
@@ -177,8 +183,8 @@ namespace UnityEngine.Rendering.HighDefinition
             UnityEditor.Experimental.Lightmapping.SetAdditionalBakedProbes(s_BakingID, m_RequestPositionsSanitized);
             m_RequestToLightmapperIsSet = true;
 
-            Lightmapping.bakeCompleted -= OnAdditionalProbesBakeCompleted;
-            Lightmapping.bakeCompleted += OnAdditionalProbesBakeCompleted;
+            UnityEditor.Experimental.Lightmapping.additionalBakedProbesCompleted -= OnAdditionalProbesBakeCompleted;
+            UnityEditor.Experimental.Lightmapping.additionalBakedProbesCompleted += OnAdditionalProbesBakeCompleted;
         }
 
         private void RemoveRequestsFromLightmapper()
@@ -189,7 +195,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
         private void OnAdditionalProbesBakeCompleted()
         {
-            Lightmapping.bakeCompleted -= OnAdditionalProbesBakeCompleted;
+            UnityEditor.Experimental.Lightmapping.additionalBakedProbesCompleted -= OnAdditionalProbesBakeCompleted;
 
             if (!m_RequestToLightmapperIsSet) { return; }
 
@@ -197,10 +203,15 @@ namespace UnityEngine.Rendering.HighDefinition
             var validity = new NativeArray<float>(m_RequestPositions.Count, Allocator.Temp, NativeArrayOptions.UninitializedMemory);
             var bakedProbeOctahedralDepth = new NativeArray<float>(m_RequestPositions.Count * 64, Allocator.Temp, NativeArrayOptions.UninitializedMemory);
 
-            UnityEditor.Experimental.Lightmapping.GetAdditionalBakedProbes(s_BakingID, sh, validity, bakedProbeOctahedralDepth);
-
-            SetSHCoefficients(sh);
-            PushSHCoefficientsToReflectionProbes();
+            if (UnityEditor.Experimental.Lightmapping.GetAdditionalBakedProbes(s_BakingID, sh, validity, bakedProbeOctahedralDepth))
+            {
+                SetSHCoefficients(sh);
+                PushSHCoefficientsToReflectionProbes();
+            }
+            else
+            {
+                Debug.LogWarning("Warning: AdditionalGIBakeRequestsManager: Request to lightmapper was set, but bake completed with no result.");
+            }
 
             sh.Dispose();
             validity.Dispose();

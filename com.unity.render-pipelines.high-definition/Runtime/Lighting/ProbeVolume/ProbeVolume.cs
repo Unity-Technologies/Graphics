@@ -404,7 +404,6 @@ namespace UnityEngine.Rendering.HighDefinition
         public int drawOctahedralDepthRayIndexY;
         public int drawOctahedralDepthRayIndexZ;
         public Color debugColor;
-        public int payloadIndex;
         public Vector3 size;
         [SerializeField]
         private Vector3 m_PositiveFade;
@@ -416,9 +415,9 @@ namespace UnityEngine.Rendering.HighDefinition
         public float distanceFadeStart;
         public float distanceFadeEnd;
 
-        public Vector3 scale;
-        public Vector3 bias;
-        public Vector4 octahedralDepthScaleBias;
+        [System.NonSerialized] public Vector3 scale;
+        [System.NonSerialized] public Vector3 bias;
+        [System.NonSerialized] public Vector4 octahedralDepthScaleBias;
 
         public ProbeSpacingMode probeSpacingMode;
 
@@ -486,7 +485,6 @@ namespace UnityEngine.Rendering.HighDefinition
             this.drawOctahedralDepthRayIndexX = 0;
             this.drawOctahedralDepthRayIndexY = 0;
             this.drawOctahedralDepthRayIndexZ = 0;
-            this.payloadIndex = -1;
             this.size = Vector3.one;
             this.m_PositiveFade = Vector3.zero;
             this.m_NegativeFade = Vector3.zero;
@@ -548,7 +546,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
                 default:
                 {
-                    Debug.Assert(false, "Error: ProbeVolume: Encountered unsupported Probe Spacing Mode: " + this.probeSpacingMode);
+                    Debug.AssertFormat(false, "Error: ProbeVolume: Encountered unsupported Probe Spacing Mode: {0}", this.probeSpacingMode);
                     break;
                 }
             }
@@ -604,8 +602,19 @@ namespace UnityEngine.Rendering.HighDefinition
     {
 #if UNITY_EDITOR
         // Debugging code
-        private Material m_DebugMaterial = null;
-        private Mesh m_DebugMesh = null;
+        private static Material s_DebugMaterial = null;
+        private static Mesh s_DebugMesh = null;
+
+        private static Material GetDebugMaterial()
+        {
+            return (s_DebugMaterial != null) ? s_DebugMaterial : new Material(Shader.Find("HDRP/Lit"));
+        }
+
+        private static Mesh GetDebugMesh()
+        {
+            return (s_DebugMesh != null) ? s_DebugMesh : s_DebugMesh = Resources.GetBuiltinResource<Mesh>("New-Sphere.fbx");
+        }
+
         private List<Matrix4x4[]> m_DebugProbeMatricesList;
         private List<Mesh> m_DebugProbePointMeshList;
 #endif
@@ -621,6 +630,76 @@ namespace UnityEngine.Rendering.HighDefinition
             backfaceTolerance = 0.0f,
             dilationIterations = 0
         };
+
+        internal struct ProbeVolumeAtlasKey
+        {
+            public int id;
+            public Quaternion rotation;
+            public int width;
+            public int height;
+            public int depth;
+
+            public static readonly ProbeVolumeAtlasKey zero = new ProbeVolumeAtlasKey
+            {
+                id = 0,
+                rotation = new Quaternion(0.0f, 0.0f, 0.0f, 0.0f),
+                width = 0,
+                height = 0,
+                depth = 0
+            };
+
+            // Override Equals to manually control when atlas keys are considered equivalent.
+            public override bool Equals(object other)
+            {
+                if (!(other is ProbeVolumeAtlasKey)) return false;
+
+                ProbeVolumeAtlasKey keyOther = (ProbeVolumeAtlasKey)other;
+                return (this.id == keyOther.id)
+                    && (this.width == keyOther.width)
+                    && (this.height == keyOther.height)
+                    && (this.depth == keyOther.depth)
+                    && ComputeQuaternionApproximatelyEqual(this.rotation, keyOther.rotation, 1e-5f);
+            }
+
+            public override int GetHashCode()
+            {
+                var hash = id.GetHashCode();
+                hash = hash * 23 + width.GetHashCode();
+                hash = hash * 23 + height.GetHashCode();
+                hash = hash * 23 + depth.GetHashCode();
+                hash = hash * 23 + ComputeQuaternionDiscretized(rotation).GetHashCode();
+
+                return hash;
+            }
+
+            private static Quaternion ComputeQuaternionDiscretized(Quaternion rotation)
+            {
+                // Need to ensure that rotations which pass ComputeQuaternionApproximatelyEqual() will always generate the same hash.
+                // First, handle handedness equivalence: {x, y, z, w} is the same as {-x, -y, -z, -w}
+                Quaternion rotationSnapped = rotation;
+                rotationSnapped.x = (rotationSnapped.w < 0.0f) ? -rotationSnapped.x : rotationSnapped.x;
+                rotationSnapped.y = (rotationSnapped.w < 0.0f) ? -rotationSnapped.y : rotationSnapped.y;
+                rotationSnapped.z = (rotationSnapped.w < 0.0f) ? -rotationSnapped.z : rotationSnapped.z;
+                rotationSnapped.w = (rotationSnapped.w < 0.0f) ? -rotationSnapped.w : rotationSnapped.w;
+
+                // Now, discretize the rotation such that if ComputeQuaternionApproximatelyEqual(rotationA, rotationB, epsilon) == true then (rotationSnappedA == rotationSnappedB) == true.
+                // The more aggressively we snap, the more hash collisions we will encounter.
+                const float ROTATION_HASH_PRECISION = 8.0f;
+                const float ROTATION_HASH_PRECISION_INVERSE = 1.0f / ROTATION_HASH_PRECISION;
+                rotationSnapped.x = Mathf.Round(rotationSnapped.x * ROTATION_HASH_PRECISION) * ROTATION_HASH_PRECISION_INVERSE;
+                rotationSnapped.y = Mathf.Round(rotationSnapped.y * ROTATION_HASH_PRECISION) * ROTATION_HASH_PRECISION_INVERSE;
+                rotationSnapped.z = Mathf.Round(rotationSnapped.z * ROTATION_HASH_PRECISION) * ROTATION_HASH_PRECISION_INVERSE;
+                rotationSnapped.w = Mathf.Round(rotationSnapped.w * ROTATION_HASH_PRECISION) * ROTATION_HASH_PRECISION_INVERSE;
+
+                return rotationSnapped;
+            }
+
+            private static bool ComputeQuaternionApproximatelyEqual(Quaternion a, Quaternion b, float epsilon)
+            {
+                float AdotB = Quaternion.Dot(a, b);
+                return AdotB >= (1.0f - epsilon);
+            }
+        }
 
         private bool dataUpdated = false;
         
@@ -667,6 +746,32 @@ namespace UnityEngine.Rendering.HighDefinition
             return (probeVolumeAsset == null) ? 0 : probeVolumeAsset.GetInstanceID();
         }
 
+        internal ProbeVolumeAtlasKey ComputeProbeVolumeAtlasKey()
+        {
+            return (probeVolumeAsset == null)
+                ? ProbeVolumeAtlasKey.zero
+                : new ProbeVolumeAtlasKey
+                {
+                    id = GetID(),
+                    width = probeVolumeAsset.resolutionX,
+                    height = probeVolumeAsset.resolutionY,
+                    depth = probeVolumeAsset.resolutionZ,
+                    rotation = ComputeSphericalHarmonicWSFromOS()
+                };
+        }
+
+        private ProbeVolumeAtlasKey probeVolumeAtlasKeyPrevious;
+        
+        internal ProbeVolumeAtlasKey GetProbeVolumeAtlasKeyPrevious()
+        {
+            return probeVolumeAtlasKeyPrevious;
+        }
+        
+        internal void SetProbeVolumeAtlasKeyPrevious(ProbeVolumeAtlasKey key)
+        {
+            probeVolumeAtlasKeyPrevious = key;
+        }
+
         internal int GetBakeID()
         {
             int id = GetID();
@@ -702,6 +807,21 @@ namespace UnityEngine.Rendering.HighDefinition
             return probeVolumeAsset.payload;
         }
 
+        internal Quaternion ComputeSphericalHarmonicWSFromOS()
+        {
+            Quaternion assetRotation = GetAssetRotation();
+            Quaternion volumeRotation = transform.rotation;
+            Quaternion sphericalHarmonicWSFromOS = Quaternion.Inverse(assetRotation) * volumeRotation;
+            return sphericalHarmonicWSFromOS;
+        }
+
+        private Quaternion GetAssetRotation()
+        {
+            if (!probeVolumeAsset) { return transform.rotation; }
+
+            return probeVolumeAsset.rotation;
+        }
+
         bool CheckMigrationRequirement()
         {
             if (probeVolumeAsset == null) return false;
@@ -728,6 +848,9 @@ namespace UnityEngine.Rendering.HighDefinition
 
                 case ProbeVolumeAsset.AssetVersion.AddProbeVolumesAtlasEncodingModes:
                     ApplyMigrationAddOctahedralDepthVarianceFromLightmapper();
+                    break;
+                case ProbeVolumeAsset.AssetVersion.AddOctahedralDepthVarianceFromLightmapper:
+                    ApplyMigrationAddRotation();
                     break;
                 default:
                     // No migration required.
@@ -782,6 +905,15 @@ namespace UnityEngine.Rendering.HighDefinition
             probeVolumeAsset.payload.dataOctahedralDepth = dataOctahedralDepthMigrated;
         }
 
+        void ApplyMigrationAddRotation()
+        {
+            Debug.Assert(probeVolumeAsset != null && probeVolumeAsset.Version == (int)ProbeVolumeAsset.AssetVersion.AddOctahedralDepthVarianceFromLightmapper);
+
+            probeVolumeAsset.m_Version = (int)ProbeVolumeAsset.AssetVersion.AddRotation;
+
+            probeVolumeAsset.rotation = transform.rotation;
+        }
+
         protected void OnEnable()
         {
             Migrate();
@@ -794,24 +926,6 @@ namespace UnityEngine.Rendering.HighDefinition
 #endif
 
             ProbeVolumeManager.manager.RegisterVolume(this);
-
-            // // Signal update
-            // // TODO: Do we need to actually flag data as updated when the volume is enabled?
-            // // This forces the data to be blitted into the atlas every time a volume is enabled.
-            // // Instead, it seems like we should only flag it as updated (only blit) if:
-            // // A) A new bake was completed
-            // // B) A new probe volume asset was assigned
-            // // C) The bake key was updated? i.e: resolution changed, but a bake has not been issued yet.
-            // if (probeVolumeAsset)
-            //     dataUpdated = true;
-
-#if UNITY_EDITOR
-            if (UnityEditor.EditorApplication.isPlayingOrWillChangePlaymode)
-                return;
-
-            m_DebugMesh = Resources.GetBuiltinResource<Mesh>("New-Sphere.fbx");
-            m_DebugMaterial = new Material(Shader.Find("HDRP/Lit"));
-#endif
 
             // custom-begin:
             InstanceAdd();
@@ -834,11 +948,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
 #if UNITY_EDITOR
             // Make sure to tell the lightmapper to no longer attempt to bake the probe positions at this ID.
-            // Debug.Log("ForceBakingDisabled() due to disabled probe volume " + this.gameObject.name);
             ForceBakingDisabled();
-
-            if (UnityEditor.EditorApplication.isPlayingOrWillChangePlaymode)
-                return;
 #endif
         }
 
@@ -872,7 +982,13 @@ namespace UnityEngine.Rendering.HighDefinition
 
         internal void ForceBakingDisabled()
         {
-            UnityEditor.Experimental.Lightmapping.SetAdditionalBakedProbes(GetBakeID(), null);
+            if (!UnityEditor.EditorApplication.isPlaying)
+            {
+                // Do not spend time interacting with the baking API if we are in playmode.
+                UnityEditor.Experimental.Lightmapping.SetAdditionalBakedProbes(GetBakeID(), null);
+                return;
+            }
+
             bakingEnabled = false;
         }
 
@@ -885,15 +1001,13 @@ namespace UnityEngine.Rendering.HighDefinition
             // Probe Volumes will now not bake if they are hidden.
             if (UnityEditor.SceneVisibilityManager.instance.IsHidden(this.gameObject))
             {
-                // Debug.Log("OnValidate: ForceBakingDisabled() due to hidden probe volume " + this.gameObject.name);
                 ForceBakingDisabled();
                 return;
             }
             // custom-end
 
             ProbeVolumeSettingsKey bakeKeyCurrent = ComputeProbeVolumeSettingsKeyFromProbeVolume(this);
-            if (ProbeVolumeSettingsKeyEquals(ref bakeKey, ref bakeKeyCurrent) &&
-                m_DebugProbeMatricesList != null)
+            if (ProbeVolumeSettingsKeyEquals(ref bakeKey, ref bakeKeyCurrent))
             {
                 return;
             }
@@ -943,7 +1057,6 @@ namespace UnityEngine.Rendering.HighDefinition
         {
             if (this.gameObject == null || !this.gameObject.activeInHierarchy)
             {
-                // Debug.Log("OnProbesBakeCompleted() ignored by probe volume " + this.gameObject.name + " because it was inactive in the heirarchy.");
                 return;
             }
 
@@ -958,21 +1071,9 @@ namespace UnityEngine.Rendering.HighDefinition
             // Probe Volumes will now not bake if they are hidden.
             if (UnityEditor.SceneVisibilityManager.instance.IsHidden(this.gameObject))
             {
-                // Debug.Log("OnProbesBakeCompleted() ignored by probe volume " + this.gameObject.name + " because it was hidden.");
                 return;
             }
             // custom-end
-
-            // if (probeVolumeAsset != null && probeVolumeAsset.instanceID != GetID())
-            // {
-            //     // Our probe volume references an asset that it does not own.
-            //     // We should not update the data - the probe volume that owns that data is responsible for uploading it.
-            //     // TODO: Is this a workflow we intend to support? Or should we error out here?
-            //     // Should we disallow even wiring up probe volume assets that to probe volumes that do not own them?
-            //     Debug.Log("Finished baking a probe volume who is not the owner of their asset. Skipping data assignment. Asset owner id is " + probeVolumeAsset.instanceID + " and probe volume id is " + GetID());
-            //     // return;
-            //     Debug.Log("Hack: Not actually going to skip it");
-            // }
 
             int numProbes = parameters.resolutionX * parameters.resolutionY * parameters.resolutionZ;
 
@@ -989,8 +1090,6 @@ namespace UnityEngine.Rendering.HighDefinition
 
             if(UnityEditor.Experimental.Lightmapping.GetAdditionalBakedProbes(GetBakeID(), sh, validity, octahedralDepth))
             {
-                // Debug.Log("GetAdditionalBakedProbes for probe volume: " + this.gameObject.name);
-
                 if (probeVolumeAsset == null)
                 {
                     probeVolumeAsset = ProbeVolumeAsset.CreateAsset(GetBakeID());
@@ -1000,6 +1099,11 @@ namespace UnityEngine.Rendering.HighDefinition
                 probeVolumeAsset.resolutionX = parameters.resolutionX;
                 probeVolumeAsset.resolutionY = parameters.resolutionY;
                 probeVolumeAsset.resolutionZ = parameters.resolutionZ;
+
+                // Store the orientation that the probe data was baked at in order to support probe volume rotation post bake.
+                // Without this data, the probe positions will be correct, but the orientation of the spherical harmonics will be incorrect
+                // (as the spherical harmonics are baked and serialized in world space).
+                probeVolumeAsset.rotation = transform.rotation;
 
                 ProbeVolumePayload.Ensure(ref probeVolumeAsset.payload, numProbes);
 
@@ -1034,10 +1138,6 @@ namespace UnityEngine.Rendering.HighDefinition
                 dataUpdated = true;
                 dataNeedsDilation = true;
             }
-            // else
-            // {
-            //     Debug.Log("GetAdditionalBakedProbes() returned false for probe volume " + this.gameObject.name);
-            // }
 
             sh.Dispose();
             validity.Dispose();
@@ -1051,8 +1151,6 @@ namespace UnityEngine.Rendering.HighDefinition
 
             if (!dataNeedsDilation)
                 return;
-
-            // Debug.Log("Dilating data for probe volume: " + this.gameObject.name);
 
             probeVolumeAsset.Dilate(parameters.backfaceTolerance, parameters.dilationIterations);
             UnityEditor.EditorUtility.SetDirty(probeVolumeAsset);
@@ -1106,6 +1204,10 @@ namespace UnityEngine.Rendering.HighDefinition
         private void SetupProbePositions()
         {
             if (!this.gameObject.activeInHierarchy)
+                return;
+
+            // Do not spend time generating debug meshes or bake API positions if we are in playmode.
+            if (UnityEditor.EditorApplication.isPlaying)
                 return;
 
             float debugProbeSize = Gizmos.probeSize;
@@ -1190,7 +1292,6 @@ namespace UnityEngine.Rendering.HighDefinition
                 }
             }
 
-            // Debug.Log("SetAdditionalBakedProbes for probe volume: " + this.gameObject.name);
             UnityEditor.Experimental.Lightmapping.SetAdditionalBakedProbes(GetBakeID(), positions);
             bakingEnabled = true;
         }
@@ -1211,7 +1312,11 @@ namespace UnityEngine.Rendering.HighDefinition
             if (!probeVolume.enabled)
                 return false;
 
-            return probeVolume.parameters.drawProbes;
+            // Do not spend time interacting with the baking API if we are in playmode.
+            if (UnityEditor.EditorApplication.isPlaying)
+                return false;
+
+            return true;
         }
 
         [UnityEditor.DrawGizmo(UnityEditor.GizmoType.NotInSelectionHierarchy)]
@@ -1220,34 +1325,40 @@ namespace UnityEngine.Rendering.HighDefinition
             if (!ShouldDrawGizmos(probeVolume))
                 return;
 
+            if (!probeVolume.parameters.drawProbes)
+                return;
+
             probeVolume.OnValidate();
 
             var pointMeshList = probeVolume.m_DebugProbePointMeshList;
 
-            probeVolume.m_DebugMaterial.SetPass(8);
+            ProbeVolume.GetDebugMaterial().SetPass(8);
             foreach (Mesh debugMesh in pointMeshList)
                 Graphics.DrawMeshNow(debugMesh, Matrix4x4.identity);
         }
 
         internal void DrawSelectedProbes()
         {
+            if (!ShouldDrawGizmos(this))
+                return;
+
             DrawOctahedralDepthRays(this);
 
-            if (!ShouldDrawGizmos(this))
+            if (!parameters.drawProbes)
                 return;
 
             OnValidate();
 
             int layer = 0;
 
-            Material material = m_DebugMaterial;
+            Material material = ProbeVolume.GetDebugMaterial();
 
             if (!material)
                 return;
 
             material.enableInstancing = true;
 
-            Mesh mesh = m_DebugMesh;
+            Mesh mesh = GetDebugMesh();
 
             if (!mesh)
                 return;

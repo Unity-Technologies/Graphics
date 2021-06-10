@@ -32,6 +32,7 @@ namespace UnityEditor.Rendering.HighDefinition
             { ToolBar.MirrorPosition,  EditorGUIUtility.TrIconContent("MoveTool", "Change the mirror position.") },
             { ToolBar.MirrorRotation,  EditorGUIUtility.TrIconContent("RotateTool", "Change the mirror rotation.") },
             { ToolBar.ShowChromeGizmo,  EditorGUIUtility.TrIconContent(IconReflectionProbeGizmoId, "Display the chrome gizmo.") },
+            { ToolBar.ShowLuminanceSH,  EditorGUIUtility.TrIconContent(IconReflectionProbeLuminanceSHGizmoId, "Display Luminance SH (Reflection Probe Normalization Data).") },
         };
 
         const string IconReflectionProbeGizmoId =
@@ -41,5 +42,7 @@ namespace UnityEditor.Rendering.HighDefinition
             "ReflectionProbe Gizmo"
 #endif
             ;
+
+        const string IconReflectionProbeLuminanceSHGizmoId = "d_PreMatLight0";
     }
 }
