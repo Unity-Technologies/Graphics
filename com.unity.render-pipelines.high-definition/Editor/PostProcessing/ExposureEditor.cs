@@ -200,33 +200,31 @@ namespace UnityEditor.Rendering.HighDefinition
         // TODO: See if this can be refactored into a custom VolumeParameterDrawer
         void DoExposurePropertyField(SerializedDataParameter exposureProperty)
         {
-            using (new EditorGUILayout.HorizontalScope())
+            using (var scope = new OverridablePropertyScope(exposureProperty, exposureProperty.displayName, this))
             {
-                DrawOverrideCheckbox(exposureProperty);
+                if (!scope.displayed)
+                    return;
 
-                using (new EditorGUI.DisabledScope(!exposureProperty.overrideState.boolValue))
+                using (new EditorGUILayout.VerticalScope())
                 {
-                    using (new EditorGUILayout.VerticalScope())
-                    {
-                        EditorGUILayout.LabelField(exposureProperty.displayName);
+                    EditorGUILayout.LabelField(scope.label);
 
-                        var xOffset = EditorGUIUtility.labelWidth;
+                    var xOffset = EditorGUIUtility.labelWidth + 2;
 
-                        var lineRect = EditorGUILayout.GetControlRect();
-                        lineRect.x += xOffset;
-                        lineRect.width -= xOffset;
+                    var lineRect = EditorGUILayout.GetControlRect();
+                    lineRect.x += xOffset;
+                    lineRect.width -= xOffset;
 
-                        var sliderRect = lineRect;
-                        sliderRect.y -= EditorGUIUtility.singleLineHeight;
-                        k_LightUnitSlider.SetSerializedObject(serializedObject);
-                        k_LightUnitSlider.DrawExposureSlider(exposureProperty.value, sliderRect);
+                    var sliderRect = lineRect;
+                    sliderRect.y -= EditorGUIUtility.singleLineHeight;
+                    k_LightUnitSlider.SetSerializedObject(serializedObject);
+                    k_LightUnitSlider.DrawExposureSlider(exposureProperty.value, sliderRect);
 
-                        // GUIContent.none disables horizontal scrolling, use TrTextContent and adjust the rect to make it work.
-                        lineRect.x -= EditorGUIUtility.labelWidth + 2;
-                        lineRect.y += EditorGUIUtility.standardVerticalSpacing;
-                        lineRect.width += EditorGUIUtility.labelWidth + 2;
-                        EditorGUI.PropertyField(lineRect, exposureProperty.value, EditorGUIUtility.TrTextContent(" "));
-                    }
+                    // GUIContent.none disables horizontal scrolling, use TrTextContent and adjust the rect to make it work.
+                    lineRect.x -= EditorGUIUtility.labelWidth + 2;
+                    lineRect.y += EditorGUIUtility.standardVerticalSpacing;
+                    lineRect.width += EditorGUIUtility.labelWidth + 2;
+                    EditorGUI.PropertyField(lineRect, exposureProperty.value, EditorGUIUtility.TrTextContent(" "));
                 }
             }
         }
