@@ -42,7 +42,7 @@ struct ps_input
 	#if SHADERGRAPH_NEEDS_TANGENT_FORWARD
 	float3 tangent : TEXCOORD7;
 	#endif
-	
+
 	${VFXAdditionalInterpolantsDeclaration}
 	
 	UNITY_VERTEX_OUTPUT_STEREO
@@ -91,7 +91,8 @@ ${SHADERGRAPH_PIXEL_CODE_FORWARD}
 #endif
 	
 #pragma fragment frag
-ps_output frag(ps_input i)
+ps_output frag(ps_input i,	
+	bool frontFace : SV_IsFrontFace)
 {
 	UNITY_SETUP_STEREO_EYE_INDEX_POST_VERTEX(i);
 	ps_output o = (ps_output)0;
