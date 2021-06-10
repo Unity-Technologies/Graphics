@@ -6,7 +6,6 @@ using UnityEngine;
 using UnityEngine.Rendering.Universal;
 
 
-
 namespace UnityEditor.Rendering.Universal
 {
     internal sealed class ParametricToFreeformLightUpgrader : RenderPipelineConverter

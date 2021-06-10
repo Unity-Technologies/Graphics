@@ -7,7 +7,6 @@ using System.IO;
 using UnityEditor.SceneManagement;
 using UnityEngine.SceneManagement;
 
-
 internal static class URP2DConverterUtility
 {
     public static bool IsMaterialPath(string path, string id)
@@ -36,8 +35,15 @@ internal static class URP2DConverterUtility
     {
         if (str != null)
         {
-            string file = File.ReadAllText(path);
-            return file.Contains(str);
+            using (StreamReader file = File.OpenText(path))
+            {
+                string line;
+                while ((line = file.ReadLine()) != null)
+                {
+                    if (line.Contains(str))
+                        return true;
+                }
+            }
         }
 
         return false;
