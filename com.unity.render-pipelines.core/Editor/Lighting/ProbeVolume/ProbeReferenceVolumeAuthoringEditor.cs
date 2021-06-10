@@ -31,6 +31,10 @@ namespace UnityEngine.Experimental.Rendering
                 if (!debugDisplay.realtimeSubdivision)
                     return;
 
+                // Avoid killing the GPU when Unity is in background and runInBackground is disabled
+                if (!Application.runInBackground && !UnityEditorInternal.InternalEditorUtility.isApplicationActive)
+                    return;
+
                 // update is called 200 times per second so we bring down the update rate to 60hz to avoid overloading the GPU
                 if (Time.realtimeSinceStartupAsDouble - s_LastRefreshTime < 1.0f / 60.0f)
                     return;
@@ -44,14 +48,15 @@ namespace UnityEngine.Experimental.Rendering
 
                     if (s_CurrentSubdivision == null)
                     {
-                        probeVolumeAuthoring.realtimeSubdivisionInfo.Clear();
                         // Start a new Subdivision
-                        Debug.Log("New subdiv");
                         s_CurrentSubdivision = Subdivide();
                     }
 
                     // Step the subdivision with the amount of cell per frame in debug menu
-                    // TODO: handle cells with high simplification level
+                    int updatePerFrame = debugDisplay.subdivisionCellUpdatePerFrame;
+                    // From simplification level 5 and higher, the cost of calculating one cell is very high, so we adjust that number.
+                    if (probeVolumeAuthoring.profile.simplificationLevels > 4)
+                        updatePerFrame = (int)Mathf.Max(1, updatePerFrame / Mathf.Pow(9, probeVolumeAuthoring.profile.simplificationLevels - 4));
                     for (int i = 0; i < debugDisplay.subdivisionCellUpdatePerFrame; i++)
                     {
                         if (!s_CurrentSubdivision.MoveNext())
@@ -89,19 +94,29 @@ namespace UnityEngine.Experimental.Rendering
                         }
 
                         // Progressively update cells:
-                        foreach (var cell in ctx.cells.ToList())
+                        var cells = ctx.cells.ToList();
+
+                        // Remove all the cells that was not updated to prevent ghosting
+                        foreach (var cellVolume in ctx.refVolume.realtimeSubdivisionInfo.Keys.ToList())
+                        {
+                            if (!cells.Any(c => c.volume.Equals(cellVolume)))
+                                ctx.refVolume.realtimeSubdivisionInfo.Remove(cellVolume);
+                        }
+
+                        // Subdivide visible cells
+                        foreach (var cell in cells)
                         {
                             // Override the cell list to only compute one cell
                             ctx.cells.Clear();
                             ctx.cells.Add(cell);
 
                             var result = ProbeGIBaking.BakeBricks(ctx);
-                            Debug.Log("Subdiv cell " + cell);
-
                             ctx.refVolume.realtimeSubdivisionInfo[cell.volume] = result.bricksPerCells[cell.position];
 
                             yield return null;
                         }
+
+                        yield break;
                     }
                 }
             }
