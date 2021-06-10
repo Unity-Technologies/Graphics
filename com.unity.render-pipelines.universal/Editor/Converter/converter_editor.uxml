@@ -5,6 +5,7 @@
             <ui:Image name="converterContainerHelpIcon" style="width: 12px; height: 25px; max-width: 12px; max-height: 12px; min-width: 12px; min-height: 12px; padding-left: 0; background-image: none; padding-top: 0; margin-top: 5px;" />
         </ui:VisualElement>
         <ui:TextElement text="The Render Pipeline Conversion Wizard is meant to help Convert projects from built-in to Universal Render Pipeline." name="conversionInfo" style="height: 46px; width: 606px; flex-shrink: 0;" />
+        <ui:HelpBox message-type="Warning" text="This process makes irreversible changes to the project. Back up your project before proceeding." />
         <ui:VisualElement style="flex-direction: row;">
             <ui:DropdownField index="-1" name="conversionsDropDown" style="height: 27px; width: 208px; display: none;" />
             <ui:VisualElement style="flex-grow: 1;" />
