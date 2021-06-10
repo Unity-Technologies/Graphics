@@ -10,6 +10,7 @@ namespace UnityEditor.Rendering.Universal.Converters
 {
     internal class RenderSettingsConverter : RenderPipelineConverter
     {
+        public override int priority => -9000;
         public override string name => "Rendering Settings";
 
         public override string info =>
