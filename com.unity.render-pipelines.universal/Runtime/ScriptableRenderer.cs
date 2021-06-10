@@ -725,8 +725,10 @@ namespace UnityEngine.Rendering.Universal
                     ExecuteBlock(RenderPassBlock.MainRenderingTransparent, in renderBlocks, context, ref renderingData);
                 }
 
+#if ENABLE_VR && ENABLE_XR_MODULE
                 if (cameraData.xr.enabled)
                     cameraData.xr.canMarkLateLatch = false;
+#endif
 
                 // Draw Gizmos...
                 if (drawGizmos)
