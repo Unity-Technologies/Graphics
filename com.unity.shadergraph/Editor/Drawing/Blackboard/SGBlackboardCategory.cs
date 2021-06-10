@@ -581,7 +581,7 @@ namespace UnityEditor.ShaderGraph.Drawing
                         insertIndex++;
                 }
             }
-            
+
             /* Handles moving elements from one category to another (including between different graph windows) */
             // Handles case of inserting after item in list
             if (!adjustedInsertIndex)
