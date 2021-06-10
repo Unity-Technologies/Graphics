@@ -152,7 +152,7 @@ namespace UnityEditor.Rendering
 
                 using (new EditorGUILayout.VerticalScope())
                 {
-                    EditorGUIUtility.labelWidth = GetLongestLabelWidth(labels) + CoreEditorStyles.standardSpacing;
+                    EditorGUIUtility.labelWidth = GetLongestLabelWidth(labels) + CoreEditorConstants.standardHorizontalSpacing;
                     int oldIndentLevel = EditorGUI.indentLevel;
                     EditorGUI.indentLevel = 0;
                     for (var i = 0; i < ppts.Length; ++i)
@@ -181,7 +181,7 @@ namespace UnityEditor.Rendering
 
                 using (new EditorGUILayout.VerticalScope())
                 {
-                    EditorGUIUtility.labelWidth = GetLongestLabelWidth(labels) + CoreEditorStyles.standardSpacing;
+                    EditorGUIUtility.labelWidth = GetLongestLabelWidth(labels) + CoreEditorConstants.standardHorizontalSpacing;
                     int oldIndentLevel = EditorGUI.indentLevel;
                     EditorGUI.indentLevel = 0;
                     for (var i = 0; i < values.Length; ++i)
