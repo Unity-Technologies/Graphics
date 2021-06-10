@@ -1439,12 +1439,14 @@ namespace UnityEditor.VFX.UI
 
         void OnSave()
         {
+            m_ComponentBoard?.DeactivateBoundsRecordingIfNeeded(); //Avoids saving the graph with unnecessary bounds computations
+
             var graphToSave = new HashSet<VFXGraph>();
             GetGraphsRecursively(controller.graph, graphToSave);
-            m_ComponentBoard.DeactivateBoundsRecording(); //Avoids saving the graph with unnecessary bounds computations
             foreach (var graph in graphToSave)
             {
-                graph.GetResource().WriteAsset();
+                if (EditorUtility.IsDirty(graph) || UnityEngine.Object.ReferenceEquals(graph, controller.graph))
+                    graph.GetResource().WriteAsset();
             }
         }
 
@@ -1791,13 +1793,6 @@ namespace UnityEditor.VFX.UI
                 Selection.objects = blackBoardSelected;
                 return;
             }
-
-            //var boundsRecorderSelected =
-            //    selection.OfType<VFXBoundsRecorderField>().Select(t => t.tiedContext.controller.model).ToArray();
-            //if (boundsRecorderSelected.Length > 0)
-            //{
-            //    Selection.objects = boundsRecorderSelected;
-            //}
         }
 
         void SelectAsset()

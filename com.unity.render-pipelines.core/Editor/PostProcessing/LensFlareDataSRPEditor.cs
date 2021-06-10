@@ -120,7 +120,29 @@ namespace UnityEditor.Rendering
 
         SerializedProperty m_Elements;
         ReorderableList m_List;
-        Rect? reservedListSizeRect;
+        Rect? m_ReservedListSizeRect;
+        static Shader s_ProceduralThumbnailShader;
+        static readonly int k_PreviewSize = 128;
+        static readonly int k_FlareColorValue = Shader.PropertyToID("_FlareColorValue");
+        static readonly int k_FlareTex = Shader.PropertyToID("_FlareTex");
+        // cf. LensFlareCommon.hlsl
+        static readonly int k_FlareData0 = Shader.PropertyToID("_FlareData0");
+        static readonly int k_FlareData1 = Shader.PropertyToID("_FlareData1");
+        static readonly int k_FlareData2 = Shader.PropertyToID("_FlareData2");
+        static readonly int k_FlareData3 = Shader.PropertyToID("_FlareData3");
+        static readonly int k_FlareData4 = Shader.PropertyToID("_FlareData4");
+        static readonly int k_FlareData5 = Shader.PropertyToID("_FlareData5");
+        static readonly int k_FlarePreviewData = Shader.PropertyToID("_FlarePreviewData");
+
+        class TextureCacheElement
+        {
+            public int hash = 0;
+            public Texture2D computedTexture = new Texture2D(k_PreviewSize, k_PreviewSize, UnityEngine.Experimental.Rendering.GraphicsFormat.R8G8B8A8_SRGB, UnityEngine.Experimental.Rendering.TextureCreationFlags.None);
+        }
+
+        RTHandle m_PreviewTexture;
+        List<TextureCacheElement> m_PreviewTextureCache;
+        Material m_PreviewLensFlare = null;
 
         void OnEnable()
         {
@@ -130,9 +152,39 @@ namespace UnityEditor.Rendering
             m_List.drawHeaderCallback = DrawListHeader;
             m_List.drawFooterCallback = DrawListFooter;
             m_List.onAddCallback = OnAdd;
+            m_List.onRemoveCallback = OnRemove;
             m_List.drawElementBackgroundCallback = DrawElementBackground;
             m_List.drawElementCallback = DrawElement;
             m_List.elementHeightCallback = ElementHeight;
+
+            if (s_ProceduralThumbnailShader == null)
+                s_ProceduralThumbnailShader = Shader.Find("Hidden/Core/LensFlareDataDrivenPreview");
+            m_PreviewLensFlare = new Material(s_ProceduralThumbnailShader);
+
+            if (m_PreviewTexture == null)
+            {
+                m_PreviewTexture = RTHandles.Alloc(k_PreviewSize, k_PreviewSize, colorFormat: UnityEngine.Experimental.Rendering.GraphicsFormat.R8G8B8A8_SRGB);
+            }
+            if (m_PreviewTextureCache == null)
+            {
+                m_PreviewTextureCache = new List<TextureCacheElement>(m_Elements.arraySize);
+                for (int i = 0; i < m_Elements.arraySize; ++i)
+                {
+                    m_PreviewTextureCache.Add(new TextureCacheElement());
+                }
+            }
+        }
+
+        void OnDisable()
+        {
+            m_PreviewTexture?.Release();
+            m_PreviewTexture = null;
+            if (m_PreviewTextureCache != null)
+            {
+                foreach (TextureCacheElement tce in m_PreviewTextureCache)
+                    DestroyImmediate(tce.computedTexture);
+                m_PreviewTextureCache = null;
+            }
         }
 
         public override void OnInspectorGUI()
@@ -148,9 +200,23 @@ namespace UnityEditor.Rendering
             m_Elements.arraySize = newIndex + 1;
             serializedObject.ApplyModifiedProperties();
 
+            m_PreviewTextureCache.Add(new TextureCacheElement());
+
             // Set Default values
             (target as LensFlareDataSRP).elements[newIndex] = new LensFlareDataElementSRP();
             serializedObject.Update();
+        }
+
+        void OnRemove(ReorderableList list)
+        {
+            int deletedIndex = list.index;
+
+            list.serializedProperty.DeleteArrayElementAtIndex(deletedIndex);
+            list.serializedProperty.serializedObject.ApplyModifiedProperties();
+            DestroyImmediate(m_PreviewTextureCache[deletedIndex].computedTexture);
+            m_PreviewTextureCache.RemoveAt(deletedIndex);
+
+            list.index = Mathf.Clamp(deletedIndex - 1, 0, list.count - 1);
         }
 
         #region Header and Footer
@@ -162,7 +228,7 @@ namespace UnityEditor.Rendering
 
             // If we draw the size now, and the user decrease it,
             // it can lead to out of range issue. See Footer.
-            reservedListSizeRect = sizeRect;
+            m_ReservedListSizeRect = sizeRect;
 
             Rect labelRect = rect;
             labelRect.xMax = sizeRect.xMin;
@@ -199,10 +265,10 @@ namespace UnityEditor.Rendering
 
             // Display the size in the footer. So the list will be able to refresh and
             // it should not do out of range when removing.
-            if (!reservedListSizeRect.HasValue)
+            if (!m_ReservedListSizeRect.HasValue)
                 return;
 
-            DrawListSize(reservedListSizeRect.Value);
+            DrawListSize(m_ReservedListSizeRect.Value);
         }
 
         #endregion
@@ -299,6 +365,225 @@ namespace UnityEditor.Rendering
         void DrawElementBackground(Rect rect, int index, bool isActive, bool isFocused)
             => EditorGUI.DrawRect(rect, Styles.elementBackgroundColor);
 
+        void ComputeThumbnail(ref Texture2D computedTexture, SerializedProperty element, SRPLensFlareType type, int index)
+        {
+            SerializedProperty colorProp = element.FindPropertyRelative("tint");
+            SerializedProperty intensityProp = element.FindPropertyRelative("m_LocalIntensity");
+            SerializedProperty sideCountProp = element.FindPropertyRelative("m_SideCount");
+            SerializedProperty rotationProp = element.FindPropertyRelative("rotation");
+            SerializedProperty edgeOffsetProp = element.FindPropertyRelative("m_EdgeOffset");
+            SerializedProperty fallOffProp = element.FindPropertyRelative("m_FallOff");
+            SerializedProperty sdfRoundnessProp = element.FindPropertyRelative("m_SdfRoundness");
+            SerializedProperty inverseSDFProp = element.FindPropertyRelative("inverseSDF");
+            SerializedProperty flareTextureProp = element.FindPropertyRelative("lensFlareTexture");
+            SerializedProperty preserveAspectRatioProp = element.FindPropertyRelative("preserveAspectRatio");
+
+            SerializedProperty sizeXYProp = element.FindPropertyRelative("sizeXY");
+
+            float invSideCount = 1f / ((float)sideCountProp.intValue);
+            float intensity = intensityProp.floatValue;
+            float usedSDFRoundness = sdfRoundnessProp.floatValue;
+
+            Vector2 sizeXY = sizeXYProp.vector2Value;
+            Vector2 sizeXYAbs = new Vector2(Mathf.Abs(sizeXY.x), Mathf.Abs(sizeXY.y));
+            Vector2 localSize = new Vector2(sizeXY.x / Mathf.Max(sizeXYAbs.x, sizeXYAbs.y), sizeXY.y / Mathf.Max(sizeXYAbs.x, sizeXYAbs.y));
+            const float maxStretch = 50.0f;
+            localSize = new Vector2(Mathf.Min(localSize.x, maxStretch), Mathf.Min(localSize.y, maxStretch));
+
+            Texture2D flareTex = flareTextureProp.objectReferenceValue as Texture2D;
+
+            float usedAspectRatio;
+            if (type == SRPLensFlareType.Image)
+                usedAspectRatio = flareTex ? ((((float)flareTex.height) / (float)flareTex.width)) : 1.0f;
+            else
+                usedAspectRatio = 1.0f;
+
+            if (type == SRPLensFlareType.Image && preserveAspectRatioProp.boolValue)
+            {
+                if (usedAspectRatio >= 1.0f)
+                {
+                    localSize = new Vector2(localSize.x / usedAspectRatio, localSize.y);
+                }
+                else
+                {
+                    localSize = new Vector2(localSize.x, localSize.y * usedAspectRatio);
+                }
+            }
+
+            float usedGradientPosition = Mathf.Clamp01((1.0f - edgeOffsetProp.floatValue) - 1e-6f);
+            if (type == SRPLensFlareType.Polygon)
+                usedGradientPosition = Mathf.Pow(usedGradientPosition + 1.0f, 5);
+
+            Vector4 flareData0 = LensFlareCommonSRP.GetFlareData0(Vector2.zero, Vector2.zero, Vector2.one, rotationProp.floatValue, 0f, 0f, Vector2.zero, false);
+
+            float cos0 = flareData0.x;
+            float sin0 = flareData0.y;
+
+            Vector2 rotQuadCorner = new Vector2(cos0 * localSize.x - sin0 * localSize.y, sin0 * localSize.x + cos0 * localSize.y);
+            float rescale = 1.0f / Mathf.Max(Mathf.Abs(rotQuadCorner.x), Mathf.Abs(rotQuadCorner.y));
+
+            // Set here what need to be setup in the material
+            if (type == SRPLensFlareType.Image)
+            {
+                if (flareTextureProp.objectReferenceValue != null)
+                    m_PreviewLensFlare.SetTexture(k_FlareTex, flareTextureProp.objectReferenceValue as Texture2D);
+                else
+                    m_PreviewLensFlare.SetTexture(k_FlareTex, Texture2D.blackTexture);
+            }
+            else
+            {
+                m_PreviewLensFlare.SetTexture(k_FlareTex, null);
+            }
+            m_PreviewLensFlare.SetVector(k_FlareColorValue, new Vector4(colorProp.colorValue.r * intensity, colorProp.colorValue.g * intensity, colorProp.colorValue.b * intensity, 1f));
+            m_PreviewLensFlare.SetVector(k_FlareData0, flareData0);
+            // x: OcclusionRadius, y: OcclusionSampleCount, z: ScreenPosZ, w: ScreenRatio
+            m_PreviewLensFlare.SetVector(k_FlareData1, new Vector4(0f, 0f, 0f, 1f));
+            // xy: ScreenPos, zw: FlareSize
+            m_PreviewLensFlare.SetVector(k_FlareData2, new Vector4(0f, 0f, rescale * localSize.x, rescale * localSize.y));
+            // xy: RayOffset, z: invSideCount
+            m_PreviewLensFlare.SetVector(k_FlareData3, new Vector4(0f, 0f, invSideCount, 0f));
+
+            if (type == SRPLensFlareType.Polygon)
+            {
+                // Precompute data for Polygon SDF (cf. LensFlareCommon.hlsl)
+                float rCos = Mathf.Cos(Mathf.PI * invSideCount);
+                float roundValue = rCos * usedSDFRoundness;
+                float r = rCos - roundValue;
+                float an = 2.0f * Mathf.PI * invSideCount;
+                float he = r * Mathf.Tan(0.5f * an);
+
+                // x: SDF Roundness, y: Poly Radius, z: PolyParam0, w: PolyParam1
+                m_PreviewLensFlare.SetVector(k_FlareData4, new Vector4(usedSDFRoundness, r, an, he));
+            }
+            else
+            {
+                // x: SDF Roundness, yzw: Unused
+                m_PreviewLensFlare.SetVector(k_FlareData4, new Vector4(usedSDFRoundness, 0f, 0f, 0f));
+            }
+
+            // x: Allow Offscreen, y: Edge Offset, z: Falloff
+            if (type != SRPLensFlareType.Image)
+                m_PreviewLensFlare.SetVector(k_FlareData5, new Vector4(0f, usedGradientPosition, Mathf.Exp(Mathf.Lerp(0.0f, 4.0f, Mathf.Clamp01(1.0f - fallOffProp.floatValue))), 0f));
+            else
+                m_PreviewLensFlare.SetVector(k_FlareData5, new Vector4(0f, 0f, 0f, 0f));
+
+            // xy: _FlarePreviewData.xy, z: ScreenRatio
+            m_PreviewLensFlare.SetVector(k_FlarePreviewData, new Vector4(k_PreviewSize, k_PreviewSize, 1f, 0f));
+
+            m_PreviewLensFlare.SetPass((int)type + ((type != SRPLensFlareType.Image && inverseSDFProp.boolValue) ? 2 : 0));
+
+            RenderToTexture2D(ref computedTexture);
+        }
+
+        void RenderToTexture2D(ref Texture2D computedTexture)
+        {
+            RenderTexture oldActive = RenderTexture.active;
+            RenderTexture.active = m_PreviewTexture.rt;
+
+            GL.Clear(false, true, Color.black);
+
+            GL.PushMatrix();
+            GL.LoadOrtho();
+            GL.Viewport(new Rect(0, 0, k_PreviewSize, k_PreviewSize));
+
+            GL.Begin(GL.QUADS);
+            GL.TexCoord2(0, 0);
+            GL.Vertex3(0f, 0f, 0);
+            GL.TexCoord2(0, 1);
+            GL.Vertex3(0f, 1f, 0);
+            GL.TexCoord2(1, 1);
+            GL.Vertex3(1f, 1f, 0);
+            GL.TexCoord2(1, 0);
+            GL.Vertex3(1f, 0f, 0);
+            GL.End();
+            GL.PopMatrix();
+
+            computedTexture.ReadPixels(new Rect(0, 0, k_PreviewSize, k_PreviewSize), 0, 0, false);
+            computedTexture.Apply(false);
+
+            RenderTexture.active = oldActive;
+        }
+
+        int GetElementHash(SerializedProperty element, SRPLensFlareType type, int index)
+        {
+            SerializedProperty sizeXYProp = element.FindPropertyRelative("sizeXY");
+
+            SerializedProperty colorProp = element.FindPropertyRelative("tint");
+            SerializedProperty intensityProp = element.FindPropertyRelative("m_LocalIntensity");
+            SerializedProperty rotationProp = element.FindPropertyRelative("rotation");
+            SerializedProperty uniformScaleProp = element.FindPropertyRelative("uniformScale");
+
+            int hash = index.GetHashCode();
+            hash = hash * 23 + intensityProp.floatValue.GetHashCode();
+            hash = hash * 23 + uniformScaleProp.floatValue.GetHashCode();
+            hash = hash * 23 + sizeXYProp.vector2Value.GetHashCode();
+            hash = hash * 23 + type.GetHashCode();
+            hash = hash * 23 + colorProp.colorValue.GetHashCode();
+            hash = hash * 23 + rotationProp.floatValue.GetHashCode();
+
+            if (type == SRPLensFlareType.Image)
+            {
+                SerializedProperty flareTextureProp = element.FindPropertyRelative("lensFlareTexture");
+                SerializedProperty preserveAspectRatioProp = element.FindPropertyRelative("preserveAspectRatio");
+                if (flareTextureProp.objectReferenceValue != null)
+                    hash = hash * 23 + (flareTextureProp.objectReferenceValue as Texture2D).GetHashCode();
+
+                hash = hash * 23 + preserveAspectRatioProp.boolValue.GetHashCode();
+            }
+            else
+            {
+                SerializedProperty inverseSDFProp = element.FindPropertyRelative("inverseSDF");
+                SerializedProperty sdfRoundnessProp = element.FindPropertyRelative("m_SdfRoundness");
+                SerializedProperty edgeOffsetProp = element.FindPropertyRelative("m_EdgeOffset");
+                SerializedProperty fallOffProp = element.FindPropertyRelative("m_FallOff");
+
+                hash = hash * 23 + inverseSDFProp.boolValue.GetHashCode();
+                hash = hash * 23 + sdfRoundnessProp.floatValue.GetHashCode();
+                hash = hash * 23 + fallOffProp.floatValue.GetHashCode();
+                hash = hash * 23 + edgeOffsetProp.floatValue.GetHashCode();
+
+                if (type == SRPLensFlareType.Polygon)
+                {
+                    SerializedProperty sideCountProp = element.FindPropertyRelative("m_SideCount");
+                    hash = hash * 23 + sideCountProp.intValue.GetHashCode();
+                }
+            }
+
+            return hash;
+        }
+
+        Texture2D GetCachedThumbnailProceduralTexture(SerializedProperty element, SRPLensFlareType type, int index)
+        {
+            TextureCacheElement tce = m_PreviewTextureCache[index];
+            int currentHash = GetElementHash(element, type, index);
+            if (tce.hash == currentHash)
+                return tce.computedTexture;
+
+            ComputeThumbnail(ref tce.computedTexture, element, type, index);
+            tce.hash = currentHash;
+            return tce.computedTexture;
+        }
+
+        void DrawThumbnailProcedural(Rect rect, SerializedProperty element, SRPLensFlareType type, int index)
+        {
+            EditorGUI.DrawRect(rect, Color.black);
+            Color oldGuiColor = GUI.color;
+            GUI.color = Color.black; //set background color for transparency
+
+            if (type != SRPLensFlareType.Image)
+            {
+                EditorGUI.DrawRect(rect, GUI.color); //draw margin
+                rect.xMin += Styles.iconMargin;
+                rect.xMax -= Styles.iconMargin;
+                rect.yMin += Styles.iconMargin;
+                rect.yMax -= Styles.iconMargin;
+            }
+
+            Texture2D previewTecture = GetCachedThumbnailProceduralTexture(element, type, index);
+            EditorGUI.DrawTextureTransparent(rect, previewTecture, ScaleMode.ScaleToFit, 1f);
+            GUI.color = oldGuiColor;
+        }
+
         void DrawElement(Rect rect, int index, bool isActive, bool isFocused)
         {
             Rect headerRect = rect;
@@ -317,15 +602,21 @@ namespace UnityEditor.Rendering
             if (DrawElementHeader(headerRect, isFoldOpened, selectedInList: isActive, element))
                 DrawFull(contentRect, element);
             else
-                DrawSummary(contentRect, element);
+                DrawSummary(contentRect, element, index);
 
             EditorGUIUtility.wideMode = oldWideMode;
         }
 
         bool DrawElementHeader(Rect headerRect, SerializedProperty isFoldOpened, bool selectedInList, SerializedProperty element)
         {
+            Rect visibilityRect = headerRect;
+            visibilityRect.xMin += 16;
+            visibilityRect.width = 13;
+            visibilityRect.y += 2;
+            visibilityRect.height = 13;
+
             Rect labelRect = headerRect;
-            labelRect.xMin += 16;
+            labelRect.xMin = visibilityRect.xMax + 5;
             labelRect.xMax -= 16;
 
             Rect contextMenuRect = labelRect;
@@ -369,10 +660,16 @@ namespace UnityEditor.Rendering
 
             EditorGUI.EndProperty();
 
+            SerializedProperty visible = element.FindPropertyRelative("visible");
+            EditorGUI.BeginChangeCheck();
+            bool newVisibility = GUI.Toggle(visibilityRect, visible.boolValue, GUIContent.none, CoreEditorStyles.smallTickbox);
+            if (EditorGUI.EndChangeCheck())
+                visible.boolValue = newVisibility;
+
             return newState;
         }
 
-        void DrawSummary(Rect summaryRect, SerializedProperty element)
+        void DrawSummary(Rect summaryRect, SerializedProperty element, int index)
         {
             SerializedProperty type = element.FindPropertyRelative("flareType");
             SerializedProperty tint = element.FindPropertyRelative("tint");
@@ -381,36 +678,7 @@ namespace UnityEditor.Rendering
             SerializedProperty count = element.FindPropertyRelative("m_Count");
 
             Rect thumbnailRect = OffsetForThumbnail(ref summaryRect);
-            Rect thumbnailIconeRect = thumbnailRect;
-            thumbnailIconeRect.xMin += Styles.iconMargin;
-            thumbnailIconeRect.xMax -= Styles.iconMargin;
-            thumbnailIconeRect.yMin += Styles.iconMargin;
-            thumbnailIconeRect.yMax -= Styles.iconMargin;
-            Color guiColor = GUI.color;
-            GUI.color = Color.black; //set background color for thunmbnail
-            switch (GetEnum<SRPLensFlareType>(type))
-            {
-                case SRPLensFlareType.Image:
-                    SerializedProperty flareTexture = element.FindPropertyRelative("lensFlareTexture");
-                    SerializedProperty preserveAspectRatio = element.FindPropertyRelative("preserveAspectRatio");
-                    SerializedProperty sizeXY = element.FindPropertyRelative("sizeXY");
-                    float aspectRatio = ((flareTexture.objectReferenceValue is Texture texture) && preserveAspectRatio.boolValue)
-                        ? texture.width / (float)texture.height
-                        : sizeXY.vector2Value.x / Mathf.Max(sizeXY.vector2Value.y, 1e-6f);
-                    EditorGUI.DrawTextureTransparent(thumbnailRect, flareTexture.objectReferenceValue as Texture, ScaleMode.ScaleToFit, aspectRatio);
-                    break;
-
-                case SRPLensFlareType.Circle:
-                    EditorGUI.DrawRect(thumbnailRect, GUI.color);   //draw the margin
-                    EditorGUI.DrawTextureTransparent(thumbnailIconeRect, LensFlareEditorUtils.Icons.circle, ScaleMode.ScaleToFit, 1);
-                    break;
-
-                case SRPLensFlareType.Polygon:
-                    EditorGUI.DrawRect(thumbnailRect, GUI.color);   //draw the margin
-                    EditorGUI.DrawTextureTransparent(thumbnailIconeRect, LensFlareEditorUtils.Icons.polygon, ScaleMode.ScaleToFit, 1);
-                    break;
-            }
-            GUI.color = guiColor;
+            DrawThumbnailProcedural(thumbnailRect, element, GetEnum<SRPLensFlareType>(type), index);
 
             IEnumerator<Rect> fieldRect = ReserveFields(summaryRect, allowMultipleElement.boolValue ? 4 : 3);
             float oldLabelWidth = EditorGUIUtility.labelWidth;

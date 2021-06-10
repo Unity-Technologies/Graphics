@@ -51,6 +51,8 @@ namespace UnityEngine.Rendering
 
     /// <summary>
     /// SRPLensFlareType which can be an image of a procedural shape
+    /// If change order or add new member, need to update preview
+    /// shader: LensFlareDataDrivenPreview.shader
     /// </summary>
     [System.Serializable]
     public enum SRPLensFlareType
@@ -78,6 +80,8 @@ namespace UnityEngine.Rendering
         /// <summary> Initialize default values </summary>
         public LensFlareDataElementSRP()
         {
+            visible = true;
+
             localIntensity = 1.0f;
             position = 0.0f;
             positionOffset = new Vector2(0.0f, 0.0f);
@@ -124,6 +128,9 @@ namespace UnityEngine.Rendering
             sideCount = 6;
             inverseSDF = false;
         }
+
+        /// <summary> Visibility checker for current element </summary>
+        public bool visible;
 
         /// <summary> Position </summary>
         public float position;

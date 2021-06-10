@@ -8,6 +8,7 @@ namespace UnityEngine.Experimental.Rendering
     {
         SH,
         Validity,
+        ValidityOverDilationThreshold,
         Size
     }
 
@@ -16,6 +17,8 @@ namespace UnityEngine.Experimental.Rendering
         public bool drawProbes;
         public bool drawBricks;
         public bool drawCells;
+        public bool realtimeSubdivision;
+        public float realtimeSubdivisionBudget = 100.0f;
         public DebugProbeShadingMode probeShading;
         public float probeSize = 1.0f;
         public float subdivisionViewCullingDistance = 500.0f;
@@ -46,6 +49,8 @@ namespace UnityEngine.Experimental.Rendering
         Material                        m_DebugMaterial;
         List<CellInstancedDebugProbes>  m_CellDebugData = new List<CellInstancedDebugProbes>();
         Plane[]                         m_DebugFrustumPlanes = new Plane[6];
+
+        internal float dilationValidtyThreshold = 0.25f; // We ned to store this here to access it
 
 
         /// <summary>
@@ -113,6 +118,14 @@ namespace UnityEngine.Experimental.Rendering
             var subdivContainer = new DebugUI.Container() { displayName = "Subdivision Visualization" };
             subdivContainer.children.Add(new DebugUI.BoolField { displayName = "Display Cells", getter = () => debugDisplay.drawCells, setter = value => debugDisplay.drawCells = value, onValueChanged = RefreshDebug });
             subdivContainer.children.Add(new DebugUI.BoolField { displayName = "Display Bricks", getter = () => debugDisplay.drawBricks, setter = value => debugDisplay.drawBricks = value, onValueChanged = RefreshDebug });
+#if UNITY_EDITOR
+            subdivContainer.children.Add(new DebugUI.BoolField { displayName = "Realtime Update", getter = () => debugDisplay.realtimeSubdivision, setter = value => debugDisplay.realtimeSubdivision = value, onValueChanged = RefreshDebug });
+            if (debugDisplay.realtimeSubdivision)
+            {
+                var realtimeSubdivBudget = new DebugUI.FloatField { displayName = "Budget", getter = () => debugDisplay.realtimeSubdivisionBudget, setter = value => debugDisplay.realtimeSubdivisionBudget = value, min = () => 0.0f, max = () => 1000.0f };
+                subdivContainer.children.Add(new DebugUI.Container { children = { realtimeSubdivBudget } });
+            }
+#endif
 
             if (debugDisplay.drawCells || debugDisplay.drawBricks)
             {
@@ -148,9 +161,9 @@ namespace UnityEngine.Experimental.Rendering
                     max = () => ProbeReferenceVolume.instance.GetMaxSubdivision(),
                 });
             }
+
             widgetList.Add(subdivContainer);
             widgetList.Add(probeContainer);
-
 
             m_DebugItems = widgetList.ToArray();
             var panel = DebugManager.instance.GetPanel("Probe Volume", true);
@@ -206,6 +219,7 @@ namespace UnityEngine.Experimental.Rendering
                         props.SetFloat("_ProbeSize", debugDisplay.probeSize);
                         props.SetFloat("_CullDistance", debugDisplay.probeCullingDistance);
                         props.SetInt("_MaxAllowedSubdiv", debugDisplay.maxSubdivToVisualize);
+                        props.SetFloat("_ValidityThreshold", dilationValidtyThreshold);
 
                         Graphics.DrawMeshInstanced(m_DebugMesh, 0, m_DebugMaterial, probeBuffer, probeBuffer.Length, props, ShadowCastingMode.Off, false, 0, camera, LightProbeUsage.Off, null);
                     }
@@ -269,7 +283,7 @@ namespace UnityEngine.Experimental.Rendering
                 debugData.cellPosition = cell.position;
 
                 Vector4[] positionBuffer = new Vector4[kProbesPerBatch];
-                Vector4[] validityColors = new Vector4[kProbesPerBatch];
+                float[] validity = new float[kProbesPerBatch];
 
                 for (int batchIndex = 0; batchIndex < probeMaps.Count; batchIndex++)
                 {
@@ -279,11 +293,11 @@ namespace UnityEngine.Experimental.Rendering
 
                         var pos = cell.probePositions[probeIdx];
                         positionBuffer[indexInBatch] = new Vector4(pos.x, pos.y, pos.z, 0.0f);
-                        validityColors[indexInBatch] = Color.Lerp(Color.green, Color.red, cell.validity[probeIdx]);
+                        validity[indexInBatch] = cell.validity[probeIdx];
                     }
 
                     debugData.props[batchIndex].SetVectorArray("_Position", positionBuffer);
-                    debugData.props[batchIndex].SetVectorArray("_Validity", validityColors);
+                    debugData.props[batchIndex].SetFloatArray("_Validity", validity);
                 }
 
                 m_CellDebugData.Add(debugData);

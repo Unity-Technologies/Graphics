@@ -33,8 +33,8 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
             }
 
             // Process SubShaders
-            context.AddSubShader(SubShaders.Unlit(target, target.renderType, target.renderQueue));
             context.AddSubShader(SubShaders.UnlitDOTS(target, target.renderType, target.renderQueue));
+            context.AddSubShader(SubShaders.Unlit(target, target.renderType, target.renderQueue));
         }
 
         public override void ProcessPreviewMaterial(Material material)
@@ -139,6 +139,8 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
                     result.passes.Add(CorePasses.ShadowCaster(target));
 
                 result.passes.Add(UnlitPasses.DepthNormalOnly(target));
+                result.passes.Add(CorePasses.SceneSelection(target));
+                result.passes.Add(CorePasses.ScenePicking(target));
 
                 return result;
             }
@@ -166,6 +168,8 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
                     result.passes.Add(PassVariant(CorePasses.ShadowCaster(target), CorePragmas.DOTSInstanced));
 
                 result.passes.Add(UnlitPasses.DepthNormalOnly(target));
+                result.passes.Add(CorePasses.SceneSelection(target));
+                result.passes.Add(CorePasses.ScenePicking(target));
 
                 return result;
             }

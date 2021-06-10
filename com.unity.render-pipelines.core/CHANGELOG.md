@@ -10,6 +10,11 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - ClearFlag.Depth does not implicitely clear stencil anymore. ClearFlag.Stencil added.
 - The RTHandleSystem no longer requires a specific number of sample for MSAA textures. Number of samples can be chosen independently for all textures.
 - Platform ShaderLibrary API headers now have a new macro layer for 2d texture sampling macros. This layer starts with PLATFORM_SAMPLE2D definition, and it gives the possibility of injecting sampling behavior on a render pipeline level. For example: being able to a global mip bias for temporal upscalers.
+- Update icon for IES, LightAnchor and LensFlare
+- LensFlare (SRP) can be now disabled per element
+- LensFlare (SRP) tooltips now refer to meters.
+- Serialize the Probe Volume asset as binary to improve footprint on disk and loading speed.
+- LensFlare Element editor now have Thumbnail preview
 
 ### Fixed
 - Fixed missing warning UI about Projector component being unsupported (case 1300327).
@@ -24,6 +29,10 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed ACES filter artefact due to half float error on some mobile platforms.
 - Fixed issue displaying a warning of different probe reference volume profiles even when they are equivalent.
 - Fixed missing increment/decrement controls from DebugUIIntField & DebugUIUIntField widget prefabs.
+- Fixed IES Importer related to new API on core.
+- Fixed a large, visible stretch ratio in a LensFlare Image thumbnail.
+- Fixed Undo from script refreshing thumbnail.
+- Fixed cropped thumbnail for Image with non-uniform scale and rotation
 
 ### Added
 - Support for the PlayStation 5 platform has been added.
@@ -54,6 +63,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Add automatic spaces to enum display names used in Rendering Debugger and add support for InspectorNameAttribute.
 - Adding new API functions inside DynamicResolutionHandler to get mip bias. This allows dynamic resolution scaling applying a bias on the frame to improve on texture sampling detail.
 - Added a reminder if the data of probe volume might be obsolete.
+- Added new API function inside DynamicResolutionHandler and new settings in GlobalDynamicResolutionSettings to control low res transparency thresholds. This should help visuals when the screen percentage is too low.
 
 ### Changed
 - Changed Window/Render Pipeline/Render Pipeline Debug to Window/Analysis/Rendering Debugger
