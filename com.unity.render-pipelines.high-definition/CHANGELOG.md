@@ -70,6 +70,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Added the receiver motion rejection toggle to RTGI (case 1330168).
 - Added info box when low resolution transparency is selected, but its not enabled in the HDRP settings. This will help new users find the correct knob in the HDRP Asset.
 - Added a dialog box when you import a Material that has a diffusion profile to add the diffusion profile to global settings.
+- Added support for Unlit shadow mattes in Path Tracing (case 1335487).
 
 ### Fixed
 - Fixed Intensity Multiplier not affecting realtime global illumination.
@@ -243,6 +244,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed error with motion blur and small render targets.
 - Fixed issue with on-demand directional shadow maps looking broken when a reflection probe is updated at the same time.
 - Fixed cropping issue with the compositor camera bridge (case 1340549).
+- Fixed an issue with normal management for recursive rendering (case 1324082).
 - Fixed exposure issues with volumetric clouds on planar reflection
 - Fixed bad feedback loop occuring when auto exposure adaptation time was too small.
 

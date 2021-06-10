@@ -84,11 +84,6 @@ namespace UnityEngine.Experimental.Rendering
             Profiler.EndSample();
         }
 
-        internal ProbeVolumeTextureMemoryBudget GetMemoryBudget()
-        {
-            return m_MemoryBudget;
-        }
-
         internal void EnsureTextureValidity()
         {
             // We assume that if a texture is null, all of them are. In any case we reboot them altogether.
