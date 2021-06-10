@@ -31,7 +31,7 @@ namespace UnityEditor.Rendering.Universal
             if (string.IsNullOrEmpty(path))
                 throw new ArgumentNullException(nameof(path));
 
-            if(path.EndsWith(".mat"))
+            if (path.EndsWith(".mat"))
                 return URP2DConverterUtility.DoesFileContainString(path, m_SpritesDefaultShaderId);
 
             return false;
@@ -42,7 +42,7 @@ namespace UnityEditor.Rendering.Universal
             if (string.IsNullOrEmpty(path))
                 throw new ArgumentNullException(nameof(path));
 
-            if(path.EndsWith(".prefab", StringComparison.OrdinalIgnoreCase) || path.EndsWith(".unity", StringComparison.OrdinalIgnoreCase) || path.EndsWith(".mat"))
+            if (path.EndsWith(".prefab", StringComparison.OrdinalIgnoreCase) || path.EndsWith(".unity", StringComparison.OrdinalIgnoreCase) || path.EndsWith(".mat"))
                 return URP2DConverterUtility.DoesFileContainString(path, m_SpritesDefaultMatId);
 
             return false;
@@ -79,7 +79,7 @@ namespace UnityEditor.Rendering.Universal
         public override void OnInitialize(InitializeConverterContext context, Action calback)
         {
             Renderer2DData data = Light2DEditorUtility.GetRenderer2DData();
-            if(data != null)
+            if (data != null)
                 m_SpriteLitDefaultMat = data.GetDefaultMaterial(DefaultMaterialType.Sprite);
             else
                 m_SpriteLitDefaultMat = AssetDatabase.LoadAssetAtPath<Material>("Packages/com.unity.render-pipelines.universal/Runtime/Materials/Sprite-Lit-Default.mat");
@@ -91,7 +91,7 @@ namespace UnityEditor.Rendering.Universal
             m_SpritesDefaultMatId = URP2DConverterUtility.GetObjectIDString(m_SpritesDefaultMat);
 
             string[] allAssetPaths = AssetDatabase.GetAllAssetPaths();
-            
+
             foreach (string path in allAssetPaths)
             {
                 if (IsMaterialPath(path) || IsPrefabOrScenePath(path))
@@ -120,7 +120,7 @@ namespace UnityEditor.Rendering.Universal
                 URP2DConverterUtility.UpgradePrefab(context.item.descriptor.info, UpgradeGameObject);
             else if (ext == ".unity")
                 URP2DConverterUtility.UpgradeScene(context.item.descriptor.info, UpgradeGameObject);
-            else if(ext == ".mat")
+            else if (ext == ".mat")
                 URP2DConverterUtility.UpgradeMaterial(context.item.descriptor.info, m_SpritesDefaultShader, m_SpriteLitDefaultShader);
         }
 

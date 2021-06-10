@@ -49,7 +49,7 @@ internal static class URP2DConverterUtility
         return false;
     }
 
-    public static void UpgradePrefab(string path, Action<GameObject> objectUpgrader )
+    public static void UpgradePrefab(string path, Action<GameObject> objectUpgrader)
     {
         UnityEngine.Object[] objects = AssetDatabase.LoadAllAssetsAtPath(path);
         for (int objIndex = 0; objIndex < objects.Length; objIndex++)
