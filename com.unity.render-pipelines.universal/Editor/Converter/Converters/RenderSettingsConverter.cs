@@ -161,6 +161,12 @@ namespace UnityEditor.Rendering.Universal.Converters
 
             // return to original quality level
             QualitySettings.SetQualityLevel(currentQualityLevel);
+            // Set graphics settings
+            if (currentQualityLevel == settings.Index || GraphicsSettings.defaultRenderPipeline == null || GraphicsSettings.defaultRenderPipeline.GetType() !=
+                typeof(UniversalRenderPipelineAsset))
+            {
+                GraphicsSettings.defaultRenderPipeline = asset;
+            }
         }
 
         private ScriptableRendererData CreateRendererDataAsset(string assetPath, RenderingPath renderingPath,
