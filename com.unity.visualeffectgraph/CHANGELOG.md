@@ -69,6 +69,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Compilation issue when normal is used in shadergraph for opacity with unlit output
 - Fix Exception on trying to invert a degenerate TRS matrix [Case 1307068](https://issuetracker.unity3d.com/product/unity/issues/guid/1307068/)
 - Fix IsFrontFace shader graph node for VFX.
+- Apply correctly space migration for angles and scale slot of a transform.
 
 ## [11.0.0] - 2020-10-21
 ### Added
