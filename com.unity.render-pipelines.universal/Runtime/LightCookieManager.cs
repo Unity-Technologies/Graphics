@@ -755,13 +755,8 @@ namespace UnityEngine.Rendering.Universal
                 if (!SystemInfo.graphicsUVStartsAtTop)
                     uvScaleOffset.w = 1.0f - uvScaleOffset.w - uvScaleOffset.y;
 
-                uvRectCount++;
-                textureAtlasUVRects[lcm.lightBufferIndex] = uvScaleOffset;
+                textureAtlasUVRects[uvRectCount++] = uvScaleOffset;
             }
-
-            // Restore linear buffer order for shader data setup and upload.
-            // (Alternatively, we could use the mappings to do scattered read/writes).
-            validLightMappings.Sort(LightCookieMapping.s_CompareByBufferIndex);
 
             return uvRectCount;
         }
