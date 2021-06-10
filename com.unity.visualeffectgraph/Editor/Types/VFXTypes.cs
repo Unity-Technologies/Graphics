@@ -97,7 +97,9 @@ namespace UnityEditor.VFX
     {
         [Tooltip("Sets the center of the box."), VFXSpace(SpaceableType.Position)]
         public Vector3 center;
-        [Tooltip("Sets the size of the box along each axis.") /*, VFXSpace(SpaceableType.Scale) Should we even if rotation isn't handled ? https://unity.slack.com/archives/G1BTWN88Z/p1623161516177400?thread_ts=1622802240.139700&cid=G1BTWN88Z) */]
+        //We could integrate "SpaceableType.Scale" here but it won't resolve the missing rotation.
+        //[Tooltip("Sets the size of the box along each axis."), VFXSpace(SpaceableType.Scale)]
+        [Tooltip("Sets the size of the box along each axis.")]
         public Vector3 size;
 
         public static AABox defaultValue = new AABox { size = Vector3.one };
