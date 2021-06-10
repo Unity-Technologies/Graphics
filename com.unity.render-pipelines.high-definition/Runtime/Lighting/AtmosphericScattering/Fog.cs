@@ -219,8 +219,6 @@ namespace UnityEngine.Rendering.HighDefinition
             {
                 UpdateShaderVariablesGlobalCBVolumetricFogNeutralParameters(ref cb);
             }
-
-            fogSettings.UpdateShaderVariablesGlobalCBFogParameters(ref cb, hdCamera);
         }
 
         void UpdateShaderVariablesGlobalCBFogParameters(ref ShaderVariablesGlobal cb, HDCamera hdCamera)
