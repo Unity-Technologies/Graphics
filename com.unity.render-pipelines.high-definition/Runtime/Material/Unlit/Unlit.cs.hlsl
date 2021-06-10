@@ -10,7 +10,6 @@
 #define DEBUGVIEW_UNLIT_SURFACEDATA_COLOR (300)
 #define DEBUGVIEW_UNLIT_SURFACEDATA_NORMAL (301)
 #define DEBUGVIEW_UNLIT_SURFACEDATA_NORMAL_VIEW_SPACE (302)
-#define DEBUGVIEW_UNLIT_SURFACEDATA_SHADOW_TINT (303)
 
 //
 // UnityEngine.Rendering.HighDefinition.Unlit+BSDFData:  static fields
@@ -23,7 +22,6 @@ struct SurfaceData
 {
     float3 color;
     float3 normalWS;
-    float4 shadowTint;
 };
 
 // Generated from UnityEngine.Rendering.HighDefinition.Unlit+BSDFData
@@ -49,10 +47,6 @@ void GetGeneratedSurfaceDataDebug(uint paramId, SurfaceData surfacedata, inout f
             break;
         case DEBUGVIEW_UNLIT_SURFACEDATA_NORMAL_VIEW_SPACE:
             result = surfacedata.normalWS * 0.5 + 0.5;
-            break;
-        case DEBUGVIEW_UNLIT_SURFACEDATA_SHADOW_TINT:
-            result = surfacedata.shadowTint.xyz;
-            needLinearToSRGB = true;
             break;
     }
 }
