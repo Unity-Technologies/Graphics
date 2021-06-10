@@ -554,6 +554,10 @@ namespace UnityEditor.Rendering
 
         Texture2D GetCachedThumbnailProceduralTexture(SerializedProperty element, SRPLensFlareType type, int index)
         {
+            if (m_PreviewTextureCache.Count <= index)
+            {
+                m_PreviewTextureCache.Add(new TextureCacheElement());
+            }
             TextureCacheElement tce = m_PreviewTextureCache[index];
             int currentHash = GetElementHash(element, type, index);
             if (tce.hash == currentHash)
