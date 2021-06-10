@@ -397,6 +397,9 @@ Shader "HDRP/LayeredLitTessellation"
 
     HLSLINCLUDE
 
+    //Our DXC backend currently does not support Metal tessellation
+    #pragma never_use_dxc metal
+
     #pragma target 5.0
 
     #pragma shader_feature_local _ALPHATEST_ON

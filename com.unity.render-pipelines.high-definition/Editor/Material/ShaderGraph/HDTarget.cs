@@ -806,6 +806,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
 
         public static PragmaCollection BasicTessellation = new PragmaCollection
         {
+            { Pragma.NeverUseDXC(PragmaRenderers.GetNeverUseDXCPlatformArray()) },
             { Pragma.Target(ShaderModel.Target50) },
             { Pragma.Vertex("Vert") },
             { Pragma.Fragment("Frag") },
