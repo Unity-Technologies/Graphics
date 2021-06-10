@@ -724,11 +724,8 @@ namespace UnityEditor.VFX
                     if (m_GizmoDisplayed && m_GizmoedParameter != null)
                     {
                         ContextAndGizmo context = GetGizmo();
-
-                        context.gizmo.currentSpace = context.context.space;
-                        context.gizmo.spaceLocalByDefault = context.context.spaceLocalByDefault;
-                        context.gizmo.component = (VisualEffect)target;
-                        Bounds bounds = context.gizmo.CallGetGizmoBounds(context.context.value);
+                        Bounds bounds = VFXGizmoUtility.GetGizmoBounds(context.context, (VisualEffect)target, context.gizmo);
+                        context.context.Unprepare(); //Restore initial state : if gizmo isn't actually rendered, it could be out of sync
                         var sceneView = SceneView.lastActiveSceneView;
                         if (sceneView)
                             sceneView.Frame(bounds, false);
