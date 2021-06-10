@@ -29,6 +29,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed issue displaying a warning of different probe reference volume profiles even when they are equivalent.
 - Fixed missing increment/decrement controls from DebugUIIntField & DebugUIUIntField widget prefabs.
 - Fixed IES Importer related to new API on core.
+- Fixed alignment in Volume Components
 
 ### Added
 - Support for the PlayStation 5 platform has been added.
@@ -59,6 +60,8 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Add automatic spaces to enum display names used in Rendering Debugger and add support for InspectorNameAttribute.
 - Adding new API functions inside DynamicResolutionHandler to get mip bias. This allows dynamic resolution scaling applying a bias on the frame to improve on texture sampling detail.
 - Added a reminder if the data of probe volume might be obsolete.
+- Added OverridablePropertyScope (for VolumeComponentEditor child class only) to handle the Additional Property, the override checkbox and disable display and decorator attributes in one scope.
+- Added IndentLevelScope (for VolumeComponentEditor child class only) to handle indentation of the field and the checkbox.
 
 ### Changed
 - Changed Window/Render Pipeline/Render Pipeline Debug to Window/Analysis/Rendering Debugger
