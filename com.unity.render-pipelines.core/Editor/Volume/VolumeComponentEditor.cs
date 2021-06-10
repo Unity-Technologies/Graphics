@@ -460,8 +460,7 @@ namespace UnityEditor.Rendering
         /// <returns>true if the property field has been rendered</returns>
         protected bool PropertyField(SerializedDataParameter property)
         {
-            var title = EditorGUIUtility.TrTextContent(property.displayName,
-                property.GetAttribute<TooltipAttribute>()?.tooltip);
+            var title = EditorGUIUtility.TrTextContent(property.displayName);
             return PropertyField(property, title);
         }
 
@@ -523,26 +522,10 @@ namespace UnityEditor.Rendering
         /// <returns>true if the property field has been rendered</returns>
         protected bool PropertyField(SerializedDataParameter property, GUIContent title)
         {
-            bool draw = false;
-            if (property.GetAttribute<AdditionalPropertyAttribute>() == null)
-            {
-                // If the property doesn't have the attribute render it right away
-                DrawPropertyField(property, title);
-                draw = true;
-            }
+            if (VolumeParameter.IsObjectParameter(property.referenceType))
+                return DrawEmbeddedField(property, title);
             else
-            {
-                // The user had selected the option 'Show additional Properties'?
-                if (BeginAdditionalPropertiesScope())
-                {
-                    DrawPropertyField(property, title);
-                    draw = true;
-                }
-                EndAdditionalPropertiesScope();
-            }
-
-            // Return if the property has been
-            return draw;
+                return DrawPropertyField(property, title);
         }
 
         /// <summary>
@@ -551,33 +534,50 @@ namespace UnityEditor.Rendering
         /// </summary>
         /// <param name="property">The property to draw in the editor.</param>
         /// <param name="title">A custom label and/or tooltip.</param>
-        private void DrawPropertyField(SerializedDataParameter property, GUIContent title)
+        private bool DrawPropertyField(SerializedDataParameter property, GUIContent title)
         {
-            HandleDecorators(property, title);
+            using (var scope = new OverridablePropertyScope(property, title, this))
+            {
+                if (!scope.displayed)
+                    return false;
+
+                // Custom drawer
+                if (scope.drawer?.OnGUI(property, title) ?? false)
+                    return true;
+
+                // Standard Unity drawer
+                EditorGUILayout.PropertyField(property.value, title);
+            }
+
+            return true;
+        }
+
+        /// <summary>
+        /// Draws a given <see cref="SerializedDataParameter"/> in the editor using a custom label
+        /// and tooltip. This variant is only for embedded class / struct
+        /// </summary>
+        /// <param name="property">The property to draw in the editor.</param>
+        /// <param name="title">A custom label and/or tooltip.</param>
+        private bool DrawEmbeddedField(SerializedDataParameter property, GUIContent title)
+        {
+            bool isAdditionalProperty = property.GetAttribute<AdditionalPropertyAttribute>() != null;
+            bool displayed = !isAdditionalProperty || BeginAdditionalPropertiesScope();
+            if (!displayed)
+                return false;
 
             // Custom parameter drawer
             s_ParameterDrawers.TryGetValue(property.referenceType, out VolumeParameterDrawer drawer);
-
-            bool invalidProp = false;
-
             if (drawer != null && !drawer.IsAutoProperty())
-            {
                 if (drawer.OnGUI(property, title))
-                    return;
+                    return true;
 
-                invalidProp = true;
-            }
-
-            // ObjectParameter<T> is a special case
-            if (VolumeParameter.IsObjectParameter(property.referenceType))
+            // Standard Unity drawer
+            using (new IndentLevelScope())
             {
-                bool expanded = property.value.isExpanded;
+                bool expanded = property?.value?.isExpanded ?? true;
                 expanded = EditorGUILayout.Foldout(expanded, title, true);
-
                 if (expanded)
                 {
-                    EditorGUI.indentLevel++;
-
                     // Not the fastest way to do it but that'll do just fine for now
                     var it = property.value.Copy();
                     var end = it.GetEndProperty();
@@ -588,33 +588,13 @@ namespace UnityEditor.Rendering
                         PropertyField(Unpack(it));
                         first = false;
                     }
-
-                    EditorGUI.indentLevel--;
                 }
-
                 property.value.isExpanded = expanded;
-                return;
             }
 
-            using (new EditorGUILayout.HorizontalScope())
-            {
-                // Override checkbox
-                DrawOverrideCheckbox(property);
 
-                // Property
-                using (new EditorGUI.DisabledScope(!property.overrideState.boolValue))
-                {
-                    if (drawer != null && !invalidProp)
-                    {
-                        drawer.OnGUI(property, title);
-                    }
-                    else
-                    {
-                        // Default unity field
-                        EditorGUILayout.PropertyField(property.value, title);
-                    }
-                }
-            }
+            EndAdditionalPropertiesScope();
+            return true;
         }
 
         /// <summary>
