@@ -49,18 +49,29 @@ internal static class URP2DConverterUtility
         return false;
     }
 
-    public static void UpgradePrefab(string path, Action<GameObject> objectUpgrader)
+    public static string UpgradePrefab(string path, Action<GameObject> objectUpgrader)
     {
         UnityEngine.Object[] objects = AssetDatabase.LoadAllAssetsAtPath(path);
-        for (int objIndex = 0; objIndex < objects.Length; objIndex++)
+
+        // There should be no need to check this as we have already determined that there is something that needs upgrading
+        if (!PrefabUtility.IsPartOfImmutablePrefab(objects[0]))
         {
-            GameObject go = objects[objIndex] as GameObject;
-            if (go != null)
+            for (int objIndex = 0; objIndex < objects.Length; objIndex++)
             {
-                objectUpgrader(go);
-                PrefabUtility.SavePrefabAsset(go);
+                GameObject go = objects[objIndex] as GameObject;
+                if (go != null)
+                {
+                    objectUpgrader(go);
+                }
             }
+
+            GameObject asset = objects[0] as GameObject;
+            PrefabUtility.SavePrefabAsset(asset.transform.root.gameObject);
+
+            return null;
         }
+
+        return "Unable to modify an immutable prefab";
     }
 
     public static void UpgradeScene(string path, Action<GameObject> objectUpgrader)

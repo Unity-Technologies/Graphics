@@ -107,7 +107,7 @@ namespace UnityEditor.Rendering.Universal
 
         public override void OnClicked(int index)
         {
-            EditorGUIUtility.PingObject(AssetDatabase.LoadAssetAtPath<Material>(m_AssetsToConvert[index]));
+            EditorGUIUtility.PingObject(AssetDatabase.LoadAssetAtPath<UnityEngine.Object>(m_AssetsToConvert[index]));
         }
 
         public override void OnPostRun()

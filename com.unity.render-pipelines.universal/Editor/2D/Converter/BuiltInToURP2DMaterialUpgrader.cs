@@ -115,18 +115,30 @@ namespace UnityEditor.Rendering.Universal
 
         public override void OnRun(ref RunItemContext context)
         {
+
+            string result = null;
             string ext = Path.GetExtension(context.item.descriptor.info);
             if (ext == ".prefab")
-                URP2DConverterUtility.UpgradePrefab(context.item.descriptor.info, UpgradeGameObject);
+                result = URP2DConverterUtility.UpgradePrefab(context.item.descriptor.info, UpgradeGameObject);
             else if (ext == ".unity")
                 URP2DConverterUtility.UpgradeScene(context.item.descriptor.info, UpgradeGameObject);
             else if (ext == ".mat")
                 URP2DConverterUtility.UpgradeMaterial(context.item.descriptor.info, m_SpritesDefaultShader, m_SpriteLitDefaultShader);
+
+            if (result != null)
+            {
+                context.didFail = true;
+                context.info = result;
+            }
+            else
+            {
+                context.hasConverted = true;
+            }
         }
 
         public override void OnClicked(int index)
         {
-            EditorGUIUtility.PingObject(AssetDatabase.LoadAssetAtPath<Material>(m_AssetsToConvert[index]));
+            EditorGUIUtility.PingObject(AssetDatabase.LoadAssetAtPath<UnityEngine.Object>(m_AssetsToConvert[index]));
         }
 
         public override void OnPostRun()
