@@ -11,7 +11,6 @@ namespace UnityEditor.ShaderGraph
     {
         internal abstract Type targetType { get; }
         internal Target target { get; set; }
-        internal virtual bool prefersSpritePreview => false;
         public string displayName { get; set; }
         public bool isHidden { get; set; }
         public abstract bool IsActive();
