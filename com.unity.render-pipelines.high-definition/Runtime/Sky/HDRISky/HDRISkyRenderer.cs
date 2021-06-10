@@ -1,3 +1,7 @@
+// DOTSI - ronald.pieket - 2021/01/20 - Added [Preserve] attribute to the HDRISkyRenderer default constructor.
+// This was getting stripped and caused runtime errors.
+using UnityEngine.Scripting;
+// DOTSI
 #if UNITY_EDITOR
 using UnityEditor;
 #endif
@@ -16,6 +20,10 @@ namespace UnityEngine.Rendering.HighDefinition
         private static int m_RenderFullscreenSkyWithBackplateID             = 2; // FragRenderBackplate
         private static int m_RenderDepthOnlyFullscreenSkyWithBackplateID    = 3; // FragRenderBackplateDepth
 
+        // DOTSI - ronald.pieket - 2021/01/20 - Added [Preserve] attribute to the HDRISkyRenderer default constructor.
+        // This was getting stripped and caused runtime errors.
+        [Preserve]
+        // DOTSI
         public HDRISkyRenderer()
         {
             SupportDynamicSunLight = false;

@@ -1,6 +1,9 @@
 using UnityEngine.Rendering.HighDefinition.Attributes;
 using UnityEngine.Experimental.Rendering;
-
+// DOTSI - ronald.pieket - 01/20/21 - Fix for "Default constructor not found for type UnityEngine.Rendering.HighDefinition.Lit"
+// error message when code stripping is set at medium or high
+using UnityEngine.Scripting;
+// DOTSI
 namespace UnityEngine.Rendering.HighDefinition
 {
     partial class Lit : RenderPipelineMaterial
@@ -269,6 +272,10 @@ namespace UnityEngine.Rendering.HighDefinition
         // Init precomputed texture
         //-----------------------------------------------------------------------------
 
+        // DOTSI - ronald.pieket - 01/20/2021 - Fix for "Default constructor not found for type UnityEngine.Rendering.HighDefinition.Lit"
+        // error message when code stripping is set at medium or high
+        [Preserve]
+        // DOTSI
         public Lit() {}
 
         public override void Build(HDRenderPipelineAsset hdAsset, RenderPipelineResources defaultResources)
