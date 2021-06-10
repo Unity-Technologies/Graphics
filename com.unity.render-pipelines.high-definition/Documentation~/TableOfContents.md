@@ -23,6 +23,7 @@
   * [7.x to 8.x](Upgrading-from-2019.3-to-2020.1.md)
   * [8.x to 9.x-preview/10.x](Upgrading-from-2020.1-to-2020.2.md)
   * [9.x-preview/10.x](Upgrading-from-2020.2-to-2021.1.md)
+  * [11.x to 12.x](Upgrading-from-2021.1-to-2021.2.md)
 * Volume Framework
   * [Volumes](Volumes.md)
   * [Volume Profiles](Volume-Profile.md)
