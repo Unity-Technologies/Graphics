@@ -332,6 +332,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Changed light reset to preserve type.
 - Ignore hybrid duplicated reflection probes during light baking.
 - Updated the recursive rendering documentation (case 1338639).
+- Replaced the context menu by a search window when adding custom pass.
 
 ## [11.0.0] - 2020-10-21
 
