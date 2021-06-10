@@ -240,7 +240,6 @@ namespace UnityEditor.Rendering.Universal.Converters
                         obj = GlobalObjectId.GlobalObjectIdentifierToObjectSlow(globalId);
                         if (!obj)
                         {
-
                             ctx.didFail = true;
                             ctx.info = $"Object {globalId.assetGUID} failed to load...";
                         }
