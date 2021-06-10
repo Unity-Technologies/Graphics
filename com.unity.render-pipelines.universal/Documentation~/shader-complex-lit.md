@@ -1,19 +1,19 @@
 # Complex Lit Shader
 
-The Complex Lit Shader contains all the functionality of the Lit shader and adds advanced material features. Some features in this shader might be considerably more resource-intensive and require [Unity Shader Model 4.5](https://docs.unity3d.com/Manual/SL-ShaderCompileTargets.html) hardware. 
+The Complex Lit Shader contains all the functionality of the Lit shader and adds advanced material features. Some features in this shader might be considerably more resource-intensive and require [Unity Shader Model 4.5](https://docs.unity3d.com/Manual/SL-ShaderCompileTargets.html) hardware.
 
-In the Deferred Rendering Path, URP renders objects that have the Complex Lit shader using the Forward Rendering Path. If the hardware of the target platform does not support features in the Complex Lit shader, URP uses the Lit shader instead. 
+In the Deferred Rendering Path, URP renders objects that have the Complex Lit shader using the Forward Rendering Path. If the hardware of the target platform does not support features in the Complex Lit shader, URP uses the Lit shader instead.
 
-## Using the Complex Lit Shader in the Editor 
+## Using the Complex Lit Shader in the Editor
 
 To select and use this Shader:
 
-1. In your Project, create or find the Material you want to use the Shader on.  Select the __Material__. A Material Inspector window opens. 
+1. In your Project, create or find the Material you want to use the Shader on.  Select the __Material__. A Material Inspector window opens.
 2. Click __Shader__, and select __Universal Render Pipeline__ > __Complex Lit__.
 
-## UI overview  
+## UI overview
 
-The Inspector window for this Shader contains these elements: 
+The Inspector window for this Shader contains these elements:
 
 - __[Surface Options](#surface-options)__
 - __[Surface Inputs](#surface-inputs)__
@@ -23,9 +23,9 @@ The Inspector window for this Shader contains these elements:
 
 
 
-### Surface Options 
+### Surface Options
 
-The __Surface Options__ control how URP renders the Material on a screen. 
+The __Surface Options__ control how URP renders the Material on a screen.
 
 | Property            | Description                                                  |
 | ------------------- | ------------------------------------------------------------ |
@@ -40,7 +40,7 @@ The __Surface Options__ control how URP renders the Material on a screen.
 
 ### Surface Inputs
 
-The __Surface Inputs__ describe the surface itself. For example, you can use these properties to make your surface look wet, dry, rough, or smooth. 
+The __Surface Inputs__ describe the surface itself. For example, you can use these properties to make your surface look wet, dry, rough, or smooth.
 
 **Note:** If you are used to the [Standard Shader](https://docs.unity3d.com/Manual/Shader-StandardShader.html) in the built-in Unity render pipeline, these options are similar to the Main Maps settings in the [Material Editor](https://docs.unity3d.com/Manual/StandardShaderContextAndContent.html).
 
@@ -53,7 +53,7 @@ The __Surface Inputs__ describe the surface itself. For example, you can use the
 | __Normal Map__              | Adds a normal map to the surface. With a [normal map](https://docs.unity3d.com/Manual/StandardShaderMaterialParameterNormalMap.html?), you can add surface details like bumps, scratches and grooves. To add the map, click the object picker next to it. The normal map picks up ambient lighting in the environment. <br/>The float value next to the setting is a multiplier for the effect of the  __Normal Map__. Low values decrease the effect of the normal map. High values create stronger effects. |
 | __Height Map__              | URP implements the parallax mapping technique which uses the [height map](https://docs.unity3d.com/Manual/StandardShaderMaterialParameterHeightMap.html) to achieve surface-level occlusion effect by shifting the areas of the visible surface texture. To add the map, click the object picker next to it. <br/>The float value next to the setting is a multiplier for the effect of the __Height Map__. Low values decrease the effect of the height map. High values create stronger effects. |
 | __Occlusion Map__           | Select an [occlusion map](https://docs.unity3d.com/Manual/StandardShaderMaterialParameterOcclusionMap.html).  This simulates shadows from ambient light and reflection, which makes lighting look more realistic as less light reaches corners and crevices of objects. To select the occlusion map, click the object picker next to it. |
-| __Clear Coat__          | Select this check box to enable the Clear Coat feature. The feature adds a second material layer which simulates a transparent and thin coating on top of the base material. The feature affects the color and the Smoothness values of the underlying base material slightly. The index of refraction (IOR) of the Clear Coat is 1.5.<br/>**Performance impact**: Rendering Clear Coat has roughly twice the cost of rendering a base material, because the lighting is evaluated once per layer.<br/>**Mask**: This property defines the intensity of the effect: 0 - no effect, 1 - maximum effect. Setting the Mask value to 0 does not disable the feature.<br/>**Smoothness**: This property defines the spread of highlights on the surface. 0 gives wide, rough highlights. 1 gives sharp, glasslike highlights.<br/>There is the Clear Coat map property to the left of the Mask property. The channels have the following mapping:<br/>Red: the Mask property.<br/>Green: the Smoothness property.<br/>If a Clear Coat map is present, URP multiplies the map's pixel values by value of the Mask property. |
+| __Clear Coat__          | Select this check box to enable the Clear Coat feature. The feature adds an extra Material layer which simulates a transparent and thin coating on top of the base Material. The feature affects the color and the Smoothness values of the underlying base material slightly. The index of refraction (IOR) of the Clear Coat is 1.5.<br/>**Performance impact**: Rendering Clear Coat has roughly twice the cost of rendering a base material, because the lighting is evaluated once per layer.<br/>**Mask**: This property defines the intensity of the effect: 0 - no effect, 1 - maximum effect. Setting the Mask value to 0 does not disable the feature.<br/>**Smoothness**: This property defines the spread of highlights on the surface. 0 gives wide, rough highlights. 1 gives sharp, glasslike highlights.<br/>There is the Clear Coat map property to the left of the Mask property. The channels have the following mapping:<br/>Red: the Mask property.<br/>Green: the Smoothness property.<br/>If a Clear Coat map is present, URP multiplies the map's pixel values by value of the Mask property. |
 | __Emission__                | Makes the surface look like it emits lights. When enabled, the  __Emission Map__ and __Emission Color__ settings appear.<br/>To assign an __Emission Map__, click the object picture next to it. This opens the Asset Browser, where you can select from the textures in your Project.<br/>For __Emission Color__, you can use the [color picker](https://docs.unity3d.com/Manual/EditingValueProperties.html) to assign a tint on top of the color. This can be more than 100% white, which is useful for effects like lava, that shines brighter than white while still being another color.<br/>If you have not assigned an __Emission Map__, the __Emission__ setting only uses the tint you’ve assigned in __Emission Color__.<br/>If you do not enable __Emission__, URP sets the emission to black and does not calculate emission. |
 | __Tiling__                  | A 2D multiplier value that scales the Texture to fit across a mesh according to the U and V axes. This is good for surfaces like floors and walls. The default value is 1, which means no scaling. Set a higher value to make the Texture repeat across your mesh. Set a lower value to stretch the Texture. Try different values until you reach your desired effect. |
 | __Offset__                  | The 2D offset that positions the Texture on the mesh.  To adjust the position on your mesh, move the Texture across the U or V axes. |
@@ -81,7 +81,7 @@ The __Advanced__ settings affect the underlying calculations of your rendering. 
 | __Specular Highlights__     | Enable this to allow your Material to have specular highlights from direct lighting, for example [Directional, Point, and Spot lights](https://docs.unity3d.com/Manual/Lighting.html). This means that your Material reflects the shine from these light sources. Disable this to leave out these highlight calculations, so your Shader renders faster. By default, this feature is enabled. |
 | __Environment Reflections__ | Sample reflections using the nearest [Reflection Probe](https://docs.unity3d.com/Manual/class-ReflectionProbe.html), or, if you have set one in the [Lighting](https://docs.unity3d.com/Manual/GlobalIllumination.html) window, the [Lighting Probe](https://docs.unity3d.com/Manual/LightProbes.html). If you disable this, you will have fewer Shader calculations, but this also means that your surface has no reflections. |
 | __Enable GPU Instancing__   | Makes URP render meshes with the same geometry and Material in one batch, when possible. This makes rendering faster. URP cannot render Meshes in one batch if they have different Materials or if the hardware does not support GPU instancing. |
-| __Priority__                | Use this slider to determine the chronological rendering order for a Material. URP renders Materials with higher values first. You can use this to reduce overdraw on devices by making the pipeline render Materials in front of other Materials first, so it doesn't have to render overlapping areas twice. This works similarly to the [render queue](https://docs.unity3d.com/ScriptReference/Material-renderQueue.html) in the built-in Unity render pipeline. |
+| __Priority__                | Use this slider to determine the chronological rendering order for a Material. URP renders Materials with lower values first. You can use this to reduce overdraw on devices by making the pipeline render Materials in front of other Materials first, so it doesn't have to render overlapping areas twice. This works similarly to the [render queue](https://docs.unity3d.com/ScriptReference/Material-renderQueue.html) in the built-in Unity render pipeline. |
 
 
 ## Channel packing
@@ -105,4 +105,3 @@ This Shader uses [channel packing](http://wiki.polycount.com/wiki/ChannelPacking
 | **Green** | Smoothness |
 | **Blue**  | None       |
 | **Alpha** | None       |
-

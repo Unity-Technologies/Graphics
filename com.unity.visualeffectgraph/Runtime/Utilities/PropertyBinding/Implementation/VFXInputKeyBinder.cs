@@ -20,7 +20,9 @@ namespace UnityEngine.VFX.Utility
         public float SmoothSpeed = 2.0f;
         public bool UseKeySmooth = true;
 
+#if ENABLE_LEGACY_INPUT_MANAGER
         float m_CachedSmoothValue = 0.0f;
+#endif
 
         public override bool IsValid(VisualEffect component)
         {

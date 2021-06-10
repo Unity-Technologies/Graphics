@@ -133,7 +133,7 @@ ByteAddressBuffer unity_DOTSInstanceData;
 // on some platforms does not trigger.
 struct DOTSVisibleData
 {
-	uint4 VisibleData;
+    uint4 VisibleData;
 };
 
 // The name of this cbuffer has to start with "UnityInstancing" and a struct so it's
@@ -236,4 +236,3 @@ float2x4 LoadDOTSInstancedData(float2x4 dummy, uint metadata) { return LoadDOTSI
 #endif // UNITY_DOTS_INSTANCING_ENABLED
 
 #endif // UNITY_DOTS_INSTANCING_INCLUDED
-

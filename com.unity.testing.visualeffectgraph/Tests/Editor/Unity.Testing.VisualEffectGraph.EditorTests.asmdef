@@ -3,7 +3,9 @@
     "references": [
         "Unity.Testing.VisualEffectGraph.Editor",
         "Unity.Testing.VisualEffectGraph",
-		"Unity.VisualEffectGraph.Editor"
+        "Unity.Testing.XR.Editor",
+        "Unity.VisualEffectGraph.Editor",
+        "UnityEditor.TestTools.Graphics"
     ],
     "optionalUnityReferences": [
         "TestAssemblies"

@@ -1,0 +1,65 @@
+#pragma only_renderers d3d11 playstation xboxone xboxseries vulkan metal switch
+
+//#pragma enable_d3d11_debug_symbols
+#pragma multi_compile_local _ DISABLE_MAIN_LAYER
+#pragma multi_compile_local _ USE_CLOUD_MOTION
+#pragma multi_compile_local _ USE_FLOWMAP
+#pragma multi_compile_local _ USE_SECOND_CLOUD_LAYER
+#pragma multi_compile_local _ USE_SECOND_CLOUD_MOTION
+#pragma multi_compile_local _ USE_SECOND_FLOWMAP
+
+#pragma kernel BakeCloudShadows KERNEL_NAME=BakeCloudShadows
+
+#include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Common.hlsl"
+#include "Packages/com.unity.render-pipelines.high-definition/Runtime/Sky/CloudSystem/CloudLayer/CloudLayerCommon.hlsl"
+#include "Packages/com.unity.render-pipelines.high-definition/Runtime/ShaderLibrary/ShaderVariables.hlsl"
+
+RW_TEXTURE2D(float3, _CloudShadows);
+
+float4 _Params;
+float4 _Params1;
+float4 _Params2;
+float4 _Params3;
+
+#define _SunForward     _Params.xyz
+#define _SunRight       _Params1.xyz
+#define _SunUp          _Params2.xyz
+#define _Resolution     _Params.w
+#define _ShadowTint     _Params3.rgb
+#define _ShadowOpacity  _Params3.a
+
+float ComputeCloudShadow(float2 uv)
+{
+    const float width = 0.2;
+    float3 dir = -_SunForward + uv.x * width * _SunRight - uv.y * width * _SunUp;
+
+    return RenderClouds(normalize(dir)).a;
+}
+
+[numthreads(8, 8, 1)]
+void KERNEL_NAME(uint2 dispatchThreadId : SV_DispatchThreadID)
+{
+    float2 uv = float2(dispatchThreadId.x * _Resolution, 1.0 - dispatchThreadId.y * _Resolution) * 2.0 - 1.0;
+    float shadow = ComputeCloudShadow(uv);
+
+    // Blend with the other borders to make the texture tileable
+    const float tiling = 0.5;
+    float2 uv2 = uv - (1.0 - tiling);
+    float2 weights = saturate(uv2 / tiling);
+    weights.x = Smoothstep01(weights.x);
+    weights.y = Smoothstep01(weights.y);
+
+    if (uv2.x > 0.0)
+        shadow = lerp(shadow, ComputeCloudShadow(uv - float2(2.0, 0.0)), weights.x);
+
+    if (uv2.y > 0.0)
+    {
+        float shadow2 = ComputeCloudShadow(uv - float2(0.0, 2.0));
+        if (uv2.x > 0.0)
+            shadow2 = lerp(shadow2, ComputeCloudShadow(uv - float2(2.0, 2.0)), weights.x);
+
+        shadow = lerp(shadow, shadow2, weights.y);
+    }
+
+    _CloudShadows[dispatchThreadId] = lerp(float3(1.0, 1.0, 1.0), _ShadowTint, saturate(shadow * _ShadowOpacity));
+}

@@ -8,12 +8,12 @@ namespace UnityEditor.VFX.Block
     [VFXInfo(category = "Position")]
     class PositionDepth : VFXBlock
     {
-		public enum PositionMode
-		{
-			Random,
-			Sequential,
-			Custom,
-		}
+        public enum PositionMode
+        {
+            Random,
+            Sequential,
+            Custom,
+        }
 
         public enum CullMode
         {
@@ -21,9 +21,10 @@ namespace UnityEditor.VFX.Block
             FarPlane,
             Range,
         }
-		
+
         public class InputProperties
-        {   [Tooltip("Sets a scale multiplier to the depth value. Values above 1 push particles further back, values lower than 1 pull them closer to the camera.")]
+        {
+            [Tooltip("Sets a scale multiplier to the depth value. Values above 1 push particles further back, values lower than 1 pull them closer to the camera.")]
             public float ZMultiplier = 1.0f;
         }
 
@@ -32,24 +33,35 @@ namespace UnityEditor.VFX.Block
             [Tooltip("Sets the space between sequentially-placed particles. Lower numbers produce a denser placement.")]
             public uint GridStep = 1;
         }
-		
-		public class CustomInputProperties
-		{
+
+        public class CustomInputProperties
+        {
             [Range(0.0f, 1.0f), Tooltip("Sets the UV coordinates with which to sample the depth buffer.")]
             public Vector2 UVSpawn;
-		}
+        }
 
         public class RangeInputProperties
         {
-            [Range(0.0f,1.0f), Tooltip("Sets the depth range within which to spawn particles. Particles outside of this range are culled.")]
-            public Vector2 DepthRange = new Vector2(0.0f,1.0f);
+            [Range(0.0f, 1.0f), Tooltip("Sets the depth range within which to spawn particles. Particles outside of this range are culled.")]
+            public Vector2 DepthRange = new Vector2(0.0f, 1.0f);
+        }
+
+        public class InputPropertiesBlendPosition
+        {
+            [Range(0.0f, 1.0f), Tooltip("Sets the blending value for position attribute.")]
+            public float blendPosition;
+        }
+        public class InputPropertiesBlendColor
+        {
+            [Range(0.0f, 1.0f), Tooltip("Sets the blending value for color attribute.")]
+            public float blendColor;
         }
 
         [VFXSetting, Tooltip("Specifies which Camera to use to project particles onto its depth. Can use the camera tagged 'Main', or a custom camera.")]
         public CameraMode camera;
 
         [VFXSetting, Tooltip("Specifies how particles are positioned on the screen. They can be placed sequentially in an even grid, randomly, or with a custom UV position.")]
-		public PositionMode mode;
+        public PositionMode mode;
 
         [VFXSetting, Tooltip("Specifies how to determine whether the particle should be alive. A particle can be culled when it is projected on the far camera plane, between a specific range, or culling can be disabled.")]
         public CullMode cullMode;
@@ -57,25 +69,38 @@ namespace UnityEditor.VFX.Block
         [VFXSetting(VFXSettingAttribute.VisibleFlags.InInspector), Tooltip("When enabled, particles inherit the color from the color buffer.")]
         public bool inheritSceneColor = false;
 
-        public override string name { get { return "Position (Depth)"; } }
+        [VFXSetting(VFXSettingAttribute.VisibleFlags.InInspector), Tooltip("Specifies what operation to perform on Position. The input value can overwrite, add to, multiply with, or blend with the existing attribute value.")]
+        public AttributeCompositionMode compositionPosition = AttributeCompositionMode.Overwrite;
+
+        [VFXSetting(VFXSettingAttribute.VisibleFlags.InInspector), Tooltip("Specifies what operation to perform on Color. The input value can overwrite, add to, multiply with, or blend with the existing attribute value.")]
+        public AttributeCompositionMode compositionColor = AttributeCompositionMode.Overwrite;
+
+        public override string name { get { return $"{VFXBlockUtility.GetNameString(compositionPosition)} Position (Depth)"; } }
         public override VFXContextType compatibleContexts { get { return VFXContextType.Init; } }
         public override VFXDataType compatibleData { get { return VFXDataType.Particle; } }
+
+        protected override sealed void GenerateErrors(VFXInvalidateErrorReporter manager)
+        {
+            if (camera == CameraMode.Main && (UnityEngine.Rendering.RenderPipelineManager.currentPipeline == null || !UnityEngine.Rendering.RenderPipelineManager.currentPipeline.ToString().Contains("HDRenderPipeline")))
+                manager.RegisterError("PositionDepthBlockUnavailableWithoutHDRP", VFXErrorType.Warning, "Position (Depth) is currently only supported in the High Definition Render Pipeline (HDRP).");
+        }
+
         public override IEnumerable<VFXAttributeInfo> attributes
         {
             get
             {
-                yield return new VFXAttributeInfo(VFXAttribute.Position, VFXAttributeMode.Write);
+                yield return new VFXAttributeInfo(VFXAttribute.Position, compositionPosition == AttributeCompositionMode.Overwrite ? VFXAttributeMode.Write : VFXAttributeMode.ReadWrite);
 
                 if (inheritSceneColor)
-                    yield return new VFXAttributeInfo(VFXAttribute.Color, VFXAttributeMode.Write);
-				
+                    yield return new VFXAttributeInfo(VFXAttribute.Color, compositionColor == AttributeCompositionMode.Overwrite ? VFXAttributeMode.Write : VFXAttributeMode.ReadWrite);
+
                 if (mode == PositionMode.Sequential)
                     yield return new VFXAttributeInfo(VFXAttribute.ParticleId, VFXAttributeMode.Read);
                 else if (mode == PositionMode.Random)
                     yield return new VFXAttributeInfo(VFXAttribute.Seed, VFXAttributeMode.ReadWrite);
 
                 if (cullMode != CullMode.None)
-                    yield return new VFXAttributeInfo(VFXAttribute.Alive, VFXAttributeMode.Write);   
+                    yield return new VFXAttributeInfo(VFXAttribute.Alive, VFXAttributeMode.Write);
             }
         }
 
@@ -89,10 +114,17 @@ namespace UnityEditor.VFX.Block
                 inputs = inputs.Concat(PropertiesFromType("InputProperties"));
                 if (mode == PositionMode.Sequential)
                     inputs = inputs.Concat(PropertiesFromType("SequentialInputProperties"));
-				else if (mode == PositionMode.Custom)
-					inputs = inputs.Concat(PropertiesFromType("CustomInputProperties"));
+                else if (mode == PositionMode.Custom)
+                    inputs = inputs.Concat(PropertiesFromType("CustomInputProperties"));
                 if (cullMode == CullMode.Range)
                     inputs = inputs.Concat(PropertiesFromType("RangeInputProperties"));
+
+                if (compositionPosition == AttributeCompositionMode.Blend)
+                    inputs = inputs.Concat(PropertiesFromType(nameof(InputPropertiesBlendPosition)));
+
+                if (inheritSceneColor && compositionColor == AttributeCompositionMode.Blend)
+                    inputs = inputs.Concat(PropertiesFromType(nameof(InputPropertiesBlendColor)));
+
                 return inputs;
             }
         }
@@ -101,7 +133,7 @@ namespace UnityEditor.VFX.Block
         {
             get
             {
-                var expressions = CameraHelper.AddCameraExpressions(GetExpressionsFromSlots(this),camera);
+                var expressions = CameraHelper.AddCameraExpressions(GetExpressionsFromSlots(this), camera);
 
                 VFXCoordinateSpace systemSpace = ((VFXDataParticle)GetData()).space;
                 // in custom camera mode, camera space is already in system space (conversion happened in slot)
@@ -128,18 +160,18 @@ namespace UnityEditor.VFX.Block
         {
             get
             {
-                string source = "";              
+                string source = "";
 
-				switch(mode)
-				{
-					case PositionMode.Random:
-						source += @"
+                switch (mode)
+                {
+                    case PositionMode.Random:
+                        source += @"
 float2 uvs = RAND2;
 ";
-					break;
-					
-					case PositionMode.Sequential:
-						source += @"
+                        break;
+
+                    case PositionMode.Sequential:
+                        source += @"
 // Pixel perfect spawn
 uint2 sSize = Camera_pixelDimensions / GridStep;
 uint nbPixels = sSize.x * sSize.y;
@@ -147,19 +179,18 @@ uint id = particleId % nbPixels;
 uint2 ids = uint2(id % sSize.x,id / sSize.x) * GridStep + (GridStep >> 1);
 float2 uvs = (ids + 0.5f) / Camera_pixelDimensions;
 ";
-					break;
-					
-					case PositionMode.Custom:
-						source += @"
+                        break;
+
+                    case PositionMode.Custom:
+                        source += @"
 float2 uvs = UVSpawn;
 ";
-					break;
-				}
+                        break;
+                }
 
                 source += @"
 float2 projpos = uvs * 2.0f - 1.0f;
-				
-float depth = LoadTexture(Camera_depthBuffer,int4(uvs*Camera_pixelDimensions, 0, 0)).r;
+float depth = LOAD_TEXTURE2D_X(Camera_depthBuffer.t, uvs*Camera_pixelDimensions).r;
 #if UNITY_REVERSED_Z
 depth = 1.0f - depth; // reversed z
 #endif";
@@ -183,20 +214,21 @@ if (depth < DepthRange.x || depth > DepthRange.y)
     return;
 }
 ";
-            source += @"
+                source += @"
 float4 clipPos = float4(projpos,depth * ZMultiplier * 2.0f - 1.0f,1.0f);
 float4 vfxPos = mul(ClipToVFX,clipPos);
-position = vfxPos.xyz / vfxPos.w;
 ";
+                source += VFXBlockUtility.GetComposeString(compositionPosition, "position", " vfxPos.xyz / vfxPos.w", "blendPosition");
+
 
                 if (inheritSceneColor)
-                    source += @"
-color = LoadTexture(Camera_colorBuffer,int4(uvs*Camera_pixelDimensions, 0, 0)).rgb;
-";
+                {
+                    source += "\n";
+                    source += VFXBlockUtility.GetComposeString(compositionColor, "color", " LOAD_TEXTURE2D_X(Camera_colorBuffer.t, uvs*Camera_pixelDimensions).rgb", "blendColor");
+                }
 
                 return source;
             }
         }
-
     }
 }

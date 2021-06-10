@@ -43,7 +43,7 @@ namespace UnityEditor.VFX.UIElements
             foreach (string val in System.Enum.GetNames(m_EnumType))
             {
                 int valueInt = (int)System.Enum.Parse(m_EnumType, val);
-                if(filteredOutValues == null || !filteredOutValues.Any(t=>t == valueInt))
+                if (filteredOutValues == null || !filteredOutValues.Any(t => t == valueInt))
                     menu.AddItem(new GUIContent(ObjectNames.NicifyVariableName(val)), valueInt == m_Value, ChangeValue, valueInt);
             }
             menu.DropDown(m_DropDownButton.worldBound);

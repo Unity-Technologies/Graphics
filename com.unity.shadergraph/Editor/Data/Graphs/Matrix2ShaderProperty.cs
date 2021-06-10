@@ -17,9 +17,9 @@ namespace UnityEditor.ShaderGraph
 
         public override PropertyType propertyType => PropertyType.Matrix2;
 
-        internal override string GetPropertyAsArgumentString()
+        internal override string GetPropertyAsArgumentString(string precisionString)
         {
-            return $"{concretePrecision.ToShaderString()}2x2 {referenceName}";
+            return $"{precisionString}2x2 {referenceName}";
         }
 
         internal override AbstractMaterialNode ToConcreteNode()
@@ -45,10 +45,21 @@ namespace UnityEditor.ShaderGraph
             return new Matrix2ShaderProperty()
             {
                 displayName = displayName,
-                hidden = hidden,
                 value = value,
-                precision = precision,
             };
+        }
+
+        public override int latestVersion => 1;
+        public override void OnAfterDeserialize(string json)
+        {
+            if (sgVersion == 0)
+            {
+                // all old matrices were declared global; yes even if flagged hybrid!
+                // maintain old behavior on versioning, users can always change the override if they wish
+                overrideHLSLDeclaration = true;
+                hlslDeclarationOverride = HLSLDeclaration.Global;
+                ChangeVersion(1);
+            }
         }
     }
 }

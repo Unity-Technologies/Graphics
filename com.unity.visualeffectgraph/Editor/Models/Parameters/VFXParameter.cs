@@ -91,10 +91,10 @@ namespace UnityEditor.VFX
 
             set
             {
-                if( value != m_ValueFilter)
+                if (value != m_ValueFilter)
                 {
                     m_ValueFilter = value;
-                    switch(m_ValueFilter)
+                    switch (m_ValueFilter)
                     {
                         case VFXValueFilter.Default:
                             m_Max = m_Min = null;
@@ -424,7 +424,7 @@ namespace UnityEditor.VFX
                 VFXSlot slot = VFXSlot.Create(new VFXProperty(_type, "o"), VFXSlot.Direction.kOutput);
                 AddSlot(slot);
 
-                if (!typeof(UnityEngine.Object).IsAssignableFrom(_type))
+                if (!typeof(UnityEngine.Object).IsAssignableFrom(_type) && _type != typeof(GraphicsBuffer))
                     slot.value = System.Activator.CreateInstance(_type);
             }
             else

@@ -59,9 +59,9 @@
 // Or reduce green a little {1.0,1.0/2.0,1.0/32.0} -> to tint blues towards purple on over-exposure.
 // If wanting a stronger blue->purple, drop both green and blue {1.0,1.0/4.0,1.0/128.0}.
 // Note that crosstalk value should be tuned differently based on the color space.
-// Suggest tuning crosstalk separately for Rec.2020 and Rec.709 primaries for example. 
+// Suggest tuning crosstalk separately for Rec.2020 and Rec.709 primaries for example.
 //------------------------------------------------------------------------------------------------------------------------------
-// SETUP THE MAPPER 
+// SETUP THE MAPPER
 // ================
 // This would typically be done on the CPU, but showing the GPU code here.
 //  ...
@@ -105,7 +105,7 @@
 //  ...
 //  mapM=constants.mapM;
 //  mapN=constants.mapN;
-//  ... 
+//  ...
 //  // Run the tone/gamut-mapper.
 //  // The 'c.rgb' is the color to map, using the no-shoulder tuning option.
 //  LpmFilter(c.r,c.g,c.b,false,LPM_CONFIG_709_709, // <-- Using the LPM_CONFIG_ prefab to make inputs easier.
@@ -154,7 +154,7 @@
 //------------------------------------------------------------------------------------------------------------------------------
 // Used by LpmSetup() to build constants for the GPU setup path.
 //------------------------------------------------------------------------------------------------------------------------------
-// Color math references, 
+// Color math references,
 //  - http://www.brucelindbloom.com/index.html?Eqn_RGB_XYZ_Matrix.html
 //  - https://en.wikipedia.org/wiki/SRGB#The_sRGB_transfer_function_.28.22gamma.22.29
 //  - http://www.ryanjuckett.com/programming/rgb-color-space-conversion/
@@ -210,7 +210,7 @@
   ox=r3*s;oy=g3*s;oz=b3*s;}
 //==============================================================================================================================
  // Visualize difference between two values, by bits of precision.
- // This is useful when doing approximation to reference comparisons. 
+ // This is useful when doing approximation to reference comparisons.
  AP1 LpmD(AF1 a,AF1 b){return abs(a-b)<1.0;}
 //------------------------------------------------------------------------------------------------------------------------------
  AF1 LpmC(AF1 a,AF1 b){AF1 c=1.0; // 6-bits or less (the color)
@@ -227,7 +227,7 @@
 //==============================================================================================================================
 //                                                 HDR10 RANGE LIMITING SCALAR
 //------------------------------------------------------------------------------------------------------------------------------
-// As of 2019, HDR10 supporting TVs typically have PQ tonal curves with near clipping long before getting to the peak 10K nits. 
+// As of 2019, HDR10 supporting TVs typically have PQ tonal curves with near clipping long before getting to the peak 10K nits.
 // Unfortunately this clipping point changes per TV (requires some amount of user calibration).
 // Some examples,
 //  https://youtu.be/M7OsbpU4oCQ?t=875
@@ -272,7 +272,7 @@
 // 2020 ......... Rec.2020
 // 709 .......... Rec.709
 // P3 ........... DCI-P3 with D65 white-point
-// -------------- 
+// --------------
 //                OUTPUT COLOR SPACE
 //                ==================
 // FS2RAW ....... Faster 32-bit/pixel FreeSync2 raw gamma 2.2 output (native display primaries)
@@ -406,12 +406,12 @@
 // map0  saturation.r      saturation.g      saturation.b      contrast
 // map1  toneScaleBias.x   toneScaleBias.y   lumaT.r           lumaT.g
 // map2  lumaT.b           crosstalk.r       crosstalk.g       crosstalk.b
-// map3  rcpLumaT.r        rcpLumaT.g        rcpLumaT.b        con2R.r 
+// map3  rcpLumaT.r        rcpLumaT.g        rcpLumaT.b        con2R.r
 // --
-// map4  con2R.g           con2R.b           con2G.r           con2G.g 
+// map4  con2R.g           con2R.b           con2G.r           con2G.g
 // map5  con2G.b           con2B.r           con2B.g           con2B.b
 // map6  shoulderContrast  lumaW.r           lumaW.g           lumaW.b
-// map7  softGap.x         softGap.y         conR.r            conR.g 
+// map7  softGap.x         softGap.y         conR.r            conR.g
 // --
 // map8  conR.b            conG.r            conG.g            conG.b
 // map9  conB.r            conB.g            conB.b            (reserved)
@@ -428,11 +428,11 @@
 // mapG.rg  saturation.r      saturation.g      saturation.b      contrast
 // mapG.ba  toneScaleBias.x   toneScaleBias.y   lumaT.r           lumaT.g
 // mapH.rg  lumaT.b           crosstalk.r       crosstalk.g       crosstalk.b
-// mapH.ba  rcpLumaT.r        rcpLumaT.g        rcpLumaT.b        con2R.r 
-// mapI.rg  con2R.g           con2R.b           con2G.r           con2G.g 
+// mapH.ba  rcpLumaT.r        rcpLumaT.g        rcpLumaT.b        con2R.r
+// mapI.rg  con2R.g           con2R.b           con2G.r           con2G.g
 // mapI.ba  con2G.b           con2B.r           con2B.g           con2B.b
 // mapJ.rg  shoulderContrast  lumaW.r           lumaW.g           lumaW.b
-// mapJ.ba  softGap.x         softGap.y         conR.r            conR.g 
+// mapJ.ba  softGap.x         softGap.y         conR.r            conR.g
 // --
 // mapK.rg  conR.b            conG.r            conG.g            conG.b
 // mapK.ba  conB.r            conB.g            conB.b            (reserved)
@@ -470,9 +470,9 @@
  AF1 softGap, // Range of 0 to a little over zero, controls how much feather region in out-of-gamut mapping, 0=clip.
  // Tonemapping control.
  AF1 hdrMax, // Maximum input value.
- AF1 exposure, // Number of stops between 'hdrMax' and 18% mid-level on input. 
+ AF1 exposure, // Number of stops between 'hdrMax' and 18% mid-level on input.
  AF1 contrast, // Input range {0.0 (no extra contrast) to 1.0 (maximum contrast)}.
- AF1 shoulderContrast, // Shoulder shaping, 1.0 = no change (fast path). 
+ AF1 shoulderContrast, // Shoulder shaping, 1.0 = no change (fast path).
  AF3 saturation, // A per channel adjustment, use <0 decrease, 0=no change, >0 increase.
  AF3 crosstalk){ // One channel must be 1.0, the rest can be <= 1.0 but not zero.
 //-----------------------------------------------------------------------------------------------------------------------------
@@ -498,14 +498,14 @@
   AF1 w2=pow(hdrMax,cs)*midOut;
   AF1 w3=pow(midIn,cs)*midOut;
   toneScaleBias.y=(w0-w1)/(w2-w3);
-//----------------------------------------------------------------------------------------------------------------------------- 
+//-----------------------------------------------------------------------------------------------------------------------------
   AF3 lumaW;AF3 rgbToXyzXW;AF3 rgbToXyzYW;AF3 rgbToXyzZW;
   LpmColRgbToXyz(rgbToXyzXW,rgbToXyzYW,rgbToXyzZW,xyRedW,xyGreenW,xyBlueW,xyWhiteW);
   // Use the Y vector of the matrix for the associated luma coef.
   // For safety, make sure the vector sums to 1.0.
   lumaW=rgbToXyzYW;
   lumaW*=ARcpF1(lumaW.r+lumaW.g+lumaW.b);
-//----------------------------------------------------------------------------------------------------------------------------- 
+//-----------------------------------------------------------------------------------------------------------------------------
   // The 'lumaT' for crosstalk mapping is always based on the output color space, unless soft conversion is not used.
   AF3 lumaT;AF3 rgbToXyzXO;AF3 rgbToXyzYO;AF3 rgbToXyzZO;
   LpmColRgbToXyz(rgbToXyzXO,rgbToXyzYO,rgbToXyzZO,xyRedO,xyGreenO,xyBlueO,xyWhiteO);
@@ -589,7 +589,7 @@
    mapK.ba=AU2_AH4(AH4(AH1(conB.r),AH1(conB.g),AH1(conB.b),AH1(0.0)));
    #ifdef A_HLSL
     mapL=mapM=mapN=AU4_(0);
-   #endif  
+   #endif
   #endif
  }
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -622,7 +622,7 @@
  AP1 con, // Use first RGB conversion matrix (should be a compile-time immediate), if 'soft' then 'con' must be true also.
  AF3 conR,AF3 conG,AF3 conB, // RGB conversion matrix (working to output space conversion).
  AP1 soft, // Use soft gamut mapping (should be a compile-time immediate).
- AF2 softGap, // {x,(1-x)/(x*0.693147180559)}, where 'x' is gamut mapping soft fall-off amount. 
+ AF2 softGap, // {x,(1-x)/(x*0.693147180559)}, where 'x' is gamut mapping soft fall-off amount.
  AP1 con2, // Use last RGB conversion matrix (should be a compile-time immediate).
  AP1 clip, // Use clipping on last conversion matrix.
  AP1 scaleOnly, // Do scaling only (special case for 709 HDR to scRGB).
@@ -678,7 +678,7 @@
   colorR=ASatF1(ratioR*ratioScale);colorG=ASatF1(ratioG*ratioScale);colorB=ASatF1(ratioB*ratioScale);
   // Capability per channel to increase value (3x MAD).
   // This factors in crosstalk factor to avoid multiplies later.
-  //  '(1.0-ratio)*crosstalk' optimized to '-crosstalk*ratio+crosstalk' 
+  //  '(1.0-ratio)*crosstalk' optimized to '-crosstalk*ratio+crosstalk'
   AF1 capR=AF1_(-crosstalk.r)*colorR+AF1_(crosstalk.r);
   AF1 capG=AF1_(-crosstalk.g)*colorG+AF1_(crosstalk.g);
   AF1 capB=AF1_(-crosstalk.b)*colorB+AF1_(crosstalk.b);

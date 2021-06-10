@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.IO;
@@ -173,7 +173,7 @@ namespace UnityEditor.ShaderAnalysis
                 // Try to enqueue jobs
                 while (m_CompileJobMap.Count < k_MaxParallelCompilation && compileUnitToProcess.Count > 0)
                 {
-                    var (unit, unitIndex) = compileUnitToProcess[0];
+                    var(unit, unitIndex) = compileUnitToProcess[0];
                     compileUnitToProcess.RemoveAt(0);
                     var job = compiler.Compile(unit.sourceCodeFile, temporaryDirectory, unit.compiledFile, unit.compileOptions, unit.compileProfile, unit.compileTarget);
                     if (logCommandLine)
@@ -202,7 +202,8 @@ namespace UnityEditor.ShaderAnalysis
                                     throw new Exception(
                                         $"Failed to compile {unit.sourceCodeFile}, relaunching compile job, reason: {job.Key.errors}");
 
-                                Debug.LogWarningFormat("Failed to compile {0}, relaunching compile job, reason: {1}", unit.sourceCodeFile, job.Key.errors);
+                                if (unit.sourceCodeFile != null && job.Key.errors != null)
+                                    Debug.LogWarningFormat("Failed to compile {0}, relaunching compile job, reason: {1}", unit.sourceCodeFile, job.Key.errors);
                                 var retryJob = compiler.Compile(unit.sourceCodeFile, temporaryDirectory, unit.compiledFile, unit.compileOptions, unit.compileProfile, unit.compileTarget);
                                 m_CompileJobMap[retryJob] = job.Value;
                                 compiled = false;

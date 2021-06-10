@@ -31,7 +31,7 @@ namespace UnityEditor.Rendering.HighDefinition
         /// </param>
         /// <returns><c>true</c> when the value was evaluated, <c>false</c> when the value could not be evaluated.</returns>
         public bool TryGetLevelValue<T>(int level, out T value)
-            where T: struct
+            where T : struct
         {
             if (level < values.arraySize && level >= 0)
             {
@@ -71,13 +71,6 @@ namespace UnityEditor.Rendering.HighDefinition
             var schema = ScalableSettingSchema.GetSchemaOrNull(new ScalableSettingSchemaId(self.schemaId.stringValue))
                 ?? ScalableSettingSchema.GetSchemaOrNull(ScalableSettingSchemaId.With3Levels);
 
-            var rect = GUILayoutUtility.GetRect(0, float.Epsilon, EditorGUIUtility.singleLineHeight, EditorGUIUtility.singleLineHeight);
-            // Magic Number !!
-            rect.x += 3;
-            rect.width -= 6;
-            // Magic Number !!
-
-            var contentRect = EditorGUI.PrefixLabel(rect, label);
             EditorGUI.showMixedValue = self.values.hasMultipleDifferentValues;
 
             var count = schema.levelCount;
@@ -85,14 +78,8 @@ namespace UnityEditor.Rendering.HighDefinition
             if (self.values.arraySize != count)
                 self.values.arraySize = count;
 
-            if (typeof(T) == typeof(bool))
-                LevelValuesFieldGUI<bool>(contentRect, self, count, schema);
-            else if (typeof(T) == typeof(int))
-                LevelValuesFieldGUI<int>(contentRect, self, count, schema);
-            else if (typeof(T) == typeof(float))
-                LevelValuesFieldGUI<float>(contentRect, self, count, schema);
-            else if (typeof(T).IsEnum)
-                LevelValuesFieldGUI<T>(contentRect, self, count, schema);
+            LevelValuesFieldGUI<T>(label, self, count, schema);
+
             EditorGUI.showMixedValue = false;
         }
 
@@ -108,7 +95,7 @@ namespace UnityEditor.Rendering.HighDefinition
         /// <param name="schema">The schema to use when drawing the levels.</param>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         static void LevelValuesFieldGUI<T>(
-            Rect rect,
+            GUIContent label,
             SerializedScalableSetting scalableSetting,
             int count,
             ScalableSettingSchema schema
@@ -120,82 +107,16 @@ namespace UnityEditor.Rendering.HighDefinition
             var values = new T[count];
             for (var i = 0; i < count; ++i)
                 values[i] = scalableSetting.values.GetArrayElementAtIndex(i).GetInline<T>();
-            EditorGUI.BeginChangeCheck();
-            MultiField(rect, labels, values);
-            if (EditorGUI.EndChangeCheck())
+
+            using (var scope = new EditorGUI.ChangeCheckScope())
             {
-                for (var i = 0; i < count; ++i)
-                    scalableSetting.values.GetArrayElementAtIndex(i).SetInline(values[i]);
-            }
-        }
-
-        /// <summary>Draw multiple fields in a single line.</summary>
-        /// <typeparam name="T">The type to render.</typeparam>
-        /// <param name="position">The rect to use to draw the GUI.</param>
-        /// <param name="subLabels">The labels for each sub value field.</param>
-        /// <param name="values">The current values of the fields.</param>
-        static void MultiField<T>(Rect position, GUIContent[] subLabels, T[] values)
-            where T: struct
-        {
-            // The number of slots we need to fit into this rectangle
-            var length = values.Length;
-
-            // Let's compute the space allocated for every field including the label
-            var num = position.width / (float) length;
-
-            // Reset the indentation
-            var indentLevel = EditorGUI.indentLevel;
-            EditorGUI.indentLevel = 0;
-
-            // Variable to keep track of the current pixel shift in the rectangle we were assigned for this whole section.
-            float pixelShift = 0;
-
-            // Loop through the levels
-            for (var index = 0; index < values.Length; ++index)
-            {
-                // Let's first compute what is the width of the label of this scalable setting level
-				// We make sure that the label doesn't go beyond the space available for this scalable setting level
-                var labelWidth = Mathf.Clamp(CalcPrefixLabelWidth(subLabels[index], (GUIStyle)null), 0, num);
-
-                // Draw the Label at the expected position
-                EditorGUI.LabelField(new Rect(position.x + pixelShift, position.y, labelWidth, position.height), subLabels[index]);
-
-                // We need to remove from the position the label size that we've just drawn and shift by it's length
-                pixelShift += labelWidth;
-
-                // The amount of space left for the field
-                float spaceLeft = num - labelWidth;
-
-                // If at least two pixels are left to draw this field, draw it, otherwise, skip
-                if (spaceLeft > 2)
+                CoreEditorUtils.DrawMultipleFields(label, labels, values);
+                if (scope.changed)
                 {
-                    // Define the rectangle for the field
-                    var fieldSlot = new Rect(position.x + pixelShift, position.y, num - labelWidth, position.height);
-
-                    // Draw the right field depending on its type.
-                    if (typeof(T) == typeof(int))
-                        values[index] = (T)(object)EditorGUI.DelayedIntField(fieldSlot, (int)(object)values[index]);
-                    else if (typeof(T) == typeof(bool))
-                        values[index] = (T)(object)EditorGUI.Toggle(fieldSlot, (bool)(object)values[index]);
-                    else if (typeof(T) == typeof(float))
-                        values[index] = (T)(object)EditorGUI.FloatField(fieldSlot, (float)(object)values[index]);
-                    else if (typeof(T).IsEnum)
-                        values[index] = (T)(object)EditorGUI.EnumPopup(fieldSlot, (Enum)(object)values[index]);
-                    else
-                        throw new ArgumentOutOfRangeException($"<{typeof(T)}> is not a supported type for multi field");
+                    for (var i = 0; i < count; ++i)
+                        scalableSetting.values.GetArrayElementAtIndex(i).SetInline(values[i]);
                 }
-
-                // Shift by the slot that was left for the field
-                pixelShift += spaceLeft;
             }
-            EditorGUI.indentLevel = indentLevel;
-        }
-
-        static float CalcPrefixLabelWidth(GUIContent label, GUIStyle style = null)
-        {
-            if (style == null)
-                style = EditorStyles.label;
-            return style.CalcSize(label).x;
         }
     }
 }

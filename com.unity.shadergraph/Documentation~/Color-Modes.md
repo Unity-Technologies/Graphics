@@ -11,7 +11,7 @@ Shader Graph can display colors on nodes in your graph to improve readability. T
 |:-----|:------------|
 | None | Does not display colors on the nodes. All nodes use the default gray. |
 | Category | Displays colors on the nodes based on their assigned category. See **Category Colors** below. |
-| Precision | Displays colors on the nodes based on the current [Precision Type](Precision-Types.md) in use. |
+| Precision | Displays colors on the nodes based on the current [Precision Mode](Precision-Modes) in use. |
 | User Defined | Lets you set the display colors on a per-node basis. These are custom colors for your graph. See **User Defined Colors** below. |
 
 ### Category Colors
@@ -34,16 +34,8 @@ The table below lists current categories and their corresponding colors.
 **Note:** [Sub Graph](Sub-Graph.md) nodes in a main [Shader Graph](Shader-Graph.md) fall in the Utility category. If you select **Category** mode, all Sub Graphs use the Utility color.
 
 ### Precision Colors
-This mode displays colors on the nodes based on their current precision. If you set a node to **Inherit Precision**, the display color reflects the currently active precision. See [Precision Modes](Precision-Modes.md) for more information about inheritance. 
+This mode displays colors on the nodes based on their current precision. If you set a node to **Inherit Precision**, the display color reflects the currently active precision. See [Precision Modes](Precision-Modes.md) for more information about inheritance.
 
-![](images/Color-Mode-Precision.png)
-
-The table below lists current precision types and their corresponding colors.
-
-| Name | Color | Hex Value |
-|:-----|:------|:----------|
-| Half | ![#CB3022](https://placehold.it/15/CB3022/000000?text=+) | #CB3022 |
-| Float | ![#4B92F3](https://placehold.it/15/4B92F3/000000?text=+) | #4B92F3 |
 
 ### User Defined Colors
 This mode displays colors on the nodes based on user preferences. In this mode, the user defines colors for each node. If a custom color is not set, the node displays in the default gray.

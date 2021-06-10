@@ -1,4 +1,4 @@
-Shader "Debug/ReflectionProbePreview"
+Shader "Hidden/Debug/ReflectionProbePreview"
 {
     Properties
     {

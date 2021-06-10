@@ -41,7 +41,7 @@ namespace UnityEditor.ShaderGraph
         void AddSlots(SlotValueType edgeType)
         {
             // Valuetype gets the type should be the type for input and output
-            switch(edgeType)
+            switch (edgeType)
             {
                 case SlotValueType.Boolean:
                     AddSlot(new BooleanMaterialSlot(kInputSlotID, "", "", SlotType.Input, false));
@@ -179,7 +179,7 @@ namespace UnityEditor.ShaderGraph
                 noOutputs = !edges.Any();
             }
 
-            if(noInputs && !noOutputs)
+            if (noInputs && !noOutputs)
             {
                 owner.AddValidationError(objectId, "Node has no inputs and default value will be 0.", ShaderCompilerMessageSeverity.Warning);
             }

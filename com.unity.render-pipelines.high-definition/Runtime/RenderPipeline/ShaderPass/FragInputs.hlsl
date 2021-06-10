@@ -26,8 +26,20 @@ struct FragInputs
     // When not using surface gradient, each vector of tangentToWorld are normalize (TODO: Maybe they should not even in case of no surface gradient ? Ask Morten)
     float3x3 tangentToWorld;
 
+    uint primitiveID; // Only with fullscreen pass debug currently - not supported on all platforms
+
     // For two sided lighting
     bool isFrontFace;
+
+    // append a substruct for custom interpolators to be copied correctly into SDI from Varyings.
+    #if defined(USE_CUSTOMINTERP_SUBSTRUCT)
+        CustomInterpolators customInterpolators;
+    #endif
+
+    // Append an additional substruct for VFX interpolators. Eventually, we should merge this with custom interpolators.
+    #if defined(HAVE_VFX_MODIFICATION)
+        FragInputsVFX vfx;
+    #endif
 };
 
 void GetVaryingsDataDebug(uint paramId, FragInputs input, inout float3 result, inout bool needLinearToSRGB)

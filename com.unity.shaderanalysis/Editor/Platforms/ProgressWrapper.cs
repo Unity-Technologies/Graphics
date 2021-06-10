@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 
 namespace UnityEditor.ShaderAnalysis
 {
@@ -39,7 +39,7 @@ namespace UnityEditor.ShaderAnalysis
 
         /// <summary>
         /// Send the progress to the job in the provided range.
-        /// 
+        ///
         /// Example:
         /// if the range is <c>[0.5..0.75]</c>,
         /// then setting the progress to <c>0.5</c> will actually set in the job the progress value of <c>0.625</c>.

@@ -42,7 +42,7 @@ float SphereCapSolidAngle(SphereCap c)
 //
 // SolidAngle( PivotTransform(sCap) ) / 4*PI
 //
-// Integral of fitted GGX_projected is thus: 
+// Integral of fitted GGX_projected is thus:
 //
 // [ SolidAngle( PivotTransform(sCap) ) / 4*PI ] * FGD
 //
@@ -50,18 +50,18 @@ float SphereCapSolidAngle(SphereCap c)
 //
 // Basis vectors b1, b2 and b3 arranged as rows, b3 = shading normal,
 // view vector lies in the b0-b2 plane.
-// 
+//
 float3 ExtractPivot(float clampedNdotV, float perceptualRoughness, float3x3 orthoBasisViewNormal)
 {
     float theta = FastACosPos(clampedNdotV);
     float2 uv = PIVOT_LUT_OFFSET + PIVOT_LUT_SCALE * float2(perceptualRoughness, theta * INV_HALF_PI);
-    
+
     float2 pivotParams = SAMPLE_TEXTURE2D_LOD(_PivotData, s_linear_clamp_sampler, uv, 0).rg;
     float pivotNorm = pivotParams.r;
     float pivotElev = pivotParams.g;
     float3 pivot = pivotNorm * float3(sin(pivotElev), 0, cos(pivotElev));
 
-    // express the pivot in world space 
+    // express the pivot in world space
     // (basis is left-mul WtoFrame rotation, so a right-mul FrameToW rotation)
     pivot = mul(pivot, orthoBasisViewNormal);
 
@@ -84,10 +84,10 @@ float2 R2ToPR2(float2 pivotDir, float pivotMag)
 // be expressed in the same basis.
 SphereCap CapToPCap(SphereCap cap, float3 pivot)
 {
-    // Avoid instability between returning huge apertures to 
+    // Avoid instability between returning huge apertures to
     // none when near these extremes (eg near 1.0, ie degenerate
-    // cap, depending on the pivot, we can get a cap of 
-    // cos aperture near -1.0 or 1.0 ). See area calculation 
+    // cap, depending on the pivot, we can get a cap of
+    // cos aperture near -1.0 or 1.0 ). See area calculation
     // below: we can clamp here, or test area later.
     cap.cosA = clamp(cap.cosA, -0.9999, 0.9999);
 
@@ -131,17 +131,17 @@ SphereCap CapToPCap(SphereCap cap, float3 pivot)
     float2 dir1 = float2(a1 + a2, a3 - a4); // Rot(-aperture) (clockwise)
     float2 dir2 = float2(a1 - a2, a3 + a4); // Rot(+aperture) (counter clockwise)
 
-    // Pivot transform the original cap endpoints in the 2D plane 
+    // Pivot transform the original cap endpoints in the 2D plane
     // to get the pivotCap endpoints:
     float2 dir1Xf = R2ToPR2(dir1, pivotMag);
     float2 dir2Xf = R2ToPR2(dir2, pivotMag);
 
-    // Compute the pivotCap 2D direction (note that the pivotCap 
+    // Compute the pivotCap 2D direction (note that the pivotCap
     // direction is NOT the pivot transform of the original direction):
-    // It is the mean direction direction of the two pivotCap endpoints 
-    // ie their half-vector, up to a sign. 
+    // It is the mean direction direction of the two pivotCap endpoints
+    // ie their half-vector, up to a sign.
     // This sign is important, as a smaller than 90 degree aperture cap
-    // can, with the proper pivot, yield a cap with a much larger 
+    // can, with the proper pivot, yield a cap with a much larger
     // aperture (ie covering more than an hemisphere).
     //
     float area = dir1Xf.x * dir2Xf.y - dir1Xf.y * dir2Xf.x;
@@ -149,8 +149,8 @@ SphereCap CapToPCap(SphereCap cap, float3 pivot)
     float s = area >= 0.0 ? 1.0 : -1.0;
     float2 dirXf = s * normalize(dir1Xf + dir2Xf);
 
-    // Compute the 3D pivotCap parameters: 
-    // Transform back the pivotCap endpoints into 3D and compute 
+    // Compute the 3D pivotCap parameters:
+    // Transform back the pivotCap endpoints into 3D and compute
     // cosine of aperture.
     float3 pivotCapDir = dirXf.x * pivotDir + dirXf.y * pivotOrthoDir;
     float pivotCapCosA = dot(dirXf, dir1Xf);
@@ -169,7 +169,7 @@ SphereCap CapToPCap(SphereCap cap, float3 pivot)
 // V becomes the cone ray-set indicator function. We have:
 //
 //     Vs = Integral[ bsdf(w_i, w_o) (n dot w_i) dw_i ]_{over visibility cone} / FGD
-// 
+//
 // We approximate the GGX bsdf() with an SPTD transformed from a uniform distribution
 // on the whole unit sphere S^2, and the integral thus becomes (see ExtractPivot)
 //
@@ -177,7 +177,7 @@ SphereCap CapToPCap(SphereCap cap, float3 pivot)
 //        = Integral[ Dstd(w_ii) dw_ii ]_{over g(visibility cone)} * normalization / FGD
 //
 // where normalization is as explained for ExtractPivot since the fit is up to that
-// normalization, and here it is FGD;  
+// normalization, and here it is FGD;
 // g() is the pivot transform (ie CapToPCap), and w_ii := g(w_i) and here we use the
 // uniform Dstd(w) = 1/4pi.
 //
@@ -198,9 +198,9 @@ SphereCap CapToPCap(SphereCap cap, float3 pivot)
 // limited to a hemisphere and even though the fit minimizes weight away from the
 // specular lobe, it can't aligned support.
 //
-float ComputeVs(SphereCap visibleCap, 
-                float clampedNdotV, 
-                float perceptualRoughness, 
+float ComputeVs(SphereCap visibleCap,
+                float clampedNdotV,
+                float perceptualRoughness,
                 float3x3 orthoBasisViewNormal,
                 float useExtraCap = false,
                 SphereCap extraCap = (SphereCap)0.0)
@@ -216,7 +216,7 @@ float ComputeVs(SphereCap visibleCap,
         SphereCap c2 = CapToPCap(extraCap, pivot);
         res = SphericalCapIntersectionSolidArea(c1.cosA, c2.cosA, dot(c1.dir, c2.dir));
     }
-    else 
+    else
     {
         res = SphereCapSolidAngle(c1);
     }
@@ -262,14 +262,14 @@ SphereCap GetBentVisibility(float3 bentNormalWS, float ambientOcclusion, int alg
         // Geometric Derivation of the Irradiance of Polygonal Lights - Heitz 2017
         // https://hal.archives-ouvertes.fr/hal-01458129/document
         // p5
-        // 
-        // The formula below is derived from AO (aka Vd) being considered that 
+        //
+        // The formula below is derived from AO (aka Vd) being considered that
         // projected solid angle (given the bent visibility assumption).
         //
         // (Note that Monte Carlo with IS would typically be used to sample the
         // visibility to compute the AO, and the IS rebalancing PDF ratio (weights)
-        // could then have been applied to the directions or not when calculating 
-        // the bent cone direction. We don't do anything about that, but cone of 
+        // could then have been applied to the directions or not when calculating
+        // the bent cone direction. We don't do anything about that, but cone of
         // visibility is a gross approximation anyway and can be pretty bad if its
         // shape on the hemisphere of directions is very segmented.)
         cosAv = sqrt(1.0 - saturate(ambientOcclusion/dot(bentNormalWS, normalWS)) );
@@ -407,11 +407,10 @@ float GetSpecularOcclusionFromBentAOConeCone(float3 V, float3 bentNormalWS, floa
     float HemiClippedReflectionLobeSolidAngle = SphericalCapIntersectionSolidArea(0.0, cosAs, cosB);
 #if 1
     // Original, less expensive, but allow the cone approximation to go under horizon of full hemisphere
-    // and unecessarily dampens SO (ie more occlusion). 
+    // and unecessarily dampens SO (ie more occlusion).
     return SphericalCapIntersectionSolidArea(cosAv, cosAs, cosB) / ReflectionLobeSolidAngle;
 #else
     // More correct, but more expensive:
     return saturate(SphericalCapIntersectionSolidArea(cosAv, cosAs, cosB) / HemiClippedReflectionLobeSolidAngle);
 #endif
 }
-

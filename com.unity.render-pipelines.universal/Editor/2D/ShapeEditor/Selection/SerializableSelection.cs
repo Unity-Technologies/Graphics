@@ -3,13 +3,13 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 
-namespace UnityEditor.Experimental.Rendering.Universal.Path2D
+namespace UnityEditor.Rendering.Universal.Path2D
 {
     [Serializable]
     internal abstract class SerializableSelection<T> : ISelection<T>, ISerializationCallbackReceiver
     {
         internal readonly static int kInvalidID = -1;
-        
+
         [SerializeField]
         private T[] m_Keys = new T[0];
 
@@ -42,7 +42,7 @@ namespace UnityEditor.Experimental.Rendering.Universal.Path2D
                 {
                     var union = new HashSet<T>(m_Selection);
                     union.UnionWith(m_TemporalSelection);
-                    set = union; 
+                    set = union;
                 }
 
                 return new List<T>(set).ToArray();
@@ -50,7 +50,7 @@ namespace UnityEditor.Experimental.Rendering.Universal.Path2D
             set
             {
                 Clear();
-                foreach(var element in value)
+                foreach (var element in value)
                     Select(element, true);
             }
         }
@@ -84,7 +84,7 @@ namespace UnityEditor.Experimental.Rendering.Universal.Path2D
         {
             var changed = false;
 
-            if(EqualityComparer<T>.Default.Equals(element, GetInvalidElement()))
+            if (EqualityComparer<T>.Default.Equals(element, GetInvalidElement()))
                 return changed;
 
             if (select)
@@ -112,7 +112,7 @@ namespace UnityEditor.Experimental.Rendering.Universal.Path2D
         {
             T element = First(m_Selection);
 
-            if(EqualityComparer<T>.Default.Equals(element, GetInvalidElement()))
+            if (EqualityComparer<T>.Default.Equals(element, GetInvalidElement()))
                 element = First(m_TemporalSelection);
 
             return element;
@@ -120,9 +120,9 @@ namespace UnityEditor.Experimental.Rendering.Universal.Path2D
 
         private T First(HashSet<T> set)
         {
-            if(set.Count == 0)
+            if (set.Count == 0)
                 return GetInvalidElement();
-            
+
             using (var enumerator = set.GetEnumerator())
             {
                 Debug.Assert(enumerator.MoveNext());

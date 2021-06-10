@@ -40,18 +40,14 @@ namespace UnityEditor.ShaderGraph
             AddSlot(new UVMaterialSlot(kUVsSlotId, kUVsSlotName, kUVsSlotName, UVChannel.UV0, ShaderStageCapability.Fragment));
 
             AddSlot(new Vector2MaterialSlot(kParallaxUVsOutputSlotId, kParallaxUVsOutputSlotName, kParallaxUVsOutputSlotName, SlotType.Output, Vector2.zero, ShaderStageCapability.Fragment));
-            RemoveSlotsNameNotMatching(new[] {
+            RemoveSlotsNameNotMatching(new[]
+            {
                 kParallaxUVsOutputSlotId,
                 kHeightmapSlotId,
                 kHeightmapSamplerSlotId,
                 kAmplitudeSlotId,
                 kUVsSlotId,
             });
-        }
-
-        string GetFunctionName()
-        {
-            return $"Unity_ParallaxMapping_{concretePrecision.ToShaderString()}";
         }
 
         public override void Setup()
@@ -63,11 +59,7 @@ namespace UnityEditor.ShaderGraph
 
         public void GenerateNodeFunction(FunctionRegistry registry, GenerationMode generationMode)
         {
-            var perPixelDisplacementInclude = @"#include ""Packages/com.unity.render-pipelines.core/ShaderLibrary/ParallaxMapping.hlsl""";
-            registry.ProvideFunction(GetFunctionName(), s =>
-            {
-                s.AppendLine(perPixelDisplacementInclude);
-            });
+            registry.RequiresIncludePath("Packages/com.unity.render-pipelines.core/ShaderLibrary/ParallaxMapping.hlsl");
         }
 
         public void GenerateNodeCode(ShaderStringBuilder sb, GenerationMode generationMode)
@@ -78,14 +70,14 @@ namespace UnityEditor.ShaderGraph
             var amplitude = GetSlotValue(kAmplitudeSlotId, generationMode);
             var uvs = GetSlotValue(kUVsSlotId, generationMode);
 
-            sb.AppendLines(String.Format(@"$precision2 {5} = {4} + ParallaxMapping({0}, {1}, IN.{2}, {3} * 0.01, {4});",
+            sb.AppendLines(String.Format(@"$precision2 {5} = {0}.GetTransformedUV({4}) + ParallaxMapping(TEXTURE2D_ARGS({0}.tex, {1}.samplerstate), IN.{2}, {3} * 0.01, {0}.GetTransformedUV({4}));",
                 heightmap,
-                edgesSampler.Any() ? GetSlotValue(kHeightmapSamplerSlotId, generationMode) : "sampler" + heightmap,
+                edgesSampler.Any() ? GetSlotValue(kHeightmapSamplerSlotId, generationMode) : heightmap,
                 CoordinateSpace.Tangent.ToVariableName(InterpolatorType.ViewDirection),
                 amplitude, // cm in the interface so we multiply by 0.01 in the shader to convert in meter
                 uvs,
                 GetSlotValue(kParallaxUVsOutputSlotId, generationMode)
-                ));
+            ));
         }
 
         public NeededCoordinateSpace RequiresViewDirection(ShaderStageCapability stageCapability = ShaderStageCapability.All)

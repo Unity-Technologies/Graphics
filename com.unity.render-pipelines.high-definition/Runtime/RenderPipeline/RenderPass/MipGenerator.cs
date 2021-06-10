@@ -15,7 +15,7 @@ namespace UnityEngine.Rendering.HighDefinition
         int[] m_SrcOffset;
         int[] m_DstOffset;
 
-        public MipGenerator(RenderPipelineResources defaultResources)
+        public MipGenerator(HDRenderPipelineRuntimeResources defaultResources)
         {
             m_TempColorTargets = new RTHandle[tmpTargetCount];
             m_TempDownsamplePyramid = new RTHandle[tmpTargetCount];
@@ -68,7 +68,7 @@ namespace UnityEngine.Rendering.HighDefinition
             // and we don't support Min samplers either. So we are forced to perform 4x loads.
             for (int i = 1; i < info.mipLevelCount; i++)
             {
-                if (mip1AlreadyComputed && i == 1) continue; 
+                if (mip1AlreadyComputed && i == 1) continue;
 
                 Vector2Int dstSize   = info.mipLevelSizes[i];
                 Vector2Int dstOffset = info.mipLevelOffsets[i];
@@ -86,8 +86,8 @@ namespace UnityEngine.Rendering.HighDefinition
                 m_DstOffset[2] = 0;
                 m_DstOffset[3] = 0;
 
-                cmd.SetComputeIntParams(   cs,         HDShaderIDs._SrcOffsetAndLimit, m_SrcOffset);
-                cmd.SetComputeIntParams(   cs,         HDShaderIDs._DstOffset,         m_DstOffset);
+                cmd.SetComputeIntParams(cs,         HDShaderIDs._SrcOffsetAndLimit, m_SrcOffset);
+                cmd.SetComputeIntParams(cs,         HDShaderIDs._DstOffset,         m_DstOffset);
                 cmd.SetComputeTextureParam(cs, kernel, HDShaderIDs._DepthMipChain,     texture);
 
                 cmd.DispatchCompute(cs, kernel, HDUtils.DivRoundUp(dstSize.x, 8), HDUtils.DivRoundUp(dstSize.y, 8), texture.volumeDepth);
@@ -109,6 +109,13 @@ namespace UnityEngine.Rendering.HighDefinition
                 Debug.Assert(source.dimension == destination.dimension, "MipGenerator source texture does not match dimension of destination!");
             }
 
+            // Check if format has changed since last time we generated mips
+            if (m_TempColorTargets[rtIndex] != null && m_TempColorTargets[rtIndex].rt.graphicsFormat != destination.graphicsFormat)
+            {
+                RTHandles.Release(m_TempColorTargets[rtIndex]);
+                m_TempColorTargets[rtIndex] = null;
+            }
+
             // Only create the temporary target on-demand in case the game doesn't actually need it
             if (m_TempColorTargets[rtIndex] == null)
             {
@@ -120,7 +127,6 @@ namespace UnityEngine.Rendering.HighDefinition
                     colorFormat: destination.graphicsFormat,
                     enableRandomWrite: true,
                     useMipMap: false,
-                    enableMSAA: false,
                     useDynamicScale: true,
                     name: "Temp Gaussian Pyramid Target"
                 );
@@ -134,27 +140,38 @@ namespace UnityEngine.Rendering.HighDefinition
             int tempTargetWidth = srcMipWidth >> 1;
             int tempTargetHeight = srcMipHeight >> 1;
 
+            // Check if format has changed since last time we generated mips
+            if (m_TempDownsamplePyramid[rtIndex] != null && m_TempDownsamplePyramid[rtIndex].rt.graphicsFormat != destination.graphicsFormat)
+            {
+                RTHandles.Release(m_TempDownsamplePyramid[rtIndex]);
+                m_TempDownsamplePyramid[rtIndex] = null;
+            }
+
             if (m_TempDownsamplePyramid[rtIndex] == null)
             {
                 m_TempDownsamplePyramid[rtIndex] = RTHandles.Alloc(
-                Vector2.one * 0.5f,
-                sourceIsArray ? TextureXR.slices : 1,
-                dimension: source.dimension,
-                filterMode: FilterMode.Bilinear,
-                colorFormat: destination.graphicsFormat,
-                enableRandomWrite: false,
-                useMipMap: false,
-                enableMSAA: false,
-                useDynamicScale: true,
-                name: "Temporary Downsampled Pyramid"
+                    Vector2.one * 0.5f,
+                    sourceIsArray ? TextureXR.slices : 1,
+                    dimension: source.dimension,
+                    filterMode: FilterMode.Bilinear,
+                    colorFormat: destination.graphicsFormat,
+                    enableRandomWrite: false,
+                    useMipMap: false,
+                    useDynamicScale: true,
+                    name: "Temporary Downsampled Pyramid"
                 );
 
                 cmd.SetRenderTarget(m_TempDownsamplePyramid[rtIndex]);
                 cmd.ClearRenderTarget(false, true, Color.black);
             }
 
-            float sourceScaleX = (float)size.x / source.width;
-            float sourceScaleY = (float)size.y / source.height;
+            bool isHardwareDrsOn = DynamicResolutionHandler.instance.HardwareDynamicResIsEnabled();
+            var hardwareTextureSize = new Vector2Int(source.width, source.height);
+            if (isHardwareDrsOn)
+                hardwareTextureSize = DynamicResolutionHandler.instance.ApplyScalesOnSize(hardwareTextureSize);
+
+            float sourceScaleX = (float)size.x / (float)hardwareTextureSize.x;
+            float sourceScaleY = (float)size.y / (float)hardwareTextureSize.y;
 
             // Copies src mip0 to dst mip0
             m_PropertyBlock.SetTexture(HDShaderIDs._BlitTexture, source);

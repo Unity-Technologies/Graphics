@@ -9,11 +9,14 @@ namespace UnityEngine.Rendering.Universal.Internal
     /// </summary>
     public class FinalBlitPass : ScriptableRenderPass
     {
-        RenderTargetHandle m_Source;
+        RenderTargetIdentifier m_Source;
         Material m_BlitMaterial;
 
         public FinalBlitPass(RenderPassEvent evt, Material blitMaterial)
         {
+            base.profilingSampler = new ProfilingSampler(nameof(FinalBlitPass));
+            base.useNativeRenderPass = false;
+
             m_BlitMaterial = blitMaterial;
             renderPassEvent = evt;
         }
@@ -25,7 +28,7 @@ namespace UnityEngine.Rendering.Universal.Internal
         /// <param name="colorHandle"></param>
         public void Setup(RenderTextureDescriptor baseDescriptor, RenderTargetHandle colorHandle)
         {
-            m_Source = colorHandle;
+            m_Source = colorHandle.id;
         }
 
         /// <inheritdoc/>
@@ -44,13 +47,20 @@ namespace UnityEngine.Rendering.Universal.Internal
 
             bool isSceneViewCamera = cameraData.isSceneViewCamera;
             CommandBuffer cmd = CommandBufferPool.Get();
+
+            if (m_Source == cameraData.renderer.GetCameraColorFrontBuffer(cmd))
+            {
+                m_Source = renderingData.cameraData.renderer.cameraColorTarget;
+            }
+
             using (new ProfilingScope(cmd, ProfilingSampler.Get(URPProfileId.FinalBlit)))
             {
+                GetActiveDebugHandler(renderingData)?.UpdateShaderGlobalPropertiesForFinalValidationPass(cmd, ref cameraData, true);
 
                 CoreUtils.SetKeyword(cmd, ShaderKeywordStrings.LinearToSRGBConversion,
                     cameraData.requireSrgbConversion);
 
-                cmd.SetGlobalTexture(ShaderPropertyId.sourceTex, m_Source.Identifier());
+                cmd.SetGlobalTexture(ShaderPropertyId.sourceTex, m_Source);
 
 #if ENABLE_VR && ENABLE_XR_MODULE
                 if (cameraData.xr.enabled)
@@ -86,7 +96,7 @@ namespace UnityEngine.Rendering.Universal.Internal
                     cmd.SetRenderTarget(BuiltinRenderTextureType.CameraTarget,
                         RenderBufferLoadAction.DontCare, RenderBufferStoreAction.Store, // color
                         RenderBufferLoadAction.DontCare, RenderBufferStoreAction.DontCare); // depth
-                    cmd.Blit(m_Source.Identifier(), cameraTarget, m_BlitMaterial);
+                    cmd.Blit(m_Source, cameraTarget, m_BlitMaterial);
                 }
                 else
                 {

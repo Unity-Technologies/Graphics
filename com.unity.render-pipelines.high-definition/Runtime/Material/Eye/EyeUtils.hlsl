@@ -47,13 +47,12 @@ void CirclePupilAnimation(float2 irusUV, float pupilRadius, float pupilAperture,
     animatedIrisUV = (animatedIrisUV * 0.5 + float2(0.5, 0.5));
 }
 
-void CorneaRefraction(float3 positionOS, float3 corneaNormalOS, float corneaIOR, float irisPlaneOffset, out float3 refractedPositionOS)
+void CorneaRefraction(float3 positionOS, float3 viewDirectionOS, float3 corneaNormalOS, float corneaIOR, float irisPlaneOffset, out float3 refractedPositionOS)
 {
-    // Compute the refracted 
-    float3 viewPositionOS = TransformWorldToObject(float3(0.0, 0.0, 0.0));
-    float3 viewDirectionOS = normalize(positionOS - viewPositionOS);
+    // Compute the refracted
     float eta = 1.0 / (corneaIOR);
     corneaNormalOS = normalize(corneaNormalOS);
+    viewDirectionOS = -normalize(viewDirectionOS);
     float3 refractedViewDirectionOS = refract(viewDirectionOS, corneaNormalOS, eta);
 
     // Find the distance to intersection point
@@ -73,9 +72,9 @@ void IrisOffset(float2 irisUV, float2 irisOffset, out float2 displacedIrisUV)
     displacedIrisUV = (irisUV + irisOffset);
 }
 
-void IrisLimbalRing(float2 irisUV, float3 viewWS, float limbalRingSize, float limbalRingFade, float limbalRingItensity, out float limbalRingFactor)
+void IrisLimbalRing(float2 irisUV, float3 viewOS, float limbalRingSize, float limbalRingFade, float limbalRingItensity, out float limbalRingFactor)
 {
-    float NdotV = dot(float3(0.0, 0.0, 1.0), viewWS);
+    float NdotV = dot(float3(0.0, 0.0, 1.0), viewOS);
 
     // Compute the normalized iris position
     float2 irisUVCentered = (irisUV - 0.5f) * 2.0f;
@@ -87,11 +86,11 @@ void IrisLimbalRing(float2 irisUV, float3 viewWS, float limbalRingSize, float li
     limbalRingFactor = lerp(limbalRingFactor, PositivePow(limbalRingFactor, limbalRingFade), 1.0 - NdotV);
 }
 
-void ScleraLimbalRing(float2 scleraUV, float3 viewWS, float irisRadius, float limbalRingSize, float limbalRingFade, float limbalRingItensity, out float limbalRingFactor)
+void ScleraLimbalRing(float3 positionOS, float3 viewOS, float irisRadius, float limbalRingSize, float limbalRingFade, float limbalRingItensity, out float limbalRingFactor)
 {
-    float NdotV = dot(float3(0.0, 0.0, 1.0), viewWS);
+    float NdotV = dot(float3(0.0, 0.0, 1.0), viewOS);
     // Compute the radius of the point inside the eye
-    float scleraRadius = length(scleraUV);
+    float scleraRadius = length(positionOS.xy);
     limbalRingFactor = scleraRadius > irisRadius ? (scleraRadius > (limbalRingSize + irisRadius) ? 1.0 : lerp(0.5, 1.0, (scleraRadius - irisRadius) / (limbalRingSize))) : 1.0;
     limbalRingFactor = PositivePow(limbalRingFactor, limbalRingItensity);
     limbalRingFactor = lerp(limbalRingFactor, PositivePow(limbalRingFactor, limbalRingFade), 1.0 - NdotV);
@@ -99,7 +98,7 @@ void ScleraLimbalRing(float2 scleraUV, float3 viewWS, float irisRadius, float li
 
 void ScleraIrisBlend(float3 scleraColor, float3 scleraNormal, float scleraSmoothness,
                             float3 irisColor, float3 irisNormal, float corneaSmoothness,
-                            float irisRadius, 
+                            float irisRadius,
                             float3 positionOS,
                             float diffusionProfileSclera, float diffusionProfileIris,
                             out float3 eyeColor, out float surfaceMask,

@@ -1,6 +1,5 @@
-using UnityEditor;
-using UnityEditor.ShaderGraph;
 using UnityEngine;
+using UnityEditor.ShaderGraph;
 using UnityEngine.Rendering.HighDefinition;
 
 namespace UnityEditor.Rendering.HighDefinition
@@ -13,8 +12,6 @@ namespace UnityEditor.Rendering.HighDefinition
     [InitializeOnLoad]
     class ShaderGraphMaterialsUpdater
     {
-        const string kMaterialFilter = "t:Material";
-
         static ShaderGraphMaterialsUpdater()
         {
             GraphData.onSaveGraph += OnShaderGraphSaved;
@@ -31,11 +28,11 @@ namespace UnityEditor.Rendering.HighDefinition
             if (!hdSaveContext.updateMaterials)
                 return;
 
-            // Iterate all Materials
-            string[] materialGuids = AssetDatabase.FindAssets(kMaterialFilter);
+            // Iterate over all loaded Materials
+            Material[] materials = Resources.FindObjectsOfTypeAll<Material>();
             try
             {
-                for (int i = 0, length = materialGuids.Length; i < length; i++)
+                for (int i = 0, length = materials.Length; i < length; i++)
                 {
                     // Only update progress bar every 10 materials
                     if (i % 10 == 9)
@@ -46,25 +43,14 @@ namespace UnityEditor.Rendering.HighDefinition
                             i / (float)(length - 1));
                     }
 
-                     // Get Material object
-                    string materialPath = AssetDatabase.GUIDToAssetPath(materialGuids[i]);
-                    Material material = AssetDatabase.LoadAssetAtPath<Material>(materialPath);
-
-                     // Reset keywords
-                    if (material.shader.name == shader.name)
-                        HDShaderUtils.ResetMaterialKeywords(material);
-
-                    material = null;
-
-                    // Free the materials every 200 iterations, on big project loading all materials in memory can lead to a crash
-                    if ((i % 200 == 0) && i != 0)
-                        EditorUtility.UnloadUnusedAssetsImmediate(true);
+                    // Reset keywords
+                    if (materials[i].shader.name == shader.name)
+                        HDShaderUtils.ResetMaterialKeywords(materials[i]);
                 }
             }
             finally
             {
                 EditorUtility.ClearProgressBar();
-                EditorUtility.UnloadUnusedAssetsImmediate(true);
             }
         }
     }

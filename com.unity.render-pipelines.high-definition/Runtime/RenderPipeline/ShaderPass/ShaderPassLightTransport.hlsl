@@ -74,7 +74,7 @@ PackedVaryingsToPS Vert(AttributesMesh inputMesh)
 
 float4 Frag(PackedVaryingsToPS packedInput) : SV_Target
 {
-    FragInputs input = UnpackVaryingsMeshToFragInputs(packedInput.vmesh);
+    FragInputs input = UnpackVaryingsToFragInputs(packedInput);
 
     // input.positionSS is SV_Position
     PositionInputs posInput = GetPositionInput(input.positionSS.xy, _ScreenSize.zw, input.positionSS.z, input.positionSS.w, input.positionRWS);

@@ -35,8 +35,3 @@ These are the post-processing effects that are available in the Universal Render
 * [Vignette](post-processing-vignette.md)
 
 * [White Balance](Post-Processing-White-Balance.md)
-
-  
-
- 
-

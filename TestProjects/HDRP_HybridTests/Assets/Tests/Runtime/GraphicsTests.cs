@@ -5,8 +5,8 @@ using System.Collections;
 using System.Linq;
 using NUnit.Framework;
 using UnityEngine;
+using UnityEngine.Rendering;
 using UnityEngine.TestTools;
-//using UnityEngine.XR;
 using UnityEngine.TestTools.Graphics;
 using UnityEngine.SceneManagement;
 using Unity.Entities;
@@ -40,15 +40,22 @@ public class GraphicsTests
         GameObject[] camObjects = GameObject.FindGameObjectsWithTag("MainCamera");
         var cameras = camObjects.Select(x=>x.GetComponent<Camera>());
 
+        int waitFrames = settings.WaitFrames;
+
+        if (XRGraphicsAutomatedTests.enabled)
+        {
+            waitFrames = Unity.Testing.XR.Runtime.ConfigureMockHMD.SetupTest(true, waitFrames, settings.ImageComparisonSettings);
+        }
+
         // WaitFrames according to settings
-        for (int i = 0; i < settings.WaitFrames; i++)
-            yield return null;
+        for (int i = 0; i < waitFrames; i++)
+            yield return new WaitForEndOfFrame();
 
         // Test Assert
         ImageAssert.AreEqual(testCase.ReferenceImage, cameras.Where(x => x != null), settings.ImageComparisonSettings);
 
         // Always wait one frame for scene load
-        yield return null;
+        yield return new WaitForEndOfFrame();
     }
 
 
@@ -60,6 +67,8 @@ public class GraphicsTests
         #endif
         
         CleanUp();
+
+        XRGraphicsAutomatedTests.running = false;
     }
 
     public void CleanUp()

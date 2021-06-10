@@ -1,4 +1,4 @@
-﻿.unity-label {
+.unity-label {
     padding: 5px 2px 2px;
     margin: 2px 4px;
 }
@@ -92,4 +92,3 @@
     padding-top: 4px;
     padding-bottom: 2px;
 }
-

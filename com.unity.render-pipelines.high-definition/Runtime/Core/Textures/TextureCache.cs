@@ -59,6 +59,7 @@ namespace UnityEngine.Rendering.HighDefinition
         {
             return true;
         }
+
         public string GetCacheName()
         {
             return m_CacheName;
@@ -328,20 +329,6 @@ namespace UnityEngine.Rendering.HighDefinition
 #else
                 return Application.isMobilePlatform;
 #endif
-            }
-        }
-
-        public static TextureFormat GetPreferredHDRCompressedTextureFormat
-        {
-            get
-            {
-                var format = TextureFormat.RGBAHalf;
-                var probeFormat = TextureFormat.BC6H;
-
-                if (SystemInfo.SupportsTextureFormat(probeFormat) && !UnityEngine.Rendering.GraphicsSettings.HasShaderDefine(UnityEngine.Rendering.BuiltinShaderDefine.UNITY_NO_DXT5nm))
-                    format = probeFormat;
-
-                return format;
             }
         }
 

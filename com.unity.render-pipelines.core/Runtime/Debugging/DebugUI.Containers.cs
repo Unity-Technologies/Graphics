@@ -1,3 +1,6 @@
+using System;
+using System.Collections.Generic;
+
 namespace UnityEngine.Rendering
 {
     public partial class DebugUI
@@ -116,6 +119,22 @@ namespace UnityEngine.Rendering
         public class Foldout : Container, IValueField
         {
             /// <summary>
+            /// Context menu item.
+            /// </summary>
+            public struct ContextMenuItem
+            {
+                /// <summary>
+                /// Name of the item displayed in context menu dropdown.
+                /// </summary>
+                public string displayName;
+
+                /// <summary>
+                /// Callback when context menu item is selected.
+                /// </summary>
+                public Action action;
+            }
+
+            /// <summary>
             /// Always false.
             /// </summary>
             public bool isReadOnly { get { return false; } }
@@ -126,6 +145,16 @@ namespace UnityEngine.Rendering
             public bool opened;
 
             /// <summary>
+            /// Draw the foldout in full width using a header style.
+            /// </summary>
+            public bool isHeader;
+
+            /// <summary>
+            /// Optional list of context menu items. If the list is not provided, no context menu button will be displayed.
+            /// </summary>
+            public List<ContextMenuItem> contextMenuItems = null;
+
+            /// <summary>
             /// List of columns labels.
             /// </summary>
             public string[] columnLabels { get; set; } = null;
@@ -133,7 +162,7 @@ namespace UnityEngine.Rendering
             /// <summary>
             /// Constructor.
             /// </summary>
-            public Foldout() : base() { }
+            public Foldout() : base() {}
             /// <summary>
             /// Constructor.
             /// </summary>

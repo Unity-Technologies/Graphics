@@ -6,7 +6,7 @@ using UnityEditor;
 using UnityEditor.EditorTools;
 using UnityObject = UnityEngine.Object;
 
-namespace UnityEditor.Experimental.Rendering.Universal.Path2D
+namespace UnityEditor.Rendering.Universal.Path2D
 {
     internal class ScriptablePath : ScriptableObject, IEditablePath, IUndoObject
     {
@@ -31,7 +31,7 @@ namespace UnityEditor.Experimental.Rendering.Universal.Path2D
         public IUndoObject undoObject
         {
             get { return this; }
-            set { }
+            set {}
         }
 
         public ISelection<int> selection
@@ -112,6 +112,11 @@ namespace UnityEditor.Experimental.Rendering.Universal.Path2D
         void IUndoObject.RegisterUndo(string name)
         {
             Undo.RegisterCompleteObjectUndo(this, name);
+            m_Modified = true;
+        }
+
+        public virtual void SetDefaultShape()
+        {
             m_Modified = true;
         }
     }

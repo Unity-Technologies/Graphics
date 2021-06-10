@@ -20,7 +20,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
         public List<SubTargetPropertyBlock> uiBlocks = new List<SubTargetPropertyBlock>();
 
         public SubTargetPropertiesGUI(TargetPropertyGUIContext context, Action onChange, Action<String> registerUndo,
-            SystemData systemData, BuiltinData builtinData, LightingData lightingData)
+                                      SystemData systemData, BuiltinData builtinData, LightingData lightingData)
         {
             this.context = context;
             this.onChange = onChange;

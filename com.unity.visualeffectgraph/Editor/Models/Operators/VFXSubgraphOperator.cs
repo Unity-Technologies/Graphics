@@ -36,12 +36,12 @@ namespace UnityEditor.VFX
             List<object> attributes = new List<object>();
             if (!string.IsNullOrEmpty(param.tooltip))
                 attributes.Add(new TooltipAttribute(param.tooltip));
-            
+
             if (param.valueFilter == VFXValueFilter.Range)
                 attributes.Add(new RangeAttribute((float)VFXConverter.ConvertTo(param.min, typeof(float)), (float)VFXConverter.ConvertTo(param.max, typeof(float))));
-            else if( param.valueFilter == VFXValueFilter.Enum)
+            else if (param.valueFilter == VFXValueFilter.Enum)
                 attributes.Add(new EnumAttribute(param.enumValues.ToArray()));
-            
+
             return new VFXPropertyWithValue(new VFXProperty(param.type, param.exposedName, attributes.ToArray()), param.value);
         }
 
@@ -110,7 +110,7 @@ namespace UnityEditor.VFX
             var copy = VFXMemorySerializer.DuplicateObjects(dependencies.ToArray());
             m_UsedSubgraph = graph;
             m_SubChildren = copy.OfType<VFXModel>().Where(t => t is VFXOperator || t is VFXParameter).ToArray();
-            
+
             foreach (var child in copy)
             {
                 child.hideFlags = HideFlags.HideAndDontSave;
@@ -132,7 +132,7 @@ namespace UnityEditor.VFX
             }
         }
 
-        public sealed override string name { get { return m_Subgraph != null ? m_Subgraph.name : "Empty Subgraph Operator"; } }
+        public sealed override string name { get { return m_Subgraph != null ? ObjectNames.NicifyVariableName(m_Subgraph.name) : "Empty Subgraph Operator"; } }
 
         protected override IEnumerable<VFXPropertyWithValue> inputProperties
         {
@@ -211,9 +211,10 @@ namespace UnityEditor.VFX
         public override void CheckGraphBeforeImport()
         {
             base.CheckGraphBeforeImport();
-            // If the graph is reimported it can be because one of its depedency such as the subgraphs, has been changed.
 
-            ResyncSlots(true);
+            // If the graph is reimported it can be because one of its depedency such as the subgraphs, has been changed.
+            if (!VFXGraph.explicitCompile)
+                ResyncSlots(true);
         }
 
         protected override VFXExpression[] BuildExpression(VFXExpression[] inputExpression)

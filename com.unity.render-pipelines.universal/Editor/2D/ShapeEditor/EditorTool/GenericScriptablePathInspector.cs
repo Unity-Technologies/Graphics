@@ -5,9 +5,9 @@ using UnityEngine;
 using UnityEditor;
 using UnityEditor.EditorTools;
 
-namespace UnityEditor.Experimental.Rendering.Universal.Path2D
+namespace UnityEditor.Rendering.Universal.Path2D
 {
-    internal class GenericScriptablePathInspector<U,T> : ScriptablePathInspector where U : ScriptableData<T>
+    internal class GenericScriptablePathInspector<U, T> : ScriptablePathInspector where U : ScriptableData<T>
     {
         private List<U> m_DataObjects = new List<U>();
         private List<U> m_SelectedDataObjects = new List<U>();
@@ -53,19 +53,19 @@ namespace UnityEditor.Experimental.Rendering.Universal.Path2D
 
             m_SelectedDataObjects.Clear();
 
-            foreach(var path in paths)
+            foreach (var path in paths)
                 elementCount += path.pointCount;
-            
+
             while (m_DataObjects.Count < elementCount)
                 CreateDataObject();
 
             var index = 0;
-            foreach(var path in paths)
+            foreach (var path in paths)
             {
                 var genericPath = path as GenericScriptablePath<T>;
                 var customDataArray = genericPath.data;
                 var length = customDataArray.Length;
-                
+
                 for (var i = 0; i < length; ++i)
                 {
                     var dataObject = m_DataObjects[index + i];
@@ -78,7 +78,7 @@ namespace UnityEditor.Experimental.Rendering.Universal.Path2D
                         m_SelectedDataObjects.Add(dataObject);
                     }
                 }
-                
+
                 index += length;
             }
         }
@@ -86,17 +86,17 @@ namespace UnityEditor.Experimental.Rendering.Universal.Path2D
         private void SetDataObjects()
         {
             var index = 0;
-            foreach(var path in paths)
+            foreach (var path in paths)
             {
                 var genericPath = path as GenericScriptablePath<T>;
                 var customDataArray = genericPath.data;
                 var length = customDataArray.Length;
-                
+
                 for (var i = 0; i < length; ++i)
                     customDataArray[i] = m_DataObjects[index + i].data;
 
                 genericPath.data = customDataArray;
-                
+
                 index += length;
             }
         }

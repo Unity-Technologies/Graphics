@@ -46,7 +46,7 @@ namespace UnityEditor.Rendering.LookDev
         int computeIndex(ViewIndex index, ShadowCompositionPass passIndex)
             => (int)index * k_PassPerViewCount + (int)(passIndex);
         int computeIndex(CompositionFinal index)
-            => (k_PassPerViewCount-1) + (int)(index) * k_PassPerViewCount;
+            => (k_PassPerViewCount - 1) + (int)(index) * k_PassPerViewCount;
 
         void UpdateSize(int index, Rect rect, bool pixelPerfect, Camera renderingCamera, string renderDocName = "LookDevRT")
         {
@@ -93,7 +93,6 @@ namespace UnityEditor.Rendering.LookDev
             UpdateSize(computeIndex(index, ShadowCompositionPass.ShadowMask), rect, pixelPerfect, renderingCamera, $"LookDevRT-{index}-ShadowMask");
         }
 
-
         public void UpdateSize(Rect rect, CompositionFinal index, bool pixelPerfect, Camera renderingCamera)
             => UpdateSize(computeIndex(index), rect, pixelPerfect, renderingCamera, $"LookDevRT-Final-{index}");
 
@@ -130,7 +129,6 @@ namespace UnityEditor.Rendering.LookDev
             }
         }
 
-        IDataProvider m_DataProvider;
         IViewDisplayer m_Displayer;
         Context m_Contexts;
         RenderTextureCache m_RenderTextures = new RenderTextureCache();
@@ -152,18 +150,15 @@ namespace UnityEditor.Rendering.LookDev
 
         public Compositer(
             IViewDisplayer displayer,
-            Context contexts,
             IDataProvider dataProvider,
             StageCache stages)
         {
-            m_DataProvider = dataProvider;
             m_Displayer = displayer;
-            m_Contexts = contexts;
 
             m_RenderDataCache = new RenderingData[2]
             {
-                new RenderingData() { stage = stages[ViewIndex.First], updater = contexts.GetViewContent(ViewIndex.First).camera },
-                new RenderingData() { stage = stages[ViewIndex.Second], updater = contexts.GetViewContent(ViewIndex.Second).camera }
+                new RenderingData() { stage = stages[ViewIndex.First] },
+                new RenderingData() { stage = stages[ViewIndex.Second] }
             };
 
             m_Displayer.OnRenderDocAcquisitionTriggered += RenderDocAcquisitionRequested;
@@ -186,6 +181,7 @@ namespace UnityEditor.Rendering.LookDev
             m_Displayer.OnRenderDocAcquisitionTriggered -= RenderDocAcquisitionRequested;
             m_Displayer.OnUpdateRequested -= Render;
         }
+
         public void Dispose()
         {
             if (m_Disposed)
@@ -194,33 +190,37 @@ namespace UnityEditor.Rendering.LookDev
             CleanUp();
             GC.SuppressFinalize(this);
         }
+
         ~Compositer() => CleanUp();
 
         public void Render()
         {
+            // This can happen when entering/leaving playmode.
+            if (LookDev.dataProvider == null)
+                return;
+
+            m_Contexts = LookDev.currentContext;
+
             //TODO: make integration EditorWindow agnostic!
             if (UnityEditorInternal.RenderDoc.IsLoaded() && UnityEditorInternal.RenderDoc.IsSupported() && m_RenderDocAcquisitionRequested)
                 UnityEditorInternal.RenderDoc.BeginCaptureRenderDoc(m_Displayer as EditorWindow);
 
-            using (new UnityEngine.Rendering.VolumeIsolationScope(true))
+            switch (m_Contexts.layout.viewLayout)
             {
-                switch (m_Contexts.layout.viewLayout)
-                {
-                    case Layout.FullFirstView:
-                        RenderSingleAndOutput(ViewIndex.First);
-                        break;
-                    case Layout.FullSecondView:
-                        RenderSingleAndOutput(ViewIndex.Second);
-                        break;
-                    case Layout.HorizontalSplit:
-                    case Layout.VerticalSplit:
-                        RenderSingleAndOutput(ViewIndex.First);
-                        RenderSingleAndOutput(ViewIndex.Second);
-                        break;
-                    case Layout.CustomSplit:
-                        RenderCompositeAndOutput();
-                        break;
-                }
+                case Layout.FullFirstView:
+                    RenderSingleAndOutput(ViewIndex.First);
+                    break;
+                case Layout.FullSecondView:
+                    RenderSingleAndOutput(ViewIndex.Second);
+                    break;
+                case Layout.HorizontalSplit:
+                case Layout.VerticalSplit:
+                    RenderSingleAndOutput(ViewIndex.First);
+                    RenderSingleAndOutput(ViewIndex.Second);
+                    break;
+                case Layout.CustomSplit:
+                    RenderCompositeAndOutput();
+                    break;
             }
 
             //TODO: make integration EditorWindow agnostic!
@@ -240,11 +240,13 @@ namespace UnityEditor.Rendering.LookDev
 
             m_RenderTextures.UpdateSize(renderingData.viewPort, index, m_Renderer.pixelPerfect, renderingData.stage.camera);
 
-            int debugMode = m_Contexts.GetViewContent(index).debug.viewMode;
+            int debugMode = view.debug.viewMode;
             if (debugMode != -1)
                 LookDev.dataProvider.UpdateDebugMode(debugMode);
 
             renderingData.output = m_RenderTextures[index, ShadowCompositionPass.MainView];
+            renderingData.updater = view.camera;
+
             m_Renderer.BeginRendering(renderingData, LookDev.dataProvider);
             m_Renderer.Acquire(renderingData);
 
@@ -253,7 +255,7 @@ namespace UnityEditor.Rendering.LookDev
                 RenderTexture tmp = m_RenderTextures[index, ShadowCompositionPass.ShadowMask];
                 view.environment?.UpdateSunPosition(renderingData.stage.sunLight);
                 renderingData.stage.sunLight.intensity = 1f;
-                m_DataProvider.GetShadowMask(ref tmp, renderingData.stage.runtimeInterface);
+                LookDev.dataProvider.GetShadowMask(ref tmp, renderingData.stage.runtimeInterface);
                 renderingData.stage.sunLight.intensity = 0f;
                 m_RenderTextures[index, ShadowCompositionPass.ShadowMask] = tmp;
             }

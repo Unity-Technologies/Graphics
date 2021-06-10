@@ -4,7 +4,7 @@ The **Alpha Clipping** option controls whether your Material acts as a [Cutout S
 
 Enable **Alpha Clipping** to create a transparent effect with hard edges between the opaque and transparent areas. HDRP achieves this effect by not rendering pixels with alpha values below the value you specify in the **Threshold** field. For example, a **Threshold** of 0.1 means that HDRP doesn't render alpha values below 0.1.
 
-If you enable this feature, HDRP exposes the following properties for you to use to customize the Alpha Cutoff effect:
+If you enable this feature, HDRP exposes the following properties for you to use to customize the Alpha Clipping effect:
 
 | Property                 | Description                                                  |
 | ------------------------ | ------------------------------------------------------------ |
@@ -19,4 +19,3 @@ If you set your [Surface Type](Surface-Type.md) to **Transparent**, HDRP exposes
 | ----------------------------- | ------------------------------------------------------------ |
 | **Prepass Threshold**  | Use the slider to set the alpha value limit that HDRP uses for the Transparent depth prepass. This works in the same way as the main **Threshold** property described above.<br />This property only appears when you enable the **Transparent Depth Prepass** checkbox. |
 | **Postpass Threshold** | Use the slider to set the alpha value limit that HDRP uses for the transparent depth postpass. This works in the same way as the main **Threshold** property described above.<br />This property only appears when you enable the **Transparent Depth Postpass** checkbox. |
-

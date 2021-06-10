@@ -2,7 +2,6 @@ using UnityEngine;
 
 namespace UnityEditor.Rendering.HighDefinition
 {
-
     partial class InfluenceVolumeUI
     {
         // We need to provide gamma values to the Gizmos and Handle because they are translated back to linear
@@ -32,8 +31,5 @@ namespace UnityEditor.Rendering.HighDefinition
         static readonly GUIContent faceFadeContent = EditorGUIUtility.TrTextContent("Face Fade", "Fade faces of the cubemap.");
 
         static readonly GUIContent radiusContent = EditorGUIUtility.TrTextContent("Radius", "Sets the radius of the Sphere Influence Volume. The Transform Scale does not affect this value.");
-
-        static readonly GUIContent normalModeContent = EditorGUIUtility.TrTextContent("Normal", "Normal parameters mode (Box Shape only).");
-        static readonly GUIContent advancedModeContent = EditorGUIUtility.TrTextContent("Advanced", "Advanced parameters mode (Box Shape only).");
     }
 }

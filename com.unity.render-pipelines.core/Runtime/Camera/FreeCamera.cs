@@ -1,6 +1,6 @@
 #if ENABLE_INPUT_SYSTEM && ENABLE_INPUT_SYSTEM_PACKAGE
     #define USE_INPUT_SYSTEM
-    using UnityEngine.InputSystem;
+using UnityEngine.InputSystem;
 #endif
 
 using System.Collections.Generic;
@@ -11,7 +11,7 @@ namespace UnityEngine.Rendering
     /// <summary>
     /// Utility Free Camera component.
     /// </summary>
-    [HelpURL(Documentation.baseURL + Documentation.version + Documentation.subURL + "Free-Camera" + Documentation.endURL)]
+    [CoreRPHelpURLAttribute("Free-Camera")]
     public class FreeCamera : MonoBehaviour
     {
         /// <summary>
@@ -35,6 +35,7 @@ namespace UnityEngine.Rendering
         /// </summary>
         public float m_Turbo = 10.0f;
 
+#if !USE_INPUT_SYSTEM
         private static string kMouseX = "Mouse X";
         private static string kMouseY = "Mouse Y";
         private static string kRightStickX = "Controller Right Stick X";
@@ -44,6 +45,7 @@ namespace UnityEngine.Rendering
 
         private static string kYAxis = "YAxis";
         private static string kSpeedAxis = "Speed Axis";
+#endif
 
 #if USE_INPUT_SYSTEM
         InputAction lookAction;
@@ -149,9 +151,8 @@ namespace UnityEngine.Rendering
             inputRotateAxisX += (Input.GetAxis(kRightStickX) * m_LookSpeedController * Time.deltaTime);
             inputRotateAxisY += (Input.GetAxis(kRightStickY) * m_LookSpeedController * Time.deltaTime);
 
-            leftShift = Input.GetKeyDown(KeyCode.LeftShift);
+            leftShift = Input.GetKey(KeyCode.LeftShift);
             fire1 = Input.GetAxis("Fire1") > 0.0f;
-            Debug.Log(fire1);
 
             inputChangeSpeed = Input.GetAxis(kSpeedAxis);
 
@@ -166,7 +167,7 @@ namespace UnityEngine.Rendering
             // If the debug menu is running, we don't want to conflict with its inputs.
             if (DebugManager.instance.displayRuntimeUI)
                 return;
-            
+
             UpdateInputs();
 
             if (inputChangeSpeed != 0.0f)
@@ -191,10 +192,8 @@ namespace UnityEngine.Rendering
                 transform.localRotation = Quaternion.Euler(newRotationX, newRotationY, transform.localEulerAngles.z);
 
                 float moveSpeed = Time.deltaTime * m_MoveSpeed;
-                if (leftShiftBoost)
-                    moveSpeed *= leftShift ? m_Turbo : 1.0f;
-                else
-                    moveSpeed *= fire1 ? m_Turbo : 1.0f;
+                if (fire1 || leftShiftBoost && leftShift)
+                    moveSpeed *= m_Turbo;
                 transform.position += transform.forward * moveSpeed * inputVertical;
                 transform.position += transform.right * moveSpeed * inputHorizontal;
                 transform.position += Vector3.up * moveSpeed * inputYAxis;

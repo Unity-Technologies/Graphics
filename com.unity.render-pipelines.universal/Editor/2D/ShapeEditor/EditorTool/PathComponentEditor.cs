@@ -6,13 +6,13 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEditor;
 using UnityEditor.EditorTools;
-using UnityEditor.Experimental.Rendering.Universal.Path2D;
+using UnityEditor.Rendering.Universal.Path2D;
 
 #if !UNITY_2020_2_OR_NEWER
-using ToolManager=UnityEditor.EditorTools.EditorTools;
+using ToolManager = UnityEditor.EditorTools.EditorTools;
 #endif
 
-namespace UnityEditor.Experimental.Rendering.Universal.Path2D
+namespace UnityEditor.Rendering.Universal.Path2D
 {
     internal abstract class PathComponentEditor<T> : Editor where T : ScriptablePath
     {

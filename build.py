@@ -9,7 +9,6 @@ def packages_list():
         ("com.unity.visualeffectgraph", os.path.join("com.unity.visualeffectgraph")),
         ("com.unity.render-pipelines.core", os.path.join("com.unity.render-pipelines.core")),
         ("com.unity.render-pipelines.universal", os.path.join("com.unity.render-pipelines.universal")),
-        ("com.unity.render-pipelines.lightweight", os.path.join("com.unity.render-pipelines.lightweight")),
         ("com.unity.render-pipelines.high-definition", os.path.join("com.unity.render-pipelines.high-definition")),
         ("com.unity.render-pipelines.high-definition-config", os.path.join("com.unity.render-pipelines.high-definition-config")),
         ("com.unity.testing.visualeffectgraph", os.path.join("com.unity.testing.visualeffectgraph")),

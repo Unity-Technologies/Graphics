@@ -9,6 +9,8 @@ Tonemapping is the process of remapping HDR values of an image in a range suitab
 1. In the Scene or Hierarchy view, select a GameObject that contains a Volume component to view it in the Inspector.
 2. In the Inspector, navigate to **Add Override > Post-processing** and click on **Tonemapping**. HDRP now applies **Tonemapping** to any Camera this Volume affects.
 
+[!include[](snippets/volume-override-api.md)]
+
 ## Properties
 
 ![](Images/Post-processingTonemapping1.png)

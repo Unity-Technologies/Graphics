@@ -10,6 +10,7 @@ namespace UnityEditor.VFX
         public override string name { get { return "Output Particle Point"; } }
         public override string codeGeneratorTemplate { get { return RenderPipeTemplate("VFXParticlePoints"); } }
         public override VFXTaskType taskType { get { return VFXTaskType.ParticlePointOutput; } }
+        public override bool implementsMotionVector { get { return true; } }
 
         protected override IEnumerable<string> filteredOutSettings
         {

@@ -77,9 +77,9 @@ namespace UnityEditor.Rendering.HighDefinition
 
             list.drawHeaderCallback =
                 (Rect rect) =>
-                {
-                    GUI.Label(rect, s_Styles.gpuCacheSize);
-                };
+            {
+                GUI.Label(rect, s_Styles.gpuCacheSize);
+            };
 
             list.drawElementCallback = drawCallback;
 
@@ -116,6 +116,7 @@ namespace UnityEditor.Rendering.HighDefinition
             format = formatString.Substring(0, lastUnderscore);
             channelTransform = formatString.Substring(lastUnderscore + 1);
         }
+
         GraphicsFormat FormatAndChannelTransformStringToGraphicsFormat(string format, string channelTransform)
         {
             if (format == "None") return GraphicsFormat.None;
@@ -156,7 +157,7 @@ namespace UnityEditor.Rendering.HighDefinition
             }
 #endif
 
-            GraphicsFormat serializedFormat = (GraphicsFormat) cacheSizeOverrideProperty.FindPropertyRelative("format").intValue;
+            GraphicsFormat serializedFormat = (GraphicsFormat)cacheSizeOverrideProperty.FindPropertyRelative("format").intValue;
             GraphicsFormatToFormatAndChannelTransformString(serializedFormat, out string formatString, out string channelTransformString);
 
 
@@ -254,10 +255,10 @@ namespace UnityEditor.Rendering.HighDefinition
             rect.position += new Vector2(sizeLabelWidth, 0);
             rect.width = sizeWidth;
 
-            cacheSizeOverride.sizeInMegaBytes = (uint) Mathf.Max(GPUCacheSizeMinValue,
-                EditorGUI.DelayedIntField(rect, (int) cacheSizeOverride.sizeInMegaBytes));
+            cacheSizeOverride.sizeInMegaBytes = (uint)Mathf.Max(GPUCacheSizeMinValue,
+                EditorGUI.DelayedIntField(rect, (int)cacheSizeOverride.sizeInMegaBytes));
             cacheSizeOverrideProperty.FindPropertyRelative("sizeInMegaBytes").intValue =
-                (int) cacheSizeOverride.sizeInMegaBytes;
+                (int)cacheSizeOverride.sizeInMegaBytes;
         }
 
         void DrawStreamingOverrideElement(Rect rect, int settingIdx, bool active, bool focused)

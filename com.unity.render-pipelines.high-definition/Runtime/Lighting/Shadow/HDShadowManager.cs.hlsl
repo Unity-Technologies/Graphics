@@ -1,5 +1,5 @@
 //
-// This file was automatically generated. Please don't edit by hand.
+// This file was automatically generated. Please don't edit by hand. Execute Editor command [ Edit > Rendering > Generate Shader Includes ] instead
 //
 
 #ifndef HDSHADOWMANAGER_CS_HLSL
@@ -18,7 +18,7 @@ struct HDShadowData
     float normalBias;
     real4 zBufferParam;
     float4 shadowMapSize;
-    real4 shadowFilterParams0;
+    float4 shadowFilterParams0;
     float3 cacheTranslationDelta;
     float isInCachedAtlas;
     float4x4 shadowToWorld;

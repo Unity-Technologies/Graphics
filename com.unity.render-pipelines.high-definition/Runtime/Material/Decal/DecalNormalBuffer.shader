@@ -11,11 +11,15 @@ Shader "Hidden/HDRP/Material/Decal/DecalNormalBuffer"
     HLSLINCLUDE
 
         #pragma target 4.5
-        #pragma only_renderers d3d11 playstation xboxone vulkan metal switch
+        #pragma only_renderers d3d11 playstation xboxone xboxseries vulkan metal switch
+
+        #pragma multi_compile_fragment _ DECAL_SURFACE_GRADIENT
+
         #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Common.hlsl"
+        #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/NormalSurfaceGradient.hlsl"
         #include "Packages/com.unity.render-pipelines.high-definition/Runtime/ShaderLibrary/ShaderVariables.hlsl"
-		#include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Decal/Decal.hlsl"
-		#include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/NormalBuffer.hlsl"
+        #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Decal/Decal.hlsl"
+        #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/NormalBuffer.hlsl"
 
 #if defined(PLATFORM_NEEDS_UNORM_UAV_SPECIFIER) && defined(PLATFORM_SUPPORTS_EXPLICIT_BINDING)
         // Explicit binding is needed on D3D since we bind the UAV to slot 1 and we don't have a colour RT bound to fix a D3D warning.
@@ -62,7 +66,12 @@ Shader "Hidden/HDRP/Material/Decal/DecalNormalBuffer"
             float4 normalbuffer = _NormalBuffer[COORD_TEXTURE2D_X(positionSS)];
             NormalData normalData;
             DecodeFromNormalBuffer(normalbuffer, normalData);
+
+            #ifdef DECAL_SURFACE_GRADIENT
+            decalSurfaceData.normalWS.xyz = SurfaceGradientResolveNormal(normalData.normalWS.xyz, decalSurfaceData.normalWS.xyz);
+            #endif
             normalData.normalWS.xyz = normalize(normalData.normalWS.xyz * decalSurfaceData.normalWS.w + decalSurfaceData.normalWS.xyz);
+
             normalData.perceptualRoughness = PerceptualSmoothnessToPerceptualRoughness(PerceptualRoughnessToPerceptualSmoothness(normalData.perceptualRoughness) * decalSurfaceData.mask.w + decalSurfaceData.mask.z);
             EncodeIntoNormalBuffer(normalData, normalbuffer);
             _NormalBuffer[COORD_TEXTURE2D_X(positionSS)] = normalbuffer;

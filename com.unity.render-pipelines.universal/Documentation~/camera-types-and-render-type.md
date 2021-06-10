@@ -5,7 +5,7 @@ There are two types of Camera in the Universal Render Pipeline (URP):
 * A [Base Camera](#base-camera) is a general purpose Camera that renders to a render target (a screen, or a [Render Texture](https://docs.unity3d.com/Manual/class-RenderTexture.html)).
 * An [Overlay Camera](#overlay-camera) renders on top of another Camera's output. You can combine the output of a Base Camera with the output of one or more Overlay Cameras. This is called [Camera stacking](camera-stacking.md).
 
-Use a Camera’s **Render Type** property to make it a Base Camera or an Overlay Camera.  
+Use a Camera’s **Render Type** property to make it a Base Camera or an Overlay Camera.
 
 To change the type of a Camera in the Unity Editor:
 
@@ -48,7 +48,7 @@ An Overlay Camera is a Camera that renders its view on top of another Camera's o
 
 You must use Overlay Cameras in conjunction with one or more Base Cameras using the [Camera Stacking](camera-stacking.md) system. You cannot use Overlay Cameras on their own. An Overlay Camera that is not part of a Camera Stack does not perform any steps of its render loop, and is known as an orphan Camera.
 
-__Important note:__ In this version of URP, Overlay Cameras and Camera Stacking are supported only when using the Forward Renderer.
+__Important note:__ In this version of URP, Overlay Cameras and Camera Stacking are supported only when using the Universal Renderer.
 
 When you have an active Overlay Camera in your Scene, this icon appears next to the Camera Gizmo in the Scene view:
 
@@ -63,8 +63,6 @@ The Base Camera in a Camera Stack determines most of the properties of the Camer
 * Clipping plans
 * Renderer
 * Clear Depth
-* Opaque Texture
-* Depth Texture
 * Render Shadows
 * Culling Mask
 * Occlusion Culling

@@ -78,8 +78,8 @@ namespace UnityEditor.Rendering
         Color m_WireframeColorBehind;
 
         Material material => m_Material == null || m_Material.Equals(null)
-            ? (m_Material = new Material(k_Material))
-            : m_Material;
+        ? (m_Material = new Material(k_Material))
+        : m_Material;
 
         /// <summary>The position of the center of the box in Handle.matrix space.</summary>
         public Vector3 center { get; set; }
@@ -168,7 +168,7 @@ namespace UnityEditor.Rendering
             using (new Handles.DrawingScope(m_HandleColor))
             {
                 radius = Handles.RadiusHandle(Quaternion.identity, center, radius, handlesOnly: true);
-                if(m_Parent != null)
+                if (m_Parent != null)
                     radius = Mathf.Min(radius, m_Parent.radius - Vector3.Distance(center, m_Parent.center));
             }
         }

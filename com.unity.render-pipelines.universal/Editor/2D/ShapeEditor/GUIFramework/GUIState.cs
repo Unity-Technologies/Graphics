@@ -1,7 +1,7 @@
 using UnityEngine;
 using UnityEditor;
 
-namespace UnityEditor.Experimental.Rendering.Universal.Path2D.GUIFramework
+namespace UnityEditor.Rendering.Universal.Path2D.GUIFramework
 {
     internal class GUIState : IGUIState
     {
@@ -131,7 +131,7 @@ namespace UnityEditor.Experimental.Rendering.Universal.Path2D.GUIFramework
 
             return HandleUtility.DistancePointToLineSegment(Event.current.mousePosition, p1, p2);
         }
-        
+
         public float DistanceToCircle(Vector3 center, float radius)
         {
             return HandleUtility.DistanceToCircle(center, radius);

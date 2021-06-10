@@ -10,7 +10,12 @@ namespace UnityEditor.ShaderGraph.Internal
     [BlackboardInputInfo(10)]
     public sealed class ColorShaderProperty : AbstractShaderProperty<Color>
     {
-        public override int latestVersion => 1;
+        // 0 - original (broken color space)
+        // 1 - fixed color space
+        // 2 - original (broken color space) with HLSLDeclaration override
+        // 3 - fixed color space with HLSLDeclaration override
+        public override int latestVersion => 3;
+        public const int deprecatedVersion = 2;
 
         internal ColorShaderProperty()
         {
@@ -21,26 +26,40 @@ namespace UnityEditor.ShaderGraph.Internal
         {
             this.sgVersion = version;
         }
-        
+
         public override PropertyType propertyType => PropertyType.Color;
-        
-        internal override bool isBatchable => true;
+
         internal override bool isExposable => true;
         internal override bool isRenamable => true;
-        internal override bool isGpuInstanceable => true;
-        
+
+        [SerializeField]
+        internal bool isMainColor = false;
+
         internal string hdrTagString => colorMode == ColorMode.HDR ? "[HDR]" : "";
+
+        internal string mainColorString => isMainColor ? "[MainColor]" : "";
 
         internal override string GetPropertyBlockString()
         {
-            return $"{hideTagString}{hdrTagString}{referenceName}(\"{displayName}\", Color) = ({NodeUtils.FloatToShaderValue(value.r)}, {NodeUtils.FloatToShaderValue(value.g)}, {NodeUtils.FloatToShaderValue(value.b)}, {NodeUtils.FloatToShaderValue(value.a)})";
+            return $"{hideTagString}{hdrTagString}{mainColorString}{referenceName}(\"{displayName}\", Color) = ({NodeUtils.FloatToShaderValueShaderLabSafe(value.r)}, {NodeUtils.FloatToShaderValueShaderLabSafe(value.g)}, {NodeUtils.FloatToShaderValueShaderLabSafe(value.b)}, {NodeUtils.FloatToShaderValueShaderLabSafe(value.a)})";
         }
 
-        public override string GetDefaultReferenceName()
+        internal override string GetPropertyAsArgumentString(string precisionString)
+        {
+            return $"{concreteShaderValueType.ToShaderString(precisionString)} {referenceName}";
+        }
+
+        internal override void ForeachHLSLProperty(Action<HLSLProperty> action)
+        {
+            HLSLDeclaration decl = GetDefaultHLSLDeclaration();
+            action(new HLSLProperty(HLSLType._float4, referenceName, decl, concretePrecision));
+        }
+
+        public override string GetOldDefaultReferenceName()
         {
             return $"Color_{objectId}";
         }
-        
+
         [SerializeField]
         ColorMode m_ColorMode;
 
@@ -74,8 +93,7 @@ namespace UnityEditor.ShaderGraph.Internal
                 name = referenceName,
                 vector4Value = propColor
             };
-
-        }        
+        }
 
         internal override ShaderInput Copy()
         {
@@ -83,12 +101,34 @@ namespace UnityEditor.ShaderGraph.Internal
             {
                 sgVersion = sgVersion,
                 displayName = displayName,
-                hidden = hidden,
                 value = value,
                 colorMode = colorMode,
-                precision = precision,
-                gpuInstanced = gpuInstanced,
+                isMainColor = isMainColor
             };
+        }
+
+        public override void OnAfterDeserialize(string json)
+        {
+            if (sgVersion < 2)
+            {
+                LegacyShaderPropertyData.UpgradeToHLSLDeclarationOverride(json, this);
+                // version 0 upgrades to 2
+                // version 1 upgrades to 3
+                ChangeVersion((sgVersion == 0) ? 2 : 3);
+            }
+        }
+
+        internal override void OnBeforePasteIntoGraph(GraphData graph)
+        {
+            if (isMainColor)
+            {
+                ColorShaderProperty existingMain = graph.GetMainColor();
+                if (existingMain != null && existingMain != this)
+                {
+                    isMainColor = false;
+                }
+            }
+            base.OnBeforePasteIntoGraph(graph);
         }
     }
 }

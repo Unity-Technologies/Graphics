@@ -1,0 +1,122 @@
+#pragma only_renderers d3d11 playstation xboxone xboxseries vulkan metal switch
+
+#pragma multi_compile_local _ USE_SECOND_CLOUD_LAYER
+
+#pragma kernel BakeCloudTexture KERNEL_NAME=BakeCloudTexture
+
+#include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Common.hlsl"
+#include "Packages/com.unity.render-pipelines.high-definition/Runtime/Sky/SkyUtils.hlsl"
+#include "Packages/com.unity.render-pipelines.high-definition/Runtime/ShaderLibrary/ShaderVariables.hlsl"
+
+#ifndef USE_SECOND_CLOUD_LAYER
+    #define NUM_LAYERS  1
+    #define LAYER       0
+#else
+    #define NUM_LAYERS  2
+    #define LAYER       dispatchThreadId.z
+#endif
+
+TEXTURE2D(_CloudMapA);
+SAMPLER(sampler_CloudMapA);
+
+#ifdef USE_SECOND_CLOUD_LAYER
+TEXTURE2D(_CloudMapB);
+SAMPLER(sampler_CloudMapB);
+#endif
+
+RW_TEXTURE2D_ARRAY(float2, _CloudTexture);
+
+float4 _Params;
+float4 _Params1[NUM_LAYERS];
+float4 _Params2[NUM_LAYERS];
+
+#define _SunDirection       _Params.xyz
+#define _UpperHemisphere    (_Params.w > 0)
+#define _Opacities          _Params1[LAYER]
+#define _Rotation           _Params2[LAYER].x
+#define _LightingSteps      _Params2[LAYER].y
+#define _Thickness          _Params2[LAYER].z
+#define _Resolution         _Params2[0].w
+
+
+float3 InverseLatLong(float2 uv, float upperHemisphereOnly)
+{
+    const float2 invAtan = float2(0.1591, 0.3183);
+
+    uv.y = upperHemisphereOnly ? uv.y * 0.5 + 0.5 : uv.y;
+    uv = (uv - 0.5) / invAtan;
+
+    float y = sin(uv.y);
+    float scale = sqrt(1.0 - y*y);
+
+    return float3(sin(uv.x) * scale, y, cos(uv.x) * scale);
+}
+
+float SampleCloudMap(TEXTURE2D(_CloudMap), SAMPLER(sampler_CloudMap), float2 uv, float4 weights)
+{
+    float4 cloudLayerColor = SAMPLE_TEXTURE2D_LOD(_CloudMap, sampler_CloudMap, uv, 0);
+
+    float4 clouds = cloudLayerColor * weights;
+    return clouds.r + clouds.g + clouds.b + clouds.a;
+}
+
+float3 RotationUp(float3 p, float2 cos_sin)
+{
+    float3 rotDirX = float3(cos_sin.x, 0, -cos_sin.y);
+    float3 rotDirY = float3(cos_sin.y, 0,  cos_sin.x);
+
+    return float3(dot(rotDirX, p), p.y, dot(rotDirY, p));
+}
+
+float2 ComputeCloudLighting(TEXTURE2D(_CloudMap), SAMPLER(sampler_CloudMap), float2 uv, uint3 dispatchThreadId)
+{
+    float4 weights = _Opacities / max(_Opacities.r + _Opacities.g + _Opacities.b + _Opacities.a, 1.0);
+    float opacity = SampleCloudMap(_CloudMap, sampler_CloudMap, uv, weights);
+    float2 finalColor = float2(1.0, opacity);
+
+    int numSteps = (int)_LightingSteps;
+    if (numSteps != 0)
+    {
+        float3 sun = -_SunDirection;
+        sun = RotationUp(sun, float2(cos(_Rotation*PI*2.0), sin(_Rotation*PI*2.0)));
+
+        float3 dir = InverseLatLong(uv, _UpperHemisphere);
+        float3 marchDir = sun - dir;
+        float marchDist = length(marchDir);
+        float3 marchStep = marchDir / marchDist;
+        float stepSize = 0.02;
+
+        int i = 0;
+        finalColor.x = 1;
+        while (i++ < numSteps)
+        {
+            float3 ray = normalize(dir + marchStep * min(stepSize * i, marchDist));
+            ray.y = max(ray.y, 0.00f);
+            float2 coords = GetLatLongCoords(ray, _UpperHemisphere);
+            float newSample = SampleCloudMap(_CloudMap, sampler_CloudMap, coords, weights);
+            float c = 1/(1+_LightingSteps);
+            finalColor.x = lerp(finalColor.x, 0.02 + 0.98 * saturate(opacity - newSample), lerp(c, 0.5, _Thickness));
+        }
+    }
+
+    return finalColor;
+}
+
+[numthreads(8, 8, NUM_LAYERS)]
+void KERNEL_NAME(uint3 dispatchThreadId : SV_DispatchThreadID)
+{
+    float2 uv = float2(dispatchThreadId.x * _Resolution, dispatchThreadId.y * _Resolution);
+    if (_UpperHemisphere)
+        uv.y *= 2.0f;
+
+#ifndef USE_SECOND_CLOUD_LAYER
+    float2 cloudLayerColor = ComputeCloudLighting(_CloudMapA, sampler_CloudMapA, uv, dispatchThreadId);
+#else
+    float2 cloudLayerColor = LAYER == 0 ?
+        ComputeCloudLighting(_CloudMapA, sampler_CloudMapA, uv, dispatchThreadId) :
+        ComputeCloudLighting(_CloudMapB, sampler_CloudMapB, uv, dispatchThreadId);
+#endif
+
+    dispatchThreadId.x = frac(uv.x + _Rotation) / _Resolution;
+    _CloudTexture[dispatchThreadId] = cloudLayerColor;
+}

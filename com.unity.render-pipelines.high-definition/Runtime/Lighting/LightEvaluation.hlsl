@@ -1,3 +1,6 @@
+#ifndef UNITY_LIGHT_EVALUATION_INCLUDED
+#define UNITY_LIGHT_EVALUATION_INCLUDED
+
 // This files include various function uses to evaluate lights
 // use #define LIGHT_EVALUATION_NO_HEIGHT_FOG to disable Height fog attenuation evaluation
 // use #define LIGHT_EVALUATION_NO_COOKIE to disable cookie evaluation
@@ -478,22 +481,36 @@ SHADOW_TYPE EvaluateShadow_RectArea( LightLoopContext lightLoopContext, Position
 #ifndef LIGHT_EVALUATION_NO_SHADOWS
     float shadow        = 1.0;
     float shadowMask    = 1.0;
-    float NdotL         = dot(N, L); // Disable contact shadow and shadow mask when facing away from light (i.e transmission)
 
 #ifdef SHADOWS_SHADOWMASK
     // shadowMaskSelector.x is -1 if there is no shadow mask
     // Note that we override shadow value (in case we don't have any dynamic shadow)
-    shadow = shadowMask = (light.shadowMaskSelector.x >= 0.0 && NdotL > 0.0) ? dot(BUILTIN_DATA_SHADOW_MASK, light.shadowMaskSelector) : 1.0;
+    shadow = shadowMask = (light.shadowMaskSelector.x >= 0.0) ? dot(BUILTIN_DATA_SHADOW_MASK, light.shadowMaskSelector) : 1.0;
 #endif
 
+    // When screen space shadows are not supported, this value is stripped out as it is a constant.
+    bool validScreenSpace = false;
 #if defined(SCREEN_SPACE_SHADOWS_ON) && !defined(_SURFACE_TYPE_TRANSPARENT)
+    // For area lights it is complex to define if a fragment is back facing.
+    // In theory, the execution shouldn't reach here, but for now we are not handeling the shadowing properly for the transmittance.
     if ((light.screenSpaceShadowIndex & SCREEN_SPACE_SHADOW_INDEX_MASK) != INVALID_SCREEN_SPACE_SHADOW)
     {
-        shadow = GetScreenSpaceShadow(posInput, light.screenSpaceShadowIndex);
+        float2 screenSpaceAreaShadow = GetScreenSpaceShadowArea(posInput, light.screenSpaceShadowIndex);
+        // If the material has transmission, we want to be able to fallback on an other lighting source outside of the validity of the screen space shadow.
+        // Which is wrong, but less shocking visually than the alternative.
+        #if defined(MATERIAL_INCLUDE_TRANSMISSION)
+        if (screenSpaceAreaShadow.y > 0.0)
+        {
+            validScreenSpace = true;
+            shadow = screenSpaceAreaShadow.x;
+        }
+        #else
+        shadow = screenSpaceAreaShadow.x;
+        #endif
     }
-    else
 #endif
-    if ((light.shadowIndex >= 0) && (light.shadowDimmer > 0))
+
+    if ((light.shadowIndex >= 0) && (light.shadowDimmer > 0) && !validScreenSpace)
     {
         shadow = GetRectAreaShadowAttenuation(lightLoopContext.shadowContext, posInput.positionSS, posInput.positionWS, N, light.shadowIndex, L, dist);
 
@@ -522,7 +539,18 @@ SHADOW_TYPE EvaluateShadow_RectArea( LightLoopContext lightLoopContext, Position
 // Environment map share function
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Lighting/Reflection/VolumeProjection.hlsl"
 
-void EvaluateLight_EnvIntersection(float3 positionWS, float3 normalWS, EnvLightData light, int influenceShapeType, inout float3 R, inout float weight)
+// From Moving Frostbite to PBR document
+// This function fakes the roughness based integration of reflection probes by adjusting the roughness value
+float ComputeDistanceBaseRoughness(float distIntersectionToShadedPoint, float distIntersectionToProbeCenter, float perceptualRoughness)
+{
+    float newPerceptualRoughness = clamp(distIntersectionToShadedPoint / distIntersectionToProbeCenter * perceptualRoughness, 0, perceptualRoughness);
+    return lerp(newPerceptualRoughness, perceptualRoughness, perceptualRoughness);
+}
+
+// return projectionDistance, can be used in ComputeDistanceBaseRoughness formula
+// return in R the unormalized corrected direction which is used to fetch cubemap but also its length represent the distance of the capture point to the intersection
+// Length R can be reuse as a parameter of ComputeDistanceBaseRoughness for distIntersectionToProbeCenter
+float EvaluateLight_EnvIntersection(float3 positionWS, float3 normalWS, EnvLightData light, int influenceShapeType, inout float3 R, inout float weight)
 {
     // Guideline for reflection volume: In HDRenderPipeline we separate the projection volume (the proxy of the scene) from the influence volume (what pixel on the screen is affected)
     // However we add the constrain that the shape of the projection and influence volume is the same (i.e if we have a sphere shape projection volume, we have a shape influence).
@@ -564,6 +592,20 @@ void EvaluateLight_EnvIntersection(float3 positionWS, float3 normalWS, EnvLightD
     // Smooth weighting
     weight = Smoothstep01(weight);
     weight *= light.weight;
+
+    return projectionDistance;
+}
+
+// Call SampleEnv function with distance based roughness
+float4 SampleEnvWithDistanceBaseRoughness(LightLoopContext lightLoopContext, PositionInputs posInput, EnvLightData lightData, float3 R, float perceptualRoughness, float intersectionDistance, int sliceIdx = 0)
+{
+    // Only apply distance based roughness for non-sky reflection probe
+    if (lightLoopContext.sampleReflection == SINGLE_PASS_CONTEXT_SAMPLE_REFLECTION_PROBES && IsEnvIndexCubemap(lightData.envIndex))
+    {
+        perceptualRoughness = lerp(perceptualRoughness, ComputeDistanceBaseRoughness(intersectionDistance, length(R), perceptualRoughness), lightData.distanceBasedRoughness);
+    }
+
+    return SampleEnv(lightLoopContext, lightData.envIndex, R, PerceptualRoughnessToMipmapLevel(perceptualRoughness) * lightData.roughReflections, lightData.rangeCompressionFactorCompensation, posInput.positionNDC, sliceIdx);
 }
 
 void InversePreExposeSsrLighting(inout float4 ssrLighting)
@@ -582,3 +624,5 @@ void ApplyScreenSpaceReflectionWeight(inout float4 ssrLighting)
     ssrLighting.rgb *= ssrLighting.a;
 }
 #endif
+
+#endif // UNITY_LIGHT_EVALUATION_INCLUDED

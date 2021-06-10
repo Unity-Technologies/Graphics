@@ -63,7 +63,7 @@ namespace UnityEditor.VFX
 
         sealed protected override VFXExpression Evaluate(VFXExpression[] constParents)
         {
-            switch(type)
+            switch (type)
             {
                 case VFXValueType.Float:    return Evaluate<float>(constParents);
                 case VFXValueType.Int32:    return Evaluate<int>(constParents);

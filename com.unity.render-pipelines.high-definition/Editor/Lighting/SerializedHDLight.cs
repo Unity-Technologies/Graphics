@@ -5,9 +5,12 @@ using System.Collections.Generic;
 
 namespace UnityEditor.Rendering.HighDefinition
 {
-    internal class SerializedHDLight
+    internal class SerializedHDLight : ISerializedLight
     {
-        public SerializedProperty intensity;
+        // Common properties
+        public SerializedProperty intensity { get; }
+
+        // HDRP specific properties
         public SerializedProperty enableSpotReflector;
         public SerializedProperty luxAtDistance;
         public SerializedProperty spotInnerPercent;
@@ -27,6 +30,7 @@ namespace UnityEditor.Rendering.HighDefinition
         public SerializedProperty maxSmoothness;
         public SerializedProperty applyRangeAttenuation;
         public SerializedProperty volumetricDimmer;
+        public SerializedProperty volumetricFadeDistance;
         public SerializedProperty lightUnit;
         public SerializedProperty displayAreaLightEmissiveMesh;
         public SerializedProperty areaLightEmissiveMeshCastShadow;
@@ -44,6 +48,7 @@ namespace UnityEditor.Rendering.HighDefinition
         public SerializedProperty areaLightCookie; // We can't use default light cookies because the cookie gets reset by some safety measure on C++ side... :/
         public SerializedProperty iesPoint;
         public SerializedProperty iesSpot;
+        public SerializedProperty includeForRayTracing;
         public SerializedProperty areaLightShadowCone;
         public SerializedProperty useCustomSpotLightShadowCone;
         public SerializedProperty customSpotLightShadowCone;
@@ -78,11 +83,10 @@ namespace UnityEditor.Rendering.HighDefinition
         // Editor stuff
         public SerializedProperty useOldInspector;
         public SerializedProperty showFeatures;
-        public SerializedProperty showAdditionalSettings;
         public SerializedProperty useVolumetric;
 
         // Layers
-        public SerializedProperty linkLightLayers;
+        public SerializedProperty linkShadowLayers;
         public SerializedProperty lightlayersMask;
 
         // Shadow datas
@@ -109,20 +113,21 @@ namespace UnityEditor.Rendering.HighDefinition
 
         public bool needUpdateAreaLightEmissiveMeshComponents = false;
 
-        public SerializedObject serializedObject;
+        public SerializedObject serializedObject { get; }
+        public SerializedObject serializedAdditionalDataObject { get; }
 
         public SerializedProperty lightLayer;
         private SerializedObject lightGameObject;
 
         //contain serialized property that are mainly used to draw inspector
-        public LightEditor.Settings settings;
+        public LightEditor.Settings settings { get; }
 
         //type is converted on the fly each time so we cannot have SerializedProperty on it
         public HDLightType type
         {
             get => haveMultipleTypeValue
-                ? (HDLightType)(-1) //as serialize property on enum when mixed value state happens
-                : (serializedObject.targetObjects[0] as HDAdditionalLightData).type;
+            ? (HDLightType)(-1)     //as serialize property on enum when mixed value state happens
+            : (serializedObject.targetObjects[0] as HDAdditionalLightData).type;
             set
             {
                 //Note: type is split in both component
@@ -168,8 +173,8 @@ namespace UnityEditor.Rendering.HighDefinition
         public AreaLightShape areaLightShape
         {
             get => haveMultipleAreaLightShapeValue
-                ? (AreaLightShape)(-1) //as serialize property on enum when mixed value state happens
-                : (serializedObject.targetObjects[0] as HDAdditionalLightData).areaLightShape;
+            ? (AreaLightShape)(-1)     //as serialize property on enum when mixed value state happens
+            : (serializedObject.targetObjects[0] as HDAdditionalLightData).areaLightShape;
             set
             {
                 //Note: Disc is actually changing legacyLight.type to Disc
@@ -291,7 +296,6 @@ namespace UnityEditor.Rendering.HighDefinition
                 areaLightEmissiveMeshCastShadow.intValue = (int)shadowCastingMode;
                 if (deportedAreaLightEmissiveMeshCastShadow != null) //only possible while editing from prefab
                     deportedAreaLightEmissiveMeshCastShadow.intValue = (int)shadowCastingMode;
-
             }
         }
 
@@ -336,6 +340,7 @@ namespace UnityEditor.Rendering.HighDefinition
                 spotIESCutoffPercent = o.Find("m_SpotIESCutoffPercent");
                 lightDimmer = o.Find("m_LightDimmer");
                 volumetricDimmer = o.Find("m_VolumetricDimmer");
+                volumetricFadeDistance = o.Find("m_VolumetricFadeDistance");
                 lightUnit = o.Find("m_LightUnit");
                 displayAreaLightEmissiveMesh = o.Find("m_DisplayAreaLightEmissiveMesh");
                 fadeDistance = o.Find("m_FadeDistance");
@@ -359,6 +364,7 @@ namespace UnityEditor.Rendering.HighDefinition
                 areaLightCookie = o.Find("m_AreaLightCookie");
                 iesPoint = o.Find("m_IESPoint");
                 iesSpot = o.Find("m_IESSpot");
+                includeForRayTracing = o.Find("m_IncludeForRayTracing");
                 areaLightShadowCone = o.Find("m_AreaLightShadowCone");
                 useCustomSpotLightShadowCone = o.Find("m_UseCustomSpotLightShadowCone");
                 customSpotLightShadowCone = o.Find("m_CustomSpotLightShadowCone");
@@ -393,12 +399,11 @@ namespace UnityEditor.Rendering.HighDefinition
                 // Editor stuff
                 useOldInspector = o.Find("useOldInspector");
                 showFeatures = o.Find("featuresFoldout");
-                showAdditionalSettings = o.Find("showAdditionalSettings");
                 useVolumetric = o.Find("useVolumetric");
                 renderingLayerMask = settings.renderingLayerMask;
 
                 // Layers
-                linkLightLayers = o.Find("m_LinkShadowLayers");
+                linkShadowLayers = o.Find("m_LinkShadowLayers");
                 lightlayersMask = o.Find("m_LightlayersMask");
 
                 // Shadow datas:
@@ -414,7 +419,7 @@ namespace UnityEditor.Rendering.HighDefinition
                 shadowUpdateUponTransformChange = o.Find("m_UpdateShadowOnLightMovement");
                 shadowResolution = new SerializedScalableSettingValue(o.Find((HDAdditionalLightData l) => l.shadowResolution));
 
-				slopeBias = o.Find("m_SlopeBias");
+                slopeBias = o.Find("m_SlopeBias");
                 normalBias = o.Find("m_NormalBias");
 
                 // private references for prefab handling
@@ -462,7 +467,6 @@ namespace UnityEditor.Rendering.HighDefinition
             RefreshEmissiveMeshReference();
             Update();
         }
-
 
         public void Update()
         {

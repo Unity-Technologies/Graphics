@@ -12,7 +12,7 @@ namespace UnityEngine.Rendering.HighDefinition
         /// <summary>The light will no affect any object.</summary>
         Nothing = 0,   // Custom name for "Nothing" option
         /// <summary>Decal Layer 0.</summary>
-        LightLayerDefault = 1 << 0,
+        DecalLayerDefault = 1 << 0,
         /// <summary>Decal Layer 1.</summary>
         DecalLayer1 = 1 << 1,
         /// <summary>Decal Layer 2.</summary>
@@ -44,6 +44,7 @@ namespace UnityEngine.Rendering.HighDefinition
         };
 
         public static readonly string[] s_MaterialDecalPassNames = Enum.GetNames(typeof(MaterialDecalPass));
+        public static readonly string s_AtlasSizeWarningMessage = "Decal texture atlas out of space, decals on transparent geometry might not render correctly, atlas size can be changed in HDRenderPipelineAsset";
 
         public class CullResult : IDisposable
         {
@@ -380,8 +381,6 @@ namespace UnityEngine.Rendering.HighDefinition
                 if (m_Material == null)
                     return;
 
-                bool perChannelMask = HDRenderPipeline.currentAsset.currentPlatformRenderPipelineSettings.decalSettings.perChannelMask;
-
                 // TODO: this test is ambiguous, it should say, I am decal or not.
                 // We should have 2 function: I am decal or not and I am a SG or not...
                 m_IsHDRenderPipelineDecal = IsHDRenderPipelineDecal(m_Material);
@@ -404,17 +403,18 @@ namespace UnityEngine.Rendering.HighDefinition
                     // convert to float
                     m_BlendParams.z = (float)affectFlags;
 
-                    m_ScalingMB = new Vector2(0.0f, m_Material.GetFloat("_DecalMaskMapBlueScale"));
+                    m_ScalingBAndRemappingM = new Vector4(0.0f, m_Material.GetFloat("_DecalMaskMapBlueScale"), 0.0f, 0.0f);
                     // If we have a texture, we use the remapping parameter, otherwise we use the regular one and the default texture is white
                     if (m_Material.GetTexture("_MaskMap"))
                     {
                         m_RemappingAOS = new Vector4(m_Material.GetFloat("_AORemapMin"), m_Material.GetFloat("_AORemapMax"), m_Material.GetFloat("_SmoothnessRemapMin"), m_Material.GetFloat("_SmoothnessRemapMax"));
-                        m_ScalingMB.x = m_Material.GetFloat("_MetallicScale");
+                        m_ScalingBAndRemappingM.z = m_Material.GetFloat("_MetallicRemapMin");
+                        m_ScalingBAndRemappingM.w = m_Material.GetFloat("_MetallicRemapMax");
                     }
                     else
                     {
                         m_RemappingAOS = new Vector4(m_Material.GetFloat("_AO"), m_Material.GetFloat("_AO"), m_Material.GetFloat("_Smoothness"), m_Material.GetFloat("_Smoothness"));
-                        m_ScalingMB.x = m_Material.GetFloat("_Metallic");
+                        m_ScalingBAndRemappingM.z = m_Material.GetFloat("_Metallic");
                     }
 
                     // For HDRP/Decal, pass are always present but can be enabled/disabled
@@ -444,7 +444,6 @@ namespace UnityEngine.Rendering.HighDefinition
                 m_Material = material;
                 InitializeMaterialValues();
             }
-
 
             private BoundingSphere GetDecalProjectBoundingSphere(Matrix4x4 decalToWorld)
             {
@@ -482,9 +481,11 @@ namespace UnityEngine.Rendering.HighDefinition
                     : instance.DrawDistance;
                 m_CachedDrawDistances[index].y = data.fadeScale;
                 // In the shader to remap from cosine -1 to 1 to new range 0..1  (with 0 - 0 degree and 1 - 180 degree)
-                // we do 1.0 - (dots() * 0.5 + 0.5) => 0.5 * (1 - dots())
-                // Do a remap in the shader. 1.0 - saturate(( 0.5 * (1 - dot()) - start) / (end - start))
-                // x = 0.5 / (end - start), y = -start / (end - start)
+                // we do 1.0 - (dot() * 0.5 + 0.5) => 0.5 * (1 - dot())
+                // we actually square that to get smoother result => x = (0.5 - 0.5 * dot())^2
+                // Do a remap in the shader. 1.0 - saturate((x - start) / (end - start))
+                // After simplification => saturate(a + b * dot() * (dot() - 2.0))
+                // a = 1.0 - (0.25 - start) / (end - start), y = - 0.25 / (end - start)
                 if (data.startAngleFade == 180.0f) // angle fade is disabled
                 {
                     m_CachedAngleFade[index].x = 0.0f;
@@ -494,9 +495,9 @@ namespace UnityEngine.Rendering.HighDefinition
                 {
                     float angleStart = data.startAngleFade / 180.0f;
                     float angleEnd = data.endAngleFade / 180.0f;
-                    var val = Mathf.Max(0.0001f, angleEnd - angleStart);
-                    m_CachedAngleFade[index].x = 0.5f / (val);
-                    m_CachedAngleFade[index].y = -angleStart / (val);
+                    var range = Mathf.Max(0.0001f, angleEnd - angleStart);
+                    m_CachedAngleFade[index].x = 1.0f - (0.25f - angleStart) / range;
+                    m_CachedAngleFade[index].y = -0.25f / range;
                 }
                 m_CachedUVScaleBias[index] = data.uvScaleBias;
                 m_CachedAffectsTransparency[index] = data.affectsTransparency;
@@ -694,7 +695,6 @@ namespace UnityEngine.Rendering.HighDefinition
                 Vector3 cameraPos = instance.CurrentCamera.transform.position;
                 var camera = instance.CurrentCamera;
                 Matrix4x4 worldToView = HDRenderPipeline.WorldToCamera(camera);
-                bool perChannelMask = instance.perChannelMask;
                 int cullingMask = camera.cullingMask;
                 ulong sceneCullingMask = HDUtils.GetSceneCullingMaskFromCamera(camera);
 
@@ -734,7 +734,7 @@ namespace UnityEngine.Rendering.HighDefinition
                                 m_DecalDatas[m_DecalDatasCount].baseColor = m_BaseColor;
                                 m_DecalDatas[m_DecalDatasCount].blendParams = m_BlendParams;
                                 m_DecalDatas[m_DecalDatasCount].remappingAOS = m_RemappingAOS;
-                                m_DecalDatas[m_DecalDatasCount].scalingMBAndAngle = new Vector4(m_ScalingMB.x, m_ScalingMB.y, m_CachedAngleFade[decalIndex].x, m_CachedAngleFade[decalIndex].y);
+                                m_DecalDatas[m_DecalDatasCount].scalingBAndRemappingM = m_ScalingBAndRemappingM;
                                 m_DecalDatas[m_DecalDatasCount].decalLayerMask = (uint)m_CachedDecalLayerMask[decalIndex];
 
                                 // we have not allocated the textures in atlas yet, so only store references to them
@@ -860,9 +860,9 @@ namespace UnityEngine.Rendering.HighDefinition
             {
                 get
                 {
-                    if (m_IsHDRenderPipelineDecal)
+                    if (this.m_Material.HasProperty(HDShaderIDs._DrawOrder))
                     {
-                        return this.m_Material.GetInt("_DrawOrder");
+                        return this.m_Material.GetInt(HDShaderIDs._DrawOrder);
                     }
                     else
                     {
@@ -896,7 +896,7 @@ namespace UnityEngine.Rendering.HighDefinition
             private float m_Blend = 0.0f;
             private Vector4 m_BaseColor;
             private Vector4 m_RemappingAOS;
-            private Vector2 m_ScalingMB; // metal, mask map blue
+            private Vector4 m_ScalingBAndRemappingM; // mask map blue, metal remap
             private Vector3 m_BlendParams;
 
             private bool m_IsHDRenderPipelineDecal;
@@ -919,13 +919,13 @@ namespace UnityEngine.Rendering.HighDefinition
             }
         }
 
-		void SetupMipStreamingSettings(Texture texture, bool allMips)
-		{
-			if (texture)
-			{
-				if (texture.dimension == UnityEngine.Rendering.TextureDimension.Tex2D)
-				{
-					Texture2D tex2D = (texture as Texture2D);
+        void SetupMipStreamingSettings(Texture texture, bool allMips)
+        {
+            if (texture)
+            {
+                if (texture.dimension == UnityEngine.Rendering.TextureDimension.Tex2D)
+                {
+                    Texture2D tex2D = (texture as Texture2D);
                     if (tex2D)
                     {
                         if (allMips)
@@ -933,9 +933,9 @@ namespace UnityEngine.Rendering.HighDefinition
                         else
                             tex2D.ClearRequestedMipmapLevel();
                     }
-				}
-			}
-		}
+                }
+            }
+        }
 
         void SetupMipStreamingSettings(Material material, bool allMips)
         {
@@ -1108,14 +1108,13 @@ namespace UnityEngine.Rendering.HighDefinition
 
                 if (!m_AllocationSuccess && m_PrevAllocationSuccess) // still failed to allocate, decal atlas size needs to increase, debounce so that we don't spam the console with warnings
                 {
-                    Debug.LogWarning("Decal texture atlas out of space, decals on transparent geometry might not render correctly, atlas size can be changed in HDRenderPipelineAsset");
+                    Debug.LogWarning(s_AtlasSizeWarningMessage);
                 }
             }
             m_PrevAllocationSuccess = m_AllocationSuccess;
             // now that textures have been stored in the atlas we can update their location info in decal data
             UpdateDecalDatasWithAtlasInfo();
         }
-
 
         public void CreateDrawData()
         {
@@ -1150,7 +1149,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
             foreach (var decalSet in m_DecalSetsRenderList)
                 decalSet.CreateDrawData();
-            }
+        }
 
         public void Cleanup()
         {
@@ -1162,17 +1161,11 @@ namespace UnityEngine.Rendering.HighDefinition
             m_Atlas = null;
         }
 
-        public void RenderDebugOverlay(HDCamera hdCamera, CommandBuffer cmd, DebugDisplaySettings debugDisplaySettings, DebugOverlay debugOverlay)
+        public void RenderDebugOverlay(HDCamera hdCamera, CommandBuffer cmd, int mipLevel, DebugOverlay debugOverlay)
         {
-            if (debugDisplaySettings.data.decalsDebugSettings.displayAtlas)
-            {
-                using (new ProfilingScope(cmd, ProfilingSampler.Get(HDProfileId.DisplayDebugDecalsAtlas)))
-                {
-                    debugOverlay.SetViewport(cmd);
-                    HDUtils.BlitQuad(cmd, Atlas.AtlasTexture, new Vector4(1, 1, 0, 0), new Vector4(1, 1, 0, 0), (int)debugDisplaySettings.data.decalsDebugSettings.mipLevel, true);
-                    debugOverlay.Next();
-                }
-            }
+            debugOverlay.SetViewport(cmd);
+            HDUtils.BlitQuad(cmd, Atlas.AtlasTexture, new Vector4(1, 1, 0, 0), new Vector4(1, 1, 0, 0), mipLevel, true);
+            debugOverlay.Next();
         }
 
         public void LoadCullResults(CullResult cullResult)
@@ -1187,6 +1180,11 @@ namespace UnityEngine.Rendering.HighDefinition
                     decalSet.SetCullResult(cullResult.requests[enumerator.Current.Key]);
                 }
             }
+        }
+
+        public bool IsAtlasAllocatedSuccessfully()
+        {
+            return m_AllocationSuccess;
         }
     }
 }

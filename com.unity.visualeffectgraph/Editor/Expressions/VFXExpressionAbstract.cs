@@ -131,10 +131,14 @@ namespace UnityEditor.VFX
                 case VFXValueType.Texture3D: return "Texture3D";
                 case VFXValueType.TextureCube: return "TextureCube";
                 case VFXValueType.TextureCubeArray: return "TextureCubeArray";
+                case VFXValueType.CameraBuffer: return "CameraBuffer";
                 case VFXValueType.Matrix4x4: return "float4x4";
-                case VFXValueType.Mesh: return "ByteAddressBuffer";
+                case VFXValueType.Mesh:
+                case VFXValueType.SkinnedMeshRenderer:
+                case VFXValueType.Buffer: return "ByteAddressBuffer";
                 case VFXValueType.Boolean: return "bool";
             }
+
             throw new NotImplementedException(type.ToString());
         }
 
@@ -170,6 +174,7 @@ namespace UnityEditor.VFX
                 case VFXValueType.Texture3D: return typeof(Texture);
                 case VFXValueType.TextureCube: return typeof(Texture);
                 case VFXValueType.TextureCubeArray: return typeof(Texture);
+                case VFXValueType.CameraBuffer: return typeof(CameraBuffer);
                 case VFXValueType.Matrix4x4: return typeof(Matrix4x4);
                 case VFXValueType.Mesh: return typeof(Mesh);
                 case VFXValueType.Curve: return typeof(AnimationCurve);
@@ -194,8 +199,8 @@ namespace UnityEditor.VFX
                 case VFXValueType.Texture3D:
                 case VFXValueType.TextureCube:
                 case VFXValueType.TextureCubeArray:
+                case VFXValueType.CameraBuffer:
                 case VFXValueType.Matrix4x4:
-                case VFXValueType.Mesh:
                 case VFXValueType.Boolean:
                     return true;
             }
@@ -215,7 +220,10 @@ namespace UnityEditor.VFX
                 case VFXValueType.Texture3D:
                 case VFXValueType.TextureCube:
                 case VFXValueType.TextureCubeArray:
+                case VFXValueType.CameraBuffer:
                 case VFXValueType.Mesh:
+                case VFXValueType.SkinnedMeshRenderer:
+                case VFXValueType.Buffer:
                     return false;
             }
             return true;
@@ -230,6 +238,7 @@ namespace UnityEditor.VFX
                 case VFXValueType.Texture3D:
                 case VFXValueType.TextureCube:
                 case VFXValueType.TextureCubeArray:
+                case VFXValueType.CameraBuffer:
                     return true;
             }
 
@@ -298,12 +307,15 @@ namespace UnityEditor.VFX
             if (type == typeof(Texture3D)) return VFXValueType.Texture3D;
             if (type == typeof(Cubemap)) return VFXValueType.TextureCube;
             if (type == typeof(CubemapArray)) return VFXValueType.TextureCubeArray;
+            if (type == typeof(CameraBuffer)) return VFXValueType.CameraBuffer;
             if (type == typeof(Matrix4x4)) return VFXValueType.Matrix4x4;
             if (type == typeof(AnimationCurve)) return VFXValueType.Curve;
             if (type == typeof(Gradient)) return VFXValueType.ColorGradient;
             if (type == typeof(Mesh)) return VFXValueType.Mesh;
+            if (type == typeof(SkinnedMeshRenderer)) return VFXValueType.SkinnedMeshRenderer;
             if (type == typeof(List<Vector3>)) return VFXValueType.Spline;
             if (type == typeof(bool)) return VFXValueType.Boolean;
+            if (type == typeof(GraphicsBuffer)) return VFXValueType.Buffer;
             return VFXValueType.None;
         }
 
@@ -334,7 +346,7 @@ namespace UnityEditor.VFX
 
         protected VFXExpression(Flags flags, params VFXExpression[] parents)
         {
-            if(parents.Length > 4)
+            if (parents.Length > 4)
             {
                 throw new System.ArgumentException("An expression can only take up to 4 parent expressions");
             }
@@ -553,10 +565,11 @@ namespace UnityEditor.VFX
 
                     const Flags propagatedFlags = Flags.NotCompilableOnCPU | Flags.InvalidConstant | Flags.PerSpawn;
                     m_Flags |= parent.m_Flags & propagatedFlags;
-                    
+
                     if (parent.IsAny(Flags.NotCompilableOnCPU) && parent.Is(Flags.InvalidOnGPU))
                         m_Flags |= Flags.InvalidOnGPU; // Only propagate GPU validity for per element expressions
-
+                    if (parent.Is(Flags.InvalidConstant))
+                        m_Flags |= Flags.InvalidConstant;
                 }
                 if (foldable)
                     m_Flags |= Flags.Foldable;

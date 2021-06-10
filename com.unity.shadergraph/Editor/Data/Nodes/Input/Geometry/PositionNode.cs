@@ -23,30 +23,17 @@ namespace UnityEditor.ShaderGraph
             name = "Position";
             precision = Precision.Single;
             UpdateNodeAfterDeserialization();
-            onBeforeVersionChange += UpgradeNodeWithVersion;
         }
-
 
         public sealed override void UpdateNodeAfterDeserialization()
         {
             AddSlot(new Vector3MaterialSlot(
-                    kOutputSlotId,
-                    kOutputSlotName,
-                    kOutputSlotName,
-                    SlotType.Output,
-                    Vector3.zero));
+                kOutputSlotId,
+                kOutputSlotName,
+                kOutputSlotName,
+                SlotType.Output,
+                Vector3.zero));
             RemoveSlotsNameNotMatching(new[] { kOutputSlotId });
-        }
-
-
-
-        public void UpgradeNodeWithVersion(int newVersion)
-        {
-            if (sgVersion == 0 && newVersion > 0 && space == CoordinateSpace.World)
-            {
-                var names = validSpaces.Select(cs => cs.ToString().PascalToLabel()).ToArray();
-                spacePopup = new PopupList(names, (int)CoordinateSpace.AbsoluteWorld);
-            }
         }
 
         public override string GetVariableNameForSlot(int slotId)
@@ -57,6 +44,16 @@ namespace UnityEditor.ShaderGraph
         public NeededCoordinateSpace RequiresPosition(ShaderStageCapability stageCapability)
         {
             return space.ToNeededCoordinateSpace();
+        }
+
+        public override void OnAfterMultiDeserialize(string json)
+        {
+            base.OnAfterMultiDeserialize(json);
+            //required update
+            if (sgVersion < 1)
+            {
+                ChangeVersion(1);
+            }
         }
     }
 }

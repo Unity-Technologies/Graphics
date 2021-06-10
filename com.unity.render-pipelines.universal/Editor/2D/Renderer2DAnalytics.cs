@@ -1,9 +1,9 @@
 using System;
 using UnityEngine;
 using UnityEngine.Analytics;
-using UnityEngine.Experimental.Rendering.Universal;
+using UnityEngine.Rendering.Universal;
 
-namespace UnityEditor.Experimental.Rendering.Universal.Analytics
+namespace UnityEditor.Rendering.Universal.Analytics
 {
     struct AnalyticsDataTypes
     {
@@ -11,7 +11,7 @@ namespace UnityEditor.Experimental.Rendering.Universal.Analytics
         public const string k_Renderer2DDataString = "u2drendererdata";
     }
 
-    internal interface IAnalyticsData { };
+    internal interface IAnalyticsData {};
 
     [Serializable]
     internal struct Light2DData : IAnalyticsData

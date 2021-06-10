@@ -41,12 +41,24 @@ namespace UnityEditor.VFX
             }
         }
 
+        public virtual void SetupMaterial(Material material)
+        {
+            VFXLibrary.currentSRPBinder.SetupMaterial(material);
+
+            // TODO Deactivate mv and shadow passes if needed
+        }
+
         protected VFXStaticMeshOutput() : base(VFXContextType.Output, VFXDataType.Mesh, VFXDataType.None) {}
 
         public override void OnEnable()
         {
             base.OnEnable();
             shader = ((VFXDataMesh)GetData()).shader;
+        }
+
+        public override VFXCoordinateSpace GetOutputSpaceFromSlot(VFXSlot slot)
+        {
+            return VFXCoordinateSpace.Local;
         }
 
         public override bool SetupCompilation()
@@ -86,7 +98,6 @@ namespace UnityEditor.VFX
                 yield return new VFXPropertyWithValue(new VFXProperty(typeof(Mesh), "mesh"), VFXResources.defaultResources.mesh);
                 yield return new VFXPropertyWithValue(new VFXProperty(typeof(Transform), "transform"), Transform.defaultValue);
                 yield return new VFXPropertyWithValue(new VFXProperty(typeof(uint), "subMeshMask", new BitFieldAttribute()), uint.MaxValue);
-
 
                 if (GetData() != null)
                 {
@@ -151,7 +162,7 @@ namespace UnityEditor.VFX
                                             break;
                                         default:
                                             break;
-                                        }
+                                    }
                                     propertyValue = mat.GetTexture(propertyNameId);
                                     break;
                                 }
@@ -210,36 +221,6 @@ namespace UnityEditor.VFX
                     mapper.AddExpression(GetInputSlot(1).GetExpression(), "transform", -1);
                     mapper.AddExpression(GetInputSlot(2).GetExpression(), "subMeshMask", -1);
 
-                    // TODO Remove this once material are serialized
-                    // Add material properties
-                    if (shader != null)
-                    {
-                        var mat = meshData.GetOrCreateMaterial();
-                        for (int i = 0; i < ShaderUtil.GetPropertyCount(shader); ++i)
-                        {
-                            if (ShaderUtil.IsShaderPropertyHidden(shader, i))
-                            {
-                                var name = ShaderUtil.GetPropertyName(shader, i);
-                                var nameId = Shader.PropertyToID(name);
-                                if (!mat.HasProperty(nameId))
-                                    continue;
-
-                                VFXExpression expr = null;
-                                switch (ShaderUtil.GetPropertyType(shader, i))
-                                {
-                                    case ShaderUtil.ShaderPropertyType.Float:
-                                        expr = VFXValue.Constant<float>(mat.GetFloat(nameId));
-                                        break;
-                                    default:
-                                        break;
-                                }
-
-                                if (expr != null)
-                                    mapper.AddExpression(expr, name, -1);
-                            }
-                        }
-                    }
-
                     return mapper;
                 }
 
@@ -253,6 +234,7 @@ namespace UnityEditor.VFX
             get
             {
                 yield return new VFXMapping("sortPriority", sortPriority);
+                yield return new VFXMapping("castShadows", castShadows ? 1 : 0);
             }
         }
 
@@ -260,8 +242,10 @@ namespace UnityEditor.VFX
         {
             base.CheckGraphBeforeImport();
             // If the graph is reimported it can be because one of its depedency such as the shadergraphs, has been changed.
+            if (!VFXGraph.explicitCompile)
+                ResyncSlots(true);
 
-            ResyncSlots(true);
+            Invalidate(InvalidationCause.kUIChangedTransient);
         }
     }
 }

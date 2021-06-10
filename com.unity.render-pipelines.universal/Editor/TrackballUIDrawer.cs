@@ -14,21 +14,21 @@ namespace UnityEditor.Rendering.Universal
         Func<Vector4, Vector3> m_ComputeFunc;
         bool m_ResetState;
         Vector2 m_CursorPos;
-
-        static TrackballUIDrawer()
-        {
-            if (s_Material == null)
-                s_Material = new Material(Shader.Find("Hidden/Universal Render Pipeline/Editor/Trackball")) { hideFlags = HideFlags.HideAndDontSave };
-        }
+        const string k_ShaderName = "Hidden/Universal Render Pipeline/Editor/Trackball";
 
         public void OnGUI(SerializedProperty property, SerializedProperty overrideState, GUIContent title, Func<Vector4, Vector3> computeFunc)
         {
+            if (!CheckMaterialAndShader())
+            {
+                return;
+            }
+
             if (property.propertyType != SerializedPropertyType.Vector4)
             {
                 Debug.LogWarning("TrackballUIDrawer requires a Vector4 property");
                 return;
             }
-            
+
             m_ComputeFunc = computeFunc;
             var value = property.vector4Value;
 
@@ -200,6 +200,24 @@ namespace UnityEditor.Rendering.Universal
             hue = Mathf.Atan2(dx, -dy);
             hue = 1f - ((hue > 0) ? hue : (Mathf.PI * 2f) + hue) / (Mathf.PI * 2f);
             saturation = Mathf.Clamp01(d);
+        }
+
+        bool CheckMaterialAndShader()
+        {
+            if (s_Material != null)
+            {
+                return true;
+            }
+
+            Shader shader = Shader.Find(k_ShaderName);
+            if (shader == null)
+            {
+                Debug.LogError("TrackballUIDrawer: Unable to find shader \"" + k_ShaderName + "\"");
+                return false;
+            }
+            s_Material = new Material(shader);
+
+            return true;
         }
     }
 }

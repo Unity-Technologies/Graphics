@@ -1,23 +1,33 @@
-#if VFX_GRAPH_10_0_0_OR_NEWER
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using UnityEditor.Graphing;
 using UnityEditor.ShaderGraph.Serialization;
 using UnityEngine;
+using TextureDimension = UnityEngine.Rendering.TextureDimension;
 
 namespace UnityEditor.ShaderGraph.Internal
 {
     [Serializable]
     public struct TextureInfo
     {
+        public TextureInfo(string name, Texture texture, TextureDimension dimension)
+        {
+            this.name = name;
+            this.texture = texture;
+            this.dimension = dimension;
+            Debug.Assert(texture == null || texture.dimension == dimension);
+        }
+
         public string name;
         public Texture texture;
+        public TextureDimension dimension;
+
+        public int instanceID => texture != null ? texture.GetInstanceID() : 0;
     }
 
     public sealed class ShaderGraphVfxAsset : ScriptableObject, ISerializationCallbackReceiver
     {
-
         private class ShaderGraphVfxAssetData : JsonObject
         {
             public List<JsonData<AbstractShaderProperty>> m_Properties = new List<JsonData<AbstractShaderProperty>>();
@@ -33,10 +43,16 @@ namespace UnityEditor.ShaderGraph.Internal
         public const int AlphaThresholdSlotId = 7;
 
         [SerializeField]
+        public bool generatesWithShaderGraph;
+
+        [SerializeField]
         public bool lit;
 
         [SerializeField]
         public bool alphaClipping;
+
+        [SerializeField]
+        internal ShaderStageCapability[] m_PropertiesStages;
 
         [SerializeField]
         internal GraphCompilationResult compilationResult;
@@ -80,7 +96,7 @@ namespace UnityEditor.ShaderGraph.Internal
 
         internal void SetTextureInfos(IList<PropertyCollector.TextureInfo> textures)
         {
-            m_TextureInfos = textures.Select(t => new TextureInfo() { name = t.name, texture = EditorUtility.InstanceIDToObject(t.textureId) as Texture }).ToArray();
+            m_TextureInfos = textures.Select(t => new TextureInfo(t.name, EditorUtility.InstanceIDToObject(t.textureId) as Texture, t.dimension)).ToArray();
         }
 
         internal void SetOutputs(OutputMetadata[] outputs)
@@ -116,18 +132,51 @@ namespace UnityEditor.ShaderGraph.Internal
             internal set { m_OutputStructName = value; }
         }
 
-        public List<AbstractShaderProperty> properties 
+        public List<AbstractShaderProperty> properties
         {
             get
             {
+                EnsureProperties();
                 return m_Data.m_Properties.SelectValue().ToList();
+            }
+        }
+
+        public List<AbstractShaderProperty> fragmentProperties
+        {
+            get
+            {
+                EnsureProperties();
+                var allProperties = m_Data.m_Properties.SelectValue().ToList();
+                var fragProperties =  new List<AbstractShaderProperty>();
+                for (var i = 0; i < allProperties.Count(); i++)
+                {
+                    if ((m_PropertiesStages[i] & ShaderStageCapability.Fragment) != 0)
+                        fragProperties.Add(allProperties[i]);
+                }
+                return fragProperties;
+            }
+        }
+
+        public List<AbstractShaderProperty> vertexProperties
+        {
+            get
+            {
+                EnsureProperties();
+                var allProperties = m_Data.m_Properties.SelectValue().ToList();
+                var vertexProperties =  new List<AbstractShaderProperty>();
+                for (var i = 0; i < allProperties.Count(); i++)
+                {
+                    if ((m_PropertiesStages[i] & ShaderStageCapability.Vertex) != 0)
+                        vertexProperties.Add(allProperties[i]);
+                }
+                return vertexProperties;
             }
         }
 
         internal void SetProperties(List<AbstractShaderProperty> propertiesList)
         {
             m_Data.m_Properties.Clear();
-            foreach(var property in propertiesList)
+            foreach (var property in propertiesList)
             {
                 m_Data.m_Properties.Add(property);
             }
@@ -135,12 +184,11 @@ namespace UnityEditor.ShaderGraph.Internal
             var json = MultiJson.Serialize(m_Data);
             m_SerializedVfxAssetData = new SerializationHelper.JSONSerializedElement() { JSONnodeData = json };
             m_Data = null;
-            EnsureProperties();
         }
 
         void EnsureProperties()
         {
-            if((m_Data == null || m_Data.m_Properties == null || !m_Data.m_Properties.Any()) && !String.IsNullOrEmpty(m_SerializedVfxAssetData.JSONnodeData))
+            if ((m_Data == null || m_Data.m_Properties == null || !m_Data.m_Properties.Any()) && !String.IsNullOrEmpty(m_SerializedVfxAssetData.JSONnodeData))
             {
                 m_Data = new ShaderGraphVfxAssetData();
                 MultiJson.Deserialize(m_Data , m_SerializedVfxAssetData.JSONnodeData);
@@ -148,17 +196,16 @@ namespace UnityEditor.ShaderGraph.Internal
 
             foreach (var property in m_Data.m_Properties.SelectValue())
             {
-                property.ValidateConcretePrecision(m_ConcretePrecision);
+                property.SetupConcretePrecision(m_ConcretePrecision);
             }
         }
 
         void ISerializationCallbackReceiver.OnAfterDeserialize()
         {
             m_Data = null;
-            EnsureProperties();
         }
 
-        void ISerializationCallbackReceiver.OnBeforeSerialize() { }
+        void ISerializationCallbackReceiver.OnBeforeSerialize() {}
 
         public GraphCode GetCode(OutputMetadata[] outputs)
         {
@@ -196,4 +243,3 @@ namespace UnityEditor.ShaderGraph.Internal
         }
     }
 }
-#endif

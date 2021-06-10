@@ -13,6 +13,7 @@ namespace UnityEngine.Rendering.Universal
         private static readonly ProfilingSampler m_ProfilingSampler = new ProfilingSampler(m_ProfilerTag);
         public CapturePass(RenderPassEvent evt)
         {
+            base.profilingSampler = new ProfilingSampler(nameof(CapturePass));
             renderPassEvent = evt;
         }
 

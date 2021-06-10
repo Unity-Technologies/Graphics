@@ -1,7 +1,7 @@
 using System;
 using UnityEngine;
 
-namespace UnityEditor.Experimental.Rendering.Universal.Path2D.GUIFramework
+namespace UnityEditor.Rendering.Universal.Path2D.GUIFramework
 {
     internal class SliderAction : ClickAction
     {
@@ -19,7 +19,6 @@ namespace UnityEditor.Experimental.Rendering.Universal.Path2D.GUIFramework
         {
             return guiState.eventType == EventType.MouseUp && guiState.mouseButton == 0;
         }
-
 
         protected override void OnTrigger(IGUIState guiState)
         {

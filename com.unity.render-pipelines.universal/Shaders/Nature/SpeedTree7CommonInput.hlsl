@@ -1,6 +1,10 @@
 #ifndef UNIVERSAL_SPEEDTREE7COMMON_INPUT_INCLUDED
 #define UNIVERSAL_SPEEDTREE7COMMON_INPUT_INCLUDED
 
+#if defined(SPEEDTREE_ALPHATEST)
+#define _ALPHATEST_ON
+#endif
+
 #ifdef EFFECT_BUMP
     #define _NORMALMAP
 #endif
@@ -24,12 +28,19 @@
 
 TEXTURE2D(_MainTex);
 SAMPLER(sampler_MainTex);
+float4 _MainTex_TexelSize;
+float4 _MainTex_MipInfo;
 
 #ifdef EFFECT_HUE_VARIATION
     half4 _HueVariation;
 #endif
 
 half4 _Color;
+
+// Shadow Casting Light geometric parameters. These variables are used when applying the shadow Normal Bias and are set by UnityEngine.Rendering.Universal.ShadowUtils.SetupShadowCasterConstantBuffer in com.unity.render-pipelines.universal/Runtime/ShadowUtils.cs
+// For Directional lights, _LightDirection is used when applying shadow Normal Bias.
+// For Spot lights and Point lights, _LightPosition is used to compute the actual light direction because it is different at each shadow caster geometry vertex.
 float3 _LightDirection;
+float3 _LightPosition;
 
 #endif

@@ -141,7 +141,7 @@
  static AW1 AMaxW1(AW1 a,AW1 b){return a>b?a:b;}
  static AU1 AMaxU1(AU1 a,AU1 b){return a>b?a:b;}
  static AL1 AMaxL1(AL1 a,AL1 b){return a>b?a:b;}
- // These follow the convention that A integer types don't have sign, until they are operated on. 
+ // These follow the convention that A integer types don't have sign, until they are operated on.
  static AB1 AMaxSB1(AB1 a,AB1 b){return ((ASB1)a)>((ASB1)b)?a:b;}
  static AW1 AMaxSW1(AW1 a,AW1 b){return ((ASW1)a)>((ASW1)b)?a:b;}
  static AU1 AMaxSU1(AU1 a,AU1 b){return ((ASU1)a)>((ASU1)b)?a:b;}
@@ -259,7 +259,7 @@
  #ifndef A_SKIP_EXT
   #ifdef A_HALF
    //#extension GL_EXT_shader_16bit_storage:require
-   //#extension GL_EXT_shader_explicit_arithmetic_types:require 
+   //#extension GL_EXT_shader_explicit_arithmetic_types:require
   #endif
 //------------------------------------------------------------------------------------------------------------------------------
   #ifdef A_LONG
@@ -641,7 +641,7 @@
  #define AU4_AF4(x) asuint(AF4(x))
 //------------------------------------------------------------------------------------------------------------------------------
  AU1 AU1_AH2_AF2_x(AF2 a){return f32tof16(a.x)|(f32tof16(a.y)<<16);}
- #define AU1_AH2_AF2(a) AU1_AH2_AF2_x(AF2(a)) 
+ #define AU1_AH2_AF2(a) AU1_AH2_AF2_x(AF2(a))
  #define AU1_AB4Unorm_AF4(x) D3DCOLORtoUBYTE4(AF4(x))
 //------------------------------------------------------------------------------------------------------------------------------
  AF2 AF2_AH2_AU1_x(AU1 x){return AF2(f16tof32(x&0xFFFF),f16tof32(x>>16));}
@@ -945,7 +945,7 @@
 // IDEAS
 // =====
 //  - Polaris hardware has 16-bit support, but non-double rate.
-//    Could be possible still get part double rate for some of this logic, 
+//    Could be possible still get part double rate for some of this logic,
 //    by clearing out the lower half's sign when necessary and using 32-bit ops...
 //==============================================================================================================================
  #ifdef A_HALF
@@ -1003,14 +1003,14 @@
  // Valid input range is {-1 to 1} representing {0 to 2 pi}.
  // Output range is {-1/4 to -1/4} representing {-1 to 1}.
  AF1 APSinF1(AF1 x){return x*abs(x)-x;} // MAD.
- AF1 APCosF1(AF1 x){x=AFractF1(x*AF1_(0.5)+AF1_(0.75));x=x*AF1_(2.0)-AF1_(1.0);return APSinF1(x);} // 3x MAD, FRACT 
+ AF1 APCosF1(AF1 x){x=AFractF1(x*AF1_(0.5)+AF1_(0.75));x=x*AF1_(2.0)-AF1_(1.0);return APSinF1(x);} // 3x MAD, FRACT
 //------------------------------------------------------------------------------------------------------------------------------
  #ifdef A_HALF
   // For a packed {sin,cos} pair,
   //  - Native takes 16 clocks and 4 issue slots (no packed transcendentals).
   //  - Parabolic takes 8 clocks and 8 issue slots (only fract is non-packed).
   AH2 APSinH2(AH2 x){return x*abs(x)-x;} // AND,FMA
-  AH2 APCosH2(AH2 x){x=AFractH2(x*AH2_(0.5)+AH2_(0.75));x=x*AH2_(2.0)-AH2_(1.0);return APSinH2(x);} // 3x FMA, 2xFRACT, AND 
+  AH2 APCosH2(AH2 x){x=AFractH2(x*AH2_(0.5)+AH2_(0.75));x=x*AH2_(2.0)-AH2_(1.0);return APSinH2(x);} // 3x FMA, 2xFRACT, AND
  #endif
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -1052,7 +1052,7 @@
  AF1 ATo709F1(AF1 c){return max(min(c*AF1_(4.5),AF1_(0.018)),AF1_(1.099)*pow(c,AF1_(0.45))-AF1_(0.099));}
 //------------------------------------------------------------------------------------------------------------------------------
  // Note 'rcpX' is '1/x', where the 'x' is what would be used in AFromGamma().
- AF1 AToGammaF1(AF1 c,AF1 rcpX){return pow(c,rcpX);} 
+ AF1 AToGammaF1(AF1 c,AF1 rcpX){return pow(c,rcpX);}
 //------------------------------------------------------------------------------------------------------------------------------
  AF1 AToPqF1(AF1 x){AF1 p=pow(x,AF1_(0.159302));
   return pow((AF1_(0.835938)+AF1_(18.8516)*p)/(AF1_(1.0)+AF1_(18.6875)*p),AF1_(78.8438));}
@@ -1064,7 +1064,7 @@
  AF1 AFrom709F1(AF1 c){return max(min(c*AF1_(1.0/4.5),AF1_(0.081)),
   pow((c+AF1_(0.099))*(AF1_(1.0)/(AF1_(1.099))),AF1_(1.0/0.45)));}
 //------------------------------------------------------------------------------------------------------------------------------
- AF1 AFromGammaF1(AF1 c,AF1 x){return pow(c,x);} 
+ AF1 AFromGammaF1(AF1 c,AF1 x){return pow(c,x);}
 //------------------------------------------------------------------------------------------------------------------------------
  AF1 AFromPqF1(AF1 x){AF1 p=pow(x,AF1_(0.0126833));
   return pow(ASatF1(p-AF1_(0.835938))/(AF1_(18.8516)-AF1_(18.6875)*p),AF1_(6.27739));}
@@ -1077,7 +1077,7 @@
  #ifdef A_HALF
   AH2 ATo709H2(AH2 c){return max(min(c*AH2_(4.5),AH2_(0.018)),AH2_(1.099)*pow(c,AH2_(0.45))-AH2_(0.099));}
 //------------------------------------------------------------------------------------------------------------------------------
-  AH2 AToGammaH2(AH2 c,AH1 rcpX){return pow(c,AH2_(rcpX));} 
+  AH2 AToGammaH2(AH2 c,AH1 rcpX){return pow(c,AH2_(rcpX));}
 //------------------------------------------------------------------------------------------------------------------------------
   AH2 AToSrgbH2(AH2 c){return max(min(c*AH2_(12.92),AH2_(0.0031308)),AH2_(1.055)*pow(c,AH2_(0.41666))-AH2_(0.055));}
 //------------------------------------------------------------------------------------------------------------------------------
@@ -1116,14 +1116,14 @@
  // Details,
  //  LANE TO 8x8 MAPPING
  //  ===================
- //  00 01 08 09 10 11 18 19 
+ //  00 01 08 09 10 11 18 19
  //  02 03 0a 0b 12 13 1a 1b
  //  04 05 0c 0d 14 15 1c 1d
- //  06 07 0e 0f 16 17 1e 1f 
- //  20 21 28 29 30 31 38 39 
+ //  06 07 0e 0f 16 17 1e 1f
+ //  20 21 28 29 30 31 38 39
  //  22 23 2a 2b 32 33 3a 3b
  //  24 25 2c 2d 34 35 3c 3d
- //  26 27 2e 2f 36 37 3e 3f 
+ //  26 27 2e 2f 36 37 3e 3f
  AU2 ARmpRed8x8(AU1 a){return AU2(ABfiM(ABfe(a,2u,3u),a,1u),ABfiM(ABfe(a,3u,3u),ABfe(a,1u,2u),2u));}
 #endif
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -1175,7 +1175,7 @@
 //   ...
 //  1023 = 2^(-14)*(1-2^(-10)) = 2^(-14)*(1-1/1024) ... last denormal value
 //  1024 = 2^(-14) = 1/16384 .......................... first normal value that still maps to integers
-//  2047 .............................................. last normal value that still maps to integers 
+//  2047 .............................................. last normal value that still maps to integers
 // Scaling limits,
 //  2^15 = 32768 ...................................... largest power of 2 scaling
 // Largest pow2 conversion mapping is at *32768,
@@ -1183,4 +1183,3 @@
 //  1024 : 8
 //  2047 : a little less than 16
 //==============================================================================================================================
-

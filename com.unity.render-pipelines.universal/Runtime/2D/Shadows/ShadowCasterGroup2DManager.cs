@@ -1,8 +1,6 @@
-using System.Collections;
 using System.Collections.Generic;
-using UnityEngine;
 
-namespace UnityEngine.Experimental.Rendering.Universal
+namespace UnityEngine.Rendering.Universal
 {
     internal class ShadowCasterGroup2DManager
     {
@@ -35,8 +33,8 @@ namespace UnityEngine.Experimental.Rendering.Universal
             Transform transformToCheck = shadowCaster.transform.parent;
             while (transformToCheck != null)
             {
-                CompositeShadowCaster2D currentGroup = transformToCheck.GetComponent<CompositeShadowCaster2D>();
-                if (currentGroup != null)
+                CompositeShadowCaster2D currentGroup;
+                if (transformToCheck.TryGetComponent<CompositeShadowCaster2D>(out currentGroup))
                     retGroup = currentGroup;
 
                 transformToCheck = transformToCheck.parent;
@@ -78,6 +76,7 @@ namespace UnityEngine.Experimental.Rendering.Universal
 
             AddShadowCasterGroupToList(group, s_ShadowCasterGroups);
         }
+
         public static void RemoveGroup(ShadowCasterGroup2D group)
         {
             if (group != null && s_ShadowCasterGroups != null)

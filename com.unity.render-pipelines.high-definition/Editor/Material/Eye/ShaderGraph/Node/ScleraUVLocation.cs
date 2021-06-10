@@ -29,7 +29,7 @@ namespace UnityEditor.ShaderGraph
         {
             ScleraUV = Vector2.zero;
             return
-                @"
+@"
                 {
                     ScleraUV =  PositionOS.xy + $precision2(0.5, 0.5);
                 }

@@ -221,4 +221,3 @@ namespace UnityEditor.ShaderGraph.Drawing
         }
     }
 }
-

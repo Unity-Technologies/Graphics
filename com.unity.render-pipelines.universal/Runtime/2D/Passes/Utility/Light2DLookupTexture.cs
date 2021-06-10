@@ -1,24 +1,16 @@
-using UnityEngine.Rendering.Universal;
+using UnityEngine.Experimental.Rendering;
 
-namespace UnityEngine.Experimental.Rendering.Universal
+namespace UnityEngine.Rendering.Universal
 {
     internal static class Light2DLookupTexture
     {
         private static Texture2D s_PointLightLookupTexture;
-        private static Texture2D s_FalloffLookupTexture;
 
         public static Texture GetLightLookupTexture()
         {
             if (s_PointLightLookupTexture == null)
                 s_PointLightLookupTexture = CreatePointLightLookupTexture();
             return s_PointLightLookupTexture;
-        }
-
-        public static Texture GetFalloffLookupTexture()
-        {
-            if (s_FalloffLookupTexture == null)
-                s_FalloffLookupTexture = CreateFalloffLookupTexture();
-            return s_FalloffLookupTexture;
         }
 
         private static Texture2D CreatePointLightLookupTexture()
@@ -74,34 +66,7 @@ namespace UnityEngine.Experimental.Rendering.Universal
             return texture;
         }
 
-        private static Texture2D CreateFalloffLookupTexture()
-        {
-            const int WIDTH = 2048;
-            const int HEIGHT = 192;
-
-            const GraphicsFormat textureFormat = GraphicsFormat.R8G8B8A8_SRGB;
-            var texture = new Texture2D(WIDTH, HEIGHT-64, textureFormat, TextureCreationFlags.None);
-            texture.filterMode = FilterMode.Bilinear;
-            texture.wrapMode = TextureWrapMode.Clamp;
-            for(var y = 0; y < HEIGHT; y++)
-            {
-                var baseValue = (float)(y+32) /(HEIGHT+64);
-                var lineValue = -baseValue + 1;
-                var exponent = Mathf.Log(lineValue) / Mathf.Log(baseValue);
-
-                for (var x = 0; x < WIDTH; x++)
-                {
-                    var t = (float)x / WIDTH;
-                    var red = Mathf.Pow(t, exponent);
-                    var color = new Color(red, 0, 0, 1);
-                    if(y >= 32 && y < 160)
-                        texture.SetPixel(x, y-32, color);
-                }
-            }
-            texture.Apply();
-            return texture;
-        }
-
+//        private static Texture2D s_FalloffLookupTexture;
 //#if UNITY_EDITOR
 //        [MenuItem("Light2D Debugging/Write Light Texture")]
 //        static public void WriteLightTexture()

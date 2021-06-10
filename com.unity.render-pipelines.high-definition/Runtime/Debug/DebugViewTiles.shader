@@ -12,7 +12,7 @@ Shader "Hidden/HDRP/DebugViewTiles"
 
             HLSLPROGRAM
             #pragma target 4.5
-            #pragma only_renderers d3d11 playstation xboxone vulkan metal switch
+            #pragma only_renderers d3d11 playstation xboxone xboxseries vulkan metal switch
 
             #pragma vertex Vert
             #pragma fragment Frag
@@ -40,9 +40,6 @@ Shader "Hidden/HDRP/DebugViewTiles"
             // the deferred shader will require to use multicompile.
             #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Lit/Lit.hlsl"
 
-#if (SHADEROPTIONS_PROBE_VOLUMES_EVALUATION_MODE == PROBEVOLUMESEVALUATIONMODES_MATERIAL_PASS) && defined(USE_CLUSTERED_LIGHTLIST)
-            #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Lighting/ProbeVolume/ProbeVolumeLightLoopDef.hlsl"
-#endif
             //-------------------------------------------------------------------------------------
             // variable declaration
             //-------------------------------------------------------------------------------------
@@ -153,43 +150,6 @@ Shader "Hidden/HDRP/DebugViewTiles"
                 return float4(lerp(c0.rgb, c1.rgb, c1.a), c0.a + c1.a - c0.a * c1.a);
             }
 
-            float4 OverlayHeatMap(uint2 pixCoord, uint n)
-            {
-                const float4 kRadarColors[12] =
-                {
-                    float4(0.0, 0.0, 0.0, 0.0),   // black
-                    float4(0.0, 0.0, 0.6, 0.5),   // dark blue
-                    float4(0.0, 0.0, 0.9, 0.5),   // blue
-                    float4(0.0, 0.6, 0.9, 0.5),   // light blue
-                    float4(0.0, 0.9, 0.9, 0.5),   // cyan
-                    float4(0.0, 0.9, 0.6, 0.5),   // blueish green
-                    float4(0.0, 0.9, 0.0, 0.5),   // green
-                    float4(0.6, 0.9, 0.0, 0.5),   // yellowish green
-                    float4(0.9, 0.9, 0.0, 0.5),   // yellow
-                    float4(0.9, 0.6, 0.0, 0.5),   // orange
-                    float4(0.9, 0.0, 0.0, 0.5),   // red
-                    float4(1.0, 0.0, 0.0, 0.9)    // strong red
-                };
-
-                float maxNrLightsPerTile = 31; // TODO: setup a constant for that
-
-                int colorIndex = n == 0 ? 0 : (1 + (int)floor(10 * (log2((float)n) / log2(maxNrLightsPerTile))));
-                colorIndex = colorIndex < 0 ? 0 : colorIndex;
-                float4 col = colorIndex > 11 ? float4(1.0, 1.0, 1.0, 1.0) : kRadarColors[colorIndex];
-
-                int2 coord = pixCoord - int2(1, 1);
-
-                float4 color = float4(PositivePow(col.xyz, 2.2), 0.3 * col.w);
-                if (n >= 0)
-                {
-                    if (SampleDebugFontNumber(coord, n))        // Shadow
-                        color = float4(0, 0, 0, 1);
-                    if (SampleDebugFontNumber(coord + 1, n))    // Text
-                        color = float4(1, 1, 1, 1);
-                }
-                return color;
-            }
-
             float4 Frag(Varyings input) : SV_Target
             {
                 UNITY_SETUP_STEREO_EYE_INDEX_POST_VERTEX(input);
@@ -214,27 +174,10 @@ Shader "Hidden/HDRP/DebugViewTiles"
                     uint mask = 1u << category;
                     if (mask & _ViewTilesFlags)
                     {
-                    #if SHADEROPTIONS_PROBE_VOLUMES_EVALUATION_MODE == PROBEVOLUMESEVALUATIONMODES_MATERIAL_PASS
-                        if (category == LIGHTCATEGORY_PROBE_VOLUME)
-                        {
-                        #if defined(USE_CLUSTERED_LIGHTLIST)
-                            // If evaluating probe volumes during material pass, their data is only avaibile in clustered.
-                            // To accurately reflect this, if a user has selected to view the count inside of the tiled list,
-                            // the count should be zero.
-                            uint start;
-                            uint count;
-                            ProbeVolumeGetCountAndStart(posInput, start, count);
-                            n += count;
-                        #endif
-                        }
-                        else
-                    #endif
-                        {
-                            uint start;
-                            uint count;
-                            GetCountAndStart(posInput, category, start, count);
-                            n += count;
-                        }
+                        uint start;
+                        uint count;
+                        GetCountAndStart(posInput, category, start, count);
+                        n += count;
                     }
                 }
                 if (n == 0)
@@ -266,7 +209,9 @@ Shader "Hidden/HDRP/DebugViewTiles"
                 // Tile overlap counter
                 if (n >= 0)
                 {
-                    result = OverlayHeatMap(int2(posInput.positionSS.xy) & (GetTileSize() - 1), n);
+                    const uint maxLightsPerTile = 31;
+                    const float opacity = 0.3f;
+                    result = OverlayHeatMap(int2(posInput.positionSS.xy), GetTileSize(), n, maxLightsPerTile, opacity);
                 }
 
 #if defined(SHOW_LIGHT_CATEGORIES) && !defined(LIGHTLOOP_DISABLE_TILE_AND_CLUSTER)
@@ -290,19 +235,7 @@ Shader "Hidden/HDRP/DebugViewTiles"
                     uint start;
                     uint count;
 
-                #if SHADEROPTIONS_PROBE_VOLUMES_EVALUATION_MODE == PROBEVOLUMESEVALUATIONMODES_MATERIAL_PASS
-                    if (category == LIGHTCATEGORY_PROBE_VOLUME)
-                    {
-                    #if defined(USE_CLUSTERED_LIGHTLIST)
-                        ProbeVolumeGetCountAndStart(mousePosInput, start, count);
-                        n += count;
-                    #endif
-                    }
-                    else
-                #endif
-                    {
-                        GetCountAndStart(mousePosInput, category, start, count);
-                    }
+                    GetCountAndStart(mousePosInput, category, start, count);
 
                     float4 result2 = float4(.1,.1,.1,.9);
                     int2 fontCoord = int2(pixelCoord.x, offsetInTile.y);
@@ -315,18 +248,7 @@ Shader "Hidden/HDRP/DebugViewTiles"
                     }
                     else if(lightListIndex >= 0 && lightListIndex < (int)count)
                     {
-                    #if SHADEROPTIONS_PROBE_VOLUMES_EVALUATION_MODE == PROBEVOLUMESEVALUATIONMODES_MATERIAL_PASS
-                        if (category == LIGHTCATEGORY_PROBE_VOLUME)
-                        {
-                        #if defined(USE_CLUSTERED_LIGHTLIST)
-                            n = ProbeVolumeFetchIndex(start, lightListIndex);
-                        #endif
-                        }
-                        else
-                    #endif
-                        {
-                            n = FetchIndex(start, lightListIndex);
-                        }
+                        n = FetchIndex(start, lightListIndex);
                     }
 
                     if (n >= 0)

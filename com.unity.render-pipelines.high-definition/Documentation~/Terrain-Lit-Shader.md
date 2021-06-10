@@ -22,6 +22,12 @@ To use a Terrain Lit Material, you must assign it to a Terrain:
 
 ![](Images/TerrainLitShader1.png)
 
+## Using the Paint Holes Tool
+
+If you use the **Paint Holes** tool on your terrain, make sure to enable the **Terrain Holes** feature in your Project's HDRP Asset. Otherwise, the holes do not appear when you build your application.
+
+![](Images/TerrainPaintHoles.png)
+
 ## Material properties
 
 ### Surface Options

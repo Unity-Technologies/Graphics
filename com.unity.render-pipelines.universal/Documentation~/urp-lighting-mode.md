@@ -1,6 +1,6 @@
 # Lighting Mode
 
-The [Lighting Mode](https://docs.unity3d.com/Manual/lighting-mode.html) that you choose in the Lighting window determines the behavior of all Mixed Lights in the current Scene. 
+The [Lighting Mode](https://docs.unity3d.com/Manual/lighting-mode.html) that you choose in the Lighting window determines the behavior of all Mixed Lights in the current Scene.
 
 URP supports the following Lighting Modes:
 

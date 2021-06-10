@@ -1,4 +1,3 @@
-
 namespace UnityEngine.Rendering.Universal.Internal
 {
     // Stencil usage for deferred renderer.
@@ -16,6 +15,6 @@ namespace UnityEngine.Rendering.Universal.Internal
         MaterialLit       = 0b_0010_0000,
         MaterialSimpleLit = 0b_0100_0000
 
-        // Bit [7] is reserved.
+            // Bit [7] is reserved.
     }
 }

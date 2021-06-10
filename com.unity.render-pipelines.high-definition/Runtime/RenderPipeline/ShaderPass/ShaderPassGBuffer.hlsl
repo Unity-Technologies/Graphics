@@ -42,12 +42,12 @@ PackedVaryingsToPS VertTesselation(VaryingsToDS input)
 void Frag(  PackedVaryingsToPS packedInput,
             OUTPUT_GBUFFER(outGBuffer)
             #ifdef _DEPTHOFFSET_ON
-            , out float outputDepth : SV_Depth
+            , out float outputDepth : DEPTH_OFFSET_SEMANTIC
             #endif
             )
 {
     UNITY_SETUP_STEREO_EYE_INDEX_POST_VERTEX(packedInput);
-    FragInputs input = UnpackVaryingsMeshToFragInputs(packedInput.vmesh);
+    FragInputs input = UnpackVaryingsToFragInputs(packedInput);
 
     // input.positionSS is SV_Position
     PositionInputs posInput = GetPositionInput(input.positionSS.xy, _ScreenSize.zw, input.positionSS.z, input.positionSS.w, input.positionRWS);

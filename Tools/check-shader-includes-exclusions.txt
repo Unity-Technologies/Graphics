@@ -1,0 +1,4 @@
+com.unity.render-pipelines.xboxone/ShaderLibrary/API/XBoxOne.hlsl
+com.unity.render-pipelines.gamecore/ShaderLibrary/API/GameCore.hlsl
+com.unity.render-pipelines.ps4/ShaderLibrary/API/PSSL.hlsl
+com.unity.render-pipelines.ps5/ShaderLibrary/API/PSSL.hlsl

@@ -21,10 +21,8 @@ namespace UnityEditor.Rendering.HighDefinition
             displayName = "Diffusion Profile";
         }
 
-        internal override bool isBatchable => true;
         internal override bool isExposable => true;
         internal override bool isRenamable => true;
-        internal override bool isGpuInstanceable => true;
 
         public override PropertyType propertyType => PropertyType.Float;
 
@@ -42,16 +40,25 @@ namespace UnityEditor.Rendering.HighDefinition
             }
 
             /// <summary>Float to string convertion function without any loss of precision</summary>
-            string f2s(float f) => System.Convert.ToDouble(f).ToString("0." + new string('#', 339));
+            string f2s(float f) => System.Convert.ToDouble(f).ToString("0." + new string('#', 339), CultureInfo.InvariantCulture);
 
             return
-$@"[DiffusionProfile]{referenceName}(""{displayName}"", Float) = {f2s(HDShadowUtils.Asfloat(hash))}
+                $@"[DiffusionProfile]{referenceName}(""{displayName}"", Float) = {f2s(HDShadowUtils.Asfloat(hash))}
 [HideInInspector]{assetReferenceName}(""{displayName}"", Vector) = ({f2s(asset.x)}, {f2s(asset.y)}, {f2s(asset.z)}, {f2s(asset.w)})";
         }
 
-        public override string GetDefaultReferenceName() => $"DiffusionProfile_{objectId}";
+        public override string GetOldDefaultReferenceName() => $"DiffusionProfile_{objectId}";
 
-        internal override string GetPropertyDeclarationString(string delimiter = ";") => $@"float {referenceName}{delimiter}";
+        internal override string GetPropertyAsArgumentString(string precisionString)
+        {
+            return $"float {referenceName}";
+        }
+
+        internal override void ForeachHLSLProperty(Action<HLSLProperty> action)
+        {
+            HLSLDeclaration decl = GetDefaultHLSLDeclaration();
+            action(new HLSLProperty(HLSLType._float, referenceName, decl));
+        }
 
         internal override AbstractMaterialNode ToConcreteNode()
         {
@@ -74,10 +81,7 @@ $@"[DiffusionProfile]{referenceName}(""{displayName}"", Float) = {f2s(HDShadowUt
             return new DiffusionProfileShaderProperty()
             {
                 displayName = displayName,
-                hidden = hidden,
                 value = value,
-                precision = precision,
-                gpuInstanced = gpuInstanced,
             };
         }
 
@@ -94,6 +98,16 @@ $@"[DiffusionProfile]{referenceName}(""{displayName}"", Float) = {f2s(HDShadowUt
                 value.asset,
                 "Diffusion Profile",
                 out var _));
+        }
+
+        public override int latestVersion => 1;
+        public override void OnAfterDeserialize(string json)
+        {
+            if (sgVersion == 0)
+            {
+                LegacyShaderPropertyData.UpgradeToHLSLDeclarationOverride(json, this);
+                ChangeVersion(1);
+            }
         }
     }
 }

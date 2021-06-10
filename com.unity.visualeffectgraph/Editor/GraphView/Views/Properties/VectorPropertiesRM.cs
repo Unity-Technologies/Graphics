@@ -7,8 +7,7 @@ using EnumField = UnityEditor.VFX.UIElements.VFXEnumField;
 
 namespace UnityEditor.VFX.UI
 {
-
-    abstract class VectorPropertyRM<U,T> : SimpleVFXUIPropertyRM<U, T> where U: VFXVectorNField<T>, new()
+    abstract class VectorPropertyRM<U, T> : SimpleVFXUIPropertyRM<U, T> where U : VFXVectorNField<T>, new()
     {
         public VectorPropertyRM(IPropertyRMProvider controller, float labelWidth) : base(controller, labelWidth)
         {
@@ -29,7 +28,7 @@ namespace UnityEditor.VFX.UI
         }
     }
 
-    class Vector4PropertyRM : VectorPropertyRM<VFXVector4Field,Vector4>
+    class Vector4PropertyRM : VectorPropertyRM<VFXVector4Field, Vector4>
     {
         public Vector4PropertyRM(IPropertyRMProvider controller, float labelWidth) : base(controller, labelWidth)
         {

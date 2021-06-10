@@ -48,7 +48,7 @@ namespace UnityEditor.ShaderGraph
             EyeSmoothness = new Vector1();
             SurfaceDiffusionProfile = new Vector1();
             return
-                @"
+@"
                 {
                     $precision osRadius = length(PositionOS.xy);
                     $precision innerBlendRegionRadius = IrisRadius - 0.02;

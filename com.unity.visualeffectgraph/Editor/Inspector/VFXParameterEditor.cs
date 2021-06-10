@@ -42,23 +42,33 @@ class VFXParameterEditor : VFXSlotContainerEditor
         base.OnDisable();
     }
 
-    public override void DoInspectorGUI()
+    public override SerializedProperty DoInspectorGUI()
     {
+        var saveEnabled = GUI.enabled;
+
+        var referenceModel = serializedObject.targetObject as VFXModel;
+        var resource = referenceModel.GetResource();
+        if (resource != null && !resource.IsAssetEditable())
+        {
+            GUI.enabled = false;
+            saveEnabled = false;
+        }
+
         if (serializedObject.isEditingMultipleObjects)
         {
             GUI.enabled = false; // no sense to change the name in multiple selection because the name must be unique
             EditorGUI.showMixedValue = true;
             EditorGUILayout.TextField("Exposed Name", "-");
             EditorGUI.showMixedValue = false;
-            GUI.enabled = true;
+            GUI.enabled = saveEnabled;
         }
         else
         {
             VFXParameter parameter = (VFXParameter)target;
 
-            GUI.enabled = controller != null;
+            GUI.enabled = controller != null && saveEnabled;
             string newName = EditorGUILayout.DelayedTextField("Exposed Name", parameter.exposedName);
-            GUI.enabled = true;
+            GUI.enabled = saveEnabled;
             if (GUI.changed)
             {
                 VFXParameterController parameterController = controller.GetParameterController(parameter);
@@ -68,6 +78,6 @@ class VFXParameterEditor : VFXSlotContainerEditor
                 }
             }
         }
-        base.DoInspectorGUI();
+        return base.DoInspectorGUI();
     }
 }

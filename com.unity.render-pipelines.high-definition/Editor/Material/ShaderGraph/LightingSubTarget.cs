@@ -30,9 +30,12 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
             set => m_LightingData = value;
         }
 
+        protected override string customInspector => "Rendering.HighDefinition.LightingShaderGraphGUI";
+        internal override MaterialResetter setupMaterialKeywordsAndPassFunc => LightingShaderGraphGUI.SetupLightingKeywordsAndPass;
+
         protected override string renderQueue
         {
-            get => HDRenderQueue.GetShaderTagValue(HDRenderQueue.ChangeType(systemData.renderingPass, systemData.sortPriority, systemData.alphaTest, lightingData.receiveDecals));
+            get => HDRenderQueue.GetShaderTagValue(HDRenderQueue.ChangeType(systemData.renderQueueType, systemData.sortPriority, systemData.alphaTest, lightingData.receiveDecals));
         }
 
         protected override string renderType => HDRenderTypeTags.HDLitShader.ToString();
@@ -102,7 +105,6 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
             pass.keywords.Add(CoreKeywordDescriptors.DisableDecals);
             pass.keywords.Add(CoreKeywordDescriptors.DisableSSR);
             pass.keywords.Add(CoreKeywordDescriptors.DisableSSRTransparent);
-            pass.keywords.Add(CoreKeywordDescriptors.BlendModePreserveSpecularLighting);
             // pass.keywords.Add(CoreKeywordDescriptors.EnableGeometricSpecularAA);
 
             if (pass.IsDepthOrMV())
@@ -114,12 +116,14 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
             {
                 pass.keywords.Add(CoreKeywordDescriptors.Lightmap);
                 pass.keywords.Add(CoreKeywordDescriptors.DirectionalLightmapCombined);
+                pass.keywords.Add(CoreKeywordDescriptors.ProbeVolumes);
+                pass.keywords.Add(CoreKeywordDescriptors.DynamicLightmap);
 
-                if (!pass.IsDXR())
+                if (!pass.IsRelatedToRaytracing())
                 {
-                    pass.keywords.Add(CoreKeywordDescriptors.DynamicLightmap);
                     pass.keywords.Add(CoreKeywordDescriptors.ShadowsShadowmask);
                     pass.keywords.Add(CoreKeywordDescriptors.Decals);
+                    pass.keywords.Add(CoreKeywordDescriptors.DecalSurfaceGradient);
                 }
             }
 

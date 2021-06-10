@@ -23,7 +23,6 @@ namespace UnityEditor.ShaderGraph
             name = "Comparison";
         }
 
-
         [SerializeField]
         private ComparisonType m_ComparisonType = ComparisonType.Equal;
 
@@ -71,7 +70,7 @@ namespace UnityEditor.ShaderGraph
             [Slot(2, Binding.None)] out Boolean Out)
         {
             return
-                @"
+@"
 {
     Out = A == B ? 1 : 0;
 }
@@ -84,7 +83,7 @@ namespace UnityEditor.ShaderGraph
             [Slot(2, Binding.None)] out Boolean Out)
         {
             return
-                @"
+@"
 {
     Out = A != B ? 1 : 0;
 }
@@ -97,7 +96,7 @@ namespace UnityEditor.ShaderGraph
             [Slot(2, Binding.None)] out Boolean Out)
         {
             return
-                @"
+@"
 {
     Out = A < B ? 1 : 0;
 }
@@ -110,7 +109,7 @@ namespace UnityEditor.ShaderGraph
             [Slot(2, Binding.None)] out Boolean Out)
         {
             return
-                @"
+@"
 {
     Out = A <= B ? 1 : 0;
 }
@@ -123,7 +122,7 @@ namespace UnityEditor.ShaderGraph
             [Slot(2, Binding.None)] out Boolean Out)
         {
             return
-                @"
+@"
 {
     Out = A > B ? 1 : 0;
 }
@@ -136,7 +135,7 @@ namespace UnityEditor.ShaderGraph
             [Slot(2, Binding.None)] out Boolean Out)
         {
             return
-                @"
+@"
 {
     Out = A >= B ? 1 : 0;
 }

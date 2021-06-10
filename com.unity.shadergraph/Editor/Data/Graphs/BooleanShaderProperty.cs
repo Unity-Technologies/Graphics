@@ -18,9 +18,19 @@ namespace UnityEditor.ShaderGraph.Internal
 
         public override PropertyType propertyType => PropertyType.Boolean;
 
-        internal override bool isBatchable => true;
         internal override bool isExposable => true;
         internal override bool isRenamable => true;
+
+        internal override string GetPropertyAsArgumentString(string precisionString)
+        {
+            return $"{concreteShaderValueType.ToShaderString(precisionString)} {referenceName}";
+        }
+
+        internal override void ForeachHLSLProperty(Action<HLSLProperty> action)
+        {
+            HLSLDeclaration decl = GetDefaultHLSLDeclaration();
+            action(new HLSLProperty(HLSLType._float, referenceName, decl, concretePrecision));
+        }
 
         internal override string GetPropertyBlockString()
         {
@@ -46,9 +56,7 @@ namespace UnityEditor.ShaderGraph.Internal
             return new BooleanShaderProperty()
             {
                 displayName = displayName,
-                hidden = hidden,
                 value = value,
-                precision = precision,
             };
         }
     }

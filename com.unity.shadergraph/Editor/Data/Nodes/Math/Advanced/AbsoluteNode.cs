@@ -10,7 +10,6 @@ namespace UnityEditor.ShaderGraph
             name = "Absolute";
         }
 
-
         protected override MethodInfo GetFunctionToConvert()
         {
             return GetType().GetMethod("Unity_Absolute", BindingFlags.Static | BindingFlags.NonPublic);
@@ -21,7 +20,7 @@ namespace UnityEditor.ShaderGraph
             [Slot(1, Binding.None)] out DynamicDimensionVector Out)
         {
             return
-                @"
+@"
 {
     Out = abs(In);
 }

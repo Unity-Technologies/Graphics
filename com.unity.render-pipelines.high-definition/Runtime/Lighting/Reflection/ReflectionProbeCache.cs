@@ -25,7 +25,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
         GraphicsFormat          m_ProbeFormat;
 
-        public ReflectionProbeCache(RenderPipelineResources defaultResources, IBLFilterBSDF[] iblFilterBSDFArray, int cacheSize, int probeSize, GraphicsFormat probeFormat, bool isMipmaped)
+        public ReflectionProbeCache(HDRenderPipelineRuntimeResources defaultResources, IBLFilterBSDF[] iblFilterBSDFArray, int cacheSize, int probeSize, GraphicsFormat probeFormat, bool isMipmaped)
         {
             m_ConvertTextureMaterial = CoreUtils.CreateEngineMaterial(defaultResources.shaders.blitCubeTextureFacePS);
             m_ConvertTextureMPB = new MaterialPropertyBlock();
@@ -90,7 +90,7 @@ namespace UnityEngine.Rendering.HighDefinition
             m_TextureCache.Release();
             CoreUtils.Destroy(m_TempRenderTexture);
 
-            if(m_ConvolutionTargetTextureArray != null)
+            if (m_ConvolutionTargetTextureArray != null)
             {
                 for (int bsdfIdx = 0; bsdfIdx < m_IBLFilterBSDF.Length; ++bsdfIdx)
                 {
@@ -149,7 +149,7 @@ namespace UnityEngine.Rendering.HighDefinition
                     {
                         // Debug.LogWarningFormat("Baked Reflection Probe {0} does not match HDRP Reflection Probe Cache size of {1}. Consider baking it at the same size for better loading performance.", texture.name, m_ProbeSize);
                     }
-                    else if (cubeTexture.format == TextureFormat.BC6H)
+                    else if (cubeTexture.graphicsFormat == GraphicsFormat.RGB_BC6H_UFloat || cubeTexture.graphicsFormat == GraphicsFormat.RGB_BC6H_SFloat)
                     {
                         // Debug.LogWarningFormat("Baked Reflection Probe {0} is compressed but the HDRP Reflection Probe Cache is not. Consider removing compression from the input texture for better quality.", texture.name);
                     }
@@ -194,7 +194,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 cmd.GenerateMips(convolutionSourceTexture);
             }
 
-            for(int bsdfIdx = 0; bsdfIdx < m_IBLFilterBSDF.Length; ++bsdfIdx)
+            for (int bsdfIdx = 0; bsdfIdx < m_IBLFilterBSDF.Length; ++bsdfIdx)
             {
                 m_IBLFilterBSDF[bsdfIdx].FilterCubemap(cmd, convolutionSourceTexture, m_ConvolutionTargetTextureArray[bsdfIdx]);
             }

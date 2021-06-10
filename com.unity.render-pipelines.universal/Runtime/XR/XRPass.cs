@@ -233,7 +233,7 @@ namespace UnityEngine.Rendering.Universal
         internal void AddViewInternal(XRView xrView)
         {
             // XRTODO: Fix hard coded max views
-            int maxSupportedViews = Math.Min(TextureXR.slices, 2/*ShaderConfig.s_XrMaxViews*/);
+            int maxSupportedViews = Math.Min(TextureXR.slices, 2 /*ShaderConfig.s_XrMaxViews*/);
 
             if (views.Count < maxSupportedViews)
             {
@@ -248,7 +248,7 @@ namespace UnityEngine.Rendering.Universal
         // Must be called after all views have been added to the pass
         internal void UpdateOcclusionMesh()
         {
-            if (isOcclusionMeshSupported && TryGetOcclusionMeshCombinedHashCode(out var hashCode))
+            if (isOcclusionMeshSupported && singlePassEnabled && TryGetOcclusionMeshCombinedHashCode(out var hashCode))
             {
                 if (occlusionMeshCombined == null || hashCode != occlusionMeshCombinedHashCode)
                 {
@@ -277,7 +277,7 @@ namespace UnityEngine.Rendering.Universal
                 {
                     hashCode = 0;
                     return false;
-                } 
+                }
             }
 
             return true;
@@ -330,7 +330,7 @@ namespace UnityEngine.Rendering.Universal
 
                     indices[indexStart + i] = (ushort)newIndex;
                 }
-                
+
                 vertexStart += mesh.vertexCount;
                 indexStart += meshIndices.Length;
             }
@@ -338,8 +338,6 @@ namespace UnityEngine.Rendering.Universal
             occlusionMeshCombined.vertices = vertices;
             occlusionMeshCombined.SetIndices(indices, MeshTopology.Triangles, 0);
         }
-
-        Vector4[] stereoEyeIndices = new Vector4[2] { Vector4.zero , Vector4.one };
 
         internal void StartSinglePass(CommandBuffer cmd)
         {
@@ -352,7 +350,6 @@ namespace UnityEngine.Rendering.Universal
                         if (SystemInfo.supportsMultiview)
                         {
                             cmd.EnableShaderKeyword("STEREO_MULTIVIEW_ON");
-                            cmd.SetGlobalVectorArray("unity_StereoEyeIndices", stereoEyeIndices);
                         }
                         else
                         {
@@ -406,6 +403,11 @@ namespace UnityEngine.Rendering.Universal
 
         internal void RenderOcclusionMesh(CommandBuffer cmd)
         {
+        #if DEVELOPMENT_BUILD || UNITY_EDITOR
+            if (XRGraphicsAutomatedTests.enabled && XRGraphicsAutomatedTests.running)
+                return;
+        #endif
+
             if (isOcclusionMeshSupported)
             {
                 using (new ProfilingScope(cmd, _XROcclusionProfilingSampler))
@@ -463,10 +465,10 @@ namespace UnityEngine.Rendering.Universal
         internal static readonly XRPass emptyPass = new XRPass();
 
         internal bool enabled { get => false; }
-        internal void StartSinglePass(CommandBuffer cmd) { }
-        internal void StopSinglePass(CommandBuffer cmd) { }
-        internal void EndCamera(CommandBuffer cmd, CameraData camera) { }
-        internal void RenderOcclusionMesh(CommandBuffer cmd) { }
+        internal void StartSinglePass(CommandBuffer cmd) {}
+        internal void StopSinglePass(CommandBuffer cmd) {}
+        internal void EndCamera(CommandBuffer cmd, CameraData camera) {}
+        internal void RenderOcclusionMesh(CommandBuffer cmd) {}
     }
 }
 #endif

@@ -57,7 +57,7 @@ VaryingsEdge VertEdge(Attributes input)
 #else
     output.positionCS = TransformFullscreenMesh(input.positionOS.xyz);
     output.uv = UnityStereoTransformScreenSpaceTex(input.uv);
-#endif  
+#endif
     SMAAEdgeDetectionVS(output.uv, output.offsets);
     return output;
 }
@@ -90,7 +90,7 @@ VaryingsBlend VertBlend(Attributes input)
 #else
     output.positionCS = TransformFullscreenMesh(input.positionOS.xyz);
     output.uv = UnityStereoTransformScreenSpaceTex(input.uv);
-#endif  
+#endif
     SMAABlendingWeightCalculationVS(output.uv, output.pixcoord, output.offsets);
     return output;
 }
@@ -122,7 +122,7 @@ VaryingsNeighbor VertNeighbor(Attributes input)
 #else
     output.positionCS = TransformFullscreenMesh(input.positionOS.xyz);
     output.uv = UnityStereoTransformScreenSpaceTex(input.uv);
-#endif  
+#endif
     SMAANeighborhoodBlendingVS(output.uv, output.offset);
     return output;
 }

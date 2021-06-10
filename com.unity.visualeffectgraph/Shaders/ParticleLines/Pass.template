@@ -10,6 +10,10 @@ struct vs_input
 	VFX_DECLARE_INSTANCE_ID
 };
 
+#if HAS_STRIPS
+${VFXDeclareGetStripTangent}
+#endif
+
 #pragma vertex vert
 
 VFX_VARYING_PS_INPUTS vert(uint id : SV_VertexID, vs_input i)
@@ -22,13 +26,13 @@ VFX_VARYING_PS_INPUTS vert(uint id : SV_VertexID, vs_input i)
 	#if HAS_STRIPS
 	const uint vertexPerStripCount = (PARTICLE_PER_STRIP_COUNT - 1) << 1;
 	const StripData stripData = GetStripDataFromStripIndex(id / vertexPerStripCount, PARTICLE_PER_STRIP_COUNT);
-	uint relativeIndex = (id % vertexPerStripCount + 1) >> 1; // relative index of particle in strip
+	uint relativeIndexInStrip = (id % vertexPerStripCount + 1) >> 1; // relative index of particle in strip
 	
-	uint maxEdgeIndex = relativeIndex - (id & 1) + 1;
+	uint maxEdgeIndex = relativeIndexInStrip - (id & 1) + 1;
 	if (maxEdgeIndex >= stripData.nextIndex)
 		return o;
 	
-	uint index = GetParticleIndex(relativeIndex, stripData);
+	uint index = GetParticleIndex(relativeIndexInStrip, stripData);
 	#else
 	uint index = id >> 1;
 	#endif
@@ -59,16 +63,16 @@ VFX_VARYING_PS_INPUTS vert(uint id : SV_VertexID, vs_input i)
 	${VFXLoadParameter:{targetOffset}}
 	attributes.targetPosition = mul(elementToVFX,float4(targetOffset,1)).xyz;
 	#endif
-		
+
+	// If ever used we need the position in vfx space (we dont take into account the pixel offset)
 	float3 vPos = id & 1 ? attributes.targetPosition : attributes.position;
 	#endif
 	
 	o.VFX_VARYING_POSCS = TransformPositionVFXToClip(vPos);
-	
+
+	${VFXVertexComputeCurrentAndPreviousClipPos}
 	${VFXVertexCommonProcess}
 	${VFXVertexAdditionalProcess}
 	
 	return o;
 }
-
-${VFXFragmentCommonFunctions}

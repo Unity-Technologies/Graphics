@@ -7,22 +7,23 @@ void ClosestHitForward(inout RayIntersection rayIntersection : SV_RayPayload, At
 {
     UNITY_XR_ASSIGN_VIEW_INDEX(DispatchRaysIndex().z);
 
-	// The first thing that we should do is grab the intersection vertice
+    // The first thing that we should do is grab the intersection vertice
     IntersectionVertex currentVertex;
     GetCurrentIntersectionVertex(attributeData, currentVertex);
 
     // Build the Frag inputs from the intersection vertice
     FragInputs fragInput;
-    BuildFragInputsFromIntersection(currentVertex, rayIntersection.incidentDirection, fragInput);
+    BuildFragInputsFromIntersection(currentVertex, fragInput);
 
     // Compute the view vector
-    float3 viewWS = -rayIntersection.incidentDirection;
+    float3 incidentDirection = WorldRayDirection();
+    float3 viewWS = -incidentDirection;
 
     // Let's compute the world space position (the non-camera relative one if camera relative rendering is enabled)
     float3 pointWSPos = fragInput.positionRWS;
 
     // Make sure to add the additional travel distance
-    float travelDistance = length(fragInput.positionRWS - rayIntersection.origin);
+    float travelDistance = length(fragInput.positionRWS - WorldRayOrigin());
     rayIntersection.t = travelDistance;
     rayIntersection.cone.width += travelDistance * abs(rayIntersection.cone.spreadAngle);
 
@@ -33,7 +34,15 @@ void ClosestHitForward(inout RayIntersection rayIntersection : SV_RayPayload, At
     BuiltinData builtinData;
     bool isVisible;
     GetSurfaceAndBuiltinData(fragInput, viewWS, posInput, surfaceData, builtinData, currentVertex, rayIntersection.cone, isVisible);
-    
+
+    #if HAS_REFRACTION
+    if (dot(incidentDirection, surfaceData.normalWS) > 0.0f)
+    {
+        surfaceData.normalWS = -surfaceData.normalWS;
+        fragInput.tangentToWorld[2] = -fragInput.tangentToWorld[2];
+    }
+    #endif
+
     // Compute the bsdf data
     BSDFData bsdfData =  ConvertSurfaceDataToBSDFData(posInput.positionSS, surfaceData);
 
@@ -51,18 +60,18 @@ void ClosestHitForward(inout RayIntersection rayIntersection : SV_RayPayload, At
     // If the mesh has a refraction mode, then we do proper refraction
     #if HAS_REFRACTION
         // Inverse the ior ratio if we are leaving the medium (we are hitting a back face)
-        float invIOR = surfaceData.ior;
+        float invIOR = bsdfData.ior;
         if (fragInput.isFrontFace)
             invIOR = 1.0f / invIOR;
 
         // Let's compute the refracted direction
-        float3 refractedDir = refract(rayIntersection.incidentDirection, surfaceData.normalWS, invIOR);
+        float3 refractedDir = refract(incidentDirection, bsdfData.normalWS, invIOR);
 
         // If the refracted direction ends going in the same direction than the normal, we do not want to throw it
         // NOTE: The current state of the code does not support the case of the total internal reflection. So there is a problem in term
         // of energy conservation
         // We launch a ray if there is still some depth be used
-        if (rayIntersection.remainingDepth > 0 && dot(refractedDir, surfaceData.normalWS) < 0.0f)
+        if (rayIntersection.remainingDepth > 0 && dot(refractedDir, bsdfData.normalWS) < 0.0f)
         {
             // Make sure we apply ray bias on the right side of the surface
             const float biasSign = sign(dot(fragInput.tangentToWorld[2], refractedDir));
@@ -77,8 +86,6 @@ void ClosestHitForward(inout RayIntersection rayIntersection : SV_RayPayload, At
             // Build the following intersection structure
             RayIntersection transmittedIntersection;
             transmittedIntersection.color = float3(0.0, 0.0, 0.0);
-            transmittedIntersection.incidentDirection = transmittedRay.Direction;
-            transmittedIntersection.origin = transmittedRay.Origin;
             transmittedIntersection.t = 0.0f;
             transmittedIntersection.remainingDepth = rayIntersection.remainingDepth - 1;
             transmittedIntersection.rayCount = 1;
@@ -107,20 +114,18 @@ void ClosestHitForward(inout RayIntersection rayIntersection : SV_RayPayload, At
         if (rayIntersection.remainingDepth > 0)
         {
             // Make sure we apply ray bias on the right side of the surface
-            const float biasSign = sign(dot(fragInput.tangentToWorld[2], rayIntersection.incidentDirection));
+            const float biasSign = sign(dot(fragInput.tangentToWorld[2], incidentDirection));
 
             // Build the transmitted ray structure
             RayDesc transmittedRay;
             transmittedRay.Origin = pointWSPos + biasSign * fragInput.tangentToWorld[2] * _RaytracingRayBias;
-            transmittedRay.Direction = rayIntersection.incidentDirection;
+            transmittedRay.Direction = incidentDirection;
             transmittedRay.TMin = 0;
             transmittedRay.TMax = _RaytracingRayMaxLength;
 
             // Build the following intersection structure
             RayIntersection transmittedIntersection;
             transmittedIntersection.color = float3(0.0, 0.0, 0.0);
-            transmittedIntersection.incidentDirection = transmittedRay.Direction;
-            transmittedIntersection.origin = transmittedRay.Origin;
             transmittedIntersection.t = 0.0f;
             transmittedIntersection.remainingDepth = rayIntersection.remainingDepth - 1;
             transmittedIntersection.rayCount = 1;
@@ -145,7 +150,7 @@ void ClosestHitForward(inout RayIntersection rayIntersection : SV_RayPayload, At
     if (rayIntersection.remainingDepth > 0 && RecursiveRenderingReflectionPerceptualSmoothness(bsdfData) >= _RaytracingReflectionMinSmoothness)
     {
         // Compute the reflected direction
-        float3 reflectedDir = reflect(rayIntersection.incidentDirection, surfaceData.normalWS);
+        float3 reflectedDir = reflect(incidentDirection, bsdfData.normalWS);
 
         // Make sure we apply ray bias on the right side of the surface
         const float biasSign = sign(dot(fragInput.tangentToWorld[2], reflectedDir));
@@ -160,8 +165,6 @@ void ClosestHitForward(inout RayIntersection rayIntersection : SV_RayPayload, At
         // Create and init the RayIntersection structure for this
         RayIntersection reflectedIntersection;
         reflectedIntersection.color = float3(0.0, 0.0, 0.0);
-        reflectedIntersection.incidentDirection = reflectedRay.Direction;
-        reflectedIntersection.origin = reflectedRay.Origin;
         reflectedIntersection.t = 0.0f;
         reflectedIntersection.remainingDepth = rayIntersection.remainingDepth - 1;
         reflectedIntersection.rayCount = 1;
@@ -203,7 +206,7 @@ void ClosestHitForward(inout RayIntersection rayIntersection : SV_RayPayload, At
     // the unlit color is not impacted by that. Thus, we multiply it by the inverse of the current exposure multiplier.
     rayIntersection.color = bsdfData.color * GetInverseCurrentExposureMultiplier() + builtinData.emissiveColor;
 #endif
-    
+
     // Apply fog attenuation
     ApplyFogAttenuation(WorldRayOrigin(), WorldRayDirection(), rayIntersection.t, rayIntersection.color, true);
 }
@@ -220,13 +223,13 @@ void AnyHitMain(inout RayIntersection rayIntersection : SV_RayPayload, Attribute
 
     // Build the Frag inputs from the intersection vertice
     FragInputs fragInput;
-    BuildFragInputsFromIntersection(currentVertex, rayIntersection.incidentDirection, fragInput);
+    BuildFragInputsFromIntersection(currentVertex, fragInput);
 
     // Compute the view vector
-    float3 viewWS = -rayIntersection.incidentDirection;
+    float3 viewWS = -WorldRayDirection();
 
     // Compute the distance of the ray
-    float travelDistance = length(GetAbsolutePositionWS(fragInput.positionRWS) - rayIntersection.origin);
+    float travelDistance = length(GetAbsolutePositionWS(fragInput.positionRWS) - WorldRayOrigin());
     rayIntersection.t = travelDistance;
 
     PositionInputs posInput;

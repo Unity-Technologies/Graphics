@@ -1,7 +1,12 @@
 #ifndef UNITY_ENTITY_LIGHTING_INCLUDED
 #define UNITY_ENTITY_LIGHTING_INCLUDED
 
+#if SHADER_API_MOBILE || SHADER_API_GLES || SHADER_API_GLES3
+#pragma warning (disable : 3205) // conversion of larger type to smaller
+#endif
+
 #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Common.hlsl"
+#include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Color.hlsl"
 
 #define LIGHTMAP_RGBM_MAX_GAMMA     real(5.0)       // NB: Must match value in RGBMRanges.h
 #define LIGHTMAP_RGBM_MAX_LINEAR    real(34.493242) // LIGHTMAP_RGBM_MAX_GAMMA ^ 2.2
@@ -42,6 +47,16 @@ real3 SHEvalLinearL0L1(real3 N, real4 shAr, real4 shAg, real4 shAb)
     return x1;
 }
 
+real3 SHEvalLinearL1(real3 N, real3 shAr, real3 shAg, real3 shAb)
+{
+    real3 x1;
+    x1.r = dot(shAr, N);
+    x1.g = dot(shAg, N);
+    x1.b = dot(shAb, N);
+
+    return x1;
+}
+
 real3 SHEvalLinearL2(real3 N, real4 shBr, real4 shBg, real4 shBb, real4 shC)
 {
     real3 x2;
@@ -75,6 +90,10 @@ half3 SampleSH9(half4 SHCoefficients[7], half3 N)
     // Quadratic polynomials
     res += SHEvalLinearL2(N, shBr, shBg, shBb, shCr);
 
+#ifdef UNITY_COLORSPACE_GAMMA
+    res = LinearToSRGB(res);
+#endif
+
     return res;
 }
 #endif
@@ -94,6 +113,10 @@ float3 SampleSH9(float4 SHCoefficients[7], float3 N)
 
     // Quadratic polynomials
     res += SHEvalLinearL2(N, shBr, shBg, shBb, shCr);
+
+#ifdef UNITY_COLORSPACE_GAMMA
+    res = LinearToSRGB(res);
+#endif
 
     return res;
 }
@@ -248,6 +271,7 @@ real3 UnpackLightmapDoubleLDR(real4 encodedColor, real4 decodeInstructions)
     return encodedColor.rgb * decodeInstructions.x;
 }
 
+#ifndef BUILTIN_TARGET_API
 real3 DecodeLightmap(real4 encodedIlluminance, real4 decodeInstructions)
 {
 #if defined(UNITY_LIGHTMAP_RGBM_ENCODING)
@@ -258,6 +282,7 @@ real3 DecodeLightmap(real4 encodedIlluminance, real4 decodeInstructions)
     return encodedIlluminance.rgb;
 #endif
 }
+#endif
 
 real3 DecodeHDREnvironment(real4 encodedIrradiance, real4 decodeInstructions)
 {
@@ -346,5 +371,8 @@ real3 SampleDirectionalLightmap(TEXTURE2D_LIGHTMAP_PARAM(lightmapTex, lightmapSa
     return bakeDiffuseLighting;
 }
 
+#if SHADER_API_MOBILE || SHADER_API_GLES || SHADER_API_GLES3
+#pragma warning (enable : 3205) // conversion of larger type to smaller
+#endif
 
 #endif // UNITY_ENTITY_LIGHTING_INCLUDED

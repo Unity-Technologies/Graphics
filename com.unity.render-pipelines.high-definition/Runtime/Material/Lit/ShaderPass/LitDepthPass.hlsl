@@ -54,7 +54,11 @@
     #define VARYINGS_NEED_COLOR
     #endif
 #elif defined(LOD_FADE_CROSSFADE)
-    #define VARYINGS_NEED_POSITION_WS // Required to get view vector use in cross fade effect 
+    #define VARYINGS_NEED_POSITION_WS // Required to get view vector use in cross fade effect
+#endif
+
+#ifdef _DOUBLESIDED_ON
+#define VARYINGS_NEED_CULLFACE
 #endif
 
 // This include will define the various Attributes/Varyings structure

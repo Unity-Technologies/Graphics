@@ -21,11 +21,11 @@ namespace UnityEditor.ShaderGraph
         internal static int variantLimit
         {
             get { return m_VariantLimit; }
-            set 
+            set
             {
-                if(onVariantLimitChanged != null)
+                if (onVariantLimitChanged != null)
                     onVariantLimitChanged();
-                TrySave(ref m_VariantLimit, value, Keys.variantLimit); 
+                TrySave(ref m_VariantLimit, value, Keys.variantLimit);
             }
         }
 
@@ -43,7 +43,7 @@ namespace UnityEditor.ShaderGraph
             set
             {
                 TrySave(ref m_AllowDeprecatedBehaviors, value, Keys.allowDeprecatedBehaviors);
-                if(onAllowDeprecatedChanged != null)
+                if (onAllowDeprecatedChanged != null)
                 {
                     onAllowDeprecatedChanged();
                 }
@@ -74,23 +74,23 @@ namespace UnityEditor.ShaderGraph
 
             EditorGUILayout.Space();
 
-            EditorGUI.BeginChangeCheck ();
+            EditorGUI.BeginChangeCheck();
             var variantLimitValue = EditorGUILayout.DelayedIntField("Shader Variant Limit", variantLimit);
-            if (EditorGUI.EndChangeCheck ()) 
+            if (EditorGUI.EndChangeCheck())
             {
                 variantLimit = variantLimitValue;
             }
 
-            EditorGUI.BeginChangeCheck ();
+            EditorGUI.BeginChangeCheck();
             var autoAddRemoveBlocksValue = EditorGUILayout.Toggle("Automatically Add and Remove Block Nodes", autoAddRemoveBlocks);
-            if (EditorGUI.EndChangeCheck ()) 
+            if (EditorGUI.EndChangeCheck())
             {
                 autoAddRemoveBlocks = autoAddRemoveBlocksValue;
             }
 
             EditorGUI.BeginChangeCheck();
             var allowDeprecatedBehaviorsValue = EditorGUILayout.Toggle("Enable Deprecated Nodes", allowDeprecatedBehaviors);
-            if(EditorGUI.EndChangeCheck())
+            if (EditorGUI.EndChangeCheck())
             {
                 allowDeprecatedBehaviors = allowDeprecatedBehaviorsValue;
             }

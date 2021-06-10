@@ -25,9 +25,9 @@ namespace UnityEngine.Rendering.HighDefinition
         /// <param name="hdCamera">The camera to use.</param>
         internal static RenderOutputProperties From(HDCamera hdCamera)
             => new RenderOutputProperties(
-                new Vector2Int(hdCamera.actualWidth, hdCamera.actualHeight),
-                hdCamera.camera.cameraToWorldMatrix,
-                hdCamera.mainViewConstants.projMatrix
+            new Vector2Int(hdCamera.actualWidth, hdCamera.actualHeight),
+            hdCamera.camera.cameraToWorldMatrix,
+            hdCamera.mainViewConstants.projMatrix
             );
     }
 }

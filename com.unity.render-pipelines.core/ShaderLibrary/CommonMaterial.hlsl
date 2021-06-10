@@ -1,6 +1,10 @@
 #ifndef UNITY_COMMON_MATERIAL_INCLUDED
 #define UNITY_COMMON_MATERIAL_INCLUDED
 
+#if SHADER_API_MOBILE || SHADER_API_GLES || SHADER_API_GLES3
+#pragma warning (disable : 3205) // conversion of larger type to smaller
+#endif
+
 //-----------------------------------------------------------------------------
 // Define constants
 //-----------------------------------------------------------------------------
@@ -19,6 +23,8 @@
 // Helper functions for roughness
 //-----------------------------------------------------------------------------
 
+
+#ifndef BUILTIN_TARGET_API
 real PerceptualRoughnessToRoughness(real perceptualRoughness)
 {
     return perceptualRoughness * perceptualRoughness;
@@ -28,6 +34,7 @@ real RoughnessToPerceptualRoughness(real roughness)
 {
     return sqrt(roughness);
 }
+#endif
 
 real RoughnessToPerceptualSmoothness(real roughness)
 {
@@ -58,9 +65,9 @@ real PerceptualSmoothnessToPerceptualRoughness(real perceptualSmoothness)
 // but chopping the far tails of GGX and keeping 94% of the mass yields a distribution with a defined variance where
 // we can then relate the roughness of GGX to a variance (see Ray Tracing Gems p153 - the reference is wrong though,
 // the Conty paper doesn't mention this at all, but it can be found in stats using quantiles):
-// 
+//
 // roughnessGGX^2 = variance / 2
-// 
+//
 // From the two previous, if we want roughly comparable variances of slopes between a Beckmann and a GGX NDF, we can
 // equate the variances and get a conversion of their roughnesses:
 //
@@ -324,10 +331,16 @@ real LerpWhiteTo(real b, real t)
     return oneMinusT + b * t;
 }
 
+#ifndef BUILTIN_TARGET_API
 real3 LerpWhiteTo(real3 b, real t)
 {
     real oneMinusT = 1.0 - t;
     return real3(oneMinusT, oneMinusT, oneMinusT) + b * t;
 }
+#endif
+
+#if SHADER_API_MOBILE || SHADER_API_GLES || SHADER_API_GLES3
+#pragma warning (enable : 3205) // conversion of larger type to smaller
+#endif
 
 #endif // UNITY_COMMON_MATERIAL_INCLUDED

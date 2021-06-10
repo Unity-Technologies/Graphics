@@ -5,6 +5,9 @@ using System.Text;
 using System.Globalization;
 using UnityEngine;
 using UnityEngine.VFX;
+using System.Reflection;
+using System.Runtime.InteropServices;
+using System.Collections.ObjectModel;
 
 namespace UnityEditor.VFX
 {
@@ -216,13 +219,105 @@ namespace UnityEditor.VFX
             return padding;
         }
 
+        private static bool IsBufferBuiltinType(Type type)
+        {
+            return VFXExpression.IsUniform(VFXExpression.GetVFXValueTypeFromType(type));
+        }
 
-        public void WriteBuffer(VFXUniformMapper mapper)
+        static string GetStructureName(Type type)
+        {
+            if (IsBufferBuiltinType(type))
+                return VFXExpression.TypeToCode(VFXExpression.GetVFXValueTypeFromType(type));
+            else
+                return type.Name;
+        }
+
+        static void GenerateStructureCode(Type type, VFXShaderWriter structureDeclaration, HashSet<Type> alreadyGeneratedStructure)
+        {
+            if (IsBufferBuiltinType(type))
+                return; // No structure to generate, it is a builtin type
+
+            if (alreadyGeneratedStructure.Contains(type))
+                return;
+
+            var structureName = GetStructureName(type);
+
+            var prerequisite = new VFXShaderWriter();
+            var currentStructure = new VFXShaderWriter();
+            currentStructure.WriteLineFormat("struct {0}", structureName);
+            currentStructure.WriteLine("{");
+            currentStructure.Indent();
+            foreach (var field in VFXLibrary.GetFieldFromType(type))
+            {
+                string typeName;
+                if (field.valueType == VFXValueType.None)
+                {
+                    typeName = GetStructureName(field.type);
+                    GenerateStructureCode(field.type, prerequisite, alreadyGeneratedStructure);
+                }
+                else
+                    typeName = VFXExpression.TypeToCode(field.valueType);
+
+                currentStructure.WriteLineFormat("{0} {1};", typeName, field.name);
+            }
+
+            currentStructure.Deindent();
+            currentStructure.WriteLine("};");
+
+            prerequisite.WriteLine(currentStructure.ToString());
+            structureDeclaration.Write(prerequisite.ToString());
+            alreadyGeneratedStructure.Add(type);
+        }
+
+        private void WriteBufferTypeDeclaration(Type type, HashSet<Type> alreadyGeneratedStructure)
+        {
+            GenerateStructureCode(type, this, alreadyGeneratedStructure);
+
+            var structureName = GetStructureName(type);
+            var expectedStride = Marshal.SizeOf(type);
+            WriteLineFormat("{0} SampleStructuredBuffer(StructuredBuffer<{0}> buffer, uint index, uint actualStride, uint actualCount)", structureName);
+            {
+                WriteLine("{");
+                Indent();
+                WriteLineFormat("{0} read = ({0})0;", structureName);
+                WriteLine("[branch]");
+                WriteLineFormat("if (actualStride == (uint){0} && index < actualCount)", expectedStride);
+                {
+                    Indent();
+                    WriteLine("read = buffer[index];");
+                    Deindent();
+                }
+                WriteLineFormat("return read;", structureName);
+                Deindent();
+                WriteLine("}");
+            }
+        }
+
+        public void WriteBufferTypeDeclaration(IEnumerable<Type> types)
+        {
+            var alreadyGeneratedStructure = new HashSet<Type>();
+            foreach (var type in types)
+                WriteBufferTypeDeclaration(type, alreadyGeneratedStructure);
+        }
+
+        public void WriteBuffer(VFXUniformMapper mapper, ReadOnlyDictionary<VFXExpression, Type> usageGraphicsBuffer)
         {
             foreach (var buffer in mapper.buffers)
             {
                 var name = mapper.GetName(buffer);
-                WriteLineFormat("{0} {1};", VFXExpression.TypeToCode(buffer.valueType), name);
+
+                if (buffer.valueType == VFXValueType.Buffer && usageGraphicsBuffer.TryGetValue(buffer, out var type))
+                {
+                    if (type == null)
+                        throw new NullReferenceException("Unexpected null type in graphicsBuffer usage");
+
+                    var structureName = GetStructureName(type);
+                    WriteLineFormat("StructuredBuffer<{0}> {1};", structureName, name);
+                }
+                else
+                {
+                    WriteLineFormat("{0} {1};", VFXExpression.TypeToCode(buffer.valueType), name);
+                }
             }
         }
 
@@ -326,8 +421,7 @@ namespace UnityEditor.VFX
                 case VFXValueType.Texture3D: return "VFXSampler3D";
                 case VFXValueType.TextureCube: return "VFXSamplerCube";
                 case VFXValueType.TextureCubeArray: return "VFXSamplerCubeArray";
-                case VFXValueType.Mesh: return "ByteAddressBuffer";
-
+                case VFXValueType.CameraBuffer: return "VFXSamplerCameraBuffer";
                 default:
                     return VFXExpression.TypeToCode(type);
             }
@@ -343,6 +437,7 @@ namespace UnityEditor.VFX
                 case VFXValueType.Texture3D:
                 case VFXValueType.TextureCube:
                 case VFXValueType.TextureCubeArray: return string.Format("GetVFXSampler({0}, {1})", expressionName, ("sampler" + expressionName));
+                case VFXValueType.CameraBuffer: return string.Format("GetVFXSampler({0}, {1})", expressionName, ("sampler" + expressionName));
 
                 default:
                     return expressionName;

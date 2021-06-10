@@ -144,7 +144,7 @@ namespace UnityEditor.Rendering
     /// Flags Debug State.
     /// </summary>
     [Serializable, DebugState(typeof(DebugUI.BitField))]
-    public sealed class DebugStateFlags : DebugState<Enum> { }
+    public sealed class DebugStateFlags : DebugState<Enum> {}
 
     /// <summary>
     /// Unsigned Integer Debug State.

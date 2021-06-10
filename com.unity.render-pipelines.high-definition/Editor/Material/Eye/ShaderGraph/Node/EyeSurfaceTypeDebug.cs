@@ -31,7 +31,7 @@ namespace UnityEditor.ShaderGraph
         {
             SurfaceColor = Vector3.zero;
             return
-                @"
+@"
                 {
                     $precision pixelRadius = length(PositionOS.xy);
                     bool isSclera = pixelRadius > IrisRadius;

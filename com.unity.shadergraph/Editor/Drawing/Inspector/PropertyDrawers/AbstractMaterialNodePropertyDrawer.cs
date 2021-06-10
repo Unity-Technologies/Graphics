@@ -12,8 +12,13 @@ using UnityEngine;
 
 namespace  UnityEditor.ShaderGraph.Drawing.Inspector.PropertyDrawers
 {
+    internal interface IGetNodePropertyDrawerPropertyData
+    {
+        void GetPropertyData(Action setNodesAsDirtyCallback, Action updateNodeViewsCallback);
+    }
+
     [SGPropertyDrawer(typeof(AbstractMaterialNode))]
-    public class AbstractMaterialNodePropertyDrawer : IPropertyDrawer
+    public class AbstractMaterialNodePropertyDrawer : IPropertyDrawer, IGetNodePropertyDrawerPropertyData
     {
         public Action inspectorUpdateDelegate { get; set; }
 
@@ -26,6 +31,10 @@ namespace  UnityEditor.ShaderGraph.Drawing.Inspector.PropertyDrawers
             m_updateNodeViewsCallback = updateNodeViewsCallback;
         }
 
+        internal virtual void AddCustomNodeProperties(VisualElement parentElement, AbstractMaterialNode node, Action setNodesAsDirtyCallback, Action updateNodeViewsCallback)
+        {
+        }
+
         VisualElement CreateGUI(AbstractMaterialNode node, InspectableAttribute attribute, out VisualElement propertyVisualElement)
         {
             VisualElement nodeSettings = new VisualElement();
@@ -33,6 +42,15 @@ namespace  UnityEditor.ShaderGraph.Drawing.Inspector.PropertyDrawers
             nodeSettings.Add(nameLabel);
             if (node.sgVersion < node.latestVersion)
             {
+                string deprecationText = null;
+                string buttonText = null;
+                string labelText = null;
+                MessageType messageType = MessageType.Warning;
+                if (node is IHasCustomDeprecationMessage nodeWithCustomDeprecationSettings)
+                {
+                    nodeWithCustomDeprecationSettings.GetCustomDeprecationMessage(out deprecationText, out buttonText, out labelText, out messageType);
+                }
+
                 var help = HelpBoxRow.TryGetDeprecatedHelpBoxRow($"{node.name} Node", () =>
                 {
                     m_setNodesAsDirtyCallback?.Invoke();
@@ -41,42 +59,26 @@ namespace  UnityEditor.ShaderGraph.Drawing.Inspector.PropertyDrawers
                     inspectorUpdateDelegate?.Invoke();
                     m_updateNodeViewsCallback?.Invoke();
                     node.Dirty(ModificationScope.Graph);
-                });
-            
+                }, deprecationText, buttonText, labelText, messageType);
+
                 if (help != null)
                 {
                     nodeSettings.Insert(0, help);
                 }
             }
-            EnumField precisionField = null;
-            if(node.canSetPrecision)
-            {
-                precisionField = new EnumField(node.precision);
-                var propertyRow = new PropertyRow(new Label("Precision"));
-                propertyRow.Add(precisionField, (field) =>
-                {
-                    field.RegisterValueChangedCallback(evt =>
-                    {
-                        if (evt.newValue.Equals(node.precision))
-                            return;
 
-                        m_setNodesAsDirtyCallback();
-                        node.owner.owner.RegisterCompleteObjectUndo("Change precision");
-                        node.precision = (Precision)evt.newValue;
-                        node.owner.ValidateGraph();
-                        m_updateNodeViewsCallback();
-                        node.Dirty(ModificationScope.Graph);
-                    });
-                });
-                nodeSettings.Add(propertyRow);
-            }
-            propertyVisualElement = precisionField;
+            PropertyDrawerUtils.AddDefaultNodeProperties(nodeSettings, node, m_setNodesAsDirtyCallback, m_updateNodeViewsCallback);
+            AddCustomNodeProperties(nodeSettings, node, m_setNodesAsDirtyCallback, m_updateNodeViewsCallback);
+
+            propertyVisualElement = null;
+
             return nodeSettings;
         }
+
         public VisualElement DrawProperty(PropertyInfo propertyInfo, object actualObject, InspectableAttribute attribute)
         {
             return this.CreateGUI(
-                (AbstractMaterialNode) actualObject,
+                (AbstractMaterialNode)actualObject,
                 attribute,
                 out var propertyVisualElement);
         }

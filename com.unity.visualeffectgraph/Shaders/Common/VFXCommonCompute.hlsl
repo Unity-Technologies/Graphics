@@ -1,15 +1,3 @@
-// Pi variables are redefined here as UnityCG.cginc is not included for compute shader as it adds too many unused uniforms to constant buffers
-#ifndef UNITY_CG_INCLUDED
-#define UNITY_PI            3.14159265359f
-#define UNITY_TWO_PI        6.28318530718f
-#define UNITY_FOUR_PI       12.56637061436f
-#define UNITY_INV_PI        0.31830988618f
-#define UNITY_INV_TWO_PI    0.15915494309f
-#define UNITY_INV_FOUR_PI   0.07957747155f
-#define UNITY_HALF_PI       1.57079632679f
-#define UNITY_INV_HALF_PI   0.636619772367f
-#endif
-
 // TODO Null implem at the moment
 float4 VFXTransformPositionWorldToNonJitteredClip(float3 posWS)
 {

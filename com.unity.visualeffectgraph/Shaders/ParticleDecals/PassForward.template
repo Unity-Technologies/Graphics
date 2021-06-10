@@ -3,6 +3,8 @@ Pass
 {		
 	Tags { "LightMode"=${VFXPassForward} }
 	
+	${VFXStencilForward}
+
 	ZWrite Off
 	
 	HLSLPROGRAM

@@ -39,14 +39,14 @@ namespace UnityEditor.Rendering
 
         static IEnumerable<Component> ComponentDependencies(Component component)
             => component.gameObject
-                .GetComponents<Component>()
-                .Where(c => c != component
-                    && c.GetType()
-                        .GetCustomAttributes(typeof(RequireComponent), true)
-                        .Count(att => att is RequireComponent rc
-                            && (rc.m_Type0 == component.GetType()
-                                || rc.m_Type1 == component.GetType()
-                                || rc.m_Type2 == component.GetType())) > 0);
+            .GetComponents<Component>()
+            .Where(c => c != component
+                && c.GetType()
+                    .GetCustomAttributes(typeof(RequireComponent), true)
+                    .Count(att => att is RequireComponent rc
+                        && (rc.m_Type0 == component.GetType()
+                            || rc.m_Type1 == component.GetType()
+                            || rc.m_Type2 == component.GetType())) > 0);
 
         static bool CanRemoveComponent(Component component, out string error)
         {

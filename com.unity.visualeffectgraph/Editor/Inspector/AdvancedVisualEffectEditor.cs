@@ -72,6 +72,10 @@ namespace UnityEditor.VFX
             {
                 return "m_NamedObject";
             }
+            else if (type == typeof(SkinnedMeshRenderer))
+            {
+                return "m_NamedObject";
+            }
             else if (type == typeof(float))
             {
                 return "m_Float";
@@ -165,14 +169,36 @@ namespace UnityEditor.VFX
             {
                 EditorGUILayout.PropertyField(m_VisualEffectAsset, Contents.assetPath);
 
-                GUI.enabled = !m_VisualEffectAsset.hasMultipleDifferentValues && m_VisualEffectAsset.objectReferenceValue != null && resource != null; // Enabled state will be kept for all content until the end of the inspectorGUI.
-                if (GUILayout.Button(Contents.openEditor, EditorStyles.miniButton, Styles.MiniButtonWidth))
+                bool saveEnabled = GUI.enabled;
+                if (m_VisualEffectAsset.objectReferenceValue == null && !m_VisualEffectAsset.hasMultipleDifferentValues)
                 {
-                    VFXViewWindow window = EditorWindow.GetWindow<VFXViewWindow>();
-                    var asset = m_VisualEffectAsset.objectReferenceValue as VisualEffectAsset;
-                    window.LoadAsset(asset, targets.Length > 1 ? null : target as VisualEffect);
+                    GUI.enabled = saveEnabled;
+                    if (GUILayout.Button(Contents.createAsset, EditorStyles.miniButton, Styles.MiniButtonWidth))
+                    {
+                        string filePath = EditorUtility.SaveFilePanelInProject("", "New Graph", "vfx", "Create new VisualEffect Graph");
+                        if (!string.IsNullOrEmpty(filePath))
+                        {
+                            VisualEffectAssetEditorUtility.CreateTemplateAsset(filePath);
+                            var asset = AssetDatabase.LoadAssetAtPath<VisualEffectAsset>(filePath);
+                            m_VisualEffectAsset.objectReferenceValue = asset;
+                            serializedObject.ApplyModifiedProperties();
+
+                            VFXViewWindow window = EditorWindow.GetWindow<VFXViewWindow>();
+                            window.LoadAsset(asset, targets.Length > 1 ? null : target as VisualEffect);
+                        }
+                    }
                 }
-                GUI.enabled = true;
+                else
+                {
+                    GUI.enabled = saveEnabled && !m_VisualEffectAsset.hasMultipleDifferentValues && m_VisualEffectAsset.objectReferenceValue != null && resource != null; // Enabled state will be kept for all content until the end of the inspectorGUI.
+                    if (GUILayout.Button(Contents.openEditor, EditorStyles.miniButton, Styles.MiniButtonWidth))
+                    {
+                        VFXViewWindow window = EditorWindow.GetWindow<VFXViewWindow>();
+                        var asset = m_VisualEffectAsset.objectReferenceValue as VisualEffectAsset;
+                        window.LoadAsset(asset, targets.Length > 1 ? null : target as VisualEffect);
+                    }
+                }
+                GUI.enabled = saveEnabled;
             }
         }
 
@@ -218,7 +244,7 @@ namespace UnityEditor.VFX
 
             VFXParameter parameter = GetParameter(name, resource);
 
-            if (!VFXGizmoUtility.HasGizmo(parameter.type))
+            if (parameter == null || !VFXGizmoUtility.HasGizmo(parameter.type))
             {
                 base.EmptyLineControl(name, tooltip, depth, resource);
                 return;
@@ -310,18 +336,6 @@ namespace UnityEditor.VFX
             }
 
             return context;
-        }
-
-        protected override void OnSceneViewGUI(SceneView sv)
-        {
-            base.OnSceneViewGUI(sv);
-
-            if (m_GizmoDisplayed && m_GizmoedParameter != null && m_GizmoableParameters.Count > 0 && ((VisualEffect)target).visualEffectAsset != null)
-            {
-                ContextAndGizmo context = GetGizmo();
-
-                VFXGizmoUtility.Draw(context.context, (VisualEffect)target, context.gizmo);
-            }
         }
 
         class GizmoContext : VFXGizmoUtility.Context
@@ -672,9 +686,16 @@ namespace UnityEditor.VFX
             return base.GetWorldBoundsOfTarget(targetObject);
         }
 
-        protected override void SceneViewGUICallback(UnityObject tar, SceneView sceneView)
+        protected override void SceneViewGUICallback()
         {
-            base.SceneViewGUICallback(tar, sceneView);
+            base.SceneViewGUICallback();
+
+            if (m_GizmoDisplayed && m_GizmoedParameter != null && m_GizmoableParameters.Count > 0 && ((VisualEffect)target).visualEffectAsset != null)
+            {
+                ContextAndGizmo context = GetGizmo();
+                VFXGizmoUtility.Draw(context.context, (VisualEffect)target, context.gizmo);
+            }
+
             if (m_GizmoableParameters.Count > 0)
             {
                 int current = m_GizmoDisplayed ? m_GizmoableParameters.IndexOf(m_GizmoedParameter) : -1;
@@ -693,7 +714,8 @@ namespace UnityEditor.VFX
                     Repaint();
                 }
 
-                GUI.enabled = m_GizmoedParameter != null;
+                bool saveEnabled = GUI.enabled;
+                GUI.enabled = saveEnabled && m_GizmoedParameter != null;
                 if (GUILayout.Button(VFXSlotContainerEditor.Contents.gizmoFrame, VFXSlotContainerEditor.Styles.frameButtonStyle, GUILayout.Width(19), GUILayout.Height(18)))
                 {
                     if (m_GizmoDisplayed && m_GizmoedParameter != null)
@@ -704,10 +726,12 @@ namespace UnityEditor.VFX
                         context.gizmo.spaceLocalByDefault = context.context.spaceLocalByDefault;
                         context.gizmo.component = (VisualEffect)target;
                         Bounds bounds = context.gizmo.CallGetGizmoBounds(context.context.value);
-                        sceneView.Frame(bounds, false);
+                        var sceneView = SceneView.lastActiveSceneView;
+                        if (sceneView)
+                            sceneView.Frame(bounds, false);
                     }
                 }
-                GUI.enabled = true;
+                GUI.enabled = saveEnabled;
                 GUILayout.EndHorizontal();
             }
         }

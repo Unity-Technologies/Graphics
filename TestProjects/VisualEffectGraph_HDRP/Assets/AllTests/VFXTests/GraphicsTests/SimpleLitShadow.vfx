@@ -273,9 +273,8 @@ MonoBehaviour:
     enumValues: []
     descendantCount: 0
   m_ImportDependencies: []
-  m_GraphVersion: 4
+  m_GraphVersion: 8
   m_ResourceVersion: 1
-  m_saved: 1
   m_SubgraphDependencies: []
   m_CategoryPath: 
 --- !u!114 &114380859405582094
@@ -339,6 +338,8 @@ MonoBehaviour:
   capacity: 4096
   stripCapacity: 16
   particlePerStripCount: 16
+  needsComputeBounds: 0
+  boundsSettingMode: 1
   m_Space: 0
 --- !u!114 &114512514798047786
 MonoBehaviour:
@@ -745,6 +746,8 @@ MonoBehaviour:
   - {fileID: 8926484042661614541}
   m_OutputSlots: []
   m_Disabled: 0
+  compositionPosition: 0
+  compositionDirection: 0
   positionMode: 1
   spawnMode: 0
 --- !u!114 &8926484042661614541
@@ -1274,6 +1277,8 @@ MonoBehaviour:
   blendMode: 1
   useAlphaClipping: 0
   generateMotionVector: 0
+  excludeFromTAA: 0
+  materialOffset: 0
   m_SubOutputs:
   - {fileID: 8926484042661615120}
   cullMode: 0
@@ -1289,7 +1294,11 @@ MonoBehaviour:
   frustumCulling: 0
   castShadows: 0
   useExposureWeight: 0
+  flipbookLayout: 0
   shaderGraph: {fileID: 0}
+  materialSettings:
+    m_PropertyNames: []
+    m_PropertyValues: []
   materialType: 4
   onlyAmbientLighting: 0
   diffusionProfileAsset: {fileID: 11400000, guid: cbe1ee9036c47b84ba1b8b3dbcde2aff,
@@ -1710,6 +1719,8 @@ MonoBehaviour:
   blendMode: 1
   useAlphaClipping: 0
   generateMotionVector: 0
+  excludeFromTAA: 0
+  materialOffset: 0
   m_SubOutputs:
   - {fileID: 8926484042661615121}
   cullMode: 0
@@ -1725,7 +1736,11 @@ MonoBehaviour:
   frustumCulling: 0
   castShadows: 0
   useExposureWeight: 0
+  flipbookLayout: 0
   shaderGraph: {fileID: 0}
+  materialSettings:
+    m_PropertyNames: []
+    m_PropertyValues: []
   materialType: 3
   onlyAmbientLighting: 0
   diffusionProfileAsset: {fileID: 11400000, guid: cbe1ee9036c47b84ba1b8b3dbcde2aff,
@@ -2936,6 +2951,8 @@ MonoBehaviour:
   capacity: 4096
   stripCapacity: 16
   particlePerStripCount: 16
+  needsComputeBounds: 0
+  boundsSettingMode: 1
   m_Space: 0
 --- !u!114 &8926484042661614659
 MonoBehaviour:
@@ -2987,6 +3004,8 @@ MonoBehaviour:
   - {fileID: 8926484042661614663}
   m_OutputSlots: []
   m_Disabled: 0
+  compositionPosition: 0
+  compositionDirection: 0
   positionMode: 1
   spawnMode: 0
 --- !u!114 &8926484042661614663
@@ -3370,6 +3389,8 @@ MonoBehaviour:
   blendMode: 1
   useAlphaClipping: 0
   generateMotionVector: 0
+  excludeFromTAA: 0
+  materialOffset: 0
   m_SubOutputs:
   - {fileID: 8926484042661615122}
   cullMode: 0
@@ -3385,7 +3406,11 @@ MonoBehaviour:
   frustumCulling: 0
   castShadows: 0
   useExposureWeight: 0
+  flipbookLayout: 0
   shaderGraph: {fileID: 0}
+  materialSettings:
+    m_PropertyNames: []
+    m_PropertyValues: []
   materialType: 4
   onlyAmbientLighting: 0
   diffusionProfileAsset: {fileID: 11400000, guid: cbe1ee9036c47b84ba1b8b3dbcde2aff,
@@ -3594,6 +3619,8 @@ MonoBehaviour:
   blendMode: 1
   useAlphaClipping: 0
   generateMotionVector: 0
+  excludeFromTAA: 0
+  materialOffset: 0
   m_SubOutputs:
   - {fileID: 8926484042661615123}
   cullMode: 0
@@ -3609,7 +3636,11 @@ MonoBehaviour:
   frustumCulling: 0
   castShadows: 0
   useExposureWeight: 0
+  flipbookLayout: 0
   shaderGraph: {fileID: 0}
+  materialSettings:
+    m_PropertyNames: []
+    m_PropertyValues: []
   materialType: 3
   onlyAmbientLighting: 0
   diffusionProfileAsset: {fileID: 11400000, guid: cbe1ee9036c47b84ba1b8b3dbcde2aff,
@@ -4148,6 +4179,8 @@ MonoBehaviour:
   capacity: 4096
   stripCapacity: 16
   particlePerStripCount: 16
+  needsComputeBounds: 0
+  boundsSettingMode: 1
   m_Space: 0
 --- !u!114 &8926484042661614716
 MonoBehaviour:
@@ -4199,6 +4232,8 @@ MonoBehaviour:
   - {fileID: 8926484042661614720}
   m_OutputSlots: []
   m_Disabled: 0
+  compositionPosition: 0
+  compositionDirection: 0
   positionMode: 1
   spawnMode: 0
 --- !u!114 &8926484042661614720
@@ -4582,6 +4617,8 @@ MonoBehaviour:
   blendMode: 1
   useAlphaClipping: 0
   generateMotionVector: 0
+  excludeFromTAA: 0
+  materialOffset: 0
   m_SubOutputs:
   - {fileID: 8926484042661615124}
   cullMode: 0
@@ -4597,7 +4634,11 @@ MonoBehaviour:
   frustumCulling: 0
   castShadows: 0
   useExposureWeight: 0
+  flipbookLayout: 0
   shaderGraph: {fileID: 0}
+  materialSettings:
+    m_PropertyNames: []
+    m_PropertyValues: []
   materialType: 4
   onlyAmbientLighting: 0
   diffusionProfileAsset: {fileID: 11400000, guid: cbe1ee9036c47b84ba1b8b3dbcde2aff,
@@ -4806,6 +4847,8 @@ MonoBehaviour:
   blendMode: 1
   useAlphaClipping: 0
   generateMotionVector: 0
+  excludeFromTAA: 0
+  materialOffset: 0
   m_SubOutputs:
   - {fileID: 8926484042661615125}
   cullMode: 0
@@ -4821,7 +4864,11 @@ MonoBehaviour:
   frustumCulling: 0
   castShadows: 0
   useExposureWeight: 0
+  flipbookLayout: 0
   shaderGraph: {fileID: 0}
+  materialSettings:
+    m_PropertyNames: []
+    m_PropertyValues: []
   materialType: 3
   onlyAmbientLighting: 0
   diffusionProfileAsset: {fileID: 11400000, guid: cbe1ee9036c47b84ba1b8b3dbcde2aff,
@@ -5360,6 +5407,8 @@ MonoBehaviour:
   capacity: 4096
   stripCapacity: 16
   particlePerStripCount: 16
+  needsComputeBounds: 0
+  boundsSettingMode: 1
   m_Space: 0
 --- !u!114 &8926484042661614773
 MonoBehaviour:
@@ -5411,6 +5460,8 @@ MonoBehaviour:
   - {fileID: 8926484042661614777}
   m_OutputSlots: []
   m_Disabled: 0
+  compositionPosition: 0
+  compositionDirection: 0
   positionMode: 1
   spawnMode: 0
 --- !u!114 &8926484042661614777
@@ -5794,6 +5845,8 @@ MonoBehaviour:
   blendMode: 1
   useAlphaClipping: 0
   generateMotionVector: 0
+  excludeFromTAA: 0
+  materialOffset: 0
   m_SubOutputs:
   - {fileID: 8926484042661615126}
   cullMode: 0
@@ -5809,7 +5862,11 @@ MonoBehaviour:
   frustumCulling: 0
   castShadows: 0
   useExposureWeight: 0
+  flipbookLayout: 0
   shaderGraph: {fileID: 0}
+  materialSettings:
+    m_PropertyNames: []
+    m_PropertyValues: []
   materialType: 4
   onlyAmbientLighting: 0
   diffusionProfileAsset: {fileID: 11400000, guid: cbe1ee9036c47b84ba1b8b3dbcde2aff,
@@ -6018,6 +6075,8 @@ MonoBehaviour:
   blendMode: 1
   useAlphaClipping: 0
   generateMotionVector: 0
+  excludeFromTAA: 0
+  materialOffset: 0
   m_SubOutputs:
   - {fileID: 8926484042661615127}
   cullMode: 0
@@ -6033,7 +6092,11 @@ MonoBehaviour:
   frustumCulling: 0
   castShadows: 0
   useExposureWeight: 0
+  flipbookLayout: 0
   shaderGraph: {fileID: 0}
+  materialSettings:
+    m_PropertyNames: []
+    m_PropertyValues: []
   materialType: 3
   onlyAmbientLighting: 0
   diffusionProfileAsset: {fileID: 11400000, guid: cbe1ee9036c47b84ba1b8b3dbcde2aff,
@@ -6572,6 +6635,8 @@ MonoBehaviour:
   capacity: 4096
   stripCapacity: 16
   particlePerStripCount: 16
+  needsComputeBounds: 0
+  boundsSettingMode: 1
   m_Space: 0
 --- !u!114 &8926484042661614830
 MonoBehaviour:
@@ -6623,6 +6688,8 @@ MonoBehaviour:
   - {fileID: 8926484042661614834}
   m_OutputSlots: []
   m_Disabled: 0
+  compositionPosition: 0
+  compositionDirection: 0
   positionMode: 1
   spawnMode: 0
 --- !u!114 &8926484042661614834
@@ -7006,6 +7073,8 @@ MonoBehaviour:
   blendMode: 1
   useAlphaClipping: 0
   generateMotionVector: 0
+  excludeFromTAA: 0
+  materialOffset: 0
   m_SubOutputs:
   - {fileID: 8926484042661615128}
   cullMode: 0
@@ -7021,7 +7090,11 @@ MonoBehaviour:
   frustumCulling: 0
   castShadows: 0
   useExposureWeight: 0
+  flipbookLayout: 0
   shaderGraph: {fileID: 0}
+  materialSettings:
+    m_PropertyNames: []
+    m_PropertyValues: []
   materialType: 4
   onlyAmbientLighting: 0
   diffusionProfileAsset: {fileID: 11400000, guid: cbe1ee9036c47b84ba1b8b3dbcde2aff,
@@ -7230,6 +7303,8 @@ MonoBehaviour:
   blendMode: 1
   useAlphaClipping: 0
   generateMotionVector: 0
+  excludeFromTAA: 0
+  materialOffset: 0
   m_SubOutputs:
   - {fileID: 8926484042661615129}
   cullMode: 0
@@ -7245,7 +7320,11 @@ MonoBehaviour:
   frustumCulling: 0
   castShadows: 0
   useExposureWeight: 0
+  flipbookLayout: 0
   shaderGraph: {fileID: 0}
+  materialSettings:
+    m_PropertyNames: []
+    m_PropertyValues: []
   materialType: 3
   onlyAmbientLighting: 0
   diffusionProfileAsset: {fileID: 11400000, guid: cbe1ee9036c47b84ba1b8b3dbcde2aff,
@@ -7784,6 +7863,8 @@ MonoBehaviour:
   capacity: 4096
   stripCapacity: 16
   particlePerStripCount: 16
+  needsComputeBounds: 0
+  boundsSettingMode: 1
   m_Space: 0
 --- !u!114 &8926484042661614887
 MonoBehaviour:
@@ -7835,6 +7916,8 @@ MonoBehaviour:
   - {fileID: 8926484042661614891}
   m_OutputSlots: []
   m_Disabled: 0
+  compositionPosition: 0
+  compositionDirection: 0
   positionMode: 1
   spawnMode: 0
 --- !u!114 &8926484042661614891
@@ -8218,6 +8301,8 @@ MonoBehaviour:
   blendMode: 1
   useAlphaClipping: 0
   generateMotionVector: 0
+  excludeFromTAA: 0
+  materialOffset: 0
   m_SubOutputs:
   - {fileID: 8926484042661615130}
   cullMode: 0
@@ -8233,7 +8318,11 @@ MonoBehaviour:
   frustumCulling: 0
   castShadows: 0
   useExposureWeight: 0
+  flipbookLayout: 0
   shaderGraph: {fileID: 0}
+  materialSettings:
+    m_PropertyNames: []
+    m_PropertyValues: []
   materialType: 4
   onlyAmbientLighting: 0
   diffusionProfileAsset: {fileID: 11400000, guid: cbe1ee9036c47b84ba1b8b3dbcde2aff,
@@ -8442,6 +8531,8 @@ MonoBehaviour:
   blendMode: 1
   useAlphaClipping: 0
   generateMotionVector: 0
+  excludeFromTAA: 0
+  materialOffset: 0
   m_SubOutputs:
   - {fileID: 8926484042661615131}
   cullMode: 0
@@ -8457,7 +8548,11 @@ MonoBehaviour:
   frustumCulling: 0
   castShadows: 0
   useExposureWeight: 0
+  flipbookLayout: 0
   shaderGraph: {fileID: 0}
+  materialSettings:
+    m_PropertyNames: []
+    m_PropertyValues: []
   materialType: 3
   onlyAmbientLighting: 0
   diffusionProfileAsset: {fileID: 11400000, guid: cbe1ee9036c47b84ba1b8b3dbcde2aff,

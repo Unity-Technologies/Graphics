@@ -49,10 +49,12 @@ bool RayTraceContactShadow(PositionInputs posInput, float3 direction)
         rayDescriptor.TMin = 0.0;
         rayDescriptor.TMax = rayLength - _RaytracingRayBias;
 
+        // Adjust world-space position to match the RAS setup with XR single-pass and camera relative
+        ApplyCameraRelativeXR(rayDescriptor.Origin);
+
         // Create and init the RayIntersection structure for this
         RayIntersection rayIntersection;
         rayIntersection.color = float3(0.0, 0.0, 0.0);
-        rayIntersection.incidentDirection = rayDescriptor.Direction;
         rayIntersection.pixelCoord = posInput.positionSS;
 
         // Evaluate the ray visibility term and PDF

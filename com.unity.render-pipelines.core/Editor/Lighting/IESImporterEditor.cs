@@ -176,9 +176,9 @@ namespace UnityEditor.Rendering
         /// <param name="setupRenderPipelinePreviewWallRenderer">Delegate provided by the Render pipeline to setup the Preview Floor</param>
         /// <returns>true to specified IES has a Preview</returns>
         public bool CommonHasPreviewGUI(SetupRenderPipelinePreviewCamera setupRenderPipelinePreviewCamera,
-                                        SetupRenderPipelinePreviewLight setupRenderPipelinePreviewLight,
-                                        SetupRenderPipelinePreviewWallRenderer setupRenderPipelinePreviewWallRenderer,
-                                        SetupRenderPipelinePreviewFloorRenderer setupRenderPipelinePreviewFloorRenderer)
+            SetupRenderPipelinePreviewLight setupRenderPipelinePreviewLight,
+            SetupRenderPipelinePreviewWallRenderer setupRenderPipelinePreviewWallRenderer,
+            SetupRenderPipelinePreviewFloorRenderer setupRenderPipelinePreviewFloorRenderer)
         {
             if (m_PreviewRenderUtility == null)
             {
@@ -257,7 +257,7 @@ namespace UnityEditor.Rendering
         /// <param name="target">ScriptedImporter targeted</param>
         /// <param name="setupRenderPipelinePreviewLightIntensity">Delegate provided by the Rendering Pipeline to setup the Light Intensity</param>
         public void CommonOnPreviewGUI(Rect r, GUIStyle background, ScriptedImporter target,
-                                        SetupRenderPipelinePreviewLightIntensity setupRenderPipelinePreviewLightIntensity)
+            SetupRenderPipelinePreviewLightIntensity setupRenderPipelinePreviewLightIntensity)
         {
             if (Event.current.type == EventType.Repaint)
             {

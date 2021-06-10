@@ -37,7 +37,7 @@ namespace UnityEditor.VFX
             }
         }
 
-        [VFXSetting]
+        [VFXSetting, SerializeField]
         ContextType m_SuitableContexts = ContextType.InitAndUpdateAndOutput;
 
         public VFXContextType compatibleContextType

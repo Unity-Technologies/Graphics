@@ -3,18 +3,32 @@ project:
   folder: UniversalGfxTestStereo
 test_platforms:
   - type: Standalone
-    extra_utr_flags:
-      - compilation-errors-as-warnings
- # - type: playmode
+    utr_flags:
+      - [all]: compilation-errors-as-warnings
   - type: editmode
+
 platforms:
   - name: Win
-    apis: 
-all:
-  dependencies:
-    - platform: Win
-      api: ''
-      test_platforms:
-        - Standalone
-        - editmode
-  #      - playmode
+    apis:
+    build_configs:
+      - name: mono
+    color_spaces:
+      - Linear
+
+jobs:
+  - name: PR <PROJECT_NAME>
+    dependencies:
+      - platform: Win
+        api: ''
+        build_config: mono
+        color_space: Linear
+        test_platforms:
+          - Standalone
+          - editmode
+  - name: Extra <PROJECT_NAME>
+    dependencies:
+      []
+  - name: <PROJECT_NAME>
+    dependencies:
+      - <PROJECT_ALL_YML_FILE>#PR_<PROJECT_NAME>_<TRACK>
+      - <PROJECT_ALL_YML_FILE>#Extra_<PROJECT_NAME>_<TRACK>

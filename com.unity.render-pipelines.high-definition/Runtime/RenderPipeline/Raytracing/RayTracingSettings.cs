@@ -7,6 +7,7 @@ namespace UnityEngine.Rendering.HighDefinition
     /// A volume component that holds the general settings for ray traced effects.
     /// </summary>
     [Serializable, VolumeComponentMenu("Ray Tracing/Ray Tracing Settings (Preview)")]
+    [HDRPHelpURLAttribute("Ray-Tracing-Settings")]
     public sealed class RayTracingSettings : VolumeComponent
     {
         /// <summary>
@@ -35,6 +36,12 @@ namespace UnityEngine.Rendering.HighDefinition
         public MinFloatParameter directionalShadowRayLength = new MinFloatParameter(1000.0f, 0.01f);
 
         /// <summary>
+        /// Controls the fallback directional shadow value that is used when the point to shade is outside of the cascade.
+        /// </summary>
+        [Tooltip("Controls the fallback directional shadow value that is used when the point to shade is outside of the cascade.")]
+        public ClampedFloatParameter directionalShadowFallbackIntensity = new ClampedFloatParameter(1.0f, 0.0f, 1.0f);
+
+        /// <summary>
         /// Default constructor for the ray tracing settings volume component.
         /// </summary>
         public RayTracingSettings()
@@ -43,4 +50,3 @@ namespace UnityEngine.Rendering.HighDefinition
         }
     }
 }
-

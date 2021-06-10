@@ -9,12 +9,13 @@ using UnityEngine.VFX;
 namespace UnityEditor.VFX
 {
     [System.AttributeUsage(AttributeTargets.Field, Inherited = true, AllowMultiple = false)]
-    sealed class EnumAttribute  : PropertyAttribute
+    sealed class EnumAttribute : PropertyAttribute
     {
         public EnumAttribute(string[] values)
         {
             this.values = values;
         }
+
         public readonly string[] values;
     }
 
@@ -169,7 +170,7 @@ namespace UnityEditor.VFX
                 {
                     exp = VFXOperatorUtility.Normalize(exp);
                 }
-                else if(attribute is EnumAttribute)
+                else if (attribute is EnumAttribute)
                 {
                     var enumAttribute = (EnumAttribute)attribute;
                     exp = new VFXExpressionMin(exp, VFXValue.Constant((uint)enumAttribute.values.Length - 1));
@@ -221,7 +222,7 @@ namespace UnityEditor.VFX
 
         public string[] FindEnum()
         {
-            if(Is(Type.Enum))
+            if (Is(Type.Enum))
             {
                 return m_AllAttributes.OfType<EnumAttribute>().First().values;
             }

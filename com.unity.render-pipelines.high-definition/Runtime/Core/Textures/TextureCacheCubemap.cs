@@ -22,8 +22,8 @@ namespace UnityEngine.Rendering.HighDefinition
         public TextureCacheCubemap(string cacheName = "", int sliceSize = 1)
             : base(cacheName, sliceSize)
         {
-            var res = HDRenderPipeline.defaultAsset.renderPipelineResources;
-            m_BlitCubemapFaceMaterial = CoreUtils.CreateEngineMaterial(res.shaders.blitCubeTextureFacePS);
+            if (HDRenderPipeline.isReady)
+                m_BlitCubemapFaceMaterial = CoreUtils.CreateEngineMaterial(HDRenderPipelineGlobalSettings.instance.renderPipelineResources.shaders.blitCubeTextureFacePS);
             m_BlitCubemapFaceProperties = new MaterialPropertyBlock();
         }
 
@@ -104,7 +104,6 @@ namespace UnityEngine.Rendering.HighDefinition
                 int panoHeightTop = 2 * width;
 
                 // create panorama 2D array. Hardcoding the render target for now. No convenient way atm to
-                // map from TextureFormat to RenderTextureFormat and don't want to deal with sRGB issues for now.
                 m_CacheNoCubeArray = new Texture2DArray(panoWidthTop, panoHeightTop, numCubeMaps, format, isMipMapped ? TextureCreationFlags.MipChain : TextureCreationFlags.None)
                 {
                     hideFlags = HideFlags.HideAndDontSave,
@@ -163,16 +162,10 @@ namespace UnityEngine.Rendering.HighDefinition
             var desc = m_Cache.descriptor;
             bool isMipped = desc.useMipMap;
             int mipCount = isMipped ? GetNumMips(desc.width, desc.height) : 1;
-            for (int depthSlice = 0; depthSlice < desc.volumeDepth; ++depthSlice)
+            for (int mipIdx = 0; mipIdx < mipCount; ++mipIdx)
             {
-                for (int mipIdx = 0; mipIdx < mipCount; ++mipIdx)
-                {
-                    for(int faceIdx = 0; faceIdx < 6; ++faceIdx)
-                    {
-                        Graphics.SetRenderTarget(m_Cache, mipIdx, (CubemapFace)faceIdx, depthSlice);
-                        GL.Clear(false, true, Color.clear);
-                    }
-                }
+                Graphics.SetRenderTarget(m_Cache, mipIdx, CubemapFace.Unknown, -1);
+                GL.Clear(false, true, Color.clear);
             }
         }
 
@@ -196,7 +189,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
         private bool TransferToPanoCache(CommandBuffer cmd, int sliceIndex, Texture[] textureArray)
         {
-            for(int texIdx = 0; texIdx < textureArray.Length; ++texIdx)
+            for (int texIdx = 0; texIdx < textureArray.Length; ++texIdx)
             {
                 m_CubeBlitMaterial.SetTexture(m_cubeSrcTexPropName, textureArray[texIdx]);
                 for (int m = 0; m < m_NumPanoMipLevels; m++)

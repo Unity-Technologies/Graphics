@@ -114,11 +114,6 @@ namespace UnityEngine.Rendering.HighDefinition
         [SerializeField]
         RenderData m_CustomRenderData;
 
-        // Only used in editor, but this data needs to be probe instance specific
-        // (Contains: UI section states)
-        [SerializeField]
-        uint m_EditorOnlyData;
-
         // Runtime Data
         RTHandle m_RealtimeTexture;
         RTHandle m_RealtimeDepthBuffer;
@@ -130,6 +125,23 @@ namespace UnityEngine.Rendering.HighDefinition
 
         // Array of names that will be used in the Render Loop to name the probes in debug
         internal string[] probeName = new string[6];
+
+        //This probe object is dumb, its the caller / pipelines responsability
+        //to calculate its exposure values, since this requires frame data.
+        float m_ProbeExposureValue = 1.0f;
+
+        ///<summary>Set and used by the pipeline, depending on the resolved configuration of a probe.</summary>
+        public bool ExposureControlEnabled { set; get; }
+
+        internal void SetProbeExposureValue(float exposure)
+        {
+            m_ProbeExposureValue = exposure;
+        }
+
+        internal float ProbeExposureValue()
+        {
+            return m_ProbeExposureValue;
+        }
 
         internal bool requiresRealtimeUpdate
         {
@@ -160,7 +172,6 @@ namespace UnityEngine.Rendering.HighDefinition
             }
             else
             {
-                bool hasEverRendered = lastRenderedFrame != int.MinValue;
                 return hasEverRendered && hasValidTexture;
             }
         }
@@ -259,6 +270,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 default: throw new ArgumentOutOfRangeException();
             }
         }
+
         /// <summary>
         /// Set the texture for a specific target mode.
         /// </summary>
@@ -337,6 +349,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 default: throw new ArgumentOutOfRangeException();
             }
         }
+
         /// <summary>
         /// Set the render data for a specific mode.
         ///
@@ -478,20 +491,20 @@ namespace UnityEngine.Rendering.HighDefinition
         internal Vector3 influenceExtents => influenceVolume.extents;
         internal Matrix4x4 proxyToWorld
             => proxyVolume != null
-                ? Matrix4x4.TRS(proxyVolume.transform.position, proxyVolume.transform.rotation, Vector3.one)
-                : influenceToWorld;
+            ? Matrix4x4.TRS(proxyVolume.transform.position, proxyVolume.transform.rotation, Vector3.one)
+            : influenceToWorld;
 
         internal bool wasRenderedAfterOnEnable { get; private set; } = false;
-        internal int lastRenderedFrame { get; private set; } = int.MinValue;
+        internal bool hasEverRendered { get; private set; } = false;
 
-        internal void SetIsRendered(int frame)
+        internal void SetIsRendered()
         {
 #if UNITY_EDITOR
             m_WasRenderedDuringAsyncCompilation = ShaderUtil.anythingCompiling;
 #endif
             m_WasRenderedSinceLastOnDemandRequest = true;
             wasRenderedAfterOnEnable = true;
-            lastRenderedFrame = frame;
+            hasEverRendered = true;
         }
 
         // API
@@ -499,14 +512,18 @@ namespace UnityEngine.Rendering.HighDefinition
         /// Prepare the probe for culling.
         /// You should call this method when you update the <see cref="influenceVolume"/> parameters during runtime.
         /// </summary>
-        public virtual void PrepareCulling() { }
+        public virtual void PrepareCulling() {}
 
         /// <summary>
-        /// Request to render this probe next update.
-        ///
-        /// Call this method with the mode <see cref="ProbeSettings.RealtimeMode.OnDemand"/> and the probe will
-        /// be rendered the next time it will influence a camera rendering.
+        /// Requests that Unity renders this Reflection Probe during the next update.
         /// </summary>
+        /// <remarks>
+        /// If the Reflection Probe uses <see cref="ProbeSettings.RealtimeMode.OnDemand"/> mode, Unity renders the probe the next time the probe influences a Camera rendering.
+        ///
+        /// If the Reflection Probe doesn't have an attached <see cref="HDAdditionalReflectionData"/> component, calling this function has no effect.
+        ///
+        /// Note: If any part of a Camera's frustum intersects a Reflection Probe's influence volume, the Reflection Probe influences the Camera.
+        /// </remarks>
         public void RequestRenderNextUpdate() => m_WasRenderedSinceLastOnDemandRequest = false;
 
         // Forces the re-rendering for both OnDemand and OnEnable
@@ -541,6 +558,7 @@ namespace UnityEngine.Rendering.HighDefinition
             UnityEditor.EditorApplication.hierarchyChanged += UpdateProbeName;
 #endif
         }
+
         void OnDisable()
         {
             HDProbeSystem.UnregisterProbe(this);

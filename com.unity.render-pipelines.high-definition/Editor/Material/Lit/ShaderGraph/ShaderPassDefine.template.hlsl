@@ -10,7 +10,6 @@ $SpecularOcclusionFromAOBentNormal: #define _SPECULAR_OCCLUSION_FROM_AO_BENT_NOR
 $SpecularOcclusionCustom:           #define _SPECULAR_OCCLUSION_CUSTOM 1
 $Specular.EnergyConserving:         #define _ENERGY_CONSERVING_SPECULAR 1
 $Specular.AA:                       #define _ENABLE_GEOMETRIC_SPECULAR_AA 1
-$Refraction:                        #define _HAS_REFRACTION 1
 $RefractionBox:                     #define _REFRACTION_PLANE 1
 $RefractionSphere:                  #define _REFRACTION_SPHERE 1
 $RefractionThin:                    #define _REFRACTION_THIN 1

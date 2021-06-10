@@ -26,7 +26,7 @@ void GetSurfaceAndBuiltinData(FragInputs input, float3 V, inout PositionInputs p
     // Builtin Data
     ZERO_INITIALIZE(BuiltinData, builtinData); // No call to InitBuiltinData as we don't have any lighting
     builtinData.opacity = alpha;
-    
+
 #ifdef _ALPHATEST_ON
     // Used for sharpening by alpha to mask
     builtinData.alphaClipTreshold = _AlphaCutoff;

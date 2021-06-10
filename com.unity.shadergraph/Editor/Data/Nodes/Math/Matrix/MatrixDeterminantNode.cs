@@ -23,7 +23,7 @@ namespace UnityEditor.ShaderGraph
             [Slot(1, Binding.None)] out Vector1 Out)
         {
             return
-                @"
+@"
 {
     Out = determinant(In);
 }

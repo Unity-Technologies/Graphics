@@ -48,7 +48,7 @@ namespace UnityEditor.Rendering.HighDefinition
             frameSettings = new SerializedFrameSettings(
                 root.Find((CameraSettings s) => s.renderingPathCustomFrameSettings),
                 root.Find((CameraSettings s) => s.renderingPathCustomFrameSettingsOverrideMask)
-                );
+            );
 
             bufferClearColorMode = root.FindPropertyRelative("bufferClearing.clearColorMode");
             bufferClearBackgroundColorHDR = root.FindPropertyRelative("bufferClearing.backgroundColorHDR");

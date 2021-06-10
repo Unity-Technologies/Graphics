@@ -4,11 +4,16 @@
 //#define SHADOW_LOOP_MULTIPLY
 //#define SHADOW_LOOP_AVERAGE
 
+#if defined(SHADOW_LOOP_MULTIPLY) || defined(SHADOW_LOOP_AVERAGE)
+#define SHADOW_LOOP_WEIGHT
+#endif
+
 void ShadowLoopMin(HDShadowContext shadowContext, PositionInputs posInput, float3 normalWS, uint featureFlags, uint renderLayer,
                         out float3 shadow)
 {
-    float weight      = 0.0f;
+#ifdef SHADOW_LOOP_WEIGHT
     float shadowCount = 0.0f;
+#endif
 
 #ifdef SHADOW_LOOP_MULTIPLY
     shadow = float3(1, 1, 1);
@@ -38,18 +43,30 @@ void ShadowLoopMin(HDShadowContext shadowContext, PositionInputs posInput, float
             // Is it worth sampling the shadow map?
             if (light.lightDimmer > 0 && light.shadowDimmer > 0)
             {
-                float shadowD = GetDirectionalShadowAttenuation(shadowContext,
-                                                                posInput.positionSS, posInput.positionWS, normalWS,
-                                                                light.shadowIndex, wi);
+                SHADOW_TYPE shadowD = 1.0;
+#if defined(SCREEN_SPACE_SHADOWS_ON) && !defined(_SURFACE_TYPE_TRANSPARENT)
+                if ((light.screenSpaceShadowIndex & SCREEN_SPACE_SHADOW_INDEX_MASK) != INVALID_SCREEN_SPACE_SHADOW)
+                {
+                    shadowD = GetScreenSpaceColorShadow(posInput, light.screenSpaceShadowIndex).SHADOW_TYPE_SWIZZLE;
+                }
+                else
+#endif
+                {
+                    shadowD = GetDirectionalShadowAttenuation(shadowContext,
+                                                            posInput.positionSS, posInput.positionWS, normalWS,
+                                                            light.shadowIndex, wi);
+                }
+
 #ifdef SHADOW_LOOP_MULTIPLY
                 shadow *= lerp(light.shadowTint, float3(1, 1, 1), shadowD);
 #elif defined(SHADOW_LOOP_AVERAGE)
                 shadow += lerp(light.shadowTint, float3(1, 1, 1), shadowD);
 #else
-                shadow = min(shadow, shadowD.xxx);
+                shadow = min(shadow, shadowD.SHADOW_TYPE_SWIZZLE);
 #endif
+#ifdef SHADOW_LOOP_WEIGHT
                 shadowCount += 1.0f;
-                weight      += 1.0f - shadowD;
+#endif
             }
         }
     }
@@ -105,15 +122,23 @@ void ShadowLoopMin(HDShadowContext shadowContext, PositionInputs posInput, float
                     float3 L;
                     float4 distances; // {d, d^2, 1/d, d_proj}
                     GetPunctualLightVectors(posInput.positionWS, s_lightData, L, distances);
-                    float distToLight = (s_lightData.lightType == GPULIGHTTYPE_PROJECTOR_BOX) ? distances.w : distances.x;
                     float lightRadSqr = s_lightData.size.x;
                     if (distances.x < s_lightData.range &&
                         PunctualLightAttenuation(distances, s_lightData.rangeAttenuationScale, s_lightData.rangeAttenuationBias,
                                                             s_lightData.angleScale,            s_lightData.angleOffset) > 0.0 &&
                         L.y > 0.0)
                     {
-                        shadowP = GetPunctualShadowAttenuation(shadowContext, posInput.positionSS, posInput.positionWS, normalWS, s_lightData.shadowIndex, L, distances.x, s_lightData.lightType == GPULIGHTTYPE_POINT, s_lightData.lightType != GPULIGHTTYPE_PROJECTOR_BOX);
-                        shadowP = s_lightData.nonLightMappedOnly ? min(1.0f, shadowP) : shadowP;
+#if defined(SCREEN_SPACE_SHADOWS_ON) && !defined(_SURFACE_TYPE_TRANSPARENT)
+                        if ((s_lightData.screenSpaceShadowIndex & SCREEN_SPACE_SHADOW_INDEX_MASK) != INVALID_SCREEN_SPACE_SHADOW)
+                        {
+                            shadowP = GetScreenSpaceShadow(posInput, s_lightData.screenSpaceShadowIndex);
+                        }
+                        else
+#endif
+                        {
+                            shadowP = GetPunctualShadowAttenuation(shadowContext, posInput.positionSS, posInput.positionWS, normalWS, s_lightData.shadowIndex, L, distances.x, s_lightData.lightType == GPULIGHTTYPE_POINT, s_lightData.lightType != GPULIGHTTYPE_PROJECTOR_BOX);
+                            shadowP = s_lightData.nonLightMappedOnly ? min(1.0f, shadowP) : shadowP;
+                        }
                         shadowP = lerp(1.0f, shadowP, s_lightData.shadowDimmer);
 
 #ifdef SHADOW_LOOP_MULTIPLY
@@ -123,8 +148,9 @@ void ShadowLoopMin(HDShadowContext shadowContext, PositionInputs posInput, float
 #else
                         shadow = min(shadow, shadowP.xxx);
 #endif
+#ifdef SHADOW_LOOP_WEIGHT
                         shadowCount += 1.0f;
-                        weight      += 1.0f - shadowP;
+#endif
                     }
                 }
             }
@@ -169,7 +195,6 @@ void ShadowLoopMin(HDShadowContext shadowContext, PositionInputs posInput, float
                     float3 L;
                     float4 distances; // {d, d^2, 1/d, d_proj}
                     GetPunctualLightVectors(posInput.positionWS, lightData, L, distances);
-                    float distToLight = (lightData.lightType == GPULIGHTTYPE_PROJECTOR_BOX) ? distances.w : distances.x;
                     float lightRadSqr = lightData.size.x;
                     float shadowP;
 
@@ -204,8 +229,9 @@ void ShadowLoopMin(HDShadowContext shadowContext, PositionInputs posInput, float
 #else
                         shadow = min(shadow, shadowA.xxx);
 #endif
+#ifdef SHADOW_LOOP_WEIGHT
                         shadowCount += 1.0f;
-                        weight      += 1.0f - shadowA;
+#endif
                     }
                 }
 
@@ -227,9 +253,6 @@ void ShadowLoopMin(HDShadowContext shadowContext, PositionInputs posInput, float
     {
         shadow = float3(1, 1, 1);
     }
-#else
-    //shadow = (1.0f - saturate(shadowCount)).xxx;
-    //shadow = (1.0f - saturate(weight)).xxx;
 #endif
 }
 

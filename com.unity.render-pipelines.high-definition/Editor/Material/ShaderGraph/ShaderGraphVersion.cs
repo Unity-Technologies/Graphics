@@ -6,9 +6,9 @@ using UnityEngine.Serialization;
 
 namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
 {
-    public enum ShaderGraphVersion
+    enum ShaderGraphVersion
     {
-        Initial = 0,
-        FirstTimeMigration = Initial,
+        NeverMigrated = 0,
+        FirstTimeMigration,
     }
 }

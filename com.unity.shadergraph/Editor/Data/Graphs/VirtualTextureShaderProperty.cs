@@ -26,15 +26,6 @@ namespace UnityEditor.ShaderGraph
 
         public override PropertyType propertyType => PropertyType.VirtualTexture;
 
-        // isBatchable should never be called of we override hasBatchable / hasNonBatchableProperties
-        internal override bool isBatchable
-        {
-            get { throw new NotImplementedException(); }
-        }
-
-        internal override bool hasBatchableProperties => true;
-        internal override bool hasNonBatchableProperties => true;
-
         internal override bool isExposable => true;         // the textures are exposable at least..
         internal override bool isRenamable => true;
 
@@ -46,6 +37,7 @@ namespace UnityEditor.ShaderGraph
                 result.Add(value.layers[layer].layerRefName);
             }
         }
+
         internal override void GetPropertyDisplayNames(List<string> result)
         {
             result.Add(displayName);
@@ -76,76 +68,79 @@ namespace UnityEditor.ShaderGraph
             throw new NotSupportedException();
         }
 
-        internal override void AppendBatchablePropertyDeclarations(ShaderStringBuilder builder, string delimiter = ";")
-        {
-            int numLayers = value.layers.Count;
-            if (numLayers > 0)
-            {
-                builder.Append("DECLARE_STACK_CB(");
-                builder.Append(referenceName);
-                builder.Append(")");
-                builder.AppendLine(delimiter);
-            }
-        }
+        internal override bool AllowHLSLDeclaration(HLSLDeclaration decl) => false; // disable UI, nothing to choose
 
-        internal override void AppendNonBatchablePropertyDeclarations(ShaderStringBuilder builder, string delimiter = ";")
+        internal override void ForeachHLSLProperty(Action<HLSLProperty> action)
         {
             int numLayers = value.layers.Count;
             if (numLayers > 0)
             {
+                action(new HLSLProperty(HLSLType._CUSTOM, referenceName + "_CBDecl", HLSLDeclaration.UnityPerMaterial, concretePrecision)
+                {
+                    customDeclaration = (ssb) =>
+                    {
+                        ssb.AppendIndentation();
+                        ssb.Append("DECLARE_STACK_CB(");
+                        ssb.Append(referenceName);
+                        ssb.Append(");");
+                        ssb.AppendNewLine();
+                    }
+                });
+
                 if (!value.procedural)
                 {
                     // declare regular texture properties (for fallback case)
-                    for (int i = 0; i < value.layers.Count; i++)
+                    for (int i = 0; i < numLayers; i++)
                     {
                         string layerRefName = value.layers[i].layerRefName;
-                        builder.AppendLine(
-                            $"TEXTURE2D({layerRefName}); SAMPLER(sampler{layerRefName}); {concretePrecision.ToShaderString()}4 {layerRefName}_TexelSize;");
+                        action(new HLSLProperty(HLSLType._Texture2D, layerRefName, HLSLDeclaration.Global));
+                        action(new HLSLProperty(HLSLType._SamplerState, "sampler" + layerRefName, HLSLDeclaration.Global));
                     }
                 }
 
-                // declare texture stack
-                builder.AppendIndentation();
-                builder.Append("DECLARE_STACK");
-                builder.Append((numLayers <= 1) ? "" : numLayers.ToString());
-                builder.Append("(");
-                builder.Append(referenceName);
-                builder.Append(",");
-                for (int i = 0; i < value.layers.Count; i++)
+                Action<ShaderStringBuilder> customDecl = (builder) =>
                 {
-                    if (i != 0) builder.Append(",");
-                    builder.Append(value.layers[i].layerRefName);
-                }
-                builder.Append(")");
-                builder.Append(delimiter);
-                builder.AppendNewLine();
-
-                // declare the actual virtual texture property "variable" as a macro define to the BuildVTProperties function
-                builder.AppendIndentation();
-                builder.Append("#define ");
-                builder.Append(referenceName);
-                builder.Append(" AddTextureType(BuildVTProperties_");
-                builder.Append(referenceName);
-                builder.Append("()");
-                for (int i = 0; i < value.layers.Count; i++)
-                {
+                    // declare texture stack
+                    builder.AppendIndentation();
+                    builder.Append("DECLARE_STACK");
+                    builder.Append((numLayers <= 1) ? "" : numLayers.ToString());
+                    builder.Append("(");
+                    builder.Append(referenceName);
                     builder.Append(",");
-                    builder.Append("TEXTURETYPE_");
-                    builder.Append(value.layers[i].layerTextureType.ToString().ToUpper());
-                }
-                builder.Append(")");
-                builder.AppendNewLine();
+                    for (int i = 0; i < value.layers.Count; i++)
+                    {
+                        if (i != 0) builder.Append(",");
+                        builder.Append(value.layers[i].layerRefName);
+                    }
+                    builder.Append(");");
+                    builder.AppendNewLine();
+
+                    // declare the actual virtual texture property "variable" as a macro define to the BuildVTProperties function
+                    builder.AppendIndentation();
+                    builder.Append("#define ");
+                    builder.Append(referenceName);
+                    builder.Append(" AddTextureType(BuildVTProperties_");
+                    builder.Append(referenceName);
+                    builder.Append("()");
+                    for (int i = 0; i < value.layers.Count; i++)
+                    {
+                        builder.Append(",");
+                        builder.Append("TEXTURETYPE_");
+                        builder.Append(value.layers[i].layerTextureType.ToString().ToUpper());
+                    }
+                    builder.Append(")");
+                    builder.AppendNewLine();
+                };
+
+                action(new HLSLProperty(HLSLType._CUSTOM, referenceName + "_Global", HLSLDeclaration.Global, concretePrecision)
+                {
+                    customDeclaration = customDecl
+                });
             }
         }
 
-        internal override string GetPropertyDeclarationString(string delimiter = ";")
-        {
-            // this should not be called, as it is replaced by the Append*PropertyDeclarations functions above
-            throw new NotSupportedException();
-        }
-
         // argument string used to pass this property to a subgraph
-        internal override string GetPropertyAsArgumentString()
+        internal override string GetPropertyAsArgumentString(string precisionString)
         {
             return "VTPropertyWithTextureType " + referenceName;
         }
@@ -170,9 +165,7 @@ namespace UnityEditor.ShaderGraph
             var vt =  new VirtualTextureShaderProperty
             {
                 displayName = displayName,
-                hidden = hidden,
                 value = new SerializableVirtualTexture(),
-                precision = precision
             };
 
             // duplicate layer data, but reset reference names (they should be unique)
@@ -191,15 +184,26 @@ namespace UnityEditor.ShaderGraph
             {
                 string layerRefName = value.layers[layer].layerRefName;
                 var layerTexture = value.layers[layer].layerTexture;
+                var texture = layerTexture != null ? layerTexture.texture : null;
 
                 var textureInfo = new PropertyCollector.TextureInfo
                 {
                     name = layerRefName,
-                    textureId = (layerTexture != null && layerTexture.texture != null) ? layerTexture.texture.GetInstanceID() : 0,
+                    textureId = texture != null ? texture.GetInstanceID() : 0,
+                    dimension = texture != null ? texture.dimension : UnityEngine.Rendering.TextureDimension.Any,
                     modifiable = true
                 };
                 infos.Add(textureInfo);
             }
+        }
+
+        internal override bool isAlwaysExposed => true;
+        internal override bool isCustomSlotAllowed => false;
+
+        public override void OnAfterDeserialize(string json)
+        {
+            // VT shader properties must always be exposed
+            generatePropertyBlock = true;
         }
     }
 }

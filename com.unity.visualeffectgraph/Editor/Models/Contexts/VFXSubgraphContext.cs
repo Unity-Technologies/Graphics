@@ -7,6 +7,7 @@ using UnityEditor.VFX;
 
 namespace UnityEditor.VFX
 {
+    [ExcludeFromPreset]
     class VFXSubgraphContext : VFXContext
     {
         [VFXSetting, SerializeField]
@@ -190,6 +191,7 @@ namespace UnityEditor.VFX
             var graph = resource.GetOrCreateGraph();
             HashSet<ScriptableObject> dependencies = new HashSet<ScriptableObject>();
             graph.CollectDependencies(dependencies);
+            dependencies.RemoveWhere(o => o == null); //script is missing should be removed from the list before copy.
 
             var duplicated = VFXMemorySerializer.DuplicateObjects(dependencies.ToArray());
             m_SubChildren = duplicated.OfType<VFXModel>().Where(t => t is VFXContext || t is VFXOperator || t is VFXParameter).ToArray();
@@ -264,6 +266,7 @@ namespace UnityEditor.VFX
             if (hasStart)
                 newInputFlowNames.Insert(0, VisualEffectAsset.PlayEventName);
 
+            // Don't notify while doing this else asset is considered dirty after each call at RecreateCopy
             if (m_InputFlowNames == null || !newInputFlowNames.SequenceEqual(m_InputFlowNames) || inputFlowSlot.Length != inputFlowCount)
             {
                 var oldLinks = new Dictionary<string,  List<VFXContextLink>>();
@@ -273,14 +276,15 @@ namespace UnityEditor.VFX
                     oldLinks[GetInputFlowName(i)] = inputFlowSlot[i].link.ToList();
                 }
                 m_InputFlowNames = newInputFlowNames;
-                RefreshInputFlowSlots();
+
+                DetachAllInputFlowSlots(false);
 
                 for (int i = 0; i < inputFlowSlot.Count(); ++i)
                 {
                     List<VFXContextLink> ctxSlot;
                     if (oldLinks.TryGetValue(GetInputFlowName(i), out ctxSlot))
                         foreach (var link in ctxSlot)
-                            LinkFrom(link.context, link.slotIndex, i);
+                            InnerLink(link.context, this, link.slotIndex, i, false);
                 }
             }
             SyncSlots(VFXSlot.Direction.kInput, true);
@@ -389,7 +393,7 @@ namespace UnityEditor.VFX
                                 m_Subgraph = null; // prevent cyclic dependencies.
                         }
                     }
-                    if (m_Subgraph != null || object.ReferenceEquals(m_Subgraph, null) || m_UsedSubgraph == null || m_UsedSubgraph != m_Subgraph.GetResource().GetOrCreateGraph())  // do not recreate subchildren if the subgraph is not available but is not null
+                    if (m_Subgraph != null || object.ReferenceEquals(m_Subgraph, null) || m_UsedSubgraph == null || (m_Subgraph != null && m_UsedSubgraph != m_Subgraph.GetResource().GetOrCreateGraph()))  // do not recreate subchildren if the subgraph is not available but is not null
                         RecreateCopy();
                 }
 
@@ -403,9 +407,10 @@ namespace UnityEditor.VFX
         public override void CheckGraphBeforeImport()
         {
             base.CheckGraphBeforeImport();
-            // If the graph is reimported it can be because one of its depedency such as the subgraphs, has been changed.
 
-            ResyncSlots(true);
+            // If the graph is reimported it can be because one of its depedency such as the subgraphs, has been changed.
+            if (!VFXGraph.explicitCompile)
+                ResyncSlots(true);
         }
 
         public override void CollectDependencies(HashSet<ScriptableObject> objs, bool ownedOnly = true)

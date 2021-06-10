@@ -20,7 +20,7 @@ namespace UnityEditor.VFX.UI
 
         public VFXViewController viewController { private set; get; }
 
-        public void Init(VFXViewController viewController,IVFXSlotContainer owner, string name, System.Type type)
+        public void Init(VFXViewController viewController, IVFXSlotContainer owner, string name, System.Type type)
         {
             m_Owner = owner;
             m_Name = name;
@@ -136,6 +136,7 @@ namespace UnityEditor.VFX.UI
         public override void ApplyChanges()
         {
         }
+
         void IPropertyRMProvider.StartLiveModification() { viewController.errorRefresh = false; }
         void IPropertyRMProvider.EndLiveModification() { viewController.errorRefresh = true; }
     }

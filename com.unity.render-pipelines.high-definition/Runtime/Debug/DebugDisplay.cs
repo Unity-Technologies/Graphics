@@ -1,7 +1,10 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Reflection;
 using UnityEngine.Rendering.HighDefinition.Attributes;
+using UnityEngine.Experimental.Rendering.RenderGraphModule;
+using UnityEngine.Experimental.Rendering;
 
 namespace UnityEngine.Rendering.HighDefinition
 {
@@ -12,6 +15,8 @@ namespace UnityEngine.Rendering.HighDefinition
         public fixed float _DebugRenderingLayersColors[32 * 4];
         [HLSLArray(11, typeof(ShaderGenUInt4))]
         public fixed uint _DebugViewMaterialArray[11 * 4]; // Contain the id (define in various materialXXX.cs.hlsl) of the property to display
+        [HLSLArray(7, typeof(Vector4))] // Must match ProbeBrickIndex.kMaxSubdivisionLevels
+        public fixed float _DebugAPVSubdivColors[7 * 4];
 
         public int _DebugLightingMode; // Match enum DebugLightingMode
         public int _DebugLightLayersMask;
@@ -38,9 +43,12 @@ namespace UnityEngine.Rendering.HighDefinition
         public int _MatcapMixAlbedo;
         public float _MatcapViewScale;
         public int _DebugSingleShadowIndex;
+        public int _DebugIsLitShaderModeDeferred;
 
-        public int _DebugProbeVolumeMode;
-        public Vector3 _DebugDisplayPad0;
+        public int _DebugAOVOutput;
+        public float _ShaderVariablesDebugDisplayPad0;
+        public float _ShaderVariablesDebugDisplayPad1;
+        public float _ShaderVariablesDebugDisplayPad2;
     }
 
     /// <summary>
@@ -57,7 +65,7 @@ namespace UnityEngine.Rendering.HighDefinition
         MinLightingFullScreenDebug,
         /// <summary>Display Screen Space Ambient Occlusion buffer.</summary>
         ScreenSpaceAmbientOcclusion,
-        /// <summary>Display Screen Space Reflections buffer.</summary>
+        /// <summary>Display Screen Space Reflections buffer used for lighting.</summary>
         ScreenSpaceReflections,
         /// <summary>Display the Transparent Screen Space Reflections buffer.</summary>
         TransparentScreenSpaceReflections,
@@ -83,6 +91,13 @@ namespace UnityEngine.Rendering.HighDefinition
         RecursiveRayTracing,
         /// <summary>Display ray-traced sub-surface scattering.</summary>
         RayTracedSubSurface,
+
+        // Volumetric Clouds
+        /// <summary>Display the volumetric clouds in-scattering x transmittance.</summary>
+        VolumetricClouds,
+        /// <summary>Display the volumetric clouds shadow at ground level.</summary>
+        VolumetricCloudsShadow,
+
         /// <summary>Maximum Full Screen Lighting debug mode value (used internally).</summary>
         MaxLightingFullScreenDebug,
 
@@ -105,6 +120,8 @@ namespace UnityEngine.Rendering.HighDefinition
         VertexDensity,
         /// <summary>Display Requested Virtual Texturing tiles, colored by the mip</summary>
         RequestedVirtualTextureTiles,
+        /// <summary>Black background to visualize the Lens Flare</summary>
+        LensFlareDataDriven,
         /// <summary>Maximum Full Screen Rendering debug mode value (used internally).</summary>
         MaxRenderingFullScreenDebug,
 
@@ -116,7 +133,15 @@ namespace UnityEngine.Rendering.HighDefinition
         /// <summary>Display specular Color validation mode.</summary>
         ValidateSpecularColor,
         /// <summary>Maximum Full Screen Material debug mode value (used internally).</summary>
-        MaxMaterialFullScreenDebug
+        MaxMaterialFullScreenDebug,
+        // TODO: Move before count for 11.0
+        /// <summary>Display Screen Space Reflections buffer of the previous frame accumulated.</summary>
+        ScreenSpaceReflectionsPrev,
+        /// <summary>Display Screen Space Reflections buffer of the current frame hit.</summary>
+        ScreenSpaceReflectionsAccum,
+
+        /// <summary>Display the world space position.</summary>
+        WorldSpacePosition,
     }
 
     /// <summary>
@@ -146,8 +171,6 @@ namespace UnityEngine.Rendering.HighDefinition
         static int[] s_MaterialFullScreenDebugValues = null;
         static GUIContent[] s_MsaaSamplesDebugStrings = null;
         static int[] s_MsaaSamplesDebugValues = null;
-        static GUIContent[] s_TileAndClusterDebugStrings = null;
-        static int[] s_TileAndClusterDebugValues = null;
 
         static List<GUIContent> s_CameraNames = new List<GUIContent>();
         static GUIContent[] s_CameraNamesStrings = null;
@@ -183,6 +206,10 @@ namespace UnityEngine.Rendering.HighDefinition
             GPU,
             InlineCPU
         }
+
+#if ENABLE_NVIDIA && ENABLE_NVIDIA_MODULE
+        internal UnityEngine.NVIDIA.DebugView nvidiaDebugView { get; } = new UnityEngine.NVIDIA.DebugView();
+#endif
 
         /// <summary>
         /// Debug data.
@@ -222,8 +249,6 @@ namespace UnityEngine.Rendering.HighDefinition
             public TransparencyDebugSettings transparencyDebugSettings = new TransparencyDebugSettings();
             /// <summary>Current volume debug settings.</summary>
             public VolumeDebugSettings volumeDebugSettings = new VolumeDebugSettings();
-            /// <summary>Current number of samples for MSAA textures.</summary>
-            public MSAASamples msaaSamples = MSAASamples.None;
             /// <summary>Index of screen space shadow to display.</summary>
             public uint screenSpaceShadowIndex = 0;
             /// <summary>Max quad cost for quad overdraw display.</summary>
@@ -232,6 +257,8 @@ namespace UnityEngine.Rendering.HighDefinition
             public uint maxVertexDensity = 10;
             /// <summary>Display ray tracing ray count per frame.</summary>
             public bool countRays = false;
+            /// <summary>Display Show Lens Flare Data Driven Only.</summary>
+            public bool showLensFlareDataDrivenOnly = false;
 
             /// <summary>Index of the camera to freeze for visibility.</summary>
             public int debugCameraToFreeze = 0;
@@ -261,8 +288,46 @@ namespace UnityEngine.Rendering.HighDefinition
             internal int debugCameraToFreezeEnumIndex;
             internal int volumeComponentEnumIndex;
             internal int volumeCameraEnumIndex;
-            internal int probeVolumeDebugModeEnumIndex;
-            internal int probeVolumeAtlasSliceModeEnumIndex;
+
+            private float m_DebugGlobalMipBiasOverride = 0.0f;
+
+            /// <summary>
+            /// Returns the current mip bias override specified in the debug panel.
+            /// </summary>
+            /// <returns>Mip bias override</returns>
+            public float GetDebugGlobalMipBiasOverride()
+            {
+                return m_DebugGlobalMipBiasOverride;
+            }
+
+            /// <summary>
+            /// Sets the mip bias override to be imposed in the rendering pipeline.
+            /// </summary>
+            /// <param name="value">mip bias override value.</param>
+            public void SetDebugGlobalMipBiasOverride(float value)
+            {
+                m_DebugGlobalMipBiasOverride = value;
+            }
+
+            private bool m_UseDebugGlobalMipBiasOverride = false;
+
+            /// <summary>
+            /// Returns true if the rendering pipeline should apply the mip bias override from the debug settings.
+            /// </summary>
+            /// <returns>True if mip bias override should be applied, false otherwise</returns>
+            public bool UseDebugGlobalMipBiasOverride()
+            {
+                return m_UseDebugGlobalMipBiasOverride;
+            }
+
+            /// <summary>
+            /// Sets whether to use or not use the mip bias override in the rendering pipeline.
+            /// </summary>
+            /// <param name="value">True to tell the rendering pipeline to use the mip bias override, false otherwise</returns>
+            public void SetUseDebugGlobalMipBiasOverride(bool value)
+            {
+                m_UseDebugGlobalMipBiasOverride = value;
+            }
 
             // When settings mutually exclusives enum values, we need to reset the other ones.
             internal void ResetExclusiveEnumIndices()
@@ -291,6 +356,11 @@ namespace UnityEngine.Rendering.HighDefinition
         /// <summary>List of Full Screen Rendering Debug mode values.</summary>
         public static int[] renderingFullScreenDebugValues => s_RenderingFullScreenDebugValues;
 
+        /// <summary>List of Full Screen Lighting Debug mode names.</summary>
+        public static GUIContent[] lightingFullScreenDebugStrings => s_LightingFullScreenDebugStrings;
+        /// <summary>List of Full Screen Lighting Debug mode values.</summary>
+        public static int[] lightingFullScreenDebugValues => s_LightingFullScreenDebugValues;
+
         internal DebugDisplaySettings()
         {
             FillFullScreenDebugEnum(ref s_LightingFullScreenDebugStrings, ref s_LightingFullScreenDebugValues, FullScreenDebugMode.MinLightingFullScreenDebug, FullScreenDebugMode.MaxLightingFullScreenDebug);
@@ -303,13 +373,11 @@ namespace UnityEngine.Rendering.HighDefinition
                 s_RenderingFullScreenDebugStrings = s_RenderingFullScreenDebugStrings.Where((val, idx) => (idx + FullScreenDebugMode.MinRenderingFullScreenDebug) != FullScreenDebugMode.VertexDensity).ToArray();
                 s_RenderingFullScreenDebugValues = s_RenderingFullScreenDebugValues.Where((val, idx) => (idx + FullScreenDebugMode.MinRenderingFullScreenDebug) != FullScreenDebugMode.VertexDensity).ToArray();
             }
-            if (device == GraphicsDeviceType.Metal || device == GraphicsDeviceType.PlayStation4)
+            if (device == GraphicsDeviceType.Metal || device == GraphicsDeviceType.PlayStation4 || device == GraphicsDeviceType.PlayStation5)
             {
                 s_RenderingFullScreenDebugStrings = s_RenderingFullScreenDebugStrings.Where((val, idx) => (idx + FullScreenDebugMode.MinRenderingFullScreenDebug) != FullScreenDebugMode.QuadOverdraw).ToArray();
                 s_RenderingFullScreenDebugValues = s_RenderingFullScreenDebugValues.Where((val, idx) => (idx + FullScreenDebugMode.MinRenderingFullScreenDebug) != FullScreenDebugMode.QuadOverdraw).ToArray();
             }
-
-            FillTileClusterDebugEnum();
 
             s_MaterialFullScreenDebugStrings[(int)FullScreenDebugMode.ValidateDiffuseColor - ((int)FullScreenDebugMode.MinMaterialFullScreenDebug)] = new GUIContent("Diffuse Color");
             s_MaterialFullScreenDebugStrings[(int)FullScreenDebugMode.ValidateSpecularColor - ((int)FullScreenDebugMode.MinMaterialFullScreenDebug)] = new GUIContent("Metal or SpecularColor");
@@ -415,15 +483,7 @@ namespace UnityEngine.Rendering.HighDefinition
             return data.colorPickerDebugSettings.colorPickerMode;
         }
 
-		/// <summary>
-        /// Returns the current Probe Volume Debug Mode.
-        /// </summary>
-        /// <returns>Current Probe Volume Debug Mode.</returns>
-        internal ProbeVolumeDebugMode GetProbeVolumeDebugMode()
-        {
-            return data.lightingDebugSettings.probeVolumeDebugMode;
-        }
-
+        /// <summary>
         /// <summary>
         /// Returns true if camera visibility is frozen.
         /// </summary>
@@ -679,24 +739,6 @@ namespace UnityEngine.Rendering.HighDefinition
             data.lightingDebugSettings.debugLightingMode = value;
         }
 
-		/// <summary>
-        /// Set the current Probe Volume Debug Mode.
-        /// </summary>
-        /// <param name="value">Desired Probe Volume Debug Mode.</param>
-        internal void SetProbeVolumeDebugMode(ProbeVolumeDebugMode value)
-        {
-            data.lightingDebugSettings.probeVolumeDebugMode = value;
-        }
-
-		/// <summary>
-        /// Set the current Probe Volume Atlas Mode.
-        /// </summary>
-        /// <param name="value">Desired Probe Volume Atlas Mode.</param>
-        internal void SetProbeVolumeAtlasSliceMode(ProbeVolumeAtlasSliceMode value)
-        {
-            data.lightingDebugSettings.probeVolumeAtlasSliceMode = value;
-        }
-
         /// <summary>
         /// Set the current Exposure Debug Mode.
         /// </summary>
@@ -728,12 +770,15 @@ namespace UnityEngine.Rendering.HighDefinition
 
             m_RecordedSamplers.Add(ProfilingSampler.Get(HDProfileId.HDRenderPipelineAllRenderRequest));
             m_RecordedSamplers.Add(ProfilingSampler.Get(HDProfileId.VolumeUpdate));
-            m_RecordedSamplers.Add(ProfilingSampler.Get(HDProfileId.ClearBuffers));
             m_RecordedSamplers.Add(ProfilingSampler.Get(HDProfileId.RenderShadowMaps));
             m_RecordedSamplers.Add(ProfilingSampler.Get(HDProfileId.GBuffer));
             m_RecordedSamplers.Add(ProfilingSampler.Get(HDProfileId.PrepareLightsForGPU));
             m_RecordedSamplers.Add(ProfilingSampler.Get(HDProfileId.VolumeVoxelization));
             m_RecordedSamplers.Add(ProfilingSampler.Get(HDProfileId.VolumetricLighting));
+            m_RecordedSamplers.Add(ProfilingSampler.Get(HDProfileId.VolumetricClouds));
+            m_RecordedSamplers.Add(ProfilingSampler.Get(HDProfileId.VolumetricCloudsTrace));
+            m_RecordedSamplers.Add(ProfilingSampler.Get(HDProfileId.VolumetricCloudsReproject));
+            m_RecordedSamplers.Add(ProfilingSampler.Get(HDProfileId.VolumetricCloudsUpscaleAndCombine));
             m_RecordedSamplers.Add(ProfilingSampler.Get(HDProfileId.RenderDeferredLightingCompute));
             m_RecordedSamplers.Add(ProfilingSampler.Get(HDProfileId.ForwardOpaque));
             m_RecordedSamplers.Add(ProfilingSampler.Get(HDProfileId.ForwardTransparent));
@@ -759,22 +804,34 @@ namespace UnityEngine.Rendering.HighDefinition
 
             m_RecordedSamplersRT.Add(ProfilingSampler.Get(HDProfileId.RaytracingBuildCluster));
             m_RecordedSamplersRT.Add(ProfilingSampler.Get(HDProfileId.RaytracingCullLights));
+
+            // Ray Traced Reflections
             m_RecordedSamplersRT.Add(ProfilingSampler.Get(HDProfileId.RaytracingReflectionDirectionGeneration));
             m_RecordedSamplersRT.Add(ProfilingSampler.Get(HDProfileId.RaytracingReflectionEvaluation));
-            m_RecordedSamplersRT.Add(ProfilingSampler.Get(HDProfileId.RaytracingReflectionUpscaleGeneration));
-            m_RecordedSamplersRT.Add(ProfilingSampler.Get(HDProfileId.RaytracingFilterReflection));
+            m_RecordedSamplersRT.Add(ProfilingSampler.Get(HDProfileId.RaytracingReflectionAdjustWeight));
+            m_RecordedSamplersRT.Add(ProfilingSampler.Get(HDProfileId.RaytracingReflectionUpscale));
+            m_RecordedSamplersRT.Add(ProfilingSampler.Get(HDProfileId.RaytracingReflectionFilter));
+
+            // Ray Traced Ambient Occlusion
             m_RecordedSamplersRT.Add(ProfilingSampler.Get(HDProfileId.RaytracingAmbientOcclusion));
             m_RecordedSamplersRT.Add(ProfilingSampler.Get(HDProfileId.RaytracingFilterAmbientOcclusion));
+
+            // Ray Traced Shadows
             m_RecordedSamplersRT.Add(ProfilingSampler.Get(HDProfileId.RaytracingDirectionalLightShadow));
             m_RecordedSamplersRT.Add(ProfilingSampler.Get(HDProfileId.RaytracingLightShadow));
+
+            // Ray Traced Indirect Diffuse
             m_RecordedSamplersRT.Add(ProfilingSampler.Get(HDProfileId.RaytracingIndirectDiffuseDirectionGeneration));
             m_RecordedSamplersRT.Add(ProfilingSampler.Get(HDProfileId.RaytracingIndirectDiffuseEvaluation));
             m_RecordedSamplersRT.Add(ProfilingSampler.Get(HDProfileId.RaytracingIndirectDiffuseUpscale));
             m_RecordedSamplersRT.Add(ProfilingSampler.Get(HDProfileId.RaytracingFilterIndirectDiffuse));
+
             m_RecordedSamplersRT.Add(ProfilingSampler.Get(HDProfileId.RaytracingDebugOverlay));
             m_RecordedSamplersRT.Add(ProfilingSampler.Get(HDProfileId.ForwardPreRefraction));
             m_RecordedSamplersRT.Add(ProfilingSampler.Get(HDProfileId.RayTracingRecursiveRendering));
-            m_RecordedSamplersRT.Add(ProfilingSampler.Get(HDProfileId.RayTracingPrepass));
+            m_RecordedSamplersRT.Add(ProfilingSampler.Get(HDProfileId.RayTracingDepthPrepass));
+            m_RecordedSamplersRT.Add(ProfilingSampler.Get(HDProfileId.RayTracingFlagMask));
+            m_RecordedSamplersRT.Add(ProfilingSampler.Get(HDProfileId.RaytracingDeferredLighting));
         }
 
         void DisableProfilingRecordersRT()
@@ -793,8 +850,8 @@ namespace UnityEngine.Rendering.HighDefinition
             {
                 // Find the right accumulated dictionary
                 var accumulatedDictionary = type == DebugProfilingType.CPU ? m_AccumulatedCPUTiming :
-                                            type == DebugProfilingType.InlineCPU ? m_AccumulatedInlineCPUTiming :
-                                            m_AccumulatedGPUTiming;
+                    type == DebugProfilingType.InlineCPU ? m_AccumulatedInlineCPUTiming :
+                    m_AccumulatedGPUTiming;
 
                 AccumulatedTiming accTiming = null;
                 if (accumulatedDictionary.TryGetValue(sampler.name, out accTiming))
@@ -814,8 +871,8 @@ namespace UnityEngine.Rendering.HighDefinition
 
             // Find the right accumulated dictionary and add it there if not existing yet.
             var accumulatedDictionary = type == DebugProfilingType.CPU ? m_AccumulatedCPUTiming :
-                                        type == DebugProfilingType.InlineCPU ? m_AccumulatedInlineCPUTiming :
-                                        m_AccumulatedGPUTiming;
+                type == DebugProfilingType.InlineCPU ? m_AccumulatedInlineCPUTiming :
+                m_AccumulatedGPUTiming;
 
 
             foreach (var sampler in m_RecordedSamplers)
@@ -843,8 +900,8 @@ namespace UnityEngine.Rendering.HighDefinition
 
             // Find the right accumulated dictionary and add it there if not existing yet.
             var accumulatedDictionary = type == DebugProfilingType.CPU ? m_AccumulatedCPUTiming :
-                                        type == DebugProfilingType.InlineCPU ? m_AccumulatedInlineCPUTiming :
-                                        m_AccumulatedGPUTiming;
+                type == DebugProfilingType.InlineCPU ? m_AccumulatedInlineCPUTiming :
+                m_AccumulatedGPUTiming;
 
 
             foreach (var sampler in m_RecordedSamplersRT)
@@ -909,7 +966,6 @@ namespace UnityEngine.Rendering.HighDefinition
                 m_TimeSinceLastAvgValue = 0.0f;
                 m_AccumulatedFrames = 0;
             }
-
         }
 
         void RegisterDisplayStatsDebug()
@@ -973,12 +1029,12 @@ namespace UnityEngine.Rendering.HighDefinition
             var list = new List<DebugUI.Widget>();
 
             list.Add(new DebugUI.EnumField { displayName = "Common Material Properties", getter = () => (int)data.materialDebugSettings.debugViewMaterialCommonValue, setter = value => SetDebugViewCommonMaterialProperty((MaterialSharedProperty)value), autoEnum = typeof(MaterialSharedProperty), getIndex = () => (int)data.materialDebugSettings.debugViewMaterialCommonValue, setIndex = value => { data.ResetExclusiveEnumIndices(); data.materialDebugSettings.debugViewMaterialCommonValue = (MaterialSharedProperty)value; } });
-            list.Add( new DebugUI.EnumField { displayName = "Material", getter = () => (data.materialDebugSettings.debugViewMaterial[0]) == 0 ? 0 : data.materialDebugSettings.debugViewMaterial[1], setter = value => SetDebugViewMaterial(value), enumNames = MaterialDebugSettings.debugViewMaterialStrings, enumValues = MaterialDebugSettings.debugViewMaterialValues, getIndex = () => data.materialDebugSettings.materialEnumIndex, setIndex = value => { data.ResetExclusiveEnumIndices(); data.materialDebugSettings.materialEnumIndex = value; } });
-            list.Add( new DebugUI.EnumField { displayName = "Engine", getter = () => data.materialDebugSettings.debugViewEngine, setter = value => SetDebugViewEngine(value), enumNames = MaterialDebugSettings.debugViewEngineStrings, enumValues = MaterialDebugSettings.debugViewEngineValues, getIndex = () => data.engineEnumIndex, setIndex = value => { data.ResetExclusiveEnumIndices(); data.engineEnumIndex = value; } });
-            list.Add( new DebugUI.EnumField { displayName = "Attributes", getter = () => (int)data.materialDebugSettings.debugViewVarying, setter = value => SetDebugViewVarying((DebugViewVarying)value), autoEnum = typeof(DebugViewVarying), getIndex = () => data.attributesEnumIndex, setIndex = value => { data.ResetExclusiveEnumIndices(); data.attributesEnumIndex = value; } });
-            list.Add( new DebugUI.EnumField { displayName = "Properties", getter = () => (int)data.materialDebugSettings.debugViewProperties, setter = value => SetDebugViewProperties((DebugViewProperties)value), autoEnum = typeof(DebugViewProperties), getIndex = () => data.propertiesEnumIndex, setIndex = value => { data.ResetExclusiveEnumIndices(); data.propertiesEnumIndex = value; } });
-            list.Add( new DebugUI.EnumField { displayName = "GBuffer", getter = () => data.materialDebugSettings.debugViewGBuffer, setter = value => SetDebugViewGBuffer(value), enumNames = MaterialDebugSettings.debugViewMaterialGBufferStrings, enumValues = MaterialDebugSettings.debugViewMaterialGBufferValues, getIndex = () => data.gBufferEnumIndex, setIndex = value => { data.ResetExclusiveEnumIndices(); data.gBufferEnumIndex = value; } });
-            list.Add( new DebugUI.EnumField { displayName = "Material Validator", getter = () => (int)data.fullScreenDebugMode, setter = value => SetFullScreenDebugMode((FullScreenDebugMode)value), enumNames = s_MaterialFullScreenDebugStrings, enumValues = s_MaterialFullScreenDebugValues, onValueChanged = RefreshMaterialDebug, getIndex = () => data.materialValidatorDebugModeEnumIndex, setIndex = value => { data.ResetExclusiveEnumIndices(); data.materialValidatorDebugModeEnumIndex = value; } });
+            list.Add(new DebugUI.EnumField { displayName = "Material", getter = () => (data.materialDebugSettings.debugViewMaterial[0]) == 0 ? 0 : data.materialDebugSettings.debugViewMaterial[1], setter = value => SetDebugViewMaterial(value), enumNames = MaterialDebugSettings.debugViewMaterialStrings, enumValues = MaterialDebugSettings.debugViewMaterialValues, getIndex = () => data.materialDebugSettings.materialEnumIndex, setIndex = value => { data.ResetExclusiveEnumIndices(); data.materialDebugSettings.materialEnumIndex = value; } });
+            list.Add(new DebugUI.EnumField { displayName = "Engine", getter = () => data.materialDebugSettings.debugViewEngine, setter = value => SetDebugViewEngine(value), enumNames = MaterialDebugSettings.debugViewEngineStrings, enumValues = MaterialDebugSettings.debugViewEngineValues, getIndex = () => data.engineEnumIndex, setIndex = value => { data.ResetExclusiveEnumIndices(); data.engineEnumIndex = value; } });
+            list.Add(new DebugUI.EnumField { displayName = "Attributes", getter = () => (int)data.materialDebugSettings.debugViewVarying, setter = value => SetDebugViewVarying((DebugViewVarying)value), autoEnum = typeof(DebugViewVarying), getIndex = () => data.attributesEnumIndex, setIndex = value => { data.ResetExclusiveEnumIndices(); data.attributesEnumIndex = value; } });
+            list.Add(new DebugUI.EnumField { displayName = "Properties", getter = () => (int)data.materialDebugSettings.debugViewProperties, setter = value => SetDebugViewProperties((DebugViewProperties)value), autoEnum = typeof(DebugViewProperties), getIndex = () => data.propertiesEnumIndex, setIndex = value => { data.ResetExclusiveEnumIndices(); data.propertiesEnumIndex = value; } });
+            list.Add(new DebugUI.EnumField { displayName = "GBuffer", getter = () => data.materialDebugSettings.debugViewGBuffer, setter = value => SetDebugViewGBuffer(value), enumNames = MaterialDebugSettings.debugViewMaterialGBufferStrings, enumValues = MaterialDebugSettings.debugViewMaterialGBufferValues, getIndex = () => data.gBufferEnumIndex, setIndex = value => { data.ResetExclusiveEnumIndices(); data.gBufferEnumIndex = value; } });
+            list.Add(new DebugUI.EnumField { displayName = "Material Validator", getter = () => (int)data.fullScreenDebugMode, setter = value => SetFullScreenDebugMode((FullScreenDebugMode)value), enumNames = s_MaterialFullScreenDebugStrings, enumValues = s_MaterialFullScreenDebugValues, onValueChanged = RefreshMaterialDebug, getIndex = () => data.materialValidatorDebugModeEnumIndex, setIndex = value => { data.ResetExclusiveEnumIndices(); data.materialValidatorDebugModeEnumIndex = value; } });
 
             if (data.fullScreenDebugMode == FullScreenDebugMode.ValidateDiffuseColor || data.fullScreenDebugMode == FullScreenDebugMode.ValidateSpecularColor)
             {
@@ -992,6 +1048,30 @@ namespace UnityEngine.Rendering.HighDefinition
                         new DebugUI.BoolField  { displayName = "Pure Metals", getter = () => data.materialDebugSettings.materialValidateTrueMetal, setter = (v) => data.materialDebugSettings.materialValidateTrueMetal = v },
                     }
                 });
+            }
+
+            if (ShaderConfig.s_GlobalMipBias)
+            {
+                list.Add(
+                    new DebugUI.BoolField
+                    {
+                        displayName = "Override Global Material Texture Mip Bias",
+                        getter = ()      => data.UseDebugGlobalMipBiasOverride(),
+                        setter = (value) => data.SetUseDebugGlobalMipBiasOverride(value),
+                        onValueChanged = RefreshMaterialDebug
+                    });
+
+                if (data.UseDebugGlobalMipBiasOverride())
+                {
+                    list.Add(
+                        new DebugUI.FloatField
+                        {
+                            displayName = "Debug Global Material Texture Mip Bias Value",
+                            getter = ()      => data.GetDebugGlobalMipBiasOverride(),
+                            setter = (value) => data.SetDebugGlobalMipBiasOverride(value),
+                            onValueChanged = RefreshMaterialDebug
+                        });
+                }
             }
 
             m_DebugMaterialItems = list.ToArray();
@@ -1020,7 +1100,8 @@ namespace UnityEngine.Rendering.HighDefinition
 
         void RefreshRenderingDebug<T>(DebugUI.Field<T> field, T value)
         {
-            UnregisterDebugItems(k_PanelRendering, m_DebugRenderingItems);
+            // Explicitly invoke the render debug unregister to handle render graph items.
+            UnregisterRenderingDebug();
             RegisterRenderingDebug();
         }
 
@@ -1065,7 +1146,8 @@ namespace UnityEngine.Rendering.HighDefinition
                     max = () => 4.0f,
                 });
 
-                shadows.children.Add(new DebugUI.BoolField{
+                shadows.children.Add(new DebugUI.BoolField
+                {
                     displayName = "Clear Shadow Atlas",
                     getter = () => data.lightingDebugSettings.clearShadowAtlas,
                     setter = (v) => data.lightingDebugSettings.clearShadowAtlas = v
@@ -1085,23 +1167,13 @@ namespace UnityEngine.Rendering.HighDefinition
                 lighting.children.Add(new DebugUI.Foldout
                 {
                     displayName = "Show Lights By Type",
-                    children = {
-                    new DebugUI.BoolField { displayName = "Directional Lights", getter = () => data.lightingDebugSettings.showDirectionalLight, setter = value => data.lightingDebugSettings.showDirectionalLight = value },
-                    new DebugUI.BoolField { displayName = "Punctual Lights", getter = () => data.lightingDebugSettings.showPunctualLight, setter = value => data.lightingDebugSettings.showPunctualLight = value },
-                    new DebugUI.BoolField { displayName = "Area Lights", getter = () => data.lightingDebugSettings.showAreaLight, setter = value => data.lightingDebugSettings.showAreaLight = value },
-                    new DebugUI.BoolField { displayName = "Reflection Probes", getter = () => data.lightingDebugSettings.showReflectionProbe, setter = value => data.lightingDebugSettings.showReflectionProbe = value },
-                }
-                });
-
-                lighting.children.Add(new DebugUI.Foldout
-                {
-                    displayName = "Probe Volumes",
-                    children = {
-                    new DebugUI.EnumField { displayName = "Probe Volume Debug Mode", getter = () => (int)data.lightingDebugSettings.probeVolumeDebugMode, setter = value => SetProbeVolumeDebugMode((ProbeVolumeDebugMode)value), autoEnum = typeof(ProbeVolumeDebugMode), onValueChanged = RefreshLightingDebug, getIndex = () => data.probeVolumeDebugModeEnumIndex, setIndex = value => data.probeVolumeDebugModeEnumIndex = value },
-                    new DebugUI.EnumField { displayName = "Probe Volume Atlas Slice Mode", getter = () => (int)data.lightingDebugSettings.probeVolumeAtlasSliceMode, setter = value => SetProbeVolumeAtlasSliceMode((ProbeVolumeAtlasSliceMode)value), autoEnum = typeof(ProbeVolumeAtlasSliceMode), onValueChanged = RefreshLightingDebug, getIndex = () => data.probeVolumeAtlasSliceModeEnumIndex, setIndex = value => data.probeVolumeAtlasSliceModeEnumIndex = value },
-                    new DebugUI.FloatField { displayName = "Probe Volume Range Min Value", getter = () => data.lightingDebugSettings.probeVolumeMinValue, setter = value => data.lightingDebugSettings.probeVolumeMinValue = value },
-                    new DebugUI.FloatField { displayName = "Probe Volume Range Max Value", getter = () => data.lightingDebugSettings.probeVolumeMaxValue, setter = value => data.lightingDebugSettings.probeVolumeMaxValue = value },
-                }
+                    children =
+                    {
+                        new DebugUI.BoolField { displayName = "Directional Lights", getter = () => data.lightingDebugSettings.showDirectionalLight, setter = value => data.lightingDebugSettings.showDirectionalLight = value },
+                        new DebugUI.BoolField { displayName = "Punctual Lights", getter = () => data.lightingDebugSettings.showPunctualLight, setter = value => data.lightingDebugSettings.showPunctualLight = value },
+                        new DebugUI.BoolField { displayName = "Area Lights", getter = () => data.lightingDebugSettings.showAreaLight, setter = value => data.lightingDebugSettings.showAreaLight = value },
+                        new DebugUI.BoolField { displayName = "Reflection Probes", getter = () => data.lightingDebugSettings.showReflectionProbe, setter = value => data.lightingDebugSettings.showReflectionProbe = value },
+                    }
                 });
 
                 var exposureFoldout = new DebugUI.Foldout
@@ -1112,8 +1184,8 @@ namespace UnityEngine.Rendering.HighDefinition
                         new DebugUI.EnumField
                         {
                             displayName = "Debug Mode",
-                            getter = () => (int) data.lightingDebugSettings.exposureDebugMode,
-                            setter = value => SetExposureDebugMode((ExposureDebugMode) value),
+                            getter = () => (int)data.lightingDebugSettings.exposureDebugMode,
+                            setter = value => SetExposureDebugMode((ExposureDebugMode)value),
                             autoEnum = typeof(ExposureDebugMode), onValueChanged = RefreshLightingDebug,
                             getIndex = () => data.exposureDebugModeEnumIndex,
                             setIndex = value => data.exposureDebugModeEnumIndex = value
@@ -1131,7 +1203,7 @@ namespace UnityEngine.Rendering.HighDefinition
                             setter = value => data.lightingDebugSettings.displayMaskOnly = value
                         });
                 }
-                    if (data.lightingDebugSettings.exposureDebugMode == ExposureDebugMode.HistogramView)
+                if (data.lightingDebugSettings.exposureDebugMode == ExposureDebugMode.HistogramView)
                 {
                     exposureFoldout.children.Add(
                         new DebugUI.BoolField()
@@ -1157,7 +1229,6 @@ namespace UnityEngine.Rendering.HighDefinition
                             getter = () => data.lightingDebugSettings.displayFinalImageHistogramAsRGB,
                             setter = value => data.lightingDebugSettings.displayFinalImageHistogramAsRGB = value
                         });
-
                 }
 
                 exposureFoldout.children.Add(
@@ -1178,7 +1249,8 @@ namespace UnityEngine.Rendering.HighDefinition
                 if (data.lightingDebugSettings.debugLightLayers)
                 {
                     var container = new DebugUI.Container();
-                    container.children.Add(new DebugUI.BoolField {
+                    container.children.Add(new DebugUI.BoolField
+                    {
                         displayName = "Use Selected Light",
                         getter = () => data.lightingDebugSettings.debugSelectionLightLayers,
                         setter = value => data.lightingDebugSettings.debugSelectionLightLayers = value,
@@ -1199,7 +1271,8 @@ namespace UnityEngine.Rendering.HighDefinition
                     }
                     else
                     {
-                        var field = new DebugUI.BitField {
+                        var field = new DebugUI.BitField
+                        {
                             displayName = "Filter Layers",
                             getter = () => data.lightingDebugSettings.debugLightLayersFilterMask,
                             setter = value => data.lightingDebugSettings.debugLightLayersFilterMask = (DebugLightLayersMask)value,
@@ -1217,7 +1290,8 @@ namespace UnityEngine.Rendering.HighDefinition
                     {
                         int index = i;
                         var asset = (RenderPipelineManager.currentPipeline as HDRenderPipeline).asset;
-                        layersColor.children.Add( new DebugUI.ColorField {
+                        layersColor.children.Add(new DebugUI.ColorField
+                        {
                             displayName = asset.renderingLayerMaskNames[i],
                             flags = DebugUI.Flags.EditorOnly,
                             getter = () => data.lightingDebugSettings.debugRenderingLayersColors[index],
@@ -1316,7 +1390,6 @@ namespace UnityEngine.Rendering.HighDefinition
                     {
                         children =
                         {
-
                             new DebugUI.FloatField { displayName = "Debug Mip", getter = () => data.fullscreenDebugMip, setter = value => data.fullscreenDebugMip = value, min = () => 0f, max = () => 1f, incStep = 0.05f },
                             new DebugUI.BoolField { displayName = "Enable Depth Remap", getter = () => data.enableDebugDepthRemap, setter = value => data.enableDebugDepthRemap = value },
                             new DebugUI.FloatField { displayName = "Depth range min value", getter = () => data.fullScreenDebugDepthRemap.x, setter = value => data.fullScreenDebugDepthRemap.x = value, min = () => 0f, max = () => 1f, incStep = 0.05f },
@@ -1341,7 +1414,7 @@ namespace UnityEngine.Rendering.HighDefinition
                                 {
                                     data.fullScreenContactShadowLightIndex = value;
                                 },
-                                min = () => -1, // -1 will display all contact shadow
+                                min = () => - 1, // -1 will display all contact shadow
                                 max = () => LightDefinitions.s_LightListMaxPrunedEntries - 1
                             },
                         }
@@ -1357,7 +1430,7 @@ namespace UnityEngine.Rendering.HighDefinition
             {
                 var clusterDebugContainer = new DebugUI.Container();
 
-                clusterDebugContainer.children.Add(new DebugUI.EnumField { displayName = "Tile/Cluster Debug By Category", getter = () => (int)data.lightingDebugSettings.tileClusterDebugByCategory, setter = value => data.lightingDebugSettings.tileClusterDebugByCategory = (TileClusterCategoryDebug)value, enumNames = s_TileAndClusterDebugStrings, enumValues = s_TileAndClusterDebugValues, getIndex = () => data.tileClusterDebugByCategoryEnumIndex, setIndex = value => data.tileClusterDebugByCategoryEnumIndex = value });
+                clusterDebugContainer.children.Add(new DebugUI.EnumField { displayName = "Tile/Cluster Debug By Category", getter = () => (int)data.lightingDebugSettings.tileClusterDebugByCategory, setter = value => data.lightingDebugSettings.tileClusterDebugByCategory = (TileClusterCategoryDebug)value, autoEnum = typeof(TileClusterCategoryDebug), getIndex = () => data.tileClusterDebugByCategoryEnumIndex, setIndex = value => data.tileClusterDebugByCategoryEnumIndex = value });
                 if (data.lightingDebugSettings.tileClusterDebug == TileClusterDebug.Cluster)
                 {
                     clusterDebugContainer.children.Add(new DebugUI.EnumField { displayName = "Cluster Debug Mode", getter = () => (int)data.lightingDebugSettings.clusterDebugMode, setter = value => data.lightingDebugSettings.clusterDebugMode = (ClusterDebugMode)value, autoEnum = typeof(ClusterDebugMode), onValueChanged = RefreshLightingDebug, getIndex = () => data.clusterDebugModeEnumIndex, setIndex = value => data.clusterDebugModeEnumIndex = value });
@@ -1384,11 +1457,19 @@ namespace UnityEngine.Rendering.HighDefinition
             list.Add(new DebugUI.BoolField { displayName = "Display Light Volumes", getter = () => data.lightingDebugSettings.displayLightVolumes, setter = value => data.lightingDebugSettings.displayLightVolumes = value, onValueChanged = RefreshLightingDebug });
             if (data.lightingDebugSettings.displayLightVolumes)
             {
-                list.Add(new DebugUI.EnumField { displayName = "Light Volume Debug Type", getter = () => (int)data.lightingDebugSettings.lightVolumeDebugByCategory, setter = value => data.lightingDebugSettings.lightVolumeDebugByCategory = (LightVolumeDebug)value, autoEnum = typeof(LightVolumeDebug), getIndex = () => data.lightVolumeDebugTypeEnumIndex, setIndex = value => data.lightVolumeDebugTypeEnumIndex = value, onValueChanged = RefreshLightingDebug });
+                var container = new DebugUI.Container
+                {
+                    children =
+                    {
+                        new DebugUI.EnumField { displayName = "Light Volume Debug Type", getter = () => (int)data.lightingDebugSettings.lightVolumeDebugByCategory, setter = value => data.lightingDebugSettings.lightVolumeDebugByCategory = (LightVolumeDebug)value, autoEnum = typeof(LightVolumeDebug), getIndex = () => data.lightVolumeDebugTypeEnumIndex, setIndex = value => data.lightVolumeDebugTypeEnumIndex = value, onValueChanged = RefreshLightingDebug }
+                    }
+                };
                 if (data.lightingDebugSettings.lightVolumeDebugByCategory == LightVolumeDebug.Gradient)
                 {
-                    list.Add(new DebugUI.UIntField { displayName = "Max Debug Light Count", getter = () => (uint)data.lightingDebugSettings.maxDebugLightCount, setter = value => data.lightingDebugSettings.maxDebugLightCount = value, min = () => 0, max = () => 24, incStep = 1 });
+                    container.children.Add(new DebugUI.UIntField { displayName = "Max Debug Light Count", getter = () => (uint)data.lightingDebugSettings.maxDebugLightCount, setter = value => data.lightingDebugSettings.maxDebugLightCount = value, min = () => 0, max = () => 24, incStep = 1 });
                 }
+
+                list.Add(container);
             }
 
             list.Add(new DebugUI.BoolField { displayName = "Display Cookie Atlas", getter = () => data.lightingDebugSettings.displayCookieAtlas, setter = value => data.lightingDebugSettings.displayCookieAtlas = value, onValueChanged = RefreshLightingDebug});
@@ -1415,6 +1496,39 @@ namespace UnityEngine.Rendering.HighDefinition
                         new DebugUI.BoolField { displayName = "Clear Planar Atlas", getter = () => data.lightingDebugSettings.clearPlanarReflectionProbeAtlas, setter = value => data.lightingDebugSettings.clearPlanarReflectionProbeAtlas = value},
                     }
                 });
+            }
+
+            list.Add(new DebugUI.BoolField { displayName = "Display Local Volumetric Fog Atlas", getter = () => data.lightingDebugSettings.displayLocalVolumetricFogAtlas, setter = value => data.lightingDebugSettings.displayLocalVolumetricFogAtlas = value, onValueChanged = RefreshLightingDebug});
+            if (data.lightingDebugSettings.displayLocalVolumetricFogAtlas)
+            {
+                list.Add(new DebugUI.Container
+                {
+                    children =
+                    {
+                        new DebugUI.UIntField { displayName = "Slice", getter = () => data.lightingDebugSettings.localVolumetricFogAtlasSlice, setter = value => data.lightingDebugSettings.localVolumetricFogAtlasSlice = value, min = () => 0, max = () => GetLocalVolumetricFogSliceCount()},
+                        new DebugUI.BoolField { displayName = "Use Selection", getter = () => data.lightingDebugSettings.localVolumetricFogUseSelection, setter = value => data.lightingDebugSettings.localVolumetricFogUseSelection = value, flags = DebugUI.Flags.EditorOnly, onValueChanged = RefreshLightingDebug},
+                    }
+                });
+            }
+
+            uint GetLocalVolumetricFogSliceCount()
+            {
+#if UNITY_EDITOR
+                if (data.lightingDebugSettings.localVolumetricFogUseSelection)
+                {
+                    var selectedGO = UnityEditor.Selection.activeGameObject;
+                    if (selectedGO != null && selectedGO.TryGetComponent<LocalVolumetricFog>(out var localVolumetricFog))
+                    {
+                        var texture = localVolumetricFog.parameters.volumeMask;
+
+                        if (texture != null)
+                            return (uint)(texture is RenderTexture rt ? rt.volumeDepth : texture is Texture3D t3D ? t3D.depth : 1) - 1;
+                    }
+                    return 0;
+                }
+                else
+#endif
+                return (uint)LocalVolumetricFogManager.manager.volumeAtlas.GetAtlas().volumeDepth - 1;
             }
 
             list.Add(new DebugUI.FloatField { displayName = "Debug Overlay Screen Ratio", getter = () => data.debugOverlayRatio, setter = v => data.debugOverlayRatio = v, min = () => 0.1f, max = () => 1f});
@@ -1471,7 +1585,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 {
                     displayName = "Camera",
                     getter = () => data.volumeDebugSettings.selectedCameraIndex,
-                    setter = value => data.volumeDebugSettings.selectedCameraIndex= value,
+                    setter = value => data.volumeDebugSettings.selectedCameraIndex = value,
                     enumNames = componentNames.ToArray(),
                     enumValues = componentValues.ToArray(),
                     getIndex = () => data.volumeCameraEnumIndex,
@@ -1496,7 +1610,7 @@ namespace UnityEngine.Rendering.HighDefinition
                                 hdr = p.hdr,
                                 showAlpha = p.showAlpha,
                                 getter = () => p.value,
-                                setter = _ => { }
+                                setter = _ => {}
                             };
                         }
 
@@ -1507,7 +1621,7 @@ namespace UnityEngine.Rendering.HighDefinition
                             {
                                 displayName = name,
                                 getter = () => p.value,
-                                setter = _ => { }
+                                setter = _ => {}
                             };
                         }
 
@@ -1546,47 +1660,44 @@ namespace UnityEngine.Rendering.HighDefinition
                         };
                     }
 
-                    Type type = data.volumeDebugSettings.selectedComponentType;
-
-                    var fields = type
-                        .GetFields(System.Reflection.BindingFlags.Public | System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance)
-                        .Where(t => t.FieldType.IsSubclassOf(typeof(VolumeParameter)))
-                        .OrderBy(t => t.Name);
+                    Type selectedType = data.volumeDebugSettings.selectedComponentType;
+                    var stackComponent = data.volumeDebugSettings.selectedCameraVolumeStack.GetComponent(selectedType);
 
                     var volumes = data.volumeDebugSettings.GetVolumes();
                     var table = new DebugUI.Table() { displayName = "Parameter", isReadOnly = true };
 
-                    var inst = (VolumeComponent)ScriptableObject.CreateInstance(type);
+                    var inst = (VolumeComponent)ScriptableObject.CreateInstance(selectedType);
 
                     // First row for volume info
                     float timer = 0.0f, refreshRate = 0.2f;
                     var row = new DebugUI.Table.Row()
                     {
                         displayName = "Volume Info",
-                        children = { new DebugUI.Value() { displayName = "Interpolated Value",
-                            getter = () => {
-                                // This getter is called first at each render
-                                // It is used to update the volumes
-                                if (Time.time - timer < refreshRate)
-                                    return "";
-                                timer = Time.deltaTime;
-                                if (data.volumeDebugSettings.selectedCameraIndex != 0)
-                                {
-                                    var newVolumes = data.volumeDebugSettings.GetVolumes();
-                                    if (!data.volumeDebugSettings.RefreshVolumes(newVolumes))
-                                    {
-                                        for (int i = 0; i < newVolumes.Length; i++)
-                                        {
-                                            var visible = data.volumeDebugSettings.VolumeHasInfluence(newVolumes[i]);
-                                            table.SetColumnVisibility(i + 1, visible);
-                                        }
-                                        return "";
-                                    }
-                                }
-                                RefreshVolumeDebug(null, false);
-                                return "";
-                            }
-                        } }
+                        children = { new DebugUI.Value() {
+                                         displayName = "Interpolated Value",
+                                         getter = () => {
+                                             // This getter is called first at each render
+                                             // It is used to update the volumes
+                                             if (Time.time - timer < refreshRate)
+                                                 return "";
+                                             timer = Time.deltaTime;
+                                             if (data.volumeDebugSettings.selectedCameraIndex != 0)
+                                             {
+                                                 var newVolumes = data.volumeDebugSettings.GetVolumes();
+                                                 if (!data.volumeDebugSettings.RefreshVolumes(newVolumes))
+                                                 {
+                                                     for (int i = 0; i < newVolumes.Length; i++)
+                                                     {
+                                                         var visible = data.volumeDebugSettings.VolumeHasInfluence(newVolumes[i]);
+                                                         table.SetColumnVisibility(i + 1, visible);
+                                                     }
+                                                     return "";
+                                                 }
+                                             }
+                                             RefreshVolumeDebug(null, false);
+                                             return "";
+                                         }
+                                     } }
                     };
                     row.opened = true;
 
@@ -1607,35 +1718,58 @@ namespace UnityEngine.Rendering.HighDefinition
                     row.children.Add(new DebugUI.Value() { displayName = "Default Value", getter = () => "" });
                     table.children.Add(row);
 
-                    // One row per parameter
-                    foreach (var f in fields)
+                    // Build rows - recursively handles nested parameters
+                    var rows = new List<DebugUI.Table.Row>();
+                    void AddParameterRows(Type type, string baseName = null)
                     {
-                        var fieldName = f.Name;
-                        var attr = (DisplayInfoAttribute[])f.GetCustomAttributes(typeof(DisplayInfoAttribute), true);
-                        if (attr.Length != 0)
-                            fieldName = attr[0].name;
+                        void AddRow(FieldInfo f, string prefix)
+                        {
+                            var fieldName = prefix + f.Name;
+                            var attr = (DisplayInfoAttribute[])f.GetCustomAttributes(typeof(DisplayInfoAttribute), true);
+                            if (attr.Length != 0)
+                                fieldName = prefix + attr[0].name;
 #if UNITY_EDITOR
-                        // Would be nice to have the equivalent for the runtime debug.
-                        else
-                            fieldName = UnityEditor.ObjectNames.NicifyVariableName(fieldName);
+                            // Would be nice to have the equivalent for the runtime debug.
+                            else
+                                fieldName = UnityEditor.ObjectNames.NicifyVariableName(fieldName);
 #endif
 
+                            int currentParam = rows.Count;
+                            row = new DebugUI.Table.Row()
+                            {
+                                displayName = fieldName,
+                                children = { makeWidget("Interpolated Value", stackComponent.parameters[currentParam]) }
+                            };
 
-                        row = new DebugUI.Table.Row()
-                        {
-                            displayName = fieldName,
-                            children = { makeWidget("Interpolated Value", data.volumeDebugSettings.GetParameter(f)) }
-                        };
+                            foreach (var volume in volumes)
+                            {
+                                VolumeParameter param = null;
+                                var profile = volume.HasInstantiatedProfile() ? volume.profile : volume.sharedProfile;
+                                if (profile.TryGet(selectedType, out VolumeComponent component) && component.parameters[currentParam].overrideState)
+                                    param = component.parameters[currentParam];
+                                row.children.Add(makeWidget(volume.name + " (" + profile.name + ")", param));
+                            }
 
-                        foreach (var volume in volumes)
-                        {
-                            var profile = volume.HasInstantiatedProfile() ? volume.profile : volume.sharedProfile;
-                            row.children.Add(makeWidget(volume.name + " (" + profile.name + ")", data.volumeDebugSettings.GetParameter(volume, f)));
+                            row.children.Add(makeWidget("Default Value", inst.parameters[currentParam]));
+                            rows.Add(row);
                         }
 
-                        row.children.Add(makeWidget("Default Value", data.volumeDebugSettings.GetParameter(inst, f)));
-                        table.children.Add(row);
+                        var fields = type
+                            .GetFields(BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance)
+                            .OrderBy(t => t.MetadataToken);
+                        foreach (var field in fields)
+                        {
+                            var fieldType = field.FieldType;
+                            if (fieldType.IsSubclassOf(typeof(VolumeParameter)))
+                                AddRow(field, baseName ?? "");
+                            else if (!fieldType.IsArray && fieldType.IsClass)
+                                AddParameterRows(fieldType, baseName ?? (field.Name + " "));
+                        }
                     }
+
+                    AddParameterRows(selectedType);
+                    foreach (var r in rows.OrderBy(t => t.displayName))
+                        table.children.Add(r);
 
                     data.volumeDebugSettings.RefreshVolumes(volumes);
                     for (int i = 0; i < volumes.Length; i++)
@@ -1699,12 +1833,12 @@ namespace UnityEngine.Rendering.HighDefinition
                 {
                     children =
                     {
-                        new DebugUI.EnumField { displayName = "Terrain Texture", getter = ()=>(int)data.mipMapDebugSettings.terrainTexture, setter = value => data.mipMapDebugSettings.terrainTexture = (DebugMipMapModeTerrainTexture)value, autoEnum = typeof(DebugMipMapModeTerrainTexture), getIndex = () => data.terrainTextureEnumIndex, setIndex = value => data.terrainTextureEnumIndex = value }
+                        new DebugUI.EnumField { displayName = "Terrain Texture", getter = () => (int)data.mipMapDebugSettings.terrainTexture, setter = value => data.mipMapDebugSettings.terrainTexture = (DebugMipMapModeTerrainTexture)value, autoEnum = typeof(DebugMipMapModeTerrainTexture), getIndex = () => data.terrainTextureEnumIndex, setIndex = value => data.terrainTextureEnumIndex = value }
                     }
                 });
             }
 
-            widgetList.AddRange(new []
+            widgetList.AddRange(new[]
             {
                 new DebugUI.Container
                 {
@@ -1721,7 +1855,8 @@ namespace UnityEngine.Rendering.HighDefinition
             widgetList.Add(new DebugUI.BoolField  { displayName = "False Color Mode", getter = () => data.falseColorDebugSettings.falseColor, setter = value => data.falseColorDebugSettings.falseColor = value, onValueChanged = RefreshRenderingDebug });
             if (data.falseColorDebugSettings.falseColor)
             {
-                widgetList.Add(new DebugUI.Container{
+                widgetList.Add(new DebugUI.Container
+                {
                     flags = DebugUI.Flags.EditorOnly,
                     children =
                     {
@@ -1730,14 +1865,6 @@ namespace UnityEngine.Rendering.HighDefinition
                         new DebugUI.FloatField { displayName = "Range Threshold 2", getter = () => data.falseColorDebugSettings.colorThreshold2, setter = value => data.falseColorDebugSettings.colorThreshold2 = Mathf.Clamp(value, data.falseColorDebugSettings.colorThreshold1, data.falseColorDebugSettings.colorThreshold3) },
                         new DebugUI.FloatField { displayName = "Range Threshold 3", getter = () => data.falseColorDebugSettings.colorThreshold3, setter = value => data.falseColorDebugSettings.colorThreshold3 = Mathf.Max(value, data.falseColorDebugSettings.colorThreshold2) },
                     }
-                });
-            }
-
-            if (HDRenderPipeline.currentAsset?.currentPlatformRenderPipelineSettings.supportMSAA ?? true)
-            {
-                widgetList.AddRange(new DebugUI.Widget[]
-                {
-                    new DebugUI.EnumField { displayName = "MSAA Samples", getter = () => (int)data.msaaSamples, setter = value => data.msaaSamples = (MSAASamples)value, enumNames = s_MsaaSamplesDebugStrings, enumValues = s_MsaaSamplesDebugValues, getIndex = () => data.msaaSampleDebugModeEnumIndex, setIndex = value => data.msaaSampleDebugModeEnumIndex = value },
                 });
             }
 
@@ -1751,11 +1878,27 @@ namespace UnityEngine.Rendering.HighDefinition
                 widgetList.Add(new DebugUI.BoolField { displayName = "XR single-pass test mode", getter = () => data.xrSinglePassTestMode, setter = value => data.xrSinglePassTestMode = value });
             }
 
-            widgetList.Add(new DebugUI.BoolField { displayName = "Enable Render Graph", getter = () => HDRenderPipeline.currentPipeline.IsRenderGraphEnabled(), setter = value => HDRenderPipeline.currentPipeline.EnableRenderGraph(value) });
+
+#if ENABLE_NVIDIA && ENABLE_NVIDIA_MODULE
+            widgetList.Add(nvidiaDebugView.CreateWidget());
+#endif
 
             m_DebugRenderingItems = widgetList.ToArray();
             var panel = DebugManager.instance.GetPanel(k_PanelRendering, true);
             panel.children.Add(m_DebugRenderingItems);
+
+            var renderGraphs = RenderGraph.GetRegisteredRenderGraphs();
+            foreach (var graph in renderGraphs)
+                graph.RegisterDebug(panel);
+        }
+
+        void UnregisterRenderingDebug()
+        {
+            UnregisterDebugItems(k_PanelRendering, m_DebugRenderingItems);
+
+            var renderGraphs = RenderGraph.GetRegisteredRenderGraphs();
+            foreach (var graph in renderGraphs)
+                graph.UnRegisterDebug();
         }
 
         void RegisterDecalsDebug()
@@ -1798,7 +1941,7 @@ namespace UnityEngine.Rendering.HighDefinition
             UnregisterDebugItems(k_PanelMaterials, m_DebugMaterialItems);
             UnregisterDebugItems(k_PanelLighting, m_DebugLightingItems);
             UnregisterDebugItems(k_PanelVolume, m_DebugVolumeItems);
-            UnregisterDebugItems(k_PanelRendering, m_DebugRenderingItems);
+            UnregisterRenderingDebug();
             DebugManager.instance.UnregisterData(this);
         }
 
@@ -1823,20 +1966,6 @@ namespace UnityEngine.Rendering.HighDefinition
                 values[index] = i;
                 index++;
             }
-        }
-        void FillTileClusterDebugEnum()
-        {
-            string[] names = Enum.GetNames(typeof(TileClusterCategoryDebug));
-            for(int i=0; i<names.Length; ++i)
-            {
-                var n = names[i];
-                names[i] = n.Replace("Environment", "ReflectionProbes");
-            }
-
-            s_TileAndClusterDebugStrings = names
-                .Select(t => new GUIContent(t))
-                .ToArray();
-            s_TileAndClusterDebugValues = (int[])Enum.GetValues(typeof(TileClusterCategoryDebug));
         }
 
         static string FormatVector(Vector3 v)
@@ -1897,7 +2026,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 s_CameraNamesStrings = s_CameraNames.ToArray();
                 s_CameraNamesValues = Enumerable.Range(0, s_CameraNames.Count()).ToArray();
 
-                UnregisterDebugItems(k_PanelRendering, m_DebugRenderingItems);
+                UnregisterRenderingDebug();
                 RegisterRenderingDebug();
                 needsRefreshingCameraFreezeList = false;
             }
@@ -1906,27 +2035,26 @@ namespace UnityEngine.Rendering.HighDefinition
         internal bool DebugHideSky(HDCamera hdCamera)
         {
             return (IsMatcapViewEnabled(hdCamera) ||
-                    GetDebugLightingMode() ==  DebugLightingMode.DiffuseLighting ||
-                    GetDebugLightingMode() == DebugLightingMode.SpecularLighting ||
-                    GetDebugLightingMode() == DebugLightingMode.DirectDiffuseLighting ||
-                    GetDebugLightingMode() == DebugLightingMode.DirectSpecularLighting ||
-                    GetDebugLightingMode() == DebugLightingMode.IndirectDiffuseLighting ||
-                    GetDebugLightingMode() == DebugLightingMode.ReflectionLighting ||
-                    GetDebugLightingMode() == DebugLightingMode.RefractionLighting
-                    );
+                GetDebugLightingMode() ==  DebugLightingMode.DiffuseLighting ||
+                GetDebugLightingMode() == DebugLightingMode.SpecularLighting ||
+                GetDebugLightingMode() == DebugLightingMode.DirectDiffuseLighting ||
+                GetDebugLightingMode() == DebugLightingMode.DirectSpecularLighting ||
+                GetDebugLightingMode() == DebugLightingMode.IndirectDiffuseLighting ||
+                GetDebugLightingMode() == DebugLightingMode.ReflectionLighting ||
+                GetDebugLightingMode() == DebugLightingMode.RefractionLighting ||
+                GetDebugLightingMode() == DebugLightingMode.ProbeVolumeSampledSubdivision
+            );
         }
 
         internal bool DebugNeedsExposure()
         {
             DebugLightingMode debugLighting = data.lightingDebugSettings.debugLightingMode;
             DebugViewGbuffer debugGBuffer = (DebugViewGbuffer)data.materialDebugSettings.debugViewGBuffer;
-            ProbeVolumeDebugMode debugProbeVolume = data.lightingDebugSettings.probeVolumeDebugMode;
-            return  (debugLighting == DebugLightingMode.DirectDiffuseLighting || debugLighting == DebugLightingMode.DirectSpecularLighting || debugLighting == DebugLightingMode.IndirectDiffuseLighting || debugLighting == DebugLightingMode.ReflectionLighting || debugLighting == DebugLightingMode.RefractionLighting || debugLighting == DebugLightingMode.EmissiveLighting ||
-                    debugLighting == DebugLightingMode.DiffuseLighting || debugLighting == DebugLightingMode.SpecularLighting || debugLighting == DebugLightingMode.VisualizeCascade) ||
-                    (data.lightingDebugSettings.overrideAlbedo || data.lightingDebugSettings.overrideNormal || data.lightingDebugSettings.overrideSmoothness || data.lightingDebugSettings.overrideSpecularColor || data.lightingDebugSettings.overrideEmissiveColor || data.lightingDebugSettings.overrideAmbientOcclusion) ||
-                    (debugGBuffer == DebugViewGbuffer.BakeDiffuseLightingWithAlbedoPlusEmissive) || (data.lightingDebugSettings.debugLightFilterMode != DebugLightFilterMode.None) ||
-                    (data.fullScreenDebugMode == FullScreenDebugMode.PreRefractionColorPyramid || data.fullScreenDebugMode == FullScreenDebugMode.FinalColorPyramid || data.fullScreenDebugMode == FullScreenDebugMode.ScreenSpaceReflections || data.fullScreenDebugMode == FullScreenDebugMode.LightCluster || data.fullScreenDebugMode == FullScreenDebugMode.ScreenSpaceShadows || data.fullScreenDebugMode == FullScreenDebugMode.NanTracker || data.fullScreenDebugMode == FullScreenDebugMode.ColorLog) || data.fullScreenDebugMode == FullScreenDebugMode.ScreenSpaceGlobalIllumination ||
-                    (debugLighting == DebugLightingMode.ProbeVolume || debugProbeVolume == ProbeVolumeDebugMode.VisualizeAtlas);
+            return (debugLighting == DebugLightingMode.DirectDiffuseLighting || debugLighting == DebugLightingMode.DirectSpecularLighting || debugLighting == DebugLightingMode.IndirectDiffuseLighting || debugLighting == DebugLightingMode.ReflectionLighting || debugLighting == DebugLightingMode.RefractionLighting || debugLighting == DebugLightingMode.EmissiveLighting ||
+                debugLighting == DebugLightingMode.DiffuseLighting || debugLighting == DebugLightingMode.SpecularLighting || debugLighting == DebugLightingMode.VisualizeCascade || debugLighting == DebugLightingMode.ProbeVolumeSampledSubdivision) ||
+                (data.lightingDebugSettings.overrideAlbedo || data.lightingDebugSettings.overrideNormal || data.lightingDebugSettings.overrideSmoothness || data.lightingDebugSettings.overrideSpecularColor || data.lightingDebugSettings.overrideEmissiveColor || data.lightingDebugSettings.overrideAmbientOcclusion) ||
+                (debugGBuffer == DebugViewGbuffer.BakeDiffuseLightingWithAlbedoPlusEmissive) || (data.lightingDebugSettings.debugLightFilterMode != DebugLightFilterMode.None) ||
+                (data.fullScreenDebugMode == FullScreenDebugMode.PreRefractionColorPyramid || data.fullScreenDebugMode == FullScreenDebugMode.FinalColorPyramid || data.fullScreenDebugMode == FullScreenDebugMode.TransparentScreenSpaceReflections || data.fullScreenDebugMode == FullScreenDebugMode.ScreenSpaceReflections || data.fullScreenDebugMode == FullScreenDebugMode.ScreenSpaceReflectionsPrev || data.fullScreenDebugMode == FullScreenDebugMode.ScreenSpaceReflectionsAccum || data.fullScreenDebugMode == FullScreenDebugMode.LightCluster || data.fullScreenDebugMode == FullScreenDebugMode.ScreenSpaceShadows || data.fullScreenDebugMode == FullScreenDebugMode.NanTracker || data.fullScreenDebugMode == FullScreenDebugMode.ColorLog) || data.fullScreenDebugMode == FullScreenDebugMode.ScreenSpaceGlobalIllumination;
         }
     }
 }

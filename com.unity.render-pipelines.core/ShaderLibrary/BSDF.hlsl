@@ -1,6 +1,10 @@
 #ifndef UNITY_BSDF_INCLUDED
 #define UNITY_BSDF_INCLUDED
 
+#if SHADER_API_MOBILE || SHADER_API_GLES || SHADER_API_GLES3
+#pragma warning (disable : 3205) // conversion of larger type to smaller
+#endif
+
 #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Color.hlsl"
 
 // Note: All NDF and diffuse term have a version with and without divide by PI.
@@ -167,6 +171,11 @@ real3 CoatRefract(real3 X, real3 N, real ieta)
 //-----------------------------------------------------------------------------
 // Specular BRDF
 //-----------------------------------------------------------------------------
+
+float Lambda_GGX(float roughness, float3 V)
+{
+    return 0.5 * (sqrt(1.0 + (Sq(roughness * V.x) + Sq(roughness * V.y)) / Sq(V.z)) - 1.0);
+}
 
 real D_GGXNoPI(real NdotH, real roughness)
 {
@@ -402,10 +411,12 @@ real DisneyDiffuseNoPI(real NdotV, real NdotL, real LdotV, real perceptualRoughn
     return rcp(1.03571) * (lightScatter * viewScatter);
 }
 
+#ifndef BUILTIN_TARGET_API
 real DisneyDiffuse(real NdotV, real NdotL, real LdotV, real perceptualRoughness)
 {
     return INV_PI * DisneyDiffuseNoPI(NdotV, NdotL, LdotV, perceptualRoughness);
 }
+#endif
 
 // Ref: Diffuse Lighting for GGX + Smith Microsurfaces, p. 113.
 real3 DiffuseGGXNoPI(real3 albedo, real NdotV, real NdotL, real NdotH, real LdotV, real roughness)
@@ -632,4 +643,9 @@ real3 D_KajiyaKay(real3 T, real3 H, real specularExponent)
 
     return dirAttn * norm * PositivePow(sinTHSq, 0.5 * n);
 }
+
+#if SHADER_API_MOBILE || SHADER_API_GLES || SHADER_API_GLES3
+#pragma warning (enable : 3205) // conversion of larger type to smaller
+#endif
+
 #endif // UNITY_BSDF_INCLUDED

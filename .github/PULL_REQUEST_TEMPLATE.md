@@ -1,10 +1,5 @@
-# **Please read;**
-## **PR Workflow for the Graphics repository:**
-* **All PRs must be opened as draft initially**
-* Reviewers can be added while the PR is still in draft
-* The PR can be marked as “Ready for Review” once the reviewers have confirmed that **no more changes are needed**
-* Tests will start automatically after the PR is marked as “Ready for Review”
-* **Do not use [skip ci]** - this can break some of our tooling
+# **Please read the [Contributing guide](CONTRIBUTING.md) before making a PR.**
+
 * Read the [Graphics repository & Yamato FAQ](http://go/graphics-yamato-faq).
 
 ### Checklist for PR maker

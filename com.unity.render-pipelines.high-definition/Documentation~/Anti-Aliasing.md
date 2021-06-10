@@ -17,7 +17,7 @@ To prevent aliasing, the High Definition Render Pipeline (HDRP) has multiple met
 
 ## Using anti-aliasing
 
-Anti-aliasing is a per-Camera effect which means that you can have Cameras that use different anti-aliasing methods. This is useful if you have low priority secondary Cameras that can use a lower quality anti-aliasing effect with a lower resource intensity. 
+Anti-aliasing is a per-Camera effect which means that you can have Cameras that use different anti-aliasing methods. This is useful if you have low priority secondary Cameras that can use a lower quality anti-aliasing effect with a lower resource intensity.
 
 <a name="FXAA"></a>
 
@@ -42,6 +42,12 @@ To select TAA for a Camera:
 
 1. Select the Camera in the Scene view or Hierarchy and view it in the Inspector.
 2. In the General section, select Temporal Anti-aliasing (TAA) from the Anti-aliasing drop-down.
+
+When using the same Camera GameObject for multiple Game Views TAA may not work as expected due to limitations of the history buffer system. Multiple game views using different Cameras will however work as expected.
+
+### Limitations
+In the Editor, if multiple Game views use the same Camera, TAA may not work as expected due to limitations of the history buffer system. However, if you use multiple Game views, where each Game view uses a unique Camera, TAA works as expected.
+
 
 <a name="SMAA"></a>
 
@@ -75,12 +81,12 @@ When you use MSAA, be aware of the following:
   1. [Screen space reflection (SSR)](Override-Screen-Space-Reflection.md).
   2. Screen space shadows.
   3. [Temporal Anti-aliasing](#TAA).
-  4. Distortion.
-  5. Normal Buffer patch up by Decals.
+  4. Normal Buffer patch up by Decals. It mean Decal which affect material's normal will not affect Screen space reflection (SSR). This is not a problem as the effect is disabled, see 1.
 - MSAA does not affect the following features. HDRP does not disable these effects, it just does not process MSAA for them:
   1. [Post-processing](Post-Processing-Main.md).
   3. [Subsurface scattering](Subsurface-Scattering.md).
   3. Low Resolution Transparency.
+- Ray tracing does not support MSAA. If you use ray tracing in your project, you are unable to use MSAA.
 
 When you enable MSAA in your Unity Project, you must also enable it for your Cameras in their [Frame Settings](Frame-Settings.md). You can do this either globally or on individual Cameras. To enable MSAA globally, go to Project Settings > Frame Settings > HDRP Default Settings. To enable MSAA on a per-Camera basis, enable Forward Lit Shader Mode and then enable the MSAA within Forward checkbox. For information on where to find global and local Frame Settings, see the documentation on [Frame Settings](Frame-Settings.md).
 

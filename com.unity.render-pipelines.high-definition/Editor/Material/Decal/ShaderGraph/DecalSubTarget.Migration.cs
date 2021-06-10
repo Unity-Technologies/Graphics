@@ -18,7 +18,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
         public bool TryUpgradeFromMasterNode(IMasterNode1 masterNode, out Dictionary<BlockFieldDescriptor, int> blockMap)
         {
             blockMap = null;
-            if(!(masterNode is DecalMasterNode1 decalMasterNode))
+            if (!(masterNode is DecalMasterNode1 decalMasterNode))
                 return false;
 
             m_MigrateFromOldSG = true;
@@ -54,13 +54,13 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
 
             // Set blockmap
             blockMap = new Dictionary<BlockFieldDescriptor, int>();
-            foreach(DecalMasterNode1.SlotMask slotMask in Enum.GetValues(typeof(DecalMasterNode1.SlotMask)))
+            foreach (DecalMasterNode1.SlotMask slotMask in Enum.GetValues(typeof(DecalMasterNode1.SlotMask)))
             {
-                if(decalMasterNode.MaterialTypeUsesSlotMask(slotMask))
+                if (decalMasterNode.MaterialTypeUsesSlotMask(slotMask))
                 {
-                    if(!blockMapLookup.TryGetValue(slotMask, out var blockFieldDescriptor))
+                    if (!blockMapLookup.TryGetValue(slotMask, out var blockFieldDescriptor))
                         continue;
-                    
+
                     var slotId = Mathf.Log((int)slotMask, 2);
                     blockMap.Add(blockFieldDescriptor, (int)slotId);
                 }

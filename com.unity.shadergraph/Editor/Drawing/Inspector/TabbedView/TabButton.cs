@@ -4,7 +4,7 @@ using UnityEngine.UIElements;
 
 public class TabButton : VisualElement
 {
-    internal new class UxmlFactory : UxmlFactory<TabButton, UxmlTraits> { }
+    internal new class UxmlFactory : UxmlFactory<TabButton, UxmlTraits> {}
 
     internal new class UxmlTraits : VisualElement.UxmlTraits
     {
@@ -25,16 +25,16 @@ public class TabButton : VisualElement
     static readonly string UxmlName = "TabButton";
     static readonly string s_UssClassName = "unity-tab-button";
     static readonly string s_UssActiveClassName = s_UssClassName + "--active";
-    
+
     private Label m_Label;
-    
+
     public bool IsCloseable { get; set; }
     public string TargetId { get; private set; }
     public VisualElement Target { get; set; }
 
     public event Action<TabButton> OnSelect;
     public event Action<TabButton> OnClose;
-    
+
     public TabButton()
     {
         Init();
@@ -46,17 +46,17 @@ public class TabButton : VisualElement
         m_Label.text = text;
         Target = target;
     }
-    
+
     private void PopulateContextMenu(ContextualMenuPopulateEvent populateEvent)
     {
         DropdownMenu dropdownMenu = populateEvent.menu;
 
-        if(IsCloseable)
+        if (IsCloseable)
         {
             dropdownMenu.AppendAction("Close Tab", e => OnClose(this));
         }
     }
-    
+
     private void CreateContextMenu(VisualElement visualElement)
     {
         ContextualMenuManipulator menuManipulator = new ContextualMenuManipulator(PopulateContextMenu);
@@ -77,7 +77,7 @@ public class TabButton : VisualElement
         visualTree.CloneTree(this);
 
         m_Label = this.Q<Label>("Label");
-        
+
         CreateContextMenu(this);
 
         RegisterCallback<MouseDownEvent>(OnMouseDownEvent);
@@ -108,7 +108,7 @@ public class TabButton : VisualElement
 
     private void OnMouseDownEvent(MouseDownEvent e)
     {
-        switch(e.button)
+        switch (e.button)
         {
             case 0:
             {

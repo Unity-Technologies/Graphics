@@ -154,7 +154,6 @@ namespace UnityEngine.VFX.Utility
 
             if (color != null)
                 component.SetTexture(m_ColorBuffer, color.rt);
-
         }
 
         /// <summary>
@@ -166,5 +165,4 @@ namespace UnityEngine.VFX.Utility
             return string.Format($"HDRP Camera : '{(AdditionalData == null? "null" : AdditionalData.gameObject.name)}' -> {CameraProperty}");
         }
     }
-
 }

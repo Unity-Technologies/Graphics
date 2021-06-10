@@ -12,6 +12,7 @@ namespace UnityEditor.ShaderGraph.Drawing
         {
             element.Dirty(ChangeType.Repaint);
         }
+
 #endif
 
 #if !UNITY_2018_3_OR_NEWER
@@ -24,6 +25,7 @@ namespace UnityEditor.ShaderGraph.Drawing
         {
             element.ReleaseMouseCapture();
         }
+
 #endif
 
         public static void OnToggleChanged(this Toggle toggle, EventCallback<ChangeEvent<bool>> callback)

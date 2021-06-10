@@ -33,6 +33,12 @@ namespace UnityEditor.ShaderGraph
             headerContainer.Add(headerLabel);
         }
 
+        public override void BuildContextualMenu(ContextualMenuPopulateEvent evt)
+        {
+            // Disable the context menu for the stack. This prevents a duplicate "disconnect all"
+            // option from getting registered which grays out stack block node's option.
+        }
+
         public ContextData contextData => m_ContextData;
         public Port port => m_Port;
 
@@ -57,22 +63,22 @@ namespace UnityEditor.ShaderGraph
 
         public void InsertBlock(MaterialNodeView nodeView)
         {
-            if(!(nodeView.userData is BlockNode blockNode))
+            if (!(nodeView.userData is BlockNode blockNode))
                 return;
 
             // If index is -1 the node is being added to the end of the Stack
-            if(blockNode.index == -1)
+            if (blockNode.index == -1)
             {
                 AddElement(nodeView);
                 return;
             }
-            
+
             // Add or Insert based on index
-            if(blockNode.index >= contentContainer.childCount)
+            if (blockNode.index >= contentContainer.childCount)
             {
                 AddElement(nodeView);
             }
-            else 
+            else
             {
                 InsertElement(blockNode.index, nodeView);
             }
@@ -81,19 +87,22 @@ namespace UnityEditor.ShaderGraph
         public void InsertElements(int insertIndex, IEnumerable<GraphElement> elements)
         {
             var blockDatas = elements.Select(x => x.userData as BlockNode).ToArray();
-            for(int i = 0; i < blockDatas.Length; i++)
+            for (int i = 0; i < blockDatas.Length; i++)
             {
                 contextData.blocks.Remove(blockDatas[i]);
             }
 
             int count = elements.Count();
             var refs = new JsonRef<BlockNode>[count];
-            for(int i = 0; i < count; i++)
+            for (int i = 0; i < count; i++)
             {
                 refs[i] = blockDatas[i];
             }
 
             contextData.blocks.InsertRange(insertIndex, refs);
+
+            var window = m_EditorWindow as MaterialGraphEditWindow;
+            window?.graphEditorView?.graphView?.graph?.ValidateCustomBlockLimit();
         }
 
         protected override bool AcceptsElement(GraphElement element, ref int proposedIndex, int maxIndex)
@@ -111,7 +120,7 @@ namespace UnityEditor.ShaderGraph
 
             var graphView = GetFirstAncestorOfType<MaterialGraphView>();
 
-            evt.menu.InsertAction(0, "Create Node", (e) => 
+            evt.menu.InsertAction(0, "Create Node", (e) =>
             {
                 var context = new NodeCreationContext()
                 {

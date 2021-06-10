@@ -24,11 +24,14 @@ namespace UnityEngine.Rendering.Universal.Internal
         /// </summary>
         public CopyColorPass(RenderPassEvent evt, Material samplingMaterial, Material copyColorMaterial = null)
         {
+            base.profilingSampler = new ProfilingSampler(nameof(CopyColorPass));
+
             m_SamplingMaterial = samplingMaterial;
             m_CopyColorMaterial = copyColorMaterial;
             m_SampleOffsetShaderHandle = Shader.PropertyToID("_SampleOffset");
             renderPassEvent = evt;
             m_DownsamplingMethod = Downsampling.None;
+            base.useNativeRenderPass = false;
         }
 
         /// <summary>
@@ -72,6 +75,13 @@ namespace UnityEngine.Rendering.Universal.Internal
             }
 
             CommandBuffer cmd = CommandBufferPool.Get();
+
+            //It is possible that the given color target is now the frontbuffer
+            if (source == renderingData.cameraData.renderer.GetCameraColorFrontBuffer(cmd))
+            {
+                source = renderingData.cameraData.renderer.cameraColorTarget;
+            }
+
             using (new ProfilingScope(cmd, ProfilingSampler.Get(URPProfileId.CopyColor)))
             {
                 RenderTargetIdentifier opaqueColorRT = destination.Identifier();

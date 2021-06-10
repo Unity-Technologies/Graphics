@@ -26,7 +26,18 @@ namespace UnityEditor.VFX
         [VFXSetting(VFXSettingAttribute.VisibleFlags.InInspector), SerializeField, Tooltip("When enabled, particles write to the velocity buffer, allowing them to be blurred with the Motion Blur post processing effect.")]
         protected bool generateMotionVector = false;
 
-        public bool isBlendModeOpaque { get { return blendMode == BlendMode.Opaque; } }
+        [VFXSetting(VFXSettingAttribute.VisibleFlags.InInspector), SerializeField, Tooltip("When enabled, particles will not be affected by temporal anti-aliasing.")]
+        protected bool excludeFromTAA = false;
+
+        public virtual bool isBlendModeOpaque { get { return blendMode == BlendMode.Opaque; } }
+
+        [VFXSetting(VFXSettingAttribute.VisibleFlags.InInspector), Delayed, SerializeField, Tooltip("Specifies an offset applied to the material render queue.")]
+        protected int materialOffset = 0;
+
+        public int GetMaterialOffset()
+        {
+            return materialOffset;
+        }
 
         public virtual bool hasMotionVector
         {
@@ -42,20 +53,34 @@ namespace UnityEditor.VFX
 
         public virtual bool implementsMotionVector { get { return false; } }
 
-        protected VFXAbstractRenderedOutput(VFXDataType dataType) : base(VFXContextType.Output, dataType, VFXDataType.None) {}
+        public virtual bool hasExcludeFromTAA => subOutput.supportsExcludeFromTAA && excludeFromTAA;
 
+        protected VFXAbstractRenderedOutput(VFXDataType dataType) : base(VFXContextType.Output, dataType, VFXDataType.None) {}
 
 
         public override IEnumerable<int> GetFilteredOutEnumerators(string name)
         {
             return subOutput.GetFilteredOutEnumerators(name);
         }
+
+        protected override IEnumerable<string> filteredOutSettings
+        {
+            get
+            {
+                foreach (var setting in base.filteredOutSettings)
+                    yield return setting;
+
+                if (!subOutput.supportsMaterialOffset)
+                    yield return nameof(materialOffset);
+            }
+        }
+
         public VFXSRPSubOutput subOutput
         {
             get
             {
                 if (m_CurrentSubOutput == null)
-                    GetOrCreateSubOutput();
+                    m_CurrentSubOutput = GetOrCreateSubOutput();
                 return m_CurrentSubOutput;
             }
         }
@@ -92,8 +117,19 @@ namespace UnityEditor.VFX
 
         public override void OnEnable()
         {
+            VFXLibrary.OnSRPChanged += OnSRPChanged;
             InitSubOutputs(m_SubOutputs, false);
             base.OnEnable();
+        }
+
+        public virtual void OnDisable()
+        {
+            VFXLibrary.OnSRPChanged -= OnSRPChanged;
+        }
+
+        private void OnSRPChanged()
+        {
+            m_CurrentSubOutput = null;
         }
 
         public List<VFXSRPSubOutput> GetSubOutputs()

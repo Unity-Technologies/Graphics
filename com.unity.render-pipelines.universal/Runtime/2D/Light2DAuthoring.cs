@@ -1,19 +1,18 @@
 using System.Collections.Generic;
 
-namespace UnityEngine.Experimental.Rendering.Universal
+namespace UnityEngine.Rendering.Universal
 {
     public sealed partial class Light2D
     {
-
 #if UNITY_EDITOR
         private const string s_IconsPath = "Packages/com.unity.render-pipelines.universal/Editor/2D/Resources/SceneViewIcons/";
-        private static readonly string[] s_LightIconFileNames = new []
+        private static readonly string[] s_LightIconFileNames = new[]
         {
             "ParametricLight.png",
             "FreeformLight.png",
             "SpriteLight.png",
             "PointLight.png",
-            "PointLight.png"
+            "GlobalLight.png"
         };
 
         private void OnDrawGizmos()
@@ -29,19 +28,9 @@ namespace UnityEngine.Experimental.Rendering.Universal
 
         internal List<Vector2> GetFalloffShape()
         {
-            var shape = new List<Vector2>();
-            var extrusionDir = LightUtility.GetFalloffShape(m_ShapePath);
-            for (var i = 0; i < m_ShapePath.Length; i++)
-            {
-                shape.Add(new Vector2
-                {
-                    x = m_ShapePath[i].x + this.shapeLightFalloffSize * extrusionDir[i].x,
-                    y = m_ShapePath[i].y + this.shapeLightFalloffSize * extrusionDir[i].y
-                });
-            }
-            return shape;
+            return LightUtility.GetOutlinePath(m_ShapePath, m_ShapeLightFalloffSize);
         }
-#endif
 
+#endif
     }
 }

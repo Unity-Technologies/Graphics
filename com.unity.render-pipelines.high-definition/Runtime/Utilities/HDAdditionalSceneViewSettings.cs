@@ -138,7 +138,7 @@ namespace UnityEngine.Rendering.HighDefinition
             sceneExposureOverriden = EditorGUILayout.Toggle(Styles.OverrideExposure, sceneExposureOverriden);
             if (sceneExposureOverriden)
                 sceneExposure = EditorGUILayout.Slider(Styles.OverriddenExposure, sceneExposure, -11.0f, 16.0f);
-            if(EditorGUI.EndChangeCheck())
+            if (EditorGUI.EndChangeCheck())
             {
                 SceneView.RepaintAll();
             }

@@ -73,7 +73,7 @@ Shader "Hidden/Universal Render Pipeline/PaniniProjection"
             //  d |  /
             //    | /                ,
             //    |/                .
-            //    P 
+            //    P
             //    |              ´
             //    |         , ´
             //    +-    ´

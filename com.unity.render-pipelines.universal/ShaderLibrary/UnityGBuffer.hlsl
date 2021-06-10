@@ -7,22 +7,59 @@
 // inspired from [builtin_shaders]/CGIncludes/UnityGBuffer.cginc
 
 // Non-static meshes with real-time lighting need to write shadow mask, which in that case stores per-object occlusion probe values.
-#if !defined(LIGHTMAP_ON) && defined(_MIXED_LIGHTING_SUBTRACTIVE)
-#define USE_SHADOWMASK 1
+#if !defined(LIGHTMAP_ON) && defined(LIGHTMAP_SHADOW_MIXING) && !defined(SHADOWS_SHADOWMASK)
+#define OUTPUT_SHADOWMASK 1 // subtractive
+#elif defined(SHADOWS_SHADOWMASK)
+#define OUTPUT_SHADOWMASK 2 // shadow mask
+#elif defined(_DEFERRED_MIXED_LIGHTING)
+#define OUTPUT_SHADOWMASK 3 // we don't know if it's subtractive or just shadowMap (from deferred lighting shader, LIGHTMAP_ON does not need to be defined)
 #else
-#define USE_SHADOWMASK 0
 #endif
 
+#if _RENDER_PASS_ENABLED
+    #define GBUFFER_OPTIONAL_SLOT_1 GBuffer4
+    #define GBUFFER_OPTIONAL_SLOT_1_TYPE float
+#if OUTPUT_SHADOWMASK && defined(_LIGHT_LAYERS)
+    #define GBUFFER_OPTIONAL_SLOT_2 GBuffer5
+    #define GBUFFER_OPTIONAL_SLOT_3 GBuffer6
+    #define GBUFFER_LIGHT_LAYERS GBuffer5
+    #define GBUFFER_SHADOWMASK GBuffer6
+#elif OUTPUT_SHADOWMASK
+    #define GBUFFER_OPTIONAL_SLOT_2 GBuffer5
+    #define GBUFFER_SHADOWMASK GBuffer5
+#elif defined(_LIGHT_LAYERS)
+    #define GBUFFER_OPTIONAL_SLOT_2 GBuffer5
+    #define GBUFFER_LIGHT_LAYERS GBuffer5
+#endif //#if OUTPUT_SHADOWMASK && defined(_LIGHT_LAYERS)
+#else
+    #define GBUFFER_OPTIONAL_SLOT_1_TYPE half4
+#if OUTPUT_SHADOWMASK && defined(_LIGHT_LAYERS)
+    #define GBUFFER_OPTIONAL_SLOT_1 GBuffer4
+    #define GBUFFER_OPTIONAL_SLOT_2 GBuffer5
+    #define GBUFFER_LIGHT_LAYERS GBuffer4
+    #define GBUFFER_SHADOWMASK GBuffer5
+#elif OUTPUT_SHADOWMASK
+    #define GBUFFER_OPTIONAL_SLOT_1 GBuffer4
+    #define GBUFFER_SHADOWMASK GBuffer4
+#elif defined(_LIGHT_LAYERS)
+    #define GBUFFER_OPTIONAL_SLOT_1 GBuffer4
+    #define GBUFFER_LIGHT_LAYERS GBuffer4
+#endif //#if OUTPUT_SHADOWMASK && defined(_LIGHT_LAYERS)
+#endif //#if _RENDER_PASS_ENABLED
 #define kLightingInvalid  -1  // No dynamic lighting: can aliase any other material type as they are skipped using stencil
+#define kLightingLit       1  // lit shader
 #define kLightingSimpleLit 2  // Simple lit shader
 // clearcoat 3
 // backscatter 4
 // skin 5
 
+// Material flags
 #define kMaterialFlagReceiveShadowsOff        1 // Does not receive dynamic shadows
 #define kMaterialFlagSpecularHighlightsOff    2 // Does not receivce specular
 #define kMaterialFlagSubtractiveMixedLighting 4 // The geometry uses subtractive mixed lighting
+#define kMaterialFlagSpecularSetup            8 // Lit material use specular setup instead of metallic setup
 
+// Light flags.
 #define kLightFlagSubtractiveMixedLighting    4 // The light uses subtractive mixed lighting.
 
 struct FragmentOutput
@@ -31,8 +68,15 @@ struct FragmentOutput
     half4 GBuffer1 : SV_Target1;
     half4 GBuffer2 : SV_Target2;
     half4 GBuffer3 : SV_Target3; // Camera color attachment
-    #if USE_SHADOWMASK
-    half4 GBuffer4 : SV_Target4;
+
+    #ifdef GBUFFER_OPTIONAL_SLOT_1
+    GBUFFER_OPTIONAL_SLOT_1_TYPE GBuffer4 : SV_Target4;
+    #endif
+    #ifdef GBUFFER_OPTIONAL_SLOT_2
+    half4 GBuffer5 : SV_Target5;
+    #endif
+    #ifdef GBUFFER_OPTIONAL_SLOT_3
+    half4 GBuffer6 : SV_Target6;
     #endif
 };
 
@@ -46,50 +90,61 @@ uint UnpackMaterialFlags(float packedMaterialFlags)
     return uint((packedMaterialFlags * 255.0h) + 0.5h);
 }
 
+#ifdef _GBUFFER_NORMALS_OCT
+half3 PackNormal(half3 n)
+{
+    float2 octNormalWS = PackNormalOctQuadEncode(n);                  // values between [-1, +1], must use fp32 on some platforms.
+    float2 remappedOctNormalWS = saturate(octNormalWS * 0.5 + 0.5);   // values between [ 0, +1]
+    return half3(PackFloat2To888(remappedOctNormalWS));               // values between [ 0, +1]
+}
+
+half3 UnpackNormal(half3 pn)
+{
+    half2 remappedOctNormalWS = half2(Unpack888ToFloat2(pn));          // values between [ 0, +1]
+    half2 octNormalWS = remappedOctNormalWS.xy * half(2.0) - half(1.0);// values between [-1, +1]
+    return half3(UnpackNormalOctQuadEncode(octNormalWS));              // values between [-1, +1]
+}
+
+#else
+half3 PackNormal(half3 n)
+{ return n; }                                                         // values between [-1, +1]
+
+half3 UnpackNormal(half3 pn)
+{ return pn; }                                                        // values between [-1, +1]
+#endif
+
 // This will encode SurfaceData into GBuffer
 FragmentOutput SurfaceDataToGbuffer(SurfaceData surfaceData, InputData inputData, half3 globalIllumination, int lightingMode)
 {
-#if _GBUFFER_NORMALS_OCT
-    float2 octNormalWS = PackNormalOctQuadEncode(inputData.normalWS); // values between [-1, +1], must use fp32 on Nintendo Switch.
-    float2 remappedOctNormalWS = saturate(octNormalWS * 0.5 + 0.5);   // values between [ 0,  1]
-    half3 packedNormalWS = PackFloat2To888(remappedOctNormalWS);      // values between [ 0,  1]
-
-    // See SimpleLitInput.hlsl, SampleSpecularSmoothness().
-    half packedSmoothness;
-    if (lightingMode == kLightingSimpleLit)
-        packedSmoothness = 0.1h * log2(surfaceData.smoothness) - 0.1h; // values between [ 0,  1]
-    else
-        packedSmoothness = surfaceData.smoothness;                     // values between [ 0,  1]
-#else
-    half3 packedNormalWS = inputData.normalWS;                         // values between [-1,  1]
-
-    // See SimpleLitInput.hlsl, SampleSpecularSmoothness().
-    half packedSmoothness;
-    if (lightingMode == kLightingSimpleLit)
-        packedSmoothness = 0.2h * log2(surfaceData.smoothness) - 0.2h - 1.0h; // values between [-1,  1]
-    else
-        packedSmoothness = surfaceData.smoothness * 2.0h - 1.0h;       // values between [-1,  1]
-#endif
+    half3 packedNormalWS = PackNormal(inputData.normalWS);
 
     uint materialFlags = 0;
 
     // SimpleLit does not use _SPECULARHIGHLIGHTS_OFF to disable specular highlights.
 
-#ifdef _RECEIVE_SHADOWS_OFF
+    #ifdef _RECEIVE_SHADOWS_OFF
     materialFlags |= kMaterialFlagReceiveShadowsOff;
-#endif
+    #endif
 
-#if defined(LIGHTMAP_ON) && defined(_MIXED_LIGHTING_SUBTRACTIVE)
+    #if defined(LIGHTMAP_ON) && defined(_MIXED_LIGHTING_SUBTRACTIVE)
     materialFlags |= kMaterialFlagSubtractiveMixedLighting;
-#endif
+    #endif
 
     FragmentOutput output;
     output.GBuffer0 = half4(surfaceData.albedo.rgb, PackMaterialFlags(materialFlags));   // albedo          albedo          albedo          materialFlags   (sRGB rendertarget)
-    output.GBuffer1 = half4(surfaceData.specular.rgb, 0);                                // specular        specular        specular        [unused]        (sRGB rendertarget)
-    output.GBuffer2 = half4(packedNormalWS, packedSmoothness);                           // encoded-normal  encoded-normal  encoded-normal  packed-smoothness
-    output.GBuffer3 = half4(globalIllumination, 0);                                      // GI              GI              GI              [not_available] (lighting buffer)
-    #if USE_SHADOWMASK
-    output.GBuffer4 = unity_ProbesOcclusion;
+    output.GBuffer1 = half4(surfaceData.specular.rgb, surfaceData.occlusion);            // specular        specular        specular        occlusion
+    output.GBuffer2 = half4(packedNormalWS, surfaceData.smoothness);                     // encoded-normal  encoded-normal  encoded-normal  smoothness
+    output.GBuffer3 = half4(globalIllumination, 1);                                      // GI              GI              GI              [optional: see OutputAlpha()] (lighting buffer)
+    #if _RENDER_PASS_ENABLED
+    output.GBuffer4 = inputData.positionCS.z;
+    #endif
+    #if OUTPUT_SHADOWMASK
+    output.GBUFFER_SHADOWMASK = inputData.shadowMask; // will have unity_ProbesOcclusion value if subtractive lighting is used (baked)
+    #endif
+    #ifdef _LIGHT_LAYERS
+    uint renderingLayers = GetMeshRenderingLightLayer();
+    // Note: we need to mask out only 8bits of the layer mask before encoding it as otherwise any value > 255 will map to all layers active
+    output.GBUFFER_LIGHT_LAYERS = float4((renderingLayers & 0x000000FF) / 255.0, 0.0, 0.0, 0.0);
     #endif
 
     return output;
@@ -104,19 +159,7 @@ SurfaceData SurfaceDataFromGbuffer(half4 gbuffer0, half4 gbuffer1, half4 gbuffer
     uint materialFlags = UnpackMaterialFlags(gbuffer0.a);
     surfaceData.occlusion = 1.0; // Not used by SimpleLit material.
     surfaceData.specular = gbuffer1.rgb;
-    half smoothness;
-
-#if _GBUFFER_NORMALS_OCT
-    if (lightingMode == kLightingSimpleLit)
-        smoothness = exp2(10.0h * gbuffer2.a + 1.0h);
-    else
-        smoothness = gbuffer2.a;
-#else
-    if (lightingMode == kLightingSimpleLit)
-        smoothness = exp2(5.0h * gbuffer2.a + 6.0h);
-    else
-        smoothness = gbuffer2.a * 0.5h + 0.5h;
-#endif
+    half smoothness = gbuffer2.a;
 
     surfaceData.metallic = 0.0; // Not used by SimpleLit material.
     surfaceData.alpha = 1.0; // gbuffer only contains opaque materials
@@ -129,44 +172,53 @@ SurfaceData SurfaceDataFromGbuffer(half4 gbuffer0, half4 gbuffer1, half4 gbuffer
 }
 
 // This will encode SurfaceData into GBuffer
-FragmentOutput BRDFDataToGbuffer(BRDFData brdfData, InputData inputData, half smoothness, half3 globalIllumination)
+FragmentOutput BRDFDataToGbuffer(BRDFData brdfData, InputData inputData, half smoothness, half3 globalIllumination, half occlusion = 1.0)
 {
-#if _GBUFFER_NORMALS_OCT
-    float2 octNormalWS = PackNormalOctQuadEncode(inputData.normalWS); // values between [-1, +1], must use fp32 on Nintendo Switch.
-    float2 remappedOctNormalWS = octNormalWS * 0.5 + 0.5;             // values between [ 0,  1]
-    half3 packedNormalWS = PackFloat2To888(remappedOctNormalWS);
-    half packedSmoothness = smoothness;
-#else
-    half3 packedNormalWS = inputData.normalWS;                       // values between [-1,  1]
-    half packedSmoothness = smoothness * 2.0h - 1.0h;
-#endif
+    half3 packedNormalWS = PackNormal(inputData.normalWS);
 
     uint materialFlags = 0;
 
-#ifdef _RECEIVE_SHADOWS_OFF
+    #ifdef _RECEIVE_SHADOWS_OFF
     materialFlags |= kMaterialFlagReceiveShadowsOff;
-#endif
+    #endif
 
-    half3 specular = brdfData.specular.rgb;
-#ifdef _SPECULARHIGHLIGHTS_OFF
+    half3 packedSpecular;
+
+    #ifdef _SPECULAR_SETUP
+    materialFlags |= kMaterialFlagSpecularSetup;
+    packedSpecular = brdfData.specular.rgb;
+    #else
+    packedSpecular.r = brdfData.reflectivity;
+    packedSpecular.gb = 0.0;
+    #endif
+
+    #ifdef _SPECULARHIGHLIGHTS_OFF
     // During the next deferred shading pass, we don't use a shader variant to disable specular calculations.
     // Instead, we can either silence specular contribution when writing the gbuffer, and/or reserve a bit in the gbuffer
     // and use this during shading to skip computations via dynamic branching. Fastest option depends on platforms.
     materialFlags |= kMaterialFlagSpecularHighlightsOff;
-    specular = 0.0.xxx;
-#endif
+    packedSpecular = 0.0.xxx;
+    #endif
 
-#if defined(LIGHTMAP_ON) && defined(_MIXED_LIGHTING_SUBTRACTIVE)
+    #if defined(LIGHTMAP_ON) && defined(_MIXED_LIGHTING_SUBTRACTIVE)
     materialFlags |= kMaterialFlagSubtractiveMixedLighting;
-#endif
+    #endif
 
     FragmentOutput output;
-    output.GBuffer0 = half4(brdfData.diffuse.rgb, PackMaterialFlags(materialFlags)); // diffuse         diffuse         diffuse         materialFlags   (sRGB rendertarget)
-    output.GBuffer1 = half4(specular, brdfData.reflectivity);                        // specular        specular        specular        reflectivity    (sRGB rendertarget)
-    output.GBuffer2 = half4(packedNormalWS, packedSmoothness);                       // encoded-normal  encoded-normal  encoded-normal  smoothness
-    output.GBuffer3 = half4(globalIllumination, 0);                                  // GI              GI              GI              [not_available] (lighting buffer)
-    #if USE_SHADOWMASK
-    output.GBuffer4 = unity_ProbesOcclusion;
+    output.GBuffer0 = half4(brdfData.albedo.rgb, PackMaterialFlags(materialFlags));  // diffuse           diffuse         diffuse         materialFlags   (sRGB rendertarget)
+    output.GBuffer1 = half4(packedSpecular, occlusion);                              // metallic/specular specular        specular        occlusion
+    output.GBuffer2 = half4(packedNormalWS, smoothness);                             // encoded-normal    encoded-normal  encoded-normal  smoothness
+    output.GBuffer3 = half4(globalIllumination, 1);                                  // GI                GI              GI              [optional: see OutputAlpha()] (lighting buffer)
+    #if _RENDER_PASS_ENABLED
+    output.GBuffer4 = inputData.positionCS.z;
+    #endif
+    #if OUTPUT_SHADOWMASK
+    output.GBUFFER_SHADOWMASK = inputData.shadowMask; // will have unity_ProbesOcclusion value if subtractive lighting is used (baked)
+    #endif
+    #ifdef _LIGHT_LAYERS
+    uint renderingLayers = GetMeshRenderingLightLayer();
+    // Note: we need to mask out only 8bits of the layer mask before encoding it as otherwise any value > 255 will map to all layers active
+    output.GBUFFER_LIGHT_LAYERS = float4((renderingLayers & 0x000000FF) / 255.0, 0.0, 0.0, 0.0);
     #endif
 
     return output;
@@ -175,39 +227,49 @@ FragmentOutput BRDFDataToGbuffer(BRDFData brdfData, InputData inputData, half sm
 // This decodes the Gbuffer into a SurfaceData struct
 BRDFData BRDFDataFromGbuffer(half4 gbuffer0, half4 gbuffer1, half4 gbuffer2)
 {
-    half3 diffuse = gbuffer0.rgb;
-    uint materialFlags = UnpackMaterialFlags(gbuffer0.a);
+    half3 albedo = gbuffer0.rgb;
     half3 specular = gbuffer1.rgb;
-    half reflectivity = gbuffer1.a;
-    half oneMinusReflectivity = 1.0h - reflectivity;
-#if _GBUFFER_NORMALS_OCT
+    uint materialFlags = UnpackMaterialFlags(gbuffer0.a);
     half smoothness = gbuffer2.a;
-#else
-    half smoothness = gbuffer2.a * 0.5h + 0.5h;
-#endif
 
     BRDFData brdfData = (BRDFData)0;
-    half alpha = 1.0; // NOTE: alpha can get modfied, forward writes it out (_ALPHAPREMULTIPLY_ON).
-    InitializeBRDFDataDirect(diffuse, specular, reflectivity, oneMinusReflectivity, smoothness, alpha, brdfData);
+    half alpha = half(1.0); // NOTE: alpha can get modfied, forward writes it out (_ALPHAPREMULTIPLY_ON).
+
+    half3 brdfDiffuse;
+    half3 brdfSpecular;
+    half reflectivity;
+    half oneMinusReflectivity;
+
+    if ((materialFlags & kMaterialFlagSpecularSetup) != 0)
+    {
+        // Specular setup
+        reflectivity = ReflectivitySpecular(specular);
+        oneMinusReflectivity = half(1.0) - reflectivity;
+        brdfDiffuse = albedo * (half3(1.0h, 1.0h, 1.0h) - specular);
+        brdfSpecular = specular;
+    }
+    else
+    {
+        // Metallic setup
+        reflectivity = specular.r;
+        oneMinusReflectivity = 1.0 - reflectivity;
+        half metallic = MetallicFromReflectivity(reflectivity);
+        brdfDiffuse = albedo * oneMinusReflectivity;
+        brdfSpecular = lerp(kDieletricSpec.rgb, albedo, metallic);
+    }
+    InitializeBRDFDataDirect(albedo, brdfDiffuse, brdfSpecular, reflectivity, oneMinusReflectivity, smoothness, alpha, brdfData);
 
     return brdfData;
 }
 
 InputData InputDataFromGbufferAndWorldPosition(half4 gbuffer2, float3 wsPos)
 {
-    InputData inputData;
+    InputData inputData = (InputData)0;
 
     inputData.positionWS = wsPos;
+    inputData.normalWS = normalize(UnpackNormal(gbuffer2.xyz)); // normalize() is required because terrain shaders use additive blending for normals (not unit-length anymore)
 
-#if _GBUFFER_NORMALS_OCT
-    half2 remappedOctNormalWS = Unpack888ToFloat2(gbuffer2.xyz); // values between [ 0,  1]
-    half2 octNormalWS = remappedOctNormalWS.xy * 2.0h - 1.0h;    // values between [-1, +1]
-    inputData.normalWS = UnpackNormalOctQuadEncode(octNormalWS);
-#else
-    inputData.normalWS = normalize(gbuffer2.xyz);  // values between [-1, +1]
-#endif
-
-    inputData.viewDirectionWS = SafeNormalize(GetWorldSpaceViewDir(wsPos.xyz));
+    inputData.viewDirectionWS = GetWorldSpaceNormalizeViewDir(wsPos.xyz);
 
     // TODO: pass this info?
     inputData.shadowCoord     = (float4)0;

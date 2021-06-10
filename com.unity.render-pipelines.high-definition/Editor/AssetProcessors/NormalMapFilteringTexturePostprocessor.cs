@@ -203,7 +203,7 @@ namespace UnityEditor.Rendering.HighDefinition
                         for (int x = 0; x < mipWidth; ++x)
                         {
                             Vector3 averageNormal = GetAverageNormal(source, x * texelFootprintW, y * texelFootprintH,
-                                    texture.width, texture.height, texelFootprintW, texelFootprintH);
+                                texture.width, texture.height, texelFootprintW, texelFootprintH);
 
                             int outputPosition = y * mipWidth + x;
 

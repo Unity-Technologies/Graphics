@@ -148,7 +148,9 @@ namespace UnityEditor.VFX.UI
             if (view == null) return;
             Vector2 tPos = view.ChangeCoordinatesTo(view.contentViewContainer, mPos);
 
+            view.UpdateSelectionWithNewNode();
             VFXContext context = view.controller.AddVFXContext(tPos, d.modelDescriptor as VFXModelDescriptor<VFXContext>);
+            view.controller.LightApplyChanges();
 
             if (context == null) return;
 

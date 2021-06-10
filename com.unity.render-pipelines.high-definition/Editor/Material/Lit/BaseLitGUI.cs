@@ -11,21 +11,23 @@ namespace UnityEditor.Rendering.HighDefinition
     {
         // Properties for Base Lit material keyword setup
         protected const string kDoubleSidedNormalMode = "_DoubleSidedNormalMode";
-
+        protected const string kDoubleSidedGIMode = "_DoubleSidedGIMode";
         protected const string kDisplacementLockObjectScale = "_DisplacementLockObjectScale";
         protected const string kDisplacementLockTilingScale = "_DisplacementLockTilingScale";
 
         // Wind
         protected const string kWindEnabled = "_EnableWind";
 
-        // tessellation params
-        protected const string kTessellationMode = "_TessellationMode";
-
         // Decal
         protected const string kEnableGeometricSpecularAA = "_EnableGeometricSpecularAA";
 
         // SSR
         protected MaterialProperty receivesSSR = null;
+
+        // Emission
+        const string kUseEmissiveIntensity = "_UseEmissiveIntensity";
+        const string kEmissiveIntensity = "_EmissiveIntensity";
+        const string kEmissiveColor = "_EmissiveColor";
 
         protected virtual void UpdateDisplacement() {}
 
@@ -66,8 +68,8 @@ namespace UnityEditor.Rendering.HighDefinition
                 // Only set if tessellation exist
                 CoreUtils.SetKeyword(material, "_TESSELLATION_DISPLACEMENT", enableTessellationDisplacement);
 
-                bool displacementLockObjectScale = material.GetFloat(kDisplacementLockObjectScale) > 0.0;
-                bool displacementLockTilingScale = material.GetFloat(kDisplacementLockTilingScale) > 0.0;
+                bool displacementLockObjectScale = material.GetFloat(kDisplacementLockObjectScale) > 0.0f;
+                bool displacementLockTilingScale = material.GetFloat(kDisplacementLockTilingScale) > 0.0f;
                 // Tessellation reuse vertex flag.
                 CoreUtils.SetKeyword(material, "_VERTEX_DISPLACEMENT_LOCK_OBJECT_SCALE", displacementLockObjectScale && (enableVertexDisplacement || enableTessellationDisplacement));
                 CoreUtils.SetKeyword(material, "_PIXEL_DISPLACEMENT_LOCK_OBJECT_SCALE", displacementLockObjectScale && enablePixelDisplacement);
@@ -80,19 +82,28 @@ namespace UnityEditor.Rendering.HighDefinition
 
             CoreUtils.SetKeyword(material, "_VERTEX_WIND", false);
 
-            if (material.HasProperty(kTessellationMode))
-            {
-                TessellationMode tessMode = (TessellationMode)material.GetFloat(kTessellationMode);
-                CoreUtils.SetKeyword(material, "_TESSELLATION_PHONG", tessMode == TessellationMode.Phong);
-            }
-
             material.SetupMainTexForAlphaTestGI("_BaseColorMap", "_BaseColor");
 
             // Use negation so we don't create keyword by default
-            CoreUtils.SetKeyword(material, "_DISABLE_DECALS", material.HasProperty(kSupportDecals) && material.GetFloat(kSupportDecals) == 0.0);
-            CoreUtils.SetKeyword(material, "_DISABLE_SSR", material.HasProperty(kReceivesSSR) && material.GetFloat(kReceivesSSR) == 0.0);
-            CoreUtils.SetKeyword(material, "_DISABLE_SSR_TRANSPARENT", material.HasProperty(kReceivesSSRTransparent) && material.GetFloat(kReceivesSSRTransparent) == 0.0);
-            CoreUtils.SetKeyword(material, "_ENABLE_GEOMETRIC_SPECULAR_AA", material.HasProperty(kEnableGeometricSpecularAA) && material.GetFloat(kEnableGeometricSpecularAA) == 1.0);
+            CoreUtils.SetKeyword(material, "_DISABLE_DECALS", material.HasProperty(kSupportDecals) && material.GetFloat(kSupportDecals) == 0.0f);
+            CoreUtils.SetKeyword(material, "_DISABLE_SSR", material.HasProperty(kReceivesSSR) && material.GetFloat(kReceivesSSR) == 0.0f);
+            CoreUtils.SetKeyword(material, "_DISABLE_SSR_TRANSPARENT", material.HasProperty(kReceivesSSRTransparent) && material.GetFloat(kReceivesSSRTransparent) == 0.0f);
+            CoreUtils.SetKeyword(material, "_ENABLE_GEOMETRIC_SPECULAR_AA", material.HasProperty(kEnableGeometricSpecularAA) && material.GetFloat(kEnableGeometricSpecularAA) == 1.0f);
+
+            if (material.HasProperty(kRefractionModel))
+            {
+                var refractionModelValue = (ScreenSpaceRefraction.RefractionModel)material.GetFloat(kRefractionModel);
+                // We can't have refraction in pre-refraction queue and the material needs to be transparent
+                var canHaveRefraction = material.GetSurfaceType() == SurfaceType.Transparent && !HDRenderQueue.k_RenderQueue_PreRefraction.Contains(material.renderQueue);
+                CoreUtils.SetKeyword(material, "_REFRACTION_PLANE", (refractionModelValue == ScreenSpaceRefraction.RefractionModel.Box) && canHaveRefraction);
+                CoreUtils.SetKeyword(material, "_REFRACTION_SPHERE", (refractionModelValue == ScreenSpaceRefraction.RefractionModel.Sphere) && canHaveRefraction);
+                CoreUtils.SetKeyword(material, "_REFRACTION_THIN", (refractionModelValue == ScreenSpaceRefraction.RefractionModel.Thin) && canHaveRefraction);
+            }
+
+            if (material.HasProperty(kForceForwardEmissive))
+            {
+                CoreUtils.SetKeyword(material, "_FORCE_FORWARD_EMISSIVE", material.GetInt(kForceForwardEmissive) != 0);
+            }
         }
 
         static public void SetupStencil(Material material, bool receivesSSR, bool useSplitLighting)
@@ -179,6 +190,42 @@ namespace UnityEditor.Rendering.HighDefinition
         static public void SetupBaseLitMaterialPass(Material material)
         {
             material.SetupBaseUnlitPass();
+
+            if (material.HasProperty(kForceForwardEmissive))
+            {
+                // Emissive check below is only for the lit shader
+                // It is possible that it works with SG if the SG properties have the same name.
+                bool emissiveIsDisabled = false;
+                if (material.HasProperty(kUseEmissiveIntensity))
+                {
+                    var useIntensity = material.GetInt(kUseEmissiveIntensity);
+                    if (useIntensity == 0)
+                    {
+                        if (material.HasProperty(kEmissiveColor))
+                        {
+                            var emissionColor = material.GetColor(kEmissiveColor);
+                            if (emissionColor.r == 0.0 && emissionColor.g == 0.0 && emissionColor.b == 0.0)
+                            {
+                                emissiveIsDisabled = true;
+                            }
+                        }
+                    }
+                    else
+                    {
+                        if (material.HasProperty(kEmissiveIntensity))
+                        {
+                            var intensityValue = material.GetFloat(kEmissiveIntensity);
+                            if (intensityValue == 0.0)
+                            {
+                                emissiveIsDisabled = true;
+                            }
+                        }
+                    }
+                }
+
+                bool forceForwardEmissive = (material.GetFloat(kForceForwardEmissive) > 0.0f) && ((SurfaceType)material.GetFloat(kSurfaceType) == SurfaceType.Opaque);
+                material.SetShaderPassEnabled(HDShaderPassNames.s_ForwardEmissiveForDeferredStr, forceForwardEmissive && !emissiveIsDisabled);
+            }
         }
     }
 } // namespace UnityEditor

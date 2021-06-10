@@ -47,13 +47,13 @@ namespace UnityEngine.Rendering.HighDefinition
 
         internal static void Initialize()
         {
-            customPassUtilsMaterial = CoreUtils.CreateEngineMaterial(HDRenderPipeline.defaultAsset.renderPipelineResources.shaders.customPassUtils);
+            customPassUtilsMaterial = CoreUtils.CreateEngineMaterial(HDRenderPipelineGlobalSettings.instance.renderPipelineResources.shaders.customPassUtils);
             downSamplePassIndex = customPassUtilsMaterial.FindPass("Downsample");
             verticalBlurPassIndex = customPassUtilsMaterial.FindPass("VerticalBlur");
             horizontalBlurPassIndex = customPassUtilsMaterial.FindPass("HorizontalBlur");
             copyPassIndex = customPassUtilsMaterial.FindPass("Copy");
 
-            customPassRenderersUtilsMaterial = CoreUtils.CreateEngineMaterial(HDRenderPipeline.defaultAsset.renderPipelineResources.shaders.customPassRenderersUtils);
+            customPassRenderersUtilsMaterial = CoreUtils.CreateEngineMaterial(HDRenderPipelineGlobalSettings.instance.renderPipelineResources.shaders.customPassRenderersUtils);
             depthToColorPassIndex = customPassRenderersUtilsMaterial.FindPass("DepthToColorPass");
             depthPassIndex = customPassRenderersUtilsMaterial.FindPass("DepthPass");
             normalToColorPassIndex = customPassRenderersUtilsMaterial.FindPass("NormalToColorPass");
@@ -86,7 +86,7 @@ namespace UnityEngine.Rendering.HighDefinition
             // Check if the texture provided is at least half of the size of source.
             if (destination.rt.width < source.rt.width / 2 || destination.rt.height < source.rt.height / 2)
                 Debug.LogError("Destination for DownSample is too small, it needs to be at least half as big as source.");
-            if (source.rt.antiAliasing > 1 || destination.rt.antiAliasing > 1) 
+            if (source.rt.antiAliasing > 1 || destination.rt.antiAliasing > 1)
                 Debug.LogError($"DownSample is not supported with MSAA buffers");
 
             using (new ProfilingScope(ctx.cmd, downSampleSampler))
@@ -96,7 +96,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 propertyBlock.SetTexture(HDShaderIDs._Source, source);
                 propertyBlock.SetVector(HDShaderIDs._SourceScaleBias, sourceScaleBias);
                 SetSourceSize(propertyBlock, source);
-                ctx.cmd.DrawProcedural(Matrix4x4.identity, customPassUtilsMaterial, downSamplePassIndex, MeshTopology.Quads, 4, 1, propertyBlock);
+                ctx.cmd.DrawProcedural(Matrix4x4.identity, customPassUtilsMaterial, downSamplePassIndex, MeshTopology.Triangles, 3, 1, propertyBlock);
             }
         }
 
@@ -127,7 +127,7 @@ namespace UnityEngine.Rendering.HighDefinition
         {
             if (source == destination)
                 Debug.LogError("Can't copy the buffer. Source has to be different from the destination.");
-            if (source.rt.antiAliasing > 1 || destination.rt.antiAliasing > 1) 
+            if (source.rt.antiAliasing > 1 || destination.rt.antiAliasing > 1)
                 Debug.LogError($"Copy is not supported with MSAA buffers");
 
             using (new ProfilingScope(ctx.cmd, copySampler))
@@ -137,7 +137,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 propertyBlock.SetTexture(HDShaderIDs._Source, source);
                 propertyBlock.SetVector(HDShaderIDs._SourceScaleBias, sourceScaleBias);
                 SetSourceSize(propertyBlock, source);
-                ctx.cmd.DrawProcedural(Matrix4x4.identity, customPassUtilsMaterial, copyPassIndex, MeshTopology.Quads, 4, 1, propertyBlock);
+                ctx.cmd.DrawProcedural(Matrix4x4.identity, customPassUtilsMaterial, copyPassIndex, MeshTopology.Triangles, 3, 1, propertyBlock);
             }
         }
 
@@ -183,7 +183,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 propertyBlock.SetFloat(HDShaderIDs._SampleCount, sampleCount);
                 propertyBlock.SetFloat(HDShaderIDs._Radius, radius);
                 SetSourceSize(propertyBlock, source);
-                ctx.cmd.DrawProcedural(Matrix4x4.identity, customPassUtilsMaterial, verticalBlurPassIndex, MeshTopology.Quads, 4, 1, propertyBlock);
+                ctx.cmd.DrawProcedural(Matrix4x4.identity, customPassUtilsMaterial, verticalBlurPassIndex, MeshTopology.Triangles, 3, 1, propertyBlock);
             }
         }
 
@@ -216,7 +216,7 @@ namespace UnityEngine.Rendering.HighDefinition
         {
             if (source == destination)
                 Debug.LogError("Can't blur the buffer. Source has to be different from the destination.");
-            if (source.rt.antiAliasing > 1 || destination.rt.antiAliasing > 1) 
+            if (source.rt.antiAliasing > 1 || destination.rt.antiAliasing > 1)
                 Debug.LogError($"GaussianBlur is not supported with MSAA buffers");
 
             using (new ProfilingScope(ctx.cmd, horizontalBlurSampler))
@@ -229,7 +229,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 propertyBlock.SetFloat(HDShaderIDs._SampleCount, sampleCount);
                 propertyBlock.SetFloat(HDShaderIDs._Radius, radius);
                 SetSourceSize(propertyBlock, source);
-                ctx.cmd.DrawProcedural(Matrix4x4.identity, customPassUtilsMaterial, horizontalBlurPassIndex, MeshTopology.Quads, 4, 1, propertyBlock);
+                ctx.cmd.DrawProcedural(Matrix4x4.identity, customPassUtilsMaterial, horizontalBlurPassIndex, MeshTopology.Triangles, 3, 1, propertyBlock);
             }
         }
 
@@ -308,15 +308,16 @@ namespace UnityEngine.Rendering.HighDefinition
         /// <param name="overrideMaterial">Optional material that will be used to render the objects.</param>
         /// <param name="overrideMaterialIndex">Pass index to use for the override material.</param>
         /// <param name="overrideRenderState">The render states to override when rendering the objects.</param>
-        public static void DrawRenderers(in CustomPassContext ctx, LayerMask layerMask, CustomPass.RenderQueueType renderQueueFilter = CustomPass.RenderQueueType.All, Material overrideMaterial = null, int overrideMaterialIndex = 0, RenderStateBlock overrideRenderState = default(RenderStateBlock))
+        /// <param name="sorting">How the objects are sorted before being rendered.</param>
+        public static void DrawRenderers(in CustomPassContext ctx, LayerMask layerMask, CustomPass.RenderQueueType renderQueueFilter = CustomPass.RenderQueueType.All, Material overrideMaterial = null, int overrideMaterialIndex = 0, RenderStateBlock overrideRenderState = default(RenderStateBlock), SortingCriteria sorting = SortingCriteria.CommonOpaque)
         {
             PerObjectData renderConfig = ctx.hdCamera.frameSettings.IsEnabled(FrameSettingsField.Shadowmask) ? HDUtils.k_RendererConfigurationBakedLightingWithShadowMask : HDUtils.k_RendererConfigurationBakedLighting;
 
-            var result = new RendererListDesc(litForwardTags, ctx.cullingResults, ctx.hdCamera.camera)
+            var result = new RendererUtils.RendererListDesc(litForwardTags, ctx.cullingResults, ctx.hdCamera.camera)
             {
                 rendererConfiguration = renderConfig,
                 renderQueueRange = GetRenderQueueRangeFromRenderQueueType(renderQueueFilter),
-                sortingCriteria = SortingCriteria.CommonOpaque,
+                sortingCriteria = sorting,
                 overrideMaterial = overrideMaterial,
                 overrideMaterialPassIndex = overrideMaterialIndex,
                 excludeObjectMotionVectors = false,
@@ -324,7 +325,8 @@ namespace UnityEngine.Rendering.HighDefinition
                 stateBlock = overrideRenderState,
             };
 
-            CoreUtils.DrawRendererList(ctx.renderContext, ctx.cmd, RendererList.Create(result));
+            var renderCtx = ctx.renderContext;
+            CoreUtils.DrawRendererList(ctx.renderContext, ctx.cmd, renderCtx.CreateRendererList(result));
         }
 
         /// <summary>
@@ -333,7 +335,7 @@ namespace UnityEngine.Rendering.HighDefinition
         /// <param name="weightCount">number of weights you want to generate</param>
         /// <returns>a GPU compute buffer containing the weights</returns>
         internal static ComputeBuffer GetGaussianWeights(int weightCount)
-		{
+        {
             float[] weights;
             ComputeBuffer gpuWeights;
 
@@ -341,32 +343,32 @@ namespace UnityEngine.Rendering.HighDefinition
                 return gpuWeights;
 
             weights = new float[weightCount];
-			float integrationBound = 3;
-			float p = -integrationBound;
+            float integrationBound = 3;
+            float p = -integrationBound;
             float c = 0;
             float step = (1.0f / (float)weightCount) * integrationBound * 2;
-			for (int i = 0; i < weightCount; i++)
-			{
-				float w = (Gaussian(p) / (float)weightCount) * integrationBound * 2;
+            for (int i = 0; i < weightCount; i++)
+            {
+                float w = (Gaussian(p) / (float)weightCount) * integrationBound * 2;
                 weights[i] = w;
-				p += step;
+                p += step;
                 c += w;
-			}
+            }
 
-			// Gaussian function
-			float Gaussian(float x, float sigma = 1)
-			{
-				float a = 1.0f / Mathf.Sqrt(2 * Mathf.PI * sigma * sigma);
-				float b = Mathf.Exp(-(x * x) / (2 * sigma * sigma));
-				return a * b;
-			}
+            // Gaussian function
+            float Gaussian(float x, float sigma = 1)
+            {
+                float a = 1.0f / Mathf.Sqrt(2 * Mathf.PI * sigma * sigma);
+                float b = Mathf.Exp(-(x * x) / (2 * sigma * sigma));
+                return a * b;
+            }
 
             gpuWeights = new ComputeBuffer(weights.Length, sizeof(float));
             gpuWeights.SetData(weights);
             gaussianWeightsCache[weightCount] = gpuWeights;
 
             return gpuWeights;
-		}
+        }
 
         /// <summary>
         /// Convert a Custom Pass render queue type to a RenderQueueRange that can be used in DrawRenderers
@@ -408,7 +410,7 @@ namespace UnityEngine.Rendering.HighDefinition
             {
                 m_Context = ctx;
                 if (ctx.hdCamera.xr.enabled)
-                    m_Context.hdCamera.xr.StartSinglePass(ctx.cmd);
+                    m_Context.hdCamera.xr.StopSinglePass(ctx.cmd);
             }
 
             /// <summary>
@@ -417,7 +419,7 @@ namespace UnityEngine.Rendering.HighDefinition
             void IDisposable.Dispose()
             {
                 if (m_Context.hdCamera.xr.enabled)
-                    m_Context.hdCamera.xr.StopSinglePass(m_Context.cmd);
+                    m_Context.hdCamera.xr.StartSinglePass(m_Context.cmd);
             }
         }
 
@@ -568,7 +570,11 @@ namespace UnityEngine.Rendering.HighDefinition
         {
             // viewport with RT handle scale and scale factor:
             Rect viewport = new Rect();
-            Vector2 destSize = viewport.size = destination.GetScaledSize(destination.rtHandleProperties.currentViewportSize);
+            if (destination.useScaling)
+                viewport.size = destination.GetScaledSize(destination.rtHandleProperties.currentViewportSize);
+            else
+                viewport.size = new Vector2Int(destination.rt.width, destination.rt.height);
+            Vector2 destSize = viewport.size;
             viewport.position = new Vector2(viewport.size.x * destScaleBias.z, viewport.size.y * destScaleBias.w);
             viewport.size *= new Vector2(destScaleBias.x, destScaleBias.y);
 
@@ -578,7 +584,7 @@ namespace UnityEngine.Rendering.HighDefinition
             block.SetVector(HDShaderIDs._ViewPortSize, new Vector4(destSize.x, destSize.y, 1.0f / destSize.x, 1.0f / destSize.y));
             block.SetVector(HDShaderIDs._ViewportScaleBias, new Vector4(1.0f / destScaleBias.x, 1.0f / destScaleBias.y, destScaleBias.z, destScaleBias.w));
         }
-        
+
         static void SetSourceSize(MaterialPropertyBlock block, RTHandle source)
         {
             Vector2 sourceSize = source.GetScaledSize(source.rtHandleProperties.currentViewportSize);

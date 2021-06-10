@@ -1,0 +1,29 @@
+{
+    "name": "Unity.Testing.XR.Runtime",
+    "rootNamespace": "",
+    "references": [
+        "GUID:df380645f10b7bc4b97d4f5eb6303d95",
+        "GUID:c081bc530f560634bb5c21d4b323a7f1",
+        "GUID:e18141520846dcc44b725b2f74e91229",
+        "GUID:344c59e53e2aa435db7f183483734523"
+    ],
+    "includePlatforms": [],
+    "excludePlatforms": [],
+    "allowUnsafeCode": false,
+    "overrideReferences": true,
+    "precompiledReferences": [
+        "nunit.framework.dll"
+    ],
+    "autoReferenced": true,
+    "defineConstraints": [
+        "UNITY_INCLUDE_TESTS"
+    ],
+    "versionDefines": [
+        {
+            "name": "com.unity.xr.mock-hmd",
+            "expression": "1.2.0-preview.1",
+            "define": "USE_XR_MOCK_HMD"
+        }
+    ],
+    "noEngineReferences": false
+}

@@ -1,0 +1,235 @@
+VFXOperatorUI.node #middle
+{
+    flex:1 0 auto;
+    background-color:#363636;
+}
+
+VFXOperatorUI #title #edit
+{
+   width: 28px;
+   flex-direction:column;
+   justify-content:center;
+}
+
+VFXOperatorUI #title #edit #icon
+{
+    background-image: url("project:///Packages/com.unity.visualeffectgraph/Editor/UIResources/VFX/EditStolen.png");
+    width: 15px;
+    height: 14px;
+    align-self: center;
+}
+
+OperandInfo *
+{
+    height: 16px;
+}
+OperandInfo .unity-text-field
+{
+    flex:1 0 auto;
+}
+
+OperandInfo .PopupButton
+{
+    flex:0 0 auto;
+    width: 64px;
+}
+
+VFXUnifiedOperatorEdit OperandInfo .unity-label
+{
+    flex:1 0 auto;
+}
+
+VFXUnifiedOperatorEdit OperandInfo .PopupButton
+{
+    width: 80px;
+}
+
+#edit-container
+{
+    position:Absolute;
+    top:0;
+    bottom:0;
+    right:0;
+    left:0;
+    background-color:#282828;
+}
+
+#edit-container.ReorderableList > #ListContainer
+{
+    flex:1 0 auto;
+}
+
+.VFXUniformOperatorEdit#edit-container
+{
+    justify-content:center;
+}
+
+.VFXUniformOperatorEdit#edit-container .unity-label
+{
+    margin-left: 8px;
+    margin-right: 8px;
+}
+
+VFXOperatorUI.superCollapsed.VFXNodeUI.node .mainContainer > #middle
+{
+    width:0;
+    height:0;
+}
+
+VFXOperatorUI.superCollapsed.VFXNodeUI.node #settings-divider, VFXOperatorUI.superCollapsed.VFXNodeUI.node #divider
+{
+    border-bottom-width:0;
+    height:0;
+}
+
+.VFXNodeUI.superCollapsed
+{
+    height: 30px;
+    width: auto;
+}
+
+.VFXNodeUI.VFXNodeUI.superCollapsed #settings
+{
+    margin-top: 0;
+    margin-bottom: 0;
+    display: none;
+}
+
+.VFXNodeUI.node.superCollapsed #contents
+{
+    background-color: rgba(0,0,0,0);
+}
+
+.VFXNodeUI.node.superCollapsed #node-border > #title
+{
+    position:Relative;
+    left:0;
+    right:0;
+    top:0;
+    bottom:0;
+    height: auto;
+    margin-bottom:0;
+    border-bottom-left-radius: 2px;
+    border-bottom-right-radius: 2px;
+}
+
+.VFXNodeUI.node.superCollapsed #node-border > #title > .unity-label#title-label {
+    margin-bottom: 3px;
+    margin-top: 3px;
+    margin-left: 20px;
+    margin-right: 20px;
+}
+
+.VFXNodeUI.node.superCollapsed .mainContainer, .VFXNodeUI.superCollapsed #contents, .VFXNodeUI.superCollapsed #contents > #top
+{
+    position:Absolute;
+    left:0;
+    right:0;
+    top:0;
+    bottom:0;
+}
+
+.VFXNodeUI.superCollapsed #contents > #top > #input
+{
+    padding-top:0;
+    padding-bottom:0;
+    background-color:rgba(0,0,0,0);
+    flex:1 0 auto;
+}
+
+.VFXNodeUI.superCollapsed #contents > #top > #divider
+{
+    width:0;
+    border-right-width:0;
+}
+
+.VFXNodeUI.superCollapsed #contents > #top > #middle
+{
+    flex:0 0 auto;
+}
+
+.VFXNodeUI.superCollapsed #contents > #top > #output
+{
+    position:Absolute;
+    top:0;
+    bottom:0;
+    right: 1px;
+    flex-grow:0;
+    flex:0 0 auto;
+    width: 20px;
+    background-color:rgba(0,0,0,0);
+}
+
+.VFXNodeUI.node.superCollapsed #right #output
+{
+    align-self:flex-end;
+    width: 16px;
+}
+
+.VFXNodeUI.superCollapsed #type
+{
+    display:none;
+}
+
+.VFXNodeUI.superCollapsed > #node-border > #title > #edit,.VFXNodeUI.superCollapsed > #node-border > #title > #collapse-button
+{
+    width:0;
+    padding-left:0;
+}
+
+.VFXNodeUI.superCollapsed #icon
+{
+    max-width:0;
+}
+
+.VFXNodeUI.superCollapsed .propertyrm
+{
+    min-width:0;
+    max-width:0;
+    overflow: hidden;
+}
+
+.VFXNodeUI.superCollapsed.node .mainContainer #left
+{
+    width: 120px;
+}
+
+.VFXNodeUI.superCollapsed.node .VFXDataAnchor
+{
+    position: Absolute;
+    left: 0px;
+    width: 16px;
+    top: 11px;
+    height: 0px;
+    min-height: 0px;
+    overflow: hidden;
+}
+
+.VFXNodeUI.superCollapsed.node .VFXDataAnchor .propertyrm
+{
+    display:none;
+}
+
+.VFXNodeUI.superCollapsed.node .VFXDataAnchor.first
+{
+    top: auto;
+    height: auto;
+    bottom: 0px;
+    min-height: 20px;
+}
+
+
+.VFXNodeUI.superCollapsed.node .VFXDataAnchor.first #connector
+{
+    margin-top: 0px;
+}
+
+.VFXNodeUI.superCollapsed.node VFXOutputDataAnchor.VFXDataAnchor
+{
+    width: auto;
+}
+
+.VFXNodeUI.superCollapsed.node .VFXDataAnchor #line
+{
+    background-color:rgba(0,0,0,0);
+}

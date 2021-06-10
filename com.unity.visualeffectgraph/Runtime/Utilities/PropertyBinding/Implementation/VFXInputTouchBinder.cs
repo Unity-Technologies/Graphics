@@ -1,7 +1,7 @@
 #if ENABLE_INPUT_SYSTEM && VFX_HAS_INPUT_SYSTEM_PACKAGE
     #define USE_INPUT_SYSTEM
-    using UnityEngine.InputSystem;
-    using System.Linq;
+using UnityEngine.InputSystem;
+using System.Linq;
 #endif
 
 using UnityEngine.VFX;
@@ -51,7 +51,7 @@ namespace UnityEngine.VFX.Utility
 
             if (GetTouchCount() > TouchIndex)
             {
-                Vector2 touchPosition = GetTouchPosition(TouchIndex); 
+                Vector2 touchPosition = GetTouchPosition(TouchIndex);
 #if VFX_USE_PHYSICS
                 if (UseRaycast) // Raycast version
                 {

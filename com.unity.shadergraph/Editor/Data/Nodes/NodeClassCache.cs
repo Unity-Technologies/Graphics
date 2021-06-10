@@ -9,7 +9,7 @@ namespace UnityEditor.ShaderGraph
     [InitializeOnLoad]
     internal static class NodeClassCache
     {
-        private static Dictionary<Type,List<ContextFilterableAttribute>> m_KnownTypeLookupTable;
+        private static Dictionary<Type, List<ContextFilterableAttribute>> m_KnownTypeLookupTable;
 
         public static IEnumerable<Type> knownNodeTypes
         {
@@ -36,9 +36,9 @@ namespace UnityEditor.ShaderGraph
         public static T GetAttributeOnNodeType<T>(Type nodeType) where T : ContextFilterableAttribute
         {
             var filterableAttributes = GetFilterableAttributesOnNodeType(nodeType);
-            foreach(var attr in filterableAttributes)
+            foreach (var attr in filterableAttributes)
             {
-                if(attr is T searchTypeAttr)
+                if (attr is T searchTypeAttr)
                 {
                     return searchTypeAttr;
                 }
@@ -51,32 +51,32 @@ namespace UnityEditor.ShaderGraph
             Profiler.BeginSample("NodeClassCache: Re-caching all known node types");
             m_KnownTypeLookupTable = new Dictionary<Type, List<ContextFilterableAttribute>>();
             foreach (Type nodeType in TypeCache.GetTypesDerivedFrom<AbstractMaterialNode>())
-            { 
-               if (!nodeType.IsAbstract)
-               {
-                   List<ContextFilterableAttribute> filterableAttributes = new List<ContextFilterableAttribute>();
-                   foreach(Attribute attribute in Attribute.GetCustomAttributes(nodeType))
-                   {
-                       Type attributeType = attribute.GetType();
-                       if(!attributeType.IsAbstract && attribute is ContextFilterableAttribute contextFilterableAttribute)
-                       {
-                           filterableAttributes.Add(contextFilterableAttribute);
-                       }
-                   }
-                   m_KnownTypeLookupTable.Add(nodeType,filterableAttributes);
-               }
+            {
+                if (!nodeType.IsAbstract)
+                {
+                    List<ContextFilterableAttribute> filterableAttributes = new List<ContextFilterableAttribute>();
+                    foreach (Attribute attribute in Attribute.GetCustomAttributes(nodeType))
+                    {
+                        Type attributeType = attribute.GetType();
+                        if (!attributeType.IsAbstract && attribute is ContextFilterableAttribute contextFilterableAttribute)
+                        {
+                            filterableAttributes.Add(contextFilterableAttribute);
+                        }
+                    }
+                    m_KnownTypeLookupTable.Add(nodeType, filterableAttributes);
+                }
             }
             Profiler.EndSample();
         }
 
         private static void DebugPrintKnownNodes()
         {
-            foreach(var entry in m_KnownTypeLookupTable)
+            foreach (var entry in m_KnownTypeLookupTable)
             {
                 var nodeType = entry.Key;
                 var filterableAttributes = entry.Value;
                 String attrs = "";
-                foreach(var filterable in filterableAttributes)
+                foreach (var filterable in filterableAttributes)
                 {
                     attrs += filterable.ToString() + ", ";
                 }

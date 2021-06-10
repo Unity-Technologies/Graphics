@@ -11,7 +11,6 @@ namespace UnityEditor.ShaderGraph
             name = "DDXY";
         }
 
-
         protected override MethodInfo GetFunctionToConvert()
         {
             return GetType().GetMethod("Unity_DDXY", BindingFlags.Static | BindingFlags.NonPublic);
@@ -22,7 +21,7 @@ namespace UnityEditor.ShaderGraph
             [Slot(1, Binding.None, ShaderStageCapability.Fragment)] out DynamicDimensionVector Out)
         {
             return
-                @"
+@"
 {
     Out = abs(ddx(In)) + abs(ddy(In));
 }

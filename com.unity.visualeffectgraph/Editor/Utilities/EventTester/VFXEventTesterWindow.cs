@@ -1,5 +1,6 @@
 using UnityEngine;
 using UnityEditor;
+using UnityEditor.Overlays;
 using UnityEngine.VFX;
 using UnityEditorInternal;
 using System.Collections.Generic;
@@ -8,6 +9,30 @@ namespace UnityEditor.VFX
 {
     static class VFXEventTesterWindow
     {
+        [Overlay(typeof(SceneView), k_OverlayId, k_DisplayName)]
+        class SceneViewVFXEventTesterOverlay : IMGUIOverlay, ITransientOverlay
+        {
+            const string k_OverlayId = "Scene View/Visual Effect Event Tester";
+            const string k_DisplayName = "Visual Effect Event Tester";
+
+            public bool visible
+            {
+                get
+                {
+                    if (Selection.activeGameObject && Selection.activeGameObject.TryGetComponent<VisualEffect>(out m_Effect))
+                        return VFXEventTesterWindow.visible;
+                    return false;
+                }
+            }
+
+
+            public override void OnGUI()
+            {
+                if (visible)
+                    WindowGUI();
+            }
+        }
+
         public static bool visible { get { return s_Visible; } set { SetVisibility(value); } }
 
         static bool s_Visible;
@@ -39,18 +64,7 @@ namespace UnityEditor.VFX
             {
                 s_Visible = visible;
                 EditorPrefs.SetBool(PreferenceName, visible);
-
-                UpdateVisibility();
             }
-        }
-
-        [InitializeOnLoadMethod]
-        static void UpdateVisibility()
-        {
-            if (s_Visible)
-                SceneView.duringSceneGui += DrawWindow;
-            else
-                SceneView.duringSceneGui -= DrawWindow;
         }
 
         private static void drawAddDropDown(Rect buttonRect, ReorderableList list)
@@ -115,26 +129,6 @@ namespace UnityEditor.VFX
             m_Attributes.Add(new EventAttribute(name as string, EventAttributeType.Color, Color.white));
         }
 
-        static void DrawWindow(SceneView sceneView)
-        {
-            if (Selection.activeGameObject != null)
-            {
-                if (Selection.activeGameObject.TryGetComponent<VisualEffect>(out m_Effect))
-                {
-                    SceneViewOverlay.Window(Contents.title, WindowFunction, 599, SceneViewOverlay.WindowDisplayOption.OneWindowPerTitle);
-                }
-                else
-                {
-                    m_Effect = null;
-                }
-            }
-        }
-
-        static void WindowFunction(UnityEngine.Object target, SceneView sceneView)
-        {
-            WindowGUI();
-        }
-
         [System.Serializable]
         enum EventAttributeType
         {
@@ -193,11 +187,11 @@ namespace UnityEditor.VFX
 
             var typerect = rect;
             typerect.xMin = rect.xMin + 108;
-            typerect.width = 64;
+            typerect.width = 76;
             m_Attributes[index].type = (EventAttributeType)EditorGUI.EnumPopup(typerect, m_Attributes[index].type);
 
             var valueRect = rect;
-            valueRect.xMin = rect.xMin + 180;
+            valueRect.xMin = rect.xMin + 192;
             switch (m_Attributes[index].type)
             {
                 case EventAttributeType.Bool:
@@ -233,6 +227,10 @@ namespace UnityEditor.VFX
                         m_Attributes[index].value = Color.white;
 
                     m_Attributes[index].value = (Color)EditorGUI.ColorField(valueRect, (Color)m_Attributes[index].value);
+                    // The is a hotControl id hash collision with the selection rectangle that cause of a lost of selection on mouseup.
+                    if (Event.current.type == EventType.MouseUp && valueRect.Contains(Event.current.mousePosition))
+                        GUIUtility.hotControl = 0;
+
                     break;
             }
         }
@@ -266,6 +264,7 @@ namespace UnityEditor.VFX
         {
             if (m_Effect == null) return;
             var attrib = m_Effect.CreateVFXEventAttribute();
+            if (attrib == null) return;
 
             // set all attributes
             foreach (var attribute in m_Attributes)

@@ -16,8 +16,11 @@ namespace UnityEngine.Rendering.Universal.Internal
 
         RenderTargetHandle m_InternalLut;
 
+        bool m_AllowColorGradingACESHDR = true;
+
         public ColorGradingLutPass(RenderPassEvent evt, PostProcessData data)
         {
+            base.profilingSampler = new ProfilingSampler(nameof(ColorGradingLutPass));
             renderPassEvent = evt;
             overrideCameraTarget = true;
 
@@ -49,6 +52,10 @@ namespace UnityEngine.Rendering.Universal.Internal
                 m_HdrLutFormat = GraphicsFormat.R8G8B8A8_UNorm;
 
             m_LdrLutFormat = GraphicsFormat.R8G8B8A8_UNorm;
+            base.useNativeRenderPass = false;
+
+            if (SystemInfo.graphicsDeviceType == GraphicsDeviceType.OpenGLES3 && Graphics.minOpenGLESVersion <= OpenGLESVersion.OpenGLES30 && SystemInfo.graphicsDeviceName.StartsWith("Adreno (TM) 3"))
+                m_AllowColorGradingACESHDR = false;
         }
 
         public void Setup(in RenderTargetHandle internalLut)
@@ -99,19 +106,19 @@ namespace UnityEngine.Rendering.Universal.Internal
                     shadowsMidtonesHighlights.highlightsEnd.value
                 );
 
-                var (shadows, midtones, highlights) = ColorUtils.PrepareShadowsMidtonesHighlights(
+                var(shadows, midtones, highlights) = ColorUtils.PrepareShadowsMidtonesHighlights(
                     shadowsMidtonesHighlights.shadows.value,
                     shadowsMidtonesHighlights.midtones.value,
                     shadowsMidtonesHighlights.highlights.value
                 );
 
-                var (lift, gamma, gain) = ColorUtils.PrepareLiftGammaGain(
+                var(lift, gamma, gain) = ColorUtils.PrepareLiftGammaGain(
                     liftGammaGain.lift.value,
                     liftGammaGain.gamma.value,
                     liftGammaGain.gain.value
                 );
 
-                var (splitShadows, splitHighlights) = ColorUtils.PrepareSplitToning(
+                var(splitShadows, splitHighlights) = ColorUtils.PrepareSplitToning(
                     splitToning.shadows.value,
                     splitToning.highlights.value,
                     splitToning.balance.value
@@ -158,7 +165,7 @@ namespace UnityEngine.Rendering.Universal.Internal
                     switch (tonemapping.mode.value)
                     {
                         case TonemappingMode.Neutral: material.EnableKeyword(ShaderKeywordStrings.TonemapNeutral); break;
-                        case TonemappingMode.ACES: material.EnableKeyword(ShaderKeywordStrings.TonemapACES); break;
+                        case TonemappingMode.ACES: material.EnableKeyword(m_AllowColorGradingACESHDR ? ShaderKeywordStrings.TonemapACES : ShaderKeywordStrings.TonemapNeutral); break;
                         default: break; // None
                     }
                 }
@@ -166,7 +173,7 @@ namespace UnityEngine.Rendering.Universal.Internal
                 renderingData.cameraData.xr.StopSinglePass(cmd);
 
                 // Render the lut
-                Blit(cmd, m_InternalLut.id, m_InternalLut.id, material);
+                cmd.Blit(null, m_InternalLut.id, material);
 
                 renderingData.cameraData.xr.StartSinglePass(cmd);
             }
