@@ -313,7 +313,6 @@
     UNITY_INSTANCING_BUFFER_START(PerDraw1)
         #if !defined(UNITY_DONT_INSTANCE_OBJECT_MATRICES) && UNITY_WORLDTOOBJECTARRAY_CB == 1
             UNITY_DEFINE_INSTANCED_PROP(float4x4, unity_WorldToObjectArray)
-            UNITY_DEFINE_INSTANCED_PROP(float4x4, unity_PrevWorldToObjectArray)
         #endif
         #if defined(UNITY_USE_LODFADE_ARRAY) && !defined(UNITY_INSTANCING_SUPPORT_FLEXIBLE_ARRAY_SIZE)
             UNITY_DEFINE_INSTANCED_PROP(float2, unity_LODFadeArray)
