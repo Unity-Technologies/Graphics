@@ -14,6 +14,7 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
         }
 
         public override bool IsActive() => true;
+        internal override bool prefersSpritePreview => true;
 
         public override void Setup(ref TargetSetupContext context)
         {

@@ -99,6 +99,14 @@ namespace UnityEditor.ShaderGraph.Drawing.Inspector
 
             m_RecalculateLayout = false;
             this.RegisterCallback<GeometryChangedEvent>(OnGeometryChanged);
+
+            if (graph.previewData.serializedMesh.mesh != null) return;
+
+            var activeTarget = graph.activeTargets.LastOrDefault(t => t.IsActive());
+            if (activeTarget != null && activeTarget.prefersSpritePreview)
+            {
+                ChangeMeshSprite();
+            }
         }
 
         Image CreatePreview(Texture texture)
