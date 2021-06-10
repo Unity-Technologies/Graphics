@@ -131,7 +131,6 @@ namespace UnityEditor.Rendering
         static readonly int k_FlareData2 = Shader.PropertyToID("_FlareData2");
         static readonly int k_FlareData3 = Shader.PropertyToID("_FlareData3");
         static readonly int k_FlareData4 = Shader.PropertyToID("_FlareData4");
-        static readonly int k_FlareData5 = Shader.PropertyToID("_FlareData5");
         static readonly int k_FlarePreviewData = Shader.PropertyToID("_FlarePreviewData");
 
         class TextureCacheElement
@@ -414,7 +413,7 @@ namespace UnityEditor.Rendering
             if (type == SRPLensFlareType.Polygon)
                 usedGradientPosition = Mathf.Pow(usedGradientPosition + 1.0f, 5);
 
-            Vector4 flareData0 = LensFlareCommonSRP.GetFlareData0(Vector2.zero, Vector2.zero, Vector2.one, rotationProp.floatValue, 0f, 0f, Vector2.zero, false);
+            Vector4 flareData0 = LensFlareCommonSRP.GetFlareData0(Vector2.zero, Vector2.zero, Vector2.one, Vector2.zero, rotationProp.floatValue, 0f, 0f, Vector2.zero, false);
 
             float cos0 = flareData0.x;
             float sin0 = flareData0.y;
@@ -434,14 +433,15 @@ namespace UnityEditor.Rendering
             {
                 m_PreviewLensFlare.SetTexture(k_FlareTex, null);
             }
+
             m_PreviewLensFlare.SetVector(k_FlareColorValue, new Vector4(colorProp.colorValue.r * intensity, colorProp.colorValue.g * intensity, colorProp.colorValue.b * intensity, 1f));
             m_PreviewLensFlare.SetVector(k_FlareData0, flareData0);
             // x: OcclusionRadius, y: OcclusionSampleCount, z: ScreenPosZ, w: ScreenRatio
             m_PreviewLensFlare.SetVector(k_FlareData1, new Vector4(0f, 0f, 0f, 1f));
             // xy: ScreenPos, zw: FlareSize
             m_PreviewLensFlare.SetVector(k_FlareData2, new Vector4(0f, 0f, rescale * localSize.x, rescale * localSize.y));
-            // xy: RayOffset, z: invSideCount
-            m_PreviewLensFlare.SetVector(k_FlareData3, new Vector4(0f, 0f, invSideCount, 0f));
+            // x: Allow Offscreen, y: Edge Offset, z: Falloff, w: invSideCount
+            m_PreviewLensFlare.SetVector(k_FlareData3, new Vector4(0f, usedGradientPosition, Mathf.Exp(Mathf.Lerp(0.0f, 4.0f, Mathf.Clamp01(1.0f - fallOffProp.floatValue))), invSideCount));
 
             if (type == SRPLensFlareType.Polygon)
             {
@@ -460,12 +460,6 @@ namespace UnityEditor.Rendering
                 // x: SDF Roundness, yzw: Unused
                 m_PreviewLensFlare.SetVector(k_FlareData4, new Vector4(usedSDFRoundness, 0f, 0f, 0f));
             }
-
-            // x: Allow Offscreen, y: Edge Offset, z: Falloff
-            if (type != SRPLensFlareType.Image)
-                m_PreviewLensFlare.SetVector(k_FlareData5, new Vector4(0f, usedGradientPosition, Mathf.Exp(Mathf.Lerp(0.0f, 4.0f, Mathf.Clamp01(1.0f - fallOffProp.floatValue))), 0f));
-            else
-                m_PreviewLensFlare.SetVector(k_FlareData5, new Vector4(0f, 0f, 0f, 0f));
 
             // xy: _FlarePreviewData.xy, z: ScreenRatio
             m_PreviewLensFlare.SetVector(k_FlarePreviewData, new Vector4(k_PreviewSize, k_PreviewSize, 1f, 0f));
