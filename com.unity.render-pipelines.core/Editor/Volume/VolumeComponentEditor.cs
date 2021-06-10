@@ -83,6 +83,9 @@ namespace UnityEditor.Rendering
             public static GUIContent noneText { get; } = EditorGUIUtility.TrTextContent("NONE", "Toggle all overrides off.");
 
             public static string toggleAllText { get; } = L10n.Tr("Toggle All");
+
+            public const int overrideCheckboxWidth = 14;
+            public const int overrideCheckboxOffset = 9;
         }
 
         Vector2? m_OverrideToggleSize;
@@ -622,11 +625,11 @@ namespace UnityEditor.Rendering
         {
             // Create a rect the height + vspacing of the property that is being overriden
             float height = EditorGUI.GetPropertyHeight(property.value) + EditorGUIUtility.standardVerticalSpacing;
-            var overrideRect = GUILayoutUtility.GetRect(Styles.allText, CoreEditorStyles.miniLabelButton, GUILayout.Height(height), GUILayout.ExpandWidth(false));
+            var overrideRect = GUILayoutUtility.GetRect(Styles.allText, CoreEditorStyles.miniLabelButton, GUILayout.Height(height), GUILayout.Width(Styles.overrideCheckboxWidth + Styles.overrideCheckboxOffset), GUILayout.ExpandWidth(false));
 
             // also center vertically the checkbox
             overrideRect.yMin += height * 0.5f - overrideToggleSize.y * 0.5f;
-            overrideRect.xMin += overrideToggleSize.x * 0.5f;
+            overrideRect.xMin += Styles.overrideCheckboxOffset;
 
             property.overrideState.boolValue = GUI.Toggle(overrideRect, property.overrideState.boolValue, Styles.overrideSettingText, CoreEditorStyles.smallTickbox);
         }
