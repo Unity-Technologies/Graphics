@@ -634,5 +634,37 @@ namespace UnityEditor.Rendering
 
             property.overrideState.boolValue = GUI.Toggle(overrideRect, property.overrideState.boolValue, Styles.overrideSettingText, CoreEditorStyles.smallTickbox);
         }
+
+        /// <summary>
+        /// Like EditorGUI.IndentLevelScope but this one will also indent the override checkboxes.
+        /// </summary>
+        protected class IndentLevelScope : GUI.Scope
+        {
+            int m_Offset;
+
+            /// <summary>
+            /// Constructor
+            /// </summary>
+            /// <param name="offset">[optional] Change the indentation offset</param>
+            public IndentLevelScope(int offset = 15)
+            {
+                m_Offset = offset;
+
+                // When using EditorGUI.indentLevel++, the clicking on the checkboxes does not work properly due to some issues on the C++ side.
+                // This scope is a work-around for this issue.
+                GUILayout.BeginHorizontal();
+                EditorGUILayout.Space(offset, false);
+                GUIStyle style = new GUIStyle();
+                GUILayout.BeginVertical(style);
+                EditorGUIUtility.labelWidth -= m_Offset;
+            }
+
+            protected override void CloseScope()
+            {
+                EditorGUIUtility.labelWidth += m_Offset;
+                GUILayout.EndVertical();
+                GUILayout.EndHorizontal();
+            }
+        }
     }
 }

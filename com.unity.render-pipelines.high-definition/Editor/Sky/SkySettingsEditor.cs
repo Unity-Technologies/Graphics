@@ -91,7 +91,7 @@ namespace UnityEditor.Rendering.HighDefinition
                     }
                 }
 
-                using (new HDEditorUtils.IndentScope())
+                using (new IndentLevelScope())
                 {
                     if (m_IntensityMode.value.GetEnumValue<SkyIntensityMode>() == SkyIntensityMode.Exposure)
                         PropertyField(m_SkyExposure);
@@ -118,7 +118,7 @@ namespace UnityEditor.Rendering.HighDefinition
                 PropertyField(m_EnvUpdateMode);
                 if (!m_EnvUpdateMode.value.hasMultipleDifferentValues && m_EnvUpdateMode.value.intValue == (int)EnvironmentUpdateMode.Realtime)
                 {
-                    using (new HDEditorUtils.IndentScope())
+                    using (new IndentLevelScope())
                     {
                         PropertyField(m_EnvUpdatePeriod);
                     }

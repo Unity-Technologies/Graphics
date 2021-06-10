@@ -117,7 +117,7 @@ namespace UnityEditor.Rendering.HighDefinition
                 PropertyField(m_SampleCount, k_SampleCountText);
                 PropertyField(m_BounceCount, k_BounceCountText);
                 PropertyField(m_Denoise, k_DenoiseText);
-                using (new HDEditorUtils.IndentScope())
+                using (new IndentLevelScope())
                 {
                     PropertyField(m_DenoiserRadius, k_DenoiseRadiusText);
                     PropertyField(m_AffectsSmoothSurfaces, k_AffectsSmoothSurfacesText);
@@ -129,7 +129,7 @@ namespace UnityEditor.Rendering.HighDefinition
         {
             base.OnInspectorGUI();
 
-            using (new HDEditorUtils.IndentScope())
+            using (new IndentLevelScope())
             using (new QualityScope(this))
             {
                 PropertyField(m_MinSmoothness, k_MinimumSmoothnessText);
@@ -141,7 +141,7 @@ namespace UnityEditor.Rendering.HighDefinition
                 if (mixed)
                     PropertyField(m_RayMaxIterationsRT, k_MaxMixedRaySteps);
                 PropertyField(m_Denoise, k_DenoiseText);
-                using (new HDEditorUtils.IndentScope())
+                using (new IndentLevelScope())
                 {
                     PropertyField(m_DenoiserRadius, k_DenoiseRadiusText);
                     PropertyField(m_AffectsSmoothSurfaces, k_AffectsSmoothSurfacesText);
@@ -162,7 +162,7 @@ namespace UnityEditor.Rendering.HighDefinition
                 {
                     PropertyField(m_Mode, k_ModeText);
 
-                    using (new HDEditorUtils.IndentScope())
+                    using (new IndentLevelScope())
                     {
                         switch (m_Mode.value.GetEnumValue<RayTracingMode>())
                         {
@@ -236,7 +236,7 @@ namespace UnityEditor.Rendering.HighDefinition
 
                 base.OnInspectorGUI();
 
-                using (new HDEditorUtils.IndentScope())
+                using (new IndentLevelScope())
                 using (new QualityScope(this))
                 {
                     PropertyField(m_RayMaxIterations, k_RayMaxIterationsText);

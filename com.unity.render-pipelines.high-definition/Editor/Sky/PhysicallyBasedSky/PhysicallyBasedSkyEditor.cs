@@ -118,7 +118,7 @@ namespace UnityEditor.Rendering.HighDefinition
             {
                 PropertyField(m_SphericalMode);
 
-                using (new HDEditorUtils.IndentScope())
+                using (new IndentLevelScope())
                 {
                     bool isSpherical = !m_SphericalMode.overrideState.boolValue || m_SphericalMode.value.boolValue;
                     if (isSpherical)

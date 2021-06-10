@@ -79,7 +79,7 @@ namespace UnityEditor.Rendering.HighDefinition
             {
                 int cascadeCount;
 
-                using (new HDEditorUtils.IndentScope())
+                using (new IndentLevelScope())
                 {
                     cascadeCount = m_CascadeShadowSplitCount.value.intValue;
                     Debug.Assert(cascadeCount <= 4); // If we add support for more than 4 cascades, then we should add new entries in the next line
