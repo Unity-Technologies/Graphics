@@ -79,10 +79,11 @@ namespace UnityEditor.Rendering.BuiltIn.ShaderGraph
         // By default, everything is expanded, except advanced
         readonly MaterialHeaderScopeList m_MaterialScopeList = new MaterialHeaderScopeList(uint.MaxValue & ~(uint)Expandable.Advanced);
 
-        private const int queueOffsetRange = 50;
-
+        // These have to be stored due to how MaterialHeaderScopeList callbacks work (they don't provide this data in the callbacks)
         MaterialEditor m_MaterialEditor;
         MaterialProperty[] m_Properties;
+
+        private const int queueOffsetRange = 50;
 
         override public void OnGUI(MaterialEditor materialEditor, MaterialProperty[] properties)
         {
@@ -192,6 +193,8 @@ namespace UnityEditor.Rendering.BuiltIn.ShaderGraph
             CoreUtils.SetKeyword(material, Keyword.SG_AlphaTestOn, alphaClipping);
             CoreUtils.SetKeyword(material, Keyword.SG_AlphaClip, alphaClipping);
 
+            int renderQueue = material.shader.renderQueue;
+
             var surfaceTypeProp = Property.Surface();
             if (material.HasProperty(surfaceTypeProp))
             {
@@ -200,21 +203,19 @@ namespace UnityEditor.Rendering.BuiltIn.ShaderGraph
                 if (surfaceType == SurfaceType.Opaque)
                 {
                     string renderType;
-                    RenderQueue renderQueue;
                     if (alphaClipping)
                     {
-                        renderQueue = RenderQueue.AlphaTest;
+                        renderQueue = (int)RenderQueue.AlphaTest;
                         renderType = "TransparentCutout";
                     }
                     else
                     {
-                        renderQueue = RenderQueue.Geometry;
+                        renderQueue = (int)RenderQueue.Geometry;
                         renderType = "Opaque";
                     }
 
                     material.SetOverrideTag("RenderType", "Transparent");
                     material.SetOverrideTag("RenderType", renderType);
-                    material.renderQueue = (int)renderQueue;
                     SetBlendMode(material, UnityEngine.Rendering.BlendMode.One, UnityEngine.Rendering.BlendMode.Zero);
                     material.DisableKeyword(Keyword.SG_AlphaPremultiplyOn);
                     zwrite = true;
@@ -236,7 +237,7 @@ namespace UnityEditor.Rendering.BuiltIn.ShaderGraph
                         CoreUtils.SetKeyword(material, Keyword.SG_AlphaPremultiplyOn, blendMode == BlendMode.Premultiply);
                     }
 
-                    material.renderQueue = (int)RenderQueue.Transparent;
+                    renderQueue = (int)RenderQueue.Transparent;
                     material.SetOverrideTag("RenderType", "Transparent");
                 }
                 CoreUtils.SetKeyword(material, Keyword.SG_SurfaceTypeTransparent, surfaceType == SurfaceType.Transparent);
@@ -253,6 +254,14 @@ namespace UnityEditor.Rendering.BuiltIn.ShaderGraph
                 }
                 SetMaterialZWriteProperty(material, zwrite);
             }
+
+            // must always apply queue offset, even if not set to material control
+            if (material.HasProperty(Property.QueueOffset()))
+                renderQueue += (int)material.GetFloat(Property.QueueOffset());
+
+            // apply automatic render queue
+            if (renderQueue != material.renderQueue)
+                material.renderQueue = renderQueue;
         }
 
         static void SetMaterialZWriteProperty(Material material, bool state)
