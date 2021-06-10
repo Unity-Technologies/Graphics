@@ -25,7 +25,12 @@ ShaderGraph_ref_Android_OpenGLES3_Standalone_ref_images_il2cpp_Linear_trunk:
       -  NetSh Advfirewall set allprofiles state off
       -  curl -s https://artifactory.prd.it.unity3d.com/artifactory/unity-tools-local/utr-standalone/utr.bat --output utr.bat
       -  choco install python3 && refreshenv
-      -  python .yamato/tooling/wrap_utr.py --architecture=ARM64 --artifacts_path=TestProjects/ShaderGraph/test-results --platform=Android --player-load-path=players --suite=playmode --timeout=1200 --zero-tests-are-ok=1
+      -  |5-
+                git rev-parse HEAD | git show -s --format=%%cI > revdate.tmp
+                set /p GIT_REVISIONDATE=<revdate.tmp
+                echo %GIT_REVISIONDATE%
+                del revdate.tmp
+                python .yamato/tooling/wrap_utr.py TestProjects/ShaderGraph --architecture=ARM64 --artifacts_path=TestProjects/ShaderGraph/test-results --platform=Android --player-load-path=players --suite=playmode --timeout=1200 --zero-tests-are-ok=1
       -  python .yamato/tooling/zip_to_artifact.py --artifacts TestProjects/ShaderGraph/test-results/ --root TestProjects/ShaderGraph/
     artifacts:
         logs:
@@ -87,7 +92,12 @@ ShaderGraph_ref_Android_OpenGLES3_playmode_ref_images_il2cpp_Linear_trunk:
       -  choco install unity-downloader-cli -y -s https://artifactory.prd.it.unity3d.com/artifactory/api/nuget/unity-choco-local
       -  unity-downloader-cli --source-file unity_revision.txt -p WindowsEditor -c editor -c il2cpp -c android  --wait --published-only
       -  choco install python3 && refreshenv
-      -  python .yamato/tooling/wrap_utr.py --artifacts_path=TestProjects/ShaderGraph/test-results --editor-location=./WindowsEditor --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-logfile C:/build/output/Unity-Technologies/Graphics/TestProjects/ShaderGraph/Logs/Editor.log" --testfilter="Individual" --scripting-backend=IL2CPP --suite=playmode --testfilter=%TEST_FILTER% --testproject=./TestProjects/ShaderGraph --zero-tests-are-ok=1
+      -  |5-
+                  git rev-parse HEAD | git show -s --format=%%cI > revdate.tmp
+                  set /p GIT_REVISIONDATE=<revdate.tmp
+                  echo %GIT_REVISIONDATE%
+                  del revdate.tmp
+                  python .yamato/tooling/wrap_utr.py TestProjects/ShaderGraph --artifacts_path=TestProjects/ShaderGraph/test-results --editor-location=./WindowsEditor --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-logfile C:/build/output/Unity-Technologies/Graphics/TestProjects/ShaderGraph/Logs/Editor.log" --testfilter="Individual" --scripting-backend=IL2CPP --suite=playmode --testfilter=%TEST_FILTER% --testproject=./TestProjects/ShaderGraph --zero-tests-are-ok=1
       -  python .yamato/tooling/zip_to_artifact.py --artifacts TestProjects/ShaderGraph/test-results/ --root TestProjects/ShaderGraph/
     artifacts:
         logs:
@@ -114,7 +124,12 @@ ShaderGraph_ref_Android_OpenGLES3_Standalone_cache_ref_images_il2cpp_Linear_trun
       -  NetSh Advfirewall set allprofiles state off
       -  curl -s https://artifactory.prd.it.unity3d.com/artifactory/unity-tools-local/utr-standalone/utr.bat --output utr.bat
       -  choco install python3 && refreshenv
-      -  python .yamato/tooling/wrap_utr.py --architecture=ARM64 --artifacts_path=TestProjects/ShaderGraph/test-results --platform=Android --player-load-path=players --suite=playmode --timeout=1200 --zero-tests-are-ok=1
+      -  |5-
+                  git rev-parse HEAD | git show -s --format=%%cI > revdate.tmp
+                  set /p GIT_REVISIONDATE=<revdate.tmp
+                  echo %GIT_REVISIONDATE%
+                  del revdate.tmp
+                  python .yamato/tooling/wrap_utr.py TestProjects/ShaderGraph --architecture=ARM64 --artifacts_path=TestProjects/ShaderGraph/test-results --platform=Android --player-load-path=players --suite=playmode --timeout=1200 --zero-tests-are-ok=1
       -  python .yamato/tooling/zip_to_artifact.py --artifacts TestProjects/ShaderGraph/test-results/ --root TestProjects/ShaderGraph/
       -  start %ANDROID_SDK_ROOT%\platform-tools\adb.exe kill-server
     artifacts:
@@ -178,7 +193,12 @@ ShaderGraph_ref_Android_OpenGLES3_Standalone_ref_images_il2cpp_Linear_CUSTOM-REV
       -  NetSh Advfirewall set allprofiles state off
       -  curl -s https://artifactory.prd.it.unity3d.com/artifactory/unity-tools-local/utr-standalone/utr.bat --output utr.bat
       -  choco install python3 && refreshenv
-      -  python .yamato/tooling/wrap_utr.py --architecture=ARM64 --artifacts_path=TestProjects/ShaderGraph/test-results --platform=Android --player-load-path=players --suite=playmode --timeout=1200 --zero-tests-are-ok=1
+      -  |5-
+                git rev-parse HEAD | git show -s --format=%%cI > revdate.tmp
+                set /p GIT_REVISIONDATE=<revdate.tmp
+                echo %GIT_REVISIONDATE%
+                del revdate.tmp
+                python .yamato/tooling/wrap_utr.py TestProjects/ShaderGraph --architecture=ARM64 --artifacts_path=TestProjects/ShaderGraph/test-results --platform=Android --player-load-path=players --suite=playmode --timeout=1200 --zero-tests-are-ok=1
       -  python .yamato/tooling/zip_to_artifact.py --artifacts TestProjects/ShaderGraph/test-results/ --root TestProjects/ShaderGraph/
     artifacts:
         logs:
@@ -240,7 +260,12 @@ ShaderGraph_ref_Android_OpenGLES3_playmode_ref_images_il2cpp_Linear_CUSTOM-REVIS
       -  choco install unity-downloader-cli -y -s https://artifactory.prd.it.unity3d.com/artifactory/api/nuget/unity-choco-local
       -  unity-downloader-cli --source-file unity_revision.txt -p WindowsEditor -c editor -c il2cpp -c android  --wait --published-only
       -  choco install python3 && refreshenv
-      -  python .yamato/tooling/wrap_utr.py --artifacts_path=TestProjects/ShaderGraph/test-results --editor-location=./WindowsEditor --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-logfile C:/build/output/Unity-Technologies/Graphics/TestProjects/ShaderGraph/Logs/Editor.log" --testfilter="Individual" --scripting-backend=IL2CPP --suite=playmode --testfilter=%TEST_FILTER% --testproject=./TestProjects/ShaderGraph --zero-tests-are-ok=1
+      -  |5-
+                  git rev-parse HEAD | git show -s --format=%%cI > revdate.tmp
+                  set /p GIT_REVISIONDATE=<revdate.tmp
+                  echo %GIT_REVISIONDATE%
+                  del revdate.tmp
+                  python .yamato/tooling/wrap_utr.py TestProjects/ShaderGraph --artifacts_path=TestProjects/ShaderGraph/test-results --editor-location=./WindowsEditor --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-logfile C:/build/output/Unity-Technologies/Graphics/TestProjects/ShaderGraph/Logs/Editor.log" --testfilter="Individual" --scripting-backend=IL2CPP --suite=playmode --testfilter=%TEST_FILTER% --testproject=./TestProjects/ShaderGraph --zero-tests-are-ok=1
       -  python .yamato/tooling/zip_to_artifact.py --artifacts TestProjects/ShaderGraph/test-results/ --root TestProjects/ShaderGraph/
     artifacts:
         logs:
@@ -267,7 +292,12 @@ ShaderGraph_ref_Android_OpenGLES3_Standalone_cache_ref_images_il2cpp_Linear_CUST
       -  NetSh Advfirewall set allprofiles state off
       -  curl -s https://artifactory.prd.it.unity3d.com/artifactory/unity-tools-local/utr-standalone/utr.bat --output utr.bat
       -  choco install python3 && refreshenv
-      -  python .yamato/tooling/wrap_utr.py --architecture=ARM64 --artifacts_path=TestProjects/ShaderGraph/test-results --platform=Android --player-load-path=players --suite=playmode --timeout=1200 --zero-tests-are-ok=1
+      -  |5-
+                  git rev-parse HEAD | git show -s --format=%%cI > revdate.tmp
+                  set /p GIT_REVISIONDATE=<revdate.tmp
+                  echo %GIT_REVISIONDATE%
+                  del revdate.tmp
+                  python .yamato/tooling/wrap_utr.py TestProjects/ShaderGraph --architecture=ARM64 --artifacts_path=TestProjects/ShaderGraph/test-results --platform=Android --player-load-path=players --suite=playmode --timeout=1200 --zero-tests-are-ok=1
       -  python .yamato/tooling/zip_to_artifact.py --artifacts TestProjects/ShaderGraph/test-results/ --root TestProjects/ShaderGraph/
       -  start %ANDROID_SDK_ROOT%\platform-tools\adb.exe kill-server
     artifacts:

@@ -1,7 +1,7 @@
 import subprocess
 import platform
 import sys
-from os import path, listdir
+from os import path
 from os.path import expanduser
 
 if __name__ == "__main__":
