@@ -9,22 +9,24 @@
 ---
 
 PR_VFX_URP_trunk:
-    name: VFX_URP PR Job - trunk
-    dependencies:
-      -  path: .yamato/vfx_urp-win-dx11.yml#VFX_URP_Win_DX11_Standalone_cache_mono_Linear_trunk
-         rerun: on_new_revision
-    triggers:
-        expression: pull_request.target eq "master" AND NOT pull_request.draft AND pull_request.changes.any match ["com.unity.visualeffectgraph/**/*", "TestProjects/VisualEffectGraph_URP/**/*"] AND NOT pull_request.changes.all match ["*.md", "**/*.md", "doc/**/*", "**/Documentation*/**/*"]
+    name: PR VFX_URP on trunk
     variables:
         CUSTOM_REVISION: '{{trunk.changeset.id}}'
         UTR_VERSION: "current"
         TEST_FILTER: .*
-Nightly_VFX_URP_trunk:
-    name: Nightly VFX_URP - trunk
+        CACHE_ARGS: '{{cache.flags}}'
     dependencies:
-      -  path: .yamato/all-vfx_urp.yml#PR_VFX_URP_trunk
+      -  path: .yamato/vfx_urp-win-dx11.yml#VFX_URP_Win_DX11_Standalone_mono_Linear_trunk
          rerun: on_new_revision
-      -  path: .yamato/vfx_urp-win-dx11.yml#VFX_URP_Win_DX11_playmode_cache_mono_Linear_trunk
+Extra_VFX_URP_trunk:
+    name: Extra VFX_URP on trunk
+    variables:
+        CUSTOM_REVISION: '{{trunk.changeset.id}}'
+        UTR_VERSION: "current"
+        TEST_FILTER: .*
+        CACHE_ARGS: '{{cache.flags}}'
+    dependencies:
+      -  path: .yamato/vfx_urp-win-dx11.yml#VFX_URP_Win_DX11_playmode_mono_Linear_trunk
          rerun: on_new_revision
       -  path: .yamato/vfx_urp-win-dx11.yml#VFX_URP_Win_DX11_editmode_PerformanceTests_mono_Linear_trunk
          rerun: on_new_revision
@@ -32,27 +34,39 @@ Nightly_VFX_URP_trunk:
          rerun: on_new_revision
       -  path: .yamato/vfx_urp-win-dx11.yml#VFX_URP_Win_DX11_Standalone_PerformanceTests_mono_Linear_trunk
          rerun: on_new_revision
-      -  path: .yamato/vfx_urp-osx-metal.yml#VFX_URP_OSX_Metal_playmode_cache_mono_Linear_trunk
+      -  path: .yamato/vfx_urp-osx-metal.yml#VFX_URP_OSX_Metal_playmode_mono_Linear_trunk
          rerun: on_new_revision
+VFX_URP_trunk:
+    name: VFX_URP on trunk
     variables:
         CUSTOM_REVISION: '{{trunk.changeset.id}}'
         UTR_VERSION: "current"
         TEST_FILTER: .*
-PR_VFX_URP_CUSTOM-REVISION:
-    name: VFX_URP PR Job - CUSTOM-REVISION
+        CACHE_ARGS: '{{cache.flags}}'
     dependencies:
-      -  path: .yamato/vfx_urp-win-dx11.yml#VFX_URP_Win_DX11_Standalone_cache_mono_Linear_CUSTOM-REVISION
+      -  path: .yamato/all-vfx_urp.yml#PR_VFX_URP_trunk
          rerun: on_new_revision
+      -  path: .yamato/all-vfx_urp.yml#Extra_VFX_URP_trunk
+         rerun: on_new_revision
+PR_VFX_URP_CUSTOM-REVISION:
+    name: PR VFX_URP on CUSTOM-REVISION
     variables:
         CUSTOM_REVISION: custom_revision_not_set
         UTR_VERSION: "current"
         TEST_FILTER: .*
-Nightly_VFX_URP_CUSTOM-REVISION:
-    name: Nightly VFX_URP - CUSTOM-REVISION
+        CACHE_ARGS: '{{cache.flags}}'
     dependencies:
-      -  path: .yamato/all-vfx_urp.yml#PR_VFX_URP_CUSTOM-REVISION
+      -  path: .yamato/vfx_urp-win-dx11.yml#VFX_URP_Win_DX11_Standalone_mono_Linear_CUSTOM-REVISION
          rerun: on_new_revision
-      -  path: .yamato/vfx_urp-win-dx11.yml#VFX_URP_Win_DX11_playmode_cache_mono_Linear_CUSTOM-REVISION
+Extra_VFX_URP_CUSTOM-REVISION:
+    name: Extra VFX_URP on CUSTOM-REVISION
+    variables:
+        CUSTOM_REVISION: custom_revision_not_set
+        UTR_VERSION: "current"
+        TEST_FILTER: .*
+        CACHE_ARGS: '{{cache.flags}}'
+    dependencies:
+      -  path: .yamato/vfx_urp-win-dx11.yml#VFX_URP_Win_DX11_playmode_mono_Linear_CUSTOM-REVISION
          rerun: on_new_revision
       -  path: .yamato/vfx_urp-win-dx11.yml#VFX_URP_Win_DX11_editmode_PerformanceTests_mono_Linear_CUSTOM-REVISION
          rerun: on_new_revision
@@ -60,9 +74,17 @@ Nightly_VFX_URP_CUSTOM-REVISION:
          rerun: on_new_revision
       -  path: .yamato/vfx_urp-win-dx11.yml#VFX_URP_Win_DX11_Standalone_PerformanceTests_mono_Linear_CUSTOM-REVISION
          rerun: on_new_revision
-      -  path: .yamato/vfx_urp-osx-metal.yml#VFX_URP_OSX_Metal_playmode_cache_mono_Linear_CUSTOM-REVISION
+      -  path: .yamato/vfx_urp-osx-metal.yml#VFX_URP_OSX_Metal_playmode_mono_Linear_CUSTOM-REVISION
          rerun: on_new_revision
+VFX_URP_CUSTOM-REVISION:
+    name: VFX_URP on CUSTOM-REVISION
     variables:
         CUSTOM_REVISION: custom_revision_not_set
         UTR_VERSION: "current"
         TEST_FILTER: .*
+        CACHE_ARGS: '{{cache.flags}}'
+    dependencies:
+      -  path: .yamato/all-vfx_urp.yml#PR_VFX_URP_CUSTOM-REVISION
+         rerun: on_new_revision
+      -  path: .yamato/all-vfx_urp.yml#Extra_VFX_URP_CUSTOM-REVISION
+         rerun: on_new_revision
