@@ -205,9 +205,8 @@ namespace UnityEditor.Rendering.HighDefinition
 
             if (m_EnableBackplate.value.boolValue)
             {
-                if (BeginAdditionalPropertiesScope())
+                using (new IndentLevelScope())
                 {
-                    EditorGUI.indentLevel++;
                     PropertyField(m_BackplateType, Styles.type);
                     bool constraintAsCircle = false;
                     if (m_BackplateType.value.enumValueIndex == (uint)BackplateType.Disc)
@@ -250,9 +249,7 @@ namespace UnityEditor.Rendering.HighDefinition
                     {
                         m_ShadowTint.value.colorValue = new Color(m_UpperHemisphereLuxColor.value.vector3Value.x, m_UpperHemisphereLuxColor.value.vector3Value.y, m_UpperHemisphereLuxColor.value.vector3Value.z);
                     }
-                    EditorGUI.indentLevel--;
                 }
-                EndAdditionalPropertiesScope();
             }
         }
     }
