@@ -61,7 +61,9 @@ namespace UnityEditor.ShaderGraph
         public void MoveItemInCategory(ShaderInput itemToMove, int newIndex)
         {
             int oldIndex = m_ChildObjectList.IndexOf(itemToMove);
-            m_ChildObjectList.Remove(itemToMove);
+            if (newIndex == oldIndex)
+                return;
+            m_ChildObjectList.RemoveAt(oldIndex);
             m_ChildObjectIDSet.Remove(itemToMove.objectId);
             // The actual index could have shifted due to the removal
             if (newIndex > oldIndex)

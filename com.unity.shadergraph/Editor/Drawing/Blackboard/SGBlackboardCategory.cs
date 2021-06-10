@@ -501,6 +501,8 @@ namespace UnityEditor.ShaderGraph.Drawing
 
             int insertIndex = Mathf.Clamp(m_InsertIndex, 0, m_InsertIndex);
 
+            bool adjustedInsertIndex = false;
+            VisualElement lastInsertedElement = null;
             /* Handles moving elements within a category */
             foreach (var categoryToChildrenTuple in draggedElements)
             {
@@ -508,9 +510,6 @@ namespace UnityEditor.ShaderGraph.Drawing
                 VisualElement firstChild = childList.First();
                 foreach (var draggedElement in childList)
                 {
-                    VisualElement categoryDirectChild = draggedElement;
-                    int indexOfDraggedElement = IndexOf(categoryDirectChild);
-
                     var blackboardField = draggedElement.Q<SGBlackboardField>();
                     ShaderInput shaderInput = null;
                     if (blackboardField != null)
@@ -520,65 +519,88 @@ namespace UnityEditor.ShaderGraph.Drawing
                     if (shaderInput == null || !this.Contains(blackboardField))
                         continue;
 
+                    VisualElement categoryDirectChild = draggedElement;
+                    int indexOfDraggedElement = IndexOf(categoryDirectChild);
+
                     bool listEndInsertion = false;
-                    var viewInsertIndex = insertIndex;
                     // Only find index for the first item
                     if (draggedElement == firstChild)
                     {
+                        adjustedInsertIndex = true;
                         // Handles case of inserting after last item in list
-                        viewInsertIndex = insertIndex;
-                        if (viewInsertIndex == contentContainer.childCount - 1 && m_DroppedOnBottomEdge)
+                        if (insertIndex == childCount - 1 && m_DroppedOnBottomEdge)
                         {
                             listEndInsertion = true;
                         }
                         // Handles case of inserting after any item except the last in list
                         else if (m_DroppedOnBottomEdge)
-                            viewInsertIndex = viewInsertIndex + 1;
-                        // Handles edge case of inserting before first/last item in list
-                        //if (m_DroppedOnTopEdge && (insertIndex == 0 || insertIndex == childCount - 1))
-                        //    insertIndex = insertIndex - 1;
+                            insertIndex++;
 
-                        viewInsertIndex = Mathf.Clamp(viewInsertIndex, 0, childCount - 1);
+                        insertIndex = Mathf.Clamp(insertIndex, 0, childCount - 1);
 
-                        if (viewInsertIndex != indexOfDraggedElement)
+                        if (insertIndex != indexOfDraggedElement)
                         {
                             // If ever placing it at end of list, make sure to place after last item
                             if (listEndInsertion)
                             {
-                                categoryDirectChild.PlaceInFront(this[viewInsertIndex]);
+                                categoryDirectChild.PlaceInFront(this[insertIndex]);
                             }
                             else
                             {
-                                categoryDirectChild.PlaceBehind(this[viewInsertIndex]);
+                                categoryDirectChild.PlaceBehind(this[insertIndex]);
                             }
                         }
+
+                        lastInsertedElement = firstChild;
                     }
                     //  Place every subsequent row after that use PlaceInFront(), this prevents weird re-ordering issues as long as we can get the first index right
                     else
                     {
-                        var indexOfFirstChild = this.IndexOf(firstChild);
+                        var indexOfFirstChild = this.IndexOf(lastInsertedElement);
                         categoryDirectChild.PlaceInFront(this[indexOfFirstChild]);
+                        lastInsertedElement = categoryDirectChild;
                     }
 
-
-                    if (insertIndex > childCount - 1)
-                        listEndInsertion = true;
+                    if (insertIndex > childCount - 1 || listEndInsertion)
+                        insertIndex = -1;
 
                     var moveShaderInputAction = new MoveShaderInputAction();
                     moveShaderInputAction.associatedCategoryGuid = viewModel.associatedCategoryGuid;
                     moveShaderInputAction.shaderInputReference = shaderInput;
-                    moveShaderInputAction.newIndexValue = listEndInsertion ? -1 : viewInsertIndex;
+                    moveShaderInputAction.newIndexValue = insertIndex;
                     m_ViewModel.requestModelChangeAction(moveShaderInputAction);
 
                     // Make sure to remove the element from the selection so it doesn't get re-handled by the blackboard as well, leads to duplicates
                     selection.Remove(blackboardField);
 
-                    insertIndex++;
+                    if(insertIndex > indexOfDraggedElement)
+                        continue;
+
+                    // If adding to the end of the list, we no longer need to increment the index
+                    if(insertIndex != -1)
+                        insertIndex++;
                 }
             }
-
-            int counter = 0;
+            
             /* Handles moving elements from one category to another (including between different graph windows) */
+            // Handles case of inserting after item in list
+            if (!adjustedInsertIndex)
+            {
+                if (m_DroppedOnBottomEdge)
+                {
+                    insertIndex++;
+                }
+                // Only ever do this for the first item
+                else if (m_DroppedOnTopEdge && insertIndex == 0)
+                {
+                    insertIndex = Mathf.Clamp(insertIndex - 1, 0, childCount - 1);
+                }
+            }
+            else if(lastInsertedElement != null)
+            {
+                insertIndex = this.IndexOf(lastInsertedElement) + 1;
+            }
+
             foreach (var categoryToChildrenTuple in draggedElements)
             {
                 var childList = categoryToChildrenTuple.Value;
@@ -595,15 +617,6 @@ namespace UnityEditor.ShaderGraph.Drawing
                     if(this.Contains(blackboardField))
                         continue;
 
-                    if (m_DroppedOnBottomEdge && counter == 0)
-                    {
-                        // Handles case of inserting after item in list
-                        insertIndex = insertIndex + 1;
-                    }
-                    // Only ever do this for the first item
-                    else if (m_DroppedOnTopEdge && insertIndex == 0 && counter == 0)
-                        insertIndex = Mathf.Clamp(insertIndex - 1, 0, childCount - 1);
-
                     var addItemToCategoryAction = new AddItemToCategoryAction();
                     addItemToCategoryAction.categoryGuid = viewModel.associatedCategoryGuid;
                     addItemToCategoryAction.addActionSource = AddItemToCategoryAction.AddActionSource.DragDrop;
@@ -616,11 +629,10 @@ namespace UnityEditor.ShaderGraph.Drawing
                     addItemToCategoryAction.indexToAddItemAt = insertIndex;
                     m_ViewModel.requestModelChangeAction(addItemToCategoryAction);
 
-                    counter++;
-
                     // Make sure to remove the element from the selection so it doesn't get re-handled by the blackboard as well, leads to duplicates
                     selection.Remove(blackboardField);
 
+                    // If adding to the end of the list, we no longer need to increment the index
                     if(insertIndex != -1)
                         insertIndex++;
                 }

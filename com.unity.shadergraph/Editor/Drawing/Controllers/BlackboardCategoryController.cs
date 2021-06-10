@@ -123,6 +123,11 @@ namespace UnityEditor.ShaderGraph.Drawing
 
             foreach (var categoryItem in categoryData.Children)
             {
+                if (categoryItem == null)
+                {
+                    AssertHelpers.Fail("Failed to insert blackboard row into category due to shader input being null.");
+                    continue;
+                }
                 InsertBlackboardRow(categoryItem);
             }
         }
@@ -145,7 +150,7 @@ namespace UnityEditor.ShaderGraph.Drawing
             switch (changeAction)
             {
                 case AddShaderInputAction addBlackboardItemAction:
-                    if (IsInputInCategory(addBlackboardItemAction.shaderInputReference))
+                    if (addBlackboardItemAction.shaderInputReference!= null && IsInputInCategory(addBlackboardItemAction.shaderInputReference))
                     {
                         var blackboardRow = FindBlackboardRow(addBlackboardItemAction.shaderInputReference);
                         if (blackboardRow == null)
@@ -174,7 +179,7 @@ namespace UnityEditor.ShaderGraph.Drawing
 
                 case AddItemToCategoryAction addItemToCategoryAction:
                     // If item was added to category that this controller manages, then add blackboard row to represent that item
-                    if (addItemToCategoryAction.categoryGuid == ViewModel.associatedCategoryGuid)
+                    if (addItemToCategoryAction.itemToAdd != null && addItemToCategoryAction.categoryGuid == ViewModel.associatedCategoryGuid)
                     {
                         InsertBlackboardRow(addItemToCategoryAction.itemToAdd, addItemToCategoryAction.indexToAddItemAt);
                     }
