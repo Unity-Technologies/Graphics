@@ -2960,8 +2960,8 @@ namespace UnityEngine.Rendering.HighDefinition
                 tileSize = 16;
             }
 
-            int tileTexWidth = Mathf.CeilToInt(postProcessViewportSize.x / tileSize);
-            int tileTexHeight = Mathf.CeilToInt(postProcessViewportSize.y / tileSize);
+            int tileTexWidth = Mathf.CeilToInt(postProcessViewportSize.x / (float)tileSize);
+            int tileTexHeight = Mathf.CeilToInt(postProcessViewportSize.y / (float)tileSize);
             data.tileTargetSize = new Vector4(tileTexWidth, tileTexHeight, 1.0f / tileTexWidth, 1.0f / tileTexHeight);
 
             float screenMagnitude = (new Vector2(postProcessViewportSize.x, postProcessViewportSize.y).magnitude);

@@ -20,6 +20,44 @@ float3 GetPositionBias(float3 geomNormal, float bias, bool below)
     return geomNormal * (below ? -bias : bias);
 }
 
+#ifdef _ENABLE_SHADOW_MATTE
+
+// Compute scalar visibility for shadow mattes, between 0 and 1
+float ComputeVisibility(float3 position, float3 normal, float3 inputSample)
+{
+    LightList lightList = CreateLightList(position, normal);
+
+    RayDesc rayDescriptor;
+    rayDescriptor.Origin = position + normal * _RaytracingRayBias;
+    rayDescriptor.TMin = 0.0;
+
+    // By default, full visibility
+    float visibility = 1.0;
+
+    // We will ignore value and pdf here, as we only want to catch occluders (no distance falloffs, cosines, etc.)
+    float3 value;
+    float pdf;
+
+    if (SampleLights(lightList, inputSample, rayDescriptor.Origin, normal, false, rayDescriptor.Direction, value, pdf, rayDescriptor.TMax))
+    {
+        // Shoot a transmission ray (to mark it as such, purposedly set remaining depth to an invalid value)
+        PathIntersection intersection;
+        intersection.remainingDepth = _RaytracingMaxRecursion + 1;
+        rayDescriptor.TMax -= _RaytracingRayBias;
+        intersection.value = 1.0;
+
+        // FIXME: For the time being, we choose not to apply any back/front-face culling for shadows, will possibly change in the future
+        TraceRay(_RaytracingAccelerationStructure, RAY_FLAG_ACCEPT_FIRST_HIT_AND_END_SEARCH | RAY_FLAG_FORCE_NON_OPAQUE | RAY_FLAG_SKIP_CLOSEST_HIT_SHADER,
+                 RAYTRACINGRENDERERFLAG_CAST_SHADOW, 0, 1, 1, rayDescriptor, intersection);
+
+        visibility = Luminance(intersection.value);
+    }
+
+    return visibility;
+}
+
+#endif // _ENABLE_SHADOW_MATTE
+
 // Function responsible for surface scattering
 void ComputeSurfaceScattering(inout PathIntersection pathIntersection : SV_RayPayload, AttributeData attributeData : SV_IntersectionAttributes, float4 inputSample)
 {
@@ -29,7 +67,7 @@ void ComputeSurfaceScattering(inout PathIntersection pathIntersection : SV_RayPa
 
     // Build the Frag inputs from the intersection vertex
     FragInputs fragInput;
-    BuildFragInputsFromIntersection(currentVertex, WorldRayDirection(), fragInput);
+    BuildFragInputsFromIntersection(currentVertex, fragInput);
 
     // Such an invalid remainingDepth value means we are called from a subsurface computation
     if (pathIntersection.remainingDepth > _RaytracingMaxRecursion)
@@ -203,6 +241,13 @@ void ComputeSurfaceScattering(inout PathIntersection pathIntersection : SV_RayPa
 
     pathIntersection.value = (!currentDepth || computeDirect) ? bsdfData.color * GetInverseCurrentExposureMultiplier() + builtinData.emissiveColor : 0.0;
 
+// Apply shadow matte if requested
+#ifdef _ENABLE_SHADOW_MATTE
+    float3 shadowColor = lerp(pathIntersection.value, surfaceData.shadowTint.rgb * GetInverseCurrentExposureMultiplier(), surfaceData.shadowTint.a);
+    float visibility = ComputeVisibility(fragInput.positionRWS, surfaceData.normalWS, inputSample.xyz);
+    pathIntersection.value = lerp(shadowColor, pathIntersection.value, visibility);
+#endif
+
 // Simulate opacity blending by simply continuing along the current ray
 #ifdef _SURFACE_TYPE_TRANSPARENT
     if (builtinData.opacity < 1.0)
@@ -298,7 +343,7 @@ void AnyHit(inout PathIntersection pathIntersection : SV_RayPayload, AttributeDa
 
     // Build the Frag inputs from the intersection vertex
     FragInputs fragInput;
-    BuildFragInputsFromIntersection(currentVertex, WorldRayDirection(), fragInput);
+    BuildFragInputsFromIntersection(currentVertex, fragInput);
 
     PositionInputs posInput;
     posInput.positionWS = fragInput.positionRWS;
