@@ -151,6 +151,8 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
                     result.passes.Add(CorePasses.ShadowCaster(target));
 
                 result.passes.Add(UnlitPasses.DepthNormalOnly(target));
+                result.passes.Add(CorePasses.SceneSelection(target));
+                result.passes.Add(CorePasses.ScenePicking(target));
 
                 return result;
             }
@@ -178,6 +180,8 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
                     result.passes.Add(PassVariant(CorePasses.ShadowCaster(target), CorePragmas.DOTSInstanced));
 
                 result.passes.Add(UnlitPasses.DepthNormalOnly(target));
+                result.passes.Add(CorePasses.SceneSelection(target));
+                result.passes.Add(CorePasses.ScenePicking(target));
 
                 return result;
             }
