@@ -349,7 +349,7 @@ namespace UnityEngine.Experimental.Rendering
             // Avoid making the editor unresponsive during realtime subdiv debug (without any way of going back)
             if (ProbeReferenceVolume.instance.debugDisplay.realtimeSubdivision)
             {
-                if (Time.realtimeSinceStartup - subdivisionCtx.subdivisionStartTime > ProbeReferenceVolume.instance.debugDisplay.realtimeSubdivisionBudget / 1000.0f)
+                if (Time.realtimeSinceStartup - subdivisionCtx.subdivisionStartTime > 0.5f) // Max 500 ms
                     return;
             }
 #endif
