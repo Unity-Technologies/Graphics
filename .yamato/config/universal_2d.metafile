@@ -139,43 +139,6 @@ jobs:
         color_space: Linear
         test_platforms:
           - Standalone
-          #- playmode_XR
-          #- editmode
-
-  - name: Extra <PROJECT_NAME>
-    dependencies:
-      - platform: Win
-        api: DX11
-        build_config: mono
-        color_space: Linear
-        test_platforms:
-          - playmode
-      - platform: Win
-        api: DX12
-        build_config: mono
-        color_space: Linear
-        test_platforms:
-          - playmode
-          # - playmode_XR
-      - platform: Win
-        api: Vulkan
-        build_config: mono
-        color_space: Linear
-        test_platforms:
-          - playmode
-          # - playmode_XR
-      - platform: Linux
-        api: Vulkan
-        build_config: mono
-        color_space: Linear
-        test_platforms:
-          - playmode
-  ### TODO: MOVE THE FOLLOWING JOBS BACK TO PR JOBS
-      - platform: Win
-        api: DX11
-        build_config: mono
-        color_space: Linear
-        test_platforms:
           - playmode_XR
           - editmode
       - platform: Win
@@ -245,6 +208,35 @@ jobs:
         color_space: Linear
         test_platforms:
           - Standalone
+
+  - name: Extra <PROJECT_NAME>
+    dependencies:
+      - platform: Win
+        api: DX11
+        build_config: mono
+        color_space: Linear
+        test_platforms:
+          - playmode
+      - platform: Win
+        api: DX12
+        build_config: mono
+        color_space: Linear
+        test_platforms:
+          - playmode
+          # - playmode_XR
+      - platform: Win
+        api: Vulkan
+        build_config: mono
+        color_space: Linear
+        test_platforms:
+          - playmode
+          # - playmode_XR
+      - platform: Linux
+        api: Vulkan
+        build_config: mono
+        color_space: Linear
+        test_platforms:
+          - playmode
   - name: <PROJECT_NAME>
     dependencies:
       - <PROJECT_ALL_YML_FILE>#PR_<PROJECT_NAME>_<TRACK>

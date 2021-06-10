@@ -13,6 +13,7 @@
     * [Sub Graph](Sub-graph)
     * [Color Modes](Color-Modes)
     * [Precision Modes](Precision-Modes)
+    * [Preview Mode Control](Preview-Mode-Control)
     * [Custom Function Node](Custom-Function-Node)
     * [Shader Graph Preferences](Shader-Graph-Preferences)
     * [Samples](ShaderGraph-Samples.md)
@@ -30,11 +31,11 @@
     * [Property Types](Property-Types)
     * [Keywords](Keywords)
     * [Data Types](Data-Types)
-    * [Precision Modes](Precision-Modes)
+    * [Precision Types](Precision-Types)
     * [Port Bindings](Port-Bindings)
     * [Shader Stage](Shader-Stage)
+    * [Surface options](surface-options.md)
     * [Custom Interpolators](Custom-Interpolators)
-
 * [Node Library](Node-Library)
     * [Artistic](Artistic-Nodes)
         * Adjustment
@@ -62,9 +63,6 @@
             * [Normal Unpack](Normal-Unpack-Node)
         * Utility
             * [Colorspace Conversion](Colorspace-Conversion-Node)
-            * [Sub Graph Dropdown](Sub-Graph-Dropdown-Node)
-            * [Calculate Level Of Detail Texture 2D Node](Calculate-Level-Of-Detail-Texture-2D-Node)
-            * [Gather Texture 2D Node](Gather-Texture-2D-Node)
     * [Channel](Channel-Nodes)
         * [Combine](Combine-Node)
         * [Flip](Flip-Node)
@@ -93,6 +91,8 @@
             * [View Direction](View-Direction-Node)
             * [View Vector](View-Vector-Node)
         * Gradient
+            * [Vertex ID](Vertex-ID-Node)
+            * [Instance ID](Instance-ID-Node)
             * [Blackbody](Blackbody-Node)
             * [Gradient](Gradient-Node)
             * [Sample Gradient](Sample-Gradient-Node)
@@ -122,6 +122,7 @@
             * [Screen](Screen-Node)
         * Texture
             * [Cubemap Asset](Cubemap-Asset-Node)
+            * [Eye Index](Eye-Index-Node)
             * [Sample Cubemap](Sample-Cubemap-Node)
             * [Sample Reflected Cubemap](Sample-Reflected-Cubemap-Node)
             * [Sample Texture 2D](Sample-Texture-2D-Node)
@@ -236,7 +237,6 @@
             * [Nand](Nand-Node)
             * [Not](Not-Node)
             * [Or](Or-Node)
-            * [Branch On Input Connection](Branch-On-Input-Connection-Node)
         * High Definition Render Pipeline
             * [Emission](Emission-Node.md)
             * Eye
