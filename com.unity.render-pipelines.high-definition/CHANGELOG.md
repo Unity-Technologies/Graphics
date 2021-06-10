@@ -245,6 +245,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed cropping issue with the compositor camera bridge (case 1340549).
 - Fixed the transparent cutoff not working properly in semi-transparent and color shadows (case 1340234).
 - Fixed object outline flickering with TAA.
+- Fixed issue with sky settings being ignored when using the recorder and path tracing (case 1340507).
 
 ### Changed
 - Changed Window/Render Pipeline/HD Render Pipeline Wizard to Window/Rendering/HDRP Wizard
