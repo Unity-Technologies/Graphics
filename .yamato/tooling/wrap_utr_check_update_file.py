@@ -14,16 +14,13 @@ if __name__ == "__main__":
         output = subprocess.call(["utr"] + sys.argv[2:])
     else:
         cwd = path.abspath('.')
-        print([name for name in listdir(cwd)])
         # expanduser("~") is the same as ~
         utr_path = path.join(expanduser("~"), "Graphics/utr")
-        print(utr_path)
         output = subprocess.call([utr_path] + sys.argv[2:])
 
 
 
     update_tests_file_path = path.join(sys.argv[1], "Assets/Resources/UpdateTests.txt")
-    print(update_tests_file_path)
     if path.exists(update_tests_file_path):
         print("Error: Test assets need to be updated")
         exit(1)
