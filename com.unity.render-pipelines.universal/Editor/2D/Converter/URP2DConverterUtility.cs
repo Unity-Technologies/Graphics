@@ -80,6 +80,9 @@ internal static class URP2DConverterUtility
         Material material = AssetDatabase.LoadAssetAtPath<Material>(path);
         if (material.shader == oldShader)
             material.shader = newShader;
+
+        GUID guid = AssetDatabase.GUIDFromAssetPath(path);
+        AssetDatabase.SaveAssetIfDirty(guid);
     }
 
     public static string GetObjectIDString(UnityEngine.Object obj)
