@@ -29,8 +29,8 @@ namespace UnityEngine.Rendering.HighDefinition
         [SerializeField, Tooltip("Controls how much reflection probe reflections are scaled to approximately match probe volume brightness.\nEnabling can help mitigate specular glowing in dark corners.\nA value of 1.0 means reflections in fully black corners can become fully black (zero).\nA value of 0.0 means reflections will never be darkened or lightened.")]
         internal ClampedFloatParameter reflectionProbeNormalizationWeight = new ClampedFloatParameter(1.0f, 0.0f, 1.0f);
 
-        [SerializeField, Tooltip("If enabled, reflection probe normalization will use the average incoming light from all directions for rescaling.\nIf disabled, it will use all spherical harmonic data to sample light along the view direction.\nDisabled is more accurate, but can produce poor results if SH terms contain strong ringing.")]
-        internal BoolParameter reflectionProbeNormalizationDCOnly = new BoolParameter(false);
+        [SerializeField, Tooltip("Controls how much of the spherical harmonic directionality is used in normalization. If set to 0.0, reflection probe normalization will use the average incoming light from all directions for rescaling.\nIf set to 1.0, it will use all spherical harmonic data to sample light along the view direction.\n1.0 is theoretically most accurate, but can produce poor results (explosions) if SH terms contain strong ringing, which is fairly common.\nStart at 1.0 and dial down until you are happy with the results.")]
+        internal ClampedFloatParameter reflectionProbeNormalizationDirectionality = new ClampedFloatParameter(1.0f, 0.0f, 1.0f);
 
         [SerializeField, Tooltip("If enabled, reflection probe reflections will never be brightened by bright probe volume samples. They will only be darkened by dark probe volume samples.\nThis can be useful if probe volume data contains strong hotspots that blow out reflections.")]
         internal BoolParameter reflectionProbeNormalizationDarkenOnly = new BoolParameter(false);

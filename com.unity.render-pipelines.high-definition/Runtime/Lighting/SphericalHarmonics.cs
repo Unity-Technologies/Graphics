@@ -211,6 +211,116 @@ namespace UnityEngine.Rendering.HighDefinition
             // Quadratic (5)
             packedCoeffs[6].Set(sh[0, 8], sh[1, 8], sh[2, 8], 1.0f);
         }
+
+        // Sources (derivation in shadertoy):
+        // https://www.shadertoy.com/view/NlsGWB
+        // http://filmicworlds.com/blog/simple-and-fast-spherical-harmonic-rotation/
+        // https://zvxryb.github.io/blog/2015/09/03/sh-lighting-part2/
+        public static void Rotate(Matrix4x4 M, ref SphericalHarmonicsL2 sh)
+        {
+            RotateBandL1(M, ref sh);
+            RotateBandL2(M, ref sh);
+        }
+
+        public static void RotateBandL1(Matrix4x4 M, ref SphericalHarmonicsL2 sh)
+        {
+            Vector3 x0 = SphericalHarmonicsL2Utils.GetCoefficient(sh, 1);
+            Vector3 x1 = SphericalHarmonicsL2Utils.GetCoefficient(sh, 2);
+            Vector3 x2 = SphericalHarmonicsL2Utils.GetCoefficient(sh, 3);
+            
+            Matrix4x4 SH = new Matrix4x4();
+            SH.SetColumn(0, new Vector4(x2.x, x2.y, x2.z, 0.0f));
+            SH.SetColumn(1, new Vector4(x0.x, x0.y, x0.z, 0.0f));
+            SH.SetColumn(2, new Vector4(x1.x, x1.y, x1.z, 0.0f));
+            SH.SetColumn(3, new Vector4(0.0f, 0.0f, 0.0f, 0.0f));
+
+            x0 = SH.MultiplyPoint3x4(new Vector3(M[1, 0], M[1, 1], M[1, 2]));
+            x1 = SH.MultiplyPoint3x4(new Vector3(M[2, 0], M[2, 1], M[2, 2]));
+            x2 = SH.MultiplyPoint3x4(new Vector3(M[0, 0], M[0, 1], M[0, 2]));
+
+            SphericalHarmonicsL2Utils.SetCoefficient(ref sh, 1, x0);
+            SphericalHarmonicsL2Utils.SetCoefficient(ref sh, 2, x1);
+            SphericalHarmonicsL2Utils.SetCoefficient(ref sh, 3, x2);
+        }
+
+        public static void RotateBandL2(Matrix4x4 M, ref SphericalHarmonicsL2 sh)
+        {
+            Vector3 x0 = SphericalHarmonicsL2Utils.GetCoefficient(sh, 4);
+            Vector3 x1 = SphericalHarmonicsL2Utils.GetCoefficient(sh, 5);
+            Vector3 x2 = SphericalHarmonicsL2Utils.GetCoefficient(sh, 6);
+            Vector3 x3 = SphericalHarmonicsL2Utils.GetCoefficient(sh, 7);
+            Vector3 x4 = SphericalHarmonicsL2Utils.GetCoefficient(sh, 8);
+
+            // Decomposed + factored version of 5x5 matrix multiply of invA * sh from source.
+            Vector3 sh0 = x1 * 0.5f + (x3 * -0.5f + x4 * 2.0f);
+            Vector3 sh1 = x0 * 0.5f + 3.0f * x2 - x3 * 0.5f + x4;
+            Vector3 sh2 = x0;
+            Vector3 sh3 = x3;
+            Vector3 sh4 = x1;
+
+            const float kInv = 1.41421356237f; // sqrt(2.0f);
+            const float k3 = 0.25f;
+            const float k4 = -1.0f / 6.0f;
+            
+            // Decomposed + factored version of 5x5 matrix multiply of 5 normals projected to 5 SH2 bands.
+            // Column 0
+            {
+                Vector3 rn0 = new Vector3(M[0, 0], M[1, 0], M[2, 0]) * kInv; // (Vector3(1, 0, 0) * M) / k;
+                x0 = (rn0.x * rn0.y) * sh0;
+                x1 = (rn0.y * rn0.z) * sh0;
+                x2 = (rn0.z * rn0.z * k3 + k4) * sh0;
+                x3 = (rn0.x * rn0.z) * sh0;
+                x4 = (rn0.x * rn0.x - rn0.y * rn0.y) * sh0;
+            }
+
+            // Column 1
+            {
+                Vector3 rn1 = new Vector3(M[0, 2], M[1, 2], M[2, 2]) * kInv; // (Vector3(0, 0, 1) * M) / k;
+                x0 += (rn1.x * rn1.y) * sh1;
+                x1 += (rn1.y * rn1.z) * sh1;
+                x2 += (rn1.z * rn1.z * k3 + k4) * sh1;
+                x3 += (rn1.x * rn1.z) * sh1;
+                x4 += (rn1.x * rn1.x - rn1.y * rn1.y) * sh1;
+            }
+
+            // Column 2
+            {
+                Vector3 rn2 = new Vector3(M[0, 0] + M[0, 1], M[1, 0] + M[1, 1], M[2, 0] + M[2, 1]); // (Vector3(k, k, 0) * M) / k;
+                x0 += (rn2.x * rn2.y) * sh2;
+                x1 += (rn2.y * rn2.z) * sh2;
+                x2 += (rn2.z * rn2.z * k3 + k4) * sh2;
+                x3 += (rn2.x * rn2.z) * sh2;
+                x4 += (rn2.x * rn2.x - rn2.y * rn2.y) * sh2;
+            }
+
+            // Column 3
+            {
+                Vector3 rn3 = new Vector3(M[0, 0] + M[0, 2], M[1, 0] + M[1, 2], M[2, 0] + M[2, 2]); // (Vector3(k, 0, k) * M) / k;
+                x0 += (rn3.x * rn3.y) * sh3;
+                x1 += (rn3.y * rn3.z) * sh3;
+                x2 += (rn3.z * rn3.z * k3 + k4) * sh3;
+                x3 += (rn3.x * rn3.z) * sh3;
+                x4 += (rn3.x * rn3.x - rn3.y * rn3.y) * sh3;
+            }
+
+            // Column 4
+            {
+                Vector3 rn4 = new Vector3(M[0, 1] + M[0, 2], M[1, 1] + M[1, 2], M[2, 1] + M[2, 2]); // (Vector3(0, k, k) * M) / k;
+                x0 += (rn4.x * rn4.y) * sh4;
+                x1 += (rn4.y * rn4.z) * sh4;
+                x2 += (rn4.z * rn4.z * k3 + k4) * sh4;
+                x3 += (rn4.x * rn4.z) * sh4;
+                x4 += (rn4.x * rn4.x - rn4.y * rn4.y) * sh4;
+            }
+
+            x4 *= 0.25f;
+
+            SphericalHarmonicsL2Utils.SetCoefficient(ref sh, 4, x0);
+            SphericalHarmonicsL2Utils.SetCoefficient(ref sh, 5, x1);
+            SphericalHarmonicsL2Utils.SetCoefficient(ref sh, 6, x2);
+            SphericalHarmonicsL2Utils.SetCoefficient(ref sh, 7, x3);
+            SphericalHarmonicsL2Utils.SetCoefficient(ref sh, 8, x4);
+        }
     }
 
     /// <summary>

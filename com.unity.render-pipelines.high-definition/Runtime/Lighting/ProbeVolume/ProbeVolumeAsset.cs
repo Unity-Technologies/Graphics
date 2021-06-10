@@ -17,6 +17,7 @@ namespace UnityEngine.Rendering.HighDefinition
             First,
             AddProbeVolumesAtlasEncodingModes,
             AddOctahedralDepthVarianceFromLightmapper,
+            AddRotation,
             // Add new version here and they will automatically be the Current one
             Max,
             Current = Max - 1
@@ -40,6 +41,8 @@ namespace UnityEngine.Rendering.HighDefinition
 
         [SerializeField] internal float backfaceTolerance;
         [SerializeField] internal int dilationIterations;
+
+        [SerializeField] internal Quaternion rotation;
 
         internal bool IsDataAssigned()
         {

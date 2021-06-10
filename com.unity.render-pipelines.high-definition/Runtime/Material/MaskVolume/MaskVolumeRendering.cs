@@ -82,7 +82,7 @@ namespace UnityEngine.Rendering.HighDefinition
         static int s_MaxMaskVolumeMaskCount;
         RTHandle m_MaskVolumeAtlasSHRTHandle;
 
-        Texture3DAtlasDynamic maskVolumeAtlas = null;
+        Texture3DAtlasDynamic<int> maskVolumeAtlas = null;
 
         bool isClearMaskVolumeAtlasRequested = false;
 
@@ -138,8 +138,8 @@ namespace UnityEngine.Rendering.HighDefinition
 
         internal void CreateMaskVolumeBuffers()
         {
-            m_VisibleMaskVolumeBounds = new List<OrientedBBox>();
-            m_VisibleMaskVolumeData = new List<MaskVolumeEngineData>();
+            m_VisibleMaskVolumeBounds = new List<OrientedBBox>(32);
+            m_VisibleMaskVolumeData = new List<MaskVolumeEngineData>(32);
             s_VisibleMaskVolumeBoundsBuffer = new ComputeBuffer(k_MaxVisibleMaskVolumeCount, Marshal.SizeOf(typeof(OrientedBBox)));
             s_VisibleMaskVolumeDataBuffer = new ComputeBuffer(k_MaxVisibleMaskVolumeCount, Marshal.SizeOf(typeof(MaskVolumeEngineData)));
             s_MaskVolumeAtlasBlitDataSHL0Buffer = new ComputeBuffer(s_MaxMaskVolumeMaskCount * MaskVolumePayload.GetDataSHL0Stride() / 4, Marshal.SizeOf(4));
@@ -155,7 +155,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 name:              "MaskVolumeAtlasSH"
             );
 
-            maskVolumeAtlas = new Texture3DAtlasDynamic(s_MaskVolumeAtlasResolution, s_MaskVolumeAtlasResolution, s_MaskVolumeAtlasResolution, k_MaxVisibleMaskVolumeCount, m_MaskVolumeAtlasSHRTHandle);
+            maskVolumeAtlas = new Texture3DAtlasDynamic<int>(s_MaskVolumeAtlasResolution, s_MaskVolumeAtlasResolution, s_MaskVolumeAtlasResolution, k_MaxVisibleMaskVolumeCount, m_MaskVolumeAtlasSHRTHandle);
         }
 
         internal void DestroyMaskVolumeBuffers()
@@ -269,15 +269,14 @@ namespace UnityEngine.Rendering.HighDefinition
 
                     int sizeSHCoefficientsL0 = size * MaskVolumePayload.GetDataSHL0Stride();
 
-                    Debug.Assert(payload.dataSHL0.Length == sizeSHCoefficientsL0, "MaskVolume: The mask volume data and its resolution are out of sync! Volume data length is " + payload.dataSHL0.Length + ", but resolution * SH stride size is " + sizeSHCoefficientsL0 + ".");
+                    Debug.AssertFormat(payload.dataSHL0.Length == sizeSHCoefficientsL0, "MaskVolume: The mask volume data and its resolution are out of sync! Volume data length is {0}, but resolution * SH stride size is {1}.", payload.dataSHL0.Length, sizeSHCoefficientsL0);
 
                     if (size > s_MaxMaskVolumeMaskCount)
                     {
-                        Debug.LogWarning("MaskVolume: mask volume data size exceeds the currently max supported blitable size. Volume data size is " + size + ", but s_MaxMaskVolumeMaskCount is " + s_MaxMaskVolumeMaskCount + ". Please decrease MaskVolume resolution, or increase MaskVolumeRendering.s_MaxMaskVolumeMaskCount.");
+                        Debug.LogWarningFormat("MaskVolume: mask volume data size exceeds the currently max supported blitable size. Volume data size is {0}, but s_MaxMaskVolumeMaskCount is {1}. Please decrease MaskVolume resolution, or increase MaskVolumeRendering.s_MaxMaskVolumeMaskCount.", size, s_MaxMaskVolumeMaskCount);
                         return false;
                     }
 
-                    //Debug.Log("Uploading Mask Volume Data with key " + key + " at scale bias = " + volume.parameters.scaleBias);
                     cmd.SetComputeVectorParam(s_MaskVolumeAtlasBlitCS, HDShaderIDs._MaskVolumeResolution, new Vector3(
                         width,
                         height,
@@ -324,7 +323,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
             if (!isSlotAllocated)
             {
-                Debug.LogWarning("MaskVolume: Texture Atlas failed to allocate space for texture { key: " + key + "width: " + width + ", height: " + height + ", depth: " + depth + "}");
+                Debug.LogWarningFormat("MaskVolume: Texture Atlas failed to allocate space for texture { key: {0}, width: {1}, height: {2}, depth: {3} }", key, width, height, depth);
             }
 
             return false;
