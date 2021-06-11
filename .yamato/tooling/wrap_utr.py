@@ -2,7 +2,7 @@ import subprocess
 import platform
 import sys
 from os.path import expanduser
-from sys import path
+from os import path
 
 if __name__ == "__main__":
     cur_sys = platform.system()
