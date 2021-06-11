@@ -688,7 +688,9 @@ namespace UnityEditor.Rendering
                 s_ParameterDrawers.TryGetValue(property.referenceType, out VolumeParameterDrawer vpd);
                 drawer = vpd;
 
-                haveCustomOverrideCheckbox = displayed && !(drawer?.IsAutoProperty() ?? true);
+                //never draw override for embedded class/struct
+                haveCustomOverrideCheckbox = (displayed && !(drawer?.IsAutoProperty() ?? true))
+                    || VolumeParameter.IsObjectParameter(property.referenceType);
 
                 if (displayed)
                     editor.HandleDecorators(property, label);
