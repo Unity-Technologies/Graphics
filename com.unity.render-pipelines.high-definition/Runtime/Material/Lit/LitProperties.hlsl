@@ -381,6 +381,7 @@ UNITY_DOTS_INSTANCING_START(MaterialPropertyMetadata)
     UNITY_DOTS_INSTANCED_PROP(float4, _ThicknessRemap2)
     UNITY_DOTS_INSTANCED_PROP(float4, _ThicknessRemap3)
     UNITY_DOTS_INSTANCED_PROP(float, _DissolveOnOcclusionOpacity)
+    UNITY_DOTS_INSTANCED_PROP(float, _DistortionScale)
 UNITY_DOTS_INSTANCING_END(MaterialPropertyMetadata)
 
 #define _BaseColor0              UNITY_ACCESS_DOTS_INSTANCED_PROP_FROM_MACRO(float4, Metadata__BaseColor0)
@@ -456,6 +457,7 @@ UNITY_DOTS_INSTANCING_END(MaterialPropertyMetadata)
 #define _ThicknessRemap2         UNITY_ACCESS_DOTS_INSTANCED_PROP_FROM_MACRO(float4, Metadata__ThicknessRemap2)
 #define _ThicknessRemap3         UNITY_ACCESS_DOTS_INSTANCED_PROP_FROM_MACRO(float4, Metadata__ThicknessRemap3)
 #define _DissolveOnOcclusionOpacity        UNITY_ACCESS_DOTS_INSTANCED_PROP_FROM_MACRO(float, Metadata__DissolveOnOcclusionOpacity)
+#define _DistortionScale        UNITY_ACCESS_DOTS_INSTANCED_PROP_FROM_MACRO(float, Metadata__DistortionScale)
 
 #else
 
@@ -479,6 +481,7 @@ UNITY_DOTS_INSTANCING_START(MaterialPropertyMetadata)
     UNITY_DOTS_INSTANCED_PROP(float , _Thickness)
     UNITY_DOTS_INSTANCED_PROP(float4, _ThicknessRemap)
     UNITY_DOTS_INSTANCED_PROP(float, _DissolveOnOcclusionOpacity)
+    UNITY_DOTS_INSTANCED_PROP(float, _DistortionScale)
 UNITY_DOTS_INSTANCING_END(MaterialPropertyMetadata)
 
 #define _BaseColor              UNITY_ACCESS_DOTS_INSTANCED_PROP_FROM_MACRO(float4, Metadata__BaseColor)
@@ -501,6 +504,7 @@ UNITY_DOTS_INSTANCING_END(MaterialPropertyMetadata)
 #define _Thickness              UNITY_ACCESS_DOTS_INSTANCED_PROP_FROM_MACRO(float , Metadata__Thickness)
 #define _ThicknessRemap         UNITY_ACCESS_DOTS_INSTANCED_PROP_FROM_MACRO(float4, Metadata__ThicknessRemap)
 #define _DissolveOnOcclusionOpacity         UNITY_ACCESS_DOTS_INSTANCED_PROP_FROM_MACRO(float, Metadata__DissolveOnOcclusionOpacity)
+#define _DistortionScale        UNITY_ACCESS_DOTS_INSTANCED_PROP_FROM_MACRO(float, Metadata__DistortionScale)
 
 #endif
 #endif
