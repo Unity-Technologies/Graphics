@@ -569,7 +569,11 @@ namespace UnityEditor.Rendering
             s_ParameterDrawers.TryGetValue(property.referenceType, out VolumeParameterDrawer drawer);
             if (drawer != null && !drawer.IsAutoProperty())
                 if (drawer.OnGUI(property, title))
+                {
+                    if (isAdditionalProperty)
+                        EndAdditionalPropertiesScope();
                     return true;
+                }
 
             // Standard Unity drawer
             using (new IndentLevelScope())
@@ -592,8 +596,8 @@ namespace UnityEditor.Rendering
                 property.value.isExpanded = expanded;
             }
 
-
-            EndAdditionalPropertiesScope();
+            if (isAdditionalProperty)
+                EndAdditionalPropertiesScope();
             return true;
         }
 
