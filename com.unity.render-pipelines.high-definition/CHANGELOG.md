@@ -72,6 +72,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Added a dialog box when you import a Material that has a diffusion profile to add the diffusion profile to global settings.
 - Added support for Unlit shadow mattes in Path Tracing (case 1335487).
 - Added a shortcut to HDRP Wizard documentation.
+- Added support of motion vector buffer in custom postprocess
 
 ### Fixed
 - Fixed Intensity Multiplier not affecting realtime global illumination.
