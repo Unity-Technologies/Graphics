@@ -89,6 +89,24 @@ Shader "HDRP/Lit"
         [ToggleUI] _UseEmissiveIntensity("Use Emissive Intensity", Int) = 0
         _EmissiveIntensity("Emissive Intensity", Float) = 1
         _EmissiveExposureWeight("Emissive Pre Exposure", Range(0.0, 1.0)) = 1.0
+        
+        _DistortionVectorMap("DistortionVectorMap", 2D) = "black" {}
+        [ToggleUI] _DistortionEnable("Enable Distortion", Float) = 0.0
+        [ToggleUI] _DistortionOnly("Distortion Only", Float) = 0.0
+        [ToggleUI] _DistortionDepthTest("Distortion Depth Test Enable", Float) = 1.0
+        [Enum(Add, 0, Multiply, 1, Replace, 2)] _DistortionBlendMode("Distortion Blend Mode", Int) = 0
+        [HideInInspector] _DistortionSrcBlend("Distortion Blend Src", Int) = 0
+        [HideInInspector] _DistortionDstBlend("Distortion Blend Dst", Int) = 0
+        [HideInInspector] _DistortionBlurSrcBlend("Distortion Blur Blend Src", Int) = 0
+        [HideInInspector] _DistortionBlurDstBlend("Distortion Blur Blend Dst", Int) = 0
+        [HideInInspector] _DistortionBlurBlendMode("Distortion Blur Blend Mode", Int) = 0
+        _DistortionScale("Distortion Scale", Float) = 1
+        _DistortionVectorScale("Distortion Vector Scale", Float) = 2
+        _DistortionVectorBias("Distortion Vector Bias", Float) = -1
+        _DistortionBlurScale("Distortion Blur Scale", Float) = 1
+        _DistortionBlurRemapMin("DistortionBlurRemapMin", Float) = 0.0
+        _DistortionBlurRemapMax("DistortionBlurRemapMax", Float) = 1.0
+        
 
         [ToggleUI]  _UseShadowThreshold("_UseShadowThreshold", Float) = 0.0
         [ToggleUI]  _AlphaCutoffEnable("Alpha Cutoff Enable", Float) = 0.0
