@@ -14,6 +14,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - LensFlare (SRP) can be now disabled per element
 - LensFlare (SRP) tooltips now refer to meters.
 - Serialize the Probe Volume asset as binary to improve footprint on disk and loading speed.
+- LensFlare Element editor now have Thumbnail preview
 
 ### Fixed
 - Fixed missing warning UI about Projector component being unsupported (case 1300327).
@@ -29,6 +30,9 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed issue displaying a warning of different probe reference volume profiles even when they are equivalent.
 - Fixed missing increment/decrement controls from DebugUIIntField & DebugUIUIntField widget prefabs.
 - Fixed IES Importer related to new API on core.
+- Fixed a large, visible stretch ratio in a LensFlare Image thumbnail.
+- Fixed Undo from script refreshing thumbnail.
+- Fixed cropped thumbnail for Image with non-uniform scale and rotation
 - Fixed alignment in Volume Components
 
 ### Added
@@ -60,6 +64,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Add automatic spaces to enum display names used in Rendering Debugger and add support for InspectorNameAttribute.
 - Adding new API functions inside DynamicResolutionHandler to get mip bias. This allows dynamic resolution scaling applying a bias on the frame to improve on texture sampling detail.
 - Added a reminder if the data of probe volume might be obsolete.
+- Added new API function inside DynamicResolutionHandler and new settings in GlobalDynamicResolutionSettings to control low res transparency thresholds. This should help visuals when the screen percentage is too low.
 - Added OverridablePropertyScope (for VolumeComponentEditor child class only) to handle the Additional Property, the override checkbox and disable display and decorator attributes in one scope.
 - Added IndentLevelScope (for VolumeComponentEditor child class only) to handle indentation of the field and the checkbox.
 

@@ -43,6 +43,8 @@ namespace UnityEditor.Rendering.HighDefinition
         SerializedDataParameter m_DensityMultiplier;
         SerializedDataParameter m_ShapeFactor;
         SerializedDataParameter m_ShapeScale;
+        SerializedDataParameter m_ShapeOffsetX;
+        SerializedDataParameter m_ShapeOffsetZ;
         SerializedDataParameter m_ErosionFactor;
         SerializedDataParameter m_ErosionScale;
 
@@ -111,6 +113,8 @@ namespace UnityEditor.Rendering.HighDefinition
             m_DensityMultiplier = Unpack(o.Find(x => x.densityMultiplier));
             m_ShapeFactor = Unpack(o.Find(x => x.shapeFactor));
             m_ShapeScale = Unpack(o.Find(x => x.shapeScale));
+            m_ShapeOffsetX = Unpack(o.Find(x => x.shapeOffsetX));
+            m_ShapeOffsetZ = Unpack(o.Find(x => x.shapeOffsetZ));
             m_ErosionFactor = Unpack(o.Find(x => x.erosionFactor));
             m_ErosionScale = Unpack(o.Find(x => x.erosionScale));
 
@@ -209,9 +213,16 @@ namespace UnityEditor.Rendering.HighDefinition
                         PropertyField(m_DensityMultiplier);
                         PropertyField(m_ShapeFactor);
                         PropertyField(m_ShapeScale);
+                        PropertyField(m_ShapeOffsetX);
+                        PropertyField(m_ShapeOffsetZ);
                         PropertyField(m_ErosionFactor);
                         PropertyField(m_ErosionScale);
                     }
+                }
+                else
+                {
+                    PropertyField(m_ShapeOffsetX);
+                    PropertyField(m_ShapeOffsetZ);
                 }
             }
 

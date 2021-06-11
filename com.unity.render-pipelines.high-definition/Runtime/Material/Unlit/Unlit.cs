@@ -19,9 +19,14 @@ namespace UnityEngine.Rendering.HighDefinition
             [SurfaceDataAttributes("Color", false, true)]
             public Vector3 color;
 
+            // Both normalWS and shadowTint are used for shadow mattes
+
             [MaterialSharedPropertyMapping(MaterialSharedProperty.Normal)]
             [SurfaceDataAttributes(new string[] {"Normal", "Normal View Space"}, true)]
             public Vector3 normalWS;
+
+            [SurfaceDataAttributes("Shadow Tint", false, true)]
+            public Vector4 shadowTint;
         };
 
         //-----------------------------------------------------------------------------

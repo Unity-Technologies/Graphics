@@ -24,6 +24,10 @@ namespace UnityEngine.Experimental.Rendering
                 if (ProbeReferenceVolume.instance.debugDisplay.realtimeSubdivision)
                 {
                     var probeVolumeAuthoring = FindObjectOfType<ProbeReferenceVolumeAuthoring>();
+
+                    if (probeVolumeAuthoring == null || !probeVolumeAuthoring.isActiveAndEnabled)
+                        return;
+
                     var ctx = ProbeGIBaking.PrepareProbeSubdivisionContext(probeVolumeAuthoring);
 
                     // Cull all the cells that are not visible (we don't need them for realtime debug)
@@ -53,10 +57,9 @@ namespace UnityEngine.Experimental.Rendering
         }
 
         private SerializedProperty m_Dilate;
-        private SerializedProperty m_MaxDilationSamples;
         private SerializedProperty m_MaxDilationSampleDistance;
         private SerializedProperty m_DilationValidityThreshold;
-        private SerializedProperty m_GreedyDilation;
+        private SerializedProperty m_DilationIterations;
         private SerializedProperty m_VolumeAsset;
 
         private SerializedProperty m_Profile;
@@ -73,7 +76,8 @@ namespace UnityEngine.Experimental.Rendering
         private void OnEnable()
         {
             m_Profile = serializedObject.FindProperty("m_Profile");
-            m_MaxDilationSamples = serializedObject.FindProperty("m_MaxDilationSamples");
+            m_Dilate = serializedObject.FindProperty("m_EnableDilation");
+            m_DilationIterations = serializedObject.FindProperty("m_DilationIterations");
             m_MaxDilationSampleDistance = serializedObject.FindProperty("m_MaxDilationSampleDistance");
             m_DilationValidityThreshold = serializedObject.FindProperty("m_DilationValidityThreshold");
             m_VolumeAsset = serializedObject.FindProperty("volumeAsset");
@@ -154,8 +158,13 @@ namespace UnityEngine.Experimental.Rendering
                 DilationGroupEnabled = EditorGUILayout.BeginFoldoutHeaderGroup(DilationGroupEnabled, "Dilation");
                 if (DilationGroupEnabled)
                 {
+                    GUIContent dilateGUI = EditorGUIUtility.TrTextContent("Dilate", "Enable probe dilation. Disable only for debug purposes.");
+                    m_Dilate.boolValue = EditorGUILayout.Toggle(dilateGUI, m_Dilate.boolValue);
+                    EditorGUI.BeginDisabledGroup(!m_Dilate.boolValue);
                     m_MaxDilationSampleDistance.floatValue = EditorGUILayout.FloatField("Dilation Distance", m_MaxDilationSampleDistance.floatValue);
                     DilationValidityThresholdInverted = EditorGUILayout.Slider("Dilation Validity Threshold", DilationValidityThresholdInverted, 0f, 1f);
+                    m_DilationIterations.intValue = EditorGUILayout.IntSlider("Dilation Iteration Count", m_DilationIterations.intValue, 1, 5);
+                    EditorGUI.EndDisabledGroup();
                 }
                 EditorGUILayout.EndFoldoutHeaderGroup();
 
