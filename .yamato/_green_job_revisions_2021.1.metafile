@@ -137,19 +137,19 @@ nightly_vfx_hdrp_-_2021_1:
       updated_at: '2020-12-16 00:05:36.049181'
       version: ''
 nightly_vfx_hdrp_-_2021.1:
-  updated_at: '2021-06-11 07:11:34.773707'
+  updated_at: '2021-06-12 07:11:07.034415'
   last_green_revisions:
     Android:
       revision: f29f09c25f1c57d6877b83a354bc8bb2d2bd7f3a
       updated_at: '2021-06-10 23:42:31.810145'
       version: ''
     Linux:
-      revision: afcadd793de6f8c780b0fefa7b06fbfd536d5577
-      updated_at: '2021-06-06 23:57:48.669654'
+      revision: f29f09c25f1c57d6877b83a354bc8bb2d2bd7f3a
+      updated_at: '2021-06-11 23:41:57.784054'
       version: ''
     OSX:
-      revision: afcadd793de6f8c780b0fefa7b06fbfd536d5577
-      updated_at: '2021-06-06 23:57:48.669654'
+      revision: f29f09c25f1c57d6877b83a354bc8bb2d2bd7f3a
+      updated_at: '2021-06-11 23:41:57.784054'
       version: ''
     Win:
       revision: f29f09c25f1c57d6877b83a354bc8bb2d2bd7f3a
@@ -160,19 +160,19 @@ nightly_vfx_hdrp_-_2021.1:
       updated_at: '2021-06-10 23:42:31.810145'
       version: ''
 vfx_hdrp_pr_job_-_2021.1:
-  updated_at: '2021-06-11 07:11:34.773707'
+  updated_at: '2021-06-12 07:11:07.034415'
   last_green_revisions:
     Android:
       revision: f29f09c25f1c57d6877b83a354bc8bb2d2bd7f3a
       updated_at: '2021-06-10 23:42:31.810145'
       version: ''
     Linux:
-      revision: afcadd793de6f8c780b0fefa7b06fbfd536d5577
-      updated_at: '2021-06-06 23:57:48.669654'
+      revision: f29f09c25f1c57d6877b83a354bc8bb2d2bd7f3a
+      updated_at: '2021-06-11 23:41:57.784054'
       version: ''
     OSX:
-      revision: afcadd793de6f8c780b0fefa7b06fbfd536d5577
-      updated_at: '2021-06-06 23:57:48.669654'
+      revision: f29f09c25f1c57d6877b83a354bc8bb2d2bd7f3a
+      updated_at: '2021-06-11 23:41:57.784054'
       version: ''
     Win:
       revision: f29f09c25f1c57d6877b83a354bc8bb2d2bd7f3a
