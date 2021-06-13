@@ -177,7 +177,7 @@ namespace UnityEngine.Rendering
         /// <param name="sRGBDisplay">Field is an sRGB value.</param>
         /// <param name="precision">Field precision.</param>
         /// <param name="checkIsNormalized">Field checkIsNormalized.</param>
-        /// <param name="preprocessor">Field preprocessor.</param>/// 
+        /// <param name="preprocessor">Field preprocessor.</param>///
         public SurfaceDataAttributes(string displayName = "", bool isDirection = false, bool sRGBDisplay = false, FieldPrecision precision = FieldPrecision.Default, bool checkIsNormalized = false, string preprocessor = "")
         {
             displayNames = new string[1];
