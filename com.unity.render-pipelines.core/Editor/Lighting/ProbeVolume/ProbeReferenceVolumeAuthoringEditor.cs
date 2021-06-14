@@ -24,6 +24,10 @@ namespace UnityEngine.Experimental.Rendering
                 if (ProbeReferenceVolume.instance.debugDisplay.realtimeSubdivision)
                 {
                     var probeVolumeAuthoring = FindObjectOfType<ProbeReferenceVolumeAuthoring>();
+
+                    if (probeVolumeAuthoring == null || !probeVolumeAuthoring.isActiveAndEnabled)
+                        return;
+
                     var ctx = ProbeGIBaking.PrepareProbeSubdivisionContext(probeVolumeAuthoring);
 
                     // Cull all the cells that are not visible (we don't need them for realtime debug)
