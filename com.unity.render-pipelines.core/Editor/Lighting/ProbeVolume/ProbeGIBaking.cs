@@ -71,6 +71,14 @@ namespace UnityEngine.Experimental.Rendering
             }
         }
 
+        static void ClearBakingBatch()
+        {
+            if (m_BakingBatch != null)
+                m_BakingBatch.Clear();
+
+            m_BakingBatchIndex = 0;
+        }
+
         static public void Clear()
         {
             var refVolAuthList = GameObject.FindObjectsOfType<ProbeReferenceVolumeAuthoring>();
@@ -93,12 +101,6 @@ namespace UnityEngine.Experimental.Rendering
             {
                 probeVolume.OnLightingDataAssetCleared();
             }
-
-
-            if (m_BakingBatch != null)
-                m_BakingBatch.Clear();
-
-            m_BakingBatchIndex = 0;
         }
 
         public static void FindWorldBounds()
@@ -395,6 +397,9 @@ namespace UnityEngine.Experimental.Rendering
                 return;
             }
 
+            // Clear baked data
+            Clear();
+
             onAdditionalProbesBakeCompletedCalled = true;
 
             var dilationSettings = m_BakingReferenceVolumeAuthoring.GetDilationSettings();
@@ -609,15 +614,17 @@ namespace UnityEngine.Experimental.Rendering
             UnityEditor.Experimental.Lightmapping.additionalBakedProbesCompleted += OnAdditionalProbesBakeCompleted;
             UnityEditor.Lightmapping.bakeCompleted += OnBakeCompletedCleanup;
 
-            // Clear baked data
-            Clear();
+            ClearBakingBatch();
 
             // Subdivide the scene and place the bricks
             var ctx = PrepareProbeSubdivisionContext(m_BakingReferenceVolumeAuthoring);
             var result = BakeBricks(ctx);
 
             // Compute probe positions and send them to the Lightmapper
-            ApplySubdivisionResults(result);
+            float brickSize = m_BakingReferenceVolumeAuthoring.brickSize;
+            Matrix4x4 newRefToWS = Matrix4x4.TRS(Vector3.zero, Quaternion.identity, new Vector3(brickSize, brickSize, brickSize));
+            //m_BakingReferenceVolumeAuthoring;
+            ApplySubdivisionResults(result, newRefToWS);
         }
 
         public static ProbeSubdivisionContext PrepareProbeSubdivisionContext(ProbeReferenceVolumeAuthoring refVolume)
@@ -625,7 +632,8 @@ namespace UnityEngine.Experimental.Rendering
             ProbeSubdivisionContext ctx = new ProbeSubdivisionContext();
 
             // Prepare all the information in the scene for baking GI.
-            ctx.Initialize(refVolume);
+            Vector3 refVolOrigin = Vector3.zero; // TODO: This will need to be center of the world bounds.
+            ctx.Initialize(refVolume, refVolOrigin);
 
             return ctx;
         }
@@ -713,9 +721,9 @@ namespace UnityEngine.Experimental.Rendering
         }
 
         // Converts brick information into positional data at kBrickProbeCountPerDim * kBrickProbeCountPerDim * kBrickProbeCountPerDim resolution
-        internal static void ConvertBricksToPositions(List<Brick> bricks, Vector3[] outProbePositions)
+        internal static void ConvertBricksToPositions(List<Brick> bricks, Vector3[] outProbePositions, Matrix4x4 refToWS)
         {
-            Matrix4x4 m = ProbeReferenceVolume.instance.GetRefSpaceToWS();
+            Matrix4x4 m = refToWS;
             int posIdx = 0;
 
             float[] ProbeOffsets = new float[ProbeBrickPool.kBrickProbeCountPerDim];
@@ -753,7 +761,7 @@ namespace UnityEngine.Experimental.Rendering
             }
         }
 
-        public static void ApplySubdivisionResults(ProbeSubdivisionResult results)
+        public static void ApplySubdivisionResults(ProbeSubdivisionResult results, Matrix4x4 refToWS)
         {
             int index = 0;
             // For now we just have one baking batch. Later we'll have more than one for a set of scenes.
@@ -772,7 +780,7 @@ namespace UnityEngine.Experimental.Rendering
                 {
                     // Convert bricks to positions
                     var probePositionsArr = new Vector3[bricks.Count * ProbeBrickPool.kBrickProbeCountTotal];
-                    ConvertBricksToPositions(bricks, probePositionsArr);
+                    ConvertBricksToPositions(bricks, probePositionsArr, refToWS);
 
                     int[] indices = null;
                     DeduplicateProbePositions(in probePositionsArr, m_BakingBatch.uniquePositions, out indices);
