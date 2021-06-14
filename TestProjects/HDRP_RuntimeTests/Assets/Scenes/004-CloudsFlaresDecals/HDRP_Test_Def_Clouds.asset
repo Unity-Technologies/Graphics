@@ -24,7 +24,7 @@ MonoBehaviour:
       m_SchemaId:
         m_Id: With3Levels
     supportVolumetrics: 1
-    supportVolumetricClouds: 0
+    supportVolumetricClouds: 1
     supportLightLayers: 1
     supportDistortion: 1
     supportTransparentBackface: 1
@@ -42,7 +42,7 @@ MonoBehaviour:
     supportDecalLayers: 1
     supportSurfaceGradient: 0
     decalNormalBufferHP: 0
-    msaaSampleCount: 1
+    msaaSampleCount: 8
     supportMotionVectors: 1
     supportRuntimeDebugDisplay: 0
     supportRuntimeAOVAPI: 0
