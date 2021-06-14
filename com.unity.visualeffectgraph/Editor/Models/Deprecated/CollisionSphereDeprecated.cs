@@ -2,8 +2,7 @@ using UnityEngine;
 
 namespace UnityEditor.VFX.Block
 {
-    [VFXInfo(category = "Collision")]
-    class CollisionSphere : CollisionBase
+    class CollisionSphereDeprecated : CollisionBase
     {
         public override string name { get { return "Collide with Sphere"; } }
 

@@ -77,6 +77,17 @@ namespace UnityEditor.VFX
         public static ArcSphere defaultValue = new ArcSphere { sphere = Sphere.defaultValue, arc = 2.0f * Mathf.PI };
     }
 
+    [VFXType, Serializable]
+    struct TSphere
+    {
+        [Tooltip("Sets the transform of the sphere.")]
+        public Transform transform;
+        [Tooltip("Sets the radius of the sphere.")]
+        public float radius;
+
+        public static TSphere defaultValue = new TSphere { transform = Transform.defaultValue, radius = 1.0f };
+    }
+
     [VFXType, VFXSpace(SpaceableType.Matrix), Serializable]
     struct OrientedBox
     {
