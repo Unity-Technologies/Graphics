@@ -58,7 +58,6 @@ Build_URP_Foundation_Win_DX12_Standalone_mono_Linear_2021.1:
          retries: 2
       -  command: unity-downloader-cli -u {{editor_versions.2021_1_staging.Win.revision}} -c editor -c il2cpp  --wait --published-only
          retries: 2
-      -  --extra-editor-arg="-cacheServerEnableUpload" --extra-editor-arg="true"
       -  command: |5-
                 git rev-parse HEAD | git show -s --format=%%cI > revdate.tmp
                 set /p GIT_REVISIONDATE=<revdate.tmp
@@ -157,7 +156,6 @@ URP_Foundation_Win_DX12_playmode_XR_mono_Linear_2021.1:
          retries: 2
       -  command: unity-downloader-cli -u {{editor_versions.2021_1_staging.Win.revision}} -c editor -c il2cpp  --wait --published-only
          retries: 2
-      -  --extra-editor-arg="-cacheServerEnableUpload" --extra-editor-arg="true"
       -  command: |5-
                 git rev-parse HEAD | git show -s --format=%%cI > revdate.tmp
                 set /p GIT_REVISIONDATE=<revdate.tmp
@@ -223,7 +221,6 @@ Build_URP_Foundation_Win_DX12_Standalone_mono_Linear_CUSTOM-REVISION:
          retries: 2
       -  command: unity-downloader-cli --source-file unity_revision.txt -c editor -c il2cpp  --wait --published-only
          retries: 2
-      -  --extra-editor-arg="-cacheServerEnableUpload" --extra-editor-arg="true"
       -  command: |5-
                 git rev-parse HEAD | git show -s --format=%%cI > revdate.tmp
                 set /p GIT_REVISIONDATE=<revdate.tmp
@@ -334,7 +331,6 @@ URP_Foundation_Win_DX12_playmode_XR_mono_Linear_CUSTOM-REVISION:
          retries: 2
       -  command: unity-downloader-cli --source-file unity_revision.txt -c editor -c il2cpp  --wait --published-only
          retries: 2
-      -  --extra-editor-arg="-cacheServerEnableUpload" --extra-editor-arg="true"
       -  command: |5-
                 git rev-parse HEAD | git show -s --format=%%cI > revdate.tmp
                 set /p GIT_REVISIONDATE=<revdate.tmp

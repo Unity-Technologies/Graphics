@@ -63,7 +63,6 @@ Build_URP_Foundation_Android_OpenGLES3_Standalone_il2cpp_Linear_2021.1:
          retries: 2
       -  command: unity-downloader-cli -u {{editor_versions.2021_1_staging.Android.revision}} -p WindowsEditor -c editor -c il2cpp -c android  --wait --published-only
          retries: 2
-      -  --extra-editor-arg="-cacheServerEnableUpload" --extra-editor-arg="true"
       -  command: |5-
                 set ANDROID_DEVICE_CONNECTION=%BOKKEN_DEVICE_IP%
                 git rev-parse HEAD | git show -s --format=%%cI > revdate.tmp
@@ -138,7 +137,6 @@ Build_URP_Foundation_Android_OpenGLES3_Standalone_il2cpp_Linear_CUSTOM-REVISION:
          retries: 2
       -  command: unity-downloader-cli --source-file unity_revision.txt -p WindowsEditor -c editor -c il2cpp -c android  --wait --published-only
          retries: 2
-      -  --extra-editor-arg="-cacheServerEnableUpload" --extra-editor-arg="true"
       -  command: |5-
                 set ANDROID_DEVICE_CONNECTION=%BOKKEN_DEVICE_IP%
                 git rev-parse HEAD | git show -s --format=%%cI > revdate.tmp
