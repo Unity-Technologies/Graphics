@@ -283,7 +283,9 @@ namespace UnityEditor.Rendering.HighDefinition
                 return;
             }
 
-            // If we reach this point that means that the user started Unity with HDRP in use, o that the SRP has changed to HDRP for the first time in the session
+            // If we reach this point can be because
+            // - That the user started Unity with HDRP in use
+            // - That the SRP has changed to HDRP for the first time in the session
             if (!HDUserSettings.wizardPopupAlreadyShownOnce)
                 OpenWindow();
         }
