@@ -83,14 +83,14 @@ namespace UnityEngine.Rendering.HighDefinition
         private class PostProcessTextureAllocator
         {
             private String m_Name;
-            private Vector2Int m_Size;
+            private Vector2 m_Scale;
             private bool m_EnableMips = false;
             private bool m_UseDynamicScale = false;
 
             public String name { set { m_Name = value; } }
             public bool enableMips { set { m_EnableMips = value; } }
             public bool useDynamicScale { set { m_UseDynamicScale = value; } }
-            public Vector2Int size { set { m_Size = value; } }
+            public Vector2 scale { set { m_Scale = value; } }
 
             public Func<string, int, RTHandleSystem, RTHandle> allocatorFunction;
 
@@ -99,7 +99,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 allocatorFunction = (string id, int frameIndex, RTHandleSystem rtHandleSystem) =>
                 {
                     return rtHandleSystem.Alloc(
-                        m_Size.x, m_Size.y, TextureXR.slices, DepthBits.None, GraphicsFormat.R16_SFloat,
+                        m_Scale, TextureXR.slices, DepthBits.None, GraphicsFormat.R16_SFloat,
                         dimension: TextureXR.dimension, enableRandomWrite: true, useMipMap: m_EnableMips, useDynamicScale: m_UseDynamicScale, name: $"{id} {m_Name}"
                     );
                 };
@@ -449,6 +449,9 @@ namespace UnityEngine.Rendering.HighDefinition
 
             TextureHandle alphaTexture = DoCopyAlpha(renderGraph, hdCamera, source);
 
+            // Save the post process screen size before any resolution group change
+            var postProcessScreenSize = hdCamera.postProcessScreenSize;
+
             //default always to downsampled resolution group.
             //when DRS is off this resolution group is the same.
             SetCurrentResolutionGroup(renderGraph, hdCamera, ResolutionGroup.BeforeDynamicResUpscale);
@@ -471,7 +474,7 @@ namespace UnityEngine.Rendering.HighDefinition
                     SetCurrentResolutionGroup(renderGraph, hdCamera, ResolutionGroup.AfterDynamicResUpscale);
                 }
 
-                source = CustomPostProcessPass(renderGraph, hdCamera, source, depthBuffer, normalBuffer, m_GlobalSettings.beforeTAACustomPostProcesses, HDProfileId.CustomPostProcessBeforeTAA);
+                source = CustomPostProcessPass(renderGraph, hdCamera, source, depthBuffer, normalBuffer, motionVectors, m_GlobalSettings.beforeTAACustomPostProcesses, HDProfileId.CustomPostProcessBeforeTAA);
 
                 // Temporal anti-aliasing goes first
                 if (m_AntialiasingFS)
@@ -486,7 +489,7 @@ namespace UnityEngine.Rendering.HighDefinition
                     }
                 }
 
-                source = CustomPostProcessPass(renderGraph, hdCamera, source, depthBuffer, normalBuffer, m_GlobalSettings.beforePostProcessCustomPostProcesses, HDProfileId.CustomPostProcessBeforePP);
+                source = CustomPostProcessPass(renderGraph, hdCamera, source, depthBuffer, normalBuffer, motionVectors, m_GlobalSettings.beforePostProcessCustomPostProcesses, HDProfileId.CustomPostProcessBeforePP);
 
                 source = DepthOfFieldPass(renderGraph, hdCamera, depthBuffer, motionVectors, depthBufferMipChain, source);
 
@@ -505,7 +508,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 source = UberPass(renderGraph, hdCamera, logLutOutput, bloomTexture, source);
                 PushFullScreenDebugTexture(renderGraph, source, hdCamera.postProcessRTScales, FullScreenDebugMode.ColorLog);
 
-                source = CustomPostProcessPass(renderGraph, hdCamera, source, depthBuffer, normalBuffer, m_GlobalSettings.afterPostProcessCustomPostProcesses, HDProfileId.CustomPostProcessAfterPP);
+                source = CustomPostProcessPass(renderGraph, hdCamera, source, depthBuffer, normalBuffer, motionVectors, m_GlobalSettings.afterPostProcessCustomPostProcesses, HDProfileId.CustomPostProcessAfterPP);
 
                 source = LensFlareDataDrivenPass(renderGraph, hdCamera, source);
 
@@ -524,6 +527,10 @@ namespace UnityEngine.Rendering.HighDefinition
             FinalPass(renderGraph, hdCamera, afterPostProcessBuffer, alphaTexture, dest, source, m_BlueNoise, flipYInPostProcess);
 
             renderGraph.EndProfilingSampler(ProfilingSampler.Get(HDProfileId.PostProcessing));
+
+            // Reset the post process size if needed, so any passes that read this data during Render Graph execute will have the expected data
+            if (postProcessScreenSize != hdCamera.postProcessScreenSize)
+                hdCamera.SetPostProcessScreenSize((int)postProcessScreenSize.x, (int)postProcessScreenSize.y);
 
             return dest;
         }
@@ -574,14 +581,14 @@ namespace UnityEngine.Rendering.HighDefinition
                         data.hdCamera.UpdateAllViewConstants(false);
                         data.hdCamera.UpdateShaderVariablesGlobalCB(ref data.globalCB);
 
-                        UpdateOffscreenRenderingConstants(ref data.globalCB, true, 1);
+                        UpdateOffscreenRenderingConstants(ref data.globalCB, true, 1.0f);
                         ConstantBuffer.PushGlobal(ctx.cmd, data.globalCB, HDShaderIDs._ShaderVariablesGlobal);
 
                         DrawOpaqueRendererList(ctx.renderContext, ctx.cmd, data.hdCamera.frameSettings, data.opaqueAfterPostprocessRL);
                         // Setup off-screen transparency here
                         DrawTransparentRendererList(ctx.renderContext, ctx.cmd, data.hdCamera.frameSettings, data.transparentAfterPostprocessRL);
 
-                        UpdateOffscreenRenderingConstants(ref data.globalCB, false, 1);
+                        UpdateOffscreenRenderingConstants(ref data.globalCB, false, 1.0f);
                         ConstantBuffer.PushGlobal(ctx.cmd, data.globalCB, HDShaderIDs._ShaderVariablesGlobal);
                     });
 
@@ -1244,7 +1251,7 @@ namespace UnityEngine.Rendering.HighDefinition
         #endregion
 
         #region Custom Post Process
-        void DoUserAfterOpaqueAndSky(RenderGraph renderGraph, HDCamera hdCamera, TextureHandle colorBuffer, TextureHandle depthBuffer, TextureHandle normalBuffer)
+        void DoUserAfterOpaqueAndSky(RenderGraph renderGraph, HDCamera hdCamera, TextureHandle colorBuffer, TextureHandle depthBuffer, TextureHandle normalBuffer, TextureHandle motionVectors)
         {
             if (!hdCamera.frameSettings.IsEnabled(FrameSettingsField.CustomPostProcess))
                 return;
@@ -1252,7 +1259,7 @@ namespace UnityEngine.Rendering.HighDefinition
             using (new RenderGraphProfilingScope(renderGraph, ProfilingSampler.Get(HDProfileId.CustomPostProcessAfterOpaqueAndSky)))
             {
                 TextureHandle source = colorBuffer;
-                bool needBlitToColorBuffer = DoCustomPostProcess(renderGraph, hdCamera, ref source, depthBuffer, normalBuffer, m_GlobalSettings.beforeTransparentCustomPostProcesses);
+                bool needBlitToColorBuffer = DoCustomPostProcess(renderGraph, hdCamera, ref source, depthBuffer, normalBuffer, motionVectors, m_GlobalSettings.beforeTransparentCustomPostProcesses);
 
                 if (needBlitToColorBuffer)
                 {
@@ -1267,11 +1274,12 @@ namespace UnityEngine.Rendering.HighDefinition
             public TextureHandle destination;
             public TextureHandle depthBuffer;
             public TextureHandle normalBuffer;
+            public TextureHandle motionVecTexture;
             public HDCamera hdCamera;
             public CustomPostProcessVolumeComponent customPostProcess;
         }
 
-        bool DoCustomPostProcess(RenderGraph renderGraph, HDCamera hdCamera, ref TextureHandle source, TextureHandle depthBuffer, TextureHandle normalBuffer, List<string> postProcessList)
+        bool DoCustomPostProcess(RenderGraph renderGraph, HDCamera hdCamera, ref TextureHandle source, TextureHandle depthBuffer, TextureHandle normalBuffer, TextureHandle motionVectors, List<string> postProcessList)
         {
             bool customPostProcessExecuted = false;
             foreach (var typeString in postProcessList)
@@ -1298,6 +1306,7 @@ namespace UnityEngine.Rendering.HighDefinition
                                 // Until we can upgrade CustomPP to be full render graph, we'll always read and bind them globally.
                                 passData.depthBuffer = builder.ReadTexture(depthBuffer);
                                 passData.normalBuffer = builder.ReadTexture(normalBuffer);
+                                passData.motionVecTexture = builder.ReadTexture(motionVectors);
 
                                 passData.source = builder.ReadTexture(source);
                                 passData.destination = builder.UseColorBuffer(renderGraph.CreateTexture(new TextureDesc(Vector2.one, true, true)
@@ -1310,6 +1319,7 @@ namespace UnityEngine.Rendering.HighDefinition
                                         // Temporary: see comment above
                                         ctx.cmd.SetGlobalTexture(HDShaderIDs._CameraDepthTexture, data.depthBuffer);
                                         ctx.cmd.SetGlobalTexture(HDShaderIDs._NormalBufferTexture, data.normalBuffer);
+                                        ctx.cmd.SetGlobalTexture(HDShaderIDs._CameraMotionVectorsTexture, data.motionVecTexture);
 
                                         data.customPostProcess.Render(ctx.cmd, data.hdCamera, data.source, data.destination);
                                     });
@@ -1325,14 +1335,14 @@ namespace UnityEngine.Rendering.HighDefinition
             return customPostProcessExecuted;
         }
 
-        TextureHandle CustomPostProcessPass(RenderGraph renderGraph, HDCamera hdCamera, TextureHandle source, TextureHandle depthBuffer, TextureHandle normalBuffer, List<string> postProcessList, HDProfileId profileId)
+        TextureHandle CustomPostProcessPass(RenderGraph renderGraph, HDCamera hdCamera, TextureHandle source, TextureHandle depthBuffer, TextureHandle normalBuffer, TextureHandle motionVectors, List<string> postProcessList, HDProfileId profileId)
         {
             if (!hdCamera.frameSettings.IsEnabled(FrameSettingsField.CustomPostProcess))
                 return source;
 
             using (new RenderGraphProfilingScope(renderGraph, ProfilingSampler.Get(profileId)))
             {
-                DoCustomPostProcess(renderGraph, hdCamera, ref source, depthBuffer, normalBuffer, postProcessList);
+                DoCustomPostProcess(renderGraph, hdCamera, ref source, depthBuffer, normalBuffer, motionVectors, postProcessList);
             }
 
             return source;
@@ -2377,7 +2387,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 if (next != null)
                     camera.ReleaseHistoryFrameRT((int)HDCameraFrameHistoryType.DepthOfFieldCoC);
 
-                m_PostProcessTextureAllocator.size = Vector2Int.CeilToInt(new Vector2(camera.postProcessScreenSize.x, camera.postProcessScreenSize.y));
+                m_PostProcessTextureAllocator.scale = new Vector2(camera.postProcessScreenSize.x * camera.screenSize.z, camera.postProcessScreenSize.y * camera.screenSize.w);
                 m_PostProcessTextureAllocator.enableMips = useMips;
                 m_PostProcessTextureAllocator.useDynamicScale = resGroup == ResolutionGroup.BeforeDynamicResUpscale;
                 m_PostProcessTextureAllocator.name = $"CoC History";
@@ -2953,8 +2963,8 @@ namespace UnityEngine.Rendering.HighDefinition
                 tileSize = 16;
             }
 
-            int tileTexWidth = Mathf.CeilToInt(postProcessViewportSize.x / tileSize);
-            int tileTexHeight = Mathf.CeilToInt(postProcessViewportSize.y / tileSize);
+            int tileTexWidth = Mathf.CeilToInt(postProcessViewportSize.x / (float)tileSize);
+            int tileTexHeight = Mathf.CeilToInt(postProcessViewportSize.y / (float)tileSize);
             data.tileTargetSize = new Vector4(tileTexWidth, tileTexHeight, 1.0f / tileTexWidth, 1.0f / tileTexHeight);
 
             float screenMagnitude = (new Vector2(postProcessViewportSize.x, postProcessViewportSize.y).magnitude);
@@ -3374,6 +3384,11 @@ namespace UnityEngine.Rendering.HighDefinition
                 return;
 
             resGroup = newResGroup;
+
+            // Change the post process resolution for any passes that read it during Render Graph setup
+            camera.SetPostProcessScreenSize(postProcessViewportSize.x, postProcessViewportSize.y);
+
+            // Change the post process resolution for any passes that read it during Render Graph execution
             UpdatePostProcessScreenSize(renderGraph, camera, postProcessViewportSize.x, postProcessViewportSize.y);
         }
 

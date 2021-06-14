@@ -138,17 +138,19 @@ The **Lighting** panel has tools that you can use to visualize various component
 | **- Filter Layers**                   | Use the drop-down to filter light layers that you want to visialize. Objects having a matching layer will be displayed in a specific color. |
 | **- Layers Color**                    | Use the color pickers to select the display color of each light layer. |
 
-| **Material Overrides**               | **Description**                                              |
-| ------------------------------------ | ------------------------------------------------------------ |
-| **Override Smoothness**              | Enable the checkbox to override the smoothness for the entire Scene. |
-| **- Smoothness**                     | Use the slider to set the smoothness override value that HDRP uses for the entire Scene. |
-| **Override Albedo**                  | Enable the checkbox to override the albedo for the entire Scene. |
-| **- Albedo**                         | Use the color picker to set the albedo color that HDRP uses for the entire Scene. |
-| **Override Normal**                  | Enable the checkbox to override the normals for the entire Scene with object normals for lighting debug. |
-| **Override Specular Color**          | Enable the checkbox to override the specular color for the entire Scene. |
-| **- Specular Color**                 | Use the color picker to set the specular color that HDRP uses for the entire Scene. |
-| **Override Emissive Color**          | Enable the checkbox to override the emissive color for the entire Scene. |
-| **- Emissive Color**                 | Use the color picker to set the emissive color that HDRP uses for the entire Scene. |
+| **Material Overrides**         | **Description**                                              |
+| ------------------------------ | ------------------------------------------------------------ |
+| **Override Smoothness**        | Enable the checkbox to override the smoothness for the entire Scene. |
+| **- Smoothness**               | Use the slider to set the smoothness override value that HDRP uses for the entire Scene. |
+| **Override Albedo**            | Enable the checkbox to override the albedo for the entire Scene. |
+| **- Albedo**                   | Use the color picker to set the albedo color that HDRP uses for the entire Scene. |
+| **Override Normal**            | Enable the checkbox to override the normals for the entire Scene with object normals for lighting debug. |
+| **Override Specular Color**    | Enable the checkbox to override the specular color for the entire Scene. |
+| **- Specular Color**           | Use the color picker to set the specular color that HDRP uses for the entire Scene. |
+| **Override Ambient Occlusion** | Enable the checkbox to override the ambient occlusion for the entire Scene. |
+| **- Ambient Occlusion**        | Use the slider to set the Ambient Occlusion override value that HDRP uses for the entire Scene. |
+| **Override Emissive Color**    | Enable the checkbox to override the emissive color for the entire Scene. |
+| **- Emissive Color**           | Use the color picker to set the emissive color that HDRP uses for the entire Scene. |
 
 | **Debug Option**                     | **Description**                                              |
 | ------------------------------------ | ------------------------------------------------------------ |
