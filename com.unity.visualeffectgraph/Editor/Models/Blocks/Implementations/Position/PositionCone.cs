@@ -14,9 +14,9 @@ namespace UnityEditor.VFX.Block
         }
 
         [VFXSetting, Tooltip("Controls whether particles are spawned on the base of the cone, or throughout the entire volume.")]
-        public HeightMode heightMode;
+        public HeightMode heightMode = HeightMode.Volume;
 
-        public override string name { get { return string.Format(base.name, "Cone"); } }
+        public override string name { get { return string.Format(base.name, "Arc Cone"); } }
         protected override float thicknessDimensions { get { return 2.0f; } }
 
         public class InputProperties
@@ -65,19 +65,19 @@ namespace UnityEditor.VFX.Block
                 var allSlots = GetExpressionsFromSlots(this);
 
                 foreach (var p in allSlots.Where(e => e.name == "ArcCone_arc"
-                    || e.name == "ArcCone_radius0"
-                    || e.name == "ArcCone_radius1"
-                    || e.name == "ArcCone_height"
-                    || e.name == "ArcCone_transform"
-                    || e.name == "ArcCone_center"
+                    || e.name == "ArcCone_cone_radius0"
+                    || e.name == "ArcCone_cone_radius1"
+                    || e.name == "ArcCone_cone_height"
+                    || e.name == "ArcCone_cone_transform"
+                    || e.name == "ArcCone_cone_center"
                     || e.name == "ArcSequencer"
                     || e.name == "HeightSequencer"))
                     yield return p;
 
 
-                VFXExpression radius0 = allSlots.First(e => e.name == "ArcCone_radius0").exp;
-                VFXExpression radius1 = allSlots.First(e => e.name == "ArcCone_radius1").exp;
-                VFXExpression height = allSlots.First(e => e.name == "ArcCone_height").exp;
+                VFXExpression radius0 = allSlots.First(e => e.name == "ArcCone_cone_radius0").exp;
+                VFXExpression radius1 = allSlots.First(e => e.name == "ArcCone_cone_radius1").exp;
+                VFXExpression height = allSlots.First(e => e.name == "ArcCone_cone_height").exp;
                 VFXExpression tanSlope = (radius1 - radius0) / height;
                 VFXExpression slope = new VFXExpressionATan(tanSlope);
 
@@ -120,16 +120,16 @@ float hNorm = 0.0f;
                     float distributionExponent = positionMode == PositionMode.Surface ? 2.0f : 3.0f;
                     outSource += $@"
 float hNorm = 0.0f;
-if (abs(ArcCone_radius0 - ArcCone_radius1) > VFX_EPSILON)
+if (abs(ArcCone_cone_radius0 - ArcCone_cone_radius1) > VFX_EPSILON)
 {{
     // Uniform distribution on cone
-    float heightFactor = ArcCone_radius0 / max(VFX_EPSILON,ArcCone_radius1);
+    float heightFactor = ArcCone_cone_radius0 / max(VFX_EPSILON,ArcCone_cone_radius1);
     float heightFactorPow = pow(heightFactor, {distributionExponent});
     hNorm = pow(heightFactorPow + (1.0f - heightFactorPow) * RAND, rcp({distributionExponent}));
     hNorm = (hNorm - heightFactor) / (1.0f - heightFactor); // remap on [0,1]
 }}
 else
-    hNorm = RAND; // Uniform distribution on cylinder
+    hNorm = RAND; // Uniform distribution on cone
 ";
                 }
                 else
@@ -140,10 +140,10 @@ float hNorm = HeightSequencer;
                 }
 
                 outSource += @"
-float3 finalPos = lerp(float3(pos * ArcCone_radius0, 0.0f), float3(pos * ArcCone_radius1, ArcCone_height), hNorm); /* + ArcCone_center; TODOPAUL, clarify why we removed it */
+float3 finalPos = lerp(float3(pos * ArcCone_cone_radius0, 0.0f), float3(pos * ArcCone_cone_radius1, ArcCone_cone_height), hNorm);
 float3 finalDir = normalize(float3(pos * sincosSlope.x, sincosSlope.y));
-finalPos = mul(ArcCone_transform, float4(finalPos.xzy, 1.0f)).xyz;
-finalDir = mul((float3x3)ArcCone_transform, finalDir.xzy);
+finalPos = mul(ArcCone_cone_transform, float4(finalPos.xzy, 1.0f)).xyz;
+finalDir = mul((float3x3)ArcCone_cone_transform, finalDir.xzy);
 ";
                 outSource += VFXBlockUtility.GetComposeString(compositionDirection, "direction", "finalDir", "blendDirection") + "\n";
                 outSource += VFXBlockUtility.GetComposeString(compositionPosition, "position", "finalPos", "blendPosition") + "\n";

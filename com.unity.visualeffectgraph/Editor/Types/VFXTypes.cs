@@ -159,16 +159,22 @@ namespace UnityEditor.VFX
         public static ArcCone defaultValue = new ArcCone { radius0 = 1.0f, radius1 = 0.1f, height = 1.0f, arc = 2.0f * Mathf.PI};
     }
 
-    //NEW : And used in Position Shape Cone in place ArcCone
-    //Require also class VFXTArcConeGizmo : VFXSpaceableGizmo<TArcCone>
-    //Can be converted from ArcCone or Cone => TArcCone (require a VFXSlotTArcCone)
     [VFXType, Serializable]
     struct TArcCone
     {
+        [Tooltip("Sets the cone.")]
+        public TCone cone;
+        [Angle, Range(0, Mathf.PI * 2.0f), Tooltip("Controls how much of the cone is used. The value is in radians.")]
+        public float arc;
+
+        public static TArcCone defaultValue = new TArcCone { cone = TCone.defaultValue, arc = 2.0f * Mathf.PI };
+    }
+
+    [VFXType, Serializable]
+    struct TCone
+    {
         [Tooltip("Sets the transform of the cone.")]
         public Transform transform;
-        //[Tooltip("Sets the center of the cone.") /*, VFXSpace(SpaceableType.Position) Space Ignored ! This is a relative value in transform space*/]
-        //public Vector3 center; //Could be considered as an optionnal offset
         [Min(0.0f), Tooltip("Sets the base radius of the cone.")]
         public float radius0;
         [Min(0.0f), Tooltip("Sets the top radius of the cone.")]
@@ -176,9 +182,8 @@ namespace UnityEditor.VFX
         [Tooltip("Sets the height of the cone.")]
         public float height;
         [Angle, Range(0, Mathf.PI * 2.0f), Tooltip("Controls how much of the cone is used. The value is in radians.")]
-        public float arc;
 
-        public static TArcCone defaultValue = new TArcCone { transform = Transform.defaultValue, radius0 = 1.0f, radius1 = 0.1f, height = 1.0f, arc = 2.0f * Mathf.PI };
+        public static TCone defaultValue = new TCone { transform = Transform.defaultValue, radius0 = 1.0f, radius1 = 0.1f, height = 1.0f };
     }
 
     [VFXType, Serializable]
