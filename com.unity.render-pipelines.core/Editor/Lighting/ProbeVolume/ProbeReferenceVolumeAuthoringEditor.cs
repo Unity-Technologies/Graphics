@@ -60,6 +60,7 @@ namespace UnityEngine.Experimental.Rendering
         private SerializedProperty m_MaxDilationSampleDistance;
         private SerializedProperty m_DilationValidityThreshold;
         private SerializedProperty m_DilationIterations;
+        private SerializedProperty m_DilationInvSquaredWeight;
         private SerializedProperty m_VolumeAsset;
 
         private SerializedProperty m_Profile;
@@ -78,6 +79,7 @@ namespace UnityEngine.Experimental.Rendering
             m_Profile = serializedObject.FindProperty("m_Profile");
             m_Dilate = serializedObject.FindProperty("m_EnableDilation");
             m_DilationIterations = serializedObject.FindProperty("m_DilationIterations");
+            m_DilationInvSquaredWeight = serializedObject.FindProperty("m_DilationInvSquaredWeight");
             m_MaxDilationSampleDistance = serializedObject.FindProperty("m_MaxDilationSampleDistance");
             m_DilationValidityThreshold = serializedObject.FindProperty("m_DilationValidityThreshold");
             m_VolumeAsset = serializedObject.FindProperty("volumeAsset");
@@ -163,7 +165,18 @@ namespace UnityEngine.Experimental.Rendering
                     EditorGUI.BeginDisabledGroup(!m_Dilate.boolValue);
                     m_MaxDilationSampleDistance.floatValue = EditorGUILayout.FloatField("Dilation Distance", m_MaxDilationSampleDistance.floatValue);
                     DilationValidityThresholdInverted = EditorGUILayout.Slider("Dilation Validity Threshold", DilationValidityThresholdInverted, 0f, 1f);
+                    EditorGUILayout.LabelField("Advanced", EditorStyles.boldLabel);
+                    EditorGUI.indentLevel++;
                     m_DilationIterations.intValue = EditorGUILayout.IntSlider("Dilation Iteration Count", m_DilationIterations.intValue, 1, 5);
+                    m_DilationInvSquaredWeight.boolValue = EditorGUILayout.Toggle("Squared Distance Weighting", m_DilationInvSquaredWeight.boolValue);
+                    EditorGUI.indentLevel--;
+
+                    if (GUILayout.Button(EditorGUIUtility.TrTextContent("Refresh dilation"), EditorStyles.miniButton))
+                    {
+                        ProbeGIBaking.RevertDilation();
+                        ProbeGIBaking.PerformDilation();
+                    }
+
                     EditorGUI.EndDisabledGroup();
                 }
                 EditorGUILayout.EndFoldoutHeaderGroup();
