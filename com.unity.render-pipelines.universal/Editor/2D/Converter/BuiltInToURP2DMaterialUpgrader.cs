@@ -25,29 +25,6 @@ namespace UnityEditor.Rendering.Universal
         string m_SpritesDefaultShaderId;
         string m_SpritesDefaultMatId;
 
-
-        bool IsMaterialPath(string path)
-        {
-            if (string.IsNullOrEmpty(path))
-                throw new ArgumentNullException(nameof(path));
-
-            if (path.EndsWith(".mat"))
-                return URP2DConverterUtility.DoesFileContainString(path, m_SpritesDefaultShaderId);
-
-            return false;
-        }
-
-        bool IsPrefabOrScenePath(string path)
-        {
-            if (string.IsNullOrEmpty(path))
-                throw new ArgumentNullException(nameof(path));
-
-            if (path.EndsWith(".prefab", StringComparison.OrdinalIgnoreCase) || path.EndsWith(".unity", StringComparison.OrdinalIgnoreCase) || path.EndsWith(".mat"))
-                return URP2DConverterUtility.DoesFileContainString(path, m_SpritesDefaultMatId);
-
-            return false;
-        }
-
         void UpgradeGameObject(GameObject go)
         {
             Renderer[] renderers = go.GetComponentsInChildren<Renderer>();
@@ -94,7 +71,7 @@ namespace UnityEditor.Rendering.Universal
 
             foreach (string path in allAssetPaths)
             {
-                if (IsMaterialPath(path) || IsPrefabOrScenePath(path))
+                if (URP2DConverterUtility.IsMaterialPath(path, m_SpritesDefaultShaderId) || URP2DConverterUtility.IsPrefabOrScenePath(path, m_SpritesDefaultMatId))
                 {
                     ConverterItemDescriptor desc = new ConverterItemDescriptor()
                     {

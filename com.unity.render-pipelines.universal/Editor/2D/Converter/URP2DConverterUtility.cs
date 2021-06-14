@@ -14,6 +14,9 @@ internal static class URP2DConverterUtility
         if (string.IsNullOrEmpty(path))
             throw new ArgumentNullException(nameof(path));
 
+        if (path.StartsWith("Packages"))
+            return false;
+
         if (path.EndsWith(".mat"))
             return URP2DConverterUtility.DoesFileContainString(path, id);
 
@@ -24,6 +27,9 @@ internal static class URP2DConverterUtility
     {
         if (string.IsNullOrEmpty(path))
             throw new ArgumentNullException(nameof(path));
+
+        if (path.StartsWith("Packages"))
+            return false;
 
         if (path.EndsWith(".prefab", StringComparison.OrdinalIgnoreCase) || path.EndsWith(".unity", StringComparison.OrdinalIgnoreCase))
             return URP2DConverterUtility.DoesFileContainString(path, id);
@@ -53,8 +59,18 @@ internal static class URP2DConverterUtility
     {
         UnityEngine.Object[] objects = AssetDatabase.LoadAllAssetsAtPath(path);
 
+        int firstIndex = 0;
+        for(int i=0;i<objects.Length;i++)
+        {
+            if(objects[i] as GameObject)
+            {
+                firstIndex = i;
+                break;
+            }
+        }
+
         // There should be no need to check this as we have already determined that there is something that needs upgrading
-        if (!PrefabUtility.IsPartOfImmutablePrefab(objects[0]))
+        if (!PrefabUtility.IsPartOfImmutablePrefab(objects[firstIndex]))
         {
             for (int objIndex = 0; objIndex < objects.Length; objIndex++)
             {
@@ -65,7 +81,7 @@ internal static class URP2DConverterUtility
                 }
             }
 
-            GameObject asset = objects[0] as GameObject;
+            GameObject asset = objects[firstIndex] as GameObject;
             PrefabUtility.SavePrefabAsset(asset.transform.root.gameObject);
 
             return null;
