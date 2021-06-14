@@ -249,7 +249,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed cropping issue with the compositor camera bridge (case 1340549).
 - Fixed an issue with normal management for recursive rendering (case 1324082).
 - Fixed aliasing artifacts that are related to numerical imprecisions of the light rays in the volumetric clouds (case 1340731).
-- Fixed an issue where disbaled reflection probes were still sent into the the ray tracing light cluster.
+- Fixed an issue where disabled reflection probes were still sent into the the ray tracing light cluster.
 
 ### Changed
 - Changed Window/Render Pipeline/HD Render Pipeline Wizard to Window/Rendering/HDRP Wizard

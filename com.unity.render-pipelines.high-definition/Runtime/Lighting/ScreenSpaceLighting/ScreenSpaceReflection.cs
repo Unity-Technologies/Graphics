@@ -142,7 +142,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
         #region Ray Tracing
         /// <summary>
-        /// When enabled, SSR handles sky reflection.
+        /// Controls which sources are used to fallback on when the traced ray misses.
         /// </summary>
         public RayTracingFallbackHierachyParameter fallbackHierachy = new RayTracingFallbackHierachyParameter(RayTracingFallbackHierachy.ReflectionProbesAndSky);
 

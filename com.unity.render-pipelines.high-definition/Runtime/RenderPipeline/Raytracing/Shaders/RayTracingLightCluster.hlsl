@@ -71,9 +71,11 @@ EnvLightData FetchClusterEnvLightIndex(int cellIndex, uint lightIndex)
 }
 
 #ifdef HAS_LIGHTLOOP
-float3 RayTraceReflectionProbes(float3 rayOrigin, float3 rayDirection, inout float weight)
+float3 RayTraceReflectionProbes(float3 rayOrigin, float3 rayDirection, inout float totalWeight)
 {
     float3 result = 0.0;
+    totalWeight = 0.0;
+
     uint lightStart = 0, lightEnd = 0, cellIndex = 0;
     #ifdef USE_LIGHT_CLUSTER
     // Get the punctual light count
@@ -82,7 +84,6 @@ float3 RayTraceReflectionProbes(float3 rayOrigin, float3 rayDirection, inout flo
     lightStart = 0;
     lightEnd = _EnvLightCountRT;
     #endif
-
     // Scalarized loop, same rationale of the punctual light version
     uint envLightIdx = lightStart;
     while (envLightIdx < lightEnd)
@@ -93,20 +94,23 @@ float3 RayTraceReflectionProbes(float3 rayOrigin, float3 rayDirection, inout flo
         EnvLightData envLightData = _EnvLightDatasRT[envLightIdx];
         #endif
 
-        if (IsEnvIndexCubemap(envLightData.envIndex) && weight < 1.0)
+        if (IsEnvIndexCubemap(envLightData.envIndex) && totalWeight < 1.0)
         {
-            float prevWeight = weight;
+            float weight = 1.0;
             float3 R = rayDirection;
             float intersectionDistance = EvaluateLight_EnvIntersection(rayOrigin, rayDirection, envLightData, envLightData.influenceShapeType, R, weight);
-            
+
             int index = abs(envLightData.envIndex) - 1;
             float3 probeResult = SAMPLE_TEXTURECUBE_ARRAY_LOD_ABSTRACT(_EnvCubemapTextures, s_trilinear_clamp_sampler, R, _EnvSliceSize * index, 0).rgb * envLightData.rangeCompressionFactorCompensation;
             probeResult = ClampToFloat16Max(probeResult);
-            result += (weight - prevWeight) * probeResult;
+
+            UpdateLightingHierarchyWeights(totalWeight, weight);
+            result += weight * probeResult * envLightData.multiplier;
         }
 
         envLightIdx++;
     }
+    totalWeight = saturate(totalWeight);
     return result;
 }
 #endif
