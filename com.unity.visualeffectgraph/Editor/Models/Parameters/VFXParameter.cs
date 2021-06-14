@@ -41,7 +41,7 @@ namespace UnityEditor.VFX
             m_ValueExpr = source.m_ValueExpr;
 
             this.Init(source.type);
-            for (var i=0; i < source.m_ExprSlots.Length;i++)
+            for (var i = 0; i < source.m_ExprSlots?.Length; i++)
             {
                 m_ExprSlots[i].value = source.m_ExprSlots[i].value;
             }
