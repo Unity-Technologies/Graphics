@@ -2,7 +2,11 @@
 #pragma max_recursion_depth 10
 
 // WARNING: This define must be kept in sync with the c# code
+#if defined(SHADER_API_PSSL)
+#define RAYTRACING_MAX_RECURSION 1
+#else
 #define RAYTRACING_MAX_RECURSION 10
+#endif
 
 // HDRP include
 #define SHADER_TARGET 50
