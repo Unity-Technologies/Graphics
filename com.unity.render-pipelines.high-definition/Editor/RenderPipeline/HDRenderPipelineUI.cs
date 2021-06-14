@@ -13,10 +13,7 @@ namespace UnityEditor.Rendering.HighDefinition
     {
         enum Expandable
         {
-            // CameraFrameSettings = 1 << 0, //obsolete
-            // BakedOrCustomProbeFrameSettings = 1 << 1, //obsolete
-            // RealtimeProbeFrameSettings = 1 << 2, //obsolete
-            // General = 1 << 3, // empty - settings moved to HD Global Settings
+            // Obsolete values
             Rendering = 1 << 4,
             Lighting = 1 << 5,
             Material = 1 << 6,
@@ -48,20 +45,36 @@ namespace UnityEditor.Rendering.HighDefinition
             RTRQuality = 1 << 32,
             RTGIQuality = 1 << 33,
             SSGIQuality = 1 << 34,
-            VolumetricClouds = 1 << 35
+            VolumetricClouds = 1 << 35,
         }
 
         static readonly ExpandedState<Expandable, HDRenderPipelineAsset> k_ExpandedState = new ExpandedState<Expandable, HDRenderPipelineAsset>(Expandable.Rendering, "HDRP");
 
+        enum ExpandableShadows
+        {
+            PunctualLightShadows = 1 << 1,
+            DirectionalLightShadows = 1 << 2,
+            AreaLightShadows = 1 << 3,
+        }
+        static readonly ExpandedState<ExpandableShadows, HDRenderPipelineAsset> k_LightsExpandedState = new(0, "HDRP:Shadows");
+
         enum ShadowResolutionValue
         {
+            [InspectorName("128")]
             ShadowResolution128 = 128,
+            [InspectorName("256")]
             ShadowResolution256 = 256,
+            [InspectorName("512")]
             ShadowResolution512 = 512,
+            [InspectorName("1024")]
             ShadowResolution1024 = 1024,
+            [InspectorName("2048")]
             ShadowResolution2048 = 2048,
+            [InspectorName("4096")]
             ShadowResolution4096 = 4096,
+            [InspectorName("8192")]
             ShadowResolution8192 = 8192,
+            [InspectorName("16384")]
             ShadowResolution16384 = 16384
         }
 
@@ -83,7 +96,12 @@ namespace UnityEditor.Rendering.HighDefinition
                     CED.FoldoutGroup(Styles.cookiesSubTitle, Expandable.Cookie, k_ExpandedState, FoldoutOption.Indent | FoldoutOption.SubFoldout, Drawer_SectionCookies),
                     CED.FoldoutGroup(Styles.reflectionsSubTitle, Expandable.Reflection, k_ExpandedState, FoldoutOption.Indent | FoldoutOption.SubFoldout, Drawer_SectionReflection),
                     CED.FoldoutGroup(Styles.skySubTitle, Expandable.Sky, k_ExpandedState, FoldoutOption.Indent | FoldoutOption.SubFoldout, Drawer_SectionSky),
-                    CED.FoldoutGroup(Styles.shadowSubTitle, Expandable.Shadow, k_ExpandedState, FoldoutOption.Indent | FoldoutOption.SubFoldout, Drawer_SectionShadows),
+                    CED.FoldoutGroup(Styles.shadowSubTitle, Expandable.Shadow, k_ExpandedState, FoldoutOption.Indent | FoldoutOption.SubFoldout,
+                        CED.Group(Drawer_SectionShadows),
+                        CED.FoldoutGroup(Styles.punctualLightshadowSubTitle, ExpandableShadows.PunctualLightShadows, k_LightsExpandedState, FoldoutOption.Indent | FoldoutOption.SubFoldout, Drawer_PunctualLightSectionShadows),
+                        CED.FoldoutGroup(Styles.directionalLightshadowSubTitle, ExpandableShadows.DirectionalLightShadows, k_LightsExpandedState, FoldoutOption.Indent | FoldoutOption.SubFoldout, Drawer_DirectionalLightSectionShadows),
+                        CED.FoldoutGroup(Styles.areaLightshadowSubTitle, ExpandableShadows.AreaLightShadows, k_LightsExpandedState, FoldoutOption.Indent | FoldoutOption.SubFoldout, Drawer_AreaLightSectionShadows)
+                        ),
                     CED.FoldoutGroup(Styles.lightLoopSubTitle, Expandable.LightLoop, k_ExpandedState, FoldoutOption.Indent | FoldoutOption.SubFoldout | FoldoutOption.NoSpaceAtEnd, Drawer_SectionLightLoop)
                     ),
                 CED.FoldoutGroup(Styles.lightingQualitySettings, Expandable.LightingQuality, k_ExpandedState,
@@ -284,10 +302,6 @@ namespace UnityEditor.Rendering.HighDefinition
             }
         }
 
-        static private bool m_ShowDirectionalLightSection = false;
-        static private bool m_ShowPunctualLightSection = false;
-        static private bool m_ShowAreaLightSection = false;
-
         static void Drawer_SectionShadows(SerializedHDRenderPipelineAsset serialized, Editor owner)
         {
             EditorGUILayout.PropertyField(serialized.renderPipelineSettings.supportShadowMask, Styles.supportShadowMaskContent);
@@ -316,76 +330,62 @@ namespace UnityEditor.Rendering.HighDefinition
             }
 
             SerializedScalableSettingUI.ValueGUI<bool>(serialized.renderPipelineSettings.lightSettings.useContactShadows, Styles.useContactShadows);
+        }
 
-            m_ShowDirectionalLightSection = EditorGUILayout.Foldout(m_ShowDirectionalLightSection, Styles.directionalShadowsSubTitle, true);
-            if (m_ShowDirectionalLightSection)
+        static void DrawLightShadow(
+            SerializedHDShadowAtlasInitParams serializedAtlasInitParams,
+            SerializedScalableSetting scalableSetting,
+            SerializedProperty resolutionProperty,
+            int defaultCachedResolutionPropertyValue)
+        {
+            using (new EditorGUI.IndentLevelScope())
             {
-                ++EditorGUI.indentLevel;
+                scalableSetting.ValueGUI<int>(Styles.shadowResolutionTiers);
+                EditorGUILayout.DelayedIntField(resolutionProperty, Styles.maxShadowResolution);
+
+                EditorGUILayout.LabelField(Styles.shadowLightAtlasSubTitle, EditorStyles.boldLabel);
+
+                using (new EditorGUI.IndentLevelScope())
+                {
+                    CoreEditorUtils.DrawEnumPopup(serializedAtlasInitParams.shadowMapResolution, typeof(ShadowResolutionValue), Styles.resolutionContent);
+
+                    // Because we don't know if the asset is old and had the cached shadow map resolution field, if it was set as default float (0) we force a default.
+                    if (serializedAtlasInitParams.cachedResolution.intValue == 0)
+                        serializedAtlasInitParams.cachedResolution.intValue = defaultCachedResolutionPropertyValue;
+
+                    CoreEditorUtils.DrawEnumPopup(serializedAtlasInitParams.cachedResolution, typeof(ShadowResolutionValue), Styles.cachedShadowAtlasResolution);
+
+                    EditorGUILayout.IntPopup(serializedAtlasInitParams.shadowMapDepthBits, Styles.shadowBitDepthNames, Styles.shadowBitDepthValues, Styles.precisionContent);
+                    EditorGUILayout.PropertyField(serializedAtlasInitParams.useDynamicViewportRescale, Styles.dynamicRescaleContent);
+                }
+            }
+        }
+
+        static void Drawer_PunctualLightSectionShadows(SerializedHDRenderPipelineAsset serialized, Editor owner)
+        {
+            DrawLightShadow(
+                serialized.renderPipelineSettings.hdShadowInitParams.serializedPunctualAtlasInit,
+                serialized.renderPipelineSettings.hdShadowInitParams.shadowResolutionPunctual,
+                serialized.renderPipelineSettings.hdShadowInitParams.maxPunctualShadowMapResolution,
+                2048);
+        }
+
+        static void Drawer_AreaLightSectionShadows(SerializedHDRenderPipelineAsset serialized, Editor owner)
+        {
+            DrawLightShadow(
+                serialized.renderPipelineSettings.hdShadowInitParams.serializedAreaAtlasInit,
+                serialized.renderPipelineSettings.hdShadowInitParams.shadowResolutionArea,
+                serialized.renderPipelineSettings.hdShadowInitParams.maxAreaShadowMapResolution,
+                1024);
+        }
+
+        static void Drawer_DirectionalLightSectionShadows(SerializedHDRenderPipelineAsset serialized, Editor owner)
+        {
+            using (new EditorGUI.IndentLevelScope())
+            {
                 EditorGUILayout.IntPopup(serialized.renderPipelineSettings.hdShadowInitParams.directionalShadowMapDepthBits, Styles.shadowBitDepthNames, Styles.shadowBitDepthValues, Styles.directionalShadowPrecisionContent);
-                serialized.renderPipelineSettings.hdShadowInitParams.shadowResolutionDirectional.ValueGUI<int>(Styles.directionalLightsShadowTiers);
+                serialized.renderPipelineSettings.hdShadowInitParams.shadowResolutionDirectional.ValueGUI<int>(Styles.shadowResolutionTiers);
                 EditorGUILayout.DelayedIntField(serialized.renderPipelineSettings.hdShadowInitParams.maxDirectionalShadowMapResolution, Styles.maxShadowResolution);
-                --EditorGUI.indentLevel;
-            }
-
-            m_ShowPunctualLightSection = EditorGUILayout.Foldout(m_ShowPunctualLightSection, Styles.punctualShadowsSubTitle, true);
-            if (m_ShowPunctualLightSection)
-            {
-                ++EditorGUI.indentLevel;
-                {
-                    EditorGUILayout.LabelField(Styles.shadowPunctualLightAtlasSubTitle);
-                    ++EditorGUI.indentLevel;
-                    {
-                        CoreEditorUtils.DrawEnumPopup(serialized.renderPipelineSettings.hdShadowInitParams.serializedPunctualAtlasInit.shadowMapResolution, typeof(ShadowResolutionValue), Styles.resolutionContent);
-                        EditorGUILayout.IntPopup(serialized.renderPipelineSettings.hdShadowInitParams.serializedPunctualAtlasInit.shadowMapDepthBits, Styles.shadowBitDepthNames, Styles.shadowBitDepthValues, Styles.precisionContent);
-                        EditorGUILayout.PropertyField(serialized.renderPipelineSettings.hdShadowInitParams.serializedPunctualAtlasInit.useDynamicViewportRescale, Styles.dynamicRescaleContent);
-                    }
-                    --EditorGUI.indentLevel;
-                }
-                --EditorGUI.indentLevel;
-
-                ++EditorGUI.indentLevel;
-                serialized.renderPipelineSettings.hdShadowInitParams.shadowResolutionPunctual.ValueGUI<int>(Styles.punctualLightsShadowTiers);
-                EditorGUILayout.DelayedIntField(serialized.renderPipelineSettings.hdShadowInitParams.maxPunctualShadowMapResolution, Styles.maxShadowResolution);
-                --EditorGUI.indentLevel;
-
-                ++EditorGUI.indentLevel;
-                // Because we don't know if the asset is old and had the cached shadow map resolution field, if it was set as default float (0) we force a default.
-                if (serialized.renderPipelineSettings.hdShadowInitParams.cachedPunctualShadowAtlasResolution.intValue == 0)
-                {
-                    serialized.renderPipelineSettings.hdShadowInitParams.cachedPunctualShadowAtlasResolution.intValue = 2048;
-                }
-                CoreEditorUtils.DrawEnumPopup(serialized.renderPipelineSettings.hdShadowInitParams.cachedPunctualShadowAtlasResolution, typeof(ShadowResolutionValue), Styles.cachedShadowAtlasResolution);
-                --EditorGUI.indentLevel;
-            }
-
-            m_ShowAreaLightSection = EditorGUILayout.Foldout(m_ShowAreaLightSection, Styles.areaShadowsSubTitle, true);
-            if (m_ShowAreaLightSection)
-            {
-                ++EditorGUI.indentLevel;
-                {
-                    EditorGUILayout.LabelField(Styles.shadowAreaLightAtlasSubTitle);
-                    ++EditorGUI.indentLevel;
-                    {
-                        CoreEditorUtils.DrawEnumPopup(serialized.renderPipelineSettings.hdShadowInitParams.serializedAreaAtlasInit.shadowMapResolution, typeof(ShadowResolutionValue), Styles.resolutionContent);
-                        EditorGUILayout.IntPopup(serialized.renderPipelineSettings.hdShadowInitParams.serializedAreaAtlasInit.shadowMapDepthBits, Styles.shadowBitDepthNames, Styles.shadowBitDepthValues, Styles.precisionContent);
-                        EditorGUILayout.PropertyField(serialized.renderPipelineSettings.hdShadowInitParams.serializedAreaAtlasInit.useDynamicViewportRescale, Styles.dynamicRescaleContent);
-                    }
-                    --EditorGUI.indentLevel;
-                }
-                --EditorGUI.indentLevel;
-
-                ++EditorGUI.indentLevel;
-                serialized.renderPipelineSettings.hdShadowInitParams.shadowResolutionArea.ValueGUI<int>(Styles.areaLightsShadowTiers);
-                EditorGUILayout.DelayedIntField(serialized.renderPipelineSettings.hdShadowInitParams.maxAreaShadowMapResolution, Styles.maxShadowResolution);
-                --EditorGUI.indentLevel;
-
-                ++EditorGUI.indentLevel;
-                if (serialized.renderPipelineSettings.hdShadowInitParams.cachedAreaShadowAtlasResolution.intValue == 0)
-                {
-                    serialized.renderPipelineSettings.hdShadowInitParams.cachedAreaShadowAtlasResolution.intValue = 1024;
-                }
-                CoreEditorUtils.DrawEnumPopup(serialized.renderPipelineSettings.hdShadowInitParams.cachedAreaShadowAtlasResolution, typeof(ShadowResolutionValue), Styles.cachedShadowAtlasResolution);
-                --EditorGUI.indentLevel;
             }
         }
 
@@ -565,6 +565,17 @@ namespace UnityEditor.Rendering.HighDefinition
                 {
                     using (new EditorGUI.DisabledGroupScope(true))
                         EditorGUILayout.LabelField(Styles.multipleDifferenteValueMessage);
+                }
+
+                {
+                    EditorGUI.showMixedValue = serialized.renderPipelineSettings.dynamicResolutionSettings.lowResTransparencyMinimumThreshold.hasMultipleDifferentValues;
+                    float lowResTransparencyMinimumThreshold = serialized.renderPipelineSettings.dynamicResolutionSettings.lowResTransparencyMinimumThreshold.floatValue;
+                    EditorGUI.BeginChangeCheck();
+                    lowResTransparencyMinimumThreshold = EditorGUILayout.DelayedFloatField(Styles.lowResTransparencyMinimumThreshold, lowResTransparencyMinimumThreshold);
+                    if (EditorGUI.EndChangeCheck())
+                        serialized.renderPipelineSettings.dynamicResolutionSettings.lowResTransparencyMinimumThreshold.floatValue = Mathf.Clamp(lowResTransparencyMinimumThreshold, 0.0f, 50.0f);
+                    if (serialized.renderPipelineSettings.dynamicResolutionSettings.lowResTransparencyMinimumThreshold.floatValue > 0.0f && !serialized.renderPipelineSettings.lowresTransparentSettings.enabled.boolValue)
+                        EditorGUILayout.HelpBox(Styles.lowResTransparencyThresholdDisabledMsg, MessageType.Info);
                 }
             }
             --EditorGUI.indentLevel;
@@ -1138,16 +1149,25 @@ namespace UnityEditor.Rendering.HighDefinition
             // MSAA is an option that is only available in full forward but Camera can be set in Full Forward only. Thus MSAA have no dependency currently
             //Note: do not use SerializedProperty.enumValueIndex here as this enum not start at 0 as it is used as flags.
             bool msaaAllowed = true;
+            bool hasRayTracing = false;
             for (int index = 0; index < serialized.serializedObject.targetObjects.Length && msaaAllowed; ++index)
             {
-                var litShaderMode = (serialized.serializedObject.targetObjects[index] as HDRenderPipelineAsset).currentPlatformRenderPipelineSettings.supportedLitShaderMode;
-                msaaAllowed &= litShaderMode == SupportedLitShaderMode.ForwardOnly || litShaderMode == SupportedLitShaderMode.Both;
+                var settings = (serialized.serializedObject.targetObjects[index] as HDRenderPipelineAsset).currentPlatformRenderPipelineSettings;
+                var litShaderMode = settings.supportedLitShaderMode;
+                bool rayTracedSupported = settings.supportRayTracing;
+                hasRayTracing |= rayTracedSupported;
+                msaaAllowed &= (litShaderMode == SupportedLitShaderMode.ForwardOnly || litShaderMode == SupportedLitShaderMode.Both) && !rayTracedSupported;
             }
+
             using (new EditorGUI.DisabledScope(!msaaAllowed))
             {
                 ++EditorGUI.indentLevel;
                 EditorGUILayout.PropertyField(serialized.renderPipelineSettings.MSAASampleCount, Styles.MSAASampleCountContent);
                 --EditorGUI.indentLevel;
+            }
+            if (hasRayTracing && serialized.renderPipelineSettings.MSAASampleCount.intValue != (int)MSAASamples.None)
+            {
+                EditorGUILayout.HelpBox(Styles.rayTracingMSAAUnsupported.text, MessageType.Info, wide: true);
             }
 
             EditorGUILayout.PropertyField(serialized.renderPipelineSettings.supportMotionVectors, Styles.supportMotionVectorContent);

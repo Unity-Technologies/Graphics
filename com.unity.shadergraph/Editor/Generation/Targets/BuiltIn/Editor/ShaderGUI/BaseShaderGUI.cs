@@ -35,6 +35,8 @@ namespace UnityEditor.Rendering.BuiltIn.ShaderGraph
             public static readonly string[] blendModeNames = Enum.GetNames(typeof(BlendMode));
             public static readonly string[] renderFaceNames = Enum.GetNames(typeof(RenderFace));
             public static readonly string[] zwriteNames = Enum.GetNames(typeof(UnityEditor.Rendering.BuiltIn.ShaderGraph.ZWriteControl));
+            // need to skip the first entry for ztest (ZTestMode.Disabled is not a valid value)
+            public static readonly int[] ztestValues = (int[])Enum.GetValues(typeof(UnityEditor.Rendering.BuiltIn.ShaderGraph.ZTestMode));
             public static readonly string[] ztestNames = Enum.GetNames(typeof(UnityEditor.Rendering.BuiltIn.ShaderGraph.ZTestMode));
 
             public static readonly GUIContent surfaceType = EditorGUIUtility.TrTextContent("Surface Type",
@@ -51,20 +53,9 @@ namespace UnityEditor.Rendering.BuiltIn.ShaderGraph
                 "Makes your Material act like a Cutout shader. Use this to create a transparent effect with hard edges between opaque and transparent areas.");
         }
 
-        bool m_FirstTimeApply = true;
-
         override public void OnGUI(MaterialEditor materialEditor, MaterialProperty[] properties)
         {
             Material targetMat = materialEditor.target as Material;
-            // Make sure that needed setup (ie keywords/renderqueue) are set up if we're switching some existing
-            // material to a universal shader.
-            if (m_FirstTimeApply)
-            {
-                DrawGui(materialEditor, targetMat, properties);
-                UpdateMaterials(materialEditor);
-
-                m_FirstTimeApply = false;
-            }
 
             ShaderPropertiesGUI(materialEditor, targetMat, properties);
         }
@@ -83,10 +74,7 @@ namespace UnityEditor.Rendering.BuiltIn.ShaderGraph
 
         static void ShaderPropertiesGUI(MaterialEditor materialEditor, Material material, MaterialProperty[] properties)
         {
-            EditorGUI.BeginChangeCheck();
             DrawGui(materialEditor, material, properties);
-            if (EditorGUI.EndChangeCheck())
-                UpdateMaterials(materialEditor);
         }
 
         static void DrawGui(MaterialEditor materialEditor, Material material, MaterialProperty[] properties)
@@ -109,7 +97,7 @@ namespace UnityEditor.Rendering.BuiltIn.ShaderGraph
             DoPopup(Styles.zwriteText, materialEditor, zWriteProp, Styles.zwriteNames);
 
             var ztestProp = FindProperty(Property.ZTest(), properties, false);
-            DoPopup(Styles.ztestText, materialEditor, ztestProp, Styles.ztestNames);
+            DoIntPopup(Styles.ztestText, materialEditor, ztestProp, Styles.ztestNames, Styles.ztestValues);
 
             var alphaClipProp = FindProperty(Property.AlphaClip(), properties, false);
             DrawFloatToggleProperty(Styles.alphaClipText, alphaClipProp);
@@ -125,11 +113,7 @@ namespace UnityEditor.Rendering.BuiltIn.ShaderGraph
             ShaderGraphPropertyDrawers.DrawShaderGraphGUI(materialEditor, properties);
         }
 
-        static void UpdateMaterials(MaterialEditor materialEditor)
-        {
-            foreach (var obj in materialEditor.targets)
-                SetupSurface((Material)obj);
-        }
+        public override void ValidateMaterial(Material material) => SetupSurface(material);
 
         public static void SetupSurface(Material material)
         {
@@ -179,7 +163,7 @@ namespace UnityEditor.Rendering.BuiltIn.ShaderGraph
                         else if (blendMode == BlendMode.Premultiply)
                             SetBlendMode(material, UnityEngine.Rendering.BlendMode.One, UnityEngine.Rendering.BlendMode.OneMinusSrcAlpha);
                         else if (blendMode == BlendMode.Additive)
-                            SetBlendMode(material, UnityEngine.Rendering.BlendMode.One, UnityEngine.Rendering.BlendMode.One);
+                            SetBlendMode(material, UnityEngine.Rendering.BlendMode.SrcAlpha, UnityEngine.Rendering.BlendMode.One);
                         else if (blendMode == BlendMode.Multiply)
                             SetBlendMode(material, UnityEngine.Rendering.BlendMode.DstColor, UnityEngine.Rendering.BlendMode.Zero);
                         CoreUtils.SetKeyword(material, Keyword.SG_AlphaPremultiplyOn, blendMode == BlendMode.Premultiply);
@@ -231,6 +215,14 @@ namespace UnityEditor.Rendering.BuiltIn.ShaderGraph
             materialEditor.PopupShaderProperty(property, label, options);
         }
 
+        public static void DoIntPopup(GUIContent label, MaterialEditor materialEditor, MaterialProperty property, string[] options, int[] optionValues)
+        {
+            if (property == null)
+                return;
+
+            materialEditor.IntPopupShaderProperty(property, label.text, options, optionValues);
+        }
+
         public static void DrawFloatToggleProperty(GUIContent styles, MaterialProperty prop)
         {
             if (prop == null)
@@ -259,6 +251,23 @@ namespace UnityEditor.Rendering.BuiltIn.ShaderGraph
             if (EditorGUI.EndChangeCheck() && (newValue != val || prop.hasMixedValue))
             {
                 editor.RegisterPropertyChangeUndo(label.text);
+                prop.floatValue = val = newValue;
+            }
+
+            return val;
+        }
+
+        public static int IntPopupShaderProperty(this MaterialEditor editor, MaterialProperty prop, string label, string[] displayedOptions, int[] optionValues)
+        {
+            int val = (int)prop.floatValue;
+
+            EditorGUI.BeginChangeCheck();
+            EditorGUI.showMixedValue = prop.hasMixedValue;
+            int newValue = EditorGUILayout.IntPopup(label, val, displayedOptions, optionValues);
+            EditorGUI.showMixedValue = false;
+            if (EditorGUI.EndChangeCheck() && (newValue != val || prop.hasMixedValue))
+            {
+                editor.RegisterPropertyChangeUndo(label);
                 prop.floatValue = val = newValue;
             }
 

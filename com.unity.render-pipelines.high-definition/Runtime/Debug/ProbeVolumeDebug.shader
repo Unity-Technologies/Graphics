@@ -31,6 +31,7 @@ Shader "Hidden/HDRP/ProbeVolumeDebug"
         uniform int _SubdivLevel;
         uniform float _CullDistance;
         uniform int _MaxAllowedSubdiv;
+        uniform float _ValidityThreshold;
 
         struct appdata
         {
@@ -48,7 +49,7 @@ Shader "Hidden/HDRP/ProbeVolumeDebug"
 
         UNITY_INSTANCING_BUFFER_START(Props)
             UNITY_DEFINE_INSTANCED_PROP(float4, _Position)
-            UNITY_DEFINE_INSTANCED_PROP(float4, _Validity)
+            UNITY_DEFINE_INSTANCED_PROP(float, _Validity)
         UNITY_INSTANCING_BUFFER_END(Props)
 
         v2f vert(appdata v)
@@ -114,7 +115,20 @@ Shader "Hidden/HDRP/ProbeVolumeDebug"
             }
             else if (_ShadingMode == DEBUGPROBESHADINGMODE_VALIDITY)
             {
-                return UNITY_ACCESS_INSTANCED_PROP(Props, _Validity);
+                float validity = UNITY_ACCESS_INSTANCED_PROP(Props, _Validity);
+                return lerp(float4(0, 1, 0, 1), float4(1, 0, 0, 1), validity);
+            }
+            else if (_ShadingMode == DEBUGPROBESHADINGMODE_VALIDITY_OVER_DILATION_THRESHOLD)
+            {
+                float validity = UNITY_ACCESS_INSTANCED_PROP(Props, _Validity);
+                if (validity > _ValidityThreshold)
+                {
+                    return float4(1, 0, 0, 1);
+                }
+                else
+                {
+                    return float4(0, 1, 0, 1);
+                }
             }
 
             return _Color;

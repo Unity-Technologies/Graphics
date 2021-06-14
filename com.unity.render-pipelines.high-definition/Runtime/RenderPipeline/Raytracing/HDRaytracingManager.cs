@@ -96,6 +96,8 @@ namespace UnityEngine.Rendering.HighDefinition
 
         internal void ReleaseRayTracingManager()
         {
+            m_CurrentRAS.Dispose();
+
             if (m_RayTracingLightCluster != null)
                 m_RayTracingLightCluster.ReleaseResources();
             if (m_RayCountManager != null)
@@ -539,7 +541,7 @@ namespace UnityEngine.Rendering.HighDefinition
             m_MaterialsDirty |= (matCount != m_MaterialCRCs.Count);
 
             if (ShaderConfig.s_CameraRelativeRendering != 0)
-                m_CurrentRAS.Build(hdCamera.camera.transform.position);
+                m_CurrentRAS.Build(hdCamera.mainViewConstants.worldSpaceCameraPos);
             else
                 m_CurrentRAS.Build();
 
