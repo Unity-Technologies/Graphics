@@ -319,7 +319,13 @@ namespace UnityEngine.Experimental.Rendering
 
         int m_CBShaderID = Shader.PropertyToID("ShaderVariablesProbeVolumes");
 
+#if UNITY_EDITOR
+        // By default on editor we load a lot of cells in one go to avoid having to mess with scene view
+        // to see results, this value can still be changed via API.
+        private int m_NumberOfCellsLoadedPerFrame = 10000;
+#else
         private int m_NumberOfCellsLoadedPerFrame = 2;
+#endif
 
         ProbeVolumeTextureMemoryBudget m_MemoryBudget;
 
