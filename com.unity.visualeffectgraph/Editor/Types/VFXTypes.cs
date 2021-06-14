@@ -88,6 +88,16 @@ namespace UnityEditor.VFX
         public static TSphere defaultValue = new TSphere { transform = Transform.defaultValue, radius = 1.0f };
     }
 
+    [VFXType, Serializable]
+    struct TArcSphere
+    {
+        public TSphere sphere;
+        [Angle, Range(0, Mathf.PI * 2.0f), Tooltip("Controls how much of the sphere is used. The value is in radians.")]
+        public float arc;
+
+        public static TArcSphere defaultValue = new TArcSphere { sphere = TSphere.defaultValue, arc = 2.0f * Mathf.PI };
+    }
+
     [VFXType, VFXSpace(SpaceableType.Matrix), Serializable]
     struct OrientedBox
     {

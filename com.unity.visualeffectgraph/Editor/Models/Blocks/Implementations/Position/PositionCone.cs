@@ -143,7 +143,7 @@ float hNorm = HeightSequencer;
 float3 finalPos = lerp(float3(pos * ArcCone_cone_radius0, 0.0f), float3(pos * ArcCone_cone_radius1, ArcCone_cone_height), hNorm);
 float3 finalDir = normalize(float3(pos * sincosSlope.x, sincosSlope.y));
 finalPos = mul(ArcCone_cone_transform, float4(finalPos.xzy, 1.0f)).xyz;
-finalDir = mul((float3x3)ArcCone_cone_transform, finalDir.xzy);
+finalDir = mul((float3x3)ArcCone_cone_transform, finalDir.xzy); //TODOPAUL inverseTranspose here ?
 ";
                 outSource += VFXBlockUtility.GetComposeString(compositionDirection, "direction", "finalDir", "blendDirection") + "\n";
                 outSource += VFXBlockUtility.GetComposeString(compositionPosition, "position", "finalPos", "blendPosition") + "\n";
