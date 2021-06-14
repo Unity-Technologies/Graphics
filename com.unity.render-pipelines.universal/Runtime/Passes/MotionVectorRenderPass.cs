@@ -48,7 +48,9 @@ namespace UnityEngine.Rendering.Universal.Internal
             // Configure Render Target
             m_MotionVectorHandle.Init(kMotionVectorTexture);
             cmd.GetTemporaryRT(m_MotionVectorHandle.id, rtd, FilterMode.Point);
-            ConfigureTarget(m_MotionVectorHandle.Identifier(), m_MotionVectorHandle.Identifier());
+            ConfigureTarget(new RenderTargetIdentifier(m_MotionVectorHandle.Identifier(), 0, CubemapFace.Unknown, -1),
+                            new RenderTargetIdentifier(m_MotionVectorHandle.Identifier(), 0, CubemapFace.Unknown, -1));
+            ConfigureClear(ClearFlag.Color, Color.black);
         }
 
         #endregion

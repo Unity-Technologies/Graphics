@@ -35,7 +35,9 @@ internal class CaptureMotionVectorsPass : ScriptableRenderPass
         using (new ProfilingScope(cmd, m_ProfilingSampler))
         {
             m_Material.SetFloat("_Intensity", m_intensity);
-            cmd.Blit(m_CameraColorTarget, m_CameraColorTarget, m_Material);
+            cmd.SetRenderTarget(new RenderTargetIdentifier(m_CameraColorTarget, 0, CubemapFace.Unknown, -1));
+            cmd.ClearRenderTarget(false, true, Color.clear);
+            cmd.DrawMesh(RenderingUtils.fullscreenMesh, Matrix4x4.identity, m_Material);
         }
         context.ExecuteCommandBuffer(cmd);
         cmd.Clear();

@@ -10,13 +10,43 @@ Shader "MotionVecDebug"
             Name "MotionVectorDebugPass"
 
             HLSLPROGRAM
-            #pragma multi_compile _ _USE_DRAW_PROCEDURAL
-            #pragma vertex FullscreenVert
+            #pragma vertex vert
             #pragma fragment frag
+            #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Core.hlsl"
 
-            #include "Packages/com.unity.render-pipelines.universal/Shaders/Utils/Fullscreen.hlsl"
+            struct Attributes
+            {
+                float4 positionHCS   : POSITION;
+                float2 uv           : TEXCOORD0;
+                UNITY_VERTEX_INPUT_INSTANCE_ID
+            };
 
-            TEXTURE2D(_MotionVectorTexture);
+            struct Varyings
+            {
+                float4  positionCS  : SV_POSITION;
+                float2  uv          : TEXCOORD0;
+                UNITY_VERTEX_OUTPUT_STEREO
+            };
+
+            Varyings vert(Attributes input)
+            {
+                Varyings output;
+                UNITY_SETUP_INSTANCE_ID(input);
+                UNITY_INITIALIZE_VERTEX_OUTPUT_STEREO(output);
+
+                // Note: The pass is setup with a mesh already in CS
+                // Therefore, we can just output vertex position
+                output.positionCS = float4(input.positionHCS.xyz, 1.0);
+
+                #if UNITY_UV_STARTS_AT_TOP
+                output.positionCS.y *= -1;
+                #endif
+
+                output.uv = input.uv;
+                return output;
+            }
+
+            TEXTURE2D_X(_MotionVectorTexture);
             SAMPLER(sampler_MotionVectorTexture);
 
             float4 _SourceTex_TexelSize;
