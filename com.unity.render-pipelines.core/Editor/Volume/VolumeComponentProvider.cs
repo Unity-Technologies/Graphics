@@ -48,28 +48,26 @@ namespace UnityEditor.Rendering
             m_TargetEditor = targetEditor;
         }
 
-        public void CreateComponentTree(List<Element> tree)
+        static readonly Dictionary<Type, List<(string, Type)>> s_SupportedVolumeComponentsForRenderPipeline = new();
+
+        static List<(string, Type)> GetSupportedVolumeComponents(Type currentPipelineType)
         {
-            var currentPipeline = RenderPipelineManager.currentPipeline;
-            if (currentPipeline == null)
-            {
-                tree.Add(new GroupElement(0, "No SRP in use"));
-                return;
-            }
+            if (s_SupportedVolumeComponentsForRenderPipeline.TryGetValue(currentPipelineType,
+                out var supportedVolumeComponents))
+                return supportedVolumeComponents;
 
-            var pipelineType = currentPipeline.GetType();
+            supportedVolumeComponents = FilterVolumeComponentTypes(
+                VolumeManager.instance.baseComponentTypeArray, currentPipelineType);
+            s_SupportedVolumeComponentsForRenderPipeline[currentPipelineType]= supportedVolumeComponents;
 
-            tree.Add(new GroupElement(0, "Volume Overrides"));
+            return supportedVolumeComponents;
+        }
 
-            var types = VolumeManager.instance.baseComponentTypeArray;
-            var rootNode = new PathNode();
-
+        static List<(string, Type)> FilterVolumeComponentTypes(Type[] types, Type currentPipelineType)
+        {
+            var volumes = new List<(string, Type)>();
             foreach (var t in types)
             {
-                // Skip components that have already been added to the volume
-                if (m_Target.Has(t))
-                    continue;
-
                 string path = string.Empty;
 
                 var attrs = t.GetCustomAttributes(false);
@@ -84,14 +82,13 @@ namespace UnityEditor.Rendering
                         case VolumeComponentMenu attrMenu:
                         {
                             path = attrMenu.menu;
+                            if (attrMenu is VolumeComponentMenuForRenderPipeline supportedOn)
+                                skipComponent |= !supportedOn.pipelineTypes.Contains(currentPipelineType);
                             break;
                         }
                         case HideInInspector attrHide:
                         case ObsoleteAttribute attrDeprecated:
                             skipComponent = true;
-                            break;
-                        case SupportedOnAttribute supportedOn:
-                            skipComponent = !supportedOn.pipelineTypes.Contains(pipelineType);
                             break;
                     }
                 }
@@ -104,20 +101,50 @@ namespace UnityEditor.Rendering
                 if (string.IsNullOrEmpty(path))
                     path = ObjectNames.NicifyVariableName(t.Name);
 
-                // Prep the categories & types tree
-                AddNode(rootNode, path, t);
+                volumes.Add((path,t));
             }
 
-            // Recursively add all elements to the tree
-            Traverse(rootNode, 1, tree);
+            return volumes;
+        }
+
+        public void CreateComponentTree(List<Element> tree)
+        {
+            var currentPipeline = RenderPipelineManager.currentPipeline;
+            if (currentPipeline == null)
+            {
+                tree.Add(new GroupElement(0, "No SRP in use"));
+                return;
+            }
+
+            tree.Add(new GroupElement(0, "Volume Overrides"));
+
+            var volumeComponentTypesFiltered =
+                GetSupportedVolumeComponents(currentPipeline.GetType());
+
+            if (volumeComponentTypesFiltered.Any())
+            {
+                var rootNode = new PathNode();
+
+                foreach (var (path, t) in volumeComponentTypesFiltered)
+                {
+                    // Skip components that have already been added to the volume
+                    if (m_Target.Has(t))
+                        continue;
+
+                    // Prep the categories & types tree
+                    AddNode(rootNode, path, t);
+                }
+
+                // Recursively add all elements to the tree
+                Traverse(rootNode, 1, tree);
+            }
         }
 
         public bool GoToChild(Element element, bool addIfComponent)
         {
-            if (element is VolumeComponentElement)
+            if (element is VolumeComponentElement volumeComponentElement)
             {
-                var e = (VolumeComponentElement)element;
-                m_TargetEditor.AddComponent(e.type);
+                m_TargetEditor.AddComponent(volumeComponentElement.type);
                 return true;
             }
 

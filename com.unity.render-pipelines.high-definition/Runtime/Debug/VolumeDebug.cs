@@ -140,14 +140,14 @@ namespace UnityEngine.Rendering.HighDefinition
             }
         }
 
-        /// <summary>Returns the name of a component from its VolumeComponentMenu.</summary>
+        /// <summary>Returns the name of a component from its VolumeComponentMenuForRenderPipeline.</summary>
         /// <param name="component">A volume component.</param>
         /// <returns>The component display name.</returns>
         static public string ComponentDisplayName(Type component)
         {
-            Attribute attrib = component.GetCustomAttribute(typeof(VolumeComponentMenu), false);
+            Attribute attrib = component.GetCustomAttribute(typeof(VolumeComponentMenuForRenderPipeline), false);
             if (attrib != null)
-                return (attrib as VolumeComponentMenu).menu;
+                return (attrib as VolumeComponentMenuForRenderPipeline).menu;
             return component.Name;
         }
 

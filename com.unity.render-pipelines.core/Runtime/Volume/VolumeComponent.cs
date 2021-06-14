@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Reflection;
 using System.Linq;
-using Codice.CM.SEIDInfo;
 
 namespace UnityEngine.Rendering
 {
@@ -12,7 +11,7 @@ namespace UnityEngine.Rendering
     /// on Volumes.
     /// </summary>
     [AttributeUsage(AttributeTargets.Class, AllowMultiple = false)]
-    public sealed class VolumeComponentMenu : Attribute
+    public class VolumeComponentMenu : Attribute
     {
         /// <summary>
         /// The name of the entry in the override list. You can use slashes to create sub-menus.
@@ -32,6 +31,40 @@ namespace UnityEngine.Rendering
         }
     }
 
+    public class VolumeComponentMenuForRenderPipeline : VolumeComponentMenu
+    {
+        /// <summary>
+        /// The list of pipeline types that the target class supports
+        /// </summary>
+        public Type[] pipelineTypes { get; }
+
+        /// <summary>
+        /// Creates a new <seealso cref="VolumeComponentMenuForRenderPipeline"/> instance.
+        /// </summary>
+        /// <param name="menu">The name of the entry in the override list. You can use slashes to
+        /// create sub-menus.</param>
+        /// <param name="pipelineTypes">The list of pipeline types that the target class supports</param>
+        public VolumeComponentMenuForRenderPipeline(string menu, params Type[] pipelineTypes)
+            : base (menu)
+        {
+            if (pipelineTypes == null)
+                throw new Exception("Specify a list of supported pipeline");
+
+            // Make sure that we only allow the class types that inherit from the render pipeline
+            foreach (var t in pipelineTypes)
+            {
+                if (!typeof(RenderPipeline).IsAssignableFrom(t))
+                    throw new Exception(
+                        $"You can only specify types that inherit from {typeof(RenderPipeline)}, please check {t}");
+            }
+
+            this.pipelineTypes = pipelineTypes;
+        }
+    }
+
+
+
+
     /// <summary>
     /// An attribute to hide the volume component to be added through `Add Override` button on the volume component list
     /// </summary>
@@ -49,7 +82,7 @@ namespace UnityEngine.Rendering
     /// <code>
     /// using UnityEngine.Rendering;
     ///
-    /// [Serializable, VolumeComponentMenu("Custom/Example Component")]
+    /// [Serializable, VolumeComponentMenuForRenderPipeline("Custom/Example Component")]
     /// public class ExampleComponent : VolumeComponent
     /// {
     ///     public ClampedFloatParameter intensity = new ClampedFloatParameter(0f, 0f, 1f);
