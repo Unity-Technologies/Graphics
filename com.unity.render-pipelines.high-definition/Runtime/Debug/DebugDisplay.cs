@@ -1386,16 +1386,16 @@ namespace UnityEngine.Rendering.HighDefinition
                 case FullScreenDebugMode.FinalColorPyramid:
                 case FullScreenDebugMode.DepthPyramid:
                 {
-                    list.Add(new DebugUI.Container
+                    var depthPyramidContainer = new DebugUI.Container();
+                    depthPyramidContainer.children.Add(new DebugUI.FloatField { displayName = "Debug Mip", getter = () => data.fullscreenDebugMip, setter = value => data.fullscreenDebugMip = value, min = () => 0f, max = () => 1f, incStep = 0.05f });
+                    depthPyramidContainer.children.Add(new DebugUI.BoolField { displayName = "Enable Depth Remap", getter = () => data.enableDebugDepthRemap, setter = value => data.enableDebugDepthRemap = value, onValueChanged = RefreshLightingDebug });
+                    if (data.enableDebugDepthRemap)
                     {
-                        children =
-                        {
-                            new DebugUI.FloatField { displayName = "Debug Mip", getter = () => data.fullscreenDebugMip, setter = value => data.fullscreenDebugMip = value, min = () => 0f, max = () => 1f, incStep = 0.05f },
-                            new DebugUI.BoolField { displayName = "Enable Depth Remap", getter = () => data.enableDebugDepthRemap, setter = value => data.enableDebugDepthRemap = value },
-                            new DebugUI.FloatField { displayName = "Depth range min value", getter = () => data.fullScreenDebugDepthRemap.x, setter = value => data.fullScreenDebugDepthRemap.x = value, min = () => 0f, max = () => 1f, incStep = 0.05f },
-                            new DebugUI.FloatField { displayName = "Depth range max value", getter = () => data.fullScreenDebugDepthRemap.y, setter = value => data.fullScreenDebugDepthRemap.y = value, min = () => 0f, max = () => 1f, incStep = 0.05f }
-                        }
-                    });
+                        depthPyramidContainer.children.Add(new DebugUI.FloatField { displayName = "Depth range min value", getter = () => data.fullScreenDebugDepthRemap.x, setter = value => data.fullScreenDebugDepthRemap.x = Mathf.Min(value, data.fullScreenDebugDepthRemap.y), min = () => 0f, max = () => 1f, incStep = 0.01f });
+                        depthPyramidContainer.children.Add(new DebugUI.FloatField { displayName = "Depth range max value", getter = () => data.fullScreenDebugDepthRemap.y, setter = value => data.fullScreenDebugDepthRemap.y = Mathf.Max(value, data.fullScreenDebugDepthRemap.x), min = () => 0.01f, max = () => 1f, incStep = 0.01f });
+                    }
+
+                    list.Add(depthPyramidContainer);
                     break;
                 }
                 case FullScreenDebugMode.ContactShadows:
