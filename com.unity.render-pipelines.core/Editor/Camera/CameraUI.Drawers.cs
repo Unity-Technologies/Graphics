@@ -81,6 +81,9 @@ namespace UnityEditor.Rendering
         {
             var cam = p.baseCameraSettings;
 
+            var targets = p.serializedObject.targetObjects;
+            var camera0 = targets[0] as Camera;
+
             float fovCurrentValue;
             bool multipleDifferentFovValues = false;
             bool isPhysicalCamera = p.projectionMatrixMode.intValue == (int)ProjectionMatrixMode.PhysicalPropertiesBased;
@@ -90,18 +93,12 @@ namespace UnityEditor.Rendering
             var guiContent = EditorGUI.BeginProperty(rect, Styles.FOVAxisModeContent, cam.fovAxisMode);
             EditorGUI.showMixedValue = cam.fovAxisMode.hasMultipleDifferentValues;
 
-            EditorGUI.BeginChangeCheck();
-            var fovAxisNewVal = (int)(Camera.FieldOfViewAxis)EditorGUI.EnumPopup(rect, guiContent, (Camera.FieldOfViewAxis)cam.fovAxisMode.intValue);
-            if (EditorGUI.EndChangeCheck())
-                cam.fovAxisMode.intValue = fovAxisNewVal;
-            EditorGUI.EndProperty();
+            CoreEditorUtils.DrawEnumPopup<Camera.FieldOfViewAxis>(rect, guiContent, cam.fovAxisMode);
 
             bool fovAxisVertical = cam.fovAxisMode.intValue == 0;
 
             if (!fovAxisVertical && !cam.fovAxisMode.hasMultipleDifferentValues)
             {
-                var targets = p.serializedObject.targetObjects;
-                var camera0 = targets[0] as Camera;
                 float aspectRatio = isPhysicalCamera ? cam.sensorSize.vector2Value.x / cam.sensorSize.vector2Value.y : camera0.aspect;
                 // camera.aspect is not serialized so we have to check all targets.
                 fovCurrentValue = Camera.VerticalToHorizontalFieldOfView(camera0.fieldOfView, aspectRatio);
@@ -138,18 +135,22 @@ namespace UnityEditor.Rendering
             EditorGUI.EndProperty();
 
             EditorGUI.showMixedValue = false;
-            if (s_FovChanged && (!isPhysicalCamera || p.projectionMatrixMode.hasMultipleDifferentValues))
+            if (s_FovChanged)
             {
-                cam.verticalFOV.floatValue = fovAxisVertical
-                    ? s_FovLastValue
-                    : Camera.HorizontalToVerticalFieldOfView(s_FovLastValue, (p.serializedObject.targetObjects[0] as Camera).aspect);
+                if (!isPhysicalCamera || p.projectionMatrixMode.hasMultipleDifferentValues)
+                {
+                    cam.verticalFOV.floatValue = fovAxisVertical
+                        ? s_FovLastValue
+                        : Camera.HorizontalToVerticalFieldOfView(s_FovLastValue, camera0.aspect);
+                }
+                else if (!p.projectionMatrixMode.hasMultipleDifferentValues)
+                {
+                    cam.verticalFOV.floatValue = fovAxisVertical
+                        ? s_FovLastValue
+                        : Camera.HorizontalToVerticalFieldOfView(s_FovLastValue, camera0.aspect);
+                }
             }
-            else if (s_FovChanged && isPhysicalCamera && !p.projectionMatrixMode.hasMultipleDifferentValues)
-            {
-                cam.verticalFOV.floatValue = fovAxisVertical
-                    ? s_FovLastValue
-                    : Camera.HorizontalToVerticalFieldOfView(s_FovLastValue, (p.serializedObject.targetObjects[0] as Camera).aspect);
-            }
+
         }
 
         /// <summary>Draws projection related fields on the inspector</summary>
