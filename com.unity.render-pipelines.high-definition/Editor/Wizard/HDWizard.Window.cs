@@ -221,7 +221,13 @@ namespace UnityEditor.Rendering.HighDefinition
         {
             var window = GetWindow<HDWizard>(Style.title.text);
             window.minSize = new Vector2(500, 450);
-            HDUserSettings.wizardPopupAlreadyShownOnce = true;
+        }
+
+        [MenuItem("Window/Rendering/HDRP Wizard", priority = 10000, validate = true)]
+        static bool CanShowWizard()
+        {
+            // If the user has more than one SRP installed, only show the Wizard if the pipeline is HDRP
+            return RenderPipelineManager.currentPipeline.GetType() == typeof(HDRenderPipeline);
         }
 
         void OnGUI()
@@ -243,25 +249,49 @@ namespace UnityEditor.Rendering.HighDefinition
 
         static int frameToWait;
 
+        static event Action onFirstTimeOpen = delegate { };
+
         static void WizardBehaviourDelayed()
         {
             if (frameToWait > 0)
-                --frameToWait;
-            else
             {
-                EditorApplication.update -= WizardBehaviourDelayed;
-
-                if (HDProjectSettings.wizardIsStartPopup && !HDUserSettings.wizardPopupAlreadyShownOnce)
-                {
-                    //Application.isPlaying cannot be called in constructor. Do it here
-                    if (Application.isPlaying)
-                        return;
-
-                    OpenWindow();
-                }
-
-                EditorApplication.quitting += () => HDUserSettings.wizardPopupAlreadyShownOnce = false;
+                --frameToWait;
+                return;
             }
+
+            // No need to update this method, unsubscribe from the application update
+            EditorApplication.update -= WizardBehaviourDelayed;
+
+            //Application.isPlaying cannot be called in constructor. Do it here
+            if (Application.isPlaying)
+                return;
+
+            EditorApplication.quitting += () => HDUserSettings.wizardPopupAlreadyShownOnce = false;
+
+            onFirstTimeOpen.Invoke();
+        }
+
+        static void OnOpenWindow()
+        {
+            if (HDUserSettings.wizardPopupAlreadyShownOnce)
+                return;
+
+            // The first time open will not be triggered more, be clean and unsubscribe 
+            onFirstTimeOpen -= OnOpenWindow;
+            
+            if (!CanShowWizard())
+            {
+                // The pipeline was not HDRP, but we will show the wizard if the user change it to HDRP
+                RenderPipelineManager.activeRenderPipelineTypeChanged += OnOpenWindow;
+                return;
+            }
+
+            // Make sure that we do not show the HDRP on every change, if the code above was never executed (never subscribed) this will do nothing
+            RenderPipelineManager.activeRenderPipelineTypeChanged -= OnOpenWindow;
+
+            // If we reach this point that means that the user started Unity with HDRP in use, o that the SRP has changed to HDRP for the first time in the session
+            HDUserSettings.wizardPopupAlreadyShownOnce = true;
+            OpenWindow();
         }
 
         [Callbacks.DidReloadScripts]
@@ -277,8 +307,20 @@ namespace UnityEditor.Rendering.HighDefinition
         [Callbacks.DidReloadScripts]
         static void WizardBehaviour()
         {
+            // If the wizard does not need to be shown at start up, do nothing.
+            if (!HDProjectSettings.wizardIsStartPopup)
+                return;
+
+            // Specify that the wizard has not been shown
+            // Set it here as the value stored on the settings might be wrong if Unity has stopped in scenarios like:
+            // - The user might stop the engine process.
+            // - The developer has ended the process from the engine side while attached
+            // - The editor crashed and that setting was not saved
+            HDUserSettings.wizardPopupAlreadyShownOnce = false;
+
             //We need to wait at least one frame or the popup will not show up
             frameToWait = 10;
+            onFirstTimeOpen += OnOpenWindow;
             EditorApplication.update += WizardBehaviourDelayed;
         }
 
