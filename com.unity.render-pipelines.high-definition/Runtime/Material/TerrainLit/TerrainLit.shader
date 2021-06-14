@@ -55,7 +55,6 @@ Shader "HDRP/TerrainLit"
 
     HLSLINCLUDE
 
-#pragma enable_d3d11_debug_symbols
     #pragma target 4.5
     #pragma only_renderers d3d11 playstation xboxone xboxseries vulkan metal switch
 

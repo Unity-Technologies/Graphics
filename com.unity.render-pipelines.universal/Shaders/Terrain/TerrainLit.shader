@@ -41,7 +41,7 @@ Shader "Universal Render Pipeline/Terrain/Lit"
     }
 
     HLSLINCLUDE
-#pragma enable_d3d11_debug_symbols
+
     #pragma multi_compile_fragment __ _ALPHATEST_ON
 
     ENDHLSL
