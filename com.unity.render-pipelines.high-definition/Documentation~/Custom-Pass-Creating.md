@@ -370,18 +370,42 @@ You can access UV 0 and normals by default using `ATTRIBUTES_NEED_TEXCOORD0` and
 
 You can override the depth state of any renderer component in your Custom Pass. This replaces the depth states of the GameObjects rendered in your scene with the depth render states assigned in the [Custom Pass Volume](#Custom-Pass-Volume) component. You might want to use this to make some GameObjects in your scene invisible in a Custom Pass.
 
-You can also use this method to render GameObjects in a Custom Pass that are not in the camera culling mask. Unity renders opaque GameObjects that are not in the Camera [Culling Mask](https://docs.unity3d.com/Packages/com.unity.render-pipelines.high-definition@10.2/manual/HDRP-Camera.html) in the **Equal** depth test. You can only change the depth state of a renderer if the GameObject is in the depth buffer. To include these opaque GameObjects in the depth buffer, go to the Custom Pass Volume component and set the **Depth Test** property to **Less Equal**.
+You can also use this method to render GameObjects in a Custom Pass that are not in the Camera culling mask. Unity renders opaque GameObjects that are not in the Camera [Culling Mask](https://docs.unity3d.com/Packages/com.unity.render-pipelines.high-definition@10.2/manual/HDRP-Camera.html) in the **Equal** depth test. You can only change the depth state of a renderer if the GameObject is in the depth buffer. To include these opaque GameObjects in the depth buffer, go to the Custom Pass Volume component and set the **Depth Test** property to **Less Equal**.
 
 Unity renders all objects in a Custom Pass using the Forward rendering path**.** This can cause issues if your scene is set to render using **Deferred Only**. In the [**HDRP Asset**](https://docs.unity3d.com/Packages/com.unity.render-pipelines.high-definition@10.3/manual/HDRP-Asset.html), change the **Lit Shader Mode** to **Both** to avoid issues when you build your project.
 
 ### Using a Custom Buffer Format
 
-You can use custom buffers to store the result of your passes to execute later in the rendering process, or between two Custom Passes. You can sample these custom buffers in any kind of Custom Pass shader.
+You can use custom buffers to store the result of your passes, and execute that later in the rendering process, or between two Custom Passes. You can sample these custom buffers in any kind of Custom Pass shader using the following functions:
 
-For a draw renderer Custom Pass, Unity sets the target buffers to the camera buffers by default, but you can select a custom buffer instead. To use a **Custom Buffer Format** you need a HDRP Asset in your scene. If you have created a HDRP template scene, there is an HDRP asset named **HRenderPipelineAsset** in **Assets > Settings.** Otherwise, follow the instructions in [HDRP Asset](https://docs.unity3d.com/Packages/com.unity.render-pipelines.high-definition@10.3/manual/HDRP-Asset.html) to create a new HDRP Asset for your scene.
+- `SampleCustomColor(float2 uv)`
+- `SampleCustomDepth(float2 uv)`
 
-To change the **Buffer Format** of the Custom Pass component in your HDRP Asset, go to **Rendering > Custom Pass > Custom Buffer Format**.
+You can also load custom buffers using the following functions:
+
+- `LoadCustomColor(uint2 pixelCoords)`
+- `LoadCustomDepth(uint2 pixelCoords)`
+
+HDRP sets the custom pass target buffers to the Camera buffers by default. However, you can select a custom buffer in the UI of the Custom Pass. To do this, go to your Custom Pass component and change the **Target Color Buffer** or **Target Depth Buffer** properties.
+
+To change the buffer format of the Custom Pass component in your HDRP asset, go to **Rendering > Custom Pass > Custom Buffer Format** and select one of the following formats from the drop down menu:
+
+| **Format**   | **Bits Per Pixel** | **Description**                                              |
+| ------------ | ------------------ | ------------------------------------------------------------ |
+| R8G8B8A8     | 32                 | This format is the most resource efficient, but it might cause banding issues. HDRP uses this format by default. |
+| R11G11B10    | 32                 | This format has a higher precision than R8G8B8A8 but does not support alpha channels. |
+| R16G16B16A16 | 64                 | This format has the highest precision but uses twice as much memory as R8G8B8A8 and R11G11B10. |
 
 ![](Images/Custom_Pass_HDRPAsset_CBF.png)
 
-You can also disable Custom Passes in the HDRP asset; to do this, disable the **Custom Pass** property. This automatically disables the custom buffer allocation. You can also choose whether or not to render Custom Passes in the frame settings. This does not affect the custom buffer allocation.
+## Disabling custom passes
+
+You can disable Custom Passes in one of the following ways:
+
+- In [Frame Settings](Frame-Settings.md): Go to **Edit > Project Settings > Graphics > HDRP Global Settings**. You can then disable custom passes in one of the following places:
+
+- - To disable custom passes in the Camera, go to **Frame Settings > Rendering** section and disable the **Custom Pass** property. This disables custom passes in the Camera, but not for reflection probes.
+  - To disable custom passes for planar reflection probes and reflection probes that are not baked, go to **Frame Settings > Realtime Reflection** and disable the **Custom Pass** property.
+  - To disable custom passes for baked reflection probes, go to **Frame Settings > Baked** and disable the **Custom Pass** property.
+
+* [HDRP Asset](HDRP-Asset.md): Open the HDRP Asset, navigate to **Rendering** and disable the **Custom Pass** property. This automatically disables the custom buffer allocation.
