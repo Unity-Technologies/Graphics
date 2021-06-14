@@ -100,6 +100,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed loading all materials from project when saving a ShaderGraph.
 - Fixed issues with double prompts for "do you want to save" when closing Shader Graph windows [1316104].
 - Fixed a ShaderGraph issue where resize handles on blackboard and graph inspector were too small [1329247] (https://issuetracker.unity3d.com/issues/shadergraph-resize-bounds-for-blackboard-and-graph-inspector-are-too-small)
+- Fixed a ShaderGraph issue where a material inspector could contain an extra set of render queue, GPU instancing, and double-sided GI controls.
 - Fixed a Shader Graph issue where property auto generated reference names were not consistent across all property types [1336937].
 - Fixed a warning in ShaderGraph about BuiltIn Shader Library assembly having no scripts.
 

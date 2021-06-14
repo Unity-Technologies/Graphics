@@ -552,6 +552,8 @@ float3 EvaluateSunLuminance(float3 position, in EnvironmentLighting envLighting,
     // If we early out, this means we've hit the earth itself
     if (GetCloudVolumeIntersection_Light(position, envLighting.sunDirection, totalLightDistance))
     {
+        // Apply a small bias to compensate for the imprecision in the ray-sphere intersection at world scale.
+        totalLightDistance += 5.0f;
 
         // Initially the transmittance is one for all octaves
         float3 sunLightTransmittance[NUM_MULTI_SCATTERING_OCTAVES];
