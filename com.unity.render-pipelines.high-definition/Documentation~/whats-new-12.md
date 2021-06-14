@@ -117,6 +117,18 @@ HDRP 12.0 includes the following physical camera improvements:
 Improved the quality of the physically-based Depth Of Field.
 ![](Images/HDRPFeatures-BetterDoF.png)
 
+### Lens Flares
+
+![](Images/LensFlareSamples2.png)
+
+From HDRP 12.0, HDRP (and URP) introduces a new Lens Flare system. You can attach a Lens Flare (SRP) component to any GameObject.
+Some Lens Flare properties only appear when you attach this component to a light. Each Lens Flare can have with multiple elements that you can control individually. HDRP also provides a [new asset](lens-flare-data-driven-asset.md) and a [new component](lens-flare-data-driven-component.md) which you can attach to any GameObject.
+
+### Light Anchor
+
+![](Images/LightAnchor0.png)
+
+From HDRP 12.0, HDRP (and URP) introduces a new [Light Anchor](light-anchor.md) component. You can attach this component to any light to control the light in Main Camera view.
 
 ## Issues resolved
 
