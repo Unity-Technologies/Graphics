@@ -223,6 +223,9 @@ namespace UnityEngine.Experimental.Rendering
                 return;
             }
 
+            var refVol = ProbeReferenceVolume.instance;
+            // TODO TODO_FCC: IMPORTANT USE A VOLUME OF THE PROBE VOLUMES NOT OF THE WHOLE REF VOLUME
+            AddOccluders(globalBounds.center, globalBounds.size);
 
             RunPlacement();
         }
@@ -529,6 +532,7 @@ namespace UnityEngine.Experimental.Rendering
                 // Dequeue the call if something has failed.
                 UnityEditor.Experimental.Lightmapping.additionalBakedProbesCompleted -= OnAdditionalProbesBakeCompleted;
                 UnityEditor.Experimental.Lightmapping.SetAdditionalBakedProbes(m_BakingBatch.index, null);
+                CleanupOccluders();
             }
         }
 
@@ -718,7 +722,19 @@ namespace UnityEngine.Experimental.Rendering
                 }
             }
 
-            UnityEditor.Experimental.Lightmapping.SetAdditionalBakedProbes(m_BakingBatch.index, m_BakingBatch.uniquePositions.Keys.ToArray());
+
+            // Move positions before sending them
+            var positions = m_BakingBatch.uniquePositions.Keys.ToArray();
+            for (int i = 0; i < positions.Length; ++i)
+            {
+                if (Vector3.Distance(new Vector3(-90.0f, 7.0f, 1.0f), positions[i]) < 0.1f)
+                {
+                    Debug.Log("BREAK HERE");
+                }
+                positions[i] = PushPositionOutOfGeometry(positions[i], 0.9f);
+            }
+
+            UnityEditor.Experimental.Lightmapping.SetAdditionalBakedProbes(m_BakingBatch.index, positions);
         }
     }
 }
