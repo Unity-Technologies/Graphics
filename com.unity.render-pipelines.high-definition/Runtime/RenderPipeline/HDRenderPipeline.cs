@@ -1187,16 +1187,16 @@ namespace UnityEngine.Rendering.HighDefinition
                         out var hdCamera,
                         out var cullingParameters);
 
-                    VFXCameraXRSettings cameraXRSettings;
-                    cameraXRSettings.viewTotal = hdCamera.xr.enabled ? 2U : 1U;
-                    cameraXRSettings.viewCount = (uint)hdCamera.viewCount;
-                    cameraXRSettings.viewOffset = (uint)hdCamera.xr.multipassId;
-
-                    VFXManager.PrepareCamera(camera, cameraXRSettings);
-
                     // Note: In case of a custom render, we have false here and 'TryCull' is not executed
                     if (!skipRequest)
                     {
+                        VFXCameraXRSettings cameraXRSettings;
+                        cameraXRSettings.viewTotal = hdCamera.xr.enabled ? 2U : 1U;
+                        cameraXRSettings.viewCount = (uint)hdCamera.viewCount;
+                        cameraXRSettings.viewOffset = (uint)hdCamera.xr.multipassId;
+
+                        VFXManager.PrepareCamera(camera, cameraXRSettings);
+
                         var needCulling = true;
 
                         // In XR multipass, culling results can be shared if the pass has the same culling id
