@@ -80,7 +80,7 @@ The **Switchable** mode overrides **Half** mode but not **Single**.
 
 ### Sub Graph precision
 
-Precision behavior and user interface elements for [Sub Graphs](Sub-graph]) and their nodes do not differ from other graphs and nodes. Sub Graphs represent a function, and you can affect that function's inputs, outputs, and operators by modifying the relevant set of precision settings.
+Precision behavior and user interface elements for [Sub Graphs](Sub-graph) and their nodes do not differ from other graphs and nodes. Sub Graphs represent a function, and you can affect that function's inputs, outputs, and operators by modifying the relevant set of precision settings.
 
 * The Sub Graph properties correspond to the function's inputs.
 * The internal node properties correspond to the function's operators.
