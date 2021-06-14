@@ -99,14 +99,6 @@ namespace UnityEditor.Rendering.Universal.ShaderGUI
                     CoreUtils.SetKeyword(material, "_GLOSSINESS_FROM_BASE_ALPHA", smoothnessSource == SmoothnessMapChannel.AlbedoAlpha);
                 else
                     CoreUtils.SetKeyword(material, "_GLOSSINESS_FROM_BASE_ALPHA", false);
-
-                string color;
-                if (smoothnessSource != SmoothnessMapChannel.AlbedoAlpha || !opaque)
-                    color = "_SpecColor";
-                else
-                    color = "_BaseColor";
-
-                var col = material.GetColor(color);
             }
         }
     }

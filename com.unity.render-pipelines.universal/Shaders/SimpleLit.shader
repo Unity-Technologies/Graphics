@@ -9,9 +9,9 @@ Shader "Universal Render Pipeline/Simple Lit"
 
         _Cutoff("Alpha Clipping", Range(0.0, 1.0)) = 0.5
 
-        _Smoothness("Smoothness", Range(0.0, 1.0)) = 0.5
-        _SpecColor("Specular Color", Color) = (0.5, 0.5, 0.5, 0.5)
         _SpecGlossMap("Specular Map", 2D) = "white" {}
+        _SpecColor("Specular Color", Color) = (0.5, 0.5, 0.5, 0.5)
+        _Smoothness("Smoothness", Range(0.0, 1.0)) = 0.5
         _SmoothnessSource("Smoothness Source", Float) = 0.0
         _SpecularHighlights("Specular Highlights", Float) = 1.0
 

@@ -20,6 +20,7 @@ CBUFFER_END
         UNITY_DOTS_INSTANCED_PROP(float4, _SpecColor)
         UNITY_DOTS_INSTANCED_PROP(float4, _EmissionColor)
         UNITY_DOTS_INSTANCED_PROP(float , _Cutoff)
+        UNITY_DOTS_INSTANCED_PROP(float, _Smoothness)
         UNITY_DOTS_INSTANCED_PROP(float , _Surface)
     UNITY_DOTS_INSTANCING_END(MaterialPropertyMetadata)
 
@@ -43,7 +44,7 @@ half4 SampleSpecularSmoothness(float2 uv, half alpha, half4 specColor, TEXTURE2D
 #endif
 
 #ifdef _GLOSSINESS_FROM_BASE_ALPHA
-    specularSmoothness.a = alpha* _Smoothness;
+    specularSmoothness.a = alpha *_Smoothness;
 #else
     specularSmoothness.a *= _Smoothness;
 #endif
