@@ -31,7 +31,6 @@
     * [Property Types](Property-Types)
     * [Keywords](Keywords)
     * [Data Types](Data-Types)
-    * [Precision Types](Precision-Types)
     * [Port Bindings](Port-Bindings)
     * [Shader Stage](Shader-Stage)
     * [Surface options](surface-options.md)
