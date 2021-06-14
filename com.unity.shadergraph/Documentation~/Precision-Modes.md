@@ -67,7 +67,7 @@ In the figure below, node D has the **Inherit** mode. It receives input from the
 
 Mixed inheritance refers to the inheritance behaviour on a node with both simple and complex inheritance types.
 
-Nodes with no input ports, such as [Input nodes](Input-nodes), inherit the **Graph Precision**. However, complex inheritance rules still affect other nodes in the same group, as illustrated in the figure below.
+Nodes with no input ports, such as [Input nodes](Input-Nodes), inherit the **Graph Precision**. However, complex inheritance rules still affect other nodes in the same group, as illustrated in the figure below.
 
 ![](images/precisionmodes3.png)
 
