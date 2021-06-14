@@ -4746,6 +4746,7 @@ namespace UnityEngine.Rendering.HighDefinition
             public int              accumulateKernel;
             public bool             transparentSSR;
             public bool             usePBRAlgo;
+            public bool             validColorPyramid;
 
             public int              width, height, viewCount;
 
@@ -4765,6 +4766,7 @@ namespace UnityEngine.Rendering.HighDefinition
             parameters.accumulateKernel = m_SsrAccumulateKernel;
             parameters.transparentSSR = transparentSSR;
             parameters.usePBRAlgo = !transparentSSR && volumeSettings.usedAlgorithm.value == ScreenSpaceReflectionAlgorithm.PBRAccumulation;
+            parameters.validColorPyramid = hdCamera.colorPyramidHistoryValidFrames > 1;
 
             parameters.width = hdCamera.actualWidth;
             parameters.height = hdCamera.actualHeight;

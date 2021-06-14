@@ -402,7 +402,6 @@ namespace UnityEngine.Rendering.HighDefinition
         class RenderSSRPassData
         {
             public RenderSSRParameters parameters;
-            public bool validColorPyramid;
             public TextureHandle depthBuffer;
             public TextureHandle depthPyramid;
             public TextureHandle normalBuffer;
@@ -468,7 +467,6 @@ namespace UnityEngine.Rendering.HighDefinition
                     passData.stencilBuffer = builder.ReadTexture(prepassOutput.stencilBuffer);
                     passData.clearCoatMask = builder.ReadTexture(clearCoatMask);
                     passData.coarseStencilBuffer = builder.ReadComputeBuffer(prepassOutput.coarseStencilBuffer);
-                    passData.validColorPyramid = hdCamera.colorPyramidHistoryValidFrames > 1;
 
                     passData.normalBuffer = builder.ReadTexture(prepassOutput.resolvedNormalBuffer);
                     passData.motionVectorsBuffer = builder.ReadTexture(prepassOutput.resolvedMotionVectorsBuffer);
