@@ -6,8 +6,30 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ## [10.6.0] - 2021-04-29
 
-Version Updated
-The version number for this package has increased due to a version update of a related graphics package.
+### Added
+- Added support for lighting full screen debug mode in automated tests.
+- Added Speed Tree 8 shader graph as default Speed Tree 8 shader for HDRP.
+
+### Fixed
+- Fixed null reference exception in Raytracing SSS volume component.
+- Fixed artifact appearing when diffuse and specular normal differ too much for eye shader with area lights
+- Fixed LightCluster debug view for ray tracing.
+- Fixed issue with RAS build fail when LOD was missing a renderer
+- Fixed an issue where sometime a docked lookdev could be rendered at zero size and break.
+- Fixed an issue where runtime debug window UI would leak game objects.
+- Fixed NaNs when denoising pixels where the dot product between normal and view direction is near zero (case 1329624).
+- Fixed ray traced reflections that were too dark for unlit materials. Reflections are now more consistent with the material emissiveness.
+- Fixed pyramid color being incorrect when hardware dynamic resolution is enabled.
+- Fixed SSR Accumulation with Offset with Viewport Rect Offset on Camera
+- Fixed fog precision in some camera positions (case 1329603).
+- Fixed contact shadows tile coordinates calculations.
+- Fixed blocky looking bloom when dynamic resolution scaling was used.
+
+### Fixed
+
+- Fix for wrong cached area light initialization.
+
+
 
 ## [10.5.0] - 2021-04-19
 
@@ -52,16 +74,12 @@ The version number for this package has increased due to a version update of a r
 ### Changed
 - Reduced the maximal number of bounces for both RTGI and RTR (case 1318876).
 - Updated Wizard to better handle RenderPipelineAsset in Quality Settings
-- Changed the behavior of the clear coat and SSR/RTR for the stack lit to mimic the Lit's behavior (case 1320154).
-- The default LookDev volume profile is now copied and referened in the Asset folder instead of the package folder.
-- Changed normal used in path tracing to create a local light list from the geometric to the smooth shading one.
-- Assets going through the migration system are now dirtied.
 - Disable TAA sharpening on alpha channel.
 - Increased path tracing max samples from 4K to 16K (case 1327729).
 - Changed ray tracing acceleration structure build, so that only meshes with HDRP materials are included (case 1322365).
 - Default black texture XR is now opaque (alpha = 1).
 - Changed default sidedness to double, when a mesh with a mix of single and double-sided materials is added to the ray tracing acceleration structure (case 1323451).
- 
+
 ## [10.4.0] - 2021-03-11
 
 ### Added
@@ -225,6 +243,7 @@ The version number for this package has increased due to a version update of a r
 - Fixed fog precision in some camera positions (case 1329603).
 - Fixed contact shadows tile coordinates calculations.
 - Fixed blocky looking bloom when dynamic resolution scaling was used.
+- Fixed issue with history buffer allocation for AOVs when the request does not come in first frame.
 
 ### Changed
 - Now reflection probes cannot have SSAO, SSGI, SSR, ray tracing effects or volumetric reprojection.

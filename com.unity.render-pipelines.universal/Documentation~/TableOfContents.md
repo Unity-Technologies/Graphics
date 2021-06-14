@@ -14,6 +14,7 @@
     * [Render Objects Renderer Feature](renderer-features/how-to-custom-effect-render-objects.md)
     * [Ambient Occlusion](post-processing-ssao.md)
 * [Upgrade guides](upgrade-guides.md)
+  * [Upgrading to URP 10.6.x](upgrade-guide-10-6-x.md)
   * [Upgrading to URP 10.5.x](upgrade-guide-10-5-x.md)
   * [Upgrading to URP 10.4.x](upgrade-guide-10-4-x.md)
   * [Upgrading to URP 10.3.x](upgrade-guide-10-3-x.md)
