@@ -160,17 +160,8 @@ namespace UnityEngine.Rendering.HighDefinition
 
 #endif // UNITY_EDITOR
 
-        private void CheckDirtiness(HDCamera hdCamera)
+        private void CheckDirtiness(HDCamera hdCamera, int camID, CameraData camData)
         {
-            if (m_SubFrameManager.isRecording)
-            {
-                return;
-            }
-
-            // Grab the cached data for the current camera
-            int camID = hdCamera.camera.GetInstanceID();
-            CameraData camData = m_SubFrameManager.GetCameraData(camID);
-
             // Check camera resolution dirtiness
             if (hdCamera.actualWidth != camData.width || hdCamera.actualHeight != camData.height)
             {
@@ -367,12 +358,21 @@ namespace UnityEngine.Rendering.HighDefinition
             if (!pathTracingShader || !m_PathTracingSettings.enable.value)
                 return TextureHandle.nullHandle;
 
-            CheckDirtiness(hdCamera);
+            int camID = hdCamera.camera.GetInstanceID();
+            CameraData camData = m_SubFrameManager.GetCameraData(camID);
 
             if (!m_SubFrameManager.isRecording)
             {
+                CheckDirtiness(hdCamera, camID, camData);
+
                 // If we are recording, the max iteration is set/overridden by the subframe manager, otherwise we read it from the path tracing volume
                 m_SubFrameManager.subFrameCount = (uint)m_PathTracingSettings.maximumSamples.value;
+            }
+            else
+            {
+                // When recording, as be bypass dirtiness checks which update camData, we need to indicate whether we want to render a sky or not
+                camData.skyEnabled = (hdCamera.clearColorMode == HDAdditionalCameraData.ClearColorMode.Sky);
+                m_SubFrameManager.SetCameraData(camID, camData);
             }
 
 #if UNITY_HDRP_DXR_TESTS_DEFINE
@@ -380,8 +380,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 m_SubFrameManager.subFrameCount = 1;
 #endif
 
-            var cameraData = m_SubFrameManager.GetCameraData(hdCamera.camera.GetInstanceID());
-            if (cameraData.currentIteration < m_SubFrameManager.subFrameCount)
+            if (camData.currentIteration < m_SubFrameManager.subFrameCount)
             {
                 // Keep a sky texture around, that we compute only once per accumulation (except when recording, with potential camera motion blur)
                 if (m_RenderSky || m_SubFrameManager.isRecording)
@@ -390,7 +389,7 @@ namespace UnityEngine.Rendering.HighDefinition
                     m_RenderSky = false;
                 }
 
-                RenderPathTracing(m_RenderGraph, hdCamera, cameraData, m_FrameTexture, m_SkyTexture);
+                RenderPathTracing(m_RenderGraph, hdCamera, camData, m_FrameTexture, m_SkyTexture);
             }
 
             RenderAccumulation(m_RenderGraph, hdCamera, m_FrameTexture, colorBuffer, true);
