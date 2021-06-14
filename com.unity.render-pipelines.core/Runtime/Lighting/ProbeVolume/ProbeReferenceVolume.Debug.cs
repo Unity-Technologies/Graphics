@@ -20,7 +20,6 @@ namespace UnityEngine.Experimental.Rendering
         public bool realtimeSubdivision;
         public int subdivisionCellUpdatePerFrame = 4;
         public float subdivisionDelayInSeconds = 1;
-        // public float realtimeSubdivisionBudget = 100.0f;
         public DebugProbeShadingMode probeShading;
         public float probeSize = 1.0f;
         public float subdivisionViewCullingDistance = 500.0f;
