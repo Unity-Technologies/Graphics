@@ -286,7 +286,7 @@ namespace UnityEditor.Rendering.HighDefinition
             // If we reach this point can be because
             // - That the user started Unity with HDRP in use
             // - That the SRP has changed to HDRP for the first time in the session
-            if (!HDUserSettings.wizardPopupAlreadyShownOnce)
+            if (!HDUserSettings.wizardPopupAlreadyShownOnce) 
                 OpenWindow();
         }
 
@@ -306,13 +306,6 @@ namespace UnityEditor.Rendering.HighDefinition
             // If the wizard does not need to be shown at start up, do nothing.
             if (!HDProjectSettings.wizardIsStartPopup)
                 return;
-
-            // Specify that the wizard has not been shown
-            // Set it here as the value stored on the settings might be wrong if Unity has stopped in scenarios like:
-            // - The user might stop the engine process.
-            // - The developer has ended the process from the engine side while attached
-            // - The editor crashed and that setting was not saved
-            HDUserSettings.wizardPopupAlreadyShownOnce = false;
 
             //We need to wait at least one frame or the popup will not show up
             frameToWait = 10;
