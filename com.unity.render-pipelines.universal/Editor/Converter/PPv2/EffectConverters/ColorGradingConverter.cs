@@ -76,9 +76,15 @@ namespace UnityEditor.Rendering.Universal.Converters
             // Trackballs -> LiftGammaGain
             newLiftGammaGain.active = oldColorGrading.active;
 
-            oldColorGrading.lift.Convert(newLiftGammaGain.lift, oldColorGrading.enabled);
-            oldColorGrading.gamma.Convert(newLiftGammaGain.gamma, oldColorGrading.enabled);
-            oldColorGrading.gain.Convert(newLiftGammaGain.gain, oldColorGrading.enabled);
+            // Note: URP always does color grading in HDR values (as it should),
+            //       which means the non-HDR modes no longer have valid conversion targets.
+            //       So, these values are left at defaults (neutral) when not previously using HDR.
+            if (oldColorGrading.gradingMode.value == BIRPRendering.GradingMode.HighDefinitionRange)
+            {
+                oldColorGrading.lift.Convert(newLiftGammaGain.lift, oldColorGrading.enabled);
+                oldColorGrading.gamma.Convert(newLiftGammaGain.gamma, oldColorGrading.enabled);
+                oldColorGrading.gain.Convert(newLiftGammaGain.gain, oldColorGrading.enabled);
+            }
 
             // Grading Curves -> ColorCurves
             newColorCurves.active = oldColorGrading.active;
