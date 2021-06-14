@@ -63,11 +63,15 @@
             * [Normal Unpack](Normal-Unpack-Node)
         * Utility
             * [Colorspace Conversion](Colorspace-Conversion-Node)
+            * [Sub Graph Dropdown](Sub-Graph-Dropdown-Node)
+            * [Calculate Level Of Detail Texture 2D Node](Calculate-Level-Of-Detail-Texture-2D-Node)
+            * [Gather Texture 2D Node](Gather-Texture-2D-Node)
     * [Channel](Channel-Nodes)
         * [Combine](Combine-Node)
         * [Flip](Flip-Node)
         * [Split](Split-Node)
         * [Swizzle](Swizzle-Node)
+        * [Branch On Input Connection](Branch-On-Input-Connection-Node)
     * [Input](Input-Nodes)
         * Basic
             * [Boolean](Boolean-Node)
@@ -230,6 +234,7 @@
             * [And](And-Node)
             * [Any](Any-Node)
             * [Branch](Branch-Node)
+            *
             * [Comparison](Comparison-Node)
             * [Is Front Face](Is-Front-Face-Node)
             * [Is Infinite](Is-Infinite-Node)
