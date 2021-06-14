@@ -81,7 +81,7 @@ CTYPE GetColorSample(float2 sampleTC, float mip)
     // we do this, it is more safe to point sample.
     return SAMPLE_TEXTURE2D_X_LOD(_InputTexture, s_trilinear_clamp_sampler, uv, mip).CTYPE_SWIZZLE;
 #else
-    return SAMPLE_TEXTURE2D_X_LOD(_InputTexture, s_point_clamp_sampler, uv, mip).CTYPE_SWIZZLE;
+    return SAMPLE_TEXTURE2D_X_LOD(_InputTexture, s_point_clamp_sampler, uv, 0.0).CTYPE_SWIZZLE;
 #endif
 }
 
