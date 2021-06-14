@@ -580,6 +580,7 @@ namespace UnityEditor.Rendering.Universal.Converters
                 AssetDatabase.StartAssetEditing();
                 currentCount++;
                 var index = activeConverterState.index;
+                m_CoreConvertersList[index].OnPreRun();
                 var converterName = m_CoreConvertersList[index].name;
                 var itemCount = m_ItemsToConvert[index].itemDescriptors.Count;
                 string progressTitle = $"{converterName}           Converter : {currentCount}/{activeConvertersCount}";
