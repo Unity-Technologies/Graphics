@@ -42,7 +42,7 @@ void ClosestHitForward(inout RayIntersection rayIntersection : SV_RayPayload, At
         fragInput.tangentToWorld[2] = -fragInput.tangentToWorld[2];
     }
     #endif
-    
+
     // Compute the bsdf data
     BSDFData bsdfData =  ConvertSurfaceDataToBSDFData(posInput.positionSS, surfaceData);
 
