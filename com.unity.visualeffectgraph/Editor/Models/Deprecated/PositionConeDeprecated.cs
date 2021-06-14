@@ -4,7 +4,7 @@ using UnityEngine;
 
 namespace UnityEditor.VFX.Block
 {
-    [VFXInfo(category = "Position", variantProvider = typeof(PositionBaseProvider))]
+    //TODOPAUL : Sanitize this
     class PositionConeDeprecated : PositionBase
     {
         public enum HeightMode
