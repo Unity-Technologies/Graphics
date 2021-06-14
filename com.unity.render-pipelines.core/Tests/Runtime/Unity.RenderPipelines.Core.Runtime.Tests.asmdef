@@ -9,6 +9,9 @@
     "excludePlatforms": [],
     "allowUnsafeCode": true,
     "overrideReferences": true,
+    "optionalUnityReferences": [
+        "TestAssemblies"
+    ],
     "precompiledReferences": [
         "nunit.framework.dll"
     ],
