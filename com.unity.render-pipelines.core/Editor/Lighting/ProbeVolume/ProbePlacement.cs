@@ -13,8 +13,6 @@ using System;
 namespace UnityEngine.Experimental.Rendering
 {
     using Brick = ProbeBrickIndex.Brick;
-    using Flags = ProbeReferenceVolume.BrickFlags;
-    using RefTrans = ProbeReferenceVolume.RefVolTransform;
 
     class ProbePlacement
     {
