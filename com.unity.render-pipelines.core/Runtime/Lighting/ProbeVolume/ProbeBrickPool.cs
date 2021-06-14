@@ -1,3 +1,4 @@
+using System.Diagnostics;
 using System.Collections.Generic;
 using UnityEngine.Rendering;
 using UnityEngine.Profiling;
@@ -6,6 +7,7 @@ namespace UnityEngine.Experimental.Rendering
 {
     internal class ProbeBrickPool
     {
+        [DebuggerDisplay("Chunk ({x}, {y}, {z})")]
         public struct BrickChunkAlloc
         {
             public int x, y, z;
@@ -80,11 +82,6 @@ namespace UnityEngine.Experimental.Rendering
 
             m_Pool = CreateDataLocation(width * height * depth, false, ProbeVolumeSHBands.SphericalHarmonicsL2);
             Profiler.EndSample();
-        }
-
-        internal ProbeVolumeTextureMemoryBudget GetMemoryBudget()
-        {
-            return m_MemoryBudget;
         }
 
         internal void EnsureTextureValidity()

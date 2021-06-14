@@ -20,20 +20,6 @@ PR_PostProcessing_trunk:
     dependencies:
       -  path: .yamato/postprocessing-win-dx11.yml#PostProcessing_Win_DX11_Standalone_mono_Linear_trunk
          rerun: on_new_revision
-Extra_PostProcessing_trunk:
-    name: Extra PostProcessing on trunk
-    variables:
-        CUSTOM_REVISION: '{{trunk.changeset.id}}'
-        UTR_VERSION: "current"
-        TEST_FILTER: .*
-        CACHE_ARGS: '{{cache.flags}}'
-    dependencies:
-      -  path: .yamato/postprocessing-win-dx12.yml#PostProcessing_Win_DX12_Standalone_mono_Linear_trunk
-         rerun: on_new_revision
-      -  path: .yamato/postprocessing-win-vulkan.yml#PostProcessing_Win_Vulkan_Standalone_mono_Linear_trunk
-         rerun: on_new_revision
-      -  path: .yamato/postprocessing-linux-vulkan.yml#PostProcessing_Linux_Vulkan_editmode_mono_Linear_trunk
-         rerun: on_new_revision
       -  path: .yamato/postprocessing-win-dx11.yml#PostProcessing_Win_DX11_playmode_mono_Linear_trunk
          rerun: on_new_revision
       -  path: .yamato/postprocessing-win-dx11.yml#PostProcessing_Win_DX11_editmode_mono_Linear_trunk
@@ -47,6 +33,20 @@ Extra_PostProcessing_trunk:
       -  path: .yamato/postprocessing-linux-vulkan.yml#PostProcessing_Linux_Vulkan_Standalone_mono_Linear_trunk
          rerun: on_new_revision
       -  path: .yamato/postprocessing-linux-vulkan.yml#PostProcessing_Linux_Vulkan_playmode_mono_Linear_trunk
+         rerun: on_new_revision
+Extra_PostProcessing_trunk:
+    name: Extra PostProcessing on trunk
+    variables:
+        CUSTOM_REVISION: '{{trunk.changeset.id}}'
+        UTR_VERSION: "current"
+        TEST_FILTER: .*
+        CACHE_ARGS: '{{cache.flags}}'
+    dependencies:
+      -  path: .yamato/postprocessing-win-dx12.yml#PostProcessing_Win_DX12_Standalone_mono_Linear_trunk
+         rerun: on_new_revision
+      -  path: .yamato/postprocessing-win-vulkan.yml#PostProcessing_Win_Vulkan_Standalone_mono_Linear_trunk
+         rerun: on_new_revision
+      -  path: .yamato/postprocessing-linux-vulkan.yml#PostProcessing_Linux_Vulkan_editmode_mono_Linear_trunk
          rerun: on_new_revision
 PostProcessing_trunk:
     name: PostProcessing on trunk
@@ -70,20 +70,6 @@ PR_PostProcessing_CUSTOM-REVISION:
     dependencies:
       -  path: .yamato/postprocessing-win-dx11.yml#PostProcessing_Win_DX11_Standalone_mono_Linear_CUSTOM-REVISION
          rerun: on_new_revision
-Extra_PostProcessing_CUSTOM-REVISION:
-    name: Extra PostProcessing on CUSTOM-REVISION
-    variables:
-        CUSTOM_REVISION: custom_revision_not_set
-        UTR_VERSION: "current"
-        TEST_FILTER: .*
-        CACHE_ARGS: '{{cache.flags}}'
-    dependencies:
-      -  path: .yamato/postprocessing-win-dx12.yml#PostProcessing_Win_DX12_Standalone_mono_Linear_CUSTOM-REVISION
-         rerun: on_new_revision
-      -  path: .yamato/postprocessing-win-vulkan.yml#PostProcessing_Win_Vulkan_Standalone_mono_Linear_CUSTOM-REVISION
-         rerun: on_new_revision
-      -  path: .yamato/postprocessing-linux-vulkan.yml#PostProcessing_Linux_Vulkan_editmode_mono_Linear_CUSTOM-REVISION
-         rerun: on_new_revision
       -  path: .yamato/postprocessing-win-dx11.yml#PostProcessing_Win_DX11_playmode_mono_Linear_CUSTOM-REVISION
          rerun: on_new_revision
       -  path: .yamato/postprocessing-win-dx11.yml#PostProcessing_Win_DX11_editmode_mono_Linear_CUSTOM-REVISION
@@ -97,6 +83,20 @@ Extra_PostProcessing_CUSTOM-REVISION:
       -  path: .yamato/postprocessing-linux-vulkan.yml#PostProcessing_Linux_Vulkan_Standalone_mono_Linear_CUSTOM-REVISION
          rerun: on_new_revision
       -  path: .yamato/postprocessing-linux-vulkan.yml#PostProcessing_Linux_Vulkan_playmode_mono_Linear_CUSTOM-REVISION
+         rerun: on_new_revision
+Extra_PostProcessing_CUSTOM-REVISION:
+    name: Extra PostProcessing on CUSTOM-REVISION
+    variables:
+        CUSTOM_REVISION: custom_revision_not_set
+        UTR_VERSION: "current"
+        TEST_FILTER: .*
+        CACHE_ARGS: '{{cache.flags}}'
+    dependencies:
+      -  path: .yamato/postprocessing-win-dx12.yml#PostProcessing_Win_DX12_Standalone_mono_Linear_CUSTOM-REVISION
+         rerun: on_new_revision
+      -  path: .yamato/postprocessing-win-vulkan.yml#PostProcessing_Win_Vulkan_Standalone_mono_Linear_CUSTOM-REVISION
+         rerun: on_new_revision
+      -  path: .yamato/postprocessing-linux-vulkan.yml#PostProcessing_Linux_Vulkan_editmode_mono_Linear_CUSTOM-REVISION
          rerun: on_new_revision
 PostProcessing_CUSTOM-REVISION:
     name: PostProcessing on CUSTOM-REVISION

@@ -200,14 +200,6 @@ namespace UnityEngine.Experimental.Rendering
             }
         }
 
-        internal struct BrickFlags
-        {
-            uint flags;
-
-            public bool discard { get { return (flags & 1) != 0; } set { flags = (flags & (~1u)) | (value ? 1u : 0); } }
-            public bool subdivide { get { return (flags & 2) != 0; } set { flags = (flags & (~2u)) | (value ? 2u : 0); } }
-        }
-
         internal struct RefVolTransform
         {
             public Matrix4x4 refSpaceToWS;
@@ -285,10 +277,7 @@ namespace UnityEngine.Experimental.Rendering
         int                             m_MaxSubdivision;
         ProbeBrickPool                  m_Pool;
         ProbeBrickIndex                 m_Index;
-        List<Brick>[]                   m_TmpBricks = new List<Brick>[2];
-        List<BrickFlags>                m_TmpFlags = new List<BrickFlags>();
         List<Chunk>                     m_TmpSrcChunks = new List<Chunk>();
-        List<Chunk>                     m_TmpDstChunks = new List<Chunk>();
         float[]                         m_PositionOffsets = new float[ProbeBrickPool.kBrickProbeCountPerDim];
         Dictionary<RegId, List<Chunk>>  m_Registry = new Dictionary<RegId, List<Chunk>>();
 
@@ -320,7 +309,13 @@ namespace UnityEngine.Experimental.Rendering
 
         int m_CBShaderID = Shader.PropertyToID("ShaderVariablesProbeVolumes");
 
+#if UNITY_EDITOR
+        // By default on editor we load a lot of cells in one go to avoid having to mess with scene view
+        // to see results, this value can still be changed via API.
+        private int m_NumberOfCellsLoadedPerFrame = 10000;
+#else
         private int m_NumberOfCellsLoadedPerFrame = 2;
+#endif
 
         ProbeVolumeTextureMemoryBudget m_MemoryBudget;
 
@@ -594,7 +589,7 @@ namespace UnityEngine.Experimental.Rendering
                 int indexSize = 0;
                 try
                 {
-                    indexSize = checked(indexDimensions.x * (indexDimensions.y + 1) * indexDimensions.z);
+                    indexSize = checked(indexDimensions.x * indexDimensions.y * indexDimensions.z);
                 }
                 catch
                 {
@@ -609,10 +604,6 @@ namespace UnityEngine.Experimental.Rendering
                     indexDimensions = new Vector3Int(1, 1, 1);
                 }
                 m_Index = new ProbeBrickIndex(indexDimensions);
-
-                m_TmpBricks[0] = new List<Brick>();
-                m_TmpBricks[1] = new List<Brick>();
-                m_TmpBricks[0].Capacity = m_TmpBricks[1].Capacity = 1024;
 
                 // initialize offsets
                 m_PositionOffsets[0] = 0.0f;
@@ -697,7 +688,6 @@ namespace UnityEngine.Experimental.Rendering
         /// <returns></returns>
         public bool DataHasBeenLoaded() => m_BricksLoaded;
 
-        internal delegate void SubdivisionDel(RefVolTransform refSpaceToWS, int subdivisionLevel, List<Brick> inBricks, List<BrickFlags> outControlFlags);
 
         internal void Clear()
         {
@@ -713,162 +703,6 @@ namespace UnityEngine.Experimental.Rendering
                 m_PendingAssetsToBeLoaded.Clear();
                 m_ActiveAssets.Clear();
             }
-        }
-
-#if UNITY_EDITOR
-        internal void CreateBricks(List<Volume> cellVolumes, List<Volume> subVolumes, SubdivisionDel subdivider, List<Brick> outSortedBricks, out int positionArraySize)
-        {
-            Profiler.BeginSample("CreateBricks");
-            // generate bricks for all areas covered by the passed in volumes, potentially subdividing them based on the subdivider's decisions
-            foreach (var v in cellVolumes)
-            {
-                ConvertVolume(v, subVolumes, subdivider, outSortedBricks);
-            }
-
-            Profiler.BeginSample("sort");
-            // sort from larger to smaller bricks
-            outSortedBricks.Sort((Brick lhs, Brick rhs) =>
-            {
-                if (lhs.subdivisionLevel != rhs.subdivisionLevel)
-                    return lhs.subdivisionLevel > rhs.subdivisionLevel ? -1 : 1;
-                if (lhs.position.z != rhs.position.z)
-                    return lhs.position.z < rhs.position.z ? -1 : 1;
-                if (lhs.position.y != rhs.position.y)
-                    return lhs.position.y < rhs.position.y ? -1 : 1;
-                if (lhs.position.x != rhs.position.x)
-                    return lhs.position.x < rhs.position.x ? -1 : 1;
-
-                return 0;
-            });
-            Profiler.EndSample();
-            // communicate the required array size for storing positions to the caller
-            positionArraySize = outSortedBricks.Count * ProbeBrickPool.kBrickProbeCountTotal;
-
-            Profiler.EndSample();
-        }
-
-        // brick subdivision according to an octree kBrickCellCount * kBrickCellCount * kBrickCellCount scheme
-        internal static void SubdivideBricks(List<Brick> inBricks, List<Brick> outSubdividedBricks)
-        {
-            Profiler.BeginSample("Subdivide");
-            // reserve enough space
-            outSubdividedBricks.Capacity = outSubdividedBricks.Count + inBricks.Count * ProbeBrickPool.kBrickCellCount * ProbeBrickPool.kBrickCellCount;
-
-            foreach (var brick in inBricks)
-            {
-                if (brick.subdivisionLevel == 0)
-                    continue;
-
-                Brick b = new Brick();
-                b.subdivisionLevel = brick.subdivisionLevel - 1;
-                int offset = CellSize(b.subdivisionLevel);
-
-                for (int z = 0; z < ProbeBrickPool.kBrickCellCount; z++)
-                {
-                    b.position.z = brick.position.z + z * offset;
-
-                    for (int y = 0; y < ProbeBrickPool.kBrickCellCount; y++)
-                    {
-                        b.position.y = brick.position.y + y * offset;
-
-                        for (int x = 0; x < ProbeBrickPool.kBrickCellCount; x++)
-                        {
-                            b.position.x = brick.position.x + x * offset;
-                            outSubdividedBricks.Add(b);
-                        }
-                    }
-                }
-            }
-            Profiler.EndSample();
-        }
-
-        // converts a volume into bricks, subdivides the bricks and culls subdivided volumes falling outside the original volume
-        void ConvertVolume(Volume cellVolume, List<Volume> subVolumes, SubdivisionDel subdivider, List<Brick> outSortedBricks)
-        {
-            Profiler.BeginSample("ConvertVolume");
-            m_TmpBricks[0].Clear();
-            Transform(cellVolume, out Volume vol);
-            // rasterize bricks according to the coarsest grid
-            Rasterize(vol, m_TmpBricks[0]);
-
-            int subDivCount = 0;
-
-            // iterative subdivision
-            while (m_TmpBricks[0].Count > 0 && subDivCount <= GetMaxSubdivision(cellVolume.maxSubdivisionMultiplier))
-            {
-                m_TmpBricks[1].Clear();
-                m_TmpFlags.Clear();
-                m_TmpFlags.Capacity = Mathf.Max(m_TmpFlags.Capacity, m_TmpBricks[0].Count);
-
-                Profiler.BeginSample("Subdivider");
-                subdivider(m_Transform, subDivCount, m_TmpBricks[0], m_TmpFlags);
-                Profiler.EndSample();
-                Debug.Assert(m_TmpBricks[0].Count == m_TmpFlags.Count);
-
-                for (int i = 0; i < m_TmpFlags.Count; i++)
-                {
-                    if (!m_TmpFlags[i].discard)
-                        outSortedBricks.Add(m_TmpBricks[0][i]);
-                    if (m_TmpFlags[i].subdivide)
-                        m_TmpBricks[1].Add(m_TmpBricks[0][i]);
-                }
-
-                m_TmpBricks[0].Clear();
-                if (m_TmpBricks[1].Count > 0)
-                {
-                    SubdivideBricks(m_TmpBricks[1], m_TmpBricks[0]);
-
-                    // Cull out of bounds bricks
-                    Profiler.BeginSample("Cull bricks");
-                    for (int i = m_TmpBricks[0].Count - 1; i >= 0; i--)
-                    {
-                        if (!ProbeVolumePositioning.OBBIntersect(m_Transform, m_TmpBricks[0][i], cellVolume))
-                        {
-                            m_TmpBricks[0].RemoveAt(i);
-                        }
-                    }
-                    Profiler.EndSample();
-                }
-
-                subDivCount++;
-            }
-            Profiler.EndSample();
-        }
-
-#endif
-
-        // Converts brick information into positional data at kBrickProbeCountPerDim * kBrickProbeCountPerDim * kBrickProbeCountPerDim resolution
-        internal void ConvertBricksToPositions(List<Brick> bricks, Vector3[] outProbePositions)
-        {
-            Profiler.BeginSample("ConvertBricksToPositions");
-            Matrix4x4 m = GetRefSpaceToWS();
-            int posIdx = 0;
-
-            foreach (var b in bricks)
-            {
-                Vector3 offset = b.position;
-                offset = m.MultiplyPoint(offset);
-                float scale = CellSize(b.subdivisionLevel);
-                Vector3 X = m.GetColumn(0) * scale;
-                Vector3 Y = m.GetColumn(1) * scale;
-                Vector3 Z = m.GetColumn(2) * scale;
-
-                for (int z = 0; z < ProbeBrickPool.kBrickProbeCountPerDim; z++)
-                {
-                    float zoff = m_PositionOffsets[z];
-                    for (int y = 0; y < ProbeBrickPool.kBrickProbeCountPerDim; y++)
-                    {
-                        float yoff = m_PositionOffsets[y];
-                        for (int x = 0; x < ProbeBrickPool.kBrickProbeCountPerDim; x++)
-                        {
-                            float xoff = m_PositionOffsets[x];
-                            outProbePositions[posIdx] = offset + xoff * X + yoff * Y + zoff * Z;
-                            posIdx++;
-                        }
-                    }
-                }
-            }
-            Profiler.EndSample();
         }
 
         // Runtime API starts here
@@ -940,56 +774,6 @@ namespace UnityEngine.Experimental.Rendering
             // clean up the pool
             m_Pool.Deallocate(ch_list);
             m_Registry.Remove(id);
-        }
-
-        void Transform(Volume inVolume, out Volume outVolume)
-        {
-            Matrix4x4 m = GetRefSpaceToWS().inverse;
-
-            // Handle TRS
-            outVolume.corner = m.MultiplyPoint(inVolume.corner);
-            outVolume.X = m.MultiplyVector(inVolume.X);
-            outVolume.Y = m.MultiplyVector(inVolume.Y);
-            outVolume.Z = m.MultiplyVector(inVolume.Z);
-            outVolume.maxSubdivisionMultiplier = inVolume.maxSubdivisionMultiplier;
-            outVolume.minSubdivisionMultiplier = inVolume.minSubdivisionMultiplier;
-        }
-
-        // Creates bricks at the coarsest level for all areas that are overlapped by the pass in volume
-        void Rasterize(Volume volume, List<Brick> outBricks)
-        {
-            Profiler.BeginSample("Rasterize");
-            // Calculate bounding box for volume in refvol space
-            var AABB = volume.CalculateAABB();
-
-            // Calculate smallest brick size capable of covering shortest AABB dimension
-            float minVolumeSize = Mathf.Min(AABB.size.x, Mathf.Min(AABB.size.y, AABB.size.z));
-            int brickSubDivLevel = Mathf.Min(Mathf.CeilToInt(Mathf.Log(minVolumeSize, 3)), m_MaxSubdivision);
-            int brickTotalSize = (int)Mathf.Pow(3, brickSubDivLevel);
-
-            // Extend AABB to have origin that lies on a grid point
-            AABB.Encapsulate(new Vector3(
-                brickTotalSize * Mathf.Floor(AABB.min.x / brickTotalSize),
-                brickTotalSize * Mathf.Floor(AABB.min.y / brickTotalSize),
-                brickTotalSize * Mathf.Floor(AABB.min.z / brickTotalSize)));
-
-            // Calculate origin of bricks and how many are needed to cover volume
-            Vector3Int origin = Vector3Int.FloorToInt(AABB.min);
-            Vector3 logicalBrickRes = Vector3Int.CeilToInt(AABB.size / brickTotalSize);
-
-            // Cover the volume with bricks
-            for (int x = 0; x < logicalBrickRes.x; x++)
-            {
-                for (int y = 0; y < logicalBrickRes.y; y++)
-                {
-                    for (int z = 0; z < logicalBrickRes.z; z++)
-                    {
-                        Vector3Int pos = origin + new Vector3Int(x, y, z) * brickTotalSize;
-                        outBricks.Add(new Brick(pos, brickSubDivLevel));
-                    }
-                }
-            }
-            Profiler.EndSample();
         }
 
         /// <summary>
