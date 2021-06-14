@@ -43,7 +43,12 @@ The **Max Local Volumetric Fog On Screen** controls how many Local Volumetric Fo
 
 ## Builtin Density Mask Texture
 
-There is a set of 3D textures that contains different noises and shapes that you can import from the HDRP samples. To do so, go to the package manager window and find the **High Definition RP** package, expand the **Samples** foldout and click on the Import button at the right of the "Local Volumetric Fog Mask Textures" sample.
+HDRP includes 3D Density Mask Textures with different noise values and shapes that you can use in your scene. To use these Textures, import them from the HDRP samples package:
+
+1. Open the Package Manager window (menu: Window > Package Manager)
+2. Find the High Definition RP package
+3. Expand Samples
+4. Find the "Local Volumetric Fog Mask Textures" sample and click on the Import button to the right.
 
 ## Creating a Density Mask Texture
 
