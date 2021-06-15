@@ -252,6 +252,10 @@ namespace UnityEditor.Rendering.HighDefinition
 
         static void WizardBehaviourDelayed()
         {
+            if (!HDProjectSettings.wizardIsStartPopup)
+                throw new Exception(
+                    $"HDProjectSettings.wizardIsStartPopup must be true");
+
             if (frameToWait > 0)
             {
                 --frameToWait;
@@ -275,7 +279,7 @@ namespace UnityEditor.Rendering.HighDefinition
             // Unsubscribe from possible events
             // If the event has not been registered the unsubscribe will do nothing
             RenderPipelineManager.activeRenderPipelineTypeChanged -= ShowWizardFirstTime;
-            
+
             if (!CanShowWizard())
             {
                 // Delay the show of the wizard for the first time that the user is using HDRP
@@ -286,7 +290,7 @@ namespace UnityEditor.Rendering.HighDefinition
             // If we reach this point can be because
             // - That the user started Unity with HDRP in use
             // - That the SRP has changed to HDRP for the first time in the session
-            if (!HDUserSettings.wizardPopupAlreadyShownOnce) 
+            if (!HDUserSettings.wizardPopupAlreadyShownOnce)
                 OpenWindow();
         }
 
