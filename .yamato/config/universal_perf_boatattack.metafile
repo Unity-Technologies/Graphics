@@ -7,8 +7,12 @@ project:
 
 reuse_blocks:
   unity_config:
-    - [iPhone_Metal, OSX_Metal, Linux_Vulkan]: git clone https://github.com/Unity-Technologies/BoatAttack.git -b $BOAT_ATTACK_BRANCH TestProjects/BoatAttack
-    - [Win_DX11, Win_DX12, Win_Vulkan, Android_OpenGLES3, Android_Vulkan]: git clone https://github.com/Unity-Technologies/BoatAttack.git -b %BOAT_ATTACK_BRANCH% TestProjects/BoatAttack
+    - [iPhone_Metal, OSX_Metal, Linux_Vulkan]:
+        - command: git clone https://github.com/Unity-Technologies/BoatAttack.git -b $BOAT_ATTACK_BRANCH TestProjects/BoatAttack
+          retries: 2
+    - [Win_DX11, Win_DX12, Win_Vulkan, Android_OpenGLES3, Android_Vulkan]:
+        - command: git clone https://github.com/Unity-Technologies/BoatAttack.git -b %BOAT_ATTACK_BRANCH% TestProjects/BoatAttack
+          retries: 2
 
     - [iPhone_Metal, OSX_Metal, Linux_Vulkan]: cd TestProjects/BoatAttack && git checkout $BOAT_ATTACK_REVISION
     - [Win_DX11, Win_DX12, Win_Vulkan, Android_OpenGLES3, Android_Vulkan]: cd TestProjects/BoatAttack && git checkout %BOAT_ATTACK_REVISION%
