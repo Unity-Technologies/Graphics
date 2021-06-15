@@ -30,6 +30,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - API to allow OnDemand shadows to not render upon placement in the Cached Shadow Atlas.
 - Exposed update upon light movement for directional light shadows in UI.
 - Added a fallback for the ray traced directional shadow in case of a transmission (case 1307870).
+- Added Speed Tree 8 shader graph as default Speed Tree 8 shader for HDRP.
 - Added an info box for micro shadow editor (case 1322830).
 - Added support for alpha channel in FXAA (case 1323941).
 - Added support for lighting full screen debug mode in automated tests.
