@@ -93,6 +93,11 @@ namespace UnityEngine.Experimental.Rendering
             public float[] validity;
         }
 
+        class CellChunkInfo
+        {
+            public List<Chunk> chunks;
+        }
+
         private class CellSortInfo : IComparable
         {
             internal string sourceAsset;
@@ -282,6 +287,8 @@ namespace UnityEngine.Experimental.Rendering
         Dictionary<RegId, List<Chunk>>  m_Registry = new Dictionary<RegId, List<Chunk>>();
 
         internal Dictionary<int, Cell> cells = new Dictionary<int, Cell>();
+        Dictionary<int, CellChunkInfo> m_ChunkInfo = new Dictionary<int, CellChunkInfo>();
+
         internal ProbeVolumeSceneBounds sceneBounds;
 
 
@@ -387,6 +394,24 @@ namespace UnityEngine.Experimental.Rendering
             m_IsInitialized = false;
         }
 
+        void RemoveCell(int cellIndex)
+        {
+            if (cells.ContainsKey(cellIndex))
+                cells.Remove(cellIndex);
+
+            if (m_ChunkInfo.ContainsKey(cellIndex))
+                m_ChunkInfo.Remove(cellIndex);
+        }
+
+        void AddCell(Cell cell, List<Chunk> chunks)
+        {
+            cells[cell.index] = cell;
+
+            var cellChunks = new CellChunkInfo();
+            cellChunks.chunks = chunks;
+            m_ChunkInfo[cell.index] = cellChunks;
+        }
+
         internal void AddPendingAssetLoading(ProbeVolumeAsset asset)
         {
             var key = asset.GetSerializedFullPath();
@@ -436,8 +461,7 @@ namespace UnityEngine.Experimental.Rendering
             // Remove bricks and empty cells
             foreach (var cell in asset.cells)
             {
-                if (cells.ContainsKey(cell.index))
-                    cells.Remove(cell.index);
+                RemoveCell(cell.index);
             }
 
             // Unload brick data
@@ -554,9 +578,10 @@ namespace UnityEngine.Experimental.Rendering
                 // TODO register ID of brick list
                 List<ProbeBrickIndex.Brick> brickList = new List<ProbeBrickIndex.Brick>();
                 brickList.AddRange(cell.bricks);
-                var regId = AddBricks(brickList, dataLocation);
+                List<Chunk> chunkList = new List<Chunk>();
+                var regId = AddBricks(brickList, dataLocation, out chunkList);
 
-                cells[cell.index] = cell;
+                AddCell(cell, chunkList);
                 m_AssetPathToBricks[path].Add(regId);
 
                 dataLocation.Cleanup();
@@ -696,6 +721,7 @@ namespace UnityEngine.Experimental.Rendering
                 m_Pool.Clear();
                 m_Index.Clear();
                 cells.Clear();
+                m_ChunkInfo.Clear();
             }
 
             if (clearAssetsOnVolumeClear)
@@ -706,13 +732,13 @@ namespace UnityEngine.Experimental.Rendering
         }
 
         // Runtime API starts here
-        RegId AddBricks(List<Brick> bricks, ProbeBrickPool.DataLocation dataloc)
+        RegId AddBricks(List<Brick> bricks, ProbeBrickPool.DataLocation dataloc, out List<Chunk> ch_list)
         {
             Profiler.BeginSample("AddBricks");
 
             // calculate the number of chunks necessary
             int ch_size = m_Pool.GetChunkSize();
-            List<Chunk> ch_list = new List<Chunk>((bricks.Count + ch_size - 1) / ch_size);
+            ch_list = new List<Chunk>((bricks.Count + ch_size - 1) / ch_size);
             m_Pool.Allocate(ch_list.Capacity, ch_list);
 
             // copy chunks into pool
