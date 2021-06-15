@@ -1236,7 +1236,6 @@ namespace UnityEngine.Rendering.HighDefinition
                         additionalCameraData.ExecuteCustomRender(renderContext, hdCamera);
                     }
 
-
                     if (skipRequest)
                     {
                         // Submit render context and free pooled resources for this request
