@@ -221,15 +221,8 @@ namespace UnityEditor.Rendering.Universal
         {
             serializedObject.Update();
 
-            string name = (string)type;
-            ScriptableObject component = CreateInstance(name);
-            if (component == null)
-            {
-                Debug.LogWarning($"Couldn't create ScriptableObject for ScriptableRendererFeature '{name}'. Make sure the both, the script and the class, have the same name.");
-                return;
-            }
-
-            component.name = $"New{name}";
+            ScriptableObject component = CreateInstance((string)type);
+            component.name = $"New{(string)type}";
             Undo.RegisterCreatedObjectUndo(component, "Add Renderer Feature");
 
             // Store this new effect as a sub-asset so we can reference it safely afterwards
