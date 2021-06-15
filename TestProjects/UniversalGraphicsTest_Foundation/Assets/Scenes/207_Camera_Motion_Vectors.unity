@@ -230,6 +230,7 @@ GameObject:
   m_Component:
   - component: {fileID: 1393912201}
   - component: {fileID: 1393912200}
+  - component: {fileID: 1393912202}
   m_Layer: 0
   m_Name: Directional Light
   m_TagString: Untagged
@@ -314,6 +315,26 @@ Transform:
   m_Father: {fileID: 0}
   m_RootOrder: 4
   m_LocalEulerAnglesHint: {x: 50, y: -30, z: 0}
+--- !u!114 &1393912202
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1393912199}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 474bcb49853aa07438625e644c072ee6, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  m_Version: 1
+  m_UsePipelineSettings: 1
+  m_AdditionalLightsShadowResolutionTier: 2
+  m_LightLayerMask: 1
+  m_CustomShadowLayers: 0
+  m_ShadowLayerMask: 1
+  m_LightCookieSize: {x: 1, y: 1}
+  m_LightCookieOffset: {x: 0, y: 0}
 --- !u!1 &1573091204
 GameObject:
   m_ObjectHideFlags: 0
@@ -326,6 +347,7 @@ GameObject:
   - component: {fileID: 1573091206}
   - component: {fileID: 1573091208}
   - component: {fileID: 1573091211}
+  - component: {fileID: 1573091212}
   m_Layer: 0
   m_Name: Main Camera
   m_TagString: MainCamera
@@ -451,6 +473,18 @@ MonoBehaviour:
     ActivePixelTests: 1
   WaitFrames: 11
   XRCompatible: 1
+--- !u!114 &1573091212
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1573091204}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 15c1a1d061d79c8439131237bfaf24dc, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
 --- !u!1 &2022313700
 GameObject:
   m_ObjectHideFlags: 0
@@ -556,7 +590,7 @@ MonoBehaviour:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 2022313700}
-  m_Enabled: 1
+  m_Enabled: 0
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 073e3c303b2ac1e49ba387e94b6fca98, type: 3}
   m_Name: 
@@ -2223,7 +2257,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 82baebb682c3f8a4a85f4757b6d18836, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  m_Update: 1
+  m_Update: 0
 --- !u!4 &5910539530163059966
 Transform:
   m_ObjectHideFlags: 0
