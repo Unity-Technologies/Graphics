@@ -11,7 +11,7 @@ namespace UnityEditor.Rendering.Universal
     internal sealed class BuiltInToURP2DMaterialUpgrader : RenderPipelineConverter
     {
         public override string name => "Material and Material Reference Upgrade";
-        public override string info => "This will upgrade your materials and all material references.";
+        public override string info => "This will upgrade all materials and material references.";
         public override int priority => - 1000;
         public override Type container => typeof(BuiltInToURP2DConverterContainer);
 

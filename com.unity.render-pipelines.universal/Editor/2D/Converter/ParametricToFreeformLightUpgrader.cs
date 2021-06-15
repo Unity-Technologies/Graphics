@@ -11,7 +11,7 @@ namespace UnityEditor.Rendering.Universal
     internal sealed class ParametricToFreeformLightUpgrader : RenderPipelineConverter
     {
         public override string name => "Parametric to Freeform Light Upgrade";
-        public override string info => "This will upgrade your parametric lights to freeform lights.";
+        public override string info => "This will upgrade all parametric lights to freeform lights.";
         public override int priority => - 1000;
         public override Type container => typeof(UpgradeURP2DAssetsContainer);
 
