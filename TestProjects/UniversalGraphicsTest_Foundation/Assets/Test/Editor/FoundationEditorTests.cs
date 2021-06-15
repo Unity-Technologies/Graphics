@@ -31,6 +31,26 @@ class FoundationEditorTests
     }
 
     [Test]
+    public void CheckIfMixedLightingDisabled()
+    {
+        var guids = AssetDatabase.FindAssets("t:UniversalRenderPipelineAsset");
+        Assert.NotZero(guids.Length);
+        foreach (var guid in guids)
+        {
+            var path = AssetDatabase.GUIDToAssetPath(guid);
+
+            // We only care what is in assets folder
+            if (!path.StartsWith("Assets"))
+                continue;
+
+            var asset = AssetDatabase.LoadAssetAtPath<UniversalRenderPipelineAsset>(path);
+            Assert.IsNotNull(asset, $"Failed to load URP asset at path {path}");
+
+            Assert.IsFalse(asset.supportsMixedLighting, $"URP asset at path {path} has post mixed lighting enabled. Foundation project should not have URP asset with mixed lighting enabled.");
+        }
+    }
+
+    [Test]
     public void CheckIfRenderer2DIsNotPresent()
     {
         var guids = AssetDatabase.FindAssets("t:Renderer2DData");
