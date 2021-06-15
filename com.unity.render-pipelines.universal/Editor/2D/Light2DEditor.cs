@@ -748,7 +748,8 @@ namespace UnityEditor.Rendering.Universal
                         Handles.DrawLine(t.TransformPoint(falloffShape[i]), t.TransformPoint(falloffShape[i + 1]));
                     }
 
-                    Handles.DrawLine(t.TransformPoint(falloffShape[falloffShape.Count - 1]), t.TransformPoint(falloffShape[0]));
+                    if (falloffShape.Count > 0)
+                        Handles.DrawLine(t.TransformPoint(falloffShape[falloffShape.Count - 1]), t.TransformPoint(falloffShape[0]));
 
                     for (int i = 0; i < light.shapePath.Length - 1; ++i)
                     {
@@ -756,7 +757,8 @@ namespace UnityEditor.Rendering.Universal
                             t.TransformPoint(light.shapePath[i + 1]));
                     }
 
-                    Handles.DrawLine(t.TransformPoint(light.shapePath[light.shapePath.Length - 1]), t.TransformPoint(light.shapePath[0]));
+                    if (light.shapePath.Length > 0)
+                        Handles.DrawLine(t.TransformPoint(light.shapePath[light.shapePath.Length - 1]), t.TransformPoint(light.shapePath[0]));
                 }
                 break;
             }
