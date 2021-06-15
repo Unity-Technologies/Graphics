@@ -39,11 +39,13 @@ Shader "Hidden/kMotion/CameraMotionVectors"
             struct Attributes
             {
                 uint vertexID   : SV_VertexID;
+                UNITY_VERTEX_INPUT_INSTANCE_ID
             };
 
             struct Varyings
             {
                 float4 position : SV_POSITION;
+                UNITY_VERTEX_OUTPUT_STEREO
             };
 
             // -------------------------------------
@@ -51,6 +53,9 @@ Shader "Hidden/kMotion/CameraMotionVectors"
             Varyings vert(Attributes input)
             {
                 Varyings output;
+                UNITY_SETUP_INSTANCE_ID(input);
+                UNITY_INITIALIZE_VERTEX_OUTPUT_STEREO(output);
+
                 output.position = GetFullScreenTriangleVertexPosition(input.vertexID);
                 return output;
             }
@@ -59,6 +64,7 @@ Shader "Hidden/kMotion/CameraMotionVectors"
             // Fragment
             half4 frag(Varyings input, out float outDepth : SV_Depth) : SV_Target
             {
+                UNITY_SETUP_STEREO_EYE_INDEX_POST_VERTEX(input);
                 // Calculate PositionInputs
                 half depth = LoadSceneDepth(input.position.xy).x;
                 outDepth = depth;

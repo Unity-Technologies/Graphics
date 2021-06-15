@@ -12,12 +12,11 @@ namespace UnityEngine.Rendering.Universal.Internal
         const string kPreviousViewProjectionStereo = "_PrevViewProjStereo";
         const string kViewProjectionStereo = "_ViewProjStereo";
 #endif
-        const string kMotionVectorTexture = "_MotionVectorTexture";
         const GraphicsFormat m_TargetFormat = GraphicsFormat.R16G16_SFloat;
 
         static readonly string[] s_ShaderTags = new string[] { "MotionVectors" };
-
-        RenderTargetHandle m_MotionVectorHandle; //Move to UniversalRenderer like other passes?
+        static readonly int kTargetID = Shader.PropertyToID("_MotionVectorTexture");
+        readonly RenderTargetIdentifier m_MotionVectorTarget;
         readonly Material m_CameraMaterial;
         readonly Material m_ObjectMaterial;
 
@@ -31,6 +30,7 @@ namespace UnityEngine.Rendering.Universal.Internal
             renderPassEvent = RenderPassEvent.AfterRenderingSkybox;
             m_CameraMaterial = cameraMaterial;
             m_ObjectMaterial = objectMaterial;
+            m_MotionVectorTarget = new RenderTargetIdentifier(kTargetID, 0, CubemapFace.Unknown, -1);
         }
 
         #endregion
@@ -45,11 +45,9 @@ namespace UnityEngine.Rendering.Universal.Internal
         {
             var rtd = cameraTextureDescriptor;
             rtd.graphicsFormat = m_TargetFormat;
-            // Configure Render Target
-            m_MotionVectorHandle.Init(kMotionVectorTexture);
-            cmd.GetTemporaryRT(m_MotionVectorHandle.id, rtd, FilterMode.Point);
-            ConfigureTarget(new RenderTargetIdentifier(m_MotionVectorHandle.Identifier(), 0, CubemapFace.Unknown, -1),
-                            new RenderTargetIdentifier(m_MotionVectorHandle.Identifier(), 0, CubemapFace.Unknown, -1));
+
+            cmd.GetTemporaryRT(kTargetID, rtd, FilterMode.Point);
+            ConfigureTarget(m_MotionVectorTarget, m_MotionVectorTarget);
             ConfigureClear(ClearFlag.Color, Color.black);
         }
 
@@ -153,12 +151,7 @@ namespace UnityEngine.Rendering.Universal.Internal
             if (cmd == null)
                 throw new ArgumentNullException("cmd");
 
-            // Reset Render Target
-            if (m_MotionVectorHandle != RenderTargetHandle.CameraTarget)
-            {
-                cmd.ReleaseTemporaryRT(m_MotionVectorHandle.id);
-                m_MotionVectorHandle = RenderTargetHandle.CameraTarget;
-            }
+            cmd.ReleaseTemporaryRT(kTargetID);
         }
 
         #endregion
