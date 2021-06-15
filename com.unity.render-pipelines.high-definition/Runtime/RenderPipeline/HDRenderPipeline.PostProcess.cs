@@ -1923,6 +1923,7 @@ namespace UnityEngine.Rendering.HighDefinition
             scale = 1f / (float)dofParameters.resolution;
             resolutionScale = (dofParameters.viewportSize.y / 1080f) * 2f;
 
+            // The DoF sampling is performed in normalized space in the shader, so we don't need any scaling for half/quarter resoltion. We only do it in the "compatibility mode".
             if (dofParameters.useCompatibilityMode)
                 resolutionScale *= scale;
         }
