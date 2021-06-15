@@ -233,7 +233,6 @@
             * [And](And-Node)
             * [Any](Any-Node)
             * [Branch](Branch-Node)
-            *
             * [Comparison](Comparison-Node)
             * [Is Front Face](Is-Front-Face-Node)
             * [Is Infinite](Is-Infinite-Node)
