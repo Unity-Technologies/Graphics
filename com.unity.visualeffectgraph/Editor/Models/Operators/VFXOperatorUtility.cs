@@ -698,5 +698,12 @@ namespace UnityEditor.VFX
             var z = new VFXExpressionExtractComponent(vector3, 2);
             return Min3(x, y, z);
         }
+
+        static public VFXExpression UniformScaleMatrix(VFXExpression scale)
+        {
+            var scale3 = new VFXExpressionCombine(scale, scale, scale);
+            var zero = ZeroExpression[VFXValueType.Float3];
+            return new VFXExpressionTRSToMatrix(zero, zero, scale3);
+        }
     }
 }
