@@ -86,7 +86,7 @@ Shader "Universal Render Pipeline/2D/Sprite-Lit-Default"
 
                 o.positionCS = TransformObjectToHClip(v.positionOS);
                 o.uv = TRANSFORM_TEX(v.uv, _MainTex);
-                o.lightingUV = ComputeScreenPos(o.positionCS);
+                o.lightingUV = half2(ComputeScreenPos(o.positionCS).xy);
 
                 o.color = v.color;
                 return o;
