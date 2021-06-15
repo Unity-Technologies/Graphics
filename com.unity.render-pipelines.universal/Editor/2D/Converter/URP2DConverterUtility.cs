@@ -60,9 +60,9 @@ internal static class URP2DConverterUtility
         UnityEngine.Object[] objects = AssetDatabase.LoadAllAssetsAtPath(path);
 
         int firstIndex = 0;
-        for(int i=0;i<objects.Length;i++)
+        for (int i = 0; i < objects.Length; i++)
         {
-            if(objects[i] as GameObject)
+            if (objects[i] as GameObject)
             {
                 firstIndex = i;
                 break;
@@ -94,14 +94,14 @@ internal static class URP2DConverterUtility
     {
         Scene scene = new Scene();
         bool openedByUser = false;
-        for(int i=0;i<SceneManager.sceneCount && !openedByUser; i++)
+        for (int i = 0; i < SceneManager.sceneCount && !openedByUser; i++)
         {
             scene = SceneManager.GetSceneAt(i);
             if (path == scene.path)
                 openedByUser = true;
         }
 
-        if(!openedByUser)
+        if (!openedByUser)
             scene = EditorSceneManager.OpenScene(path, OpenSceneMode.Additive);
 
         GameObject[] gameObjects = scene.GetRootGameObjects();
@@ -109,7 +109,7 @@ internal static class URP2DConverterUtility
             objectUpgrader(go);
 
         EditorSceneManager.SaveScene(scene);
-        if(!openedByUser)
+        if (!openedByUser)
             EditorSceneManager.CloseScene(scene, true);
     }
 

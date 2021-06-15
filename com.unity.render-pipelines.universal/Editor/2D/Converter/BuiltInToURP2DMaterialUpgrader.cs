@@ -92,7 +92,6 @@ namespace UnityEditor.Rendering.Universal
 
         public override void OnRun(ref RunItemContext context)
         {
-
             string result = null;
             string ext = Path.GetExtension(context.item.descriptor.info);
             if (ext == ".prefab")
