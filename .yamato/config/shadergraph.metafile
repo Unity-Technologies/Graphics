@@ -104,6 +104,8 @@ jobs:
         color_space: Linear
         test_platforms:
             - editmode
+      - .yamato/all-shadergraph_stereo.yml#PR_ShaderGraph_Stereo_<TRACK>
+      - .yamato/_abv.yml#General_Checks_<TRACK>
   - name: Extra <PROJECT_NAME>
     dependencies:
       - platform: Win
