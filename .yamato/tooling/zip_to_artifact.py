@@ -9,6 +9,8 @@ if __name__ == "__main__":
 
     args = parser.parse_args()
 
+    print("Working directory of zip_to_artifact: " + getcwd())
+
     update_tests_file_path = path.join(args.root, "Assets/Resources/UpdateTests.txt")
     if not path.exists(update_tests_file_path):
         print("No update file found")
