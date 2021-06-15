@@ -9,9 +9,6 @@
     "excludePlatforms": [],
     "allowUnsafeCode": true,
     "overrideReferences": true,
-    "optionalUnityReferences": [
-        "TestAssemblies"
-    ],
     "precompiledReferences": [
         "nunit.framework.dll"
     ],
@@ -19,5 +16,6 @@
     "defineConstraints": [
         "UNITY_INCLUDE_TESTS"
     ],
-    "versionDefines": []
+    "versionDefines": [],
+    "noEngineReferences": false
 }
