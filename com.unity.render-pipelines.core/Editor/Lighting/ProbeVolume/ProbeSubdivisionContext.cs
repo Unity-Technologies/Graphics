@@ -15,16 +15,13 @@ namespace UnityEngine.Experimental.Rendering
         public List<(ProbeVolume component, ProbeReferenceVolume.Volume volume)> probeVolumes = new List<(ProbeVolume, ProbeReferenceVolume.Volume)>();
         public List<(Renderer component, ProbeReferenceVolume.Volume volume)> renderers = new List<(Renderer, ProbeReferenceVolume.Volume)>();
         public List<(Vector3Int position, ProbeReferenceVolume.Volume volume)> cells = new List<(Vector3Int, ProbeReferenceVolume.Volume)>();
+        public List<(Terrain, ProbeReferenceVolume.Volume volume)> terrains = new List<(Terrain, ProbeReferenceVolume.Volume)>();
         public ProbeReferenceVolumeAuthoring refVolume;
 
-        // Limit the time we can spend in the subdivision for realtime debug subdivision
-        public float subdivisionStartTime;
-
-        public void Initialize(ProbeReferenceVolumeAuthoring refVolume)
+        public void Initialize(ProbeReferenceVolumeAuthoring refVolume, Vector3 refVolOrigin)
         {
             this.refVolume = refVolume;
             float cellSize = refVolume.cellSizeInMeters;
-            subdivisionStartTime = Time.realtimeSinceStartup;
 
             foreach (var pv in UnityEngine.Object.FindObjectsOfType<ProbeVolume>())
             {
@@ -50,9 +47,18 @@ namespace UnityEngine.Experimental.Rendering
                 renderers.Add((r, volume));
             }
 
+            foreach (var terrain in UnityEngine.Object.FindObjectsOfType<Terrain>())
+            {
+                if (!terrain.isActiveAndEnabled)
+                    continue;
+
+                var volume = ProbePlacement.ToVolume(terrain.terrainData.bounds);
+
+                terrains.Add((terrain, volume));
+            }
+
             // Generate all the unique cell positions from probe volumes:
-            var refVolTransform = ProbeReferenceVolume.instance.GetTransform();
-            var cellTrans = Matrix4x4.TRS(refVolTransform.posWS, refVolTransform.rot, Vector3.one);
+            var cellTrans = Matrix4x4.TRS(refVolOrigin, Quaternion.identity, Vector3.one);
             HashSet<Vector3Int> cellPositions = new HashSet<Vector3Int>();
             foreach (var pv in probeVolumes)
             {

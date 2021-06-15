@@ -81,8 +81,7 @@ When you use MSAA, be aware of the following:
   1. [Screen space reflection (SSR)](Override-Screen-Space-Reflection.md).
   2. Screen space shadows.
   3. [Temporal Anti-aliasing](#TAA).
-  4. Distortion.
-  5. Normal Buffer patch up by Decals.
+  4. Normal Buffer patch up by Decals. It mean Decal which affect material's normal will not affect Screen space reflection (SSR). This is not a problem as the effect is disabled, see 1.
 - MSAA does not affect the following features. HDRP does not disable these effects, it just does not process MSAA for them:
   1. [Post-processing](Post-Processing-Main.md).
   3. [Subsurface scattering](Subsurface-Scattering.md).
