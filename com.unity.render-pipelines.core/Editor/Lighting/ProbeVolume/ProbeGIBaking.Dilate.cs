@@ -101,6 +101,7 @@ namespace UnityEngine.Experimental.Rendering
         static readonly int _ValidityBuffer = Shader.PropertyToID("_ValidityBuffer");
         static readonly int _ProbePositionsBuffer = Shader.PropertyToID("_ProbePositionsBuffer");
         static readonly int _DilationParameters = Shader.PropertyToID("_DilationParameters");
+        static readonly int _DilationParameters2 = Shader.PropertyToID("_DilationParameters2");
         static readonly int _OutputProbes = Shader.PropertyToID("_OutputProbes");
         static readonly int _APVResIndex = Shader.PropertyToID("_APVResIndex");
         static readonly int _APVResL0_L1Rx = Shader.PropertyToID("_APVResL0_L1Rx");
@@ -124,7 +125,7 @@ namespace UnityEngine.Experimental.Rendering
 
             int probeCount = cell.probePositions.Length;
             cmd.SetComputeVectorParam(dilationShader, _DilationParameters, new Vector4(probeCount, settings.dilationValidityThreshold, settings.dilationDistance, settings.brickSize));
-
+            cmd.SetComputeVectorParam(dilationShader, _DilationParameters2, new Vector4(settings.squaredDistWeighting ? 1 : 0, 0, 0, 0));
 
             var refVolume = ProbeReferenceVolume.instance;
             ProbeReferenceVolume.RuntimeResources rr = refVolume.GetRuntimeResources();
