@@ -17,7 +17,7 @@ MonoBehaviour:
   description: A scene that works best with the Universal Render Pipeline. Contains
     a camera, a directional light, and a Global Volume with a selection of Post Processing
     effects.
-  preview: {fileID: 0}
+  preview: {fileID: 2328414455439045401}
   dependencies:
   - dependency: {fileID: 11400000, guid: 103b0616690034ca1a309e958ed431fc, type: 2}
     instantiationMode: 0
