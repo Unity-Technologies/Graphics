@@ -224,8 +224,6 @@ namespace UnityEditor.Rendering.HighDefinition
         MaterialProperty depthOffsetEnable = null;
         MaterialProperty conservativeDepthOffsetEnable = null;
 
-        MaterialProperty tessellationMode = null;
-
         MaterialProperty[] heightMap = new MaterialProperty[kMaxLayerCount];
         const string kHeightMap = "_HeightMap";
         MaterialProperty[] heightAmplitude = new MaterialProperty[kMaxLayerCount];
@@ -385,9 +383,6 @@ namespace UnityEditor.Rendering.HighDefinition
             ppdPrimitiveLength = FindProperty(kPpdPrimitiveLength);
             ppdPrimitiveWidth  = FindProperty(kPpdPrimitiveWidth);
             invPrimScale = FindProperty(kInvPrimScale);
-
-            // tessellation specific, silent if not found
-            tessellationMode = FindProperty(kTessellationMode);
 
             // Decal
             if ((m_Features & Features.ReceiveDecal) != 0)
@@ -843,7 +838,6 @@ namespace UnityEditor.Rendering.HighDefinition
             else if (displacementMode != null)
             {
                 EditorGUI.BeginChangeCheck();
-                FilterDisplacementMode();
                 materialEditor.ShaderProperty(displacementMode, Styles.displacementModeText);
                 if (EditorGUI.EndChangeCheck())
                 {
@@ -906,20 +900,6 @@ namespace UnityEditor.Rendering.HighDefinition
                     heightAmplitude[layerIndex].floatValue = amplitude * 0.01f;
                     heightCenter[layerIndex].floatValue = -heightOffset[layerIndex].floatValue / Mathf.Max(1e-6f, amplitude) + heightTessCenter[layerIndex].floatValue;
                 }
-            }
-        }
-
-        void FilterDisplacementMode()
-        {
-            if (tessellationMode == null)
-            {
-                if ((DisplacementMode)displacementMode.floatValue == DisplacementMode.Tessellation)
-                    displacementMode.floatValue = (float)DisplacementMode.None;
-            }
-            else
-            {
-                if ((DisplacementMode)displacementMode.floatValue == DisplacementMode.Pixel || (DisplacementMode)displacementMode.floatValue == DisplacementMode.Vertex)
-                    displacementMode.floatValue = (float)DisplacementMode.None;
             }
         }
     }

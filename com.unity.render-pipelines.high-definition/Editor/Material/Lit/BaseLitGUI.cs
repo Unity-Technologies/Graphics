@@ -31,6 +31,21 @@ namespace UnityEditor.Rendering.HighDefinition
 
         protected virtual void UpdateDisplacement() {}
 
+        static void FilterDisplacementMode(Material material)
+        {
+            var displacementMode = (DisplacementMode)material.GetFloat(kDisplacementMode);
+            if (material.HasProperty(kTessellationMode))
+            {
+                if (displacementMode == DisplacementMode.Pixel || displacementMode == DisplacementMode.Vertex)
+                    material.SetFloat(kDisplacementMode, (float)DisplacementMode.None);
+            }
+            else
+            {
+                if (displacementMode == DisplacementMode.Tessellation)
+                    material.SetFloat(kDisplacementMode, (float)DisplacementMode.None);
+            }
+        }
+
         // All Setup Keyword functions must be static. It allow to create script to automatically update the shaders with a script if code change
         static public void SetupBaseLitKeywords(Material material)
         {
@@ -58,10 +73,13 @@ namespace UnityEditor.Rendering.HighDefinition
 
             if (material.HasProperty(kDisplacementMode))
             {
-                bool enableDisplacement = (DisplacementMode)material.GetFloat(kDisplacementMode) != DisplacementMode.None;
-                bool enableVertexDisplacement = (DisplacementMode)material.GetFloat(kDisplacementMode) == DisplacementMode.Vertex;
-                bool enablePixelDisplacement = (DisplacementMode)material.GetFloat(kDisplacementMode) == DisplacementMode.Pixel;
-                bool enableTessellationDisplacement = ((DisplacementMode)material.GetFloat(kDisplacementMode) == DisplacementMode.Tessellation) && material.HasProperty(kTessellationMode);
+                FilterDisplacementMode(material);
+
+                var displacementMode = (DisplacementMode)material.GetFloat(kDisplacementMode);
+                bool enableDisplacement = displacementMode != DisplacementMode.None;
+                bool enableVertexDisplacement = displacementMode == DisplacementMode.Vertex;
+                bool enablePixelDisplacement = displacementMode == DisplacementMode.Pixel;
+                bool enableTessellationDisplacement = displacementMode == DisplacementMode.Tessellation;
 
                 CoreUtils.SetKeyword(material, "_VERTEX_DISPLACEMENT", enableVertexDisplacement);
                 CoreUtils.SetKeyword(material, "_PIXEL_DISPLACEMENT", enablePixelDisplacement);
