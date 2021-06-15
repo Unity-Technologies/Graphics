@@ -273,6 +273,28 @@ namespace UnityEditor.Rendering.Tests
                 .SetName("Single target material, upgraded, float property"),
             new TestCaseData(
                 new[] { ("ID1", "NewShader") },
+                "material._BaseColor.r",
+                new[] { (From: "_BaseColor", To: "_BaseColor") },
+                new[]
+                {
+                    ("OldShader", "NewShader", new[] { (From: "_Color", To: "_BaseColor", Type: (int)MaterialPropertyType.Color) })
+                }
+            )
+                .Returns(SerializedShaderPropertyUsage.UsedByUpgraded)
+                .SetName("Single target material, upgraded, color property already upgraded"),
+            new TestCaseData(
+                new[] { ("ID1", "NewShader") },
+                "material._BaseMap_ST_ST.x",
+                new[] { (From: "_BaseMap_ST_ST", To: "_BaseMap_ST_ST") },
+                new[]
+                {
+                    ("OldShader", "NewShader", new[] { (From: "_MainTex_ST", To: "_BaseMap_ST_ST", Type: (int)MaterialPropertyType.Float) })
+                }
+            )
+                .Returns(SerializedShaderPropertyUsage.UsedByUpgraded)
+                .SetName("Single target material, upgraded, float property already upgraded"),
+            new TestCaseData(
+                new[] { ("ID1", "NewShader") },
                 "material._Color.r",
                 new[] { (From: "_Color", To: "_BaseColor1") },
                 new[]
