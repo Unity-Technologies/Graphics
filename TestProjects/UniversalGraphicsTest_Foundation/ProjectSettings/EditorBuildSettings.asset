@@ -228,10 +228,10 @@ EditorBuildSettings:
     path: Assets/Scenes/205_SSAO_BackBuffer.unity
     guid: 72491ed40bf654eec9fef43f455e3916
   - enabled: 1
-    path: Assets/Scenes/206_Motion_Vectors.unity
+    path: Assets/Scenes/210_Object_Motion_Vectors.unity
     guid: aa08e99a89c77574e9a00b9888fc75ce
   - enabled: 1
-    path: Assets/Scenes/207_Camera_Motion_Vectors.unity
+    path: Assets/Scenes/211_Camera_Motion_Vectors.unity
     guid: 26800f4b3c38849428d29e93038a6084
   - enabled: 1
     path: Assets/Scenes/230_Decal_Projector.unity
