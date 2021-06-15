@@ -93,6 +93,11 @@ namespace UnityEngine.Experimental.Rendering
             public float[] validity;
         }
 
+        class CellChunkInfo
+        {
+            public List<Chunk> chunks;
+        }
+
         private class CellSortInfo : IComparable
         {
             internal string sourceAsset;
@@ -113,7 +118,7 @@ namespace UnityEngine.Experimental.Rendering
             }
         }
 
-        internal struct Volume
+        internal struct Volume : IEquatable<Volume>
         {
             internal Vector3 corner;
             internal Vector3 X;   // the vectors are NOT normalized, their length determines the size of the box
@@ -197,6 +202,16 @@ namespace UnityEngine.Experimental.Rendering
             public override string ToString()
             {
                 return $"Corner: {corner}, X: {X}, Y: {Y}, Z: {Z}, MaxSubdiv: {maxSubdivisionMultiplier}";
+            }
+
+            public bool Equals(Volume other)
+            {
+                return corner == other.corner
+                    && X == other.X
+                    && Y == other.Y
+                    && Z == other.Z
+                    && minSubdivisionMultiplier == other.minSubdivisionMultiplier
+                    && maxSubdivisionMultiplier == other.maxSubdivisionMultiplier;
             }
         }
 
@@ -282,6 +297,8 @@ namespace UnityEngine.Experimental.Rendering
         Dictionary<RegId, List<Chunk>>  m_Registry = new Dictionary<RegId, List<Chunk>>();
 
         internal Dictionary<int, Cell> cells = new Dictionary<int, Cell>();
+        Dictionary<int, CellChunkInfo> m_ChunkInfo = new Dictionary<int, CellChunkInfo>();
+
         internal ProbeVolumeSceneBounds sceneBounds;
 
 
@@ -309,7 +326,13 @@ namespace UnityEngine.Experimental.Rendering
 
         int m_CBShaderID = Shader.PropertyToID("ShaderVariablesProbeVolumes");
 
+#if UNITY_EDITOR
+        // By default on editor we load a lot of cells in one go to avoid having to mess with scene view
+        // to see results, this value can still be changed via API.
+        private int m_NumberOfCellsLoadedPerFrame = 10000;
+#else
         private int m_NumberOfCellsLoadedPerFrame = 2;
+#endif
 
         ProbeVolumeTextureMemoryBudget m_MemoryBudget;
 
@@ -381,6 +404,24 @@ namespace UnityEngine.Experimental.Rendering
             m_IsInitialized = false;
         }
 
+        void RemoveCell(int cellIndex)
+        {
+            if (cells.ContainsKey(cellIndex))
+                cells.Remove(cellIndex);
+
+            if (m_ChunkInfo.ContainsKey(cellIndex))
+                m_ChunkInfo.Remove(cellIndex);
+        }
+
+        void AddCell(Cell cell, List<Chunk> chunks)
+        {
+            cells[cell.index] = cell;
+
+            var cellChunks = new CellChunkInfo();
+            cellChunks.chunks = chunks;
+            m_ChunkInfo[cell.index] = cellChunks;
+        }
+
         internal void AddPendingAssetLoading(ProbeVolumeAsset asset)
         {
             var key = asset.GetSerializedFullPath();
@@ -430,8 +471,7 @@ namespace UnityEngine.Experimental.Rendering
             // Remove bricks and empty cells
             foreach (var cell in asset.cells)
             {
-                if (cells.ContainsKey(cell.index))
-                    cells.Remove(cell.index);
+                RemoveCell(cell.index);
             }
 
             // Unload brick data
@@ -548,9 +588,10 @@ namespace UnityEngine.Experimental.Rendering
                 // TODO register ID of brick list
                 List<ProbeBrickIndex.Brick> brickList = new List<ProbeBrickIndex.Brick>();
                 brickList.AddRange(cell.bricks);
-                var regId = AddBricks(brickList, dataLocation);
+                List<Chunk> chunkList = new List<Chunk>();
+                var regId = AddBricks(brickList, dataLocation, out chunkList);
 
-                cells[cell.index] = cell;
+                AddCell(cell, chunkList);
                 m_AssetPathToBricks[path].Add(regId);
 
                 dataLocation.Cleanup();
@@ -690,6 +731,7 @@ namespace UnityEngine.Experimental.Rendering
                 m_Pool.Clear();
                 m_Index.Clear();
                 cells.Clear();
+                m_ChunkInfo.Clear();
             }
 
             if (clearAssetsOnVolumeClear)
@@ -700,13 +742,13 @@ namespace UnityEngine.Experimental.Rendering
         }
 
         // Runtime API starts here
-        RegId AddBricks(List<Brick> bricks, ProbeBrickPool.DataLocation dataloc)
+        RegId AddBricks(List<Brick> bricks, ProbeBrickPool.DataLocation dataloc, out List<Chunk> ch_list)
         {
             Profiler.BeginSample("AddBricks");
 
             // calculate the number of chunks necessary
             int ch_size = m_Pool.GetChunkSize();
-            List<Chunk> ch_list = new List<Chunk>((bricks.Count + ch_size - 1) / ch_size);
+            ch_list = new List<Chunk>((bricks.Count + ch_size - 1) / ch_size);
             m_Pool.Allocate(ch_list.Capacity, ch_list);
 
             // copy chunks into pool

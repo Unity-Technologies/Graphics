@@ -20,6 +20,7 @@ real3 EvaluateAmbientProbe(real3 normalWS)
 
 CBUFFER_START(APVDilation)
 float4 _DilationParameters;
+float4 _DilationParameters2;
 CBUFFER_END
 
 #define _ProbeCount (uint)_DilationParameters.x
@@ -27,6 +28,7 @@ CBUFFER_END
 #define _SearchRadius _DilationParameters.z
 #define _MinBrickSize _DilationParameters.w
 
+#define _SquaredDistanceWeight (_DilationParameters2.x > 0)
 
 StructuredBuffer<float> _ValidityBuffer;
 StructuredBuffer<float3> _ProbePositionsBuffer;
@@ -122,7 +124,11 @@ void DilateCell(uint3 id : SV_DispatchThreadID)
                                     float d = distance(samplePos, centralPosition);
                                     if (d > 0 && d <= _SearchRadius)
                                     {
-                                        AddProbeSample(FillAPVResources(), sampleUVW, probe, rcp(distance(samplePos, centralPosition)), totalWeight);
+                                        if (_SquaredDistanceWeight)
+                                        {
+                                            d *= d;
+                                        }
+                                        AddProbeSample(FillAPVResources(), sampleUVW, probe, rcp(d), totalWeight);
                                     }
                                 }
                             }
