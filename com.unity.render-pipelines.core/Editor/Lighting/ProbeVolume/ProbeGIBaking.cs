@@ -25,6 +25,9 @@ namespace UnityEngine.Experimental.Rendering
         public Dictionary<int, List<Scene>> cellIndex2SceneReferences = new Dictionary<int, List<Scene>>();
         public List<BakingCell> cells = new List<BakingCell>();
         public Dictionary<Vector3, int> uniquePositions = new Dictionary<Vector3, int>();
+        // Allow to get a mapping to subdiv level with the unique positions. It stores the minimum subdiv level found for a given position.
+        // Can be probably done cleaner.
+        public Dictionary<Vector3, int> uniqueBrickSubdiv = new Dictionary<Vector3, int>();
 
         private BakingBatch() {}
 
@@ -585,7 +588,8 @@ namespace UnityEngine.Experimental.Rendering
             Clear();
         }
 
-        private static void DeduplicateProbePositions(in Vector3[] probePositions, Dictionary<Vector3, int> uniquePositions, out int[] indices)
+        private static void DeduplicateProbePositions(in Vector3[] probePositions, in int[] brickSubdivLevel, Dictionary<Vector3, int> uniquePositions,
+            Dictionary<Vector3, int> uniqueBrickSubdiv, out int[] indices)
         {
             indices = new int[probePositions.Length];
             int uniqueIndex = uniquePositions.Count;
@@ -593,15 +597,20 @@ namespace UnityEngine.Experimental.Rendering
             for (int i = 0; i < probePositions.Length; i++)
             {
                 var pos = probePositions[i];
+                var brickSubdiv = brickSubdivLevel[i];
 
                 if (uniquePositions.TryGetValue(pos, out var index))
                 {
                     indices[i] = index;
+                    int oldBrickLevel = uniqueBrickSubdiv[pos];
+                    int newBrickLevel = Math.Min(oldBrickLevel, brickSubdiv);
+                    uniqueBrickSubdiv[pos] = newBrickLevel;
                 }
                 else
                 {
                     uniquePositions[pos] = uniqueIndex;
                     indices[i] = uniqueIndex;
+                    uniqueBrickSubdiv[pos] = brickSubdiv;
                     uniqueIndex++;
                 }
             }
@@ -726,7 +735,7 @@ namespace UnityEngine.Experimental.Rendering
         }
 
         // Converts brick information into positional data at kBrickProbeCountPerDim * kBrickProbeCountPerDim * kBrickProbeCountPerDim resolution
-        internal static void ConvertBricksToPositions(List<Brick> bricks, Vector3[] outProbePositions, Matrix4x4 refToWS)
+        internal static void ConvertBricksToPositions(List<Brick> bricks, Vector3[] outProbePositions, Matrix4x4 refToWS, int[] outBrickSubdiv)
         {
             Matrix4x4 m = refToWS;
             int posIdx = 0;
@@ -759,6 +768,7 @@ namespace UnityEngine.Experimental.Rendering
                         {
                             float xoff = ProbeOffsets[x];
                             outProbePositions[posIdx] = offset + xoff * X + yoff * Y + zoff * Z;
+                            outBrickSubdiv[posIdx] = b.subdivisionLevel;
                             posIdx++;
                         }
                     }
@@ -785,10 +795,11 @@ namespace UnityEngine.Experimental.Rendering
                 {
                     // Convert bricks to positions
                     var probePositionsArr = new Vector3[bricks.Count * ProbeBrickPool.kBrickProbeCountTotal];
-                    ConvertBricksToPositions(bricks, probePositionsArr, refToWS);
+                    var brickSubdivLevels = new int[bricks.Count * ProbeBrickPool.kBrickProbeCountTotal];
+                    ConvertBricksToPositions(bricks, probePositionsArr, refToWS, brickSubdivLevels);
 
                     int[] indices = null;
-                    DeduplicateProbePositions(in probePositionsArr, m_BakingBatch.uniquePositions, out indices);
+                    DeduplicateProbePositions(in probePositionsArr, in brickSubdivLevels, m_BakingBatch.uniquePositions, m_BakingBatch.uniqueBrickSubdiv, out indices);
 
                     cell.probePositions = probePositionsArr;
                     cell.bricks = bricks;
@@ -811,7 +822,10 @@ namespace UnityEngine.Experimental.Rendering
                 {
                     Debug.Log("BREAK HERE");
                 }
-                positions[i] = PushPositionOutOfGeometry(positions[i], 0.9f);
+                int subdivLevel = 0;
+                m_BakingBatch.uniqueBrickSubdiv.TryGetValue(positions[i], out subdivLevel);
+                // float searchDistance = ProbeReferenceVolume.ce
+                //positions[i] = PushPositionOutOfGeometry(positions[i], 0.9f);
             }
 
             UnityEditor.Experimental.Lightmapping.SetAdditionalBakedProbes(m_BakingBatch.index, positions);
