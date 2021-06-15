@@ -31,19 +31,44 @@ namespace UnityEditor.Rendering.HighDefinition
 
         protected virtual void UpdateDisplacement() {}
 
-        static void FilterDisplacementMode(Material material)
+        static DisplacementMode GetFilteredDisplacementMode(Material material)
         {
-            var displacementMode = (DisplacementMode)material.GetFloat(kDisplacementMode);
+            return GetFilteredDisplacementMode(material, (DisplacementMode)material.GetFloat(kDisplacementMode));
+        }
+
+        public static DisplacementMode GetFilteredDisplacementMode(MaterialProperty displacementMode)
+        {
+            var material = displacementMode.targets[0] as Material;
+            return GetFilteredDisplacementMode(material, (DisplacementMode)displacementMode.floatValue);
+        }
+
+        static DisplacementMode GetFilteredDisplacementMode(Material material, DisplacementMode displacementMode)
+        {
             if (material.HasProperty(kTessellationMode))
             {
                 if (displacementMode == DisplacementMode.Pixel || displacementMode == DisplacementMode.Vertex)
-                    material.SetFloat(kDisplacementMode, (float)DisplacementMode.None);
+                    return DisplacementMode.None;
             }
             else
             {
                 if (displacementMode == DisplacementMode.Tessellation)
-                    material.SetFloat(kDisplacementMode, (float)DisplacementMode.None);
+                    return DisplacementMode.None;
             }
+            return displacementMode;
+        }
+
+        public static bool HasMixedDisplacementMode(MaterialProperty displacementMode)
+        {
+            Material mat0 = displacementMode.targets[0] as Material;
+            var mode = GetFilteredDisplacementMode(mat0, (DisplacementMode)displacementMode.floatValue);
+            for (int i = 1; i < displacementMode.targets.Length; i++)
+            {
+                Material mat = displacementMode.targets[i] as Material;
+                var currentMode = (DisplacementMode)mat.GetFloat(displacementMode.name);
+                if (GetFilteredDisplacementMode(mat, currentMode) != mode)
+                    return true;
+            }
+            return false;
         }
 
         // All Setup Keyword functions must be static. It allow to create script to automatically update the shaders with a script if code change
@@ -73,9 +98,8 @@ namespace UnityEditor.Rendering.HighDefinition
 
             if (material.HasProperty(kDisplacementMode))
             {
-                FilterDisplacementMode(material);
+                var displacementMode = GetFilteredDisplacementMode(material);
 
-                var displacementMode = (DisplacementMode)material.GetFloat(kDisplacementMode);
                 bool enableDisplacement = displacementMode != DisplacementMode.None;
                 bool enableVertexDisplacement = displacementMode == DisplacementMode.Vertex;
                 bool enablePixelDisplacement = displacementMode == DisplacementMode.Pixel;

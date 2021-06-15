@@ -307,7 +307,7 @@ Shader "HDRP/LayeredLit"
         [Enum(Subsurface Scattering, 0, Standard, 1, Translucent, 5)] _MaterialID("MaterialId", Int) = 1 // MaterialId.Standard
         [ToggleUI] _TransmissionEnable("_TransmissionEnable", Float) = 1.0
 
-        [Enum(None, 0, Vertex displacement, 1, Pixel displacement, 2)] _DisplacementMode("DisplacementMode", Int) = 0
+        _DisplacementMode("DisplacementMode", Int) = 0
         [ToggleUI] _DisplacementLockObjectScale("displacement lock object scale", Float) = 1.0
         [ToggleUI] _DisplacementLockTilingScale("displacement lock tiling scale", Float) = 1.0
         [ToggleUI] _DepthOffsetEnable("Depth Offset View space", Float) = 0.0
