@@ -355,15 +355,6 @@ namespace UnityEngine.Experimental.Rendering
             cellVolume.CalculateCenterAndSize(out var center, out var _);
             var cmd = CommandBufferPool.Get($"Subdivide (Sub)Cell {center}");
 
-#if UNITY_EDITOR
-            // Avoid making the editor unresponsive during realtime subdiv debug (without any way of going back)
-            if (ProbeReferenceVolume.instance.debugDisplay.realtimeSubdivision)
-            {
-                if (Time.realtimeSinceStartup - subdivisionCtx.subdivisionStartTime > ProbeReferenceVolume.instance.debugDisplay.realtimeSubdivisionBudget / 1000.0f)
-                    return;
-            }
-#endif
-
             if (RastersizeGeometry(cmd, cellVolume, ctx, renderers, terrains))
             {
                 // Only generate the distance field if there was an object rasterized

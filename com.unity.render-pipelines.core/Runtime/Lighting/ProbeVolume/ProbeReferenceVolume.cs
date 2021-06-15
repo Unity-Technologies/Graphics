@@ -118,7 +118,7 @@ namespace UnityEngine.Experimental.Rendering
             }
         }
 
-        internal struct Volume
+        internal struct Volume : IEquatable<Volume>
         {
             internal Vector3 corner;
             internal Vector3 X;   // the vectors are NOT normalized, their length determines the size of the box
@@ -202,6 +202,16 @@ namespace UnityEngine.Experimental.Rendering
             public override string ToString()
             {
                 return $"Corner: {corner}, X: {X}, Y: {Y}, Z: {Z}, MaxSubdiv: {maxSubdivisionMultiplier}";
+            }
+
+            public bool Equals(Volume other)
+            {
+                return corner == other.corner
+                    && X == other.X
+                    && Y == other.Y
+                    && Z == other.Z
+                    && minSubdivisionMultiplier == other.minSubdivisionMultiplier
+                    && maxSubdivisionMultiplier == other.maxSubdivisionMultiplier;
             }
         }
 

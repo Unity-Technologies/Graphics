@@ -660,10 +660,6 @@ namespace UnityEngine.Experimental.Rendering
             if (ctx.probeVolumes.Count == 0)
                 return result;
 
-            bool realtimeSubdivision = ProbeReferenceVolume.instance.debugDisplay.realtimeSubdivision;
-            if (realtimeSubdivision)
-                ctx.refVolume.realtimeSubdivisionInfo.Clear();
-
             using (var gpuResources = ProbePlacement.AllocateGPUResources(ctx.probeVolumes.Count, ctx.refVolume.profile.maxSubdivision))
             {
                 // subdivide all the cells and generate brick positions
@@ -719,10 +715,6 @@ namespace UnityEngine.Experimental.Rendering
                     result.cellPositions.Add(cell.position);
                     result.bricksPerCells[cell.position] = bricks;
                     result.sortedRefs = sortedRefs;
-
-                    // If realtime subdivision is enabled, we save a copy of the data inside the authoring component for the debug view
-                    if (realtimeSubdivision)
-                        ctx.refVolume.realtimeSubdivisionInfo[cell.volume] = bricks;
                 }
             }
 
