@@ -7,51 +7,52 @@
 ---
 
 all_project_ci_2019.4:
-    name: _ABV for SRP repository (all PR jobs) - 2019.4
+    name: ABV (all PR jobs) on 2019.4
+    variables:
+        UTR_VERSION: "current"
+        TEST_FILTER: .*
     dependencies:
+      -  path: .yamato/all-hdrp.yml#PR_HDRP_2019.4
+         rerun: on_new_revision
+      -  path: .yamato/all-vfx.yml#PR_VFX_2019.4
+         rerun: on_new_revision
       -  path: .yamato/all-universal.yml#PR_Universal_2019.4
          rerun: on_new_revision
       -  path: .yamato/all-shadergraph.yml#PR_ShaderGraph_2019.4
          rerun: on_new_revision
-      -  path: .yamato/all-hdrp.yml#PR_HDRP_2019.4
-         rerun: on_new_revision
-      -  path: .yamato/all-vfx_hdrp.yml#PR_VFX_HDRP_2019.4
-         rerun: on_new_revision
-      -  path: .yamato/all-vfx_urp.yml#PR_VFX_URP_2019.4
-         rerun: on_new_revision
-      -  path: .yamato/_projectcontext.yml#all_package_ci_project_2019.4
+      -  path: .yamato/_abv.yml#General_Checks_2019.4
          rerun: on_new_revision
 all_project_ci_weekly_2019.4:
-    name: _Weekly ABV against 2019.4
+    name: Weekly on 2019.4
+    variables:
+        UTR_VERSION: "current"
+        TEST_FILTER: .*
     dependencies:
-      -  path: .yamato/all-universal.yml#PR_Universal_2019.4
+      -  path: .yamato/all-hdrp.yml#Nightly_HDRP_2019.4
          rerun: on_new_revision
-      -  path: .yamato/all-shadergraph.yml#PR_ShaderGraph_2019.4
+      -  path: .yamato/all-vfx.yml#Nightly_VFX_2019.4
          rerun: on_new_revision
-      -  path: .yamato/all-hdrp.yml#PR_HDRP_2019.4
+      -  path: .yamato/all-universal.yml#Nightly_Universal_2019.4
          rerun: on_new_revision
-      -  path: .yamato/all-vfx_hdrp.yml#PR_VFX_HDRP_2019.4
+      -  path: .yamato/all-shadergraph.yml#Nightly_ShaderGraph_2019.4
          rerun: on_new_revision
-      -  path: .yamato/all-vfx_urp.yml#PR_VFX_URP_2019.4
+      -  path: .yamato/_abv.yml#General_Checks_2019.4
          rerun: on_new_revision
-      -  path: .yamato/smoke_test-win-dx11.yml#Smoke_Test_Win_DX11_playmode_mono_Linear_2019.4
+General_Checks_2019.4:
+    name: General Checks on 2019.4
+    variables:
+        UTR_VERSION: "current"
+        TEST_FILTER: .*
+    dependencies:
+      -  path: .yamato/_projectcontext.yml#all_package_ci_project_2019.4
          rerun: on_new_revision
-      -  path: .yamato/smoke_test-win-dx11.yml#Smoke_Test_Win_DX11_editmode_mono_Linear_2019.4
+      -  path: .yamato/all-smoke_test.yml#Smoke_Test_2019.4
          rerun: on_new_revision
-      -  path: .yamato/smoke_test-win-dx11.yml#Smoke_Test_Win_DX11_Standalone_mono_Linear_2019.4
-         rerun: on_new_revision
-      -  path: .yamato/universal-android-opengles3.yml#Universal_Android_OpenGLES3_Standalone_il2cpp_Linear_2019.4
-         rerun: on_new_revision
-      -  path: .yamato/universal-android-vulkan.yml#Universal_Android_Vulkan_Standalone_il2cpp_Linear_2019.4
-         rerun: on_new_revision
-      -  path: .yamato/universal-iphone-metal.yml#Universal_iPhone_Metal_Standalone_il2cpp_Linear_2019.4
-         rerun: on_new_revision
-    triggers:
-        recurring:
-          -  branch: 7.x.x/release
-             frequency: weekly
-trunk_verification_2019.4:
-    name: Trunk verification - 2019.4
+Trunk_verification_2019.4:
+    name: Trunk verification on 2019.4
+    variables:
+        UTR_VERSION: "current"
+        TEST_FILTER: .*
     dependencies:
       -  path: .yamato/universal-win-dx11.yml#Universal_Win_DX11_playmode_mono_Linear_2019.4
          rerun: on_new_revision
@@ -72,47 +73,52 @@ trunk_verification_2019.4:
       -  path: .yamato/vfx_urp-win-dx11.yml#VFX_URP_Win_DX11_playmode_mono_Linear_2019.4
          rerun: on_new_revision
 all_project_ci_fast-2019.4:
-    name: _ABV for SRP repository (all PR jobs) - fast-2019.4
+    name: ABV (all PR jobs) on fast-2019.4
+    variables:
+        UTR_VERSION: "current"
+        TEST_FILTER: .*
     dependencies:
+      -  path: .yamato/all-hdrp.yml#PR_HDRP_fast-2019.4
+         rerun: on_new_revision
+      -  path: .yamato/all-vfx.yml#PR_VFX_fast-2019.4
+         rerun: on_new_revision
       -  path: .yamato/all-universal.yml#PR_Universal_fast-2019.4
          rerun: on_new_revision
       -  path: .yamato/all-shadergraph.yml#PR_ShaderGraph_fast-2019.4
          rerun: on_new_revision
-      -  path: .yamato/all-hdrp.yml#PR_HDRP_fast-2019.4
-         rerun: on_new_revision
-      -  path: .yamato/all-vfx_hdrp.yml#PR_VFX_HDRP_fast-2019.4
-         rerun: on_new_revision
-      -  path: .yamato/all-vfx_urp.yml#PR_VFX_URP_fast-2019.4
-         rerun: on_new_revision
-      -  path: .yamato/_projectcontext.yml#all_package_ci_project_fast-2019.4
+      -  path: .yamato/_abv.yml#General_Checks_fast-2019.4
          rerun: on_new_revision
 all_project_ci_weekly_fast-2019.4:
-    name: _Weekly ABV against fast-2019.4
+    name: Weekly on fast-2019.4
+    variables:
+        UTR_VERSION: "current"
+        TEST_FILTER: .*
     dependencies:
-      -  path: .yamato/all-universal.yml#PR_Universal_fast-2019.4
+      -  path: .yamato/all-hdrp.yml#Nightly_HDRP_fast-2019.4
          rerun: on_new_revision
-      -  path: .yamato/all-shadergraph.yml#PR_ShaderGraph_fast-2019.4
+      -  path: .yamato/all-vfx.yml#Nightly_VFX_fast-2019.4
          rerun: on_new_revision
-      -  path: .yamato/all-hdrp.yml#PR_HDRP_fast-2019.4
+      -  path: .yamato/all-universal.yml#Nightly_Universal_fast-2019.4
          rerun: on_new_revision
-      -  path: .yamato/all-vfx_hdrp.yml#PR_VFX_HDRP_fast-2019.4
+      -  path: .yamato/all-shadergraph.yml#Nightly_ShaderGraph_fast-2019.4
          rerun: on_new_revision
-      -  path: .yamato/all-vfx_urp.yml#PR_VFX_URP_fast-2019.4
+      -  path: .yamato/_abv.yml#General_Checks_fast-2019.4
          rerun: on_new_revision
-      -  path: .yamato/smoke_test-win-dx11.yml#Smoke_Test_Win_DX11_playmode_mono_Linear_fast-2019.4
+General_Checks_fast-2019.4:
+    name: General Checks on fast-2019.4
+    variables:
+        UTR_VERSION: "current"
+        TEST_FILTER: .*
+    dependencies:
+      -  path: .yamato/_projectcontext.yml#all_package_ci_project_fast-2019.4
          rerun: on_new_revision
-      -  path: .yamato/smoke_test-win-dx11.yml#Smoke_Test_Win_DX11_editmode_mono_Linear_fast-2019.4
+      -  path: .yamato/all-smoke_test.yml#Smoke_Test_fast-2019.4
          rerun: on_new_revision
-      -  path: .yamato/smoke_test-win-dx11.yml#Smoke_Test_Win_DX11_Standalone_mono_Linear_fast-2019.4
-         rerun: on_new_revision
-      -  path: .yamato/universal-android-opengles3.yml#Universal_Android_OpenGLES3_Standalone_il2cpp_Linear_fast-2019.4
-         rerun: on_new_revision
-      -  path: .yamato/universal-android-vulkan.yml#Universal_Android_Vulkan_Standalone_il2cpp_Linear_fast-2019.4
-         rerun: on_new_revision
-      -  path: .yamato/universal-iphone-metal.yml#Universal_iPhone_Metal_Standalone_il2cpp_Linear_fast-2019.4
-         rerun: on_new_revision
-trunk_verification_fast-2019.4:
-    name: Trunk verification - fast-2019.4
+Trunk_verification_fast-2019.4:
+    name: Trunk verification on fast-2019.4
+    variables:
+        UTR_VERSION: "current"
+        TEST_FILTER: .*
     dependencies:
       -  path: .yamato/universal-win-dx11.yml#Universal_Win_DX11_playmode_mono_Linear_fast-2019.4
          rerun: on_new_revision
@@ -133,51 +139,56 @@ trunk_verification_fast-2019.4:
       -  path: .yamato/vfx_urp-win-dx11.yml#VFX_URP_Win_DX11_playmode_mono_Linear_fast-2019.4
          rerun: on_new_revision
 all_project_ci_CUSTOM-REVISION:
-    name: _ABV for SRP repository (all PR jobs) - CUSTOM-REVISION
+    name: ABV (all PR jobs) on CUSTOM-REVISION
+    variables:
+        CUSTOM_REVISION: custom_revision_not_set
+        UTR_VERSION: "current"
+        TEST_FILTER: .*
     dependencies:
+      -  path: .yamato/all-hdrp.yml#PR_HDRP_CUSTOM-REVISION
+         rerun: on_new_revision
+      -  path: .yamato/all-vfx.yml#PR_VFX_CUSTOM-REVISION
+         rerun: on_new_revision
       -  path: .yamato/all-universal.yml#PR_Universal_CUSTOM-REVISION
          rerun: on_new_revision
       -  path: .yamato/all-shadergraph.yml#PR_ShaderGraph_CUSTOM-REVISION
          rerun: on_new_revision
-      -  path: .yamato/all-hdrp.yml#PR_HDRP_CUSTOM-REVISION
+      -  path: .yamato/_abv.yml#General_Checks_CUSTOM-REVISION
          rerun: on_new_revision
-      -  path: .yamato/all-vfx_hdrp.yml#PR_VFX_HDRP_CUSTOM-REVISION
+all_project_ci_weekly_CUSTOM-REVISION:
+    name: Weekly on CUSTOM-REVISION
+    variables:
+        CUSTOM_REVISION: custom_revision_not_set
+        UTR_VERSION: "current"
+        TEST_FILTER: .*
+    dependencies:
+      -  path: .yamato/all-hdrp.yml#Nightly_HDRP_CUSTOM-REVISION
          rerun: on_new_revision
-      -  path: .yamato/all-vfx_urp.yml#PR_VFX_URP_CUSTOM-REVISION
+      -  path: .yamato/all-vfx.yml#Nightly_VFX_CUSTOM-REVISION
          rerun: on_new_revision
+      -  path: .yamato/all-universal.yml#Nightly_Universal_CUSTOM-REVISION
+         rerun: on_new_revision
+      -  path: .yamato/all-shadergraph.yml#Nightly_ShaderGraph_CUSTOM-REVISION
+         rerun: on_new_revision
+      -  path: .yamato/_abv.yml#General_Checks_CUSTOM-REVISION
+         rerun: on_new_revision
+General_Checks_CUSTOM-REVISION:
+    name: General Checks on CUSTOM-REVISION
+    variables:
+        CUSTOM_REVISION: custom_revision_not_set
+        UTR_VERSION: "current"
+        TEST_FILTER: .*
+    dependencies:
       -  path: .yamato/_projectcontext.yml#all_package_ci_project_CUSTOM-REVISION
          rerun: on_new_revision
+      -  path: .yamato/all-smoke_test.yml#Smoke_Test_CUSTOM-REVISION
+         rerun: on_new_revision
+Trunk_verification_CUSTOM-REVISION:
+    name: Trunk verification on CUSTOM-REVISION
     variables:
         CUSTOM_REVISION: custom_revision_not_set
-all_project_ci_weekly_CUSTOM-REVISION:
-    name: _Weekly ABV against CUSTOM-REVISION
-    dependencies:
-      -  path: .yamato/all-universal.yml#PR_Universal_CUSTOM-REVISION
-         rerun: on_new_revision
-      -  path: .yamato/all-shadergraph.yml#PR_ShaderGraph_CUSTOM-REVISION
-         rerun: on_new_revision
-      -  path: .yamato/all-hdrp.yml#PR_HDRP_CUSTOM-REVISION
-         rerun: on_new_revision
-      -  path: .yamato/all-vfx_hdrp.yml#PR_VFX_HDRP_CUSTOM-REVISION
-         rerun: on_new_revision
-      -  path: .yamato/all-vfx_urp.yml#PR_VFX_URP_CUSTOM-REVISION
-         rerun: on_new_revision
-      -  path: .yamato/smoke_test-win-dx11.yml#Smoke_Test_Win_DX11_playmode_mono_Linear_CUSTOM-REVISION
-         rerun: on_new_revision
-      -  path: .yamato/smoke_test-win-dx11.yml#Smoke_Test_Win_DX11_editmode_mono_Linear_CUSTOM-REVISION
-         rerun: on_new_revision
-      -  path: .yamato/smoke_test-win-dx11.yml#Smoke_Test_Win_DX11_Standalone_mono_Linear_CUSTOM-REVISION
-         rerun: on_new_revision
-      -  path: .yamato/universal-android-opengles3.yml#Universal_Android_OpenGLES3_Standalone_il2cpp_Linear_CUSTOM-REVISION
-         rerun: on_new_revision
-      -  path: .yamato/universal-android-vulkan.yml#Universal_Android_Vulkan_Standalone_il2cpp_Linear_CUSTOM-REVISION
-         rerun: on_new_revision
-      -  path: .yamato/universal-iphone-metal.yml#Universal_iPhone_Metal_Standalone_il2cpp_Linear_CUSTOM-REVISION
-         rerun: on_new_revision
-    variables:
-        CUSTOM_REVISION: custom_revision_not_set
-trunk_verification_CUSTOM-REVISION:
-    name: Trunk verification - CUSTOM-REVISION
+        UTR_VERSION: "current"
+        TEST_FILTER: .*
     dependencies:
       -  path: .yamato/universal-win-dx11.yml#Universal_Win_DX11_playmode_mono_Linear_CUSTOM-REVISION
          rerun: on_new_revision
@@ -197,5 +208,3 @@ trunk_verification_CUSTOM-REVISION:
          rerun: on_new_revision
       -  path: .yamato/vfx_urp-win-dx11.yml#VFX_URP_Win_DX11_playmode_mono_Linear_CUSTOM-REVISION
          rerun: on_new_revision
-    variables:
-        CUSTOM_REVISION: custom_revision_not_set

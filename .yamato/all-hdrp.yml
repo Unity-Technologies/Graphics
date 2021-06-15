@@ -7,7 +7,10 @@
 ---
 
 PR_HDRP_2019.4:
-    name: HDRP PR Job - 2019.4
+    name: PR HDRP on 2019.4
+    variables:
+        UTR_VERSION: "current"
+        TEST_FILTER: .*
     dependencies:
       -  path: .yamato/hdrp-win-dx11.yml#HDRP_Win_DX11_editmode_mono_Linear_2019.4
          rerun: on_new_revision
@@ -21,11 +24,37 @@ PR_HDRP_2019.4:
          rerun: on_new_revision
       -  path: .yamato/hdrp-win-vulkan.yml#HDRP_Win_Vulkan_Standalone_mono_Linear_2019.4
          rerun: on_new_revision
+Extra_HDRP_2019.4:
+    name: Extra HDRP on 2019.4
     variables:
         UTR_VERSION: "current"
         TEST_FILTER: .*
+    dependencies: []
+HDRP_2019.4:
+    name: HDRP on 2019.4
+    variables:
+        UTR_VERSION: "current"
+        TEST_FILTER: .*
+    dependencies:
+      -  path: .yamato/all-hdrp.yml#PR_HDRP_2019.4
+         rerun: on_new_revision
+      -  path: .yamato/all-hdrp.yml#Extra_HDRP_2019.4
+         rerun: on_new_revision
+Nightly_HDRP_2019.4:
+    name: Nightly HDRP on 2019.4
+    variables:
+        UTR_VERSION: "current"
+        TEST_FILTER: .*
+    dependencies:
+      -  path: .yamato/all-hdrp_dxr.yml#HDRP_DXR_2019.4
+         rerun: on_new_revision
+      -  path: .yamato/all-hdrp.yml#HDRP_2019.4
+         rerun: on_new_revision
 PR_HDRP_fast-2019.4:
-    name: HDRP PR Job - fast-2019.4
+    name: PR HDRP on fast-2019.4
+    variables:
+        UTR_VERSION: "current"
+        TEST_FILTER: .*
     dependencies:
       -  path: .yamato/hdrp-win-dx11.yml#HDRP_Win_DX11_editmode_mono_Linear_fast-2019.4
          rerun: on_new_revision
@@ -39,11 +68,38 @@ PR_HDRP_fast-2019.4:
          rerun: on_new_revision
       -  path: .yamato/hdrp-win-vulkan.yml#HDRP_Win_Vulkan_Standalone_mono_Linear_fast-2019.4
          rerun: on_new_revision
+Extra_HDRP_fast-2019.4:
+    name: Extra HDRP on fast-2019.4
     variables:
         UTR_VERSION: "current"
         TEST_FILTER: .*
+    dependencies: []
+HDRP_fast-2019.4:
+    name: HDRP on fast-2019.4
+    variables:
+        UTR_VERSION: "current"
+        TEST_FILTER: .*
+    dependencies:
+      -  path: .yamato/all-hdrp.yml#PR_HDRP_fast-2019.4
+         rerun: on_new_revision
+      -  path: .yamato/all-hdrp.yml#Extra_HDRP_fast-2019.4
+         rerun: on_new_revision
+Nightly_HDRP_fast-2019.4:
+    name: Nightly HDRP on fast-2019.4
+    variables:
+        UTR_VERSION: "current"
+        TEST_FILTER: .*
+    dependencies:
+      -  path: .yamato/all-hdrp_dxr.yml#HDRP_DXR_fast-2019.4
+         rerun: on_new_revision
+      -  path: .yamato/all-hdrp.yml#HDRP_fast-2019.4
+         rerun: on_new_revision
 PR_HDRP_CUSTOM-REVISION:
-    name: HDRP PR Job - CUSTOM-REVISION
+    name: PR HDRP on CUSTOM-REVISION
+    variables:
+        CUSTOM_REVISION: custom_revision_not_set
+        UTR_VERSION: "current"
+        TEST_FILTER: .*
     dependencies:
       -  path: .yamato/hdrp-win-dx11.yml#HDRP_Win_DX11_editmode_mono_Linear_CUSTOM-REVISION
          rerun: on_new_revision
@@ -57,7 +113,32 @@ PR_HDRP_CUSTOM-REVISION:
          rerun: on_new_revision
       -  path: .yamato/hdrp-win-vulkan.yml#HDRP_Win_Vulkan_Standalone_mono_Linear_CUSTOM-REVISION
          rerun: on_new_revision
+Extra_HDRP_CUSTOM-REVISION:
+    name: Extra HDRP on CUSTOM-REVISION
     variables:
         CUSTOM_REVISION: custom_revision_not_set
         UTR_VERSION: "current"
         TEST_FILTER: .*
+    dependencies: []
+HDRP_CUSTOM-REVISION:
+    name: HDRP on CUSTOM-REVISION
+    variables:
+        CUSTOM_REVISION: custom_revision_not_set
+        UTR_VERSION: "current"
+        TEST_FILTER: .*
+    dependencies:
+      -  path: .yamato/all-hdrp.yml#PR_HDRP_CUSTOM-REVISION
+         rerun: on_new_revision
+      -  path: .yamato/all-hdrp.yml#Extra_HDRP_CUSTOM-REVISION
+         rerun: on_new_revision
+Nightly_HDRP_CUSTOM-REVISION:
+    name: Nightly HDRP on CUSTOM-REVISION
+    variables:
+        CUSTOM_REVISION: custom_revision_not_set
+        UTR_VERSION: "current"
+        TEST_FILTER: .*
+    dependencies:
+      -  path: .yamato/all-hdrp_dxr.yml#HDRP_DXR_CUSTOM-REVISION
+         rerun: on_new_revision
+      -  path: .yamato/all-hdrp.yml#HDRP_CUSTOM-REVISION
+         rerun: on_new_revision
