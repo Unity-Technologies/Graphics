@@ -36,7 +36,7 @@ all_project_ci_nightly_2021.1:
         CACHE_ARGS: '{{cache.flags}}'
     triggers:
         recurring:
-          -  branch: master
+          -  branch: 2021.1/staging
              frequency: 1 * * ?
 
     dependencies:
