@@ -59,6 +59,7 @@ jobs:
         color_space: Linear
         test_platforms:
             - editmode
+      - .yamato/_abv.yml#General_Checks_<TRACK>
   - name: Extra <PROJECT_NAME>
     dependencies:
         []

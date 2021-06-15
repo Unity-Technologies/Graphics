@@ -24,6 +24,12 @@ PR_HDRP_2019.4:
          rerun: on_new_revision
       -  path: .yamato/hdrp-win-vulkan.yml#HDRP_Win_Vulkan_Standalone_mono_Linear_2019.4
          rerun: on_new_revision
+      -  path: .yamato/_abv.yml#General_Checks_2019.4
+         rerun: on_new_revision
+      -  path: .yamato/all-hdrp_dxr.yml#PR_HDRP_DXR_2019.4
+         rerun: on_new_revision
+      -  path: .yamato/all-vfx_hdrp.yml#PR_VFX_HDRP_2019.4
+         rerun: on_new_revision
 Extra_HDRP_2019.4:
     name: Extra HDRP on 2019.4
     variables:
@@ -67,6 +73,12 @@ PR_HDRP_fast-2019.4:
       -  path: .yamato/hdrp-win-dx12.yml#HDRP_Win_DX12_Standalone_mono_Linear_fast-2019.4
          rerun: on_new_revision
       -  path: .yamato/hdrp-win-vulkan.yml#HDRP_Win_Vulkan_Standalone_mono_Linear_fast-2019.4
+         rerun: on_new_revision
+      -  path: .yamato/_abv.yml#General_Checks_fast-2019.4
+         rerun: on_new_revision
+      -  path: .yamato/all-hdrp_dxr.yml#PR_HDRP_DXR_fast-2019.4
+         rerun: on_new_revision
+      -  path: .yamato/all-vfx_hdrp.yml#PR_VFX_HDRP_fast-2019.4
          rerun: on_new_revision
 Extra_HDRP_fast-2019.4:
     name: Extra HDRP on fast-2019.4
@@ -112,6 +124,12 @@ PR_HDRP_CUSTOM-REVISION:
       -  path: .yamato/hdrp-win-dx12.yml#HDRP_Win_DX12_Standalone_mono_Linear_CUSTOM-REVISION
          rerun: on_new_revision
       -  path: .yamato/hdrp-win-vulkan.yml#HDRP_Win_Vulkan_Standalone_mono_Linear_CUSTOM-REVISION
+         rerun: on_new_revision
+      -  path: .yamato/_abv.yml#General_Checks_CUSTOM-REVISION
+         rerun: on_new_revision
+      -  path: .yamato/all-hdrp_dxr.yml#PR_HDRP_DXR_CUSTOM-REVISION
+         rerun: on_new_revision
+      -  path: .yamato/all-vfx_hdrp.yml#PR_VFX_HDRP_CUSTOM-REVISION
          rerun: on_new_revision
 Extra_HDRP_CUSTOM-REVISION:
     name: Extra HDRP on CUSTOM-REVISION

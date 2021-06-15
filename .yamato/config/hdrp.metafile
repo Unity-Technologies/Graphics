@@ -103,6 +103,9 @@ jobs:
         #  test_platforms:
         #    - editmode
         #    # - playmode
+      - .yamato/_abv.yml#General_Checks_<TRACK>
+      - .yamato/all-hdrp_dxr.yml#PR_HDRP_DXR_<TRACK>
+      - .yamato/all-vfx_hdrp.yml#PR_VFX_HDRP_<TRACK>
   - name: Extra <PROJECT_NAME>
     dependencies:
         []

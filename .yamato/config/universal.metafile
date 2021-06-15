@@ -49,8 +49,6 @@ test_platforms:
         flags:
           - [all]: --extra-editor-arg="-xr-tests"
 
-expression_trigger:
-  expression: ""
 platforms:
   - name: Win
     apis:
@@ -145,7 +143,3 @@ jobs:
     dependencies:
       - <PROJECT_ALL_YML_FILE>#PR_<PROJECT_NAME>_<TRACK>
       - <PROJECT_ALL_YML_FILE>#Extra_<PROJECT_NAME>_<TRACK>
-  - name: Nightly <PROJECT_NAME>
-    dependencies:
-      - <PROJECT_ALL_YML_FILE>#<PROJECT_NAME>_<TRACK>
-      - .yamato/all-universal_stereo.yml#Universal_Stereo_<TRACK>
