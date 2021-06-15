@@ -1,0 +1,13 @@
+<ui:UXML xmlns:ui="UnityEngine.UIElements" xmlns:uie="UnityEditor.UIElements" xsi="http://www.w3.org/2001/XMLSchema-instance" engine="UnityEngine.UIElements" editor="UnityEditor.UIElements" noNamespaceSchemaLocation="../../UIElementsSchema/UIElements.xsd" editor-extension-mode="False">
+        <ui:TwoPaneSplitView height="20">
+            <ui:VisualElement name="LayerListContainer">
+                <ui:VisualElement class="LayerBatch Header">
+                    <ui:Label class="BatchIndexColumn" text="Batch ID"/>
+                    <ui:VisualElement class="BatchColor"/>
+                    <ui:Label class="BatchNameColumn" text="Layer Names"/>
+                </ui:VisualElement>
+                <ui:ListView name="LayerList"/>
+            </ui:VisualElement>
+            <ui:ScrollView name="InfoPanel"/>
+        </ui:TwoPaneSplitView>
+</ui:UXML>

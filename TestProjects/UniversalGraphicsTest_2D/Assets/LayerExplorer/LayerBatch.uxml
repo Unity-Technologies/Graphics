@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="utf-8"?>
+
+<ui:UXML
+    xmlns:ui="UnityEngine.UIElements"
+    xmlns:uie="UnityEditor.UIElements"
+    xsi="http://www.w3.org/2001/XMLSchema-instance"
+    engine="UnityEngine.UIElements"
+    editor="UnityEditor.UIElements"
+    noNamespaceSchemaLocation="../../UIElementsSchema/UIElements.xsd"
+    editor-extension-mode="False">
+
+    <ui:VisualElement class="LayerBatch">
+        <ui:Label name="BatchIndex" class="BatchIndexColumn Index"/>
+        <ui:VisualElement name="BatchColor" class="BatchColor"/>
+        <ui:ListView name="LayerNames" class="BatchNameColumn LayerName"/>
+    </ui:VisualElement>
+
+</ui:UXML>

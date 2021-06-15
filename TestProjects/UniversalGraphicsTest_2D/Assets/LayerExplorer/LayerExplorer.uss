@@ -1,0 +1,34 @@
+.LayerBatch {
+    flex-direction: row;
+    flex-shrink: 0;
+}
+
+.LayerBatch.Header {
+    background-color: darkmagenta;
+}
+
+.BatchIndexColumn {
+    width: 60px;
+}
+
+.BatchIndexColumn.Index {
+    border-left-width: 10px;
+}
+
+.BatchNameColumn {
+    border-left-width: 10px;
+}
+
+.BatchNameColumn.LayerName {
+    flex-grow: 1;
+}
+
+.BatchColor {
+    width: 10px;
+}
+
+#LayerList {
+    flex-grow: 1;
+    flex-shrink: 0;
+}
+
