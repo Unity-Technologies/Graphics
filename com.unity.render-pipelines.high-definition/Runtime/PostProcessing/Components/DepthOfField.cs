@@ -276,7 +276,7 @@ namespace UnityEngine.Rendering.HighDefinition
         }
 
         /// <summary>
-        /// When enabled, HDRP will compute the the depth of field effect in the same way as older HDRP versions. Use this option only for compatibility purposes.
+        /// When enabled, HDRP will compute the the depth of field effect at half or quarter resolutions in the same way as older HDRP versions. Use this option only for compatibility purposes.
         /// </summary>
         public bool compatibilityMode
         {
@@ -334,7 +334,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
         [AdditionalProperty]
         [SerializeField]
-        [Tooltip("When enabled, HDRP will compute the the depth of field effect in the same way as older HDRP versions. Use this option only for compatibility purposes.")]
+        [Tooltip("When enabled, HDRP will compute the the depth of field effect at half or quarter resolutions in the same way as older HDRP versions.")]
         BoolParameter m_CompatibilityMode = new BoolParameter(false);
 
         /// <summary>
