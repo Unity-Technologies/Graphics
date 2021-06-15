@@ -238,9 +238,8 @@ Shader "HDRP/Lit"
     #pragma shader_feature_local_raytracing _ _REFRACTION_PLANE _REFRACTION_SPHERE _REFRACTION_THIN
 
     #pragma shader_feature_local_fragment _ _EMISSIVE_MAPPING_PLANAR _EMISSIVE_MAPPING_TRIPLANAR _EMISSIVE_MAPPING_BASE
-    #pragma shader_feature_local_fragment _ _MAPPING_PLANAR _MAPPING_TRIPLANAR
+    #pragma shader_feature_local _ _MAPPING_PLANAR _MAPPING_TRIPLANAR
     #pragma shader_feature_local_fragment _NORMALMAP_TANGENT_SPACE
-    #pragma shader_feature_local_raytracing _ _MAPPING_PLANAR _MAPPING_TRIPLANAR
     #pragma shader_feature_local_raytracing _ _EMISSIVE_MAPPING_PLANAR _EMISSIVE_MAPPING_TRIPLANAR _EMISSIVE_MAPPING_BASE
     #pragma shader_feature_local_raytracing _NORMALMAP_TANGENT_SPACE
 
