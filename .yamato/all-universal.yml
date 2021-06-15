@@ -13,46 +13,49 @@ PR_Universal_2020.3:
     variables:
         UTR_VERSION: "current"
         TEST_FILTER: .*
+        CACHE_ARGS: '{{cache.flags}}'
     dependencies:
-      -  path: .yamato/universal-win-dx11.yml#Universal_Win_DX11_Standalone_cache_mono_Linear_2020.3
+      -  path: .yamato/universal-win-dx11.yml#Universal_Win_DX11_Standalone_mono_Linear_2020.3
          rerun: on_new_revision
-      -  path: .yamato/universal-win-dx11.yml#Universal_Win_DX11_playmode_XR_cache_mono_Linear_2020.3
+      -  path: .yamato/universal-win-dx11.yml#Universal_Win_DX11_playmode_XR_mono_Linear_2020.3
          rerun: on_new_revision
       -  path: .yamato/universal-win-dx11.yml#Universal_Win_DX11_editmode_mono_Linear_2020.3
          rerun: on_new_revision
-      -  path: .yamato/universal-win-dx12.yml#Universal_Win_DX12_Standalone_cache_mono_Linear_2020.3
+      -  path: .yamato/universal-win-dx12.yml#Universal_Win_DX12_Standalone_mono_Linear_2020.3
          rerun: on_new_revision
-      -  path: .yamato/universal-android-opengles3.yml#Universal_Android_OpenGLES3_Standalone_cache_il2cpp_Linear_2020.3
+      -  path: .yamato/universal-android-opengles3.yml#Universal_Android_OpenGLES3_Standalone_il2cpp_Linear_2020.3
          rerun: on_new_revision
-      -  path: .yamato/universal-android-vulkan.yml#Universal_Android_Vulkan_Standalone_cache_il2cpp_Linear_2020.3
+      -  path: .yamato/universal-android-vulkan.yml#Universal_Android_Vulkan_Standalone_il2cpp_Linear_2020.3
          rerun: on_new_revision
-      -  path: .yamato/universal-iphone-metal.yml#Universal_iPhone_Metal_Standalone_cache_il2cpp_Linear_2020.3
+      -  path: .yamato/universal-iphone-metal.yml#Universal_iPhone_Metal_Standalone_il2cpp_Linear_2020.3
          rerun: on_new_revision
-      -  path: .yamato/universal-osx-metal.yml#Universal_OSX_Metal_playmode_cache_mono_Linear_2020.3
+      -  path: .yamato/universal-osx-metal.yml#Universal_OSX_Metal_playmode_mono_Linear_2020.3
          rerun: on_new_revision
       -  path: .yamato/universal-osx-openglcore.yml#Universal_OSX_OpenGLCore_editmode_mono_Linear_2020.3
          rerun: on_new_revision
-      -  path: .yamato/universal-android-opengles3.yml#Universal_Android_OpenGLES3_Standalone_cache_il2cpp_Linear_2020.3
+      -  path: .yamato/universal-android-opengles3.yml#Universal_Android_OpenGLES3_Standalone_il2cpp_Linear_2020.3
          rerun: on_new_revision
-      -  path: .yamato/universal-android-vulkan.yml#Universal_Android_Vulkan_Standalone_cache_il2cpp_Linear_2020.3
+      -  path: .yamato/universal-android-vulkan.yml#Universal_Android_Vulkan_Standalone_il2cpp_Linear_2020.3
          rerun: on_new_revision
-      -  path: .yamato/universal-iphone-metal.yml#Universal_iPhone_Metal_Standalone_cache_il2cpp_Linear_2020.3
+      -  path: .yamato/universal-iphone-metal.yml#Universal_iPhone_Metal_Standalone_il2cpp_Linear_2020.3
          rerun: on_new_revision
 Extra_Universal_2020.3:
     name: Extra Universal on 2020.3
     variables:
         UTR_VERSION: "current"
         TEST_FILTER: .*
+        CACHE_ARGS: '{{cache.flags}}'
     dependencies:
-      -  path: .yamato/universal-win-dx11.yml#Universal_Win_DX11_playmode_cache_mono_Linear_2020.3
+      -  path: .yamato/universal-win-dx11.yml#Universal_Win_DX11_playmode_mono_Linear_2020.3
          rerun: on_new_revision
-      -  path: .yamato/universal-win-dx12.yml#Universal_Win_DX12_playmode_cache_mono_Linear_2020.3
+      -  path: .yamato/universal-win-dx12.yml#Universal_Win_DX12_playmode_mono_Linear_2020.3
          rerun: on_new_revision
 Universal_2020.3:
     name: Universal on 2020.3
     variables:
         UTR_VERSION: "current"
         TEST_FILTER: .*
+        CACHE_ARGS: '{{cache.flags}}'
     dependencies:
       -  path: .yamato/all-universal.yml#PR_Universal_2020.3
          rerun: on_new_revision
@@ -64,30 +67,31 @@ PR_Universal_CUSTOM-REVISION:
         CUSTOM_REVISION: custom_revision_not_set
         UTR_VERSION: "current"
         TEST_FILTER: .*
+        CACHE_ARGS: '{{cache.flags}}'
     dependencies:
-      -  path: .yamato/universal-win-dx11.yml#Universal_Win_DX11_Standalone_cache_mono_Linear_CUSTOM-REVISION
+      -  path: .yamato/universal-win-dx11.yml#Universal_Win_DX11_Standalone_mono_Linear_CUSTOM-REVISION
          rerun: on_new_revision
-      -  path: .yamato/universal-win-dx11.yml#Universal_Win_DX11_playmode_XR_cache_mono_Linear_CUSTOM-REVISION
+      -  path: .yamato/universal-win-dx11.yml#Universal_Win_DX11_playmode_XR_mono_Linear_CUSTOM-REVISION
          rerun: on_new_revision
       -  path: .yamato/universal-win-dx11.yml#Universal_Win_DX11_editmode_mono_Linear_CUSTOM-REVISION
          rerun: on_new_revision
-      -  path: .yamato/universal-win-dx12.yml#Universal_Win_DX12_Standalone_cache_mono_Linear_CUSTOM-REVISION
+      -  path: .yamato/universal-win-dx12.yml#Universal_Win_DX12_Standalone_mono_Linear_CUSTOM-REVISION
          rerun: on_new_revision
-      -  path: .yamato/universal-android-opengles3.yml#Universal_Android_OpenGLES3_Standalone_cache_il2cpp_Linear_CUSTOM-REVISION
+      -  path: .yamato/universal-android-opengles3.yml#Universal_Android_OpenGLES3_Standalone_il2cpp_Linear_CUSTOM-REVISION
          rerun: on_new_revision
-      -  path: .yamato/universal-android-vulkan.yml#Universal_Android_Vulkan_Standalone_cache_il2cpp_Linear_CUSTOM-REVISION
+      -  path: .yamato/universal-android-vulkan.yml#Universal_Android_Vulkan_Standalone_il2cpp_Linear_CUSTOM-REVISION
          rerun: on_new_revision
-      -  path: .yamato/universal-iphone-metal.yml#Universal_iPhone_Metal_Standalone_cache_il2cpp_Linear_CUSTOM-REVISION
+      -  path: .yamato/universal-iphone-metal.yml#Universal_iPhone_Metal_Standalone_il2cpp_Linear_CUSTOM-REVISION
          rerun: on_new_revision
-      -  path: .yamato/universal-osx-metal.yml#Universal_OSX_Metal_playmode_cache_mono_Linear_CUSTOM-REVISION
+      -  path: .yamato/universal-osx-metal.yml#Universal_OSX_Metal_playmode_mono_Linear_CUSTOM-REVISION
          rerun: on_new_revision
       -  path: .yamato/universal-osx-openglcore.yml#Universal_OSX_OpenGLCore_editmode_mono_Linear_CUSTOM-REVISION
          rerun: on_new_revision
-      -  path: .yamato/universal-android-opengles3.yml#Universal_Android_OpenGLES3_Standalone_cache_il2cpp_Linear_CUSTOM-REVISION
+      -  path: .yamato/universal-android-opengles3.yml#Universal_Android_OpenGLES3_Standalone_il2cpp_Linear_CUSTOM-REVISION
          rerun: on_new_revision
-      -  path: .yamato/universal-android-vulkan.yml#Universal_Android_Vulkan_Standalone_cache_il2cpp_Linear_CUSTOM-REVISION
+      -  path: .yamato/universal-android-vulkan.yml#Universal_Android_Vulkan_Standalone_il2cpp_Linear_CUSTOM-REVISION
          rerun: on_new_revision
-      -  path: .yamato/universal-iphone-metal.yml#Universal_iPhone_Metal_Standalone_cache_il2cpp_Linear_CUSTOM-REVISION
+      -  path: .yamato/universal-iphone-metal.yml#Universal_iPhone_Metal_Standalone_il2cpp_Linear_CUSTOM-REVISION
          rerun: on_new_revision
 Extra_Universal_CUSTOM-REVISION:
     name: Extra Universal on CUSTOM-REVISION
@@ -95,10 +99,11 @@ Extra_Universal_CUSTOM-REVISION:
         CUSTOM_REVISION: custom_revision_not_set
         UTR_VERSION: "current"
         TEST_FILTER: .*
+        CACHE_ARGS: '{{cache.flags}}'
     dependencies:
-      -  path: .yamato/universal-win-dx11.yml#Universal_Win_DX11_playmode_cache_mono_Linear_CUSTOM-REVISION
+      -  path: .yamato/universal-win-dx11.yml#Universal_Win_DX11_playmode_mono_Linear_CUSTOM-REVISION
          rerun: on_new_revision
-      -  path: .yamato/universal-win-dx12.yml#Universal_Win_DX12_playmode_cache_mono_Linear_CUSTOM-REVISION
+      -  path: .yamato/universal-win-dx12.yml#Universal_Win_DX12_playmode_mono_Linear_CUSTOM-REVISION
          rerun: on_new_revision
 Universal_CUSTOM-REVISION:
     name: Universal on CUSTOM-REVISION
@@ -106,6 +111,7 @@ Universal_CUSTOM-REVISION:
         CUSTOM_REVISION: custom_revision_not_set
         UTR_VERSION: "current"
         TEST_FILTER: .*
+        CACHE_ARGS: '{{cache.flags}}'
     dependencies:
       -  path: .yamato/all-universal.yml#PR_Universal_CUSTOM-REVISION
          rerun: on_new_revision

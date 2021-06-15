@@ -13,22 +13,25 @@ PR_HDRP_DXR_2020.3:
     variables:
         UTR_VERSION: "current"
         TEST_FILTER: .*
+        CACHE_ARGS: '{{cache.flags}}'
     dependencies:
-      -  path: .yamato/hdrp_dxr-win-dx12.yml#HDRP_DXR_Win_DX12_playmode_cache_mono_Linear_2020.3
+      -  path: .yamato/hdrp_dxr-win-dx12.yml#HDRP_DXR_Win_DX12_playmode_mono_Linear_2020.3
          rerun: on_new_revision
 Extra_HDRP_DXR_2020.3:
     name: Extra HDRP_DXR on 2020.3
     variables:
         UTR_VERSION: "current"
         TEST_FILTER: .*
+        CACHE_ARGS: '{{cache.flags}}'
     dependencies:
-      -  path: .yamato/hdrp_dxr-win-dx12.yml#HDRP_DXR_Win_DX12_playmode_XR_cache_mono_Linear_2020.3
+      -  path: .yamato/hdrp_dxr-win-dx12.yml#HDRP_DXR_Win_DX12_playmode_XR_mono_Linear_2020.3
          rerun: on_new_revision
 HDRP_DXR_2020.3:
     name: HDRP_DXR on 2020.3
     variables:
         UTR_VERSION: "current"
         TEST_FILTER: .*
+        CACHE_ARGS: '{{cache.flags}}'
     dependencies:
       -  path: .yamato/all-hdrp_dxr.yml#PR_HDRP_DXR_2020.3
          rerun: on_new_revision
@@ -40,8 +43,9 @@ PR_HDRP_DXR_CUSTOM-REVISION:
         CUSTOM_REVISION: custom_revision_not_set
         UTR_VERSION: "current"
         TEST_FILTER: .*
+        CACHE_ARGS: '{{cache.flags}}'
     dependencies:
-      -  path: .yamato/hdrp_dxr-win-dx12.yml#HDRP_DXR_Win_DX12_playmode_cache_mono_Linear_CUSTOM-REVISION
+      -  path: .yamato/hdrp_dxr-win-dx12.yml#HDRP_DXR_Win_DX12_playmode_mono_Linear_CUSTOM-REVISION
          rerun: on_new_revision
 Extra_HDRP_DXR_CUSTOM-REVISION:
     name: Extra HDRP_DXR on CUSTOM-REVISION
@@ -49,8 +53,9 @@ Extra_HDRP_DXR_CUSTOM-REVISION:
         CUSTOM_REVISION: custom_revision_not_set
         UTR_VERSION: "current"
         TEST_FILTER: .*
+        CACHE_ARGS: '{{cache.flags}}'
     dependencies:
-      -  path: .yamato/hdrp_dxr-win-dx12.yml#HDRP_DXR_Win_DX12_playmode_XR_cache_mono_Linear_CUSTOM-REVISION
+      -  path: .yamato/hdrp_dxr-win-dx12.yml#HDRP_DXR_Win_DX12_playmode_XR_mono_Linear_CUSTOM-REVISION
          rerun: on_new_revision
 HDRP_DXR_CUSTOM-REVISION:
     name: HDRP_DXR on CUSTOM-REVISION
@@ -58,6 +63,7 @@ HDRP_DXR_CUSTOM-REVISION:
         CUSTOM_REVISION: custom_revision_not_set
         UTR_VERSION: "current"
         TEST_FILTER: .*
+        CACHE_ARGS: '{{cache.flags}}'
     dependencies:
       -  path: .yamato/all-hdrp_dxr.yml#PR_HDRP_DXR_CUSTOM-REVISION
          rerun: on_new_revision

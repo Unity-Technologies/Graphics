@@ -5,27 +5,10 @@ test_platforms:
   - type: Standalone
     utr_flags:
       - [OSX_Metal]: --timeout=2400
-  - type: playmode
-  - type: playmode
-    name: playmode_cache
-    utr_flags:
-    - [all]: --extra-editor-arg="-adb2"
-    - [all]: --extra-editor-arg="-enableCacheServer"
-    - [all]: --extra-editor-arg="-cacheServerEndpoint" --extra-editor-arg="cacheserver-slo.hq.unity3d.com"
-    - [all]: --extra-editor-arg="-cacheServerNamespacePrefix" --extra-editor-arg="{{cache.cacheServerNamespacePrefix}}"
-    - [all]: --extra-editor-arg="-cacheServerEnableDownload" --extra-editor-arg="true"
-    - [all]: --extra-editor-arg="-cacheServerEnableUpload" --extra-editor-arg="true"
-  - type: editmode
-  - type: Standalone
-    name: Standalone_cache
     utr_flags_build:
     - [all]: --timeout=3000
-    - [all]: --extra-editor-arg="-adb2"
-    - [all]: --extra-editor-arg="-enableCacheServer"
-    - [all]: --extra-editor-arg="-cacheServerEndpoint" --extra-editor-arg="cacheserver-slo.hq.unity3d.com"
-    - [all]: --extra-editor-arg="-cacheServerNamespacePrefix" --extra-editor-arg="{{cache.cacheServerNamespacePrefix}}"
-    - [all]: --extra-editor-arg="-cacheServerEnableDownload" --extra-editor-arg="true"
-    - [all]: --extra-editor-arg="-cacheServerEnableUpload" --extra-editor-arg="true"
+  - type: playmode
+  - type: editmode
 
 platforms:
   - name: Win
@@ -50,10 +33,6 @@ platforms:
         type: Unity::VM::GPU
         image: sdet/gamecode_win10:stable
         flavor: b1.large
-      standalone_cache:
-        type: Unity::VM::GPU
-        image: sdet/gamecode_win10:stable
-        flavor: b1.large
       standalone_build:
         type: Unity::VM
         image: sdet/gamecode_win10:stable
@@ -66,7 +45,6 @@ platforms:
       - name: OpenGLCore
         exclude_test_platforms:
           - name: Standalone
-          - name: Standalone_cache
     build_configs:
       - name: mono
     color_spaces:
@@ -76,7 +54,6 @@ platforms:
       - name: OpenGLCore
         exclude_test_platforms:
           - name: Standalone
-          - name: Standalone_cache
       - name: Vulkan
     build_configs:
       - name: mono
@@ -89,7 +66,6 @@ platforms:
           - name: playmode
           - name: editmode
           - name: playmode_XR
-          - name: playmode_cache
     build_configs:
       - name: il2cpp
     color_spaces:
@@ -101,13 +77,11 @@ platforms:
           - name: playmode
           - name: editmode
           - name: playmode_XR
-          - name: playmode_cache
       - name: Vulkan
         exclude_test_platforms:
           - name: playmode
           - name: editmode
           - name: playmode_XR
-          - name: playmode_cache
     build_configs:
       - name: il2cpp
     color_spaces:
@@ -123,7 +97,7 @@ jobs:
         build_config: mono
         color_space: Linear
         test_platforms:
-            - Standalone_cache
+            - Standalone
       - platform: OSX
         api: OpenGLCore
         build_config: mono
@@ -138,7 +112,7 @@ jobs:
         color_space: Linear
         test_platforms:
             - editmode
-            - playmode_cache
+            - playmode
   - name: <PROJECT_NAME>
     dependencies:
       - <PROJECT_ALL_YML_FILE>#PR_<PROJECT_NAME>_<TRACK>

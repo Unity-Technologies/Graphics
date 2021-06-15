@@ -41,7 +41,7 @@ jobs:
         build_config: mono
         color_space: Linear
         test_platforms:
-            - playmode_cache
+            - playmode
             - editmode
       - project: ShaderGraph
         platform: Win
@@ -49,7 +49,7 @@ jobs:
         build_config: mono
         color_space: Linear
         test_platforms:
-            - playmode_cache
+            - playmode
             - editmode
       - project: HDRP
         platform: Win
@@ -57,7 +57,7 @@ jobs:
         build_config: mono
         color_space: Linear
         test_platforms:
-            - playmode_cache
+            - playmode
             - editmode
       - project: VFX_HDRP
         platform: Win
@@ -73,4 +73,4 @@ jobs:
         build_config: mono
         color_space: Linear
         test_platforms:
-            - playmode_cache
+            - playmode

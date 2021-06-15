@@ -13,6 +13,7 @@ PR_VFX_HDRP_2020.3:
     variables:
         UTR_VERSION: "current"
         TEST_FILTER: .*
+        CACHE_ARGS: '{{cache.flags}}'
     dependencies:
       -  path: .yamato/vfx_hdrp-win-dx11.yml#VFX_HDRP_Win_DX11_Standalone_mono_Linear_2020.3
          rerun: on_new_revision
@@ -23,6 +24,7 @@ Extra_VFX_HDRP_2020.3:
     variables:
         UTR_VERSION: "current"
         TEST_FILTER: .*
+        CACHE_ARGS: '{{cache.flags}}'
     dependencies:
       -  path: .yamato/all-vfx_hdrp.yml#PR_VFX_HDRP_2020.3
          rerun: on_new_revision
@@ -35,6 +37,7 @@ VFX_HDRP_2020.3:
     variables:
         UTR_VERSION: "current"
         TEST_FILTER: .*
+        CACHE_ARGS: '{{cache.flags}}'
     dependencies:
       -  path: .yamato/all-vfx_hdrp.yml#PR_VFX_HDRP_2020.3
          rerun: on_new_revision
@@ -46,6 +49,7 @@ PR_VFX_HDRP_CUSTOM-REVISION:
         CUSTOM_REVISION: custom_revision_not_set
         UTR_VERSION: "current"
         TEST_FILTER: .*
+        CACHE_ARGS: '{{cache.flags}}'
     dependencies:
       -  path: .yamato/vfx_hdrp-win-dx11.yml#VFX_HDRP_Win_DX11_Standalone_mono_Linear_CUSTOM-REVISION
          rerun: on_new_revision
@@ -57,6 +61,7 @@ Extra_VFX_HDRP_CUSTOM-REVISION:
         CUSTOM_REVISION: custom_revision_not_set
         UTR_VERSION: "current"
         TEST_FILTER: .*
+        CACHE_ARGS: '{{cache.flags}}'
     dependencies:
       -  path: .yamato/all-vfx_hdrp.yml#PR_VFX_HDRP_CUSTOM-REVISION
          rerun: on_new_revision
@@ -70,6 +75,7 @@ VFX_HDRP_CUSTOM-REVISION:
         CUSTOM_REVISION: custom_revision_not_set
         UTR_VERSION: "current"
         TEST_FILTER: .*
+        CACHE_ARGS: '{{cache.flags}}'
     dependencies:
       -  path: .yamato/all-vfx_hdrp.yml#PR_VFX_HDRP_CUSTOM-REVISION
          rerun: on_new_revision

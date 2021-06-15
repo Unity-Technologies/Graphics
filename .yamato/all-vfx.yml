@@ -13,6 +13,7 @@ PR_VFX_2020.3:
     variables:
         UTR_VERSION: "current"
         TEST_FILTER: .*
+        CACHE_ARGS: '{{cache.flags}}'
     triggers:
         expression: pull_request.target eq "10.x.x/release" AND NOT pull_request.draft AND pull_request.changes.any match ["com.unity.visualeffectgraph/**/*", "TestProjects/VisualEffectGraph_URP/**/*", "TestProjects/VisualEffectGraph_HDRP/**/*"] AND NOT pull_request.changes.all match ["*.md", "**/*.md", "doc/**/*", "**/Documentation*/**/*"]
     dependencies:
@@ -27,6 +28,7 @@ Extra_VFX_2020.3:
     variables:
         UTR_VERSION: "current"
         TEST_FILTER: .*
+        CACHE_ARGS: '{{cache.flags}}'
     dependencies:
       -  path: .yamato/all-vfx_hdrp.yml#Extra_VFX_HDRP_2020.3
          rerun: on_new_revision
@@ -37,6 +39,7 @@ VFX_2020.3:
     variables:
         UTR_VERSION: "current"
         TEST_FILTER: .*
+        CACHE_ARGS: '{{cache.flags}}'
     dependencies:
       -  path: .yamato/all-vfx.yml#PR_VFX_2020.3
          rerun: on_new_revision
@@ -47,6 +50,7 @@ Nightly_VFX_2020.3:
     variables:
         UTR_VERSION: "current"
         TEST_FILTER: .*
+        CACHE_ARGS: '{{cache.flags}}'
     dependencies:
       -  path: .yamato/all-vfx.yml#VFX_2020.3
          rerun: on_new_revision
@@ -56,6 +60,7 @@ PR_VFX_CUSTOM-REVISION:
         CUSTOM_REVISION: custom_revision_not_set
         UTR_VERSION: "current"
         TEST_FILTER: .*
+        CACHE_ARGS: '{{cache.flags}}'
     dependencies:
       -  path: .yamato/all-vfx_hdrp.yml#PR_VFX_HDRP_CUSTOM-REVISION
          rerun: on_new_revision
@@ -69,6 +74,7 @@ Extra_VFX_CUSTOM-REVISION:
         CUSTOM_REVISION: custom_revision_not_set
         UTR_VERSION: "current"
         TEST_FILTER: .*
+        CACHE_ARGS: '{{cache.flags}}'
     dependencies:
       -  path: .yamato/all-vfx_hdrp.yml#Extra_VFX_HDRP_CUSTOM-REVISION
          rerun: on_new_revision
@@ -80,6 +86,7 @@ VFX_CUSTOM-REVISION:
         CUSTOM_REVISION: custom_revision_not_set
         UTR_VERSION: "current"
         TEST_FILTER: .*
+        CACHE_ARGS: '{{cache.flags}}'
     dependencies:
       -  path: .yamato/all-vfx.yml#PR_VFX_CUSTOM-REVISION
          rerun: on_new_revision
@@ -91,6 +98,7 @@ Nightly_VFX_CUSTOM-REVISION:
         CUSTOM_REVISION: custom_revision_not_set
         UTR_VERSION: "current"
         TEST_FILTER: .*
+        CACHE_ARGS: '{{cache.flags}}'
     dependencies:
       -  path: .yamato/all-vfx.yml#VFX_CUSTOM-REVISION
          rerun: on_new_revision

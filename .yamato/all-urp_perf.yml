@@ -13,6 +13,7 @@ URP_Perf_2020.3:
     variables:
         UTR_VERSION: "current"
         TEST_FILTER: .*
+        CACHE_ARGS: '{{cache.flags}}'
     dependencies:
       -  path: .yamato/all-urp_performance_boatattack.yml#URP_Performance_BoatAttack_2020.3
          rerun: on_new_revision
@@ -24,6 +25,7 @@ URP_Perf_CUSTOM-REVISION:
         CUSTOM_REVISION: custom_revision_not_set
         UTR_VERSION: "current"
         TEST_FILTER: .*
+        CACHE_ARGS: '{{cache.flags}}'
     dependencies:
       -  path: .yamato/all-urp_performance_boatattack.yml#URP_Performance_BoatAttack_CUSTOM-REVISION
          rerun: on_new_revision

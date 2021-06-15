@@ -15,6 +15,7 @@ PR_URPUpdate_BoatAttack_2020.3:
         TEST_FILTER: .*
         BA_UPDATE_PROJECT_BRANCH: master
         BA_UPDATE_PROJECT_REVISION: 06c67d682225354dd909728e2511ac17115b18b9
+        CACHE_ARGS: '{{cache.flags}}'
     dependencies:
       -  path: .yamato/urpupdate_boatattack-win-dx11.yml#URPUpdate_BoatAttack_Win_DX11_editmode_mono_Linear_2020.3
          rerun: on_new_revision
@@ -27,6 +28,7 @@ Extra_URPUpdate_BoatAttack_2020.3:
         TEST_FILTER: .*
         BA_UPDATE_PROJECT_BRANCH: master
         BA_UPDATE_PROJECT_REVISION: 06c67d682225354dd909728e2511ac17115b18b9
+        CACHE_ARGS: '{{cache.flags}}'
     dependencies: []
 URPUpdate_BoatAttack_2020.3:
     name: URPUpdate_BoatAttack on 2020.3
@@ -35,6 +37,7 @@ URPUpdate_BoatAttack_2020.3:
         TEST_FILTER: .*
         BA_UPDATE_PROJECT_BRANCH: master
         BA_UPDATE_PROJECT_REVISION: 06c67d682225354dd909728e2511ac17115b18b9
+        CACHE_ARGS: '{{cache.flags}}'
     dependencies:
       -  path: .yamato/all-urpupdate_boatattack.yml#PR_URPUpdate_BoatAttack_2020.3
          rerun: on_new_revision
@@ -48,6 +51,7 @@ PR_URPUpdate_BoatAttack_CUSTOM-REVISION:
         TEST_FILTER: .*
         BA_UPDATE_PROJECT_BRANCH: master
         BA_UPDATE_PROJECT_REVISION: 06c67d682225354dd909728e2511ac17115b18b9
+        CACHE_ARGS: '{{cache.flags}}'
     dependencies:
       -  path: .yamato/urpupdate_boatattack-win-dx11.yml#URPUpdate_BoatAttack_Win_DX11_editmode_mono_Linear_CUSTOM-REVISION
          rerun: on_new_revision
@@ -61,6 +65,7 @@ Extra_URPUpdate_BoatAttack_CUSTOM-REVISION:
         TEST_FILTER: .*
         BA_UPDATE_PROJECT_BRANCH: master
         BA_UPDATE_PROJECT_REVISION: 06c67d682225354dd909728e2511ac17115b18b9
+        CACHE_ARGS: '{{cache.flags}}'
     dependencies: []
 URPUpdate_BoatAttack_CUSTOM-REVISION:
     name: URPUpdate_BoatAttack on CUSTOM-REVISION
@@ -70,6 +75,7 @@ URPUpdate_BoatAttack_CUSTOM-REVISION:
         TEST_FILTER: .*
         BA_UPDATE_PROJECT_BRANCH: master
         BA_UPDATE_PROJECT_REVISION: 06c67d682225354dd909728e2511ac17115b18b9
+        CACHE_ARGS: '{{cache.flags}}'
     dependencies:
       -  path: .yamato/all-urpupdate_boatattack.yml#PR_URPUpdate_BoatAttack_CUSTOM-REVISION
          rerun: on_new_revision
