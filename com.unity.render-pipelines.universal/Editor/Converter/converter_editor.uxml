@@ -6,7 +6,7 @@
         </ui:VisualElement>
         <ui:TextElement text="The Render Pipeline Conversion Wizard is meant to help Convert projects from built-in to Universal Render Pipeline." name="conversionInfo" style="height: 46px; width: 606px; flex-shrink: 0;" />
         <ui:VisualElement style="flex-direction: row;">
-            <ui:DropdownField index="-1" name="conversionsDropDown" style="height: 27px; width: 208px; display: none;" />
+            <ui:DropdownField index="-1" name="conversionsDropDown" style="height: 27px; width: 208px; display: flex;" />
             <ui:VisualElement style="flex-grow: 1;" />
         </ui:VisualElement>
         <ui:ScrollView scroll-deceleration-rate="0,135" elasticity="0,1" name="convertersScrollView" style="flex-grow: 1; flex-shrink: 1; max-width: none; width: 632px; padding-right: 0; padding-left: 4px;" />
