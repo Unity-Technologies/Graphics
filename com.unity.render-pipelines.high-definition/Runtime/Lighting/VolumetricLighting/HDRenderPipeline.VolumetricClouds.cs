@@ -219,6 +219,7 @@ namespace UnityEngine.Rendering.HighDefinition
             public bool historyValidity;
             public bool planarReflection;
             public bool needExtraColorBufferCopy;
+            public bool enableExposureControl;
             public Vector2Int previousViewportSize;
 
             // Static textures
@@ -467,6 +468,8 @@ namespace UnityEngine.Rendering.HighDefinition
                     cb._ShadowRegionSize = new Vector2(groundShadowSize * scaleX, groundShadowSize * scaleY);
                 }
             }
+
+            cb._EnableFastToneMapping = parameters.enableExposureControl ? 1 : 0;
         }
 
         Texture2D GetPresetCloudMapTexture(VolumetricClouds.CloudPresets preset)
@@ -557,6 +560,7 @@ namespace UnityEngine.Rendering.HighDefinition
             BlueNoise blueNoise = GetBlueNoiseManager();
             parameters.ditheredTextureSet = blueNoise.DitheredTextureSet8SPP();
             parameters.sunLight = GetCurrentSunLight();
+            parameters.enableExposureControl = hdCamera.exposureControlFS;
 
             // MSAA support
             parameters.needsTemporaryBuffer = hdCamera.msaaEnabled;
