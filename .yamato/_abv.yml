@@ -16,7 +16,7 @@ all_project_ci_2019.4:
          rerun: on_new_revision
       -  path: .yamato/all-vfx.yml#PR_VFX_2019.4
          rerun: on_new_revision
-      -  path: .yamato/all-universal.yml#PR_Universal_2019.4
+      -  path: .yamato/all-urp.yml#PR_URP_2019.4
          rerun: on_new_revision
       -  path: .yamato/all-shadergraph.yml#PR_ShaderGraph_2019.4
          rerun: on_new_revision
@@ -32,7 +32,7 @@ all_project_ci_weekly_2019.4:
          rerun: on_new_revision
       -  path: .yamato/all-vfx.yml#Nightly_VFX_2019.4
          rerun: on_new_revision
-      -  path: .yamato/all-universal.yml#Nightly_Universal_2019.4
+      -  path: .yamato/all-urp.yml#Nightly_URP_2019.4
          rerun: on_new_revision
       -  path: .yamato/all-shadergraph.yml#Nightly_ShaderGraph_2019.4
          rerun: on_new_revision
@@ -82,7 +82,7 @@ all_project_ci_fast-2019.4:
          rerun: on_new_revision
       -  path: .yamato/all-vfx.yml#PR_VFX_fast-2019.4
          rerun: on_new_revision
-      -  path: .yamato/all-universal.yml#PR_Universal_fast-2019.4
+      -  path: .yamato/all-urp.yml#PR_URP_fast-2019.4
          rerun: on_new_revision
       -  path: .yamato/all-shadergraph.yml#PR_ShaderGraph_fast-2019.4
          rerun: on_new_revision
@@ -98,7 +98,7 @@ all_project_ci_weekly_fast-2019.4:
          rerun: on_new_revision
       -  path: .yamato/all-vfx.yml#Nightly_VFX_fast-2019.4
          rerun: on_new_revision
-      -  path: .yamato/all-universal.yml#Nightly_Universal_fast-2019.4
+      -  path: .yamato/all-urp.yml#Nightly_URP_fast-2019.4
          rerun: on_new_revision
       -  path: .yamato/all-shadergraph.yml#Nightly_ShaderGraph_fast-2019.4
          rerun: on_new_revision
@@ -149,7 +149,7 @@ all_project_ci_CUSTOM-REVISION:
          rerun: on_new_revision
       -  path: .yamato/all-vfx.yml#PR_VFX_CUSTOM-REVISION
          rerun: on_new_revision
-      -  path: .yamato/all-universal.yml#PR_Universal_CUSTOM-REVISION
+      -  path: .yamato/all-urp.yml#PR_URP_CUSTOM-REVISION
          rerun: on_new_revision
       -  path: .yamato/all-shadergraph.yml#PR_ShaderGraph_CUSTOM-REVISION
          rerun: on_new_revision
@@ -166,7 +166,7 @@ all_project_ci_weekly_CUSTOM-REVISION:
          rerun: on_new_revision
       -  path: .yamato/all-vfx.yml#Nightly_VFX_CUSTOM-REVISION
          rerun: on_new_revision
-      -  path: .yamato/all-universal.yml#Nightly_Universal_CUSTOM-REVISION
+      -  path: .yamato/all-urp.yml#Nightly_URP_CUSTOM-REVISION
          rerun: on_new_revision
       -  path: .yamato/all-shadergraph.yml#Nightly_ShaderGraph_CUSTOM-REVISION
          rerun: on_new_revision

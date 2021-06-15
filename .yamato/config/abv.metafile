@@ -7,7 +7,7 @@ jobs:
     dependencies:
       - .yamato/all-hdrp.yml#PR_HDRP_<TRACK>
       - .yamato/all-vfx.yml#PR_VFX_<TRACK>
-      - .yamato/all-universal.yml#PR_Universal_<TRACK>
+      - .yamato/all-urp.yml#PR_URP_<TRACK>
       - .yamato/all-shadergraph.yml#PR_ShaderGraph_<TRACK>
       - <PROJECT_ALL_YML_FILE>#General_Checks_<TRACK>
     triggers:
@@ -18,7 +18,7 @@ jobs:
     dependencies:
       - .yamato/all-hdrp.yml#Nightly_HDRP_<TRACK>
       - .yamato/all-vfx.yml#Nightly_VFX_<TRACK>
-      - .yamato/all-universal.yml#Nightly_Universal_<TRACK>
+      - .yamato/all-urp.yml#Nightly_URP_<TRACK>
       - .yamato/all-shadergraph.yml#Nightly_ShaderGraph_<TRACK>
       - <PROJECT_ALL_YML_FILE>#General_Checks_<TRACK>
     triggers:
