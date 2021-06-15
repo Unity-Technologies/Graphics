@@ -124,7 +124,9 @@ namespace UnityEngine.Experimental.Rendering
 
             foreach (var scene in EditorBuildSettings.scenes)
             {
-                scenesToConsider.Add(scene.path);
+                // We consider only scenes that exist.
+                if (System.IO.File.Exists(scene.path))
+                    scenesToConsider.Add(scene.path);
             }
 
 
@@ -155,14 +157,18 @@ namespace UnityEngine.Experimental.Rendering
                 }
                 else // we need to open the scene to test.
                 {
-                    var scene = EditorSceneManager.OpenScene(scenePath, OpenSceneMode.Additive);
-                    openedScenes.Add(scene);
-                    sceneBounds.UpdateSceneBounds(scene);
-                    Bounds localBound = sceneBounds.sceneBounds[scene.path];
-                    if (hasFoundBounds)
-                        globalBounds.Encapsulate(localBound);
-                    else
-                        globalBounds = localBound;
+                    // We open only if the scene still exists (might have been removed)
+                    if (System.IO.File.Exists(scenePath))
+                    {
+                        var scene = EditorSceneManager.OpenScene(scenePath, OpenSceneMode.Additive);
+                        openedScenes.Add(scene);
+                        sceneBounds.UpdateSceneBounds(scene);
+                        Bounds localBound = sceneBounds.sceneBounds[scene.path];
+                        if (hasFoundBounds)
+                            globalBounds.Encapsulate(localBound);
+                        else
+                            globalBounds = localBound;
+                    }
                 }
             }
 
