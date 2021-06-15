@@ -178,35 +178,6 @@ namespace UnityEngine.Rendering.Universal
         internal DebugMaterialMode DebugMaterialModeData { get; private set; }
         internal DebugVertexAttributeMode DebugVertexAttributeIndexData { get; private set; }
 
-        static void DebugMaterialValidationModeChanged(DebugUI.Field<int> field, int value)
-        {
-            // Hacky way to hide non-relevant UI options based on displayNames.
-            var mode = (DebugMaterialValidationMode)value;
-            var validationWidgets = field.parent.children;
-            foreach (var widget in validationWidgets)
-            {
-                if (mode == DebugMaterialValidationMode.None && (
-                    widget.displayName == k_AlbedoSettingsContainerName ||
-                    widget.displayName == k_MetallicSettingsContainerName))
-                {
-                    widget.isHidden = true;
-                }
-                else if (mode == DebugMaterialValidationMode.Albedo && widget.displayName == k_MetallicSettingsContainerName)
-                {
-                    widget.isHidden = true;
-                }
-                else if (mode == DebugMaterialValidationMode.Metallic && widget.displayName == k_AlbedoSettingsContainerName)
-                {
-                    widget.isHidden = true;
-                }
-                else
-                {
-                    widget.isHidden = false;
-                }
-            }
-            DebugManager.instance.ReDrawOnScreenDebug();
-        }
-
         const string k_AlbedoSettingsContainerName = "Albedo Settings";
         const string k_MetallicSettingsContainerName = "Metallic Settings";
 
@@ -240,7 +211,7 @@ namespace UnityEngine.Rendering.Universal
                 setter = (value) => {},
                 getIndex = () => (int)data.MaterialValidationMode,
                 setIndex = (value) => data.MaterialValidationMode = (DebugMaterialValidationMode)value,
-                onValueChanged = DebugMaterialValidationModeChanged
+                onValueChanged = (_, _) => DebugManager.instance.ReDrawOnScreenDebug()
             };
 
             internal static DebugUI.Widget CreateAlbedoPreset(DebugDisplaySettingsMaterial data) => new DebugUI.EnumField
@@ -251,7 +222,7 @@ namespace UnityEngine.Rendering.Universal
                 setter = (value) => {},
                 getIndex = () => (int)data.albedoDebugValidationPreset,
                 setIndex = (value) => data.albedoDebugValidationPreset = (AlbedoDebugValidationPreset)value,
-                onValueChanged = (field, value) => DebugManager.instance.ReDrawOnScreenDebug()
+                onValueChanged = (_, _) => DebugManager.instance.ReDrawOnScreenDebug()
             };
 
             internal static DebugUI.Widget CreateAlbedoMinLuminance(DebugDisplaySettingsMaterial data) => new DebugUI.FloatField
@@ -275,7 +246,8 @@ namespace UnityEngine.Rendering.Universal
                 displayName = "Hue Tolerance",
                 getter = () => data.AlbedoHueTolerance,
                 setter = (value) => data.AlbedoHueTolerance = value,
-                incStep = 0.01f
+                incStep = 0.01f,
+                isHiddenCallback = () => data.albedoDebugValidationPreset == AlbedoDebugValidationPreset.DefaultLuminance
             };
 
             internal static DebugUI.Widget CreateAlbedoSaturationTolerance(DebugDisplaySettingsMaterial data) => new DebugUI.FloatField
@@ -283,7 +255,8 @@ namespace UnityEngine.Rendering.Universal
                 displayName = "Saturation Tolerance",
                 getter = () => data.AlbedoSaturationTolerance,
                 setter = (value) => data.AlbedoSaturationTolerance = value,
-                incStep = 0.01f
+                incStep = 0.01f,
+                isHiddenCallback = () => data.albedoDebugValidationPreset == AlbedoDebugValidationPreset.DefaultLuminance
             };
 
             internal static DebugUI.Widget CreateMetallicMinValue(DebugDisplaySettingsMaterial data) => new DebugUI.FloatField
@@ -331,7 +304,7 @@ namespace UnityEngine.Rendering.Universal
                         new DebugUI.Container()
                         {
                             displayName = k_AlbedoSettingsContainerName,
-                            isHidden = true,
+                            isHiddenCallback = () => data.MaterialValidationMode != DebugMaterialValidationMode.Albedo,
                             children =
                             {
                                 WidgetFactory.CreateAlbedoPreset(data),
@@ -344,7 +317,7 @@ namespace UnityEngine.Rendering.Universal
                         new DebugUI.Container()
                         {
                             displayName = k_MetallicSettingsContainerName,
-                            isHidden = true,
+                            isHiddenCallback = () => data.MaterialValidationMode != DebugMaterialValidationMode.Metallic,
                             children =
                             {
                                 WidgetFactory.CreateMetallicMinValue(data),
