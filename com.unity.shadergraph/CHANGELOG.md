@@ -44,6 +44,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed an issue where nested subgraphs with identical SamplerState property settings could cause compile failures [1336089]
 - Fixed an issue where SamplerState properties could not be renamed after creation [1336126]
 - Fixed a ShaderGraph issue where unused blocks get removed on edge replacement [1336832].
+- Fixed GPU instancing support in Shadergraph [1319655] (https://issuetracker.unity3d.com/issues/shader-graph-errors-are-thrown-when-a-propertys-shader-declaration-is-set-to-hybrid-per-instance-and-exposed-is-disabled).
 - Fixed rounded rectangle shape not rendering correctly on Nintendo Switch.
 
 ## [10.3.0] - 2020-11-03
