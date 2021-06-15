@@ -1738,6 +1738,8 @@ namespace UnityEngine.Rendering.HighDefinition
             public Vector2Int threadGroup8;
 
             public bool useMipSafePath;
+
+            public bool useCompatibilityMode;
         }
 
         DepthOfFieldParameters PrepareDoFParameters(HDCamera camera)
@@ -1854,6 +1856,7 @@ namespace UnityEngine.Rendering.HighDefinition
             parameters.dofCombineCS.shaderKeywords = null;
             parameters.pbDoFGatherCS.shaderKeywords = null;
             parameters.dofCoCReprojectCS.shaderKeywords = null;
+            parameters.useCompatibilityMode = m_DepthOfField.compatibilityMode;
 
             bool nearLayerActive = parameters.nearLayerActive;
             bool farLayerActive = parameters.farLayerActive;
@@ -1876,10 +1879,12 @@ namespace UnityEngine.Rendering.HighDefinition
             }
             else if (parameters.highQualityFiltering)
             {
+                parameters.dofPrefilterCS.EnableKeyword("HIGH_QUALITY");
                 parameters.dofCombineCS.EnableKeyword("HIGH_QUALITY");
             }
             else
             {
+                parameters.dofPrefilterCS.EnableKeyword(parameters.useCompatibilityMode ? "HIGH_QUALITY" : "LOW_QUALITY");
                 parameters.dofCombineCS.EnableKeyword("LOW_QUALITY");
             }
 
@@ -1916,7 +1921,16 @@ namespace UnityEngine.Rendering.HighDefinition
         static void GetDoFResolutionScale(in DepthOfFieldParameters dofParameters, out float scale, out float resolutionScale)
         {
             scale = 1f / (float)dofParameters.resolution;
-            resolutionScale = (dofParameters.viewportSize.y / 1080f) * (scale * 2f);
+            resolutionScale = (dofParameters.viewportSize.y / 1080f) * 2f;
+
+            if (dofParameters.useCompatibilityMode)
+                resolutionScale *= scale;
+        }
+
+        static int GetDoFDilationPassCount(in DepthOfFieldParameters dofParameters, in float dofScale, in float nearMaxBlur)
+        {
+            float nearScale = dofParameters.useCompatibilityMode ? 1f : dofScale;
+            return Mathf.CeilToInt((nearMaxBlur * nearScale + 2) / 4f);
         }
 
         //
@@ -1989,6 +2003,9 @@ namespace UnityEngine.Rendering.HighDefinition
             // because these don't use the same RTHandleScale as the global one, we need to use
             // the RTHandleScale of the history RTHandles
             var cocHistoryScale = taaEnabled ? dofParameters.camera.postProcessRTScalesHistory : dofParameters.camera.postProcessRTScales;
+
+            // Used to select the apropriate mip level when sampling the color pyramid
+            float mipscale = dofParameters.useCompatibilityMode ? 1f : scale;
 
             ComputeShader cs;
             int kernel;
@@ -2174,7 +2191,7 @@ namespace UnityEngine.Rendering.HighDefinition
                     kernel = dofParameters.dofDilateKernel;
                     cmd.SetComputeVectorParam(cs, HDShaderIDs._Params, new Vector4(targetWidth - 1, targetHeight - 1, 0f, 0f));
 
-                    int passCount = Mathf.CeilToInt((nearMaxBlur + 2f) / 4f);
+                    int passCount = GetDoFDilationPassCount(dofParameters, scale, nearMaxBlur);
 
                     cmd.SetComputeTextureParam(cs, kernel, HDShaderIDs._InputCoCTexture, nearCoC);
                     cmd.SetComputeTextureParam(cs, kernel, HDShaderIDs._OutputCoCTexture, dilatedNearCoC);
@@ -2253,7 +2270,7 @@ namespace UnityEngine.Rendering.HighDefinition
                     cs = dofParameters.dofGatherCS;
                     kernel = dofParameters.dofGatherFarKernel;
 
-                    cmd.SetComputeVectorParam(cs, HDShaderIDs._Params, new Vector4(farSamples, farSamples * farSamples, barrelClipping, farMaxBlur));
+                    cmd.SetComputeVectorParam(cs, HDShaderIDs._Params, new Vector4(farSamples, farMaxBlur * mipscale, barrelClipping, farMaxBlur));
                     cmd.SetComputeVectorParam(cs, HDShaderIDs._TexelSize, new Vector4(targetWidth, targetHeight, 1f / targetWidth, 1f / targetHeight));
                     cmd.SetComputeTextureParam(cs, kernel, HDShaderIDs._InputTexture, pingFarRGB);
                     cmd.SetComputeTextureParam(cs, kernel, HDShaderIDs._InputCoCTexture, farCoC);
@@ -2316,7 +2333,7 @@ namespace UnityEngine.Rendering.HighDefinition
                     cs = dofParameters.dofGatherCS;
                     kernel = dofParameters.dofGatherNearKernel;
 
-                    cmd.SetComputeVectorParam(cs, HDShaderIDs._Params, new Vector4(nearSamples, nearSamples * nearSamples, barrelClipping, nearMaxBlur));
+                    cmd.SetComputeVectorParam(cs, HDShaderIDs._Params, new Vector4(nearSamples, nearMaxBlur * mipscale, barrelClipping, nearMaxBlur));
                     cmd.SetComputeVectorParam(cs, HDShaderIDs._TexelSize, new Vector4(targetWidth, targetHeight, 1f / targetWidth, 1f / targetHeight));
                     cmd.SetComputeTextureParam(cs, kernel, HDShaderIDs._InputTexture, pingNearRGB);
                     cmd.SetComputeTextureParam(cs, kernel, HDShaderIDs._InputCoCTexture, nearCoC);
@@ -2621,7 +2638,7 @@ namespace UnityEngine.Rendering.HighDefinition
                     passData.prevCoC = builder.ReadTexture(prevCoCHandle);
                     passData.nextCoC = builder.ReadWriteTexture(nextCoCHandle);
 
-                    float scale = 1f / (float)passData.parameters.resolution;
+                    GetDoFResolutionScale(passData.parameters, out float scale, out float resolutionScale);
                     var screenScale = new Vector2(scale, scale);
 
                     TextureHandle dest = GetPostprocessOutputHandle(renderGraph, "DoF Destination");
@@ -2686,9 +2703,8 @@ namespace UnityEngine.Rendering.HighDefinition
                             debugCocTextureScales = hdCamera.postProcessRTScalesHistory;
                         }
 
-                        GetDoFResolutionScale(passData.parameters, out float unused, out float resolutionScale);
                         float actualNearMaxBlur = passData.parameters.nearMaxBlur * resolutionScale;
-                        int passCount = Mathf.CeilToInt((actualNearMaxBlur + 2f) / 4f);
+                        int passCount = GetDoFDilationPassCount(dofParameters, scale, actualNearMaxBlur);
 
                         passData.dilationPingPongRT = TextureHandle.nullHandle;
                         if (passCount > 1)

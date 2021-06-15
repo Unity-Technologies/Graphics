@@ -50,6 +50,7 @@ namespace UnityEditor.Rendering.HighDefinition
         SerializedDataParameter m_HighQualityFiltering;
         SerializedDataParameter m_Resolution;
         SerializedDataParameter m_PhysicallyBased;
+        SerializedDataParameter m_CompatibilityMode;
 
         public override void OnEnable()
         {
@@ -73,6 +74,8 @@ namespace UnityEditor.Rendering.HighDefinition
             m_HighQualityFiltering = Unpack(o.Find("m_HighQualityFiltering"));
             m_Resolution = Unpack(o.Find("m_Resolution"));
             m_PhysicallyBased = Unpack(o.Find("m_PhysicallyBased"));
+
+            m_CompatibilityMode = Unpack(o.Find("m_CompatibilityMode"));
 
             base.OnEnable();
         }
@@ -144,6 +147,10 @@ namespace UnityEditor.Rendering.HighDefinition
                         EditorGUILayout.HelpBox(Styles.InfoBox, MessageType.Info);
                     }
                     EndAdditionalPropertiesScope();
+                }
+                else
+                {
+                    PropertyField(m_CompatibilityMode);
                 }
             }
         }

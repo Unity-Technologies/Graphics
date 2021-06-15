@@ -275,6 +275,26 @@ namespace UnityEngine.Rendering.HighDefinition
             }
         }
 
+        /// <summary>
+        /// When enabled, HDRP will compute the the depth of field effect in the same way as older HDRP versions. Use this option only for compatibility purposes.
+        /// </summary>
+        public bool compatibilityMode
+        {
+            get
+            {
+                if (!UsesQualitySettings())
+                {
+                    return m_CompatibilityMode.value;
+                }
+                else
+                {
+                    int qualityLevel = (int)quality.levelAndOverride.level;
+                    return GetPostProcessingQualitySettings().DoFCompatibilityMode[qualityLevel];
+                }
+            }
+            set { m_PhysicallyBased.value = value; }
+        }
+
 
         [Header("Near Blur")]
         [Tooltip("Sets the number of samples to use for the near field.")]
@@ -311,6 +331,11 @@ namespace UnityEngine.Rendering.HighDefinition
         [AdditionalProperty]
         [SerializeField]
         BoolParameter m_PhysicallyBased = new BoolParameter(false);
+
+        [AdditionalProperty]
+        [SerializeField]
+        [Tooltip("When enabled, HDRP will compute the the depth of field effect in the same way as older HDRP versions. Use this option only for compatibility purposes.")]
+        BoolParameter m_CompatibilityMode = new BoolParameter(false);
 
         /// <summary>
         /// Tells if the effect needs to be rendered or not.
