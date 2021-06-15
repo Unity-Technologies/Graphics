@@ -467,7 +467,7 @@ namespace UnityEngine.Rendering.Universal
                                         color = Color.red;
                                         break;
                                     case 2:
-                                        color = Color.cyan;
+                                        color = Color.blue;
                                         break;
                                     default:
                                         color = Color.yellow;
