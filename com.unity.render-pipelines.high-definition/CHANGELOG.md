@@ -237,7 +237,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed support of Distortion with MSAA
 - Fixed contact shadow debug views not displaying correctly upon resizing of view.
 - Fixed an error when deleting the 3D Texture mask of a local volumetric fog volume (case 1339330).
-- Fixed some aliasing ussues with the volumetric clouds.
+- Fixed some aliasing issues with the volumetric clouds.
 - Fixed reflection probes being injected into the ray tracing light cluster even if not baked (case 1329083).
 - Fixed the double sided option moving when toggling it in the material UI (case 1328877).
 - Fixed incorrect RTHandle scale in DoF when TAA is enabled.
@@ -250,6 +250,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed aliasing artifacts that are related to numerical imprecisions of the light rays in the volumetric clouds (case 1340731).
 - Fixed exposure issues with volumetric clouds on planar reflection
 - Fixed bad feedback loop occuring when auto exposure adaptation time was too small.
+- Fixed an issue where enabling GPU Instancing on a ShaderGraph Material would cause compile failures [1338695].
 
 ### Changed
 - Changed Window/Render Pipeline/HD Render Pipeline Wizard to Window/Rendering/HDRP Wizard
