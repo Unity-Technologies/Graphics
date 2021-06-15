@@ -734,8 +734,7 @@ namespace UnityEngine.Experimental.Rendering
                 ProbeOffsets[i] = i * probeDelta;
             ProbeOffsets[ProbeBrickPool.kBrickProbeCountPerDim - 1] = 1.0f;
 
-            var probeVolumeRef = ProbeReferenceVolume.instance;
-            float minDist = probeVolumeRef.MinDistanceBetweenProbes();
+            float minDist = ProbeReferenceVolume.instance.MinDistanceBetweenProbes();
 
             foreach (var b in bricks)
             {
