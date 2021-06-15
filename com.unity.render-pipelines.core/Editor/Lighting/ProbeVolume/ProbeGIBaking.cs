@@ -824,8 +824,11 @@ namespace UnityEngine.Experimental.Rendering
                 }
                 int subdivLevel = 0;
                 m_BakingBatch.uniqueBrickSubdiv.TryGetValue(positions[i], out subdivLevel);
-                // float searchDistance = ProbeReferenceVolume.ce
-                //positions[i] = PushPositionOutOfGeometry(positions[i], 0.9f);
+                float brickSize =  ProbeReferenceVolume.CellSize(subdivLevel);
+                float searchDistance = (brickSize * m_BakingReferenceVolumeAuthoring.brickSize) / ProbeBrickPool.kBrickCellCount;
+
+                float scaleForSearchDist = 0.95f; // MAKE THIS FROM USER.
+                positions[i] = PushPositionOutOfGeometry(positions[i], scaleForSearchDist * searchDistance);
             }
 
             UnityEditor.Experimental.Lightmapping.SetAdditionalBakedProbes(m_BakingBatch.index, positions);
