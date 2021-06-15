@@ -112,11 +112,13 @@ namespace UnityEngine.Rendering.HighDefinition
             m_SubFrameManager.Reset();
         }
 
-        internal void ResetPathTracing(int camID, CameraData camData)
+        internal CameraData ResetPathTracing(int camID, CameraData camData)
         {
             m_RenderSky = true;
             camData.ResetIteration();
             m_SubFrameManager.SetCameraData(camID, camData);
+
+            return camData;
         }
 
         private Vector4 ComputeDoFConstants(HDCamera hdCamera, PathTracing settings)
@@ -160,15 +162,14 @@ namespace UnityEngine.Rendering.HighDefinition
 
 #endif // UNITY_EDITOR
 
-        private void CheckDirtiness(HDCamera hdCamera, int camID, CameraData camData)
+        private CameraData CheckDirtiness(HDCamera hdCamera, int camID, CameraData camData)
         {
             // Check camera resolution dirtiness
             if (hdCamera.actualWidth != camData.width || hdCamera.actualHeight != camData.height)
             {
                 camData.width = (uint)hdCamera.actualWidth;
                 camData.height = (uint)hdCamera.actualHeight;
-                ResetPathTracing(camID, camData);
-                return;
+                return ResetPathTracing(camID, camData);
             }
 
             // Check camera sky dirtiness
@@ -176,8 +177,7 @@ namespace UnityEngine.Rendering.HighDefinition
             if (enabled != camData.skyEnabled)
             {
                 camData.skyEnabled = enabled;
-                ResetPathTracing(camID, camData);
-                return;
+                return ResetPathTracing(camID, camData);
             }
 
             // Check camera fog dirtiness
@@ -185,15 +185,13 @@ namespace UnityEngine.Rendering.HighDefinition
             if (enabled != camData.fogEnabled)
             {
                 camData.fogEnabled = enabled;
-                ResetPathTracing(camID, camData);
-                return;
+                return ResetPathTracing(camID, camData);
             }
 
             // Check camera matrix dirtiness
             if (hdCamera.mainViewConstants.nonJitteredViewProjMatrix != (hdCamera.mainViewConstants.prevViewProjMatrix))
             {
-                ResetPathTracing(camID, camData);
-                return;
+                return ResetPathTracing(camID, camData);
             }
 
             // Check materials dirtiness
@@ -201,7 +199,7 @@ namespace UnityEngine.Rendering.HighDefinition
             {
                 m_MaterialsDirty = false;
                 ResetPathTracing();
-                return;
+                return camData;
             }
 
             // Check light or geometry transforms dirtiness
@@ -209,7 +207,7 @@ namespace UnityEngine.Rendering.HighDefinition
             {
                 m_TransformDirty = false;
                 ResetPathTracing();
-                return;
+                return camData;
             }
 
             // Check lights dirtiness
@@ -217,7 +215,7 @@ namespace UnityEngine.Rendering.HighDefinition
             {
                 m_CacheLightCount = (uint)m_RayTracingLights.lightCount;
                 ResetPathTracing();
-                return;
+                return camData;
             }
 
             // Check geometry dirtiness
@@ -234,6 +232,8 @@ namespace UnityEngine.Rendering.HighDefinition
                 m_RenderSky = true;
                 m_CameraID = camID;
             }
+
+            return camData;
         }
 
         static RTHandle PathTracingHistoryBufferAllocatorFunction(string viewName, int frameIndex, RTHandleSystem rtHandleSystem)
@@ -363,7 +363,8 @@ namespace UnityEngine.Rendering.HighDefinition
 
             if (!m_SubFrameManager.isRecording)
             {
-                CheckDirtiness(hdCamera, camID, camData);
+                // Check if things have changed and if we need to restart the accumulation
+                camData = CheckDirtiness(hdCamera, camID, camData);
 
                 // If we are recording, the max iteration is set/overridden by the subframe manager, otherwise we read it from the path tracing volume
                 m_SubFrameManager.subFrameCount = (uint)m_PathTracingSettings.maximumSamples.value;
