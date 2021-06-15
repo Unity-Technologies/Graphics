@@ -731,7 +731,7 @@ float3 SpeedTreeWind(float3 vPos, float3 vNormal, float4 vTexcoord0, float4 vTex
     }
 
     // wind
-    if (iWindQuality > 0)
+    if ((iWindQuality > 0) && (length(_ST_WindVector) > 0))
     {
         float3 rotatedWindVector = TransformWorldToObjectDir(_ST_WindVector.xyz);
         float windLength = length(rotatedWindVector);
