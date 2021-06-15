@@ -161,8 +161,6 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
             if (m_ActiveSubTarget.value == null)
                 return;
 
-            context.globalIndentLevel++;
-
             // Core properties
             m_SubTargetField = new PopupField<string>(m_SubTargetNames, activeSubTargetIndex);
             context.AddProperty("Material", m_SubTargetField, (evt) =>
@@ -213,8 +211,6 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                     });
                 }
             }
-
-            context.globalIndentLevel--;
         }
 
         public override void CollectShaderProperties(PropertyCollector collector, GenerationMode generationMode)
