@@ -14,7 +14,7 @@ public class AnimatorUpdater : MonoBehaviour
     // Update is called once per frame
     void Update()
     {
-        if(m_Update)
+        if (m_Update)
             m_Animator.Update(0.01f);
     }
 }
