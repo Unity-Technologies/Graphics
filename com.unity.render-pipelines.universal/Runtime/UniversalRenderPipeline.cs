@@ -103,11 +103,6 @@ namespace UnityEngine.Rendering.Universal
             get => 2.0f;
         }
 
-        /*public static bool tightEnclosingSphere
-        {
-            get => false;
-        }*/
-
         public static int maxNumIterationsEnclosingSphere
         {
             get => 1000;
@@ -349,31 +344,6 @@ namespace UnityEngine.Rendering.Universal
             return cameraData.camera.TryGetCullingParameters(false, out cullingParams);
         }
 
-        // TODO: rename this
-        internal static class DebugCullingHelper
-        {
-            public static bool debugCullEnabled = false;
-
-            private static ScriptableCullingParameters debugCullingParameters;
-
-            // TODO: better interface, pick a camera to debug etc.
-
-            public static void ApplyDebugCulling(Camera camera, ref ScriptableCullingParameters cullingParameters)
-            {
-                if (debugCullEnabled)
-                {
-                    if (camera.cameraType == CameraType.Game && camera.name != "Preview Camera")
-                    {
-                        debugCullingParameters = cullingParameters;
-                    }
-                    if (camera.cameraType == CameraType.SceneView)
-                    {
-                        cullingParameters = debugCullingParameters;
-                    }
-                }
-            }
-        }
-
         /// <summary>
         /// Renders a single camera. This method will do culling, setup and execution of the renderer.
         /// </summary>
@@ -430,7 +400,6 @@ namespace UnityEngine.Rendering.Universal
                 }
 #endif
 
-                DebugCullingHelper.ApplyDebugCulling(camera, ref cullingParameters);
                 var cullResults = context.Cull(ref cullingParameters);
                 InitializeRenderingData(asset, ref cameraData, ref cullResults, anyPostProcessingEnabled, out var renderingData);
 
