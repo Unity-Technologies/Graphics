@@ -10,51 +10,24 @@ using UnityEngine.SceneManagement;
 
 class FoundationEditorTests
 {
+    const string kProjectName = "Foundation";
+
     [Test]
-    public void CheckIfPostProcessingDisabled()
+    public void AllRenderersPostProcessingDisabled()
     {
-        var guids = AssetDatabase.FindAssets("t:UniversalRendererData");
-        Assert.NotZero(guids.Length);
-        foreach (var guid in guids)
-        {
-            var path = AssetDatabase.GUIDToAssetPath(guid);
-
-            // We only care what is in assets folder
-            if (!path.StartsWith("Assets"))
-                continue;
-
-            var rendererData = AssetDatabase.LoadAssetAtPath<UniversalRendererData>(path);
-            Assert.IsNotNull(rendererData, $"Failed to load renderer at path {path}");
-
-            Assert.IsNull(rendererData.postProcessData, $"Universal renderer at path {path} has post processing enabled. Foundation project should not have renderers with post processing enabled.");
-        }
+        UniversalProjectAssert.AllRenderersPostProcessing(kProjectName, expectDisabled: true);
     }
 
     [Test]
-    public void CheckIfMixedLightingDisabled()
+    public void AllUrpAssetsHaveMixedLightingDisabled()
     {
-        var guids = AssetDatabase.FindAssets("t:UniversalRenderPipelineAsset");
-        Assert.NotZero(guids.Length);
-        foreach (var guid in guids)
-        {
-            var path = AssetDatabase.GUIDToAssetPath(guid);
-
-            // We only care what is in assets folder
-            if (!path.StartsWith("Assets"))
-                continue;
-
-            var asset = AssetDatabase.LoadAssetAtPath<UniversalRenderPipelineAsset>(path);
-            Assert.IsNotNull(asset, $"Failed to load URP asset at path {path}");
-
-            Assert.IsFalse(asset.supportsMixedLighting, $"URP asset at path {path} has post mixed lighting enabled. Foundation project should not have URP asset with mixed lighting enabled.");
-        }
+        UniversalProjectAssert.AllUrpAssetsHaveMixedLighting(kProjectName, expectDisabled: true);
     }
 
     [Test]
-    public void CheckIfRenderer2DIsNotPresent()
+    public void AllRenderersAreNotRenderer2D()
     {
-        var guids = AssetDatabase.FindAssets("t:Renderer2DData");
-        Assert.AreEqual(guids.Length, 0, "Foundation project should not have renderer 2d.");
+        UniversalProjectAssert.AllRenderersAreNotRenderer2D(kProjectName);
     }
 
     [Test]
@@ -78,25 +51,8 @@ class FoundationEditorTests
     [TestCase(ShaderPathID.SpeedTree7)]
     [TestCase(ShaderPathID.SpeedTree7Billboard)]
     [TestCase(ShaderPathID.SpeedTree8)]
-    public void CheckIfScenesDoNoHaveShader(ShaderPathID shaderPathID)
+    public void AllShadersAreNot(ShaderPathID shaderPathID)
     {
-        string shaderPath = AssetDatabase.GUIDToAssetPath(ShaderUtils.GetShaderGUID(shaderPathID));
-        Assert.IsFalse(string.IsNullOrEmpty(shaderPath));
-
-        var shader = AssetDatabase.LoadAssetAtPath<Shader>(shaderPath);
-        Assert.AreEqual(shader.name, ShaderUtils.GetShaderPath(shaderPathID));
-
-        var guids = AssetDatabase.FindAssets("t:Material");
-        foreach (var guid in guids)
-        {
-            var path = AssetDatabase.GUIDToAssetPath(guid);
-
-            // We only care what is in assets folder
-            if (!path.StartsWith("Assets"))
-                continue;
-
-            Material material = AssetDatabase.LoadAssetAtPath<Material>(path);
-            Assert.AreNotEqual(material.shader, shader, $"Material at path {path} has excluded shader. Foundation project should not have shader {shader.name}");
-        }
+        UniversalProjectAssert.AllShadersAreNot(kProjectName, shaderPathID);
     }
 }
