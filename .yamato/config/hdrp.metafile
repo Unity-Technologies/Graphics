@@ -7,11 +7,13 @@ test_platforms:
   - type: playmode
     name: playmode_XR
     utr_flags:
-      - [all]: --extra-editor-arg="-xr-tests" 
+      - [all]: --extra-editor-arg="-xr-tests"
   - type: editmode
   - type: Standalone
     utr_flags:
       - [OSX_Metal]: --timeout=2400
+expression_trigger:
+  expression: ""
 platforms:
   - name: Win
     apis:
@@ -60,7 +62,7 @@ platforms:
       - name: mono
     color_spaces:
       - Linear
-all:
+pr:
   dependencies:
     - platform: Win
       api: DX11

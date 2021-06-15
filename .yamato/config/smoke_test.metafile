@@ -5,6 +5,8 @@ test_platforms:
   - type: playmode
   - type: editmode
   - type: Standalone
+expression_trigger:
+  expression: ""
 platforms:
   - name: Win
     apis:
@@ -13,7 +15,7 @@ platforms:
       - name: mono
     color_spaces:
       - Linear
-all:
+pr:
   dependencies:
     - platform: Win
       api: DX11
@@ -23,4 +25,3 @@ all:
         - playmode
         - editmode
         - Standalone
-        

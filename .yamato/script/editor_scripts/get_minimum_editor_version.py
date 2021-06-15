@@ -7,7 +7,7 @@
 import sys, glob, os, subprocess, json, urllib.request, logging
 
 SUPPORTED_PACKAGES=[
-    "com.unity.shadergraph", 
+    "com.unity.shadergraph",
     "com.unity.render-pipelines.core",
     "com.unity.render-pipelines.high-definition",
     "com.unity.render-pipelines.high-definition-config",
@@ -38,11 +38,11 @@ def store_version(tmp_revision_file_path, unity_release):
 
 
 def main(tmp_revision_file_path):
-    
+
     logging.info('RUNNING: git rev-parse --show-toplevel')
     working_dir = subprocess.check_output(["git", "rev-parse", "--show-toplevel"])
     working_dir = working_dir.decode('utf-8').rstrip()
-    
+
     logging.info('Working directory: %s', working_dir)
     unity_release = retrieve_unity_release(working_dir)
 
