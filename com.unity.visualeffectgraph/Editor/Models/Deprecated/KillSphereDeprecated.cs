@@ -5,7 +5,7 @@ using UnityEngine;
 namespace UnityEditor.VFX.Block
 {
     [VFXInfo(category = "Kill")]
-    class KillSphere : VFXBlock
+    class KillSphereDeprecated : VFXBlock
     {
         [VFXSetting]
         [Tooltip("Specifies the mode by which particles are killed off. ‘Solid’ affects only particles within the specified volume, while ‘Inverted’ affects only particles outside of the volume.")]
@@ -29,25 +29,8 @@ namespace UnityEditor.VFX.Block
         {
             get
             {
-                VFXExpression transform = null;
-                VFXExpression radius = null;
-                foreach (var param in GetExpressionsFromSlots(this))
-                {
-                    if (param.name.StartsWith("sphere"))
-                    {
-                        if (param.name == "sphere_transform")
-                            transform = param.exp;
-                        if (param.name == "sphere_radius")
-                            radius = param.exp;
-
-                        continue; //exclude all sphere inputs
-                    }
-                    yield return param;
-                }
-
-                var radiusScale = VFXOperatorUtility.UniformScaleMatrix(radius);
-                var finalTransform = new VFXExpressionTransformMatrix(transform, radiusScale);
-                yield return new VFXNamedExpression(new VFXExpressionInverseTRSMatrix(finalTransform), "invFieldTransform");
+                foreach (var p in GetExpressionsFromSlots(this))
+                    yield return p;
 
                 if (mode == CollisionBase.Mode.Solid)
                     yield return new VFXNamedExpression(VFXValue.Constant(1.0f), "colliderSign");
@@ -58,8 +41,8 @@ namespace UnityEditor.VFX.Block
 
         public class InputProperties
         {
-            [Tooltip("Sets the sphere used to determine the kill volume.")]
-            public TSphere sphere = TSphere.defaultValue;
+            [Tooltip("Sets the center and radius of the sphere used to determine the kill volume.")]
+            public Sphere Sphere = new Sphere() { radius = 1.0f };
         }
 
         public override string source
@@ -67,9 +50,9 @@ namespace UnityEditor.VFX.Block
             get
             {
                 return @"
-float3 tPos = mul(invFieldTransform, float4(position, 1.0f)).xyz;
-float sqrLength = dot(tPos, tPos);
-if (colliderSign * sqrLength <= colliderSign)
+float3 dir = position - Sphere_center;
+float sqrLength = dot(dir, dir);
+if (colliderSign * sqrLength <= colliderSign * Sphere_radius * Sphere_radius)
     alive = false;";
             }
         }

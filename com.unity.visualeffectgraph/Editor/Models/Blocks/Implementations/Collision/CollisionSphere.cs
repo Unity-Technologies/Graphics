@@ -35,14 +35,10 @@ namespace UnityEditor.VFX.Block
                     yield return param;
                 }
 
-                var zero = VFXOperatorUtility.ZeroExpression[UnityEngine.VFX.VFXValueType.Float3];
-                var radiusScale = new VFXExpressionTRSToMatrix(zero, zero, new VFXExpressionCombine(radius, radius, radius));
-
+                var radiusScale = VFXOperatorUtility.UniformScaleMatrix(radius);
                 var finalTransform = new VFXExpressionTransformMatrix(transform, radiusScale);
                 yield return new VFXNamedExpression(finalTransform, "fieldTransform");
                 yield return new VFXNamedExpression(new VFXExpressionInverseTRSMatrix(finalTransform), "invFieldTransform");
-
-                //TRS + Scale is it correct ? //TODOPAUL
             }
         }
 
