@@ -1219,6 +1219,12 @@ namespace UnityEngine.Rendering.HighDefinition
                             skipRequest = !TryCull(camera, hdCamera, renderContext, m_SkyManager, cullingParameters, m_Asset, ref cullingResults);
                     }
 
+                    if (additionalCameraData.hasCustomRender && additionalCameraData.fullscreenPassthrough)
+                    {
+                        Debug.LogWarning("HDRP Camera custom render is not supported when Fullscreen Passthrough is enabled. Please either disable Fullscreen Passthrough in the camera settings or remove all customRender callbacks attached to this camera.");
+                        continue;
+                    }
+
                     if (additionalCameraData != null && additionalCameraData.hasCustomRender)
                     {
                         skipRequest = true;
@@ -1229,6 +1235,7 @@ namespace UnityEngine.Rendering.HighDefinition
                         BeginCameraRendering(renderContext, camera);
                         additionalCameraData.ExecuteCustomRender(renderContext, hdCamera);
                     }
+
 
                     if (skipRequest)
                     {
@@ -2066,11 +2073,8 @@ namespace UnityEngine.Rendering.HighDefinition
             // First, get aggregate of frame settings base on global settings, camera frame settings and debug settings
             // Note: the SceneView camera will never have additionalCameraData
             additionalCameraData = HDUtils.TryGetAdditionalCameraDataOrDefault(camera);
+            hdCamera = default;
             cullingParams = default;
-
-            // Initialize HDCamera parameters (needed for the fullscreen passtrough callback)
-            hdCamera = HDCamera.GetOrCreate(camera, xrPass.multipassId);
-            hdCamera.SetXRPass(xrPass);
 
             FrameSettings currentFrameSettings = new FrameSettings();
             // Compute the FrameSettings actually used to draw the frame
@@ -2131,6 +2135,8 @@ namespace UnityEngine.Rendering.HighDefinition
                 currentFrameSettings.SetEnabled(FrameSettingsField.ObjectMotionVectors, false);
                 currentFrameSettings.SetEnabled(FrameSettingsField.TransparentsWriteMotionVector, false);
             }
+
+            hdCamera = HDCamera.GetOrCreate(camera, xrPass.multipassId);
 
             //Forcefully disable antialiasing if DLSS is enabled.
             if (additionalCameraData != null)
