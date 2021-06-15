@@ -7,6 +7,7 @@ using UnityEngine.Rendering.HighDefinition;
 using System;
 using System.Reflection;
 using System.Linq;
+using UnityEditor.Experimental.GraphView;
 
 namespace UnityEditor.Rendering.HighDefinition
 {
@@ -217,24 +218,10 @@ namespace UnityEditor.Rendering.HighDefinition
             };
 
             m_CustomPassList.onAddCallback += (list) => {
-                Undo.RegisterCompleteObjectUndo(target, "Add custom pass");
-
-                var menu = new GenericMenu();
-                foreach (var customPassType in TypeCache.GetTypesDerivedFrom<CustomPass>())
-                {
-                    if (customPassType.IsAbstract)
-                        continue;
-
-                    menu.AddItem(new GUIContent(customPassType.Name), false, () => {
-                        passList.serializedObject.ApplyModifiedProperties();
-                        m_Volume.AddPassOfType(customPassType);
-                        UpdateMaterialEditors();
-                        passList.serializedObject.Update();
-                        // Notify the prefab that something have changed:
-                        PrefabUtility.RecordPrefabInstancePropertyModifications(target);
-                    });
-                }
-                menu.ShowAsContext();
+                var searchObject = ScriptableObject.CreateInstance<CustomPassListSearchWindow>();
+                searchObject.Initialize(AddCustomPass);
+                var windowPosition = GUIUtility.GUIToScreenPoint(Event.current.mousePosition);
+                SearchWindow.Open(new SearchWindowContext(windowPosition), searchObject);
             };
 
             m_CustomPassList.onReorderCallback = (index) => ClearCustomPassCache();
@@ -244,6 +231,18 @@ namespace UnityEditor.Rendering.HighDefinition
                 ReorderableList.defaultBehaviours.DoRemoveButton(list);
                 ClearCustomPassCache();
             };
+
+            void AddCustomPass(Type customPassType)
+            {
+                Undo.RegisterCompleteObjectUndo(m_Volume, "Add custom pass");
+
+                passList.serializedObject.ApplyModifiedProperties();
+                m_Volume.AddPassOfType(customPassType);
+                UpdateMaterialEditors();
+                passList.serializedObject.Update();
+                // Notify the prefab that something have changed:
+                PrefabUtility.RecordPrefabInstancePropertyModifications(m_Volume);
+            }
         }
 
         void ClearCustomPassCache()
