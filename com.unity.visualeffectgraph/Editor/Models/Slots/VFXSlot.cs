@@ -381,6 +381,12 @@ namespace UnityEditor.VFX
                 foreach (var subInfo in property.SubProperties())
                 {
                     var subSlot = CreateSub(subInfo, direction);
+                    if (slot.property.attributes.attributes.OfType<MinMaxAttribute>().Any())
+                    {
+                        var parentRange = property.attributes.FindRange();
+                        var attributesPlusRange = subSlot.property.attributes.attributes.Append(new RangeAttribute(parentRange.x, parentRange.y));
+                        subSlot.UpdateAttributes(new VFXPropertyAttributes( new RangeAttribute(parentRange.x, parentRange.y)), false);
+                    }
                     if (subSlot != null)
                     {
                         subSlot.Attach(slot, false);

@@ -179,6 +179,11 @@ namespace UnityEditor.VFX
                     var enumAttribute = (EnumAttribute)attribute;
                     exp = new VFXExpressionMin(exp, VFXValue.Constant((uint)enumAttribute.values.Length - 1));
                 }
+                else if (attribute is MinMaxAttribute)
+                {
+                    var minMaxAttribute = (MinMaxAttribute) attribute;
+                    exp = VFXOperatorUtility.Clamp(exp, VFXValue.Constant(minMaxAttribute.min), VFXValue.Constant(minMaxAttribute.max));
+                }
                 else
                     throw new NotImplementedException("Unrecognized expression attribute: " + attribute);
             }
