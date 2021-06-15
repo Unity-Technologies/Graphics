@@ -2066,8 +2066,11 @@ namespace UnityEngine.Rendering.HighDefinition
             // First, get aggregate of frame settings base on global settings, camera frame settings and debug settings
             // Note: the SceneView camera will never have additionalCameraData
             additionalCameraData = HDUtils.TryGetAdditionalCameraDataOrDefault(camera);
-            hdCamera = HDCamera.GetOrCreate(camera, xrPass.multipassId);
             cullingParams = default;
+
+            // Initialize HDCamera parameters (needed for the fullscreen passtrough callback)
+            hdCamera = HDCamera.GetOrCreate(camera, xrPass.multipassId);
+            hdCamera.SetXRPass(xrPass);
 
             FrameSettings currentFrameSettings = new FrameSettings();
             // Compute the FrameSettings actually used to draw the frame
