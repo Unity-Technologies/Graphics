@@ -92,14 +92,25 @@ internal static class URP2DConverterUtility
 
     public static void UpgradeScene(string path, Action<GameObject> objectUpgrader)
     {
-        Scene scene = EditorSceneManager.OpenScene(path, OpenSceneMode.Additive);
+        Scene scene = new Scene();
+        bool openedByUser = false;
+        for(int i=0;i<SceneManager.sceneCount && !openedByUser; i++)
+        {
+            scene = SceneManager.GetSceneAt(i);
+            if (path == scene.path)
+                openedByUser = true;
+        }
+
+        if(!openedByUser)
+            scene = EditorSceneManager.OpenScene(path, OpenSceneMode.Additive);
 
         GameObject[] gameObjects = scene.GetRootGameObjects();
         foreach (GameObject go in gameObjects)
             objectUpgrader(go);
 
         EditorSceneManager.SaveScene(scene);
-        EditorSceneManager.CloseScene(scene, true);
+        if(!openedByUser)
+            EditorSceneManager.CloseScene(scene, true);
     }
 
     public static void UpgradeMaterial(string path, Shader oldShader, Shader newShader)
