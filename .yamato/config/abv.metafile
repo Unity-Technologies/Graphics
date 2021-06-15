@@ -23,7 +23,7 @@ jobs:
       - <PROJECT_ALL_YML_FILE>#General_Checks_<TRACK>
     triggers:
         recurring:
-          -  branch: master
+          -  branch: 10.x.x/release
              frequency: 1 * * ?
 
   - name: General Checks

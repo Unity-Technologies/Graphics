@@ -36,7 +36,7 @@ all_project_ci_nightly_2020.3:
         CACHE_ARGS: '{{cache.flags}}'
     triggers:
         recurring:
-          -  branch: master
+          -  branch: 10.x.x/release
              frequency: 1 * * ?
 
     dependencies:
