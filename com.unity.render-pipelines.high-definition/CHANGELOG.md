@@ -70,6 +70,10 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Added the receiver motion rejection toggle to RTGI (case 1330168).
 - Added info box when low resolution transparency is selected, but its not enabled in the HDRP settings. This will help new users find the correct knob in the HDRP Asset.
 - Added a dialog box when you import a Material that has a diffusion profile to add the diffusion profile to global settings.
+- Added support for Unlit shadow mattes in Path Tracing (case 1335487).
+- Added a shortcut to HDRP Wizard documentation.
+- Added support of motion vector buffer in custom postprocess
+- Added tooltips for content inside the Rendering Debugger window.
 
 ### Fixed
 - Fixed Intensity Multiplier not affecting realtime global illumination.
@@ -234,7 +238,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed support of Distortion with MSAA
 - Fixed contact shadow debug views not displaying correctly upon resizing of view.
 - Fixed an error when deleting the 3D Texture mask of a local volumetric fog volume (case 1339330).
-- Fixed some aliasing ussues with the volumetric clouds.
+- Fixed some aliasing issues with the volumetric clouds.
 - Fixed reflection probes being injected into the ray tracing light cluster even if not baked (case 1329083).
 - Fixed the double sided option moving when toggling it in the material UI (case 1328877).
 - Fixed incorrect RTHandle scale in DoF when TAA is enabled.
@@ -243,6 +247,18 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed error with motion blur and small render targets.
 - Fixed issue with on-demand directional shadow maps looking broken when a reflection probe is updated at the same time.
 - Fixed cropping issue with the compositor camera bridge (case 1340549).
+- Fixed an issue with normal management for recursive rendering (case 1324082).
+- Fixed aliasing artifacts that are related to numerical imprecisions of the light rays in the volumetric clouds (case 1340731).
+- Fixed exposure issues with volumetric clouds on planar reflection
+- Fixed bad feedback loop occuring when auto exposure adaptation time was too small.
+- Fixed an issue where enabling GPU Instancing on a ShaderGraph Material would cause compile failures [1338695].
+- Fixed the transparent cutoff not working properly in semi-transparent and color shadows (case 1340234).
+- Fixed object outline flickering with TAA.
+- Fixed issue with sky settings being ignored when using the recorder and path tracing (case 1340507).
+- Fixed some resolution aliasing for physically based depth of field (case 1340551).
+- Fixed an issue with resolution dependence for physically based depth of field.
+- Fixed sceneview debug mode rendering (case 1211436)
+- Fixed Pixel Displacement that could be set on tessellation shader while it's not supported.
 - Fixed the incorrect value written to the VT feedback buffer if VT is not used.
 
 ### Changed
@@ -330,6 +346,8 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Changed light reset to preserve type.
 - Ignore hybrid duplicated reflection probes during light baking.
 - Updated the recursive rendering documentation (case 1338639).
+- Replaced the context menu by a search window when adding custom pass.
+- Moved supportRuntimeDebugDisplay option from HDRPAsset to HDRPGlobalSettings.
 
 ## [11.0.0] - 2020-10-21
 
