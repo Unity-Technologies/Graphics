@@ -344,6 +344,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Ignore hybrid duplicated reflection probes during light baking.
 - Updated the recursive rendering documentation (case 1338639).
 - Replaced the context menu by a search window when adding custom pass.
+- Moved supportRuntimeDebugDisplay option from HDRPAsset to HDRPGlobalSettings.
 
 ## [11.0.0] - 2020-10-21
 
