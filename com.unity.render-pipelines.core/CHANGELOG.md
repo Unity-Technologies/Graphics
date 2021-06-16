@@ -14,6 +14,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - LensFlare (SRP) can be now disabled per element
 - LensFlare (SRP) tooltips now refer to meters.
 - Serialize the Probe Volume asset as binary to improve footprint on disk and loading speed.
+- LensFlare Element editor now have Thumbnail preview
 
 ### Fixed
 - Fixed missing warning UI about Projector component being unsupported (case 1300327).
@@ -29,6 +30,10 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed issue displaying a warning of different probe reference volume profiles even when they are equivalent.
 - Fixed missing increment/decrement controls from DebugUIIntField & DebugUIUIntField widget prefabs.
 - Fixed IES Importer related to new API on core.
+- Fixed a large, visible stretch ratio in a LensFlare Image thumbnail.
+- Fixed Undo from script refreshing thumbnail.
+- Fixed cropped thumbnail for Image with non-uniform scale and rotation
+- Skip wind calculations for Speed Tree 8 when wind vector is zero (case 1343002)
 - Fixed memory leak when changing SRP pipeline settings, and having the player in pause mode.
 
 ### Added
