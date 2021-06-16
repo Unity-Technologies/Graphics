@@ -18,7 +18,8 @@ URPUpdate_Top_Asset_Store_Win_Vulkan_playmode_mono_Linear_trunk:
         UPM_REGISTRY: https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates
         CUSTOM_REVISION: '{{trunk.changeset.id}}'
         ASSETSTORE_UPDATE_PROJECT_BRANCH: master
-        ASSETSTORE_UPDATE_PROJECT_REVISION: 818b6345d6bf46cf3e5644aceff134e866c6150e
+        ASSETSTORE_UPDATE_PROJECT_REVISION: 263537e22614f3b98eba4f56cea3fd4519312b2f
+        CACHE_ARGS: '{{cache.flags}}'
         UTR_VERSION: "current"
         TEST_FILTER: .*
     commands:
@@ -41,7 +42,6 @@ URPUpdate_Top_Asset_Store_Win_Vulkan_playmode_mono_Linear_trunk:
                 echo %GIT_REVISIONDATE%
                 del revdate.tmp
                 utr --artifacts_path=TestProjects/URP-Update-Testing/Top-URP-Assets/test-results --editor-location=.Editor --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-force-vulkan" --scripting-backend=Mono2x --suite=playmode --testfilter=%TEST_FILTER% --testproject=./TestProjects/URP-Update-Testing/Top-URP-Assets --zero-tests-are-ok=1
-         retries: 2
     artifacts:
         logs:
             paths:
@@ -60,7 +60,8 @@ URPUpdate_Top_Asset_Store_Win_Vulkan_editmode_mono_Linear_trunk:
         UPM_REGISTRY: https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates
         CUSTOM_REVISION: '{{trunk.changeset.id}}'
         ASSETSTORE_UPDATE_PROJECT_BRANCH: master
-        ASSETSTORE_UPDATE_PROJECT_REVISION: 818b6345d6bf46cf3e5644aceff134e866c6150e
+        ASSETSTORE_UPDATE_PROJECT_REVISION: 263537e22614f3b98eba4f56cea3fd4519312b2f
+        CACHE_ARGS: '{{cache.flags}}'
         UTR_VERSION: "current"
         TEST_FILTER: .*
     commands:
@@ -83,7 +84,6 @@ URPUpdate_Top_Asset_Store_Win_Vulkan_editmode_mono_Linear_trunk:
                 echo %GIT_REVISIONDATE%
                 del revdate.tmp
                 utr --artifacts_path=TestProjects/URP-Update-Testing/Top-URP-Assets/test-results --editor-location=.Editor --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-force-vulkan" --extra-editor-arg="-playergraphicsapi=Vulkan" --platform=editmode --scripting-backend=Mono2x --suite=editor --testfilter=%TEST_FILTER% --testproject=./TestProjects/URP-Update-Testing/Top-URP-Assets --zero-tests-are-ok=1
-         retries: 2
     artifacts:
         logs:
             paths:
@@ -102,7 +102,8 @@ URPUpdate_Top_Asset_Store_Win_Vulkan_playmode_mono_Linear_CUSTOM-REVISION:
         UPM_REGISTRY: https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates
         CUSTOM_REVISION: custom_revision_not_set
         ASSETSTORE_UPDATE_PROJECT_BRANCH: master
-        ASSETSTORE_UPDATE_PROJECT_REVISION: 818b6345d6bf46cf3e5644aceff134e866c6150e
+        ASSETSTORE_UPDATE_PROJECT_REVISION: 263537e22614f3b98eba4f56cea3fd4519312b2f
+        CACHE_ARGS: '{{cache.flags}}'
         UTR_VERSION: "current"
         TEST_FILTER: .*
     commands:
@@ -125,7 +126,6 @@ URPUpdate_Top_Asset_Store_Win_Vulkan_playmode_mono_Linear_CUSTOM-REVISION:
                 echo %GIT_REVISIONDATE%
                 del revdate.tmp
                 utr --artifacts_path=TestProjects/URP-Update-Testing/Top-URP-Assets/test-results --editor-location=.Editor --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-force-vulkan" --scripting-backend=Mono2x --suite=playmode --testfilter=%TEST_FILTER% --testproject=./TestProjects/URP-Update-Testing/Top-URP-Assets --zero-tests-are-ok=1
-         retries: 2
     artifacts:
         logs:
             paths:
@@ -144,7 +144,8 @@ URPUpdate_Top_Asset_Store_Win_Vulkan_editmode_mono_Linear_CUSTOM-REVISION:
         UPM_REGISTRY: https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates
         CUSTOM_REVISION: custom_revision_not_set
         ASSETSTORE_UPDATE_PROJECT_BRANCH: master
-        ASSETSTORE_UPDATE_PROJECT_REVISION: 818b6345d6bf46cf3e5644aceff134e866c6150e
+        ASSETSTORE_UPDATE_PROJECT_REVISION: 263537e22614f3b98eba4f56cea3fd4519312b2f
+        CACHE_ARGS: '{{cache.flags}}'
         UTR_VERSION: "current"
         TEST_FILTER: .*
     commands:
@@ -167,7 +168,6 @@ URPUpdate_Top_Asset_Store_Win_Vulkan_editmode_mono_Linear_CUSTOM-REVISION:
                 echo %GIT_REVISIONDATE%
                 del revdate.tmp
                 utr --artifacts_path=TestProjects/URP-Update-Testing/Top-URP-Assets/test-results --editor-location=.Editor --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-force-vulkan" --extra-editor-arg="-playergraphicsapi=Vulkan" --platform=editmode --scripting-backend=Mono2x --suite=editor --testfilter=%TEST_FILTER% --testproject=./TestProjects/URP-Update-Testing/Top-URP-Assets --zero-tests-are-ok=1
-         retries: 2
     artifacts:
         logs:
             paths:
