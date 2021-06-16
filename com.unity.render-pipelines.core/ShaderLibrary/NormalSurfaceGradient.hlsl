@@ -66,6 +66,12 @@ real2 ConvertTangentSpaceNormalToHeightMapGradient(real2 normalXY, real rcpNorma
     return normalXY * (-rcpNormalZ * scale);
 }
 
+real3 SurfaceGradientFromTangentSpaceNormalAndFromTBN(real3 normalTS, real3 vT, real3 vB, real scale = 1.0)
+{
+    float2 deriv = ConvertTangentSpaceNormalToHeightMapGradient(normalTS.xy, rcp(max(normalTS.z, REAL_EPS)), scale);
+    return SurfaceGradientFromTBN(deriv, vT, vB);
+}
+
 // Converts tangent space normal to slopes (height map gradient).
 real2 UnpackDerivativeNormalRGB(real4 packedNormal, real scale = 1.0)
 {
