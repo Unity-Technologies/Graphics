@@ -90,7 +90,7 @@ namespace UnityEditor.Rendering.Universal
 
         public override float GetPropertyHeight(SerializedProperty property, GUIContent label)
         {
-            if (m_OverrideStencil != null && m_OverrideStencil.boolValue)
+            if (m_properties.Contains(property.serializedObject) && m_OverrideStencil != null && m_OverrideStencil.boolValue)
                 return EditorUtils.Styles.defaultLineSpace * 6;
             return EditorUtils.Styles.defaultLineSpace * 1;
         }

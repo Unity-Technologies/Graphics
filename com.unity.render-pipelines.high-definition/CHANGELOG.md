@@ -38,6 +38,8 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed a memory leak related to not disposing of the RTAS at the end HDRP's lifecycle.
 - Fixed overdraw in custom pass utils blur and Copy functions (case 1333648);
 - Fixed invalid pass index 1 in DrawProcedural error.
+- Fix for wrong cached area light initialization.
+- Fixed an issue where enabling GPU Instancing on a ShaderGraph Material would cause compile failures [1338695].
 
 ### Changed
 - Display an info box and disable MSAA  asset entry when ray tracing is enabled.
@@ -142,8 +144,6 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed SRP batcher not compatible with Decal (case 1311586)
 - Fixed issue with different shadow atlas stomping on each other when they have same resolution.
 - Fixed wrong color buffer being bound to pre refraction custom passes.
-<<<<<<< HEAD
-=======
 - Fixed issue in Probe Reference Volume authoring component triggering an asset reload on all operations.
 - Fixed grey screen on playstation platform when histogram exposure is enabled but the curve mapping is not used.
 - Fixed HDRPAsset loosing its reference to the ray tracing resources when clicking on a different quality level that doesn't have ray tracing (case 1320304).
@@ -190,7 +190,6 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed ResourceReloader that was not call anymore at pipeline construction
 - Fixed undo of some properties on light editor.
 - Fixed an issue where auto baking of ambient and reflection probe done for builtin renderer would cause wrong baking in HDRP.
->>>>>>> 1f51ef158b... Opt-out of builtin auto baking of ambient/reflection probe. (#4324)
 
 ### Changed
 - Updated the tooltip for the Decal Angle Fade property (requires to enable Decal Layers in both HDRP asset and Frame settings) (case 1308048).
