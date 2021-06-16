@@ -188,6 +188,10 @@ namespace UnityEditor.ShaderGraph.Drawing
                             & NodeUtils.GetEffectiveShaderStageCapability(candidateSlot, false);
                     if (candidateStage != ShaderStageCapability.All && candidateStage != startStage)
                         continue;
+
+                    // None stage can only connect to All stage, otherwise you can connect invalid connections
+                    if (startStage == ShaderStageCapability.None && candidateStage != ShaderStageCapability.All)
+                        continue;
                 }
 
                 compatibleAnchors.Add(candidateAnchor);
