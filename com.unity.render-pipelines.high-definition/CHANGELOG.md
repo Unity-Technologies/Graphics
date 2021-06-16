@@ -73,6 +73,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Added support for Unlit shadow mattes in Path Tracing (case 1335487).
 - Added a shortcut to HDRP Wizard documentation.
 - Added support of motion vector buffer in custom postprocess
+- Added tooltips for content inside the Rendering Debugger window.
 
 ### Fixed
 - Fixed Intensity Multiplier not affecting realtime global illumination.
@@ -256,6 +257,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed issue with sky settings being ignored when using the recorder and path tracing (case 1340507).
 - Fixed some resolution aliasing for physically based depth of field (case 1340551).
 - Fixed an issue with resolution dependence for physically based depth of field.
+- Fixed sceneview debug mode rendering (case 1211436)
 - Fixed Pixel Displacement that could be set on tessellation shader while it's not supported.
 
 ### Changed
@@ -344,6 +346,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Ignore hybrid duplicated reflection probes during light baking.
 - Updated the recursive rendering documentation (case 1338639).
 - Replaced the context menu by a search window when adding custom pass.
+- Moved supportRuntimeDebugDisplay option from HDRPAsset to HDRPGlobalSettings.
 
 ## [11.0.0] - 2020-10-21
 
