@@ -124,7 +124,9 @@ namespace UnityEngine.Experimental.Rendering
 
             foreach (var scene in EditorBuildSettings.scenes)
             {
-                scenesToConsider.Add(scene.path);
+                // We consider only scenes that exist.
+                if (System.IO.File.Exists(scene.path))
+                    scenesToConsider.Add(scene.path);
             }
 
 
@@ -155,14 +157,18 @@ namespace UnityEngine.Experimental.Rendering
                 }
                 else // we need to open the scene to test.
                 {
-                    var scene = EditorSceneManager.OpenScene(scenePath, OpenSceneMode.Additive);
-                    openedScenes.Add(scene);
-                    sceneBounds.UpdateSceneBounds(scene);
-                    Bounds localBound = sceneBounds.sceneBounds[scene.path];
-                    if (hasFoundBounds)
-                        globalBounds.Encapsulate(localBound);
-                    else
-                        globalBounds = localBound;
+                    // We open only if the scene still exists (might have been removed)
+                    if (System.IO.File.Exists(scenePath))
+                    {
+                        var scene = EditorSceneManager.OpenScene(scenePath, OpenSceneMode.Additive);
+                        openedScenes.Add(scene);
+                        sceneBounds.UpdateSceneBounds(scene);
+                        Bounds localBound = sceneBounds.sceneBounds[scene.path];
+                        if (hasFoundBounds)
+                            globalBounds.Encapsulate(localBound);
+                        else
+                            globalBounds = localBound;
+                    }
                 }
             }
 
@@ -651,9 +657,8 @@ namespace UnityEngine.Experimental.Rendering
             var result = new ProbeSubdivisionResult();
             var sceneRefs = new Dictionary<Scene, int>();
 
-            bool realtimeSubdivision = ProbeReferenceVolume.instance.debugDisplay.realtimeSubdivision;
-            if (realtimeSubdivision)
-                ctx.refVolume.realtimeSubdivisionInfo.Clear();
+            if (ctx.probeVolumes.Count == 0)
+                return result;
 
             using (var gpuResources = ProbePlacement.AllocateGPUResources(ctx.probeVolumes.Count, ctx.refVolume.profile.maxSubdivision))
             {
@@ -710,10 +715,6 @@ namespace UnityEngine.Experimental.Rendering
                     result.cellPositions.Add(cell.position);
                     result.bricksPerCells[cell.position] = bricks;
                     result.sortedRefs = sortedRefs;
-
-                    // If realtime subdivision is enabled, we save a copy of the data inside the authoring component for the debug view
-                    if (realtimeSubdivision)
-                        ctx.refVolume.realtimeSubdivisionInfo[cell.volume] = bricks;
                 }
             }
 
