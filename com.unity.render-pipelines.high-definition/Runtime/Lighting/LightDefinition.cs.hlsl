@@ -132,6 +132,7 @@ struct EnvLightData
 {
     uint lightLayers;
     float3 capturePositionRWS;
+    float4 captureRotationToWS;
     int influenceShapeType;
     float3 proxyExtents;
     real minProjectionDistance;

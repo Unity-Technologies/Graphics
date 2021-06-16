@@ -143,6 +143,20 @@ namespace UnityEngine.Rendering.HighDefinition
         [SerializeField]
         bool m_HasValidSHForNormalization = false;
 
+        [SerializeField]
+        Quaternion m_CaptureRotation = Quaternion.identity;
+
+        internal void UpdateCaptureRotation()
+        {
+            m_CaptureRotation = transform.rotation;
+        }
+
+        internal Quaternion ComputeCaptureRotationToWS()
+        {
+            Quaternion captureRotationToWS = Quaternion.Inverse(transform.rotation) * m_CaptureRotation;
+            return captureRotationToWS;
+        }
+
         // Array of names that will be used in the Render Loop to name the probes in debug
         internal string[] probeName = new string[6];
 
