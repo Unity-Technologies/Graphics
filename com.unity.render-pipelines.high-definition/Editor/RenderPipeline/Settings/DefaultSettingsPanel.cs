@@ -7,6 +7,8 @@ using UnityEngine.UIElements;
 using UnityEditorInternal;
 using System.Linq;
 using System.Reflection;
+using UnityEditor.VFX.HDRP;
+using UnityEditor.VFX.UI;
 
 namespace UnityEditor.Rendering.HighDefinition
 {
@@ -117,6 +119,21 @@ namespace UnityEditor.Rendering.HighDefinition
 
         SerializedHDRenderPipelineGlobalSettings serializedSettings;
         HDRenderPipelineGlobalSettings settingsSerialized;
+        internal static bool needRefreshVfxErrors = false;
+        private void RefreshVfxErrorsIfNeeded()
+        {
+            if (needRefreshVfxErrors)
+            {
+                var vfxWindow = VFXViewWindow.currentWindow;
+                if (vfxWindow != null)
+                {
+                    var vfxGraph = vfxWindow.graphView.controller.graph;
+                    foreach ( var output in vfxGraph.children.OfType<VFXDecalHDRPOutput>())
+                        output.RefreshErrors(vfxGraph);
+                }
+            }
+            needRefreshVfxErrors = false;
+        }
         public void DoGUI(string searchContext)
         {
             // When the asset being serialized has been deleted before its reconstruction
@@ -147,6 +164,7 @@ namespace UnityEditor.Rendering.HighDefinition
                 EditorGUILayout.Space();
                 Inspector.Draw(serializedSettings, null);
                 serializedSettings.serializedObject?.ApplyModifiedProperties();
+                RefreshVfxErrorsIfNeeded();
             }
         }
 

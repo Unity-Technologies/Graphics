@@ -97,10 +97,12 @@ namespace UnityEditor.VFX.HDRP
         private bool affectSmoothness = true;
 
 
-        private bool supportDecals => HDRenderPipeline.currentAsset.currentPlatformRenderPipelineSettings.supportDecals;
+        private bool supportDecals => HDRenderPipeline.currentAsset.currentPlatformRenderPipelineSettings.supportDecals &&
+        HDRenderPipelineGlobalSettings.instance.GetDefaultFrameSettings(FrameSettingsRenderType.Camera).IsEnabled(FrameSettingsField.Decals);
         private bool enableDecalLayers =>
             supportDecals
-            && HDRenderPipeline.currentAsset.currentPlatformRenderPipelineSettings.supportDecalLayers;
+            && HDRenderPipeline.currentAsset.currentPlatformRenderPipelineSettings.supportDecalLayers
+            && HDRenderPipelineGlobalSettings.instance.GetDefaultFrameSettings(FrameSettingsRenderType.Camera).IsEnabled(FrameSettingsField.DecalLayers);
 
         private bool metalAndAODecals =>
             supportDecals
@@ -116,13 +118,13 @@ namespace UnityEditor.VFX.HDRP
 
         public class FadeFactorProperty
         {
-            [Range(0, 1), Tooltip("Fade Factor.")] public float fadeFactor = 1.0f;
+            [Range(0, 1), Tooltip("Controls the transparency of the decal.")] public float fadeFactor = 1.0f;
         }
 
         public class AngleFadeProperty
         {
             [Tooltip("Use the min-max slider to control the fade out range of the decal based on the angle between the Decal backward direction and the vertex normal of the receiving surface." +
-                     " Only available if Decal Layers feature is enabled."), MinMax(0.0f, 180.0f)]
+                     " Works only if Decal Layers is enabled both in the HDRP Asset and in the HDRP Settings."), MinMax(0.0f, 180.0f)]
             public Vector2 angleFade = new Vector2(0.0f, 180.0f);
         }
 
@@ -346,11 +348,17 @@ namespace UnityEditor.VFX.HDRP
         protected override void GenerateErrors(VFXInvalidateErrorReporter manager)
         {
             base.GenerateErrors(manager);
+            if (!supportDecals)
+            {
+                manager.RegisterError("DecalsDisabled", VFXErrorType.Warning,
+                    $"Decals will not be rendered because the 'Decals' is disabled in your HDRP Settings. Enable 'Decals' in your HDRP Asset and your HDRP Settings to make this output work.");
+            }
+
             if (!enableDecalLayers)
             {
                 manager.RegisterError("DecalLayersDisabled", VFXErrorType.Warning,
                     $"The Angle Fade parameter won't have any effect, because the 'Decal Layers' setting is disabled." +
-                    $" Enable 'Decal Layers' in your HDRP Asset if you want to control the Angle Fade." +
+                    $" Enable 'Decal Layers' in your HDRP Asset and in the HDRP Settings if you want to control the Angle Fade." +
                     $" There is a performance cost of enabling this option.");
             }
 
@@ -360,6 +368,7 @@ namespace UnityEditor.VFX.HDRP
                     $"The Metallic and Ambient Occlusion parameters won't have any effect, because the 'Metal and AO properties' setting is disabled." +
                     $" Enable 'Metal and AO properties' in your HDRP Asset if you want to control the Metal and AO properties of decals. There is a performance cost of enabling this option.");
             }
+
         }
 
         protected override IEnumerable<string> untransferableSettings
