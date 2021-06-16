@@ -66,12 +66,12 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
 
         private static class Strings
         {
-            public static readonly NameAndTooltip ClearRenderTargetsAtCreation = new() { name = "Clear Render Targets At Creation", tooltip = "" };
-            public static readonly NameAndTooltip DisablePassCulling = new() { name = "Disable Pass Culling", tooltip = "" };
-            public static readonly NameAndTooltip ImmediateMode = new() { name = "Immediate Mode", tooltip = "" };
-            public static readonly NameAndTooltip EnableLogging = new() { name = "Enable Logging", tooltip = "" };
-            public static readonly NameAndTooltip LogFrameInformation = new() { name = "Log Frame Information", tooltip = "" };
-            public static readonly NameAndTooltip LogResources = new() { name = "Log Resources", tooltip = "" };
+            public static readonly NameAndTooltip ClearRenderTargetsAtCreation = new() { name = "Clear Render Targets At Creation", tooltip = "Enable to clear all render textures before any rendergraph passes to check if some clears are missing." };
+            public static readonly NameAndTooltip DisablePassCulling = new() { name = "Disable Pass Culling", tooltip = "Enable to temporarily disable culling to asses if a pass is culled." };
+            public static readonly NameAndTooltip ImmediateMode = new() { name = "Immediate Mode", tooltip = "Enable to force render graph to execute all passes in the order you registered them." };
+            public static readonly NameAndTooltip EnableLogging = new() { name = "Enable Logging", tooltip = "Enable to allow HDRP to capture information in the log." };
+            public static readonly NameAndTooltip LogFrameInformation = new() { name = "Log Frame Information", tooltip = "Enable to log information output from each frame." };
+            public static readonly NameAndTooltip LogResources = new() { name = "Log Resources", tooltip = "Enable to log the current render graph's global resource usage." };
         }
 
         public void RegisterDebug(string name, DebugUI.Panel debugPanel = null)

@@ -1139,21 +1139,37 @@ namespace UnityEngine.Rendering.HighDefinition
         {
             // Shadows
             public static readonly NameAndTooltip ShadowDebugMode = new() { name = "Shadow Debug Mode", tooltip = "Use the drop-down to select which shadow debug information to overlay on the screen." };
-            public static readonly NameAndTooltip ShadowDebugUseSelection = new() { name = "Use Selection", tooltip = "" };
-            public static readonly NameAndTooltip ShadowDebugShadowMapIndex = new() { name = "Shadow Map Index", tooltip = "" };
+            public static readonly NameAndTooltip ShadowDebugUseSelection = new() { name = "Use Selection", tooltip = "Enable the checkbox to display the shadow map for the Light you have selected in the Scene." };
+            public static readonly NameAndTooltip ShadowDebugShadowMapIndex = new() { name = "Shadow Map Index", tooltip = "Use the slider to view a specific index of the shadow map. To use this property, your scene must include a Light that uses a shadow map." };
             public static readonly NameAndTooltip GlobalShadowScaleFactor = new() { name = "Global Shadow Scale Factor", tooltip = "Use the slider to set the global scale that HDRP applies to the shadow rendering resolution." };
             public static readonly NameAndTooltip ClearShadowAtlas = new() { name = "Clear Shadow Atlas", tooltip = "Enable the checkbox to clear the shadow atlas every frame." };
             public static readonly NameAndTooltip ShadowRangeMinimumValue = new() { name = "Shadow Range Minimum Value", tooltip = "Set the minimum shadow value to display in the various shadow debug overlays." };
             public static readonly NameAndTooltip ShadowRangeMaximumValue = new() { name = "Shadow Range Maximum Value", tooltip = "Set the maximum shadow value to display in the various shadow debug overlays." };
-            public static readonly NameAndTooltip LogCachedShadowAtlasStatus = new() { name = "Log Cached Shadow Atlas Status", tooltip = "" };
+            public static readonly NameAndTooltip LogCachedShadowAtlasStatus = new() { name = "Log Cached Shadow Atlas Status", tooltip = "Displays a list of the Lights currently in the cached shadow atlas in the Console." };
 
             // Lighting
             public static readonly NameAndTooltip ShowLightsByType = new() { name = "Show Lights By Type", tooltip = "Allows the user to enable or disable lights in the scene based on their type. This will not change the actual settings of the light." };
-            public static readonly NameAndTooltip LightingDebugMode = new() { name = "Lighting Debug Mode", tooltip = "Use the drop-down to select a lighting mode to debug." };
+            public static readonly NameAndTooltip DirectionalLights = new() { name = "Directional Lights", tooltip = "Temporarily enables or disables Directional Lights in your Scene." };
+            public static readonly NameAndTooltip PunctualLights = new() { name = "Punctual Lights", tooltip = "Temporarily enables or disables Punctual Lights in your Scene." };
+            public static readonly NameAndTooltip AreaLights = new() { name = "Area Lights", tooltip = "Temporarily enables or disables Area Lights in your Scene." };
+            public static readonly NameAndTooltip ReflectionProbes = new() { name = "Reflection Probes", tooltip = "Temporarily enables or disables Reflection Probes in your Scene." };
+
             public static readonly NameAndTooltip Exposure = new() { name = "Exposure", tooltip = "Allows the selection of an Exposure debug mode to use." };
-            public static readonly NameAndTooltip DebugExposureCompensation = new() { name = "Debug Exposure Compensation", tooltip = "" };
+            public static readonly NameAndTooltip ExposureDebugMode = new() { name = "DebugMode", tooltip = "Use the drop-down to select a debug mode to validate the exposure." };
+            public static readonly NameAndTooltip ExposureDisplayMaskOnly = new() { name = "Display Mask Only", tooltip = "Display only the metering mask in the picture-in-picture. When disabled, the mask is visible after weighting the scene color instead." };
+            public static readonly NameAndTooltip ExposureShowTonemapCurve = new() { name = "Show Tonemap Curve", tooltip = "Overlay the tonemap curve to the histogram debug view." };
+            public static readonly NameAndTooltip ExposureCenterAroundExposure = new() { name = "Center Around Exposure", tooltip = "Center the histogram around the current exposure value." };
+            public static readonly NameAndTooltip ExposureDisplayRGBHistogram = new() { name = "Display RGB Histogram", tooltip = "Display the Final Image Histogram as an RGB histogram instead of just luminance." };
+            public static readonly NameAndTooltip DebugExposureCompensation = new() { name = "Debug Exposure Compensation", tooltip = "Set an additional exposure on top of your current exposure for debug purposes." };
+
+            public static readonly NameAndTooltip LightingDebugMode = new() { name = "Lighting Debug Mode", tooltip = "Use the drop-down to select a lighting mode to debug." };
             public static readonly NameAndTooltip LightHierarchyDebugMode = new() { name = "Light Hierarchy Debug Mode", tooltip = "Use the drop-down to select a light type to show the direct lighting for or a Reflection Probe type to show the indirect lighting for." };
-            public static readonly NameAndTooltip LightLayersVisualization = new() { name = "Light Layers Visualization", tooltip = "" };
+            public static readonly NameAndTooltip LightLayersVisualization = new() { name = "Light Layers Visualization", tooltip = "Visualize the light layers of GameObjects in your Scene." };
+
+            public static readonly NameAndTooltip LightLayersUseSelectedLight = new() { name = "Use Selected Light", tooltip = "Visualize GameObjects affected by the selected light." };
+            public static readonly NameAndTooltip LightLayersSwitchToLightShadowLayers = new() { name = "Switch To Light's Shadow Layers", tooltip = "Visualize GameObjects that cast shadows for the selected light." };
+            public static readonly NameAndTooltip LightLayersFilterLayers = new() { name = "Filter Layers", tooltip = "Use the drop-down to filter light layers that you want to visialize." };
+            public static readonly NameAndTooltip LightLayersColor = new() { name = "Layers Color", tooltip = "Select the display color of each light layer." };
 
             // Material Overrides
             public static readonly NameAndTooltip OverrideSmoothness = new() { name = "Override Smoothness", tooltip = "Enable the checkbox to override the smoothness for the entire Scene." };
@@ -1170,16 +1186,21 @@ namespace UnityEngine.Rendering.HighDefinition
 
             // Fullscreen debug
             public static readonly NameAndTooltip FullscreenDebugMode = new() { name = "Fullscreen Debug Mode", tooltip = "Use the drop-down to select a rendering mode to display as an overlay on the screen." };
-            public static readonly NameAndTooltip ScreenSpaceShadowIndex = new() { name = "Screen Space Shadow Index", tooltip = "" };
+            public static readonly NameAndTooltip ScreenSpaceShadowIndex = new() { name = "Screen Space Shadow Index", tooltip = "Select the index of the screen space shadows to view with the slider. There must be a Light in the scene that uses Screen Space Shadows." };
+            public static readonly NameAndTooltip DepthPyramidDebugMip = new() { name = "Debug Mip", tooltip = "Enable to view a lower-resolution mipmap." };
+            public static readonly NameAndTooltip DepthPyramidEnableRemap = new() { name = "Enable Depth Remap", tooltip = "" };
+            public static readonly NameAndTooltip DepthPyramidRangeMin = new() { name = "Depth Range Min Value", tooltip = "" };
+            public static readonly NameAndTooltip DepthPyramidRangeMax = new() { name = "Depth Range Max Value", tooltip = "" };
+            public static readonly NameAndTooltip ContactShadowsLightIndex = new() { name = "Light Index", tooltip = "Enable to display Contact shadows for each Light individually." };
 
             // Tile/Cluster debug
-            public static readonly NameAndTooltip TileClusterDebug = new() { name = "Tile/Cluster Debug", tooltip = "Use the drop-down to select the Light type that you want to show the Tile/Cluster debug information for. " };
-            public static readonly NameAndTooltip TileClusterDebugByCategory = new() { name = "Tile/Cluster Debug By Catagory", tooltip = "Use the drop-down to select the visualization mode for the cluster. " };
-            public static readonly NameAndTooltip ClusterDebugMode = new() { name = "Cluster Debug Mode", tooltip = "" };
-            public static readonly NameAndTooltip ClusterDistance = new() { name = "Cluster Distance", tooltip = "" };
+            public static readonly NameAndTooltip TileClusterDebug = new() { name = "Tile/Cluster Debug", tooltip = "Use the drop-down to select the Light type that you want to show the Tile/Cluster debug information for." };
+            public static readonly NameAndTooltip TileClusterDebugByCategory = new() { name = "Tile/Cluster Debug By Catagory", tooltip = "Use the drop-down to select the visualization mode for the cluster." };
+            public static readonly NameAndTooltip ClusterDebugMode = new() { name = "Cluster Debug Mode", tooltip = "Select the debug visualization mode for the Cluster." };
+            public static readonly NameAndTooltip ClusterDistance = new() { name = "Cluster Distance", tooltip = "Set the distance from the camera that HDRP displays the Cluster slice." };
 
             // Sky reflections
-            public static readonly NameAndTooltip DisplaySkyReflection = new() { name = "Display Sky Reflection", tooltip = "Enable the checkbox to display an overlay of the cube map that the current sky generates and HDRP uses for lighting" };
+            public static readonly NameAndTooltip DisplaySkyReflection = new() { name = "Display Sky Reflection", tooltip = "Enable the checkbox to display an overlay of the cube map that the current sky generates and HDRP uses for lighting." };
             public static readonly NameAndTooltip SkyReflectionMipmap = new() { name = "Sky Reflection Mipmap", tooltip = "Use the slider to set the mipmap level of the sky reflection cubemap. Use this to view the sky reflection cubemap's different mipmap levels." };
 
             // Light volumes
@@ -1190,17 +1211,17 @@ namespace UnityEngine.Rendering.HighDefinition
             // Cookie atlas
             public static readonly NameAndTooltip DisplayCookieAtlas = new() { name = "Display Cookie Atlas", tooltip = "Enable the checkbox to display an overlay of the cookie atlas." };
             public static readonly NameAndTooltip CookieAtlasMipLevel = new() { name = "Mip Level", tooltip = "Use the slider to set the mipmap level of the cookie atlas." };
-            public static readonly NameAndTooltip ClearCookieAtlas = new() { name = "Clear Cookie Atlas", tooltip = "" };
+            public static readonly NameAndTooltip ClearCookieAtlas = new() { name = "Clear Cookie Atlas", tooltip = "Enable to clear the cookie atlas at each frame." };
 
             // Planar reflection atlas
             public static readonly NameAndTooltip DisplayPlanarReflectionAtlas = new() { name = "Display Planar Reflection Atlas", tooltip = "Enable the checkbox to display an overlay of the planar reflection atlas." };
             public static readonly NameAndTooltip PlanarAtlasMipLevel = new() { name = "Mip Level", tooltip = "Use the slider to set the mipmap level of the planar reflection atlas." };
-            public static readonly NameAndTooltip ClearPlanarAtlas = new() { name = "Clear Planar Atlas", tooltip = "" };
+            public static readonly NameAndTooltip ClearPlanarAtlas = new() { name = "Clear Planar Atlas", tooltip = "Enable to clear the planar reflection atlas at each frame." };
 
             // Volumetric fog atlas
-            public static readonly NameAndTooltip DisplayLocalVolumetricFogAtlas = new() { name = "Display Local Volumetric Fog Atlas", tooltip = "" };
-            public static readonly NameAndTooltip VolumetricFogSlice = new() { name = "Slice", tooltip = "" };
-            public static readonly NameAndTooltip VolumetricFogUseSelection = new() { name = "Use Selection", tooltip = "" };
+            public static readonly NameAndTooltip DisplayLocalVolumetricFogAtlas = new() { name = "Display Local Volumetric Fog Atlas", tooltip = "Enable to display the 3D texture atlas used for the local volumetric fog masks." };
+            public static readonly NameAndTooltip VolumetricFogSlice = new() { name = "Slice", tooltip = "Select which slice of the texture 3D to view." };
+            public static readonly NameAndTooltip VolumetricFogUseSelection = new() { name = "Use Selection", tooltip = "Display the mask of the selected local volumetric fog instead of the full atlas." };
 
             public static readonly NameAndTooltip DebugOverlayScreenRatio = new() { name = "Debug Overlay Screen Ratio", tooltip = "Set the size of the debug overlay textures with a ratio of the screen size." };
         }
@@ -1257,10 +1278,10 @@ namespace UnityEngine.Rendering.HighDefinition
                     nameAndTooltip = LightingStrings.ShowLightsByType,
                     children =
                     {
-                        new DebugUI.BoolField { displayName = "Directional Lights", getter = () => data.lightingDebugSettings.showDirectionalLight, setter = value => data.lightingDebugSettings.showDirectionalLight = value },
-                        new DebugUI.BoolField { displayName = "Punctual Lights", getter = () => data.lightingDebugSettings.showPunctualLight, setter = value => data.lightingDebugSettings.showPunctualLight = value },
-                        new DebugUI.BoolField { displayName = "Area Lights", getter = () => data.lightingDebugSettings.showAreaLight, setter = value => data.lightingDebugSettings.showAreaLight = value },
-                        new DebugUI.BoolField { displayName = "Reflection Probes", getter = () => data.lightingDebugSettings.showReflectionProbe, setter = value => data.lightingDebugSettings.showReflectionProbe = value },
+                        new DebugUI.BoolField { nameAndTooltip = LightingStrings.DirectionalLights, getter = () => data.lightingDebugSettings.showDirectionalLight, setter = value => data.lightingDebugSettings.showDirectionalLight = value },
+                        new DebugUI.BoolField { nameAndTooltip = LightingStrings.PunctualLights, getter = () => data.lightingDebugSettings.showPunctualLight, setter = value => data.lightingDebugSettings.showPunctualLight = value },
+                        new DebugUI.BoolField { nameAndTooltip = LightingStrings.AreaLights, getter = () => data.lightingDebugSettings.showAreaLight, setter = value => data.lightingDebugSettings.showAreaLight = value },
+                        new DebugUI.BoolField { nameAndTooltip = LightingStrings.ReflectionProbes, getter = () => data.lightingDebugSettings.showReflectionProbe, setter = value => data.lightingDebugSettings.showReflectionProbe = value },
                     }
                 });
 
@@ -1271,7 +1292,7 @@ namespace UnityEngine.Rendering.HighDefinition
                     {
                         new DebugUI.EnumField
                         {
-                            displayName = "Debug Mode",
+                            nameAndTooltip = LightingStrings.ExposureDebugMode,
                             getter = () => (int)data.lightingDebugSettings.exposureDebugMode,
                             setter = value => SetExposureDebugMode((ExposureDebugMode)value),
                             autoEnum = typeof(ExposureDebugMode), onValueChanged = RefreshLightingDebug,
@@ -1286,7 +1307,7 @@ namespace UnityEngine.Rendering.HighDefinition
                     exposureFoldout.children.Add(
                         new DebugUI.BoolField()
                         {
-                            displayName = "Display Mask Only",
+                            nameAndTooltip = LightingStrings.ExposureDisplayMaskOnly,
                             getter = () => data.lightingDebugSettings.displayMaskOnly,
                             setter = value => data.lightingDebugSettings.displayMaskOnly = value
                         });
@@ -1296,14 +1317,14 @@ namespace UnityEngine.Rendering.HighDefinition
                     exposureFoldout.children.Add(
                         new DebugUI.BoolField()
                         {
-                            displayName = "Show Tonemap curve",
+                            nameAndTooltip = LightingStrings.ExposureShowTonemapCurve,
                             getter = () => data.lightingDebugSettings.showTonemapCurveAlongHistogramView,
                             setter = value => data.lightingDebugSettings.showTonemapCurveAlongHistogramView = value
                         });
                     exposureFoldout.children.Add(
                         new DebugUI.BoolField()
                         {
-                            displayName = "Center Around Exposure",
+                            nameAndTooltip = LightingStrings.ExposureCenterAroundExposure,
                             getter = () => data.lightingDebugSettings.centerHistogramAroundMiddleGrey,
                             setter = value => data.lightingDebugSettings.centerHistogramAroundMiddleGrey = value
                         });
@@ -1313,7 +1334,7 @@ namespace UnityEngine.Rendering.HighDefinition
                     exposureFoldout.children.Add(
                         new DebugUI.BoolField()
                         {
-                            displayName = "Display RGB Histogram",
+                            nameAndTooltip = LightingStrings.ExposureDisplayRGBHistogram,
                             getter = () => data.lightingDebugSettings.displayFinalImageHistogramAsRGB,
                             setter = value => data.lightingDebugSettings.displayFinalImageHistogramAsRGB = value
                         });
@@ -1339,7 +1360,7 @@ namespace UnityEngine.Rendering.HighDefinition
                     var container = new DebugUI.Container();
                     container.children.Add(new DebugUI.BoolField
                     {
-                        displayName = "Use Selected Light",
+                        nameAndTooltip = LightingStrings.LightLayersUseSelectedLight,
                         getter = () => data.lightingDebugSettings.debugSelectionLightLayers,
                         setter = value => data.lightingDebugSettings.debugSelectionLightLayers = value,
                         flags = DebugUI.Flags.EditorOnly,
@@ -1350,7 +1371,7 @@ namespace UnityEngine.Rendering.HighDefinition
                     {
                         container.children.Add(new DebugUI.BoolField
                         {
-                            displayName = "Switch to Light's Shadow Layers",
+                            nameAndTooltip = LightingStrings.LightLayersSwitchToLightShadowLayers,
                             getter = () => data.lightingDebugSettings.debugSelectionShadowLayers,
                             setter = value => data.lightingDebugSettings.debugSelectionShadowLayers = value,
                             flags = DebugUI.Flags.EditorOnly,
@@ -1361,7 +1382,7 @@ namespace UnityEngine.Rendering.HighDefinition
                     {
                         var field = new DebugUI.BitField
                         {
-                            displayName = "Filter Layers",
+                            nameAndTooltip = LightingStrings.LightLayersFilterLayers,
                             getter = () => data.lightingDebugSettings.debugLightLayersFilterMask,
                             setter = value => data.lightingDebugSettings.debugLightLayersFilterMask = (DebugLightLayersMask)value,
                             enumType = typeof(DebugLightLayersMask)
@@ -1373,7 +1394,7 @@ namespace UnityEngine.Rendering.HighDefinition
                         container.children.Add(field);
                     }
 
-                    var layersColor = new DebugUI.Foldout() { displayName = "Layers Color", flags = DebugUI.Flags.EditorOnly };
+                    var layersColor = new DebugUI.Foldout() { nameAndTooltip = LightingStrings.LightLayersColor, flags = DebugUI.Flags.EditorOnly };
                     for (int i = 0; i < 8; i++)
                     {
                         int index = i;
@@ -1478,10 +1499,10 @@ namespace UnityEngine.Rendering.HighDefinition
                     {
                         children =
                         {
-                            new DebugUI.FloatField { displayName = "Debug Mip", getter = () => data.fullscreenDebugMip, setter = value => data.fullscreenDebugMip = value, min = () => 0f, max = () => 1f, incStep = 0.05f },
-                            new DebugUI.BoolField { displayName = "Enable Depth Remap", getter = () => data.enableDebugDepthRemap, setter = value => data.enableDebugDepthRemap = value },
-                            new DebugUI.FloatField { displayName = "Depth range min value", getter = () => data.fullScreenDebugDepthRemap.x, setter = value => data.fullScreenDebugDepthRemap.x = value, min = () => 0f, max = () => 1f, incStep = 0.05f },
-                            new DebugUI.FloatField { displayName = "Depth range max value", getter = () => data.fullScreenDebugDepthRemap.y, setter = value => data.fullScreenDebugDepthRemap.y = value, min = () => 0f, max = () => 1f, incStep = 0.05f }
+                            new DebugUI.FloatField { nameAndTooltip = LightingStrings.DepthPyramidDebugMip, getter = () => data.fullscreenDebugMip, setter = value => data.fullscreenDebugMip = value, min = () => 0f, max = () => 1f, incStep = 0.05f },
+                            new DebugUI.BoolField { nameAndTooltip = LightingStrings.DepthPyramidEnableRemap, getter = () => data.enableDebugDepthRemap, setter = value => data.enableDebugDepthRemap = value },
+                            new DebugUI.FloatField { nameAndTooltip = LightingStrings.DepthPyramidRangeMin, getter = () => data.fullScreenDebugDepthRemap.x, setter = value => data.fullScreenDebugDepthRemap.x = value, min = () => 0f, max = () => 1f, incStep = 0.05f },
+                            new DebugUI.FloatField { nameAndTooltip = LightingStrings.DepthPyramidRangeMax, getter = () => data.fullScreenDebugDepthRemap.y, setter = value => data.fullScreenDebugDepthRemap.y = value, min = () => 0f, max = () => 1f, incStep = 0.05f }
                         }
                     });
                     break;
@@ -1493,7 +1514,7 @@ namespace UnityEngine.Rendering.HighDefinition
                         {
                             new DebugUI.IntField
                             {
-                                displayName = "Light Index",
+                                nameAndTooltip = LightingStrings.ContactShadowsLightIndex,
                                 getter = () =>
                                 {
                                     return data.fullScreenContactShadowLightIndex;
@@ -1624,11 +1645,6 @@ namespace UnityEngine.Rendering.HighDefinition
             m_DebugLightingItems = list.ToArray();
             var panel = DebugManager.instance.GetPanel(k_PanelLighting, true);
             panel.children.Add(m_DebugLightingItems);
-        }
-
-        static class VolumeStrings
-        {
-            public static readonly NameAndTooltip foo = new() { name = "asd", tooltip = "" };
         }
 
         void RegisterVolumeDebug()
@@ -1879,9 +1895,9 @@ namespace UnityEngine.Rendering.HighDefinition
         static class RenderingStrings
         {
             public static readonly NameAndTooltip FullscreenDebugMode = new() { name = "Fullscreen Debug Mode", tooltip = "Use the drop-down to select a rendering mode to display as an overlay on the screen." };
-            public static readonly NameAndTooltip MaxPixelCost = new() { name = "Max Pixel Cost", tooltip = "" };
-            public static readonly NameAndTooltip MaxQuadCost = new() { name = "Max Quad Cost", tooltip = "" };
-            public static readonly NameAndTooltip MaxVertexDensity = new() { name = "Max Vertex Density", tooltip = "" };
+            public static readonly NameAndTooltip MaxPixelCost = new() { name = "Max Pixel Cost", tooltip = "The scale of the transparency overdraw heat map." };
+            public static readonly NameAndTooltip MaxQuadCost = new() { name = "Max Quad Cost", tooltip = "The scale of the quad mode overdraw heat map." };
+            public static readonly NameAndTooltip MaxVertexDensity = new() { name = "Max Vertex Density", tooltip = "The scale of the vertex density mode overdraw heat map." };
 
             // Mipmaps
             public static readonly NameAndTooltip MipMaps = new() { name = "Mip Maps", tooltip = "Use the drop-down to select a mipmap property to debug." };
@@ -1892,11 +1908,11 @@ namespace UnityEngine.Rendering.HighDefinition
             public static readonly NameAndTooltip ColorPickerFontColor = new() { name = "Font Color", tooltip = "Use the color picker to select a color for the font that the Color Picker uses for its display." };
 
             // False color
-            public static readonly NameAndTooltip FalseColorMode = new() { name = "False Color Mode", tooltip = "" };
-            public static readonly NameAndTooltip FalseColorRangeThreshold0 = new() { name = "Range Threshold 0", tooltip = "" };
-            public static readonly NameAndTooltip FalseColorRangeThreshold1 = new() { name = "Range Threshold 1", tooltip = "" };
-            public static readonly NameAndTooltip FalseColorRangeThreshold2 = new() { name = "Range Threshold 2", tooltip = "" };
-            public static readonly NameAndTooltip FalseColorRangeThreshold3 = new() { name = "Range Threshold 3", tooltip = "" };
+            public static readonly NameAndTooltip FalseColorMode = new() { name = "False Color Mode", tooltip = "Enable the checkbox to define intensity ranges that the debugger uses to show a color temperature gradient for the current frame." };
+            public static readonly NameAndTooltip FalseColorRangeThreshold0 = new() { name = "Range Threshold 0", tooltip = "Set the split for the intensity range." };
+            public static readonly NameAndTooltip FalseColorRangeThreshold1 = new() { name = "Range Threshold 1", tooltip = "Set the split for the intensity range." };
+            public static readonly NameAndTooltip FalseColorRangeThreshold2 = new() { name = "Range Threshold 2", tooltip = "Set the split for the intensity range." };
+            public static readonly NameAndTooltip FalseColorRangeThreshold3 = new() { name = "Range Threshold 3", tooltip = "Set the split for the intensity range." };
 
             public static readonly NameAndTooltip FreezeCameraForCulling = new() { name = "Freeze Camera For Culling", tooltip = "Use the drop-down to select a Camera to freeze in order to check its culling. To check if the Camera's culling works correctly, freeze the Camera and move occluders around it." };
         }
