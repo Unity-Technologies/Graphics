@@ -91,6 +91,7 @@ namespace UnityEditor.Rendering.Universal
         ShaderKeyword m_DecalNormalBlendMedium = new ShaderKeyword(ShaderKeywordStrings.DecalNormalBlendMedium);
         ShaderKeyword m_DecalNormalBlendHigh = new ShaderKeyword(ShaderKeywordStrings.DecalNormalBlendHigh);
         ShaderKeyword m_ClusteredRendering = new ShaderKeyword(ShaderKeywordStrings.ClusteredRendering);
+        ShaderKeyword m_EditorVisualization = new ShaderKeyword(ShaderKeywordStrings.EDITOR_VISUALIZATION);
 
         ShaderKeyword m_LocalDetailMulx2;
         ShaderKeyword m_LocalDetailScaled;
@@ -318,6 +319,10 @@ namespace UnityEditor.Rendering.Universal
                 if (compilerData.shaderKeywordSet.IsEnabled(m_LocalClearCoat) || compilerData.shaderKeywordSet.IsEnabled(m_LocalClearCoatMap))
                     return true;
             }
+
+            // Editor visualization is only used in scene view debug modes.
+            if (compilerData.shaderKeywordSet.IsEnabled(m_EditorVisualization))
+                return true;
 
             return false;
         }

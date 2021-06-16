@@ -29,7 +29,10 @@ namespace UnityEditor.Rendering.HighDefinition
             // Remove editor only pass
             bool isSceneSelectionPass = snippet.passName == "SceneSelectionPass";
             bool isScenePickingPass = snippet.passName == "ScenePickingPass";
-            if (isSceneSelectionPass || isScenePickingPass)
+            bool metaPassUnused = (snippet.passName == "META") && (SupportedRenderingFeatures.active.enlighten == false ||
+                ((int)SupportedRenderingFeatures.active.lightmapBakeTypes | (int)LightmapBakeType.Realtime) == 0);
+            bool editorVisualization = inputData.shaderKeywordSet.IsEnabled(m_EditorVisualization);
+            if (isSceneSelectionPass || isScenePickingPass || metaPassUnused || editorVisualization)
                 return true;
 
             // CAUTION: We can't identify transparent material in the stripped in a general way.

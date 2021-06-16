@@ -532,6 +532,7 @@ Shader "HDRP/Lit"
             //enable GPU instancing support
             #pragma multi_compile_instancing
             #pragma instancing_options renderinglayer
+            #pragma shader_feature EDITOR_VISUALIZATION
             #pragma multi_compile _ DOTS_INSTANCING_ON
             // enable dithering LOD crossfade
             #pragma multi_compile _ LOD_FADE_CROSSFADE
