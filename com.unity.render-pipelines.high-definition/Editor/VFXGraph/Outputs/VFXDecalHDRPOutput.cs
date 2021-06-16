@@ -110,7 +110,7 @@ namespace UnityEditor.VFX.HDRP
 
         [VFXSetting(VFXSettingAttribute.VisibleFlags.InInspector), SerializeField,
          Tooltip("Specifies the layer mask of the decal.")]
-        private DecalLayerEnum decalLayer = DecalLayerEnum.LightLayerDefault;
+        private DecalLayerEnum decalLayer = DecalLayerEnum.DecalLayerDefault;
 
         public override bool supportsUV { get { return GetOrRefreshShaderGraphObject() == null; } }
 

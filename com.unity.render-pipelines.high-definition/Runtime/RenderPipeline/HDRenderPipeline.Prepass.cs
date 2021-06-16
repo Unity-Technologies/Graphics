@@ -958,7 +958,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 }));
 
                 passData.vfxDecalsRendererList = builder.UseRendererList(renderGraph.CreateRendererList(
-                    new RendererListDesc(m_VfxDecalsPassNames, cullingResults, hdCamera.camera)
+                    new RendererUtils.RendererListDesc(m_VfxDecalsPassNames, cullingResults, hdCamera.camera)
                     {
                         sortingCriteria = SortingCriteria.CommonOpaque & ~ SortingCriteria.OptimizeStateChanges,
                         rendererConfiguration = PerObjectData.None,
