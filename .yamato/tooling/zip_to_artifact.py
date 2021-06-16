@@ -18,11 +18,13 @@ if __name__ == "__main__":
         print("No update file found, exiting zip script")
         exit(1)
 
+
     if extra_logs:
         with open(update_tests_file_path) as f:
             for line in f.readline():
                 print(f)
     with ZipFile(path.join(args.artifacts, "UpdatedTestData.zip"), 'w') as z:
+        z.write(update_tests_file_path)
         with open(update_tests_file_path) as f:
             while True:
                 line = f.readline().strip()
