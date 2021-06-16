@@ -397,9 +397,6 @@ Shader "HDRP/LayeredLitTessellation"
 
     HLSLINCLUDE
 
-    //Our DXC backend currently does not support Metal tessellation
-    #pragma never_use_dxc metal
-
     #pragma target 5.0
 
     #pragma shader_feature_local _ALPHATEST_ON
@@ -676,6 +673,7 @@ Shader "HDRP/LayeredLitTessellation"
 
             #define SHADERPASS SHADERPASS_DEPTH_ONLY
             #define SCENESELECTIONPASS // This will drive the output of the scene selection shader
+            #include "Packages/com.unity.render-pipelines.high-definition/Runtime/ShaderLibrary/PickingSpaceTransforms.hlsl"
             #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Material.hlsl"
             #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Lit/Lit.hlsl"
             #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Lit/ShaderPass/LitDepthPass.hlsl"
