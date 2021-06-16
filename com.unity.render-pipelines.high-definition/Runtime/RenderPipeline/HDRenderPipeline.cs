@@ -17,6 +17,10 @@ using UnityEditor.Rendering;
 using UnityEngine.Rendering.VirtualTexturing;
 #endif
 
+// Resove the ambiguity in the RendererList name (pick the in-engine version)
+using RendererList = UnityEngine.Rendering.RendererUtils.RendererList;
+using RendererListDesc = UnityEngine.Rendering.RendererUtils.RendererListDesc;
+
 
 namespace UnityEngine.Rendering.HighDefinition
 {

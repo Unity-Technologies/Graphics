@@ -74,3 +74,7 @@ From 2021.2, the range for **Sorting Priority** values has decreased from betwee
 If you used transparent materials (**Surface Type** set to **Transparent**) with a sorting priority lower than -50 or greater than 50, you must remap them to within the new range.
 
  HDRP does not clamp the Sorting Priority to the new range until you edit the Sorting Priority property.
+
+## RendererList API
+
+From 2021.2, an updated RendererList API is available in the `UnityEngine.Rendering.RendererUtils` namespace. This API has lower overhead when submitting the RendererList for drawing and also offers the posibility to query if the list of visible objects is empty. The older version of the API (in the `UnityEngine.Experimental.Rendering` namespace) is still available for compatibility purposes but is now deprecated.
