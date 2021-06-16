@@ -73,6 +73,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Added support for Unlit shadow mattes in Path Tracing (case 1335487).
 - Added a shortcut to HDRP Wizard documentation.
 - Added support of motion vector buffer in custom postprocess
+- Added a minimum motion vector length to the motion vector debug view.
 
 ### Fixed
 - Fixed Intensity Multiplier not affecting realtime global illumination.
@@ -257,6 +258,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed some resolution aliasing for physically based depth of field (case 1340551).
 - Fixed an issue with resolution dependence for physically based depth of field.
 - Fixed the shader graph files that was still dirty after the first save (case 1342039).
+- Fixed cases in which object and camera motion vectors would cancel out, but didn't.
 
 ### Changed
 - Changed Window/Render Pipeline/HD Render Pipeline Wizard to Window/Rendering/HDRP Wizard
