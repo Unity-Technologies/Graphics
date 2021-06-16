@@ -739,6 +739,11 @@ namespace UnityEngine.Rendering.HighDefinition
         [SerializeField]
         internal bool supportProbeVolumes = false;
 
+        /// <summary>
+        /// Controls whether debug display shaders for Rendering Debugger are available in Player builds.
+        /// </summary>
+        public bool supportRuntimeDebugDisplay = false;
+
         #endregion
 
         #region APV

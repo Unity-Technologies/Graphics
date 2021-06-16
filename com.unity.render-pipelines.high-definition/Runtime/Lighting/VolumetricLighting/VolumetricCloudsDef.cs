@@ -120,5 +120,9 @@ namespace UnityEngine.Rendering.HighDefinition
         public Matrix4x4 _CameraViewProjection_NO;
         public Matrix4x4 _CameraInverseViewProjection_NO;
         public Matrix4x4 _CameraPrevViewProjection_NO;
+
+        // Fast tonemapping settings
+        public Vector3 _Padding2;
+        public int     _EnableFastToneMapping;
     }
 }
