@@ -187,13 +187,13 @@ namespace UnityEngine.Rendering.Universal
             public static readonly NameAndTooltip MaterialOverride = new() { name = "Material Override", tooltip = "Use the drop-down to select a Material property to visualize on every GameObject on screen." };
             public static readonly NameAndTooltip VertexAttribute = new() { name = "Vertex Attribute", tooltip = "Use the drop-down to select a 3D GameObject attribute, like Texture Coordinates or Vertex Color, to visualize on screen." };
             public static readonly NameAndTooltip MaterialValidationMode = new() { name = "Material Validation Mode", tooltip = "Debug and validate material properties." };
-            public static readonly NameAndTooltip ValidationPreset = new() { name = "Validation Preset", tooltip = "Validate through the use of a predetermined list of preset surfaces and inputs based on real world surfaces." };
-            public static readonly NameAndTooltip AlbedoMinLuminance = new() { name = "Min Luminance", tooltip = "Any values set below this field will be considered invalid and will appear red on screen." };
-            public static readonly NameAndTooltip AlbedoMaxLuminance = new() { name = "Max Luminance", tooltip = "Any values set above this field will be considered invalid and will appear blue on screen." };
+            public static readonly NameAndTooltip ValidationPreset = new() { name = "Validation Preset", tooltip = "Validate using a list of preset surfaces and inputs based on real-world surfaces." };
+            public static readonly NameAndTooltip AlbedoMinLuminance = new() { name = "Min Luminance", tooltip = "Any values set below this field are invalid and appear red on screen." };
+            public static readonly NameAndTooltip AlbedoMaxLuminance = new() { name = "Max Luminance", tooltip = "Any values set above this field are invalid and appear blue on screen." };
             public static readonly NameAndTooltip AlbedoHueTolerance = new() { name = "Hue Tolerance", tooltip = "Validate a material based on a specific hue." };
             public static readonly NameAndTooltip AlbedoSaturationTolerance = new() { name = "Saturation Tolerance", tooltip = "Validate a material based on a specific Saturation." };
-            public static readonly NameAndTooltip MetallicMinValue = new() { name = "Min Value", tooltip = "Any values set below this field will be considered invalid and will appear red on screen." };
-            public static readonly NameAndTooltip MetallicMaxValue = new() { name = "Max Value", tooltip = "Any values set above this field will be considered invalid and will appear blue on screen." };
+            public static readonly NameAndTooltip MetallicMinValue = new() { name = "Min Value", tooltip = "Any values set below this field are invalid and appear red on screen." };
+            public static readonly NameAndTooltip MetallicMaxValue = new() { name = "Max Value", tooltip = "Any values set above this field are invalid and appear blue on screen." };
         }
 
         static void DebugMaterialValidationModeChanged(DebugUI.Field<int> field, int value)
