@@ -204,19 +204,19 @@ namespace UnityEngine.Rendering.Universal
 
             private float DistanceBetweenQuaternions(quaternion a, quaternion b)
             {
-                return math.dot(a.value, b.value);
+                return math.distancesq(a.value, b.value);
             }
 
             public void Execute(int index, TransformAccess transform)
             {
                 // Check if transform changed
-                bool positionChanged = math.dot(transform.position, positions[index]) > minDistance;
+                bool positionChanged = math.distancesq(transform.position, positions[index]) > minDistance;
                 if (positionChanged)
                     positions[index] = transform.position;
                 bool rotationChanged = DistanceBetweenQuaternions(transform.rotation, rotations[index]) > minDistance;
                 if (rotationChanged)
                     rotations[index] = transform.rotation;
-                bool scaleChanged = math.dot(transform.localScale, scales[index]) > minDistance;
+                bool scaleChanged = math.distancesq(transform.localScale, scales[index]) > minDistance;
                 if (scaleChanged)
                     scales[index] = transform.localScale;
 

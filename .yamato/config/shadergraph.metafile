@@ -96,31 +96,6 @@ jobs:
         color_space: Linear
         test_platforms:
           - Standalone
-      - .yamato/all-shadergraph_stereo.yml#PR_ShaderGraph_Stereo_<TRACK>
-      - .yamato/_abv.yml#General_Checks_<TRACK>
-  - name: Extra <PROJECT_NAME>
-    dependencies:
-      - platform: Win
-        api: DX11
-        build_config: mono
-        color_space: Linear
-        test_platforms:
-          - editmode
-          - playmode
-      - platform: Linux
-        api: Vulkan
-        build_config: mono
-        color_space: Linear
-        test_platforms:
-          - editmode
-          - playmode
-      - platform: Android
-        api: Vulkan
-        build_config: il2cpp
-        color_space: Linear
-        test_platforms:
-          - Standalone
-  ### TODO: MOVE THE FOLLOWING JOBS BACK TO PR JOBS
       - platform: OSX
         api: OpenGLCore
         build_config: mono
@@ -142,6 +117,30 @@ jobs:
           - playmode
       - platform: iPhone
         api: Metal
+        build_config: il2cpp
+        color_space: Linear
+        test_platforms:
+          - Standalone
+      - .yamato/all-shadergraph_stereo.yml#PR_ShaderGraph_Stereo_<TRACK>
+      - .yamato/_abv.yml#General_Checks_<TRACK>
+  - name: Extra <PROJECT_NAME>
+    dependencies:
+      - platform: Win
+        api: DX11
+        build_config: mono
+        color_space: Linear
+        test_platforms:
+          - editmode
+          - playmode
+      - platform: Linux
+        api: Vulkan
+        build_config: mono
+        color_space: Linear
+        test_platforms:
+          - editmode
+          - playmode
+      - platform: Android
+        api: Vulkan
         build_config: il2cpp
         color_space: Linear
         test_platforms:

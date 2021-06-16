@@ -755,7 +755,7 @@ namespace UnityEditor.Rendering.HighDefinition
             ChangeEditMode(k_EditUVAndPivot, GetBoundsGetter(activeDecalProjector)(), FindEditorFromSelection());
         }
 
-        [Shortcut("HDRP/Decal: Handle swap between cropping and stretching UV", typeof(SceneView), KeyCode.W, ShortcutModifiers.Action)]
+        [Shortcut("HDRP/Decal: Handle swap between cropping and stretching UV", typeof(SceneView), KeyCode.Keypad4, ShortcutModifiers.Action)]
         static void SwappingEditUVMode(ShortcutArguments args)
         {
             //If editor is not there, then the selected GameObject does not contains a DecalProjector
