@@ -46,7 +46,7 @@ namespace UnityEditor.Rendering.Universal
                             newMaterials[matIndex] = m_SpriteLitDefaultMat;
                             updateMaterials = true;
                         }
-                        else if(renderer.sharedMaterials[matIndex] == m_SpritesMaskMat)
+                        else if (renderer.sharedMaterials[matIndex] == m_SpritesMaskMat)
                         {
                             newMaterials[matIndex] = m_SpriteMaskDefaultMat;
                             updateMaterials = true;
