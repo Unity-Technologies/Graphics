@@ -79,6 +79,8 @@ namespace UnityEditor.Rendering.HighDefinition
 
             public static GUIContent doubleSidedEnableText = new GUIContent("Double-Sided", "When enabled, HDRP renders both faces of the polygons that make up meshes using this Material. Disables backface culling.");
 
+            public static GUIContent precomputedVelocityText = new GUIContent("Precomputed Velocity", "When enabled, HDRP will happen the provided per vertex precomputed velocity to the motion vector calculation.");            
+
             public static GUIContent useShadowThresholdText = new GUIContent("Use Shadow Threshold", "Enable separate threshold for shadow pass");
             public static GUIContent alphaCutoffEnableText = new GUIContent("Alpha Clipping", "When enabled, HDRP processes Alpha Clipping for this Material.");
             public static GUIContent alphaCutoffText = new GUIContent("Threshold", "Controls the threshold for the Alpha Clipping effect.");

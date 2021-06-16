@@ -125,6 +125,8 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                 context.globalIndentLevel--;
             }
 
+            AddProperty(precomputedVelocityText, () => systemData.precomputedVelocity, (newValue) => systemData.precomputedVelocity = newValue);
+
             AddProperty(tessellationEnableText, () => systemData.tessellation, (newValue) => systemData.tessellation = newValue);
             if (systemData.tessellation)
             {

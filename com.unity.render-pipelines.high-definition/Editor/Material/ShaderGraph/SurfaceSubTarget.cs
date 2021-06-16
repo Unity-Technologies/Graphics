@@ -238,7 +238,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
             context.AddField(HDFields.PrecomputedVelocity, systemData.precomputedVelocity);
 
             context.AddField(HDFields.TessellationFactor, systemData.tessellation);
-            context.AddField(HDFields.TessellationDisplacement, systemData.tessellation);            
+            context.AddField(HDFields.TessellationDisplacement, systemData.tessellation);
         }
 
         protected void AddDistortionFields(ref TargetFieldContext context)

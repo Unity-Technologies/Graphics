@@ -145,7 +145,7 @@ PackedVaryingsType MotionVectorVS(VaryingsType varyingsType, AttributesMesh inpu
         effectivePositionOS -= inputPass.precomputedVelocity;
 #endif
 #if defined(_ADD_PRECOMPUTED_VELOCITY_SG) // For shader graph custom velocity
-        effectivePositionOS -= inputMesh.precomputedVelocityOS;
+        effectivePositionOS -= GetPrecomputeVelocitySG(inputMesh);
 #endif
         
 

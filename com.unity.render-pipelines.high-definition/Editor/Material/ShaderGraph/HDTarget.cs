@@ -1491,6 +1491,15 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
             scope = KeywordScope.Local,
         };
 
+        public static KeywordDescriptor AddPrecomputedVelocitySG = new KeywordDescriptor
+        {
+            displayName = "Add Precomputed Velocity SG",
+            referenceName = "_ADD_PRECOMPUTED_VELOCITY_SG",
+            type = KeywordType.Boolean,
+            definition = KeywordDefinition.Predefined,
+            scope = KeywordScope.Local,
+        };
+
         public static KeywordDescriptor ForceForwardEmissive = new KeywordDescriptor
         {
             displayName = "Force Forward Emissive",
