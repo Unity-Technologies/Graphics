@@ -9,6 +9,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 ### Fixed
 - Fixed ACES filter artefact due to half floating point error on some mobile platforms.
 - Fixed Explicit half precision not working even when Unified Shader Precision Model is enabled.
+- Fixed memory leak when changing SRP pipeline settings, and having the player in pause mode.
 
 ## [10.5.0] - 2021-04-19
 

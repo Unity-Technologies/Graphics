@@ -128,7 +128,7 @@ namespace UnityEditor.Rendering.HighDefinition
                     PropertyField(m_ProceduralCenter, centerLabel);
                     var radiiValue = m_ProceduralRadii.value.vector2Value;
                     m_ProceduralRadii.value.vector2Value = new Vector2(Mathf.Clamp01(radiiValue.x), Mathf.Clamp01(radiiValue.y));
-                    PropertyField(m_ProceduralRadii, EditorGUIUtility.TrTextContent("Radii", "Sets the radii of the procedural mask, in terms of fraction of the screen (i.e. 0.5 means a radius that stretch half of the screen)."));
+                    PropertyField(m_ProceduralRadii, EditorGUIUtility.TrTextContent("Radius", "Sets the radiuses of the procedural mask, in terms of fraction of the screen (i.e. 0.5 means a radius that stretch half of the screen)."));
                     PropertyField(m_ProceduralSoftness, EditorGUIUtility.TrTextContent("Softness", "Sets the softness of the mask, the higher the value the less influence is given to pixels at the edge of the mask"));
 
                     if (isInAdvancedMode)
