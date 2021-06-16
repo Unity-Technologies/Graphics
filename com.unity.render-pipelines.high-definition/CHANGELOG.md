@@ -259,6 +259,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed an issue with resolution dependence for physically based depth of field.
 - Fixed the shader graph files that was still dirty after the first save (case 1342039).
 - Fixed cases in which object and camera motion vectors would cancel out, but didn't.
+- Fixed HDRP material upgrade failing when there is a texture inside the builtin resources assigned in the material (case 1339865).
 
 ### Changed
 - Changed Window/Render Pipeline/HD Render Pipeline Wizard to Window/Rendering/HDRP Wizard
