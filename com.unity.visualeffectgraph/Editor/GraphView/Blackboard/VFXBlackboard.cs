@@ -676,5 +676,12 @@ namespace  UnityEditor.VFX.UI
         {
             BoardPreferenceHelper.SavePosition(BoardPreferenceHelper.Board.blackboard, GetPosition());
         }
+
+        public void ForceUpdate()
+        {
+            this.Query<PropertyRM>()
+                .ToList()
+                .ForEach(x => x.ForceUpdate());
+        }
     }
 }
