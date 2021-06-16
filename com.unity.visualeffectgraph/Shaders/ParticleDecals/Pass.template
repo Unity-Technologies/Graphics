@@ -109,7 +109,8 @@ ps_output frag(ps_input i)
 	VFXTransformPSInputs(i);
 	
 	float3 clipPos;
-	clipPos.xy = (i.pos.xy / _ScreenParams.xy) * 2.0f - 1.0f;
+
+	clipPos.xy = VFXGetNormalizedScreenSpaceUV(i.pos) * 2.0f - 1.0f;;
 	clipPos.z = VFXSampleDepth(i.pos);
 	clipPos *= VFXLinearEyeDepth(clipPos.z);
 	
