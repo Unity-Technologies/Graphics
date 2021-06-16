@@ -256,11 +256,6 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed issue with sky settings being ignored when using the recorder and path tracing (case 1340507).
 - Fixed some resolution aliasing for physically based depth of field (case 1340551).
 - Fixed an issue with resolution dependence for physically based depth of field.
-- Fixed the transparent cutoff not working properly in semi-transparent and color shadows (case 1340234).
-- Fixed object outline flickering with TAA.
-- Fixed issue with sky settings being ignored when using the recorder and path tracing (case 1340507).
-- Fixed some resolution aliasing for physically based depth of field (case 1340551).
-- Fixed an issue with resolution dependence for physically based depth of field.
 - Fixed Pixel Displacement that could be set on tessellation shader while it's not supported.
 
 ### Changed
