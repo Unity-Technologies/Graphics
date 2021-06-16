@@ -72,11 +72,11 @@ namespace UnityEditor.Rendering
 
         static System.Lazy<GUIStyle> m_SectionHeaderStyle = new(() => new GUIStyle(EditorStyles.largeLabel) { richText = true, fontSize = 18, fixedHeight = 42 });
         /// <summary>Style of Section Headers.</summary>
-        public static GUIStyle sectionHeaderStyle = m_SectionHeaderStyle.Value;
+        public static GUIStyle sectionHeaderStyle => m_SectionHeaderStyle.Value;
 
         static System.Lazy<GUIStyle> m_SubSectionHeaderStyle = new(() => new GUIStyle(EditorStyles.boldLabel));
         /// <summary>Style of Sub-Section Headers.</summary>
-        public static GUIStyle subSectionHeaderStyle = m_SubSectionHeaderStyle.Value;
+        public static GUIStyle subSectionHeaderStyle => m_SubSectionHeaderStyle.Value;
 
         #endregion
 
