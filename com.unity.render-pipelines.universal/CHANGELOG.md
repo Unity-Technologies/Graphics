@@ -106,6 +106,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed an issue where changing camera's position in the BeginCameraRendering do not apply properly. [case 1318629] (https://issuetracker.unity3d.com/issues/camera-doesnt-move-when-changing-its-position-in-the-begincamerarendering-and-the-endcamerarendering-methods)
 - Fixed a performance issue in Hololens when using renderer with custom render passes.
 - Fixed an issue where Particle Lit shader had an incorrect fallback shader [case 1331780]
+- Fixed SRP batcher not working on OpenGL.
 
 ## [10.2.0] - 2020-10-19
 
