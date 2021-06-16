@@ -2039,11 +2039,14 @@ namespace UnityEngine.Rendering.HighDefinition
                         );
                         capturePosition = cameraPositionSettings.position;
 
-                    // Propagate the distance based information to the env light data (only if we are not an infinite projection)
-                    envLightData.distanceBasedRoughness = probe.settings.distanceBasedRoughness && !probe.isProjectionInfinite ? 1.0f : 0.0f;
+                        Quaternion captureRotationToWS = probe.ComputeCaptureRotationToWS();
+                        envLightData.captureRotationToWS = new Vector4(captureRotationToWS.x, captureRotationToWS.y, captureRotationToWS.z, captureRotationToWS.w);
 
-                    break;
-                }
+                        // Propagate the distance based information to the env light data (only if we are not an infinite projection)
+                        envLightData.distanceBasedRoughness = probe.settings.distanceBasedRoughness && !probe.isProjectionInfinite ? 1.0f : 0.0f;
+
+                        break;
+                    }
             }
             // int.MinValue means that the texture is not ready yet (ie not convolved/compressed yet)
             if (envIndex == int.MinValue)
