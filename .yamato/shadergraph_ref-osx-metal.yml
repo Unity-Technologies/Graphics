@@ -34,7 +34,6 @@ ShaderGraph_ref_OSX_Metal_Standalone_ref_images_mono_Linear_trunk:
                 mkdir -p TestProjects/ShaderGraph/test-results/
                 ssh -i ~/.ssh/id_rsa_macmini bokken@$BOKKEN_DEVICE_IP ls
       - ssh -i ~/.ssh/id_rsa_macmini bokken@$BOKKEN_DEVICE_IP "cd ~/Graphics/; python .yamato/tooling/zip_to_artifact.py --artifacts TestProjects/ShaderGraph/test-results/ --root TestProjects/ShaderGraph/"
-      - ssh -i ~/.ssh/id_rsa_macmini bokken@$BOKKEN_DEVICE_IP ls /Users/bokken/Graphics/TestProjects/ShaderGraph/test-results/
       - scp -i ~/.ssh/id_rsa_macmini -r bokken@$BOKKEN_DEVICE_IP:/Users/bokken/Graphics/TestProjects/ShaderGraph/test-results/ TestProjects/ShaderGraph/test-results/
     artifacts:
         logs:
