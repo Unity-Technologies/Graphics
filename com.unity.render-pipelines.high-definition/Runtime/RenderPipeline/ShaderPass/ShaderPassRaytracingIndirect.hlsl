@@ -14,10 +14,10 @@ void ClosestHitMain(inout RayIntersection rayIntersection : SV_RayPayload, Attri
 
     // Build the Frag inputs from the intersection vertice
     FragInputs fragInput;
-    BuildFragInputsFromIntersection(currentVertex, rayIntersection.incidentDirection, fragInput);
+    BuildFragInputsFromIntersection(currentVertex, fragInput);
 
     // Compute the view vector
-    float3 viewWS = -rayIntersection.incidentDirection;
+    float3 viewWS = -WorldRayDirection();
     float3 pointWSPos = fragInput.positionRWS;
 
     // Make sure to add the additional travel distance
@@ -80,7 +80,6 @@ void ClosestHitMain(inout RayIntersection rayIntersection : SV_RayPayload, Attri
         // Create and init the RayIntersection structure for this
         RayIntersection reflectedIntersection;
         reflectedIntersection.color = float3(0.0, 0.0, 0.0);
-        reflectedIntersection.incidentDirection = rayDescriptor.Direction;
         reflectedIntersection.origin = rayDescriptor.Origin;
         reflectedIntersection.t = -1.0f;
         reflectedIntersection.remainingDepth = rayIntersection.remainingDepth + 1;
@@ -150,10 +149,10 @@ void AnyHitMain(inout RayIntersection rayIntersection : SV_RayPayload, Attribute
 
     // Build the Frag inputs from the intersection vertice
     FragInputs fragInput;
-    BuildFragInputsFromIntersection(currentVertex, rayIntersection.incidentDirection, fragInput);
+    BuildFragInputsFromIntersection(currentVertex, fragInput);
 
     // Compute the view vector
-    float3 viewWS = -rayIntersection.incidentDirection;
+    float3 viewWS = -WorldRayDirection();
 
     // Compute the distance of the ray
     float travelDistance = length(fragInput.positionRWS - rayIntersection.origin);
