@@ -20,7 +20,6 @@ if __name__ == "__main__":
             while True:
                 line = f.readline().strip()
                 if line == "":
-                    print("Finished adding files")
                     break
                 test_name, asset_path, should_update_image = line.split(",")
                 _, _, colorspace, editor, test_platform, vr, _, test_asset = asset_path.split("/")
@@ -30,6 +29,7 @@ if __name__ == "__main__":
                                                 colorspace, editor, test_platform, vr, test_name + ".png")
                     reference_img_path = path.join(getcwd(), args.root, "Assets", "ReferenceImages",
                                                    colorspace, editor, test_platform, vr, test_name)
+                    print(reference_img_path)
                     z.write(actual_img_path, reference_img_path)
                     if path.exists(actual_img_path + ".meta"):
                         z.write(actual_img_path + ".meta", reference_img_path + ".meta")
