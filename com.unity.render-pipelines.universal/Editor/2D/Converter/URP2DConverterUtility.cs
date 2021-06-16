@@ -18,12 +18,12 @@ internal static class URP2DConverterUtility
             return false;
 
         if (path.EndsWith(".mat"))
-            return URP2DConverterUtility.DoesFileContainString(path, id);
+            return URP2DConverterUtility.DoesFileContainString(path, new string[] { id });
 
         return false;
     }
 
-    public static bool IsPrefabOrScenePath(string path, string id)
+    public static bool IsPrefabOrScenePath(string path, string[] ids)
     {
         if (string.IsNullOrEmpty(path))
             throw new ArgumentNullException(nameof(path));
@@ -32,22 +32,30 @@ internal static class URP2DConverterUtility
             return false;
 
         if (path.EndsWith(".prefab", StringComparison.OrdinalIgnoreCase) || path.EndsWith(".unity", StringComparison.OrdinalIgnoreCase))
-            return URP2DConverterUtility.DoesFileContainString(path, id);
+            return URP2DConverterUtility.DoesFileContainString(path, ids);
 
         return false;
     }
 
-    public static bool DoesFileContainString(string path, string str)
+    public static bool IsPrefabOrScenePath(string path, string id)
     {
-        if (str != null)
+        return IsPrefabOrScenePath(path, new string[] { id });
+    }
+
+    public static bool DoesFileContainString(string path, string[] strs)
+    {
+        if (strs != null && strs.Length > 0)
         {
             using (StreamReader file = File.OpenText(path))
             {
                 string line;
                 while ((line = file.ReadLine()) != null)
                 {
-                    if (line.Contains(str))
-                        return true;
+                    for (int i = 0; i < strs.Length; i++)
+                    {
+                        if (line.Contains(strs[i]))
+                            return true;
+                    }
                 }
             }
         }

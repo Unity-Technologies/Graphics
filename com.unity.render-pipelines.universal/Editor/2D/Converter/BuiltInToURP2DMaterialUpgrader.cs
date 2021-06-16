@@ -19,11 +19,14 @@ namespace UnityEditor.Rendering.Universal
 
         Material m_SpriteLitDefaultMat;
         Material m_SpritesDefaultMat;
+        Material m_SpritesMaskMat;
+        Material m_SpriteMaskDefaultMat;
         Shader   m_SpriteLitDefaultShader;
         Shader   m_SpritesDefaultShader;
 
         string m_SpritesDefaultShaderId;
         string m_SpritesDefaultMatId;
+        string m_SpritesMaskMatId;
 
         void UpgradeGameObject(GameObject go)
         {
@@ -41,6 +44,11 @@ namespace UnityEditor.Rendering.Universal
                         if (renderer.sharedMaterials[matIndex] == m_SpritesDefaultMat)
                         {
                             newMaterials[matIndex] = m_SpriteLitDefaultMat;
+                            updateMaterials = true;
+                        }
+                        else if(renderer.sharedMaterials[matIndex] == m_SpritesMaskMat)
+                        {
+                            newMaterials[matIndex] = m_SpriteMaskDefaultMat;
                             updateMaterials = true;
                         }
                         else
@@ -62,16 +70,19 @@ namespace UnityEditor.Rendering.Universal
                 m_SpriteLitDefaultMat = AssetDatabase.LoadAssetAtPath<Material>("Packages/com.unity.render-pipelines.universal/Runtime/Materials/Sprite-Lit-Default.mat");
 
             m_SpritesDefaultMat = AssetDatabase.GetBuiltinExtraResource<Material>("Sprites-Default.mat");
+            m_SpriteMaskDefaultMat = AssetDatabase.LoadAssetAtPath<Material>("Packages/com.unity.render-pipelines.universal/Runtime/Materials/SpriteMask-Default.mat");
+            m_SpritesMaskMat = AssetDatabase.GetBuiltinExtraResource<Material>("Sprites-Mask.mat");
             m_SpriteLitDefaultShader = m_SpriteLitDefaultMat.shader;
             m_SpritesDefaultShader = m_SpritesDefaultMat.shader;
             m_SpritesDefaultShaderId = URP2DConverterUtility.GetObjectIDString(m_SpritesDefaultShader);
             m_SpritesDefaultMatId = URP2DConverterUtility.GetObjectIDString(m_SpritesDefaultMat);
+            m_SpritesMaskMatId = URP2DConverterUtility.GetObjectIDString(m_SpritesMaskMat);
 
             string[] allAssetPaths = AssetDatabase.GetAllAssetPaths();
 
             foreach (string path in allAssetPaths)
             {
-                if (URP2DConverterUtility.IsMaterialPath(path, m_SpritesDefaultShaderId) || URP2DConverterUtility.IsPrefabOrScenePath(path, m_SpritesDefaultMatId))
+                if (URP2DConverterUtility.IsMaterialPath(path, m_SpritesDefaultShaderId) || URP2DConverterUtility.IsPrefabOrScenePath(path, new string[] { m_SpritesDefaultMatId, m_SpritesMaskMatId }))
                 {
                     ConverterItemDescriptor desc = new ConverterItemDescriptor()
                     {
