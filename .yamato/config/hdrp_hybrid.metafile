@@ -19,6 +19,7 @@ test_platforms:
       - [OSX_Metal]: --timeout=2400
     utr_flags_build:
       - [all]: --compilation-errors-as-warnings
+      - [all]: --timeout=3000
 
 platforms:
   - name: Win

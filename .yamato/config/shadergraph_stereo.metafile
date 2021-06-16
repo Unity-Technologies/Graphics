@@ -3,6 +3,8 @@ project:
   folder: ShaderGraphUniversalStereo
 test_platforms:
   - type: Standalone
+    utr_flags_build:
+      - [all]: --timeout=3000
   - type: editmode
 platforms:
   - name: Win

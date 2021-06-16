@@ -12,6 +12,8 @@ test_platforms:
   - type: Standalone
     utr_flags:
       - [OSX_Metal]: --timeout=2400
+    utr_flags_build:
+      - [all]: --timeout=3000
 platforms:
   - name: Win
     apis:
