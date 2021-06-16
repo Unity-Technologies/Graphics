@@ -34,6 +34,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Added an info box for micro shadow editor (case 1322830).
 - Added support for alpha channel in FXAA (case 1323941).
 - Added support for lighting full screen debug mode in automated tests.
+- Added support of motion vector buffer in custom postprocess
 
 ### Fixed
 - Fixed probe volumes debug views.
