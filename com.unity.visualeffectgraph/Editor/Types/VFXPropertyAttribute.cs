@@ -58,7 +58,7 @@ namespace UnityEditor.VFX
             Delayed = 1 << 7,
             BitField = 1 << 8,
             Enum = GraphAttribute | 1 << 9,
-            MinMax = 1 << 10,
+            MinMax = GraphAttribute | 1 << 10,
 
             // Tells whether this attribute modifies the expression graph
             GraphAttribute = 1 << 31,
