@@ -32,7 +32,7 @@ ShaderGraph_BuiltIn_Lighting_Linux_Vulkan_playmode_mono_Linear_trunk:
          retries: 2
       -  command: sudo unity-downloader-cli --source-file unity_revision.txt -c editor -c il2cpp  --wait --published-only
          retries: 2
-      -  command: DISPLAY=:0.0 ./utr --artifacts_path=TestProjects/BuiltInGraphicsTest_Lighting/test-results --editor-location=.Editor --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-force-vulkan" --scripting-backend=Mono2x --suite=playmode --testfilter=$TEST_FILTER --testproject=./TestProjects/BuiltInGraphicsTest_Lighting --zero-tests-are-ok=1
+      -  command: DISPLAY=:0.0 ./utr $CACHE_ARGS --artifacts_path=TestProjects/BuiltInGraphicsTest_Lighting/test-results --editor-location=.Editor --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-force-vulkan" --scripting-backend=Mono2x --suite=playmode --testfilter=$TEST_FILTER --testproject=./TestProjects/BuiltInGraphicsTest_Lighting --zero-tests-are-ok=1
     artifacts:
         logs:
             paths:
@@ -65,7 +65,7 @@ ShaderGraph_BuiltIn_Lighting_Linux_Vulkan_playmode_mono_Linear_CUSTOM-REVISION:
          retries: 2
       -  command: sudo unity-downloader-cli --source-file unity_revision.txt -c editor -c il2cpp  --wait --published-only
          retries: 2
-      -  command: DISPLAY=:0.0 ./utr --artifacts_path=TestProjects/BuiltInGraphicsTest_Lighting/test-results --editor-location=.Editor --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-force-vulkan" --scripting-backend=Mono2x --suite=playmode --testfilter=$TEST_FILTER --testproject=./TestProjects/BuiltInGraphicsTest_Lighting --zero-tests-are-ok=1
+      -  command: DISPLAY=:0.0 ./utr $CACHE_ARGS --artifacts_path=TestProjects/BuiltInGraphicsTest_Lighting/test-results --editor-location=.Editor --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-force-vulkan" --scripting-backend=Mono2x --suite=playmode --testfilter=$TEST_FILTER --testproject=./TestProjects/BuiltInGraphicsTest_Lighting --zero-tests-are-ok=1
     artifacts:
         logs:
             paths:
