@@ -41,10 +41,19 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed invalid pass index 1 in DrawProcedural error.
 - Fix for wrong cached area light initialization.
 - Fixed an issue where enabling GPU Instancing on a ShaderGraph Material would cause compile failures [1338695].
+- Make LitTessellation and LayeredLitTessellation fallback on Lit and LayeredLit respectively in DXR.
+- Fixed reflection probes being injected into the ray tracing light cluster even if not baked (case 1329083).
+- Fixed the double sided option moving when toggling it in the material UI (case 1328877).
+- Fixed volumetric fog in planar reflections.
+- Fixed error with motion blur and small render targets.
+- Fixed issue with on-demand directional shadow maps looking broken when a reflection probe is updated at the same time.
+- Fixed cropping issue with the compositor camera bridge (case 1340549).
 
 ### Changed
 - Display an info box and disable MSAA  asset entry when ray tracing is enabled.
 - Changed light reset to preserve type.
+- Ignore hybrid duplicated reflection probes during light baking.
+- Updated the recursive rendering documentation (case 1338639).
 
 ## [10.5.0] - 2021-04-19
 
