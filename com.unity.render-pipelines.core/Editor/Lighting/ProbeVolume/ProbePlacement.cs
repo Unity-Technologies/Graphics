@@ -29,8 +29,9 @@ namespace UnityEngine.Experimental.Rendering
             public Vector3 Y;
             public Vector3 Z;
 
-            public int minSubdivisionLevel;
-            public int maxSubdivisionLevel;
+            public int minControllerSubdivLevel;
+            public int maxControllerSubdivLevel;
+            public int maxSubdivLevelInsideVolume;
             public float geometryDistanceOffset;
         }
 
@@ -232,12 +233,9 @@ namespace UnityEngine.Experimental.Rendering
                 // If the cell is too big so we split it into smaller cells and bake each one separately
                 if (ctx.maxBrickCountPerAxis > k_MaxDistanceFieldTextureSize)
                 {
-                    int c = 0;
                     foreach (var subVolume in SubdivideVolumeIntoSubVolume(ctx, cellVolume))
                     {
-                        c++;
                         // redo the renderers and probe volume culling to avoid unnecessary work
-
                         // Calculate overlaping probe volumes to avoid unnecessary work
                         var overlappingProbeVolumes = new List<(ProbeVolume component, ProbeReferenceVolume.Volume volume)>();
                         foreach (var probeVolume in probeVolumes)
@@ -279,21 +277,19 @@ namespace UnityEngine.Experimental.Rendering
                         // In case there is at least one brick in the sub-cell, we need to spawn the parent brick.
                         if (brickCount != brickSet.Count)
                         {
-                            AddParentBricks();
-
-                            void AddParentBricks()
+                            float minBrickSize = subdivisionCtx.refVolume.profile.minBrickSize;
+                            Vector3 cellID = (cellAABB.center - cellAABB.extents) / minBrickSize;
+                            float parentSubdivLevel = 3.0f;
+                            for (int i = k_MaxSubdivisionInSubCell; i < ctx.maxSubdivisionLevel; i++)
                             {
-                                float minBrickSize = subdivisionCtx.refVolume.profile.minBrickSize;
-                                Vector3 cellID = (cellAABB.center - cellAABB.extents) / minBrickSize;
-                                float parentSubdivLevel = 3.0f;
-                                for (int i = k_MaxSubdivisionInSubCell; i < ctx.maxSubdivisionLevel; i++)
-                                {
-                                    Vector3 subCellPos = (subVolume.parentPosition / parentSubdivLevel);
-                                    // Add the sub-cell offset:
-                                    int t = (int)Mathf.Pow(3, i + 1);
-                                    Vector3Int subCellPosInt = new Vector3Int(Mathf.FloorToInt(subCellPos.x), Mathf.FloorToInt(subCellPos.y), Mathf.FloorToInt(subCellPos.z)) * t;
-                                    Vector3Int parentSubCellPos = new Vector3Int(Mathf.RoundToInt(cellID.x), Mathf.RoundToInt(cellID.y), Mathf.RoundToInt(cellID.z)) + subCellPosInt;
+                                Vector3 subCellPos = (subVolume.parentPosition / parentSubdivLevel);
+                                // Add the sub-cell offset:
+                                int brickSize = (int)Mathf.Pow(3, i + 1);
+                                Vector3Int subCellPosInt = new Vector3Int(Mathf.FloorToInt(subCellPos.x), Mathf.FloorToInt(subCellPos.y), Mathf.FloorToInt(subCellPos.z)) * brickSize;
+                                Vector3Int parentSubCellPos = new Vector3Int(Mathf.RoundToInt(cellID.x), Mathf.RoundToInt(cellID.y), Mathf.RoundToInt(cellID.z)) + subCellPosInt;
 
+                                if (IsParentBrickInProbeVolume(parentSubCellPos, minBrickSize, brickSize))
+                                {
                                     // Find the corner in bricks of the parent volume:
                                     brickSet.Add(new Brick(parentSubCellPos, i + 1));
                                     parentSubdivLevel *= 3.0f;
@@ -305,6 +301,22 @@ namespace UnityEngine.Experimental.Rendering
                 else
                 {
                     SubdivideSubCell(cellVolume, subdivisionCtx, ctx, renderers, probeVolumes, subdivisionCtx.terrains, brickSet);
+                }
+
+                bool IsParentBrickInProbeVolume(Vector3Int parentSubCellPos, float minBrickSize, int brickSize)
+                {
+                    Vector3 center = (Vector3)parentSubCellPos * minBrickSize + Vector3.one * brickSize * minBrickSize / 2.0f;
+                    Bounds parentAABB = new Bounds(center, Vector3.one * brickSize * minBrickSize);
+
+                    bool generateParentBrick = false;
+                    foreach (var probeVolume in probeVolumes)
+                    {
+                        var pvAABB = probeVolume.volume.CalculateAABB();
+                        if (pvAABB.Contains(parentAABB.min) && pvAABB.Contains(parentAABB.max))
+                            generateParentBrick = true;
+                    }
+
+                    return generateParentBrick;
                 }
 
                 finalBricks = brickSet.ToList();
@@ -342,15 +354,6 @@ namespace UnityEngine.Experimental.Rendering
 
             cellVolume.CalculateCenterAndSize(out var center, out var _);
             var cmd = CommandBufferPool.Get($"Subdivide (Sub)Cell {center}");
-
-#if UNITY_EDITOR
-            // Avoid making the editor unresponsive during realtime subdiv debug (without any way of going back)
-            if (ProbeReferenceVolume.instance.debugDisplay.realtimeSubdivision)
-            {
-                if (Time.realtimeSinceStartup - subdivisionCtx.subdivisionStartTime > ProbeReferenceVolume.instance.debugDisplay.realtimeSubdivisionBudget / 1000.0f)
-                    return;
-            }
-#endif
 
             if (RastersizeGeometry(cmd, cellVolume, ctx, renderers, terrains))
             {
@@ -595,14 +598,26 @@ namespace UnityEngine.Experimental.Rendering
                 {
                     int minSubdiv = GetMaxSubdivision(ctx, kp.component.minSubdivisionMultiplier);
                     int maxSubdiv = GetMaxSubdivision(ctx, kp.component.maxSubdivisionMultiplier);
+
+                    // Constrain the probe volume AABB inside the cell
+                    var pvAABB = kp.volume.CalculateAABB();
+                    pvAABB.min = Vector3.Max(pvAABB.min, cellAABB.min);
+                    pvAABB.max = Vector3.Min(pvAABB.max, cellAABB.max);
+
+                    // Compute the max size of a brick that can fit in the smallest dimension of a probe volume
+                    float minSizedDim = Mathf.Min(pvAABB.size.x, Mathf.Min(pvAABB.size.y, pvAABB.size.z));
+                    float minSideInBricks = Mathf.CeilToInt(minSizedDim / ProbeReferenceVolume.instance.MinBrickSize());
+                    int subdivLevel = Mathf.FloorToInt(Mathf.Log(minSideInBricks, 3));
+
                     gpuProbeVolumes.Add(new GPUProbeVolumeOBB
                     {
                         corner = kp.volume.corner,
                         X = kp.volume.X,
                         Y = kp.volume.Y,
                         Z = kp.volume.Z,
-                        minSubdivisionLevel = minSubdiv,
-                        maxSubdivisionLevel = maxSubdiv,
+                        minControllerSubdivLevel = minSubdiv,
+                        maxControllerSubdivLevel = maxSubdiv,
+                        maxSubdivLevelInsideVolume = subdivLevel,
                         geometryDistanceOffset = kp.component.geometryDistanceOffset,
                     });
                 }

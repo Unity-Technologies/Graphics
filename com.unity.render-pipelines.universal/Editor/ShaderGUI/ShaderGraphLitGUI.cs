@@ -33,7 +33,8 @@ namespace UnityEditor
             if (updateType == MaterialUpdateType.CreatedNewMaterial)
                 material.globalIlluminationFlags = MaterialGlobalIlluminationFlags.BakedEmissive;
 
-            BaseShaderGUI.UpdateMaterialSurfaceOptions(material, automaticRenderQueue: false);
+            bool automaticRenderQueue = GetAutomaticQueueControlSetting(material);
+            BaseShaderGUI.UpdateMaterialSurfaceOptions(material, automaticRenderQueue);
             LitGUI.SetupSpecularWorkflowKeyword(material, out bool isSpecularWorkflow);
         }
 
@@ -67,7 +68,10 @@ namespace UnityEditor
 
         public override void DrawAdvancedOptions(Material material)
         {
-            materialEditor.RenderQueueField();
+            // Always show the queue control field.  Only show the render queue field if queue control is set to user override
+            DoPopup(Styles.queueControl, queueControlProp, Styles.queueControlNames);
+            if (material.HasProperty(Property.QueueControl) && material.GetFloat(Property.QueueControl) == (float)QueueControl.UserOverride)
+                materialEditor.RenderQueueField();
             base.DrawAdvancedOptions(material);
 
             // ignore emission color for shadergraphs, because shadergraphs don't have a hard-coded emission property, it's up to the user

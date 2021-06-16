@@ -10,7 +10,7 @@ Material:
   m_Name: SGTessellation_Unlit
   m_Shader: {fileID: -6465566751694194690, guid: 3fc178db9bd582a418af172e2fdfaca9,
     type: 3}
-  m_ShaderKeywords: 
+  m_ShaderKeywords: _TESSELLATION_PHONG
   m_LightmapFlags: 4
   m_EnableInstancingVariants: 0
   m_DoubleSidedGI: 0
@@ -136,3 +136,6 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   version: 12
+  hdPluginSubTargetMaterialVersions:
+    m_Keys: []
+    m_Values: 

@@ -595,12 +595,17 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
     {
         public static FieldCollection Meta = new FieldCollection()
         {
+            HDStructFields.AttributesMesh.positionOS,
             HDStructFields.AttributesMesh.normalOS,
-            HDStructFields.AttributesMesh.tangentOS,
             HDStructFields.AttributesMesh.uv0,
             HDStructFields.AttributesMesh.uv1,
-            HDStructFields.AttributesMesh.color,
             HDStructFields.AttributesMesh.uv2,
+            HDStructFields.AttributesMesh.uv3,
+            HDStructFields.FragInputs.positionRWS,
+            HDStructFields.FragInputs.texCoord0,
+            HDStructFields.FragInputs.texCoord1,
+            HDStructFields.FragInputs.texCoord2,
+            HDStructFields.FragInputs.texCoord3,
         };
 
         public static FieldCollection Basic = new FieldCollection()
@@ -806,7 +811,6 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
 
         public static PragmaCollection BasicTessellation = new PragmaCollection
         {
-            { Pragma.NeverUseDXC(PragmaRenderers.GetNeverUseDXCPlatformArray()) },
             { Pragma.Target(ShaderModel.Target50) },
             { Pragma.Vertex("Vert") },
             { Pragma.Fragment("Frag") },
@@ -1537,6 +1541,15 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
             referenceName = "MULTI_BOUNCE_INDIRECT",
             type = KeywordType.Boolean,
             definition = KeywordDefinition.MultiCompile,
+            scope = KeywordScope.Global,
+        };
+
+        public static KeywordDescriptor EditorVisualization = new KeywordDescriptor
+        {
+            displayName = "Editor Visualization",
+            referenceName = "EDITOR_VISUALIZATION",
+            type = KeywordType.Boolean,
+            definition = KeywordDefinition.ShaderFeature,
             scope = KeywordScope.Global,
         };
     }
