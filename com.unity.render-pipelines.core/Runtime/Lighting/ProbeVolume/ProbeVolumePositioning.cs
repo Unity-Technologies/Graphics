@@ -7,7 +7,6 @@ using UnityEditor;
 namespace UnityEngine.Experimental.Rendering
 {
     using Brick = ProbeBrickIndex.Brick;
-    using Flags = ProbeReferenceVolume.BrickFlags;
     using RefTrans = ProbeReferenceVolume.RefVolTransform;
 
     internal static class ProbeVolumePositioning

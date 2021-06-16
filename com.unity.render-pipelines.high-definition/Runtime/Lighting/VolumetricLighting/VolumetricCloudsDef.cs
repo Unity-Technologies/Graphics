@@ -85,8 +85,8 @@ namespace UnityEngine.Rendering.HighDefinition
         // Resolution of the history depth buffer
         public Vector2 _HistoryBufferSize;
 
-        // Padding 1
-        public Vector2 _Padding1;
+        // Offset Applied when applying the shaping
+        public Vector2 _ShapeNoiseOffset;
         // Frame index for the accumulation
         public int _AccumulationFrameIndex;
         // Index for which of the 4 local pixels should be evaluated
@@ -120,5 +120,9 @@ namespace UnityEngine.Rendering.HighDefinition
         public Matrix4x4 _CameraViewProjection_NO;
         public Matrix4x4 _CameraInverseViewProjection_NO;
         public Matrix4x4 _CameraPrevViewProjection_NO;
+
+        // Fast tonemapping settings
+        public Vector3 _Padding2;
+        public int     _EnableFastToneMapping;
     }
 }

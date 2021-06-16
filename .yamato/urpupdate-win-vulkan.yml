@@ -19,6 +19,7 @@ URPUpdate_Win_Vulkan_playmode_mono_Linear_trunk:
         CUSTOM_REVISION: '{{trunk.changeset.id}}'
         TEMPLATE_UPDATE_PROJECT_BRANCH: master
         TEMPLATE_UPDATE_PROJECT_REVISION: 818b6345d6bf46cf3e5644aceff134e866c6150e
+        CACHE_ARGS: '{{cache.flags}}'
         UTR_VERSION: "current"
         TEST_FILTER: .*
     commands:
@@ -60,6 +61,7 @@ URPUpdate_Win_Vulkan_editmode_mono_Linear_trunk:
         CUSTOM_REVISION: '{{trunk.changeset.id}}'
         TEMPLATE_UPDATE_PROJECT_BRANCH: master
         TEMPLATE_UPDATE_PROJECT_REVISION: 818b6345d6bf46cf3e5644aceff134e866c6150e
+        CACHE_ARGS: '{{cache.flags}}'
         UTR_VERSION: "current"
         TEST_FILTER: .*
     commands:
@@ -101,6 +103,7 @@ URPUpdate_Win_Vulkan_playmode_mono_Linear_CUSTOM-REVISION:
         CUSTOM_REVISION: custom_revision_not_set
         TEMPLATE_UPDATE_PROJECT_BRANCH: master
         TEMPLATE_UPDATE_PROJECT_REVISION: 818b6345d6bf46cf3e5644aceff134e866c6150e
+        CACHE_ARGS: '{{cache.flags}}'
         UTR_VERSION: "current"
         TEST_FILTER: .*
     commands:
@@ -142,6 +145,7 @@ URPUpdate_Win_Vulkan_editmode_mono_Linear_CUSTOM-REVISION:
         CUSTOM_REVISION: custom_revision_not_set
         TEMPLATE_UPDATE_PROJECT_BRANCH: master
         TEMPLATE_UPDATE_PROJECT_REVISION: 818b6345d6bf46cf3e5644aceff134e866c6150e
+        CACHE_ARGS: '{{cache.flags}}'
         UTR_VERSION: "current"
         TEST_FILTER: .*
     commands:
