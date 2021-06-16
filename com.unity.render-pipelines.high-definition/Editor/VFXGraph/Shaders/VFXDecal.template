@@ -135,13 +135,17 @@ if(_EnableDecalLayers)
 	    surfaceData.mask.w = maskMapBlend;
     #endif
 
-
+        float normalScale = 1.0f;
 	    #if USE_NORMAL_MAP
 	    float3 normalTS = SampleNormalMap(VFX_SAMPLER(normalMap),uvData);
+        #ifdef VFX_VARYING_NORMALSCALE
+        normalScale = i.VFX_VARYING_NORMALSCALE;
+        #endif
 	    #else
 	    float3 normalTS = float3(0.0f,0.0f,1.0f);
 	    #endif
-	    float3 normalWS = normalize(mul(transpose(worldToElement), normalTS));
+        float3 normalWS = lerp(worldToElement._m20_m21_m22, mul(transpose(worldToElement), normalTS), normalScale);
+	    normalWS = normalize(normalWS);
 
 	    surfaceData.normalWS.xyz = normalWS;
 	    #if VFX_NORMAL_BLEND_BASE_COLOR_ALPHA

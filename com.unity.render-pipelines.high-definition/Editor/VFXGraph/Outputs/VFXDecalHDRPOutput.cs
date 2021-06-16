@@ -29,7 +29,6 @@ namespace UnityEditor.VFX.HDRP
         {
             base.OnEnable();
             blendMode = BlendMode.Opaque;
-            useNormalScale = false;
             sort = SortMode.Off;
         }
 

@@ -54,8 +54,6 @@ namespace UnityEditor.VFX.HDRP
 
         protected virtual bool allowTextures { get { return GetOrRefreshShaderGraphObject() == null; }}
 
-        protected bool useNormalScale = true;
-
         protected IEnumerable<VFXPropertyWithValue> baseColorMapProperties
         {
             get
@@ -76,9 +74,7 @@ namespace UnityEditor.VFX.HDRP
             get
             {
                 yield return new VFXPropertyWithValue(new VFXProperty(GetTextureType(), "normalMap", new TooltipAttribute("Specifies the Normal map to obtain normals in tangent space for the particle.")));
-
-                if(useNormalScale)
-                    yield return new VFXPropertyWithValue(new VFXProperty(typeof(float), "normalScale", new TooltipAttribute("Sets the scale of the normals. Larger values increase the impact of the normals.")), 1.0f);
+                yield return new VFXPropertyWithValue(new VFXProperty(typeof(float), "normalScale", new TooltipAttribute("Sets the scale of the normals. Larger values increase the impact of the normals.")), 1.0f);
             }
         }
         protected IEnumerable<VFXPropertyWithValue> emissiveMapsProperties
@@ -162,8 +158,7 @@ namespace UnityEditor.VFX.HDRP
                     if (useNormalMap)
                     {
                         yield return slotExpressions.First(o => o.name == "normalMap");
-                        if(useNormalScale)
-                            yield return slotExpressions.First(o => o.name == "normalScale");
+                        yield return slotExpressions.First(o => o.name == "normalScale");
                     }
                     if (useEmissiveMap)
                     {
