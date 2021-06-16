@@ -74,6 +74,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Added a shortcut to HDRP Wizard documentation.
 - Added support of motion vector buffer in custom postprocess
 - Added tooltips for content inside the Rendering Debugger window.
+- Added support for reflection probes as a fallback for ray traced reflections (case 1338644).
 
 ### Fixed
 - Fixed Intensity Multiplier not affecting realtime global illumination.
@@ -259,6 +260,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed an issue with resolution dependence for physically based depth of field.
 - Fixed sceneview debug mode rendering (case 1211436)
 - Fixed Pixel Displacement that could be set on tessellation shader while it's not supported.
+- Fixed an issue where disabled reflection probes were still sent into the the ray tracing light cluster.
 
 ### Changed
 - Changed Window/Render Pipeline/HD Render Pipeline Wizard to Window/Rendering/HDRP Wizard
@@ -347,6 +349,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Updated the recursive rendering documentation (case 1338639).
 - Replaced the context menu by a search window when adding custom pass.
 - Moved supportRuntimeDebugDisplay option from HDRPAsset to HDRPGlobalSettings.
+- When a ray hits the sky in the ray marching part of mixed ray tracing, it is considered a miss.
 
 ## [11.0.0] - 2020-10-21
 
