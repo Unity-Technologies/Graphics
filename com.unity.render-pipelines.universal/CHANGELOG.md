@@ -6,14 +6,12 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ## [10.6.0] - 2021-04-29
 
-Version Updated
-The version number for this package has increased due to a version update of a related graphics package.
-
 ### Fixed
 - Fixed an issue where changing camera's position in the BeginCameraRendering do not apply properly. [case 1318629]
 - Fixed an issue where SMAA did not work for OpenGL [case 1336710](https://issuetracker.unity3d.com/issues/urp-there-is-no-effect-when-using-smaa-in-urp-with-opengles-api)
 - Fixed an issue where Particle Lit shader had an incorrect fallback shader [case 1331779]
 - Fixed SRP batcher not working on OpenGL.
+- Fixed an issue where the inspector of Renderer Data would break after adding RenderObjects renderer feature and then adding another renderer feature. [case 1323608](https://issuetracker.unity3d.com/product/unity/issues/guid/1323608/)
 
 ## [10.5.0] - 2021-04-19
 
