@@ -259,6 +259,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed some resolution aliasing for physically based depth of field (case 1340551).
 - Fixed an issue with resolution dependence for physically based depth of field.
 - Fixed sceneview debug mode rendering (case 1211436)
+- Fixed Pixel Displacement that could be set on tessellation shader while it's not supported.
 - Fixed an issue where disabled reflection probes were still sent into the the ray tracing light cluster.
 
 ### Changed
