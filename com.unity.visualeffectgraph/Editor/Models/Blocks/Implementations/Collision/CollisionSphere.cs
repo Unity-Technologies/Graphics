@@ -38,9 +38,9 @@ namespace UnityEditor.VFX.Block
                 var radiusScale = VFXOperatorUtility.UniformScaleMatrix(radius);
                 var finalTransform = new VFXExpressionTransformMatrix(transform, radiusScale);
                 yield return new VFXNamedExpression(finalTransform, "fieldTransform");
-                var normalizedScale = VFXOperatorUtility.Normalize(new VFXExpressionExtractScaleFromMatrix(finalTransform));
-
-                yield return new VFXNamedExpression(VFXOperatorUtility.Reciprocal(normalizedScale), "invFieldScale");
+                VFXExpression scale = new VFXExpressionExtractScaleFromMatrix(finalTransform);
+                scale = scale * VFXOperatorUtility.TwoExpression[UnityEngine.VFX.VFXValueType.Float3];
+                yield return new VFXNamedExpression(VFXOperatorUtility.Reciprocal(scale), "invFieldScale");
                 yield return new VFXNamedExpression(new VFXExpressionInverseTRSMatrix(finalTransform), "invFieldTransform");
             }
         }
@@ -54,7 +54,7 @@ float3 nextPos = position + velocity * deltaTime;
 float3 tPos = mul(invFieldTransform, float4(nextPos, 1.0f)).xyz;
 float dist = length(tPos);
 //TODOPAUL : Probably wrong
-float radiusCorrection = radius * length(abs(tPos / dist) - invFieldScale);
+float radiusCorrection = radius * length((abs(tPos)/dist) - invFieldScale);
 dist -= radiusCorrection;
 if (colliderSign * dist <= colliderSign)
 {
