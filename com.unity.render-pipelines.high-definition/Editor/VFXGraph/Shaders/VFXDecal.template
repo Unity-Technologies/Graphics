@@ -68,9 +68,9 @@ if(_EnableDecalLayers)
 }
 	float fadeFactor = i.VFX_VARYING_FADEFACTOR;
 	fadeFactor *= angleFadeFactor;
-#if SHADERPASS == SHADERPASS_VFX_DBUFFER_PROJECTOR
 
-	float4 color = float4(1,1,1,1);
+//Compute color even for emissive, to have the correct opacity
+    float4 color = float4(1,1,1,1);
     #if HDRP_USE_BASE_COLOR
     color *= VFXGetParticleColor(i);
     #elif HDRP_USE_ADDITIONAL_BASE_COLOR
@@ -92,6 +92,8 @@ if(_EnableDecalLayers)
     #endif
 	color.a *= fadeFactor;
     VFXClipFragmentColor(color.a,i);
+
+#if SHADERPASS == SHADERPASS_VFX_DBUFFER_PROJECTOR
     surfaceData.baseColor.rgb = saturate(color.rgb);
 	surfaceData.baseColor.a = color.a;
 
@@ -173,6 +175,7 @@ if(_EnableDecalLayers)
 		#else
 		surfaceData.emissive = lerp(emissiveRcpExposure, surfaceData.emissive, 1.0f);
 		#endif
+        surfaceData.emissive *= saturate(color.a);
 	#endif
 }
 
