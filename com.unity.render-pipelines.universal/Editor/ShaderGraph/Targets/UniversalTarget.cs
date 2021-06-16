@@ -127,7 +127,7 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
         internal override int padCustomInterpolatorLimit => 4;
         internal override bool prefersSpritePreview =>
             activeSubTarget is UniversalSpriteUnlitSubTarget or UniversalSpriteLitSubTarget or
-                UniversalSpriteCustomLitSubTarget;
+                               UniversalSpriteCustomLitSubTarget;
 
         public UniversalTarget()
         {
