@@ -1,6 +1,4 @@
 using System;
-using System.Collections;
-using System.Collections.Generic;
 using UnityEngine;
 using UnityEditor;
 using System.IO;
@@ -92,7 +90,7 @@ internal static class URP2DConverterUtility
             GameObject asset = objects[firstIndex] as GameObject;
             PrefabUtility.SavePrefabAsset(asset.transform.root.gameObject);
 
-            return null;
+            return string.Empty;
         }
 
         return "Unable to modify an immutable prefab";

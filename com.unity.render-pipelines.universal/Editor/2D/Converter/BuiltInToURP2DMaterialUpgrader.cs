@@ -61,7 +61,7 @@ namespace UnityEditor.Rendering.Universal
             }
         }
 
-        public override void OnInitialize(InitializeConverterContext context, Action calback)
+        public override void OnInitialize(InitializeConverterContext context, Action callback)
         {
             Renderer2DData data = Light2DEditorUtility.GetRenderer2DData();
             if (data != null)
@@ -98,12 +98,12 @@ namespace UnityEditor.Rendering.Universal
                 }
             }
 
-            calback.Invoke();
+            callback.Invoke();
         }
 
         public override void OnRun(ref RunItemContext context)
         {
-            string result = null;
+            string result = string.Empty;
             string ext = Path.GetExtension(context.item.descriptor.info);
             if (ext == ".prefab")
                 result = URP2DConverterUtility.UpgradePrefab(context.item.descriptor.info, UpgradeGameObject);
@@ -112,7 +112,7 @@ namespace UnityEditor.Rendering.Universal
             else if (ext == ".mat")
                 URP2DConverterUtility.UpgradeMaterial(context.item.descriptor.info, m_SpritesDefaultShader, m_SpriteLitDefaultShader);
 
-            if (result != null)
+            if (result != string.Empty)
             {
                 context.didFail = true;
                 context.info = result;

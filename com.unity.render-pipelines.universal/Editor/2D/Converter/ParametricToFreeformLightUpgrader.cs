@@ -10,6 +10,8 @@ namespace UnityEditor.Rendering.Universal
 {
     internal sealed class ParametricToFreeformLightUpgrader : RenderPipelineConverter
     {
+        const float k_EnscribedSquareDiagonalLength = 0.70710678118654752440084436210485f;
+
         public override string name => "Parametric to Freeform Light Upgrade";
         public override string info => "This will upgrade all parametric lights to freeform lights.";
         public override int priority => - 1000;
@@ -32,7 +34,7 @@ namespace UnityEditor.Rendering.Universal
                 var angleOffset = Mathf.PI / 2.0f + Mathf.Deg2Rad * angle;
                 if (sides < 3)
                 {
-                    radius = 0.70710678118654752440084436210485f * radius;
+                    radius = k_EnscribedSquareDiagonalLength * radius;
                     sides = 4;
                 }
 
@@ -71,7 +73,7 @@ namespace UnityEditor.Rendering.Universal
             }
         }
 
-        public override void OnInitialize(InitializeConverterContext context, Action calback)
+        public override void OnInitialize(InitializeConverterContext context, Action callback)
         {
             string[] allAssetPaths = AssetDatabase.GetAllAssetPaths();
 
@@ -93,16 +95,27 @@ namespace UnityEditor.Rendering.Universal
                 }
             }
 
-            calback.Invoke();
+            callback.Invoke();
         }
 
         public override void OnRun(ref RunItemContext context)
         {
+            string result = string.Empty;
             string ext = Path.GetExtension(context.item.descriptor.info);
             if (ext == ".prefab")
-                URP2DConverterUtility.UpgradePrefab(context.item.descriptor.info, UpgradeGameObject);
+                result = URP2DConverterUtility.UpgradePrefab(context.item.descriptor.info, UpgradeGameObject);
             else if (ext == ".unity")
                 URP2DConverterUtility.UpgradeScene(context.item.descriptor.info, UpgradeGameObject);
+
+            if (result != string.Empty)
+            {
+                context.didFail = true;
+                context.info = result;
+            }
+            else
+            {
+                context.hasConverted = true;
+            }
         }
 
         public override void OnClicked(int index)
