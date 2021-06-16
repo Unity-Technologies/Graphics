@@ -233,7 +233,7 @@ EditorBuildSettings:
   - enabled: 0
     path: Assets/Scenes/2007_Debug_LightCluster.unity
     guid: b7fbbc7d0a8ea854aae81bc3243df0ff
-  - enabled: 1
+  - enabled: 0
     path: Assets/Scenes/2008_Debug_SubSurfaceScattering.unity
     guid: bb4c2806fa330ce4a8015c64186b031d
   - enabled: 1
