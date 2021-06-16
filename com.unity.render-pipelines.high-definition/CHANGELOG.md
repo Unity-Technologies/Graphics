@@ -78,7 +78,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed Intensity Multiplier not affecting realtime global illumination.
 - Fixed an exception when opening the color picker in the material UI (case 1307143).
 - Fixed lights shadow frustum near and far planes.
-- Fixed that the HDRP Wizard is only open when a SRP in use is of type HDRenderPipeline.
+- The HDRP Wizard is only opened when a SRP in use is of type HDRenderPipeline.
 - Fixed various issues with non-temporal SSAO and rendergraph.
 - Fixed white flashes on camera cuts on volumetric fog.
 - Fixed light layer issue when performing editing on multiple lights.
