@@ -1914,7 +1914,7 @@ MonoBehaviour:
   waitFrames: 300
   xrCompatible: 1
   xrThresholdMultiplier: 1
-  checkMemoryAllocation: 1
+  checkMemoryAllocation: 0
   renderPipelineAsset: {fileID: 11400000, guid: 6bd5fa45cda106547a3123d7cb302682,
     type: 2}
 --- !u!1 &1988140875
