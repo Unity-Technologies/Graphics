@@ -59,7 +59,7 @@ namespace UnityEngine.Rendering.Universal
         }
 
         internal DebugFullScreenMode debugFullScreenMode { get; private set; } = DebugFullScreenMode.None;
-        internal int debugFullScreenModeOutputSize { get; private set; } = 480;
+        internal int debugFullScreenModeOutputSizeScreenPercent { get; private set; } = 50;
         internal DebugSceneOverrideMode debugSceneOverrideMode { get; private set; } = DebugSceneOverrideMode.None;
         internal DebugMipInfoMode debugMipInfoMode { get; private set; } = DebugMipInfoMode.None;
 
@@ -75,30 +75,6 @@ namespace UnityEngine.Rendering.Universal
         internal float ValidationRangeMax { get; private set; } = 1.0f;
 
         const string k_RangeValidationSettingsContainerName = "Pixel Range Settings";
-
-        static void DebugPixelValidationModeChanged(DebugUI.Field<int> field, int value)
-        {
-            // Hacky way to hide non-relevant UI options based on displayNames.
-            var mode = (DebugValidationMode)value;
-            var validationWidgets = field.parent.children;
-            foreach (var widget in validationWidgets)
-            {
-                if ((mode == DebugValidationMode.None || mode == DebugValidationMode.HighlightNanInfNegative) &&
-                    widget.displayName == k_RangeValidationSettingsContainerName)
-                {
-                    widget.isHidden = true;
-                }
-                else if (mode == DebugValidationMode.HighlightOutsideOfRange && widget.displayName == k_RangeValidationSettingsContainerName)
-                {
-                    widget.isHidden = false;
-                }
-                else
-                {
-                    widget.isHidden = false;
-                }
-            }
-            DebugManager.instance.ReDrawOnScreenDebug();
-        }
 
         #endregion
 
@@ -121,11 +97,11 @@ namespace UnityEngine.Rendering.Universal
                     new DebugUI.IntField
                     {
                         displayName = "Map Size",
-                        getter = () => data.debugFullScreenModeOutputSize,
-                        setter = value => data.debugFullScreenModeOutputSize = value,
+                        getter = () => data.debugFullScreenModeOutputSizeScreenPercent,
+                        setter = value => data.debugFullScreenModeOutputSizeScreenPercent = value,
                         incStep = 10,
-                        min = () => 100,
-                        max = () => 2160
+                        min = () => 0,
+                        max = () => 100
                     }
                 }
             };
@@ -189,7 +165,7 @@ namespace UnityEngine.Rendering.Universal
                 setter = (value) => {},
                 getIndex = () => (int)data.validationMode,
                 setIndex = (value) => data.validationMode = (DebugValidationMode)value,
-                onValueChanged = DebugPixelValidationModeChanged
+                onValueChanged = (_, _) => DebugManager.instance.ReDrawOnScreenDebug()
             };
 
             internal static DebugUI.Widget CreatePixelValidationChannels(DebugDisplaySettingsRendering data) => new DebugUI.EnumField
@@ -255,7 +231,7 @@ namespace UnityEngine.Rendering.Universal
                         new DebugUI.Container()
                         {
                             displayName = k_RangeValidationSettingsContainerName,
-                            isHidden = true,
+                            isHiddenCallback = () => data.validationMode != DebugValidationMode.HighlightOutsideOfRange,
                             children =
                             {
                                 WidgetFactory.CreatePixelValidationChannels(data),

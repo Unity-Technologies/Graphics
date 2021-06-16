@@ -27,6 +27,9 @@ namespace UnityEngine.Rendering.HighDefinition
         int m_UpscaleAndCombineCloudsKernelColorCopy;
         int m_UpscaleAndCombineCloudsKernelColorRW;
 
+        // Combine pass via hardware blending, used in case of MSAA color target.
+        Material m_CloudCombinePass;
+
         void InitializeVolumetricClouds()
         {
             if (!m_Asset.currentPlatformRenderPipelineSettings.supportVolumetricClouds)
@@ -46,6 +49,8 @@ namespace UnityEngine.Rendering.HighDefinition
             m_UpscaleAndCombineCloudsKernelColorCopy = volumetricCloudsCS.FindKernel("UpscaleAndCombineClouds_ColorCopy");
             m_UpscaleAndCombineCloudsKernelColorRW = volumetricCloudsCS.FindKernel("UpscaleAndCombineClouds_ColorRW");
 
+            m_CloudCombinePass = CoreUtils.CreateEngineMaterial(defaultResources.shaders.volumetricCloudsCombinePS);
+
             // Allocate all the texture initially
             AllocatePresetTextures();
 
@@ -58,6 +63,8 @@ namespace UnityEngine.Rendering.HighDefinition
         {
             if (!m_Asset.currentPlatformRenderPipelineSettings.supportVolumetricClouds)
                 return;
+
+            CoreUtils.Destroy(m_CloudCombinePass);
 
             // Release the additional sub components
             ReleaseVolumetricCloudsMap();
@@ -212,6 +219,7 @@ namespace UnityEngine.Rendering.HighDefinition
             public bool historyValidity;
             public bool planarReflection;
             public bool needExtraColorBufferCopy;
+            public bool enableExposureControl;
             public Vector2Int previousViewportSize;
 
             // Static textures
@@ -233,6 +241,10 @@ namespace UnityEngine.Rendering.HighDefinition
 
             // Cloud constant buffer buffer
             public ShaderVariablesClouds cloudsCB;
+
+            // MSAA support
+            public bool needsTemporaryBuffer;
+            public Material cloudCombinePass;
         }
 
         float Square(float x)
@@ -456,6 +468,8 @@ namespace UnityEngine.Rendering.HighDefinition
                     cb._ShadowRegionSize = new Vector2(groundShadowSize * scaleX, groundShadowSize * scaleY);
                 }
             }
+
+            cb._EnableFastToneMapping = parameters.enableExposureControl ? 1 : 0;
         }
 
         Texture2D GetPresetCloudMapTexture(VolumetricClouds.CloudPresets preset)
@@ -546,6 +560,11 @@ namespace UnityEngine.Rendering.HighDefinition
             BlueNoise blueNoise = GetBlueNoiseManager();
             parameters.ditheredTextureSet = blueNoise.DitheredTextureSet8SPP();
             parameters.sunLight = GetCurrentSunLight();
+            parameters.enableExposureControl = hdCamera.exposureControlFS;
+
+            // MSAA support
+            parameters.needsTemporaryBuffer = hdCamera.msaaEnabled;
+            parameters.cloudCombinePass = m_CloudCombinePass;
 
             // Update the constant buffer
             UpdateShaderVariableslClouds(ref parameters.cloudsCB, hdCamera, settings, parameters, shadowPass);
@@ -558,7 +577,7 @@ namespace UnityEngine.Rendering.HighDefinition
             RTHandle currentHistory0Buffer, RTHandle previousHistory0Buffer,
             RTHandle currentHistory1Buffer, RTHandle previousHistory1Buffer,
             RTHandle intermediateLightingBuffer0, RTHandle intermediateLightingBuffer1, RTHandle intermediateDepthBuffer0, RTHandle intermediateDepthBuffer1, RTHandle intermediateDepthBuffer2,
-            RTHandle intermediateColorBuffer)
+            RTHandle intermediateColorBuffer, RTHandle intermediateUpscaleBuffer)
         {
             // Compute the number of tiles to evaluate
             int traceTX = (parameters.traceWidth + (8 - 1)) / 8;
@@ -665,7 +684,32 @@ namespace UnityEngine.Rendering.HighDefinition
                     cmd.SetComputeTextureParam(parameters.volumetricCloudsCS, parameters.upscaleAndCombineKernel, HDShaderIDs._AerosolSingleScatteringTexture, scatteringFallbackTexture);
                     cmd.SetComputeTextureParam(parameters.volumetricCloudsCS, parameters.upscaleAndCombineKernel, HDShaderIDs._MultipleScatteringTexture, scatteringFallbackTexture);
                 }
-                cmd.DispatchCompute(parameters.volumetricCloudsCS, parameters.upscaleAndCombineKernel, finalTX, finalTY, parameters.viewCount);
+
+                if (parameters.needsTemporaryBuffer)
+                {
+                    CoreUtils.SetKeyword(cmd, "USE_INTERMEDIATE_BUFFER", true);
+
+                    // Provide this second upscaling + combine strategy in case a temporary buffer is requested (ie MSAA).
+                    // In the case of an MSAA color target, we cannot use the in-place blending of the clouds with the color target.
+                    cmd.SetComputeTextureParam(parameters.volumetricCloudsCS, parameters.upscaleAndCombineKernel, HDShaderIDs._VolumetricCloudsUpscaleTextureRW, intermediateUpscaleBuffer);
+
+                    // Perform the upscale into an intermediate buffer.
+                    cmd.DispatchCompute(parameters.volumetricCloudsCS, parameters.upscaleAndCombineKernel, finalTX, finalTY, parameters.viewCount);
+
+                    parameters.cloudCombinePass.SetTexture(HDShaderIDs._VolumetricCloudsUpscaleTextureRW, intermediateUpscaleBuffer);
+
+                    // Composite the clouds into the MSAA target via hardware blending.
+                    HDUtils.DrawFullScreen(cmd, parameters.cloudCombinePass, colorBuffer);
+
+                    CoreUtils.SetKeyword(cmd, "USE_INTERMEDIATE_BUFFER", false);
+                }
+                else
+                {
+                    cmd.SetComputeTextureParam(parameters.volumetricCloudsCS, parameters.upscaleAndCombineKernel, HDShaderIDs._CameraColorTextureRW, colorBuffer);
+
+                    // Perform the upscale and combine with the color buffer in place.
+                    cmd.DispatchCompute(parameters.volumetricCloudsCS, parameters.upscaleAndCombineKernel, finalTX, finalTY, parameters.viewCount);
+                }
             }
             CoreUtils.SetKeyword(cmd, "PLANAR_REFLECTION_CAMERA", false);
         }
@@ -691,6 +735,7 @@ namespace UnityEngine.Rendering.HighDefinition
             public TextureHandle intermediateBufferDepth0;
             public TextureHandle intermediateBufferDepth1;
             public TextureHandle intermediateBufferDepth2;
+            public TextureHandle intermediateBufferUpscale;
 
             public TextureHandle intermediateColorBufferCopy;
         }
@@ -738,6 +783,16 @@ namespace UnityEngine.Rendering.HighDefinition
                 passData.intermediateColorBufferCopy = passData.parameters.needExtraColorBufferCopy ? builder.CreateTransientTexture(new TextureDesc(Vector2.one, true, true)
                     { colorFormat = GetColorBufferFormat(), enableRandomWrite = true, name = "Temporary Color Buffer" }) : renderGraph.defaultResources.blackTextureXR;
 
+                if (passData.parameters.needsTemporaryBuffer)
+                {
+                    passData.intermediateBufferUpscale = builder.CreateTransientTexture(new TextureDesc(Vector2.one, true, true)
+                        { colorFormat = GraphicsFormat.R16G16B16A16_SFloat, enableRandomWrite = true, name = "Temporary Clouds Upscaling Buffer" });
+                }
+                else
+                {
+                    passData.intermediateBufferUpscale = renderGraph.defaultResources.blackTexture;
+                }
+
                 if (passData.parameters.planarReflection)
                 {
                     passData.intermediateBufferDepth2 = builder.CreateTransientTexture(new TextureDesc(Vector2.one, true, true)
@@ -754,7 +809,8 @@ namespace UnityEngine.Rendering.HighDefinition
                         TraceVolumetricClouds(ctx.cmd, data.parameters,
                             data.colorBuffer, data.depthPyramid, data.motionVectors, data.volumetricLighting, data.scatteringFallbackTexture,
                             data.currentHistoryBuffer0, data.previousHistoryBuffer0, data.currentHistoryBuffer1, data.previousHistoryBuffer1,
-                            data.intermediateBuffer0, data.intermediateBuffer1, data.intermediateBufferDepth0, data.intermediateBufferDepth1, data.intermediateBufferDepth2, data.intermediateColorBufferCopy);
+                            data.intermediateBuffer0, data.intermediateBuffer1, data.intermediateBufferDepth0, data.intermediateBufferDepth1, data.intermediateBufferDepth2,
+                            data.intermediateColorBufferCopy, data.intermediateBufferUpscale);
                     });
 
                 PushFullScreenDebugTexture(m_RenderGraph, passData.currentHistoryBuffer0, FullScreenDebugMode.VolumetricClouds);
