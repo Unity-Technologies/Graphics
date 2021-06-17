@@ -586,9 +586,6 @@ namespace UnityEngine.Rendering.HighDefinition
             {
                 HDProbe probeData = lights.reflectionProbeArray[lightIdx];
 
-                // Skip the probe if the probe has never rendered (in realtime cases) or if texture is null
-                if (!probeData.HasValidRenderedData()) continue;
-
                 HDRenderPipeline.PreprocessProbeData(ref processedProbe, probeData, hdCamera);
 
                 var envLightData = new EnvLightData();
@@ -736,6 +733,7 @@ namespace UnityEngine.Rendering.HighDefinition
             maxClusterPos.Set(-float.MaxValue, -float.MaxValue, -float.MaxValue);
             punctualLightCount = 0;
             areaLightCount = 0;
+            envLightCount = 0;
         }
 
         public void CullForRayTracing(HDCamera hdCamera, HDRayTracingLights rayTracingLights)
