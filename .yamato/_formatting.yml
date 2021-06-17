@@ -4,6 +4,7 @@
 # Read more under .yamato/docs/readme.md
 
 {% metadata_file .yamato/_cache_config.metafile -%}
+{% metadata_file .yamato/_latest_editor_versions_2021.2.metafile -%}
 {% metadata_file .yamato/_latest_editor_versions_trunk.metafile -%}
 
 ---

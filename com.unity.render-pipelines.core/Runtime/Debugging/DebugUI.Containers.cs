@@ -160,6 +160,11 @@ namespace UnityEngine.Rendering
             public string[] columnLabels { get; set; } = null;
 
             /// <summary>
+            /// List of columns label tooltips.
+            /// </summary>
+            public string[] columnTooltips { get; set; } = null;
+
+            /// <summary>
             /// Constructor.
             /// </summary>
             public Foldout() : base() {}
@@ -169,10 +174,12 @@ namespace UnityEngine.Rendering
             /// <param name="displayName">Display name of the foldout.</param>
             /// <param name="children">List of attached children.</param>
             /// <param name="columnLabels">Optional list of column names.</param>
-            public Foldout(string displayName, ObservableList<Widget> children, string[] columnLabels = null)
+            /// <param name="columnTooltips">Optional list of tooltips for column name labels.</param>
+            public Foldout(string displayName, ObservableList<Widget> children, string[] columnLabels = null, string[] columnTooltips = null)
                 : base(displayName, children)
             {
                 this.columnLabels = columnLabels;
+                this.columnTooltips = columnTooltips;
             }
 
             /// <summary>

@@ -1,7 +1,9 @@
 using UnityEditor;
 using System.Reflection;
 using System;
+using System.Linq;
 using System.Collections.Generic;
+using System.Collections;
 using UnityEngine.Rendering;
 
 namespace UnityEngine.Experimental.Rendering
@@ -13,6 +15,10 @@ namespace UnityEngine.Experimental.Rendering
         [InitializeOnLoad]
         class RealtimeProbeSubdivisionDebug
         {
+            static double       s_LastSubdivisionTime;
+            static double       s_LastRefreshTime;
+            static IEnumerator  s_CurrentSubdivision;
+
             static RealtimeProbeSubdivisionDebug()
             {
                 EditorApplication.update -= UpdateRealtimeSubdivisionDebug;
@@ -21,37 +27,97 @@ namespace UnityEngine.Experimental.Rendering
 
             static void UpdateRealtimeSubdivisionDebug()
             {
-                if (ProbeReferenceVolume.instance.debugDisplay.realtimeSubdivision)
+                var debugDisplay = ProbeReferenceVolume.instance.debugDisplay;
+                if (!debugDisplay.realtimeSubdivision)
+                    return;
+
+                // Avoid killing the GPU when Unity is in background and runInBackground is disabled
+                if (!Application.runInBackground && !UnityEditorInternal.InternalEditorUtility.isApplicationActive)
+                    return;
+
+                // update is called 200 times per second so we bring down the update rate to 60hz to avoid overloading the GPU
+                if (Time.realtimeSinceStartupAsDouble - s_LastRefreshTime < 1.0f / 60.0f)
+                    return;
+                s_LastRefreshTime = Time.realtimeSinceStartupAsDouble;
+
+                if (Time.realtimeSinceStartupAsDouble - s_LastSubdivisionTime > debugDisplay.subdivisionDelayInSeconds)
                 {
                     var probeVolumeAuthoring = FindObjectOfType<ProbeReferenceVolumeAuthoring>();
-
                     if (probeVolumeAuthoring == null || !probeVolumeAuthoring.isActiveAndEnabled)
                         return;
 
-                    var ctx = ProbeGIBaking.PrepareProbeSubdivisionContext(probeVolumeAuthoring);
-
-                    // Cull all the cells that are not visible (we don't need them for realtime debug)
-                    ctx.cells.RemoveAll(c => {
-                        return probeVolumeAuthoring.ShouldCullCell(c.position);
-                    });
-
-                    Camera activeCamera = Camera.current ?? SceneView.lastActiveSceneView.camera;
-
-                    if (activeCamera != null)
+                    if (s_CurrentSubdivision == null)
                     {
-                        var cameraPos = activeCamera.transform.position;
-                        ctx.cells.Sort((c1, c2) => {
-                            c1.volume.CalculateCenterAndSize(out var c1Center, out var _);
-                            float c1Distance = Vector3.Distance(cameraPos, c1Center);
-
-                            c2.volume.CalculateCenterAndSize(out var c2Center, out var _);
-                            float c2Distance = Vector3.Distance(cameraPos, c2Center);
-
-                            return c1Distance.CompareTo(c2Distance);
-                        });
+                        // Start a new Subdivision
+                        s_CurrentSubdivision = Subdivide();
                     }
 
-                    ProbeGIBaking.BakeBricks(ctx);
+                    // Step the subdivision with the amount of cell per frame in debug menu
+                    int updatePerFrame = debugDisplay.subdivisionCellUpdatePerFrame;
+                    // From simplification level 5 and higher, the cost of calculating one cell is very high, so we adjust that number.
+                    if (probeVolumeAuthoring.profile.simplificationLevels > 4)
+                        updatePerFrame = (int)Mathf.Max(1, updatePerFrame / Mathf.Pow(9, probeVolumeAuthoring.profile.simplificationLevels - 4));
+                    for (int i = 0; i < debugDisplay.subdivisionCellUpdatePerFrame; i++)
+                    {
+                        if (!s_CurrentSubdivision.MoveNext())
+                        {
+                            s_LastSubdivisionTime = Time.realtimeSinceStartupAsDouble;
+                            s_CurrentSubdivision = null;
+                            break;
+                        }
+                    }
+
+                    IEnumerator Subdivide()
+                    {
+                        var ctx = ProbeGIBaking.PrepareProbeSubdivisionContext(probeVolumeAuthoring);
+
+                        // Cull all the cells that are not visible (we don't need them for realtime debug)
+                        ctx.cells.RemoveAll(c => {
+                            return probeVolumeAuthoring.ShouldCullCell(c.position);
+                        });
+
+                        Camera activeCamera = Camera.current ?? SceneView.lastActiveSceneView.camera;
+
+                        // Sort cells by camera distance to compute the closest cells first
+                        if (activeCamera != null)
+                        {
+                            var cameraPos = activeCamera.transform.position;
+                            ctx.cells.Sort((c1, c2) => {
+                                c1.volume.CalculateCenterAndSize(out var c1Center, out var _);
+                                float c1Distance = Vector3.Distance(cameraPos, c1Center);
+
+                                c2.volume.CalculateCenterAndSize(out var c2Center, out var _);
+                                float c2Distance = Vector3.Distance(cameraPos, c2Center);
+
+                                return c1Distance.CompareTo(c2Distance);
+                            });
+                        }
+
+                        // Progressively update cells:
+                        var cells = ctx.cells.ToList();
+
+                        // Remove all the cells that was not updated to prevent ghosting
+                        foreach (var cellVolume in ctx.refVolume.realtimeSubdivisionInfo.Keys.ToList())
+                        {
+                            if (!cells.Any(c => c.volume.Equals(cellVolume)))
+                                ctx.refVolume.realtimeSubdivisionInfo.Remove(cellVolume);
+                        }
+
+                        // Subdivide visible cells
+                        foreach (var cell in cells)
+                        {
+                            // Override the cell list to only compute one cell
+                            ctx.cells.Clear();
+                            ctx.cells.Add(cell);
+
+                            var result = ProbeGIBaking.BakeBricks(ctx);
+                            ctx.refVolume.realtimeSubdivisionInfo[cell.volume] = result.bricksPerCells[cell.position];
+
+                            yield return null;
+                        }
+
+                        yield break;
+                    }
                 }
             }
         }
@@ -60,6 +126,7 @@ namespace UnityEngine.Experimental.Rendering
         private SerializedProperty m_MaxDilationSampleDistance;
         private SerializedProperty m_DilationValidityThreshold;
         private SerializedProperty m_DilationIterations;
+        private SerializedProperty m_DilationInvSquaredWeight;
         private SerializedProperty m_VolumeAsset;
 
         private SerializedProperty m_Profile;
@@ -78,6 +145,7 @@ namespace UnityEngine.Experimental.Rendering
             m_Profile = serializedObject.FindProperty("m_Profile");
             m_Dilate = serializedObject.FindProperty("m_EnableDilation");
             m_DilationIterations = serializedObject.FindProperty("m_DilationIterations");
+            m_DilationInvSquaredWeight = serializedObject.FindProperty("m_DilationInvSquaredWeight");
             m_MaxDilationSampleDistance = serializedObject.FindProperty("m_MaxDilationSampleDistance");
             m_DilationValidityThreshold = serializedObject.FindProperty("m_DilationValidityThreshold");
             m_VolumeAsset = serializedObject.FindProperty("volumeAsset");
@@ -163,7 +231,18 @@ namespace UnityEngine.Experimental.Rendering
                     EditorGUI.BeginDisabledGroup(!m_Dilate.boolValue);
                     m_MaxDilationSampleDistance.floatValue = EditorGUILayout.FloatField("Dilation Distance", m_MaxDilationSampleDistance.floatValue);
                     DilationValidityThresholdInverted = EditorGUILayout.Slider("Dilation Validity Threshold", DilationValidityThresholdInverted, 0f, 1f);
+                    EditorGUILayout.LabelField("Advanced", EditorStyles.boldLabel);
+                    EditorGUI.indentLevel++;
                     m_DilationIterations.intValue = EditorGUILayout.IntSlider("Dilation Iteration Count", m_DilationIterations.intValue, 1, 5);
+                    m_DilationInvSquaredWeight.boolValue = EditorGUILayout.Toggle("Squared Distance Weighting", m_DilationInvSquaredWeight.boolValue);
+                    EditorGUI.indentLevel--;
+
+                    if (GUILayout.Button(EditorGUIUtility.TrTextContent("Refresh dilation"), EditorStyles.miniButton))
+                    {
+                        ProbeGIBaking.RevertDilation();
+                        ProbeGIBaking.PerformDilation();
+                    }
+
                     EditorGUI.EndDisabledGroup();
                 }
                 EditorGUILayout.EndFoldoutHeaderGroup();
