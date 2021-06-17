@@ -244,12 +244,9 @@ namespace UnityEditor.ShaderGraph
                 builder.AppendLine("UNITY_DOTS_INSTANCING_END(MaterialPropertyMetadata)");
 
                 builder.AppendLine("// DOTS instancing usage macros");
-                foreach (var h in hlslProps.Where(h => h.declaration == HLSLDeclaration.HybridPerInstance))
-                {
-                    var n = h.name;
-                    string type = h.GetValueTypeString();
-                    builder.AppendLine($"#define {n} UNITY_ACCESS_DOTS_INSTANCED_PROP_FROM_MACRO({type}, Metadata_{n})");
-                }
+                builder.AppendLine("#define UNITY_ACCESS_HYBRID_INSTANCED_PROP(var, type) UNITY_ACCESS_DOTS_INSTANCED_PROP_FROM_MACRO(type, Metadata_##var)");
+                builder.AppendLine("#else");
+                builder.AppendLine("#define UNITY_ACCESS_HYBRID_INSTANCED_PROP(var, type) var");
                 builder.AppendLine("#endif");
             }
 #endif
@@ -304,17 +301,14 @@ namespace UnityEditor.ShaderGraph
                     builder.Append(prop.GetValueTypeString());
                     builder.Append(", ");
                     builder.Append(prop.name);
-                    builder.Append("_Array)");
+                    builder.Append(")");
                     count++;
                 }
                 builder.AppendNewLine();
-
-                foreach (var prop in hybridHLSLProps)
-                {
-                    string varName = $"{prop.name}_Array";
-                    builder.AppendLine("#define {0} UNITY_ACCESS_INSTANCED_PROP(unity_Builtins0, {1})", prop.name, varName);
-                }
             }
+            builder.AppendLine("#define UNITY_ACCESS_HYBRID_INSTANCED_PROP(var, type) UNITY_ACCESS_INSTANCED_PROP(unity_Builtins0, var)");
+            builder.AppendLine("#else");
+            builder.AppendLine("#define UNITY_ACCESS_HYBRID_INSTANCED_PROP(var, type) var");
             builder.AppendLine("#endif");
             return builder.ToString();
 #else
