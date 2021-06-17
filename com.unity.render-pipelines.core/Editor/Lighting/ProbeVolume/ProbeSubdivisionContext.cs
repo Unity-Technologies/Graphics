@@ -18,14 +18,10 @@ namespace UnityEngine.Experimental.Rendering
         public List<(Terrain, ProbeReferenceVolume.Volume volume)> terrains = new List<(Terrain, ProbeReferenceVolume.Volume)>();
         public ProbeReferenceVolumeAuthoring refVolume;
 
-        // Limit the time we can spend in the subdivision for realtime debug subdivision
-        public float subdivisionStartTime;
-
-        public void Initialize(ProbeReferenceVolumeAuthoring refVolume)
+        public void Initialize(ProbeReferenceVolumeAuthoring refVolume, Vector3 refVolOrigin)
         {
             this.refVolume = refVolume;
             float cellSize = refVolume.cellSizeInMeters;
-            subdivisionStartTime = Time.realtimeSinceStartup;
 
             foreach (var pv in UnityEngine.Object.FindObjectsOfType<ProbeVolume>())
             {
@@ -62,8 +58,7 @@ namespace UnityEngine.Experimental.Rendering
             }
 
             // Generate all the unique cell positions from probe volumes:
-            var refVolTransform = ProbeReferenceVolume.instance.GetTransform();
-            var cellTrans = Matrix4x4.TRS(refVolTransform.posWS, refVolTransform.rot, Vector3.one);
+            var cellTrans = Matrix4x4.TRS(refVolOrigin, Quaternion.identity, Vector3.one);
             HashSet<Vector3Int> cellPositions = new HashSet<Vector3Int>();
             foreach (var pv in probeVolumes)
             {

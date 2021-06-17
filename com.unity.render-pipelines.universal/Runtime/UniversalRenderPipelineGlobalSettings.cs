@@ -22,14 +22,16 @@ namespace UnityEngine.Rendering.Universal
 #if UNITY_EDITOR
             if (k_AssetPreviousVersion != k_AssetVersion)
             {
-                EditorApplication.delayCall += () => UpgradeAsset(this);
+                EditorApplication.delayCall += () => UpgradeAsset(this.GetInstanceID());
             }
 #endif
         }
 
 #if UNITY_EDITOR
-        static void UpgradeAsset(UniversalRenderPipelineGlobalSettings asset)
+        static void UpgradeAsset(int assetInstanceID)
         {
+            UniversalRenderPipelineAsset asset = EditorUtility.InstanceIDToObject(assetInstanceID) as UniversalRenderPipelineAsset;
+
             EditorUtility.SetDirty(asset);
         }
 
@@ -243,6 +245,15 @@ namespace UnityEngine.Rendering.Universal
             lightLayerName6 = k_DefaultLightLayerNames[6];
             lightLayerName7 = k_DefaultLightLayerNames[7];
         }
+
+        #endregion
+
+        #region Misc Settings
+
+        /// <summary>
+        /// Controls whether debug display shaders for Rendering Debugger are available in Player builds.
+        /// </summary>
+        public bool supportRuntimeDebugDisplay = false;
 
         #endregion
     }
