@@ -713,10 +713,8 @@ namespace UnityEngine.Rendering.Universal
             // Descriptor settings                                            /
             ///////////////////////////////////////////////////////////////////
 
-            // TODO: We should guarantee that additional camera data and renderer always exists for URP.
-            // When additional camera data and renderer are not present we assume forward renderer by default which supports MSAA.
             var renderer = additionalCameraData?.scriptableRenderer;
-            bool rendererSupportsMSAA = renderer == null || renderer.supportedRenderingFeatures.msaa;
+            bool rendererSupportsMSAA = renderer != null && renderer.supportedRenderingFeatures.msaa;
 
             int msaaSamples = 1;
             if (camera.allowMSAA && asset.msaaSampleCount > 1 && rendererSupportsMSAA)
