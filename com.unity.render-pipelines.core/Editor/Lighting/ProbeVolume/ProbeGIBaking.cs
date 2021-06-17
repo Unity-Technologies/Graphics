@@ -235,8 +235,8 @@ namespace UnityEngine.Experimental.Rendering
             }
 
             var refVol = ProbeReferenceVolume.instance;
-            // TODO TODO_FCC: IMPORTANT USE A VOLUME OF THE PROBE VOLUMES NOT OF THE WHOLE REF VOLUME
-            AddOccluders(globalBounds.center, globalBounds.size);
+
+            AddOccluders();
 
             RunPlacement();
         }
@@ -821,10 +821,6 @@ namespace UnityEngine.Experimental.Rendering
             {
                 for (int i = 0; i < positions.Length; ++i)
                 {
-                    if (Vector3.Distance(new Vector3(-175.5f, 18.75f, -19.5f), positions[i]) < 0.35f)
-                    {
-                        Debug.Log("BREAK HERE");
-                    }
                     int subdivLevel = 0;
                     m_BakingBatch.uniqueBrickSubdiv.TryGetValue(positions[i], out subdivLevel);
                     float brickSize = ProbeReferenceVolume.CellSize(subdivLevel);

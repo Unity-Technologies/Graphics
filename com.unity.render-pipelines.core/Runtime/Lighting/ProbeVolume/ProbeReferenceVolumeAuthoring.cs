@@ -100,7 +100,7 @@ namespace UnityEngine.Experimental.Rendering
         [SerializeField]
         bool m_EnableVirtualOffset = true;
         [SerializeField]
-        float m_VirtualOffsetGeometrySearchMultiplier = 0.95f;
+        float m_VirtualOffsetGeometrySearchMultiplier = 0.2f;
         [SerializeField]
         float m_VirtualOffsetBiasOutOfGeometry = 0.01f;
 
