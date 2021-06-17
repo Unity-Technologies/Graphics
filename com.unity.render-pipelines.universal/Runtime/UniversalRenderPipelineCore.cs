@@ -412,6 +412,8 @@ namespace UnityEngine.Rendering.Universal
         public static readonly string _ALPHAMODULATE_ON = "_ALPHAMODULATE_ON";
         public static readonly string _NORMALMAP = "_NORMALMAP";
 
+        public static readonly string EDITOR_VISUALIZATION = "EDITOR_VISUALIZATION";
+
         // XR
         public static readonly string UseDrawProcedural = "_USE_DRAW_PROCEDURAL";
     }
