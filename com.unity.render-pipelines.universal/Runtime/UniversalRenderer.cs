@@ -1095,5 +1095,10 @@ namespace UnityEngine.Rendering.Universal
         {
             return m_ColorBufferSystem.GetFrontBuffer(cmd).id;
         }
+
+        internal override void EnableSwapBufferMSAA(bool enable)
+        {
+            m_ColorBufferSystem.EnableMSAA(enable);
+        }
     }
 }

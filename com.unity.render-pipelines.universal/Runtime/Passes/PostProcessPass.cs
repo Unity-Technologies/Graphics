@@ -185,6 +185,8 @@ namespace UnityEngine.Rendering.Universal.Internal
         /// <inheritdoc/>
         public override void OnCameraSetup(CommandBuffer cmd, ref RenderingData renderingData)
         {
+            overrideCameraTarget = true;
+
             if (m_Destination == RenderTargetHandle.CameraTarget)
                 return;
 
@@ -329,6 +331,24 @@ namespace UnityEngine.Rendering.Universal.Internal
         {
             ref CameraData cameraData = ref renderingData.cameraData;
             ref ScriptableRenderer renderer = ref cameraData.renderer;
+            bool isSceneViewCamera = cameraData.isSceneViewCamera;
+
+            //Check amount of swaps we have to do
+            //We blit back and forth without msaa untill the last blit.
+            bool useStopNan = cameraData.isStopNaNEnabled && m_Materials.stopNaN != null;
+            bool useSubPixeMorpAA = cameraData.antialiasing == AntialiasingMode.SubpixelMorphologicalAntiAliasing && SystemInfo.graphicsDeviceType != GraphicsDeviceType.OpenGLES2;
+            var dofMaterial = m_DepthOfField.mode.value == DepthOfFieldMode.Gaussian ? m_Materials.gaussianDepthOfField : m_Materials.bokehDepthOfField;
+            bool useDepthOfField = m_DepthOfField.IsActive() && !isSceneViewCamera && dofMaterial != null;
+            bool useLensFlare = !LensFlareCommonSRP.Instance.IsEmpty();
+            bool useMotionBlur = m_MotionBlur.IsActive() && !isSceneViewCamera;
+            bool usePaniniProjection = m_PaniniProjection.IsActive() && !isSceneViewCamera;
+
+            int amountOfPassesRemaining = (useStopNan ? 1 : 0) + (useSubPixeMorpAA ? 1 : 0) + (useDepthOfField ? 1 : 0) + (useLensFlare ? 1 : 0) + (useMotionBlur ? 1 : 0) + (usePaniniProjection ? 1 : 0);
+
+            if(m_UseSwapBuffer && amountOfPassesRemaining > 0)
+            {
+                renderer.EnableSwapBufferMSAA(false);
+            }
 
             // Don't use these directly unless you have a good reason to, use GetSource() and
             // GetDestination() instead
@@ -336,7 +356,6 @@ namespace UnityEngine.Rendering.Universal.Internal
             bool tempTarget2Used = false;
             RenderTargetIdentifier source =  m_UseSwapBuffer ? renderer.cameraColorTarget : m_Source;
             RenderTargetIdentifier destination = m_UseSwapBuffer ? renderer.GetCameraColorFrontBuffer(cmd) : -1;
-            bool isSceneViewCamera = cameraData.isSceneViewCamera;
 
             RenderTargetIdentifier GetSource() => source;
 
@@ -365,8 +384,15 @@ namespace UnityEngine.Rendering.Universal.Internal
 
             void Swap(ref ScriptableRenderer r)
             {
+                --amountOfPassesRemaining;
                 if (m_UseSwapBuffer)
                 {
+                    //we want the last blit to be to MSAA
+                    if(amountOfPassesRemaining == 0 && !m_HasFinalPass)
+                    {
+                        r.EnableSwapBufferMSAA(true);
+                    }
+
                     r.SwapColorBuffer(cmd);
                     source = r.cameraColorTarget;
                     destination = r.GetCameraColorFrontBuffer(cmd);
@@ -382,7 +408,7 @@ namespace UnityEngine.Rendering.Universal.Internal
 
             // Optional NaN killer before post-processing kicks in
             // stopNaN may be null on Adreno 3xx. It doesn't support full shader level 3.5, but SystemInfo.graphicsShaderLevel is 35.
-            if (cameraData.isStopNaNEnabled && m_Materials.stopNaN != null)
+            if (useStopNan)
             {
                 using (new ProfilingScope(cmd, ProfilingSampler.Get(URPProfileId.StopNaNs)))
                 {
@@ -396,7 +422,7 @@ namespace UnityEngine.Rendering.Universal.Internal
             }
 
             // Anti-aliasing
-            if (cameraData.antialiasing == AntialiasingMode.SubpixelMorphologicalAntiAliasing && SystemInfo.graphicsDeviceType != GraphicsDeviceType.OpenGLES2)
+            if (useSubPixeMorpAA)
             {
                 using (new ProfilingScope(cmd, ProfilingSampler.Get(URPProfileId.SMAA)))
                 {
@@ -408,8 +434,7 @@ namespace UnityEngine.Rendering.Universal.Internal
             // Depth of Field
             // Adreno 3xx SystemInfo.graphicsShaderLevel is 35, but instancing support is disabled due to buggy drivers.
             // DOF shader uses #pragma target 3.5 which adds requirement for instancing support, thus marking the shader unsupported on those devices.
-            var dofMaterial = m_DepthOfField.mode.value == DepthOfFieldMode.Gaussian ? m_Materials.gaussianDepthOfField : m_Materials.bokehDepthOfField;
-            if (m_DepthOfField.IsActive() && !isSceneViewCamera && dofMaterial != null)
+            if (useDepthOfField)
             {
                 var markerName = m_DepthOfField.mode.value == DepthOfFieldMode.Gaussian
                     ? URPProfileId.GaussianDepthOfField
@@ -423,7 +448,7 @@ namespace UnityEngine.Rendering.Universal.Internal
             }
 
             // Lens Flare
-            if (!LensFlareCommonSRP.Instance.IsEmpty())
+            if (useLensFlare)
             {
                 bool usePanini;
                 float paniniDistance;
@@ -448,7 +473,7 @@ namespace UnityEngine.Rendering.Universal.Internal
             }
 
             // Motion blur
-            if (m_MotionBlur.IsActive() && !isSceneViewCamera)
+            if (useMotionBlur)
             {
                 using (new ProfilingScope(cmd, ProfilingSampler.Get(URPProfileId.MotionBlur)))
                 {
@@ -459,7 +484,7 @@ namespace UnityEngine.Rendering.Universal.Internal
 
             // Panini projection is done as a fullscreen pass after all depth-based effects are done
             // and before bloom kicks in
-            if (m_PaniniProjection.IsActive() && !isSceneViewCamera)
+            if (usePaniniProjection)
             {
                 using (new ProfilingScope(cmd, ProfilingSampler.Get(URPProfileId.PaniniProjection)))
                 {
@@ -600,6 +625,8 @@ namespace UnityEngine.Rendering.Universal.Internal
 
                 if (tempTarget2Used)
                     cmd.ReleaseTemporaryRT(ShaderConstants._TempTarget2);
+
+                cmd.ReleaseTemporaryRT(m_InternalLut.id);
             }
         }
 
