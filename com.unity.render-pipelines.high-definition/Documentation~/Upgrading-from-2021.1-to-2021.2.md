@@ -80,3 +80,5 @@ If you used transparent materials (**Surface Type** set to **Transparent**) with
 From 2021.2, HDRP includes an updated `RendererList` API in the `UnityEngine.Rendering.RendererUtils` namespace. This API has lower overhead than the previous version of the `RendererList` API when it submits the RendererList for drawing. You can use this new version to query if the list of visible objects is empty.
 
 The previous version of the API in the `UnityEngine.Experimental.Rendering` namespace is still available for compatibility purposes but is now deprecated.
+
+When the **Dynamic Render Pass Culling** option is enabled in the HDRP Global Settings, HDRP will use the new API to dynamically skip certain drawing passes based on the type of currently visible objects. For example if no objects with distortion are drawn, the Render Graph passes that draw the distortion effect (and their dependencies - like the color pyramid generation) will be skipped.
