@@ -50,7 +50,6 @@ namespace UnityEditor.Rendering.HighDefinition
         SerializedDataParameter m_HighQualityFiltering;
         SerializedDataParameter m_Resolution;
         SerializedDataParameter m_PhysicallyBased;
-        SerializedDataParameter m_CompatibilityMode;
 
         public override void OnEnable()
         {
@@ -74,8 +73,6 @@ namespace UnityEditor.Rendering.HighDefinition
             m_HighQualityFiltering = Unpack(o.Find("m_HighQualityFiltering"));
             m_Resolution = Unpack(o.Find("m_Resolution"));
             m_PhysicallyBased = Unpack(o.Find("m_PhysicallyBased"));
-
-            m_CompatibilityMode = Unpack(o.Find("m_CompatibilityMode"));
 
             base.OnEnable();
         }
@@ -137,14 +134,6 @@ namespace UnityEditor.Rendering.HighDefinition
                 PropertyField(m_FarMaxBlur, Styles.k_FarMaxBlur);
 
                 PropertyField(m_Resolution);
-                using (new HDEditorUtils.IndentScope())
-                {
-                    using (new EditorGUI.DisabledScope(m_Resolution.value.intValue == (int)DepthOfFieldResolution.Full))
-                    {
-                        PropertyField(m_CompatibilityMode);
-                    }
-                }
-
                 PropertyField(m_HighQualityFiltering);
                 PropertyField(m_PhysicallyBased);
                 if (m_PhysicallyBased.value.boolValue)
@@ -171,7 +160,6 @@ namespace UnityEditor.Rendering.HighDefinition
             settings.Save<int>(m_Resolution);
             settings.Save<bool>(m_HighQualityFiltering);
             settings.Save<bool>(m_PhysicallyBased);
-            settings.Save<bool>(m_CompatibilityMode);
 
             return settings;
         }
@@ -185,7 +173,6 @@ namespace UnityEditor.Rendering.HighDefinition
             settings.TryLoad<int>(ref m_Resolution);
             settings.TryLoad<bool>(ref m_HighQualityFiltering);
             settings.TryLoad<bool>(ref m_PhysicallyBased);
-            settings.TryLoad<bool>(ref m_CompatibilityMode);
         }
 
         public override void LoadSettingsFromQualityPreset(RenderPipelineSettings settings, int level)
@@ -197,7 +184,6 @@ namespace UnityEditor.Rendering.HighDefinition
             CopySetting(ref m_Resolution, (int)settings.postProcessQualitySettings.DoFResolution[level]);
             CopySetting(ref m_HighQualityFiltering, settings.postProcessQualitySettings.DoFHighQualityFiltering[level]);
             CopySetting(ref m_PhysicallyBased, settings.postProcessQualitySettings.DoFPhysicallyBased[level]);
-            CopySetting(ref m_CompatibilityMode, settings.postProcessQualitySettings.DoFCompatibilityMode[level]);
         }
     }
 }

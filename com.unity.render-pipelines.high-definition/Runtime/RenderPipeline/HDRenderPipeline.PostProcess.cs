@@ -1738,8 +1738,6 @@ namespace UnityEngine.Rendering.HighDefinition
             public Vector2Int threadGroup8;
 
             public bool useMipSafePath;
-
-            public bool useCompatibilityMode;
         }
 
         DepthOfFieldParameters PrepareDoFParameters(HDCamera camera)
@@ -1856,7 +1854,6 @@ namespace UnityEngine.Rendering.HighDefinition
             parameters.dofCombineCS.shaderKeywords = null;
             parameters.pbDoFGatherCS.shaderKeywords = null;
             parameters.dofCoCReprojectCS.shaderKeywords = null;
-            parameters.useCompatibilityMode = m_DepthOfField.compatibilityMode;
 
             bool nearLayerActive = parameters.nearLayerActive;
             bool farLayerActive = parameters.farLayerActive;
@@ -1884,7 +1881,7 @@ namespace UnityEngine.Rendering.HighDefinition
             }
             else
             {
-                parameters.dofPrefilterCS.EnableKeyword(parameters.useCompatibilityMode ? "HIGH_QUALITY" : "LOW_QUALITY");
+                parameters.dofPrefilterCS.EnableKeyword("LOW_QUALITY");
                 parameters.dofCombineCS.EnableKeyword("LOW_QUALITY");
             }
 
@@ -1922,16 +1919,12 @@ namespace UnityEngine.Rendering.HighDefinition
         {
             scale = 1f / (float)dofParameters.resolution;
             resolutionScale = (dofParameters.viewportSize.y / 1080f) * 2f;
-
-            // The DoF sampling is performed in normalized space in the shader, so we don't need any scaling for half/quarter resoltion. We only do it in the "compatibility mode".
-            if (dofParameters.useCompatibilityMode)
-                resolutionScale *= scale;
+            // Note: The DoF sampling is performed in normalized space in the shader, so we don't need any scaling for half/quarter resoltion.
         }
 
         static int GetDoFDilationPassCount(in DepthOfFieldParameters dofParameters, in float dofScale, in float nearMaxBlur)
         {
-            float nearScale = dofParameters.useCompatibilityMode ? 1f : dofScale;
-            return Mathf.CeilToInt((nearMaxBlur * nearScale + 2) / 4f);
+            return Mathf.CeilToInt((nearMaxBlur * dofScale + 2) / 4f);
         }
 
         //
@@ -2004,9 +1997,6 @@ namespace UnityEngine.Rendering.HighDefinition
             // because these don't use the same RTHandleScale as the global one, we need to use
             // the RTHandleScale of the history RTHandles
             var cocHistoryScale = taaEnabled ? dofParameters.camera.postProcessRTScalesHistory : dofParameters.camera.postProcessRTScales;
-
-            // Used to select the apropriate mip level when sampling the color pyramid
-            float mipscale = dofParameters.useCompatibilityMode ? 1f : scale;
 
             ComputeShader cs;
             int kernel;
@@ -2271,7 +2261,7 @@ namespace UnityEngine.Rendering.HighDefinition
                     cs = dofParameters.dofGatherCS;
                     kernel = dofParameters.dofGatherFarKernel;
 
-                    cmd.SetComputeVectorParam(cs, HDShaderIDs._Params, new Vector4(farSamples, farMaxBlur * mipscale, barrelClipping, farMaxBlur));
+                    cmd.SetComputeVectorParam(cs, HDShaderIDs._Params, new Vector4(farSamples, farMaxBlur * scale, barrelClipping, farMaxBlur));
                     cmd.SetComputeVectorParam(cs, HDShaderIDs._TexelSize, new Vector4(targetWidth, targetHeight, 1f / targetWidth, 1f / targetHeight));
                     cmd.SetComputeTextureParam(cs, kernel, HDShaderIDs._InputTexture, pingFarRGB);
                     cmd.SetComputeTextureParam(cs, kernel, HDShaderIDs._InputCoCTexture, farCoC);
@@ -2334,7 +2324,7 @@ namespace UnityEngine.Rendering.HighDefinition
                     cs = dofParameters.dofGatherCS;
                     kernel = dofParameters.dofGatherNearKernel;
 
-                    cmd.SetComputeVectorParam(cs, HDShaderIDs._Params, new Vector4(nearSamples, nearMaxBlur * mipscale, barrelClipping, nearMaxBlur));
+                    cmd.SetComputeVectorParam(cs, HDShaderIDs._Params, new Vector4(nearSamples, nearMaxBlur * scale, barrelClipping, nearMaxBlur));
                     cmd.SetComputeVectorParam(cs, HDShaderIDs._TexelSize, new Vector4(targetWidth, targetHeight, 1f / targetWidth, 1f / targetHeight));
                     cmd.SetComputeTextureParam(cs, kernel, HDShaderIDs._InputTexture, pingNearRGB);
                     cmd.SetComputeTextureParam(cs, kernel, HDShaderIDs._InputCoCTexture, nearCoC);
