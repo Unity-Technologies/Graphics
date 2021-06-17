@@ -154,7 +154,7 @@ namespace UnityEditor.Rendering.Universal
         bool StripUnusedFeatures(ShaderFeatures features, Shader shader, ShaderSnippetData snippetData, ShaderCompilerData compilerData)
         {
             var globalSettings = UniversalRenderPipelineGlobalSettings.instance;
-            bool stripDebugDisplayShaders = !Debug.isDebugBuild || (globalSettings == null || !globalSettings.supportRuntimeDebugDisplay);
+            bool stripDebugDisplayShaders = !Debug.isDebugBuild || !globalSettings.supportRuntimeDebugDisplay;
 
 #if XR_MANAGEMENT_4_0_1_OR_NEWER
             var buildTargetSettings = XRGeneralSettingsPerBuildTarget.XRGeneralSettingsForBuildTarget(BuildTargetGroup.Standalone);
@@ -485,6 +485,11 @@ namespace UnityEditor.Rendering.Universal
         public void OnPreprocessBuild(BuildReport report)
         {
             FetchAllSupportedFeatures();
+
+            // Ensure URP global settings exist
+            if (UniversalRenderPipelineGlobalSettings.instance == null)
+                throw new BuildFailedException("There is currently no UniversalRenderPipelineGlobalSettings in use. Please open and save the project in Unity Editor to automatically create and assign it.");
+
 #if PROFILE_BUILD
             Profiler.enableBinaryLog = true;
             Profiler.logFile = "profilerlog.raw";

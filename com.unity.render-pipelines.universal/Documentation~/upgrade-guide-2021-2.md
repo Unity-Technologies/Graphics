@@ -4,7 +4,10 @@ This page describes how to upgrade from an older version of the Universal Render
 
 ## Upgrading from URP 11.x.x
 
-* URP 12.0.x does not have breaking changes compared with URP 11.x.x. To upgrade URP to version 12.0.x, install the new version of the package, no upgrade steps are required.
+### URP Global Settings
+URP 2021.2 introduces a new URP Global Settings Asset which saves all settings that are unrelated to which URP Asset is active.
+
+This asset will be created automatically when you open the project on the new version of URP. Please note that the build may fail if this asset is not present when building.
 
 ## Upgrading from URP 10.0.x–10.2.x
 
