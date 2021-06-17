@@ -625,11 +625,11 @@ namespace UnityEngine.Rendering.HighDefinition
             }
             
 #if UNITY_EDITOR
-            EditorUtility.SetDirty(this);
+            UnityEditor.EditorUtility.SetDirty(this);
             
             if (maskVolumeAsset != null)
             {
-                EditorUtility.SetDirty(maskVolumeAsset);    
+                UnityEditor.EditorUtility.SetDirty(maskVolumeAsset);    
             }
 #endif
         }

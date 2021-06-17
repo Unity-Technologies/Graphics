@@ -721,11 +721,11 @@ namespace UnityEngine.Rendering.HighDefinition
             }
             
 #if UNITY_EDITOR
-            EditorUtility.SetDirty(this);
+            UnityEditor.EditorUtility.SetDirty(this);
             
             if (probeVolumeAsset != null)
             {
-                EditorUtility.SetDirty(probeVolumeAsset);    
+                UnityEditor.EditorUtility.SetDirty(probeVolumeAsset);    
             }
 #endif
         }
