@@ -978,14 +978,14 @@ namespace UnityEngine.Rendering.HighDefinition
 
         internal void ForceBakingDisabled()
         {
+            bakingEnabled = false;
+
             if (!UnityEditor.EditorApplication.isPlaying)
             {
                 // Do not spend time interacting with the baking API if we are in playmode.
                 UnityEditor.Experimental.Lightmapping.SetAdditionalBakedProbes(GetBakeID(), null);
                 return;
             }
-
-            bakingEnabled = false;
         }
 
         protected void OnValidate()
@@ -1133,6 +1133,16 @@ namespace UnityEngine.Rendering.HighDefinition
 
                 dataUpdated = true;
                 dataNeedsDilation = true;
+            }
+            else
+            {
+                // We should never hit this case.
+                // Lets log some additional information to make this case easier to debug in the future.
+                string name = gameObject.name;
+                string parentName = (transform.parent == null) ? "null" : transform.parent.name;
+                bool isCompanionGameObject = gameObject.scene.path == "";
+                string companionString = isCompanionGameObject ? "true" : "false";
+                Debug.LogFormat("Failed to get data at id: {0}, with probe volume: {1}, and parent: {2}, companionGameObject: {3}", GetBakeID(), name, parentName, companionString);
             }
 
             sh.Dispose();
