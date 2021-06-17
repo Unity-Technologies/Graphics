@@ -174,9 +174,19 @@ namespace UnityEngine.Rendering.Universal
 
             public static Func<LightCookieMapping, LightCookieMapping, int> s_CompareByCookieSize = (LightCookieMapping a, LightCookieMapping b) =>
             {
-                int a2 = a.light.cookie.width * a.light.cookie.height;
-                int b2 = b.light.cookie.width * b.light.cookie.height;
-                return b2 - a2;
+                var alc = a.light.cookie;
+                var blc = b.light.cookie;
+                int a2 = alc.width * alc.height;
+                int b2 = blc.width * blc.height;
+                int d = b2 - a2;
+                if (d == 0)
+                {
+                    // Sort by texture ID if "undecided" to batch fetches to the same cookie texture.
+                    int ai = alc.GetInstanceID();
+                    int bi = blc.GetInstanceID();
+                    return ai - bi;
+                }
+                return d;
             };
 
             public static Func<LightCookieMapping, LightCookieMapping, int> s_CompareByBufferIndex = (LightCookieMapping a, LightCookieMapping b) =>
@@ -444,7 +454,6 @@ namespace UnityEngine.Rendering.Universal
         const int k_MaxCookieSizeDivisor = 16;
         int  m_CookieSizeDivisor = 1;
         uint m_PrevCookieRequestPixelCount = 0xFFFFFFFF;
-        HashSet<int> m_UniqueCookieTextureIDs;
 
         internal bool IsKeywordLightCookieEnabled { get; private set; }
 
@@ -489,7 +498,6 @@ namespace UnityEngine.Rendering.Universal
 
             m_CookieSizeDivisor = 1;
             m_PrevCookieRequestPixelCount = 0xFFFFFFFF;
-            m_UniqueCookieTextureIDs = new HashSet<int>();
         }
 
         public bool isInitialized() => m_AdditionalLightsCookieAtlas != null && m_AdditionalLightsCookieShaderData != null;
@@ -681,6 +689,9 @@ namespace UnityEngine.Rendering.Universal
 
         int UpdateAdditionalLightsAtlas(CommandBuffer cmd, ref WorkSlice<LightCookieMapping> validLightMappings, Vector4[] textureAtlasUVRects)
         {
+            // Sort in-place by cookie size for better atlas allocation efficiency (and deduplication)
+            validLightMappings.Sort(LightCookieMapping.s_CompareByCookieSize);
+
             bool atlasReset = false;
             uint cookieRequestPixelCount = ComputeCookieRequestPixelCount(ref validLightMappings);
             var atlasSize = m_AdditionalLightsCookieAtlas.AtlasTexture.referenceSize;
@@ -699,8 +710,6 @@ namespace UnityEngine.Rendering.Universal
                 m_CookieSizeDivisor = cookieSizeDivisorApprox;
             }
 
-            // Sort in-place by cookie size for better atlas allocation efficiency
-            validLightMappings.Sort(LightCookieMapping.s_CompareByCookieSize);
 
             // Get cached atlas uv rectangles.
             // If there's new cookies, first try to add at current scaling level.
@@ -774,7 +783,7 @@ namespace UnityEngine.Rendering.Universal
         uint ComputeCookieRequestPixelCount(ref WorkSlice<LightCookieMapping> validLightMappings)
         {
             uint requestPixelCount = 0;
-            m_UniqueCookieTextureIDs.Clear();
+            int prevCookieID = 0;
             for (int i = 0; i < validLightMappings.length; i++)
             {
                 var lcm = validLightMappings[i];
@@ -782,9 +791,13 @@ namespace UnityEngine.Rendering.Universal
                 int cookieID = cookie.GetInstanceID();
 
                 // Consider only unique textures as atlas request pixels
-                if (m_UniqueCookieTextureIDs.Contains(cookieID))
+                // NOTE: relies on same cookies being sorted together
+                // (we need sorting for good atlas packing anyway)
+                if (cookieID == prevCookieID)
+                {
                     continue;
-                m_UniqueCookieTextureIDs.Add(cookieID);
+                }
+                prevCookieID = cookieID;
 
                 int pixelCookieCount = cookie.width * cookie.height;
                 requestPixelCount += (uint)pixelCookieCount;
