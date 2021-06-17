@@ -71,6 +71,7 @@ namespace UnityEngine.Rendering.HighDefinition
             public bool halfResolution;
             public int rayCountType;
             public float lodBias;
+            public int fallbackHierarchy;
 
             // Ray marching attributes
             public bool mixedTracing;
@@ -176,7 +177,7 @@ namespace UnityEngine.Rendering.HighDefinition
             cmd.SetComputeFloatParam(data.parameters.rayMarchingCS, HDShaderIDs._RayMarchingThicknessScale, thicknessScale);
             cmd.SetComputeFloatParam(data.parameters.rayMarchingCS, HDShaderIDs._RayMarchingThicknessBias, thicknessBias);
             cmd.SetComputeIntParam(data.parameters.rayMarchingCS, HDShaderIDs._RayMarchingSteps, data.parameters.raySteps);
-            cmd.SetComputeIntParam(data.parameters.rayMarchingCS, HDShaderIDs._RayMarchingReflectSky, data.parameters.raytracingCB._RaytracingIncludeSky);
+            cmd.SetComputeIntParam(data.parameters.rayMarchingCS, HDShaderIDs._RayMarchingReflectSky, 0);
             cmd.SetComputeTextureParam(data.parameters.rayMarchingCS, marchingKernel, HDShaderIDs._RaytracingDirectionBuffer, data.directionBuffer);
             cmd.SetComputeTextureParam(data.parameters.rayMarchingCS, marchingKernel, HDShaderIDs._GBufferTexture[0], data.ssgbuffer0);
             cmd.SetComputeTextureParam(data.parameters.rayMarchingCS, marchingKernel, HDShaderIDs._GBufferTexture[1], data.ssgbuffer1);

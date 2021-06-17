@@ -163,7 +163,7 @@ Shader "HDRP/LitTessellation"
         [Enum(Subsurface Scattering, 0, Standard, 1, Anisotropy, 2, Iridescence, 3, Specular Color, 4, Translucent, 5)] _MaterialID("MaterialId", Int) = 1 // MaterialId.Standard
         [ToggleUI] _TransmissionEnable("_TransmissionEnable", Float) = 1.0
 
-        [Enum(None, 0, Tessellation displacement, 3)] _DisplacementMode("DisplacementMode", Int) = 3
+        _DisplacementMode("DisplacementMode", Int) = 3
         [ToggleUI] _DisplacementLockObjectScale("displacement lock object scale", Float) = 1.0
         [ToggleUI] _DisplacementLockTilingScale("displacement lock tiling scale", Float) = 1.0
         [ToggleUI] _DepthOffsetEnable("Depth Offset View space", Float) = 0.0
@@ -227,9 +227,6 @@ Shader "HDRP/LitTessellation"
     }
 
     HLSLINCLUDE
-
-    //Our DXC backend currently does not support Metal tessellation
-    #pragma never_use_dxc metal
 
     #pragma target 5.0
     #pragma only_renderers d3d11 playstation xboxone xboxseries vulkan metal switch
@@ -568,6 +565,7 @@ Shader "HDRP/LitTessellation"
             #undef TESSELLATION_ON
 
             #define SHADERPASS SHADERPASS_LIGHT_TRANSPORT
+            #pragma shader_feature EDITOR_VISUALIZATION
             #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Material.hlsl"
             #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Lit/Lit.hlsl"
             #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Lit/ShaderPass/LitSharePass.hlsl"

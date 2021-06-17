@@ -54,6 +54,13 @@ namespace UnityEditor.Rendering.Universal.Converters
         public abstract void OnInitialize(InitializeConverterContext context, Action callback);
 
         /// <summary>
+        /// The method that will be run before Run method if needed.
+        /// </summary>
+        public virtual void OnPreRun()
+        {
+        }
+
+        /// <summary>
         /// The method that will be run when converting the assets.
         /// </summary>
         /// <param name="context">The context that will be used when executing converter.</param>
