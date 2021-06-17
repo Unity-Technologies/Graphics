@@ -262,9 +262,6 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed sceneview debug mode rendering (case 1211436)
 - Fixed Pixel Displacement that could be set on tessellation shader while it's not supported.
 - Fixed an issue where disabled reflection probes were still sent into the the ray tracing light cluster.
-- Fixed the transparent cutoff not working properly in semi-transparent and color shadows (case 1340234).
-- Fixed object outline flickering with TAA.
-- Fixed issue with sky settings being ignored when using the recorder and path tracing (case 1340507).
 
 ### Changed
 - Changed Window/Render Pipeline/HD Render Pipeline Wizard to Window/Rendering/HDRP Wizard
