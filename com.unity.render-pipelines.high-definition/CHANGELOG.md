@@ -262,6 +262,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed sceneview debug mode rendering (case 1211436)
 - Fixed Pixel Displacement that could be set on tessellation shader while it's not supported.
 - Fixed an issue where disabled reflection probes were still sent into the the ray tracing light cluster.
+- Fixed nullref when enabling fullscreen passthrough in HDRP Camera.
 
 ### Changed
 - Changed Window/Render Pipeline/HD Render Pipeline Wizard to Window/Rendering/HDRP Wizard
@@ -353,6 +354,8 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Moved supportRuntimeDebugDisplay option from HDRPAsset to HDRPGlobalSettings.
 - When a ray hits the sky in the ray marching part of mixed ray tracing, it is considered a miss.
 - TAA jitter is disabled while using Frame Debugger now.
+- Depth of field at half or quarter resolution is now computed consistently with the full resolution option (case 1335687).
+- Hair uses GGX LTC for area light specular.
 
 ## [11.0.0] - 2020-10-21
 
