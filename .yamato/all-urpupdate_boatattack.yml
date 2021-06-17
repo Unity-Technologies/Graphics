@@ -15,7 +15,7 @@ PR_URPUpdate_BoatAttack_trunk:
         UTR_VERSION: "current"
         TEST_FILTER: .*
         BA_UPDATE_PROJECT_BRANCH: release/2019.4-LTS
-        BA_UPDATE_PROJECT_REVISION: 06c67d682225354dd909728e2511ac17115b18b9
+        BA_UPDATE_PROJECT_REVISION: 6d76ca107504607b58192456faf972bfd92bbd34
         CACHE_ARGS: '{{cache.flags}}'
     dependencies:
       -  path: .yamato/urpupdate_boatattack-win-dx11.yml#URPUpdate_BoatAttack_Win_DX11_editmode_mono_Linear_trunk
@@ -29,7 +29,7 @@ Extra_URPUpdate_BoatAttack_trunk:
         UTR_VERSION: "current"
         TEST_FILTER: .*
         BA_UPDATE_PROJECT_BRANCH: release/2019.4-LTS
-        BA_UPDATE_PROJECT_REVISION: 06c67d682225354dd909728e2511ac17115b18b9
+        BA_UPDATE_PROJECT_REVISION: 6d76ca107504607b58192456faf972bfd92bbd34
         CACHE_ARGS: '{{cache.flags}}'
     dependencies: []
 URPUpdate_BoatAttack_trunk:
@@ -39,7 +39,7 @@ URPUpdate_BoatAttack_trunk:
         UTR_VERSION: "current"
         TEST_FILTER: .*
         BA_UPDATE_PROJECT_BRANCH: release/2019.4-LTS
-        BA_UPDATE_PROJECT_REVISION: 06c67d682225354dd909728e2511ac17115b18b9
+        BA_UPDATE_PROJECT_REVISION: 6d76ca107504607b58192456faf972bfd92bbd34
         CACHE_ARGS: '{{cache.flags}}'
     dependencies:
       -  path: .yamato/all-urpupdate_boatattack.yml#PR_URPUpdate_BoatAttack_trunk
@@ -53,7 +53,7 @@ PR_URPUpdate_BoatAttack_CUSTOM-REVISION:
         UTR_VERSION: "current"
         TEST_FILTER: .*
         BA_UPDATE_PROJECT_BRANCH: release/2019.4-LTS
-        BA_UPDATE_PROJECT_REVISION: 06c67d682225354dd909728e2511ac17115b18b9
+        BA_UPDATE_PROJECT_REVISION: 6d76ca107504607b58192456faf972bfd92bbd34
         CACHE_ARGS: '{{cache.flags}}'
     dependencies:
       -  path: .yamato/urpupdate_boatattack-win-dx11.yml#URPUpdate_BoatAttack_Win_DX11_editmode_mono_Linear_CUSTOM-REVISION
@@ -67,7 +67,7 @@ Extra_URPUpdate_BoatAttack_CUSTOM-REVISION:
         UTR_VERSION: "current"
         TEST_FILTER: .*
         BA_UPDATE_PROJECT_BRANCH: release/2019.4-LTS
-        BA_UPDATE_PROJECT_REVISION: 06c67d682225354dd909728e2511ac17115b18b9
+        BA_UPDATE_PROJECT_REVISION: 6d76ca107504607b58192456faf972bfd92bbd34
         CACHE_ARGS: '{{cache.flags}}'
     dependencies: []
 URPUpdate_BoatAttack_CUSTOM-REVISION:
@@ -77,7 +77,7 @@ URPUpdate_BoatAttack_CUSTOM-REVISION:
         UTR_VERSION: "current"
         TEST_FILTER: .*
         BA_UPDATE_PROJECT_BRANCH: release/2019.4-LTS
-        BA_UPDATE_PROJECT_REVISION: 06c67d682225354dd909728e2511ac17115b18b9
+        BA_UPDATE_PROJECT_REVISION: 6d76ca107504607b58192456faf972bfd92bbd34
         CACHE_ARGS: '{{cache.flags}}'
     dependencies:
       -  path: .yamato/all-urpupdate_boatattack.yml#PR_URPUpdate_BoatAttack_CUSTOM-REVISION

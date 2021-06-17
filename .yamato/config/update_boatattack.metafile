@@ -3,7 +3,7 @@ project:
   folder: BoatAttack
   variables:
     BA_UPDATE_PROJECT_BRANCH: release/2019.4-LTS
-    BA_UPDATE_PROJECT_REVISION: 06c67d682225354dd909728e2511ac17115b18b9
+    BA_UPDATE_PROJECT_REVISION: 6d76ca107504607b58192456faf972bfd92bbd34
 
 reuse_blocks:
   setup_with_utr:
