@@ -285,6 +285,7 @@ Shader "Universal Render Pipeline/Simple Lit"
 
             #pragma vertex UniversalVertexMeta
             #pragma fragment UniversalFragmentMetaSimple
+            #pragma shader_feature EDITOR_VISUALIZATION
 
             #pragma shader_feature_local_fragment _EMISSION
             #pragma shader_feature_local_fragment _SPECGLOSSMAP
@@ -483,6 +484,7 @@ Shader "Universal Render Pipeline/Simple Lit"
 
             #pragma shader_feature_local_fragment _EMISSION
             #pragma shader_feature_local_fragment _SPECGLOSSMAP
+            #pragma shader_feature EDITOR_VISUALIZATION
 
             #include "Packages/com.unity.render-pipelines.universal/Shaders/SimpleLitInput.hlsl"
             #include "Packages/com.unity.render-pipelines.universal/Shaders/SimpleLitMetaPass.hlsl"

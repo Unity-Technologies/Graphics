@@ -556,10 +556,10 @@ namespace UnityEditor
         static public GUIContent presetTextureBounceLeft = EditorGUIUtility.TrTextContent("", "Bounce Left", UnityEditor.Rendering.CoreEditorUtils.LoadIcon(LightAnchorStyles.k_IconFolder, "PresetBounce_Left", ".png", false));
         static public GUIContent presetTextureFillLeft = EditorGUIUtility.TrTextContent("", "Fill Left", UnityEditor.Rendering.CoreEditorUtils.LoadIcon(LightAnchorStyles.k_IconFolder, "PresetFill_Left", ".png", false));
         static public GUIContent presetTextureHair = EditorGUIUtility.TrTextContent("", "Hair", UnityEditor.Rendering.CoreEditorUtils.LoadIcon(LightAnchorStyles.k_IconFolder, "PresetHair", ".png", false));
-        static public GUIContent presetTextureRimRight = EditorGUIUtility.TrTextContent("", "Rim Right", UnityEditor.Rendering.CoreEditorUtils.LoadIcon(LightAnchorStyles.k_IconFolder, "PresetRim_Right", ".png", false));
-        static public GUIContent presetTextureKickRight = EditorGUIUtility.TrTextContent("", "Kick Right", UnityEditor.Rendering.CoreEditorUtils.LoadIcon(LightAnchorStyles.k_IconFolder, "PresetKick_Right", ".png", false));
-        static public GUIContent presetTextureBounceRight = EditorGUIUtility.TrTextContent("", "Bounce Right", UnityEditor.Rendering.CoreEditorUtils.LoadIcon(LightAnchorStyles.k_IconFolder, "PresetBounce_Right", ".png", false));
         static public GUIContent presetTextureFillRight = EditorGUIUtility.TrTextContent("", "Fill Right", UnityEditor.Rendering.CoreEditorUtils.LoadIcon(LightAnchorStyles.k_IconFolder, "PresetFill_Right", ".png", false));
+        static public GUIContent presetTextureBounceRight = EditorGUIUtility.TrTextContent("", "Bounce Right", UnityEditor.Rendering.CoreEditorUtils.LoadIcon(LightAnchorStyles.k_IconFolder, "PresetBounce_Right", ".png", false));
+        static public GUIContent presetTextureKickRight = EditorGUIUtility.TrTextContent("", "Kick Right", UnityEditor.Rendering.CoreEditorUtils.LoadIcon(LightAnchorStyles.k_IconFolder, "PresetKick_Right", ".png", false));
+        static public GUIContent presetTextureRimRight = EditorGUIUtility.TrTextContent("", "Rim Right", UnityEditor.Rendering.CoreEditorUtils.LoadIcon(LightAnchorStyles.k_IconFolder, "PresetRim_Right", ".png", false));
         static public GUIContent distanceProperty = EditorGUIUtility.TrTextContent("Distance", "Controls how far 'back', the light is placed from its anchor");
         static public GUIContent upDirectionProperty = EditorGUIUtility.TrTextContent("Up direction", "Specifies the space in which the up direction of the anchor is defined. Local is relative to the camera.");
         static public GUIContent[] angleSubContent = new[]

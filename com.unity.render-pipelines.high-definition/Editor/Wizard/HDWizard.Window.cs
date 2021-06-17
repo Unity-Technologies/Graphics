@@ -9,7 +9,8 @@ using UnityEngine.UIElements;
 namespace UnityEditor.Rendering.HighDefinition
 {
     [InitializeOnLoad]
-    partial class HDWizard : EditorWindow
+    [HDRPHelpURL("Render-Pipeline-Wizard")]
+    partial class HDWizard : EditorWindowWithHelpButton
     {
         static class Style
         {
