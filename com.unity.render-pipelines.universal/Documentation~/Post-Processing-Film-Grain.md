@@ -4,7 +4,7 @@ The Film Grain effect simulates the random optical texture of photographic film,
 
 ## Using Film Grain
 
-**Film Grain** uses the [Volume](Volumes.html) framework, so to enable and modify **Film Grain** properties, you must add a **Film Grain** override to a [Volume](Volumes.html) in your Scene. To add **Film Grain** to a Volume:
+**Film Grain** uses the [Volume](Volumes.md) framework, so to enable and modify **Film Grain** properties, you must add a **Film Grain** override to a [Volume](Volumes.md) in your Scene. To add **Film Grain** to a Volume:
 
 1. In the Scene or Hierarchy view, select a GameObject that contains a Volume component to view it in the Inspector.
 2. In the Inspector, navigate to **Add Override > Post-processing** and click on **Film Grain**. URP now applies **Film Grain** to any Camera this Volume affects.

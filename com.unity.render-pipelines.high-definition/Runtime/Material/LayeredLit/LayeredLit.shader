@@ -95,7 +95,7 @@ Shader "HDRP/LayeredLit"
         _HeightMap3("HeightMap3", 2D) = "black" {}
 
         // Caution: Default value of _HeightAmplitude must be (_HeightMax - _HeightMin) * 0.01
-        // Those two properties are computed from the ones exposed in the UI and depends on the displaement mode so they are separate because we don't want to lose information upon displacement mode change.
+        // These two properties are computed from exposed properties by the UI block and are separated so we don't lose information by changing displacement mode in the UI block
         [HideInInspector] _HeightAmplitude0("Height Scale0", Float) = 0.02
         [HideInInspector] _HeightAmplitude1("Height Scale1", Float) = 0.02
         [HideInInspector] _HeightAmplitude2("Height Scale2", Float) = 0.02
@@ -307,7 +307,7 @@ Shader "HDRP/LayeredLit"
         [Enum(Subsurface Scattering, 0, Standard, 1, Translucent, 5)] _MaterialID("MaterialId", Int) = 1 // MaterialId.Standard
         [ToggleUI] _TransmissionEnable("_TransmissionEnable", Float) = 1.0
 
-        [Enum(None, 0, Vertex displacement, 1, Pixel displacement, 2)] _DisplacementMode("DisplacementMode", Int) = 0
+        _DisplacementMode("DisplacementMode", Int) = 0
         [ToggleUI] _DisplacementLockObjectScale("displacement lock object scale", Float) = 1.0
         [ToggleUI] _DisplacementLockTilingScale("displacement lock tiling scale", Float) = 1.0
         [ToggleUI] _DepthOffsetEnable("Depth Offset View space", Float) = 0.0
@@ -650,6 +650,7 @@ Shader "HDRP/LayeredLit"
 
             #define SHADERPASS SHADERPASS_DEPTH_ONLY
             #define SCENESELECTIONPASS // This will drive the output of the scene selection shader
+            #include "Packages/com.unity.render-pipelines.high-definition/Runtime/ShaderLibrary/PickingSpaceTransforms.hlsl"
             #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Material.hlsl"
             #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Lit/Lit.hlsl"
             #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Lit/ShaderPass/LitDepthPass.hlsl"
@@ -746,6 +747,7 @@ Shader "HDRP/LayeredLit"
             // both direct and indirect lighting) will hand up in the "regular" lightmap->LIGHTMAP_ON.
 
             #define SHADERPASS SHADERPASS_LIGHT_TRANSPORT
+            #pragma shader_feature EDITOR_VISUALIZATION
             #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Material.hlsl"
             #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Lit/Lit.hlsl"
             #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Lit/ShaderPass/LitSharePass.hlsl"

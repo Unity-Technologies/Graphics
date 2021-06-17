@@ -566,6 +566,17 @@ namespace UnityEditor.Rendering.HighDefinition
                     using (new EditorGUI.DisabledGroupScope(true))
                         EditorGUILayout.LabelField(Styles.multipleDifferenteValueMessage);
                 }
+
+                {
+                    EditorGUI.showMixedValue = serialized.renderPipelineSettings.dynamicResolutionSettings.lowResTransparencyMinimumThreshold.hasMultipleDifferentValues;
+                    float lowResTransparencyMinimumThreshold = serialized.renderPipelineSettings.dynamicResolutionSettings.lowResTransparencyMinimumThreshold.floatValue;
+                    EditorGUI.BeginChangeCheck();
+                    lowResTransparencyMinimumThreshold = EditorGUILayout.DelayedFloatField(Styles.lowResTransparencyMinimumThreshold, lowResTransparencyMinimumThreshold);
+                    if (EditorGUI.EndChangeCheck())
+                        serialized.renderPipelineSettings.dynamicResolutionSettings.lowResTransparencyMinimumThreshold.floatValue = Mathf.Clamp(lowResTransparencyMinimumThreshold, 0.0f, 50.0f);
+                    if (serialized.renderPipelineSettings.dynamicResolutionSettings.lowResTransparencyMinimumThreshold.floatValue > 0.0f && !serialized.renderPipelineSettings.lowresTransparentSettings.enabled.boolValue)
+                        EditorGUILayout.HelpBox(Styles.lowResTransparencyThresholdDisabledMsg, MessageType.Info);
+                }
             }
             --EditorGUI.indentLevel;
 
@@ -1160,7 +1171,6 @@ namespace UnityEditor.Rendering.HighDefinition
             }
 
             EditorGUILayout.PropertyField(serialized.renderPipelineSettings.supportMotionVectors, Styles.supportMotionVectorContent);
-            EditorGUILayout.PropertyField(serialized.renderPipelineSettings.supportRuntimeDebugDisplay, Styles.supportRuntimeDebugDisplayContent);
             EditorGUILayout.PropertyField(serialized.renderPipelineSettings.supportRuntimeAOVAPI, Styles.supportRuntimeAOVAPIContent);
             EditorGUILayout.PropertyField(serialized.renderPipelineSettings.supportDitheringCrossFade, Styles.supportDitheringCrossFadeContent);
             EditorGUILayout.PropertyField(serialized.renderPipelineSettings.supportTerrainHole, Styles.supportTerrainHoleContent);
@@ -1292,7 +1302,6 @@ namespace UnityEditor.Rendering.HighDefinition
                 builder.AppendLine().AppendFormat(supportedFormater, Styles.decalsMetalAndAOSubTitle.text, Styles.supportDrawbacks[Styles.metalAndAOContent]);
 
             AppendSupport(builder, serialized.renderPipelineSettings.supportMotionVectors, Styles.supportMotionVectorContent);
-            AppendSupport(builder, serialized.renderPipelineSettings.supportRuntimeDebugDisplay, Styles.supportRuntimeDebugDisplayContent);
             AppendSupport(builder, serialized.renderPipelineSettings.supportRuntimeAOVAPI, Styles.supportRuntimeAOVAPIContent);
             AppendSupport(builder, serialized.renderPipelineSettings.supportDitheringCrossFade, Styles.supportDitheringCrossFadeContent);
             AppendSupport(builder, serialized.renderPipelineSettings.supportTerrainHole, Styles.supportTerrainHoleContent);

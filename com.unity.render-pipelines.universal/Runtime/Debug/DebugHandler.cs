@@ -110,10 +110,15 @@ namespace UnityEngine.Rendering.Universal
             return !cameraData.isPreviewCamera && AreAnySettingsActive;
         }
 
-        internal bool TryGetFullscreenDebugMode(out DebugFullScreenMode debugFullScreenMode, out int outputHeight)
+        internal bool TryGetFullscreenDebugMode(out DebugFullScreenMode debugFullScreenMode)
+        {
+            return TryGetFullscreenDebugMode(out debugFullScreenMode, out _);
+        }
+
+        internal bool TryGetFullscreenDebugMode(out DebugFullScreenMode debugFullScreenMode, out int textureHeightPercent)
         {
             debugFullScreenMode = RenderingSettings.debugFullScreenMode;
-            outputHeight = RenderingSettings.debugFullScreenModeOutputSize;
+            textureHeightPercent = RenderingSettings.debugFullScreenModeOutputSizeScreenPercent;
             return debugFullScreenMode != DebugFullScreenMode.None;
         }
 
