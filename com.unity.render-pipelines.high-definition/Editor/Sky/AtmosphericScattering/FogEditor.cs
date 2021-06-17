@@ -95,7 +95,7 @@ namespace UnityEditor.Rendering.HighDefinition
 
             PropertyField(m_ColorMode);
 
-            using (new HDEditorUtils.IndentScope())
+            using (new IndentLevelScope())
             {
                 if (!m_ColorMode.value.hasMultipleDifferentValues &&
                     (FogColorMode)m_ColorMode.value.intValue == FogColorMode.ConstantColor)
@@ -120,7 +120,7 @@ namespace UnityEditor.Rendering.HighDefinition
             {
                 PropertyField(m_EnableVolumetricFog, s_EnableVolumetricFog);
 
-                using (new HDEditorUtils.IndentScope())
+                using (new IndentLevelScope())
                 {
                     PropertyField(m_Albedo, s_AlbedoLabel);
                     PropertyField(m_GlobalLightProbeDimmer, s_GlobalLightProbeDimmerLabel);
@@ -131,12 +131,12 @@ namespace UnityEditor.Rendering.HighDefinition
 
                     base.OnInspectorGUI(); // Quality Setting
 
-                    using (new HDEditorUtils.IndentScope())
+                    using (new IndentLevelScope())
                     using (new QualityScope(this))
                     {
                         if (PropertyField(m_FogControlMode))
                         {
-                            using (new HDEditorUtils.IndentScope())
+                            using (new IndentLevelScope())
                             {
                                 if ((FogControl)m_FogControlMode.value.intValue == FogControl.Balance)
                                 {

@@ -558,6 +558,13 @@ namespace UnityEditor.ShaderGraph
                     }
                 }
 
+                // Enable this to turn on shader debugging
+                bool debugShader = false;
+                if (debugShader)
+                {
+                    passPragmaBuilder.AppendLine("#pragma enable_d3d11_debug_symbols");
+                }
+
                 string command = GenerationUtils.GetSpliceCommand(passPragmaBuilder.ToCodeBlock(), "PassPragmas");
                 spliceCommands.Add("PassPragmas", command);
             }
