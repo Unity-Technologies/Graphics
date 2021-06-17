@@ -1678,6 +1678,13 @@ namespace UnityEngine.Rendering.HighDefinition
                 taaJitter = Vector4.zero;
                 return origProj;
             }
+            #if UNITY_2021_2_OR_NEWER
+            if (UnityEngine.FrameDebugger.enabled)
+            {
+                taaJitter = Vector4.zero;
+                return origProj;
+            }
+            #endif
 
             // The variance between 0 and the actual halton sequence values reveals noticeable
             // instability in Unity's shadow maps, so we avoid index 0.

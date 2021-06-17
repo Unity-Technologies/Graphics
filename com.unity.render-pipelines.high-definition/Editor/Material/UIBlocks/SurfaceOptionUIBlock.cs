@@ -573,7 +573,8 @@ namespace UnityEditor.Rendering.HighDefinition
 
                 if ((m_Features & Features.PreserveSpecularLighting) != 0)
                 {
-                    EditorGUI.indentLevel++; if (renderQueueHasMultipleDifferentValue)
+                    EditorGUI.indentLevel++;
+                    if (renderQueueHasMultipleDifferentValue)
                     {
                         using (new EditorGUI.DisabledScope(true))
                             EditorGUILayout.LabelField(Styles.enableBlendModePreserveSpecularLightingText, Styles.notSupportedInMultiEdition);

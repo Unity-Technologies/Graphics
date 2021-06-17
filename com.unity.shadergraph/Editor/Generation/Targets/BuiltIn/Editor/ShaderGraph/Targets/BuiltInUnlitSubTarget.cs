@@ -50,6 +50,8 @@ namespace UnityEditor.Rendering.BuiltIn.ShaderGraph
                 material.SetFloat(Property.ZTest(), (float)target.zTestMode);
             }
 
+            material.SetFloat(Property.QueueOffset(), 0.0f);
+
             // call the full unlit material setup function
             BuiltInUnlitGUI.UpdateMaterial(material);
         }
@@ -80,8 +82,9 @@ namespace UnityEditor.Rendering.BuiltIn.ShaderGraph
                 collector.AddFloatProperty(Property.ZWriteControl(), (float)target.zWriteControl);
                 collector.AddFloatProperty(Property.ZTest(), (float)target.zTestMode);    // ztest mode is designed to directly pass as ztest
                 collector.AddFloatProperty(Property.Cull(), (float)target.renderFace);    // render face enum is designed to directly pass as a cull mode
-                collector.AddFloatProperty(Property.QueueOffset(), 0.0f);
             }
+
+            collector.AddFloatProperty(Property.QueueOffset(), 0.0f);
         }
 
         public override void GetPropertiesGUI(ref TargetPropertyGUIContext context, Action onChange, Action<String> registerUndo)
