@@ -19,6 +19,8 @@ namespace UnityEditor.Rendering.Universal
         public SerializedProperty lightLayerName6;
         public SerializedProperty lightLayerName7;
 
+        public SerializedProperty supportRuntimeDebugDisplay;
+
         public SerializedUniversalRenderPipelineGlobalSettings(SerializedObject serializedObject)
         {
             this.serializedObject = serializedObject;
@@ -41,6 +43,8 @@ namespace UnityEditor.Rendering.Universal
             lightLayerName5 = serializedObject.Find((UniversalRenderPipelineGlobalSettings s) => s.lightLayerName5);
             lightLayerName6 = serializedObject.Find((UniversalRenderPipelineGlobalSettings s) => s.lightLayerName6);
             lightLayerName7 = serializedObject.Find((UniversalRenderPipelineGlobalSettings s) => s.lightLayerName7);
+
+            supportRuntimeDebugDisplay = serializedObject.Find((UniversalRenderPipelineGlobalSettings s) => s.supportRuntimeDebugDisplay);
         }
     }
 }
