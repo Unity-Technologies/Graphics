@@ -25,12 +25,10 @@ void DecodeSH_L2(inout float3 l0, inout float4 l2_R, inout float4 l2_G, inout fl
     l2_C.g *= l0.g;
     l2_C.b *= l0.b;
 
-    // Normalize L0
+    // Account for how L2 is encoded.
     l0.r -= l2_R.z;
     l0.g -= l2_G.z;
     l0.b -= l2_B.z;
-
-    // Normalize Quadratic
     l2_R.z *= 3.0f;
     l2_G.z *= 3.0f;
     l2_B.z *= 3.0f;
