@@ -207,6 +207,8 @@ namespace UnityEngine.Rendering.Universal
         /// Camera position in world space.
         /// </summary>
         public Vector3 worldSpaceCameraPos;
+
+        public Camera baseCamera;
     }
 
     public struct ShadowData

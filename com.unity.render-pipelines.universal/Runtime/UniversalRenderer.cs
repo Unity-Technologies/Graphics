@@ -518,8 +518,10 @@ namespace UnityEngine.Rendering.Universal
             }
             else
             {
+                cameraData.baseCamera.TryGetComponent<UniversalAdditionalCameraData>(out var baseCameraData);
+                var baseRenderer = (UniversalRenderer)baseCameraData.scriptableRenderer;
                 m_ActiveCameraColorAttachment = m_ColorBufferSystem.GetBackBuffer();
-                m_ActiveCameraDepthAttachment = m_CameraDepthAttachment;
+                m_ActiveCameraDepthAttachment = baseRenderer.m_ActiveCameraDepthAttachment;
             }
 
             cameraData.renderer.useDepthPriming = useDepthPriming;

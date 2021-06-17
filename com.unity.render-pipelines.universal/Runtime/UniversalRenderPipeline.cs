@@ -597,6 +597,7 @@ namespace UnityEngine.Rendering.Universal
 #endif
                         UpdateVolumeFramework(currCamera, currCameraData);
                         InitializeAdditionalCameraData(currCamera, currCameraData, lastCamera, ref overlayCameraData);
+                        overlayCameraData.baseCamera = baseCamera;
 #if ENABLE_VR && ENABLE_XR_MODULE
                         if (baseCameraData.xr.enabled)
                             m_XRSystem.UpdateFromCamera(ref overlayCameraData.xr, overlayCameraData);
