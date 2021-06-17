@@ -44,6 +44,7 @@ namespace UnityEngine.Rendering.Universal
         ColorLow,
         ColorHigh,
         ColorHDR,
+        Custom,
     }
 
     public enum MsaaQuality
@@ -200,6 +201,7 @@ namespace UnityEngine.Rendering.Universal
         // Light Cookie Settings
         [SerializeField] LightCookieResolution m_AdditionalLightsCookieResolution = LightCookieResolution._2048;
         [SerializeField] LightCookieFormat m_AdditionalLightsCookieFormat = LightCookieFormat.ColorHigh;
+        [SerializeField] GraphicsFormat[] m_AdditionalLightsCookieCustomFormatList;
 
         // Advanced settings
         [SerializeField] bool m_UseSRPBatcher = true;
@@ -556,12 +558,27 @@ namespace UnityEngine.Rendering.Universal
             /* Color HDR     */ new GraphicsFormat[] {GraphicsFormat.B10G11R11_UFloatPack32},
         };
 
+        /// <summary>
+        /// Sets the format list for light cookie atlas 'Custom' option.
+        /// </summary>
+        /// <param name="formatList">List of formats that are tested in order for platform support. The first supported format is picked.</param>
+        internal void SetCustomAdditionalLightsCookieFormat(GraphicsFormat[] formatList)
+        {
+            m_AdditionalLightsCookieCustomFormatList = formatList;
+        }
+
         internal GraphicsFormat additionalLightsCookieFormat
         {
             get
             {
+                GraphicsFormat[] formatList;
+                if (m_AdditionalLightsCookieFormat == LightCookieFormat.Custom)
+                    formatList = m_AdditionalLightsCookieCustomFormatList;
+                else
+                    formatList = s_LightCookieFormatList[(int)m_AdditionalLightsCookieFormat];
+
                 GraphicsFormat result = GraphicsFormat.None;
-                foreach (var format in s_LightCookieFormatList[(int)m_AdditionalLightsCookieFormat])
+                foreach (var format in formatList)
                 {
                     if (SystemInfo.IsFormatSupported(format, FormatUsage.Render))
                     {
@@ -577,6 +594,9 @@ namespace UnityEngine.Rendering.Universal
                 if (result == GraphicsFormat.None)
                 {
                     result = GraphicsFormat.R8G8B8A8_UNorm;
+                    if (m_AdditionalLightsCookieFormat == LightCookieFormat.Custom && m_AdditionalLightsCookieCustomFormatList?.Length == 0)
+                        Debug.LogWarning($"Custom Additional Lights Cookie Format List is not set.");
+
                     Debug.LogWarning($"Additional Lights Cookie Format ({ m_AdditionalLightsCookieFormat.ToString() }) is not supported by the platform. Falling back to {GraphicsFormatUtility.GetBlockSize(result) * 8}-bit format ({GraphicsFormatUtility.GetFormatString(result)})");
                 }
 
