@@ -351,7 +351,6 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Display an info box and disable MSAA  asset entry when ray tracing is enabled.
 - Changed light reset to preserve type.
 - Ignore hybrid duplicated reflection probes during light baking.
-- Updated the recursive rendering documentation (case 1338639).
 - Replaced the context menu by a search window when adding custom pass.
 - Moved supportRuntimeDebugDisplay option from HDRPAsset to HDRPGlobalSettings.
 - When a ray hits the sky in the ray marching part of mixed ray tracing, it is considered a miss.
