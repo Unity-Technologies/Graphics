@@ -78,22 +78,22 @@ namespace UnityEditor.VFX.HDRP
         BlendSource maskOpacityChannel = BlendSource.BaseColorMapAlpha;
 
         [VFXSetting(VFXSettingAttribute.VisibleFlags.InInspector), SerializeField,
-         Tooltip("When enabled, this decal uses its base color. When disabled, the decal has no base color effect.")]
+         Tooltip("When enabled, modifies the base color of the surface it projects onto.")]
         private bool affectBaseColor = true;
 
         [VFXSetting(VFXSettingAttribute.VisibleFlags.InInspector), SerializeField,
          Tooltip(
-             "When enabled, this decal uses the metallic channel of its Mask Map. When disabled, the decal has no metallic effect.")]
+             "When enabled, modifies the metallic look of the surface it projects onto using the (R) channel of the Mask Map if one is provided.")]
         private bool affectMetal = true;
 
         [VFXSetting(VFXSettingAttribute.VisibleFlags.InInspector), SerializeField,
          Tooltip(
-             "When enabled, this decal uses the ambient occlusion channel of its Mask Map. When disabled, the decal has no ambient occlusion effect.")]
+             "When enabled, modifies the ambient occlusion (AO) of the surface it projects onto using the (G) channel of the Mask Map if one is provided.")]
         private bool affectAmbientOcclusion = true;
 
         [VFXSetting(VFXSettingAttribute.VisibleFlags.InInspector), SerializeField,
          Tooltip(
-             "When enabled, this decal uses the smoothness channel of its Mask Map. When disabled, the decal has no smoothness effect.")]
+             "When enabled, modifies the smoothness of the surface it projects onto using the (A) channel of the Mask Map if one is provided.")]
         private bool affectSmoothness = true;
 
 
@@ -118,7 +118,8 @@ namespace UnityEditor.VFX.HDRP
 
         public class FadeFactorProperty
         {
-            [Range(0, 1), Tooltip("Controls the transparency of the decal.")] public float fadeFactor = 1.0f;
+            [Range(0, 1), Tooltip("Controls the transparency of the decal.")]
+            public float fadeFactor = 1.0f;
         }
 
         public class AngleFadeProperty
