@@ -615,6 +615,25 @@ namespace UnityEngine.Rendering.HighDefinition
         [SerializeField] internal MaskVolumeAsset maskVolumeAsset = null;
         [SerializeField] internal MaskVolumeArtistParameters parameters = new MaskVolumeArtistParameters(Color.white);
 
+        public void SetMaskVolumeAsset(MaskVolumeAsset asset)
+        {
+            maskVolumeAsset = asset;
+            dataUpdated = true;
+            if (maskVolumeAsset != null)
+            {
+                maskVolumeAsset.instanceID = GetID();
+            }
+            
+#if UNITY_EDITOR
+            EditorUtility.SetDirty(this);
+            
+            if (maskVolumeAsset != null)
+            {
+                EditorUtility.SetDirty(maskVolumeAsset);    
+            }
+#endif
+        }
+
         internal int GetID()
         {
             return GetInstanceID();
