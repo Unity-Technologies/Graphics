@@ -1,5 +1,4 @@
 using System;
-using System.Collections.Generic;
 using System.Runtime.InteropServices;
 using UnityEngine.Experimental.Rendering;
 using Unity.Mathematics;
@@ -511,11 +510,12 @@ namespace UnityEngine.Rendering.Universal
             m_AdditionalLightsCookieShaderData?.Dispose();
         }
 
-        // by VisibleLight
+        // -1 on invalid/disabled cookie.
         public int GetLightCookieShaderDataIndex(int visibleLightIndex)
         {
             if (!isInitialized())
                 return -1;
+
             return m_VisibleLightIndexToShaderDataIndex[visibleLightIndex];
         }
 
@@ -538,8 +538,21 @@ namespace UnityEngine.Rendering.Universal
                 isAdditionalLightsAvailable = SetupAdditionalLights(cmd, ref lightData);
             }
 
+            // Ensure cookies are disabled if no cookies are available.
             if (!isAdditionalLightsAvailable)
+            {
+                // ..on the CPU (for deferred)
+                if (m_VisibleLightIndexToShaderDataIndex != null &&
+                    m_AdditionalLightsCookieShaderData.isUploaded)
+                {
+                    int len = Math.Min(m_VisibleLightIndexToShaderDataIndex.Length, lightData.visibleLights.Length);
+                    for (int i = 0; i < len; i++)
+                        m_VisibleLightIndexToShaderDataIndex[i] = -1;
+                }
+
+                // ..on the GPU
                 m_AdditionalLightsCookieShaderData?.Clear(cmd);
+            }
 
             // Main and additional lights are merged into one keyword to reduce variants.
             IsKeywordLightCookieEnabled = isMainLightAvailable || isAdditionalLightsAvailable;
@@ -705,15 +718,35 @@ namespace UnityEngine.Rendering.Universal
                 cookieRequestPixelCount < m_PrevCookieRequestPixelCount)
             {
                 m_AdditionalLightsCookieAtlas.ResetAllocator();
-                atlasReset = true;
-
                 m_CookieSizeDivisor = cookieSizeDivisorApprox;
             }
 
 
             // Get cached atlas uv rectangles.
             // If there's new cookies, first try to add at current scaling level.
+            // (This can result in suboptimal packing & scaling (additions aren't sorted), but reduces rebuilds.)
             // If it doesn't fit, scale down and rebuild the atlas until it fits.
+            int uvRectCount = 0;
+            while (uvRectCount <= 0)
+            {
+                uvRectCount = FetchUVRects(cmd, ref validLightMappings, textureAtlasUVRects, m_CookieSizeDivisor);
+
+                if (uvRectCount <= 0)
+                {
+                    // Uv rect fetching failed, reset and try again.
+                    m_AdditionalLightsCookieAtlas.ResetAllocator();
+
+                    // Reduce cookie size to approximate value try to rebuild the atlas.
+                    m_CookieSizeDivisor = Mathf.Max(m_CookieSizeDivisor + 1, cookieSizeDivisorApprox);
+                    m_PrevCookieRequestPixelCount = cookieRequestPixelCount;
+                }
+            }
+
+            return uvRectCount;
+        }
+
+        int FetchUVRects(CommandBuffer cmd, ref WorkSlice<LightCookieMapping> validLightMappings, Vector4[] textureAtlasUVRects, int cookieSizeDivisor)
+        {
             int uvRectCount = 0;
             for (int i = 0; i < validLightMappings.length; i++)
             {
@@ -730,44 +763,26 @@ namespace UnityEngine.Rendering.Universal
                 if (cookie.dimension == TextureDimension.Cube)
                 {
                     Assertions.Assert.IsTrue(light.type == LightType.Point);
-                    uvScaleOffset = FetchCube(cmd, cookie, m_CookieSizeDivisor);
+                    uvScaleOffset = FetchCube(cmd, cookie, cookieSizeDivisor);
                 }
                 else
                 {
                     Assertions.Assert.IsTrue(light.type == LightType.Spot || light.type == LightType.Directional, "Light type needs 2D texture!");
-                    uvScaleOffset = Fetch2D(cmd, cookie, m_CookieSizeDivisor);
+                    uvScaleOffset = Fetch2D(cmd, cookie, cookieSizeDivisor);
                 }
 
                 bool isCached = uvScaleOffset != Vector4.zero;
                 if (!isCached)
                 {
-                    if (atlasReset)
+                    if (cookieSizeDivisor > k_MaxCookieSizeDivisor)
                     {
-                        if (m_CookieSizeDivisor > k_MaxCookieSizeDivisor)
-                        {
-                            Debug.LogWarning($"Light cookies atlas is extremely full! Some of the light cookies were discarded. Increase light cookie atlas space or reduce the amount of unique light cookies.");
-                            return uvRectCount;
-                        }
-
-                        // Reduce cookie size even further and try to rebuild.
-                        m_CookieSizeDivisor++;
-                        m_PrevCookieRequestPixelCount = cookieRequestPixelCount;
-                    }
-                    else
-                    {
-                        // Reduce cookie size to approximate value try to rebuild.
-                        m_CookieSizeDivisor = Mathf.Max(m_CookieSizeDivisor + 1, cookieSizeDivisorApprox);
-                        m_PrevCookieRequestPixelCount = cookieRequestPixelCount;
+                        Debug.LogWarning($"Light cookies atlas is extremely full! Some of the light cookies were discarded. Increase light cookie atlas space or reduce the amount of unique light cookies.");
+                        // Complete fail, return what we have.
+                        return uvRectCount;
                     }
 
-                    // Clear atlas allocs
-                    m_AdditionalLightsCookieAtlas.ResetAllocator();
-                    atlasReset = true;
-
-                    // Restart and try to rebuild
-                    uvRectCount = 0;
-                    i = -1; // Incremented right after continue
-                    continue;
+                    // Failed to get uv rect for each cookie, fail and try again.
+                    return 0;
                 }
 
                 // Adjust atlas UVs for OpenGL
@@ -824,16 +839,14 @@ namespace UnityEngine.Rendering.Universal
             var scaledHeight = Mathf.Max(cookie.height / cookieSizeDivisor, 4);
             Vector2 scaledCookieSize = new Vector2(scaledWidth, scaledHeight);
 
-            // Check if texture is present
             bool isCached = m_AdditionalLightsCookieAtlas.IsCached(out uvScaleOffset, cookie);
             if (isCached)
             {
-                // Update contents if required
+                // Update contents IF required
                 m_AdditionalLightsCookieAtlas.UpdateTexture(cmd, cookie, ref uvScaleOffset);
             }
             else
             {
-                // Allocate new
                 m_AdditionalLightsCookieAtlas.AllocateTexture(cmd, ref uvScaleOffset, cookie, scaledWidth, scaledHeight);
             }
 
@@ -851,16 +864,14 @@ namespace UnityEngine.Rendering.Universal
             // Scale octahedral projection, so that cube -> oct2D pixel count match better.
             int scaledOctCookieSize = Mathf.Max(ComputeOctahedralCookieSize(cookie) / cookieSizeDivisor, 4);
 
-            // Check if texture is present
             bool isCached = m_AdditionalLightsCookieAtlas.IsCached(out uvScaleOffset, cookie);
             if (isCached)
             {
-                // Update contents if required
+                // Update contents IF required
                 m_AdditionalLightsCookieAtlas.UpdateTexture(cmd, cookie, ref uvScaleOffset);
             }
             else
             {
-                // Allocate new
                 m_AdditionalLightsCookieAtlas.AllocateTexture(cmd, ref uvScaleOffset, cookie, scaledOctCookieSize, scaledOctCookieSize);
             }
 
