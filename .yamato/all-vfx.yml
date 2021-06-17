@@ -64,8 +64,6 @@ PR_VFX_2021.2:
         UTR_VERSION: "current"
         TEST_FILTER: .*
         CACHE_ARGS: '{{cache.flags}}'
-    triggers:
-        expression: pull_request.target eq "master" AND NOT pull_request.draft AND pull_request.changes.any match ["com.unity.visualeffectgraph/**/*", "TestProjects/VisualEffectGraph_URP/**/*", "TestProjects/VisualEffectGraph_HDRP/**/*"] AND NOT pull_request.changes.all match ["*.md", "**/*.md", "doc/**/*", "**/Documentation*/**/*"]
     dependencies:
       -  path: .yamato/all-vfx_hdrp.yml#PR_VFX_HDRP_2021.2
          rerun: on_new_revision

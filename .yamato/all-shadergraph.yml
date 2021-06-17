@@ -84,8 +84,6 @@ PR_ShaderGraph_2021.2:
         UTR_VERSION: "current"
         TEST_FILTER: .*
         CACHE_ARGS: '{{cache.flags}}'
-    triggers:
-        expression: pull_request.target eq "master" AND NOT pull_request.draft AND pull_request.changes.any match ["com.unity.shadergraph/**/*", "TestProjects/ShaderGraph/**/*"] AND NOT pull_request.changes.all match ["*.md", "**/*.md", "doc/**/*", "**/Documentation*/**/*"]
     dependencies:
       -  path: .yamato/shadergraph-win-dx11.yml#ShaderGraph_Win_DX11_Standalone_mono_Linear_2021.2
          rerun: on_new_revision
