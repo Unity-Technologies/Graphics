@@ -163,7 +163,7 @@ Shader "HDRP/Lit"
         [Enum(Subsurface Scattering, 0, Standard, 1, Anisotropy, 2, Iridescence, 3, Specular Color, 4, Translucent, 5)] _MaterialID("MaterialId", Int) = 1 // MaterialId.Standard
         [ToggleUI] _TransmissionEnable("_TransmissionEnable", Float) = 1.0
 
-        [Enum(None, 0, Vertex displacement, 1, Pixel displacement, 2)] _DisplacementMode("DisplacementMode", Int) = 0
+        _DisplacementMode("DisplacementMode", Int) = 0
         [ToggleUI] _DisplacementLockObjectScale("displacement lock object scale", Float) = 1.0
         [ToggleUI] _DisplacementLockTilingScale("displacement lock tiling scale", Float) = 1.0
         [ToggleUI] _DepthOffsetEnable("Depth Offset View space", Float) = 0.0
@@ -441,6 +441,7 @@ Shader "HDRP/Lit"
             // We reuse depth prepass for the scene selection, allow to handle alpha correctly as well as tessellation and vertex animation
             #define SHADERPASS SHADERPASS_DEPTH_ONLY
             #define SCENESELECTIONPASS // This will drive the output of the scene selection shader
+            #include "Packages/com.unity.render-pipelines.high-definition/Runtime/ShaderLibrary/PickingSpaceTransforms.hlsl"
             #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Material.hlsl"
             #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Lit/Lit.hlsl"
             #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Lit/ShaderPass/LitDepthPass.hlsl"
@@ -531,6 +532,7 @@ Shader "HDRP/Lit"
             //enable GPU instancing support
             #pragma multi_compile_instancing
             #pragma instancing_options renderinglayer
+            #pragma shader_feature EDITOR_VISUALIZATION
             #pragma multi_compile _ DOTS_INSTANCING_ON
             // enable dithering LOD crossfade
             #pragma multi_compile _ LOD_FADE_CROSSFADE
