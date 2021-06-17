@@ -47,15 +47,28 @@ namespace UnityEngine.Experimental.Rendering
             }
         }
 
-        private static bool HasMeshColliderHits(RaycastHit[] outBoundHits, Vector3 position, out float distance)
+        private static bool HasMeshColliderHits(RaycastHit[] outBoundHits, RaycastHit[] inBoundHits, Vector3 outRay, Vector3 inRay, float rayEnd, out float distance)
         {
             distance = float.MaxValue;
             bool hasHit = false;
+
             foreach (var hit in outBoundHits)
             {
-                if (hit.collider is MeshCollider)
+                if (hit.collider is MeshCollider && Vector3.Dot(outRay, hit.normal) > 0)
                 {
                     if (hit.distance < distance)
+                    {
+                        distance = hit.distance;
+                        hasHit = true;
+                    }
+                }
+            }
+
+            foreach (var hit in inBoundHits)
+            {
+                if (hit.collider is MeshCollider && Vector3.Dot(inRay, hit.normal) > 0)
+                {
+                    if ((rayEnd - hit.distance) < distance)
                     {
                         distance = hit.distance;
                         hasHit = true;
@@ -85,9 +98,10 @@ namespace UnityEngine.Experimental.Rendering
                         Vector3 ray = normDir * distanceSearch;
                         var collisionLayerMask = ~0;
                         RaycastHit[] outBoundHits = Physics.RaycastAll(worldPosition, normDir, distanceSearch, collisionLayerMask);
+                        RaycastHit[] inBoundHits = Physics.RaycastAll(worldPosition + ray, -1.0f * normDir, distanceSearch, collisionLayerMask);
 
                         float distanceForDir = 0;
-                        bool hasMeshColliderHits = HasMeshColliderHits(outBoundHits, worldPosition, out distanceForDir);
+                        bool hasMeshColliderHits = HasMeshColliderHits(outBoundHits, inBoundHits, normDir, -normDir, distanceSearch, out distanceForDir);
                         if (hasMeshColliderHits)
                         {
                             hitFound = true;
