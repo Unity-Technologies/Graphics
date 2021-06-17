@@ -18,7 +18,8 @@ namespace UnityEngine.Experimental.Rendering
         public bool drawBricks;
         public bool drawCells;
         public bool realtimeSubdivision;
-        public float realtimeSubdivisionBudget = 100.0f;
+        public int subdivisionCellUpdatePerFrame = 4;
+        public float subdivisionDelayInSeconds = 1;
         public DebugProbeShadingMode probeShading;
         public float probeSize = 1.0f;
         public float subdivisionViewCullingDistance = 500.0f;
@@ -122,8 +123,9 @@ namespace UnityEngine.Experimental.Rendering
             subdivContainer.children.Add(new DebugUI.BoolField { displayName = "Realtime Update", getter = () => debugDisplay.realtimeSubdivision, setter = value => debugDisplay.realtimeSubdivision = value, onValueChanged = RefreshDebug });
             if (debugDisplay.realtimeSubdivision)
             {
-                var realtimeSubdivBudget = new DebugUI.FloatField { displayName = "Budget", getter = () => debugDisplay.realtimeSubdivisionBudget, setter = value => debugDisplay.realtimeSubdivisionBudget = value, min = () => 0.0f, max = () => 1000.0f };
-                subdivContainer.children.Add(new DebugUI.Container { children = { realtimeSubdivBudget } });
+                var cellUpdatePerFrame = new DebugUI.IntField { displayName = "Number Of Cell Update Per Frame", getter = () => debugDisplay.subdivisionCellUpdatePerFrame, setter = value => debugDisplay.subdivisionCellUpdatePerFrame = value, min = () => 1, max = () => 100 };
+                var delayBetweenUpdates = new DebugUI.FloatField { displayName = "Delay Between Two Updates In Seconds", getter = () => debugDisplay.subdivisionDelayInSeconds, setter = value => debugDisplay.subdivisionDelayInSeconds = value, min = () => 0.1f, max = () => 10 };
+                subdivContainer.children.Add(new DebugUI.Container { children = { cellUpdatePerFrame, delayBetweenUpdates } });
             }
 #endif
 

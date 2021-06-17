@@ -313,6 +313,7 @@ namespace UnityEngine.Rendering.HighDefinition
             deferredParameters.halfResolution = !settings.fullResolution;
             deferredParameters.rayCountType = (int)RayCountValues.ReflectionDeferred;
             deferredParameters.lodBias = settings.textureLodBias.value;
+            deferredParameters.fallbackHierarchy = (int)(settings.fallbackHierachy.value);
 
             // Ray Marching parameters
             deferredParameters.mixedTracing = (settings.tracing.value == RayCastingMode.Mixed && hdCamera.frameSettings.litShaderMode == LitShaderMode.Deferred) && !transparent;
@@ -350,9 +351,9 @@ namespace UnityEngine.Rendering.HighDefinition
             // Override the ones we need to
             deferredParameters.raytracingCB._RaytracingRayMaxLength = settings.rayLength;
             deferredParameters.raytracingCB._RaytracingIntensityClamp = settings.clampValue;
-            deferredParameters.raytracingCB._RaytracingIncludeSky = settings.reflectSky.value ? 1 : 0;
             deferredParameters.raytracingCB._RaytracingPreExposition = 0;
             deferredParameters.raytracingCB._RayTracingDiffuseLightingOnly = 0;
+            deferredParameters.raytracingCB._RayTracingFallbackHierarchy = deferredParameters.fallbackHierarchy;
 
             return deferredParameters;
         }
@@ -408,6 +409,7 @@ namespace UnityEngine.Rendering.HighDefinition
             public float minSmoothness;
             public float smoothnessFadeStart;
             public float lodBias;
+            public int fallbackHierarchy;
 
             // Other parameters
             public RayTracingAccelerationStructure accelerationStructure;
@@ -447,6 +449,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 passData.minSmoothness = settings.minSmoothness;
                 passData.smoothnessFadeStart = settings.smoothnessFadeStart;
                 passData.lodBias = settings.textureLodBias.value;
+                passData.fallbackHierarchy = (int)settings.fallbackHierachy.value;
 
                 // Other parameters
                 passData.accelerationStructure = RequestAccelerationStructure();
@@ -475,7 +478,6 @@ namespace UnityEngine.Rendering.HighDefinition
 
                         // Global reflection parameters
                         data.shaderVariablesRayTracingCB._RaytracingIntensityClamp = data.clampValue;
-                        data.shaderVariablesRayTracingCB._RaytracingIncludeSky = data.reflectSky;
                         // Inject the ray generation data
                         data.shaderVariablesRayTracingCB._RaytracingRayMaxLength = data.rayLength;
                         data.shaderVariablesRayTracingCB._RaytracingNumSamples = data.sampleCount;
@@ -486,6 +488,7 @@ namespace UnityEngine.Rendering.HighDefinition
                         data.shaderVariablesRayTracingCB._RaytracingReflectionMinSmoothness = data.minSmoothness;
                         data.shaderVariablesRayTracingCB._RaytracingReflectionSmoothnessFadeStart = data.smoothnessFadeStart;
                         data.shaderVariablesRayTracingCB._RayTracingLodBias = data.lodBias;
+                        data.shaderVariablesRayTracingCB._RayTracingFallbackHierarchy = data.fallbackHierarchy;
                         ConstantBuffer.PushGlobal(ctx.cmd, data.shaderVariablesRayTracingCB, HDShaderIDs._ShaderVariablesRaytracing);
 
                         // Inject the ray-tracing sampling data
