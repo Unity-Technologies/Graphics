@@ -816,19 +816,23 @@ namespace UnityEngine.Experimental.Rendering
 
             // Move positions before sending them
             var positions = m_BakingBatch.uniquePositions.Keys.ToArray();
-            for (int i = 0; i < positions.Length; ++i)
+            VirtualOffsetSettings voSettings = m_BakingReferenceVolumeAuthoring.GetVirtualOffsetSettings();
+            if (voSettings.useVirtualOffset)
             {
-                if (Vector3.Distance(new Vector3(-90.0f, 7.0f, 1.0f), positions[i]) < 0.1f)
+                for (int i = 0; i < positions.Length; ++i)
                 {
-                    Debug.Log("BREAK HERE");
-                }
-                int subdivLevel = 0;
-                m_BakingBatch.uniqueBrickSubdiv.TryGetValue(positions[i], out subdivLevel);
-                float brickSize =  ProbeReferenceVolume.CellSize(subdivLevel);
-                float searchDistance = (brickSize * m_BakingReferenceVolumeAuthoring.brickSize) / ProbeBrickPool.kBrickCellCount;
+                    if (Vector3.Distance(new Vector3(-175.5f, 18.75f, -19.5f), positions[i]) < 0.35f)
+                    {
+                        Debug.Log("BREAK HERE");
+                    }
+                    int subdivLevel = 0;
+                    m_BakingBatch.uniqueBrickSubdiv.TryGetValue(positions[i], out subdivLevel);
+                    float brickSize = ProbeReferenceVolume.CellSize(subdivLevel);
+                    float searchDistance = (brickSize * m_BakingReferenceVolumeAuthoring.brickSize) / ProbeBrickPool.kBrickCellCount;
 
-                float scaleForSearchDist = 0.95f; // MAKE THIS FROM USER.
-                positions[i] = PushPositionOutOfGeometry(positions[i], scaleForSearchDist * searchDistance);
+                    float scaleForSearchDist = voSettings.searchMultiplier;
+                    positions[i] = PushPositionOutOfGeometry(positions[i], scaleForSearchDist * searchDistance, voSettings.outOfGeoOffset);
+                }
             }
 
             UnityEditor.Experimental.Lightmapping.SetAdditionalBakedProbes(m_BakingBatch.index, positions);

@@ -60,33 +60,6 @@ namespace UnityEngine.Experimental.Rendering
             }
         }
 
-        private static bool HasMeshColliderHits(RaycastHit[] outBoundHits, RaycastHit[] inBoundHits, Vector3 ray)
-        {
-            foreach (var hit in outBoundHits)
-            {
-                if (hit.collider is MeshCollider && IsValidForBaking(hit.collider.gameObject))
-                {
-                    float fwdBack = Vector3.Dot(ray, hit.normal); // This will give you a value from -1 to 1.
-
-                    if (fwdBack > 0)
-                        return true;
-                }
-            }
-
-            foreach (var hit in inBoundHits)
-            {
-                if (hit.collider is MeshCollider && IsValidForBaking(hit.collider.gameObject))
-                {
-                    float fwdBack = Vector3.Dot(ray, hit.normal); // This will give you a value from -1 to 1.
-
-                    if (fwdBack > 0)
-                        return true;
-                }
-            }
-
-            return false;
-        }
-
         private static float FindDistance(RaycastHit[] hits, float maxDist, ref int index, bool findInDistance)
         {
             float distance = maxDist;
@@ -104,7 +77,108 @@ namespace UnityEngine.Experimental.Rendering
             return distance;
         }
 
-        private static Vector3 PushPositionOutOfGeometry(Vector3 worldPosition, float distanceSearch)
+        static private float FindOutDistance(RaycastHit[] hits, ref int index, float kMaxDistance)
+        {
+            float outDistance = kMaxDistance;
+            for (int i = 0; i < hits.Length; ++i)
+            {
+                RaycastHit hit = hits[i];
+                if (hit.collider is MeshCollider
+                    && IsValidForBaking(hit.collider.gameObject)
+                    && hit.distance < outDistance)
+                {
+                    outDistance = hit.distance;
+                    index = i;
+                }
+            }
+
+            return outDistance;
+        }
+
+        static private float FindInDistance(RaycastHit[] hits, ref int index, float kMaxDistance)
+        {
+            float inDistance = kMaxDistance;
+            for (int i = 0; i < hits.Length; ++i)
+            {
+                RaycastHit hit = hits[i];
+                float hitDistance = kMaxDistance - hit.distance;
+                if (hit.collider is MeshCollider
+                    && IsValidForBaking(hit.collider.gameObject)
+                    && hitDistance < inDistance)
+                {
+                    inDistance = hitDistance;
+                    index = i;
+                }
+            }
+
+            return inDistance;
+        }
+
+        // CAN BE OPTIMIZED.
+        private static bool PointInGeometry(Vector3 position, float searchDist)
+        {
+            // Collision radius to be passed by user?
+            float collisionRadius = 0.05f;
+
+            for (int x = -1; x <= 1; ++x)
+            {
+                for (int y = -1; y <= 1; ++y)
+                {
+                    for (int z = -1; z <= 1; ++z)
+                    {
+                        Vector3 searchDir = new Vector3(x, y, z);
+                        Vector3 normDir = searchDir.normalized;
+                        var collisionLayerMask = ~0;
+
+                        RaycastHit[] outBoundHits = Physics.SphereCastAll(position, collisionRadius, normDir, searchDist, collisionLayerMask);
+                        RaycastHit[] inBoundHits = Physics.SphereCastAll(position + normDir * searchDist, collisionRadius, -normDir, searchDist, collisionLayerMask);
+                        int outIndex = 0, inIndex = 0;
+
+                        float outDistance = FindOutDistance(outBoundHits, ref outIndex, searchDist);
+                        float inDistance = FindInDistance(inBoundHits, ref inIndex, searchDist);
+                        if (outDistance > (inDistance - collisionRadius))
+                        {
+                            if (!(outDistance > (searchDist - 0.01f) &&
+                                  inDistance > (searchDist - 0.01f)))
+                            {
+                                return true;
+                            }
+                        }
+                    }
+                }
+            }
+
+            return false;
+        }
+
+        private static bool HasMeshColliderHits(RaycastHit[] outBoundHits, RaycastHit[] inBoundHits, Vector3 ray)
+        {
+            foreach (var hit in outBoundHits)
+            {
+                if (hit.collider is MeshCollider && IsValidForBaking(hit.collider.gameObject))
+                {
+                    float fwdBack = Vector3.Dot(ray, hit.normal); // This will give you a value from -1 to 1.
+
+                    //  if (fwdBack > 0)
+                    return true;
+                }
+            }
+
+            //foreach (var hit in inBoundHits)
+            //{
+            //    if (hit.collider is MeshCollider && IsValidForBaking(hit.collider.gameObject))
+            //    {
+            //        float fwdBack = Vector3.Dot(ray, hit.normal); // This will give you a value from -1 to 1.
+
+            //        if (fwdBack > 0)
+            //            return true;
+            //    }
+            //}
+
+            return false;
+        }
+
+        private static Vector3 PushPositionOutOfGeometry(Vector3 worldPosition, float distanceSearch, float biasOutGeo)
         {
             Physics.queriesHitBackfaces = true;
 
@@ -140,9 +214,14 @@ namespace UnityEngine.Experimental.Rendering
                 }
             }
 
-            if (hitFound)
+            if (hitFound /* !PointInGeometry(worldPosition, distanceSearch)*/)
             {
                 worldPosition = worldPosition + outDirection.normalized * (minDist * 1.1f);
+                //  worldPosition = new Vector3(-121.5f, 24.25f, -54.0f);
+            }
+            else
+            {
+                //         worldPosition = new Vector3(-121.5f, 20.25f, -54.0f);
             }
 
             return worldPosition;
