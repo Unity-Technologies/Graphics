@@ -1073,14 +1073,31 @@ namespace UnityEditor.Rendering
             if (icon == null && !string.IsNullOrEmpty(prefix))
                 icon = EditorGUIUtility.Load($"{path}/{name}{extention}") as Texture2D;
 
+            TryToFixFilterMode(pixelsPerPoint, icon);
+
+            return icon;
+        }
+
+        internal static Texture2D FindTexture(string name)
+        {
+            float pixelsPerPoint = GetGUIStatePixelsPerPoint();
+            Texture2D icon = pixelsPerPoint > 1.0f
+                ? EditorGUIUtility.FindTexture($"{name}@2x")
+                : EditorGUIUtility.FindTexture(name);
+
+            TryToFixFilterMode(pixelsPerPoint, icon);
+
+            return icon;
+        }
+
+        internal static void TryToFixFilterMode(float pixelsPerPoint, Texture2D icon)
+        {
             if (icon != null &&
                 !Mathf.Approximately(GetTexturePixelPerPoint(icon), pixelsPerPoint) && //scaling are different
                 !Mathf.Approximately(pixelsPerPoint % 1, 0)) //screen scaling is non-integer
             {
                 icon.filterMode = FilterMode.Bilinear;
             }
-
-            return icon;
         }
 
         #endregion

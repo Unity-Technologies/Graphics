@@ -307,7 +307,7 @@ Shader "HDRP/LayeredLitTessellation"
         [Enum(Subsurface Scattering, 0, Standard, 1, Translucent, 5)] _MaterialID("MaterialId", Int) = 1 // MaterialId.Standard
         [ToggleUI] _TransmissionEnable("_TransmissionEnable", Float) = 1.0
 
-        [Enum(None, 0, Tessellation displacement, 3)] _DisplacementMode("DisplacementMode", Int) = 3
+        _DisplacementMode("DisplacementMode", Int) = 3
         [ToggleUI] _DisplacementLockObjectScale("displacement lock object scale", Float) = 1.0
         [ToggleUI] _DisplacementLockTilingScale("displacement lock tiling scale", Float) = 1.0
         [ToggleUI] _DepthOffsetEnable("Depth Offset View space", Float) = 0.0
@@ -673,6 +673,7 @@ Shader "HDRP/LayeredLitTessellation"
 
             #define SHADERPASS SHADERPASS_DEPTH_ONLY
             #define SCENESELECTIONPASS // This will drive the output of the scene selection shader
+            #include "Packages/com.unity.render-pipelines.high-definition/Runtime/ShaderLibrary/PickingSpaceTransforms.hlsl"
             #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Material.hlsl"
             #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Lit/Lit.hlsl"
             #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Lit/ShaderPass/LitDepthPass.hlsl"
@@ -777,6 +778,7 @@ Shader "HDRP/LayeredLitTessellation"
             #undef TESSELLATION_ON
 
             #define SHADERPASS SHADERPASS_LIGHT_TRANSPORT
+            #pragma shader_feature EDITOR_VISUALIZATION
             #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Material.hlsl"
             #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Lit/Lit.hlsl"
             #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Lit/ShaderPass/LitSharePass.hlsl"

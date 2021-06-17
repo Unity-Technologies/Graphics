@@ -169,7 +169,7 @@ namespace UnityEditor.Rendering
             greenTexture = CoreEditorUtils.CreateColoredTexture2D(Color.green, "Green 1x1");
             blueTexture = CoreEditorUtils.CreateColoredTexture2D(Color.blue, "Blue 1x1");
 
-            iconHelp = EditorGUIUtility.FindTexture("_Help");
+            iconHelp = CoreEditorUtils.FindTexture("_Help");
             iconWarn = CoreEditorUtils.LoadIcon("icons", "console.warnicon", ".png");
             iconFail = CoreEditorUtils.LoadIcon("icons", "console.erroricon", ".png");
             iconSuccess = EditorGUIUtility.FindTexture("TestPassed");
