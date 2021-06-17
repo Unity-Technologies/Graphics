@@ -266,6 +266,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed cases in which object and camera motion vectors would cancel out, but didn't.
 - Fixed HDRP material upgrade failing when there is a texture inside the builtin resources assigned in the material (case 1339865).
 - Fixed custom pass volume not executed in scene view because of the volume culling mask.
+- Fixed remapping of depth pyramid debug view
 
 ### Changed
 - Changed Window/Render Pipeline/HD Render Pipeline Wizard to Window/Rendering/HDRP Wizard
