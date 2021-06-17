@@ -23,7 +23,7 @@ URPUpdate_BoatAttack_Win_DX11_playmode_mono_Linear_trunk:
         UTR_VERSION: "current"
         TEST_FILTER: .*
     commands:
-      -  command: git clone https://github.com/Unity-Technologies/BoatAttack.git -b %BA_UPDATE_PROJECT_BRANCH% TestProjects/URP-Update-Testing
+      -  command: git clone https://github.com/Unity-Technologies/BoatAttack.git -b %BA_UPDATE_PROJECT_BRANCH% TestProjects/BoatAttack
          retries: 3
       -  cd TestProjects/BoatAttack && git checkout %BA_UPDATE_PROJECT_REVISION%
       -  Xcopy /E /I "com.unity.render-pipelines.core" "TestProjects/BoatAttack/Packages/com.unity.render-pipelines.core" /Y
@@ -65,7 +65,7 @@ URPUpdate_BoatAttack_Win_DX11_editmode_mono_Linear_trunk:
         UTR_VERSION: "current"
         TEST_FILTER: .*
     commands:
-      -  command: git clone https://github.com/Unity-Technologies/BoatAttack.git -b %BA_UPDATE_PROJECT_BRANCH% TestProjects/URP-Update-Testing
+      -  command: git clone https://github.com/Unity-Technologies/BoatAttack.git -b %BA_UPDATE_PROJECT_BRANCH% TestProjects/BoatAttack
          retries: 3
       -  cd TestProjects/BoatAttack && git checkout %BA_UPDATE_PROJECT_REVISION%
       -  Xcopy /E /I "com.unity.render-pipelines.core" "TestProjects/BoatAttack/Packages/com.unity.render-pipelines.core" /Y
@@ -107,7 +107,7 @@ URPUpdate_BoatAttack_Win_DX11_playmode_mono_Linear_CUSTOM-REVISION:
         UTR_VERSION: "current"
         TEST_FILTER: .*
     commands:
-      -  command: git clone https://github.com/Unity-Technologies/BoatAttack.git -b %BA_UPDATE_PROJECT_BRANCH% TestProjects/URP-Update-Testing
+      -  command: git clone https://github.com/Unity-Technologies/BoatAttack.git -b %BA_UPDATE_PROJECT_BRANCH% TestProjects/BoatAttack
          retries: 3
       -  cd TestProjects/BoatAttack && git checkout %BA_UPDATE_PROJECT_REVISION%
       -  Xcopy /E /I "com.unity.render-pipelines.core" "TestProjects/BoatAttack/Packages/com.unity.render-pipelines.core" /Y
@@ -149,7 +149,7 @@ URPUpdate_BoatAttack_Win_DX11_editmode_mono_Linear_CUSTOM-REVISION:
         UTR_VERSION: "current"
         TEST_FILTER: .*
     commands:
-      -  command: git clone https://github.com/Unity-Technologies/BoatAttack.git -b %BA_UPDATE_PROJECT_BRANCH% TestProjects/URP-Update-Testing
+      -  command: git clone https://github.com/Unity-Technologies/BoatAttack.git -b %BA_UPDATE_PROJECT_BRANCH% TestProjects/BoatAttack
          retries: 3
       -  cd TestProjects/BoatAttack && git checkout %BA_UPDATE_PROJECT_REVISION%
       -  Xcopy /E /I "com.unity.render-pipelines.core" "TestProjects/BoatAttack/Packages/com.unity.render-pipelines.core" /Y
