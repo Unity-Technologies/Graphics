@@ -350,6 +350,8 @@ namespace UnityEngine.Rendering.Universal
             public Vector4[] atlasUVRects   => m_AtlasUVRectCpuData;
             public float[] lightTypes     => m_LightTypeCpuData;
 
+            public bool isUploaded { get; set; }
+
             public LightCookieShaderData(int size, bool useStructuredBuffer)
             {
                 m_UseStructuredBuffer = useStructuredBuffer;
@@ -389,7 +391,7 @@ namespace UnityEngine.Rendering.Universal
                 m_Size = size;
             }
 
-            public void Apply(CommandBuffer cmd)
+            public void Upload(CommandBuffer cmd)
             {
                 if (m_UseStructuredBuffer)
                 {
@@ -409,6 +411,18 @@ namespace UnityEngine.Rendering.Universal
                 }
 
                 cmd.SetGlobalFloatArray(ShaderProperty.additionalLightsCookieEnableBits, m_CookieEnableBitsCpuData.data);
+                isUploaded = true;
+            }
+
+            public void Clear(CommandBuffer cmd)
+            {
+                if (isUploaded)
+                {
+                    // Set all lights to disabled/invalid state
+                    m_CookieEnableBitsCpuData.Clear();
+                    cmd.SetGlobalFloatArray(ShaderProperty.additionalLightsCookieEnableBits, m_CookieEnableBitsCpuData.data);
+                    isUploaded = false;
+                }
             }
         }
 
@@ -512,7 +526,12 @@ namespace UnityEngine.Rendering.Universal
             // Additional lights, N spot and point lights in atlas
             bool isAdditionalLightsAvailable = lightData.additionalLightsCount > 0;
             if (isAdditionalLightsAvailable)
+            {
                 isAdditionalLightsAvailable = SetupAdditionalLights(cmd, ref lightData);
+            }
+
+            if (!isAdditionalLightsAvailable)
+                m_AdditionalLightsCookieShaderData?.Clear(cmd);
 
             // Main and additional lights are merged into one keyword to reduce variants.
             IsKeywordLightCookieEnabled = isMainLightAvailable || isAdditionalLightsAvailable;
@@ -609,7 +628,6 @@ namespace UnityEngine.Rendering.Universal
             UploadAdditionalLights(cmd, ref lightData, ref validLights, ref validUvRects);
 
             bool isAdditionalLightsEnabled = validUvRects.length > 0;
-
             return isAdditionalLightsEnabled;
         }
 
@@ -958,7 +976,7 @@ namespace UnityEngine.Rendering.Universal
             }
 
             // Apply changes and upload to GPU
-            m_AdditionalLightsCookieShaderData.Apply(cmd);
+            m_AdditionalLightsCookieShaderData.Upload(cmd);
         }
     }
 }
