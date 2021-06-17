@@ -615,25 +615,6 @@ namespace UnityEngine.Rendering.HighDefinition
         [SerializeField] internal MaskVolumeAsset maskVolumeAsset = null;
         [SerializeField] internal MaskVolumeArtistParameters parameters = new MaskVolumeArtistParameters(Color.white);
 
-        public void SetMaskVolumeAsset(MaskVolumeAsset asset)
-        {
-            maskVolumeAsset = asset;
-            dataUpdated = true;
-            if (maskVolumeAsset != null)
-            {
-                maskVolumeAsset.instanceID = GetID();
-            }
-            
-#if UNITY_EDITOR
-            UnityEditor.EditorUtility.SetDirty(this);
-            
-            if (maskVolumeAsset != null)
-            {
-                UnityEditor.EditorUtility.SetDirty(maskVolumeAsset);    
-            }
-#endif
-        }
-
         internal int GetID()
         {
             return GetInstanceID();
@@ -753,6 +734,24 @@ namespace UnityEngine.Rendering.HighDefinition
         }
 
 #if UNITY_EDITOR
+
+        public void SetMaskVolumeAsset(MaskVolumeAsset asset)
+        {
+            maskVolumeAsset = asset;
+            dataUpdated = true;
+            if (maskVolumeAsset != null)
+            {
+                maskVolumeAsset.instanceID = GetID();
+            }
+            
+            UnityEditor.EditorUtility.SetDirty(this);
+            
+            if (maskVolumeAsset != null)
+            {
+                UnityEditor.EditorUtility.SetDirty(maskVolumeAsset);    
+            }
+        }
+
         protected void OnValidate()
         {
             parameters.Constrain();
