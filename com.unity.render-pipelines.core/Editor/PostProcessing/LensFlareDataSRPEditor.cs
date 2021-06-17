@@ -379,6 +379,9 @@ namespace UnityEditor.Rendering
 
             SerializedProperty sizeXYProp = element.FindPropertyRelative("sizeXY");
 
+            SerializedProperty countProp = element.FindPropertyRelative("m_Count");
+            SerializedProperty allowMultipleElementProp = element.FindPropertyRelative("allowMultipleElement");
+
             float invSideCount = 1f / ((float)sideCountProp.intValue);
             float intensity = intensityProp.floatValue;
             float usedSDFRoundness = sdfRoundnessProp.floatValue;
@@ -413,68 +416,141 @@ namespace UnityEditor.Rendering
             if (type == SRPLensFlareType.Polygon)
                 usedGradientPosition = Mathf.Pow(usedGradientPosition + 1.0f, 5);
 
-            Vector4 flareData0 = LensFlareCommonSRP.GetFlareData0(Vector2.zero, Vector2.zero, Vector2.one, Vector2.zero, rotationProp.floatValue, 0f, 0f, Vector2.zero, false);
-
-            float cos0 = flareData0.x;
-            float sin0 = flareData0.y;
-
-            Vector2 rotQuadCorner = new Vector2(cos0 * localSize.x - sin0 * localSize.y, sin0 * localSize.x + cos0 * localSize.y);
-            float rescale = 1.0f / Mathf.Max(Mathf.Abs(rotQuadCorner.x), Mathf.Abs(rotQuadCorner.y));
-
-            // Set here what need to be setup in the material
-            if (type == SRPLensFlareType.Image)
+            if (allowMultipleElementProp.boolValue && countProp.intValue > 1)
             {
-                if (flareTextureProp.objectReferenceValue != null)
-                    m_PreviewLensFlare.SetTexture(k_FlareTex, flareTextureProp.objectReferenceValue as Texture2D);
+                SerializedProperty distributionProp = element.FindPropertyRelative("distribution");
+                SerializedProperty lengthSpreadProp = element.FindPropertyRelative("lengthSpread");
+                SerializedProperty colorGradientProp = element.FindPropertyRelative("colorGradient");
+                SerializedProperty scaleCurveProp = element.FindPropertyRelative("scaleCurve");
+                SerializedProperty seedProp = element.FindPropertyRelative("seed");
+                SerializedProperty intensityVariationProp = element.FindPropertyRelative("m_IntensityVariation");
+                SerializedProperty scaleVariationProp = element.FindPropertyRelative("scaleVariation");
+                SerializedProperty rotationVariationProp = element.FindPropertyRelative("rotationVariation");
+
+                for (int idx = 0; idx < countProp.intValue; ++idx)
+                {
+                    Vector4 flareData0 = LensFlareCommonSRP.GetFlareData0(Vector2.zero, Vector2.zero, Vector2.one, Vector2.zero, rotationProp.floatValue, 0f, 0f, Vector2.zero, false);
+
+                    float cos0 = flareData0.x;
+                    float sin0 = flareData0.y;
+
+                    Vector2 rotQuadCorner = new Vector2(cos0 * localSize.x - sin0 * localSize.y, sin0 * localSize.x + cos0 * localSize.y);
+                    float rescale = 1.0f / Mathf.Max(Mathf.Abs(rotQuadCorner.x), Mathf.Abs(rotQuadCorner.y));
+
+                    // Set here what need to be setup in the material
+                    if (type == SRPLensFlareType.Image)
+                    {
+                        if (flareTextureProp.objectReferenceValue != null)
+                            m_PreviewLensFlare.SetTexture(k_FlareTex, flareTextureProp.objectReferenceValue as Texture2D);
+                        else
+                            m_PreviewLensFlare.SetTexture(k_FlareTex, Texture2D.blackTexture);
+                    }
+                    else
+                    {
+                        m_PreviewLensFlare.SetTexture(k_FlareTex, null);
+                    }
+
+                    m_PreviewLensFlare.SetVector(k_FlareColorValue, new Vector4(colorProp.colorValue.r * intensity, colorProp.colorValue.g * intensity, colorProp.colorValue.b * intensity, 1f));
+                    m_PreviewLensFlare.SetVector(k_FlareData0, flareData0);
+                    // x: OcclusionRadius, y: OcclusionSampleCount, z: ScreenPosZ, w: ScreenRatio
+                    m_PreviewLensFlare.SetVector(k_FlareData1, new Vector4(0f, 0f, 0f, 1f));
+                    // xy: ScreenPos, zw: FlareSize
+                    m_PreviewLensFlare.SetVector(k_FlareData2, new Vector4(0f, 0f, rescale * localSize.x, rescale * localSize.y));
+                    // x: Allow Offscreen, y: Edge Offset, z: Falloff, w: invSideCount
+                    m_PreviewLensFlare.SetVector(k_FlareData3, new Vector4(0f, usedGradientPosition, Mathf.Exp(Mathf.Lerp(0.0f, 4.0f, Mathf.Clamp01(1.0f - fallOffProp.floatValue))), invSideCount));
+
+                    if (type == SRPLensFlareType.Polygon)
+                    {
+                        // Precompute data for Polygon SDF (cf. LensFlareCommon.hlsl)
+                        float rCos = Mathf.Cos(Mathf.PI * invSideCount);
+                        float roundValue = rCos * usedSDFRoundness;
+                        float r = rCos - roundValue;
+                        float an = 2.0f * Mathf.PI * invSideCount;
+                        float he = r * Mathf.Tan(0.5f * an);
+
+                        // x: SDF Roundness, y: Poly Radius, z: PolyParam0, w: PolyParam1
+                        m_PreviewLensFlare.SetVector(k_FlareData4, new Vector4(usedSDFRoundness, r, an, he));
+                    }
+                    else
+                    {
+                        // x: SDF Roundness, yzw: Unused
+                        m_PreviewLensFlare.SetVector(k_FlareData4, new Vector4(usedSDFRoundness, 0f, 0f, 0f));
+                    }
+
+                    // xy: _FlarePreviewData.xy, z: ScreenRatio
+                    m_PreviewLensFlare.SetVector(k_FlarePreviewData, new Vector4(k_PreviewSize, k_PreviewSize, 1f, 0f));
+
+                    m_PreviewLensFlare.SetPass((int)type + ((type != SRPLensFlareType.Image && inverseSDFProp.boolValue) ? 2 : 0));
+
+                    RenderToTexture2D(ref computedTexture, idx == 0);
+                }
+            }
+            else
+            {
+                Vector4 flareData0 = LensFlareCommonSRP.GetFlareData0(Vector2.zero, Vector2.zero, Vector2.one, Vector2.zero, rotationProp.floatValue, 0f, 0f, Vector2.zero, false);
+
+                float cos0 = flareData0.x;
+                float sin0 = flareData0.y;
+
+                Vector2 rotQuadCorner = new Vector2(cos0 * localSize.x - sin0 * localSize.y, sin0 * localSize.x + cos0 * localSize.y);
+                float rescale = 1.0f / Mathf.Max(Mathf.Abs(rotQuadCorner.x), Mathf.Abs(rotQuadCorner.y));
+
+                // Set here what need to be setup in the material
+                if (type == SRPLensFlareType.Image)
+                {
+                    if (flareTextureProp.objectReferenceValue != null)
+                        m_PreviewLensFlare.SetTexture(k_FlareTex, flareTextureProp.objectReferenceValue as Texture2D);
+                    else
+                        m_PreviewLensFlare.SetTexture(k_FlareTex, Texture2D.blackTexture);
+                }
                 else
-                    m_PreviewLensFlare.SetTexture(k_FlareTex, Texture2D.blackTexture);
+                {
+                    m_PreviewLensFlare.SetTexture(k_FlareTex, null);
+                }
+
+                m_PreviewLensFlare.SetVector(k_FlareColorValue, new Vector4(colorProp.colorValue.r * intensity, colorProp.colorValue.g * intensity, colorProp.colorValue.b * intensity, 1f));
+                m_PreviewLensFlare.SetVector(k_FlareData0, flareData0);
+                // x: OcclusionRadius, y: OcclusionSampleCount, z: ScreenPosZ, w: ScreenRatio
+                m_PreviewLensFlare.SetVector(k_FlareData1, new Vector4(0f, 0f, 0f, 1f));
+                // xy: ScreenPos, zw: FlareSize
+                m_PreviewLensFlare.SetVector(k_FlareData2, new Vector4(0f, 0f, rescale * localSize.x, rescale * localSize.y));
+                // x: Allow Offscreen, y: Edge Offset, z: Falloff, w: invSideCount
+                m_PreviewLensFlare.SetVector(k_FlareData3, new Vector4(0f, usedGradientPosition, Mathf.Exp(Mathf.Lerp(0.0f, 4.0f, Mathf.Clamp01(1.0f - fallOffProp.floatValue))), invSideCount));
+
+                if (type == SRPLensFlareType.Polygon)
+                {
+                    // Precompute data for Polygon SDF (cf. LensFlareCommon.hlsl)
+                    float rCos = Mathf.Cos(Mathf.PI * invSideCount);
+                    float roundValue = rCos * usedSDFRoundness;
+                    float r = rCos - roundValue;
+                    float an = 2.0f * Mathf.PI * invSideCount;
+                    float he = r * Mathf.Tan(0.5f * an);
+
+                    // x: SDF Roundness, y: Poly Radius, z: PolyParam0, w: PolyParam1
+                    m_PreviewLensFlare.SetVector(k_FlareData4, new Vector4(usedSDFRoundness, r, an, he));
+                }
+                else
+                {
+                    // x: SDF Roundness, yzw: Unused
+                    m_PreviewLensFlare.SetVector(k_FlareData4, new Vector4(usedSDFRoundness, 0f, 0f, 0f));
+                }
+
+                // xy: _FlarePreviewData.xy, z: ScreenRatio
+                m_PreviewLensFlare.SetVector(k_FlarePreviewData, new Vector4(k_PreviewSize, k_PreviewSize, 1f, 0f));
+
+                m_PreviewLensFlare.SetPass((int)type + ((type != SRPLensFlareType.Image && inverseSDFProp.boolValue) ? 2 : 0));
+
+                RenderToTexture2D(ref computedTexture);
             }
-            else
-            {
-                m_PreviewLensFlare.SetTexture(k_FlareTex, null);
-            }
-
-            m_PreviewLensFlare.SetVector(k_FlareColorValue, new Vector4(colorProp.colorValue.r * intensity, colorProp.colorValue.g * intensity, colorProp.colorValue.b * intensity, 1f));
-            m_PreviewLensFlare.SetVector(k_FlareData0, flareData0);
-            // x: OcclusionRadius, y: OcclusionSampleCount, z: ScreenPosZ, w: ScreenRatio
-            m_PreviewLensFlare.SetVector(k_FlareData1, new Vector4(0f, 0f, 0f, 1f));
-            // xy: ScreenPos, zw: FlareSize
-            m_PreviewLensFlare.SetVector(k_FlareData2, new Vector4(0f, 0f, rescale * localSize.x, rescale * localSize.y));
-            // x: Allow Offscreen, y: Edge Offset, z: Falloff, w: invSideCount
-            m_PreviewLensFlare.SetVector(k_FlareData3, new Vector4(0f, usedGradientPosition, Mathf.Exp(Mathf.Lerp(0.0f, 4.0f, Mathf.Clamp01(1.0f - fallOffProp.floatValue))), invSideCount));
-
-            if (type == SRPLensFlareType.Polygon)
-            {
-                // Precompute data for Polygon SDF (cf. LensFlareCommon.hlsl)
-                float rCos = Mathf.Cos(Mathf.PI * invSideCount);
-                float roundValue = rCos * usedSDFRoundness;
-                float r = rCos - roundValue;
-                float an = 2.0f * Mathf.PI * invSideCount;
-                float he = r * Mathf.Tan(0.5f * an);
-
-                // x: SDF Roundness, y: Poly Radius, z: PolyParam0, w: PolyParam1
-                m_PreviewLensFlare.SetVector(k_FlareData4, new Vector4(usedSDFRoundness, r, an, he));
-            }
-            else
-            {
-                // x: SDF Roundness, yzw: Unused
-                m_PreviewLensFlare.SetVector(k_FlareData4, new Vector4(usedSDFRoundness, 0f, 0f, 0f));
-            }
-
-            // xy: _FlarePreviewData.xy, z: ScreenRatio
-            m_PreviewLensFlare.SetVector(k_FlarePreviewData, new Vector4(k_PreviewSize, k_PreviewSize, 1f, 0f));
-
-            m_PreviewLensFlare.SetPass((int)type + ((type != SRPLensFlareType.Image && inverseSDFProp.boolValue) ? 2 : 0));
-
-            RenderToTexture2D(ref computedTexture);
         }
 
-        void RenderToTexture2D(ref Texture2D computedTexture)
+        void RenderToTexture2D(ref Texture2D computedTexture, bool clear = true)
         {
             RenderTexture oldActive = RenderTexture.active;
             RenderTexture.active = m_PreviewTexture.rt;
 
-            GL.Clear(false, true, Color.black);
+            if (clear)
+                GL.Clear(false, true, Color.black);
 
             GL.PushMatrix();
             GL.LoadOrtho();
@@ -514,6 +590,26 @@ namespace UnityEditor.Rendering
             hash = hash * 23 + type.GetHashCode();
             hash = hash * 23 + colorProp.colorValue.GetHashCode();
             hash = hash * 23 + rotationProp.floatValue.GetHashCode();
+
+            SerializedProperty allowMultipleElement = element.FindPropertyRelative("allowMultipleElement");
+
+            hash = hash * 23 + allowMultipleElement.boolValue.GetHashCode();
+            if (allowMultipleElement.boolValue)
+            {
+                SerializedProperty count = element.FindPropertyRelative("m_Count");
+                SerializedProperty seedProp = element.FindPropertyRelative("seed");
+                SerializedProperty distributionProp = element.FindPropertyRelative("distribution");
+                SerializedProperty intensityVariationProp = element.FindPropertyRelative("m_IntensityVariation");
+                SerializedProperty rotationVariationProp = element.FindPropertyRelative("rotationVariation");
+                SerializedProperty scaleVariationProp = element.FindPropertyRelative("scaleVariation");
+
+                hash = hash * 23 + count.intValue.GetHashCode();
+                hash = hash * 23 + seedProp.intValue.GetHashCode();
+                hash = hash * 23 + distributionProp.intValue.GetHashCode();
+                hash = hash * 23 + intensityVariationProp.floatValue.GetHashCode();
+                hash = hash * 23 + rotationVariationProp.floatValue.GetHashCode();
+                hash = hash * 23 + scaleVariationProp.floatValue.GetHashCode();
+            }
 
             if (type == SRPLensFlareType.Image)
             {
