@@ -245,5 +245,14 @@ namespace UnityEngine.Rendering.Universal
         }
 
         #endregion
+
+        #region Misc Settings
+
+        /// <summary>
+        /// Controls whether debug display shaders for Rendering Debugger are available in Player builds.
+        /// </summary>
+        public bool supportRuntimeDebugDisplay = false;
+
+        #endregion
     }
 }

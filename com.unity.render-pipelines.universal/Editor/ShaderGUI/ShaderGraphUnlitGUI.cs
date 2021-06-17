@@ -1,5 +1,6 @@
 using System;
 using UnityEngine;
+using UnityEditor.Rendering.Universal;
 using static Unity.Rendering.Universal.ShaderUtils;
 
 namespace UnityEditor
@@ -20,7 +21,8 @@ namespace UnityEditor
 
         public static void UpdateMaterial(Material material, MaterialUpdateType updateType)
         {
-            BaseShaderGUI.UpdateMaterialSurfaceOptions(material, automaticRenderQueue: false);
+            bool automaticRenderQueue = GetAutomaticQueueControlSetting(material);
+            BaseShaderGUI.UpdateMaterialSurfaceOptions(material, automaticRenderQueue);
         }
 
         public override void ValidateMaterial(Material material)
@@ -36,7 +38,10 @@ namespace UnityEditor
 
         public override void DrawAdvancedOptions(Material material)
         {
-            materialEditor.RenderQueueField();
+            // Always show the queue control field.  Only show the render queue field if queue control is set to user override
+            DoPopup(Styles.queueControl, queueControlProp, Styles.queueControlNames);
+            if (material.HasProperty(Property.QueueControl) && material.GetFloat(Property.QueueControl) == (float)QueueControl.UserOverride)
+                materialEditor.RenderQueueField();
             base.DrawAdvancedOptions(material);
             materialEditor.DoubleSidedGIField();
         }

@@ -389,6 +389,22 @@ void GetCloudCoverageData(float3 positionWS, out CloudCoverageData data)
     data.maxCloudHeight = cloudMapData.w;
 }
 
+float3 applyFastTonemapping(float3 input)
+{
+    if (_EnableFastToneMapping)
+        return input*rcp(input + 1.0);
+    else
+        return input;
+}
+
+float3 unapplyFastTonemapping(float3 input)
+{
+    if (_EnableFastToneMapping)
+        return input*rcp(1.0 - input);
+    else
+        return input;
+}
+
 EnvironmentLighting EvaluateEnvironmentLighting(CloudRay ray)
 {
     // Sun parameters
@@ -536,6 +552,8 @@ float3 EvaluateSunLuminance(float3 position, in EnvironmentLighting envLighting,
     // If we early out, this means we've hit the earth itself
     if (GetCloudVolumeIntersection_Light(position, envLighting.sunDirection, totalLightDistance))
     {
+        // Apply a small bias to compensate for the imprecision in the ray-sphere intersection at world scale.
+        totalLightDistance += 5.0f;
 
         // Initially the transmittance is one for all octaves
         float3 sunLightTransmittance[NUM_MULTI_SCATTERING_OCTAVES];
@@ -792,7 +810,7 @@ void RenderClouds(uint3 traceCoord : SV_DispatchThreadID, uint2 groupThreadId : 
     float cloudMinDepth = result.invalidRay ? ray.depthValue : ConvertCloudDepth(ray.direction * cloudMinDistance);
 
     // Apply a fast tonemap
-    result.inScattering *= rcp(result.inScattering + 1.0);
+    result.inScattering = applyFastTonemapping(result.inScattering);
 
     // output the result
     _CloudsLightingTextureRW[COORD_TEXTURE2D_X(traceCoord.xy)] = float4(result.inScattering, result.transmittance);
@@ -883,9 +901,9 @@ void ReprojectClouds(uint3 dispatchThreadId : SV_DispatchThreadID,
     float3 previousResult1 = SAMPLE_TEXTURE2D_X_LOD(_HistoryVolumetricClouds1Texture, s_linear_clamp_sampler, historySampleCoords, 0).xyz;
 
     // Inverse the exposure of the previous frame and apply the current one (need to be done in linear space)
-    previousResult.xyz *= rcp(1.0 - previousResult.xyz);
+    previousResult.xyz = unapplyFastTonemapping(previousResult.xyz);
     previousResult.xyz *= GetInversePreviousExposureMultiplier() * GetCurrentExposureMultiplier();
-    previousResult.xyz *= rcp(1.0 + previousResult.xyz);
+    previousResult.xyz = applyFastTonemapping(previousResult.xyz);
 
     // Unpack the second buffer
     float previousSampleCount = previousResult1.x;
@@ -1103,7 +1121,7 @@ void UPSAMPLE_KERNEL(uint3 finalCoord : SV_DispatchThreadID,
 #endif
 
     // De-tonemap the inscattering value
-    currentClouds.xyz *= rcp(1.0 - currentClouds.xyz);
+    currentClouds.xyz = unapplyFastTonemapping(currentClouds.xyz);
     currentClouds.w = saturate(currentClouds.w);
 
 #ifdef LOCAL_VOLUMETRIC_CLOUDS
