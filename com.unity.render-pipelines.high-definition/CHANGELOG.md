@@ -355,6 +355,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - When a ray hits the sky in the ray marching part of mixed ray tracing, it is considered a miss.
 - TAA jitter is disabled while using Frame Debugger now.
 - Depth of field at half or quarter resolution is now computed consistently with the full resolution option (case 1335687).
+- Hair uses GGX LTC for area light specular.
 
 ## [11.0.0] - 2020-10-21
 
