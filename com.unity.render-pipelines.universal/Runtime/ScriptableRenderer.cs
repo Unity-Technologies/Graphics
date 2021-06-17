@@ -1319,7 +1319,8 @@ namespace UnityEngine.Rendering.Universal
             CoreUtils.SetRenderTarget(cmd, colorAttachments, depthAttachment, clearFlag, clearColor);
         }
 
-        internal virtual void SwapColorBuffer(CommandBuffer cmd) { }
+        internal virtual void SwapColorBuffer(CommandBuffer cmd) {}
+        internal virtual void EnableSwapBufferMSAA(bool enable) {}
 
         [Conditional("UNITY_EDITOR")]
         void DrawGizmos(ScriptableRenderContext context, Camera camera, GizmoSubset gizmoSubset)
