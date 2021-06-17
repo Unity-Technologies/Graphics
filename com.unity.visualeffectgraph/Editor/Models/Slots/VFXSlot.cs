@@ -866,13 +866,26 @@ namespace UnityEditor.VFX
             PropagateToChildren(func);
         }
 
+        virtual protected void UpdateLinkSlotConversion(VFXSlot fromSlot)
+        {
+            throw new NotImplementedException();
+        }
+
+        protected static void UpdateLinkedInExpression(VFXSlot destSlot, VFXExpression expression, VFXSlot refSlot = null)
+        {
+            if (expression == null)
+                throw new NullReferenceException("Unexpected null expression");
+
+            destSlot.m_LinkedInExpression = expression;
+            destSlot.m_LinkedInSlot = refSlot; //Can be null here
+        }
+
         private static void UpdateLinkedInExpression(VFXSlot destSlot, VFXSlot refSlot)
         {
             var expression = refSlot.GetExpression();
             if (expression != null)
             {
-                destSlot.m_LinkedInExpression = expression;
-                destSlot.m_LinkedInSlot = refSlot;
+                UpdateLinkedInExpression(destSlot, expression, refSlot);
             }
             else if (destSlot.GetType() == refSlot.GetType())
             {
@@ -880,6 +893,11 @@ namespace UnityEditor.VFX
                 {
                     UpdateLinkedInExpression(destSlot.children.ElementAt(i), refSlot.children.ElementAt(i));
                 }
+            }
+            else
+            {
+                //TODOPAUL : check how this design can be improved
+                destSlot.UpdateLinkSlotConversion(refSlot);
             }
         }
 
