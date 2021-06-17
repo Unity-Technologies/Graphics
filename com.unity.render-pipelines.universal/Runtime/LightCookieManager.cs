@@ -666,14 +666,6 @@ namespace UnityEngine.Rendering.Universal
                     continue;
                 }
 
-                // TODO: check if this is necessary
-                // Skip vertex lights, no support
-                if (light.renderMode == LightRenderMode.ForceVertex)
-                {
-                    Debug.LogWarning($"Additional {lightType.ToString()} light called '{light.name}' is a vertex light and its light cookie will not be visible.", light);
-                    continue;
-                }
-
                 Assertions.Assert.IsTrue(i < ushort.MaxValue);
 
                 LightCookieMapping lp;
