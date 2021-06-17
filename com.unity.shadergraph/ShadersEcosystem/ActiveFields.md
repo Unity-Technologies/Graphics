@@ -15,44 +15,44 @@ Here's data from a quick run of URP to show how these fields are changed over ti
 Pre SG: Data returned by `Target.GetFields()` that is filtered by SG
 
 ```
-Name `"graphVertex"`; Type `null`; Define `"FEATURES_GRAPH_VERTEX"`	UnityEditor.ShaderGraph.FieldDescriptor
-Name `"graphPixel"`; Type `null`; Define `"FEATURES_GRAPH_PIXEL"`	UnityEditor.ShaderGraph.FieldDescriptor
-Name `"NormalDropOffTS"`; Type `null`; Define `"_NORMAL_DROPOFF_TS 1"`	UnityEditor.ShaderGraph.FieldDescriptor
-Name `"Normal"`; Type `null`; Define `"_NORMALMAP 1"`	UnityEditor.ShaderGraph.FieldDescriptor
+Tag `"features"`; Name `"graphVertex"`; Type `null`; Define `"FEATURES_GRAPH_VERTEX"`
+Tag `"features"`; Name `"graphPixel"`; Type `null`; Define `"FEATURES_GRAPH_PIXEL"`
+Tag `""`; Name `"NormalDropOffTS"`; Type `null`; Define `"_NORMAL_DROPOFF_TS 1"`
+Tag `""`; Name `"Normal"`; Type `null`; Define `"_NORMALMAP 1"`
 
 ```
 
 ---
 Post SG: Fields SG adds after visiting block fields and nodes
 ```
-Name `"graphVertex"`; Type `null`; Define `"FEATURES_GRAPH_VERTEX"`	UnityEditor.ShaderGraph.FieldDescriptor
-Name `"graphPixel"`; Type `null`; Define `"FEATURES_GRAPH_PIXEL"`	UnityEditor.ShaderGraph.FieldDescriptor
-Name `"NormalDropOffTS"`; Type `null`; Define `"_NORMAL_DROPOFF_TS 1"`	UnityEditor.ShaderGraph.FieldDescriptor
-Name `"Normal"`; Type `null`; Define `"_NORMALMAP 1"`	UnityEditor.ShaderGraph.FieldDescriptor
-Name `"Position"`; Type `null`; Define `"VERTEXDESCRIPTION_POSITION"`	UnityEditor.ShaderGraph.FieldDescriptor
-Name `"Normal"`; Type `null`; Define `"VERTEXDESCRIPTION_NORMAL"`	UnityEditor.ShaderGraph.FieldDescriptor
-Name `"Tangent"`; Type `null`; Define `"VERTEXDESCRIPTION_TANGENT"`	UnityEditor.ShaderGraph.FieldDescriptor
-Name `"BaseColor"`; Type `null`; Define `"SURFACEDESCRIPTION_BASECOLOR"`	UnityEditor.ShaderGraph.FieldDescriptor
-Name `"NormalTS"`; Type `null`; Define `"SURFACEDESCRIPTION_NORMALTS"`	UnityEditor.ShaderGraph.FieldDescriptor
-Name `"Emission"`; Type `null`; Define `"SURFACEDESCRIPTION_EMISSION"`	UnityEditor.ShaderGraph.FieldDescriptor
-Name `"Metallic"`; Type `null`; Define `"SURFACEDESCRIPTION_METALLIC"`	UnityEditor.ShaderGraph.FieldDescriptor
-Name `"Smoothness"`; Type `null`; Define `"SURFACEDESCRIPTION_SMOOTHNESS"`	UnityEditor.ShaderGraph.FieldDescriptor
-Name `"Occlusion"`; Type `null`; Define `"SURFACEDESCRIPTION_OCCLUSION"`	UnityEditor.ShaderGraph.FieldDescriptor
-Name `"TangentSpaceNormal"`; Type `"$precision3"`; Define `""`	UnityEditor.ShaderGraph.FieldDescriptor
-Name `"ObjectSpaceNormal"`; Type `"$precision3"`; Define `""`	UnityEditor.ShaderGraph.FieldDescriptor
-Name `"ObjectSpaceTangent"`; Type `"$precision3"`; Define `""`	UnityEditor.ShaderGraph.FieldDescriptor
-Name `"ObjectSpacePosition"`; Type `"$precision3"`; Define `""`	UnityEditor.ShaderGraph.FieldDescriptor
-Name `"WorldSpacePosition"`; Type `"$precision3"`; Define `""`	UnityEditor.ShaderGraph.FieldDescriptor
-Name `"Position"`; Type `null`; Define `""`	UnityEditor.ShaderGraph.FieldDescriptor
-Name `"Normal"`; Type `null`; Define `""`	UnityEditor.ShaderGraph.FieldDescriptor
-Name `"Tangent"`; Type `null`; Define `""`	UnityEditor.ShaderGraph.FieldDescriptor
-Name `"BaseColor"`; Type `null`; Define `""`	UnityEditor.ShaderGraph.FieldDescriptor
-Name `"NormalTS"`; Type `null`; Define `""`	UnityEditor.ShaderGraph.FieldDescriptor
-Name `"Emission"`; Type `null`; Define `""`	UnityEditor.ShaderGraph.FieldDescriptor
-Name `"Metallic"`; Type `null`; Define `""`	UnityEditor.ShaderGraph.FieldDescriptor
-Name `"Smoothness"`; Type `null`; Define `""`	UnityEditor.ShaderGraph.FieldDescriptor
-Name `"Occlusion"`; Type `null`; Define `""`	UnityEditor.ShaderGraph.FieldDescriptor
+Tag `"features"`; Name `"graphVertex"`; Type `null`; Define `"FEATURES_GRAPH_VERTEX"`
+Tag `"features"`; Name `"graphPixel"`; Type `null`; Define `"FEATURES_GRAPH_PIXEL"`
+Tag `""`; Name `"NormalDropOffTS"`; Type `null`; Define `"_NORMAL_DROPOFF_TS 1"`
+Tag `""`; Name `"Normal"`; Type `null`; Define `"_NORMALMAP 1"`
 
+Tag `"VertexDescription"`; Name `"Position"`; Type `null`; Define `"VERTEXDESCRIPTION_POSITION"`
+Tag `"VertexDescription"`; Name `"Normal"`; Type `null`; Define `"VERTEXDESCRIPTION_NORMAL"`
+Tag `"VertexDescription"`; Name `"Tangent"`; Type `null`; Define `"VERTEXDESCRIPTION_TANGENT"`
+Tag `"SurfaceDescription"`; Name `"BaseColor"`; Type `null`; Define `"SURFACEDESCRIPTION_BASECOLOR"`
+Tag `"SurfaceDescription"`; Name `"NormalTS"`; Type `null`; Define `"SURFACEDESCRIPTION_NORMALTS"`
+Tag `"SurfaceDescription"`; Name `"Emission"`; Type `null`; Define `"SURFACEDESCRIPTION_EMISSION"`
+Tag `"SurfaceDescription"`; Name `"Metallic"`; Type `null`; Define `"SURFACEDESCRIPTION_METALLIC"`
+Tag `"SurfaceDescription"`; Name `"Smoothness"`; Type `null`; Define `"SURFACEDESCRIPTION_SMOOTHNESS"`
+Tag `"SurfaceDescription"`; Name `"Occlusion"`; Type `null`; Define `"SURFACEDESCRIPTION_OCCLUSION"`
+Tag `"SurfaceDescriptionInputs"`; Name `"TangentSpaceNormal"`; Type `"$precision3"`; Define `""`
+Tag `"VertexDescriptionInputs"`; Name `"ObjectSpaceNormal"`; Type `"$precision3"`; Define `""`
+Tag `"VertexDescriptionInputs"`; Name `"ObjectSpaceTangent"`; Type `"$precision3"`; Define `""`
+Tag `"VertexDescriptionInputs"`; Name `"ObjectSpacePosition"`; Type `"$precision3"`; Define `""`
+Tag `"VertexDescriptionInputs"`; Name `"WorldSpacePosition"`; Type `"$precision3"`; Define `""`
+Tag `"VertexDescription"`; Name `"Position"`; Type `null`; Define `""`
+Tag `"VertexDescription"`; Name `"Normal"`; Type `null`; Define `""`
+Tag `"VertexDescription"`; Name `"Tangent"`; Type `null`; Define `""`
+Tag `"SurfaceDescription"`; Name `"BaseColor"`; Type `null`; Define `""`
+Tag `"SurfaceDescription"`; Name `"NormalTS"`; Type `null`; Define `""`
+Tag `"SurfaceDescription"`; Name `"Emission"`; Type `null`; Define `""`
+Tag `"SurfaceDescription"`; Name `"Metallic"`; Type `null`; Define `""`
+Tag `"SurfaceDescription"`; Name `"Smoothness"`; Type `null`; Define `""`
+Tag `"SurfaceDescription"`; Name `"Occlusion"`; Type `null`; Define `""`
 ```
 This is what's used to filter all structs
 
@@ -60,45 +60,46 @@ This is what's used to filter all structs
 Full: Full data before running the rest of code gen, mostly just:
 - `GenerationUtils.AddRequiredFields(pass.requiredFields, activeFields.baseInstance);`
 ```
-Name `"graphVertex"`; Type `null`; Define `"FEATURES_GRAPH_VERTEX"`	UnityEditor.ShaderGraph.FieldDescriptor
-Name `"graphPixel"`; Type `null`; Define `"FEATURES_GRAPH_PIXEL"`	UnityEditor.ShaderGraph.FieldDescriptor
-Name `"NormalDropOffTS"`; Type `null`; Define `"_NORMAL_DROPOFF_TS 1"`	UnityEditor.ShaderGraph.FieldDescriptor
-Name `"Normal"`; Type `null`; Define `"_NORMALMAP 1"`	UnityEditor.ShaderGraph.FieldDescriptor
-Name `"Position"`; Type `null`; Define `"VERTEXDESCRIPTION_POSITION"`	UnityEditor.ShaderGraph.FieldDescriptor
-Name `"Normal"`; Type `null`; Define `"VERTEXDESCRIPTION_NORMAL"`	UnityEditor.ShaderGraph.FieldDescriptor
-Name `"Tangent"`; Type `null`; Define `"VERTEXDESCRIPTION_TANGENT"`	UnityEditor.ShaderGraph.FieldDescriptor
-Name `"BaseColor"`; Type `null`; Define `"SURFACEDESCRIPTION_BASECOLOR"`	UnityEditor.ShaderGraph.FieldDescriptor
-Name `"NormalTS"`; Type `null`; Define `"SURFACEDESCRIPTION_NORMALTS"`	UnityEditor.ShaderGraph.FieldDescriptor
-Name `"Emission"`; Type `null`; Define `"SURFACEDESCRIPTION_EMISSION"`	UnityEditor.ShaderGraph.FieldDescriptor
-Name `"Metallic"`; Type `null`; Define `"SURFACEDESCRIPTION_METALLIC"`	UnityEditor.ShaderGraph.FieldDescriptor
-Name `"Smoothness"`; Type `null`; Define `"SURFACEDESCRIPTION_SMOOTHNESS"`	UnityEditor.ShaderGraph.FieldDescriptor
-Name `"Occlusion"`; Type `null`; Define `"SURFACEDESCRIPTION_OCCLUSION"`	UnityEditor.ShaderGraph.FieldDescriptor
-Name `"TangentSpaceNormal"`; Type `"$precision3"`; Define `""`	UnityEditor.ShaderGraph.FieldDescriptor
-Name `"ObjectSpaceNormal"`; Type `"$precision3"`; Define `""`	UnityEditor.ShaderGraph.FieldDescriptor
-Name `"ObjectSpaceTangent"`; Type `"$precision3"`; Define `""`	UnityEditor.ShaderGraph.FieldDescriptor
-Name `"ObjectSpacePosition"`; Type `"$precision3"`; Define `""`	UnityEditor.ShaderGraph.FieldDescriptor
-Name `"WorldSpacePosition"`; Type `"$precision3"`; Define `""`	UnityEditor.ShaderGraph.FieldDescriptor
-Name `"Position"`; Type `null`; Define `""`	UnityEditor.ShaderGraph.FieldDescriptor
-Name `"Normal"`; Type `null`; Define `""`	UnityEditor.ShaderGraph.FieldDescriptor
-Name `"Tangent"`; Type `null`; Define `""`	UnityEditor.ShaderGraph.FieldDescriptor
-Name `"BaseColor"`; Type `null`; Define `""`	UnityEditor.ShaderGraph.FieldDescriptor
-Name `"NormalTS"`; Type `null`; Define `""`	UnityEditor.ShaderGraph.FieldDescriptor
-Name `"Emission"`; Type `null`; Define `""`	UnityEditor.ShaderGraph.FieldDescriptor
-Name `"Metallic"`; Type `null`; Define `""`	UnityEditor.ShaderGraph.FieldDescriptor
-Name `"Smoothness"`; Type `null`; Define `""`	UnityEditor.ShaderGraph.FieldDescriptor
-Name `"Occlusion"`; Type `null`; Define `""`	UnityEditor.ShaderGraph.FieldDescriptor
-Name `"uv1"`; Type `"$precision4"`; Define `"ATTRIBUTES_NEED_TEXCOORD1"`	UnityEditor.ShaderGraph.FieldDescriptor
-Name `"uv2"`; Type `"$precision4"`; Define `"ATTRIBUTES_NEED_TEXCOORD2"`	UnityEditor.ShaderGraph.FieldDescriptor
-Name `"positionWS"`; Type `"$precision3"`; Define `"VARYINGS_NEED_POSITION_WS"`	UnityEditor.ShaderGraph.FieldDescriptor
-Name `"normalWS"`; Type `"$precision3"`; Define `"VARYINGS_NEED_NORMAL_WS"`	UnityEditor.ShaderGraph.FieldDescriptor
-Name `"tangentWS"`; Type `"$precision4"`; Define `"VARYINGS_NEED_TANGENT_WS"`	UnityEditor.ShaderGraph.FieldDescriptor
-Name `"viewDirectionWS"`; Type `"$precision3"`; Define `"VARYINGS_NEED_VIEWDIRECTION_WS"`	UnityEditor.ShaderGraph.FieldDescriptor
-Name `"staticLightmapUV"`; Type `"$precision2"`; Define `""`	UnityEditor.ShaderGraph.FieldDescriptor
-Name `"dynamicLightmapUV"`; Type `"$precision2"`; Define `""`	UnityEditor.ShaderGraph.FieldDescriptor
-Name `"sh"`; Type `"$precision3"`; Define `""`	UnityEditor.ShaderGraph.FieldDescriptor
-Name `"fogFactorAndVertexLight"`; Type `"$precision4"`; Define `"VARYINGS_NEED_FOG_AND_VERTEX_LIGHT"`	UnityEditor.ShaderGraph.FieldDescriptor
-Name `"shadowCoord"`; Type `"$precision4"`; Define `"VARYINGS_NEED_SHADOWCOORD"`	UnityEditor.ShaderGraph.FieldDescriptor
+Tag `"features"`; Name `"graphVertex"`; Type `null`; Define `"FEATURES_GRAPH_VERTEX"`
+Tag `"features"`; Name `"graphPixel"`; Type `null`; Define `"FEATURES_GRAPH_PIXEL"`
+Tag `""`; Name `"NormalDropOffTS"`; Type `null`; Define `"_NORMAL_DROPOFF_TS 1"`
+Tag `""`; Name `"Normal"`; Type `null`; Define `"_NORMALMAP 1"`
 
+Tag `"VertexDescription"`; Name `"Position"`; Type `null`; Define `"VERTEXDESCRIPTION_POSITION"`
+Tag `"VertexDescription"`; Name `"Normal"`; Type `null`; Define `"VERTEXDESCRIPTION_NORMAL"`
+Tag `"VertexDescription"`; Name `"Tangent"`; Type `null`; Define `"VERTEXDESCRIPTION_TANGENT"`
+Tag `"SurfaceDescription"`; Name `"BaseColor"`; Type `null`; Define `"SURFACEDESCRIPTION_BASECOLOR"`
+Tag `"SurfaceDescription"`; Name `"NormalTS"`; Type `null`; Define `"SURFACEDESCRIPTION_NORMALTS"`
+Tag `"SurfaceDescription"`; Name `"Emission"`; Type `null`; Define `"SURFACEDESCRIPTION_EMISSION"`
+Tag `"SurfaceDescription"`; Name `"Metallic"`; Type `null`; Define `"SURFACEDESCRIPTION_METALLIC"`
+Tag `"SurfaceDescription"`; Name `"Smoothness"`; Type `null`; Define `"SURFACEDESCRIPTION_SMOOTHNESS"`
+Tag `"SurfaceDescription"`; Name `"Occlusion"`; Type `null`; Define `"SURFACEDESCRIPTION_OCCLUSION"`
+Tag `"SurfaceDescriptionInputs"`; Name `"TangentSpaceNormal"`; Type `"$precision3"`; Define `""`
+Tag `"VertexDescriptionInputs"`; Name `"ObjectSpaceNormal"`; Type `"$precision3"`; Define `""`
+Tag `"VertexDescriptionInputs"`; Name `"ObjectSpaceTangent"`; Type `"$precision3"`; Define `""`
+Tag `"VertexDescriptionInputs"`; Name `"ObjectSpacePosition"`; Type `"$precision3"`; Define `""`
+Tag `"VertexDescriptionInputs"`; Name `"WorldSpacePosition"`; Type `"$precision3"`; Define `""`
+Tag `"VertexDescription"`; Name `"Position"`; Type `null`; Define `""`
+Tag `"VertexDescription"`; Name `"Normal"`; Type `null`; Define `""`
+Tag `"VertexDescription"`; Name `"Tangent"`; Type `null`; Define `""`
+Tag `"SurfaceDescription"`; Name `"BaseColor"`; Type `null`; Define `""`
+Tag `"SurfaceDescription"`; Name `"NormalTS"`; Type `null`; Define `""`
+Tag `"SurfaceDescription"`; Name `"Emission"`; Type `null`; Define `""`
+Tag `"SurfaceDescription"`; Name `"Metallic"`; Type `null`; Define `""`
+Tag `"SurfaceDescription"`; Name `"Smoothness"`; Type `null`; Define `""`
+Tag `"SurfaceDescription"`; Name `"Occlusion"`; Type `null`; Define `""`
+
+Tag `"Attributes"`; Name `"uv1"`; Type `"$precision4"`; Define `"ATTRIBUTES_NEED_TEXCOORD1"`
+Tag `"Attributes"`; Name `"uv2"`; Type `"$precision4"`; Define `"ATTRIBUTES_NEED_TEXCOORD2"`
+Tag `"Varyings"`; Name `"positionWS"`; Type `"$precision3"`; Define `"VARYINGS_NEED_POSITION_WS"`
+Tag `"Varyings"`; Name `"normalWS"`; Type `"$precision3"`; Define `"VARYINGS_NEED_NORMAL_WS"`
+Tag `"Varyings"`; Name `"tangentWS"`; Type `"$precision4"`; Define `"VARYINGS_NEED_TANGENT_WS"`
+Tag `"Varyings"`; Name `"viewDirectionWS"`; Type `"$precision3"`; Define `"VARYINGS_NEED_VIEWDIRECTION_WS"`
+Tag `"Varyings"`; Name `"staticLightmapUV"`; Type `"$precision2"`; Define `""`
+Tag `"Varyings"`; Name `"dynamicLightmapUV"`; Type `"$precision2"`; Define `""`
+Tag `"Varyings"`; Name `"sh"`; Type `"$precision3"`; Define `""`
+Tag `"Varyings"`; Name `"fogFactorAndVertexLight"`; Type `"$precision4"`; Define `"VARYINGS_NEED_FOG_AND_VERTEX_LIGHT"`
+Tag `"Varyings"`; Name `"shadowCoord"`; Type `"$precision4"`; Define `"VARYINGS_NEED_SHADOWCOORD"`
 ```
 ---
 
