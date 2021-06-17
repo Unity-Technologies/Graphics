@@ -150,7 +150,6 @@ namespace UnityEditor.Rendering
                         : Camera.HorizontalToVerticalFieldOfView(s_FovLastValue, camera0.aspect);
                 }
             }
-
         }
 
         /// <summary>Draws projection related fields on the inspector</summary>
