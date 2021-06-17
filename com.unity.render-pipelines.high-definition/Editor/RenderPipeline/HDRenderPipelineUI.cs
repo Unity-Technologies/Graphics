@@ -83,9 +83,9 @@ namespace UnityEditor.Rendering.HighDefinition
 
             const FoldoutOption options = FoldoutOption.Indent | FoldoutOption.SubFoldout | FoldoutOption.NoSpaceAtEnd;
             return CED.FoldoutGroup(content, expandable, k_ExpandedState, options,
-                CED.FoldoutGroup(Styles.lowQualityContent, ExpandableQualities.Low, key, options, CED.Group(GroupOption.Indent, (s, _) => qualityActionForTier(s, (int)ScalableSettingLevelParameter.Level.Low))),
-                CED.FoldoutGroup(Styles.mediumQualityContent, ExpandableQualities.Medium, key, options, CED.Group(GroupOption.Indent, (s, _) => qualityActionForTier(s, (int)ScalableSettingLevelParameter.Level.Medium))),
-                CED.FoldoutGroup(Styles.highQualityContent, ExpandableQualities.High, key, options, CED.Group(GroupOption.Indent, (s, _) => qualityActionForTier(s, (int)ScalableSettingLevelParameter.Level.High))));
+                CED.FoldoutGroup(Styles.lowQualityContent, ExpandableQualities.Low, key, options, (s, _) => qualityActionForTier(s, (int)ScalableSettingLevelParameter.Level.Low)),
+                CED.FoldoutGroup(Styles.mediumQualityContent, ExpandableQualities.Medium, key, options, (s, _) => qualityActionForTier(s, (int)ScalableSettingLevelParameter.Level.Medium)),
+                CED.FoldoutGroup(Styles.highQualityContent, ExpandableQualities.High, key, options, (s, _) => qualityActionForTier(s, (int)ScalableSettingLevelParameter.Level.High)));
         }
 
         #endregion
