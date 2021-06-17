@@ -47,7 +47,7 @@ void CombineProbeVolumes(uint3 id : SV_DispatchThreadID)
         OutputRepresentation firstPV;
         SamplesToRepresentation(firstPV, _APVResL0_L1Rx[dstLoc], _APVResL1G_L1Ry[dstLoc], _APVResL1B_L1Rz[dstLoc]
 #if OUTPUT_TYPE == SHL2
-            _APVResL2_0[dstLoc], _APVResL2_1[dstLoc], _APVResL2_2[dstLoc], _APVResL2_3[dstLoc]
+           , _APVResL2_0[dstLoc], _APVResL2_1[dstLoc], _APVResL2_2[dstLoc], _APVResL2_3[dstLoc]
 #endif
         );
 
@@ -58,7 +58,7 @@ void CombineProbeVolumes(uint3 id : SV_DispatchThreadID)
         OutputRepresentation secondPV;
         SamplesToRepresentation(secondPV, _RWAPVResL0_L1Rx[dstLoc], _RWAPVResL1G_L1Ry[dstLoc], _RWAPVResL1B_L1Rz[dstLoc]
 #if OUTPUT_TYPE == SHL2
-            _RWAPVResL2_0[dstLoc], _RWAPVResL2_1[dstLoc], _RWAPVResL2_2[dstLoc], _RWAPVResL2_3[dstLoc]
+           , _RWAPVResL2_0[dstLoc], _RWAPVResL2_1[dstLoc], _RWAPVResL2_2[dstLoc], _RWAPVResL2_3[dstLoc]
 #endif
         );
 
@@ -208,11 +208,18 @@ void CombineIrradianceCacheAndPV(uint3 id : SV_DispatchThreadID)
 #if DEBUG == ONLY_FIRST
         ZERO_INITIALIZE(OutputRepresentation, dynamicPV);
 #endif
-
         OutputRepresentation staticPV;
-        SamplesToRepresentation(staticPV, _APVResL0_L1Rx[dstLoc], _APVResL1G_L1Ry[dstLoc], _APVResL1B_L1Rz[dstLoc]);
+
+
 #if DEBUG == ONLY_SECOND
         ZERO_INITIALIZE(OutputRepresentation, staticPV);
+#else
+
+        SamplesToRepresentation(staticPV, _APVResL0_L1Rx[dstLoc], _APVResL1G_L1Ry[dstLoc], _APVResL1B_L1Rz[dstLoc]
+#if OUTPUT_TYPE == SHL2
+            , _APVResL2_0[dstLoc], _APVResL2_1[dstLoc], _APVResL2_2[dstLoc], _APVResL2_3[dstLoc]
+#endif
+        );
 #endif
 
         OutputRepresentation finalPV = SumOutput(staticPV, _FirstBlendFactor, dynamicPV, _SecondBlendFactor);

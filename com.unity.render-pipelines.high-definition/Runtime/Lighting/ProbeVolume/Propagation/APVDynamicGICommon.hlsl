@@ -9,7 +9,9 @@
 
 #define SHL1 0
 #define SHL2 1
-#define OUTPUT_TYPE SHL1
+#define OUTPUT_TYPE SHL2
+
+
 
 #define OUTPUT_IS_SH (OUTPUT_TYPE == SHL1 || OUTPUT_TYPE == SHL2)
 
@@ -299,7 +301,7 @@ void WriteToOutput(OutputRepresentation outputSpace, uint probeIndex)
 
 void SamplesToRepresentation(inout OutputRepresentation output, float4 L0_L1Rx, float4 L1G_L1Ry, float4 L1B_L1Rz,
 #if OUTPUT_TYPE == SHL2
-    float4 L2_R, float4 L2_G, float4 L2_B, L2_C,
+    float4 L2_R, float4 L2_G, float4 L2_B, float4 L2_C,
 #endif
 
     bool decode)
