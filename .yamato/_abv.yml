@@ -108,9 +108,6 @@ all_project_ci_2021.2:
         UTR_VERSION: "current"
         TEST_FILTER: .*
         CACHE_ARGS: '{{cache.flags}}'
-    triggers:
-        expression: pull_request.target eq "master" AND NOT pull_request.draft AND pull_request.changes.any match ["com.unity.render-pipelines.core/**/*"] AND NOT pull_request.changes.all match ["*.md", "**/*.md", "doc/**/*", "**/Documentation*/**/*"]
-
     dependencies:
       -  path: .yamato/all-hdrp.yml#PR_HDRP_2021.2
          rerun: on_new_revision
@@ -152,8 +149,6 @@ General_Checks_2021.2:
         UTR_VERSION: "current"
         TEST_FILTER: .*
         CACHE_ARGS: '{{cache.flags}}'
-    triggers:
-        expression: pull_request.target eq "master" AND NOT pull_request.draft AND pull_request.changes.any match ["*.md", "**/*.md", "doc/**/*", "**/Documentation*/**/*"]
     dependencies:
       -  path: .yamato/_projectcontext.yml#all_package_ci_project_2021.2
          rerun: on_new_revision
