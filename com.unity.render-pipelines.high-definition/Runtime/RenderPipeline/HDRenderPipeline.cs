@@ -5371,7 +5371,6 @@ namespace UnityEngine.Rendering.HighDefinition
                 cb._ColorPickerMode = (int)m_CurrentDebugDisplaySettings.GetDebugColorPickerMode();
                 cb._DebugFullScreenMode = (int)m_CurrentDebugDisplaySettings.data.fullScreenDebugMode;
                 cb._DebugProbeVolumeMode = (int)m_CurrentDebugDisplaySettings.GetProbeVolumeDebugMode();
-                cb._DebugAllowRGBConversion = m_CurrentDebugDisplaySettings.GetAllowSRGBConversion() ? 1 : 0;
 
 #if UNITY_EDITOR
                 cb._MatcapMixAlbedo = HDRenderPipelinePreferences.matcapViewMixAlbedo ? 1 : 0;

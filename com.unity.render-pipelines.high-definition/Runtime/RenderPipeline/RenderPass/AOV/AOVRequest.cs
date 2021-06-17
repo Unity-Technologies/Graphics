@@ -189,8 +189,6 @@ namespace UnityEngine.Rendering.HighDefinition
 
             if (m_RequestMode != Camera.RenderRequestMode.None)
             {
-                debug.SetAllowSRGBConversion(false);
-
                 switch (m_RequestMode)
                 {
                     case Camera.RenderRequestMode.Depth:
@@ -231,10 +229,6 @@ namespace UnityEngine.Rendering.HighDefinition
                     default:
                         throw new ArgumentOutOfRangeException(nameof(m_RequestMode), m_RequestMode, null);
                 }
-            }
-            else
-            {
-                debug.SetAllowSRGBConversion(true);
             }
         }
 

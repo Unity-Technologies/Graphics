@@ -40,10 +40,9 @@ namespace UnityEngine.Rendering.HighDefinition
         public int _DebugSingleShadowIndex;
 
         public int _DebugProbeVolumeMode;
-        public int _DebugAllowRGBConversion;
         public int _DebugAOVOutput;
         public int _DebugDisplayPad0;
-        public int _DebugDisplayPad1;  
+        public int _DebugDisplayPad1;
     }
 
     /// <summary>
@@ -212,8 +211,6 @@ namespace UnityEngine.Rendering.HighDefinition
             public int fullScreenContactShadowLightIndex = 0;
             /// <summary>XR single pass test mode.</summary>
             public bool xrSinglePassTestMode = false;
-            /// <summary>Enable range remapping.</summary>
-            public bool allowSRGBConversion = true;
             /// <summary>Whether to display the average timings every second.</summary>
             public bool averageProfilerTimingsOverASecond = false;
 
@@ -626,15 +623,6 @@ namespace UnityEngine.Rendering.HighDefinition
             }
 
             data.fullScreenDebugMode = value;
-        }
-
-        internal void SetAllowSRGBConversion(bool allow)
-        {
-            data.allowSRGBConversion = allow;
-        }
-        internal bool GetAllowSRGBConversion()
-        {
-            return data.allowSRGBConversion;
         }
 
         /// <summary>
