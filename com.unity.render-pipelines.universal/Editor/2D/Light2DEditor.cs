@@ -99,7 +99,7 @@ namespace UnityEditor.Rendering.Universal
 
             public static GUIContent deprecatedParametricLightWarningSingle = EditorGUIUtility.TrTextContentWithIcon("Parametic Lights have been deprecated. To continue, upgrade your Parametric Light to a Freeform Light to enjoy similar light functionality.", MessageType.Warning);
             public static GUIContent deprecatedParametricLightWarningMulti = EditorGUIUtility.TrTextContentWithIcon("Parametic Lights have been deprecated. To continue, upgrade your Parametric Lights to Freeform Lights to enjoy similar light functionality.", MessageType.Warning);
-            public static GUIContent deprecatedParametricLightInstructions = EditorGUIUtility.TrTextContent("Alternatively, you may choose to upgrade from the menu. Edit > Rendering > Lights > Upgrade Project/Scene URP Parametric Lights to Freeform");
+            public static GUIContent deprecatedParametricLightInstructions = EditorGUIUtility.TrTextContent("Alternatively, you may choose to upgrade from the menu. Window > Rendering > Render Pipeline Converter > URP 2D Converters");
             public static GUIContent deprecatedParametricLightButtonSingle = EditorGUIUtility.TrTextContent("Upgrade Parametric Light");
             public static GUIContent deprecatedParametricLightButtonMulti = EditorGUIUtility.TrTextContent("Upgrade Parametric Lights");
 
@@ -486,7 +486,7 @@ namespace UnityEditor.Rendering.Universal
                         Light2D light = (Light2D)targets[i];
 
                         if (light.lightType == (Light2D.LightType)Light2D.DeprecatedLightType.Parametric)
-                            Renderer2DUpgrader.UpgradeParametricLight(light);
+                            ParametricToFreeformLightUpgrader.UpgradeParametricLight(light);
                     }
                 }
             }
