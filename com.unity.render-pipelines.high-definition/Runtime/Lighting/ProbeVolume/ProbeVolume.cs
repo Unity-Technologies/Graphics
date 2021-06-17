@@ -714,27 +714,6 @@ namespace UnityEngine.Rendering.HighDefinition
         // custom-begin:
         [System.NonSerialized] private static List<ProbeVolume> s_Instances = new List<ProbeVolume>();
 
-        public void SetProbeVolumeAsset(ProbeVolumeAsset asset)
-        {
-            probeVolumeAsset = asset;
-            dataUpdated = true;
-            bakeKey = ComputeProbeVolumeSettingsKeyFromProbeVolume(this);
-            if (probeVolumeAsset != null)
-            {
-                probeVolumeAsset.instanceID = GetID();
-            }
-            
-#if UNITY_EDITOR
-            UnityEditor.EditorUtility.SetDirty(this);
-            
-            if (probeVolumeAsset != null)
-            {
-                UnityEditor.EditorUtility.SetDirty(probeVolumeAsset);    
-            }
-#endif
-        }
-
-
         private void InstanceAdd()
         {
             Debug.Assert(s_Instances.IndexOf(this) == -1);
@@ -990,6 +969,25 @@ namespace UnityEngine.Rendering.HighDefinition
         }
 
 #if UNITY_EDITOR
+
+        public void SetProbeVolumeAsset(ProbeVolumeAsset asset)
+        {
+            probeVolumeAsset = asset;
+            dataUpdated = true;
+            bakeKey = ComputeProbeVolumeSettingsKeyFromProbeVolume(this);
+            if (probeVolumeAsset != null)
+            {
+                probeVolumeAsset.instanceID = GetID();
+            }
+            
+            UnityEditor.EditorUtility.SetDirty(this);
+            
+            if (probeVolumeAsset != null)
+            {
+                UnityEditor.EditorUtility.SetDirty(probeVolumeAsset);    
+            }
+        }
+
         protected void Update()
         {
             OnValidate();
