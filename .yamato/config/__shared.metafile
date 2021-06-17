@@ -11,7 +11,7 @@ editors: # applied for all yml files
     rerun_strategy: on_new_revision
     ono_branch_var: ONO_BRANCH_TRUNK
     editor_pinning:
-      enabled: True
+      enabled: False
       green_abv_required: False
     ci_triggers:
       pr_triggers_allowed: False # if expression_triggers on PRs allowed
