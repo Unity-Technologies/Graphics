@@ -17,18 +17,18 @@ URPUpdate_BoatAttack_Win_DX11_playmode_mono_Linear_trunk:
     variables:
         UPM_REGISTRY: https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates
         CUSTOM_REVISION: '{{trunk.changeset.id}}'
-        BA_UPDATE_PROJECT_BRANCH: master
+        BA_UPDATE_PROJECT_BRANCH: release/2019.4-LTS
         BA_UPDATE_PROJECT_REVISION: 06c67d682225354dd909728e2511ac17115b18b9
         CACHE_ARGS: '{{cache.flags}}'
         UTR_VERSION: "current"
         TEST_FILTER: .*
     commands:
-      -  command: git clone https://github.cds.internal.unity3d.com/sophia/URP-Update-testing.git -b %BA_UPDATE_PROJECT_BRANCH% TestProjects/URP-Update-Testing
+      -  command: git clone https://github.com/Unity-Technologies/BoatAttack.git -b %BA_UPDATE_PROJECT_BRANCH% TestProjects/URP-Update-Testing
          retries: 3
-      -  cd TestProjects/URP-Update-Testing && git checkout %BA_UPDATE_PROJECT_REVISION%
-      -  Xcopy /E /I "com.unity.render-pipelines.core" "TestProjects/URP-Update-Testing/BoatAttack-19-4/Packages/com.unity.render-pipelines.core" /Y
-      -  Xcopy /E /I "com.unity.render-pipelines.universal" "TestProjects/URP-Update-Testing/BoatAttack-19-4/Packages/com.unity.render-pipelines.universal" /Y
-      -  Xcopy /E /I "com.unity.shadergraph" "TestProjects/URP-Update-Testing/BoatAttack-19-4/Packages/com.unity.shadergraph" /Y
+      -  cd TestProjects/BoatAttack && git checkout %BA_UPDATE_PROJECT_REVISION%
+      -  Xcopy /E /I "com.unity.render-pipelines.core" "TestProjects/BoatAttack/Packages/com.unity.render-pipelines.core" /Y
+      -  Xcopy /E /I "com.unity.render-pipelines.universal" "TestProjects/BoatAttack/Packages/com.unity.render-pipelines.universal" /Y
+      -  Xcopy /E /I "com.unity.shadergraph" "TestProjects/BoatAttack/Packages/com.unity.shadergraph" /Y
       -  command: NetSh Advfirewall set allprofiles state off
       -  command: curl -s https://artifactory.prd.it.unity3d.com/artifactory/unity-tools-local/utr-standalone/utr.bat --output utr.bat
          retries: 2
@@ -41,12 +41,12 @@ URPUpdate_BoatAttack_Win_DX11_playmode_mono_Linear_trunk:
                 set /p GIT_REVISIONDATE=<revdate.tmp
                 echo %GIT_REVISIONDATE%
                 del revdate.tmp
-                utr --artifacts_path=TestProjects/URP-Update-Testing/BoatAttack-19-4/test-results --editor-location=.Editor --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-force-d3d11" --scripting-backend=Mono2x --suite=playmode --testfilter=%TEST_FILTER% --testproject=./TestProjects/URP-Update-Testing/BoatAttack-19-4 --zero-tests-are-ok=1
+                utr --artifacts_path=TestProjects/BoatAttack/test-results --editor-location=.Editor --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-force-d3d11" --scripting-backend=Mono2x --suite=playmode --testfilter=%TEST_FILTER% --testproject=./TestProjects/BoatAttack --zero-tests-are-ok=1
     artifacts:
         logs:
             paths:
               -  "**/test-results/**"
-              -  "TestProjects/URP-Update-Testing/BoatAttack-19-4/Logs/*.log"
+              -  "TestProjects/BoatAttack/Logs/*.log"
     dependencies:
       -  path: .yamato/_editor_priming.yml#editor:priming:trunk:Win
          rerun: on_new_revision
@@ -59,18 +59,18 @@ URPUpdate_BoatAttack_Win_DX11_editmode_mono_Linear_trunk:
     variables:
         UPM_REGISTRY: https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates
         CUSTOM_REVISION: '{{trunk.changeset.id}}'
-        BA_UPDATE_PROJECT_BRANCH: master
+        BA_UPDATE_PROJECT_BRANCH: release/2019.4-LTS
         BA_UPDATE_PROJECT_REVISION: 06c67d682225354dd909728e2511ac17115b18b9
         CACHE_ARGS: '{{cache.flags}}'
         UTR_VERSION: "current"
         TEST_FILTER: .*
     commands:
-      -  command: git clone https://github.cds.internal.unity3d.com/sophia/URP-Update-testing.git -b %BA_UPDATE_PROJECT_BRANCH% TestProjects/URP-Update-Testing
+      -  command: git clone https://github.com/Unity-Technologies/BoatAttack.git -b %BA_UPDATE_PROJECT_BRANCH% TestProjects/URP-Update-Testing
          retries: 3
-      -  cd TestProjects/URP-Update-Testing && git checkout %BA_UPDATE_PROJECT_REVISION%
-      -  Xcopy /E /I "com.unity.render-pipelines.core" "TestProjects/URP-Update-Testing/BoatAttack-19-4/Packages/com.unity.render-pipelines.core" /Y
-      -  Xcopy /E /I "com.unity.render-pipelines.universal" "TestProjects/URP-Update-Testing/BoatAttack-19-4/Packages/com.unity.render-pipelines.universal" /Y
-      -  Xcopy /E /I "com.unity.shadergraph" "TestProjects/URP-Update-Testing/BoatAttack-19-4/Packages/com.unity.shadergraph" /Y
+      -  cd TestProjects/BoatAttack && git checkout %BA_UPDATE_PROJECT_REVISION%
+      -  Xcopy /E /I "com.unity.render-pipelines.core" "TestProjects/BoatAttack/Packages/com.unity.render-pipelines.core" /Y
+      -  Xcopy /E /I "com.unity.render-pipelines.universal" "TestProjects/BoatAttack/Packages/com.unity.render-pipelines.universal" /Y
+      -  Xcopy /E /I "com.unity.shadergraph" "TestProjects/BoatAttack/Packages/com.unity.shadergraph" /Y
       -  command: NetSh Advfirewall set allprofiles state off
       -  command: curl -s https://artifactory.prd.it.unity3d.com/artifactory/unity-tools-local/utr-standalone/utr.bat --output utr.bat
          retries: 2
@@ -83,12 +83,12 @@ URPUpdate_BoatAttack_Win_DX11_editmode_mono_Linear_trunk:
                 set /p GIT_REVISIONDATE=<revdate.tmp
                 echo %GIT_REVISIONDATE%
                 del revdate.tmp
-                utr --artifacts_path=TestProjects/URP-Update-Testing/BoatAttack-19-4/test-results --editor-location=.Editor --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-force-d3d11" --extra-editor-arg="-playergraphicsapi=Direct3D11" --platform=editmode --scripting-backend=Mono2x --suite=editor --testfilter=%TEST_FILTER% --testproject=./TestProjects/URP-Update-Testing/BoatAttack-19-4 --zero-tests-are-ok=1
+                utr --artifacts_path=TestProjects/BoatAttack/test-results --editor-location=.Editor --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-force-d3d11" --extra-editor-arg="-playergraphicsapi=Direct3D11" --platform=editmode --scripting-backend=Mono2x --suite=editor --testfilter=%TEST_FILTER% --testproject=./TestProjects/BoatAttack --zero-tests-are-ok=1
     artifacts:
         logs:
             paths:
               -  "**/test-results/**"
-              -  "TestProjects/URP-Update-Testing/BoatAttack-19-4/Logs/*.log"
+              -  "TestProjects/BoatAttack/Logs/*.log"
     dependencies:
       -  path: .yamato/_editor_priming.yml#editor:priming:trunk:Win
          rerun: on_new_revision
@@ -101,18 +101,18 @@ URPUpdate_BoatAttack_Win_DX11_playmode_mono_Linear_CUSTOM-REVISION:
     variables:
         UPM_REGISTRY: https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates
         CUSTOM_REVISION: custom_revision_not_set
-        BA_UPDATE_PROJECT_BRANCH: master
+        BA_UPDATE_PROJECT_BRANCH: release/2019.4-LTS
         BA_UPDATE_PROJECT_REVISION: 06c67d682225354dd909728e2511ac17115b18b9
         CACHE_ARGS: '{{cache.flags}}'
         UTR_VERSION: "current"
         TEST_FILTER: .*
     commands:
-      -  command: git clone https://github.cds.internal.unity3d.com/sophia/URP-Update-testing.git -b %BA_UPDATE_PROJECT_BRANCH% TestProjects/URP-Update-Testing
+      -  command: git clone https://github.com/Unity-Technologies/BoatAttack.git -b %BA_UPDATE_PROJECT_BRANCH% TestProjects/URP-Update-Testing
          retries: 3
-      -  cd TestProjects/URP-Update-Testing && git checkout %BA_UPDATE_PROJECT_REVISION%
-      -  Xcopy /E /I "com.unity.render-pipelines.core" "TestProjects/URP-Update-Testing/BoatAttack-19-4/Packages/com.unity.render-pipelines.core" /Y
-      -  Xcopy /E /I "com.unity.render-pipelines.universal" "TestProjects/URP-Update-Testing/BoatAttack-19-4/Packages/com.unity.render-pipelines.universal" /Y
-      -  Xcopy /E /I "com.unity.shadergraph" "TestProjects/URP-Update-Testing/BoatAttack-19-4/Packages/com.unity.shadergraph" /Y
+      -  cd TestProjects/BoatAttack && git checkout %BA_UPDATE_PROJECT_REVISION%
+      -  Xcopy /E /I "com.unity.render-pipelines.core" "TestProjects/BoatAttack/Packages/com.unity.render-pipelines.core" /Y
+      -  Xcopy /E /I "com.unity.render-pipelines.universal" "TestProjects/BoatAttack/Packages/com.unity.render-pipelines.universal" /Y
+      -  Xcopy /E /I "com.unity.shadergraph" "TestProjects/BoatAttack/Packages/com.unity.shadergraph" /Y
       -  command: NetSh Advfirewall set allprofiles state off
       -  command: curl -s https://artifactory.prd.it.unity3d.com/artifactory/unity-tools-local/utr-standalone/utr.bat --output utr.bat
          retries: 2
@@ -125,12 +125,12 @@ URPUpdate_BoatAttack_Win_DX11_playmode_mono_Linear_CUSTOM-REVISION:
                 set /p GIT_REVISIONDATE=<revdate.tmp
                 echo %GIT_REVISIONDATE%
                 del revdate.tmp
-                utr --artifacts_path=TestProjects/URP-Update-Testing/BoatAttack-19-4/test-results --editor-location=.Editor --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-force-d3d11" --scripting-backend=Mono2x --suite=playmode --testfilter=%TEST_FILTER% --testproject=./TestProjects/URP-Update-Testing/BoatAttack-19-4 --zero-tests-are-ok=1
+                utr --artifacts_path=TestProjects/BoatAttack/test-results --editor-location=.Editor --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-force-d3d11" --scripting-backend=Mono2x --suite=playmode --testfilter=%TEST_FILTER% --testproject=./TestProjects/BoatAttack --zero-tests-are-ok=1
     artifacts:
         logs:
             paths:
               -  "**/test-results/**"
-              -  "TestProjects/URP-Update-Testing/BoatAttack-19-4/Logs/*.log"
+              -  "TestProjects/BoatAttack/Logs/*.log"
     dependencies:
       -  path: .yamato/_editor_priming.yml#editor:priming:CUSTOM-REVISION:Win
          rerun: on_new_revision
@@ -143,18 +143,18 @@ URPUpdate_BoatAttack_Win_DX11_editmode_mono_Linear_CUSTOM-REVISION:
     variables:
         UPM_REGISTRY: https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates
         CUSTOM_REVISION: custom_revision_not_set
-        BA_UPDATE_PROJECT_BRANCH: master
+        BA_UPDATE_PROJECT_BRANCH: release/2019.4-LTS
         BA_UPDATE_PROJECT_REVISION: 06c67d682225354dd909728e2511ac17115b18b9
         CACHE_ARGS: '{{cache.flags}}'
         UTR_VERSION: "current"
         TEST_FILTER: .*
     commands:
-      -  command: git clone https://github.cds.internal.unity3d.com/sophia/URP-Update-testing.git -b %BA_UPDATE_PROJECT_BRANCH% TestProjects/URP-Update-Testing
+      -  command: git clone https://github.com/Unity-Technologies/BoatAttack.git -b %BA_UPDATE_PROJECT_BRANCH% TestProjects/URP-Update-Testing
          retries: 3
-      -  cd TestProjects/URP-Update-Testing && git checkout %BA_UPDATE_PROJECT_REVISION%
-      -  Xcopy /E /I "com.unity.render-pipelines.core" "TestProjects/URP-Update-Testing/BoatAttack-19-4/Packages/com.unity.render-pipelines.core" /Y
-      -  Xcopy /E /I "com.unity.render-pipelines.universal" "TestProjects/URP-Update-Testing/BoatAttack-19-4/Packages/com.unity.render-pipelines.universal" /Y
-      -  Xcopy /E /I "com.unity.shadergraph" "TestProjects/URP-Update-Testing/BoatAttack-19-4/Packages/com.unity.shadergraph" /Y
+      -  cd TestProjects/BoatAttack && git checkout %BA_UPDATE_PROJECT_REVISION%
+      -  Xcopy /E /I "com.unity.render-pipelines.core" "TestProjects/BoatAttack/Packages/com.unity.render-pipelines.core" /Y
+      -  Xcopy /E /I "com.unity.render-pipelines.universal" "TestProjects/BoatAttack/Packages/com.unity.render-pipelines.universal" /Y
+      -  Xcopy /E /I "com.unity.shadergraph" "TestProjects/BoatAttack/Packages/com.unity.shadergraph" /Y
       -  command: NetSh Advfirewall set allprofiles state off
       -  command: curl -s https://artifactory.prd.it.unity3d.com/artifactory/unity-tools-local/utr-standalone/utr.bat --output utr.bat
          retries: 2
@@ -167,12 +167,12 @@ URPUpdate_BoatAttack_Win_DX11_editmode_mono_Linear_CUSTOM-REVISION:
                 set /p GIT_REVISIONDATE=<revdate.tmp
                 echo %GIT_REVISIONDATE%
                 del revdate.tmp
-                utr --artifacts_path=TestProjects/URP-Update-Testing/BoatAttack-19-4/test-results --editor-location=.Editor --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-force-d3d11" --extra-editor-arg="-playergraphicsapi=Direct3D11" --platform=editmode --scripting-backend=Mono2x --suite=editor --testfilter=%TEST_FILTER% --testproject=./TestProjects/URP-Update-Testing/BoatAttack-19-4 --zero-tests-are-ok=1
+                utr --artifacts_path=TestProjects/BoatAttack/test-results --editor-location=.Editor --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-force-d3d11" --extra-editor-arg="-playergraphicsapi=Direct3D11" --platform=editmode --scripting-backend=Mono2x --suite=editor --testfilter=%TEST_FILTER% --testproject=./TestProjects/BoatAttack --zero-tests-are-ok=1
     artifacts:
         logs:
             paths:
               -  "**/test-results/**"
-              -  "TestProjects/URP-Update-Testing/BoatAttack-19-4/Logs/*.log"
+              -  "TestProjects/BoatAttack/Logs/*.log"
     dependencies:
       -  path: .yamato/_editor_priming.yml#editor:priming:CUSTOM-REVISION:Win
          rerun: on_new_revision

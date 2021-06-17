@@ -14,7 +14,7 @@ PR_URPUpdate_BoatAttack_trunk:
         CUSTOM_REVISION: '{{trunk.changeset.id}}'
         UTR_VERSION: "current"
         TEST_FILTER: .*
-        BA_UPDATE_PROJECT_BRANCH: master
+        BA_UPDATE_PROJECT_BRANCH: release/2019.4-LTS
         BA_UPDATE_PROJECT_REVISION: 06c67d682225354dd909728e2511ac17115b18b9
         CACHE_ARGS: '{{cache.flags}}'
     dependencies:
@@ -28,7 +28,7 @@ Extra_URPUpdate_BoatAttack_trunk:
         CUSTOM_REVISION: '{{trunk.changeset.id}}'
         UTR_VERSION: "current"
         TEST_FILTER: .*
-        BA_UPDATE_PROJECT_BRANCH: master
+        BA_UPDATE_PROJECT_BRANCH: release/2019.4-LTS
         BA_UPDATE_PROJECT_REVISION: 06c67d682225354dd909728e2511ac17115b18b9
         CACHE_ARGS: '{{cache.flags}}'
     dependencies: []
@@ -38,7 +38,7 @@ URPUpdate_BoatAttack_trunk:
         CUSTOM_REVISION: '{{trunk.changeset.id}}'
         UTR_VERSION: "current"
         TEST_FILTER: .*
-        BA_UPDATE_PROJECT_BRANCH: master
+        BA_UPDATE_PROJECT_BRANCH: release/2019.4-LTS
         BA_UPDATE_PROJECT_REVISION: 06c67d682225354dd909728e2511ac17115b18b9
         CACHE_ARGS: '{{cache.flags}}'
     dependencies:
@@ -52,7 +52,7 @@ PR_URPUpdate_BoatAttack_CUSTOM-REVISION:
         CUSTOM_REVISION: custom_revision_not_set
         UTR_VERSION: "current"
         TEST_FILTER: .*
-        BA_UPDATE_PROJECT_BRANCH: master
+        BA_UPDATE_PROJECT_BRANCH: release/2019.4-LTS
         BA_UPDATE_PROJECT_REVISION: 06c67d682225354dd909728e2511ac17115b18b9
         CACHE_ARGS: '{{cache.flags}}'
     dependencies:
@@ -66,7 +66,7 @@ Extra_URPUpdate_BoatAttack_CUSTOM-REVISION:
         CUSTOM_REVISION: custom_revision_not_set
         UTR_VERSION: "current"
         TEST_FILTER: .*
-        BA_UPDATE_PROJECT_BRANCH: master
+        BA_UPDATE_PROJECT_BRANCH: release/2019.4-LTS
         BA_UPDATE_PROJECT_REVISION: 06c67d682225354dd909728e2511ac17115b18b9
         CACHE_ARGS: '{{cache.flags}}'
     dependencies: []
@@ -76,7 +76,7 @@ URPUpdate_BoatAttack_CUSTOM-REVISION:
         CUSTOM_REVISION: custom_revision_not_set
         UTR_VERSION: "current"
         TEST_FILTER: .*
-        BA_UPDATE_PROJECT_BRANCH: master
+        BA_UPDATE_PROJECT_BRANCH: release/2019.4-LTS
         BA_UPDATE_PROJECT_REVISION: 06c67d682225354dd909728e2511ac17115b18b9
         CACHE_ARGS: '{{cache.flags}}'
     dependencies:

@@ -1,21 +1,21 @@
 project:
   name: URPUpdate_BoatAttack
-  folder: URP-Update-Testing/BoatAttack-19-4
+  folder: BoatAttack
   variables:
-    BA_UPDATE_PROJECT_BRANCH: master
+    BA_UPDATE_PROJECT_BRANCH: release/2019.4-LTS
     BA_UPDATE_PROJECT_REVISION: 06c67d682225354dd909728e2511ac17115b18b9
 
 reuse_blocks:
   setup_with_utr:
     - [iPhone_Metal, OSX_Metal, Linux_Vulkan]:
-      - command: git clone https://github.cds.internal.unity3d.com/sophia/URP-Update-testing.git -b $BA_UPDATE_PROJECT_BRANCH TestProjects/URP-Update-Testing
+      - command: git clone https://github.com/Unity-Technologies/BoatAttack.git -b $BA_UPDATE_PROJECT_BRANCH TestProjects/URP-Update-Testing
         retries: 3
     - [Win_DX11, Win_DX12, Win_Vulkan, Android_OpenGLES3, Android_Vulkan]:
-      - command: git clone https://github.cds.internal.unity3d.com/sophia/URP-Update-testing.git -b %BA_UPDATE_PROJECT_BRANCH% TestProjects/URP-Update-Testing
+      - command: git clone https://github.com/Unity-Technologies/BoatAttack.git -b %BA_UPDATE_PROJECT_BRANCH% TestProjects/URP-Update-Testing
         retries: 3
 
     - [iPhone_Metal, OSX_Metal, Linux_Vulkan]: cd TestProjects/URP-Update-Testing && git checkout $BA_UPDATE_PROJECT_REVISION
-    - [Win_DX11, Win_DX12, Win_Vulkan, Android_OpenGLES3, Android_Vulkan]: cd TestProjects/URP-Update-Testing && git checkout %BA_UPDATE_PROJECT_REVISION%
+    - [Win_DX11, Win_DX12, Win_Vulkan, Android_OpenGLES3, Android_Vulkan]: cd TestProjects/BoatAttack && git checkout %BA_UPDATE_PROJECT_REVISION%
 
     - [Win_DX11, Win_DX12, Win_Vulkan]: Xcopy /E /I "com.unity.render-pipelines.core" "TestProjects/<PROJECT_FOLDER>/Packages/com.unity.render-pipelines.core" /Y
     - [Win_DX11, Win_DX12, Win_Vulkan]: Xcopy /E /I "com.unity.render-pipelines.universal" "TestProjects/<PROJECT_FOLDER>/Packages/com.unity.render-pipelines.universal" /Y
