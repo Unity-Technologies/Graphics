@@ -411,7 +411,7 @@ void LightLoop( float3 V, PositionInputs posInput, PreLightData preLightData, BS
             ZERO_INITIALIZE(BuiltinData, builtinDataProbeVolumes);
 
             reflectionProbeNormalizationLighting = 0.0f;
-            float3 R = reflect(-V, bsdfData.normalWS);
+            float3 reflectionProbeNormalizationDirectionWS = ComputeReflectionProbeNormalizationDirection(bsdfData, preLightData, V);
 
             float probeVolumeHierarchyWeight = uninitialized ? 0.0f : 1.0f;
 
@@ -420,7 +420,7 @@ void LightLoop( float3 V, PositionInputs posInput, PreLightData preLightData, BS
                 posInput,
                 bsdfData.normalWS,
                 -bsdfData.normalWS,
-                R,
+                reflectionProbeNormalizationDirectionWS,
                 V,
                 builtinData.renderingLayers,
                 probeVolumeHierarchyWeight,
@@ -504,8 +504,8 @@ void LightLoop( float3 V, PositionInputs posInput, PreLightData preLightData, BS
 #if SHADEROPTIONS_PROBE_VOLUMES_EVALUATION_MODE == PROBEVOLUMESEVALUATIONMODES_LIGHT_LOOP
                             if (s_envLightData.normalizeWithProbeVolumes > 0 && reflectionProbeNormalizationWeight >= 0)
                             {
-                                float3 R = reflect(-V, bsdfData.normalWS);
-                                lighting.specularReflected *= GetReflectionProbeNormalizationFactor(reflectionProbeNormalizationLighting, reflectionProbeNormalizationWeight, R, s_envLightData.L0L1, s_envLightData.L2_1, s_envLightData.L2_2);
+                                float3 reflectionProbeNormalizationDirectionWS = ComputeReflectionProbeNormalizationDirection(bsdfData, preLightData, V);
+                                lighting.specularReflected *= GetReflectionProbeNormalizationFactor(reflectionProbeNormalizationLighting, reflectionProbeNormalizationWeight, reflectionProbeNormalizationDirectionWS, s_envLightData.L0L1, s_envLightData.L2_1, s_envLightData.L2_2);
                             }
 #endif
                             AccumulateIndirectLighting(lighting, aggregateLighting);
@@ -524,8 +524,8 @@ void LightLoop( float3 V, PositionInputs posInput, PreLightData preLightData, BS
 #if SHADEROPTIONS_PROBE_VOLUMES_EVALUATION_MODE == PROBEVOLUMESEVALUATIONMODES_LIGHT_LOOP
                             if (s_envLightData.normalizeWithProbeVolumes > 0 && reflectionProbeNormalizationWeight >= 0)
                             {
-                                float3 R = reflect(-V, bsdfData.normalWS);
-                                lighting.specularTransmitted *= GetReflectionProbeNormalizationFactor(reflectionProbeNormalizationLighting, reflectionProbeNormalizationWeight, R, s_envLightData.L0L1, s_envLightData.L2_1, s_envLightData.L2_2);
+                                float3 reflectionProbeNormalizationDirectionWS = ComputeReflectionProbeNormalizationDirection(bsdfData, preLightData, V);
+                                lighting.specularTransmitted *= GetReflectionProbeNormalizationFactor(reflectionProbeNormalizationLighting, reflectionProbeNormalizationWeight, reflectionProbeNormalizationDirectionWS, s_envLightData.L0L1, s_envLightData.L2_1, s_envLightData.L2_2);
                             }
 #endif
                             AccumulateIndirectLighting(lighting, aggregateLighting);
