@@ -22,7 +22,7 @@ editors: # applied for all yml files
   - track: 2021.2
     name: 2021.2
     rerun_strategy: on_new_revision
-    ono_branch_var: ONO_BRANCH_2021_1
+    ono_branch_var: ONO_BRANCH_2021_2
     editor_pinning:
       enabled: True
       green_abv_required: False
