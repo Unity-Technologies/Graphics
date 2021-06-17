@@ -2416,14 +2416,19 @@ namespace UnityEngine.Rendering.HighDefinition
 
         static void DoPhysicallyBasedDepthOfField(in DepthOfFieldParameters dofParameters, CommandBuffer cmd, RTHandle source, RTHandle destination, RTHandle fullresCoC, RTHandle prevCoCHistory, RTHandle nextCoCHistory, RTHandle motionVecTexture, RTHandle sourcePyramid, RTHandle depthBuffer, RTHandle minMaxCoCPing, RTHandle minMaxCoCPong, bool taaEnabled)
         {
-            float scale = 1f / (float)dofParameters.resolution;
-            int targetWidth = Mathf.RoundToInt(dofParameters.viewportSize.x * scale);
-            int targetHeight = Mathf.RoundToInt(dofParameters.viewportSize.y * scale);
+            // Currently Physically Based DoF is performed at "full" resolution (ie does not utilize DepthOfFieldResolution)
+            // However, to produce similar results when switching between various resolutions, or dynamic resolution,
+            // we must incorporate resolution independence, fitted with a 1920x1080 reference resolution.
+            var scale = dofParameters.viewportSize / new Vector2(1920f, 1080f);
+            float resolutionScale = Mathf.Min(scale.x, scale.y) * 2f;
+
+            float farMaxBlur  = resolutionScale * dofParameters.farMaxBlur;
+            float nearMaxBlur = resolutionScale * dofParameters.nearMaxBlur;
 
             // Map the old "max radius" parameters to a bigger range, so we can work on more challenging scenes, [0, 16] --> [0, 64]
             Vector2 cocLimit = new Vector2(
-                Mathf.Max(4 * dofParameters.farMaxBlur, 0.01f),
-                Mathf.Max(4 * dofParameters.nearMaxBlur, 0.01f));
+                Mathf.Max(4 * farMaxBlur, 0.01f),
+                Mathf.Max(4 * nearMaxBlur, 0.01f));
             float maxCoc = Mathf.Max(cocLimit.x, cocLimit.y);
 
             ComputeShader cs;

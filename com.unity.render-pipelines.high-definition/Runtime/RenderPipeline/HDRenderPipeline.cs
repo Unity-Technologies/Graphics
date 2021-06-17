@@ -1529,7 +1529,8 @@ namespace UnityEngine.Rendering.HighDefinition
                             visibleProbe.ForceRenderingNextUpdate();
                         }
 
-                        hdCamera.SetParentCamera(hdParentCamera); // Used to inherit the properties of the view
+                        bool useFetchedGpuExposure = false;
+                        float fetchedGpuExposure = 1.0f;
 
                         if (visibleProbe.type == ProbeSettings.ProbeType.PlanarProbe)
                         {
@@ -1539,7 +1540,8 @@ namespace UnityEngine.Rendering.HighDefinition
                             {
                                 RTHandle exposureTexture = GetExposureTexture(hdParentCamera);
                                 hdParentCamera.RequestGpuExposureValue(exposureTexture);
-                                visibleProbe.SetProbeExposureValue(hdParentCamera.GpuExposureValue());
+                                fetchedGpuExposure = hdParentCamera.GpuExposureValue();
+                                visibleProbe.SetProbeExposureValue(fetchedGpuExposure);
                                 additionalCameraData.deExposureMultiplier = 1.0f;
 
                                 // If the planar is under exposure control, all the pixels will be de-exposed, for the other skies it is handeled in a shader.
@@ -1551,13 +1553,16 @@ namespace UnityEngine.Rendering.HighDefinition
                                 //the de-exposure multiplier must be used for anything rendering flatly, for example UI or Unlit.
                                 //this will cause them to blow up, but will match the standard nomralized exposure.
                                 hdParentCamera.RequestGpuDeExposureValue(GetExposureTextureHandle(hdParentCamera.currentExposureTextures.previous));
-                                visibleProbe.SetProbeExposureValue(1.0f);
+                                visibleProbe.SetProbeExposureValue(fetchedGpuExposure);
                                 additionalCameraData.deExposureMultiplier = 1.0f / hdParentCamera.GpuDeExposureValue();
                             }
 
                             // Make sure that the volumetric cloud animation data is in sync with the parent camera.
                             hdCamera.volumetricCloudsAnimationData = hdParentCamera.volumetricCloudsAnimationData;
+                            useFetchedGpuExposure = true;
                         }
+
+                        hdCamera.SetParentCamera(hdParentCamera, useFetchedGpuExposure, fetchedGpuExposure); // Used to inherit the properties of the view
 
                         HDAdditionalCameraData hdCam;
                         camera.TryGetComponent<HDAdditionalCameraData>(out hdCam);

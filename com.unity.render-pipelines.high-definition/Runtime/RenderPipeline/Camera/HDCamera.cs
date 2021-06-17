@@ -212,13 +212,14 @@ namespace UnityEngine.Rendering.HighDefinition
         }
 
         /// <summary>
-        // Enum that lists the various history slots that require tracking of their validity
+        // Generic structure that captures various history validity states.
         /// </summary>
         internal struct HistoryEffectValidity
         {
             public int frameCount;
             public bool fullResolution;
             public bool rayTraced;
+            public bool exposureControlEnabled;
         }
 
         /// <summary>
@@ -261,7 +262,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
         //Setting a parent camera also tries to use the parent's camera exposure textures.
         //One example is planar reflection probe volume being pre exposed.
-        internal void SetParentCamera(HDCamera parentHdCam)
+        internal void SetParentCamera(HDCamera parentHdCam, bool useGpuFetchedExposure, float fetchedGpuExposure)
         {
             if (parentHdCam == null)
             {
@@ -282,8 +283,12 @@ namespace UnityEngine.Rendering.HighDefinition
 
             m_ExposureTextures.clear();
             m_ExposureTextures.useCurrentCamera = false;
-            m_ExposureTextures.previous = parentHdCam.currentExposureTextures.previous;
-            m_ExposureTextures.current = parentHdCam.currentExposureTextures.current;
+            m_ExposureTextures.parent = parentHdCam.currentExposureTextures.current;
+            if (useGpuFetchedExposure)
+            {
+                m_ExposureTextures.useFetchedExposure = true;
+                m_ExposureTextures.fetchedGpuExposure = fetchedGpuExposure;
+            }
         }
 
         private Vector4 m_PostProcessScreenSize = new Vector4(0.0f, 0.0f, 0.0f, 0.0f);
@@ -495,13 +500,20 @@ namespace UnityEngine.Rendering.HighDefinition
         internal struct ExposureTextures
         {
             public bool useCurrentCamera;
+            public RTHandle parent;
             public RTHandle current;
             public RTHandle previous;
 
+            public bool useFetchedExposure;
+            public float fetchedGpuExposure;
+
             public void clear()
             {
+                parent = null;
                 current = null;
                 previous = null;
+                useFetchedExposure = false;
+                fetchedGpuExposure = 1.0f;
             }
         }
 
@@ -512,9 +524,6 @@ namespace UnityEngine.Rendering.HighDefinition
 
         internal void SetupExposureTextures()
         {
-            if (!m_ExposureTextures.useCurrentCamera)
-                return;
-
             if (!m_ExposureControlFS)
             {
                 m_ExposureTextures.current = null;
@@ -596,7 +605,8 @@ namespace UnityEngine.Rendering.HighDefinition
         {
             return (historyEffectUsage[(int)slot].frameCount == (cameraFrameCount - 1))
                 && (historyEffectUsage[(int)slot].fullResolution == fullResolution)
-                && (historyEffectUsage[(int)slot].rayTraced == rayTraced);
+                && (historyEffectUsage[(int)slot].rayTraced == rayTraced)
+                && (historyEffectUsage[(int)slot].exposureControlEnabled == exposureControlFS);
         }
 
         internal void PropagateEffectHistoryValidity(HistoryEffectSlot slot, bool fullResolution, bool rayTraced)
@@ -604,6 +614,7 @@ namespace UnityEngine.Rendering.HighDefinition
             historyEffectUsage[(int)slot].fullResolution = fullResolution;
             historyEffectUsage[(int)slot].frameCount = (int)cameraFrameCount;
             historyEffectUsage[(int)slot].rayTraced = rayTraced;
+            historyEffectUsage[(int)slot].exposureControlEnabled = exposureControlFS;
         }
 
         internal uint GetCameraFrameCount()
@@ -1667,6 +1678,13 @@ namespace UnityEngine.Rendering.HighDefinition
                 taaJitter = Vector4.zero;
                 return origProj;
             }
+            #if UNITY_2021_2_OR_NEWER
+            if (UnityEngine.FrameDebugger.enabled)
+            {
+                taaJitter = Vector4.zero;
+                return origProj;
+            }
+            #endif
 
             // The variance between 0 and the actual halton sequence values reveals noticeable
             // instability in Unity's shadow maps, so we avoid index 0.
