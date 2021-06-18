@@ -1,0 +1,20 @@
+{
+    "name": "Unity.ShaderGraph.GraphDelta.Tests",
+    "references": [
+        "Unity.ShaderGraph.GraphDelta"
+    ],
+    "includePlatforms": [
+        "Editor"
+    ],
+    "excludePlatforms": [],
+    "allowUnsafeCode": true,
+    "overrideReferences": true,
+    "precompiledReferences": [
+        "nunit.framework.dll"
+    ],
+    "autoReferenced": false,
+    "defineConstraints": [
+        "UNITY_INCLUDE_TESTS"
+    ],
+    "versionDefines": []
+}

@@ -1,5 +1,5 @@
 
-namespace unity.shadergraph.registry
+namespace unity.shadergraph.graphui.tests
 {
     public class Placeholder
     {

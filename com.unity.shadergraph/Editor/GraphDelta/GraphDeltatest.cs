@@ -1,10 +1,10 @@
 
 namespace unity.shadergraph.graphdelta
 {
-    public class CompileMe
+    public class Placeholder
     {
         public int data;
 
-        CompileMe(int d) { data = d; }
+        Placeholder(int d) { data = d; }
     }
 }
