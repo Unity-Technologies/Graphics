@@ -617,7 +617,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
             if (!isSlotAllocated)
             {
-                Debug.LogWarningFormat("ProbeVolume: Texture Atlas failed to allocate space for texture { id: {0}, width: {1}, height: {2}, depth: {3}, rotation: {4} }", id, width, height, depth, key.rotation.eulerAngles);
+                Debug.LogWarning($"ProbeVolume: Texture Atlas failed to allocate space for texture id: {id}, width: {width}, height: {height}, depth: {depth}, rotation: {key.rotation.eulerAngles}");
             }
 
             return false;
