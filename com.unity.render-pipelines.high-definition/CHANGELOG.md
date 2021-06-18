@@ -75,6 +75,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Added support of motion vector buffer in custom postprocess
 - Added tooltips for content inside the Rendering Debugger window.
 - Added support for reflection probes as a fallback for ray traced reflections (case 1338644).
+- Added a minimum motion vector length to the motion vector debug view.
 
 ### Fixed
 - Fixed Intensity Multiplier not affecting realtime global illumination.
@@ -264,6 +265,12 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed an issue where disabled reflection probes were still sent into the the ray tracing light cluster.
 - Fixed nullref when enabling fullscreen passthrough in HDRP Camera.
 - Fixed tessellation displacement with planar mapping
+- Fixed the shader graph files that was still dirty after the first save (case 1342039).
+- Fixed cases in which object and camera motion vectors would cancel out, but didn't.
+- Fixed HDRP material upgrade failing when there is a texture inside the builtin resources assigned in the material (case 1339865).
+- Fixed custom pass volume not executed in scene view because of the volume culling mask.
+- Fixed remapping of depth pyramid debug view
+- Fixed an issue with asymmetric projection matrices and fog / pathtracing. (case 1330290).
 
 ### Changed
 - Changed Window/Render Pipeline/HD Render Pipeline Wizard to Window/Rendering/HDRP Wizard
@@ -350,7 +357,6 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Display an info box and disable MSAA  asset entry when ray tracing is enabled.
 - Changed light reset to preserve type.
 - Ignore hybrid duplicated reflection probes during light baking.
-- Updated the recursive rendering documentation (case 1338639).
 - Replaced the context menu by a search window when adding custom pass.
 - Moved supportRuntimeDebugDisplay option from HDRPAsset to HDRPGlobalSettings.
 - When a ray hits the sky in the ray marching part of mixed ray tracing, it is considered a miss.
