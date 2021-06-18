@@ -4180,11 +4180,16 @@ DirectLighting EvaluateBSDF_Area(LightLoopContext lightLoopContext,
 //-----------------------------------------------------------------------------
 // EvaluateBSDF_SSLighting for screen space lighting
 // ----------------------------------------------------------------------------
+struct LightHierarchyData
+{
+    float lobeReflectionWeight[TOTAL_NB_LOBES];
+};
 
 IndirectLighting EvaluateBSDF_ScreenSpaceReflection(PositionInputs posInput,
                                                     PreLightData   preLightData,
                                                     BSDFData       bsdfData,
-                                                    inout float    reflectionHierarchyWeight)
+                                                    inout float    reflectionHierarchyWeight,
+                                                    inout LightHierarchyData lightHierarchyData)
 {
     IndirectLighting lighting;
     ZERO_INITIALIZE(IndirectLighting, lighting);
@@ -4209,7 +4214,7 @@ IndirectLighting EvaluateBSDF_ScreenSpaceReflection(PositionInputs posInput,
     // a boost of sharp reflections from a potentially rough bottom layer.
 
     float3 reflectanceFactor = (float3)0.0;
-    reflectionHierarchyWeight  = ssrLighting.a;
+    reflectionHierarchyWeight = ssrLighting.a;
 
     if (IsVLayeredEnabled(bsdfData) && (bsdfData.coatMask > 0))
     {
@@ -4217,10 +4222,13 @@ IndirectLighting EvaluateBSDF_ScreenSpaceReflection(PositionInputs posInput,
         // TODOENERGY: If vlayered, should be done in ComputeAdding with FGD formulation for non dirac lights.
         // Incorrect, but for now:
         reflectanceFactor *= preLightData.energyCompensationFactor[COAT_LOBE_IDX];
-        float coatFGD = reflectanceFactor.r; //Max3(reflectanceFactor.r, reflectanceFactor.g, reflectanceFactor.b), but should be scalar anyway (coat)
+        //float coatFGD = reflectanceFactor.r;
         reflectanceFactor *= preLightData.hemiSpecularOcclusion[COAT_LOBE_IDX];
 
-        reflectionHierarchyWeight *= coatFGD;
+        lightHierarchyData.lobeReflectionWeight[COAT_LOBE_IDX] = reflectionHierarchyWeight;
+        // Instead of reflectionHierarchyWeight *= coatFGD,
+        // we return min_of_all(lobeReflectionWeight) == 0, as we didn't provide any light for the bottom layer lobes:
+        reflectionHierarchyWeight = 0;
     }
     else
     {
@@ -4233,6 +4241,9 @@ IndirectLighting EvaluateBSDF_ScreenSpaceReflection(PositionInputs posInput,
             lobeFactor *= preLightData.energyCompensationFactor[i];
             reflectanceFactor += lobeFactor;
         }
+
+        lightHierarchyData.lobeReflectionWeight[BASE_LOBEA_IDX] =
+        lightHierarchyData.lobeReflectionWeight[BASE_LOBEB_IDX] = reflectionHierarchyWeight;
     }
 
     // Note: RGB is already premultiplied by A.
@@ -4264,7 +4275,7 @@ IndirectLighting EvaluateBSDF_Env(  LightLoopContext lightLoopContext,
                                     float3 V, PositionInputs posInput,
                                     PreLightData preLightData, EnvLightData lightData, BSDFData bsdfData,
                                     int influenceShapeType, int GPUImageBasedLightingType,
-                                    inout float hierarchyWeight)
+                                    inout float hierarchyWeight, inout LightHierarchyData lightHierarchyData)
 {
     IndirectLighting lighting;
     ZERO_INITIALIZE(IndirectLighting, lighting);
@@ -4304,6 +4315,7 @@ IndirectLighting EvaluateBSDF_Env(  LightLoopContext lightLoopContext,
 
     float3 R[TOTAL_NB_LOBES];
     float tempWeight[TOTAL_NB_LOBES];
+    float smallestHierarchyWeight = 1.0;
     int i;
 
     for (i = 0; i < TOTAL_NB_LOBES; ++i)
@@ -4339,54 +4351,62 @@ IndirectLighting EvaluateBSDF_Env(  LightLoopContext lightLoopContext,
         if( (i == (0 IF_FEATURE_COAT(+1))) && _DebugEnvLobeMask.y == 0.0) continue;
         if( (i == (1 IF_FEATURE_COAT(+1))) && _DebugEnvLobeMask.z == 0.0) continue;
 #endif
-        // Compiler will deal with all that:
-        normal = (NB_NORMALS > 1 && i == COAT_NORMAL_IDX) ? bsdfData.coatNormalWS : bsdfData.normalWS;
-
-        R[i] = preLightData.iblR[i];
-        if (!IsEnvIndexTexture2D(lightData.envIndex)) // ENVCACHETYPE_CUBEMAP
+        // If the lobe already grabbed all light it needed from previous lights (eg coat with SSR), we skip it.
+        // We also check preLightData.specularFGD[i] to allow the compiler to optimize away when dual specular
+        // lobe is not used: that way smallestHierarchyWeight can't be updated (uselessly) and more importantly,
+        // can't influence a possible useless continuation of the lightloop because of consideration of its
+        // hierarchyWeight
+        if ((lightHierarchyData.lobeReflectionWeight[i] < 1.0) && any(preLightData.specularFGD[i] > 0))
         {
-            // Correction of reflected direction for better handling of rough material
-            //
-            // Notice again that when vlayering, the roughness and iblR properly use the output lobe statistics, but baseLayerNdotV
-            // is used for the offspecular correction because the true original offspecular tilt is parametrized by
-            // the angle at the base layer and the correction itself is influenced by that. See comments in GetPreLightData.
-            float clampedNdotV = (NB_NORMALS > 1 && i == COAT_NORMAL_IDX) ? ClampNdotV(preLightData.NdotV[COAT_NORMAL_IDX]) : preLightData.baseLayerNdotV; // the later is already clamped
+            // Compiler will deal with all that:
+            normal = (NB_NORMALS > 1 && i == COAT_NORMAL_IDX) ? bsdfData.coatNormalWS : bsdfData.normalWS;
 
-            R[i] = GetSpecularDominantDir(normal, preLightData.iblR[i], preLightData.iblPerceptualRoughness[i], clampedNdotV);
-            // When we are rough, we tend to see outward shifting of the reflection when at the boundary of the projection volume
-            // Also it appear like more sharp. To avoid these artifact and at the same time get better match to reference we lerp to original unmodified reflection.
-            // Formula is empirical.
-            float roughness = PerceptualRoughnessToRoughness(preLightData.iblPerceptualRoughness[i]);
-            R[i] = lerp(R[i], preLightData.iblR[i], saturate(smoothstep(0, 1, roughness * roughness)));
+            R[i] = preLightData.iblR[i];
+            if (!IsEnvIndexTexture2D(lightData.envIndex)) // ENVCACHETYPE_CUBEMAP
+            {
+                // Correction of reflected direction for better handling of rough material
+                //
+                // Notice again that when vlayering, the roughness and iblR properly use the output lobe statistics, but baseLayerNdotV
+                // is used for the offspecular correction because the true original offspecular tilt is parametrized by
+                // the angle at the base layer and the correction itself is influenced by that. See comments in GetPreLightData.
+                float clampedNdotV = (NB_NORMALS > 1 && i == COAT_NORMAL_IDX) ? ClampNdotV(preLightData.NdotV[COAT_NORMAL_IDX]) : preLightData.baseLayerNdotV; // the later is already clamped
+
+                R[i] = GetSpecularDominantDir(normal, preLightData.iblR[i], preLightData.iblPerceptualRoughness[i], clampedNdotV);
+                // When we are rough, we tend to see outward shifting of the reflection when at the boundary of the projection volume
+                // Also it appear like more sharp. To avoid these artifact and at the same time get better match to reference we lerp to original unmodified reflection.
+                // Formula is empirical.
+                float roughness = PerceptualRoughnessToRoughness(preLightData.iblPerceptualRoughness[i]);
+                R[i] = lerp(R[i], preLightData.iblR[i], saturate(smoothstep(0, 1, roughness * roughness)));
+            }
+
+            float intersectionDistance = EvaluateLight_EnvIntersection(positionWS, normal, lightData, influenceShapeType, R[i], tempWeight[i]);
+
+            float4 preLD = SampleEnvWithDistanceBaseRoughness(lightLoopContext, posInput, lightData, R[i], preLightData.iblPerceptualRoughness[i], intersectionDistance);
+
+            // Used by planar reflection to discard pixel:
+            tempWeight[i] *= preLD.a;
+
+            L = preLD.rgb * preLightData.specularFGD[i];
+            // TODOENERGY: If vlayered, should be done in ComputeAdding with FGD formulation for IBL. Same for LTC actually
+            // Incorrect, but just for now:
+            L *= preLightData.energyCompensationFactor[i];
+            L *= preLightData.hemiSpecularOcclusion[i];
+
+            UpdateLightingHierarchyWeights(lightHierarchyData.lobeReflectionWeight[i], tempWeight[i]);
+            smallestHierarchyWeight = min(smallestHierarchyWeight, lightHierarchyData.lobeReflectionWeight[i]);
+            envLighting += L * tempWeight[i];
         }
-
-        float intersectionDistance = EvaluateLight_EnvIntersection(positionWS, normal, lightData, influenceShapeType, R[i], tempWeight[i]);
-
-        float4 preLD = SampleEnvWithDistanceBaseRoughness(lightLoopContext, posInput, lightData, R[i], preLightData.iblPerceptualRoughness[i], intersectionDistance);
-
-        // Used by planar reflection to discard pixel:
-        tempWeight[i] *= preLD.a;
-
-        L = preLD.rgb * preLightData.specularFGD[i];
-        // TODOENERGY: If vlayered, should be done in ComputeAdding with FGD formulation for IBL. Same for LTC actually
-        // Incorrect, but just for now:
-        L *= preLightData.energyCompensationFactor[i];
-        L *= preLightData.hemiSpecularOcclusion[i];
-        envLighting += L;
     }
-
-    // TODO: to combine influence weights, mean or max or ... ?
-    for( i = 0; i < TOTAL_NB_LOBES; ++i)
-    {
-       weight += tempWeight[i];
-    }
-    weight /= TOTAL_NB_LOBES;
-    weight = tempWeight[1];
 
 #endif // STACK_LIT_DISPLAY_REFERENCE_IBL
 
-    UpdateLightingHierarchyWeights(hierarchyWeight, weight);
-    envLighting *= weight * lightData.multiplier;
+    // The lightloop is aware of only one hierarchyWeight: to process further lighting for lobes not being lit up to
+    // a full 1.0 of reflection contribution, just return the smallest we have
+    // (Note we can't use the input hierarchyWeight in the loop above as it is important smallestHierarchyWeight
+    // is initialized to 1.0 otherwise the lightloop visible weight will obviously never rise above what SSR left it at.)
+    hierarchyWeight = smallestHierarchyWeight;
+
+    envLighting *= lightData.multiplier;
 
     if (GPUImageBasedLightingType == GPUIMAGEBASEDLIGHTINGTYPE_REFLECTION)
         lighting.specularReflected = envLighting;

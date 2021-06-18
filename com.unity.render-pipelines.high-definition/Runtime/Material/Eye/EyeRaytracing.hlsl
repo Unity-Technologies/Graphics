@@ -12,7 +12,9 @@ float3 SampleSpecularBRDF(BSDFData bsdfData, float2 theSample, float3 viewWS)
 IndirectLighting EvaluateBSDF_RaytracedReflection(LightLoopContext lightLoopContext,
                                                     BSDFData bsdfData,
                                                     PreLightData preLightData,
-                                                    float3 reflection)
+                                                    float3 reflection,
+                                                    inout float reflectionHierarchyWeight,
+                                                    inout LightHierarchyData lightHierarchyData)
 {
     IndirectLighting lighting;
     ZERO_INITIALIZE(IndirectLighting, lighting);
