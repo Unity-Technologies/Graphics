@@ -264,6 +264,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed Pixel Displacement that could be set on tessellation shader while it's not supported.
 - Fixed an issue where disabled reflection probes were still sent into the the ray tracing light cluster.
 - Fixed nullref when enabling fullscreen passthrough in HDRP Camera.
+- Fixed tessellation displacement with planar mapping
 - Fixed the shader graph files that was still dirty after the first save (case 1342039).
 - Fixed cases in which object and camera motion vectors would cancel out, but didn't.
 - Fixed HDRP material upgrade failing when there is a texture inside the builtin resources assigned in the material (case 1339865).
