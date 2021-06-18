@@ -263,6 +263,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed Pixel Displacement that could be set on tessellation shader while it's not supported.
 - Fixed an issue where disabled reflection probes were still sent into the the ray tracing light cluster.
 - Fixed nullref when enabling fullscreen passthrough in HDRP Camera.
+- Fixed tessellation displacement with planar mapping
 
 ### Changed
 - Changed Window/Render Pipeline/HD Render Pipeline Wizard to Window/Rendering/HDRP Wizard
