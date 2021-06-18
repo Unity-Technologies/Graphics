@@ -55,18 +55,18 @@ editor_versions:
       updated_at: '2021-06-17 23:26:18.023588'
       version: ''
     Linux:
-      revision: fe2c2764e2c4b6347ef0e4d95927fbb6dab82fdf
-      updated_at: '2021-06-17 23:26:18.023588'
+      revision: 508f1823150f4900e2a41e8c76e908ee9f64d405
+      updated_at: '2021-06-18 23:26:07.105829'
       version: ''
     OSX:
-      revision: fe2c2764e2c4b6347ef0e4d95927fbb6dab82fdf
-      updated_at: '2021-06-17 23:26:18.023588'
+      revision: 508f1823150f4900e2a41e8c76e908ee9f64d405
+      updated_at: '2021-06-18 23:26:07.105829'
       version: ''
     Win:
-      revision: fe2c2764e2c4b6347ef0e4d95927fbb6dab82fdf
-      updated_at: '2021-06-17 23:26:18.023588'
+      revision: 508f1823150f4900e2a41e8c76e908ee9f64d405
+      updated_at: '2021-06-18 23:26:07.105829'
       version: ''
     iPhone:
-      revision: fe2c2764e2c4b6347ef0e4d95927fbb6dab82fdf
-      updated_at: '2021-06-17 23:26:18.023588'
+      revision: 508f1823150f4900e2a41e8c76e908ee9f64d405
+      updated_at: '2021-06-18 23:26:07.105829'
       version: ''
