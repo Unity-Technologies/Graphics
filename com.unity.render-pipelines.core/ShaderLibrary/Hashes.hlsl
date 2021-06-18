@@ -20,6 +20,35 @@ void Hash_Tchou_3_3_float(float3 i, out float3 o)
 	o = r * (1.0 / float(0xffffffff));
 }
 
+void Hash_Tchou_2_1_uint(uint2 q, out uint o)
+{
+    uint3 v = uint3(q, q.x ^ q.y);	// TODO can we do without this?
+
+    v.x *= v.y * v.z;       // 2 (1 mul)
+    v.x *= 0x27d4eb2du;     // 1 (1 mul)   
+    v.x ^= v.x >> 4u;       // 2
+    v.y += v.z ^ v.x;       // 2
+    v.y ^= v.y >> 15u;      // 2
+    v.y *= 0x27d4eb2du;     // 1 (1 mul)
+    o = v.y;
+}
+
+void Hash_Tchou_2_1_float(float2 i, out float o)
+{
+    uint r;
+    uint2 v = (uint2) (int2) round(i);
+    Hash_Tchou_2_1_uint(v, r);
+    o = r * (1.0 / float(0xffffffff));
+}
+
+void Hash_Tchou_2_1_half(half2 i, out half o)
+{
+    uint r;
+    uint2 v = (uint2) (int2) round(i);
+    Hash_Tchou_2_1_uint(v, r);
+    o = r * (1.0 / float(0xffffffff));
+}
+
 void Hash_Tchou_2_3_uint(uint2 q, out uint3 o)
 {
 	// 13 ALU (3 mul)
@@ -164,6 +193,26 @@ void Hash_LegacySine_2_1_float(float2 i, out float o)
 void Hash_LegacySine_2_1_half(half2 i, out half o)
 {
     half angle = dot(i, half2(12.9898, 78.233));
+#if defined(SHADER_API_MOBILE) && (defined(SHADER_API_GLES) || defined(SHADER_API_GLES3) || defined(SHADER_API_VULKAN))
+    // 'sin()' has bad precision on Mali GPUs for inputs > 10000
+    angle = fmod(angle, TWO_PI); // Avoid large inputs to sin()
+#endif
+    o = frac(sin(angle)*43758.5453);
+}
+
+void Hash_BetterSine_2_1_float(float2 i, out float o)
+{
+    float angle = dot(i, float2(12.9898, 78.233) / 1000.0f);
+#if defined(SHADER_API_MOBILE) && (defined(SHADER_API_GLES) || defined(SHADER_API_GLES3) || defined(SHADER_API_VULKAN))
+    // 'sin()' has bad precision on Mali GPUs for inputs > 10000
+    angle = fmod(angle, TWO_PI); // Avoid large inputs to sin()
+#endif
+    o = frac(sin(angle)*43758.5453);
+}
+
+void Hash_BetterSine_2_1_half(half2 i, out half o)
+{
+    float angle = dot(i, half2(12.9898, 78.233) / 1000.0f);
 #if defined(SHADER_API_MOBILE) && (defined(SHADER_API_GLES) || defined(SHADER_API_GLES3) || defined(SHADER_API_VULKAN))
     // 'sin()' has bad precision on Mali GPUs for inputs > 10000
     angle = fmod(angle, TWO_PI); // Avoid large inputs to sin()
