@@ -248,13 +248,21 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed volumetric fog in planar reflections.
 - Fixed error with motion blur and small render targets.
 - Fixed issue with on-demand directional shadow maps looking broken when a reflection probe is updated at the same time.
-- Fixed cropping issue with the compositor camera bridge (case 1340549).
+ Fixed cropping issue with the compositor camera bridge (case 1340549).
+- Fixed an issue with normal management for recursive rendering (case 1324082).
+- Fixed aliasing artifacts that are related to numerical imprecisions of the light rays in the volumetric clouds (case 1340731).
+- Fixed exposure issues with volumetric clouds on planar reflection
+- Fixed bad feedback loop occuring when auto exposure adaptation time was too small.
+- Fixed an issue where enabling GPU Instancing on a ShaderGraph Material would cause compile failures [1338695].
 - Fixed the transparent cutoff not working properly in semi-transparent and color shadows (case 1340234).
 - Fixed object outline flickering with TAA.
 - Fixed issue with sky settings being ignored when using the recorder and path tracing (case 1340507).
 - Fixed some resolution aliasing for physically based depth of field (case 1340551).
 - Fixed an issue with resolution dependence for physically based depth of field.
+- Fixed sceneview debug mode rendering (case 1211436)
 - Fixed Pixel Displacement that could be set on tessellation shader while it's not supported.
+- Fixed an issue where disabled reflection probes were still sent into the the ray tracing light cluster.
+- Fixed nullref when enabling fullscreen passthrough in HDRP Camera.
 
 ### Changed
 - Changed Window/Render Pipeline/HD Render Pipeline Wizard to Window/Rendering/HDRP Wizard
