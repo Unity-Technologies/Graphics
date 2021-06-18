@@ -13,6 +13,7 @@
     * [Sub Graph](Sub-graph)
     * [Color Modes](Color-Modes)
     * [Precision Modes](Precision-Modes)
+    * [Preview Mode Control](Preview-Mode-Control)
     * [Custom Function Node](Custom-Function-Node)
     * [Shader Graph Preferences](Shader-Graph-Preferences)
     * [Samples](ShaderGraph-Samples.md)
@@ -30,13 +31,10 @@
     * [Property Types](Property-Types)
     * [Keywords](Keywords)
     * [Data Types](Data-Types)
-    * [Precision Modes](Precision-Modes)
     * [Port Bindings](Port-Bindings)
     * [Shader Stage](Shader-Stage)
     * [Surface options](surface-options.md)
     * [Custom Interpolators](Custom-Interpolators)
-
-
 * [Node Library](Node-Library)
     * [Artistic](Artistic-Nodes)
         * Adjustment
@@ -72,6 +70,7 @@
         * [Flip](Flip-Node)
         * [Split](Split-Node)
         * [Swizzle](Swizzle-Node)
+        * [Branch On Input Connection](Branch-On-Input-Connection-Node)
     * [Input](Input-Nodes)
         * Basic
             * [Boolean](Boolean-Node)
@@ -95,6 +94,8 @@
             * [View Direction](View-Direction-Node)
             * [View Vector](View-Vector-Node)
         * Gradient
+            * [Vertex ID](Vertex-ID-Node)
+            * [Instance ID](Instance-ID-Node)
             * [Blackbody](Blackbody-Node)
             * [Gradient](Gradient-Node)
             * [Sample Gradient](Sample-Gradient-Node)
@@ -124,6 +125,7 @@
             * [Screen](Screen-Node)
         * Texture
             * [Cubemap Asset](Cubemap-Asset-Node)
+            * [Eye Index](Eye-Index-Node)
             * [Sample Cubemap](Sample-Cubemap-Node)
             * [Sample Reflected Cubemap](Sample-Reflected-Cubemap-Node)
             * [Sample Texture 2D](Sample-Texture-2D-Node)
@@ -238,7 +240,6 @@
             * [Nand](Nand-Node)
             * [Not](Not-Node)
             * [Or](Or-Node)
-            * [Branch On Input Connection](Branch-On-Input-Connection-Node)
         * High Definition Render Pipeline
             * [Emission](Emission-Node.md)
             * Eye
@@ -268,4 +269,4 @@
         * [Parallax Mapping](Parallax-Mapping-Node)
         * [Parallax Occlusion Mapping](Parallax-Occlusion-Mapping-Node)
     * [Block Nodes](Block-Node)
-      * [Built In](Built-In-Blocks)
+      * [Built In Blocks](Built-In-Blocks)

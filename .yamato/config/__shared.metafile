@@ -11,6 +11,19 @@ editors: # applied for all yml files
     rerun_strategy: on_new_revision
     ono_branch_var: ONO_BRANCH_TRUNK
     editor_pinning:
+      enabled: False
+      green_abv_required: False
+    ci_triggers:
+      pr_triggers_allowed: False # if expression_triggers on PRs allowed
+      nightly_job_trigger: False # if true, adds recurrent trigger to nightly job
+      weekly_job_trigger: False # if true, adds recurrent trigger to weekly job
+    variables:
+      CACHE_ARGS: '{{cache.flags}}'
+  - track: 2021.2
+    name: 2021.2
+    rerun_strategy: on_new_revision
+    ono_branch_var: ONO_BRANCH_2021_2
+    editor_pinning:
       enabled: True
       green_abv_required: False
     ci_triggers:
