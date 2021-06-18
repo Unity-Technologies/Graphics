@@ -16,8 +16,6 @@ struct RayIntersection
 {
     // Origin of the current ray -- FIXME: can be obtained by WorldRayPosition(), should we remove it?
     float3  origin;
-    // Direction of the current ray -- FIXME: can be obtained by WorldRayDirection(), should we remove it?
-    float3  incidentDirection;
     // Distance of the intersection
     float t;
     // Value that holds the color of the ray

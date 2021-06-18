@@ -8,20 +8,81 @@ namespace UnityEditor.Rendering
     {
         /// <summary>Speed of additional properties highlight.</summary>
         public static readonly float additionalPropertiesHightLightSpeed = 0.3f;
+
+        /// <summary>Standard UI spacing</summary>
+        public static float standardHorizontalSpacing => 5f;
     }
 
     /// <summary>Class containing style definition</summary>
     public static class CoreEditorStyles
     {
-        /// <summary>Standard UI spacing</summary>
-        public static float standardSpacing => EditorGUIUtility.standardVerticalSpacing;
+        #region Styles
 
+        static System.Lazy<GUIStyle> m_SmallTickbox = new(() => new GUIStyle("ShurikenToggle"));
         /// <summary>Style for a small checkbox</summary>
-        public static readonly GUIStyle smallTickbox;
+        public static GUIStyle smallTickbox => m_SmallTickbox.Value;
+
+        static System.Lazy<GUIStyle> m_SmallMixedTickbox = new(() => new GUIStyle("ShurikenToggleMixed"));
         /// <summary>Style for a small checkbox in mixed state</summary>
-        public static readonly GUIStyle smallMixedTickbox;
+        public static GUIStyle smallMixedTickbox => m_SmallMixedTickbox.Value;
+
+        static GUIStyle m_MiniLabelButton;
         /// <summary>Style for a minilabel button</summary>
-        public static readonly GUIStyle miniLabelButton;
+        public static GUIStyle miniLabelButton
+        {
+            get
+            {
+                if (m_MiniLabelButton == null)
+                {
+                    m_MiniLabelButton = new GUIStyle(EditorStyles.miniLabel)
+                    {
+                        normal = new GUIStyleState
+                        {
+                            background = m_TransparentTexture,
+                            scaledBackgrounds = null,
+                            textColor = Color.grey
+                        }
+                    };
+                    var activeState = new GUIStyleState
+                    {
+                        background = m_TransparentTexture,
+                        scaledBackgrounds = null,
+                        textColor = Color.white
+                    };
+                    m_MiniLabelButton.active = activeState;
+                    m_MiniLabelButton.onNormal = activeState;
+                    m_MiniLabelButton.onActive = activeState;
+                    return m_MiniLabelButton;
+                }
+
+                return m_MiniLabelButton;
+            }
+        }
+
+        static System.Lazy<GUIStyle> m_ContextMenuStyle = new(() => new GUIStyle("IconButton"));
+        /// <summary>Context Menu button style</summary>
+        public static GUIStyle contextMenuStyle => m_ContextMenuStyle.Value;
+
+        static System.Lazy<GUIStyle> m_AdditionalPropertiesHighlightStyle = new(() => new GUIStyle { normal = { background = Texture2D.whiteTexture } });
+        /// <summary>Style of a additional properties highlighted background.</summary>
+        public static GUIStyle additionalPropertiesHighlightStyle => m_AdditionalPropertiesHighlightStyle.Value;
+
+        /// <summary>Help icon style</summary>
+        public static GUIStyle iconHelpStyle => GUI.skin.FindStyle("IconButton") ?? EditorGUIUtility.GetBuiltinSkin(EditorSkin.Inspector).FindStyle("IconButton");
+
+        static System.Lazy<GUIStyle> m_SectionHeaderStyle = new(() => new GUIStyle(EditorStyles.largeLabel) { richText = true, fontSize = 18, fixedHeight = 42 });
+        /// <summary>Style of Section Headers.</summary>
+        public static GUIStyle sectionHeaderStyle => m_SectionHeaderStyle.Value;
+
+        static System.Lazy<GUIStyle> m_SubSectionHeaderStyle = new(() => new GUIStyle(EditorStyles.boldLabel));
+        /// <summary>Style of Sub-Section Headers.</summary>
+        public static GUIStyle subSectionHeaderStyle => m_SubSectionHeaderStyle.Value;
+
+        #endregion
+
+        #region Textures 2D
+
+        static Texture2D m_TransparentTexture;
 
         /// <summary><see cref="Texture2D"/> 1x1 pixel with red color</summary>
         public static readonly Texture2D redTexture;
@@ -32,7 +93,6 @@ namespace UnityEditor.Rendering
 
         /// <summary> PaneOption icon for dark skin</summary>
         static readonly Texture2D paneOptionsIconDark;
-
         /// <summary> PaneOption icon for light skin</summary>
         static readonly Texture2D paneOptionsIconLight;
 
@@ -50,69 +110,47 @@ namespace UnityEditor.Rendering
         /// <summary> Pending icon </summary>
         public static readonly Texture2D iconPending;
 
-        /// <summary>Context Menu button icon</summary>
-        public static readonly GUIContent contextMenuIcon;
-        /// <summary>Context Menu button style</summary>
-        public static readonly GUIStyle contextMenuStyle;
+        /// <summary>RenderPipeline Global Settings icon</summary>
+        public static readonly Texture2D globalSettingsIcon;
+
+        #endregion
+
+        #region Colors
 
         static readonly Color m_LightThemeBackgroundColor;
         static readonly Color m_LightThemeBackgroundHighlightColor;
         static readonly Color m_DarkThemeBackgroundColor;
         static readonly Color m_DarkThemeBackgroundHighlightColor;
 
-        /// <summary>Style of a additional properties highlighted background.</summary>
-        public static readonly GUIStyle additionalPropertiesHighlightStyle;
-
         /// <summary>Regular background color.</summary>
-        public static Color backgroundColor { get { return EditorGUIUtility.isProSkin ? m_DarkThemeBackgroundColor : m_LightThemeBackgroundColor; } }
+        public static Color backgroundColor => EditorGUIUtility.isProSkin ? m_DarkThemeBackgroundColor : m_LightThemeBackgroundColor;
+
         /// <summary>Hightlited background color.</summary>
-        public static Color backgroundHighlightColor { get { return EditorGUIUtility.isProSkin ? m_DarkThemeBackgroundHighlightColor : m_LightThemeBackgroundHighlightColor; } }
+        public static Color backgroundHighlightColor => EditorGUIUtility.isProSkin ? m_DarkThemeBackgroundHighlightColor : m_LightThemeBackgroundHighlightColor;
 
-        /// <summary>Help icon style</summary>
-        public static GUIStyle iconHelpStyle => GUI.skin.FindStyle("IconButton") ?? EditorGUIUtility.GetBuiltinSkin(EditorSkin.Inspector).FindStyle("IconButton");
+        #endregion
 
-        /// <summary>Style of Section Headers.</summary>
-        public static GUIStyle sectionHeaderStyle = new GUIStyle(EditorStyles.largeLabel) { richText = true, fontSize = 18, fixedHeight = 42 };
-        /// <summary>Style of Sub-Section Headers.</summary>
-        public static GUIStyle subSectionHeaderStyle = new GUIStyle(EditorStyles.boldLabel);
+        #region GUIContents
 
-        /// <summary>RenderPipeline Global Settings icon</summary>
-        public static readonly Texture2D globalSettingsIcon;
+        /// <summary>Context Menu button icon</summary>
+        public static readonly GUIContent contextMenuIcon;
 
+        /// <summary>Reset Content</summary>
         public static readonly GUIContent resetButtonLabel = EditorGUIUtility.TrTextContent("Reset");
+
+        /// <summary>Reset All content</summary>
         public static readonly GUIContent resetAllButtonLabel = EditorGUIUtility.TrTextContent("Reset All");
 
+        #endregion
 
         static CoreEditorStyles()
         {
-            smallTickbox = new GUIStyle("ShurikenToggle");
-            smallMixedTickbox = new GUIStyle("ShurikenToggleMixed");
-
-            var transparentTexture = new Texture2D(1, 1, GraphicsFormat.R8G8B8A8_SRGB, TextureCreationFlags.None)
+            m_TransparentTexture = new Texture2D(1, 1, GraphicsFormat.R8G8B8A8_SRGB, TextureCreationFlags.None)
             {
                 name = "transparent"
             };
-            transparentTexture.SetPixel(0, 0, Color.clear);
-            transparentTexture.Apply();
-
-            miniLabelButton = new GUIStyle(EditorStyles.miniLabel)
-            {
-                normal = new GUIStyleState
-                {
-                    background = transparentTexture,
-                    scaledBackgrounds = null,
-                    textColor = Color.grey
-                }
-            };
-            var activeState = new GUIStyleState
-            {
-                background = transparentTexture,
-                scaledBackgrounds = null,
-                textColor = Color.white
-            };
-            miniLabelButton.active = activeState;
-            miniLabelButton.onNormal = activeState;
-            miniLabelButton.onActive = activeState;
+            m_TransparentTexture.SetPixel(0, 0, Color.clear);
+            m_TransparentTexture.Apply();
 
             paneOptionsIconDark = CoreEditorUtils.LoadIcon("Builtin Skins/DarkSkin/Images", "pane options", ".png");
             paneOptionsIconDark.name = "pane options dark skin";
@@ -124,19 +162,16 @@ namespace UnityEditor.Rendering
             m_DarkThemeBackgroundColor = new Color(0.2196079f, 0.2196079f, 0.2196079f, 1.0f);
             m_DarkThemeBackgroundHighlightColor = new Color32(77, 77, 77, 255);
 
-            additionalPropertiesHighlightStyle = new GUIStyle {normal = {background = Texture2D.whiteTexture}};
-
             const string contextTooltip = ""; // To be defined (see with UX)
             contextMenuIcon = new GUIContent(paneOptionsIcon, contextTooltip);
-            contextMenuStyle = new GUIStyle("IconButton");
 
             redTexture = CoreEditorUtils.CreateColoredTexture2D(Color.red, "Red 1x1");
             greenTexture = CoreEditorUtils.CreateColoredTexture2D(Color.green, "Green 1x1");
             blueTexture = CoreEditorUtils.CreateColoredTexture2D(Color.blue, "Blue 1x1");
 
-            iconHelp = EditorGUIUtility.FindTexture("_Help");
-            iconWarn = EditorGUIUtility.FindTexture("console.warnicon");
-            iconFail = EditorGUIUtility.FindTexture("console.erroricon");
+            iconHelp = CoreEditorUtils.FindTexture("_Help");
+            iconWarn = CoreEditorUtils.LoadIcon("icons", "console.warnicon", ".png");
+            iconFail = CoreEditorUtils.LoadIcon("icons", "console.erroricon", ".png");
             iconSuccess = EditorGUIUtility.FindTexture("TestPassed");
             iconPending = EditorGUIUtility.FindTexture("Toolbar Minus");
 
@@ -148,7 +183,7 @@ namespace UnityEditor.Rendering
                 Object.DestroyImmediate(redTexture);
                 Object.DestroyImmediate(greenTexture);
                 Object.DestroyImmediate(blueTexture);
-                Object.DestroyImmediate(transparentTexture);
+                Object.DestroyImmediate(m_TransparentTexture);
                 AssemblyReloadEvents.beforeAssemblyReload -= OnBeforeAssemblyReload;
             }
 

@@ -40,7 +40,8 @@ namespace UnityEditor.Rendering.Universal
         static UniversalGlobalSettingsPanelIMGUI()
         {
             Inspector = CED.Group(
-                LightLayerNamesSection
+                LightLayerNamesSection,
+                MiscSection
             );
         }
 
@@ -185,6 +186,30 @@ namespace UnityEditor.Rendering.Universal
                 globalSettings.ResetRenderingLayerNames();
             });
             menu.DropDown(new Rect(position, Vector2.zero));
+        }
+
+        #endregion
+
+        #region Misc Settings
+
+        static readonly CED.IDrawer MiscSection = CED.Group(
+            CED.Group((serialized, owner) => CoreEditorUtils.DrawSectionHeader(Styles.miscSettingsLabel)),
+            CED.Group((serialized, owner) => EditorGUILayout.Space()),
+            CED.Group(DrawMiscSettings),
+            CED.Group((serialized, owner) => EditorGUILayout.Space())
+        );
+
+        static void DrawMiscSettings(SerializedUniversalRenderPipelineGlobalSettings serialized, Editor owner)
+        {
+            var oldWidth = EditorGUIUtility.labelWidth;
+            EditorGUIUtility.labelWidth = Styles.labelWidth;
+
+            using (new EditorGUI.IndentLevelScope())
+            {
+                EditorGUILayout.PropertyField(serialized.supportRuntimeDebugDisplay, Styles.supportRuntimeDebugDisplayContentLabel);
+            }
+
+            EditorGUIUtility.labelWidth = oldWidth;
         }
 
         #endregion
