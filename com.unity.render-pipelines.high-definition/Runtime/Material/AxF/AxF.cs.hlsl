@@ -84,6 +84,7 @@
 #define DEBUGVIEW_AXF_BSDFDATA_CLEARCOAT_IOR (1277)
 #define DEBUGVIEW_AXF_BSDFDATA_GEOMETRIC_NORMAL (1278)
 #define DEBUGVIEW_AXF_BSDFDATA_GEOMETRIC_NORMAL_VIEW_SPACE (1279)
+#define DEBUGVIEW_AXF_BSDFDATA_VIEW_DIRECTION (1280)
 
 // Generated from UnityEngine.Rendering.HighDefinition.AxF+SurfaceData
 // PackingRules = Exact
@@ -152,6 +153,7 @@ struct BSDFData
     float3 clearcoatNormalWS;
     float clearcoatIOR;
     float3 geomNormalWS;
+    float3 viewWS;
 };
 
 //
@@ -355,6 +357,9 @@ void GetGeneratedBSDFDataDebug(uint paramId, BSDFData bsdfdata, inout float3 res
             break;
         case DEBUGVIEW_AXF_BSDFDATA_GEOMETRIC_NORMAL_VIEW_SPACE:
             result = IsNormalized(bsdfdata.geomNormalWS)? bsdfdata.geomNormalWS * 0.5 + 0.5 : float3(1.0, 0.0, 0.0);
+            break;
+        case DEBUGVIEW_AXF_BSDFDATA_VIEW_DIRECTION:
+            result = bsdfdata.viewWS * 0.5 + 0.5;
             break;
     }
 }
