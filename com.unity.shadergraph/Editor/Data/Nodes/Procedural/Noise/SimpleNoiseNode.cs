@@ -22,13 +22,19 @@ namespace UnityEditor.ShaderGraph
 
         public override IEnumerable<int> allowedNodeVersions => new int[] { 1 };
 
-        public const int UVSlotId = 0;
-        public const int ScaleSlotId = 1;
-        public const int OutSlotId = 2;
+        const int UVSlotId = 0;
+        const int ScaleSlotId = 1;
+        const int OutSlotId = 2;
+        const int PersistenceSlotId = 3;
+        const int LacunaritySlotId = 4;
+        const int BrightnessSlotId = 5;
 
         const string kUVSlotName = "UV";
         const string kScaleSlotName = "Scale";
         const string kOutSlotName = "Out";
+        const string kPersistenceSlotName = "Persistence";
+        const string kLacunaritySlotName = "Lacunarity";
+        const string kBrightnessSlotName = "Brightness";
 
         public NoiseNode()
         {
@@ -43,7 +49,10 @@ namespace UnityEditor.ShaderGraph
             AddSlot(new UVMaterialSlot(UVSlotId, kUVSlotName, kUVSlotName, UVChannel.UV0));
             AddSlot(new Vector1MaterialSlot(ScaleSlotId, kScaleSlotName, kScaleSlotName, SlotType.Input, 500.0f));
             AddSlot(new Vector1MaterialSlot(OutSlotId, kOutSlotName, kOutSlotName, SlotType.Output, 0.0f));
-            RemoveSlotsNameNotMatching(new[] { UVSlotId, ScaleSlotId, OutSlotId });
+            AddSlot(new Vector1MaterialSlot(PersistenceSlotId, kPersistenceSlotName, kPersistenceSlotName, SlotType.Input, 2.0f));
+            AddSlot(new Vector1MaterialSlot(LacunaritySlotId, kLacunaritySlotName, kLacunaritySlotName, SlotType.Input, 2.0f));
+            AddSlot(new Vector1MaterialSlot(BrightnessSlotId, kBrightnessSlotName, kBrightnessSlotName, SlotType.Input, 0.875f));
+            RemoveSlotsNameNotMatching(new[] { UVSlotId, ScaleSlotId, OutSlotId, LacunaritySlotId, PersistenceSlotId, BrightnessSlotId });
         }
 
         [SerializeField]
@@ -52,13 +61,36 @@ namespace UnityEditor.ShaderGraph
         [EnumControl("Hash Type")]
         public HashType hashType
         {
-            get { return m_HashType; }
+            get => m_HashType;
             set
             {
                 if (m_HashType == value)
                     return;
 
                 m_HashType = value;
+                Dirty(ModificationScope.Graph);
+            }
+        }
+
+        [SerializeField]
+        private int m_Octaves = 3;
+
+        [IntegerControl("Octaves")]
+        public int octaves
+        {
+            get => m_Octaves;
+            set
+            {
+                if (m_Octaves == value)
+                    return;
+
+                if (value < 1)
+                    value = 1;
+
+                if (value > 16)
+                    value = 16;
+
+                m_Octaves = value;
                 Dirty(ModificationScope.Graph);
             }
         }
@@ -101,19 +133,24 @@ namespace UnityEditor.ShaderGraph
                 }
             });
 
-            registry.ProvideFunction($"Unity_SimpleNoise_" + hashTypeString + "_$precision", s =>
+            registry.ProvideFunction($"Unity_SimpleNoise{octaves}_" + hashTypeString + "_$precision", s =>
             {
-                s.AppendLine($"void Unity_SimpleNoise_{hashTypeString}_$precision($precision2 UV, $precision Scale, out $precision Out)");
+                s.AppendLine($"void Unity_SimpleNoise{octaves}_{hashTypeString}_$precision($precision2 UV, $precision Scale, $precision Persistence, $precision Lacunarity, $precision Brightness, out $precision Out)");
                 using (s.BlockScope())
                 {
-                    s.AppendLine("$precision freq, amp;");
+                    s.AppendLine("$precision freq = 1.0f;");
+                    s.AppendLine("$precision amp = 1.0f;");
+                    s.AppendLine("$precision total = 0.0f;");
+                    s.AppendLine("UV.xy *= Scale;");
                     s.AppendLine("Out = 0.0f;");
-                    for (int octave = 0; octave < 3; octave++)
+                    for (int octave = 0; octave < octaves; octave++)
                     {
-                        s.AppendLine($"freq = pow(2.0, $precision({octave}));");
-                        s.AppendLine($"amp = pow(0.5, $precision(3-{octave}));");
-                        s.AppendLine($"Out += Unity_SimpleNoise_ValueNoise_{hashTypeString}_$precision($precision2(UV.xy*(Scale/freq)))*amp;");
+                        s.AppendLine($"Out += amp * Unity_SimpleNoise_ValueNoise_{hashTypeString}_$precision($precision2(UV.xy/freq));");
+                        s.AppendLine("total += amp;");
+                        s.AppendLine("freq = freq * Lacunarity;");   // 1.0, 2.0, 4.0      (Lacunarity = 2.0)
+                        s.AppendLine("amp = amp * Persistence;");    // 0.125, 0.25, 0.5   (Persistence == 2.0)
                     }
+                    s.AppendLine("Out = Out * Brightness / total;");
                 }
             });
         }
@@ -123,11 +160,14 @@ namespace UnityEditor.ShaderGraph
             var hashTypeString = hashType.ToString();
             string uv = GetSlotValue(UVSlotId, generationMode);
             string scale = GetSlotValue(ScaleSlotId, generationMode);
+            string lacunarity = GetSlotValue(LacunaritySlotId, generationMode);
+            string persistence = GetSlotValue(PersistenceSlotId, generationMode);
+            string brightness = GetSlotValue(BrightnessSlotId, generationMode);
             string output = GetVariableNameForSlot(OutSlotId);
             var outSlot = FindSlot<MaterialSlot>(OutSlotId);
 
             sb.AppendLine($"{outSlot.concreteValueType.ToShaderString(PrecisionUtil.Token)} {output};");
-            sb.AppendLine($"Unity_SimpleNoise_{hashTypeString}_$precision({uv}, {scale}, {output});");
+            sb.AppendLine($"Unity_SimpleNoise{octaves}_{hashTypeString}_$precision({uv}, {scale}, {persistence}, {lacunarity}, {brightness}, {output});");
         }
 
         public bool RequiresMeshUV(UVChannel channel, ShaderStageCapability stageCapability)
