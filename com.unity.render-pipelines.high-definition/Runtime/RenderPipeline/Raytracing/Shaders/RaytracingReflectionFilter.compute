@@ -136,7 +136,24 @@ void ReflectionAdjustWeight(uint3 dispatchThreadId : SV_DispatchThreadID, uint2 
     float4 lighting = LOAD_TEXTURE2D_X(_SsrLightingTextureRW, targetCoord);
     float weight = ComputeWeightValue(perceptualSmoothness);
 
-    weight = (_RayTracingFallbackHierarchy == RAYTRACINGFALLBACKHIERACHY_NON_RAYTRACED_REFLECTION_PROBES_AND_SKY) ? lighting.w * weight : weight;
+    bool nonRaytracedProbesFallback = (_RayTracingFallbackHierarchy == RAYTRACINGFALLBACKHIERACHY_NON_RAYTRACED_REFLECTION_PROBES_AND_SKY);
+    #ifdef DEMO_BUG_CB_FIXME
+    // Use the following code in fullres mode, under certain scene config, you will get flashing between cyan and black.
+    // ie the int _RayTracingFallbackHierarchy is sometimes corrupted with 0.
+    if (nonRaytracedProbesFallback)
+    {
+        weight = 1;
+        lighting.xyz = float3(0.0, 1.0, 1.0) * GetInverseCurrentExposureMultiplier() * _RayTracingFallbackHierarchy;
+    }
+    else
+    {
+        weight = 1;
+        lighting.xyz = float3(1.0, 0.0, 0.0) * GetInverseCurrentExposureMultiplier() * _RayTracingFallbackHierarchy;
+    }
+    #else
+    weight = nonRaytracedProbesFallback ? lighting.w * weight : weight;
+    #endif
+
     // Output the result to the half resolution part of the texture
     _RaytracingReflectionTexture[COORD_TEXTURE2D_X(targetCoord)] = float4(lighting.xyz, weight);
 }
