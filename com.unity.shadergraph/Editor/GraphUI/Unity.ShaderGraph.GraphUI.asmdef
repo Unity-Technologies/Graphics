@@ -3,7 +3,15 @@
     "references": [
         "Unity.ShaderGraph.Registry",
         "Unity.ShaderGraph.GraphDelta",
-        "Unity.GraphTools.Foundation.Editor"
+        "Unity.Searcher.Editor",
+        "Unity.Properties",
+        "Unity.Properties.UI",
+        "Unity.Properties.UI.Editor",
+        "Unity.GraphTools.Foundation",
+        "Unity.GraphTools.Foundation.Editor",
+        "Unity.GraphTools.Foundation.Overdrive",
+        "Unity.GraphTools.Foundation.Overdrive.Model",
+        "Unity.GraphTools.Foundation.Overdrive.CommandStateObserver"
     ],
     "includePlatforms": [
         "Editor"
