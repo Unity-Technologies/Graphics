@@ -51,8 +51,6 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed cropping issue with the compositor camera bridge (case 1340549).
 - Fixed the transparent cutoff not working properly in semi-transparent and color shadows (case 1340234).
 - Fixed object outline flickering with TAA.
-- Fixed some resolution aliasing for physically based depth of field (case 1340551).
-- Fixed an issue with resolution dependence for physically based depth of field.
 - Fixed the shader graph files that was still dirty after the first save (case 1342039).
 - Fixed cases in which object and camera motion vectors would cancel out, but didn't.
 - Fixed HDRP material upgrade failing when there is a texture inside the builtin resources assigned in the material (case 1339865).
