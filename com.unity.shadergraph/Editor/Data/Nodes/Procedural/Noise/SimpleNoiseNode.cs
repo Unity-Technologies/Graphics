@@ -10,7 +10,7 @@ namespace UnityEditor.ShaderGraph
     {
         Original,
         Fastest,
-        Deterministic
+        CrossPlatform
     };
 
     [Title("Procedural", "Noise", "Simple Noise")]
@@ -47,7 +47,7 @@ namespace UnityEditor.ShaderGraph
         }
 
         [SerializeField]
-        private HashType m_HashType = HashType.Deterministic;
+        private HashType m_HashType = HashType.CrossPlatform;
 
         [EnumControl("Hash Type")]
         public HashType hashType

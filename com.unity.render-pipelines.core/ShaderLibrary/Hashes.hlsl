@@ -20,17 +20,14 @@ void Hash_Tchou_3_3_float(float3 i, out float3 o)
 	o = r * (1.0 / float(0xffffffff));
 }
 
-void Hash_Tchou_2_1_uint(uint2 q, out uint o)
+void Hash_Tchou_2_1_uint(uint2 v, out uint o)
 {
-    uint3 v = uint3(q, q.x ^ q.y);	// TODO can we do without this?
-
-    v.x *= v.y * v.z;       // 2 (1 mul)
-    v.x *= 0x27d4eb2du;     // 1 (1 mul)   
-    v.x ^= v.x >> 4u;       // 2
-    v.y += v.z ^ v.x;       // 2
-    v.y ^= v.y >> 15u;      // 2
-    v.y *= 0x27d4eb2du;     // 1 (1 mul)
-    o = v.y;
+    v.y ^= 1103515245U;     // 1
+    v.x *= v.y;             // 1 mul
+    v.x ^= v.x >> 3u;       // 2
+    v.x *= 0x27d4eb2du;     // 1 mul
+    v.x ^= v.x >> 15u;      // 2
+    o = v.x;
 }
 
 void Hash_Tchou_2_1_float(float2 i, out float o)
