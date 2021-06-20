@@ -408,16 +408,12 @@ Shader "HDRP/LayeredLit"
     #pragma shader_feature_local_fragment _NORMALMAP_TANGENT_SPACE1
     #pragma shader_feature_local_fragment _NORMALMAP_TANGENT_SPACE2
     #pragma shader_feature_local_fragment _NORMALMAP_TANGENT_SPACE3
-    #pragma shader_feature_local_fragment _ _LAYER_MAPPING_PLANAR0 _LAYER_MAPPING_TRIPLANAR0
-    #pragma shader_feature_local_fragment _ _LAYER_MAPPING_PLANAR1 _LAYER_MAPPING_TRIPLANAR1
-    #pragma shader_feature_local_fragment _ _LAYER_MAPPING_PLANAR2 _LAYER_MAPPING_TRIPLANAR2
-    #pragma shader_feature_local_fragment _ _LAYER_MAPPING_PLANAR3 _LAYER_MAPPING_TRIPLANAR3
+    #pragma shader_feature_local _ _LAYER_MAPPING_PLANAR0 _LAYER_MAPPING_TRIPLANAR0
+    #pragma shader_feature_local _ _LAYER_MAPPING_PLANAR1 _LAYER_MAPPING_TRIPLANAR1
+    #pragma shader_feature_local _ _LAYER_MAPPING_PLANAR2 _LAYER_MAPPING_TRIPLANAR2
+    #pragma shader_feature_local _ _LAYER_MAPPING_PLANAR3 _LAYER_MAPPING_TRIPLANAR3
 
     #pragma shader_feature_local_raytracing _ _EMISSIVE_MAPPING_PLANAR _EMISSIVE_MAPPING_TRIPLANAR _EMISSIVE_MAPPING_BASE
-    #pragma shader_feature_local_raytracing _ _LAYER_MAPPING_PLANAR0 _LAYER_MAPPING_TRIPLANAR0
-    #pragma shader_feature_local_raytracing _ _LAYER_MAPPING_PLANAR1 _LAYER_MAPPING_TRIPLANAR1
-    #pragma shader_feature_local_raytracing _ _LAYER_MAPPING_PLANAR2 _LAYER_MAPPING_TRIPLANAR2
-    #pragma shader_feature_local_raytracing _ _LAYER_MAPPING_PLANAR3 _LAYER_MAPPING_TRIPLANAR3
     #pragma shader_feature_local_raytracing _NORMALMAP_TANGENT_SPACE0
     #pragma shader_feature_local_raytracing _NORMALMAP_TANGENT_SPACE1
     #pragma shader_feature_local_raytracing _NORMALMAP_TANGENT_SPACE2

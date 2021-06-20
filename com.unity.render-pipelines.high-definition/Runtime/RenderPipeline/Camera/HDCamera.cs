@@ -1755,14 +1755,24 @@ namespace UnityEngine.Rendering.HighDefinition
         Matrix4x4 ComputePixelCoordToWorldSpaceViewDirectionMatrix(ViewConstants viewConstants, Vector4 resolution, float aspect = -1)
         {
             // In XR mode, use a more generic matrix to account for asymmetry in the projection
-            if (xr.enabled)
-            {
-                var transform = Matrix4x4.Scale(new Vector3(-1.0f, -1.0f, -1.0f)) * viewConstants.invViewProjMatrix;
-                transform = transform * Matrix4x4.Scale(new Vector3(1.0f, -1.0f, 1.0f));
-                transform = transform * Matrix4x4.Translate(new Vector3(-1.0f, -1.0f, 0.0f));
-                transform = transform * Matrix4x4.Scale(new Vector3(2.0f * resolution.z, 2.0f * resolution.w, 1.0f));
+            var useGenericMatrix = xr.enabled;
 
-                return transform.transpose;
+            // Asymmetry is also possible from a user-provided projection, so we must check for it too.
+            // Note however, that in case of physical camera, the lens shift term is the only source of
+            // asymmetry, and this is accounted for in the optimized path below. Additionally, Unity C++ will
+            // automatically disable physical camera when the projection is overridden by user.
+            useGenericMatrix |= HDUtils.IsProjectionMatrixAsymmetric(viewConstants.projMatrix) && !camera.usePhysicalProperties;
+
+            if (useGenericMatrix)
+            {
+                var viewSpaceRasterTransform = new Matrix4x4(
+                    new Vector4(2.0f * resolution.z, 0.0f, 0.0f, -1.0f),
+                    new Vector4(0.0f, -2.0f * resolution.w, 0.0f, 1.0f),
+                    new Vector4(0.0f, 0.0f, 1.0f, 0.0f),
+                    new Vector4(0.0f, 0.0f, 0.0f, 1.0f));
+
+                var transformT = viewConstants.invViewProjMatrix.transpose * Matrix4x4.Scale(new Vector3(-1.0f, -1.0f, -1.0f));
+                return viewSpaceRasterTransform * transformT;
             }
 
             float verticalFoV = camera.GetGateFittedFieldOfView() * Mathf.Deg2Rad;
