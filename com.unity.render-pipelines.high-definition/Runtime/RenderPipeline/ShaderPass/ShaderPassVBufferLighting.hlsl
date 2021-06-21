@@ -50,7 +50,7 @@ float3 DecompressVector3(uint direction)
 
 // START FROM HERE
 
-FragInputs EvaluateFragInput(uint2 posSS, float3 V, uint geometryID, uint triangleID)
+FragInputs EvaluateFragInput(float4 posSS, float3 V, uint geometryID, uint triangleID)
 {
     InstanceVData instanceVData = _InstanceVDataBuffer[max(geometryID - 1, 0)];
     uint i0 = _CompactedIndexBuffer[instanceVData.startIndex + triangleID * 3];
@@ -66,7 +66,7 @@ FragInputs EvaluateFragInput(uint2 posSS, float3 V, uint geometryID, uint triang
     float4 pos0 = mul(mvp, float4(v0.posX, v0.posY, v0.posZ, 1.0));
     float4 pos1 = mul(mvp, float4(v1.posX, v1.posY, v1.posZ, 1.0));
     float4 pos2 = mul(mvp, float4(v2.posX, v2.posY, v2.posZ, 1.0));
-    float3 barycentricCoordinates = CalculateTriangleBarycentrics(posSS * _ScreenSize.zw * 2.0 - 1.0, pos0, pos1, pos2, _ScreenSize.zw);
+    float3 barycentricCoordinates = CalculateTriangleBarycentrics(posSS.xy * _ScreenSize.zw * 2.0 - 1.0, pos0, pos1, pos2, _ScreenSize.zw);
 
     float3 normalOS0 = DecompressVector3(v0.N);
     float3 normalOS1 = DecompressVector3(v1.N);
@@ -90,23 +90,26 @@ FragInputs EvaluateFragInput(uint2 posSS, float3 V, uint geometryID, uint triang
     float3 tangentWS = normalize(mul(instanceVData.localToWorld, tangentOS));
 
     FragInputs outFragInputs;
-    outFragInputs.positionSS = float4(posSS, 0.0, 1.0);
+    ZERO_INITIALIZE(FragInputs, outFragInputs);
+    outFragInputs.positionSS = posSS;
     outFragInputs.positionRWS = 0.0;
-    outFragInputs.texCoord0 = float4(texCoord0, 0.0, 1.0);;
+    outFragInputs.texCoord0 = float4(texCoord0, 0.0, 1.0);
     outFragInputs.tangentToWorld = CreateTangentToWorld(normalWS, tangentWS, 1.0);
     //outFragInputs.tangentToWorld = CreateTangentToWorld(normalWS, tangentWS, sign(currentVertex.tangentOS.w));
     outFragInputs.isFrontFace = dot(V, outFragInputs.tangentToWorld[2]) < 0.0f;
+    return outFragInputs;
 }
 
 void Frag(PackedVaryingsToPS packedInput, out float3 outColor : SV_Target0)
 {
     UNITY_SETUP_STEREO_EYE_INDEX_POST_VERTEX(packedInput);
     
-    FragInputs input = UnpackVaryingsToFragInputs(packedInput);
-
+    uint2 pixelCoord = packedInput.vmesh.positionCS.xy;
     // Grab the geometry information
-    uint triangleID = LOAD_TEXTURE2D_X(_VBuffer0, input.positionSS.xy).x;
-    uint geometryID = LOAD_TEXTURE2D_X(_VBuffer1, input.positionSS.xy).x;
+    uint triangleID = LOAD_TEXTURE2D_X(_VBuffer0, pixelCoord).x;
+    uint geometryID = LOAD_TEXTURE2D_X(_VBuffer1, pixelCoord).x;
+
+    FragInputs input = EvaluateFragInput(packedInput.vmesh.positionCS, float3(0.0, 0.0, 0.0), geometryID, triangleID);
 
     float3 V = GetWorldSpaceNormalizeViewDir(input.positionRWS);
 
@@ -114,6 +117,7 @@ void Frag(PackedVaryingsToPS packedInput, out float3 outColor : SV_Target0)
     float depthValue = LOAD_TEXTURE2D_X(_CameraDepthTexture, input.positionSS.xy);
     int2 tileCoord = (float2)input.positionSS.xy / GetTileSize();
     PositionInputs posInput = GetPositionInput(input.positionSS.xy, _ScreenSize.zw, depthValue, UNITY_MATRIX_I_VP, GetWorldToViewMatrix(), tileCoord);
+    input.positionRWS = posInput.positionWS;
 
     SurfaceData surfaceData;
     BuiltinData builtinData;
