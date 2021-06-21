@@ -431,7 +431,7 @@ universal_pr_job_-_2020.3:
       updated_at: '2021-06-18 23:26:07.105829'
       version: ''
 nightly_shadergraph_-_2020.3:
-  updated_at: '2021-06-20 07:51:05.617897'
+  updated_at: '2021-06-21 07:38:54.726393'
   last_green_revisions:
     Android:
       revision: 508f1823150f4900e2a41e8c76e908ee9f64d405
@@ -454,7 +454,7 @@ nightly_shadergraph_-_2020.3:
       updated_at: '2021-06-18 23:26:07.105829'
       version: ''
 shadergraph_pr_job_-_2020.3:
-  updated_at: '2021-06-20 07:51:05.617897'
+  updated_at: '2021-06-21 07:38:54.726393'
   last_green_revisions:
     Android:
       revision: 508f1823150f4900e2a41e8c76e908ee9f64d405
@@ -477,7 +477,7 @@ shadergraph_pr_job_-_2020.3:
       updated_at: '2021-06-18 23:26:07.105829'
       version: ''
 nightly_vfx_hdrp_-_2020.3:
-  updated_at: '2021-06-20 07:51:05.617897'
+  updated_at: '2021-06-21 07:38:54.726393'
   last_green_revisions:
     Android:
       revision: 508f1823150f4900e2a41e8c76e908ee9f64d405
@@ -500,7 +500,7 @@ nightly_vfx_hdrp_-_2020.3:
       updated_at: '2021-06-18 23:26:07.105829'
       version: ''
 vfx_hdrp_pr_job_-_2020.3:
-  updated_at: '2021-06-20 07:51:05.617897'
+  updated_at: '2021-06-21 07:38:54.726393'
   last_green_revisions:
     Android:
       revision: 508f1823150f4900e2a41e8c76e908ee9f64d405
@@ -523,7 +523,7 @@ vfx_hdrp_pr_job_-_2020.3:
       updated_at: '2021-06-18 23:26:07.105829'
       version: ''
 nightly_vfx_urp_-_2020.3:
-  updated_at: '2021-06-20 07:51:05.617897'
+  updated_at: '2021-06-21 07:38:54.726393'
   last_green_revisions:
     Android:
       revision: 508f1823150f4900e2a41e8c76e908ee9f64d405
@@ -546,7 +546,7 @@ nightly_vfx_urp_-_2020.3:
       updated_at: '2021-06-18 23:26:07.105829'
       version: ''
 vfx_urp_pr_job_-_2020.3:
-  updated_at: '2021-06-20 07:51:05.617897'
+  updated_at: '2021-06-21 07:38:54.726393'
   last_green_revisions:
     Android:
       revision: 508f1823150f4900e2a41e8c76e908ee9f64d405
@@ -569,48 +569,48 @@ vfx_urp_pr_job_-_2020.3:
       updated_at: '2021-06-18 23:26:07.105829'
       version: ''
 hdrp_pr_job_-_2020.3:
-  updated_at: '2021-06-18 07:50:48.920822'
+  updated_at: '2021-06-21 07:38:54.726393'
   last_green_revisions:
     Android:
       revision: 508f1823150f4900e2a41e8c76e908ee9f64d405
       updated_at: '2021-06-17 23:26:18.023588'
       version: ''
     Linux:
-      revision: fe2c2764e2c4b6347ef0e4d95927fbb6dab82fdf
-      updated_at: '2021-06-17 23:26:18.023588'
+      revision: 508f1823150f4900e2a41e8c76e908ee9f64d405
+      updated_at: '2021-06-18 23:26:07.105829'
       version: ''
     OSX:
-      revision: fe2c2764e2c4b6347ef0e4d95927fbb6dab82fdf
-      updated_at: '2021-06-17 23:26:18.023588'
+      revision: 508f1823150f4900e2a41e8c76e908ee9f64d405
+      updated_at: '2021-06-18 23:26:07.105829'
       version: ''
     Win:
-      revision: fe2c2764e2c4b6347ef0e4d95927fbb6dab82fdf
-      updated_at: '2021-06-17 23:26:18.023588'
+      revision: 508f1823150f4900e2a41e8c76e908ee9f64d405
+      updated_at: '2021-06-18 23:26:07.105829'
       version: ''
     iPhone:
-      revision: fe2c2764e2c4b6347ef0e4d95927fbb6dab82fdf
-      updated_at: '2021-06-17 23:26:18.023588'
+      revision: 508f1823150f4900e2a41e8c76e908ee9f64d405
+      updated_at: '2021-06-18 23:26:07.105829'
       version: ''
 nightly_hdrp_-_2020.3:
-  updated_at: '2021-06-18 07:50:48.920822'
+  updated_at: '2021-06-21 07:38:54.726393'
   last_green_revisions:
     Android:
       revision: 508f1823150f4900e2a41e8c76e908ee9f64d405
       updated_at: '2021-06-17 23:26:18.023588'
       version: ''
     Linux:
-      revision: fe2c2764e2c4b6347ef0e4d95927fbb6dab82fdf
-      updated_at: '2021-06-17 23:26:18.023588'
+      revision: 508f1823150f4900e2a41e8c76e908ee9f64d405
+      updated_at: '2021-06-18 23:26:07.105829'
       version: ''
     OSX:
-      revision: fe2c2764e2c4b6347ef0e4d95927fbb6dab82fdf
-      updated_at: '2021-06-17 23:26:18.023588'
+      revision: 508f1823150f4900e2a41e8c76e908ee9f64d405
+      updated_at: '2021-06-18 23:26:07.105829'
       version: ''
     Win:
-      revision: fe2c2764e2c4b6347ef0e4d95927fbb6dab82fdf
-      updated_at: '2021-06-17 23:26:18.023588'
+      revision: 508f1823150f4900e2a41e8c76e908ee9f64d405
+      updated_at: '2021-06-18 23:26:07.105829'
       version: ''
     iPhone:
-      revision: fe2c2764e2c4b6347ef0e4d95927fbb6dab82fdf
-      updated_at: '2021-06-17 23:26:18.023588'
+      revision: 508f1823150f4900e2a41e8c76e908ee9f64d405
+      updated_at: '2021-06-18 23:26:07.105829'
       version: ''
