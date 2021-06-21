@@ -317,6 +317,8 @@ namespace UnityEngine.Rendering.HighDefinition
             public ComputeShader upsampleSceneCS;
             [Reload("Runtime/PostProcessing/Shaders/LensFlareDataDriven.shader")]
             public Shader lensFlareDataDrivenPS;
+            [Reload("Runtime/PostProcessing/Shaders/MSAASuperSampling.compute")]
+            public ComputeShader msaaSuperSamplingCS;
 
             // Physically based DoF
             [Reload("Runtime/PostProcessing/Shaders/DoFCircleOfConfusion.compute")]
