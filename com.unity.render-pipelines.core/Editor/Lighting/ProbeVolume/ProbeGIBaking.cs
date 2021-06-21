@@ -386,6 +386,8 @@ namespace UnityEngine.Experimental.Rendering
         {
             UnityEditor.Experimental.Lightmapping.additionalBakedProbesCompleted -= OnAdditionalProbesBakeCompleted;
             UnityEngine.Profiling.Profiler.BeginSample("OnAdditionalProbesBakeCompleted");
+
+            var probeRefVolume = ProbeReferenceVolume.instance;
             var bakingCells = m_BakingBatch.cells;
             var numCells = bakingCells.Count;
 
@@ -483,7 +485,7 @@ namespace UnityEngine.Experimental.Rendering
                     cell.validity[i] = validity[j];
                 }
 
-                ProbeReferenceVolume.instance.cells[cell.index] = cell;
+                probeRefVolume.cells[cell.index] = cell;
                 UnityEngine.Profiling.Profiler.EndSample();
             }
 
@@ -506,7 +508,7 @@ namespace UnityEngine.Experimental.Rendering
             }
 
             // Put cells into the respective assets
-            foreach (var cell in ProbeReferenceVolume.instance.cells.Values)
+            foreach (var cell in probeRefVolume.cells.Values)
             {
                 foreach (var scene in m_BakingBatch.cellIndex2SceneReferences[cell.index])
                 {
@@ -520,11 +522,11 @@ namespace UnityEngine.Experimental.Rendering
                         {
                             Vector3Int cellsInDir;
                             float cellSizeInMeters = Mathf.CeilToInt(refVol.profile.cellSizeInMeters);
-                            CellCountInDirections(out cellsInDir, cellSizeInMeters);
+                            CellCountInDirections(out asset.maxCellIndex, cellSizeInMeters);
 
-                            asset.maxCellIndex.x = cellsInDir.x * (int)refVol.profile.cellSizeInBricks;
-                            asset.maxCellIndex.y = cellsInDir.y * (int)refVol.profile.cellSizeInBricks;
-                            asset.maxCellIndex.z = cellsInDir.z * (int)refVol.profile.cellSizeInBricks;
+                            asset.maxBrickIndex.x = asset.maxCellIndex.x * refVol.profile.cellSizeInBricks;
+                            asset.maxBrickIndex.y = asset.maxCellIndex.y * refVol.profile.cellSizeInBricks;
+                            asset.maxBrickIndex.z = asset.maxCellIndex.z * refVol.profile.cellSizeInBricks;
                         }
                         else
                         {
@@ -533,9 +535,9 @@ namespace UnityEngine.Experimental.Rendering
                                 float x = Mathf.Abs((float)p.x + refVol.transform.position.x) / refVol.profile.minBrickSize;
                                 float y = Mathf.Abs((float)p.y + refVol.transform.position.y) / refVol.profile.minBrickSize;
                                 float z = Mathf.Abs((float)p.z + refVol.transform.position.z) / refVol.profile.minBrickSize;
-                                asset.maxCellIndex.x = Mathf.Max(asset.maxCellIndex.x, Mathf.CeilToInt(x * 2));
-                                asset.maxCellIndex.y = Mathf.Max(asset.maxCellIndex.y, Mathf.CeilToInt(y * 2));
-                                asset.maxCellIndex.z = Mathf.Max(asset.maxCellIndex.z, Mathf.CeilToInt(z * 2));
+                                asset.maxBrickIndex.x = Mathf.Max(asset.maxBrickIndex.x, Mathf.CeilToInt(x * 2));
+                                asset.maxBrickIndex.y = Mathf.Max(asset.maxBrickIndex.y, Mathf.CeilToInt(y * 2));
+                                asset.maxBrickIndex.z = Mathf.Max(asset.maxBrickIndex.z, Mathf.CeilToInt(z * 2));
                             }
                         }
                     }
@@ -565,7 +567,7 @@ namespace UnityEngine.Experimental.Rendering
 
             UnityEditor.AssetDatabase.SaveAssets();
             UnityEditor.AssetDatabase.Refresh();
-            ProbeReferenceVolume.instance.clearAssetsOnVolumeClear = false;
+            probeRefVolume.clearAssetsOnVolumeClear = false;
 
             foreach (var refVol in refVol2Asset.Keys)
             {

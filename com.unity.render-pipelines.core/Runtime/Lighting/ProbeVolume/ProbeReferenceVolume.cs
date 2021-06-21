@@ -435,9 +435,9 @@ namespace UnityEngine.Experimental.Rendering
             // Compute the max index dimension from all the loaded assets + assets we need to load
             Vector3Int indexDimension = Vector3Int.zero;
             foreach (var a in m_PendingAssetsToBeLoaded.Values)
-                indexDimension = Vector3Int.Max(indexDimension, a.maxCellIndex);
+                indexDimension = Vector3Int.Max(indexDimension, a.maxBrickIndex);
             foreach (var a in m_ActiveAssets.Values)
-                indexDimension = Vector3Int.Max(indexDimension, a.maxCellIndex);
+                indexDimension = Vector3Int.Max(indexDimension, a.maxBrickIndex);
 
             m_PendingIndexDimChange = indexDimension;
             m_NeedsIndexDimChange = m_Index == null || (m_Index != null && indexDimension != m_Index.GetIndexDimension());
