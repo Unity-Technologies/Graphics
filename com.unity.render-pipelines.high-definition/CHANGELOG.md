@@ -10,6 +10,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Added support for lighting full screen debug mode in automated tests.
 - Added Speed Tree 8 shader graph as default Speed Tree 8 shader for HDRP.
 - Added support of motion vector buffer in custom postprocess
+- Added a minimum motion vector length to the motion vector debug view.
 
 ### Fixed
 - Fixed null reference exception in Raytracing SSS volume component.
@@ -48,6 +49,13 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed error with motion blur and small render targets.
 - Fixed issue with on-demand directional shadow maps looking broken when a reflection probe is updated at the same time.
 - Fixed cropping issue with the compositor camera bridge (case 1340549).
+- Fixed the transparent cutoff not working properly in semi-transparent and color shadows (case 1340234).
+- Fixed object outline flickering with TAA.
+- Fixed the shader graph files that was still dirty after the first save (case 1342039).
+- Fixed cases in which object and camera motion vectors would cancel out, but didn't.
+- Fixed HDRP material upgrade failing when there is a texture inside the builtin resources assigned in the material (case 1339865).
+- Fixed custom pass volume not executed in scene view because of the volume culling mask.
+- Fixed an issue with asymmetric projection matrices and fog / pathtracing. (case 1330290).
 
 ### Changed
 - Display an info box and disable MSAA  asset entry when ray tracing is enabled.

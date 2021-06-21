@@ -283,7 +283,7 @@ namespace UnityEditor.Rendering
             //cleanup "raw" textures
             foreach (KeyValuePair<Texture, Texture> prop in m_RawTextures)
             {
-                if (AssetDatabase.Contains(prop.Value))
+                if (prop.Key != prop.Value && AssetDatabase.Contains(prop.Value))
                     AssetDatabase.DeleteAsset(AssetDatabase.GetAssetPath(prop.Value));
             }
 
@@ -299,13 +299,12 @@ namespace UnityEditor.Rendering
             if (m_RawTextures == null) m_RawTextures = new Dictionary<Texture, Texture>();
             if (!m_RawTextures.ContainsKey(original))
             {
-                if (AssetDatabase.Contains(original))
+                string path = AssetDatabase.GetAssetPath(original);
+                string rawPath = "Assets/raw_" + Path.GetFileName(path);
+                bool isBuiltinResource = path.Contains("unity_builtin");
+
+                if (!isBuiltinResource && AssetDatabase.Contains(original) && AssetDatabase.CopyAsset(path, rawPath))
                 {
-                    string path = AssetDatabase.GetAssetPath(original);
-                    string rawPath = "Assets/raw_" + Path.GetFileName(path);
-
-                    AssetDatabase.CopyAsset(path, rawPath);
-
                     AssetDatabase.ImportAsset(rawPath);
 
                     TextureImporter rawImporter = (TextureImporter)AssetImporter.GetAtPath(rawPath);
