@@ -67,7 +67,7 @@ namespace UnityEditor.VFX.Block
                 string Source = @"
 float3 nextPos = position + velocity * deltaTime;
 float3 tPos = mul(invFieldTransform, float4(nextPos, 1.0f)).xyz;
-float cone_radius = lerp(cone_baseRadius, cone_topRadius, saturate(tPos.y)) * colliderSign;
+float cone_radius = lerp(cone_baseRadius, cone_topRadius, saturate(tPos.y/cone_height));
 float cone_halfHeight = cone_height * 0.5f;
 float sqrLength = dot(tPos.xz, tPos.xz);
 ";
@@ -90,18 +90,20 @@ if (collision)
                 if (mode == Mode.Solid)
                     Source += @"
     float3 n =  distToSide < distToCap
-                ? float3(tPos.x * sincosSlope.y, sincosSlope.x, tPos.z * sincosSlope.y)
-                : float3(0, (tPos.y < (cone_height * 0.5f)) ? -1.0f : 1.0f, 0);
+                ? normalize(float3(tPos.x * sincosSlope.y, sincosSlope.x, tPos.z * sincosSlope.y))
+                : float3(0, tPos.y < cone_halfHeight ? -1.0f : 1.0f, 0);
     tPos += n * min(distToSide, distToCap);";
-                else //TODOPAUL
+                else
                     Source += @"
-    tPos += n * float3(max(0, distToSide).xx,max(0, distToCap)).xzy;
-    n *= distToSide > distToCap ? float3(1,0,1) : float3(0,1,0);";
+    float3 n = distToSide > distToCap
+        ? -normalize(float3(tPos.x * sincosSlope.y, sincosSlope.x, tPos.z * sincosSlope.y))
+        : -float3(0, tPos.y < cone_halfHeight ? -1.0f : 1.0f, 0);
+    tPos += n * max(distToSide, distToCap);";
 
                 //Back to initial space
                 Source += @"
-    position = mul(fieldTransform, float4(tPos.xyz, 1.0f));
-    n = VFXSafeNormalize(mul(float4(n, 0.0f), invFieldTransform));";
+    position = mul(fieldTransform, float4(tPos.xyz, 1.0f)).xyz;
+    n = VFXSafeNormalize(mul(float4(n, 0.0f), invFieldTransform).xyz);";
                 Source += collisionResponseSource;
                 Source += @"
 }";
