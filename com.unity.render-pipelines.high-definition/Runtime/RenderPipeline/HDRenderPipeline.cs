@@ -333,6 +333,8 @@ namespace UnityEngine.Rendering.HighDefinition
 
             InitializePostProcess();
 
+            InitVBuffer();
+
             // Initialize various compute shader resources
             m_SsrTracingKernel = m_ScreenSpaceReflectionsCS.FindKernel("ScreenSpaceReflectionsTracing");
             m_SsrReprojectionKernel = m_ScreenSpaceReflectionsCS.FindKernel("ScreenSpaceReflectionsReprojection");
@@ -726,6 +728,9 @@ namespace UnityEngine.Rendering.HighDefinition
             CoreUtils.Destroy(m_MotionVectorResolve);
 
             CustomPassUtils.Cleanup();
+
+            DisposeVBufferStuff();
+
 #if UNITY_EDITOR
             SceneViewDrawMode.ResetDrawMode();
 
@@ -1949,6 +1954,8 @@ namespace UnityEngine.Rendering.HighDefinition
                 // Do anything we need to do upon a new frame.
                 // The NewFrame must be after the VolumeManager update and before Resize because it uses properties set in NewFrame
                 LightLoopNewFrame(cmd, hdCamera);
+
+                CompactAllTheThings();
 
                 // Apparently scissor states can leak from editor code. As it is not used currently in HDRP (apart from VR). We disable scissor at the beginning of the frame.
                 cmd.DisableScissorRect();
