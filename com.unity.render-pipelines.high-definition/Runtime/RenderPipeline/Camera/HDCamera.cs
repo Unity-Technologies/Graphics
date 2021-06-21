@@ -671,7 +671,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
         internal bool IsDLSSEnabled()
         {
-            return m_AdditionalCameraData == null ? false : m_AdditionalCameraData.cameraCanRenderDLSS;
+            return m_AdditionalCameraData == null ? false : (m_AdditionalCameraData.cameraCanRenderDLSS && !HDRenderPipeline.IsMSSSEnabled());
         }
 
         internal bool allowDeepLearningSuperSampling => m_AdditionalCameraData == null ? false : m_AdditionalCameraData.allowDeepLearningSuperSampling;
@@ -774,7 +774,8 @@ namespace UnityEngine.Rendering.HighDefinition
             UpdateAntialiasing();
 
             // ORDER is importand: we read the upsamplerSchedule when we decide if we need to refresh the history buffers, so be careful when moving this
-            DynamicResolutionHandler.instance.upsamplerSchedule = IsDLSSEnabled() ? DynamicResolutionHandler.UpsamplerScheduleType.BeforePost : DynamicResolutionHandler.UpsamplerScheduleType.AfterPost;
+            bool isBeforePost = IsDLSSEnabled() || HDRenderPipeline.IsMSSSEnabled();
+            DynamicResolutionHandler.instance.upsamplerSchedule = isBeforePost ? DynamicResolutionHandler.UpsamplerScheduleType.BeforePost : DynamicResolutionHandler.UpsamplerScheduleType.AfterPost;
 
             // Handle memory allocation.
             if (allocateHistoryBuffers)

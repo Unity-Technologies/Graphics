@@ -2142,9 +2142,11 @@ namespace UnityEngine.Rendering.HighDefinition
 
             hdCamera = HDCamera.GetOrCreate(camera, xrPass.multipassId);
 
+            currentFrameSettings.SetEnabled(FrameSettingsField.LowResTransparent, currentFrameSettings.IsEnabled(FrameSettingsField.LowResTransparent) && !HDRenderPipeline.IsMSSSEnabled());
+
             //Forcefully disable antialiasing if DLSS is enabled.
             if (additionalCameraData != null)
-                currentFrameSettings.SetEnabled(FrameSettingsField.Antialiasing, currentFrameSettings.IsEnabled(FrameSettingsField.Antialiasing) && !additionalCameraData.cameraCanRenderDLSS);
+                currentFrameSettings.SetEnabled(FrameSettingsField.Antialiasing, currentFrameSettings.IsEnabled(FrameSettingsField.Antialiasing) && !additionalCameraData.cameraCanRenderDLSS && !HDRenderPipeline.IsMSSSEnabled());
 
             // From this point, we should only use frame settings from the camera
             hdCamera.Update(currentFrameSettings, this, xrPass);
@@ -2518,6 +2520,11 @@ namespace UnityEngine.Rendering.HighDefinition
         internal void RequestStaticSkyUpdate()
         {
             m_SkyManager.RequestStaticEnvironmentUpdate();
+        }
+
+        internal static bool IsMSSSEnabled()
+        {
+            return DynamicResolutionHandler.instance.DynamicResolutionEnabled() && DynamicResolutionHandler.instance.filter == DynamicResUpscaleFilter.MSAASuperSampling;
         }
 
         /// <summary>

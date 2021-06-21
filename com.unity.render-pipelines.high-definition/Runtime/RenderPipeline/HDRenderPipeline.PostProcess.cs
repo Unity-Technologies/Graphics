@@ -428,6 +428,7 @@ namespace UnityEngine.Rendering.HighDefinition
         TextureHandle RenderPostProcess(RenderGraph     renderGraph,
             in PrepassOutput    prepassOutput,
             TextureHandle       inputColor,
+            TextureHandle       inputColorNonResolved,
             TextureHandle       backBuffer,
             CullingResults      cullResults,
             HDCamera            hdCamera)
@@ -465,12 +466,22 @@ namespace UnityEngine.Rendering.HighDefinition
 
                 source = DynamicExposurePass(renderGraph, hdCamera, source);
 
-                if (m_DLSSPassEnabled && DynamicResolutionHandler.instance.upsamplerSchedule == DynamicResolutionHandler.UpsamplerScheduleType.BeforePost)
+                if (DynamicResolutionHandler.instance.upsamplerSchedule == DynamicResolutionHandler.UpsamplerScheduleType.BeforePost)
                 {
-                    var upsamplignSceneResults = SceneUpsamplePass(renderGraph, hdCamera, source, depthBuffer, motionVectors);
-                    source = upsamplignSceneResults.color;
-                    depthBuffer = upsamplignSceneResults.depthBuffer;
-                    motionVectors = upsamplignSceneResults.motionVectors;
+                    if (hdCamera.DynResRequest.enabled && hdCamera.DynResRequest.filter == DynamicResUpscaleFilter.MSAASuperSampling)
+                    {
+                        var upsamplingSceneResults = MSSSPass(renderGraph, hdCamera, inputColorNonResolved, depthBuffer, motionVectors);
+                        source = upsamplingSceneResults.color;
+                        depthBuffer = upsamplingSceneResults.depthBuffer;
+                        motionVectors = upsamplingSceneResults.motionVectors;
+                    }
+                    else if (m_DLSSPassEnabled)
+                    {
+                        var upsamplingSceneResults = SceneUpsamplePass(renderGraph, hdCamera, source, depthBuffer, motionVectors);
+                        source = upsamplingSceneResults.color;
+                        depthBuffer = upsamplingSceneResults.depthBuffer;
+                        motionVectors = upsamplingSceneResults.motionVectors;
+                    }
                     SetCurrentResolutionGroup(renderGraph, hdCamera, ResolutionGroup.AfterDynamicResUpscale);
                 }
 
@@ -3390,6 +3401,125 @@ namespace UnityEngine.Rendering.HighDefinition
             return outTextures;
         }
 
+        struct MSAASuperSamplingParameters
+        {
+            public ComputeShader cs;
+            public int mainKernel;
+            public int viewCount;
+            public float inputWidth;
+            public float inputHeight;
+            public float outputWidth;
+            public float outputHeight;
+        }
+
+        MSAASuperSamplingParameters PrepareMSSSParams(HDCamera camera)
+        {
+            var parameters = new MSAASuperSamplingParameters();
+            parameters.cs = defaultResources.shaders.msaaSuperSamplingCS;
+            parameters.mainKernel = parameters.cs.FindKernel("MainUpsample");
+            parameters.viewCount = camera.viewCount;
+            parameters.inputWidth = camera.actualWidth;
+            parameters.inputHeight = camera.actualHeight;
+            parameters.outputWidth = camera.finalViewport.width;
+            parameters.outputHeight = camera.finalViewport.height;
+            return parameters;
+        }
+
+        static void DoMSSS(
+            MSAASuperSamplingParameters parameters, CommandBuffer cmd,
+            RTHandle sourceColor, RTHandle sourceDepth, RTHandle sourceMotionVectors,
+            RTHandle outputColor, RTHandle outputDepth, RTHandle outputMotionVectors)
+        {
+            var mainKernel = parameters.mainKernel;
+            if (mainKernel < 0)
+                throw new Exception(String.Format(
+                    "Invalid kernel specified for MSAASuperSampling"));
+
+            var cs = parameters.cs;
+            cmd.SetComputeTextureParam(cs, mainKernel, HDShaderIDs._ColorTextureMS, sourceColor);
+            cmd.SetComputeTextureParam(cs, mainKernel, HDShaderIDs._InputDepth, sourceDepth);
+            cmd.SetComputeTextureParam(cs, mainKernel, HDShaderIDs._CameraMotionVectorsTexture, sourceMotionVectors);
+
+            cmd.SetComputeTextureParam(cs, mainKernel, HDShaderIDs._OutputTexture, outputColor);
+            cmd.SetComputeTextureParam(cs, mainKernel, HDShaderIDs._OutputDepthTexture, outputDepth);
+            cmd.SetComputeTextureParam(cs, mainKernel, HDShaderIDs._OutputMotionVectorTexture, outputMotionVectors);
+
+            cmd.SetComputeVectorParam(cs, HDShaderIDs._SourceSize, new Vector4(parameters.inputWidth, parameters.inputHeight, 1.0f / parameters.inputWidth, 1.0f / parameters.inputHeight));
+            cmd.SetComputeVectorParam(cs, HDShaderIDs._ViewPortSize, new Vector4(parameters.outputWidth, parameters.outputHeight, 1.0f / parameters.outputWidth, 1.0f / parameters.outputHeight));
+
+            const int xThreads = 8;
+            const int yThreads = 4;
+            int dispatchX = HDUtils.DivRoundUp(Mathf.RoundToInt(parameters.outputWidth),  xThreads);
+            int dispatchY = HDUtils.DivRoundUp(Mathf.RoundToInt(parameters.outputHeight), yThreads);
+            cmd.DispatchCompute(cs, mainKernel, dispatchX, dispatchY, parameters.viewCount);
+        }
+
+        class MSSSData
+        {
+            public struct Textures
+            {
+                public TextureHandle color;
+                public TextureHandle depthBuffer;
+                public TextureHandle motionVectors;
+            }
+            public MSAASuperSamplingParameters parameters;
+            public Textures inputTextures = new Textures();
+            public Textures outputTextures = new Textures();
+        }
+
+        MSSSData.Textures MSSSPass(RenderGraph renderGraph, HDCamera hdCamera, TextureHandle inputColor, TextureHandle inputDepth, TextureHandle inputMotionVectors)
+        {
+            MSSSData.Textures outTextures;
+
+            TextureHandle upsampledColor = TextureHandle.nullHandle;
+
+            using (var builder = renderGraph.AddRenderPass<MSSSData>("MSSSPass", out var passData, ProfilingSampler.Get(HDProfileId.MSSS)))
+            {
+                passData.parameters = PrepareMSSSParams(hdCamera);
+                passData.inputTextures.color = builder.ReadTexture(inputColor);
+                passData.inputTextures.depthBuffer = builder.ReadTexture(inputDepth);
+                passData.inputTextures.motionVectors = builder.ReadTexture(inputMotionVectors);
+                passData.outputTextures.color = renderGraph.CreateTexture(new TextureDesc(Vector2.one, false, true)
+                {
+                    name = "Resolved Color Buffer",
+                    colorFormat = renderGraph.GetTextureDesc(inputColor).colorFormat,
+                    useMipMap = false,
+                    enableRandomWrite = true
+                });
+                passData.outputTextures.color = builder.WriteTexture(passData.outputTextures.color);
+                passData.outputTextures.depthBuffer = renderGraph.CreateTexture(new TextureDesc(Vector2.one, false, true)
+                {
+                    name = "Resolved Depth Buffer",
+                    colorFormat = GraphicsFormat.R32_SFloat,
+                    useMipMap = false,
+                    enableRandomWrite = true
+                });
+                passData.outputTextures.depthBuffer = builder.WriteTexture(passData.outputTextures.depthBuffer);
+                passData.outputTextures.motionVectors = renderGraph.CreateTexture(new TextureDesc(Vector2.one, false, true)
+                {
+                    name = "Resolved Motion Vectors",
+                    colorFormat = renderGraph.GetTextureDesc(inputMotionVectors).colorFormat,
+                    useMipMap = false,
+                    enableRandomWrite = true
+                });
+                passData.outputTextures.motionVectors = builder.WriteTexture(passData.outputTextures.motionVectors);
+                builder.SetRenderFunc(
+                    (MSSSData data, RenderGraphContext ctx) =>
+                    {
+                        DoMSSS(
+                            data.parameters, ctx.cmd,
+                            (RTHandle)data.inputTextures.color,
+                            data.inputTextures.depthBuffer,
+                            data.inputTextures.motionVectors,
+                            data.outputTextures.color,
+                            data.outputTextures.depthBuffer,
+                            data.outputTextures.motionVectors);
+                    });
+                outTextures = passData.outputTextures;
+            }
+            return outTextures;
+        }
+
         private void SetCurrentResolutionGroup(RenderGraph renderGraph, HDCamera camera, ResolutionGroup newResGroup)
         {
             if (resGroup == newResGroup)
@@ -4570,6 +4700,7 @@ namespace UnityEngine.Rendering.HighDefinition
                                     case DynamicResUpscaleFilter.Lanczos:
                                         finalPassMaterial.EnableKeyword("LANCZOS");
                                         break;
+                                    case DynamicResUpscaleFilter.MSAASuperSampling:
                                     case DynamicResUpscaleFilter.ContrastAdaptiveSharpen:
                                     case DynamicResUpscaleFilter.EdgeAdaptiveScalingUpres:
                                         finalPassMaterial.EnableKeyword("BYPASS");
