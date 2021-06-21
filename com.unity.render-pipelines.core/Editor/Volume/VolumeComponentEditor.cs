@@ -83,6 +83,9 @@ namespace UnityEditor.Rendering
             public static GUIContent noneText { get; } = EditorGUIUtility.TrTextContent("NONE", "Toggle all overrides off.");
 
             public static string toggleAllText { get; } = L10n.Tr("Toggle All");
+
+            public const int overrideCheckboxWidth = 14;
+            public const int overrideCheckboxOffset = 9;
         }
 
         Vector2? m_OverrideToggleSize;
@@ -457,8 +460,7 @@ namespace UnityEditor.Rendering
         /// <returns>true if the property field has been rendered</returns>
         protected bool PropertyField(SerializedDataParameter property)
         {
-            var title = EditorGUIUtility.TrTextContent(property.displayName,
-                property.GetAttribute<TooltipAttribute>()?.tooltip);
+            var title = EditorGUIUtility.TrTextContent(property.displayName);
             return PropertyField(property, title);
         }
 
@@ -498,16 +500,12 @@ namespace UnityEditor.Rendering
                         EditorGUILayout.GetControlRect(false, spaceAttribute.height);
                         break;
                     case HeaderAttribute headerAttribute:
-                    {
                         DrawHeader(headerAttribute.header);
                         break;
-                    }
                     case TooltipAttribute tooltipAttribute:
-                    {
                         if (string.IsNullOrEmpty(title.tooltip))
                             title.tooltip = tooltipAttribute.tooltip;
                         break;
-                    }
                     case InspectorNameAttribute inspectorNameAttribute:
                         title.text = inspectorNameAttribute.displayName;
                         break;
@@ -524,26 +522,10 @@ namespace UnityEditor.Rendering
         /// <returns>true if the property field has been rendered</returns>
         protected bool PropertyField(SerializedDataParameter property, GUIContent title)
         {
-            bool draw = false;
-            if (property.GetAttribute<AdditionalPropertyAttribute>() == null)
-            {
-                // If the property doesn't have the attribute render it right away
-                DrawPropertyField(property, title);
-                draw = true;
-            }
+            if (VolumeParameter.IsObjectParameter(property.referenceType))
+                return DrawEmbeddedField(property, title);
             else
-            {
-                // The user had selected the option 'Show additional Properties'?
-                if (BeginAdditionalPropertiesScope())
-                {
-                    DrawPropertyField(property, title);
-                    draw = true;
-                }
-                EndAdditionalPropertiesScope();
-            }
-
-            // Return if the property has been
-            return draw;
+                return DrawPropertyField(property, title);
         }
 
         /// <summary>
@@ -552,33 +534,54 @@ namespace UnityEditor.Rendering
         /// </summary>
         /// <param name="property">The property to draw in the editor.</param>
         /// <param name="title">A custom label and/or tooltip.</param>
-        private void DrawPropertyField(SerializedDataParameter property, GUIContent title)
+        private bool DrawPropertyField(SerializedDataParameter property, GUIContent title)
         {
-            HandleDecorators(property, title);
+            using (var scope = new OverridablePropertyScope(property, title, this))
+            {
+                if (!scope.displayed)
+                    return false;
+
+                // Custom drawer
+                if (scope.drawer?.OnGUI(property, title) ?? false)
+                    return true;
+
+                // Standard Unity drawer
+                EditorGUILayout.PropertyField(property.value, title);
+            }
+
+            return true;
+        }
+
+        /// <summary>
+        /// Draws a given <see cref="SerializedDataParameter"/> in the editor using a custom label
+        /// and tooltip. This variant is only for embedded class / struct
+        /// </summary>
+        /// <param name="property">The property to draw in the editor.</param>
+        /// <param name="title">A custom label and/or tooltip.</param>
+        private bool DrawEmbeddedField(SerializedDataParameter property, GUIContent title)
+        {
+            bool isAdditionalProperty = property.GetAttribute<AdditionalPropertyAttribute>() != null;
+            bool displayed = !isAdditionalProperty || BeginAdditionalPropertiesScope();
+            if (!displayed)
+                return false;
 
             // Custom parameter drawer
             s_ParameterDrawers.TryGetValue(property.referenceType, out VolumeParameterDrawer drawer);
-
-            bool invalidProp = false;
-
             if (drawer != null && !drawer.IsAutoProperty())
-            {
                 if (drawer.OnGUI(property, title))
-                    return;
+                {
+                    if (isAdditionalProperty)
+                        EndAdditionalPropertiesScope();
+                    return true;
+                }
 
-                invalidProp = true;
-            }
-
-            // ObjectParameter<T> is a special case
-            if (VolumeParameter.IsObjectParameter(property.referenceType))
+            // Standard Unity drawer
+            using (new IndentLevelScope())
             {
-                bool expanded = property.value.isExpanded;
+                bool expanded = property?.value?.isExpanded ?? true;
                 expanded = EditorGUILayout.Foldout(expanded, title, true);
-
                 if (expanded)
                 {
-                    EditorGUI.indentLevel++;
-
                     // Not the fastest way to do it but that'll do just fine for now
                     var it = property.value.Copy();
                     var end = it.GetEndProperty();
@@ -589,33 +592,13 @@ namespace UnityEditor.Rendering
                         PropertyField(Unpack(it));
                         first = false;
                     }
-
-                    EditorGUI.indentLevel--;
                 }
-
                 property.value.isExpanded = expanded;
-                return;
             }
 
-            using (new EditorGUILayout.HorizontalScope())
-            {
-                // Override checkbox
-                DrawOverrideCheckbox(property);
-
-                // Property
-                using (new EditorGUI.DisabledScope(!property.overrideState.boolValue))
-                {
-                    if (drawer != null && !invalidProp)
-                    {
-                        drawer.OnGUI(property, title);
-                    }
-                    else
-                    {
-                        // Default unity field
-                        EditorGUILayout.PropertyField(property.value, title);
-                    }
-                }
-            }
+            if (isAdditionalProperty)
+                EndAdditionalPropertiesScope();
+            return true;
         }
 
         /// <summary>
@@ -626,13 +609,149 @@ namespace UnityEditor.Rendering
         {
             // Create a rect the height + vspacing of the property that is being overriden
             float height = EditorGUI.GetPropertyHeight(property.value) + EditorGUIUtility.standardVerticalSpacing;
-            var overrideRect = GUILayoutUtility.GetRect(Styles.allText, CoreEditorStyles.miniLabelButton, GUILayout.Height(height), GUILayout.ExpandWidth(false));
+            var overrideRect = GUILayoutUtility.GetRect(Styles.allText, CoreEditorStyles.miniLabelButton, GUILayout.Height(height), GUILayout.Width(Styles.overrideCheckboxWidth + Styles.overrideCheckboxOffset), GUILayout.ExpandWidth(false));
 
             // also center vertically the checkbox
             overrideRect.yMin += height * 0.5f - overrideToggleSize.y * 0.5f;
-            overrideRect.xMin += overrideToggleSize.x * 0.5f;
+            overrideRect.xMin += Styles.overrideCheckboxOffset;
 
             property.overrideState.boolValue = GUI.Toggle(overrideRect, property.overrideState.boolValue, Styles.overrideSettingText, CoreEditorStyles.smallTickbox);
+        }
+
+        /// <summary>
+        /// Scope for property that handle:
+        /// - Layout decorator (Space, Header)
+        /// - Naming decorator (Tooltips, InspectorName)
+        /// - Overridable checkbox if parameter IsAutoProperty
+        /// - disabled GUI if Overridable checkbox (case above) is unchecked
+        /// - additional property scope
+        /// This is automatically used inside PropertyField method
+        /// </summary>
+        protected struct OverridablePropertyScope : IDisposable
+        {
+            bool isAdditionalProperty;
+            VolumeComponentEditor editor;
+            IDisposable disabledScope;
+            internal bool haveCustomOverrideCheckbox { get; private set; }
+            internal VolumeParameterDrawer drawer { get; private set; }
+            /// <summary>
+            /// Either the content property will be displayed or not (can varry with additional property settings)
+            /// </summary>
+            public bool displayed { get; private set; }
+            /// <summary>
+            /// The title modified regarding attribute used on the field
+            /// </summary>
+            public GUIContent label { get; private set; }
+
+            /// <summary>
+            /// Constructor
+            /// </summary>
+            /// <param name="property">The property that will be drawn</param>
+            /// <param name="label">The label of this property</param>
+            /// <param name="editor">The editor that will draw it</param>
+            public OverridablePropertyScope(SerializedDataParameter property, GUIContent label, VolumeComponentEditor editor)
+            {
+                disabledScope = null;
+                haveCustomOverrideCheckbox = false;
+                drawer = null;
+                displayed = false;
+                isAdditionalProperty = false;
+                this.label = label;
+                this.editor = editor;
+
+                Init(property, label, editor);
+            }
+
+            /// <summary>
+            /// Constructor
+            /// </summary>
+            /// <param name="property">The property that will be drawn</param>
+            /// <param name="label">The label of this property</param>
+            /// <param name="editor">The editor that will draw it</param>
+            public OverridablePropertyScope(SerializedDataParameter property, string label, VolumeComponentEditor editor)
+            {
+                disabledScope = null;
+                haveCustomOverrideCheckbox = false;
+                drawer = null;
+                displayed = false;
+                isAdditionalProperty = false;
+                this.label = EditorGUIUtility.TrTextContent(label);
+                this.editor = editor;
+
+                Init(property, this.label, editor);
+            }
+
+            void Init(SerializedDataParameter property, GUIContent label, VolumeComponentEditor editor)
+            {
+                // Below, 3 is horizontal spacing and there is one between label and field and another between override checkbox and label
+                EditorGUIUtility.labelWidth -= Styles.overrideCheckboxWidth + Styles.overrideCheckboxOffset + 3 + 3;
+
+                isAdditionalProperty = property.GetAttribute<AdditionalPropertyAttribute>() != null;
+                displayed = !isAdditionalProperty || editor.BeginAdditionalPropertiesScope();
+
+                s_ParameterDrawers.TryGetValue(property.referenceType, out VolumeParameterDrawer vpd);
+                drawer = vpd;
+
+                //never draw override for embedded class/struct
+                haveCustomOverrideCheckbox = (displayed && !(drawer?.IsAutoProperty() ?? true))
+                    || VolumeParameter.IsObjectParameter(property.referenceType);
+
+                if (displayed)
+                    editor.HandleDecorators(property, label);
+
+                if (!haveCustomOverrideCheckbox && displayed)
+                {
+                    EditorGUILayout.BeginHorizontal();
+                    editor.DrawOverrideCheckbox(property);
+
+                    disabledScope = new EditorGUI.DisabledScope(!property.overrideState.boolValue);
+                }
+            }
+
+            void IDisposable.Dispose()
+            {
+                disabledScope?.Dispose();
+
+                if (!haveCustomOverrideCheckbox && displayed)
+                    EditorGUILayout.EndHorizontal();
+
+                if (isAdditionalProperty)
+                    editor.EndAdditionalPropertiesScope();
+
+                EditorGUIUtility.labelWidth += Styles.overrideCheckboxWidth + Styles.overrideCheckboxOffset + 3 + 3;
+            }
+        }
+
+        /// <summary>
+        /// Like EditorGUI.IndentLevelScope but this one will also indent the override checkboxes.
+        /// </summary>
+        protected class IndentLevelScope : GUI.Scope
+        {
+            int m_Offset;
+
+            /// <summary>
+            /// Constructor
+            /// </summary>
+            /// <param name="offset">[optional] Change the indentation offset</param>
+            public IndentLevelScope(int offset = 15)
+            {
+                m_Offset = offset;
+
+                // When using EditorGUI.indentLevel++, the clicking on the checkboxes does not work properly due to some issues on the C++ side.
+                // This scope is a work-around for this issue.
+                GUILayout.BeginHorizontal();
+                EditorGUILayout.Space(offset, false);
+                GUIStyle style = new GUIStyle();
+                GUILayout.BeginVertical(style);
+                EditorGUIUtility.labelWidth -= m_Offset;
+            }
+
+            protected override void CloseScope()
+            {
+                EditorGUIUtility.labelWidth += m_Offset;
+                GUILayout.EndVertical();
+                GUILayout.EndHorizontal();
+            }
         }
     }
 }

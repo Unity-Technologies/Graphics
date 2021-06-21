@@ -169,7 +169,7 @@ namespace UnityEditor.Rendering.HighDefinition
             PropertyField(m_CloudControl);
             VolumetricClouds.CloudControl controlMode = (VolumetricClouds.CloudControl)m_CloudControl.value.enumValueIndex;
             bool hasCloudMap = true;
-            using (new HDEditorUtils.IndentScope())
+            using (new IndentLevelScope())
             {
                 bool needsIntendation = false;
                 if (controlMode == VolumetricClouds.CloudControl.Advanced)
@@ -202,7 +202,7 @@ namespace UnityEditor.Rendering.HighDefinition
                 VolumetricClouds.CloudPresets controlPreset = (VolumetricClouds.CloudPresets)m_CloudPreset.value.enumValueIndex;
                 if ((controlMode != VolumetricClouds.CloudControl.Simple) || controlMode == VolumetricClouds.CloudControl.Simple && controlPreset == VolumetricClouds.CloudPresets.Custom)
                 {
-                    using (new HDEditorUtils.IndentScope(needsIntendation ? 16 : 0))
+                    using (new IndentLevelScope(needsIntendation ? 16 : 0))
                     {
                         if (controlMode == VolumetricClouds.CloudControl.Simple)
                         {
@@ -232,7 +232,7 @@ namespace UnityEditor.Rendering.HighDefinition
 
             DrawHeader("Wind");
             PropertyField(m_GlobalWindSpeed);
-            using (new HDEditorUtils.IndentScope())
+            using (new IndentLevelScope())
             {
                 PropertyField(m_Orientation);
                 if (hasCloudMap)
@@ -260,7 +260,7 @@ namespace UnityEditor.Rendering.HighDefinition
             DrawHeader("Shadows");
             {
                 PropertyField(m_Shadows);
-                using (new HDEditorUtils.IndentScope())
+                using (new IndentLevelScope())
                 {
                     PropertyField(m_ShadowResolution);
                     PropertyField(m_ShadowOpacity);
