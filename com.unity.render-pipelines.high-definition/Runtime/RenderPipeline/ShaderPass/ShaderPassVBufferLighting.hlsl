@@ -50,7 +50,7 @@ float3 DecompressVector3(uint direction)
 
 // START FROM HERE
 
-FragInputs EvaluateFragInput(uint2 posSS, float3 V, uint geometryID, uint triangleID, int localIndex)
+FragInputs EvaluateFragInput(uint2 posSS, float3 V, uint geometryID, uint triangleID)
 {
     InstanceVData instanceVData = _InstanceVDataBuffer[max(geometryID - 1, 0)];
     uint i0 = _CompactedIndexBuffer[instanceVData.startIndex + triangleID * 3];
