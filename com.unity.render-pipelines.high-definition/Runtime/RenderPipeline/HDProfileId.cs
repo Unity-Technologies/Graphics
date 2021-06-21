@@ -32,6 +32,9 @@ namespace UnityEngine.Rendering.HighDefinition
         SsrReprojection,
         SsrAccumulate,
 
+        // VBuffer
+        VBufferPrepass,
+
         // SSGI
         SSGIPass,
         SSGITrace,

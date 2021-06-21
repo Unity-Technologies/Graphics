@@ -208,6 +208,10 @@ Shader "HDRP/Lit"
         // Ray Tracing
         [ToggleUI] _RayTracing("Ray Tracing (Preview)", Float) = 0
 
+        // VBuffer Data
+        [HideInInspector] [PerRendererData] _GeometryId("_GeometryId", Int) = 0
+        [HideInInspector] _MaterialId("_MaterialId", Int) = 0
+
         [HideInInspector] _DiffusionProfile("Obsolete, kept for migration purpose", Int) = 0
         [HideInInspector] _DiffusionProfileAsset("Diffusion Profile Asset", Vector) = (0, 0, 0, 0)
         [HideInInspector] _DiffusionProfileHash("Diffusion Profile Hash", Float) = 0

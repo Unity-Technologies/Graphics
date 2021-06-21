@@ -138,7 +138,10 @@ namespace UnityEngine.Rendering.HighDefinition
 
         void CompactAllTheThings()
         {
-            HashSet<Mesh> meshes = new HashSet<Mesh>();
+            int geometryId = 0;
+            Dictionary<Mesh, int> meshes = new Dictionary<Mesh, int>();
+            HashSet<Material> materials = new HashSet<Material>();
+            MaterialPropertyBlock propBlock = new MaterialPropertyBlock();
 
             // Grab all the renderers from the scene
             var rendererArray = UnityEngine.GameObject.FindObjectsOfType<MeshRenderer>();
@@ -158,15 +161,49 @@ namespace UnityEngine.Rendering.HighDefinition
                 currentRenderer.TryGetComponent(out MeshFilter meshFilter);
                 if (meshFilter == null || meshFilter.sharedMesh == null) continue;
 
-                meshes.Add(meshFilter.sharedMesh);
+                int index = 0;
+                if(!meshes.TryGetValue(meshFilter.sharedMesh, out index))
+                {
+                    meshes.Add(meshFilter.sharedMesh, geometryId);
+                    index = geometryId;
+                    geometryId++;
+                }
+
+                // Get the current value of the material properties in the renderer.
+                currentRenderer.GetPropertyBlock(propBlock);
+
+                // Assign our new value.
+                propBlock.SetInt("_GeometryId", index);
+
+                // Apply the edited values to the renderer.
+                currentRenderer.SetPropertyBlock(propBlock);
+
+                foreach (var mat in currentRenderer.sharedMaterials)
+                    materials.Add(mat);
+            }
+
+            // Assign indices to materials
+            int materialIdx = 0;
+            foreach(var material in materials)
+            {
+                material.SetInt("_MaterialId", materialIdx);
+                materialIdx++;
+            }
+
+            // Assign Ids to geometries
+            for (var i = 0; i < rendererArray.Length; i++)
+            {
+                // Fetch the current renderer
+                MeshRenderer currentRenderer = rendererArray[i];
+
             }
 
             int vertexCount = 0;
             int indexCount = 0;
             foreach (var mesh in meshes)
             {
-                vertexCount += mesh.vertexCount;
-                indexCount += mesh.GetIndexBuffer().count;
+                vertexCount += mesh.Key.vertexCount;
+                indexCount += mesh.Key.GetIndexBuffer().count;
             }
 
             int currVBCount = CompactedVB == null ? 0 : CompactedVB.count;
@@ -187,8 +224,80 @@ namespace UnityEngine.Rendering.HighDefinition
 
             foreach (var mesh in meshes)
             {
-                AddMeshToCompactedBuffer(ref vbStart, ref ibStart, mesh);
+                AddMeshToCompactedBuffer(ref vbStart, ref ibStart, mesh.Key);
             }
+        }
+
+        internal struct VBufferOutput
+        {
+            public TextureHandle vbuffer0;
+            public TextureHandle vbuffer1;
+            public TextureHandle materialDepthBuffer;
+            public TextureHandle depthBuffer;
+        }
+
+        class VBufferPassData
+        {
+            public TextureHandle tempColorBuffer;
+            public TextureHandle vbuffer0;
+            public TextureHandle vbuffer1;
+            public TextureHandle materialDepthBuffer;
+            public TextureHandle depthBuffer;
+            public FrameSettings frameSettings;
+            public RendererList rendererList;
+        }
+
+        VBufferOutput RenderVBuffer(RenderGraph renderGraph, CullingResults cullingResults, HDCamera hdCamera, TextureHandle tempColorBuffer)
+        {
+            VBufferOutput vBufferOutput = new VBufferOutput();
+
+            // These flags are still required in SRP or the engine won't compute previous model matrices...
+            // If the flag hasn't been set yet on this camera, motion vectors will skip a frame.
+            hdCamera.camera.depthTextureMode |= DepthTextureMode.MotionVectors | DepthTextureMode.Depth;
+
+            using (var builder = renderGraph.AddRenderPass<VBufferPassData>("VBuffer Prepass", out var passData, ProfilingSampler.Get(HDProfileId.VBufferPrepass)))
+            {
+                builder.AllowRendererListCulling(false);
+
+                passData.tempColorBuffer = builder.WriteTexture(tempColorBuffer);
+                passData.vbuffer0 = builder.WriteTexture(renderGraph.CreateTexture(new TextureDesc(Vector2.one, true, true)
+                { colorFormat = GraphicsFormat.R32_UInt, enableRandomWrite = true, name = "VBuffer 0" }));
+                /*
+                passData.vbuffer1 = builder.WriteTexture(renderGraph.CreateTexture(new TextureDesc(Vector2.one, true, true)
+                { colorFormat = GraphicsFormat.R16_UInt, enableRandomWrite = true, name = "VBuffer 1" }));
+                passData.materialDepthBuffer = builder.WriteTexture(renderGraph.CreateTexture(new TextureDesc(Vector2.one, true, true)
+                { colorFormat = GraphicsFormat.R32_SFloat, enableRandomWrite = true, name = "Material Buffer" }));
+                */
+                passData.depthBuffer = CreateDepthBuffer(renderGraph, hdCamera.clearDepth, hdCamera.msaaSamples);
+
+                builder.UseDepthBuffer(passData.depthBuffer, DepthAccess.ReadWrite);
+                builder.UseColorBuffer(passData.vbuffer0, 0);
+                /*
+                builder.UseColorBuffer(passData.vbuffer1, 1);
+                builder.UseColorBuffer(passData.materialDepthBuffer, 2);
+                */
+
+                passData.frameSettings = hdCamera.frameSettings;
+                var opaqueRenderList = CreateOpaqueRendererListDesc(
+                    cullingResults, hdCamera.camera, m_VBufferNames,
+                    renderQueueRange: HDRenderQueue.k_RenderQueue_AllOpaque,
+                    stateBlock: m_AlphaToMaskBlock,
+                    excludeObjectMotionVectors: true);
+                var renderList = renderGraph.CreateRendererList(opaqueRenderList);
+                passData.rendererList = builder.UseRendererList(renderList);
+
+                builder.SetRenderFunc(
+                    (DrawRendererListPassData data, RenderGraphContext context) =>
+                    {
+                        DrawOpaqueRendererList(context.renderContext, context.cmd, data.frameSettings, data.rendererList);
+                    });
+
+                vBufferOutput.vbuffer0 = passData.vbuffer0;
+                vBufferOutput.vbuffer1 = passData.vbuffer1;
+                vBufferOutput.materialDepthBuffer = passData.materialDepthBuffer;
+                vBufferOutput.depthBuffer = passData.depthBuffer;
+            }
+            return vBufferOutput;
         }
     }
 }

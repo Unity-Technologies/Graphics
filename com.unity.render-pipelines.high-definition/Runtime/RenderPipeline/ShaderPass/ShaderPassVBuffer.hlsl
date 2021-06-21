@@ -14,8 +14,10 @@ PackedVaryingsType Vert(AttributesMesh inputMesh)
 }
 
 
-void Frag(PackedVaryingsToPS packedInput,
-    out uint VBuffer1 : SV_Target0,
+void Frag(PackedVaryingsToPS packedInput, 
+    uint primitiveID : SV_PrimitiveID, 
+    out uint VBuffer0 : SV_Target0,
+    out uint VBuffer1 : SV_Target1,
     out float MaterialDepth : SV_Target1)
 {
     UNITY_SETUP_STEREO_EYE_INDEX_POST_VERTEX(packedInput);
@@ -24,11 +26,17 @@ void Frag(PackedVaryingsToPS packedInput,
     // input.positionSS is SV_Position
     PositionInputs posInput = GetPositionInput(input.positionSS.xy, _ScreenSize.zw, input.positionSS.z, input.positionSS.w, input.positionRWS);
 
-    // Fetch triangle ID
+    // Fetch triangle ID (32 bits)
+    uint triangleId = primitiveID;
 
-    // Write Triangle ID
+    // Fetch the Geometry ID (16 bits compressed)
+    uint geometryId = _GeometryId;
 
-    // Fetch Material ID ? somehow
-    // Write Material ID to Depth <<< Later
+    // Fetch the Material ID 
+    uint materialId = _MaterialId;
 
+    // Write the VBuffer
+    VBuffer0 = triangleId;
+    VBuffer1 = geometryId & 0xffff;
+    MaterialDepth = materialId;
 }
