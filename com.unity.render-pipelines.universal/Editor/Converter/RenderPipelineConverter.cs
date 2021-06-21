@@ -1,5 +1,7 @@
 using System;
+using System.Runtime.CompilerServices;
 
+[assembly: InternalsVisibleTo("PPv2URPConverters")]
 namespace UnityEditor.Rendering.Universal.Converters
 {
     // Might need to change this name before making it public
@@ -52,6 +54,13 @@ namespace UnityEditor.Rendering.Universal.Converters
         /// </summary>
         /// <param name="context">The context that will be used to initialize data for the converter.</param>
         public abstract void OnInitialize(InitializeConverterContext context, Action callback);
+
+        /// <summary>
+        /// The method that will be run before Run method if needed.
+        /// </summary>
+        public virtual void OnPreRun()
+        {
+        }
 
         /// <summary>
         /// The method that will be run when converting the assets.

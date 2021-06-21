@@ -89,7 +89,7 @@ void ValidateHistory(uint3 dispatchThreadId : SV_DispatchThreadID, uint2 groupTh
     float2 historyTapCoord = (float2)((posInputs.positionNDC - velocity) * _ScreenSize.xy);
 
     // If the pixel was outside of the screen during the previous frame, invalidate the history
-    if (historyTapCoord.x > _ScreenSize.x || historyTapCoord.x < 0 || historyTapCoord.y > _ScreenSize.y || historyTapCoord.y < 0)
+    if (historyTapCoord.x >= _ScreenSize.x || historyTapCoord.x < 0 || historyTapCoord.y >= _ScreenSize.y || historyTapCoord.y < 0)
     {
         _ValidationBufferRW[COORD_TEXTURE2D_X(centerCoord)] = HISTORYREJECTIONFLAGS_REPROJECTION | HISTORYREJECTIONFLAGS_PREVIOUS_DEPTH | HISTORYREJECTIONFLAGS_POSITION | HISTORYREJECTIONFLAGS_NORMAL | HISTORYREJECTIONFLAGS_MOTION;
         return;

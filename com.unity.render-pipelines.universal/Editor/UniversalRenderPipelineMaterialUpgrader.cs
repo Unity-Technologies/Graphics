@@ -20,6 +20,8 @@ namespace UnityEditor.Rendering.Universal
 
         static List<MaterialUpgrader> m_Upgraders;
         private static HashSet<string> m_ShaderNamesToIgnore;
+
+        public IReadOnlyList<MaterialUpgrader> upgraders => m_Upgraders;
         static UniversalRenderPipelineMaterialUpgrader()
         {
             m_Upgraders = new List<MaterialUpgrader>();

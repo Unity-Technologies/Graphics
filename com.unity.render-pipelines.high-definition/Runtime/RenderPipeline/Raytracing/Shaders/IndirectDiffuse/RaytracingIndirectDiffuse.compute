@@ -47,6 +47,9 @@ void RaytracingIndirectDiffuseHalfRes(uint3 dispatchThreadId : SV_DispatchThread
     // Pixel coordinate in full res of the pixel that we will be using for our computation
     uint2 sourceCoord = ComputeSourceCoordinates(halfResCoord, _RaytracingFrameIndex);
 
+    // Initialize the buffer with invalid values
+    _RaytracingDirectionBuffer[COORD_TEXTURE2D_X(outputCoord)] = float4(0.0, 0.0, 0.0, -1.0f);
+
     // Read the depth value
     float depthValue = LOAD_TEXTURE2D_X(_DepthTexture, sourceCoord).r;
 
@@ -187,8 +190,8 @@ void INDIRECT_DIFFUSE_INTEGRATION_UPSCALE(uint3 dispatchThreadId : SV_DispatchTh
             #endif
 
             // If this pixel is outside of the screen, we cannot use it
-            if(sampleCoord.x < 0 || sampleCoord.x > _ScreenSize.x
-                || sampleCoord.y < 0 || sampleCoord.y > _ScreenSize.y)
+            if(sampleCoord.x < 0 || sampleCoord.x >= _ScreenSize.x
+                || sampleCoord.y < 0 || sampleCoord.y >= _ScreenSize.y)
             continue;
 
             // Fetch the target color
