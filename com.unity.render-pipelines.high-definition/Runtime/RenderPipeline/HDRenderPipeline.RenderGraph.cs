@@ -35,12 +35,13 @@ namespace UnityEngine.Rendering.HighDefinition
                 m_RenderGraph.Begin(new RenderGraphParameters()
                 {
                     executionName = hdCamera.name,
+                    currentFrameIndex = m_FrameCount,
+                    rendererListCulling = m_GlobalSettings.rendererListCulling,
                     scriptableRenderContext = renderContext,
-                    commandBuffer = commandBuffer,
-                    currentFrameIndex = m_FrameCount
+                    commandBuffer = commandBuffer
                 });
 
-                // We need to initalize the MipChainInfo here, so it will be available to any render graph pass that wants to use it during setup
+                // We need to initialize the MipChainInfo here, so it will be available to any render graph pass that wants to use it during setup
                 // Be careful, ComputePackedMipChainInfo needs the render texture size and not the viewport size. Otherwise it would compute the wrong size.
                 m_DepthBufferMipChainInfo.ComputePackedMipChainInfo(RTHandles.rtHandleProperties.currentRenderTargetSize);
 
@@ -334,9 +335,6 @@ namespace UnityEngine.Rendering.HighDefinition
             RecordRenderGraph(
                 renderRequest, aovRequest, aovBuffers,
                 aovCustomPassBuffers, renderContext, commandBuffer);
-
-            var hdrpSettings = defaultSettings as HDRenderPipelineGlobalSettings;
-            m_RenderGraph.rendererListCulling = hdrpSettings.rendererListCulling;
 
             m_RenderGraph.Execute();
 

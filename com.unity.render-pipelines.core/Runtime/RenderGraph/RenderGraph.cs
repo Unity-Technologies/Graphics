@@ -45,6 +45,8 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
         public string executionName;
         ///<summary>Index of the current frame being rendered.</summary>
         public int currentFrameIndex;
+        ///<summary> Controls whether to enable Renderer List culling or not.</summary>
+        public bool rendererListCulling;
         ///<summary>Scriptable Render Context used by the render pipeline.</summary>
         public ScriptableRenderContext scriptableRenderContext;
         ///<summary>Command Buffer used to execute graphic commands.</summary>
@@ -307,6 +309,7 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
         int                                         m_CurrentFrameIndex;
         bool                                        m_HasRenderGraphBegun;
         string                                      m_CurrentExecutionName;
+        bool                                        m_RendererListCulling;
         Dictionary<string, RenderGraphDebugData>    m_DebugData = new Dictionary<string, RenderGraphDebugData>();
 
         // Global list of living render graphs
@@ -317,9 +320,6 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
         public string name { get; private set; } = "RenderGraph";
         /// <summary>If true, the Render Graph will generate execution debug information.</summary>
         internal static bool requireDebugData { get; set; } = false;
-
-        ///<summary> Controls whether to enable Renderer List culling or not.</summary>
-        public bool rendererListCulling;
 
         /// <summary>
         /// Set of default resources usable in a pass rendering code.
@@ -1011,7 +1011,7 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
             }
 
             // Creates all renderer lists
-            m_Resources.CreateRendererLists(m_RendererLists, m_RenderGraphContext.renderContext, rendererListCulling);
+            m_Resources.CreateRendererLists(m_RendererLists, m_RenderGraphContext.renderContext, m_RendererListCulling);
         }
 
         void UpdateResourceAllocationAndSynchronization()
@@ -1191,7 +1191,7 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
                 CreateRendererLists();
 
                 // Cull dynamically the graph passes based on the renderer list visibility
-                if (rendererListCulling)
+                if (m_RendererListCulling)
                     CullRendererLists();
 
                 // After all culling passes, allocate the resources for this frame
