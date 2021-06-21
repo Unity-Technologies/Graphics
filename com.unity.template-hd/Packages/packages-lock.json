@@ -49,7 +49,7 @@
       "url": "https://packages.unity.com"
     },
     "com.unity.render-pipelines.core": {
-      "version": "file:d:/newSRP/Graphics/com.unity.render-pipelines.core",
+      "version": "file:../../com.unity.render-pipelines.core",
       "depth": 0,
       "source": "local",
       "dependencies": {
@@ -58,7 +58,7 @@
       }
     },
     "com.unity.render-pipelines.high-definition": {
-      "version": "file:d:/newSRP/Graphics/com.unity.render-pipelines.high-definition",
+      "version": "file:../../com.unity.render-pipelines.high-definition",
       "depth": 0,
       "source": "local",
       "dependencies": {
@@ -73,7 +73,7 @@
       }
     },
     "com.unity.render-pipelines.high-definition-config": {
-      "version": "file:d:/newSRP/Graphics/com.unity.render-pipelines.high-definition-config",
+      "version": "file:../../com.unity.render-pipelines.high-definition-config",
       "depth": 0,
       "source": "local",
       "dependencies": {
@@ -88,7 +88,7 @@
       "url": "https://packages.unity.com"
     },
     "com.unity.shadergraph": {
-      "version": "file:d:/newSRP/Graphics/com.unity.shadergraph",
+      "version": "file:../../com.unity.shadergraph",
       "depth": 0,
       "source": "local",
       "dependencies": {
@@ -139,7 +139,7 @@
       }
     },
     "com.unity.visualeffectgraph": {
-      "version": "file:d:/newSRP/Graphics/com.unity.visualeffectgraph",
+      "version": "file:../../com.unity.visualeffectgraph",
       "depth": 0,
       "source": "local",
       "dependencies": {
