@@ -14,6 +14,8 @@ Shader "Hidden/HDRP/DebugFullScreen"
             #pragma target 4.5
             #pragma only_renderers d3d11 playstation xboxone xboxseries vulkan metal switch
 
+            #pragma enable_d3d11_debug_symbols
+
             #pragma vertex Vert
             #pragma fragment Frag
 
@@ -212,6 +214,28 @@ Shader "Hidden/HDRP/DebugFullScreen"
                     float4 color = LOAD_TEXTURE2D_X(_DebugFullScreenTexture, (uint2)(input.positionCS.xy));
                     return float4(color.xxx, 1.0);
                 }
+
+                if ( _FullScreenDebugMode == FULLSCREENDEBUGMODE_VBUFFER_TRIANGLE_ID)
+                {
+                    uint index = asuint(LOAD_TEXTURE2D_X(_DebugFullScreenTexture, (uint2)(input.positionCS.xy))).x;
+                    uint hashedIdx = JenkinsHash(index);
+                    return float4(rcp(255.0f) * float3((hashedIdx >> 8) & 255, (hashedIdx >> 16) & 255, (hashedIdx >> 24) & 255), 1.0);
+                }
+
+                if ( _FullScreenDebugMode == FULLSCREENDEBUGMODE_VBUFFER_GEOMETRY_ID)
+                {
+                    uint index = asuint(LOAD_TEXTURE2D_X(_DebugFullScreenTexture, (uint2)(input.positionCS.xy))).x;
+                    uint hashedIdx = JenkinsHash(index);
+                    return float4(rcp(255.0f) * float3((hashedIdx >> 8) & 255, (hashedIdx >> 16) & 255, (hashedIdx >> 24) & 255), 1.0);
+                }
+
+                if ( _FullScreenDebugMode == FULLSCREENDEBUGMODE_VBUFFER_MATERIAL_ID)
+                {
+                    uint index = LOAD_TEXTURE2D_X(_DebugFullScreenTexture, (uint2)(input.positionCS.xy));
+                    uint hashedIdx = JenkinsHash(index);
+                    return float4(rcp(255.0f) * float3((hashedIdx >> 8) & 255, (hashedIdx >> 16) & 255, (hashedIdx >> 24) & 255), 1.0);
+                }
+
                 if ( _FullScreenDebugMode == FULLSCREENDEBUGMODE_SCREEN_SPACE_SHADOWS)
                 {
                     float4 color = LOAD_TEXTURE2D_X(_DebugFullScreenTexture, (uint2)input.positionCS.xy);

@@ -16,5 +16,13 @@ struct CompactVertex
     uint T;
 };
 
+// Generated from UnityEngine.Rendering.HighDefinition.HDRenderPipeline+InstanceVData
+// PackingRules = Exact
+struct InstanceVData
+{
+    float4x4 localToWorld;
+    uint startIndex;
+};
+
 
 #endif

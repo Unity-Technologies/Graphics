@@ -14,6 +14,8 @@ namespace UnityEngine.Rendering.HighDefinition
     {
         ComputeBuffer CompactedVB = null;
         ComputeBuffer CompactedIB = null;
+        ComputeBuffer InstanceVDataB = null;
+        HashSet<Material> materials = new HashSet<Material>();
 
         [GenerateHLSL(needAccessors = false)]
         internal struct CompactVertex
@@ -24,16 +26,25 @@ namespace UnityEngine.Rendering.HighDefinition
             public uint T;
         }
 
+        [GenerateHLSL(needAccessors = false)]
+        internal struct InstanceVData
+        {
+            public Matrix4x4 localToWorld;
+            public uint startIndex;
+        }
+
         void InitVBuffer()
         {
             CompactedVB = null;
             CompactedIB = null;
+            InstanceVDataB = null;
         }
 
         void DisposeVBufferStuff()
         {
             CoreUtils.SafeRelease(CompactedIB);
             CoreUtils.SafeRelease(CompactedVB);
+            CoreUtils.SafeRelease(InstanceVDataB);
         }
 
         int GetFormatByteCount(VertexAttributeFormat format)
@@ -132,15 +143,18 @@ namespace UnityEngine.Rendering.HighDefinition
                 ibStart += indexCount;
             }
 
-
             vbStart += (uint)mesh.vertexCount;
         }
 
         void CompactAllTheThings()
         {
-            int geometryId = 0;
-            Dictionary<Mesh, int> meshes = new Dictionary<Mesh, int>();
-            HashSet<Material> materials = new HashSet<Material>();
+            int vertexCount = 0;
+            int indexCount = 0;
+
+            int instanceId = 1;
+            Dictionary<Mesh, uint> meshes = new Dictionary<Mesh, uint>();
+            List<InstanceVData> instanceData = new List<InstanceVData>();
+            materials.Clear();
             MaterialPropertyBlock propBlock = new MaterialPropertyBlock();
 
             // Grab all the renderers from the scene
@@ -161,49 +175,37 @@ namespace UnityEngine.Rendering.HighDefinition
                 currentRenderer.TryGetComponent(out MeshFilter meshFilter);
                 if (meshFilter == null || meshFilter.sharedMesh == null) continue;
 
-                int index = 0;
-                if(!meshes.TryGetValue(meshFilter.sharedMesh, out index))
+                uint ibStartQ = 0;
+                if (!meshes.TryGetValue(meshFilter.sharedMesh, out ibStartQ))
                 {
-                    meshes.Add(meshFilter.sharedMesh, geometryId);
-                    index = geometryId;
-                    geometryId++;
+                    meshes.Add(meshFilter.sharedMesh, 0);
+                    vertexCount += meshFilter.sharedMesh.vertexCount;
+                    indexCount += meshFilter.sharedMesh.GetIndexBuffer().count;
                 }
 
                 // Get the current value of the material properties in the renderer.
                 currentRenderer.GetPropertyBlock(propBlock);
 
                 // Assign our new value.
-                propBlock.SetInt("_GeometryId", index);
+                propBlock.SetInt("_InstanceID", instanceId);
 
                 // Apply the edited values to the renderer.
                 currentRenderer.SetPropertyBlock(propBlock);
+
+                // Increment the instance ID
+                instanceId++;
 
                 foreach (var mat in currentRenderer.sharedMaterials)
                     materials.Add(mat);
             }
 
             // Assign indices to materials
-            int materialIdx = 0;
-            foreach(var material in materials)
+            int materialIdx = 1;
+            foreach (var material in materials)
             {
+                if (material == null) continue;
                 material.SetInt("_MaterialId", materialIdx);
                 materialIdx++;
-            }
-
-            // Assign Ids to geometries
-            for (var i = 0; i < rendererArray.Length; i++)
-            {
-                // Fetch the current renderer
-                MeshRenderer currentRenderer = rendererArray[i];
-
-            }
-
-            int vertexCount = 0;
-            int indexCount = 0;
-            foreach (var mesh in meshes)
-            {
-                vertexCount += mesh.Key.vertexCount;
-                indexCount += mesh.Key.GetIndexBuffer().count;
             }
 
             int currVBCount = CompactedVB == null ? 0 : CompactedVB.count;
@@ -219,19 +221,56 @@ namespace UnityEngine.Rendering.HighDefinition
                 CompactedVB = new ComputeBuffer(vertexCount, stride);
                 CompactedIB = new ComputeBuffer(indexCount, sizeof(int));
             }
+
             uint vbStart = 0;
             uint ibStart = 0;
-
-            foreach (var mesh in meshes)
+            var keyArrays = meshes.Keys.ToArray();
+            foreach (var mesh in keyArrays)
             {
-                AddMeshToCompactedBuffer(ref vbStart, ref ibStart, mesh.Key);
+                meshes[mesh] = ibStart;
+                AddMeshToCompactedBuffer(ref vbStart, ref ibStart, mesh);
             }
+
+            for (var i = 0; i < rendererArray.Length; i++)
+            {
+                // Fetch the current renderer
+                MeshRenderer currentRenderer = rendererArray[i];
+
+                // If it is not active skip it
+                if (currentRenderer.enabled == false) continue;
+
+                // Grab the current game object
+                GameObject gameObject = currentRenderer.gameObject;
+
+                if (gameObject.TryGetComponent<ReflectionProbe>(out reflectionProbe)) continue;
+
+                currentRenderer.TryGetComponent(out MeshFilter meshFilter);
+                if (meshFilter == null || meshFilter.sharedMesh == null) continue;
+
+                uint ibStartQ = 0;
+                meshes.TryGetValue(meshFilter.sharedMesh, out ibStartQ);
+
+                InstanceVData data = new InstanceVData();
+                data.localToWorld = currentRenderer.localToWorldMatrix;
+                data.startIndex = ibStartQ;
+                instanceData.Add(data);
+            }
+
+            if (InstanceVDataB == null || InstanceVDataB.count != instanceData.Count)
+            {
+                if (InstanceVDataB != null)
+                {
+                    CoreUtils.SafeRelease(InstanceVDataB);
+                }
+                InstanceVDataB = new ComputeBuffer(instanceData.Count, System.Runtime.InteropServices.Marshal.SizeOf<InstanceVData>());
+            }
+            InstanceVDataB.SetData(instanceData.ToArray());
         }
 
         internal struct VBufferOutput
         {
-            public TextureHandle vbuffer0;
-            public TextureHandle vbuffer1;
+            public TextureHandle vBuffer0;
+            public TextureHandle vBuffer1;
             public TextureHandle materialDepthBuffer;
             public TextureHandle depthBuffer;
         }
@@ -261,13 +300,13 @@ namespace UnityEngine.Rendering.HighDefinition
 
                 passData.tempColorBuffer = builder.WriteTexture(tempColorBuffer);
                 passData.vbuffer0 = builder.WriteTexture(renderGraph.CreateTexture(new TextureDesc(Vector2.one, true, true)
-                { colorFormat = GraphicsFormat.R32_UInt, enableRandomWrite = true, name = "VBuffer 0" }));
+                { colorFormat = GraphicsFormat.R32_UInt, clearBuffer = true, enableRandomWrite = true, name = "VBuffer 0" }));
                 passData.vbuffer1 = builder.WriteTexture(renderGraph.CreateTexture(new TextureDesc(Vector2.one, true, true)
-                { colorFormat = GraphicsFormat.R16_UInt, enableRandomWrite = true, name = "VBuffer 1" }));
+                { colorFormat = GraphicsFormat.R16_UInt, clearBuffer = true, enableRandomWrite = true, name = "VBuffer 1" }));
                 passData.materialDepthBuffer = builder.WriteTexture(renderGraph.CreateTexture(new TextureDesc(Vector2.one, true, true)
-                { colorFormat = GraphicsFormat.R32_SFloat, enableRandomWrite = true, name = "Material Buffer" }));
+                { colorFormat = GraphicsFormat.R32_SFloat, clearBuffer = true, enableRandomWrite = true, name = "Material Buffer" }));
 
-                passData.depthBuffer = CreateDepthBuffer(renderGraph, hdCamera.clearDepth, hdCamera.msaaSamples);
+                passData.depthBuffer = CreateDepthBuffer(renderGraph, true, hdCamera.msaaSamples);
 
                 builder.UseDepthBuffer(passData.depthBuffer, DepthAccess.ReadWrite);
                 builder.UseColorBuffer(passData.vbuffer0, 0);
@@ -289,12 +328,72 @@ namespace UnityEngine.Rendering.HighDefinition
                         DrawOpaqueRendererList(context.renderContext, context.cmd, data.frameSettings, data.rendererList);
                     });
 
-                vBufferOutput.vbuffer0 = passData.vbuffer0;
-                vBufferOutput.vbuffer1 = passData.vbuffer1;
+                vBufferOutput.vBuffer0 = passData.vbuffer0;
+                vBufferOutput.vBuffer1 = passData.vbuffer1;
                 vBufferOutput.materialDepthBuffer = passData.materialDepthBuffer;
                 vBufferOutput.depthBuffer = passData.depthBuffer;
+
+                PushFullScreenDebugTexture(renderGraph, vBufferOutput.vBuffer0, FullScreenDebugMode.VBufferTriangleId, GraphicsFormat.R32_UInt);
+                PushFullScreenDebugTexture(renderGraph, vBufferOutput.vBuffer1, FullScreenDebugMode.VBufferGeometryId, GraphicsFormat.R16_UInt);
+                PushFullScreenDebugTexture(renderGraph, vBufferOutput.materialDepthBuffer, FullScreenDebugMode.VBufferMaterialId, GraphicsFormat.R32_SFloat);
             }
             return vBufferOutput;
+        }
+
+        class VBufferLightingPassData
+        {
+            public TextureHandle colorBuffer;
+            public TextureHandle vbuffer0;
+            public TextureHandle vbuffer1;
+            public TextureHandle materialDepthBuffer;
+            public TextureHandle depthBuffer;
+            public ComputeBufferHandle vertexBuffer;
+            public ComputeBufferHandle indexBuffer;
+        }
+
+        TextureHandle RenderVBufferLighting(RenderGraph renderGraph, CullingResults cullingResults, HDCamera hdCamera, VBufferOutput vBufferOutput, TextureHandle colorBuffer)
+        {
+            using (var builder = renderGraph.AddRenderPass<VBufferLightingPassData>("VBuffer Prepass", out var passData, ProfilingSampler.Get(HDProfileId.VBufferPrepass)))
+            {
+                builder.AllowRendererListCulling(false);
+
+                passData.colorBuffer = builder.WriteTexture(colorBuffer);
+                passData.vbuffer0 = builder.ReadTexture(vBufferOutput.vBuffer0);
+                passData.vbuffer1 = builder.ReadTexture(vBufferOutput.vBuffer1);
+                passData.materialDepthBuffer = builder.UseDepthBuffer(vBufferOutput.materialDepthBuffer, DepthAccess.Read);
+                passData.depthBuffer = builder.ReadTexture(vBufferOutput.materialDepthBuffer);
+
+                builder.UseDepthBuffer(passData.materialDepthBuffer, DepthAccess.ReadWrite);
+                builder.UseColorBuffer(passData.vbuffer0, 0);
+                builder.UseColorBuffer(passData.vbuffer1, 1);
+                builder.UseColorBuffer(passData.materialDepthBuffer, 2);
+
+                builder.SetRenderFunc(
+                    (VBufferLightingPassData data, RenderGraphContext context) =>
+                    {
+                        context.cmd.SetGlobalBuffer("_CompactedVertexBuffer", CompactedVB);
+                        context.cmd.SetGlobalBuffer("_CompactedIndexBuffer", CompactedIB);
+                        context.cmd.SetGlobalBuffer("_InstanceVDataBuffer", InstanceVDataB);
+                        context.cmd.SetGlobalTexture("_VBuffer0", data.vbuffer0);
+                        context.cmd.SetGlobalTexture("_VBuffer1", data.vbuffer1);
+
+                        foreach (var material in materials)
+                        {
+                            var passIdx = -1;
+                            for (int i = 0; i < material.passCount; ++i)
+                            {
+                                if (material.GetPassName(i).IndexOf("VBufferLighting") >= 0)
+                                {
+                                    passIdx = i;
+                                    break;
+                                }
+
+                            }
+                            HDUtils.DrawFullScreen(context.cmd, material, colorBuffer, shaderPassId: passIdx);
+                        }
+                    });
+            }
+            return colorBuffer;
         }
     }
 }

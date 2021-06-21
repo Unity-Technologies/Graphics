@@ -99,6 +99,10 @@ namespace UnityEngine.Rendering.HighDefinition
         /// <summary>Display the volumetric clouds shadow at ground level.</summary>
         VolumetricCloudsShadow,
 
+        VBufferTriangleId,
+        VBufferGeometryId,
+        VBufferMaterialId,
+
         /// <summary>Maximum Full Screen Lighting debug mode value (used internally).</summary>
         MaxLightingFullScreenDebug,
 

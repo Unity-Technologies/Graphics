@@ -1,5 +1,6 @@
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Lighting/LightDefinition.cs.hlsl"
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Core/Utilities/GeometryUtils.cs.hlsl"
+#include "Packages/com.unity.render-pipelines.high-definition/Runtime/VBuffer/VertexBufferCompaction.cs.hlsl"
 
 // don't support Buffer yet in unity
 StructuredBuffer<uint>  g_vBigTileLightList;
@@ -30,3 +31,10 @@ TEXTURE2D_ARRAY(_ScreenSpaceShadowsTexture);
 
 // Indirect Diffuse Texture
 TEXTURE2D_X(_IndirectDiffuseTexture);
+
+// VBuffer
+StructuredBuffer<CompactVertex> _CompactedVertexBuffer;
+StructuredBuffer<uint> _CompactedIndexBuffer;
+StructuredBuffer<InstanceVData> _InstanceVDataBuffer;
+TEXTURE2D_X_UINT(_VBuffer0);
+TEXTURE2D_X_UINT(_VBuffer1);

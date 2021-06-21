@@ -292,8 +292,8 @@ float _TessellationTilingScale;
 #endif
 
 // VBuffer data
-uint _GeometryId;
-uint _MaterialId;
+int _GeometryId;
+int _MaterialId;
 
 // Following three variables are feeded by the C++ Editor for Scene selection
 int _ObjectId;
