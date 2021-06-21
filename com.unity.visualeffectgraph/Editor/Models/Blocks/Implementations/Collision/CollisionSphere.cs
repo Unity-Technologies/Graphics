@@ -76,7 +76,7 @@ if (colliderSign * dist <= colliderSign)
     tPos -= n * (dist - 1.0f) * colliderSign;
 
     position = mul(fieldTransform, float4(tPos.xyz, 1.0f));
-    n = VFXSafeNormalize(mul(float4(n, 0.0f), invFieldTransform));
+    n = VFXSafeNormalize((float3)mul(float4(n, 0.0f), invFieldTransform));
 ";
 
                 source += collisionResponseSource;
