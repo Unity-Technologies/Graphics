@@ -461,10 +461,10 @@ MonoBehaviour:
   ImageComparisonSettings:
     TargetWidth: 640
     TargetHeight: 360
-    PerPixelCorrectnessThreshold: 0.0001
-    PerPixelGammaThreshold: 0.0001
-    PerPixelAlphaThreshold: 0.0001
-    AverageCorrectnessThreshold: 0.0001
+    PerPixelCorrectnessThreshold: 0.001
+    PerPixelGammaThreshold: 0.001
+    PerPixelAlphaThreshold: 0.001
+    AverageCorrectnessThreshold: 0.001
     IncorrectPixelsThreshold: 0.0000038146973
     UseHDR: 0
     UseBackBuffer: 0
