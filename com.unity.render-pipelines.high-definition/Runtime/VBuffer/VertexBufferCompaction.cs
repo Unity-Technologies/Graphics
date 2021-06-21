@@ -244,7 +244,7 @@ namespace UnityEngine.Rendering.HighDefinition
             public TextureHandle materialDepthBuffer;
             public TextureHandle depthBuffer;
             public FrameSettings frameSettings;
-            public RendererList rendererList;
+            public RendererListHandle rendererList;
         }
 
         VBufferOutput RenderVBuffer(RenderGraph renderGraph, CullingResults cullingResults, HDCamera hdCamera, TextureHandle tempColorBuffer)
@@ -262,20 +262,17 @@ namespace UnityEngine.Rendering.HighDefinition
                 passData.tempColorBuffer = builder.WriteTexture(tempColorBuffer);
                 passData.vbuffer0 = builder.WriteTexture(renderGraph.CreateTexture(new TextureDesc(Vector2.one, true, true)
                 { colorFormat = GraphicsFormat.R32_UInt, enableRandomWrite = true, name = "VBuffer 0" }));
-                /*
                 passData.vbuffer1 = builder.WriteTexture(renderGraph.CreateTexture(new TextureDesc(Vector2.one, true, true)
                 { colorFormat = GraphicsFormat.R16_UInt, enableRandomWrite = true, name = "VBuffer 1" }));
                 passData.materialDepthBuffer = builder.WriteTexture(renderGraph.CreateTexture(new TextureDesc(Vector2.one, true, true)
                 { colorFormat = GraphicsFormat.R32_SFloat, enableRandomWrite = true, name = "Material Buffer" }));
-                */
+
                 passData.depthBuffer = CreateDepthBuffer(renderGraph, hdCamera.clearDepth, hdCamera.msaaSamples);
 
                 builder.UseDepthBuffer(passData.depthBuffer, DepthAccess.ReadWrite);
                 builder.UseColorBuffer(passData.vbuffer0, 0);
-                /*
                 builder.UseColorBuffer(passData.vbuffer1, 1);
                 builder.UseColorBuffer(passData.materialDepthBuffer, 2);
-                */
 
                 passData.frameSettings = hdCamera.frameSettings;
                 var opaqueRenderList = CreateOpaqueRendererListDesc(
@@ -287,7 +284,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 passData.rendererList = builder.UseRendererList(renderList);
 
                 builder.SetRenderFunc(
-                    (DrawRendererListPassData data, RenderGraphContext context) =>
+                    (VBufferPassData data, RenderGraphContext context) =>
                     {
                         DrawOpaqueRendererList(context.renderContext, context.cmd, data.frameSettings, data.rendererList);
                     });

@@ -18,7 +18,7 @@ void Frag(PackedVaryingsToPS packedInput,
     uint primitiveID : SV_PrimitiveID, 
     out uint VBuffer0 : SV_Target0,
     out uint VBuffer1 : SV_Target1,
-    out float MaterialDepth : SV_Target1)
+    out float MaterialDepth : SV_Target2)
 {
     UNITY_SETUP_STEREO_EYE_INDEX_POST_VERTEX(packedInput);
     FragInputs input = UnpackVaryingsToFragInputs(packedInput);
