@@ -102,8 +102,10 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed a ShaderGraph issue where a material inspector could contain an extra set of render queue, GPU instancing, and double-sided GI controls.
 - Fixed a Shader Graph issue where property auto generated reference names were not consistent across all property types [1336937].
 - Fixed a warning in ShaderGraph about BuiltIn Shader Library assembly having no scripts.
+- Fixed ShaderGraph BuiltIn target not having collapsible foldouts in the material inspector [1339256].
 - Fixed GPU instancing support in Shadergraph [1319655] (https://issuetracker.unity3d.com/issues/shader-graph-errors-are-thrown-when-a-propertys-shader-declaration-is-set-to-hybrid-per-instance-and-exposed-is-disabled).
-- Fixed the incorrect value written to the VT feedback buffer if VT is not used.
+- Fixed indent level in shader graph target foldout (case 1339025).
+- Fixed the incorrect value written to the VT feedback buffer when VT is not used.
 
 ## [11.0.0] - 2020-10-21
 
