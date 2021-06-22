@@ -31,7 +31,6 @@ all_project_ci_weekly_2019.4:
         recurring:
           -  branch: 7.x.x/release
              frequency: weekly
-
     dependencies:
       -  path: .yamato/all-hdrp.yml#Nightly_HDRP_2019.4
          rerun: on_new_revision
@@ -48,8 +47,6 @@ General_Checks_2019.4:
     variables:
         UTR_VERSION: "current"
         TEST_FILTER: .*
-    triggers:
-        expression: pull_request.target eq "7.x.x/release" AND NOT pull_request.draft
     dependencies:
       -  path: .yamato/_projectcontext.yml#all_package_ci_project_2019.4
          rerun: on_new_revision
@@ -116,6 +113,8 @@ General_Checks_fast-2019.4:
     variables:
         UTR_VERSION: "current"
         TEST_FILTER: .*
+    triggers:
+        expression: pull_request.target eq "7.x.x/release" AND NOT pull_request.draft
     dependencies:
       -  path: .yamato/_projectcontext.yml#all_package_ci_project_fast-2019.4
          rerun: on_new_revision
