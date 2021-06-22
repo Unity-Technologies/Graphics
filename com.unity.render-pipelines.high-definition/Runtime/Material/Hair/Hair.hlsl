@@ -25,6 +25,10 @@
 // #define HAIR_DISPLAY_REFERENCE_BSDF
 // #define HAIR_DISPLAY_REFERENCE_IBL
 
+// An extra material feature flag we utilize to compile two different versions of BSDF evaluation (one with transmission lobe
+// for analytic lights, one without transmission lobe for environment light).
+#define MATERIALFEATUREFLAGS_HAIR_MARSCHNER_SKIP_TT (1 << 16)
+
 //-----------------------------------------------------------------------------
 // Helper functions/variable specific to this material
 //-----------------------------------------------------------------------------
@@ -479,8 +483,15 @@ bool IsNonZeroBSDF(float3 V, float3 L, PreLightData preLightData, BSDFData bsdfD
 void GetHairAngle(float3 T, float3 V, float3 L,
                   out float sinThetaI, out float sinThetaR, out float cosThetaD, out float cosThetaT, out float thetaH, out float cosPhi)
 {
+#if 0
     // TODO: Optimize the math. For now, just get everything in terms of the BSDF approximation.
-
+    sinThetaI = 0;
+    sinThetaR = 0;
+    cosThetaD = 0;
+    thetaH    = 0;
+    cosThetaT = 0;
+    cosPhi    = 0;
+#else
     // Transform to the local frame for spherical coordinates
     float3x3 frame = GetLocalFrame(T);
     float3 I = TransformWorldToTangent(L, frame);
@@ -502,6 +513,7 @@ void GetHairAngle(float3 T, float3 V, float3 L,
     float phiI = FastAtan2(I.y, I.x);
     float phiR = FastAtan2(R.y, R.x);
     cosPhi = cos(phiR - phiI);
+#endif
 }
 
 CBSDF EvaluateBSDF(float3 V, float3 L, PreLightData preLightData, BSDFData bsdfData)
@@ -593,7 +605,6 @@ CBSDF EvaluateBSDF(float3 V, float3 L, PreLightData preLightData, BSDFData bsdfD
         // Solve the first three lobes (R, TT, TRT).
 
         // R
-        #if 1
         {
             M = D_LongitudinalScatteringGaussian(thetaH - bsdfData.cuticleAngleR, bsdfData.roughnessR);
 
@@ -603,10 +614,9 @@ CBSDF EvaluateBSDF(float3 V, float3 L, PreLightData preLightData, BSDFData bsdfD
 
             S += M * A * D;
         }
-        #endif
 
         // TT
-        #if 1
+        if (!HasFlag(bsdfData.materialFeatures, MATERIALFEATUREFLAGS_HAIR_MARSCHNER_SKIP_TT))
         {
             M = D_LongitudinalScatteringGaussian(thetaH - bsdfData.cuticleAngleTT, bsdfData.roughnessTT);
 
@@ -627,10 +637,8 @@ CBSDF EvaluateBSDF(float3 V, float3 L, PreLightData preLightData, BSDFData bsdfD
 
             S += M * A * D;
         }
-        #endif
 
         // TRT
-        #if 1
         {
             M = D_LongitudinalScatteringGaussian(thetaH - bsdfData.cuticleAngleTRT, bsdfData.roughnessTRT);
 
@@ -650,7 +658,6 @@ CBSDF EvaluateBSDF(float3 V, float3 L, PreLightData preLightData, BSDFData bsdfD
 
             S += M * A * D;
         }
-        #endif
 
         // Transmission event is built into the model.
         cbsdf.specR = S;
@@ -1056,8 +1063,10 @@ void PostEvaluateBSDF(  LightLoopContext lightLoopContext,
         bsdfData.roughnessR   = saturate(bsdfData.roughnessR   + 0.2);
         bsdfData.roughnessTRT = saturate(bsdfData.roughnessTRT + 0.2);
 
+        // Skip TT for the environment sample (compiler will optimizate for these two different BSDF versions)
+        bsdfData.materialFeatures |= MATERIALFEATUREFLAGS_HAIR_MARSCHNER_SKIP_TT;
+
         // This sample is treated as a directional light source and we evaluate the BSDF with it directly.
-        // TODO: Lobe mask for the TT lobe.
         CBSDF cbsdf = EvaluateBSDF(V, bsdfData.normalWS, preLightData, bsdfData);
 
         // Repurpose the spherical harmonic sample of the environment lighting (sampled with the modified normal).
