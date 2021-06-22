@@ -41,8 +41,7 @@ namespace UnityEditor.VFX.Block
                 yield return new VFXNamedExpression(new VFXExpressionInverseTRSMatrix(finalTransform), "invFieldTransform");
                 if (radiusMode != RadiusMode.None)
                 {
-                    VFXExpression scale = new VFXExpressionExtractScaleFromMatrix(finalTransform);
-                    scale = scale * VFXOperatorUtility.TwoExpression[UnityEngine.VFX.VFXValueType.Float3];
+                    var scale = new VFXExpressionExtractScaleFromMatrix(finalTransform);
                     yield return new VFXNamedExpression(VFXOperatorUtility.Reciprocal(scale), "invFieldScale");
                 }
             }
@@ -71,7 +70,7 @@ if (colliderSign * sqrLength <= colliderSign)
 float dist = length(tPos);
 float3 relativeScale = abs(tPos)/length(tPos) * invFieldScale;
 float radiusCorrection = radius * length(relativeScale);
-dist -= radiusCorrection;
+dist -= radiusCorrection * colliderSign;
 if (colliderSign * dist <= colliderSign)
 {";
                 }
@@ -79,8 +78,8 @@ if (colliderSign * dist <= colliderSign)
     float3 n = colliderSign * tPos / dist;
     tPos -= n * (dist - 1.0f) * colliderSign;
 
-    position = mul(fieldTransform, float4(tPos.xyz, 1.0f));
-    n = VFXSafeNormalize((float3)mul(float4(n, 0.0f), invFieldTransform));
+    position = mul(fieldTransform, float4(tPos.xyz, 1.0f)).xyz;
+    n = VFXSafeNormalize(mul(float4(n, 0.0f), invFieldTransform).xyz);
 ";
 
                 source += collisionResponseSource;
