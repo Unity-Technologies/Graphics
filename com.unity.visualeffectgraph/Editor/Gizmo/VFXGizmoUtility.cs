@@ -34,11 +34,6 @@ namespace UnityEditor.VFX.UI
                 if (m_Editable)
                     m_Controller.value = value;
             }
-
-            public T GetValue()
-            {
-                return (T)m_Controller.value;
-            }
         }
 
         internal class NullProperty<T> : VFXGizmo.IProperty<T>
@@ -49,11 +44,6 @@ namespace UnityEditor.VFX.UI
             }
             public void SetValue(T value)
             {
-            }
-
-            public T GetValue()
-            {
-                return default(T);
             }
 
             public static NullProperty<T> defaultProperty = new NullProperty<T>();

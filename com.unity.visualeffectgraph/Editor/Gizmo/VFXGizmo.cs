@@ -26,8 +26,6 @@ namespace UnityEditor.VFX
             bool isEditable { get; }
 
             void SetValue(T value);
-
-            T GetValue();
         }
 
         public interface IContext

@@ -7,6 +7,7 @@ using UnityEngine.VFX;
 
 namespace UnityEditor.VFX
 {
+    //TODO : Replace with TCircle & TArcCircle
     [VFXGizmo(typeof(Circle))]
     class VFXCircleGizmo : VFXSpaceableGizmo<Circle>
     {
@@ -27,11 +28,12 @@ namespace UnityEditor.VFX
             "VFX_Circle_Left".GetHashCode()
         };
 
-        public static void DrawCircle(VFXGizmo gizmo, IProperty<Vector3> centerProperty, IProperty<Vector3> anglesProperty, IProperty<float> radiusProperty, int countVisible = int.MaxValue)
+        public static void DrawCircle(VFXGizmo gizmo, Circle circle, IProperty<Vector3> centerProperty, IProperty<Vector3> anglesProperty, IProperty<float> radiusProperty, int countVisible = int.MaxValue)
         {
-            var center = centerProperty != null ? centerProperty.GetValue() : Vector3.zero;
-            var angles = anglesProperty != null ? anglesProperty.GetValue() : Vector3.zero;
-            var radius = radiusProperty != null ? radiusProperty.GetValue() : 0.0f;
+            var center = circle.center;
+            //var angles = anglesProperty != null ? anglesProperty.GetValue() : Vector3.zero; //TODOPAUL
+            var angles = Vector3.zero;
+            var radius = circle.radius;
 
             gizmo.PositionGizmo(center, angles, centerProperty, false);
             gizmo.RotationGizmo(center, angles, anglesProperty, false);
@@ -67,7 +69,7 @@ namespace UnityEditor.VFX
                 Handles.DrawWireDisc(Vector3.zero, -Vector3.forward, circle.radius);
             }
 
-            DrawCircle(this, m_CenterProperty, null, m_RadiusProperty);
+            DrawCircle(this, circle, m_CenterProperty, null, m_RadiusProperty);
         }
 
         public override Bounds OnGetSpacedGizmoBounds(Circle value)
@@ -101,7 +103,7 @@ namespace UnityEditor.VFX
                 ArcGizmo(Vector3.zero, radius, arc, m_ArcProperty, Quaternion.Euler(-90.0f, 0.0f, 0.0f));
             }
 
-            VFXCircleGizmo.DrawCircle(this, m_CenterProperty, null, m_RadiusProperty, Mathf.CeilToInt(arc / 90));
+            VFXCircleGizmo.DrawCircle(this, arcCircle.circle, m_CenterProperty, null, m_RadiusProperty, Mathf.CeilToInt(arc / 90));
         }
 
         public override Bounds OnGetSpacedGizmoBounds(ArcCircle value)

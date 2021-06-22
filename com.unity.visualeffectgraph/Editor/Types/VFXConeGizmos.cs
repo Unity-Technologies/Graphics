@@ -122,14 +122,14 @@ namespace UnityEditor.VFX
 
         private static readonly int s_HeightCapName = "VFX_DrawCone_HeightCap".GetHashCode();
 
-        public static void DrawCone(VFXGizmo gizmo, ref Extremities extremities, IProperty<Vector3> centerProperty, IProperty<Vector3> anglesProperty, IProperty<Vector3> scaleProperty, IProperty<float> baseRadiusProperty, IProperty<float> topRadiusProperty, IProperty<float> heightProperty, float baseRadiusScreen, float topRadiusScreen)
+        public static void DrawCone(VFXGizmo gizmo, TCone cone, ref Extremities extremities, IProperty<Vector3> centerProperty, IProperty<Vector3> anglesProperty, IProperty<Vector3> scaleProperty, IProperty<float> baseRadiusProperty, IProperty<float> topRadiusProperty, IProperty<float> heightProperty, float baseRadiusScreen, float topRadiusScreen)
         {
-            var center = centerProperty != null ? centerProperty.GetValue() : Vector3.zero;
-            var scale = scaleProperty != null ? scaleProperty.GetValue() : Vector3.one;
-            var angles = anglesProperty != null ? anglesProperty.GetValue() : Vector3.zero;
-            var baseRadius = baseRadiusProperty != null ? baseRadiusProperty.GetValue() : 1.0f;
-            var topRadius = topRadiusProperty != null ? topRadiusProperty.GetValue() : 1.0f;
-            var height = heightProperty != null ? heightProperty.GetValue() : 1.0f;
+            var center = cone.transform.position;
+            var scale = cone.transform.scale;
+            var angles = cone.transform.angles;
+            var baseRadius = cone.radius0;
+            var topRadius = cone.radius1;
+            var height = cone.height;
 
             var backupColor = Handles.color;
 
@@ -211,7 +211,7 @@ namespace UnityEditor.VFX
                 }
             }
 
-            DrawCone(this, ref extremities, m_CenterProperty, m_AnglesProperty, m_ScaleProperty, m_BaseRadiusProperty, m_TopRadiusProperty, m_HeightProperty, baseRadiusScreen, topRadiusScreen);
+            DrawCone(this, cone, ref extremities, m_CenterProperty, m_AnglesProperty, m_ScaleProperty, m_BaseRadiusProperty, m_TopRadiusProperty, m_HeightProperty, baseRadiusScreen, topRadiusScreen);
         }
 
         public override Bounds OnGetSpacedGizmoBounds(TCone value)
@@ -295,7 +295,7 @@ namespace UnityEditor.VFX
                     ArcGizmo(center, radius, arc, m_ArcProperty, Quaternion.identity);
             }
 
-            VFXConeGizmo.DrawCone(this, ref extremities, m_CenterProperty, m_AnglesProperty, m_ScaleProperty, m_baseRadiusProperty, m_topRadiusProperty, m_HeightProperty, baseRadiusScreen, topRadiusScreen);
+            VFXConeGizmo.DrawCone(this, arcCone.cone, ref extremities, m_CenterProperty, m_AnglesProperty, m_ScaleProperty, m_baseRadiusProperty, m_topRadiusProperty, m_HeightProperty, baseRadiusScreen, topRadiusScreen);
         }
 
         public override Bounds OnGetSpacedGizmoBounds(TArcCone value)
