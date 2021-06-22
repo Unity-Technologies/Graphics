@@ -231,6 +231,22 @@ namespace UnityEngine.Rendering.HighDefinition
             set { m_HighQualityFiltering.value = value; }
         }
 
+        public DepthOfFieldTechnique dofTechnique
+        {
+            get 
+            {
+                if (!UsesQualitySettings())
+                {
+                    return m_DoFTechnique.value;
+                }
+                else
+                {
+                    int qualityLevel = (int)quality.levelAndOverride.level;
+                    return GetPostProcessingQualitySettings().DoFTechnique[qualityLevel];
+                }
+            }
+        }
+
         /// <summary>
         /// When enabled, HDRP uses a more accurate but slower physically based method to compute the depth of field effect.
         /// </summary>

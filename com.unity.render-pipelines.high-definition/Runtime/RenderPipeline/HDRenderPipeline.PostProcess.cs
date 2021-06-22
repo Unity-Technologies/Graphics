@@ -2637,7 +2637,7 @@ namespace UnityEngine.Rendering.HighDefinition
                     passData.motionVecTexture = builder.ReadTexture(motionVectors);
                     passData.taaEnabled = taaEnabled;
 
-                    if (!m_DepthOfField.physicallyBased)
+                    if (m_DepthOfField.dofTechnique == DepthOfFieldTechnique.ScatterAsGather)
                     {
                         if (passData.parameters.nearLayerActive)
                         {
@@ -2746,7 +2746,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
                         PushFullScreenDebugTexture(renderGraph, debugCocTexture, debugCocTextureScales, FullScreenDebugMode.DepthOfFieldCoc);
                     }
-                    else
+                    else if (m_DepthOfField.dofTechnique == DepthOfFieldTechnique.PhysicallyBased)
                     {
                         passData.fullresCoC = builder.ReadWriteTexture(GetPostprocessOutputHandle(renderGraph, "Full res CoC", k_CoCFormat, false));
 
@@ -2775,6 +2775,10 @@ namespace UnityEngine.Rendering.HighDefinition
 
                         source = passData.destination;
                         PushFullScreenDebugTexture(renderGraph, debugCocTexture, debugCocTextureScales, FullScreenDebugMode.DepthOfFieldCoc);
+                    }
+                    else if (m_DepthOfField.dofTechnique == DepthOfFieldTechnique.Circular)
+                    {
+                        Debug.LogError("TODO: write circular dof here");
                     }
                 }
 
