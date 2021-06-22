@@ -5,7 +5,7 @@ using UnityEngine;
 namespace UnityEditor.VFX.Operator
 {
     [VFXInfo(category = "Math/Geometry")]
-    class DistanceToSphereDeprecated : VFXOperator
+    class DistanceToSphere : VFXOperator
     {
         public class InputProperties
         {
@@ -23,7 +23,7 @@ namespace UnityEditor.VFX.Operator
             public float distance;
         }
 
-        override public string name { get { return "Distance (Sphere) (deprecated)"; } }
+        override public string name { get { return "Distance (Sphere)"; } }
 
         public override void Sanitize(int version)
         {
