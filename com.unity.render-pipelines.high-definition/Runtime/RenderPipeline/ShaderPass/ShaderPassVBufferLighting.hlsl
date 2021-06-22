@@ -71,9 +71,9 @@ float2 ToNDC(float2 hClip)
 
 // START FROM HERE
 
-FragInputs EvaluateFragInput(float4 posSS, uint geometryID, uint triangleID, float3 posWS, float3 V, out float3 debugValue)
+FragInputs EvaluateFragInput(float4 posSS, uint instanceID, uint triangleID, float3 posWS, float3 V, out float3 debugValue)
 {
-    InstanceVData instanceVData = _InstanceVDataBuffer[max(geometryID - 1, 0)];
+    InstanceVData instanceVData = _InstanceVDataBuffer[instanceID];
     uint i0 = _CompactedIndexBuffer[CLUSTER_SIZE_IN_INDICES * instanceVData.chunkStartIndex + triangleID * 3];
     uint i1 = _CompactedIndexBuffer[CLUSTER_SIZE_IN_INDICES * instanceVData.chunkStartIndex + triangleID * 3 + 1];
     uint i2 = _CompactedIndexBuffer[CLUSTER_SIZE_IN_INDICES * instanceVData.chunkStartIndex + triangleID * 3 + 2];
@@ -149,13 +149,13 @@ void Frag(Varyings packedInput, out float4 outColor : SV_Target0)
     uint2 pixelCoord = packedInput.positionCS.xy;
     // Grab the geometry information
     uint triangleID = LOAD_TEXTURE2D_X(_VBuffer0, pixelCoord).x;
-    uint geometryID = LOAD_TEXTURE2D_X(_VBuffer1, pixelCoord).x;
+    uint instanceID = LOAD_TEXTURE2D_X(_VBuffer1, pixelCoord).x;
 
     float depthValue = LOAD_TEXTURE2D_X(_CameraDepthTexture, pixelCoord);
     float3 posWS = ComputeWorldSpacePosition(pixelCoord, depthValue, UNITY_MATRIX_I_VP);
     float3 V = GetWorldSpaceNormalizeViewDir(posWS);
     float3 debugVal = 0;
-    FragInputs input = EvaluateFragInput(packedInput.positionCS, geometryID, triangleID, posWS, V, debugVal);
+    FragInputs input = EvaluateFragInput(packedInput.positionCS, instanceID, triangleID, posWS, V, debugVal);
 
 
     // Build the position input

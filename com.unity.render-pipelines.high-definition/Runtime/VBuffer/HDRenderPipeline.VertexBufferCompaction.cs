@@ -106,7 +106,7 @@ namespace UnityEngine.Rendering.HighDefinition
                     continue;
 
                 materials.TryGetValue(currentMat, out materialIdx);
-                for (int c = 9; c < clustersForSubmesh; ++c)
+                for (int c = 10; c < clustersForSubmesh; ++c)
                 {
                     InstanceVData data;
                     data.localToWorld = localToWorld;
