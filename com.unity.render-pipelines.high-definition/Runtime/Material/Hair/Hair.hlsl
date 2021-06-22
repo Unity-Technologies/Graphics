@@ -226,25 +226,29 @@ BSDFData ConvertSurfaceDataToBSDFData(uint2 positionSS, SurfaceData surfaceData)
     {
         // Note: Light Path Length is computed per-light.
 
-        // Absorption
-        bsdfData.absorption = DiffuseColorToAbsorption(surfaceData.diffuseColor, surfaceData.roughnessAzimuthal);
-
         // Cuticle Angle
         const float cuticleAngle = radians(surfaceData.cuticleAngle);
-        bsdfData.cuticleAngleR   =  cuticleAngle;
-        bsdfData.cuticleAngleTT  = -cuticleAngle * 0.5;
-        bsdfData.cuticleAngleTRT = -cuticleAngle * 3.0 * 0.5;
+        bsdfData.cuticleAngleR   = -cuticleAngle;
+        bsdfData.cuticleAngleTT  =  cuticleAngle * 0.5;
+        bsdfData.cuticleAngleTRT =  cuticleAngle * 3.0 * 0.5;
 
         // Longitudinal Roughness
         const float roughnessL = PerceptualRoughnessToRoughness(bsdfData.perceptualRoughness);
-        bsdfData.roughnessR   = roughnessL * surfaceData.roughnessPrimaryReflection;
+        bsdfData.roughnessR   = roughnessL * PerceptualSmoothnessToPerceptualRoughness(surfaceData.primaryReflectionSmoothness);
         bsdfData.roughnessTT  = roughnessL * 0.5;
         bsdfData.roughnessTRT = roughnessL * 2.0;
 
         // Azimuthal Roughness
     #if _USE_ROUGHENED_AZIMUTHAL_SCATTERING
-        bsdfData.roughnessRadial = PerceptualRoughnessToRoughness(surfaceData.roughnessAzimuthal);
+        bsdfData.roughnessRadial = PerceptualSmoothnessToRoughness(surfaceData.perceptualRadialSmoothness);
+    #else
+        // Need to provide some sensible default in case of no roughened azimuthal scattering, since currently our
+        // absorption is dependent on it.
+        bsdfData.roughnessRadial = 0.5;
     #endif
+
+        // Absorption
+        bsdfData.absorption = DiffuseColorToAbsorption(surfaceData.diffuseColor, bsdfData.roughnessRadial);
     }
 
     ApplyDebugToBSDFData(bsdfData);

@@ -32,8 +32,7 @@
 #define DEBUGVIEW_HAIR_SURFACEDATA_SECONDARY_SPECULAR_SHIFT (1416)
 #define DEBUGVIEW_HAIR_SURFACEDATA_AZIMUTHAL_ROUGHNESS (1417)
 #define DEBUGVIEW_HAIR_SURFACEDATA_PRIMARY_REFLECTION_ROUGHNESS (1418)
-#define DEBUGVIEW_HAIR_SURFACEDATA_REFRACTION_INDEX (1419)
-#define DEBUGVIEW_HAIR_SURFACEDATA_CUTICLE_ANGLE (1420)
+#define DEBUGVIEW_HAIR_SURFACEDATA_CUTICLE_ANGLE (1419)
 
 //
 // UnityEngine.Rendering.HighDefinition.Hair+BSDFData:  static fields
@@ -72,7 +71,6 @@
 #define DEBUGVIEW_HAIR_BSDFDATA_ROUGHNESS_TT (1481)
 #define DEBUGVIEW_HAIR_BSDFDATA_ROUGHNESS_TRT (1482)
 #define DEBUGVIEW_HAIR_BSDFDATA_ROUGHNESS_RADIAL (1483)
-#define DEBUGVIEW_HAIR_BSDFDATA_IOR (1484)
 
 // Generated from UnityEngine.Rendering.HighDefinition.Hair+SurfaceData
 // PackingRules = Exact
@@ -93,9 +91,8 @@ struct SurfaceData
     float3 secondarySpecularTint;
     float specularShift;
     float secondarySpecularShift;
-    float roughnessAzimuthal;
-    float roughnessPrimaryReflection;
-    float ior;
+    float perceptualRadialSmoothness;
+    float primaryReflectionSmoothness;
     float cuticleAngle;
 };
 
@@ -135,7 +132,6 @@ struct BSDFData
     float roughnessTT;
     float roughnessTRT;
     float roughnessRadial;
-    float ior;
 };
 
 //
@@ -200,13 +196,10 @@ void GetGeneratedSurfaceDataDebug(uint paramId, SurfaceData surfacedata, inout f
             result = surfacedata.secondarySpecularShift.xxx;
             break;
         case DEBUGVIEW_HAIR_SURFACEDATA_AZIMUTHAL_ROUGHNESS:
-            result = surfacedata.roughnessAzimuthal.xxx;
+            result = surfacedata.perceptualRadialSmoothness.xxx;
             break;
         case DEBUGVIEW_HAIR_SURFACEDATA_PRIMARY_REFLECTION_ROUGHNESS:
-            result = surfacedata.roughnessPrimaryReflection.xxx;
-            break;
-        case DEBUGVIEW_HAIR_SURFACEDATA_REFRACTION_INDEX:
-            result = surfacedata.ior.xxx;
+            result = surfacedata.primaryReflectionSmoothness.xxx;
             break;
         case DEBUGVIEW_HAIR_SURFACEDATA_CUTICLE_ANGLE:
             result = surfacedata.cuticleAngle.xxx;
@@ -323,9 +316,6 @@ void GetGeneratedBSDFDataDebug(uint paramId, BSDFData bsdfdata, inout float3 res
             break;
         case DEBUGVIEW_HAIR_BSDFDATA_ROUGHNESS_RADIAL:
             result = bsdfdata.roughnessRadial.xxx;
-            break;
-        case DEBUGVIEW_HAIR_BSDFDATA_IOR:
-            result = bsdfdata.ior.xxx;
             break;
     }
 }

@@ -39,7 +39,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
         class Styles
         {
             public static GUIContent useLightFacingNormal = new GUIContent("Use Light Facing Normal", "TODO");
-            public static GUIContent useRoughenedAzimuthalScattering = new GUIContent("Use Roughened Azimuthal Scattering", "");
+            public static GUIContent useRoughenedAzimuthalScattering = new GUIContent("Allow Radial Smoothness", "");
             public static GUIContent scatteringMode = new GUIContent("Scattering Mode", "");
         }
 
