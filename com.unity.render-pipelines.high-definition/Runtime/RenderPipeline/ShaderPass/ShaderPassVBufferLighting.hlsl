@@ -154,6 +154,12 @@ void Frag(Varyings packedInput, out float4 outColor : SV_Target0)
     UnpackVisibilityBuffer(vbuffer, instanceID, triangleID);
 
     float depthValue = LOAD_TEXTURE2D_X(_CameraDepthTexture, pixelCoord);
+    if (depthValue == UNITY_RAW_FAR_CLIP_VALUE)
+    {
+        outColor = 0;
+        return;
+    }
+
     float3 posWS = ComputeWorldSpacePosition(pixelCoord, depthValue, UNITY_MATRIX_I_VP);
     float3 V = GetWorldSpaceNormalizeViewDir(posWS);
     float3 debugVal = 0;
