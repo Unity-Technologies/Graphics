@@ -26,17 +26,6 @@ namespace UnityEditor.VFX
         public static ArcCircle defaultValue = new ArcCircle { circle = Circle.defaultValue, arc = 2.0f * Mathf.PI };
     }
 
-    [VFXType(VFXTypeAttribute.Usage.ExcludeFromProperty, "Sphere (Deprecated)"), Serializable]
-    struct Sphere
-    {
-        [Tooltip("Sets the center of the sphere."), VFXSpace(SpaceableType.Position)]
-        public Vector3 center;
-        [Tooltip("Sets the radius of the sphere.")]
-        public float radius;
-
-        public static Sphere defaultValue = new Sphere { radius = 1.0f };
-    }
-
     [VFXType(VFXTypeAttribute.Usage.ExcludeFromProperty, "Arc Sphere (Deprecated)"), Serializable]
     struct ArcSphere
     {

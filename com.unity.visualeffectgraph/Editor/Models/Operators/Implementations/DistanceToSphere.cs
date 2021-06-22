@@ -1,17 +1,16 @@
 using System;
 using System.Linq;
 using UnityEngine;
-using UnityEngine.VFX;
 
 namespace UnityEditor.VFX.Operator
 {
     [VFXInfo(category = "Math/Geometry")]
-    class DistanceToSphere : VFXOperator
+    class DistanceToSphereDeprecated : VFXOperator
     {
         public class InputProperties
         {
             [Tooltip("Sets the sphere used for the distance calculation.")]
-            public TSphere sphere = new TSphere();
+            public Sphere sphere = new Sphere();
             [Tooltip("Sets the position used for the distance calculation.")]
             public Position position = new Position();
         }
@@ -24,27 +23,27 @@ namespace UnityEditor.VFX.Operator
             public float distance;
         }
 
-        override public string name { get { return "Distance (Sphere)"; } }
+        override public string name { get { return "Distance (Sphere) (deprecated)"; } }
+
+        public override void Sanitize(int version)
+        {
+            if (version < 4)
+            {
+                SanitizeHelper.MigrateVector3OutputToSpaceableKeepingLegacyBehavior(this, "Position");
+            }
+            base.Sanitize(version);
+        }
 
         protected override sealed VFXExpression[] BuildExpression(VFXExpression[] inputExpression)
         {
-            var sphereTransform = inputExpression[0];
-            var sphereRadius = inputExpression[1];
-            var initialPosition = inputExpression[2];
+            VFXExpression sphereDelta = (inputExpression[2] - inputExpression[0]);
+            VFXExpression sphereDeltaLength = VFXOperatorUtility.Length(sphereDelta);
+            VFXExpression sphereDistance = (sphereDeltaLength - inputExpression[1]);
 
-            var finalTransfom = new VFXExpressionTransformMatrix(sphereTransform, VFXOperatorUtility.UniformScaleMatrix(sphereRadius));
-            var invFinalTransform = new VFXExpressionInverseMatrix(finalTransfom);
+            VFXExpression pointOnSphere = (inputExpression[1] / sphereDeltaLength);
+            pointOnSphere = (sphereDelta * VFXOperatorUtility.CastFloat(pointOnSphere, inputExpression[0].valueType) + inputExpression[0]);
 
-            var transformedPosition = new VFXExpressionTransformPosition(invFinalTransform, initialPosition);
-
-            var sphereDeltaLength = VFXOperatorUtility.Length(transformedPosition);
-            var sign = new VFXExpressionSign(VFXOperatorUtility.OneExpression[VFXValueType.Float] - sphereDeltaLength);
-
-            var pointOnSphere = transformedPosition / VFXOperatorUtility.CastFloat(sphereDeltaLength, VFXValueType.Float3);
-            var finalPos = new VFXExpressionTransformPosition(finalTransfom, pointOnSphere);
-
-            var distance = VFXOperatorUtility.Length(finalPos - initialPosition) * sign;
-            return new VFXExpression[] { finalPos, distance };
+            return new VFXExpression[] { pointOnSphere, sphereDistance };
         }
     }
 }

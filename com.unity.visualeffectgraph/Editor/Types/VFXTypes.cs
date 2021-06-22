@@ -53,6 +53,19 @@ namespace UnityEditor.VFX
         public static TArcCircle defaultValue = new TArcCircle { circle = TCircle.defaultValue, arc = 2.0f * Mathf.PI };
     }
 
+
+    //This type is only used in DistanceToSphere
+    [VFXType(VFXTypeAttribute.Usage.ExcludeFromProperty, "Simple Sphere"), Serializable]
+    struct Sphere
+    {
+        [Tooltip("Sets the center of the sphere."), VFXSpace(SpaceableType.Position)]
+        public Vector3 center;
+        [Tooltip("Sets the radius of the sphere.")]
+        public float radius;
+
+        public static Sphere defaultValue = new Sphere { radius = 1.0f };
+    }
+
     [VFXType(VFXTypeAttribute.Usage.Default, "Sphere"), Serializable]
     struct TSphere
     {
