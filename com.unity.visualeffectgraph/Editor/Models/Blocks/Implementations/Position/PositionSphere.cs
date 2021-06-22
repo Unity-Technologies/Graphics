@@ -37,9 +37,7 @@ namespace UnityEditor.VFX.Block
                 var thickness = allSlots.FirstOrDefault(o => o.name == "Thickness").exp;
                 var radius = allSlots.FirstOrDefault(o => o.name == "arcSphere_sphere_radius").exp;
 
-                var zero = VFXOperatorUtility.ZeroExpression[VFXValueType.Float3];
-                //TODOPAUL : overkill way to build a scale matrix
-                var radiusScale = new VFXExpressionTRSToMatrix(zero, zero, new VFXExpressionCombine(radius, radius, radius));
+                var radiusScale = VFXOperatorUtility.UniformScaleMatrix(radius);
                 var finalTransform = new VFXExpressionTransformMatrix(transform, radiusScale);
                 var invFinalTransform = new VFXExpressionTransposeMatrix(new VFXExpressionInverseMatrix(finalTransform));
                 yield return new VFXNamedExpression(finalTransform, "transform");
@@ -66,7 +64,7 @@ sincosTheta *= sqrt(1.0f - cosPhi * cosPhi);
 float3 finalDir = float3(sincosTheta, cosPhi);
 float3 finalPos = float3(sincosTheta, cosPhi) * rNorm;
 finalPos = mul(transform, float4(finalPos, 1.0f)).xyz;
-finalDir = mul(inverseTranspose, float4(finalDir, 0.0f));
+finalDir = mul(inverseTranspose, float4(finalDir, 0.0f)).xyz;
 finalDir = normalize(finalDir);";
 
                 outSource += string.Format(composeDirectionFormatString, "finalDir") + "\n";
