@@ -86,9 +86,9 @@ FragInputs EvaluateFragInput(float4 posSS, uint geometryID, uint triangleID, flo
     CompactVertex v2 = _CompactedVertexBuffer[i2];
 
     // Get barycentrics.
-    float3 pos0WS = mul(m, float4(v0.posX, v0.posY, v0.posZ, 1.0));
-    float3 pos1WS = mul(m, float4(v1.posX, v1.posY, v1.posZ, 1.0));
-    float3 pos2WS = mul(m, float4(v2.posX, v2.posY, v2.posZ, 1.0));
+    float3 pos0WS = mul(m, float4(v0.pos, 1.0));
+    float3 pos1WS = mul(m, float4(v1.pos, 1.0));
+    float3 pos2WS = mul(m, float4(v2.pos, 1.0));
 
     // Compute barycentric
 
@@ -104,31 +104,31 @@ FragInputs EvaluateFragInput(float4 posSS, uint geometryID, uint triangleID, flo
 
 
     // Get normal at position
-    float3 normalOS0 = DecompressVector3(v0.N);
-    float3 normalOS1 = DecompressVector3(v1.N);
-    float3 normalOS2 = DecompressVector3(v2.N);
+    float3 normalOS0 = v0.N;
+    float3 normalOS1 = v1.N;
+    float3 normalOS2 = v2.N;
     float3 normalOS = INTERPOLATE_ATTRIBUTE(normalOS0, normalOS1, normalOS2, barycentricCoordinates);
 
     // Get tangent at position
-    float3 tangentOS0 = DecompressVector3(v0.T);
-    float3 tangentOS1 = DecompressVector3(v1.T);
-    float3 tangentOS2 = DecompressVector3(v2.T);
-    float3 tangentOS = INTERPOLATE_ATTRIBUTE(tangentOS0, tangentOS1, tangentOS2, barycentricCoordinates);
+    float4 tangentOS0 = (v0.T);
+    float4 tangentOS1 = (v1.T);
+    float4 tangentOS2 = (v2.T);
+    float4 tangentOS = INTERPOLATE_ATTRIBUTE(tangentOS0, tangentOS1, tangentOS2, barycentricCoordinates);
 
     // Get UV at position
-    float2 UV0 = DecompressVector2(v0.uv);
-    float2 UV1 = DecompressVector2(v1.uv);
-    float2 UV2 = DecompressVector2(v2.uv);
+    float2 UV0 = (v0.uv);
+    float2 UV1 = (v1.uv);
+    float2 UV2 = (v2.uv);
     float2 texCoord0 = INTERPOLATE_ATTRIBUTE(UV0, UV1, UV2, barycentricCoordinates);
 
 
     // Compute the world space normal and tangent. [IMPORTANT, we assume uniform scale here]
     float3 normalWS = normalize(mul(float4(normalOS, 0), instanceVData.localToWorld));
-    float3 tangentWS = normalize(mul(float4(tangentOS, 0), instanceVData.localToWorld));
+    float3 tangentWS = normalize(mul(float4(tangentOS.xyz, 0), instanceVData.localToWorld));
 
 
     // DEBG
-    debugValue = texCoord0.xyx;
+    debugValue = normalWS * 0.5 + 0.5;// float3(texCoord0.xy, 0);
     ///
 
     FragInputs outFragInputs;
@@ -136,8 +136,8 @@ FragInputs EvaluateFragInput(float4 posSS, uint geometryID, uint triangleID, flo
     outFragInputs.positionSS = posSS;
     outFragInputs.positionRWS = posWS;
     outFragInputs.texCoord0 = float4(texCoord0, 0.0, 1.0);
-    outFragInputs.tangentToWorld = CreateTangentToWorld(normalWS, tangentWS, 1.0);
-    //outFragInputs.tangentToWorld = CreateTangentToWorld(normalWS, tangentWS, sign(currentVertex.tangentOS.w));
+    //outFragInputs.tangentToWorld = CreateTangentToWorld(normalWS, tangentWS, 1.0);
+    outFragInputs.tangentToWorld = CreateTangentToWorld(normalWS, tangentWS, sign(tangentOS.w));
     outFragInputs.isFrontFace = dot(V, outFragInputs.tangentToWorld[2]) < 0.0f;
     return outFragInputs;
 }
@@ -172,14 +172,15 @@ void Frag(Varyings packedInput, out float4 outColor : SV_Target0)
 
     // Test values.
     //outColor = float4(1,0,0,1);
-    outColor.xyz = debugVal;
-    outColor.a = 1;
-    /*
+    //outColor.xyz = bsdfData.d;
+    //outColor.a = 1;
+
     uint featureFlags = LIGHT_FEATURE_MASK_FLAGS_OPAQUE;
     LightLoopOutput lightLoopOutput;
     LightLoop(V, posInput, preLightData, bsdfData, builtinData, featureFlags, lightLoopOutput);
 
-    outColor = lightLoopOutput.diffuseLighting * GetCurrentExposureMultiplier();
-    */
+    outColor.xyz = lightLoopOutput.diffuseLighting * GetCurrentExposureMultiplier();
+    outColor.a = 1;
+    outColor.xyz = debugVal;
 
 }

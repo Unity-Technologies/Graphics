@@ -63,7 +63,7 @@ namespace UnityEngine.Rendering.HighDefinition
                     cullingResults, hdCamera.camera, m_VBufferNames,
                     renderQueueRange: HDRenderQueue.k_RenderQueue_AllOpaque,
                     stateBlock: m_AlphaToMaskBlock,
-                    excludeObjectMotionVectors: true);
+                    excludeObjectMotionVectors: false);
                 var renderList = renderGraph.CreateRendererList(opaqueRenderList);
                 passData.rendererList = builder.UseRendererList(renderList);
 

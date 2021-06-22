@@ -49,16 +49,11 @@ RWStructuredBuffer<CompactVertex> _OutputVB;
 CompactVertex GetCompactVertex(float2 uv, float3 pos, float3 N, float4 T)
 {
     CompactVertex vtx;
-    vtx.posX = pos.x;
-    vtx.posY = pos.y;
-    vtx.posZ = pos.z;
-    vtx.uv = f32tof16(uv.x) | f32tof16(uv.y) << 16;
+    vtx.pos = pos;
+    vtx.uv = uv;
 
-    float2 octNormal = PackNormalOctQuadEncode(N);
-    vtx.N = f32tof16(octNormal.x) | f32tof16(octNormal.y) << 16;
-
-    float2 octT = PackNormalOctQuadEncode(T);
-    vtx.T = f32tof16(octT.x) | f32tof16(octT.y) << 16;
+    vtx.N = N;
+    vtx.T = T;
 
     return vtx;
 }
@@ -116,12 +111,3 @@ void IBCompactionKernelUINT16(uint3 id : SV_DispatchThreadID)
         _OutputIB[_IBOutputBias + id.x] = outputIdx + _IBValueShift;
     }
 }
-
-
-// 0 1 2 3
-// 0-1-2-3
-// 0
-// {1, 0} & 16
-
-// 1
-// {1, 2}

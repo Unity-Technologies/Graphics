@@ -8,12 +8,10 @@
 // PackingRules = Exact
 struct CompactVertex
 {
-    float posX;
-    float posY;
-    float posZ;
-    uint uv;
-    uint N;
-    uint T;
+    float3 pos;
+    float2 uv;
+    float3 N;
+    float4 T;
 };
 
 // Generated from UnityEngine.Rendering.HighDefinition.HDRenderPipeline+InstanceVData

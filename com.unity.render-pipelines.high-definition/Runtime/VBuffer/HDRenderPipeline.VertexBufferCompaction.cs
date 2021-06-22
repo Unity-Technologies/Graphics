@@ -22,10 +22,10 @@ namespace UnityEngine.Rendering.HighDefinition
         [GenerateHLSL(needAccessors = false)]
         internal struct CompactVertex
         {
-            public float posX, posY, posZ;
-            public uint uv;
-            public uint N;
-            public uint T;
+            public Vector3 pos;
+            public Vector2 uv;
+            public Vector3 N;
+            public Vector4 T;
         }
 
         [GenerateHLSL(needAccessors = false)]
@@ -230,7 +230,7 @@ namespace UnityEngine.Rendering.HighDefinition
             foreach (var mesh in keyArrays)
             {
                 meshes[mesh] = ibStart;
-                AddMeshToCompactedBuffer(ref vbStart, ref ibStart, mesh);
+                AddMeshToCompactedBuffer(ref ibStart, ref vbStart, mesh);
             }
 
             for (var i = 0; i < rendererArray.Length; i++)
