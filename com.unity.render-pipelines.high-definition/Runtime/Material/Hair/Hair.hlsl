@@ -487,20 +487,21 @@ bool IsNonZeroBSDF(float3 V, float3 L, PreLightData preLightData, BSDFData bsdfD
 }
 
 void GetMarschnerAngle(float3 T, float3 V, float3 L,
-                       out float sinTheta, out float cosThetaD, out float cosPhi)
+                       out float thetaH, out float cosThetaD, out float cosPhi)
 {
     // Optimized math for spherical coordinate angle derivation.
     // Ref: Light Scattering from Human Hair Fibers
-
-    // Note, we use the sine theta instead of theta H for Longitudinal scattering.
     float sinThetaI = dot(T, L);
     float sinThetaR = dot(T, V);
-    sinTheta = sinThetaI + sinThetaR;
 
-    cosThetaD = cos(0.5 * FastASin(sinThetaI) - FastASin(sinThetaR));
+    float thetaI = FastASin(sinThetaI);
+    float thetaR = FastASin(sinThetaR);
+    thetaH = (thetaI + thetaR) * 0.5;
 
-    // Projection onto the normal plane, and since phi is the relative angle, we take the cosine in this projection.
+    cosThetaD = cos((thetaR - thetaI) * 0.5);
+
     // Ref: Hair Animation and Rendering in the Nalu Demo
+    // Projection onto the normal plane, and since phi is the relative angle, we take the cosine in this projection.
     float3 LProj = L - sinThetaI * T;
     float3 VProj = V - sinThetaR * T;
     cosPhi = dot(LProj, VProj) * rsqrt(dot(LProj, LProj) * dot(VProj, VProj));
@@ -579,8 +580,8 @@ CBSDF EvaluateBSDF(float3 V, float3 L, PreLightData preLightData, BSDFData bsdfD
         // "Light Scattering from Human Hair Fibers" (Marschner 2003)
 
         // Retrieve angles via spherical coordinates in the hair shading space.
-        float sinTheta, cosThetaD, cosPhi;
-        GetMarschnerAngle(T, V, L, sinTheta, cosThetaD, cosPhi);
+        float thetaH, cosThetaD, cosPhi;
+        GetMarschnerAngle(T, V, L, thetaH, cosThetaD, cosPhi);
 
         // The index of refraction that can be used to analyze scattering in the normal plane (Bravais' Law).
         float etaPrime = ModifiedRefractionIndex(cosThetaD);
@@ -598,7 +599,7 @@ CBSDF EvaluateBSDF(float3 V, float3 L, PreLightData preLightData, BSDFData bsdfD
 
         // R
         {
-            M = D_LongitudinalScatteringGaussian(sinTheta - bsdfData.cuticleAngleR, bsdfData.roughnessR);
+            M = D_LongitudinalScatteringGaussian(thetaH - bsdfData.cuticleAngleR, bsdfData.roughnessR);
 
             // Distribution and attenuation for this path as proposed by d'Eon et al, replaced with a trig identity for cos half phi.
             D = 0.25 * sqrt(0.5 + 0.5 * cosPhi);
@@ -610,7 +611,7 @@ CBSDF EvaluateBSDF(float3 V, float3 L, PreLightData preLightData, BSDFData bsdfD
         // TT
         if (!HasFlag(bsdfData.materialFeatures, MATERIALFEATUREFLAGS_HAIR_MARSCHNER_SKIP_TT))
         {
-            M = D_LongitudinalScatteringGaussian(sinTheta - bsdfData.cuticleAngleTT, bsdfData.roughnessTT);
+            M = D_LongitudinalScatteringGaussian(thetaH - bsdfData.cuticleAngleTT, bsdfData.roughnessTT);
 
         #if _USE_ROUGHENED_AZIMUTHAL_SCATTERING
             // This lobe's distribution is determined by sampling coefficients from a pre-integrated LUT of the distribution and evaluating a gaussian.
@@ -632,7 +633,7 @@ CBSDF EvaluateBSDF(float3 V, float3 L, PreLightData preLightData, BSDFData bsdfD
 
         // TRT
         {
-            M = D_LongitudinalScatteringGaussian(sinTheta - bsdfData.cuticleAngleTRT, bsdfData.roughnessTRT);
+            M = D_LongitudinalScatteringGaussian(thetaH - bsdfData.cuticleAngleTRT, bsdfData.roughnessTRT);
 
             // TODO: Move this out of the BSDF evaluation.
         #if _USE_ROUGHENED_AZIMUTHAL_SCATTERING
