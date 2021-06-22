@@ -34,6 +34,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
         // VBuffer
         VBufferPrepass,
+        VBufferLighting,
 
         // SSGI
         SSGIPass,

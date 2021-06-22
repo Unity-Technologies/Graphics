@@ -189,7 +189,7 @@ Shader "HDRP/Lit"
         [HideInInspector] _UVMappingMaskEmissive("_UVMappingMaskEmissive", Color) = (1, 0, 0, 0)
 
         // VBuffer Data
-        [HideInInspector] [PerRendererData] _GeometryId("_GeometryId", Int) = 0
+        [HideInInspector] [PerRendererData] _InstanceId("_InstanceId", Int) = 0
         [HideInInspector] _MaterialId("_MaterialId", Int) = 0
 
         // Caution: C# code in BaseLitUI.cs call LightmapEmissionFlagsProperty() which assume that there is an existing "_EmissionColor"
@@ -694,7 +694,8 @@ Shader "HDRP/Lit"
             Cull [_CullMode]
             AlphaToMask [_AlphaToMask]
 
-            ZWrite On
+            ZWrite Off
+            ZTest Always
 
             HLSLPROGRAM
 

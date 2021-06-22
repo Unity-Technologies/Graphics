@@ -8,14 +8,14 @@ PackedVaryingsType Vert(AttributesMesh inputMesh)
 {
     VaryingsType varyingsType;
 
-        varyingsType.vmesh = VertMesh(inputMesh);
+    varyingsType.vmesh = VertMesh(inputMesh);
 
     return PackVaryingsType(varyingsType);
 }
 
 
-void Frag(PackedVaryingsToPS packedInput, 
-    uint primitiveID : SV_PrimitiveID, 
+void Frag(PackedVaryingsToPS packedInput,
+    uint primitiveID : SV_PrimitiveID,
     out uint VBuffer0 : SV_Target0,
     out uint VBuffer1 : SV_Target1,
     out float MaterialDepth : SV_Target2)
@@ -30,9 +30,9 @@ void Frag(PackedVaryingsToPS packedInput,
     uint triangleId = primitiveID;
 
     // Fetch the Geometry ID (16 bits compressed)
-    uint geometryId = _GeometryId;
+    uint geometryId = _InstanceId;
 
-    // Fetch the Material ID 
+    // Fetch the Material ID
     uint materialId = _MaterialId;
 
     // Write the VBuffer

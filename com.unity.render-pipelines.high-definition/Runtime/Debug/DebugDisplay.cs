@@ -102,6 +102,7 @@ namespace UnityEngine.Rendering.HighDefinition
         VBufferTriangleId,
         VBufferGeometryId,
         VBufferMaterialId,
+        VBufferLightingDebug,
 
         /// <summary>Maximum Full Screen Lighting debug mode value (used internally).</summary>
         MaxLightingFullScreenDebug,

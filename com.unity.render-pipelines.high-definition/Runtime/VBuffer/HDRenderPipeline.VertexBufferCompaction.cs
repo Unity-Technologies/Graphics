@@ -10,6 +10,8 @@ using UnityEngine.Rendering.RendererUtils;
 
 namespace UnityEngine.Rendering.HighDefinition
 {
+    // Then split full VB/IB in clusters and change accordingly.
+
     public partial class HDRenderPipeline
     {
         ComputeBuffer CompactedVB = null;
@@ -187,7 +189,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 currentRenderer.GetPropertyBlock(propBlock);
 
                 // Assign our new value.
-                propBlock.SetInt("_InstanceID", instanceId);
+                propBlock.SetInt("_InstanceId", instanceId);
 
                 // Apply the edited values to the renderer.
                 currentRenderer.SetPropertyBlock(propBlock);

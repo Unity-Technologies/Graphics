@@ -98,7 +98,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
         TextureHandle RenderVBufferLighting(RenderGraph renderGraph, CullingResults cullingResults, HDCamera hdCamera, VBufferOutput vBufferOutput, TextureHandle colorBuffer)
         {
-            using (var builder = renderGraph.AddRenderPass<VBufferLightingPassData>("VBuffer Prepass", out var passData, ProfilingSampler.Get(HDProfileId.VBufferPrepass)))
+            using (var builder = renderGraph.AddRenderPass<VBufferLightingPassData>("VBuffer Lighting", out var passData, ProfilingSampler.Get(HDProfileId.VBufferLighting)))
             {
                 builder.AllowRendererListCulling(false);
 
@@ -109,9 +109,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 passData.depthBuffer = builder.ReadTexture(vBufferOutput.materialDepthBuffer);
 
                 builder.UseDepthBuffer(passData.materialDepthBuffer, DepthAccess.ReadWrite);
-                builder.UseColorBuffer(passData.vbuffer0, 0);
-                builder.UseColorBuffer(passData.vbuffer1, 1);
-                builder.UseColorBuffer(passData.materialDepthBuffer, 2);
+                builder.UseColorBuffer(colorBuffer, 0);
 
                 builder.SetRenderFunc(
                     (VBufferLightingPassData data, RenderGraphContext context) =>
@@ -133,9 +131,13 @@ namespace UnityEngine.Rendering.HighDefinition
                                     break;
                                 }
                             }
+                            if (passIdx == -1) continue;
+
                             HDUtils.DrawFullScreen(context.cmd, material, colorBuffer, shaderPassId: passIdx);
                         }
                     });
+
+                PushFullScreenDebugTexture(renderGraph, colorBuffer, FullScreenDebugMode.VBufferLightingDebug);
             }
             return colorBuffer;
         }

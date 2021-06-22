@@ -87,6 +87,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 var prepassOutput = RenderPrepass(m_RenderGraph, colorBuffer, lightingBuffers.sssBuffer, vtFeedbackBuffer, cullingResults, customPassCullingResults, hdCamera, aovRequest, aovBuffers);
 
                 var vBufferOutput = RenderVBuffer(m_RenderGraph, cullingResults, hdCamera, colorBuffer);
+                colorBuffer = RenderVBufferLighting(m_RenderGraph, cullingResults, hdCamera, vBufferOutput, colorBuffer);
 
                 // Need this during debug render at the end outside of the main loop scope.
                 // Once render graph move is implemented, we can probably remove the branch and this.
