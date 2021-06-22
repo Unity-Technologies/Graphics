@@ -120,7 +120,7 @@ namespace UnityEngine.Rendering.HighDefinition
                         context.cmd.SetGlobalTexture("_VBuffer0", data.vbuffer0);
                         context.cmd.SetGlobalTexture("_VBuffer1", data.vbuffer1);
 
-                        foreach (var material in materials)
+                        foreach (var material in materials.Keys)
                         {
                             var passIdx = -1;
                             for (int i = 0; i < material.passCount; ++i)

@@ -33,11 +33,6 @@ float4 _TangentCompactionParams;
 
 float4 _IBCompactionParams;
 
-#define _IBCount (uint)_IBCompactionParams.x
-#define _IBOutputBias (uint)_IBCompactionParams.y
-#define _IBValueShift (uint)_IBCompactionParams.z
-#define _IBInputStart (uint)_IBCompactionParams.w
-
 
 ByteAddressBuffer _InputUVVB;
 ByteAddressBuffer _InputNormalVB;
@@ -79,35 +74,75 @@ void VBCompactionKernel(uint3 id : SV_DispatchThreadID)
 RWStructuredBuffer<uint> _OutputIB;
 ByteAddressBuffer _InputIB;
 
-[numthreads(64, 1, 1)]
+
+#define _IBSubmeshCount (uint)_IBCompactionParams.x
+
+#define _IBOutputBias asuint(_IBCompactionParams.y)
+#define _IBValueShift (uint)_IBCompactionParams.z
+#define _IBInputStart (uint)_IBCompactionParams.w
+
+
+void StoreTriangle(uint outputTriangleStart, uint inputVal, uint inputVal1, uint inputVal2)
+{
+    _OutputIB[_IBOutputBias + outputTriangleStart + 0] = inputVal;
+    _OutputIB[_IBOutputBias + outputTriangleStart + 1] = inputVal1;
+    _OutputIB[_IBOutputBias + outputTriangleStart + 2] = inputVal2;
+}
+
+[numthreads(128, 1, 1)]
 void IBCompactionKernelUINT32(uint3 id : SV_DispatchThreadID)
 {
-    if (id.x < _IBCount)
+    uint triangleIndexStart = id.x * 3;
+    if (triangleIndexStart < _IBSubmeshCount)
     {
-        _OutputIB[_IBOutputBias + id.x] = asuint(_InputIB.Load(id.x + _IBInputStart)) + _IBValueShift;
+        uint idx0 = asuint(_InputIB.Load(triangleIndexStart + 0 + _IBInputStart)) + _IBValueShift;
+        uint idx1 = asuint(_InputIB.Load(triangleIndexStart + 1 + _IBInputStart)) + _IBValueShift;
+        uint idx2 = asuint(_InputIB.Load(triangleIndexStart + 2 + _IBInputStart)) + _IBValueShift;
+
+        StoreTriangle(triangleIndexStart, idx0, idx1, idx2);
+    }
+    else
+    {
+        StoreTriangle(triangleIndexStart, 0xffffffff, 0xffffffff, 0xffffffff);
     }
 }
 
 
-[numthreads(64, 1, 1)]
+[numthreads(128, 1, 1)]
 void IBCompactionKernelUINT16(uint3 id : SV_DispatchThreadID)
 {
-    if (id.x < _IBCount)
-    {
-        uint startIdx = (_IBInputStart + id.x);
-        uint accessIdx = (startIdx / 2);
-        uint inputCouple = asuint(_InputIB.Load(accessIdx * 4));
+    uint triangleIndexStart = id.x * 3;
 
-        uint outputIdx = 0;
-        if ((startIdx & 1) == 0)
+    if (triangleIndexStart < _IBSubmeshCount)
+    {
+        uint triangleStartIndexInput = triangleIndexStart + _IBInputStart;
+
+        uint idx0, idx1, idx2;
+        uint accessIdx = (triangleStartIndexInput / 2);
+        uint firstCouple = asuint(_InputIB.Load(accessIdx * 4));
+        uint secondCouple = asuint(_InputIB.Load((accessIdx + 1) * 4));
+
+        if ((triangleStartIndexInput & 1) == 0)
         {
-            outputIdx = inputCouple & 0xffff;
+            // We need first couple of indices
+            // and first element of the next.
+            idx0 = firstCouple & 0xffff;
+            idx1 = firstCouple >> 16;
+            idx2 = secondCouple & 0xffff;
         }
         else
         {
-            outputIdx = inputCouple >> 16;
+            // We need second index of the first couple of indices
+            // and the whole next couple.
+            idx0 = firstCouple >> 16;
+            idx1 = secondCouple & 0xffff;
+            idx2 = secondCouple >> 16;
         }
 
-        _OutputIB[_IBOutputBias + id.x] = outputIdx + _IBValueShift;
+        StoreTriangle(triangleIndexStart, idx0 + _IBValueShift, idx1 + _IBValueShift, idx2 + _IBValueShift);
+    }
+    else
+    {
+        StoreTriangle(triangleIndexStart, 0xffffffff, 0xffffffff, 0xffffffff);
     }
 }

@@ -17,7 +17,11 @@ namespace UnityEngine.Rendering.HighDefinition
         ComputeBuffer CompactedVB = null;
         ComputeBuffer CompactedIB = null;
         ComputeBuffer InstanceVDataB = null;
-        HashSet<Material> materials = new HashSet<Material>();
+
+        Dictionary<Material, int> materials = new Dictionary<Material, int>();
+
+        static int s_ClusterSizeInTriangles = 128;
+        static int s_ClusterSizeInIndices = s_ClusterSizeInTriangles * 3;
 
         [GenerateHLSL(needAccessors = false)]
         internal struct CompactVertex
@@ -32,7 +36,8 @@ namespace UnityEngine.Rendering.HighDefinition
         internal struct InstanceVData
         {
             public Matrix4x4 localToWorld;
-            public uint startIndex;
+            public uint materialIndex;
+            public uint clusterIndex;
         }
 
         void InitVBuffer()
@@ -69,7 +74,35 @@ namespace UnityEngine.Rendering.HighDefinition
             return 4;
         }
 
-        void AddMeshToCompactedBuffer(ref uint ibStart, ref uint vbStart, Mesh mesh)
+        int DivideMeshInClusters(Mesh mesh, Matrix4x4 localToWorld, Material[] sharedMaterials, ref List<InstanceVData> instances)
+        {
+            int clusterCount = 0;
+            int clustersBeforeInsertion = instances.Count;
+            int meshIndexStart = clustersBeforeInsertion * s_ClusterSizeInIndices;
+
+            for (int i = 0; i < mesh.subMeshCount; ++i)
+            {
+                uint subMeshIndexSize = mesh.GetIndexCount(i);
+                int clustersForSubmesh = HDUtils.DivRoundUp((int)subMeshIndexSize, s_ClusterSizeInIndices);
+                int materialIdx = 0;
+                materials.TryGetValue(sharedMaterials[i], out materialIdx);
+
+                for (int c = 0; c < clustersForSubmesh; ++c)
+                {
+                    InstanceVData data;
+                    data.localToWorld = localToWorld;
+                    data.materialIndex = (uint)materialIdx;
+                    data.clusterIndex = (uint)(clustersBeforeInsertion + c);
+
+                    instances.Add(data);
+                }
+                clusterCount += clustersForSubmesh;
+            }
+
+            return clusterCount;
+        }
+
+        void AddMeshToCompactedBuffer(ref uint clusterIndex, ref uint vbStart, Mesh mesh)
         {
             var ib = mesh.GetIndexBuffer();
             var cs = defaultResources.shaders.vbCompactionCS;
@@ -123,6 +156,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
             cs.Dispatch(kernel, dispatchSize, 1, 1);
 
+
             if (mesh.indexFormat == IndexFormat.UInt16)
                 kernel = cs.FindKernel("IBCompactionKernelUINT16");
             else
@@ -130,19 +164,20 @@ namespace UnityEngine.Rendering.HighDefinition
 
             cs.SetBuffer(kernel, HDShaderIDs._InputIB, mesh.GetIndexBuffer());
             cs.SetBuffer(kernel, HDShaderIDs._OutputIB, CompactedIB);
+
             for (int i = 0; i < mesh.subMeshCount; ++i)
             {
                 uint indexCount = mesh.GetIndexCount(i);
+                int clusterCount = HDUtils.DivRoundUp((int)indexCount, s_ClusterSizeInIndices);
+                for (int c = 0; c < clusterCount; ++c)
+                {
+                    Vector4 ibCompactionParams = new Vector4(indexCount, HDShadowUtils.Asfloat((uint)(clusterIndex * s_ClusterSizeInIndices)), vbStart, mesh.GetIndexStart(i));
+                    dispatchSize = HDUtils.DivRoundUp((int)indexCount / 3, s_ClusterSizeInTriangles);
+                    cs.SetVector(HDShaderIDs._IBCompactionParams, ibCompactionParams);
+                    cs.Dispatch(kernel, dispatchSize, 1, 1);
 
-                var indexContent = mesh.GetIndices(i);
-
-                Vector4 ibCompactionParams = new Vector4(indexCount, ibStart, vbStart, mesh.GetIndexStart(i));
-                cs.SetVector(HDShaderIDs._IBCompactionParams, ibCompactionParams);
-
-                dispatchSize = HDUtils.DivRoundUp((int)indexCount, 64);
-                cs.Dispatch(kernel, dispatchSize, 1, 1);
-
-                ibStart += indexCount;
+                    clusterIndex++;
+                }
             }
 
             vbStart += (uint)mesh.vertexCount;
@@ -151,13 +186,14 @@ namespace UnityEngine.Rendering.HighDefinition
         void CompactAllTheThings()
         {
             int vertexCount = 0;
-            int indexCount = 0;
+            int clusterCount = 0;
 
             int instanceId = 1;
             Dictionary<Mesh, uint> meshes = new Dictionary<Mesh, uint>();
             List<InstanceVData> instanceData = new List<InstanceVData>();
             materials.Clear();
             MaterialPropertyBlock propBlock = new MaterialPropertyBlock();
+            int materialIdx = 1;
 
             // Grab all the renderers from the scene
             var rendererArray = UnityEngine.GameObject.FindObjectsOfType<MeshRenderer>();
@@ -182,7 +218,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 {
                     meshes.Add(meshFilter.sharedMesh, 0);
                     vertexCount += meshFilter.sharedMesh.vertexCount;
-                    indexCount += meshFilter.sharedMesh.GetIndexBuffer().count;
+                    clusterCount += HDUtils.DivRoundUp(meshFilter.sharedMesh.GetIndexBuffer().count, s_ClusterSizeInIndices);
                 }
 
                 // Get the current value of the material properties in the renderer.
@@ -198,17 +234,18 @@ namespace UnityEngine.Rendering.HighDefinition
                 instanceId++;
 
                 foreach (var mat in currentRenderer.sharedMaterials)
-                    materials.Add(mat);
+                {
+                    if (mat == null) continue;
+                    int matIdx = 0;
+                    if (!materials.TryGetValue(mat, out matIdx))
+                    {
+                        materials.Add(mat, materialIdx);
+                        mat.SetInt("_MaterialId", materialIdx);
+                        materialIdx++;
+                    }
+                }
             }
 
-            // Assign indices to materials
-            int materialIdx = 1;
-            foreach (var material in materials)
-            {
-                if (material == null) continue;
-                material.SetInt("_MaterialId", materialIdx);
-                materialIdx++;
-            }
 
             int currVBCount = CompactedVB == null ? 0 : CompactedVB.count;
             if (vertexCount != currVBCount)
@@ -221,7 +258,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
                 var stride = System.Runtime.InteropServices.Marshal.SizeOf<CompactVertex>();
                 CompactedVB = new ComputeBuffer(vertexCount, stride);
-                CompactedIB = new ComputeBuffer(indexCount, sizeof(int));
+                CompactedIB = new ComputeBuffer(clusterCount * s_ClusterSizeInIndices, sizeof(int));
             }
 
             uint vbStart = 0;
@@ -249,13 +286,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 currentRenderer.TryGetComponent(out MeshFilter meshFilter);
                 if (meshFilter == null || meshFilter.sharedMesh == null) continue;
 
-                uint ibStartQ = 0;
-                meshes.TryGetValue(meshFilter.sharedMesh, out ibStartQ);
-
-                InstanceVData data = new InstanceVData();
-                data.localToWorld = currentRenderer.localToWorldMatrix;
-                data.startIndex = ibStartQ;
-                instanceData.Add(data);
+                DivideMeshInClusters(meshFilter.sharedMesh, currentRenderer.localToWorldMatrix, currentRenderer.sharedMaterials, ref instanceData);
             }
 
             if (InstanceVDataB == null || InstanceVDataB.count != instanceData.Count)
