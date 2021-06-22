@@ -2,8 +2,7 @@ using UnityEngine;
 
 namespace UnityEditor.VFX.Block
 {
-    //TODOPAUL : move to deprecated
-    [VFXInfo(category = "Collision")]
+    //TODOPAUL : Sanitize this
     class CollisionCylinder : CollisionBase
     {
         public override string name { get { return "Collide with Cylinder"; } }
