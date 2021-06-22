@@ -45,12 +45,14 @@ namespace UnityEditor.VFX.Block
                 VFXExpression slope = new VFXExpressionATan(tanSlope);
 
 
-                var finalTransform = transform; //Can't really integrate radius0/1 the value could be 0
+                var finalTransform = transform; //Can't really integrate radius0/1
                 yield return new VFXNamedExpression(finalTransform, "fieldTransform");
-                VFXExpression scale = new VFXExpressionExtractScaleFromMatrix(finalTransform);
-                scale = scale * VFXOperatorUtility.TwoExpression[UnityEngine.VFX.VFXValueType.Float3];
-                yield return new VFXNamedExpression(VFXOperatorUtility.Reciprocal(scale), "invFieldScale");
                 yield return new VFXNamedExpression(new VFXExpressionInverseTRSMatrix(finalTransform), "invFieldTransform");
+                if (radiusMode != RadiusMode.None)
+                {
+                    var scale = new VFXExpressionExtractScaleFromMatrix(finalTransform);
+                    yield return new VFXNamedExpression(VFXOperatorUtility.Reciprocal(scale), "invFieldScale");
+                }
 
                 yield return new VFXNamedExpression(baseRadius, "cone_baseRadius");
                 yield return new VFXNamedExpression(topRadius, "cone_topRadius");
@@ -69,21 +71,50 @@ float3 nextPos = position + velocity * deltaTime;
 float3 tPos = mul(invFieldTransform, float4(nextPos, 1.0f)).xyz;
 float cone_radius = lerp(cone_baseRadius, cone_topRadius, saturate(tPos.y/cone_height));
 float cone_halfHeight = cone_height * 0.5f;
-float sqrLength = dot(tPos.xz, tPos.xz);
+float relativePosY = abs(tPos.y - cone_halfHeight);
 ";
 
-                if (mode == Mode.Solid)
+                if (radiusMode == RadiusMode.None)
+                {
                     Source += @"
-bool collision = abs(tPos.y - cone_halfHeight) < cone_halfHeight && sqrLength < cone_radius * cone_radius;";
-                else
-                    Source += @"
-bool collision = abs(tPos.y - cone_halfHeight) > cone_halfHeight || sqrLength > cone_radius * cone_radius;";
+float sqrLength = dot(tPos.xz, tPos.xz);";
+                    if (mode == Mode.Solid)
+                        Source += @"
+bool collision = relativePosY < cone_halfHeight && sqrLength < cone_radius * cone_radius;";
+                    else
+                        Source += @"
+bool collision = relativePosY > cone_halfHeight || sqrLength > cone_radius * cone_radius;";
 
-                Source += @"
+                    Source += @"
 if (collision)
 {
-    float dist = sqrt(sqrLength);
-    float distToCap = colliderSign * (cone_halfHeight - abs(tPos.y - cone_halfHeight));
+    float dist = sqrt(sqrLength);";
+                }
+                else
+                {
+                    Source += @"
+float dist = length(tPos.xz);
+
+float2 relativeScaleXZ = abs(tPos.xz)/length(tPos.xz) * invFieldScale.xz;
+float radiusCorrectionXZ = radius * length(relativeScaleXZ);
+dist -= radiusCorrectionXZ * colliderSign;
+
+float radiusCorrectionY = radius * invFieldScale.y;
+relativePosY -= radiusCorrectionY * colliderSign;";
+                    if (mode == Mode.Solid)
+                        Source += @"
+bool collision = relativePosY < cone_halfHeight && dist < cone_radius;";
+                    else
+                        Source += @"
+bool collision = relativePosY > cone_halfHeight || dist > cone_radius;";
+
+                    Source += @"
+if (collision)
+{";
+                }
+
+                Source += @"
+    float distToCap = colliderSign * (cone_halfHeight - relativePosY);
     float distToSide = colliderSign * (cone_radius - dist);";
 
                 //Position/Normal correction
