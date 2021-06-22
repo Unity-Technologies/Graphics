@@ -215,6 +215,7 @@ namespace UnityEngine.Rendering.HighDefinition
             MaterialPropertyBlock propBlock = new MaterialPropertyBlock();
             int materialIdx = 1;
 
+            int validRenderers = 0;
             // Grab all the renderers from the scene
             var rendererArray = UnityEngine.GameObject.FindObjectsOfType<MeshRenderer>();
             for (var i = 0; i < rendererArray.Length; i++)
@@ -251,8 +252,15 @@ namespace UnityEngine.Rendering.HighDefinition
                         materialIdx++;
                     }
                 }
+
+                validRenderers++;
             }
 
+            // If we don't have any valid renderer
+            if (validRenderers == 0)
+            {
+                return;
+            }
 
             int currVBCount = CompactedVB == null ? 0 : CompactedVB.count;
             if (vertexCount != currVBCount)
@@ -261,6 +269,8 @@ namespace UnityEngine.Rendering.HighDefinition
                 {
                     CoreUtils.SafeRelease(CompactedIB);
                     CoreUtils.SafeRelease(CompactedVB);
+                    CompactedVB = null;
+                    CompactedIB = null;
                 }
 
                 var stride = System.Runtime.InteropServices.Marshal.SizeOf<CompactVertex>();

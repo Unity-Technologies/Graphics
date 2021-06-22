@@ -38,6 +38,7 @@ namespace UnityEngine.Rendering.HighDefinition
         VBufferOutput RenderVBuffer(RenderGraph renderGraph, CullingResults cullingResults, HDCamera hdCamera, TextureHandle tempColorBuffer)
         {
             VBufferOutput vBufferOutput = new VBufferOutput();
+            if (InstanceVDataB == null || CompactedVB == null || CompactedIB == null) return vBufferOutput;
 
             // These flags are still required in SRP or the engine won't compute previous model matrices...
             // If the flag hasn't been set yet on this camera, motion vectors will skip a frame.
@@ -100,6 +101,8 @@ namespace UnityEngine.Rendering.HighDefinition
 
         TextureHandle RenderVBufferLighting(RenderGraph renderGraph, CullingResults cullingResults, HDCamera hdCamera, VBufferOutput vBufferOutput, TextureHandle colorBuffer)
         {
+            if (InstanceVDataB == null || CompactedVB == null || CompactedIB == null) return colorBuffer;
+
             using (var builder = renderGraph.AddRenderPass<VBufferLightingPassData>("VBuffer Lighting", out var passData, ProfilingSampler.Get(HDProfileId.VBufferLighting)))
             {
                 builder.AllowRendererListCulling(false);
