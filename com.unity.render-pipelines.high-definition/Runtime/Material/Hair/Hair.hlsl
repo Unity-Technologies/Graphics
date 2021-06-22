@@ -51,7 +51,7 @@ float ModifiedRefractionIndex(float cosThetaD)
     // float sinThetaD = sqrt(1 - Sq(cosThetaD));
     // return sqrt(Sq(eta) - Sq(sinThetaD)) / cosThetaD;
 
-    // Approximate the modified refraction index for human hair (1.55)
+    // Karis approximation for the modified refraction index for human hair (1.55)
     return 1.19 / cosThetaD + (0.36 * cosThetaD);
 }
 
@@ -486,40 +486,24 @@ bool IsNonZeroBSDF(float3 V, float3 L, PreLightData preLightData, BSDFData bsdfD
     return true; // Due to either reflection or transmission being always active
 }
 
-void GetHairAngle(float3 T, float3 V, float3 L,
-                  out float sinThetaI, out float sinThetaR, out float cosThetaD, out float cosThetaT, out float thetaH, out float cosPhi)
+void GetMarschnerAngle(float3 T, float3 V, float3 L,
+                       out float sinTheta, out float cosThetaD, out float cosPhi)
 {
-#if 0
-    // TODO: Optimize the math. For now, just get everything in terms of the BSDF approximation.
-    sinThetaI = 0;
-    sinThetaR = 0;
-    cosThetaD = 0;
-    thetaH    = 0;
-    cosThetaT = 0;
-    cosPhi    = 0;
-#else
-    // Transform to the local frame for spherical coordinates
-    float3x3 frame = GetLocalFrame(T);
-    float3 I = TransformWorldToTangent(L, frame);
-    float3 R = TransformWorldToTangent(V, frame);
+    // Optimized math for spherical coordinate angle derivation.
+    // Ref: Light Scattering from Human Hair Fibers
 
-    // Longitudinal angle.
-    float thetaI = HALF_PI - acos(I.z);
-    float thetaR = HALF_PI - acos(R.z);
-    sinThetaI = sin(thetaI);
-    sinThetaR = sin(thetaR);
-    cosThetaD = cos((thetaR - thetaI) * 0.5);
-    thetaH    = (thetaI + thetaR) * 0.5;
+    // Note, we use the sine theta instead of theta H for Longitudinal scattering.
+    float sinThetaI = dot(T, L);
+    float sinThetaR = dot(T, V);
+    sinTheta = sinThetaI + sinThetaR;
 
-    // Refraction angle (required for absorption)
-    float sinThetaT = sinThetaI / 1.55;
-    cosThetaT = sqrt(1 - Sq(sinThetaT));
+    cosThetaD = cos(0.5 * FastASin(sinThetaI) - FastASin(sinThetaR));
 
-    // Azimuthal angle.
-    float phiI = FastAtan2(I.y, I.x);
-    float phiR = FastAtan2(R.y, R.x);
-    cosPhi = cos(phiR - phiI);
-#endif
+    // Projection onto the normal plane, and since phi is the relative angle, we take the cosine in this projection.
+    // Ref: Hair Animation and Rendering in the Nalu Demo
+    float3 LProj = L - sinThetaI * T;
+    float3 VProj = V - sinThetaR * T;
+    cosPhi = dot(LProj, VProj) * rsqrt(dot(LProj, LProj) * dot(VProj, VProj));
 }
 
 CBSDF EvaluateBSDF(float3 V, float3 L, PreLightData preLightData, BSDFData bsdfData)
@@ -544,11 +528,11 @@ CBSDF EvaluateBSDF(float3 V, float3 L, PreLightData preLightData, BSDFData bsdfD
     float clampedNdotV = ClampNdotV(NdotV);
     float clampedNdotL = saturate(NdotL);
 
-    float LdotV, NdotH, LdotH, invLenLV;
-    GetBSDFAngle(V, L, NdotL, NdotV, LdotV, NdotH, LdotH, invLenLV);
-
     if (HasFlag(bsdfData.materialFeatures, MATERIALFEATUREFLAGS_HAIR_KAJIYA_KAY))
     {
+        float LdotV, NdotH, LdotH, invLenLV;
+        GetBSDFAngle(V, L, NdotL, NdotV, LdotV, NdotH, LdotH, invLenLV);
+
         float3 t1 = ShiftTangent(T, N, bsdfData.specularShift);
         float3 t2 = ShiftTangent(T, N, bsdfData.secondarySpecularShift);
 
@@ -595,14 +579,16 @@ CBSDF EvaluateBSDF(float3 V, float3 L, PreLightData preLightData, BSDFData bsdfD
         // "Light Scattering from Human Hair Fibers" (Marschner 2003)
 
         // Retrieve angles via spherical coordinates in the hair shading space.
-        float sinThetaI, sinThetaR, cosThetaD, cosThetaT, thetaH, cosPhi;
-        GetHairAngle(T, V, L, sinThetaI, sinThetaR, cosThetaD, cosThetaT, thetaH, cosPhi);
+        float sinTheta, cosThetaD, cosPhi;
+        GetMarschnerAngle(T, V, L, sinTheta, cosThetaD, cosPhi);
 
         // The index of refraction that can be used to analyze scattering in the normal plane (Bravais' Law).
         float etaPrime = ModifiedRefractionIndex(cosThetaD);
 
         // Reduced absorption coefficient.
-        float3 muPrime = bsdfData.absorption / cosThetaT;
+        // Note: Technically should divide absorption by thetaT here, but comparing to reference
+        // proved a negligible difference and thus not worth the extra computation cost.
+        float3 mu = bsdfData.absorption;
 
         // Various terms reused between lobe evaluation.
         float  M, D, F = 0;
@@ -612,11 +598,11 @@ CBSDF EvaluateBSDF(float3 V, float3 L, PreLightData preLightData, BSDFData bsdfD
 
         // R
         {
-            M = D_LongitudinalScatteringGaussian(thetaH - bsdfData.cuticleAngleR, bsdfData.roughnessR);
+            M = D_LongitudinalScatteringGaussian(sinTheta - bsdfData.cuticleAngleR, bsdfData.roughnessR);
 
             // Distribution and attenuation for this path as proposed by d'Eon et al, replaced with a trig identity for cos half phi.
             D = 0.25 * sqrt(0.5 + 0.5 * cosPhi);
-            A = F_Schlick(bsdfData.fresnel0, sqrt(0.5 + 0.5 * LdotV));
+            A = F_Schlick(bsdfData.fresnel0, sqrt(0.5 + 0.5 * dot(L, V)));
 
             S += M * A * D;
         }
@@ -624,7 +610,7 @@ CBSDF EvaluateBSDF(float3 V, float3 L, PreLightData preLightData, BSDFData bsdfD
         // TT
         if (!HasFlag(bsdfData.materialFeatures, MATERIALFEATUREFLAGS_HAIR_MARSCHNER_SKIP_TT))
         {
-            M = D_LongitudinalScatteringGaussian(thetaH - bsdfData.cuticleAngleTT, bsdfData.roughnessTT);
+            M = D_LongitudinalScatteringGaussian(sinTheta - bsdfData.cuticleAngleTT, bsdfData.roughnessTT);
 
         #if _USE_ROUGHENED_AZIMUTHAL_SCATTERING
             // This lobe's distribution is determined by sampling coefficients from a pre-integrated LUT of the distribution and evaluating a gaussian.
@@ -638,7 +624,7 @@ CBSDF EvaluateBSDF(float3 V, float3 L, PreLightData preLightData, BSDFData bsdfD
             // Note: H = ~0.55 seems to be more suitable for this lobe's attenuation, but H = 0 allows us to simplify more of the math at the cost of slightly more error.
             // Plot: https://www.desmos.com/calculator/pum8esu6ot
             F = F_Schlick(bsdfData.fresnel0, cosThetaD);
-            T = exp(-4 * muPrime);
+            T = exp(-4 * mu);
             A = Sq(1 - F) * T;
 
             S += M * A * D;
@@ -646,7 +632,7 @@ CBSDF EvaluateBSDF(float3 V, float3 L, PreLightData preLightData, BSDFData bsdfD
 
         // TRT
         {
-            M = D_LongitudinalScatteringGaussian(thetaH - bsdfData.cuticleAngleTRT, bsdfData.roughnessTRT);
+            M = D_LongitudinalScatteringGaussian(sinTheta - bsdfData.cuticleAngleTRT, bsdfData.roughnessTRT);
 
             // TODO: Move this out of the BSDF evaluation.
         #if _USE_ROUGHENED_AZIMUTHAL_SCATTERING
@@ -659,7 +645,7 @@ CBSDF EvaluateBSDF(float3 V, float3 L, PreLightData preLightData, BSDFData bsdfD
 
             // Attenutation (Simplified for H = √3/2)
             F = F_Schlick(bsdfData.fresnel0, cosThetaD * 0.5);
-            T = exp(-2 * muPrime * (1 + cos(2 * FastASin(HAIR_H_TRT / etaPrime))));
+            T = exp(-2 * mu * (1 + cos(2 * FastASin(HAIR_H_TRT / etaPrime))));
             A = Sq(1 - F) * F * Sq(T);
 
             S += M * A * D;
