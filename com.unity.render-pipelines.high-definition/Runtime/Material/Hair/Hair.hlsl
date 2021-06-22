@@ -652,7 +652,8 @@ CBSDF EvaluateBSDF(float3 V, float3 L, PreLightData preLightData, BSDFData bsdfD
         }
 
         // Transmission event is built into the model.
-        cbsdf.specR = S;
+        // Some stubborn NaNs have cropped up due to the angle optimization, we suppress them here with a max for now.
+        cbsdf.specR = max(S, 0);
     #endif
 
         // Multiple Scattering
