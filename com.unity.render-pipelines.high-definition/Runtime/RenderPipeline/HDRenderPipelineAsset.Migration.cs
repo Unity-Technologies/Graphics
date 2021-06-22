@@ -36,6 +36,7 @@ namespace UnityEngine.Rendering.HighDefinition
             VirtualTexturing,
             AddedHDRenderPipelineGlobalSettings,
             DecalSurfaceGradient,
+            DofTechniqueEnumeration,
             // If you add more steps here, do not clear settings that are used for the migration to the HDRP Global Settings asset
         }
 
@@ -208,6 +209,19 @@ namespace UnityEngine.Rendering.HighDefinition
             MigrationStep.New(Version.DecalSurfaceGradient, (HDRenderPipelineAsset data) =>
             {
                 data.m_RenderPipelineSettings.supportSurfaceGradient = false;
+            }),
+            MigrationStep.New(Version.DofTechniqueEnumeration, (HDRenderPipelineAsset data) =>
+            {
+#pragma warning disable 618
+                for (int tier = 0; tier < data.m_RenderPipelineSettings.postProcessQualitySettings.DoFPhysicallyBased.Length; ++tier)
+
+                {
+                    if (tier >= data.m_RenderPipelineSettings.postProcessQualitySettings.DoFTechnique.Length)
+                        continue;
+
+                    data.m_RenderPipelineSettings.postProcessQualitySettings.DoFTechnique[tier] = data.m_RenderPipelineSettings.postProcessQualitySettings.DoFPhysicallyBased[tier] ? DepthOfFieldTechnique.PhysicallyBased : DepthOfFieldTechnique.ScatterAsGather;
+                }
+#pragma warning restore 618
             })
         );
         #endregion

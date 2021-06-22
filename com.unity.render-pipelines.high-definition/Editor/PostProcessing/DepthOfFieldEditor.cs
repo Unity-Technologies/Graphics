@@ -183,7 +183,7 @@ namespace UnityEditor.Rendering.HighDefinition
             CopySetting(ref m_FarMaxBlur, settings.postProcessQualitySettings.FarBlurMaxRadius[level]);
             CopySetting(ref m_Resolution, (int)settings.postProcessQualitySettings.DoFResolution[level]);
             CopySetting(ref m_HighQualityFiltering, settings.postProcessQualitySettings.DoFHighQualityFiltering[level]);
-            CopySetting(ref m_PhysicallyBased, settings.postProcessQualitySettings.DoFPhysicallyBased[level]);
+            //CopySetting(ref m_PhysicallyBased, settings.postProcessQualitySettings.ObsoleteDoFPhysicallyBased[level]);
         }
     }
 }

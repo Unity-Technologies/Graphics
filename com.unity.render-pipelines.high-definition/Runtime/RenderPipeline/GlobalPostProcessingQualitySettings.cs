@@ -1,4 +1,5 @@
 using System;
+using UnityEngine.Serialization;
 
 namespace UnityEngine.Rendering.HighDefinition
 {
@@ -132,8 +133,6 @@ namespace UnityEngine.Rendering.HighDefinition
         public DepthOfFieldResolution[] DoFResolution   = new DepthOfFieldResolution[s_QualitySettingCount];
         /// <summary>Use Depth of field high quality filtering for each quality level.</summary>
         public bool[] DoFHighQualityFiltering           = new bool[s_QualitySettingCount];
-        /// <summary>Use Depth of field high physically based setting for each quality level.</summary>
-        public bool[] DoFPhysicallyBased                = new bool[s_QualitySettingCount];
         /// <summary>Depth of field techniques.</summary>
         public DepthOfFieldTechnique[] DoFTechnique                = new DepthOfFieldTechnique[s_QualitySettingCount];
 
@@ -152,5 +151,9 @@ namespace UnityEngine.Rendering.HighDefinition
         /* Chromatic Aberration */
         /// <summary>Chromatic aberration maximum sample count for each quality level.</summary>
         public int[] ChromaticAberrationMaxSamples      = new int[s_QualitySettingCount];
+
+        /// <summary>Obsolete setting, see DofTechnique enum instead.</summary>
+        [Obsolete("For data migration")]
+        public bool[] DoFPhysicallyBased  = new bool[s_QualitySettingCount];
     }
 }

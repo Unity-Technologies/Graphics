@@ -245,7 +245,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 else
                 {
                     int qualityLevel = (int)quality.levelAndOverride.level;
-                    return GetPostProcessingQualitySettings().DoFPhysicallyBased[qualityLevel];
+                    return GetPostProcessingQualitySettings().DoFTechnique[qualityLevel] == DepthOfFieldTechnique.PhysicallyBased;
                 }
             }
             set { m_PhysicallyBased.value = value; }
