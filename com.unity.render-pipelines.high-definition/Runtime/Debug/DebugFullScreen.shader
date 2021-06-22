@@ -218,6 +218,12 @@ Shader "Hidden/HDRP/DebugFullScreen"
 
                 if ( _FullScreenDebugMode == FULLSCREENDEBUGMODE_VBUFFER_TRIANGLE_ID)
                 {
+                    float depth = LOAD_TEXTURE2D_X(_CameraDepthTexture, input.positionCS.xy).r;
+                    if (depth == UNITY_RAW_FAR_CLIP_VALUE)
+                    {
+                        return 0;
+                    }
+
                     uint data = asuint(LOAD_TEXTURE2D_X(_DebugFullScreenTexture, (uint2)(input.positionCS.xy))).x;
 
                     uint triangleID, instanceID;
@@ -229,6 +235,12 @@ Shader "Hidden/HDRP/DebugFullScreen"
 
                 if ( _FullScreenDebugMode == FULLSCREENDEBUGMODE_VBUFFER_GEOMETRY_ID)
                 {
+                    float depth = LOAD_TEXTURE2D_X(_CameraDepthTexture, input.positionCS.xy).r;
+                    if (depth == UNITY_RAW_FAR_CLIP_VALUE)
+                    {
+                        return 0;
+                    }
+
                     uint data = asuint(LOAD_TEXTURE2D_X(_DebugFullScreenTexture, (uint2)(input.positionCS.xy))).x;
 
                     uint triangleID, instanceID;
