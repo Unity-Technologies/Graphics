@@ -74,9 +74,9 @@ float2 ToNDC(float2 hClip)
 FragInputs EvaluateFragInput(float4 posSS, uint geometryID, uint triangleID, float3 posWS, float3 V, out float3 debugValue)
 {
     InstanceVData instanceVData = _InstanceVDataBuffer[max(geometryID - 1, 0)];
-    uint i0 = _CompactedIndexBuffer[instanceVData.startIndex + triangleID * 3];
-    uint i1 = _CompactedIndexBuffer[instanceVData.startIndex + triangleID * 3 + 1];
-    uint i2 = _CompactedIndexBuffer[instanceVData.startIndex + triangleID * 3 + 2];
+    uint i0 = _CompactedIndexBuffer[CLUSTER_SIZE_IN_INDICES * instanceVData.chunkStartIndex + triangleID * 3];
+    uint i1 = _CompactedIndexBuffer[CLUSTER_SIZE_IN_INDICES * instanceVData.chunkStartIndex + triangleID * 3 + 1];
+    uint i2 = _CompactedIndexBuffer[CLUSTER_SIZE_IN_INDICES * instanceVData.chunkStartIndex + triangleID * 3 + 2];
 
     // Compute the modelview projection matrix
     float4x4 m = ApplyCameraTranslationToMatrix(instanceVData.localToWorld);

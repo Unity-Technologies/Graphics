@@ -217,14 +217,14 @@ Shader "Hidden/HDRP/DebugFullScreen"
 
                 if ( _FullScreenDebugMode == FULLSCREENDEBUGMODE_VBUFFER_TRIANGLE_ID)
                 {
-                    uint index = asuint(LOAD_TEXTURE2D_X(_DebugFullScreenTexture, (uint2)(input.positionCS.xy))).x;
+                    uint index = asuint(LOAD_TEXTURE2D_X(_DebugFullScreenTexture, (uint2)(input.positionCS.xy))).x + 1;
                     uint hashedIdx = JenkinsHash(index);
                     return float4(rcp(255.0f) * float3((hashedIdx >> 8) & 255, (hashedIdx >> 16) & 255, (hashedIdx >> 24) & 255), 1.0);
                 }
 
                 if ( _FullScreenDebugMode == FULLSCREENDEBUGMODE_VBUFFER_GEOMETRY_ID)
                 {
-                    uint index = asuint(LOAD_TEXTURE2D_X(_DebugFullScreenTexture, (uint2)(input.positionCS.xy))).x;
+                    uint index = asuint(LOAD_TEXTURE2D_X(_DebugFullScreenTexture, (uint2)(input.positionCS.xy))).x + 1;
                     uint hashedIdx = JenkinsHash(index);
                     return float4(rcp(255.0f) * float3((hashedIdx >> 8) & 255, (hashedIdx >> 16) & 255, (hashedIdx >> 24) & 255), 1.0);
                 }

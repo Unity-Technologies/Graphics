@@ -17,11 +17,16 @@ namespace UnityEngine.Rendering.HighDefinition
         ComputeBuffer CompactedVB = null;
         ComputeBuffer CompactedIB = null;
         ComputeBuffer InstanceVDataB = null;
+        Material m_VisibilityBufferMaterial = null;
 
         Dictionary<Material, int> materials = new Dictionary<Material, int>();
 
-        static int s_ClusterSizeInTriangles = 128;
-        static int s_ClusterSizeInIndices = s_ClusterSizeInTriangles * 3;
+        [GenerateHLSL]
+        class VisibilityBufferConstants
+        {
+            public static int s_ClusterSizeInTriangles = 128;
+            public static int s_ClusterSizeInIndices = s_ClusterSizeInTriangles * 3;
+        }
 
         [GenerateHLSL(needAccessors = false)]
         internal struct CompactVertex
@@ -37,7 +42,7 @@ namespace UnityEngine.Rendering.HighDefinition
         {
             public Matrix4x4 localToWorld;
             public uint materialIndex;
-            public uint clusterIndex;
+            public uint chunkStartIndex;
         }
 
         void InitVBuffer()
@@ -45,10 +50,13 @@ namespace UnityEngine.Rendering.HighDefinition
             CompactedVB = null;
             CompactedIB = null;
             InstanceVDataB = null;
+            m_VisibilityBufferMaterial = CoreUtils.CreateEngineMaterial(defaultResources.shaders.renderVisibilityBufferPS);
+            m_VisibilityBufferMaterial.enableInstancing = true;
         }
 
         void DisposeVBufferStuff()
         {
+            CoreUtils.Destroy(m_VisibilityBufferMaterial);
             CoreUtils.SafeRelease(CompactedIB);
             CoreUtils.SafeRelease(CompactedVB);
             CoreUtils.SafeRelease(InstanceVDataB);
@@ -74,29 +82,40 @@ namespace UnityEngine.Rendering.HighDefinition
             return 4;
         }
 
-        int DivideMeshInClusters(Mesh mesh, Matrix4x4 localToWorld, Material[] sharedMaterials, ref List<InstanceVData> instances)
+        int DivideMeshInClusters(Mesh mesh, Matrix4x4 localToWorld, Material[] sharedMaterials, ref Dictionary<Mesh, uint> meshes, ref List<InstanceVData> instances)
         {
             int clusterCount = 0;
             int clustersBeforeInsertion = instances.Count;
-            int meshIndexStart = clustersBeforeInsertion * s_ClusterSizeInIndices;
+            int meshIndexStart = clustersBeforeInsertion * VisibilityBufferConstants.s_ClusterSizeInIndices;
 
-            for (int i = 0; i < mesh.subMeshCount; ++i)
+            if (mesh.name == "Cube")
+                return 0;
+
+                var indices = mesh.GetIndices(1);
+                List<Vector3> pos = new List<Vector3>();
+                mesh.GetVertices(pos);
+
+            for (int i = 1; i < 2; ++i)
             {
                 uint subMeshIndexSize = mesh.GetIndexCount(i);
-                int clustersForSubmesh = HDUtils.DivRoundUp((int)subMeshIndexSize, s_ClusterSizeInIndices);
+                int clustersForSubmesh = HDUtils.DivRoundUp((int)subMeshIndexSize, VisibilityBufferConstants.s_ClusterSizeInIndices);
                 int materialIdx = 0;
-                materials.TryGetValue(sharedMaterials[i], out materialIdx);
 
-                for (int c = 0; c < clustersForSubmesh; ++c)
+                Material currentMat = sharedMaterials[i];
+                if (currentMat == null || IsTransparentMaterial(currentMat))
+                    continue;
+
+                materials.TryGetValue(currentMat, out materialIdx);
+                for (int c = 9; c < clustersForSubmesh; ++c)
                 {
                     InstanceVData data;
                     data.localToWorld = localToWorld;
                     data.materialIndex = (uint)materialIdx;
-                    data.clusterIndex = (uint)(clustersBeforeInsertion + c);
+                    data.chunkStartIndex = meshes[mesh] + 73 + (uint)c;
 
                     instances.Add(data);
+                    clusterCount++;
                 }
-                clusterCount += clustersForSubmesh;
             }
 
             return clusterCount;
@@ -168,19 +187,26 @@ namespace UnityEngine.Rendering.HighDefinition
             for (int i = 0; i < mesh.subMeshCount; ++i)
             {
                 uint indexCount = mesh.GetIndexCount(i);
-                int clusterCount = HDUtils.DivRoundUp((int)indexCount, s_ClusterSizeInIndices);
-                for (int c = 0; c < clusterCount; ++c)
-                {
-                    Vector4 ibCompactionParams = new Vector4(indexCount, HDShadowUtils.Asfloat((uint)(clusterIndex * s_ClusterSizeInIndices)), vbStart, mesh.GetIndexStart(i));
-                    dispatchSize = HDUtils.DivRoundUp((int)indexCount / 3, s_ClusterSizeInTriangles);
-                    cs.SetVector(HDShaderIDs._IBCompactionParams, ibCompactionParams);
-                    cs.Dispatch(kernel, dispatchSize, 1, 1);
+                int clusterCount = HDUtils.DivRoundUp((int)indexCount, VisibilityBufferConstants.s_ClusterSizeInIndices);
 
-                    clusterIndex++;
-                }
+                Vector4 ibCompactionParams = new Vector4(indexCount, HDShadowUtils.Asfloat((uint)(clusterIndex * VisibilityBufferConstants.s_ClusterSizeInIndices)), vbStart, mesh.GetIndexStart(i));
+                dispatchSize = HDUtils.DivRoundUp((int)indexCount / 3, VisibilityBufferConstants.s_ClusterSizeInTriangles);
+                cs.SetVector(HDShaderIDs._IBCompactionParams, ibCompactionParams);
+                cs.Dispatch(kernel, dispatchSize, 1, 1);
+                clusterIndex += (uint)clusterCount;
             }
 
             vbStart += (uint)mesh.vertexCount;
+        }
+
+        int ComputeNumberOfClusters(Mesh currentMesh)
+        {
+            int numberClusters = 0;
+            for (int subMeshIdx = 0; subMeshIdx < currentMesh.subMeshCount; ++subMeshIdx)
+            {
+                numberClusters += HDUtils.DivRoundUp((int)currentMesh.GetIndexCount(subMeshIdx), VisibilityBufferConstants.s_ClusterSizeInIndices);
+            }
+            return numberClusters;
         }
 
         void CompactAllTheThings()
@@ -190,6 +216,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
             int instanceId = 1;
             Dictionary<Mesh, uint> meshes = new Dictionary<Mesh, uint>();
+            Dictionary<Mesh, Material[]> meshToMaterial = new Dictionary<Mesh, Material[]>();
             List<InstanceVData> instanceData = new List<InstanceVData>();
             materials.Clear();
             MaterialPropertyBlock propBlock = new MaterialPropertyBlock();
@@ -218,7 +245,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 {
                     meshes.Add(meshFilter.sharedMesh, 0);
                     vertexCount += meshFilter.sharedMesh.vertexCount;
-                    clusterCount += HDUtils.DivRoundUp(meshFilter.sharedMesh.GetIndexBuffer().count, s_ClusterSizeInIndices);
+                    clusterCount += ComputeNumberOfClusters(meshFilter.sharedMesh);
                 }
 
                 // Get the current value of the material properties in the renderer.
@@ -258,16 +285,16 @@ namespace UnityEngine.Rendering.HighDefinition
 
                 var stride = System.Runtime.InteropServices.Marshal.SizeOf<CompactVertex>();
                 CompactedVB = new ComputeBuffer(vertexCount, stride);
-                CompactedIB = new ComputeBuffer(clusterCount * s_ClusterSizeInIndices, sizeof(int));
+                CompactedIB = new ComputeBuffer(clusterCount * VisibilityBufferConstants.s_ClusterSizeInIndices, sizeof(int));
             }
 
             uint vbStart = 0;
-            uint ibStart = 0;
+            uint clusterIndex = 0;
             var keyArrays = meshes.Keys.ToArray();
             foreach (var mesh in keyArrays)
             {
-                meshes[mesh] = ibStart;
-                AddMeshToCompactedBuffer(ref ibStart, ref vbStart, mesh);
+                meshes[mesh] = clusterIndex;
+                AddMeshToCompactedBuffer(ref clusterIndex, ref vbStart, mesh);
             }
 
             for (var i = 0; i < rendererArray.Length; i++)
@@ -286,7 +313,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 currentRenderer.TryGetComponent(out MeshFilter meshFilter);
                 if (meshFilter == null || meshFilter.sharedMesh == null) continue;
 
-                DivideMeshInClusters(meshFilter.sharedMesh, currentRenderer.localToWorldMatrix, currentRenderer.sharedMaterials, ref instanceData);
+                DivideMeshInClusters(meshFilter.sharedMesh, currentRenderer.localToWorldMatrix, currentRenderer.sharedMaterials, ref meshes, ref instanceData);
             }
 
             if (InstanceVDataB == null || InstanceVDataB.count != instanceData.Count)

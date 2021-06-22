@@ -4,6 +4,12 @@
 
 #ifndef HDRENDERPIPELINE_VERTEXBUFFERCOMPACTION_CS_HLSL
 #define HDRENDERPIPELINE_VERTEXBUFFERCOMPACTION_CS_HLSL
+//
+// UnityEngine.Rendering.HighDefinition.HDRenderPipeline+VisibilityBufferConstants:  static fields
+//
+#define CLUSTER_SIZE_IN_TRIANGLES (128)
+#define CLUSTER_SIZE_IN_INDICES (384)
+
 // Generated from UnityEngine.Rendering.HighDefinition.HDRenderPipeline+CompactVertex
 // PackingRules = Exact
 struct CompactVertex
@@ -19,7 +25,8 @@ struct CompactVertex
 struct InstanceVData
 {
     float4x4 localToWorld;
-    uint startIndex;
+    uint materialIndex;
+    uint chunkStartIndex;
 };
 
 

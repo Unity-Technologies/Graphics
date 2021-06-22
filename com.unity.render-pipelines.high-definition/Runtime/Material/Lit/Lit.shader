@@ -649,7 +649,7 @@ Shader "HDRP/Lit"
             ENDHLSL
         }
 
-
+/*
         Pass
         {
             Name "VBuffer"
@@ -685,7 +685,7 @@ Shader "HDRP/Lit"
 
             ENDHLSL
         }
-
+*/
         Pass
         {
             Name "VBufferLighting"

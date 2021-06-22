@@ -82,15 +82,15 @@ ByteAddressBuffer _InputIB;
 #define _IBInputStart (uint)_IBCompactionParams.w
 
 
-void StoreTriangle(uint outputTriangleStart, uint inputVal, uint inputVal1, uint inputVal2)
+void StoreTriangle(uint outputTriangleStart, uint groupIndex, uint inputVal, uint inputVal1, uint inputVal2)
 {
-    _OutputIB[_IBOutputBias + outputTriangleStart + 0] = inputVal;
-    _OutputIB[_IBOutputBias + outputTriangleStart + 1] = inputVal1;
-    _OutputIB[_IBOutputBias + outputTriangleStart + 2] = inputVal2;
+    _OutputIB[_IBOutputBias + outputTriangleStart + 0 + groupIndex * CLUSTER_SIZE_IN_INDICES] = inputVal;
+    _OutputIB[_IBOutputBias + outputTriangleStart + 1 + groupIndex * CLUSTER_SIZE_IN_INDICES] = inputVal1;
+    _OutputIB[_IBOutputBias + outputTriangleStart + 2 + groupIndex * CLUSTER_SIZE_IN_INDICES] = inputVal2;
 }
 
 [numthreads(128, 1, 1)]
-void IBCompactionKernelUINT32(uint3 id : SV_DispatchThreadID)
+void IBCompactionKernelUINT32(uint3 id : SV_DispatchThreadID, uint groupIndex: SV_GroupID)
 {
     uint triangleIndexStart = id.x * 3;
     if (triangleIndexStart < _IBSubmeshCount)
@@ -99,23 +99,23 @@ void IBCompactionKernelUINT32(uint3 id : SV_DispatchThreadID)
         uint idx1 = asuint(_InputIB.Load(triangleIndexStart + 1 + _IBInputStart)) + _IBValueShift;
         uint idx2 = asuint(_InputIB.Load(triangleIndexStart + 2 + _IBInputStart)) + _IBValueShift;
 
-        StoreTriangle(triangleIndexStart, idx0, idx1, idx2);
+        StoreTriangle(triangleIndexStart, groupIndex, idx0, idx1, idx2);
     }
     else
     {
-        StoreTriangle(triangleIndexStart, 0xffffffff, 0xffffffff, 0xffffffff);
+        StoreTriangle(triangleIndexStart, groupIndex, 0xffffffff, 0xffffffff, 0xffffffff);
     }
 }
 
 
 [numthreads(128, 1, 1)]
-void IBCompactionKernelUINT16(uint3 id : SV_DispatchThreadID)
+void IBCompactionKernelUINT16(uint3 id : SV_DispatchThreadID, uint groupIndex: SV_GroupID)
 {
     uint triangleIndexStart = id.x * 3;
 
     if (triangleIndexStart < _IBSubmeshCount)
     {
-        uint triangleStartIndexInput = triangleIndexStart + _IBInputStart;
+        uint triangleStartIndexInput = triangleIndexStart + _IBInputStart + groupIndex * CLUSTER_SIZE_IN_INDICES;
 
         uint idx0, idx1, idx2;
         uint accessIdx = (triangleStartIndexInput / 2);
@@ -139,10 +139,10 @@ void IBCompactionKernelUINT16(uint3 id : SV_DispatchThreadID)
             idx2 = secondCouple >> 16;
         }
 
-        StoreTriangle(triangleIndexStart, idx0 + _IBValueShift, idx1 + _IBValueShift, idx2 + _IBValueShift);
+        StoreTriangle(triangleIndexStart, groupIndex, idx0 + _IBValueShift, idx1 + _IBValueShift, idx2 + _IBValueShift);
     }
     else
     {
-        StoreTriangle(triangleIndexStart, 0xffffffff, 0xffffffff, 0xffffffff);
+        StoreTriangle(triangleIndexStart, groupIndex, 0xffffffff, 0xffffffff, 0xffffffff);
     }
 }

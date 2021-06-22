@@ -7,12 +7,16 @@ Shader "Hidden/HDRP/VisibilityBuffer"
     SubShader
     {
         Tags{ "RenderPipeline" = "HDRenderPipeline" "RenderType" = "Opaque" }
-        LOD 100
 
         HLSLINCLUDE
         #pragma editor_sync_compilation
         #pragma target 4.5
         #pragma only_renderers d3d11 playstation xboxone xboxseries vulkan metal switch
+        
+        // GPU Instancing
+        #pragma multi_compile_instancing
+        #pragma multi_compile _ DOTS_INSTANCING_ON
+        #pragma enable_d3d11_debug_symbols
 
         #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Common.hlsl"
         #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/UnityInstancing.hlsl"
@@ -22,13 +26,13 @@ Shader "Hidden/HDRP/VisibilityBuffer"
         {
             float4 vertex : POSITION;
             uint vertexID : SV_VertexID;
-            UNITY_VERTEX_INPUT_INSTANCE_ID
+            uint instanceID : SV_InstanceID;
         };
 
         struct v2f
         {
             float4 vertex : SV_POSITION;
-            UNITY_VERTEX_INPUT_INSTANCE_ID
+            uint cinstanceID : CUSTOM_INSTANCE_ID;
         };
 
 
@@ -36,26 +40,30 @@ Shader "Hidden/HDRP/VisibilityBuffer"
         {
             v2f o;
             ZERO_INITIALIZE(v2f, o);
-#if UNITY_ANY_INSTANCING_ENABLED
+#ifdef UNITY_ANY_INSTANCING_ENABLED
 
             UNITY_SETUP_INSTANCE_ID(v);
-            UNITY_TRANSFER_INSTANCE_ID(v, o);
 
-            uint instanceID = UNITY_GET_INSTANCE_ID(v);
+            uint instanceID = v.instanceID;
             InstanceVData instanceVData = _InstanceVDataBuffer[instanceID];
             int triangleID = v.vertexID / 3;
             int vertexID = v.vertexID % 3;
 
-            uint index = _CompactedIndexBuffer[instanceVData.startIndex + triangleID * 3 + v.vertexID];
+            uint indexShift = instanceVData.chunkStartIndex * CLUSTER_SIZE_IN_INDICES;
+            uint index = _CompactedIndexBuffer[indexShift + triangleID * 3 + vertexID];
 
             CompactVertex vertex = _CompactedVertexBuffer[index];
 
             float4x4 m = ApplyCameraTranslationToMatrix(instanceVData.localToWorld);
             float3 posWS = mul(m, float4(vertex.pos, 1.0));
-            o.vertex = mul(UNITY_MATRIX_VP, float4(posWS, 1.0));
-#else
-            return o;
+
+            if (index != 0xffffffff)
+            {
+                o.cinstanceID = v.instanceID;
+                o.vertex = mul(UNITY_MATRIX_VP, float4(posWS, 1.0));
+            }
 #endif
+            return o;
         }
 
 
@@ -67,13 +75,13 @@ Shader "Hidden/HDRP/VisibilityBuffer"
             )
         {
             UNITY_SETUP_INSTANCE_ID(i);
-#if UNITY_ANY_INSTANCING_ENABLED
+#ifdef UNITY_ANY_INSTANCING_ENABLED
 
             // Fetch triangle ID (32 bits)
             uint triangleId = primitiveID;
 
             // Fetch the Geometry ID (16 bits compressed)
-            uint instanceID = UNITY_GET_INSTANCE_ID(packedInput);
+            uint instanceID = packedInput.cinstanceID;
 
             InstanceVData instanceVData = _InstanceVDataBuffer[instanceID];
 
@@ -81,7 +89,7 @@ Shader "Hidden/HDRP/VisibilityBuffer"
             uint materialId = instanceVData.materialIndex;
             // Write the VBuffer
             VBuffer0 = triangleId;
-            VBuffer1 = instanceID & 0xffff;
+            VBuffer1 = instanceID;
             MaterialDepth = materialId;
 #else
             VBuffer0 = 0;
@@ -101,7 +109,6 @@ Shader "Hidden/HDRP/VisibilityBuffer"
             HLSLPROGRAM
             #pragma vertex vert
             #pragma fragment frag
-            #pragma multi_compile_instancing
             ENDHLSL
         }
     }

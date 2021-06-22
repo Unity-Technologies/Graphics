@@ -12,6 +12,8 @@ namespace UnityEngine.Rendering.HighDefinition
 {
     public partial class HDRenderPipeline
     {
+
+
         internal struct VBufferOutput
         {
             public TextureHandle vBuffer0;
@@ -22,14 +24,16 @@ namespace UnityEngine.Rendering.HighDefinition
 
         class VBufferPassData
         {
+            public int clusterCount;
+            public Material renderVisibilityMaterial;
             public TextureHandle tempColorBuffer;
             public TextureHandle vbuffer0;
             public TextureHandle vbuffer1;
             public TextureHandle materialDepthBuffer;
             public TextureHandle depthBuffer;
             public FrameSettings frameSettings;
-            public RendererListHandle rendererList;
         }
+
 
         VBufferOutput RenderVBuffer(RenderGraph renderGraph, CullingResults cullingResults, HDCamera hdCamera, TextureHandle tempColorBuffer)
         {
@@ -43,6 +47,8 @@ namespace UnityEngine.Rendering.HighDefinition
             {
                 builder.AllowRendererListCulling(false);
 
+                passData.clusterCount = InstanceVDataB.count;
+                passData.renderVisibilityMaterial = m_VisibilityBufferMaterial;
                 passData.tempColorBuffer = builder.WriteTexture(tempColorBuffer);
                 passData.vbuffer0 = builder.WriteTexture(renderGraph.CreateTexture(new TextureDesc(Vector2.one, true, true)
                     { colorFormat = GraphicsFormat.R32_UInt, clearBuffer = true, enableRandomWrite = true, name = "VBuffer 0" }));
@@ -59,18 +65,14 @@ namespace UnityEngine.Rendering.HighDefinition
                 builder.UseColorBuffer(passData.materialDepthBuffer, 2);
 
                 passData.frameSettings = hdCamera.frameSettings;
-                var opaqueRenderList = CreateOpaqueRendererListDesc(
-                    cullingResults, hdCamera.camera, m_VBufferNames,
-                    renderQueueRange: HDRenderQueue.k_RenderQueue_AllOpaque,
-                    stateBlock: m_AlphaToMaskBlock,
-                    excludeObjectMotionVectors: false);
-                var renderList = renderGraph.CreateRendererList(opaqueRenderList);
-                passData.rendererList = builder.UseRendererList(renderList);
 
                 builder.SetRenderFunc(
                     (VBufferPassData data, RenderGraphContext context) =>
                     {
-                        DrawOpaqueRendererList(context.renderContext, context.cmd, data.frameSettings, data.rendererList);
+                        context.cmd.SetGlobalBuffer("_CompactedVertexBuffer", CompactedVB);
+                        context.cmd.SetGlobalBuffer("_CompactedIndexBuffer", CompactedIB);
+                        context.cmd.SetGlobalBuffer("_InstanceVDataBuffer", InstanceVDataB);
+                        context.cmd.DrawProcedural(Matrix4x4.identity, data.renderVisibilityMaterial, 0, MeshTopology.Triangles, VisibilityBufferConstants.s_ClusterSizeInIndices, data.clusterCount);
                     });
 
                 vBufferOutput.vBuffer0 = passData.vbuffer0;
