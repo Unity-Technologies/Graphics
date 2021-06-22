@@ -1,0 +1,29 @@
+{
+  "name": "com.unity.render-pipelines.sdf",
+  "description": "The SDF Render Pipeline (SDFRP) is a prebuilt Scriptable Render Pipeline, made by Unity. URP provides artist-friendly workflows that let you quickly and easily create optimized graphics across a range of platforms, from mobile to high-end consoles and PCs.",
+  "version": "1.0.0",
+  "unity": "2021.2",
+  "unityRelease": "0a19",
+  "displayName": "SDF RP",
+  "dependencies": {
+    "com.unity.mathematics": "1.2.1",
+    "com.unity.burst": "1.5.0",
+    "com.unity.render-pipelines.core": "12.0.0",
+    "com.unity.shadergraph": "12.0.0"
+  },
+  "keywords": [
+    "graphics",
+    "performance",
+    "rendering",
+    "mobile",
+    "render",
+    "pipeline"
+  ],
+  "samples": [
+    {
+      "displayName": "Teaching Samples",
+      "description": "Collection of scenes showing how to use different features of the Universal Render Pipeline.",
+      "path": "Samples~/TeachingSamples"
+    }
+  ]
+}
