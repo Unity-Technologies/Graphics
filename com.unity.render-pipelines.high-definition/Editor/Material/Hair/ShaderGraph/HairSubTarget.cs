@@ -86,12 +86,13 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
             base.GetActiveBlocks(ref context);
 
             // Hair specific blocks
-            // TODO: Find common parameters between the two material types, if any.
+            context.AddBlock(HDBlockFields.SurfaceDescription.HairStrandDirection);
+
+            // Parametrization for Kajiya-Kay and Marschner models.
             if (hairData.materialType == HairData.MaterialType.KajiyaKay)
             {
                 context.AddBlock(HDBlockFields.SurfaceDescription.Transmittance);
                 context.AddBlock(HDBlockFields.SurfaceDescription.RimTransmissionIntensity);
-                context.AddBlock(HDBlockFields.SurfaceDescription.HairStrandDirection);
                 context.AddBlock(HDBlockFields.SurfaceDescription.SpecularTint);
                 context.AddBlock(HDBlockFields.SurfaceDescription.SpecularShift);
                 context.AddBlock(HDBlockFields.SurfaceDescription.SecondarySpecularTint);
@@ -100,11 +101,12 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
             }
             else
             {
-                context.AddBlock(HDBlockFields.SurfaceDescription.HairStrandDirection);
-                context.AddBlock(HDBlockFields.SurfaceDescription.LongitudinalRoughness);
                 context.AddBlock(HDBlockFields.SurfaceDescription.AzimuthalRoughness, hairData.useRoughenedAzimuthalScattering);
                 context.AddBlock(HDBlockFields.SurfaceDescription.PrimaryReflectionRoughness);
                 context.AddBlock(HDBlockFields.SurfaceDescription.CuticleAngle);
+
+                // TODO: Refraction Index
+                // Right now, the Marschner model implicitly assumes a human hair IOR of 1.55.
             }
         }
 

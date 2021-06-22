@@ -30,11 +30,10 @@
 #define DEBUGVIEW_HAIR_SURFACEDATA_SECONDARY_SPECULAR_TINT (1414)
 #define DEBUGVIEW_HAIR_SURFACEDATA_SPECULAR_SHIFT (1415)
 #define DEBUGVIEW_HAIR_SURFACEDATA_SECONDARY_SPECULAR_SHIFT (1416)
-#define DEBUGVIEW_HAIR_SURFACEDATA_LONGITUDINAL_ROUGHNESS (1417)
-#define DEBUGVIEW_HAIR_SURFACEDATA_AZIMUTHAL_ROUGHNESS (1418)
-#define DEBUGVIEW_HAIR_SURFACEDATA_PRIMARY_REFLECTION_ROUGHNESS (1419)
-#define DEBUGVIEW_HAIR_SURFACEDATA_REFRACTION_INDEX (1420)
-#define DEBUGVIEW_HAIR_SURFACEDATA_CUTICLE_ANGLE (1421)
+#define DEBUGVIEW_HAIR_SURFACEDATA_AZIMUTHAL_ROUGHNESS (1417)
+#define DEBUGVIEW_HAIR_SURFACEDATA_PRIMARY_REFLECTION_ROUGHNESS (1418)
+#define DEBUGVIEW_HAIR_SURFACEDATA_REFRACTION_INDEX (1419)
+#define DEBUGVIEW_HAIR_SURFACEDATA_CUTICLE_ANGLE (1420)
 
 //
 // UnityEngine.Rendering.HighDefinition.Hair+BSDFData:  static fields
@@ -94,7 +93,6 @@ struct SurfaceData
     float3 secondarySpecularTint;
     float specularShift;
     float secondarySpecularShift;
-    float roughnessLongitudinal;
     float roughnessAzimuthal;
     float roughnessPrimaryReflection;
     float ior;
@@ -200,9 +198,6 @@ void GetGeneratedSurfaceDataDebug(uint paramId, SurfaceData surfacedata, inout f
             break;
         case DEBUGVIEW_HAIR_SURFACEDATA_SECONDARY_SPECULAR_SHIFT:
             result = surfacedata.secondarySpecularShift.xxx;
-            break;
-        case DEBUGVIEW_HAIR_SURFACEDATA_LONGITUDINAL_ROUGHNESS:
-            result = surfacedata.roughnessLongitudinal.xxx;
             break;
         case DEBUGVIEW_HAIR_SURFACEDATA_AZIMUTHAL_ROUGHNESS:
             result = surfacedata.roughnessAzimuthal.xxx;

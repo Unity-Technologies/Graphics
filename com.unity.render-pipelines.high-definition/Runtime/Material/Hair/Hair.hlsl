@@ -236,7 +236,7 @@ BSDFData ConvertSurfaceDataToBSDFData(uint2 positionSS, SurfaceData surfaceData)
         bsdfData.cuticleAngleTRT = -cuticleAngle * 3.0 * 0.5;
 
         // Longitudinal Roughness
-        const float roughnessL = PerceptualRoughnessToRoughness(surfaceData.roughnessLongitudinal);
+        const float roughnessL = PerceptualRoughnessToRoughness(bsdfData.perceptualRoughness);
         bsdfData.roughnessR   = roughnessL * surfaceData.roughnessPrimaryReflection;
         bsdfData.roughnessTT  = roughnessL * 0.5;
         bsdfData.roughnessTRT = roughnessL * 2.0;

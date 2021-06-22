@@ -73,8 +73,6 @@ namespace UnityEngine.Rendering.HighDefinition
             public float secondarySpecularShift;
 
             // Marschner
-            [SurfaceDataAttributes("Longitudinal Roughness")]
-            public float roughnessLongitudinal;
             [SurfaceDataAttributes("Azimuthal Roughness")]
             public float roughnessAzimuthal;
             [SurfaceDataAttributes("Primary Reflection Roughness")]
