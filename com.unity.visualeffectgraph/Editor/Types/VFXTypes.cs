@@ -34,7 +34,29 @@ namespace UnityEditor.VFX
         public static readonly int SpaceCount = Enum.GetValues(typeof(VFXCoordinateSpace)).Length;
     }
 
-    [VFXType, Serializable]
+    [VFXType(VFXTypeAttribute.Usage.Default, "Circle"), Serializable]
+    struct TCircle
+    {
+        [Tooltip("Sets the transform of the circle.")]
+        public Transform transform;
+        [Tooltip("Sets the radius of the circle.")]
+        public float radius;
+
+        public static TCircle defaultValue = new TCircle { radius = 1.0f };
+    }
+
+    [VFXType(VFXTypeAttribute.Usage.ExcludeFromProperty, "Arc Circle"), Serializable]
+    struct TArcCircle
+    {
+        [Tooltip("Sets the Circle shape input.")]
+        public TCircle circle;
+        [Angle, Range(0, Mathf.PI * 2.0f), Tooltip("Controls how much of the circle is used. The value is in radians.")]
+        public float arc;
+
+        public static TArcCircle defaultValue = new TArcCircle { circle = TCircle.defaultValue, arc = 2.0f * Mathf.PI };
+    }
+
+    [VFXType(VFXTypeAttribute.Usage.ExcludeFromProperty, "Circle (Deprecated)"), Serializable]
     struct Circle
     {
         [Tooltip("Sets the center of the circle."), VFXSpace(SpaceableType.Position)]
@@ -45,7 +67,7 @@ namespace UnityEditor.VFX
         public static Circle defaultValue = new Circle { radius = 1.0f };
     }
 
-    [VFXType, Serializable]
+    [VFXType(VFXTypeAttribute.Usage.ExcludeFromProperty, "Arc Circle (Deprecated)"), Serializable]
     struct ArcCircle
     {
         [Tooltip("Sets the Circle shape input.")]
@@ -56,7 +78,7 @@ namespace UnityEditor.VFX
         public static ArcCircle defaultValue = new ArcCircle { circle = Circle.defaultValue, arc = 2.0f * Mathf.PI };
     }
 
-    [VFXType, Serializable]
+    [VFXType(VFXTypeAttribute.Usage.ExcludeFromProperty, "Sphere (Deprecated)"), Serializable]
     struct Sphere
     {
         [Tooltip("Sets the center of the sphere."), VFXSpace(SpaceableType.Position)]
@@ -67,7 +89,7 @@ namespace UnityEditor.VFX
         public static Sphere defaultValue = new Sphere { radius = 1.0f };
     }
 
-    [VFXType, Serializable]
+    [VFXType(VFXTypeAttribute.Usage.ExcludeFromProperty, "Arc Sphere (Deprecated)"), Serializable]
     struct ArcSphere
     {
         public Sphere sphere;
@@ -77,7 +99,7 @@ namespace UnityEditor.VFX
         public static ArcSphere defaultValue = new ArcSphere { sphere = Sphere.defaultValue, arc = 2.0f * Mathf.PI };
     }
 
-    [VFXType, Serializable]
+    [VFXType(VFXTypeAttribute.Usage.Default, "Sphere"), Serializable]
     struct TSphere
     {
         [Tooltip("Sets the transform of the sphere.")]
@@ -88,7 +110,7 @@ namespace UnityEditor.VFX
         public static TSphere defaultValue = new TSphere { transform = Transform.defaultValue, radius = 1.0f };
     }
 
-    [VFXType, Serializable]
+    [VFXType(VFXTypeAttribute.Usage.ExcludeFromProperty), Serializable]
     struct TArcSphere
     {
         public TSphere sphere;
@@ -135,7 +157,7 @@ namespace UnityEditor.VFX
         public static Plane defaultValue = new Plane { normal = Vector3.up };
     }
 
-    [VFXType, Serializable]
+    [VFXType(VFXTypeAttribute.Usage.ExcludeFromProperty, "Cylinder (Deprecated)"), Serializable]
     struct Cylinder
     {
         [Tooltip("Sets the center of the cylinder."), VFXSpace(SpaceableType.Position)]
@@ -148,7 +170,7 @@ namespace UnityEditor.VFX
         public static Cylinder defaultValue = new Cylinder { radius = 1.0f, height = 1.0f };
     }
 
-    [VFXType, Serializable]
+    [VFXType(VFXTypeAttribute.Usage.ExcludeFromProperty, "Cone (Deprecated)"), Serializable]
     struct Cone
     {
         [Tooltip("Sets the center of the cone."), VFXSpace(SpaceableType.Position)]
@@ -163,7 +185,7 @@ namespace UnityEditor.VFX
         public static Cone defaultValue = new Cone { radius0 = 1.0f, radius1 = 0.1f, height = 1.0f };
     }
 
-    [VFXType, Serializable]
+    [VFXType(VFXTypeAttribute.Usage.ExcludeFromProperty, "Arc Cone (Deprecated)"), Serializable]
     struct ArcCone
     {
         [Tooltip("Sets the center of the cone."), VFXSpace(SpaceableType.Position)]
@@ -180,7 +202,7 @@ namespace UnityEditor.VFX
         public static ArcCone defaultValue = new ArcCone { radius0 = 1.0f, radius1 = 0.1f, height = 1.0f, arc = 2.0f * Mathf.PI};
     }
 
-    [VFXType, Serializable]
+    [VFXType(VFXTypeAttribute.Usage.ExcludeFromProperty, "Arc Cone"), Serializable]
     struct TArcCone
     {
         [Tooltip("Sets the cone.")]
@@ -191,7 +213,7 @@ namespace UnityEditor.VFX
         public static TArcCone defaultValue = new TArcCone { cone = TCone.defaultValue, arc = 2.0f * Mathf.PI };
     }
 
-    [VFXType, Serializable]
+    [VFXType(VFXTypeAttribute.Usage.Default, "Cone"), Serializable]
     struct TCone
     {
         [Tooltip("Sets the transform of the cone.")]
@@ -207,7 +229,7 @@ namespace UnityEditor.VFX
         public static TCone defaultValue = new TCone { transform = Transform.defaultValue, radius0 = 1.0f, radius1 = 0.1f, height = 1.0f };
     }
 
-    [VFXType, Serializable]
+    [VFXType(VFXTypeAttribute.Usage.ExcludeFromProperty, "Torus (Deprecated)"), Serializable]
     struct Torus
     {
         [Tooltip("Sets the center of the torus."), VFXSpace(SpaceableType.Position)]
@@ -220,7 +242,7 @@ namespace UnityEditor.VFX
         public static Torus defaultValue = new Torus { majorRadius = 1.0f, minorRadius = 0.1f };
     }
 
-    [VFXType, Serializable]
+    [VFXType(VFXTypeAttribute.Usage.ExcludeFromProperty, "Arc Torus (Deprecated)"), Serializable]
     struct ArcTorus
     {
         [Tooltip("Sets the center of the torus."), VFXSpace(SpaceableType.Position)]
@@ -233,6 +255,30 @@ namespace UnityEditor.VFX
         public float arc;
 
         public static ArcTorus defaultValue = new ArcTorus { majorRadius = 1.0f, minorRadius = 0.1f, arc = 2.0f * Mathf.PI};
+    }
+
+    [VFXType(VFXTypeAttribute.Usage.ExcludeFromProperty, "Torus"), Serializable]
+    struct TTorus
+    {
+        [Tooltip("Sets the transform of the torus.")]
+        public Transform transform;
+        [Tooltip("Sets the radius of the torus ring.")]
+        public float majorRadius;
+        [Tooltip("Sets the thickness of the torus ring.")]
+        public float minorRadius;
+
+        public static TTorus defaultValue = new TTorus { transform = Transform.defaultValue, majorRadius = 1.0f, minorRadius = 0.1f };
+    }
+
+    [VFXType(VFXTypeAttribute.Usage.ExcludeFromProperty, "Arc Torus"), Serializable]
+    struct TArcTorus
+    {
+        [Tooltip("Sets the cone.")]
+        public TTorus torus;
+        [Angle, Range(0, Mathf.PI * 2.0f), Tooltip("Controls how much of the torus is used.")]
+        public float arc;
+
+        public static TArcTorus defaultValue = new TArcTorus { torus = TTorus.defaultValue, arc = 2.0f * Mathf.PI };
     }
 
     [VFXType, Serializable]
@@ -278,7 +324,7 @@ namespace UnityEditor.VFX
         public static Position defaultValue = new Position { position = Vector3.zero };
     }
 
-    [VFXType, Serializable]
+    [VFXType(VFXTypeAttribute.Usage.Default, "Direction"), Serializable]
     struct DirectionType
     {
         [Tooltip("The normalized direction."), VFXSpace(SpaceableType.Direction)]
@@ -325,7 +371,7 @@ namespace UnityEditor.VFX
         public static FlipBook defaultValue = new FlipBook { x = 4, y = 4 };
     }
 
-    [VFXType, Serializable]
+    [VFXType(VFXTypeAttribute.Usage.ExcludeFromProperty), Serializable]
     struct CameraBuffer
     {
         private Texture texture;
@@ -356,7 +402,7 @@ namespace UnityEditor.VFX
         }
     }
 
-    [VFXType, Serializable]
+    [VFXType(VFXTypeAttribute.Usage.Default, "Camera"), Serializable]
     struct CameraType
     {
         [Tooltip("The camera's Transform in the world.")]

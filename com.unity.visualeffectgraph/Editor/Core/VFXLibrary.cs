@@ -186,6 +186,12 @@ namespace UnityEditor.VFX
         public static IEnumerable<VFXModelDescriptor<VFXSlot>> GetSlots() { LoadSlotsIfNeeded(); return m_SlotDescs.Values; }
         public static IEnumerable<Type> GetSlotsType() { LoadSlotsIfNeeded(); return m_SlotDescs.Keys; }
         public static bool IsSpaceableSlotType(Type type) { LoadSlotsIfNeeded(); return m_SlotSpaceable.Contains(type); }
+        public static VFXTypeAttribute GetAttributeFromSlotType(Type type)
+        {
+            LoadSlotsIfNeeded();
+            m_SlotAttribute.TryGetValue(type, out var attribute);
+            return attribute;
+        }
 
         public static IEnumerable<VFXModelDescriptorParameters> GetParameters() { LoadIfNeeded(); return m_ParametersDescs; }
 
@@ -306,6 +312,14 @@ namespace UnityEditor.VFX
                             m_SlotSpaceable.Add(slotDescType);
                         }
                     }
+
+                    m_SlotAttribute = new Dictionary<Type, VFXTypeAttribute>();
+                    foreach (var slotDescType in m_SlotDescs.Keys)
+                    {
+                        var attribute = slotDescType.GetCustomAttributes(typeof(VFXTypeAttribute), true).FirstOrDefault() as VFXTypeAttribute;
+                        m_SlotAttribute.Add(slotDescType, attribute);
+                    }
+
                     m_SlotLoaded = true;
                 }
             }
@@ -630,6 +644,7 @@ namespace UnityEditor.VFX
         private static volatile List<VFXModelDescriptorParameters> m_ParametersDescs;
         private static volatile Dictionary<Type, VFXModelDescriptor<VFXSlot>> m_SlotDescs;
         private static volatile HashSet<Type> m_SlotSpaceable;
+        private static volatile Dictionary<Type, VFXTypeAttribute> m_SlotAttribute;
 
         private static Object m_Lock = new Object();
         private static volatile bool m_Loaded = false;

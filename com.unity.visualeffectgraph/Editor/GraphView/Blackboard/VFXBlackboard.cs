@@ -7,6 +7,7 @@ using System.Collections.Generic;
 using System.Linq;
 
 using PositionType = UnityEngine.UIElements.Position;
+using UnityEngine.VFX;
 
 namespace  UnityEditor.VFX.UI
 {
@@ -455,13 +456,13 @@ namespace  UnityEditor.VFX.UI
 
             foreach (var parameter in GetSortedParameters())
             {
-                VFXParameter model = parameter.model as VFXParameter;
-
+                var model = parameter.model as VFXParameter;
                 var type = model.type;
-                if (type == typeof(GPUEvent) || type == typeof(CameraBuffer) || type == typeof(TArcCone)) //TODOPAUL Use a flag or something
+                var attribute = VFXLibrary.GetAttributeFromSlotType(model.type);
+                if (attribute != null && attribute.usages.HasFlag(VFXTypeAttribute.Usage.ExcludeFromProperty))
                     continue;
 
-                menu.AddItem(EditorGUIUtility.TextContent(type.UserFriendlyName()), false, OnAddParameter, parameter);
+                menu.AddItem(EditorGUIUtility.TextContent(parameter.name), false, OnAddParameter, parameter);
             }
 
             menu.ShowAsContext();
