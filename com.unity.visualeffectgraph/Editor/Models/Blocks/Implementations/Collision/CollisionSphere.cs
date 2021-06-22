@@ -69,8 +69,8 @@ if (colliderSign * sqrLength <= colliderSign)
                 {
                     source += @"
 float dist = length(tPos);
-//TODOPAUL WRONG
-float radiusCorrection = radius * length((abs(tPos)/dist) - invFieldScale);
+float3 relativeScale = abs(tPos)/length(tPos) * invFieldScale;
+float radiusCorrection = radius * length(relativeScale);
 dist -= radiusCorrection;
 if (colliderSign * dist <= colliderSign)
 {";
