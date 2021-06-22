@@ -2,45 +2,27 @@
 #error SHADERPASS_is_not_correctly_define
 #endif
 
-CBUFFER_START(UnityMetaPass)
-// x = use uv1 as raster position
-// y = use uv2 as raster position
-bool4 unity_MetaVertexControl;
+#if SHADERPASS == SHADERPASS_LIGHT_TRANSPORT
+// Use Unity's built-in matrices for meta pass rendering
+#define SCENEPICKINGPASS
+#include "Packages/com.unity.render-pipelines.high-definition/Runtime/ShaderLibrary/PickingSpaceTransforms.hlsl"
+#endif
 
-// x = return albedo
-// y = return normal
-bool4 unity_MetaFragmentControl;
-CBUFFER_END
-
-
-// This was not in constant buffer in original unity, so keep outiside. But should be in as ShaderRenderPass frequency
-float unity_OneOverOutputBoost;
-float unity_MaxOutputValue;
-
+#include "Packages/com.unity.render-pipelines.core/ShaderLibrary/MetaPass.hlsl"
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/ShaderPass/VertMesh.hlsl"
 
 PackedVaryingsToPS Vert(AttributesMesh inputMesh)
 {
-    VaryingsToPS output;
+    VaryingsToPS output = (VaryingsToPS)0;
 
     UNITY_SETUP_INSTANCE_ID(inputMesh);
     UNITY_TRANSFER_INSTANCE_ID(inputMesh, output.vmesh);
 
-    // Output UV coordinate in vertex shader
-    float2 uv = float2(0.0, 0.0);
+#if defined(HAVE_MESH_MODIFICATION)
+    inputMesh = ApplyMeshModification(inputMesh, _TimeParameters.xyz);
+#endif
 
-    if (unity_MetaVertexControl.x)
-    {
-        uv = inputMesh.uv1.xy * unity_LightmapST.xy + unity_LightmapST.zw;
-    }
-    else if (unity_MetaVertexControl.y)
-    {
-        uv = inputMesh.uv2.xy * unity_DynamicLightmapST.xy + unity_DynamicLightmapST.zw;
-    }
-
-    // OpenGL right now needs to actually use the incoming vertex position
-    // so we create a fake dependency on it here that haven't any impact.
-    output.vmesh.positionCS = float4(uv * 2.0 - 1.0, inputMesh.positionOS.z > 0 ? 1.0e-4 : 0.0, 1.0);
+    output.vmesh.positionCS = UnityMetaVertexPosition(inputMesh.positionOS, inputMesh.uv1.xy, inputMesh.uv2.xy, unity_LightmapST, unity_DynamicLightmapST);
 
 #ifdef VARYINGS_NEED_POSITION_WS
     output.vmesh.positionRWS = TransformObjectToWorld(inputMesh.positionOS);
@@ -53,17 +35,37 @@ PackedVaryingsToPS Vert(AttributesMesh inputMesh)
     output.vmesh.tangentWS = float4(1.0, 0.0, 0.0, 0.0);
 #endif
 
+#ifdef EDITOR_VISUALIZATION
+    // originally, input uv0 was scaled using the main texture's ST. this does not seem necessary for HD, but if it is, scaling would need to be applied before generating vizUV.
+    float2 vizUV = 0;
+    float4 lightCoord = 0;
+    UnityEditorVizData(inputMesh.positionOS.xyz, inputMesh.uv0.xy, inputMesh.uv1.xy, inputMesh.uv2.xy, vizUV, lightCoord);
+#endif
+
 #ifdef VARYINGS_NEED_TEXCOORD0
     output.vmesh.texCoord0 = inputMesh.uv0;
 #endif
 #ifdef VARYINGS_NEED_TEXCOORD1
+#ifdef EDITOR_VISUALIZATION
+    output.vmesh.texCoord1.xy = vizUV.xy;
+#else
     output.vmesh.texCoord1 = inputMesh.uv1;
 #endif
+#endif
 #ifdef VARYINGS_NEED_TEXCOORD2
+    // texCoord2 = lightCoord
+#ifdef EDITOR_VISUALIZATION
+    output.vmesh.texCoord2.xy = lightCoord.xy;
+#else
     output.vmesh.texCoord2 = inputMesh.uv2;
 #endif
+#endif
 #ifdef VARYINGS_NEED_TEXCOORD3
+#ifdef EDITOR_VISUALIZATION
+    output.vmesh.texCoord3.xy = lightCoord.zw;
+#else
     output.vmesh.texCoord3 = inputMesh.uv3;
+#endif
 #endif
 #ifdef VARYINGS_NEED_COLOR
     output.vmesh.color = inputMesh.color;
@@ -99,18 +101,14 @@ float4 Frag(PackedVaryingsToPS packedInput) : SV_Target
     // We use unity_MetaFragmentControl to make the distinction.
     float4 res = float4(0.0, 0.0, 0.0, 1.0);
 
-    if (unity_MetaFragmentControl.x)
-    {
-        // Apply diffuseColor Boost from LightmapSettings.
-        // put abs here to silent a warning, no cost, no impact as color is assume to be positive.
-        res.rgb = clamp(pow(abs(lightTransportData.diffuseColor), saturate(unity_OneOverOutputBoost)), 0, unity_MaxOutputValue);
-    }
-
-    if (unity_MetaFragmentControl.y)
-    {
-        // emissive use HDR format
-        res.rgb = lightTransportData.emissiveColor;
-    }
+    UnityMetaInput metaInput;
+    metaInput.Albedo = lightTransportData.diffuseColor.rgb;
+    metaInput.Emission = lightTransportData.emissiveColor;
+#ifdef EDITOR_VISUALIZATION
+    metaInput.VizUV = input.texCoord1.xy;
+    metaInput.LightCoord = float4(input.texCoord2.xy, input.texCoord3.xy);
+#endif
+    res = UnityMetaFragment(metaInput);
 
     return res;
 }

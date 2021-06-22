@@ -66,5 +66,10 @@ namespace UnityEngine.Rendering.HighDefinition
                 cubeProbe.renderDynamicObjects = true;
 #endif
         }
+
+        internal bool ReflectionProbeIsEnabled()
+        {
+            return reflectionProbe.enabled;
+        }
     }
 }
