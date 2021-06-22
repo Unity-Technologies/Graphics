@@ -1,7 +1,7 @@
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEditor;
-
+using UnityEditor.ShaderGraph;
 
 [CustomEditor(typeof(ProceduralTexture2D)), CanEditMultipleObjects]
 public class ProceduralTexture2DEditor : Editor

@@ -5,7 +5,7 @@ using System;
 
 namespace UnityEditor.ShaderGraph
 {
-    [Title("Input", "Procedural Texture 2D")]
+    [Title("Input", "Texture", "Procedural Texture 2D")]
     class ProceduralTexture2DNode : AbstractMaterialNode, IGeneratesBodyCode
     {
         public ProceduralTexture2DNode()
