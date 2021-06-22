@@ -51,6 +51,13 @@ namespace UnityEngine.Rendering.HighDefinition
         }
     }
 
+    public enum DepthOfFieldTechnique
+    {
+        PhysicallyBased,
+        ScatterAsGather,
+        Circular
+    }
+
     /// <summary>
     /// Post Processing Quality Settings.
     /// </summary>
@@ -127,6 +134,8 @@ namespace UnityEngine.Rendering.HighDefinition
         public bool[] DoFHighQualityFiltering           = new bool[s_QualitySettingCount];
         /// <summary>Use Depth of field high physically based setting for each quality level.</summary>
         public bool[] DoFPhysicallyBased                = new bool[s_QualitySettingCount];
+        /// <summary>Depth of field techniques.</summary>
+        public DepthOfFieldTechnique[] DoFTechnique                = new DepthOfFieldTechnique[s_QualitySettingCount];
 
         /* Motion Blur */
         /// <summary>Motion Blur sample count for each quality level.</summary>

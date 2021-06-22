@@ -14,6 +14,7 @@ namespace UnityEditor.Rendering.HighDefinition
         public SerializedProperty FarBlurMaxRadius;
         public SerializedProperty DoFResolution;
         public SerializedProperty DoFHighFilteringQuality;
+        public SerializedProperty DoFTechnique;
         public SerializedProperty DoFPhysicallyBased;
 
         // Motion Blur
@@ -39,6 +40,7 @@ namespace UnityEditor.Rendering.HighDefinition
             DoFResolution               = root.Find((GlobalPostProcessingQualitySettings s) => s.DoFResolution);
             DoFHighFilteringQuality     = root.Find((GlobalPostProcessingQualitySettings s) => s.DoFHighQualityFiltering);
             DoFPhysicallyBased          = root.Find((GlobalPostProcessingQualitySettings s) => s.DoFPhysicallyBased);
+            DoFTechnique                = root.Find((GlobalPostProcessingQualitySettings s) => s.DoFTechnique);
 
             // Motion Blur
             MotionBlurSampleCount       = root.Find((GlobalPostProcessingQualitySettings s) => s.MotionBlurSampleCount);
