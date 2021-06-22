@@ -77,16 +77,16 @@ ByteAddressBuffer _InputIB;
 
 #define _IBSubmeshCount (uint)_IBCompactionParams.x
 
-#define _IBOutputBias asuint(_IBCompactionParams.y)
+#define _CurrentChunkIndexStart asuint(_IBCompactionParams.y)
 #define _IBValueShift (uint)_IBCompactionParams.z
-#define _IBInputStart (uint)_IBCompactionParams.w
+#define _InputSubMeshIndexShift (uint)_IBCompactionParams.w
 
 
-void StoreTriangle(uint outputTriangleStart, uint groupIndex, uint inputVal, uint inputVal1, uint inputVal2)
+void StoreTriangle(uint outputTriangleIndexStartSubMesh, uint groupIndex, uint inputVal, uint inputVal1, uint inputVal2)
 {
-    _OutputIB[_IBOutputBias + outputTriangleStart + 0 + groupIndex * CLUSTER_SIZE_IN_INDICES] = inputVal;
-    _OutputIB[_IBOutputBias + outputTriangleStart + 1 + groupIndex * CLUSTER_SIZE_IN_INDICES] = inputVal1;
-    _OutputIB[_IBOutputBias + outputTriangleStart + 2 + groupIndex * CLUSTER_SIZE_IN_INDICES] = inputVal2;
+    _OutputIB[_CurrentChunkIndexStart + outputTriangleIndexStartSubMesh + 0] = inputVal;
+    _OutputIB[_CurrentChunkIndexStart + outputTriangleIndexStartSubMesh + 1] = inputVal1;
+    _OutputIB[_CurrentChunkIndexStart + outputTriangleIndexStartSubMesh + 2] = inputVal2;
 }
 
 [numthreads(128, 1, 1)]
@@ -95,9 +95,9 @@ void IBCompactionKernelUINT32(uint3 id : SV_DispatchThreadID, uint groupIndex: S
     uint triangleIndexStart = id.x * 3;
     if (triangleIndexStart < _IBSubmeshCount)
     {
-        uint idx0 = asuint(_InputIB.Load(triangleIndexStart + 0 + _IBInputStart)) + _IBValueShift;
-        uint idx1 = asuint(_InputIB.Load(triangleIndexStart + 1 + _IBInputStart)) + _IBValueShift;
-        uint idx2 = asuint(_InputIB.Load(triangleIndexStart + 2 + _IBInputStart)) + _IBValueShift;
+        uint idx0 = asuint(_InputIB.Load(triangleIndexStart + 0 + _InputSubMeshIndexShift)) + _IBValueShift;
+        uint idx1 = asuint(_InputIB.Load(triangleIndexStart + 1 + _InputSubMeshIndexShift)) + _IBValueShift;
+        uint idx2 = asuint(_InputIB.Load(triangleIndexStart + 2 + _InputSubMeshIndexShift)) + _IBValueShift;
 
         StoreTriangle(triangleIndexStart, groupIndex, idx0, idx1, idx2);
     }
@@ -111,18 +111,23 @@ void IBCompactionKernelUINT32(uint3 id : SV_DispatchThreadID, uint groupIndex: S
 [numthreads(128, 1, 1)]
 void IBCompactionKernelUINT16(uint3 id : SV_DispatchThreadID, uint groupIndex: SV_GroupID)
 {
-    uint triangleIndexStart = id.x * 3;
+    // This is the first index of the current triangle that this thread is gonna process
+    // the index is relative to the current submesh.
+    uint triangleIndexStartSubMesh = id.x * 3;
 
-    if (triangleIndexStart < _IBSubmeshCount)
+    // If this triangle is a valid or just padding in the final buffer
+    if (triangleIndexStartSubMesh < _IBSubmeshCount)
     {
-        uint triangleStartIndexInput = triangleIndexStart + _IBInputStart + groupIndex * CLUSTER_SIZE_IN_INDICES;
+        // This is the first index of the current triangle that this thread is gonna process
+        // the index is relative to the current full mesh.
+        uint triangleIndexStartFullMesh = triangleIndexStartSubMesh + _InputSubMeshIndexShift;
 
         uint idx0, idx1, idx2;
-        uint accessIdx = (triangleStartIndexInput / 2);
+        uint accessIdx = (triangleIndexStartFullMesh / 2);
         uint firstCouple = asuint(_InputIB.Load(accessIdx * 4));
         uint secondCouple = asuint(_InputIB.Load((accessIdx + 1) * 4));
 
-        if ((triangleStartIndexInput & 1) == 0)
+        if ((triangleIndexStartFullMesh & 1) == 0)
         {
             // We need first couple of indices
             // and first element of the next.
@@ -139,10 +144,10 @@ void IBCompactionKernelUINT16(uint3 id : SV_DispatchThreadID, uint groupIndex: S
             idx2 = secondCouple >> 16;
         }
 
-        StoreTriangle(triangleIndexStart, groupIndex, idx0 + _IBValueShift, idx1 + _IBValueShift, idx2 + _IBValueShift);
+        StoreTriangle(triangleIndexStartSubMesh, groupIndex, idx0 + _IBValueShift, idx1 + _IBValueShift, idx2 + _IBValueShift);
     }
     else
     {
-        StoreTriangle(triangleIndexStart, groupIndex, 0xffffffff, 0xffffffff, 0xffffffff);
+        StoreTriangle(triangleIndexStartSubMesh, groupIndex, 0xffffffff, 0xffffffff, 0xffffffff);
     }
 }

@@ -33,6 +33,7 @@ Shader "Hidden/HDRP/VisibilityBuffer"
         {
             float4 vertex : SV_POSITION;
             uint cinstanceID : CUSTOM_INSTANCE_ID;
+            float3 posWS : POSITION_WS;
         };
 
 
@@ -61,6 +62,7 @@ Shader "Hidden/HDRP/VisibilityBuffer"
             {
                 o.cinstanceID = v.instanceID;
                 o.vertex = mul(UNITY_MATRIX_VP, float4(posWS, 1.0));
+                o.posWS = posWS;
             }
 #endif
             return o;

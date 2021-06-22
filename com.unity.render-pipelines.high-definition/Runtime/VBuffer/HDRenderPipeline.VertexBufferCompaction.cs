@@ -88,14 +88,7 @@ namespace UnityEngine.Rendering.HighDefinition
             int clustersBeforeInsertion = instances.Count;
             int meshIndexStart = clustersBeforeInsertion * VisibilityBufferConstants.s_ClusterSizeInIndices;
 
-            if (mesh.name == "Cube")
-                return 0;
-
-                var indices = mesh.GetIndices(1);
-                List<Vector3> pos = new List<Vector3>();
-                mesh.GetVertices(pos);
-
-            for (int i = 1; i < 2; ++i)
+            for (int i = 0; i < mesh.subMeshCount; ++i)
             {
                 uint subMeshIndexSize = mesh.GetIndexCount(i);
                 int clustersForSubmesh = HDUtils.DivRoundUp((int)subMeshIndexSize, VisibilityBufferConstants.s_ClusterSizeInIndices);
@@ -106,12 +99,12 @@ namespace UnityEngine.Rendering.HighDefinition
                     continue;
 
                 materials.TryGetValue(currentMat, out materialIdx);
-                for (int c = 10; c < clustersForSubmesh; ++c)
+                for (int c = 0; c < clustersForSubmesh; ++c)
                 {
                     InstanceVData data;
                     data.localToWorld = localToWorld;
                     data.materialIndex = (uint)materialIdx;
-                    data.chunkStartIndex = meshes[mesh] + 73 + (uint)c;
+                    data.chunkStartIndex = meshes[mesh] + (uint)clusterCount;
 
                     instances.Add(data);
                     clusterCount++;
@@ -248,18 +241,6 @@ namespace UnityEngine.Rendering.HighDefinition
                     clusterCount += ComputeNumberOfClusters(meshFilter.sharedMesh);
                 }
 
-                // Get the current value of the material properties in the renderer.
-                currentRenderer.GetPropertyBlock(propBlock);
-
-                // Assign our new value.
-                propBlock.SetInt("_InstanceId", instanceId);
-
-                // Apply the edited values to the renderer.
-                currentRenderer.SetPropertyBlock(propBlock);
-
-                // Increment the instance ID
-                instanceId++;
-
                 foreach (var mat in currentRenderer.sharedMaterials)
                 {
                     if (mat == null) continue;
@@ -267,7 +248,6 @@ namespace UnityEngine.Rendering.HighDefinition
                     if (!materials.TryGetValue(mat, out matIdx))
                     {
                         materials.Add(mat, materialIdx);
-                        mat.SetInt("_MaterialId", materialIdx);
                         materialIdx++;
                     }
                 }
