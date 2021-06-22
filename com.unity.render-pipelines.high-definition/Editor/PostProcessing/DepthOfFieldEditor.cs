@@ -49,7 +49,8 @@ namespace UnityEditor.Rendering.HighDefinition
         // Advanced settings
         SerializedDataParameter m_HighQualityFiltering;
         SerializedDataParameter m_Resolution;
-        SerializedDataParameter m_PhysicallyBased;
+        SerializedDataParameter m_Technique;
+
 
         public override void OnEnable()
         {
@@ -72,7 +73,7 @@ namespace UnityEditor.Rendering.HighDefinition
 
             m_HighQualityFiltering = Unpack(o.Find("m_HighQualityFiltering"));
             m_Resolution = Unpack(o.Find("m_Resolution"));
-            m_PhysicallyBased = Unpack(o.Find("m_PhysicallyBased"));
+            m_Technique = Unpack(o.Find("m_DoFTechnique"));
 
             base.OnEnable();
         }
@@ -135,8 +136,8 @@ namespace UnityEditor.Rendering.HighDefinition
 
                 PropertyField(m_Resolution);
                 PropertyField(m_HighQualityFiltering);
-                PropertyField(m_PhysicallyBased);
-                if (m_PhysicallyBased.value.boolValue)
+                PropertyField(m_Technique);
+                if (m_Technique.value.intValue == (int)DepthOfFieldTechnique.PhysicallyBased)
                 {
                     if (BeginAdditionalPropertiesScope())
                     {
@@ -159,7 +160,7 @@ namespace UnityEditor.Rendering.HighDefinition
             settings.Save<float>(m_FarMaxBlur);
             settings.Save<int>(m_Resolution);
             settings.Save<bool>(m_HighQualityFiltering);
-            settings.Save<bool>(m_PhysicallyBased);
+            settings.Save<bool>(m_Technique);
 
             return settings;
         }
@@ -172,7 +173,7 @@ namespace UnityEditor.Rendering.HighDefinition
             settings.TryLoad<float>(ref m_FarMaxBlur);
             settings.TryLoad<int>(ref m_Resolution);
             settings.TryLoad<bool>(ref m_HighQualityFiltering);
-            settings.TryLoad<bool>(ref m_PhysicallyBased);
+            settings.TryLoad<bool>(ref m_Technique);
         }
 
         public override void LoadSettingsFromQualityPreset(RenderPipelineSettings settings, int level)
@@ -183,7 +184,7 @@ namespace UnityEditor.Rendering.HighDefinition
             CopySetting(ref m_FarMaxBlur, settings.postProcessQualitySettings.FarBlurMaxRadius[level]);
             CopySetting(ref m_Resolution, (int)settings.postProcessQualitySettings.DoFResolution[level]);
             CopySetting(ref m_HighQualityFiltering, settings.postProcessQualitySettings.DoFHighQualityFiltering[level]);
-            //CopySetting(ref m_PhysicallyBased, settings.postProcessQualitySettings.ObsoleteDoFPhysicallyBased[level]);
+            CopySetting(ref m_Technique, (int)settings.postProcessQualitySettings.DoFTechnique[level]);
         }
     }
 }

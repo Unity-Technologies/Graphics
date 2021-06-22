@@ -238,9 +238,23 @@ namespace UnityEngine.Rendering.HighDefinition
         {
             get
             {
+                if (m_ObsoletePhysicallyBasedValid)
+                {
+                    m_ObsoletePhysicallyBasedValid = false;
+                    //TODO: figure this out, how to deal with deprecated params 
+#pragma warning disable 618 // Type or member is obsolete
+                    if (m_ObsoletePhysicallyBased.overrideState)
+
+                    {
+                        m_DoFTechnique.overrideState = true;
+                        m_DoFTechnique.value = m_ObsoletePhysicallyBased.value ? DepthOfFieldTechnique.PhysicallyBased : DepthOfFieldTechnique.ScatterAsGather;
+                    }
+#pragma warning restore 618 // Type or member is obsolete
+                }
+
                 if (!UsesQualitySettings())
                 {
-                    return m_PhysicallyBased.value;
+                    return m_DoFTechnique.value == DepthOfFieldTechnique.PhysicallyBased;
                 }
                 else
                 {
@@ -248,7 +262,7 @@ namespace UnityEngine.Rendering.HighDefinition
                     return GetPostProcessingQualitySettings().DoFTechnique[qualityLevel] == DepthOfFieldTechnique.PhysicallyBased;
                 }
             }
-            set { m_PhysicallyBased.value = value; }
+            set { m_DoFTechnique.value = physicallyBased ? DepthOfFieldTechnique.PhysicallyBased : DepthOfFieldTechnique.ScatterAsGather; }
         }
 
         /// <summary>
@@ -309,8 +323,16 @@ namespace UnityEngine.Rendering.HighDefinition
         BoolParameter m_HighQualityFiltering = new BoolParameter(true);
 
         [AdditionalProperty]
+        [SerializeField, FormerlySerializedAs("m_PhysicallyBased")]
+        [Obsolete("Use DoFTechnique")]
+        BoolParameter m_ObsoletePhysicallyBased = new BoolParameter(false);
+
         [SerializeField]
-        BoolParameter m_PhysicallyBased = new BoolParameter(false);
+        bool m_ObsoletePhysicallyBasedValid = true;
+
+        [AdditionalProperty]
+        [SerializeField]
+        DepthOfFieldTechniqueParameter  m_DoFTechnique = new DepthOfFieldTechniqueParameter(DepthOfFieldTechnique.ScatterAsGather);
 
         /// <summary>
         /// Tells if the effect needs to be rendered or not.
@@ -362,6 +384,20 @@ namespace UnityEngine.Rendering.HighDefinition
         /// <param name="value">The initial value to store in the parameter.</param>
         /// <param name="overrideState">The initial override state for the parameter.</param>
         public DepthOfFieldResolutionParameter(DepthOfFieldResolution value, bool overrideState = false) : base(value, overrideState) {}
+    }
+
+    /// <summary>
+    /// A <see cref="VolumeParameter"/> that holds a <see cref="DepthOfFieldTechnique"/> value.
+    /// </summary>
+    [Serializable]
+    public sealed class DepthOfFieldTechniqueParameter : VolumeParameter<DepthOfFieldTechnique>
+    {
+        /// <summary>
+        /// Creates a new <see cref="DepthOfFieldTechniqueParameter"/> instance.
+        /// </summary>
+        /// <param name="value">The initial value to store in the parameter.</param>
+        /// <param name="overrideState">The initial override state for the parameter.</param>
+        public DepthOfFieldTechniqueParameter(DepthOfFieldTechnique value, bool overrideState = false) : base(value, overrideState) {}
     }
 
 
