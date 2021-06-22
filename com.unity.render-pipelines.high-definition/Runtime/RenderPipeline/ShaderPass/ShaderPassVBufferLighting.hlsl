@@ -15,23 +15,23 @@ PackedVaryingsType Vert(AttributesMesh inputMesh)
 
 #define INTERPOLATE_ATTRIBUTE(A0, A1, A2, BARYCENTRIC_COORDINATES) (A0 * BARYCENTRIC_COORDINATES.x + A1 * BARYCENTRIC_COORDINATES.y + A2 * BARYCENTRIC_COORDINATES.z)
 
-float3 CalculateTriangleBarycentrics(float2 PixelClip, float4 PointClip0, float4 PointClip1, float4 PointClip2, float2 ViewInvSize)
+float3 CalculateTriangleBarycentrics(float2 pixelClip, float4 posClip0, float4 posClip1, float4 posClip2)
 {
-    float3 Pos0 = PointClip0.xyz / PointClip0.w;
-    float3 Pos1 = PointClip1.xyz / PointClip1.w;
-    float3 Pos2 = PointClip2.xyz / PointClip2.w;
-    float3 RcpW = rcp(float3(PointClip0.w, PointClip1.w, PointClip2.w));
-    float3 Pos120X = float3(Pos1.x, Pos2.x, Pos0.x);
-    float3 Pos120Y = float3(Pos1.y, Pos2.y, Pos0.y);
-    float3 Pos201X = float3(Pos2.x, Pos0.x, Pos1.x);
-    float3 Pos201Y = float3(Pos2.y, Pos0.y, Pos1.y);
-    float3 C_dx = Pos201Y - Pos120Y;
-    float3 C_dy = Pos120X - Pos201X;
-    float3 C = C_dx * (PixelClip.x - Pos120X) + C_dy * (PixelClip.y - Pos120Y); // Evaluate the 3 edge functions
-    float3 G = C * RcpW;
-    float H = dot(C, RcpW);
-    float RcpH = rcp(H);
-    return G * RcpH;
+    float3 pos0 = posClip0.xyz / posClip0.w;
+    float3 pos1 = posClip1.xyz / posClip1.w;
+    float3 pos2 = posClip1.xyz / posClip1.w;
+    float3 rcpW = rcp(float3(posClip0.w, posClip1.w, posClip1.w));
+    float3 pos120X = float3(pos1.x, pos2.x, pos0.x);
+    float3 pos120Y = float3(pos1.y, pos2.y, pos0.y);
+    float3 pos201X = float3(pos2.x, pos0.x, pos1.x);
+    float3 pos201Y = float3(pos2.y, pos0.y, pos1.y);
+    float3 C_dx = pos201Y - pos120Y;
+    float3 C_dy = pos120X - pos201X;
+    float3 C = C_dx * (pixelClip.x - pos120X) + C_dy * (pixelClip.y - pos120Y);
+    float3 G = C * rcpW;
+    float H = dot(C, rcpW);
+    float rcpH = rcp(H);
+    return G * rcpH;
 }
 
 float2 DecompressVector2(uint direction)
@@ -66,7 +66,7 @@ FragInputs EvaluateFragInput(float4 posSS, float3 V, uint geometryID, uint trian
     float4 pos0 = mul(mvp, float4(v0.posX, v0.posY, v0.posZ, 1.0));
     float4 pos1 = mul(mvp, float4(v1.posX, v1.posY, v1.posZ, 1.0));
     float4 pos2 = mul(mvp, float4(v2.posX, v2.posY, v2.posZ, 1.0));
-    float3 barycentricCoordinates = CalculateTriangleBarycentrics(posSS.xy * _ScreenSize.zw * 2.0 - 1.0, pos0, pos1, pos2, _ScreenSize.zw);
+    float3 barycentricCoordinates = CalculateTriangleBarycentrics(posSS.xy * _ScreenSize.zw * 2.0 - 1.0, pos0, pos1, pos2);
 
     float3 normalOS0 = DecompressVector3(v0.N);
     float3 normalOS1 = DecompressVector3(v1.N);
@@ -103,7 +103,7 @@ FragInputs EvaluateFragInput(float4 posSS, float3 V, uint geometryID, uint trian
 void Frag(PackedVaryingsToPS packedInput, out float3 outColor : SV_Target0)
 {
     UNITY_SETUP_STEREO_EYE_INDEX_POST_VERTEX(packedInput);
-    
+
     uint2 pixelCoord = packedInput.vmesh.positionCS.xy;
     // Grab the geometry information
     uint triangleID = LOAD_TEXTURE2D_X(_VBuffer0, pixelCoord).x;
