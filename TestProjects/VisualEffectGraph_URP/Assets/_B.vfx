@@ -10724,7 +10724,7 @@ MonoBehaviour:
       m_Type:
         m_SerializableType: UnityEditor.VFX.TSphere, Unity.VisualEffectGraph.Editor,
           Version=0.0.0.0, Culture=neutral, PublicKeyToken=null
-      m_SerializableObject: '{"transform":{"position":{"x":-2.0,"y":0.0,"z":0.0},"angles":{"x":0.0,"y":0.0,"z":0.0},"scale":{"x":1.0,"y":2.0,"z":1.0}},"radius":0.5}'
+      m_SerializableObject: '{"transform":{"position":{"x":-2.0,"y":0.0,"z":0.0},"angles":{"x":0.0,"y":0.0,"z":19.30544090270996},"scale":{"x":1.0,"y":2.0,"z":1.0}},"radius":0.5}'
     m_Space: 0
   m_Property:
     name: 
@@ -14341,7 +14341,7 @@ MonoBehaviour:
       m_Type:
         m_SerializableType: System.Single, mscorlib, Version=4.0.0.0, Culture=neutral,
           PublicKeyToken=b77a5c561934e089
-      m_SerializableObject: 0.1
+      m_SerializableObject: 1
     m_Space: 2147483647
   m_Property:
     name: Bounce
@@ -14433,7 +14433,7 @@ MonoBehaviour:
   m_UIIgnoredErrors: []
   m_Parent: {fileID: 114350483966674976}
   m_Children: []
-  m_UIPosition: {x: 466, y: 1559}
+  m_UIPosition: {x: 476, y: 1559}
   m_UICollapsed: 0
   m_UISuperCollapsed: 0
   m_InputSlots:
@@ -14470,7 +14470,7 @@ MonoBehaviour:
       m_Type:
         m_SerializableType: UnityEditor.VFX.TSphere, Unity.VisualEffectGraph.Editor,
           Version=0.0.0.0, Culture=neutral, PublicKeyToken=null
-      m_SerializableObject: '{"transform":{"position":{"x":-1.0909757614135743,"y":-0.782802939414978,"z":1.6180779933929444},"angles":{"x":0.0,"y":0.0,"z":0.0},"scale":{"x":6.692249298095703,"y":0.39543458819389346,"z":1.0}},"radius":0.5}'
+      m_SerializableObject: '{"transform":{"position":{"x":-0.5797557830810547,"y":-1.8105837106704713,"z":0.5670880079269409},"angles":{"x":0.0,"y":0.0,"z":28.766765594482423},"scale":{"x":6.692249298095703,"y":0.39543458819389346,"z":1.0}},"radius":0.5}'
     m_Space: 0
   m_Property:
     name: 
@@ -17513,7 +17513,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   m_UIIgnoredErrors: []
-  m_Parent: {fileID: 0}
+  m_Parent: {fileID: 114350483966674976}
   m_Children: []
   m_UIPosition: {x: 0, y: 0}
   m_UICollapsed: 1

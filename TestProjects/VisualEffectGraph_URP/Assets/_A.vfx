@@ -810,7 +810,7 @@ MonoBehaviour:
       m_Type:
         m_SerializableType: UnityEditor.VFX.TArcCone, Unity.VisualEffectGraph.Editor,
           Version=0.0.0.0, Culture=neutral, PublicKeyToken=null
-      m_SerializableObject: '{"cone":{"transform":{"position":{"x":-10.0,"y":0.0,"z":0.0},"angles":{"x":-8.537736562175269e-7,"y":284.8055725097656,"z":23.76566505432129},"scale":{"x":1.0,"y":1.0,"z":1.0}},"radius0":1.0,"radius1":0.10000000149011612,"height":1.0},"arc":5.8725666999816898}'
+      m_SerializableObject: '{"cone":{"transform":{"position":{"x":-2.299999952316284,"y":0.0,"z":0.0},"angles":{"x":0.0,"y":0.0,"z":0.0},"scale":{"x":1.0,"y":1.0,"z":1.0}},"radius0":1.4199999570846558,"radius1":0.8299999833106995,"height":1.0},"arc":5.8725666999816898}'
     m_Space: 0
   m_Property:
     name: ArcCone
@@ -3398,7 +3398,7 @@ MonoBehaviour:
   m_OutputSlots: []
   m_Disabled: 0
   mode: 0
-  radiusMode: 0
+  radiusMode: 1
   roughSurface: 1
 --- !u!114 &8926484042661614999
 MonoBehaviour:
@@ -5075,7 +5075,7 @@ MonoBehaviour:
   m_UIIgnoredErrors: []
   m_Parent: {fileID: 114350483966674976}
   m_Children: []
-  m_UIPosition: {x: 1840, y: 948}
+  m_UIPosition: {x: 1906, y: 860}
   m_UICollapsed: 0
   m_UISuperCollapsed: 0
   m_InputSlots:
@@ -5681,7 +5681,7 @@ MonoBehaviour:
   m_InputSlots:
   - {fileID: 8926484042661615121}
   m_OutputSlots: []
-  m_Disabled: 0
+  m_Disabled: 1
   compositionPosition: 0
   compositionDirection: 0
   positionMode: 0
