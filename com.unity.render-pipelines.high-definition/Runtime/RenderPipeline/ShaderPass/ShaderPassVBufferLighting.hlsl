@@ -3,6 +3,7 @@
 #endif
 
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/ShaderPass/VertMesh.hlsl"
+#include "Packages/com.unity.render-pipelines.high-definition/Runtime/VBuffer/VisibilityBufferCommon.hlsl"
 
 struct Varyings
 {
@@ -148,8 +149,9 @@ void Frag(Varyings packedInput, out float4 outColor : SV_Target0)
 
     uint2 pixelCoord = packedInput.positionCS.xy;
     // Grab the geometry information
-    uint triangleID = LOAD_TEXTURE2D_X(_VBuffer0, pixelCoord).x;
-    uint instanceID = LOAD_TEXTURE2D_X(_VBuffer1, pixelCoord).x;
+    uint vbuffer = LOAD_TEXTURE2D_X(_VBuffer0, pixelCoord).x;
+    uint triangleID, instanceID;
+    UnpackVisibilityBuffer(vbuffer, instanceID, triangleID);
 
     float depthValue = LOAD_TEXTURE2D_X(_CameraDepthTexture, pixelCoord);
     float3 posWS = ComputeWorldSpacePosition(pixelCoord, depthValue, UNITY_MATRIX_I_VP);

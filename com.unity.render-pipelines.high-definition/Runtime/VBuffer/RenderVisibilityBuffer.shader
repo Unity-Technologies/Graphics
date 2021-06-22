@@ -1,4 +1,4 @@
-Shader "Hidden/HDRP/VisibilityBuffer"
+Shader "Hidden/HDRP/RenderVisibilityBuffer"
 {
     Properties
     {
@@ -12,7 +12,7 @@ Shader "Hidden/HDRP/VisibilityBuffer"
         #pragma editor_sync_compilation
         #pragma target 4.5
         #pragma only_renderers d3d11 playstation xboxone xboxseries vulkan metal switch
-        
+
         // GPU Instancing
         #pragma multi_compile_instancing
         #pragma multi_compile _ DOTS_INSTANCING_ON
@@ -21,6 +21,7 @@ Shader "Hidden/HDRP/VisibilityBuffer"
         #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Common.hlsl"
         #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/UnityInstancing.hlsl"
         #include "Packages/com.unity.render-pipelines.high-definition/Runtime/ShaderLibrary/ShaderVariables.hlsl"
+        #include "Packages/com.unity.render-pipelines.high-definition/Runtime/VBuffer/VisibilityBufferCommon.hlsl"
 
         struct appdata
         {
@@ -68,21 +69,28 @@ Shader "Hidden/HDRP/VisibilityBuffer"
             return o;
         }
 
+        uint PackVisBuffer(uint clusterID, uint triangleID)
+        {
+            uint output = 0;
+            // Cluster size is 128, hence we need 7 bits at most for triangle ID.
+            output = triangleID & 127;
+            // All the remaining 25 bits can be used for cluster (for a max of 33554431 (2^25 - 1) clusters)
+            output |= (clusterID & 33554431) << 7;
+            return output;
+        }
 
         void frag(v2f packedInput,
             uint primitiveID : SV_PrimitiveID,
             out uint VBuffer0 : SV_Target0,
-            out uint VBuffer1 : SV_Target1,
-            out float MaterialDepth : SV_Target2
+            out float MaterialDepth : SV_Target1
             )
         {
             UNITY_SETUP_INSTANCE_ID(i);
 #ifdef UNITY_ANY_INSTANCING_ENABLED
 
             // Fetch triangle ID (32 bits)
-            uint triangleId = primitiveID;
+            uint triangleID = primitiveID;
 
-            // Fetch the Geometry ID (16 bits compressed)
             uint instanceID = packedInput.cinstanceID;
 
             InstanceVData instanceVData = _InstanceVDataBuffer[instanceID];
@@ -90,12 +98,10 @@ Shader "Hidden/HDRP/VisibilityBuffer"
             // Fetch the Material ID
             uint materialId = instanceVData.materialIndex;
             // Write the VBuffer
-            VBuffer0 = triangleId;
-            VBuffer1 = instanceID;
+            VBuffer0 = PackVisBuffer(instanceID, triangleID);
             MaterialDepth = materialId;
 #else
             VBuffer0 = 0;
-            VBuffer1 = 0;
             MaterialDepth = 0;
 #endif
         }
