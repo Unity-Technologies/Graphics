@@ -7,7 +7,10 @@
 ---
 
 PR_Universal_2019.4:
-    name: Universal PR Job - 2019.4
+    name: PR Universal on 2019.4
+    variables:
+        UTR_VERSION: "current"
+        TEST_FILTER: .*
     dependencies:
       -  path: .yamato/universal-win-dx11.yml#Universal_Win_DX11_Standalone_mono_Linear_2019.4
          rerun: on_new_revision
@@ -21,13 +24,27 @@ PR_Universal_2019.4:
          rerun: on_new_revision
       -  path: .yamato/universal-osx-openglcore.yml#Universal_OSX_OpenGLCore_editmode_mono_Linear_2019.4
          rerun: on_new_revision
-      -  path: .yamato/all-universal_stereo.yml#PR_Universal_Stereo_2019.4
-         rerun: on_new_revision
+Extra_Universal_2019.4:
+    name: Extra Universal on 2019.4
     variables:
         UTR_VERSION: "current"
         TEST_FILTER: .*
+    dependencies: []
+Universal_2019.4:
+    name: Universal on 2019.4
+    variables:
+        UTR_VERSION: "current"
+        TEST_FILTER: .*
+    dependencies:
+      -  path: .yamato/all-universal.yml#PR_Universal_2019.4
+         rerun: on_new_revision
+      -  path: .yamato/all-universal.yml#Extra_Universal_2019.4
+         rerun: on_new_revision
 PR_Universal_fast-2019.4:
-    name: Universal PR Job - fast-2019.4
+    name: PR Universal on fast-2019.4
+    variables:
+        UTR_VERSION: "current"
+        TEST_FILTER: .*
     dependencies:
       -  path: .yamato/universal-win-dx11.yml#Universal_Win_DX11_Standalone_mono_Linear_fast-2019.4
          rerun: on_new_revision
@@ -41,13 +58,28 @@ PR_Universal_fast-2019.4:
          rerun: on_new_revision
       -  path: .yamato/universal-osx-openglcore.yml#Universal_OSX_OpenGLCore_editmode_mono_Linear_fast-2019.4
          rerun: on_new_revision
-      -  path: .yamato/all-universal_stereo.yml#PR_Universal_Stereo_fast-2019.4
-         rerun: on_new_revision
+Extra_Universal_fast-2019.4:
+    name: Extra Universal on fast-2019.4
     variables:
         UTR_VERSION: "current"
         TEST_FILTER: .*
+    dependencies: []
+Universal_fast-2019.4:
+    name: Universal on fast-2019.4
+    variables:
+        UTR_VERSION: "current"
+        TEST_FILTER: .*
+    dependencies:
+      -  path: .yamato/all-universal.yml#PR_Universal_fast-2019.4
+         rerun: on_new_revision
+      -  path: .yamato/all-universal.yml#Extra_Universal_fast-2019.4
+         rerun: on_new_revision
 PR_Universal_CUSTOM-REVISION:
-    name: Universal PR Job - CUSTOM-REVISION
+    name: PR Universal on CUSTOM-REVISION
+    variables:
+        CUSTOM_REVISION: custom_revision_not_set
+        UTR_VERSION: "current"
+        TEST_FILTER: .*
     dependencies:
       -  path: .yamato/universal-win-dx11.yml#Universal_Win_DX11_Standalone_mono_Linear_CUSTOM-REVISION
          rerun: on_new_revision
@@ -61,9 +93,21 @@ PR_Universal_CUSTOM-REVISION:
          rerun: on_new_revision
       -  path: .yamato/universal-osx-openglcore.yml#Universal_OSX_OpenGLCore_editmode_mono_Linear_CUSTOM-REVISION
          rerun: on_new_revision
-      -  path: .yamato/all-universal_stereo.yml#PR_Universal_Stereo_CUSTOM-REVISION
-         rerun: on_new_revision
+Extra_Universal_CUSTOM-REVISION:
+    name: Extra Universal on CUSTOM-REVISION
     variables:
         CUSTOM_REVISION: custom_revision_not_set
         UTR_VERSION: "current"
         TEST_FILTER: .*
+    dependencies: []
+Universal_CUSTOM-REVISION:
+    name: Universal on CUSTOM-REVISION
+    variables:
+        CUSTOM_REVISION: custom_revision_not_set
+        UTR_VERSION: "current"
+        TEST_FILTER: .*
+    dependencies:
+      -  path: .yamato/all-universal.yml#PR_Universal_CUSTOM-REVISION
+         rerun: on_new_revision
+      -  path: .yamato/all-universal.yml#Extra_Universal_CUSTOM-REVISION
+         rerun: on_new_revision

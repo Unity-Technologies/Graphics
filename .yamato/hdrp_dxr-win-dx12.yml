@@ -18,14 +18,16 @@ HDRP_DXR_Win_DX12_Standalone_mono_Linear_2019.4:
         UTR_VERSION: "current"
         TEST_FILTER: .*
     commands:
-      -  NetSh Advfirewall set allprofiles state off
-      -  curl -s https://artifactory.prd.it.unity3d.com/artifactory/unity-tools-local/utr-standalone/utr.bat --output utr.bat
-      -  |5-
-              git rev-parse HEAD | git show -s --format=%%cI > revdate.tmp
-              set /p GIT_REVISIONDATE=<revdate.tmp
-              echo %GIT_REVISIONDATE%
-              del revdate.tmp
-              utr --artifacts_path=TestProjects/HDRP_DXR_Tests/test-results --platform=StandaloneWindows64 --player-connection-ip=auto --player-load-path=players --suite=playmode --timeout=1200 --zero-tests-are-ok=1
+      -  command: NetSh Advfirewall set allprofiles state off
+         retries: 2
+      -  command: curl -s https://artifactory.prd.it.unity3d.com/artifactory/unity-tools-local/utr-standalone/utr.bat --output utr.bat
+         retries: 2
+      -  command: |5-
+                git rev-parse HEAD | git show -s --format=%%cI > revdate.tmp
+                set /p GIT_REVISIONDATE=<revdate.tmp
+                echo %GIT_REVISIONDATE%
+                del revdate.tmp
+                utr --artifacts_path=TestProjects/HDRP_DXR_Tests/test-results --platform=StandaloneWindows64 --player-connection-ip=auto --player-load-path=players --suite=playmode --timeout=1200 --zero-tests-are-ok=1
     artifacts:
         logs:
             paths:
@@ -48,16 +50,20 @@ Build_HDRP_DXR_Win_DX12_Standalone_mono_Linear_2019.4:
         UTR_VERSION: "current"
         TEST_FILTER: .*
     commands:
-      -  NetSh Advfirewall set allprofiles state off
-      -  curl -s https://artifactory.prd.it.unity3d.com/artifactory/unity-tools-local/utr-standalone/utr.bat --output utr.bat
-      -  choco install unity-downloader-cli -y -s https://artifactory.prd.it.unity3d.com/artifactory/api/nuget/unity-choco-local
-      -  unity-downloader-cli --source-file unity_revision.txt -c editor -c il2cpp  --wait --published-only
-      -  |5-
-              git rev-parse HEAD | git show -s --format=%%cI > revdate.tmp
-              set /p GIT_REVISIONDATE=<revdate.tmp
-              echo %GIT_REVISIONDATE%
-              del revdate.tmp
-              utr --artifacts_path=TestProjects/HDRP_DXR_Tests/test-results --build-only --editor-location=.Editor --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-executemethod" --extra-editor-arg="SetupProject.ApplySettings" --extra-editor-arg="d3d12" --extra-editor-arg="Linear" --extra-editor-arg="-playergraphicsapi=Direct3D12" --platform=StandaloneWindows64 --player-save-path=players --scripting-backend=Mono2x --suite=playmode --testfilter=%TEST_FILTER% --testproject=./TestProjects/HDRP_DXR_Tests --timeout=1200
+      -  command: NetSh Advfirewall set allprofiles state off
+         retries: 2
+      -  command: curl -s https://artifactory.prd.it.unity3d.com/artifactory/unity-tools-local/utr-standalone/utr.bat --output utr.bat
+         retries: 2
+      -  command: choco install unity-downloader-cli -y -s https://artifactory.prd.it.unity3d.com/artifactory/api/nuget/unity-choco-local
+         retries: 2
+      -  command: unity-downloader-cli --source-file unity_revision.txt -c editor -c il2cpp  --wait --published-only
+         retries: 2
+      -  command: |5-
+                git rev-parse HEAD | git show -s --format=%%cI > revdate.tmp
+                set /p GIT_REVISIONDATE=<revdate.tmp
+                echo %GIT_REVISIONDATE%
+                del revdate.tmp
+                utr --artifacts_path=TestProjects/HDRP_DXR_Tests/test-results --build-only --editor-location=.Editor --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-executemethod" --extra-editor-arg="SetupProject.ApplySettings" --extra-editor-arg="d3d12" --extra-editor-arg="Linear" --extra-editor-arg="-playergraphicsapi=Direct3D12" --platform=StandaloneWindows64 --player-save-path=players --scripting-backend=Mono2x --suite=playmode --testfilter=%TEST_FILTER% --testproject=./TestProjects/HDRP_DXR_Tests --timeout=1200
     artifacts:
         logs:
             paths:
@@ -81,16 +87,20 @@ HDRP_DXR_Win_DX12_playmode_mono_Linear_2019.4:
         UTR_VERSION: "current"
         TEST_FILTER: .*
     commands:
-      -  NetSh Advfirewall set allprofiles state off
-      -  curl -s https://artifactory.prd.it.unity3d.com/artifactory/unity-tools-local/utr-standalone/utr.bat --output utr.bat
-      -  choco install unity-downloader-cli -y -s https://artifactory.prd.it.unity3d.com/artifactory/api/nuget/unity-choco-local
-      -  unity-downloader-cli --source-file unity_revision.txt -c editor -c il2cpp  --wait --published-only
-      -  |5-
-              git rev-parse HEAD | git show -s --format=%%cI > revdate.tmp
-              set /p GIT_REVISIONDATE=<revdate.tmp
-              echo %GIT_REVISIONDATE%
-              del revdate.tmp
-              utr --artifacts_path=TestProjects/HDRP_DXR_Tests/test-results --editor-location=.Editor --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-force-d3d12" --scripting-backend=Mono2x --suite=playmode --testfilter=%TEST_FILTER% --testproject=./TestProjects/HDRP_DXR_Tests --zero-tests-are-ok=1
+      -  command: NetSh Advfirewall set allprofiles state off
+         retries: 2
+      -  command: curl -s https://artifactory.prd.it.unity3d.com/artifactory/unity-tools-local/utr-standalone/utr.bat --output utr.bat
+         retries: 2
+      -  command: choco install unity-downloader-cli -y -s https://artifactory.prd.it.unity3d.com/artifactory/api/nuget/unity-choco-local
+         retries: 2
+      -  command: unity-downloader-cli --source-file unity_revision.txt -c editor -c il2cpp  --wait --published-only
+         retries: 2
+      -  command: |5-
+                git rev-parse HEAD | git show -s --format=%%cI > revdate.tmp
+                set /p GIT_REVISIONDATE=<revdate.tmp
+                echo %GIT_REVISIONDATE%
+                del revdate.tmp
+                utr --artifacts_path=TestProjects/HDRP_DXR_Tests/test-results --editor-location=.Editor --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-force-d3d12" --scripting-backend=Mono2x --suite=playmode --testfilter=%TEST_FILTER% --testproject=./TestProjects/HDRP_DXR_Tests --zero-tests-are-ok=1
     artifacts:
         logs:
             paths:
@@ -111,14 +121,16 @@ HDRP_DXR_Win_DX12_Standalone_mono_Linear_fast-2019.4:
         UTR_VERSION: "current"
         TEST_FILTER: .*
     commands:
-      -  NetSh Advfirewall set allprofiles state off
-      -  curl -s https://artifactory.prd.it.unity3d.com/artifactory/unity-tools-local/utr-standalone/utr.bat --output utr.bat
-      -  |5-
-              git rev-parse HEAD | git show -s --format=%%cI > revdate.tmp
-              set /p GIT_REVISIONDATE=<revdate.tmp
-              echo %GIT_REVISIONDATE%
-              del revdate.tmp
-              utr --artifacts_path=TestProjects/HDRP_DXR_Tests/test-results --platform=StandaloneWindows64 --player-connection-ip=auto --player-load-path=players --suite=playmode --timeout=1200 --zero-tests-are-ok=1
+      -  command: NetSh Advfirewall set allprofiles state off
+         retries: 2
+      -  command: curl -s https://artifactory.prd.it.unity3d.com/artifactory/unity-tools-local/utr-standalone/utr.bat --output utr.bat
+         retries: 2
+      -  command: |5-
+                git rev-parse HEAD | git show -s --format=%%cI > revdate.tmp
+                set /p GIT_REVISIONDATE=<revdate.tmp
+                echo %GIT_REVISIONDATE%
+                del revdate.tmp
+                utr --artifacts_path=TestProjects/HDRP_DXR_Tests/test-results --platform=StandaloneWindows64 --player-connection-ip=auto --player-load-path=players --suite=playmode --timeout=1200 --zero-tests-are-ok=1
     artifacts:
         logs:
             paths:
@@ -141,16 +153,20 @@ Build_HDRP_DXR_Win_DX12_Standalone_mono_Linear_fast-2019.4:
         UTR_VERSION: "current"
         TEST_FILTER: .*
     commands:
-      -  NetSh Advfirewall set allprofiles state off
-      -  curl -s https://artifactory.prd.it.unity3d.com/artifactory/unity-tools-local/utr-standalone/utr.bat --output utr.bat
-      -  choco install unity-downloader-cli -y -s https://artifactory.prd.it.unity3d.com/artifactory/api/nuget/unity-choco-local
-      -  unity-downloader-cli --source-file unity_revision.txt -c editor -c il2cpp  --wait --published-only
-      -  |5-
-              git rev-parse HEAD | git show -s --format=%%cI > revdate.tmp
-              set /p GIT_REVISIONDATE=<revdate.tmp
-              echo %GIT_REVISIONDATE%
-              del revdate.tmp
-              utr --artifacts_path=TestProjects/HDRP_DXR_Tests/test-results --build-only --editor-location=.Editor --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-executemethod" --extra-editor-arg="SetupProject.ApplySettings" --extra-editor-arg="d3d12" --extra-editor-arg="Linear" --extra-editor-arg="-playergraphicsapi=Direct3D12" --platform=StandaloneWindows64 --player-save-path=players --scripting-backend=Mono2x --suite=playmode --testfilter=%TEST_FILTER% --testproject=./TestProjects/HDRP_DXR_Tests --timeout=1200
+      -  command: NetSh Advfirewall set allprofiles state off
+         retries: 2
+      -  command: curl -s https://artifactory.prd.it.unity3d.com/artifactory/unity-tools-local/utr-standalone/utr.bat --output utr.bat
+         retries: 2
+      -  command: choco install unity-downloader-cli -y -s https://artifactory.prd.it.unity3d.com/artifactory/api/nuget/unity-choco-local
+         retries: 2
+      -  command: unity-downloader-cli --source-file unity_revision.txt -c editor -c il2cpp  --wait --published-only
+         retries: 2
+      -  command: |5-
+                git rev-parse HEAD | git show -s --format=%%cI > revdate.tmp
+                set /p GIT_REVISIONDATE=<revdate.tmp
+                echo %GIT_REVISIONDATE%
+                del revdate.tmp
+                utr --artifacts_path=TestProjects/HDRP_DXR_Tests/test-results --build-only --editor-location=.Editor --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-executemethod" --extra-editor-arg="SetupProject.ApplySettings" --extra-editor-arg="d3d12" --extra-editor-arg="Linear" --extra-editor-arg="-playergraphicsapi=Direct3D12" --platform=StandaloneWindows64 --player-save-path=players --scripting-backend=Mono2x --suite=playmode --testfilter=%TEST_FILTER% --testproject=./TestProjects/HDRP_DXR_Tests --timeout=1200
     artifacts:
         logs:
             paths:
@@ -174,16 +190,20 @@ HDRP_DXR_Win_DX12_playmode_mono_Linear_fast-2019.4:
         UTR_VERSION: "current"
         TEST_FILTER: .*
     commands:
-      -  NetSh Advfirewall set allprofiles state off
-      -  curl -s https://artifactory.prd.it.unity3d.com/artifactory/unity-tools-local/utr-standalone/utr.bat --output utr.bat
-      -  choco install unity-downloader-cli -y -s https://artifactory.prd.it.unity3d.com/artifactory/api/nuget/unity-choco-local
-      -  unity-downloader-cli --source-file unity_revision.txt -c editor -c il2cpp  --wait --published-only
-      -  |5-
-              git rev-parse HEAD | git show -s --format=%%cI > revdate.tmp
-              set /p GIT_REVISIONDATE=<revdate.tmp
-              echo %GIT_REVISIONDATE%
-              del revdate.tmp
-              utr --artifacts_path=TestProjects/HDRP_DXR_Tests/test-results --editor-location=.Editor --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-force-d3d12" --scripting-backend=Mono2x --suite=playmode --testfilter=%TEST_FILTER% --testproject=./TestProjects/HDRP_DXR_Tests --zero-tests-are-ok=1
+      -  command: NetSh Advfirewall set allprofiles state off
+         retries: 2
+      -  command: curl -s https://artifactory.prd.it.unity3d.com/artifactory/unity-tools-local/utr-standalone/utr.bat --output utr.bat
+         retries: 2
+      -  command: choco install unity-downloader-cli -y -s https://artifactory.prd.it.unity3d.com/artifactory/api/nuget/unity-choco-local
+         retries: 2
+      -  command: unity-downloader-cli --source-file unity_revision.txt -c editor -c il2cpp  --wait --published-only
+         retries: 2
+      -  command: |5-
+                git rev-parse HEAD | git show -s --format=%%cI > revdate.tmp
+                set /p GIT_REVISIONDATE=<revdate.tmp
+                echo %GIT_REVISIONDATE%
+                del revdate.tmp
+                utr --artifacts_path=TestProjects/HDRP_DXR_Tests/test-results --editor-location=.Editor --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-force-d3d12" --scripting-backend=Mono2x --suite=playmode --testfilter=%TEST_FILTER% --testproject=./TestProjects/HDRP_DXR_Tests --zero-tests-are-ok=1
     artifacts:
         logs:
             paths:
@@ -205,14 +225,16 @@ HDRP_DXR_Win_DX12_Standalone_mono_Linear_CUSTOM-REVISION:
         UTR_VERSION: "current"
         TEST_FILTER: .*
     commands:
-      -  NetSh Advfirewall set allprofiles state off
-      -  curl -s https://artifactory.prd.it.unity3d.com/artifactory/unity-tools-local/utr-standalone/utr.bat --output utr.bat
-      -  |5-
-              git rev-parse HEAD | git show -s --format=%%cI > revdate.tmp
-              set /p GIT_REVISIONDATE=<revdate.tmp
-              echo %GIT_REVISIONDATE%
-              del revdate.tmp
-              utr --artifacts_path=TestProjects/HDRP_DXR_Tests/test-results --platform=StandaloneWindows64 --player-connection-ip=auto --player-load-path=players --suite=playmode --timeout=1200 --zero-tests-are-ok=1
+      -  command: NetSh Advfirewall set allprofiles state off
+         retries: 2
+      -  command: curl -s https://artifactory.prd.it.unity3d.com/artifactory/unity-tools-local/utr-standalone/utr.bat --output utr.bat
+         retries: 2
+      -  command: |5-
+                git rev-parse HEAD | git show -s --format=%%cI > revdate.tmp
+                set /p GIT_REVISIONDATE=<revdate.tmp
+                echo %GIT_REVISIONDATE%
+                del revdate.tmp
+                utr --artifacts_path=TestProjects/HDRP_DXR_Tests/test-results --platform=StandaloneWindows64 --player-connection-ip=auto --player-load-path=players --suite=playmode --timeout=1200 --zero-tests-are-ok=1
     artifacts:
         logs:
             paths:
@@ -236,16 +258,20 @@ Build_HDRP_DXR_Win_DX12_Standalone_mono_Linear_CUSTOM-REVISION:
         UTR_VERSION: "current"
         TEST_FILTER: .*
     commands:
-      -  NetSh Advfirewall set allprofiles state off
-      -  curl -s https://artifactory.prd.it.unity3d.com/artifactory/unity-tools-local/utr-standalone/utr.bat --output utr.bat
-      -  choco install unity-downloader-cli -y -s https://artifactory.prd.it.unity3d.com/artifactory/api/nuget/unity-choco-local
-      -  unity-downloader-cli --source-file unity_revision.txt -c editor -c il2cpp  --wait --published-only
-      -  |5-
-              git rev-parse HEAD | git show -s --format=%%cI > revdate.tmp
-              set /p GIT_REVISIONDATE=<revdate.tmp
-              echo %GIT_REVISIONDATE%
-              del revdate.tmp
-              utr --artifacts_path=TestProjects/HDRP_DXR_Tests/test-results --build-only --editor-location=.Editor --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-executemethod" --extra-editor-arg="SetupProject.ApplySettings" --extra-editor-arg="d3d12" --extra-editor-arg="Linear" --extra-editor-arg="-playergraphicsapi=Direct3D12" --platform=StandaloneWindows64 --player-save-path=players --scripting-backend=Mono2x --suite=playmode --testfilter=%TEST_FILTER% --testproject=./TestProjects/HDRP_DXR_Tests --timeout=1200
+      -  command: NetSh Advfirewall set allprofiles state off
+         retries: 2
+      -  command: curl -s https://artifactory.prd.it.unity3d.com/artifactory/unity-tools-local/utr-standalone/utr.bat --output utr.bat
+         retries: 2
+      -  command: choco install unity-downloader-cli -y -s https://artifactory.prd.it.unity3d.com/artifactory/api/nuget/unity-choco-local
+         retries: 2
+      -  command: unity-downloader-cli --source-file unity_revision.txt -c editor -c il2cpp  --wait --published-only
+         retries: 2
+      -  command: |5-
+                git rev-parse HEAD | git show -s --format=%%cI > revdate.tmp
+                set /p GIT_REVISIONDATE=<revdate.tmp
+                echo %GIT_REVISIONDATE%
+                del revdate.tmp
+                utr --artifacts_path=TestProjects/HDRP_DXR_Tests/test-results --build-only --editor-location=.Editor --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-executemethod" --extra-editor-arg="SetupProject.ApplySettings" --extra-editor-arg="d3d12" --extra-editor-arg="Linear" --extra-editor-arg="-playergraphicsapi=Direct3D12" --platform=StandaloneWindows64 --player-save-path=players --scripting-backend=Mono2x --suite=playmode --testfilter=%TEST_FILTER% --testproject=./TestProjects/HDRP_DXR_Tests --timeout=1200
     artifacts:
         logs:
             paths:
@@ -270,16 +296,20 @@ HDRP_DXR_Win_DX12_playmode_mono_Linear_CUSTOM-REVISION:
         UTR_VERSION: "current"
         TEST_FILTER: .*
     commands:
-      -  NetSh Advfirewall set allprofiles state off
-      -  curl -s https://artifactory.prd.it.unity3d.com/artifactory/unity-tools-local/utr-standalone/utr.bat --output utr.bat
-      -  choco install unity-downloader-cli -y -s https://artifactory.prd.it.unity3d.com/artifactory/api/nuget/unity-choco-local
-      -  unity-downloader-cli --source-file unity_revision.txt -c editor -c il2cpp  --wait --published-only
-      -  |5-
-              git rev-parse HEAD | git show -s --format=%%cI > revdate.tmp
-              set /p GIT_REVISIONDATE=<revdate.tmp
-              echo %GIT_REVISIONDATE%
-              del revdate.tmp
-              utr --artifacts_path=TestProjects/HDRP_DXR_Tests/test-results --editor-location=.Editor --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-force-d3d12" --scripting-backend=Mono2x --suite=playmode --testfilter=%TEST_FILTER% --testproject=./TestProjects/HDRP_DXR_Tests --zero-tests-are-ok=1
+      -  command: NetSh Advfirewall set allprofiles state off
+         retries: 2
+      -  command: curl -s https://artifactory.prd.it.unity3d.com/artifactory/unity-tools-local/utr-standalone/utr.bat --output utr.bat
+         retries: 2
+      -  command: choco install unity-downloader-cli -y -s https://artifactory.prd.it.unity3d.com/artifactory/api/nuget/unity-choco-local
+         retries: 2
+      -  command: unity-downloader-cli --source-file unity_revision.txt -c editor -c il2cpp  --wait --published-only
+         retries: 2
+      -  command: |5-
+                git rev-parse HEAD | git show -s --format=%%cI > revdate.tmp
+                set /p GIT_REVISIONDATE=<revdate.tmp
+                echo %GIT_REVISIONDATE%
+                del revdate.tmp
+                utr --artifacts_path=TestProjects/HDRP_DXR_Tests/test-results --editor-location=.Editor --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-force-d3d12" --scripting-backend=Mono2x --suite=playmode --testfilter=%TEST_FILTER% --testproject=./TestProjects/HDRP_DXR_Tests --zero-tests-are-ok=1
     artifacts:
         logs:
             paths:
