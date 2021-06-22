@@ -410,7 +410,6 @@ namespace UnityEngine.Rendering.HighDefinition
             // Internal to light list building
             public ComputeBuffer lightVolumeDataBuffer { get; private set; }
             public ComputeBuffer convexBoundsBuffer { get; private set; }
-            public ComputeBuffer globalLightListAtomic { get; private set; }
 
             public bool listsAreClear = false;
 
@@ -423,7 +422,6 @@ namespace UnityEngine.Rendering.HighDefinition
                 hasTileBuffers = allocateTileBuffers;
                 this.clusterNeedsDepth = clusterNeedsDepth;
                 this.maxLightCount = maxLightCount;
-                globalLightListAtomic = new ComputeBuffer(1, sizeof(uint));
             }
 
             public void AllocateResolutionDependentBuffers(HDCamera hdCamera, int width, int height, int viewCount, int maxLightOnScreen)
@@ -445,8 +443,6 @@ namespace UnityEngine.Rendering.HighDefinition
 
             public void Cleanup()
             {
-                CoreUtils.SafeRelease(globalLightListAtomic);
-
                 ReleaseResolutionDependentBuffers();
             }
         }
