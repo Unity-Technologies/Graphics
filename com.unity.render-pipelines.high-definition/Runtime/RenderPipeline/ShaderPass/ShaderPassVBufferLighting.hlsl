@@ -19,6 +19,8 @@ struct Attributes
 };
 
 int _CurrMaterialID;
+int _CurrFeatureSet;
+
 
 Varyings Vert(Attributes inputMesh)
 {
@@ -33,6 +35,8 @@ Varyings Vert(Attributes inputMesh)
     output.positionCS.xy /= output.positionCS.w;
     output.positionCS.z = testDepth;
     output.positionCS.w = 1;
+
+    //
 
     return output;
 }
@@ -193,7 +197,7 @@ void Frag(Varyings packedInput, out float4 outColor : SV_Target0)
 
     PreLightData preLightData = GetPreLightData(V, posInput, bsdfData);
 
-    uint featureFlags = LIGHT_FEATURE_MASK_FLAGS_OPAQUE;
+    uint featureFlags = LIGHT_FEATURE_MASK_FLAGS_OPAQUE | MATERIAL_FEATURE_MASK_FLAGS;
     LightLoopOutput lightLoopOutput;
     LightLoop(V, posInput, preLightData, bsdfData, builtinData, featureFlags, lightLoopOutput);
 
@@ -204,9 +208,6 @@ void Frag(Varyings packedInput, out float4 outColor : SV_Target0)
     specularLighting *= GetCurrentExposureMultiplier();
 
     outColor = float4(diffuseLighting + specularLighting, 1.0);
-
     outColor.a = 1;
-    //outColor.xyz = bsdfData.normalWS;
-    //outColor.xyz = debugVal;
 
 }
