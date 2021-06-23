@@ -1059,6 +1059,7 @@ namespace UnityEngine.Rendering.HighDefinition
         {
             bool taaEnabled = frameSettings.IsEnabled(FrameSettingsField.Postprocess)
                 && antialiasing == AntialiasingMode.TemporalAntialiasing
+                && !HDRenderPipeline.IsMSSSEnabled()
                 && camera.cameraType == CameraType.Game;
 
             cb._ViewMatrix = mainViewConstants.viewMatrix;

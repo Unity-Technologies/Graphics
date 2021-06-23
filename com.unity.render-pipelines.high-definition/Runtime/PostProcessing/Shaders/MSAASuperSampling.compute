@@ -49,12 +49,12 @@ void MainReprojectLuminance(uint3 dti : SV_DispatchThreadID)
     float2 uv = (centerPos) * _SourceSize.zw;
     float2 velocity = float2(0.0, 0.0);
     DecodeMotionVector(LOAD_TEXTURE2D_X(_CameraMotionVectorsTexture, centerPos), velocity);
-    //float2 reprojectedPos = pos - velocity * _ScreenSize.xy;
-    //float4 luminance = float4(0,0,0,0);
-    //if (all(reprojectedPos.xy < _ScreenSize.xy))
-    //    luminance = LOAD_TEXTURE2D_X(_InputMSSSLuminance, reprojectedPos);
-    //
-    _OutputMSSSLuminance[COORD_TEXTURE2D_X(dti.xy)] = velocity.xxxx;
+    float2 reprojectedPos = centerPos - velocity * _ScreenSize.xy;
+    float4 luminance = float4(0,0,0,0);
+    if (all(reprojectedPos.xy < _ScreenSize.xy))
+        luminance = LOAD_TEXTURE2D_X(_InputMSSSLuminance, reprojectedPos);
+    
+    _OutputMSSSLuminance[COORD_TEXTURE2D_X(dti.xy)] = luminance;
 }
 
 float calcLum(float3 colorIn)
@@ -62,7 +62,7 @@ float calcLum(float3 colorIn)
     return max(colorIn.r, max(colorIn.g, colorIn.b));
 }
 
-#if 0
+#if 1
 //non optimized
 void writeLuminance(int2 dti, int2 gti)
 {
