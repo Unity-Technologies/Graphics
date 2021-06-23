@@ -1,10 +1,15 @@
 #pragma kernel MainUpsample
+#pragma kernel MainReprojectLuminance
 
 #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Common.hlsl"
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/ShaderLibrary/ShaderVariables.hlsl"
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/PostProcessing/Shaders/RTUpscale.hlsl"
 
 TEXTURE2D_X_MSAA(float4, _ColorTextureMS);
+
+#define THREAD_X 8
+#define THREAD_Y 8
+#define THREAD_TOTAL (THREAD_X*THREAD_Y)
 
 void FsrSrtmF(inout float3 c)
 {
@@ -26,17 +31,63 @@ float4 MsssTexF(int2 p, int s)
 
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/PostProcessing/Shaders/MSSS.hlsl"
 
+TEXTURE2D_X(_InputMSSSLuminance);
 TEXTURE2D_X(_InputDepthTexture);
 
-RW_TEXTURE2D_X(CTYPE, _OutputTexture);
-RW_TEXTURE2D_X(float, _OutputDepthTexture);
+RW_TEXTURE2D_X(CTYPE,  _OutputTexture);
+RW_TEXTURE2D_X(float,  _OutputDepthTexture);
 RW_TEXTURE2D_X(float2, _OutputMotionVectorTexture);
+RW_TEXTURE2D_X(float4, _OutputMSSSLuminance);
 
 float4 _SourceSize;
 float4 _ViewPortSize;
 
-[numthreads(8,4,1)]
-void MainUpsample (uint3 dti : SV_DispatchThreadID)
+[numthreads(8,8,1)]
+void MainReprojectLuminance(uint3 dti : SV_DispatchThreadID)
+{
+    float2 uv = (dti.xy + 0.5) * _SourceSize.zw;
+
+    _OutputMSSSLuminance[COORD_TEXTURE2D_X(dti.xy)] = LOAD_TEXTURE2D_X(_InputMSSSLuminance, dti.xy).rgba;
+}
+
+float calcLum(float3 colorIn)
+{
+    return max(colorIn.r, max(colorIn.g, colorIn.b));
+}
+
+#if 1
+//non optimized
+void writeLuminance(int2 dti, int2 gti, int gi, int2 gid)
+{
+    int2 p = dti.xy;
+    if (any(p >= (int2)_SourceSize.xy))
+        return;
+
+    float3 sample0 = MsssTexF(p, 0).rgb;
+    float3 sample1 = MsssTexF(p, 1).rgb;
+    float3 sample2 = MsssTexF(p, 2).rgb;
+    float3 sample3 = MsssTexF(p, 3).rgb;
+
+    _OutputMSSSLuminance[COORD_TEXTURE2D_X(p)] = float4(calcLum(sample0), calcLum(sample1), calcLum(sample2), calcLum(sample3));
+}
+#else
+//optimized with LDS
+groupshared float s_cachedLum[THREAD_TOTAL];
+
+void writeLuminance(int2 dti, int2 gti, int gi, int2 gid)
+{
+    int2 base = gid * int2(THREAD_X >> 1, THREAD_Y >> 1);
+    int2 target = gti.xy >> 1;
+    int2 outputPos = base + target;
+    if (all(outputPos < _SourceSize.xy))
+    {
+        _OutputMSSSLuminance[COORD_TEXTURE2D_X(outputPos)] = float4(target.x / 4.0,0,0,0);
+    }
+}
+#endif
+
+[numthreads(THREAD_X,THREAD_Y,1)]
+void MainUpsample (uint3 dti : SV_DispatchThreadID, int2 gti : SV_GroupThreadID, int gi : SV_GroupIndex, int2 gid : SV_GroupID)
 {
     UNITY_XR_ASSIGN_VIEW_INDEX(dti.z);
     float2 uvs = ((float2)dti.xy + 0.5f) * _ViewPortSize.zw;
@@ -44,6 +95,9 @@ void MainUpsample (uint3 dti : SV_DispatchThreadID)
 
     float2 scale = _SourceSize.xy / _ViewPortSize.xy;
     float4 sampledColor = float4(0,0,0,1);
+
+    writeLuminance((int2)dti.xy, gti, gi, gid);
+
     sampledColor.rgb = MsssF(
         //  p ....... integer pixel position in the output
         dti.xy,
@@ -52,7 +106,15 @@ void MainUpsample (uint3 dti : SV_DispatchThreadID)
         float4(scale.x,scale.y,scale.x*0.5-0.5,scale.y*0.5-0.5)).rgb;
 
     FsrSrtmInvF(sampledColor.rgb);
+    
+    float4 debugLuminance = SAMPLE_TEXTURE2D_X_LOD(_InputMSSSLuminance, s_linear_clamp_sampler, uvs, 0);
+
+#if 1
+    _OutputTexture[COORD_TEXTURE2D_X(dti.xy)] = (CTYPE)debugLuminance;
+#else
     _OutputTexture[COORD_TEXTURE2D_X(dti.xy)] = sampledColor;
+#endif
+
     _OutputDepthTexture[COORD_TEXTURE2D_X(dti.xy)] = Nearest(_InputDepthTexture, uvs).x;
     _OutputMotionVectorTexture[COORD_TEXTURE2D_X(dti.xy)] = Bilinear(_CameraMotionVectorsTexture, uvs).xy;
 }

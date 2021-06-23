@@ -3404,7 +3404,8 @@ namespace UnityEngine.Rendering.HighDefinition
         struct MSAASuperSamplingParameters
         {
             public ComputeShader cs;
-            public int mainKernel;
+            public int reprojectLuminanceKernel;
+            public int upsampleKernel;
             public int viewCount;
             public float inputWidth;
             public float inputHeight;
@@ -3416,7 +3417,8 @@ namespace UnityEngine.Rendering.HighDefinition
         {
             var parameters = new MSAASuperSamplingParameters();
             parameters.cs = defaultResources.shaders.msaaSuperSamplingCS;
-            parameters.mainKernel = parameters.cs.FindKernel("MainUpsample");
+            parameters.upsampleKernel = parameters.cs.FindKernel("MainUpsample");
+            parameters.reprojectLuminanceKernel = parameters.cs.FindKernel("MainReprojectLuminance");
             parameters.viewCount = camera.viewCount;
             parameters.inputWidth = camera.actualWidth;
             parameters.inputHeight = camera.actualHeight;
@@ -3427,9 +3429,25 @@ namespace UnityEngine.Rendering.HighDefinition
 
         static void DoReprojectMSSSLuminance(
             MSAASuperSamplingParameters parameters, CommandBuffer cmd,
-            RTHandle previousLuminance, RTHandle velocityInput,
+            RTHandle previousLuminance, RTHandle sourceMotionVectors,
             RTHandle outputLuminance)
         {
+            var kernel = parameters.reprojectLuminanceKernel;
+            if (kernel < 0)
+                throw new Exception(String.Format(
+                    "Invalid kernel specified for MSAASuperSampling"));
+
+            var cs = parameters.cs;
+            cmd.SetComputeTextureParam(cs, kernel, HDShaderIDs._InputMSSSLuminance, previousLuminance);
+            cmd.SetComputeTextureParam(cs, kernel, HDShaderIDs._CameraMotionVectorsTexture, sourceMotionVectors);
+            cmd.SetComputeTextureParam(cs, kernel, HDShaderIDs._OutputMSSSLuminance, outputLuminance);
+            cmd.SetComputeVectorParam(cs, HDShaderIDs._SourceSize, new Vector4(parameters.inputWidth, parameters.inputHeight, 1.0f / parameters.inputWidth, 1.0f / parameters.inputHeight));
+
+            const int xThreads = 8;
+            const int yThreads = 8;
+            int dispatchX = HDUtils.DivRoundUp(Mathf.RoundToInt(parameters.outputWidth),  xThreads);
+            int dispatchY = HDUtils.DivRoundUp(Mathf.RoundToInt(parameters.outputHeight), yThreads);
+            cmd.DispatchCompute(cs, kernel, dispatchX, dispatchY, parameters.viewCount);
         }
 
         static void DoMSSS(
@@ -3437,31 +3455,31 @@ namespace UnityEngine.Rendering.HighDefinition
             RTHandle sourceColor, RTHandle sourceDepth, RTHandle sourceMotionVectors, RTHandle inputMSSSLuminance,
             RTHandle outputColor, RTHandle outputDepth, RTHandle outputMotionVectors, RTHandle outMSSSLuminance)
         {
-            var mainKernel = parameters.mainKernel;
-            if (mainKernel < 0)
+            var kernel = parameters.upsampleKernel;
+            if (kernel < 0)
                 throw new Exception(String.Format(
                     "Invalid kernel specified for MSAASuperSampling"));
 
             var cs = parameters.cs;
-            cmd.SetComputeTextureParam(cs, mainKernel, HDShaderIDs._ColorTextureMS, sourceColor);
-            cmd.SetComputeTextureParam(cs, mainKernel, HDShaderIDs._InputDepth, sourceDepth);
-            cmd.SetComputeTextureParam(cs, mainKernel, HDShaderIDs._CameraMotionVectorsTexture, sourceMotionVectors);
-            cmd.SetComputeTextureParam(cs, mainKernel, HDShaderIDs._InputMSSSLuminance, inputMSSSLuminance);
+            cmd.SetComputeTextureParam(cs, kernel, HDShaderIDs._ColorTextureMS, sourceColor);
+            cmd.SetComputeTextureParam(cs, kernel, HDShaderIDs._InputDepth, sourceDepth);
+            cmd.SetComputeTextureParam(cs, kernel, HDShaderIDs._CameraMotionVectorsTexture, sourceMotionVectors);
+            cmd.SetComputeTextureParam(cs, kernel, HDShaderIDs._InputMSSSLuminance, inputMSSSLuminance);
 
-            cmd.SetComputeTextureParam(cs, mainKernel, HDShaderIDs._OutputTexture, outputColor);
-            cmd.SetComputeTextureParam(cs, mainKernel, HDShaderIDs._OutputDepthTexture, outputDepth);
-            cmd.SetComputeTextureParam(cs, mainKernel, HDShaderIDs._OutputMotionVectorTexture, outputMotionVectors);
-            cmd.SetComputeTextureParam(cs, mainKernel, HDShaderIDs._OutputMSSSLuminance, outMSSSLuminance);
+            cmd.SetComputeTextureParam(cs, kernel, HDShaderIDs._OutputTexture, outputColor);
+            cmd.SetComputeTextureParam(cs, kernel, HDShaderIDs._OutputDepthTexture, outputDepth);
+            cmd.SetComputeTextureParam(cs, kernel, HDShaderIDs._OutputMotionVectorTexture, outputMotionVectors);
+            cmd.SetComputeTextureParam(cs, kernel, HDShaderIDs._OutputMSSSLuminance, outMSSSLuminance);
 
 
             cmd.SetComputeVectorParam(cs, HDShaderIDs._SourceSize, new Vector4(parameters.inputWidth, parameters.inputHeight, 1.0f / parameters.inputWidth, 1.0f / parameters.inputHeight));
             cmd.SetComputeVectorParam(cs, HDShaderIDs._ViewPortSize, new Vector4(parameters.outputWidth, parameters.outputHeight, 1.0f / parameters.outputWidth, 1.0f / parameters.outputHeight));
 
             const int xThreads = 8;
-            const int yThreads = 4;
+            const int yThreads = 8;
             int dispatchX = HDUtils.DivRoundUp(Mathf.RoundToInt(parameters.outputWidth),  xThreads);
             int dispatchY = HDUtils.DivRoundUp(Mathf.RoundToInt(parameters.outputHeight), yThreads);
-            cmd.DispatchCompute(cs, mainKernel, dispatchX, dispatchY, parameters.viewCount);
+            cmd.DispatchCompute(cs, kernel, dispatchX, dispatchY, parameters.viewCount);
         }
 
         class MSSSReprojectLuminanceData
@@ -3497,7 +3515,8 @@ namespace UnityEngine.Rendering.HighDefinition
             RTHandle luminanceAllocator(string id, int frameIndex, RTHandleSystem rTHandleSystem)
             {
                 return rTHandleSystem.Alloc(
-                    hdCamera.actualWidth, hdCamera.actualHeight,
+                    hdCamera.actualWidth, hdCamera.actualHeight, TextureXR.slices, DepthBits.None,
+                    dimension: TextureXR.dimension,
                     colorFormat: packedMSSSLuminanceFormat,
                     enableRandomWrite: true);
             }
@@ -3511,7 +3530,7 @@ namespace UnityEngine.Rendering.HighDefinition
             using (var builder = renderGraph.AddRenderPass<MSSSReprojectLuminanceData>("MSSSReprojectLuminance", out var passData, ProfilingSampler.Get(HDProfileId.MSSSReprojectLuminance)))
             {
                 reprojectedLuminance = builder.WriteTexture(renderGraph.CreateTexture(
-                    new TextureDesc(hdCamera.actualWidth, hdCamera.actualHeight)
+                    new TextureDesc(hdCamera.actualWidth, hdCamera.actualHeight, false, true)
                     {
                         name = "MSSSReprojectedLuminance",
                         colorFormat = packedMSSSLuminanceFormat,
