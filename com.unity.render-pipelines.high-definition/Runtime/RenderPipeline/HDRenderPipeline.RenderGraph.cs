@@ -169,7 +169,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
                     var tileClassification = VBufferTileClassification(m_RenderGraph, hdCamera, gpuLightListOutput.tileFeatureFlags, colorBuffer);
 
-                    colorBuffer = RenderVBufferLighting(m_RenderGraph, cullingResults, hdCamera, vBufferOutput, materialDepth, colorBuffer, gpuLightListOutput);
+                    colorBuffer = RenderVBufferLighting(m_RenderGraph, cullingResults, hdCamera, vBufferOutput, materialDepth, colorBuffer, tileClassification, gpuLightListOutput);
 
                     var deferredLightingOutput = RenderDeferredLighting(m_RenderGraph, hdCamera, colorBuffer, prepassOutput.depthBuffer, prepassOutput.depthPyramidTexture, lightingBuffers, prepassOutput.gbuffer, shadowResult, gpuLightListOutput);
 

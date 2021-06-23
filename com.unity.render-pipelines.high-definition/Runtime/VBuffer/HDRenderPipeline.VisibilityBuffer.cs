@@ -84,8 +84,7 @@ namespace UnityEngine.Rendering.HighDefinition
             public ComputeBufferHandle indexBuffer;
             public ComputeBufferHandle instancedDataBuffer;
             public ComputeBufferHandle lightListBuffer;
-            public ComputeBufferHandle tileFeatureFlagsBuffer;
-            public ComputeBufferHandle tileListBuffer;
+            public TextureHandle vbufferTileClassification;
         }
 
         [GenerateHLSL]
@@ -102,6 +101,7 @@ namespace UnityEngine.Rendering.HighDefinition
         TextureHandle RenderVBufferLighting(RenderGraph renderGraph, CullingResults cullingResults, HDCamera hdCamera,
             VBufferOutput vBufferOutput, TextureHandle materialDepthBuffer,
             TextureHandle colorBuffer,
+            TextureHandle vbufferTileClassification,
             in BuildGPULightListOutput lightLists)
         {
             if (InstanceVDataB == null || CompactedVB == null || CompactedIB == null) return colorBuffer;
@@ -120,12 +120,12 @@ namespace UnityEngine.Rendering.HighDefinition
                 passData.indexBuffer = renderGraph.ImportComputeBuffer(CompactedIB);
                 passData.instancedDataBuffer = renderGraph.ImportComputeBuffer(InstanceVDataB);
                 passData.lightListBuffer = builder.ReadComputeBuffer(lightLists.lightList);
-                passData.tileFeatureFlagsBuffer = builder.ReadComputeBuffer(lightLists.tileFeatureFlags);
-                passData.tileListBuffer = builder.ReadComputeBuffer(lightLists.tileList);
+                passData.vbufferTileClassification = builder.ReadTexture(vbufferTileClassification);
 
                 builder.SetRenderFunc(
                     (VBufferLightingPassData data, RenderGraphContext context) =>
                     {
+                        context.cmd.SetGlobalTexture("_VBufferTileClassification", data.vbufferTileClassification);
                         context.cmd.SetGlobalBuffer("_CompactedVertexBuffer", data.vertexBuffer);
                         context.cmd.SetGlobalBuffer("_CompactedIndexBuffer", data.indexBuffer);
                         context.cmd.SetGlobalBuffer("_InstanceVDataBuffer", data.instancedDataBuffer);
@@ -236,9 +236,6 @@ namespace UnityEngine.Rendering.HighDefinition
                         context.cmd.SetComputeVectorParam(cs, "_TileBufferSize", new Vector4(tileClassSizeX, tileClassSizeY, 0, 0));
 
                         context.cmd.DispatchCompute(cs, kernel, dispatchX, dispatchY, 1);
-
-                        //// Doesn't matter what's bound as color buffer
-                        //HDUtils.DrawFullScreen(context.cmd, passData.createMaterialDepthMaterial, passData.dummyColorOutput, passData.outputDepthBuffer, null, 0);
                     });
             }
 

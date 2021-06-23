@@ -16,6 +16,7 @@ struct Varyings
 {
     float4 positionCS : SV_POSITION;
     uint lightFeatures : LIGHT_FEATURES;
+    uint2 tileCoord : TILE_COORD;
     UNITY_VERTEX_OUTPUT_STEREO
 };
 
@@ -27,6 +28,8 @@ float4 _VBufferTileData;
 #define _QuadTileSize (uint)_VBufferTileData.z
 
 static const float2 QuadVertices[6] = { float2(0,0), float2(1, 0), float2(1, 1), float2(0, 0), float2(1, 1), float2(0, 1)};
+
+TEXTURE2D_X_UINT(_VBufferTileClassification);
 
 Varyings Vert(Attributes inputMesh)
 {
@@ -40,13 +43,17 @@ Varyings Vert(Attributes inputMesh)
     uint instanceID = inputMesh.instanceID;
 
     int tileX = instanceID % _NumVBufferTileX;
-    int tileY = instanceID / _NumVBufferTileY;
+    int tileY = instanceID / _NumVBufferTileX;
     int quadVertexID = inputMesh.vertexID % 6;
 
     output.positionCS.xy = ((QuadVertices[quadVertexID]  + float2(tileX, tileY) / float2(_NumVBufferTileX, _NumVBufferTileY))) * 2.0f - 1.0f;
-    output.lightFeatures = LIGHTVARIANTS_SKY_DIR_PUNCTUAL_AREA_ENV;
+
+    // TODO DEBUG
+    output.lightFeatures = LIGHTVARIANTS_SKY_DIR_PUNCTUAL_AREA_ENV; // _VBufferTileClassification[COORD_TEXTURE2D_X(uint2(tileX, tileY))];
     output.positionCS.z = float(_CurrMaterialID) / (float)(0xffff);
     output.positionCS.w = 1;
+
+    output.tileCoord = uint2(tileX, tileY);
 #endif
 
     return output;
@@ -209,14 +216,14 @@ void Frag(Varyings packedInput, out float4 outColor : SV_Target0)
     LightLoopOutput lightLoopOutput;
     LightLoop(V, posInput, preLightData, bsdfData, builtinData, featureFlags, lightLoopOutput);
 
-    float3 diffuseLighting = lightLoopOutput.diffuseLighting;
+    float3 diffuseLighting =  lightLoopOutput.diffuseLighting;
     float3 specularLighting = lightLoopOutput.specularLighting;
 
     diffuseLighting *= GetCurrentExposureMultiplier();
     specularLighting *= GetCurrentExposureMultiplier();
 
 
-    outColor.rgb = float4(diffuseLighting + specularLighting, 1.0);
-    outColor.a = 1;
+    outColor.rgb = float4(diffuseLighting + specularLighting, 1.0) + (packedInput.tileCoord / float2(_NumVBufferTileX, _NumVBufferTileY)).xyx * 0.02f;
 
+    outColor.a = 1;
 }
