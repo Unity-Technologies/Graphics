@@ -4,39 +4,50 @@
 
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/ShaderPass/VertMesh.hlsl"
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/VBuffer/VisibilityBufferCommon.hlsl"
-
-struct Varyings
-{
-    float4 positionCS : SV_POSITION;
-    float2 texcoord   : TEXCOORD0;
-    UNITY_VERTEX_OUTPUT_STEREO
-};
+#include "Packages/com.unity.render-pipelines.high-definition/Runtime/VBuffer/VisibilityBufferCommon.hlsl"
 
 struct Attributes
 {
     uint vertexID : SV_VertexID;
-    UNITY_VERTEX_INPUT_INSTANCE_ID
+    uint instanceID : SV_InstanceID;
+};
+
+struct Varyings
+{
+    float4 positionCS : SV_POSITION;
+    uint lightFeatures : LIGHT_FEATURES;
+    UNITY_VERTEX_OUTPUT_STEREO
 };
 
 int _CurrMaterialID;
 int _CurrFeatureSet;
+float4 _VBufferTileData;
+#define _NumVBufferTileX (uint)_VBufferTileData.x
+#define _NumVBufferTileY (uint)_VBufferTileData.y
+#define _QuadTileSize (uint)_VBufferTileData.z
 
+static const float2 QuadVertices[6] = { float2(0,0), float2(1, 0), float2(1, 1), float2(0, 0), float2(1, 1), float2(0, 1)};
 
 Varyings Vert(Attributes inputMesh)
 {
     Varyings output;
+    ZERO_INITIALIZE(Varyings, output);
+
+#ifdef UNITY_ANY_INSTANCING_ENABLED
     UNITY_SETUP_INSTANCE_ID(inputMesh);
     UNITY_INITIALIZE_VERTEX_OUTPUT_STEREO(output);
-    output.positionCS = GetFullScreenTriangleVertexPosition(inputMesh.vertexID);
-    output.texcoord = GetFullScreenTriangleTexCoord(inputMesh.vertexID);
 
-    float testDepth = float(_CurrMaterialID) / (float)(0xffff);
+    uint instanceID = inputMesh.instanceID;
 
-    output.positionCS.xy /= output.positionCS.w;
-    output.positionCS.z = testDepth;
+    int tileX = instanceID % _NumVBufferTileX;
+    int tileY = instanceID / _NumVBufferTileY;
+    int quadVertexID = inputMesh.vertexID % 6;
+
+    output.positionCS.xy = ((QuadVertices[quadVertexID]  + float2(tileX, tileY) / float2(_NumVBufferTileX, _NumVBufferTileY))) * 2.0f - 1.0f;
+    output.lightFeatures = LIGHTVARIANTS_SKY_DIR_PUNCTUAL_AREA_ENV;
+    output.positionCS.z = float(_CurrMaterialID) / (float)(0xffff);
     output.positionCS.w = 1;
-
-    //
+#endif
 
     return output;
 }
@@ -197,7 +208,7 @@ void Frag(Varyings packedInput, out float4 outColor : SV_Target0)
 
     PreLightData preLightData = GetPreLightData(V, posInput, bsdfData);
 
-    uint featureFlags = LIGHT_FEATURE_MASK_FLAGS_OPAQUE | MATERIAL_FEATURE_MASK_FLAGS;
+    uint featureFlags = packedInput.lightFeatures | MATERIAL_FEATURE_MASK_FLAGS;
     LightLoopOutput lightLoopOutput;
     LightLoop(V, posInput, preLightData, bsdfData, builtinData, featureFlags, lightLoopOutput);
 

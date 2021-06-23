@@ -98,7 +98,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 int materialIdx = 0;
 
                 Material currentMat = sharedMaterials[i];
-                if (currentMat == null || IsTransparentMaterial(currentMat))
+                if (currentMat == null || IsTransparentMaterial(currentMat) || IsAlphaTestedMaterial(currentMat))
                     continue;
 
                 materials.TryGetValue(currentMat, out materialIdx);
@@ -251,6 +251,7 @@ namespace UnityEngine.Rendering.HighDefinition
                     int matIdx = 0;
                     if (!materials.TryGetValue(mat, out matIdx))
                     {
+                        mat.enableInstancing = true;
                         materials.Add(mat, materialIdx);
                         materialIdx++;
                     }
@@ -261,9 +262,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
             // If we don't have any valid renderer
             if (validRenderers == 0)
-            {
                 return;
-            }
 
             int currVBCount = CompactedVB == null ? 0 : CompactedVB.count;
             if (vertexCount != currVBCount)
