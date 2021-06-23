@@ -7,7 +7,7 @@ namespace UnityEditor.VFX.Block
     //TODOPAUL : Sanitize this
     class PositionTorusDeprecated : PositionBase
     {
-        public override string name { get { return string.Format(base.name, "Torus"); } }
+        public override string name { get { return string.Format(base.name, "Torus (deprecated)"); } }
         protected override float thicknessDimensions { get { return 2.0f; } }
 
         public class InputProperties

@@ -31,7 +31,7 @@ namespace UnityEditor.VFX.Block
                 foreach (var p in allSlots)
                     yield return p;
 
-                var thickness = allSlots.FirstOrDefault(o => o.name == "thickness").exp;
+                var thickness = allSlots.FirstOrDefault(o => o.name == nameof(ThicknessProperties.Thickness)).exp;
                 var majorRadius = allSlots.FirstOrDefault(o => o.name == "arcTorus_torus_majorRadius").exp;
                 var minorRadius = allSlots.FirstOrDefault(o => o.name == "arcTorus_torus_minorRadius").exp;
 
