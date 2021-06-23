@@ -165,7 +165,7 @@ FragInputs EvaluateFragInput(float4 posSS, uint instanceID, uint triangleID, flo
     outFragInputs.texCoord0 = float4(texCoord0, 0.0, 1.0);
     //outFragInputs.tangentToWorld = CreateTangentToWorld(normalWS, tangentWS, 1.0);
     outFragInputs.tangentToWorld = CreateTangentToWorld(normalWS, tangentWS, sign(tangentOS.w));
-    outFragInputs.isFrontFace = dot(V, outFragInputs.tangentToWorld[2]) > 0.0f;
+    outFragInputs.isFrontFace = dot(V, normalWS) > 0.0f;
     return outFragInputs;
 }
 
@@ -193,7 +193,6 @@ void Frag(Varyings packedInput, out float4 outColor : SV_Target0)
     float3 debugVal = 0;
     FragInputs input = EvaluateFragInput(packedInput.positionCS, instanceID, triangleID, posWS, V, debugVal);
 
-
     // Build the position input
     int2 tileCoord = (float2)input.positionSS.xy / GetTileSize();
     PositionInputs posInput = GetPositionInput(input.positionSS.xy, _ScreenSize.zw, depthValue, UNITY_MATRIX_I_VP, GetWorldToViewMatrix(), tileCoord);
@@ -216,7 +215,8 @@ void Frag(Varyings packedInput, out float4 outColor : SV_Target0)
     diffuseLighting *= GetCurrentExposureMultiplier();
     specularLighting *= GetCurrentExposureMultiplier();
 
-    outColor = float4(diffuseLighting + specularLighting, 1.0);
+
+    outColor.rgb = float4(diffuseLighting + specularLighting, 1.0);
     outColor.a = 1;
 
 }
