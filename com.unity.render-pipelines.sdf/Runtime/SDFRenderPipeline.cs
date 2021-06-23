@@ -1,9 +1,11 @@
 using System.Collections;
 using System.Collections.Generic;
+using System;
 using UnityEngine;
-// using UnityEngine.CoreModule;
 using UnityEngine.Rendering;
+using Unity.Collections.LowLevel.Unsafe;
 using UnityEngine.Experimental.Rendering;
+
 namespace UnityEngine.Rendering.SDFRP
 {
     public static class Utilities
@@ -58,8 +60,32 @@ namespace UnityEngine.Rendering.SDFRP
         Material m_DepthOfFieldMaterial = null;
 
         static int Frame = 0;
+
+        struct ObjectHeader
+        {
+            Matrix4x4 worldToObjMatrix;
+            int      objID;
+            int      numEntries;
+            int      startOffset;
+            float    voxelSize;
+            Vector3  minExtent;
+            float    pad0;
+            Vector3  maxExtent;
+            float    pad1;
+            Vector4  color;
+        };
+
         protected override void Render(ScriptableRenderContext context, Camera[] cameras)
         {
+            CommandBuffer cmd = new CommandBuffer();
+            cmd.name = "My SETUP";
+            cmd.ClearRenderTarget(false, true, currentAsset.clearColor);
+            cmd.SetViewport(cameras[0].pixelRect);
+
+            // SDFRenderer[] SDFObjects = GameObject.FindObjectsOfType<SDFRenderer>();
+            // ComputeBuffer SDFHeaderData = new ComputeBuffer(SDFObjects.Length, UnsafeUtility.SizeOf<ObjectHeader>(), ComputeBufferType.Default);
+            // ComputeBuffer SDFData = GetDataFromSceneGraph(SDFObjects, SDFHeaderData);
+
             Vector3[] sampleExtents = {
                 new Vector3(1.0f, 1.0f, 1.0f),
                 new Vector3(3.0f, 5.0f, 1.0f),
@@ -79,7 +105,7 @@ namespace UnityEngine.Rendering.SDFRP
             // context.DrawRenderers(cullResults.visibleRenderers);
             // context.DrawSkybox(cameras[0]);
 
-            // SDF Rendering - TODO Enable this
+            // SDF Rendering
             {
                 CommandBuffer cmdRayMarch = new CommandBuffer();
                 cmdRayMarch.name = "RayMarch";
@@ -98,6 +124,31 @@ namespace UnityEngine.Rendering.SDFRP
                  {
                     if (camera.cameraType == CameraType.Game && camera.enabled)
                     {
+                        // // Double check cmdbuffer setup
+                        // CommandBuffer cmd = new CommandBuffer();
+                        // cmd.name = "SDF";
+                        // cmd.SetViewport(camera.pixelRect);
+                        // cmd.SetViewMatrix(camera.worldToCameraMatrix);
+                        // cmd.SetProjectionMatrix(camera.projectionMatrix);
+
+                        // ComputeShader cs = (ComputeShader)Resources.Load("NameOfShader");
+                        // int kernelHandle = cs.FindKernel("CSMain");
+                        // cs.SetBuffer(kernelHandle, "_ObjectSDFData", SDFData);
+                        // cmd.SetRandomWriteTarget(1, SDFData);
+                        // cs.SetBuffer(kernelHandle, "_ObjectHeaderData", SDFHeaderData);
+                        // cmd.SetRandomWriteTarget(2, SDFHeaderData);
+
+                        // RenderTexture tex = new RenderTexture(cameras[0].pixelWidth, cameras[0].pixelHeight, 0);  // Check depth buffer size
+                        // tex.enableRandomWrite = true;
+                        // tex.Create();
+                        // cs.SetTexture(kernelHandle, "Result", tex);
+                        // // cmd.SetRandomWriteTarget(3, renderTexture);
+
+                        // cs.Dispatch(kernelHandle, (int)Math.Ceiling(tex.width / 8.0f), (int)Math.Ceiling(tex.height / 8.0f), 1);     // 8 x 8 tiles
+                        // // cmd.Blit(tex, null);
+                        // cmd.Blit(tex, BuiltinRenderTextureType.CameraTarget);
+
+                        // cmd.ClearRandomWriteTargets();
 
                         CommandBuffer cmd1 = new CommandBuffer();
                         cmd1.name = "DepthOfField";
@@ -120,6 +171,46 @@ namespace UnityEngine.Rendering.SDFRP
             context.Submit();
             Frame++;
         }
+
+
+        // private ComputeBuffer GetDataFromSceneGraph(SDFRenderer[] SDFObjects, ComputeBuffer headers)
+        // {
+        //     // First, get size
+        //     int dataSize = 0;
+        //     foreach (SDFRenderer renderer in SDFObjects)
+        //     {
+        //         SDFFilter filter = renderer.gameObject.GetComponent<SDFFilter>();
+        //         dataSize += filter.size;
+        //     }
+
+        //     // Next, fill out array of data and array of data-headers
+        //     float[] nativeData = new float[dataSize];
+        //     ObjectHeader[] nativeHeaders = new ObjectHeader[SDFObjects.Length];
+
+        //     int offset = 0;
+        //     for(int i = 0; i < SDFObjects.Length; i++)
+        //     {
+        //         SDFFilter filter = SDFObjects[i].gameObject.GetComponent<SDFFilter>();
+        //         ObjectHeader header = new ObjectHeader();
+        //         header.worldToObjMatrix = SDFObjects[i].worldToLocalMatrix;
+        //         header.objID = i; // index into data. Change later?
+        //         header.numEntries = dataSize;
+        //         header.startOffset = offset;
+        //         header.voxelSize = filter.voxelSize;
+        //         header.minExtent = filter.minExtent;
+        //         header.maxExtent = filter.maxExtent;
+        //         header.color = SDFObjects[i].material.color;
+        //         nativeHeaders[i] = header;
+
+        //         nativeData[offset] = filter.data;
+        //         offset += filter.size;
+        //     }
+
+        //     headers.SetData(nativeHeaders);
+        //     ComputeBuffer SDFData = new ComputeBuffer(dataSize, sizeof(float), ComputeBufferType.Default);
+        //     SDFData.SetData(nativeData);
+        //     return SDFData;
+        // }
 
         private void CreateObjectList(ScriptableRenderContext context, Camera[] cameras, Vector3[] extents, Matrix4x4[] transforms)
         {
