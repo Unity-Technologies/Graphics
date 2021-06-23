@@ -362,6 +362,11 @@ PreLightData GetPreLightData(float3 V, PositionInputs posInput, inout BSDFData b
 
 #if _USE_LIGHT_FACING_NORMAL
     float3 N = ComputeViewFacingNormal(V, bsdfData.hairStrandDirectionWS);
+
+    // Silence the imaginary square root compiler warning for the cosThetaParam.
+    // The compiler seems to think that the dot product result between view vector and view facing normal produces
+    // a result > 1, thus producing an imaginary square root for sqrt(1 - x).
+    V = normalize(V);
 #else
     float3 N = bsdfData.normalWS;
 #endif
@@ -592,8 +597,8 @@ CBSDF EvaluateBSDF(float3 V, float3 L, PreLightData preLightData, BSDFData bsdfD
         float3 mu = bsdfData.absorption;
 
         // Various terms reused between lobe evaluation.
-        float  M, D, F = 0;
-        float3 A, T, S = 0;
+        float  M, D       = 0;
+        float3 A, F, T, S = 0;
 
         // Solve the first three lobes (R, TT, TRT).
 

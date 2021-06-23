@@ -18,7 +18,7 @@ struct ReferenceInputs
 
     float eta;
     float etaP;
-    float fresnel0;
+    float3 fresnel0;
 
     float shifts[3];
     float variances[3];
@@ -108,7 +108,7 @@ float AzimuthalDirection(uint p, float etaPrime, float h)
     return omega;
 }
 
-float3 Attenuation(uint p, float h, float LdotV, float thetaD, float etaPrime, float fresnel0, float3 absorption)
+float3 Attenuation(uint p, float h, float LdotV, float thetaD, float etaPrime, float3 fresnel0, float3 absorption)
 {
     float3 A;
 
@@ -119,7 +119,7 @@ float3 Attenuation(uint p, float h, float LdotV, float thetaD, float etaPrime, f
     }
     else
     {
-        float f = F_Schlick(fresnel0, acos(cos(thetaD) * cos(asin(h))));
+        float3 f = F_Schlick(fresnel0, acos(cos(thetaD) * cos(asin(h))));
         float gammaT = asin(h / etaPrime);
         float3 T = exp(-2 * absorption * (1 + cos(2 * gammaT)));
 
