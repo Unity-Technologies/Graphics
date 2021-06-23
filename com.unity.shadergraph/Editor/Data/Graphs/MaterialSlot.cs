@@ -194,6 +194,8 @@ namespace UnityEditor.ShaderGraph
                     return new BooleanMaterialSlot(slotId, displayName, shaderOutputName, slotType, false, shaderStageCapability, hidden);
                 case SlotValueType.PropertyConnectionState:
                     return new PropertyConnectionStateMaterialSlot(slotId, displayName, shaderOutputName, slotType, shaderStageCapability, hidden);
+                case SlotValueType.StochasticTexture:
+                    return new StochasticTextureMaterialSlot(slotId, displayName, shaderOutputName, slotType, shaderStageCapability, hidden);
             }
 
             throw new ArgumentOutOfRangeException("type", type, null);
