@@ -40,7 +40,7 @@ Varyings Vert(Attributes inputMesh)
     uint instanceID = inputMesh.instanceID;
 
     int tileX = instanceID % _NumVBufferTileX;
-    int tileY = instanceID / _NumVBufferTileY;
+    int tileY = instanceID / _NumVBufferTileX;
     int quadVertexID = inputMesh.vertexID % 6;
 
     output.positionCS.xy = ((QuadVertices[quadVertexID]  + float2(tileX, tileY) / float2(_NumVBufferTileX, _NumVBufferTileY))) * 2.0f - 1.0f;

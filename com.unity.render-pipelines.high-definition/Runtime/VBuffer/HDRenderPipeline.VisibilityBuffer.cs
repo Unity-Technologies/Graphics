@@ -20,7 +20,9 @@ namespace UnityEngine.Rendering.HighDefinition
 
         class VBufferPassData
         {
-            public int clusterCount;
+            public uint clusterBackCount;
+            public uint clusterFrontCount;
+            public uint clusterDoubleCount;
             public Material renderVisibilityMaterial;
             public TextureHandle tempColorBuffer;
             public TextureHandle vbuffer0;
@@ -41,7 +43,9 @@ namespace UnityEngine.Rendering.HighDefinition
             {
                 builder.AllowRendererListCulling(false);
 
-                passData.clusterCount = InstanceVDataB.count;
+                passData.clusterBackCount = instanceCountBack;
+                passData.clusterFrontCount = instanceCountFront;
+                passData.clusterDoubleCount = instanceCountDouble;
                 passData.renderVisibilityMaterial = m_VisibilityBufferMaterial;
                 passData.tempColorBuffer = builder.WriteTexture(tempColorBuffer);
                 passData.vbuffer0 = builder.WriteTexture(renderGraph.CreateTexture(new TextureDesc(Vector2.one, true, true)
@@ -60,7 +64,15 @@ namespace UnityEngine.Rendering.HighDefinition
                         context.cmd.SetGlobalBuffer("_CompactedVertexBuffer", CompactedVB);
                         context.cmd.SetGlobalBuffer("_CompactedIndexBuffer", CompactedIB);
                         context.cmd.SetGlobalBuffer("_InstanceVDataBuffer", InstanceVDataB);
-                        context.cmd.DrawProcedural(Matrix4x4.identity, data.renderVisibilityMaterial, 0, MeshTopology.Triangles, VisibilityBufferConstants.s_ClusterSizeInIndices, data.clusterCount);
+
+                        context.cmd.SetGlobalInt("_InstanceVDataShift", 0);
+                            context.cmd.DrawProcedural(Matrix4x4.identity, data.renderVisibilityMaterial, 0, MeshTopology.Triangles, VisibilityBufferConstants.s_ClusterSizeInIndices, (int)data.clusterBackCount);
+                        context.cmd.SetGlobalInt("_InstanceVDataShift", (int)data.clusterBackCount);
+                        if (data.clusterFrontCount > 0)
+                            context.cmd.DrawProcedural(Matrix4x4.identity, data.renderVisibilityMaterial, 1, MeshTopology.Triangles, VisibilityBufferConstants.s_ClusterSizeInIndices, (int)data.clusterFrontCount);
+                        context.cmd.SetGlobalInt("_InstanceVDataShift", (int)data.clusterBackCount + (int)data.clusterFrontCount);
+                        if (data.clusterDoubleCount > 0)
+                            context.cmd.DrawProcedural(Matrix4x4.identity, data.renderVisibilityMaterial, 2, MeshTopology.Triangles, VisibilityBufferConstants.s_ClusterSizeInIndices, (int)data.clusterDoubleCount);
                     });
 
                 vBufferOutput.vBuffer0 = passData.vbuffer0;
