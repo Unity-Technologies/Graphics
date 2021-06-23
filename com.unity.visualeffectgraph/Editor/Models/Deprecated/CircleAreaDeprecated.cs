@@ -4,8 +4,8 @@ using UnityEngine;
 
 namespace UnityEditor.VFX.Operator
 {
-    [VFXInfo(category = "Math/Geometry")]
-    class CircleArea : VFXOperator
+    //TODOPAUL : Sanitize this
+    class CircleAreaDeprecated : VFXOperator
     {
         public class InputProperties
         {
@@ -19,7 +19,7 @@ namespace UnityEditor.VFX.Operator
             public float area;
         }
 
-        override public string name { get { return "Area (Circle)"; } }
+        override public string name { get { return "Area (Circle) (deprecated)"; } }
 
         protected override sealed VFXExpression[] BuildExpression(VFXExpression[] inputExpression)
         {

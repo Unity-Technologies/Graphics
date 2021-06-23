@@ -4,8 +4,8 @@ using UnityEngine;
 
 namespace UnityEditor.VFX.Operator
 {
-    [VFXInfo(category = "Math/Geometry")]
-    class TorusVolume : VFXOperator
+    //TODOPAUL : Sanitize this
+    class TorusVolumeDeprecated : VFXOperator
     {
         public class InputProperties
         {
@@ -19,7 +19,7 @@ namespace UnityEditor.VFX.Operator
             public float volume;
         }
 
-        override public string name { get { return "Volume (Torus)"; } }
+        override public string name { get { return "Volume (Torus) (deprecated)"; } }
 
         protected override sealed VFXExpression[] BuildExpression(VFXExpression[] inputExpression)
         {
