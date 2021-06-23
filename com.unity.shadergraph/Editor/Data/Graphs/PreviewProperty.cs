@@ -307,7 +307,7 @@ namespace UnityEditor.ShaderGraph
                 ProceduralTexture2D stex = stochasticProperty?.value?.proceduralTexture;
                 if (stex != null)
                 {
-                    mat.SetTexture(name, stex.input);           // TODO: _ST?
+                    mat.SetTexture(name, stex.Tinput);           // TODO: _ST?
                     mat.SetTexture($"{name}_invT", stex.invT);
                     mat.SetVector($"{name}_compressionScalers", stex.compressionScalers);
                     mat.SetVector($"{name}_colorSpaceOrigin", stex.colorSpaceOrigin);
