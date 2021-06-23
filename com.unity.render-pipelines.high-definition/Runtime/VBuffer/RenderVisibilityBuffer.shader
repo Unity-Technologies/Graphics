@@ -110,6 +110,7 @@ Shader "Hidden/HDRP/RenderVisibilityBuffer"
             Tags{ "LightMode" = "VisibilityBuffer" }
 
             ZWrite On
+            Cull Back
 
             HLSLPROGRAM
             #pragma vertex vert
