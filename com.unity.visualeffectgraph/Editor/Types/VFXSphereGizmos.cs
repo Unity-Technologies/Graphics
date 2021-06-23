@@ -91,7 +91,6 @@ namespace UnityEditor.VFX
 
         public override void OnDrawSpacedGizmo(TArcSphere arcSphere)
         {
-            var center = arcSphere.sphere.transform.position;
             float radius = arcSphere.sphere.radius;
             float arc = arcSphere.arc * Mathf.Rad2Deg;
 
@@ -120,6 +119,7 @@ namespace UnityEditor.VFX
 
         public override Bounds OnGetSpacedGizmoBounds(TArcSphere value)
         {
+            //TODOPAUL: Factorize & consider scale
             return new Bounds(value.sphere.transform.position, value.sphere.transform.scale * value.sphere.radius);
         }
     }

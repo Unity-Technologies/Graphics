@@ -39,7 +39,7 @@ namespace UnityEditor.VFX
         [Tooltip("Sets the radius of the circle.")]
         public float radius;
 
-        public static TCircle defaultValue = new TCircle { radius = 1.0f };
+        public static TCircle defaultValue = new TCircle { transform = Transform.defaultValue, radius = 1.0f };
     }
 
     [VFXType(VFXTypeAttribute.Usage.ExcludeFromProperty, "Arc Circle"), Serializable]

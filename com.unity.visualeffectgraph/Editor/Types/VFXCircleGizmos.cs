@@ -8,14 +8,18 @@ using UnityEngine.VFX;
 namespace UnityEditor.VFX
 {
     //TODO : Replace with TCircle & TArcCircle
-    [VFXGizmo(typeof(Circle))]
-    class VFXCircleGizmo : VFXSpaceableGizmo<Circle>
+    [VFXGizmo(typeof(TCircle))]
+    class VFXCircleGizmo : VFXSpaceableGizmo<TCircle>
     {
         IProperty<Vector3> m_CenterProperty;
+        IProperty<Vector3> m_AnglesProperty;
+        IProperty<Vector3> m_ScaleProperty;
         IProperty<float> m_RadiusProperty;
         public override void RegisterEditableMembers(IContext context)
         {
-            m_CenterProperty = context.RegisterProperty<Vector3>("center");
+            m_CenterProperty = context.RegisterProperty<Vector3>("transform.position");
+            m_AnglesProperty = context.RegisterProperty<Vector3>("transform.angles");
+            m_ScaleProperty = context.RegisterProperty<Vector3>("transform.scale");
             m_RadiusProperty = context.RegisterProperty<float>("radius");
         }
 
@@ -28,26 +32,24 @@ namespace UnityEditor.VFX
             "VFX_Circle_Left".GetHashCode()
         };
 
-        public static void DrawCircle(VFXGizmo gizmo, Circle circle, IProperty<Vector3> centerProperty, IProperty<Vector3> anglesProperty, IProperty<float> radiusProperty, int countVisible = int.MaxValue)
+        public static void DrawCircle(VFXGizmo gizmo, TCircle circle, IProperty<Vector3> centerProperty, IProperty<Vector3> anglesProperty, IProperty<Vector3> scaleProperty, IProperty<float> radiusProperty, int countVisible = int.MaxValue)
         {
-            var center = circle.center;
-            //var angles = anglesProperty != null ? anglesProperty.GetValue() : Vector3.zero; //TODOPAUL
-            var angles = Vector3.zero;
             var radius = circle.radius;
 
-            gizmo.PositionGizmo(center, angles, centerProperty, false);
-            gizmo.RotationGizmo(center, angles, anglesProperty, false);
+            gizmo.PositionGizmo(circle.transform.position, circle.transform.angles, centerProperty, false);
+            gizmo.RotationGizmo(circle.transform.position, circle.transform.angles, anglesProperty, false);
+            gizmo.ScaleGizmo(circle.transform.position, circle.transform.angles, circle.transform.scale, scaleProperty, false);
 
             if (radiusProperty.isEditable)
             {
-                using (new Handles.DrawingScope(Handles.matrix * Matrix4x4.TRS(center, Quaternion.Euler(angles), Vector3.one)))
+                using (new Handles.DrawingScope(Handles.matrix * ConvertTransformToMatrix(circle.transform)))
                 {
-                    for (int i = 0; i < countVisible; ++i)
+                    for (int i = 0; i < countVisible && i < s_RadiusDirections.Length; ++i)
                     {
                         EditorGUI.BeginChangeCheck();
                         var dir = s_RadiusDirections[i];
                         var sliderPos = dir * radius;
-                        var result = Handles.Slider(s_RadiusDirectionsName[i], sliderPos, dir, handleSize * HandleUtility.GetHandleSize(sliderPos), Handles.CubeHandleCap, 0.0f);
+                        var result = Handles.Slider(s_RadiusDirectionsName[i], sliderPos, dir, handleSize * HandleUtility.GetHandleSize(sliderPos), CustomCubeHandleCap, 0.0f);
                         if (EditorGUI.EndChangeCheck())
                         {
                             radius = result.magnitude;
@@ -61,54 +63,61 @@ namespace UnityEditor.VFX
             }
         }
 
-        public override void OnDrawSpacedGizmo(Circle circle)
+        public override void OnDrawSpacedGizmo(TCircle circle)
         {
-            using (new Handles.DrawingScope(Handles.matrix * Matrix4x4.TRS(circle.center, Quaternion.identity, Vector3.one)))
+            using (new Handles.DrawingScope(Handles.matrix * ConvertTransformToMatrix(circle.transform)))
             {
                 // Draw circle around the arc
                 Handles.DrawWireDisc(Vector3.zero, -Vector3.forward, circle.radius);
             }
 
-            DrawCircle(this, circle, m_CenterProperty, null, m_RadiusProperty);
+            DrawCircle(this, circle, m_CenterProperty, m_AnglesProperty, m_ScaleProperty, m_RadiusProperty);
         }
 
-        public override Bounds OnGetSpacedGizmoBounds(Circle value)
+        public static Bounds GetBoundsFromCircle(TCircle value)
         {
-            return new Bounds(value.center, new Vector3(value.radius, value.radius, value.radius / 100.0f)); //TODO take orientation in account
+            return new Bounds(value.transform.position, value.transform.scale * value.radius);
+        }
+
+        public override Bounds OnGetSpacedGizmoBounds(TCircle value)
+        {
+            return GetBoundsFromCircle(value);
         }
     }
-    [VFXGizmo(typeof(ArcCircle))]
-    class VFXArcCircleGizmo : VFXSpaceableGizmo<ArcCircle>
+    [VFXGizmo(typeof(TArcCircle))]
+    class VFXArcCircleGizmo : VFXSpaceableGizmo<TArcCircle>
     {
         IProperty<Vector3> m_CenterProperty;
+        IProperty<Vector3> m_AnglesProperty;
+        IProperty<Vector3> m_ScaleProperty;
         IProperty<float> m_RadiusProperty;
         IProperty<float> m_ArcProperty;
 
         public override void RegisterEditableMembers(IContext context)
         {
-            m_CenterProperty = context.RegisterProperty<Vector3>("circle.center");
+            m_CenterProperty = context.RegisterProperty<Vector3>("circle.transform.position");
+            m_AnglesProperty = context.RegisterProperty<Vector3>("circle.transform.angles");
+            m_ScaleProperty = context.RegisterProperty<Vector3>("circle.transform.scale");
             m_RadiusProperty = context.RegisterProperty<float>("circle.radius");
             m_ArcProperty = context.RegisterProperty<float>("arc");
         }
 
-        public override void OnDrawSpacedGizmo(ArcCircle arcCircle)
+        public override void OnDrawSpacedGizmo(TArcCircle arcCircle)
         {
-            Vector3 center = arcCircle.circle.center;
             float radius = arcCircle.circle.radius;
             float arc = arcCircle.arc * Mathf.Rad2Deg;
 
-            using (new Handles.DrawingScope(Handles.matrix * Matrix4x4.TRS(arcCircle.circle.center, Quaternion.identity, Vector3.one)))
+            using (new Handles.DrawingScope(Handles.matrix * ConvertTransformToMatrix(arcCircle.circle.transform)))
             {
                 Handles.DrawWireArc(Vector3.zero, -Vector3.forward, Vector3.up, arc, radius);
                 ArcGizmo(Vector3.zero, radius, arc, m_ArcProperty, Quaternion.Euler(-90.0f, 0.0f, 0.0f));
             }
-
-            VFXCircleGizmo.DrawCircle(this, arcCircle.circle, m_CenterProperty, null, m_RadiusProperty, Mathf.CeilToInt(arc / 90));
+            VFXCircleGizmo.DrawCircle(this, arcCircle.circle, m_CenterProperty, m_AnglesProperty, m_ScaleProperty, m_RadiusProperty, Mathf.CeilToInt(arc / 90));
         }
 
-        public override Bounds OnGetSpacedGizmoBounds(ArcCircle value)
+        public override Bounds OnGetSpacedGizmoBounds(TArcCircle value)
         {
-            return new Bounds(value.circle.center, new Vector3(value.circle.radius, value.circle.radius, value.circle.radius / 100.0f)); //TODO take orientation in account
+            return VFXCircleGizmo.GetBoundsFromCircle(value.circle);
         }
     }
 }
