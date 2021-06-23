@@ -67,7 +67,7 @@ namespace UnityEditor.ShaderGraph
             AddSlot(new Vector1MaterialSlot(OutputSlotAId, kOutputSlotAName, kOutputSlotAName, SlotType.Output, 0, ShaderStageCapability.Fragment));
 
             // Input slots
-            AddSlot(new ProceduralTexture2DInputMaterialSlot(ProceduralTexture2DId, kProceduralTexture2DName, kProceduralTexture2DName, ShaderStageCapability.Fragment, false));
+            AddSlot(new StochasticTextureInputMaterialSlot(ProceduralTexture2DId, kProceduralTexture2DName, kProceduralTexture2DName, ShaderStageCapability.Fragment, false));
             AddSlot(new SamplerStateMaterialSlot(SamplerInput, kSamplerInputName, kSamplerInputName, SlotType.Input));
             AddSlot(new UVMaterialSlot(UVInput, kUVInputName, kUVInputName, UVChannel.UV0));
             AddSlot(new Vector1MaterialSlot(BlendId, kBlendIdName, kBlendIdName, SlotType.Input, 0, ShaderStageCapability.Fragment));
@@ -95,10 +95,10 @@ namespace UnityEditor.ShaderGraph
         // Node generations
         public virtual void GenerateNodeCode(ShaderStringBuilder sb, GenerationMode generationMode)
         {
-            ProceduralTexture2DInputMaterialSlot slot = FindInputSlot<ProceduralTexture2DInputMaterialSlot>(ProceduralTexture2DId);
+            StochasticTextureInputMaterialSlot slot = FindInputSlot<StochasticTextureInputMaterialSlot>(ProceduralTexture2DId);
 
             // Find Procedural Texture 2D Asset
-            ProceduralTexture2D proceduralTexture2D = slot.proceduralTexture2D;
+            ProceduralTexture2D proceduralTexture2D = slot.texture;
             var edges = owner.GetEdges(slot.slotReference).ToArray();
             if (edges.Any())
             {

@@ -26,6 +26,7 @@ namespace UnityEditor.ShaderGraph
         Boolean,
         VirtualTexture,
         PropertyConnectionState,
+        StochasticTexture
     }
 
     enum ConcreteSlotValueType
@@ -45,7 +46,8 @@ namespace UnityEditor.ShaderGraph
         Vector1,
         Boolean,
         VirtualTexture,
-        PropertyConnectionState
+        PropertyConnectionState,
+        StochasticTexture
     }
 
     // This enum must match ConcreteSlotValueType enum and is used to give friendly name in the enum popup used for custom function
@@ -67,6 +69,7 @@ namespace UnityEditor.ShaderGraph
         Boolean = ConcreteSlotValueType.Boolean,
         VirtualTexture = ConcreteSlotValueType.VirtualTexture,
         PropertyConnectionState = ConcreteSlotValueType.PropertyConnectionState,
+        StochasticTexture = ConcreteSlotValueType.StochasticTexture,
 
         // These allow the user to choose 'bare' types for custom function nodes
         // they are treated specially in the conversion functions below
@@ -137,7 +140,7 @@ namespace UnityEditor.ShaderGraph
         public static bool AllowedAsSubgraphOutput(this ConcreteSlotValueTypePopupName type)
         {
             // virtual textures and bare types disallowed
-            return (type < ConcreteSlotValueTypePopupName.VirtualTexture);
+            return (type < ConcreteSlotValueTypePopupName.VirtualTexture) || (type == ConcreteSlotValueTypePopupName.StochasticTexture);
         }
 
         public static int GetChannelCount(this ConcreteSlotValueType type)
@@ -217,6 +220,7 @@ namespace UnityEditor.ShaderGraph
                     {ConcreteSlotValueType.SamplerState, new List<SlotValueType>() {SlotValueType.SamplerState}},
                     {ConcreteSlotValueType.Gradient, new List<SlotValueType>() {SlotValueType.Gradient}},
                     {ConcreteSlotValueType.VirtualTexture, new List<SlotValueType>() {SlotValueType.VirtualTexture}},
+                    {ConcreteSlotValueType.StochasticTexture, new List<SlotValueType>() {SlotValueType.StochasticTexture}},
                 };
             }
 

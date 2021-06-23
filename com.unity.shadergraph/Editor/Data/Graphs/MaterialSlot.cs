@@ -122,6 +122,8 @@ namespace UnityEditor.ShaderGraph
                     return "(VT)";
                 case ConcreteSlotValueType.PropertyConnectionState:
                     return "(P)";
+                case ConcreteSlotValueType.StochasticTexture:
+                    return "(ST)";
                 default:
                     return "(E)";
             }

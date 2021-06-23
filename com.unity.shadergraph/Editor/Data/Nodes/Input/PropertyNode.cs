@@ -143,6 +143,10 @@ namespace UnityEditor.ShaderGraph
                     AddSlot(new VirtualTextureMaterialSlot(OutputSlotId, property.displayName, "Out", SlotType.Output));
                     RemoveSlotsNameNotMatching(new[] { OutputSlotId });
                     break;
+                case ConcreteSlotValueType.StochasticTexture:
+                    AddSlot(new StochasticTextureMaterialSlot(OutputSlotId, property.displayName, "Out", SlotType.Output));
+                    RemoveSlotsNameNotMatching(new[] { OutputSlotId });
+                    break;
                 default:
                     throw new ArgumentOutOfRangeException();
             }
@@ -223,6 +227,9 @@ namespace UnityEditor.ShaderGraph
                         sb.AppendLine($"Gradient {GetVariableNameForSlot(OutputSlotId)} = {GradientUtil.GetGradientForPreview(property.GetHLSLVariableName(isGeneratingSubgraph, mode))};");
                     else
                         sb.AppendLine($"Gradient {GetVariableNameForSlot(OutputSlotId)} = {property.GetHLSLVariableName(isGeneratingSubgraph, mode)};");
+                    break;
+                case PropertyType.StochasticTexture:
+                    sb.AppendLine($"UnityStochasticTexture2D {GetVariableNameForSlot(OutputSlotId)} = {property.GetHLSLVariableName(isGeneratingSubgraph, mode)};");
                     break;
             }
 

@@ -3,6 +3,7 @@ using UnityEditor.Graphing;
 using UnityEngine;
 using UnityEngine.UIElements;
 
+/*
 namespace UnityEditor.ShaderGraph
 {
     [Serializable]
@@ -80,3 +81,4 @@ namespace UnityEditor.ShaderGraph
         }
     }
 }
+*/

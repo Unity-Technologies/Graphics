@@ -26,6 +26,8 @@ namespace UnityEditor.ShaderGraph
             public Gradient gradientValue;
             [FieldOffset(0)]
             public VirtualTextureShaderProperty vtProperty;
+            [FieldOffset(0)]
+            public StochasticTextureShaderProperty stochasticProperty;
         }
 
         [StructLayout(LayoutKind.Explicit)]
@@ -132,14 +134,30 @@ namespace UnityEditor.ShaderGraph
             get
             {
                 if (propType != PropertyType.VirtualTexture)
-                    throw new ArgumentException(string.Format(k_GetErrorMessage, PropertyType.Gradient, propType));
+                    throw new ArgumentException(string.Format(k_GetErrorMessage, PropertyType.VirtualTexture, propType));
                 return m_ClassData.vtProperty;
             }
             set
             {
                 if (propType != PropertyType.VirtualTexture)
-                    throw new ArgumentException(string.Format(k_SetErrorMessage, PropertyType.Gradient, propType));
+                    throw new ArgumentException(string.Format(k_SetErrorMessage, PropertyType.VirtualTexture, propType));
                 m_ClassData.vtProperty = value;
+            }
+        }
+
+        public StochasticTextureShaderProperty stochasticProperty
+        {
+            get
+            {
+                if (propType != PropertyType.StochasticTexture)
+                    throw new ArgumentException(string.Format(k_GetErrorMessage, PropertyType.StochasticTexture, propType));
+                return m_ClassData.stochasticProperty;
+            }
+            set
+            {
+                if (propType != PropertyType.StochasticTexture)
+                    throw new ArgumentException(string.Format(k_SetErrorMessage, PropertyType.StochasticTexture, propType));
+                m_ClassData.stochasticProperty = value;
             }
         }
 
@@ -283,6 +301,20 @@ namespace UnityEditor.ShaderGraph
             else if (propType == PropertyType.VirtualTexture)
             {
                 // virtual texture assignments are not supported via the material property block, we must assign them to the materials
+            }
+            else if (propType == PropertyType.StochasticTexture)
+            {
+                ProceduralTexture2D stex = stochasticProperty?.value?.proceduralTexture;
+                if (stex != null)
+                {
+                    mat.SetTexture(name, stex.input);           // TODO: _ST?
+                    mat.SetTexture($"{name}_invT", stex.invT);
+                    mat.SetVector($"{name}_compressionScalers", stex.compressionScalers);
+                    mat.SetVector($"{name}_colorSpaceOrigin", stex.colorSpaceOrigin);
+                    mat.SetVector($"{name}_colorSpaceVector1", stex.colorSpaceVector1);
+                    mat.SetVector($"{name}_colorSpaceVector2", stex.colorSpaceVector2);
+                    mat.SetVector($"{name}_colorSpaceVector3", stex.colorSpaceVector3);
+                }
             }
         }
     }

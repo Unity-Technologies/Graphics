@@ -42,6 +42,8 @@ namespace UnityEditor.ShaderGraph
                     return SlotValueType.VirtualTexture;
                 case ConcreteSlotValueType.PropertyConnectionState:
                     return SlotValueType.PropertyConnectionState;
+                case ConcreteSlotValueType.StochasticTexture:
+                    return SlotValueType.StochasticTexture;
                 default:
                     throw new ArgumentOutOfRangeException();
             }
@@ -83,6 +85,8 @@ namespace UnityEditor.ShaderGraph
                     return ConcreteSlotValueType.VirtualTexture;
                 case SlotValueType.PropertyConnectionState:
                     return ConcreteSlotValueType.PropertyConnectionState;
+                case SlotValueType.StochasticTexture:
+                    return ConcreteSlotValueType.StochasticTexture;
                 default:
                     throw new ArgumentOutOfRangeException();
             }
@@ -124,6 +128,8 @@ namespace UnityEditor.ShaderGraph
                     return PropertyType.VirtualTexture;
                 case ConcreteSlotValueType.PropertyConnectionState:
                     return PropertyType.PropertyConnectionState;
+                case ConcreteSlotValueType.StochasticTexture:
+                    return PropertyType.StochasticTexture;
                 default:
                     throw new ArgumentOutOfRangeException();
             }
@@ -169,6 +175,8 @@ namespace UnityEditor.ShaderGraph
                     return precisionToken;
                 case ConcreteSlotValueType.PropertyConnectionState:
                     return "bool";
+                case ConcreteSlotValueType.StochasticTexture:
+                    return "UnityStochasticTexture2D";
                 default:
                     return "Error";
             }
@@ -196,7 +204,8 @@ namespace UnityEditor.ShaderGraph
             "typeFloat1",
             "typeBoolean",
             "typeVirtualTexture",
-            "typePropertyConnectionState"
+            "typePropertyConnectionState",
+            "typeStochasticTexture",
         };
     }
 }

@@ -182,6 +182,9 @@ namespace UnityEditor.ShaderGraph.Drawing
                     case PropertyType.VirtualTexture:
                         DrawVirtualTextureProperty(materialEditor, property);
                         break;
+                    case PropertyType.StochasticTexture:
+                        DrawStochasticTextureProperty(materialEditor, property);
+                        break;
                     case PropertyType.Color:
                         DrawColorProperty(materialEditor, property);
                         break;
@@ -206,6 +209,43 @@ namespace UnityEditor.ShaderGraph.Drawing
 
         private static void DrawVirtualTextureProperty(MaterialEditor materialEditor, MaterialProperty property)
         {
+        }
+
+        private static void DrawStochasticTextureProperty(MaterialEditor materialEditor, MaterialProperty property)
+        {
+            // EditorGUI.LabelField(GetRect(property), "Stochastic Texture", property.name);
+
+            // convert the texture reference into an object reference for the containing asset (which should be the ProceduralTexture2D)
+            ProceduralTexture2D procTex = null;
+            var tex = property.textureValue;
+            if (tex != null)
+            {
+                var path = AssetDatabase.GetAssetPath(tex);
+                procTex = AssetDatabase.LoadMainAssetAtPath(path) as ProceduralTexture2D;
+            }
+
+            EditorGUI.BeginChangeCheck();
+            EditorGUI.showMixedValue = property.hasMixedValue;
+            ProceduralTexture2D newProcTex = EditorGUI.ObjectField(GetRect(property), property.displayName, procTex, typeof(ProceduralTexture2D), false) as ProceduralTexture2D;
+            EditorGUI.showMixedValue = false;
+            if (EditorGUI.EndChangeCheck())
+            {
+                property.textureValue = newProcTex.Tinput;
+
+                // set all the other properties too!  (hacky .. this won't update properly if you rebuild the proc tex)
+                foreach (var t in materialEditor.targets)
+                {
+                    var mat = t as Material;
+                    var name = property.name;
+                    mat.SetTexture($"{name}", newProcTex.Tinput);
+                    mat.SetTexture($"{name}_invT", newProcTex.invT);
+                    mat.SetVector($"{name}_compressionScalers", newProcTex.compressionScalers);
+                    mat.SetVector($"{name}_colorSpaceOrigin", newProcTex.colorSpaceOrigin);
+                    mat.SetVector($"{name}_colorSpaceVector1", newProcTex.colorSpaceVector1);
+                    mat.SetVector($"{name}_colorSpaceVector2", newProcTex.colorSpaceVector2);
+                    mat.SetVector($"{name}_colorSpaceVector3", newProcTex.colorSpaceVector3);
+                }
+            }
         }
 
         private static void DrawBooleanProperty(MaterialEditor materialEditor, MaterialProperty property)

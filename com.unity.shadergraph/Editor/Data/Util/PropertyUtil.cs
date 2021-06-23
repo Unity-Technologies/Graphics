@@ -42,6 +42,8 @@ namespace UnityEditor.ShaderGraph
                     return ConcreteSlotValueType.Vector4;
                 case PropertyType.VirtualTexture:
                     return ConcreteSlotValueType.VirtualTexture;
+                case PropertyType.StochasticTexture:
+                    return ConcreteSlotValueType.StochasticTexture;
                 default:
                     throw new ArgumentOutOfRangeException();
             }
