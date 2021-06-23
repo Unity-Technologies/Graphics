@@ -74,7 +74,7 @@
       }
     },
     "com.unity.render-pipelines.sdf": {
-      "version": "file:../../Graphics/com.unity.render-pipelines.sdf",
+      "version": "file:../../../../com.unity.render-pipelines.sdf",
       "depth": 0,
       "source": "local",
       "dependencies": {
