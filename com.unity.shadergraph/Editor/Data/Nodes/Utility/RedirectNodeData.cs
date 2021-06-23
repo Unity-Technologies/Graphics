@@ -115,6 +115,10 @@ namespace UnityEditor.ShaderGraph
                     AddSlot(new VirtualTextureMaterialSlot(kInputSlotID, "", "", SlotType.Input));
                     AddSlot(new VirtualTextureMaterialSlot(kOutputSlotID, "", "", SlotType.Output));
                     break;
+                case SlotValueType.StochasticTexture:
+                    AddSlot(new StochasticTextureMaterialSlot(kInputSlotID, "", "", SlotType.Input));
+                    AddSlot(new StochasticTextureMaterialSlot(kOutputSlotID, "", "", SlotType.Output));
+                    break;
                 default:
                     throw new ArgumentOutOfRangeException();
             }

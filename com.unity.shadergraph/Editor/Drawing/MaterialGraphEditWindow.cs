@@ -950,6 +950,9 @@ namespace UnityEditor.ShaderGraph.Drawing
                                 value = (fromProperty as VirtualTextureShaderProperty)?.value ?? new SerializableVirtualTexture()
                             };
                             break;
+                        case ConcreteSlotValueType.StochasticTexture:
+                            prop = new StochasticTextureShaderProperty();
+                            break;
                         default:
                             throw new ArgumentOutOfRangeException();
                     }
