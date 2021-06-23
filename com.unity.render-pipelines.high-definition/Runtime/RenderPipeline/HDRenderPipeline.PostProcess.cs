@@ -3425,10 +3425,17 @@ namespace UnityEngine.Rendering.HighDefinition
             return parameters;
         }
 
+        static void DoReprojectMSSSLuminance(
+            MSAASuperSamplingParameters parameters, CommandBuffer cmd,
+            RTHandle previousLuminance, RTHandle velocityInput,
+            RTHandle outputLuminance)
+        {
+        }
+
         static void DoMSSS(
             MSAASuperSamplingParameters parameters, CommandBuffer cmd,
-            RTHandle sourceColor, RTHandle sourceDepth, RTHandle sourceMotionVectors,
-            RTHandle outputColor, RTHandle outputDepth, RTHandle outputMotionVectors)
+            RTHandle sourceColor, RTHandle sourceDepth, RTHandle sourceMotionVectors, RTHandle inputMSSSLuminance,
+            RTHandle outputColor, RTHandle outputDepth, RTHandle outputMotionVectors, RTHandle outMSSSLuminance)
         {
             var mainKernel = parameters.mainKernel;
             if (mainKernel < 0)
@@ -3439,10 +3446,13 @@ namespace UnityEngine.Rendering.HighDefinition
             cmd.SetComputeTextureParam(cs, mainKernel, HDShaderIDs._ColorTextureMS, sourceColor);
             cmd.SetComputeTextureParam(cs, mainKernel, HDShaderIDs._InputDepth, sourceDepth);
             cmd.SetComputeTextureParam(cs, mainKernel, HDShaderIDs._CameraMotionVectorsTexture, sourceMotionVectors);
+            cmd.SetComputeTextureParam(cs, mainKernel, HDShaderIDs._InputMSSSLuminance, inputMSSSLuminance);
 
             cmd.SetComputeTextureParam(cs, mainKernel, HDShaderIDs._OutputTexture, outputColor);
             cmd.SetComputeTextureParam(cs, mainKernel, HDShaderIDs._OutputDepthTexture, outputDepth);
             cmd.SetComputeTextureParam(cs, mainKernel, HDShaderIDs._OutputMotionVectorTexture, outputMotionVectors);
+            cmd.SetComputeTextureParam(cs, mainKernel, HDShaderIDs._OutputMSSSLuminance, outMSSSLuminance);
+
 
             cmd.SetComputeVectorParam(cs, HDShaderIDs._SourceSize, new Vector4(parameters.inputWidth, parameters.inputHeight, 1.0f / parameters.inputWidth, 1.0f / parameters.inputHeight));
             cmd.SetComputeVectorParam(cs, HDShaderIDs._ViewPortSize, new Vector4(parameters.outputWidth, parameters.outputHeight, 1.0f / parameters.outputWidth, 1.0f / parameters.outputHeight));
@@ -3452,6 +3462,14 @@ namespace UnityEngine.Rendering.HighDefinition
             int dispatchX = HDUtils.DivRoundUp(Mathf.RoundToInt(parameters.outputWidth),  xThreads);
             int dispatchY = HDUtils.DivRoundUp(Mathf.RoundToInt(parameters.outputHeight), yThreads);
             cmd.DispatchCompute(cs, mainKernel, dispatchX, dispatchY, parameters.viewCount);
+        }
+
+        class MSSSReprojectLuminanceData
+        {
+            public MSAASuperSamplingParameters parameters;
+            public RTHandle previousLuminance;
+            public TextureHandle inputVelocity;
+            public TextureHandle outputLuminance;
         }
 
         class MSSSData
@@ -3464,21 +3482,65 @@ namespace UnityEngine.Rendering.HighDefinition
             }
             public MSAASuperSamplingParameters parameters;
             public Textures inputTextures = new Textures();
+            public TextureHandle reprojectedLuminance;
+
             public Textures outputTextures = new Textures();
+            public RTHandle outMsssLuminance;
         }
 
         MSSSData.Textures MSSSPass(RenderGraph renderGraph, HDCamera hdCamera, TextureHandle inputColor, TextureHandle inputDepth, TextureHandle inputMotionVectors)
         {
             MSSSData.Textures outTextures;
 
-            TextureHandle upsampledColor = TextureHandle.nullHandle;
+            const GraphicsFormat packedMSSSLuminanceFormat = GraphicsFormat.R16G16B16A16_SFloat;
+
+            RTHandle luminanceAllocator(string id, int frameIndex, RTHandleSystem rTHandleSystem)
+            {
+                return rTHandleSystem.Alloc(
+                    hdCamera.actualWidth, hdCamera.actualHeight,
+                    colorFormat: packedMSSSLuminanceFormat,
+                    enableRandomWrite: true);
+            }
+
+            var currentLuminance = hdCamera.GetCurrentFrameRT((int)HDCameraFrameHistoryType.MSSSLuminance) ?? hdCamera.AllocHistoryFrameRT((int)HDCameraFrameHistoryType.MSSSLuminance, luminanceAllocator, 2);
+            var previousLuminance = hdCamera.GetPreviousFrameRT((int)HDCameraFrameHistoryType.MSSSLuminance);
+
+            var parameters = PrepareMSSSParams(hdCamera);
+
+            TextureHandle reprojectedLuminance = TextureHandle.nullHandle;
+            using (var builder = renderGraph.AddRenderPass<MSSSReprojectLuminanceData>("MSSSReprojectLuminance", out var passData, ProfilingSampler.Get(HDProfileId.MSSSReprojectLuminance)))
+            {
+                reprojectedLuminance = builder.WriteTexture(renderGraph.CreateTexture(
+                    new TextureDesc(hdCamera.actualWidth, hdCamera.actualHeight)
+                    {
+                        name = "MSSSReprojectedLuminance",
+                        colorFormat = packedMSSSLuminanceFormat,
+                        useMipMap = false,
+                        enableRandomWrite = true
+                    }));
+
+                passData.parameters = parameters;
+                passData.previousLuminance = previousLuminance;
+                passData.inputVelocity = builder.ReadTexture(inputMotionVectors);
+                passData.outputLuminance = reprojectedLuminance;
+
+                builder.SetRenderFunc(
+                    (MSSSReprojectLuminanceData data, RenderGraphContext ctx) =>
+                    {
+                        DoReprojectMSSSLuminance(
+                            data.parameters, ctx.cmd,
+                            data.previousLuminance, data.inputVelocity, data.outputLuminance);
+                    });
+            }
 
             using (var builder = renderGraph.AddRenderPass<MSSSData>("MSSSPass", out var passData, ProfilingSampler.Get(HDProfileId.MSSS)))
             {
-                passData.parameters = PrepareMSSSParams(hdCamera);
+                passData.parameters = parameters;
+
                 passData.inputTextures.color = builder.ReadTexture(inputColor);
                 passData.inputTextures.depthBuffer = builder.ReadTexture(inputDepth);
                 passData.inputTextures.motionVectors = builder.ReadTexture(inputMotionVectors);
+                passData.reprojectedLuminance = builder.ReadTexture(reprojectedLuminance);
                 passData.outputTextures.color = renderGraph.CreateTexture(new TextureDesc(Vector2.one, false, true)
                 {
                     name = "Resolved Color Buffer",
@@ -3503,17 +3565,26 @@ namespace UnityEngine.Rendering.HighDefinition
                     enableRandomWrite = true
                 });
                 passData.outputTextures.motionVectors = builder.WriteTexture(passData.outputTextures.motionVectors);
+                passData.outMsssLuminance = currentLuminance;
+
                 builder.SetRenderFunc(
                     (MSSSData data, RenderGraphContext ctx) =>
                     {
                         DoMSSS(
+                            //params
                             data.parameters, ctx.cmd,
+
+                            //input textures
                             (RTHandle)data.inputTextures.color,
                             data.inputTextures.depthBuffer,
                             data.inputTextures.motionVectors,
+                            data.reprojectedLuminance,
+
+                            //output textures
                             data.outputTextures.color,
                             data.outputTextures.depthBuffer,
-                            data.outputTextures.motionVectors);
+                            data.outputTextures.motionVectors,
+                            data.outMsssLuminance);
                     });
                 outTextures = passData.outputTextures;
             }

@@ -429,6 +429,8 @@ namespace UnityEngine.Rendering.HighDefinition
         public static readonly int _CustomColorTexture = Shader.PropertyToID("_CustomColorTexture");
         public static readonly int _CustomPassInjectionPoint = Shader.PropertyToID("_CustomPassInjectionPoint");
         public static readonly int _AfterPostProcessColorBuffer = Shader.PropertyToID("_AfterPostProcessColorBuffer");
+        public static readonly int _InputMSSSLuminance = Shader.PropertyToID("_InputMSSSLuminance");
+
 
         public static readonly int _InputCubemap = Shader.PropertyToID("_InputCubemap");
         public static readonly int _Mipmap = Shader.PropertyToID("_Mipmap");
@@ -770,6 +772,7 @@ namespace UnityEngine.Rendering.HighDefinition
         public static readonly int _OutputVelocityMagnitudeHistory = Shader.PropertyToID("_OutputVelocityMagnitudeHistory");
         public static readonly int _OutputDepthTexture             = Shader.PropertyToID("_OutputDepthTexture");
         public static readonly int _OutputMotionVectorTexture      = Shader.PropertyToID("_OutputMotionVectorTexture");
+        public static readonly int _OutputMSSSLuminance            = Shader.PropertyToID("_OutputMSSSLuminance");
 
         public static readonly int _TargetScale                    = Shader.PropertyToID("_TargetScale");
         public static readonly int _Params                         = Shader.PropertyToID("_Params");

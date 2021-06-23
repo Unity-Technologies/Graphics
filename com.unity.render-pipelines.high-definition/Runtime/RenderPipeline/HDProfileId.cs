@@ -210,6 +210,7 @@ namespace UnityEngine.Rendering.HighDefinition
         MotionBlurTileNeighbourhood,
         MotionBlurTileScattering,
         MotionBlurKernel,
+        MSSSReprojectLuminance,
         MSSS,
         PaniniProjection,
         Bloom,
