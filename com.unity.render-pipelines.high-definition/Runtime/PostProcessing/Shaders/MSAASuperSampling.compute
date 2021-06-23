@@ -57,7 +57,7 @@ float calcLum(float3 colorIn)
 
 #if 0
 //non optimized
-void writeLuminance(int2 dti, int2 gti, int gi, int2 gid)
+void writeLuminance(int2 dti, int2 gti)
 {
     int2 p = dti.xy;
     if (any(p >= (int2)_SourceSize.xy))
@@ -74,22 +74,21 @@ void writeLuminance(int2 dti, int2 gti, int gi, int2 gid)
 //optimized with LDS
 groupshared float s_cachedLum[THREAD_TOTAL];
 
-void writeLuminance(int2 dti, int2 gti, int gi, int2 gid)
+void writeLuminance(int2 dti, int2 gti)
 {
-    int2 halfThreads = int2(THREAD_X >> 1, THREAD_Y >> 1);
-    int2 base = gid * halfThreads;
-    int2 target = gti.xy >> 1;
+    const int2 halfThreads = int2(THREAD_X >> 1, THREAD_Y >> 1);
+    int2 p = dti.xy >> 1;
+    int2 target = p & (halfThreads - 1);
     int sampleId = (gti.x & 0x1) + ((gti.y & 0x1) << 0x1);
-    int2 outputPos = base + target;
 
     int baseLdsIndex = (target.y * halfThreads.x + target.x) * 4;
-    s_cachedLum[baseLdsIndex + sampleId] = calcLum(MsssTexF(outputPos, sampleId).rgb);
+    s_cachedLum[baseLdsIndex + sampleId] = calcLum(MsssTexF(p, sampleId).rgb);
 
     GroupMemoryBarrierWithGroupSync();
 
-    if (all(outputPos < _SourceSize.xy) && sampleId == 0)
+    if (all(p < _SourceSize.xy) && sampleId == 0)
     {
-        _OutputMSSSLuminance[COORD_TEXTURE2D_X(outputPos)] = float4(
+        _OutputMSSSLuminance[COORD_TEXTURE2D_X(p)] = float4(
             s_cachedLum[baseLdsIndex + 0],
             s_cachedLum[baseLdsIndex + 1],
             s_cachedLum[baseLdsIndex + 2],
@@ -99,7 +98,7 @@ void writeLuminance(int2 dti, int2 gti, int gi, int2 gid)
 #endif
 
 [numthreads(THREAD_X,THREAD_Y,1)]
-void MainUpsample (uint3 dti : SV_DispatchThreadID, int2 gti : SV_GroupThreadID, int gi : SV_GroupIndex, int2 gid : SV_GroupID)
+void MainUpsample (uint3 dti : SV_DispatchThreadID, int2 gti : SV_GroupThreadID)
 {
     UNITY_XR_ASSIGN_VIEW_INDEX(dti.z);
     float2 uvs = ((float2)dti.xy + 0.5f) * _ViewPortSize.zw;
@@ -108,7 +107,7 @@ void MainUpsample (uint3 dti : SV_DispatchThreadID, int2 gti : SV_GroupThreadID,
     float2 scale = _SourceSize.xy / _ViewPortSize.xy;
     float4 sampledColor = float4(0,0,0,1);
 
-    writeLuminance((int2)dti.xy, gti, gi, gid);
+    writeLuminance((int2)dti.xy, gti);
 
     sampledColor.rgb = MsssF(
         //  p ....... integer pixel position in the output
