@@ -115,7 +115,7 @@ namespace UnityEditor.VFX
         public static TArcCone defaultValue = new TArcCone { cone = TCone.defaultValue, arc = 2.0f * Mathf.PI };
     }
 
-    [VFXType(VFXTypeAttribute.Usage.ExcludeFromProperty, "Torus"), Serializable]
+    [VFXType(VFXTypeAttribute.Usage.Default, "Torus"), Serializable]
     struct TTorus
     {
         [Tooltip("Sets the transform of the torus.")]
