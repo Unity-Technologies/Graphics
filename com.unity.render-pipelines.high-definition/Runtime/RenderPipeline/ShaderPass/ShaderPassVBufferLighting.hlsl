@@ -178,17 +178,12 @@ void Frag(Varyings packedInput, out float4 outColor : SV_Target0)
 
     PreLightData preLightData = GetPreLightData(V, posInput, bsdfData);
 
-    // Test values.
-    //outColor = float4(1,0,0,1);
-    //outColor.xyz = bsdfData.d;
-    //outColor.a = 1;
-
     uint featureFlags = LIGHT_FEATURE_MASK_FLAGS_OPAQUE;
     LightLoopOutput lightLoopOutput;
     LightLoop(V, posInput, preLightData, bsdfData, builtinData, featureFlags, lightLoopOutput);
 
     outColor.xyz = lightLoopOutput.diffuseLighting * GetCurrentExposureMultiplier();
     outColor.a = 1;
-    outColor.xyz = debugVal;
+//    outColor.xyz = debugVal;
 
 }
