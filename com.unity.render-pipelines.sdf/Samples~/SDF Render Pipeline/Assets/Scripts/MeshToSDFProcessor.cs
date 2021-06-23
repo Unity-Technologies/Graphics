@@ -188,7 +188,7 @@ public class MeshToSDFProcessor
 
         VoxelUtils.ComputeVoxelFieldDimensions(settings.inputSettings.voxelSize, mesh.bounds, out settings.voxelCountX, out settings.voxelCountY, out settings.voxelCountZ);
 
-        VoxelField voxelField = new VoxelField();
+        VoxelField voxelField = ScriptableObject.CreateInstance<VoxelField>();
         voxelField.Initialize(settings.voxelCountX, settings.voxelCountY, settings.voxelCountZ, settings.inputSettings.voxelSize, mesh.bounds);
 
         // Fill the field with a max float value so that by default,

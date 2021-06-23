@@ -17,7 +17,7 @@ public class SDFImporter : UnityEditor.AssetImporters.ScriptedImporter
         sdfRenderer.SDFFilter = sdfFilter;
         sdfRenderer.SDFMaterial = sdfMaterial;
 
-        sdfGameObject.name = sdfFilter.VoxelField.m_Name;
+        sdfGameObject.name = sdfFilter.VoxelField.m_Description;
 
         ctx.AddObjectToAsset("My Main Asset", sdfGameObject);
         ctx.AddObjectToAsset("SDFFilter", sdfFilter);

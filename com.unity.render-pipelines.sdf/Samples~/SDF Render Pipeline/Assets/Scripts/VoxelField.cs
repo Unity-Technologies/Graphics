@@ -12,7 +12,7 @@ public class VoxelFieldIO
         if (!File.Exists(assetPath))
             return false;
 
-        voxelField = new VoxelField();
+        voxelField = ScriptableObject.CreateInstance<VoxelField>();
 
         System.IO.FileStream fs = new System.IO.FileStream(assetPath, System.IO.FileMode.Open);
         System.IO.BinaryReader br = new System.IO.BinaryReader(fs);
@@ -20,7 +20,7 @@ public class VoxelFieldIO
         // Read the asset name
         System.UInt32 assetNameLength = br.ReadUInt32();
         br.ReadBytes(1);
-        voxelField.m_Name = System.Text.Encoding.Default.GetString(br.ReadBytes((int)(assetNameLength)));
+        voxelField.m_Description = System.Text.Encoding.Default.GetString(br.ReadBytes((int)(assetNameLength)));
 
         // Read the Voxel ID
         voxelField.m_Id = br.ReadInt32();
@@ -114,7 +114,7 @@ public class VoxelField : ScriptableObject
     public int m_Id;
 
     [SerializeField]
-    public string m_Name;
+    public string m_Description;
 
     [SerializeField]
     public float[] m_Field;

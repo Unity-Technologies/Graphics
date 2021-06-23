@@ -11,7 +11,7 @@ public class SDFFilterEditor : Editor
         VoxelField vf = sdfFilter.VoxelField;
 
         EditorGUILayout.LabelField("Name:");
-        EditorGUILayout.TextField(vf.m_Name);
+        EditorGUILayout.TextField(vf.m_Description);
         EditorGUILayout.IntField("ID:", vf.m_Id);
         EditorGUILayout.LabelField("Voxel Count Per Axis:");
         EditorGUILayout.IntField("X:", vf.m_VoxelCountX);
