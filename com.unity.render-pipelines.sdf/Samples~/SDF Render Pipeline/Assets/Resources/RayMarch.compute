@@ -1,0 +1,232 @@
+
+#pragma enable_d3d11_debug_symbols
+#pragma kernel RayMarchKernel
+
+#include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Common.hlsl"
+
+//#define DEG_TO_RAD 0.017453292519943295
+#define MAX_STEPS 64
+#define IDENTITY_MATRIX float4x4(1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1)
+
+
+
+//CBUFFER_START(CameraDetails)
+    float4x4 _InvViewProjMatrix;
+    float3 _CameraPosWS;
+    int pad0;
+    int2     _ImageRes;
+    int pad1;
+    int pad2;
+//CBUFFER_END
+
+struct ObjectHeader
+{
+    float4x4 worldToObjMatrix;
+    int      objID;
+    int      numEntries;
+    int      startOffset;
+    float    voxelSize;
+    float3   minExtent;
+    float    pad0;
+    float3   maxExtent;
+    float    pad1;
+};
+
+// This will have the actual sdf data in a contiguous array. Right now we store everything in the scene here, but will need to optimize it
+StructuredBuffer<float> _ObjectSDFData : register(t1);
+
+// Header data to index into the above actual sdf data
+StructuredBuffer<ObjectHeader> _ObjectHeaderData : register (t2);
+
+// Voxel Count X Axis = 8
+// Voxel Count Y Axis = 8
+// Voxel Count Z Axis = 1
+// Voxel Size = 0.25
+// Mesh Min Bounds Extents = (-1.0, -1.0, 0.0)
+// Mesh Max Bounds Extents = (1.0, 1.0, 0.0)
+//float _ObjectSDFData[64] =
+//{
+//0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f,
+//0.0559017f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0559017f,
+//0.1677051f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.1677051f,
+//0.2795085f, 0.0559017f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0559017f, 0.2795085f,
+//0.3913119f, 0.1677051f, 0.0f, 0.0f, 0.0f, 0.0f, 0.1677051f, 0.3913119f,
+//0.5031153f, 0.2795085f, 0.0559017f, 0.0f, 0.0f, 0.0559017f, 0.2795085f, 0.5031153f,
+//0.6149187f, 0.3913119f, 0.1677051f, 0.0f, 0.0f, 0.1677051f, 0.3913119f, 0.6149187f,
+//0.7267221f, 0.5031153f, 0.2795085f, 0.0559017f, 0.0559017f, 0.2795085f, 0.5031153f, 0.7267221f,
+//};
+//ObjectHeader _ObjectHeaderData[1];
+
+// Tile Data
+// This will store contiguous data for each tile. It will be contiguous data and the boundaries for each tile will be represented by the TileObjectHeader.
+// This will store the list of offsets into _ObjectHeaderData for a specific tile.
+StructuredBuffer<int> _TileDataOffsetIntoObjHeader : register(t3);
+
+// Stores the offset into the _TileDataOffsetIntoHeader. Also has number of objects for each tile.
+// This will have an entry for each tile of screen. Each threadgroup can read one value (if tile size and numthreads are the same)
+struct TileDataHeader
+{
+	int  offset;
+	int  numObjects;
+	int2 pad;
+};
+StructuredBuffer<TileDataHeader> _TileDataHeader : register(t4);
+
+void HardCodeValues()
+{
+	_InvViewProjMatrix = IDENTITY_MATRIX;
+    _CameraPosWS = float3(0, 0, -5);
+    _ImageRes = int2(640, 480);
+}
+
+struct OutSdfData
+{
+    int objID;
+    float t;
+};
+RWStructuredBuffer<OutSdfData> g_OutSdfData : register(u0);
+
+// https://www.iquilezles.org/www/articles/distfunctions/distfunctions.htm
+float sdBox(float3 p, float3 b)
+{
+    float3 q = abs(p) - b;
+    return length(max(q, 0.0)) + min(max(q.x, max(q.y, q.z)), 0.0);
+}
+
+struct RayData
+{
+    float3 direction;
+    float3 pointOnPlane;
+};
+
+float Convert3DPosTo1D(float3 pos, ObjectHeader objHeader)
+{
+    float3 objBBox = objHeader.maxExtent - objHeader.minExtent;
+    float3 dimensions = objBBox / objHeader.voxelSize;
+    int3 voxels = int3(ceil(dimensions.x), ceil(dimensions.y), ceil(dimensions.z));
+    return (pos.x + (pos.y * voxels.x) + (pos.z * voxels.y * voxels.x));
+}
+
+RayData GetRayDirection(int2 currPos, /*float fovHalf,*/ int2 imageRes)
+{
+    float imageAspectRatio = (float)imageRes.x / imageRes.y; // assuming width > height 
+    //float Px = (2 * ((currPos.x + 0.5) / imageRes.x) - 1) * tan(fovHalf * DEG_TO_RAD) * imageAspectRatio;
+    //float Py = (2 * ((currPos.y + 0.5) / imageRes.y) - 1) * tan(fovHalf * DEG_TO_RAD);
+
+    float Px = (2 * ((currPos.x + 0.5) / imageRes.x) - 1);
+    float Py = (2 * ((currPos.y + 0.5) / imageRes.y) - 1);
+
+    float3 rayOrigin = float3(0, 0, 0);
+    float4x4 cameraToWorld = _InvViewProjMatrix; // UNITY_MATRIX_I_VP;
+    //cameraToWorld.set(...); // set matrix 
+
+    //float3 rayOriginWorld = cameraToWorld * rayOrigin;
+    //float3 rayPWorld = cameraToWorld * float3(Px, Py, -1);
+
+    float3 rayPointWS = mul(cameraToWorld, float4(Px, Py, 1, 1)).xyz;
+    float3 rayOriginWS = mul(cameraToWorld, float4(rayOrigin, 0)).xyz;
+
+    //cameraToWorld.multVectMatrix(rayOrigin, rayOriginWorld);
+    //cameraToWorld.multVectMatrix(Vec3f(Px, Py, -1), rayPWorld);
+    float3 rayDirection = SafeNormalize(rayPointWS - rayOriginWS);
+    float3 rayDirectionWS = rayPointWS - _CameraPosWS;
+    
+    //rayDirection.normalize(); // it's a direction so don't forget to normalize 
+    RayData rayData;
+    rayData.direction = rayDirectionWS;
+    rayData.pointOnPlane = rayPointWS;
+
+    return rayData;
+}
+
+float RayMarch(int objHeaderOffset, float3 rayDir, float3 pointOnPlane)
+{
+    ObjectHeader objHeader = _ObjectHeaderData[objHeaderOffset];
+    float4 camPosOS = mul(objHeader.worldToObjMatrix, float4(_CameraPosWS, 0));
+    float4 rayDirOS = mul(objHeader.worldToObjMatrix, float4(rayDir, 1));
+    float4 rayPosOS = mul(objHeader.worldToObjMatrix, float4(pointOnPlane, 0));
+    //float3 newPos = SafeNormalize(rayDirOS) * t;
+    float3 objBBox = objHeader.maxExtent - objHeader.minExtent;
+    float totalDistance = 0.0f;
+
+    for (int i = 0; i < MAX_STEPS; i++)
+    {
+        // Check if it intersects bounding box
+        // Assuming object space origin is cthe object center
+        float distance = sdBox(rayPosOS.xyz, objBBox / 2);
+        totalDistance += distance;
+        float threshold = 0.0001;
+        if (abs(distance) < totalDistance * threshold)
+        {
+            // Has hit bounding box. Check with actual data
+
+            for (int j = 0; j < MAX_STEPS; j++)
+            {
+                rayPosOS = camPosOS + rayDirOS * distance;
+                // Tolerance for edge value
+                float edgeErrorTolerance = 0.0001;
+                int3 voxelPos = floor((rayPosOS.x - objHeader.minExtent - edgeErrorTolerance) / objHeader.voxelSize);
+
+                int linearVoxelPos = Convert3DPosTo1D(voxelPos, objHeader);
+                distance = _ObjectSDFData[objHeader.startOffset + linearVoxelPos];
+                totalDistance += distance;
+
+                if (abs(distance) < totalDistance * threshold)
+                {
+                    // Found intersection point
+                    return totalDistance;
+                }
+                else if ((sdBox(rayPosOS.xyz, objBBox / 2)) < 0.0f)
+                {
+                    // Ray has gone outside the box. Return as no intersection has been found
+                    return 0.0f;
+                }
+            }
+
+            // No intersection found even after max steps within the bounding box
+            return 0.0f;
+        }
+
+        rayPosOS = camPosOS + rayDirOS * distance;
+    }
+
+    // Doesn't intersect bounding box
+    return 0.0f;
+}
+
+OutSdfData RayMarchAllObjects(float3 dir, float3 pointOnPlane, TileDataHeader tileDataHeader)
+{
+    OutSdfData outSdfData;
+    outSdfData.t = 0.0f;
+    outSdfData.objID = 0;
+
+    for (int id = 0; id < tileDataHeader.numObjects; ++id)
+    {
+		int objHeaderOffset = _TileDataOffsetIntoObjHeader[tileDataHeader.offset + id];
+        float currDistance = RayMarch(objHeaderOffset, dir, pointOnPlane);
+        if (currDistance > 0.0f && (outSdfData.t <= 0 || currDistance < outSdfData.t))
+        {
+            outSdfData.t = currDistance;
+        }
+    }
+
+    // Write to UAV
+    return outSdfData;
+}
+
+// TODO - Store the object id in the z dimension, so that each group just works on a single object.
+// Will need to figure out how to sync and get the minimum value out. Could write to LDS and then sync and use groupID.z == 0 to find minimum. But with so many objects, not sure if it's a good ides.
+// Maybe could write it to a UAV and use another dispatch to process the min value - that will ensure all threads retire quickly
+[numthreads(8, 8, 1)]
+void RayMarchKernel(uint3 dispatchTid : SV_DispatchThreadID, uint3 groupId : SV_GroupID, uint groupIndex : SV_GroupIndex)
+{
+	HardCodeValues();
+	int numDispatchesX = ((_ImageRes.x + (8 - 1)) / 8);
+	int tileIndex = groupId.x + groupId.y * numDispatchesX;
+	TileDataHeader tileDataHeader = _TileDataHeader[tileIndex];
+    RayData rayData = GetRayDirection(dispatchTid.xy, /*_FieldOfViewBy2,*/ _ImageRes);
+    OutSdfData outData = RayMarchAllObjects(rayData.direction, rayData.pointOnPlane/*, groupId*/, tileDataHeader);
+
+    // TODO - If using z-dimension for anything else, please change the group index and manually calculate
+    g_OutSdfData[groupIndex] = outData;
+}

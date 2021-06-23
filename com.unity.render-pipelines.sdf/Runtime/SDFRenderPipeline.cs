@@ -78,6 +78,16 @@ namespace UnityEngine.Rendering.SDFRP
             // DrawRendererSettings drawRenderSettings = new DrawRendererSettings();
             // context.DrawRenderers(cullResults.visibleRenderers);
             // context.DrawSkybox(cameras[0]);
+
+            // SDF Rendering - TODO Enable this
+            {
+                CommandBuffer cmdRayMarch = new CommandBuffer();
+                cmdRayMarch.name = "RayMarch";
+                SDFRayMarch.RayMarch(cmdRayMarch, currentAsset.rayMarchingCS);
+                context.ExecuteCommandBuffer(cmdRayMarch);
+                cmdRayMarch.Release();
+            }
+
             if (currentAsset.EnableDepthOfField)
             {
                 if (m_DepthOfFieldMaterial == null)
