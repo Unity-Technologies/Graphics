@@ -174,6 +174,11 @@ namespace UnityEditor.VFX
             return false;
         }
 
+        public static Matrix4x4 ConvertTransformToMatrix(Transform transform)
+        {
+            return Matrix4x4.TRS(transform.position, Quaternion.Euler(transform.angles), transform.scale);
+        }
+
         bool ScaleGizmo(Vector3 position, Vector3 rotation, ref Vector3 scale, bool always)
         {
             var quaternion = Quaternion.Euler(rotation);

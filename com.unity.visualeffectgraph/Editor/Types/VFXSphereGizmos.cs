@@ -34,7 +34,7 @@ namespace UnityEditor.VFX
             // Radius controls
             if (radiusProperty.isEditable)
             {
-                using (new Handles.DrawingScope(Handles.matrix * Matrix4x4.TRS(sphere.transform.position, Quaternion.Euler(sphere.transform.angles), sphere.transform.scale)))
+                using (new Handles.DrawingScope(Handles.matrix * ConvertTransformToMatrix(sphere.transform)))
                 {
                     for (int i = 0; i < s_RadiusDirections.Length; ++i)
                     {
@@ -57,7 +57,7 @@ namespace UnityEditor.VFX
 
         public override void OnDrawSpacedGizmo(TSphere sphere)
         {
-            using (new Handles.DrawingScope(Handles.matrix * Matrix4x4.TRS(sphere.transform.position, Quaternion.Euler(sphere.transform.angles), sphere.transform.scale)))
+            using (new Handles.DrawingScope(Handles.matrix * ConvertTransformToMatrix(sphere.transform)))
             {
                 Handles.DrawWireDisc(Vector3.zero, Vector3.forward, sphere.radius);
                 Handles.DrawWireDisc(Vector3.zero, Vector3.up, sphere.radius);
@@ -95,7 +95,7 @@ namespace UnityEditor.VFX
             float radius = arcSphere.sphere.radius;
             float arc = arcSphere.arc * Mathf.Rad2Deg;
 
-            using (new Handles.DrawingScope(Handles.matrix * Matrix4x4.TRS(center, Quaternion.Euler(arcSphere.sphere.transform.angles), arcSphere.sphere.transform.scale)))
+            using (new Handles.DrawingScope(Handles.matrix * ConvertTransformToMatrix(arcSphere.sphere.transform)))
             {
                 // Draw semi-circles at 90 degree angles
                 for (int i = 0; i < 4; i++)
