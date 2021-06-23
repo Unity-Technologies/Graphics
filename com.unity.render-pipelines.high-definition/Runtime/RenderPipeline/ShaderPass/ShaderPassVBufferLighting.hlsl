@@ -4,27 +4,58 @@
 
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/ShaderPass/VertMesh.hlsl"
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/VBuffer/VisibilityBufferCommon.hlsl"
-
-struct Varyings
-{
-    float4 positionCS : SV_POSITION;
-    float2 texcoord   : TEXCOORD0;
-    UNITY_VERTEX_OUTPUT_STEREO
-};
+#include "Packages/com.unity.render-pipelines.high-definition/Runtime/VBuffer/VisibilityBufferCommon.hlsl"
 
 struct Attributes
 {
     uint vertexID : SV_VertexID;
-    UNITY_VERTEX_INPUT_INSTANCE_ID
+    uint instanceID : SV_InstanceID;
 };
+
+struct Varyings
+{
+    float4 positionCS : SV_POSITION;
+    uint lightFeatures : LIGHT_FEATURES;
+    uint2 tileCoord : TILE_COORD;
+    UNITY_VERTEX_OUTPUT_STEREO
+};
+
+int _CurrMaterialID;
+int _CurrFeatureSet;
+float4 _VBufferTileData;
+#define _NumVBufferTileX (uint)_VBufferTileData.x
+#define _NumVBufferTileY (uint)_VBufferTileData.y
+#define _QuadTileSize (uint)_VBufferTileData.z
+
+static const float2 QuadVertices[6] = { float2(0,0), float2(1, 0), float2(1, 1), float2(0, 0), float2(1, 1), float2(0, 1)};
+
+TEXTURE2D_X_UINT(_VBufferTileClassification);
 
 Varyings Vert(Attributes inputMesh)
 {
     Varyings output;
+    ZERO_INITIALIZE(Varyings, output);
+
+#ifdef UNITY_ANY_INSTANCING_ENABLED
     UNITY_SETUP_INSTANCE_ID(inputMesh);
     UNITY_INITIALIZE_VERTEX_OUTPUT_STEREO(output);
-    output.positionCS = GetFullScreenTriangleVertexPosition(inputMesh.vertexID);
-    output.texcoord = GetFullScreenTriangleTexCoord(inputMesh.vertexID);
+
+    uint instanceID = inputMesh.instanceID;
+
+    int tileX = instanceID % _NumVBufferTileX;
+    int tileY = instanceID / _NumVBufferTileX;
+    int quadVertexID = inputMesh.vertexID % 6;
+
+    output.positionCS.xy = ((QuadVertices[quadVertexID]  + float2(tileX, tileY) / float2(_NumVBufferTileX, _NumVBufferTileY))) * 2.0f - 1.0f;
+
+    // TODO DEBUG
+    output.lightFeatures = LIGHTVARIANTS_SKY_DIR_PUNCTUAL_AREA_ENV; // _VBufferTileClassification[COORD_TEXTURE2D_X(uint2(tileX, tileY))];
+    output.positionCS.z = float(_CurrMaterialID) / (float)(0xffff);
+    output.positionCS.w = 1;
+
+    output.tileCoord = uint2(tileX, tileY);
+#endif
+
     return output;
 }
 
@@ -86,23 +117,27 @@ FragInputs EvaluateFragInput(float4 posSS, uint instanceID, uint triangleID, flo
     CompactVertex v1 = _CompactedVertexBuffer[i1];
     CompactVertex v2 = _CompactedVertexBuffer[i2];
 
-    // Get barycentrics.
+    // Convert the positions to world space
     float3 pos0WS = mul(m, float4(v0.pos, 1.0));
     float3 pos1WS = mul(m, float4(v1.pos, 1.0));
     float3 pos2WS = mul(m, float4(v2.pos, 1.0));
 
-    // Compute barycentric
+    // Compute the supporting plane properties
+    float3 triangleCenter = (pos0WS + pos1WS + pos2WS) / 3.0;
+    float3 triangleNormal = normalize(cross(pos2WS - pos0WS, pos1WS - pos0WS));
 
-    float4 pos0 = mul(UNITY_MATRIX_VP, float4(pos0WS, 1.0));
-    float4 pos1 = mul(UNITY_MATRIX_VP, float4(pos1WS, 1.0));
-    float4 pos2 = mul(UNITY_MATRIX_VP, float4(pos2WS, 1.0));
+    // Compute the world to plane matrix
+    float3 yLocalPlane = normalize(pos1WS - pos0WS);
+    float3x3 worldToPlaneMatrix = float3x3(cross(yLocalPlane, triangleNormal), yLocalPlane, triangleNormal);
 
-    pos0.xyz /= pos0.w;
-    pos1.xyz /= pos1.w;
-    pos2.xyz /= pos2.w;
+    // Project all point onto the 2d supporting plane
+    float3 projectedWS = mul(worldToPlaneMatrix, posWS - dot(posWS - triangleCenter, triangleNormal) * triangleNormal);
+    float3 projected0WS = mul(worldToPlaneMatrix, pos0WS - dot(pos0WS - triangleCenter, triangleNormal) * triangleNormal);
+    float3 projected1WS = mul(worldToPlaneMatrix, pos1WS - dot(pos1WS - triangleCenter, triangleNormal) * triangleNormal);
+    float3 projected2WS = mul(worldToPlaneMatrix, pos2WS - dot(pos2WS - triangleCenter, triangleNormal) * triangleNormal);
 
-    float3 barycentricCoordinates = ComputeBarycentricCoords(posSS * _ScreenSize.zw, ToNDC(pos0.xy), ToNDC(pos1.xy), ToNDC(pos2.xy)).xyz;
-
+    // Evaluate the barycentrics
+    float3 barycentricCoordinates = ComputeBarycentricCoords(projectedWS.xy, projected0WS.xy, projected1WS.xy, projected2WS.xy);
 
     // Get normal at position
     float3 normalOS0 = v0.N;
@@ -122,14 +157,12 @@ FragInputs EvaluateFragInput(float4 posSS, uint instanceID, uint triangleID, flo
     float2 UV2 = (v2.uv);
     float2 texCoord0 = INTERPOLATE_ATTRIBUTE(UV0, UV1, UV2, barycentricCoordinates);
 
-
     // Compute the world space normal and tangent. [IMPORTANT, we assume uniform scale here]
-    float3 normalWS = normalize(mul(float4(normalOS, 0), instanceVData.localToWorld));
-    float3 tangentWS = normalize(mul(float4(tangentOS.xyz, 0), instanceVData.localToWorld));
-
+    float3 normalWS = normalize(mul((float3x3)instanceVData.localToWorld, normalOS));
+    float3 tangentWS = normalize(mul((float3x3)instanceVData.localToWorld, tangentOS.xyz));
 
     // DEBG
-    debugValue = normalWS * 0.5 + 0.5;// float3(texCoord0.xy, 0);
+    debugValue = barycentricCoordinates;// float3(texCoord0.xy, 0);
     ///
 
     FragInputs outFragInputs;
@@ -139,7 +172,7 @@ FragInputs EvaluateFragInput(float4 posSS, uint instanceID, uint triangleID, flo
     outFragInputs.texCoord0 = float4(texCoord0, 0.0, 1.0);
     //outFragInputs.tangentToWorld = CreateTangentToWorld(normalWS, tangentWS, 1.0);
     outFragInputs.tangentToWorld = CreateTangentToWorld(normalWS, tangentWS, sign(tangentOS.w));
-    outFragInputs.isFrontFace = dot(V, outFragInputs.tangentToWorld[2]) < 0.0f;
+    outFragInputs.isFrontFace = dot(V, normalWS) > 0.0f;
     return outFragInputs;
 }
 
@@ -153,18 +186,19 @@ void Frag(Varyings packedInput, out float4 outColor : SV_Target0)
     uint triangleID, instanceID;
     UnpackVisibilityBuffer(vbuffer, instanceID, triangleID);
 
-    float depthValue = LOAD_TEXTURE2D_X(_CameraDepthTexture, pixelCoord);
+    float depthValue = LOAD_TEXTURE2D_X(_VBufferDepthTexture, pixelCoord);
     if (depthValue == UNITY_RAW_FAR_CLIP_VALUE)
     {
         outColor = 0;
         return;
     }
 
-    float3 posWS = ComputeWorldSpacePosition(pixelCoord, depthValue, UNITY_MATRIX_I_VP);
+    float2 ndc = pixelCoord * _ScreenSize.zw;
+    //ndc = (ndc);
+    float3 posWS = ComputeWorldSpacePosition(ndc, depthValue, UNITY_MATRIX_I_VP);
     float3 V = GetWorldSpaceNormalizeViewDir(posWS);
     float3 debugVal = 0;
     FragInputs input = EvaluateFragInput(packedInput.positionCS, instanceID, triangleID, posWS, V, debugVal);
-
 
     // Build the position input
     int2 tileCoord = (float2)input.positionSS.xy / GetTileSize();
@@ -178,12 +212,18 @@ void Frag(Varyings packedInput, out float4 outColor : SV_Target0)
 
     PreLightData preLightData = GetPreLightData(V, posInput, bsdfData);
 
-    uint featureFlags = LIGHT_FEATURE_MASK_FLAGS_OPAQUE;
+    uint featureFlags = packedInput.lightFeatures | MATERIAL_FEATURE_MASK_FLAGS;
     LightLoopOutput lightLoopOutput;
     LightLoop(V, posInput, preLightData, bsdfData, builtinData, featureFlags, lightLoopOutput);
 
-    outColor.xyz = lightLoopOutput.diffuseLighting * GetCurrentExposureMultiplier();
-    outColor.a = 1;
-//    outColor.xyz = debugVal;
+    float3 diffuseLighting =  lightLoopOutput.diffuseLighting;
+    float3 specularLighting = lightLoopOutput.specularLighting;
 
+    diffuseLighting *= GetCurrentExposureMultiplier();
+    specularLighting *= GetCurrentExposureMultiplier();
+
+
+    outColor.rgb = float4(diffuseLighting + specularLighting, 1.0) + (packedInput.tileCoord / float2(_NumVBufferTileX, _NumVBufferTileY)).xyx * 0.02f;
+
+    outColor.a = 1;
 }

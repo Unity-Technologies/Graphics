@@ -17,6 +17,9 @@ namespace UnityEngine.Rendering.HighDefinition
         ComputeBuffer CompactedVB = null;
         ComputeBuffer CompactedIB = null;
         ComputeBuffer InstanceVDataB = null;
+        uint instanceCountBack = 0;
+        uint instanceCountFront = 0;
+        uint instanceCountDouble = 0;
         Material m_VisibilityBufferMaterial = null;
         Material m_CreateMaterialDepthMaterial = null;
 
@@ -85,33 +88,46 @@ namespace UnityEngine.Rendering.HighDefinition
             return 4;
         }
 
-        int DivideMeshInClusters(Mesh mesh, int subMeshStartIndex, Matrix4x4 localToWorld, Material[] sharedMaterials, ref Dictionary<Mesh, uint> meshes, ref List<InstanceVData> instances)
+        int DivideMeshInClusters(Mesh mesh, Matrix4x4 localToWorld, Material[] sharedMaterials, ref Dictionary<Mesh, uint> meshes, ref List<InstanceVData> instancesBack, ref List<InstanceVData> instancesFront, ref List<InstanceVData> instancesDouble)
         {
             int clusterCount = 0;
-            //int clustersBeforeInsertion = instances.Count;
-            //int meshIndexStart = clustersBeforeInsertion * VisibilityBufferConstants.s_ClusterSizeInIndices;
-
-            int subMeshCountForRenderer = sharedMaterials.Length;
-            for (int i = subMeshStartIndex; i < subMeshCountForRenderer; ++i)
+            for (int i = 0; i < mesh.subMeshCount; ++i)
             {
-                uint subMeshIndexSize = mesh.GetIndexCount(i % mesh.subMeshCount);//renderer can have more material than submesh
+                uint subMeshIndexSize = mesh.GetIndexCount(i);
                 int clustersForSubmesh = HDUtils.DivRoundUp((int)subMeshIndexSize, VisibilityBufferConstants.s_ClusterSizeInIndices);
                 int materialIdx = 0;
 
                 Material currentMat = sharedMaterials[i];
-                if (currentMat == null || IsTransparentMaterial(currentMat))
+                if (currentMat == null)
                     continue;
 
-                materials.TryGetValue(currentMat, out materialIdx);
-                for (int c = 0; c < clustersForSubmesh; ++c)
+                if (IsTransparentMaterial(currentMat) || IsAlphaTestedMaterial(currentMat) || currentMat.shader.name != "HDRP/Lit")
+                    clusterCount += clustersForSubmesh;
+                else
                 {
-                    InstanceVData data;
-                    data.localToWorld = localToWorld;
-                    data.materialIndex = (uint)materialIdx;
-                    data.chunkStartIndex = meshes[mesh] + (uint)clusterCount;
+                    bool doubleSided = currentMat.doubleSidedGI || currentMat.IsKeywordEnabled("_DOUBLESIDED_ON");
 
-                    instances.Add(data);
-                    clusterCount++;
+                    float cullMode = 2.0f;
+                    if (currentMat.HasProperty("_CullMode"))
+                        cullMode = currentMat.GetFloat("_CullMode");
+
+                    materials.TryGetValue(currentMat, out materialIdx);
+                    for (int c = 0; c < clustersForSubmesh; ++c)
+                    {
+                        InstanceVData data;
+                        data.localToWorld = localToWorld;
+                        data.materialIndex = (uint)materialIdx;
+                        data.chunkStartIndex = meshes[mesh] + (uint)clusterCount;
+
+                        if (doubleSided)
+                            instancesDouble.Add(data);
+                        else if (cullMode == 2.0f)
+                            instancesBack.Add(data);
+                        else
+                            instancesFront.Add(data);
+
+                        clusterCount++;
+                    }
                 }
             }
 
@@ -211,10 +227,11 @@ namespace UnityEngine.Rendering.HighDefinition
             int vertexCount = 0;
             int clusterCount = 0;
 
-            int instanceId = 1;
             Dictionary<Mesh, uint> meshes = new Dictionary<Mesh, uint>();
             Dictionary<Mesh, Material[]> meshToMaterial = new Dictionary<Mesh, Material[]>();
-            List<InstanceVData> instanceData = new List<InstanceVData>();
+            List<InstanceVData> instanceDataBack = new List<InstanceVData>();
+            List<InstanceVData> instanceDataFront = new List<InstanceVData>();
+            List<InstanceVData> instanceDataDouble = new List<InstanceVData>();
             materials.Clear();
             MaterialPropertyBlock propBlock = new MaterialPropertyBlock();
             int materialIdx = 1;
@@ -222,6 +239,7 @@ namespace UnityEngine.Rendering.HighDefinition
             int validRenderers = 0;
             // Grab all the renderers from the scene
             var rendererArray = UnityEngine.GameObject.FindObjectsOfType<MeshRenderer>();
+
             for (var i = 0; i < rendererArray.Length; i++)
             {
                 // Fetch the current renderer
@@ -252,19 +270,17 @@ namespace UnityEngine.Rendering.HighDefinition
                     int matIdx = 0;
                     if (!materials.TryGetValue(mat, out matIdx))
                     {
+                        mat.enableInstancing = true;
                         materials.Add(mat, materialIdx);
                         materialIdx++;
                     }
                 }
-
                 validRenderers++;
             }
 
             // If we don't have any valid renderer
             if (validRenderers == 0)
-            {
                 return;
-            }
 
             int currVBCount = CompactedVB == null ? 0 : CompactedVB.count;
             if (vertexCount != currVBCount)
@@ -307,18 +323,29 @@ namespace UnityEngine.Rendering.HighDefinition
                 currentRenderer.TryGetComponent(out MeshFilter meshFilter);
                 if (meshFilter == null || meshFilter.sharedMesh == null) continue;
 
-                DivideMeshInClusters(meshFilter.sharedMesh, currentRenderer.subMeshStartIndex, currentRenderer.localToWorldMatrix, currentRenderer.sharedMaterials, ref meshes, ref instanceData);
+                DivideMeshInClusters(meshFilter.sharedMesh, currentRenderer.localToWorldMatrix, currentRenderer.sharedMaterials, ref meshes, ref instanceDataBack, ref instanceDataFront, ref instanceDataDouble);
             }
 
-            if (InstanceVDataB == null || InstanceVDataB.count != instanceData.Count)
+            instanceCountBack = (uint)instanceDataBack.Count;
+            instanceCountFront = (uint)instanceDataFront.Count;
+            instanceCountDouble = (uint)instanceDataDouble.Count;
+
+            uint totalInstanceCount = instanceCountBack + instanceCountFront + instanceCountDouble;
+            if (totalInstanceCount == 0)
+                return;
+
+            if (InstanceVDataB == null || InstanceVDataB.count != totalInstanceCount)
             {
                 if (InstanceVDataB != null)
                 {
                     CoreUtils.SafeRelease(InstanceVDataB);
                 }
-                InstanceVDataB = new ComputeBuffer(instanceData.Count, System.Runtime.InteropServices.Marshal.SizeOf<InstanceVData>());
+                InstanceVDataB = new ComputeBuffer((int)totalInstanceCount, System.Runtime.InteropServices.Marshal.SizeOf<InstanceVData>());
             }
-            InstanceVDataB.SetData(instanceData.ToArray());
+
+            InstanceVDataB.SetData(instanceDataBack.ToArray(), 0, 0, instanceDataBack.Count);
+            InstanceVDataB.SetData(instanceDataFront.ToArray(), 0, instanceDataBack.Count, instanceDataFront.Count);
+            InstanceVDataB.SetData(instanceDataDouble.ToArray(), 0, instanceDataBack.Count + instanceDataFront.Count, instanceDataDouble.Count);
         }
     }
 }

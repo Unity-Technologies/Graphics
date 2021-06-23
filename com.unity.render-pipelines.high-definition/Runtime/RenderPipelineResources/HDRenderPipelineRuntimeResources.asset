@@ -162,7 +162,9 @@ MonoBehaviour:
     ssGIDenoiserCS: {fileID: 7200000, guid: a435d803bc32d0845ba1a713b7a1c8b1, type: 3}
     bilateralUpsampleCS: {fileID: 7200000, guid: 68e831c555284d741b985e05369f0e63, type: 3}
     vbCompactionCS: {fileID: 7200000, guid: e5d6cdd3430da554892a6b4f57d51234, type: 3}
+    classificationTilesCS: {fileID: 7200000, guid: 6f0590f3518b9ac4a91ae6a55c7f92b8, type: 3}
     renderVisibilityBufferPS: {fileID: 4800000, guid: 1e32ee5e446300b408e230f45f0b3ca0, type: 3}
+    createMaterialDepthPS: {fileID: 4800000, guid: fb24e3db30a859f4daabcb076a39a181, type: 3}
   textures:
     debugFontTex: {fileID: 2800000, guid: a3ad2df0e49aaa341a3b3a80f93b3f66, type: 3}
     colorGradient: {fileID: 2800000, guid: 4ea52e665573c1644bf05dd9b11fd2a4, type: 3}
