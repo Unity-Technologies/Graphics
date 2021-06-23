@@ -209,9 +209,26 @@ struct UnityStochasticTexture2D
     float4 colorSpaceVector3;
     int type;                   // ProceduralTexture2D.TextureType:   0 ==> Color, 1 ==> Normal, 2 ==> Other
 
-    float4 ApplyInvT(float4 value)
+    float4 ApplyInvT(float4 v, float LOD)
     {
-        return value; // TODO
+        LOD *= invT.texelSize.y; // convert to 0..1
+
+        v = v * compressionScalers;
+        v = v + 0.5;
+
+        float4 o;
+        o.r = invT.SampleLevel(invT.samplerstate, float2(v.r, LOD), 0).r;
+        o.g = invT.SampleLevel(invT.samplerstate, float2(v.g, LOD), 0).g;
+        o.b = invT.SampleLevel(invT.samplerstate, float2(v.b, LOD), 0).b;
+        o.a = invT.SampleLevel(invT.samplerstate, float2(v.a, LOD), 0).a;
+
+        if (type != 2)
+            o.rgb = colorSpaceOrigin + colorSpaceVector1 * o.r + colorSpaceVector2 * o.g + colorSpaceVector3 * o.b;
+
+        if (type == 1)
+            o.rgb = o.rgb * 2.0f - 1.0f;  //UnpackNormalmapRGorAG(o);  // not sure -- the remap seems to give better results here than Unpack
+
+        return o;
     }
 };
 
