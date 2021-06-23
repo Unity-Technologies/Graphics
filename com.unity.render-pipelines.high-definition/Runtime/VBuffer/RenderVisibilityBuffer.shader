@@ -33,10 +33,11 @@ Shader "Hidden/HDRP/RenderVisibilityBuffer"
         struct v2f
         {
             float4 vertex : SV_POSITION;
-            uint cinstanceID : CUSTOM_INSTANCE_ID;
+            uint globalInstanceID : CUSTOM_INSTANCE_ID;
             float3 posWS : POSITION_WS;
         };
 
+        int _InstanceVDataShift;
 
         v2f vert(appdata v)
         {
@@ -46,8 +47,8 @@ Shader "Hidden/HDRP/RenderVisibilityBuffer"
 
             UNITY_SETUP_INSTANCE_ID(v);
 
-            uint instanceID = v.instanceID;
-            InstanceVData instanceVData = _InstanceVDataBuffer[instanceID];
+            uint globalInstanceID = v.instanceID + _InstanceVDataShift;
+            InstanceVData instanceVData = _InstanceVDataBuffer[globalInstanceID];
             int triangleID = v.vertexID / 3;
             int vertexID = v.vertexID % 3;
 
@@ -61,7 +62,7 @@ Shader "Hidden/HDRP/RenderVisibilityBuffer"
 
             if (index != 0xffffffff)
             {
-                o.cinstanceID = v.instanceID;
+                o.globalInstanceID = globalInstanceID;
                 o.vertex = mul(UNITY_MATRIX_VP, float4(posWS, 1.0));
                 o.posWS = posWS;
             }
@@ -90,7 +91,7 @@ Shader "Hidden/HDRP/RenderVisibilityBuffer"
             // Fetch triangle ID (32 bits)
             uint triangleID = primitiveID;
 
-            uint instanceID = packedInput.cinstanceID;
+            uint instanceID = packedInput.globalInstanceID;
 
             InstanceVData instanceVData = _InstanceVDataBuffer[instanceID];
 
@@ -106,11 +107,39 @@ Shader "Hidden/HDRP/RenderVisibilityBuffer"
 
         Pass
         {
-            Name "VisibilityBuffer"
-            Tags{ "LightMode" = "VisibilityBuffer" }
+            Name "VisibilityBufferB"
+            Tags{ "LightMode" = "VisibilityBufferB" }
 
             ZWrite On
             Cull Back
+
+            HLSLPROGRAM
+            #pragma vertex vert
+            #pragma fragment frag
+            ENDHLSL
+        }
+
+        Pass
+        {
+            Name "VisibilityBufferF"
+            Tags{ "LightMode" = "VisibilityBufferF" }
+
+            ZWrite On
+            Cull Front
+
+            HLSLPROGRAM
+            #pragma vertex vert
+            #pragma fragment frag
+            ENDHLSL
+        }
+
+        Pass
+        {
+            Name "VisibilityBufferN"
+            Tags{ "LightMode" = "VisibilityBufferN" }
+
+            ZWrite On
+            Cull Off
 
             HLSLPROGRAM
             #pragma vertex vert
