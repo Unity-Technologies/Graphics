@@ -24,7 +24,9 @@ public class MeshToSDFProcessorSettings
 public class MeshToSDFProcessorInternalSettings
 {
     public MeshToSDFProcessorSettings inputSettings;
-    public VoxelFieldDeminsions voxelFieldDimensions;
+    public int voxelCountX;
+    public int voxelCountY;
+    public int voxelCountZ;
 
     public int[] triangles;
     public Vector3[] vertices;
@@ -40,79 +42,6 @@ public class DebugParentMarkers
     public Transform voxels;
     public Transform closestPoints;
 }
-
-public class VoxelField
-{
-    public float[] m_Field;
-    private VoxelFieldDeminsions m_VoxelFieldDimensions;
-    private float m_VoxelSize;
-    private Bounds m_MeshBounds;
-    public VoxelFieldDeminsions Dimensions
-    {
-        get
-        {
-            return m_VoxelFieldDimensions;
-        }
-    }
-    public float VoxelSize
-    {
-        get
-        {
-            return m_VoxelSize;
-        }
-    }
-
-    public Bounds MeshBounds
-    {
-        get
-        {
-            return m_MeshBounds;
-        }
-    }
-
-    public void Initialize(VoxelFieldDeminsions voxelFieldDimensions, float voxelSize, Bounds meshBounds)
-    {
-        m_VoxelFieldDimensions = voxelFieldDimensions;
-        m_VoxelSize = voxelSize;
-        m_MeshBounds = meshBounds;
-
-        m_Field = new float[m_VoxelFieldDimensions.x * m_VoxelFieldDimensions.y * m_VoxelFieldDimensions.z];
-    }
-
-    public float Get(int x, int y, int z)
-    {
-        int index = GetIndex(x, y, z);
-        return m_Field[index];
-    }
-
-    public void Set(int x, int y, int z, float value)
-    {
-        int index = GetIndex(x, y, z);
-        m_Field[index] = value;
-    }
-
-    int GetIndex(int x, int y, int z)
-    {
-        int index = x + m_VoxelFieldDimensions.x * (y + (m_VoxelFieldDimensions.y * z));
-        //int index = (z * m_VoxelFieldDimensions.x * m_VoxelFieldDimensions.y) + (y * m_VoxelFieldDimensions.x) + x;
-        return index;
-    }
-
-    public void Fill(float value)
-    {
-        for (int z = 0; z < m_VoxelFieldDimensions.z; ++z)
-        {
-            for (int y = 0; y < m_VoxelFieldDimensions.y; ++y)
-            {
-                for (int x = 0; x < m_VoxelFieldDimensions.x; ++x)
-                {
-                    Set(x, y, z, value);
-                }
-            }
-        }
-    }
-}
-
 public class MeshToSDFProcessor
 {
     static GameObject s_DebugMarkerRoot = null;
@@ -175,9 +104,9 @@ public class MeshToSDFProcessor
             return;
 
         StringBuilder sb = new StringBuilder();
-        sb.AppendLine(string.Format("// Voxel Count X Axis = {0}", voxelField.Dimensions.x));
-        sb.AppendLine(string.Format("// Voxel Count Y Axis = {0}", voxelField.Dimensions.y));
-        sb.AppendLine(string.Format("// Voxel Count Z Axis = {0}", voxelField.Dimensions.z));
+        sb.AppendLine(string.Format("// Voxel Count X Axis = {0}", voxelField.m_VoxelCountX));
+        sb.AppendLine(string.Format("// Voxel Count Y Axis = {0}", voxelField.m_VoxelCountY));
+        sb.AppendLine(string.Format("// Voxel Count Z Axis = {0}", voxelField.m_VoxelCountZ));
         sb.AppendLine(string.Format("// Voxel Size = {0}", voxelField.VoxelSize));
         sb.AppendLine(string.Format("// Mesh Min Bounds Extents = {0}", voxelField.MeshBounds.min));
         sb.AppendLine(string.Format("// Mesh Max Bounds Extents = {0}", voxelField.MeshBounds.max));
@@ -187,7 +116,7 @@ public class MeshToSDFProcessor
         for(int i = 0; i < voxelField.m_Field.Length; ++i)
         {
             sb.Append(voxelField.m_Field[i] + "f, ");
-            if((i+1) % voxelField.Dimensions.x == 0)
+            if((i+1) % voxelField.m_VoxelCountX == 0)
             {
                 sb.AppendLine();
             }
@@ -198,60 +127,20 @@ public class MeshToSDFProcessor
         Debug.Log(sb.ToString());
     }
 
-    static void CreateVoxelFieldAsset(MeshToSDFProcessorInternalSettings settings, VoxelField voxelField)
-    {
-        if (voxelField == null)
-            return;
-
-        System.IO.FileStream fs = new System.IO.FileStream(settings.inputSettings.outputFilePath, System.IO.FileMode.OpenOrCreate);
-        System.IO.BinaryWriter bw = new System.IO.BinaryWriter(fs);
-
-        // Write the asset name
-        bw.Write(settings.inputSettings.assetName.Length);
-        bw.Write(settings.inputSettings.assetName);
-
-        // Write the voxel dimensions for each axis
-        bw.Write(voxelField.Dimensions.x);
-        bw.Write(voxelField.Dimensions.y);
-        bw.Write(voxelField.Dimensions.z);
-
-        // Write the voxel size
-        bw.Write(voxelField.VoxelSize);
-
-        // Write the mesh bounds
-        // min
-        bw.Write(voxelField.MeshBounds.min.x);
-        bw.Write(voxelField.MeshBounds.min.y);
-        bw.Write(voxelField.MeshBounds.min.z);
-        // max
-        bw.Write(voxelField.MeshBounds.max.x);
-        bw.Write(voxelField.MeshBounds.max.y);
-        bw.Write(voxelField.MeshBounds.max.z);
-
-        // Write the voxel field values
-        bw.Write(voxelField.m_Field.Length);
-        for (int i = 0; i < voxelField.m_Field.Length; ++i)
-        {
-            bw.Write(voxelField.m_Field[i]);
-        }
-
-        bw.Close();
-        fs.Close();
-    }
-
     public static DebugParentMarkers InitializeParentDebugMarkers(string assetName, Material voxelMaterial, Material closestPointMaterial)
     {
+        if (voxelMaterial == null && closestPointMaterial == null)
+            return null;
+
         DebugParentMarkers markerData = new DebugParentMarkers();
 
+        s_DebugMarkerRoot = GameObject.Find("SDF Debug Markers");
         if (s_DebugMarkerRoot == null)
         {
             s_DebugMarkerRoot = new GameObject();
             s_DebugMarkerRoot.name = "SDF Debug Markers";
             s_DebugMarkerRoot.transform.position = Vector3.zero;
         }
-
-        if (voxelMaterial == null && closestPointMaterial == null)
-            return markerData;
 
         markerData.root = s_DebugMarkerRoot.transform;
 
@@ -297,10 +186,10 @@ public class MeshToSDFProcessor
 
         settings.debugMarkerData = InitializeParentDebugMarkers(settings.inputSettings.assetName, settings.inputSettings.voxelMaterial, settings.inputSettings.closestPointMaterial);
 
-        VoxelUtils.ComputeVoxelFieldDimensions(settings.inputSettings.voxelSize, mesh.bounds, out settings.voxelFieldDimensions);
+        VoxelUtils.ComputeVoxelFieldDimensions(settings.inputSettings.voxelSize, mesh.bounds, out settings.voxelCountX, out settings.voxelCountY, out settings.voxelCountZ);
 
         VoxelField voxelField = new VoxelField();
-        voxelField.Initialize(settings.voxelFieldDimensions, settings.inputSettings.voxelSize, mesh.bounds);
+        voxelField.Initialize(settings.voxelCountX, settings.voxelCountY, settings.voxelCountZ, settings.inputSettings.voxelSize, mesh.bounds);
 
         // Fill the field with a max float value so that by default,
         // every voxel is infinitly far from a point on the mesh.
@@ -314,18 +203,19 @@ public class MeshToSDFProcessor
         int voxelCounter = 0;
         int breakPoint = 28;
 
-        for (int z = settings.inputSettings.startZ; z < settings.voxelFieldDimensions.z; ++z)
+        for (int z = settings.inputSettings.startZ; z < settings.voxelCountZ; ++z)
         {
-            for (int y = settings.inputSettings.startY; y < settings.voxelFieldDimensions.y; ++y)
+            for (int y = settings.inputSettings.startY; y < settings.voxelCountY; ++y)
             {
-                for (int x = settings.inputSettings.startX; x < settings.voxelFieldDimensions.x; ++x)
+                for (int x = settings.inputSettings.startX; x < settings.voxelCountX; ++x)
                 {
                     // The offset will allow us to sample from the center of the voxel.
                     Vector3 offset = new Vector3((x * voxelSize), (y * voxelSize), (z * voxelSize));// + halfVoxelSize);
                     Vector3 currentVoxelPosition = startPosition + offset;
 
                     float dist;
-                    if (FindClosestDistanceFromVoxelToMesh(currentVoxelPosition, settings.triangles, settings.vertices, settings.inputSettings.closestPointMaterial, settings.debugMarkerData.closestPoints, out dist))
+                    Transform closestPointDebugMarkerTransform = settings.debugMarkerData != null ? settings.debugMarkerData.closestPoints : null;
+                    if (FindClosestDistanceFromVoxelToMesh(currentVoxelPosition, settings.triangles, settings.vertices, settings.inputSettings.closestPointMaterial, closestPointDebugMarkerTransform, out dist))
                         voxelField.Set(x, y, z, dist);
 
                     //Debug.Log("Dist = " + dist);
@@ -333,7 +223,8 @@ public class MeshToSDFProcessor
                     //if(dist >= 0.000f)
                     //    CreateMarker("Voxel Point", currentVoxelPosition, 0.1f, settings.inputSettings.voxelMaterial);
 
-                    CreateMarker(settings.debugMarkerData.voxels, "Voxel Point", currentVoxelPosition, 0.1f, settings.inputSettings.voxelMaterial);
+                    Transform voxelDebugMarkerTransform = settings.debugMarkerData != null ? settings.debugMarkerData.voxels : null;
+                    CreateMarker(voxelDebugMarkerTransform, "Voxel Point", currentVoxelPosition, 0.1f, settings.inputSettings.voxelMaterial);
 
                     if (voxelCounter >= breakPoint )
                     {
@@ -351,7 +242,7 @@ public class MeshToSDFProcessor
 
         //Finish:
 
-        CreateVoxelFieldAsset(settings, voxelField);
+        VoxelFieldIO.Write(settings, voxelField);
 
         return true;
     }

@@ -2,28 +2,19 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
-public class VoxelFieldDeminsions
-{
-    public int x;
-    public int y;
-    public int z;
-}
-
 public class VoxelUtils
 {
-    public static void ComputeVoxelFieldDimensions(float voxelSize, UnityEngine.Bounds bounds, out VoxelFieldDeminsions dimensions)
+    public static void ComputeVoxelFieldDimensions(float voxelSize, UnityEngine.Bounds bounds, out int voxelCountX, out int voxelCountY, out int voxelCountZ)
     {
-        dimensions = new VoxelFieldDeminsions();
-
         float voxelSizeInverse = 1.0f / voxelSize;
 
         float xLength = bounds.max.x - bounds.min.x;
         float yLength = bounds.max.y - bounds.min.y;
         float zLength = bounds.max.z - bounds.min.z;
 
-        dimensions.x = System.Math.Max(1, Mathf.RoundToInt(xLength * voxelSizeInverse)) + 1;
-        dimensions.y = System.Math.Max(1, Mathf.RoundToInt(yLength * voxelSizeInverse)) + 1;
-        dimensions.z = System.Math.Max(1, Mathf.RoundToInt(zLength * voxelSizeInverse)) + 1;
+        voxelCountX = System.Math.Max(1, Mathf.RoundToInt(xLength * voxelSizeInverse)) + 1;
+        voxelCountY = System.Math.Max(1, Mathf.RoundToInt(yLength * voxelSizeInverse)) + 1;
+        voxelCountZ = System.Math.Max(1, Mathf.RoundToInt(zLength * voxelSizeInverse)) + 1;
     }
 
     public static Vector3 GetNormalOfTriangle(Vector3 a, Vector3 b, Vector3 c)
