@@ -4,8 +4,8 @@ using UnityEngine;
 
 namespace UnityEditor.VFX.Block
 {
-    [VFXInfo(category = "Position", variantProvider = typeof(PositionBaseProvider))]
-    class PositionCircle : PositionBase
+    //TODOPAUL : Sanitize this
+    class PositionCircleDeprecated : PositionBase
     {
         public override string name { get { return string.Format(base.name, "Circle"); } }
         protected override float thicknessDimensions { get { return 2.0f; } }
