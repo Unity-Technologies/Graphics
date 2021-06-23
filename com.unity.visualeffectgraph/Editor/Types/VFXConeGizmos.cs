@@ -131,13 +131,10 @@ namespace UnityEditor.VFX
             var topRadius = cone.radius1;
             var height = cone.height;
 
-            var backupColor = Handles.color;
-
             gizmo.PositionGizmo(center, angles, centerProperty, false);
             gizmo.RotationGizmo(center, angles, anglesProperty, false);
             gizmo.ScaleGizmo(center, angles, scale, scaleProperty, false);
 
-            Handles.color = Color.white;
             using (new Handles.DrawingScope(Handles.matrix * Matrix4x4.TRS(center, Quaternion.Euler(angles), scale)))
             {
                 if (baseRadiusScreen > 2 && baseRadiusProperty.isEditable)
@@ -146,7 +143,7 @@ namespace UnityEditor.VFX
                     {
                         EditorGUI.BeginChangeCheck();
                         var pos = extremities.extremities[i];
-                        var result = Handles.Slider(s_ExtremitiesNames[i], pos, pos - extremities.bottomCap,  handleSize * HandleUtility.GetHandleSize(pos), Handles.CubeHandleCap, 0);
+                        var result = Handles.Slider(s_ExtremitiesNames[i], pos, pos - extremities.bottomCap,  handleSize * HandleUtility.GetHandleSize(pos), CustomCubeHandleCap, 0);
                         if (EditorGUI.EndChangeCheck())
                         {
                             baseRadiusProperty.SetValue(result.magnitude);
@@ -160,9 +157,9 @@ namespace UnityEditor.VFX
                     {
                         EditorGUI.BeginChangeCheck();
 
-                        Vector3 pos = extremities.extremities[i];
-                        Vector3 dir = pos - extremities.topCap;
-                        Vector3 result = Handles.Slider(s_ExtremitiesNames[i], pos, dir, handleSize * HandleUtility.GetHandleSize(pos), Handles.CubeHandleCap, 0);
+                        var pos = extremities.extremities[i];
+                        var dir = pos - extremities.topCap;
+                        var result = Handles.Slider(s_ExtremitiesNames[i], pos, dir, handleSize * HandleUtility.GetHandleSize(pos), CustomCubeHandleCap, 0);
 
                         if (EditorGUI.EndChangeCheck())
                             topRadiusProperty.SetValue((result - extremities.topCap).magnitude);
@@ -172,12 +169,11 @@ namespace UnityEditor.VFX
                 if (heightProperty.isEditable)
                 {
                     EditorGUI.BeginChangeCheck();
-                    Vector3 result = Handles.Slider(s_HeightCapName, extremities.topCap, Vector3.up, handleSize * HandleUtility.GetHandleSize(extremities.topCap), Handles.CubeHandleCap, 0);
+                    var result = Handles.Slider(s_HeightCapName, extremities.topCap, Vector3.up, handleSize * HandleUtility.GetHandleSize(extremities.topCap), CustomCubeHandleCap, 0);
                     if (EditorGUI.EndChangeCheck())
                         heightProperty.SetValue(result.magnitude);
                 }
             }
-            Handles.color = backupColor;
         }
 
         Extremities extremities;
