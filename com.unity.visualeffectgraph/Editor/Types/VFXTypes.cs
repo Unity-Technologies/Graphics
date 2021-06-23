@@ -74,6 +74,19 @@ namespace UnityEditor.VFX
         [Tooltip("Sets the radius of the sphere.")]
         public float radius;
 
+        public static implicit operator TSphere(Sphere v)
+        {
+            return new TSphere()
+            {
+                transform = new Transform()
+                {
+                    position = v.center,
+                    scale = Vector3.one
+                },
+                radius = v.radius
+            };
+        }
+
         public static TSphere defaultValue = new TSphere { transform = Transform.defaultValue, radius = 1.0f };
     }
 
