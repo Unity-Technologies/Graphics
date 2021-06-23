@@ -188,7 +188,9 @@ void Frag(Varyings packedInput, out float4 outColor : SV_Target0)
         return;
     }
 
-    float3 posWS = ComputeWorldSpacePosition(pixelCoord, depthValue, UNITY_MATRIX_I_VP);
+    float2 ndc = pixelCoord * _ScreenSize.zw;
+    //ndc = (ndc);
+    float3 posWS = ComputeWorldSpacePosition(ndc, depthValue, UNITY_MATRIX_I_VP);
     float3 V = GetWorldSpaceNormalizeViewDir(posWS);
     float3 debugVal = 0;
     FragInputs input = EvaluateFragInput(packedInput.positionCS, instanceID, triangleID, posWS, V, debugVal);
