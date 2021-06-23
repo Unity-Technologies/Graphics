@@ -44,6 +44,7 @@ namespace UnityEditor.ShaderGraph
             builder.AppendLine($"[HideInInspector]{referenceName}_colorSpaceVector1(\"{displayName}\", Vector) = (1,1,1,1)");
             builder.AppendLine($"[HideInInspector]{referenceName}_colorSpaceVector2(\"{displayName}\", Vector) = (1,1,1,1)");
             builder.AppendLine($"[HideInInspector]{referenceName}_colorSpaceVector3(\"{displayName}\", Vector) = (1,1,1,1)");
+            builder.AppendLine($"[HideInInspector]{referenceName}_type(\"{displayName}\", Int) = 0");
         }
 
         internal override string GetPropertyBlockString()
@@ -70,6 +71,7 @@ namespace UnityEditor.ShaderGraph
             action(new HLSLProperty(HLSLType._float4, referenceName + "_colorSpaceVector1", HLSLDeclaration.UnityPerMaterial));
             action(new HLSLProperty(HLSLType._float4, referenceName + "_colorSpaceVector2", HLSLDeclaration.UnityPerMaterial));
             action(new HLSLProperty(HLSLType._float4, referenceName + "_colorSpaceVector3", HLSLDeclaration.UnityPerMaterial));
+            action(new HLSLProperty(HLSLType._float, referenceName + "_type", HLSLDeclaration.UnityPerMaterial));
         }
 
         // argument string used to pass this property to a subgraph

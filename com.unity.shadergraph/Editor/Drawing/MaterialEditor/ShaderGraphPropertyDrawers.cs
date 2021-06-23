@@ -244,6 +244,7 @@ namespace UnityEditor.ShaderGraph.Drawing
                     mat.SetVector($"{name}_colorSpaceVector1", newProcTex.colorSpaceVector1);
                     mat.SetVector($"{name}_colorSpaceVector2", newProcTex.colorSpaceVector2);
                     mat.SetVector($"{name}_colorSpaceVector3", newProcTex.colorSpaceVector3);
+                    mat.SetInt($"{name}_type", (int) newProcTex.type);
                 }
             }
         }

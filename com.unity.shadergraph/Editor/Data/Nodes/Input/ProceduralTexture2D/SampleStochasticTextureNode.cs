@@ -130,8 +130,10 @@ namespace UnityEditor.ShaderGraph
 		w3 = w3 / sum;
 
 		float4 G = w1 * G1 + w2 * G2 + w3 * G3;
-		G = G - 0.5;
-		G = G * rsqrt(w1 * w1 + w2 * w2 + w3 * w3);
+		G = G - 0.5;                                        // applied after blending, but can be thought of as applied before blending (optimization to do it after)
+		G = G * rsqrt(w1 * w1 + w2 * w2 + w3 * w3);         // correct to do a 'spherical' interpolation instead of linear
+
+        // apply invT
 		G = G * stex.compressionScalers;
 		G = G + 0.5;
 
@@ -146,14 +148,10 @@ namespace UnityEditor.ShaderGraph
 		{o}.b = stex.invT.SampleLevel(stex.invT.samplerstate, float2(G.b, LOD), 0).b;
 		{o}.a = stex.invT.SampleLevel(stex.invT.samplerstate, float2(G.a, LOD), 0).a;
 
-//        if (stex.type != 2)           // TODO
-//        {
+        if (stex.type != 2)
             {o}.rgb = stex.colorSpaceOrigin + stex.colorSpaceVector1 * {o}.r + stex.colorSpaceVector2 * {o}.g + stex.colorSpaceVector3 * {o}.b;
-//        }
-//        if (stex.type == 1)
-//        {
-//            {o}.rgb = UnpackNormalmapRGorAG({o});
-//        }
+        if (stex.type == 1)
+            {o}.rgb = {o}.rgb * 2.0f - 1.0f;    //UnpackNormalmapRGorAG(o); // not sure -- the remap seems to give better results here than Unpack
 	}
 ";
 

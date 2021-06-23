@@ -314,6 +314,7 @@ namespace UnityEditor.ShaderGraph
                     mat.SetVector($"{name}_colorSpaceVector1", stex.colorSpaceVector1);
                     mat.SetVector($"{name}_colorSpaceVector2", stex.colorSpaceVector2);
                     mat.SetVector($"{name}_colorSpaceVector3", stex.colorSpaceVector3);
+                    mat.SetInt($"{name}_type", (int) stex.type);
                 }
             }
         }

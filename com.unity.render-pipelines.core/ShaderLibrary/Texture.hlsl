@@ -207,6 +207,7 @@ struct UnityStochasticTexture2D
     float4 colorSpaceVector1;
     float4 colorSpaceVector2;
     float4 colorSpaceVector3;
+    int type;                   // ProceduralTexture2D.TextureType:   0 ==> Color, 1 ==> Normal, 2 ==> Other
 
     float4 ApplyInvT(float4 value)
     {
@@ -214,8 +215,8 @@ struct UnityStochasticTexture2D
     }
 };
 
-#define UnityBuildStochasticTexture2DStruct(n) UnityBuildStochasticTexture2DStructInternal(TEXTURE2D_ARGS(n, sampler##n), n##_TexelSize, n##_ST, TEXTURE2D_ARGS(n##_invT, sampler##n##_invT), n##_invT_TexelSize, n##_compressionScalers, n##_colorSpaceOrigin, n##_colorSpaceVector1, n##_colorSpaceVector2, n##_colorSpaceVector3)
-UnityStochasticTexture2D UnityBuildStochasticTexture2DStructInternal(TEXTURE2D_PARAM(tex, samplerstate), float4 texelSize, float4 scaleTranslate, TEXTURE2D_PARAM(invT, invT_samplerstate), float4 invT_texelSize, float4 compressionScalers, float4 colorSpaceOrigin, float4 colorSpaceVector1, float4 colorSpaceVector2, float4 colorSpaceVector3)
+#define UnityBuildStochasticTexture2DStruct(n) UnityBuildStochasticTexture2DStructInternal(TEXTURE2D_ARGS(n, sampler##n), n##_TexelSize, n##_ST, TEXTURE2D_ARGS(n##_invT, sampler##n##_invT), n##_invT_TexelSize, n##_compressionScalers, n##_colorSpaceOrigin, n##_colorSpaceVector1, n##_colorSpaceVector2, n##_colorSpaceVector3, (int) n##_type)
+UnityStochasticTexture2D UnityBuildStochasticTexture2DStructInternal(TEXTURE2D_PARAM(tex, samplerstate), float4 texelSize, float4 scaleTranslate, TEXTURE2D_PARAM(invT, invT_samplerstate), float4 invT_texelSize, float4 compressionScalers, float4 colorSpaceOrigin, float4 colorSpaceVector1, float4 colorSpaceVector2, float4 colorSpaceVector3, int type)
 {
     UnityStochasticTexture2D result;
     result.tex = UnityBuildTexture2DStructInternal(TEXTURE2D_ARGS(tex, samplerstate), texelSize, scaleTranslate);
@@ -225,6 +226,7 @@ UnityStochasticTexture2D UnityBuildStochasticTexture2DStructInternal(TEXTURE2D_P
     result.colorSpaceVector1 = colorSpaceVector1;
     result.colorSpaceVector2 = colorSpaceVector2;
     result.colorSpaceVector3 = colorSpaceVector3;
+    result.type = type;
     return result;
 }
 
