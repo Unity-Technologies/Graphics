@@ -4,7 +4,7 @@ using UnityEngine;
 
 namespace UnityEditor.VFX.Block
 {
-    [VFXInfo(category = "Position", variantProvider = typeof(PositionBaseProvider))]
+    //TODOPAUL : Sanitize this
     class PositionTorus : PositionBase
     {
         public override string name { get { return string.Format(base.name, "Torus"); } }
