@@ -83,7 +83,7 @@ void writeLuminance(int2 dti, int2 gti, int gi, int2 gid)
     int2 outputPos = base + target;
 
     int baseLdsIndex = (target.y * halfThreads.x + target.x) * 4;
-    s_cachedLum[baseLdsIndex + sampleId] = calcLum(MsssTexF(outputPos, sampleId));
+    s_cachedLum[baseLdsIndex + sampleId] = calcLum(MsssTexF(outputPos, sampleId).rgb);
 
     GroupMemoryBarrierWithGroupSync();
 
