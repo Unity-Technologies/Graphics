@@ -13,3 +13,6 @@ MonoBehaviour:
   m_Name: SDF Render Pipeline Asset
   m_EditorClassIdentifier: 
   clearColor: {r: 0, g: 1, b: 0, a: 1}
+  lensRes : 9
+  lensSiz : 2.0
+  focalDis : 11.0
