@@ -21,9 +21,16 @@ namespace UnityEditor.VFX.Operator
 
         override public string name { get { return "Volume (Cylinder) (deprecated)"; } }
 
+        static public VFXExpression CylinderVolume(VFXExpression radius, VFXExpression height)
+        {
+            //pi * r * r * h
+            var pi = VFXValue.Constant(Mathf.PI);
+            return (pi * radius * radius * height);
+        }
+
         protected override sealed VFXExpression[] BuildExpression(VFXExpression[] inputExpression)
         {
-            return new VFXExpression[] { VFXOperatorUtility.CylinderVolume(inputExpression[1], inputExpression[2]) };
+            return new VFXExpression[] { CylinderVolume(inputExpression[1], inputExpression[2]) };
         }
     }
 }
