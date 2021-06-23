@@ -226,6 +226,16 @@ namespace UnityEngine.Rendering.HighDefinition
 
                 ResetCameraMipBias(hdCamera);
 
+                // If we have MSAA, we need to complete the motion vector buffer before buffer resolves, hence we need to run camera mv first.
+                // This is always fine since shouldRenderMotionVectorAfterGBuffer is always false for forward.
+                bool needCameraMVBeforeResolve = msaa;
+                if (needCameraMVBeforeResolve)
+                {
+                    //If MSAA is enabled, we have to disable the stencil optimization. 
+                    //Until we can figure out how to read only stencil, and read depth from SRV, this wont be possible.
+                    //since we would have to bind msaa depth for SRV.
+                    RenderCameraMotionVectors(renderGraph, hdCamera, result.depthBuffer, result.motionVectorsBuffer, msaa);
+                }
                 if (!shouldRenderMotionVectorAfterGBuffer)
                 {
                     // If objects motion vectors are enabled, this will render the objects with motion vector into the target buffers (in addition to the depth)
@@ -233,13 +243,6 @@ namespace UnityEngine.Rendering.HighDefinition
                     RenderObjectsMotionVectors(renderGraph, cullingResults, hdCamera, decalBuffer, result);
                 }
 
-                // If we have MSAA, we need to complete the motion vector buffer before buffer resolves, hence we need to run camera mv first.
-                // This is always fine since shouldRenderMotionVectorAfterGBuffer is always false for forward.
-                bool needCameraMVBeforeResolve = msaa;
-                if (needCameraMVBeforeResolve)
-                {
-                    RenderCameraMotionVectors(renderGraph, hdCamera, result.depthBuffer, result.motionVectorsBuffer, msaa);
-                }
 
                 PreRenderSky(renderGraph, hdCamera, colorBuffer, result.depthBuffer, result.normalBuffer);
 
@@ -1184,6 +1187,7 @@ namespace UnityEngine.Rendering.HighDefinition
             public Material cameraMotionVectorsMaterial;
             public TextureHandle motionVectorsBuffer;
             public TextureHandle depthBuffer;
+            public bool isMSAA;
         }
 
         void RenderCameraMotionVectors(RenderGraph renderGraph, HDCamera hdCamera, TextureHandle depthBuffer, TextureHandle motionVectorsBuffer, bool isMSAA = false)
@@ -1197,20 +1201,30 @@ namespace UnityEngine.Rendering.HighDefinition
                 // If the flag hasn't been set yet on this camera, motion vectors will skip a frame.
                 hdCamera.camera.depthTextureMode |= DepthTextureMode.MotionVectors | DepthTextureMode.Depth;
 
+                passData.isMSAA = isMSAA;
                 passData.cameraMotionVectorsMaterial = isMSAA ? m_CameraMotionVectorsMaterialMS : m_CameraMotionVectorsMaterial;
-                //passData.depthBuffer = builder.ReadTexture(depthBuffer);
-                passData.depthBuffer = builder.UseDepthBuffer(depthBuffer, DepthAccess.ReadWrite);
+                passData.depthBuffer = isMSAA ? builder.ReadTexture(depthBuffer) : builder.UseDepthBuffer(depthBuffer, DepthAccess.ReadWrite);
                 passData.motionVectorsBuffer = builder.WriteTexture(motionVectorsBuffer);
 
                 builder.SetRenderFunc(
                     (CameraMotionVectorsPassData data, RenderGraphContext context) =>
                     {
-                        //data.cameraMotionVectorsMaterial.SetTexture(HDShaderIDs._CameraMotionVectorsInputDepth, data.depthBuffer);
                         data.cameraMotionVectorsMaterial.SetInt(HDShaderIDs._StencilMask, (int)StencilUsage.ObjectMotionVector);
                         data.cameraMotionVectorsMaterial.SetInt(HDShaderIDs._StencilRef, (int)StencilUsage.ObjectMotionVector);
-                        HDUtils.DrawFullScreen(
-                            context.cmd, data.cameraMotionVectorsMaterial,
-                            data.motionVectorsBuffer, data.depthBuffer, null, 0);
+                        if (data.isMSAA)
+                        {
+                            data.cameraMotionVectorsMaterial.SetTexture(HDShaderIDs._CameraMotionVectorsInputDepthMS, data.depthBuffer);
+                            HDUtils.DrawFullScreen(
+                                context.cmd, data.cameraMotionVectorsMaterial,
+                                data.motionVectorsBuffer, null, 0);
+                        }
+                        else
+                        {
+                            //input depth comes from _CameraDepthTexture which is the pyramid.
+                            HDUtils.DrawFullScreen(
+                                context.cmd, data.cameraMotionVectorsMaterial,
+                                data.motionVectorsBuffer, data.depthBuffer, null, 0);
+                        }
                     });
             }
         }

@@ -143,6 +143,7 @@ namespace UnityEngine.Rendering.HighDefinition
         bool m_FilmGrainFS;
         bool m_DitheringFS;
         bool m_AntialiasingFS;
+        bool m_AllowTAA;
 
         // Debug Exposure compensation (Drive by debug menu) to add to all exposure processed value
         float m_DebugExposureCompensation;
@@ -353,6 +354,7 @@ namespace UnityEngine.Rendering.HighDefinition
             m_FilmGrainFS = frameSettings.IsEnabled(FrameSettingsField.FilmGrain);
             m_DitheringFS = frameSettings.IsEnabled(FrameSettingsField.Dithering);
             m_AntialiasingFS = frameSettings.IsEnabled(FrameSettingsField.Antialiasing);
+            m_AllowTAA = !HDRenderPipeline.IsMSSSEnabled();
 
             // Override full screen anti-aliasing when doing path tracing (which is naturally anti-aliased already)
             m_AntialiasingFS &= !m_PathTracing.enable.value;
@@ -383,6 +385,11 @@ namespace UnityEngine.Rendering.HighDefinition
 
             if (m_DLSSPass != null)
                 m_DLSSPass.BeginFrame(camera);
+        }
+
+        bool IsTAAEnabled(HDCamera camera)
+        {
+            return camera.antialiasing == HDAdditionalCameraData.AntialiasingMode.TemporalAntialiasing && m_AllowTAA;
         }
 
         static void ValidateComputeBuffer(ref ComputeBuffer cb, int size, int stride, ComputeBufferType type = ComputeBufferType.Default)
@@ -490,7 +497,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 // Temporal anti-aliasing goes first
                 if (m_AntialiasingFS)
                 {
-                    if (hdCamera.antialiasing == HDAdditionalCameraData.AntialiasingMode.TemporalAntialiasing)
+                    if (IsTAAEnabled(hdCamera))
                     {
                         source = DoTemporalAntialiasing(renderGraph, hdCamera, depthBuffer, motionVectors, depthBufferMipChain, source, postDoF: false, "TAA Destination");
                     }
@@ -2606,7 +2613,7 @@ namespace UnityEngine.Rendering.HighDefinition
         {
             bool postDoFTAAEnabled = false;
             bool isSceneView = hdCamera.camera.cameraType == CameraType.SceneView;
-            bool taaEnabled = hdCamera.antialiasing == HDAdditionalCameraData.AntialiasingMode.TemporalAntialiasing;
+            bool taaEnabled = IsTAAEnabled(hdCamera);
 
             // If Path tracing is enabled, then DoF is computed in the path tracer by sampling the lens aperure (when using the physical camera mode)
             bool isDoFPathTraced = (hdCamera.frameSettings.IsEnabled(FrameSettingsField.RayTracing) &&
@@ -3445,8 +3452,8 @@ namespace UnityEngine.Rendering.HighDefinition
 
             const int xThreads = 8;
             const int yThreads = 8;
-            int dispatchX = HDUtils.DivRoundUp(Mathf.RoundToInt(parameters.outputWidth),  xThreads);
-            int dispatchY = HDUtils.DivRoundUp(Mathf.RoundToInt(parameters.outputHeight), yThreads);
+            int dispatchX = HDUtils.DivRoundUp(Mathf.RoundToInt(parameters.inputWidth),  xThreads);
+            int dispatchY = HDUtils.DivRoundUp(Mathf.RoundToInt(parameters.inputHeight), yThreads);
             cmd.DispatchCompute(cs, kernel, dispatchX, dispatchY, parameters.viewCount);
         }
 

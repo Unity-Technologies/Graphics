@@ -20,9 +20,7 @@ Shader "Hidden/HDRP/CameraMotionVectors"
         #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Builtin/BuiltinData.hlsl"
 
         #ifdef MSAA_ENABLED
-        TEXTURE2D_X_MSAA(float4, _CameraMotionVectorsInputDepth);
-        #else
-        TEXTURE2D_X(_CameraMotionVectorsInputDepth);
+        TEXTURE2D_X_MSAA(float4, _CameraMotionVectorsInputDepthMS);
         #endif
 
         struct Attributes
@@ -56,9 +54,8 @@ Shader "Hidden/HDRP/CameraMotionVectors"
             UNITY_SETUP_STEREO_EYE_INDEX_POST_VERTEX(input);
 
             #ifdef MSAA_ENABLED
-            float depth = LOAD_TEXTURE2D_X_MSAA(_CameraMotionVectorsInputDepth, input.positionCS.xy, sampleId).r;
+            float depth = LOAD_TEXTURE2D_X_MSAA(_CameraMotionVectorsInputDepthMS, input.positionCS.xy, sampleId).r;
             #else
-            //float depth = LOAD_TEXTURE2D_X_LOD(_CameraMotionVectorsInputDepth, input.positionCS.xy, 0).r;
             float depth = LoadCameraDepth(input.positionCS.xy);
             #endif
 
@@ -114,7 +111,7 @@ Shader "Hidden/HDRP/CameraMotionVectors"
             }
 
             Cull Off ZWrite Off
-            ZTest Less // Required for XR occlusion mesh optimization
+            ZTest Always
 
             HLSLPROGRAM
 
