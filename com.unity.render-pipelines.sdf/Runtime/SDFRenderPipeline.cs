@@ -77,11 +77,6 @@ namespace UnityEngine.Rendering.SDFRP
 
         protected override void Render(ScriptableRenderContext context, Camera[] cameras)
         {
-            CommandBuffer cmd = new CommandBuffer();
-            cmd.name = "My SETUP";
-            cmd.ClearRenderTarget(false, true, currentAsset.clearColor);
-            cmd.SetViewport(cameras[0].pixelRect);
-
             // SDFRenderer[] SDFObjects = GameObject.FindObjectsOfType<SDFRenderer>();
             // ComputeBuffer SDFHeaderData = new ComputeBuffer(SDFObjects.Length, UnsafeUtility.SizeOf<ObjectHeader>(), ComputeBufferType.Default);
             // ComputeBuffer SDFData = GetDataFromSceneGraph(SDFObjects, SDFHeaderData);
@@ -153,7 +148,7 @@ namespace UnityEngine.Rendering.SDFRP
                         CommandBuffer cmd1 = new CommandBuffer();
                         cmd1.name = "DepthOfField";
                         cmd1.SetViewport(camera.pixelRect);
-
+                        cmd1.SetRenderTarget(camera.targetTexture);
                         cmd1.SetViewMatrix(camera.worldToCameraMatrix);
                         cmd1.SetProjectionMatrix(camera.projectionMatrix);
                         cmd1.SetGlobalColor("BackgroundColor", currentAsset.clearColor);
@@ -259,7 +254,13 @@ namespace UnityEngine.Rendering.SDFRP
             foreach (Camera camera in cameras)
             {
                 CommandBuffer cmd1 = new CommandBuffer();
+                if (camera.cameraType == CameraType.Preview)
+                {
+                    Debug.LogError(camera.pixelRect);
+                }
                 cmd1.SetViewport(camera.pixelRect);
+
+                cmd1.SetRenderTarget(camera.targetTexture);
                 cmd1.ClearRenderTarget(false, true, currentAsset.clearColor);
                 cmd1.SetViewMatrix(camera.worldToCameraMatrix);
                 cmd1.SetProjectionMatrix(camera.projectionMatrix);
