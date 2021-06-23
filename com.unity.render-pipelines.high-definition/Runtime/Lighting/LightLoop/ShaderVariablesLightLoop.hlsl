@@ -31,10 +31,3 @@ TEXTURE2D_ARRAY(_ScreenSpaceShadowsTexture);
 
 // Indirect Diffuse Texture
 TEXTURE2D_X(_IndirectDiffuseTexture);
-
-// VBuffer
-StructuredBuffer<CompactVertex> _CompactedVertexBuffer;
-StructuredBuffer<uint> _CompactedIndexBuffer;
-StructuredBuffer<InstanceVData> _InstanceVDataBuffer;
-TEXTURE2D_X_UINT(_VBuffer0);
-TEXTURE2D_X_UINT(_VBuffer1);

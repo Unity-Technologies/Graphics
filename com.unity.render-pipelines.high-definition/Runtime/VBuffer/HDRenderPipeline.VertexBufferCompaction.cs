@@ -18,6 +18,7 @@ namespace UnityEngine.Rendering.HighDefinition
         ComputeBuffer CompactedIB = null;
         ComputeBuffer InstanceVDataB = null;
         Material m_VisibilityBufferMaterial = null;
+        Material m_CreateMaterialDepthMaterial = null;
 
         Dictionary<Material, int> materials = new Dictionary<Material, int>();
 
@@ -52,11 +53,13 @@ namespace UnityEngine.Rendering.HighDefinition
             InstanceVDataB = null;
             m_VisibilityBufferMaterial = CoreUtils.CreateEngineMaterial(defaultResources.shaders.renderVisibilityBufferPS);
             m_VisibilityBufferMaterial.enableInstancing = true;
+            m_CreateMaterialDepthMaterial = CoreUtils.CreateEngineMaterial(defaultResources.shaders.createMaterialDepthPS);
         }
 
         void DisposeVBufferStuff()
         {
             CoreUtils.Destroy(m_VisibilityBufferMaterial);
+            CoreUtils.Destroy(m_CreateMaterialDepthMaterial);
             CoreUtils.SafeRelease(CompactedIB);
             CoreUtils.SafeRelease(CompactedVB);
             CoreUtils.SafeRelease(InstanceVDataB);

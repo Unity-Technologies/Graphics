@@ -356,6 +356,8 @@ namespace UnityEngine.Rendering.HighDefinition
             public ComputeShader vbCompactionCS;
             [Reload("Runtime/VBuffer/RenderVisibilityBuffer.shader")]
             public Shader renderVisibilityBufferPS;
+            [Reload("Runtime/VBuffer/CreateMaterialDepth.shader")]
+            public Shader createMaterialDepthPS;
 
 #if UNITY_EDITOR
             // Iterator to retrieve all compute shaders in reflection so we don't have to keep a list of
