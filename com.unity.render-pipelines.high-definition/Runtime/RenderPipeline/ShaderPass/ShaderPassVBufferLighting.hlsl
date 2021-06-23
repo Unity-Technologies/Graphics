@@ -102,7 +102,7 @@ FragInputs EvaluateFragInput(float4 posSS, uint instanceID, uint triangleID, flo
 
     // Compute the supporting plane properties
     float3 triangleCenter = (pos0WS + pos1WS + pos2WS) / 3.0;
-    float3 triangleNormal = normalize(cross(pos1WS - pos0WS, pos2WS - pos0WS));
+    float3 triangleNormal = normalize(cross(pos2WS - pos0WS, pos1WS - pos0WS));
 
     // Compute the world to plane matrix
     float3 yLocalPlane = normalize(pos1WS - pos0WS);
@@ -113,7 +113,7 @@ FragInputs EvaluateFragInput(float4 posSS, uint instanceID, uint triangleID, flo
     float3 projected0WS = mul(worldToPlaneMatrix, pos0WS - dot(pos0WS - triangleCenter, triangleNormal) * triangleNormal);
     float3 projected1WS = mul(worldToPlaneMatrix, pos1WS - dot(pos1WS - triangleCenter, triangleNormal) * triangleNormal);
     float3 projected2WS = mul(worldToPlaneMatrix, pos2WS - dot(pos2WS - triangleCenter, triangleNormal) * triangleNormal);
-    
+
     // Evaluate the barycentrics
     float3 barycentricCoordinates = ComputeBarycentricCoords(projectedWS.xy, projected0WS.xy, projected1WS.xy, projected2WS.xy);
 
@@ -152,7 +152,7 @@ FragInputs EvaluateFragInput(float4 posSS, uint instanceID, uint triangleID, flo
     outFragInputs.texCoord0 = float4(texCoord0, 0.0, 1.0);
     //outFragInputs.tangentToWorld = CreateTangentToWorld(normalWS, tangentWS, 1.0);
     outFragInputs.tangentToWorld = CreateTangentToWorld(normalWS, tangentWS, sign(tangentOS.w));
-    outFragInputs.isFrontFace = dot(V, outFragInputs.tangentToWorld[2]) < 0.0f;
+    outFragInputs.isFrontFace = dot(V, outFragInputs.tangentToWorld[2]) > 0.0f;
     return outFragInputs;
 }
 
@@ -197,9 +197,16 @@ void Frag(Varyings packedInput, out float4 outColor : SV_Target0)
     LightLoopOutput lightLoopOutput;
     LightLoop(V, posInput, preLightData, bsdfData, builtinData, featureFlags, lightLoopOutput);
 
-    outColor.xyz = lightLoopOutput.diffuseLighting * GetCurrentExposureMultiplier();
+    float3 diffuseLighting = lightLoopOutput.diffuseLighting;
+    float3 specularLighting = lightLoopOutput.specularLighting;
+
+    diffuseLighting *= GetCurrentExposureMultiplier();
+    specularLighting *= GetCurrentExposureMultiplier();
+
+    outColor = float4(diffuseLighting + specularLighting, 1.0);
+
     outColor.a = 1;
-    outColor.xyz = bsdfData.diffuseColor;
+    //outColor.xyz = bsdfData.normalWS;
     //outColor.xyz = debugVal;
 
 }

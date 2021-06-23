@@ -84,9 +84,13 @@ namespace UnityEngine.Rendering.HighDefinition
             public ComputeBufferHandle vertexBuffer;
             public ComputeBufferHandle indexBuffer;
             public ComputeBufferHandle instancedDataBuffer;
+            public ComputeBufferHandle lightListBuffer;
+            public ComputeBufferHandle tileFeatureFlagsBuffer;
+            public ComputeBufferHandle tileListBuffer;
         }
 
-        TextureHandle RenderVBufferLighting(RenderGraph renderGraph, CullingResults cullingResults, HDCamera hdCamera, VBufferOutput vBufferOutput, TextureHandle materialDepthBuffer, TextureHandle colorBuffer)
+        TextureHandle RenderVBufferLighting(RenderGraph renderGraph, CullingResults cullingResults, HDCamera hdCamera, VBufferOutput vBufferOutput, TextureHandle materialDepthBuffer, TextureHandle colorBuffer,
+            in BuildGPULightListOutput lightLists)
         {
             if (InstanceVDataB == null || CompactedVB == null || CompactedIB == null) return colorBuffer;
 
@@ -100,6 +104,9 @@ namespace UnityEngine.Rendering.HighDefinition
                 passData.vertexBuffer = renderGraph.ImportComputeBuffer(CompactedVB);
                 passData.indexBuffer = renderGraph.ImportComputeBuffer(CompactedIB);
                 passData.instancedDataBuffer = renderGraph.ImportComputeBuffer(InstanceVDataB);
+                passData.lightListBuffer = builder.ReadComputeBuffer(lightLists.lightList);
+                passData.tileFeatureFlagsBuffer = builder.ReadComputeBuffer(lightLists.tileFeatureFlags);
+                passData.tileListBuffer = builder.ReadComputeBuffer(lightLists.tileList);
 
                 builder.SetRenderFunc(
                     (VBufferLightingPassData data, RenderGraphContext context) =>
@@ -108,6 +115,9 @@ namespace UnityEngine.Rendering.HighDefinition
                         context.cmd.SetGlobalBuffer("_CompactedIndexBuffer", data.indexBuffer);
                         context.cmd.SetGlobalBuffer("_InstanceVDataBuffer", data.instancedDataBuffer);
                         context.cmd.SetGlobalTexture("_VBuffer0", data.vbuffer0);
+
+                        context.cmd.SetGlobalBuffer(HDShaderIDs.g_vLightListGlobal, data.lightListBuffer);
+
 
                         var materialList = materials.Keys.ToArray();
                         for (int matIdx = 0; matIdx < materialList.Length; ++matIdx)
