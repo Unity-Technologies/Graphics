@@ -5,7 +5,7 @@ using UnityEngine;
 namespace UnityEditor.VFX.Block
 {
     //TODOPAUL : Sanitize this
-    class PositionTorus : PositionBase
+    class PositionTorusDeprecated : PositionBase
     {
         public override string name { get { return string.Format(base.name, "Torus"); } }
         protected override float thicknessDimensions { get { return 2.0f; } }
