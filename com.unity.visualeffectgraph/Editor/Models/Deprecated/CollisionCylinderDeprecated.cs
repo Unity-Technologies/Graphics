@@ -3,9 +3,9 @@ using UnityEngine;
 namespace UnityEditor.VFX.Block
 {
     //TODOPAUL : Sanitize this
-    class CollisionCylinder : CollisionBase
+    class CollisionCylinderDeprecated : CollisionBase
     {
-        public override string name { get { return "Collide with Cylinder"; } }
+        public override string name { get { return "Collide with Cylinder (deprecated)"; } }
 
         public class InputProperties
         {
