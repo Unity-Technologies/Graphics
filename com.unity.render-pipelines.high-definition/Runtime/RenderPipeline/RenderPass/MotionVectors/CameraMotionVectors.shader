@@ -10,12 +10,20 @@ Shader "Hidden/HDRP/CameraMotionVectors"
 
         #pragma target 4.5
 
+        #pragma multi_compile __ MSAA_ENABLED
+
         #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Common.hlsl"
         #include "Packages/com.unity.render-pipelines.high-definition/Runtime/ShaderLibrary/ShaderVariables.hlsl"
         #include "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/ShaderPass/FragInputs.hlsl"
         #include "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/ShaderPass/VaryingMesh.hlsl"
         #include "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/ShaderPass/VertMesh.hlsl"
         #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Builtin/BuiltinData.hlsl"
+
+        #ifdef MSAA_ENABLED
+        TEXTURE2D_X_MSAA(float4, _CameraMotionVectorsInputDepth);
+        #else
+        TEXTURE2D_X(_CameraMotionVectorsInputDepth);
+        #endif
 
         struct Attributes
         {
@@ -38,11 +46,21 @@ Shader "Hidden/HDRP/CameraMotionVectors"
             return output;
         }
 
-        void Frag(Varyings input, out float4 outColor : SV_Target0)
+        void Frag(
+            Varyings input
+#ifdef MSAA_ENABLED
+            , uint sampleId : SV_SampleIndex
+#endif
+            , out float4 outColor : SV_Target0)
         {
             UNITY_SETUP_STEREO_EYE_INDEX_POST_VERTEX(input);
 
+            #ifdef MSAA_ENABLED
+            float depth = LOAD_TEXTURE2D_X_MSAA(_CameraMotionVectorsInputDepth, input.positionCS.xy, sampleId).r;
+            #else
+            //float depth = LOAD_TEXTURE2D_X_LOD(_CameraMotionVectorsInputDepth, input.positionCS.xy, 0).r;
             float depth = LoadCameraDepth(input.positionCS.xy);
+            #endif
 
             PositionInputs posInput = GetPositionInput(input.positionCS.xy, _ScreenSize.zw, depth, UNITY_MATRIX_I_VP, UNITY_MATRIX_V);
 

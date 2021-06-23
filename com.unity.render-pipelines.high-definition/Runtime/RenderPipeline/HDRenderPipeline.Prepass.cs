@@ -8,6 +8,7 @@ namespace UnityEngine.Rendering.HighDefinition
     {
         Material m_DepthResolveMaterial;
         Material m_CameraMotionVectorsMaterial;
+        Material m_CameraMotionVectorsMaterialMS;
         Material m_DecalNormalBufferMaterial;
         Material m_DownsampleDepthMaterialHalfresCheckerboard;
         Material m_DownsampleDepthMaterialGather;
@@ -32,6 +33,8 @@ namespace UnityEngine.Rendering.HighDefinition
         {
             m_DepthResolveMaterial = CoreUtils.CreateEngineMaterial(asset.renderPipelineResources.shaders.depthValuesPS);
             m_CameraMotionVectorsMaterial = CoreUtils.CreateEngineMaterial(defaultResources.shaders.cameraMotionVectorsPS);
+            m_CameraMotionVectorsMaterialMS = CoreUtils.CreateEngineMaterial(defaultResources.shaders.cameraMotionVectorsPS);
+            m_CameraMotionVectorsMaterialMS.EnableKeyword("MSAA_ENABLED");
             m_DecalNormalBufferMaterial = CoreUtils.CreateEngineMaterial(defaultResources.shaders.decalNormalBufferPS);
             m_DownsampleDepthMaterialHalfresCheckerboard = CoreUtils.CreateEngineMaterial(defaultResources.shaders.downsampleDepthPS);
             m_DownsampleDepthMaterialGather = CoreUtils.CreateEngineMaterial(defaultResources.shaders.downsampleDepthPS);
@@ -55,6 +58,7 @@ namespace UnityEngine.Rendering.HighDefinition
         {
             CoreUtils.Destroy(m_DepthResolveMaterial);
             CoreUtils.Destroy(m_CameraMotionVectorsMaterial);
+            CoreUtils.Destroy(m_CameraMotionVectorsMaterialMS);
             CoreUtils.Destroy(m_DecalNormalBufferMaterial);
             CoreUtils.Destroy(m_DownsampleDepthMaterialHalfresCheckerboard);
             CoreUtils.Destroy(m_DownsampleDepthMaterialGather);
@@ -234,7 +238,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 bool needCameraMVBeforeResolve = msaa;
                 if (needCameraMVBeforeResolve)
                 {
-                    RenderCameraMotionVectors(renderGraph, hdCamera, result.depthBuffer, result.motionVectorsBuffer);
+                    RenderCameraMotionVectors(renderGraph, hdCamera, result.depthBuffer, result.motionVectorsBuffer, msaa);
                 }
 
                 PreRenderSky(renderGraph, hdCamera, colorBuffer, result.depthBuffer, result.normalBuffer);
@@ -1182,7 +1186,7 @@ namespace UnityEngine.Rendering.HighDefinition
             public TextureHandle depthBuffer;
         }
 
-        void RenderCameraMotionVectors(RenderGraph renderGraph, HDCamera hdCamera, TextureHandle depthBuffer, TextureHandle motionVectorsBuffer)
+        void RenderCameraMotionVectors(RenderGraph renderGraph, HDCamera hdCamera, TextureHandle depthBuffer, TextureHandle motionVectorsBuffer, bool isMSAA = false)
         {
             if (!hdCamera.frameSettings.IsEnabled(FrameSettingsField.MotionVectors))
                 return;
@@ -1193,16 +1197,20 @@ namespace UnityEngine.Rendering.HighDefinition
                 // If the flag hasn't been set yet on this camera, motion vectors will skip a frame.
                 hdCamera.camera.depthTextureMode |= DepthTextureMode.MotionVectors | DepthTextureMode.Depth;
 
-                passData.cameraMotionVectorsMaterial = m_CameraMotionVectorsMaterial;
+                passData.cameraMotionVectorsMaterial = isMSAA ? m_CameraMotionVectorsMaterialMS : m_CameraMotionVectorsMaterial;
+                //passData.depthBuffer = builder.ReadTexture(depthBuffer);
                 passData.depthBuffer = builder.UseDepthBuffer(depthBuffer, DepthAccess.ReadWrite);
                 passData.motionVectorsBuffer = builder.WriteTexture(motionVectorsBuffer);
 
                 builder.SetRenderFunc(
                     (CameraMotionVectorsPassData data, RenderGraphContext context) =>
                     {
+                        //data.cameraMotionVectorsMaterial.SetTexture(HDShaderIDs._CameraMotionVectorsInputDepth, data.depthBuffer);
                         data.cameraMotionVectorsMaterial.SetInt(HDShaderIDs._StencilMask, (int)StencilUsage.ObjectMotionVector);
                         data.cameraMotionVectorsMaterial.SetInt(HDShaderIDs._StencilRef, (int)StencilUsage.ObjectMotionVector);
-                        HDUtils.DrawFullScreen(context.cmd, data.cameraMotionVectorsMaterial, data.motionVectorsBuffer, data.depthBuffer, null, 0);
+                        HDUtils.DrawFullScreen(
+                            context.cmd, data.cameraMotionVectorsMaterial,
+                            data.motionVectorsBuffer, data.depthBuffer, null, 0);
                     });
             }
         }

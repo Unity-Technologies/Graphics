@@ -327,6 +327,7 @@ namespace UnityEngine.Rendering.HighDefinition
         public static readonly int _RaytracePrepassBufferMS = Shader.PropertyToID("_RaytracePrepassBufferMS");
         public static readonly int _MotionVectorTextureMS = Shader.PropertyToID("_MotionVectorTextureMS");
         public static readonly int _CameraDepthValuesTexture = Shader.PropertyToID("_CameraDepthValues");
+        public static readonly int _CameraMotionVectorsInputDepth = Shader.PropertyToID("_CameraMotionVectorsInputDepth");
 
         public static readonly int[] _GBufferTexture =
         {

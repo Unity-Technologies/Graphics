@@ -683,7 +683,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
         internal bool RequiresCameraJitter()
         {
-            return (antialiasing == AntialiasingMode.TemporalAntialiasing || IsDLSSEnabled()) && !HDRenderPipeline.IsMSSSEnabled();
+            return (antialiasing == AntialiasingMode.TemporalAntialiasing || IsDLSSEnabled());// && !HDRenderPipeline.IsMSSSEnabled();
         }
 
         internal bool IsSSREnabled(bool transparent = false)
