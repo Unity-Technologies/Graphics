@@ -55,7 +55,7 @@ float calcLum(float3 colorIn)
     return max(colorIn.r, max(colorIn.g, colorIn.b));
 }
 
-#if 1
+#if 0
 //non optimized
 void writeLuminance(int2 dti, int2 gti, int gi, int2 gid)
 {
@@ -76,12 +76,24 @@ groupshared float s_cachedLum[THREAD_TOTAL];
 
 void writeLuminance(int2 dti, int2 gti, int gi, int2 gid)
 {
-    int2 base = gid * int2(THREAD_X >> 1, THREAD_Y >> 1);
+    int2 halfThreads = int2(THREAD_X >> 1, THREAD_Y >> 1);
+    int2 base = gid * halfThreads;
     int2 target = gti.xy >> 1;
+    int sampleId = (gti.x & 0x1) + ((gti.y & 0x1) << 0x1);
     int2 outputPos = base + target;
-    if (all(outputPos < _SourceSize.xy))
+
+    int baseLdsIndex = (target.y * halfThreads.x + target.x) * 4;
+    s_cachedLum[baseLdsIndex + sampleId] = calcLum(MsssTexF(outputPos, sampleId));
+
+    GroupMemoryBarrierWithGroupSync();
+
+    if (all(outputPos < _SourceSize.xy) && sampleId == 0)
     {
-        _OutputMSSSLuminance[COORD_TEXTURE2D_X(outputPos)] = float4(target.x / 4.0,0,0,0);
+        _OutputMSSSLuminance[COORD_TEXTURE2D_X(outputPos)] = float4(
+            s_cachedLum[baseLdsIndex + 0],
+            s_cachedLum[baseLdsIndex + 1],
+            s_cachedLum[baseLdsIndex + 2],
+            s_cachedLum[baseLdsIndex + 3]);
     }
 }
 #endif
