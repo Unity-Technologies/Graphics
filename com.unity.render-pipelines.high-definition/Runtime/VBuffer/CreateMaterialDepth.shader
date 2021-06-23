@@ -52,7 +52,7 @@ Shader "Hidden/HDRP/CreateMaterialDepth"
             uint materialID = instanceVData.materialIndex;
 
             // We assume a maximum of 65536 materials in scene.
-            outDepth = float(materialID) / 65535;
+            outDepth = float(materialID) / (float)(0xffff);
         }
 
         ENDHLSL

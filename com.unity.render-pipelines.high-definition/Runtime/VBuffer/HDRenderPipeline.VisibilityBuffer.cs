@@ -81,9 +81,9 @@ namespace UnityEngine.Rendering.HighDefinition
             public TextureHandle colorBuffer;
             public TextureHandle vbuffer0;
             public TextureHandle materialDepthBuffer;
-            public TextureHandle depthBuffer;
             public ComputeBufferHandle vertexBuffer;
             public ComputeBufferHandle indexBuffer;
+            public ComputeBufferHandle instancedDataBuffer;
         }
 
         TextureHandle RenderVBufferLighting(RenderGraph renderGraph, CullingResults cullingResults, HDCamera hdCamera, VBufferOutput vBufferOutput, TextureHandle materialDepthBuffer, TextureHandle colorBuffer)
@@ -94,22 +94,26 @@ namespace UnityEngine.Rendering.HighDefinition
             {
                 builder.AllowRendererListCulling(false);
 
-                passData.colorBuffer = builder.WriteTexture(colorBuffer);
+                passData.colorBuffer = builder.UseColorBuffer(colorBuffer, 0);
                 passData.vbuffer0 = builder.ReadTexture(vBufferOutput.vBuffer0);
-
-                builder.UseDepthBuffer(materialDepthBuffer, DepthAccess.Read);
-                builder.UseColorBuffer(colorBuffer, 0);
+                passData.materialDepthBuffer = builder.UseDepthBuffer(materialDepthBuffer, DepthAccess.ReadWrite);
+                passData.vertexBuffer = renderGraph.ImportComputeBuffer(CompactedVB);
+                passData.indexBuffer = renderGraph.ImportComputeBuffer(CompactedIB);
+                passData.instancedDataBuffer = renderGraph.ImportComputeBuffer(InstanceVDataB);
 
                 builder.SetRenderFunc(
                     (VBufferLightingPassData data, RenderGraphContext context) =>
                     {
-                        context.cmd.SetGlobalBuffer("_CompactedVertexBuffer", CompactedVB);
-                        context.cmd.SetGlobalBuffer("_CompactedIndexBuffer", CompactedIB);
-                        context.cmd.SetGlobalBuffer("_InstanceVDataBuffer", InstanceVDataB);
+                        context.cmd.SetGlobalBuffer("_CompactedVertexBuffer", data.vertexBuffer);
+                        context.cmd.SetGlobalBuffer("_CompactedIndexBuffer", data.indexBuffer);
+                        context.cmd.SetGlobalBuffer("_InstanceVDataBuffer", data.instancedDataBuffer);
                         context.cmd.SetGlobalTexture("_VBuffer0", data.vbuffer0);
 
-                        foreach (var material in materials.Keys)
+                        var materialList = materials.Keys.ToArray();
+                        for (int matIdx = 0; matIdx < materialList.Length; ++matIdx)
                         {
+                            var material = materialList[matIdx];
+
                             var passIdx = -1;
                             for (int i = 0; i < material.passCount; ++i)
                             {
@@ -119,9 +123,11 @@ namespace UnityEngine.Rendering.HighDefinition
                                     break;
                                 }
                             }
+
                             if (passIdx == -1) continue;
 
-                            HDUtils.DrawFullScreen(context.cmd, material, data.colorBuffer, shaderPassId: passIdx);
+                            context.cmd.SetGlobalInt("_CurrMaterialID", materials[material]);
+                            HDUtils.DrawFullScreen(context.cmd, material, data.colorBuffer, data.materialDepthBuffer, null, shaderPassId: passIdx);
                         }
                     });
 

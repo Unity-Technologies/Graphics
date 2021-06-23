@@ -18,6 +18,8 @@ struct Attributes
     UNITY_VERTEX_INPUT_INSTANCE_ID
 };
 
+int _CurrMaterialID;
+
 Varyings Vert(Attributes inputMesh)
 {
     Varyings output;
@@ -25,6 +27,13 @@ Varyings Vert(Attributes inputMesh)
     UNITY_INITIALIZE_VERTEX_OUTPUT_STEREO(output);
     output.positionCS = GetFullScreenTriangleVertexPosition(inputMesh.vertexID);
     output.texcoord = GetFullScreenTriangleTexCoord(inputMesh.vertexID);
+
+    float testDepth = float(_CurrMaterialID) / (float)(0xffff);
+
+    output.positionCS.xy /= output.positionCS.w;
+    output.positionCS.z = testDepth;
+    output.positionCS.w = 1;
+
     return output;
 }
 
@@ -45,6 +54,13 @@ float3 ComputeBarycentricCoords(float2 p, float2 a, float2 b, float2 c)
     barycentricCoords.x = 1.0f - barycentricCoords.y - barycentricCoords.z;
     return barycentricCoords;
 }
+
+
+float3 MeTestey(float3 v0, float3 v1, float3 v2)
+{
+
+}
+
 
 float2 DecompressVector2(uint direction)
 {
@@ -97,12 +113,24 @@ FragInputs EvaluateFragInput(float4 posSS, uint instanceID, uint triangleID, flo
     float4 pos1 = mul(UNITY_MATRIX_VP, float4(pos1WS, 1.0));
     float4 pos2 = mul(UNITY_MATRIX_VP, float4(pos2WS, 1.0));
 
-    pos0.xyz /= pos0.w;
-    pos1.xyz /= pos1.w;
-    pos2.xyz /= pos2.w;
+    //pos0.xyz /= pos0.w;
+    //pos1.xyz /= pos1.w;
+    //pos2.xyz /= pos2.w;
 
-    float3 barycentricCoordinates = ComputeBarycentricCoords(posSS * _ScreenSize.zw, ToNDC(pos0.xy), ToNDC(pos1.xy), ToNDC(pos2.xy)).xyz;
+    //float3 barycentricCoordinates = ComputeBarycentricCoords(posSS * _ScreenSize.zw, ToNDC(pos0.xy), ToNDC(pos1.xy), ToNDC(pos2.xy)).xyz;
 
+   // {
+        // Compute the supporting plane properties
+        float3 triangleCenter = 0;// (pos0WS + pos1WS + pos2WS) / 3.0;
+        float3 triangleNormal = normalize(cross(pos1WS - pos0WS, pos2WS - pos0WS));
+        // Project all point onto the 2d supporting plane
+        float3 projectedWS = posWS - dot(posWS - triangleCenter, triangleNormal) * triangleNormal;
+        float3 projected0WS = pos0WS - dot(pos0WS - triangleCenter, triangleNormal) * triangleNormal;
+        float3 projected1WS = pos1WS - dot(pos1WS - triangleCenter, triangleNormal) * triangleNormal;
+        float3 projected2WS = pos2WS - dot(pos2WS - triangleCenter, triangleNormal) * triangleNormal;
+        // Evaluate the barycentrics
+        float3 barycentricCoordinates = ComputeBarycentricCoords(projectedWS.xz, projected0WS.xz, projected1WS.xz, projected2WS.xz);
+    //}
 
     // Get normal at position
     float3 normalOS0 = v0.N;
@@ -129,7 +157,7 @@ FragInputs EvaluateFragInput(float4 posSS, uint instanceID, uint triangleID, flo
 
 
     // DEBG
-    debugValue = normalWS * 0.5 + 0.5;// float3(texCoord0.xy, 0);
+    debugValue = barycentricCoordinates;// float3(texCoord0.xy, 0);
     ///
 
     FragInputs outFragInputs;
@@ -184,6 +212,7 @@ void Frag(Varyings packedInput, out float4 outColor : SV_Target0)
 
     outColor.xyz = lightLoopOutput.diffuseLighting * GetCurrentExposureMultiplier();
     outColor.a = 1;
-//    outColor.xyz = debugVal;
+    outColor.xyz = bsdfData.diffuseColor;
+    //outColor.xyz = debugVal;
 
 }
