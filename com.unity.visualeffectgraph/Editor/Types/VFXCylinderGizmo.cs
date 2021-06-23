@@ -7,6 +7,7 @@ using UnityEngine.VFX;
 
 namespace UnityEditor.VFX
 {
+    //TODOPAUL : Remove this
     [VFXGizmo(typeof(Cylinder))]
     class VFXCylinderGizmo : VFXSpaceableGizmo<Cylinder>
     {

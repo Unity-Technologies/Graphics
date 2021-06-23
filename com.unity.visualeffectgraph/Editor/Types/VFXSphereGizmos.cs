@@ -8,7 +8,7 @@ using UnityEngine.VFX;
 namespace UnityEditor.VFX
 {
     [VFXGizmo(typeof(TSphere))]
-    class VFXSphereGizmo : VFXSpaceableGizmo<TSphere>
+    class VFXTSphereGizmo : VFXSpaceableGizmo<TSphere>
     {
         IProperty<Vector3> m_CenterProperty;
         IProperty<Vector3> m_AnglesProperty;
@@ -55,7 +55,7 @@ namespace UnityEditor.VFX
             }
         }
 
-        public override void OnDrawSpacedGizmo(TSphere sphere)
+        static public void DrawSpaceSphere(VFXGizmo gizmo, TSphere sphere, IProperty<Vector3> centerProperty, IProperty<Vector3> anglesProperty, IProperty<Vector3> scaleProperty, IProperty<float> radiusProperty)
         {
             using (new Handles.DrawingScope(Handles.matrix * ConvertTransformToMatrix(sphere.transform)))
             {
@@ -63,12 +63,22 @@ namespace UnityEditor.VFX
                 Handles.DrawWireDisc(Vector3.zero, Vector3.up, sphere.radius);
                 Handles.DrawWireDisc(Vector3.zero, Vector3.right, sphere.radius);
             }
-            DrawSphere(this, sphere, m_CenterProperty, m_AnglesProperty, m_ScaleProperty, m_RadiusProperty);
+            DrawSphere(gizmo, sphere, centerProperty, anglesProperty, scaleProperty, radiusProperty);
+        }
+
+        public override void OnDrawSpacedGizmo(TSphere sphere)
+        {
+            DrawSpaceSphere(this, sphere, m_CenterProperty, m_AnglesProperty, m_ScaleProperty, m_RadiusProperty);
+        }
+
+        static public Bounds GetBoundsFromSphere(TSphere sphere)
+        {
+            return new Bounds(sphere.transform.position, sphere.transform.scale * sphere.radius);
         }
 
         public override Bounds OnGetSpacedGizmoBounds(TSphere value)
         {
-            return new Bounds(value.transform.position, value.transform.scale * value.radius);
+            return GetBoundsFromSphere(value);
         }
     }
     [VFXGizmo(typeof(TArcSphere))]
@@ -114,13 +124,37 @@ namespace UnityEditor.VFX
                 ArcGizmo(Vector3.zero, radius, arc, m_ArcProperty, Quaternion.Euler(-90.0f, 0.0f, 0.0f));
             }
 
-            VFXSphereGizmo.DrawSphere(this, arcSphere.sphere, m_CenterProperty, m_AnglesProperty, m_ScaleProperty, m_RadiusProperty);
+            VFXTSphereGizmo.DrawSphere(this, arcSphere.sphere, m_CenterProperty, m_AnglesProperty, m_ScaleProperty, m_RadiusProperty);
         }
 
         public override Bounds OnGetSpacedGizmoBounds(TArcSphere value)
         {
-            //TODOPAUL: Factorize & consider scale
-            return new Bounds(value.sphere.transform.position, value.sphere.transform.scale * value.sphere.radius);
+            return VFXTSphereGizmo.GetBoundsFromSphere(value.sphere);
+        }
+    }
+
+    [VFXGizmo(typeof(Sphere))]
+    class VFXSphereGizmo : VFXSpaceableGizmo<Sphere>
+    {
+        IProperty<Vector3> m_CenterProperty;
+        IProperty<float> m_RadiusProperty;
+
+        public override void RegisterEditableMembers(IContext context)
+        {
+            m_CenterProperty = context.RegisterProperty<Vector3>("center");
+            m_RadiusProperty = context.RegisterProperty<float>("radius");
+        }
+
+        public override void OnDrawSpacedGizmo(Sphere sphere)
+        {
+            var tSphere = (TSphere)sphere;
+            VFXTSphereGizmo.DrawSpaceSphere(this, tSphere, m_CenterProperty, null, null, m_RadiusProperty);
+        }
+
+        public override Bounds OnGetSpacedGizmoBounds(Sphere value)
+        {
+            var tSphere = (TSphere)value;
+            return VFXTSphereGizmo.GetBoundsFromSphere(tSphere);
         }
     }
 }
