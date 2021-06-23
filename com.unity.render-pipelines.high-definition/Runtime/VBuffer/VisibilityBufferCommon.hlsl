@@ -16,5 +16,6 @@ StructuredBuffer<uint> _CompactedIndexBuffer;
 StructuredBuffer<InstanceVData> _InstanceVDataBuffer;
 TEXTURE2D_X_UINT(_VBuffer0);
 TEXTURE2D_X_UINT(_MaterialDepth);
+TEXTURE2D_X(_VBufferDepthTexture);
 
 #endif

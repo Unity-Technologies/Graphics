@@ -150,11 +150,9 @@ FragInputs EvaluateFragInput(float4 posSS, uint instanceID, uint triangleID, flo
     float2 UV2 = (v2.uv);
     float2 texCoord0 = INTERPOLATE_ATTRIBUTE(UV0, UV1, UV2, barycentricCoordinates);
 
-
     // Compute the world space normal and tangent. [IMPORTANT, we assume uniform scale here]
-    float3 normalWS = normalize(mul(float4(normalOS, 0), instanceVData.localToWorld));
-    float3 tangentWS = normalize(mul(float4(tangentOS.xyz, 0), instanceVData.localToWorld));
-
+    float3 normalWS = normalize(mul((float3x3)instanceVData.localToWorld, normalOS));
+    float3 tangentWS = normalize(mul((float3x3)instanceVData.localToWorld, tangentOS.xyz));
 
     // DEBG
     debugValue = barycentricCoordinates;// float3(texCoord0.xy, 0);
@@ -181,7 +179,7 @@ void Frag(Varyings packedInput, out float4 outColor : SV_Target0)
     uint triangleID, instanceID;
     UnpackVisibilityBuffer(vbuffer, instanceID, triangleID);
 
-    float depthValue = LOAD_TEXTURE2D_X(_CameraDepthTexture, pixelCoord);
+    float depthValue = LOAD_TEXTURE2D_X(_VBufferDepthTexture, pixelCoord);
     if (depthValue == UNITY_RAW_FAR_CLIP_VALUE)
     {
         outColor = 0;
