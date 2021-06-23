@@ -45,9 +45,16 @@ float4 _ViewPortSize;
 [numthreads(8,8,1)]
 void MainReprojectLuminance(uint3 dti : SV_DispatchThreadID)
 {
-    float2 uv = (dti.xy + 0.5) * _SourceSize.zw;
-
-    _OutputMSSSLuminance[COORD_TEXTURE2D_X(dti.xy)] = LOAD_TEXTURE2D_X(_InputMSSSLuminance, dti.xy).rgba;
+    float2 centerPos = dti.xy + 0.5; //center texel
+    float2 uv = (centerPos) * _SourceSize.zw;
+    float2 velocity = float2(0.0, 0.0);
+    DecodeMotionVector(LOAD_TEXTURE2D_X(_CameraMotionVectorsTexture, centerPos), velocity);
+    //float2 reprojectedPos = pos - velocity * _ScreenSize.xy;
+    //float4 luminance = float4(0,0,0,0);
+    //if (all(reprojectedPos.xy < _ScreenSize.xy))
+    //    luminance = LOAD_TEXTURE2D_X(_InputMSSSLuminance, reprojectedPos);
+    //
+    _OutputMSSSLuminance[COORD_TEXTURE2D_X(dti.xy)] = velocity.xxxx;
 }
 
 float calcLum(float3 colorIn)
