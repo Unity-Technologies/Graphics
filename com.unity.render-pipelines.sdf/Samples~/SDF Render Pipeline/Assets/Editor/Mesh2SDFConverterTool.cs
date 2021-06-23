@@ -42,6 +42,7 @@ public class Mesh2SDFConverterTool : EditorWindow
                 return;
 
             MeshToSDFProcessorSettings settings = new MeshToSDFProcessorSettings();
+            settings.outputFilePath = EditorUtility.SaveFilePanel("Output SDF Asset", "", "", "sdf");
             settings.assetName = sdfAssetName;
             settings.voxelSize = voxelSize;
             settings.voxelMaterial = voxelMaterial;

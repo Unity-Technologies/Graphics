@@ -4,6 +4,7 @@ using System.Text;
 using UnityEngine;
 public class MeshToSDFProcessorSettings
 {
+    public string outputFilePath;
     public string assetName;
 
     // Width, Height, Depth of a single voxel
@@ -197,6 +198,47 @@ public class MeshToSDFProcessor
         Debug.Log(sb.ToString());
     }
 
+    static void CreateVoxelFieldAsset(MeshToSDFProcessorInternalSettings settings, VoxelField voxelField)
+    {
+        if (voxelField == null)
+            return;
+
+        System.IO.FileStream fs = new System.IO.FileStream(settings.inputSettings.outputFilePath, System.IO.FileMode.OpenOrCreate);
+        System.IO.BinaryWriter bw = new System.IO.BinaryWriter(fs);
+
+        // Write the asset name
+        bw.Write(settings.inputSettings.assetName.Length);
+        bw.Write(settings.inputSettings.assetName);
+
+        // Write the voxel dimensions for each axis
+        bw.Write(voxelField.Dimensions.x);
+        bw.Write(voxelField.Dimensions.y);
+        bw.Write(voxelField.Dimensions.z);
+
+        // Write the voxel size
+        bw.Write(voxelField.VoxelSize);
+
+        // Write the mesh bounds
+        // min
+        bw.Write(voxelField.MeshBounds.min.x);
+        bw.Write(voxelField.MeshBounds.min.y);
+        bw.Write(voxelField.MeshBounds.min.z);
+        // max
+        bw.Write(voxelField.MeshBounds.max.x);
+        bw.Write(voxelField.MeshBounds.max.y);
+        bw.Write(voxelField.MeshBounds.max.z);
+
+        // Write the voxel field values
+        bw.Write(voxelField.m_Field.Length);
+        for (int i = 0; i < voxelField.m_Field.Length; ++i)
+        {
+            bw.Write(voxelField.m_Field[i]);
+        }
+
+        bw.Close();
+        fs.Close();
+    }
+
     public static DebugParentMarkers InitializeParentDebugMarkers(string assetName, Material voxelMaterial, Material closestPointMaterial)
     {
         DebugParentMarkers markerData = new DebugParentMarkers();
@@ -309,7 +351,7 @@ public class MeshToSDFProcessor
 
         //Finish:
 
-        OutputVoxelField(voxelField);
+        CreateVoxelFieldAsset(settings, voxelField);
 
         return true;
     }
