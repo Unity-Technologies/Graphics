@@ -55,13 +55,6 @@ float3 ComputeBarycentricCoords(float2 p, float2 a, float2 b, float2 c)
     return barycentricCoords;
 }
 
-
-float3 MeTestey(float3 v0, float3 v1, float3 v2)
-{
-
-}
-
-
 float2 DecompressVector2(uint direction)
 {
     float x = f16tof32(direction);
@@ -102,35 +95,27 @@ FragInputs EvaluateFragInput(float4 posSS, uint instanceID, uint triangleID, flo
     CompactVertex v1 = _CompactedVertexBuffer[i1];
     CompactVertex v2 = _CompactedVertexBuffer[i2];
 
-    // Get barycentrics.
+    // Convert the positions to world space
     float3 pos0WS = mul(m, float4(v0.pos, 1.0));
     float3 pos1WS = mul(m, float4(v1.pos, 1.0));
     float3 pos2WS = mul(m, float4(v2.pos, 1.0));
 
-    // Compute barycentric
+    // Compute the supporting plane properties
+    float3 triangleCenter = (pos0WS + pos1WS + pos2WS) / 3.0;
+    float3 triangleNormal = normalize(cross(pos1WS - pos0WS, pos2WS - pos0WS));
 
-    float4 pos0 = mul(UNITY_MATRIX_VP, float4(pos0WS, 1.0));
-    float4 pos1 = mul(UNITY_MATRIX_VP, float4(pos1WS, 1.0));
-    float4 pos2 = mul(UNITY_MATRIX_VP, float4(pos2WS, 1.0));
+    // Compute the world to plane matrix
+    float3 yLocalPlane = normalize(pos1WS - pos0WS);
+    float3x3 worldToPlaneMatrix = float3x3(cross(yLocalPlane, triangleNormal), yLocalPlane, triangleNormal);
 
-    //pos0.xyz /= pos0.w;
-    //pos1.xyz /= pos1.w;
-    //pos2.xyz /= pos2.w;
-
-    //float3 barycentricCoordinates = ComputeBarycentricCoords(posSS * _ScreenSize.zw, ToNDC(pos0.xy), ToNDC(pos1.xy), ToNDC(pos2.xy)).xyz;
-
-   // {
-        // Compute the supporting plane properties
-        float3 triangleCenter = 0;// (pos0WS + pos1WS + pos2WS) / 3.0;
-        float3 triangleNormal = normalize(cross(pos1WS - pos0WS, pos2WS - pos0WS));
-        // Project all point onto the 2d supporting plane
-        float3 projectedWS = posWS - dot(posWS - triangleCenter, triangleNormal) * triangleNormal;
-        float3 projected0WS = pos0WS - dot(pos0WS - triangleCenter, triangleNormal) * triangleNormal;
-        float3 projected1WS = pos1WS - dot(pos1WS - triangleCenter, triangleNormal) * triangleNormal;
-        float3 projected2WS = pos2WS - dot(pos2WS - triangleCenter, triangleNormal) * triangleNormal;
-        // Evaluate the barycentrics
-        float3 barycentricCoordinates = ComputeBarycentricCoords(projectedWS.xz, projected0WS.xz, projected1WS.xz, projected2WS.xz);
-    //}
+    // Project all point onto the 2d supporting plane
+    float3 projectedWS = mul(worldToPlaneMatrix, posWS - dot(posWS - triangleCenter, triangleNormal) * triangleNormal);
+    float3 projected0WS = mul(worldToPlaneMatrix, pos0WS - dot(pos0WS - triangleCenter, triangleNormal) * triangleNormal);
+    float3 projected1WS = mul(worldToPlaneMatrix, pos1WS - dot(pos1WS - triangleCenter, triangleNormal) * triangleNormal);
+    float3 projected2WS = mul(worldToPlaneMatrix, pos2WS - dot(pos2WS - triangleCenter, triangleNormal) * triangleNormal);
+    
+    // Evaluate the barycentrics
+    float3 barycentricCoordinates = ComputeBarycentricCoords(projectedWS.xy, projected0WS.xy, projected1WS.xy, projected2WS.xy);
 
     // Get normal at position
     float3 normalOS0 = v0.N;
