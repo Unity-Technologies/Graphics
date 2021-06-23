@@ -25,7 +25,7 @@ namespace UnityEditor.VFX
         private static readonly Vector3[] s_RadiusDirections = new Vector3[] { Vector3.right, Vector3.up, Vector3.forward };
         private static readonly int[] s_RadiusName = { "VFX_Radius_Right".GetHashCode(), "VFX_Radius_Up".GetHashCode(), "VFX_Radius_Forward".GetHashCode() };
 
-        public static void DrawSphere(TSphere sphere, VFXGizmo gizmo, IProperty<Vector3> centerProperty, IProperty<Vector3> anglesProperty, IProperty<Vector3> scaleProperty, IProperty<float> radiusProperty)
+        public static void DrawSphere(VFXGizmo gizmo, TSphere sphere, IProperty<Vector3> centerProperty, IProperty<Vector3> anglesProperty, IProperty<Vector3> scaleProperty, IProperty<float> radiusProperty)
         {
             gizmo.PositionGizmo(sphere.transform.position, sphere.transform.angles, centerProperty, false);
             gizmo.RotationGizmo(sphere.transform.position, sphere.transform.angles, anglesProperty, false);
@@ -41,7 +41,7 @@ namespace UnityEditor.VFX
                         EditorGUI.BeginChangeCheck();
                         var dir = s_RadiusDirections[i];
                         var sliderPos = dir * sphere.radius;
-                        var result = Handles.Slider(s_RadiusName[i], sliderPos, dir, handleSize * HandleUtility.GetHandleSize(sliderPos), Handles.CubeHandleCap, 0);
+                        var result = Handles.Slider(s_RadiusName[i], sliderPos, dir, handleSize * HandleUtility.GetHandleSize(sliderPos), CustomCubeHandleCap, 0);
 
                         if (EditorGUI.EndChangeCheck())
                         {
@@ -63,7 +63,7 @@ namespace UnityEditor.VFX
                 Handles.DrawWireDisc(Vector3.zero, Vector3.up, sphere.radius);
                 Handles.DrawWireDisc(Vector3.zero, Vector3.right, sphere.radius);
             }
-            DrawSphere(sphere, this, m_CenterProperty, m_AnglesProperty, m_ScaleProperty, m_RadiusProperty);
+            DrawSphere(this, sphere, m_CenterProperty, m_AnglesProperty, m_ScaleProperty, m_RadiusProperty);
         }
 
         public override Bounds OnGetSpacedGizmoBounds(TSphere value)
@@ -91,11 +91,11 @@ namespace UnityEditor.VFX
 
         public override void OnDrawSpacedGizmo(TArcSphere arcSphere)
         {
-            Vector3 center = arcSphere.sphere.transform.position;
+            var center = arcSphere.sphere.transform.position;
             float radius = arcSphere.sphere.radius;
             float arc = arcSphere.arc * Mathf.Rad2Deg;
 
-            using (new Handles.DrawingScope(Handles.matrix * Matrix4x4.TRS(arcSphere.sphere.transform.position, Quaternion.Euler(arcSphere.sphere.transform.angles), arcSphere.sphere.transform.scale)))
+            using (new Handles.DrawingScope(Handles.matrix * Matrix4x4.TRS(center, Quaternion.Euler(arcSphere.sphere.transform.angles), arcSphere.sphere.transform.scale)))
             {
                 // Draw semi-circles at 90 degree angles
                 for (int i = 0; i < 4; i++)
@@ -115,7 +115,7 @@ namespace UnityEditor.VFX
                 ArcGizmo(Vector3.zero, radius, arc, m_ArcProperty, Quaternion.Euler(-90.0f, 0.0f, 0.0f));
             }
 
-            VFXSphereGizmo.DrawSphere(arcSphere.sphere, this, m_CenterProperty, m_AnglesProperty, m_ScaleProperty, m_RadiusProperty);
+            VFXSphereGizmo.DrawSphere(this, arcSphere.sphere, m_CenterProperty, m_AnglesProperty, m_ScaleProperty, m_RadiusProperty);
         }
 
         public override Bounds OnGetSpacedGizmoBounds(TArcSphere value)

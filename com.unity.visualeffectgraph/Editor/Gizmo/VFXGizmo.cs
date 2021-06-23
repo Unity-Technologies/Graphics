@@ -44,6 +44,54 @@ namespace UnityEditor.VFX
         public bool spaceLocalByDefault { get; set; }
         public VisualEffect component { get; set; }
 
+        static Matrix4x4 StartCapDrawRevertingScale(Vector3 position, Quaternion rotation, float size)
+        {
+            var lossyScale = Handles.matrix.lossyScale;
+            var invLossyScale = new Vector3(1.0f / lossyScale.x,
+                1.0f / lossyScale.y,
+                1.0f / lossyScale.z);
+
+            Shader.SetGlobalColor("_HandleColor", Handles.color);
+            Shader.SetGlobalFloat("_HandleSize", size);
+            var mat = Handles.matrix;
+            //Remove scale from current matrix
+            mat *= Matrix4x4.TRS(Vector3.zero, Quaternion.identity, invLossyScale);
+            //Correct position according to previous scale
+            var correctPosition = new Vector3(position.x * lossyScale.x,
+                position.y * lossyScale.y,
+                position.z * lossyScale.z);
+            mat *= Matrix4x4.TRS(correctPosition, rotation, Vector3.one);
+            Shader.SetGlobalMatrix("_ObjectToWorld", mat);
+            HandleUtility.handleMaterial.SetFloat("_HandleZTest", (float)Handles.zTest);
+            HandleUtility.handleMaterial.SetPass(0);
+            return mat;
+        }
+
+        static Mesh s_CubeMesh;
+        static Mesh cubeMesh
+        {
+            get
+            {
+                if (s_CubeMesh == null)
+                    s_CubeMesh = Resources.GetBuiltinResource<Mesh>("Cube.fbx");
+                return s_CubeMesh;
+            }
+        }
+
+        protected static void CustomCubeHandleCap(int controlID, Vector3 position, Quaternion rotation, float size, EventType eventType)
+        {
+            switch (eventType)
+            {
+                case EventType.Layout:
+                case EventType.MouseMove:
+                    HandleUtility.AddControl(controlID, HandleUtility.DistanceToCube(position, rotation, size));
+                    break;
+                case (EventType.Repaint):
+                    Graphics.DrawMeshNow(cubeMesh, StartCapDrawRevertingScale(position, rotation, size));
+                    break;
+            }
+        }
+
         private Quaternion GetHandleRotation(Quaternion localRotation)
         {
             if (Tools.pivotRotation == PivotRotation.Local)
@@ -228,7 +276,9 @@ namespace UnityEditor.VFX
             if (always || Tools.current == Tool.Scale || Tools.current == Tool.Transform || Tools.current == Tool.None)
             {
                 EditorGUI.BeginChangeCheck();
+                var bckpColor = Handles.color;
                 scale = Handles.ScaleHandle(scale, position, rotation);
+                Handles.color = bckpColor; //Scale Handle modifies color without restoring it
                 return EditorGUI.EndChangeCheck();
             }
 
