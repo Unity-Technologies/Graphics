@@ -98,19 +98,24 @@ namespace UnityEngine.Rendering.HighDefinition
                 int materialIdx = 0;
 
                 Material currentMat = sharedMaterials[i];
-                if (currentMat == null || IsTransparentMaterial(currentMat))
+                if (currentMat == null)
                     continue;
 
-                materials.TryGetValue(currentMat, out materialIdx);
-                for (int c = 0; c < clustersForSubmesh; ++c)
+                if (IsTransparentMaterial(currentMat) || IsAlphaTestedMaterial(currentMat) || currentMat.shader.name != "HDRP/Lit")
+                    clusterCount += clustersForSubmesh;
+                else
                 {
-                    InstanceVData data;
-                    data.localToWorld = localToWorld;
-                    data.materialIndex = (uint)materialIdx;
-                    data.chunkStartIndex = meshes[mesh] + (uint)clusterCount;
+                    materials.TryGetValue(currentMat, out materialIdx);
+                    for (int c = 0; c < clustersForSubmesh; ++c)
+                    {
+                        InstanceVData data;
+                        data.localToWorld = localToWorld;
+                        data.materialIndex = (uint)materialIdx;
+                        data.chunkStartIndex = meshes[mesh] + (uint)clusterCount;
 
-                    instances.Add(data);
-                    clusterCount++;
+                        instances.Add(data);
+                        clusterCount++;
+                    }
                 }
             }
 
@@ -221,6 +226,7 @@ namespace UnityEngine.Rendering.HighDefinition
             int validRenderers = 0;
             // Grab all the renderers from the scene
             var rendererArray = UnityEngine.GameObject.FindObjectsOfType<MeshRenderer>();
+
             for (var i = 0; i < rendererArray.Length; i++)
             {
                 // Fetch the current renderer
@@ -251,19 +257,17 @@ namespace UnityEngine.Rendering.HighDefinition
                     int matIdx = 0;
                     if (!materials.TryGetValue(mat, out matIdx))
                     {
+                        mat.enableInstancing = true;
                         materials.Add(mat, materialIdx);
                         materialIdx++;
                     }
                 }
-
                 validRenderers++;
             }
 
             // If we don't have any valid renderer
             if (validRenderers == 0)
-            {
                 return;
-            }
 
             int currVBCount = CompactedVB == null ? 0 : CompactedVB.count;
             if (vertexCount != currVBCount)
@@ -308,6 +312,9 @@ namespace UnityEngine.Rendering.HighDefinition
 
                 DivideMeshInClusters(meshFilter.sharedMesh, currentRenderer.localToWorldMatrix, currentRenderer.sharedMaterials, ref meshes, ref instanceData);
             }
+
+            if (instanceData.Count == 0)
+                return;
 
             if (InstanceVDataB == null || InstanceVDataB.count != instanceData.Count)
             {

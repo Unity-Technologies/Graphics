@@ -24,7 +24,6 @@ namespace UnityEngine.Rendering.HighDefinition
             public Material renderVisibilityMaterial;
             public TextureHandle tempColorBuffer;
             public TextureHandle vbuffer0;
-            public TextureHandle materialDepthBuffer;
             public TextureHandle depthBuffer;
             public FrameSettings frameSettings;
         }
@@ -47,14 +46,11 @@ namespace UnityEngine.Rendering.HighDefinition
                 passData.tempColorBuffer = builder.WriteTexture(tempColorBuffer);
                 passData.vbuffer0 = builder.WriteTexture(renderGraph.CreateTexture(new TextureDesc(Vector2.one, true, true)
                     { colorFormat = GraphicsFormat.R32_UInt, clearBuffer = true, enableRandomWrite = true, name = "VBuffer 0" }));
-                passData.materialDepthBuffer = builder.WriteTexture(renderGraph.CreateTexture(new TextureDesc(Vector2.one, true, true)
-                    { colorFormat = GraphicsFormat.R16_UInt, clearBuffer = true, enableRandomWrite = true, name = "Material Buffer" }));
 
                 passData.depthBuffer = CreateDepthBuffer(renderGraph, true, hdCamera.msaaSamples);
 
                 builder.UseDepthBuffer(passData.depthBuffer, DepthAccess.ReadWrite);
                 builder.UseColorBuffer(passData.vbuffer0, 0);
-                builder.UseColorBuffer(passData.materialDepthBuffer, 1);
 
                 passData.frameSettings = hdCamera.frameSettings;
 
@@ -78,9 +74,12 @@ namespace UnityEngine.Rendering.HighDefinition
 
         class VBufferLightingPassData
         {
+            public int width;
+            public int height;
             public TextureHandle colorBuffer;
             public TextureHandle vbuffer0;
             public TextureHandle materialDepthBuffer;
+            public TextureHandle cameraDepthTexture;
             public ComputeBufferHandle vertexBuffer;
             public ComputeBufferHandle indexBuffer;
             public ComputeBufferHandle instancedDataBuffer;
@@ -89,7 +88,20 @@ namespace UnityEngine.Rendering.HighDefinition
             public ComputeBufferHandle tileListBuffer;
         }
 
-        TextureHandle RenderVBufferLighting(RenderGraph renderGraph, CullingResults cullingResults, HDCamera hdCamera, VBufferOutput vBufferOutput, TextureHandle materialDepthBuffer, TextureHandle colorBuffer,
+        [GenerateHLSL]
+        internal enum LightVariants
+        {
+            SkyEnv = LightFeatureFlags.Sky | LightFeatureFlags.Env | LightFeatureFlags.ProbeVolume,
+            SkyDirPunctual = LightFeatureFlags.Sky | LightFeatureFlags.Directional | LightFeatureFlags.Punctual | LightFeatureFlags.ProbeVolume,
+            SkyDirArea = LightFeatureFlags.Sky | LightFeatureFlags.Directional | LightFeatureFlags.Area | LightFeatureFlags.ProbeVolume,
+            SkyDirEnv = LightFeatureFlags.Sky | LightFeatureFlags.Directional | LightFeatureFlags.Env | LightFeatureFlags.ProbeVolume,
+            SkyDirPunctualEnv = LightFeatureFlags.Sky | LightFeatureFlags.Directional | LightFeatureFlags.Punctual | LightFeatureFlags.Env | LightFeatureFlags.ProbeVolume,
+            SkyDirPunctualAreaEnv = LightFeatureFlags.Sky | LightFeatureFlags.Directional | LightFeatureFlags.Punctual | LightFeatureFlags.Area | LightFeatureFlags.Env | LightFeatureFlags.ProbeVolume
+        }
+
+        TextureHandle RenderVBufferLighting(RenderGraph renderGraph, CullingResults cullingResults, HDCamera hdCamera,
+            VBufferOutput vBufferOutput, TextureHandle materialDepthBuffer,
+            TextureHandle colorBuffer,
             in BuildGPULightListOutput lightLists)
         {
             if (InstanceVDataB == null || CompactedVB == null || CompactedIB == null) return colorBuffer;
@@ -98,8 +110,11 @@ namespace UnityEngine.Rendering.HighDefinition
             {
                 builder.AllowRendererListCulling(false);
 
+                passData.width = hdCamera.actualWidth;
+                passData.height = hdCamera.actualHeight;
                 passData.colorBuffer = builder.UseColorBuffer(colorBuffer, 0);
                 passData.vbuffer0 = builder.ReadTexture(vBufferOutput.vBuffer0);
+                passData.cameraDepthTexture = builder.ReadTexture(vBufferOutput.depthBuffer);
                 passData.materialDepthBuffer = builder.UseDepthBuffer(materialDepthBuffer, DepthAccess.ReadWrite);
                 passData.vertexBuffer = renderGraph.ImportComputeBuffer(CompactedVB);
                 passData.indexBuffer = renderGraph.ImportComputeBuffer(CompactedIB);
@@ -115,14 +130,16 @@ namespace UnityEngine.Rendering.HighDefinition
                         context.cmd.SetGlobalBuffer("_CompactedIndexBuffer", data.indexBuffer);
                         context.cmd.SetGlobalBuffer("_InstanceVDataBuffer", data.instancedDataBuffer);
                         context.cmd.SetGlobalTexture("_VBuffer0", data.vbuffer0);
+                        context.cmd.SetGlobalTexture("_VBufferDepthTexture", data.cameraDepthTexture);
 
                         context.cmd.SetGlobalBuffer(HDShaderIDs.g_vLightListGlobal, data.lightListBuffer);
-
 
                         var materialList = materials.Keys.ToArray();
                         for (int matIdx = 0; matIdx < materialList.Length; ++matIdx)
                         {
                             var material = materialList[matIdx];
+                            if (IsTransparentMaterial(material) || IsAlphaTestedMaterial(material))
+                                continue;
 
                             var passIdx = -1;
                             for (int i = 0; i < material.passCount; ++i)
@@ -136,8 +153,13 @@ namespace UnityEngine.Rendering.HighDefinition
 
                             if (passIdx == -1) continue;
 
+                            int quadTileSize = 64;
+                            int numTileX = HDUtils.DivRoundUp(data.width, quadTileSize);
+                            int numTileY = HDUtils.DivRoundUp(data.height, quadTileSize);
+
                             context.cmd.SetGlobalInt("_CurrMaterialID", materials[material]);
-                            HDUtils.DrawFullScreen(context.cmd, material, data.colorBuffer, data.materialDepthBuffer, null, shaderPassId: passIdx);
+                            context.cmd.SetGlobalVector("_VBufferTileData", new Vector4((float)numTileX, (float)numTileY, (float)quadTileSize, 0.0f));
+                            context.cmd.DrawProcedural(Matrix4x4.identity, material, passIdx, MeshTopology.Triangles, 6, numTileX * numTileY);
                         }
                     });
 

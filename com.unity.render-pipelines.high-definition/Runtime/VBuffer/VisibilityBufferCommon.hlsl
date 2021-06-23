@@ -1,6 +1,7 @@
 #ifndef VBUFFER_COMMON_HLSL
 #define VBUFFER_COMMON_HLSL
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/VBuffer/HDRenderPipeline.VertexBufferCompaction.cs.hlsl"
+#include "Packages/com.unity.render-pipelines.high-definition/Runtime/VBuffer/HDRenderPipeline.VisibilityBuffer.cs.hlsl"
 
 void UnpackVisibilityBuffer(uint packedData, out uint clusterID, out uint triangleID)
 {
@@ -15,5 +16,6 @@ StructuredBuffer<uint> _CompactedIndexBuffer;
 StructuredBuffer<InstanceVData> _InstanceVDataBuffer;
 TEXTURE2D_X_UINT(_VBuffer0);
 TEXTURE2D_X_UINT(_MaterialDepth);
+TEXTURE2D_X(_VBufferDepthTexture);
 
 #endif
