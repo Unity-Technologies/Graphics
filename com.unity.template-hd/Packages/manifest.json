@@ -8,6 +8,8 @@
     "com.unity.render-pipelines.core": "file:../../com.unity.render-pipelines.core",
     "com.unity.render-pipelines.high-definition": "file:../../com.unity.render-pipelines.high-definition",
     "com.unity.render-pipelines.high-definition-config": "file:../../com.unity.render-pipelines.high-definition-config",
+    "com.unity.render-pipelines.ps4": "file:../../../com.unity.render-pipelines.nda/com.unity.render-pipelines.ps4",
+    "com.unity.render-pipelines.ps5": "file:../../../com.unity.render-pipelines.nda/com.unity.render-pipelines.ps5",
     "com.unity.shadergraph": "file:../../com.unity.shadergraph",
     "com.unity.timeline": "1.6.0-pre.5",
     "com.unity.ugui": "1.0.0",
