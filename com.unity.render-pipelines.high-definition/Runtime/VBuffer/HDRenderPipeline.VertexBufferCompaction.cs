@@ -85,15 +85,16 @@ namespace UnityEngine.Rendering.HighDefinition
             return 4;
         }
 
-        int DivideMeshInClusters(Mesh mesh, Matrix4x4 localToWorld, Material[] sharedMaterials, ref Dictionary<Mesh, uint> meshes, ref List<InstanceVData> instances)
+        int DivideMeshInClusters(Mesh mesh, int subMeshStartIndex, Matrix4x4 localToWorld, Material[] sharedMaterials, ref Dictionary<Mesh, uint> meshes, ref List<InstanceVData> instances)
         {
             int clusterCount = 0;
-            int clustersBeforeInsertion = instances.Count;
-            int meshIndexStart = clustersBeforeInsertion * VisibilityBufferConstants.s_ClusterSizeInIndices;
+            //int clustersBeforeInsertion = instances.Count;
+            //int meshIndexStart = clustersBeforeInsertion * VisibilityBufferConstants.s_ClusterSizeInIndices;
 
-            for (int i = 0; i < mesh.subMeshCount; ++i)
+            int subMeshCountForRenderer = sharedMaterials.Length;
+            for (int i = subMeshStartIndex; i < subMeshCountForRenderer; ++i)
             {
-                uint subMeshIndexSize = mesh.GetIndexCount(i);
+                uint subMeshIndexSize = mesh.GetIndexCount(i % mesh.subMeshCount);//renderer can have more material than submesh
                 int clustersForSubmesh = HDUtils.DivRoundUp((int)subMeshIndexSize, VisibilityBufferConstants.s_ClusterSizeInIndices);
                 int materialIdx = 0;
 
@@ -306,7 +307,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 currentRenderer.TryGetComponent(out MeshFilter meshFilter);
                 if (meshFilter == null || meshFilter.sharedMesh == null) continue;
 
-                DivideMeshInClusters(meshFilter.sharedMesh, currentRenderer.localToWorldMatrix, currentRenderer.sharedMaterials, ref meshes, ref instanceData);
+                DivideMeshInClusters(meshFilter.sharedMesh, currentRenderer.subMeshStartIndex, currentRenderer.localToWorldMatrix, currentRenderer.sharedMaterials, ref meshes, ref instanceData);
             }
 
             if (InstanceVDataB == null || InstanceVDataB.count != instanceData.Count)
