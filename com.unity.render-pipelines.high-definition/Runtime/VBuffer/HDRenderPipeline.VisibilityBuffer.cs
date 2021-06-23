@@ -15,7 +15,6 @@ namespace UnityEngine.Rendering.HighDefinition
         internal struct VBufferOutput
         {
             public TextureHandle vBuffer0;
-            public TextureHandle materialDepthBuffer;
             public TextureHandle depthBuffer;
         }
 
@@ -69,12 +68,10 @@ namespace UnityEngine.Rendering.HighDefinition
                     });
 
                 vBufferOutput.vBuffer0 = passData.vbuffer0;
-                vBufferOutput.materialDepthBuffer = passData.materialDepthBuffer;
                 vBufferOutput.depthBuffer = passData.depthBuffer;
 
                 PushFullScreenDebugTexture(renderGraph, vBufferOutput.vBuffer0, FullScreenDebugMode.VBufferTriangleId, GraphicsFormat.R32_UInt);
                 PushFullScreenDebugTexture(renderGraph, vBufferOutput.vBuffer0, FullScreenDebugMode.VBufferGeometryId, GraphicsFormat.R32_UInt);
-                PushFullScreenDebugTexture(renderGraph, vBufferOutput.materialDepthBuffer, FullScreenDebugMode.VBufferMaterialId, GraphicsFormat.R32_SFloat);
             }
             return vBufferOutput;
         }
@@ -89,7 +86,7 @@ namespace UnityEngine.Rendering.HighDefinition
             public ComputeBufferHandle indexBuffer;
         }
 
-        TextureHandle RenderVBufferLighting(RenderGraph renderGraph, CullingResults cullingResults, HDCamera hdCamera, VBufferOutput vBufferOutput, TextureHandle colorBuffer)
+        TextureHandle RenderVBufferLighting(RenderGraph renderGraph, CullingResults cullingResults, HDCamera hdCamera, VBufferOutput vBufferOutput, TextureHandle materialDepthBuffer, TextureHandle colorBuffer)
         {
             if (InstanceVDataB == null || CompactedVB == null || CompactedIB == null) return colorBuffer;
 
@@ -99,10 +96,8 @@ namespace UnityEngine.Rendering.HighDefinition
 
                 passData.colorBuffer = builder.WriteTexture(colorBuffer);
                 passData.vbuffer0 = builder.ReadTexture(vBufferOutput.vBuffer0);
-                passData.materialDepthBuffer = builder.UseDepthBuffer(vBufferOutput.materialDepthBuffer, DepthAccess.Read);
-                passData.depthBuffer = builder.ReadTexture(vBufferOutput.materialDepthBuffer);
 
-                builder.UseDepthBuffer(passData.materialDepthBuffer, DepthAccess.ReadWrite);
+                builder.UseDepthBuffer(materialDepthBuffer, DepthAccess.Read);
                 builder.UseColorBuffer(colorBuffer, 0);
 
                 builder.SetRenderFunc(
@@ -126,7 +121,7 @@ namespace UnityEngine.Rendering.HighDefinition
                             }
                             if (passIdx == -1) continue;
 
-                            HDUtils.DrawFullScreen(context.cmd, material, colorBuffer, shaderPassId: passIdx);
+                            HDUtils.DrawFullScreen(context.cmd, material, data.colorBuffer, shaderPassId: passIdx);
                         }
                     });
 
@@ -137,18 +132,16 @@ namespace UnityEngine.Rendering.HighDefinition
 
         class VBufferMaterialDepthPassData
         {
-            public TextureHandle materialDepthBuffer;
             public TextureHandle outputDepthBuffer;
             public TextureHandle dummyColorOutput;
             public Material createMaterialDepthMaterial;
         }
 
-        TextureHandle RenderMaterialDepth(RenderGraph renderGraph, HDCamera hdCamera, TextureHandle materialBuffer, TextureHandle colorBuffer)
+        TextureHandle RenderMaterialDepth(RenderGraph renderGraph, HDCamera hdCamera, TextureHandle colorBuffer)
         {
             var outputDepth = CreateDepthBuffer(renderGraph, true, hdCamera.msaaSamples);
             using (var builder = renderGraph.AddRenderPass<VBufferMaterialDepthPassData>("Create Vis Buffer Material Depth", out var passData, ProfilingSampler.Get(HDProfileId.VBufferMaterialDepth)))
             {
-                passData.materialDepthBuffer = builder.ReadTexture(materialBuffer);
                 passData.outputDepthBuffer = outputDepth;
                 passData.createMaterialDepthMaterial = m_CreateMaterialDepthMaterial;
                 passData.dummyColorOutput = builder.WriteTexture(colorBuffer);
@@ -157,10 +150,11 @@ namespace UnityEngine.Rendering.HighDefinition
                 builder.SetRenderFunc(
                     (VBufferMaterialDepthPassData data, RenderGraphContext context) =>
                     {
-                        context.cmd.SetGlobalTexture("_MaterialDepth", data.materialDepthBuffer);
                         // Doesn't matter what's bound as color buffer
                         HDUtils.DrawFullScreen(context.cmd, passData.createMaterialDepthMaterial, passData.dummyColorOutput, passData.outputDepthBuffer, null, 0);
                     });
+
+                PushFullScreenDebugTexture(renderGraph, outputDepth, FullScreenDebugMode.VBufferMaterialId, GraphicsFormat.R32_SFloat);
             }
 
             return outputDepth;

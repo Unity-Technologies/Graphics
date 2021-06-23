@@ -41,14 +41,18 @@ Shader "Hidden/HDRP/CreateMaterialDepth"
             return output;
         }
 
-
         void Frag(Varyings input, out float outDepth : SV_Depth)
         {
-            // Sample the material buffer and pass it over depth buffer.
-            uint materialID = LOAD_TEXTURE2D_X(_MaterialDepth, input.positionCS.xy).x;
 
-            // We assume a maximum of 65536 materials in scene. (R16 UINT is the source).
-            outDepth = (float)materialID / 65535;
+            uint vbuffer = LOAD_TEXTURE2D_X(_VBuffer0, input.positionCS.xy).x;
+            uint triangleID, instanceID;
+            UnpackVisibilityBuffer(vbuffer, instanceID, triangleID);
+
+            InstanceVData instanceVData = _InstanceVDataBuffer[instanceID];
+            uint materialID = instanceVData.materialIndex;
+
+            // We assume a maximum of 65536 materials in scene.
+            outDepth = float(materialID) / 65535;
         }
 
         ENDHLSL

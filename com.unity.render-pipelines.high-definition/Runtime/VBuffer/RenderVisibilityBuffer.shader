@@ -81,8 +81,7 @@ Shader "Hidden/HDRP/RenderVisibilityBuffer"
 
         void frag(v2f packedInput,
             uint primitiveID : SV_PrimitiveID,
-            out uint VBuffer0 : SV_Target0,
-            out uint MaterialDepth : SV_Target1
+            out uint VBuffer0 : SV_Target0
             )
         {
             UNITY_SETUP_INSTANCE_ID(i);
@@ -99,10 +98,8 @@ Shader "Hidden/HDRP/RenderVisibilityBuffer"
             uint materialId = instanceVData.materialIndex;
             // Write the VBuffer
             VBuffer0 = PackVisBuffer(instanceID, triangleID);
-            MaterialDepth = materialId;
 #else
             VBuffer0 = 0;
-            MaterialDepth = 0;
 #endif
         }
         ENDHLSL

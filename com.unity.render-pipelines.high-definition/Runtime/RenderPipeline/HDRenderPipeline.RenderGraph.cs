@@ -87,8 +87,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 var prepassOutput = RenderPrepass(m_RenderGraph, colorBuffer, lightingBuffers.sssBuffer, vtFeedbackBuffer, cullingResults, customPassCullingResults, hdCamera, aovRequest, aovBuffers);
 
                 var vBufferOutput = RenderVBuffer(m_RenderGraph, cullingResults, hdCamera, colorBuffer);
-                colorBuffer = RenderVBufferLighting(m_RenderGraph, cullingResults, hdCamera, vBufferOutput, colorBuffer);
-                var materialDepth = RenderMaterialDepth(m_RenderGraph, hdCamera, vBufferOutput.materialDepthBuffer, colorBuffer);
+                var materialDepth = RenderMaterialDepth(m_RenderGraph, hdCamera, colorBuffer);
 
                 // Need this during debug render at the end outside of the main loop scope.
                 // Once render graph move is implemented, we can probably remove the branch and this.
@@ -168,6 +167,8 @@ namespace UnityEngine.Rendering.HighDefinition
                     var maxZMask = GenerateMaxZPass(m_RenderGraph, hdCamera, prepassOutput.depthPyramidTexture, m_DepthBufferMipChainInfo);
 
                     var volumetricLighting = VolumetricLightingPass(m_RenderGraph, hdCamera, prepassOutput.depthPyramidTexture, volumetricDensityBuffer, maxZMask, gpuLightListOutput.bigTileLightList, shadowResult);
+
+                    colorBuffer = RenderVBufferLighting(m_RenderGraph, cullingResults, hdCamera, vBufferOutput, materialDepth, colorBuffer);
 
                     var deferredLightingOutput = RenderDeferredLighting(m_RenderGraph, hdCamera, colorBuffer, prepassOutput.depthBuffer, prepassOutput.depthPyramidTexture, lightingBuffers, prepassOutput.gbuffer, shadowResult, gpuLightListOutput);
 
