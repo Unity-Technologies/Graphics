@@ -64,78 +64,63 @@ namespace UnityEngine.Rendering.SDFRP
         protected override void Render(ScriptableRenderContext context, Camera[] cameras)
         {
             ClearBackground(context, cameras);
-
-            SDFRenderer[] SDFObjects = GameObject.FindObjectsOfType<SDFRenderer>();
-            if (SDFObjects.Length > 0)
+            foreach (Camera camera in cameras)
             {
-                GetDataFromSceneGraph(SDFObjects, out ComputeBuffer SDFData, out ComputeBuffer SDFHeaderData);
+                SDFCameraData cameraData = new SDFCameraData();
+                cameraData.InitializeCameraData(camera);
 
-                // Vector3[] sampleExtents = {
-                //     new Vector3(1.0f, 1.0f, 1.0f),
-                //     new Vector3(3.0f, 5.0f, 1.0f),
-                //     new Vector3(4.0f, 2.0f, 2.0f),
-                // };
-                // Matrix4x4[] sampleTransforms = {
-                //     Matrix4x4.TRS(new Vector3(0, 0, 0), Quaternion.identity, Vector3.one),
-                //     Matrix4x4.TRS(new Vector3(3, 3, 3), Quaternion.identity, Vector3.one),
-                //     Matrix4x4.TRS(new Vector3(-4, 0, 0), Quaternion.identity, Vector3.one)
-                // };
-                CreateObjectList(context, cameras, SDFHeaderData, SDFObjects.Length);
+                CommandBuffer cmd = new CommandBuffer();
+                cmd.name = "Camera Setup";
+                cmd.SetViewport(camera.pixelRect);
+                cmd.SetRenderTarget(camera.targetTexture);
+                cmd.SetViewMatrix(camera.worldToCameraMatrix);
+                cmd.SetProjectionMatrix(camera.projectionMatrix);
+                cameraData.UpdateGlobalShaderVariables(cmd);
+                context.ExecuteCommandBuffer(cmd);
+                cmd.Release();
 
-                // ScriptableCullingParameters scp;
-                // cameras[0].TryGetCullingParameters(out scp);
-                // CullingResults cullResults = context.Cull(ref scp);
-                // DrawRendererSettings drawRenderSettings = new DrawRendererSettings();
-                // context.DrawRenderers(cullResults.visibleRenderers);
-                // context.DrawSkybox(cameras[0]);
-
-                // SDF Rendering
+                SDFRenderer[] SDFObjects = GameObject.FindObjectsOfType<SDFRenderer>();
+                if (SDFObjects.Length > 0)
                 {
-                    foreach (Camera camera in cameras)
+                    GetDataFromSceneGraph(SDFObjects, out ComputeBuffer SDFData, out ComputeBuffer SDFHeaderData);
+
+                    CreateObjectList(context, cameras, SDFHeaderData, SDFObjects.Length);
+
+                    // SDF Rendering
                     {
                         if (camera.cameraType == CameraType.Game && camera.enabled)
                         {
                             CommandBuffer cmdRayMarch = new CommandBuffer();
                             cmdRayMarch.name = "RayMarch";
-                            cmdRayMarch.SetViewport(camera.pixelRect);
-                            cmdRayMarch.SetViewMatrix(camera.worldToCameraMatrix);
-                            cmdRayMarch.SetProjectionMatrix(camera.projectionMatrix);
-                            SDFRayMarch.RayMarchForRealsies(cmdRayMarch, currentAsset.rayMarchingCS, camera.pixelRect, SDFData, SDFHeaderData, camera);
+                            cameraData.UpdateComputeShaderVariables(cmdRayMarch, currentAsset.rayMarchingCS);
+                            SDFRayMarch.RayMarchForRealsies(cmdRayMarch, currentAsset.rayMarchingCS, camera.pixelRect, SDFData, SDFHeaderData, cameraData;
                             context.ExecuteCommandBuffer(cmdRayMarch);
                             cmdRayMarch.Release();
                         }
                     }
-
                     SDFHeaderData.Release();
                     SDFData.Release();
                 }
-            }
 
-            if (currentAsset.EnableDepthOfField)
-            {
-                if (m_DepthOfFieldMaterial == null)
+                if (currentAsset.EnableDepthOfField)
                 {
-                    m_DepthOfFieldMaterial = new Material(Shader.Find("Hidden/SDFRP/DepthOfField"));
-                }
-                 foreach (Camera camera in cameras)
-                 {
+                    if (m_DepthOfFieldMaterial == null)
+                    {
+                        m_DepthOfFieldMaterial = new Material(Shader.Find("Hidden/SDFRP/DepthOfField"));
+                    }
                     if (camera.cameraType == CameraType.Game && camera.enabled)
                     {
-                        CommandBuffer cmd1 = new CommandBuffer();
-                        cmd1.name = "DepthOfField";
-                        cmd1.SetViewport(camera.pixelRect);
-                        cmd1.SetRenderTarget(camera.targetTexture);
-                        cmd1.SetViewMatrix(camera.worldToCameraMatrix);
-                        cmd1.SetProjectionMatrix(camera.projectionMatrix);
-                        cmd1.SetGlobalColor("BackgroundColor", currentAsset.clearColor);
-                        cmd1.SetGlobalVector("iResolution", new Vector4(camera.scaledPixelWidth, camera.scaledPixelHeight, camera.pixelRect.x, camera.pixelRect.y));
-                        cmd1.SetGlobalInt("lensRes", currentAsset.lensRes);
-                        cmd1.SetGlobalFloat("lensDis", camera.nearClipPlane);
-                        cmd1.SetGlobalFloat("lensSiz", currentAsset.lensSiz);
-                        cmd1.SetGlobalFloat("focalDis", currentAsset.focalDis);
-                        cmd1.DrawMesh(Utilities.fullscreenMesh, Matrix4x4.identity, m_DepthOfFieldMaterial);
-                        context.ExecuteCommandBuffer(cmd1);
-                        cmd1.Release();
+
+                        CommandBuffer cmdDOF = new CommandBuffer();
+                        cmdDOF.name = "DepthOfField";
+
+                        cmdDOF.SetGlobalColor("BackgroundColor", currentAsset.clearColor);
+                        cmdDOF.SetGlobalInt("lensRes", currentAsset.lensRes);
+                        cmdDOF.SetGlobalFloat("lensDis", camera.nearClipPlane);
+                        cmdDOF.SetGlobalFloat("focalDis", currentAsset.focalDis);
+                        cmdDOF.DrawMesh(Utilities.fullscreenMesh, Matrix4x4.identity, m_DepthOfFieldMaterial);
+                        context.ExecuteCommandBuffer(cmdDOF);
+                        cmdDOF.Release();
                     }
                 }
             }
@@ -204,7 +189,7 @@ namespace UnityEngine.Rendering.SDFRP
             SDFData.SetData(nativeData);
         }
 
-        private void CreateObjectList(ScriptableRenderContext context, Camera[] cameras, ComputeBuffer SDFHeaders, int totalSDFs)
+        private void CreateObjectList(ScriptableRenderContext context, Camera camera, ComputeBuffer SDFHeaders, int totalSDFs)
         {
             Material material;
 
@@ -248,35 +233,27 @@ namespace UnityEngine.Rendering.SDFRP
             mesh.SetVertices(cubeVertices, 0, 8);
             mesh.SetIndices(cubeIndices, MeshTopology.Triangles, 0);
 
-            foreach (Camera camera in cameras)
+            CommandBuffer cmd1 = new CommandBuffer();
+            if (camera.cameraType == CameraType.Preview)
             {
-                CommandBuffer cmd1 = new CommandBuffer();
-                if (camera.cameraType == CameraType.Preview)
-                {
-                    Debug.LogError(camera.pixelRect);
-                }
-                cmd1.SetViewport(camera.pixelRect);
-
-                cmd1.SetRenderTarget(camera.targetTexture);
-                // cmd1.ClearRenderTarget(false, true, currentAsset.clearColor);
-                cmd1.SetViewMatrix(camera.worldToCameraMatrix);
-                cmd1.SetProjectionMatrix(camera.projectionMatrix);
-
-                SDFRayMarch.ObjectHeader[] data = new SDFRayMarch.ObjectHeader[totalSDFs];  // get correct size of array
-                SDFHeaders.GetData(data);     // optimize this, maybe don't create a compute buffer yet
-                for (int i = 0; i < data.Length; i++)
-                {
-                    Vector3 minExtent = new Vector3(data[i].minExtentX, data[i].minExtentY, data[i].minExtentZ);
-                    Vector3 maxExtent = new Vector3(data[i].maxExtentX, data[i].maxExtentY, data[i].maxExtentZ);
-                    var extents = maxExtent - minExtent;
-                    Matrix4x4 scale = Matrix4x4.Scale(extents);
-                    Matrix4x4 finalTRS = data[i].worldToObjMatrix.inverse * scale;       // Check multiply scale correctness later
-
-                    cmd1.DrawMesh(mesh, finalTRS, material, 0, 0);
-                }
-                context.ExecuteCommandBuffer(cmd1);
-                cmd1.Release();
+                Debug.LogError(camera.pixelRect);
             }
+            cmd1.SetViewport(camera.pixelRect);
+
+            SDFRayMarch.ObjectHeader[] data = new SDFRayMarch.ObjectHeader[totalSDFs];  // get correct size of array
+            SDFHeaders.GetData(data);     // optimize this, maybe don't create a compute buffer yet
+            for (int i = 0; i < data.Length; i++)
+            {
+                Vector3 minExtent = new Vector3(data[i].minExtentX, data[i].minExtentY, data[i].minExtentZ);
+                Vector3 maxExtent = new Vector3(data[i].maxExtentX, data[i].maxExtentY, data[i].maxExtentZ);
+                var extents = maxExtent - minExtent;
+                Matrix4x4 scale = Matrix4x4.Scale(extents);
+                Matrix4x4 finalTRS = data[i].worldToObjMatrix.inverse * scale;       // Check multiply scale correctness later
+
+                cmd1.DrawMesh(mesh, finalTRS, material, 0, 0);
+            }
+            context.ExecuteCommandBuffer(cmd1);
+            cmd1.Release();
         }
     }
 }

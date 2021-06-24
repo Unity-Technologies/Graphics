@@ -224,7 +224,7 @@ public class SDFRayMarch
         outSdfData = new ComputeBuffer(resolutionX * resolutionY, OutSdfDataSize, ComputeBufferType.Default);
         cmd.SetComputeBufferParam(rayMarchingCS, rayMarchKernel, g_OutSdfData, outSdfData);
 #region DEBUG_ONLY
-        RenderTexture tex = new RenderTexture(resolutionX, resolutionY, 24);
+        RenderTexture tex = new RenderTexture(resolutionX, resolutionY, 24, RenderTextureFormat.ARGBHalf);
         tex.enableRandomWrite = true;
         tex.Create();
         rayMarchingCS.SetTexture(rayMarchKernel, g_DebugOutput, tex);
