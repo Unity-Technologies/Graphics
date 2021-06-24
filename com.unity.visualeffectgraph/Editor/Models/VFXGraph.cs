@@ -21,19 +21,22 @@ namespace UnityEditor.VFX
     [InitializeOnLoad]
     class VFXGraphPreprocessor : AssetPostprocessor
     {
-        void OnPreprocessAsset()
+        static void OnPostprocessAllAssets(string[] importedAssets, string[] deletedAssets, string[] movedAssets, string[] movedFromAssetPaths)
         {
-            bool isVFX = VisualEffectAssetModicationProcessor.HasVFXExtension(assetPath);
-            if (isVFX)
+            foreach (var assetPath in importedAssets)
             {
-                VisualEffectResource resource = VisualEffectResource.GetResourceAtPath(assetPath);
-                if (resource == null)
-                    return;
-                VFXGraph graph = resource.graph as VFXGraph;
-                if (graph != null)
-                    graph.SanitizeForImport();
-                else
-                    Debug.LogError("VisualEffectGraphResource without graph");
+                bool isVFX = VisualEffectAssetModicationProcessor.HasVFXExtension(assetPath);
+                if (isVFX)
+                {
+                    VisualEffectResource resource = VisualEffectResource.GetResourceAtPath(assetPath);
+                    if (resource == null)
+                        return;
+                    VFXGraph graph = resource.graph as VFXGraph;
+                    if (graph != null)
+                        graph.SanitizeForImport();
+                    else
+                        Debug.LogError("VisualEffectGraphResource without graph");
+                }
             }
         }
 
