@@ -11,15 +11,12 @@
 #define LIGHTFEATURE_ONLY
 #define CLASSIFICATION_TYPE
 
-// #define LIGHT_FEATURE_MASK_FLAGS_OPAQUE (16642048)
-
 StructuredBuffer<uint> g_TileFeatureFlags;
-RW_TEXTURE2D_X(uint2, _ClassificationTile);
+RW_TEXTURE2D_X(uint3, _ClassificationTile);
 
 float4 _TileBufferSize;
 
 #define TILE_SIZE_FPTL 16
-
 [numthreads(8, 8, 1)]
 void CreateVisibilityBuffClassification(uint3 id : SV_DispatchThreadID)
 {

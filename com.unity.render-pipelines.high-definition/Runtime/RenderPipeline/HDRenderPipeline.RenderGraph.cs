@@ -168,6 +168,8 @@ namespace UnityEngine.Rendering.HighDefinition
                     var volumetricLighting = VolumetricLightingPass(m_RenderGraph, hdCamera, prepassOutput.depthPyramidTexture, volumetricDensityBuffer, maxZMask, gpuLightListOutput.bigTileLightList, shadowResult);
 
                     var tileClassification = VBufferTileClassification(m_RenderGraph, hdCamera, gpuLightListOutput.tileFeatureFlags, colorBuffer);
+                    TextureHandle bucketID, materialTile;
+                    VBufferMaterialTile(m_RenderGraph, hdCamera, vBufferOutput.vBuffer0, out materialTile, out bucketID);
 
                     colorBuffer = RenderVBufferLighting(m_RenderGraph, cullingResults, hdCamera, vBufferOutput, materialDepth, colorBuffer, tileClassification, gpuLightListOutput);
 

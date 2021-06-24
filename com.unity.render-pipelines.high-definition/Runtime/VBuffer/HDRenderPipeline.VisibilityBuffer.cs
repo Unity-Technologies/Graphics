@@ -223,7 +223,7 @@ namespace UnityEngine.Rendering.HighDefinition
         {
             var tileClassification = renderGraph.CreateTexture(new TextureDesc(Vector2.one * (1.0f / 64.0f), true, true)
                 { colorFormat = GraphicsFormat.R32G32_UInt, clearBuffer = true, enableRandomWrite = true, name = "Tile classification" });
-            using (var builder = renderGraph.AddRenderPass<VBufferTileClassficationData>("Create VBuffer Tiles", out var passData, ProfilingSampler.Get(HDProfileId.VBufferMaterialTileClassification)))
+            using (var builder = renderGraph.AddRenderPass<VBufferTileClassficationData>("Create VBuffer Tiles", out var passData, ProfilingSampler.Get(HDProfileId.VBufferLightTileClassification)))
             {
                 passData.outputTile = builder.WriteTexture(tileClassification);
 
@@ -254,6 +254,75 @@ namespace UnityEngine.Rendering.HighDefinition
             }
 
             return tileClassification;
+        }
+
+        class VBufferMaterialTileClassficationData
+        {
+            public ComputeShader createMaterialTile;
+            public TextureHandle outputTile;
+            public TextureHandle outputBucketTile;
+            public TextureHandle tile8x;
+            public TextureHandle bucketTile8x;
+            public TextureHandle vBuffer0;
+            public int actualWidth;
+            public int actualHeight;
+            public ComputeBufferHandle instancedDataBuffer;
+        }
+
+        void VBufferMaterialTile(RenderGraph renderGraph, HDCamera hdCamera, TextureHandle vBuffer0, out TextureHandle tileClassification, out TextureHandle bucketID)
+        {
+            tileClassification = renderGraph.CreateTexture(new TextureDesc(Vector2.one * (1.0f / 64.0f), true, true)
+                { colorFormat = GraphicsFormat.R16G16_UInt, clearBuffer = true, enableRandomWrite = true, name = "Material Tile classification" });
+            bucketID = renderGraph.CreateTexture(new TextureDesc(Vector2.one * (1.0f / 64.0f), true, true)
+                { colorFormat = GraphicsFormat.R8_UInt, clearBuffer = true, enableRandomWrite = true, name = "Bucket ID" });
+
+            using (var builder = renderGraph.AddRenderPass<VBufferMaterialTileClassficationData>("Create Material Tile", out var passData, ProfilingSampler.Get(HDProfileId.VBufferMaterialTileClassification)))
+            {
+                builder.AllowPassCulling(false);
+
+                passData.tile8x = builder.CreateTransientTexture(new TextureDesc(Vector2.one * 0.125f, true, true)
+                    { colorFormat = GraphicsFormat.R16G16_UInt, enableRandomWrite = true, name = "Material mask 8x" });
+                passData.bucketTile8x = builder.CreateTransientTexture(new TextureDesc(Vector2.one * 0.125f, true, true)
+                    { colorFormat = GraphicsFormat.R8_UInt, enableRandomWrite = true, name = "Bucket mask 8x" });
+
+                passData.vBuffer0 = builder.ReadTexture(vBuffer0);
+                passData.outputTile = builder.WriteTexture(tileClassification);
+                passData.outputBucketTile = builder.WriteTexture(bucketID);
+
+                passData.createMaterialTile = defaultResources.shaders.materialTileClassificationCS;
+                passData.instancedDataBuffer = renderGraph.ImportComputeBuffer(InstanceVDataB);
+
+                passData.actualWidth = hdCamera.actualWidth;
+                passData.actualHeight = hdCamera.actualHeight;
+
+                builder.SetRenderFunc(
+                    (VBufferMaterialTileClassficationData data, RenderGraphContext context) =>
+                    {
+                        var cs = data.createMaterialTile;
+                        var kernel = cs.FindKernel("MaterialReduction");
+
+                        context.cmd.SetComputeBufferParam(cs, kernel, "_InstanceVDataBuffer", data.instancedDataBuffer);
+                        context.cmd.SetComputeTextureParam(cs, kernel, "_VBuffer0", data.vBuffer0);
+                        context.cmd.SetComputeTextureParam(cs, kernel, "_ClassificationTile", data.tile8x);
+                        context.cmd.SetComputeTextureParam(cs, kernel, "_BucketTile", data.bucketTile8x);
+
+                        int dispatchX = HDUtils.DivRoundUp(data.actualWidth, 8);
+                        int dispatchY = HDUtils.DivRoundUp(data.actualHeight, 8);
+
+                        context.cmd.DispatchCompute(cs, kernel, dispatchX, dispatchY, 1);
+
+                        kernel = cs.FindKernel("FinalReduction");
+                        context.cmd.SetComputeTextureParam(cs, kernel, "_ClassificationTileInput", data.tile8x);
+                        context.cmd.SetComputeTextureParam(cs, kernel, "_BucketTileInput", data.bucketTile8x);
+                        context.cmd.SetComputeTextureParam(cs, kernel, "_ClassificationTile", data.outputTile);
+                        context.cmd.SetComputeTextureParam(cs, kernel, "_BucketTile", data.outputBucketTile);
+
+                        dispatchX = HDUtils.DivRoundUp(dispatchX, 8);
+                        dispatchY = HDUtils.DivRoundUp(dispatchY, 8);
+
+                        context.cmd.DispatchCompute(cs, kernel, dispatchX, dispatchY, 1);
+                    });
+            }
         }
     }
 }

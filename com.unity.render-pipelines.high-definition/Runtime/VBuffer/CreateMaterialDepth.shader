@@ -49,10 +49,10 @@ Shader "Hidden/HDRP/CreateMaterialDepth"
             UnpackVisibilityBuffer(vbuffer, instanceID, triangleID);
 
             InstanceVData instanceVData = _InstanceVDataBuffer[instanceID];
-            uint materialID = instanceVData.materialIndex;
+            uint materialID = instanceVData.materialData;
 
             // We assume a maximum of 65536 materials in scene.
-            outDepth = float(materialID) / (float)(0xffff);
+            outDepth = float(materialID & 0xffff) / (float)(0xffff);
         }
 
         ENDHLSL
