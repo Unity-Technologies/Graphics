@@ -5,6 +5,8 @@ using UnityEngine.Experimental.Rendering;
 public class SDFCameraData
 {
     public static readonly int InvViewProjectionMatrixId = Shader.PropertyToID("InvViewProjectionMatrix");
+    public static readonly int InvViewMatrixId = Shader.PropertyToID("InvViewMatrix");
+    public static readonly int InvProjectionMatrixId = Shader.PropertyToID("InvProjectionMatrix");
     public static readonly int TexelSizeId = Shader.PropertyToID("TexelSize");
     public static readonly int CameraPosId = Shader.PropertyToID("CameraPos");
 
@@ -15,6 +17,8 @@ public class SDFCameraData
     Matrix4x4   m_ViewMatrix;
     Matrix4x4   m_ProjectionMatrix;
     Matrix4x4   m_InvViewProjectionMatrix;
+    Matrix4x4   m_InvViewMatrix;
+    Matrix4x4   m_InvProjectionMatrix;
 
     Vector3 m_CameraPos;
 
@@ -29,6 +33,8 @@ public class SDFCameraData
         m_ProjectionMatrix = camera.projectionMatrix;
 
         m_InvViewProjectionMatrix = (m_ViewMatrix * m_ProjectionMatrix).inverse;
+        m_InvViewMatrix = (m_ViewMatrix).inverse;
+        m_InvProjectionMatrix = (m_ProjectionMatrix).inverse;
         m_CameraPos = camera.cameraToWorldMatrix.MultiplyPoint(new Vector3(0, 0, 0));
 
         m_TexelSize.x = 1.0f / camera.scaledPixelWidth;
@@ -42,6 +48,8 @@ public class SDFCameraData
     public void UpdateComputeShaderVariables(CommandBuffer cmd, ComputeShader computeShader)
     {
         cmd.SetComputeMatrixParam(computeShader, InvViewProjectionMatrixId, m_InvViewProjectionMatrix);
+        cmd.SetComputeMatrixParam(computeShader, InvViewMatrixId, m_InvViewMatrix);
+        cmd.SetComputeMatrixParam(computeShader, InvProjectionMatrixId, m_InvProjectionMatrix);
         cmd.SetComputeVectorParam(computeShader, TexelSizeId, m_TexelSize);
         cmd.SetComputeVectorParam(computeShader, CameraPosId, m_CameraPos);
 
