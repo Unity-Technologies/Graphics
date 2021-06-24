@@ -21,6 +21,8 @@ public class SDFFilterEditor : Editor
         EditorGUILayout.FloatField("Voxel Size:", vf.VoxelSize);
         EditorGUILayout.Vector3Field("Mesh Center:", vf.MeshBounds.center);
         EditorGUILayout.Vector3Field("Mesh Size:", vf.MeshBounds.size);
+        EditorGUILayout.Toggle("Random Point Sampling:", vf.m_RandomSamples);
+        EditorGUILayout.Toggle("Smooth Normals:", vf.m_SmoothNormals);
         EditorGUILayout.IntField("Field Entries:", vf.m_Field.Length);
 
     }
