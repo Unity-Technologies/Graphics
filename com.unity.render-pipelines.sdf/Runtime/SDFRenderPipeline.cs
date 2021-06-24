@@ -326,6 +326,8 @@ namespace UnityEngine.Rendering.SDFRP
         {
             Debug.Assert(currentAsset.gridSize.x >= 0 && currentAsset.gridSize.y >= 0 && currentAsset.gridSize.z >= 0);
             Debug.Assert(currentAsset.probeDistance.x >= 0 && currentAsset.probeDistance.y >= 0 && currentAsset.probeDistance.z >= 0);
+            if (currentAsset.gridSize.x * currentAsset.gridSize.y * currentAsset.gridSize.z > 256)
+                Debug.LogError("Currently you cannot have more than 256 GI probes!");
 
             Debug.Assert(m_ProbeAtlasTexture == null);
 
