@@ -1,0 +1,141 @@
+#pragma kernel CompositeGI
+
+Texture2D<float4> ProbeAtlasTexture;
+SamplerState TrilinearClampSampler;
+int ProbeAtlasTextureResolution;
+int ProbeResolution;
+
+float4 GridOrigin;
+float4 GridSize;
+float4 ProbeDistance;
+
+Texture2D<float4> tValueTexture;
+Texture2D<float4> NormalTexture;
+SamplerState PointClampSampler;
+
+RWTexture2D<float4> ColorResult;
+
+// Fast oct encode http://jcgt.org/published/0003/02/01/
+float2 signNotZero(float2 v)
+{
+    return float2((v.x >= 0.0f) ? 1.0f : -1.0f, (v.y >= 0.0f) ? 1.0f : -1.0f);
+}
+// Assume normalized input. Output is on [-1, 1] for each component
+float2 float32x3_to_oct(float3 v)
+{
+    // Project the sphere onto the octahedron, and then onto the xy plane
+    float2 p = v.xy * (1.0f / (abs(v.x) + abs(v.y) + abs(v.z)));
+    // Reflect the folds of the lower hemisphere over the diagonals
+    return (v.z <= 0.0f) ? ((1.0f - abs(p.yx)) * signNotZero(p)) : p;
+}
+
+int3 GetCellCoordniates(float3 position)
+{
+    //  Y
+    //  |
+    //  ---- X
+    // /
+    // Z
+
+    int3 coordinates = { -1, -1, -1 };
+
+    bool outOfBound = false;
+    outOfBound = position.x < GridOrigin.x ? true : false;
+    outOfBound = position.x > GridOrigin.x + (GridSize.x - 1) * ProbeDistance.x ? true : false;
+    outOfBound = position.y < GridOrigin.y ? true : false;
+    outOfBound = position.y > GridOrigin.y + (GridSize.y - 1) * ProbeDistance.y ? true : false;
+    outOfBound = position.z < GridOrigin.z ? true : false;
+    outOfBound = position.z > GridOrigin.z + (GridSize.z - 1) * ProbeDistance.z ? true : false;
+
+    if (!outOfBound)
+    {
+        coordinates.x = floor(position.x / ProbeDistance.x);
+        coordinates.y = floor(position.y / ProbeDistance.y);
+        coordinates.z = floor(position.z / ProbeDistance.z);
+    }
+
+    return coordinates;
+}
+
+float3 fakePosition(int2 xy, int colorHalfWidth, int colorHalfHeight)
+{
+    float screenRadius = 110;
+    float3 position = { 10000, 10000, 10000 };
+
+    int xDist = abs(xy.x - colorHalfWidth);
+    int yDist = abs(xy.y - colorHalfHeight);
+
+    if (xDist * xDist + yDist * yDist <= screenRadius * screenRadius)
+    {
+        position.r = xDist / screenRadius * (xy.x >= colorHalfWidth ? 1 : -1) + 2.5;
+        position.g = yDist / screenRadius * (xy.y >= colorHalfHeight ? 1 : -1) + 2.5;
+        position.b = 2.5 - sqrt(screenRadius * screenRadius - (xDist * xDist + yDist * yDist)) / screenRadius;
+    }
+
+    return position;
+}
+
+[numthreads(8,8,1)]
+void CompositeGI(uint3 id : SV_DispatchThreadID)
+{
+    uint colorWidth, colorHeight;
+    ColorResult.GetDimensions(colorWidth, colorHeight);
+    float2 colorSampleUV = { (float)id.x / colorWidth, (float)id.y / colorHeight };
+    // TODO: derive world position from t value texture
+    //float3 pixelPosition = tValueTexture.SampleLevel(PointClampSampler, colorSampleUV, 0);
+    float3 pixelPosition = fakePosition(id.xy, colorWidth / 2, colorHeight / 2);
+
+    int3 cellCoord = GetCellCoordniates(pixelPosition);
+
+    // Pixel is not within probe grid
+    if (cellCoord.x < 0)
+        return;
+
+    // TODO: get from normal texture
+    //float3 pixelNormal = NormalTexture.SampleLevel(PointClampSampler, colorSampleUV, 0);
+    float3 pixelNormal = normalize(pixelPosition - float3(2.5f, 2.5f, 2.5f));
+
+    // Convert cell coordinates into probe indices
+    uint baseProbeIndex = cellCoord.x * GridSize.y * GridSize.z + cellCoord.y * GridSize.z + cellCoord.z;
+    uint probeIndices[8] = {
+        baseProbeIndex,
+        baseProbeIndex + 1,
+        baseProbeIndex + (uint)GridSize.z,
+        baseProbeIndex + (uint)GridSize.z + 1,
+        baseProbeIndex + (uint)(GridSize.y * GridSize.z),
+        baseProbeIndex + 1 + (uint)(GridSize.y * GridSize.z),
+        baseProbeIndex + (uint)GridSize.z + (uint)(GridSize.y * GridSize.z),
+        baseProbeIndex + (uint)GridSize.z + 1 + (uint)(GridSize.y * GridSize.z),
+    };
+
+    // Interpolate probes
+    for (uint i = 0; i < 8; ++i)
+    {
+        uint probeIndex = probeIndices[i];
+
+        // Derive probe position
+        uint gridX = probeIndex / (uint)(GridSize.y * GridSize.z);
+        uint gridY = (probeIndex - gridX * (uint)(GridSize.y * GridSize.z)) / GridSize.z;
+        uint gridZ = probeIndex % (uint)GridSize.z;
+        float4 probePosition = float4(ProbeDistance.x * gridX, ProbeDistance.y * gridY, ProbeDistance.z * gridZ, 0) + GridOrigin;
+
+        float dist = distance(pixelPosition, probePosition);
+
+        // TODO: perform visibility test here and discard result if necessary
+
+        // Fake visibility test
+        //if (distance(probePosition, float3(2.5f, 2.5f, 2.5f)) <= 1.0f)
+        //    return;
+
+        // TODO: properly normalize dist weight with ProbeDistance
+        float probeWeight = 0.125f * (1.0f / clamp(sqrt(dist), 0.5f, 1.0f)) / 4.0f;
+
+        // Convert look up direction into probe atlas texture UV
+        float2 localUV = float32x3_to_oct(pixelNormal) / 2.0f + float2(0.5f, 0.5f);
+        uint   probeCountPerDim = ProbeAtlasTextureResolution / ProbeResolution;
+        float  uvProbeOffset = 1.0f / probeCountPerDim;
+        float2 atlasUV = { (probeIndex % probeCountPerDim) * uvProbeOffset + localUV.x / probeCountPerDim, (probeIndex / probeCountPerDim) * uvProbeOffset + localUV.y / probeCountPerDim };
+
+        ColorResult[id.xy] += ProbeAtlasTexture.SampleLevel(TrilinearClampSampler, atlasUV, 0) * probeWeight;
+    }
+}
