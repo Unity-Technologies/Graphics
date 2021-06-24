@@ -15,7 +15,7 @@ struct Attributes
 struct Varyings
 {
     float4 positionCS : SV_POSITION;
-    uint lightFeatures : LIGHT_FEATURES;
+    uint lightAndMaterialFeatures : FEATURES;
     uint2 tileCoord : TILE_COORD;
     UNITY_VERTEX_OUTPUT_STEREO
 };
@@ -53,7 +53,7 @@ Varyings Vert(Attributes inputMesh)
 
     output.positionCS.xy = vertPos * 2 - 1;
 
-    output.lightFeatures = _VBufferTileClassification[COORD_TEXTURE2D_X(uint2(tileX, (_NumVBufferTileY-1) - tileY))];
+    output.lightAndMaterialFeatures = _VBufferTileClassification[COORD_TEXTURE2D_X(uint2(tileX, (_NumVBufferTileY-1) - tileY))];
     output.positionCS.z = float(_CurrMaterialID) / (float)(0xffff);
     output.positionCS.w = 1;
 
@@ -95,21 +95,8 @@ float3 DecompressVector3(uint direction)
     return UnpackNormalOctQuadEncode(float2(x,y) * 2.0 - 1.0);
 }
 
-float2 ToNDC(float2 hClip)
+FragInputs EvaluateFragInput(float4 posSS, uint instanceID, uint triangleID, float3 posWS, float3 V, InstanceVData instanceVData, out float3 debugValue)
 {
-    // Convert it to screen sample space
-    float2 NDC = hClip.xy * 0.5 + 0.5;
-#if UNITY_UV_STARTS_AT_TOP
-    NDC.y = 1.0 - NDC.y;
-#endif
-    return NDC;
-}
-
-// START FROM HERE
-
-FragInputs EvaluateFragInput(float4 posSS, uint instanceID, uint triangleID, float3 posWS, float3 V, out float3 debugValue)
-{
-    InstanceVData instanceVData = _InstanceVDataBuffer[instanceID];
     uint i0 = _CompactedIndexBuffer[CLUSTER_SIZE_IN_INDICES * instanceVData.chunkStartIndex + triangleID * 3];
     uint i1 = _CompactedIndexBuffer[CLUSTER_SIZE_IN_INDICES * instanceVData.chunkStartIndex + triangleID * 3 + 1];
     uint i2 = _CompactedIndexBuffer[CLUSTER_SIZE_IN_INDICES * instanceVData.chunkStartIndex + triangleID * 3 + 2];
@@ -161,12 +148,18 @@ FragInputs EvaluateFragInput(float4 posSS, uint instanceID, uint triangleID, flo
     float2 UV2 = (v2.uv);
     float2 texCoord0 = INTERPOLATE_ATTRIBUTE(UV0, UV1, UV2, barycentricCoordinates);
 
+    // Get UV1 at position
+    float2 UV1_0 = (v0.uv1);
+    float2 UV1_1 = (v1.uv1);
+    float2 UV1_2 = (v2.uv1);
+    float2 texCoord1 = INTERPOLATE_ATTRIBUTE(UV1_0, UV1_1, UV1_2, barycentricCoordinates);
+
     // Compute the world space normal and tangent. [IMPORTANT, we assume uniform scale here]
     float3 normalWS = normalize(mul((float3x3)instanceVData.localToWorld, normalOS));
     float3 tangentWS = normalize(mul((float3x3)instanceVData.localToWorld, tangentOS.xyz));
 
     // DEBG
-    debugValue = barycentricCoordinates;// float3(texCoord0.xy, 0);
+    debugValue = float3(texCoord1, 0);// float3(texCoord0.xy, 0);
     ///
 
     FragInputs outFragInputs;
@@ -174,6 +167,7 @@ FragInputs EvaluateFragInput(float4 posSS, uint instanceID, uint triangleID, flo
     outFragInputs.positionSS = posSS;
     outFragInputs.positionRWS = posWS;
     outFragInputs.texCoord0 = float4(texCoord0, 0.0, 1.0);
+    outFragInputs.texCoord1 = float4(texCoord1, 0.0, 1.0);
     //outFragInputs.tangentToWorld = CreateTangentToWorld(normalWS, tangentWS, 1.0);
     outFragInputs.tangentToWorld = CreateTangentToWorld(normalWS, tangentWS, sign(tangentOS.w));
     outFragInputs.isFrontFace = dot(V, normalWS) > 0.0f;
@@ -198,25 +192,28 @@ void Frag(Varyings packedInput, out float4 outColor : SV_Target0)
     }
 
     float2 ndc = pixelCoord * _ScreenSize.zw;
-    //ndc = (ndc);
     float3 posWS = ComputeWorldSpacePosition(ndc, depthValue, UNITY_MATRIX_I_VP);
     float3 V = GetWorldSpaceNormalizeViewDir(posWS);
     float3 debugVal = 0;
-    FragInputs input = EvaluateFragInput(packedInput.positionCS, instanceID, triangleID, posWS, V, debugVal);
+
+    InstanceVData instanceVData = _InstanceVDataBuffer[instanceID];
+    FragInputs input = EvaluateFragInput(packedInput.positionCS, instanceID, triangleID, posWS, V, instanceVData, debugVal);
 
     // Build the position input
     int2 tileCoord = (float2)input.positionSS.xy / GetTileSize();
     PositionInputs posInput = GetPositionInput(input.positionSS.xy, _ScreenSize.zw, depthValue, UNITY_MATRIX_I_VP, GetWorldToViewMatrix(), tileCoord);
 
+    unity_LightmapST = instanceVData.lightmapST;
     SurfaceData surfaceData;
     BuiltinData builtinData;
     GetSurfaceAndBuiltinData(input, V, posInput, surfaceData, builtinData);
-
+    builtinData.bakeDiffuseLighting = float3(0.0, 0.0, 0.0);
+    builtinData.backBakeDiffuseLighting = float3(0.0, 0.0, 0.0);
     BSDFData bsdfData = ConvertSurfaceDataToBSDFData(input.positionSS.xy, surfaceData);
 
     PreLightData preLightData = GetPreLightData(V, posInput, bsdfData);
 
-    uint featureFlags = packedInput.lightFeatures | MATERIAL_FEATURE_MASK_FLAGS;
+    uint featureFlags = packedInput.lightAndMaterialFeatures;
     LightLoopOutput lightLoopOutput;
     LightLoop(V, posInput, preLightData, bsdfData, builtinData, featureFlags, lightLoopOutput);
 

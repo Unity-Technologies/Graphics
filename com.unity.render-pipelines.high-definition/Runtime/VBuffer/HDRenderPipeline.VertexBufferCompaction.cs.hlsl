@@ -16,6 +16,7 @@ struct CompactVertex
 {
     float3 pos;
     float2 uv;
+    float2 uv1;
     float3 N;
     float4 T;
 };
@@ -27,6 +28,7 @@ struct InstanceVData
     float4x4 localToWorld;
     uint materialIndex;
     uint chunkStartIndex;
+    float4 lightmapST;
 };
 
 
