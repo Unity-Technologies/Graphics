@@ -61,31 +61,14 @@ namespace UnityEngine.Rendering.SDFRP
 
         static int Frame = 0;
 
-        struct ObjectHeader
-        {
-            public Matrix4x4 worldToObjMatrix;
-            public int      objID;
-            public int      numEntries;
-            public int      startOffset;
-            public float    voxelSize;
-            public Vector3  minExtent;
-            public float    pad0;
-            public Vector3  maxExtent;
-            public float    pad1;
-            public Vector4  color;
-        };
-
         protected override void Render(ScriptableRenderContext context, Camera[] cameras)
         {
             ClearBackground(context, cameras);
 
             SDFRenderer[] SDFObjects = GameObject.FindObjectsOfType<SDFRenderer>();
-            ComputeBuffer SDFHeaderData;
-            ComputeBuffer SDFData;
             if (SDFObjects.Length > 0)
             {
-                SDFHeaderData = new ComputeBuffer(SDFObjects.Length, UnsafeUtility.SizeOf<ObjectHeader>(), ComputeBufferType.Default);
-                SDFData = GetDataFromSceneGraph(SDFObjects, SDFHeaderData);
+                GetDataFromSceneGraph(SDFObjects, out ComputeBuffer SDFData, out ComputeBuffer SDFHeaderData);
 
                 // Vector3[] sampleExtents = {
                 //     new Vector3(1.0f, 1.0f, 1.0f),
@@ -108,14 +91,24 @@ namespace UnityEngine.Rendering.SDFRP
 
                 // SDF Rendering
                 {
-                    CommandBuffer cmdRayMarch = new CommandBuffer();
-                    cmdRayMarch.name = "RayMarch";
-                    SDFRayMarch.RayMarch(cmdRayMarch, currentAsset.rayMarchingCS);
-                    context.ExecuteCommandBuffer(cmdRayMarch);
-                    cmdRayMarch.Release();
+                    foreach (Camera camera in cameras)
+                    {
+                        if (camera.cameraType == CameraType.Game && camera.enabled)
+                        {
+                            CommandBuffer cmdRayMarch = new CommandBuffer();
+                            cmdRayMarch.name = "RayMarch";
+                            cmdRayMarch.SetViewport(camera.pixelRect);
+                            cmdRayMarch.SetViewMatrix(camera.worldToCameraMatrix);
+                            cmdRayMarch.SetProjectionMatrix(camera.projectionMatrix);
+                            SDFRayMarch.RayMarchForRealsies(cmdRayMarch, currentAsset.rayMarchingCS, camera.pixelRect, SDFData, SDFHeaderData, camera);
+                            context.ExecuteCommandBuffer(cmdRayMarch);
+                            cmdRayMarch.Release();
+                        }
+                    }
+
+                    SDFHeaderData.Release();
+                    SDFData.Release();
                 }
-                SDFHeaderData.Release();
-                SDFData.Release();
             }
 
             if (currentAsset.EnableDepthOfField)
@@ -128,32 +121,6 @@ namespace UnityEngine.Rendering.SDFRP
                  {
                     if (camera.cameraType == CameraType.Game && camera.enabled)
                     {
-                        // // Double check cmdbuffer setup
-                        // CommandBuffer cmd = new CommandBuffer();
-                        // cmd.name = "SDF";
-                        // cmd.SetViewport(camera.pixelRect);
-                        // cmd.SetViewMatrix(camera.worldToCameraMatrix);
-                        // cmd.SetProjectionMatrix(camera.projectionMatrix);
-
-                        // ComputeShader cs = (ComputeShader)Resources.Load("NameOfShader");
-                        // int kernelHandle = cs.FindKernel("CSMain");
-                        // cs.SetBuffer(kernelHandle, "_ObjectSDFData", SDFData);
-                        // cmd.SetRandomWriteTarget(1, SDFData);
-                        // cs.SetBuffer(kernelHandle, "_ObjectHeaderData", SDFHeaderData);
-                        // cmd.SetRandomWriteTarget(2, SDFHeaderData);
-
-                        // RenderTexture tex = new RenderTexture(cameras[0].pixelWidth, cameras[0].pixelHeight, 0);  // Check depth buffer size
-                        // tex.enableRandomWrite = true;
-                        // tex.Create();
-                        // cs.SetTexture(kernelHandle, "Result", tex);
-                        // // cmd.SetRandomWriteTarget(3, renderTexture);
-
-                        // cs.Dispatch(kernelHandle, (int)Math.Ceiling(tex.width / 8.0f), (int)Math.Ceiling(tex.height / 8.0f), 1);     // 8 x 8 tiles
-                        // // cmd.Blit(tex, null);
-                        // cmd.Blit(tex, BuiltinRenderTextureType.CameraTarget);
-
-                        // cmd.ClearRandomWriteTargets();
-
                         CommandBuffer cmd1 = new CommandBuffer();
                         cmd1.name = "DepthOfField";
                         cmd1.SetViewport(camera.pixelRect);
@@ -193,7 +160,7 @@ namespace UnityEngine.Rendering.SDFRP
             }
         }
 
-        private ComputeBuffer GetDataFromSceneGraph(SDFRenderer[] SDFObjects, ComputeBuffer headers)
+        private void GetDataFromSceneGraph(SDFRenderer[] SDFObjects, out ComputeBuffer SDFData, out ComputeBuffer SDFHeaderData)
         {
             // First, get size
             int dataSize = 0;
@@ -204,31 +171,37 @@ namespace UnityEngine.Rendering.SDFRP
 
             // Next, fill out array of data and array of data-headers
             float[] nativeData = new float[dataSize];
-            ObjectHeader[] nativeHeaders = new ObjectHeader[SDFObjects.Length];
+            SDFRayMarch.ObjectHeader[] nativeHeaders = new SDFRayMarch.ObjectHeader[SDFObjects.Length];
 
             int offset = 0;
             for(int i = 0; i < SDFObjects.Length; i++)
             {
                 VoxelField field = SDFObjects[i].SDFFilter.VoxelField;
-                ObjectHeader header = new ObjectHeader();
+                SDFRayMarch.ObjectHeader header = new SDFRayMarch.ObjectHeader();
                 header.worldToObjMatrix = SDFObjects[i].gameObject.transform.worldToLocalMatrix; // may not work with shader according to docs?
                 header.objID = i; // index into data. Change later?
                 header.numEntries = field.m_Field.Length;
                 header.startOffset = offset;
                 header.voxelSize = field.m_VoxelSize;
-                header.minExtent = field.MeshBounds.center - 0.5f * field.MeshBounds.size;    // is this correct? Can we just pass the counts instead?
-                header.maxExtent = field.MeshBounds.center + 0.5f * field.MeshBounds.size;
-                header.color = SDFObjects[i].SDFMaterial.color;
+                Vector3 minExtent = field.MeshBounds.center - 0.5f * field.MeshBounds.size; // is this correct? Can we just pass the counts instead?
+                header.minExtentX = minExtent.x;
+                header.minExtentY = minExtent.y;
+                header.minExtentZ = minExtent.z;
+                Vector3 maxExtent = field.MeshBounds.center + 0.5f * field.MeshBounds.size;
+                header.maxExtentX = maxExtent.x;
+                header.maxExtentY = maxExtent.y;
+                header.maxExtentZ = maxExtent.z;
+                //header.color = SDFObjects[i].SDFMaterial.color;
                 nativeHeaders[i] = header;
 
                 Array.Copy(field.m_Field, 0, nativeData, offset, field.m_Field.Length);
                 offset += field.m_Field.Length;
             }
 
-            headers.SetData(nativeHeaders);
-            ComputeBuffer SDFData = new ComputeBuffer(dataSize, sizeof(float), ComputeBufferType.Default);
+            SDFHeaderData = new ComputeBuffer(SDFObjects.Length, /*UnsafeUtility.SizeOf<ObjectHeader>()*/SDFRayMarch.ObjectHeaderDataSize, ComputeBufferType.Default);
+            SDFHeaderData.SetData(nativeHeaders);
+            SDFData = new ComputeBuffer(dataSize, sizeof(float), ComputeBufferType.Default);
             SDFData.SetData(nativeData);
-            return SDFData;
         }
 
         private void CreateObjectList(ScriptableRenderContext context, Camera[] cameras, ComputeBuffer SDFHeaders, int totalSDFs)
@@ -289,11 +262,13 @@ namespace UnityEngine.Rendering.SDFRP
                 cmd1.SetViewMatrix(camera.worldToCameraMatrix);
                 cmd1.SetProjectionMatrix(camera.projectionMatrix);
 
-                ObjectHeader[] data = new ObjectHeader[totalSDFs];  // get correct size of array
+                SDFRayMarch.ObjectHeader[] data = new SDFRayMarch.ObjectHeader[totalSDFs];  // get correct size of array
                 SDFHeaders.GetData(data);     // optimize this, maybe don't create a compute buffer yet
                 for (int i = 0; i < data.Length; i++)
                 {
-                    var extents = data[i].maxExtent - data[i].minExtent;
+                    Vector3 minExtent = new Vector3(data[i].minExtentX, data[i].minExtentY, data[i].minExtentZ);
+                    Vector3 maxExtent = new Vector3(data[i].maxExtentX, data[i].maxExtentY, data[i].maxExtentZ);
+                    var extents = maxExtent - minExtent;
                     Matrix4x4 scale = Matrix4x4.Scale(extents);
                     Matrix4x4 finalTRS = data[i].worldToObjMatrix.inverse * scale;       // Check multiply scale correctness later
 

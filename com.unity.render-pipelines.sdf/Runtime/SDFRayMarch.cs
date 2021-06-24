@@ -18,6 +18,7 @@ public class SDFRayMarch
 
     // Out Data
     public static readonly int g_OutSdfData = Shader.PropertyToID("g_OutSdfData");
+    public static readonly int g_DebugOutput = Shader.PropertyToID("g_DebugOutput");
 
     // In data
     public static readonly int _ObjectSDFData = Shader.PropertyToID("_ObjectSDFData");
@@ -53,7 +54,7 @@ public class SDFRayMarch
 
     public static ComputeBuffer tileDataOffsetIntoObjHeaderBuffer;
 
-    struct ObjectHeader
+    public struct ObjectHeader
     {
         internal Matrix4x4  worldToObjMatrix;
         internal int      objID;
@@ -69,7 +70,7 @@ public class SDFRayMarch
         internal float    maxExtentZ;
         internal float    pad1;
     };
-    const int ObjectHeaderDataSize = 112;
+    public const int ObjectHeaderDataSize = 112;
     public static ComputeBuffer objectHeaderDataBuffer;
 
     public static ComputeBuffer sdfDataBuffer;
@@ -183,5 +184,62 @@ public class SDFRayMarch
 
         // TODO - we could remove dispatch for tiles that don't have any objects - but that will require compaction of tiledataheader
         cmd.DispatchCompute(rayMarchingCS, rayMarchKernel, numTilesX, numTilesY, 1);
+    }
+
+    public static void RayMarchForRealsies(CommandBuffer cmd, ComputeShader rayMarchingCS, Rect pixelRect, ComputeBuffer sdfDataBuffer, ComputeBuffer objectHeaderDataBuffer, Camera camera)
+    {
+        //rayMarchingCS = defaultResources.shaders.copyChannelCS;
+        int resolutionX = (int)pixelRect.width;
+        int resolutionY = (int)pixelRect.height;
+        int rayMarchKernel = rayMarchingCS.FindKernel("RayMarchKernel");
+        const int TileSize = 8;
+        int numTilesX = (resolutionX + (TileSize - 1)) / TileSize;
+        int numTilesY = (resolutionY + (TileSize - 1)) / TileSize;
+        int numTiles = numTilesX * numTilesY;
+
+        // _ObjectSDFData
+        cmd.SetComputeBufferParam(rayMarchingCS, rayMarchKernel, _ObjectSDFData, sdfDataBuffer);
+
+        // _ObjectHeaderData
+        cmd.SetComputeBufferParam(rayMarchingCS, rayMarchKernel, _ObjectHeaderData, objectHeaderDataBuffer);
+
+#region TODO
+        // Tile Data Header 
+        tileDataHeaderBuffer = new ComputeBuffer(numTiles, TileDataHeaderSize, ComputeBufferType.Default);
+        List<TileDataHeader> tileDataHeaderValues = FillTileDataHeaderBuffer(numTiles);
+        tileDataHeaderBuffer.SetData(tileDataHeaderValues);
+        cmd.SetComputeBufferParam(rayMarchingCS, rayMarchKernel, _TileDataHeader, tileDataHeaderBuffer);
+
+        //_TileDataOffsetIntoObjHeader
+        int tileDataOffsetIntoObjHeaderSize = 4;
+        tileDataOffsetIntoObjHeaderBuffer = new ComputeBuffer(numTiles * MAX_OBJECTS_IN_SCENE, tileDataOffsetIntoObjHeaderSize, ComputeBufferType.Default);
+        List<int> numEntriesEachTile = new List<int>();
+        for (int tileID = 0; tileID < numTiles; ++tileID)
+            numEntriesEachTile.Add(1);
+        List<int> tileDataOffsetIntoObjHeaderValues = FillTileDataOffsetBuffer(numTiles, numEntriesEachTile);
+        tileDataOffsetIntoObjHeaderBuffer.SetData(tileDataOffsetIntoObjHeaderValues);
+        cmd.SetComputeBufferParam(rayMarchingCS, rayMarchKernel, _TileDataOffsetIntoObjHeader, tileDataOffsetIntoObjHeaderBuffer);
+#endregion
+        // Dispatch parameters
+        outSdfData = new ComputeBuffer(resolutionX * resolutionY, OutSdfDataSize, ComputeBufferType.Default);
+        cmd.SetComputeBufferParam(rayMarchingCS, rayMarchKernel, g_OutSdfData, outSdfData);
+#region DEBUG_ONLY
+        RenderTexture tex = new RenderTexture(resolutionX, resolutionY, 24);
+        tex.enableRandomWrite = true;
+        tex.Create();
+        rayMarchingCS.SetTexture(rayMarchKernel, g_DebugOutput, tex);
+        #endregion
+
+        // TODO - we could remove dispatch for tiles that don't have any objects - but that will require compaction of tiledataheader
+        cmd.DispatchCompute(rayMarchingCS, rayMarchKernel, numTilesX, numTilesY, 1);
+
+        #region DEBUG_ONLY
+        // cmd.Blit(tex, null);
+        cmd.SetRenderTarget(camera.activeTexture);
+        cmd.Blit(tex, BuiltinRenderTextureType.CurrentActive);
+        //cmd.Blit(tex, BuiltinRenderTextureType.CameraTarget);
+        //tex.Release();
+
+        #endregion
     }
 }

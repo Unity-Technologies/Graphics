@@ -85,6 +85,7 @@ struct OutSdfData
     float t;
 };
 RWStructuredBuffer<OutSdfData> g_OutSdfData : register(u0);
+RWTexture2D<float4> g_DebugOutput : register(u1);
 
 // https://www.iquilezles.org/www/articles/distfunctions/distfunctions.htm
 float sdBox(float3 p, float3 b)
@@ -229,4 +230,8 @@ void RayMarchKernel(uint3 dispatchTid : SV_DispatchThreadID, uint3 groupId : SV_
 
     // TODO - If using z-dimension for anything else, please change the group index and manually calculate
     g_OutSdfData[groupIndex] = outData;
+
+	// For debug only
+	g_DebugOutput[dispatchTid.xy] = float4(outData.t, 0.0, 0.0, 1.0);
+	//g_DebugOutput[dispatchTid.xy] = float4(1.0, 0.0, 0.0, 1.0);
 }
