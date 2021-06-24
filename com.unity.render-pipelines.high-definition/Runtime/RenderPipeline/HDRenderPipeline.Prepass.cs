@@ -1,9 +1,19 @@
 using System.Collections.Generic;
+using Unity.Burst;
+using Unity.Collections;
+using Unity.Collections.LowLevel.Unsafe;
 using UnityEngine.Experimental.Rendering;
 using UnityEngine.Experimental.Rendering.RenderGraphModule;
 
 namespace UnityEngine.Rendering.HighDefinition
 {
+    // Fits 31 handles at time of writing (RenderGraph.kMaxMRTCount is 8) 
+    using MRTTextureHandleList15 = FixedList512<TextureHandle>; 
+
+    // Fits 7 handles at time of writing (Decal.DBufferMaterial.Count is 4) 
+    using MRTTextureHandleList7 = FixedList128<TextureHandle>; 
+
+    [BurstCompile]
     public partial class HDRenderPipeline
     {
         Material m_DepthResolveMaterial;
@@ -36,12 +46,12 @@ namespace UnityEngine.Rendering.HighDefinition
             m_DownsampleDepthMaterialHalfresCheckerboard = CoreUtils.CreateEngineMaterial(defaultResources.shaders.downsampleDepthPS);
             m_DownsampleDepthMaterialGather = CoreUtils.CreateEngineMaterial(defaultResources.shaders.downsampleDepthPS);
             m_DownsampleDepthMaterialGather.EnableKeyword("GATHER_DOWNSAMPLE");
+            
+            m_GBufferOutput = default;
+            m_GBufferOutput.mrt.Length = RenderGraph.kMaxMRTCount;
 
-            m_GBufferOutput = new GBufferOutput();
-            m_GBufferOutput.mrt = new TextureHandle[RenderGraph.kMaxMRTCount];
-
-            m_DBufferOutput = new DBufferOutput();
-            m_DBufferOutput.mrt = new TextureHandle[(int)Decal.DBufferMaterial.Count];
+            m_DBufferOutput = default;
+            m_DBufferOutput.mrt.Length = (int)Decal.DBufferMaterial.Count;
 
             m_DepthBufferMipChainInfo = new HDUtils.PackedMipChainInfo();
             m_DepthBufferMipChainInfo.Allocate();
@@ -70,6 +80,7 @@ namespace UnityEngine.Rendering.HighDefinition
             return m_DepthBufferMipChainInfo;
         }
 
+        [BurstCompatible]
         struct PrepassOutput
         {
             // Buffers that may be output by the prepass.
@@ -567,16 +578,18 @@ namespace UnityEngine.Rendering.HighDefinition
             }
         }
 
-        class GBufferPassData
+        [BurstCompatible]
+        struct GBufferPassData
         {
             public FrameSettings        frameSettings;
             public RendererListHandle   rendererList;
             public DBufferOutput        dBuffer;
         }
 
+        [BurstCompatible]
         struct GBufferOutput
         {
-            public TextureHandle[] mrt;
+            public MRTTextureHandleList15 mrt;
             public int gBufferCount;
             public int lightLayersTextureIndex;
             public int shadowMaskTextureIndex;
@@ -646,6 +659,13 @@ namespace UnityEngine.Rendering.HighDefinition
             for (int i = 0; i < dBufferOutput.dBufferCount; ++i)
                 ctx.cmd.SetGlobalTexture(HDShaderIDs._DBufferTexture[i], dBufferOutput.mrt[i]);
         }
+        
+        [BurstCompatible]
+        static void BindDBufferGlobalData(in DBufferOutput dBufferOutput, ref HW1371_RenderGraphContext ctx)
+        {
+            for (int i = 0; i < dBufferOutput.dBufferCount; ++i)
+                ctx.cmd.SetGlobalTexture(HDShaderIDs._DBufferTexture[i], dBufferOutput.mrt[i]);
+        }
 
         static GBufferOutput ReadGBuffer(GBufferOutput gBufferOutput, RenderGraphBuilder builder)
         {
@@ -658,35 +678,34 @@ namespace UnityEngine.Rendering.HighDefinition
 
         // RenderGBuffer do the gbuffer pass. This is only called with deferred. If we use a depth prepass, then the depth prepass will perform the alpha testing for opaque alpha tested and we don't need to do it anymore
         // during Gbuffer pass. This is handled in the shader and the depth test (equal and no depth write) is done here.
-        void RenderGBuffer(RenderGraph renderGraph, TextureHandle sssBuffer, TextureHandle vtFeedbackBuffer, ref PrepassOutput prepassOutput, CullingResults cull, HDCamera hdCamera)
+        unsafe void RenderGBuffer(RenderGraph renderGraph, TextureHandle sssBuffer, TextureHandle vtFeedbackBuffer, ref PrepassOutput prepassOutput, CullingResults cull, HDCamera hdCamera)
         {
-            if (hdCamera.frameSettings.litShaderMode != LitShaderMode.Deferred ||
-                !hdCamera.frameSettings.IsEnabled(FrameSettingsField.OpaqueObjects))
+            if (hdCamera.frameSettings.litShaderMode != LitShaderMode.Deferred || !hdCamera.frameSettings.IsEnabled(FrameSettingsField.OpaqueObjects))
             {
                 prepassOutput.gbuffer.gBufferCount = 0;
                 return;
             }
 
-            using (var builder = renderGraph.AddRenderPass<GBufferPassData>("GBuffer", out var passData, ProfilingSampler.Get(HDProfileId.GBuffer)))
+            using (var builder = renderGraph.AddRenderPassUnmanaged<GBufferPassData>("GBuffer", out var passData, ProfilingSampler.Get(HDProfileId.GBuffer)))
             {
                 builder.AllowRendererListCulling(false);
 
                 FrameSettings frameSettings = hdCamera.frameSettings;
 
-                passData.frameSettings = frameSettings;
+                passData->frameSettings = frameSettings;
                 SetupGBufferTargets(renderGraph, hdCamera, sssBuffer, vtFeedbackBuffer, ref prepassOutput, frameSettings, builder);
-                passData.rendererList = builder.UseRendererList(
+                passData->rendererList = builder.UseRendererList(
                     renderGraph.CreateRendererList(CreateOpaqueRendererListDesc(cull, hdCamera.camera, HDShaderPassNames.s_GBufferName, m_CurrentRendererConfigurationBakedLighting)));
 
-                passData.dBuffer = ReadDBuffer(prepassOutput.dbuffer, builder);
-
-                builder.SetRenderFunc(
-                    (GBufferPassData data, RenderGraphContext context) =>
-                    {
-                        BindDBufferGlobalData(data.dBuffer, context);
-                        DrawOpaqueRendererList(context, data.frameSettings, data.rendererList);
-                    });
+                passData->dBuffer = ReadDBuffer(ref prepassOutput.dbuffer, builder);
+                builder.SetRenderFunc(DoRenderGBuffer);
             }
+        }
+        [BurstCompile] static void DoRenderGBuffer(in UnsafeList rawData, ref HW1371_RenderGraphContext context)
+        {
+            ref var data = ref rawData.As<GBufferPassData>();
+            BindDBufferGlobalData(data.dBuffer, ref context);
+            DrawOpaqueRendererList(ref context, data.frameSettings, data.rendererList);
         }
 
         class ResolvePrepassData
@@ -864,6 +883,7 @@ namespace UnityEngine.Rendering.HighDefinition
             }
         }
 
+        [BurstCompatible]
         class RenderDBufferPassData
         {
             public RendererListHandle       meshDecalsRendererList;
@@ -871,10 +891,11 @@ namespace UnityEngine.Rendering.HighDefinition
             public TextureHandle            decalBuffer;
         }
 
+        [BurstCompatible]
         struct DBufferOutput
         {
-            public TextureHandle[]  mrt;
-            public int              dBufferCount;
+            public MRTTextureHandleList7 mrt;
+            public int                   dBufferCount;
         }
 
         static string[] s_DBufferNames = { "DBuffer0", "DBuffer1", "DBuffer2", "DBuffer3" };
@@ -901,13 +922,14 @@ namespace UnityEngine.Rendering.HighDefinition
             builder.UseDepthBuffer(output.resolvedDepthBuffer, DepthAccess.Write);
         }
 
-        static DBufferOutput ReadDBuffer(DBufferOutput dBufferOutput, RenderGraphBuilder builder)
+        static ref DBufferOutput ReadDBuffer(ref DBufferOutput dBufferOutput, RenderGraphBuilder builder)
         {
             // We do the reads "in place" because we don't want to allocate a struct with dynamic arrays each time we do that and we want to keep loops for code sanity.
+            dBufferOutput.mrt.Length = dBufferOutput.dBufferCount;
             for (int i = 0; i < dBufferOutput.dBufferCount; ++i)
                 dBufferOutput.mrt[i] = builder.ReadTexture(dBufferOutput.mrt[i]);
 
-            return dBufferOutput;
+            return ref dBufferOutput;
         }
 
         void RenderDBuffer(RenderGraph renderGraph, HDCamera hdCamera, TextureHandle decalBuffer, ref PrepassOutput output, CullingResults cullingResults)
@@ -1017,7 +1039,7 @@ namespace UnityEngine.Rendering.HighDefinition
                             throw new System.ArgumentOutOfRangeException("Unknown ShaderLitMode");
                     }
 
-                    passData.dBuffer = ReadDBuffer(output.dbuffer, builder);
+                    passData.dBuffer = ReadDBuffer(ref output.dbuffer, builder);
                     passData.normalBuffer = builder.WriteTexture(output.resolvedNormalBuffer);
                     passData.depthStencilBuffer = builder.ReadTexture(output.resolvedDepthBuffer);
 

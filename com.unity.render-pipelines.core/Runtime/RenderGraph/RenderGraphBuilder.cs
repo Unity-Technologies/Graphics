@@ -1,18 +1,22 @@
 using System;
 using System.Collections.Generic;
 using UnityEngine.Rendering;
+using Unity.Burst;
 
 namespace UnityEngine.Experimental.Rendering.RenderGraphModule
 {
     /// <summary>
     /// Use this struct to set up a new Render Pass.
     /// </summary>
-    public struct RenderGraphBuilder : IDisposable
+    public unsafe struct RenderGraphBuilder : IDisposable
     {
-        RenderGraphPass             m_RenderPass;
+        RenderGraphPassManaged      m_RenderPassManaged;
+        RenderGraphPassUnmanagedPtr m_RenderPassUnmanagedPtr;
         RenderGraphResourceRegistry m_Resources;
         RenderGraph                 m_RenderGraph;
         bool                        m_Disposed;
+
+        ref RenderGraphPassUnmanaged m_RenderPass => ref m_RenderPassUnmanagedPtr.Ref;
 
         #region Public Interface
         /// <summary>
@@ -199,7 +203,20 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
         /// <param name="renderFunc">Render function for the pass.</param>
         public void SetRenderFunc<PassData>(RenderFunc<PassData> renderFunc) where PassData : class, new()
         {
-            ((RenderGraphPass<PassData>)m_RenderPass).renderFunc = renderFunc;
+            if (m_RenderPass.isUnmanagedPass)
+                throw new InvalidOperationException();
+
+            m_RenderPassManaged.RenderFunc = (passData, renderGraphContext) => renderFunc((PassData)passData, renderGraphContext);
+        }
+
+        static Dictionary<RenderGraphPassFuncUnmanaged, FunctionPointer<RenderGraphPassFuncUnmanaged>> sCompiledCodeList = new();
+        public void SetRenderFunc(RenderGraphPassFuncUnmanaged renderFunc)
+        {
+            if (!m_RenderPass.isUnmanagedPass)
+                throw new InvalidOperationException();
+            
+            if(!sCompiledCodeList.TryGetValue(renderFunc, out m_RenderPass.renderFunc))
+                sCompiledCodeList[renderFunc] = m_RenderPass.renderFunc = BurstCompiler.CompileFunctionPointer(renderFunc);
         }
 
         /// <summary>
@@ -256,9 +273,10 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
         #endregion
 
         #region Internal Interface
-        internal RenderGraphBuilder(RenderGraphPass renderPass, RenderGraphResourceRegistry resources, RenderGraph renderGraph)
+        internal RenderGraphBuilder(RenderGraphPassManaged renderPassManaged, RenderGraphPassUnmanaged* renderPassPtr, RenderGraphResourceRegistry resources, RenderGraph renderGraph)
         {
-            m_RenderPass = renderPass;
+            m_RenderPassManaged = renderPassManaged;
+            m_RenderPassUnmanagedPtr = renderPassPtr;
             m_Resources = resources;
             m_RenderGraph = renderGraph;
             m_Disposed = false;
@@ -269,7 +287,7 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
             if (m_Disposed)
                 return;
 
-            m_RenderGraph.OnPassAdded(m_RenderPass);
+            m_RenderGraph.OnPassAdded(m_RenderPassUnmanagedPtr);
             m_Disposed = true;
         }
 

@@ -1,63 +1,70 @@
 using System;
 using System.Diagnostics;
+using Unity.Burst;
+using Unity.Collections;
+using Unity.Collections.LowLevel.Unsafe;
 using UnityEngine.Rendering;
 
 namespace UnityEngine.Experimental.Rendering.RenderGraphModule
 {
+    [BurstCompatible]
+    public unsafe struct TextureHandle
+    {
+        public struct Key : IEquatable<Key>
+        {
+            public readonly int Handle;
+            public readonly bool Shared;
+
+            public Key(int handle, bool shared = false) { Handle = handle; Shared = shared; }
+
+            public bool Equals(Key other) => Handle == other.Handle && Shared == other.Shared;
+            [BurstDiscard] public override bool Equals(object obj) { return obj is Key other && Equals(other); }
+            public override int GetHashCode() { unchecked { return (Handle * 397) ^ Shared.GetHashCode(); } }
+        }
+        
+        public static TextureHandle nullHandle => default;
+        
+        internal Key key => new(Handle.index, Handle.IsShared());
+
+        [NativeDisableUnsafePtrRestriction] internal readonly TextureHandleImpl* Ptr;
+        private ResourceHandle Handle;
+
+        internal TextureHandle(TextureHandleImpl* impl, Key key)
+        {
+            Ptr = impl;
+            *Ptr = default;
+            Handle = new ResourceHandle(key.Handle, RenderGraphResourceType.Texture, key.Shared);
+        }
+
+        internal void Clear(Key key)
+        {
+            *Ptr = default;
+            Handle = new ResourceHandle(key.Handle, RenderGraphResourceType.Texture, key.Shared);
+        }
+
+        public bool IsValid() => Ptr != null;
+        public void SetFallBackResource(TextureHandle texture) { if(IsValid()) Ptr->SetFallBackResource(texture); }
+
+        public static implicit operator RenderTargetIdentifier(TextureHandle texture) => texture.IsValid() ? texture.Ptr->ResolvedIdentifier : default;
+        
+        [BurstDiscard] public static implicit operator Texture(TextureHandle texture) => texture.IsValid() ? RenderGraphResourceRegistry.current.GetTexture(texture) : null;
+        [BurstDiscard] public static implicit operator RenderTexture(TextureHandle texture) => texture.IsValid() ? RenderGraphResourceRegistry.current.GetTexture(texture) : null;
+        [BurstDiscard] public static implicit operator RTHandle(TextureHandle texture) => texture.IsValid() ? RenderGraphResourceRegistry.current.GetTexture(texture) : null;
+
+        internal ResourceHandle handle => Handle;
+        internal ResourceHandle fallBackResource => Ptr != null ? Ptr->fallBackResource : default;
+    }
+
     /// <summary>
     /// Texture resource handle.
     /// </summary>
     [DebuggerDisplay("Texture ({handle.index})")]
-    public struct TextureHandle
+    [BurstCompatible]
+    public struct TextureHandleImpl
     {
-        private static TextureHandle s_NullHandle = new TextureHandle();
-
-        /// <summary>
-        /// Returns a null texture handle
-        /// </summary>
-        /// <returns>A null texture handle.</returns>
-        public static TextureHandle nullHandle { get { return s_NullHandle; } }
-
-        internal ResourceHandle handle;
-
+        internal RenderTargetIdentifier ResolvedIdentifier;
+        
         internal ResourceHandle fallBackResource;
-
-        internal TextureHandle(int handle, bool shared = false) {this.handle = new ResourceHandle(handle, RenderGraphResourceType.Texture, shared); fallBackResource = s_NullHandle.handle; }
-
-        /// <summary>
-        /// Cast to RenderTargetIdentifier
-        /// </summary>
-        /// <param name="texture">Input TextureHandle.</param>
-        /// <returns>Resource as a RenderTargetIdentifier.</returns>
-        public static implicit operator RenderTargetIdentifier(TextureHandle texture) => texture.IsValid() ? RenderGraphResourceRegistry.current.GetTexture(texture) : default(RenderTargetIdentifier);
-
-        /// <summary>
-        /// Cast to Texture
-        /// </summary>
-        /// <param name="texture">Input TextureHandle.</param>
-        /// <returns>Resource as a Texture.</returns>
-        public static implicit operator Texture(TextureHandle texture) => texture.IsValid() ? RenderGraphResourceRegistry.current.GetTexture(texture) : null;
-
-        /// <summary>
-        /// Cast to RenderTexture
-        /// </summary>
-        /// <param name="texture">Input TextureHandle.</param>
-        /// <returns>Resource as a RenderTexture.</returns>
-        public static implicit operator RenderTexture(TextureHandle texture) => texture.IsValid() ? RenderGraphResourceRegistry.current.GetTexture(texture) : null;
-
-        /// <summary>
-        /// Cast to RTHandle
-        /// </summary>
-        /// <param name="texture">Input TextureHandle.</param>
-        /// <returns>Resource as a RTHandle.</returns>
-        public static implicit operator RTHandle(TextureHandle texture) => texture.IsValid() ? RenderGraphResourceRegistry.current.GetTexture(texture) : null;
-
-        /// <summary>
-        /// Return true if the handle is valid.
-        /// </summary>
-        /// <returns>True if the handle is valid.</returns>
-        public bool IsValid() => handle.IsValid();
-
         public void SetFallBackResource(TextureHandle texture) { fallBackResource = texture.handle; }
     }
 

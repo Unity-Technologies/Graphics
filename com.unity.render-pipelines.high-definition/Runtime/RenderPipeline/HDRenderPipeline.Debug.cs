@@ -1116,7 +1116,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
                     passData.decalsEnabled = (hdCamera.frameSettings.IsEnabled(FrameSettingsField.Decals)) && (DecalSystem.m_DecalDatasCount > 0);
                     passData.perVoxelOffset = builder.ReadComputeBuffer(lightLists.perVoxelOffset);
-                    passData.dbuffer = ReadDBuffer(dbuffer, builder);
+                    passData.dbuffer = ReadDBuffer(ref dbuffer, builder);
 
                     passData.clearColorTexture = Compositor.CompositionManager.GetClearTextureForStackedCamera(hdCamera);   // returns null if is not a stacked camera
                     passData.clearDepthTexture = Compositor.CompositionManager.GetClearDepthForStackedCamera(hdCamera);     // returns null if is not a stacked camera

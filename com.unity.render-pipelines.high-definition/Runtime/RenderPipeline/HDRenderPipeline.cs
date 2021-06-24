@@ -245,6 +245,8 @@ namespace UnityEngine.Rendering.HighDefinition
         /// <param name="asset">Source HDRenderPipelineAsset.</param>
         public HDRenderPipeline(HDRenderPipelineAsset asset)
         {
+            HDShaderID.Create();
+            
 #if UNITY_EDITOR
             m_GlobalSettings = HDRenderPipelineGlobalSettings.Ensure();
 #else
@@ -782,6 +784,8 @@ namespace UnityEngine.Rendering.HighDefinition
             // we are detecting if we are in an OnValidate call and releasing the Singleton only if it is not the case.
             if (!m_Asset.isInOnValidateCall)
                 HDUtils.ReleaseComponentSingletons();
+            
+            HDShaderID.Free();
         }
 
         void Resize(HDCamera hdCamera)
@@ -2454,6 +2458,14 @@ namespace UnityEngine.Rendering.HighDefinition
         }
 
         static void DrawOpaqueRendererList(in ScriptableRenderContext renderContext, CommandBuffer cmd, in FrameSettings frameSettings, RendererList rendererList)
+        {
+            if (!frameSettings.IsEnabled(FrameSettingsField.OpaqueObjects))
+                return;
+
+            CoreUtils.DrawRendererList(renderContext, cmd, rendererList);
+        }
+
+        static void DrawOpaqueRendererList(in HW1371_ScriptableRenderContext renderContext, HW1371_CommandBuffer cmd, in FrameSettings frameSettings, HW1371_RendererList rendererList)
         {
             if (!frameSettings.IsEnabled(FrameSettingsField.OpaqueObjects))
                 return;

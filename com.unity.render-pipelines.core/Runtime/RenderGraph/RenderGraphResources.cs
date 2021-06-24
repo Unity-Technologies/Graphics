@@ -1,5 +1,7 @@
 using System;
 using System.Diagnostics;
+using System.Runtime.InteropServices;
+using Unity.Collections;
 using UnityEngine.Rendering;
 
 namespace UnityEngine.Experimental.Rendering.RenderGraphModule
@@ -12,6 +14,7 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
         Count
     }
 
+    [BurstCompatible]
     internal struct ResourceHandle
     {
         // Note on handles validity.
@@ -26,7 +29,7 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
         uint m_Value;
 
         static uint s_CurrentValidBit = 1 << 16;
-        static uint s_SharedResourceValidBit = 0x7FFF << 16;
+        const uint kSharedResourceValidBit = 0x7FFF << 16;
 
         public int index { get { return (int)(m_Value & kIndexMask); } }
         public RenderGraphResourceType type { get; private set; }
@@ -35,7 +38,7 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
         internal ResourceHandle(int value, RenderGraphResourceType type, bool shared)
         {
             Debug.Assert(value <= 0xFFFF);
-            m_Value = ((uint)value & kIndexMask) | (shared ? s_SharedResourceValidBit : s_CurrentValidBit);
+            m_Value = ((uint)value & kIndexMask) | (shared ? kSharedResourceValidBit : s_CurrentValidBit);
             this.type = type;
         }
 
@@ -43,9 +46,11 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
         public bool IsValid()
         {
             var validity = m_Value & kValidityMask;
-            return validity != 0 && (validity == s_CurrentValidBit || validity == s_SharedResourceValidBit);
+            return validity != 0 && (validity == s_CurrentValidBit || validity == kSharedResourceValidBit);
         }
 
+        public bool IsShared() => (m_Value & kSharedResourceValidBit) != 0;
+        
         static public void NewFrame(int executionIndex)
         {
             // Scramble frame count to avoid collision when wrapping around.

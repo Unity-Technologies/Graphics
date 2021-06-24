@@ -12,7 +12,6 @@ using System.Linq;
 using System.Collections.Generic;
 using UnityEngine.Profiling;
 
-
 namespace UnityEngine.Rendering
 {
     class TProfilingSampler<TEnum> : ProfilingSampler where TEnum : Enum

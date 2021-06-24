@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using Unity.Collections;
 using Unity.Collections.LowLevel.Unsafe;
 
 namespace UnityEngine.Rendering
@@ -23,6 +24,13 @@ namespace UnityEngine.Rendering
 
             cb.UpdateData(cmd, data);
             cb.SetGlobal(cmd, shaderId);
+        }
+
+        public static void PushGlobal<CBType>(HW1371_CommandBuffer cmd, HW1371_ComputeBuffer cb, in CBType data, int shaderId) where CBType : unmanaged
+        {
+            cmd.SetBufferData(cb, data);
+            cmd.SetGlobalConstantBuffer(cb, shaderId, 0, UnsafeUtility.SizeOf<CBType>());
+            //NOTE: Doesn't track global bindings (not needed for our case)
         }
 
         /// <summary>
@@ -233,7 +241,7 @@ namespace UnityEngine.Rendering
         CBType[] m_Data = new CBType[1];
 
 
-        ComputeBuffer m_GPUConstantBuffer = null;
+        public ComputeBuffer m_GPUConstantBuffer = null;
 
         /// <summary>
         /// Constant Buffer constructor.
@@ -362,10 +370,10 @@ namespace UnityEngine.Rendering
         }
     }
 
-    class ConstantBufferSingleton<CBType> : ConstantBuffer<CBType> where CBType : struct
+    public class ConstantBufferSingleton<CBType> : ConstantBuffer<CBType> where CBType : struct
     {
         static ConstantBufferSingleton<CBType> s_Instance = null;
-        internal static ConstantBufferSingleton<CBType> instance
+        public  static ConstantBufferSingleton<CBType> instance
         {
             get
             {

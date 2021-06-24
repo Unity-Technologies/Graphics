@@ -1,6 +1,11 @@
 using System;
 using System.Diagnostics;
 using System.Collections.Generic;
+using JetBrains.Annotations;
+using Unity.Burst;
+using Unity.Collections;
+using Unity.Collections.LowLevel.Unsafe;
+using Unity.Jobs;
 using UnityEngine.Rendering;
 using UnityEngine.Rendering.RendererUtils;
 using NameAndTooltip = UnityEngine.Rendering.DebugUI.Widget.NameAndTooltip;
@@ -35,6 +40,50 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
         ///<summary>Render Graph default resources.</summary>
         public RenderGraphDefaultResources  defaultResources;
     }
+
+    [BurstCompatible]
+    public struct HW1371_RenderGraphContext
+    {
+        ///<summary>Scriptable Render Context used for rendering.</summary>
+        public HW1371_ScriptableRenderContext      renderContext;
+        
+        ///<summary>Command Buffer used for rendering.</summary>
+        public HW1371_CommandBuffer                cmd;
+        
+        ///<summary>Render Graph pool used for temporary data.</summary>
+        //public HW1371_RenderGraphObjectPool        renderGraphPool;
+        
+        ///<summary>Render Graph default resources.</summary>
+        public HW1371_RenderGraphDefaultResources  defaultResources;
+        
+        public UnsafeList<RendererList> tempRendererList;
+        
+        public static explicit operator HW1371_RenderGraphContext(RenderGraphContext ctx)
+        {
+            return new()
+            {
+                renderContext = ctx.renderContext,
+                cmd = ctx.cmd,
+                //renderGraphPool = ctx.renderGraphPool,
+                defaultResources = (HW1371_RenderGraphDefaultResources) ctx.defaultResources,
+                tempRendererList = RenderGraphResourceRegistry.current.m_RendererLists //UnsafeUtility.As<UnsafeList<RendererList>, UnsafeList<HW1371_RendererList>>(ref RenderGraphResourceRegistry.current.m_RendererLists)
+            };
+        }
+    }
+    
+    // [BurstCompatible]
+    // public struct HW1371_RendererList
+    // {
+    //     internal UIntPtr context;
+    //     internal UInt32  index;
+    //     internal UInt32  frame;
+    //
+    //     public static readonly HW1371_RendererList nullRendererList = default;
+    //
+    //     public static implicit operator RendererList(HW1371_RendererList rl) => UnsafeUtility.As<HW1371_RendererList, RendererList>(ref rl);
+    //     public static implicit operator HW1371_RendererList(RendererList rl) => UnsafeUtility.As<RendererList, HW1371_RendererList>(ref rl);
+    // }
+
 
     /// <summary>
     /// This struct contains properties which control the execution of the Render Graph.
@@ -186,7 +235,7 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
     /// <summary>
     /// This class is the main entry point of the Render Graph system.
     /// </summary>
-    public class RenderGraph
+    public unsafe class RenderGraph
     {
         ///<summary>Maximum number of MRTs supported by Render Graph.</summary>
         public static readonly int kMaxMRTCount = 8;
@@ -213,11 +262,14 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
         }
 
         [DebuggerDisplay("RenderPass: {pass.name} (Index:{pass.index} Async:{enableAsyncCompute})")]
-        internal struct CompiledPassInfo
+        [BurstCompatible]
+        internal struct CompiledPassInfo : IDisposable
         {
-            public RenderGraphPass  pass;
-            public List<int>[]      resourceCreateList;
-            public List<int>[]      resourceReleaseList;
+            public RenderGraphPassUnmanagedPtr  passUnmanagedPtr;
+            public ref RenderGraphPassUnmanaged pass => ref *passUnmanagedPtr.Ptr;
+            
+            public UnsafeList<UnsafeList<int>> resourceCreateList;
+            public UnsafeList<UnsafeList<int>> resourceReleaseList;
             public int              refCount;
             public bool             culled;
             public bool             hasSideEffect;
@@ -227,44 +279,44 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
             public GraphicsFence    fence;
 
             public bool             enableAsyncCompute;
-            public bool             allowPassCulling { get { return pass.allowPassCulling; } }
+            public bool             allowPassCulling => pass.allowPassCulling;
 
 #if DEVELOPMENT_BUILD || UNITY_EDITOR
             // This members are only here to ease debugging.
-            public List<string>[]   debugResourceReads;
-            public List<string>[]   debugResourceWrites;
+            public UnsafeList<UnsafeList<FixedString128>> debugResourceReads;
+            public UnsafeList<UnsafeList<FixedString128>> debugResourceWrites;
 #endif
 
-            public void Reset(RenderGraphPass pass)
+            public void Reset(RenderGraphPassUnmanagedPtr passPtr)
             {
-                this.pass = pass;
+                passUnmanagedPtr = passPtr;
                 enableAsyncCompute = pass.enableAsyncCompute;
 
-                if (resourceCreateList == null)
+                if (!resourceCreateList.IsCreated)
                 {
-                    resourceCreateList = new List<int>[(int)RenderGraphResourceType.Count];
-                    resourceReleaseList = new List<int>[(int)RenderGraphResourceType.Count];
+                    resourceCreateList = new((int) RenderGraphResourceType.Count, Allocator.Persistent);
+                    resourceReleaseList = new((int) RenderGraphResourceType.Count, Allocator.Persistent);
                     for (int i = 0; i < (int)RenderGraphResourceType.Count; ++i)
                     {
-                        resourceCreateList[i] = new List<int>();
-                        resourceReleaseList[i] = new List<int>();
+                        resourceCreateList.Add(new (16, Allocator.Persistent));
+                        resourceReleaseList.Add(new (16, Allocator.Persistent));
                     }
 
 #if DEVELOPMENT_BUILD || UNITY_EDITOR
-                    debugResourceReads = new List<string>[(int)RenderGraphResourceType.Count];
-                    debugResourceWrites = new List<string>[(int)RenderGraphResourceType.Count];
+                    debugResourceReads = new((int) RenderGraphResourceType.Count, Allocator.Persistent);
+                    debugResourceWrites = new((int) RenderGraphResourceType.Count, Allocator.Persistent);
                     for (int i = 0; i < (int)RenderGraphResourceType.Count; ++i)
                     {
-                        debugResourceReads[i] = new List<string>();
-                        debugResourceWrites[i] = new List<string>();
+                        debugResourceReads.Add(new (16, Allocator.Persistent));
+                        debugResourceWrites.Add(new (16, Allocator.Persistent));
                     }
 #endif
                 }
 
                 for (int i = 0; i < (int)RenderGraphResourceType.Count; ++i)
                 {
-                    resourceCreateList[i].Clear();
-                    resourceReleaseList[i].Clear();
+                    resourceCreateList.ElementAt(i).Clear();
+                    resourceReleaseList.ElementAt(i).Clear();
                 }
 
                 refCount = 0;
@@ -277,17 +329,55 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
 #if DEVELOPMENT_BUILD || UNITY_EDITOR
                 for (int i = 0; i < (int)RenderGraphResourceType.Count; ++i)
                 {
-                    debugResourceReads[i].Clear();
-                    debugResourceWrites[i].Clear();
+                    debugResourceReads.ElementAt(i).Clear();
+                    debugResourceWrites.ElementAt(i).Clear();
                 }
+#endif
+            }
+
+            public void Dispose()
+            {
+                for (int i = 0; i < (int)RenderGraphResourceType.Count; ++i)
+                {
+                    resourceCreateList[i].Dispose();
+                    resourceReleaseList[i].Dispose();
+                }
+                resourceCreateList.Dispose();
+                resourceReleaseList.Dispose();
+                
+#if DEVELOPMENT_BUILD || UNITY_EDITOR
+                for (int i = 0; i < (int)RenderGraphResourceType.Count; ++i)
+                {
+                    debugResourceReads[i].Dispose();
+                    debugResourceWrites[i].Dispose();
+                }
+                debugResourceReads.Dispose();
+                debugResourceWrites.Dispose();
 #endif
             }
         }
 
         RenderGraphResourceRegistry                 m_Resources;
         RenderGraphObjectPool                       m_RenderGraphPool = new RenderGraphObjectPool();
-        List<RenderGraphPass>                       m_RenderPasses = new List<RenderGraphPass>(64);
-        List<RendererListHandle>                    m_RendererLists = new List<RendererListHandle>(32);
+
+        // A pool of re-usable unmanaged passes (heap allocated)
+        UnsafeList<RenderGraphPassUnmanagedPtr>     m_RenderGraphPassUnmanagedPool = new(64, Allocator.Persistent);
+        
+        // A list of in-use unmamanged passes
+        UnsafeList<RenderGraphPassUnmanagedPtr>     m_RenderPassesUnmanaged = new(64, Allocator.Persistent);
+
+        // A list of in-use managed / unmamanged passes
+        UnsafeList<RenderGraphPassUnmanagedPtr>     m_RenderPassesMixed = new(128, Allocator.Persistent);
+
+        // A list of in-use managed passes
+        List<RenderGraphPassManaged>                m_RenderPassesManaged = new(64);
+
+        // A list of in-use managed companion data
+        List<RenderGraphPassManagedCompanionData>   m_RenderPassesManagedCompanionData = new(64);
+
+        // A list of RendererListHandles used by all passes
+        UnsafeList<RendererListHandle>              m_RendererLists = new(32, Allocator.Persistent);
+        
         RenderGraphDebugParams                      m_DebugParameters = new RenderGraphDebugParams();
         RenderGraphLogger                           m_FrameInformationLogger = new RenderGraphLogger();
         RenderGraphDefaultResources                 m_DefaultResources = new RenderGraphDefaultResources();
@@ -355,6 +445,20 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
         /// </summary>
         public void Cleanup()
         {
+            // Release all unmanaged data
+            foreach (var renderGraphPassUnmanagedPtr in m_RenderGraphPassUnmanagedPool)
+            {
+                renderGraphPassUnmanagedPtr.Ptr->Dispose();
+                RenderGraphPassUnmanaged.Free(renderGraphPassUnmanagedPtr);
+            }
+            m_RenderGraphPassUnmanagedPool.Dispose();
+            m_RenderPassesUnmanaged.Dispose();
+            m_RenderPassesMixed.Dispose();
+            m_RendererLists.Dispose();
+            for(var i = 0; i < m_CompiledPassInfos.size; ++i)
+                m_CompiledPassInfos[i].Dispose();
+
+            
             m_Resources.Cleanup();
             m_DefaultResources.Cleanup();
 
@@ -571,14 +675,56 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
         /// <returns>A new instance of a RenderGraphBuilder used to setup the new Render Pass.</returns>
         public RenderGraphBuilder AddRenderPass<PassData>(string passName, out PassData passData, ProfilingSampler sampler) where PassData : class, new()
         {
-            var renderPass = m_RenderGraphPool.Get<RenderGraphPass<PassData>>();
-            renderPass.Initialize(m_RenderPasses.Count, m_RenderGraphPool.Get<PassData>(), passName, sampler);
+            var renderGraphPassPtr = GetOrCreateRenderGraphPass();
+            passData = m_RenderGraphPool.Get<PassData>();
+            var renderGraphPass = m_RenderGraphPool.Get<RenderGraphPassManaged>();
+            renderGraphPass.Initialize(renderGraphPassPtr, passData, m_RenderPassesManaged.Count, m_RenderPassesMixed.Length, passName);
+            
+            m_RenderPassesManaged.Add(renderGraphPass);
+            m_RenderPassesMixed.Add(renderGraphPassPtr);
 
-            passData = renderPass.data;
+            var renderGraphPassCompanionData = m_RenderGraphPool.Get<RenderGraphPassManagedCompanionData>();
+            renderGraphPassCompanionData.customSampler = sampler;
+            m_RenderPassesManagedCompanionData.Add(renderGraphPassCompanionData);
+            
+            return new RenderGraphBuilder(renderGraphPass, renderGraphPassPtr, m_Resources, this);
+        }
+        
+        public RenderGraphBuilder AddRenderPassUnmanaged<PassData>(in FixedString64 passName, out PassData* passData) where PassData : unmanaged
+        {
+            return AddRenderPassUnmanaged(passName, out passData, GetDefaultProfilingSampler(passName));
+        }
 
-            m_RenderPasses.Add(renderPass);
-
-            return new RenderGraphBuilder(renderPass, m_Resources, this);
+        public RenderGraphBuilder AddRenderPassUnmanaged<PassData>(in FixedString64 passName, out PassData* passData, ProfilingSampler sampler) where PassData : unmanaged
+        {
+            var renderGraphPassPtr = GetOrCreateRenderGraphPass();
+            renderGraphPassPtr->Initialize(true, m_RenderPassesUnmanaged.Length, m_RenderPassesMixed.Length, passName);
+            renderGraphPassPtr->CreatePassData(out passData);
+            
+            m_RenderPassesUnmanaged.Add(renderGraphPassPtr);
+            m_RenderPassesMixed.Add(renderGraphPassPtr);
+            
+            var renderGraphPassCompanionData = m_RenderGraphPool.Get<RenderGraphPassManagedCompanionData>();
+            renderGraphPassCompanionData.customSampler = sampler;
+            m_RenderPassesManagedCompanionData.Add(renderGraphPassCompanionData);
+            
+            return new RenderGraphBuilder(null, renderGraphPassPtr, m_Resources, this);
+        }
+        
+        RenderGraphPassUnmanaged* GetOrCreateRenderGraphPass()
+        {
+            if (m_RenderGraphPassUnmanagedPool.Length > 0)
+            {
+                var passUnmanagedPtr = m_RenderGraphPassUnmanagedPool[m_RenderGraphPassUnmanagedPool.Length - 1];
+                m_RenderGraphPassUnmanagedPool.Resize(m_RenderGraphPassUnmanagedPool.Length - 1);
+                return passUnmanagedPtr;
+            }
+            else
+            {
+                var passUnmanagedPtr = RenderGraphPassUnmanaged.Alloc();
+                passUnmanagedPtr.Ref.Create();
+                return passUnmanagedPtr;
+            }
         }
 
         /// <summary>
@@ -658,7 +804,7 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
                     LogFrameInformation();
 
                     CompileRenderGraph();
-
+                    
                     m_Resources.BeginExecute(m_CurrentFrameIndex);
 
                     ExecuteRenderGraph();
@@ -753,11 +899,11 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
             m_RenderGraphContext.defaultResources = null;
         }
 
-        internal void OnPassAdded(RenderGraphPass pass)
+        internal void OnPassAdded(RenderGraphPassUnmanagedPtr passUnmanagedPtr)
         {
             if (m_DebugParameters.immediateMode)
             {
-                ExecutePassImmediatly(pass);
+                ExecutePassImmediatly(passUnmanagedPtr);
             }
         }
 
@@ -784,9 +930,9 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
             InitResourceInfosData(m_CompiledResourcesInfos[(int)RenderGraphResourceType.Texture], m_Resources.GetTextureResourceCount());
             InitResourceInfosData(m_CompiledResourcesInfos[(int)RenderGraphResourceType.ComputeBuffer], m_Resources.GetComputeBufferResourceCount());
 
-            m_CompiledPassInfos.Resize(m_RenderPasses.Count);
+            m_CompiledPassInfos.Resize(m_RenderPassesMixed.Length);
             for (int i = 0; i < m_CompiledPassInfos.size; ++i)
-                m_CompiledPassInfos[i].Reset(m_RenderPasses[i]);
+                m_CompiledPassInfos[i].Reset(m_RenderPassesMixed[i]);
         }
 
         void CountReferences()
@@ -806,7 +952,7 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
                         info.refCount++;
 
 #if DEVELOPMENT_BUILD || UNITY_EDITOR
-                        passInfo.debugResourceReads[type].Add(m_Resources.GetRenderGraphResourceName(resource));
+                        passInfo.debugResourceReads.ElementAt(type).Add(m_Resources.GetRenderGraphResourceName(resource));
 #endif
                     }
 
@@ -822,7 +968,7 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
                         passInfo.refCount++;
 
 #if DEVELOPMENT_BUILD || UNITY_EDITOR
-                        passInfo.debugResourceWrites[type].Add(m_Resources.GetRenderGraphResourceName(resource));
+                        passInfo.debugResourceWrites.ElementAt(type).Add(m_Resources.GetRenderGraphResourceName(resource));
 #endif
                     }
 
@@ -1007,7 +1153,9 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
                     continue;
 
                 // Gather all renderer lists
-                m_RendererLists.AddRange(passInfo.pass.usedRendererListList);
+                //m_RendererLists.AddRange(passInfo.pass.usedRendererListList);
+                foreach (var rendererListHandle in passInfo.pass.usedRendererListList)
+                    m_RendererLists.Add(rendererListHandle);
             }
 
             // Creates all renderer lists
@@ -1058,7 +1206,7 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
                     // Index -1 can happen for imported resources (for example an imported dummy black texture will never be written to but does not need creation anyway)
                     // Or when the only pass that was writting to this resource was culled dynamically by renderer lists
                     if (firstWriteIndex != -1)
-                        m_CompiledPassInfos[firstWriteIndex].resourceCreateList[type].Add(i);
+                        m_CompiledPassInfos[firstWriteIndex].resourceCreateList.ElementAt(type).Add(i);
 
                     var latestValidReadIndex = GetLatestValidReadIndex(resourceInfo);
                     var latestValidWriteIndex = GetLatestValidWriteIndex(resourceInfo);
@@ -1101,19 +1249,19 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
 
                             // Finally add the release command to the pass before the first pass that waits for the compute pipe.
                             ref CompiledPassInfo passInfo = ref m_CompiledPassInfos[Math.Max(0, firstWaitingPassIndex - 1)];
-                            passInfo.resourceReleaseList[type].Add(i);
+                            passInfo.resourceReleaseList.ElementAt(type).Add(i);
 
                             // Fail safe in case render graph is badly formed.
                             if (currentPassIndex == m_CompiledPassInfos.size)
                             {
-                                RenderGraphPass invalidPass = m_RenderPasses[lastReadPassIndex];
-                                throw new InvalidOperationException($"Asynchronous pass {invalidPass.name} was never synchronized on the graphics pipeline.");
+                                var invalidPass = m_RenderPassesMixed[lastReadPassIndex];
+                                throw new InvalidOperationException($"Asynchronous pass {invalidPass.Ref.name} was never synchronized on the graphics pipeline.");
                             }
                         }
                         else
                         {
                             ref CompiledPassInfo passInfo = ref m_CompiledPassInfos[lastReadPassIndex];
-                            passInfo.resourceReleaseList[type].Add(i);
+                            passInfo.resourceReleaseList.ElementAt(type).Add(i);
                         }
                     }
 
@@ -1126,7 +1274,7 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
             }
         }
 
-        bool AreRendererListsEmpty(List<RendererListHandle> rendererLists)
+        bool AreRendererListsEmpty(UnsafeList<RendererListHandle> rendererLists)
         {
             foreach (RendererListHandle handle in rendererLists)
             {
@@ -1138,7 +1286,7 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
             }
 
             // If the list of RendererLists is empty, then the default behavior is to not cull, so return false.
-            return rendererLists.Count > 0 ? true : false;
+            return rendererLists.Length > 0 ? true : false;
         }
 
         void TryCullPassAtIndex(int passIndex)
@@ -1164,7 +1312,7 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
                 if (!m_CompiledPassInfos[passIndex].culled && !m_CompiledPassInfos[passIndex].hasSideEffect)
                 {
                     var pass = m_CompiledPassInfos[passIndex].pass;
-                    if (pass.usedRendererListList.Count > 0 || pass.dependsOnRendererListList.Count > 0)
+                    if (pass.usedRendererListList.Length > 0 || pass.dependsOnRendererListList.Length > 0)
                     {
                         TryCullPassAtIndex(passIndex);
                     }
@@ -1201,15 +1349,17 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
             }
         }
 
-        ref CompiledPassInfo CompilePassImmediatly(RenderGraphPass pass)
+        ref CompiledPassInfo CompilePassImmediatly(RenderGraphPassUnmanagedPtr passUnmanagedPtr)
         {
+            ref var pass = ref passUnmanagedPtr.Ref;
+            
             // If we don't have enough pre allocated elements we double the size.
             // It's pretty aggressive but the immediate mode is only for debug purpose so it should be fine.
             if (m_CurrentImmediatePassIndex >= m_CompiledPassInfos.size)
                 m_CompiledPassInfos.Resize(m_CompiledPassInfos.size * 2);
 
             ref CompiledPassInfo passInfo = ref m_CompiledPassInfos[m_CurrentImmediatePassIndex++];
-            passInfo.Reset(pass);
+            passInfo.Reset(passUnmanagedPtr);
             // In immediate mode we don't have proper information to generate synchronization so we disable async compute.
             passInfo.enableAsyncCompute = false;
 
@@ -1221,30 +1371,30 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
                 {
                     if (!m_Resources.IsGraphicsResourceCreated(res))
                     {
-                        passInfo.resourceCreateList[iType].Add(res);
+                        passInfo.resourceCreateList.ElementAt(iType).Add(res);
                         m_ImmediateModeResourceList[iType].Add(res);
                     }
 
 #if DEVELOPMENT_BUILD || UNITY_EDITOR
-                    passInfo.debugResourceWrites[iType].Add(m_Resources.GetRenderGraphResourceName(res));
+                    passInfo.debugResourceWrites.ElementAt(iType).Add(m_Resources.GetRenderGraphResourceName(res));
 #endif
                 }
 
                 foreach (var res in pass.transientResourceList[iType])
                 {
-                    passInfo.resourceCreateList[iType].Add(res);
-                    passInfo.resourceReleaseList[iType].Add(res);
+                    passInfo.resourceCreateList.ElementAt(iType).Add(res);
+                    passInfo.resourceReleaseList.ElementAt(iType).Add(res);
 
 #if DEVELOPMENT_BUILD || UNITY_EDITOR
-                    passInfo.debugResourceWrites[iType].Add(m_Resources.GetRenderGraphResourceName(res));
-                    passInfo.debugResourceReads[iType].Add(m_Resources.GetRenderGraphResourceName(res));
+                    passInfo.debugResourceWrites.ElementAt(iType).Add(m_Resources.GetRenderGraphResourceName(res));
+                    passInfo.debugResourceReads.ElementAt(iType).Add(m_Resources.GetRenderGraphResourceName(res));
 #endif
                 }
 
                 foreach (var res in pass.resourceReadLists[iType])
                 {
 #if DEVELOPMENT_BUILD || UNITY_EDITOR
-                    passInfo.debugResourceReads[iType].Add(m_Resources.GetRenderGraphResourceName(res));
+                    passInfo.debugResourceReads.ElementAt(iType).Add(m_Resources.GetRenderGraphResourceName(res));
 #endif
                 }
             }
@@ -1261,30 +1411,57 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
             return ref passInfo;
         }
 
-        void ExecutePassImmediatly(RenderGraphPass pass)
+        void ExecutePassImmediatly(RenderGraphPassUnmanagedPtr passUnmanagedPtr)
         {
-            ExecuteCompiledPass(ref CompilePassImmediatly(pass), m_CurrentImmediatePassIndex - 1);
+            ExecuteCompiledPass(ref CompilePassImmediatly(passUnmanagedPtr));
         }
 
-        void ExecuteCompiledPass(ref CompiledPassInfo passInfo, int passIndex)
+        [BurstCompile]
+        struct DummySingleJob : IJob
+        {
+            public HW1371_RenderGraphContext RenderGraphContext;
+            [NativeDisableUnsafePtrRestriction] public RenderGraphPassUnmanaged* Pass;
+            
+            public DummySingleJob(RenderGraphContext ctx) : this() { RenderGraphContext = (HW1371_RenderGraphContext)ctx; }
+            
+            [BurstCompile] public void Execute() => Pass->renderFunc.Invoke(Pass->passData, ref RenderGraphContext);
+        }
+        DummySingleJob m_DummySingleJob;
+        
+        void ExecuteCompiledPass(ref CompiledPassInfo passInfo)
         {
             if (passInfo.culled)
                 return;
 
-            if (!passInfo.pass.HasRenderFunc())
+            ref var pass = ref passInfo.pass;
+
+            var hasValidUnmanagedFunc = pass.HasValidRenderFunc;
+            var hasValidManagedFunc = m_RenderPassesManaged[pass.index]?.HasValidRenderFunc ?? false;
+            if (!hasValidUnmanagedFunc && !hasValidManagedFunc)
             {
-                throw new InvalidOperationException(string.Format("RenderPass {0} was not provided with an execute function.", passInfo.pass.name));
+                throw new InvalidOperationException(string.Format("RenderPass {0} was not provided with an execute function.", pass.name));
             }
 
             try
             {
-                using (new ProfilingScope(m_RenderGraphContext.cmd, passInfo.pass.customSampler))
+                using (new ProfilingScope(m_RenderGraphContext.cmd, m_RenderPassesManagedCompanionData[pass.seqIndex].customSampler))
                 {
                     LogRenderPassBegin(passInfo);
                     using (new RenderGraphLogIndent(m_FrameInformationLogger))
                     {
                         PreRenderPassExecute(passInfo, m_RenderGraphContext);
-                        passInfo.pass.Execute(m_RenderGraphContext);
+
+                        if (hasValidUnmanagedFunc)
+                        {
+                            m_DummySingleJob.Pass = passInfo.passUnmanagedPtr;
+                            m_DummySingleJob.Schedule().Complete();
+                        }
+                        else
+                        {
+                            var passManaged = m_RenderPassesManaged[pass.index];
+                            passManaged.RenderFunc(passManaged.PassData, m_RenderGraphContext);
+                        }
+                        
                         PostRenderPassExecute(ref passInfo, m_RenderGraphContext);
                     }
                 }
@@ -1292,7 +1469,7 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
             catch (Exception e)
             {
                 m_ExecutionExceptionWasRaised = true;
-                Debug.LogError($"Render Graph Execution error at pass {passInfo.pass.name} ({passIndex})");
+                Debug.LogError($"Render Graph Execution error at pass {pass.name} ({pass.index} / {pass.seqIndex})");
                 Debug.LogException(e);
                 throw;
             }
@@ -1303,16 +1480,18 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
         {
             using (new ProfilingScope(m_RenderGraphContext.cmd, ProfilingSampler.Get(RenderGraphProfileId.ExecuteRenderGraph)))
             {
+                m_DummySingleJob = new DummySingleJob(m_RenderGraphContext);
+
                 for (int passIndex = 0; passIndex < m_CompiledPassInfos.size; ++passIndex)
                 {
-                    ExecuteCompiledPass(ref m_CompiledPassInfos[passIndex], passIndex);
+                    ExecuteCompiledPass(ref m_CompiledPassInfos[passIndex]);
                 }
             }
         }
 
         void PreRenderPassSetRenderTargets(in CompiledPassInfo passInfo, RenderGraphContext rgContext)
         {
-            var pass = passInfo.pass;
+            ref var pass = ref passInfo.pass;
             if (pass.depthBuffer.IsValid() || pass.colorBufferMaxIndex != -1)
             {
                 var mrtArray = rgContext.renderGraphPool.GetTempArray<RenderTargetIdentifier>(pass.colorBufferMaxIndex + 1);
@@ -1355,7 +1534,7 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
 
         void PreRenderPassExecute(in CompiledPassInfo passInfo, RenderGraphContext rgContext)
         {
-            RenderGraphPass pass = passInfo.pass;
+            ref var pass = ref passInfo.pass;
 
             // Need to save the command buffer to restore it later as the one in the context can changed if running a pass async.
             m_PreviousCommandBuffer = rgContext.cmd;
@@ -1376,7 +1555,7 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
 
             if (passInfo.enableAsyncCompute)
             {
-                CommandBuffer asyncCmd = CommandBufferPool.Get(pass.name);
+                CommandBuffer asyncCmd = CommandBufferPool.Get(pass.name.ToString());
                 asyncCmd.SetExecutionFlags(CommandBufferExecutionFlags.AsyncCompute);
                 rgContext.cmd = asyncCmd;
             }
@@ -1390,7 +1569,7 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
 
         void PostRenderPassExecute(ref CompiledPassInfo passInfo, RenderGraphContext rgContext)
         {
-            RenderGraphPass pass = passInfo.pass;
+            ref var pass = ref passInfo.pass;
 
             if (passInfo.needGraphicsFence)
                 passInfo.fence = rgContext.cmd.CreateAsyncGraphicsFence();
@@ -1416,9 +1595,17 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
 
         void ClearRenderPasses()
         {
-            foreach (var pass in m_RenderPasses)
+            foreach (var pass in m_RenderPassesManaged)
                 pass.Release(m_RenderGraphPool);
-            m_RenderPasses.Clear();
+            foreach (var pass in m_RenderPassesUnmanaged)
+                pass.Ref.Clear();
+            
+            m_RenderGraphPassUnmanagedPool.AddRange(m_RenderPassesMixed);
+            
+            m_RenderPassesMixed.Clear();
+            m_RenderPassesUnmanaged.Clear();
+            m_RenderPassesManaged.Clear();
+            m_RenderPassesManagedCompanionData.Clear();
         }
 
         void ReleaseImmediateModeResources()
@@ -1439,7 +1626,11 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
                 m_FrameInformationLogger.LogLine($"==== Staring render graph frame for: {m_CurrentExecutionName} ====");
 
                 if (!m_DebugParameters.immediateMode)
-                    m_FrameInformationLogger.LogLine("Number of passes declared: {0}\n", m_RenderPasses.Count);
+                {
+                    m_FrameInformationLogger.LogLine("Number of passes declared: {0}\n", m_RenderPassesMixed.Length);
+                    m_FrameInformationLogger.LogLine("Number of Unmanaged passes declared: {0}\n", m_RenderPassesUnmanaged.Length);
+                    m_FrameInformationLogger.LogLine("Number of Managed passes declared: {0}\n", m_RenderPassesManaged.Count);
+                }
             }
         }
 
@@ -1447,7 +1638,7 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
         {
             if (m_DebugParameters.enableLogging)
             {
-                m_FrameInformationLogger.LogLine("Number of renderer lists created: {0}\n", m_RendererLists.Count);
+                m_FrameInformationLogger.LogLine("Number of renderer lists created: {0}\n", m_RendererLists.Length);
             }
         }
 
@@ -1455,8 +1646,8 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
         {
             if (m_DebugParameters.enableLogging)
             {
-                RenderGraphPass pass = passInfo.pass;
-
+                ref var pass = ref passInfo.pass;
+                
                 m_FrameInformationLogger.LogLine("[{0}][{1}] \"{2}\"", pass.index, pass.enableAsyncCompute ? "Compute" : "Graphics", pass.name);
                 using (new RenderGraphLogIndent(m_FrameInformationLogger))
                 {
@@ -1477,7 +1668,7 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
                     {
                         if (m_CompiledPassInfos[i].culled)
                         {
-                            var pass = m_RenderPasses[i];
+                            ref var pass = ref m_RenderPassesMixed[i].Ref;
                             m_FrameInformationLogger.LogLine("[{0}] {1}", pass.index, pass.name);
                         }
                     }
@@ -1488,10 +1679,22 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
 
         ProfilingSampler GetDefaultProfilingSampler(string name)
         {
-            int hash = name.GetHashCode();
+            int hash = new FixedString64(name).GetHashCode();
             if (!m_DefaultProfilingSamplers.TryGetValue(hash, out var sampler))
             {
                 sampler = new ProfilingSampler(name);
+                m_DefaultProfilingSamplers.Add(hash, sampler);
+            }
+
+            return sampler;
+        }
+
+        ProfilingSampler GetDefaultProfilingSampler(FixedString64 name)
+        {
+            int hash = name.GetHashCode();
+            if (!m_DefaultProfilingSamplers.TryGetValue(hash, out var sampler))
+            {
+                sampler = new ProfilingSampler(name.ToString());
                 m_DefaultProfilingSamplers.Add(hash, sampler);
             }
 
@@ -1563,7 +1766,7 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
                 ref CompiledPassInfo passInfo = ref m_CompiledPassInfos[i];
 
                 RenderGraphDebugData.PassDebugData newPass = new RenderGraphDebugData.PassDebugData();
-                newPass.name = passInfo.pass.name;
+                newPass.name = passInfo.pass.name.ToString();
                 newPass.culled = passInfo.culled;
                 newPass.generateDebugData = passInfo.pass.generateDebugData;
                 newPass.resourceReadLists = new List<int>[(int)RenderGraphResourceType.Count];

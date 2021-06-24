@@ -11,6 +11,16 @@ namespace UnityEngine.Rendering.HighDefinition
             DrawOpaqueRendererList(context.renderContext, context.cmd, frameSettings, rendererList);
         }
 
+        static void DrawOpaqueRendererList(ref HW1371_RenderGraphContext context, in FrameSettings frameSettings, in RendererListHandle rendererListHandle)
+        {
+            DrawOpaqueRendererList(context.renderContext, context.cmd, frameSettings, rendererListHandle);
+        }
+
+        static void DrawOpaqueRendererList(ref HW1371_RenderGraphContext context, in FrameSettings frameSettings, in RendererList rendererList)
+        {
+            DrawOpaqueRendererList(context.renderContext, context.cmd, frameSettings, rendererList);
+        }
+
         static void DrawTransparentRendererList(in RenderGraphContext context, in FrameSettings frameSettings, RendererList rendererList)
         {
             DrawTransparentRendererList(context.renderContext, context.cmd, frameSettings, rendererList);

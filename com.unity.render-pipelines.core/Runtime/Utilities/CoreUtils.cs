@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using UnityEngine.Experimental.Rendering;
+using UnityEngine.Experimental.Rendering.RenderGraphModule;
 using UnityEngine.Rendering.RendererUtils;
 
 namespace UnityEngine.Rendering
@@ -1310,6 +1311,22 @@ namespace UnityEngine.Rendering
         /// <param name="cmd">Command Buffer used for rendering.</param>
         /// <param name="rendererList">Renderer List to render.</param>
         public static void DrawRendererList(ScriptableRenderContext renderContext, CommandBuffer cmd, RendererList rendererList)
+        {
+            if (!rendererList.isValid)
+                throw new ArgumentException("Invalid renderer list provided to DrawRendererList");
+
+            cmd.DrawRendererList(rendererList);
+        }
+
+        public static void DrawRendererList(HW1371_ScriptableRenderContext renderContext, HW1371_CommandBuffer cmd, RendererList rendererList)
+        {
+            if (!rendererList.isValid)
+                throw new ArgumentException("Invalid renderer list provided to DrawRendererList");
+
+            cmd.DrawRendererList(rendererList);
+        }
+
+        public static void DrawRendererList(HW1371_ScriptableRenderContext renderContext, HW1371_CommandBuffer cmd, HW1371_RendererList rendererList)
         {
             if (!rendererList.isValid)
                 throw new ArgumentException("Invalid renderer list provided to DrawRendererList");

@@ -1,10 +1,13 @@
 {
     "name": "Unity.RenderPipelines.HighDefinition.Runtime",
+    "rootNamespace": "",
     "references": [
         "Unity.RenderPipelines.Core.Runtime",
         "Unity.ugui",
         "Unity.RenderPipelines.HighDefinition.Config.Runtime",
-        "Unity.VisualEffectGraph.Runtime"
+        "Unity.VisualEffectGraph.Runtime",
+        "Unity.Burst",
+        "Unity.Collections"
     ],
     "includePlatforms": [],
     "excludePlatforms": [],

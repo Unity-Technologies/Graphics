@@ -1,3 +1,6 @@
+using Unity.Burst;
+using Unity.Collections;
+
 namespace UnityEngine.Rendering.HighDefinition
 {
     /// <summary>Pass names and shader ids used in HDRP. these names can be used as filters when rendering objects in a custom pass or a DrawRenderers() call.</summary>
@@ -352,7 +355,12 @@ namespace UnityEngine.Rendering.HighDefinition
             Shader.PropertyToID("_GBufferTexture7RW")
         };
 
-        public static readonly int[] _DBufferTexture =
+        public static ref FixedListInt32 _DBufferTexture => ref HDShaderID.hdShaderIDs.Data._DBufferTexture;
+
+        public static int _ShaderVariablesGlobal => HDShaderID.hdShaderIDs.Data._ShaderVariablesGlobal;
+        public static int _ShaderVariablesXR => HDShaderID.hdShaderIDs.Data._ShaderVariablesXR;
+
+        public static readonly int[] __DBufferTexture =
         {
             Shader.PropertyToID("_DBufferTexture0"),
             Shader.PropertyToID("_DBufferTexture1"),
@@ -360,8 +368,9 @@ namespace UnityEngine.Rendering.HighDefinition
             Shader.PropertyToID("_DBufferTexture3")
         };
 
-        public static readonly int _ShaderVariablesGlobal = Shader.PropertyToID("ShaderVariablesGlobal");
-        public static readonly int _ShaderVariablesXR = Shader.PropertyToID("ShaderVariablesXR");
+        public static readonly int __ShaderVariablesGlobal = Shader.PropertyToID("ShaderVariablesGlobal");
+        public static readonly int __ShaderVariablesXR = Shader.PropertyToID("ShaderVariablesXR");
+        
         public static readonly int _ShaderVariablesVolumetric = Shader.PropertyToID("ShaderVariablesVolumetric");
         public static readonly int _ShaderVariablesLightList = Shader.PropertyToID("ShaderVariablesLightList");
         public static readonly int _ShaderVariablesRaytracing = Shader.PropertyToID("ShaderVariablesRaytracing");
@@ -1119,4 +1128,35 @@ namespace UnityEngine.Rendering.HighDefinition
         internal const string kTessellationBackFaceCullEpsilon = "_TessellationBackFaceCullEpsilon";
         internal const string kTessellationMaxDisplacement = "_TessellationMaxDisplacement";
     }
+
+
+
+    struct HDShaderID
+    {
+        public static readonly SharedStatic<HDShaderID> hdShaderIDs = SharedStatic<HDShaderID>.GetOrCreate<HDShaderID, Key>();
+
+        public FixedListInt32 _DBufferTexture;
+
+        public int _ShaderVariablesGlobal;
+        public int _ShaderVariablesXR;
+
+        public FixedBytes4094 _pad;
+
+        public static void Create()
+        {
+            var hdShaderId = new HDShaderID();
+            hdShaderId._DBufferTexture.AddRange(HDShaderIDs.__DBufferTexture);
+            hdShaderId._ShaderVariablesGlobal = HDShaderIDs.__ShaderVariablesGlobal;
+            hdShaderId._ShaderVariablesXR = HDShaderIDs.__ShaderVariablesXR;
+            hdShaderIDs.Data = hdShaderId;
+        }
+
+        public static void Free()
+        {
+            
+        }
+
+        private class Key {}
+    }
+
 }

@@ -1,3 +1,5 @@
+using System.Runtime.InteropServices;
+using Unity.Collections;
 using UnityEngine.Rendering;
 
 namespace UnityEngine.Experimental.Rendering.RenderGraphModule
@@ -7,8 +9,6 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
     /// </summary>
     public class RenderGraphDefaultResources
     {
-        bool m_IsValid;
-
         // We need to keep around a RTHandle version of default regular 2D textures since RenderGraph API is all RTHandle.
         RTHandle m_BlackTexture2D;
         RTHandle m_WhiteTexture2D;
@@ -56,6 +56,44 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
             blackUIntTextureXR = renderGraph.ImportTexture(TextureXR.GetBlackUIntTexture());
             blackTexture3DXR = renderGraph.ImportTexture(TextureXR.GetBlackTexture3D());
             whiteTextureXR = renderGraph.ImportTexture(TextureXR.GetWhiteTexture());
+        }
+    }
+    
+    [BurstCompatible]
+    public struct HW1371_RenderGraphDefaultResources
+    {
+        /// <summary>Default black 2D texture.</summary>
+        public TextureHandle blackTexture { get; private set; }
+        /// <summary>Default white 2D texture.</summary>
+        public TextureHandle whiteTexture { get; private set; }
+        /// <summary>Default clear color XR 2D texture.</summary>
+        public TextureHandle clearTextureXR { get; private set; }
+        /// <summary>Default magenta XR 2D texture.</summary>
+        public TextureHandle magentaTextureXR { get; private set; }
+        /// <summary>Default black XR 2D texture.</summary>
+        public TextureHandle blackTextureXR { get; private set; }
+        /// <summary>Default black XR 2D Array texture.</summary>
+        public TextureHandle blackTextureArrayXR { get; private set; }
+        /// <summary>Default black (UInt) XR 2D texture.</summary>
+        public TextureHandle blackUIntTextureXR { get; private set; }
+        /// <summary>Default black XR 3D texture.</summary>
+        public TextureHandle blackTexture3DXR { get; private set; }
+        /// <summary>Default white XR 2D texture.</summary>
+        public TextureHandle whiteTextureXR { get; private set; }
+        
+        public static explicit operator HW1371_RenderGraphDefaultResources(RenderGraphDefaultResources res)
+        {
+            return new() {
+                blackTexture = res.blackTexture,
+                whiteTexture = res.whiteTexture,
+                clearTextureXR = res.clearTextureXR,
+                magentaTextureXR = res.magentaTextureXR,
+                blackTextureXR = res.blackTextureXR,
+                blackTextureArrayXR = res.blackTextureArrayXR,
+                blackUIntTextureXR = res.blackUIntTextureXR,
+                blackTexture3DXR = res.blackTexture3DXR,
+                whiteTextureXR = res.whiteTextureXR,
+            };
         }
     }
 }

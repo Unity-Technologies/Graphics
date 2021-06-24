@@ -1,48 +1,74 @@
+using System;
 using System.Diagnostics;
-using UnityEngine.Rendering;
+using Unity.Burst;
+using Unity.Collections;
+using Unity.Collections.LowLevel.Unsafe;
 using UnityEngine.Rendering.RendererUtils;
 
 namespace UnityEngine.Experimental.Rendering.RenderGraphModule
 {
+    [DebuggerDisplay("RendererList ({handle})")]
+    [BurstCompatible]
+    public unsafe struct RendererListHandle
+    {
+        public struct Key : IEquatable<Key>
+        {
+            public readonly int Handle;
+
+            public Key(int handle) { Handle = handle; }
+
+            public bool Equals(Key other) => Handle == other.Handle;
+            [BurstDiscard] public override bool Equals(object obj) => obj is Key other && Equals(other);
+            public override int GetHashCode() => Handle;
+        }
+
+        internal Key key => new(handle);
+        
+        [NativeDisableUnsafePtrRestriction] internal readonly RendererListHandleImpl* Ptr;
+        private int Handle;
+
+        internal RendererListHandle(RendererListHandleImpl* impl, Key key)
+        {
+            Ptr = impl;
+            *Ptr = default;
+            Handle = key.Handle;
+        }
+
+        internal void Clear(Key key)
+        {
+            *Ptr = default;
+            Handle = key.Handle;
+        }
+
+        internal int handle => Handle;
+
+        public bool IsValid() => Ptr != null;
+
+        public static implicit operator int(RendererListHandle rendererList) => rendererList.Handle;
+        public static implicit operator RendererList(RendererListHandle rendererList) => rendererList.IsValid() ? rendererList.Ptr->ResolvedRendererList : default;
+        public static implicit operator HW1371_RendererList(RendererListHandle rendererList) => rendererList.IsValid() ? rendererList.Ptr->ResolvedRendererList : default;
+    }
+
     /// <summary>
     /// Renderer List resource handle.
     /// </summary>
-    [DebuggerDisplay("RendererList ({handle})")]
-    public struct RendererListHandle
+    [BurstCompatible]
+    public struct RendererListHandleImpl
     {
-        bool m_IsValid;
-        internal int handle { get; private set; }
-        internal RendererListHandle(int handle) { this.handle = handle; m_IsValid = true; }
-        /// <summary>
-        /// Conversion to int.
-        /// </summary>
-        /// <param name="handle">Renderer List handle to convert.</param>
-        /// <returns>The integer representation of the handle.</returns>
-        public static implicit operator int(RendererListHandle handle) { return handle.handle; }
-
-        /// <summary>
-        /// Cast to RendererList
-        /// </summary>
-        /// <param name="rendererList">Input RendererListHandle.</param>
-        /// <returns>Resource as a RendererList.</returns>
-        public static implicit operator RendererList(RendererListHandle rendererList) => rendererList.IsValid() ? RenderGraphResourceRegistry.current.GetRendererList(rendererList) : RendererList.nullRendererList;
-
-        /// <summary>
-        /// Return true if the handle is valid.
-        /// </summary>
-        /// <returns>True if the handle is valid.</returns>
-        public bool IsValid() => m_IsValid;
+        internal RendererList ResolvedRendererList;
     }
-
-    internal struct RendererListResource
+    
+    
+    [BurstCompatible]
+    public struct HW1371_RendererList
     {
-        public RendererListDesc desc;
-        public RendererList rendererList;
+        internal UIntPtr context;
+        internal UInt32  index;
+        internal UInt32  frame;
 
-        internal RendererListResource(in RendererListDesc desc)
-        {
-            this.desc = desc;
-            this.rendererList = new RendererList(); // Invalid by default
-        }
+        public bool isValid => ((uint)context | index | frame) > 0;
+
+        public static implicit operator RendererList(HW1371_RendererList rl) => UnsafeUtility.As<HW1371_RendererList, RendererList>(ref rl);
+        public static implicit operator HW1371_RendererList(RendererList rl) => UnsafeUtility.As<RendererList, HW1371_RendererList>(ref rl);
     }
 }

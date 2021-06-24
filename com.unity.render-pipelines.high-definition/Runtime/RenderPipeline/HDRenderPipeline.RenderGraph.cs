@@ -1,5 +1,8 @@
 using System;
 using System.Collections.Generic;
+using Unity.Burst;
+using Unity.Collections;
+using Unity.Collections.LowLevel.Unsafe;
 using UnityEngine.Experimental.Rendering;
 using UnityEngine.Experimental.Rendering.RenderGraphModule;
 using UnityEngine.VFX;
@@ -455,36 +458,55 @@ namespace UnityEngine.Rendering.HighDefinition
 
         void ResetCameraMipBias(HDCamera hdCamera) => PushCameraGlobalMipBiasPass(m_RenderGraph, hdCamera, 0.0f);
 
-        class PushCameraGlobalMipBiasData
+        [BurstCompatible]
+        struct PushCameraGlobalMipBiasData
         {
-            public HDCamera hdCamera;
-            public float mipBias;
-            public ShaderVariablesGlobal    globalCB;
-            public ShaderVariablesXR        xrCB;
+            public HDCamera.ConstantBufferInputs    cbInputs;
+            
+            public ShaderVariablesGlobal            globalCB;
+            public ShaderVariablesXR                xrCB;
+
+            public HW1371_ComputeBuffer             gpuGlobalCB;
+            public HW1371_ComputeBuffer             gpuXRCB;
         }
 
-        void PushCameraGlobalMipBiasPass(RenderGraph renderGraph, HDCamera hdCamera, float mipBias)
+        unsafe void PushCameraGlobalMipBiasPass(RenderGraph renderGraph, HDCamera hdCamera, float mipBias)
         {
             if (!ShaderConfig.s_GlobalMipBias)
                 return;
 
-            using (var builder = renderGraph.AddRenderPass<PushCameraGlobalMipBiasData>("Push Global Camera Mip Bias", out var passData))
+            using (var builder = renderGraph.AddRenderPassUnmanaged<PushCameraGlobalMipBiasData>("Push Global Camera Mip Bias", out var passData))
             {
-                passData.hdCamera = hdCamera;
-                passData.mipBias = mipBias;
-                passData.globalCB = m_ShaderVariablesGlobalCB;
-                passData.xrCB = m_ShaderVariablesXRCB;
+                passData->cbInputs = new()
+                {
+                    hdCameraData = hdCamera.hdCameraData,
+                    frameSettings = hdCamera.frameSettings,
+                    viewCount = hdCamera.viewCount,
+                    rtHandleScale = RTHandles.rtHandleProperties.rtHandleScale,
+                    rtHandleScaleHistory = hdCamera.GetHistoryRTHandleSystem().rtHandleProperties.rtHandleScale,
+                    probeRangeCompressionFactor = hdCamera.probeRangeCompressionFactor,
+                    deExposureMultiplier = hdCamera.deExposureMultiplier,
+                    globalMipBias = mipBias,
+                };
+                
+                passData->globalCB = m_ShaderVariablesGlobalCB;
+                passData->xrCB = m_ShaderVariablesXRCB;
 
-                builder.SetRenderFunc(
-                    (PushCameraGlobalMipBiasData data, RenderGraphContext context) =>
-                    {
-                        data.hdCamera.globalMipBias = data.mipBias;
-                        data.hdCamera.UpdateShaderVariablesGlobalCB(ref data.globalCB);
-                        ConstantBuffer.PushGlobal(context.cmd, data.globalCB, HDShaderIDs._ShaderVariablesGlobal);
-                        data.hdCamera.UpdateShaderVariablesXRCB(ref data.xrCB);
-                        ConstantBuffer.PushGlobal(context.cmd, data.xrCB, HDShaderIDs._ShaderVariablesXR);
-                    });
+                passData->gpuGlobalCB = ConstantBufferSingleton<ShaderVariablesGlobal>.instance.m_GPUConstantBuffer;
+                passData->gpuXRCB = ConstantBufferSingleton<ShaderVariablesXR>.instance.m_GPUConstantBuffer;
+
+                builder.SetRenderFunc(DoPushCameraGlobalMipBiasPass);
             }
+        }
+        [BurstCompile] static void DoPushCameraGlobalMipBiasPass(in UnsafeList rawData, ref HW1371_RenderGraphContext context)
+        {
+            ref var data = ref rawData.As<PushCameraGlobalMipBiasData>();
+            
+            HDCamera.UpdateShaderVariablesGlobalCB(data.cbInputs, ref data.globalCB);
+            ConstantBuffer.PushGlobal(context.cmd, data.gpuGlobalCB, data.globalCB, HDShaderIDs._ShaderVariablesGlobal);
+            
+            HDCamera.UpdateShaderVariablesXRCB(data.cbInputs, ref data.xrCB);
+            ConstantBuffer.PushGlobal(context.cmd, data.gpuXRCB, data.xrCB, HDShaderIDs._ShaderVariablesXR);
         }
 
         class SetFinalTargetPassData
@@ -748,7 +770,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 builder.UseDepthBuffer(depthBuffer, DepthAccess.ReadWrite);
 
                 passData.enableDecals = hdCamera.frameSettings.IsEnabled(FrameSettingsField.Decals);
-                passData.dbuffer = ReadDBuffer(dbuffer, builder);
+                passData.dbuffer = ReadDBuffer(ref dbuffer, builder);
                 passData.lightingBuffers = ReadLightingBuffers(lightingBuffers, builder);
 
                 builder.SetRenderFunc(

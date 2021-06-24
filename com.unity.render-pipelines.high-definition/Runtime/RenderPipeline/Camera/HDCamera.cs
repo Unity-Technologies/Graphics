@@ -5,6 +5,7 @@ using System.Linq;
 using UnityEngine.Experimental.Rendering;
 using UnityEngine.Experimental.Rendering.RenderGraphModule;
 using Unity.Collections;
+using Unity.Collections.LowLevel.Unsafe;
 
 namespace UnityEngine.Rendering.HighDefinition
 {
@@ -20,12 +21,13 @@ namespace UnityEngine.Rendering.HighDefinition
     /// This class holds all information for a given camera. Constants used for shading as well as buffers persistent from one frame to another etc.
     /// </summary>
     [DebuggerDisplay("({camera.name})")]
-    public class HDCamera
+    unsafe public class HDCamera
     {
         #region Public API
         /// <summary>
         /// Structure containing all shader view related constants for this camera.
         /// </summary>
+        [BurstCompatible]
         public struct ViewConstants
         {
             /// <summary>View matrix.</summary>
@@ -74,20 +76,20 @@ namespace UnityEngine.Rendering.HighDefinition
         /// Screen resolution information.
         /// Width, height, inverse width, inverse height.
         /// </summary>
-        public Vector4              screenSize;
+        public Vector4              screenSize { get => hdCameraData->screenSize; private set => hdCameraData->screenSize = value; }
         /// <summary>
         /// Screen resolution information for post processes passes.
         /// Width, height, inverse width, inverse height.
         /// </summary>
-        public Vector4              postProcessScreenSize { get { return m_PostProcessScreenSize; } }
+        public Vector4              postProcessScreenSize => m_PostProcessScreenSize;
         /// <summary>Camera frustum.</summary>
         public Frustum              frustum;
         /// <summary>Camera component.</summary>
         public Camera               camera;
         /// <summary>TAA jitter information.</summary>
-        public Vector4              taaJitter;
+        public Vector4              taaJitter { get => hdCameraData->taaJitter; private set => hdCameraData->taaJitter = value; }
         /// <summary>View constants.</summary>
-        public ViewConstants        mainViewConstants;
+        public ViewConstants        mainViewConstants => hdCameraData->mainViewConstants;
         /// <summary>Color pyramid history buffer state.</summary>
         public bool                 colorPyramidHistoryIsValid = false;
         /// <summary>Volumetric history buffer state.</summary>
@@ -115,6 +117,66 @@ namespace UnityEngine.Rendering.HighDefinition
 
         internal bool               dofHistoryIsValid = false;  // used to invalidate DoF accumulation history when switching DoF modes
 
+        [BurstCompatible]
+        public struct HDCameraData : IDisposable
+        {
+            public AntialiasingMode         antialiasing;
+            public CameraType               cameraType;
+            public uint                     cameraFrameCount;
+                                            
+            public ViewConstants            mainViewConstants;
+            
+            public UnsafeList<ViewConstants>m_XRViewConstants;
+
+            public Vector4                  zBufferParams;
+            public Vector4                  unity_OrthoParams;
+            public Vector4                  projectionParams;
+            public Vector4                  screenParams;
+
+            public fixed float              frustumPlaneEquations[6 * 4];
+            
+            public int                      taaFrameIndex;
+            public float                    taaSharpenStrength;
+            public float                    taaHistorySharpening;
+            public float                    taaAntiFlicker;
+            public float                    taaMotionVectorRejection;
+            public bool                     taaAntiRinging;
+            
+            public Vector4                  taaJitter;
+
+            public int                      colorPyramidHistoryMipCount;
+
+            public float                    time;
+            public float                    lastTime;
+            
+            public Vector4                  screenSize;
+            public Vector4                  postProcessScreenSize => m_PostProcessScreenSize;
+
+            public Vector4                  m_PostProcessScreenSize;
+            public Vector4                  m_PostProcessRTScales;
+            public Vector4                  m_PostProcessRTScalesHistory;
+
+            public void Initialize(CameraType camType)
+            {
+                this = default;
+                
+                cameraType = camType;
+
+                m_XRViewConstants = new UnsafeList<ViewConstants>(4, Allocator.Persistent);
+
+                m_PostProcessScreenSize = Vector4.zero;
+                m_PostProcessRTScales = Vector4.one;
+                m_PostProcessRTScalesHistory = Vector4.one;
+            }
+
+            public void Dispose()
+            {
+                m_XRViewConstants.Dispose();
+            }
+        }
+
+        public HDCameraData* hdCameraData { get; private set; }
+        
         // Pass all the systems that may want to initialize per-camera data here.
         // That way you will never create an HDCamera and forget to initialize the data.
         /// <summary>
@@ -231,26 +293,25 @@ namespace UnityEngine.Rendering.HighDefinition
             public Vector2 cloudOffset;
         }
 
-        internal Vector4[]              frustumPlaneEquations;
-        internal int                    taaFrameIndex;
-        internal float                  taaSharpenStrength;
-        internal float                  taaHistorySharpening;
-        internal float                  taaAntiFlicker;
-        internal float                  taaMotionVectorRejection;
-        internal bool                   taaAntiRinging;
+        internal int                    taaFrameIndex { get => hdCameraData->taaFrameIndex; private set => hdCameraData->taaFrameIndex = value; }
+        internal float                  taaSharpenStrength { get => hdCameraData->taaSharpenStrength; private set => hdCameraData->taaSharpenStrength = value; }
+        internal float                  taaHistorySharpening { get => hdCameraData->taaHistorySharpening; private set => hdCameraData->taaHistorySharpening = value; }
+        internal float                  taaAntiFlicker { get => hdCameraData->taaAntiFlicker; private set => hdCameraData->taaAntiFlicker = value; }
+        internal float                  taaMotionVectorRejection { get => hdCameraData->taaMotionVectorRejection; private set => hdCameraData->taaMotionVectorRejection = value; }
+        internal bool                   taaAntiRinging { get => hdCameraData->taaAntiRinging; private set => hdCameraData->taaAntiRinging = value; }
 
-        internal Vector4                zBufferParams;
-        internal Vector4                unity_OrthoParams;
-        internal Vector4                projectionParams;
-        internal Vector4                screenParams;
+        internal Vector4                zBufferParams { get => hdCameraData->zBufferParams; private set => hdCameraData->zBufferParams = value; }
+        internal Vector4                unity_OrthoParams { get => hdCameraData->unity_OrthoParams; private set => hdCameraData->unity_OrthoParams = value; }
+        internal Vector4                projectionParams { get => hdCameraData->projectionParams; private set => hdCameraData->projectionParams = value; }
+        internal Vector4                screenParams { get => hdCameraData->screenParams; private set => hdCameraData->screenParams = value; }
         internal int                    volumeLayerMask;
         internal Transform              volumeAnchor;
         internal Rect                   finalViewport; // This will have the correct viewport position and the size will be full resolution (ie : not taking dynamic rez into account)
-        internal int                    colorPyramidHistoryMipCount = 0;
+        internal int                    colorPyramidHistoryMipCount { get => hdCameraData->colorPyramidHistoryMipCount; set => hdCameraData->colorPyramidHistoryMipCount = value; }
         internal VBufferParameters[]    vBufferParams;            // Double-buffered; needed even if reprojection is off
         internal RTHandle[]             volumetricHistoryBuffers; // Double-buffered; only used for reprojection
         // Currently the frame count is not increase every render, for ray tracing shadow filtering. We need to have a number that increases every render
-        internal uint                   cameraFrameCount = 0;
+        internal uint                   cameraFrameCount { get => hdCameraData->cameraFrameCount; set => hdCameraData->cameraFrameCount = value; }
         internal bool                   animateMaterials;
         internal float                  lastTime;
 
@@ -291,9 +352,9 @@ namespace UnityEngine.Rendering.HighDefinition
             }
         }
 
-        private Vector4 m_PostProcessScreenSize = new Vector4(0.0f, 0.0f, 0.0f, 0.0f);
-        private Vector4 m_PostProcessRTScales   = new Vector4(1.0f, 1.0f, 1.0f, 1.0f);
-        private Vector4 m_PostProcessRTScalesHistory   = new Vector4(1.0f, 1.0f, 1.0f, 1.0f);
+        private Vector4 m_PostProcessScreenSize { get => hdCameraData->m_PostProcessScreenSize; set => hdCameraData->m_PostProcessScreenSize = value; }
+        private Vector4 m_PostProcessRTScales { get => hdCameraData->m_PostProcessRTScales; set => hdCameraData->m_PostProcessRTScales = value; }
+        private Vector4 m_PostProcessRTScalesHistory { get => hdCameraData->m_PostProcessRTScalesHistory; set => hdCameraData->m_PostProcessRTScalesHistory = value; }
 
         internal Vector2 postProcessRTScales { get { return new Vector2(m_PostProcessRTScales.x, m_PostProcessRTScales.y); } }
         internal Vector2 postProcessRTScalesHistory { get { return new Vector2(m_PostProcessRTScalesHistory.x, m_PostProcessRTScalesHistory.y); } }
@@ -555,7 +616,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
         // This value will always be correct for the current camera, no need to check for
         // game view / scene view / preview in the editor, it's handled automatically
-        internal AntialiasingMode antialiasing { get; private set; } = AntialiasingMode.None;
+        internal AntialiasingMode antialiasing { get => hdCameraData->antialiasing; private set => hdCameraData->antialiasing = value; }
 
         internal HDAdditionalCameraData.SMAAQualityLevel SMAAQuality { get; private set; } = HDAdditionalCameraData.SMAAQualityLevel.Medium;
         internal HDAdditionalCameraData.TAAQualityLevel TAAQuality { get; private set; } = HDAdditionalCameraData.TAAQualityLevel.Medium;
@@ -567,6 +628,8 @@ namespace UnityEngine.Rendering.HighDefinition
         internal bool stopNaNs => m_AdditionalCameraData != null && m_AdditionalCameraData.stopNaNs;
 
         internal bool allowDynamicResolution => m_AdditionalCameraData != null && m_AdditionalCameraData.allowDynamicResolution;
+
+        internal float deExposureMultiplier => m_AdditionalCameraData == null ? 1.0f : m_AdditionalCameraData.deExposureMultiplier;
 
         // We set the values of the physical camera in the Update() call. Here we initialize with
         // the defaults, in case someone is trying to access the values before the first Update
@@ -654,6 +717,9 @@ namespace UnityEngine.Rendering.HighDefinition
 
         internal HDCamera(Camera cam)
         {
+            hdCameraData = (HDCameraData*)UnsafeUtility.Malloc(UnsafeUtility.SizeOf<HDCameraData>(), UnsafeUtility.AlignOf<HDCameraData>(), Allocator.Persistent);
+            hdCameraData->Initialize(cam.cameraType);
+            
             camera = cam;
 
             name = cam.name;
@@ -661,9 +727,7 @@ namespace UnityEngine.Rendering.HighDefinition
             frustum = new Frustum();
             frustum.planes = new Plane[6];
             frustum.corners = new Vector3[8];
-
-            frustumPlaneEquations = new Vector4[6];
-
+            
             volumeStack = VolumeManager.instance.CreateStack();
 
             Reset();
@@ -1051,6 +1115,16 @@ namespace UnityEngine.Rendering.HighDefinition
             cb._RTHandlePostProcessScaleHistory = m_PostProcessRTScalesHistory;
         }
 
+        static internal void UpdateScalesAndScreenSizesCB(ConstantBufferInputs inputs, ref ShaderVariablesGlobal cb)
+        {
+            cb._ScreenSize = inputs.hdCameraData->screenSize;
+            cb._PostProcessScreenSize = inputs.hdCameraData->postProcessScreenSize;
+            cb._RTHandleScale = inputs.rtHandleScale;
+            cb._RTHandleScaleHistory = inputs.rtHandleScaleHistory;
+            cb._RTHandlePostProcessScale = inputs.hdCameraData->m_PostProcessRTScales;
+            cb._RTHandlePostProcessScaleHistory = inputs.hdCameraData->m_PostProcessRTScalesHistory;
+        }
+
         unsafe internal void UpdateShaderVariablesGlobalCB(ref ShaderVariablesGlobal cb)
             => UpdateShaderVariablesGlobalCB(ref cb, (int)cameraFrameCount);
 
@@ -1080,7 +1154,7 @@ namespace UnityEngine.Rendering.HighDefinition
             cb._ScreenParams = screenParams;
             for (int i = 0; i < 6; ++i)
                 for (int j = 0; j < 4; ++j)
-                    cb._FrustumPlanes[i * 4 + j] = frustumPlaneEquations[i][j];
+                    cb._FrustumPlanes[i * 4 + j] = hdCameraData->frustumPlaneEquations[i * 4 + j];
             cb._TaaFrameInfo = new Vector4(taaSharpenStrength, 0, taaFrameIndex, taaEnabled ? 1 : 0);
             cb._TaaJitterStrength = taaJitter;
             cb._ColorPyramidLodCount = colorPyramidHistoryMipCount;
@@ -1115,9 +1189,112 @@ namespace UnityEngine.Rendering.HighDefinition
                 !frameSettings.IsEnabled(FrameSettingsField.TransparentsWriteMotionVector)) ? 1 : 0;
         }
 
+        public struct ConstantBufferInputs
+        {
+            public HDCameraData*    hdCameraData;
+            public FrameSettings    frameSettings;
+            public int              viewCount;
+            public Vector4          rtHandleScale;
+            public Vector4          rtHandleScaleHistory;
+            public float            probeRangeCompressionFactor;
+            public float            deExposureMultiplier;
+            public float            globalMipBias;
+        }
+
+        internal static void UpdateShaderVariablesGlobalCB(in ConstantBufferInputs inputs, ref ShaderVariablesGlobal cb)
+        {
+            var hdCameraData = inputs.hdCameraData;
+            
+            bool taaEnabled = inputs.frameSettings.IsEnabled(FrameSettingsField.Postprocess)
+                && hdCameraData->antialiasing == AntialiasingMode.TemporalAntialiasing
+                && hdCameraData->cameraType == CameraType.Game;
+
+            cb._ViewMatrix = hdCameraData->mainViewConstants.viewMatrix;
+            cb._CameraViewMatrix = hdCameraData->mainViewConstants.viewMatrix;
+            cb._InvViewMatrix = hdCameraData->mainViewConstants.invViewMatrix;
+            cb._ProjMatrix = hdCameraData->mainViewConstants.projMatrix;
+            cb._InvProjMatrix = hdCameraData->mainViewConstants.invProjMatrix;
+            cb._ViewProjMatrix = hdCameraData->mainViewConstants.viewProjMatrix;
+            cb._CameraViewProjMatrix = hdCameraData->mainViewConstants.viewProjMatrix;
+            cb._InvViewProjMatrix = hdCameraData->mainViewConstants.invViewProjMatrix;
+            cb._NonJitteredViewProjMatrix = hdCameraData->mainViewConstants.nonJitteredViewProjMatrix;
+            cb._PrevViewProjMatrix = hdCameraData->mainViewConstants.prevViewProjMatrix;
+            cb._PrevInvViewProjMatrix = hdCameraData->mainViewConstants.prevInvViewProjMatrix;
+            cb._WorldSpaceCameraPos_Internal = hdCameraData->mainViewConstants.worldSpaceCameraPos;
+            cb._PrevCamPosRWS_Internal = hdCameraData->mainViewConstants.prevWorldSpaceCameraPos;
+            UpdateScalesAndScreenSizesCB(inputs, ref cb);
+            cb._ZBufferParams = hdCameraData->zBufferParams;
+            cb._ProjectionParams = hdCameraData->projectionParams;
+            cb.unity_OrthoParams = hdCameraData->unity_OrthoParams;
+            cb._ScreenParams = hdCameraData->screenParams;
+            fixed(void* srcPtr = cb._FrustumPlanes) UnsafeUtility.MemCpy(hdCameraData->frustumPlaneEquations, srcPtr, UnsafeUtility.SizeOf<float>() * 6 * 4);
+            cb._TaaFrameInfo = new Vector4(hdCameraData->taaSharpenStrength, 0, hdCameraData->taaFrameIndex, taaEnabled ? 1 : 0);
+            cb._TaaJitterStrength = hdCameraData->taaJitter;
+            cb._ColorPyramidLodCount = hdCameraData->colorPyramidHistoryMipCount;
+            cb._GlobalMipBias = inputs.globalMipBias;
+            cb._GlobalMipBiasPow2 = (float)Math.Pow(2.0f, inputs.globalMipBias);
+
+            float ct = hdCameraData->time;
+            float pt = hdCameraData->lastTime;
+#if UNITY_EDITOR
+            float dt = hdCameraData->time - hdCameraData->lastTime;
+            float sdt = dt;
+#else
+            float dt = Time.deltaTime;
+            float sdt = Time.smoothDeltaTime;
+#endif
+
+            cb._Time = new Vector4(ct * 0.05f, ct, ct * 2.0f, ct * 3.0f);
+            cb._SinTime = new Vector4(Mathf.Sin(ct * 0.125f), Mathf.Sin(ct * 0.25f), Mathf.Sin(ct * 0.5f), Mathf.Sin(ct));
+            cb._CosTime = new Vector4(Mathf.Cos(ct * 0.125f), Mathf.Cos(ct * 0.25f), Mathf.Cos(ct * 0.5f), Mathf.Cos(ct));
+            cb.unity_DeltaTime = new Vector4(dt, 1.0f / dt, sdt, 1.0f / sdt);
+            cb._TimeParameters = new Vector4(ct, Mathf.Sin(ct), Mathf.Cos(ct), 0.0f);
+            cb._LastTimeParameters = new Vector4(pt, Mathf.Sin(pt), Mathf.Cos(pt), 0.0f);
+            cb._FrameCount = (int)hdCameraData->cameraFrameCount;
+            cb._XRViewCount = (uint)inputs.viewCount;
+
+            float exposureMultiplierForProbes = 1.0f / Mathf.Max(inputs.probeRangeCompressionFactor, 1e-6f);
+            cb._ProbeExposureScale  = exposureMultiplierForProbes;
+
+            cb._DeExposureMultiplier = inputs.deExposureMultiplier;
+
+            cb._TransparentCameraOnlyMotionVectors = (inputs.frameSettings.IsEnabled(FrameSettingsField.MotionVectors) &&
+                !inputs.frameSettings.IsEnabled(FrameSettingsField.TransparentsWriteMotionVector)) ? 1 : 0;
+        }
+                
         unsafe internal void UpdateShaderVariablesXRCB(ref ShaderVariablesXR cb)
         {
             for (int i = 0; i < viewCount; i++)
+            {
+                for (int j = 0; j < 16; ++j)
+                {
+                    cb._XRViewMatrix[i * 16 + j] = m_XRViewConstants[i].viewMatrix[j];
+                    cb._XRInvViewMatrix[i * 16 + j] = m_XRViewConstants[i].invViewMatrix[j];
+                    cb._XRProjMatrix[i * 16 + j] = m_XRViewConstants[i].projMatrix[j];
+                    cb._XRInvProjMatrix[i * 16 + j] = m_XRViewConstants[i].invProjMatrix[j];
+                    cb._XRViewProjMatrix[i * 16 + j] = m_XRViewConstants[i].viewProjMatrix[j];
+                    cb._XRInvViewProjMatrix[i * 16 + j] = m_XRViewConstants[i].invViewProjMatrix[j];
+                    cb._XRNonJitteredViewProjMatrix[i * 16 + j] = m_XRViewConstants[i].nonJitteredViewProjMatrix[j];
+                    cb._XRPrevViewProjMatrix[i * 16 + j] = m_XRViewConstants[i].prevViewProjMatrix[j];
+                    cb._XRPrevInvViewProjMatrix[i * 16 + j] = m_XRViewConstants[i].prevInvViewProjMatrix[j];
+                    cb._XRViewProjMatrixNoCameraTrans[i * 16 + j] = m_XRViewConstants[i].viewProjectionNoCameraTrans[j];
+                    cb._XRPrevViewProjMatrixNoCameraTrans[i * 16 + j] = m_XRViewConstants[i].prevViewProjMatrixNoCameraTrans[j];
+                    cb._XRPixelCoordToViewDirWS[i * 16 + j] = m_XRViewConstants[i].pixelCoordToViewDirWS[j];
+                }
+                for (int j = 0; j < 3; ++j) // Inputs are vec3 but we align CB on float4
+                {
+                    cb._XRWorldSpaceCameraPos[i * 4 + j] = m_XRViewConstants[i].worldSpaceCameraPos[j];
+                    cb._XRWorldSpaceCameraPosViewOffset[i * 4 + j] = m_XRViewConstants[i].worldSpaceCameraPosViewOffset[j];
+                    cb._XRPrevWorldSpaceCameraPos[i * 4 + j] = m_XRViewConstants[i].prevWorldSpaceCameraPos[j];
+                }
+            }
+        }
+
+        static internal void UpdateShaderVariablesXRCB(ConstantBufferInputs inputs, ref ShaderVariablesXR cb)
+        {
+            var m_XRViewConstants = inputs.hdCameraData->m_XRViewConstants;
+            
+            for (int i = 0; i < inputs.viewCount; i++)
             {
                 for (int j = 0; j < 16; ++j)
                 {
@@ -1330,7 +1507,7 @@ namespace UnityEngine.Rendering.HighDefinition
         public ScreenSpaceReflectionAlgorithm
             currentSSRAlgorithm = ScreenSpaceReflectionAlgorithm.Approximation;
 
-        internal ViewConstants[] m_XRViewConstants;
+        internal ref UnsafeList<ViewConstants> m_XRViewConstants => ref hdCameraData->m_XRViewConstants;
 
         // Recorder specific
         IEnumerator<Action<RenderTargetIdentifier, CommandBuffer>> m_RecorderCaptureActions;
@@ -1412,9 +1589,9 @@ namespace UnityEngine.Rendering.HighDefinition
         void UpdateAllViewConstants()
         {
             // Allocate or resize view constants buffers
-            if (m_XRViewConstants == null || m_XRViewConstants.Length != viewCount)
+            if (m_XRViewConstants.Length != viewCount)
             {
-                m_XRViewConstants = new ViewConstants[viewCount];
+                m_XRViewConstants.Resize(viewCount, NativeArrayOptions.ClearMemory);
                 resetPostProcessingHistory = true;
                 isFirstFrame = true;
             }
@@ -1432,7 +1609,7 @@ namespace UnityEngine.Rendering.HighDefinition
             if (xr.enabled && viewCount == 1)
                 GetXrViewParameters(0, out proj, out view, out cameraPosition);
 
-            UpdateViewConstants(ref mainViewConstants, proj, view, cameraPosition, jitterProjectionMatrix, updatePreviousFrameConstants);
+            UpdateViewConstants(ref hdCameraData->mainViewConstants, proj, view, cameraPosition, jitterProjectionMatrix, updatePreviousFrameConstants);
 
             // XR single-pass support
             if (xr.singlePassEnabled)
@@ -1440,10 +1617,10 @@ namespace UnityEngine.Rendering.HighDefinition
                 for (int viewIndex = 0; viewIndex < viewCount; ++viewIndex)
                 {
                     GetXrViewParameters(viewIndex, out proj, out view, out cameraPosition);
-                    UpdateViewConstants(ref m_XRViewConstants[viewIndex], proj, view, cameraPosition, jitterProjectionMatrix, updatePreviousFrameConstants);
+                    UpdateViewConstants(ref m_XRViewConstants.ElementAt(viewIndex), proj, view, cameraPosition, jitterProjectionMatrix, updatePreviousFrameConstants);
 
                     // Compute offset between the main camera and the instanced views
-                    m_XRViewConstants[viewIndex].worldSpaceCameraPosViewOffset = m_XRViewConstants[viewIndex].worldSpaceCameraPos - mainViewConstants.worldSpaceCameraPos;
+                    m_XRViewConstants.ElementAt(viewIndex).worldSpaceCameraPosViewOffset = m_XRViewConstants[viewIndex].worldSpaceCameraPos - mainViewConstants.worldSpaceCameraPos;
                 }
             }
             else
@@ -1589,7 +1766,10 @@ namespace UnityEngine.Rendering.HighDefinition
             // Left, right, top, bottom, near, far.
             for (int i = 0; i < 6; i++)
             {
-                frustumPlaneEquations[i] = new Vector4(frustum.planes[i].normal.x, frustum.planes[i].normal.y, frustum.planes[i].normal.z, frustum.planes[i].distance);
+                hdCameraData->frustumPlaneEquations[i * 4 + 0] = frustum.planes[i].normal.x;
+                hdCameraData->frustumPlaneEquations[i * 4 + 1] = frustum.planes[i].normal.y;
+                hdCameraData->frustumPlaneEquations[i * 4 + 2] = frustum.planes[i].normal.z;
+                hdCameraData->frustumPlaneEquations[i * 4 + 3] = frustum.planes[i].distance;
             }
         }
 

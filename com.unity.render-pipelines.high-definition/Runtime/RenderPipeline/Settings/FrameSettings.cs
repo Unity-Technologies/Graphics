@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.Reflection;
 using System.Linq;
+using Unity.Collections;
 
 namespace UnityEngine.Rendering.HighDefinition
 {
@@ -399,6 +400,7 @@ namespace UnityEngine.Rendering.HighDefinition
     [Serializable]
     [DebuggerDisplay("{bitDatas.humanizedData}")]
     [DebuggerTypeProxy(typeof(FrameSettingsDebugView))]
+    [BurstCompatible]
     partial struct FrameSettings
     {
         internal static FrameSettings NewDefaultCamera() => new FrameSettings()
