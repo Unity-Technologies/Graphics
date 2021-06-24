@@ -1,59 +1,3 @@
-
-#define SCALE (0.707)
-
-////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-//_________________________________________________________________/\___________________________________________________________________
-//======================================================================================================================================
-//                                                      SUPPORT FOR TEST SHADER
-//======================================================================================================================================
-#define I1 int
-#define I2 int2 
-#define F1 float
-#define F2 float2
-#define F2_(x) F2(x,x)
-#define F3 float3
-#define F4 float4
-//--------------------------------------------------------------------------------------------------------------------------------------
-// Convert from linear to sRGB.
-F1 Srgb(F1 c){return(c<0.0031308?c*12.92:1.055*pow(c,0.41666)-0.055);}
-//--------------------------------------------------------------------------------------------------------------------------------------
-// Convert from sRGB to linear.
-F1 Linear(F1 c){return(c<=0.04045)?c/12.92:pow((c+0.055)/1.055,2.4);}
-//--------------------------------------------------------------------------------------------------------------------------------------
-// Dummy shader given pixel position.
-#if 0
-F3 Shade(F2 p){
- p.xy+=sin(iTime)*2.0;
- // Texture.
- F3 t=texture(iChannel0,F2_(4.0)*p/iChannelResolution[0].xy).rgb;
- // Pattern.
- F2 pp=F2(p.x+p.y/16.0,p.y+p.x/16.0);
- pp*=pp;
- F1 x=sin(pp.x/800.0)>0.0?0.5:0.0;
- F1 y=sin(pp.y/1000.0)>0.0?0.5:0.0;
- return t*(x+y);}
-#endif
-//--------------------------------------------------------------------------------------------------------------------------------------
-// Simulated fetch callback.
-#if 0
-F4 MsssTexF(I2 p,I1 s){
- // Build sample position.
- F2 f=F2(p)+F2(0.5,0.5);
- if(s==0)f+=F2(-2.0/16.0,-6.0/16.0);
- if(s==1)f+=F2( 6.0/16.0,-2.0/16.0);
- if(s==2)f+=F2(-6.0/16.0, 2.0/16.0);
- if(s==3)f+=F2( 2.0/16.0, 6.0/16.0);
- F4 r;
- r.rgb=Shade(f);
- r.a=0.0;
- return r;}
-#endif
-
-//#define MSSS_DEBUG 1
-#define MSSS_BUG 0
-#define MSSS_HLSL 1
-#define MSSS_32BIT 1
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -61,16 +5,38 @@ F4 MsssTexF(I2 p,I1 s){
 //_________________________________________________________________/\___________________________________________________________________
 //======================================================================================================================================
 //
-//                                                [MSSS] MSAA SCALING SUPER SAMPLING
+//                                            [MSSS] MSAA SCALING SUPER SAMPLING v20210624
 //
+//--------------------------------------------------------------------------------------------------------------------------------------
+// CHANGELIST
+// ==========
+// 20210624 - Optimized MsssKrnF() logic with regards to saturation placement.
 //======================================================================================================================================
 // 0 = off
 // 1 = view H filter
 // 2 = view V filter
 // 3 = view T filter
-// 4 = min/max of H and V
+// 4 = view blend logic
 #ifndef MSSS_BUG
  #define MSSS_BUG 0
+#endif
+//--------------------------------------------------------------------------------------------------------------------------------------
+// 0 = denoiser off
+// 1 = denoiser on
+#ifndef MSSS_DENOISE
+ #define MSSS_DENOISE 0
+#endif
+//--------------------------------------------------------------------------------------------------------------------------------------
+// 4 = 4xMSAA
+// 8 = 8xMSAA
+#ifndef MSSS_MSAA
+ #define MSSS_MSAA 4
+#endif
+//--------------------------------------------------------------------------------------------------------------------------------------
+// 0 = off
+// 1 = zoom in to view output pixels for debug
+#ifndef MSSS_ZOOM
+ #define MSSS_ZOOM 0
 #endif
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -79,11 +45,11 @@ F4 MsssTexF(I2 p,I1 s){
 //                                                             PORTABILITY
 //======================================================================================================================================
 #ifdef MSSS_GLSL
+ #define MsssP1 bool
  #define MsssI1 int
  #define MsssI2 ivec2
  #define MsssF1 float
  #define MsssF2 vec2
- #define MsssF3 vec3
  #define MsssF4 vec4
  #define MsssF4_(x) MsssF4(x,x,x,x)
 //--------------------------------------------------------------------------------------------------------------------------------------
@@ -93,11 +59,11 @@ F4 MsssTexF(I2 p,I1 s){
 #endif
 //======================================================================================================================================
 #ifdef MSSS_HLSL
+ #define MsssP1 bool
  #define MsssI1 int
  #define MsssI2 int2
  #define MsssF1 float
  #define MsssF2 float2
- #define MsssF3 float3
  #define MsssF4 float4
  #define MsssF4_(x) MsssF4(x,x,x,x)
 //--------------------------------------------------------------------------------------------------------------------------------------
@@ -113,17 +79,61 @@ F4 MsssTexF(I2 p,I1 s){
 //--------------------------------------------------------------------------------------------------------------------------------------
 // WORK IN PROGRESS
 // ================
-// - Fix floor() for HLSL.
-// - Introduce broadcast defines.
-// - Finish kernel blending logic...
-// - Try negative lobes...
+// [ ] Try approximations for RCP.
+// [ ] Add FP16 option.
+// [ ] Try retuning for 8xMSAA.
+// [ ] If 'T' kernel isn't going to be used for color, maybe do only luma.
+// ---
+// [x] Finish kernel blending logic.
+// [x] Introduce broadcast defines.
+// [x] Add 8xMSAA option.
+// [x] Add denoise logic.
 //======================================================================================================================================
 #ifdef MSSS_32BIT
  // MSAA texture fetch prototype.
  MsssF4 MsssTexF(MsssI2 p,MsssI1 s);
+ // Load luma feedback prototype.
+ MsssF4 MsssLdF(MsssI2 p);
+ // Store luma feedback prototype.
+ void MsssStF(MsssI2 p,MsssF4 c);
+//======================================================================================================================================
+ // Convert from MSAA sample color to "luma" used by the algorithm.
+ MsssF1 MsssLumF(MsssF4 c){
+  // Get maximum.
+  MsssF1 m=max(max(c.r,c.g),c.b);
+  // Invert the invertable tonemapper.
+  m=MsssF1(1.0)-m;
+  m=max(m,MsssF1(1.0/32768.0));
+  return MsssRcpF1(m);}
+//--------------------------------------------------------------------------------------------------------------------------------------
+ // Process four.
+ MsssF4 MsssLum4F(MsssF4 a,MsssF4 b,MsssF4 c,MsssF4 d){return MsssF4(MsssLumF(a),MsssLumF(b),MsssLumF(c),MsssLumF(d));}
+//--------------------------------------------------------------------------------------------------------------------------------------
+ // Denoise logic for four samples, returns weights.
+ MsssF4 MsssDe4F(MsssI2 p,MsssF4 f,MsssF4 c0,MsssF4 c1,MsssF4 c2,MsssF4 c3,MsssP1 s0,MsssP1 s1,MsssF1 k1){
+  // Skip logic if denoiser isn't used.
+  #if MSSS_DENOISE==0
+   return MsssF4_(1.0);
+  #endif
+  // Convert color into "luma".
+  MsssF4 l=MsssLum4F(c0,c1,c2,c3);
+  // Generate new feedback for next frame.
+  // TODO: Tune this!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+  MsssF4 n=MsssLerpF4(f,l,MsssF4_(1.0/2.0));
+  // Optionaly store feedback to one of the targets.
+  if(s0)MsssStF(p,n);
+  if(s1)MsssSt2F(p,n);
+  // Get difference feedback and this frame's luma.
+  MsssF4 w=abs(f-l);
+  // Convert into weighting term.
+  w=MsssF4_(k1)/(w+MsssF4_(k1));
+  return w;}
+//======================================================================================================================================
+ // Filter kernel.
+ MsssF1 MsssKrnF(MsssF1 x){x=MsssSatF1(1.0-x);return x*x;}
 //======================================================================================================================================
  // Accumulation.
- void MsssAccF(inout MsssF4 kH,inout MsssF4 kV,inout MsssF4 kT,inout MsssF1 wH,inout MsssF1 wV,inout MsssF1 wT,MsssF4 c,MsssF2 o){
+ void MsssAccF(inout MsssF4 kH,inout MsssF4 kV,inout MsssF4 kT,inout MsssF1 wH,inout MsssF1 wV,inout MsssF1 wT,MsssF4 c,MsssF2 o,MsssF1 w){
   MsssF1 aH;
   MsssF1 aV;
   MsssF1 aT;
@@ -139,9 +149,13 @@ F4 MsssTexF(I2 p,I1 s){
   // The following controls the thin/diagonal filter.
   #define MSSS_TND 0.707
   #define MSSS_TIN (1.0/(MSSS_TND*MSSS_TND))
-  MsssF2 oH=o;oH.x*=MSSS_ANISO;aH=MsssSatF1(dot(oH,oH)*MSSS_WIN)-1.0;aH*=aH;
-  MsssF2 oV=o;oV.y*=MSSS_ANISO;aV=MsssSatF1(dot(oV,oV)*MSSS_WIN)-1.0;aV*=aV;
-                               aT=MsssSatF1(dot(o ,o )*MSSS_TIN)-1.0;aT*=aT;
+  MsssF2 oH=o;oH.x*=MSSS_ANISO;aH=MsssKrnF(dot(oH,oH)*MSSS_WIN);
+  MsssF2 oV=o;oV.y*=MSSS_ANISO;aV=MsssKrnF(dot(oV,oV)*MSSS_WIN);
+                               aT=MsssKrnF(dot(o ,o )*MSSS_TIN);
+  // Weight.
+  #if MSSS_DENOISE
+   aH*=w;aV*=w;aT*=w;
+  #endif
   // Accumulate.
   kH+=c*aH;kV+=c*aV;kT+=c*aT;
   wH+=aH;wV+=aV;wT+=aT;}
@@ -150,10 +164,11 @@ F4 MsssTexF(I2 p,I1 s){
  //  p ....... integer pixel position in the output
  //  k0.xy ... input/output resolution
  //  k0.zw ... k0.xy * 0.5 - 0.5
- MsssF4 MsssF(MsssI2 p,MsssF4 k0){
+ //  k1 ...... denoise constant 'exp2(g)', where 'g=0' is full noise reduction, and 'g>0' reduces effect
+ MsssF4 MsssF(MsssI2 p,MsssF4 k0,MsssF1 k1){
 //--------------------------------------------------------------------------------------------------------------------------------------
-  // ZOOM IN FOR DEBUG
-  #ifdef MSSS_DEBUG
+  // Zoom in for debug.
+  #if MSSS_ZOOM
    p>>=2;
   #endif
 //--------------------------------------------------------------------------------------------------------------------------------------
@@ -187,45 +202,141 @@ F4 MsssTexF(I2 p,I1 s){
   //  p2+=0.5 -> get back to resolve position
   pF=pF-p2;
 //--------------------------------------------------------------------------------------------------------------------------------------
-  // Fetch samples for pixel, and do accumulation of kernels.
-  MsssF4 cA0=MsssTexF(pI,0);
-  MsssF4 cA1=MsssTexF(pI,1);
-  MsssF4 cA2=MsssTexF(pI,2);
-  MsssF4 cA3=MsssTexF(pI,3);
-  MsssAccF(kH,kV,kT,wH,wV,wT,cA0,pF+MsssF2(-1.0/8.0,-3.0/8.0));
-  MsssAccF(kH,kV,kT,wH,wV,wT,cA1,pF+MsssF2( 3.0/8.0,-1.0/8.0));
-  MsssAccF(kH,kV,kT,wH,wV,wT,cA2,pF+MsssF2(-3.0/8.0, 1.0/8.0));
-  MsssAccF(kH,kV,kT,wH,wV,wT,cA3,pF+MsssF2( 1.0/8.0, 3.0/8.0));
-  pI.x+=1;
-  MsssF4 cB0=MsssTexF(pI,0);
-  MsssF4 cB1=MsssTexF(pI,1);
-  MsssF4 cB2=MsssTexF(pI,2);
-  MsssF4 cB3=MsssTexF(pI,3);
-  MsssAccF(kH,kV,kT,wH,wV,wT,cB0,pF+MsssF2(-1.0/8.0+1.0,-3.0/8.0));
-  MsssAccF(kH,kV,kT,wH,wV,wT,cB1,pF+MsssF2( 3.0/8.0+1.0,-1.0/8.0));
-  MsssAccF(kH,kV,kT,wH,wV,wT,cB2,pF+MsssF2(-3.0/8.0+1.0, 1.0/8.0));
-  MsssAccF(kH,kV,kT,wH,wV,wT,cB3,pF+MsssF2( 1.0/8.0+1.0, 3.0/8.0));
-  pI.y+=1;
-  MsssF4 cD0=MsssTexF(pI,0);
-  MsssF4 cD1=MsssTexF(pI,1);
-  MsssF4 cD2=MsssTexF(pI,2);
-  MsssF4 cD3=MsssTexF(pI,3);
-  MsssAccF(kH,kV,kT,wH,wV,wT,cD0,pF+MsssF2(-1.0/8.0+1.0,-3.0/8.0+1.0));
-  MsssAccF(kH,kV,kT,wH,wV,wT,cD1,pF+MsssF2( 3.0/8.0+1.0,-1.0/8.0+1.0));
-  MsssAccF(kH,kV,kT,wH,wV,wT,cD2,pF+MsssF2(-3.0/8.0+1.0, 1.0/8.0+1.0));
-  MsssAccF(kH,kV,kT,wH,wV,wT,cD3,pF+MsssF2( 1.0/8.0+1.0, 3.0/8.0+1.0));
-  pI.x-=1;
-  MsssF4 cC0=MsssTexF(pI,0);
-  MsssF4 cC1=MsssTexF(pI,1);
-  MsssF4 cC2=MsssTexF(pI,2);
-  MsssF4 cC3=MsssTexF(pI,3);
-  MsssAccF(kH,kV,kT,wH,wV,wT,cC0,pF+MsssF2(-1.0/8.0,-3.0/8.0+1.0));
-  MsssAccF(kH,kV,kT,wH,wV,wT,cC1,pF+MsssF2( 3.0/8.0,-1.0/8.0+1.0));
-  MsssAccF(kH,kV,kT,wH,wV,wT,cC2,pF+MsssF2(-3.0/8.0, 1.0/8.0+1.0));
-  MsssAccF(kH,kV,kT,wH,wV,wT,cC3,pF+MsssF2( 1.0/8.0, 3.0/8.0+1.0));
+  // 4xMSAA fetch samples for pixel, and do accumulation of kernels.
+  #if MSSS_MSAA==4
+   MsssF4 cA0=MsssTexF(pI,0);
+   MsssF4 cA1=MsssTexF(pI,1);
+   MsssF4 cA2=MsssTexF(pI,2);
+   MsssF4 cA3=MsssTexF(pI,3); 
+   MsssF4 nA=MsssLdF(pI);
+   MsssF4 wA=MsssDe4F(pI,nA,cA0,cA1,cA2,cA3,true,false,k1);
+   MsssAccF(kH,kV,kT,wH,wV,wT,cA0,pF+MsssF2(-1.0/8.0,-3.0/8.0),wA.x);
+   MsssAccF(kH,kV,kT,wH,wV,wT,cA1,pF+MsssF2( 3.0/8.0,-1.0/8.0),wA.y);
+   MsssAccF(kH,kV,kT,wH,wV,wT,cA2,pF+MsssF2(-3.0/8.0, 1.0/8.0),wA.z);
+   MsssAccF(kH,kV,kT,wH,wV,wT,cA3,pF+MsssF2( 1.0/8.0, 3.0/8.0),wA.w);
+   pI.x+=1;
+   MsssF4 cB0=MsssTexF(pI,0);
+   MsssF4 cB1=MsssTexF(pI,1);
+   MsssF4 cB2=MsssTexF(pI,2);
+   MsssF4 cB3=MsssTexF(pI,3);
+   MsssF4 nB=MsssLdF(pI);
+   MsssF4 wB=MsssDe4F(pI,nB,cB0,cB1,cB2,cB3,false,false,k1);
+   MsssAccF(kH,kV,kT,wH,wV,wT,cB0,pF+MsssF2(-1.0/8.0+1.0,-3.0/8.0),wB.x);
+   MsssAccF(kH,kV,kT,wH,wV,wT,cB1,pF+MsssF2( 3.0/8.0+1.0,-1.0/8.0),wB.y);
+   MsssAccF(kH,kV,kT,wH,wV,wT,cB2,pF+MsssF2(-3.0/8.0+1.0, 1.0/8.0),wB.z);
+   MsssAccF(kH,kV,kT,wH,wV,wT,cB3,pF+MsssF2( 1.0/8.0+1.0, 3.0/8.0),wB.w);
+   pI.y+=1;
+   MsssF4 cD0=MsssTexF(pI,0);
+   MsssF4 cD1=MsssTexF(pI,1);
+   MsssF4 cD2=MsssTexF(pI,2);
+   MsssF4 cD3=MsssTexF(pI,3);
+   MsssF4 nD=MsssLdF(pI);
+   MsssF4 wD=MsssDe4F(pI,nD,cD0,cD1,cD2,cD3,false,false,k1);
+   MsssAccF(kH,kV,kT,wH,wV,wT,cD0,pF+MsssF2(-1.0/8.0+1.0,-3.0/8.0+1.0),wD.x);
+   MsssAccF(kH,kV,kT,wH,wV,wT,cD1,pF+MsssF2( 3.0/8.0+1.0,-1.0/8.0+1.0),wD.y);
+   MsssAccF(kH,kV,kT,wH,wV,wT,cD2,pF+MsssF2(-3.0/8.0+1.0, 1.0/8.0+1.0),wD.z);
+   MsssAccF(kH,kV,kT,wH,wV,wT,cD3,pF+MsssF2( 1.0/8.0+1.0, 3.0/8.0+1.0),wD.w);
+   pI.x-=1;
+   MsssF4 cC0=MsssTexF(pI,0);
+   MsssF4 cC1=MsssTexF(pI,1);
+   MsssF4 cC2=MsssTexF(pI,2);
+   MsssF4 cC3=MsssTexF(pI,3);
+   MsssF4 nC=MsssLdF(pI);
+   MsssF4 wC=MsssDe4F(pI,nC,cC0,cC1,cC2,cC3,false,false,k1);
+   MsssAccF(kH,kV,kT,wH,wV,wT,cC0,pF+MsssF2(-1.0/8.0,-3.0/8.0+1.0),wC.x);
+   MsssAccF(kH,kV,kT,wH,wV,wT,cC1,pF+MsssF2( 3.0/8.0,-1.0/8.0+1.0),wC.y);
+   MsssAccF(kH,kV,kT,wH,wV,wT,cC2,pF+MsssF2(-3.0/8.0, 1.0/8.0+1.0),wC.z);
+   MsssAccF(kH,kV,kT,wH,wV,wT,cC3,pF+MsssF2( 1.0/8.0, 3.0/8.0+1.0),wC.w);
+  #endif
+//--------------------------------------------------------------------------------------------------------------------------------------
+  // 8xMSAA fetch samples for pixel, and do accumulation of kernels.
+  #if MSSS_MSAA==8
+   MsssF4 cA0=MsssTexF(pI,0);
+   MsssF4 cA1=MsssTexF(pI,1);
+   MsssF4 cA2=MsssTexF(pI,2);
+   MsssF4 cA3=MsssTexF(pI,3);
+   MsssF4 nA=MsssLdF(pI);
+   MsssF4 wA=MsssDe4F(pI,nA,cA0,cA1,cA2,cA3,true,false,k1);
+   MsssAccF(kH,kV,kT,wH,wV,wT,cA0,pF+MsssF2( 1.0/16.0,-3.0/16.0),wA.x);
+   MsssAccF(kH,kV,kT,wH,wV,wT,cA1,pF+MsssF2(-1.0/16.0, 3.0/16.0),wA.y);
+   MsssAccF(kH,kV,kT,wH,wV,wT,cA2,pF+MsssF2( 5.0/16.0, 1.0/16.0),wA.z);
+   MsssAccF(kH,kV,kT,wH,wV,wT,cA3,pF+MsssF2(-3.0/16.0,-5.0/16.0),wA.w);
+   MsssF4 cA4=MsssTexF(pI,4);
+   MsssF4 cA5=MsssTexF(pI,5);
+   MsssF4 cA6=MsssTexF(pI,6);
+   MsssF4 cA7=MsssTexF(pI,7);
+   nA=MsssLd2F(pI);
+   wA=MsssDe4F(pI,nA,cA4,cA5,cA6,cA7,false,true,k1);
+   MsssAccF(kH,kV,kT,wH,wV,wT,cA4,pF+MsssF2(-5.0/16.0, 5.0/16.0),wA.x);
+   MsssAccF(kH,kV,kT,wH,wV,wT,cA5,pF+MsssF2(-7.0/16.0, 1.0/16.0),wA.y);
+   MsssAccF(kH,kV,kT,wH,wV,wT,cA6,pF+MsssF2( 3.0/16.0, 7.0/16.0),wA.z);
+   MsssAccF(kH,kV,kT,wH,wV,wT,cA7,pF+MsssF2( 7.0/16.0,-7.0/16.0),wA.w);
+   pI.x+=1;
+   MsssF4 cB0=MsssTexF(pI,0);
+   MsssF4 cB1=MsssTexF(pI,1);
+   MsssF4 cB2=MsssTexF(pI,2);
+   MsssF4 cB3=MsssTexF(pI,3);
+   MsssF4 nB=MsssLdF(pI);
+   MsssF4 wB=MsssDe4F(pI,nB,cB0,cB1,cB2,cB3,false,false,k1);
+   MsssAccF(kH,kV,kT,wH,wV,wT,cB0,pF+MsssF2( 1.0/16.0+1.0,-3.0/16.0),wB.x);
+   MsssAccF(kH,kV,kT,wH,wV,wT,cB1,pF+MsssF2(-1.0/16.0+1.0, 3.0/16.0),wB.y);
+   MsssAccF(kH,kV,kT,wH,wV,wT,cB2,pF+MsssF2( 5.0/16.0+1.0, 1.0/16.0),wB.z);
+   MsssAccF(kH,kV,kT,wH,wV,wT,cB3,pF+MsssF2(-3.0/16.0+1.0,-5.0/16.0),wB.w);
+   MsssF4 cB4=MsssTexF(pI,4);
+   MsssF4 cB5=MsssTexF(pI,5);
+   MsssF4 cB6=MsssTexF(pI,6);
+   MsssF4 cB7=MsssTexF(pI,7);
+   nB=MsssLd2F(pI);
+   wB=MsssDe4F(pI,nB,cB4,cB5,cB6,cB7,false,false,k1);
+   MsssAccF(kH,kV,kT,wH,wV,wT,cB4,pF+MsssF2(-5.0/16.0+1.0, 5.0/16.0),wB.x);
+   MsssAccF(kH,kV,kT,wH,wV,wT,cB5,pF+MsssF2(-7.0/16.0+1.0, 1.0/16.0),wB.y);
+   MsssAccF(kH,kV,kT,wH,wV,wT,cB6,pF+MsssF2( 3.0/16.0+1.0, 7.0/16.0),wB.z);
+   MsssAccF(kH,kV,kT,wH,wV,wT,cB7,pF+MsssF2( 7.0/16.0+1.0,-7.0/16.0),wB.w);
+   pI.y+=1;
+   MsssF4 cD0=MsssTexF(pI,0);
+   MsssF4 cD1=MsssTexF(pI,1);
+   MsssF4 cD2=MsssTexF(pI,2);
+   MsssF4 cD3=MsssTexF(pI,3);
+   MsssF4 nD=MsssLdF(pI);
+   MsssF4 wD=MsssDe4F(pI,nD,cD0,cD1,cD2,cD3,false,false,k1);
+   MsssAccF(kH,kV,kT,wH,wV,wT,cD0,pF+MsssF2( 1.0/16.0+1.0,-3.0/16.0+1.0),wD.x);
+   MsssAccF(kH,kV,kT,wH,wV,wT,cD1,pF+MsssF2(-1.0/16.0+1.0, 3.0/16.0+1.0),wD.y);
+   MsssAccF(kH,kV,kT,wH,wV,wT,cD2,pF+MsssF2( 5.0/16.0+1.0, 1.0/16.0+1.0),wD.z);
+   MsssAccF(kH,kV,kT,wH,wV,wT,cD3,pF+MsssF2(-3.0/16.0+1.0,-5.0/16.0+1.0),wD.w);
+   MsssF4 cD4=MsssTexF(pI,4);
+   MsssF4 cD5=MsssTexF(pI,5);
+   MsssF4 cD6=MsssTexF(pI,6);
+   MsssF4 cD7=MsssTexF(pI,7);
+   nD=MsssLd2F(pI);
+   wD=MsssDe4F(pI,nD,cD4,cD5,cD6,cD7,false,false,k1);
+   MsssAccF(kH,kV,kT,wH,wV,wT,cD4,pF+MsssF2(-5.0/16.0+1.0, 5.0/16.0+1.0),wD.x);
+   MsssAccF(kH,kV,kT,wH,wV,wT,cD5,pF+MsssF2(-7.0/16.0+1.0, 1.0/16.0+1.0),wD.y);
+   MsssAccF(kH,kV,kT,wH,wV,wT,cD6,pF+MsssF2( 3.0/16.0+1.0, 7.0/16.0+1.0),wD.z);
+   MsssAccF(kH,kV,kT,wH,wV,wT,cD7,pF+MsssF2( 7.0/16.0+1.0,-7.0/16.0+1.0),wD.w);
+   pI.x-=1;
+   MsssF4 cC0=MsssTexF(pI,0);
+   MsssF4 cC1=MsssTexF(pI,1);
+   MsssF4 cC2=MsssTexF(pI,2);
+   MsssF4 cC3=MsssTexF(pI,3);
+   MsssF4 nC=MsssLdF(pI);
+   MsssF4 wC=MsssDe4F(pI,nC,cC0,cC1,cC2,cC3,false,false,k1);
+   MsssAccF(kH,kV,kT,wH,wV,wT,cC0,pF+MsssF2( 1.0/16.0,-3.0/16.0+1.0),wC.x);
+   MsssAccF(kH,kV,kT,wH,wV,wT,cC1,pF+MsssF2(-1.0/16.0, 3.0/16.0+1.0),wC.y);
+   MsssAccF(kH,kV,kT,wH,wV,wT,cC2,pF+MsssF2( 5.0/16.0, 1.0/16.0+1.0),wC.z);
+   MsssAccF(kH,kV,kT,wH,wV,wT,cC3,pF+MsssF2(-3.0/16.0,-5.0/16.0+1.0),wC.w);
+   MsssF4 cC4=MsssTexF(pI,4);
+   MsssF4 cC5=MsssTexF(pI,5);
+   MsssF4 cC6=MsssTexF(pI,6);
+   MsssF4 cC7=MsssTexF(pI,7);
+   nC=MsssLd2F(pI);
+   wC=MsssDe4F(pI,nC,cC4,cC5,cC6,cC7,false,false,k1);
+   MsssAccF(kH,kV,kT,wH,wV,wT,cC4,pF+MsssF2(-5.0/16.0, 5.0/16.0+1.0),wC.x);
+   MsssAccF(kH,kV,kT,wH,wV,wT,cC5,pF+MsssF2(-7.0/16.0, 1.0/16.0+1.0),wC.y);
+   MsssAccF(kH,kV,kT,wH,wV,wT,cC6,pF+MsssF2( 3.0/16.0, 7.0/16.0+1.0),wC.z);
+   MsssAccF(kH,kV,kT,wH,wV,wT,cC7,pF+MsssF2( 7.0/16.0,-7.0/16.0+1.0),wC.w);
+  #endif
 //--------------------------------------------------------------------------------------------------------------------------------------
   // Normalize by weight.
-  // TODO: Approximation?
   kH*=MsssRcpF1(wH);
   kV*=MsssRcpF1(wV);
   kT*=MsssRcpF1(wT);
@@ -250,9 +361,7 @@ F4 MsssTexF(I2 p,I1 s){
    return kT;
   #endif
 //--------------------------------------------------------------------------------------------------------------------------------------
-  // Blending logic.
-  //  - Blend between H and V based on which is closer to T
-  //  - Blend to T if H and V get to similar
+  // Blending logic. Blend between H and V based on which is closer to T.
   // Visualize blend logic.
   #if MSSS_BUG==4
    kH=MsssF4(1.0,0.0,0.0,0.0);
@@ -266,46 +375,8 @@ F4 MsssTexF(I2 p,I1 s){
   MsssF1 dR=MsssRcpF1(max(MsssF1(1.0/32768.0),dH+dV));
   // Convert into blend ratio.
   MsssF1 dB=dH*dR;
-  // TODO...
-  #if 0
-   dB=dB*dB*(MsssF1(3.0)-MsssF1(2.0)*dB);
-  #endif
   // Blend between H and V.
   MsssF4 c=MsssLerpF4(kH,kV,MsssF4_(dB));
-#if 0
-  // Make near to 0.5 go to T.
-  // TODO: Optimize this.
-  dB-=MsssF1(0.5);
-  dB*=MsssF1(2.0);
-  dB=MsssSatF1(dB*dB);
-  c=MsssLerpF4(c,kT,MsssF4_(dB));
-#endif
   return c;}
 #endif
 
-
-
-
-
-
-
-
-
-
-////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-//_________________________________________________________________/\___________________________________________________________________
-//======================================================================================================================================
-//                                                             TEST SHADER
-//======================================================================================================================================
-void mainImage(out F4 fragColor,in F2 fragCoord){
- // Do actual resolve.
- fragColor.rgb=MsssF(
-  //  p ....... integer pixel position in the output
-  MsssI2(floor(fragCoord.xy)),
-  //  k0.xy ... input/output resolution
-  //  k0.zw ... k0.xy * 0.5 - 0.5
-  MsssF4(SCALE,SCALE,SCALE*0.5-0.5,SCALE*0.5-0.5)).rgb;
-  fragColor.r=Srgb(fragColor.r);
-  fragColor.g=Srgb(fragColor.g);
-  fragColor.b=Srgb(fragColor.b);}

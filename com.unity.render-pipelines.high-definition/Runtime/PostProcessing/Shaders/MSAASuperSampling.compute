@@ -14,6 +14,9 @@ TEXTURE2D_X_MSAA(float4, _ColorTextureMS);
 #define THREAD_Y 8
 #define THREAD_TOTAL (THREAD_X*THREAD_Y)
 
+TEXTURE2D_X(_InputMSSSLuminance);
+RW_TEXTURE2D_X(float4, _OutputMSSSLuminance);
+
 void FsrSrtmF(inout float3 c)
 {
     c*=rcp(max(max(c.r,c.g),c.b)+1.0);
@@ -25,12 +28,33 @@ void FsrSrtmInvF(inout float3 c)
     c*=rcp(max(1.0/32768.0,1.0-max(max(c.r,c.g),c.b)));
 }
 
+// MSAA texture fetch prototype.
 float4 MsssTexF(int2 p, int s)
 {
     float4 c = LOAD_TEXTURE2D_X_MSAA(_ColorTextureMS, p, s);
     FsrSrtmF(c.rgb);
     return c;
 }
+
+// Load luma feedback prototype.
+float4 MsssLdF(int2 p)
+{
+    return LOAD_TEXTURE2D_X(_InputMSSSLuminance, p);
+}
+
+// Store luma feedback prototype.
+void MsssStF(int2 p, float4 c)
+{
+    _OutputMSSSLuminance[COORD_TEXTURE2D_X(p)] = c;
+}
+
+void MsssSt2F(int2 p, float4 c)
+{
+}
+
+#define MSSS_32BIT 1
+#define MSSS_HLSL 1
+#define MSSS_DENOISE 1
 
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/PostProcessing/Shaders/MSSS.hlsl"
 
@@ -40,17 +64,22 @@ float4 MsssTexF(int2 p, int s)
 #define MSSS_INTERPOLATION_TIER_2 2
 #define MSSS_INTERPOLATION_MODE MSSS_INTERPOLATION_TIER_1
 
-TEXTURE2D_X(_InputMSSSLuminance);
 TEXTURE2D_X(_InputDepthTexture);
 
 RW_TEXTURE2D_X(CTYPE,  _OutputTexture);
 RW_TEXTURE2D_X(float,  _OutputDepthTexture);
 RW_TEXTURE2D_X(float2, _OutputMotionVectorTexture);
-RW_TEXTURE2D_X(float4, _OutputMSSSLuminance);
 
 float4 _SourceSize;
 float4 _ViewPortSize;
 
+
+static const float2 msaa4xSamplePoints[] = {
+    float2(-1.0/8.0, -3.0/8.0),
+    float2( 3.0/8.0, -1.0/8.0),
+    float2(-3.0/8.0,  1.0/8.0),
+    float2( 1.0/8.0,  3.0/8.0)
+};
 
 float GetWeigtedNearestLum(float2 centerPos, int sId)
 {
@@ -64,16 +93,9 @@ float GetWeigtedNearestLum(float2 centerPos, int sId)
     float luminance = 0.0;
     const float4 masks[] = { {1,0,0,0}, {0,1,0,0}, {0,0,1,0}, {0,0,0,1} };
 
-    static const float2 msaa4xSamplePoints[] = {
-        float2(-2.0/8.0, -6.0/8.0),
-        float2( 6.0/8.0, -2.0/8.0),
-        float2(-6.0/8.0,  2.0/8.0),
-        float2( 2.0/8.0,  6.0/8.0)
-    };
-
     for (int i = 0; i < 4; ++i)
     {
-        float2 dv = inPixelCoord - msaa4xSamplePoints[i];
+        float2 dv = inPixelCoord - 2.0*msaa4xSamplePoints[i];
         //float2 dv = msaa4xSamplePoints[sId] - msaa4xSamplePoints[i];
         float d = dot(dv, dv);
         float w = rcp(d*d + 1.0);
@@ -100,15 +122,9 @@ void MainReprojectLuminance(uint3 dti : SV_DispatchThreadID)
 #elif MSSS_INTERPOLATION_MODE == MSSS_INTERPOLATION_TIER_1
     float4 luminances = float4(0,0,0,0);
     const float4 masks[] = { {1,0,0,0}, {0,1,0,0}, {0,0,1,0}, {0,0,0,1} };
-    static const float2 msaa4xSamplePoints[] = {
-        float2(-2.0/8.0, -6.0/8.0),
-        float2( 6.0/8.0, -2.0/8.0),
-        float2(-6.0/8.0,  2.0/8.0),
-        float2( 2.0/8.0,  6.0/8.0)
-    };
     for (int i = 0; i < 4; ++i)
     {
-        float value = GetWeigtedNearestLum(centerPos + 0.5 * msaa4xSamplePoints[i], i);
+        float value = GetWeigtedNearestLum(centerPos + msaa4xSamplePoints[i], i);
         luminances += value * masks[i];
     }
     
@@ -124,48 +140,6 @@ float calcLum(float3 colorIn)
     return max(colorIn.r, max(colorIn.g, colorIn.b));
 }
 
-#if 1
-//non optimized
-void writeLuminance(int2 dti, int2 gti)
-{
-    int2 p = dti.xy;
-    if (any(p >= (int2)_SourceSize.xy))
-        return;
-
-    float3 sample0 = MsssTexF(p, 0).rgb;
-    float3 sample1 = MsssTexF(p, 1).rgb;
-    float3 sample2 = MsssTexF(p, 2).rgb;
-    float3 sample3 = MsssTexF(p, 3).rgb;
-
-    _OutputMSSSLuminance[COORD_TEXTURE2D_X(p)] = float4(calcLum(sample0), calcLum(sample1), calcLum(sample2), calcLum(sample3));
-}
-#else
-//optimized with LDS
-groupshared float s_cachedLum[THREAD_TOTAL];
-
-void writeLuminance(int2 dti, int2 gti)
-{
-    const int2 halfThreads = int2(THREAD_X >> 1, THREAD_Y >> 1);
-    int2 p = dti.xy >> 1;
-    int2 target = p & (halfThreads - 1);
-    int sampleId = (gti.x & 0x1) + ((gti.y & 0x1) << 0x1);
-
-    int baseLdsIndex = (target.y * halfThreads.x + target.x) * 4;
-    s_cachedLum[baseLdsIndex + sampleId] = calcLum(MsssTexF(p, sampleId).rgb);
-
-    GroupMemoryBarrierWithGroupSync();
-
-    if (all(p < _SourceSize.xy) && sampleId == 0)
-    {
-        _OutputMSSSLuminance[COORD_TEXTURE2D_X(p)] = float4(
-            s_cachedLum[baseLdsIndex + 0],
-            s_cachedLum[baseLdsIndex + 1],
-            s_cachedLum[baseLdsIndex + 2],
-            s_cachedLum[baseLdsIndex + 3]);
-    }
-}
-#endif
-
 [numthreads(THREAD_X,THREAD_Y,1)]
 void MainUpsample (uint3 dti : SV_DispatchThreadID, int2 gti : SV_GroupThreadID)
 {
@@ -176,23 +150,22 @@ void MainUpsample (uint3 dti : SV_DispatchThreadID, int2 gti : SV_GroupThreadID)
     float2 scale = _SourceSize.xy / _ViewPortSize.xy;
     float4 sampledColor = float4(0,0,0,1);
 
-    writeLuminance((int2)dti.xy, gti);
-
     sampledColor.rgb = MsssF(
         //  p ....... integer pixel position in the output
         dti.xy,
         //  k0.xy ... input/output resolution
         //  k0.zw ... k0.xy * 0.5 - 0.5
-        float4(scale.x,scale.y,scale.x*0.5-0.5,scale.y*0.5-0.5)).rgb;
+        float4(scale.x,scale.y,scale.x*0.5-0.5,scale.y*0.5-0.5),
+        // denoise constant
+        exp2(0.0)).rgb;
 
     FsrSrtmInvF(sampledColor.rgb);
     
+#if 0
     float4 debugLuminance = SAMPLE_TEXTURE2D_X_LOD(_InputMSSSLuminance, s_linear_clamp_sampler, uvs, 0);
-
-#if 1
     _OutputTexture[COORD_TEXTURE2D_X(dti.xy)] = (CTYPE)debugLuminance;
 #else
-    _OutputTexture[COORD_TEXTURE2D_X(dti.xy)] = sampledColor;
+    _OutputTexture[COORD_TEXTURE2D_X(dti.xy)] = (CTYPE)sampledColor;
 #endif
 
     _OutputDepthTexture[COORD_TEXTURE2D_X(dti.xy)] = Nearest(_InputDepthTexture, uvs).x;
