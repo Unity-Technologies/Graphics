@@ -19,7 +19,7 @@ namespace UnityEditor.VFX.Block
         public class CustomProperties
         {
             [Range(0, 1), Tooltip("When using customized emission, control the position around the arc to emit particles from.")]
-            public float ArcSequencer = 0.0f;
+            public float arcSequencer = 0.0f;
         }
 
         protected override bool needDirectionWrite => true;
@@ -54,7 +54,7 @@ namespace UnityEditor.VFX.Block
                 if (spawnMode == SpawnMode.Random)
                     outSource += @"float theta = arcSphere_arc * RAND;";
                 else
-                    outSource += @"float theta = arcSphere_arc * rcSequencer;";
+                    outSource += @"float theta = arcSphere_arc * arcSequencer;";
 
                 outSource += @"
 float rNorm = pow(volumeFactor + (1 - volumeFactor) * RAND, 1.0f / 3.0f);

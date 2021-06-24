@@ -132,7 +132,7 @@ else
                 else
                 {
                     outSource += @"
-float hNorm = HeightSequencer;
+float hNorm = heightSequencer;
 ";
                 }
 
