@@ -639,7 +639,9 @@ namespace UnityEngine.Rendering.HighDefinition
             cmd.SetGlobalVector(HDShaderIDs.unity_DeltaTime, new Vector4(dt, 1.0f / dt, sdt, 1.0f / sdt));
             cmd.SetGlobalVector(HDShaderIDs._TimeParameters, new Vector4(ct, Mathf.Sin(ct), Mathf.Cos(ct), 0.0f));
             cmd.SetGlobalVector(HDShaderIDs._LastTimeParameters, new Vector4(pt, Mathf.Sin(pt), Mathf.Cos(pt), 0.0f));
-            cmd.SetGlobalMatrix(HDShaderIDs._ClusterDisplayParams, clusterDisplayParams);
+
+            if (xr.enabled)
+                cmd.SetGlobalMatrix(HDShaderIDs._ClusterDisplayParams, clusterDisplayParams);
 
             float exposureMultiplierForProbes = 1.0f / Mathf.Max(probeRangeCompressionFactor, 1e-6f);
             cmd.SetGlobalFloat(HDShaderIDs._ProbeExposureScale, exposureMultiplierForProbes);
