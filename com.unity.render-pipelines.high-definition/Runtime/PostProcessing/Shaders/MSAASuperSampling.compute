@@ -1,11 +1,14 @@
 #pragma kernel MainUpsample
 #pragma kernel MainReprojectLuminance
+#pragma only_renderers d3d11 playstation xboxone xboxseries vulkan metal switch
 
 #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Common.hlsl"
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/ShaderLibrary/ShaderVariables.hlsl"
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/PostProcessing/Shaders/RTUpscale.hlsl"
 
 TEXTURE2D_X_MSAA(float4, _ColorTextureMS);
+
+//#pragma enable_d3d11_debug_symbols
 
 #define THREAD_X 8
 #define THREAD_Y 8
@@ -31,6 +34,12 @@ float4 MsssTexF(int2 p, int s)
 
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/PostProcessing/Shaders/MSSS.hlsl"
 
+
+#define MSSS_INTERPOLATION_TIER_0 0
+#define MSSS_INTERPOLATION_TIER_1 1
+#define MSSS_INTERPOLATION_TIER_2 2
+#define MSSS_INTERPOLATION_MODE MSSS_INTERPOLATION_TIER_1
+
 TEXTURE2D_X(_InputMSSSLuminance);
 TEXTURE2D_X(_InputDepthTexture);
 
@@ -42,19 +51,72 @@ RW_TEXTURE2D_X(float4, _OutputMSSSLuminance);
 float4 _SourceSize;
 float4 _ViewPortSize;
 
+
+float GetWeigtedNearestLum(float2 centerPos, int sId)
+{
+    float2 velocity;
+    DecodeMotionVector(LOAD_TEXTURE2D_X(_CameraMotionVectorsTexture, centerPos), velocity);
+    float2 repPos = centerPos - velocity * _ScreenSize.xy;
+    float4 luminances = LOAD_TEXTURE2D_X(_InputMSSSLuminance, repPos);
+
+    float2 inPixelCoord = frac(repPos) * 2.0 - 1.0;
+    float weights = 0.0;
+    float luminance = 0.0;
+    const float4 masks[] = { {1,0,0,0}, {0,1,0,0}, {0,0,1,0}, {0,0,0,1} };
+
+    static const float2 msaa4xSamplePoints[] = {
+        float2(-2.0/8.0, -6.0/8.0),
+        float2( 6.0/8.0, -2.0/8.0),
+        float2(-6.0/8.0,  2.0/8.0),
+        float2( 2.0/8.0,  6.0/8.0)
+    };
+
+    for (int i = 0; i < 4; ++i)
+    {
+        float2 dv = inPixelCoord - msaa4xSamplePoints[i];
+        //float2 dv = msaa4xSamplePoints[sId] - msaa4xSamplePoints[i];
+        float d = dot(dv, dv);
+        float w = rcp(d*d + 1.0);
+        w *= w;
+        luminance += luminances[i] * w;
+        weights += w;
+    }
+
+    return luminance / weights;
+}
+
 [numthreads(8,8,1)]
 void MainReprojectLuminance(uint3 dti : SV_DispatchThreadID)
 {
     float2 centerPos = dti.xy + 0.5; //center texel
     float2 uv = (centerPos) * _SourceSize.zw;
+
+#if MSSS_INTERPOLATION_MODE == MSSS_INTERPOLATION_TIER_0
     float2 velocity = float2(0.0, 0.0);
+    //Simple dumb interpolation
     DecodeMotionVector(LOAD_TEXTURE2D_X(_CameraMotionVectorsTexture, centerPos), velocity);
     float2 reprojectedPos = centerPos - velocity * _ScreenSize.xy;
-    float4 luminance = float4(0,0,0,0);
-    if (all(reprojectedPos.xy < _ScreenSize.xy))
-        luminance = LOAD_TEXTURE2D_X(_InputMSSSLuminance, reprojectedPos);
+    float4 luminances = LOAD_TEXTURE2D_X(_InputMSSSLuminance, reprojectedPos);
+#elif MSSS_INTERPOLATION_MODE == MSSS_INTERPOLATION_TIER_1
+    float4 luminances = float4(0,0,0,0);
+    const float4 masks[] = { {1,0,0,0}, {0,1,0,0}, {0,0,1,0}, {0,0,0,1} };
+    static const float2 msaa4xSamplePoints[] = {
+        float2(-2.0/8.0, -6.0/8.0),
+        float2( 6.0/8.0, -2.0/8.0),
+        float2(-6.0/8.0,  2.0/8.0),
+        float2( 2.0/8.0,  6.0/8.0)
+    };
+    for (int i = 0; i < 4; ++i)
+    {
+        float value = GetWeigtedNearestLum(centerPos + 0.5 * msaa4xSamplePoints[i], i);
+        luminances += value * masks[i];
+    }
     
-    _OutputMSSSLuminance[COORD_TEXTURE2D_X(dti.xy)] = luminance;
+#elif MSSS_INTERPOLATION_MODE == MSSS_INTERPOLATION_TIER_2
+    #error "Unimplemented"
+#endif
+    
+    _OutputMSSSLuminance[COORD_TEXTURE2D_X(dti.xy)] = luminances;
 }
 
 float calcLum(float3 colorIn)
