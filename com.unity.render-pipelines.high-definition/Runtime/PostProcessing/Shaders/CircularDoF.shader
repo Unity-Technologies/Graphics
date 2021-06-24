@@ -18,6 +18,30 @@ Shader "Hidden/HDRP/CircularDOF"
         uniform float4 _ScaleBias;
         uniform float2 _TexelSize;
 
+        static const float4 Kernel_RealX_ImY_RealZ_ImW[17] =
+        {
+            float4( 0.014096, -0.022658, 0.000115, 0.009116),
+            float4(-0.020612, -0.025574, 0.005324, 0.013416),
+            float4(-0.038708,  0.006957, 0.013753, 0.016519),
+            float4(-0.021449,  0.040468, 0.024700, 0.017215),
+            float4( 0.013015,  0.050223, 0.036693, 0.015064),
+            float4( 0.042178,  0.038585, 0.047976, 0.010684),
+            float4( 0.057972,  0.019812, 0.057015, 0.005570),
+            float4( 0.063647,  0.005252, 0.062782, 0.001529),
+            float4( 0.064754,  0.000000, 0.064754, 0.000000),
+            float4( 0.063647,  0.005252, 0.062782, 0.001529),
+            float4( 0.057972,  0.019812, 0.057015, 0.005570),
+            float4( 0.042178,  0.038585, 0.047976, 0.010684),
+            float4( 0.013015,  0.050223, 0.036693, 0.015064),
+            float4(-0.021449,  0.040468, 0.024700, 0.017215),
+            float4(-0.038708,  0.006957, 0.013753, 0.016519),
+            float4(-0.020612, -0.025574, 0.005324, 0.013416),
+            float4( 0.014096, -0.022658, 0.000115, 0.009116)
+        };
+
+        static const float4 KernelWeights_RealX_ImY = float4(0.411259, -0.548794, 0.513282, 4.561110);
+
+
         struct Attributes
         {
             uint vertexID : SV_VertexID;
@@ -56,46 +80,7 @@ Shader "Hidden/HDRP/CircularDOF"
         {
             UNITY_SETUP_STEREO_EYE_INDEX_POST_VERTEX(input);
 
-            float4 Kernel0_RealX_ImY_RealZ_ImW[17];
-            Kernel0_RealX_ImY_RealZ_ImW[0] = float4(/*XY: Non Bracketed*/0.014096, -0.022658,/*Bracketed WZ:*/0.055991, 0.004413);
-            Kernel0_RealX_ImY_RealZ_ImW[1] = float4(/*XY: Non Bracketed*/-0.020612, -0.025574,/*Bracketed WZ:*/0.019188, 0.000000);
-            Kernel0_RealX_ImY_RealZ_ImW[2] = float4(/*XY: Non Bracketed*/-0.038708, 0.006957,/*Bracketed WZ:*/0.000000, 0.049223);
-            Kernel0_RealX_ImY_RealZ_ImW[3] = float4(/*XY: Non Bracketed*/-0.021449, 0.040468,/*Bracketed WZ:*/0.018301, 0.099929);
-            Kernel0_RealX_ImY_RealZ_ImW[4] = float4(/*XY: Non Bracketed*/0.013015, 0.050223,/*Bracketed WZ:*/0.054845, 0.114689);
-            Kernel0_RealX_ImY_RealZ_ImW[5] = float4(/*XY: Non Bracketed*/0.042178, 0.038585,/*Bracketed WZ:*/0.085769, 0.097080);
-            Kernel0_RealX_ImY_RealZ_ImW[6] = float4(/*XY: Non Bracketed*/0.057972, 0.019812,/*Bracketed WZ:*/0.102517, 0.068674);
-            Kernel0_RealX_ImY_RealZ_ImW[7] = float4(/*XY: Non Bracketed*/0.063647, 0.005252,/*Bracketed WZ:*/0.108535, 0.046643);
-            Kernel0_RealX_ImY_RealZ_ImW[8] = float4(/*XY: Non Bracketed*/0.064754, 0.000000,/*Bracketed WZ:*/0.109709, 0.038697);
-            Kernel0_RealX_ImY_RealZ_ImW[9] = float4(/*XY: Non Bracketed*/0.063647, 0.005252,/*Bracketed WZ:*/0.108535, 0.046643);
-            Kernel0_RealX_ImY_RealZ_ImW[10] = float4(/*XY: Non Bracketed*/0.057972, 0.019812,/*Bracketed WZ:*/0.102517, 0.068674);
-            Kernel0_RealX_ImY_RealZ_ImW[11] = float4(/*XY: Non Bracketed*/0.042178, 0.038585,/*Bracketed WZ:*/0.085769, 0.097080);
-            Kernel0_RealX_ImY_RealZ_ImW[12] = float4(/*XY: Non Bracketed*/0.013015, 0.050223,/*Bracketed WZ:*/0.054845, 0.114689);
-            Kernel0_RealX_ImY_RealZ_ImW[13] = float4(/*XY: Non Bracketed*/-0.021449, 0.040468,/*Bracketed WZ:*/0.018301, 0.099929);
-            Kernel0_RealX_ImY_RealZ_ImW[14] = float4(/*XY: Non Bracketed*/-0.038708, 0.006957,/*Bracketed WZ:*/0.000000, 0.049223);
-            Kernel0_RealX_ImY_RealZ_ImW[15] = float4(/*XY: Non Bracketed*/-0.020612, -0.025574,/*Bracketed WZ:*/0.019188, 0.000000);
-            Kernel0_RealX_ImY_RealZ_ImW[16] = float4(/*XY: Non Bracketed*/0.014096, -0.022658,/*Bracketed WZ:*/0.055991, 0.004413);
-
-            float4 Kernel1_RealX_ImY_RealZ_ImW[17];
-            Kernel1_RealX_ImY_RealZ_ImW[0] = float4(/*XY: Non Bracketed*/0.000115, 0.009116,/*Bracketed WZ:*/0.000000, 0.051147);
-            Kernel1_RealX_ImY_RealZ_ImW[1] = float4(/*XY: Non Bracketed*/0.005324, 0.013416,/*Bracketed WZ:*/0.009311, 0.075276);
-            Kernel1_RealX_ImY_RealZ_ImW[2] = float4(/*XY: Non Bracketed*/0.013753, 0.016519,/*Bracketed WZ:*/0.024376, 0.092685);
-            Kernel1_RealX_ImY_RealZ_ImW[3] = float4(/*XY: Non Bracketed*/0.024700, 0.017215,/*Bracketed WZ:*/0.043940, 0.096591);
-            Kernel1_RealX_ImY_RealZ_ImW[4] = float4(/*XY: Non Bracketed*/0.036693, 0.015064,/*Bracketed WZ:*/0.065375, 0.084521);
-            Kernel1_RealX_ImY_RealZ_ImW[5] = float4(/*XY: Non Bracketed*/0.047976, 0.010684,/*Bracketed WZ:*/0.085539, 0.059948);
-            Kernel1_RealX_ImY_RealZ_ImW[6] = float4(/*XY: Non Bracketed*/0.057015, 0.005570,/*Bracketed WZ:*/0.101695, 0.031254);
-            Kernel1_RealX_ImY_RealZ_ImW[7] = float4(/*XY: Non Bracketed*/0.062782, 0.001529,/*Bracketed WZ:*/0.112002, 0.008578);
-            Kernel1_RealX_ImY_RealZ_ImW[8] = float4(/*XY: Non Bracketed*/0.064754, 0.000000,/*Bracketed WZ:*/0.115526, 0.000000);
-            Kernel1_RealX_ImY_RealZ_ImW[9] = float4(/*XY: Non Bracketed*/0.062782, 0.001529,/*Bracketed WZ:*/0.112002, 0.008578);
-            Kernel1_RealX_ImY_RealZ_ImW[10] = float4(/*XY: Non Bracketed*/0.057015, 0.005570,/*Bracketed WZ:*/0.101695, 0.031254);
-            Kernel1_RealX_ImY_RealZ_ImW[11] = float4(/*XY: Non Bracketed*/0.047976, 0.010684,/*Bracketed WZ:*/0.085539, 0.059948);
-            Kernel1_RealX_ImY_RealZ_ImW[12] = float4(/*XY: Non Bracketed*/0.036693, 0.015064,/*Bracketed WZ:*/0.065375, 0.084521);
-            Kernel1_RealX_ImY_RealZ_ImW[13] = float4(/*XY: Non Bracketed*/0.024700, 0.017215,/*Bracketed WZ:*/0.043940, 0.096591);
-            Kernel1_RealX_ImY_RealZ_ImW[14] = float4(/*XY: Non Bracketed*/0.013753, 0.016519,/*Bracketed WZ:*/0.024376, 0.092685);
-            Kernel1_RealX_ImY_RealZ_ImW[15] = float4(/*XY: Non Bracketed*/0.005324, 0.013416,/*Bracketed WZ:*/0.009311, 0.075276);
-            Kernel1_RealX_ImY_RealZ_ImW[16] = float4(/*XY: Non Bracketed*/0.000115, 0.009116,/*Bracketed WZ:*/0.000000, 0.051147);
-
             HorizontalOutput result;
-
             result.red = result.green = result.blue = float4(0, 0, 0, 0);
 
             float filterRadius = 1; // MAX_FILTER_SIZE, TODO: Get from CoC
@@ -104,8 +89,7 @@ Shader "Hidden/HDRP/CircularDOF"
                 float2 coords = input.texcoord.xy + _TexelSize * float2(i, 0) * filterRadius;
                 float3 colorSample = SAMPLE_TEXTURE2D_X_LOD(_SourceBackbuffer, sampler_LinearClamp, coords, 0).rgb;
 
-                int filterIndex = i + KERNEL_RADIUS;
-                float4 kernelWeights = float4(Kernel0_RealX_ImY_RealZ_ImW[filterIndex].xy, Kernel1_RealX_ImY_RealZ_ImW[filterIndex].xy);
+                float4 kernelWeights = Kernel_RealX_ImY_RealZ_ImW[i + KERNEL_RADIUS];
 
                 result.red += colorSample.r * kernelWeights;
                 result.green += colorSample.g * kernelWeights;
@@ -125,44 +109,6 @@ Shader "Hidden/HDRP/CircularDOF"
         {
             UNITY_SETUP_STEREO_EYE_INDEX_POST_VERTEX(input);
 
-            float4 Kernel0_RealX_ImY_RealZ_ImW[17];
-            Kernel0_RealX_ImY_RealZ_ImW[0] = float4(/*XY: Non Bracketed*/0.014096, -0.022658,/*Bracketed WZ:*/0.055991, 0.004413);
-            Kernel0_RealX_ImY_RealZ_ImW[1] = float4(/*XY: Non Bracketed*/-0.020612, -0.025574,/*Bracketed WZ:*/0.019188, 0.000000);
-            Kernel0_RealX_ImY_RealZ_ImW[2] = float4(/*XY: Non Bracketed*/-0.038708, 0.006957,/*Bracketed WZ:*/0.000000, 0.049223);
-            Kernel0_RealX_ImY_RealZ_ImW[3] = float4(/*XY: Non Bracketed*/-0.021449, 0.040468,/*Bracketed WZ:*/0.018301, 0.099929);
-            Kernel0_RealX_ImY_RealZ_ImW[4] = float4(/*XY: Non Bracketed*/0.013015, 0.050223,/*Bracketed WZ:*/0.054845, 0.114689);
-            Kernel0_RealX_ImY_RealZ_ImW[5] = float4(/*XY: Non Bracketed*/0.042178, 0.038585,/*Bracketed WZ:*/0.085769, 0.097080);
-            Kernel0_RealX_ImY_RealZ_ImW[6] = float4(/*XY: Non Bracketed*/0.057972, 0.019812,/*Bracketed WZ:*/0.102517, 0.068674);
-            Kernel0_RealX_ImY_RealZ_ImW[7] = float4(/*XY: Non Bracketed*/0.063647, 0.005252,/*Bracketed WZ:*/0.108535, 0.046643);
-            Kernel0_RealX_ImY_RealZ_ImW[8] = float4(/*XY: Non Bracketed*/0.064754, 0.000000,/*Bracketed WZ:*/0.109709, 0.038697);
-            Kernel0_RealX_ImY_RealZ_ImW[9] = float4(/*XY: Non Bracketed*/0.063647, 0.005252,/*Bracketed WZ:*/0.108535, 0.046643);
-            Kernel0_RealX_ImY_RealZ_ImW[10] = float4(/*XY: Non Bracketed*/0.057972, 0.019812,/*Bracketed WZ:*/0.102517, 0.068674);
-            Kernel0_RealX_ImY_RealZ_ImW[11] = float4(/*XY: Non Bracketed*/0.042178, 0.038585,/*Bracketed WZ:*/0.085769, 0.097080);
-            Kernel0_RealX_ImY_RealZ_ImW[12] = float4(/*XY: Non Bracketed*/0.013015, 0.050223,/*Bracketed WZ:*/0.054845, 0.114689);
-            Kernel0_RealX_ImY_RealZ_ImW[13] = float4(/*XY: Non Bracketed*/-0.021449, 0.040468,/*Bracketed WZ:*/0.018301, 0.099929);
-            Kernel0_RealX_ImY_RealZ_ImW[14] = float4(/*XY: Non Bracketed*/-0.038708, 0.006957,/*Bracketed WZ:*/0.000000, 0.049223);
-            Kernel0_RealX_ImY_RealZ_ImW[15] = float4(/*XY: Non Bracketed*/-0.020612, -0.025574,/*Bracketed WZ:*/0.019188, 0.000000);
-            Kernel0_RealX_ImY_RealZ_ImW[16] = float4(/*XY: Non Bracketed*/0.014096, -0.022658,/*Bracketed WZ:*/0.055991, 0.004413);
-
-            float4 Kernel1_RealX_ImY_RealZ_ImW[17];
-            Kernel1_RealX_ImY_RealZ_ImW[0] = float4(/*XY: Non Bracketed*/0.000115, 0.009116,/*Bracketed WZ:*/0.000000, 0.051147);
-            Kernel1_RealX_ImY_RealZ_ImW[1] = float4(/*XY: Non Bracketed*/0.005324, 0.013416,/*Bracketed WZ:*/0.009311, 0.075276);
-            Kernel1_RealX_ImY_RealZ_ImW[2] = float4(/*XY: Non Bracketed*/0.013753, 0.016519,/*Bracketed WZ:*/0.024376, 0.092685);
-            Kernel1_RealX_ImY_RealZ_ImW[3] = float4(/*XY: Non Bracketed*/0.024700, 0.017215,/*Bracketed WZ:*/0.043940, 0.096591);
-            Kernel1_RealX_ImY_RealZ_ImW[4] = float4(/*XY: Non Bracketed*/0.036693, 0.015064,/*Bracketed WZ:*/0.065375, 0.084521);
-            Kernel1_RealX_ImY_RealZ_ImW[5] = float4(/*XY: Non Bracketed*/0.047976, 0.010684,/*Bracketed WZ:*/0.085539, 0.059948);
-            Kernel1_RealX_ImY_RealZ_ImW[6] = float4(/*XY: Non Bracketed*/0.057015, 0.005570,/*Bracketed WZ:*/0.101695, 0.031254);
-            Kernel1_RealX_ImY_RealZ_ImW[7] = float4(/*XY: Non Bracketed*/0.062782, 0.001529,/*Bracketed WZ:*/0.112002, 0.008578);
-            Kernel1_RealX_ImY_RealZ_ImW[8] = float4(/*XY: Non Bracketed*/0.064754, 0.000000,/*Bracketed WZ:*/0.115526, 0.000000);
-            Kernel1_RealX_ImY_RealZ_ImW[9] = float4(/*XY: Non Bracketed*/0.062782, 0.001529,/*Bracketed WZ:*/0.112002, 0.008578);
-            Kernel1_RealX_ImY_RealZ_ImW[10] = float4(/*XY: Non Bracketed*/0.057015, 0.005570,/*Bracketed WZ:*/0.101695, 0.031254);
-            Kernel1_RealX_ImY_RealZ_ImW[11] = float4(/*XY: Non Bracketed*/0.047976, 0.010684,/*Bracketed WZ:*/0.085539, 0.059948);
-            Kernel1_RealX_ImY_RealZ_ImW[12] = float4(/*XY: Non Bracketed*/0.036693, 0.015064,/*Bracketed WZ:*/0.065375, 0.084521);
-            Kernel1_RealX_ImY_RealZ_ImW[13] = float4(/*XY: Non Bracketed*/0.024700, 0.017215,/*Bracketed WZ:*/0.043940, 0.096591);
-            Kernel1_RealX_ImY_RealZ_ImW[14] = float4(/*XY: Non Bracketed*/0.013753, 0.016519,/*Bracketed WZ:*/0.024376, 0.092685);
-            Kernel1_RealX_ImY_RealZ_ImW[15] = float4(/*XY: Non Bracketed*/0.005324, 0.013416,/*Bracketed WZ:*/0.009311, 0.075276);
-            Kernel1_RealX_ImY_RealZ_ImW[16] = float4(/*XY: Non Bracketed*/0.000115, 0.009116,/*Bracketed WZ:*/0.000000, 0.051147);
-
             float4 valR = float4(0, 0, 0, 0);
             float4 valG = float4(0, 0, 0, 0);
             float4 valB = float4(0, 0, 0, 0);
@@ -175,8 +121,7 @@ Shader "Hidden/HDRP/CircularDOF"
                 float4 colorSampleG = SAMPLE_TEXTURE2D_X_LOD(_IntermediateGreen, sampler_LinearClamp, coords, 0);
                 float4 colorSampleB = SAMPLE_TEXTURE2D_X_LOD(_IntermediateBlue, sampler_LinearClamp, coords, 0);
 
-                int filterIndex = i + KERNEL_RADIUS;
-                float4 kernelWeights = float4(Kernel0_RealX_ImY_RealZ_ImW[filterIndex].xy, Kernel1_RealX_ImY_RealZ_ImW[filterIndex].xy);
+                float4 kernelWeights = Kernel_RealX_ImY_RealZ_ImW[i + KERNEL_RADIUS];
 
                 valR.xy += multComplex(colorSampleR.xy, kernelWeights.xy);
                 valR.zw += multComplex(colorSampleR.zw, kernelWeights.zw);
@@ -187,10 +132,6 @@ Shader "Hidden/HDRP/CircularDOF"
                 valB.xy += multComplex(colorSampleB.xy, kernelWeights.xy);
                 valB.zw += multComplex(colorSampleB.zw, kernelWeights.zw);
             }
-
-            const float2 Kernel0Weights_RealX_ImY = float2(0.411259, -0.548794);
-            const float2 Kernel1Weights_RealX_ImY = float2(0.513282, 4.561110);
-            const float4 KernelWeights_RealX_ImY = float4(Kernel0Weights_RealX_ImY, Kernel1Weights_RealX_ImY);
 
             float4 result = float4(0, 0, 0, 1);
             result.r = dot(valR, KernelWeights_RealX_ImY);
