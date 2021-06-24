@@ -1,0 +1,63 @@
+#pragma kernel GatherIrradiance
+
+Texture2D<float4> RSM_FluxTexture;
+Texture2D<float4> RSM_NormalTexture;
+Texture2D<float4> RSM_tValueTexture;
+SamplerState PointClampSampler;
+
+float4x4 RSM_ProjectionMatrix;
+
+RWTexture2D<float4> ProbeAtlasTexture;
+int ProbeAtlasTextureResolution;
+int ProbeResolution;
+
+float4 GridOrigin;
+float4 GridSize;
+float4 ProbeDistance;
+
+// Inverse fast oct encode http://jcgt.org/published/0003/02/01/
+float2 signNotZero(float2 v)
+{
+    return float2((v.x >= 0.0f) ? +1.0f : -1.0f, (v.y >= 0.0f) ? 1.0f : -1.0f);
+}
+// Assume [-1, 1] for each input component
+float3 oct_to_float32x3(float2 e)
+{
+    float3 v = float3(e.xy, 1.0f - abs(e.x) - abs(e.y));
+    v.xy = (v.z < 0.0f) ? ((1.0f - abs(v.yx)) * signNotZero(v.xy)) : v.xy;
+    return normalize(v);
+}
+
+[numthreads(8,8,1)]
+void GatherIrradiance(uint3 id : SV_DispatchThreadID)
+{
+    uint probeCount = GridSize.x * GridSize.y * GridSize.z;
+    for (uint probeIndex = 0; probeIndex < probeCount; ++probeIndex)
+    {
+        // Derive probe position
+        //  Y
+        //  |
+        //  ---- X
+        // /
+        // Z
+        uint gridX = probeIndex / (uint)(GridSize.y * GridSize.z);
+        uint gridY = (probeIndex - gridX * (uint)(GridSize.y * GridSize.z)) / GridSize.z;
+        uint gridZ = probeIndex % (uint)GridSize.z;
+        float4 probePosition = float4(ProbeDistance.x * gridX, ProbeDistance.y * gridY, ProbeDistance.z * gridZ, 0) + GridOrigin;
+
+        // Generate sample ray direction
+        float2 sampleUV = { id.x / (float)(ProbeResolution - 1), id.y / (float)(ProbeResolution - 1) };
+        float3 sampleDir = oct_to_float32x3((sampleUV - float2(0.5f, 0.5f)) * 2.0f);
+
+        // TODO: insert actual irradiance gathering here
+
+        // Get write location to the atlas texture
+        uint  probeCountPerDim = ProbeAtlasTextureResolution / ProbeResolution;
+        uint2 writeLocation = { (probeIndex % probeCountPerDim) * ProbeResolution + id.x, (probeIndex / probeCountPerDim) * ProbeResolution + id.y };
+
+        // Fake gathering
+        ProbeAtlasTexture[writeLocation] = float4(clamp(dot(sampleDir, float3(1, 0, 0)), 0, 1) * float3(0, 1, 0)
+            + clamp(dot(sampleDir, float3(0, -1, 0)), 0, 1) * float3(0, 0, 1)
+            + clamp(dot(sampleDir, float3(0, 0, 1)), 0, 1) * float3(1, 0, 0), 1);
+    }
+}

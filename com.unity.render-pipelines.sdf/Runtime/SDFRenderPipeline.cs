@@ -54,15 +54,21 @@ namespace UnityEngine.Rendering.SDFRP
         internal static SDFRenderPipelineAsset currentAsset
                 => GraphicsSettings.currentRenderPipeline is SDFRenderPipelineAsset sdfAsset ? sdfAsset : null;
 
-    //    internal static HDRenderPipeline currentPipeline
-    //            => RenderPipelineManager.currentPipeline is HDRenderPipeline hdrp ? hdrp : null;
-
         Material m_DepthOfFieldMaterial = null;
+
+        bool m_isGIResourcesCreated = false;
+        RenderTexture m_ProbeAtlasTexture = null;
+        #region DEBUG_ONLY
+        RenderTexture gi_mockRT = null;
+        #endregion
 
         static int Frame = 0;
 
         protected override void Render(ScriptableRenderContext context, Camera[] cameras)
         {
+            if (currentAsset.enableGI && !m_isGIResourcesCreated)// || m_needToRecreateGIResources))
+                CreateGIResources(); // TODO - we should move this into a setup function
+
             ClearBackground(context, cameras);
             foreach (Camera camera in cameras)
             {
@@ -82,6 +88,29 @@ namespace UnityEngine.Rendering.SDFRP
                 SDFRenderer[] SDFObjects = GameObject.FindObjectsOfType<SDFRenderer>();
                 if (SDFObjects.Length > 0)
                 {
+                    // GI Probe Update
+                    // TODO - RSM should execute before this and for GI we need a full scene bounding box list
+                    if (currentAsset.enableGI)
+                    {
+                        if (camera.cameraType == CameraType.Game && camera.enabled)
+                        {
+                            SDFGIProbeUpdateData giProbeUpdateData = new SDFGIProbeUpdateData();
+                            giProbeUpdateData.InitializeGIProbeUpdateData(currentAsset, m_ProbeAtlasTexture);
+
+                            CommandBuffer cmdGIProbeUpdate = new CommandBuffer();
+                            cmdGIProbeUpdate.name = "GIProbeUpdate";
+                            cmdGIProbeUpdate.SetExecutionFlags(CommandBufferExecutionFlags.AsyncCompute);
+
+                            // TODO - giProbeUpdateData.SetupRSMInput(...);
+                            giProbeUpdateData.UpdateComputeShaderVariables(cmdGIProbeUpdate, currentAsset.gatherIrradianceCS);                          
+
+                            SDFRayMarch.RayMarchUpdateGIProbe(cmdGIProbeUpdate, currentAsset.gatherIrradianceCS, currentAsset.probeResolution);
+                           
+                            context.ExecuteCommandBufferAsync(cmdGIProbeUpdate, ComputeQueueType.Default);
+                            cmdGIProbeUpdate.Release();
+                        }
+                    }
+
                     GetDataFromSceneGraph(SDFObjects, out ComputeBuffer SDFData, out ComputeBuffer SDFHeaderData);
 
                     CreateObjectList(context, camera, SDFHeaderData, SDFObjects.Length);
@@ -100,6 +129,38 @@ namespace UnityEngine.Rendering.SDFRP
                     }
                     SDFHeaderData.Release();
                     SDFData.Release();
+
+                    // GI Shading
+                    // TODO - reuse full scene object bounding box list
+                    if (currentAsset.enableGI)
+                    {
+                        if (camera.cameraType == CameraType.Game && camera.enabled)
+                        {
+                            SDFGIShadingData giShadingData = new SDFGIShadingData();
+                            giShadingData.InitializeGIShadingData(currentAsset, m_ProbeAtlasTexture);
+
+                            CommandBuffer cmdGIShading = new CommandBuffer();
+                            cmdGIShading.name = "GIShading";
+
+                            #region DEBUG_ONLY
+                            if (gi_mockRT == null)
+                            {
+                                gi_mockRT = new RenderTexture((int)camera.pixelRect.width, (int)camera.pixelRect.height, 1, RenderTextureFormat.ARGBHalf);
+                                gi_mockRT.enableRandomWrite = true;
+                                gi_mockRT.Create();
+                            }
+                            #endregion
+
+                            // TODO - hook up screen space color, t-value and normal input
+                            giShadingData.SetupScreenSpaceInput(null, null, gi_mockRT);
+                            giShadingData.UpdateComputeShaderVariables(cmdGIShading, currentAsset.giShadingCS);
+
+                            SDFRayMarch.RayMarchGIShading(cmdGIShading, currentAsset.giShadingCS, camera, gi_mockRT);
+
+                            context.ExecuteCommandBuffer(cmdGIShading);
+                            cmdGIShading.Release();
+                        }
+                    }
                 }
 
                 if (currentAsset.EnableDepthOfField)
@@ -255,6 +316,31 @@ namespace UnityEngine.Rendering.SDFRP
             }
             context.ExecuteCommandBuffer(cmd1);
             cmd1.Release();
+        }
+
+        private void CreateGIResources()
+        {
+            Debug.Assert(currentAsset.gridSize.x >= 0 && currentAsset.gridSize.y >= 0 && currentAsset.gridSize.z >= 0);
+            Debug.Assert(currentAsset.probeDistance.x >= 0 && currentAsset.probeDistance.y >= 0 && currentAsset.probeDistance.z >= 0);
+
+            Debug.Assert(m_ProbeAtlasTexture == null);
+
+            RenderTextureDescriptor rtDesc = new RenderTextureDescriptor();
+            rtDesc.autoGenerateMips = false;
+            rtDesc.enableRandomWrite = true;
+            rtDesc.dimension = UnityEngine.Rendering.TextureDimension.Tex2D;
+            rtDesc.width = currentAsset.probeAtlasTextureResolution;
+            rtDesc.height = currentAsset.probeAtlasTextureResolution;
+            rtDesc.volumeDepth = 1;
+            rtDesc.graphicsFormat = UnityEngine.Experimental.Rendering.GraphicsFormat.R8G8B8A8_UNorm;
+            rtDesc.msaaSamples = 1;
+
+            m_ProbeAtlasTexture = new RenderTexture(rtDesc);
+            m_ProbeAtlasTexture.Create();
+
+            // Create other resources here
+
+            m_isGIResourcesCreated = true;
         }
     }
 }
