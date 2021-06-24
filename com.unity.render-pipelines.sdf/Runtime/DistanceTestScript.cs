@@ -5,6 +5,7 @@ using UnityEngine;
 public class DistanceTestScript : MonoBehaviour
 {
     public GameObject Ball;
+    public GameObject ProjectedPoint;
     public GameObject Triangle;
     public Material VertexMarkerMaterial;
 
@@ -47,7 +48,9 @@ public class DistanceTestScript : MonoBehaviour
         markers[1].transform.position = v2;
         markers[2].transform.position = v3;
 
-        float signedDistance = CalculateSignedDistance(v1, v2, v3, Ball.transform.position);
+        Vector3 projectPointPosition;
+        float signedDistance = CalculateSignedDistance(v1, v3, v2, Ball.transform.position, out projectPointPosition);
+        ProjectedPoint.transform.position = projectPointPosition;
     }
     public static Vector3 GetNormalOfTriangle(Vector3 a, Vector3 b, Vector3 c)
     {
@@ -76,36 +79,126 @@ public class DistanceTestScript : MonoBehaviour
         return fArea;
     }
 
-    //--------------------------------------------------------------------------------------
-    public static Vector3 GetTriangleBarycentricCoordinate(Vector3 A, Vector3 B, Vector3 C, Vector3 P)
+    public static Vector3 GetTriangleBarycentricCoordinate(Vector3 a, Vector3 b, Vector3 c, Vector3 p)
     {
-        float t = GetAreaOfTriangle(A, B, C);
-        float t1 = GetAreaOfTriangle(P, B, C) / t;
-        float t2 = GetAreaOfTriangle(A, P, C) / t;
-        float t3 = GetAreaOfTriangle(P, A, B) / t;
+        Vector3 coordinate;
 
-        return new Vector3(t1, t2, t3);
+        Vector3 normal = GetNormalOfTriangle(a, b, c);
 
+        // The area of a triangle is 
+        float areaABC = Vector3.Dot(normal, Vector3.Cross((b - a), (c - a)));
+        float areaPBC = Vector3.Dot(normal, Vector3.Cross((b - p), (c - p)));
+        float areaPCA = Vector3.Dot(normal, Vector3.Cross((c - p), (a - p)));
+
+        coordinate.x = areaPBC / areaABC;
+        coordinate.y = areaPCA / areaABC;
+        coordinate.z = 1.0f - (coordinate.x - coordinate.y);
+
+        return coordinate;
     }
 
-    float CalculateSignedDistance(Vector3 v1, Vector3 v2, Vector3 v3, Vector3 p)
+    class Plane
     {
-        float dist = float.MaxValue;
+        public Vector3 normal;
+        public float distFromOrigin;
+    };
 
-        Vector3 triangleNormal = GetNormalOfTriangle(v1, v2, v3);
+    Vector3 GetClosestPointOnLine(Vector3 lineStart, Vector3 lineEnd, Vector3 p)
+    {
+        Vector3 fromStartToEnd = lineEnd - lineStart;
+        float t = Vector3.Dot(p - lineStart, fromStartToEnd) / Vector3.Dot(fromStartToEnd, fromStartToEnd);
+        t = Mathf.Max(t, 0.0f);
+        t = Mathf.Min(t, 1.0f);
 
-        Vector3 b = GetTriangleBarycentricCoordinate(v1, v2, v3, p);
-        Vector3 projectedPoint = (b.x * v1) + (b.y * v2) + (b.z * v3);
-        dist = Vector3.Distance(p, projectedPoint);
+        return lineStart + fromStartToEnd * t;
+    }
 
-        Vector3 v1ToP = p - v1;
-        v1ToP.Normalize();
+    bool IsPointInTriangle(Vector3 v1, Vector3 v2, Vector3 v3, Vector3 p)
+    {
+        Vector3 a = v1 - p;
+        Vector3 b = v2 - p;
+        Vector3 c = v3 - p;
 
-        if (Vector3.Dot(v1ToP, triangleNormal) < 0)
-            dist = -dist;
+        Vector3 normPBC = Vector3.Cross(b, c);
+        Vector3 normPCA = Vector3.Cross(c, a);
+        Vector3 normPAB = Vector3.Cross(a, b);
 
-        Debug.Log(dist);
+        if (Vector3.Dot(normPBC, normPCA) < 0.0f)
+        {
+            return false;
+        }
+        else if (Vector3.Dot(normPBC, normPAB) < 0.0f)
+        {
+            return false;
+        }
 
-        return dist;
+        return true;
+    }
+
+    float CalculateSignedDistance(Vector3 v1, Vector3 v2, Vector3 v3, Vector3 p, out Vector3 projectedPoint)
+    {
+        Vector3 normal = GetNormalOfTriangle(v1, v2, v3);
+        Plane trianglePlane = new Plane();
+        trianglePlane.normal = normal;
+        trianglePlane.distFromOrigin = Vector3.Dot(trianglePlane.normal, v1);
+
+        Plane planePoint = new Plane();
+        planePoint.normal = normal;
+        planePoint.distFromOrigin = Vector3.Dot(planePoint.normal, p);
+        projectedPoint = p - (normal * planePoint.distFromOrigin);
+
+
+        if(IsPointInTriangle(v1, v2, v3, projectedPoint))
+        {
+            return Vector3.Distance(p, projectedPoint);
+        }
+        else
+        {
+            Vector3 e0 = GetClosestPointOnLine(v1, v2, p);
+            Vector3 e1 = GetClosestPointOnLine(v2, v3, p);
+            Vector3 e2 = GetClosestPointOnLine(v3, v1, p);
+
+            float ed0 = Vector3.SqrMagnitude(e0 - p);
+            float ed1 = Vector3.SqrMagnitude(e1 - p);
+            float ed2 = Vector3.SqrMagnitude(e2 - p);
+
+            // Get the closest point on an edge
+            if(ed0 < ed1 && ed0 < ed2)
+            {
+                projectedPoint = e0;
+                return Vector3.Distance(e0, p);
+            }
+            else if (ed1 < ed0 && ed1 < ed2)
+            {
+                projectedPoint = e1;
+                return Vector3.Distance(e1, p);
+            }
+            else if (ed2 < ed0 && ed2 < ed1)
+            {
+                projectedPoint = e2;
+                return Vector3.Distance(e2, p);
+            }
+
+            // We are cloest to a vertex.
+            float vd0 = Vector3.SqrMagnitude(v1 - p);
+            float vd1 = Vector3.SqrMagnitude(v2 - p);
+            float vd2 = Vector3.SqrMagnitude(v3 - p);
+
+            if (vd0 < vd1 && vd0 < vd2)
+            {
+                projectedPoint = v1;
+                return Vector3.Distance(v1, p);
+            }
+            else if (vd1 < vd0 && vd1 < vd2)
+            {
+                projectedPoint = v2;
+                return Vector3.Distance(v2, p);
+            }
+            else
+            {
+                projectedPoint = v3;
+                return Vector3.Distance(v3, p);
+            }
+        }
     }
 }
