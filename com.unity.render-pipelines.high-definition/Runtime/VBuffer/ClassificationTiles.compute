@@ -23,7 +23,7 @@ float4 _TileBufferSize;
 [numthreads(8, 8, 1)]
 void CreateVisibilityBuffClassification(uint3 id : SV_DispatchThreadID)
 {
-    uint2 topLeftTileCoord = id.xy * 4;
+    uint2 topLeftTileCoord = id.xy * (64 / TILE_SIZE_FPTL);
 
     if (any(id.xy < _TileBufferSize.xy))
     {
