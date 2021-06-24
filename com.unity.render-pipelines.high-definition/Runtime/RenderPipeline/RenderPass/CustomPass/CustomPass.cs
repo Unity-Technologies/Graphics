@@ -138,11 +138,8 @@ namespace UnityEngine.Rendering.HighDefinition
             public Lazy<RTHandle> customColorBuffer;
             public Lazy<RTHandle> customDepthBuffer;
 
-            public TextureHandle colorBufferRG;
-            public TextureHandle nonMSAAColorBufferRG;
-            public TextureHandle depthBufferRG;
-            public TextureHandle normalBufferRG;
-            public TextureHandle motionVectorBufferRG;
+            public ColorBuffers colorBuffers;
+            public PrepassOutput prepassBuffers;
         }
 
         enum Version
@@ -179,7 +176,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
         RenderTargets ReadRenderTargets(in RenderGraphBuilder builder, in RenderTargets targets)
         {
-            RenderTargets output = new RenderTargets();
+            RenderTargets output = targets;
 
             // Copy over builtin textures.
             output.customColorBuffer = targets.customColorBuffer;
@@ -190,16 +187,16 @@ namespace UnityEngine.Rendering.HighDefinition
             // We can change that once we properly integrate render graph into custom passes.
             // Problem with that is that it will extend the lifetime of any of those textures to the last custom pass that is executed...
             // Also, we test validity of all handles because depending on where the custom pass is executed, they may not always be.
-            if (targets.colorBufferRG.IsValid())
-                output.colorBufferRG = builder.ReadWriteTexture(targets.colorBufferRG);
-            if (targets.nonMSAAColorBufferRG.IsValid())
-                output.nonMSAAColorBufferRG = builder.ReadWriteTexture(targets.nonMSAAColorBufferRG);
-            if (targets.depthBufferRG.IsValid())
-                output.depthBufferRG = builder.ReadWriteTexture(targets.depthBufferRG);
-            if (targets.normalBufferRG.IsValid())
-                output.normalBufferRG = builder.ReadWriteTexture(targets.normalBufferRG);
-            if (targets.motionVectorBufferRG.IsValid())
-                output.motionVectorBufferRG = builder.ReadTexture(targets.motionVectorBufferRG);
+            if (output.colorBuffers.colorBuffer.IsValid())
+                output.colorBuffers.colorBuffer = builder.ReadWriteTexture(output.colorBuffers.colorBuffer);
+            if (output.colorBuffers.nonMSAAColorBuffer.IsValid())
+                output.colorBuffers.nonMSAAColorBuffer = builder.ReadWriteTexture(output.colorBuffers.nonMSAAColorBuffer);
+            if (output.prepassBuffers.depthBuffer.IsValid())
+                output.prepassBuffers.depthBuffer = builder.ReadWriteTexture(output.prepassBuffers.depthBuffer);
+            if (output.prepassBuffers.resolvedNormalBuffer.IsValid())
+                output.prepassBuffers.resolvedNormalBuffer = builder.ReadWriteTexture(output.prepassBuffers.resolvedNormalBuffer);
+            if (output.prepassBuffers.resolvedMotionVectorsBuffer.IsValid())
+                output.prepassBuffers.resolvedMotionVectorsBuffer = builder.ReadWriteTexture(output.prepassBuffers.resolvedMotionVectorsBuffer);
 
             return output;
         }
@@ -225,14 +222,14 @@ namespace UnityEngine.Rendering.HighDefinition
                         var customPass = data.customPass;
 
                         ctx.cmd.SetGlobalFloat(HDShaderIDs._CustomPassInjectionPoint, (float)customPass.injectionPoint);
-                        if (customPass.currentRenderTarget.colorBufferRG.IsValid() && customPass.injectionPoint == CustomPassInjectionPoint.AfterPostProcess)
-                            ctx.cmd.SetGlobalTexture(HDShaderIDs._AfterPostProcessColorBuffer, customPass.currentRenderTarget.colorBufferRG);
+                        if (customPass.currentRenderTarget.colorBuffers.colorBuffer.IsValid() && customPass.injectionPoint == CustomPassInjectionPoint.AfterPostProcess)
+                            ctx.cmd.SetGlobalTexture(HDShaderIDs._AfterPostProcessColorBuffer, customPass.currentRenderTarget.colorBuffers.colorBuffer);
 
-                        if (customPass.currentRenderTarget.motionVectorBufferRG.IsValid() && (customPass.injectionPoint == CustomPassInjectionPoint.BeforePostProcess || customPass.injectionPoint == CustomPassInjectionPoint.AfterPostProcess))
-                            ctx.cmd.SetGlobalTexture(HDShaderIDs._CameraMotionVectorsTexture, customPass.currentRenderTarget.motionVectorBufferRG);
+                        if (customPass.currentRenderTarget.prepassBuffers.resolvedMotionVectorsBuffer.IsValid() && (customPass.injectionPoint == CustomPassInjectionPoint.BeforePostProcess || customPass.injectionPoint == CustomPassInjectionPoint.AfterPostProcess))
+                            ctx.cmd.SetGlobalTexture(HDShaderIDs._CameraMotionVectorsTexture, customPass.currentRenderTarget.prepassBuffers.resolvedMotionVectorsBuffer);
 
-                        if (customPass.currentRenderTarget.normalBufferRG.IsValid() && customPass.injectionPoint != CustomPassInjectionPoint.AfterPostProcess)
-                            ctx.cmd.SetGlobalTexture(HDShaderIDs._NormalBufferTexture, customPass.currentRenderTarget.normalBufferRG);
+                        if (customPass.currentRenderTarget.prepassBuffers.resolvedNormalBuffer.IsValid() && customPass.injectionPoint != CustomPassInjectionPoint.AfterPostProcess)
+                            ctx.cmd.SetGlobalTexture(HDShaderIDs._NormalBufferTexture, customPass.currentRenderTarget.prepassBuffers.resolvedNormalBuffer);
 
                         if (!customPass.isSetup)
                         {
@@ -242,15 +239,15 @@ namespace UnityEngine.Rendering.HighDefinition
 
                         customPass.SetCustomPassTarget(ctx.cmd);
 
-                        var outputColorBuffer = customPass.currentRenderTarget.colorBufferRG;
+                        var outputColorBuffer = customPass.currentRenderTarget.colorBuffers.colorBuffer;
 
                         // Create the custom pass context:
                         CustomPassContext customPassCtx = new CustomPassContext(
                             ctx.renderContext, ctx.cmd, data.hdCamera,
                             data.cullingResult, data.cameraCullingResult,
                             outputColorBuffer,
-                            customPass.currentRenderTarget.depthBufferRG,
-                            customPass.currentRenderTarget.normalBufferRG,
+                            customPass.currentRenderTarget.prepassBuffers.depthBuffer,
+                            customPass.currentRenderTarget.prepassBuffers.resolvedNormalBuffer,
                             customPass.currentRenderTarget.customColorBuffer,
                             customPass.currentRenderTarget.customDepthBuffer,
                             ctx.renderGraphPool.GetTempMaterialPropertyBlock()
@@ -302,8 +299,8 @@ namespace UnityEngine.Rendering.HighDefinition
             if (targetColorBuffer == TargetBuffer.None && targetDepthBuffer == TargetBuffer.None)
                 return;
 
-            RTHandle colorBuffer = (targetColorBuffer == TargetBuffer.Custom) ? currentRenderTarget.customColorBuffer.Value : currentRenderTarget.colorBufferRG;
-            RTHandle depthBuffer = (targetDepthBuffer == TargetBuffer.Custom) ? currentRenderTarget.customDepthBuffer.Value : currentRenderTarget.depthBufferRG;
+            RTHandle colorBuffer = (targetColorBuffer == TargetBuffer.Custom) ? currentRenderTarget.customColorBuffer.Value : currentRenderTarget.colorBuffers.colorBuffer;
+            RTHandle depthBuffer = (targetDepthBuffer == TargetBuffer.Custom) ? currentRenderTarget.customDepthBuffer.Value : currentRenderTarget.prepassBuffers.depthBuffer;
 
             if (targetColorBuffer == TargetBuffer.None && targetDepthBuffer != TargetBuffer.None)
                 CoreUtils.SetRenderTarget(cmd, depthBuffer, clearFlags);
@@ -369,8 +366,8 @@ namespace UnityEngine.Rendering.HighDefinition
             if (!isExecuting)
                 throw new Exception("SetCameraRenderTarget can only be called inside the CustomPass.Execute function");
 
-            RTHandle colorBuffer = currentRenderTarget.colorBufferRG;
-            RTHandle depthBuffer = currentRenderTarget.depthBufferRG;
+            RTHandle colorBuffer = currentRenderTarget.colorBuffers.colorBuffer;
+            RTHandle depthBuffer = currentRenderTarget.prepassBuffers.depthBuffer;
 
             if (bindDepth)
                 CoreUtils.SetRenderTarget(cmd, colorBuffer, depthBuffer, clearFlags);
@@ -419,8 +416,8 @@ namespace UnityEngine.Rendering.HighDefinition
             // Also this should be reimplemented as a render graph pass completely instead of being nested like this (and reuse existing code).
             if (IsMSAAEnabled(hdCamera))
             {
-                CoreUtils.SetRenderTarget(cmd, currentRenderTarget.nonMSAAColorBufferRG);
-                m_MSAAResolveMPB.SetTexture(HDShaderIDs._ColorTextureMS, currentRenderTarget.colorBufferRG);
+                CoreUtils.SetRenderTarget(cmd, currentRenderTarget.colorBuffers.nonMSAAColorBuffer);
+                m_MSAAResolveMPB.SetTexture(HDShaderIDs._ColorTextureMS, currentRenderTarget.colorBuffers.colorBuffer);
                 cmd.DrawProcedural(Matrix4x4.identity, HDRenderPipeline.currentPipeline.GetMSAAColorResolveMaterial(), HDRenderPipeline.SampleCountToPassIndex(hdCamera.msaaSamples), MeshTopology.Triangles, 3, 1, m_MSAAResolveMPB);
             }
         }
@@ -442,8 +439,8 @@ namespace UnityEngine.Rendering.HighDefinition
             if (!isExecuting)
                 throw new Exception("GetCameraBuffers can only be called inside the CustomPass.Execute function");
 
-            colorBuffer = currentRenderTarget.colorBufferRG;
-            depthBuffer = currentRenderTarget.depthBufferRG;
+            colorBuffer = currentRenderTarget.colorBuffers.colorBuffer;
+            depthBuffer = currentRenderTarget.prepassBuffers.depthBuffer;
         }
 
         /// <summary>
@@ -471,7 +468,7 @@ namespace UnityEngine.Rendering.HighDefinition
             if (!isExecuting)
                 throw new Exception("GetNormalBuffer can only be called inside the CustomPass.Execute function");
 
-            return currentRenderTarget.normalBufferRG;
+            return currentRenderTarget.prepassBuffers.resolvedNormalBuffer;
         }
 
         /// <summary>

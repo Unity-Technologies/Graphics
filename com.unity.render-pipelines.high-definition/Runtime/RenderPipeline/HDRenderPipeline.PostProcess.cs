@@ -425,7 +425,8 @@ namespace UnityEngine.Rendering.HighDefinition
             return GetPostprocessOutputHandle(renderGraph, name, false, GetPostprocessTextureFormat(), false);
         }
 
-        TextureHandle RenderPostProcess(RenderGraph     renderGraph,
+        TextureHandle RenderPostProcess(
+            RenderGraph         renderGraph,
             in PrepassOutput    prepassOutput,
             TextureHandle       inputColor,
             TextureHandle       backBuffer,
@@ -1251,10 +1252,10 @@ namespace UnityEngine.Rendering.HighDefinition
         #endregion
 
         #region Custom Post Process
-        void DoUserAfterOpaqueAndSky(RenderGraph renderGraph, HDCamera hdCamera, TextureHandle colorBuffer, TextureHandle depthBuffer, TextureHandle normalBuffer, TextureHandle motionVectors)
+        TextureHandle DoUserAfterOpaqueAndSky(RenderGraph renderGraph, HDCamera hdCamera, TextureHandle colorBuffer, TextureHandle depthBuffer, TextureHandle normalBuffer, TextureHandle motionVectors)
         {
             if (!hdCamera.frameSettings.IsEnabled(FrameSettingsField.CustomPostProcess))
-                return;
+                return colorBuffer;
 
             using (new RenderGraphProfilingScope(renderGraph, ProfilingSampler.Get(HDProfileId.CustomPostProcessAfterOpaqueAndSky)))
             {
@@ -1263,8 +1264,10 @@ namespace UnityEngine.Rendering.HighDefinition
 
                 if (needBlitToColorBuffer)
                 {
-                    BlitCameraTexture(renderGraph, source, colorBuffer);
+                    return BlitCameraTexture(renderGraph, source, colorBuffer);
                 }
+
+                return source;
             }
         }
 

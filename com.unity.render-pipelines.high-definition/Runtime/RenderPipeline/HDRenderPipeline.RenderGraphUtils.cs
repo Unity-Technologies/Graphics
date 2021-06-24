@@ -137,15 +137,15 @@ namespace UnityEngine.Rendering.HighDefinition
             public Color clearColor;
         }
 
-        void RenderXROcclusionMeshes(RenderGraph renderGraph, HDCamera hdCamera, TextureHandle colorBuffer, TextureHandle depthBuffer)
+        void RenderXROcclusionMeshes(RenderGraph renderGraph, HDCamera hdCamera, ColorBuffers colorBuffers, PrepassOutput prepassOutput)
         {
             if (hdCamera.xr.hasValidOcclusionMesh && m_Asset.currentPlatformRenderPipelineSettings.xrSettings.occlusionMesh)
             {
                 using (var builder = renderGraph.AddRenderPass<RenderOcclusionMeshesPassData>("XR Occlusion Meshes", out var passData))
                 {
                     passData.hdCamera = hdCamera;
-                    passData.colorBuffer = builder.WriteTexture(colorBuffer);
-                    passData.depthBuffer = builder.UseDepthBuffer(depthBuffer, DepthAccess.Write);
+                    passData.colorBuffer = builder.WriteTexture(colorBuffers.colorBuffer);
+                    passData.depthBuffer = builder.UseDepthBuffer(prepassOutput.depthBuffer, DepthAccess.Write);
                     passData.clearColor = GetColorBufferClearColor(hdCamera);
 
                     builder.SetRenderFunc(
@@ -153,6 +153,9 @@ namespace UnityEngine.Rendering.HighDefinition
                         {
                             data.hdCamera.xr.RenderOcclusionMeshes(ctx.cmd, data.clearColor, data.colorBuffer, data.depthBuffer);
                         });
+
+                    colorBuffers.colorBuffer = passData.colorBuffer;
+                    prepassOutput.depthBuffer = passData.depthBuffer;
                 }
             }
         }
@@ -165,7 +168,7 @@ namespace UnityEngine.Rendering.HighDefinition
             public bool bilinear;
         }
 
-        static internal void BlitCameraTexture(RenderGraph renderGraph, TextureHandle source, TextureHandle destination, float mipLevel = 0.0f, bool bilinear = false)
+        static internal TextureHandle BlitCameraTexture(RenderGraph renderGraph, TextureHandle source, TextureHandle destination, float mipLevel = 0.0f, bool bilinear = false)
         {
             using (var builder = renderGraph.AddRenderPass<BlitCameraTextureData>("Blit Camera Texture", out var passData))
             {
@@ -178,6 +181,8 @@ namespace UnityEngine.Rendering.HighDefinition
                     {
                         HDUtils.BlitCameraTexture(ctx.cmd, data.source, data.destination, data.mipLevel, data.bilinear);
                     });
+
+                return passData.destination;
             }
         }
     }

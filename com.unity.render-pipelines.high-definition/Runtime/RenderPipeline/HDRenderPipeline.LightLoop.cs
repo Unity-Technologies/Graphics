@@ -8,8 +8,8 @@ namespace UnityEngine.Rendering.HighDefinition
     {
         struct LightingBuffers
         {
-            public TextureHandle    sssBuffer;
-            public TextureHandle    diffuseLightingBuffer;
+            //public TextureHandle    sssBuffer;
+            //public TextureHandle    diffuseLightingBuffer;
 
             public TextureHandle    ambientOcclusionBuffer;
             public TextureHandle    ssrLightingBuffer;
@@ -925,11 +925,9 @@ namespace UnityEngine.Rendering.HighDefinition
         LightingOutput RenderDeferredLighting(
             RenderGraph                 renderGraph,
             HDCamera                    hdCamera,
-            TextureHandle               colorBuffer,
-            TextureHandle               depthStencilBuffer,
-            TextureHandle               depthPyramidTexture,
+            ColorBuffers                colorBuffers,
+            PrepassOutput               prepassBuffers,
             in LightingBuffers          lightingBuffers,
-            in GBufferOutput            gbuffer,
             in ShadowResult             shadowResult,
             in BuildGPULightListOutput  lightLists)
         {
@@ -962,10 +960,10 @@ namespace UnityEngine.Rendering.HighDefinition
                 passData.splitLightingMat = GetDeferredLightingMaterial(true /*split lighting*/, passData.enableShadowMasks, debugDisplayOrSceneLightOff);
                 passData.regularLightingMat = GetDeferredLightingMaterial(false /*split lighting*/, passData.enableShadowMasks, debugDisplayOrSceneLightOff);
 
-                passData.colorBuffer = builder.WriteTexture(colorBuffer);
+                passData.colorBuffer = builder.WriteTexture(colorBuffers.colorBuffer);
                 if (passData.outputSplitLighting)
                 {
-                    passData.sssDiffuseLightingBuffer = builder.WriteTexture(lightingBuffers.diffuseLightingBuffer);
+                    passData.sssDiffuseLightingBuffer = builder.WriteTexture(colorBuffers.diffuseLightingBuffer);
                 }
                 else
                 {
@@ -974,16 +972,16 @@ namespace UnityEngine.Rendering.HighDefinition
                     // we need to create a small dummy texture.
                     passData.sssDiffuseLightingBuffer = builder.CreateTransientTexture(new TextureDesc(1, 1, true, true) { colorFormat = GraphicsFormat.B10G11R11_UFloatPack32, enableRandomWrite = true });
                 }
-                passData.depthBuffer = builder.ReadTexture(depthStencilBuffer);
-                passData.depthTexture = builder.ReadTexture(depthPyramidTexture);
+                passData.depthBuffer = builder.ReadTexture(prepassBuffers.depthBuffer);
+                passData.depthTexture = builder.ReadTexture(prepassBuffers.depthPyramidTexture);
 
                 passData.lightingBuffers = ReadLightingBuffers(lightingBuffers, builder);
 
-                passData.lightLayersTextureIndex = gbuffer.lightLayersTextureIndex;
-                passData.shadowMaskTextureIndex = gbuffer.shadowMaskTextureIndex;
-                passData.gbufferCount = gbuffer.gBufferCount;
-                for (int i = 0; i < gbuffer.gBufferCount; ++i)
-                    passData.gbuffer[i] = builder.ReadTexture(gbuffer.mrt[i]);
+                passData.lightLayersTextureIndex = prepassBuffers.gbuffer.lightLayersTextureIndex;
+                passData.shadowMaskTextureIndex = prepassBuffers.gbuffer.shadowMaskTextureIndex;
+                passData.gbufferCount = prepassBuffers.gbuffer.gBufferCount;
+                for (int i = 0; i < prepassBuffers.gbuffer.gBufferCount; ++i)
+                    passData.gbuffer[i] = builder.ReadTexture(prepassBuffers.gbuffer.mrt[i]);
 
                 HDShadowManager.ReadShadowResult(shadowResult, builder);
 
@@ -998,9 +996,9 @@ namespace UnityEngine.Rendering.HighDefinition
                 builder.SetRenderFunc(
                     (DeferredLightingPassData data, RenderGraphContext context) =>
                     {
-                        var colorBuffers = context.renderGraphPool.GetTempArray<RenderTargetIdentifier>(2);
-                        colorBuffers[0] = data.colorBuffer;
-                        colorBuffers[1] = data.sssDiffuseLightingBuffer;
+                        var colorBufferMRT = context.renderGraphPool.GetTempArray<RenderTargetIdentifier>(2);
+                        colorBufferMRT[0] = data.colorBuffer;
+                        colorBufferMRT[1] = data.sssDiffuseLightingBuffer;
 
                         // TODO RENDERGRAPH: Remove these SetGlobal and properly send these textures to the deferred passes and bind them directly to compute shaders.
                         // This can wait that we remove the old code path.
@@ -1023,15 +1021,18 @@ namespace UnityEngine.Rendering.HighDefinition
                         {
                             bool useCompute = data.useComputeLightingEvaluation && !k_PreferFragment;
                             if (useCompute)
-                                RenderComputeDeferredLighting(data, colorBuffers, context.cmd);
+                                RenderComputeDeferredLighting(data, colorBufferMRT, context.cmd);
                             else
-                                RenderComputeAsPixelDeferredLighting(data, colorBuffers, context.cmd);
+                                RenderComputeAsPixelDeferredLighting(data, colorBufferMRT, context.cmd);
                         }
                         else
                         {
-                            RenderPixelDeferredLighting(data, colorBuffers, context.cmd);
+                            RenderPixelDeferredLighting(data, colorBufferMRT, context.cmd);
                         }
                     });
+
+                colorBuffers.colorBuffer = passData.colorBuffer;
+                colorBuffers.diffuseLightingBuffer = passData.sssDiffuseLightingBuffer;
 
                 return output;
             }
@@ -1097,9 +1098,10 @@ namespace UnityEngine.Rendering.HighDefinition
                 cb._SsrAccumulationAmount = Mathf.Pow(2, Mathf.Lerp(0.0f, -7.0f, settings.accumulationFactor.value));
         }
 
-        TextureHandle RenderSSR(RenderGraph         renderGraph,
+        TextureHandle RenderSSR(
+            RenderGraph         renderGraph,
             HDCamera            hdCamera,
-            ref PrepassOutput   prepassOutput,
+            PrepassOutput       prepassOutput,
             TextureHandle       clearCoatMask,
             TextureHandle       rayCountTexture,
             Texture             skyTexture,
@@ -1126,7 +1128,7 @@ namespace UnityEngine.Rendering.HighDefinition
                     // NOTE: Currently we profiled that generating the HTile for SSR and using it is not worth it the optimization.
                     // However if the generated HTile will be used for something else but SSR, this should be made NOT resolve only and
                     // re-enabled in the shader.
-                    BuildCoarseStencilAndResolveIfNeeded(renderGraph, hdCamera, resolveOnly: true, ref prepassOutput);
+                    BuildCoarseStencilAndResolveIfNeeded(renderGraph, hdCamera, resolveOnly: true, prepassOutput);
                 }
 
                 using (var builder = renderGraph.AddRenderPass<RenderSSRPassData>("Render SSR", out var passData))

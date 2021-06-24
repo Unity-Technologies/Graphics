@@ -208,9 +208,9 @@ namespace UnityEngine.Rendering.HighDefinition
             public ComputeBufferHandle coarseStencilBuffer;
         }
 
-        TextureHandle RenderSubsurfaceScatteringScreenSpace(RenderGraph renderGraph, HDCamera hdCamera, TextureHandle colorBuffer, in LightingBuffers lightingBuffers, ref PrepassOutput prepassOutput)
+        TextureHandle RenderSubsurfaceScatteringScreenSpace(RenderGraph renderGraph, HDCamera hdCamera, ColorBuffers colorBuffers, PrepassOutput prepassOutput)
         {
-            BuildCoarseStencilAndResolveIfNeeded(renderGraph, hdCamera, resolveOnly: false, ref prepassOutput);
+            BuildCoarseStencilAndResolveIfNeeded(renderGraph, hdCamera, resolveOnly: false, prepassOutput);
 
             TextureHandle depthStencilBuffer = prepassOutput.depthBuffer;
             TextureHandle depthTexture = prepassOutput.depthPyramidTexture;
@@ -229,11 +229,11 @@ namespace UnityEngine.Rendering.HighDefinition
                 passData.numTilesZ = hdCamera.viewCount;
                 passData.sampleBudget = hdCamera.frameSettings.sssResolvedSampleBudget;
 
-                passData.colorBuffer = builder.WriteTexture(colorBuffer);
-                passData.diffuseBuffer = builder.ReadTexture(lightingBuffers.diffuseLightingBuffer);
+                passData.colorBuffer = builder.WriteTexture(colorBuffers.colorBuffer);
+                passData.diffuseBuffer = builder.ReadTexture(colorBuffers.diffuseLightingBuffer);
                 passData.depthStencilBuffer = builder.ReadTexture(depthStencilBuffer);
                 passData.depthTexture = builder.ReadTexture(depthTexture);
-                passData.sssBuffer = builder.ReadTexture(lightingBuffers.sssBuffer);
+                passData.sssBuffer = builder.ReadTexture(colorBuffers.sssBuffer);
                 passData.coarseStencilBuffer = builder.ReadComputeBuffer(prepassOutput.coarseStencilBuffer);
                 if (passData.needTemporaryBuffer)
                 {
@@ -288,24 +288,24 @@ namespace UnityEngine.Rendering.HighDefinition
             }
         }
 
-        void RenderSubsurfaceScattering(RenderGraph renderGraph, HDCamera hdCamera, TextureHandle colorBuffer, TextureHandle historyValidationTexture, ref LightingBuffers lightingBuffers, ref PrepassOutput prepassOutput)
+        void RenderSubsurfaceScattering(RenderGraph renderGraph, HDCamera hdCamera, ColorBuffers colorBuffers, TextureHandle historyValidationTexture, in LightingBuffers lightingBuffers, PrepassOutput prepassOutput)
         {
             if (!hdCamera.frameSettings.IsEnabled(FrameSettingsField.SubsurfaceScattering))
                 return;
 
-            lightingBuffers.diffuseLightingBuffer = ResolveMSAAColor(m_RenderGraph, hdCamera, lightingBuffers.diffuseLightingBuffer);
-            lightingBuffers.sssBuffer = ResolveMSAAColor(m_RenderGraph, hdCamera, lightingBuffers.sssBuffer);
+            colorBuffers.diffuseLightingBuffer = ResolveMSAAColor(m_RenderGraph, hdCamera, colorBuffers.diffuseLightingBuffer);
+            colorBuffers.sssBuffer = ResolveMSAAColor(m_RenderGraph, hdCamera, colorBuffers.sssBuffer);
 
             // If ray tracing is enabled for the camera, if the volume override is active and if the RAS is built, we want to do ray traced SSS
             var settings = hdCamera.volumeStack.GetComponent<SubSurfaceScattering>();
             if (hdCamera.frameSettings.IsEnabled(FrameSettingsField.RayTracing) && settings.rayTracing.value && GetRayTracingState())
             {
-                RenderSubsurfaceScatteringRT(m_RenderGraph, hdCamera, prepassOutput.depthBuffer, prepassOutput.normalBuffer, colorBuffer,
-                    lightingBuffers.sssBuffer, lightingBuffers.diffuseLightingBuffer, prepassOutput.motionVectorsBuffer, historyValidationTexture, lightingBuffers.ssgiLightingBuffer);
+                colorBuffers.colorBuffer = RenderSubsurfaceScatteringRT(m_RenderGraph, hdCamera, prepassOutput.depthBuffer, prepassOutput.normalBuffer, colorBuffers.colorBuffer,
+                    colorBuffers.sssBuffer, colorBuffers.diffuseLightingBuffer, prepassOutput.motionVectorsBuffer, historyValidationTexture, lightingBuffers.ssgiLightingBuffer);
             }
             else
             {
-                RenderSubsurfaceScatteringScreenSpace(m_RenderGraph, hdCamera, colorBuffer, lightingBuffers, ref prepassOutput);
+                colorBuffers.colorBuffer = RenderSubsurfaceScatteringScreenSpace(m_RenderGraph, hdCamera, colorBuffers, prepassOutput);
             }
         }
     }

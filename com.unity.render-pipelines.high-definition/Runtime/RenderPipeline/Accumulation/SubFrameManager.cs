@@ -277,7 +277,7 @@ namespace UnityEngine.Rendering.HighDefinition
             public TextureHandle history;
         }
 
-        void RenderAccumulation(RenderGraph renderGraph, HDCamera hdCamera, TextureHandle inputTexture, TextureHandle outputTexture, bool needExposure)
+        TextureHandle RenderAccumulation(RenderGraph renderGraph, HDCamera hdCamera, TextureHandle inputTexture, TextureHandle outputTexture, bool needExposure)
         {
             using (var builder = renderGraph.AddRenderPass<RenderAccumulationPassData>("Render Accumulation", out var passData))
             {
@@ -335,6 +335,8 @@ namespace UnityEngine.Rendering.HighDefinition
                             data.subFrameManager.SetCameraData(camID, camData);
                         }
                     });
+
+                return passData.output;
             }
         }
     }

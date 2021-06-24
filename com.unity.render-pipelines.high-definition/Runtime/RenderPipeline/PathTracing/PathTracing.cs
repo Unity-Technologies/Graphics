@@ -393,9 +393,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 RenderPathTracing(m_RenderGraph, hdCamera, camData, m_FrameTexture, m_SkyTexture);
             }
 
-            RenderAccumulation(m_RenderGraph, hdCamera, m_FrameTexture, colorBuffer, true);
-
-            return colorBuffer;
+            return RenderAccumulation(m_RenderGraph, hdCamera, m_FrameTexture, colorBuffer, true);
         }
     }
 }

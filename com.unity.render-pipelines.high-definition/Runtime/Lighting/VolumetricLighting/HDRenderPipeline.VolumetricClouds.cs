@@ -759,7 +759,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 VolumetricClouds settings = hdCamera.volumeStack.GetComponent<VolumetricClouds>();
 
                 passData.parameters = PrepareVolumetricCloudsParameters(hdCamera, settings, false, EvaluateVolumetricCloudsHistoryValidity(hdCamera));
-                passData.colorBuffer = builder.ReadTexture(builder.WriteTexture(colorBuffer));
+                passData.colorBuffer = builder.ReadWriteTexture(colorBuffer);
                 passData.depthPyramid = builder.ReadTexture(depthPyramid);
                 passData.motionVectors = builder.ReadTexture(motionVectors);
                 passData.volumetricLighting = builder.ReadTexture(volumetricLighting);
@@ -851,22 +851,24 @@ namespace UnityEngine.Rendering.HighDefinition
             }
         }
 
-        void RenderVolumetricClouds(RenderGraph renderGraph, HDCamera hdCamera, TextureHandle colorBuffer, TextureHandle depthPyramid, TextureHandle motionVector, TextureHandle volumetricLighting)
+        TextureHandle RenderVolumetricClouds(RenderGraph renderGraph, HDCamera hdCamera, TextureHandle colorBuffer, TextureHandle depthPyramid, TextureHandle motionVector, TextureHandle volumetricLighting)
         {
             VolumetricClouds settings = hdCamera.volumeStack.GetComponent<VolumetricClouds>();
 
             // If the current volume does not enable the feature, quit right away.
             if (!HasVolumetricClouds(hdCamera, in settings))
-                return;
+                return colorBuffer;
 
             // Make sure the volumetric clouds are animated properly
             UpdateVolumetricClouds(hdCamera, in settings);
 
             // Render the clouds
-            TraceVolumetricClouds(renderGraph, hdCamera, colorBuffer, depthPyramid, motionVector, volumetricLighting);
+            var result = TraceVolumetricClouds(renderGraph, hdCamera, colorBuffer, depthPyramid, motionVector, volumetricLighting);
 
             // Make sure to mark the history frame index validity.
             PropagateVolumetricCloudsHistoryValidity(hdCamera);
+
+            return result;
         }
 
         void PreRenderVolumetricClouds(RenderGraph renderGraph, HDCamera hdCamera)
