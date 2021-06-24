@@ -24,6 +24,7 @@ namespace UnityEngine.Rendering.HighDefinition
         Material m_ClearBlackMaterial;
         Material m_SMAAMaterial;
         Material m_TemporalAAMaterial;
+        Material m_CircularDOFMaterial;
 
         // Lens Flare Data-Driven
         Material m_LensFlareDataDrivenShader;
@@ -178,6 +179,7 @@ namespace UnityEngine.Rendering.HighDefinition
             m_ClearBlackMaterial = CoreUtils.CreateEngineMaterial(defaultResources.shaders.clearBlackPS);
             m_SMAAMaterial = CoreUtils.CreateEngineMaterial(defaultResources.shaders.SMAAPS);
             m_TemporalAAMaterial = CoreUtils.CreateEngineMaterial(defaultResources.shaders.temporalAntialiasingPS);
+            m_CircularDOFMaterial = CoreUtils.CreateEngineMaterial(defaultResources.shaders.circularDofPS);
 
             // Lens Flare
             m_LensFlareDataDrivenShader = CoreUtils.CreateEngineMaterial(defaultResources.shaders.lensFlareDataDrivenPS);
@@ -277,6 +279,7 @@ namespace UnityEngine.Rendering.HighDefinition
             CoreUtils.Destroy(m_ClearBlackMaterial);
             CoreUtils.Destroy(m_SMAAMaterial);
             CoreUtils.Destroy(m_TemporalAAMaterial);
+            CoreUtils.Destroy(m_CircularDOFMaterial);
             CoreUtils.SafeRelease(m_HistogramBuffer);
             CoreUtils.SafeRelease(m_DebugImageHistogramBuffer);
             RTHandles.Release(m_DebugExposureData);
@@ -287,6 +290,7 @@ namespace UnityEngine.Rendering.HighDefinition
             m_ClearBlackMaterial = null;
             m_SMAAMaterial = null;
             m_TemporalAAMaterial = null;
+            m_CircularDOFMaterial = null;
             m_HistogramBuffer = null;
             m_DebugImageHistogramBuffer = null;
             m_DebugExposureData = null;
@@ -2561,6 +2565,31 @@ namespace UnityEngine.Rendering.HighDefinition
             }
         }
 
+        static void DoCircularDepthOfField(in DepthOfFieldParameters dofParameters, CommandBuffer cmd, RTHandle source, RTHandle destination, RTHandle depthBuffer, RTHandle[] intermediates, Material circularDofMaterial, MaterialPropertyBlock mpb)
+        {
+            using (new ProfilingScope(cmd, ProfilingSampler.Get(HDProfileId.DepthOfFieldCombine)))
+            {
+                // TODO Move these Shader.ToPropertyID to HDShaderIDs
+                mpb.SetTexture(Shader.PropertyToID("_SourceBackbuffer"), source);
+
+                var rtScaleSource = source.rtHandleProperties.rtHandleScale;
+                mpb.SetVector(Shader.PropertyToID("_ScaleBias"), new Vector4(rtScaleSource.x, rtScaleSource.y, 0.0f, 0.0f));
+
+                var rtSize = source.GetScaledSize();
+                mpb.SetVector(Shader.PropertyToID("_TexelSize"), new Vector2(1.0f / rtSize.x, 1.0f / rtSize.y));
+
+                var colorBuffers = new RenderTargetIdentifier[] { intermediates[0], intermediates[1], intermediates[2] };
+                HDUtils.DrawFullScreen(cmd, circularDofMaterial, colorBuffers, depthBuffer, mpb, 0);
+
+
+                circularDofMaterial.SetTexture("_IntermediateRed", intermediates[0]);
+                circularDofMaterial.SetTexture("_IntermediateGreen", intermediates[1]);
+                circularDofMaterial.SetTexture("_IntermediateBlue", intermediates[2]);
+
+                HDUtils.DrawFullScreen(cmd, circularDofMaterial, destination, mpb, 1);
+            }
+        }
+
         class DepthofFieldData
         {
             public DepthOfFieldParameters parameters;
@@ -2589,6 +2618,11 @@ namespace UnityEngine.Rendering.HighDefinition
             public ComputeBufferHandle farBokehTileList;
 
             public bool taaEnabled;
+
+            public TextureHandle circularDofIntermediateRedRT;
+            public TextureHandle circularDofIntermediateGreenRT;
+            public TextureHandle circularDofIntermediateBlueRT;
+            public Material circularDofMaterial;
         }
 
         TextureHandle DepthOfFieldPass(RenderGraph renderGraph, HDCamera hdCamera, TextureHandle depthBuffer, TextureHandle motionVectors, TextureHandle depthBufferMipChain, TextureHandle source)
@@ -2778,7 +2812,26 @@ namespace UnityEngine.Rendering.HighDefinition
                     }
                     else if (m_DepthOfField.dofTechnique == DepthOfFieldTechnique.Circular)
                     {
-                        Debug.LogError("TODO: write circular dof here");
+                        // TODO Generate filterRadius using CoC (currently hardcoded to Max=1)
+
+                        passData.circularDofIntermediateRedRT = builder.CreateTransientTexture(new TextureDesc(Vector2.one, IsDynamicResUpscaleTargetEnabled(), true)
+                            { colorFormat = GraphicsFormat.R16G16B16A16_SFloat, name = "Circular DOF Intermediate Red" });
+                        passData.circularDofIntermediateGreenRT = builder.CreateTransientTexture(new TextureDesc(Vector2.one, IsDynamicResUpscaleTargetEnabled(), true)
+                            { colorFormat = GraphicsFormat.R16G16B16A16_SFloat, name = "Circular DOF Intermediate Green" });
+                        passData.circularDofIntermediateBlueRT = builder.CreateTransientTexture(new TextureDesc(Vector2.one, IsDynamicResUpscaleTargetEnabled(), true)
+                            { colorFormat = GraphicsFormat.R16G16B16A16_SFloat, name = "Circular DOF Intermediate Blue" });
+
+                        passData.circularDofMaterial = m_CircularDOFMaterial;
+
+                        builder.SetRenderFunc(
+                            (DepthofFieldData data, RenderGraphContext ctx) =>
+                            {
+                                var mpb = ctx.renderGraphPool.GetTempMaterialPropertyBlock();
+                                DoCircularDepthOfField(data.parameters, ctx.cmd, data.source, data.destination, data.depthBuffer, new RTHandle[] { data.circularDofIntermediateRedRT, data.circularDofIntermediateGreenRT, data.circularDofIntermediateBlueRT }, data.circularDofMaterial, mpb);
+                            });
+                        
+                        source = passData.destination;
+                        // TODO PushFullScreenDebugTexture for the CoC texture
                     }
                 }
 

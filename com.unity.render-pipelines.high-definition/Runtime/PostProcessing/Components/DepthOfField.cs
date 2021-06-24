@@ -263,7 +263,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
                     {
                         m_DoFTechnique.overrideState = true;
-                        m_DoFTechnique.value = m_ObsoletePhysicallyBased.value ? DepthOfFieldTechnique.PhysicallyBased : DepthOfFieldTechnique.ScatterAsGather;
+                        m_DoFTechnique.value = m_ObsoletePhysicallyBased.value ? DepthOfFieldTechnique.PhysicallyBased : m_DoFTechnique.value;
                     }
 #pragma warning restore 618 // Type or member is obsolete
                 }

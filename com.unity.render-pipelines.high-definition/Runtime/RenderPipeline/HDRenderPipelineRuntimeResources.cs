@@ -333,6 +333,10 @@ namespace UnityEngine.Rendering.HighDefinition
             [Reload("Runtime/VirtualTexturing/Shaders/DownsampleVTFeedback.compute")]
             public ComputeShader VTFeedbackDownsample;
 
+            // Circular DOF
+            [Reload("Runtime/PostProcessing/Shaders/CircularDoF.shader")]
+            public Shader circularDofPS;
+
             // Accumulation
             [Reload("Runtime/RenderPipeline/Accumulation/Shaders/Accumulation.compute")]
             public ComputeShader accumulationCS;
