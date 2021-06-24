@@ -120,7 +120,7 @@
   MsssF4 l=MsssLum4F(c0,c1,c2,c3);
   // Generate new feedback for next frame.
   // TODO: Tune this!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-  MsssF4 n=MsssLerpF4(f,l,1.0/8.0);
+  MsssF4 n=MsssLerpF4(f,l,1.0/32.0);
   // Optionaly store feedback to one of the targets.
   if(s0)MsssStF(p,n);
   if(s1)MsssSt2F(p,n);
