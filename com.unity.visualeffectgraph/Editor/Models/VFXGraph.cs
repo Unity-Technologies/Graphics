@@ -185,9 +185,9 @@ namespace UnityEditor.VFX
         {
             if (string.IsNullOrEmpty(filePath))
                 return false;
-            return filePath.EndsWith(VisualEffectResource.Extension)
-                || filePath.EndsWith(VisualEffectSubgraphBlock.Extension)
-                || filePath.EndsWith(VisualEffectSubgraphOperator.Extension);
+            return filePath.EndsWith(VisualEffectResource.Extension, StringComparison.InvariantCultureIgnoreCase)
+                || filePath.EndsWith(VisualEffectSubgraphBlock.Extension, StringComparison.InvariantCultureIgnoreCase)
+                || filePath.EndsWith(VisualEffectSubgraphOperator.Extension, StringComparison.InvariantCultureIgnoreCase);
         }
 
         static string[] OnWillSaveAssets(string[] paths)
