@@ -669,21 +669,21 @@ namespace UnityEditor.ShaderGraph
                 {
                     var propertyInputs = propertyCollector.properties.Where(x => x.generatePropertyBlock).ToList();
                     var keywordInputs = keywordCollector.keywords.Where(x => x.generatePropertyBlock).ToList();
-                    foreach(var input in graphInputs)
+                    foreach (var input in graphInputs)
                     {
-                        if(input.isKeyword && mode != GenerationMode.Preview)
+                        if (input.isKeyword && mode != GenerationMode.Preview)
                         {
                             var keyword = keywordInputs.First(x => x.referenceName.CompareTo(input.referenceName) == 0);
-                            if(keyword != null)
+                            if (keyword != null)
                             {
                                 keyword.AppendPropertyBlockStrings(sb);
                                 keywordInputs.Remove(keyword);
                             }
                         }
-                        else if(!input.isKeyword)
+                        else if (!input.isKeyword)
                         {
                             var property = propertyInputs.First(x => x.referenceName.CompareTo(input.referenceName) == 0);
-                            if(property != null)
+                            if (property != null)
                             {
                                 property.AppendPropertyBlockStrings(sb);
                                 propertyInputs.Remove(property);
@@ -691,14 +691,14 @@ namespace UnityEditor.ShaderGraph
                         }
                     }
 
-                    foreach(var property in propertyInputs)
+                    foreach (var property in propertyInputs)
                     {
                         property.AppendPropertyBlockStrings(sb);
                     }
 
-                    if(mode != GenerationMode.Preview)
+                    if (mode != GenerationMode.Preview)
                     {
-                        foreach(var keyword in keywordInputs)
+                        foreach (var keyword in keywordInputs)
                         {
                             keyword.AppendPropertyBlockStrings(sb);
                         }

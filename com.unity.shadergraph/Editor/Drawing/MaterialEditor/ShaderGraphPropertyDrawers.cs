@@ -49,7 +49,7 @@ namespace UnityEditor.ShaderGraph.Drawing
             }
         }
 
-         static Rect GetRect(MaterialProperty prop)
+        static Rect GetRect(MaterialProperty prop)
         {
             return EditorGUILayout.GetControlRect(true, MaterialEditor.GetDefaultPropertyHeight(prop));
         }

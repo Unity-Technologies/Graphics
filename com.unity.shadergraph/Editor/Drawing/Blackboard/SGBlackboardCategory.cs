@@ -85,7 +85,7 @@ namespace UnityEditor.ShaderGraph.Drawing
                 return 0;
 
             var blackboardRows = this.Query<SGBlackboardRow>().ToList();
-            for(int index = 0; index < blackboardRows.Count; index++)
+            for (int index = 0; index < blackboardRows.Count; index++)
             {
                 var blackboardRow = blackboardRows[index];
                 var localPosition = this.ChangeCoordinatesTo(blackboardRow, pos);
@@ -355,14 +355,14 @@ namespace UnityEditor.ShaderGraph.Drawing
 
             // Don't show drag indicator if selection has categories,
             // We don't want category drag & drop to be ambiguous with shader input drag & drop
-            if(selection.OfType<SGBlackboardCategory>().Any())
+            if (selection.OfType<SGBlackboardCategory>().Any())
             {
                 SetDragIndicatorVisible(false);
                 return;
             }
 
             // If can't find at least one blackboard field in the selection, don't update drag indicator
-            if(selection.OfType<SGBlackboardField>().Any() == false)
+            if (selection.OfType<SGBlackboardField>().Any() == false)
             {
                 SetDragIndicatorVisible(false);
                 return;
@@ -405,7 +405,7 @@ namespace UnityEditor.ShaderGraph.Drawing
                         m_DroppedOnBottomEdge = false;
                         m_DroppedOnTopEdge = true;
                     }
-                    else if(relativePosition.y > 0.75f * childHeight && relativePosition.y < childHeight)
+                    else if (relativePosition.y > 0.75f * childHeight && relativePosition.y < childHeight)
                     {
                         // Bottom Edge
                         inMoveRange = true;
@@ -444,7 +444,7 @@ namespace UnityEditor.ShaderGraph.Drawing
 
             // Don't show drag indicator if selection has categories,
             // We don't want category drag & drop to be ambiguous with shader input drag & drop
-            if(selection.OfType<SGBlackboardCategory>().Any())
+            if (selection.OfType<SGBlackboardCategory>().Any())
             {
                 SetDragIndicatorVisible(false);
                 return;
@@ -462,7 +462,7 @@ namespace UnityEditor.ShaderGraph.Drawing
             foreach (ISelectable selectedElement in selection)
             {
                 var draggedElement = selectedElement as VisualElement;
-                if(draggedElement == null)
+                if (draggedElement == null)
                     continue;
 
                 if (this.Contains(draggedElement))
@@ -470,7 +470,7 @@ namespace UnityEditor.ShaderGraph.Drawing
                     if (draggedElements.ContainsKey(this))
                         draggedElements[this].Add(FindCategoryDirectChild(this, draggedElement));
                     else
-                        draggedElements.Add(this, new List<VisualElement>{FindCategoryDirectChild(this, draggedElement)});
+                        draggedElements.Add(this, new List<VisualElement> {FindCategoryDirectChild(this, draggedElement)});
                 }
                 else
                 {
@@ -480,7 +480,7 @@ namespace UnityEditor.ShaderGraph.Drawing
                         if (draggedElements.ContainsKey(otherCategory))
                             draggedElements[otherCategory].Add(FindCategoryDirectChild(otherCategory, draggedElement));
                         else
-                            draggedElements.Add(otherCategory, new List<VisualElement>{FindCategoryDirectChild(otherCategory, draggedElement)});
+                            draggedElements.Add(otherCategory, new List<VisualElement> {FindCategoryDirectChild(otherCategory, draggedElement)});
                     }
                 }
             }
@@ -491,7 +491,7 @@ namespace UnityEditor.ShaderGraph.Drawing
                 return;
             }
 
-            foreach(var categoryToChildrenTuple in draggedElements)
+            foreach (var categoryToChildrenTuple in draggedElements)
             {
                 var containingCategory = categoryToChildrenTuple.Key;
                 var childList = categoryToChildrenTuple.Value;
@@ -573,11 +573,11 @@ namespace UnityEditor.ShaderGraph.Drawing
                     // Make sure to remove the element from the selection so it doesn't get re-handled by the blackboard as well, leads to duplicates
                     selection.Remove(blackboardField);
 
-                    if(insertIndex > indexOfDraggedElement)
+                    if (insertIndex > indexOfDraggedElement)
                         continue;
 
                     // If adding to the end of the list, we no longer need to increment the index
-                    if(insertIndex != -1)
+                    if (insertIndex != -1)
                         insertIndex++;
                 }
             }
@@ -596,7 +596,7 @@ namespace UnityEditor.ShaderGraph.Drawing
                     insertIndex = Mathf.Clamp(insertIndex - 1, 0, childCount - 1);
                 }
             }
-            else if(lastInsertedElement != null)
+            else if (lastInsertedElement != null)
             {
                 insertIndex = this.IndexOf(lastInsertedElement) + 1;
             }
@@ -614,7 +614,7 @@ namespace UnityEditor.ShaderGraph.Drawing
                         continue;
 
                     // If the blackboard field is contained by this category its already been handled above, skip
-                    if(this.Contains(blackboardField))
+                    if (this.Contains(blackboardField))
                         continue;
 
                     var addItemToCategoryAction = new AddItemToCategoryAction();
@@ -633,7 +633,7 @@ namespace UnityEditor.ShaderGraph.Drawing
                     selection.Remove(blackboardField);
 
                     // If adding to the end of the list, we no longer need to increment the index
-                    if(insertIndex != -1)
+                    if (insertIndex != -1)
                         insertIndex++;
                 }
             }
@@ -690,13 +690,13 @@ namespace UnityEditor.ShaderGraph.Drawing
                 return;
             }
 
-            if(selectable != this)
+            if (selectable != this)
                 Inspector.InspectorView.forceNodeView = true;
 
             var materialGraphView = m_ViewModel.parentView.GetFirstAncestorOfType<MaterialGraphView>();
             materialGraphView?.AddToSelection(selectable);
 
-            if(materialGraphView.selection.OfType<SGBlackboardCategory>().Any())
+            if (materialGraphView.selection.OfType<SGBlackboardCategory>().Any())
                 // Turns off the inspector being forced to trigger so user can still use Graph Settings tab if they want, on category selection
                 Inspector.InspectorView.forceNodeView = false;
         }

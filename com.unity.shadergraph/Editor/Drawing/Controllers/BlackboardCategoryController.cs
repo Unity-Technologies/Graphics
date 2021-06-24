@@ -150,7 +150,7 @@ namespace UnityEditor.ShaderGraph.Drawing
             switch (changeAction)
             {
                 case AddShaderInputAction addBlackboardItemAction:
-                    if (addBlackboardItemAction.shaderInputReference!= null && IsInputInCategory(addBlackboardItemAction.shaderInputReference))
+                    if (addBlackboardItemAction.shaderInputReference != null && IsInputInCategory(addBlackboardItemAction.shaderInputReference))
                     {
                         var blackboardRow = FindBlackboardRow(addBlackboardItemAction.shaderInputReference);
                         if (blackboardRow == null)

@@ -142,9 +142,9 @@ namespace UnityEditor.ShaderGraph
             m_GraphData.CollectShaderKeywords(shaderKeywords, m_Mode);
 
             var graphInputOrderData = new List<GraphInputData>();
-            foreach(var cat in m_GraphData.categories)
+            foreach (var cat in m_GraphData.categories)
             {
-                foreach(var input in cat.Children)
+                foreach (var input in cat.Children)
                 {
                     graphInputOrderData.Add(new GraphInputData()
                     {
