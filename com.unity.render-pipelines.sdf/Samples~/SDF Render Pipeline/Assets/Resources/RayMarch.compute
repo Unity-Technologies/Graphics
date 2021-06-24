@@ -100,14 +100,14 @@ float Convert3DPosTo1D(float3 pos, ObjectHeader objHeader)
     return (pos.x + (pos.y * voxels.x) + (pos.z * voxels.y * voxels.x));
 }
 
-RayData GetRayDirection(int2 currPos, /*float fovHalf,*/ int2 TexelSize)
+RayData GetRayDirection(int2 currPos, /*float fovHalf,*/ int2 imageSize)
 {
-    float imageAspectRatio = (float)TexelSize.x / TexelSize.y; // assuming width > height
-    //float Px = (2 * ((currPos.x + 0.5) / TexelSize.x) - 1) * tan(fovHalf * DEG_TO_RAD) * imageAspectRatio;
-    //float Py = (2 * ((currPos.y + 0.5) / TexelSize.y) - 1) * tan(fovHalf * DEG_TO_RAD);
+    float imageAspectRatio = (float)imageSize.x / imageSize.y; // assuming width > height
+    //float Px = (2 * ((currPos.x + 0.5) / imageSize.x) - 1) * tan(fovHalf * DEG_TO_RAD) * imageAspectRatio;
+    //float Py = (2 * ((currPos.y + 0.5) / imageSize.y) - 1) * tan(fovHalf * DEG_TO_RAD);
 
-    float Px = (2 * ((currPos.x + 0.5) / TexelSize.x) - 1);
-    float Py = (2 * ((currPos.y + 0.5) / TexelSize.y) - 1);
+    float Px = (2 * ((currPos.x + 0.5) / imageSize.x) - 1);
+    float Py = (2 * ((currPos.y + 0.5) / imageSize.y) - 1);
 
     float3 rayOrigin = float3(0, 0, 0);
     float4x4 cameraToWorld = InvViewProjectionMatrix; // UNITY_MATRIX_I_VP;
@@ -217,7 +217,7 @@ void RayMarchKernel(uint3 dispatchTid : SV_DispatchThreadID, uint3 groupId : SV_
 	int numDispatchesX = ((TexelSize.x + (8 - 1)) / 8);
 	int tileIndex = groupId.x + groupId.y * numDispatchesX;
 	TileDataHeader tileDataHeader = _TileDataHeader[tileIndex];
-    RayData rayData = GetRayDirection(dispatchTid.xy, /*_FieldOfViewBy2,*/ TexelSize);
+    RayData rayData = GetRayDirection(dispatchTid.xy, /*_FieldOfViewBy2,*/ TexelSize.zw);
     OutSdfData outData = RayMarchAllObjects(rayData.direction, rayData.pointOnPlane/*, groupId*/, tileDataHeader);
 
     // TODO - If using z-dimension for anything else, please change the group index and manually calculate
