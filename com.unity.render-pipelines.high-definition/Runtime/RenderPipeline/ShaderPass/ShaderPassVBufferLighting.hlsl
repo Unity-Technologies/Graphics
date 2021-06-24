@@ -16,20 +16,19 @@ struct Varyings
 {
     float4 positionCS : SV_POSITION;
     uint lightAndMaterialFeatures : FEATURES;
-    uint2 tileCoord : TILE_COORD;
     UNITY_VERTEX_OUTPUT_STEREO
 };
 
 int _BucketID;
 int _CurrMaterialID;
-int _CurrFeatureSet;
 float4 _VBufferTileData;
 #define _NumVBufferTileX (uint)_VBufferTileData.x
 #define _NumVBufferTileY (uint)_VBufferTileData.y
 #define _QuadTileSize (uint)_VBufferTileData.z
 
 static const float2 QuadVertices[6] = { float2(0,0), float2(1, 0), float2(1, 1), float2(0, 0), float2(1, 1), float2(0, 1)};
-
+TEXTURE2D_X_UINT2(_ClassificationTileInput);
+TEXTURE2D_X_UINT(_BucketTileInput);
 TEXTURE2D_X_UINT(_VBufferTileClassification);
 
 Varyings Vert(Attributes inputMesh)
@@ -52,13 +51,32 @@ Varyings Vert(Attributes inputMesh)
     float2 tileStartUV = tileCoord * rcp(float2(_NumVBufferTileX, _NumVBufferTileY));
     float2 vertPos = (QuadVertices[quadVertexID] + tileCoord) * tileSizeInUV;
 
-    output.positionCS.xy = vertPos * 2 - 1;
+    int tapTileY = (_NumVBufferTileY-1) - tileY;
 
-    output.lightAndMaterialFeatures = _VBufferTileClassification[COORD_TEXTURE2D_X(uint2(tileX, (_NumVBufferTileY-1) - tileY))];
-    output.positionCS.z = float(_CurrMaterialID & 0xffff) / (float)(0xffff);
-    output.positionCS.w = 1;
+    uint bucketIDMask = _BucketTileInput[COORD_TEXTURE2D_X(uint2(tileX, tapTileY))];
+    uint2 matMinMax = _ClassificationTileInput[COORD_TEXTURE2D_X(uint2(tileX, tapTileY))];
+    output.lightAndMaterialFeatures = _VBufferTileClassification[COORD_TEXTURE2D_X(uint2(tileX, tapTileY))];
 
-    output.tileCoord = uint2(tileX, tileY);
+    uint featureFlags = 0;
+    #if defined(VARIANT_DIR_ENV)
+    featureFlags = (LIGHTFEATUREFLAGS_SKY | LIGHTFEATUREFLAGS_DIRECTIONAL | LIGHTFEATUREFLAGS_ENV | MATERIAL_FEATURE_MASK_FLAGS);
+    #endif
+
+    #if defined(VARIANT_DIR_PUNCTUAL_ENV)
+    featureFlags = (LIGHTFEATUREFLAGS_SKY | LIGHTFEATUREFLAGS_DIRECTIONAL | LIGHTFEATUREFLAGS_PUNCTUAL | LIGHTFEATUREFLAGS_ENV | MATERIAL_FEATURE_MASK_FLAGS);
+    #endif    
+
+    #if defined(VARIANT_DIR_PUNCTUAL_AREA_ENV)
+    featureFlags = (LIGHTFEATUREFLAGS_SKY | LIGHTFEATUREFLAGS_DIRECTIONAL | LIGHTFEATUREFLAGS_PUNCTUAL | LIGHTFEATUREFLAGS_ENV | LIGHTFEATUREFLAGS_AREA | MATERIAL_FEATURE_MASK_FLAGS);
+    #endif
+
+    if (((_BucketID & bucketIDMask) != 0) && (_CurrMaterialID >= matMinMax.x && _CurrMaterialID <= matMinMax.y)  && ((output.lightAndMaterialFeatures & featureFlags) != 0))
+    {
+        output.positionCS.xy = vertPos * 2 - 1;
+        output.positionCS.z = float(_CurrMaterialID & 0xffff) / (float)(0xffff);
+        output.positionCS.w = 1;
+    }
+
 #endif
 
     return output;
@@ -214,7 +232,26 @@ void Frag(Varyings packedInput, out float4 outColor : SV_Target0)
 
     PreLightData preLightData = GetPreLightData(V, posInput, bsdfData);
 
+    float3 colorVariantColor = 0;
     uint featureFlags = packedInput.lightAndMaterialFeatures;
+
+    /*
+    #if defined(VARIANT_DIR_ENV)
+    colorVariantColor = float3(1.0, 0.0, 0.0);
+    featureFlags = featureFlags & (LIGHTFEATUREFLAGS_SKY | LIGHTFEATUREFLAGS_DIRECTIONAL | LIGHTFEATUREFLAGS_ENV | MATERIAL_FEATURE_MASK_FLAGS);
+    #endif
+
+    #if defined(VARIANT_DIR_PUNCTUAL_ENV)
+    colorVariantColor = float3(1.0, 1.0, 0.0);
+    featureFlags = featureFlags & (LIGHTFEATUREFLAGS_SKY | LIGHTFEATUREFLAGS_DIRECTIONAL | LIGHTFEATUREFLAGS_PUNCTUAL | LIGHTFEATUREFLAGS_ENV | MATERIAL_FEATURE_MASK_FLAGS);
+    #endif
+
+    #if defined(VARIANT_DIR_PUNCTUAL_AREA_ENV)
+    featureFlags = featureFlags & (LIGHTFEATUREFLAGS_SKY | LIGHTFEATUREFLAGS_DIRECTIONAL | LIGHTFEATUREFLAGS_PUNCTUAL | LIGHTFEATUREFLAGS_ENV | LIGHTFEATUREFLAGS_AREA | MATERIAL_FEATURE_MASK_FLAGS);
+    colorVariantColor = float3(0.0, 1.0, 1.0);
+    #endif
+    */
+
     LightLoopOutput lightLoopOutput;
     LightLoop(V, posInput, preLightData, bsdfData, builtinData, featureFlags, lightLoopOutput);
 
@@ -225,6 +262,7 @@ void Frag(Varyings packedInput, out float4 outColor : SV_Target0)
     specularLighting *= GetCurrentExposureMultiplier();
 
 
-    outColor.rgb = float4(diffuseLighting + specularLighting, 1.0);
+    outColor.rgb = diffuseLighting + specularLighting;
     outColor.a = 1;
+    outColor.rgb = colorVariantColor;
 }

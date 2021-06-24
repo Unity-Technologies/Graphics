@@ -11,11 +11,8 @@
 
 TEXTURE2D_X_UINT2(_ClassificationTileInput);
 TEXTURE2D_X_UINT(_BucketTileInput);
-
 RW_TEXTURE2D_X(uint2, _ClassificationTile);
 RW_TEXTURE2D_X(uint, _BucketTile);
-
-
 
 #define GROUP_SIZE 8
 

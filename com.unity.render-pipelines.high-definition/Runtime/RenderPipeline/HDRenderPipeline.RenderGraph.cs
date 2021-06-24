@@ -171,7 +171,7 @@ namespace UnityEngine.Rendering.HighDefinition
                     TextureHandle bucketID, materialTile;
                     VBufferMaterialTile(m_RenderGraph, hdCamera, vBufferOutput.vBuffer0, out materialTile, out bucketID);
 
-                    colorBuffer = RenderVBufferLighting(m_RenderGraph, cullingResults, hdCamera, vBufferOutput, materialDepth, colorBuffer, tileClassification, gpuLightListOutput);
+                    colorBuffer = RenderVBufferLighting(m_RenderGraph, cullingResults, hdCamera, vBufferOutput, materialDepth, colorBuffer, tileClassification, materialTile, bucketID,  gpuLightListOutput);
 
                     var deferredLightingOutput = RenderDeferredLighting(m_RenderGraph, hdCamera, colorBuffer, prepassOutput.depthBuffer, prepassOutput.depthPyramidTexture, lightingBuffers, prepassOutput.gbuffer, shadowResult, gpuLightListOutput);
 

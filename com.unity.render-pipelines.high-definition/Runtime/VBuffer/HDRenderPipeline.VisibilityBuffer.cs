@@ -97,14 +97,13 @@ namespace UnityEngine.Rendering.HighDefinition
             public ComputeBufferHandle instancedDataBuffer;
             public ComputeBufferHandle lightListBuffer;
             public TextureHandle vbufferTileClassification;
+            public TextureHandle materialTile;
+            public TextureHandle bucketID;
         }
 
         [GenerateHLSL]
-        internal enum LightVariants
+        internal enum MaterialVariants
         {
-            SkyEnv = LightFeatureFlags.Sky | LightFeatureFlags.Env | LightFeatureFlags.ProbeVolume,
-            SkyDirPunctual = LightFeatureFlags.Sky | LightFeatureFlags.Directional | LightFeatureFlags.Punctual | LightFeatureFlags.ProbeVolume,
-            SkyDirArea = LightFeatureFlags.Sky | LightFeatureFlags.Directional | LightFeatureFlags.Area | LightFeatureFlags.ProbeVolume,
             SkyDirEnv = LightFeatureFlags.Sky | LightFeatureFlags.Directional | LightFeatureFlags.Env | LightFeatureFlags.ProbeVolume,
             SkyDirPunctualEnv = LightFeatureFlags.Sky | LightFeatureFlags.Directional | LightFeatureFlags.Punctual | LightFeatureFlags.Env | LightFeatureFlags.ProbeVolume,
             SkyDirPunctualAreaEnv = LightFeatureFlags.Sky | LightFeatureFlags.Directional | LightFeatureFlags.Punctual | LightFeatureFlags.Area | LightFeatureFlags.Env | LightFeatureFlags.ProbeVolume
@@ -113,7 +112,7 @@ namespace UnityEngine.Rendering.HighDefinition
         TextureHandle RenderVBufferLighting(RenderGraph renderGraph, CullingResults cullingResults, HDCamera hdCamera,
             VBufferOutput vBufferOutput, TextureHandle materialDepthBuffer,
             TextureHandle colorBuffer,
-            TextureHandle vbufferTileClassification,
+            TextureHandle vbufferTileClassification, TextureHandle materialTile, TextureHandle bucketID, 
             in BuildGPULightListOutput lightLists)
         {
             if (InstanceVDataB == null || CompactedVB == null || CompactedIB == null) return colorBuffer;
@@ -133,6 +132,8 @@ namespace UnityEngine.Rendering.HighDefinition
                 passData.instancedDataBuffer = renderGraph.ImportComputeBuffer(InstanceVDataB);
                 passData.lightListBuffer = builder.ReadComputeBuffer(lightLists.lightList);
                 passData.vbufferTileClassification = builder.ReadTexture(vbufferTileClassification);
+                passData.materialTile = builder.ReadTexture(materialTile);
+                passData.bucketID = builder.ReadTexture(bucketID);
 
                 builder.SetRenderFunc(
                     (VBufferLightingPassData data, RenderGraphContext context) =>
@@ -143,6 +144,8 @@ namespace UnityEngine.Rendering.HighDefinition
                         context.cmd.SetGlobalBuffer("_InstanceVDataBuffer", data.instancedDataBuffer);
                         context.cmd.SetGlobalTexture("_VBuffer0", data.vbuffer0);
                         context.cmd.SetGlobalTexture("_VBufferDepthTexture", data.cameraDepthTexture);
+                        context.cmd.SetGlobalTexture("_ClassificationTileInput", data.materialTile);
+                        context.cmd.SetGlobalTexture("_BucketTileInput", data.bucketID);
 
                         context.cmd.SetGlobalBuffer(HDShaderIDs.g_vLightListGlobal, data.lightListBuffer);
 
@@ -173,6 +176,21 @@ namespace UnityEngine.Rendering.HighDefinition
                             context.cmd.SetGlobalInt("_CurrMaterialID", materials[material].globalMaterialID);
                             context.cmd.SetGlobalVector("_VBufferTileData", new Vector4((float)numTileX, (float)numTileY, (float)quadTileSize, 0.0f));
                             context.cmd.SetViewport(new Rect(0, 0, numTileX * quadTileSize, numTileY * quadTileSize));
+
+
+                            CoreUtils.SetKeyword(context.cmd, "VARIANT_DIR_ENV", false);
+                            CoreUtils.SetKeyword(context.cmd, "VARIANT_DIR_PUNCTUAL_ENV", false);
+                            CoreUtils.SetKeyword(context.cmd, "VARIANT_DIR_PUNCTUAL_AREA_ENV", true);
+                            context.cmd.DrawProcedural(Matrix4x4.identity, material, passIdx, MeshTopology.Triangles, 6, numTileX * numTileY);
+
+                            CoreUtils.SetKeyword(context.cmd, "VARIANT_DIR_PUNCTUAL_ENV", false);
+                            CoreUtils.SetKeyword(context.cmd, "VARIANT_DIR_PUNCTUAL_AREA_ENV", false);
+                            CoreUtils.SetKeyword(context.cmd, "VARIANT_DIR_ENV", true);
+                            context.cmd.DrawProcedural(Matrix4x4.identity, material, passIdx, MeshTopology.Triangles, 6, numTileX * numTileY);
+
+                            CoreUtils.SetKeyword(context.cmd, "VARIANT_DIR_ENV", false);
+                            CoreUtils.SetKeyword(context.cmd, "VARIANT_DIR_PUNCTUAL_AREA_ENV", false);
+                            CoreUtils.SetKeyword(context.cmd, "VARIANT_DIR_PUNCTUAL_ENV", true);
                             context.cmd.DrawProcedural(Matrix4x4.identity, material, passIdx, MeshTopology.Triangles, 6, numTileX * numTileY);
                         }
                     });
@@ -214,6 +232,8 @@ namespace UnityEngine.Rendering.HighDefinition
 
         class VBufferTileClassficationData
         {
+            public int tileClassSizeX;
+            public int tileClassSizeY;
             public ComputeShader createTileClassification;
             public TextureHandle outputTile;
             public ComputeBufferHandle tileFeatureFlagsBuffer;
@@ -221,12 +241,17 @@ namespace UnityEngine.Rendering.HighDefinition
 
         TextureHandle VBufferTileClassification(RenderGraph renderGraph, HDCamera hdCamera, ComputeBufferHandle tileFeatureFlags, TextureHandle colorBuffer)
         {
-            var tileClassification = renderGraph.CreateTexture(new TextureDesc(Vector2.one * (1.0f / 64.0f), true, true)
+            int tileClassSizeX = HDUtils.DivRoundUp(hdCamera.actualWidth, 64);
+            int tileClassSizeY = HDUtils.DivRoundUp(hdCamera.actualHeight, 64);
+
+            var tileClassification = renderGraph.CreateTexture(new TextureDesc(tileClassSizeX, tileClassSizeY, true, true)
                 { colorFormat = GraphicsFormat.R32G32_UInt, clearBuffer = true, enableRandomWrite = true, name = "Tile classification" });
             using (var builder = renderGraph.AddRenderPass<VBufferTileClassficationData>("Create VBuffer Tiles", out var passData, ProfilingSampler.Get(HDProfileId.VBufferLightTileClassification)))
             {
                 passData.outputTile = builder.WriteTexture(tileClassification);
 
+                passData.tileClassSizeX = tileClassSizeX;
+                passData.tileClassSizeY = tileClassSizeY;
                 passData.createTileClassification = defaultResources.shaders.classificationTilesCS;
                 passData.tileFeatureFlagsBuffer = builder.ReadComputeBuffer(tileFeatureFlags);
 
@@ -241,13 +266,12 @@ namespace UnityEngine.Rendering.HighDefinition
                         context.cmd.SetComputeBufferParam(cs, kernel, HDShaderIDs.g_TileFeatureFlags, data.tileFeatureFlagsBuffer);
                         context.cmd.SetComputeTextureParam(cs, kernel, "_ClassificationTile", data.outputTile);
 
-                        int tileClassSizeX = Mathf.RoundToInt(hdCamera.actualWidth * (1.0f / 64.0f));
-                        int tileClassSizeY = Mathf.RoundToInt(hdCamera.actualHeight * (1.0f / 64.0f));
 
-                        int dispatchX = HDUtils.DivRoundUp(tileClassSizeX, 8);
-                        int dispatchY = HDUtils.DivRoundUp(tileClassSizeY, 8);
 
-                        context.cmd.SetComputeVectorParam(cs, "_TileBufferSize", new Vector4(tileClassSizeX, tileClassSizeY, 0, 0));
+                        int dispatchX = HDUtils.DivRoundUp(data.tileClassSizeX, 8);
+                        int dispatchY = HDUtils.DivRoundUp(data.tileClassSizeY, 8);
+
+                        context.cmd.SetComputeVectorParam(cs, "_TileBufferSize", new Vector4(data.tileClassSizeX, data.tileClassSizeY, 0, 0));
 
                         context.cmd.DispatchCompute(cs, kernel, dispatchX, dispatchY, 1);
                     });
@@ -258,6 +282,8 @@ namespace UnityEngine.Rendering.HighDefinition
 
         class VBufferMaterialTileClassficationData
         {
+            public int tileClassSizeX;
+            public int tileClassSizeY;
             public ComputeShader createMaterialTile;
             public TextureHandle outputTile;
             public TextureHandle outputBucketTile;
@@ -271,20 +297,27 @@ namespace UnityEngine.Rendering.HighDefinition
 
         void VBufferMaterialTile(RenderGraph renderGraph, HDCamera hdCamera, TextureHandle vBuffer0, out TextureHandle tileClassification, out TextureHandle bucketID)
         {
-            tileClassification = renderGraph.CreateTexture(new TextureDesc(Vector2.one * (1.0f / 64.0f), true, true)
+            int tileClassSizeX = HDUtils.DivRoundUp(hdCamera.actualWidth, 64);
+            int tileClassSizeY = HDUtils.DivRoundUp(hdCamera.actualHeight, 64);
+
+            tileClassification = renderGraph.CreateTexture(new TextureDesc(tileClassSizeX, tileClassSizeY, true, true)
                 { colorFormat = GraphicsFormat.R16G16_UInt, clearBuffer = true, enableRandomWrite = true, name = "Material Tile classification" });
-            bucketID = renderGraph.CreateTexture(new TextureDesc(Vector2.one * (1.0f / 64.0f), true, true)
+            bucketID = renderGraph.CreateTexture(new TextureDesc(tileClassSizeX, tileClassSizeY, true, true)
                 { colorFormat = GraphicsFormat.R8_UInt, clearBuffer = true, enableRandomWrite = true, name = "Bucket ID" });
 
             using (var builder = renderGraph.AddRenderPass<VBufferMaterialTileClassficationData>("Create Material Tile", out var passData, ProfilingSampler.Get(HDProfileId.VBufferMaterialTileClassification)))
             {
                 builder.AllowPassCulling(false);
 
-                passData.tile8x = builder.CreateTransientTexture(new TextureDesc(Vector2.one * 0.125f, true, true)
+                int tileClassSizeIntermediateX = HDUtils.DivRoundUp(hdCamera.actualWidth, 8);
+                int tileClassSizeIntermediateY = HDUtils.DivRoundUp(hdCamera.actualHeight, 8);
+                passData.tile8x = builder.CreateTransientTexture(new TextureDesc(tileClassSizeIntermediateX, tileClassSizeIntermediateY, true, true)
                     { colorFormat = GraphicsFormat.R16G16_UInt, enableRandomWrite = true, name = "Material mask 8x" });
-                passData.bucketTile8x = builder.CreateTransientTexture(new TextureDesc(Vector2.one * 0.125f, true, true)
+                passData.bucketTile8x = builder.CreateTransientTexture(new TextureDesc(tileClassSizeIntermediateX, tileClassSizeIntermediateY, true, true)
                     { colorFormat = GraphicsFormat.R8_UInt, enableRandomWrite = true, name = "Bucket mask 8x" });
 
+                passData.tileClassSizeX = tileClassSizeX;
+                passData.tileClassSizeY = tileClassSizeY;
                 passData.vBuffer0 = builder.ReadTexture(vBuffer0);
                 passData.outputTile = builder.WriteTexture(tileClassification);
                 passData.outputBucketTile = builder.WriteTexture(bucketID);

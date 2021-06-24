@@ -127,7 +127,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
                     // Instance data common to all clusters
                     InstanceVData data;
-                    data.materialData = materialID | bucketID << 16;
+                    data.materialData = materialID | (bucketID << 16);
                     data.localToWorld = renderer.localToWorldMatrix;
                     data.lightmapST = renderer.lightmapScaleOffset;
 
@@ -233,7 +233,7 @@ namespace UnityEngine.Rendering.HighDefinition
             else
                 kernel = cs.FindKernel("IBCompactionKernelUINT32");
 
-            cs.SetBuffer(kernel, HDShaderIDs._InputIB, mesh.GetIndexBuffer());
+            cs.SetBuffer(kernel, HDShaderIDs._InputIB, ib);
             cs.SetBuffer(kernel, HDShaderIDs._OutputIB, CompactedIB);
 
             for (int i = 0; i < mesh.subMeshCount; ++i)
@@ -249,6 +249,13 @@ namespace UnityEngine.Rendering.HighDefinition
             }
 
             vbStart += (uint)mesh.vertexCount;
+            posVBStream.Dispose();
+            uvVBStream.Dispose();
+            normalVBStream.Dispose();
+            tangentVBStream.Dispose();
+            if (hasTexCoord1)
+                uv1VBStream.Dispose();
+            ib.Dispose();
         }
 
         int ComputeNumberOfClusters(Mesh currentMesh)
@@ -310,7 +317,7 @@ namespace UnityEngine.Rendering.HighDefinition
                     if (!materials.TryGetValue(mat, out materialData))
                     {
                         mat.enableInstancing = true;
-                        materialData.numRenderers = materialIdx & 0xffff;
+                        materialData.numRenderers = 1;
                         materialData.globalMaterialID = materialIdx & 0xffff;
                         materials.Add(mat, materialData);
                         materialIdx++;
@@ -330,8 +337,8 @@ namespace UnityEngine.Rendering.HighDefinition
 
             // TODO: Worked on the sorted set of materials to optimize the space
             // We need to assign every material to a bucket
-            int renderersPerBucket = Mathf.RoundToInt(validRenderers / 8.0f);
-            int currentBucket = 0;
+            int renderersPerBucket = HDUtils.DivRoundUp(validRenderers, 8);
+            int currentBucket = 1;
             int currentBucketRenderers = 0;
             var materialCouple = materials.ToArray();
             foreach (var mat in materialCouple)
@@ -341,7 +348,6 @@ namespace UnityEngine.Rendering.HighDefinition
                 currentBucketRenderers += newData.numRenderers;
                 newData.bucketID = currentBucket;
                 materials[mat.Key] = newData;
-                currentBucketRenderers += newData.numRenderers;
 
                 if (currentBucketRenderers >= renderersPerBucket)
                 {
