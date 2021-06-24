@@ -57,7 +57,7 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 7d4c867f6b72b714dbb5fd1780afe208, type: 3}
-  m_Name: 018_CollisionScaledPrimitive_Sphere_Radius
+  m_Name: 018_CollisionScaledPrimitive_Sphere
   m_EditorClassIdentifier: 
   m_UIIgnoredErrors: []
   m_Parent: {fileID: 0}
@@ -115,7 +115,7 @@ VisualEffectResource:
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  m_Name: 018_CollisionScaledPrimitive_Sphere_Radius
+  m_Name: 018_CollisionScaledPrimitive_Sphere
   m_Graph: {fileID: 114350483966674976}
   m_Infos:
     m_RendererSettings:
@@ -6245,7 +6245,7 @@ MonoBehaviour:
   m_OutputSlots: []
   m_Disabled: 0
   mode: 0
-  radiusMode: 1
+  radiusMode: 0
   roughSurface: 0
 --- !u!114 &8926484042661615401
 MonoBehaviour:
@@ -6886,7 +6886,7 @@ MonoBehaviour:
   m_OutputSlots: []
   m_Disabled: 0
   mode: 1
-  radiusMode: 1
+  radiusMode: 0
   roughSurface: 0
 --- !u!114 &8926484042661615420
 MonoBehaviour:
