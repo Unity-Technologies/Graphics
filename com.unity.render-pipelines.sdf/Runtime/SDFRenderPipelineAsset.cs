@@ -15,11 +15,13 @@ namespace UnityEngine.Rendering.SDFRP
         public float lensSiz = 2.0f;
         public float focalDis = 11.0f;
         internal ComputeShader rayMarchingCS;
+        internal Shader tileCullingShader;
 
         protected override RenderPipeline CreatePipeline()
         {
             // TODO - Need to figure out how to do this using the defaultResources
             rayMarchingCS = Resources.Load<ComputeShader>("RayMarch");
+            tileCullingShader = Resources.Load<Shader>("ObjectList");
 
             return new SDFRenderPipeline();
         }

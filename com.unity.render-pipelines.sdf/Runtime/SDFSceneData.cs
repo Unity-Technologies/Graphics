@@ -11,8 +11,8 @@ public class SDFSceneData /*: IDisposable*/
 
     public struct TileDataHeader
     {
-        int offset;
-        int numObjects;
+        public int offset;
+        public int numObjects;
         int pad0;
         int pad1;
 
@@ -43,6 +43,7 @@ public class SDFSceneData /*: IDisposable*/
         internal float pad1;
     };
     const int ObjectHeaderDataSize = 112;
+    public int numTiles;
 
     public SDFSceneData(int numObjects, int sdfDataSize, Rect pixelRect)
     {
@@ -57,18 +58,20 @@ public class SDFSceneData /*: IDisposable*/
         // TODO: set actual tile data
         int numTilesX = ((int)pixelRect.width + (TileSize - 1)) / TileSize;
         int numTilesY = ((int)pixelRect.height + (TileSize - 1)) / TileSize;
-        int numTiles = numTilesX * numTilesY;
+        numTiles = numTilesX * numTilesY;
         this.tileHeaderComputeBuffer = new ComputeBuffer(numTiles, TileDataHeaderSize, ComputeBufferType.Default);
         int tileDataOffsetIntoObjHeaderSize = 4;
-        this.tileHeaders = SDFRayMarch.FillTileDataHeaderBuffer(numTiles).ToArray();
-        SetTileHeaderData();
+        this.tileHeaders = new SDFSceneData.TileDataHeader[numTiles];
+        // this.tileHeaders = SDFRayMarch.FillTileDataHeaderBuffer(numTiles).ToArray();
+        // SetTileHeaderData();
 
         this.tileOffsetsComputeBuffer  = new ComputeBuffer(numTiles * SDFRayMarch.MAX_OBJECTS_IN_SCENE, tileDataOffsetIntoObjHeaderSize, ComputeBufferType.Default);
-        List<int> numEntriesEachTile = new List<int>();
-        for (int tileID = 0; tileID < numTiles; ++tileID)
-            numEntriesEachTile.Add(1);
-        this.tileDataOffsetIntoObjHeaderValues = SDFRayMarch.FillTileDataOffsetBuffer(numTiles, numEntriesEachTile).ToArray();
-        SetTileOffsetIntoObjHeaderData();
+        // List<int> numEntriesEachTile = new List<int>();
+        // for (int tileID = 0; tileID < numTiles; ++tileID)
+        //     numEntriesEachTile.Add(1);
+        this.tileDataOffsetIntoObjHeaderValues = new int[numTiles * SDFRayMarch.MAX_OBJECTS_IN_SCENE];
+        // this.tileDataOffsetIntoObjHeaderValues = SDFRayMarch.FillTileDataOffsetBuffer(numTiles, numEntriesEachTile).ToArray();
+        // SetTileOffsetIntoObjHeaderData();
     }
 
     public void SetObjectHeaderData() => objectHeaderComputeBuffer.SetData(objectHeaders);

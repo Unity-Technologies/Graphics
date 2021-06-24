@@ -197,7 +197,9 @@ namespace UnityEngine.Rendering.SDFRP
 
         private void CreateObjectList(ScriptableRenderContext context, Camera camera, int totalSDFs)
         {
-            Material material;
+            // TO DO: Don't always clear if no change?
+            Array.Clear(m_SdfSceneData.tileDataOffsetIntoObjHeaderValues, 0, m_SdfSceneData.tileDataOffsetIntoObjHeaderValues.Length);
+            Array.Clear(m_SdfSceneData.tileHeaders, 0, m_SdfSceneData.tileHeaders.Length);
 
             Vector3[] cubeVertices =
             {
@@ -226,20 +228,19 @@ namespace UnityEngine.Rendering.SDFRP
                 7, 3, 5
             };
 
-            Shader shader = Shader.Find("Hidden/Internal-Colored");
-            material = new Material(shader);
-            material.SetColor("_Color", Color.red);
-            material.SetInt("_ZTest", (int)UnityEngine.Rendering.CompareFunction.Always);
-
-            // var buffer = new ...
-            // material.SetBuffer(...)
-            // cmd.SetRandomWriteTarget(...)
-
             var mesh = new Mesh();
             mesh.SetVertices(cubeVertices, 0, 8);
             mesh.SetIndices(cubeIndices, MeshTopology.Triangles, 0);
 
             CommandBuffer cmd1 = new CommandBuffer();
+            Shader shader = currentAsset.tileCullingShader;
+            Material material = new Material(shader);
+            MaterialPropertyBlock propertyBlock = new MaterialPropertyBlock();
+            // material.SetColor("_Color", Color.red);
+
+            material.SetBuffer("_TileData", m_SdfSceneData.tileOffsetsComputeBuffer);
+            cmd1.SetRandomWriteTarget(1, m_SdfSceneData.tileOffsetsComputeBuffer);
+
             if (camera.cameraType == CameraType.Preview)
             {
                 Debug.LogError(camera.pixelRect);
@@ -254,9 +255,35 @@ namespace UnityEngine.Rendering.SDFRP
                 var extents = maxExtent - minExtent;
                 Matrix4x4 scale = Matrix4x4.Scale(extents);
                 Matrix4x4 finalTRS = data[i].worldToObjMatrix.inverse * scale;       // Check multiply scale correctness later
-
-                cmd1.DrawMesh(mesh, finalTRS, material, 0, 0);
+                propertyBlock.SetInt("_SdfID", i);
+                cmd1.DrawMesh(mesh, finalTRS, material, 0, 0, propertyBlock);
             }
+
+            // edit Tile data and headers
+            int[] tileFlags = new int[SDFRayMarch.MAX_OBJECTS_IN_SCENE * m_SdfSceneData.numTiles];
+            m_SdfSceneData.tileOffsetsComputeBuffer.GetData(tileFlags);
+
+            int curOffset = 0;
+            for (int tile = 0; tile < m_SdfSceneData.numTiles; tile++)
+            {
+                m_SdfSceneData.tileHeaders[tile].offset = curOffset;
+                int offset = SDFRayMarch.MAX_OBJECTS_IN_SCENE * tile;
+                for (int id = 0; id < SDFRayMarch.MAX_OBJECTS_IN_SCENE; id++)
+                {
+                    if (tileFlags[offset + id] == 1)
+                    {
+                        int newOffset = m_SdfSceneData.tileHeaders[tile].offset + m_SdfSceneData.tileHeaders[tile].numObjects;
+                        m_SdfSceneData.tileDataOffsetIntoObjHeaderValues[newOffset] = id;
+                        m_SdfSceneData.tileHeaders[tile].numObjects += 1;
+                        // Debug.Log("Tile " + tile + " now has " + m_SdfSceneData.tileHeaders[tile].numObjects + " objects, newest is id " + id);
+                        curOffset++;
+                    }
+                }
+            }
+            m_SdfSceneData.SetTileHeaderData();
+            m_SdfSceneData.SetTileOffsetIntoObjHeaderData();
+
+
             context.ExecuteCommandBuffer(cmd1);
             cmd1.Release();
         }
