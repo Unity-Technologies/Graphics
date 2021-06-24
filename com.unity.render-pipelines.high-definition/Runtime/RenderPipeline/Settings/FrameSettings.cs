@@ -299,8 +299,8 @@ namespace UnityEngine.Rendering.HighDefinition
         [FrameSettingsField(1, customOrderInGroup: 49, displayedName: "Custom Sample Budget", positiveDependencies: new[] { SubsurfaceScattering }, type: FrameSettingsFieldAttribute.DisplayType.Others,
             tooltip: "Sets the custom sample budget of the Subsurface Scattering algorithm.")]
         SssCustomSampleBudget = 49,
-        /// <summary>When enabled, Cameras using these Frame Settings calculate Volumetric CLouds.</summary>
-        [FrameSettingsField(1, autoName: VolumetricClouds)]
+        /// <summary>When enabled, Cameras using these Frame Settings calculate Volumetric Clouds.</summary>
+        [FrameSettingsField(1, autoName: VolumetricClouds, tooltip: "When enabled, Cameras using these Frame Settings calculate Volumetric Clouds.")]
         VolumetricClouds = 79,
 
         /// <summary>When enabled, Cameras using these Frame Settings render subsurface scattering (SSS) Materials with an added transmission effect (only if you enable Transmission on the SSS Material in the Material's Inspector).</summary>
@@ -377,7 +377,7 @@ namespace UnityEngine.Rendering.HighDefinition
         [FrameSettingsField(3, autoName: ComputeMaterialVariants, positiveDependencies: new[] { DeferredTile }, tooltip: "When enabled, HDRP uses material variant classification to compute lighting.")]
         ComputeMaterialVariants = 125,
         /// <summary>When enabled, HDRP uses probe volumes for baked lighting.</summary>
-        [FrameSettingsField(1, autoName: ProbeVolume)]
+        [FrameSettingsField(1, autoName: ProbeVolume, tooltip: "Enable to debug and make HDRP process Probe Volumes. Enabling this feature causes HDRP to process Probe Volumes for this Camera/Reflection Probe.")]
         ProbeVolume = 127,
 
         //only 128 booleans saved. For more, change the BitArray used
@@ -852,8 +852,8 @@ namespace UnityEngine.Rendering.HighDefinition
             sanitizedFrameSettings.bitDatas[(int)FrameSettingsField.Decals] &= renderPipelineSettings.supportDecals && !preview;
             sanitizedFrameSettings.bitDatas[(int)FrameSettingsField.DecalLayers] &= renderPipelineSettings.supportDecalLayers && sanitizedFrameSettings.bitDatas[(int)FrameSettingsField.Decals];
             sanitizedFrameSettings.bitDatas[(int)FrameSettingsField.TransparentPostpass] &= renderPipelineSettings.supportTransparentDepthPostpass && !preview && sanitizedFrameSettings.bitDatas[(int)FrameSettingsField.TransparentObjects];
-            bool distortion = sanitizedFrameSettings.bitDatas[(int)FrameSettingsField.Distortion] &= renderPipelineSettings.supportDistortion && !msaa && !preview;
-            sanitizedFrameSettings.bitDatas[(int)FrameSettingsField.RoughDistortion] &= distortion && !msaa && !preview;
+            bool distortion = sanitizedFrameSettings.bitDatas[(int)FrameSettingsField.Distortion] &= renderPipelineSettings.supportDistortion && !preview;
+            sanitizedFrameSettings.bitDatas[(int)FrameSettingsField.RoughDistortion] &= distortion && !preview;
 
 
             sanitizedFrameSettings.bitDatas[(int)FrameSettingsField.LowResTransparent] &= renderPipelineSettings.lowresTransparentSettings.enabled && sanitizedFrameSettings.bitDatas[(int)FrameSettingsField.TransparentObjects];

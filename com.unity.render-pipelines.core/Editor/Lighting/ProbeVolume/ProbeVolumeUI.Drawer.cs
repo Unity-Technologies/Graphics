@@ -142,7 +142,9 @@ namespace UnityEditor.Experimental.Rendering
                 EditorGUILayout.HelpBox("The probe volume has changed since last baking or the data was never baked.\nPlease bake lighting in the lighting panel to update the lighting data.", MessageType.Warning, wide: true);
             }
 
-            EditorGUILayout.PropertyField(serialized.size, Styles.s_Size);
+            EditorGUILayout.PropertyField(serialized.globalVolume, Styles.s_GlobalVolume);
+            if (!serialized.globalVolume.boolValue)
+                EditorGUILayout.PropertyField(serialized.size, Styles.s_Size);
 
             var rect = EditorGUILayout.GetControlRect(true);
             EditorGUI.BeginProperty(rect, Styles.s_MinMaxSubdivSlider, serialized.minSubdivisionMultiplier);

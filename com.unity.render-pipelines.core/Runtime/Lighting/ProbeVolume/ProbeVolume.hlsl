@@ -7,6 +7,11 @@
 #include "Packages/com.unity.render-pipelines.core/Runtime/Lighting/ProbeVolume/DecodeSH.hlsl"
 #endif
 
+#ifndef UNITY_SHADER_VARIABLES_INCLUDED
+SAMPLER(s_linear_clamp_sampler);
+SAMPLER(s_point_clamp_sampler);
+#endif
+
 struct APVResources
 {
     StructuredBuffer<int> index;
@@ -15,13 +20,10 @@ struct APVResources
 
     Texture3D L1G_L1Ry;
     Texture3D L1B_L1Rz;
-
-#ifdef PROBE_VOLUMES_L2
     Texture3D L2_0;
     Texture3D L2_1;
     Texture3D L2_2;
     Texture3D L2_3;
-#endif
 };
 
 // Resources required for APV
@@ -32,14 +34,10 @@ TEXTURE3D(_APVResL0_L1Rx);
 TEXTURE3D(_APVResL1G_L1Ry);
 TEXTURE3D(_APVResL1B_L1Rz);
 
-#ifdef PROBE_VOLUMES_L2
 TEXTURE3D(_APVResL2_0);
 TEXTURE3D(_APVResL2_1);
 TEXTURE3D(_APVResL2_2);
 TEXTURE3D(_APVResL2_3);
-#endif
-
-#define APV_USE_BASE_OFFSET
 
 // We split the evaluation in several steps to make variants with different bands easier.
 float3 EvaluateAPVL0(APVResources apvRes, float3 uvw, out float L1Rx)
@@ -140,12 +138,9 @@ bool TryToGetPoolUVWAndSubdiv(APVResources apvRes, float3 posWS, float3 normalWS
     uint3 indexDim = (uint3)_IndexDim;
     uint3 poolDim = (uint3)_PoolDim;
     int3 centerIS = indexDim / 2;
+
     // check bounds
-#ifdef APV_USE_BASE_OFFSET
-    if (any(abs(posRS.xz) > float2(centerIS.xz)))
-#else
     if (any(abs(posRS) > float3(centerIS)))
-#endif
     {
         hasValidUVW = false;
     }
@@ -154,21 +149,9 @@ bool TryToGetPoolUVWAndSubdiv(APVResources apvRes, float3 posWS, float3 normalWS
     int3 index = centerIS + floor(posRS);
     index = index % indexDim;
 
-#ifdef APV_USE_BASE_OFFSET
-    // get the y-offset
-    int  yoffset = apvRes.index[index.z * indexDim.x + index.x];
-    if (yoffset == -1 || posRS.y < yoffset || posRS.y >= float(indexDim.y))
-    {
-        hasValidUVW = false;
-    }
-
-    index.y = posRS.y - yoffset;
-#endif
-
     // resolve the index
-    int  base_offset = indexDim.x * indexDim.z;
     int  flattened_index = index.z * (indexDim.x * indexDim.y) + index.x * indexDim.y + index.y;
-    uint packed_pool_idx = apvRes.index[base_offset + flattened_index];
+    uint packed_pool_idx = apvRes.index[flattened_index];
 
     // no valid brick loaded for this index, fallback to ambient probe
     if (packed_pool_idx == 0xffffffff)
@@ -262,12 +245,10 @@ APVResources FillAPVResources()
     apvRes.L1G_L1Ry = _APVResL1G_L1Ry;
     apvRes.L1B_L1Rz = _APVResL1B_L1Rz;
 
-#if PROBE_VOLUMES_L2
     apvRes.L2_0 = _APVResL2_0;
     apvRes.L2_1 = _APVResL2_1;
     apvRes.L2_2 = _APVResL2_2;
     apvRes.L2_3 = _APVResL2_3;
-#endif
 
     return apvRes;
 }

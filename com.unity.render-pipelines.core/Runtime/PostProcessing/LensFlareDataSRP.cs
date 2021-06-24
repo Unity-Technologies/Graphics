@@ -51,6 +51,8 @@ namespace UnityEngine.Rendering
 
     /// <summary>
     /// SRPLensFlareType which can be an image of a procedural shape
+    /// If change order or add new member, need to update preview
+    /// shader: LensFlareDataDrivenPreview.shader
     /// </summary>
     [System.Serializable]
     public enum SRPLensFlareType

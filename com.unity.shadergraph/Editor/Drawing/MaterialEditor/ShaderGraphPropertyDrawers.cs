@@ -73,15 +73,6 @@ namespace UnityEditor.ShaderGraph.Drawing
             {
                 DrawCategory(materialEditor, properties, mcd);
             }
-
-            EditorGUILayout.Space();
-            EditorGUILayout.Space();
-            if (SupportedRenderingFeatures.active.editableMaterialRenderQueue)
-            {
-                materialEditor.RenderQueueField();
-            }
-            materialEditor.EnableInstancingField();
-            materialEditor.DoubleSidedGIField();
         }
 
         static void DrawCategory(MaterialEditor materialEditor, IEnumerable<MaterialProperty> properties, MinimalCategoryData minimalCategoryData)
