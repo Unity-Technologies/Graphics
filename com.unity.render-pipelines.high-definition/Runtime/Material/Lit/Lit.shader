@@ -666,6 +666,10 @@ Shader "HDRP/Lit"
             // enable dithering LOD crossfade
             #pragma multi_compile _ LOD_FADE_CROSSFADE
             #pragma multi_compile_fragment SHADOW_LOW SHADOW_MEDIUM SHADOW_HIGH SHADOW_VERY_HIGH
+
+
+            #pragma multi_compile VARIANT_DIR_ENV VARIANT_DIR_PUNCTUAL_ENV VARIANT_DIR_PUNCTUAL_AREA_ENV
+
             #define HAS_LIGHTLOOP
 
             #define SHADERPASS SHADERPASS_VBUFFER_LIGHTING
