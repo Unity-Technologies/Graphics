@@ -354,6 +354,8 @@ namespace UnityEngine.Rendering.HighDefinition
             // VBuffer
             [Reload("Runtime/VBuffer/VertexBufferCompaction.compute")]
             public ComputeShader vbCompactionCS;
+            [Reload("Runtime/VBuffer/ClassificationTiles.compute")]
+            public ComputeShader classificationTilesCS;
             [Reload("Runtime/VBuffer/RenderVisibilityBuffer.shader")]
             public Shader renderVisibilityBufferPS;
             [Reload("Runtime/VBuffer/CreateMaterialDepth.shader")]

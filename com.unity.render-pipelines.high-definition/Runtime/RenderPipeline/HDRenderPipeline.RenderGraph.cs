@@ -88,7 +88,6 @@ namespace UnityEngine.Rendering.HighDefinition
 
                 var vBufferOutput = RenderVBuffer(m_RenderGraph, cullingResults, hdCamera, colorBuffer);
                 var materialDepth = RenderMaterialDepth(m_RenderGraph, hdCamera, colorBuffer);
-
                 // Need this during debug render at the end outside of the main loop scope.
                 // Once render graph move is implemented, we can probably remove the branch and this.
                 ShadowResult shadowResult = new ShadowResult();
@@ -168,7 +167,9 @@ namespace UnityEngine.Rendering.HighDefinition
 
                     var volumetricLighting = VolumetricLightingPass(m_RenderGraph, hdCamera, prepassOutput.depthPyramidTexture, volumetricDensityBuffer, maxZMask, gpuLightListOutput.bigTileLightList, shadowResult);
 
-                    colorBuffer = RenderVBufferLighting(m_RenderGraph, cullingResults, hdCamera, vBufferOutput, materialDepth, colorBuffer);
+                    var tileClassification = VBufferTileClassification(m_RenderGraph, hdCamera, gpuLightListOutput.tileFeatureFlags, colorBuffer);
+
+                    colorBuffer = RenderVBufferLighting(m_RenderGraph, cullingResults, hdCamera, vBufferOutput, materialDepth, colorBuffer, tileClassification, gpuLightListOutput);
 
                     var deferredLightingOutput = RenderDeferredLighting(m_RenderGraph, hdCamera, colorBuffer, prepassOutput.depthBuffer, prepassOutput.depthPyramidTexture, lightingBuffers, prepassOutput.gbuffer, shadowResult, gpuLightListOutput);
 
