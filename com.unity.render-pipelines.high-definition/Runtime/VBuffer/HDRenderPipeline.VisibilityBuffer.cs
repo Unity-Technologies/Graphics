@@ -171,6 +171,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
                             context.cmd.SetGlobalInt("_CurrMaterialID", materials[material]);
                             context.cmd.SetGlobalVector("_VBufferTileData", new Vector4((float)numTileX, (float)numTileY, (float)quadTileSize, 0.0f));
+                            context.cmd.SetViewport(new Rect(0, 0, numTileX * quadTileSize, numTileY * quadTileSize));
                             context.cmd.DrawProcedural(Matrix4x4.identity, material, passIdx, MeshTopology.Triangles, 6, numTileX * numTileY);
                         }
                     });
