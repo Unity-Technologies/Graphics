@@ -95,8 +95,6 @@ Shader "Hidden/HDRP/RenderVisibilityBuffer"
 
             InstanceVData instanceVData = _InstanceVDataBuffer[instanceID];
 
-            // Fetch the Material ID
-            uint materialId = instanceVData.materialIndex;
             // Write the VBuffer
             VBuffer0 = PackVisBuffer(instanceID, triangleID);
 #else

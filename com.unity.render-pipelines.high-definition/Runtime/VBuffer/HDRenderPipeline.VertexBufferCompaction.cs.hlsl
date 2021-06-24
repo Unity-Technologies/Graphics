@@ -26,7 +26,7 @@ struct CompactVertex
 struct InstanceVData
 {
     float4x4 localToWorld;
-    uint materialIndex;
+    uint materialData;
     uint chunkStartIndex;
     float4 lightmapST;
 };

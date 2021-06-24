@@ -20,6 +20,7 @@ struct Varyings
     UNITY_VERTEX_OUTPUT_STEREO
 };
 
+int _BucketID;
 int _CurrMaterialID;
 int _CurrFeatureSet;
 float4 _VBufferTileData;
@@ -54,7 +55,7 @@ Varyings Vert(Attributes inputMesh)
     output.positionCS.xy = vertPos * 2 - 1;
 
     output.lightAndMaterialFeatures = _VBufferTileClassification[COORD_TEXTURE2D_X(uint2(tileX, (_NumVBufferTileY-1) - tileY))];
-    output.positionCS.z = float(_CurrMaterialID) / (float)(0xffff);
+    output.positionCS.z = float(_CurrMaterialID & 0xffff) / (float)(0xffff);
     output.positionCS.w = 1;
 
     output.tileCoord = uint2(tileX, tileY);

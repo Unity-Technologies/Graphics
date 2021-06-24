@@ -23,7 +23,15 @@ namespace UnityEngine.Rendering.HighDefinition
         Material m_VisibilityBufferMaterial = null;
         Material m_CreateMaterialDepthMaterial = null;
 
-        Dictionary<Material, int> materials = new Dictionary<Material, int>();
+
+        struct MaterialData
+        {
+            public int numRenderers;
+            public int globalMaterialID;
+            public int bucketID;
+        }
+
+        Dictionary<Material, MaterialData> materials = new Dictionary<Material, MaterialData>();
 
         [GenerateHLSL]
         class VisibilityBufferConstants
@@ -46,7 +54,7 @@ namespace UnityEngine.Rendering.HighDefinition
         internal struct InstanceVData
         {
             public Matrix4x4 localToWorld;
-            public uint materialIndex;
+            public uint materialData;
             public uint chunkStartIndex;
             public Vector4 lightmapST;
         }
@@ -97,7 +105,6 @@ namespace UnityEngine.Rendering.HighDefinition
             {
                 uint subMeshIndexSize = mesh.GetIndexCount(i);
                 int clustersForSubmesh = HDUtils.DivRoundUp((int)subMeshIndexSize, VisibilityBufferConstants.s_ClusterSizeInIndices);
-                int materialIdx = 0;
 
                 Material currentMat = renderer.sharedMaterials[i];
                 if (currentMat == null)
@@ -113,14 +120,21 @@ namespace UnityEngine.Rendering.HighDefinition
                     if (currentMat.HasProperty("_CullMode"))
                         cullMode = currentMat.GetFloat("_CullMode");
 
-                    materials.TryGetValue(currentMat, out materialIdx);
+                    MaterialData materialData = new MaterialData();
+                    materials.TryGetValue(currentMat, out materialData);
+                    uint materialID = ((uint)materialData.globalMaterialID) & 0xffff;
+                    uint bucketID = ((uint)materialData.bucketID) & 0xffff;
+
+                    // Instance data common to all clusters
+                    InstanceVData data;
+                    data.materialData = materialID | bucketID << 16;
+                    data.localToWorld = renderer.localToWorldMatrix;
+                    data.lightmapST = renderer.lightmapScaleOffset;
+
                     for (int c = 0; c < clustersForSubmesh; ++c)
                     {
-                        InstanceVData data;
-                        data.localToWorld = renderer.localToWorldMatrix;
-                        data.materialIndex = (uint)materialIdx;
+                        // Adjust the chunk start index
                         data.chunkStartIndex = meshes[mesh] + (uint)clusterCount;
-                        data.lightmapST = renderer.lightmapScaleOffset;
 
                         if (doubleSided)
                             instancesDouble.Add(data);
@@ -289,15 +303,22 @@ namespace UnityEngine.Rendering.HighDefinition
                     clusterCount += ComputeNumberOfClusters(meshFilter.sharedMesh);
                 }
 
+                MaterialData materialData = new MaterialData();
                 foreach (var mat in currentRenderer.sharedMaterials)
                 {
                     if (mat == null) continue;
-                    int matIdx = 0;
-                    if (!materials.TryGetValue(mat, out matIdx))
+                    if (!materials.TryGetValue(mat, out materialData))
                     {
                         mat.enableInstancing = true;
-                        materials.Add(mat, materialIdx);
+                        materialData.numRenderers = materialIdx & 0xffff;
+                        materialData.globalMaterialID = materialIdx & 0xffff;
+                        materials.Add(mat, materialData);
                         materialIdx++;
+                    }
+                    else
+                    {
+                        materialData.numRenderers += 1;
+                        materials[mat] = materialData;
                     }
                 }
                 validRenderers++;
@@ -306,6 +327,28 @@ namespace UnityEngine.Rendering.HighDefinition
             // If we don't have any valid renderer
             if (validRenderers == 0)
                 return;
+
+            // TODO: Worked on the sorted set of materials to optimize the space
+            // We need to assign every material to a bucket
+            int renderersPerBucket = Mathf.RoundToInt(validRenderers / 8.0f);
+            int currentBucket = 0;
+            int currentBucketRenderers = 0;
+            var materialCouple = materials.ToArray();
+            foreach (var mat in materialCouple)
+            {
+                // This goes into the current bucket
+                MaterialData newData = mat.Value;
+                currentBucketRenderers += newData.numRenderers;
+                newData.bucketID = currentBucket;
+                materials[mat.Key] = newData;
+                currentBucketRenderers += newData.numRenderers;
+
+                if (currentBucketRenderers >= renderersPerBucket)
+                {
+                    currentBucket++;
+                    currentBucketRenderers = 0;
+                }
+            }
 
             int currVBCount = CompactedVB == null ? 0 : CompactedVB.count;
             if (vertexCount != currVBCount)
