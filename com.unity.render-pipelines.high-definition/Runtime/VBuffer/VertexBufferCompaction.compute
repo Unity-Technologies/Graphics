@@ -10,12 +10,14 @@
 #pragma enable_d3d11_debug_symbols
 
 float4 _UVCompactionParams;
+float4 _UV1CompactionParams;
 float4 _NormalCompactionParams;
 float4 _PosCompactionParams;
 float4 _TangentCompactionParams;
 
 
 #define _UVVBBias (uint)_UVCompactionParams.x
+#define _UV1VBBias (uint)_UV1CompactionParams.x
 #define _NormalVBBias (uint)_NormalCompactionParams.x
 #define _PosVBBias (uint)_PosCompactionParams.x
 #define _TangentVBBias (uint)_TangentCompactionParams.x
@@ -23,28 +25,32 @@ float4 _TangentCompactionParams;
 #define _VBCount (uint)_UVCompactionParams.y
 
 #define _UVVBStride (uint)_UVCompactionParams.z
+#define _UV1VBStride (uint)_UV1CompactionParams.z
 #define _NormalVBStride (uint)_NormalCompactionParams.z
 #define _PosVBStride (uint)_PosCompactionParams.z
 #define _TangentVBStride (uint)_TangentCompactionParams.z
 
 #define _VBOutputBias (uint)_UVCompactionParams.w
 
+#define _HasUV1 !all(_UV1CompactionParams == 0)
 
 float4 _IBCompactionParams;
 
 
 ByteAddressBuffer _InputUVVB;
+ByteAddressBuffer _InputUV1VB;
 ByteAddressBuffer _InputNormalVB;
 ByteAddressBuffer _InputPosVB;
 ByteAddressBuffer _InputTangentVB;
 
 RWStructuredBuffer<CompactVertex> _OutputVB;
 
-CompactVertex GetCompactVertex(float2 uv, float3 pos, float3 N, float4 T)
+CompactVertex GetCompactVertex(float2 uv, float2 uv1, float3 pos, float3 N, float4 T)
 {
     CompactVertex vtx;
     vtx.pos = pos;
     vtx.uv = uv;
+    vtx.uv1 = uv1;
 
     vtx.N = N;
     vtx.T = T;
@@ -61,11 +67,16 @@ void VBCompactionKernel(uint3 id : SV_DispatchThreadID)
 
         // Sample from inputs
         float2 uv = asfloat(_InputUVVB.Load2(vertexIdx * _UVVBStride + _UVVBBias));
+        float2 uv1 = 0;
+        if (_HasUV1)
+        {
+            uv1 = asfloat(_InputUV1VB.Load2(vertexIdx * _UV1VBStride + _UV1VBBias));
+        }
         float3 pos = asfloat(_InputPosVB.Load3(vertexIdx * _PosVBStride + _PosVBBias));
         float3 N = asfloat(_InputNormalVB.Load3(vertexIdx * _NormalVBStride + _NormalVBBias));
         float4 T = asfloat(_InputTangentVB.Load4(vertexIdx * _TangentVBStride + _TangentVBBias));
 
-        CompactVertex vtx = GetCompactVertex(uv, pos, N, T);
+        CompactVertex vtx = GetCompactVertex(uv, uv1, pos, N, T);
         _OutputVB[_VBOutputBias + vertexIdx] = vtx;
     }
 }

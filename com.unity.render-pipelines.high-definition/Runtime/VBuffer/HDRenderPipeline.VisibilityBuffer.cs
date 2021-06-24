@@ -169,8 +169,10 @@ namespace UnityEngine.Rendering.HighDefinition
                             int numTileX = HDUtils.DivRoundUp(data.width, quadTileSize);
                             int numTileY = HDUtils.DivRoundUp(data.height, quadTileSize);
 
-                            context.cmd.SetGlobalInt("_CurrMaterialID", materials[material]);
+                            context.cmd.SetGlobalInt("_BucketID", materials[material].bucketID);
+                            context.cmd.SetGlobalInt("_CurrMaterialID", materials[material].globalMaterialID);
                             context.cmd.SetGlobalVector("_VBufferTileData", new Vector4((float)numTileX, (float)numTileY, (float)quadTileSize, 0.0f));
+                            context.cmd.SetViewport(new Rect(0, 0, numTileX * quadTileSize, numTileY * quadTileSize));
                             context.cmd.DrawProcedural(Matrix4x4.identity, material, passIdx, MeshTopology.Triangles, 6, numTileX * numTileY);
                         }
                     });

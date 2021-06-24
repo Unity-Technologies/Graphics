@@ -23,7 +23,15 @@ namespace UnityEngine.Rendering.HighDefinition
         Material m_VisibilityBufferMaterial = null;
         Material m_CreateMaterialDepthMaterial = null;
 
-        Dictionary<Material, int> materials = new Dictionary<Material, int>();
+
+        struct MaterialData
+        {
+            public int numRenderers;
+            public int globalMaterialID;
+            public int bucketID;
+        }
+
+        Dictionary<Material, MaterialData> materials = new Dictionary<Material, MaterialData>();
 
         [GenerateHLSL]
         class VisibilityBufferConstants
@@ -37,6 +45,7 @@ namespace UnityEngine.Rendering.HighDefinition
         {
             public Vector3 pos;
             public Vector2 uv;
+            public Vector2 uv1;
             public Vector3 N;
             public Vector4 T;
         }
@@ -45,8 +54,9 @@ namespace UnityEngine.Rendering.HighDefinition
         internal struct InstanceVData
         {
             public Matrix4x4 localToWorld;
-            public uint materialIndex;
+            public uint materialData;
             public uint chunkStartIndex;
+            public Vector4 lightmapST;
         }
 
         void InitVBuffer()
@@ -88,16 +98,15 @@ namespace UnityEngine.Rendering.HighDefinition
             return 4;
         }
 
-        int DivideMeshInClusters(Mesh mesh, Matrix4x4 localToWorld, Material[] sharedMaterials, ref Dictionary<Mesh, uint> meshes, ref List<InstanceVData> instancesBack, ref List<InstanceVData> instancesFront, ref List<InstanceVData> instancesDouble)
+        int DivideMeshInClusters(Mesh mesh, MeshRenderer renderer, ref Dictionary<Mesh, uint> meshes, ref List<InstanceVData> instancesBack, ref List<InstanceVData> instancesFront, ref List<InstanceVData> instancesDouble)
         {
             int clusterCount = 0;
             for (int i = 0; i < mesh.subMeshCount; ++i)
             {
                 uint subMeshIndexSize = mesh.GetIndexCount(i);
                 int clustersForSubmesh = HDUtils.DivRoundUp((int)subMeshIndexSize, VisibilityBufferConstants.s_ClusterSizeInIndices);
-                int materialIdx = 0;
 
-                Material currentMat = sharedMaterials[i];
+                Material currentMat = renderer.sharedMaterials[i];
                 if (currentMat == null)
                     continue;
 
@@ -111,12 +120,20 @@ namespace UnityEngine.Rendering.HighDefinition
                     if (currentMat.HasProperty("_CullMode"))
                         cullMode = currentMat.GetFloat("_CullMode");
 
-                    materials.TryGetValue(currentMat, out materialIdx);
+                    MaterialData materialData = new MaterialData();
+                    materials.TryGetValue(currentMat, out materialData);
+                    uint materialID = ((uint)materialData.globalMaterialID) & 0xffff;
+                    uint bucketID = ((uint)materialData.bucketID) & 0xffff;
+
+                    // Instance data common to all clusters
+                    InstanceVData data;
+                    data.materialData = materialID | bucketID << 16;
+                    data.localToWorld = renderer.localToWorldMatrix;
+                    data.lightmapST = renderer.lightmapScaleOffset;
+
                     for (int c = 0; c < clustersForSubmesh; ++c)
                     {
-                        InstanceVData data;
-                        data.localToWorld = localToWorld;
-                        data.materialIndex = (uint)materialIdx;
+                        // Adjust the chunk start index
                         data.chunkStartIndex = meshes[mesh] + (uint)clusterCount;
 
                         if (doubleSided)
@@ -134,6 +151,24 @@ namespace UnityEngine.Rendering.HighDefinition
             return clusterCount;
         }
 
+        GraphicsBuffer GetVertexAttribInfo(Mesh mesh, VertexAttribute attribute, out int streamStride, out int attributeOffset, out int attributeBytes)
+        {
+            if (mesh.HasVertexAttribute(attribute))
+            {
+                int stream = mesh.GetVertexAttributeStream(attribute);
+                streamStride = mesh.GetVertexBufferStride(stream);
+                attributeOffset = mesh.GetVertexAttributeOffset(attribute);
+                attributeBytes = GetFormatByteCount(mesh.GetVertexAttributeFormat(attribute)) * mesh.GetVertexAttributeDimension(attribute);
+
+                return mesh.GetVertexBuffer(stream);
+            }
+            else
+            {
+                streamStride = attributeOffset = attributeBytes = 0;
+                return null;
+            }
+        }
+
         void AddMeshToCompactedBuffer(ref uint clusterIndex, ref uint vbStart, Mesh mesh)
         {
             var ib = mesh.GetIndexBuffer();
@@ -142,30 +177,30 @@ namespace UnityEngine.Rendering.HighDefinition
             mesh.indexBufferTarget |= GraphicsBuffer.Target.Raw;
             mesh.vertexBufferTarget |= GraphicsBuffer.Target.Raw;
 
-            int posStream = mesh.GetVertexAttributeStream(VertexAttribute.Position);
-            int posStreamStride = mesh.GetVertexBufferStride(posStream);
-            int posOffset = mesh.GetVertexAttributeOffset(VertexAttribute.Position);
-            var posVBStream = mesh.GetVertexBuffer(posStream);
-            var posFormat = mesh.GetVertexAttributeFormat(VertexAttribute.Position);
-            int posBytes = GetFormatByteCount(mesh.GetVertexAttributeFormat(VertexAttribute.Position)) * mesh.GetVertexAttributeDimension(VertexAttribute.Position);
+            int posStreamStride, posOffset, posBytes;
+            var posVBStream = GetVertexAttribInfo(mesh, VertexAttribute.Position, out posStreamStride, out posOffset, out posBytes);
 
-            int uvStream = mesh.GetVertexAttributeStream(VertexAttribute.TexCoord0);
-            int uvStreamStride = mesh.GetVertexBufferStride(uvStream);
-            int uvOffset = mesh.GetVertexAttributeOffset(VertexAttribute.TexCoord0);
-            var uvVBStream = mesh.GetVertexBuffer(uvStream);
-            int uvBytes = GetFormatByteCount(mesh.GetVertexAttributeFormat(VertexAttribute.TexCoord0)) * mesh.GetVertexAttributeDimension(VertexAttribute.TexCoord0);
+            int uvStreamStride, uvOffset, uvBytes;
+            var uvVBStream = GetVertexAttribInfo(mesh, VertexAttribute.TexCoord0, out uvStreamStride, out uvOffset, out uvBytes);
 
-            int normalStream = mesh.GetVertexAttributeStream(VertexAttribute.Normal);
-            int normalStreamStride = mesh.GetVertexBufferStride(normalStream);
-            int normalOffset = mesh.GetVertexAttributeOffset(VertexAttribute.Normal);
-            var normalVBStream = mesh.GetVertexBuffer(normalStream);
-            int normalBytes = GetFormatByteCount(mesh.GetVertexAttributeFormat(VertexAttribute.Normal)) * mesh.GetVertexAttributeDimension(VertexAttribute.Normal);
+            int normalStreamStride, normalOffset, normalBytes;
+            var normalVBStream = GetVertexAttribInfo(mesh, VertexAttribute.Normal, out normalStreamStride, out normalOffset, out normalBytes);
 
-            int tangentStream = mesh.GetVertexAttributeStream(VertexAttribute.Tangent);
-            int tangentStreamStride = mesh.GetVertexBufferStride(tangentStream);
-            int tangentOffset = mesh.GetVertexAttributeOffset(VertexAttribute.Tangent);
-            var tangentVBStream = mesh.GetVertexBuffer(tangentStream);
-            int tangentBytes = GetFormatByteCount(mesh.GetVertexAttributeFormat(VertexAttribute.Tangent)) * mesh.GetVertexAttributeDimension(VertexAttribute.Tangent);
+            int tangentStreamStride, tangentOffset, tangentBytes;
+            var tangentVBStream = GetVertexAttribInfo(mesh, VertexAttribute.Tangent, out tangentStreamStride, out tangentOffset, out tangentBytes);
+
+            Vector4 uv1CompactionParam = Vector4.zero;
+            bool hasTexCoord1 = mesh.HasVertexAttribute(VertexAttribute.TexCoord1);
+            GraphicsBuffer uv1VBStream = null;
+            if (hasTexCoord1)
+            {
+                int uv1StreamStride, uv1Offset, uv1Bytes;
+                uv1VBStream = GetVertexAttribInfo(mesh, VertexAttribute.TexCoord1, out uv1StreamStride, out uv1Offset, out uv1Bytes);
+                List<Vector2> blah = new List<Vector2>();
+                mesh.GetUVs(1, blah);
+                uv1CompactionParam = new Vector4(uv1Offset, mesh.vertexCount, uv1StreamStride, vbStart);
+                cs.SetVector(HDShaderIDs._UV1CompactionParams, uv1CompactionParam);
+            }
 
             Vector4 uvCompactionParam = new Vector4(uvOffset, mesh.vertexCount, uvStreamStride, vbStart);
             Vector4 normalCompactionParam = new Vector4(normalOffset, mesh.vertexCount, normalStreamStride, vbStart);
@@ -181,6 +216,10 @@ namespace UnityEngine.Rendering.HighDefinition
             cs.SetBuffer(kernel, HDShaderIDs._InputNormalVB, normalVBStream);
             cs.SetBuffer(kernel, HDShaderIDs._InputPosVB, posVBStream);
             cs.SetBuffer(kernel, HDShaderIDs._InputTangentVB, tangentVBStream);
+            if (hasTexCoord1)
+                cs.SetBuffer(kernel, HDShaderIDs._InputUV1VB, uv1VBStream);
+            else
+                cs.SetBuffer(kernel, HDShaderIDs._InputUV1VB, uvVBStream);
 
             cs.SetBuffer(kernel, HDShaderIDs._OutputVB, CompactedVB);
 
@@ -264,15 +303,22 @@ namespace UnityEngine.Rendering.HighDefinition
                     clusterCount += ComputeNumberOfClusters(meshFilter.sharedMesh);
                 }
 
+                MaterialData materialData = new MaterialData();
                 foreach (var mat in currentRenderer.sharedMaterials)
                 {
                     if (mat == null) continue;
-                    int matIdx = 0;
-                    if (!materials.TryGetValue(mat, out matIdx))
+                    if (!materials.TryGetValue(mat, out materialData))
                     {
                         mat.enableInstancing = true;
-                        materials.Add(mat, materialIdx);
+                        materialData.numRenderers = materialIdx & 0xffff;
+                        materialData.globalMaterialID = materialIdx & 0xffff;
+                        materials.Add(mat, materialData);
                         materialIdx++;
+                    }
+                    else
+                    {
+                        materialData.numRenderers += 1;
+                        materials[mat] = materialData;
                     }
                 }
                 validRenderers++;
@@ -281,6 +327,28 @@ namespace UnityEngine.Rendering.HighDefinition
             // If we don't have any valid renderer
             if (validRenderers == 0)
                 return;
+
+            // TODO: Worked on the sorted set of materials to optimize the space
+            // We need to assign every material to a bucket
+            int renderersPerBucket = Mathf.RoundToInt(validRenderers / 8.0f);
+            int currentBucket = 0;
+            int currentBucketRenderers = 0;
+            var materialCouple = materials.ToArray();
+            foreach (var mat in materialCouple)
+            {
+                // This goes into the current bucket
+                MaterialData newData = mat.Value;
+                currentBucketRenderers += newData.numRenderers;
+                newData.bucketID = currentBucket;
+                materials[mat.Key] = newData;
+                currentBucketRenderers += newData.numRenderers;
+
+                if (currentBucketRenderers >= renderersPerBucket)
+                {
+                    currentBucket++;
+                    currentBucketRenderers = 0;
+                }
+            }
 
             int currVBCount = CompactedVB == null ? 0 : CompactedVB.count;
             if (vertexCount != currVBCount)
@@ -323,7 +391,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 currentRenderer.TryGetComponent(out MeshFilter meshFilter);
                 if (meshFilter == null || meshFilter.sharedMesh == null) continue;
 
-                DivideMeshInClusters(meshFilter.sharedMesh, currentRenderer.localToWorldMatrix, currentRenderer.sharedMaterials, ref meshes, ref instanceDataBack, ref instanceDataFront, ref instanceDataDouble);
+                DivideMeshInClusters(meshFilter.sharedMesh, currentRenderer, ref meshes, ref instanceDataBack, ref instanceDataFront, ref instanceDataDouble);
             }
 
             instanceCountBack = (uint)instanceDataBack.Count;

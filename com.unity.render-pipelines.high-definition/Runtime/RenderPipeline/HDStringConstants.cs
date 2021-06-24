@@ -982,10 +982,12 @@ namespace UnityEngine.Rendering.HighDefinition
 
         // VBuffer
         public static readonly int _UVCompactionParams = Shader.PropertyToID("_UVCompactionParams");
+        public static readonly int _UV1CompactionParams = Shader.PropertyToID("_UV1CompactionParams");
         public static readonly int _NormalCompactionParams = Shader.PropertyToID("_NormalCompactionParams");
         public static readonly int _PosCompactionParams = Shader.PropertyToID("_PosCompactionParams");
         public static readonly int _TangentCompactionParams = Shader.PropertyToID("_TangentCompactionParams");
         public static readonly int _InputUVVB = Shader.PropertyToID("_InputUVVB");
+        public static readonly int _InputUV1VB = Shader.PropertyToID("_InputUV1VB");
         public static readonly int _InputNormalVB = Shader.PropertyToID("_InputNormalVB");
         public static readonly int _InputPosVB = Shader.PropertyToID("_InputPosVB");
         public static readonly int _InputTangentVB = Shader.PropertyToID("_InputTangentVB");
