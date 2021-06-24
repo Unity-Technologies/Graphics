@@ -596,10 +596,10 @@ namespace UnityEngine.Rendering.Universal
 
                 if (!Graphics.preserveFramebufferAlpha &&
                     RenderingUtils.SupportsGraphicsFormat(GraphicsFormat.B10G11R11_UFloatPack32,
-                        FormatUsage.Linear | FormatUsage.Render))
+                        FormatUsage.Linear, FormatUsage.Render))
                     hdrFormat = GraphicsFormat.B10G11R11_UFloatPack32;
                 else if (RenderingUtils.SupportsGraphicsFormat(GraphicsFormat.R16G16B16A16_SFloat,
-                    FormatUsage.Linear | FormatUsage.Render))
+                    FormatUsage.Linear, FormatUsage.Render))
                     hdrFormat = GraphicsFormat.R16G16B16A16_SFloat;
                 else
                     hdrFormat = SystemInfo.GetGraphicsFormat(DefaultFormat.HDR);

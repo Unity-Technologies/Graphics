@@ -68,9 +68,9 @@ namespace UnityEngine.Rendering.Universal
         {
             if (!s_HasSetupRenderTextureFormatToUse)
             {
-                if (SystemInfo.IsFormatSupported(GraphicsFormat.B10G11R11_UFloatPack32, FormatUsage.Linear | FormatUsage.Render))
+                if (SystemInfo.IsFormatSupported(GraphicsFormat.B10G11R11_UFloatPack32, FormatUsage.Linear) && SystemInfo.IsFormatSupported(GraphicsFormat.B10G11R11_UFloatPack32, FormatUsage.Render))
                     s_RenderTextureFormatToUse = GraphicsFormat.B10G11R11_UFloatPack32;
-                else if (SystemInfo.IsFormatSupported(GraphicsFormat.R16G16B16A16_SFloat, FormatUsage.Linear | FormatUsage.Render))
+                else if (SystemInfo.IsFormatSupported(GraphicsFormat.R16G16B16A16_SFloat, FormatUsage.Linear) && SystemInfo.IsFormatSupported(GraphicsFormat.R16G16B16A16_SFloat, FormatUsage.Render))
                     s_RenderTextureFormatToUse = GraphicsFormat.R16G16B16A16_SFloat;
 
                 s_HasSetupRenderTextureFormatToUse = true;

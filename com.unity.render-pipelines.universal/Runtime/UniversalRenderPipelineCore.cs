@@ -505,9 +505,9 @@ namespace UnityEngine.Rendering.Universal
         {
             if (isHdrEnabled)
             {
-                if (!needsAlpha && RenderingUtils.SupportsGraphicsFormat(GraphicsFormat.B10G11R11_UFloatPack32, FormatUsage.Linear | FormatUsage.Render))
+                if (!needsAlpha && RenderingUtils.SupportsGraphicsFormat(GraphicsFormat.B10G11R11_UFloatPack32, FormatUsage.Linear, FormatUsage.Render))
                     return GraphicsFormat.B10G11R11_UFloatPack32;
-                if (RenderingUtils.SupportsGraphicsFormat(GraphicsFormat.R16G16B16A16_SFloat, FormatUsage.Linear | FormatUsage.Render))
+                if (RenderingUtils.SupportsGraphicsFormat(GraphicsFormat.R16G16B16A16_SFloat, FormatUsage.Linear, FormatUsage.Render))
                     return GraphicsFormat.R16G16B16A16_SFloat;
                 return SystemInfo.GetGraphicsFormat(DefaultFormat.HDR); // This might actually be a LDR format on old devices.
             }
