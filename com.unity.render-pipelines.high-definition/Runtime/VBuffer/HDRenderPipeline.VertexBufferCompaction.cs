@@ -101,12 +101,13 @@ namespace UnityEngine.Rendering.HighDefinition
         int DivideMeshInClusters(Mesh mesh, MeshRenderer renderer, ref Dictionary<Mesh, uint> meshes, ref List<InstanceVData> instancesBack, ref List<InstanceVData> instancesFront, ref List<InstanceVData> instancesDouble)
         {
             int clusterCount = 0;
-            for (int i = 0; i < mesh.subMeshCount; ++i)
+            for (int matIndex = 0; matIndex < renderer.sharedMaterials.Length; ++matIndex)
             {
-                uint subMeshIndexSize = mesh.GetIndexCount(i);
+                int subMeshIndex = (matIndex + renderer.subMeshStartIndex) % mesh.subMeshCount;
+                uint subMeshIndexSize = mesh.GetIndexCount(subMeshIndex);
                 int clustersForSubmesh = HDUtils.DivRoundUp((int)subMeshIndexSize, VisibilityBufferConstants.s_ClusterSizeInIndices);
 
-                Material currentMat = renderer.sharedMaterials[i];
+                Material currentMat = renderer.sharedMaterials[matIndex];
                 if (currentMat == null)
                     continue;
 
@@ -215,7 +216,10 @@ namespace UnityEngine.Rendering.HighDefinition
             cs.SetBuffer(kernel, HDShaderIDs._InputUVVB, uvVBStream);
             cs.SetBuffer(kernel, HDShaderIDs._InputNormalVB, normalVBStream);
             cs.SetBuffer(kernel, HDShaderIDs._InputPosVB, posVBStream);
-            cs.SetBuffer(kernel, HDShaderIDs._InputTangentVB, tangentVBStream);
+            if (tangentVBStream != null)
+                cs.SetBuffer(kernel, HDShaderIDs._InputTangentVB, tangentVBStream);
+            else
+                cs.SetBuffer(kernel, HDShaderIDs._InputTangentVB, uvVBStream);
             if (hasTexCoord1)
                 cs.SetBuffer(kernel, HDShaderIDs._InputUV1VB, uv1VBStream);
             else
