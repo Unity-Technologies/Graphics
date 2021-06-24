@@ -63,50 +63,59 @@ namespace UnityEngine.Rendering.SDFRP
 
         struct ObjectHeader
         {
-            Matrix4x4 worldToObjMatrix;
-            int      objID;
-            int      numEntries;
-            int      startOffset;
-            float    voxelSize;
-            Vector3  minExtent;
-            float    pad0;
-            Vector3  maxExtent;
-            float    pad1;
-            Vector4  color;
+            public Matrix4x4 worldToObjMatrix;
+            public int      objID;
+            public int      numEntries;
+            public int      startOffset;
+            public float    voxelSize;
+            public Vector3  minExtent;
+            public float    pad0;
+            public Vector3  maxExtent;
+            public float    pad1;
+            public Vector4  color;
         };
 
         protected override void Render(ScriptableRenderContext context, Camera[] cameras)
         {
-            // SDFRenderer[] SDFObjects = GameObject.FindObjectsOfType<SDFRenderer>();
-            // ComputeBuffer SDFHeaderData = new ComputeBuffer(SDFObjects.Length, UnsafeUtility.SizeOf<ObjectHeader>(), ComputeBufferType.Default);
-            // ComputeBuffer SDFData = GetDataFromSceneGraph(SDFObjects, SDFHeaderData);
+            ClearBackground(context, cameras);
 
-            Vector3[] sampleExtents = {
-                new Vector3(1.0f, 1.0f, 1.0f),
-                new Vector3(3.0f, 5.0f, 1.0f),
-                new Vector3(4.0f, 2.0f, 2.0f),
-            };
-            Matrix4x4[] sampleTransforms = {
-                Matrix4x4.TRS(new Vector3(0, 0, 0), Quaternion.identity, Vector3.one),
-                Matrix4x4.TRS(new Vector3(3, 3, 3), Quaternion.identity, Vector3.one),
-                Matrix4x4.TRS(new Vector3(-4, 0, 0), Quaternion.identity, Vector3.one)
-            };
-            CreateObjectList(context, cameras, sampleExtents, sampleTransforms);
-
-            // ScriptableCullingParameters scp;
-            // cameras[0].TryGetCullingParameters(out scp);
-            // CullingResults cullResults = context.Cull(ref scp);
-            // DrawRendererSettings drawRenderSettings = new DrawRendererSettings();
-            // context.DrawRenderers(cullResults.visibleRenderers);
-            // context.DrawSkybox(cameras[0]);
-
-            // SDF Rendering
+            SDFRenderer[] SDFObjects = GameObject.FindObjectsOfType<SDFRenderer>();
+            ComputeBuffer SDFHeaderData;
+            ComputeBuffer SDFData;
+            if (SDFObjects.Length > 0)
             {
-                CommandBuffer cmdRayMarch = new CommandBuffer();
-                cmdRayMarch.name = "RayMarch";
-                SDFRayMarch.RayMarch(cmdRayMarch, currentAsset.rayMarchingCS);
-                context.ExecuteCommandBuffer(cmdRayMarch);
-                cmdRayMarch.Release();
+                SDFHeaderData = new ComputeBuffer(SDFObjects.Length, UnsafeUtility.SizeOf<ObjectHeader>(), ComputeBufferType.Default);
+                SDFData = GetDataFromSceneGraph(SDFObjects, SDFHeaderData);
+
+                // Vector3[] sampleExtents = {
+                //     new Vector3(1.0f, 1.0f, 1.0f),
+                //     new Vector3(3.0f, 5.0f, 1.0f),
+                //     new Vector3(4.0f, 2.0f, 2.0f),
+                // };
+                // Matrix4x4[] sampleTransforms = {
+                //     Matrix4x4.TRS(new Vector3(0, 0, 0), Quaternion.identity, Vector3.one),
+                //     Matrix4x4.TRS(new Vector3(3, 3, 3), Quaternion.identity, Vector3.one),
+                //     Matrix4x4.TRS(new Vector3(-4, 0, 0), Quaternion.identity, Vector3.one)
+                // };
+                CreateObjectList(context, cameras, SDFHeaderData, SDFObjects.Length);
+
+                // ScriptableCullingParameters scp;
+                // cameras[0].TryGetCullingParameters(out scp);
+                // CullingResults cullResults = context.Cull(ref scp);
+                // DrawRendererSettings drawRenderSettings = new DrawRendererSettings();
+                // context.DrawRenderers(cullResults.visibleRenderers);
+                // context.DrawSkybox(cameras[0]);
+
+                // SDF Rendering
+                {
+                    CommandBuffer cmdRayMarch = new CommandBuffer();
+                    cmdRayMarch.name = "RayMarch";
+                    SDFRayMarch.RayMarch(cmdRayMarch, currentAsset.rayMarchingCS);
+                    context.ExecuteCommandBuffer(cmdRayMarch);
+                    cmdRayMarch.Release();
+                }
+                SDFHeaderData.Release();
+                SDFData.Release();
             }
 
             if (currentAsset.EnableDepthOfField)
@@ -167,47 +176,62 @@ namespace UnityEngine.Rendering.SDFRP
             Frame++;
         }
 
+        private void ClearBackground(ScriptableRenderContext context, Camera[] cameras)
+        {
+            foreach (Camera camera in cameras)
+            {
+                CommandBuffer cmd1 = new CommandBuffer();
+                if (camera.cameraType == CameraType.Preview)
+                {
+                    Debug.LogError(camera.pixelRect);
+                }
+                cmd1.SetViewport(camera.pixelRect);
+                cmd1.SetRenderTarget(camera.targetTexture);
+                cmd1.ClearRenderTarget(false, true, currentAsset.clearColor);
+                context.ExecuteCommandBuffer(cmd1);
+                cmd1.Release();
+            }
+        }
 
-        // private ComputeBuffer GetDataFromSceneGraph(SDFRenderer[] SDFObjects, ComputeBuffer headers)
-        // {
-        //     // First, get size
-        //     int dataSize = 0;
-        //     foreach (SDFRenderer renderer in SDFObjects)
-        //     {
-        //         SDFFilter filter = renderer.gameObject.GetComponent<SDFFilter>();
-        //         dataSize += filter.size;
-        //     }
+        private ComputeBuffer GetDataFromSceneGraph(SDFRenderer[] SDFObjects, ComputeBuffer headers)
+        {
+            // First, get size
+            int dataSize = 0;
+            foreach (SDFRenderer renderer in SDFObjects)
+            {
+                dataSize += renderer.SDFFilter.VoxelField.m_Field.Length;
+            }
 
-        //     // Next, fill out array of data and array of data-headers
-        //     float[] nativeData = new float[dataSize];
-        //     ObjectHeader[] nativeHeaders = new ObjectHeader[SDFObjects.Length];
+            // Next, fill out array of data and array of data-headers
+            float[] nativeData = new float[dataSize];
+            ObjectHeader[] nativeHeaders = new ObjectHeader[SDFObjects.Length];
 
-        //     int offset = 0;
-        //     for(int i = 0; i < SDFObjects.Length; i++)
-        //     {
-        //         SDFFilter filter = SDFObjects[i].gameObject.GetComponent<SDFFilter>();
-        //         ObjectHeader header = new ObjectHeader();
-        //         header.worldToObjMatrix = SDFObjects[i].worldToLocalMatrix;
-        //         header.objID = i; // index into data. Change later?
-        //         header.numEntries = dataSize;
-        //         header.startOffset = offset;
-        //         header.voxelSize = filter.voxelSize;
-        //         header.minExtent = filter.minExtent;
-        //         header.maxExtent = filter.maxExtent;
-        //         header.color = SDFObjects[i].material.color;
-        //         nativeHeaders[i] = header;
+            int offset = 0;
+            for(int i = 0; i < SDFObjects.Length; i++)
+            {
+                VoxelField field = SDFObjects[i].SDFFilter.VoxelField;
+                ObjectHeader header = new ObjectHeader();
+                header.worldToObjMatrix = SDFObjects[i].gameObject.transform.worldToLocalMatrix; // may not work with shader according to docs?
+                header.objID = i; // index into data. Change later?
+                header.numEntries = field.m_Field.Length;
+                header.startOffset = offset;
+                header.voxelSize = field.m_VoxelSize;
+                header.minExtent = field.MeshBounds.center - 0.5f * field.MeshBounds.size;    // is this correct? Can we just pass the counts instead?
+                header.maxExtent = field.MeshBounds.center + 0.5f * field.MeshBounds.size;
+                header.color = SDFObjects[i].SDFMaterial.color;
+                nativeHeaders[i] = header;
 
-        //         nativeData[offset] = filter.data;
-        //         offset += filter.size;
-        //     }
+                Array.Copy(field.m_Field, 0, nativeData, offset, field.m_Field.Length);
+                offset += field.m_Field.Length;
+            }
 
-        //     headers.SetData(nativeHeaders);
-        //     ComputeBuffer SDFData = new ComputeBuffer(dataSize, sizeof(float), ComputeBufferType.Default);
-        //     SDFData.SetData(nativeData);
-        //     return SDFData;
-        // }
+            headers.SetData(nativeHeaders);
+            ComputeBuffer SDFData = new ComputeBuffer(dataSize, sizeof(float), ComputeBufferType.Default);
+            SDFData.SetData(nativeData);
+            return SDFData;
+        }
 
-        private void CreateObjectList(ScriptableRenderContext context, Camera[] cameras, Vector3[] extents, Matrix4x4[] transforms)
+        private void CreateObjectList(ScriptableRenderContext context, Camera[] cameras, ComputeBuffer SDFHeaders, int totalSDFs)
         {
             Material material;
 
@@ -261,14 +285,17 @@ namespace UnityEngine.Rendering.SDFRP
                 cmd1.SetViewport(camera.pixelRect);
 
                 cmd1.SetRenderTarget(camera.targetTexture);
-                cmd1.ClearRenderTarget(false, true, currentAsset.clearColor);
+                // cmd1.ClearRenderTarget(false, true, currentAsset.clearColor);
                 cmd1.SetViewMatrix(camera.worldToCameraMatrix);
                 cmd1.SetProjectionMatrix(camera.projectionMatrix);
 
-                for (int i = 0; i < extents.Length; i++)
+                ObjectHeader[] data = new ObjectHeader[totalSDFs];  // get correct size of array
+                SDFHeaders.GetData(data);     // optimize this, maybe don't create a compute buffer yet
+                for (int i = 0; i < data.Length; i++)
                 {
-                    Matrix4x4 scale = Matrix4x4.Scale(extents[i]);
-                    Matrix4x4 finalTRS = transforms[i] * scale;       // Check multiply scale correctness later
+                    var extents = data[i].maxExtent - data[i].minExtent;
+                    Matrix4x4 scale = Matrix4x4.Scale(extents);
+                    Matrix4x4 finalTRS = data[i].worldToObjMatrix.inverse * scale;       // Check multiply scale correctness later
 
                     cmd1.DrawMesh(mesh, finalTRS, material, 0, 0);
                 }

@@ -25,7 +25,6 @@
 *.npmrc
 *.pyc
 *.resS
-*.sdf
 *.sln
 *.sublime-project
 *.sublime-workspace
