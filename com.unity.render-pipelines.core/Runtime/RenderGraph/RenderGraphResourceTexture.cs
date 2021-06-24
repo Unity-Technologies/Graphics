@@ -26,7 +26,7 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
         
         internal Key key => new(Handle.index, Handle.IsShared());
 
-        [NativeDisableUnsafePtrRestriction] internal readonly TextureHandleImpl* Ptr;
+        [NativeDisableUnsafePtrRestriction] public readonly TextureHandleImpl* Ptr;
         private ResourceHandle Handle;
 
         internal TextureHandle(TextureHandleImpl* impl, Key key)
@@ -63,6 +63,8 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
     public struct TextureHandleImpl
     {
         internal RenderTargetIdentifier ResolvedIdentifier;
+
+        public int volumeSlicesHack;
         
         internal ResourceHandle fallBackResource;
         public void SetFallBackResource(TextureHandle texture) { fallBackResource = texture.handle; }

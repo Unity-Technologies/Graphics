@@ -1,6 +1,7 @@
 using System;
 using System.Diagnostics;
 using System.Collections.Generic;
+using System.Runtime.InteropServices;
 using Unity.Burst;
 using Unity.Collections;
 using Unity.Collections.LowLevel.Unsafe;
@@ -70,11 +71,19 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
 
     public delegate void RenderGraphPassFuncUnmanaged(in UnsafeList passData, ref HW1371_RenderGraphContext renderGraphContext);
 
+    // Work around burst crash
+    struct Bool
+    {
+        public int value;
+        
+        public static implicit operator bool(Bool b) => b.value != 0;
+        public static implicit operator Bool(bool b) => new() {value = b ? 1 : 0};
+    }
     [DebuggerDisplay("RenderPass: {name} (Index:{index} Async:{enableAsyncCompute})")]
     [BurstCompatible]
     struct RenderGraphPassUnmanaged : IDisposable
     {
-        public bool isUnmanagedPass;
+        public Bool isUnmanagedPass;
         public FunctionPointer<RenderGraphPassFuncUnmanaged> renderFunc;
         
         public UnsafeList passData;
@@ -82,16 +91,16 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
         public FixedString64 name;
         public int index;
         public int seqIndex;
-        public bool enableAsyncCompute;
-        public bool allowPassCulling;
+        public Bool enableAsyncCompute;
+        public Bool allowPassCulling;
 
         public TextureHandle depthBuffer;
         public UnsafeList<TextureHandle> colorBuffers;
         public int colorBufferMaxIndex;
         public int refCount;
-        public bool generateDebugData;
+        public Bool generateDebugData;
 
-        public bool allowRendererListCulling;
+        public Bool allowRendererListCulling;
 
         public UnsafeList<UnsafeList<ResourceHandle>> resourceReadLists;
         public UnsafeList<UnsafeList<ResourceHandle>> resourceWriteLists;

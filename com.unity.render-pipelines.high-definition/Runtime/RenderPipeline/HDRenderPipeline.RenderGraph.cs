@@ -341,6 +341,9 @@ namespace UnityEngine.Rendering.HighDefinition
             var hdrpSettings = defaultSettings as HDRenderPipelineGlobalSettings;
             m_RenderGraph.rendererListCulling = hdrpSettings.rendererListCulling;
 
+            renderContext.ExecuteCommandBuffer(commandBuffer);
+            commandBuffer.Clear();
+            
             m_RenderGraph.Execute();
 
             if (aovRequest.isValid)
@@ -1848,31 +1851,38 @@ namespace UnityEngine.Rendering.HighDefinition
             }
         }
 
-        class BindCustomPassBuffersPassData
+        [BurstCompatible]
+        struct BindCustomPassBuffersPassData
         {
-            public Lazy<RTHandle> customColorTexture;
-            public Lazy<RTHandle> customDepthTexture;
+            // We don't need them for this test case, so just avoid the issue for now.
+            // public Lazy<RTHandle> customColorTexture;
+            // public Lazy<RTHandle> customDepthTexture;
+            public RenderTargetIdentifier customColorTexture;
+            public RenderTargetIdentifier customDepthTexture;
         }
 
-        void BindCustomPassBuffers(RenderGraph renderGraph, HDCamera hdCamera)
+        unsafe void BindCustomPassBuffers(RenderGraph renderGraph, HDCamera hdCamera)
         {
             if (hdCamera.frameSettings.IsEnabled(FrameSettingsField.CustomPass))
             {
-                using (var builder = renderGraph.AddRenderPass<BindCustomPassBuffersPassData>("Bind Custom Pass Buffers", out var passData))
+                using (var builder = renderGraph.AddRenderPassUnmanaged<BindCustomPassBuffersPassData>("Bind Custom Pass Buffers", out var passData))
                 {
-                    passData.customColorTexture = m_CustomPassColorBuffer;
-                    passData.customDepthTexture = m_CustomPassDepthBuffer;
+                    if (m_CustomPassColorBuffer.IsValueCreated)
+                        passData->customColorTexture = m_CustomPassColorBuffer.Value;
+                    if (m_CustomPassDepthBuffer.IsValueCreated)
+                        passData->customDepthTexture = m_CustomPassDepthBuffer.Value;
 
-                    builder.SetRenderFunc(
-                        (BindCustomPassBuffersPassData data, RenderGraphContext ctx) =>
-                        {
-                            if (data.customColorTexture.IsValueCreated)
-                                ctx.cmd.SetGlobalTexture(HDShaderIDs._CustomColorTexture, data.customColorTexture.Value);
-                            if (data.customDepthTexture.IsValueCreated)
-                                ctx.cmd.SetGlobalTexture(HDShaderIDs._CustomDepthTexture, data.customDepthTexture.Value);
-                        });
+                    builder.SetRenderFunc(DoBindCustomPass);
                 }
             }
+        }
+        [BurstCompile] static void DoBindCustomPass(in UnsafeList rawData, ref HW1371_RenderGraphContext ctx)
+        {
+            ref var data = ref rawData.As<BindCustomPassBuffersPassData>();
+            if (data.customColorTexture != default)
+                ctx.cmd.SetGlobalTexture(HDShaderIDs._CustomColorTexture, data.customColorTexture);
+            if (data.customDepthTexture != default)
+                ctx.cmd.SetGlobalTexture(HDShaderIDs._CustomDepthTexture, data.customDepthTexture);
         }
 
 #if UNITY_EDITOR

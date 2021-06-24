@@ -66,6 +66,8 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
             return result;
         }
 
+        internal bool HasTempAllocs => m_AllocatedArrays.Count > 0 || m_AllocatedMaterialPropertyBlocks.Count > 0; 
+
         internal void ReleaseAllTempAlloc()
         {
             foreach (var arrayDesc in m_AllocatedArrays)

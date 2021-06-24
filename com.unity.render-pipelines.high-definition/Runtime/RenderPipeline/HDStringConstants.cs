@@ -360,6 +360,9 @@ namespace UnityEngine.Rendering.HighDefinition
         public static int _ShaderVariablesGlobal => HDShaderID.hdShaderIDs.Data._ShaderVariablesGlobal;
         public static int _ShaderVariablesXR => HDShaderID.hdShaderIDs.Data._ShaderVariablesXR;
 
+        public static int _CustomDepthTexture => HDShaderID.hdShaderIDs.Data._CustomDepthTexture;
+        public static int _CustomColorTexture => HDShaderID.hdShaderIDs.Data._CustomColorTexture;
+
         public static readonly int[] __DBufferTexture =
         {
             Shader.PropertyToID("_DBufferTexture0"),
@@ -367,10 +370,13 @@ namespace UnityEngine.Rendering.HighDefinition
             Shader.PropertyToID("_DBufferTexture2"),
             Shader.PropertyToID("_DBufferTexture3")
         };
-
+        
         public static readonly int __ShaderVariablesGlobal = Shader.PropertyToID("ShaderVariablesGlobal");
         public static readonly int __ShaderVariablesXR = Shader.PropertyToID("ShaderVariablesXR");
         
+        public static readonly int __CustomDepthTexture = Shader.PropertyToID("_CustomDepthTexture");
+        public static readonly int __CustomColorTexture = Shader.PropertyToID("_CustomColorTexture");
+
         public static readonly int _ShaderVariablesVolumetric = Shader.PropertyToID("ShaderVariablesVolumetric");
         public static readonly int _ShaderVariablesLightList = Shader.PropertyToID("ShaderVariablesLightList");
         public static readonly int _ShaderVariablesRaytracing = Shader.PropertyToID("ShaderVariablesRaytracing");
@@ -434,8 +440,6 @@ namespace UnityEngine.Rendering.HighDefinition
         public static readonly int _QuadOverdrawMaxQuadCost = Shader.PropertyToID("_QuadOverdrawMaxQuadCost");
         public static readonly int _VertexDensityMaxPixelCost = Shader.PropertyToID("_VertexDensityMaxPixelCost");
         public static readonly int _MinMotionVector = Shader.PropertyToID("_MinMotionVector");
-        public static readonly int _CustomDepthTexture = Shader.PropertyToID("_CustomDepthTexture");
-        public static readonly int _CustomColorTexture = Shader.PropertyToID("_CustomColorTexture");
         public static readonly int _CustomPassInjectionPoint = Shader.PropertyToID("_CustomPassInjectionPoint");
         public static readonly int _AfterPostProcessColorBuffer = Shader.PropertyToID("_AfterPostProcessColorBuffer");
 
@@ -1140,7 +1144,19 @@ namespace UnityEngine.Rendering.HighDefinition
         public int _ShaderVariablesGlobal;
         public int _ShaderVariablesXR;
 
-        public FixedBytes4094 _pad;
+        public int _CustomDepthTexture;
+        public int _CustomColorTexture;
+
+        public int _pad0;
+        public int _pad1;
+        public int _pad2;
+        public int _pad3;
+        public int _pad4;
+        public int _pad5;
+        public int _pad6;
+        public int _pad7;
+        public int _pad8;
+        public int _pad9;
 
         public static void Create()
         {
@@ -1148,6 +1164,8 @@ namespace UnityEngine.Rendering.HighDefinition
             hdShaderId._DBufferTexture.AddRange(HDShaderIDs.__DBufferTexture);
             hdShaderId._ShaderVariablesGlobal = HDShaderIDs.__ShaderVariablesGlobal;
             hdShaderId._ShaderVariablesXR = HDShaderIDs.__ShaderVariablesXR;
+            hdShaderId._CustomDepthTexture = HDShaderIDs.__CustomDepthTexture;
+            hdShaderId._CustomColorTexture = HDShaderIDs.__CustomColorTexture;
             hdShaderIDs.Data = hdShaderId;
         }
 

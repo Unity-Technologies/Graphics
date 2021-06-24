@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using Unity.Collections;
 using UnityEngine.Experimental.Rendering;
 using UnityEngine.Experimental.Rendering.RenderGraphModule;
 using UnityEngine.Rendering.RendererUtils;
@@ -238,6 +239,12 @@ namespace UnityEngine.Rendering
         /// <param name="clearFlag">Specify how the render texture should be cleared.</param>
         /// <param name="clearColor">Specify with which color the render texture should be cleared.</param>
         public static void ClearRenderTarget(CommandBuffer cmd, ClearFlag clearFlag, Color clearColor)
+        {
+            if (clearFlag != ClearFlag.None)
+                cmd.ClearRenderTarget((RTClearFlags)clearFlag, clearColor, 1.0f, 0x00);
+        }
+
+        public static void ClearRenderTarget(HW1371_CommandBuffer cmd, ClearFlag clearFlag, Color clearColor)
         {
             if (clearFlag != ClearFlag.None)
                 cmd.ClearRenderTarget((RTClearFlags)clearFlag, clearColor, 1.0f, 0x00);
@@ -589,6 +596,42 @@ namespace UnityEngine.Rendering
             SetViewport(cmd, depthBuffer);
         }
 
+        public static void SetRenderTarget(HW1371_CommandBuffer cmd, NativeArray<RenderTargetIdentifier> colorBuffers, RenderTargetIdentifier depthBuffer)
+        {
+            CoreUtils.SetRenderTarget(cmd, colorBuffers, depthBuffer, ClearFlag.None, Color.clear);
+            SetViewport(cmd, depthBuffer);
+        }
+
+        public static void SetRenderTarget(HW1371_CommandBuffer cmd, NativeArray<RenderTargetIdentifier> colorBuffers, RenderTargetIdentifier depthBuffer, ClearFlag clearFlag, Color clearColor)
+        {
+            cmd.SetRenderTarget(colorBuffers, depthBuffer, 0, CubemapFace.Unknown, -1);
+            ClearRenderTarget(cmd, clearFlag, clearColor);
+        }
+
+        public static void SetRenderTarget(HW1371_CommandBuffer cmd, RenderTargetIdentifier buffer, ClearFlag clearFlag = ClearFlag.None, int miplevel = 0, CubemapFace cubemapFace = CubemapFace.Unknown, int depthSlice = -1)
+        {
+            SetRenderTarget(cmd, buffer, clearFlag, Color.clear, miplevel, cubemapFace, depthSlice);
+        }
+
+        public static void SetRenderTarget(HW1371_CommandBuffer cmd, RenderTargetIdentifier buffer, ClearFlag clearFlag, Color clearColor, int miplevel = 0, CubemapFace cubemapFace = CubemapFace.Unknown, int depthSlice = -1)
+        {
+            depthSlice = FixupDepthSlice(depthSlice, cubemapFace);
+            cmd.SetRenderTarget(buffer, miplevel, cubemapFace, depthSlice);
+            ClearRenderTarget(cmd, clearFlag, clearColor);
+        }
+
+        public static void SetRenderTarget(HW1371_CommandBuffer cmd, RenderTargetIdentifier colorBuffer, RenderTargetIdentifier depthBuffer, int miplevel = 0, CubemapFace cubemapFace = CubemapFace.Unknown, int depthSlice = -1)
+        {
+            SetRenderTarget(cmd, colorBuffer, depthBuffer, ClearFlag.None, Color.clear, miplevel, cubemapFace, depthSlice);
+        }
+
+        public static void SetRenderTarget(HW1371_CommandBuffer cmd, RenderTargetIdentifier colorBuffer, RenderTargetIdentifier depthBuffer, ClearFlag clearFlag, Color clearColor, int miplevel = 0, CubemapFace cubemapFace = CubemapFace.Unknown, int depthSlice = -1)
+        {
+            depthSlice = FixupDepthSlice(depthSlice, cubemapFace);
+            cmd.SetRenderTarget(colorBuffer, depthBuffer, miplevel, cubemapFace, depthSlice);
+            ClearRenderTarget(cmd, clearFlag, clearColor);
+        }
+
         /// <summary>
         /// Set the current multiple render texture.
         /// </summary>
@@ -634,6 +677,17 @@ namespace UnityEngine.Rendering
                 Vector2Int scaledViewportSize = target.GetScaledSize(target.rtHandleProperties.currentViewportSize);
                 cmd.SetViewport(new Rect(0.0f, 0.0f, scaledViewportSize.x, scaledViewportSize.y));
             }
+        }
+
+        public static void SetViewport(HW1371_CommandBuffer cmd, RenderTargetIdentifier target)
+        {
+            // TODO!!
+
+            // if (target.useScaling)
+            // {
+            //     Vector2Int scaledViewportSize = target.GetScaledSize(target.rtHandleProperties.currentViewportSize);
+            //     cmd.SetViewport(new Rect(0.0f, 0.0f, scaledViewportSize.x, scaledViewportSize.y));
+            // }
         }
 
         /// <summary>

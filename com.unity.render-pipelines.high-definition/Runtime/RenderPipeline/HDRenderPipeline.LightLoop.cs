@@ -1,4 +1,7 @@
 using System;
+using Unity.Burst;
+using Unity.Collections;
+using Unity.Collections.LowLevel.Unsafe;
 using UnityEngine.Experimental.Rendering;
 using UnityEngine.Experimental.Rendering.RenderGraphModule;
 
@@ -220,32 +223,54 @@ namespace UnityEngine.Rendering.HighDefinition
             }
         }
 
-        class PushGlobalCameraParamPassData
+        [BurstCompatible]
+        struct PushGlobalCameraParamPassData
         {
-            public HDCamera                 hdCamera;
-            public ShaderVariablesGlobal    globalCB;
-            public ShaderVariablesXR        xrCB;
+            public HDCamera.ConstantBufferInputs    cbInputs;
+            
+            public ShaderVariablesGlobal            globalCB;
+            public ShaderVariablesXR                xrCB;
+
+            public HW1371_ComputeBuffer             gpuGlobalCB;
+            public HW1371_ComputeBuffer             gpuXRCB;
         }
 
-        void PushGlobalCameraParams(RenderGraph renderGraph, HDCamera hdCamera)
+        unsafe void PushGlobalCameraParams(RenderGraph renderGraph, HDCamera hdCamera)
         {
-            using (var builder = renderGraph.AddRenderPass<PushGlobalCameraParamPassData>("Push Global Camera Parameters", out var passData))
+            using (var builder = renderGraph.AddRenderPassUnmanaged<PushGlobalCameraParamPassData>("Push Global Camera Parameters", out var passData))
             {
-                passData.hdCamera = hdCamera;
-                passData.globalCB = m_ShaderVariablesGlobalCB;
-                passData.xrCB = m_ShaderVariablesXRCB;
+                passData->cbInputs = new()
+                {
+                    hdCameraData = hdCamera.hdCameraData,
+                    frameSettings = hdCamera.frameSettings,
+                    viewCount = hdCamera.viewCount,
+                    rtHandleScale = RTHandles.rtHandleProperties.rtHandleScale,
+                    rtHandleScaleHistory = hdCamera.GetHistoryRTHandleSystem().rtHandleProperties.rtHandleScale,
+                    probeRangeCompressionFactor = hdCamera.probeRangeCompressionFactor,
+                    deExposureMultiplier = hdCamera.deExposureMultiplier,
+                    globalMipBias = hdCamera.globalMipBias,
+                };
+                
+                passData->globalCB = m_ShaderVariablesGlobalCB;
+                passData->xrCB = m_ShaderVariablesXRCB;
 
-                builder.SetRenderFunc(
-                    (PushGlobalCameraParamPassData data, RenderGraphContext context) =>
-                    {
-                        data.hdCamera.UpdateShaderVariablesGlobalCB(ref data.globalCB);
-                        ConstantBuffer.PushGlobal(context.cmd, data.globalCB, HDShaderIDs._ShaderVariablesGlobal);
-                        data.hdCamera.UpdateShaderVariablesXRCB(ref data.xrCB);
-                        ConstantBuffer.PushGlobal(context.cmd, data.xrCB, HDShaderIDs._ShaderVariablesXR);
-                    });
+                passData->gpuGlobalCB = ConstantBufferSingleton<ShaderVariablesGlobal>.instance.m_GPUConstantBuffer;
+                passData->gpuXRCB = ConstantBufferSingleton<ShaderVariablesXR>.instance.m_GPUConstantBuffer;
+
+                builder.SetRenderFunc(DoPushGlobalCameraParamPassData);
             }
         }
-
+        [BurstCompile] static void DoPushGlobalCameraParamPassData(in UnsafeList rawData, ref HW1371_RenderGraphContext context)
+        {
+            ref var data = ref rawData.As<PushCameraGlobalMipBiasData>();
+            
+            HDCamera.UpdateShaderVariablesGlobalCB(data.cbInputs, ref data.globalCB);
+            ConstantBuffer.PushGlobal(context.cmd, data.gpuGlobalCB, data.globalCB, HDShaderIDs._ShaderVariablesGlobal);
+            
+            HDCamera.UpdateShaderVariablesXRCB(data.cbInputs, ref data.xrCB);
+            ConstantBuffer.PushGlobal(context.cmd, data.gpuXRCB, data.xrCB, HDShaderIDs._ShaderVariablesXR);
+        }
+        
         internal ShadowResult RenderShadows(RenderGraph renderGraph, HDCamera hdCamera, CullingResults cullResults, ref ShadowResult result)
         {
             m_ShadowManager.RenderShadows(m_RenderGraph, m_ShaderVariablesGlobalCB, hdCamera, cullResults, ref result);

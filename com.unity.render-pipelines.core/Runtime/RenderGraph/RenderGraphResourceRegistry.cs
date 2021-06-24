@@ -105,7 +105,7 @@ public
         UnsafeList<RendererListHandle>                  m_RendererListHandleImplsFree = new(64, Allocator.Persistent);
         UnsafeList<RendererListHandle>                  m_RendererListHandleImplsUsed = new(64, Allocator.Persistent);
 
-        unsafe TextureHandle GetTextureHandle(TextureHandle.Key key, RenderTargetIdentifier rtt = default)
+        unsafe TextureHandle GetTextureHandle(TextureHandle.Key key, RenderTargetIdentifier renderTargetIdentifier = default)
         {
             if (!m_TextureHandleImplsUsed.TryGetValue(key, out var textureHandle))
             {
@@ -126,8 +126,28 @@ public
                 }
             }
             
-            if(rtt != default)
-                ResolveTextureHandle(textureHandle, rtt);
+            if(renderTargetIdentifier != default)
+                ResolveTextureHandle(textureHandle, renderTargetIdentifier);
+
+            return textureHandle;
+        }
+
+        unsafe TextureHandle GetTextureHandle(TextureHandle.Key key, RenderTargetIdentifier renderTargetIdentifier, RenderTextureDescriptor renderTextureDescriptor)
+        {
+            var textureHandle = GetTextureHandle(key, renderTargetIdentifier);
+            
+            // Hackishly store some desc values that we need..
+            textureHandle.Ptr->volumeSlicesHack = renderTextureDescriptor.volumeDepth;
+
+            return textureHandle;
+        }
+
+        unsafe TextureHandle GetTextureHandle(TextureHandle.Key key, RenderTargetIdentifier renderTargetIdentifier, TextureDesc textureDesc)
+        {
+            var textureHandle = GetTextureHandle(key, renderTargetIdentifier);
+            
+            // Hackishly store some desc values that we need..
+            textureHandle.Ptr->volumeSlicesHack = textureDesc.slices;
 
             return textureHandle;
         }
@@ -342,7 +362,7 @@ public
             texResource.graphicsResource = rt;
             texResource.imported = true;
 
-            return GetTextureHandle(new TextureHandle.Key(newHandle), rt);
+            return GetTextureHandle(new TextureHandle.Key(newHandle), rt, rt.rt != null ? rt.rt.descriptor : default);
         }
 
         internal TextureHandle CreateSharedTexture(in TextureDesc desc, bool explicitRelease)
@@ -420,7 +440,7 @@ public
             texResource.transientPassIndex = transientPassIndex;
             texResource.requestFallBack = desc.fallBackToBlackTexture;
 
-            return GetTextureHandle(new TextureHandle.Key(newHandle));
+            return GetTextureHandle(new TextureHandle.Key(newHandle), default, desc);
         }
 
         internal int GetTextureResourceCount()

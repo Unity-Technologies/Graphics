@@ -346,10 +346,17 @@ namespace UnityEngine.Rendering.HighDefinition
             }
         }
 
-        class DrawRendererListPassData
+        [BurstCompatible]
+        struct DrawRendererListPassData
         {
             public FrameSettings        frameSettings;
             public RendererListHandle   rendererList;
+        }
+
+        [BurstCompile] static void DoDrawRendererListPass(in UnsafeList rawData, ref HW1371_RenderGraphContext context)
+        {
+            ref var data = ref rawData.As<DrawRendererListPassData>();
+            DrawOpaqueRendererList(context.renderContext, context.cmd, data.frameSettings, data.rendererList);
         }
 
         // RenderDepthPrepass render both opaque and opaque alpha tested based on engine configuration.
@@ -357,7 +364,7 @@ namespace UnityEngine.Rendering.HighDefinition
         // Lit Deferred: We always render depth prepass for alpha tested (optimization), other deferred material are render based on engine configuration.
         // Forward opaque with deferred renderer (DepthForwardOnly pass): We always render all materials
         // True is returned if motion vector must be rendered after GBuffer pass
-        bool RenderDepthPrepass(RenderGraph renderGraph, CullingResults cull, HDCamera hdCamera, ref PrepassOutput output, out TextureHandle decalBuffer)
+        unsafe bool RenderDepthPrepass(RenderGraph renderGraph, CullingResults cull, HDCamera hdCamera, ref PrepassOutput output, out TextureHandle decalBuffer)
         {
             // Guidelines:
             // Lit shader can be in deferred or forward mode. In this case we use "DepthOnly" pass with "GBuffer" or "Forward" pass name
@@ -456,12 +463,12 @@ namespace UnityEngine.Rendering.HighDefinition
                 string deferredPassName = fullDeferredPrepass ? "Full Depth Prepass (Deferred)" :
                     (decalsEnabled ? "Partial Depth Prepass (Deferred - Decal + AlphaTest)" : "Partial Depth Prepass (Deferred - AlphaTest)");
 
-                using (var builder = renderGraph.AddRenderPass<DrawRendererListPassData>(deferredPassName, out var passData, ProfilingSampler.Get(HDProfileId.DeferredDepthPrepass)))
+                using (var builder = renderGraph.AddRenderPassUnmanaged<DrawRendererListPassData>(deferredPassName, out var passData, ProfilingSampler.Get(HDProfileId.DeferredDepthPrepass)))
                 {
                     builder.AllowRendererListCulling(false);
 
-                    passData.frameSettings = hdCamera.frameSettings;
-                    passData.rendererList = builder.UseRendererList(renderGraph.CreateRendererList(CreateOpaqueRendererListDesc(
+                    passData->frameSettings = hdCamera.frameSettings;
+                    passData->rendererList = builder.UseRendererList(renderGraph.CreateRendererList(CreateOpaqueRendererListDesc(
                         cull, hdCamera.camera, m_DepthOnlyPassNames,
                         renderQueueRange: fullDeferredPrepass ? HDRenderQueue.k_RenderQueue_AllOpaque :
                         (decalsEnabled ? HDRenderQueue.k_RenderQueue_OpaqueDecalAndAlphaTest : HDRenderQueue.k_RenderQueue_OpaqueAlphaTest),
@@ -471,20 +478,16 @@ namespace UnityEngine.Rendering.HighDefinition
                     output.depthBuffer = builder.UseDepthBuffer(output.depthBuffer, DepthAccess.ReadWrite);
                     if (decalLayersEnabled)
                         decalBuffer = builder.UseColorBuffer(decalBuffer, 0);
-
-                    builder.SetRenderFunc(
-                        (DrawRendererListPassData data, RenderGraphContext context) =>
-                        {
-                            DrawOpaqueRendererList(context.renderContext, context.cmd, data.frameSettings, data.rendererList);
-                        });
+                    
+                    builder.SetRenderFunc(DoDrawRendererListPass);
                 }
             }
 
             string forwardPassName = hdCamera.frameSettings.litShaderMode == LitShaderMode.Deferred ? "Forward Depth Prepass (Deferred ForwardOnly)" : "Forward Depth Prepass";
             // Then prepass for forward materials.
-            using (var builder = renderGraph.AddRenderPass<DrawRendererListPassData>(forwardPassName, out var passData, ProfilingSampler.Get(HDProfileId.ForwardDepthPrepass)))
+            using (var builder = renderGraph.AddRenderPassUnmanaged<DrawRendererListPassData>(forwardPassName, out var passData, ProfilingSampler.Get(HDProfileId.ForwardDepthPrepass)))
             {
-                passData.frameSettings = hdCamera.frameSettings;
+                passData->frameSettings = hdCamera.frameSettings;
 
                 output.depthBuffer = builder.UseDepthBuffer(output.depthBuffer, DepthAccess.ReadWrite);
                 int mrtIndex = 0;
@@ -501,33 +504,30 @@ namespace UnityEngine.Rendering.HighDefinition
                     if (!hdCamera.frameSettings.IsEnabled(FrameSettingsField.AlphaToMask))
                         stateBlock = m_AlphaToMaskBlock;
 
-                    passData.rendererList = builder.UseRendererList(renderGraph.CreateRendererList(
+                    passData->rendererList = builder.UseRendererList(renderGraph.CreateRendererList(
                         CreateOpaqueRendererListDesc(cull, hdCamera.camera, m_DepthOnlyAndDepthForwardOnlyPassNames, stateBlock: stateBlock, excludeObjectMotionVectors: objectMotionEnabled)));
                 }
                 else if (hdCamera.frameSettings.litShaderMode == LitShaderMode.Deferred)
                 {
                     // Forward only material that output normal buffer
-                    passData.rendererList = builder.UseRendererList(renderGraph.CreateRendererList(
+                    passData->rendererList = builder.UseRendererList(renderGraph.CreateRendererList(
                         CreateOpaqueRendererListDesc(cull, hdCamera.camera, m_DepthForwardOnlyPassNames, stateBlock: m_AlphaToMaskBlock, excludeObjectMotionVectors: excludeMotion)));
                 }
 
-                builder.SetRenderFunc(
-                    (DrawRendererListPassData data, RenderGraphContext context) =>
-                    {
-                        DrawOpaqueRendererList(context.renderContext, context.cmd, data.frameSettings, data.rendererList);
-                    });
+                builder.SetRenderFunc(DoDrawRendererListPass);
             }
 
             return shouldRenderMotionVectorAfterGBuffer;
         }
 
-        void RenderObjectsMotionVectors(RenderGraph renderGraph, CullingResults cull, HDCamera hdCamera, TextureHandle decalBuffer, in PrepassOutput output)
+
+        unsafe void RenderObjectsMotionVectors(RenderGraph renderGraph, CullingResults cull, HDCamera hdCamera, TextureHandle decalBuffer, in PrepassOutput output)
         {
             if (!hdCamera.frameSettings.IsEnabled(FrameSettingsField.ObjectMotionVectors) ||
                 !hdCamera.frameSettings.IsEnabled(FrameSettingsField.OpaqueObjects))
                 return;
 
-            using (var builder = renderGraph.AddRenderPass<DrawRendererListPassData>("Objects Motion Vectors Rendering", out var passData, ProfilingSampler.Get(HDProfileId.ObjectsMotionVector)))
+            using (var builder = renderGraph.AddRenderPassUnmanaged<DrawRendererListPassData>("Objects Motion Vectors Rendering", out var passData, ProfilingSampler.Get(HDProfileId.ObjectsMotionVector)))
             {
                 // With all this variant we have the following scenario of render target binding
                 // decalsEnabled
@@ -560,21 +560,17 @@ namespace UnityEngine.Rendering.HighDefinition
                 // If the flag hasn't been set yet on this camera, motion vectors will skip a frame.
                 hdCamera.camera.depthTextureMode |= DepthTextureMode.MotionVectors | DepthTextureMode.Depth;
 
-                passData.frameSettings = hdCamera.frameSettings;
+                passData->frameSettings = hdCamera.frameSettings;
                 builder.UseDepthBuffer(output.depthBuffer, DepthAccess.ReadWrite);
                 BindMotionVectorPassColorBuffers(builder, output, decalBuffer, hdCamera);
 
                 RenderStateBlock? stateBlock = null;
                 if (hdCamera.frameSettings.litShaderMode == LitShaderMode.Deferred || !hdCamera.frameSettings.IsEnabled(FrameSettingsField.AlphaToMask))
                     stateBlock = m_AlphaToMaskBlock;
-                passData.rendererList = builder.UseRendererList(
+                passData->rendererList = builder.UseRendererList(
                     renderGraph.CreateRendererList(CreateOpaqueRendererListDesc(cull, hdCamera.camera, HDShaderPassNames.s_MotionVectorsName, PerObjectData.MotionVectors, stateBlock: stateBlock)));
 
-                builder.SetRenderFunc(
-                    (DrawRendererListPassData data, RenderGraphContext context) =>
-                    {
-                        DrawOpaqueRendererList(context, data.frameSettings, data.rendererList);
-                    });
+                builder.SetRenderFunc(DoDrawRendererListPass);
             }
         }
 
@@ -694,8 +690,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
                 passData->frameSettings = frameSettings;
                 SetupGBufferTargets(renderGraph, hdCamera, sssBuffer, vtFeedbackBuffer, ref prepassOutput, frameSettings, builder);
-                passData->rendererList = builder.UseRendererList(
-                    renderGraph.CreateRendererList(CreateOpaqueRendererListDesc(cull, hdCamera.camera, HDShaderPassNames.s_GBufferName, m_CurrentRendererConfigurationBakedLighting)));
+                passData->rendererList = builder.UseRendererList( renderGraph.CreateRendererList(CreateOpaqueRendererListDesc(cull, hdCamera.camera, HDShaderPassNames.s_GBufferName, m_CurrentRendererConfigurationBakedLighting)));
 
                 passData->dBuffer = ReadDBuffer(ref prepassOutput.dbuffer, builder);
                 builder.SetRenderFunc(DoRenderGBuffer);
@@ -771,16 +766,23 @@ namespace UnityEngine.Rendering.HighDefinition
             }
         }
 
-        class CopyDepthPassData
+        [BurstCompatible]
+        struct CopyDepthPassData
         {
-            public TextureHandle    inputDepth;
-            public TextureHandle    outputDepth;
-            public GPUCopy          GPUCopy;
-            public int              width;
-            public int              height;
+            public TextureHandle        inputDepth;
+            public TextureHandle        outputDepth;
+            public int                  width;
+            public int                  height;
+            public int                  slices;
+            public HW1371_ComputeShader shader;
+            public int                  kernel8;
+            public int                  kernel1;
+            public int                  source4Id;
+            public int                  result1Id;
+            public int                  rectOffsetId;
         }
 
-        void CopyDepthBufferIfNeeded(RenderGraph renderGraph, HDCamera hdCamera, ref PrepassOutput output)
+        unsafe void CopyDepthBufferIfNeeded(RenderGraph renderGraph, HDCamera hdCamera, ref PrepassOutput output)
         {
             if (!hdCamera.frameSettings.IsEnabled(FrameSettingsField.OpaqueObjects))
             {
@@ -790,33 +792,45 @@ namespace UnityEngine.Rendering.HighDefinition
 
             if (!m_IsDepthBufferCopyValid)
             {
-                using (var builder = renderGraph.AddRenderPass<CopyDepthPassData>("Copy depth buffer", out var passData, ProfilingSampler.Get(HDProfileId.CopyDepthBuffer)))
+                using (var builder = renderGraph.AddRenderPassUnmanaged<CopyDepthPassData>("Copy depth buffer", out var passData, ProfilingSampler.Get(HDProfileId.CopyDepthBuffer)))
                 {
-                    passData.inputDepth = builder.ReadTexture(output.resolvedDepthBuffer);
-                    passData.outputDepth = builder.WriteTexture(renderGraph.CreateTexture(m_DepthPyramidDesc));
-                    passData.GPUCopy = m_GPUCopy;
-                    passData.width = hdCamera.actualWidth;
-                    passData.height = hdCamera.actualHeight;
+                    passData->inputDepth = builder.ReadTexture(output.resolvedDepthBuffer);
+                    passData->outputDepth = builder.WriteTexture(renderGraph.CreateTexture(m_DepthPyramidDesc));
+                    passData->width = hdCamera.actualWidth;
+                    passData->height = hdCamera.actualHeight;
+                    passData->slices = passData->inputDepth.Ptr->volumeSlicesHack;
+                    passData->shader = m_GPUCopy.m_Shader;
+                    passData->kernel8 = m_GPUCopy.k_SampleKernel_xyzw2x_8;
+                    passData->kernel1 = m_GPUCopy.k_SampleKernel_xyzw2x_1;
+                    passData->source4Id = m_GPUCopy._Source4;
+                    passData->result1Id = m_GPUCopy._Result1;
+                    passData->rectOffsetId = m_GPUCopy._RectOffset;
 
-                    output.depthPyramidTexture = passData.outputDepth;
+                    output.depthPyramidTexture = passData->outputDepth;
 
-                    builder.SetRenderFunc(
-                        (CopyDepthPassData data, RenderGraphContext context) =>
-                        {
-                            // TODO: maybe we don't actually need the top MIP level?
-                            // That way we could avoid making the copy, and build the MIP hierarchy directly.
-                            // The downside is that our SSR tracing accuracy would decrease a little bit.
-                            // But since we never render SSR at full resolution, this may be acceptable.
-
-                            // TODO: reading the depth buffer with a compute shader will cause it to decompress in place.
-                            // On console, to preserve the depth test performance, we must NOT decompress the 'm_CameraDepthStencilBuffer' in place.
-                            // We should call decompressDepthSurfaceToCopy() and decompress it to 'm_CameraDepthBufferMipChain'.
-                            data.GPUCopy.SampleCopyChannel_xyzw2x(context.cmd, data.inputDepth, data.outputDepth, new RectInt(0, 0, data.width, data.height));
-                        });
+                    builder.SetRenderFunc(DoCopyDepthBuffer);
                 }
 
                 m_IsDepthBufferCopyValid = true;
             }
+        }
+        [BurstCompile] static void DoCopyDepthBuffer(in UnsafeList rawData, ref HW1371_RenderGraphContext context)
+        {
+            ref var data = ref rawData.As<CopyDepthPassData>();
+
+            // TODO: maybe we don't actually need the top MIP level?
+            // That way we could avoid making the copy, and build the MIP hierarchy directly.
+            // The downside is that our SSR tracing accuracy would decrease a little bit.
+            // But since we never render SSR at full resolution, this may be acceptable.
+
+            // TODO: reading the depth buffer with a compute shader will cause it to decompress in place.
+            // On console, to preserve the depth test performance, we must NOT decompress the 'm_CameraDepthStencilBuffer' in place.
+            // We should call decompressDepthSurfaceToCopy() and decompress it to 'm_CameraDepthBufferMipChain'.
+            GPUCopy.SampleCopyChannel_xyzw2x(
+                data.shader, context.cmd,
+data.inputDepth, data.outputDepth,
+                new RectInt(0, 0, data.width, data.height),
+                data.slices, data.kernel8, data.kernel1, data.source4Id, data.result1Id, data.rectOffsetId);
         }
 
         class ResolveStencilPassData
