@@ -14,8 +14,8 @@ Shader "Hidden/HDRP/RenderVisibilityBuffer"
         #pragma only_renderers d3d11 playstation xboxone xboxseries vulkan metal switch
 
         // GPU Instancing
-        #pragma multi_compile_instancing
-        #pragma multi_compile _ DOTS_INSTANCING_ON
+        //#pragma multi_compile_instancing
+        //#pragma multi_compile _ DOTS_INSTANCING_ON
         #pragma enable_d3d11_debug_symbols
 
         #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Common.hlsl"
@@ -35,6 +35,7 @@ Shader "Hidden/HDRP/RenderVisibilityBuffer"
             float4 vertex : SV_POSITION;
             uint cinstanceID : CUSTOM_INSTANCE_ID;
             float3 posWS : POSITION_WS;
+            uint primitiveID : BLENDINDICES0;
         };
 
 
@@ -42,10 +43,9 @@ Shader "Hidden/HDRP/RenderVisibilityBuffer"
         {
             v2f o;
             ZERO_INITIALIZE(v2f, o);
-#ifdef UNITY_ANY_INSTANCING_ENABLED
+//#ifdef UNITY_ANY_INSTANCING_ENABLED
 
-            UNITY_SETUP_INSTANCE_ID(v);
-
+  //          UNITY_SETUP_INSTANCE_ID(v);
             uint instanceID = v.instanceID;
             InstanceVData instanceVData = _InstanceVDataBuffer[instanceID];
             int triangleID = v.vertexID / 3;
@@ -64,8 +64,9 @@ Shader "Hidden/HDRP/RenderVisibilityBuffer"
                 o.cinstanceID = v.instanceID;
                 o.vertex = mul(UNITY_MATRIX_VP, float4(posWS, 1.0));
                 o.posWS = posWS;
+                o.primitiveID = triangleID;
             }
-#endif
+//#endif
             return o;
         }
 
@@ -80,16 +81,14 @@ Shader "Hidden/HDRP/RenderVisibilityBuffer"
         }
 
         void frag(v2f packedInput,
-            uint primitiveID : SV_PrimitiveID,
             out uint VBuffer0 : SV_Target0
             )
         {
-            UNITY_SETUP_INSTANCE_ID(i);
-#ifdef UNITY_ANY_INSTANCING_ENABLED
+//#ifdef UNITY_ANY_INSTANCING_ENABLED
+//            UNITY_SETUP_INSTANCE_ID(packedInput);
 
             // Fetch triangle ID (32 bits)
-            uint triangleID = primitiveID;
-
+            uint triangleID = packedInput.primitiveID;
             uint instanceID = packedInput.cinstanceID;
 
             InstanceVData instanceVData = _InstanceVDataBuffer[instanceID];
@@ -98,9 +97,9 @@ Shader "Hidden/HDRP/RenderVisibilityBuffer"
             uint materialId = instanceVData.materialIndex;
             // Write the VBuffer
             VBuffer0 = PackVisBuffer(instanceID, triangleID);
-#else
-            VBuffer0 = 0;
-#endif
+//#else
+//            VBuffer0 = 0;
+//#endif
         }
         ENDHLSL
 
