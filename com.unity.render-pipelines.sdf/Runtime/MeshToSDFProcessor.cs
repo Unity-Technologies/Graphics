@@ -11,6 +11,14 @@ public class MeshToSDFProcessorSettings
     // Assume uniform scale for each dimension.
     public float voxelSize;
 
+    // Instead of using a uniform voxel grid to sample the
+    // mesh, randomly select points anywhere within the 
+    // mesh bounds.
+    public bool sampleRandomPoints;
+
+    // Should the normals be faceted like a diamond
+    // or should they be smooth?
+    public bool smoothNormals;
 
     // The following are optional debug values
     public Material voxelMaterial;
@@ -46,9 +54,18 @@ public class MeshToSDFProcessor
 {
     static GameObject s_DebugMarkerRoot = null;
 
-    static bool FindClosestDistanceFromVoxelToMesh(Vector3 voxelPosition, int[] triangles, Vector3[] vertices, Material closestPointMaterial, Transform closestPointDebugMarkerRoot, out float closestDistance)
+    public static Vector3 VecMult(Vector3 v, Matrix4x4 mat)
+    {
+        Vector4 vv = new Vector4(v.x, v.y, v.z, 1.0f);
+        vv = mat * vv;
+
+        return new Vector3(vv.x, vv.y, vv.z);
+    }
+
+    static bool FindClosestDistanceFromVoxelToMesh(Matrix4x4 localToWorldMat, Vector3 voxelPosition, int[] triangles, Vector3[] vertices, bool smoothNormals, Material closestPointMaterial, Transform closestPointDebugMarkerRoot, out float closestDistance, out Vector3 closestNormal)
     {
         closestDistance = float.MaxValue;
+        closestNormal = new Vector3();
 
         if (triangles == null || triangles.Length <= 0)
             return false;
@@ -58,24 +75,25 @@ public class MeshToSDFProcessor
 
         Vector3 closestPositionOnTriangle = new Vector3();
         int triangleIndexCount = triangles.Length;
+        int closestTriangleStartIndex = -1;
         for (int triangleIndex = 0; triangleIndex < triangleIndexCount; triangleIndex += 3)
         {
-            Vector3 a = vertices[triangles[triangleIndex]];
-            Vector3 b = vertices[triangles[triangleIndex+1]];
-            Vector3 c = vertices[triangles[triangleIndex+2]];
+            Vector3 a = vertices[triangles[triangleIndex + 0]];
+            Vector3 b = vertices[triangles[triangleIndex + 1]];
+            Vector3 c = vertices[triangles[triangleIndex + 2]];
 
             Vector3 positionOnTriangle;
-            // TODO: a,b,c instead of a,c,b
-            float dist = VoxelUtils.DistanceFromPointToTriangle(a, c, b, voxelPosition, out positionOnTriangle);
-            if(dist < closestDistance)
+            Vector3 normal;
+            float dist = VoxelUtils.DistanceFromPointToTriangle(a, b, c, voxelPosition, smoothNormals, out positionOnTriangle, out normal);
+
+            if(Mathf.Abs(dist) < Mathf.Abs(closestDistance))
             {
+                closestTriangleStartIndex = triangleIndex;
                 closestDistance = dist;
                 closestPositionOnTriangle = positionOnTriangle;
-                //CreateMarker("Closest Point", closestPositionOnTriangle, 0.05f, closestPointMaterial);
+                closestNormal = normal;
             }
         }
-
-        closestDistance = -closestDistance;
 
         CreateMarker(closestPointDebugMarkerRoot, "Closest Point", closestPositionOnTriangle, 0.05f, closestPointMaterial);
 
@@ -189,7 +207,7 @@ public class MeshToSDFProcessor
         VoxelUtils.ComputeVoxelFieldDimensions(settings.inputSettings.voxelSize, mesh.bounds, out settings.voxelCountX, out settings.voxelCountY, out settings.voxelCountZ);
 
         VoxelField voxelField = ScriptableObject.CreateInstance<VoxelField>();
-        voxelField.Initialize(settings.voxelCountX, settings.voxelCountY, settings.voxelCountZ, settings.inputSettings.voxelSize, mesh.bounds);
+        voxelField.Initialize(settings.voxelCountX, settings.voxelCountY, settings.voxelCountZ, settings.inputSettings.voxelSize, mesh.bounds, settings.inputSettings.sampleRandomPoints, settings.inputSettings.smoothNormals);
 
         // Fill the field with a max float value so that by default,
         // every voxel is infinitly far from a point on the mesh.
@@ -198,10 +216,7 @@ public class MeshToSDFProcessor
         float voxelSize = settings.inputSettings.voxelSize;
         float halfVoxelSize = voxelSize * 0.5f;
 
-        Vector3 startPosition = mesh.bounds.min;// + new Vector3(0,-voxelSize, 0);
-
-        int voxelCounter = 0;
-        int breakPoint = 28;
+        Vector3 startPosition = mesh.bounds.min;
 
         for (int z = settings.inputSettings.startZ; z < settings.voxelCountZ; ++z)
         {
@@ -210,28 +225,40 @@ public class MeshToSDFProcessor
                 for (int x = settings.inputSettings.startX; x < settings.voxelCountX; ++x)
                 {
                     // The offset will allow us to sample from the center of the voxel.
-                    Vector3 offset = new Vector3((x * voxelSize), (y * voxelSize), (z * voxelSize));// + halfVoxelSize);
+                    Vector3 offset = new Vector3((x * voxelSize), (y * voxelSize), (z * voxelSize));
                     Vector3 currentVoxelPosition = startPosition + offset;
 
+                    if (settings.inputSettings.sampleRandomPoints)
+                    {
+                        //float offsetX = UnityEngine.Random.Range(mesh.bounds.min.x, mesh.bounds.max.x);
+                        //float offsetY = UnityEngine.Random.Range(mesh.bounds.min.y, mesh.bounds.max.y);
+                        //float offsetZ = UnityEngine.Random.Range(mesh.bounds.min.z, mesh.bounds.max.z);
+                        //offset = new Vector3(offsetX, offsetY, offsetZ);
+
+                        float mx = Mathf.Abs(mesh.bounds.max.x - mesh.bounds.min.x);
+                        float my = Mathf.Abs(mesh.bounds.max.y - mesh.bounds.min.y);
+                        float mz = Mathf.Abs(mesh.bounds.max.z - mesh.bounds.min.z);
+
+                        // The fudge factor is a hack because not all the models
+                        // we have are modeled exactly at the origin (i.e. tekka and man)
+                        float fudgeFactor = 0.2f;
+                        float halfRadius = Mathf.Max(mx, Mathf.Max(my, mz)) * (0.5f + fudgeFactor);
+
+                        offset = UnityEngine.Random.insideUnitSphere * halfRadius;
+                        currentVoxelPosition = offset;
+                    }
+
                     float dist;
+                    Vector3 normal;
                     Transform closestPointDebugMarkerTransform = settings.debugMarkerData != null ? settings.debugMarkerData.closestPoints : null;
-                    if (FindClosestDistanceFromVoxelToMesh(currentVoxelPosition, settings.triangles, settings.vertices, settings.inputSettings.closestPointMaterial, closestPointDebugMarkerTransform, out dist))
+                    if (FindClosestDistanceFromVoxelToMesh(meshFilter.transform.localToWorldMatrix, currentVoxelPosition, settings.triangles, settings.vertices, settings.inputSettings.smoothNormals, settings.inputSettings.closestPointMaterial, closestPointDebugMarkerTransform, out dist, out normal))
+                    {
                         voxelField.Set(x, y, z, dist);
-
-                    //Debug.Log("Dist = " + dist);
-
-                    //if(dist >= 0.000f)
-                    //    CreateMarker("Voxel Point", currentVoxelPosition, 0.1f, settings.inputSettings.voxelMaterial);
+                        voxelField.Set(x, y, z, normal);
+                    }
 
                     Transform voxelDebugMarkerTransform = settings.debugMarkerData != null ? settings.debugMarkerData.voxels : null;
                     CreateMarker(voxelDebugMarkerTransform, "Voxel Point", currentVoxelPosition, 0.1f, settings.inputSettings.voxelMaterial);
-
-                    if (voxelCounter >= breakPoint )
-                    {
-                        //Debug.Log("Break Point!");
-                    }
-
-                    ++voxelCounter;
 
                     //goto Finish;
 
@@ -242,6 +269,7 @@ public class MeshToSDFProcessor
 
         //Finish:
 
+        OutputVoxelField(voxelField);
         VoxelFieldIO.Write(settings, voxelField);
 
         return true;

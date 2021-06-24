@@ -45,39 +45,127 @@ public class VoxelUtils
         return fArea;
     }
     
-    public static Vector3 GetTriangleBarycentricCoordinate(Vector3 a, Vector3 b, Vector3 c, Vector3 p)
+    class Plane
     {
-        Vector3 coordinate;
+        public Vector3 normal;
+        public float distFromOrigin;
+    };
 
-        Vector3 normal = GetNormalOfTriangle(a, b, c);
+    public static Vector3 GetClosestPointOnLine(Vector3 lineStart, Vector3 lineEnd, Vector3 p)
+    {
+        Vector3 fromStartToEnd = lineEnd - lineStart;
+        float t = Vector3.Dot(p - lineStart, fromStartToEnd) / Vector3.Dot(fromStartToEnd, fromStartToEnd);
+        t = Mathf.Max(t, 0.0000f);
+        t = Mathf.Min(t, 1.0f);
 
-        // The area of a triangle is 
-        float areaABC = Vector3.Dot(normal, Vector3.Cross((b - a), (c - a)));
-        float areaPBC = Vector3.Dot(normal, Vector3.Cross((b - p), (c - p)));
-        float areaPCA = Vector3.Dot(normal, Vector3.Cross((c - p), (a - p)));
-
-        coordinate.x = areaPBC / areaABC ;
-        coordinate.y = areaPCA / areaABC ;
-        coordinate.z = 1.0f - coordinate.x - coordinate.y ;
-
-        return coordinate;
+        return lineStart + (fromStartToEnd * t);
     }
 
-    public static float DistanceFromPointToTriangle(Vector3 v1, Vector3 v2, Vector3 v3, Vector3 p, out Vector3 closestPointOnTriangle)
+    public static bool IsPointInTriangle(Vector3 v1, Vector3 v2, Vector3 v3, Vector3 p)
     {
+        Vector3 a = v1 - p;
+        Vector3 b = v2 - p;
+        Vector3 c = v3 - p;
+
+        Vector3 normPBC = Vector3.Cross(b, c);
+        Vector3 normPCA = Vector3.Cross(c, a);
+        Vector3 normPAB = Vector3.Cross(a, b);
+
+        if (Vector3.Dot(normPBC, normPCA) < 0.0f)
+        {
+            return false;
+        }
+        else if (Vector3.Dot(normPBC, normPAB) < 0.0f)
+        {
+            return false;
+        }
+
+        return true;
+    }
+
+    public static float DistanceFromPointToTriangle(Vector3 v1, Vector3 v2, Vector3 v3, Vector3 p, bool smoothNormals, out Vector3 closestPointOnTriangle, out Vector3 normal)
+    {
+        Vector3 triangleNormal = GetNormalOfTriangle(v1, v2, v3);
+        Plane trianglePlane = new Plane();
+        trianglePlane.normal = triangleNormal;
+        trianglePlane.distFromOrigin = Vector3.Dot(trianglePlane.normal, v1);
+
+        Plane planePoint = new Plane();
+        planePoint.normal = triangleNormal;
+        planePoint.distFromOrigin = Vector3.Dot(planePoint.normal, p);
+
+        float pointDist = planePoint.distFromOrigin - trianglePlane.distFromOrigin;
+        closestPointOnTriangle = p - (triangleNormal * pointDist);
+
         float dist = float.MaxValue;
 
-        Vector3 triangleNormal = GetNormalOfTriangle(v1, v2, v3);
+        if (IsPointInTriangle(v1, v2, v3, closestPointOnTriangle))
+        {
+            dist = Vector3.Magnitude(closestPointOnTriangle - p);
+        }
+        else
+        {
+            Vector3 e0 = GetClosestPointOnLine(v1, v2, p);
+            Vector3 e1 = GetClosestPointOnLine(v2, v3, p);
+            Vector3 e2 = GetClosestPointOnLine(v3, v1, p);
 
-        Vector3 b = GetTriangleBarycentricCoordinate(v1, v2, v3, p);
-        closestPointOnTriangle = (b.x * v1) + (b.y * v2) + (b.z * v3);
-        dist = Vector3.Distance(p, closestPointOnTriangle);
+            float ed0 = Vector3.SqrMagnitude(e0 - p);
+            float ed1 = Vector3.SqrMagnitude(e1 - p);
+            float ed2 = Vector3.SqrMagnitude(e2 - p);
 
-        Vector3 closestPointToP = p - closestPointOnTriangle;
-        closestPointToP.Normalize();
+            // Get the closest point on an edge
+            if (ed0 < ed1 && ed0 < ed2)
+            {
+                closestPointOnTriangle = e0;
+                dist = Vector3.Magnitude(e0 - p);
+            }
+            else if (ed1 < ed0 && ed1 < ed2)
+            {
+                closestPointOnTriangle = e1;
+                dist = dist = Vector3.Magnitude(e1 - p);
+            }
+            else if (ed2 < ed0 && ed2 < ed1)
+            {
+                closestPointOnTriangle = e2;
+                dist = dist = Vector3.Magnitude(e2 - p);
+            }
+            else
+            {
+                // We are cloest to a vertex.
+                float vd0 = Vector3.SqrMagnitude(v1 - p);
+                float vd1 = Vector3.SqrMagnitude(v2 - p);
+                float vd2 = Vector3.SqrMagnitude(v3 - p);
 
-        if (Vector3.Dot(closestPointToP, triangleNormal) < 0)
+                if (vd0 < vd1 && vd0 < vd2)
+                {
+                    closestPointOnTriangle = v1;
+                    dist = Vector3.Magnitude(v1 - p);
+                }
+                else if (vd1 < vd0 && vd1 < vd2)
+                {
+                    closestPointOnTriangle = v2;
+                    dist = Vector3.Magnitude(v2 - p);
+                }
+                else
+                {
+                    closestPointOnTriangle = v3;
+                    dist = Vector3.Magnitude(v3 - p);
+                }
+            }
+        }
+
+        // Flip the sign of the distance based on if we are
+        // inside or outside the mesh.
+        Vector3 closestPointToPointNormal = p - closestPointOnTriangle;
+        closestPointToPointNormal.Normalize();
+
+        if (Vector3.Dot(closestPointToPointNormal, triangleNormal) < 0)
             dist = -dist;
+
+        if(smoothNormals)
+            normal = closestPointToPointNormal;
+        else
+            normal = triangleNormal;
 
         return dist;
     }

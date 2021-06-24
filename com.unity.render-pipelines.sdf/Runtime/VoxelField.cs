@@ -33,6 +33,12 @@ public class VoxelFieldIO
         // Read the voxel size
         voxelField.m_VoxelSize = br.ReadSingle();
 
+        // Uses random sampling?
+        voxelField.m_RandomSamples = br.ReadBoolean();
+
+        // Has smooth Normals?
+        voxelField.m_SmoothNormals = br.ReadBoolean();
+
         // Read the mesh bounds
         // center
         Vector3 center = new Vector3();
@@ -53,6 +59,14 @@ public class VoxelFieldIO
         for (int i = 0; i < voxelField.m_Field.Length; ++i)
         {
             voxelField.m_Field[i] = br.ReadSingle();
+        }
+
+        voxelField.m_Normals = new Vector3[voxelFieldCount];
+        for (int i = 0; i < voxelField.m_Normals.Length; ++i)
+        {
+            voxelField.m_Normals[i].x = br.ReadSingle();
+            voxelField.m_Normals[i].y = br.ReadSingle();
+            voxelField.m_Normals[i].z = br.ReadSingle();
         }
 
         br.Close();
@@ -84,6 +98,12 @@ public class VoxelFieldIO
         // Write the voxel size
         bw.Write(voxelField.VoxelSize);
 
+        // Uses random sampling?
+        bw.Write(voxelField.m_RandomSamples);
+
+        // Has smooth Normals?
+        bw.Write(voxelField.m_SmoothNormals);
+
         // Write the mesh bounds
         // center
         bw.Write(voxelField.MeshBounds.center.x);
@@ -99,6 +119,13 @@ public class VoxelFieldIO
         for (int i = 0; i < voxelField.m_Field.Length; ++i)
         {
             bw.Write(voxelField.m_Field[i]);
+        }
+
+        for (int i = 0; i < voxelField.m_Normals.Length; ++i)
+        {
+            bw.Write(voxelField.m_Normals[i].x);
+            bw.Write(voxelField.m_Normals[i].y);
+            bw.Write(voxelField.m_Normals[i].z);
         }
 
         bw.Close();
@@ -120,6 +147,9 @@ public class VoxelField : ScriptableObject
     public float[] m_Field;
 
     [SerializeField]
+    public Vector3[] m_Normals;
+
+    [SerializeField]
     public int m_VoxelCountX;
     [SerializeField]
     public int m_VoxelCountY;
@@ -128,6 +158,12 @@ public class VoxelField : ScriptableObject
 
     [SerializeField]
     public float m_VoxelSize;
+
+    [SerializeField]
+    public bool m_RandomSamples;
+
+    [SerializeField]
+    public bool m_SmoothNormals;
 
     [SerializeField]
     public Bounds m_MeshBounds;
@@ -149,7 +185,7 @@ public class VoxelField : ScriptableObject
     }
 
     static int s_Ids = 0;
-    public void Initialize(int voxelCountX, int voxelCountY, int voxelCountZ, float voxelSize, Bounds meshBounds)
+    public void Initialize(int voxelCountX, int voxelCountY, int voxelCountZ, float voxelSize, Bounds meshBounds, bool randomSamples, bool smoothNormals)
     {
         m_Id = s_Ids++;
 
@@ -160,7 +196,12 @@ public class VoxelField : ScriptableObject
         m_VoxelSize = voxelSize;
         m_MeshBounds = meshBounds;
 
-        m_Field = new float[m_VoxelCountX * m_VoxelCountY * m_VoxelCountZ];
+        m_RandomSamples = randomSamples;
+        m_SmoothNormals = smoothNormals;
+
+        int totalEntries = m_VoxelCountX * m_VoxelCountY * m_VoxelCountZ;
+        m_Field = new float[totalEntries];
+        m_Normals = new Vector3[totalEntries];
     }
 
     public float Get(int x, int y, int z)
@@ -173,6 +214,12 @@ public class VoxelField : ScriptableObject
     {
         int index = GetIndex(x, y, z);
         m_Field[index] = value;
+    }
+
+    public void Set(int x, int y, int z, Vector3 value)
+    {
+        int index = GetIndex(x, y, z);
+        m_Normals[index] = value;
     }
 
     int GetIndex(int x, int y, int z)

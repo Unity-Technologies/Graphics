@@ -13,6 +13,8 @@ public class Mesh2SDFConverterTool : EditorWindow
     string sdfAssetName = "No Name";
     MeshFilter selectedMeshFilter = null;
     float voxelSize = 0.5f;
+    bool sampleRandomPoints = false;
+    bool smoothNormals = true;
     Material voxelMaterial;
     Material closestPointMaterial;
 
@@ -31,6 +33,8 @@ public class Mesh2SDFConverterTool : EditorWindow
         sdfAssetName = EditorGUILayout.TextField("Name", sdfAssetName);
         selectedMeshFilter = EditorGUILayout.ObjectField("Mesh", selectedMeshFilter, typeof(MeshFilter), true) as MeshFilter;
         voxelSize = EditorGUILayout.FloatField("Voxel Size", voxelSize);
+        sampleRandomPoints = EditorGUILayout.Toggle("Sample Random Points", sampleRandomPoints);
+        smoothNormals = EditorGUILayout.Toggle("Smooth Normals", smoothNormals);
 
         GUILayout.Label("Debug Settings", EditorStyles.boldLabel);
         voxelMaterial = EditorGUILayout.ObjectField("Voxel Material", voxelMaterial, typeof(Material), true) as Material;
@@ -43,15 +47,20 @@ public class Mesh2SDFConverterTool : EditorWindow
 
             MeshToSDFProcessorSettings settings = new MeshToSDFProcessorSettings();
             settings.outputFilePath = EditorUtility.SaveFilePanel("Output SDF Asset", "", "", "sdf");
-            settings.assetName = sdfAssetName;
-            settings.voxelSize = voxelSize;
-            settings.voxelMaterial = voxelMaterial;
-            settings.closestPointMaterial = closestPointMaterial;
+            if (settings.outputFilePath != null && settings.outputFilePath.Length > 0)
+            {
+                settings.assetName = sdfAssetName;
+                settings.voxelSize = voxelSize;
+                settings.sampleRandomPoints = sampleRandomPoints;
+                settings.smoothNormals = smoothNormals;
+                settings.voxelMaterial = voxelMaterial;
+                settings.closestPointMaterial = closestPointMaterial;
 
-            if(MeshToSDFProcessor.Convert(settings, selectedMeshFilter))
-                Debug.Log(string.Format("Created SDF asset \"{0}\" sucessfully!", sdfAssetName));
-            else
-                Debug.LogError(string.Format("Failed to created SDF asset \"{0}\"!", sdfAssetName));
+                if (MeshToSDFProcessor.Convert(settings, selectedMeshFilter))
+                    Debug.Log(string.Format("Created SDF asset \"{0}\" sucessfully!", sdfAssetName));
+                else
+                    Debug.LogError(string.Format("Failed to created SDF asset \"{0}\"!", sdfAssetName));
+            }
         }
     }
 }
