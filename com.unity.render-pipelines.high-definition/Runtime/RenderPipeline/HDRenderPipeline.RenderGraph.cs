@@ -1782,9 +1782,14 @@ namespace UnityEngine.Rendering.HighDefinition
                     customColorBuffer = m_CustomPassColorBuffer,
                     customDepthBuffer = m_CustomPassDepthBuffer,
 
-                    // Render Graph Specific textures
+                    colorBuffer = colorBuffers.colorBuffer,
+                    nonMSAAColorBuffer = colorBuffers.nonMSAAColorBuffer,
+                    depthBuffer = prepassOutput.depthBuffer,
+                    normalBuffer = prepassOutput.resolvedNormalBuffer,
+                    motionVectorBuffer = prepassOutput.resolvedMotionVectorsBuffer,
+
                     colorBuffers = colorBuffers,
-                    prepassBuffers = prepassOutput,
+                    prepassBuffers = prepassOutput
                 };
                 executed |= customPass.Execute(renderGraph, hdCamera, cullingResults, cameraCullingResults, customPassTargets);
             }
