@@ -84,7 +84,7 @@ namespace UnityEngine.Rendering.SDFRP
                 {
                     GetDataFromSceneGraph(SDFObjects, out ComputeBuffer SDFData, out ComputeBuffer SDFHeaderData);
 
-                    CreateObjectList(context, cameras, SDFHeaderData, SDFObjects.Length);
+                    CreateObjectList(context, camera, SDFHeaderData, SDFObjects.Length);
 
                     // SDF Rendering
                     {
@@ -93,7 +93,7 @@ namespace UnityEngine.Rendering.SDFRP
                             CommandBuffer cmdRayMarch = new CommandBuffer();
                             cmdRayMarch.name = "RayMarch";
                             cameraData.UpdateComputeShaderVariables(cmdRayMarch, currentAsset.rayMarchingCS);
-                            SDFRayMarch.RayMarchForRealsies(cmdRayMarch, currentAsset.rayMarchingCS, camera.pixelRect, SDFData, SDFHeaderData, cameraData;
+                            SDFRayMarch.RayMarchForRealsies(cmdRayMarch, currentAsset.rayMarchingCS, camera.pixelRect, SDFData, SDFHeaderData, camera);
                             context.ExecuteCommandBuffer(cmdRayMarch);
                             cmdRayMarch.Release();
                         }
@@ -118,6 +118,7 @@ namespace UnityEngine.Rendering.SDFRP
                         cmdDOF.SetGlobalInt("lensRes", currentAsset.lensRes);
                         cmdDOF.SetGlobalFloat("lensDis", camera.nearClipPlane);
                         cmdDOF.SetGlobalFloat("focalDis", currentAsset.focalDis);
+                        cmdDOF.SetGlobalFloat("lensSiz", currentAsset.lensSiz);
                         cmdDOF.DrawMesh(Utilities.fullscreenMesh, Matrix4x4.identity, m_DepthOfFieldMaterial);
                         context.ExecuteCommandBuffer(cmdDOF);
                         cmdDOF.Release();

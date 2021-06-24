@@ -11,12 +11,10 @@
 
 
 //CBUFFER_START(CameraDetails)
-    float4x4 _InvViewProjMatrix;
-    float3 _CameraPosWS;
+    float4x4 InvViewProjectionMatrix;
+    float3 CameraPos;
     int pad0;
-    int2     _ImageRes;
-    int pad1;
-    int pad2;
+    float4 TexelSize;
 //CBUFFER_END
 
 struct ObjectHeader
@@ -72,12 +70,6 @@ struct TileDataHeader
 };
 StructuredBuffer<TileDataHeader> _TileDataHeader : register(t4);
 
-void HardCodeValues()
-{
-	_InvViewProjMatrix = IDENTITY_MATRIX;
-    _CameraPosWS = float3(0, 0, -5);
-    _ImageRes = int2(640, 480);
-}
 
 struct OutSdfData
 {
@@ -108,29 +100,29 @@ float Convert3DPosTo1D(float3 pos, ObjectHeader objHeader)
     return (pos.x + (pos.y * voxels.x) + (pos.z * voxels.y * voxels.x));
 }
 
-RayData GetRayDirection(int2 currPos, /*float fovHalf,*/ int2 imageRes)
+RayData GetRayDirection(int2 currPos, /*float fovHalf,*/ int2 TexelSize)
 {
-    float imageAspectRatio = (float)imageRes.x / imageRes.y; // assuming width > height 
-    //float Px = (2 * ((currPos.x + 0.5) / imageRes.x) - 1) * tan(fovHalf * DEG_TO_RAD) * imageAspectRatio;
-    //float Py = (2 * ((currPos.y + 0.5) / imageRes.y) - 1) * tan(fovHalf * DEG_TO_RAD);
+    float imageAspectRatio = (float)TexelSize.x / TexelSize.y; // assuming width > height
+    //float Px = (2 * ((currPos.x + 0.5) / TexelSize.x) - 1) * tan(fovHalf * DEG_TO_RAD) * imageAspectRatio;
+    //float Py = (2 * ((currPos.y + 0.5) / TexelSize.y) - 1) * tan(fovHalf * DEG_TO_RAD);
 
-    float Px = (2 * ((currPos.x + 0.5) / imageRes.x) - 1);
-    float Py = (2 * ((currPos.y + 0.5) / imageRes.y) - 1);
+    float Px = (2 * ((currPos.x + 0.5) / TexelSize.x) - 1);
+    float Py = (2 * ((currPos.y + 0.5) / TexelSize.y) - 1);
 
     float3 rayOrigin = float3(0, 0, 0);
-    float4x4 cameraToWorld = _InvViewProjMatrix; // UNITY_MATRIX_I_VP;
+    float4x4 cameraToWorld = InvViewProjectionMatrix; // UNITY_MATRIX_I_VP;
     //cameraToWorld.set(...); // set matrix 
 
     //float3 rayOriginWorld = cameraToWorld * rayOrigin;
     //float3 rayPWorld = cameraToWorld * float3(Px, Py, -1);
 
-    float3 rayPointWS = mul(cameraToWorld, float4(Px, Py, 1, 1)).xyz;
+    float3 rayPointWS = mul(cameraToWorld, float4(Px, Py, 1, 0)).xyz;
     float3 rayOriginWS = mul(cameraToWorld, float4(rayOrigin, 0)).xyz;
 
     //cameraToWorld.multVectMatrix(rayOrigin, rayOriginWorld);
     //cameraToWorld.multVectMatrix(Vec3f(Px, Py, -1), rayPWorld);
     float3 rayDirection = SafeNormalize(rayPointWS - rayOriginWS);
-    float3 rayDirectionWS = rayPointWS - _CameraPosWS;
+    float3 rayDirectionWS = rayPointWS - CameraPos;
     
     //rayDirection.normalize(); // it's a direction so don't forget to normalize 
     RayData rayData;
@@ -140,10 +132,11 @@ RayData GetRayDirection(int2 currPos, /*float fovHalf,*/ int2 imageRes)
     return rayData;
 }
 
+
 float RayMarch(int objHeaderOffset, float3 rayDir, float3 pointOnPlane)
 {
     ObjectHeader objHeader = _ObjectHeaderData[objHeaderOffset];
-    float4 camPosOS = mul(objHeader.worldToObjMatrix, float4(_CameraPosWS, 0));
+    float4 camPosOS = mul(objHeader.worldToObjMatrix, float4(CameraPos, 0));
     float4 rayDirOS = mul(objHeader.worldToObjMatrix, float4(rayDir, 1));
     float4 rayPosOS = mul(objHeader.worldToObjMatrix, float4(pointOnPlane, 0));
     //float3 newPos = SafeNormalize(rayDirOS) * t;
@@ -180,19 +173,19 @@ float RayMarch(int objHeaderOffset, float3 rayDir, float3 pointOnPlane)
                 else if ((sdBox(rayPosOS.xyz, objBBox / 2)) < 0.0f)
                 {
                     // Ray has gone outside the box. Return as no intersection has been found
-                    return 0.0f;
+                    return -1.0f;
                 }
             }
 
             // No intersection found even after max steps within the bounding box
-            return 0.0f;
+            return -1.0f;
         }
 
         rayPosOS = camPosOS + rayDirOS * distance;
     }
 
     // Doesn't intersect bounding box
-    return 0.0f;
+    return -1.0f;
 }
 
 OutSdfData RayMarchAllObjects(float3 dir, float3 pointOnPlane, TileDataHeader tileDataHeader)
@@ -205,7 +198,7 @@ OutSdfData RayMarchAllObjects(float3 dir, float3 pointOnPlane, TileDataHeader ti
     {
 		int objHeaderOffset = _TileDataOffsetIntoObjHeader[tileDataHeader.offset + id];
         float currDistance = RayMarch(objHeaderOffset, dir, pointOnPlane);
-        if (currDistance > 0.0f && (outSdfData.t <= 0 || currDistance < outSdfData.t))
+        if (currDistance > 0.0f && currDistance < outSdfData.t)
         {
             outSdfData.t = currDistance;
         }
@@ -221,17 +214,22 @@ OutSdfData RayMarchAllObjects(float3 dir, float3 pointOnPlane, TileDataHeader ti
 [numthreads(8, 8, 1)]
 void RayMarchKernel(uint3 dispatchTid : SV_DispatchThreadID, uint3 groupId : SV_GroupID, uint groupIndex : SV_GroupIndex)
 {
-	HardCodeValues();
-	int numDispatchesX = ((_ImageRes.x + (8 - 1)) / 8);
+	int numDispatchesX = ((TexelSize.x + (8 - 1)) / 8);
 	int tileIndex = groupId.x + groupId.y * numDispatchesX;
 	TileDataHeader tileDataHeader = _TileDataHeader[tileIndex];
-    RayData rayData = GetRayDirection(dispatchTid.xy, /*_FieldOfViewBy2,*/ _ImageRes);
+    RayData rayData = GetRayDirection(dispatchTid.xy, /*_FieldOfViewBy2,*/ TexelSize);
     OutSdfData outData = RayMarchAllObjects(rayData.direction, rayData.pointOnPlane/*, groupId*/, tileDataHeader);
 
     // TODO - If using z-dimension for anything else, please change the group index and manually calculate
     g_OutSdfData[groupIndex] = outData;
 
 	// For debug only
-	g_DebugOutput[dispatchTid.xy] = float4(outData.t, 0.0, 0.0, 1.0);
+	// output ray direction:
+    g_DebugOutput[dispatchTid.xy] = float4((rayData.direction.xy + 1)*0.5, 0, 1.0);
+
+    // output ray point on Plane:
+    //g_DebugOutput[dispatchTid.xy] = float4((rayData.pointOnPlane.xy + 1)*0.5, 0, 1.0);
+
+    //g_DebugOutput[dispatchTid.xy] = float4(outData.t, 0.0, 0.0, 1.0);
 	//g_DebugOutput[dispatchTid.xy] = float4(1.0, 0.0, 0.0, 1.0);
 }
