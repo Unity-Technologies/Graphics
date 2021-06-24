@@ -650,7 +650,7 @@ Shader "HDRP/Lit"
             Name "VBufferLighting"
             Tags{ "LightMode" = "VBufferLighting"}
 
-            Cull [_CullMode]
+            Cull Back
             AlphaToMask [_AlphaToMask]
 
             ZWrite Off
