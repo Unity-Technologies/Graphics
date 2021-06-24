@@ -208,24 +208,32 @@ namespace UnityEngine.Rendering.HighDefinition
             Vector4 posCompactionParam = new Vector4(posOffset, mesh.vertexCount, posStreamStride, vbStart);
             Vector4 tangentCompactionParam = new Vector4(tangentOffset, mesh.vertexCount, tangentStreamStride, vbStart);
 
-            cs.SetVector(HDShaderIDs._UVCompactionParams, uvCompactionParam);
-            cs.SetVector(HDShaderIDs._NormalCompactionParams, normalCompactionParam);
-            cs.SetVector(HDShaderIDs._PosCompactionParams, posCompactionParam);
-            cs.SetVector(HDShaderIDs._TangentCompactionParams, tangentCompactionParam);
 
             cs.SetBuffer(kernel, HDShaderIDs._InputUVVB, uvVBStream);
             cs.SetBuffer(kernel, HDShaderIDs._InputNormalVB, normalVBStream);
             cs.SetBuffer(kernel, HDShaderIDs._InputPosVB, posVBStream);
             if (tangentVBStream != null)
+            {
                 cs.SetBuffer(kernel, HDShaderIDs._InputTangentVB, tangentVBStream);
+            }
             else
-                cs.SetBuffer(kernel, HDShaderIDs._InputTangentVB, uvVBStream);
+            {
+                cs.SetBuffer(kernel, HDShaderIDs._InputTangentVB, normalVBStream);
+                tangentCompactionParam = Vector4.zero;
+            }
+
             if (hasTexCoord1)
                 cs.SetBuffer(kernel, HDShaderIDs._InputUV1VB, uv1VBStream);
             else
                 cs.SetBuffer(kernel, HDShaderIDs._InputUV1VB, uvVBStream);
 
             cs.SetBuffer(kernel, HDShaderIDs._OutputVB, CompactedVB);
+
+
+            cs.SetVector(HDShaderIDs._UVCompactionParams, uvCompactionParam);
+            cs.SetVector(HDShaderIDs._NormalCompactionParams, normalCompactionParam);
+            cs.SetVector(HDShaderIDs._PosCompactionParams, posCompactionParam);
+            cs.SetVector(HDShaderIDs._TangentCompactionParams, tangentCompactionParam);
 
             int dispatchSize = HDUtils.DivRoundUp(mesh.vertexCount, 64);
 

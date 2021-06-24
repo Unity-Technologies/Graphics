@@ -33,6 +33,7 @@ float4 _TangentCompactionParams;
 #define _VBOutputBias (uint)_UVCompactionParams.w
 
 #define _HasUV1 !all(_UV1CompactionParams == 0)
+#define _HasTangent !all(_TangentCompactionParams == 0)
 
 float4 _IBCompactionParams;
 
@@ -74,7 +75,11 @@ void VBCompactionKernel(uint3 id : SV_DispatchThreadID)
         }
         float3 pos = asfloat(_InputPosVB.Load3(vertexIdx * _PosVBStride + _PosVBBias));
         float3 N = asfloat(_InputNormalVB.Load3(vertexIdx * _NormalVBStride + _NormalVBBias));
-        float4 T = asfloat(_InputTangentVB.Load4(vertexIdx * _TangentVBStride + _TangentVBBias));
+        float4 T = 0;
+        if (_HasTangent)
+        {
+            T = asfloat(_InputTangentVB.Load4(vertexIdx * _TangentVBStride + _TangentVBBias));
+        }
 
         CompactVertex vtx = GetCompactVertex(uv, uv1, pos, N, T);
         _OutputVB[_VBOutputBias + vertexIdx] = vtx;
