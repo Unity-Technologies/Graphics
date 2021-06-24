@@ -99,12 +99,13 @@
 //======================================================================================================================================
  // Convert from MSAA sample color to "luma" used by the algorithm.
  MsssF1 MsssLumF(MsssF4 c){
-  // Get maximum.
   MsssF1 m=max(max(c.r,c.g),c.b);
+  // Get maximum.
   // Invert the invertable tonemapper.
-  m=MsssF1(1.0)-m;
-  m=max(m,MsssF1(1.0/32768.0));
-  return MsssRcpF1(m);}
+  MsssF1 n=MsssF1(1.0)-m;
+  n=max(n,MsssF1(1.0/32768.0));
+  return m;// * MsssRcpF1(n);
+}
 //--------------------------------------------------------------------------------------------------------------------------------------
  // Process four.
  MsssF4 MsssLum4F(MsssF4 a,MsssF4 b,MsssF4 c,MsssF4 d){return MsssF4(MsssLumF(a),MsssLumF(b),MsssLumF(c),MsssLumF(d));}
@@ -119,7 +120,7 @@
   MsssF4 l=MsssLum4F(c0,c1,c2,c3);
   // Generate new feedback for next frame.
   // TODO: Tune this!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-  MsssF4 n=MsssLerpF4(f,l,MsssF4_(1.0/2.0));
+  MsssF4 n=MsssLerpF4(f,l,1.0/8.0);
   // Optionaly store feedback to one of the targets.
   if(s0)MsssStF(p,n);
   if(s1)MsssSt2F(p,n);
@@ -214,6 +215,7 @@
    MsssAccF(kH,kV,kT,wH,wV,wT,cA1,pF+MsssF2( 3.0/8.0,-1.0/8.0),wA.y);
    MsssAccF(kH,kV,kT,wH,wV,wT,cA2,pF+MsssF2(-3.0/8.0, 1.0/8.0),wA.z);
    MsssAccF(kH,kV,kT,wH,wV,wT,cA3,pF+MsssF2( 1.0/8.0, 3.0/8.0),wA.w);
+    //return wA;
    pI.x+=1;
    MsssF4 cB0=MsssTexF(pI,0);
    MsssF4 cB1=MsssTexF(pI,1);
