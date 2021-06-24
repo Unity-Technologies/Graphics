@@ -161,7 +161,7 @@ float RayMarch(int objHeaderOffset, float3 rayDir, float3 cameraPos)
                 rayPosOS = camPosOS + rayDirOS * totalDistance;
                 // Tolerance for edge value
                 float edgeErrorTolerance = 0.0001;
-                int3 voxelPos = floor((rayPosOS.x - objHeader.minExtent - edgeErrorTolerance) / objHeader.voxelSize);
+                int3 voxelPos = floor((rayPosOS - objHeader.minExtent - edgeErrorTolerance) / objHeader.voxelSize);
 
                 int linearVoxelPos = Convert3DPosTo1D(voxelPos, objHeader);
                 distance = _ObjectSDFData[objHeader.startOffset + linearVoxelPos];
