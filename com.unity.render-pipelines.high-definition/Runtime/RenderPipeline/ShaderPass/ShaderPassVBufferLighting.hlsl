@@ -46,10 +46,14 @@ Varyings Vert(Attributes inputMesh)
     int tileY = instanceID / _NumVBufferTileX;
     int quadVertexID = inputMesh.vertexID % 6;
 
-    output.positionCS.xy = ((QuadVertices[quadVertexID]  + float2(tileX, tileY) / float2(_NumVBufferTileX, _NumVBufferTileY))) * 2.0f - 1.0f;
+    int2 tileCoord = int2(tileX, tileY);
+    float2 tileSizeInUV = rcp(float2(_NumVBufferTileX, _NumVBufferTileY));
+    float2 tileStartUV = tileCoord * rcp(float2(_NumVBufferTileX, _NumVBufferTileY));
+    float2 vertPos = (QuadVertices[quadVertexID] + tileCoord) * tileSizeInUV;
 
-    // TODO DEBUG
-    output.lightFeatures = LIGHTVARIANTS_SKY_DIR_PUNCTUAL_AREA_ENV; // _VBufferTileClassification[COORD_TEXTURE2D_X(uint2(tileX, tileY))];
+    output.positionCS.xy = vertPos * 2 - 1;
+
+    output.lightFeatures = _VBufferTileClassification[COORD_TEXTURE2D_X(uint2(tileX, (_NumVBufferTileY-1) - tileY))];
     output.positionCS.z = float(_CurrMaterialID) / (float)(0xffff);
     output.positionCS.w = 1;
 
@@ -223,7 +227,6 @@ void Frag(Varyings packedInput, out float4 outColor : SV_Target0)
     specularLighting *= GetCurrentExposureMultiplier();
 
 
-    outColor.rgb = float4(diffuseLighting + specularLighting, 1.0) + (packedInput.tileCoord / float2(_NumVBufferTileX, _NumVBufferTileY)).xyx * 0.02f;
-
+    outColor.rgb = float4(diffuseLighting + specularLighting, 1.0);
     outColor.a = 1;
 }
