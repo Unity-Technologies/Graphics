@@ -41,6 +41,7 @@ public Vector3Int gridSize = new Vector3Int(6, 6, 6);
         public Vector3 probeDistance = new Vector3(1, 1, 1);
 
         internal ComputeShader rayMarchingCS;
+        internal Shader tileCullingShader;
         internal ComputeShader gatherIrradianceCS;
         internal ComputeShader giShadingCS;
 
@@ -61,6 +62,7 @@ public Vector3Int gridSize = new Vector3Int(6, 6, 6);
         {
             // TODO - Need to figure out how to do this using the defaultResources
             rayMarchingCS = Resources.Load<ComputeShader>("RayMarch");
+            tileCullingShader = Resources.Load<Shader>("ObjectList");
 
             gatherIrradianceCS = SafeLoadAssetAtPath<ComputeShader>(defaultPath + "Shaders/GI/GatherIrradiance.compute");
             giShadingCS = SafeLoadAssetAtPath<ComputeShader>(defaultPath + "Shaders/GI/GIShading.compute");
