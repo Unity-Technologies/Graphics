@@ -6,34 +6,6 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ## [12.0.0] - 2021-01-11
 
-### Changed
-- ClearFlag.Depth does not implicitely clear stencil anymore. ClearFlag.Stencil added.
-- The RTHandleSystem no longer requires a specific number of sample for MSAA textures. Number of samples can be chosen independently for all textures.
-- Platform ShaderLibrary API headers now have a new macro layer for 2d texture sampling macros. This layer starts with PLATFORM_SAMPLE2D definition, and it gives the possibility of injecting sampling behavior on a render pipeline level. For example: being able to a global mip bias for temporal upscalers.
-- Update icon for IES, LightAnchor and LensFlare
-- LensFlare (SRP) can be now disabled per element
-- LensFlare (SRP) tooltips now refer to meters.
-- Serialize the Probe Volume asset as binary to improve footprint on disk and loading speed.
-- LensFlare Element editor now have Thumbnail preview
-
-### Fixed
-- Fixed missing warning UI about Projector component being unsupported (case 1300327).
-- Fixed the display name of a Volume Parameter when is defined the attribute InspectorName
-- Calculating correct rtHandleScale by considering the possible pixel rounding when DRS is on
-- Problem on domain reload of Volume Parameter Ranges and UI values
-- Fixed Right Align of additional properties on Volume Components Editors
-- Fixed normal bias field of reference volume being wrong until the profile UI was displayed.
-- Fixed L2 for Probe Volumes.
-- Fixed assertion on compression of L1 coefficients for Probe Volume.
-- Explicit half precision not working even when Unified Shader Precision Model is enabled.
-- Fixed ACES filter artefact due to half float error on some mobile platforms.
-- Fixed issue displaying a warning of different probe reference volume profiles even when they are equivalent.
-- Fixed missing increment/decrement controls from DebugUIIntField & DebugUIUIntField widget prefabs.
-- Fixed IES Importer related to new API on core.
-- Fixed a large, visible stretch ratio in a LensFlare Image thumbnail.
-- Fixed Undo from script refreshing thumbnail.
-- Fixed cropped thumbnail for Image with non-uniform scale and rotation
-
 ### Added
 - Support for the PlayStation 5 platform has been added.
 - Support for additional properties for Volume Components without custom editor
@@ -64,6 +36,31 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Adding new API functions inside DynamicResolutionHandler to get mip bias. This allows dynamic resolution scaling applying a bias on the frame to improve on texture sampling detail.
 - Added a reminder if the data of probe volume might be obsolete.
 - Added new API function inside DynamicResolutionHandler and new settings in GlobalDynamicResolutionSettings to control low res transparency thresholds. This should help visuals when the screen percentage is too low.
+- Added common include file for meta pass functionality (case 1211436)
+- Added OverridablePropertyScope (for VolumeComponentEditor child class only) to handle the Additional Property, the override checkbox and disable display and decorator attributes in one scope.
+- Added IndentLevelScope (for VolumeComponentEditor child class only) to handle indentation of the field and the checkbox.
+- Added class for drawing shadow cascades `UnityEditor.Rendering.ShadowCascadeGUI.DrawShadowCascades`.
+
+### Fixed
+- Fixed missing warning UI about Projector component being unsupported (case 1300327).
+- Fixed the display name of a Volume Parameter when is defined the attribute InspectorName
+- Calculating correct rtHandleScale by considering the possible pixel rounding when DRS is on
+- Problem on domain reload of Volume Parameter Ranges and UI values
+- Fixed Right Align of additional properties on Volume Components Editors
+- Fixed normal bias field of reference volume being wrong until the profile UI was displayed.
+- Fixed L2 for Probe Volumes.
+- Fixed assertion on compression of L1 coefficients for Probe Volume.
+- Explicit half precision not working even when Unified Shader Precision Model is enabled.
+- Fixed ACES filter artefact due to half float error on some mobile platforms.
+- Fixed issue displaying a warning of different probe reference volume profiles even when they are equivalent.
+- Fixed missing increment/decrement controls from DebugUIIntField & DebugUIUIntField widget prefabs.
+- Fixed IES Importer related to new API on core.
+- Fixed a large, visible stretch ratio in a LensFlare Image thumbnail.
+- Fixed Undo from script refreshing thumbnail.
+- Fixed cropped thumbnail for Image with non-uniform scale and rotation
+- Skip wind calculations for Speed Tree 8 when wind vector is zero (case 1343002)
+- Fixed memory leak when changing SRP pipeline settings, and having the player in pause mode.
+- Fixed alignment in Volume Components
 
 ### Changed
 - Changed Window/Render Pipeline/Render Pipeline Debug to Window/Analysis/Rendering Debugger
@@ -76,9 +73,14 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Moved Assets/Create/LookDev/Environment Library to Assets/Create/Rendering/Environment Library (Look Dev)
 - Changed Nintendo Switch specific half float fixes in color conversion routines to all platforms.
 - Improved load asset time for probe volumes.
-
-### Added
-- Added class for drawing shadow cascades `UnityEditor.Rendering.ShadowCascadeGUI.DrawShadowCascades`.
+- ClearFlag.Depth does not implicitely clear stencil anymore. ClearFlag.Stencil added.
+- The RTHandleSystem no longer requires a specific number of sample for MSAA textures. Number of samples can be chosen independently for all textures.
+- Platform ShaderLibrary API headers now have a new macro layer for 2d texture sampling macros. This layer starts with PLATFORM_SAMPLE2D definition, and it gives the possibility of injecting sampling behavior on a render pipeline level. For example: being able to a global mip bias for temporal upscalers.
+- Update icon for IES, LightAnchor and LensFlare
+- LensFlare (SRP) can be now disabled per element
+- LensFlare (SRP) tooltips now refer to meters.
+- Serialize the Probe Volume asset as binary to improve footprint on disk and loading speed.
+- LensFlare Element editor now have Thumbnail preview
 
 ## [11.0.0] - 2020-10-21
 

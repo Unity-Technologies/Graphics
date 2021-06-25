@@ -12,6 +12,18 @@
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Builtin/BuiltinData.cs.hlsl"
 
 //-----------------------------------------------------------------------------
+// Modification Options
+//-----------------------------------------------------------------------------
+// Due to various transform and conversions that happen, some precision is lost along the way.
+// as a result, motion vectors that are close to 0 due to cancellation of components (camera and object) end up not doing so.
+// To workaround the issue, if the computed motion vector is less than MICRO_MOVEMENT_THRESHOLD (now 1% of a pixel)
+// if  KILL_MICRO_MOVEMENT is == 1, we set the motion vector to 0 instead.
+// An alternative could be rounding the motion vectors (e.g. round(motionVec.xy * 1eX) / 1eX) with X varying on how many digits)
+// but that might lead to artifacts with mismatch between actual motion and written motion vectors on non trivial motion vector lengths.
+#define KILL_MICRO_MOVEMENT
+#define MICRO_MOVEMENT_THRESHOLD (0.01f * _ScreenSize.zw)
+
+//-----------------------------------------------------------------------------
 // helper macro
 //-----------------------------------------------------------------------------
 
