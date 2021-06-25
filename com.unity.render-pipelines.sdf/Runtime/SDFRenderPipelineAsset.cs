@@ -32,11 +32,11 @@ namespace UnityEngine.Rendering.SDFRP
 
         // Currently it's not advised to change m_ProbeAtlasTextureResolution and m_ProbeResolution: I did not make addtional checks and tweaks to make sure the parameters would fit
         // But as long as you use pairs like 4096-256, 2048-128, and 1024-64, things should be fine
-        internal int probeAtlasTextureResolution { get { return GIQuality == GIQualityLevels.Low ? 1024 : (GIQuality == GIQualityLevels.Medium ? 2048 : 4096); } }
-        internal int probeResolution { get { return GIQuality == GIQualityLevels.Low ? 64 : (GIQuality == GIQualityLevels.Medium ? 128 : 256); } }
+        internal int probeAtlasTextureResolution { get { return GIQuality == GIQualityLevels.Low ? 512 : (GIQuality == GIQualityLevels.Medium ? 1024 : 2048); } }
+        internal int probeResolution { get { return GIQuality == GIQualityLevels.Low ? 32 : (GIQuality == GIQualityLevels.Medium ? 64 : 128); } }
 
-// Please make sure that m_GridSize.x * m_GridSize.y * m_GridSize.z <= 256 for the same reason above
-public Vector3Int gridSize = new Vector3Int(6, 6, 6);
+        // Please make sure that m_GridSize.x * m_GridSize.y * m_GridSize.z <= 256 for the same reason above
+        public Vector3Int gridSize = new Vector3Int(6, 6, 6);
         public Vector3 gridOrigin = new Vector3(0, 0, 0);
         public Vector3 probeDistance = new Vector3(1, 1, 1);
 

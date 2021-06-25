@@ -5,11 +5,6 @@ using UnityEditor;
 
 public class Mesh2SDFConverterTool : EditorWindow
 {
-    //string myString = "Hello World";
-    //bool groupEnabled;
-    //bool myBool = true;
-    //float myFloat = 1.23f;
-
     string sdfAssetName = "No Name";
     MeshFilter selectedMeshFilter = null;
     float voxelSize = 0.5f;

@@ -7,6 +7,8 @@ SamplerState PointClampSampler;
 
 float4x4 RSM_ProjectionMatrix;
 
+Buffer<float> RSM_SamplePoints;
+
 RWTexture2D<float4> ProbeAtlasTexture;
 int ProbeAtlasTextureResolution;
 int ProbeResolution;
@@ -34,6 +36,10 @@ void GatherIrradiance(uint3 id : SV_DispatchThreadID)
     uint probeCount = GridSize.x * GridSize.y * GridSize.z;
     for (uint probeIndex = 0; probeIndex < probeCount; ++probeIndex)
     {
+        // Generate sample ray direction
+        float2 sampleUV = { id.x / (float)(ProbeResolution - 1), id.y / (float)(ProbeResolution - 1) };
+        float3 sampleDir = oct_to_float32x3((sampleUV - float2(0.5f, 0.5f)) * 2.0f);
+
         // Derive probe position
         //  Y
         //  |
@@ -45,16 +51,39 @@ void GatherIrradiance(uint3 id : SV_DispatchThreadID)
         uint gridZ = probeIndex % (uint)GridSize.z;
         float4 probePosition = float4(ProbeDistance.x * gridX, ProbeDistance.y * gridY, ProbeDistance.z * gridZ, 0) + GridOrigin;
 
-        // Generate sample ray direction
-        float2 sampleUV = { id.x / (float)(ProbeResolution - 1), id.y / (float)(ProbeResolution - 1) };
-        float3 sampleDir = oct_to_float32x3((sampleUV - float2(0.5f, 0.5f)) * 2.0f);
+        uint rsmSamplePointCount;
+        RSM_SamplePoints.GetDimensions(rsmSamplePointCount);
+        rsmSamplePointCount /= 2;
 
-        // TODO: insert actual irradiance gathering here
+        float  sampleT = 0; // In light space
+        float3 sampleNormal = { 0, 0, 0 }; // In world space
+        float2 rsmUV = { 0, 0 };
+        // TODO: raymarch in the scene and get hitpoint light space position
+        // i.e. sampleT & sampleNormal = rayMarchAndTransform(from probePosition, to sampleDir, with RSM_ProjectionMatrix)
+        // rsmUV = hitpoint UV in light space
+
+        float4 sampleFlux = { 0, 0, 0, 0 };
+
+        for (uint i = 0; i < rsmSamplePointCount; ++i)
+        {
+            float2 rsmOffset = { RSM_SamplePoints[i * 2], RSM_SamplePoints[i * 2 + 1] };
+            float2 rsmSamplePoint = rsmUV + rsmOffset;
+            if (rsmSamplePoint.x > 1.0f || rsmSamplePoint.x < 0.0f || rsmSamplePoint.y > 1.0f || rsmSamplePoint.y < 0.0f)
+                continue;
+
+            //float4 rsmSampleFlux = RSM_FluxTexture.SampleLevel(PointClampSampler, rsmSamplePoint, 0);
+            //float4 rsmSampleNormal = RSM_NormalTexture.SampleLevel(PointClampSampler, rsmSamplePoint, 0);
+            //float4 rsmSampleT = RSM_tValueTexture.SampleLevel(PointClampSampler, rsmSamplePoint, 0);
+
+            // TODO: accumulate rsmSample value
+        }
+        sampleFlux.w = 1;
 
         // Get write location to the atlas texture
         uint  probeCountPerDim = ProbeAtlasTextureResolution / ProbeResolution;
         uint2 writeLocation = { (probeIndex % probeCountPerDim) * ProbeResolution + id.x, (probeIndex / probeCountPerDim) * ProbeResolution + id.y };
 
+        //ProbeAtlasTexture[writeLocation] = sampleFlux;
         // Fake gathering
         ProbeAtlasTexture[writeLocation] = float4(clamp(dot(sampleDir, float3(1, 0, 0)), 0, 1) * float3(0, 1, 0)
             + clamp(dot(sampleDir, float3(0, -1, 0)), 0, 1) * float3(0, 0, 1)

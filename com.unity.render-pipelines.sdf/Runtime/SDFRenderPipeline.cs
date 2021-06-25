@@ -56,10 +56,12 @@ namespace UnityEngine.Rendering.SDFRP
 
         Material m_DepthOfFieldMaterial = null;
 
-        bool m_isGIResourcesCreated = false;
-        RenderTexture m_ProbeAtlasTexture = null;
+        // TODO - move these into a separate class like SDFSceneData
+        private bool m_isGIResourcesCreated = false;
+        private RenderTexture m_ProbeAtlasTexture = null;
+        private ComputeBuffer m_RSMSamplePointsBuffer = null;
         #region DEBUG_ONLY
-        RenderTexture gi_mockRT = null;
+        public static RenderTexture gi_mockRT = null;
         #endregion
 
         static int Frame = 0;
@@ -91,6 +93,14 @@ namespace UnityEngine.Rendering.SDFRP
                 SDFRenderer[] SDFObjects = GameObject.FindObjectsOfType<SDFRenderer>();
                 if (SDFObjects.Length > 0)
                 {
+                    if (camera.cameraType == CameraType.Game && camera.enabled)
+                    {
+                        if (m_SdfRayMarch == null) // TODO: or if resolution has changed
+                        {
+                            m_SdfRayMarch = new SDFRayMarch(camera.pixelRect);
+                        }
+                    }
+
                     // GI Probe Update
                     // TODO - RSM should execute before this and for GI we need a full scene bounding box list
                     if (currentAsset.enableGI)
@@ -98,16 +108,16 @@ namespace UnityEngine.Rendering.SDFRP
                         if (camera.cameraType == CameraType.Game && camera.enabled)
                         {
                             SDFGIProbeUpdateData giProbeUpdateData = new SDFGIProbeUpdateData();
-                            giProbeUpdateData.InitializeGIProbeUpdateData(currentAsset, m_ProbeAtlasTexture);
+                            giProbeUpdateData.InitializeGIProbeUpdateData(currentAsset, m_ProbeAtlasTexture, m_RSMSamplePointsBuffer);
 
                             CommandBuffer cmdGIProbeUpdate = new CommandBuffer();
                             cmdGIProbeUpdate.name = "GIProbeUpdate";
                             cmdGIProbeUpdate.SetExecutionFlags(CommandBufferExecutionFlags.AsyncCompute);
 
                             // TODO - giProbeUpdateData.SetupRSMInput(...);
-                            giProbeUpdateData.UpdateComputeShaderVariables(cmdGIProbeUpdate, currentAsset.gatherIrradianceCS);                          
+                            giProbeUpdateData.UpdateComputeShaderVariables(cmdGIProbeUpdate, currentAsset.gatherIrradianceCS);
 
-                            SDFRayMarch.RayMarchUpdateGIProbe(cmdGIProbeUpdate, currentAsset.gatherIrradianceCS, currentAsset.probeResolution);
+                            m_SdfRayMarch.RayMarchUpdateGIProbe(cmdGIProbeUpdate, currentAsset.gatherIrradianceCS, currentAsset.probeResolution);
                            
                             context.ExecuteCommandBufferAsync(cmdGIProbeUpdate, ComputeQueueType.Default);
                             cmdGIProbeUpdate.Release();
@@ -125,10 +135,6 @@ namespace UnityEngine.Rendering.SDFRP
                             cmdRayMarch.name = "RayMarch";
                             cameraData.UpdateComputeShaderVariables(cmdRayMarch, currentAsset.rayMarchingCS);
 
-                            if (m_SdfRayMarch == null) // TODO: or if resolution has changed
-                            {
-                                m_SdfRayMarch = new SDFRayMarch(camera.pixelRect);
-                            }
                             m_SdfRayMarch.RayMarch(cmdRayMarch, currentAsset.rayMarchingCS, m_SdfSceneData);
 
                             context.ExecuteCommandBuffer(cmdRayMarch);
@@ -161,7 +167,7 @@ namespace UnityEngine.Rendering.SDFRP
                             giShadingData.SetupScreenSpaceInput(null, null, gi_mockRT);
                             giShadingData.UpdateComputeShaderVariables(cmdGIShading, currentAsset.giShadingCS);
 
-                            SDFRayMarch.RayMarchGIShading(cmdGIShading, currentAsset.giShadingCS, camera, gi_mockRT);
+                            m_SdfRayMarch.RayMarchGIShading(cmdGIShading, currentAsset.giShadingCS, camera);
 
                             context.ExecuteCommandBuffer(cmdGIShading);
                             cmdGIShading.Release();
@@ -440,6 +446,14 @@ namespace UnityEngine.Rendering.SDFRP
 
             m_ProbeAtlasTexture = new RenderTexture(rtDesc);
             m_ProbeAtlasTexture.Create();
+
+
+            Debug.Assert(m_RSMSamplePointsBuffer == null);
+
+            int sampleCount = 192; // This affects quality & performance
+            m_RSMSamplePointsBuffer = new ComputeBuffer(sampleCount * 2, sizeof(float), ComputeBufferType.Default); // Every sample point is a UV offset
+            SDFGIProbeUpdateData.GenerateRSMSamplePoints(sampleCount, 0.49f, m_RSMSamplePointsBuffer);
+
 
             // Create other resources here
 

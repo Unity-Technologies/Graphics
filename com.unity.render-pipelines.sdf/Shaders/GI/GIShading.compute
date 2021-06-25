@@ -28,6 +28,13 @@ float2 float32x3_to_oct(float3 v)
     // Reflect the folds of the lower hemisphere over the diagonals
     return (v.z <= 0.0f) ? ((1.0f - abs(p.yx)) * signNotZero(p)) : p;
 }
+// Assume [-1, 1] for each input component
+float3 oct_to_float32x3(float2 e)
+{
+    float3 v = float3(e.xy, 1.0f - abs(e.x) - abs(e.y));
+    v.xy = (v.z < 0.0f) ? ((1.0f - abs(v.yx)) * signNotZero(v.xy)) : v.xy;
+    return normalize(v);
+}
 
 int3 GetCellCoordniates(float3 position)
 {
@@ -59,7 +66,7 @@ int3 GetCellCoordniates(float3 position)
 
 float3 fakePosition(int2 xy, int colorHalfWidth, int colorHalfHeight)
 {
-    float screenRadius = 110;
+    float screenRadius = 150;
     float3 position = { 10000, 10000, 10000 };
 
     int xDist = abs(xy.x - colorHalfWidth);
@@ -108,6 +115,12 @@ void CompositeGI(uint3 id : SV_DispatchThreadID)
         baseProbeIndex + (uint)GridSize.z + 1 + (uint)(GridSize.y * GridSize.z),
     };
 
+    // DEBUG_ONLY, clear the rt
+    ColorResult[id.xy] = float4(0, 0, 0, 1);
+
+    uint  probeCountPerDim = ProbeAtlasTextureResolution / ProbeResolution;
+    float uvProbeOffset = 1.0f / probeCountPerDim;
+
     // Interpolate probes
     for (uint i = 0; i < 8; ++i)
     {
@@ -123,19 +136,35 @@ void CompositeGI(uint3 id : SV_DispatchThreadID)
 
         // TODO: perform visibility test here and discard result if necessary
 
-        // Fake visibility test
-        //if (distance(probePosition, float3(2.5f, 2.5f, 2.5f)) <= 1.0f)
-        //    return;
 
         // TODO: properly normalize dist weight with ProbeDistance
-        float probeWeight = 0.125f * (1.0f / clamp(sqrt(dist), 0.5f, 1.0f)) / 4.0f;
+        float probeWeight = 0.125f * (1.0f / clamp(sqrt(dist), 0.5f, 1.0f));
 
-        // Convert look up direction into probe atlas texture UV
-        float2 localUV = float32x3_to_oct(pixelNormal) / 2.0f + float2(0.5f, 0.5f);
-        uint   probeCountPerDim = ProbeAtlasTextureResolution / ProbeResolution;
-        float  uvProbeOffset = 1.0f / probeCountPerDim;
-        float2 atlasUV = { (probeIndex % probeCountPerDim) * uvProbeOffset + localUV.x / probeCountPerDim, (probeIndex / probeCountPerDim) * uvProbeOffset + localUV.y / probeCountPerDim };
+        // Perform hemisphere weighed sampling
+        // Because we are missing tangent info, so for now I will use the stupid way - generate sample directions on a full sphere and discard ones that are facing backward
 
-        ColorResult[id.xy] += ProbeAtlasTexture.SampleLevel(TrilinearClampSampler, atlasUV, 0) * probeWeight;
+        float4 probeAccumulation = { 0, 0, 0, 0 };
+        for (int u = -3; u <= 3; u++)
+        {
+            for (int v = -3; v <= 3; v++)
+            {
+                float2 sampleUV = float2(0.285f * u, 0.285f * v);
+                float3 sampleNormal = oct_to_float32x3(sampleUV); // Maybe pre-store the results out of the probe loop
+                float  sampleWeight = dot(sampleNormal, pixelNormal);
+
+                if (sampleWeight <= 0)
+                    continue;
+
+                // Convert look up direction into probe atlas texture UV
+                float2 localUV = clamp(sampleUV / 2.0f + float2(0.5f, 0.5f), 0.01f, 0.99f); // The clamp is a hack to fix the seams glitch; better figure out why this is happening
+                float2 atlasUV = { (probeIndex % probeCountPerDim) * uvProbeOffset + localUV.x / probeCountPerDim, (probeIndex / probeCountPerDim) * uvProbeOffset + localUV.y / probeCountPerDim };
+
+                probeAccumulation += ProbeAtlasTexture.SampleLevel(TrilinearClampSampler, atlasUV, 0) * sampleWeight;
+            }
+        }
+        probeAccumulation /= 24.0f; // Ideally half of 7x7 samples
+        probeAccumulation.w = 0;
+
+        ColorResult[id.xy] += probeAccumulation * probeWeight;
     }
 }

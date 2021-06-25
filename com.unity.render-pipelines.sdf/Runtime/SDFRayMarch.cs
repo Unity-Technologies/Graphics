@@ -107,7 +107,7 @@ public class SDFRayMarch
         #endregion
     }
 
-    public static void RayMarchUpdateGIProbe(CommandBuffer cmd, ComputeShader gatherIrradianceCS, int probeResolution) // TODO - more parameters are needed to take in object data
+    public void RayMarchUpdateGIProbe(CommandBuffer cmd, ComputeShader gatherIrradianceCS, int probeResolution) // TODO - more parameters are needed to take in object data
     {
         int kernelIndex = gatherIrradianceCS.FindKernel("GatherIrradiance");
 
@@ -116,17 +116,12 @@ public class SDFRayMarch
         cmd.DispatchCompute(gatherIrradianceCS, kernelIndex, probeResolution / 8, probeResolution / 8, 1); // [numthreads(8,8,1)]
     }
 
-    public static void RayMarchGIShading(CommandBuffer cmd, ComputeShader giShadingCS, Camera camera, RenderTexture mockRT) // TODO - more parameters are needed to take in object data
+    public void RayMarchGIShading(CommandBuffer cmd, ComputeShader giShadingCS, Camera camera) // TODO - more parameters are needed to take in object data
     {
         int kernelIndex = giShadingCS.FindKernel("CompositeGI");
 
         // TODO - set buffer data
 
-        cmd.DispatchCompute(giShadingCS, kernelIndex, (int)Mathf.Ceil(camera.pixelRect.width / 8), (int)Mathf.Ceil(camera.pixelRect.height / 8), 1); // [numthreads(8,8,1)]
-
-        #region DEBUG_ONLY
-        //cmd.SetRenderTarget(camera.activeTexture);
-        //cmd.Blit(mockRT, BuiltinRenderTextureType.CurrentActive);
-        #endregion
+        cmd.DispatchCompute(giShadingCS, kernelIndex, resolutionX / 8, resolutionY / 8, 1); // [numthreads(8,8,1)]
     }
 }
