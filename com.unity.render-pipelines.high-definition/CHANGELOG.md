@@ -363,23 +363,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - TAA jitter is disabled while using Frame Debugger now.
 - Depth of field at half or quarter resolution is now computed consistently with the full resolution option (case 1335687).
 - Hair uses GGX LTC for area light specular.
-- Moved the quality ui section of the volumetric clouds.
-- Moved the density, erosion and ambient occlusion curves ui of the volumetric clouds.
-- Changed the volumetric clouds presets.
-- Changed the maximal step size based on the cloud layer thickness.
-- Increase the maximal multi-scattering value.
-- Decrease the maximal density multiplier value.
-- Removed the non uniform weight distrbution for light sample (volumetric clouds).
-- Reduced the minimal threshold for cloud density (support very light clouds).
-- Changed the values of the forward and backward eccentricity.
-- Adjust the minimal cloud distance based on the cloud layer size.
-- Evaluate the sun luminance at the center of the raymarching volume instead of the earth surface.
-- Reduce the erosion occlusion intensity.
-- Reduce the maximal mip level when doing light rays (volumetric clouds).
-- Change the default curves for density and erosion (volumetric clouds).
-- Change default volumetric clouds values (powder effect, erosion occlusion, speed multipliers).
-- Made the wind orientation code a non additional property.
-- Increase the minimal sigma value to 0.04 (more physically accurate).
+- Various improvements to the volumetric clouds.
 
 ## [11.0.0] - 2020-10-21
 
