@@ -64,6 +64,8 @@ namespace UnityEngine.Rendering.SDFRP
         public static RenderTexture gi_mockRT = null;
         #endregion
 
+        private SDFGenerateRSMData m_SdfGenerateRSMData;
+
         static int Frame = 0;
 
         private SDFSceneData m_SdfSceneData;
@@ -100,8 +102,35 @@ namespace UnityEngine.Rendering.SDFRP
                             m_SdfRayMarch = new SDFRayMarch(camera.pixelRect);
                         }
 
+                        GetDataFromSceneGraph(SDFObjects, camera.pixelRect);
+                        CreateObjectList(context, camera, SDFObjects.Length);
+                        
+                        // Get sun light properties to pass to RSM and use for direct lighting
+                        Light directionalLight = RenderSettings.sun;
+                        // For direct lighting, can use transform.forward
+                        // Vector3 lightDir = directionalLight.transform.forward;
+                         
+                        // Generate RSM for main directional light
+                        if (currentAsset.enableGI)
+                        {
+                            CommandBuffer cmdGenerateRSM = new CommandBuffer();
+                            cmdGenerateRSM.name = "GenerateRSM";
+
+                            if (m_SdfGenerateRSMData == null)
+                            {
+                                m_SdfGenerateRSMData = new SDFGenerateRSMData();
+                            }
+                            m_SdfGenerateRSMData.SetupGenerateRSMData(camera, directionalLight);
+                            m_SdfGenerateRSMData.UpdateComputeShaderVariables(cmdGenerateRSM, currentAsset.generateRSMCS);                          
+
+                            m_SdfRayMarch.RayMarchRSM(cmdGenerateRSM, currentAsset.generateRSMCS, m_SdfSceneData, m_SdfGenerateRSMData);
+
+                            context.ExecuteCommandBuffer(cmdGenerateRSM);
+                            cmdGenerateRSM.Release();
+                        }
+
                         // GI Probe Update
-                        // TODO - RSM should execute before this and for GI we need a full scene bounding box list
+                        // TODO - for GI we need a full scene bounding box list
                         if (currentAsset.enableGI)
                         {
                             SDFGIProbeUpdateData giProbeUpdateData = new SDFGIProbeUpdateData();
@@ -111,7 +140,7 @@ namespace UnityEngine.Rendering.SDFRP
                             cmdGIProbeUpdate.name = "GIProbeUpdate";
                             cmdGIProbeUpdate.SetExecutionFlags(CommandBufferExecutionFlags.AsyncCompute);
 
-                            // TODO - giProbeUpdateData.SetupRSMInput(...);
+                            giProbeUpdateData.SetupRSMInput(m_SdfGenerateRSMData.m_RSMFluxTexture, m_SdfGenerateRSMData.m_RSMNormalTexture, m_SdfGenerateRSMData.m_RSMDistanceTexture, m_SdfGenerateRSMData.m_RSMProjectionMatrix);
                             giProbeUpdateData.UpdateComputeShaderVariables(cmdGIProbeUpdate, currentAsset.gatherIrradianceCS);
 
                             m_SdfRayMarch.RayMarchUpdateGIProbe(cmdGIProbeUpdate, currentAsset.gatherIrradianceCS, currentAsset.probeResolution);
@@ -120,8 +149,6 @@ namespace UnityEngine.Rendering.SDFRP
                             cmdGIProbeUpdate.Release();
                         }
 
-                        GetDataFromSceneGraph(SDFObjects, camera.pixelRect);
-                        CreateObjectList(context, camera, SDFObjects.Length);
 
                         // SDF Rendering
                         {
@@ -157,7 +184,7 @@ namespace UnityEngine.Rendering.SDFRP
                             #endregion
 
                             // TODO - hook up screen space color, t-value and normal input
-                            giShadingData.SetupScreenSpaceInput(null, null, gi_mockRT);
+                            giShadingData.SetupScreenSpaceInput(m_SdfRayMarch.outSdfData, null, gi_mockRT);
                             giShadingData.UpdateComputeShaderVariables(cmdGIShading, currentAsset.giShadingCS);
 
                             m_SdfRayMarch.RayMarchGIShading(cmdGIShading, currentAsset.giShadingCS, camera);
