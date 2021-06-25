@@ -30,9 +30,11 @@ struct ObjectHeader
     int      startOffset;
     int      normalsOffset;
     float3   minExtent;
-    float    voxelSize;
+	float    pad0;
     float3   maxExtent;
     float    pad1;
+	int3     voxelDimensions;
+	float    voxelSize;
 };
 
 // This will have the actual sdf data in a contiguous array. Right now we store everything in the scene here, but will need to optimize it
@@ -40,25 +42,6 @@ StructuredBuffer<float> _ObjectSDFData : register(t1);
 
 // Header data to index into the above actual sdf data
 StructuredBuffer<ObjectHeader> _ObjectHeaderData : register (t2);
-
-// Voxel Count X Axis = 8
-// Voxel Count Y Axis = 8
-// Voxel Count Z Axis = 1
-// Voxel Size = 0.25
-// Mesh Min Bounds Extents = (-1.0, -1.0, 0.0)
-// Mesh Max Bounds Extents = (1.0, 1.0, 0.0)
-//float _ObjectSDFData[64] =
-//{
-//0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f,
-//0.0559017f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0559017f,
-//0.1677051f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.1677051f,
-//0.2795085f, 0.0559017f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0559017f, 0.2795085f,
-//0.3913119f, 0.1677051f, 0.0f, 0.0f, 0.0f, 0.0f, 0.1677051f, 0.3913119f,
-//0.5031153f, 0.2795085f, 0.0559017f, 0.0f, 0.0f, 0.0559017f, 0.2795085f, 0.5031153f,
-//0.6149187f, 0.3913119f, 0.1677051f, 0.0f, 0.0f, 0.1677051f, 0.3913119f, 0.6149187f,
-//0.7267221f, 0.5031153f, 0.2795085f, 0.0559017f, 0.0559017f, 0.2795085f, 0.5031153f, 0.7267221f,
-//};
-//ObjectHeader _ObjectHeaderData[1];
 
 // Tile Data
 // This will store contiguous data for each tile. It will be contiguous data and the boundaries for each tile will be represented by the TileObjectHeader.
@@ -87,8 +70,8 @@ struct IntersectionData
 
 struct OutSdfData
 {
-    int objID;
     IntersectionData intersection;
+    int objID;
 };
 RWStructuredBuffer<OutSdfData> g_OutSdfData : register(u0);
 RWTexture2D<float4> g_DebugOutput : register(u1);
@@ -152,9 +135,9 @@ RayData GetRayDirection(int2 currPos, /*float fovHalf,*/ int2 imageSize)
 
 }
 
-float Convert3DPosTo1D(float3 pos, int3 voxelSize)
+float Convert3DPosTo1D(float3 pos, int3 voxelDim)
 {
-	return (pos.x + (pos.y * voxelSize.x) + (pos.z * voxelSize.y * voxelSize.x));
+	return (pos.x + (pos.y * voxelDim.x) + (pos.z * voxelDim.y * voxelDim.x));
 }
 
 IntersectionData RayMarch(int objHeaderOffset, float3 rayPoint, float3 cameraPos)
@@ -164,12 +147,6 @@ IntersectionData RayMarch(int objHeaderOffset, float3 rayPoint, float3 cameraPos
     returnValue.color = objHeader.color;
 
 	float3 objBBox = objHeader.maxExtent - objHeader.minExtent;
-	float3 dimensions = objBBox / objHeader.voxelSize;
-	int3 voxelSize = int3 (ceil(dimensions.x), ceil(dimensions.y), ceil(dimensions.z));
-
- //   float3 camPosOS = mul(objHeader.worldToObjMatrix, float4(CameraPos, 1)).xyz;
- //   float3 rayDirOS = mul(objHeader.worldToObjMatrix, float4(rayDir, 0)).xyz;
-	//rayDirOS = SafeNormalize(rayDirOS);
 
 	float4 rayPointOS = mul(objHeader.worldToObjMatrix, float4 (rayPoint, 1));
 	if (rayPointOS.w > 0)
@@ -187,8 +164,11 @@ IntersectionData RayMarch(int objHeaderOffset, float3 rayPoint, float3 cameraPos
     //float3 newPos = SafeNormalize(rayDirOS) * t;
     float totalDistance = 0.0f;
 
+	// TODO - Remove hardcoded value - Need it for models which are not centered at origin
 	float3 minExtent = float3(objHeader.minExtent.x, objHeader.minExtent.y, objHeader.minExtent.z);
 	float3 maxExtent = float3(objHeader.maxExtent.x, objHeader.maxExtent.y, objHeader.maxExtent.z);
+	//float3 minExtent = float3(objHeader.minExtent.x, objHeader.minExtent.y, -1);
+	//float3 maxExtent = float3(objHeader.maxExtent.x, objHeader.maxExtent.y, 1);
 
     for (int i = 0; i < MAX_STEPS; i++)
     {
@@ -207,22 +187,71 @@ IntersectionData RayMarch(int objHeaderOffset, float3 rayPoint, float3 cameraPos
 			rayPosOS = camPosOS.xyz + rayDirOS.xyz * totalDistance;
 			rayPosOS = clamp(rayPosOS.xyz, minExtent, maxExtent - edgeErrorTolerance);
 
-            for (int j = 0; j < MAX_STEPS; j++)
+            for (int j = 0; j < 64; j++)
             {
-                if (rayPosOS.x < minExtent.x || rayPosOS.x > maxExtent.x ||
-                    rayPosOS.y < minExtent.y || rayPosOS.y > maxExtent.y ||
-                    rayPosOS.z < minExtent.z || rayPosOS.z > maxExtent.z)
-                {
-                    returnValue.t = 0.0f;
-                    return returnValue;
-                }
-                
-				int3 voxelPos = floor((rayPosOS - minExtent) / objHeader.voxelSize);
+				if (rayPosOS.x < minExtent.x)
+					if ((minExtent.x - rayPosOS.x) > edgeErrorTolerance)
+					{
+						returnValue.t = 0.0f;
+						return returnValue;
+					}
+					else
+						rayPosOS.x = minExtent.x;
 
-                int linearVoxelPos = Convert3DPosTo1D(voxelPos, voxelSize);
+				if (rayPosOS.y < minExtent.y)
+					if ((minExtent.y - rayPosOS.y) > edgeErrorTolerance)
+					{
+						returnValue.t = 0.0f;
+						return returnValue;
+					}
+					else
+						rayPosOS.y = minExtent.y;
+
+				if (rayPosOS.z < minExtent.z)
+					if ((minExtent.z - rayPosOS.z) > edgeErrorTolerance)
+					{
+						returnValue.t = 0.0f;
+						return returnValue;
+					}
+					else
+						rayPosOS.z = minExtent.z;
+
+				if (rayPosOS.x > maxExtent.x)
+					if ((rayPosOS.x - maxExtent.x) > edgeErrorTolerance)
+					{
+						returnValue.t = 0.0f;
+						return returnValue;
+					}
+					else
+						rayPosOS.x = maxExtent.x;
+
+				if (rayPosOS.y > maxExtent.y)
+					if ((rayPosOS.y - maxExtent.y) > edgeErrorTolerance)
+					{
+						returnValue.t = 0.0f;
+						return returnValue;
+					}
+					else
+						rayPosOS.y = maxExtent.y;
+
+				if (rayPosOS.z > maxExtent.z)
+					if ((rayPosOS.z - maxExtent.z) > edgeErrorTolerance)
+					{
+						returnValue.t = 0.0f;
+						return returnValue;
+					}
+					else
+						rayPosOS.z = maxExtent.z;
+                
+				int3 voxelPos = floor((rayPosOS - minExtent) * objHeader.voxelDimensions / objBBox);
+
+                int linearVoxelPos = Convert3DPosTo1D(voxelPos, objHeader.voxelDimensions);
                 distance =  _ObjectSDFData[objHeader.startOffset + linearVoxelPos];
 				if (distance > 0)
+				{
+					//distance /= 10;
 					totalDistance += distance;
+				}
 
                 if (abs(distance) < totalDistance * threshold)
                 {
@@ -238,6 +267,7 @@ IntersectionData RayMarch(int objHeaderOffset, float3 rayPoint, float3 cameraPos
 						// Ray was outside and now is inside. It shouldn't happen if data is exact but might happen due to errors
 						// Handling this case here
                         returnValue.t = totalDistance;
+						returnValue.normal = _Normals[objHeader.normalsOffset + linearVoxelPos];
                         return returnValue;
                     }
                     // Ray has gone outside the box. Return as no intersection has been found
@@ -302,7 +332,7 @@ void RayMarchKernel(uint3 dispatchTid : SV_DispatchThreadID, uint3 groupId : SV_
 
     // For debug only
     // output ray direction:
-    const  int Debug = 3;
+    const  int Debug = 2;
     if (Debug == 0)
     {
         g_DebugOutput[dispatchTid.xy] = float4(0, outData.intersection.t, 0, 1.0);
@@ -319,6 +349,7 @@ void RayMarchKernel(uint3 dispatchTid : SV_DispatchThreadID, uint3 groupId : SV_
     {
         g_DebugOutput[dispatchTid.xy] = outData.objID / 5.0;
     }
+
     // output ray point on Plane:
     //g_DebugOutput[dispatchTid.xy] = float4((rayData.pointOnPlane.xy + 1)*0.5, 0, 1.0);
 

@@ -183,10 +183,10 @@ namespace UnityEngine.Rendering.SDFRP
                             cmdDOF.Release();
                         }
                     }
-                    else
+                    //else
                     {
-                        GetDataFromSceneGraph(SDFObjects, camera.pixelRect);
-                        CreateObjectList(context, camera, SDFObjects.Length);
+                       // GetDataFromSceneGraph(SDFObjects, camera.pixelRect);
+                        //CreateObjectList(context, camera, SDFObjects.Length);
                     }
                 }
 
@@ -270,7 +270,6 @@ namespace UnityEngine.Rendering.SDFRP
                 m_SdfSceneData.objectHeaders[i].numEntries = field.m_Field.Length;
                 m_SdfSceneData.objectHeaders[i].startOffset = offset;
                 m_SdfSceneData.objectHeaders[i].normalsOffset = normalsOffset;
-                m_SdfSceneData.objectHeaders[i].voxelSize = field.m_VoxelSize;
                 Vector3 minExtent = field.MeshBounds.center - 0.5f * field.MeshBounds.size; // is this correct? Can we just pass the counts instead?
                 m_SdfSceneData.objectHeaders[i].minExtentX = minExtent.x;
                 m_SdfSceneData.objectHeaders[i].minExtentY = minExtent.y;
@@ -279,6 +278,10 @@ namespace UnityEngine.Rendering.SDFRP
                 m_SdfSceneData.objectHeaders[i].maxExtentX = maxExtent.x;
                 m_SdfSceneData.objectHeaders[i].maxExtentY = maxExtent.y;
                 m_SdfSceneData.objectHeaders[i].maxExtentZ = maxExtent.z;
+                m_SdfSceneData.objectHeaders[i].voxelDimensionsX = field.m_VoxelCountX;
+                m_SdfSceneData.objectHeaders[i].voxelDimensionsY = field.m_VoxelCountY;
+                m_SdfSceneData.objectHeaders[i].voxelDimensionsZ = field.m_VoxelCountZ;
+                m_SdfSceneData.objectHeaders[i].voxelSize = field.m_VoxelSize;
 
                 if (sdfSceneDataChanged)
                 {

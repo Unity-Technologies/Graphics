@@ -37,13 +37,17 @@ public class SDFSceneData : IDisposable
         internal float minExtentX;
         internal float minExtentY;
         internal float minExtentZ;
-        internal float voxelSize;
+        internal float pad0;
         internal float maxExtentX;
         internal float maxExtentY;
         internal float maxExtentZ;
         internal float pad1;
+        internal int voxelDimensionsX;
+        internal int voxelDimensionsY;
+        internal int voxelDimensionsZ;
+        internal float voxelSize;
     };
-    const int ObjectHeaderDataSize = 128;
+    const int ObjectHeaderDataSize = 144;
     public int numTilesX;
     public int numTilesY;
 
