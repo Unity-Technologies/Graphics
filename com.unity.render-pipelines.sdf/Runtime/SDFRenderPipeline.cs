@@ -93,7 +93,7 @@ namespace UnityEngine.Rendering.SDFRP
                 SDFRenderer[] SDFObjects = GameObject.FindObjectsOfType<SDFRenderer>();
                 if (SDFObjects.Length > 0)
                 {
-                    if (camera.cameraType != CameraType.SceneView && camera.enabled)
+                    if (true)//(camera.cameraType == CameraType.Game && camera.enabled)
                     {
                         if (m_SdfRayMarch == null) // TODO: or if resolution has changed
                         {
@@ -129,7 +129,7 @@ namespace UnityEngine.Rendering.SDFRP
                             cmdRayMarch.name = "RayMarch";
                             cameraData.UpdateComputeShaderVariables(cmdRayMarch, currentAsset.rayMarchingCS);
 
-                            m_SdfRayMarch.RayMarch(cmdRayMarch, currentAsset.rayMarchingCS, m_SdfSceneData);
+                            m_SdfRayMarch.RayMarch(cmdRayMarch, currentAsset.rayMarchingCS, m_SdfSceneData, (int)currentAsset.DebugOutputValue);
 
                             context.ExecuteCommandBuffer(cmdRayMarch);
                             cmdRayMarch.Release();
