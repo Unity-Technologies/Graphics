@@ -29,31 +29,34 @@ public class SDFSceneData : IDisposable
     public struct ObjectHeader
     {
         internal Matrix4x4 worldToObjMatrix;
+        internal Vector4 color;
         internal int objID;
         internal int numEntries;
         internal int startOffset;
-        internal float voxelSize;
+        internal int normalsOffset;
         internal float minExtentX;
         internal float minExtentY;
         internal float minExtentZ;
-        internal float pad0;
+        internal float voxelSize;
         internal float maxExtentX;
         internal float maxExtentY;
         internal float maxExtentZ;
         internal float pad1;
     };
-    const int ObjectHeaderDataSize = 112;
+    const int ObjectHeaderDataSize = 128;
     public int numTiles;
 
-    public SDFSceneData(int[] SDFObjectIDs, int sdfDataSize, Rect pixelRect)
+    public SDFSceneData(int[] SDFObjectIDs, int sdfDataSize, int normalsSize, Rect pixelRect)
     {
         // Compute buffers
         this.objectHeaderComputeBuffer = new ComputeBuffer(SDFObjectIDs.Length, ObjectHeaderDataSize, ComputeBufferType.Default);
         this.sdfDataComputeBuffer = new ComputeBuffer(sdfDataSize, sizeof(float), ComputeBufferType.Default);
+        this.normalsComputeBuffer = new ComputeBuffer(normalsSize, 3 * sizeof(float), ComputeBufferType.Default);
 
         // CPU-side data
         this.objectHeaders = new SDFSceneData.ObjectHeader[SDFObjectIDs.Length];
         this.sdfData = new float[sdfDataSize];
+        this.normals = new Vector3[normalsSize];
 
         // TODO: set actual tile data
         int numTilesX = ((int)pixelRect.width + (TileSize - 1)) / TileSize;
@@ -80,6 +83,7 @@ public class SDFSceneData : IDisposable
     public void SetSDFData() => sdfDataComputeBuffer.SetData(sdfData);
     public void SetTileHeaderData() => tileHeaderComputeBuffer.SetData(tileHeaders);
     public void SetTileOffsetIntoObjHeaderData() => tileOffsetsComputeBuffer.SetData(tileDataOffsetIntoObjHeaderValues);
+    public void SetNormals() => normalsComputeBuffer.SetData(normals);
 
     public void Dispose() { Dispose(true); }
     protected virtual void Dispose(bool disposing)
@@ -94,11 +98,13 @@ public class SDFSceneData : IDisposable
     public ComputeBuffer sdfDataComputeBuffer;
     public ComputeBuffer tileHeaderComputeBuffer;
     public ComputeBuffer tileOffsetsComputeBuffer;
+    public ComputeBuffer normalsComputeBuffer;
 
     public SDFSceneData.ObjectHeader[] objectHeaders;
     public float[] sdfData;
     public SDFSceneData.TileDataHeader[] tileHeaders;
     public int[] tileDataOffsetIntoObjHeaderValues;
+    public Vector3[] normals;
 
     public int[] SDFObjectIDs;
 }

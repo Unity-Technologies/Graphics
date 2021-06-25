@@ -241,29 +241,35 @@ namespace UnityEngine.Rendering.SDFRP
 
         private void GetDataFromSceneGraph(SDFRenderer[] SDFObjects, Rect pixelRect)
         {
-            if (NeedToCreateSdfSceneData(SDFObjects, out int[] SDFObjectIDs))
+            bool sdfSceneDataChanged = NeedToCreateSdfSceneData(SDFObjects, out int[] SDFObjectIDs);
+            if (sdfSceneDataChanged)
             {
                 m_SdfSceneData?.Dispose();
 
                 int sdfDataSize = 0;
+                int normalsSize = 0;
                 foreach (SDFRenderer renderer in SDFObjects)
                 {
                     sdfDataSize += renderer.SDFFilter.VoxelField.m_Field.Length;
+                    normalsSize += renderer.SDFFilter.VoxelField.m_Normals.Length;
                 }
 
-                m_SdfSceneData = new SDFSceneData(SDFObjectIDs, sdfDataSize, pixelRect);
+                m_SdfSceneData = new SDFSceneData(SDFObjectIDs, sdfDataSize, normalsSize, pixelRect);
             }
 
             // Fill out array of data and array of data-headers
             int offset = 0;
+            int normalsOffset = 0;
             for(int i = 0; i < SDFObjects.Length; i++)
             {
                 VoxelField field = SDFObjects[i].SDFFilter.VoxelField;
 
                 m_SdfSceneData.objectHeaders[i].worldToObjMatrix = SDFObjects[i].gameObject.transform.worldToLocalMatrix; // may not work with shader according to docs?
+                m_SdfSceneData.objectHeaders[i].color = SDFObjects[i].SDFMaterial.color;
                 m_SdfSceneData.objectHeaders[i].objID = i; // index into data. Change later?
                 m_SdfSceneData.objectHeaders[i].numEntries = field.m_Field.Length;
                 m_SdfSceneData.objectHeaders[i].startOffset = offset;
+                m_SdfSceneData.objectHeaders[i].normalsOffset = normalsOffset;
                 m_SdfSceneData.objectHeaders[i].voxelSize = field.m_VoxelSize;
                 Vector3 minExtent = field.MeshBounds.center - 0.5f * field.MeshBounds.size; // is this correct? Can we just pass the counts instead?
                 m_SdfSceneData.objectHeaders[i].minExtentX = minExtent.x;
@@ -273,15 +279,24 @@ namespace UnityEngine.Rendering.SDFRP
                 m_SdfSceneData.objectHeaders[i].maxExtentX = maxExtent.x;
                 m_SdfSceneData.objectHeaders[i].maxExtentY = maxExtent.y;
                 m_SdfSceneData.objectHeaders[i].maxExtentZ = maxExtent.z;
-                //m_SdfSceneData.objectHeaders[i].color = SDFObjects[i].SDFMaterial.color;
 
-                Array.Copy(field.m_Field, 0, m_SdfSceneData.sdfData, offset, field.m_Field.Length);
+                if (sdfSceneDataChanged)
+                {
+                    Array.Copy(field.m_Field, 0, m_SdfSceneData.sdfData, offset, field.m_Field.Length);
+                    Array.Copy(field.m_Normals, 0, m_SdfSceneData.normals, normalsOffset, field.m_Normals.Length);
+                }
+
                 offset += field.m_Field.Length;
+                normalsOffset += field.m_Normals.Length;
             }
 
             // Update compute buffers
             m_SdfSceneData.SetObjectHeaderData();
-            m_SdfSceneData.SetSDFData();
+            if (sdfSceneDataChanged)
+            {
+                m_SdfSceneData.SetSDFData();
+                m_SdfSceneData.SetNormals();
+            }
         }
 
         private void CreateObjectList(ScriptableRenderContext context, Camera camera, int totalSDFs)
