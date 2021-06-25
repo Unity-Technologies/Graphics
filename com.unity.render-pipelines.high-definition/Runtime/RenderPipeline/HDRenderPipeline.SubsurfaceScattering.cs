@@ -288,7 +288,7 @@ namespace UnityEngine.Rendering.HighDefinition
             }
         }
 
-        void RenderSubsurfaceScattering(RenderGraph renderGraph, HDCamera hdCamera, ColorBuffers colorBuffers, TextureHandle historyValidationTexture, in LightingBuffers lightingBuffers, PrepassOutput prepassOutput)
+        void RenderSubsurfaceScattering(RenderGraph renderGraph, HDCamera hdCamera, ColorBuffers colorBuffers, TextureHandle historyValidationTexture, ScreenSpaceLightingBuffers lightingBuffers, PrepassOutput prepassOutput)
         {
             if (!hdCamera.frameSettings.IsEnabled(FrameSettingsField.SubsurfaceScattering))
                 return;

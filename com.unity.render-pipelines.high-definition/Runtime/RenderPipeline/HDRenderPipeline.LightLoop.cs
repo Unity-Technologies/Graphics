@@ -6,11 +6,9 @@ namespace UnityEngine.Rendering.HighDefinition
 {
     public partial class HDRenderPipeline
     {
-        struct LightingBuffers
+        class ScreenSpaceLightingBuffers
+            : BlackBoardContent
         {
-            //public TextureHandle    sssBuffer;
-            //public TextureHandle    diffuseLightingBuffer;
-
             public TextureHandle    ambientOcclusionBuffer;
             public TextureHandle    ssrLightingBuffer;
             public TextureHandle    ssgiLightingBuffer;
@@ -18,20 +16,16 @@ namespace UnityEngine.Rendering.HighDefinition
             public TextureHandle    screenspaceShadowBuffer;
         }
 
-        static LightingBuffers ReadLightingBuffers(in LightingBuffers buffers, RenderGraphBuilder builder)
+        static void ReadLightingBuffers(ScreenSpaceLightingBuffers buffersIn, ScreenSpaceLightingBuffers buffersOut, RenderGraphBuilder builder)
         {
-            var result = new LightingBuffers();
-            // We only read those buffers because sssBuffer and diffuseLightingBuffer our just output of the lighting process, not inputs.
-            result.ambientOcclusionBuffer = builder.ReadTexture(buffers.ambientOcclusionBuffer);
-            result.ssrLightingBuffer = builder.ReadTexture(buffers.ssrLightingBuffer);
-            result.ssgiLightingBuffer = builder.ReadTexture(buffers.ssgiLightingBuffer);
-            result.contactShadowsBuffer = builder.ReadTexture(buffers.contactShadowsBuffer);
-            result.screenspaceShadowBuffer = builder.ReadTexture(buffers.screenspaceShadowBuffer);
-
-            return result;
+            buffersOut.ambientOcclusionBuffer = builder.ReadTexture(buffersIn.ambientOcclusionBuffer);
+            buffersOut.ssrLightingBuffer = builder.ReadTexture(buffersIn.ssrLightingBuffer);
+            buffersOut.ssgiLightingBuffer = builder.ReadTexture(buffersIn.ssgiLightingBuffer);
+            buffersOut.contactShadowsBuffer = builder.ReadTexture(buffersIn.contactShadowsBuffer);
+            buffersOut.screenspaceShadowBuffer = builder.ReadTexture(buffersIn.screenspaceShadowBuffer);
         }
 
-        static void BindGlobalLightingBuffers(in LightingBuffers buffers, CommandBuffer cmd)
+        static void BindGlobalLightingBuffers(ScreenSpaceLightingBuffers buffers, CommandBuffer cmd)
         {
             cmd.SetGlobalTexture(HDShaderIDs._AmbientOcclusionTexture, buffers.ambientOcclusionBuffer);
             cmd.SetGlobalTexture(HDShaderIDs._SsrLightingTexture, buffers.ssrLightingBuffer);
@@ -715,6 +709,7 @@ namespace UnityEngine.Rendering.HighDefinition
         }
 
         class DeferredLightingPassData
+            : ScreenSpaceLightingBuffers
         {
             public int numTilesX;
             public int numTilesY;
@@ -735,22 +730,20 @@ namespace UnityEngine.Rendering.HighDefinition
             public Material splitLightingMat;
             public Material regularLightingMat;
 
-            public TextureHandle                colorBuffer;
-            public TextureHandle                sssDiffuseLightingBuffer;
-            public TextureHandle                depthBuffer;
-            public TextureHandle                depthTexture;
+            public TextureHandle        colorBuffer;
+            public TextureHandle        sssDiffuseLightingBuffer;
+            public TextureHandle        depthBuffer;
+            public TextureHandle        depthTexture;
 
-            public int                          gbufferCount;
-            public int                          lightLayersTextureIndex;
-            public int                          shadowMaskTextureIndex;
-            public TextureHandle[]              gbuffer = new TextureHandle[8];
+            public int                  gbufferCount;
+            public int                  lightLayersTextureIndex;
+            public int                  shadowMaskTextureIndex;
+            public TextureHandle[]      gbuffer = new TextureHandle[8];
 
-            public ComputeBufferHandle          lightListBuffer;
-            public ComputeBufferHandle          tileFeatureFlagsBuffer;
-            public ComputeBufferHandle          tileListBuffer;
-            public ComputeBufferHandle          dispatchIndirectBuffer;
-
-            public LightingBuffers              lightingBuffers;
+            public ComputeBufferHandle  lightListBuffer;
+            public ComputeBufferHandle  tileFeatureFlagsBuffer;
+            public ComputeBufferHandle  tileListBuffer;
+            public ComputeBufferHandle  dispatchIndirectBuffer;
         }
 
         struct LightingOutput
@@ -927,7 +920,6 @@ namespace UnityEngine.Rendering.HighDefinition
             HDCamera                    hdCamera,
             ColorBuffers                colorBuffers,
             PrepassOutput               prepassBuffers,
-            in LightingBuffers          lightingBuffers,
             in ShadowResult             shadowResult,
             in BuildGPULightListOutput  lightLists)
         {
@@ -937,6 +929,8 @@ namespace UnityEngine.Rendering.HighDefinition
 
             using (var builder = renderGraph.AddRenderPass<DeferredLightingPassData>("Deferred Lighting", out var passData))
             {
+                var lightingBuffers = m_Blackboard.Get<ScreenSpaceLightingBuffers>();
+
                 bool debugDisplayOrSceneLightOff = CoreUtils.IsSceneLightingDisabled(hdCamera.camera) || m_CurrentDebugDisplaySettings.IsDebugDisplayEnabled();
 
                 int w = hdCamera.actualWidth;
@@ -975,7 +969,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 passData.depthBuffer = builder.ReadTexture(prepassBuffers.depthBuffer);
                 passData.depthTexture = builder.ReadTexture(prepassBuffers.depthPyramidTexture);
 
-                passData.lightingBuffers = ReadLightingBuffers(lightingBuffers, builder);
+                ReadLightingBuffers(lightingBuffers, passData, builder);
 
                 passData.lightLayersTextureIndex = prepassBuffers.gbuffer.lightLayersTextureIndex;
                 passData.shadowMaskTextureIndex = prepassBuffers.gbuffer.shadowMaskTextureIndex;
@@ -1015,7 +1009,7 @@ namespace UnityEngine.Rendering.HighDefinition
                         else
                             context.cmd.SetGlobalTexture(HDShaderIDs._ShadowMaskTexture, TextureXR.GetWhiteTexture());
 
-                        BindGlobalLightingBuffers(data.lightingBuffers, context.cmd);
+                        BindGlobalLightingBuffers(data, context.cmd);
 
                         if (data.enableTile)
                         {

@@ -96,7 +96,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 TextureHandle vtFeedbackBuffer = TextureHandle.nullHandle;
 #endif
 
-                LightingBuffers lightingBuffers = new LightingBuffers();
+                ScreenSpaceLightingBuffers lightingBuffers = m_Blackboard.Add<ScreenSpaceLightingBuffers>();
 
                 var prepassOutput = RenderPrepass(m_RenderGraph, colorBuffers, vtFeedbackBuffer, cullingResults, customPassCullingResults, hdCamera, aovRequest, aovBuffers);
 
@@ -179,11 +179,11 @@ namespace UnityEngine.Rendering.HighDefinition
 
                     var volumetricLighting = VolumetricLightingPass(m_RenderGraph, hdCamera, prepassOutput.depthPyramidTexture, volumetricDensityBuffer, maxZMask, gpuLightListOutput.bigTileLightList, shadowResult);
 
-                    var deferredLightingOutput = RenderDeferredLighting(m_RenderGraph, hdCamera, colorBuffers, prepassOutput, lightingBuffers, shadowResult, gpuLightListOutput);
+                    var deferredLightingOutput = RenderDeferredLighting(m_RenderGraph, hdCamera, colorBuffers, prepassOutput, shadowResult, gpuLightListOutput);
 
                     ApplyCameraMipBias(hdCamera);
 
-                    RenderForwardOpaque(m_RenderGraph, hdCamera, colorBuffers, prepassOutput, lightingBuffers, gpuLightListOutput, vtFeedbackBuffer, shadowResult, cullingResults);
+                    RenderForwardOpaque(m_RenderGraph, hdCamera, colorBuffers, prepassOutput, gpuLightListOutput, vtFeedbackBuffer, shadowResult, cullingResults);
 
                     ResetCameraMipBias(hdCamera);
 
@@ -609,8 +609,15 @@ namespace UnityEngine.Rendering.HighDefinition
         class ForwardOpaquePassData : ForwardPassData
         {
             public DBufferOutput    dbuffer;
-            public LightingBuffers  lightingBuffers;
             public bool             enableDecals;
+
+            //public ScreenSpaceLightingBuffers lightingBuffers;
+
+            public TextureHandle ambientOcclusionBuffer;
+            public TextureHandle ssrLightingBuffer;
+            public TextureHandle ssgiLightingBuffer;
+            public TextureHandle contactShadowsBuffer;
+            public TextureHandle screenspaceShadowBuffer;
         }
 
         class ForwardTransparentPassData : ForwardPassData
@@ -729,7 +736,6 @@ namespace UnityEngine.Rendering.HighDefinition
             HDCamera                    hdCamera,
             ColorBuffers                colorBuffers,
             PrepassOutput               prepassBuffers,
-            in LightingBuffers          lightingBuffers,
             in BuildGPULightListOutput  lightLists,
             TextureHandle               vtFeedbackBuffer,
             ShadowResult                shadowResult,
@@ -744,6 +750,8 @@ namespace UnityEngine.Rendering.HighDefinition
                 out var passData,
                 debugDisplay ? ProfilingSampler.Get(HDProfileId.ForwardOpaqueDebug) : ProfilingSampler.Get(HDProfileId.ForwardOpaque)))
             {
+                var lightingBuffers = m_Blackboard.Get<ScreenSpaceLightingBuffers>();
+
                 PrepareCommonForwardPassData(renderGraph, builder, passData, true, hdCamera.frameSettings, PrepareForwardOpaqueRendererList(cullResults, hdCamera), lightLists, shadowResult);
 
                 int index = 0;
@@ -761,14 +769,24 @@ namespace UnityEngine.Rendering.HighDefinition
 
                 passData.enableDecals = hdCamera.frameSettings.IsEnabled(FrameSettingsField.Decals);
                 passData.dbuffer = ReadDBuffer(prepassBuffers.dbuffer, builder);
-                passData.lightingBuffers = ReadLightingBuffers(lightingBuffers, builder);
+                //passData.lightingBuffers = ReadLightingBuffers(lightingBuffers, builder);
+                passData.ambientOcclusionBuffer = builder.ReadTexture(lightingBuffers.ambientOcclusionBuffer);
+                passData.ssrLightingBuffer = builder.ReadTexture(lightingBuffers.ssrLightingBuffer);
+                passData.ssgiLightingBuffer = builder.ReadTexture(lightingBuffers.ssgiLightingBuffer);
+                passData.contactShadowsBuffer = builder.ReadTexture(lightingBuffers.contactShadowsBuffer);
+                passData.screenspaceShadowBuffer = builder.ReadTexture(lightingBuffers.screenspaceShadowBuffer);
 
                 builder.SetRenderFunc(
                     (ForwardOpaquePassData data, RenderGraphContext context) =>
                     {
                         BindGlobalLightListBuffers(data, context);
                         BindDBufferGlobalData(data.dbuffer, context);
-                        BindGlobalLightingBuffers(data.lightingBuffers, context.cmd);
+                        //BindGlobalLightingBuffers(data, context.cmd);
+                        context.cmd.SetGlobalTexture(HDShaderIDs._AmbientOcclusionTexture, data.ambientOcclusionBuffer);
+                        context.cmd.SetGlobalTexture(HDShaderIDs._SsrLightingTexture, data.ssrLightingBuffer);
+                        context.cmd.SetGlobalTexture(HDShaderIDs._IndirectDiffuseTexture, data.ssgiLightingBuffer);
+                        context.cmd.SetGlobalTexture(HDShaderIDs._ContactShadowTexture, data.contactShadowsBuffer);
+                        context.cmd.SetGlobalTexture(HDShaderIDs._ScreenSpaceShadowsTexture, data.screenspaceShadowBuffer);
 
                         RenderForwardRendererList(data.frameSettings, data.rendererList, true, context.renderContext, context.cmd);
 
