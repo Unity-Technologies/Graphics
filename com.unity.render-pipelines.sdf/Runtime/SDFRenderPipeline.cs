@@ -93,7 +93,7 @@ namespace UnityEngine.Rendering.SDFRP
                 SDFRenderer[] SDFObjects = GameObject.FindObjectsOfType<SDFRenderer>();
                 if (SDFObjects.Length > 0)
                 {
-                    if (camera.cameraType != CameraType.SceneView && camera.enabled)
+                    if (true)//(camera.cameraType == CameraType.Game && camera.enabled)
                     {
                         if (m_SdfRayMarch == null) // TODO: or if resolution has changed
                         {
@@ -128,8 +128,10 @@ namespace UnityEngine.Rendering.SDFRP
                             CommandBuffer cmdRayMarch = new CommandBuffer();
                             cmdRayMarch.name = "RayMarch";
                             cameraData.UpdateComputeShaderVariables(cmdRayMarch, currentAsset.rayMarchingCS);
-
-                            m_SdfRayMarch.RayMarch(cmdRayMarch, currentAsset.rayMarchingCS, m_SdfSceneData);
+                            SDFLightData lightData = new SDFLightData();
+                            lightData.InitializeLightData(m_SdfSceneData.directionalLight);
+                            lightData.UpdateComputeShaderVariables(cmdRayMarch, currentAsset.rayMarchingCS);
+                            m_SdfRayMarch.RayMarch(cmdRayMarch, currentAsset.rayMarchingCS, m_SdfSceneData, (float)currentAsset.DebugOutputValue);
 
                             context.ExecuteCommandBuffer(cmdRayMarch);
                             cmdRayMarch.Release();
@@ -183,10 +185,10 @@ namespace UnityEngine.Rendering.SDFRP
                             cmdDOF.Release();
                         }
                     }
-                    else
+                    //else
                     {
-                        GetDataFromSceneGraph(SDFObjects, camera.pixelRect);
-                        CreateObjectList(context, camera, SDFObjects.Length);
+                       // GetDataFromSceneGraph(SDFObjects, camera.pixelRect);
+                        //CreateObjectList(context, camera, SDFObjects.Length);
                     }
                 }
 
@@ -213,7 +215,7 @@ namespace UnityEngine.Rendering.SDFRP
             }
         }
 
-        private bool NeedToCreateSdfSceneData(SDFRenderer[] SDFObjects, out int[] SDFObjectIDs)
+        private bool NeedToCreateSdfSceneData(SDFRenderer[] SDFObjects, Light light, out int[] SDFObjectIDs)
         {
             SDFObjectIDs = new int[SDFObjects.Length];
             for (int i = 0; i < SDFObjects.Length; ++i)
@@ -235,13 +237,19 @@ namespace UnityEngine.Rendering.SDFRP
                 if (SDFObjectIDs[i] != m_SdfSceneData.SDFObjectIDs[i])
                     return true;
             }
+            // TODO wouldn't pick up changes if light properties are changed
+            if (light.gameObject.GetInstanceID() != m_SdfSceneData.directionalLight.gameObject.GetInstanceID())
+                return true;
 
             return false;
         }
 
         private void GetDataFromSceneGraph(SDFRenderer[] SDFObjects, Rect pixelRect)
         {
-            bool sdfSceneDataChanged = NeedToCreateSdfSceneData(SDFObjects, out int[] SDFObjectIDs);
+            Light light = GameObject.FindObjectOfType<Light>();
+            Debug.Assert(light.type == LightType.Directional);
+
+            bool sdfSceneDataChanged = NeedToCreateSdfSceneData(SDFObjects, light, out int[] SDFObjectIDs);
             if (sdfSceneDataChanged)
             {
                 m_SdfSceneData?.Dispose();
@@ -254,7 +262,7 @@ namespace UnityEngine.Rendering.SDFRP
                     normalsSize += renderer.SDFFilter.VoxelField.m_Normals.Length;
                 }
 
-                m_SdfSceneData = new SDFSceneData(SDFObjectIDs, sdfDataSize, normalsSize, pixelRect);
+                m_SdfSceneData = new SDFSceneData(SDFObjectIDs, sdfDataSize, normalsSize, pixelRect, light);
             }
 
             // Fill out array of data and array of data-headers
@@ -270,7 +278,6 @@ namespace UnityEngine.Rendering.SDFRP
                 m_SdfSceneData.objectHeaders[i].numEntries = field.m_Field.Length;
                 m_SdfSceneData.objectHeaders[i].startOffset = offset;
                 m_SdfSceneData.objectHeaders[i].normalsOffset = normalsOffset;
-                m_SdfSceneData.objectHeaders[i].voxelSize = field.m_VoxelSize;
                 Vector3 minExtent = field.MeshBounds.center - 0.5f * field.MeshBounds.size; // is this correct? Can we just pass the counts instead?
                 m_SdfSceneData.objectHeaders[i].minExtentX = minExtent.x;
                 m_SdfSceneData.objectHeaders[i].minExtentY = minExtent.y;
@@ -279,6 +286,10 @@ namespace UnityEngine.Rendering.SDFRP
                 m_SdfSceneData.objectHeaders[i].maxExtentX = maxExtent.x;
                 m_SdfSceneData.objectHeaders[i].maxExtentY = maxExtent.y;
                 m_SdfSceneData.objectHeaders[i].maxExtentZ = maxExtent.z;
+                m_SdfSceneData.objectHeaders[i].voxelDimensionsX = field.m_VoxelCountX;
+                m_SdfSceneData.objectHeaders[i].voxelDimensionsY = field.m_VoxelCountY;
+                m_SdfSceneData.objectHeaders[i].voxelDimensionsZ = field.m_VoxelCountZ;
+                m_SdfSceneData.objectHeaders[i].voxelSize = field.m_VoxelSize;
 
                 if (sdfSceneDataChanged)
                 {
@@ -291,11 +302,11 @@ namespace UnityEngine.Rendering.SDFRP
             }
 
             // Update compute buffers
-            m_SdfSceneData.SetObjectHeaderData();
+            m_SdfSceneData.UpdateObjectHeaderComputeBuffer();
             if (sdfSceneDataChanged)
             {
-                m_SdfSceneData.SetSDFData();
-                m_SdfSceneData.SetNormals();
+                m_SdfSceneData.UpdateSDFComputeBuffer();
+                m_SdfSceneData.UpdateNormalsComputeBuffer();
             }
         }
 
@@ -392,8 +403,8 @@ namespace UnityEngine.Rendering.SDFRP
                     }
                 }
             }
-            m_SdfSceneData.SetTileHeaderData();
-            m_SdfSceneData.SetTileOffsetIntoObjHeaderData();
+            m_SdfSceneData.UpdateTileHeaderComputeBuffer();
+            m_SdfSceneData.UpdateTileOffsetIntoObjHeaderComputeBuffer();
             Array.Clear(m_SdfSceneData.tileDataOffsetIntoObjHeaderValues, 0, m_SdfSceneData.tileDataOffsetIntoObjHeaderValues.Length);
             Array.Clear(m_SdfSceneData.tileHeaders, 0, m_SdfSceneData.tileHeaders.Length);
             m_SdfSceneData.tileFlagsComputeBuffer.SetData(m_SdfSceneData.tileDataOffsetIntoObjHeaderValues);

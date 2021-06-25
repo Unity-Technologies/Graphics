@@ -13,8 +13,23 @@ namespace UnityEngine.Rendering.SDFRP
     {
         public Color clearColor = Color.green;
 
+        public enum DebugOutputType
+        {
+            Distance = 0,
+            Normals,
+            ObjectColor,
+            ObjectID,
+            LightColor,
+            LightDirection,
+            None
+        }
+        [Header("Debug")]
+        public DebugOutputType DebugOutputValue = DebugOutputType.None;
+
+
         [Header("Post-Processing")]
         public bool EnableDepthOfField = true;
+        [Range(1, 20)]
         public int lensRes = 9;
         public float lensSiz = 2.0f;
         public float focalDis = 11.0f;
