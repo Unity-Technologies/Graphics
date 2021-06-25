@@ -189,6 +189,13 @@ namespace UnityEngine.Rendering.SDFRP
 
                             m_SdfRayMarch.RayMarchGIShading(cmdGIShading, currentAsset.giShadingCS, camera);
 
+                            #region DEBUG_ONLY
+                            if (currentAsset.DebugOutputValue == SDFRenderPipelineAsset.DebugOutputType.GI)
+                            {
+                                cmdGIShading.Blit(gi_mockRT, BuiltinRenderTextureType.CurrentActive);
+                            }
+                            #endregion
+
                             context.ExecuteCommandBuffer(cmdGIShading);
                             cmdGIShading.Release();
                         }
