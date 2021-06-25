@@ -30,11 +30,12 @@ namespace UnityEditor.VFX.Block
                         if (param.name == "sphere_radius")
                             radius = param.exp;
 
-                        continue; //exclude all sphere inputs
+                        continue; //exclude all automatic sphere inputs
                     }
                     yield return param;
                 }
 
+                //Integrate directly the radius into the common transform matrix
                 var radiusScale = VFXOperatorUtility.UniformScaleMatrix(radius);
                 var finalTransform = new VFXExpressionTransformMatrix(transform, radiusScale);
                 yield return new VFXNamedExpression(finalTransform, "fieldTransform");
@@ -68,14 +69,14 @@ if (colliderSign * sqrLength <= colliderSign)
                 {
                     source += @"
 float dist = length(tPos);
-float3 relativeScale = abs(tPos)/length(tPos) * invFieldScale;
+float3 relativeScale = (tPos/length(tPos)) * invFieldScale;
 float radiusCorrection = radius * length(relativeScale);
 dist -= radiusCorrection * colliderSign;
 if (colliderSign * dist <= colliderSign)
 {";
                 }
                 source += @"
-    float3 n = colliderSign * tPos / dist;
+    float3 n = colliderSign * (tPos/dist);
     tPos -= n * (dist - 1.0f) * colliderSign;
 
     position = mul(fieldTransform, float4(tPos.xyz, 1.0f)).xyz;

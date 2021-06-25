@@ -36,16 +36,16 @@ namespace UnityEditor.VFX.Block
                         if (param.name == "cone_" + nameof(TCone.radius1))
                             topRadius = param.exp;
 
-                        continue; //exclude all cone inputs
+                        continue; //exclude all automatic cone inputs
                     }
                     yield return param;
                 }
 
-                VFXExpression tanSlope = (baseRadius - topRadius) / height; //N.B: Not the same direction than PositionCone
+                //Not the same direction than PositionCone, it's a real normal here.
+                VFXExpression tanSlope = (baseRadius - topRadius) / height;
                 VFXExpression slope = new VFXExpressionATan(tanSlope);
 
-
-                var finalTransform = transform; //Can't really integrate radius0/1
+                var finalTransform = transform;
                 yield return new VFXNamedExpression(finalTransform, "fieldTransform");
                 yield return new VFXNamedExpression(new VFXExpressionInverseTRSMatrix(finalTransform), "invFieldTransform");
                 if (radiusMode != RadiusMode.None)
@@ -95,7 +95,7 @@ if (collision)
                     Source += @"
 float dist = length(tPos.xz);
 
-float2 relativeScaleXZ = abs(tPos.xz)/length(tPos.xz) * invFieldScale.xz;
+float2 relativeScaleXZ = (tPos.xz/dist) * invFieldScale.xz;
 float radiusCorrectionXZ = radius * length(relativeScaleXZ);
 dist -= radiusCorrectionXZ * colliderSign;
 

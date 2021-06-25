@@ -25,6 +25,12 @@ namespace UnityEditor.VFX.Block
             }
         }
 
+        public class InputProperties
+        {
+            [Tooltip("Sets the sphere used to determine the kill volume.")]
+            public TSphere sphere = TSphere.defaultValue;
+        }
+
         public override IEnumerable<VFXNamedExpression> parameters
         {
             get
@@ -35,16 +41,17 @@ namespace UnityEditor.VFX.Block
                 {
                     if (param.name.StartsWith("sphere"))
                     {
-                        if (param.name == "sphere_transform")
+                        if (param.name == "sphere_" + nameof(TSphere.transform))
                             transform = param.exp;
-                        if (param.name == "sphere_radius")
+                        if (param.name == "sphere_" + nameof(TSphere.radius))
                             radius = param.exp;
 
-                        continue; //exclude all sphere inputs
+                        continue; //exclude all sphere automatic inputs
                     }
                     yield return param;
                 }
 
+                //Integrate directly the radius into the common transform matrix
                 var radiusScale = VFXOperatorUtility.UniformScaleMatrix(radius);
                 var finalTransform = new VFXExpressionTransformMatrix(transform, radiusScale);
                 yield return new VFXNamedExpression(new VFXExpressionInverseTRSMatrix(finalTransform), "invFieldTransform");
@@ -54,12 +61,6 @@ namespace UnityEditor.VFX.Block
                 else
                     yield return new VFXNamedExpression(VFXValue.Constant(-1.0f), "colliderSign");
             }
-        }
-
-        public class InputProperties
-        {
-            [Tooltip("Sets the sphere used to determine the kill volume.")]
-            public TSphere sphere = TSphere.defaultValue;
         }
 
         public override string source
