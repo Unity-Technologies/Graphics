@@ -250,7 +250,7 @@ OutSdfData RayMarchAllObjects(float3 dir, float3 pointOnPlane, TileDataHeader ti
     outSdfData.t = 0.0f;
     outSdfData.objID = 0;
 
-    for (int id = 0; id < 1 /*tileDataHeader.numObjects*/; ++id)
+    for (int id = 0; id < tileDataHeader.numObjects; ++id)
     {
 		int objHeaderOffset = _TileDataOffsetIntoObjHeader[tileDataHeader.offset + id];
         float currDistance = RayMarch(objHeaderOffset, dir, pointOnPlane);
@@ -270,7 +270,7 @@ OutSdfData RayMarchAllObjects(float3 dir, float3 pointOnPlane, TileDataHeader ti
 [numthreads(8, 8, 1)]
 void RayMarchKernel(uint3 dispatchTid : SV_DispatchThreadID, uint3 groupId : SV_GroupID, uint groupIndex : SV_GroupIndex)
 {
-	int numDispatchesX = ((TexelSize.x + (8 - 1)) / 8);
+	int numDispatchesX = ((TexelSize.z + (8 - 1)) / 8);
 	int tileIndex = groupId.x + groupId.y * numDispatchesX;
 	TileDataHeader tileDataHeader = _TileDataHeader[tileIndex];
     RayData rayData = GetRayDirection(dispatchTid.xy, /*_FieldOfViewBy2,*/ TexelSize.zw);
