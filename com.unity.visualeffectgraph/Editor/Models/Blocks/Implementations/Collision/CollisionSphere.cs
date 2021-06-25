@@ -52,14 +52,14 @@ namespace UnityEditor.VFX.Block
         {
             get
             {
-                var source = @"
+                var Source = @"
 float3 nextPos = position + velocity * deltaTime;
 float3 tPos = mul(invFieldTransform, float4(nextPos, 1.0f)).xyz;";
 
                 if (radiusMode == RadiusMode.None)
                 {
                     //radius == 0.0f, we could avoid a sqrt before the branch
-                    source += @"
+                    Source += @"
 float sqrLength  = dot(tPos, tPos);
 if (colliderSign * sqrLength <= colliderSign)
 {
@@ -67,7 +67,7 @@ if (colliderSign * sqrLength <= colliderSign)
                 }
                 else
                 {
-                    source += @"
+                    Source += @"
 float dist = length(tPos);
 float3 relativeScale = (tPos/length(tPos)) * invFieldScale;
 float radiusCorrection = radius * length(relativeScale);
@@ -75,7 +75,7 @@ dist -= radiusCorrection * colliderSign;
 if (colliderSign * dist <= colliderSign)
 {";
                 }
-                source += @"
+                Source += @"
     float3 n = colliderSign * (tPos/dist);
     tPos -= n * (dist - 1.0f) * colliderSign;
 
@@ -83,10 +83,10 @@ if (colliderSign * dist <= colliderSign)
     n = VFXSafeNormalize(mul(float4(n, 0.0f), invFieldTransform).xyz);
 ";
 
-                source += collisionResponseSource;
-                source += @"
+                Source += collisionResponseSource;
+                Source += @"
 }";
-                return source;
+                return Source;
             }
         }
     }

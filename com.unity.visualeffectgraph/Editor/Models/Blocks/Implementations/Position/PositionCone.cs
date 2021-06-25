@@ -64,7 +64,7 @@ namespace UnityEditor.VFX.Block
             {
                 var allSlots = GetExpressionsFromSlots(this);
 
-                foreach (var p in allSlots)
+                foreach (var p in allSlots.Where(o => o.name != nameof(ThicknessProperties.Thickness)))
                     yield return p;
 
                 var radius0 = allSlots.First(e => e.name == "arcCone_cone_radius0").exp;
@@ -126,7 +126,7 @@ if (abs(arcCone_cone_radius0 - arcCone_cone_radius1) > VFX_EPSILON)
     hNorm = (hNorm - heightFactor) / (1.0f - heightFactor); // remap on [0,1]
 }}
 else
-    hNorm = RAND; // Uniform distribution on cone
+    hNorm = RAND; // Uniform distribution on cylinder
 ";
                 }
                 else
@@ -141,10 +141,10 @@ float3 finalPos = lerp(float3(pos * arcCone_cone_radius0, 0.0f), float3(pos * ar
 float3 finalDir = normalize(float3(pos * sincosSlope.x, sincosSlope.y));
 finalPos = mul(arcCone_cone_transform, float4(finalPos.xzy, 1.0f)).xyz;
 finalDir = mul(arcCone_cone_inverseTranspose, float4(finalDir.xzy, 0.0f)).xyz;
+finalDir = normalize(finalDir);
 ";
                 outSource += VFXBlockUtility.GetComposeString(compositionDirection, "direction", "finalDir", "blendDirection") + "\n";
                 outSource += VFXBlockUtility.GetComposeString(compositionPosition, "position", "finalPos", "blendPosition") + "\n";
-                outSource += "direction = normalize(direction);";
 
                 return outSource;
             }

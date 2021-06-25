@@ -1,13 +1,12 @@
 using System;
+using System.Linq;
 using UnityEditor.Experimental.GraphView;
 using UnityEngine;
+using UnityEngine.VFX;
 using UnityEngine.UIElements;
-using UnityEditor.VFX;
 using System.Collections.Generic;
-using System.Linq;
 
 using PositionType = UnityEngine.UIElements.Position;
-using UnityEngine.VFX;
 
 namespace  UnityEditor.VFX.UI
 {
