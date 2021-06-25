@@ -23,9 +23,7 @@ namespace UnityEditor.Rendering.Universal
 
             public override void Action(int instanceId, string pathName, string resourceFile)
             {
-                var instance = CreateInstance<Renderer2DData>();
-                instance.postProcessData = PostProcessData.GetDefaultPostProcessData();
-                AssetDatabase.CreateAsset(instance, pathName);
+                var instance = UniversalRenderPipelineAsset.CreateRendererAsset(pathName, RendererType._2DRenderer, false) as Renderer2DData;
                 Selection.activeObject = instance;
 
                 onCreated?.Invoke(instance);
@@ -178,7 +176,7 @@ namespace UnityEditor.Rendering.Universal
                 "UniversalRenderPipelineAsset.asset", null, null);
         }
 
-        [MenuItem("Assets/Create/Rendering/URP 2D Renderer", priority = CoreUtils.Sections.section3 + CoreUtils.Priorities.assetsCreateRenderingMenuPriority)]
+        [MenuItem("Assets/Create/Rendering/URP 2D Renderer", priority = CoreUtils.Sections.section3 + CoreUtils.Priorities.assetsCreateRenderingMenuPriority + 1)]
         static void Create2DRendererData()
         {
             Renderer2DMenus.Create2DRendererData((instance) =>

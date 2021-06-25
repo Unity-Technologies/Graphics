@@ -7,6 +7,7 @@ namespace UnityEngine.Rendering.Universal
     /// Global settings are unique per Render Pipeline type. In URP, Global Settings contain:
     /// - light layer names
     /// </summary>
+    [URPHelpURL("URP-Global-Settings")]
     partial class UniversalRenderPipelineGlobalSettings : RenderPipelineGlobalSettings
     {
         #region Version system
@@ -21,14 +22,16 @@ namespace UnityEngine.Rendering.Universal
 #if UNITY_EDITOR
             if (k_AssetPreviousVersion != k_AssetVersion)
             {
-                EditorApplication.delayCall += () => UpgradeAsset(this);
+                EditorApplication.delayCall += () => UpgradeAsset(this.GetInstanceID());
             }
 #endif
         }
 
 #if UNITY_EDITOR
-        static void UpgradeAsset(UniversalRenderPipelineGlobalSettings asset)
+        static void UpgradeAsset(int assetInstanceID)
         {
+            UniversalRenderPipelineAsset asset = EditorUtility.InstanceIDToObject(assetInstanceID) as UniversalRenderPipelineAsset;
+
             EditorUtility.SetDirty(asset);
         }
 
@@ -36,6 +39,9 @@ namespace UnityEngine.Rendering.Universal
         #endregion
 
         private static UniversalRenderPipelineGlobalSettings cachedInstance = null;
+        /// <summary>
+        /// Active URP Global Settings asset. If the value is null then no UniversalRenderPipelineGlobalSettings has been registered to the Graphics Settings with the UniversalRenderPipeline.
+        /// </summary>
         public static UniversalRenderPipelineGlobalSettings instance
         {
             get
@@ -54,6 +60,7 @@ namespace UnityEngine.Rendering.Universal
             cachedInstance = newSettings;
         }
 
+        /// <summary>Default name when creating an URP Global Settings asset.</summary>
         public static readonly string defaultAssetName = "UniversalRenderPipelineGlobalSettings";
 
 #if UNITY_EDITOR
@@ -104,11 +111,12 @@ namespace UnityEngine.Rendering.Universal
             if (assetCreated == null)
             {
                 assetCreated = ScriptableObject.CreateInstance<UniversalRenderPipelineGlobalSettings>();
-                AssetDatabase.CreateAsset(assetCreated, path);
                 if (assetCreated != null)
                 {
                     assetCreated.name = System.IO.Path.GetFileName(path);
                 }
+                AssetDatabase.CreateAsset(assetCreated, path);
+                Debug.Assert(assetCreated);
             }
 
             if (assetCreated)
@@ -153,6 +161,7 @@ namespace UnityEngine.Rendering.Universal
                 return m_RenderingLayerNames;
             }
         }
+        /// <summary>Names used for display of rendering layer masks.</summary>
         public string[] renderingLayerMaskNames => renderingLayerNames;
 
         void UpdateRenderingLayerNames()
@@ -179,23 +188,24 @@ namespace UnityEngine.Rendering.Universal
 
         #region Light Layer Names [3D]
 
-        /// <summary>Name for light layer 0.</summary>
-        public string lightLayerName0 = "Light Layer default";
-        /// <summary>Name for light layer 1.</summary>
-        public string lightLayerName1 = "Light Layer 1";
-        /// <summary>Name for light layer 2.</summary>
-        public string lightLayerName2 = "Light Layer 2";
-        /// <summary>Name for light layer 3.</summary>
-        public string lightLayerName3 = "Light Layer 3";
-        /// <summary>Name for light layer 4.</summary>
-        public string lightLayerName4 = "Light Layer 4";
-        /// <summary>Name for light layer 5.</summary>
-        public string lightLayerName5 = "Light Layer 5";
-        /// <summary>Name for light layer 6.</summary>
-        public string lightLayerName6 = "Light Layer 6";
-        /// <summary>Name for light layer 7.</summary>
-        public string lightLayerName7 = "Light Layer 7";
+        static readonly string[] k_DefaultLightLayerNames = { "Light Layer default", "Light Layer 1", "Light Layer 2", "Light Layer 3", "Light Layer 4", "Light Layer 5", "Light Layer 6", "Light Layer 7" };
 
+        /// <summary>Name for light layer 0.</summary>
+        public string lightLayerName0 = k_DefaultLightLayerNames[0];
+        /// <summary>Name for light layer 1.</summary>
+        public string lightLayerName1 = k_DefaultLightLayerNames[1];
+        /// <summary>Name for light layer 2.</summary>
+        public string lightLayerName2 = k_DefaultLightLayerNames[2];
+        /// <summary>Name for light layer 3.</summary>
+        public string lightLayerName3 = k_DefaultLightLayerNames[3];
+        /// <summary>Name for light layer 4.</summary>
+        public string lightLayerName4 = k_DefaultLightLayerNames[4];
+        /// <summary>Name for light layer 5.</summary>
+        public string lightLayerName5 = k_DefaultLightLayerNames[5];
+        /// <summary>Name for light layer 6.</summary>
+        public string lightLayerName6 = k_DefaultLightLayerNames[6];
+        /// <summary>Name for light layer 7.</summary>
+        public string lightLayerName7 = k_DefaultLightLayerNames[7];
 
         [System.NonSerialized]
         string[] m_LightLayerNames = null;
@@ -223,6 +233,27 @@ namespace UnityEngine.Rendering.Universal
                 return m_LightLayerNames;
             }
         }
+
+        internal void ResetRenderingLayerNames()
+        {
+            lightLayerName0 = k_DefaultLightLayerNames[0];
+            lightLayerName1 = k_DefaultLightLayerNames[1];
+            lightLayerName2 = k_DefaultLightLayerNames[2];
+            lightLayerName3 = k_DefaultLightLayerNames[3];
+            lightLayerName4 = k_DefaultLightLayerNames[4];
+            lightLayerName5 = k_DefaultLightLayerNames[5];
+            lightLayerName6 = k_DefaultLightLayerNames[6];
+            lightLayerName7 = k_DefaultLightLayerNames[7];
+        }
+
+        #endregion
+
+        #region Misc Settings
+
+        /// <summary>
+        /// Controls whether debug display shaders for Rendering Debugger are available in Player builds.
+        /// </summary>
+        public bool supportRuntimeDebugDisplay = false;
 
         #endregion
     }

@@ -70,11 +70,14 @@ From HDRP 12.0, The AOV API includes the following improvements:
 
 From HDRP 12.0, More Options have become Additional Properties. The way to access them has also changed. The cogwheel that was present in component headers has been replaced by an entry in the contextual menu. When you enable additional properties, Unity highlights the background of each additional property for a few seconds to show you where they are.
 
-### Path traced fabric material
+### More path traced materials
 
 ![](Images/HDRPFeatures-FabricPT.png)
 
-HDRP's path tracer now offers support for the fabric material, in both its cotton/wool and silk variants.
+HDRP path tracing now supports the following Materials:
+- Fabric: Cotton/wool and silk variants.
+- AxF: SVBRDF and car paint variants.
+- Stacklit.
 
 ### Top level menus
 
@@ -103,6 +106,29 @@ The screenshot on the left below do not use additive normal blending, whereas th
 
 ![](Images/HDRPFeatures-SurfGrad.png)
 
+### Physical Camera
+
+HDRP 12.0 includes the following physical camera improvements:
+- Many physical camera properties can now be animated with keyframes using a Unity Timeline.
+- Added the **Focus Distance** property to the physical camera properties. To improve compatibility with older HDRP versions, this property is only used in DoF computations if the **Focus Distance Mode** in the  [Depth of Field](Post-Processing-Depth-of-Field.md) volume component is set to **Camera**. |
+
+### Depth Of Field
+
+Improved the quality of the physically-based Depth Of Field.
+![](Images/HDRPFeatures-BetterDoF.png)
+
+### Lens Flares
+
+![](Images/LensFlareSamples2.png)
+
+From HDRP 12.0, HDRP (and URP) introduces a new Lens Flare system. You can attach a Lens Flare (SRP) component to any GameObject.
+Some Lens Flare properties only appear when you attach this component to a light. Each Lens Flare can have with multiple elements that you can control individually. HDRP also provides a [new asset](lens-flare-data-driven-asset.md) and a [new component](lens-flare-data-driven-component.md) which you can attach to any GameObject.
+
+### Light Anchor
+
+![](Images/LightAnchor0.png)
+
+From HDRP 12.0, HDRP (and URP) introduces a new [Light Anchor](light-anchor.md) component. You can attach this component to any light to control the light in Main Camera view.
 
 ## Issues resolved
 

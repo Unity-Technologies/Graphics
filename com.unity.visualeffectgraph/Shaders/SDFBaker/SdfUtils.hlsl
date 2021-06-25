@@ -8,7 +8,8 @@ float dot2(float3 v)
     return dot(v, v);
 }
 
-struct Triangle
+//Triangle is a reserved word in PSSL, use "Tri" instead
+struct Tri
 {
     float3 a, b, c;
 };
@@ -23,7 +24,7 @@ float3 computeNormalUnnormalized(float3 a, float3 b, float3 c)
 //compiler shows warning when using intermediate returns, disable this.
 #pragma warning(push)
 #pragma warning(disable : 4000)
-float IntersectSegmentTriangle(float3 p, float3 q, Triangle tri, out float t_out)
+float IntersectSegmentTriangle(float3 p, float3 q, Tri tri, out float t_out)
 {
     float3 ab = tri.b - tri.a;
     float3 ac = tri.c - tri.a;
@@ -100,7 +101,7 @@ int3 GenerateNeighborOffset(int iNeighbour, float maxSize, float distToSurface)
     return int3(x, y, z);
 }
 
-float ComputeDistancePointTri(float3 p, Triangle tri)
+float ComputeDistancePointTri(float3 p, Tri tri)
 {
     // prepare data
     float3 v21 = tri.b - tri.a; float3 p1 = p - tri.a;

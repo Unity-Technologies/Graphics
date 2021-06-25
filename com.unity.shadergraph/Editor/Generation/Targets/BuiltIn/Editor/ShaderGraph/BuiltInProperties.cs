@@ -19,6 +19,7 @@ namespace UnityEditor.Rendering.BuiltIn
         public static string CastShadows()                   { return SG_CastShadows; }
         public static string ReceiveShadows()                { return SG_ReceiveShadows; }
         public static string QueueOffset()                   { return SG_QueueOffset; }
+        public static string QueueControl()                  { return SG_QueueControl; }
 
         // for shadergraph shaders (renamed more uniquely to avoid potential naming collisions with HDRP properties and user properties)
         public static readonly string SG_SpecularWorkflowMode = "_BUILTIN_WorkflowMode";
@@ -34,6 +35,7 @@ namespace UnityEditor.Rendering.BuiltIn
         public static readonly string SG_CastShadows = "_BUILTIN_CastShadows";
         public static readonly string SG_ReceiveShadows = "_BUILTIN_ReceiveShadows";
         public static readonly string SG_QueueOffset = "_BUILTIN_QueueOffset";
+        public static readonly string SG_QueueControl = "_BUILTIN_QueueControl";
 
         // Global Illumination requires some properties to be named specifically:
         public static readonly string EmissionMap = "_EmissionMap";

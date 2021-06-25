@@ -144,5 +144,12 @@ A light is considered to be punctual if it emits light from a single point. HDRP
 A rendering artifact that describes the situation where a GameObject that was previously occluded becomes visible.
 
 <a name="Ghosting"></a>
+
 #### ghosting
 A rendering artifact that describes the situation where a moving GameObject leaves a trail of pixels behind it.
+
+<a name="ZFighting"></a>
+
+#### z-fighting
+
+A rendering artifact that describes the situation where two or more GameObjects have approximately the same value in the z-buffer. This causes the GameObjects to appear to flicker.

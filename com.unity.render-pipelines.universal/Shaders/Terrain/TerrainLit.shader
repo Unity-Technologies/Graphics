@@ -240,6 +240,30 @@ Shader "Universal Render Pipeline/Terrain/Lit"
             ENDHLSL
         }
 
+        // This pass it not used during regular rendering, only for lightmap baking.
+        Pass
+        {
+            Name "Meta"
+            Tags{"LightMode" = "Meta"}
+
+            Cull Off
+
+            HLSLPROGRAM
+            #pragma vertex TerrainVertexMeta
+            #pragma fragment TerrainFragmentMeta
+
+            #pragma multi_compile_instancing
+            #pragma instancing_options assumeuniformscaling nomatrices nolightprobe nolightmap
+            #pragma shader_feature EDITOR_VISUALIZATION
+            #define _METALLICSPECGLOSSMAP 1
+            #define _SMOOTHNESS_TEXTURE_ALBEDO_CHANNEL_A 1
+
+            #include "Packages/com.unity.render-pipelines.universal/Shaders/Terrain/TerrainLitInput.hlsl"
+            #include "Packages/com.unity.render-pipelines.universal/Shaders/Terrain/TerrainLitMetaPass.hlsl"
+
+            ENDHLSL
+        }
+
         UsePass "Hidden/Nature/Terrain/Utilities/PICKING"
     }
     Dependency "AddPassShader" = "Hidden/Universal Render Pipeline/Terrain/Lit (Add Pass)"

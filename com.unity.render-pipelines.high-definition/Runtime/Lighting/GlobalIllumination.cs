@@ -272,6 +272,14 @@ namespace UnityEngine.Rendering.HighDefinition
         [SerializeField]
         [Tooltip("Controls the number of steps HDRP uses for mixed tracing.")]
         private MinIntParameter m_MaxMixedRaySteps = new MinIntParameter(48, 0);
+
+        /// <summary>
+        /// When enabled, the receiver's movement should be considered a valid rejection condition.
+        /// </summary>
+        [AdditionalProperty]
+        [Tooltip("When enabled, the receiver's movement should be considered a valid rejection condition.")]
+        public BoolParameter receiverMotionRejection = new BoolParameter(true);
+
         #endregion
 
         internal static bool RayTracingActive(GlobalIllumination volume)

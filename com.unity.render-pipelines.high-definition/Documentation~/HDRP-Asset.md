@@ -90,6 +90,7 @@ These settings control the draw distance and resolution of the decals atlas that
 | **- Maximum Screen Percentage** | The maximum screen percentage that dynamic resolution can reach. This value must be higher than the **Min Screen Percentage**. |
 | **- Force Screen Percentage**   | Enable the checkbox to force HDRP to use a specific screen percentage for dynamic resolution. This feature is useful for debugging dynamic resolution. |
 | **- Forced Screen Percentage**  | The specific screen percentage that HDRP uses for dynamic resolution. This property is only visible when you enable the **Force Screen Percentage**.. |
+| **- Low Res Transparency Min Threshold**      | The minimum percentage threshold allowed to clamp low resolution transparency. When the resolution percentage falls below this threshold, HDRP will clamp the low resolution to this percentage. |
 
 ## Lighting
 
@@ -164,7 +165,7 @@ The three sections here are:
 - **Punctual Light Shadows**
 - **Area Light Shadows**
 
-They all share the same properties, except **Directional Light Shadows** which does not include **Resolution** or **Dynamic Rescale**.
+They all share the same properties, except **Directional Light Shadows** which does not include **Resolution** or **Dynamic Rescale** and **Cached Shadow Atlas Resolution**.
 
 | **Property**        | **Description**                                              |
 | ------------------- | ------------------------------------------------------------ |
@@ -173,13 +174,14 @@ They all share the same properties, except **Directional Light Shadows** which d
 | **Precision**       | Use the drop-down to select the precision of the shadow map. This sets the bit depth of each pixel of the shadow map. **16 bit** is faster and uses less memory at the expense of precision. |
 | **Dynamic Rescale** | Enable the checkbox to allow HDRP to rescale the shadow atlas if all the shadows on the screen don’t currently fit onto it. |
 
-| ***Shadow Resolution Tiers*** |                                                              |
-| ----------------------------- | ------------------------------------------------------------ |
-| **L**                         | Set the resolution of shadows set to this quality. Light's with their **Resolution** set to **Low** use this resolution for their shadows. |
-| **M**                         | Set the resolution of shadows set to this quality. Light's with their **Resolution** set to **Medium** use this resolution for their shadows. |
-| **H**                         | Set the resolution of shadows set to this quality. Light's with their **Resolution** set to **High** use this resolution for their shadows. |
-| **U**                         | Set the resolution of shadows set to this quality. Light's with their **Resolution** set to **Ultra** use this resolution for their shadows. |
-| **Maximum Shadow Resolution** | Set the maximum resolution of any shadow map of this Light type. If you set any shadow resolution to a value higher than this, HDRP clamps it to this value. |
+| ***Shadow Resolution Tiers***      |                                                              |
+| ---------------------------------- | ------------------------------------------------------------ |
+| **L**                              | Set the resolution of shadows set to this quality. Light's with their **Resolution** set to **Low** use this resolution for their shadows. |
+| **M**                              | Set the resolution of shadows set to this quality. Light's with their **Resolution** set to **Medium** use this resolution for their shadows. |
+| **H**                              | Set the resolution of shadows set to this quality. Light's with their **Resolution** set to **High** use this resolution for their shadows. |
+| **U**                              | Set the resolution of shadows set to this quality. Light's with their **Resolution** set to **Ultra** use this resolution for their shadows. |
+| **Maximum Shadow Resolution**      | Set the maximum resolution of any shadow map of this Light type. If you set any shadow resolution to a value higher than this, HDRP clamps it to this value. |
+| **Cached Shadow Atlas Resolution** | Use the drop-down to select the resolution of the shadow atlas used for cached shadows (Update mode set to OnEnable or OnDemand). |
 
 #### Filtering Qualities
 

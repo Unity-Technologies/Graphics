@@ -1,16 +1,18 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Reflection;
 using UnityEngine;
-using UnityEditor;
-using UnityEditor.Rendering;
+using UnityEditor.Search;
 using UnityEditor.UIElements;
 using UnityEngine.UIElements;
+using UnityEngine.Assertions;
 
-namespace UnityEditor.Rendering.Universal
+namespace UnityEditor.Rendering.Universal.Converters
 {
     // Status for each row item to say in which state they are in.
     // This will make sure they are showing the correct icon
+    [Serializable]
     enum Status
     {
         Pending,
@@ -45,33 +47,46 @@ namespace UnityEditor.Rendering.Universal
         public bool isActive;
         public bool isLoading; // to name
         public bool isInitialized;
-        public List<ConverterItemState> items;
+        public List<ConverterItemState> items = new List<ConverterItemState>();
 
         public int pending;
         public int warnings;
         public int errors;
         public int success;
         internal int index;
+
+        public bool isActiveAndEnabled => isEnabled && isActive;
+        public bool requiresInitialization => !isInitialized && isActiveAndEnabled;
+    }
+
+    [Serializable]
+    internal struct ConverterItems
+    {
+        public List<ConverterItemDescriptor> itemDescriptors;
     }
 
     [Serializable]
     [EditorWindowTitle(title = "Render Pipeline Converters")]
-    public class RenderPipelineConvertersEditor : EditorWindow
+    internal class RenderPipelineConvertersEditor : EditorWindow
     {
         public VisualTreeAsset converterEditorAsset;
         public VisualTreeAsset converterListAsset;
         public VisualTreeAsset converterItem;
 
         ScrollView m_ScrollView;
-        DropdownField m_ConversionsDropdownField;
 
-        List<RenderPipelineConverter> m_CoreConvertersList;
+        List<RenderPipelineConverter> m_CoreConvertersList = new List<RenderPipelineConverter>();
+
+        private bool convertButtonActive = false;
 
         // This list needs to be as long as the amount of converters
-        List<List<ConverterItemDescriptor>> m_ItemsToConvert = new List<List<ConverterItemDescriptor>>();
+        List<ConverterItems> m_ItemsToConvert = new List<ConverterItems>();
+        //List<List<ConverterItemDescriptor>> m_ItemsToConvert = new List<List<ConverterItemDescriptor>>();
         SerializedObject m_SerializedObject;
 
-        List<string> m_ConversionsChoices = new List<string>();
+        List<string> m_ContainerChoices = new List<string>();
+        List<RenderPipelineConverterContainer> m_Containers = new List<RenderPipelineConverterContainer>();
+        int m_ContainerChoiceIndex = 0;
 
         // This is a list of Converter States which holds a list of which converter items/assets are active
         // There is one for each Converter.
@@ -79,14 +94,17 @@ namespace UnityEditor.Rendering.Universal
 
         TypeCache.TypeCollection m_ConverterContainers;
 
+        // Name of the index file
+        string m_URPConverterIndex = "URPConverterIndex";
+
         [MenuItem("Window/Rendering/Render Pipeline Converter", false, 50)]
         public static void ShowWindow()
         {
             RenderPipelineConvertersEditor wnd = GetWindow<RenderPipelineConvertersEditor>();
             wnd.titleContent = new GUIContent("Render Pipeline Converter");
             DontSaveToLayout(wnd);
-            wnd.maxSize = new Vector2(645f, 4000f);
-            wnd.minSize = new Vector2(645f, 400f);
+            wnd.maxSize = new Vector2(650f, 4000f);
+            wnd.minSize = new Vector2(650f, 400f);
             wnd.Show();
         }
 
@@ -110,22 +128,66 @@ namespace UnityEditor.Rendering.Universal
 
         void OnEnable()
         {
+            InitIfNeeded();
+        }
+
+        void InitIfNeeded()
+        {
+            if (m_CoreConvertersList.Any())
+                return;
             m_CoreConvertersList = new List<RenderPipelineConverter>();
 
             // This is the drop down choices.
             m_ConverterContainers = TypeCache.GetTypesDerivedFrom<RenderPipelineConverterContainer>();
-
-            var converters = TypeCache.GetTypesDerivedFrom<RenderPipelineConverter>();
-            for (int i = 0; i < converters.Count; ++i)
+            foreach (var continerType in m_ConverterContainers)
             {
-                // Iterate over the converters
-                RenderPipelineConverter conv = (RenderPipelineConverter)Activator.CreateInstance(converters[i]);
-                m_CoreConvertersList.Add(conv);
+                var container = (RenderPipelineConverterContainer)Activator.CreateInstance(continerType);
+                m_Containers.Add(container);
+                m_ContainerChoices.Add(container.name);
+            }
 
+            if (m_ConverterContainers.Any())
+            {
+                GetConverters();
+            }
+            else
+            {
+                ClearConverterStates();
+            }
+        }
+
+        void ClearConverterStates()
+        {
+            m_CoreConvertersList.Clear();
+            m_ConverterStates.Clear();
+            m_ItemsToConvert.Clear();
+        }
+
+        void GetConverters()
+        {
+            ClearConverterStates();
+            var converterList = TypeCache.GetTypesDerivedFrom<RenderPipelineConverter>();
+
+            for (int i = 0; i < converterList.Count; ++i)
+            {
+                // Iterate over the converters that are used by the current container
+                RenderPipelineConverter conv = (RenderPipelineConverter)Activator.CreateInstance(converterList[i]);
+                if (conv.container == m_ConverterContainers[m_ContainerChoiceIndex])
+                {
+                    m_CoreConvertersList.Add(conv);
+                }
+            }
+
+            // this need to be sorted by Priority property
+            m_CoreConvertersList = m_CoreConvertersList
+                .OrderBy(o => o.priority).ToList();
+
+            for (int i = 0; i < m_CoreConvertersList.Count; i++)
+            {
                 // Create a new ConvertState which holds the active state of the converter
                 var converterState = new ConverterState
                 {
-                    isEnabled = conv.IsEnabled,
+                    isEnabled = m_CoreConvertersList[i].isEnabled,
                     isActive = true,
                     isInitialized = false,
                     items = new List<ConverterItemState>(),
@@ -136,25 +198,52 @@ namespace UnityEditor.Rendering.Universal
                 // This just creates empty entries in the m_ItemsToConvert.
                 // This list need to have the same amount of entries as the converters
                 List<ConverterItemDescriptor> converterItemInfos = new List<ConverterItemDescriptor>();
-                m_ItemsToConvert.Add(converterItemInfos);
+                //m_ItemsToConvert.Add(converterItemInfos);
+                m_ItemsToConvert.Add(new ConverterItems {itemDescriptors = converterItemInfos});
             }
         }
 
         public void CreateGUI()
         {
-            m_SerializedObject = new SerializedObject(this);
-            converterEditorAsset.CloneTree(rootVisualElement);
+            InitIfNeeded();
+            if (m_ConverterContainers.Any())
+            {
+                m_SerializedObject = new SerializedObject(this);
+                converterEditorAsset.CloneTree(rootVisualElement);
 
+                rootVisualElement.Q<DropdownField>("conversionsDropDown").choices = m_ContainerChoices;
+                rootVisualElement.Q<DropdownField>("conversionsDropDown").index = m_ContainerChoiceIndex;
+                RecreateUI();
+
+                var button = rootVisualElement.Q<Button>("convertButton");
+                button.RegisterCallback<ClickEvent>(Convert);
+                button.SetEnabled(false);
+
+                var initButton = rootVisualElement.Q<Button>("initializeButton");
+                initButton.RegisterCallback<ClickEvent>(InitializeAllActiveConverters);
+            }
+        }
+
+        void RecreateUI()
+        {
+            m_SerializedObject.Update();
             // This is temp now to get the information filled in
-            RenderPipelineConverterContainer converterContainer =
-                (RenderPipelineConverterContainer)Activator.CreateInstance(m_ConverterContainers[0]);
-            rootVisualElement.Q<Label>("conversionName").text = converterContainer.name;
-            rootVisualElement.Q<TextElement>("conversionInfo").text = converterContainer.info;
+            rootVisualElement.Q<DropdownField>("conversionsDropDown").RegisterCallback<ChangeEvent<string>>((evt) =>
+            {
+                m_ContainerChoiceIndex = rootVisualElement.Q<DropdownField>("conversionsDropDown").index;
+                GetConverters();
+                RecreateUI();
+            });
+
+            var currentContainer = m_Containers[m_ContainerChoiceIndex];
+            rootVisualElement.Q<Label>("conversionName").text = currentContainer.name;
+            rootVisualElement.Q<TextElement>("conversionInfo").text = currentContainer.info;
 
             rootVisualElement.Q<Image>("converterContainerHelpIcon").image = CoreEditorStyles.iconHelp;
 
             // Getting the scrollview where the converters should be added
             m_ScrollView = rootVisualElement.Q<ScrollView>("convertersScrollView");
+            m_ScrollView.Clear();
             for (int i = 0; i < m_CoreConvertersList.Count; ++i)
             {
                 // Making an item using the converterListAsset as a template.
@@ -162,7 +251,7 @@ namespace UnityEditor.Rendering.Universal
                 VisualElement item = new VisualElement();
                 converterListAsset.CloneTree(item);
                 var conv = m_CoreConvertersList[i];
-                item.SetEnabled(conv.IsEnabled);
+                item.SetEnabled(conv.isEnabled);
                 item.Q<Label>("converterName").text = conv.name;
                 item.Q<Label>("converterInfo").text = conv.info;
                 item.Q<VisualElement>("converterTopVisualElement").tooltip = conv.info;
@@ -225,9 +314,9 @@ namespace UnityEditor.Rendering.Universal
                     string info = property.FindPropertyRelative("message").stringValue;
 
                     // Update the amount of things to convert
-                    child.Q<Label>("converterStats").text = $"{m_ItemsToConvert[id].Count} items";
+                    child.Q<Label>("converterStats").text = $"{m_ItemsToConvert[id].itemDescriptors.Count} items";
 
-                    ConverterItemDescriptor convItemDesc = m_ItemsToConvert[id][index];
+                    ConverterItemDescriptor convItemDesc = m_ItemsToConvert[id].itemDescriptors[index];
 
                     element.Q<Label>("converterItemName").text = convItemDesc.name;
                     element.Q<Label>("converterItemPath").text = convItemDesc.info;
@@ -266,23 +355,23 @@ namespace UnityEditor.Rendering.Universal
 
                 m_ScrollView.Add(item);
             }
-
             rootVisualElement.Bind(m_SerializedObject);
             var button = rootVisualElement.Q<Button>("convertButton");
             button.RegisterCallback<ClickEvent>(Convert);
+            button.SetEnabled(convertButtonActive);
 
             var initButton = rootVisualElement.Q<Button>("initializeButton");
-            initButton.RegisterCallback<ClickEvent>(Init);
+            initButton.RegisterCallback<ClickEvent>(InitializeAllActiveConverters);
         }
 
-        void GetAndSetData(int i)
+        void GetAndSetData(int i, Action onAllConvertersCompleted = null)
         {
             // This need to be in Init method
             // Need to get the assets that this converter is converting.
             // Need to return Name, Path, Initial info, Help link.
             // New empty list of ConverterItemInfos
             List<ConverterItemDescriptor> converterItemInfos = new List<ConverterItemDescriptor>();
-            var initCtx = new InitializeConverterContext {items = converterItemInfos};
+            var initCtx = new InitializeConverterContext { items = converterItemInfos };
 
             var conv = m_CoreConvertersList[i];
 
@@ -291,62 +380,201 @@ namespace UnityEditor.Rendering.Universal
             // This should also go to the init method
             // This will fill out the converter item infos list
             int id = i;
-            conv.OnInitialize(initCtx,
-                () =>
+            conv.OnInitialize(initCtx, OnConverterCompleteDataCollection);
+
+            void OnConverterCompleteDataCollection()
+            {
+                // Set the item infos list to to the right index
+                m_ItemsToConvert[id] = new ConverterItems {itemDescriptors = converterItemInfos};
+                m_ConverterStates[id].items = new List<ConverterItemState>(converterItemInfos.Count);
+
+                // Default all the entries to true
+                for (var j = 0; j < converterItemInfos.Count; j++)
                 {
-                    // Set the item infos list to to the right index
-                    m_ItemsToConvert[id] = converterItemInfos;
-                    m_ConverterStates[id].items = new List<ConverterItemState>(converterItemInfos.Count);
-
-                    // Default all the entries to true
-                    for (var j = 0; j < converterItemInfos.Count; j++)
+                    string message = string.Empty;
+                    Status status;
+                    bool active = true;
+                    // If this data hasn't been filled in from the init phase then we can assume that there are no issues / warnings
+                    if (string.IsNullOrEmpty(converterItemInfos[j].warningMessage))
                     {
-                        string message = string.Empty;
-                        Status status;
-                        bool active = true;
-                        // If this data hasn't been filled in from the init phase then we can assume that there are no issues / warnings
-                        if (string.IsNullOrEmpty(converterItemInfos[j].warningMessage))
-                        {
-                            status = Status.Pending;
-                        }
-                        else
-                        {
-                            status = Status.Warning;
-                            message = converterItemInfos[j].warningMessage;
-                            active = false;
-                            m_ConverterStates[id].warnings++;
-                        }
-
-                        m_ConverterStates[id].items.Add(new ConverterItemState
-                        {
-                            isActive = active,
-                            message = message,
-                            status = status,
-                            hasConverted = false,
-                        });
+                        status = Status.Pending;
+                    }
+                    else
+                    {
+                        status = Status.Warning;
+                        message = converterItemInfos[j].warningMessage;
+                        active = false;
+                        m_ConverterStates[id].warnings++;
                     }
 
-                    m_ConverterStates[id].isLoading = false;
-                    m_ConverterStates[id].isInitialized = true;
+                    m_ConverterStates[id].items.Add(new ConverterItemState
+                    {
+                        isActive = active,
+                        message = message,
+                        status = status,
+                        hasConverted = false,
+                    });
+                }
 
-                    // Making sure that the pending amount is set to the amount of items needs converting
-                    m_ConverterStates[id].pending = m_ConverterStates[id].items.Count;
+                m_ConverterStates[id].isLoading = false;
+                m_ConverterStates[id].isInitialized = true;
 
-                    EditorUtility.SetDirty(this);
-                    m_SerializedObject.ApplyModifiedProperties();
-                });
+                // Making sure that the pending amount is set to the amount of items needs converting
+                m_ConverterStates[id].pending = m_ConverterStates[id].items.Count;
+
+                EditorUtility.SetDirty(this);
+                m_SerializedObject.ApplyModifiedProperties();
+
+                CheckAllConvertersCompleted();
+                convertButtonActive = true;
+                // Make sure that the Convert Button is turned back on
+                var button = rootVisualElement.Q<Button>("convertButton");
+                button.SetEnabled(convertButtonActive);
+            }
+
+            void CheckAllConvertersCompleted()
+            {
+                int convertersToInitialize = 0;
+                int convertersInitialized = 0;
+
+                for (var j = 0; j < m_ConverterStates.Count; j++)
+                {
+                    var converter = m_ConverterStates[j];
+
+                    // Skip inactive converters
+                    if (!converter.isActiveAndEnabled)
+                        continue;
+
+                    if (converter.isInitialized)
+                        convertersInitialized++;
+                    else
+                        convertersToInitialize++;
+                }
+
+                var sum = convertersToInitialize + convertersInitialized;
+
+                Assert.IsFalse(sum == 0);
+
+                // Show our progress so far
+                EditorUtility.ClearProgressBar();
+                EditorUtility.DisplayProgressBar($"Initializing converters", $"Initializing converters ({convertersInitialized}/{sum})...", (float)convertersInitialized / sum);
+
+                // If all converters are initialized call the complete callback
+                if (convertersToInitialize == 0)
+                {
+                    onAllConvertersCompleted?.Invoke();
+                }
+            }
         }
 
-        void Init(ClickEvent evt)
+        void InitializeAllActiveConverters(ClickEvent evt)
+        {
+            // If we use search index, go async
+            if (ShouldCreateSearchIndex())
+            {
+                CreateSearchIndex(m_URPConverterIndex);
+            }
+            // Otherwise do everything directly
+            else
+            {
+                ConverterCollectData(() => { EditorUtility.ClearProgressBar(); });
+            }
+
+            void CreateSearchIndex(string name)
+            {
+                // Create <guid>.index in the project
+                var title = $"Building {name} search index";
+                EditorUtility.DisplayProgressBar(title, "Creating search index...", -1f);
+
+                // Private implementation of a file naming function which puts the file at the selected path.
+                Type assetdatabase = typeof(AssetDatabase);
+                var indexPath = (string)assetdatabase.GetMethod("GetUniquePathNameAtSelectedPath", BindingFlags.NonPublic | BindingFlags.Static).Invoke(assetdatabase, new object[] { $"Assets/{name}.index" });
+
+                // Write search index manifest
+                System.IO.File.WriteAllText(indexPath,
+@"{
+                ""roots"": [""Assets""],
+                ""includes"": [],
+                ""excludes"": [],
+                ""options"": {
+                    ""types"": true,
+                    ""properties"": true,
+                    ""extended"": true,
+                    ""dependencies"": true
+                    },
+                ""baseScore"": 9999
+                }");
+
+                // Import the search index
+                AssetDatabase.ImportAsset(indexPath, ImportAssetOptions.ForceSynchronousImport | ImportAssetOptions.DontDownloadFromCacheServer);
+
+                EditorApplication.delayCall += () =>
+                {
+                    // Create dummy request to ensure indexing has finished
+                    var context = Search.SearchService.CreateContext("asset", $"p: a=\"{name}\"");
+                    Search.SearchService.Request(context, (_, items) =>
+                    {
+                        OnSearchIndexCreated(name, indexPath, () =>
+                        {
+                            DeleteSearchIndex(context, indexPath);
+                        });
+                    });
+                };
+            }
+
+            void OnSearchIndexCreated(string name, string path, Action onComplete)
+            {
+                EditorUtility.ClearProgressBar();
+
+                ConverterCollectData(onComplete);
+            }
+
+            void ConverterCollectData(Action onConverterDataCollectionComplete)
+            {
+                EditorUtility.DisplayProgressBar($"Initializing converters", $"Initializing converters...", -1f);
+
+                int convertersToConvert = 0;
+                for (int i = 0; i < m_ConverterStates.Count; ++i)
+                {
+                    if (m_ConverterStates[i].requiresInitialization)
+                    {
+                        convertersToConvert++;
+                        GetAndSetData(i, onConverterDataCollectionComplete);
+                    }
+                }
+
+                // If we did not kick off any converter intialization
+                // We can complete everything immediately
+                if (convertersToConvert == 0)
+                {
+                    onConverterDataCollectionComplete?.Invoke();
+                }
+            }
+
+            void DeleteSearchIndex(SearchContext context, string indexPath)
+            {
+                context?.Dispose();
+                // Client code has finished with the created index. We can delete it.
+                AssetDatabase.DeleteAsset(indexPath);
+                EditorUtility.ClearProgressBar();
+            }
+        }
+
+        bool ShouldCreateSearchIndex()
         {
             for (int i = 0; i < m_ConverterStates.Count; ++i)
             {
-                var state = m_ConverterStates[i];
-                if (state.isInitialized || !state.isEnabled || !state.isActive)
-                    continue;
-
-                GetAndSetData(i);
+                if (m_ConverterStates[i].requiresInitialization)
+                {
+                    var converter = m_CoreConvertersList[i];
+                    if (converter.needsIndexing)
+                    {
+                        return true;
+                    }
+                }
             }
+
+            return false;
         }
 
         void AddToContextMenu(ContextualMenuPopulateEvent evt, int coreConverterIndex)
@@ -381,7 +609,7 @@ namespace UnityEditor.Rendering.Universal
             ctx.hasConverted = true;
 
             VisualElement child = m_ScrollView[stateIndex];
-            child.Q<ListView>("converterItems").Refresh();
+            child.Q<ListView>("converterItems").Rebuild();
         }
 
         void Convert(ClickEvent evt)
@@ -404,23 +632,27 @@ namespace UnityEditor.Rendering.Universal
             int activeConvertersCount = activeConverterStates.Count;
             foreach (ConverterState activeConverterState in activeConverterStates)
             {
+                AssetDatabase.StartAssetEditing();
                 currentCount++;
                 var index = activeConverterState.index;
+                m_CoreConvertersList[index].OnPreRun();
                 var converterName = m_CoreConvertersList[index].name;
-                var itemCount = m_ItemsToConvert[index].Count;
+                var itemCount = m_ItemsToConvert[index].itemDescriptors.Count;
                 string progressTitle = $"{converterName}           Converter : {currentCount}/{activeConvertersCount}";
                 for (var j = 0; j < itemCount; j++)
                 {
                     if (activeConverterState.items[j].isActive)
                     {
                         if (EditorUtility.DisplayCancelableProgressBar(progressTitle,
-                            string.Format("({0} of {1}) {2}", j, itemCount, m_ItemsToConvert[index][j].info),
+                            string.Format("({0} of {1}) {2}", j, itemCount, m_ItemsToConvert[index].itemDescriptors[j].info),
                             (float)j / (float)itemCount))
                             break;
                         ConvertIndex(index, j);
                     }
                 }
-
+                m_CoreConvertersList[index].OnPostRun();
+                AssetDatabase.SaveAssets();
+                AssetDatabase.StopAssetEditing();
                 EditorUtility.ClearProgressBar();
             }
         }
@@ -433,7 +665,7 @@ namespace UnityEditor.Rendering.Universal
                 var item = new ConverterItemInfo()
                 {
                     index = index,
-                    descriptor = m_ItemsToConvert[coreConverterIndex][index],
+                    descriptor = m_ItemsToConvert[coreConverterIndex].itemDescriptors[index],
                 };
                 var ctx = new RunItemContext(item);
                 m_CoreConvertersList[coreConverterIndex].OnRun(ref ctx);

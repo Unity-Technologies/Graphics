@@ -150,6 +150,7 @@ namespace UnityEngine.Rendering.Universal
                 QualitySettings.antiAliasing = asset.msaaSampleCount;
             }
 
+
             // Configure initial XR settings
             MSAASamples msaaSamples = (MSAASamples)Mathf.Clamp(Mathf.NextPowerOfTwo(QualitySettings.antiAliasing), (int)MSAASamples.None, (int)MSAASamples.MSAA8x);
             XRSystem.SetDisplayMSAASamples(msaaSamples);
@@ -217,9 +218,11 @@ namespace UnityEngine.Rendering.Universal
 #endif
 
             GraphicsSettings.lightsUseLinearIntensity = (QualitySettings.activeColorSpace == ColorSpace.Linear);
+            GraphicsSettings.lightsUseColorTemperature = true;
             GraphicsSettings.useScriptableRenderPipelineBatching = asset.useSRPBatcher;
             GraphicsSettings.defaultRenderingLayerMask = k_DefaultRenderingLayerMask;
             SetupPerFrameShaderConstants();
+            XRSystem.SetDisplayMSAASamples((MSAASamples)asset.msaaSampleCount);
 
 #if UNITY_EDITOR
             // We do not want to start rendering if URP global settings are not ready (m_globalSettings is null)
@@ -593,7 +596,7 @@ namespace UnityEngine.Rendering.Universal
         }
 
         // Used for updating URP cameraData data struct with XRPass data.
-        internal static void UpdateCameraData(ref CameraData baseCameraData, in XRPass xr)
+        static void UpdateCameraData(ref CameraData baseCameraData, in XRPass xr)
         {
             Rect cameraRect = baseCameraData.camera.rect;
             Rect xrViewport = xr.GetViewport();
@@ -640,9 +643,9 @@ namespace UnityEngine.Rendering.Universal
             bool shouldUpdate = camera.cameraType == CameraType.SceneView;
             shouldUpdate |= additionalCameraData != null && additionalCameraData.requiresVolumeFrameworkUpdate;
 
-            #if UNITY_EDITOR
+#if UNITY_EDITOR
             shouldUpdate |= Application.isPlaying == false;
-            #endif
+#endif
 
             // When we have volume updates per-frame disabled...
             if (!shouldUpdate && additionalCameraData)
@@ -1027,6 +1030,10 @@ namespace UnityEngine.Rendering.Universal
             shadowData.additionalLightsShadowmapWidth = shadowData.additionalLightsShadowmapHeight = settings.additionalLightsShadowmapResolution;
             shadowData.supportsSoftShadows = settings.supportsSoftShadows && (shadowData.supportsMainLightShadows || shadowData.supportsAdditionalLightShadows);
             shadowData.shadowmapDepthBufferBits = 16;
+
+            // This will be setup in AdditionalLightsShadowCasterPass.
+            shadowData.isKeywordAdditionalLightShadowsEnabled = false;
+            shadowData.isKeywordSoftShadowsEnabled = false;
         }
 
         static void InitializePostProcessingData(UniversalRenderPipelineAsset settings, out PostProcessingData postProcessingData)
