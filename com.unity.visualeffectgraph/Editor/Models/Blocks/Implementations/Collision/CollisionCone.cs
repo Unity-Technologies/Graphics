@@ -31,9 +31,9 @@ namespace UnityEditor.VFX.Block
                             transform = param.exp;
                         if (param.name == "cone_" + nameof(TCone.height))
                             height = param.exp;
-                        if (param.name == "cone_" + nameof(TCone.radius0))
+                        if (param.name == "cone_" + nameof(TCone.baseRadius))
                             baseRadius = param.exp;
-                        if (param.name == "cone_" + nameof(TCone.radius1))
+                        if (param.name == "cone_" + nameof(TCone.topRadius))
                             topRadius = param.exp;
 
                         continue; //exclude all automatic cone inputs

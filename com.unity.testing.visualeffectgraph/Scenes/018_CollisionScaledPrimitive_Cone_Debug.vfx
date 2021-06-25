@@ -124,8 +124,8 @@ MonoBehaviour:
     max: Infinity
     enumValues: []
     descendantCount: 0
-  - name: radius0
-    path: Cone_Inner_radius0
+  - name: baseRadius
+    path: Cone_Inner_baseRadius
     tooltip: Sets the base radius of the cone.
     sheetType: m_Float
     realType: Single
@@ -138,8 +138,8 @@ MonoBehaviour:
     max: Infinity
     enumValues: []
     descendantCount: 0
-  - name: radius1
-    path: Cone_Inner_radius1
+  - name: topRadius
+    path: Cone_Inner_topRadius
     tooltip: Sets the top radius of the cone.
     sheetType: m_Float
     realType: Single
@@ -234,8 +234,8 @@ MonoBehaviour:
     max: Infinity
     enumValues: []
     descendantCount: 0
-  - name: radius0
-    path: Cone_Outer_radius0
+  - name: baseRadius
+    path: Cone_Outer_baseRadius
     tooltip: Sets the base radius of the cone.
     sheetType: m_Float
     realType: Single
@@ -248,8 +248,8 @@ MonoBehaviour:
     max: Infinity
     enumValues: []
     descendantCount: 0
-  - name: radius1
-    path: Cone_Outer_radius1
+  - name: topRadius
+    path: Cone_Outer_topRadius
     tooltip: Sets the top radius of the cone.
     sheetType: m_Float
     realType: Single
@@ -1120,33 +1120,6 @@ MonoBehaviour:
         Culture=neutral, PublicKeyToken=null
   m_Direction: 0
   m_LinkedSlots: []
---- !u!114 &114350483966675005
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 0}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: d78581a96eae8bf4398c282eb0b098bd, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  m_UIIgnoredErrors: []
-  m_Parent: {fileID: 0}
-  m_Children: []
-  m_UIPosition: {x: 0, y: 0}
-  m_UICollapsed: 1
-  m_UISuperCollapsed: 0
-  title: Dbg_Cone
-  m_Owners: []
-  dataType: 0
-  capacity: 4096
-  stripCapacity: 16
-  particlePerStripCount: 16
-  needsComputeBounds: 0
-  boundsSettingMode: 1
-  m_Space: 0
 --- !u!114 &114350483966675006
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -1203,7 +1176,7 @@ MonoBehaviour:
       m_Type:
         m_SerializableType: UnityEditor.VFX.TArcCone, Unity.VisualEffectGraph.Editor,
           Version=0.0.0.0, Culture=neutral, PublicKeyToken=null
-      m_SerializableObject: '{"cone":{"transform":{"position":{"x":0.0,"y":0.0,"z":0.0},"angles":{"x":0.0,"y":0.0,"z":0.0},"scale":{"x":1.0,"y":1.0,"z":1.0}},"radius0":1.0,"radius1":0.10000000149011612,"height":1.0},"arc":6.28000020980835}'
+      m_SerializableObject: '{"cone":{"transform":{"position":{"x":0.0,"y":0.0,"z":0.0},"angles":{"x":0.0,"y":0.0,"z":0.0},"scale":{"x":1.0,"y":1.0,"z":1.0}},"baseRadius":1.0,"topRadius":0.10000000149011612,"height":1.0},"arc":6.28000020980835}'
     m_Space: 0
   m_Property:
     name: arcCone
@@ -1718,7 +1691,7 @@ MonoBehaviour:
       m_SerializableObject: 
     m_Space: 2147483647
   m_Property:
-    name: radius0
+    name: baseRadius
     m_serializedType:
       m_SerializableType: System.Single, mscorlib, Version=4.0.0.0, Culture=neutral,
         PublicKeyToken=b77a5c561934e089
@@ -1751,7 +1724,7 @@ MonoBehaviour:
       m_SerializableObject: 
     m_Space: 2147483647
   m_Property:
-    name: radius1
+    name: topRadius
     m_serializedType:
       m_SerializableType: System.Single, mscorlib, Version=4.0.0.0, Culture=neutral,
         PublicKeyToken=b77a5c561934e089
@@ -2475,33 +2448,6 @@ MonoBehaviour:
         Culture=neutral, PublicKeyToken=null
   m_Direction: 0
   m_LinkedSlots: []
---- !u!114 &114350483966675045
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 0}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: d78581a96eae8bf4398c282eb0b098bd, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  m_UIIgnoredErrors: []
-  m_Parent: {fileID: 0}
-  m_Children: []
-  m_UIPosition: {x: 0, y: 0}
-  m_UICollapsed: 1
-  m_UISuperCollapsed: 0
-  title: Dbg_Cone
-  m_Owners: []
-  dataType: 0
-  capacity: 4096
-  stripCapacity: 16
-  particlePerStripCount: 16
-  needsComputeBounds: 0
-  boundsSettingMode: 1
-  m_Space: 0
 --- !u!114 &114350483966675046
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -2558,7 +2504,7 @@ MonoBehaviour:
       m_Type:
         m_SerializableType: UnityEditor.VFX.TArcCone, Unity.VisualEffectGraph.Editor,
           Version=0.0.0.0, Culture=neutral, PublicKeyToken=null
-      m_SerializableObject: '{"cone":{"transform":{"position":{"x":0.0,"y":0.0,"z":0.0},"angles":{"x":0.0,"y":0.0,"z":0.0},"scale":{"x":1.0,"y":1.0,"z":1.0}},"radius0":1.0,"radius1":0.10000000149011612,"height":1.0},"arc":6.28000020980835}'
+      m_SerializableObject: '{"cone":{"transform":{"position":{"x":0.0,"y":0.0,"z":0.0},"angles":{"x":0.0,"y":0.0,"z":0.0},"scale":{"x":1.0,"y":1.0,"z":1.0}},"baseRadius":1.0,"topRadius":0.10000000149011612,"height":1.0},"arc":6.28000020980835}'
     m_Space: 0
   m_Property:
     name: arcCone
@@ -3073,7 +3019,7 @@ MonoBehaviour:
       m_SerializableObject: 
     m_Space: 2147483647
   m_Property:
-    name: radius0
+    name: baseRadius
     m_serializedType:
       m_SerializableType: System.Single, mscorlib, Version=4.0.0.0, Culture=neutral,
         PublicKeyToken=b77a5c561934e089
@@ -3106,7 +3052,7 @@ MonoBehaviour:
       m_SerializableObject: 
     m_Space: 2147483647
   m_Property:
-    name: radius1
+    name: topRadius
     m_serializedType:
       m_SerializableType: System.Single, mscorlib, Version=4.0.0.0, Culture=neutral,
         PublicKeyToken=b77a5c561934e089
@@ -6004,7 +5950,7 @@ MonoBehaviour:
       m_Type:
         m_SerializableType: UnityEditor.VFX.TCone, Unity.VisualEffectGraph.Editor,
           Version=0.0.0.0, Culture=neutral, PublicKeyToken=null
-      m_SerializableObject: '{"transform":{"position":{"x":0.0,"y":0.30000001192092898,"z":0.0},"angles":{"x":-3.009999990463257,"y":20.0,"z":18.18000030517578},"scale":{"x":1.600000023841858,"y":0.8999999761581421,"z":1.0}},"radius0":0.20000000298023225,"radius1":0.10000000149011612,"height":0.6000000238418579}'
+      m_SerializableObject: '{"transform":{"position":{"x":0.0,"y":0.30000001192092898,"z":0.0},"angles":{"x":-3.009999990463257,"y":20.0,"z":18.18000030517578},"scale":{"x":1.600000023841858,"y":0.8999999761581421,"z":1.0}},"baseRadius":0.20000000298023225,"topRadius":0.10000000149011612,"height":0.6000000238418579}'
     m_Space: 0
   m_Property:
     name: o
@@ -6482,7 +6428,7 @@ MonoBehaviour:
       m_SerializableObject: 
     m_Space: 2147483647
   m_Property:
-    name: radius0
+    name: baseRadius
     m_serializedType:
       m_SerializableType: System.Single, mscorlib, Version=4.0.0.0, Culture=neutral,
         PublicKeyToken=b77a5c561934e089
@@ -6515,7 +6461,7 @@ MonoBehaviour:
       m_SerializableObject: 
     m_Space: 2147483647
   m_Property:
-    name: radius1
+    name: topRadius
     m_serializedType:
       m_SerializableType: System.Single, mscorlib, Version=4.0.0.0, Culture=neutral,
         PublicKeyToken=b77a5c561934e089
@@ -6628,7 +6574,7 @@ MonoBehaviour:
       m_Type:
         m_SerializableType: UnityEditor.VFX.TCone, Unity.VisualEffectGraph.Editor,
           Version=0.0.0.0, Culture=neutral, PublicKeyToken=null
-      m_SerializableObject: '{"transform":{"position":{"x":0.0,"y":0.0,"z":0.0},"angles":{"x":0.0,"y":0.0,"z":0.0},"scale":{"x":0.8999999761581421,"y":1.149999976158142,"z":1.2000000476837159}},"radius0":0.4000000059604645,"radius1":0.699999988079071,"height":1.0}'
+      m_SerializableObject: '{"transform":{"position":{"x":0.0,"y":0.0,"z":0.0},"angles":{"x":0.0,"y":0.0,"z":0.0},"scale":{"x":0.8999999761581421,"y":1.149999976158142,"z":1.2000000476837159}},"baseRadius":0.4000000059604645,"topRadius":0.699999988079071,"height":1.0}'
     m_Space: 0
   m_Property:
     name: o
@@ -7106,7 +7052,7 @@ MonoBehaviour:
       m_SerializableObject: 
     m_Space: 2147483647
   m_Property:
-    name: radius0
+    name: baseRadius
     m_serializedType:
       m_SerializableType: System.Single, mscorlib, Version=4.0.0.0, Culture=neutral,
         PublicKeyToken=b77a5c561934e089
@@ -7139,7 +7085,7 @@ MonoBehaviour:
       m_SerializableObject: 
     m_Space: 2147483647
   m_Property:
-    name: radius1
+    name: topRadius
     m_serializedType:
       m_SerializableType: System.Single, mscorlib, Version=4.0.0.0, Culture=neutral,
         PublicKeyToken=b77a5c561934e089

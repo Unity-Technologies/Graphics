@@ -210,7 +210,7 @@ MonoBehaviour:
       m_Type:
         m_SerializableType: UnityEditor.VFX.TCone, Unity.VisualEffectGraph.Editor,
           Version=0.0.0.0, Culture=neutral, PublicKeyToken=null
-      m_SerializableObject: '{"transform":{"position":{"x":0.0,"y":0.0,"z":0.0},"angles":{"x":0.0,"y":0.0,"z":0.0},"scale":{"x":0.8999999761581421,"y":1.149999976158142,"z":1.2000000476837159}},"radius0":0.4000000059604645,"radius1":0.699999988079071,"height":1.0}'
+      m_SerializableObject: '{"transform":{"position":{"x":0.0,"y":0.0,"z":0.0},"angles":{"x":0.0,"y":0.0,"z":0.0},"scale":{"x":0.8999999761581421,"y":1.149999976158142,"z":1.2000000476837159}},"baseRadius":0.4000000059604645,"topRadius":0.699999988079071,"height":1.0}'
     m_Space: 0
   m_Property:
     name: o
@@ -689,7 +689,7 @@ MonoBehaviour:
       m_SerializableObject: 
     m_Space: 2147483647
   m_Property:
-    name: radius0
+    name: baseRadius
     m_serializedType:
       m_SerializableType: System.Single, mscorlib, Version=4.0.0.0, Culture=neutral,
         PublicKeyToken=b77a5c561934e089
@@ -722,7 +722,7 @@ MonoBehaviour:
       m_SerializableObject: 
     m_Space: 2147483647
   m_Property:
-    name: radius1
+    name: topRadius
     m_serializedType:
       m_SerializableType: System.Single, mscorlib, Version=4.0.0.0, Culture=neutral,
         PublicKeyToken=b77a5c561934e089
@@ -842,7 +842,7 @@ MonoBehaviour:
       m_Type:
         m_SerializableType: UnityEditor.VFX.TCone, Unity.VisualEffectGraph.Editor,
           Version=0.0.0.0, Culture=neutral, PublicKeyToken=null
-      m_SerializableObject: '{"transform":{"position":{"x":0.0,"y":0.30000001192092898,"z":0.0},"angles":{"x":-3.009999990463257,"y":20.0,"z":18.18000030517578},"scale":{"x":1.600000023841858,"y":0.8999999761581421,"z":1.0}},"radius0":0.20000000298023225,"radius1":0.10000000149011612,"height":0.6000000238418579}'
+      m_SerializableObject: '{"transform":{"position":{"x":0.0,"y":0.30000001192092898,"z":0.0},"angles":{"x":-3.009999990463257,"y":20.0,"z":18.18000030517578},"scale":{"x":1.600000023841858,"y":0.8999999761581421,"z":1.0}},"baseRadius":0.20000000298023225,"topRadius":0.10000000149011612,"height":0.6000000238418579}'
     m_Space: 0
   m_Property:
     name: o
@@ -1321,7 +1321,7 @@ MonoBehaviour:
       m_SerializableObject: 
     m_Space: 2147483647
   m_Property:
-    name: radius0
+    name: baseRadius
     m_serializedType:
       m_SerializableType: System.Single, mscorlib, Version=4.0.0.0, Culture=neutral,
         PublicKeyToken=b77a5c561934e089
@@ -1354,7 +1354,7 @@ MonoBehaviour:
       m_SerializableObject: 
     m_Space: 2147483647
   m_Property:
-    name: radius1
+    name: topRadius
     m_serializedType:
       m_SerializableType: System.Single, mscorlib, Version=4.0.0.0, Culture=neutral,
         PublicKeyToken=b77a5c561934e089
@@ -5592,7 +5592,7 @@ MonoBehaviour:
       m_Type:
         m_SerializableType: UnityEditor.VFX.TCone, Unity.VisualEffectGraph.Editor,
           Version=0.0.0.0, Culture=neutral, PublicKeyToken=null
-      m_SerializableObject: '{"transform":{"position":{"x":0.0,"y":0.0,"z":0.0},"angles":{"x":0.0,"y":0.0,"z":0.0},"scale":{"x":1.0,"y":1.0,"z":1.0}},"radius0":1.0,"radius1":0.10000000149011612,"height":1.0}'
+      m_SerializableObject: '{"transform":{"position":{"x":0.0,"y":0.0,"z":0.0},"angles":{"x":0.0,"y":0.0,"z":0.0},"scale":{"x":1.0,"y":1.0,"z":1.0}},"baseRadius":1.0,"topRadius":0.10000000149011612,"height":1.0}'
     m_Space: 0
   m_Property:
     name: cone
@@ -6070,7 +6070,7 @@ MonoBehaviour:
       m_SerializableObject: 
     m_Space: 2147483647
   m_Property:
-    name: radius0
+    name: baseRadius
     m_serializedType:
       m_SerializableType: System.Single, mscorlib, Version=4.0.0.0, Culture=neutral,
         PublicKeyToken=b77a5c561934e089
@@ -6103,7 +6103,7 @@ MonoBehaviour:
       m_SerializableObject: 
     m_Space: 2147483647
   m_Property:
-    name: radius1
+    name: topRadius
     m_serializedType:
       m_SerializableType: System.Single, mscorlib, Version=4.0.0.0, Culture=neutral,
         PublicKeyToken=b77a5c561934e089
@@ -6301,7 +6301,7 @@ MonoBehaviour:
       m_Type:
         m_SerializableType: UnityEditor.VFX.TCone, Unity.VisualEffectGraph.Editor,
           Version=0.0.0.0, Culture=neutral, PublicKeyToken=null
-      m_SerializableObject: '{"transform":{"position":{"x":0.0,"y":0.0,"z":0.0},"angles":{"x":0.0,"y":0.0,"z":0.0},"scale":{"x":1.0,"y":1.0,"z":1.0}},"radius0":1.0,"radius1":0.10000000149011612,"height":1.0}'
+      m_SerializableObject: '{"transform":{"position":{"x":0.0,"y":0.0,"z":0.0},"angles":{"x":0.0,"y":0.0,"z":0.0},"scale":{"x":1.0,"y":1.0,"z":1.0}},"baseRadius":1.0,"topRadius":0.10000000149011612,"height":1.0}'
     m_Space: 0
   m_Property:
     name: cone
@@ -6779,7 +6779,7 @@ MonoBehaviour:
       m_SerializableObject: 
     m_Space: 2147483647
   m_Property:
-    name: radius0
+    name: baseRadius
     m_serializedType:
       m_SerializableType: System.Single, mscorlib, Version=4.0.0.0, Culture=neutral,
         PublicKeyToken=b77a5c561934e089
@@ -6812,7 +6812,7 @@ MonoBehaviour:
       m_SerializableObject: 
     m_Space: 2147483647
   m_Property:
-    name: radius1
+    name: topRadius
     m_serializedType:
       m_SerializableType: System.Single, mscorlib, Version=4.0.0.0, Culture=neutral,
         PublicKeyToken=b77a5c561934e089
@@ -8440,7 +8440,7 @@ MonoBehaviour:
       m_Type:
         m_SerializableType: UnityEditor.VFX.TCone, Unity.VisualEffectGraph.Editor,
           Version=0.0.0.0, Culture=neutral, PublicKeyToken=null
-      m_SerializableObject: '{"transform":{"position":{"x":0.0,"y":0.30000001192092898,"z":0.0},"angles":{"x":-3.009999990463257,"y":20.0,"z":18.18000030517578},"scale":{"x":1.600000023841858,"y":0.8999999761581421,"z":1.0}},"radius0":0.20000000298023225,"radius1":0.10000000149011612,"height":0.6000000238418579}'
+      m_SerializableObject: '{"transform":{"position":{"x":0.0,"y":0.30000001192092898,"z":0.0},"angles":{"x":-3.009999990463257,"y":20.0,"z":18.18000030517578},"scale":{"x":1.600000023841858,"y":0.8999999761581421,"z":1.0}},"baseRadius":0.20000000298023225,"topRadius":0.10000000149011612,"height":0.6000000238418579}'
     m_Space: 0
   m_Property:
     name: Cone_Inner
@@ -8918,7 +8918,7 @@ MonoBehaviour:
       m_SerializableObject: 
     m_Space: 2147483647
   m_Property:
-    name: radius0
+    name: baseRadius
     m_serializedType:
       m_SerializableType: System.Single, mscorlib, Version=4.0.0.0, Culture=neutral,
         PublicKeyToken=b77a5c561934e089
@@ -8951,7 +8951,7 @@ MonoBehaviour:
       m_SerializableObject: 
     m_Space: 2147483647
   m_Property:
-    name: radius1
+    name: topRadius
     m_serializedType:
       m_SerializableType: System.Single, mscorlib, Version=4.0.0.0, Culture=neutral,
         PublicKeyToken=b77a5c561934e089
@@ -9019,7 +9019,7 @@ MonoBehaviour:
       m_Type:
         m_SerializableType: UnityEditor.VFX.TCone, Unity.VisualEffectGraph.Editor,
           Version=0.0.0.0, Culture=neutral, PublicKeyToken=null
-      m_SerializableObject: '{"transform":{"position":{"x":0.0,"y":0.0,"z":0.0},"angles":{"x":0.0,"y":0.0,"z":0.0},"scale":{"x":0.8999999761581421,"y":1.149999976158142,"z":1.2000000476837159}},"radius0":0.4000000059604645,"radius1":0.699999988079071,"height":1.0}'
+      m_SerializableObject: '{"transform":{"position":{"x":0.0,"y":0.0,"z":0.0},"angles":{"x":0.0,"y":0.0,"z":0.0},"scale":{"x":0.8999999761581421,"y":1.149999976158142,"z":1.2000000476837159}},"baseRadius":0.4000000059604645,"topRadius":0.699999988079071,"height":1.0}'
     m_Space: 0
   m_Property:
     name: Cone_Outer
@@ -9497,7 +9497,7 @@ MonoBehaviour:
       m_SerializableObject: 
     m_Space: 2147483647
   m_Property:
-    name: radius0
+    name: baseRadius
     m_serializedType:
       m_SerializableType: System.Single, mscorlib, Version=4.0.0.0, Culture=neutral,
         PublicKeyToken=b77a5c561934e089
@@ -9530,7 +9530,7 @@ MonoBehaviour:
       m_SerializableObject: 
     m_Space: 2147483647
   m_Property:
-    name: radius1
+    name: topRadius
     m_serializedType:
       m_SerializableType: System.Single, mscorlib, Version=4.0.0.0, Culture=neutral,
         PublicKeyToken=b77a5c561934e089

@@ -67,16 +67,16 @@ namespace UnityEditor.VFX.Block
                 foreach (var p in allSlots.Where(o => o.name != nameof(ThicknessProperties.Thickness)))
                     yield return p;
 
-                var radius0 = allSlots.First(e => e.name == "arcCone_cone_radius0").exp;
-                var radius1 = allSlots.First(e => e.name == "arcCone_cone_radius1").exp;
+                var baseRadius = allSlots.First(e => e.name == "arcCone_cone_baseRadius").exp;
+                var topRadius = allSlots.First(e => e.name == "arcCone_cone_topRadius").exp;
                 var height = allSlots.First(e => e.name == "arcCone_cone_height").exp;
                 var transform = allSlots.First(e => e.name == "arcCone_cone_transform").exp;
 
-                var tanSlope = (radius1 - radius0) / height;
+                var tanSlope = (topRadius - baseRadius) / height;
                 var slope = new VFXExpressionATan(tanSlope);
 
                 var thickness = allSlots.Where(o => o.name == nameof(ThicknessProperties.Thickness)).FirstOrDefault();
-                yield return new VFXNamedExpression(CalculateVolumeFactor(positionMode, radius0, thickness.exp), "volumeFactor");
+                yield return new VFXNamedExpression(CalculateVolumeFactor(positionMode, baseRadius, thickness.exp), "volumeFactor");
 
                 yield return new VFXNamedExpression(new VFXExpressionCombine(new VFXExpression[] { new VFXExpressionSin(slope), new VFXExpressionCos(slope) }), "sincosSlope");
 
@@ -117,10 +117,10 @@ float hNorm = 0.0f;
                     float distributionExponent = positionMode == PositionMode.Surface ? 2.0f : 3.0f;
                     outSource += $@"
 float hNorm = 0.0f;
-if (abs(arcCone_cone_radius0 - arcCone_cone_radius1) > VFX_EPSILON)
+if (abs(arcCone_cone_baseRadius - arcCone_cone_topRadius) > VFX_EPSILON)
 {{
     // Uniform distribution on cone
-    float heightFactor = arcCone_cone_radius0 / max(VFX_EPSILON, arcCone_cone_radius1);
+    float heightFactor = arcCone_cone_baseRadius / max(VFX_EPSILON, arcCone_cone_topRadius);
     float heightFactorPow = pow(heightFactor, {distributionExponent});
     hNorm = pow(heightFactorPow + (1.0f - heightFactorPow) * RAND, rcp({distributionExponent}));
     hNorm = (hNorm - heightFactor) / (1.0f - heightFactor); // remap on [0,1]
@@ -137,7 +137,7 @@ float hNorm = heightSequencer;
                 }
 
                 outSource += @"
-float3 finalPos = lerp(float3(pos * arcCone_cone_radius0, 0.0f), float3(pos * arcCone_cone_radius1, arcCone_cone_height), hNorm);
+float3 finalPos = lerp(float3(pos * arcCone_cone_baseRadius, 0.0f), float3(pos * arcCone_cone_topRadius, arcCone_cone_height), hNorm);
 float3 finalDir = normalize(float3(pos * sincosSlope.x, sincosSlope.y));
 finalPos = mul(arcCone_cone_transform, float4(finalPos.xzy, 1.0f)).xyz;
 finalDir = mul(arcCone_cone_inverseTranspose, float4(finalDir.xzy, 0.0f)).xyz;
