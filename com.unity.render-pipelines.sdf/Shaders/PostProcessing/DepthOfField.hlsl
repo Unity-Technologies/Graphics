@@ -9,7 +9,8 @@ float lensDis;
 float lensSiz;
 float focalDis;
 float3 BackgroundColor;
-float4 iResolution;
+float4 TexelSize;
+float3 CameraPos;
 
 float asphere(in float3 ro, in float3 rd, in float3 sp, in float sr)
 {
@@ -54,7 +55,7 @@ float3 ascene(in float3 ro, in float3 rd){
 float4 DepthOfField(float4 position : SV_POSITION, float2 uv : TEXCOORD0)  : SV_Target
 {
     const int ssaa = 1;
-
+    const int2 iResolution = TexelSize.zw;
 
     float2 fragCoord = float2(uv.x * iResolution.x, uv.y * iResolution.y);
     //fragcoord is the center of the pixel
@@ -63,7 +64,7 @@ float4 DepthOfField(float4 position : SV_POSITION, float2 uv : TEXCOORD0)  : SV_
 
     float3 Z = float3(0.0,0.0,1.0); //useful later could be hardcoded later instead
 
-    float3 cameraDir = -_WorldSpaceCameraPos; //this will and should be normalized
+    float3 cameraDir = -CameraPos; //this will and should be normalized
     cameraDir = normalize(cameraDir); //normalize
 
     float3 cameraX = cross(cameraDir,Z); //right dir for camera
@@ -89,7 +90,7 @@ float4 DepthOfField(float4 position : SV_POSITION, float2 uv : TEXCOORD0)  : SV_
         {
             float2 ss = float2(sx,sy)*sscale; //sub pixel offset for SSAA
             float3 sensorRel = cameraX*(sensorLoc.x+ss.x) + cameraY*(sensorLoc.y+ss.y); //position on sensor relative to center of sensor. Used once
-            float3 sensorPos = _WorldSpaceCameraPos - lensDis*cameraDir + sensorRel; //3d position of ray1 origin on sensor
+            float3 sensorPos = CameraPos - lensDis*cameraDir + sensorRel; //3d position of ray1 origin on sensor
 
             for (float lx = lstart; lx < 0.5; lx+=lstep)
             {
@@ -101,7 +102,7 @@ float4 DepthOfField(float4 position : SV_POSITION, float2 uv : TEXCOORD0)  : SV_
                     if (length(lensLoc)<(lensSiz/2.0)) //trim lens to circle
                     {
                         float3 lensRel = cameraX*(lensLoc.x) + cameraY*(lensLoc.y); //position on lens relative to lens center. Used twice
-                        float3 lensPos = _WorldSpaceCameraPos + lensRel; // 3d position of ray1 end and ray2 origin on lens
+                        float3 lensPos = CameraPos + lensRel; // 3d position of ray1 end and ray2 origin on lens
                         float3 rayDir1 = lensPos - sensorPos; //direction of ray from sensor to lens
                         float3 rayDir2 = rayDir1 - focal*(lensRel); //direction of ray afer being focused by lens
                         rayDir2 = normalize(rayDir2); //normalize after focus
