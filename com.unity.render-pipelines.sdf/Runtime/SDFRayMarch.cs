@@ -19,7 +19,7 @@ public class SDFRayMarch
     // Out Data
     public static readonly int g_OutSdfData = Shader.PropertyToID("g_OutSdfData");
     public static readonly int g_DebugOutput = Shader.PropertyToID("g_DebugOutput");
-    public static readonly int debugOutputType = Shader.PropertyToID("Soner_Debug");
+    public static readonly int debugLayerId = Shader.PropertyToID("DebugLayer");
 
     // In data
     public static readonly int _ObjectSDFData = Shader.PropertyToID("_ObjectSDFData");
@@ -69,7 +69,7 @@ public class SDFRayMarch
         return tileDataOffsetIntoObjHeaderValues;
     }
 
-    public void RayMarch(CommandBuffer cmd, ComputeShader rayMarchingCS, SDFSceneData sdfSceneData, int debugOutputType)
+    public void RayMarch(CommandBuffer cmd, ComputeShader rayMarchingCS, SDFSceneData sdfSceneData, float debugLayerType)
     {
         //rayMarchingCS = defaultResources.shaders.copyChannelCS;
         int rayMarchKernel = rayMarchingCS.FindKernel("RayMarchKernel");
@@ -98,7 +98,7 @@ public class SDFRayMarch
 
         #region DEBUG_ONLY
         rayMarchingCS.SetTexture(rayMarchKernel, g_DebugOutput, debugOutput);
-        cmd.SetComputeVectorParam(rayMarchingCS, debugOutputType, new Vector3(debugOutputType, 7, 8));
+        cmd.SetComputeFloatParam(rayMarchingCS, debugLayerId, debugLayerType);
         #endregion
 
         // TODO - we could remove dispatch for tiles that don't have any objects - but that will require compaction of tiledataheader

@@ -17,13 +17,10 @@
     float3  CameraPos;
     int pad;
     float4 TexelSize;
-    float3 Soner_Debug;
-//CBUFFER_END
-
-    float pad1;
     float4 LightColor;
     float3 LightDirection;
-
+    float  DebugLayer;
+//CBUFFER_END
 
 struct ObjectHeader
 {
@@ -353,7 +350,7 @@ void RayMarchKernel(uint3 dispatchTid : SV_DispatchThreadID, uint3 groupId : SV_
 
     // For debug only
     // output ray direction:
-    const  int Debug = 2;
+    const  int Debug = DebugLayer;
     if (Debug == 0)
     {
         g_DebugOutput[dispatchTid.xy] = float4(0, outData.intersection.t, 0, 1.0);
@@ -368,7 +365,7 @@ void RayMarchKernel(uint3 dispatchTid : SV_DispatchThreadID, uint3 groupId : SV_
     }
     else if (Debug == 3)
     {
-        g_DebugOutput[dispatchTid.xy] = outData.objID / 5.0;
+        g_DebugOutput[dispatchTid.xy] = outData.objID / 25.0;
     }
 	else if (Debug == 4)
 	{

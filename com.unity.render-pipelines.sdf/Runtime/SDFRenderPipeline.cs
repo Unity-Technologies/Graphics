@@ -131,7 +131,7 @@ namespace UnityEngine.Rendering.SDFRP
                             SDFLightData lightData = new SDFLightData();
                             lightData.InitializeLightData(m_SdfSceneData.directionalLight);
                             lightData.UpdateComputeShaderVariables(cmdRayMarch, currentAsset.rayMarchingCS);
-                            m_SdfRayMarch.RayMarch(cmdRayMarch, currentAsset.rayMarchingCS, m_SdfSceneData, (int)currentAsset.DebugOutputValue);
+                            m_SdfRayMarch.RayMarch(cmdRayMarch, currentAsset.rayMarchingCS, m_SdfSceneData, (float)currentAsset.DebugOutputValue);
 
                             context.ExecuteCommandBuffer(cmdRayMarch);
                             cmdRayMarch.Release();

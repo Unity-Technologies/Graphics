@@ -19,6 +19,8 @@ namespace UnityEngine.Rendering.SDFRP
             Normals,
             ObjectColor,
             ObjectID,
+            LightColor,
+            LightDirection,
             None
         }
         [Header("Debug")]
