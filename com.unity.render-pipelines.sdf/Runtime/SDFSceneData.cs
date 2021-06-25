@@ -51,7 +51,7 @@ public class SDFSceneData : IDisposable
     public int numTilesX;
     public int numTilesY;
 
-    public SDFSceneData(int[] SDFObjectIDs, int sdfDataSize, int normalsSize, Rect pixelRect)
+    public SDFSceneData(int[] SDFObjectIDs, int sdfDataSize, int normalsSize, Rect pixelRect, Light directionalLight)
     {
         // Compute buffers
         this.objectHeaderComputeBuffer = new ComputeBuffer(SDFObjectIDs.Length, ObjectHeaderDataSize, ComputeBufferType.Default);
@@ -82,13 +82,14 @@ public class SDFSceneData : IDisposable
         // SetTileOffsetIntoObjHeaderData();
 
         this.SDFObjectIDs = SDFObjectIDs;
+        this.directionalLight = directionalLight;
     }
 
-    public void SetObjectHeaderData() => objectHeaderComputeBuffer.SetData(objectHeaders);
-    public void SetSDFData() => sdfDataComputeBuffer.SetData(sdfData);
-    public void SetTileHeaderData() => tileHeaderComputeBuffer.SetData(tileHeaders);
-    public void SetTileOffsetIntoObjHeaderData() => tileOffsetsComputeBuffer.SetData(tileDataOffsetIntoObjHeaderValues);
-    public void SetNormals() => normalsComputeBuffer.SetData(normals);
+    public void UpdateObjectHeaderComputeBuffer() => objectHeaderComputeBuffer.SetData(objectHeaders);
+    public void UpdateSDFComputeBuffer() => sdfDataComputeBuffer.SetData(sdfData);
+    public void UpdateTileHeaderComputeBuffer() => tileHeaderComputeBuffer.SetData(tileHeaders);
+    public void UpdateTileOffsetIntoObjHeaderComputeBuffer() => tileOffsetsComputeBuffer.SetData(tileDataOffsetIntoObjHeaderValues);
+    public void UpdateNormalsComputeBuffer() => normalsComputeBuffer.SetData(normals);
 
     public void Dispose() { Dispose(true); }
     protected virtual void Dispose(bool disposing)
@@ -113,4 +114,28 @@ public class SDFSceneData : IDisposable
     public Vector3[] normals;
 
     public int[] SDFObjectIDs;
+
+    public Light directionalLight;
+}
+
+public class SDFLightData
+{
+    public static readonly int LightColorId = Shader.PropertyToID("LightColor");
+    public static readonly int LightDirId = Shader.PropertyToID("LightDirection");
+
+    public Vector4 color;
+    public Vector3 direction;
+
+    public void InitializeLightData(Light light)
+    {
+        color = light.color;
+        direction = light.gameObject.transform.forward;
+    }
+
+    public void UpdateComputeShaderVariables(CommandBuffer cmd, ComputeShader computeShader)
+    {
+        cmd.SetComputeVectorParam(computeShader, LightColorId, color);
+        cmd.SetComputeVectorParam(computeShader, LightDirId, direction);
+
+    }
 }
