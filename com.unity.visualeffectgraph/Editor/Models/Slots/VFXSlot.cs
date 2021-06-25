@@ -866,18 +866,19 @@ namespace UnityEditor.VFX
             PropagateToChildren(func);
         }
 
-        virtual protected void UpdateLinkSlotConversion(VFXSlot fromSlot)
+        virtual protected void UpdateLinkSlotManualConversion(VFXSlot fromSlot)
         {
-            throw new NotImplementedException();
+            throw new NotImplementedException(string.Format("Missing slot conversion implementation from {0} to {1}", fromSlot.property.type, property.type));
         }
 
-        protected static void UpdateLinkedInExpression(VFXSlot destSlot, VFXExpression expression, VFXSlot refSlot = null)
+        protected static void UpdateLinkedInExpression(VFXSlot destSlot, VFXExpression expression, VFXSlot refSlot)
         {
             if (expression == null)
                 throw new NullReferenceException("Unexpected null expression");
 
             destSlot.m_LinkedInExpression = expression;
-            destSlot.m_LinkedInSlot = refSlot; //Can be null here
+            //refSlot can be null if it corresponds to a compute expression (see VFXSlotSphere.UpdateLinkSlotManualConversion)
+            destSlot.m_LinkedInSlot = refSlot;
         }
 
         private static void UpdateLinkedInExpression(VFXSlot destSlot, VFXSlot refSlot)
@@ -896,8 +897,7 @@ namespace UnityEditor.VFX
             }
             else
             {
-                //TODOPAUL : check how this design can be improved
-                destSlot.UpdateLinkSlotConversion(refSlot);
+                destSlot.UpdateLinkSlotManualConversion(refSlot);
             }
         }
 
