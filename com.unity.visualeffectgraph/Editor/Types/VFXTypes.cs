@@ -158,7 +158,7 @@ namespace UnityEditor.VFX
         [Tooltip("Sets the center of the box."), VFXSpace(SpaceableType.Position)]
         public Vector3 center;
         [Angle, Tooltip("Sets the orientation of the box.")]
-        public Vector3 angles; //TODOPAUL : Bring back the fix about orientation of angle here
+        public Vector3 angles;
         [Tooltip("Sets the size of the box along each axis.")]
         public Vector3 size;
 

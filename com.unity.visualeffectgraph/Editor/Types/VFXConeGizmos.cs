@@ -7,7 +7,6 @@ using UnityEngine.VFX;
 
 namespace UnityEditor.VFX
 {
-    //TODOPAUL : Factorize VFXConeGizmo & VFXArcConeGizmo
     [VFXGizmo(typeof(TCone))]
     class VFXConeGizmo : VFXSpaceableGizmo<TCone>
     {
@@ -210,9 +209,18 @@ namespace UnityEditor.VFX
             DrawCone(this, cone, ref extremities, m_CenterProperty, m_AnglesProperty, m_ScaleProperty, m_BaseRadiusProperty, m_TopRadiusProperty, m_HeightProperty, baseRadiusScreen, topRadiusScreen);
         }
 
+        static public Bounds GetBoundsFromCone(TCone cone)
+        {
+            var baseScale = new Vector3(Mathf.Max(cone.radius0, cone.radius1), Mathf.Max(cone.radius0, cone.radius1), cone.height);
+            baseScale.x *= cone.transform.scale.x;
+            baseScale.y *= cone.transform.scale.y;
+            baseScale.z *= cone.transform.scale.z;
+            return new Bounds(cone.transform.position, baseScale);
+        }
+
         public override Bounds OnGetSpacedGizmoBounds(TCone value)
         {
-            return new Bounds(value.transform.position, new Vector3(Mathf.Max(value.radius0, value.radius1), Mathf.Max(value.radius0, value.radius1), value.height));
+            return GetBoundsFromCone(value);
         }
     }
 
@@ -296,7 +304,7 @@ namespace UnityEditor.VFX
 
         public override Bounds OnGetSpacedGizmoBounds(TArcCone value)
         {
-            return new Bounds(value.cone.transform.position, new Vector3(Mathf.Max(value.cone.radius0, value.cone.radius1), Mathf.Max(value.cone.radius0, value.cone.radius1), value.cone.height));
+            return VFXConeGizmo.GetBoundsFromCone(value.cone);
         }
     }
 }
