@@ -5,7 +5,7 @@ using UnityEngine;
 using UnityEngine.Rendering;
 using UnityEngine.Experimental.Rendering;
 
-public class SDFSceneData /*: IDisposable*/
+public class SDFSceneData : IDisposable
 {
     public const int TileSize = 8;
 
@@ -45,14 +45,14 @@ public class SDFSceneData /*: IDisposable*/
     const int ObjectHeaderDataSize = 112;
     public int numTiles;
 
-    public SDFSceneData(int numObjects, int sdfDataSize, Rect pixelRect)
+    public SDFSceneData(int[] SDFObjectIDs, int sdfDataSize, Rect pixelRect)
     {
         // Compute buffers
-        this.objectHeaderComputeBuffer = new ComputeBuffer(numObjects, ObjectHeaderDataSize, ComputeBufferType.Default);
+        this.objectHeaderComputeBuffer = new ComputeBuffer(SDFObjectIDs.Length, ObjectHeaderDataSize, ComputeBufferType.Default);
         this.sdfDataComputeBuffer = new ComputeBuffer(sdfDataSize, sizeof(float), ComputeBufferType.Default);
 
         // CPU-side data
-        this.objectHeaders = new SDFSceneData.ObjectHeader[numObjects];
+        this.objectHeaders = new SDFSceneData.ObjectHeader[SDFObjectIDs.Length];
         this.sdfData = new float[sdfDataSize];
 
         // TODO: set actual tile data
@@ -72,12 +72,23 @@ public class SDFSceneData /*: IDisposable*/
         this.tileDataOffsetIntoObjHeaderValues = new int[numTiles * SDFRayMarch.MAX_OBJECTS_IN_SCENE];
         // this.tileDataOffsetIntoObjHeaderValues = SDFRayMarch.FillTileDataOffsetBuffer(numTiles, numEntriesEachTile).ToArray();
         // SetTileOffsetIntoObjHeaderData();
+
+        this.SDFObjectIDs = SDFObjectIDs;
     }
 
     public void SetObjectHeaderData() => objectHeaderComputeBuffer.SetData(objectHeaders);
     public void SetSDFData() => sdfDataComputeBuffer.SetData(sdfData);
     public void SetTileHeaderData() => tileHeaderComputeBuffer.SetData(tileHeaders);
     public void SetTileOffsetIntoObjHeaderData() => tileOffsetsComputeBuffer.SetData(tileDataOffsetIntoObjHeaderValues);
+
+    public void Dispose() { Dispose(true); }
+    protected virtual void Dispose(bool disposing)
+    {
+        objectHeaderComputeBuffer.Release();
+        sdfDataComputeBuffer.Release();
+        tileHeaderComputeBuffer.Release();
+        tileOffsetsComputeBuffer.Release();
+    }
 
     public ComputeBuffer objectHeaderComputeBuffer;
     public ComputeBuffer sdfDataComputeBuffer;
@@ -88,4 +99,6 @@ public class SDFSceneData /*: IDisposable*/
     public float[] sdfData;
     public SDFSceneData.TileDataHeader[] tileHeaders;
     public int[] tileDataOffsetIntoObjHeaderValues;
+
+    public int[] SDFObjectIDs;
 }

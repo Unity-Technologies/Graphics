@@ -213,17 +213,45 @@ namespace UnityEngine.Rendering.SDFRP
             }
         }
 
+        private bool NeedToCreateSdfSceneData(SDFRenderer[] SDFObjects, out int[] SDFObjectIDs)
+        {
+            SDFObjectIDs = new int[SDFObjects.Length];
+            for (int i = 0; i < SDFObjects.Length; ++i)
+            {
+                SDFObjectIDs[i] = SDFObjects[i].gameObject.GetInstanceID();
+            }
+
+            if (m_SdfSceneData == null)
+                return true;
+
+            if (SDFObjects.Length != m_SdfSceneData.SDFObjectIDs.Length)
+                return true;
+
+            // Sadly the ordering of 'FindObjectsOfType' is not guaranteed
+            Array.Sort(SDFObjectIDs);
+
+            for (int i = 0; i < SDFObjects.Length; ++i)
+            {
+                if (SDFObjectIDs[i] != m_SdfSceneData.SDFObjectIDs[i])
+                    return true;
+            }
+
+            return false;
+        }
+
         private void GetDataFromSceneGraph(SDFRenderer[] SDFObjects, Rect pixelRect)
         {
-            if (m_SdfSceneData == null) // TODO: assuming fixed numebr of objects in scene for now
+            if (NeedToCreateSdfSceneData(SDFObjects, out int[] SDFObjectIDs))
             {
+                m_SdfSceneData?.Dispose();
+
                 int sdfDataSize = 0;
                 foreach (SDFRenderer renderer in SDFObjects)
                 {
                     sdfDataSize += renderer.SDFFilter.VoxelField.m_Field.Length;
                 }
 
-                m_SdfSceneData = new SDFSceneData(SDFObjects.Length, sdfDataSize, pixelRect);
+                m_SdfSceneData = new SDFSceneData(SDFObjectIDs, sdfDataSize, pixelRect);
             }
 
             // Fill out array of data and array of data-headers
