@@ -14,20 +14,19 @@
     float4x4 InvViewProjectionMatrix;
     float4x4 InvViewMatrix;
     float4x4 InvProjectionMatrix;
-    float3  CameraPos;
-    int pad0;
-    float3 ViewDirection;
-    int pad1;
+    float3  LightPos;
+    int pad;
     float4 TexelSize;
-    float4 LightColor;
-    float3 LightDirection;
-    float  DebugLayer;
+    float3 LightColor;
 //CBUFFER_END
+
+RWTexture2D<float4> Distance;
+RWTexture2D<float4> Normal;
+RWTexture2D<float4> Flux;
 
 struct ObjectHeader
 {
     float4x4 worldToObjMatrix;
-    float4x4 objToWorldMatrix;
     float4   color;
     int      objID;
     int      numEntries;
@@ -78,10 +77,7 @@ struct OutSdfData
     int objID;
 };
 
-RWStructuredBuffer<OutSdfData> g_OutSdfData : register(u0);
 RWTexture2D<float4> g_DebugOutput : register(u1);
-RWTexture2D<float4> LightingOutput : register(u2);
-
 
 // https://www.iquilezles.org/www/articles/distfunctions/distfunctions.htm
 float sdBox(float3 p, float3 b)
@@ -132,11 +128,11 @@ RayData GetRayDirection(int2 currPos, /*float fovHalf,*/ int2 imageSize)
 	if (rayPointWS.w != 0)
 		rayPointWS /= rayPointWS.w;
 
-	float3 rayDirectionWS = /*SafeNormalize*/ (rayPointWS.xyz - CameraPos);
+	float3 rayDirectionWS = /*SafeNormalize*/ (rayPointWS.xyz - LightPos);
 	//#line 124
 	RayData rayData;
 	rayData.direction = rayPointWS.xyz;
-	rayData.pointOnPlane = CameraPos;
+	rayData.pointOnPlane = LightPos;
 
 	return rayData;
 
@@ -147,29 +143,18 @@ float Convert3DPosTo1D(float3 pos, int3 voxelDim)
 	return (pos.x + (pos.y * voxelDim.x) + (pos.z * voxelDim.y * voxelDim.x));
 }
 
-float3 BlinnPhong(float3 normal, float3 lightDir, float3 viewDir, float3 lightColor, float3 diffuseColor, float3 specularColor, float shininess)
-{
-	float diffuseFactor = max(dot(normal, lightDir), 0.0);
-	float3 diffuse = diffuseFactor * diffuseColor * lightColor;
-
-	float3 halfDir = normalize(lightDir + viewDir);
-	float specularFactor = pow(max(dot(normal, halfDir), 0.0), shininess);
-	float3 specular = specularFactor * specularColor * lightColor;
-
-	return diffuse + specular;
-}
-
 IntersectionData RayMarch(int objHeaderOffset, float3 rayPoint, float3 cameraPos)
 {
     IntersectionData returnValue;
     ObjectHeader objHeader = _ObjectHeaderData[objHeaderOffset];
     returnValue.color = objHeader.color;
+
 	float3 objBBox = objHeader.maxExtent - objHeader.minExtent;
 
 	float4 rayPointOS = mul(objHeader.worldToObjMatrix, float4 (rayPoint, 1));
 	if (rayPointOS.w > 0)
 		rayPointOS /= rayPointOS.w;
-	float4 camPosOS = mul(objHeader.worldToObjMatrix, float4 (CameraPos, 1));
+	float4 camPosOS = mul(objHeader.worldToObjMatrix, float4 (LightPos, 1));
 	if (camPosOS.w > 0)
 		camPosOS /= camPosOS.w;
 	float3 rayDirOS; // = mul ( objHeader . worldToObjMatrix , float4 ( rayDir , 0 ) ) . xyz ;
@@ -275,8 +260,7 @@ IntersectionData RayMarch(int objHeaderOffset, float3 rayPoint, float3 cameraPos
                 {
                     // Found intersection point
                     returnValue.t = totalDistance;
-                    returnValue.normal = mul(objHeader.objToWorldMatrix, float4(_Normals[objHeader.normalsOffset + linearVoxelPos], 0));
-
+                    returnValue.normal = _Normals[objHeader.normalsOffset + linearVoxelPos];
                     return returnValue;
                 }
                 else if (distance < 0.0f)
@@ -312,7 +296,7 @@ IntersectionData RayMarch(int objHeaderOffset, float3 rayPoint, float3 cameraPos
     return returnValue;
 }
 
-OutSdfData RayMarchAllObjects(float3 dir, float3 pointOnPlane, TileDataHeader tileDataHeader, out float3 lightingValue)
+OutSdfData RayMarchAllObjects(float3 dir, float3 pointOnPlane, TileDataHeader tileDataHeader)
 {
     OutSdfData outSdfData;
     outSdfData.intersection.t = 0.0f;
@@ -320,7 +304,7 @@ OutSdfData RayMarchAllObjects(float3 dir, float3 pointOnPlane, TileDataHeader ti
 
     for (int id = 0; id < tileDataHeader.numObjects; ++id)
     {
-        int objHeaderOffset = _TileDataOffsetIntoObjHeader[tileDataHeader.offset + id];
+		int objHeaderOffset = _TileDataOffsetIntoObjHeader[tileDataHeader.offset + id];
         IntersectionData currIntersection = RayMarch(objHeaderOffset, dir, pointOnPlane);
         if (currIntersection.t > 0.0f && (outSdfData.intersection.t <= 0 || currIntersection.t < outSdfData.intersection.t))
         {
@@ -330,14 +314,6 @@ OutSdfData RayMarchAllObjects(float3 dir, float3 pointOnPlane, TileDataHeader ti
         }
     }
 
-    // do lighting in WS
-
-    // TODO need viewDir
-   lightingValue = BlinnPhong(outSdfData.intersection.normal, LightDirection, ViewDirection, LightColor.rgb, outSdfData.intersection.color, float3(1.0, 1.0, 1.0), 10.0);
-
-
-
-    // Write to UAV
     return outSdfData;
 }
 
@@ -351,45 +327,9 @@ void RayMarchKernel(uint3 dispatchTid : SV_DispatchThreadID, uint3 groupId : SV_
     int tileIndex = groupId.x + groupId.y * numDispatchesX;
     TileDataHeader tileDataHeader = _TileDataHeader[tileIndex];
     RayData rayData = GetRayDirection(dispatchTid.xy, /*_FieldOfViewBy2,*/ TexelSize.zw);
-    float3 lightingValue = 0;
-    OutSdfData outData = RayMarchAllObjects(rayData.direction, rayData.pointOnPlane/*, groupId*/, tileDataHeader, lightingValue);
+    OutSdfData outData = RayMarchAllObjects(rayData.direction, rayData.pointOnPlane/*, groupId*/, tileDataHeader);
 
-    // TODO - If using z-dimension for anything else, please change the group index and manually calculate
-    g_OutSdfData[groupIndex] = outData;
-
-
-    LightingOutput[dispatchTid.xy] = float4(lightingValue, 1.0);
-
-    // For debug only
-    // output ray direction:
-    const  int Debug = DebugLayer;
-    if (Debug == 0)
-    {
-        g_DebugOutput[dispatchTid.xy] = float4(0, outData.intersection.t, 0, 1.0);
-    }
-    else if (Debug == 1)
-    {
-        g_DebugOutput[dispatchTid.xy] = float4((outData.intersection.normal + 1) * 0.5, 1.0);
-    }
-    else if (Debug == 2)
-    {
-        g_DebugOutput[dispatchTid.xy] = outData.intersection.color;
-    }
-    else if (Debug == 3)
-    {
-        g_DebugOutput[dispatchTid.xy] = outData.objID / 25.0;
-    }
-	else if (Debug == 4)
-	{
-		g_DebugOutput[dispatchTid.xy] = LightColor;
-	}
-	else if (Debug == 5)
-	{
-		g_DebugOutput[dispatchTid.xy] = float4(abs(LightDirection), 1.0);
-	}
-
-    // output ray point on Plane:
-    //g_DebugOutput[dispatchTid.xy] = float4((rayData.pointOnPlane.xy + 1)*0.5, 0, 1.0);
-
-    //g_DebugOutput[dispatchTid.xy] = float4(1.0, 0.0, 0.0, 1.0);
+    Distance[dispatchTid.xy] = float4(outData.intersection.t, 0.0, 0.0, 1.0);
+    Normal[dispatchTid.xy] = float4(outData.intersection.normal, 1.0);
+    Flux[dispatchTid.xy] = float4(outData.intersection.color.xyz * LightColor, 1.0);
 }

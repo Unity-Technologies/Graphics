@@ -30,9 +30,9 @@ public class SDFGIProbeUpdateData
 
     protected Matrix4x4 m_RSMProjectionMatrix;
 
-    protected Texture2D m_RSM_FluxTexture;
-    protected Texture2D m_RSM_NormalTexture;
-    protected Texture2D m_RSM_tValueTexture;
+    protected RenderTexture m_RSM_FluxTexture;
+    protected RenderTexture m_RSM_NormalTexture;
+    protected RenderTexture m_RSM_tValueTexture;
 
     protected RenderTexture m_ProbeAtlasTexture;
 
@@ -53,7 +53,7 @@ public class SDFGIProbeUpdateData
         m_RSMSamplePointsBuffer = rsmSamplePointsBuffer;
     }
 
-    public void SetupRSMInput(Texture2D flux, Texture2D normal, Texture2D tValue, Matrix4x4 projectionMatrix)
+    public void SetupRSMInput(RenderTexture flux, RenderTexture normal, RenderTexture tValue, Matrix4x4 projectionMatrix)
     {
         m_RSM_FluxTexture = flux;
         m_RSM_NormalTexture = normal;
@@ -67,10 +67,10 @@ public class SDFGIProbeUpdateData
         int kernelIndex = computeShader.FindKernel("GatherIrradiance");
 
         // TODO - uncomment once RSM input have been properly set
-        //cmd.SetComputeTextureParam(computeShader, kernelIndex, rsmFluxIndex, m_RSM_FluxTexture);
-        //cmd.SetComputeTextureParam(computeShader, kernelIndex, rsmNormalIndex, m_RSM_NormalTexture);
-        //cmd.SetComputeTextureParam(computeShader, kernelIndex, rsmTValueIndex, m_RSM_tValueTexture);
-        //cmd.SetComputeMatrixParam(computeShader, rsmProjectionMatrixIndex, m_RSMProjectionMatrix);
+        cmd.SetComputeTextureParam(computeShader, kernelIndex, rsmFluxIndex, m_RSM_FluxTexture);
+        cmd.SetComputeTextureParam(computeShader, kernelIndex, rsmNormalIndex, m_RSM_NormalTexture);
+        cmd.SetComputeTextureParam(computeShader, kernelIndex, rsmTValueIndex, m_RSM_tValueTexture);
+        cmd.SetComputeMatrixParam(computeShader, rsmProjectionMatrixIndex, m_RSMProjectionMatrix);
 
         cmd.SetComputeBufferParam(computeShader, kernelIndex, rsmSamplePointBufferIndex, m_RSMSamplePointsBuffer);
 
