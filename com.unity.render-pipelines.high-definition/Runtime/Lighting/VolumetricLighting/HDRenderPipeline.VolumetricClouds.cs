@@ -263,7 +263,7 @@ namespace UnityEngine.Rendering.HighDefinition
             {
                 case VolumetricClouds.CloudPresets.Sparse:
                 {
-                    cloudModelData.densityMultiplier = 0.4472135955f;
+                    cloudModelData.densityMultiplier = 0.3f;
                     cloudModelData.shapeFactor = 0.9f;
                     cloudModelData.shapeScale = 1.75f;
                     cloudModelData.erosionFactor = 0.7f;
@@ -272,7 +272,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 }
                 case VolumetricClouds.CloudPresets.Cloudy:
                 {
-                    cloudModelData.densityMultiplier = 0.41833001326f;
+                    cloudModelData.densityMultiplier = 0.3f;
                     cloudModelData.shapeFactor = 0.75f;
                     cloudModelData.shapeScale = 2.5f;
                     cloudModelData.erosionFactor = 0.8f;
@@ -281,8 +281,8 @@ namespace UnityEngine.Rendering.HighDefinition
                 }
                 case VolumetricClouds.CloudPresets.Overcast:
                 {
-                    cloudModelData.densityMultiplier = 0.158113883f;
-                    cloudModelData.shapeFactor = 0.3f;
+                    cloudModelData.densityMultiplier = 0.1f;
+                    cloudModelData.shapeFactor = 0.1f;
                     cloudModelData.shapeScale = 3.5f;
                     cloudModelData.erosionFactor = 0.0f;
                     cloudModelData.erosionScale = 50.0f;
@@ -290,11 +290,11 @@ namespace UnityEngine.Rendering.HighDefinition
                 }
                 case VolumetricClouds.CloudPresets.Stormy:
                 {
-                    cloudModelData.densityMultiplier = 0.55901699437f;
+                    cloudModelData.densityMultiplier = 0.4f;
                     cloudModelData.shapeFactor = 0.7f;
-                    cloudModelData.shapeScale = 3.5f;
+                    cloudModelData.shapeScale =  7.0f;
                     cloudModelData.erosionFactor = 0.6f;
-                    cloudModelData.erosionScale = 60.0f;
+                    cloudModelData.erosionScale = 120.0f;
                     return;
                 }
             }
@@ -330,7 +330,7 @@ namespace UnityEngine.Rendering.HighDefinition
             cb._NumPrimarySteps = settings.numPrimarySteps.value;
             cb._NumLightSteps = settings.numLightSteps.value;
             // 1000.0f is the maximal distance that a single step can do in theory (otherwise we endup skipping large clouds)
-            cb._MaxRayMarchingDistance = Mathf.Min(1000.0f * cb._NumPrimarySteps, hdCamera.camera.farClipPlane);
+            cb._MaxRayMarchingDistance = Mathf.Min(settings.cloudThickness.value / 8.0f *  cb._NumPrimarySteps, hdCamera.camera.farClipPlane);
             cb._CloudMapTiling.Set(settings.cloudTiling.value.x, settings.cloudTiling.value.y, settings.cloudOffset.value.x, settings.cloudOffset.value.y);
 
             cb._ScatteringTint = Color.white - settings.scatteringTint.value * 0.75f;
@@ -382,7 +382,7 @@ namespace UnityEngine.Rendering.HighDefinition
             cb._MediumWindSpeed = settings.shapeSpeedMultiplier.value;
             cb._SmallWindSpeed = settings.erosionSpeedMultiplier.value;
 
-            cb._MultiScattering = 1.0f - settings.multiScattering.value * 0.8f;
+            cb._MultiScattering = 1.0f - settings.multiScattering.value * 0.95f;
 
             CloudModelData cloudModelData;
             if (settings.cloudControl.value == VolumetricClouds.CloudControl.Simple && settings.cloudPreset.value != VolumetricClouds.CloudPresets.Custom)
@@ -399,7 +399,7 @@ namespace UnityEngine.Rendering.HighDefinition
             }
 
             // The density multiplier is not used linearly
-            cb._DensityMultiplier = cloudModelData.densityMultiplier * cloudModelData.densityMultiplier * 4.0f;
+            cb._DensityMultiplier = cloudModelData.densityMultiplier * cloudModelData.densityMultiplier * 2.0f;
             cb._ShapeFactor = cloudModelData.shapeFactor;
             cb._ShapeScale = cloudModelData.shapeScale;
             cb._ErosionFactor = cloudModelData.erosionFactor;

@@ -18,24 +18,20 @@
 #define MOTION_DISTORTION 0.05
 // The number of octaves for the multi-scattering
 #define NUM_MULTI_SCATTERING_OCTAVES 2
-// Bias in the light sample distribution to exagerate the darkening effect of the clouds
-#define WEIGHTED_LIGHT_SAMPLE_DISTRIBUTION_FACTOR 1.5f
 // Global offset to the high frequency noise
 #define CLOUD_DETAIL_MIP_OFFSET 0.0
 // Global offset for reaching the LUT/AO
 #define CLOUD_LUT_MIP_OFFSET 1.0
 // Density blow wich we consider the density is zero (optimization reasons)
-#define CLOUD_DENSITY_TRESHOLD 0.01f
+#define CLOUD_DENSITY_TRESHOLD 0.001f
 // Number of steps before we start the large steps
 #define EMPTY_STEPS_BEFORE_LARGE_STEPS 4
 // Forward eccentricity
-#define FORWARD_ECCENTRICITY 0.8
+#define FORWARD_ECCENTRICITY 0.7
 // Forward eccentricity
-#define BACKWARD_ECCENTRICITY 0.5
+#define BACKWARD_ECCENTRICITY 0.7
 // Minimal size of a step
 #define MINIMAL_RAY_MARCHING_STEP 100.0f
-// Minimal distance before which clouds are dislayed
-#define MIN_CLOUD_DISTANCE 1000.0
 // Distance until which the erosion texture i used
 #define MIN_EROSION_DISTANCE 3000.0
 #define MAX_EROSION_DISTANCE 300000.0
@@ -164,14 +160,19 @@ struct CloudRay
     float insideClouds;
     // Distance to earth center
     float toEarthCenter;
+    // Integration Noise
+    float integrationNoise;
     // Environement lighting
     EnvironmentLighting envLighting;
 };
 
-CloudRay BuildRay(uint2 halfResCoord)
+CloudRay BuildRay(uint2 halfResCoord, float integrationNoise)
 {
     CloudRay ray;
     ZERO_INITIALIZE(CloudRay, ray);
+
+    // Keep track of the integration noise
+    ray.integrationNoise = integrationNoise;
 
 #ifdef LOCAL_VOLUMETRIC_CLOUDS
     // Grab the depth value of the pixel (at half resolution)
@@ -310,10 +311,12 @@ bool GetCloudVolumeIntersection(float3 org, float3 dir, float insideClouds, floa
     }
 
     // We are not allowed to render clouds under a certain distance
-    if (MIN_CLOUD_DISTANCE > rayMarchRange.start)
+    // As a temporary solution, the clouds cannot be closer than 1/5 of the size of the cloud layer (radial space)
+    float cloudRangeSize = (_HighestCloudAltitude -_LowestCloudAltitude) * 0.2;
+    if (cloudRangeSize > rayMarchRange.start)
     {
-        rayMarchRange.start = MIN_CLOUD_DISTANCE;
-        rayMarchRange.distance -= MIN_CLOUD_DISTANCE - rayMarchRange.start;
+        rayMarchRange.start = cloudRangeSize;
+        rayMarchRange.distance -= cloudRangeSize - rayMarchRange.start;
     }
 
     // Mke sure we cannot go beyond what the number of samples
@@ -335,10 +338,12 @@ bool GetCloudVolumeIntersection(float3 org, float3 dir, float insideClouds, floa
     rayMarchRange.distance = intersectionOuter.x - intersectionInter.x;
 
     // We are not allowed to render clouds under a certain distance
-    if (MIN_CLOUD_DISTANCE > rayMarchRange.start)
+    // As a temporary solution, the clouds cannot be closer than 1/5 of the size of the cloud layer (radial space)
+    float cloudRangeSize = (_HighestCloudAltitude -_LowestCloudAltitude) * 0.2;
+    if (cloudRangeSize > rayMarchRange.start)
     {
-        rayMarchRange.start = MIN_CLOUD_DISTANCE;
-        rayMarchRange.distance -= MIN_CLOUD_DISTANCE - rayMarchRange.start;
+        rayMarchRange.start = cloudRangeSize;
+        rayMarchRange.distance -= cloudRangeSize - rayMarchRange.start;
     }
 
     // Make sure we cannot go beyond what the number of samples
@@ -405,7 +410,7 @@ float3 unapplyFastTonemapping(float3 input)
         return input;
 }
 
-EnvironmentLighting EvaluateEnvironmentLighting(CloudRay ray)
+EnvironmentLighting EvaluateEnvironmentLighting(CloudRay ray, float3 evaluationPoint)
 {
     // Sun parameters
     EnvironmentLighting environmentLight;
@@ -417,7 +422,7 @@ EnvironmentLighting EvaluateEnvironmentLighting(CloudRay ray)
     if(_PhysicallyBasedSun == 1)
     // TODO: move this into a shared function
     {
-        float3 X = float3(0.0, 0.0, 0.0);
+        float3 X = evaluationPoint - float3(0, _EarthRadius, 0);
         float3 C = _PlanetCenterPosition.xyz;
 
         float r        = distance(X, C);
@@ -514,7 +519,7 @@ void EvaluateCloudProperties(float3 positionWS, float noiseMipOffset, float eros
     properties.ambientOcclusion = densityErosionAO.z;
 
     // Change the sigma based on the rain cloud data
-    properties.sigmaT = lerp(0.01, 0.12, cloudCoverageData.rainClouds);
+    properties.sigmaT = lerp(0.04, 0.12, cloudCoverageData.rainClouds);
 
     // The ambient occlusion value that is baked is less relevant if there is shaping or erosion, small hack to compensate that
     float ambientOcclusionBlend = saturate(1.0 - max(erosionFactor, shapeFactor) * 0.5);
@@ -529,7 +534,7 @@ void EvaluateCloudProperties(float3 positionWS, float noiseMipOffset, float eros
         // Compute the weight of the low frequency noise
         highFrequencyNoise = lerp(0.0, highFrequencyNoise, erosionFactor * 0.75f * cloudCoverageData.coverage.x);
         base_cloud = remap(base_cloud, highFrequencyNoise, 1.0, 0.0, 1.0);
-        properties.ambientOcclusion = saturate(properties.ambientOcclusion - sqrt(highFrequencyNoise * 2.0f * _ErosionOcclusion));
+        properties.ambientOcclusion = saturate(properties.ambientOcclusion - sqrt(highFrequencyNoise * _ErosionOcclusion));
     }
 
     // Given that we are not sampling the erosion texture, we compensate by substracting an erosion value
@@ -561,21 +566,21 @@ float3 EvaluateSunLuminance(float3 position, in EnvironmentLighting envLighting,
         for (o = 0; o < NUM_MULTI_SCATTERING_OCTAVES; ++o)
             sunLightTransmittance[o] = 1.0;
 
+        // Compute the size of the current step
+        float stepSize = totalLightDistance / (float)_NumLightSteps;
+
         // Collect total density along light ray.
         float lastDist = 0;
         for (int j = 1; j <= _NumLightSteps; j++)
         {
             // The samples are not linearly distributed along the point-light direction due to their low number. We sample they in a logarithmic way.
-            float dist = totalLightDistance * PositivePow(j / (float)_NumLightSteps, WEIGHTED_LIGHT_SAMPLE_DISTRIBUTION_FACTOR);
-
-            // Compute the size of the current step
-            float stepSize = (dist - lastDist);
+            float dist = stepSize * j;
 
             // Evaluate the current sample point
             float3 currentSamplePoint = position + envLighting.sunDirection * dist;
             // Get the cloud properties at the sample point
             CloudProperties lightRayCloudProperties;
-            EvaluateCloudProperties(currentSamplePoint, 7.0f * j / _NumLightSteps, 0.0, true, true, lightRayCloudProperties);
+            EvaluateCloudProperties(currentSamplePoint, 3.0f * j / _NumLightSteps, 0.0, true, true, lightRayCloudProperties);
 
             // Compute the extinction
             const float3 mediaExtinction = max(_ScatteringTint.xyz * lightRayCloudProperties.density * lightRayCloudProperties.sigmaT, float3(1e-6, 1e-6, 1e-6));
@@ -628,7 +633,7 @@ void EvaluateCloud(CloudProperties cloudProperties, CloudRay cloudRay,  float ph
     volumetricRay.transmittance *= currentStepExtinction;
 }
 
-VolumetricRayResult TraceVolumetricRay(CloudRay cloudRay, float offset)
+VolumetricRayResult TraceVolumetricRay(CloudRay cloudRay)
 {
     // Initiliaze the volumetric ray
     VolumetricRayResult volumetricRay;
@@ -659,13 +664,16 @@ VolumetricRayResult TraceVolumetricRay(CloudRay cloudRay, float offset)
             // - Far plane
             totalDistance = min(totalDistance, cloudRay.maxRayLength - rayMarchRange.start);
 
+            // Compute the environment lighting that is going to be used for the cloud evaluation
+            cloudRay.envLighting = EvaluateEnvironmentLighting(cloudRay, cloudRay.origin + (rayMarchRange.start + totalDistance * 0.5) * cloudRay.direction);
+
             // Evaluate our integration step
             float stepS = max(totalDistance / (float)_NumPrimarySteps, MINIMAL_RAY_MARCHING_STEP);
             int numRealSteps = max((int)(totalDistance / MINIMAL_RAY_MARCHING_STEP), 32);
 
             // Offset the starting point using our dithering pattern.
-            rayMarchRange.start += stepS * offset;
-            rayMarchRange.distance -= stepS * offset;
+            rayMarchRange.start += stepS * cloudRay.integrationNoise;
+            rayMarchRange.distance -= stepS * cloudRay.integrationNoise;
 
             // Evaluate cos of the theta angle between the view and light vectors
             float cosAngle = dot(cloudRay.direction, cloudRay.envLighting.sunDirection);
@@ -793,17 +801,14 @@ void RenderClouds(uint3 traceCoord : SV_DispatchThreadID, uint2 groupThreadId : 
     int checkerBoardIndex = ComputeCheckerBoardIndex(traceCoord.xy, _SubPixelIndex);
     uint2 halfResCoord = traceCoord.xy * 2 + HalfResIndexToCoordinateShift[checkerBoardIndex];
 
-    // Build the ray we will use of the ray marching.
-    CloudRay ray = BuildRay(halfResCoord);
-
-    // Compute the environment lighting that is going to be used for the cloud evaluation
-    ray.envLighting = EvaluateEnvironmentLighting(ray);
-
     // We use the Heitz blue noise method for dithering to get the most visually pleasing noise.
     float offset = GetBNDSequenceSample(halfResCoord, _AccumulationFrameIndex, 0);
 
+    // Build the ray we will use of the ray marching.
+    CloudRay ray = BuildRay(halfResCoord, offset);
+
     // Evaluate the cloud transmittance
-    VolumetricRayResult result = TraceVolumetricRay(ray, offset);
+    VolumetricRayResult result = TraceVolumetricRay(ray);
 
     // Compute the cloud depths
     float cloudMinDistance = clamp(_ProjectionParams.y, min(result.meanDistance, ray.maxRayLength), _ProjectionParams.z);
