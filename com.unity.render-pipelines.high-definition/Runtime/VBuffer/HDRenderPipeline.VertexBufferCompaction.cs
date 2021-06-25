@@ -264,7 +264,7 @@ namespace UnityEngine.Rendering.HighDefinition
             posVBStream.Dispose();
             uvVBStream.Dispose();
             normalVBStream.Dispose();
-            tangentVBStream.Dispose();
+            tangentVBStream?.Dispose();
             if (hasTexCoord1)
                 uv1VBStream.Dispose();
             ib.Dispose();
