@@ -98,60 +98,93 @@ struct RayData
     float3 pointOnPlane;
 };
 
-float Convert3DPosTo1D(float3 pos, ObjectHeader objHeader)
-{
-    float3 objBBox = objHeader.maxExtent - objHeader.minExtent;
-    float3 dimensions = objBBox / objHeader.voxelSize;
-    int3 voxels = int3(ceil(dimensions.x), ceil(dimensions.y), ceil(dimensions.z));
-    return (pos.x + (pos.y * voxels.x) + (pos.z * voxels.y * voxels.x));
-}
-
 RayData GetRayDirection(int2 currPos, /*float fovHalf,*/ int2 imageSize)
 {
-    float imageAspectRatio = (float)imageSize.x / imageSize.y; // assuming width > height
-    //float Px = (2 * ((currPos.x + 0.5) / imageSize.x) - 1) * tan(fovHalf * DEG_TO_RAD) * imageAspectRatio;
-    //float Py = (2 * ((currPos.y + 0.5) / imageSize.y) - 1) * tan(fovHalf * DEG_TO_RAD);
+ //   float imageAspectRatio = (float)imageSize.x / imageSize.y; // assuming width > height
+ //   //float Px = (2 * ((currPos.x + 0.5) / imageSize.x) - 1) * tan(fovHalf * DEG_TO_RAD) * imageAspectRatio;
+ //   //float Py = (2 * ((currPos.y + 0.5) / imageSize.y) - 1) * tan(fovHalf * DEG_TO_RAD);
 
-    float Px = (2 * ((currPos.x + 0.5) / imageSize.x) - 1);
-    float Py = (2 * ((currPos.y + 0.5) / imageSize.y) - 1);
+ //   float Px = (2 * ((currPos.x + 0.5) / imageSize.x) - 1);
+ //   float Py = (2 * ((currPos.y + 0.5) / imageSize.y) - 1);
 
-    float3 rayOrigin = float3(0, 0, 0);
+ //   float3 rayOrigin = float3(0, 0, 0);
+
+	//float4 rayPointWS = mul(InvProjectionMatrix, float4 (Px, Py, -1, 1));
+	//rayPointWS = mul(InvViewMatrix, rayPointWS);
+	//if (rayPointWS.w != 0)
+	//	rayPointWS /= rayPointWS.w;
+
+ //   float3 rayDirectionWS = SafeNormalize(rayPointWS.xyz - CameraPos);
+ //   
+ //   //rayDirection.normalize(); // it's a direction so don't forget to normalize 
+ //   RayData rayData;
+	//rayData.direction = rayPointWS.xyz;// rayDirectionWS;
+ //   rayData.pointOnPlane = CameraPos;
+
+ //   return rayData;
+	float imageAspectRatio = (float)imageSize.x / imageSize.y;
+	//#line 111
+	float Px = (2 * ((currPos.x + 0.5) / imageSize.x) - 1);
+	float Py = (2 * ((currPos.y + 0.5) / imageSize.y) - 1);
+
+	float3 rayOrigin = float3 (0, 0, 0);
 
 	float4 rayPointWS = mul(InvProjectionMatrix, float4 (Px, Py, -1, 1));
 	rayPointWS = mul(InvViewMatrix, rayPointWS);
 	if (rayPointWS.w != 0)
 		rayPointWS /= rayPointWS.w;
 
-    float3 rayDirectionWS = SafeNormalize(rayPointWS.xyz - CameraPos);
-    
-    //rayDirection.normalize(); // it's a direction so don't forget to normalize 
-    RayData rayData;
-    rayData.direction = rayDirectionWS;
-    rayData.pointOnPlane = CameraPos;
+	float3 rayDirectionWS = /*SafeNormalize*/ (rayPointWS.xyz - CameraPos);
+	//#line 124
+	RayData rayData;
+	rayData.direction = rayPointWS.xyz;
+	rayData.pointOnPlane = CameraPos;
 
-    return rayData;
+	return rayData;
+
 }
 
+float Convert3DPosTo1D(float3 pos, int3 voxelSize)
+{
+	return (pos.x + (pos.y * voxelSize.x) + (pos.z * voxelSize.y * voxelSize.x));
+}
 
-float RayMarch(int objHeaderOffset, float3 rayDir, float3 cameraPos)
+float RayMarch(int objHeaderOffset, float3 rayPoint, float3 cameraPos)
 {
     ObjectHeader objHeader = _ObjectHeaderData[objHeaderOffset];
-    float3 camPosOS = mul(objHeader.worldToObjMatrix, float4(CameraPos, 1)).xyz;
-    float3 rayDirOS = mul(objHeader.worldToObjMatrix, float4(rayDir, 0)).xyz;
-	rayDirOS = SafeNormalize(rayDirOS);
+
+	float3 objBBox = objHeader.maxExtent - objHeader.minExtent;
+	float3 dimensions = objBBox / objHeader.voxelSize;
+	int3 voxelSize = int3 (ceil(dimensions.x), ceil(dimensions.y), ceil(dimensions.z));
+
+ //   float3 camPosOS = mul(objHeader.worldToObjMatrix, float4(CameraPos, 1)).xyz;
+ //   float3 rayDirOS = mul(objHeader.worldToObjMatrix, float4(rayDir, 0)).xyz;
+	//rayDirOS = SafeNormalize(rayDirOS);
+
+	float4 rayPointOS = mul(objHeader.worldToObjMatrix, float4 (rayPoint, 1));
+	if (rayPointOS.w > 0)
+		rayPointOS /= rayPointOS.w;
+	float4 camPosOS = mul(objHeader.worldToObjMatrix, float4 (CameraPos, 1));
+	if (camPosOS.w > 0)
+		camPosOS /= camPosOS.w;
+	float3 rayDirOS; // = mul ( objHeader . worldToObjMatrix , float4 ( rayDir , 0 ) ) . xyz ;
+	//rayDirOS = SafeNormalize ( rayDirOS ) ;
+	rayDirOS = SafeNormalize(rayPointOS.xyz - camPosOS.xyz);
 
 	// Initially test with camera to check how far the object is. This will help determine the step size
-    float3 rayPosOS = camPosOS;
+    float3 rayPosOS = camPosOS.xyz;
 
     //float3 newPos = SafeNormalize(rayDirOS) * t;
-    float3 objBBox = objHeader.maxExtent - objHeader.minExtent;
     float totalDistance = 0.0f;
+
+	float3 minExtent = float3(objHeader.minExtent.x, objHeader.minExtent.y, objHeader.minExtent.z);
+	float3 maxExtent = float3(objHeader.maxExtent.x, objHeader.maxExtent.y, objHeader.maxExtent.z);
 
     for (int i = 0; i < MAX_STEPS; i++)
     {
         // Check if it intersects bounding box
         // Assuming object space origin is cthe object center
-        float distance = sdBox(rayPosOS, objBBox / 2);
+        float distance = sdBox(rayPosOS.xyz, objBBox / 2);
         totalDistance += distance;
         float threshold = 0.0001;
         if (abs(distance) < totalDistance * threshold)
@@ -159,16 +192,23 @@ float RayMarch(int objHeaderOffset, float3 rayDir, float3 cameraPos)
             // Has hit bounding box. Check with actual data
 
 			bool outsideHit = false;
+			// Tolerance for edge value
+			float edgeErrorTolerance = 0.001;
+			rayPosOS = camPosOS.xyz + rayDirOS.xyz * totalDistance;
+			rayPosOS = clamp(rayPosOS.xyz, minExtent, maxExtent - edgeErrorTolerance);
 
             for (int j = 0; j < MAX_STEPS; j++)
             {
-                rayPosOS = camPosOS + rayDirOS * totalDistance;
-                // Tolerance for edge value
-                float edgeErrorTolerance = 0.0001;
-                int3 voxelPos = floor((rayPosOS - objHeader.minExtent - edgeErrorTolerance) / objHeader.voxelSize);
+				if (rayPosOS.x < minExtent.x || rayPosOS.x > maxExtent.x ||
+					rayPosOS.y < minExtent.y || rayPosOS.y > maxExtent.y ||
+					rayPosOS.z < minExtent.z || rayPosOS.z > maxExtent.z)
+					return 0.0f;
 
-                int linearVoxelPos = Convert3DPosTo1D(voxelPos, objHeader);
-                distance = _ObjectSDFData[objHeader.startOffset + linearVoxelPos];
+                
+				int3 voxelPos = floor((rayPosOS - minExtent) / objHeader.voxelSize);
+
+                int linearVoxelPos = Convert3DPosTo1D(voxelPos, voxelSize);
+                distance =  _ObjectSDFData[objHeader.startOffset + linearVoxelPos];
                 totalDistance += distance;
 
                 if (abs(distance) < totalDistance * threshold)
@@ -176,27 +216,28 @@ float RayMarch(int objHeaderOffset, float3 rayDir, float3 cameraPos)
                     // Found intersection point
                     return totalDistance;
                 }
-                else if ((sdBox(rayPosOS.xyz, objBBox / 2)) < 0.0f)
-                {
-					if (outsideHit)
+                else if (distance < 0.0f)
+				{
+					//if (outsideHit)
 					{
 						// Ray was outside and now is inside. It shouldn't happen if data is exact but might happen due to errors
 						// Handling this case here
-						return totalDistance;
+						return totalDistance + 10000;
 					}
                     // Ray has gone outside the box. Return as no intersection has been found
-                    return -1.0f;
+                    return 0.0f;
                 }
 
 				// The ray is outside the model. To check if it goes from outside to inside the model
 				outsideHit = true;
+				rayPosOS = camPosOS.xyz + rayDirOS.xyz * totalDistance;
             }
 
             // No intersection found even after max steps within the bounding box
-            return -1.0f;
+            return 0.0f;
         }
 
-        rayPosOS = camPosOS + rayDirOS * totalDistance;
+        rayPosOS = camPosOS.xyz + rayDirOS.xyz * totalDistance;
     }
 
     // Doesn't intersect bounding box
@@ -209,7 +250,7 @@ OutSdfData RayMarchAllObjects(float3 dir, float3 pointOnPlane, TileDataHeader ti
     outSdfData.t = 0.0f;
     outSdfData.objID = 0;
 
-    for (int id = 0; id < tileDataHeader.numObjects; ++id)
+    for (int id = 0; id < 1 /*tileDataHeader.numObjects*/; ++id)
     {
 		int objHeaderOffset = _TileDataOffsetIntoObjHeader[tileDataHeader.offset + id];
         float currDistance = RayMarch(objHeaderOffset, dir, pointOnPlane);

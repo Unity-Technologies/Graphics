@@ -13,3 +13,7 @@ MonoBehaviour:
   m_Name: SDFPipelineAsset
   m_EditorClassIdentifier: 
   clearColor: {r: 0.14001423, g: 0.18376383, b: 0.21698111, a: 1}
+  EnableDepthOfField: 0
+  lensRes: 9
+  lensSiz: 2
+  focalDis: 11

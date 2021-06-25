@@ -53,9 +53,21 @@
     <UnityVersion>2022.1.0a1</UnityVersion>
   </PropertyGroup>
   <ItemGroup>
+    <Compile Include="D:\GraphicsRepo\Graphics\com.unity.render-pipelines.sdf\Runtime\DistanceTestScript.cs" />
     <Compile Include="D:\GraphicsRepo\Graphics\com.unity.render-pipelines.sdf\Runtime\SDFRenderPipelineAsset.cs" />
+    <Compile Include="D:\GraphicsRepo\Graphics\com.unity.render-pipelines.sdf\Runtime\SDFGIShadingData.cs" />
+    <Compile Include="D:\GraphicsRepo\Graphics\com.unity.render-pipelines.sdf\Runtime\VoxelField.cs" />
     <Compile Include="D:\GraphicsRepo\Graphics\com.unity.render-pipelines.sdf\Runtime\SDFRayMarch.cs" />
+    <Compile Include="D:\GraphicsRepo\Graphics\com.unity.render-pipelines.sdf\Runtime\SDFSceneData.cs" />
+    <Compile Include="D:\GraphicsRepo\Graphics\com.unity.render-pipelines.sdf\Runtime\SDFCameraData.cs" />
+    <Compile Include="D:\GraphicsRepo\Graphics\com.unity.render-pipelines.sdf\Runtime\SDFGIProbeUpdateData.cs" />
+    <Compile Include="D:\GraphicsRepo\Graphics\com.unity.render-pipelines.sdf\Runtime\MeshToSDFConverter.cs" />
     <Compile Include="D:\GraphicsRepo\Graphics\com.unity.render-pipelines.sdf\Runtime\SDFRenderPipeline.cs" />
+    <Compile Include="D:\GraphicsRepo\Graphics\com.unity.render-pipelines.sdf\Runtime\MeshToSDFProcessor.cs" />
+    <Compile Include="D:\GraphicsRepo\Graphics\com.unity.render-pipelines.sdf\Runtime\SDFRenderer\SDFFilter.cs" />
+    <Compile Include="D:\GraphicsRepo\Graphics\com.unity.render-pipelines.sdf\Runtime\VoxelUtils.cs" />
+    <Compile Include="D:\GraphicsRepo\Graphics\com.unity.render-pipelines.sdf\Runtime\SDFRenderer\SDFRenderer.cs" />
+    <Compile Include="D:\GraphicsRepo\Graphics\com.unity.render-pipelines.sdf\Runtime\SDFRenderer\SDFMaterial.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="D:\GraphicsRepo\Graphics\com.unity.render-pipelines.sdf\Runtime\Unity.RenderPipelines.SDF.Runtime.asmdef" />
