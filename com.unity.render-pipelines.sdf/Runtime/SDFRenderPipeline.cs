@@ -348,8 +348,8 @@ namespace UnityEngine.Rendering.SDFRP
             MaterialPropertyBlock propertyBlock = new MaterialPropertyBlock();
             // material.SetColor("_Color", Color.red);
 
-            material.SetBuffer("_TileData", m_SdfSceneData.tileOffsetsComputeBuffer);
-            cmd1.SetRandomWriteTarget(1, m_SdfSceneData.tileOffsetsComputeBuffer);
+            material.SetBuffer("_TileFlagsData", m_SdfSceneData.tileFlagsComputeBuffer);
+            cmd1.SetRandomWriteTarget(1, m_SdfSceneData.tileFlagsComputeBuffer);
 
             if (camera.cameraType == CameraType.Preview)
             {
@@ -366,15 +366,23 @@ namespace UnityEngine.Rendering.SDFRP
                 Matrix4x4 scale = Matrix4x4.Scale(extents);
                 Matrix4x4 finalTRS = data[i].worldToObjMatrix.inverse * scale;       // Check multiply scale correctness later
                 propertyBlock.SetInt("_SdfID", i);
+                // Debug.Log("--------------DrawMesh with sdf id " + i);
                 cmd1.DrawMesh(mesh, finalTRS, material, 0, 0, propertyBlock);
             }
 
+            // cmd1.ClearRandomWriteTargets();
+            // int compressTileDataKernel = currentAsset.tileDataCompressionShader.FindKernel("CompressTileDataKernel");
+            // cmd1.SetComputeBufferParam(currentAsset.tileDataCompressionShader, compressTileDataKernel, Shader.PropertyToID("_TileFlagsData"), m_SdfSceneData.tileFlagsComputeBuffer);
+            // cmd1.SetComputeBufferParam(currentAsset.tileDataCompressionShader, compressTileDataKernel, Shader.PropertyToID("_TileDataHeader"), m_SdfSceneData.tileHeaderComputeBuffer);
+            // cmd1.SetComputeBufferParam(currentAsset.tileDataCompressionShader, compressTileDataKernel, Shader.PropertyToID("_TileDataOffsetIntoObjHeader"), m_SdfSceneData.tileOffsetsComputeBuffer);
+            // cmd1.DispatchCompute(currentAsset.tileDataCompressionShader, compressTileDataKernel, m_SdfSceneData.numTilesX, m_SdfSceneData.numTilesY, 1);
+
             // edit Tile data and headers
-            int[] tileFlags = new int[SDFRayMarch.MAX_OBJECTS_IN_SCENE * m_SdfSceneData.numTiles];
-            m_SdfSceneData.tileOffsetsComputeBuffer.GetData(tileFlags);
+            int[] tileFlags = new int[SDFRayMarch.MAX_OBJECTS_IN_SCENE * m_SdfSceneData.numTilesX * m_SdfSceneData.numTilesY];
+            m_SdfSceneData.tileFlagsComputeBuffer.GetData(tileFlags);
 
             int curOffset = 0;
-            for (int tile = 0; tile < m_SdfSceneData.numTiles; tile++)
+            for (int tile = 0; tile < m_SdfSceneData.numTilesX * m_SdfSceneData.numTilesY; tile++)
             {
                 m_SdfSceneData.tileHeaders[tile].offset = curOffset;
                 int offset = SDFRayMarch.MAX_OBJECTS_IN_SCENE * tile;
@@ -392,10 +400,29 @@ namespace UnityEngine.Rendering.SDFRP
             }
             m_SdfSceneData.SetTileHeaderData();
             m_SdfSceneData.SetTileOffsetIntoObjHeaderData();
-
+            Array.Clear(m_SdfSceneData.tileDataOffsetIntoObjHeaderValues, 0, m_SdfSceneData.tileDataOffsetIntoObjHeaderValues.Length);
+            Array.Clear(m_SdfSceneData.tileHeaders, 0, m_SdfSceneData.tileHeaders.Length);
+            m_SdfSceneData.tileFlagsComputeBuffer.SetData(m_SdfSceneData.tileDataOffsetIntoObjHeaderValues);
 
             context.ExecuteCommandBuffer(cmd1);
             cmd1.Release();
+
+            // DEBUG TILE DATA PRINT OUT
+            
+            // m_SdfSceneData.tileHeaderComputeBuffer.GetData(m_SdfSceneData.tileHeaders);
+            // m_SdfSceneData.tileOffsetsComputeBuffer.GetData(m_SdfSceneData.tileDataOffsetIntoObjHeaderValues);
+            // for (int i = 0; i < m_SdfSceneData.numTilesX * m_SdfSceneData.numTilesY; i++)
+            // {
+            //     SDFSceneData.TileDataHeader tile = m_SdfSceneData.tileHeaders[i];
+            //     string ids = "";
+            //     for (int j = 0; j < tile.numObjects; j++)
+            //     {
+            //         ids += m_SdfSceneData.tileDataOffsetIntoObjHeaderValues[tile.offset + j] + ", ";
+            //     }
+            //     if (tile.numObjects > 0)
+            //         Debug.Log("Tile " + i + " has " + tile.numObjects + " objects, ids: " + ids);
+            // }
+
         }
 
         private void CreateGIResources()

@@ -44,7 +44,8 @@ public class SDFSceneData : IDisposable
         internal float pad1;
     };
     const int ObjectHeaderDataSize = 128;
-    public int numTiles;
+    public int numTilesX;
+    public int numTilesY;
 
     public SDFSceneData(int[] SDFObjectIDs, int sdfDataSize, int normalsSize, Rect pixelRect)
     {
@@ -59,15 +60,15 @@ public class SDFSceneData : IDisposable
         this.normals = new Vector3[normalsSize];
 
         // TODO: set actual tile data
-        int numTilesX = ((int)pixelRect.width + (TileSize - 1)) / TileSize;
-        int numTilesY = ((int)pixelRect.height + (TileSize - 1)) / TileSize;
-        numTiles = numTilesX * numTilesY;
+        numTilesX = ((int)pixelRect.width + (TileSize - 1)) / TileSize;
+        numTilesY = ((int)pixelRect.height + (TileSize - 1)) / TileSize;
+        int numTiles = numTilesX * numTilesY;
         this.tileHeaderComputeBuffer = new ComputeBuffer(numTiles, TileDataHeaderSize, ComputeBufferType.Default);
         int tileDataOffsetIntoObjHeaderSize = 4;
         this.tileHeaders = new SDFSceneData.TileDataHeader[numTiles];
         // this.tileHeaders = SDFRayMarch.FillTileDataHeaderBuffer(numTiles).ToArray();
         // SetTileHeaderData();
-
+        this.tileFlagsComputeBuffer  = new ComputeBuffer(numTiles * SDFRayMarch.MAX_OBJECTS_IN_SCENE, tileDataOffsetIntoObjHeaderSize, ComputeBufferType.Default);
         this.tileOffsetsComputeBuffer  = new ComputeBuffer(numTiles * SDFRayMarch.MAX_OBJECTS_IN_SCENE, tileDataOffsetIntoObjHeaderSize, ComputeBufferType.Default);
         // List<int> numEntriesEachTile = new List<int>();
         // for (int tileID = 0; tileID < numTiles; ++tileID)
@@ -96,6 +97,7 @@ public class SDFSceneData : IDisposable
 
     public ComputeBuffer objectHeaderComputeBuffer;
     public ComputeBuffer sdfDataComputeBuffer;
+    public ComputeBuffer tileFlagsComputeBuffer;
     public ComputeBuffer tileHeaderComputeBuffer;
     public ComputeBuffer tileOffsetsComputeBuffer;
     public ComputeBuffer normalsComputeBuffer;

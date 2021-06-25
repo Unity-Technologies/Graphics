@@ -1,0 +1,40 @@
+#pragma kernel CompressTileDataKernel
+
+#include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Common.hlsl"
+
+#define MAX_OBJECTS_IN_SCENE 50
+
+//CBUFFER_START(CameraDetails)
+    float4 TexelSize;
+//CBUFFER_END
+
+StructuredBuffer<int> _TileFlagsData : register(t1);
+
+RWStructuredBuffer<int> _TileDataOffsetIntoObjHeader : register(u1);
+struct TileDataHeader
+{
+	int  offset;
+	int  numObjects;
+	int2 pad;
+};
+RWStructuredBuffer<TileDataHeader> _TileDataHeader : register(u2);
+
+[numthreads(1, 1, 1)]
+void CompressTileDataKernel(uint3 dispatchTid : SV_DispatchThreadID, uint3 groupId : SV_GroupID, uint groupIndex : SV_GroupIndex)
+{
+	int numDispatchesX = ((TexelSize.x + (8 - 1)) / 8);
+	int tile = groupId.x + groupId.y * numDispatchesX;
+	TileDataHeader tileDataHeader = _TileDataHeader[tile];
+
+    int offset = MAX_OBJECTS_IN_SCENE * tile;
+    tileDataHeader.offset = offset;
+    for (int id = 0; id < MAX_OBJECTS_IN_SCENE; id++)
+    {
+        if (_TileFlagsData[offset + id] == 1)
+        {
+            int newOffset = tileDataHeader.offset + tileDataHeader.numObjects;
+            _TileDataOffsetIntoObjHeader[newOffset] = id;
+            tileDataHeader.numObjects += 1;
+        }
+    }
+}

@@ -42,6 +42,7 @@ namespace UnityEngine.Rendering.SDFRP
 
         internal ComputeShader rayMarchingCS;
         internal Shader tileCullingShader;
+        internal ComputeShader tileDataCompressionShader;
         internal ComputeShader gatherIrradianceCS;
         internal ComputeShader giShadingCS;
 
@@ -63,6 +64,7 @@ namespace UnityEngine.Rendering.SDFRP
             // TODO - Need to figure out how to do this using the defaultResources
             rayMarchingCS = Resources.Load<ComputeShader>("RayMarch");
             tileCullingShader = Resources.Load<Shader>("ObjectList");
+            tileDataCompressionShader = Resources.Load<ComputeShader>("TileCompression");
 
             gatherIrradianceCS = SafeLoadAssetAtPath<ComputeShader>(defaultPath + "Shaders/GI/GatherIrradiance.compute");
             giShadingCS = SafeLoadAssetAtPath<ComputeShader>(defaultPath + "Shaders/GI/GIShading.compute");
