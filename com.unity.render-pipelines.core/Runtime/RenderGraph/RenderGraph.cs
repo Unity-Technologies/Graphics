@@ -862,6 +862,7 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
         /// <param name="sampler">Sampler used for profiling.</param>
         public void BeginProfilingSampler(ProfilingSampler sampler)
         {
+            return;
             using (var builder = AddRenderPass<ProfilingScopePassData>("BeginProfile", out var passData, null))
             {
                 passData.sampler = sampler;
@@ -880,6 +881,7 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
         /// <param name="sampler">Sampler used for profiling.</param>
         public void EndProfilingSampler(ProfilingSampler sampler)
         {
+            return;
             using (var builder = AddRenderPass<ProfilingScopePassData>("EndProfile", out var passData, null))
             {
                 passData.sampler = sampler;
