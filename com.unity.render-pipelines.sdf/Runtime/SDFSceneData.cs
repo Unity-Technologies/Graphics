@@ -29,6 +29,7 @@ public class SDFSceneData : IDisposable
     public struct ObjectHeader
     {
         internal Matrix4x4 worldToObjMatrix;
+        internal Matrix4x4 objToWorldMatrix;
         internal Vector4 color;
         internal int objID;
         internal int numEntries;
@@ -47,7 +48,7 @@ public class SDFSceneData : IDisposable
         internal int voxelDimensionsZ;
         internal float voxelSize;
     };
-    const int ObjectHeaderDataSize = 144;
+    const int ObjectHeaderDataSize = 208;
     public int numTilesX;
     public int numTilesY;
 

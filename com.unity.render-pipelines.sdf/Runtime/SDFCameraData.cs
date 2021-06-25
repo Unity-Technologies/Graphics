@@ -9,6 +9,7 @@ public class SDFCameraData
     public static readonly int InvProjectionMatrixId = Shader.PropertyToID("InvProjectionMatrix");
     public static readonly int TexelSizeId = Shader.PropertyToID("TexelSize");
     public static readonly int CameraPosId = Shader.PropertyToID("CameraPos");
+    public static readonly int ViewDirectionId = Shader.PropertyToID("ViewDirection");
 
 
 
@@ -20,6 +21,7 @@ public class SDFCameraData
     Matrix4x4   m_InvViewMatrix;
     Matrix4x4   m_InvProjectionMatrix;
 
+    Vector3 m_ViewDirection;
     Vector3 m_CameraPos;
 
     Vector4 m_TexelSize; // x = 1 / width, y = 1 / height, z = width, w = height
@@ -31,6 +33,7 @@ public class SDFCameraData
     {
         m_ViewMatrix = camera.worldToCameraMatrix;
         m_ProjectionMatrix = camera.projectionMatrix;
+        m_ViewDirection = m_ViewMatrix.GetColumn(2);
 
         m_InvViewProjectionMatrix = (m_ViewMatrix * m_ProjectionMatrix).inverse;
         m_InvViewMatrix = (m_ViewMatrix).inverse;
@@ -52,6 +55,7 @@ public class SDFCameraData
         cmd.SetComputeMatrixParam(computeShader, InvProjectionMatrixId, m_InvProjectionMatrix);
         cmd.SetComputeVectorParam(computeShader, TexelSizeId, m_TexelSize);
         cmd.SetComputeVectorParam(computeShader, CameraPosId, m_CameraPos);
+        cmd.SetComputeVectorParam(computeShader, ViewDirectionId, m_ViewDirection);
 
     }
 

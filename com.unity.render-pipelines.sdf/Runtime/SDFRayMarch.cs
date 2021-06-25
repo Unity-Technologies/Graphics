@@ -5,6 +5,7 @@ using System.Reflection;
 using UnityEngine;
 using UnityEngine.Rendering;
 using UnityEngine.Experimental.Rendering;
+using UnityEngine.Rendering.SDFRP;
 //[ExecuteInEditMode]
 
 
@@ -20,6 +21,7 @@ public class SDFRayMarch
     public static readonly int g_OutSdfData = Shader.PropertyToID("g_OutSdfData");
     public static readonly int g_DebugOutput = Shader.PropertyToID("g_DebugOutput");
     public static readonly int debugLayerId = Shader.PropertyToID("DebugLayer");
+    public static readonly int LightingOutput = Shader.PropertyToID("LightingOutput");
 
     // In data
     public static readonly int _ObjectSDFData = Shader.PropertyToID("_ObjectSDFData");
@@ -27,6 +29,7 @@ public class SDFRayMarch
     public static readonly int _TileDataOffsetIntoObjHeader = Shader.PropertyToID("_TileDataOffsetIntoObjHeader");
     public static readonly int _TileDataHeader = Shader.PropertyToID("_TileDataHeader");
     public static readonly int _Normals = Shader.PropertyToID("_Normals");
+
 
     struct OutSdfData
     {
@@ -36,7 +39,10 @@ public class SDFRayMarch
     const int OutSdfDataSize = 8;
 
     public ComputeBuffer outSdfData;
+    public RenderTexture lightingOutput;
+
     private RenderTexture debugOutput;
+
     private int resolutionX;
     private int resolutionY;
 
@@ -48,6 +54,10 @@ public class SDFRayMarch
         debugOutput = new RenderTexture(resolutionX, resolutionY, 0, RenderTextureFormat.ARGBHalf);
         debugOutput.enableRandomWrite = true;
         debugOutput.Create();
+
+        lightingOutput = new RenderTexture(resolutionX, resolutionY, 0, RenderTextureFormat.ARGBHalf);
+        lightingOutput.enableRandomWrite = true;
+        lightingOutput.Create();
     }
 
     public static List<SDFSceneData.TileDataHeader> FillTileDataHeaderBuffer(int numTiles)
@@ -69,7 +79,7 @@ public class SDFRayMarch
         return tileDataOffsetIntoObjHeaderValues;
     }
 
-    public void RayMarch(CommandBuffer cmd, ComputeShader rayMarchingCS, SDFSceneData sdfSceneData, float debugLayerType)
+    public void RayMarch(CommandBuffer cmd, ComputeShader rayMarchingCS, SDFSceneData sdfSceneData, SDFRenderPipelineAsset.DebugOutputType debugLayerType)
     {
         //rayMarchingCS = defaultResources.shaders.copyChannelCS;
         int rayMarchKernel = rayMarchingCS.FindKernel("RayMarchKernel");
@@ -98,15 +108,23 @@ public class SDFRayMarch
 
         #region DEBUG_ONLY
         rayMarchingCS.SetTexture(rayMarchKernel, g_DebugOutput, debugOutput);
-        cmd.SetComputeFloatParam(rayMarchingCS, debugLayerId, debugLayerType);
+        cmd.SetComputeFloatParam(rayMarchingCS, debugLayerId, (float) debugLayerType);
         #endregion
 
+        rayMarchingCS.SetTexture(rayMarchKernel, LightingOutput, lightingOutput);
         // TODO - we could remove dispatch for tiles that don't have any objects - but that will require compaction of tiledataheader
         cmd.DispatchCompute(rayMarchingCS, rayMarchKernel, numTilesX, numTilesY, 1);
 
-        #region DEBUG_ONLY
-        cmd.Blit(debugOutput, BuiltinRenderTextureType.CurrentActive);
-        #endregion
+#region DEBUG_ONLY
+        if (debugLayerType != SDFRenderPipelineAsset.DebugOutputType.None)
+        {
+            cmd.Blit(debugOutput, BuiltinRenderTextureType.CurrentActive);
+        }
+        else
+#endregion
+        {
+            cmd.Blit(lightingOutput, BuiltinRenderTextureType.CurrentActive);
+        }
     }
 
     public void RayMarchUpdateGIProbe(CommandBuffer cmd, ComputeShader gatherIrradianceCS, int probeResolution) // TODO - more parameters are needed to take in object data

@@ -15,7 +15,9 @@
     float4x4 InvViewMatrix;
     float4x4 InvProjectionMatrix;
     float3  CameraPos;
-    int pad;
+    int pad0;
+    float3 ViewDirection;
+    int pad1;
     float4 TexelSize;
     float4 LightColor;
     float3 LightDirection;
@@ -25,6 +27,7 @@
 struct ObjectHeader
 {
     float4x4 worldToObjMatrix;
+    float4x4 objToWorldMatrix;
     float4   color;
     int      objID;
     int      numEntries;
@@ -74,8 +77,11 @@ struct OutSdfData
     IntersectionData intersection;
     int objID;
 };
+
 RWStructuredBuffer<OutSdfData> g_OutSdfData : register(u0);
 RWTexture2D<float4> g_DebugOutput : register(u1);
+RWTexture2D<float4> LightingOutput : register(u2);
+
 
 // https://www.iquilezles.org/www/articles/distfunctions/distfunctions.htm
 float sdBox(float3 p, float3 b)
@@ -269,12 +275,7 @@ IntersectionData RayMarch(int objHeaderOffset, float3 rayPoint, float3 cameraPos
                 {
                     // Found intersection point
                     returnValue.t = totalDistance;
-                    returnValue.normal = _Normals[objHeader.normalsOffset + linearVoxelPos];
-
-					// TODO do lighting in OS?
-					//float4 lightDirOS = normalize(mul(objHeader.worldToObjMatrix, float4 (LightDirection, 1)));
-					// TODO need viewDir
-					//returnValue.color += float4(BlinnPhong(returnValue.normal, lightDirOS, viewDir, LightColor.rgb, returnValue.color, float3(1.0, 1.0, 1.0), 10.0), LightColor.a);
+                    returnValue.normal = mul(objHeader.objToWorldMatrix, float4(_Normals[objHeader.normalsOffset + linearVoxelPos], 0));
 
                     return returnValue;
                 }
@@ -311,7 +312,7 @@ IntersectionData RayMarch(int objHeaderOffset, float3 rayPoint, float3 cameraPos
     return returnValue;
 }
 
-OutSdfData RayMarchAllObjects(float3 dir, float3 pointOnPlane, TileDataHeader tileDataHeader)
+OutSdfData RayMarchAllObjects(float3 dir, float3 pointOnPlane, TileDataHeader tileDataHeader, out float3 lightingValue)
 {
     OutSdfData outSdfData;
     outSdfData.intersection.t = 0.0f;
@@ -319,7 +320,7 @@ OutSdfData RayMarchAllObjects(float3 dir, float3 pointOnPlane, TileDataHeader ti
 
     for (int id = 0; id < tileDataHeader.numObjects; ++id)
     {
-		int objHeaderOffset = _TileDataOffsetIntoObjHeader[tileDataHeader.offset + id];
+        int objHeaderOffset = _TileDataOffsetIntoObjHeader[tileDataHeader.offset + id];
         IntersectionData currIntersection = RayMarch(objHeaderOffset, dir, pointOnPlane);
         if (currIntersection.t > 0.0f && (outSdfData.intersection.t <= 0 || currIntersection.t < outSdfData.intersection.t))
         {
@@ -328,6 +329,13 @@ OutSdfData RayMarchAllObjects(float3 dir, float3 pointOnPlane, TileDataHeader ti
             outSdfData.intersection = currIntersection;
         }
     }
+
+    // do lighting in WS
+
+    // TODO need viewDir
+   lightingValue = BlinnPhong(outSdfData.intersection.normal, LightDirection, ViewDirection, LightColor.rgb, outSdfData.intersection.color, float3(1.0, 1.0, 1.0), 10.0);
+
+
 
     // Write to UAV
     return outSdfData;
@@ -343,10 +351,14 @@ void RayMarchKernel(uint3 dispatchTid : SV_DispatchThreadID, uint3 groupId : SV_
     int tileIndex = groupId.x + groupId.y * numDispatchesX;
     TileDataHeader tileDataHeader = _TileDataHeader[tileIndex];
     RayData rayData = GetRayDirection(dispatchTid.xy, /*_FieldOfViewBy2,*/ TexelSize.zw);
-    OutSdfData outData = RayMarchAllObjects(rayData.direction, rayData.pointOnPlane/*, groupId*/, tileDataHeader);
+    float3 lightingValue = 0;
+    OutSdfData outData = RayMarchAllObjects(rayData.direction, rayData.pointOnPlane/*, groupId*/, tileDataHeader, lightingValue);
 
     // TODO - If using z-dimension for anything else, please change the group index and manually calculate
     g_OutSdfData[groupIndex] = outData;
+
+
+    LightingOutput[dispatchTid.xy] = float4(lightingValue, 1.0);
 
     // For debug only
     // output ray direction:

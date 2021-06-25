@@ -131,7 +131,7 @@ namespace UnityEngine.Rendering.SDFRP
                             SDFLightData lightData = new SDFLightData();
                             lightData.InitializeLightData(m_SdfSceneData.directionalLight);
                             lightData.UpdateComputeShaderVariables(cmdRayMarch, currentAsset.rayMarchingCS);
-                            m_SdfRayMarch.RayMarch(cmdRayMarch, currentAsset.rayMarchingCS, m_SdfSceneData, (float)currentAsset.DebugOutputValue);
+                            m_SdfRayMarch.RayMarch(cmdRayMarch, currentAsset.rayMarchingCS, m_SdfSceneData, currentAsset.DebugOutputValue);
 
                             context.ExecuteCommandBuffer(cmdRayMarch);
                             cmdRayMarch.Release();
@@ -273,6 +273,7 @@ namespace UnityEngine.Rendering.SDFRP
                 VoxelField field = SDFObjects[i].SDFFilter.VoxelField;
 
                 m_SdfSceneData.objectHeaders[i].worldToObjMatrix = SDFObjects[i].gameObject.transform.worldToLocalMatrix; // may not work with shader according to docs?
+                m_SdfSceneData.objectHeaders[i].objToWorldMatrix = SDFObjects[i].gameObject.transform.localToWorldMatrix;
                 m_SdfSceneData.objectHeaders[i].color = SDFObjects[i].SDFMaterial.color;
                 m_SdfSceneData.objectHeaders[i].objID = i; // index into data. Change later?
                 m_SdfSceneData.objectHeaders[i].numEntries = field.m_Field.Length;
