@@ -88,12 +88,6 @@ MonoBehaviour:
   diffusionProfileSettingsList:
   - {fileID: 11400000, guid: cbe1ee9036c47b84ba1b8b3dbcde2aff, type: 2}
   - {fileID: 11400000, guid: 38c0905fbe269274782e939ce4393d85, type: 2}
-  rendererListCulling: 0
   DLSSProjectId: 000000
   useDLSSCustomProjectId: 0
-  supportProbeVolumes: 0
-  supportRuntimeDebugDisplay: 1
-  apvScenesBounds:
-    serializedBounds: []
-    serializedHasVolumes: []
-  m_Version: 3
+  m_Version: 2
