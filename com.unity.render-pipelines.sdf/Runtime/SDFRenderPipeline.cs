@@ -93,19 +93,16 @@ namespace UnityEngine.Rendering.SDFRP
                 SDFRenderer[] SDFObjects = GameObject.FindObjectsOfType<SDFRenderer>();
                 if (SDFObjects.Length > 0)
                 {
-                    if (camera.cameraType == CameraType.Game && camera.enabled)
+                    if (camera.cameraType != CameraType.SceneView && camera.enabled)
                     {
                         if (m_SdfRayMarch == null) // TODO: or if resolution has changed
                         {
                             m_SdfRayMarch = new SDFRayMarch(camera.pixelRect);
                         }
-                    }
 
-                    // GI Probe Update
-                    // TODO - RSM should execute before this and for GI we need a full scene bounding box list
-                    if (currentAsset.enableGI)
-                    {
-                        if (camera.cameraType == CameraType.Game && camera.enabled)
+                        // GI Probe Update
+                        // TODO - RSM should execute before this and for GI we need a full scene bounding box list
+                        if (currentAsset.enableGI)
                         {
                             SDFGIProbeUpdateData giProbeUpdateData = new SDFGIProbeUpdateData();
                             giProbeUpdateData.InitializeGIProbeUpdateData(currentAsset, m_ProbeAtlasTexture, m_RSMSamplePointsBuffer);
@@ -122,14 +119,11 @@ namespace UnityEngine.Rendering.SDFRP
                             context.ExecuteCommandBufferAsync(cmdGIProbeUpdate, ComputeQueueType.Default);
                             cmdGIProbeUpdate.Release();
                         }
-                    }
 
-                    GetDataFromSceneGraph(SDFObjects, camera.pixelRect);
-                    CreateObjectList(context, camera, SDFObjects.Length);
+                        GetDataFromSceneGraph(SDFObjects, camera.pixelRect);
+                        CreateObjectList(context, camera, SDFObjects.Length);
 
-                    // SDF Rendering
-                    {
-                        if (camera.cameraType == CameraType.Game && camera.enabled)
+                        // SDF Rendering
                         {
                             CommandBuffer cmdRayMarch = new CommandBuffer();
                             cmdRayMarch.name = "RayMarch";
@@ -140,13 +134,10 @@ namespace UnityEngine.Rendering.SDFRP
                             context.ExecuteCommandBuffer(cmdRayMarch);
                             cmdRayMarch.Release();
                         }
-                    }
-                    
-                    // GI Shading
-                    // TODO - reuse full scene object bounding box list
-                    if (currentAsset.enableGI)
-                    {
-                        if (camera.cameraType == CameraType.Game && camera.enabled)
+
+                        // GI Shading
+                        // TODO - reuse full scene object bounding box list
+                        if (currentAsset.enableGI)
                         {
                             SDFGIShadingData giShadingData = new SDFGIShadingData();
                             giShadingData.InitializeGIShadingData(currentAsset, m_ProbeAtlasTexture);
@@ -172,31 +163,34 @@ namespace UnityEngine.Rendering.SDFRP
                             context.ExecuteCommandBuffer(cmdGIShading);
                             cmdGIShading.Release();
                         }
+
+                        if (currentAsset.EnableDepthOfField)
+                        {
+                            if (m_DepthOfFieldMaterial == null)
+                            {
+                                m_DepthOfFieldMaterial = new Material(Shader.Find("Hidden/SDFRP/DepthOfField"));
+                            }
+                            CommandBuffer cmdDOF = new CommandBuffer();
+                            cmdDOF.name = "DepthOfField";
+
+                            cmdDOF.SetGlobalColor("BackgroundColor", currentAsset.clearColor);
+                            cmdDOF.SetGlobalInt("lensRes", currentAsset.lensRes);
+                            cmdDOF.SetGlobalFloat("lensDis", camera.nearClipPlane);
+                            cmdDOF.SetGlobalFloat("focalDis", currentAsset.focalDis);
+                            cmdDOF.SetGlobalFloat("lensSiz", currentAsset.lensSiz);
+                            cmdDOF.DrawMesh(Utilities.fullscreenMesh, Matrix4x4.identity, m_DepthOfFieldMaterial);
+                            context.ExecuteCommandBuffer(cmdDOF);
+                            cmdDOF.Release();
+                        }
+                    }
+                    else
+                    {
+                        GetDataFromSceneGraph(SDFObjects, camera.pixelRect);
+                        CreateObjectList(context, camera, SDFObjects.Length);
                     }
                 }
 
-                if (currentAsset.EnableDepthOfField)
-                {
-                    if (m_DepthOfFieldMaterial == null)
-                    {
-                        m_DepthOfFieldMaterial = new Material(Shader.Find("Hidden/SDFRP/DepthOfField"));
-                    }
-                    if (camera.cameraType == CameraType.Game && camera.enabled)
-                    {
 
-                        CommandBuffer cmdDOF = new CommandBuffer();
-                        cmdDOF.name = "DepthOfField";
-
-                        cmdDOF.SetGlobalColor("BackgroundColor", currentAsset.clearColor);
-                        cmdDOF.SetGlobalInt("lensRes", currentAsset.lensRes);
-                        cmdDOF.SetGlobalFloat("lensDis", camera.nearClipPlane);
-                        cmdDOF.SetGlobalFloat("focalDis", currentAsset.focalDis);
-                        cmdDOF.SetGlobalFloat("lensSiz", currentAsset.lensSiz);
-                        cmdDOF.DrawMesh(Utilities.fullscreenMesh, Matrix4x4.identity, m_DepthOfFieldMaterial);
-                        context.ExecuteCommandBuffer(cmdDOF);
-                        cmdDOF.Release();
-                    }
-                }
             }
             context.Submit();
             Frame++;
