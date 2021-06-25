@@ -28,7 +28,7 @@ Shader "Unlit/ObjectList"
             };
 
             // RWStructuredBuffer<TileDataHeader> _TileHeaderData : register(u1);
-            RWStructuredBuffer<int> _TileData : register(u1);
+            RWStructuredBuffer<int> _TileFlagsData : register(u1);
             uniform int _SdfID;
 
             struct appdata
@@ -53,8 +53,8 @@ Shader "Unlit/ObjectList"
                 // Assuming UAV buffer of size = ceil(_ScreenParams.x / 8) * ceil(_ScreenParams.y / 8) * MAX_OBJECTS_IN_SCENE
 
                 // TODO: Do this once outside and then pass into shader
-                const float debugVisMultiplier = 16.0f;
-                const float tileSize = 8.0f * debugVisMultiplier;
+                // const float debugVisMultiplier = 16.0f;
+                const float tileSize = 8.0f;// * debugVisMultiplier;
                 float totalLength = _ScreenParams.x * _ScreenParams.y;
                 float tileSizeSquared = tileSize * tileSize;
                 int totalBins = ceil(_ScreenParams.x / tileSize) * ceil(_ScreenParams.y / tileSize);
@@ -62,25 +62,8 @@ Shader "Unlit/ObjectList"
                 // 'Flatten' position: x + y * screenWidth
                 float binIndex = floor(i.pos.x / tileSize) + floor(i.pos.y / tileSize) * ceil(_ScreenParams.x / tileSize);
 
-                _TileData[MAX_OBJECTS_IN_SCENE * binIndex + _SdfID] = 1;                
+                _TileFlagsData[MAX_OBJECTS_IN_SCENE * binIndex + _SdfID] = 1;                
 
-                // // Check if already binned
-                // int curNumObj = _TileHeaderData[binIndex].numObjects;
-                // for (int i = 0; i < curNumObj; i++)
-                // {
-                //     int index = _TileHeaderData[binIndex].offset + i;
-                //     if (_TileData[index] == _SdfID)
-                //         break;
-                //     else if (i == curNumObj - 1) // check if num obj < max objects (ie. 50)
-                //     {
-                //         _TileHeaderData[binIndex].numObjects += 1;
-                //         _TileData[index + 1] = _SdfID;
-                //         for (int i = binIndex + 1; i < totalBins; i++)
-                //         {
-                //             _TileHeaderData[i].offset += 1;
-                //         }
-                //     }
-                // }
                 // Only for debug visualization
                 return fixed4(binIndex / totalBins, 0, 0, 1);
             }
