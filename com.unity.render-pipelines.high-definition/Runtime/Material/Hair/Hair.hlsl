@@ -376,7 +376,7 @@ PreLightData GetPreLightData(float3 V, PositionInputs posInput, inout BSDFData b
 
     float unused;
 
-    if (HasFlag(bsdfData.materialFeatures, MATERIALFEATUREFLAGS_HAIR_KAJIYA_KAY))
+    // Both models share usage of GGX for now due to anisotropic LTC area light limitation, and Marschner invokes the BSDF directly for the environment evaluation.
     {
         // Note: For Kajiya hair we currently rely on a single cubemap sample instead of two, as in practice smoothness of both lobe aren't too far from each other.
         // and we take smoothness of the secondary lobe as it is often more rough (it is the colored one).
@@ -385,12 +385,6 @@ PreLightData GetPreLightData(float3 V, PositionInputs posInput, inout BSDFData b
         GetPreIntegratedFGDGGXAndDisneyDiffuse(clampedNdotV, preLightData.iblPerceptualRoughness, bsdfData.fresnel0, preLightData.specularFGD, preLightData.diffuseFGD, unused);
         // We used lambert for hair for now
         // Note: this normalization term is wrong, correct one is (1/(Pi^2)).
-        preLightData.diffuseFGD = 1.0;
-    }
-    else
-    {
-        preLightData.iblPerceptualRoughness = bsdfData.perceptualRoughness;
-        preLightData.specularFGD = 1.0;
         preLightData.diffuseFGD = 1.0;
     }
 
@@ -925,16 +919,6 @@ DirectLighting EvaluateBSDF_Area(LightLoopContext lightLoopContext,
     PreLightData preLightData, LightData lightData,
     BSDFData bsdfData, BuiltinData builtinData)
 {
-    if (HasFlag(bsdfData.materialFeatures, MATERIALFEATUREFLAGS_HAIR_MARSCHNER))
-    {
-        DirectLighting lighting;
-        ZERO_INITIALIZE(DirectLighting, lighting);
-
-        // Currently, this model does not support area lights. Add the support once an issue is
-        // fixed with making an LTC fit for anisotropic materials.
-        return lighting;
-    }
-
     if (lightData.lightType == GPULIGHTTYPE_TUBE)
     {
         return EvaluateBSDF_Line(lightLoopContext, V, posInput, preLightData, lightData, bsdfData, builtinData);
