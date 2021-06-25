@@ -1,0 +1,335 @@
+
+#pragma enable_d3d11_debug_symbols
+#pragma kernel RayMarchKernel
+
+#include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Common.hlsl"
+
+//#define DEG_TO_RAD 0.017453292519943295
+#define MAX_STEPS 64
+#define IDENTITY_MATRIX float4x4(1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1)
+
+
+
+//CBUFFER_START(CameraDetails)
+    float4x4 InvViewProjectionMatrix;
+    float4x4 InvViewMatrix;
+    float4x4 InvProjectionMatrix;
+    float3  LightPos;
+    int pad;
+    float4 TexelSize;
+    float3 LightColor;
+//CBUFFER_END
+
+RWTexture2D<float4> Distance;
+RWTexture2D<float4> Normal;
+RWTexture2D<float4> Flux;
+
+struct ObjectHeader
+{
+    float4x4 worldToObjMatrix;
+    float4   color;
+    int      objID;
+    int      numEntries;
+    int      startOffset;
+    int      normalsOffset;
+    float3   minExtent;
+	float    pad0;
+    float3   maxExtent;
+    float    pad1;
+	int3     voxelDimensions;
+	float    voxelSize;
+};
+
+// This will have the actual sdf data in a contiguous array. Right now we store everything in the scene here, but will need to optimize it
+StructuredBuffer<float> _ObjectSDFData : register(t1);
+
+// Header data to index into the above actual sdf data
+StructuredBuffer<ObjectHeader> _ObjectHeaderData : register (t2);
+
+// Tile Data
+// This will store contiguous data for each tile. It will be contiguous data and the boundaries for each tile will be represented by the TileObjectHeader.
+// This will store the list of offsets into _ObjectHeaderData for a specific tile.
+StructuredBuffer<int> _TileDataOffsetIntoObjHeader : register(t3);
+
+// Stores the offset into the _TileDataOffsetIntoHeader. Also has number of objects for each tile.
+// This will have an entry for each tile of screen. Each threadgroup can read one value (if tile size and numthreads are the same)
+struct TileDataHeader
+{
+	int  offset;
+	int  numObjects;
+	int2 pad;
+};
+StructuredBuffer<TileDataHeader> _TileDataHeader : register(t4);
+
+// Index into using ObjectHeader.normalsOffset
+StructuredBuffer<float3> _Normals : register(t5);
+
+struct IntersectionData
+{
+    float t;
+    float3 normal;
+    float4 color;
+};
+
+struct OutSdfData
+{
+    IntersectionData intersection;
+    int objID;
+};
+
+RWTexture2D<float4> g_DebugOutput : register(u1);
+
+// https://www.iquilezles.org/www/articles/distfunctions/distfunctions.htm
+float sdBox(float3 p, float3 b)
+{
+    float3 q = abs(p) - b;
+    return length(max(q, 0.0)) + min(max(q.x, max(q.y, q.z)), 0.0);
+}
+
+struct RayData
+{
+    float3 direction;
+    float3 pointOnPlane;
+};
+
+RayData GetRayDirection(int2 currPos, /*float fovHalf,*/ int2 imageSize)
+{
+ //   float imageAspectRatio = (float)imageSize.x / imageSize.y; // assuming width > height
+ //   //float Px = (2 * ((currPos.x + 0.5) / imageSize.x) - 1) * tan(fovHalf * DEG_TO_RAD) * imageAspectRatio;
+ //   //float Py = (2 * ((currPos.y + 0.5) / imageSize.y) - 1) * tan(fovHalf * DEG_TO_RAD);
+
+ //   float Px = (2 * ((currPos.x + 0.5) / imageSize.x) - 1);
+ //   float Py = (2 * ((currPos.y + 0.5) / imageSize.y) - 1);
+
+ //   float3 rayOrigin = float3(0, 0, 0);
+
+	//float4 rayPointWS = mul(InvProjectionMatrix, float4 (Px, Py, -1, 1));
+	//rayPointWS = mul(InvViewMatrix, rayPointWS);
+	//if (rayPointWS.w != 0)
+	//	rayPointWS /= rayPointWS.w;
+
+ //   float3 rayDirectionWS = SafeNormalize(rayPointWS.xyz - CameraPos);
+ //   
+ //   //rayDirection.normalize(); // it's a direction so don't forget to normalize 
+ //   RayData rayData;
+	//rayData.direction = rayPointWS.xyz;// rayDirectionWS;
+ //   rayData.pointOnPlane = CameraPos;
+
+ //   return rayData;
+	float imageAspectRatio = (float)imageSize.x / imageSize.y;
+	//#line 111
+	float Px = (2 * ((currPos.x + 0.5) / imageSize.x) - 1);
+	float Py = (2 * ((currPos.y + 0.5) / imageSize.y) - 1);
+
+	float3 rayOrigin = float3 (0, 0, 0);
+
+	float4 rayPointWS = mul(InvProjectionMatrix, float4 (Px, Py, -1, 1));
+	rayPointWS = mul(InvViewMatrix, rayPointWS);
+	if (rayPointWS.w != 0)
+		rayPointWS /= rayPointWS.w;
+
+	float3 rayDirectionWS = /*SafeNormalize*/ (rayPointWS.xyz - LightPos);
+	//#line 124
+	RayData rayData;
+	rayData.direction = rayPointWS.xyz;
+	rayData.pointOnPlane = LightPos;
+
+	return rayData;
+
+}
+
+float Convert3DPosTo1D(float3 pos, int3 voxelDim)
+{
+	return (pos.x + (pos.y * voxelDim.x) + (pos.z * voxelDim.y * voxelDim.x));
+}
+
+IntersectionData RayMarch(int objHeaderOffset, float3 rayPoint, float3 cameraPos)
+{
+    IntersectionData returnValue;
+    ObjectHeader objHeader = _ObjectHeaderData[objHeaderOffset];
+    returnValue.color = objHeader.color;
+
+	float3 objBBox = objHeader.maxExtent - objHeader.minExtent;
+
+	float4 rayPointOS = mul(objHeader.worldToObjMatrix, float4 (rayPoint, 1));
+	if (rayPointOS.w > 0)
+		rayPointOS /= rayPointOS.w;
+	float4 camPosOS = mul(objHeader.worldToObjMatrix, float4 (LightPos, 1));
+	if (camPosOS.w > 0)
+		camPosOS /= camPosOS.w;
+	float3 rayDirOS; // = mul ( objHeader . worldToObjMatrix , float4 ( rayDir , 0 ) ) . xyz ;
+	//rayDirOS = SafeNormalize ( rayDirOS ) ;
+	rayDirOS = SafeNormalize(rayPointOS.xyz - camPosOS.xyz);
+
+	// Initially test with camera to check how far the object is. This will help determine the step size
+    float3 rayPosOS = camPosOS.xyz;
+
+    //float3 newPos = SafeNormalize(rayDirOS) * t;
+    float totalDistance = 0.0f;
+
+	// TODO - Remove hardcoded value - Need it for models which are not centered at origin
+	float3 minExtent = float3(objHeader.minExtent.x, objHeader.minExtent.y, objHeader.minExtent.z);
+	float3 maxExtent = float3(objHeader.maxExtent.x, objHeader.maxExtent.y, objHeader.maxExtent.z);
+	//float3 minExtent = float3(objHeader.minExtent.x, objHeader.minExtent.y, -1);
+	//float3 maxExtent = float3(objHeader.maxExtent.x, objHeader.maxExtent.y, 1);
+
+    for (int i = 0; i < MAX_STEPS; i++)
+    {
+        // Check if it intersects bounding box
+        // Assuming object space origin is cthe object center
+        float distance = sdBox(rayPosOS.xyz, objBBox / 2);
+        totalDistance += distance;
+        float threshold = 0.0001;
+        if (abs(distance) < totalDistance * threshold)
+        {
+            // Has hit bounding box. Check with actual data
+
+			bool outsideHit = false;
+			// Tolerance for edge value
+			float edgeErrorTolerance = 0.001;
+			rayPosOS = camPosOS.xyz + rayDirOS.xyz * totalDistance;
+			rayPosOS = clamp(rayPosOS.xyz, minExtent, maxExtent - edgeErrorTolerance);
+
+            for (int j = 0; j < 64; j++)
+            {
+				if (rayPosOS.x < minExtent.x)
+					if ((minExtent.x - rayPosOS.x) > edgeErrorTolerance)
+					{
+						returnValue.t = 0.0f;
+						return returnValue;
+					}
+					else
+						rayPosOS.x = minExtent.x;
+
+				if (rayPosOS.y < minExtent.y)
+					if ((minExtent.y - rayPosOS.y) > edgeErrorTolerance)
+					{
+						returnValue.t = 0.0f;
+						return returnValue;
+					}
+					else
+						rayPosOS.y = minExtent.y;
+
+				if (rayPosOS.z < minExtent.z)
+					if ((minExtent.z - rayPosOS.z) > edgeErrorTolerance)
+					{
+						returnValue.t = 0.0f;
+						return returnValue;
+					}
+					else
+						rayPosOS.z = minExtent.z;
+
+				if (rayPosOS.x > maxExtent.x)
+					if ((rayPosOS.x - maxExtent.x) > edgeErrorTolerance)
+					{
+						returnValue.t = 0.0f;
+						return returnValue;
+					}
+					else
+						rayPosOS.x = maxExtent.x;
+
+				if (rayPosOS.y > maxExtent.y)
+					if ((rayPosOS.y - maxExtent.y) > edgeErrorTolerance)
+					{
+						returnValue.t = 0.0f;
+						return returnValue;
+					}
+					else
+						rayPosOS.y = maxExtent.y;
+
+				if (rayPosOS.z > maxExtent.z)
+					if ((rayPosOS.z - maxExtent.z) > edgeErrorTolerance)
+					{
+						returnValue.t = 0.0f;
+						return returnValue;
+					}
+					else
+						rayPosOS.z = maxExtent.z;
+                
+				int3 voxelPos = floor((rayPosOS - minExtent) * objHeader.voxelDimensions / objBBox);
+
+                int linearVoxelPos = Convert3DPosTo1D(voxelPos, objHeader.voxelDimensions);
+                distance =  _ObjectSDFData[objHeader.startOffset + linearVoxelPos];
+				if (distance > 0)
+				{
+					//distance /= 10;
+					totalDistance += distance;
+				}
+
+                if (abs(distance) < totalDistance * threshold)
+                {
+                    // Found intersection point
+                    returnValue.t = totalDistance;
+                    returnValue.normal = _Normals[objHeader.normalsOffset + linearVoxelPos];
+                    return returnValue;
+                }
+                else if (distance < 0.0f)
+				{
+					//if (outsideHit)
+					{
+						// Ray was outside and now is inside. It shouldn't happen if data is exact but might happen due to errors
+						// Handling this case here
+                        returnValue.t = totalDistance;
+						returnValue.normal = _Normals[objHeader.normalsOffset + linearVoxelPos];
+                        return returnValue;
+                    }
+                    // Ray has gone outside the box. Return as no intersection has been found
+                    returnValue.t = 0.0f;
+                    return returnValue;
+                }
+
+				// The ray is outside the model. To check if it goes from outside to inside the model
+				outsideHit = true;
+				rayPosOS = camPosOS.xyz + rayDirOS.xyz * totalDistance;
+            }
+
+            // No intersection found even after max steps within the bounding box
+            returnValue.t = 0.0f;
+            return returnValue;
+        }
+
+        rayPosOS = camPosOS.xyz + rayDirOS.xyz * totalDistance;
+    }
+
+    // Doesn't intersect bounding box
+    returnValue.t = -1.0f;
+    return returnValue;
+}
+
+OutSdfData RayMarchAllObjects(float3 dir, float3 pointOnPlane, TileDataHeader tileDataHeader)
+{
+    OutSdfData outSdfData;
+    outSdfData.intersection.t = 0.0f;
+    outSdfData.objID = 0;
+
+    for (int id = 0; id < tileDataHeader.numObjects; ++id)
+    {
+		int objHeaderOffset = _TileDataOffsetIntoObjHeader[tileDataHeader.offset + id];
+        IntersectionData currIntersection = RayMarch(objHeaderOffset, dir, pointOnPlane);
+        if (currIntersection.t > 0.0f && (outSdfData.intersection.t <= 0 || currIntersection.t < outSdfData.intersection.t))
+        {
+            ObjectHeader objHeader = _ObjectHeaderData[objHeaderOffset];
+            outSdfData.objID = objHeader.objID;
+            outSdfData.intersection = currIntersection;
+        }
+    }
+
+    return outSdfData;
+}
+
+// TODO - Store the object id in the z dimension, so that each group just works on a single object.
+// Will need to figure out how to sync and get the minimum value out. Could write to LDS and then sync and use groupID.z == 0 to find minimum. But with so many objects, not sure if it's a good ides.
+// Maybe could write it to a UAV and use another dispatch to process the min value - that will ensure all threads retire quickly
+[numthreads(8, 8, 1)]
+void RayMarchKernel(uint3 dispatchTid : SV_DispatchThreadID, uint3 groupId : SV_GroupID, uint groupIndex : SV_GroupIndex)
+{
+    int numDispatchesX = ((TexelSize.z + (8 - 1)) / 8);
+    int tileIndex = groupId.x + groupId.y * numDispatchesX;
+    TileDataHeader tileDataHeader = _TileDataHeader[tileIndex];
+    RayData rayData = GetRayDirection(dispatchTid.xy, /*_FieldOfViewBy2,*/ TexelSize.zw);
+    OutSdfData outData = RayMarchAllObjects(rayData.direction, rayData.pointOnPlane/*, groupId*/, tileDataHeader);
+
+    Distance[dispatchTid.xy] = float4(outData.intersection.t, 0.0, 0.0, 1.0);
+    Normal[dispatchTid.xy] = float4(outData.intersection.normal, 1.0);
+    Flux[dispatchTid.xy] = float4(outData.intersection.color.xyz * LightColor, 1.0);
+}

@@ -60,6 +60,7 @@ namespace UnityEngine.Rendering.SDFRP
         internal ComputeShader tileDataCompressionShader;
         internal ComputeShader gatherIrradianceCS;
         internal ComputeShader giShadingCS;
+        internal ComputeShader generateRSMCS;
 
         // This is a hack, normally the loader shouldn't be here
         private static string defaultPath = "Packages/com.unity.render-pipelines.sdf/";
@@ -83,6 +84,7 @@ namespace UnityEngine.Rendering.SDFRP
 
             gatherIrradianceCS = SafeLoadAssetAtPath<ComputeShader>(defaultPath + "Shaders/GI/GatherIrradiance.compute");
             giShadingCS = SafeLoadAssetAtPath<ComputeShader>(defaultPath + "Shaders/GI/GIShading.compute");
+            generateRSMCS = SafeLoadAssetAtPath<ComputeShader>(defaultPath + "Shaders/GI/RayMarchRSM.compute");
 
             return new SDFRenderPipeline();
         }

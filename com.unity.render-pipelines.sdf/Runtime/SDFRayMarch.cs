@@ -109,6 +109,37 @@ public class SDFRayMarch
         #endregion
     }
 
+    public void RayMarchRSM(CommandBuffer cmd, ComputeShader rayMarchingCS, SDFSceneData sdfSceneData, SDFGenerateRSMData generateRSMData)
+    {
+        //rayMarchingCS = defaultResources.shaders.copyChannelCS;
+        int rayMarchKernel = rayMarchingCS.FindKernel("RayMarchKernel");
+
+        int numTilesX = (resolutionX + (SDFSceneData.TileSize - 1)) / SDFSceneData.TileSize;
+        int numTilesY = (resolutionY + (SDFSceneData.TileSize - 1)) / SDFSceneData.TileSize;
+        int numTiles = numTilesX * numTilesY;
+
+        // _ObjectSDFData
+        cmd.SetComputeBufferParam(rayMarchingCS, rayMarchKernel, _ObjectSDFData, sdfSceneData.sdfDataComputeBuffer);
+
+        // _ObjectHeaderData
+        cmd.SetComputeBufferParam(rayMarchingCS, rayMarchKernel, _ObjectHeaderData, sdfSceneData.objectHeaderComputeBuffer);
+
+        // Tile Data Header 
+        cmd.SetComputeBufferParam(rayMarchingCS, rayMarchKernel, _TileDataHeader, sdfSceneData.tileHeaderComputeBuffer);
+
+        //_TileDataOffsetIntoObjHeader
+        cmd.SetComputeBufferParam(rayMarchingCS, rayMarchKernel, _TileDataOffsetIntoObjHeader, sdfSceneData.tileOffsetsComputeBuffer);
+
+        // _Normals
+        cmd.SetComputeBufferParam(rayMarchingCS, rayMarchKernel, _Normals, sdfSceneData.normalsComputeBuffer);
+
+        cmd.DispatchCompute(rayMarchingCS, rayMarchKernel, numTilesX, numTilesY, 1);
+
+        #region DEBUG_ONLY
+        cmd.Blit(generateRSMData.m_RSMNormalTexture, BuiltinRenderTextureType.CurrentActive);
+        #endregion
+    }
+
     public void RayMarchUpdateGIProbe(CommandBuffer cmd, ComputeShader gatherIrradianceCS, int probeResolution) // TODO - more parameters are needed to take in object data
     {
         int kernelIndex = gatherIrradianceCS.FindKernel("GatherIrradiance");
