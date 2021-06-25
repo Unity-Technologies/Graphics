@@ -46,6 +46,7 @@ $Attributes.uv3: #define ATTRIBUTES_NEED_TEXCOORD3
 $Attributes.color: #define ATTRIBUTES_NEED_COLOR
 $Attributes.vertexID: #define ATTRIBUTES_NEED_VERTEXID
 $Varyings.positionWS: #define VARYINGS_NEED_POSITION_WS
+$Varyings.positionPredisplacementWS: #define VARYINGS_NEED_POSITIONPREDISPLACEMENT_WS
 $Varyings.normalWS: #define VARYINGS_NEED_NORMAL_WS
 $Varyings.tangentWS: #define VARYINGS_NEED_TANGENT_WS
 $Varyings.texCoord0: #define VARYINGS_NEED_TEXCOORD0

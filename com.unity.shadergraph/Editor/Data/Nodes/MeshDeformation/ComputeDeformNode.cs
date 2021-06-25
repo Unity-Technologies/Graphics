@@ -54,6 +54,11 @@ namespace UnityEditor.ShaderGraph
                 return NeededCoordinateSpace.None;
         }
 
+        public bool RequiresPredisplacement(ShaderStageCapability stageCapability = ShaderStageCapability.All)
+        {
+            return false;
+        }
+
         public NeededCoordinateSpace RequiresNormal(ShaderStageCapability stageCapability = ShaderStageCapability.All)
         {
             if (stageCapability == ShaderStageCapability.Vertex || stageCapability == ShaderStageCapability.All)

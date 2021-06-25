@@ -18,6 +18,30 @@ namespace UnityEditor.ShaderGraph
         public const string kOutputSlotName = "Out";
         public override List<CoordinateSpace> validSpaces => new List<CoordinateSpace> {CoordinateSpace.Object, CoordinateSpace.View, CoordinateSpace.World, CoordinateSpace.Tangent, CoordinateSpace.AbsoluteWorld};
 
+        public List<TessellationOption> validTessellationOptions => new List<TessellationOption> { TessellationOption.Default, TessellationOption.Predisplacement };
+
+        [SerializeField]
+        private TessellationOption m_TessellationOption = TessellationOption.Default;
+
+        [PopupControl("Tessellation")]
+        public PopupList tessellationPopup
+        {
+            get
+            {
+                var names = validTessellationOptions.Select(cs => cs.ToString().PascalToLabel()).ToArray();
+                return new PopupList(names, (int)m_TessellationOption);
+            }
+            set
+            {
+                if (m_TessellationOption == (TessellationOption)value.selectedEntry)
+                    return;
+
+                m_TessellationOption = (TessellationOption)value.selectedEntry;
+                Dirty(ModificationScope.Graph);
+            }
+        }
+        public TessellationOption tessellationOption => m_TessellationOption;
+
         public PositionNode()
         {
             name = "Position";
@@ -38,12 +62,22 @@ namespace UnityEditor.ShaderGraph
 
         public override string GetVariableNameForSlot(int slotId)
         {
-            return string.Format("IN.{0}", space.ToVariableName(InterpolatorType.Position));
+            var name = string.Format("IN.{0}", space.ToVariableName(InterpolatorType.Position));
+            if (RequiresPredisplacement(ShaderStageCapability.All))
+            {
+                name += TessellationOption.Predisplacement.ToString();
+            }
+            return name;
         }
 
         public NeededCoordinateSpace RequiresPosition(ShaderStageCapability stageCapability)
         {
             return space.ToNeededCoordinateSpace();
+        }
+
+        public bool RequiresPredisplacement(ShaderStageCapability stageCapability = ShaderStageCapability.All)
+        {
+            return tessellationOption == TessellationOption.Predisplacement;
         }
 
         public override void OnAfterMultiDeserialize(string json)

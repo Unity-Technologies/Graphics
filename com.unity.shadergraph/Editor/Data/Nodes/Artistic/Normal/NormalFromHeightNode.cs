@@ -125,5 +125,10 @@ namespace UnityEditor.ShaderGraph
         {
             return NeededCoordinateSpace.World;
         }
+
+        public bool RequiresPredisplacement(ShaderStageCapability stageCapability = ShaderStageCapability.All)
+        {
+            return false;
+        }
     }
 }

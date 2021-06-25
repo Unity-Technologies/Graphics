@@ -58,28 +58,29 @@ Pass
     // Defines
 
     // Attribute
-    $AttributesMesh.normalOS:           #define ATTRIBUTES_NEED_NORMAL
-    $AttributesMesh.tangentOS:          #define ATTRIBUTES_NEED_TANGENT
-    $AttributesMesh.uv0:                #define ATTRIBUTES_NEED_TEXCOORD0
-    $AttributesMesh.uv1:                #define ATTRIBUTES_NEED_TEXCOORD1
-    $AttributesMesh.uv2:                #define ATTRIBUTES_NEED_TEXCOORD2
-    $AttributesMesh.uv3:                #define ATTRIBUTES_NEED_TEXCOORD3
-    $AttributesMesh.color:              #define ATTRIBUTES_NEED_COLOR
-    $AttributesMesh.vertexID:           #define ATTRIBUTES_NEED_VERTEXID
-    $VaryingsMeshToPS.positionRWS:      #define VARYINGS_NEED_POSITION_WS
-    $VaryingsMeshToPS.normalWS:         #define VARYINGS_NEED_TANGENT_TO_WORLD
-    $VaryingsMeshToPS.texCoord0:        #define VARYINGS_NEED_TEXCOORD0
-    $VaryingsMeshToPS.texCoord1:        #define VARYINGS_NEED_TEXCOORD1
-    $VaryingsMeshToPS.texCoord2:        #define VARYINGS_NEED_TEXCOORD2
-    $VaryingsMeshToPS.texCoord3:        #define VARYINGS_NEED_TEXCOORD3
-    $VaryingsMeshToPS.color:            #define VARYINGS_NEED_COLOR
-    $VaryingsMeshToPS.elementToWorld0:  #define VARYINGS_NEED_ELEMENT_TO_WORLD
-    $VaryingsMeshToPS.worldToElement0:  #define VARYINGS_NEED_WORLD_TO_ELEMENT
+    $AttributesMesh.normalOS:                           #define ATTRIBUTES_NEED_NORMAL
+    $AttributesMesh.tangentOS:                          #define ATTRIBUTES_NEED_TANGENT
+    $AttributesMesh.uv0:                                #define ATTRIBUTES_NEED_TEXCOORD0
+    $AttributesMesh.uv1:                                #define ATTRIBUTES_NEED_TEXCOORD1
+    $AttributesMesh.uv2:                                #define ATTRIBUTES_NEED_TEXCOORD2
+    $AttributesMesh.uv3:                                #define ATTRIBUTES_NEED_TEXCOORD3
+    $AttributesMesh.color:                              #define ATTRIBUTES_NEED_COLOR
+    $AttributesMesh.vertexID:                           #define ATTRIBUTES_NEED_VERTEXID
+    $VaryingsMeshToPS.positionRWS:                      #define VARYINGS_NEED_POSITION_WS
+    $VaryingsMeshToPS.positionPredisplacementRWS:       #define VARYINGS_NEED_POSITIONPREDISPLACEMENT_WS
+    $VaryingsMeshToPS.normalWS:                         #define VARYINGS_NEED_TANGENT_TO_WORLD
+    $VaryingsMeshToPS.texCoord0:                        #define VARYINGS_NEED_TEXCOORD0
+    $VaryingsMeshToPS.texCoord1:                        #define VARYINGS_NEED_TEXCOORD1
+    $VaryingsMeshToPS.texCoord2:                        #define VARYINGS_NEED_TEXCOORD2
+    $VaryingsMeshToPS.texCoord3:                        #define VARYINGS_NEED_TEXCOORD3
+    $VaryingsMeshToPS.color:                            #define VARYINGS_NEED_COLOR
+    $VaryingsMeshToPS.elementToWorld0:                  #define VARYINGS_NEED_ELEMENT_TO_WORLD
+    $VaryingsMeshToPS.worldToElement0:                  #define VARYINGS_NEED_WORLD_TO_ELEMENT
 
-    $features.graphVertex:              #define HAVE_MESH_MODIFICATION
+    $features.graphVertex:                              #define HAVE_MESH_MODIFICATION
 
-    $SurfaceDescriptionInputs.FaceSign:     // Define when IsFontFaceNode is included in ShaderGraph
-    $SurfaceDescriptionInputs.FaceSign:     #define VARYINGS_NEED_CULLFACE
+    $SurfaceDescriptionInputs.FaceSign:                 // Define when IsFontFaceNode is included in ShaderGraph
+    $SurfaceDescriptionInputs.FaceSign:                 #define VARYINGS_NEED_CULLFACE
 
     $splice(GraphDefines)
 
