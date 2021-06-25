@@ -53,10 +53,10 @@ Shader "Unlit/ObjectList"
                 // Assuming UAV buffer of size = ceil(_ScreenParams.x / 8) * ceil(_ScreenParams.y / 8) * MAX_OBJECTS_IN_SCENE
 
                 // TODO: Do this once outside and then pass into shader
-                // const float debugVisMultiplier = 16.0f;
-                const float tileSize = 8.0f;// * debugVisMultiplier;
+                const float debugVisMultiplier = 16.0f;
+                float tileSize = 8.0f;
                 float totalLength = _ScreenParams.x * _ScreenParams.y;
-                float tileSizeSquared = tileSize * tileSize;
+                // float tileSizeSquared = tileSize * tileSize;
                 int totalBins = ceil(_ScreenParams.x / tileSize) * ceil(_ScreenParams.y / tileSize);
 
                 // 'Flatten' position: x + y * screenWidth
@@ -65,7 +65,10 @@ Shader "Unlit/ObjectList"
                 _TileFlagsData[MAX_OBJECTS_IN_SCENE * binIndex + _SdfID] = 1;                
 
                 // Only for debug visualization
-                return fixed4(binIndex / totalBins, 0, 0, 1);
+                tileSize = tileSize * debugVisMultiplier;
+                totalBins = ceil(_ScreenParams.x / tileSize) * ceil(_ScreenParams.y / tileSize);
+                binIndex = floor(i.pos.x / tileSize) + floor(i.pos.y / tileSize) * ceil(_ScreenParams.x / tileSize);
+                return fixed4(binIndex / totalBins, (binIndex % ceil(_ScreenParams.x / tileSize) / ceil(_ScreenParams.x / tileSize)), 0, 1);
             }
             ENDCG
         }
