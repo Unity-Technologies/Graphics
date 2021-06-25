@@ -209,7 +209,8 @@ float RayMarch(int objHeaderOffset, float3 rayPoint, float3 cameraPos)
 
                 int linearVoxelPos = Convert3DPosTo1D(voxelPos, voxelSize);
                 distance =  _ObjectSDFData[objHeader.startOffset + linearVoxelPos];
-                totalDistance += distance;
+				if (distance > 0)
+					totalDistance += distance;
 
                 if (abs(distance) < totalDistance * threshold)
                 {
