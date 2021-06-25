@@ -68,8 +68,8 @@ if (colliderSign * sqrLength <= colliderSign)
                 else
                 {
                     Source += @"
-float dist = length(tPos);
-float3 relativeScale = (tPos/length(tPos)) * invFieldScale;
+float dist = max(length(tPos), VFX_EPSILON);
+float3 relativeScale = (tPos/dist) * invFieldScale;
 float radiusCorrection = radius * length(relativeScale);
 dist -= radiusCorrection * colliderSign;
 if (colliderSign * dist <= colliderSign)

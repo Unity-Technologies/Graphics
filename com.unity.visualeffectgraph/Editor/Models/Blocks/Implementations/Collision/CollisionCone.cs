@@ -93,7 +93,7 @@ if (collision)
                 else
                 {
                     Source += @"
-float dist = length(tPos.xz);
+float dist = max(length(tPos.xz), VFX_EPSILON);
 
 float2 relativeScaleXZ = (tPos.xz/dist) * invFieldScale.xz;
 float radiusCorrectionXZ = radius * length(relativeScaleXZ);
