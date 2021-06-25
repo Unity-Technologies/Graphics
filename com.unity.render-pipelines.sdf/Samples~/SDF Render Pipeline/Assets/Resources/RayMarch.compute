@@ -69,6 +69,8 @@ struct IntersectionData
 {
     float t;
     float3 normal;
+    float3 position;
+    float3 raydir;
     float4 color;
 };
 
@@ -326,6 +328,8 @@ OutSdfData RayMarchAllObjects(float3 dir, float3 pointOnPlane, TileDataHeader ti
         {
             ObjectHeader objHeader = _ObjectHeaderData[objHeaderOffset];
             outSdfData.objID = objHeader.objID;
+            currIntersection.raydir = dir;
+            currIntersection.position =  pointOnPlane + dir * currIntersection.t;
             outSdfData.intersection = currIntersection;
         }
     }
@@ -333,7 +337,7 @@ OutSdfData RayMarchAllObjects(float3 dir, float3 pointOnPlane, TileDataHeader ti
     // do lighting in WS
 
     // TODO need viewDir
-   lightingValue = BlinnPhong(outSdfData.intersection.normal, LightDirection, ViewDirection, LightColor.rgb, outSdfData.intersection.color, float3(1.0, 1.0, 1.0), 10.0);
+   lightingValue = BlinnPhong(outSdfData.intersection.normal, -LightDirection, ViewDirection, LightColor.rgb, outSdfData.intersection.color, float3(1.0, 1.0, 1.0), 10.0);
 
 
 
