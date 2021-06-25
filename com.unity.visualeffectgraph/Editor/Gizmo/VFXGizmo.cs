@@ -44,26 +44,32 @@ namespace UnityEditor.VFX
         public bool spaceLocalByDefault { get; set; }
         public VisualEffect component { get; set; }
 
+        private static readonly int s_HandleColorID = Shader.PropertyToID("_HandleColor");
+        private static readonly int s_HandleSizeID = Shader.PropertyToID("_HandleSize");
+        private static readonly int s_HandleZTestID = Shader.PropertyToID("_HandleZTest");
+        private static readonly int s_ObjectToWorldID = Shader.PropertyToID("_ObjectToWorld");
+
         static Matrix4x4 StartCapDrawRevertingScale(Vector3 position, Quaternion rotation, float size)
         {
-            var lossyScale = Handles.matrix.lossyScale;
-            var invLossyScale = new Vector3(1.0f / lossyScale.x,
-                1.0f / lossyScale.y,
-                1.0f / lossyScale.z);
+            //See : https://github.com/Unity-Technologies/UnityCsReference/blob/master/Editor/Mono/Handles.cs#L956
 
-            Shader.SetGlobalColor("_HandleColor", Handles.color);
-            Shader.SetGlobalFloat("_HandleSize", size);
+            var lossyScale = Handles.matrix.lossyScale;
+            var invLossyScale = new Vector3(1.0f / lossyScale.x, 1.0f / lossyScale.y, 1.0f / lossyScale.z);
+
             var mat = Handles.matrix;
-            //Remove scale from current matrix
+            //Remove scale from the current global matrix
             mat *= Matrix4x4.TRS(Vector3.zero, Quaternion.identity, invLossyScale);
             //Correct position according to previous scale
-            var correctPosition = new Vector3(position.x * lossyScale.x,
-                position.y * lossyScale.y,
-                position.z * lossyScale.z);
+            var correctPosition = new Vector3(position.x * lossyScale.x, position.y * lossyScale.y, position.z * lossyScale.z);
             mat *= Matrix4x4.TRS(correctPosition, rotation, Vector3.one);
-            Shader.SetGlobalMatrix("_ObjectToWorld", mat);
-            HandleUtility.handleMaterial.SetFloat("_HandleZTest", (float)Handles.zTest);
+
+            Shader.SetGlobalMatrix(s_ObjectToWorldID, mat);
+            Shader.SetGlobalColor(s_HandleColorID, Handles.color);
+            Shader.SetGlobalFloat(s_HandleSizeID, size);
+
+            HandleUtility.handleMaterial.SetFloat(s_HandleZTestID, (float)Handles.zTest);
             HandleUtility.handleMaterial.SetPass(0);
+
             return mat;
         }
 
