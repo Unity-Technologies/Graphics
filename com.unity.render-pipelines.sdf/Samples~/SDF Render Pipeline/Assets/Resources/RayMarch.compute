@@ -222,7 +222,7 @@ float RayMarch(int objHeaderOffset, float3 rayPoint, float3 cameraPos)
 					{
 						// Ray was outside and now is inside. It shouldn't happen if data is exact but might happen due to errors
 						// Handling this case here
-						return totalDistance + 10000;
+						return totalDistance;
 					}
                     // Ray has gone outside the box. Return as no intersection has been found
                     return 0.0f;
