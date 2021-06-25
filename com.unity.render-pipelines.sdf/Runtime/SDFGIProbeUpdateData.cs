@@ -10,6 +10,8 @@ public class SDFGIProbeUpdateData
 
     public static readonly int rsmProjectionMatrixIndex = Shader.PropertyToID("RSM_ProjectionMatrix");
 
+    public static readonly int rsmSamplePointBufferIndex = Shader.PropertyToID("RSM_SamplePoints");
+
     public static readonly int outputIndex = Shader.PropertyToID("ProbeAtlasTexture");
 
     public static readonly int atlasTextureResolutionIndex = Shader.PropertyToID("ProbeAtlasTextureResolution");
@@ -34,7 +36,10 @@ public class SDFGIProbeUpdateData
 
     protected RenderTexture m_ProbeAtlasTexture;
 
-    public void InitializeGIProbeUpdateData(SDFRenderPipelineAsset currentAsset, RenderTexture atlasTexture)
+    protected ComputeBuffer m_RSMSamplePointsBuffer;
+
+
+    public void InitializeGIProbeUpdateData(SDFRenderPipelineAsset currentAsset, RenderTexture atlasTexture, ComputeBuffer rsmSamplePointsBuffer)
     {
         m_ProbeAtlasTextureResolution = currentAsset.probeAtlasTextureResolution;
         m_ProbeResolution = currentAsset.probeResolution;
@@ -44,6 +49,8 @@ public class SDFGIProbeUpdateData
         m_ProbeDistance = currentAsset.probeDistance;
 
         m_ProbeAtlasTexture = atlasTexture;
+
+        m_RSMSamplePointsBuffer = rsmSamplePointsBuffer;
     }
 
     public void SetupRSMInput(Texture2D flux, Texture2D normal, Texture2D tValue, Matrix4x4 projectionMatrix)
@@ -65,6 +72,8 @@ public class SDFGIProbeUpdateData
         //cmd.SetComputeTextureParam(computeShader, kernelIndex, rsmTValueIndex, m_RSM_tValueTexture);
         //cmd.SetComputeMatrixParam(computeShader, rsmProjectionMatrixIndex, m_RSMProjectionMatrix);
 
+        cmd.SetComputeBufferParam(computeShader, kernelIndex, rsmSamplePointBufferIndex, m_RSMSamplePointsBuffer);
+
         cmd.SetComputeTextureParam(computeShader, kernelIndex, outputIndex, m_ProbeAtlasTexture);
 
         cmd.SetComputeIntParam(computeShader, atlasTextureResolutionIndex, m_ProbeAtlasTextureResolution);
@@ -73,5 +82,21 @@ public class SDFGIProbeUpdateData
         cmd.SetComputeVectorParam(computeShader, gridOriginIndex, m_GridOrigin);
         cmd.SetComputeVectorParam(computeShader, gridSizeIndex, m_GridSize);
         cmd.SetComputeVectorParam(computeShader, probeDistanceIndex, m_ProbeDistance);
+    }
+
+    public static void GenerateRSMSamplePoints(int sampleCount, float sampleRadius, ComputeBuffer buffer)
+    {
+        float[] points = new float[sampleCount * 2];
+
+        for (int i = 0; i < sampleCount; ++i)
+        {
+            float r1 = Random.Range(0.0f, 1.0f);
+            float r2 = Random.Range(0.0f, 1.0f);
+
+            points[i] = sampleRadius * r1 * Mathf.Sin(2 * Mathf.PI * r2);
+            points[i + 1] = sampleRadius * r1 * Mathf.Cos(2 * Mathf.PI * r2);
+        }
+
+        buffer.SetData(points);
     }
 }
