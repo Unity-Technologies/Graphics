@@ -9,6 +9,13 @@ float4 GridOrigin;
 float4 GridSize;
 float4 ProbeDistance;
 
+struct OutSdfData
+{
+    int objID;
+    float t;
+};
+StructuredBuffer<OutSdfData> InSdfData;
+
 Texture2D<float4> tValueTexture;
 Texture2D<float4> NormalTexture;
 SamplerState PointClampSampler;
@@ -117,6 +124,9 @@ void CompositeGI(uint3 id : SV_DispatchThreadID)
 
     // DEBUG_ONLY, clear the rt
     ColorResult[id.xy] = float4(0, 0, 0, 1);
+
+    //ColorResult[id.xy] = float4(0, InSdfData[id.y * colorHeight + id.x].t, 0, 1);
+    //return;
 
     uint  probeCountPerDim = ProbeAtlasTextureResolution / ProbeResolution;
     float uvProbeOffset = 1.0f / probeCountPerDim;

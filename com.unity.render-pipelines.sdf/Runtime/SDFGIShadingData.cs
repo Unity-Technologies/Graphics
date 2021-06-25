@@ -12,7 +12,9 @@ public class SDFGIShadingData
     public static readonly int gridSizeIndex = Shader.PropertyToID("GridSize");
     public static readonly int probeDistanceIndex = Shader.PropertyToID("ProbeDistance");
 
-    public static readonly int tValueTextureIndex = Shader.PropertyToID("tValueTexture");
+    public static readonly int inSDFDataIndex = Shader.PropertyToID("InSdfData");
+
+    //public static readonly int tValueTextureIndex = Shader.PropertyToID("tValueTexture");
     public static readonly int normalTextureIndex = Shader.PropertyToID("NormalTexture");
 
     public static readonly int outputIndex = Shader.PropertyToID("ColorResult");
@@ -27,7 +29,8 @@ public class SDFGIShadingData
     protected RenderTexture m_ProbeAtlasTexture;
     protected RenderTexture m_RenderTarget; // Color input and output
 
-    protected Texture2D m_tValueTexture;
+    //protected Texture2D m_tValueTexture;
+    protected ComputeBuffer m_outSDFData;
     protected Texture2D m_normalTexture;
 
 
@@ -43,9 +46,9 @@ public class SDFGIShadingData
         m_ProbeAtlasTexture = atlasTexture;
     }
 
-    public void SetupScreenSpaceInput(Texture2D tValue, Texture2D normal, RenderTexture renderTarget)
+    public void SetupScreenSpaceInput(ComputeBuffer outSDFData, Texture2D normal, RenderTexture renderTarget)
     {
-        m_tValueTexture = tValue;
+        m_outSDFData = outSDFData;
         m_normalTexture = normal;
 
         m_RenderTarget = renderTarget;
@@ -64,6 +67,7 @@ public class SDFGIShadingData
         cmd.SetComputeVectorParam(computeShader, probeDistanceIndex, m_ProbeDistance);
 
         // TODO - uncomment once the correct input is hooked up
+        cmd.SetComputeBufferParam(computeShader, kernelIndex, inSDFDataIndex, m_outSDFData);
         //cmd.SetComputeTextureParam(computeShader, kernelIndex, tValueTextureIndex, m_tValueTexture);
         //cmd.SetComputeTextureParam(computeShader, kernelIndex, normalTextureIndex, m_normalTexture);
 

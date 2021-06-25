@@ -164,7 +164,7 @@ namespace UnityEngine.Rendering.SDFRP
                             #endregion
 
                             // TODO - hook up screen space color, t-value and normal input
-                            giShadingData.SetupScreenSpaceInput(null, null, gi_mockRT);
+                            giShadingData.SetupScreenSpaceInput(m_SdfRayMarch.outSdfData, null, gi_mockRT);
                             giShadingData.UpdateComputeShaderVariables(cmdGIShading, currentAsset.giShadingCS);
 
                             m_SdfRayMarch.RayMarchGIShading(cmdGIShading, currentAsset.giShadingCS, camera);
