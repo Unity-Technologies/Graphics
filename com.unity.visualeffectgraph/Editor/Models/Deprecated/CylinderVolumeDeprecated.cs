@@ -4,7 +4,7 @@ using UnityEngine;
 
 namespace UnityEditor.VFX.Operator
 {
-    //TODOPAUL : Sanitize this
+    //TODOPAUL : Sanitize this (to ConeVolume)
     class CylinderVolumeDeprecated : VFXOperator
     {
         public class InputProperties
