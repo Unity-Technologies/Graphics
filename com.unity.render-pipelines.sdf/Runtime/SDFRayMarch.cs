@@ -25,6 +25,7 @@ public class SDFRayMarch
     public static readonly int _ObjectHeaderData = Shader.PropertyToID("_ObjectHeaderData");
     public static readonly int _TileDataOffsetIntoObjHeader = Shader.PropertyToID("_TileDataOffsetIntoObjHeader");
     public static readonly int _TileDataHeader = Shader.PropertyToID("_TileDataHeader");
+    public static readonly int _Normals = Shader.PropertyToID("_Normals");
 
     struct OutSdfData
     {
@@ -87,6 +88,9 @@ public class SDFRayMarch
 
         //_TileDataOffsetIntoObjHeader
         cmd.SetComputeBufferParam(rayMarchingCS, rayMarchKernel, _TileDataOffsetIntoObjHeader, sdfSceneData.tileOffsetsComputeBuffer);
+
+        // _Normals
+        cmd.SetComputeBufferParam(rayMarchingCS, rayMarchKernel, _Normals, sdfSceneData.normalsComputeBuffer);
 
         // Dispatch parameters
         cmd.SetComputeBufferParam(rayMarchingCS, rayMarchKernel, g_OutSdfData, outSdfData);

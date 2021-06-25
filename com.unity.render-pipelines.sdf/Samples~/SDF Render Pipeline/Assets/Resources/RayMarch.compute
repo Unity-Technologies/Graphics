@@ -22,12 +22,13 @@
 struct ObjectHeader
 {
     float4x4 worldToObjMatrix;
+    float4   color;
     int      objID;
     int      numEntries;
     int      startOffset;
-    float    voxelSize;
+    int      normalsOffset;
     float3   minExtent;
-    float    pad0;
+    float    voxelSize;
     float3   maxExtent;
     float    pad1;
 };
@@ -71,6 +72,9 @@ struct TileDataHeader
 	int2 pad;
 };
 StructuredBuffer<TileDataHeader> _TileDataHeader : register(t4);
+
+// Index into using ObjectHeader.normalsOffset
+StructuredBuffer<float3> _Normals : register(t5);
 
 
 struct OutSdfData
