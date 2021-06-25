@@ -1,4 +1,7 @@
+#pragma enable_d3d11_debug_symbols
 #pragma kernel CompositeGI
+
+#include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Common.hlsl"
 
 Texture2D<float4> ProbeAtlasTexture;
 SamplerState TrilinearClampSampler;
@@ -9,14 +12,24 @@ float4 GridOrigin;
 float4 GridSize;
 float4 ProbeDistance;
 
+struct IntersectionData
+{
+    float t;
+    float3 normal;
+    float3 position;
+    float  pad0;
+    float3 raydir;
+    float  pad1;
+    float4 color;
+};
 struct OutSdfData
 {
+    IntersectionData intersection;
     int objID;
-    float t;
 };
-StructuredBuffer<OutSdfData> InSdfData;
+StructuredBuffer<OutSdfData> g_OutSdfData;
 
-Texture2D<float4> tValueTexture;
+Texture2D<float4> PositionTexture;
 Texture2D<float4> NormalTexture;
 SamplerState PointClampSampler;
 
@@ -96,8 +109,11 @@ void CompositeGI(uint3 id : SV_DispatchThreadID)
     ColorResult.GetDimensions(colorWidth, colorHeight);
     float2 colorSampleUV = { (float)id.x / colorWidth, (float)id.y / colorHeight };
     // TODO: derive world position from t value texture
-    //float3 pixelPosition = tValueTexture.SampleLevel(PointClampSampler, colorSampleUV, 0);
-    float3 pixelPosition = fakePosition(id.xy, colorWidth / 2, colorHeight / 2);
+    float3 pixelPosition = normalize(PositionTexture[id.xy].xyz);
+    //float3 pixelPosition = fakePosition(id.xy, colorWidth / 2, colorHeight / 2);
+
+    //ColorResult[id.xy] = (PositionTexture[id.xy]);
+    //return;
 
     int3 cellCoord = GetCellCoordniates(pixelPosition);
 
@@ -106,8 +122,8 @@ void CompositeGI(uint3 id : SV_DispatchThreadID)
         return;
 
     // TODO: get from normal texture
-    //float3 pixelNormal = NormalTexture.SampleLevel(PointClampSampler, colorSampleUV, 0);
-    float3 pixelNormal = normalize(pixelPosition - float3(2.5f, 2.5f, 2.5f));
+    float3 pixelNormal = NormalTexture[id.xy].xyz;
+    //float3 pixelNormal = normalize(pixelPosition - float3(2.5f, 2.5f, 2.5f));
 
     // Convert cell coordinates into probe indices
     uint baseProbeIndex = cellCoord.x * GridSize.y * GridSize.z + cellCoord.y * GridSize.z + cellCoord.z;

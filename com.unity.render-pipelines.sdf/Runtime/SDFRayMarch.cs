@@ -22,6 +22,8 @@ public class SDFRayMarch
     public static readonly int g_DebugOutput = Shader.PropertyToID("g_DebugOutput");
     public static readonly int debugLayerId = Shader.PropertyToID("DebugLayer");
     public static readonly int LightingOutput = Shader.PropertyToID("LightingOutput");
+    public static readonly int _positionOutput = Shader.PropertyToID("PositionOutput");
+    public static readonly int _normalOutput = Shader.PropertyToID("NormalOutput");
 
     // In data
     public static readonly int _ObjectSDFData = Shader.PropertyToID("_ObjectSDFData");
@@ -49,6 +51,9 @@ public class SDFRayMarch
     const int OutSdfDataSize = 60;
 
     public ComputeBuffer outSdfData;
+    public RenderTexture positionOutput;
+    public RenderTexture normalOutput;
+
     public RenderTexture lightingOutput;
 
     private RenderTexture debugOutput;
@@ -68,6 +73,14 @@ public class SDFRayMarch
         lightingOutput = new RenderTexture(resolutionX, resolutionY, 0, RenderTextureFormat.ARGBHalf);
         lightingOutput.enableRandomWrite = true;
         lightingOutput.Create();
+
+        positionOutput = new RenderTexture(resolutionX, resolutionY, 0, RenderTextureFormat.ARGBHalf);
+        positionOutput.enableRandomWrite = true;
+        positionOutput.Create();
+
+        normalOutput = new RenderTexture(resolutionX, resolutionY, 0, RenderTextureFormat.ARGBHalf);
+        normalOutput.enableRandomWrite = true;
+        normalOutput.Create();
     }
 
     public static List<SDFSceneData.TileDataHeader> FillTileDataHeaderBuffer(int numTiles)
@@ -122,6 +135,11 @@ public class SDFRayMarch
         #endregion
 
         rayMarchingCS.SetTexture(rayMarchKernel, LightingOutput, lightingOutput);
+
+        rayMarchingCS.SetTexture(rayMarchKernel, _positionOutput, positionOutput);
+
+        rayMarchingCS.SetTexture(rayMarchKernel, _normalOutput, normalOutput);
+
         // TODO - we could remove dispatch for tiles that don't have any objects - but that will require compaction of tiledataheader
         cmd.DispatchCompute(rayMarchingCS, rayMarchKernel, numTilesX, numTilesY, 1);
 
