@@ -70,7 +70,9 @@ struct IntersectionData
     float t;
     float3 normal;
     float3 position;
+    float  pad0;
     float3 raydir;
+    float  pad1;
     float4 color;
 };
 
@@ -164,6 +166,9 @@ float3 BlinnPhong(float3 normal, float3 lightDir, float3 viewDir, float3 lightCo
 IntersectionData RayMarch(int objHeaderOffset, float3 rayPoint, float3 cameraPos)
 {
     IntersectionData returnValue;
+    returnValue.pad0 = 0;
+    returnValue.pad1 = 0;
+
     ObjectHeader objHeader = _ObjectHeaderData[objHeaderOffset];
     returnValue.color = objHeader.color;
 	float3 objBBox = objHeader.maxExtent - objHeader.minExtent;

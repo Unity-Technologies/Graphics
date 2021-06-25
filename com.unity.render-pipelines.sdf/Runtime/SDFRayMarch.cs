@@ -30,13 +30,23 @@ public class SDFRayMarch
     public static readonly int _TileDataHeader = Shader.PropertyToID("_TileDataHeader");
     public static readonly int _Normals = Shader.PropertyToID("_Normals");
 
+    struct IntersectionData
+    {
+        float t;
+        Vector3 normal;
+        Vector3 position;
+        float pad0;
+        Vector3 raydir;
+        float pad1;
+        Vector4 color;
+    };
 
     struct OutSdfData
     {
+        IntersectionData data;
         int objID;
-        float t;
     };
-    const int OutSdfDataSize = 8;
+    const int OutSdfDataSize = 60;
 
     public ComputeBuffer outSdfData;
     public RenderTexture lightingOutput;
