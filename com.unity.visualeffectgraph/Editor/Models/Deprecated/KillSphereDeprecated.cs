@@ -4,14 +4,14 @@ using UnityEngine;
 
 namespace UnityEditor.VFX.Block
 {
-    [VFXInfo(category = "Kill")]
+    //TODOPAUL : Sanitize this
     class KillSphereDeprecated : VFXBlock
     {
         [VFXSetting]
         [Tooltip("Specifies the mode by which particles are killed off. ‘Solid’ affects only particles within the specified volume, while ‘Inverted’ affects only particles outside of the volume.")]
         public CollisionBase.Mode mode = CollisionBase.Mode.Solid;
 
-        public override string name { get { return "Kill (Sphere)"; } }
+        public override string name { get { return "Kill (Sphere) (deprecated)"; } }
 
         public override VFXContextType compatibleContexts { get { return VFXContextType.InitAndUpdateAndOutput; } }
         public override VFXDataType compatibleData { get { return VFXDataType.Particle; } }

@@ -7,7 +7,7 @@ using UnityEngine.VFX;
 
 namespace UnityEditor.VFX
 {
-    //TODOPAUL : Remove this
+    //TODOPAUL : Remove this when cylinder block has been sanitized
     [VFXGizmo(typeof(Cylinder))]
     class VFXCylinderGizmo : VFXSpaceableGizmo<Cylinder>
     {

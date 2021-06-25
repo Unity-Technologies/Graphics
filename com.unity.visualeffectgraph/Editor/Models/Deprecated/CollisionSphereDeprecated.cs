@@ -2,9 +2,10 @@ using UnityEngine;
 
 namespace UnityEditor.VFX.Block
 {
+    //TODOPAUL : Sanitize this
     class CollisionSphereDeprecated : CollisionBase
     {
-        public override string name { get { return "Collide with Sphere"; } }
+        public override string name { get { return "Collide with Sphere (deprecated)"; } }
 
         public class InputProperties
         {

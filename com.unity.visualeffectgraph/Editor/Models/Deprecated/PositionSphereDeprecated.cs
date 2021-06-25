@@ -4,9 +4,10 @@ using UnityEngine;
 
 namespace UnityEditor.VFX.Block
 {
+    //TODOPAUL : Sanitize this
     class PositionSphereDeprecated : PositionBase
     {
-        public override string name { get { return string.Format(base.name, "Sphere"); } }
+        public override string name { get { return string.Format(base.name, "Sphere (deprecated)"); } }
 
         public class InputProperties
         {
