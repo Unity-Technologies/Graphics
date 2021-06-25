@@ -229,7 +229,7 @@ Shader "Hidden/HDRP/DebugFullScreen"
                     uint triangleID, instanceID;
                     UnpackVisibilityBuffer(data, instanceID, triangleID);
 
-                    uint hashedIdx = JenkinsHash(triangleID);
+                    uint hashedIdx = JenkinsHash(triangleID + 1);
                     return float4(rcp(255.0f) * float3((hashedIdx >> 8) & 255, (hashedIdx >> 16) & 255, (hashedIdx >> 24) & 255), 1.0);
                 }
 
