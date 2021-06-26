@@ -42,7 +42,11 @@ namespace UnityEngine.Rendering
         /// Edge Adaptive Scaling Upres.
         /// </summary>
         [InspectorName("Edge Adaptive Scaling Upres")]
-        EdgeAdaptiveScalingUpres
+        EdgeAdaptiveScalingUpres,
+        /// <summary>
+        /// TAAU.
+        /// </summary>
+        TAAU,
     }
 
     /// <summary>User-facing settings for dynamic resolution.</summary>

@@ -14,7 +14,7 @@ Shader "Hidden/HDRP/TemporalAA"
         #pragma multi_compile_local_fragment _ FORCE_BILINEAR_HISTORY
         #pragma multi_compile_local_fragment _ ENABLE_MV_REJECTION
         #pragma multi_compile_local_fragment _ ANTI_RINGING
-        #pragma multi_compile_local_fragment LOW_QUALITY MEDIUM_QUALITY HIGH_QUALITY POST_DOF
+        #pragma multi_compile_local_fragment LOW_QUALITY MEDIUM_QUALITY HIGH_QUALITY UPSCALE POST_DOF
 
         #pragma editor_sync_compilation
 
@@ -27,6 +27,8 @@ Shader "Hidden/HDRP/TemporalAA"
         #include "Packages/com.unity.render-pipelines.high-definition/Runtime/PostProcessing/Shaders/PostProcessDefines.hlsl"
 
 
+        #pragma enable_d3d11_debug_symbols
+
         // ---------------------------------------------------
         // Tier definitions
         // ---------------------------------------------------
@@ -38,7 +40,7 @@ Shader "Hidden/HDRP/TemporalAA"
     #define WIDE_NEIGHBOURHOOD 0
     #define NEIGHBOUROOD_CORNER_METHOD MINMAX
     #define CENTRAL_FILTERING NO_FILTERING
-    #define HISTORY_CLIP SIMPLE_CLAMP
+    #define HISTORY_CLIP SIMPLE_CLAMPz
     #define ANTI_FLICKER 0
     #define VELOCITY_REJECTION (defined(ENABLE_MV_REJECTION) && 0)
     #define PERCEPTUAL_SPACE 0
@@ -58,12 +60,25 @@ Shader "Hidden/HDRP/TemporalAA"
     #define PERCEPTUAL_SPACE_ONLY_END 0 && (PERCEPTUAL_SPACE == 0)
 
 
-#elif defined(HIGH_QUALITY) // TODO: We can do better in term of quality here (e.g. subpixel changes etc) and can be optimized a bit more
+#elif defined(HIGH_QUALITY)
     #define YCOCG 1
     #define HISTORY_SAMPLING_METHOD BICUBIC_5TAP
     #define WIDE_NEIGHBOURHOOD 1
     #define NEIGHBOUROOD_CORNER_METHOD VARIANCE
     #define CENTRAL_FILTERING BLACKMAN_HARRIS
+    #define HISTORY_CLIP DIRECT_CLIP
+    #define ANTI_FLICKER 1
+    #define ANTI_FLICKER_MV_DEPENDENT 1
+    #define VELOCITY_REJECTION defined(ENABLE_MV_REJECTION)
+    #define PERCEPTUAL_SPACE 1
+    #define PERCEPTUAL_SPACE_ONLY_END 0 && (PERCEPTUAL_SPACE == 0)
+
+#elif defined(UPSCALE) // TODO: We can do better in term of quality here (e.g. subpixel changes etc) and can be optimized a bit more
+    #define YCOCG 1
+    #define HISTORY_SAMPLING_METHOD BICUBIC_5TAP    // FIX!!!
+    #define WIDE_NEIGHBOURHOOD 1
+    #define NEIGHBOUROOD_CORNER_METHOD VARIANCE
+    #define CENTRAL_FILTERING UPSCALE_FILTER
     #define HISTORY_CLIP DIRECT_CLIP
     #define ANTI_FLICKER 1
     #define ANTI_FLICKER_MV_DEPENDENT 1
@@ -116,6 +131,16 @@ Shader "Hidden/HDRP/TemporalAA"
         float4 _TaaHistorySize;
         float4 _TaaFilterWeights;
 
+
+        float4 _TaaUpscaleInputSize;
+        float4 _TaaUpscaleParams;
+        //#define _TAAInputSize _TaaUpscaleInputSize.xy
+        //#define _TAAInputTexelSize _TaaUpscaleInputSize.zw
+        #define _TAAInputTexelSize _ScreenSize.zw
+        #define _TAAUFilterSigma _TaaUpscaleParams.x
+        #define _TAAUResScale _TaaUpscaleParams.y
+
+
         struct Attributes
         {
             uint vertexID : SV_VertexID;
@@ -150,10 +175,19 @@ Shader "Hidden/HDRP/TemporalAA"
 
             float2 uv = input.texcoord - jitter;
 
+
+            #if CENTRAL_FILTERING  == UPSCALE_FILTER
+                // TODO: SHOULD THIS BE MINUS INSTEAD!?
+            // TODO: FIX!
+            int2 posOut = input.positionCS.xy + _TaaJitterStrength.xy;
+            uv = _TAAInputTexelSize  * _TAAUResScale * (floor(posOut) + 0.5f);
+            #endif
+
+
             // --------------- Get closest motion vector ---------------
             float2 motionVector;
 
-#if ORTHOGRAPHIC
+#if ORTHOGRAPHIC || /* TEMP. THIS IS NOT THE RIGHT THING TO DO . */ CENTRAL_FILTERING  == UPSCALE_FILTER
             float2 closest = input.positionCS.xy;
 #else
             float2 closest = GetClosestFragment(_DepthTexture, int2(input.positionCS.xy));
@@ -163,7 +197,9 @@ Shader "Hidden/HDRP/TemporalAA"
 
             // --------------- Get resampled history ---------------
             float2 prevUV = input.texcoord - motionVector;
-
+#if CENTRAL_FILTERING  == UPSCALE_FILTER
+            //prevUV =
+#endif
             CTYPE history = GetFilteredHistory(_InputHistoryTexture, prevUV, _HistorySharpening, _TaaHistorySize);
             bool offScreen = any(abs(prevUV * 2 - 1) >= (1.0f - (1.0 * _TaaHistorySize.zw)));
             history.xyz *= PerceptualWeight(history);
@@ -175,11 +211,28 @@ Shader "Hidden/HDRP/TemporalAA"
             color = ConvertToWorkingSpace(color);
 
             NeighbourhoodSamples samples;
+            // TODO TAAU : Do I need to change this ?
             GatherNeighbourhood(_InputTexture, uv, input.positionCS.xy, color, samples);
             // --------------------------------------------------------
 
             // --------------- Filter central sample ---------------
-            CTYPE filteredColor = FilterCentralColor(samples, _TaaFilterWeights);
+
+            float4 filterWeights = _TaaFilterWeights;
+            // Yuck.
+            #if CENTRAL_FILTERING  == UPSCALE_FILTER
+            /*     float stdDev = filterWeights.x;
+    float resScale = filterWeights.y;
+    float2 inputToOutput = filterWeights.zw;
+*/
+            filterWeights.x = _TAAUFilterSigma;
+            filterWeights.y = _TAAUResScale;
+
+            // SHOULD THE START UV BE + OR - JITTER ?
+            filterWeights.zw = posOut - (floor(posOut) + 0.5);
+
+            #endif
+
+            CTYPE filteredColor = FilterCentralColor(samples, filterWeights, input.positionCS.xy);
             // ------------------------------------------------------
 
             if (offScreen)
@@ -242,8 +295,10 @@ Shader "Hidden/HDRP/TemporalAA"
             color.w = filteredColor.w;
 #endif
 
+            //color = ConvertToOutputSpace(filteredColor.xyz).CTYPE_SWIZZLE;
             _OutputHistoryTexture[COORD_TEXTURE2D_X(input.positionCS.xy)] = color.CTYPE_SWIZZLE;
             outColor = color.CTYPE_SWIZZLE;
+            //outColor = ConvertToOutputSpace(filteredColor.xyz).CTYPE_SWIZZLE;
 
 #if VELOCITY_REJECTION && !defined(POST_DOF)
             _OutputVelocityMagnitudeHistory[COORD_TEXTURE2D_X(input.positionCS.xy)] = lengthMV;

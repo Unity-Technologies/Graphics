@@ -67,6 +67,7 @@ float4 Fetch4Array(Texture2DArray tex, uint slot, float2 coords, float2 offset, 
 #define NO_FILTERING 0
 #define BOX_FILTER 1
 #define BLACKMAN_HARRIS 2
+#define UPSCALE_FILTER 3
 
 // Clip option
 #define DIRECT_CLIP 0
@@ -110,6 +111,11 @@ float4 Fetch4Array(Texture2DArray tex, uint slot, float2 coords, float2 offset, 
 #ifndef PERCEPTUAL_SPACE
     #define PERCEPTUAL_SPACE 1
 #endif
+
+#ifndef UPSAMPLE
+    #define UPSAMPLE 0
+#endif
+
 
 // ---------------------------------------------------
 // Utilities functions
@@ -591,7 +597,49 @@ void GetNeighbourhoodCorners(inout NeighbourhoodSamples samples, float historyLu
 // Filter main color
 // ---------------------------------------------------
 
-CTYPE FilterCentralColor(NeighbourhoodSamples samples, float4 filterWeights)
+// This can be optimized very easily and shouldn't be needed to be used only here, but here is still in prototype fun stage, no reason to spend too much on it.
+float2 GetSampleOffset(int2 positionSS, int i)
+{
+    int2 quadOffset = GetQuadOffset(positionSS);
+
+    if (i == 0)
+        return float2(0.0f, quadOffset.y);
+    if (i == 1)
+        return float2(quadOffset.x, 0.0f);
+    if (i == 2)
+        return float2(-quadOffset.x, 0.0f);
+    if (i == 3)
+        return float2(0.0f, -quadOffset.y);
+    if (i == 4)
+        return int2(-quadOffset.x, quadOffset.y);
+    if (i == 5)
+        return int2(quadOffset.x, -quadOffset.y);
+    if (i == 6)
+        return quadOffset;
+    if (i == 7)
+        return int2(-quadOffset.x, -quadOffset.y);
+
+    return 0;
+}
+
+
+float GetUpsampleFilterWeight(int index, float2 inputToOutput, int2 positionSS, float resScale, float stdDev)
+{
+    float2 sampleOffset = 0;
+    // YUCK!
+    if (index >= 0) // Central pixel will have negative index, this is super yucky. Fix.
+        sampleOffset = GetSampleOffset(positionSS, index);
+
+
+    float2 d = sampleOffset - inputToOutput;
+
+    // TODO : Add a multiplier to resScale to blur based on velocity. ?
+
+    // gaussian with std dev stdDev
+    return exp2(-0.5 * dot(d, d) * resScale * resScale * rcp(stdDev * stdDev));
+}
+
+CTYPE FilterCentralColor(NeighbourhoodSamples samples, float4 filterWeights, float2 positionSS)
 {
 #if CENTRAL_FILTERING == NO_FILTERING
 
@@ -615,6 +663,30 @@ CTYPE FilterCentralColor(NeighbourhoodSamples samples, float4 filterWeights)
 #endif
     return filtered;
 
+#elif CENTRAL_FILTERING == UPSCALE_FILTER
+
+#if WIDE_NEIGHBOURHOOD == 0
+#error "NOT SUPPORTED YET"
+#endif
+
+    // Another yucky thing
+    float stdDev = filterWeights.x;
+    float resScale = filterWeights.y;
+    float2 inputToOutput = filterWeights.zw;
+
+    CTYPE filtered = 0;
+    float totalWeight = GetUpsampleFilterWeight(-1, inputToOutput, positionSS, resScale, stdDev);
+    filtered += samples.central * totalWeight;
+
+    for (int i = 0; i < 8; ++i)
+    {
+        float w = GetUpsampleFilterWeight(i, inputToOutput, positionSS, resScale, stdDev);
+        filtered += samples.neighbours[i] * w;
+        totalWeight += w;
+    }
+
+    filtered *= rcp(totalWeight);
+    return filtered;
 #endif
 
 }
