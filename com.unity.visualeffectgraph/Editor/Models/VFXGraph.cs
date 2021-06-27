@@ -21,6 +21,7 @@ namespace UnityEditor.VFX
     [InitializeOnLoad]
     class VFXGraphPreprocessor : AssetPostprocessor
     {
+        private static HashSet<string> s_SanitizedGraph = new HashSet<string>();
         static void OnPostprocessAllAssets(string[] importedAssets, string[] deletedAssets, string[] movedAssets, string[] movedFromAssetPaths)
         {
             foreach (var assetPath in importedAssets)
@@ -36,6 +37,15 @@ namespace UnityEditor.VFX
                         graph.SanitizeForImport();
                     else
                         Debug.LogError("VisualEffectGraphResource without graph");
+
+                    var path = AssetDatabase.GetAssetPath(resource);
+                    var guid = AssetDatabase.AssetPathToGUID(path);
+                    if (!s_SanitizedGraph.Contains(guid))
+                    {
+                        s_SanitizedGraph.Add(guid);
+                        //Relaunch previously skipped OnCompileResource
+                        AssetDatabase.ImportAsset(path, ImportAssetOptions.ForceUpdate);
+                    }
                 }
             }
         }
@@ -58,6 +68,11 @@ namespace UnityEditor.VFX
         {
             if (resource != null)
             {
+                var path = AssetDatabase.GetAssetPath(resource);
+                var guid = AssetDatabase.AssetPathToGUID(path);
+                if (!s_SanitizedGraph.Contains(guid))
+                    return; //Early return, the reimport will be forced with the next OnPostprocessAllAssets after Sanitize
+
                 VFXGraph graph = resource.graph as VFXGraph;
                 if (graph != null)
                     resource.GetOrCreateGraph().CompileForImport();
