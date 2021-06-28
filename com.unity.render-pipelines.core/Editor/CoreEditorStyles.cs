@@ -72,11 +72,11 @@ namespace UnityEditor.Rendering
 
         static System.Lazy<GUIStyle> m_SectionHeaderStyle = new(() => new GUIStyle(EditorStyles.largeLabel) { richText = true, fontSize = 18, fixedHeight = 42 });
         /// <summary>Style of Section Headers.</summary>
-        public static GUIStyle sectionHeaderStyle = m_SectionHeaderStyle.Value;
+        public static GUIStyle sectionHeaderStyle => m_SectionHeaderStyle.Value;
 
         static System.Lazy<GUIStyle> m_SubSectionHeaderStyle = new(() => new GUIStyle(EditorStyles.boldLabel));
         /// <summary>Style of Sub-Section Headers.</summary>
-        public static GUIStyle subSectionHeaderStyle = m_SubSectionHeaderStyle.Value;
+        public static GUIStyle subSectionHeaderStyle => m_SubSectionHeaderStyle.Value;
 
         #endregion
 
@@ -169,7 +169,7 @@ namespace UnityEditor.Rendering
             greenTexture = CoreEditorUtils.CreateColoredTexture2D(Color.green, "Green 1x1");
             blueTexture = CoreEditorUtils.CreateColoredTexture2D(Color.blue, "Blue 1x1");
 
-            iconHelp = EditorGUIUtility.FindTexture("_Help");
+            iconHelp = CoreEditorUtils.FindTexture("_Help");
             iconWarn = CoreEditorUtils.LoadIcon("icons", "console.warnicon", ".png");
             iconFail = CoreEditorUtils.LoadIcon("icons", "console.erroricon", ".png");
             iconSuccess = EditorGUIUtility.FindTexture("TestPassed");
