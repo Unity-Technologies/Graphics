@@ -85,6 +85,7 @@ namespace UnityEditor.Rendering
             static public readonly GUIContent scaleVariation = EditorGUIUtility.TrTextContent("Scale Variation", "Sets the offset applied to the current scale of the element.");
             static public readonly GUIContent positionCurve = EditorGUIUtility.TrTextContent("Position Variation", "Defines how the multiple elements are placed along the spread using a curve.");
             static public readonly GUIContent scaleCurve = EditorGUIUtility.TrTextContent("Scale", "Defines how the multiple elements are scaled along the spread.");
+            static public readonly GUIContent uniformAngle = EditorGUIUtility.TrTextContent("Rotation", "Specify an angle (in degree) which will be used for each element incrementaly.");
 
             static GUIStyle m_BlueFocusedBoldLabel;
             public static GUIStyle blueFocusedBoldLabel
@@ -348,6 +349,9 @@ namespace UnityEditor.Rendering
             int line = 5;   //[Enable], Count, Distribution, Length Spread, Color Gradient
             switch (GetEnum<SRPLensFlareDistribution>(distribution))
             {
+                case SRPLensFlareDistribution.Uniform:
+                    line += 1;
+                    break;  //UniformAngle
                 case SRPLensFlareDistribution.Curve:
                     line += 2;
                     break;  //Position Variation, Scale
@@ -426,6 +430,7 @@ namespace UnityEditor.Rendering
                 SerializedProperty intensityVariationProp = element.FindPropertyRelative("m_IntensityVariation");
                 SerializedProperty scaleVariationProp = element.FindPropertyRelative("scaleVariation");
                 SerializedProperty rotationVariationProp = element.FindPropertyRelative("rotationVariation");
+                SerializedProperty uniformAngleProp = element.FindPropertyRelative("uniformAngle");
 
                 for (int idx = 0; idx < countProp.intValue; ++idx)
                 {
@@ -1030,8 +1035,13 @@ namespace UnityEditor.Rendering
                 switch (GetEnum<SRPLensFlareDistribution>(distribution))
                 {
                     case SRPLensFlareDistribution.Uniform:
+                        SerializedProperty uniformAngle = element.FindPropertyRelative("uniformAngle");
+
                         fieldRect.MoveNext();
                         EditorGUI.PropertyField(fieldRect.Current, colorGradient, Styles.colorGradient);
+
+                        fieldRect.MoveNext();
+                        EditorGUI.PropertyField(fieldRect.Current, uniformAngle, Styles.uniformAngle);
                         break;
 
                     case SRPLensFlareDistribution.Curve:

@@ -615,6 +615,7 @@ namespace UnityEngine.Rendering
 
                         if (element.distribution == SRPLensFlareDistribution.Uniform)
                         {
+                            float uniformAngle = 0.0f;
                             for (int elemIdx = 0; elemIdx < element.count; ++elemIdx)
                             {
                                 Vector2 localSize = size;
@@ -629,13 +630,14 @@ namespace UnityEngine.Rendering
 
                                 Color col = element.colorGradient.Evaluate(timeScale);
 
-                                Vector4 flareData0 = GetFlareData0(screenPos, element.translationScale, rayOff, vScreenRatio, element.rotation, position, element.angularOffset, element.positionOffset, element.autoRotate);
+                                Vector4 flareData0 = GetFlareData0(screenPos, element.translationScale, rayOff, vScreenRatio, element.rotation + uniformAngle, position, element.angularOffset, element.positionOffset, element.autoRotate);
                                 cmd.SetGlobalVector(_FlareData0, flareData0);
                                 cmd.SetGlobalVector(_FlareData2, new Vector4(screenPos.x, screenPos.y, localSize.x, localSize.y));
                                 cmd.SetGlobalVector(_FlareColorValue, curColor * col);
 
                                 UnityEngine.Rendering.Blitter.DrawQuad(cmd, lensFlareShader, materialPass);
                                 position += dLength;
+                                uniformAngle += element.uniformAngle;
                             }
                         }
                         else if (element.distribution == SRPLensFlareDistribution.Random)
