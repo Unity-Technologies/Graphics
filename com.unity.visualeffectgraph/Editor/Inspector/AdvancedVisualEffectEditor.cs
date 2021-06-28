@@ -570,6 +570,8 @@ namespace UnityEditor.VFX
 
             void BuildValue(List<Action<List<object>>> cmdList, Type type, string propertyPath)
             {
+                m_SerializedObject.Update();
+
                 string field = VisualEffectSerializationUtility.GetTypeField(type);
                 if (field != null)
                 {
