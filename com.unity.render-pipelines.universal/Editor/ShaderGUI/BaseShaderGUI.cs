@@ -115,7 +115,7 @@ namespace UnityEditor
                 "Sets a Texture map to use for emission. You can also select a color with the color picker. Colors are multiplied over the Texture.");
 
             public static readonly GUIContent normalMapText =
-                EditorGUIUtility.TrTextContent("Normal Map", "Assigns a tangent-space normal map.");
+                EditorGUIUtility.TrTextContent("Normal Map", "Designates a Normal Map to create the illusion of bumps and dents on this Material's surface.");
 
             public static readonly GUIContent bumpScaleNotSupported =
                 EditorGUIUtility.TrTextContent("Bump scale is not supported on mobile platforms");
