@@ -419,6 +419,8 @@ namespace UnityEngine.Rendering.HighDefinition
             {
                 var input = entry.Key;
                 var material = input.renderer.sharedMaterials[input.subMesh];
+                if (material == null) continue;
+
                 if (!requestsForExtraction.ContainsKey(material))
                 {
                     requestsForExtraction.Add(material, new List<ExtraDataRequests>());
@@ -426,6 +428,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
                 requestsForExtraction[material].AddRange(entry.Value);
             }
+            processingIdxToOutputIdx = new List<int>();
 
             foreach (var materialList in requestsForExtraction)
             {
@@ -521,6 +524,7 @@ namespace UnityEngine.Rendering.HighDefinition
             var outputData = new ExtraDataRequestOutput[currStart];
             readbackBuffer.GetData(outputData);
             // Put back directly with the mapping
+            //   extraRequestsOutput = new List<ExtraDataRequestOutput>(currStart);
             for (int i = 0; i < currStart; ++i)
             {
                 extraRequestsOutput[processingIdxToOutputIdx[i]] = outputData[i];
@@ -762,7 +766,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 }
 
                 MeshRenderer renderer = collider.GetComponent<MeshRenderer>();
-                if (renderer != null)
+                if (renderer != null && renderer.sharedMaterials[submesh] != null)
                 {
                     Material material = renderer.sharedMaterials[submesh];
                     RequestInput requestInput;
@@ -797,6 +801,11 @@ namespace UnityEngine.Rendering.HighDefinition
                     {
                         requestIndex = EnqueueExtraDataRequest(hit, worldPosition + normalizedRay * outDistance);
                         normal = outBoundHits[outIndex].normal;
+                        if (requestIndex < 0)
+                        {
+                            outDistance = 0;
+                            return false;
+                        }
                     }
                     else
                     {
