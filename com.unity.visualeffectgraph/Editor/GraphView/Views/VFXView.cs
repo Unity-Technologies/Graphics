@@ -2573,6 +2573,12 @@ namespace UnityEditor.VFX.UI
                 var copyName  = blackboardField.controller.MakeNameUnique(blackboardField.controller.exposedName);
                 var newVfxParameter = VFXParameter.Duplicate(copyName, blackboardField.controller.model);
                 this.controller.AddVFXModel(Vector2.zero, newVfxParameter);
+
+                bool groupChanged = false;
+                this.controller.SyncControllerFromModel(ref groupChanged);
+
+                var newParameterController = blackboard.controller.parameterControllers.Single(x => x.model == newVfxParameter);
+                newParameterController.space = blackboardField.controller.space;
             }
         }
     }
