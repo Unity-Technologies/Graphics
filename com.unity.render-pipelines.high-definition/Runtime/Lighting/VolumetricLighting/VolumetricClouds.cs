@@ -168,13 +168,13 @@ namespace UnityEngine.Rendering.HighDefinition
         /// Controls the thickness of the volumetric clouds volume in meters.
         /// </summary>
         [Tooltip("Controls the thickness of the volumetric clouds volume in meters.")]
-        public MinFloatParameter cloudThickness = new MinFloatParameter(6000.0f, 100.0f);
+        public MinFloatParameter cloudThickness = new MinFloatParameter(8000.0f, 100.0f);
 
         /// <summary>
         /// Controls the number of steps when evaluating the clouds' transmittance.
         /// </summary>
         [Tooltip("Controls the number of steps when evaluating the clouds' transmittance.")]
-        public ClampedIntParameter numPrimarySteps = new ClampedIntParameter(48, 16, 512);
+        public ClampedIntParameter numPrimarySteps = new ClampedIntParameter(128, 16, 512); //revert to 48 after video
 
         /// <summary>
         /// Controls the number of steps when evaluating the clouds' lighting.
@@ -330,7 +330,7 @@ namespace UnityEngine.Rendering.HighDefinition
         /// Controls the size of the smaller noise passing through the cloud coverage.
         /// </summary>
         [Tooltip("Controls the size of the smaller noise passing through the cloud coverage.")]
-        public MinFloatParameter erosionScale = new MinFloatParameter(25.0f, 1.0f);
+        public MinFloatParameter erosionScale = new MinFloatParameter(30.0f, 1.0f);
 
         /// <summary>
         /// Controls the influence of the light probes on the cloud volume. A lower value will suppress the ambient light and produce darker clouds overall.
@@ -342,13 +342,13 @@ namespace UnityEngine.Rendering.HighDefinition
         /// Controls how much Erosion Factor is taken into account when computing ambient occlusion. The Erosion Factor parameter is editable in the custom preset, Advanced and Manual Modes.
         /// </summary>
         [Tooltip("Controls how much Erosion Factor is taken into account when computing ambient occlusion. The Erosion Factor parameter is editable in the custom preset, Advanced and Manual Modes.")]
-        public ClampedFloatParameter erosionOcclusion = new ClampedFloatParameter(0.3f, 0.0f, 1.0f);
+        public ClampedFloatParameter erosionOcclusion = new ClampedFloatParameter(0.1f, 0.0f, 1.0f);
 
         /// <summary>
         /// Sets the global wind speed in kilometers per hour.
         /// </summary>
         [Tooltip("Sets the global wind speed in kilometers per hour.")]
-        public MinFloatParameter globalWindSpeed = new MinFloatParameter(100.0f, 0.0f);
+        public MinFloatParameter globalWindSpeed = new MinFloatParameter(00.0f, 0.0f); //revert to 100 after video
 
         /// <summary>
         /// Controls the orientation of the wind relative to the X world vector.
@@ -413,7 +413,7 @@ namespace UnityEngine.Rendering.HighDefinition
         /// </summary>
         [Tooltip("Controls the opacity of the volumetric clouds shadow.")]
         [AdditionalProperty]
-        public ClampedFloatParameter shadowOpacity = new ClampedFloatParameter(0.5f, 0.0f, 1.0f);
+        public ClampedFloatParameter shadowOpacity = new ClampedFloatParameter(1.0f, 0.0f, 1.0f);
 
         /// <summary>
         /// Controls the shadow opacity when outside the area covered by the volumetric clouds shadow.

@@ -539,7 +539,7 @@ void EvaluateCloudProperties(float3 positionWS, float noiseMipOffset, float eros
 
     // Given that we are not sampling the erosion texture, we compensate by substracting an erosion value
     if (lightSampling)
-        base_cloud -= erosionFactor * 0.25;
+        base_cloud -= erosionFactor * 0.1;
 
     // Make sure we do not send any negative values
     base_cloud = max(0, base_cloud);
@@ -559,6 +559,7 @@ float3 EvaluateSunLuminance(float3 position, in EnvironmentLighting envLighting,
     {
         // Apply a small bias to compensate for the imprecision in the ray-sphere intersection at world scale.
         totalLightDistance += 5.0f;
+        totalLightDistance = clamp(totalLightDistance, 0, _NumLightSteps * 500);
 
         // Initially the transmittance is one for all octaves
         float3 sunLightTransmittance[NUM_MULTI_SCATTERING_OCTAVES];
@@ -665,7 +666,7 @@ VolumetricRayResult TraceVolumetricRay(CloudRay cloudRay)
             totalDistance = min(totalDistance, cloudRay.maxRayLength - rayMarchRange.start);
 
             // Compute the environment lighting that is going to be used for the cloud evaluation
-            cloudRay.envLighting = EvaluateEnvironmentLighting(cloudRay, cloudRay.origin + (rayMarchRange.start + totalDistance * 0.5) * cloudRay.direction);
+            cloudRay.envLighting = EvaluateEnvironmentLighting(cloudRay, cloudRay.origin + rayMarchRange.start * cloudRay.direction);
 
             // Evaluate our integration step
             float stepS = max(totalDistance / (float)_NumPrimarySteps, MINIMAL_RAY_MARCHING_STEP);
