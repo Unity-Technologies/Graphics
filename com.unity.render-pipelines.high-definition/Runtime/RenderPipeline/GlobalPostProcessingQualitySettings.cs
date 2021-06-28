@@ -114,13 +114,17 @@ namespace UnityEngine.Rendering.HighDefinition
 
         /*  Depth of field */
         /// <summary>Depth of field near blur sample count for each quality level.</summary>
+        [Range(3, 8)]
         public int[] NearBlurSampleCount                = new int[s_QualitySettingCount];
         /// <summary>Depth of field near blur maximum radius for each quality level.</summary>
+        [Range(0, 8)]
         public float[] NearBlurMaxRadius                = new float[s_QualitySettingCount];
         /// <summary>Depth of field far blur sample count for each quality level.</summary>
-        public int[] FarBlurSampleCount                 = new int[s_QualitySettingCount];
+        [Range(3, 16)]
+        public int[] FarBlurSampleCount = new int[s_QualitySettingCount];
         /// <summary>Depth of field far blur maximum radius for each quality level.</summary>
-        public float[] FarBlurMaxRadius                 = new float[s_QualitySettingCount];
+        [Range(0, 16)]
+        public float[] FarBlurMaxRadius = new float[s_QualitySettingCount];
         /// <summary>Depth of field resolution for each quality level.</summary>
         public DepthOfFieldResolution[] DoFResolution   = new DepthOfFieldResolution[s_QualitySettingCount];
         /// <summary>Use Depth of field high quality filtering for each quality level.</summary>
@@ -130,6 +134,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
         /* Motion Blur */
         /// <summary>Motion Blur sample count for each quality level.</summary>
+        [Min(2)]
         public int[] MotionBlurSampleCount              = new int[s_QualitySettingCount];
 
         /* Bloom */
@@ -142,6 +147,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
         /* Chromatic Aberration */
         /// <summary>Chromatic aberration maximum sample count for each quality level.</summary>
+        [Range(3, 24)]
         public int[] ChromaticAberrationMaxSamples      = new int[s_QualitySettingCount];
     }
 }

@@ -161,76 +161,97 @@ namespace UnityEngine.Rendering.HighDefinition
 
         // SSAO
         /// <summary>Ambient Occlusion step count for each quality level.</summary>
+        [Range(2, 32)]
         public int[] AOStepCount = new int[s_QualitySettingCount];
         /// <summary>Ambient Occlusion uses full resolution buffer for each quality level.</summary>
         public bool[] AOFullRes = new bool[s_QualitySettingCount];
         /// <summary>Ambient Occlusion maximum radius for each quality level.</summary>
+        [Range(16, 256)]
         public int[] AOMaximumRadiusPixels = new int[s_QualitySettingCount];
         /// <summary>Ambient Occlusion uses bilateral upsample for each quality level.</summary>
         public bool[] AOBilateralUpsample = new bool[s_QualitySettingCount];
         /// <summary>Ambient Occlusion direction count for each quality level.</summary>
+        [Range(1, 6)]
         public int[] AODirectionCount = new int[s_QualitySettingCount];
 
         // Contact Shadows
         /// <summary>Contact shadow sample count for each quality level.</summary>
+        [Range(4, 64)]
         public int[] ContactShadowSampleCount = new int[s_QualitySettingCount];
 
         // Screen Space Reflections
         /// <summary>Maximum number of rays for Screen Space Reflection for each quality level.</summary>
+        [Min(0)]
         public int[] SSRMaxRaySteps = new int[s_QualitySettingCount];
 
         // Screen Space Global Illumination
         /// <summary>Screen space global illumination step count for the ray marching.</summary>
+        [Min(0)]
         public int[] SSGIRaySteps = new int[s_QualitySettingCount];
         /// <summary>Screen space global illumination's filter size.</summary>
+        [Range(2, 16)]
         public int[] SSGIFilterRadius = new int[s_QualitySettingCount];
 
         // Ray Traced Ambient Occlusion
         /// <summary>Controls the length of ray traced ambient occlusion rays.</summary>
+        [Min(0.01f)]
         public float[] RTAORayLength = new float[s_QualitySettingCount];
         /// <summary>Number of samples for evaluating the effect.</summary>
+        [Range(1, 64)]
         public int[] RTAOSampleCount = new int[s_QualitySettingCount];
         /// <summary>Defines if the ray traced ambient occlusion should be denoised.</summary>
         public bool[] RTAODenoise = new bool[s_QualitySettingCount];
         /// <summary>Controls the radius of the ray traced ambient occlusion denoiser.</summary>
+        [Range(0.001f, 1.0f)]
         public float[] RTAODenoiserRadius = new float[s_QualitySettingCount];
 
         // Ray Traced Global Illumination
         /// <summary>Controls the length of ray traced global illumination rays.</summary>
+        [Min(0.01f)]
         public float[] RTGIRayLength = new float[s_QualitySettingCount];
         /// <summary>Controls if the effect should be computed at full resolution.</summary>
         public bool[] RTGIFullResolution = new bool[s_QualitySettingCount];
         /// <summary>Clamp value used to reduce the variance in the integration signal.</summary>
+        [Range(0.001f, 10.0f)]
         public float[] RTGIClampValue = new float[s_QualitySettingCount];
         /// <summary>Radius for the up-sample pass.</summary>
+        [Range(2, 4)]
         public int[] RTGIUpScaleRadius = new int[s_QualitySettingCount];
         /// <summary>Controls the number of ray steps for hybrid tracing.</summary>
+        [Min(0)]
         public int[] RTGIRaySteps = new int[s_QualitySettingCount];
         /// <summary>Flag that enables the first denoising pass.</summary>
         public bool[] RTGIDenoise = new bool[s_QualitySettingCount];
         /// <summary>Flag that defines if the denoiser should be evaluated at half resolution.</summary>
         public bool[] RTGIHalfResDenoise = new bool[s_QualitySettingCount];
         /// <summary>Flag that defines the radius of the first denoiser.</summary>
+        [Range(0.001f, 1.0f)]
         public float[] RTGIDenoiserRadius = new float[s_QualitySettingCount];
         /// <summary>Flag that enables the second denoising pass.</summary>
         public bool[] RTGISecondDenoise = new bool[s_QualitySettingCount];
 
         // Ray Traced Reflections
         /// <summary>Controls the minimal smoothness.</summary>
+        [Range(0.0f, 1.0f)]
         public float[] RTRMinSmoothness = new float[s_QualitySettingCount];
         /// <summary>Controls the minimal smoothness.</summary>
+        [Range(0.0f, 1.0f)]
         public float[] RTRSmoothnessFadeStart = new float[s_QualitySettingCount];
         /// <summary>Controls the length of ray traced reflection rays.</summary>
+        [Min(0.01f)]
         public float[] RTRRayLength = new float[s_QualitySettingCount];
         /// <summary>Clamp value used to reduce the variance in the integration signal.</summary>
+        [Range(0.001f, 10.0f)]
         public float[] RTRClampValue = new float[s_QualitySettingCount];
         /// <summary>Controls if the effect should be computed at full resolution.</summary>
         public bool[] RTRFullResolution = new bool[s_QualitySettingCount];
         /// <summary>Controls if the effect should be computed at full resolution.</summary>
+        [Min(0)]
         public int[] RTRRayMaxIterations = new int[s_QualitySettingCount];
         /// <summary>Flag that enables the first denoising pass.</summary>
         public bool[] RTRDenoise = new bool[s_QualitySettingCount];
         /// <summary>Flag that defines the radius of the first denoiser.</summary>
+        [Range(1, 32)]
         public int[] RTRDenoiserRadius = new int[s_QualitySettingCount];
         /// <summary>Flag that defines smooth denoising status.</summary>
         public bool[] RTRSmoothDenoising = new bool[s_QualitySettingCount];
@@ -239,8 +260,10 @@ namespace UnityEngine.Rendering.HighDefinition
         /// <summary>Controls which control mode should be used to define the volumetric fog parameters.</summary>
         public FogControl[] Fog_ControlMode = new FogControl[s_QualitySettingCount];
         /// <summary>Controls the budget of the volumetric fog effect.</summary>
+        [Range(0.0f, 1.0f)]
         public float[] Fog_Budget = new float[s_QualitySettingCount];
         /// <summary>Controls how the budget is shared between screen resolution and depth.</summary>
+        [Range(0.0f, 1.0f)]
         public float[] Fog_DepthRatio = new float[s_QualitySettingCount];
         // TODO: Shadows. This needs to be discussed further as there is an idiosyncracy here as we have different level of quality settings,
         //some for resolution per light (4 levels) some per volume (which are 3 levels everywhere). This needs to be discussed more.
