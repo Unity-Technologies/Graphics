@@ -34,19 +34,3 @@ editor-pinning-update:
         recurring:
           -  branch: master
              frequency: 23 * * ?
-editor-pinning-store-green:
-    name: Store green job revisions
-    agent:
-        type: Unity::VM
-        image: package-ci/ubuntu:stable
-        flavor: b1.small
-    commands:
-      -  pip3 config set global.index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple
-      -  pip3 install ruamel.yaml
-      -  git config --global user.name "noreply@unity3d.com"
-      -  git config --global user.email "noreply@unity3d.com"
-      -  git checkout $GIT_BRANCH
-    triggers:
-        recurring:
-          -  branch: master
-             frequency: 7 * * ?
