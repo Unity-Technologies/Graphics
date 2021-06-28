@@ -2568,7 +2568,7 @@ namespace UnityEditor.VFX.UI
 
         public void DuplicateBlackboardField()
         {
-            if (selection.Count == 1 && selection[0] is VFXBlackboardField blackboardField)
+            foreach (var blackboardField in selection.OfType<VFXBlackboardField>())
             {
                 var newVfxParameter = new VFXParameter(blackboardField.controller.model);
                 this.controller.AddVFXModel(Vector2.zero, newVfxParameter);
