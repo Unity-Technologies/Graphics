@@ -30,7 +30,7 @@ namespace UnityEditor.Experimental.Rendering.Universal
             public static GUIContent overrideMaterialPass = new GUIContent("Pass Index", "The pass index for the override material to use.");
 
             //Depth Settings
-            public static GUIContent overrideDepth = new GUIContent("Depth", "Override depth rendering.");
+            public static GUIContent overrideDepth = new GUIContent("Depth", "Override the values used in Depth buffering.");
             public static GUIContent writeDepth = new GUIContent("Write Depth", "Choose to write depth to the screen.");
             public static GUIContent depthState = new GUIContent("Depth Test", "Choose a new depth test function.");
 

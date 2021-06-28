@@ -15,7 +15,7 @@ namespace UnityEditor.Rendering.Universal
         {
             public static readonly GUIContent RenderFeatures =
                 new GUIContent("Renderer Features",
-                    "Features to include in this renderer.\nTo add or remove features, use the plus and minus at the bottom of this box.");
+                    "A Renderer Feature is an asset that lets you add extra Render passes to a URP Renderer and configure their behavior.");
 
             public static readonly GUIContent PassNameField =
                 new GUIContent("Name", "Render pass name. This name is the name displayed in Frame Debugger.");
