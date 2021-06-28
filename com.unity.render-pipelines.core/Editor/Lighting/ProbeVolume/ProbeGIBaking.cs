@@ -734,6 +734,7 @@ namespace UnityEngine.Experimental.Rendering
                 ProbeOffsets[i] = i * probeDelta;
             ProbeOffsets[ProbeBrickPool.kBrickProbeCountPerDim - 1] = 1.0f;
 
+            float minDist = ProbeReferenceVolume.instance.MinDistanceBetweenProbes();
 
             foreach (var b in bricks)
             {
@@ -754,7 +755,14 @@ namespace UnityEngine.Experimental.Rendering
                         for (int x = 0; x < ProbeBrickPool.kBrickProbeCountPerDim; x++)
                         {
                             float xoff = ProbeOffsets[x];
-                            outProbePositions[posIdx] = offset + xoff * X + yoff * Y + zoff * Z;
+                            Vector3 probePosition = offset + xoff * X + yoff * Y + zoff * Z;
+                            // We need to round positions to the nearest multiple of the min distance between probes.
+                            // Otherwise, the deduplication could fail because of floating point precision issue.
+                            // This can lead to probes at the same position having different SH values, causing seams and other similar issues.
+                            Vector3 roundedPosition = new Vector3(Mathf.Round(probePosition.x / minDist) * minDist,
+                                Mathf.Round(probePosition.y / minDist) * minDist,
+                                Mathf.Round(probePosition.z / minDist) * minDist);
+                            outProbePositions[posIdx] = roundedPosition;
                             posIdx++;
                         }
                     }

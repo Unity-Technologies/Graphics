@@ -132,6 +132,14 @@ namespace UnityEngine.Rendering.HighDefinition
         internal static float ProjectionMatrixAspect(in Matrix4x4 matrix)
             => - matrix.m11 / matrix.m00;
 
+        /// <summary>
+        /// Determine if a projection matrix is off-center (asymmetric).
+        /// </summary>
+        /// <param name="matrix"></param>
+        /// <returns></returns>
+        internal static bool IsProjectionMatrixAsymmetric(in Matrix4x4 matrix)
+            => matrix.m02 != 0 || matrix.m12 != 0;
+
         internal static Matrix4x4 ComputePixelCoordToWorldSpaceViewDirectionMatrix(float verticalFoV, Vector2 lensShift, Vector4 screenSize, Matrix4x4 worldToViewMatrix, bool renderToCubemap, float aspectRatio = -1, bool isOrthographic = false)
         {
             Matrix4x4 viewSpaceRasterTransform;
