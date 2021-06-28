@@ -220,14 +220,8 @@ Shader "Hidden/HDRP/TemporalAA"
             float4 filterWeights = _TaaFilterWeights;
             // Yuck.
             #if CENTRAL_FILTERING  == UPSCALE_FILTER
-            /*     float stdDev = filterWeights.x;
-    float resScale = filterWeights.y;
-    float2 inputToOutput = filterWeights.zw;
-*/
             filterWeights.x = _TAAUFilterSigma;
             filterWeights.y = _TAAUResScale;
-
-            // SHOULD THE START UV BE + OR - JITTER ?
             filterWeights.zw = posOut - (floor(posOut) + 0.5);
 
             #endif
@@ -255,6 +249,10 @@ Shader "Hidden/HDRP/TemporalAA"
 
             // --------------- Compute blend factor for history ---------------
             float blendFactor = GetBlendFactor(colorLuma, historyLuma, GetLuma(samples.minNeighbour), GetLuma(samples.maxNeighbour));
+#if CENTRAL_FILTERING  == UPSCALE_FILTER
+            //GetUpsampleFilterWeight(int index, float2 inputToOutput, int2 positionSS, float resScale, float stdDev)
+            blendFactor *= GetUpsampleFilterWeight(-1, filterWeights.zw, input.positionCS.xy, _TAAUResScale*_TAAUResScale, _TAAUFilterSigma);
+#endif
             // --------------------------------------------------------
 
             // ------------------- Alpha handling ---------------------------
