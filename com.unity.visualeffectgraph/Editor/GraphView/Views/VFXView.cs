@@ -2570,8 +2570,8 @@ namespace UnityEditor.VFX.UI
         {
             foreach (var blackboardField in selection.OfType<VFXBlackboardField>())
             {
-                var newVfxParameter = VFXParameter.Duplicate(blackboardField.controller.model);
-
+                var copyName  = blackboardField.controller.MakeNameUnique(blackboardField.controller.exposedName);
+                var newVfxParameter = VFXParameter.Duplicate(copyName, blackboardField.controller.model);
                 this.controller.AddVFXModel(Vector2.zero, newVfxParameter);
             }
         }

@@ -3,6 +3,7 @@ using System.Linq;
 using System.Collections.Generic;
 using UnityEngine;
 using System.Collections.ObjectModel;
+using UnityEditor.VFX.UI;
 using UnityEngine.Serialization;
 
 namespace UnityEditor.VFX
@@ -24,11 +25,11 @@ namespace UnityEditor.VFX
             m_UICollapsed = false;
         }
 
-        public static VFXParameter Duplicate(VFXParameter source)
+        public static VFXParameter Duplicate(string copyName, VFXParameter source)
         {
             var newVfxParameter = (VFXParameter)ScriptableObject.CreateInstance(source.GetType());
 
-            newVfxParameter.m_ExposedName = source.m_ExposedName;
+            newVfxParameter.m_ExposedName = copyName;
             newVfxParameter.m_Exposed = source.m_Exposed;
             newVfxParameter.m_UICollapsed = source.m_UICollapsed;
             newVfxParameter.m_Order = source.m_Order;
@@ -48,7 +49,10 @@ namespace UnityEditor.VFX
                 .ToList()
                 .Select(x => VFXSlot.Create(new VFXPropertyWithValue(x.property, x.value), VFXSlot.Direction.kInput))
                 .ToArray();
-            newVfxParameter.value = source.value;
+            if (!source.isOutput)
+            {
+                newVfxParameter.value = source.value;
+            }
 
             return newVfxParameter;
         }
