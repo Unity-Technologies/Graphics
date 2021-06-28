@@ -310,12 +310,12 @@ namespace UnityEngine.Rendering.Universal
         {
             if ((DebugHandler != null) && DebugHandler.IsActiveForCamera(ref cameraData))
             {
-                if (DebugHandler.TryGetFullscreenDebugMode(out DebugFullScreenMode fullScreenDebugMode, out int outputHeight))
+                if (DebugHandler.TryGetFullscreenDebugMode(out DebugFullScreenMode fullScreenDebugMode, out int textureHeightPercent))
                 {
                     Camera camera = cameraData.camera;
                     float screenWidth = camera.pixelWidth;
                     float screenHeight = camera.pixelHeight;
-                    float height = Mathf.Min(outputHeight, screenHeight);
+                    float height = Mathf.Clamp01(textureHeightPercent / 100f) * screenHeight;
                     float width = height * (screenWidth / screenHeight);
                     float normalizedSizeX = width / screenWidth;
                     float normalizedSizeY = height / screenHeight;
@@ -529,7 +529,7 @@ namespace UnityEngine.Rendering.Universal
 
             if ((DebugHandler != null) && DebugHandler.IsActiveForCamera(ref cameraData))
             {
-                DebugHandler.TryGetFullscreenDebugMode(out var fullScreenMode, out int outputHeight);
+                DebugHandler.TryGetFullscreenDebugMode(out var fullScreenMode);
                 if (fullScreenMode == DebugFullScreenMode.Depth)
                 {
                     requiresDepthPrepass = true;
