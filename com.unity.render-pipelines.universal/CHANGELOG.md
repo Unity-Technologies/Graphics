@@ -72,6 +72,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - When MSAA is enabled and a depth texture is required, the opaque pass depth will be copied instead of scheduling a depth prepass.
 
 ### Fixed
+- Fixed an issue with the blend mode in Sprite-Lit-Default shader causing alpha to overwrite the framebuffer. [case 1331392](https://issuetracker.unity3d.com/product/unity/issues/guid/1331392/)
 - Fixed pixel perfect camera rect not being correctly initialized. [case 1312646](https://issuetracker.unity3d.com/product/unity/issues/guid/1312646/)
 - Camera Inspector Stack list edition fixes.
 - Fixed Opacity as Density blending artifacts on Terrain that that caused Terrain to have modified splat weights of zero in some areas and greater than one in others. [case 1283124](https://issuetracker.unity3d.com/product/unity/issues/guid/1283124/)
