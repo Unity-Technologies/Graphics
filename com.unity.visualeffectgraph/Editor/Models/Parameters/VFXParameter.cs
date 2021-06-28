@@ -24,27 +24,33 @@ namespace UnityEditor.VFX
             m_UICollapsed = false;
         }
 
-        public VFXParameter(VFXParameter source)
+        public static VFXParameter Duplicate(VFXParameter source)
         {
-            m_ExposedName = source.m_ExposedName;
-            m_Exposed = source.m_Exposed;
-            m_UICollapsed = source.m_UICollapsed;
-            m_Order = source.m_Order;
-            m_Category = source.m_Category;
-            m_Min = source.m_Min;
-            m_Max = source.m_Max;
-            m_IsOutput = source.m_IsOutput;
-            m_EnumValues = source.m_EnumValues?.ToList();
-            m_Tooltip = source.m_Tooltip;
-            m_ValueFilter = source.m_ValueFilter;
-            subgraphMode = source.subgraphMode;
-            m_ValueExpr = source.m_ValueExpr;
+            var newVfxParameter = (VFXParameter)ScriptableObject.CreateInstance(source.GetType());
 
-            this.Init(source.type);
-            for (var i = 0; i < source.m_ExprSlots?.Length; i++)
-            {
-                m_ExprSlots[i].value = source.m_ExprSlots[i].value;
-            }
+            newVfxParameter.m_ExposedName = source.m_ExposedName;
+            newVfxParameter.m_Exposed = source.m_Exposed;
+            newVfxParameter.m_UICollapsed = source.m_UICollapsed;
+            newVfxParameter.m_Order = source.m_Order;
+            newVfxParameter.m_Category = source.m_Category;
+            newVfxParameter.m_Min = source.m_Min;
+            newVfxParameter.m_Max = source.m_Max;
+            newVfxParameter.m_IsOutput = source.m_IsOutput;
+            newVfxParameter.m_EnumValues = source.m_EnumValues?.ToList();
+            newVfxParameter.m_Tooltip = source.m_Tooltip;
+            newVfxParameter.m_ValueFilter = source.m_ValueFilter;
+            newVfxParameter.subgraphMode = source.subgraphMode;
+            newVfxParameter.m_ValueExpr = source.m_ValueExpr;
+
+            newVfxParameter.Init(source.type);
+
+            newVfxParameter.m_ExprSlots = source.m_ExprSlots?
+                .ToList()
+                .Select(x => VFXSlot.Create(new VFXPropertyWithValue(x.property, x.value), VFXSlot.Direction.kInput))
+                .ToArray();
+            newVfxParameter.value = source.value;
+
+            return newVfxParameter;
         }
 
         [VFXSetting(VFXSettingAttribute.VisibleFlags.None), SerializeField, FormerlySerializedAs("m_exposedName")]
