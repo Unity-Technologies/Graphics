@@ -154,7 +154,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph.Legacy
         public HDRenderQueue.RenderQueueType m_RenderingPass;
         public bool m_BlendPreserveSpecular;
         public bool m_TransparencyFog;
-        public ScreenSpaceRefraction.RefractionModel m_RefractionModel;
+        public Refraction.RefractionModel m_RefractionModel;
         public bool m_Distortion;
         public DistortionMode m_DistortionMode;
         public bool m_DistortionDepthTest;

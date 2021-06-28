@@ -78,7 +78,7 @@ namespace UnityEngine.Rendering.HighDefinition
             public TextureHandle outputBuffer;
         }
 
-        TextureHandle DirGenRTR(RenderGraph renderGraph, HDCamera hdCamera, ScreenSpaceReflection settings, TextureHandle depthBuffer, TextureHandle stencilBuffer, TextureHandle normalBuffer, TextureHandle clearCoatTexture, bool transparent)
+        TextureHandle DirGenRTR(RenderGraph renderGraph, HDCamera hdCamera, Reflection settings, TextureHandle depthBuffer, TextureHandle stencilBuffer, TextureHandle normalBuffer, TextureHandle clearCoatTexture, bool transparent)
         {
             using (var builder = renderGraph.AddRenderPass<DirGenRTRPassData>("Generating the rays for RTR", out var passData, ProfilingSampler.Get(HDProfileId.RaytracingReflectionDirectionGeneration)))
             {
@@ -171,7 +171,7 @@ namespace UnityEngine.Rendering.HighDefinition
             public TextureHandle outputTexture;
         }
 
-        TextureHandle AdjustWeightRTR(RenderGraph renderGraph, HDCamera hdCamera, ScreenSpaceReflection settings,
+        TextureHandle AdjustWeightRTR(RenderGraph renderGraph, HDCamera hdCamera, Reflection settings,
             TextureHandle depthPyramid, TextureHandle normalBuffer, TextureHandle clearCoatTexture, TextureHandle lightingTexture, TextureHandle directionTexture)
         {
             using (var builder = renderGraph.AddRenderPass<AdjustWeightRTRPassData>("Adjust Weight RTR", out var passData, ProfilingSampler.Get(HDProfileId.RaytracingReflectionAdjustWeight)))
@@ -300,7 +300,7 @@ namespace UnityEngine.Rendering.HighDefinition
             DeferredLightingRTParameters deferredParameters = new DeferredLightingRTParameters();
 
             // Fetch the GI volume component
-            var settings = hdCamera.volumeStack.GetComponent<ScreenSpaceReflection>();
+            var settings = hdCamera.volumeStack.GetComponent<Reflection>();
             RayTracingSettings rTSettings = hdCamera.volumeStack.GetComponent<RayTracingSettings>();
 
             // Make sure the binning buffer has the right size
@@ -366,7 +366,7 @@ namespace UnityEngine.Rendering.HighDefinition
             TextureHandle rtrResult;
 
             // Fetch all the settings
-            ScreenSpaceReflection settings = hdCamera.volumeStack.GetComponent<ScreenSpaceReflection>();
+            Reflection settings = hdCamera.volumeStack.GetComponent<Reflection>();
 
             TextureHandle directionBuffer = DirGenRTR(renderGraph, hdCamera, settings, prepassOutput.depthBuffer, prepassOutput.stencilBuffer, prepassOutput.normalBuffer, clearCoatTexture, transparent);
 
@@ -427,7 +427,7 @@ namespace UnityEngine.Rendering.HighDefinition
             public TextureHandle outputTexture;
         }
 
-        TextureHandle QualityRTR(RenderGraph renderGraph, HDCamera hdCamera, ScreenSpaceReflection settings,
+        TextureHandle QualityRTR(RenderGraph renderGraph, HDCamera hdCamera, Reflection settings,
             TextureHandle depthPyramid, TextureHandle stencilBuffer, TextureHandle normalBuffer, TextureHandle clearCoatTexture, TextureHandle rayCountTexture, bool transparent)
         {
             using (var builder = renderGraph.AddRenderPass<TraceQualityRTRPassData>("Quality RT Reflections", out var passData, ProfilingSampler.Get(HDProfileId.RaytracingReflectionEvaluation)))
@@ -533,7 +533,7 @@ namespace UnityEngine.Rendering.HighDefinition
         {
             TextureHandle rtrResult;
 
-            var settings = hdCamera.volumeStack.GetComponent<ScreenSpaceReflection>();
+            var settings = hdCamera.volumeStack.GetComponent<Reflection>();
             rtrResult = QualityRTR(renderGraph, hdCamera, settings, depthPyramid, stencilBuffer, normalBuffer, clearCoatTexture, rayCountTexture, transparent);
 
             // Denoise if required
@@ -565,7 +565,7 @@ namespace UnityEngine.Rendering.HighDefinition
             in PrepassOutput prepassOutput, TextureHandle clearCoatTexture, Texture skyTexture, TextureHandle rayCountTexture,
             ShaderVariablesRaytracing shaderVariablesRaytracing, bool transparent)
         {
-            ScreenSpaceReflection reflectionSettings = hdCamera.volumeStack.GetComponent<ScreenSpaceReflection>();
+            Reflection reflectionSettings = hdCamera.volumeStack.GetComponent<Reflection>();
 
             bool qualityMode = false;
 

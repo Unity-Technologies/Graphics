@@ -109,7 +109,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
             AddDistortionFields(ref context);
             var descs = context.blocks.Select(x => x.descriptor);
 
-            bool hasRefraction = (systemData.surfaceType == SurfaceType.Transparent && litData.refractionModel != ScreenSpaceRefraction.RefractionModel.None);
+            bool hasRefraction = (systemData.surfaceType == SurfaceType.Transparent && litData.refractionModel != UnityEngine.Rendering.HighDefinition.Refraction.RefractionModel.None);
 
             // Lit specific properties
             context.AddField(DotsProperties,                       context.hasDotsProperties);
@@ -152,7 +152,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
 
         public override void GetActiveBlocks(ref TargetActiveBlockContext context)
         {
-            bool hasRefraction = (systemData.surfaceType == SurfaceType.Transparent && systemData.renderQueueType != HDRenderQueue.RenderQueueType.PreRefraction && litData.refractionModel != ScreenSpaceRefraction.RefractionModel.None);
+            bool hasRefraction = (systemData.surfaceType == SurfaceType.Transparent && systemData.renderQueueType != HDRenderQueue.RenderQueueType.PreRefraction && litData.refractionModel != UnityEngine.Rendering.HighDefinition.Refraction.RefractionModel.None);
             bool hasDistortion = (systemData.surfaceType == SurfaceType.Transparent && builtinData.distortion);
 
             // Vertex
@@ -208,7 +208,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                 floatType = FloatType.Enum,
                 hidden = true,
                 value = (int)litData.refractionModel,
-                enumNames = Enum.GetNames(typeof(ScreenSpaceRefraction.RefractionModel)).ToList(),
+                enumNames = Enum.GetNames(typeof(Refraction.RefractionModel)).ToList(),
                 overrideReferenceName = kRefractionModel,
             });
 

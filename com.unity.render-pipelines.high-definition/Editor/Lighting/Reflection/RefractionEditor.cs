@@ -3,14 +3,14 @@ using UnityEngine.Rendering.HighDefinition;
 namespace UnityEditor.Rendering.HighDefinition
 {
     [CanEditMultipleObjects]
-    [VolumeComponentEditor(typeof(ScreenSpaceRefraction))]
-    class ScreenSpaceRefractionEditor : VolumeComponentEditor
+    [VolumeComponentEditor(typeof(Refraction))]
+    class RefractionEditor : VolumeComponentEditor
     {
         protected SerializedDataParameter m_ScreenFadeDistance;
 
         public override void OnEnable()
         {
-            var o = new PropertyFetcher<ScreenSpaceRefraction>(serializedObject);
+            var o = new PropertyFetcher<Refraction>(serializedObject);
 
             m_ScreenFadeDistance = Unpack(o.Find(x => x.screenFadeDistance));
         }

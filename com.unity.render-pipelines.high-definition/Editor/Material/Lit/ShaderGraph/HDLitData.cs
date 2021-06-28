@@ -33,8 +33,8 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
         }
 
         [SerializeField]
-        ScreenSpaceRefraction.RefractionModel m_RefractionModel;
-        public ScreenSpaceRefraction.RefractionModel refractionModel
+        Refraction.RefractionModel m_RefractionModel;
+        public Refraction.RefractionModel refractionModel
         {
             get => m_RefractionModel;
             set => m_RefractionModel = value;

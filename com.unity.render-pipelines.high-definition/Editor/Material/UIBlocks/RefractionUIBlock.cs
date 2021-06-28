@@ -82,11 +82,11 @@ namespace UnityEditor.Rendering.HighDefinition
             if (refractionModel != null)
             {
                 materialEditor.ShaderProperty(refractionModel, Styles.refractionModelText);
-                var mode = (ScreenSpaceRefraction.RefractionModel)refractionModel.floatValue;
+                var mode = (Refraction.RefractionModel)refractionModel.floatValue;
                 switch (mode)
                 {
-                    case ScreenSpaceRefraction.RefractionModel.Box:
-                    case ScreenSpaceRefraction.RefractionModel.Sphere:
+                    case Refraction.RefractionModel.Box:
+                    case Refraction.RefractionModel.Sphere:
                     {
                         if (ior != null)
                             materialEditor.ShaderProperty(ior, Styles.refractionIorText);
@@ -115,7 +115,7 @@ namespace UnityEditor.Rendering.HighDefinition
                         }
                     }
                     break;
-                    case ScreenSpaceRefraction.RefractionModel.Thin:
+                    case Refraction.RefractionModel.Thin:
                     {
                         if (ior != null)
                             materialEditor.ShaderProperty(ior, Styles.refractionIorText);

@@ -6,7 +6,7 @@ namespace UnityEngine.Rendering.HighDefinition
     /// <summary>
     /// A volume component that holds settings for the global illumination (screen space and ray traced).
     /// </summary>
-    [Serializable, VolumeComponentMenu("Lighting/Screen Space Global Illumination")]
+    [Serializable, VolumeComponentMenu("Lighting/Global Illumination")]
     [HDRPHelpURLAttribute("Ray-Traced-Global-Illumination")]
     public sealed class GlobalIllumination : VolumeComponentWithQuality
     {
@@ -38,7 +38,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
         GlobalIllumination()
         {
-            displayName = "Screen Space Global Illumination";
+            displayName = "Global Illumination";
         }
 
         /// <summary>

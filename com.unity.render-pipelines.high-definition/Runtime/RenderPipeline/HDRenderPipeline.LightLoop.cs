@@ -427,7 +427,7 @@ namespace UnityEngine.Rendering.HighDefinition
             public HDCamera hdCamera;
         }
 
-        void UpdateSSRConstantBuffer(HDCamera hdCamera, ScreenSpaceReflection settings, ref ShaderVariablesScreenSpaceReflection cb)
+        void UpdateSSRConstantBuffer(HDCamera hdCamera, Reflection settings, ref ShaderVariablesScreenSpaceReflection cb)
         {
             float n = hdCamera.camera.nearClipPlane;
             float f = hdCamera.camera.farClipPlane;
@@ -466,9 +466,9 @@ namespace UnityEngine.Rendering.HighDefinition
 
             TextureHandle result;
 
-            var settings = hdCamera.volumeStack.GetComponent<ScreenSpaceReflection>();
+            var settings = hdCamera.volumeStack.GetComponent<Reflection>();
 
-            bool usesRaytracedReflections = hdCamera.frameSettings.IsEnabled(FrameSettingsField.RayTracing) && ScreenSpaceReflection.RayTracingActive(settings);
+            bool usesRaytracedReflections = hdCamera.frameSettings.IsEnabled(FrameSettingsField.RayTracing) && Reflection.RayTracingActive(settings);
             if (usesRaytracedReflections)
             {
                 result = RenderRayTracedReflections(renderGraph, hdCamera,
@@ -493,7 +493,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
                     bool usePBRAlgo = !transparent && settings.usedAlgorithm.value == ScreenSpaceReflectionAlgorithm.PBRAccumulation;
                     var colorPyramid = renderGraph.ImportTexture(hdCamera.GetPreviousFrameRT((int)HDCameraFrameHistoryType.ColorBufferMipChain));
-                    var volumeSettings = hdCamera.volumeStack.GetComponent<ScreenSpaceReflection>();
+                    var volumeSettings = hdCamera.volumeStack.GetComponent<Reflection>();
 
                     UpdateSSRConstantBuffer(hdCamera, volumeSettings, ref passData.cb);
 

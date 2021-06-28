@@ -268,7 +268,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
             }
 
             // Refraction
-            bool hasRefraction = (systemData.surfaceType == SurfaceType.Transparent && systemData.renderQueueType != HDRenderQueue.RenderQueueType.PreRefraction && litData.refractionModel != ScreenSpaceRefraction.RefractionModel.None);
+            bool hasRefraction = (systemData.surfaceType == SurfaceType.Transparent && systemData.renderQueueType != HDRenderQueue.RenderQueueType.PreRefraction && litData.refractionModel != UnityEngine.Rendering.HighDefinition.Refraction.RefractionModel.None);
             if (hasRefraction)
             {
                 if (!blockMap.TryGetValue(HDBlockFields.SurfaceDescription.Thickness, out _))

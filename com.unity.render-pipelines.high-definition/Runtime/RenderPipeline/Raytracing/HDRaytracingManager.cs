@@ -441,8 +441,8 @@ namespace UnityEngine.Rendering.HighDefinition
 
             AmbientOcclusion aoSettings = hdCamera.volumeStack.GetComponent<AmbientOcclusion>();
             bool rtAOEnabled = aoSettings.rayTracing.value && hdCamera.frameSettings.IsEnabled(FrameSettingsField.SSAO);
-            ScreenSpaceReflection reflSettings = hdCamera.volumeStack.GetComponent<ScreenSpaceReflection>();
-            bool rtREnabled = reflSettings.enabled.value && ScreenSpaceReflection.RayTracingActive(reflSettings) && hdCamera.frameSettings.IsEnabled(FrameSettingsField.SSR);
+            Reflection reflSettings = hdCamera.volumeStack.GetComponent<Reflection>();
+            bool rtREnabled = reflSettings.enabled.value && Reflection.RayTracingActive(reflSettings) && hdCamera.frameSettings.IsEnabled(FrameSettingsField.SSR);
             GlobalIllumination giSettings = hdCamera.volumeStack.GetComponent<GlobalIllumination>();
             bool rtGIEnabled = giSettings.enable.value && GlobalIllumination.RayTracingActive(giSettings) && hdCamera.frameSettings.IsEnabled(FrameSettingsField.SSGI);
             RecursiveRendering recursiveSettings = hdCamera.volumeStack.GetComponent<RecursiveRendering>();
@@ -512,7 +512,7 @@ namespace UnityEngine.Rendering.HighDefinition
                             AddInstanceToRAS(currentRenderer,
                                 rayTracedShadows,
                                 aoSettings.rayTracing.value, aoSettings.layerMask.value,
-                                ScreenSpaceReflection.RayTracingActive(reflSettings), reflSettings.layerMask.value,
+                                Reflection.RayTracingActive(reflSettings), reflSettings.layerMask.value,
                                 GlobalIllumination.RayTracingActive(giSettings), giSettings.layerMask.value,
                                 recursiveSettings.enable.value, recursiveSettings.layerMask.value,
                                 pathTracingSettings.enable.value, pathTracingSettings.layerMask.value);
@@ -563,7 +563,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 AddInstanceToRAS(currentRenderer,
                     rayTracedShadows,
                     aoSettings.rayTracing.value, aoSettings.layerMask.value,
-                    ScreenSpaceReflection.RayTracingActive(reflSettings), reflSettings.layerMask.value,
+                    Reflection.RayTracingActive(reflSettings), reflSettings.layerMask.value,
                     GlobalIllumination.RayTracingActive(giSettings), giSettings.layerMask.value,
                     recursiveSettings.enable.value, recursiveSettings.layerMask.value,
                     pathTracingSettings.enable.value, pathTracingSettings.layerMask.value);
@@ -609,14 +609,14 @@ namespace UnityEngine.Rendering.HighDefinition
 
         internal bool RayTracingLightClusterRequired(HDCamera hdCamera)
         {
-            ScreenSpaceReflection reflSettings = hdCamera.volumeStack.GetComponent<ScreenSpaceReflection>();
+            Reflection reflSettings = hdCamera.volumeStack.GetComponent<Reflection>();
             GlobalIllumination giSettings = hdCamera.volumeStack.GetComponent<GlobalIllumination>();
             RecursiveRendering recursiveSettings = hdCamera.volumeStack.GetComponent<RecursiveRendering>();
             PathTracing pathTracingSettings = hdCamera.volumeStack.GetComponent<PathTracing>();
             SubSurfaceScattering subSurface = hdCamera.volumeStack.GetComponent<SubSurfaceScattering>();
 
             return (m_ValidRayTracingState &&
-                (ScreenSpaceReflection.RayTracingActive(reflSettings)
+                (Reflection.RayTracingActive(reflSettings)
                     || GlobalIllumination.RayTracingActive(giSettings)
                     || recursiveSettings.enable.value
                     || pathTracingSettings.enable.value

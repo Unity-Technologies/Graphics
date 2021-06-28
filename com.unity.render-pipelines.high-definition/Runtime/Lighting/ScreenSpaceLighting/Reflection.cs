@@ -33,9 +33,9 @@ namespace UnityEngine.Rendering.HighDefinition
     /// <summary>
     /// A volume component that holds settings for screen space reflection and ray traced reflections.
     /// </summary>
-    [Serializable, VolumeComponentMenu("Lighting/Screen Space Reflection")]
-    [HDRPHelpURLAttribute("Override-Screen-Space-Reflection")]
-    public class ScreenSpaceReflection : VolumeComponentWithQuality
+    [Serializable, VolumeComponentMenu("Lighting/Reflection")]
+    [HDRPHelpURLAttribute("Override-Reflection")]
+    public class Reflection : VolumeComponentWithQuality
     {
         bool UsesRayTracingQualityMode()
         {
@@ -297,7 +297,7 @@ namespace UnityEngine.Rendering.HighDefinition
         private MinIntParameter m_RayMaxIterationsRT = new MinIntParameter(48, 0);
         #endregion
 
-        internal static bool RayTracingActive(ScreenSpaceReflection volume)
+        internal static bool RayTracingActive(Reflection volume)
         {
             return volume.tracing.value != RayCastingMode.RayMarching;
         }

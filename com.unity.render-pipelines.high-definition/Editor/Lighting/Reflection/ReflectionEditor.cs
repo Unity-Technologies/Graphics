@@ -5,8 +5,8 @@ using UnityEngine.Rendering;
 namespace UnityEditor.Rendering.HighDefinition
 {
     [CanEditMultipleObjects]
-    [VolumeComponentEditor(typeof(ScreenSpaceReflection))]
-    class HDScreenSpaceReflectionEditor : VolumeComponentWithQualityEditor
+    [VolumeComponentEditor(typeof(Reflection))]
+    class ReflectionEditor : VolumeComponentWithQualityEditor
     {
         // Shared data
         SerializedDataParameter m_Enable;
@@ -45,7 +45,7 @@ namespace UnityEditor.Rendering.HighDefinition
 
         public override void OnEnable()
         {
-            var o = new PropertyFetcher<ScreenSpaceReflection>(serializedObject);
+            var o = new PropertyFetcher<Reflection>(serializedObject);
 
             // Shared data
             m_Enable                        = Unpack(o.Find(x => x.enabled));
