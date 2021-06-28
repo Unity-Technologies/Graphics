@@ -32,7 +32,7 @@ namespace UnityEditor.VFX
             newVfxParameter.m_ExposedName = copyName;
             newVfxParameter.m_Exposed = source.m_Exposed;
             newVfxParameter.m_UICollapsed = source.m_UICollapsed;
-            newVfxParameter.m_Order = source.m_Order;
+            newVfxParameter.m_Order = source.m_Order + 1;
             newVfxParameter.m_Category = source.m_Category;
             newVfxParameter.m_Min = source.m_Min;
             newVfxParameter.m_Max = source.m_Max;
