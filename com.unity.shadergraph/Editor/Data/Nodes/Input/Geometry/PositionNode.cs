@@ -17,30 +17,8 @@ namespace UnityEditor.ShaderGraph
         private const int kOutputSlotId = 0;
         public const string kOutputSlotName = "Out";
         public override List<CoordinateSpace> validSpaces => new List<CoordinateSpace> {CoordinateSpace.Object, CoordinateSpace.View, CoordinateSpace.World, CoordinateSpace.Tangent, CoordinateSpace.AbsoluteWorld};
-
-        public List<TessellationOption> validTessellationOptions => new List<TessellationOption> { TessellationOption.Default, TessellationOption.Predisplacement };
-
         [SerializeField]
-        private TessellationOption m_TessellationOption = TessellationOption.Default;
-
-        [PopupControl("Tessellation")]
-        public PopupList tessellationPopup
-        {
-            get
-            {
-                var names = validTessellationOptions.Select(cs => cs.ToString().PascalToLabel()).ToArray();
-                return new PopupList(names, (int)m_TessellationOption);
-            }
-            set
-            {
-                if (m_TessellationOption == (TessellationOption)value.selectedEntry)
-                    return;
-
-                m_TessellationOption = (TessellationOption)value.selectedEntry;
-                Dirty(ModificationScope.Graph);
-            }
-        }
-        public TessellationOption tessellationOption => m_TessellationOption;
+        internal TessellationOption m_TessellationOption = TessellationOption.Default;
 
         public PositionNode()
         {
@@ -77,7 +55,7 @@ namespace UnityEditor.ShaderGraph
 
         public bool RequiresPredisplacement(ShaderStageCapability stageCapability = ShaderStageCapability.All)
         {
-            return tessellationOption == TessellationOption.Predisplacement;
+            return m_TessellationOption == TessellationOption.Predisplacement;
         }
 
         public override void OnAfterMultiDeserialize(string json)
