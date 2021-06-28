@@ -28,6 +28,19 @@ namespace UnityEditor.VFX.Test
             return VisualEffectAssetEditorUtility.CreateNewAsset(path);
         }
 
+        [Test]
+        public void Sanitize_Shape_To_TShape()
+        {
+            var kSourceAsset = "Assets/AllTests/Editor/Tests/VFXSanitizeTShape.vfx_";
+            var graph = VFXTestCommon.CopyTemporaryGraph(kSourceAsset);
+
+            {
+                var volumes = graph.children.OfType<Operator.SphereVolume>().ToArray();
+                Assert.AreEqual(3, volumes.Count());
+            }
+
+        }
+
         [OneTimeSetUpAttribute]
         public void OneTimeSetUpAttribute()
         {
