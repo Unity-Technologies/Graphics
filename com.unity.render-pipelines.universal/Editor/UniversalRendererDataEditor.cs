@@ -10,7 +10,7 @@ namespace UnityEditor.Rendering.Universal
         private static class Styles
         {
             public static readonly GUIContent RendererTitle = new GUIContent("Universal Renderer", "Custom Universal Renderer for Universal RP.");
-            public static readonly GUIContent PostProcessIncluded = EditorGUIUtility.TrTextContent("Enabled", "Turns post-processing on (check box selected) or off (check box cleared). If you clear this check box, Unity excludes post-processing render Passes, shaders, and textures from the build.");
+            public static readonly GUIContent PostProcessIncluded = EditorGUIUtility.TrTextContent("Enabled", "Enables the use of post processing effects within the scene. If disabled, Unity excludes post processing renderer Passes, shaders and textures from the build.");
             public static readonly GUIContent PostProcessLabel = new GUIContent("Data", "The asset containing references to shaders and Textures that the Renderer uses for post-processing.");
             public static readonly GUIContent FilteringSectionLabel = new GUIContent("Filtering", "Settings that controls and define which layers the renderer draws.");
             public static readonly GUIContent OpaqueMask = new GUIContent("Opaque Layer Mask", "Controls which opaque layers this renderer draws.");
