@@ -34,26 +34,25 @@ Pass
     #include "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/ShaderPass/ShaderPass.cs.hlsl"
 
     // Defines
-    $AttributesMesh.normalOS:                           #define ATTRIBUTES_NEED_NORMAL
-    $AttributesMesh.tangentOS:                          #define ATTRIBUTES_NEED_TANGENT
-    $AttributesMesh.uv0:                                #define ATTRIBUTES_NEED_TEXCOORD0
-    $AttributesMesh.uv1:                                #define ATTRIBUTES_NEED_TEXCOORD1
-    $AttributesMesh.uv2:                                #define ATTRIBUTES_NEED_TEXCOORD2
-    $AttributesMesh.uv3:                                #define ATTRIBUTES_NEED_TEXCOORD3
-    $AttributesMesh.color:                              #define ATTRIBUTES_NEED_COLOR
-    $VaryingsMeshToPS.positionRWS:                      #define VARYINGS_NEED_POSITION_WS
-    $VaryingsMeshToPS.positionPredisplacementRWS:       #define VARYINGS_NEED_POSITIONPREDISPLACEMENT_WS
-    $VaryingsMeshToPS.normalWS:                         #define VARYINGS_NEED_TANGENT_TO_WORLD
-    $VaryingsMeshToPS.texCoord0:                        #define VARYINGS_NEED_TEXCOORD0
-    $VaryingsMeshToPS.texCoord1:                        #define VARYINGS_NEED_TEXCOORD1
-    $VaryingsMeshToPS.texCoord2:                        #define VARYINGS_NEED_TEXCOORD2
-    $VaryingsMeshToPS.texCoord3:                        #define VARYINGS_NEED_TEXCOORD3
-    $VaryingsMeshToPS.color:                            #define VARYINGS_NEED_COLOR
+    $AttributesMesh.normalOS:               #define ATTRIBUTES_NEED_NORMAL
+    $AttributesMesh.tangentOS:              #define ATTRIBUTES_NEED_TANGENT
+    $AttributesMesh.uv0:                    #define ATTRIBUTES_NEED_TEXCOORD0
+    $AttributesMesh.uv1:                    #define ATTRIBUTES_NEED_TEXCOORD1
+    $AttributesMesh.uv2:                    #define ATTRIBUTES_NEED_TEXCOORD2
+    $AttributesMesh.uv3:                    #define ATTRIBUTES_NEED_TEXCOORD3
+    $AttributesMesh.color:                  #define ATTRIBUTES_NEED_COLOR
+    $VaryingsMeshToPS.positionRWS:          #define VARYINGS_NEED_POSITION_WS
+    $VaryingsMeshToPS.normalWS:             #define VARYINGS_NEED_TANGENT_TO_WORLD
+    $VaryingsMeshToPS.texCoord0:            #define VARYINGS_NEED_TEXCOORD0
+    $VaryingsMeshToPS.texCoord1:            #define VARYINGS_NEED_TEXCOORD1
+    $VaryingsMeshToPS.texCoord2:            #define VARYINGS_NEED_TEXCOORD2
+    $VaryingsMeshToPS.texCoord3:            #define VARYINGS_NEED_TEXCOORD3
+    $VaryingsMeshToPS.color:                #define VARYINGS_NEED_COLOR
     
-    $features.graphVertex:                              #define HAVE_MESH_MODIFICATION
+    $features.graphVertex:                  #define HAVE_MESH_MODIFICATION
 
-    $SurfaceDescriptionInputs.FaceSign:                 // Define when IsFontFaceNode is included in ShaderGraph
-    $SurfaceDescriptionInputs.FaceSign:                 #define VARYINGS_NEED_CULLFACE
+    $SurfaceDescriptionInputs.FaceSign:     // Define when IsFontFaceNode is included in ShaderGraph
+    $SurfaceDescriptionInputs.FaceSign:     #define VARYINGS_NEED_CULLFACE
 
     $splice(GraphDefines)
 
@@ -113,7 +112,6 @@ Pass
             fragInputs.texCoord2.xy = fragInputs.texCoord2.xy * scale + offset;
             fragInputs.texCoord3.xy = fragInputs.texCoord3.xy * scale + offset;
             fragInputs.positionRWS = posInput.positionWS;
-            fragInputs.positionPredisplacementRWS = posInput.positionPredisplacementWS;
             fragInputs.tangentToWorld[2].xyz = TransformObjectToWorldDir(float3(0, 1, 0));
             fragInputs.tangentToWorld[1].xyz = TransformObjectToWorldDir(float3(0, 0, 1));
         #else

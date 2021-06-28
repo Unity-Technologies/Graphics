@@ -160,8 +160,11 @@ PackedVaryingsToPS Domain(TessellationFactors tessFactors, const OutputPatch<Pac
     varying.vmesh.positionRWS = PhongTessellation(  varying.vmesh.positionRWS,
                                                     p0, p1, p2, n0, n1, n2,
                                                     baryCoords, _TessellationShapeFactor);
-						    
+
+#ifdef VARYINGS_NEED_POSITIONPREDISPLACEMENT_WS
     varying.vmesh.positionPredisplacementRWS = varying.vmesh.positionRWS;
+#endif
+
 #endif
 
 #ifdef HAVE_TESSELLATION_MODIFICATION

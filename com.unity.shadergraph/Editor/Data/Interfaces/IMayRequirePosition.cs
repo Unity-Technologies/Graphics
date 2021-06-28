@@ -20,7 +20,6 @@ namespace UnityEditor.ShaderGraph
         public static bool RequiresPredisplacement(this MaterialSlot slot)
         {
             var mayRequirePosition = slot as IMayRequirePosition;
-
             return mayRequirePosition != null && mayRequirePosition.RequiresPredisplacement();
         }
     }

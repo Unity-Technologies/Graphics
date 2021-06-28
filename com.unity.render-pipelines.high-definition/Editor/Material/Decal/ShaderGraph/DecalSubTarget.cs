@@ -413,7 +413,6 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                 HDStructFields.AttributesMesh.uv0,
                 HDStructFields.FragInputs.tangentToWorld,
                 HDStructFields.FragInputs.positionRWS,
-                HDStructFields.FragInputs.positionPredisplacementRWS,
                 HDStructFields.FragInputs.texCoord0,
             };
         }
