@@ -309,6 +309,7 @@ namespace UnityEngine.Rendering.HighDefinition
         BoolParameter m_HighQualityFiltering = new BoolParameter(true);
 
         [AdditionalProperty]
+        [Tooltip("When enabled, HDRP uses a more accurate but slower physically based algorithm to compute the depth of field effect.")]
         [SerializeField]
         BoolParameter m_PhysicallyBased = new BoolParameter(false);
 
