@@ -11,6 +11,7 @@
 PR_HDRP_DXR_2021.1:
     name: PR HDRP_DXR on 2021.1
     variables:
+        CUSTOM_REVISION: '{{2021_1.changeset.id}}'
         UTR_VERSION: "current"
         TEST_FILTER: .*
         CACHE_ARGS: '{{cache.flags}}'
@@ -20,6 +21,7 @@ PR_HDRP_DXR_2021.1:
 Extra_HDRP_DXR_2021.1:
     name: Extra HDRP_DXR on 2021.1
     variables:
+        CUSTOM_REVISION: '{{2021_1.changeset.id}}'
         UTR_VERSION: "current"
         TEST_FILTER: .*
         CACHE_ARGS: '{{cache.flags}}'
@@ -29,6 +31,7 @@ Extra_HDRP_DXR_2021.1:
 HDRP_DXR_2021.1:
     name: HDRP_DXR on 2021.1
     variables:
+        CUSTOM_REVISION: '{{2021_1.changeset.id}}'
         UTR_VERSION: "current"
         TEST_FILTER: .*
         CACHE_ARGS: '{{cache.flags}}'
