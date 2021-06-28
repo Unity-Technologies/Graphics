@@ -23,13 +23,23 @@ namespace UnityEditor.ShaderGraph.UnitTests
         {
         }
 
-        SubGraphNode FindSubgraphNode(GraphData graphData, string subGraphNodeName)
+        NodeType FindFirstNodeOfType<NodeType>(GraphData graphData, string nodeName = null) where NodeType : AbstractMaterialNode
         {
-            var subGraphNodes = graphData.GetNodes<SubGraphNode>();
-            foreach (var subGraphNode in subGraphNodes)
+            var nodes = graphData.GetNodes<NodeType>();
+            foreach (var node in nodes)
             {
-                if (subGraphNode.name == subGraphNodeName)
-                    return subGraphNode;
+                if (nodeName == null || node.name == nodeName)
+                    return node;
+            }
+            return null;
+        }
+
+        MaterialSlot FindNamedSlot(AbstractMaterialNode node, string slotName)
+        {
+            foreach (var slot in node.GetSlots<MaterialSlot>())
+            {
+                if (slot.RawDisplayName() == slotName)
+                    return slot;
             }
             return null;
         }
@@ -48,7 +58,7 @@ namespace UnityEditor.ShaderGraph.UnitTests
             graphData.ValidateGraph();            
 
             var subGraphnodeName = "ShaderStageCapability_SubGraph";
-            var subGraphNode = FindSubgraphNode(graphData, subGraphnodeName);
+            var subGraphNode = FindFirstNodeOfType<SubGraphNode>(graphData, subGraphnodeName);
             if(subGraphNode == null)
             {
                 Assert.Fail("Failed to find sub graph node for {0}", subGraphnodeName);
@@ -96,6 +106,63 @@ namespace UnityEditor.ShaderGraph.UnitTests
                 else
                     Assert.Fail("Expected slot {0} wasn't found", slotName);
             }
+        }
+
+        [Test]
+        public void InvalidConnectionsTest()
+        {
+            var graphPath = targetUnityDirectoryPath + "/SubShaderInvalidCapabilities_Graph.shadergraph";
+
+            string fileContents = File.ReadAllText(graphPath);
+            var graphGuid = AssetDatabase.AssetPathToGUID(graphPath);
+            var messageManager = new MessageManager();
+            GraphData graphData = new GraphData() { assetGuid = graphGuid, messageManager = messageManager };
+            MultiJson.Deserialize(graphData, fileContents);
+            graphData.OnEnable();
+
+            void ValidateSlotError(MaterialSlot slotA, MaterialSlot slotB, AbstractMaterialNode nodeWithError)
+            {
+                Assert.IsNotNull(slotA, "Expected slotA to not be null");
+                Assert.IsNotNull(slotB, "Expected slotB to not be null");
+                var edge = graphData.Connect(slotA.slotReference, slotB.slotReference);
+                
+                bool foundNode = false;
+                foreach (var message in graphData.messageManager.GetNodeMessages())
+                {
+                    if (message.Key.Equals(nodeWithError.objectId))
+                    {
+                        foundNode = true;
+                        break;
+                    }
+                    
+                }
+                Assert.IsTrue(foundNode, $"Expected node {nodeWithError.name} didn't have an error");
+
+                // Put the graph back in a clean state
+                graphData.messageManager.ClearAll();
+                graphData.RemoveEdge(edge);
+            }
+            
+            var subGraphNode = FindFirstNodeOfType<SubGraphNode>(graphData, "SubShaderInvalidCapabilities_SubGraph");
+            var vertexIdNode = FindFirstNodeOfType<VertexIDNode>(graphData);
+            var sampleTextureNode = FindFirstNodeOfType<SampleTexture2DNode>(graphData);
+            var baseColorNode = FindFirstNodeOfType<BlockNode>(graphData, $"{BlockFields.SurfaceDescription.BaseColor.tag}.{BlockFields.SurfaceDescription.BaseColor.name}");
+            var positionNode = FindFirstNodeOfType<BlockNode>(graphData, $"{BlockFields.VertexDescription.Position.tag}.{BlockFields.VertexDescription.Position.name}");
+
+            var vertexLockedSlot = FindNamedSlot(subGraphNode, "VertexLocked_Out");
+            var fragmentLockedSlot = FindNamedSlot(subGraphNode, "FragmentLocked_Out");
+            var outputA = FindNamedSlot(subGraphNode, "OutputA");
+            var baseColorSlot = FindNamedSlot(baseColorNode, "Base Color");
+            var positionSlot = FindNamedSlot(positionNode, "Position");
+
+            // Hook up a (internal) vertex locked slot to a fragment output. The error should be on the sub graph node
+            ValidateSlotError(vertexLockedSlot, baseColorSlot, subGraphNode);
+            // Hook up a (internal) fragment locked slot to a vertex output. The error should be on the sub graph node
+            ValidateSlotError(fragmentLockedSlot, positionSlot, subGraphNode);
+            // Hook up: Sample Texture -> Add -> SubGraph -> Position (out). Error should be on the SampleTexture node.
+            ValidateSlotError(outputA, positionSlot, sampleTextureNode);
+            // Hook up: VertexId -> Add -> SubGraph -> Position (out). Error should be on the VertexId node.
+            ValidateSlotError(outputA, baseColorSlot, vertexIdNode);
         }
     }
 }
