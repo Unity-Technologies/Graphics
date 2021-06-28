@@ -333,11 +333,11 @@ namespace UnityEngine.Rendering.HighDefinition
                 }
                 case VolumetricClouds.CloudPresets.Overcast:
                 {
-                    cloudModelData.densityMultiplier = 0.3f;
-                    cloudModelData.shapeFactor = 0.75f;
-                    cloudModelData.shapeScale = 3.0f;
-                    cloudModelData.erosionFactor = 0.7f;
-                    cloudModelData.erosionScale = 40.0f;
+                    cloudModelData.densityMultiplier = 0.25f;
+                    cloudModelData.shapeFactor = 0.7f;
+                    cloudModelData.shapeScale = 4.0f;
+                    cloudModelData.erosionFactor = 0.5f;
+                    cloudModelData.erosionScale = 30.0f;
                     return;
                 }
                 case VolumetricClouds.CloudPresets.Stormy:
