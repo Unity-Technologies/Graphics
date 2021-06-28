@@ -11,6 +11,7 @@
 PR_URP_2020.3:
     name: PR URP on 2020.3
     variables:
+        CUSTOM_REVISION: '{{2020_3.changeset.id}}'
         UTR_VERSION: "current"
         TEST_FILTER: .*
         CACHE_ARGS: '{{cache.flags}}'
@@ -34,6 +35,7 @@ PR_URP_2020.3:
 Extra_URP_2020.3:
     name: Extra URP on 2020.3
     variables:
+        CUSTOM_REVISION: '{{2020_3.changeset.id}}'
         UTR_VERSION: "current"
         TEST_FILTER: .*
         CACHE_ARGS: '{{cache.flags}}'
@@ -45,6 +47,7 @@ Extra_URP_2020.3:
 URP_2020.3:
     name: URP on 2020.3
     variables:
+        CUSTOM_REVISION: '{{2020_3.changeset.id}}'
         UTR_VERSION: "current"
         TEST_FILTER: .*
         CACHE_ARGS: '{{cache.flags}}'
@@ -56,6 +59,7 @@ URP_2020.3:
 Nightly_URP_2020.3:
     name: Nightly URP on 2020.3
     variables:
+        CUSTOM_REVISION: '{{2020_3.changeset.id}}'
         UTR_VERSION: "current"
         TEST_FILTER: .*
         CACHE_ARGS: '{{cache.flags}}'

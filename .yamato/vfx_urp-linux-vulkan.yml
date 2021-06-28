@@ -16,6 +16,7 @@ VFX_URP_Linux_Vulkan_Standalone_mono_Linear_2020.3:
         flavor: b1.large
     variables:
         UPM_REGISTRY: https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates
+        CUSTOM_REVISION: '{{2020_3.changeset.id}}'
         CACHE_ARGS: '{{cache.flags}}'
         UTR_VERSION: "current"
         TEST_FILTER: .*
@@ -30,6 +31,8 @@ VFX_URP_Linux_Vulkan_Standalone_mono_Linear_2020.3:
               -  "**/test-results/**"
               -  "TestProjects/VisualEffectGraph_URP/Logs/*.log"
     dependencies:
+      -  path: .yamato/_editor_priming.yml#editor:priming:2020.3:Linux
+         rerun: on_new_revision
       -  path: .yamato/vfx_urp-linux-vulkan.yml#Build_VFX_URP_Linux_Vulkan_Standalone_mono_Linear_2020.3
          rerun: on_new_revision
 Build_VFX_URP_Linux_Vulkan_Standalone_mono_Linear_2020.3:
@@ -40,6 +43,7 @@ Build_VFX_URP_Linux_Vulkan_Standalone_mono_Linear_2020.3:
         flavor: b1.xlarge
     variables:
         UPM_REGISTRY: https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates
+        CUSTOM_REVISION: '{{2020_3.changeset.id}}'
         CACHE_ARGS: '{{cache.flags}}'
         UTR_VERSION: "current"
         TEST_FILTER: .*
@@ -57,7 +61,7 @@ Build_VFX_URP_Linux_Vulkan_Standalone_mono_Linear_2020.3:
          retries: 2
       -  command: sudo apt install unity-downloader-cli
          retries: 2
-      -  command: sudo unity-downloader-cli -u {{editor_versions.2020_3_staging.Linux.revision}} -c editor -c il2cpp  --wait --published-only
+      -  command: sudo unity-downloader-cli --source-file unity_revision.txt -c editor -c il2cpp  --wait --published-only
          retries: 2
       -  command: DISPLAY=:0.0 ./utr $CACHE_ARGS --artifacts_path=TestProjects/VisualEffectGraph_URP/test-results --build-only --editor-location=.Editor --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-executemethod" --extra-editor-arg="SetupProject.ApplySettings" --extra-editor-arg="vulkan" --extra-editor-arg="Linear" --extra-editor-arg="-playergraphicsapi=Vulkan" --platform=StandaloneLinux64 --player-save-path=players --scripting-backend=Mono2x --suite=playmode --testfilter=$TEST_FILTER --testproject=./TestProjects/VisualEffectGraph_URP --timeout=3000
     artifacts:
@@ -68,6 +72,9 @@ Build_VFX_URP_Linux_Vulkan_Standalone_mono_Linear_2020.3:
         players:
             paths:
               -  "players*/**"
+    dependencies:
+      -  path: .yamato/_editor_priming.yml#editor:priming:2020.3:Linux
+         rerun: on_new_revision
 VFX_URP_Linux_Vulkan_playmode_mono_Linear_2020.3:
     name: VFX_URP on Linux_Vulkan_playmode_mono_Linear on version 2020.3
     agent:
@@ -76,6 +83,7 @@ VFX_URP_Linux_Vulkan_playmode_mono_Linear_2020.3:
         flavor: b1.large
     variables:
         UPM_REGISTRY: https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates
+        CUSTOM_REVISION: '{{2020_3.changeset.id}}'
         CACHE_ARGS: '{{cache.flags}}'
         UTR_VERSION: "current"
         TEST_FILTER: .*
@@ -93,7 +101,7 @@ VFX_URP_Linux_Vulkan_playmode_mono_Linear_2020.3:
          retries: 2
       -  command: sudo apt install unity-downloader-cli
          retries: 2
-      -  command: sudo unity-downloader-cli -u {{editor_versions.2020_3_staging.Linux.revision}} -c editor -c il2cpp  --wait --published-only
+      -  command: sudo unity-downloader-cli --source-file unity_revision.txt -c editor -c il2cpp  --wait --published-only
          retries: 2
       -  command: DISPLAY=:0.0 ./utr $CACHE_ARGS --artifacts_path=TestProjects/VisualEffectGraph_URP/test-results --editor-location=.Editor --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-force-vulkan" --scripting-backend=Mono2x --suite=playmode --testfilter=$TEST_FILTER --testproject=./TestProjects/VisualEffectGraph_URP --zero-tests-are-ok=1
     artifacts:
@@ -101,6 +109,9 @@ VFX_URP_Linux_Vulkan_playmode_mono_Linear_2020.3:
             paths:
               -  "**/test-results/**"
               -  "TestProjects/VisualEffectGraph_URP/Logs/*.log"
+    dependencies:
+      -  path: .yamato/_editor_priming.yml#editor:priming:2020.3:Linux
+         rerun: on_new_revision
 VFX_URP_Linux_Vulkan_Standalone_mono_Linear_CUSTOM-REVISION:
     name: VFX_URP on Linux_Vulkan_Standalone_mono_Linear on version CUSTOM-REVISION
     agent:

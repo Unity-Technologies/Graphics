@@ -11,6 +11,7 @@
 PR_VFX_2020.3:
     name: PR VFX on 2020.3
     variables:
+        CUSTOM_REVISION: '{{2020_3.changeset.id}}'
         UTR_VERSION: "current"
         TEST_FILTER: .*
         CACHE_ARGS: '{{cache.flags}}'
@@ -26,6 +27,7 @@ PR_VFX_2020.3:
 Extra_VFX_2020.3:
     name: Extra VFX on 2020.3
     variables:
+        CUSTOM_REVISION: '{{2020_3.changeset.id}}'
         UTR_VERSION: "current"
         TEST_FILTER: .*
         CACHE_ARGS: '{{cache.flags}}'
@@ -37,6 +39,7 @@ Extra_VFX_2020.3:
 VFX_2020.3:
     name: VFX on 2020.3
     variables:
+        CUSTOM_REVISION: '{{2020_3.changeset.id}}'
         UTR_VERSION: "current"
         TEST_FILTER: .*
         CACHE_ARGS: '{{cache.flags}}'
@@ -48,6 +51,7 @@ VFX_2020.3:
 Nightly_VFX_2020.3:
     name: Nightly VFX on 2020.3
     variables:
+        CUSTOM_REVISION: '{{2020_3.changeset.id}}'
         UTR_VERSION: "current"
         TEST_FILTER: .*
         CACHE_ARGS: '{{cache.flags}}'

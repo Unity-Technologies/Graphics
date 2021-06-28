@@ -11,6 +11,7 @@
 PR_Universal_Hybrid_2020.3:
     name: PR Universal_Hybrid on 2020.3
     variables:
+        CUSTOM_REVISION: '{{2020_3.changeset.id}}'
         UTR_VERSION: "current"
         TEST_FILTER: .*
         CACHE_ARGS: '{{cache.flags}}'
@@ -22,6 +23,7 @@ PR_Universal_Hybrid_2020.3:
 Extra_Universal_Hybrid_2020.3:
     name: Extra Universal_Hybrid on 2020.3
     variables:
+        CUSTOM_REVISION: '{{2020_3.changeset.id}}'
         UTR_VERSION: "current"
         TEST_FILTER: .*
         CACHE_ARGS: '{{cache.flags}}'
@@ -29,6 +31,7 @@ Extra_Universal_Hybrid_2020.3:
 Universal_Hybrid_2020.3:
     name: Universal_Hybrid on 2020.3
     variables:
+        CUSTOM_REVISION: '{{2020_3.changeset.id}}'
         UTR_VERSION: "current"
         TEST_FILTER: .*
         CACHE_ARGS: '{{cache.flags}}'

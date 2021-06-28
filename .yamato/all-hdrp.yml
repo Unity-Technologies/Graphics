@@ -11,6 +11,7 @@
 PR_HDRP_2020.3:
     name: PR HDRP on 2020.3
     variables:
+        CUSTOM_REVISION: '{{2020_3.changeset.id}}'
         UTR_VERSION: "current"
         TEST_FILTER: .*
         CACHE_ARGS: '{{cache.flags}}'
@@ -46,6 +47,7 @@ PR_HDRP_2020.3:
 Extra_HDRP_2020.3:
     name: Extra HDRP on 2020.3
     variables:
+        CUSTOM_REVISION: '{{2020_3.changeset.id}}'
         UTR_VERSION: "current"
         TEST_FILTER: .*
         CACHE_ARGS: '{{cache.flags}}'
@@ -65,6 +67,7 @@ Extra_HDRP_2020.3:
 HDRP_2020.3:
     name: HDRP on 2020.3
     variables:
+        CUSTOM_REVISION: '{{2020_3.changeset.id}}'
         UTR_VERSION: "current"
         TEST_FILTER: .*
         CACHE_ARGS: '{{cache.flags}}'
@@ -76,6 +79,7 @@ HDRP_2020.3:
 Nightly_HDRP_2020.3:
     name: Nightly HDRP on 2020.3
     variables:
+        CUSTOM_REVISION: '{{2020_3.changeset.id}}'
         UTR_VERSION: "current"
         TEST_FILTER: .*
         CACHE_ARGS: '{{cache.flags}}'

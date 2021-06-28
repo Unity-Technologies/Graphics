@@ -11,6 +11,7 @@
 URP_Performance_LostCrypt_2020.3:
     name: URP_Performance_LostCrypt on 2020.3
     variables:
+        CUSTOM_REVISION: '{{2020_3.changeset.id}}'
         UTR_VERSION: "current"
         TEST_FILTER: .*
         LOST_CRYPT_BRANCH: 21.2/urp-perf-test

@@ -11,6 +11,7 @@
 URP_Perf_2020.3:
     name: URP_Perf on 2020.3
     variables:
+        CUSTOM_REVISION: '{{2020_3.changeset.id}}'
         UTR_VERSION: "current"
         TEST_FILTER: .*
         CACHE_ARGS: '{{cache.flags}}'

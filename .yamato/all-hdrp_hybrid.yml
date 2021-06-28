@@ -11,6 +11,7 @@
 PR_HDRP_Hybrid_2020.3:
     name: PR HDRP_Hybrid on 2020.3
     variables:
+        CUSTOM_REVISION: '{{2020_3.changeset.id}}'
         UTR_VERSION: "current"
         TEST_FILTER: .*
         CACHE_ARGS: '{{cache.flags}}'
@@ -22,6 +23,7 @@ PR_HDRP_Hybrid_2020.3:
 Extra_HDRP_Hybrid_2020.3:
     name: Extra HDRP_Hybrid on 2020.3
     variables:
+        CUSTOM_REVISION: '{{2020_3.changeset.id}}'
         UTR_VERSION: "current"
         TEST_FILTER: .*
         CACHE_ARGS: '{{cache.flags}}'
@@ -31,6 +33,7 @@ Extra_HDRP_Hybrid_2020.3:
 HDRP_Hybrid_2020.3:
     name: HDRP_Hybrid on 2020.3
     variables:
+        CUSTOM_REVISION: '{{2020_3.changeset.id}}'
         UTR_VERSION: "current"
         TEST_FILTER: .*
         CACHE_ARGS: '{{cache.flags}}'
