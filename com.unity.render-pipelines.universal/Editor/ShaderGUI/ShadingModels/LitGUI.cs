@@ -23,7 +23,7 @@ namespace UnityEditor.Rendering.Universal.ShaderGUI
                 "Select a workflow that fits your textures. Choose between Metallic or Specular.");
 
             public static GUIContent specularMapText =
-                new GUIContent("Specular Map", "Sets and configures the map and color for the Specular workflow.");
+                new GUIContent("Specular Map", "Designates a Specular Map and specular color determining the apperance of reflections on this Material's surface.");
 
             public static GUIContent metallicMapText =
                 new GUIContent("Metallic Map", "Sets and configures the map for the Metallic workflow.");
