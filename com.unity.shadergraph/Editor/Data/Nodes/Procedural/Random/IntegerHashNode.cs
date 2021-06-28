@@ -234,9 +234,9 @@ namespace UnityEditor.ShaderGraph
 
             // tchou 3->3
             v.x += v.y*v.z;     // 2    (1 mul)
-            v.x *= 0x27d4eb2du; // 1    (1 mul)   
+            v.x *= 0x27d4eb2du; // 1    (1 mul)
             v.x ^= v.x >> 4u;   // 2    // bit mix -- useful if you want fully 'random' looking bits
-            v.y += v.z ^ v.x;     // 2    
+            v.y += v.z ^ v.x;     // 2
             v.y ^= v.y >> 15u;  // 2    // bit mix -- useful if you want fully 'random' looking bits
             v.y *= 0x27d4eb2du; // 1    (1 mul)
             v.z += v.x ^ v.y;   // 2
@@ -261,9 +261,9 @@ namespace UnityEditor.ShaderGraph
             // tchou 3->3
             // v.z += v.x ^ v.y;       // 2
             v.x += v.y * v.z;       // 2    (1 mul)
-            v.x *= 0x27d4eb2du;     // 1    (1 mul)   
+            v.x *= 0x27d4eb2du;     // 1    (1 mul)
             v.x ^= v.x >> 4u;       // 2    // bit mix -- useful if you want fully 'random' looking bits
-            v.y += v.z ^ v.x;       // 2    
+            v.y += v.z ^ v.x;       // 2
             v.y ^= v.y >> 15u;      // 2    // bit mix -- useful if you want fully 'random' looking bits
             v.y *= 0x27d4eb2du;     // 1    (1 mul)
             v.z += v.x ^ v.y;       // 2

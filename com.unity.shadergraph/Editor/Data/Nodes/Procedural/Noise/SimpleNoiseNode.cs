@@ -75,7 +75,7 @@ namespace UnityEditor.ShaderGraph
             registry.RequiresIncludePath("Packages/com.unity.render-pipelines.core/ShaderLibrary/Hashes.hlsl");
 
             var hashTypeString = hashType.ToString();
-            var HashFunction = kHashFunctionPrefix[(int) hashType];
+            var HashFunction = kHashFunctionPrefix[(int)hashType];
 
             registry.ProvideFunction($"Unity_SimpleNoise_ValueNoise_{hashTypeString}_$precision", s =>
             {
