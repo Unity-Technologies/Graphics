@@ -202,6 +202,9 @@ Shader "Hidden/Universal Render Pipeline/Terrain/Lit (Base Pass)"
             #pragma vertex TerrainVertexMeta
             #pragma fragment TerrainFragmentMeta
 
+            #pragma shader_feature EDITOR_VISUALIZATION
+            #pragma multi_compile_instancing
+            #pragma instancing_options assumeuniformscaling nomatrices nolightprobe nolightmap
             #define _METALLICSPECGLOSSMAP 1
             #define _SMOOTHNESS_TEXTURE_ALBEDO_CHANNEL_A 1
 

@@ -164,6 +164,8 @@ namespace UnityEngine.Rendering.HighDefinition
             public ComputeShader volumetricCloudsCS;
             [Reload("Editor/Lighting/VolumetricClouds/CloudMapGenerator.compute")]
             public ComputeShader volumetricCloudMapGeneratorCS;
+            [Reload("Runtime/Lighting/VolumetricLighting/VolumetricCloudsCombine.shader")]
+            public Shader volumetricCloudsCombinePS;
 
             // Material
             [Reload("Runtime/Material/PreIntegratedFGD/PreIntegratedFGD_GGXDisneyDiffuse.shader")]

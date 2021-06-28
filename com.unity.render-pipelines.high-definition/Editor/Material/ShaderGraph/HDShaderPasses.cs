@@ -185,6 +185,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
             {
                 var includes = new IncludeCollection();
 
+                includes.Add(CoreIncludes.kPickingSpaceTransforms, IncludeLocation.Pregraph);
                 includes.Add(CoreIncludes.CorePregraph);
                 if (supportLighting)
                     includes.Add(CoreIncludes.kNormalSurfaceGradient, IncludeLocation.Pregraph);
@@ -280,6 +281,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                 // Note: no tessellation for meta pass
                 pragmas = GeneratePragmas(CorePragmas.DotsInstancedInV1AndV2, useVFX, false),
                 defines = GenerateDefines(CoreDefines.ShaderGraphRaytracingDefault, useVFX, false),
+                keywords = new KeywordCollection() { CoreKeywordDescriptors.EditorVisualization },
                 includes = GenerateIncludes(),
             };
 

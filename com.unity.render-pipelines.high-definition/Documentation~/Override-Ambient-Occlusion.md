@@ -70,6 +70,8 @@ The properties visible in the Inspector change depending on whether or not you e
 | - **Sample Count**           | Controls the number of rays that HDRP uses per pixel, per frame. Increasing this value increases execution time linearly. |
 | - **Denoise**                | Enables the spatio-temporal filter that HDRP uses to remove noise from the ambient occlusion. |
 | - - **Denoiser Radius**      | Controls the radius of the spatio-temporal filter. A higher value reduces noise further. |
+| **Occluder Motion Rejection**| When enabled, the occluder's movement should be considered a valid rejection condition. |
+| **Receiver Motion Rejection**| When enabled, the receiver's movement should be considered a valid rejection condition. |
 
 ## Limitations
 
