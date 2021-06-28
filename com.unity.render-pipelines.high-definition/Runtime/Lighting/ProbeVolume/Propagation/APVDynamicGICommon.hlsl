@@ -104,14 +104,10 @@ float4 UnpackAlbedoAndDistance(uint packedVal)
 
 float3 UnpackNormal(uint packedVal)
 {
-    float3 N888;
-    N888.r = ((packedVal >> 0) & 255) / 255.0f;
-    N888.g = ((packedVal >> 8) & 255) / 255.0f;
-    N888.b = ((packedVal >> 16) & 255) / 255.0f;
-
-    float2 octNormalWS = Unpack888ToFloat2(N888);
-
-    return UnpackNormalOctQuadEncode(octNormalWS * 2.0 - 1.0);
+    float2 N1212;
+    N1212.r = ((packedVal >> 0) & 4095) / 4095.5f;
+    N1212.g = ((packedVal >> 12) & 4095) / 4095.5f;
+    return UnpackNormalOctQuadEncode(N1212 * 2.0 - 1.0);
 }
 
 float4 UnpackAxis(uint packedVal)

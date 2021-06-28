@@ -34,7 +34,6 @@ namespace UnityEngine.Rendering.HighDefinition
             CoreUtils.SafeRelease(inputBuffer);
         }
 
-
         #region ExtraData Definition
 
         internal static readonly int s_AxisCount = 14;
@@ -78,7 +77,6 @@ namespace UnityEngine.Rendering.HighDefinition
             }
         }
 
-
         #endregion
 
         #region PopulatingBuffer
@@ -99,7 +97,6 @@ namespace UnityEngine.Rendering.HighDefinition
 
             return packedOutput;
         }
-
 
         // { probeIndex: 19 bits, validity: 8bit, axis: 5bit }
         private uint PackIndexAndValidity(uint probeIndex, uint axisIndex, float validity)
@@ -140,28 +137,29 @@ namespace UnityEngine.Rendering.HighDefinition
             return output;
         }
 
+        // Ref: http://jcgt.org/published/0003/02/01/paper.pdf "A Survey of Efficient Representations for Independent Unit Vectors"
+        // Encode with Oct, this function work with any size of output
+        // return float between [-1, 1]
+        private static Vector2 PackNormalOctQuadEncode(Vector3 n)
+        {
+            Vector3 absN = new Vector3(Mathf.Abs(n.x), Mathf.Abs(n.y), Mathf.Abs(n.z));
+            n *= 1.0f / (Mathf.Max(float.MinValue, Vector3.Dot(absN, Vector3.one)));
+            float t = Mathf.Clamp01(-n.z);
+            Vector2 outN = new Vector2(n.x + (n.x >= 0.0f ? t : -t), n.y + (n.y >= 0.0f ? t : -t));
+            return outN;
+        }
+
         // Same as PackNormalOctQuadEncode and PackFloat2To888 in Packing.hlsl
         private uint PackNormalAndAxis(Vector3 N, int axisIndex)
         {
             uint packedOutput = 0;
-            float L1Norm = Mathf.Abs(N.x) + Mathf.Abs(N.y) + Mathf.Abs(N.z);
-            N /= L1Norm;
-            float t = Mathf.Clamp01(-N.z);
-
-            Vector2 p = new Vector2(N.x + (N.x >= 0.0f ? t : -t),
-                N.y + (N.y >= 0.0f ? t : -t));
-            p *= 0.5f;
-            p.x += 0.5f;
-            p.y += 0.5f;
-
-
-            uint i0 = (uint)(p.x * 4095.5f); uint i1 = (uint)(p.y * 4095.5f);
-            uint hi0 = i0 >> 8; uint hi1 = i1 >> 8;
-            uint lo0 = hi0 & 255; uint lo1 = hi1 & 255;
-
-            packedOutput |= (lo0 << 0);
-            packedOutput |= (lo1 << 8);
-            packedOutput |= ((hi0 | (hi1 << 4)) << 16);
+            var octN = PackNormalOctQuadEncode(N);
+            octN *= 0.5f;
+            octN += new Vector2(0.5f, 0.5f);
+            uint i0 = (uint)(octN.x * 4095.5f);
+            uint i1 = (uint)(octN.y * 4095.5f);
+            packedOutput |= (i0 << 0);
+            packedOutput |= (i1 << 12);
 
             packedOutput |= (PackAxisDir(NeighbourAxis[axisIndex]) << 24);
 
@@ -272,7 +270,6 @@ namespace UnityEngine.Rendering.HighDefinition
 
             cell.probeExtraDataBuffers.PopulateComputeBuffer(probeLocations, finalExtraData, hitProbesAxisCount, missProbesAxisCount);
             cell.probeExtraDataBuffers.ClearIrradianceCaches(probeCount, s_AxisCount);
-
         }
 
         internal void InitExtraDataBuffers(List<ProbeReferenceVolume.Cell> cells)
@@ -288,9 +285,9 @@ namespace UnityEngine.Rendering.HighDefinition
 
                 PopulateExtraDataBuffer(cell);
                 cell.extraDataBufferInit = true;
-
             }
         }
+
         #endregion
 
 
@@ -331,7 +328,7 @@ namespace UnityEngine.Rendering.HighDefinition
         {
             ExtraDataRequestOutput output;
             output.albedo = new Vector3(0.0f, 0.0f, 0.0f);
-            
+
             int requestIndex = extraRequestsOutput.Count;
             extraRequestsOutput.Add(output);
 
@@ -365,7 +362,6 @@ namespace UnityEngine.Rendering.HighDefinition
                     passIdx = i;
                     break;
                 }
-
             }
             if (passIdx >= 0)
             {
@@ -408,7 +404,7 @@ namespace UnityEngine.Rendering.HighDefinition
             }
         }
 
-        // TODO TODO_FCC Use cmd + context here ? 
+        // TODO TODO_FCC Use cmd + context here ?
         private void PerformDataExtraction(List<ExtraDataRequests> inputs, List<int> dstRequestIndices)
         {
             CommandBuffer cmd = CommandBufferPool.Get("");
@@ -444,7 +440,7 @@ namespace UnityEngine.Rendering.HighDefinition
             keys.CopyTo(keysArray, 0);
 
             List<ExtraDataRequests> inputs = new List<ExtraDataRequests>();
-            // Yucky, will fix. 
+            // Yucky, will fix.
             List<int> dstRequestIndices = new List<int>();
 
 
@@ -454,7 +450,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 var listForKey = requestsList[currKey];
                 foreach (var request in listForKey)
                 {
-                    // Modified the request so that we have texture array index in request index as we don't need the former in the shader. 
+                    // Modified the request so that we have texture array index in request index as we don't need the former in the shader.
                     ExtraDataRequests moddedRequest = request;
                     moddedRequest.requestIndex = i;
                     if (inputs.Count == kRWComputeBuffersSize)
@@ -490,7 +486,7 @@ namespace UnityEngine.Rendering.HighDefinition
         #endregion
 
         #region ExtraData Baking
-        
+
         private static bool IsValidForBaking(GameObject gameObject)
         {
             // TODO: Do a better filtering here.
@@ -533,6 +529,7 @@ namespace UnityEngine.Rendering.HighDefinition
             Physics.Simulate(0.1f);
             Physics.autoSimulation = autoSimState;
         }
+
         private static void CleanupOccluders()
         {
             foreach (MeshRenderer meshRenderer in addedOccluders)
@@ -541,7 +538,6 @@ namespace UnityEngine.Rendering.HighDefinition
                 UnityEngine.Object.DestroyImmediate(collider);
             }
         }
-
 
         private static float FindDistance(RaycastHit[] hits, float maxDist, ref int index, bool findInDistance)
         {
@@ -728,7 +724,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
                 cell.extraData = new ProbeExtraData[numProbes];
 
-                for (int i = 0; i<numProbes; ++i)
+                for (int i = 0; i < numProbes; ++i)
                 {
                     GenerateExtraData(cell.probePositions[i], ref cell.extraData[i], cell.validity[i]);
                 }
@@ -744,6 +740,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 ClearContent();
             }
         }
+
 #endif
 
         #endregion
