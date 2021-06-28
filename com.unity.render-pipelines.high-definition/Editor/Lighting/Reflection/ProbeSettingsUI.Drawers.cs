@@ -65,7 +65,7 @@ namespace UnityEditor.Rendering.HighDefinition
             if ((displayedFields.probe & proxy) != 0)
             {
                 PropertyFieldWithoutToggle(ProbeSettingsFields.proxyUseInfluenceVolumeAsProxyVolume, serialized.proxyUseInfluenceVolumeAsProxyVolume, EditorGUIUtility.TrTextContent("Use Influence Volume As Proxy Volume", "When enabled, this Reflection Probe uses the boundaries of the Influence Volume as its Proxy Volume."), displayedFields.probe);
-                PropertyFieldWithoutToggle(ProbeSettingsFields.proxyCapturePositionProxySpace, serialized.proxyCapturePositionProxySpace, EditorGUIUtility.TrTextContent("Capture Position", "Sets the position, relative to the Transform Position, from which the Reflection Probe captures its surroundings."), displayedFields.probe,
+                PropertyFieldWithoutToggle(ProbeSettingsFields.proxyCapturePositionProxySpace, serialized.proxyCapturePositionProxySpace, EditorGUIUtility.TrTextContent("Capture Position", "Sets the position, relative to the Proxy Volume Position, from which the Reflection Probe captures its surroundings."), displayedFields.probe,
                     (p, l) =>
                     {
                         EditorGUILayout.PropertyField(p, l);

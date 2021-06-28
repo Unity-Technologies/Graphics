@@ -371,7 +371,12 @@ namespace UnityEngine.Rendering.HighDefinition
                 if (currentEnvLight != null)
                 {
                     // If the reflection probe is disabled, we should not be adding it
-                    if (!currentEnvLight.enabled) continue;
+                    if (!currentEnvLight.enabled)
+                        continue;
+
+                    // If the reflection probe is not baked yet.
+                    if (!currentEnvLight.HasValidRenderedData())
+                        continue;
 
                     // Compute the camera relative position
                     Vector3 probePositionRWS = currentEnvLight.influenceToWorld.GetColumn(3);
