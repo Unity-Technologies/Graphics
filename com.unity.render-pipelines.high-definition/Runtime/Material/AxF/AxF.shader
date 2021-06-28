@@ -336,8 +336,8 @@ Shader "HDRP/AxF"
 
         Pass
         {
-            Name "DynamicGIDataGen"
-            Tags{ "LightMode" = "DynamicGIDataGen" }
+            Name "DynamicGIDataSample"
+            Tags{ "LightMode" = "DynamicGIDataSample" }
 
             Cull Off
 
@@ -345,12 +345,12 @@ Shader "HDRP/AxF"
 
             #pragma only_renderers d3d11 playstation xboxone xboxseries vulkan metal switch
 
-            #define SHADERPASS SHADERPASS_DYNAMIC_GIDATA_GEN
+            #define SHADERPASS SHADERPASS_DYNAMIC_GIDATA_SAMPLE
             #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Material.hlsl"
             #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/AxF/AxF.hlsl"
             #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/AxF/ShaderPass/AxFSharePass.hlsl"
             #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/AxF/AxFData.hlsl"
-            #include "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/ShaderPass/ShaderPassDynamicGIDataGen.hlsl"
+            #include "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/ShaderPass/ShaderPassDynamicGIDataSample.hlsl"
 
             #pragma vertex Vert
             #pragma fragment Frag

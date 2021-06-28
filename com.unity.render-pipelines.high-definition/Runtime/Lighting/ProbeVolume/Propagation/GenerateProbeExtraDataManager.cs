@@ -22,16 +22,16 @@ namespace UnityEngine.Rendering.HighDefinition
             m_ExtractionShader = resources.shaders.extactProbeExtraDataCS;
 
             unwrappedPool = RTHandles.Alloc(kUnwrappedTextureSize, kUnwrappedTextureSize, slices: kPoolSize, dimension: TextureDimension.Tex2DArray, colorFormat: GraphicsFormat.R8G8B8A8_UNorm, name: "Extra Data Dynamic GI Pool");
-            readbackBuffer = new ComputeBuffer(kRWComputeBuffersSize, Marshal.SizeOf<ExtraDataRequestOutput>());
-            inputBuffer = new ComputeBuffer(kRWComputeBuffersSize, Marshal.SizeOf<ExtraDataRequests>());
+
+            dummyColor = RTHandles.Alloc(kDummyRTWidth, kDummyRTHeight, dimension: TextureDimension.Tex2D, colorFormat: GraphicsFormat.R8G8B8A8_UNorm, name: "Dummy color");
+
             nextUnwrappedDst = 0;
         }
 
         public void Dispose()
         {
             RTHandles.Release(unwrappedPool);
-            CoreUtils.SafeRelease(readbackBuffer);
-            CoreUtils.SafeRelease(inputBuffer);
+            RTHandles.Release(dummyColor);
         }
 
         #region ExtraData Definition
@@ -297,12 +297,21 @@ namespace UnityEngine.Rendering.HighDefinition
         private const int kPoolSize = 256;
         private const int kRWComputeBuffersSize = 8192;
 
+        private const int kDummyRTHeight = 16;
+        private const int kDummyRTWidth = 16384;
+        private const int kMaxRequestsPerDraw = kDummyRTWidth * kDummyRTHeight;
+
+
+        [GenerateHLSL(needAccessors = false)]
         internal struct ExtraDataRequests
         {
             internal Vector2 uv;
+            internal Vector3 pos;
+            internal Vector3 N;
             internal int requestIndex;
         }
 
+        [GenerateHLSL(needAccessors = false)]
         internal struct ExtraDataRequestOutput
         {
             internal Vector3 albedo;
@@ -318,13 +327,21 @@ namespace UnityEngine.Rendering.HighDefinition
         internal static Dictionary<RequestInput, List<ExtraDataRequests>> requestsList = new Dictionary<RequestInput, List<ExtraDataRequests>>();
         internal static List<ExtraDataRequestOutput> extraRequestsOutput = new List<ExtraDataRequestOutput>();
 
+        // During the obtaining of the request data, we need to sort information per material rather than in the order they arrived
+        // therefore when the sorting happen, we need to make sure we can retrieve the original order when the requests are finally resolved.
+        internal static Dictionary<int, int> requestInputToOutputIdx = new Dictionary<int, int>();
+
+        List<int> processingIdxToOutputIdx = new List<int>();
+
         internal RTHandle unwrappedPool;
+
+        internal RTHandle dummyColor;
         internal ComputeBuffer readbackBuffer;
         internal ComputeBuffer inputBuffer;
 
         private int nextUnwrappedDst = 0;
 
-        private static int EnqueueRequest(RequestInput input, Vector2 uv)
+        private static int EnqueueRequest(RequestInput input, Vector2 uv, Vector3 posWS, Vector3 normalWS)
         {
             ExtraDataRequestOutput output;
             output.albedo = new Vector3(0.0f, 0.0f, 0.0f);
@@ -335,6 +352,8 @@ namespace UnityEngine.Rendering.HighDefinition
             ExtraDataRequests request;
             request.requestIndex = requestIndex;
             request.uv = uv;
+            request.pos = posWS;
+            request.N = normalWS;
 
             if (!requestsList.ContainsKey(input))
             {
@@ -374,6 +393,142 @@ namespace UnityEngine.Rendering.HighDefinition
             nextUnwrappedDst = (nextUnwrappedDst + 1) % kPoolSize;
 
             return passIdx >= 0;
+        }
+
+        struct SortedRequests
+        {
+            public ExtraDataRequests dataReq;
+            public Material material;
+
+            public SortedRequests(ExtraDataRequests request, Material mat)
+            {
+                this.dataReq = request;
+                this.material = mat;
+            }
+        }
+
+        List<SortedRequests> SortRequestsForExecution(out List<int> subListsSizes, out int maxSubListSize)
+        {
+            List<SortedRequests> outRequests = new List<SortedRequests>();
+            subListsSizes = new List<int>();
+            maxSubListSize = 0;
+
+            // Can be done more efficiently later.
+            Dictionary<Material, List<ExtraDataRequests>> requestsForExtraction = new Dictionary<Material, List<ExtraDataRequests>>();
+            foreach (var entry in requestsList)
+            {
+                var input = entry.Key;
+                var material = input.renderer.sharedMaterials[input.subMesh];
+                if (!requestsForExtraction.ContainsKey(material))
+                {
+                    requestsForExtraction.Add(material, new List<ExtraDataRequests>());
+                }
+
+                requestsForExtraction[material].AddRange(entry.Value);
+            }
+
+            foreach (var materialList in requestsForExtraction)
+            {
+                var currMaterial = materialList.Key;
+                var requestsForMaterial = materialList.Value;
+                foreach (var requestData in requestsForMaterial)
+                {
+                    SortedRequests sortedReq = new SortedRequests(requestData, currMaterial);
+                    processingIdxToOutputIdx.Add(requestData.requestIndex);
+                    outRequests.Add(sortedReq);
+                }
+                maxSubListSize = Mathf.Max(maxSubListSize, requestsForMaterial.Count);
+                subListsSizes.Add(requestsForMaterial.Count);
+            }
+
+            return outRequests;
+        }
+
+        private void ExecuteARequestList(CommandBuffer cmd, Material material, ComputeBuffer inputBuffer, int startOfList, int requestCount)
+        {
+            int quadHeight = kDummyRTHeight;
+            int requiredQuadLen = Mathf.CeilToInt(requestCount * (1.0f / quadHeight));
+
+            Rect dummyDrawRect = new Rect(0, 0, requiredQuadLen, quadHeight);
+
+            var passIdx = -1;
+            for (int i = 0; i < material.passCount; ++i)
+            {
+                if (material.GetPassName(i).IndexOf("DynamicGIDataSample") >= 0)
+                {
+                    passIdx = i;
+                    break;
+                }
+            }
+            if (passIdx >= 0)
+            {
+                material.SetPass(passIdx);
+
+                // Globally set, very lazily :P
+                cmd.SetGlobalBuffer("_RequestsInputData", inputBuffer);
+                cmd.SetGlobalVector("_MaterialRequestsInfo", new Vector4(requestCount, startOfList, quadHeight, 0));
+
+                HDUtils.DrawFullScreen(cmd, dummyDrawRect, material, dummyColor, null, passIdx);
+                cmd.SetRandomWriteTarget(1, readbackBuffer);
+                cmd.SetRenderTarget(dummyColor);
+            }
+        }
+
+        private void ExecutePendingRequests2()
+        {
+            var cmd = CommandBufferPool.Get("Execute Dynamic GI extra data requests");
+
+            List<SortedRequests> sortedRequests;
+            List<int> subListSizes;
+            int maxSubListSize = 0;
+            sortedRequests = SortRequestsForExecution(out subListSizes, out maxSubListSize);
+
+            // Alloc input to the max size
+            inputBuffer = new ComputeBuffer(maxSubListSize, Marshal.SizeOf<ExtraDataRequests>());
+            readbackBuffer = new ComputeBuffer(extraRequestsOutput.Count, Marshal.SizeOf<ExtraDataRequestOutput>());
+
+            int currStart = 0;
+            for (int subList = 0; subList < subListSizes.Count; ++subList)
+            {
+                int subListSize = subListSizes[subList];
+
+                int numberOfIterationsNeeded = Mathf.CeilToInt((float)subListSize / (float)kMaxRequestsPerDraw); // Hopefully this is always one
+
+                for (int draw = 0; draw < numberOfIterationsNeeded; ++draw)
+                {
+                    int itemsThisDraw = Mathf.Min(subListSize - draw * kMaxRequestsPerDraw, kMaxRequestsPerDraw);
+                    // Fill input buffer to what is needed.
+                    List<ExtraDataRequests> inputs = new List<ExtraDataRequests>();
+                    for (int i = 0; i < itemsThisDraw; ++i)
+                    {
+                        inputs.Add(sortedRequests[currStart + i].dataReq);
+                    }
+                    inputBuffer.SetData(inputs.ToArray(), 0, 0, itemsThisDraw);
+
+                    ExecuteARequestList(cmd, sortedRequests[currStart].material, inputBuffer,  currStart, itemsThisDraw);
+                    currStart += itemsThisDraw;
+                }
+            }
+
+            cmd.WaitAllAsyncReadbackRequests();
+            Graphics.ExecuteCommandBuffer(cmd);
+
+
+            // Read back.
+            Debug.Assert(currStart == extraRequestsOutput.Count);
+            Debug.Assert(processingIdxToOutputIdx.Count == currStart);
+
+            var outputData = new ExtraDataRequestOutput[currStart];
+            readbackBuffer.GetData(outputData);
+            // Put back directly with the mapping
+            for (int i = 0; i < currStart; ++i)
+            {
+                extraRequestsOutput[processingIdxToOutputIdx[i]] = outputData[i];
+            }
+
+            // We are done with GPU buffers.
+            CoreUtils.SafeRelease(inputBuffer);
+            CoreUtils.SafeRelease(readbackBuffer);
         }
 
         private void ExecutePendingRequests()
@@ -577,7 +732,7 @@ namespace UnityEngine.Rendering.HighDefinition
             return false;
         }
 
-        private static int EnqueueExtraDataRequest(RaycastHit hit)
+        private static int EnqueueExtraDataRequest(RaycastHit hit, Vector3 hitPosition)
         {
             int requestTicket = -1;
 
@@ -614,7 +769,7 @@ namespace UnityEngine.Rendering.HighDefinition
                     requestInput.mesh = mesh;
                     requestInput.renderer = renderer;
                     requestInput.subMesh = submesh;
-                    requestTicket = EnqueueRequest(requestInput, hit.textureCoord);
+                    requestTicket = EnqueueRequest(requestInput, hit.textureCoord, hitPosition, hit.normal);
                 }
             }
 
@@ -640,7 +795,7 @@ namespace UnityEngine.Rendering.HighDefinition
                     MeshCollider collider = hit.collider as MeshCollider;
                     if (collider != null)
                     {
-                        requestIndex = EnqueueExtraDataRequest(hit);
+                        requestIndex = EnqueueExtraDataRequest(hit, worldPosition + normalizedRay * outDistance);
                         normal = outBoundHits[outIndex].normal;
                     }
                     else
@@ -712,6 +867,9 @@ namespace UnityEngine.Rendering.HighDefinition
 
         internal void GenerateExtraDataForDynamicGI(Vector3 volumePos, Vector3 volumeScale)
         {
+            requestsList.Clear();
+            extraRequestsOutput.Clear();
+
             var refVol = ProbeReferenceVolume.instance;
             // TODO TODO_FCC: IMPORTANT USE A VOLUME OF THE PROBE VOLUMES NOT OF THE WHOLE REF VOLUME
             AddOccluders(volumePos, volumeScale);
@@ -729,7 +887,9 @@ namespace UnityEngine.Rendering.HighDefinition
                     GenerateExtraData(cell.probePositions[i], ref cell.extraData[i], cell.validity[i]);
                 }
 
-                ExecutePendingRequests();
+                ExecutePendingRequests2();
+
+                // ExecutePendingRequests();
 
                 for (int i = 0; i < numProbes; ++i)
                 {

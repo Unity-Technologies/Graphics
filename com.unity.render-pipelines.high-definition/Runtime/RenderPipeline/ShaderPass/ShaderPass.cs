@@ -33,6 +33,6 @@ namespace UnityEngine.Rendering.HighDefinition
         PathTracing,
         Constant,
         FullScreenDebug,
-        DynamicGIDataGen,
+        DynamicGIDataSample,
     }
 }

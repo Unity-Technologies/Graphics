@@ -257,16 +257,16 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
             return new PassDescriptor
             {
                 // Definition
-                displayName = "DynamicGIDataGen",
-                referenceName = "SHADERPASS_DYNAMIC_GIDATA_GEN",
-                lightMode = "DynamicGIDataGen",
+                displayName = "DynamicGIDataSample",
+                referenceName = "SHADERPASS_DYNAMIC_GIDATA_SAMPLE",
+                lightMode = "DynamicGIDataSample",
                 useInPreview = false,
 
                 // We don't need any vertex inputs on meta pass:
                 validVertexBlocks = new BlockFieldDescriptor[0],
 
                 // Collections
-                requiredFields = CoreRequiredFields.DynamicGIDataGen,
+                requiredFields = CoreRequiredFields.DynamicGIDataSample,
                 renderStates = CoreRenderStates.Meta,
                 pragmas = CorePragmas.Basic,
                 defines = CoreDefines.ShaderGraphRaytracingDefault,
@@ -283,7 +283,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                 includes.Add(CoreIncludes.kPassPlaceholder, IncludeLocation.Pregraph);
                 includes.Add(CoreIncludes.CoreUtility);
                 includes.Add(CoreIncludes.kShaderGraphFunctions, IncludeLocation.Pregraph);
-                includes.Add(CoreIncludes.kPassDynamicGIExtraDataGen, IncludeLocation.Postgraph);
+                includes.Add(CoreIncludes.kPassDynamicGIExtraDataSample, IncludeLocation.Postgraph);
 
                 return includes;
             }

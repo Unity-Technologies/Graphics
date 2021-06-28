@@ -53,7 +53,7 @@ namespace UnityEngine.Rendering.HighDefinition
         /// <summary>Decal Mesh Forward Emissive pass name.</summary>
         public static readonly string s_DecalMeshForwardEmissiveStr = DecalSystem.s_MaterialDecalPassNames[(int)DecalSystem.MaterialDecalPass.DecalMeshForwardEmissive];
         /// <summary>Probe Dynamic GI data generation pass name.</summary>
-        public static readonly string s_DynamicGIDataGenStr = "DynamicGIDataGen";
+        public static readonly string s_DynamicGIDataSampleStr = "DynamicGIDataSample";
 
         // ShaderPass name
         /// <summary>Empty shader tag id.</summary>
@@ -89,7 +89,7 @@ namespace UnityEngine.Rendering.HighDefinition
         /// <summary>FullScreen Debug shader tag id.</summary>
         public static readonly ShaderTagId s_FullScreenDebugName = new ShaderTagId(s_FullScreenDebugStr);
         /// <summary>Dynamic Probe GI data generation shader tag id.</summary>
-        public static readonly ShaderTagId s_DynamicGIDataGenName = new ShaderTagId(s_DynamicGIDataGenStr);
+        public static readonly ShaderTagId s_DynamicGIDataPassName = new ShaderTagId(s_DynamicGIDataSampleStr);
 
         /// <summary>DBuffer Mesh shader tag id.</summary>
         public static readonly ShaderTagId s_DBufferMeshName = new ShaderTagId(s_DBufferMeshStr);

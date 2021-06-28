@@ -545,8 +545,8 @@ Shader "HDRP/LitTessellation"
 
         Pass
         {
-            Name "DynamicGIDataGen"
-            Tags{ "LightMode" = "DynamicGIDataGen" }
+            Name "DynamicGIDataSample"
+            Tags{ "LightMode" = "DynamicGIDataSample" }
 
             Cull Off
 
@@ -558,12 +558,12 @@ Shader "HDRP/LitTessellation"
             #undef TESSELLATION_ON
 
 
-            #define SHADERPASS SHADERPASS_DYNAMIC_GIDATA_GEN
+            #define SHADERPASS SHADERPASS_DYNAMIC_GIDATA_SAMPLE
             #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Material.hlsl"
             #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Lit/Lit.hlsl"
             #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Lit/ShaderPass/LitSharePass.hlsl"
             #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Lit/LitData.hlsl"
-            #include "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/ShaderPass/ShaderPassDynamicGIDataGen.hlsl"
+            #include "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/ShaderPass/ShaderPassDynamicGIDataSample.hlsl"
 
             #pragma vertex Vert
             #pragma fragment Frag
