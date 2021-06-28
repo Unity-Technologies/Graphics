@@ -8,16 +8,16 @@ namespace UnityEditor.Rendering.Universal.ShaderGUI
         public static class Styles
         {
             public static readonly GUIContent detailInputs = new GUIContent("Detail Inputs",
-                "These settings let you add details to the surface.");
+                "Defines the Detail map, a texture that adds small texture tiles to a Material to provide the illusion of surface detail.");
 
             public static readonly GUIContent detailMaskText = new GUIContent("Mask",
-                "Select a mask for the Detail maps. The mask uses the alpha channel of the selected texture. The __Tiling__ and __Offset__ settings have no effect on the mask.");
+                "Select a mask for the Detail map. The mask uses the alpha channel of the selected texture. The Tiling and Offset settings have no effect on the mask.");
 
             public static readonly GUIContent detailAlbedoMapText = new GUIContent("Base Map",
-                "Select the texture containing the surface details.");
+                "Select the surface detail texture.The alpha of your texture determines surface hue and intensity.");
 
             public static readonly GUIContent detailNormalMapText = new GUIContent("Normal Map",
-                "Select the texture containing the normal vector data.");
+                "Designates a Normal Map to create the illusion of bumps and dents in the details of this Material's surface.");
 
             public static readonly GUIContent detailAlbedoMapScaleInfo = new GUIContent("Setting the scaling factor to a value other than 1 results in a less performant shader variant.");
         }
