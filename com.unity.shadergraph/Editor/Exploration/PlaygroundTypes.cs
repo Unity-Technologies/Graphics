@@ -1,62 +1,56 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
+using UnityEditor.GraphToolsFoundation.Overdrive.BasicModel;
 using UnityEngine;
 using UnityEngine.GraphToolsFoundation.Overdrive;
 
 namespace GtfPlayground
 {
+    /// <summary>
+    /// GTF constant type for System.DayOfWeek, used to create a simple custom type w/ inline editor
+    /// </summary>
+    public class DayOfWeekConstant : Constant<DayOfWeek>
+    {
+        public static readonly DayOfWeek[] Values = (DayOfWeek[]) Enum.GetValues(typeof(DayOfWeek));
+        public static readonly string[] Names = Enum.GetNames(typeof(DayOfWeek));
+    }
+
     public static class PlaygroundTypes
     {
-        public static readonly TypeHandle MissingType = TypeHandle.MissingType;
-        public static readonly TypeHandle Unknown = TypeHandle.Unknown;
-        public static readonly TypeHandle ExecutionFlow = TypeHandle.ExecutionFlow;
-        public static readonly TypeHandle MissingPort = TypeHandle.MissingPort;
-        public static readonly TypeHandle Bool = TypeHandle.Bool;
-        public static readonly TypeHandle Void = TypeHandle.Void;
-        public static readonly TypeHandle Char = TypeHandle.Char;
-        public static readonly TypeHandle Double = TypeHandle.Double;
-        public static readonly TypeHandle Float = TypeHandle.Float;
-        public static readonly TypeHandle Int = TypeHandle.Int;
-        public static readonly TypeHandle UInt = TypeHandle.UInt;
-        public static readonly TypeHandle Long = TypeHandle.Long;
-        public static readonly TypeHandle Object = TypeHandle.Object;
-        public static readonly TypeHandle GameObject = TypeHandle.GameObject;
-        public static readonly TypeHandle String = TypeHandle.String;
-        public static readonly TypeHandle Vector2 = TypeHandle.Vector2;
-        public static readonly TypeHandle Vector3 = TypeHandle.Vector3;
-        public static readonly TypeHandle Vector4 = TypeHandle.Vector4;
-        public static readonly TypeHandle Quaternion = TypeHandle.Quaternion;
         public static readonly TypeHandle Color = typeof(Color).GenerateTypeHandle();
         public static readonly TypeHandle AnimationClip = typeof(AnimationClip).GenerateTypeHandle();
         public static readonly TypeHandle Mesh = typeof(Mesh).GenerateTypeHandle();
         public static readonly TypeHandle Texture2D = typeof(Texture2D).GenerateTypeHandle();
         public static readonly TypeHandle Texture3D = typeof(Texture3D).GenerateTypeHandle();
+        public static readonly TypeHandle DayOfWeek = typeof(DayOfWeek).GenerateTypeHandle();
 
         public static readonly Dictionary<string, TypeHandle> TypeHandlesByName = new()
         {
-            {"MissingType", MissingType},
-            {"Unknown", Unknown},
-            {"ExecutionFlow", ExecutionFlow},
-            {"MissingPort", MissingPort},
-            {"Bool", Bool},
-            {"Void", Void},
-            {"Char", Char},
-            {"Double", Double},
-            {"Float", Float},
-            {"Int", Int},
-            {"UInt", UInt},
-            {"Long", Long},
-            {"Object", Object},
-            {"GameObject", GameObject},
-            {"String", String},
-            {"Vector2", Vector2},
-            {"Vector3", Vector3},
-            {"Vector4", Vector4},
-            {"Quaternion", Quaternion},
+            {"MissingType", TypeHandle.MissingType},
+            {"Unknown", TypeHandle.Unknown},
+            {"ExecutionFlow", TypeHandle.ExecutionFlow},
+            {"MissingPort", TypeHandle.MissingPort},
+            {"Bool", TypeHandle.Bool},
+            {"Void", TypeHandle.Void},
+            {"Char", TypeHandle.Char},
+            {"Double", TypeHandle.Double},
+            {"Float", TypeHandle.Float},
+            {"Int", TypeHandle.Int},
+            {"UInt", TypeHandle.UInt},
+            {"Long", TypeHandle.Long},
+            {"Object", TypeHandle.Object},
+            {"GameObject", TypeHandle.GameObject},
+            {"String", TypeHandle.String},
+            {"Vector2", TypeHandle.Vector2},
+            {"Vector3", TypeHandle.Vector3},
+            {"Vector4", TypeHandle.Vector4},
+            {"Quaternion", TypeHandle.Quaternion},
             {"Color", Color},
             {"AnimationClip", AnimationClip},
             {"Mesh", Mesh},
             {"Texture2D", Texture2D},
             {"Texture3D", Texture3D},
+            {"DayOfWeek", DayOfWeek},
         };
 
         public static IEnumerable<string> TypeHandleNames => TypeHandlesByName.Keys;

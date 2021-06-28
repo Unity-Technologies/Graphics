@@ -16,7 +16,9 @@ namespace GtfPlayground
 
         public override Type GetConstantNodeValueType(TypeHandle typeHandle)
         {
-            return TypeToConstantMapper.GetConstantNodeType(typeHandle);
+            return typeHandle == PlaygroundTypes.DayOfWeek
+                ? typeof(DayOfWeekConstant)
+                : TypeToConstantMapper.GetConstantNodeType(typeHandle);
         }
     }
 }
