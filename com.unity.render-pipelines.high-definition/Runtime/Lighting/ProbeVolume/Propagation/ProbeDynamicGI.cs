@@ -159,7 +159,7 @@ namespace UnityEngine.Rendering.HighDefinition
         // ---------------------------------------------------------------------
         // ----------------------------- Culling -------------------------------
         // ---------------------------------------------------------------------
-        // ? 
+        // ?
         // SHOULD DEFINITIVELY CULL CELLS. Though not here.
 
 
@@ -176,7 +176,6 @@ namespace UnityEngine.Rendering.HighDefinition
             public TextureHandle apvL2_1;
             public TextureHandle apvL2_2;
             public TextureHandle apvL2_3;
-
         }
 
         void ClearTextureContent(RenderGraph renderGraph, DynamicGIAPV apvToClear)
@@ -467,7 +466,6 @@ namespace UnityEngine.Rendering.HighDefinition
                                 cmd.SetRenderTarget(data.prevApvL2_3, 0, CubemapFace.Unknown, depthSlice: -1);
                                 cmd.ClearRenderTarget(false, true, Color.clear);
                             }
-
                         }
                     });
             }
@@ -506,6 +504,7 @@ namespace UnityEngine.Rendering.HighDefinition
         {
             public ComputeShader combinePVCS;
             public int combineKernel;
+            public int updateHistoryKernel;
 
             public int probeCount;
             public Vector4 combineParameters;
@@ -546,6 +545,7 @@ namespace UnityEngine.Rendering.HighDefinition
         {
             data.combinePVCS = m_Resources.shaders.combineProbeVolumesCS;
             data.combineKernel = data.combinePVCS.FindKernel("CombineIrradianceCacheAndPV");
+            data.updateHistoryKernel = data.combinePVCS.FindKernel("WriteToHistory");
 
             data.probeCount = buffers.probeCount;
 
@@ -632,13 +632,6 @@ namespace UnityEngine.Rendering.HighDefinition
                         cmd.SetComputeTextureParam(cs, kernel, HDShaderIDs._PrevAPVResL1G_L1Ry, data.historyL1Gry);
                         cmd.SetComputeTextureParam(cs, kernel, HDShaderIDs._PrevAPVResL1B_L1Rz, data.historyL1Brz);
 
-                        if (m_Settings.probeVolumeSHBands == ProbeVolumeSHBands.SphericalHarmonicsL2)
-                        {
-                            cmd.SetComputeTextureParam(cs, kernel, HDShaderIDs._PrevAPVResL2_0, data.historyL2_0);
-                            cmd.SetComputeTextureParam(cs, kernel, HDShaderIDs._PrevAPVResL2_1, data.historyL2_1);
-                            cmd.SetComputeTextureParam(cs, kernel, HDShaderIDs._PrevAPVResL2_2, data.historyL2_2);
-                            cmd.SetComputeTextureParam(cs, kernel, HDShaderIDs._PrevAPVResL2_3, data.historyL2_3);
-                        }
 
                         cmd.SetComputeTextureParam(cs, kernel, HDShaderIDs._APVResL0_L1Rx, data.secondL0L1rx);
                         cmd.SetComputeTextureParam(cs, kernel, HDShaderIDs._APVResL1G_L1Ry, data.secondL1Gry);
@@ -667,11 +660,32 @@ namespace UnityEngine.Rendering.HighDefinition
                         cmd.SetComputeVectorParam(cs, HDShaderIDs._PVCombineParameters, data.combineParameters);
                         cmd.SetComputeVectorParam(cs, HDShaderIDs._DynamicGIParams1, data.poolDimensions);
 
-                        const int groupSize = 64; 
+                        const int groupSize = 64;
                         int groupCount = HDUtils.DivRoundUp(data.probeCount, groupSize);
                         cmd.DispatchCompute(cs, kernel, groupCount, 1, 1);
-                    });
 
+                        if (m_Settings.probeVolumeSHBands == ProbeVolumeSHBands.SphericalHarmonicsL2)
+                        {
+                            kernel = data.updateHistoryKernel;
+                            // We need to copy history separately to avoid issues with UAV
+
+                            cmd.SetComputeBufferParam(cs, kernel, HDShaderIDs._IrradianceCache, data.irradianceCacheBuffer);
+
+                            cmd.SetComputeTextureParam(cs, kernel, HDShaderIDs._PrevAPVResL0_L1Rx, data.historyL0L1rx);
+                            cmd.SetComputeTextureParam(cs, kernel, HDShaderIDs._PrevAPVResL1G_L1Ry, data.historyL1Gry);
+                            cmd.SetComputeTextureParam(cs, kernel, HDShaderIDs._PrevAPVResL1B_L1Rz, data.historyL1Brz);
+
+                            if (m_Settings.probeVolumeSHBands == ProbeVolumeSHBands.SphericalHarmonicsL2)
+                            {
+                                cmd.SetComputeTextureParam(cs, kernel, HDShaderIDs._PrevAPVResL2_0, data.historyL2_0);
+                                cmd.SetComputeTextureParam(cs, kernel, HDShaderIDs._PrevAPVResL2_1, data.historyL2_1);
+                                cmd.SetComputeTextureParam(cs, kernel, HDShaderIDs._PrevAPVResL2_2, data.historyL2_2);
+                                cmd.SetComputeTextureParam(cs, kernel, HDShaderIDs._PrevAPVResL2_3, data.historyL2_3);
+                            }
+
+                            cmd.DispatchCompute(cs, kernel, groupCount, 1, 1);
+                        }
+                    });
             }
         }
 

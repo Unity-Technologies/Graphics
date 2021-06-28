@@ -2,8 +2,9 @@
 
 // TODO: Better abstraction of output representation.
 
-#pragma kernel CombineProbeVolumes SIMPLE_COMBINE
-#pragma kernel CombineIrradianceCacheAndPV  COMBINE_FROM_CACHE
+#pragma kernel CombineIrradianceCacheAndPV
+// For UAV limit we need to split history and combining in separate kernels
+#pragma kernel WriteToHistory HISTORY_COMBINING
 
 #define GROUP_SIZE 64
 
@@ -34,44 +35,6 @@ float4 _PVCombineParameters;
 //#pragma enable_d3d11_debug_symbols
 
 
-#ifdef SIMPLE_COMBINE
-
-[numthreads(GROUP_SIZE, 1, 1)]
-void CombineProbeVolumes(uint3 id : SV_DispatchThreadID)
-{
-    uint probeIndex = id.x;
-    if (probeIndex < _ProbeCount)
-    {
-        uint3 dstLoc = ProbeIndexToTexLocation(probeIndex);
-
-        OutputRepresentation firstPV;
-        SamplesToRepresentation(firstPV, _APVResL0_L1Rx[dstLoc], _APVResL1G_L1Ry[dstLoc], _APVResL1B_L1Rz[dstLoc]
-#if OUTPUT_TYPE == SHL2
-           , _APVResL2_0[dstLoc], _APVResL2_1[dstLoc], _APVResL2_2[dstLoc], _APVResL2_3[dstLoc]
-#endif
-        );
-
-#if DEBUG == ONLY_SECOND
-        ZERO_INITIALIZE(OutputRepresentation, firstPV);
-#endif
-
-        OutputRepresentation secondPV;
-        SamplesToRepresentation(secondPV, _RWAPVResL0_L1Rx[dstLoc], _RWAPVResL1G_L1Ry[dstLoc], _RWAPVResL1B_L1Rz[dstLoc]
-#if OUTPUT_TYPE == SHL2
-           , _RWAPVResL2_0[dstLoc], _RWAPVResL2_1[dstLoc], _RWAPVResL2_2[dstLoc], _RWAPVResL2_3[dstLoc]
-#endif
-        );
-
-#if DEBUG == ONLY_FIRST
-        ZERO_INITIALIZE(OutputRepresentation, secondPV);
-#endif
-        OutputRepresentation finalPV = SumOutput(firstPV, _FirstBlendFactor, secondPV, _SecondBlendFactor);
-
-        WriteToOutput(finalPV, probeIndex);
-    }
-}
-
-#elif defined(COMBINE_FROM_CACHE)
 
 StructuredBuffer<float3> _IrradianceCache;
 
@@ -129,15 +92,18 @@ OutputRepresentation ProjectToOutput(uint probeIndex)
     return output;
 }
 
-RW_TEXTURE3D(float4, _PrevAPVResL0_L1Rx);
-RW_TEXTURE3D(float4, _PrevAPVResL1G_L1Ry);
-RW_TEXTURE3D(float4, _PrevAPVResL1B_L1Rz);
-#if OUTPUT_TYPE == SHL2
-RW_TEXTURE3D(float4, _PrevAPVResL2_0);
-RW_TEXTURE3D(float4, _PrevAPVResL2_1);
-RW_TEXTURE3D(float4, _PrevAPVResL2_2);
-RW_TEXTURE3D(float4, _PrevAPVResL2_3);
-#endif
+#if (OUTPUT_TYPE != SHL2) || defined(HISTORY_COMBINING)
+
+    RW_TEXTURE3D(float4, _PrevAPVResL0_L1Rx);
+    RW_TEXTURE3D(float4, _PrevAPVResL1G_L1Ry);
+    RW_TEXTURE3D(float4, _PrevAPVResL1B_L1Rz);
+    #if OUTPUT_TYPE == SHL2
+    RW_TEXTURE3D(float4, _PrevAPVResL2_0);
+    RW_TEXTURE3D(float4, _PrevAPVResL2_1);
+    RW_TEXTURE3D(float4, _PrevAPVResL2_2);
+    RW_TEXTURE3D(float4, _PrevAPVResL2_3);
+    #endif
+
 
 
 void WriteToHistory(OutputRepresentation outputSpace, uint probeIndex)
@@ -190,6 +156,9 @@ void WriteToHistory(OutputRepresentation outputSpace, uint probeIndex)
 #endif
 }
 
+#endif
+
+
 [numthreads(GROUP_SIZE, 1, 1)]
 void CombineIrradianceCacheAndPV(uint3 id : SV_DispatchThreadID)
 {
@@ -199,7 +168,10 @@ void CombineIrradianceCacheAndPV(uint3 id : SV_DispatchThreadID)
         uint3 dstLoc = ProbeIndexToTexLocation(probeIndex);
 
         OutputRepresentation dynamicPV = ProjectToOutput(probeIndex);
+#if (OUTPUT_TYPE != SHL2)
         WriteToHistory(dynamicPV, probeIndex);
+#endif
+
         if (_DeringingFactor > 0.0f)
         {
             ConvolveWithWindowing(dynamicPV, _DeringingFactor);
@@ -228,4 +200,17 @@ void CombineIrradianceCacheAndPV(uint3 id : SV_DispatchThreadID)
     }
 }
 
+#ifdef HISTORY_COMBINING
+[numthreads(GROUP_SIZE, 1, 1)]
+void WriteToHistory(uint3 id : SV_DispatchThreadID)
+{
+    uint probeIndex = id.x;
+    if (probeIndex < _ProbeCount)
+    {
+        uint3 dstLoc = ProbeIndexToTexLocation(probeIndex);
+
+        OutputRepresentation dynamicPV = ProjectToOutput(probeIndex);
+        WriteToHistory(dynamicPV, probeIndex);
+    }
+}
 #endif
