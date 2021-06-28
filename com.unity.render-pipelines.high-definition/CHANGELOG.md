@@ -272,6 +272,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed custom pass volume not executed in scene view because of the volume culling mask.
 - Fixed remapping of depth pyramid debug view
 - Fixed an issue with asymmetric projection matrices and fog / pathtracing. (case 1330290).
+- Standardized naming of SSGI, SS Reflection and Refraction, AO volume components (case 1335387)
 - Fixed rounding issue when accessing the color buffer in the DoF shader.
 - HD Global Settings can now be unassigned in the Graphics tab if HDRP is not the active pipeline(case 1343570).
 - Fix diffusion profile displayed in the inspector.
