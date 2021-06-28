@@ -28,7 +28,8 @@ editor-pinning-update:
       -  git config --global user.name "noreply@unity3d.com"
       -  git config --global user.email "noreply@unity3d.com"
       -  git checkout $GIT_BRANCH
-      -  python3 .yamato/script/editor_scripts/update_revisions.py --track 2021.2 --ono-branch $ONO_BRANCH_2021_2 --api-key $ONO_API_KEY --commit-and-push
+      -  python3 .yamato/script/editor_scripts/update_revisions.py --track trunk --ono-branch $ONO_BRANCH_TRUNK --api-key $ONO_API_KEY --commit-and-push --nr-commits-to-retrieve 1
+      -  python3 .yamato/script/editor_scripts/update_revisions.py --track 2021.2 --ono-branch $ONO_BRANCH_2021_2 --api-key $ONO_API_KEY --commit-and-push --nr-commits-to-retrieve 100
     triggers:
         recurring:
           -  branch: master
@@ -45,7 +46,6 @@ editor-pinning-store-green:
       -  git config --global user.name "noreply@unity3d.com"
       -  git config --global user.email "noreply@unity3d.com"
       -  git checkout $GIT_BRANCH
-      -  python3 .yamato/script/editor_scripts/store_green_revisions.py --target-branch $GIT_BRANCH --track 2021.2 --apikey $YAMATO_KEY
     triggers:
         recurring:
           -  branch: master
