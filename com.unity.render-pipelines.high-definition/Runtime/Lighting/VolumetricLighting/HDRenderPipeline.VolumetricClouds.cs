@@ -79,15 +79,15 @@ namespace UnityEngine.Rendering.HighDefinition
             m_SparsePresetMap.Apply();
 
             m_CloudyPresetMap = new Texture2D(1, 1, GraphicsFormat.R8G8B8A8_UNorm, TextureCreationFlags.None) { name = "Default Cloudy Texture" };
-            m_CloudyPresetMap.SetPixel(0, 0, new Color(0.9f, 0.0f, 0.0625f, 1.0f));
+            m_CloudyPresetMap.SetPixel(0, 0, new Color(0.9f, 0.0f, 0.2f, 1.0f));
             m_CloudyPresetMap.Apply();
 
             m_OvercastPresetMap = new Texture2D(1, 1, GraphicsFormat.R8G8B8A8_UNorm, TextureCreationFlags.None) { name = "Default Overcast Texture" };
-            m_OvercastPresetMap.SetPixel(0, 0, new Color(0.5f, 0.0f, 0.8f, 1.0f));
+            m_OvercastPresetMap.SetPixel(0, 0, new Color(0.5f, 0.0f, 0.375f, 1.0f));
             m_OvercastPresetMap.Apply();
 
             m_StormyPresetMap = new Texture2D(1, 1, GraphicsFormat.R8G8B8A8_UNorm, TextureCreationFlags.None) { name = "Default Storm Texture" };
-            m_StormyPresetMap.SetPixel(0, 0, new Color(1.0f, 0.0f, 0.375f, 1.0f));
+            m_StormyPresetMap.SetPixel(0, 0, new Color(1.0f, 0.0f, 0.80f, 1.0f));
             m_StormyPresetMap.Apply();
         }
 
@@ -263,38 +263,38 @@ namespace UnityEngine.Rendering.HighDefinition
             {
                 case VolumetricClouds.CloudPresets.Sparse:
                 {
-                    cloudModelData.densityMultiplier = 0.3f;
+                    cloudModelData.densityMultiplier = 0.2f;
                     cloudModelData.shapeFactor = 0.9f;
-                    cloudModelData.shapeScale = 1.75f;
-                    cloudModelData.erosionFactor = 0.7f;
+                    cloudModelData.shapeScale = 2.0f;
+                    cloudModelData.erosionFactor = 0.6f;
                     cloudModelData.erosionScale = 30.0f;
                     return;
                 }
                 case VolumetricClouds.CloudPresets.Cloudy:
                 {
                     cloudModelData.densityMultiplier = 0.3f;
-                    cloudModelData.shapeFactor = 0.75f;
+                    cloudModelData.shapeFactor = 0.85f;
                     cloudModelData.shapeScale = 2.5f;
-                    cloudModelData.erosionFactor = 0.8f;
-                    cloudModelData.erosionScale = 25.0f;
+                    cloudModelData.erosionFactor = 0.7f;
+                    cloudModelData.erosionScale = 35.0f;
                     return;
                 }
                 case VolumetricClouds.CloudPresets.Overcast:
                 {
-                    cloudModelData.densityMultiplier = 0.1f;
+                    cloudModelData.densityMultiplier = 0.3f;
                     cloudModelData.shapeFactor = 0.1f;
-                    cloudModelData.shapeScale = 3.5f;
-                    cloudModelData.erosionFactor = 0.0f;
-                    cloudModelData.erosionScale = 50.0f;
+                    cloudModelData.shapeScale = 6.0f;
+                    cloudModelData.erosionFactor = 0.6f;
+                    cloudModelData.erosionScale = 30.0f;
                     return;
                 }
                 case VolumetricClouds.CloudPresets.Stormy:
                 {
-                    cloudModelData.densityMultiplier = 0.4f;
-                    cloudModelData.shapeFactor = 0.7f;
-                    cloudModelData.shapeScale =  7.0f;
+                    cloudModelData.densityMultiplier = 0.3f;
+                    cloudModelData.shapeFactor = 0.9f;
+                    cloudModelData.shapeScale =  2.0f;
                     cloudModelData.erosionFactor = 0.6f;
-                    cloudModelData.erosionScale = 120.0f;
+                    cloudModelData.erosionScale = 35.0f;
                     return;
                 }
             }
