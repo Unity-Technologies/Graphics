@@ -87,7 +87,7 @@ namespace UnityEditor.ShaderGraph.Drawing
 
             shaderInputReference.generatePropertyBlock = shaderInputReference.isExposable;
 
-            if(graphData.owner != null)
+            if (graphData.owner != null)
                 graphData.owner.RegisterCompleteObjectUndo("Add Shader Input");
             else
                 AssertHelpers.Fail("GraphObject is null while carrying out AddShaderInputAction");
