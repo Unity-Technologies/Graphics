@@ -419,8 +419,8 @@ EnvironmentLighting EvaluateEnvironmentLighting(CloudRay ray, float3 evaluationP
     EnvironmentLighting environmentLight;
     environmentLight.sunDirection = _SunDirection.xyz;
     environmentLight.sunColor = _SunLightColor.xyz * (_ExposureSunColor ? GetCurrentExposureMultiplier() : 1.0);
-    environmentLight.ambientTermTop = _AmbientProbeTop * GetCurrentExposureMultiplier();
-    environmentLight.ambientTermBottom = _AmbientProbeBottom * GetCurrentExposureMultiplier();
+    environmentLight.ambientTermTop = _AmbientProbeTop.xyz * GetCurrentExposureMultiplier();
+    environmentLight.ambientTermBottom = _AmbientProbeBottom.xyz * GetCurrentExposureMultiplier();
 
 #ifdef PHYSICALLY_BASED_SUN
     if(_PhysicallyBasedSun == 1)
