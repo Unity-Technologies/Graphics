@@ -1187,16 +1187,16 @@ namespace UnityEngine.Rendering.HighDefinition
                         out var hdCamera,
                         out var cullingParameters);
 
-                    VFXCameraXRSettings cameraXRSettings;
-                    cameraXRSettings.viewTotal = hdCamera.xr.enabled ? 2U : 1U;
-                    cameraXRSettings.viewCount = (uint)hdCamera.viewCount;
-                    cameraXRSettings.viewOffset = (uint)hdCamera.xr.multipassId;
-
-                    VFXManager.PrepareCamera(camera, cameraXRSettings);
-
                     // Note: In case of a custom render, we have false here and 'TryCull' is not executed
                     if (!skipRequest)
                     {
+                        VFXCameraXRSettings cameraXRSettings;
+                        cameraXRSettings.viewTotal = hdCamera.xr.enabled ? 2U : 1U;
+                        cameraXRSettings.viewCount = (uint)hdCamera.viewCount;
+                        cameraXRSettings.viewOffset = (uint)hdCamera.xr.multipassId;
+
+                        VFXManager.PrepareCamera(camera, cameraXRSettings);
+
                         var needCulling = true;
 
                         // In XR multipass, culling results can be shared if the pass has the same culling id
@@ -1217,6 +1217,12 @@ namespace UnityEngine.Rendering.HighDefinition
 
                         if (needCulling)
                             skipRequest = !TryCull(camera, hdCamera, renderContext, m_SkyManager, cullingParameters, m_Asset, ref cullingResults);
+                    }
+
+                    if (additionalCameraData.hasCustomRender && additionalCameraData.fullscreenPassthrough)
+                    {
+                        Debug.LogWarning("HDRP Camera custom render is not supported when Fullscreen Passthrough is enabled. Please either disable Fullscreen Passthrough in the camera settings or remove all customRender callbacks attached to this camera.");
+                        continue;
                     }
 
                     if (additionalCameraData != null && additionalCameraData.hasCustomRender)
@@ -1523,7 +1529,8 @@ namespace UnityEngine.Rendering.HighDefinition
                             visibleProbe.ForceRenderingNextUpdate();
                         }
 
-                        hdCamera.SetParentCamera(hdParentCamera); // Used to inherit the properties of the view
+                        bool useFetchedGpuExposure = false;
+                        float fetchedGpuExposure = 1.0f;
 
                         if (visibleProbe.type == ProbeSettings.ProbeType.PlanarProbe)
                         {
@@ -1533,7 +1540,8 @@ namespace UnityEngine.Rendering.HighDefinition
                             {
                                 RTHandle exposureTexture = GetExposureTexture(hdParentCamera);
                                 hdParentCamera.RequestGpuExposureValue(exposureTexture);
-                                visibleProbe.SetProbeExposureValue(hdParentCamera.GpuExposureValue());
+                                fetchedGpuExposure = hdParentCamera.GpuExposureValue();
+                                visibleProbe.SetProbeExposureValue(fetchedGpuExposure);
                                 additionalCameraData.deExposureMultiplier = 1.0f;
 
                                 // If the planar is under exposure control, all the pixels will be de-exposed, for the other skies it is handeled in a shader.
@@ -1545,13 +1553,16 @@ namespace UnityEngine.Rendering.HighDefinition
                                 //the de-exposure multiplier must be used for anything rendering flatly, for example UI or Unlit.
                                 //this will cause them to blow up, but will match the standard nomralized exposure.
                                 hdParentCamera.RequestGpuDeExposureValue(GetExposureTextureHandle(hdParentCamera.currentExposureTextures.previous));
-                                visibleProbe.SetProbeExposureValue(1.0f);
+                                visibleProbe.SetProbeExposureValue(fetchedGpuExposure);
                                 additionalCameraData.deExposureMultiplier = 1.0f / hdParentCamera.GpuDeExposureValue();
                             }
 
                             // Make sure that the volumetric cloud animation data is in sync with the parent camera.
                             hdCamera.volumetricCloudsAnimationData = hdParentCamera.volumetricCloudsAnimationData;
+                            useFetchedGpuExposure = true;
                         }
+
+                        hdCamera.SetParentCamera(hdParentCamera, useFetchedGpuExposure, fetchedGpuExposure); // Used to inherit the properties of the view
 
                         HDAdditionalCameraData hdCam;
                         camera.TryGetComponent<HDAdditionalCameraData>(out hdCam);
