@@ -147,6 +147,7 @@ namespace UnityEngine.Rendering.Universal
     }
 
     [DisallowMultipleRendererFeature("Decal")]
+    [Tooltip("Decals.")]
     internal class DecalRendererFeature : ScriptableRendererFeature
     {
         private static SharedDecalEntityManager sharedDecalEntityManager { get; } = new SharedDecalEntityManager();

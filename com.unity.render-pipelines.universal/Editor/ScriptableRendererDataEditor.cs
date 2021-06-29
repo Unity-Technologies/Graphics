@@ -92,7 +92,7 @@ namespace UnityEditor.Rendering.Universal
             }
         }
 
-        private bool GetCustumTitle(Type type, out string title)
+        private bool GetCustomTitle(Type type, out string title)
         {
             var isSingleFeature = type.GetCustomAttribute<DisallowMultipleRendererFeature>();
             if (isSingleFeature != null)
@@ -104,6 +104,18 @@ namespace UnityEditor.Rendering.Universal
             return false;
         }
 
+        private bool GetTooltip(Type type, out string tooltip)
+        {
+            var attribute = type.GetCustomAttribute<TooltipAttribute>();
+            if (attribute != null)
+            {
+                tooltip = attribute.tooltip;
+                return attribute != null;
+            }
+            tooltip = "";
+            return false;
+        }
+
         private void DrawRendererFeature(int index, ref SerializedProperty renderFeatureProperty)
         {
             Object rendererFeatureObjRef = renderFeatureProperty.objectReferenceValue;
@@ -112,22 +124,26 @@ namespace UnityEditor.Rendering.Universal
                 bool hasChangedProperties = false;
                 string title;
 
-                bool hasCustomTitle = GetCustumTitle(rendererFeatureObjRef.GetType(), out title);
+                bool hasCustomTitle = GetCustomTitle(rendererFeatureObjRef.GetType(), out title);
 
                 if (!hasCustomTitle)
                 {
                     title = ObjectNames.GetInspectorTitle(rendererFeatureObjRef);
                 }
 
+                string tooltip;
+                GetTooltip(rendererFeatureObjRef.GetType(), out tooltip);
+
                 // Get the serialized object for the editor script & update it
                 Editor rendererFeatureEditor = m_Editors[index];
                 SerializedObject serializedRendererFeaturesEditor = rendererFeatureEditor.serializedObject;
                 serializedRendererFeaturesEditor.Update();
 
+
                 // Foldout header
                 EditorGUI.BeginChangeCheck();
                 SerializedProperty activeProperty = serializedRendererFeaturesEditor.FindProperty("m_Active");
-                bool displayContent = CoreEditorUtils.DrawHeaderToggle(title, renderFeatureProperty, activeProperty, pos => OnContextClick(pos, index));
+                bool displayContent = CoreEditorUtils.DrawHeaderToggle(EditorGUIUtility.TrTextContent(title, tooltip), renderFeatureProperty, activeProperty, pos => OnContextClick(pos, index));
                 hasChangedProperties |= EditorGUI.EndChangeCheck();
 
                 // ObjectEditor
@@ -298,7 +314,7 @@ namespace UnityEditor.Rendering.Universal
         private string GetMenuNameFromType(Type type)
         {
             string path;
-            if (!GetCustumTitle(type, out path))
+            if (!GetCustomTitle(type, out path))
             {
                 path = ObjectNames.NicifyVariableName(type.Name);
             }
