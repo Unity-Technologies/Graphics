@@ -11,8 +11,8 @@ namespace UnityEditor.Rendering.HighDefinition
     {
         class Styles
         {
-            public static GUIContent scrollOrientationLabel { get; } = new GUIContent("Orientation", "Controls the orientation of the distortion relative to the X world vector (in degrees).");
-            public static GUIContent scrollSpeedLabel { get; } = new GUIContent("Speed", "Sets the scrolling speed of the distortion. The higher the value, the faster the sky will move.");
+            public static GUIContent scrollOrientationLabel { get; } = new GUIContent("Orientation", "Controls the orientation of the distortion relative to the X world vector (in degrees).\nThis value can be relative to the Global Wind Orientation defined in the Visual Environment.");
+            public static GUIContent scrollSpeedLabel { get; } = new GUIContent("Speed", "Sets the scrolling speed of the distortion. The higher the value, the faster the sky will move.\nThis value can be relative to the Global Wind Speed defined in the Visual Environment.");
 
             public static GUIContent backplate { get; } = EditorGUIUtility.TrTextContent("Backplate", "Enable the projection of the bottom of the CubeMap on a plane with a given shape ('Disc', 'Rectangle', 'Ellispe', 'Infinite')");
             public static GUIContent type { get; } = EditorGUIUtility.TrTextContent("Type");

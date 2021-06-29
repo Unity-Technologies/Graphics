@@ -155,9 +155,9 @@ namespace UnityEditor.Rendering.HighDefinition
         public static readonly string[] modeNames = Enum.GetNames(typeof(WindParameter.WindOverrideMode));
         public static readonly int popupWidth = 70;
 
-        public static Rect PopupGUI(SerializedProperty mode)
+        public static bool BeginGUI(out Rect rect, GUIContent title, SerializedDataParameter parameter, SerializedProperty mode)
         {
-            var rect = EditorGUILayout.GetControlRect();
+            rect = EditorGUILayout.GetControlRect();
             rect.xMax -= popupWidth + 2;
 
             var popupRect = rect;
@@ -165,11 +165,6 @@ namespace UnityEditor.Rendering.HighDefinition
             popupRect.width = popupWidth;
             mode.intValue = EditorGUI.Popup(popupRect, mode.intValue, modeNames);
 
-            return rect;
-        }
-
-        public static bool ContentGUI(Rect rect, GUIContent title, SerializedDataParameter parameter, SerializedProperty mode)
-        {
             if (mode.intValue == (int)WindParameter.WindOverrideMode.Additive)
             {
                 var value = parameter.value.FindPropertyRelative("additiveValue");
@@ -181,8 +176,24 @@ namespace UnityEditor.Rendering.HighDefinition
                 value.floatValue = EditorGUI.FloatField(rect, title, value.floatValue);
             }
             else
+            {
+                if (mode.intValue == (int)WindParameter.WindOverrideMode.Global)
+                {
+                    EditorGUI.BeginDisabledGroup(true);
+                    EditorGUI.showMixedValue = true;
+                }
                 return false;
+            }
             return true;
+        }
+
+        public static void EndGUI(SerializedProperty mode)
+        {
+            if (mode.intValue == (int)WindParameter.WindOverrideMode.Global)
+            {
+                EditorGUI.showMixedValue = false;
+                EditorGUI.EndDisabledGroup();
+            }
         }
     }
 
@@ -192,14 +203,12 @@ namespace UnityEditor.Rendering.HighDefinition
         public override bool OnGUI(SerializedDataParameter parameter, GUIContent title)
         {
             var mode = parameter.value.FindPropertyRelative("mode");
-            var rect = LocalWindParameterDrawer.PopupGUI(mode);
-            if (!LocalWindParameterDrawer.ContentGUI(rect, title, parameter, mode))
+            if (!LocalWindParameterDrawer.BeginGUI(out var rect, title, parameter, mode))
             {
-                EditorGUI.BeginDisabledGroup(mode.intValue == (int)WindParameter.WindOverrideMode.Global);
                 var value = parameter.value.FindPropertyRelative("customValue");
                 value.floatValue = EditorGUI.Slider(rect, title, value.floatValue, 0.0f, 360.0f);
-                EditorGUI.EndDisabledGroup();
             }
+            LocalWindParameterDrawer.EndGUI(mode);
 
             return true;
         }
@@ -211,14 +220,12 @@ namespace UnityEditor.Rendering.HighDefinition
         public override bool OnGUI(SerializedDataParameter parameter, GUIContent title)
         {
             var mode = parameter.value.FindPropertyRelative("mode");
-            var rect = LocalWindParameterDrawer.PopupGUI(mode);
-            if (!LocalWindParameterDrawer.ContentGUI(rect, title, parameter, mode))
+            if (!LocalWindParameterDrawer.BeginGUI(out var rect, title, parameter, mode))
             {
-                EditorGUI.BeginDisabledGroup(mode.intValue == (int)WindParameter.WindOverrideMode.Global);
                 var value = parameter.value.FindPropertyRelative("customValue");
                 value.floatValue = Mathf.Max(EditorGUI.FloatField(rect, title, value.floatValue), 0.0f);
-                EditorGUI.EndDisabledGroup();
             }
+            LocalWindParameterDrawer.EndGUI(mode);
 
             return true;
         }

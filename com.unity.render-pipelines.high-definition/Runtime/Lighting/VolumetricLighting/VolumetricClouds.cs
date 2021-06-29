@@ -347,13 +347,13 @@ namespace UnityEngine.Rendering.HighDefinition
         /// <summary>
         /// Sets the global wind speed in kilometers per hour.
         /// </summary>
-        [Tooltip("Sets the global wind speed in kilometers per hour.")]
+        [Tooltip("Sets the global wind speed in kilometers per hour.\nThis value can be relative to the Global Wind Speed defined in the Visual Environment.")]
         public WindSpeedParameter globalWindSpeed = new WindSpeedParameter();
 
         /// <summary>
         /// Controls the orientation of the wind relative to the X world vector.
         /// </summary>
-        [Tooltip("Controls the orientation of the wind relative to the X world vector.")]
+        [Tooltip("Controls the orientation of the wind relative to the X world vector.\nThis value can be relative to the Global Wind Orientation defined in the Visual Environment.")]
         [AdditionalProperty]
         public WindOrientationParameter orientation = new WindOrientationParameter();
 
