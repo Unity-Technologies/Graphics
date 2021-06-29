@@ -58,7 +58,7 @@ namespace UnityEditor.Rendering.Universal.ShaderGUI
                 "Controls how visible the distortion effect is. At 0, there’s no visible distortion. At 1, only the distortion effect is visible, not the background.");
 
             public static GUIContent VertexStreams = new GUIContent("Vertex Streams",
-                "The vertex streams needed for this Material to function properly.");
+                "List detailing the expected layout of data sent to the shader from the particle system.");
 
             public static string streamPositionText = "Position (POSITION.xyz)";
             public static string streamNormalText = "Normal (NORMAL.xyz)";
