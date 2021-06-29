@@ -177,29 +177,41 @@ Shader "Hidden/HDRP/TemporalAA"
 
 
             #if CENTRAL_FILTERING  == UPSCALE_FILTER
-                // TODO: SHOULD THIS BE MINUS INSTEAD!?
-            // TODO: FIX!
-            int2 posOut = input.positionCS.xy + _TaaJitterStrength.xy;
-            uv = _TAAInputTexelSize  * _TAAUResScale * (floor(posOut) + 0.5f);
+
+            int2 posInOutputSpace = input.positionCS.xy;
+            int2 posInInputSpace = input.texcoord * _ScreenSize.xy - _TaaJitterStrength.xy;
+
+            int2 posOut = posInInputSpace;// input.positionCS.xy + _TaaJitterStrength.xy;
+            uv = _TAAInputTexelSize  *  (floor(posInInputSpace) + 0.5f);
+          //  uv = _TAAInputTexelSize * _TAAUResScale * (floor(posInOutputSpace + _TaaJitterStrength.xy) + 0.5f);
             #endif
 
 
             // --------------- Get closest motion vector ---------------
             float2 motionVector;
 
-#if ORTHOGRAPHIC || /* TEMP. THIS IS NOT THE RIGHT THING TO DO . */ CENTRAL_FILTERING  == UPSCALE_FILTER
+#if ORTHOGRAPHIC
             float2 closest = input.positionCS.xy;
 #else
-            float2 closest = GetClosestFragment(_DepthTexture, int2(input.positionCS.xy));
+            // If we are UPSAMPLING then pass input equivalent.
+            int2 centerPos = input.positionCS.xy;
+#if CENTRAL_FILTERING  == UPSCALE_FILTER
+            centerPos = posInInputSpace;
+#endif
+
+            float2 closest = GetClosestFragment(_DepthTexture, centerPos);
+
 #endif
             DecodeMotionVector(LOAD_TEXTURE2D_X(_CameraMotionVectorsTexture, closest), motionVector);
+#if CENTRAL_FILTERING  == UPSCALE_FILTER
+            motionVector *= (_TAAUResScale);
+#endif
+
             // --------------------------------------------------------
 
             // --------------- Get resampled history ---------------
             float2 prevUV = input.texcoord - motionVector;
-#if CENTRAL_FILTERING  == UPSCALE_FILTER
             //prevUV =
-#endif
             CTYPE history = GetFilteredHistory(_InputHistoryTexture, prevUV, _HistorySharpening, _TaaHistorySize);
             bool offScreen = any(abs(prevUV * 2 - 1) >= (1.0f - (1.0 * _TaaHistorySize.zw)));
             history.xyz *= PerceptualWeight(history);
@@ -295,8 +307,8 @@ Shader "Hidden/HDRP/TemporalAA"
 
             //color = ConvertToOutputSpace(filteredColor.xyz).CTYPE_SWIZZLE;
             _OutputHistoryTexture[COORD_TEXTURE2D_X(input.positionCS.xy)] = color.CTYPE_SWIZZLE;
-            outColor = color.CTYPE_SWIZZLE;
-            //outColor = ConvertToOutputSpace(filteredColor.xyz).CTYPE_SWIZZLE;
+            outColor = color.CTYPE_SWIZZLE;// float4(abs(motionVector.xy) * 10, 0, 1);
+           // outColor = ConvertToOutputSpace(filteredColor.xyz).CTYPE_SWIZZLE;
 
 #if VELOCITY_REJECTION && !defined(POST_DOF)
             _OutputVelocityMagnitudeHistory[COORD_TEXTURE2D_X(input.positionCS.xy)] = lengthMV;

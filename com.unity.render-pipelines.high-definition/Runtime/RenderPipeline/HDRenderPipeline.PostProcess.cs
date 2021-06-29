@@ -470,7 +470,7 @@ namespace UnityEngine.Rendering.HighDefinition
                     var upsamplignSceneResults = SceneUpsamplePass(renderGraph, hdCamera, source, depthBuffer, motionVectors);
                     //source = upsamplignSceneResults.color;
                     //depthBuffer = upsamplignSceneResults.depthBuffer;
-                    motionVectors = upsamplignSceneResults.motionVectors;
+                    //motionVectors = upsamplignSceneResults.motionVectors;
                 }
 
                 //  source = CustomPostProcessPass(renderGraph, hdCamera, source, depthBuffer, normalBuffer, motionVectors, m_GlobalSettings.beforeTAACustomPostProcesses, HDProfileId.CustomPostProcessBeforeTAA);
