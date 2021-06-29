@@ -1354,12 +1354,31 @@ namespace UnityEngine.Rendering.HighDefinition
 
         #region Temporal Anti-aliasing
 
-        void GrabTemporalAntialiasingHistoryTextures(HDCamera camera, out RTHandle previous, out RTHandle next, bool postDoF = false)
+        void GrabTemporalAntialiasingHistoryTextures(HDCamera camera, out RTHandle previous, out RTHandle next, float customScale, bool postDoF = false)
         {
             RTHandle Allocator(string id, int frameIndex, RTHandleSystem rtHandleSystem)
             {
                 return rtHandleSystem.Alloc(
-                    Vector2.one, TextureXR.slices, DepthBits.None, dimension: TextureXR.dimension,
+                    Vector2.one * customScale, TextureXR.slices, DepthBits.None, dimension: TextureXR.dimension,
+                    filterMode: FilterMode.Bilinear, colorFormat: GetPostprocessTextureFormat(),
+                    enableRandomWrite: true, useDynamicScale: true, name: $"{id} TAA History"
+                );
+            }
+
+            int historyType = (int)(postDoF ?
+                HDCameraFrameHistoryType.TemporalAntialiasingPostDoF : HDCameraFrameHistoryType.TemporalAntialiasing);
+
+            next = camera.GetCurrentFrameRT(historyType)
+                ?? camera.AllocHistoryFrameRT(historyType, Allocator, 2);
+            previous = camera.GetPreviousFrameRT(historyType);
+        }
+
+        void GrabTemporalAntialiasingHistoryTextures(HDCamera camera, out RTHandle previous, out RTHandle next, int width, int height, bool postDoF = false)
+        {
+            RTHandle Allocator(string id, int frameIndex, RTHandleSystem rtHandleSystem)
+            {
+                return rtHandleSystem.Alloc(
+                    width, height, TextureXR.slices, DepthBits.None, dimension: TextureXR.dimension,
                     filterMode: FilterMode.Bilinear, colorFormat: GetPostprocessTextureFormat(),
                     enableRandomWrite: true, useDynamicScale: true, name: $"{id} TAA History"
                 );
@@ -1500,7 +1519,13 @@ namespace UnityEngine.Rendering.HighDefinition
                 }
             }
 
-            GrabTemporalAntialiasingHistoryTextures(camera, out var prevHistory, out var nextHistory, postDoF);
+            RTHandle prevHistory, nextHistory;
+            if (TAAU)
+            {
+                GrabTemporalAntialiasingHistoryTextures(camera, out prevHistory, out nextHistory, (int)camera.finalViewport.width, (int)camera.finalViewport.height, postDoF);
+            }
+            else
+                GrabTemporalAntialiasingHistoryTextures(camera, out prevHistory, out nextHistory, 1, postDoF);
 
             Vector2Int prevViewPort = camera.historyRTHandleProperties.previousViewportSize;
             passData.previousScreenSize = new Vector4(prevViewPort.x, prevViewPort.y, 1.0f / prevViewPort.x, 1.0f / prevViewPort.y);

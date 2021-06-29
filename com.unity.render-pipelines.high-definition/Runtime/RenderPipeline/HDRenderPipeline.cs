@@ -1731,8 +1731,7 @@ namespace UnityEngine.Rendering.HighDefinition
                             // Here we use the non scaled resolution for the RTHandleSystem ref size because we assume that at some point we will need full resolution anyway.
                             // This is necessary because we assume that after post processes, we have the full size render target for debug rendering
                             // The only point of calling this here is to grow the render targets. The call in BeginRender will setup the current RTHandle viewport size.
-                            //  RTHandles.SetReferenceSize(maxSize.x, maxSize.y);
-                            ResetRTHandleReferenceSize(maxSize.x, maxSize.y);
+                            RTHandles.SetReferenceSize(maxSize.x, maxSize.y);
                         }
 
 

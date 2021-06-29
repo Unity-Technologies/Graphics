@@ -1033,7 +1033,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 var hdCamera = kvp.Value;
                 var currentHistorySize = hdCamera.m_HistoryRTSystem.rtHandleProperties.currentRenderTargetSize;
                 // We only reset if the new size if smaller than current reference (otherwise we might increase the size of off screen camera with lower resolution than the new reference.
-                if (width > currentHistorySize.x || height > currentHistorySize.y)
+                if (width < currentHistorySize.x || height < currentHistorySize.y)
                 {
                     hdCamera.m_HistoryRTSystem.ResetReferenceSize(width, height);
 
