@@ -9,7 +9,7 @@
 
 #define SHL1 0
 #define SHL2 1
-#define OUTPUT_TYPE SHL2
+#define OUTPUT_TYPE SHL1
 
 
 

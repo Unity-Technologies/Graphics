@@ -21,16 +21,11 @@ namespace UnityEngine.Rendering.HighDefinition
 
             m_ExtractionShader = resources.shaders.extactProbeExtraDataCS;
 
-            unwrappedPool = RTHandles.Alloc(kUnwrappedTextureSize, kUnwrappedTextureSize, slices: kPoolSize, dimension: TextureDimension.Tex2DArray, colorFormat: GraphicsFormat.R8G8B8A8_UNorm, name: "Extra Data Dynamic GI Pool");
-
             dummyColor = RTHandles.Alloc(kDummyRTWidth, kDummyRTHeight, dimension: TextureDimension.Tex2D, colorFormat: GraphicsFormat.R8G8B8A8_UNorm, name: "Dummy color");
-
-            nextUnwrappedDst = 0;
         }
 
         public void Dispose()
         {
-            RTHandles.Release(unwrappedPool);
             RTHandles.Release(dummyColor);
         }
 
@@ -293,10 +288,6 @@ namespace UnityEngine.Rendering.HighDefinition
 
         #region Extract Extra Data
 
-        private const int kUnwrappedTextureSize = 32;
-        private const int kPoolSize = 256;
-        private const int kRWComputeBuffersSize = 8192;
-
         private const int kDummyRTHeight = 16;
         private const int kDummyRTWidth = 16384;
         private const int kMaxRequestsPerDraw = kDummyRTWidth * kDummyRTHeight;
@@ -363,36 +354,6 @@ namespace UnityEngine.Rendering.HighDefinition
             requestsList[input].Add(request);
 
             return requestIndex;
-        }
-
-        // TODO: TODO_FCC MAKE THIS USING CMD AND CONTEXT !!! NOT IMMEDIATE MODE.
-        internal bool UnwrapInput(RequestInput input, out bool poolFull)
-        {
-            poolFull = (nextUnwrappedDst == kPoolSize - 1);
-
-
-            Material material = input.renderer.sharedMaterials[input.subMesh];
-
-            var passIdx = -1;
-            for (int i = 0; i < material.passCount; ++i)
-            {
-                if (material.GetPassName(i).IndexOf("DynamicGIDataGen") >= 0)
-                {
-                    passIdx = i;
-                    break;
-                }
-            }
-            if (passIdx >= 0)
-            {
-                material.SetPass(passIdx);
-                Graphics.SetRenderTarget(unwrappedPool, 0, CubemapFace.Unknown, nextUnwrappedDst);
-                GL.Clear(false, true, Color.black);
-                Graphics.DrawMeshNow(input.mesh, Matrix4x4.identity, 0);
-            }
-
-            nextUnwrappedDst = (nextUnwrappedDst + 1) % kPoolSize;
-
-            return passIdx >= 0;
         }
 
         struct SortedRequests
@@ -477,7 +438,7 @@ namespace UnityEngine.Rendering.HighDefinition
             }
         }
 
-        private void ExecutePendingRequests2()
+        private void ExecutePendingRequests()
         {
             var cmd = CommandBufferPool.Get("Execute Dynamic GI extra data requests");
 
@@ -523,8 +484,6 @@ namespace UnityEngine.Rendering.HighDefinition
 
             var outputData = new ExtraDataRequestOutput[currStart];
             readbackBuffer.GetData(outputData);
-            // Put back directly with the mapping
-            //   extraRequestsOutput = new List<ExtraDataRequestOutput>(currStart);
             for (int i = 0; i < currStart; ++i)
             {
                 extraRequestsOutput[processingIdxToOutputIdx[i]] = outputData[i];
@@ -535,105 +494,10 @@ namespace UnityEngine.Rendering.HighDefinition
             CoreUtils.SafeRelease(readbackBuffer);
         }
 
-        private void ExecutePendingRequests()
-        {
-            nextUnwrappedDst = 0;
-            if (requestsList.Keys.Count > 0)
-            {
-                bool poolFull = false;
-                var keys = requestsList.Keys;
-                RequestInput[] keysArray = new RequestInput[keys.Count];
-                keys.CopyTo(keysArray, 0);
-
-                int firstKeyForBatch = 0;
-                for (int i = 0; i < keys.Count; ++i)
-                {
-                    UnwrapInput(keysArray[i], out poolFull);
-                    if (poolFull)
-                    {
-                        ExtractData(firstKeyForBatch, i);
-                        firstKeyForBatch = i + 1;
-                    }
-                }
-
-                if ((keys.Count - firstKeyForBatch - 1) > 0)
-                {
-                    ExtractData(firstKeyForBatch, keys.Count - 1);
-                }
-            }
-        }
-
-        // TODO TODO_FCC Use cmd + context here ?
-        private void PerformDataExtraction(List<ExtraDataRequests> inputs, List<int> dstRequestIndices)
-        {
-            CommandBuffer cmd = CommandBufferPool.Get("");
-
-            inputBuffer.SetData(inputs, 0, 0, inputs.Count);
-
-            int kernel = m_ExtractionShader.FindKernel("ExtractData");
-            cmd.SetComputeTextureParam(m_ExtractionShader, kernel, HDShaderIDs._UnwrappedDataPool, unwrappedPool);
-            cmd.SetComputeIntParam(m_ExtractionShader, HDShaderIDs._RequestBatchSize, inputs.Count);
-            cmd.SetComputeBufferParam(m_ExtractionShader, kernel, HDShaderIDs._RequestsInputData, inputBuffer);
-            cmd.SetComputeBufferParam(m_ExtractionShader, kernel, HDShaderIDs._RWRequestsOutputData, readbackBuffer);
-
-            int dispatchX = (inputs.Count + 63) / 64;
-            cmd.DispatchCompute(m_ExtractionShader, kernel, dispatchX, 1, 1);
-
-            Graphics.ExecuteCommandBuffer(cmd);
-            CommandBufferPool.Release(cmd);
-
-            ExtraDataRequestOutput[] outputs = new ExtraDataRequestOutput[inputs.Count];
-            readbackBuffer.GetData(outputs, 0, 0, inputs.Count);
-
-            for (int i = 0; i < inputs.Count; ++i)
-            {
-                int dstIndex = dstRequestIndices[i];
-                extraRequestsOutput[dstIndex] = outputs[i];
-            }
-        }
-
-        private void ExtractData(int keyStart, int keyEnd)
-        {
-            var keys = requestsList.Keys;
-            RequestInput[] keysArray = new RequestInput[keys.Count];
-            keys.CopyTo(keysArray, 0);
-
-            List<ExtraDataRequests> inputs = new List<ExtraDataRequests>();
-            // Yucky, will fix.
-            List<int> dstRequestIndices = new List<int>();
-
-
-            for (int i = keyStart; i <= keyEnd; ++i)
-            {
-                var currKey = keysArray[i];
-                var listForKey = requestsList[currKey];
-                foreach (var request in listForKey)
-                {
-                    // Modified the request so that we have texture array index in request index as we don't need the former in the shader.
-                    ExtraDataRequests moddedRequest = request;
-                    moddedRequest.requestIndex = i;
-                    if (inputs.Count == kRWComputeBuffersSize)
-                    {
-                        PerformDataExtraction(inputs, dstRequestIndices);
-                        dstRequestIndices.Clear();
-                        inputs.Clear();
-                    }
-                    dstRequestIndices.Add(request.requestIndex);
-                    inputs.Add(moddedRequest);
-                }
-            }
-
-            if (inputs.Count > 0)
-            {
-                PerformDataExtraction(inputs, dstRequestIndices);
-            }
-        }
-
         internal void ClearContent()
         {
             requestsList.Clear();
             extraRequestsOutput.Clear();
-            nextUnwrappedDst = 0;
         }
 
         internal static ExtraDataRequestOutput RetrieveRequestOutput(int requestIndex)
@@ -896,9 +760,7 @@ namespace UnityEngine.Rendering.HighDefinition
                     GenerateExtraData(cell.probePositions[i], ref cell.extraData[i], cell.validity[i]);
                 }
 
-                ExecutePendingRequests2();
-
-                // ExecutePendingRequests();
+                ExecutePendingRequests();
 
                 for (int i = 0; i < numProbes; ++i)
                 {
