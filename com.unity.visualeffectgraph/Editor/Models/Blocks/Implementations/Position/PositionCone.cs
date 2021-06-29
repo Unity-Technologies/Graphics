@@ -7,12 +7,6 @@ namespace UnityEditor.VFX.Block
     [VFXInfo(category = "Position", variantProvider = typeof(PositionBaseProvider))]
     class PositionCone : PositionBase
     {
-        public enum HeightMode
-        {
-            Base,
-            Volume
-        }
-
         [VFXSetting, Tooltip("Controls whether particles are spawned on the base of the cone, or throughout the entire volume.")]
         public HeightMode heightMode = HeightMode.Volume;
 

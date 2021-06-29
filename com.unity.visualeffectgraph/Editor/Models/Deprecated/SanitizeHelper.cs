@@ -30,26 +30,62 @@ namespace UnityEditor.VFX
             {
                 var toSetting = toSettings.FirstOrDefault(o => o.name.Equals(fromSetting.name, StringComparison.InvariantCultureIgnoreCase));
                 if (toSetting.field != null)
-                    to.SetSettingValue(fromSetting.name, fromSetting.value);
+                    to.SetSettingValue(toSetting.name, fromSetting.value);
             }
 
-            foreach (var fromInputSlot in from.inputSlots)
+            if (from.inputSlots.Count != to.inputSlots.Count)
+                throw new InvalidOperationException();
+
+            for (int i = 0; i < from.inputSlots.Count; ++i)
             {
-                var toInputSlot = to.inputSlots.FirstOrDefault(o => o.name.Equals(fromInputSlot.name, StringComparison.InvariantCultureIgnoreCase));
-                if (toInputSlot != null)
+                var fromInputSlot = from.inputSlots[i];
+                var toInputSlot = to.inputSlots[i];
+
+                if (toInputSlot.property.type == fromInputSlot.property.type)
                 {
-                    if (toInputSlot.property.type == fromInputSlot.property.type)
-                    {
-                        VFXSlot.CopyLinksAndValue(toInputSlot, fromInputSlot, true);
-                    }
-                    else if (toInputSlot.property.type == typeof(TArcSphere))
-                    {
-                        MigrateTArcSphereFromArcSphere(toInputSlot, fromInputSlot);
-                    }
-                    else if (toInputSlot.property.type == typeof(TArcCircle))
-                    {
-                        MigrateTArcCircleFromArcCirlce(toInputSlot, fromInputSlot);
-                    }
+                    VFXSlot.CopyLinksAndValue(toInputSlot, fromInputSlot, true);
+                }
+                else if (toInputSlot.property.type == typeof(TArcSphere))
+                {
+                    MigrateTArcSphereFromArcSphere(toInputSlot, fromInputSlot);
+                }
+                else if (toInputSlot.property.type == typeof(TArcCircle))
+                {
+                    MigrateTArcCircleFromArcCircle(toInputSlot, fromInputSlot);
+                }
+                else if (toInputSlot.property.type == typeof(TArcTorus))
+                {
+                    MigrateTArcTorusFromArcTorus(toInputSlot, fromInputSlot);
+                }
+                else if (toInputSlot.property.type == typeof(TArcCone))
+                {
+                    //There wasn't a TArcCylinder type
+                    MigrateTArcConeFromArcCone(toInputSlot, fromInputSlot);
+                }
+                else if (toInputSlot.property.type == typeof(TSphere))
+                {
+                    MigrateTSphereFromSphere(toInputSlot, fromInputSlot);
+                }
+                else if (toInputSlot.property.type == typeof(TCircle))
+                {
+                    MigrateTCircleFromCircle(toInputSlot, fromInputSlot);
+                }
+                else if (toInputSlot.property.type == typeof(TTorus))
+                {
+                    MigrateTTorusFromTorus(toInputSlot, fromInputSlot);
+                }
+                else if (toInputSlot.property.type == typeof(TCone) && fromInputSlot.property.type == typeof(Cone))
+                {
+                    //Actually, no reference of this case
+                    MigrateTConeFromCone(toInputSlot, fromInputSlot);
+                }
+                else if (toInputSlot.property.type == typeof(TCone) && fromInputSlot.property.type == typeof(Cylinder))
+                {
+                    MigrateTConeFromCylinder(toInputSlot, fromInputSlot);
+                }
+                else
+                {
+                    throw new NotImplementedException();
                 }
             }
         }
@@ -113,7 +149,7 @@ namespace UnityEditor.VFX
             }
         }
 
-        public static void MigrateTArcCircleFromArcCirlce(VFXSlot to, VFXSlot from)
+        public static void MigrateTArcCircleFromArcCircle(VFXSlot to, VFXSlot from)
         {
             var to_circle = to[0];
             var to_arc = to[1];
@@ -172,7 +208,30 @@ namespace UnityEditor.VFX
             }
         }
 
-        public static void MigrateTTorusFromTorus(VFXSlot to, VFXSlot from)
+        public static void MigrateTArcTorusFromArcTorus(VFXSlot to, VFXSlot from)
+        {
+            var to_torus = to[0];
+            var to_arc = to[1];
+
+            var refSlot = from.refSlot;
+            var from_torus = refSlot; //The torus wasn't a composition
+            var from_arc = refSlot[1];
+            VFXSlot.CopySpace(to, refSlot, true);
+
+            var hasDirectLink = from.HasLink(false);
+            MigrateTTorusFromTorus(to_torus, from_torus, hasDirectLink);
+            if (hasDirectLink)
+            {
+                to_arc.Link(from_arc, true);
+            }
+            else
+            {
+                to_arc.value = (float)from_arc.value; //The value transfer is only applied on masterslot
+                VFXSlot.CopyLinksAndValue(to_arc, from_arc, true);
+            }
+        }
+
+        public static void MigrateTTorusFromTorus(VFXSlot to, VFXSlot from, bool hasLink = false)
         {
             var to_center = to[0][0];
             var to_majorRadius = to[1];
@@ -180,7 +239,7 @@ namespace UnityEditor.VFX
             var refSlot = from.refSlot;
             VFXSlot.CopySpace(to, refSlot, true);
 
-            if (from.HasLink(false))
+            if (from.HasLink(false) || hasLink)
             {
                 var parentCenter = refSlot[0];
                 var parentMajorRadius = refSlot[1];
@@ -215,7 +274,30 @@ namespace UnityEditor.VFX
             }
         }
 
-        public static void MigrateTConeFromCone(VFXSlot to, VFXSlot from)
+        public static void MigrateTArcConeFromArcCone(VFXSlot to, VFXSlot from)
+        {
+            var to_cone = to[0];
+            var to_arc = to[1];
+
+            var refSlot = from.refSlot;
+            var from_cone = refSlot; //The ArcCone wasn't a composition
+            var from_arc = refSlot[1];
+            VFXSlot.CopySpace(to, refSlot, true);
+
+            var hasDirectLink = from.HasLink(false);
+            MigrateTConeFromCone(to_cone, from_cone, hasDirectLink);
+            if (hasDirectLink)
+            {
+                to_arc.Link(from_arc, true);
+            }
+            else
+            {
+                to_arc.value = (float)from_arc.value; //The value transfer is only applied on masterslot
+                VFXSlot.CopyLinksAndValue(to_arc, from_arc, true);
+            }
+        }
+
+        public static void MigrateTConeFromCone(VFXSlot to, VFXSlot from, bool hasLink = false)
         {
             var to_center = to[0][0];
             var to_baseRadius = to[1];
@@ -225,7 +307,7 @@ namespace UnityEditor.VFX
             var refSlot = from.refSlot;
             VFXSlot.CopySpace(to, refSlot, true);
 
-            if (from.HasLink(false))
+            if (from.HasLink(false) || hasLink)
             {
                 var parentCenter = refSlot[0];
                 var parentRadius = refSlot[1];
@@ -301,8 +383,13 @@ namespace UnityEditor.VFX
 
         public static void MigrateTConeFromCylinder(VFXSlot to, VFXSlot from)
         {
-            var basePosition = (from.owner as VFXModel).position;
-            var graph = (from.owner as VFXModel).GetParent() as VFXGraph;
+            var lastModel = from.owner as VFXModel;
+            while (!(lastModel.GetParent() is VFXGraph))
+            {
+                lastModel = lastModel.GetParent();
+            }
+            var basePosition = lastModel.position;
+            var graph = lastModel.GetParent() as VFXGraph;
 
             var to_center = to[0][0];
             var to_baseRadius = to[1];
