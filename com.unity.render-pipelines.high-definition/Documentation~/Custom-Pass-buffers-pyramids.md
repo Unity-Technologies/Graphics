@@ -27,9 +27,9 @@ You can set each of these buffers to use:
 
 During rendering, HDRP uses a depth buffer to perform depth tests. By default, only opaque objects write to the depth buffer up to and including the BeforePreRefraction [injection point](Custom-Pass-Injection-Points.md).
 
-However, you can also enable HDRP to write transparent objects to the depth buffer. To do this, go to [Surface options](https://docs.unity3d.com/Packages/com.unity.render-pipelines.high-definition@10.4/manual/Lit-Shader.html) and either enable **Depth Write**, **Transparent Depth Prepass** or **Transparent Depth Postpass** depending on when you want them to write to the depth buffer**.**
+However, you can also make HDRP write transparent objects to the depth buffer. To do this, go to [Surface options](https://docs.unity3d.com/Packages/com.unity.render-pipelines.high-definition@10.4/manual/Lit-Shader.html) and either enable **Depth Write**, **Transparent Depth Prepass** or **Transparent Depth Postpass** depending on when you want them to write to the depth buffer**.**
 
-You cannot read the current depth buffer from a rendering shader.
+You can only read the current depth buffer from a rendering shader if you bind it in a C# custom pass script.
 
 HDRP uses this data to generate a [depth pyramid](#Custom-Pass-depth-pyramid).
 
@@ -80,4 +80,4 @@ HDRP generates color pyramids at these points in the rendering pipeline:
 2. If **Distortion** is enabled in the [Frame Settings](https://docs.unity3d.com/Packages/com.unity.render-pipelines.high-definition@10.4/manual/Frame-Settings.html), after the BeforeTransparent injection point and all the Transparent rendering passes. This is used for distortion and contains all opaque and transparent objects.
 3. As part of the bloom post-processing effect. This contains all opaque and transparent objects and the distortion effect.
 
-Note that when we refer to the color pyramid, we normally refer to the first pyramid in this listFor more information, see [Color pyramid](#Custom-Pass-color-pyramid).
+**Note**: The term color pyramid usually refers to the first pyramid in this list.
