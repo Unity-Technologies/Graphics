@@ -215,7 +215,7 @@ namespace UnityEditor.VFX
 
             var refSlot = from.refSlot;
             var from_torus = refSlot; //The torus wasn't a composition
-            var from_arc = refSlot[4];
+            var from_arc = refSlot[3];
             VFXSlot.CopySpace(to, refSlot, true);
 
             var hasDirectLink = from.HasLink(false);
