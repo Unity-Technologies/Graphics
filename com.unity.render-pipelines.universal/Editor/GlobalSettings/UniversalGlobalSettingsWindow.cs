@@ -65,11 +65,16 @@ namespace UnityEditor.Rendering.Universal
 
             if (serializedSettings == null || settingsSerialized != UniversalRenderPipelineGlobalSettings.instance)
             {
-                if (UniversalRenderPipeline.asset != null || UniversalRenderPipelineGlobalSettings.instance != null)
+                if (UniversalRenderPipelineGlobalSettings.instance != null)
                 {
                     settingsSerialized = UniversalRenderPipelineGlobalSettings.Ensure();
                     var serializedObject = new SerializedObject(settingsSerialized);
                     serializedSettings = new SerializedUniversalRenderPipelineGlobalSettings(serializedObject);
+                }
+                else
+                {
+                    serializedSettings = null;
+                    settingsSerialized = null;
                 }
             }
             else if (settingsSerialized != null && serializedSettings != null)
@@ -102,15 +107,30 @@ namespace UnityEditor.Rendering.Universal
             if (isURPinUse && serialized != null)
                 return;
 
-            if (isURPinUse)
+            using (new EditorGUILayout.HorizontalScope())
             {
-                EditorGUILayout.HelpBox(Styles.warningGlobalSettingsMissing, MessageType.Warning);
+                if (isURPinUse)
+                {
+                    ShowMessageWithFixButton(Styles.warningGlobalSettingsMissing, MessageType.Warning);
+                }
+                else
+                {
+                    EditorGUILayout.HelpBox(Styles.warningUrpNotActive, MessageType.Warning);
+                    if (serialized == null)
+                        ShowMessageWithFixButton(Styles.infoGlobalSettingsMissing, MessageType.Info);
+                }
             }
-            else
+        }
+
+        void ShowMessageWithFixButton(string helpBoxLabel, MessageType type)
+        {
+            using (new EditorGUILayout.HorizontalScope())
             {
-                EditorGUILayout.HelpBox(Styles.warningUrpNotActive, MessageType.Warning);
-                if (serialized == null)
-                    EditorGUILayout.HelpBox(Styles.infoGlobalSettingsMissing, MessageType.Info);
+                EditorGUILayout.HelpBox(helpBoxLabel, type);
+                if (GUILayout.Button(Styles.fixAssetButtonLabel, GUILayout.Width(45)))
+                {
+                    UniversalRenderPipelineGlobalSettings.Ensure();
+                }
             }
         }
 
@@ -126,6 +146,7 @@ namespace UnityEditor.Rendering.Universal
                 if (EditorGUI.EndChangeCheck())
                 {
                     UniversalRenderPipelineGlobalSettings.UpdateGraphicsSettings(newAsset);
+                    Debug.Assert(newAsset == UniversalRenderPipelineGlobalSettings.instance);
                     if (settingsSerialized != null && !settingsSerialized.Equals(null))
                         EditorUtility.SetDirty(settingsSerialized);
                 }

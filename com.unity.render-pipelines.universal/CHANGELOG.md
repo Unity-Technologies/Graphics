@@ -138,7 +138,8 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed gizmos no longer allocate memory in game view. [case 1328852]
 - Fixed an issue where shadow artefacts appeared between cascades on Terrain Detail objects.
 - Fixed ShaderGraph materials to select render queue in the same way as handwritten shader materials by default, but allows for a user override for custom behavior. [case 1335795]
-- Fixed sceneview debug mode rendering (case 1211436)
+- Fixed sceneview debug mode rendering (case 1211436).
+- URP Global Settings can now be unassigned in the Graphics tab (case 1343570).
 
 ### Changed
 - Change Asset/Create/Shader/Universal Render Pipeline/Lit Shader Graph to Asset/Create/Shader Graph/URP/Lit Shader Graph
