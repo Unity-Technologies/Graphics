@@ -63,7 +63,7 @@ namespace UnityEditor.VFX.Block
                 var transform = allSlot.FirstOrDefault(o => o.name == "arcCircle_circle_transform").exp;
                 var radiusScale = VFXOperatorUtility.UniformScaleMatrix(arcCircleRadius);
                 var finalTransform = new VFXExpressionTransformMatrix(transform, radiusScale);
-                var invFinalTransform = new VFXExpressionTransposeMatrix(new VFXExpressionInverseMatrix(finalTransform));
+                var invFinalTransform = new VFXExpressionTransposeMatrix(new VFXExpressionInverseTRSMatrix(finalTransform));
                 yield return new VFXNamedExpression(finalTransform, "transform");
                 yield return new VFXNamedExpression(invFinalTransform, "inverseTranspose");
             }

@@ -39,7 +39,7 @@ namespace UnityEditor.VFX.Block
 
                 var radiusScale = VFXOperatorUtility.UniformScaleMatrix(radius);
                 var finalTransform = new VFXExpressionTransformMatrix(transform, radiusScale);
-                var invFinalTransform = new VFXExpressionTransposeMatrix(new VFXExpressionInverseMatrix(finalTransform));
+                var invFinalTransform = new VFXExpressionTransposeMatrix(new VFXExpressionInverseTRSMatrix(finalTransform));
                 yield return new VFXNamedExpression(finalTransform, "transform");
                 yield return new VFXNamedExpression(invFinalTransform, "inverseTranspose");
                 yield return new VFXNamedExpression(CalculateVolumeFactor(positionMode, radius, thickness), "volumeFactor");
