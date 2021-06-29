@@ -278,7 +278,7 @@ namespace UnityEditor.Rendering.Universal.ShaderGUI
             vertexStreamList = new ReorderableList(streamList, typeof(string), false, true, false, false);
 
             vertexStreamList.drawHeaderCallback = (Rect rect) => {
-                EditorGUI.LabelField(rect, "Vertex Streams");
+                EditorGUI.LabelField(rect, Styles.VertexStreams);
             };
 
             vertexStreamList.DoLayoutList();
