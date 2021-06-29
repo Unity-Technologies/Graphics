@@ -80,7 +80,7 @@ namespace UnityEditor.VFX.Block
 
                 yield return new VFXNamedExpression(new VFXExpressionCombine(new VFXExpression[] { new VFXExpressionSin(slope), new VFXExpressionCos(slope) }), "sincosSlope");
 
-                var invFinalTransform = new VFXExpressionTransposeMatrix(new VFXExpressionInverseMatrix(transform));
+                var invFinalTransform = new VFXExpressionTransposeMatrix(new VFXExpressionInverseTRSMatrix(transform));
                 yield return new VFXNamedExpression(invFinalTransform, "arcCone_cone_inverseTranspose");
             }
         }
