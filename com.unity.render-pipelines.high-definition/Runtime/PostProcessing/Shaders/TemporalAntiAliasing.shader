@@ -14,7 +14,7 @@ Shader "Hidden/HDRP/TemporalAA"
         #pragma multi_compile_local_fragment _ FORCE_BILINEAR_HISTORY
         #pragma multi_compile_local_fragment _ ENABLE_MV_REJECTION
         #pragma multi_compile_local_fragment _ ANTI_RINGING
-        #pragma multi_compile_local_fragment LOW_QUALITY MEDIUM_QUALITY HIGH_QUALITY POST_DOF
+        #pragma multi_compile_local_fragment LOW_QUALITY MEDIUM_QUALITY HIGH_QUALITY UPSCALE POST_DOF
 
         #pragma editor_sync_compilation
 
@@ -64,6 +64,19 @@ Shader "Hidden/HDRP/TemporalAA"
     #define WIDE_NEIGHBOURHOOD 1
     #define NEIGHBOUROOD_CORNER_METHOD VARIANCE
     #define CENTRAL_FILTERING BLACKMAN_HARRIS
+    #define HISTORY_CLIP DIRECT_CLIP
+    #define ANTI_FLICKER 1
+    #define ANTI_FLICKER_MV_DEPENDENT 1
+    #define VELOCITY_REJECTION defined(ENABLE_MV_REJECTION)
+    #define PERCEPTUAL_SPACE 1
+    #define PERCEPTUAL_SPACE_ONLY_END 0 && (PERCEPTUAL_SPACE == 0)
+
+#elif defined(UPSCALE)
+    #define YCOCG 1
+    #define HISTORY_SAMPLING_METHOD BICUBIC_5TAP
+    #define WIDE_NEIGHBOURHOOD 1
+    #define NEIGHBOUROOD_CORNER_METHOD VARIANCE
+    #define CENTRAL_FILTERING /*UPSCALE*/ BLACKMAN_HARRIS
     #define HISTORY_CLIP DIRECT_CLIP
     #define ANTI_FLICKER 1
     #define ANTI_FLICKER_MV_DEPENDENT 1

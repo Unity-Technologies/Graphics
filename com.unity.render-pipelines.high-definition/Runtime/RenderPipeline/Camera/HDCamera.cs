@@ -674,6 +674,11 @@ namespace UnityEngine.Rendering.HighDefinition
             return m_AdditionalCameraData == null ? false : m_AdditionalCameraData.cameraCanRenderDLSS;
         }
 
+        internal bool UpsampleHappensBeforePost()
+        {
+            return IsDLSSEnabled() || DynamicResolutionHandler.instance.filter == DynamicResUpscaleFilter.TAAU;
+        }
+
         internal bool allowDeepLearningSuperSampling => m_AdditionalCameraData == null ? false : m_AdditionalCameraData.allowDeepLearningSuperSampling;
         internal bool deepLearningSuperSamplingUseCustomQualitySettings => m_AdditionalCameraData == null ? false : m_AdditionalCameraData.deepLearningSuperSamplingUseCustomQualitySettings;
         internal uint deepLearningSuperSamplingQuality => m_AdditionalCameraData == null ? 0 : m_AdditionalCameraData.deepLearningSuperSamplingQuality;
@@ -683,7 +688,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
         internal bool RequiresCameraJitter()
         {
-            return antialiasing == AntialiasingMode.TemporalAntialiasing || IsDLSSEnabled();
+            return antialiasing == AntialiasingMode.TemporalAntialiasing || IsDLSSEnabled() || (DynamicResolutionHandler.instance.DynamicResolutionEnabled() && DynamicResolutionHandler.instance.filter == DynamicResUpscaleFilter.TAAU);
         }
 
         internal bool IsSSREnabled(bool transparent = false)
@@ -773,8 +778,8 @@ namespace UnityEngine.Rendering.HighDefinition
 
             UpdateAntialiasing();
 
-            // ORDER is importand: we read the upsamplerSchedule when we decide if we need to refresh the history buffers, so be careful when moving this
-            DynamicResolutionHandler.instance.upsamplerSchedule = IsDLSSEnabled() ? DynamicResolutionHandler.UpsamplerScheduleType.BeforePost : DynamicResolutionHandler.UpsamplerScheduleType.AfterPost;
+            // ORDER is important: we read the upsamplerSchedule when we decide if we need to refresh the history buffers, so be careful when moving this
+            DynamicResolutionHandler.instance.upsamplerSchedule = UpsampleHappensBeforePost() ? DynamicResolutionHandler.UpsamplerScheduleType.BeforePost : DynamicResolutionHandler.UpsamplerScheduleType.AfterPost;
 
             // Handle memory allocation.
             if (allocateHistoryBuffers)
@@ -893,7 +898,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 Vector2Int scaledSize = DynamicResolutionHandler.instance.GetScaledSize(new Vector2Int(actualWidth, actualHeight));
                 actualWidth = scaledSize.x;
                 actualHeight = scaledSize.y;
-                globalMipBias += DynamicResolutionHandler.instance.CalculateMipBias(scaledSize, nonScaledViewport, IsDLSSEnabled());
+                globalMipBias += DynamicResolutionHandler.instance.CalculateMipBias(scaledSize, nonScaledViewport, UpsampleHappensBeforePost());
                 lowResScale = DynamicResolutionHandler.instance.GetLowResMultiplier(lowResScale);
             }
 
@@ -1028,7 +1033,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 var hdCamera = kvp.Value;
                 var currentHistorySize = hdCamera.m_HistoryRTSystem.rtHandleProperties.currentRenderTargetSize;
                 // We only reset if the new size if smaller than current reference (otherwise we might increase the size of off screen camera with lower resolution than the new reference.
-                if (width < currentHistorySize.x || height < currentHistorySize.y)
+                if (width > currentHistorySize.x || height > currentHistorySize.y)
                 {
                     hdCamera.m_HistoryRTSystem.ResetReferenceSize(width, height);
 

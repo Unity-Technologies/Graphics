@@ -482,6 +482,8 @@ namespace UnityEngine.Rendering.HighDefinition
                     if (hdCamera.antialiasing == HDAdditionalCameraData.AntialiasingMode.TemporalAntialiasing)
                     {
                         source = DoTemporalAntialiasing(renderGraph, hdCamera, depthBuffer, motionVectors, depthBufferMipChain, source, postDoF: false, "TAA Destination");
+                        if (DynamicResolutionHandler.instance.filter == DynamicResUpscaleFilter.TAAU)
+                            SetCurrentResolutionGroup(renderGraph, hdCamera, ResolutionGroup.AfterDynamicResUpscale);
                     }
                     else if (hdCamera.antialiasing == HDAdditionalCameraData.AntialiasingMode.SubpixelMorphologicalAntiAliasing)
                     {
@@ -1404,6 +1406,8 @@ namespace UnityEngine.Rendering.HighDefinition
             public Vector4 taaParameters;
             public Vector4 taaFilterWeights;
             public bool motionVectorRejection;
+            public Vector4 taauParams;
+            public Rect finalViewport;
 
             public TextureHandle source;
             public TextureHandle destination;
@@ -1468,7 +1472,12 @@ namespace UnityEngine.Rendering.HighDefinition
                 passData.temporalAAMaterial.EnableKeyword("ENABLE_MV_REJECTION");
             }
 
-            if (postDoF)
+            bool TAAU = DynamicResolutionHandler.instance.DynamicResolutionEnabled() && DynamicResolutionHandler.instance.filter == DynamicResUpscaleFilter.TAAU;
+            if (TAAU)
+            {
+                passData.temporalAAMaterial.EnableKeyword("UPSCALE");
+            }
+            else if (postDoF)
             {
                 passData.temporalAAMaterial.EnableKeyword("POST_DOF");
             }
@@ -1516,6 +1525,10 @@ namespace UnityEngine.Rendering.HighDefinition
 
             TextureHandle dest = GetPostprocessOutputHandle(renderGraph, "Post-DoF TAA Destination");
             passData.destination = builder.WriteTexture(dest);
+
+            passData.finalViewport = camera.finalViewport;
+            var resScale = DynamicResolutionHandler.instance.GetCurrentScale();
+            passData.taauParams = new Vector4(0.4f, resScale, 0, 0);
         }
 
         TextureHandle DoTemporalAntialiasing(RenderGraph renderGraph, HDCamera hdCamera, TextureHandle depthBuffer, TextureHandle motionVectors, TextureHandle depthBufferMipChain, TextureHandle sourceTexture, bool postDoF, string outputName)
@@ -1560,6 +1573,7 @@ namespace UnityEngine.Rendering.HighDefinition
                         mpb.SetVector(HDShaderIDs._TaaPostParameters, data.taaParameters);
                         mpb.SetVector(HDShaderIDs._TaaHistorySize, taaHistorySize);
                         mpb.SetVector(HDShaderIDs._TaaFilterWeights, data.taaFilterWeights);
+                        mpb.SetVector(HDShaderIDs._TaauParameters, data.taauParams);
 
                         CoreUtils.SetRenderTarget(ctx.cmd, data.destination, data.depthBuffer);
                         ctx.cmd.SetRandomWriteTarget(1, data.nextHistory);
@@ -1568,8 +1582,18 @@ namespace UnityEngine.Rendering.HighDefinition
                             ctx.cmd.SetRandomWriteTarget(2, nextMVLenTexture);
                         }
 
-                        ctx.cmd.DrawProcedural(Matrix4x4.identity, data.temporalAAMaterial, 0, MeshTopology.Triangles, 3, 1, mpb);
-                        ctx.cmd.DrawProcedural(Matrix4x4.identity, data.temporalAAMaterial, 1, MeshTopology.Triangles, 3, 1, mpb);
+                        Rect rect;
+                        if (DynamicResolutionHandler.instance.filter == DynamicResUpscaleFilter.TAAU)
+                        {
+                            rect = data.finalViewport;
+                            HDUtils.DrawFullScreen(ctx.cmd, rect, data.temporalAAMaterial, data.destination, data.depthBuffer, mpb, 0);
+                            HDUtils.DrawFullScreen(ctx.cmd, rect, data.temporalAAMaterial, data.destination, data.depthBuffer, mpb, 1);
+                        }
+                        else
+                        {
+                            ctx.cmd.DrawProcedural(Matrix4x4.identity, data.temporalAAMaterial, 0, MeshTopology.Triangles, 3, 1, mpb);
+                            ctx.cmd.DrawProcedural(Matrix4x4.identity, data.temporalAAMaterial, 1, MeshTopology.Triangles, 3, 1, mpb);
+                        }
                         ctx.cmd.ClearRandomWriteTargets();
                     });
 
