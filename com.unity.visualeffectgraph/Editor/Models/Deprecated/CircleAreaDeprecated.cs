@@ -4,7 +4,6 @@ using UnityEngine;
 
 namespace UnityEditor.VFX.Operator
 {
-    //TODOPAUL : Sanitize this
     class CircleAreaDeprecated : VFXOperator
     {
         public class InputProperties
@@ -24,6 +23,16 @@ namespace UnityEditor.VFX.Operator
         protected override sealed VFXExpression[] BuildExpression(VFXExpression[] inputExpression)
         {
             return new VFXExpression[] { VFXOperatorUtility.CircleArea(inputExpression[1]) };
+        }
+
+        public override void Sanitize(int version)
+        {
+            if (!SanitizeHelper.s_Enable_Sanitize_of_TShape) return;
+
+            var newArea = ScriptableObject.CreateInstance<Operator.CircleArea>();
+            SanitizeHelper.MigrateTCircleFromCircle(newArea.inputSlots[0], inputSlots[0]);
+            VFXSlot.CopyLinksAndValue(newArea.outputSlots[0], outputSlots[0], true);
+            ReplaceModel(newArea, this);
         }
     }
 }

@@ -20,6 +20,41 @@ namespace UnityEditor.VFX.Operator
             op.GetParent().AddChild(inlineVector3);
         }
 
+        public static void MigrateTCircleFromCircle(VFXSlot to, VFXSlot from)
+        {
+            var to_center = to[0][0];
+            var to_radius = to[1];
+
+            if (from.HasLink(false))
+            {
+                var parent = from.refSlot;
+                var parentCenter = parent[0];
+                var parentRadius = parent[1];
+
+                to_center.Link(parentCenter, true);
+                to_radius.Link(parentRadius, true);
+                VFXSlot.CopySpace(to, parent, true);
+            }
+            else
+            {
+                var center = from[0];
+                var radius = from[1];
+
+                var value = new TCircle()
+                {
+                    transform = new Transform()
+                    {
+                        position = (Vector3)center.value,
+                        scale = Vector3.one
+                    },
+                    radius = (float)radius.value
+                };
+                to.value = value;
+                VFXSlot.CopyLinksAndValue(to_center, center, true);
+                VFXSlot.CopyLinksAndValue(to_radius, radius, true);
+            }
+        }
+
         public static void MigrateTSphereFromSphere(VFXSlot to, VFXSlot from)
         {
             var to_center = to[0][0];
@@ -53,6 +88,49 @@ namespace UnityEditor.VFX.Operator
                 to.value = value;
                 VFXSlot.CopyLinksAndValue(to_center, center, true);
                 VFXSlot.CopyLinksAndValue(to_radius, radius, true);
+            }
+        }
+
+        public static void MigrateTTorusFromTorus(VFXSlot to, VFXSlot from)
+        {
+            var to_center = to[0][0];
+            var to_majorRadius = to[1];
+            var to_minorRadius = to[2];
+
+            if (from.HasLink(false))
+            {
+                var parent = from.refSlot;
+                var parentCenter = parent[0];
+                var parentMajorRadius = parent[1];
+                var parentMinorRadius = parent[2];
+
+                to_center.Link(parentCenter, true);
+                to_majorRadius.Link(parentMajorRadius, true);
+                to_minorRadius.Link(parentMinorRadius, true);
+                VFXSlot.CopySpace(to, parent, true);
+            }
+            else
+            {
+                var center = from[0];
+                var majorRadius = from[1];
+                var minorRadius = from[2];
+
+                var value = new TTorus()
+                {
+                    transform = new Transform()
+                    {
+                        position = (Vector3)center.value,
+                        scale = Vector3.one
+                    },
+
+                    majorRadius = (float)majorRadius.value,
+                    minorRadius = (float)minorRadius.value
+                };
+
+                to.value = value;
+                VFXSlot.CopyLinksAndValue(to_center, center, true);
+                VFXSlot.CopyLinksAndValue(to_majorRadius, majorRadius, true);
+                VFXSlot.CopyLinksAndValue(to_minorRadius, minorRadius, true);
             }
         }
 
