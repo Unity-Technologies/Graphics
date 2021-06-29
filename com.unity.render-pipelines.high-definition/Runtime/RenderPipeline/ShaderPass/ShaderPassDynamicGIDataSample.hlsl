@@ -49,7 +49,7 @@ struct ExtraDataRequestOutput
 };
 
 StructuredBuffer<ExtraDataRequest>  _RequestsInputData;
-RWStructuredBuffer<ExtraDataRequestOutput>  _RWRequestsOutputData;
+RWStructuredBuffer<ExtraDataRequestOutput>  _RWRequestsOutputData : register(u1);
 
 #ifdef _DEPTHOFFSET_ON
 #undef _DEPTHOFFSET_ON

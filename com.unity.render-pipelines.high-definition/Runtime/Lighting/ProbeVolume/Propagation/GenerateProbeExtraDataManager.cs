@@ -471,9 +471,9 @@ namespace UnityEngine.Rendering.HighDefinition
                 cmd.SetGlobalBuffer("_RequestsInputData", inputBuffer);
                 cmd.SetGlobalVector("_MaterialRequestsInfo", new Vector4(requestCount, startOfList, quadHeight, 0));
 
-                HDUtils.DrawFullScreen(cmd, dummyDrawRect, material, dummyColor, null, passIdx);
                 cmd.SetRandomWriteTarget(1, readbackBuffer);
                 cmd.SetRenderTarget(dummyColor);
+                HDUtils.DrawFullScreen(cmd, dummyDrawRect, material, dummyColor, null, passIdx);
             }
         }
 
