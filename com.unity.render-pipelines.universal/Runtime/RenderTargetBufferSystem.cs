@@ -55,7 +55,7 @@ namespace UnityEngine.Rendering.Universal.Internal
             int pipelineMSAA = m_Desc.msaaSamples;
             int bufferMSAA = frontBuffer.msaa;
 
-            if(m_AllowMSAA && bufferMSAA != pipelineMSAA)
+            if (m_AllowMSAA && bufferMSAA != pipelineMSAA)
             {
                 //We don't want a depth buffer on B buffer
                 var desc = m_Desc;
@@ -69,7 +69,7 @@ namespace UnityEngine.Rendering.Universal.Internal
                     m_B.msaa = desc.msaaSamples;
                 else m_A.msaa = desc.msaaSamples;
             }
-            else if(!m_AllowMSAA && bufferMSAA > 1)
+            else if (!m_AllowMSAA && bufferMSAA > 1)
             {
                 //We don't want a depth buffer on B buffer
                 var desc = m_Desc;
@@ -112,6 +112,7 @@ namespace UnityEngine.Rendering.Universal.Internal
             cmd.ReleaseTemporaryRT(m_B.name);
 
             m_AisBackBuffer = true;
+            m_AllowMSAA = true;
         }
 
         public void SetCameraSettings(CommandBuffer cmd, RenderTextureDescriptor desc, FilterMode filterMode)
