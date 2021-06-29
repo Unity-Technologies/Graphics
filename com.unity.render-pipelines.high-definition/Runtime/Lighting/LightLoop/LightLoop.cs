@@ -1190,7 +1190,16 @@ namespace UnityEngine.Rendering.HighDefinition
                 else if (m_SkyManager.TryGetCloudSettings(hdCamera, out var cloudSettings, out var cloudRenderer))
                 {
                     if (cloudRenderer.GetSunLightCookieParameters(cloudSettings, ref cookieParams))
-                        cloudRenderer.RenderSunLightCookie(cloudSettings, lightComponent, cmd);
+                    {
+                        var builtinParams = new BuiltinSunCookieParameters
+                        {
+                            cloudSettings = cloudSettings,
+                            sunLight = lightComponent,
+                            hdCamera = hdCamera,
+                            commandBuffer = cmd
+                        };
+                        cloudRenderer.RenderSunLightCookie(builtinParams);
+                    }
                 }
             }
 

@@ -373,7 +373,7 @@ namespace UnityEngine.Rendering.HighDefinition
             }
 
             // Compute the theta angle for the wind direction
-            float theta = settings.orientation.value / 180.0f * Mathf.PI;
+            float theta = settings.orientation.GetValue(hdCamera) / 180.0f * Mathf.PI;
             // We apply a minus to see something moving in the right direction
             cb._WindDirection = new Vector2(-Mathf.Cos(theta), -Mathf.Sin(theta));
             cb._WindVector = hdCamera.volumetricCloudsAnimationData.cloudOffset;
@@ -834,14 +834,14 @@ namespace UnityEngine.Rendering.HighDefinition
                 float delaTime = hdCamera.time - hdCamera.volumetricCloudsAnimationData.lastTime;
 
                 // Compute the theta angle for the wind direction
-                float theta = settings.orientation.value / 180.0f * Mathf.PI;
+                float theta = settings.orientation.GetValue(hdCamera) / 180.0f * Mathf.PI;
 
                 // Compute the wind direction
                 Vector2 windDirection = new Vector2(Mathf.Cos(theta), Mathf.Sin(theta));
 
                 // Conversion  from km/h to m/s  is the 0.277778f factor
                 // We apply a minus to see something moving in the right direction
-                Vector2 windVector = -windDirection * settings.globalWindSpeed.value * delaTime * 0.277778f;
+                Vector2 windVector = -windDirection * settings.globalWindSpeed.GetValue(hdCamera) * delaTime * 0.277778f;
 
                 // Animate the offset
                 hdCamera.volumetricCloudsAnimationData.cloudOffset += windVector;

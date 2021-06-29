@@ -348,14 +348,14 @@ namespace UnityEngine.Rendering.HighDefinition
         /// Sets the global wind speed in kilometers per hour.
         /// </summary>
         [Tooltip("Sets the global wind speed in kilometers per hour.")]
-        public MinFloatParameter globalWindSpeed = new MinFloatParameter(100.0f, 0.0f);
+        public WindSpeedParameter globalWindSpeed = new WindSpeedParameter();
 
         /// <summary>
         /// Controls the orientation of the wind relative to the X world vector.
         /// </summary>
         [Tooltip("Controls the orientation of the wind relative to the X world vector.")]
         [AdditionalProperty]
-        public ClampedFloatParameter orientation = new ClampedFloatParameter(0.0f, 0.0f, 360.0f);
+        public WindOrientationParameter orientation = new WindOrientationParameter();
 
         /// <summary>
         /// Controls the multiplier to the speed of the cloud map.

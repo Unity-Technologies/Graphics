@@ -1872,6 +1872,8 @@ namespace UnityEngine.Rendering.HighDefinition
                             .OrderBy(t => t.MetadataToken);
                         foreach (var field in fields)
                         {
+                            if (field.GetCustomAttributes(typeof(ObsoleteAttribute), false).Length != 0)
+                                continue;
                             var fieldType = field.FieldType;
                             if (fieldType.IsSubclassOf(typeof(VolumeParameter)))
                                 AddRow(field, baseName ?? "");

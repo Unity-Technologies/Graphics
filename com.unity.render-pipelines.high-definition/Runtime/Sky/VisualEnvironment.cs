@@ -11,12 +11,21 @@ namespace UnityEngine.Rendering.HighDefinition
     [HDRPHelpURLAttribute("Override-Visual-Environment")]
     public sealed class VisualEnvironment : VolumeComponent
     {
+        [Header("Sky")]
+
         /// <summary>Type of sky that should be used for rendering.</summary>
         public NoInterpIntParameter skyType = new NoInterpIntParameter(0);
         /// <summary>Type of clouds that should be used for rendering.</summary>
         public NoInterpIntParameter cloudType = new NoInterpIntParameter(0);
         /// <summary>Defines the way the ambient probe should be computed.</summary>
         public SkyAmbientModeParameter skyAmbientMode = new SkyAmbientModeParameter(SkyAmbientMode.Static);
+
+        [Header("Wind")]
+
+        /// <summary>Controls the global orientation of the wind relative to the X world vector.</summary>
+        public ClampedFloatParameter windOrientation = new ClampedFloatParameter(0.0f, 0.0f, 360.0f);
+        /// <summary>Controls the global wind speed in kilometers per hour.</summary>
+        public MinFloatParameter windSpeed = new MinFloatParameter(100.0f, 0.0f);
 
         // Deprecated, kept for migration
         [SerializeField]
@@ -73,5 +82,143 @@ namespace UnityEngine.Rendering.HighDefinition
         /// <param name="overrideState">Initial override value.</param>
         public SkyAmbientModeParameter(SkyAmbientMode value, bool overrideState = false)
             : base(value, overrideState) {}
+    }
+
+    /// <summary>
+    /// Sky Ambient Mode volume parameter.
+    /// </summary>
+    [Serializable, DebuggerDisplay(k_DebuggerDisplay)]
+    public class WindParameter : VolumeParameter<WindParameter.WindParamaterValue>
+    {
+        public enum WindOverrideMode
+        {
+            Custom,
+            Global,
+            Additive,
+            Multiply
+        }
+
+        [Serializable]
+        public struct WindParamaterValue
+        {
+            public WindOverrideMode mode;
+            public float customValue, additiveValue, multiplyValue;
+
+            public override string ToString()
+            {
+                if (mode == WindOverrideMode.Global)
+                    return mode.ToString();
+                string str = null;
+                if (mode == WindOverrideMode.Custom)
+                    str = customValue.ToString();
+                if (mode == WindOverrideMode.Additive)
+                    str = additiveValue.ToString();
+                if (mode == WindOverrideMode.Multiply)
+                    str = multiplyValue.ToString();
+                return str + " (" + mode.ToString() + ")";
+            }
+        }
+
+        /// <summary>
+        /// Sky Ambient Mode volume parameter constructor.
+        /// </summary>
+        /// <param name="value">Sky Ambient Mode parameter.</param>
+        /// <param name="overrideState">Initial override value.</param>
+        public WindParameter(float value = 0.0f, WindOverrideMode mode = WindOverrideMode.Global, bool overrideState = false)
+            : base(default, overrideState)
+        {
+            this.value = new WindParamaterValue
+            {
+                mode = mode,
+                customValue = mode <= WindOverrideMode.Global ? value : 0.0f,
+                additiveValue = mode == WindOverrideMode.Additive ? value : 0.0f,
+                multiplyValue = mode == WindOverrideMode.Multiply ? value : 1.0f,
+            };
+        }
+
+        /// <summary>
+        /// Interpolates between two values.
+        /// </summary>
+        /// <param name="from">The start value</param>
+        /// <param name="to">The end value</param>
+        /// <param name="t">The interpolation factor in range [0,1]</param>
+        public override void Interp(WindParamaterValue from, WindParamaterValue to, float t)
+        {
+            m_Value.mode = t > 0f ? to.mode : from.mode;
+            m_Value.customValue = from.customValue + (to.customValue - from.customValue) * t;
+            m_Value.additiveValue = from.additiveValue + (to.additiveValue - from.additiveValue) * t;
+            m_Value.multiplyValue = from.multiplyValue + (to.multiplyValue - from.multiplyValue) * t;
+        }
+
+        /// <summary>
+        /// Returns a hash code for the current object.
+        /// </summary>
+        /// <returns>A hash code for the current object.</returns>
+        public override int GetHashCode()
+        {
+            unchecked
+            {
+                int hash = 17;
+                hash = hash * 23 + overrideState.GetHashCode();
+                hash = hash * 23 + value.mode.GetHashCode();
+                hash = hash * 23 + value.customValue.GetHashCode();
+                hash = hash * 23 + value.additiveValue.GetHashCode();
+                hash = hash * 23 + value.multiplyValue.GetHashCode();
+
+                return hash;
+            }
+        }
+
+        protected float GetValue(float global)
+        {
+            switch (value.mode)
+            {
+                case WindOverrideMode.Custom:
+                    return value.customValue;
+                case WindOverrideMode.Global:
+                    return global;
+                case WindOverrideMode.Additive:
+                    return global + value.additiveValue;
+                case WindOverrideMode.Multiply:
+                    return global * value.multiplyValue;
+            }
+            return 0.0f;
+        }
+    }
+
+    [Serializable, DebuggerDisplay(k_DebuggerDisplay)]
+    public sealed class WindOrientationParameter : WindParameter
+    {
+        /// <summary>
+        /// Wind orientation volume parameter constructor.
+        /// </summary>
+        /// <param name="value">Sky Ambient Mode parameter.</param>
+        /// <param name="overrideState">Initial override value.</param>
+        public WindOrientationParameter(float value = 0.0f, WindOverrideMode mode = WindOverrideMode.Global, bool overrideState = false)
+            : base(value, mode, overrideState) {}
+
+        public float GetValue(HDCamera camera)
+        {
+            var env = camera.volumeStack.GetComponent<VisualEnvironment>();
+            return GetValue(env.windOrientation.value);
+        }
+    }
+
+    [Serializable, DebuggerDisplay(k_DebuggerDisplay)]
+    public sealed class WindSpeedParameter : WindParameter
+    {
+        /// <summary>
+        /// Wind orientation volume parameter constructor.
+        /// </summary>
+        /// <param name="value">Sky Ambient Mode parameter.</param>
+        /// <param name="overrideState">Initial override value.</param>
+        public WindSpeedParameter(float value = 100.0f, WindOverrideMode mode = WindOverrideMode.Global, bool overrideState = false)
+            : base(value, mode, overrideState) {}
+
+        public float GetValue(HDCamera camera)
+        {
+            var env = camera.volumeStack.GetComponent<VisualEnvironment>();
+            return GetValue(env.windSpeed.value);
+        }
     }
 }
