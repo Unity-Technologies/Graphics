@@ -62,7 +62,8 @@ namespace UnityEditor.ShaderGraph
     $precision4 Q = lerp($precision4(P.xyw, In.r), $precision4(In.r, P.yzx), step(P.x, In.r));
     $precision D = Q.x - min(Q.w, Q.y);
     $precision E = 1e-10;
-    $precision3 hsv = $precision3(abs(Q.z + (Q.w - Q.y)/(6.0 * D + E)), D / (Q.x + E), Q.x);
+    $precision V = (D == 0) ? Q.x : (Q.x + E);
+    $precision3 hsv = $precision3(abs(Q.z + (Q.w - Q.y)/(6.0 * D + E)), D / (Q.x + E), V);
 
     $precision hue = hsv.x + Offset / 360;
     hsv.x = (hue < 0)
@@ -93,7 +94,8 @@ namespace UnityEditor.ShaderGraph
     $precision4 Q = lerp($precision4(P.xyw, In.r), $precision4(In.r, P.yzx), step(P.x, In.r));
     $precision D = Q.x - min(Q.w, Q.y);
     $precision E = 1e-10;
-    $precision3 hsv = $precision3(abs(Q.z + (Q.w - Q.y)/(6.0 * D + E)), D / (Q.x + E), Q.x);
+    $precision V = (D == 0) ? Q.x : (Q.x + E);
+    $precision3 hsv = $precision3(abs(Q.z + (Q.w - Q.y)/(6.0 * D + E)), D / (Q.x + E), V);
 
     $precision hue = hsv.x + Offset;
     hsv.x = (hue < 0)
