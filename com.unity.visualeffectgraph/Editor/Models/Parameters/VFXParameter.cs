@@ -42,10 +42,9 @@ namespace UnityEditor.VFX
             newVfxParameter.m_ValueFilter = source.m_ValueFilter;
             newVfxParameter.subgraphMode = source.subgraphMode;
             newVfxParameter.m_ValueExpr = source.m_ValueExpr;
-
             newVfxParameter.Init(source.type);
 
-            newVfxParameter.m_ExprSlots = source.m_ExprSlots?
+            newVfxParameter.m_ExprSlots = source.m_ExprSlots ?
                 .ToList()
                 .Select(x => VFXSlot.Create(new VFXPropertyWithValue(x.property, x.value), VFXSlot.Direction.kInput))
                 .ToArray();
