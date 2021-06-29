@@ -191,6 +191,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fix for wrong cached area light initialization.
 - Fixed an issue where enabling GPU Instancing on a ShaderGraph Material would cause compile failures [1338695].
 - Fixed issue with velocity rejection when using physically-based DoF.
+- Fixed issue with sky settings being ignored when using the recorder and path tracing (case 1340507).
 
 ### Changed
 - Removed the material pass probe volumes evaluation mode.
