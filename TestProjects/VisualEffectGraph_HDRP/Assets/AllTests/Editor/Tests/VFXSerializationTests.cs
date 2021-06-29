@@ -65,6 +65,53 @@ namespace UnityEditor.VFX.Test
                 Assert.IsTrue(volume_C.outputSlots[0].HasLink());
             }
 
+            //Cylinder & Cone Volume
+            {
+                var volumes = graph.children.OfType<Operator.ConeVolume>().ToArray();
+                Assert.AreEqual(6, volumes.Count());
+
+                var volume_cyl_A = volumes.FirstOrDefault(o => !o.inputSlots[0].HasLink(true) && ((float)o.inputSlots[0][0][0][1].value) == -0.5f);
+                var volume_cone_A = volumes.FirstOrDefault(o => !o.inputSlots[0].HasLink(true) && ((float)o.inputSlots[0][0][0][1].value) != -0.5f);
+
+                var tCone_cyl = (TCone)volume_cyl_A.inputSlots[0].value;
+                Assert.AreEqual(1.0f, tCone_cyl.transform.position.x);
+                Assert.AreEqual(-0.5f, tCone_cyl.transform.position.y); //has been corrected by half height
+                Assert.AreEqual(3.0f, tCone_cyl.transform.position.z);
+                Assert.AreEqual(4.0f, tCone_cyl.baseRadius);
+                Assert.AreEqual(4.0f, tCone_cyl.topRadius);
+                Assert.AreEqual(5.0f, tCone_cyl.height);
+
+                var tCone_cone = (TCone)volume_cone_A.inputSlots[0].value;
+                Assert.AreEqual(1.0f, tCone_cone.transform.position.x);
+                Assert.AreEqual(2.0f, tCone_cone.transform.position.y);
+                Assert.AreEqual(3.0f, tCone_cone.transform.position.z);
+                Assert.AreEqual(4.0f, tCone_cone.baseRadius);
+                Assert.AreEqual(5.0f, tCone_cone.topRadius);
+                Assert.AreEqual(6.0f, tCone_cone.height);
+
+                //It isn't obvious to make difference between old cylinder & old cone, basic check on other operators
+                foreach (var volume in volumes)
+                {
+                    if (volume == volume_cyl_A || volume == volume_cone_A)
+                        continue;
+
+                    foreach (var subslot in volume.inputSlots[0].children)
+                    {
+                        if (subslot.property.type == typeof(Transform))
+                        {
+                            Assert.IsTrue(subslot[0].HasLink());
+                            Assert.IsFalse(subslot[1].HasLink());
+                            Assert.IsFalse(subslot[2].HasLink());
+                        }
+                        else
+                        {
+                            Assert.IsTrue(subslot.HasLink());
+                        }
+                    }
+                }
+            }
+
+            //
         }
 
         [OneTimeSetUpAttribute]
