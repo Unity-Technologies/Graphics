@@ -2095,7 +2095,7 @@ namespace UnityEditor.VFX.UI
         {
             if (evt.keyCode == KeyCode.D && evt.modifiers == EventModifiers.Control)
             {
-                this.DuplicateBlackboardField();
+                this.DuplicateBlackboardFieldSelection();
             }
         }
 
@@ -2278,6 +2278,12 @@ namespace UnityEditor.VFX.UI
                 evt.menu.AppendSeparator();
                 evt.menu.AppendAction("Delete", OnDeleteStickyNote, e => canDeleteSelection ? DropdownMenuAction.Status.Normal : DropdownMenuAction.Status.Disabled);
             }
+
+            if (selection.OfType<VFXBlackboardCategory>().Any())
+            {
+                evt.menu.AppendSeparator();
+                evt.menu.AppendAction("Duplicate %d", OnDuplicateBlackBoardCategory, e => canDeleteSelection ? DropdownMenuAction.Status.Normal : DropdownMenuAction.Status.Disabled);
+            }
         }
 
         static readonly string s_DeleteEventCommandName = GetDeleteEventCommandName();
@@ -2306,6 +2312,25 @@ namespace UnityEditor.VFX.UI
         {
             using var ev = ExecuteCommandEvent.GetPooled(s_DeleteEventCommandName);
             SendEvent(ev);
+        }
+
+        private void OnDuplicateBlackBoardCategory(DropdownMenuAction obj)
+        {
+            foreach (var blackboardCategory in selection.OfType<VFXBlackboardCategory>())
+            {
+                var newCategory = this.blackboard.AddCategory(blackboardCategory.title);
+
+                var parameters = blackboardCategory
+                    .Children()
+                    .OfType<VFXBlackboardRow>()
+                    .Select(x => this.DuplicateBlackboardField(x.field))
+                    .ToList();
+                parameters.ForEach(x => x.model.category = newCategory.title);
+                newCategory.SyncParameters(new HashSet<VFXParameterController>(parameters));
+            }
+
+            this.blackboard.controller.NotifyUpdate();
+            this.blackboard.controller.graph.Invalidate(VFXModel.InvalidationCause.kUIChanged);
         }
 
         void CollapseOperator(DropdownMenuAction a)
@@ -2566,20 +2591,31 @@ namespace UnityEditor.VFX.UI
                 m_EdgeDragInfo.StopEdgeDragInfo();
         }
 
-        public void DuplicateBlackboardField()
+        public void DuplicateBlackboardFieldSelection()
         {
             foreach (var blackboardField in selection.OfType<VFXBlackboardField>())
             {
-                var copyName  = blackboardField.controller.MakeNameUnique(blackboardField.controller.exposedName);
-                var newVfxParameter = VFXParameter.Duplicate(copyName, blackboardField.controller.model);
-                this.controller.AddVFXModel(Vector2.zero, newVfxParameter);
+                this.DuplicateBlackboardField(blackboardField);
+            }
+        }
 
-                bool groupChanged = false;
-                this.controller.SyncControllerFromModel(ref groupChanged);
+        private VFXParameterController DuplicateBlackboardField(VFXBlackboardField blackboardField)
+        {
+            var copyName  = blackboardField.controller.MakeNameUnique(blackboardField.controller.exposedName);
+            var newVfxParameter = VFXParameter.Duplicate(copyName, blackboardField.controller.model);
+            this.controller.AddVFXModel(Vector2.zero, newVfxParameter);
 
-                var newParameterController = blackboard.controller.parameterControllers.Single(x => x.model == newVfxParameter);
+            bool groupChanged = false;
+            this.controller.SyncControllerFromModel(ref groupChanged);
+
+            var newParameterController = blackboard.controller.parameterControllers.Single(x => x.model == newVfxParameter);
+
+            if (blackboardField.controller.spaceableAndMasterOfSpace)
+            {
                 newParameterController.space = blackboardField.controller.space;
             }
+
+            return newParameterController;
         }
     }
 }

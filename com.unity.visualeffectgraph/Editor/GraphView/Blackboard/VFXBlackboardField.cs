@@ -42,7 +42,7 @@ namespace  UnityEditor.VFX.UI
 
         public void Duplicate()
         {
-            GetFirstAncestorOfType<VFXView>().DuplicateBlackboardField();
+            GetFirstAncestorOfType<VFXView>().DuplicateBlackboardFieldSelection();
         }
 
         void Delete()
