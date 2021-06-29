@@ -11,7 +11,7 @@ using UnityEngine.UIElements;
 
 namespace UnityEditor.Rendering.HighDefinition
 {
-    partial class HDWizard : EditorWindow
+    partial class HDWizard : EditorWindowWithHelpButton
     {
         #region OBJECT_SELECTOR
 

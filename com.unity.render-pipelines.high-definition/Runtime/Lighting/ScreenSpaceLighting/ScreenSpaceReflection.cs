@@ -94,14 +94,14 @@ namespace UnityEngine.Rendering.HighDefinition
         }
         [SerializeField, FormerlySerializedAs("smoothnessFadeStart")]
         private ClampedFloatParameter m_SmoothnessFadeStart = new ClampedFloatParameter(0.9f, 0.0f, 1.0f);
+        #endregion
 
+        #region Ray Marching
         /// <summary>
         /// When enabled, SSR handles sky reflection.
         /// </summary>
         public BoolParameter reflectSky = new BoolParameter(true);
-        #endregion
 
-        #region Ray Marching
         /// <summary>Screen Space Reflections Algorithm used.</summary>
         public SSRAlgoParameter usedAlgorithm = new SSRAlgoParameter(ScreenSpaceReflectionAlgorithm.Approximation);
 
@@ -141,6 +141,11 @@ namespace UnityEngine.Rendering.HighDefinition
         #endregion
 
         #region Ray Tracing
+        /// <summary>
+        /// Controls which sources are used to fallback on when the traced ray misses.
+        /// </summary>
+        public RayTracingFallbackHierachyParameter fallbackHierachy = new RayTracingFallbackHierachyParameter(RayTracingFallbackHierachy.ReflectionProbesAndSky);
+
         /// <summary>
         /// Layer mask used to include the objects for screen space reflection.
         /// </summary>

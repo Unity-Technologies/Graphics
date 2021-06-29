@@ -176,7 +176,7 @@ namespace UnityEditor.Rendering.Universal
                 "UniversalRenderPipelineAsset.asset", null, null);
         }
 
-        [MenuItem("Assets/Create/Rendering/URP 2D Renderer", priority = CoreUtils.Sections.section3 + CoreUtils.Priorities.assetsCreateRenderingMenuPriority)]
+        [MenuItem("Assets/Create/Rendering/URP 2D Renderer", priority = CoreUtils.Sections.section3 + CoreUtils.Priorities.assetsCreateRenderingMenuPriority + 1)]
         static void Create2DRendererData()
         {
             Renderer2DMenus.Create2DRendererData((instance) =>
