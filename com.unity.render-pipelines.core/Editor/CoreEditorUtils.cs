@@ -295,8 +295,8 @@ namespace UnityEditor.Rendering
         /// <param name="isBoxed"> [optional] is the eader contained in a box style ? </param>
         /// <param name="hasMoreOptions"> [optional] Delegate used to draw the right state of the advanced button. If null, no button drawn. </param>
         /// <param name="toggleMoreOptions"> [optional] Callback call when advanced button clicked. Should be used to toggle its state. </param>
-        /// <param name="documentationURL">[optional] A url that will be open when the help button on the header is pressed</param>
-        /// <param name="contextAction">[optional] The callback executed when the burger menu on the header is pressed</param>
+        /// <param name="documentationURL">[optional] The URL that the Unity Editor opens when the user presses the help button on the header.</param>
+        /// <param name="contextAction">[optional] The callback that the Unity Editor executes when the user presses the burger menu on the header.</param>
         /// <returns>return the state of the foldout header</returns>
         public static bool DrawHeaderFoldout(GUIContent title, bool state, bool isBoxed = false, Func<bool> hasMoreOptions = null, Action toggleMoreOptions = null, string documentationURL = "", Action<Vector2> contextAction = null)
         {
