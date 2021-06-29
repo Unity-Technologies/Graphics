@@ -2833,7 +2833,7 @@ namespace UnityEditor.ShaderGraph
             {
                 if (contextData == null)
                     return;
-                
+
                 foreach (var block in contextData.blocks)
                 {
                     var slots = block.value.GetInputSlots<MaterialSlot>();
@@ -2894,12 +2894,12 @@ namespace UnityEditor.ShaderGraph
             bool IsEntireNodeStageLocked(AbstractMaterialNode node, ShaderStageCapability expectedNodeCapability)
             {
                 var slots = node.GetOutputSlots<MaterialSlot>();
-                foreach(var slot in slots)
+                foreach (var slot in slots)
                 {
                     if (expectedNodeCapability != slot.stageCapability)
                         return false;
                 }
-                return true; 
+                return true;
             };
 
             foreach (var errorSourceSlot in errorSourceSlots)
@@ -2909,7 +2909,7 @@ namespace UnityEditor.ShaderGraph
                 // Determine if only one slot or the entire node is at fault. Currently only slots are
                 // denoted with stage capabilities so deduce this by checking all outputs
                 string errorSource;
-                if(IsEntireNodeStageLocked(errorNode, errorSourceSlot.stageCapability))
+                if (IsEntireNodeStageLocked(errorNode, errorSourceSlot.stageCapability))
                     errorSource = $"Node {errorNode.name}";
                 else
                     errorSource = $"Slot {errorSourceSlot.RawDisplayName()}";
