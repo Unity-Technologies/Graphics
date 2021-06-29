@@ -61,9 +61,6 @@ Shader "Hidden/HDRP/CharlieConvolve"
                 float4 val = IntegrateLDCharlieNew(TEXTURECUBE_ARGS(_MainTex, s_trilinear_clamp_sampler),
                              V, N,
                              roughness,
-                             sampleCount,
-                             _InvOmegaP,
-                             true);
                              sampleCount / 10,
                              _InvOmegaP);
 /*
