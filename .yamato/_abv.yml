@@ -11,6 +11,7 @@
 all_project_ci_2021.1:
     name: ABV (all PR jobs) on 2021.1
     variables:
+        CUSTOM_REVISION: '{{2021_1.changeset.id}}'
         UTR_VERSION: "current"
         TEST_FILTER: .*
         CACHE_ARGS: '{{cache.flags}}'
@@ -31,6 +32,7 @@ all_project_ci_2021.1:
 all_project_ci_nightly_2021.1:
     name: Nightly on 2021.1
     variables:
+        CUSTOM_REVISION: '{{2021_1.changeset.id}}'
         UTR_VERSION: "current"
         TEST_FILTER: .*
         CACHE_ARGS: '{{cache.flags}}'
@@ -53,6 +55,7 @@ all_project_ci_nightly_2021.1:
 General_Checks_2021.1:
     name: General Checks on 2021.1
     variables:
+        CUSTOM_REVISION: '{{2021_1.changeset.id}}'
         UTR_VERSION: "current"
         TEST_FILTER: .*
         CACHE_ARGS: '{{cache.flags}}'
@@ -68,6 +71,7 @@ General_Checks_2021.1:
 Trunk_verification_2021.1:
     name: Trunk verification on 2021.1
     variables:
+        CUSTOM_REVISION: '{{2021_1.changeset.id}}'
         UTR_VERSION: "current"
         TEST_FILTER: .*
         CACHE_ARGS: '{{cache.flags}}'

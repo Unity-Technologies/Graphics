@@ -16,6 +16,7 @@ Universal_Hybrid_Android_OpenGLES3_Standalone_mono_Linear_2021.1:
         flavor: b1.large
     variables:
         UPM_REGISTRY: https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates
+        CUSTOM_REVISION: '{{2021_1.changeset.id}}'
         CACHE_ARGS: '{{cache.flags}}'
         UTR_VERSION: "current"
         TEST_FILTER: .*
@@ -42,6 +43,8 @@ Universal_Hybrid_Android_OpenGLES3_Standalone_mono_Linear_2021.1:
               -  "**/test-results/**"
               -  "TestProjects/UniversalHybridTest/Logs/*.log"
     dependencies:
+      -  path: .yamato/_editor_priming.yml#editor:priming:2021.1:Android
+         rerun: on_new_revision
       -  path: .yamato/universal_hybrid-android-opengles3.yml#Build_Universal_Hybrid_Android_OpenGLES3_Standalone_mono_Linear_2021.1
          rerun: on_new_revision
 Build_Universal_Hybrid_Android_OpenGLES3_Standalone_mono_Linear_2021.1:
@@ -52,6 +55,7 @@ Build_Universal_Hybrid_Android_OpenGLES3_Standalone_mono_Linear_2021.1:
         flavor: b1.large
     variables:
         UPM_REGISTRY: https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates
+        CUSTOM_REVISION: '{{2021_1.changeset.id}}'
         CACHE_ARGS: '{{cache.flags}}'
         UTR_VERSION: "current"
         TEST_FILTER: .*
@@ -61,7 +65,7 @@ Build_Universal_Hybrid_Android_OpenGLES3_Standalone_mono_Linear_2021.1:
          retries: 2
       -  command: choco install unity-downloader-cli -y -s https://artifactory.prd.it.unity3d.com/artifactory/api/nuget/unity-choco-local
          retries: 2
-      -  command: unity-downloader-cli -u {{editor_versions.2021_1_staging.Android.revision}} -p WindowsEditor -c editor -c il2cpp -c android  --wait --published-only
+      -  command: unity-downloader-cli --source-file unity_revision.txt -p WindowsEditor -c editor -c il2cpp -c android  --wait --published-only
          retries: 2
       -  command: |5-
                 set ANDROID_DEVICE_CONNECTION=%BOKKEN_DEVICE_IP%
@@ -78,6 +82,9 @@ Build_Universal_Hybrid_Android_OpenGLES3_Standalone_mono_Linear_2021.1:
         players:
             paths:
               -  "players*/**"
+    dependencies:
+      -  path: .yamato/_editor_priming.yml#editor:priming:2021.1:Android
+         rerun: on_new_revision
 Universal_Hybrid_Android_OpenGLES3_Standalone_mono_Linear_CUSTOM-REVISION:
     name: Universal_Hybrid on Android_OpenGLES3_Standalone_mono_Linear on version CUSTOM-REVISION
     agent:
