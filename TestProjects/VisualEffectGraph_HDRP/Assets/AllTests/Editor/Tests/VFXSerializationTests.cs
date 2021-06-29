@@ -111,7 +111,70 @@ namespace UnityEditor.VFX.Test
                 }
             }
 
-            //
+            //Circle Area
+            {
+                var volumes = graph.children.OfType<Operator.CircleArea>().ToArray();
+                Assert.AreEqual(3, volumes.Count());
+
+                var volume_A = volumes.FirstOrDefault(o => !o.inputSlots[0].HasLink(true));
+                var volume_B = volumes.FirstOrDefault(o => o.inputSlots[0].HasLink(true) && o.inputSlots[0][1].LinkedSlots.First().owner is VFXParameter);
+                var volume_C = volumes.FirstOrDefault(o => o.inputSlots[0].HasLink(true) && o.inputSlots[0][1].LinkedSlots.First().owner is VFXInlineOperator);
+
+                Assert.IsNotNull(volume_A);
+                Assert.IsNotNull(volume_B);
+                Assert.IsNotNull(volume_C);
+                Assert.AreNotEqual(volume_A, volume_B);
+                Assert.AreNotEqual(volume_B, volume_C);
+
+                var tCircle = (TCircle)volume_A.inputSlots[0].value;
+                Assert.AreEqual(1.0f, tCircle.transform.position.x);
+                Assert.AreEqual(2.0f, tCircle.transform.position.y);
+                Assert.AreEqual(3.0f, tCircle.transform.position.z);
+                Assert.AreEqual(4.0f, tCircle.radius);
+
+                Assert.AreEqual(volume_B.inputSlots[0].space, volume_B.inputSlots[0][1].LinkedSlots.First().space);
+                Assert.IsTrue(volume_B.inputSlots[0][0][0].HasLink());
+                Assert.IsTrue(volume_B.inputSlots[0][1].HasLink());
+                Assert.IsTrue(volume_B.outputSlots[0].HasLink());
+
+                Assert.IsTrue(volume_C.inputSlots[0][0][0].HasLink());
+                Assert.IsTrue(volume_C.inputSlots[0][1].HasLink());
+                Assert.IsTrue(volume_C.outputSlots[0].HasLink());
+            }
+
+            //Torus Volume
+            {
+                var volumes = graph.children.OfType<Operator.TorusVolume>().ToArray();
+                Assert.AreEqual(3, volumes.Count());
+
+                var volume_A = volumes.FirstOrDefault(o => !o.inputSlots[0].HasLink(true));
+                var volume_B = volumes.FirstOrDefault(o => o.inputSlots[0].HasLink(true) && o.inputSlots[0][1].LinkedSlots.First().owner is VFXParameter);
+                var volume_C = volumes.FirstOrDefault(o => o.inputSlots[0].HasLink(true) && o.inputSlots[0][1].LinkedSlots.First().owner is VFXInlineOperator);
+
+                Assert.IsNotNull(volume_A);
+                Assert.IsNotNull(volume_B);
+                Assert.IsNotNull(volume_C);
+                Assert.AreNotEqual(volume_A, volume_B);
+                Assert.AreNotEqual(volume_B, volume_C);
+
+                var tTorus = (TTorus)volume_A.inputSlots[0].value;
+                Assert.AreEqual(1.0f, tTorus.transform.position.x);
+                Assert.AreEqual(2.0f, tTorus.transform.position.y);
+                Assert.AreEqual(3.0f, tTorus.transform.position.z);
+                Assert.AreEqual(4.0f, tTorus.majorRadius);
+                Assert.AreEqual(5.0f, tTorus.minorRadius);
+
+                Assert.AreEqual(volume_B.inputSlots[0].space, volume_B.inputSlots[0][1].LinkedSlots.First().space);
+                Assert.IsTrue(volume_B.inputSlots[0][0][0].HasLink());
+                Assert.IsTrue(volume_B.inputSlots[0][1].HasLink());
+                Assert.IsTrue(volume_B.inputSlots[0][2].HasLink());
+                Assert.IsTrue(volume_B.outputSlots[0].HasLink());
+
+                Assert.IsTrue(volume_C.inputSlots[0][0][0].HasLink());
+                Assert.IsTrue(volume_C.inputSlots[0][1].HasLink());
+                Assert.IsTrue(volume_C.inputSlots[0][2].HasLink());
+                Assert.IsTrue(volume_C.outputSlots[0].HasLink());
+            }
         }
 
         [OneTimeSetUpAttribute]
