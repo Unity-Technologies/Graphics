@@ -110,6 +110,7 @@ namespace UnityEditor.VFX
             base.OnEnable();
             EditMode.editModeStarted += OnEditModeStart;
             EditMode.editModeEnded += OnEditModeEnd;
+            Selection.selectionChanged += this.OnHierarchySelectionChanged;
 
             // Force rebuilding the parameterinfos
             VisualEffect effect = ((VisualEffect)targets[0]);
@@ -143,6 +144,7 @@ namespace UnityEditor.VFX
             m_ContextsPerComponent.Clear();
             EditMode.editModeStarted -= OnEditModeStart;
             EditMode.editModeEnded -= OnEditModeEnd;
+            Selection.selectionChanged -= this.OnHierarchySelectionChanged;
         }
 
         public override void OnInspectorGUI()
@@ -151,10 +153,20 @@ namespace UnityEditor.VFX
             base.OnInspectorGUI();
         }
 
+        private void OnHierarchySelectionChanged()
+        {
+            this.AutoAttachToSelection();
+        }
+
         void OnEditModeStart(IToolModeOwner owner, EditMode.SceneViewEditMode mode)
         {
             if (mode == EditMode.SceneViewEditMode.Collider && owner == (IToolModeOwner)this)
                 OnEditStart();
+        }
+
+        protected virtual void OnSelectionChange()
+        {
+            Debug.Log("Selection Changed");
         }
 
         void OnEditModeEnd(IToolModeOwner owner)
@@ -733,6 +745,19 @@ namespace UnityEditor.VFX
                 }
                 GUI.enabled = saveEnabled;
                 GUILayout.EndHorizontal();
+            }
+        }
+
+        private void AutoAttachToSelection()
+        {
+            if (EditorWindow.HasOpenInstances<VFXViewWindow>())
+            {
+                VFXViewWindow window = EditorWindow.GetWindow<VFXViewWindow>();
+                var asset = m_VisualEffectAsset.objectReferenceValue as VisualEffectAsset;
+                if (window.graphView.controller.graph.visualEffectResource.asset == asset)
+                {
+                    window.LoadAsset(asset, targets.Length > 1 ? null : target as VisualEffect);
+                }
             }
         }
     }
