@@ -310,12 +310,13 @@ namespace UnityEditor.VFX
             if (from.HasLink(false) || hasLink)
             {
                 var parentCenter = refSlot[0];
-                var parentRadius = refSlot[1];
-                var parentHeight = refSlot[2];
+                var parentBaseRadius = refSlot[1];
+                var parentTopRadius = refSlot[2];
+                var parentHeight = refSlot[3];
 
                 to_center.Link(parentCenter, true);
-                to_baseRadius.Link(parentRadius, true);
-                to_topRadius.Link(parentRadius, true);
+                to_baseRadius.Link(parentBaseRadius, true);
+                to_topRadius.Link(parentTopRadius, true);
                 to_height.Link(parentHeight, true);
             }
             else
