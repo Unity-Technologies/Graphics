@@ -58,11 +58,19 @@ namespace UnityEditor.VFX
             var refSlot = from.refSlot;
             var from_sphere = refSlot[0];
             var from_arc = refSlot[1];
-
-            MigrateTSphereFromSphere(to_sphere, from_sphere, from.HasLink(false));
-            VFXSlot.CopyLinksAndValue(to_arc, from_arc, true);
-            to_arc.value = (float)from_arc.value; //< The arc value is only copied on masterSlot
             VFXSlot.CopySpace(to, refSlot, true);
+
+            bool hasDirectLink = from.HasLink(false);
+            MigrateTSphereFromSphere(to_sphere, from_sphere, hasDirectLink);
+            if (hasDirectLink)
+            {
+                to_arc.Link(from_arc, true);
+            }
+            else
+            {
+                to_arc.value = (float)from_arc.value; //The value transfer is only applied on masterslot
+                VFXSlot.CopyLinksAndValue(to_arc, from_arc, true);
+            }
         }
 
         public static void MigrateTSphereFromSphere(VFXSlot to, VFXSlot from, bool forceHasLink = false)

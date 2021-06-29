@@ -175,6 +175,40 @@ namespace UnityEditor.VFX.Test
                 Assert.IsTrue(volume_C.inputSlots[0][2].HasLink());
                 Assert.IsTrue(volume_C.outputSlots[0].HasLink());
             }
+
+            //Position Sphere
+            {
+                var initialize = graph.children.OfType<VFXBasicInitialize>().FirstOrDefault(o => o.label == "position_sphere");
+                Assert.IsNotNull(initialize);
+
+                var sphereBlocks = initialize.children.OfType<Block.PositionSphere>().ToArray();
+                Assert.AreEqual(4, sphereBlocks.Length);
+                foreach (var block in sphereBlocks)
+                {
+                    Assert.AreEqual(3, block.inputSlots.Count);
+
+                    if (block != sphereBlocks.Last())
+                    {
+                        Assert.IsTrue(block.inputSlots[0][0][0][0].HasLink()); //center
+                        Assert.IsTrue(block.inputSlots[0][0][1].HasLink()); //radius
+
+                        if (block == sphereBlocks.First())
+                            Assert.IsTrue(block.inputSlots[0][1]); //arc
+                    }
+                    else
+                    {
+                        var tArcSphere = (TArcSphere)block.inputSlots[0].value;
+                        Assert.AreEqual(1.0f, tArcSphere.sphere.transform.position.x);
+                        Assert.AreEqual(2.0f, tArcSphere.sphere.transform.position.y);
+                        Assert.AreEqual(3.0f, tArcSphere.sphere.transform.position.z);
+                        Assert.AreEqual(4.0f, tArcSphere.sphere.radius);
+                        Assert.AreEqual(5.0f, tArcSphere.arc);
+                    }
+
+                    Assert.AreEqual(6.0f, block.inputSlots[1].value);
+                    Assert.AreEqual(0.7f, block.inputSlots[2].value);
+                }
+            }
         }
 
         [OneTimeSetUpAttribute]
