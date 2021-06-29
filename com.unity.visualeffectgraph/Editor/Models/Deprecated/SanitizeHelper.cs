@@ -281,7 +281,7 @@ namespace UnityEditor.VFX
 
             var refSlot = from.refSlot;
             var from_cone = refSlot; //The ArcCone wasn't a composition
-            var from_arc = refSlot[1];
+            var from_arc = refSlot[4];
             VFXSlot.CopySpace(to, refSlot, true);
 
             var hasDirectLink = from.HasLink(false);
