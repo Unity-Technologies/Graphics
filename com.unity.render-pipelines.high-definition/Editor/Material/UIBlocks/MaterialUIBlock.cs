@@ -1,8 +1,6 @@
 using System;
 using System.Linq;
 using UnityEngine;
-using UnityEngine.Rendering.HighDefinition;
-using UnityEditor.Rendering;
 
 namespace UnityEditor.Rendering.HighDefinition
 {
@@ -11,6 +9,11 @@ namespace UnityEditor.Rendering.HighDefinition
     /// </summary>
     public abstract class MaterialUIBlock
     {
+        ///<summary>The <see cref="ExpandableBit"/> to store the state of the block</summary>
+        public ExpandableBit expandableBit { get; }
+        ///<summary>The <see cref="GUIContent"/> used as header of the block</summary>
+        public GUIContent header { get; }
+
         /// <summary>The current material editor.</summary>
         protected MaterialEditor        materialEditor;
         /// <summary>The list of selected materials to edit.</summary>
@@ -133,11 +136,31 @@ namespace UnityEditor.Rendering.HighDefinition
             User19 = 1 << 30,
         }
 
+        /// <summary>
+        /// Default Constructor, you must override the method OnGUI
+        /// </summary>
+        protected MaterialUIBlock()
+        {
+        }
+
+        /// <summary>
+        /// Constructor to auto generate the foldout section, override the method OnGUIOpen
+        /// </summary>
+        /// <param name="expandableBit"><see cref="ExpandableBit"/> used to store the state (open/closed) for this section</param>
+        /// <param name="header"><see cref="GUIContent"/>The title of this section</param>
+        internal MaterialUIBlock(ExpandableBit expandableBit, GUIContent header)
+        {
+            this.expandableBit = expandableBit;
+            this.header = header;
+        }
+
         internal void Initialize(MaterialEditor materialEditor, MaterialProperty[] properties, MaterialUIBlockList parent)
         {
             this.materialEditor = materialEditor;
             this.parent = parent;
-            materials = materialEditor.targets.Select(target => target as Material).ToArray();
+            materials = materialEditor.targets
+                .Select(target => target as Material)
+                .ToArray();
         }
 
         internal void UpdateMaterialProperties(MaterialProperty[] properties)
@@ -198,111 +221,34 @@ namespace UnityEditor.Rendering.HighDefinition
         /// <summary>
         /// Renders the properties in the block.
         /// </summary>
-        public abstract void OnGUI();
-
-
-        Rect GetRect(MaterialProperty prop)
+        public virtual void OnGUI()
         {
-            return EditorGUILayout.GetControlRect(true, MaterialEditor.GetDefaultPropertyHeight(prop), EditorStyles.layerMaskField);
-        }
+            if (!showSection)
+                return;
 
-        protected void IntegerShaderProperty(MaterialProperty prop, GUIContent label, Func<int, int> transform = null)
-        {
-            EditorGUI.BeginChangeCheck();
-            EditorGUI.showMixedValue = prop.hasMixedValue;
-            int newValue = EditorGUI.IntField(GetRect(prop), label, (int)prop.floatValue);
-            if (transform != null)
-                newValue = transform(newValue);
-            EditorGUI.showMixedValue = false;
-            if (EditorGUI.EndChangeCheck())
-                prop.floatValue = newValue;
-        }
-
-        protected void IntSliderShaderProperty(MaterialProperty prop, GUIContent label)
-        {
-            var limits = prop.rangeLimits;
-            IntSliderShaderProperty(prop, (int)limits.x, (int)limits.y, label);
-        }
-
-        protected void IntSliderShaderProperty(MaterialProperty prop, int min, int max, GUIContent label)
-        {
-            EditorGUI.BeginChangeCheck();
-            EditorGUI.showMixedValue = prop.hasMixedValue;
-            int newValue = EditorGUI.IntSlider(GetRect(prop), label, (int)prop.floatValue, min, max);
-            EditorGUI.showMixedValue = false;
-            if (EditorGUI.EndChangeCheck())
+            using var scope = new MaterialHeaderScope(header, (uint)expandableBit, materialEditor, subHeader: isSubHeader);
+            if (scope.expanded)
             {
-                materialEditor.RegisterPropertyChangeUndo(label.text);
-                prop.floatValue = newValue;
+                OnGUIOpen();
             }
         }
 
-        protected void MinFloatShaderProperty(MaterialProperty prop, GUIContent label, float min)
+        /// <summary>
+        /// Property that specifies if the scope is a subheader
+        /// </summary>
+        protected virtual bool isSubHeader => false;
+
+        /// <summary>
+        /// If the section should be shown
+        /// </summary>
+        protected virtual bool showSection => true;
+
+        /// <summary>
+        /// GUI callback when the header is open
+        /// </summary>
+        protected virtual void OnGUIOpen()
         {
-            EditorGUI.BeginChangeCheck();
-            EditorGUI.showMixedValue = prop.hasMixedValue;
-            float newValue = EditorGUI.FloatField(GetRect(prop), label, prop.floatValue);
-            newValue = Mathf.Max(min, newValue);
-            EditorGUI.showMixedValue = false;
-            if (EditorGUI.EndChangeCheck())
-                prop.floatValue = newValue;
-        }
-
-        protected int PopupShaderProperty(MaterialProperty prop, GUIContent label, string[] options)
-        {
-            int value = (int)prop.floatValue;
-
-            EditorGUI.BeginChangeCheck();
-            EditorGUI.showMixedValue = prop.hasMixedValue;
-            int newValue = EditorGUILayout.Popup(label, value, options);
-            EditorGUI.showMixedValue = false;
-            if (EditorGUI.EndChangeCheck() && (newValue != value))
-            {
-                materialEditor.RegisterPropertyChangeUndo(label.text);
-                prop.floatValue = value = newValue;
-            }
-
-            return value;
-        }
-
-        protected int IntPopupShaderProperty(MaterialProperty prop, string label, string[] displayedOptions, int[] optionValues)
-        {
-            int value = (int)prop.floatValue;
-
-            EditorGUI.BeginChangeCheck();
-            EditorGUI.showMixedValue = prop.hasMixedValue;
-            int newValue = EditorGUILayout.IntPopup(label, value, displayedOptions, optionValues);
-            EditorGUI.showMixedValue = false;
-            if (EditorGUI.EndChangeCheck() && (newValue != value))
-            {
-                materialEditor.RegisterPropertyChangeUndo(label);
-                prop.floatValue = value = newValue;
-            }
-
-            return value;
-        }
-
-        protected void MinMaxShaderProperty(MaterialProperty min, MaterialProperty max, float minLimit, float maxLimit, GUIContent label)
-        {
-            float minValue = min.floatValue;
-            float maxValue = max.floatValue;
-            EditorGUI.BeginChangeCheck();
-            EditorGUILayout.MinMaxSlider(label, ref minValue, ref maxValue, minLimit, maxLimit);
-            if (EditorGUI.EndChangeCheck())
-            {
-                min.floatValue = minValue;
-                max.floatValue = maxValue;
-            }
-        }
-
-        protected void MinMaxShaderProperty(MaterialProperty remapProp, float minLimit, float maxLimit, GUIContent label)
-        {
-            Vector2 remap = remapProp.vectorValue;
-
-            EditorGUI.BeginChangeCheck();
-            EditorGUILayout.MinMaxSlider(label, ref remap.x, ref remap.y, minLimit, maxLimit);
-            if (EditorGUI.EndChangeCheck())
-                remapProp.vectorValue = remap;
+            throw new NotImplementedException($"You must implement {nameof(OnGUIOpen)} if you are not overriding {nameof(OnGUI)}");
         }
     }
 }

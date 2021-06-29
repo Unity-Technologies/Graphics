@@ -108,13 +108,10 @@ namespace UnityEngine.Rendering.HighDefinition
             var desc = m_Cache.descriptor;
             bool isMipped = desc.useMipMap;
             int mipCount = isMipped ? GetNumMips(desc.width, desc.height) : 1;
-            for (int depthSlice = 0; depthSlice < desc.volumeDepth; ++depthSlice)
+            for (int mipIdx = 0; mipIdx < mipCount; ++mipIdx)
             {
-                for (int mipIdx = 0; mipIdx < mipCount; ++mipIdx)
-                {
-                    Graphics.SetRenderTarget(m_Cache, mipIdx, CubemapFace.Unknown, depthSlice);
-                    GL.Clear(false, true, Color.clear);
-                }
+                Graphics.SetRenderTarget(m_Cache, mipIdx, CubemapFace.Unknown, -1);
+                GL.Clear(false, true, Color.clear);
             }
         }
 

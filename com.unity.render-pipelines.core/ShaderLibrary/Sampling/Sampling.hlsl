@@ -1,6 +1,10 @@
 #ifndef UNITY_SAMPLING_INCLUDED
 #define UNITY_SAMPLING_INCLUDED
 
+#if SHADER_API_MOBILE || SHADER_API_GLES || SHADER_API_GLES3
+#pragma warning (disable : 3205) // conversion of larger type to smaller
+#endif
+
 //-----------------------------------------------------------------------------
 // Sample generator
 //-----------------------------------------------------------------------------
@@ -304,5 +308,9 @@ void SampleCone(real2 u, real cosHalfAngle,
     dir    = SphericalToCartesian(phi, cosTheta);
     rcpPdf = TWO_PI * (1 - cosHalfAngle);
 }
+
+#if SHADER_API_MOBILE || SHADER_API_GLES || SHADER_API_GLES3
+#pragma warning (enable : 3205) // conversion of larger type to smaller
+#endif
 
 #endif // UNITY_SAMPLING_INCLUDED

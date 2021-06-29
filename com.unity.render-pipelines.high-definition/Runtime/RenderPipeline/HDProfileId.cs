@@ -71,9 +71,8 @@ namespace UnityEngine.Rendering.HighDefinition
         FilterCubemapCharlie,
         FilterCubemapGGX,
         DisplayPlanarReflectionProbeAtlas,
-        BlitTextureInPotAtlas,
         AreaLightCookieConvolution,
-        DisplayDensityVolumeAtlas,
+        DisplayLocalVolumetricFogAtlas,
 
         UpdateSkyEnvironmentConvolution,
         RenderSkyToCubemap,
@@ -88,8 +87,8 @@ namespace UnityEngine.Rendering.HighDefinition
         VolumeVoxelization,
         VolumetricLighting,
         VolumetricLightingFiltering,
-        PrepareVisibleDensityVolumeList,
-        UpdateDensityVolumeAtlas,
+        PrepareVisibleLocalVolumetricFogList,
+        UpdateLocalVolumetricFogAtlas,
 
         VolumetricClouds,
         VolumetricCloudsPrepare,
@@ -142,7 +141,16 @@ namespace UnityEngine.Rendering.HighDefinition
         TemporalFilter,
         DiffuseFilter,
 
+        UpdateGlobalConstantBuffers,
+        UpdateEnvironment,
+        ConfigureKeywords,
+        RecordRenderGraph,
+
         PrepareLightsForGPU,
+        PrepareGPULightdata,
+        PrepareGPUProbeData,
+        ConvertLightsGpuFormat,
+        ProcessVisibleLights,
 
         // Profile sampler for shadow
         RenderShadowMaps,
@@ -183,6 +191,7 @@ namespace UnityEngine.Rendering.HighDefinition
         DynamicExposure,
         ApplyExposure,
         TemporalAntialiasing,
+        DeepLearningSuperSampling,
         DepthOfField,
         DepthOfFieldKernel,
         DepthOfFieldCoC,
@@ -194,6 +203,7 @@ namespace UnityEngine.Rendering.HighDefinition
         DepthOfFieldGatherNear,
         DepthOfFieldPreCombine,
         DepthOfFieldCombine,
+        LensFlareDataDriven,
         MotionBlur,
         MotionBlurMotionVecPrep,
         MotionBlurTileMinMax,
@@ -206,6 +216,8 @@ namespace UnityEngine.Rendering.HighDefinition
         UberPost,
         FXAA,
         SMAA,
+        SceneUpsampling,
+        SetResolutionGroup,
         FinalPost,
         FinalImageHistogram,
         CustomPostProcessBeforeTAA,

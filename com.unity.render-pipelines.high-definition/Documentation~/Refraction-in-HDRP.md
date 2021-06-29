@@ -58,7 +58,7 @@ This means that, if screen space refraction does not return information for a pi
 
 The first tier of the refraction hierarchy is a screen space solution. To calculate screen space refraction, the algorithm traces a ray starting from the refractive object. It then refracts the ray according to the properties of the material. To compute the refracted ray, the algorithm assumes that the refractive object can be approximated as a simple shape ([Refraction Model](#RefractionModel)) .
 
-The refracted ray will be then intersected against the proxy volume to find the right pixel in screen space that best approximates the result of the refracted ray.
+The refracted ray will be then intersected against the closest probe proxy volume to find the pixel in screen space that best approximates the result of the refracted ray. If there is no reflection probe proxy available, HDRP will fallback to a projection at infinite.
 
 <a name="ReflectionProbes"></a>
 
@@ -82,15 +82,15 @@ For more information on Reflection Probes, see:
 HDRP uses simple shapes to approximate the surface of GameObjects:
 
 - **Sphere**: Approximates the surface as a sphere.
-- **Box**: Approximates the surface as an hollow box. In this case think of the thickness as being the distance between two parallel faces of the box.
-- **Thin**: Approximated the surface as a box with a fixed thickness of 5cm.
+- **Box**: Approximates the surface as a hollow box. In this case think of the thickness as being the distance between two parallel faces of the box.
+- **Thin**: Approximates the surface as a hollow box with a fixed thickness of 5cm.
 
 ### Examples
 
-- For a filled GameObject, use a **Sphere** Refraction Model with a thickness that is approximately the size of the GameObject that the Material is for. To set the thickness, use the **Refraction Thickness**.
+- For a solid GameObject, use the **Sphere** Refraction Model with a thickness that is approximately the size of the GameObject that the Material is for. To set the thickness, use the **Refraction Thickness**.
 
   ![](Images/RefractionInHDRP1.png)
 
-- For a hollow refractive GameObject (for example, a bubble), use a **Box** refraction Mode with a small value for thickness. To set the thickness, use the **Refraction Thickness**.
+- For a hollow refractive GameObject (for example, a bubble), use the **Thin** refraction Model, or **Box** with a small thickness value. To set the thickness, use the **Refraction Thickness**.
 
-![](Images/RefractionInHDRP2.png)
+  ![](Images/RefractionInHDRP2.png)

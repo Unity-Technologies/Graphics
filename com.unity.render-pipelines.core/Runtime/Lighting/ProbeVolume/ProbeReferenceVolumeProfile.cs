@@ -1,40 +1,62 @@
-using System.Collections.Generic;
+using UnityEngine.Rendering;
 #if UNITY_EDITOR
 using UnityEditor;
 #endif
 
-namespace UnityEngine.Rendering
+namespace UnityEngine.Experimental.Rendering
 {
     /// <summary>
     /// An Asset which holds a set of settings to use with a <see cref="Probe Reference Volume"/>.
     /// </summary>
     public sealed class ProbeReferenceVolumeProfile : ScriptableObject
     {
-        /// <summary>
-        /// The default dimensions for APV's index data structure.
-        /// </summary>
-        public static Vector3Int s_DefaultIndexDimensions = new Vector3Int(1024, 64, 1024);
+        internal enum Version
+        {
+            Initial,
+        }
+
+        [SerializeField]
+        Version version = CoreUtils.GetLastEnumValue<Version>();
 
         /// <summary>
-        /// The size of a Cell.
+        /// How many levels contains the probes hierarchical structure.
         /// </summary>
-        public int cellSize = 64;
+        [Range(2, 5)]
+        public int simplificationLevels = 3;
+
         /// <summary>
-        /// The size of a Brick.
+        /// The size of a Cell in number of bricks.
         /// </summary>
-        public int brickSize = 4;
+        public int cellSizeInBricks => (int)Mathf.Pow(3, simplificationLevels);
+
         /// <summary>
-        /// Max subdivision.
+        /// The minimum distance between two probes in meters.
         /// </summary>
-        public int maxSubdivision = 2;
+        [Min(0.1f)]
+        public float minDistanceBetweenProbes = 1.0f;
+
         /// <summary>
-        /// The normal bias to apply during shading.
+        /// Maximum subdivision in the structure.
         /// </summary>
-        public float normalBias = 0.2f;
+        public int maxSubdivision => simplificationLevels + 1; // we add one for the top subdiv level which is the same size as a cell
+
         /// <summary>
-        /// Index field dimensions.
+        /// Minimum size of a brick in meters.
         /// </summary>
-        public Vector3Int indexDimensions = s_DefaultIndexDimensions;
+        public float minBrickSize => Mathf.Max(0.01f, minDistanceBetweenProbes * 3.0f);
+
+        /// <summary>
+        /// Size of the cell in meters.
+        /// </summary>
+        public float cellSizeInMeters => (float)cellSizeInBricks * minBrickSize;
+
+        void OnEnable()
+        {
+            if (version != CoreUtils.GetLastEnumValue<Version>())
+            {
+                // Migration code
+            }
+        }
 
         /// <summary>
         /// Determines if the Probe Reference Volume Profile is equivalent to another one.
@@ -43,10 +65,9 @@ namespace UnityEngine.Rendering
         /// <returns>Whether the Probe Reference Volume Profile is equivalent to another one.</returns>
         public bool IsEquivalent(ProbeReferenceVolumeProfile otherProfile)
         {
-            return brickSize == otherProfile.brickSize &&
-                cellSize == otherProfile.cellSize &&
-                maxSubdivision == otherProfile.maxSubdivision &&
-                normalBias == otherProfile.normalBias;
+            return minDistanceBetweenProbes == otherProfile.minDistanceBetweenProbes &&
+                cellSizeInMeters == otherProfile.cellSizeInMeters &&
+                simplificationLevels == otherProfile.simplificationLevels;
         }
     }
 
@@ -55,49 +76,42 @@ namespace UnityEngine.Rendering
     [CustomEditor(typeof(ProbeReferenceVolumeProfile))]
     internal class ProbeReferenceVolumeProfileEditor : Editor
     {
-        private SerializedProperty m_CellSize;
-        private SerializedProperty m_BrickSize;
-        private SerializedProperty m_MaxSubdivision;
-        private SerializedProperty m_NormalBias;
-        private SerializedProperty m_IndexDimensions;
+        SerializedProperty m_CellSize;
+        SerializedProperty m_MinDistanceBetweenProbes;
+        SerializedProperty m_SimplificationLevels;
+        ProbeReferenceVolumeProfile profile => target as ProbeReferenceVolumeProfile;
 
-        sealed class Styles
+        static class Styles
         {
             // TODO: Better tooltip are needed here.
-            public readonly GUIContent cellSizeStyle = new GUIContent("Cell Size", "Determine the size of the cells.");
-            public readonly GUIContent brickSizeStyle = new GUIContent("Brick Size", "The smallest possible brick size.");
-            public readonly GUIContent maxSubdivStyle = new GUIContent("Max Subdivision", "The maximum number of possible subdivisions.");
-            public readonly GUIContent normalBias = new GUIContent("Normal Bias", "The normal bias used when sampling the volume. It can reduce leaking.");
-            public readonly GUIContent indexDimensions = new GUIContent("Index Dimensions", "The dimensions of the index buffer.");
+            public static readonly GUIContent simplificationLevels = new GUIContent("Simplification levels", "Determine how much bricks there is in a streamable unit.");
+            public static readonly string simplificationLevelsHighWarning = "High simplification levels have a big memory overhead, they are not recommended except for testing purposes.";
+            public static readonly GUIContent minDistanceBetweenProbes = new GUIContent("Min Distance Between Probes", "The minimal distance between two probes in meters.");
+            public static readonly GUIContent indexDimensions = new GUIContent("Index Dimensions", "The dimensions of the index buffer.");
         }
 
-        static Styles s_Styles = new Styles();
-
-        private void OnEnable()
+        void OnEnable()
         {
-            m_CellSize = serializedObject.FindProperty("cellSize");
-            m_BrickSize = serializedObject.FindProperty("brickSize");
-            m_MaxSubdivision = serializedObject.FindProperty("maxSubdivision");
-            m_NormalBias = serializedObject.FindProperty("normalBias");
-            m_IndexDimensions = serializedObject.FindProperty("indexDimensions");
+            m_CellSize = serializedObject.FindProperty(nameof(ProbeReferenceVolumeProfile.cellSizeInBricks));
+            m_MinDistanceBetweenProbes = serializedObject.FindProperty(nameof(ProbeReferenceVolumeProfile.minDistanceBetweenProbes));
+            m_SimplificationLevels = serializedObject.FindProperty(nameof(ProbeReferenceVolumeProfile.simplificationLevels));
         }
 
         public override void OnInspectorGUI()
         {
             EditorGUI.BeginChangeCheck();
+            serializedObject.Update();
 
-            EditorGUILayout.PropertyField(m_CellSize, s_Styles.cellSizeStyle);
-            EditorGUILayout.PropertyField(m_BrickSize, s_Styles.brickSizeStyle);
-            EditorGUILayout.PropertyField(m_MaxSubdivision, s_Styles.maxSubdivStyle);
-            EditorGUILayout.DelayedFloatField(m_NormalBias, s_Styles.normalBias);
-            EditorGUILayout.PropertyField(m_IndexDimensions, s_Styles.indexDimensions);
-
-            ProbeReferenceVolume.instance.normalBiasFromProfile = m_NormalBias.floatValue;
+            EditorGUILayout.PropertyField(m_SimplificationLevels, Styles.simplificationLevels);
+            if (m_SimplificationLevels.intValue == 5)
+            {
+                EditorGUILayout.HelpBox(Styles.simplificationLevelsHighWarning, MessageType.Warning);
+            }
+            EditorGUILayout.PropertyField(m_MinDistanceBetweenProbes, Styles.minDistanceBetweenProbes);
+            EditorGUILayout.HelpBox($"The distance between probes will fluctuate between : {profile.minDistanceBetweenProbes}m and {profile.cellSizeInMeters}m", MessageType.Info);
 
             if (EditorGUI.EndChangeCheck())
-            {
                 serializedObject.ApplyModifiedProperties();
-            }
         }
     }
 #endif

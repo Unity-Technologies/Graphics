@@ -39,6 +39,11 @@ namespace UnityEditor.ShaderGraph
             }
 
             m_Properties.Sort((a, b) => String.CompareOrdinal(a.referenceName, b.referenceName));
+
+            // reference name indices are now messed up, rebuild them
+            m_ReferenceNames.Clear();
+            for (int i = 0; i < m_Properties.Count; i++)
+                m_ReferenceNames.Add(m_Properties[i].referenceName, i);
         }
 
         public void SetReadOnly()
@@ -59,23 +64,8 @@ namespace UnityEditor.ShaderGraph
                 else
                 {
                     var bh = bHLSLProps[i];
-                    if ((ah.name != bh.name) ||
-                        (ah.type != bh.type) ||
-                        (ah.precision != bh.precision) ||
-                        (ah.declaration != bh.declaration) ||
-                        ((ah.customDeclaration == null) != (bh.customDeclaration == null)))
-                    {
+                    if (!ah.ValueEquals(bh))
                         equivalent = false;
-                    }
-                    else if (ah.customDeclaration != null)
-                    {
-                        var ssba = new ShaderStringBuilder();
-                        var ssbb = new ShaderStringBuilder();
-                        ah.customDeclaration(ssba);
-                        bh.customDeclaration(ssbb);
-                        if (ssba.ToCodeBlock() != ssbb.ToCodeBlock())
-                            equivalent = false;
-                    }
                     bHLSLProps.RemoveAt(i);
                 }
             });
@@ -124,8 +114,24 @@ namespace UnityEditor.ShaderGraph
             if (m_HLSLProperties == null)
             {
                 m_HLSLProperties = new List<HLSLProperty>();
+                var dict = new Dictionary<string, int>();
                 foreach (var p in m_Properties)
-                    p.ForeachHLSLProperty(h => m_HLSLProperties.Add(h));
+                {
+                    p.ForeachHLSLProperty(
+                        h =>
+                        {
+                            if (dict.TryGetValue(h.name, out int index))
+                            {
+                                // check if same property
+                                if (!h.ValueEquals(m_HLSLProperties[index]))
+                                    Debug.LogError("Two different HLSL Properties declared with the same name: " + h.name + " and " +  m_HLSLProperties[index].name);
+                                return;
+                            }
+                            dict.Add(h.name, m_HLSLProperties.Count);
+                            m_HLSLProperties.Add(h);
+                        }
+                    );
+                }
             }
             return m_HLSLProperties;
         }
@@ -240,12 +246,9 @@ namespace UnityEditor.ShaderGraph
                 builder.AppendLine("UNITY_DOTS_INSTANCING_END(MaterialPropertyMetadata)");
 
                 builder.AppendLine("// DOTS instancing usage macros");
-                foreach (var h in hlslProps.Where(h => h.declaration == HLSLDeclaration.HybridPerInstance))
-                {
-                    var n = h.name;
-                    string type = h.GetValueTypeString();
-                    builder.AppendLine($"#define {n} UNITY_ACCESS_DOTS_INSTANCED_PROP_FROM_MACRO({type}, Metadata_{n})");
-                }
+                builder.AppendLine("#define UNITY_ACCESS_HYBRID_INSTANCED_PROP(var, type) UNITY_ACCESS_DOTS_INSTANCED_PROP_FROM_MACRO(type, Metadata_##var)");
+                builder.AppendLine("#else");
+                builder.AppendLine("#define UNITY_ACCESS_HYBRID_INSTANCED_PROP(var, type) var");
                 builder.AppendLine("#endif");
             }
 #endif
@@ -300,17 +303,14 @@ namespace UnityEditor.ShaderGraph
                     builder.Append(prop.GetValueTypeString());
                     builder.Append(", ");
                     builder.Append(prop.name);
-                    builder.Append("_Array)");
+                    builder.Append(")");
                     count++;
                 }
                 builder.AppendNewLine();
-
-                foreach (var prop in hybridHLSLProps)
-                {
-                    string varName = $"{prop.name}_Array";
-                    builder.AppendLine("#define {0} UNITY_ACCESS_INSTANCED_PROP(unity_Builtins0, {1})", prop.name, varName);
-                }
             }
+            builder.AppendLine("#define UNITY_ACCESS_HYBRID_INSTANCED_PROP(var, type) UNITY_ACCESS_INSTANCED_PROP(unity_Builtins0, var)");
+            builder.AppendLine("#else");
+            builder.AppendLine("#define UNITY_ACCESS_HYBRID_INSTANCED_PROP(var, type) var");
             builder.AppendLine("#endif");
             return builder.ToString();
 #else

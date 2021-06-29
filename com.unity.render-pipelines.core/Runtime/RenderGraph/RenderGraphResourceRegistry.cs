@@ -2,6 +2,7 @@ using System;
 using System.Diagnostics;
 using System.Collections.Generic;
 using UnityEngine.Rendering;
+using UnityEngine.Rendering.RendererUtils;
 
 namespace UnityEngine.Experimental.Rendering.RenderGraphModule
 {
@@ -83,11 +84,15 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
         RenderGraphResourcesData[]          m_RenderGraphResources = new RenderGraphResourcesData[(int)RenderGraphResourceType.Count];
         DynamicArray<RendererListResource>  m_RendererListResources = new DynamicArray<RendererListResource>();
         RenderGraphDebugParams              m_RenderGraphDebug;
-        RenderGraphLogger                   m_Logger;
+        RenderGraphLogger                   m_ResourceLogger = new RenderGraphLogger();
+        RenderGraphLogger                   m_FrameInformationLogger; // Comes from the RenderGraph instance.
         int                                 m_CurrentFrameIndex;
         int                                 m_ExecutionCount;
 
         RTHandle                            m_CurrentBackbuffer;
+
+        const int                           kInitialRendererListCount = 256;
+        List<RendererList>                  m_ActiveRendererLists = new List<RendererList>(kInitialRendererListCount);
 
         #region Internal Interface
         internal RTHandle GetTexture(in TextureHandle handle)
@@ -95,7 +100,11 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
             if (!handle.IsValid())
                 return null;
 
-            return GetTextureResource(handle.handle).graphicsResource;
+            var resource = GetTextureResource(handle.handle).graphicsResource;
+            if (resource == null && handle.fallBackResource != TextureHandle.nullHandle.handle)
+                return GetTextureResource(handle.fallBackResource).graphicsResource;
+
+            return resource;
         }
 
         internal bool TextureNeedsFallback(in TextureHandle handle)
@@ -126,10 +135,10 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
         {
         }
 
-        internal RenderGraphResourceRegistry(RenderGraphDebugParams renderGraphDebug, RenderGraphLogger logger)
+        internal RenderGraphResourceRegistry(RenderGraphDebugParams renderGraphDebug, RenderGraphLogger frameInformationLogger)
         {
             m_RenderGraphDebug = renderGraphDebug;
-            m_Logger = logger;
+            m_FrameInformationLogger = frameInformationLogger;
 
             for (int i = 0; i < (int)RenderGraphResourceType.Count; ++i)
             {
@@ -147,6 +156,10 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
         {
             m_ExecutionCount = executionCount;
             ResourceHandle.NewFrame(executionCount);
+
+            // We can log independently of current execution name since resources are shared across all executions of render graph.
+            if (m_RenderGraphDebug.enableLogging)
+                m_ResourceLogger.Initialize("RenderGraph Resources");
         }
 
         internal void BeginExecute(int currentFrameIndex)
@@ -408,8 +421,8 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
             {
                 resource.CreatePooledGraphicsResource();
 
-                if (m_RenderGraphDebug.logFrameInformation)
-                    resource.LogCreation(m_Logger);
+                if (m_RenderGraphDebug.enableLogging)
+                    resource.LogCreation(m_FrameInformationLogger);
 
                 m_RenderGraphResources[type].createResourceCallback?.Invoke(rgContext, resource);
             }
@@ -432,7 +445,7 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
                 bool debugClear = m_RenderGraphDebug.clearRenderTargetsAtCreation && !resource.desc.clearBuffer;
                 using (new ProfilingScope(rgContext.cmd, ProfilingSampler.Get(debugClear ? RenderGraphProfileId.RenderGraphClearDebug : RenderGraphProfileId.RenderGraphClear)))
                 {
-                    var clearFlag = resource.desc.depthBufferBits != DepthBits.None ? ClearFlag.Depth : ClearFlag.Color;
+                    var clearFlag = resource.desc.depthBufferBits != DepthBits.None ? ClearFlag.DepthStencil : ClearFlag.Color;
                     var clearColor = debugClear ? Color.magenta : resource.desc.clearColor;
                     CoreUtils.SetRenderTarget(rgContext.cmd, resource.graphicsResource, clearFlag, clearColor);
                 }
@@ -447,9 +460,9 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
             {
                 m_RenderGraphResources[type].releaseResourceCallback?.Invoke(rgContext, resource);
 
-                if (m_RenderGraphDebug.logFrameInformation)
+                if (m_RenderGraphDebug.enableLogging)
                 {
-                    resource.LogRelease(m_Logger);
+                    resource.LogRelease(m_FrameInformationLogger);
                 }
 
                 resource.ReleasePooledGraphicsResource(m_CurrentFrameIndex);
@@ -464,7 +477,7 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
             {
                 using (new ProfilingScope(rgContext.cmd, ProfilingSampler.Get(RenderGraphProfileId.RenderGraphClearDebug)))
                 {
-                    var clearFlag = resource.desc.depthBufferBits != DepthBits.None ? ClearFlag.Depth : ClearFlag.Color;
+                    var clearFlag = resource.desc.depthBufferBits != DepthBits.None ? ClearFlag.DepthStencil : ClearFlag.Color;
                     CoreUtils.SetRenderTarget(rgContext.cmd, resource.graphicsResource, clearFlag, Color.magenta);
                 }
             }
@@ -492,14 +505,6 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
             {
                 if (desc.width == 0 || desc.height == 0)
                     throw new ArgumentException("Texture using Explicit size mode was create with either width or height at zero.");
-                if (desc.enableMSAA)
-                    throw new ArgumentException("enableMSAA TextureDesc parameter is not supported for textures using Explicit size mode.");
-            }
-
-            if (desc.sizeMode == TextureSizeMode.Scale || desc.sizeMode == TextureSizeMode.Functor)
-            {
-                if (desc.msaaSamples != MSAASamples.None)
-                    throw new ArgumentException("msaaSamples TextureDesc parameter is not supported for textures using Scale or Functor size mode.");
             }
 #endif
         }
@@ -508,20 +513,14 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
         {
 #if DEVELOPMENT_BUILD || UNITY_EDITOR
 
-            if (desc.passName != ShaderTagId.none && desc.passNames != null
-                || desc.passName == ShaderTagId.none && desc.passNames == null)
+            if (!desc.IsValid())
             {
-                throw new ArgumentException("Renderer List creation descriptor must contain either a single passName or an array of passNames.");
+                throw new ArgumentException("Renderer List descriptor is not valid.");
             }
 
             if (desc.renderQueueRange.lowerBound == 0 && desc.renderQueueRange.upperBound == 0)
             {
                 throw new ArgumentException("Renderer List creation descriptor must have a valid RenderQueueRange.");
-            }
-
-            if (desc.camera == null)
-            {
-                throw new ArgumentException("Renderer List creation descriptor must have a valid Camera.");
             }
 #endif
         }
@@ -540,17 +539,21 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
 #endif
         }
 
-        internal void CreateRendererLists(List<RendererListHandle> rendererLists)
+        internal void CreateRendererLists(List<RendererListHandle> rendererLists, ScriptableRenderContext context, bool manualDispatch = false)
         {
-            // For now we just create a simple structure
-            // but when the proper API is available in trunk we'll kick off renderer lists creation jobs here.
+            // We gather the active renderer lists of a frame in a list/array before we pass it in the core API for batch processing
+            m_ActiveRendererLists.Clear();
+
             foreach (var rendererList in rendererLists)
             {
                 ref var rendererListResource = ref m_RendererListResources[rendererList];
                 ref var desc = ref rendererListResource.desc;
-                RendererList newRendererList = RendererList.Create(desc);
-                rendererListResource.rendererList = newRendererList;
+                rendererListResource.rendererList = context.CreateRendererList(desc);
+                m_ActiveRendererLists.Add(rendererListResource.rendererList);
             }
+
+            if (manualDispatch)
+                context.PrepareRendererListsAsync(m_ActiveRendererLists);
         }
 
         internal void Clear(bool onException)
@@ -560,6 +563,7 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
             for (int i = 0; i < (int)RenderGraphResourceType.Count; ++i)
                 m_RenderGraphResources[i].Clear(onException, m_CurrentFrameIndex);
             m_RendererListResources.Clear();
+            m_ActiveRendererLists.Clear();
         }
 
         internal void PurgeUnusedGraphicsResources()
@@ -576,16 +580,21 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
             RTHandles.Release(m_CurrentBackbuffer);
         }
 
+        internal void FlushLogs()
+        {
+            Debug.Log(m_ResourceLogger.GetAllLogs());
+        }
+
         void LogResources()
         {
-            if (m_RenderGraphDebug.logResources)
+            if (m_RenderGraphDebug.enableLogging)
             {
-                m_Logger.LogLine("==== Allocated Resources ====\n");
+                m_ResourceLogger.LogLine("==== Allocated Resources ====\n");
 
                 for (int type = 0; type < (int)RenderGraphResourceType.Count; ++type)
                 {
-                    m_RenderGraphResources[type].pool.LogResources(m_Logger);
-                    m_Logger.LogLine("");
+                    m_RenderGraphResources[type].pool.LogResources(m_ResourceLogger);
+                    m_ResourceLogger.LogLine("");
                 }
             }
         }

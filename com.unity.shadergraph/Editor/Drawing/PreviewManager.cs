@@ -39,7 +39,7 @@ namespace UnityEditor.ShaderGraph.Drawing
 
         bool m_TopologyDirty;                                                                               // indicates topology changed, used to rebuild timed node list and preview type (2D/3D) inheritance.
 
-        HashSet<BlockNode> m_MasterNodePreviewBlocks = new HashSet<BlockNode>();                            // all blocks used for the most recent master node preview generation. this includes temporary blocks.
+        HashSet<BlockNode> m_MasterNodeTempBlocks = new HashSet<BlockNode>();                               // temp blocks used by the most recent master node preview generation.
 
         PreviewSceneResources m_SceneResources;
         Texture2D m_ErrorTexture;
@@ -480,6 +480,9 @@ namespace UnityEditor.ShaderGraph.Drawing
                 // all nodes downstream of a changed property must be redrawn (to display the updated the property value)
                 PropagateNodes(m_NodesPropertyChanged, PropagationDirection.Downstream, nodesToDraw);
 
+                // always update properties from temporary blocks created by master node preview generation
+                m_NodesPropertyChanged.UnionWith(m_MasterNodeTempBlocks);
+
                 CollectPreviewProperties(m_NodesPropertyChanged, perMaterialPreviewProperties);
                 m_NodesPropertyChanged.Clear();
 
@@ -671,19 +674,6 @@ namespace UnityEditor.ShaderGraph.Drawing
                     CheckForErrors(renderData.shaderData);
 
                     previewsCompiled.Add(renderData);
-
-                    if (renderData == m_MasterRenderData)
-                    {
-                        // TODO: this may be a good thing to do BEFORE requesting shader compilation
-                        // Process preview materials
-                        foreach (var target in m_Graph.activeTargets)
-                        {
-                            if (target.IsActive())
-                            {
-                                target.ProcessPreviewMaterial(renderData.shaderData.mat);
-                            }
-                        }
-                    }
                 }
 
                 // removed compiled nodes from compiling list
@@ -835,12 +825,20 @@ namespace UnityEditor.ShaderGraph.Drawing
                     ShaderUtil.UpdateShaderAsset(shaderData.shader, shaderStr, false);
                 }
 
+                // Set up the material we use for the preview
                 // Due to case 1259744, we have to re-create the material to update the preview material keywords
                 Object.DestroyImmediate(shaderData.mat);
-
-                if (shaderData.mat == null)
                 {
                     shaderData.mat = new Material(shaderData.shader) { hideFlags = HideFlags.HideAndDontSave };
+                    if (renderData == m_MasterRenderData)
+                    {
+                        // apply active target settings to the Material
+                        foreach (var target in m_Graph.activeTargets)
+                        {
+                            if (target.IsActive())
+                                target.ProcessPreviewMaterial(renderData.shaderData.mat);
+                        }
+                    }
                 }
 
                 int materialPassCount = shaderData.mat.passCount;
@@ -1080,6 +1078,9 @@ namespace UnityEditor.ShaderGraph.Drawing
         {
             using (RenderPreviewMarker.Auto())
             {
+                var wasAsyncAllowed = ShaderUtil.allowAsyncCompilation;
+                ShaderUtil.allowAsyncCompilation = true;
+
                 AssignPerMaterialPreviewProperties(renderData.shaderData.mat, perMaterialPreviewProperties);
 
                 var previousRenderTexture = RenderTexture.active;
@@ -1109,6 +1110,8 @@ namespace UnityEditor.ShaderGraph.Drawing
                 renderData.texture = renderData.renderTexture;
 
                 m_PreviewsToDraw.Remove(renderData);
+
+                ShaderUtil.allowAsyncCompilation = wasAsyncAllowed;
             }
         }
 
@@ -1168,12 +1171,11 @@ namespace UnityEditor.ShaderGraph.Drawing
                 var generator = new Generator(m_Graph, m_Graph.outputNode, GenerationMode.Preview, "Master", null);
                 shaderData.shaderString = generator.generatedShader;
 
-                // Blocks from the generation include those temporarily created for missing stack blocks
-                // We need to hold on to these to set preview property values during CollectShaderProperties
-                m_MasterNodePreviewBlocks.Clear();
-                foreach (var block in generator.blocks)
+                // record the blocks temporarily created for missing stack blocks
+                m_MasterNodeTempBlocks.Clear();
+                foreach (var block in generator.temporaryBlocks)
                 {
-                    m_MasterNodePreviewBlocks.Add(block);
+                    m_MasterNodeTempBlocks.Add(block);
                 }
             }
 

@@ -27,6 +27,7 @@ Shader "Hidden/Universal Render Pipeline/BokehDepthOfField"
         half4 _DownSampleScaleFactor;
         half4 _CoCParams;
         half4 _BokehKernel[SAMPLE_COUNT];
+        half4 _BokehConstants;
 
         #define FocusDist       _CoCParams.x
         #define MaxCoC          _CoCParams.y
@@ -127,24 +128,20 @@ Shader "Hidden/Universal Render Pipeline/BokehDepthOfField"
             return half4(avg, coc);
         }
 
-        void Accumulate(float4 samp0, float2 uv, half2 disp, inout half4 farAcc, inout half4 nearAcc)
+        void Accumulate(half4 samp0, float2 uv, half4 disp, inout half4 farAcc, inout half4 nearAcc)
         {
-            half dist = length(disp);
-
-            float2 duv = float2(disp.x * RcpAspect, disp.y);
-            half4 samp = SAMPLE_TEXTURE2D_X(_SourceTex, sampler_LinearClamp, uv + duv);
+            half4 samp = SAMPLE_TEXTURE2D_X(_SourceTex, sampler_LinearClamp, uv + disp.wy);
 
             // Compare CoC of the current sample and the center sample and select smaller one
             half farCoC = max(min(samp0.a, samp.a), 0.0);
 
             // Compare the CoC to the sample distance & add a small margin to smooth out
-            const half margin = _SourceSize.w * _DownSampleScaleFactor.w * 2.0h;
-            half farWeight = saturate((farCoC - dist + margin) / margin);
-            half nearWeight = saturate((-samp.a - dist + margin) / margin);
+            half farWeight = saturate((farCoC - disp.z + _BokehConstants.y) / _BokehConstants.y);
+            half nearWeight = saturate((-samp.a - disp.z + _BokehConstants.y) / _BokehConstants.y);
 
             // Cut influence from focused areas because they're darkened by CoC premultiplying. This is only
             // needed for near field
-            nearWeight *= step(_SourceSize.w * _DownSampleScaleFactor.w, -samp.a);
+            nearWeight *= step(_BokehConstants.x, -samp.a);
 
             // Accumulation
             farAcc += half4(samp.rgb, 1.0h) * farWeight;
@@ -167,8 +164,7 @@ Shader "Hidden/Universal Render Pipeline/BokehDepthOfField"
             UNITY_LOOP
             for (int si = 0; si < SAMPLE_COUNT; si++)
             {
-                half2 disp = _BokehKernel[si].xy * MaxRadius;
-                Accumulate(samp0, uv, disp, farAcc, nearAcc);
+                Accumulate(samp0, uv, _BokehKernel[si], farAcc, nearAcc);
             }
 
             // Get the weighted average

@@ -41,7 +41,7 @@
 //--------------------------------------------------------------------------------------------------
 
 StructuredBuffer<OrientedBBox>            _VolumeBounds;
-StructuredBuffer<DensityVolumeEngineData> _VolumeData;
+StructuredBuffer<LocalVolumetricFogEngineData> _VolumeData;
 
 TEXTURE3D(_VolumeMaskAtlas);
 
@@ -74,7 +74,7 @@ float ComputeFadeFactor(float3 coordNDC, float dist,
     float  fade = posF.x * posF.y * posF.z * negF.x * negF.y * negF.z;
 
     // We only apply exponential falloff on the Blend Distance and not Distance Fade
-    if (falloffMode == DENSITYVOLUMEFALLOFFMODE_EXPONENTIAL)
+    if (falloffMode == LOCALVOLUMETRICFOGFALLOFFMODE_EXPONENTIAL)
         fade = PositivePow(fade, EXPONENTIAL_FALLOFF_EXPONENT);
 
     fade = dstF * (invertFade ? (1 - fade) : fade);
@@ -82,7 +82,7 @@ float ComputeFadeFactor(float3 coordNDC, float dist,
     return fade;
 }
 
-float4 SampleVolumeMask(DensityVolumeEngineData volumeData, float3 voxelCenterNDC, float3 duvw_dx, float3 duvw_dy, float3 duvw_dz)
+float4 SampleVolumeMask(LocalVolumetricFogEngineData volumeData, float3 voxelCenterNDC, float3 duvw_dx, float3 duvw_dy, float3 duvw_dz)
 {
     float maxLod         = log2(volumeData.maskSize.w);
     // TODO: expose the LoD bias parameter.
@@ -138,9 +138,9 @@ void FillVolumetricDensityBuffer(PositionInputs posInput, uint tileIndex, Jitter
         {
             uint objectIndex = FetchIndex(volumeStart, offset);
 
-            if (objectIndex >= _DensityVolumeIndexShift)
+            if (objectIndex >= _LocalVolumetricFogIndexShift)
             {
-                // We have found the first density volume.
+                // We have found the first Local Volumetric Fog.
                 break;
             }
         }
@@ -151,7 +151,7 @@ void FillVolumetricDensityBuffer(PositionInputs posInput, uint tileIndex, Jitter
 
 #else  // USE_BIG_TILE_LIGHTLIST
 
-    volumeCount = _NumVisibleDensityVolumes;
+    volumeCount = _NumVisibleLocalVolumetricFog;
     volumeStart = 0;
 
 #endif // USE_BIG_TILE_LIGHTLIST
@@ -182,7 +182,7 @@ void FillVolumetricDensityBuffer(PositionInputs posInput, uint tileIndex, Jitter
         for (uint volumeOffset = 0; volumeOffset < volumeCount; volumeOffset++)
         {
         #ifdef USE_BIG_TILE_LIGHTLIST
-            uint volumeIndex = FetchIndex(volumeStart, volumeOffset) - _DensityVolumeIndexShift;
+            uint volumeIndex = FetchIndex(volumeStart, volumeOffset) - _LocalVolumetricFogIndexShift;
         #else
             uint volumeIndex = FetchIndex(volumeStart, volumeOffset);
         #endif

@@ -249,10 +249,10 @@ With:
 protected override void Execute(CustomPassContext ctx) { ... }
 ```
 
-## Density Volume Mask Texture
+## Local Volumetric Fog Mask Texture
 
-Previously, to convert a 2D flipbook texture to the 3D format Density Mask Textures require, you needed to use the __Density Volume Texture Tool__ in the __Window > Rendering__ menu.
-From Unity 2020.2, you can now do this conversion directly through the __Texture Importer__. For information on how to use the importer to convert the flipbook texture, see the [Density Volume documentation](Density-Volume.md).
+Previously, to convert a 2D flipbook texture to the 3D format Density Mask Textures require, you needed to use the __Local Volumetric Fog Texture Tool__ in the __Window > Rendering__ menu.
+From Unity 2020.2, you can now do this conversion directly through the __Texture Importer__. For information on how to use the importer to convert the flipbook texture, see the [Local Volumetric Fog documentation](Local-Volumetric-Fog.md).
 
 ## Diffusion Profiles
 

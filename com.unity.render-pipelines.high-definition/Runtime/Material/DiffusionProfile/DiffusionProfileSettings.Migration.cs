@@ -46,7 +46,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
                 var currentHDAsset = HDRenderPipeline.currentAsset;
                 if (currentHDAsset == null)
-                    throw new Exception("Can't upgrade diffusion profile when the HDRenderPipeline asset is not assigned in Graphic Settings");
+                    throw new Exception("Can't upgrade diffusion profile without an active HD Render Pipeline asset (see Quality Settings).");
 
                 var defaultProfile = new DiffusionProfile(true);
 
@@ -67,7 +67,7 @@ namespace UnityEngine.Rendering.HighDefinition
                     index++;
                 }
 
-                // We write in the main diffusion profile meta filethe list of created asset so we know where to look
+                // We write in the main diffusion profile meta file the list of created asset so we know where to look
                 // when we upgrade materials inside scenes (from the menu item)
                 SerializableGUIDs toJson;
                 toJson.assetGUIDs = new string[16];
@@ -84,9 +84,9 @@ namespace UnityEngine.Rendering.HighDefinition
                     if (hdAsset.diffusionProfileSettings == d)
                     {
                         // Assign the new diffusion profile assets into the HD asset
-                        hdAsset.diffusionProfileSettingsList = new DiffusionProfileSettings[newProfiles.Keys.Max() + 1];
+                        hdAsset.m_ObsoleteDiffusionProfileSettingsList = new DiffusionProfileSettings[newProfiles.Keys.Max() + 1];
                         foreach (var kp in newProfiles)
-                            hdAsset.diffusionProfileSettingsList[kp.Key] = kp.Value;
+                            hdAsset.m_ObsoleteDiffusionProfileSettingsList[kp.Key] = kp.Value;
                         UnityEditor.EditorUtility.SetDirty(hdAsset);
                     }
                 }

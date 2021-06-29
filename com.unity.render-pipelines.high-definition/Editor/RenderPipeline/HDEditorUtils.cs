@@ -228,13 +228,13 @@ namespace UnityEditor.Rendering.HighDefinition
 
         internal static void DrawDecalLayerMask_Internal(Rect rect, GUIContent label, SerializedProperty property)
         {
-            if (HDRenderPipeline.defaultAsset == null)
+            if (HDRenderPipelineGlobalSettings.instance == null)
                 return;
 
             EditorGUI.BeginProperty(rect, label, property);
 
             EditorGUI.BeginChangeCheck();
-            int changedValue = EditorGUI.MaskField(rect, label ?? GUIContent.none, property.intValue, HDRenderPipeline.defaultAsset.decalLayerNames);
+            int changedValue = EditorGUI.MaskField(rect, label ?? GUIContent.none, property.intValue, HDRenderPipelineGlobalSettings.instance.decalLayerNames);
             if (EditorGUI.EndChangeCheck())
                 property.intValue = changedValue;
 
@@ -247,28 +247,14 @@ namespace UnityEditor.Rendering.HighDefinition
         internal static int DrawLightLayerMask(Rect rect, int value, GUIContent label = null)
         {
             int lightLayer = HDAdditionalLightData.RenderingLayerMaskToLightLayer(value);
-            if (HDRenderPipeline.defaultAsset == null)
+            if (HDRenderPipelineGlobalSettings.instance == null)
                 return lightLayer;
 
             EditorGUI.BeginChangeCheck();
-            lightLayer = EditorGUI.MaskField(rect, label ?? GUIContent.none, lightLayer, HDRenderPipeline.defaultAsset.lightLayerNames);
+            lightLayer = EditorGUI.MaskField(rect, label ?? GUIContent.none, lightLayer, HDRenderPipelineGlobalSettings.instance.lightLayerNames);
             if (EditorGUI.EndChangeCheck())
                 lightLayer = HDAdditionalLightData.LightLayerToRenderingLayerMask(lightLayer, value);
             return lightLayer;
-        }
-
-        /// <summary>
-        /// Like EditorGUILayout.DrawTextField but for delayed text field
-        /// </summary>
-        internal static void DrawDelayedTextField(GUIContent label, SerializedProperty property)
-        {
-            Rect lineRect = GUILayoutUtility.GetRect(1, EditorGUIUtility.singleLineHeight);
-            EditorGUI.BeginProperty(lineRect, label, property);
-            EditorGUI.BeginChangeCheck();
-            string value = EditorGUI.DelayedTextField(lineRect, label, property.stringValue);
-            if (EditorGUI.EndChangeCheck())
-                property.stringValue = value;
-            EditorGUI.EndProperty();
         }
 
         /// <summary>
@@ -289,33 +275,6 @@ namespace UnityEditor.Rendering.HighDefinition
             //
             labelPosition.x += EditorGUI.indentLevel * 15;
             EditorGUI.HandlePrefixLabel(totalPosition, labelPosition, label);
-        }
-
-        /// <summary>
-        /// Like EditorGUI.IndentLevelScope but this one will also indent the override checkboxes.
-        /// </summary>
-        internal class IndentScope : GUI.Scope
-        {
-            int m_Offset;
-
-            public IndentScope(int offset = 16)
-            {
-                m_Offset = offset;
-
-                // When using EditorGUI.indentLevel++, the clicking on the checkboxes does not work properly due to some issues on the C++ side.
-                // This scope is a work-around for this issue.
-                GUILayout.BeginHorizontal();
-                EditorGUILayout.Space(offset, false);
-                GUILayout.BeginVertical();
-                EditorGUIUtility.labelWidth -= m_Offset;
-            }
-
-            protected override void CloseScope()
-            {
-                EditorGUIUtility.labelWidth += m_Offset;
-                GUILayout.EndVertical();
-                GUILayout.EndHorizontal();
-            }
         }
     }
 

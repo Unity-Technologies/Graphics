@@ -29,8 +29,7 @@ namespace UnityEditor.Rendering.HighDefinition
 
         internal class Styles
         {
-            public const string header = "Detail Inputs";
-
+            public static GUIContent header { get; } = EditorGUIUtility.TrTextContent("Detail Inputs");
             public static GUIContent UVDetailMappingText = new GUIContent("Detail UV Mapping", "");
             public static GUIContent detailMapNormalText = new GUIContent("Detail Map", "Specifies the Detail Map albedo (R) Normal map y-axis (G) Smoothness (B) Normal map x-axis (A) - Neutral value is (0.5, 0.5, 0.5, 0.5)");
             public static GUIContent detailAlbedoScaleText = new GUIContent("Detail Albedo Scale", "Controls the scale factor for the Detail Map's Albedo.");
@@ -59,8 +58,8 @@ namespace UnityEditor.Rendering.HighDefinition
         const string kUVBase = "_UVBase";
         MaterialProperty displacementMode = null;
         const string kDisplacementMode = "_DisplacementMode";
+        MaterialProperty tessellationMode = null;
 
-        ExpandableBit  m_ExpandableBit;
         Features    m_Features;
         int         m_LayerIndex;
         int         m_LayerCount;
@@ -74,10 +73,9 @@ namespace UnityEditor.Rendering.HighDefinition
         /// <param name="layerCount">Number of layers in the shader.</param>
         /// <param name="layerIndex">Current layer index to display. 0 if it's not a layered shader</param>
         /// <param name="features">Features of the block.</param>
-        /// <param name="dotColor">Subheader dot color. See Layered Lit UI subheader for more info.</param>
         public DetailInputsUIBlock(ExpandableBit expandableBit, int layerCount = 1, int layerIndex = 0, Features features = Features.All)
+            : base(expandableBit, Styles.header)
         {
-            m_ExpandableBit = expandableBit;
             m_Features = features;
             m_LayerIndex = layerIndex;
             m_LayerCount = layerCount;
@@ -97,26 +95,18 @@ namespace UnityEditor.Rendering.HighDefinition
             detailSmoothnessScale = FindPropertyLayered(kDetailSmoothnessScale, m_LayerCount);
             UVBase = FindPropertyLayered(kUVBase, m_LayerCount);
             displacementMode = FindProperty(kDisplacementMode);
+            tessellationMode = FindProperty(kTessellationMode);
         }
+
+        /// <summary>
+        /// Property that specifies if the scope is a subheader
+        /// </summary>
+        protected override bool isSubHeader => (m_Features & Features.SubHeader) != 0;
 
         /// <summary>
         /// Renders the properties in the block.
         /// </summary>
-        public override void OnGUI()
-        {
-            bool subHeader = (m_Features & Features.SubHeader) != 0;
-
-            using (var header = new MaterialHeaderScope(Styles.header, (uint)m_ExpandableBit, materialEditor, subHeader: subHeader))
-            {
-                if (header.expanded)
-                    DrawDetailsGUI();
-            }
-        }
-
-        /// <summary>
-        /// Draw the Details GUI.
-        /// </summary>
-        protected void DrawDetailsGUI()
+        protected override void OnGUIOpen()
         {
             UVBaseMapping uvBaseMapping = (UVBaseMapping)UVBase[m_LayerIndex].floatValue;
             float X, Y, Z, W;
@@ -153,7 +143,8 @@ namespace UnityEditor.Rendering.HighDefinition
                 EditorGUI.indentLevel--;
 
                 materialEditor.TextureScaleOffsetProperty(detailMap[m_LayerIndex]);
-                if ((DisplacementMode)displacementMode.floatValue == DisplacementMode.Pixel && (UVDetail[m_LayerIndex].floatValue != UVBase[m_LayerIndex].floatValue))
+                if ((DisplacementMode)displacementMode.floatValue == DisplacementMode.Pixel && (UVDetail[m_LayerIndex].floatValue != UVBase[m_LayerIndex].floatValue) &&
+                    tessellationMode == null)
                 {
                     if (materials.All(m => m.GetTexture(isLayeredLit ? kDetailMap + m_LayerIndex : kDetailMap)))
                         EditorGUILayout.HelpBox(Styles.perPixelDisplacementDetailsWarning.text, MessageType.Warning);

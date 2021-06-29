@@ -1,10 +1,9 @@
 using System;
 using System.Linq;
-using UnityEngine.Scripting.APIUpdating;
 
 namespace UnityEngine.Rendering.Universal
 {
-    [MovedFrom("UnityEngine.Rendering.LWRP")] public enum ShaderPathID
+    public enum ShaderPathID
     {
         Lit,
         SimpleLit,
@@ -17,9 +16,10 @@ namespace UnityEngine.Rendering.Universal
         SpeedTree7,
         SpeedTree7Billboard,
         SpeedTree8,
+        // If you add a value here, also add it to ShaderID in Editor/ShaderUtils.cs
     }
 
-    [MovedFrom("UnityEngine.Rendering.LWRP")] public static class ShaderUtils
+    public static class ShaderUtils
     {
         static readonly string[] s_ShaderPaths  =
         {
