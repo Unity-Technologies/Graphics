@@ -43,9 +43,10 @@ namespace UnityEngine.Rendering.HighDefinition
                 var settings = hdCamera.volumeStack.GetComponent<GlobalIllumination>();
                 if (settings.enable.value)
                 {
+                    bool allowSsgi = hdCamera.colorPyramidHistoryIsValid && !hdCamera.isFirstFrame;
                     // RTGI is only valid if raytracing is enabled
                     bool raytracing = hdCamera.frameSettings.IsEnabled(FrameSettingsField.RayTracing) && settings.tracing.value != RayCastingMode.RayMarching;
-                    mode = raytracing ? IndirectDiffuseMode.Raytrace : IndirectDiffuseMode.ScreenSpace;
+                    mode = raytracing ? IndirectDiffuseMode.Raytrace : (allowSsgi ? IndirectDiffuseMode.ScreenSpace : IndirectDiffuseMode.Off);
                 }
             }
             return mode;

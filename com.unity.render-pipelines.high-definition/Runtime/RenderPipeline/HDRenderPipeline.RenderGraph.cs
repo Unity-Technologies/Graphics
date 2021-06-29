@@ -1129,7 +1129,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
             ResetCameraMipBias(hdCamera);
 
-            if (hdCamera.frameSettings.IsEnabled(FrameSettingsField.Refraction) || hdCamera.IsSSREnabled())
+            if (hdCamera.frameSettings.IsEnabled(FrameSettingsField.Refraction) || hdCamera.IsSSREnabled() || hdCamera.IsSSGIEnabled())
             {
                 var resolvedColorBuffer = ResolveMSAAColor(renderGraph, hdCamera, colorBuffer, m_NonMSAAColorBuffer);
                 GenerateColorPyramid(renderGraph, hdCamera, resolvedColorBuffer, currentColorPyramid, FullScreenDebugMode.FinalColorPyramid);
@@ -1467,6 +1467,17 @@ namespace UnityEngine.Rendering.HighDefinition
                 {
                     builder.DependsOn(depedency.Value);
                 }
+
+                if (!hdCamera.colorPyramidHistoryIsValid)
+                {
+                    hdCamera.colorPyramidHistoryIsValid = true; // For the next frame...
+                    hdCamera.colorPyramidHistoryValidFrames = 0;
+                }
+                else
+                {
+                    hdCamera.colorPyramidHistoryValidFrames++;
+                }
+
 
                 passData.colorPyramid = builder.WriteTexture(output);
                 passData.inputColor = builder.ReadTexture(inputColor);
