@@ -2328,13 +2328,6 @@ namespace UnityEditor.VFX.UI
                 parameters.ForEach(x => x.model.category = newCategory.title);
                 newCategory.SyncParameters(new HashSet<VFXParameterController>(parameters));
             }
-
-            this.OnSave();
-            //this.m_Controller.graph.SetExpressionValueDirty();
-            //this.m_Controller.graph.SetExpressionGraphDirty();
-
-            //this.m_Controller.graph.BuildSubgraphDependencies();
-            //this.m_Controller.graph.RecompileIfNeeded();
         }
 
         void CollapseOperator(DropdownMenuAction a)
