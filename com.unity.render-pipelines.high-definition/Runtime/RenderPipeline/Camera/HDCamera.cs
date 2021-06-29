@@ -137,6 +137,7 @@ namespace UnityEngine.Rendering.HighDefinition
             volumetricValidFrames = 0;
             colorPyramidHistoryIsValid = false;
             colorPyramidHistoryValidFrames = 0;
+            dofHistoryIsValid = false;
         }
 
         /// <summary>
