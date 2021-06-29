@@ -492,7 +492,7 @@ namespace UnityEngine.Rendering.HighDefinition
                     LOD currentLOD = lodArray[lodIdx];
 
                     // Compute the distance until which this LOD may be used
-                    float maxLODUsageDistance = CalculateCameraDistance(hdCamera.camera.fieldOfView, lodGroup.size, currentLOD.screenRelativeTransitionHeight);
+                    float maxLODUsageDistance = CalculateCameraDistance(hdCamera.camera.fieldOfView, lodGroup.size * Mathf.Max(Mathf.Max(lodGroup.transform.localScale.x, lodGroup.transform.localScale.y), lodGroup.transform.localScale.z), currentLOD.screenRelativeTransitionHeight);
 
                     // If the LOD should be the used one
                     if (!lodGroupProcessed && lodGroupDistance < maxLODUsageDistance)
