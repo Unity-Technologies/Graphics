@@ -16,6 +16,7 @@ Universal_Hybrid_Win_DX11_Standalone_DOTS_mono_Linear_2020.3:
         flavor: b1.large
     variables:
         UPM_REGISTRY: https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates
+        CUSTOM_REVISION: '{{2020_3.changeset.id}}'
         CACHE_ARGS: '{{cache.flags}}'
         UTR_VERSION: "current"
         TEST_FILTER: .*
@@ -36,6 +37,8 @@ Universal_Hybrid_Win_DX11_Standalone_DOTS_mono_Linear_2020.3:
               -  "**/test-results/**"
               -  "TestProjects/UniversalHybridTest/Logs/*.log"
     dependencies:
+      -  path: .yamato/_editor_priming.yml#editor:priming:2020.3:Win
+         rerun: on_new_revision
       -  path: .yamato/universal_hybrid-win-dx11.yml#Build_Universal_Hybrid_Win_DX11_Standalone_DOTS_mono_Linear_2020.3
          rerun: on_new_revision
 Build_Universal_Hybrid_Win_DX11_Standalone_DOTS_mono_Linear_2020.3:
@@ -46,6 +49,7 @@ Build_Universal_Hybrid_Win_DX11_Standalone_DOTS_mono_Linear_2020.3:
         flavor: b1.xlarge
     variables:
         UPM_REGISTRY: https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates
+        CUSTOM_REVISION: '{{2020_3.changeset.id}}'
         CACHE_ARGS: '{{cache.flags}}'
         UTR_VERSION: "current"
         TEST_FILTER: .*
@@ -56,7 +60,7 @@ Build_Universal_Hybrid_Win_DX11_Standalone_DOTS_mono_Linear_2020.3:
          retries: 2
       -  command: choco install unity-downloader-cli -y -s https://artifactory.prd.it.unity3d.com/artifactory/api/nuget/unity-choco-local
          retries: 2
-      -  command: unity-downloader-cli -u {{editor_versions.2020_3_staging.Win.revision}} -c editor -c il2cpp  --wait --published-only
+      -  command: unity-downloader-cli --source-file unity_revision.txt -c editor -c il2cpp  --wait --published-only
          retries: 2
       -  command: |5-
                 git rev-parse HEAD | git show -s --format=%%cI > revdate.tmp
@@ -72,6 +76,9 @@ Build_Universal_Hybrid_Win_DX11_Standalone_DOTS_mono_Linear_2020.3:
         players:
             paths:
               -  "players*/**"
+    dependencies:
+      -  path: .yamato/_editor_priming.yml#editor:priming:2020.3:Win
+         rerun: on_new_revision
 Universal_Hybrid_Win_DX11_playmode_mono_Linear_2020.3:
     name: Universal_Hybrid on Win_DX11_playmode_mono_Linear on version 2020.3
     agent:
@@ -80,6 +87,7 @@ Universal_Hybrid_Win_DX11_playmode_mono_Linear_2020.3:
         flavor: b1.large
     variables:
         UPM_REGISTRY: https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates
+        CUSTOM_REVISION: '{{2020_3.changeset.id}}'
         CACHE_ARGS: '{{cache.flags}}'
         UTR_VERSION: "current"
         TEST_FILTER: .*
@@ -90,7 +98,7 @@ Universal_Hybrid_Win_DX11_playmode_mono_Linear_2020.3:
          retries: 2
       -  command: choco install unity-downloader-cli -y -s https://artifactory.prd.it.unity3d.com/artifactory/api/nuget/unity-choco-local
          retries: 2
-      -  command: unity-downloader-cli -u {{editor_versions.2020_3_staging.Win.revision}} -c editor -c il2cpp  --wait --published-only
+      -  command: unity-downloader-cli --source-file unity_revision.txt -c editor -c il2cpp  --wait --published-only
          retries: 2
       -  command: |5-
                 git rev-parse HEAD | git show -s --format=%%cI > revdate.tmp
@@ -103,6 +111,9 @@ Universal_Hybrid_Win_DX11_playmode_mono_Linear_2020.3:
             paths:
               -  "**/test-results/**"
               -  "TestProjects/UniversalHybridTest/Logs/*.log"
+    dependencies:
+      -  path: .yamato/_editor_priming.yml#editor:priming:2020.3:Win
+         rerun: on_new_revision
 Universal_Hybrid_Win_DX11_Standalone_DOTS_mono_Linear_CUSTOM-REVISION:
     name: Universal_Hybrid on Win_DX11_Standalone_DOTS_mono_Linear on version CUSTOM-REVISION
     agent:

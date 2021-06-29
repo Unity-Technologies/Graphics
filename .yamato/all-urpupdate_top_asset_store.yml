@@ -11,6 +11,7 @@
 PR_URPUpdate_Top_Asset_Store_2020.3:
     name: PR URPUpdate_Top_Asset_Store on 2020.3
     variables:
+        CUSTOM_REVISION: '{{2020_3.changeset.id}}'
         UTR_VERSION: "current"
         TEST_FILTER: .*
         BA_UPDATE_PROJECT_BRANCH: master
@@ -24,6 +25,7 @@ PR_URPUpdate_Top_Asset_Store_2020.3:
 Extra_URPUpdate_Top_Asset_Store_2020.3:
     name: Extra URPUpdate_Top_Asset_Store on 2020.3
     variables:
+        CUSTOM_REVISION: '{{2020_3.changeset.id}}'
         UTR_VERSION: "current"
         TEST_FILTER: .*
         BA_UPDATE_PROJECT_BRANCH: master
@@ -33,6 +35,7 @@ Extra_URPUpdate_Top_Asset_Store_2020.3:
 URPUpdate_Top_Asset_Store_2020.3:
     name: URPUpdate_Top_Asset_Store on 2020.3
     variables:
+        CUSTOM_REVISION: '{{2020_3.changeset.id}}'
         UTR_VERSION: "current"
         TEST_FILTER: .*
         BA_UPDATE_PROJECT_BRANCH: master

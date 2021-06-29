@@ -11,6 +11,7 @@
 PR_ShaderGraph_Stereo_2020.3:
     name: PR ShaderGraph_Stereo on 2020.3
     variables:
+        CUSTOM_REVISION: '{{2020_3.changeset.id}}'
         UTR_VERSION: "current"
         TEST_FILTER: .*
         CACHE_ARGS: '{{cache.flags}}'
@@ -22,6 +23,7 @@ PR_ShaderGraph_Stereo_2020.3:
 Extra_ShaderGraph_Stereo_2020.3:
     name: Extra ShaderGraph_Stereo on 2020.3
     variables:
+        CUSTOM_REVISION: '{{2020_3.changeset.id}}'
         UTR_VERSION: "current"
         TEST_FILTER: .*
         CACHE_ARGS: '{{cache.flags}}'
@@ -29,6 +31,7 @@ Extra_ShaderGraph_Stereo_2020.3:
 ShaderGraph_Stereo_2020.3:
     name: ShaderGraph_Stereo on 2020.3
     variables:
+        CUSTOM_REVISION: '{{2020_3.changeset.id}}'
         UTR_VERSION: "current"
         TEST_FILTER: .*
         CACHE_ARGS: '{{cache.flags}}'

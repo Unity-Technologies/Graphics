@@ -11,6 +11,7 @@
 PR_ShaderGraph_2020.3:
     name: PR ShaderGraph on 2020.3
     variables:
+        CUSTOM_REVISION: '{{2020_3.changeset.id}}'
         UTR_VERSION: "current"
         TEST_FILTER: .*
         CACHE_ARGS: '{{cache.flags}}'
@@ -28,6 +29,7 @@ PR_ShaderGraph_2020.3:
 Extra_ShaderGraph_2020.3:
     name: Extra ShaderGraph on 2020.3
     variables:
+        CUSTOM_REVISION: '{{2020_3.changeset.id}}'
         UTR_VERSION: "current"
         TEST_FILTER: .*
         CACHE_ARGS: '{{cache.flags}}'
@@ -39,6 +41,7 @@ Extra_ShaderGraph_2020.3:
 ShaderGraph_2020.3:
     name: ShaderGraph on 2020.3
     variables:
+        CUSTOM_REVISION: '{{2020_3.changeset.id}}'
         UTR_VERSION: "current"
         TEST_FILTER: .*
         CACHE_ARGS: '{{cache.flags}}'
@@ -50,6 +53,7 @@ ShaderGraph_2020.3:
 Nightly_ShaderGraph_2020.3:
     name: Nightly ShaderGraph on 2020.3
     variables:
+        CUSTOM_REVISION: '{{2020_3.changeset.id}}'
         UTR_VERSION: "current"
         TEST_FILTER: .*
         CACHE_ARGS: '{{cache.flags}}'
