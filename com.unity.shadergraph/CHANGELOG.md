@@ -138,6 +138,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed ParallaxMapping node compile issue on GLES2
 - Fixed a selection bug with block nodes after changing tabs [1312222]
 - Fixed some shader graph compiler errors not being logged [1304162].
+- Fixed an error when using camera direction with sample reflected cube map [1340538].
 
 ## [10.3.0] - 2020-11-03
 
