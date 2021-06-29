@@ -16,6 +16,10 @@ namespace UnityEditor.Rendering.Universal
         SerializedDataParameter m_HighlightsStart;
         SerializedDataParameter m_HighlightsEnd;
 
+        GUIContent m_ShadowsLabel = EditorGUIUtility.TrTextContent("Shadows", "Use this to control and apply a hue to the shadows.");
+        GUIContent m_MidtonesLabel = EditorGUIUtility.TrTextContent("Midtones", "Use this to control and apply a hue to the midtones.");
+        GUIContent m_HighlightsLabel = EditorGUIUtility.TrTextContent("Highlights", "Use this to control and apply a hue to the highlights.");
+
         const string k_ShaderName = "Hidden/Universal Render Pipeline/Editor/Shadows Midtones Highlights Curve";
         static Material s_Material;
         readonly TrackballUIDrawer m_TrackballUIDrawer = new TrackballUIDrawer();
@@ -46,11 +50,11 @@ namespace UnityEditor.Rendering.Universal
 
             using (new EditorGUILayout.HorizontalScope())
             {
-                m_TrackballUIDrawer.OnGUI(m_Shadows.value, m_Shadows.overrideState, EditorGUIUtility.TrTextContent("Shadows"), GetWheelValue);
+                m_TrackballUIDrawer.OnGUI(m_Shadows.value, m_Shadows.overrideState, m_ShadowsLabel, GetWheelValue);
                 GUILayout.Space(4f);
-                m_TrackballUIDrawer.OnGUI(m_Midtones.value, m_Midtones.overrideState, EditorGUIUtility.TrTextContent("Midtones"), GetWheelValue);
+                m_TrackballUIDrawer.OnGUI(m_Midtones.value, m_Midtones.overrideState, m_MidtonesLabel, GetWheelValue);
                 GUILayout.Space(4f);
-                m_TrackballUIDrawer.OnGUI(m_Highlights.value, m_Highlights.overrideState, EditorGUIUtility.TrTextContent("Highlights"), GetWheelValue);
+                m_TrackballUIDrawer.OnGUI(m_Highlights.value, m_Highlights.overrideState, m_HighlightsLabel, GetWheelValue);
             }
             EditorGUILayout.Space();
 

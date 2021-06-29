@@ -19,7 +19,7 @@ namespace UnityEngine.Rendering
         /// <summary>
         /// The Volume priority in the stack. A higher value means higher priority. This supports negative values.
         /// </summary>
-        [Tooltip("Sets the Volume priority in the stack. A higher value means higher priority. You can use negative values.")]
+        [Tooltip("A value which determines which Volume it uses when Volumes have an equal amount of influence on the Scene. Volumes with a higher priority are rendered first.")]
         public float priority = 0f;
 
         /// <summary>

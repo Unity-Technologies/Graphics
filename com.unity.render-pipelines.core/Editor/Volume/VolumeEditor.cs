@@ -53,7 +53,7 @@ namespace UnityEditor.Rendering
         {
             serializedObject.Update();
 
-            GUIContent label = EditorGUIUtility.TrTextContent("Mode", "A global volume is applied to the whole scene.");
+            GUIContent label = EditorGUIUtility.TrTextContent("Mode", "Global Volumes affect the Camera wherever the Camera is in the Scene and Local Volumes affect the Camera if they encapsulate the Camera within the bounds of their Collider.");
             Rect lineRect = EditorGUILayout.GetControlRect();
             int isGlobal = m_IsGlobal.boolValue ? 0 : 1;
             EditorGUI.BeginProperty(lineRect, label, m_IsGlobal);
@@ -105,9 +105,9 @@ namespace UnityEditor.Rendering
 
             GUIContent guiContent;
             if (actualTarget.HasInstantiatedProfile())
-                guiContent = EditorGUIUtility.TrTextContent("Profile (Instance)", "A copy of a profile asset.");
+                guiContent = EditorGUIUtility.TrTextContent("Profile (Instance)", "A Volume Profile is a Scriptable Object which contains properties that Volumes use to determine how to render the Scene environment for Cameras they affect.");
             else
-                guiContent = EditorGUIUtility.TrTextContent("Profile", "A reference to a profile asset.");
+                guiContent = EditorGUIUtility.TrTextContent("Profile", "A Volume Profile is a Scriptable Object which contains properties that Volumes use to determine how to render the Scene environment for Cameras they affect.");
             EditorGUI.PrefixLabel(labelRect, guiContent);
 
             using (var scope = new EditorGUI.ChangeCheckScope())

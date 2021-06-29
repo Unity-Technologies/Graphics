@@ -10,6 +10,10 @@ namespace UnityEditor.Rendering.Universal
         SerializedDataParameter m_Gamma;
         SerializedDataParameter m_Gain;
 
+        GUIContent m_LiftLabel = EditorGUIUtility.TrTextContent("Lift", "Use this to control and apply a hue to the dark tones. This has a more exaggerated effect on shadows.");
+        GUIContent m_GammaLabel = EditorGUIUtility.TrTextContent("Gamma", "Use this to control and apply a hue to the mid-range tones with a power function.");
+        GUIContent m_GainLabel = EditorGUIUtility.TrTextContent("Gain", "Use this to increase and apply a hue to the signal and make highlights brighter.");
+
         readonly TrackballUIDrawer m_TrackballUIDrawer = new TrackballUIDrawer();
 
         public override void OnEnable()
@@ -25,11 +29,11 @@ namespace UnityEditor.Rendering.Universal
         {
             using (new EditorGUILayout.HorizontalScope())
             {
-                m_TrackballUIDrawer.OnGUI(m_Lift.value, m_Lift.overrideState, EditorGUIUtility.TrTextContent("Lift"), GetLiftValue);
+                m_TrackballUIDrawer.OnGUI(m_Lift.value, m_Lift.overrideState, m_LiftLabel, GetLiftValue);
                 GUILayout.Space(4f);
-                m_TrackballUIDrawer.OnGUI(m_Gamma.value, m_Gamma.overrideState, EditorGUIUtility.TrTextContent("Gamma"), GetLiftValue);
+                m_TrackballUIDrawer.OnGUI(m_Gamma.value, m_Gamma.overrideState, m_GammaLabel, GetLiftValue);
                 GUILayout.Space(4f);
-                m_TrackballUIDrawer.OnGUI(m_Gain.value, m_Gain.overrideState, EditorGUIUtility.TrTextContent("Gain"), GetLiftValue);
+                m_TrackballUIDrawer.OnGUI(m_Gain.value, m_Gain.overrideState, m_GainLabel, GetLiftValue);
             }
         }
 
