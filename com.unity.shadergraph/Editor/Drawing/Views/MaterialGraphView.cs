@@ -170,7 +170,8 @@ namespace UnityEditor.ShaderGraph.Drawing
                 return compatibleAnchors;
 
             var startStage = startSlot.stageCapability;
-            if (startStage == ShaderStageCapability.All)
+            // If this is a sub-graph node we always have to check the effective stage as we might have to trace back through the sub-graph
+            if (startStage == ShaderStageCapability.All || startSlot.owner is SubGraphNode)
                 startStage = NodeUtils.GetEffectiveShaderStageCapability(startSlot, true) & NodeUtils.GetEffectiveShaderStageCapability(startSlot, false);
 
             foreach (var candidateAnchor in ports.ToList())
@@ -183,7 +184,7 @@ namespace UnityEditor.ShaderGraph.Drawing
                 if (startStage != ShaderStageCapability.All)
                 {
                     var candidateStage = candidateSlot.stageCapability;
-                    if (candidateStage == ShaderStageCapability.All)
+                    if (candidateStage == ShaderStageCapability.All || candidateSlot.owner is SubGraphNode)
                         candidateStage = NodeUtils.GetEffectiveShaderStageCapability(candidateSlot, true)
                             & NodeUtils.GetEffectiveShaderStageCapability(candidateSlot, false);
                     if (candidateStage != ShaderStageCapability.All && candidateStage != startStage)

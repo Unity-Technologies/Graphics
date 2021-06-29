@@ -450,9 +450,7 @@ namespace UnityEditor.ShaderGraph
             var propertyNodes = graph.GetNodes<PropertyNode>();
             foreach (var propertyNode in propertyNodes)
             {
-                var outputSlots = PooledList<MaterialSlot>.Get();
-                propertyNode.GetOutputSlots(outputSlots);
-                foreach (var slot in outputSlots)
+                foreach (var slot in propertyNode.GetOutputSlots<MaterialSlot>())
                 {
                     var slotName = slot.RawDisplayName();
                     SlotCapability capabilityInfo;
