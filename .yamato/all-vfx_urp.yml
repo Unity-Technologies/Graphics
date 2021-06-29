@@ -11,6 +11,7 @@
 PR_VFX_URP_2021.1:
     name: PR VFX_URP on 2021.1
     variables:
+        CUSTOM_REVISION: '{{2021_1.changeset.id}}'
         UTR_VERSION: "current"
         TEST_FILTER: .*
         CACHE_ARGS: '{{cache.flags}}'
@@ -20,6 +21,7 @@ PR_VFX_URP_2021.1:
 Extra_VFX_URP_2021.1:
     name: Extra VFX_URP on 2021.1
     variables:
+        CUSTOM_REVISION: '{{2021_1.changeset.id}}'
         UTR_VERSION: "current"
         TEST_FILTER: .*
         CACHE_ARGS: '{{cache.flags}}'
@@ -31,6 +33,7 @@ Extra_VFX_URP_2021.1:
 VFX_URP_2021.1:
     name: VFX_URP on 2021.1
     variables:
+        CUSTOM_REVISION: '{{2021_1.changeset.id}}'
         UTR_VERSION: "current"
         TEST_FILTER: .*
         CACHE_ARGS: '{{cache.flags}}'

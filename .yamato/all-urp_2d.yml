@@ -11,6 +11,7 @@
 PR_URP_2D_2021.1:
     name: PR URP_2D on 2021.1
     variables:
+        CUSTOM_REVISION: '{{2021_1.changeset.id}}'
         UTR_VERSION: "current"
         TEST_FILTER: .*
         CACHE_ARGS: '{{cache.flags}}'
@@ -40,6 +41,7 @@ PR_URP_2D_2021.1:
 Extra_URP_2D_2021.1:
     name: Extra URP_2D on 2021.1
     variables:
+        CUSTOM_REVISION: '{{2021_1.changeset.id}}'
         UTR_VERSION: "current"
         TEST_FILTER: .*
         CACHE_ARGS: '{{cache.flags}}'
@@ -55,6 +57,7 @@ Extra_URP_2D_2021.1:
 URP_2D_2021.1:
     name: URP_2D on 2021.1
     variables:
+        CUSTOM_REVISION: '{{2021_1.changeset.id}}'
         UTR_VERSION: "current"
         TEST_FILTER: .*
         CACHE_ARGS: '{{cache.flags}}'

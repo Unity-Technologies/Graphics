@@ -11,6 +11,7 @@
 URP_Performance_BoatAttack_2021.1:
     name: URP_Performance_BoatAttack on 2021.1
     variables:
+        CUSTOM_REVISION: '{{2021_1.changeset.id}}'
         UTR_VERSION: "current"
         TEST_FILTER: .*
         BOAT_ATTACK_BRANCH: master
