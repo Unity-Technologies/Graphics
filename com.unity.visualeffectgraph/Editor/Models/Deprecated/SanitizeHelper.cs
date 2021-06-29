@@ -46,6 +46,10 @@ namespace UnityEditor.VFX
                     {
                         MigrateTArcSphereFromArcSphere(toInputSlot, fromInputSlot);
                     }
+                    else if (toInputSlot.property.type == typeof(TArcCircle))
+                    {
+                        MigrateTArcCircleFromArcCirlce(toInputSlot, fromInputSlot);
+                    }
                 }
             }
         }
@@ -60,7 +64,7 @@ namespace UnityEditor.VFX
             var from_arc = refSlot[1];
             VFXSlot.CopySpace(to, refSlot, true);
 
-            bool hasDirectLink = from.HasLink(false);
+            var hasDirectLink = from.HasLink(false);
             MigrateTSphereFromSphere(to_sphere, from_sphere, hasDirectLink);
             if (hasDirectLink)
             {
@@ -109,7 +113,30 @@ namespace UnityEditor.VFX
             }
         }
 
-        public static void MigrateTCircleFromCircle(VFXSlot to, VFXSlot from)
+        public static void MigrateTArcCircleFromArcCirlce(VFXSlot to, VFXSlot from)
+        {
+            var to_circle = to[0];
+            var to_arc = to[1];
+
+            var refSlot = from.refSlot;
+            var from_circle = refSlot[0];
+            var from_arc = refSlot[1];
+            VFXSlot.CopySpace(to, refSlot, true);
+
+            var hasDirectLink = from.HasLink(false);
+            MigrateTCircleFromCircle(to_circle, from_circle, hasDirectLink);
+            if (hasDirectLink)
+            {
+                to_arc.Link(from_arc, true);
+            }
+            else
+            {
+                to_arc.value = (float)from_arc.value; //The value transfer is only applied on masterslot
+                VFXSlot.CopyLinksAndValue(to_arc, from_arc, true);
+            }
+        }
+
+        public static void MigrateTCircleFromCircle(VFXSlot to, VFXSlot from, bool forceHasLink = false)
         {
             var to_center = to[0][0];
             var to_radius = to[1];
@@ -117,7 +144,7 @@ namespace UnityEditor.VFX
             var refslot = from.refSlot;
             VFXSlot.CopySpace(to, refslot, true);
 
-            if (from.HasLink(false))
+            if (from.HasLink(false) || forceHasLink)
             {
                 var parentCenter = refslot[0];
                 var parentRadius = refslot[1];

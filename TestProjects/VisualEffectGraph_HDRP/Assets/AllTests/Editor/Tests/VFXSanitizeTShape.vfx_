@@ -9229,7 +9229,7 @@ MonoBehaviour:
       m_Type:
         m_SerializableType: UnityEditor.VFX.ArcCircle, Unity.VisualEffectGraph.Editor,
           Version=0.0.0.0, Culture=neutral, PublicKeyToken=null
-      m_SerializableObject: '{"circle":{"center":{"x":1.0,"y":2.0,"z":3.0},"radius":4.0},"arc":0.5}'
+      m_SerializableObject: '{"circle":{"center":{"x":1.0,"y":2.0,"z":3.0},"radius":4.0},"arc":5.0}'
     m_Space: 0
   m_Property:
     name: ArcCircle
@@ -9916,7 +9916,7 @@ MonoBehaviour:
       m_Type:
         m_SerializableType: UnityEditor.VFX.ArcCircle, Unity.VisualEffectGraph.Editor,
           Version=0.0.0.0, Culture=neutral, PublicKeyToken=null
-      m_SerializableObject: '{"circle":{"center":{"x":1.0,"y":2.0,"z":3.0},"radius":4.0},"arc":0.5}'
+      m_SerializableObject: '{"circle":{"center":{"x":1.0,"y":2.0,"z":3.0},"radius":4.0},"arc":5.0}'
     m_Space: 0
   m_Property:
     name: ArcCircle
@@ -10719,7 +10719,7 @@ MonoBehaviour:
       m_Type:
         m_SerializableType: UnityEditor.VFX.ArcCircle, Unity.VisualEffectGraph.Editor,
           Version=0.0.0.0, Culture=neutral, PublicKeyToken=null
-      m_SerializableObject: '{"circle":{"center":{"x":1.0,"y":2.0,"z":3.0},"radius":4.0},"arc":0.5}'
+      m_SerializableObject: '{"circle":{"center":{"x":1.0,"y":2.0,"z":3.0},"radius":4.0},"arc":5.0}'
     m_Space: 0
   m_Property:
     name: ArcCircle
@@ -11524,7 +11524,7 @@ MonoBehaviour:
       m_Type:
         m_SerializableType: UnityEditor.VFX.ArcCircle, Unity.VisualEffectGraph.Editor,
           Version=0.0.0.0, Culture=neutral, PublicKeyToken=null
-      m_SerializableObject: '{"circle":{"center":{"x":1.0,"y":2.0,"z":3.0},"radius":4.0},"arc":0.5}'
+      m_SerializableObject: '{"circle":{"center":{"x":1.0,"y":2.0,"z":3.0},"radius":4.0},"arc":5.0}'
     m_Space: 0
   m_Property:
     name: ArcCircle
