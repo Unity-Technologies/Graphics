@@ -345,7 +345,7 @@ namespace UnityEngine.Rendering.Universal.Internal
 
             int amountOfPassesRemaining = (useStopNan ? 1 : 0) + (useSubPixeMorpAA ? 1 : 0) + (useDepthOfField ? 1 : 0) + (useLensFlare ? 1 : 0) + (useMotionBlur ? 1 : 0) + (usePaniniProjection ? 1 : 0);
 
-            if(m_UseSwapBuffer && amountOfPassesRemaining > 0)
+            if (m_UseSwapBuffer && amountOfPassesRemaining > 0)
             {
                 renderer.EnableSwapBufferMSAA(false);
             }
@@ -388,7 +388,7 @@ namespace UnityEngine.Rendering.Universal.Internal
                 if (m_UseSwapBuffer)
                 {
                     //we want the last blit to be to MSAA
-                    if(amountOfPassesRemaining == 0 && !m_HasFinalPass)
+                    if (amountOfPassesRemaining == 0 && !m_HasFinalPass)
                     {
                         r.EnableSwapBufferMSAA(true);
                     }
