@@ -2329,8 +2329,12 @@ namespace UnityEditor.VFX.UI
                 newCategory.SyncParameters(new HashSet<VFXParameterController>(parameters));
             }
 
-            this.blackboard.controller.NotifyUpdate();
-            this.blackboard.controller.graph.Invalidate(VFXModel.InvalidationCause.kUIChanged);
+            this.OnSave();
+            //this.m_Controller.graph.SetExpressionValueDirty();
+            //this.m_Controller.graph.SetExpressionGraphDirty();
+
+            //this.m_Controller.graph.BuildSubgraphDependencies();
+            //this.m_Controller.graph.RecompileIfNeeded();
         }
 
         void CollapseOperator(DropdownMenuAction a)
@@ -2597,6 +2601,8 @@ namespace UnityEditor.VFX.UI
             {
                 this.DuplicateBlackboardField(blackboardField);
             }
+
+            this.m_Controller.graph.SetExpressionValueDirty();
         }
 
         private VFXParameterController DuplicateBlackboardField(VFXBlackboardField blackboardField)
