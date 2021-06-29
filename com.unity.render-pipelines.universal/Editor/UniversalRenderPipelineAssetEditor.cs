@@ -12,7 +12,7 @@ namespace UnityEditor.Rendering.Universal
         internal class Styles
         {
             // Groups
-            public static GUIContent generalSettingsText = EditorGUIUtility.TrTextContent("General");
+            public static GUIContent renderingSettingsText = EditorGUIUtility.TrTextContent("Rendering");
             public static GUIContent qualitySettingsText = EditorGUIUtility.TrTextContent("Quality");
             public static GUIContent lightingSettingsText = EditorGUIUtility.TrTextContent("Lighting");
             public static GUIContent shadowSettingsText = EditorGUIUtility.TrTextContent("Shadows");
@@ -20,7 +20,7 @@ namespace UnityEditor.Rendering.Universal
             public static GUIContent advancedSettingsText = EditorGUIUtility.TrTextContent("Advanced");
             public static GUIContent adaptivePerformanceText = EditorGUIUtility.TrTextContent("Adaptive Performance");
 
-            // General
+            // Rendering
             public static GUIContent rendererHeaderText = EditorGUIUtility.TrTextContent("Renderer List", "Lists all the renderers available to this Render Pipeline Asset.");
             public static GUIContent rendererDefaultText = EditorGUIUtility.TrTextContent("Default", "This renderer is currently the default for the render pipeline.");
             public static GUIContent rendererSetDefaultText = EditorGUIUtility.TrTextContent("Set Default", "Makes this renderer the default for the render pipeline.");
@@ -110,7 +110,7 @@ namespace UnityEditor.Rendering.Universal
             public static string[] opaqueDownsamplingOptions = {"None", "2x (Bilinear)", "4x (Box)", "4x (Bilinear)"};
         }
 
-        SavedBool m_GeneralSettingsFoldout;
+        SavedBool m_RenderingSettingsFoldout;
         SavedBool m_QualitySettingsFoldout;
         SavedBool m_LightingSettingsFoldout;
         SavedBool m_ShadowSettingsFoldout;
@@ -182,7 +182,7 @@ namespace UnityEditor.Rendering.Universal
         {
             serializedObject.Update();
 
-            DrawGeneralSettings();
+            DrawRenderingSettings();
             DrawQualitySettings();
             DrawLightingSettings();
             DrawShadowSettings();
@@ -197,7 +197,7 @@ namespace UnityEditor.Rendering.Universal
 
         void OnEnable()
         {
-            m_GeneralSettingsFoldout = new SavedBool($"{target.GetType()}.GeneralSettingsFoldout", false);
+            m_RenderingSettingsFoldout = new SavedBool($"{target.GetType()}.RenderingSettingsFoldout", false);
             m_QualitySettingsFoldout = new SavedBool($"{target.GetType()}.QualitySettingsFoldout", false);
             m_LightingSettingsFoldout = new SavedBool($"{target.GetType()}.LightingSettingsFoldout", false);
             m_ShadowSettingsFoldout = new SavedBool($"{target.GetType()}.ShadowSettingsFoldout", false);
@@ -272,10 +272,10 @@ namespace UnityEditor.Rendering.Universal
             m_State = new EditorPrefBoolFlags<EditorUtils.Unit>(Key);
         }
 
-        void DrawGeneralSettings()
+        void DrawRenderingSettings()
         {
-            m_GeneralSettingsFoldout.value = EditorGUILayout.BeginFoldoutHeaderGroup(m_GeneralSettingsFoldout.value, Styles.generalSettingsText);
-            if (m_GeneralSettingsFoldout.value)
+            m_RenderingSettingsFoldout.value = EditorGUILayout.BeginFoldoutHeaderGroup(m_RenderingSettingsFoldout.value, Styles.renderingSettingsText);
+            if (m_RenderingSettingsFoldout.value)
             {
                 EditorGUI.indentLevel++;
 
