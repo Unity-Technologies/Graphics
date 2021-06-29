@@ -39,7 +39,7 @@ namespace UnityEditor.Rendering.Universal
 
             // Main light
             public static GUIContent mainLightRenderingModeText = EditorGUIUtility.TrTextContent("Main Light", "Settings that affect the main Directional Light in the Scene. Usually either the Sun Source or the brightest Directional Light in the Scene.");
-            public static GUIContent supportsMainLightShadowsText = EditorGUIUtility.TrTextContent("Cast Shadows", "When enabled the main light will be able to cast shadows in the Scene.");
+            public static GUIContent supportsMainLightShadowsText = EditorGUIUtility.TrTextContent("Cast Shadows", "Enable the main light to cast shadows in the Scene.");
             public static GUIContent mainLightShadowmapResolutionText = EditorGUIUtility.TrTextContent("Shadow Resolution", "Controls how large the shadow map texture for the main light is.");
 
             // Additional lights
@@ -68,7 +68,7 @@ namespace UnityEditor.Rendering.Universal
             public static GUIContent shadowCascadesText = EditorGUIUtility.TrTextContent("Cascade Count", "Number of cascade splits used for directional shadows.");
             public static GUIContent shadowDepthBias = EditorGUIUtility.TrTextContent("Depth Bias", "Controls the distance at which the shadows will be pushed away from the light. Useful for avoiding false self-shadowing artifacts.");
             public static GUIContent shadowNormalBias = EditorGUIUtility.TrTextContent("Normal Bias", "Controls distance at which the shadow casting surfaces will be shrunk along the surface normal. Useful for avoiding false self-shadowing artifacts.");
-            public static GUIContent supportsSoftShadows = EditorGUIUtility.TrTextContent("Soft Shadows", "When enabled extra processing of the shadow maps will be done to give them a smoother look.");
+            public static GUIContent supportsSoftShadows = EditorGUIUtility.TrTextContent("Soft Shadows", "Enable extra processing of the shadow maps to give shadows a smoother look.");
 
 
             // Post-processing
@@ -80,7 +80,7 @@ namespace UnityEditor.Rendering.Universal
             public static string colorGradingLutSizeWarning = "The minimal recommended LUT size for the high dynamic range color grading mode is 32. Using lower values will potentially result in color banding and posterization effects.";
 
             // Advanced settings
-            public static GUIContent srpBatcher = EditorGUIUtility.TrTextContent("SRP Batcher", "When enabled, the SRP Batcher speeds up CPU rendering without affecting GPU performance.");
+            public static GUIContent srpBatcher = EditorGUIUtility.TrTextContent("SRP Batcher", "The SRP Batcher speeds up CPU rendering without affecting the GPU performance.");
             public static GUIContent dynamicBatching = EditorGUIUtility.TrTextContent("Dynamic Batching", "If enabled, the render pipeline will batch drawcalls with few triangles together by copying their vertex buffers into a shared buffer on a per-frame basis.");
             public static GUIContent mixedLightingSupportLabel = EditorGUIUtility.TrTextContent("Mixed Lighting", "Makes the render pipeline include mixed-lighting Shader Variants in the build.");
             public static GUIContent supportsLightLayers = EditorGUIUtility.TrTextContent("Light Layers", "When enabled, UniversalRP uses rendering layers instead of culling mask for the purpose of selecting how lights affect groups of geometry. For deferred rendering, an extra render target is allocated.");
