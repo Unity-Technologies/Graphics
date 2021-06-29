@@ -66,6 +66,8 @@ namespace UnityEngine.Rendering.HighDefinition
                     m_ShouldOverrideColorBufferFormat = false;
                 }
 
+                UpdateParentExposure(m_RenderGraph, hdCamera);
+
                 TextureHandle backBuffer = m_RenderGraph.ImportBackbuffer(target.id);
                 TextureHandle colorBuffer = CreateColorBuffer(m_RenderGraph, hdCamera, msaa);
                 m_NonMSAAColorBuffer = CreateColorBuffer(m_RenderGraph, hdCamera, false);
@@ -181,7 +183,7 @@ namespace UnityEngine.Rendering.HighDefinition
                     // Send all the geometry graphics buffer to client systems if required (must be done after the pyramid and before the transparent depth pre-pass)
                     SendGeometryGraphicsBuffers(m_RenderGraph, prepassOutput.normalBuffer, prepassOutput.depthPyramidTexture, hdCamera);
 
-                    DoUserAfterOpaqueAndSky(m_RenderGraph, hdCamera, colorBuffer, prepassOutput.resolvedDepthBuffer, prepassOutput.resolvedNormalBuffer);
+                    DoUserAfterOpaqueAndSky(m_RenderGraph, hdCamera, colorBuffer, prepassOutput.resolvedDepthBuffer, prepassOutput.resolvedNormalBuffer, prepassOutput.resolvedMotionVectorsBuffer);
 
                     // No need for old stencil values here since from transparent on different features are tagged
                     ClearStencilBuffer(m_RenderGraph, hdCamera, prepassOutput.depthBuffer);
@@ -401,6 +403,38 @@ namespace UnityEngine.Rendering.HighDefinition
                         propertyBlock.SetFloat(HDShaderIDs._BlitMipLevel, 0);
                         propertyBlock.SetInt(HDShaderIDs._BlitTexArraySlice, data.srcTexArraySlice);
                         HDUtils.DrawFullScreen(context.cmd, data.viewport, data.blitMaterial, data.destination, propertyBlock, 0, data.dstTexArraySlice);
+                    });
+            }
+        }
+
+        class UpdateParentExposureData
+        {
+            public HDCamera.ExposureTextures textures;
+        }
+
+        void UpdateParentExposure(RenderGraph renderGraph, HDCamera hdCamera)
+        {
+            var exposures = hdCamera.currentExposureTextures;
+            if (exposures.useCurrentCamera)
+                return;
+
+            using (var builder = renderGraph.AddRenderPass<UpdateParentExposureData>("UpdateParentExposures", out var passData))
+            {
+                passData.textures = exposures;
+
+                builder.SetRenderFunc(
+                    (UpdateParentExposureData data, RenderGraphContext context) =>
+                    {
+                        if (data.textures.useFetchedExposure)
+                        {
+                            Color clearCol = new Color(data.textures.fetchedGpuExposure, ColorUtils.ConvertExposureToEV100(data.textures.fetchedGpuExposure), 0.0f, 0.0f);
+                            context.cmd.SetRenderTarget(data.textures.current);
+                            context.cmd.ClearRenderTarget(false, true, clearCol);
+                        }
+                        else
+                        {
+                            context.cmd.CopyTexture(data.textures.parent, data.textures.current);
+                        }
                     });
             }
         }

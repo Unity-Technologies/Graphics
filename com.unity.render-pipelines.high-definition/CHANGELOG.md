@@ -70,11 +70,18 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Added the receiver motion rejection toggle to RTGI (case 1330168).
 - Added info box when low resolution transparency is selected, but its not enabled in the HDRP settings. This will help new users find the correct knob in the HDRP Asset.
 - Added a dialog box when you import a Material that has a diffusion profile to add the diffusion profile to global settings.
+- Added support for Unlit shadow mattes in Path Tracing (case 1335487).
+- Added a shortcut to HDRP Wizard documentation.
+- Added support of motion vector buffer in custom postprocess
+- Added tooltips for content inside the Rendering Debugger window.
+- Added support for reflection probes as a fallback for ray traced reflections (case 1338644).
+- Added a minimum motion vector length to the motion vector debug view.
 
 ### Fixed
 - Fixed Intensity Multiplier not affecting realtime global illumination.
 - Fixed an exception when opening the color picker in the material UI (case 1307143).
 - Fixed lights shadow frustum near and far planes.
+- The HDRP Wizard is only opened when a SRP in use is of type HDRenderPipeline.
 - Fixed various issues with non-temporal SSAO and rendergraph.
 - Fixed white flashes on camera cuts on volumetric fog.
 - Fixed light layer issue when performing editing on multiple lights.
@@ -234,7 +241,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed support of Distortion with MSAA
 - Fixed contact shadow debug views not displaying correctly upon resizing of view.
 - Fixed an error when deleting the 3D Texture mask of a local volumetric fog volume (case 1339330).
-- Fixed some aliasing ussues with the volumetric clouds.
+- Fixed some aliasing issues with the volumetric clouds.
 - Fixed reflection probes being injected into the ray tracing light cluster even if not baked (case 1329083).
 - Fixed the double sided option moving when toggling it in the material UI (case 1328877).
 - Fixed incorrect RTHandle scale in DoF when TAA is enabled.
@@ -244,6 +251,26 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed issue with on-demand directional shadow maps looking broken when a reflection probe is updated at the same time.
 - Fixed cropping issue with the compositor camera bridge (case 1340549).
 - Fixed an issue with normal management for recursive rendering (case 1324082).
+- Fixed aliasing artifacts that are related to numerical imprecisions of the light rays in the volumetric clouds (case 1340731).
+- Fixed exposure issues with volumetric clouds on planar reflection
+- Fixed bad feedback loop occuring when auto exposure adaptation time was too small.
+- Fixed an issue where enabling GPU Instancing on a ShaderGraph Material would cause compile failures [1338695].
+- Fixed the transparent cutoff not working properly in semi-transparent and color shadows (case 1340234).
+- Fixed object outline flickering with TAA.
+- Fixed issue with sky settings being ignored when using the recorder and path tracing (case 1340507).
+- Fixed some resolution aliasing for physically based depth of field (case 1340551).
+- Fixed an issue with resolution dependence for physically based depth of field.
+- Fixed sceneview debug mode rendering (case 1211436)
+- Fixed Pixel Displacement that could be set on tessellation shader while it's not supported.
+- Fixed an issue where disabled reflection probes were still sent into the the ray tracing light cluster.
+- Fixed nullref when enabling fullscreen passthrough in HDRP Camera.
+- Fixed tessellation displacement with planar mapping
+- Fixed the shader graph files that was still dirty after the first save (case 1342039).
+- Fixed cases in which object and camera motion vectors would cancel out, but didn't.
+- Fixed HDRP material upgrade failing when there is a texture inside the builtin resources assigned in the material (case 1339865).
+- Fixed custom pass volume not executed in scene view because of the volume culling mask.
+- Fixed remapping of depth pyramid debug view
+- Fixed an issue with asymmetric projection matrices and fog / pathtracing. (case 1330290).
 
 ### Changed
 - Changed Window/Render Pipeline/HD Render Pipeline Wizard to Window/Rendering/HDRP Wizard
@@ -258,6 +285,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Moved Edit/Render Pipeline/HD Render Pipeline/Upgrade from Builtin pipeline/Upgrade Project Materials to High Definition Materials to Edit/Rendering/Materials/Convert All Built-in Materials to HDRP"
 - Moved Edit/Render Pipeline/HD Render Pipeline/Upgrade from Builtin pipeline/Upgrade Selected Materials to High Definition Materials to Edit/Rendering/Materials/Convert Selected Built-in Materials to HDRP
 - Moved Edit/Render Pipeline/HD Render Pipeline/Upgrade from Builtin pipeline/Upgrade Scene Terrains to High Definition Terrains to Edit/Rendering/Materials/Convert Scene Terrains to HDRP Terrains
+- Changed the Channel Mixer Volume Component UI.Showing all the channels.
 - Updated the tooltip for the Decal Angle Fade property (requires to enable Decal Layers in both HDRP asset and Frame settings) (case 1308048).
 - The RTAO's history is now discarded if the occlusion caster was moving (case 1303418).
 - Change Asset/Create/Shader/HD Render Pipeline/Decal Shader Graph to Asset/Create/Shader Graph/HDRP/Decal Shader Graph
@@ -329,7 +357,12 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Display an info box and disable MSAA  asset entry when ray tracing is enabled.
 - Changed light reset to preserve type.
 - Ignore hybrid duplicated reflection probes during light baking.
-- Updated the recursive rendering documentation (case 1338639).
+- Replaced the context menu by a search window when adding custom pass.
+- Moved supportRuntimeDebugDisplay option from HDRPAsset to HDRPGlobalSettings.
+- When a ray hits the sky in the ray marching part of mixed ray tracing, it is considered a miss.
+- TAA jitter is disabled while using Frame Debugger now.
+- Depth of field at half or quarter resolution is now computed consistently with the full resolution option (case 1335687).
+- Hair uses GGX LTC for area light specular.
 
 ## [11.0.0] - 2020-10-21
 
