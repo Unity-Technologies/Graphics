@@ -1,8 +1,9 @@
 using System;
 using System.Linq;
+using UnityEditor.VFX.Block;
 using UnityEngine;
 
-namespace UnityEditor.VFX.Operator
+namespace UnityEditor.VFX
 {
     static class SanitizeHelper
     {
@@ -20,55 +21,64 @@ namespace UnityEditor.VFX.Operator
             op.GetParent().AddChild(inlineVector3);
         }
 
-        public static void MigrateTCircleFromCircle(VFXSlot to, VFXSlot from)
+        public static void MigrateBlockTShapeFromShape(VFXBlock to, VFXBlock from)
         {
-            var to_center = to[0][0];
-            var to_radius = to[1];
+            var fromSettings = from.GetSettings(true);
+            var toSettings = to.GetSettings(true);
 
-            if (from.HasLink(false))
+            foreach (var fromSetting in fromSettings)
             {
-                var parent = from.refSlot;
-                var parentCenter = parent[0];
-                var parentRadius = parent[1];
-
-                to_center.Link(parentCenter, true);
-                to_radius.Link(parentRadius, true);
-                VFXSlot.CopySpace(to, parent, true);
+                var toSetting = toSettings.FirstOrDefault(o => o.name.Equals(fromSetting.name, StringComparison.InvariantCultureIgnoreCase));
+                if (toSetting.field != null)
+                    to.SetSettingValue(fromSetting.name, fromSetting.value);
             }
-            else
-            {
-                var center = from[0];
-                var radius = from[1];
 
-                var value = new TCircle()
+            foreach (var fromInputSlot in from.inputSlots)
+            {
+                var toInputSlot = to.inputSlots.FirstOrDefault(o => o.name.Equals(fromInputSlot.name, StringComparison.InvariantCultureIgnoreCase));
+                if (toInputSlot != null)
                 {
-                    transform = new Transform()
+                    if (toInputSlot.property.type == fromInputSlot.property.type)
                     {
-                        position = (Vector3)center.value,
-                        scale = Vector3.one
-                    },
-                    radius = (float)radius.value
-                };
-                to.value = value;
-                VFXSlot.CopyLinksAndValue(to_center, center, true);
-                VFXSlot.CopyLinksAndValue(to_radius, radius, true);
+                        VFXSlot.CopyLinksAndValue(toInputSlot, fromInputSlot, true);
+                    }
+                    else if (toInputSlot.property.type == typeof(TArcSphere))
+                    {
+                        MigrateTArcSphereFromArcSphere(toInputSlot, fromInputSlot);
+                    }
+                }
             }
         }
 
-        public static void MigrateTSphereFromSphere(VFXSlot to, VFXSlot from)
+        public static void MigrateTArcSphereFromArcSphere(VFXSlot to, VFXSlot from)
+        {
+            var to_sphere = to[0];
+            var to_arc = to[1];
+
+            var refSlot = from.refSlot;
+            var from_sphere = refSlot[0];
+            var from_arc = refSlot[1];
+
+            MigrateTSphereFromSphere(to_sphere, from_sphere, from.HasLink(false));
+            VFXSlot.CopyLinksAndValue(to_arc, from_arc, true);
+            to_arc.value = (float)from_arc.value; //< The arc value is only copied on masterSlot
+            VFXSlot.CopySpace(to, refSlot, true);
+        }
+
+        public static void MigrateTSphereFromSphere(VFXSlot to, VFXSlot from, bool forceHasLink = false)
         {
             var to_center = to[0][0];
             var to_radius = to[1];
 
-            if (from.HasLink(false))
+            var refSlot = from.refSlot;
+            VFXSlot.CopySpace(to, refSlot, true);
+            if (from.HasLink(false) || forceHasLink)
             {
-                var parent = from.refSlot;
-                var parentCenter = parent[0];
-                var parentRadius = parent[1];
+                var parentCenter = refSlot[0];
+                var parentRadius = refSlot[1];
 
                 to_center.Link(parentCenter, true);
                 to_radius.Link(parentRadius, true);
-                VFXSlot.CopySpace(to, parent, true);
             }
             else
             {
@@ -91,23 +101,59 @@ namespace UnityEditor.VFX.Operator
             }
         }
 
+        public static void MigrateTCircleFromCircle(VFXSlot to, VFXSlot from)
+        {
+            var to_center = to[0][0];
+            var to_radius = to[1];
+
+            var refslot = from.refSlot;
+            VFXSlot.CopySpace(to, refslot, true);
+
+            if (from.HasLink(false))
+            {
+                var parentCenter = refslot[0];
+                var parentRadius = refslot[1];
+
+                to_center.Link(parentCenter, true);
+                to_radius.Link(parentRadius, true);
+            }
+            else
+            {
+                var center = from[0];
+                var radius = from[1];
+
+                var value = new TCircle()
+                {
+                    transform = new Transform()
+                    {
+                        position = (Vector3)center.value,
+                        scale = Vector3.one
+                    },
+                    radius = (float)radius.value
+                };
+                to.value = value;
+                VFXSlot.CopyLinksAndValue(to_center, center, true);
+                VFXSlot.CopyLinksAndValue(to_radius, radius, true);
+            }
+        }
+
         public static void MigrateTTorusFromTorus(VFXSlot to, VFXSlot from)
         {
             var to_center = to[0][0];
             var to_majorRadius = to[1];
             var to_minorRadius = to[2];
+            var refSlot = from.refSlot;
+            VFXSlot.CopySpace(to, refSlot, true);
 
             if (from.HasLink(false))
             {
-                var parent = from.refSlot;
-                var parentCenter = parent[0];
-                var parentMajorRadius = parent[1];
-                var parentMinorRadius = parent[2];
+                var parentCenter = refSlot[0];
+                var parentMajorRadius = refSlot[1];
+                var parentMinorRadius = refSlot[2];
 
                 to_center.Link(parentCenter, true);
                 to_majorRadius.Link(parentMajorRadius, true);
                 to_minorRadius.Link(parentMinorRadius, true);
-                VFXSlot.CopySpace(to, parent, true);
             }
             else
             {
@@ -141,18 +187,19 @@ namespace UnityEditor.VFX.Operator
             var to_topRadius = to[2];
             var to_height = to[3];
 
+            var refSlot = from.refSlot;
+            VFXSlot.CopySpace(to, refSlot, true);
+
             if (from.HasLink(false))
             {
-                var parent = from.refSlot;
-                var parentCenter = parent[0];
-                var parentRadius = parent[1];
-                var parentHeight = parent[2];
+                var parentCenter = refSlot[0];
+                var parentRadius = refSlot[1];
+                var parentHeight = refSlot[2];
 
                 to_center.Link(parentCenter, true);
                 to_baseRadius.Link(parentRadius, true);
                 to_topRadius.Link(parentRadius, true);
                 to_height.Link(parentHeight, true);
-                VFXSlot.CopySpace(to, parent, true);
             }
             else
             {
@@ -190,7 +237,7 @@ namespace UnityEditor.VFX.Operator
             VFXSlot.CopyLinksAndValue(inlineHeight.inputSlots[0], height, true);
             graph.AddChild(inlineHeight);
 
-            var halfHeight = ScriptableObject.CreateInstance<Multiply>();
+            var halfHeight = ScriptableObject.CreateInstance<Operator.Multiply>();
             halfHeight.SetOperandType(0, typeof(float));
             halfHeight.SetOperandType(1, typeof(float));
             halfHeight.inputSlots[0].Link(inlineHeight.outputSlots[0]);
@@ -204,7 +251,7 @@ namespace UnityEditor.VFX.Operator
             VFXSlot.CopyLinksAndValue(inlinePosition.inputSlots[0], center, true);
             graph.AddChild(inlinePosition);
 
-            var correctedPosition = ScriptableObject.CreateInstance<Subtract>();
+            var correctedPosition = ScriptableObject.CreateInstance<Operator.Subtract>();
             correctedPosition.SetOperandType(0, typeof(Position));
             correctedPosition.SetOperandType(1, typeof(Position));
             VFXSlot.CopySpace(correctedPosition.inputSlots[0], inlinePosition.outputSlots[0], true);
@@ -227,12 +274,14 @@ namespace UnityEditor.VFX.Operator
             var to_topRadius = to[2];
             var to_height = to[3];
 
+            var refSlot = from.refSlot;
+            VFXSlot.CopySpace(to, refSlot, true);
+
             if (from.HasLink(false))
             {
-                var parent = from.refSlot;
-                var parentCenter = parent[0];
-                var parentRadius = parent[1];
-                var parentHeight = parent[2];
+                var parentCenter = refSlot[0];
+                var parentRadius = refSlot[1];
+                var parentHeight = refSlot[2];
 
                 var correctedPosition = CorrectPositionFromCylinderToCone(graph, basePosition, parentHeight, parentCenter);
                 correctedPosition.Link(to_center);
@@ -240,7 +289,6 @@ namespace UnityEditor.VFX.Operator
                 to_baseRadius.Link(parentRadius, true);
                 to_topRadius.Link(parentRadius, true);
                 to_height.Link(parentHeight, true);
-                VFXSlot.CopySpace(to, parent, true);
             }
             else
             {
