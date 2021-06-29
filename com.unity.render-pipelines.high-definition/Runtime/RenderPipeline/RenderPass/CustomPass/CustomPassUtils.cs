@@ -460,7 +460,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
             using (new DisableSinglePassRendering(ctx))
             {
-                using (new HDRenderPipeline.OverrideCameraRendering(ctx.cmd, view))
+                using (new OverrideCameraRendering(ctx, view))
                 {
                     using (new ProfilingScope(ctx.cmd, renderFromCameraSampler))
                         DrawRenderers(ctx, layerMask, renderQueueFilter, overrideMaterial, overrideMaterialIndex, overrideRenderState);
@@ -558,6 +558,110 @@ namespace UnityEngine.Rendering.HighDefinition
         }
 
         // TODO when rendergraph is available: a PostProcess pass which does the copy with a temp target
+
+        /// <summary>
+        /// Overrides the current camera, changing all the matrices and view parameters for the new one.
+        /// It allows you to render objects from another camera, which can be useful in custom passes for example.
+        /// </summary>
+        public struct OverrideCameraRendering : IDisposable
+        {
+            CustomPassContext   ctx;
+            Camera              overrideCamera;
+            HDCamera            overrideHDCamera;
+            float               originalAspect;
+
+            static Stack<HDCamera> overrideCameraStack = new Stack<HDCamera>();
+
+            /// <summary>
+            /// Overrides the current camera, changing all the matrices and view parameters for the new one.
+            /// </summary>
+            /// <param name="ctx">The current custom pass context.</param>
+            /// <param name="overrideCamera">The camera that will replace the current one.</param>
+            /// <example>
+            /// <code>
+            /// using (new HDRenderPipeline.OverrideCameraRendering(ctx, overrideCamera))
+            /// {
+            ///     ...
+            /// }
+            /// </code>
+            /// </example>
+            public OverrideCameraRendering(CustomPassContext ctx, Camera overrideCamera)
+            {
+                this.ctx = ctx;
+                this.overrideCamera = overrideCamera;
+                overrideHDCamera = HDCamera.GetOrCreate(overrideCamera);
+                originalAspect = 0;
+
+                if (!IsContextValid(ctx, overrideCamera))
+                    return;
+
+                // Mark the HDCamera as persistant so it's not deleted because it's camera is disabled.
+                overrideHDCamera.isPersistent = true;
+
+                // Sync camera pixel rect and aspect ratio when it outputs to the scene view
+                if (overrideCamera.targetTexture == null)
+                {
+                    // We need to patch the pixel rect of the camera because by default the camera size is synchronized
+                    // with the game view and so it breaks in the scene view. Note that we can't use Camera.pixelRect here
+                    // because when we assign it, the change is not instantaneous and is not reflected in pixelWidth/pixelHeight.
+                    overrideHDCamera.OverridePixelRect(ctx.hdCamera.camera.pixelRect);
+                    // We also sync the aspect ratio of the camera, this time using the camera instead of HDCamera.
+                    // This will update the projection matrix to match the aspect of the current rendering camera.
+                    originalAspect = overrideCamera.aspect;
+                    overrideCamera.aspect = (float)ctx.hdCamera.camera.pixelRect.width / (float)ctx.hdCamera.camera.pixelRect.height;
+                }
+
+                // Update HDCamera datas
+                var hdrp = HDRenderPipeline.currentPipeline;
+                overrideHDCamera.Update(overrideHDCamera.frameSettings, hdrp, XRSystem.emptyPass, allocateHistoryBuffers: false);
+                // Reset the reference size as it could have been changed by the override camera
+                ctx.hdCamera.SetReferenceSize();
+                var globalCB = hdrp.GetShaderVariablesGlobalCB();
+                overrideHDCamera.UpdateShaderVariablesGlobalCB(ref globalCB);
+
+                ConstantBuffer.PushGlobal(ctx.cmd, globalCB, HDShaderIDs._ShaderVariablesGlobal);
+
+                overrideCameraStack.Push(overrideHDCamera);
+            }
+
+            static bool IsContextValid(CustomPassContext ctx, Camera overrideCamera)
+            {
+                if (overrideCamera == ctx.hdCamera.camera)
+                    return false;
+
+                return true;
+            }
+
+            /// <summary>
+            /// Reset the camera settings to the original camera
+            /// </summary>
+            void IDisposable.Dispose()
+            {
+                if (!IsContextValid(ctx, overrideCamera))
+                    return;
+
+                overrideHDCamera.ResetPixelRect();
+                overrideCamera.aspect = originalAspect;
+
+                // Set back the settings of the previous camera
+                var globalCB = HDRenderPipeline.currentPipeline.GetShaderVariablesGlobalCB();
+                overrideCameraStack.Pop();
+                if (overrideCameraStack.Count > 0)
+                {
+                    var previousHDCamera = overrideCameraStack.Peek();
+                    previousHDCamera.SetReferenceSize();
+                    previousHDCamera.UpdateShaderVariablesGlobalCB(ref globalCB);
+                }
+                else // If we don't have any nested override camera, then we go back to the original one.
+                {
+                    // Reset the reference size as it could have been changed by the override camera
+                    ctx.hdCamera.SetReferenceSize();
+                    ctx.hdCamera.UpdateShaderVariablesGlobalCB(ref globalCB);
+                }
+
+                ConstantBuffer.PushGlobal(ctx.cmd, globalCB, HDShaderIDs._ShaderVariablesGlobal);
+            }
+        }
 
         internal static void Cleanup()
         {
