@@ -309,6 +309,18 @@ void SampleCone(real2 u, real cosHalfAngle,
     rcpPdf = TWO_PI * (1 - cosHalfAngle);
 }
 
+// Returns ith strata vector for a cone with given apex angle using
+// "golden angle spiral method" described here: http://blog.marmakoide.org/?p=1
+real3 SampleConeStrata(uint sampleIdx, real rcpNumSamples, real cosHalfApexAngle)
+{
+    real z = 1.0f - ((1.0f - cosHalfApexAngle) * (sampleIdx + 0.5f)) * rcpNumSamples;
+    real r = sqrt(1.0f - z * z);
+    real a = sampleIdx * 2.3999632297286f; // pi*(3-sqrt(5))
+    real sphi = sin(a);
+    real cphi = cos(a);
+    return real3(r * cphi, r * sphi, z);
+}
+
 #if SHADER_API_MOBILE || SHADER_API_GLES || SHADER_API_GLES3
 #pragma warning (enable : 3205) // conversion of larger type to smaller
 #endif
