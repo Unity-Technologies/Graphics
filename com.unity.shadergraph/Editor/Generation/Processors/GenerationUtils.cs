@@ -673,7 +673,7 @@ namespace UnityEditor.ShaderGraph
                     {
                         if (input.isKeyword && mode != GenerationMode.Preview)
                         {
-                            var keyword = keywordInputs.First(x => x.referenceName.CompareTo(input.referenceName) == 0);
+                            var keyword = keywordInputs.FirstOrDefault(x => x.referenceName.CompareTo(input.referenceName) == 0);
                             if (keyword != null)
                             {
                                 keyword.AppendPropertyBlockStrings(sb);
@@ -682,7 +682,7 @@ namespace UnityEditor.ShaderGraph
                         }
                         else if (!input.isKeyword)
                         {
-                            var property = propertyInputs.First(x => x.referenceName.CompareTo(input.referenceName) == 0);
+                            var property = propertyInputs.FirstOrDefault(x => x.referenceName.CompareTo(input.referenceName) == 0);
                             if (property != null)
                             {
                                 property.AppendPropertyBlockStrings(sb);

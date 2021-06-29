@@ -65,7 +65,6 @@ namespace UnityEditor.ShaderGraph.Drawing
             AddMenu
         }
 
-
         void AddShaderInput(GraphData graphData)
         {
             AssertHelpers.IsNotNull(graphData, "GraphData is null while carrying out AddShaderInputAction");
@@ -88,7 +87,11 @@ namespace UnityEditor.ShaderGraph.Drawing
 
             shaderInputReference.generatePropertyBlock = shaderInputReference.isExposable;
 
-            graphData.owner.RegisterCompleteObjectUndo("Add Shader Input");
+            if(graphData.owner != null)
+                graphData.owner.RegisterCompleteObjectUndo("Add Shader Input");
+            else
+                AssertHelpers.Fail("GraphObject is null while carrying out AddShaderInputAction");
+
             graphData.AddGraphInput(shaderInputReference);
 
             // If no categoryToAddItemToGuid is provided, add the input to the default category
