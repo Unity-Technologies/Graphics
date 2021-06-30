@@ -116,20 +116,18 @@ if (collision)
                 Source += @"
     float distToCap = colliderSign * (cone_halfHeight - relativePosY);
     float distToSide = colliderSign * (cone_radius - dist);
-    float3 tPos = mul(invFieldTransform, float4(position, 1.0f)).xyz;";
+    float3 tPos = mul(invFieldTransform, float4(position, 1.0f)).xyz;
+    float3 sideNormal = normalize(float3(tNextPos.x * sincosSlope.y, sincosSlope.x, tNextPos.z * sincosSlope.y));
+    float3 capNormal = float3(0, tNextPos.y < cone_halfHeight ? -1.0f : 1.0f, 0);";
 
                 //Position/Normal correction
                 if (mode == Mode.Solid)
                     Source += @"
-    float3 n = distToSide < distToCap
-                ? normalize(float3(tNextPos.x * sincosSlope.y, sincosSlope.x, tNextPos.z * sincosSlope.y))
-                : float3(0, tNextPos.y < cone_halfHeight ? -1.0f : 1.0f, 0);
+    float3 n = distToSide < distToCap ? sideNormal : capNormal;
     tPos += n * min(distToSide, distToCap);";
                 else
                     Source += @"
-    float3 n = distToSide > distToCap
-        ? -normalize(float3(tNextPos.x * sincosSlope.y, sincosSlope.x, tNextPos.z * sincosSlope.y))
-        : -float3(0, tNextPos.y < cone_halfHeight ? -1.0f : 1.0f, 0);
+    float3 n = distToSide > distToCap ? -sideNormal : -capNormal;
     tPos += n * max(distToSide, distToCap);";
 
                 //Back to initial space
