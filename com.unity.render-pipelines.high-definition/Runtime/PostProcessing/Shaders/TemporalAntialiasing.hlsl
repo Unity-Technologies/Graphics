@@ -560,6 +560,7 @@ void VarianceNeighbourhood(inout NeighbourhoodSamples samples, float historyLuma
     CTYPE moment1 = 0;
     CTYPE moment2 = 0;
 
+    // UPDATE WITH TEMPORAL UP SHRINKAGE
     for (int i = 0; i < NEIGHBOUR_COUNT; ++i)
     {
         moment1 += samples.neighbours[i];
@@ -611,7 +612,7 @@ void GetNeighbourhoodCorners(inout NeighbourhoodSamples samples, float historyLu
 // Filter main color
 // ---------------------------------------------------
 
-float GetSampleWeight(NeighbourhoodSamples samples, int neighbourIdx, float4 filterParameters, bool centralPixel = false)
+float GetSampleWeight(NeighbourhoodSamples samples, int neighbourIdx, float4 filterParameters, float4 filterParameters2, float centralWeight, bool centralPixel = false)
 {
 #ifdef UPSAMPLE
     // Very spiky gaussian (See for honor presentation)
@@ -621,15 +622,12 @@ float GetSampleWeight(NeighbourhoodSamples samples, int neighbourIdx, float4 fil
 
     float2 d = (centralPixel ? 0 : samples.offsets[neighbourIdx]) - inputToOutputVec;
     return exp2(-0.5f * dot(d, d) * resolutionScale2 * rcpStdDev2);
-
-#elif CENTRAL_FILTERING == BLACKMAN_HARRIS
-    return 1; // TODO.
 #else
     return 1;
 #endif
 }
 
-CTYPE FilterCentralColor(NeighbourhoodSamples samples, float4 filterParams)
+CTYPE FilterCentralColor(NeighbourhoodSamples samples, float4 filterParameters, float4 filterParameters2, float centralWeight)
 {
 #if CENTRAL_FILTERING == NO_FILTERING
 
@@ -648,22 +646,22 @@ CTYPE FilterCentralColor(NeighbourhoodSamples samples, float4 filterParams)
 
     // TODO : GetSampleWeight
 
-    CTYPE filtered = samples.central * filterParams.x;
-    filtered += (samples.neighbours[0] + samples.neighbours[1] + samples.neighbours[2] + samples.neighbours[3]) * filterParams.y;
+    CTYPE filtered = samples.central * centralWeight;
+    filtered += (samples.neighbours[0] * filterParameters.x + samples.neighbours[1] * filterParameters.y + samples.neighbours[2] * filterParameters.z + samples.neighbours[3] * filterParameters.w);
 #if WIDE_NEIGHBOURHOOD
-    filtered += (samples.neighbours[4] + samples.neighbours[5] + samples.neighbours[6] + samples.neighbours[7]) * filterParams.z;
+    filtered += (samples.neighbours[4] * filterParameters2.x + samples.neighbours[5] * filterParameters2.y + samples.neighbours[6] * filterParameters2.z + samples.neighbours[7] * filterParameters2.w);
 #endif
     return filtered;
 
 #elif CENTRAL_FILTERING == UPSCALE
 
-    float totalWeight = GetSampleWeight(samples, 0, filterParams, true);
+    float totalWeight = GetSampleWeight(samples, 0, filterParameters, 0, 0, true);
     CTYPE filtered = 0;
     filtered += samples.central * totalWeight;
 
     for (int i = 0; i < 8; ++i)
     {
-        float w = GetSampleWeight(samples, i, filterParams);
+        float w = GetSampleWeight(samples, i, filterParameters, 0, 0);
         filtered += samples.neighbours[i] * w;
         totalWeight += w;
     }
@@ -677,6 +675,11 @@ CTYPE FilterCentralColor(NeighbourhoodSamples samples, float4 filterParams)
 // ---------------------------------------------------
 // Blend factor calculation
 // ---------------------------------------------------
+
+float UpsampleConfidenceValue()
+{
+
+}
 
 float HistoryContrast(float historyLuma, float minNeighbourLuma, float maxNeighbourLuma, float baseBlendFactor)
 {

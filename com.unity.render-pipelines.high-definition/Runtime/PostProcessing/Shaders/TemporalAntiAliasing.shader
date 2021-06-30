@@ -184,7 +184,7 @@ Shader "Hidden/HDRP/TemporalAA"
             // --------------- Get closest motion vector ---------------
             float2 motionVector;
 
-#if ORTHOGRAPHIC || /* TODO: This should not be the case, but we are a bit in an awkward state w.r.t depth and motion vector sizes. */ defined(TAA_UPSCALE)
+#if ORTHOGRAPHIC || /* TODO: This should not be the case, but we are a bit in an awkward state w.r.t depth and motion vector sizes.  Needs fixing. */ defined(TAA_UPSCALE)
             float2 closest = input.positionCS.xy;
 #else
             float2 closest = GetClosestFragment(_DepthTexture, int2(input.positionCS.xy));
@@ -211,12 +211,17 @@ Shader "Hidden/HDRP/TemporalAA"
 
             // --------------- Filter central sample ---------------
             float4 filterParams = _TaaFilterWeights;
+            float4 filterParams1 = _TaaFilterWeights1;
+            float centralWeight = _CentralWeight;
             #ifdef TAA_UPSCALE
             filterParams.x = _TAAUFilterRcpSigma2;
             filterParams.y = _TAAUScale;
             filterParams.zw = outputPixInInput - (floor(outputPixInInput) + 0.5f);
+            #elif CENTRAL_FILTERING  == BLACKMAN_HARRIS
+            // We need to swizzle weights as we use quad communication to access neighbours, so the order of neighbours is not always the same (this needs to go away when moving back to compute)
+            SwizzleFilterWeights(input.positionCS.xy, filterParams, filterParams1);
             #endif
-            CTYPE filteredColor = FilterCentralColor(samples, filterParams);
+            CTYPE filteredColor = FilterCentralColor(samples, filterParams, filterParams1, centralWeight);
             // ------------------------------------------------------
 
             if (offScreen)

@@ -1425,6 +1425,7 @@ namespace UnityEngine.Rendering.HighDefinition
             public Vector4 taaParameters;
             public Vector4 taaParameters1;
             public Vector4 taaFilterWeights;
+            public Vector4 taaFilterWeights1;
             public bool motionVectorRejection;
             public Vector4 taauParams;
             public Rect finalViewport;
@@ -1453,21 +1454,43 @@ namespace UnityEngine.Rendering.HighDefinition
             float temporalContrastForMaxAntiFlicker = 0.7f - Mathf.Lerp(0.0f, 0.3f, Mathf.SmoothStep(0.5f, 1.0f, camera.taaAntiFlicker));
 
             passData.taaParameters = new Vector4(camera.taaHistorySharpening, postDoF ? maxAntiflicker : Mathf.Lerp(minAntiflicker, maxAntiflicker, camera.taaAntiFlicker), motionRejectionMultiplier, temporalContrastForMaxAntiFlicker);
-            passData.taaParameters1 = new Vector4(1.0f - camera.taaBaseBlendFactor, 0, 0, 0);
 
-            // Precompute weights used for the Blackman-Harris filter. TODO: Note that these are slightly wrong as they don't take into account the jitter size. This needs to be fixed at some point.
-            float crossWeights = Mathf.Exp(-2.29f * 2);
-            float plusWeights = Mathf.Exp(-2.29f);
-            float centerWeight = 1;
+            // Precompute weights used for the Blackman-Harris filter.
 
-            float totalWeight = centerWeight + (4 * plusWeights);
-            if (camera.TAAQuality == HDAdditionalCameraData.TAAQualityLevel.High)
+            Vector2Int[] offsets = new Vector2Int[]
             {
-                totalWeight += crossWeights * 4;
+                new Vector2Int(0, 0),
+                new Vector2Int(0, 1),
+                new Vector2Int(1, 0),
+                new Vector2Int(-1, 0),
+                new Vector2Int(0, -1),
+                new Vector2Int(-1, 1),
+                new Vector2Int(1, -1),
+                new Vector2Int(1, 1),
+                new Vector2Int(-1, -1)
+            };
+
+
+            float[] weights = new float[9];
+            float totalWeight = 0;
+            for (int i = 0; i < 9; ++i)
+            {
+                float x = offsets[i].x - camera.taaJitter.x;
+                float y = offsets[i].y - camera.taaJitter.y;
+                float d = (x * x + y * y);
+
+                weights[i] = Mathf.Exp((-0.5f / (0.22f)) * d);
+                totalWeight += weights[i];
             }
 
-            // Weights will be x: central, y: plus neighbours, z: cross neighbours, w: total
-            passData.taaFilterWeights = new Vector4(centerWeight / totalWeight, plusWeights / totalWeight, crossWeights / totalWeight, totalWeight);
+            for (int i = 0; i < 9; ++i)
+            {
+                weights[i] /= totalWeight;
+            }
+
+            passData.taaParameters1 = new Vector4(1.0f - camera.taaBaseBlendFactor, weights[0], 0, 0);
+            passData.taaFilterWeights = new Vector4(weights[1], weights[2], weights[3], weights[4]);
+            passData.taaFilterWeights1 = new Vector4(weights[5], weights[6], weights[7], weights[8]);
 
             passData.temporalAAMaterial = m_TemporalAAMaterial;
             passData.temporalAAMaterial.shaderKeywords = null;
@@ -1604,6 +1627,7 @@ namespace UnityEngine.Rendering.HighDefinition
                         mpb.SetVector(HDShaderIDs._TaaPostParameters1, data.taaParameters1);
                         mpb.SetVector(HDShaderIDs._TaaHistorySize, taaHistorySize);
                         mpb.SetVector(HDShaderIDs._TaaFilterWeights, data.taaFilterWeights);
+                        mpb.SetVector(HDShaderIDs._TaaFilterWeights1, data.taaFilterWeights1);
                         mpb.SetVector(HDShaderIDs._TaauParameters, data.taauParams);
 
                         CoreUtils.SetRenderTarget(ctx.cmd, data.destination, data.depthBuffer);
