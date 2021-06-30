@@ -56,9 +56,11 @@ namespace UnityEngine.Rendering.Universal
             }
         }
 
-        static private SortedDictionary<Edge, int> m_EdgeDictionary = new SortedDictionary<Edge, int>(new EdgeComparer());
+        static public SortedDictionary<Edge, int> m_EdgeDictionary = new SortedDictionary<Edge, int>(new EdgeComparer());
         public NativeArray<Vector2> m_Vertices;
-        public NativeArray<Edge>    m_Outline;   
+        public NativeArray<Edge>    m_Outlines;
+        public NativeArray<Vector2> m_ContractionDirection;
+        public NativeArray<float>   m_MaximumContraction;
 
         private void ExtractEdgesFromTriangles<T>(T indices, out NativeArray<Edge> nativeOutline, ValueGetter<T> valueGetter, LengthGetter<T> lengthGetter)
         {
@@ -100,30 +102,11 @@ namespace UnityEngine.Rendering.Universal
             nativeOutline = new NativeArray<Edge>(outsideEdges, Allocator.Persistent);
 
             // Populate the array
-            bool loopStart = true;
-            int loopStartIndex = -1;
             foreach (KeyValuePair<Edge, int> keyValuePair in m_EdgeDictionary)
             {
                 if (keyValuePair.Value == 1)
                 {
-                    Edge curEdge = keyValuePair.Key;
-                    curEdge.nextEdgeIndex = outsideEdges + 1;
-
-                    // If this is the first edge in the looop
-                    if (loopStart)
-                    {
-                        loopStartIndex = outsideEdges;
-                        loopStart = false;
-                    }
-
-                    // If this is the last edge in the loop
-                    if (keyValuePair.Key.v1 == loopStartIndex)
-                    {
-                        loopStart = true;
-                        curEdge.nextEdgeIndex = loopStartIndex;
-                    }
-
-                    nativeOutline[outsideEdges++] = keyValuePair.Key;
+                    nativeOutline[keyValuePair.Key.v0] = keyValuePair.Key;
                 }
             }
         }
@@ -138,28 +121,28 @@ namespace UnityEngine.Rendering.Universal
             if (m_Vertices.IsCreated)
                 m_Vertices.Dispose();
 
-            if (m_Outline.IsCreated)
-                m_Outline.Dispose();
+            if (m_Outlines.IsCreated)
+                m_Outlines.Dispose();
 
             if (outlineTopology == IShadowShapes2DProvider.OutlineTopology.Triangles)
             {
                 m_Vertices = new NativeArray<Vector2>(vertices, Allocator.Persistent);
-                ExtractEdgesFromTriangles<ushort[]>(indices, out m_Outline, ArrayGetter, ArrayLengthGetter);
+                ExtractEdgesFromTriangles<ushort[]>(indices, out m_Outlines, ArrayGetter, ArrayLengthGetter);
             }
         }
 
-        public override void SetEdges(NativeArray<Vector2> vertices, NativeArray<ushort> indices, IShadowShapes2DProvider.OutlineTopology outlineTopology)
+        public override void SetEdges(NativeArray<Vector2> vertices, NativeArray<int> indices, IShadowShapes2DProvider.OutlineTopology outlineTopology)
         {
             if (m_Vertices.IsCreated)
                 m_Vertices.Dispose();
 
-            if (m_Outline.IsCreated)
-                m_Outline.Dispose();
+            if (m_Outlines.IsCreated)
+                m_Outlines.Dispose();
 
             if (outlineTopology == IShadowShapes2DProvider.OutlineTopology.Triangles)
             {
                 m_Vertices = new NativeArray<Vector2>(vertices, Allocator.Persistent);
-                ExtractEdgesFromTriangles<NativeArray<ushort>>(indices, out m_Outline, NativeArrayGetter, NativeArrayLengthGetter);
+                ExtractEdgesFromTriangles<NativeArray<int>>(indices, out m_Outlines, NativeArrayGetter, NativeArrayLengthGetter);
             }
         }
 
@@ -174,6 +157,12 @@ namespace UnityEngine.Rendering.Universal
             if (m_Vertices.IsCreated && vertices.Length >= m_Vertices.Length)
                 m_Vertices.CopyFrom(vertices);
            
+        }
+
+        ~ShadowShapes2D()
+        {
+            m_Vertices.Dispose();
+            m_Outlines.Dispose();
         }
     }
 }
