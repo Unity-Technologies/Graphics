@@ -111,10 +111,13 @@ namespace UnityEditor.Rendering.Universal
         }
 
         SavedBool m_RenderingSettingsFoldout;
+        SavedBool m_RenderingAdditionalSettings;
         SavedBool m_QualitySettingsFoldout;
         SavedBool m_LightingSettingsFoldout;
+        SavedBool m_LightingAdditionalSettings;
         SavedBool m_ShadowSettingsFoldout;
         SavedBool m_PostProcessingSettingsFoldout;
+        SavedBool m_PostProcessingAdditionalSettings;
         SavedBool m_AdaptivePerformanceFoldout;
 
         SerializedProperty m_RendererDataProp;
@@ -197,10 +200,13 @@ namespace UnityEditor.Rendering.Universal
         void OnEnable()
         {
             m_RenderingSettingsFoldout = new SavedBool($"{target.GetType()}.RenderingSettingsFoldout", false);
+            m_RenderingAdditionalSettings = new SavedBool($"{target.GetType()}.RenderingAdditionalSettings", false);
             m_QualitySettingsFoldout = new SavedBool($"{target.GetType()}.QualitySettingsFoldout", false);
             m_LightingSettingsFoldout = new SavedBool($"{target.GetType()}.LightingSettingsFoldout", false);
+            m_LightingAdditionalSettings = new SavedBool($"{target.GetType()}.LightingAdditionalSettings", false);
             m_ShadowSettingsFoldout = new SavedBool($"{target.GetType()}.ShadowSettingsFoldout", false);
             m_PostProcessingSettingsFoldout = new SavedBool($"{target.GetType()}.PostProcessingSettingsFoldout", false);
+            m_PostProcessingAdditionalSettings = new SavedBool($"{target.GetType()}.PostProcessingAdditionalSettings", false);
             m_AdaptivePerformanceFoldout = new SavedBool($"{target.GetType()}.AdaptivePerformanceFoldout", false);
 
             m_RendererDataProp = serializedObject.FindProperty("m_RendererDataList");
@@ -270,11 +276,23 @@ namespace UnityEditor.Rendering.Universal
             m_State = new EditorPrefBoolFlags<EditorUtils.Unit>(Key);
         }
 
+        void DrawHeaderFoldout(GUIContent title, SavedBool foldOut, SavedBool showAdditionalSetting = null)
+        {
+            if (showAdditionalSetting != null)
+            {
+                foldOut.value = CoreEditorUtils.DrawHeaderFoldout(title, foldOut.value, hasMoreOptions: () => showAdditionalSetting.value, toggleMoreOptions: () => showAdditionalSetting.value = !showAdditionalSetting.value);
+            }
+            else
+            {
+                foldOut.value = CoreEditorUtils.DrawHeaderFoldout(title, foldOut.value);
+            }
+        }
+
         void DrawRenderingSettings()
         {
             CoreEditorUtils.DrawSplitter();
 
-            m_RenderingSettingsFoldout.value = CoreEditorUtils.DrawHeaderFoldout(Styles.renderingSettingsText, m_RenderingSettingsFoldout.value);
+            DrawHeaderFoldout(Styles.renderingSettingsText, m_RenderingSettingsFoldout, m_RenderingAdditionalSettings);
             if (m_RenderingSettingsFoldout.value)
             {
                 EditorGUI.indentLevel++;
@@ -302,11 +320,15 @@ namespace UnityEditor.Rendering.Universal
                 EditorGUI.EndDisabledGroup();
                 EditorGUI.indentLevel--;
                 EditorGUILayout.PropertyField(m_SupportsTerrainHolesProp, Styles.supportsTerrainHolesText);
-                EditorGUILayout.PropertyField(m_SRPBatcher, Styles.srpBatcher);
-                EditorGUILayout.PropertyField(m_StoreActionsOptimizationProperty, Styles.storeActionsOptimizationText);
-                EditorGUILayout.PropertyField(m_SupportsDynamicBatching, Styles.dynamicBatching);
-                EditorGUILayout.PropertyField(m_DebugLevelProp, Styles.debugLevel);
-                EditorGUILayout.PropertyField(m_ShaderVariantLogLevel, Styles.shaderVariantLogLevel);
+                if (m_RenderingAdditionalSettings.value)
+                {
+                    EditorGUILayout.PropertyField(m_SRPBatcher, Styles.srpBatcher);
+                    EditorGUILayout.PropertyField(m_StoreActionsOptimizationProperty, Styles.storeActionsOptimizationText);
+                    EditorGUILayout.PropertyField(m_SupportsDynamicBatching, Styles.dynamicBatching);
+                    EditorGUILayout.PropertyField(m_DebugLevelProp, Styles.debugLevel);
+                    EditorGUILayout.PropertyField(m_ShaderVariantLogLevel, Styles.shaderVariantLogLevel);
+                }
+
                 EditorGUI.indentLevel--;
                 EditorGUILayout.Space();
                 EditorGUILayout.Space();
@@ -324,7 +346,7 @@ namespace UnityEditor.Rendering.Universal
         {
             CoreEditorUtils.DrawSplitter();
 
-            m_QualitySettingsFoldout.value = CoreEditorUtils.DrawHeaderFoldout(Styles.qualitySettingsText, m_QualitySettingsFoldout.value);
+            DrawHeaderFoldout(Styles.qualitySettingsText, m_QualitySettingsFoldout);
             if (m_QualitySettingsFoldout.value)
             {
                 EditorGUI.indentLevel++;
@@ -341,7 +363,7 @@ namespace UnityEditor.Rendering.Universal
         {
             CoreEditorUtils.DrawSplitter();
 
-            m_LightingSettingsFoldout.value = CoreEditorUtils.DrawHeaderFoldout(Styles.lightingSettingsText, m_LightingSettingsFoldout.value);
+            DrawHeaderFoldout(Styles.lightingSettingsText, m_LightingSettingsFoldout, m_LightingAdditionalSettings);
             if (m_LightingSettingsFoldout.value)
             {
                 EditorGUI.indentLevel++;
@@ -410,13 +432,17 @@ namespace UnityEditor.Rendering.Universal
                 EditorGUI.indentLevel--;
                 EditorGUILayout.Space();
 
-                EditorGUILayout.PropertyField(m_MixedLightingSupportedProp, Styles.mixedLightingSupportLabel);
+                if (m_LightingAdditionalSettings.value)
+                {
+                    EditorGUILayout.PropertyField(m_MixedLightingSupportedProp, Styles.mixedLightingSupportLabel);
 
-                UniversalRenderPipelineAsset asset = target as UniversalRenderPipelineAsset;
-                string unsupportedGraphicsApisMessage;
-                EditorGUILayout.PropertyField(m_SupportsLightLayers, Styles.supportsLightLayers);
-                if (m_SupportsLightLayers.boolValue && !ValidateRendererGraphicsAPIsForLightLayers(asset, out unsupportedGraphicsApisMessage))
-                    EditorGUILayout.HelpBox(Styles.lightlayersUnsupportedMessage.text + unsupportedGraphicsApisMessage, MessageType.Warning, true);
+                    UniversalRenderPipelineAsset asset = target as UniversalRenderPipelineAsset;
+                    string unsupportedGraphicsApisMessage;
+                    EditorGUILayout.PropertyField(m_SupportsLightLayers, Styles.supportsLightLayers);
+                    if (m_SupportsLightLayers.boolValue && !ValidateRendererGraphicsAPIsForLightLayers(asset, out unsupportedGraphicsApisMessage))
+                        EditorGUILayout.HelpBox(Styles.lightlayersUnsupportedMessage.text + unsupportedGraphicsApisMessage, MessageType.Warning, true);
+                }
+
 
                 EditorGUI.indentLevel--;
 
@@ -649,7 +675,8 @@ namespace UnityEditor.Rendering.Universal
         {
             CoreEditorUtils.DrawSplitter();
 
-            m_PostProcessingSettingsFoldout.value = CoreEditorUtils.DrawHeaderFoldout(Styles.postProcessingSettingsText, m_PostProcessingSettingsFoldout.value);
+            //m_PostProcessingSettingsFoldout.value = CoreEditorUtils.DrawHeaderFoldout(Styles.postProcessingSettingsText, m_PostProcessingSettingsFoldout.value);
+            DrawHeaderFoldout(Styles.postProcessingSettingsText, m_PostProcessingSettingsFoldout, m_PostProcessingAdditionalSettings);
             if (m_PostProcessingSettingsFoldout.value)
             {
                 bool isHdrOn = m_HDR.boolValue;
@@ -668,7 +695,11 @@ namespace UnityEditor.Rendering.Universal
                     EditorGUILayout.HelpBox(Styles.colorGradingLutSizeWarning, MessageType.Warning);
 
                 EditorGUILayout.PropertyField(m_UseFastSRGBLinearConversion, Styles.useFastSRGBLinearConversion);
-                CoreEditorUtils.DrawPopup(Styles.volumeFrameworkUpdateMode, m_VolumeFrameworkUpdateModeProp, Styles.volumeFrameworkUpdateOptions);
+                if (m_PostProcessingAdditionalSettings.value)
+                {
+                    CoreEditorUtils.DrawPopup(Styles.volumeFrameworkUpdateMode, m_VolumeFrameworkUpdateModeProp, Styles.volumeFrameworkUpdateOptions);
+                }
+
 
                 EditorGUI.indentLevel--;
                 EditorGUILayout.Space();
@@ -680,7 +711,7 @@ namespace UnityEditor.Rendering.Universal
         {
             CoreEditorUtils.DrawSplitter();
 
-            m_AdaptivePerformanceFoldout.value = CoreEditorUtils.DrawHeaderFoldout(Styles.adaptivePerformanceText, m_AdaptivePerformanceFoldout.value);
+            DrawHeaderFoldout(Styles.adaptivePerformanceText, m_AdaptivePerformanceFoldout);
             if (m_AdaptivePerformanceFoldout.value)
             {
                 EditorGUI.indentLevel++;
