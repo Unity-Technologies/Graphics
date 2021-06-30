@@ -3,8 +3,8 @@
 # Introduce any changes under .yamato/config/*.metafile files (for most cases) or under .yamato/ruamel/* within Python (more elaborate cases), and rerun build.py to regenerate all .yml files.
 # Read more under .yamato/docs/readme.md
 
-{% metadata_file .yamato/_cache_config.metafile -%}
 {% metadata_file .yamato/_latest_editor_versions_2021.2.metafile -%}
+{% metadata_file .yamato/_cache_config.metafile -%}
 {% metadata_file .yamato/_latest_editor_versions_trunk.metafile -%}
 
 ---
@@ -217,6 +217,7 @@ HDRP_Linux_Vulkan_Standalone_XR_mono_Linear_trunk:
         UTR_VERSION: "current"
         TEST_FILTER: .*
     commands:
+      -  cd Tools && bash ./set_resolution.sh
       -  command: curl -s https://artifactory.prd.it.unity3d.com/artifactory/unity-tools-local/utr-standalone/utr --output utr
          retries: 2
       -  command: chmod +x utr
@@ -475,6 +476,7 @@ HDRP_Linux_Vulkan_Standalone_XR_mono_Linear_2021.2:
         UTR_VERSION: "current"
         TEST_FILTER: .*
     commands:
+      -  cd Tools && bash ./set_resolution.sh
       -  command: curl -s https://artifactory.prd.it.unity3d.com/artifactory/unity-tools-local/utr-standalone/utr --output utr
          retries: 2
       -  command: chmod +x utr
@@ -733,6 +735,7 @@ HDRP_Linux_Vulkan_Standalone_XR_mono_Linear_CUSTOM-REVISION:
         UTR_VERSION: "current"
         TEST_FILTER: .*
     commands:
+      -  cd Tools && bash ./set_resolution.sh
       -  command: curl -s https://artifactory.prd.it.unity3d.com/artifactory/unity-tools-local/utr-standalone/utr --output utr
          retries: 2
       -  command: chmod +x utr
