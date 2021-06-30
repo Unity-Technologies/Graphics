@@ -465,13 +465,13 @@ namespace UnityEngine.Rendering.HighDefinition
 
                 source = DynamicExposurePass(renderGraph, hdCamera, source);
 
-                if (m_DLSSPassEnabled && DynamicResolutionHandler.instance.upsamplerSchedule == DynamicResolutionHandler.UpsamplerScheduleType.BeforePost)
+                if ((m_DLSSPassEnabled || DynamicResolutionHandler.instance.filter == DynamicResUpscaleFilter.TAAU) && DynamicResolutionHandler.instance.upsamplerSchedule == DynamicResolutionHandler.UpsamplerScheduleType.BeforePost)
                 {
                     var upsamplignSceneResults = SceneUpsamplePass(renderGraph, hdCamera, source, depthBuffer, motionVectors);
-                    source = upsamplignSceneResults.color;
-                    depthBuffer = upsamplignSceneResults.depthBuffer;
+                    //source = upsamplignSceneResults.color;
+                    // depthBuffer = upsamplignSceneResults.depthBuffer;
                     motionVectors = upsamplignSceneResults.motionVectors;
-                    SetCurrentResolutionGroup(renderGraph, hdCamera, ResolutionGroup.AfterDynamicResUpscale);
+                    // SetCurrentResolutionGroup(renderGraph, hdCamera, ResolutionGroup.AfterDynamicResUpscale);
                 }
 
                 source = CustomPostProcessPass(renderGraph, hdCamera, source, depthBuffer, normalBuffer, motionVectors, m_GlobalSettings.beforeTAACustomPostProcesses, HDProfileId.CustomPostProcessBeforeTAA);
@@ -1494,7 +1494,7 @@ namespace UnityEngine.Rendering.HighDefinition
             bool TAAU = DynamicResolutionHandler.instance.DynamicResolutionEnabled() && DynamicResolutionHandler.instance.filter == DynamicResUpscaleFilter.TAAU;
             if (TAAU)
             {
-                passData.temporalAAMaterial.EnableKeyword("UPSCALE");
+                passData.temporalAAMaterial.EnableKeyword("TAA_UPSCALE");
             }
             else if (postDoF)
             {
@@ -1529,6 +1529,8 @@ namespace UnityEngine.Rendering.HighDefinition
 
             Vector2Int prevViewPort = camera.historyRTHandleProperties.previousViewportSize;
             passData.previousScreenSize = new Vector4(prevViewPort.x, prevViewPort.y, 1.0f / prevViewPort.x, 1.0f / prevViewPort.y);
+            if (TAAU)
+                passData.previousScreenSize = new Vector4(camera.finalViewport.width, camera.finalViewport.height, 1.0f / camera.finalViewport.width, 1.0f / camera.finalViewport.height);
 
             passData.source = builder.ReadTexture(sourceTexture);
             passData.depthBuffer = builder.ReadTexture(depthBuffer);
@@ -1553,7 +1555,8 @@ namespace UnityEngine.Rendering.HighDefinition
 
             passData.finalViewport = camera.finalViewport;
             var resScale = DynamicResolutionHandler.instance.GetCurrentScale();
-            passData.taauParams = new Vector4(0.4f, resScale, 0, 0);
+            float stdDev = 0.4f;
+            passData.taauParams = new Vector4(1.0f / (stdDev * stdDev), 1.0f / resScale, 0, 0);
         }
 
         TextureHandle DoTemporalAntialiasing(RenderGraph renderGraph, HDCamera hdCamera, TextureHandle depthBuffer, TextureHandle motionVectors, TextureHandle depthBufferMipChain, TextureHandle sourceTexture, bool postDoF, string outputName)

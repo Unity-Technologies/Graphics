@@ -67,12 +67,16 @@ float4 Fetch4Array(Texture2DArray tex, uint slot, float2 coords, float2 offset, 
 #define NO_FILTERING 0
 #define BOX_FILTER 1
 #define BLACKMAN_HARRIS 2
+#define UPSCALE 3
 
 // Clip option
 #define DIRECT_CLIP 0
 #define BLEND_WITH_CLIP 1
 #define SIMPLE_CLAMP 2
 
+#if CENTRAL_FILTERING == UPSCALE
+#define UPSAMPLE
+#endif
 
 // Set defines in case not set outside the include
 #ifndef YCOCG
@@ -434,6 +438,11 @@ struct NeighbourhoodSamples
     CTYPE minNeighbour;
     CTYPE maxNeighbour;
     CTYPE avgNeighbour;
+
+#ifdef UPSAMPLE
+    // TODO: The way we handle offsets now will force this in VGPR. It is not good, will need to revisit. Now that we can sample stencil in compute, we should move to compute and all this nonsense is not needed anymore.
+    float2 offsets[8];
+#endif
 };
 
 
@@ -478,6 +487,17 @@ void GatherNeighbourhood(TEXTURE2D_X(InputTexture), float2 UV, float2 positionSS
     samples.neighbours[5] = ConvertToWorkingSpace(Fetch4(InputTexture, UV, offset2, _RTHandleScale.xy).CTYPE_SWIZZLE);
     samples.neighbours[6] = ConvertToWorkingSpace(Fetch4(InputTexture, UV, offset3, _RTHandleScale.xy).CTYPE_SWIZZLE);
     samples.neighbours[7] = QuadReadColorAcrossDiagonal(centralColor, positionSS);
+
+#ifdef UPSAMPLE
+    samples.offsets[0] = float2(0.0f, quadOffset.y);
+    samples.offsets[1] = float2(quadOffset.x, 0.0f);
+    samples.offsets[2] = float2(-quadOffset.x, 0.0f);
+    samples.offsets[3] = float2(0.0f, -quadOffset.y);
+    samples.offsets[4] = offset1;
+    samples.offsets[5] = offset2;
+    samples.offsets[6] = offset3;
+    samples.offsets[7] = int2(-quadOffset.x, -quadOffset.y);
+#endif
 
 #else // !WIDE_NEIGHBOURHOOD
 
@@ -591,7 +611,25 @@ void GetNeighbourhoodCorners(inout NeighbourhoodSamples samples, float historyLu
 // Filter main color
 // ---------------------------------------------------
 
-CTYPE FilterCentralColor(NeighbourhoodSamples samples, float4 filterWeights)
+float GetSampleWeight(NeighbourhoodSamples samples, int neighbourIdx, float4 filterParameters, bool centralPixel = false)
+{
+#ifdef UPSAMPLE
+    // Very spiky gaussian (See for honor presentation)
+    const float rcpStdDev2 = filterParameters.x;  // (1/(sigma*sigma))
+    const float resolutionScale2 = filterParameters.y * filterParameters.y;
+    const float2 inputToOutputVec = filterParameters.zw;
+
+    float2 d = (centralPixel ? 0 : samples.offsets[neighbourIdx]) - inputToOutputVec;
+    return exp2(-0.5f * dot(d, d) * resolutionScale2 * rcpStdDev2);
+
+#elif CENTRAL_FILTERING == BLACKMAN_HARRIS
+    return 1; // TODO.
+#else
+    return 1;
+#endif
+}
+
+CTYPE FilterCentralColor(NeighbourhoodSamples samples, float4 filterParams)
 {
 #if CENTRAL_FILTERING == NO_FILTERING
 
@@ -608,13 +646,30 @@ CTYPE FilterCentralColor(NeighbourhoodSamples samples, float4 filterWeights)
 
 #elif CENTRAL_FILTERING == BLACKMAN_HARRIS
 
-    CTYPE filtered = samples.central * filterWeights.x;
-    filtered += (samples.neighbours[0] + samples.neighbours[1] + samples.neighbours[2] + samples.neighbours[3]) * filterWeights.y;
+    // TODO : GetSampleWeight
+
+    CTYPE filtered = samples.central * filterParams.x;
+    filtered += (samples.neighbours[0] + samples.neighbours[1] + samples.neighbours[2] + samples.neighbours[3]) * filterParams.y;
 #if WIDE_NEIGHBOURHOOD
-    filtered += (samples.neighbours[4] + samples.neighbours[5] + samples.neighbours[6] + samples.neighbours[7]) * filterWeights.z;
+    filtered += (samples.neighbours[4] + samples.neighbours[5] + samples.neighbours[6] + samples.neighbours[7]) * filterParams.z;
 #endif
     return filtered;
 
+#elif CENTRAL_FILTERING == UPSCALE
+
+    float totalWeight = GetSampleWeight(samples, 0, filterParams, true);
+    CTYPE filtered = 0;
+    filtered += samples.central * totalWeight;
+
+    for (int i = 0; i < 8; ++i)
+    {
+        float w = GetSampleWeight(samples, i, filterParams);
+        filtered += samples.neighbours[i] * w;
+        totalWeight += w;
+    }
+
+    filtered *= rcp(totalWeight);
+    return filtered;
 #endif
 
 }

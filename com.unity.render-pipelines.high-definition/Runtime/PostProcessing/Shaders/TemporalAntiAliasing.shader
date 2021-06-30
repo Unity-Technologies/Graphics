@@ -14,12 +14,12 @@ Shader "Hidden/HDRP/TemporalAA"
         #pragma multi_compile_local_fragment _ FORCE_BILINEAR_HISTORY
         #pragma multi_compile_local_fragment _ ENABLE_MV_REJECTION
         #pragma multi_compile_local_fragment _ ANTI_RINGING
-        #pragma multi_compile_local_fragment LOW_QUALITY MEDIUM_QUALITY HIGH_QUALITY UPSCALE POST_DOF
+        #pragma multi_compile_local_fragment LOW_QUALITY MEDIUM_QUALITY HIGH_QUALITY TAA_UPSCALE POST_DOF
 
         #pragma editor_sync_compilation
+        //#pragma enable_d3d11_debug_symbols
 
         #pragma only_renderers d3d11 playstation xboxone xboxseries vulkan metal switch
-
         #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Common.hlsl"
         #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Color.hlsl"
         #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Builtin/BuiltinData.hlsl"
@@ -71,12 +71,12 @@ Shader "Hidden/HDRP/TemporalAA"
     #define PERCEPTUAL_SPACE 1
     #define PERCEPTUAL_SPACE_ONLY_END 0 && (PERCEPTUAL_SPACE == 0)
 
-#elif defined(UPSCALE)
+#elif defined(TAA_UPSCALE)
     #define YCOCG 1
     #define HISTORY_SAMPLING_METHOD BICUBIC_5TAP
     #define WIDE_NEIGHBOURHOOD 1
     #define NEIGHBOUROOD_CORNER_METHOD VARIANCE
-    #define CENTRAL_FILTERING /*UPSCALE*/ BLACKMAN_HARRIS
+    #define CENTRAL_FILTERING UPSCALE
     #define HISTORY_CLIP DIRECT_CLIP
     #define ANTI_FLICKER 1
     #define ANTI_FLICKER_MV_DEPENDENT 1
@@ -89,7 +89,7 @@ Shader "Hidden/HDRP/TemporalAA"
     #define HISTORY_SAMPLING_METHOD BILINEAR
     #define WIDE_NEIGHBOURHOOD 0
     #define NEIGHBOUROOD_CORNER_METHOD VARIANCE
-    #define CENTRAL_FILTERING NO_FILTERINGs
+    #define CENTRAL_FILTERING NO_FILTERING
     #define HISTORY_CLIP DIRECT_CLIP
     #define ANTI_FLICKER 1
     #define ANTI_FLICKER_MV_DEPENDENT 1
@@ -115,6 +115,14 @@ Shader "Hidden/HDRP/TemporalAA"
         #define _AntiFlickerIntensity _TaaPostParameters.y
         #define _SpeedRejectionIntensity _TaaPostParameters.z
         #define _ContrastForMaxAntiFlicker _TaaPostParameters.w
+
+        // TAAU specific
+        float4 _TaauParameters;
+        #define _TAAUFilterRcpSigma2 _TaauParameters.x
+        #define _TAAUScale _TaauParameters.y
+        #define _InputSize _ScreenSize
+
+
 
 #if VELOCITY_REJECTION
         TEXTURE2D_X(_InputVelocityMagnitudeHistory);
@@ -161,12 +169,18 @@ Shader "Hidden/HDRP/TemporalAA"
             float sharpenStrength = _TaaFrameInfo.x;
             float2 jitter = _TaaJitterStrength.zw;
 
-            float2 uv = input.texcoord - jitter;
+            float2 uv = input.texcoord;
+
+            #ifdef TAA_UPSCALE
+            float2 outputPixInInput = input.texcoord * _InputSize.xy - _TaaJitterStrength.xy;
+
+            uv = _InputSize.zw * (0.5f + floor(outputPixInInput));
+            #endif
 
             // --------------- Get closest motion vector ---------------
             float2 motionVector;
 
-#if ORTHOGRAPHIC
+#if ORTHOGRAPHIC || /* TODO: This should not be the case, but we are a bit in an awkward state w.r.t depth and motion vector sizes. */ defined(TAA_UPSCALE)
             float2 closest = input.positionCS.xy;
 #else
             float2 closest = GetClosestFragment(_DepthTexture, int2(input.positionCS.xy));
@@ -192,7 +206,13 @@ Shader "Hidden/HDRP/TemporalAA"
             // --------------------------------------------------------
 
             // --------------- Filter central sample ---------------
-            CTYPE filteredColor = FilterCentralColor(samples, _TaaFilterWeights);
+            float4 filterParams = _TaaFilterWeights;
+            #ifdef TAA_UPSCALE
+            filterParams.x = _TAAUFilterRcpSigma2;
+            filterParams.y = _TAAUScale;
+            filterParams.zw = outputPixInInput - (floor(outputPixInInput) + 0.5f);
+            #endif
+            CTYPE filteredColor = FilterCentralColor(samples, filterParams);
             // ------------------------------------------------------
 
             if (offScreen)
