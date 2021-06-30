@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using System.Reflection;
 using UnityEngine;
@@ -29,6 +30,8 @@ namespace UnityEditor.VFX.UI
             m_ObjectField.style.flexShrink = 1f;
             RegisterCallback<KeyDownEvent>(StopKeyPropagation);
             Add(m_ObjectField);
+
+            m_Controller = controller as VFXInputOperatorAnchorController;
         }
 
         public override float GetPreferredControlWidth()
@@ -54,8 +57,8 @@ namespace UnityEditor.VFX.UI
                     {
                         if (tex.dimension != TextureDimension.Tex2D)
                         {
-                            Debug.LogError("Wrong Texture Dimension");
-
+                            ReportTextureAssignmentError(tex, TextureDimension.Tex2D);
+                            
                             newValue = null;
                         }
                     }
@@ -63,7 +66,7 @@ namespace UnityEditor.VFX.UI
                     {
                         if (tex.dimension != TextureDimension.Tex3D)
                         {
-                            Debug.LogError("Wrong Texture Dimension");
+                            ReportTextureAssignmentError(tex, TextureDimension.Tex3D);
 
                             newValue = null;
                         }
@@ -72,7 +75,7 @@ namespace UnityEditor.VFX.UI
                     {
                         if (tex.dimension != TextureDimension.Cube)
                         {
-                            Debug.LogError("Wrong Texture Dimension");
+                            ReportTextureAssignmentError(tex, TextureDimension.Cube);
 
                             newValue = null;
                         }
@@ -83,7 +86,16 @@ namespace UnityEditor.VFX.UI
             NotifyValueChanged();
         }
 
+        private void ReportTextureAssignmentError(Texture tex, TextureDimension expectedDimension)
+        {
+            Debug.LogError(String.Format("Error setting texture to node {0}. Expected type {1} but " +
+                                         "the texture \"{2}\" is type {3}. " + "(graph: \"{4}\")",
+                                        m_Controller.sourceNode.name, expectedDimension, tex.name, tex.dimension,
+                                        m_Controller.viewController.name));   
+        }
+
         ObjectField m_ObjectField;
+        private VFXInputOperatorAnchorController m_Controller;
 
         protected override void UpdateEnabled()
         {
