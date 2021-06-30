@@ -8,7 +8,7 @@ using System;
 
 namespace UnityEngine.Rendering.Universal
 {
-    internal class ShadowShapes : IShadowShapesProvider.ShadowShapes
+    public class ShadowShapes2D : IShadowShapes2DProvider.ShadowShapes2D
     {
         delegate int ValueGetter<T>(ref T data, int index);
         delegate int LengthGetter<T>(ref T data);
@@ -26,7 +26,7 @@ namespace UnityEngine.Rendering.Universal
             }
         }
 
-        class EdgeComparer : IComparer<Edge>
+        public class EdgeComparer : IComparer<Edge>
         {
             public int Compare(Edge edge0, Edge edge1)
             {
@@ -57,8 +57,8 @@ namespace UnityEngine.Rendering.Universal
         }
 
         static private SortedDictionary<Edge, int> m_EdgeDictionary = new SortedDictionary<Edge, int>(new EdgeComparer());
-        private NativeArray<Vector2> m_Vertices;
-        private NativeArray<Edge>    m_Outline;   
+        public NativeArray<Vector2> m_Vertices;
+        public NativeArray<Edge>    m_Outline;   
 
         private void ExtractEdgesFromTriangles<T>(T indices, out NativeArray<Edge> nativeOutline, ValueGetter<T> valueGetter, LengthGetter<T> lengthGetter)
         {
@@ -128,12 +128,12 @@ namespace UnityEngine.Rendering.Universal
             }
         }
 
-        private int ArrayGetter(ref int[] array, int index) { return array[index]; }
-        private int ArrayLengthGetter(ref int[] array) { return array.Length; }
+        private int ArrayGetter(ref ushort[] array, int index) { return array[index]; }
+        private int ArrayLengthGetter(ref ushort[] array) { return array.Length; }
         private int NativeArrayGetter(ref NativeArray<int> array, int index) { return array[index]; }
         private int NativeArrayLengthGetter(ref NativeArray<int> array) { return array.Length; }
 
-        public override void SetEdges(Vector2[] vertices, int[] indices, IShadowShapesProvider.OutlineTopology outlineTopology)
+        public override void SetEdges(Vector2[] vertices, ushort[] indices, IShadowShapes2DProvider.OutlineTopology outlineTopology)
         {
             if (m_Vertices.IsCreated)
                 m_Vertices.Dispose();
@@ -141,14 +141,14 @@ namespace UnityEngine.Rendering.Universal
             if (m_Outline.IsCreated)
                 m_Outline.Dispose();
 
-            if (outlineTopology == IShadowShapesProvider.OutlineTopology.Triangles)
+            if (outlineTopology == IShadowShapes2DProvider.OutlineTopology.Triangles)
             {
                 m_Vertices = new NativeArray<Vector2>(vertices, Allocator.Persistent);
-                ExtractEdgesFromTriangles<int[]>(indices, out m_Outline, ArrayGetter, ArrayLengthGetter);
+                ExtractEdgesFromTriangles<ushort[]>(indices, out m_Outline, ArrayGetter, ArrayLengthGetter);
             }
         }
 
-        public override void SetEdges(NativeArray<Vector2> vertices, NativeArray<int> indices, IShadowShapesProvider.OutlineTopology outlineTopology)
+        public override void SetEdges(NativeArray<Vector2> vertices, NativeArray<ushort> indices, IShadowShapes2DProvider.OutlineTopology outlineTopology)
         {
             if (m_Vertices.IsCreated)
                 m_Vertices.Dispose();
@@ -156,10 +156,10 @@ namespace UnityEngine.Rendering.Universal
             if (m_Outline.IsCreated)
                 m_Outline.Dispose();
 
-            if (outlineTopology == IShadowShapesProvider.OutlineTopology.Triangles)
+            if (outlineTopology == IShadowShapes2DProvider.OutlineTopology.Triangles)
             {
                 m_Vertices = new NativeArray<Vector2>(vertices, Allocator.Persistent);
-                ExtractEdgesFromTriangles<NativeArray<int>>(indices, out m_Outline, NativeArrayGetter, NativeArrayLengthGetter);
+                ExtractEdgesFromTriangles<NativeArray<ushort>>(indices, out m_Outline, NativeArrayGetter, NativeArrayLengthGetter);
             }
         }
 
