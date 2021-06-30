@@ -543,7 +543,6 @@ namespace UnityEditor.Rendering
                         //UnityEngine.Gradient colorGradient = (UnityEngine.Gradient)colorGradientProp.serializedObject.targetObject;
                         UnityEngine.Gradient colorGradient = SafeGradientValue(colorGradientProp);
                         Color randCol = colorGradient.Evaluate(RandomRange(0.0f, 1.0f));
-                        RandomRange(0.0f, 1.0f); // Color
                         RandomRange(-1.0f, 1.0f); // Position
                         currentAngle = RandomRange(-Mathf.PI, Mathf.PI) * rotationVariationProp.floatValue;
                         RandomRange(-1.0f, 1.0f); // Position Offset
