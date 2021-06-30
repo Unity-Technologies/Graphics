@@ -346,6 +346,26 @@ namespace UnityEngine.Rendering.Universal
             }
         }
 
+        /// <summary>
+        /// Returns the camera color target for this renderer.
+        /// It's only valid to call cameraColorTarget in the scope of <c>ScriptableRenderPass</c>.
+        /// <seealso cref="ScriptableRenderPass"/>.
+        /// </summary>
+        public RTHandle cameraColorTargetHandle
+        {
+            get
+            {
+                if (!(m_IsPipelineExecuting || isCameraColorTargetValid))
+                {
+                    Debug.LogWarning("You can only call cameraColorTarget inside the scope of a ScriptableRenderPass. Otherwise the pipeline camera target texture might have not been created or might have already been disposed.");
+                    // TODO: Ideally we should return an error texture (BuiltinRenderTextureType.None?)
+                    // but this might break some existing content, so we return the pipeline texture in the hope it gives a "soft" upgrade to users.
+                }
+
+                return m_CameraColorTarget.handle;
+            }
+        }
+
 
         /// <summary>
         /// Returns the frontbuffer color target. Returns 0 if not implemented by the renderer.
