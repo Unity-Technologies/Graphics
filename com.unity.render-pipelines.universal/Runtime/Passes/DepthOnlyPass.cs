@@ -14,14 +14,10 @@ namespace UnityEngine.Rendering.Universal.Internal
         private static readonly ShaderTagId k_ShaderTagId = new ShaderTagId("DepthOnly");
 
         private RenderTargetHandle destination { get; set; }
-        internal RenderTextureDescriptor descriptor { get; set; }
-        internal bool allocateDepth { get; set; } = true;
+        private GraphicsFormat depthStencilFormat;
         internal ShaderTagId shaderTagId { get; set; } = k_ShaderTagId;
 
         FilteringSettings m_FilteringSettings;
-
-        // Constants
-        private const int k_DepthBufferBits = 32;
 
         /// <summary>
         /// Create the DepthOnlyPass
@@ -41,14 +37,7 @@ namespace UnityEngine.Rendering.Universal.Internal
             RenderTargetHandle depthAttachmentHandle)
         {
             this.destination = depthAttachmentHandle;
-            baseDescriptor.colorFormat = RenderTextureFormat.Depth;
-            baseDescriptor.depthBufferBits = k_DepthBufferBits;
-
-            // Depth-Only pass don't use MSAA
-            baseDescriptor.msaaSamples = 1;
-            descriptor = baseDescriptor;
-
-            this.allocateDepth = true;
+            this.depthStencilFormat = baseDescriptor.depthStencilFormat;
             this.shaderTagId = k_ShaderTagId;
         }
 
@@ -60,32 +49,23 @@ namespace UnityEngine.Rendering.Universal.Internal
             RTHandle depthAttachmentHandle)
         {
             this.destination = new RenderTargetHandle(depthAttachmentHandle);
-            baseDescriptor.colorFormat = RenderTextureFormat.Depth;
-            baseDescriptor.depthBufferBits = k_DepthBufferBits;
-
-            // Depth-Only pass don't use MSAA
-            baseDescriptor.msaaSamples = 1;
-            descriptor = baseDescriptor;
-
-            this.allocateDepth = true;
+            this.depthStencilFormat = baseDescriptor.depthStencilFormat;
             this.shaderTagId = k_ShaderTagId;
         }
 
         public override void OnCameraSetup(CommandBuffer cmd, ref RenderingData renderingData)
         {
-            if (this.allocateDepth)
-                cmd.GetTemporaryRT(destination.id, descriptor, FilterMode.Point);
             var desc = renderingData.cameraData.cameraTargetDescriptor;
 
             // When depth priming is in use the camera target should not be overridden so the Camera's MSAA depth attachment is used.
             if (renderingData.cameraData.renderer.useDepthPriming && (renderingData.cameraData.renderType == CameraRenderType.Base || renderingData.cameraData.clearDepth))
             {
-                ConfigureTarget(renderingData.cameraData.renderer.cameraDepthTarget, descriptor.depthStencilFormat, desc.width, desc.height, 1, true);
+                ConfigureTarget(renderingData.cameraData.renderer.cameraDepthTarget, depthStencilFormat, desc.width, desc.height, 1, true);
             }
             // When not using depth priming the camera target should be set to our non MSAA depth target.
             else
             {
-                ConfigureTarget(new RenderTargetIdentifier(destination.Identifier(), 0, CubemapFace.Unknown, -1), descriptor.depthStencilFormat, desc.width, desc.height, 1, true);
+                ConfigureTarget(new RenderTargetIdentifier(destination.Identifier(), 0, CubemapFace.Unknown, -1), depthStencilFormat, desc.width, desc.height, 1, true);
             }
 
             // Only clear depth here so we don't clear any bound color target. It might be unused by this pass but that doesn't mean we can just clear it. (e.g. in case of overlay cameras + depth priming)
@@ -119,12 +99,7 @@ namespace UnityEngine.Rendering.Universal.Internal
             if (cmd == null)
                 throw new ArgumentNullException("cmd");
 
-            if (destination != RenderTargetHandle.CameraTarget)
-            {
-                if (this.allocateDepth)
-                    cmd.ReleaseTemporaryRT(destination.id);
-                destination = RenderTargetHandle.CameraTarget;
-            }
+            destination = RenderTargetHandle.CameraTarget;
         }
     }
 }

@@ -16,13 +16,11 @@ namespace UnityEngine.Rendering.Universal.Internal
     {
         private RTHandle source { get; set; }
         private RTHandle destination { get; set; }
-        internal bool AllocateRT { get; set; }
         internal int MssaSamples { get; set; }
         Material m_CopyDepthMaterial;
         public CopyDepthPass(RenderPassEvent evt, Material copyDepthMaterial)
         {
             base.profilingSampler = new ProfilingSampler(nameof(CopyDepthPass));
-            AllocateRT = true;
             m_CopyDepthMaterial = copyDepthMaterial;
             renderPassEvent = evt;
         }
@@ -36,7 +34,6 @@ namespace UnityEngine.Rendering.Universal.Internal
         {
             this.source = source;
             this.destination = destination;
-            this.AllocateRT = this.destination.rt == null;
             this.MssaSamples = -1;
         }
 
@@ -46,8 +43,6 @@ namespace UnityEngine.Rendering.Universal.Internal
             descriptor.colorFormat = RenderTextureFormat.Depth;
             descriptor.depthBufferBits = 32; //TODO: do we really need this. double check;
             descriptor.msaaSamples = 1;
-            if (this.AllocateRT)
-                cmd.GetTemporaryRT(Shader.PropertyToID(destination.name), descriptor, FilterMode.Point);
 
             // On Metal iOS, prevent camera attachments to be bound and cleared during this pass.
             ConfigureTarget(destination, descriptor.depthStencilFormat, descriptor.width, descriptor.height, descriptor.msaaSamples, true);
@@ -165,8 +160,6 @@ namespace UnityEngine.Rendering.Universal.Internal
             if (cmd == null)
                 throw new ArgumentNullException("cmd");
 
-            if (this.AllocateRT)
-                cmd.ReleaseTemporaryRT(Shader.PropertyToID(destination.name));
             destination = k_CameraTarget;
         }
     }

@@ -92,6 +92,7 @@ namespace UnityEngine.Rendering.Universal
         RTHandle m_ActiveCameraDepthAttachment;
         RTHandle m_CameraDepthAttachment;
         RTHandle m_XRTargetHandleAlias;
+        bool m_DepthTextureAlloc;
         RTHandle m_DepthTexture;
         RTHandle m_NormalsTexture;
         RTHandle m_OpaqueColor;
@@ -249,6 +250,7 @@ namespace UnityEngine.Rendering.Universal
             m_ColorBufferSystem = new RenderTargetBufferSystem("_CameraColorAttachment");
             m_CameraDepthAttachment = RTHandles.Alloc(new RenderTargetIdentifier(Shader.PropertyToID("_CameraDepthAttachment"), 0, CubemapFace.Unknown, -1), "_CameraDepthAttachment");
             m_DepthTexture = RTHandles.Alloc(new RenderTargetIdentifier(Shader.PropertyToID("_CameraDepthTexture"), 0, CubemapFace.Unknown, -1), "_CameraDepthTexture");
+            m_DepthTextureAlloc = false;
             m_NormalsTexture = RTHandles.Alloc(new RenderTargetIdentifier(Shader.PropertyToID("_CameraNormalsTexture"), 0, CubemapFace.Unknown, -1), "_CameraNormalsTexture");
             m_OpaqueColor = RTHandles.Alloc(new RenderTargetIdentifier(Shader.PropertyToID("_CameraOpaqueTexture"), 0, CubemapFace.Unknown, -1), "_CameraOpaqueTexture");
             m_MotionVectorTexture = RTHandles.Alloc(new RenderTargetIdentifier(Shader.PropertyToID("_MotionVectorTexture"), 0, CubemapFace.Unknown, -1), "_MotionVectorTexture");
@@ -538,10 +540,22 @@ namespace UnityEngine.Rendering.Universal
 
             cameraData.renderer.useDepthPriming = useDepthPriming;
 
-            bool requiresDepthCopyPass = !requiresDepthPrepass
-                && (requiresDepthTexture || cameraHasPostProcessingWithDepth)
-                && createDepthTexture;
             bool copyColorPass = renderingData.cameraData.requiresOpaqueTexture || renderPassInputs.requiresColorTexture;
+
+            // Assign camera targets (color and depth)
+            ConfigureCameraTarget(m_ActiveCameraColorAttachment, m_ActiveCameraDepthAttachment);
+
+            bool hasPassesAfterPostProcessing = activeRenderPassQueue.Find(x => x.renderPassEvent == RenderPassEvent.AfterRenderingPostProcessing) != null;
+
+            if (mainLightShadows)
+                EnqueuePass(m_MainLightShadowCasterPass);
+
+            if (additionalLightShadows)
+                EnqueuePass(m_AdditionalLightsShadowCasterPass);
+
+            bool requiresDepthCopyPass = !requiresDepthPrepass
+                && renderingData.cameraData.requiresDepthTexture
+                && createDepthTexture;
 
             if ((DebugHandler != null) && DebugHandler.IsActiveForCamera(ref cameraData))
             {
@@ -569,16 +583,21 @@ namespace UnityEngine.Rendering.Universal
                     useRenderPassEnabled = DebugHandler.IsRenderPassSupported;
             }
 
-            // Assign camera targets (color and depth)
-            ConfigureCameraTarget(m_ActiveCameraColorAttachment, m_ActiveCameraDepthAttachment);
+            // Allocate m_DepthTexture if used
+            if (this.actualRenderingMode == RenderingMode.Deferred || requiresDepthPrepass || requiresDepthCopyPass)
+            {
+                var depthDescriptor = cameraTargetDescriptor;
+                depthDescriptor.colorFormat = RenderTextureFormat.Depth;
+                depthDescriptor.depthBufferBits = (int)k_DepthStencilBufferBits;
+                depthDescriptor.msaaSamples = 1;// Depth-Only pass don't use MSAA
 
-            bool hasPassesAfterPostProcessing = activeRenderPassQueue.Find(x => x.renderPassEvent == RenderPassEvent.AfterRenderingPostProcessing) != null;
+                CommandBuffer cmd = CommandBufferPool.Get();
+                cmd.GetTemporaryRT(Shader.PropertyToID(m_DepthTexture.name), depthDescriptor, FilterMode.Point);
+                context.ExecuteCommandBuffer(cmd);
+                CommandBufferPool.Release(cmd);
 
-            if (mainLightShadows)
-                EnqueuePass(m_MainLightShadowCasterPass);
-
-            if (additionalLightShadows)
-                EnqueuePass(m_AdditionalLightsShadowCasterPass);
+                m_DepthTextureAlloc = true;
+            }
 
             if (requiresDepthPrepass)
             {
@@ -597,8 +616,6 @@ namespace UnityEngine.Rendering.Universal
                         RenderTextureDescriptor normalDescriptor = m_DepthNormalPrepass.normalDescriptor;
                         normalDescriptor.graphicsFormat = m_DeferredLights.GetGBufferFormat(gbufferNormalIndex);
                         m_DepthNormalPrepass.normalDescriptor = normalDescriptor;
-                        // Depth is allocated by this renderer.
-                        m_DepthNormalPrepass.allocateDepth = false;
                         // Only render forward-only geometry, as standard geometry will be rendered as normal into the gbuffer.
                         if (RenderPassEvent.AfterRenderingGbuffer <= renderPassInputs.requiresDepthNormalAtEvent &&
                             renderPassInputs.requiresDepthNormalAtEvent <= RenderPassEvent.BeforeRenderingOpaques)
@@ -626,8 +643,6 @@ namespace UnityEngine.Rendering.Universal
             if (useDepthPriming && (SystemInfo.graphicsDeviceType != GraphicsDeviceType.Vulkan || cameraTargetDescriptor.msaaSamples == 1))
             {
                 m_PrimedDepthCopyPass.Setup(m_ActiveCameraDepthAttachment, m_DepthTexture);
-                m_PrimedDepthCopyPass.AllocateRT = false;
-
                 EnqueuePass(m_PrimedDepthCopyPass);
             }
 
@@ -683,10 +698,6 @@ namespace UnityEngine.Rendering.Universal
             if (requiresDepthCopyPass)
             {
                 m_CopyDepthPass.Setup(m_ActiveCameraDepthAttachment, m_DepthTexture);
-
-                if (this.actualRenderingMode == RenderingMode.Deferred && !useRenderPassEnabled)
-                    m_CopyDepthPass.AllocateRT = false; // m_DepthTexture is already allocated by m_GBufferCopyDepthPass but it's not called when using RenderPass API.
-
                 EnqueuePass(m_CopyDepthPass);
             }
 
@@ -884,6 +895,13 @@ namespace UnityEngine.Rendering.Universal
                 Debug.Assert(m_ActiveCameraDepthAttachment.name.Length > 0);
                 cmd.ReleaseTemporaryRT(Shader.PropertyToID(m_ActiveCameraDepthAttachment.name));
                 m_ActiveCameraDepthAttachment = k_CameraTarget;
+            }
+
+            if (m_DepthTextureAlloc)
+            {
+                Debug.Assert(m_DepthTexture.name.Length > 0);
+                cmd.ReleaseTemporaryRT(Shader.PropertyToID(m_DepthTexture.name));
+                m_DepthTextureAlloc = false;
             }
         }
 
