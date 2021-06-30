@@ -37,6 +37,7 @@ namespace UnityEngine.Rendering.Universal
         [SerializeField] Mesh m_Mesh;
         [SerializeField] int m_InstanceId;
         [SerializeField] Component m_ShadowShapeOverride;
+        [SerializeField] float m_ShadowShapeContract;
         [SerializeField] CastingSources m_ShadowCastingSource = CastingSources.ShapeEditor;
 
         internal ShadowCasterGroup2D m_ShadowCasterGroup = null;
