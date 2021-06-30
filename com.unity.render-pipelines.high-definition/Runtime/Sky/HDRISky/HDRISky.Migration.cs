@@ -25,9 +25,9 @@ namespace UnityEngine.Rendering.HighDefinition
 #pragma warning disable 618 // Type or member is obsolete
                 float newOrientation = 0.0f;
                 if (s.scrollDirection.overrideState)
-                    newOrientation += s.scrollDirection.value + 270.0f;
+                    newOrientation += s.scrollDirection.value + 90.0f;
                 if (s.rotation.overrideState)
-                    newOrientation -= s.rotation.value;
+                    newOrientation += s.rotation.value;
                 if (newOrientation != 0.0f)
                 {
                     s.scrollOrientation.Override(new WindParameter.WindParamaterValue
@@ -36,8 +36,16 @@ namespace UnityEngine.Rendering.HighDefinition
                         customValue = newOrientation % 360.0f
                     });
                 }
+                if (s.m_ObsoleteScrollSpeed.overrideState)
+                {
+                    s.scrollSpeed.Override(new WindParameter.WindParamaterValue
+                    {
+                        mode = WindParameter.WindOverrideMode.Custom,
+                        customValue = s.m_ObsoleteScrollSpeed.value * 200.0f
+                    });
+                }
                 s.distortionMode.value = !s.enableDistortion.value ? HDRISky.DistortionMode.None :
-                    (s.procedural.value ? HDRISky.DistortionMode.Procedural : HDRISky.DistortionMode.Flowmap);
+                    (!s.procedural.value && s.procedural.overrideState ? HDRISky.DistortionMode.Flowmap : HDRISky.DistortionMode.Procedural);
                 s.distortionMode.overrideState = s.enableDistortion.overrideState || s.procedural.overrideState;
 #pragma warning restore 618
             })
@@ -52,11 +60,16 @@ namespace UnityEngine.Rendering.HighDefinition
         Version m_SkyVersion;
         Version IVersionable<Version>.version { get => m_SkyVersion; set => m_SkyVersion = value; }
 
+        /// <summary>Obsolete field. Use distortionMode</summary>
         [SerializeField, Obsolete("For Data Migration")]
         public BoolParameter enableDistortion = new BoolParameter(false);
+        /// <summary>Obsolete field. Use distortionMode</summary>
         [SerializeField, Obsolete("For Data Migration")]
         public BoolParameter procedural = new BoolParameter(true);
+        /// <summary>Obsolete field. Use scrollOrientation</summary>
         [SerializeField, Obsolete("For Data Migration")]
         public ClampedFloatParameter scrollDirection = new ClampedFloatParameter(0.0f, 0.0f, 360.0f);
+        [SerializeField, FormerlySerializedAs("scrollSpeed"), Obsolete("For Data Migration")]
+        MinFloatParameter m_ObsoleteScrollSpeed = new MinFloatParameter(1.0f, 0.0f);
     }
 }
