@@ -155,7 +155,7 @@ namespace  UnityEditor.VFX.UI
             this.m_Categories.Add(newCategoryName, newCategory);
 
             this.Add(newCategory);
-            
+
             return newCategory;
         }
 
