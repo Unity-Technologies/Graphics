@@ -36,7 +36,7 @@
 // Defines the mip offset for the color buffer
 #define SSGI_MIP_OFFSET 1
 
-#define SSGI_CLAMP_VALUE 5.0f
+#define SSGI_CLAMP_VALUE 7.0f
 
 // Disabled for now
 //#define PERCEPTUAL_SPACE
@@ -273,7 +273,7 @@ void REPROJECT_GLOBAL_ILLUMINATION(uint3 dispatchThreadId : SV_DispatchThreadID,
                                     posInput.positionSS,
                                     apvBuiltinData.bakeDiffuseLighting,
                                     apvBuiltinData.backBakeDiffuseLighting);
-        color = apvBuiltinData.bakeDiffuseLighting * _IndirectDiffuseLightingMultiplier * GetCurrentExposureMultiplier();
+        color = apvBuiltinData.bakeDiffuseLighting * GetCurrentExposureMultiplier();
         invalid = false;
     }
     #endif
