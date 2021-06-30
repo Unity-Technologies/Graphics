@@ -6,10 +6,10 @@ namespace GtfPlayground
 {
     public class PlaygroundGraphWindow : GraphViewEditorWindow
     {
-        protected override bool CanHandleAssetType(GraphAssetModel asset) => asset is PlaygroundGraphAssetModel;
+        protected override bool CanHandleAssetType(IGraphAssetModel asset) => asset is PlaygroundGraphAssetModel;
 
         [InitializeOnLoadMethod]
-        private static void RegisterTool()
+        static void RegisterTool()
         {
             ShortcutHelper.RegisterDefaultShortcuts<PlaygroundGraphWindow>(PlaygroundStencil.Name);
         }

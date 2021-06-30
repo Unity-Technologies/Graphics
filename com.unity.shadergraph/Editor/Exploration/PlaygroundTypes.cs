@@ -11,8 +11,8 @@ namespace GtfPlayground
     /// </summary>
     public class DayOfWeekConstant : Constant<DayOfWeek>
     {
-        public static readonly DayOfWeek[] Values = (DayOfWeek[]) Enum.GetValues(typeof(DayOfWeek));
-        public static readonly string[] Names = Enum.GetNames(typeof(DayOfWeek));
+        public static readonly List<DayOfWeek> Values = new((DayOfWeek[]) Enum.GetValues(typeof(DayOfWeek)));
+        public static readonly List<string> Names = new(Enum.GetNames(typeof(DayOfWeek)));
     }
 
     public static class PlaygroundTypes
