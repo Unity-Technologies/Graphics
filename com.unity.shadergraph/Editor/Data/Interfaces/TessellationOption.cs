@@ -5,6 +5,6 @@ namespace UnityEditor.ShaderGraph.Internal
     public enum TessellationOption
     {
         Default,
-        Predisplacement,        
+        Predisplacement,
     }
 }

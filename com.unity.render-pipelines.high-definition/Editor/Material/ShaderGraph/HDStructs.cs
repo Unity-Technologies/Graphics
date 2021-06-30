@@ -34,7 +34,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
             {
                 HDStructFields.VaryingsMeshToPS.positionCS,
                 HDStructFields.VaryingsMeshToPS.positionRWS,
-				HDStructFields.VaryingsMeshToPS.positionPredisplacementRWS,
+                HDStructFields.VaryingsMeshToPS.positionPredisplacementRWS,
                 HDStructFields.VaryingsMeshToPS.normalWS,
                 HDStructFields.VaryingsMeshToPS.tangentWS,
                 HDStructFields.VaryingsMeshToPS.texCoord0,

@@ -56,12 +56,12 @@ namespace UnityEditor.ShaderGraph
                 StructFields.VertexDescriptionInputs.TangentSpacePosition,
                 StructFields.VertexDescriptionInputs.AbsoluteWorldSpacePosition,
 
-				StructFields.VertexDescriptionInputs.ObjectSpacePositionPredisplacement,
+                StructFields.VertexDescriptionInputs.ObjectSpacePositionPredisplacement,
                 StructFields.VertexDescriptionInputs.ViewSpacePositionPredisplacement,
                 StructFields.VertexDescriptionInputs.WorldSpacePositionPredisplacement,
                 StructFields.VertexDescriptionInputs.TangentSpacePositionPredisplacement,
                 StructFields.VertexDescriptionInputs.AbsoluteWorldSpacePositionPredisplacement,
-				
+
                 StructFields.VertexDescriptionInputs.ScreenPosition,
                 StructFields.VertexDescriptionInputs.uv0,
                 StructFields.VertexDescriptionInputs.uv1,
