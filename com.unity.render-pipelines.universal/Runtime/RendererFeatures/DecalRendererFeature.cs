@@ -147,7 +147,7 @@ namespace UnityEngine.Rendering.Universal
     }
 
     [DisallowMultipleRendererFeature("Decal")]
-    [Tooltip("Decals.")]
+    [Tooltip("Enables projection of materials (decals) onto other objects in the Scene.")]
     internal class DecalRendererFeature : ScriptableRendererFeature
     {
         private static SharedDecalEntityManager sharedDecalEntityManager { get; } = new SharedDecalEntityManager();

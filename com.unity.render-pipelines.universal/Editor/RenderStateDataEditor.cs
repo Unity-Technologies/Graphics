@@ -10,7 +10,7 @@ namespace UnityEditor.Rendering.Universal
         class Styles
         {
             public static readonly GUIContent overrideStencil =
-                new GUIContent("Stencil", "Override the values used in Stencil buffering.");
+                new GUIContent("Stencil", "Process and override the Stencil buffer values.");
 
             public static readonly GUIContent stencilValue = new GUIContent("Value",
                 "The value to be compared against and/or the value to be written to the buffer.");
