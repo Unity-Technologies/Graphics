@@ -180,6 +180,8 @@ namespace UnityEditor.Rendering.Universal
         SerializedProperty m_UseAdaptivePerformance;
         EditorPrefBoolFlags<EditorUtils.Unit> m_State;
 
+        private bool m_ShowAllAdditionalProperties => EditorPrefs.GetBool("General.ShowAllAdditionalProperties");
+
         public override void OnInspectorGUI()
         {
             serializedObject.Update();
@@ -320,7 +322,7 @@ namespace UnityEditor.Rendering.Universal
                 EditorGUI.EndDisabledGroup();
                 EditorGUI.indentLevel--;
                 EditorGUILayout.PropertyField(m_SupportsTerrainHolesProp, Styles.supportsTerrainHolesText);
-                if (m_RenderingAdditionalSettings.value)
+                if (m_RenderingAdditionalSettings.value || m_ShowAllAdditionalProperties)
                 {
                     EditorGUILayout.PropertyField(m_SRPBatcher, Styles.srpBatcher);
                     EditorGUILayout.PropertyField(m_StoreActionsOptimizationProperty, Styles.storeActionsOptimizationText);
@@ -432,7 +434,7 @@ namespace UnityEditor.Rendering.Universal
                 EditorGUI.indentLevel--;
                 EditorGUILayout.Space();
 
-                if (m_LightingAdditionalSettings.value)
+                if (m_LightingAdditionalSettings.value || m_ShowAllAdditionalProperties)
                 {
                     EditorGUILayout.PropertyField(m_MixedLightingSupportedProp, Styles.mixedLightingSupportLabel);
 
@@ -695,7 +697,7 @@ namespace UnityEditor.Rendering.Universal
                     EditorGUILayout.HelpBox(Styles.colorGradingLutSizeWarning, MessageType.Warning);
 
                 EditorGUILayout.PropertyField(m_UseFastSRGBLinearConversion, Styles.useFastSRGBLinearConversion);
-                if (m_PostProcessingAdditionalSettings.value)
+                if (m_PostProcessingAdditionalSettings.value || m_ShowAllAdditionalProperties)
                 {
                     CoreEditorUtils.DrawPopup(Styles.volumeFrameworkUpdateMode, m_VolumeFrameworkUpdateModeProp, Styles.volumeFrameworkUpdateOptions);
                 }
