@@ -1,4 +1,5 @@
 using NUnit.Framework;
+using System.Collections.Generic;
 using UnityEngine.Rendering.Universal;
 
 class FoundationEditorTests
@@ -23,17 +24,15 @@ class FoundationEditorTests
         UniversalProjectAssert.AllRenderersAreNotRenderer2D(kProjectName);
     }
 
-    // TODO:
-    // Assets/Scenes/058_SpeedTree_V8Settings.lighting
-    //[Test]
+    [Test]
     public void CheckIfScenesDoNoHaveGI()
     {
-        UniversalProjectAssert.AllLightingSettingsHaveNoGI(kProjectName);
+        UniversalProjectAssert.AllLightingSettingsHaveNoGI(kProjectName, new List<string>()
+        {
+            "Assets/Scenes/058_SpeedTree_V8Settings.lighting"
+        });
     }
 
-    // TODO:
-    // Imported models have automated lit generated, which is not used
-    //[TestCase(ShaderPathID.Lit)]
     [TestCase(ShaderPathID.SimpleLit)]
     [TestCase(ShaderPathID.Unlit)]
     [TestCase(ShaderPathID.ParticlesLit)]
@@ -41,6 +40,6 @@ class FoundationEditorTests
     [TestCase(ShaderPathID.ParticlesUnlit)]
     public void AllShadersAreNot(ShaderPathID shaderPathID)
     {
-        UniversalProjectAssert.AllShadersAreNot(kProjectName, shaderPathID);
+        UniversalProjectAssert.AllMaterialShadersAreNotBuiltin(kProjectName, shaderPathID);
     }
 }

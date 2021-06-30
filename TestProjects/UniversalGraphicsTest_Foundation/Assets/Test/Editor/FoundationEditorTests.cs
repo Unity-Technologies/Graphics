@@ -1,12 +1,6 @@
 using NUnit.Framework;
-using UnityEditor;
-using UnityEngine;
-using UnityEngine.Rendering;
 using UnityEngine.Rendering.Universal;
-using UnityEditor.Rendering.Universal.Internal;
-using UnityEngine.Experimental.Rendering.Universal;
-using UnityEngine.TestTools;
-using UnityEngine.SceneManagement;
+using System.Collections.Generic;
 
 class FoundationEditorTests
 {
@@ -33,26 +27,23 @@ class FoundationEditorTests
     [Test]
     public void CheckIfScenesDoNoHaveGI()
     {
-        var guids = AssetDatabase.FindAssets("t:LightingSettings");
-        foreach (var guid in guids)
+        UniversalProjectAssert.AllLightingSettingsHaveNoBakedGI(kProjectName, new List<string>()
         {
-            var path = AssetDatabase.GUIDToAssetPath(guid);
-
-            // We only care what is in assets folder
-            if (!path.StartsWith("Assets"))
-                continue;
-
-            LightingSettings lightingSettings = AssetDatabase.LoadAssetAtPath<LightingSettings>(path);
-            //Assert.IsFalse(lightingSettings.realtimeGI, $"Lighting Setting at path {path} has realtime GI enabled. Foundation project should not have realtime GI");
-            //Assert.IsFalse(lightingSettings.bakedGI, $"Lighting Setting at path {path} has realtime GI enabled. Foundation project should not have baked GI");
-        }
+            "Assets/Scenes/010_AdditionalLightsSortedSettings.lighting",
+            "Assets/Scenes/026_Shader_PBRscene_AccurateGBufferSettings.lighting",
+            "Assets/Scenes/029_Particles_DeferredSettings.lighting",
+            "Assets/Scenes/054_Lighting_AttenuationSettings.lighting",
+            "Assets/Scenes/130_ClearCoat_deferred/130_ClearCoat_deferred_LightingSettings.lighting",
+            "Assets/Scenes/230_Decal_Projector.lighting",
+            "Assets/Scenes/231_Decal_Mesh.lighting",
+        });
     }
 
     [TestCase(ShaderPathID.SpeedTree7)]
     [TestCase(ShaderPathID.SpeedTree7Billboard)]
     [TestCase(ShaderPathID.SpeedTree8)]
-    public void AllShadersAreNot(ShaderPathID shaderPathID)
+    public void AllMaterialShadersAreNotBuiltin(ShaderPathID shaderPathID)
     {
-        UniversalProjectAssert.AllShadersAreNot(kProjectName, shaderPathID);
+        UniversalProjectAssert.AllMaterialShadersAreNotBuiltin(kProjectName, shaderPathID);
     }
 }

@@ -99,7 +99,7 @@ public static class UniversalProjectAssert
         }
     }
 
-    public static void AllLightingSettingsHaveNoGI(string projectName)
+    public static void AllLightingSettingsHaveNoGI(string projectName, List<string> excludePaths = null)
     {
         var guids = AssetDatabase.FindAssets("t:LightingSettings");
         foreach (var guid in guids)
@@ -110,13 +110,35 @@ public static class UniversalProjectAssert
             if (!path.StartsWith("Assets"))
                 continue;
 
+            if (excludePaths != null && excludePaths.Contains(path))
+                continue;
+
             LightingSettings lightingSettings = AssetDatabase.LoadAssetAtPath<LightingSettings>(path);
             Assert.IsFalse(lightingSettings.realtimeGI, $"Lighting Setting ({path}) has realtime GI enabled. {projectName} project should not have realtime GI");
             Assert.IsFalse(lightingSettings.bakedGI, $"Lighting Setting ({path}) has baked GI enabled. {projectName} project should not have baked GI");
         }
     }
 
-    public static void AllShadersAreNot(string projectName, ShaderPathID shaderPathID)
+    public static void AllLightingSettingsHaveNoBakedGI(string projectName, List<string> excludePaths = null)
+    {
+        var guids = AssetDatabase.FindAssets("t:LightingSettings");
+        foreach (var guid in guids)
+        {
+            var path = AssetDatabase.GUIDToAssetPath(guid);
+
+            // We only care what is in assets folder
+            if (!path.StartsWith("Assets"))
+                continue;
+
+            if (excludePaths != null && excludePaths.Contains(path))
+                continue;
+
+            LightingSettings lightingSettings = AssetDatabase.LoadAssetAtPath<LightingSettings>(path);
+            Assert.IsFalse(lightingSettings.bakedGI, $"Lighting Setting ({path}) has baked GI enabled. {projectName} project should not have baked GI");
+        }
+    }
+
+    public static void AllMaterialShadersAreNotBuiltin(string projectName, ShaderPathID shaderPathID)
     {
         string shaderPath = AssetDatabase.GUIDToAssetPath(ShaderUtils.GetShaderGUID(shaderPathID));
         Assert.IsFalse(string.IsNullOrEmpty(shaderPath));
