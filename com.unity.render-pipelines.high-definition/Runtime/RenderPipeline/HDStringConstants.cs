@@ -587,6 +587,7 @@ namespace UnityEngine.Rendering.HighDefinition
         public static readonly int _RaytracingLightClusterRW        = Shader.PropertyToID("_RaytracingLightClusterRW");
 
         // Denoising
+        public static readonly int _EnableExposureControl           = Shader.PropertyToID("_EnableExposureControl");
         public static readonly int _HistoryBuffer                   = Shader.PropertyToID("_HistoryBuffer");
         public static readonly int _HistoryBuffer0                  = Shader.PropertyToID("_HistoryBuffer0");
         public static readonly int _HistoryBuffer1                  = Shader.PropertyToID("_HistoryBuffer1");
