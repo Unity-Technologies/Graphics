@@ -68,16 +68,16 @@ namespace UnityEditor.VFX.Block
             {
                 string Source = @"
 float3 nextPos = position + velocity * deltaTime;
-float3 tPos = mul(invFieldTransform, float4(nextPos, 1.0f)).xyz;
-float cone_radius = lerp(cone_baseRadius, cone_topRadius, saturate(tPos.y/cone_height));
+float3 tNextPos = mul(invFieldTransform, float4(nextPos, 1.0f)).xyz;
+float cone_radius = lerp(cone_baseRadius, cone_topRadius, saturate(tNextPos.y/cone_height));
 float cone_halfHeight = cone_height * 0.5f;
-float relativePosY = abs(tPos.y - cone_halfHeight);
+float relativePosY = abs(tNextPos.y - cone_halfHeight);
 ";
 
                 if (radiusMode == RadiusMode.None)
                 {
                     Source += @"
-float sqrLength = dot(tPos.xz, tPos.xz);";
+float sqrLength = dot(tNextPos.xz, tNextPos.xz);";
                     if (mode == Mode.Solid)
                         Source += @"
 bool collision = relativePosY < cone_halfHeight && sqrLength < cone_radius * cone_radius;";
@@ -93,9 +93,9 @@ if (collision)
                 else
                 {
                     Source += @"
-float dist = max(length(tPos.xz), VFX_EPSILON);
+float dist = max(length(tNextPos.xz), VFX_EPSILON);
 
-float2 relativeScaleXZ = (tPos.xz/dist) * invFieldScale.xz;
+float2 relativeScaleXZ = (tNextPos.xz/dist) * invFieldScale.xz;
 float radiusCorrectionXZ = radius * length(relativeScaleXZ);
 dist -= radiusCorrectionXZ * colliderSign;
 
@@ -115,20 +115,21 @@ if (collision)
 
                 Source += @"
     float distToCap = colliderSign * (cone_halfHeight - relativePosY);
-    float distToSide = colliderSign * (cone_radius - dist);";
+    float distToSide = colliderSign * (cone_radius - dist);
+    float3 tPos = mul(invFieldTransform, float4(position, 1.0f)).xyz;";
 
                 //Position/Normal correction
                 if (mode == Mode.Solid)
                     Source += @"
-    float3 n =  distToSide < distToCap
-                ? normalize(float3(tPos.x * sincosSlope.y, sincosSlope.x, tPos.z * sincosSlope.y))
-                : float3(0, tPos.y < cone_halfHeight ? -1.0f : 1.0f, 0);
+    float3 n = distToSide < distToCap
+                ? normalize(float3(tNextPos.x * sincosSlope.y, sincosSlope.x, tNextPos.z * sincosSlope.y))
+                : float3(0, tNextPos.y < cone_halfHeight ? -1.0f : 1.0f, 0);
     tPos += n * min(distToSide, distToCap);";
                 else
                     Source += @"
     float3 n = distToSide > distToCap
-        ? -normalize(float3(tPos.x * sincosSlope.y, sincosSlope.x, tPos.z * sincosSlope.y))
-        : -float3(0, tPos.y < cone_halfHeight ? -1.0f : 1.0f, 0);
+        ? -normalize(float3(tNextPos.x * sincosSlope.y, sincosSlope.x, tNextPos.z * sincosSlope.y))
+        : -float3(0, tNextPos.y < cone_halfHeight ? -1.0f : 1.0f, 0);
     tPos += n * max(distToSide, distToCap);";
 
                 //Back to initial space
