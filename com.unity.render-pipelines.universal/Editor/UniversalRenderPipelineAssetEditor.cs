@@ -189,6 +189,7 @@ namespace UnityEditor.Rendering.Universal
 #if ADAPTIVE_PERFORMANCE_2_0_0_OR_NEWER
             DrawAdaptivePerformance();
 #endif
+            CoreEditorUtils.DrawSplitter();
 
             serializedObject.ApplyModifiedProperties();
         }
@@ -271,7 +272,9 @@ namespace UnityEditor.Rendering.Universal
 
         void DrawRenderingSettings()
         {
-            m_RenderingSettingsFoldout.value = EditorGUILayout.BeginFoldoutHeaderGroup(m_RenderingSettingsFoldout.value, Styles.renderingSettingsText);
+            CoreEditorUtils.DrawSplitter();
+
+            m_RenderingSettingsFoldout.value = CoreEditorUtils.DrawHeaderFoldout(Styles.renderingSettingsText, m_RenderingSettingsFoldout.value);
             if (m_RenderingSettingsFoldout.value)
             {
                 EditorGUI.indentLevel++;
@@ -308,13 +311,20 @@ namespace UnityEditor.Rendering.Universal
                 EditorGUILayout.Space();
                 EditorGUILayout.Space();
             }
+        }
 
-            EditorGUILayout.EndFoldoutHeaderGroup();
+        private void OnContextClick(Vector2 position)
+        {
+            var menu = new GenericMenu();
+            menu.AddItem(EditorGUIUtility.TrTextContent("Show Advanced Settings"), false, () => Debug.Log("You clicked me!"));
+            menu.DropDown(new Rect(position, Vector2.zero));
         }
 
         void DrawQualitySettings()
         {
-            m_QualitySettingsFoldout.value = EditorGUILayout.BeginFoldoutHeaderGroup(m_QualitySettingsFoldout.value, Styles.qualitySettingsText);
+            CoreEditorUtils.DrawSplitter();
+
+            m_QualitySettingsFoldout.value = CoreEditorUtils.DrawHeaderFoldout(Styles.qualitySettingsText, m_QualitySettingsFoldout.value);
             if (m_QualitySettingsFoldout.value)
             {
                 EditorGUI.indentLevel++;
@@ -325,12 +335,13 @@ namespace UnityEditor.Rendering.Universal
                 EditorGUILayout.Space();
                 EditorGUILayout.Space();
             }
-            EditorGUILayout.EndFoldoutHeaderGroup();
         }
 
         void DrawLightingSettings()
         {
-            m_LightingSettingsFoldout.value = EditorGUILayout.BeginFoldoutHeaderGroup(m_LightingSettingsFoldout.value, Styles.lightingSettingsText);
+            CoreEditorUtils.DrawSplitter();
+
+            m_LightingSettingsFoldout.value = CoreEditorUtils.DrawHeaderFoldout(Styles.lightingSettingsText, m_LightingSettingsFoldout.value);
             if (m_LightingSettingsFoldout.value)
             {
                 EditorGUI.indentLevel++;
@@ -412,7 +423,6 @@ namespace UnityEditor.Rendering.Universal
                 EditorGUILayout.Space();
                 EditorGUILayout.Space();
             }
-            EditorGUILayout.EndFoldoutHeaderGroup();
         }
 
         void DrawShadowResolutionTierSettings()
@@ -455,7 +465,9 @@ namespace UnityEditor.Rendering.Universal
 
         void DrawShadowSettings()
         {
-            m_ShadowSettingsFoldout.value = EditorGUILayout.BeginFoldoutHeaderGroup(m_ShadowSettingsFoldout.value, Styles.shadowSettingsText);
+            CoreEditorUtils.DrawSplitter();
+
+            m_ShadowSettingsFoldout.value = CoreEditorUtils.DrawHeaderFoldout(Styles.shadowSettingsText, m_ShadowSettingsFoldout.value);
             if (m_ShadowSettingsFoldout.value)
             {
                 EditorGUI.indentLevel++;
@@ -493,7 +505,6 @@ namespace UnityEditor.Rendering.Universal
                 EditorGUILayout.Space();
                 EditorGUILayout.Space();
             }
-            EditorGUILayout.EndFoldoutHeaderGroup();
         }
 
         private void DrawCascadeSliders(int splitCount, bool useMetric, float baseMetric)
@@ -636,7 +647,9 @@ namespace UnityEditor.Rendering.Universal
 
         void DrawPostProcessingSettings()
         {
-            m_PostProcessingSettingsFoldout.value = EditorGUILayout.BeginFoldoutHeaderGroup(m_PostProcessingSettingsFoldout.value, Styles.postProcessingSettingsText);
+            CoreEditorUtils.DrawSplitter();
+
+            m_PostProcessingSettingsFoldout.value = CoreEditorUtils.DrawHeaderFoldout(Styles.postProcessingSettingsText, m_PostProcessingSettingsFoldout.value);
             if (m_PostProcessingSettingsFoldout.value)
             {
                 bool isHdrOn = m_HDR.boolValue;
@@ -661,12 +674,13 @@ namespace UnityEditor.Rendering.Universal
                 EditorGUILayout.Space();
                 EditorGUILayout.Space();
             }
-            EditorGUILayout.EndFoldoutHeaderGroup();
         }
 
         void DrawAdaptivePerformance()
         {
-            m_AdaptivePerformanceFoldout.value = EditorGUILayout.BeginFoldoutHeaderGroup(m_AdaptivePerformanceFoldout.value, Styles.adaptivePerformanceText);
+            CoreEditorUtils.DrawSplitter();
+
+            m_AdaptivePerformanceFoldout.value = CoreEditorUtils.DrawHeaderFoldout(Styles.adaptivePerformanceText, m_AdaptivePerformanceFoldout.value);
             if (m_AdaptivePerformanceFoldout.value)
             {
                 EditorGUI.indentLevel++;
@@ -675,7 +689,6 @@ namespace UnityEditor.Rendering.Universal
                 EditorGUILayout.Space();
                 EditorGUILayout.Space();
             }
-            EditorGUILayout.EndFoldoutHeaderGroup();
         }
 
         void DrawRendererListLayout(ReorderableList list, SerializedProperty prop)
