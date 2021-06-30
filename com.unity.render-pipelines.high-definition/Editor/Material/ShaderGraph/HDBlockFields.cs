@@ -125,8 +125,6 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                 new FloatControl(-0.1f), ShaderStage.Fragment);
             public static BlockFieldDescriptor RadialSmoothness = new BlockFieldDescriptor(SurfaceDescription.name, "RadialSmoothness", "Radial Smoothness", "SURFACEDESCRIPTION_RADIALSMOOTHNESS",
                 new FloatControl(0.5f), ShaderStage.Fragment);
-            public static BlockFieldDescriptor PrimaryReflectionSmoothness = new BlockFieldDescriptor(SurfaceDescription.name, "PrimaryReflectionSmoothness", "Primary Reflection Smoothness", "SURFACEDESCRIPTION_PRIMARYREFLECTIONSMOOTHNESS",
-                new FloatControl(1f), ShaderStage.Fragment);
             public static BlockFieldDescriptor CuticleAngle = new BlockFieldDescriptor(SurfaceDescription.name, "CuticleAngle", "Cuticle Angle", "SURFACEDESCRIPTION_CUTICLEANGLE",
                 new FloatControl(3f), ShaderStage.Fragment);
 

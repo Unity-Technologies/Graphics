@@ -102,7 +102,6 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
             else
             {
                 context.AddBlock(HDBlockFields.SurfaceDescription.RadialSmoothness, hairData.useRoughenedAzimuthalScattering);
-                context.AddBlock(HDBlockFields.SurfaceDescription.PrimaryReflectionSmoothness);
                 context.AddBlock(HDBlockFields.SurfaceDescription.CuticleAngle);
 
                 // TODO: Refraction Index

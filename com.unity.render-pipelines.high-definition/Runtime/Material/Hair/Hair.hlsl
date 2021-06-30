@@ -234,7 +234,7 @@ BSDFData ConvertSurfaceDataToBSDFData(uint2 positionSS, SurfaceData surfaceData)
 
         // Longitudinal Roughness
         const float roughnessL = PerceptualRoughnessToRoughness(bsdfData.perceptualRoughness);
-        bsdfData.roughnessR   = roughnessL * PerceptualSmoothnessToPerceptualRoughness(surfaceData.primaryReflectionSmoothness);
+        bsdfData.roughnessR   = roughnessL;
         bsdfData.roughnessTT  = roughnessL * 0.5;
         bsdfData.roughnessTRT = roughnessL * 2.0;
 
@@ -695,12 +695,6 @@ DirectLighting EvaluateBSDF_Directional(LightLoopContext lightLoopContext,
                                         DirectionalLightData lightData, BSDFData bsdfData,
                                         BuiltinData builtinData)
 {
-    // if (HasFlag(bsdfData.materialFeatures, MATERIALFEATUREFLAGS_HAIR_MARSCHNER))
-    // {
-    //     // For now, write it to the BSDFData
-    //     bsdfData.lightPathLength = EvaluateStrandCount(-lightData.forward, posInput.positionWS);;
-    // }
-
     return ShadeSurface_Directional(lightLoopContext, posInput, builtinData,
                                     preLightData, lightData, bsdfData, V);
 }

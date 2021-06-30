@@ -75,8 +75,6 @@ namespace UnityEngine.Rendering.HighDefinition
             // Marschner
             [SurfaceDataAttributes("Azimuthal Roughness")]
             public float perceptualRadialSmoothness;
-            [SurfaceDataAttributes("Primary Reflection Roughness")]
-            public float primaryReflectionSmoothness;
             [SurfaceDataAttributes("Cuticle Angle")]
             public float cuticleAngle;
         };
