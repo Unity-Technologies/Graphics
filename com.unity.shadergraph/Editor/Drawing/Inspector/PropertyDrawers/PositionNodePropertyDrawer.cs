@@ -28,8 +28,6 @@ namespace UnityEditor.ShaderGraph.Drawing.Inspector.PropertyDrawers
                     node.Dirty(ModificationScope.Graph);
                 });
             });
-            if (node is Serialization.MultiJsonInternal.UnknownNodeType)
-                previewField.SetEnabled(false);
             parentElement.Add(propertyRow);
         }
     }
