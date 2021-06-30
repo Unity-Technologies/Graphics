@@ -424,7 +424,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
         VolumetricClouds()
         {
-            displayName = "Volumetric Clouds (Preview)";
+            displayName = "Volumetric Clouds";
         }
     }
 }
