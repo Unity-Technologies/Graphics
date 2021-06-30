@@ -2,6 +2,7 @@ using NUnit.Framework;
 using UnityEditor;
 using UnityEngine;
 using UnityEngine.Rendering.Universal;
+using System.Collections.Generic;
 
 public static class LightmappingExt
 {
@@ -40,7 +41,7 @@ public static class UniversalProjectAssert
         }
     }
 
-    public static void AllRenderersPostProcessing(string projectName, bool expectDisabled)
+    public static void AllRenderersPostProcessing(string projectName, bool expectDisabled, List<string> excludePaths = null)
     {
         var guids = AssetDatabase.FindAssets("t:UniversalRendererData");
         Assert.NotZero(guids.Length);
@@ -50,6 +51,9 @@ public static class UniversalProjectAssert
 
             // We only care what is in assets folder
             if (!path.StartsWith("Assets"))
+                continue;
+
+            if (excludePaths != null && excludePaths.Contains(path))
                 continue;
 
             var rendererData = AssetDatabase.LoadAssetAtPath<UniversalRendererData>(path);
@@ -62,7 +66,7 @@ public static class UniversalProjectAssert
         }
     }
 
-    public static void AllRenderersAreNotUniversalRenderer(string projectName)
+    public static void AllRenderersAreNotUniversalRenderer(string projectName, List<string> excludePaths = null)
     {
         var guids = AssetDatabase.FindAssets("t:UniversalRendererData");
         foreach (var guid in guids)
@@ -71,6 +75,9 @@ public static class UniversalProjectAssert
 
             // We only care what is in assets folder
             if (!path.StartsWith("Assets"))
+                continue;
+
+            if (excludePaths != null && excludePaths.Contains(path))
                 continue;
 
             Assert.AreEqual(guids.Length, 0, $"{projectName} project should not have Universal Renderer ({path}).");

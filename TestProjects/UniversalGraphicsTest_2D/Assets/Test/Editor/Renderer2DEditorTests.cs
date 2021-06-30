@@ -3,17 +3,17 @@ using UnityEditor;
 using UnityEngine;
 using UnityEngine.Rendering;
 using UnityEngine.Rendering.Universal;
+using System.Collections.Generic;
 
 class Renderer2DEditorTests
 {
     const string KProjectName = "2D";
 
-    // TODO
-    // Assets/CommonAssets/ForwardRenderer.asset 003_PixelPerfect_PostProcessing
-    //[Test]
+    [Test]
     public void AllRenderersPostProcessingDisabled()
     {
-        UniversalProjectAssert.AllRenderersPostProcessing(KProjectName, expectDisabled:true);
+        UniversalProjectAssert.AllRenderersPostProcessing(KProjectName, expectDisabled:true,
+            new List<string>() { "Assets/CommonAssets/ForwardRenderer.asset" }); // Used by 003_PixelPerfect_PostProcessing
     }
 
     [Test]
@@ -22,12 +22,11 @@ class Renderer2DEditorTests
         UniversalProjectAssert.AllUrpAssetsHaveMixedLighting(KProjectName, expectDisabled: false);
     }
 
-    // TODO
-    // There is a lot of universal renderers
-    //[Test]
+    [Test]
     public void AllRenderersAreNotUniversalRenderer()
     {
-        UniversalProjectAssert.AllRenderersAreNotUniversalRenderer(KProjectName);
+        UniversalProjectAssert.AllRenderersAreNotUniversalRenderer(KProjectName,
+            new List<string>() { "Assets/CommonAssets/ForwardRenderer.asset" }); // Used by 069_2D_Forward_Shader_Compatibility_Forward
     }
 
 }
