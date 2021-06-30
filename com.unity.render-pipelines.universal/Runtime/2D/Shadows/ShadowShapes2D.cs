@@ -26,37 +26,30 @@ namespace UnityEngine.Rendering.Universal
             }
         }
 
-        public class EdgeComparer : IComparer<Edge>
+        public class EdgeComparer : IEqualityComparer<Edge>
         {
-            public int Compare(Edge edge0, Edge edge1)
+            public bool Equals(Edge edge0, Edge edge1)
             {
-                int smallest0 = edge0.v0;
-                int largest0 = edge0.v1;
-                int smallest1 = edge1.v0;
-                int largest1 = edge1.v1;
+                return (edge0.v0 == edge1.v0 && edge0.v1 == edge1.v1) || (edge0.v1 == edge1.v0 && edge0.v0 == edge1.v1);
+            }
 
-                if (edge0.v0 > edge0.v1)
+            public int GetHashCode(Edge edge)
+            {
+                int v0 = edge.v0;
+                int v1 = edge.v1;
+
+                if(edge.v1 < edge.v0)
                 {
-                    smallest0 = edge0.v1;
-                    largest0 = edge0.v0;
+                    v0 = edge.v1;
+                    v1 = edge.v0;
                 }
 
-                if(edge1.v0 > edge1.v1)
-                {
-                    smallest1 = edge1.v1;
-                    largest1 = edge1.v0;
-                }
-
-                if (smallest0 < smallest1)
-                    return -1;
-                else if (smallest1 < smallest0)
-                    return 1;
-                else
-                    return largest0 - largest1;
+                int hashCode = v0 << 15 | v1;
+                return hashCode.GetHashCode();
             }
         }
 
-        static public SortedDictionary<Edge, int> m_EdgeDictionary = new SortedDictionary<Edge, int>(new EdgeComparer());
+        static public Dictionary<Edge, int> m_EdgeDictionary = new Dictionary<Edge, int>(new EdgeComparer());
         public NativeArray<Vector2> m_Vertices;
         public NativeArray<Edge>    m_Outlines;
         public NativeArray<Vector2> m_ContractionDirection;
