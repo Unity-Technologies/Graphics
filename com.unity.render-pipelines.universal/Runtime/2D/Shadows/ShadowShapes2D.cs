@@ -50,8 +50,8 @@ namespace UnityEngine.Rendering.Universal
         }
 
         static public Dictionary<Edge, int> m_EdgeDictionary = new Dictionary<Edge, int>(new EdgeComparer());
-        public NativeArray<Vector2> m_Vertices;
-        public NativeArray<Edge>    m_Outlines;
+        public NativeArray<Vector2> m_ProvidedVertices;
+        public NativeArray<Edge>    m_ProvidedEdges;
         public NativeArray<Vector2> m_ContractionDirection;
         public NativeArray<float>   m_MaximumContraction;
 
@@ -113,51 +113,51 @@ namespace UnityEngine.Rendering.Universal
 
         public override void SetEdges(Vector2[] vertices, ushort[] indices, IShadowShapes2DProvider.OutlineTopology outlineTopology)
         {
-            if (m_Vertices.IsCreated)
-                m_Vertices.Dispose();
+            if (m_ProvidedVertices.IsCreated)
+                m_ProvidedVertices.Dispose();
 
-            if (m_Outlines.IsCreated)
-                m_Outlines.Dispose();
+            if (m_ProvidedEdges.IsCreated)
+                m_ProvidedEdges.Dispose();
 
             if (outlineTopology == IShadowShapes2DProvider.OutlineTopology.Triangles)
             {
-                m_Vertices = new NativeArray<Vector2>(vertices, Allocator.Persistent);
-                ExtractEdgesFromTriangles<ushort[]>(indices, out m_Outlines, ArrayGetter, ArrayLengthGetter);
+                m_ProvidedVertices = new NativeArray<Vector2>(vertices, Allocator.Persistent);
+                ExtractEdgesFromTriangles<ushort[]>(indices, out m_ProvidedEdges, ArrayGetter, ArrayLengthGetter);
             }
         }
 
         public override void SetEdges(NativeArray<Vector2> vertices, NativeArray<int> indices, IShadowShapes2DProvider.OutlineTopology outlineTopology)
         {
-            if (m_Vertices.IsCreated)
-                m_Vertices.Dispose();
+            if (m_ProvidedVertices.IsCreated)
+                m_ProvidedVertices.Dispose();
 
-            if (m_Outlines.IsCreated)
-                m_Outlines.Dispose();
+            if (m_ProvidedEdges.IsCreated)
+                m_ProvidedEdges.Dispose();
 
             if (outlineTopology == IShadowShapes2DProvider.OutlineTopology.Triangles)
             {
-                m_Vertices = new NativeArray<Vector2>(vertices, Allocator.Persistent);
-                ExtractEdgesFromTriangles<NativeArray<int>>(indices, out m_Outlines, NativeArrayGetter, NativeArrayLengthGetter);
+                m_ProvidedVertices = new NativeArray<Vector2>(vertices, Allocator.Persistent);
+                ExtractEdgesFromTriangles<NativeArray<int>>(indices, out m_ProvidedEdges, NativeArrayGetter, NativeArrayLengthGetter);
             }
         }
 
         public override void UpdateEdges(Vector2[] vertices)
         {
-            if (m_Vertices.IsCreated && vertices.Length >= m_Vertices.Length)
-                m_Vertices.CopyFrom(vertices);
+            if (m_ProvidedVertices.IsCreated && vertices.Length >= m_ProvidedVertices.Length)
+                m_ProvidedVertices.CopyFrom(vertices);
         }
 
         public override void UpdateEdges(NativeArray<Vector2> vertices)
         {
-            if (m_Vertices.IsCreated && vertices.Length >= m_Vertices.Length)
-                m_Vertices.CopyFrom(vertices);
+            if (m_ProvidedVertices.IsCreated && vertices.Length >= m_ProvidedVertices.Length)
+                m_ProvidedVertices.CopyFrom(vertices);
            
         }
 
         ~ShadowShapes2D()
         {
-            m_Vertices.Dispose();
-            m_Outlines.Dispose();
+            m_ProvidedVertices.Dispose();
+            m_ProvidedEdges.Dispose();
         }
     }
 }
