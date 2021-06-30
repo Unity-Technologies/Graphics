@@ -35,7 +35,7 @@ namespace UnityEngine.Rendering.Universal
                 int smallest1 = edge1.v0;
                 int largest1 = edge1.v1;
 
-                if (edge0.v0 > edge1.v1)
+                if (edge0.v0 > edge0.v1)
                 {
                     smallest0 = edge0.v1;
                     largest0 = edge0.v0;
