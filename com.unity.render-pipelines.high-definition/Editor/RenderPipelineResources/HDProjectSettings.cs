@@ -122,7 +122,6 @@ namespace UnityEditor.Rendering.HighDefinition
                 //(migration is done at loading time)
                 if (!(s_Instance is HDProjectSettings inst) || inst.m_Version != MigrationDescription.LastVersion<Version>())
                 {
-                    DestroyImmediate(s_Instance);
                     s_Instance = null;
                 }
 
