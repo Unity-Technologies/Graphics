@@ -368,6 +368,27 @@ namespace UnityEditor.Rendering
         void DrawElementBackground(Rect rect, int index, bool isActive, bool isFocused)
             => EditorGUI.DrawRect(rect, Styles.elementBackgroundColor);
 
+        static Gradient SafeGradientValue(SerializedProperty sp)
+        {
+            BindingFlags instanceAnyPrivacyBindingFlags = BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance;
+
+            PropertyInfo propertyInfo = typeof(SerializedProperty).GetProperty(
+                "gradientValue",
+                instanceAnyPrivacyBindingFlags,
+                null,
+                typeof(Gradient),
+                new Type[0],
+                null
+            );
+
+            if (propertyInfo == null)
+                return null;
+
+            Gradient gradientValue = propertyInfo.GetValue(sp, null) as Gradient;
+
+            return gradientValue;
+        }
+
         void ComputeThumbnail(ref Texture2D computedTexture, SerializedProperty element, SRPLensFlareType type, int index)
         {
             SerializedProperty colorProp = element.FindPropertyRelative("tint");
@@ -432,15 +453,75 @@ namespace UnityEditor.Rendering
                 SerializedProperty rotationVariationProp = element.FindPropertyRelative("rotationVariation");
                 SerializedProperty uniformAngleProp = element.FindPropertyRelative("uniformAngle");
 
+                float RandomRange(float min, float max)
+                {
+                    return UnityEngine.Random.Range(min, max);
+                }
+
+                float rescale = float.MaxValue;
+
+                UnityEngine.Random.State backupRandState = UnityEngine.Random.state;
+                UnityEngine.Random.InitState(seedProp.intValue);
+
+                float currentAngle = 0.0f;
                 for (int idx = 0; idx < countProp.intValue; ++idx)
                 {
-                    Vector4 flareData0 = LensFlareCommonSRP.GetFlareData0(Vector2.zero, Vector2.zero, Vector2.one, Vector2.zero, rotationProp.floatValue, 0f, 0f, Vector2.zero, false);
+                    Vector4 flareData0 = LensFlareCommonSRP.GetFlareData0(Vector2.zero, Vector2.zero, Vector2.one, Vector2.zero, rotationProp.floatValue + currentAngle, 0f, 0f, Vector2.zero, false);
 
                     float cos0 = flareData0.x;
                     float sin0 = flareData0.y;
 
-                    Vector2 rotQuadCorner = new Vector2(cos0 * localSize.x - sin0 * localSize.y, sin0 * localSize.x + cos0 * localSize.y);
-                    float rescale = 1.0f / Mathf.Max(Mathf.Abs(rotQuadCorner.x), Mathf.Abs(rotQuadCorner.y));
+                    if (GetEnum<SRPLensFlareDistribution>(distributionProp) == SRPLensFlareDistribution.Random)
+                        RandomRange(-1.0f, 1.0f); // Local Intensity
+
+                    Vector2 localLocalSize;
+                    if (GetEnum<SRPLensFlareDistribution>(distributionProp) == SRPLensFlareDistribution.Uniform)
+                        localLocalSize = localSize;
+                    else if (GetEnum<SRPLensFlareDistribution>(distributionProp) == SRPLensFlareDistribution.Random)
+                        localLocalSize = localSize + localSize * (scaleVariationProp.floatValue * RandomRange(-1.0f, 1.0f));
+                    else
+                        localLocalSize = localSize;
+
+                    Vector2 rotQuadCorner = new Vector2(cos0 * localLocalSize.x - sin0 * localLocalSize.y, sin0 * localLocalSize.x + cos0 * localLocalSize.y);
+                    rescale = Mathf.Min(rescale, 1.0f / Mathf.Max(Mathf.Abs(rotQuadCorner.x), Mathf.Abs(rotQuadCorner.y)));
+
+                    if (lengthSpreadProp.floatValue == 0.0f)
+                    {
+                        switch (GetEnum<SRPLensFlareDistribution>(distributionProp))
+                        {
+                            case SRPLensFlareDistribution.Uniform:
+                                currentAngle += uniformAngleProp.floatValue;
+                                break;
+                            case SRPLensFlareDistribution.Curve:
+                                RandomRange(0.0f, 1.0f); // Color
+                                RandomRange(-1.0f, 1.0f); // Position
+                                currentAngle = rotationProp.floatValue + RandomRange(-Mathf.PI, Mathf.PI) * rotationVariationProp.floatValue;
+                                RandomRange(-1.0f, 1.0f); // Position Offset
+                                break;
+                            case SRPLensFlareDistribution.Random:
+                                break;
+                        }
+                    }
+                }
+
+                UnityEngine.Random.InitState(seedProp.intValue);
+
+                float localIntensity = intensity;
+                currentAngle = 0.0f;
+                for (int idx = 0; idx < countProp.intValue; ++idx)
+                {
+                    if (GetEnum<SRPLensFlareDistribution>(distributionProp) == SRPLensFlareDistribution.Random)
+                    {
+                        localIntensity = intensity * RandomRange(-1.0f, 1.0f) * intensityVariationProp.floatValue + 1.0f;
+                    }
+
+                    Vector2 localLocalSize;
+                    if (GetEnum<SRPLensFlareDistribution>(distributionProp) == SRPLensFlareDistribution.Uniform)
+                        localLocalSize = localSize;
+                    else if (GetEnum<SRPLensFlareDistribution>(distributionProp) == SRPLensFlareDistribution.Random)
+                        localLocalSize = localSize + localSize * (scaleVariationProp.floatValue * RandomRange(-1.0f, 1.0f));
+                    else
+                        localLocalSize = localSize;
 
                     // Set here what need to be setup in the material
                     if (type == SRPLensFlareType.Image)
@@ -455,12 +536,27 @@ namespace UnityEditor.Rendering
                         m_PreviewLensFlare.SetTexture(k_FlareTex, null);
                     }
 
-                    m_PreviewLensFlare.SetVector(k_FlareColorValue, new Vector4(colorProp.colorValue.r * intensity, colorProp.colorValue.g * intensity, colorProp.colorValue.b * intensity, 1f));
+                    Color usedColor = colorProp.colorValue;
+                    if (GetEnum<SRPLensFlareDistribution>(distributionProp) == SRPLensFlareDistribution.Random)
+                    {
+                        //colorGradientProp.serializedObject.targetObject
+                        //UnityEngine.Gradient colorGradient = (UnityEngine.Gradient)colorGradientProp.serializedObject.targetObject;
+                        UnityEngine.Gradient colorGradient = SafeGradientValue(colorGradientProp);
+                        Color randCol = colorGradient.Evaluate(RandomRange(0.0f, 1.0f));
+                        RandomRange(0.0f, 1.0f); // Color
+                        RandomRange(-1.0f, 1.0f); // Position
+                        currentAngle = RandomRange(-Mathf.PI, Mathf.PI) * rotationVariationProp.floatValue;
+                        RandomRange(-1.0f, 1.0f); // Position Offset
+                        usedColor *= randCol;
+                    }
+
+                    m_PreviewLensFlare.SetVector(k_FlareColorValue, new Vector4(usedColor.r * localIntensity, usedColor.g * localIntensity, usedColor.b * localIntensity, 1f));
+                    Vector4 flareData0 = LensFlareCommonSRP.GetFlareData0(Vector2.zero, Vector2.zero, Vector2.one, Vector2.zero, rotationProp.floatValue + currentAngle, 0f, 0f, Vector2.zero, false);
                     m_PreviewLensFlare.SetVector(k_FlareData0, flareData0);
                     // x: OcclusionRadius, y: OcclusionSampleCount, z: ScreenPosZ, w: ScreenRatio
                     m_PreviewLensFlare.SetVector(k_FlareData1, new Vector4(0f, 0f, 0f, 1f));
                     // xy: ScreenPos, zw: FlareSize
-                    m_PreviewLensFlare.SetVector(k_FlareData2, new Vector4(0f, 0f, rescale * localSize.x, rescale * localSize.y));
+                    m_PreviewLensFlare.SetVector(k_FlareData2, new Vector4(0f, 0f, rescale * localLocalSize.x, rescale * localLocalSize.y));
                     // x: Allow Offscreen, y: Edge Offset, z: Falloff, w: invSideCount
                     m_PreviewLensFlare.SetVector(k_FlareData3, new Vector4(0f, usedGradientPosition, Mathf.Exp(Mathf.Lerp(0.0f, 4.0f, Mathf.Clamp01(1.0f - fallOffProp.floatValue))), invSideCount));
 
@@ -487,8 +583,25 @@ namespace UnityEditor.Rendering
 
                     m_PreviewLensFlare.SetPass((int)type + ((type != SRPLensFlareType.Image && inverseSDFProp.boolValue) ? 2 : 0));
 
-                    RenderToTexture2D(ref computedTexture, idx == 0);
+                    if (localIntensity > 0.0f)
+                        RenderToTexture2D(ref computedTexture, idx == 0);
+
+                    if (lengthSpreadProp.floatValue == 0.0f)
+                    {
+                        switch (GetEnum<SRPLensFlareDistribution>(distributionProp))
+                        {
+                            case SRPLensFlareDistribution.Uniform:
+                                currentAngle += uniformAngleProp.floatValue;
+                                break;
+                            case SRPLensFlareDistribution.Curve:
+                                break;
+                            case SRPLensFlareDistribution.Random:
+                                break;
+                        }
+                    }
                 }
+
+                UnityEngine.Random.state = backupRandState;
             }
             else
             {
