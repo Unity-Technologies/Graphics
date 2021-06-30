@@ -12,6 +12,8 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed an issue where Particle Lit shader had an incorrect fallback shader [case 1331779]
 - Fixed SRP batcher not working on OpenGL.
 - Fixed an issue where the inspector of Renderer Data would break after adding RenderObjects renderer feature and then adding another renderer feature. [case 1323608](https://issuetracker.unity3d.com/product/unity/issues/guid/1323608/)
+- Fixed an issue with Transparency Sort Mode using the 2D Renderer Data [case 1310652](https://issuetracker.unity3d.com/product/unity/issues/guid/1310652/)
+- Fixed an issue with Transparency Sort Axis using the 2D Renderer Data [case 1312229](https://issuetracker.unity3d.com/product/unity/issues/guid/1312229/)
 
 ## [10.5.0] - 2021-04-19
 
