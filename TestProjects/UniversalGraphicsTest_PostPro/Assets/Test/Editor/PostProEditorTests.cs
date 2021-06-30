@@ -32,6 +32,6 @@ class FoundationEditorTests
     [TestCase(ShaderPathID.TerrainLit)]
     public void CheckIfScenesDoNoHaveShader(ShaderPathID shaderPathID)
     {
-        UniversalProjectAssert.AllShadersAreNot(kProjectName, shaderPathID);
+        UniversalProjectAssert.AllMaterialShadersAreNotBuiltin(kProjectName, shaderPathID);
     }
 }
