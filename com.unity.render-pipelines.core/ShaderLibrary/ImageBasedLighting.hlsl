@@ -623,6 +623,63 @@ real4 IntegrateLDCharlie(TEXTURECUBE_PARAM(tex, sampl),
     return real4(lightInt / cbsdfInt, 1.0);
 }
 
+real4 IntegrateLDCharlieNew(TEXTURECUBE_PARAM(tex, sampl),
+    real3 V,
+    real3 N,
+    real roughness,
+    uint sampleCount,
+    real invOmegaP)
+{
+    // Local frame for the local to world sample transformation
+    real3x3 localToWorld = GetLocalFrame(N);
+    float NdotV = 1;
+
+    // Cumulative values
+    real3 lightInt = real3(0.0, 0.0, 0.0);
+    real  cbsdfInt = 0.0;
+
+    real rcpNumSamples = rcp(sampleCount);
+    real mipLevel = log2(rcpNumSamples * invOmegaP);
+    for (uint i = 0; i < sampleCount; ++i)
+    {
+        // generate sample using stratified sampling of the hemisphere
+        float3 localL = SampleConeStrata(i, rcpNumSamples, 0.0f);
+
+        // Convert it to world space
+        real3 L = mul(localL, localToWorld);
+        float NdotL = dot(N, L);
+
+        // The goal of this function is to use Monte-Carlo integration to find
+        // X = Integral{Radiance(L) * CBSDF(L, N, V) dL} / Integral{CBSDF(L, N, V) dL}.
+        // Note: Integral{CBSDF(L, N, V) dL} is given by the FDG texture.
+        // CBSDF  = F * D * V * NdotL.
+        // PDF    =  1.0 / NdotL
+        // Weight = CBSDF / PDF = F * D * V
+        // Since we perform filtering with the assumption that (V == N),
+        // (LdotH == NdotH) && (NdotV == 1) && (Weight ==  F * D * V)
+        // Therefore, after the Monte Carlo expansion of the integrals,
+        // X = Sum(Radiance(L) * Weight) / Sum(Weight) = Sum(Radiance(L) * F * D * V) / Sum(F * D * V).
+
+        // We are in the supposition that N == V
+        float LdotV, NdotH, LdotH, invLenLV;
+        GetBSDFAngle(V, L, NdotL, NdotV, LdotV, NdotH, LdotH, invLenLV);
+
+        // BRDF data
+        real F = 1;
+        real D = D_Charlie(NdotH, roughness);
+        real Vis = V_Charlie(NdotL, NdotV, roughness);
+
+        // TODO: use a Gaussian-like filter to generate the MIP pyramid.
+        real3 val = SAMPLE_TEXTURECUBE_LOD(tex, sampl, L, mipLevel).rgb;
+
+        // Use the approximation from "Real Shading in Unreal Engine 4": Weight ~ NdotL.
+        lightInt += val * F * D * Vis;
+        cbsdfInt += F * D * Vis;
+    }
+
+    return 0.5f * real4(lightInt / cbsdfInt, 1.0);
+}
+
 
 // Searches the row 'j' containing 'n' elements of 'haystack' and
 // returns the index of the first element greater or equal to 'needle'.
