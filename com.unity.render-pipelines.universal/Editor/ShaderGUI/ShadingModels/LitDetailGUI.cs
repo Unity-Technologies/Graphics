@@ -8,7 +8,7 @@ namespace UnityEditor.Rendering.Universal.ShaderGUI
         public static class Styles
         {
             public static readonly GUIContent detailInputs = new GUIContent("Detail Inputs",
-                "Defines the Detail map, a texture that adds small texture tiles to a Material to provide the illusion of surface detail.");
+                "These settings define the surface details by tiling and overlaying additional maps on the surface.");
 
             public static readonly GUIContent detailMaskText = new GUIContent("Mask",
                 "Select a mask for the Detail map. The mask uses the alpha channel of the selected texture. The Tiling and Offset settings have no effect on the mask.");
