@@ -2096,6 +2096,7 @@ namespace UnityEditor.VFX.UI
             if (evt.keyCode == KeyCode.D && evt.modifiers == EventModifiers.Control)
             {
                 this.DuplicateBlackboardFieldSelection();
+                this.DuplicateBlackBoardCategorySelection();
             }
         }
 
@@ -2316,18 +2317,7 @@ namespace UnityEditor.VFX.UI
 
         private void OnDuplicateBlackBoardCategory(DropdownMenuAction obj)
         {
-            foreach (var blackboardCategory in selection.OfType<VFXBlackboardCategory>())
-            {
-                var newCategory = this.blackboard.AddCategory(blackboardCategory.title);
-
-                var parameters = blackboardCategory
-                    .Children()
-                    .OfType<VFXBlackboardRow>()
-                    .Select(x => this.DuplicateBlackboardField(x.field))
-                    .ToList();
-                parameters.ForEach(x => x.model.category = newCategory.title);
-                newCategory.SyncParameters(new HashSet<VFXParameterController>(parameters));
-            }
+            this.DuplicateBlackBoardCategorySelection();
         }
 
         void CollapseOperator(DropdownMenuAction a)
@@ -2596,6 +2586,22 @@ namespace UnityEditor.VFX.UI
             }
 
             this.m_Controller.graph.SetExpressionValueDirty();
+        }
+
+        private void DuplicateBlackBoardCategorySelection()
+        {
+            foreach (var blackboardCategory in selection.OfType<VFXBlackboardCategory>())
+            {
+                var newCategory = this.blackboard.AddCategory(blackboardCategory.title);
+
+                var parameters = blackboardCategory
+                    .Children()
+                    .OfType<VFXBlackboardRow>()
+                    .Select(x => this.DuplicateBlackboardField(x.field))
+                    .ToList();
+                parameters.ForEach(x => x.model.category = newCategory.title);
+                newCategory.SyncParameters(new HashSet<VFXParameterController>(parameters));
+            }
         }
 
         private VFXParameterController DuplicateBlackboardField(VFXBlackboardField blackboardField)
