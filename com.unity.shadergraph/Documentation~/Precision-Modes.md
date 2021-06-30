@@ -9,14 +9,11 @@ To set the precision of an entire graph, open the [Graph Settings](Graph-Setting
 ## Precision mode settings
 | Name | Description |
 |------:|------------|
-| Single | This is a high-precision floating point value. The number of bits is platform-specific. For modern desktop computers, it is 32 bits.
-This mode is useful for world space positions, texture coordinates, and scalar computations that involve complex functions such as trigonometry, power, and exponentiation. |
-| Half | This is a low-precision floating point value. The number of bits is platform-specific. For modern desktop computers, it is 16 bits.
-This mode is useful for short vectors, directions, object space positions, and many high dynamic range colors, but not very strong light sources, such as the sun.|
+| Single | This is a high-precision floating point value. The number of bits is platform-specific. For modern desktop computers, it is 32 bits.<br/>This mode is useful for world space positions, texture coordinates, and scalar computations that involve complex functions such as trigonometry, power, and exponentiation. |
+| Half | This is a low-precision floating point value. The number of bits is platform-specific. For modern desktop computers, it is 16 bits.<br/>This mode is useful for short vectors, directions, object space positions, and many high dynamic range colors, but not very strong light sources, such as the sun.|
 | Switchable | This mode is only for Sub Graphs. When you enable this mode for a Sub Graph Node, that node determines the precision of the Sub Graph that it references. See Sub Graph precision within other graphs for more information. |
 | Inherit | This mode determines a node's precision based on a set of inheritance rules. See the Precision inheritance section.|
-| Use Graph Precision | This mode forces this node to use the same precision setting as the graph.
-If this is a node in a Sub Graph, and that Sub Graph’s **Precision** is set to **Switchable**, then the precision of this node is the precision of the Sub Graph node representing this Sub Graph. |
+| Use Graph Precision | This mode forces this node to use the same precision setting as the graph.<br/>If this is a node in a Sub Graph, and that Sub Graph’s **Precision** is set to **Switchable**, then the precision of this node is the precision of the Sub Graph node representing this Sub Graph. |
 
 ## Using Precision Modes
 ### Visualizing Precision in a graph
@@ -70,7 +67,7 @@ In the figure below, node D has the **Inherit** mode. It receives input from the
 
 Mixed inheritance refers to the inheritance behaviour on a node with both simple and complex inheritance types.
 
-Nodes with no input ports, such as [Input nodes](Input-nodes), inherit the **Graph Precision**. However, complex inheritance rules still affect other nodes in the same group, as illustrated in the figure below.
+Nodes with no input ports, such as [Input nodes](Input-Nodes), inherit the **Graph Precision**. However, complex inheritance rules still affect other nodes in the same group, as illustrated in the figure below.
 
 ![](images/precisionmodes3.png)
 
@@ -83,7 +80,7 @@ The **Switchable** mode overrides **Half** mode but not **Single**.
 
 ### Sub Graph precision
 
-Precision behavior and user interface elements for [Sub Graphs](Sub-graph]) and their nodes do not differ from other graphs and nodes. Sub Graphs represent a function, and you can affect that function's inputs, outputs, and operators by modifying the relevant set of precision settings.
+Precision behavior and user interface elements for [Sub Graphs](Sub-graph) and their nodes do not differ from other graphs and nodes. Sub Graphs represent a function, and you can affect that function's inputs, outputs, and operators by modifying the relevant set of precision settings.
 
 * The Sub Graph properties correspond to the function's inputs.
 * The internal node properties correspond to the function's operators.

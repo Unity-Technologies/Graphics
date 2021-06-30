@@ -94,7 +94,7 @@ namespace UnityEditor.Rendering.HighDefinition
         {
             PropertyField(m_Denoise);
 
-            using (new HDEditorUtils.IndentScope())
+            using (new IndentLevelScope())
             {
                 PropertyField(m_HalfResolutionDenoiser);
                 PropertyField(m_DenoiserRadius);
@@ -105,7 +105,7 @@ namespace UnityEditor.Rendering.HighDefinition
         void RayTracingPerformanceModeGUI(bool mixed)
         {
             base.OnInspectorGUI(); // Quality Setting
-            using (new HDEditorUtils.IndentScope())
+            using (new IndentLevelScope())
             using (new QualityScope(this))
             {
                 PropertyField(m_RayLength, k_RayLengthText);
@@ -152,7 +152,7 @@ namespace UnityEditor.Rendering.HighDefinition
                 && m_Tracing.overrideState.boolValue
                 && tracingMode != RayCastingMode.RayMarching;
 
-            using (new HDEditorUtils.IndentScope())
+            using (new IndentLevelScope())
             {
                 if (rayTracingSettingsDisplayed)
                 {
@@ -164,7 +164,7 @@ namespace UnityEditor.Rendering.HighDefinition
                         if (tracingMode == RayCastingMode.RayTracing)
                         {
                             PropertyField(m_Mode);
-                            using (new HDEditorUtils.IndentScope())
+                            using (new IndentLevelScope())
                             {
                                 switch (m_Mode.value.GetEnumValue<RayTracingMode>())
                                 {
@@ -203,7 +203,7 @@ namespace UnityEditor.Rendering.HighDefinition
                 {
                     base.OnInspectorGUI(); // Quality Setting
 
-                    using (new HDEditorUtils.IndentScope())
+                    using (new IndentLevelScope())
                     using (new QualityScope(this))
                     {
                         PropertyField(m_RaySteps);

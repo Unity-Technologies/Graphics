@@ -41,7 +41,6 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Change Asset/Create/Shader/Sub Graph to Asset/Create/Shader Graph/Sub Graph
 - Change Asset/Create/Shader/VFX Shader Graph to Asset/Create/Shader Graph/VFX Shader Graph
 - Adjusted Blackboard article to clarify multi-select functionality
-=======
 - Limited max number of inspectable items in the Inspector View to 20 items
 - Added borders to inspector items styling, to better differentiate between separate items
 - Updated Custom Function Node to use new ShaderInclude asset type instead of TextAsset (.hlsl and .cginc softcheck remains).
@@ -103,6 +102,11 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed a ShaderGraph issue where a material inspector could contain an extra set of render queue, GPU instancing, and double-sided GI controls.
 - Fixed a Shader Graph issue where property auto generated reference names were not consistent across all property types [1336937].
 - Fixed a warning in ShaderGraph about BuiltIn Shader Library assembly having no scripts.
+- Fixed ShaderGraph BuiltIn target not having collapsible foldouts in the material inspector [1339256].
+- Fixed GPU instancing support in Shadergraph [1319655] (https://issuetracker.unity3d.com/issues/shader-graph-errors-are-thrown-when-a-propertys-shader-declaration-is-set-to-hybrid-per-instance-and-exposed-is-disabled).
+- Fixed indent level in shader graph target foldout (case 1339025).
+- Fixed ShaderGraph BuiltIn target shader GUI to allow the same render queue control available on URP with the changes for case 1335795.
+- Fixed ShaderGraph BuiltIn target not to apply emission in the ForwardAdd pass to match surface shader results [1345574]. (https://issuetracker.unity3d.com/product/unity/issues/guid/1345574/)
 
 ## [11.0.0] - 2020-10-21
 
