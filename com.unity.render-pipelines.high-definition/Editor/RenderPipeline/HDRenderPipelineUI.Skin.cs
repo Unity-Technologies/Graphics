@@ -106,7 +106,10 @@ namespace UnityEditor.Rendering.HighDefinition
             public static readonly GUIContent SSGIRaySteps = EditorGUIUtility.TrTextContent("Ray Steps");
             public static readonly GUIContent SSGIRadius = EditorGUIUtility.TrTextContent("Radius");
             public static readonly GUIContent SSGIClampValue = EditorGUIUtility.TrTextContent("Clamp Value");
-            public static readonly GUIContent SSGIFilterRadius = EditorGUIUtility.TrTextContent("Filter Radius");
+            public static readonly GUIContent SSGIDenoise = EditorGUIUtility.TrTextContent("Denoise");
+            public static readonly GUIContent SSGIHalfResDenoise = EditorGUIUtility.TrTextContent("Half Resolution Denoiser");
+            public static readonly GUIContent SSGIDenoiserRadius = EditorGUIUtility.TrTextContent("Denoiser Radius");
+            public static readonly GUIContent SSGISecondDenoise = EditorGUIUtility.TrTextContent("Second Denoiser Pass");
 
             // Fog
             public static readonly GUIContent FogSettingsSubTitle = EditorGUIUtility.TrTextContent("Volumetric Fog");

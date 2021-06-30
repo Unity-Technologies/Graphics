@@ -37,10 +37,10 @@ namespace UnityEngine.Rendering.HighDefinition
         {
         }
 
-        public void Init(HDRenderPipelineRayTracingResources rpRTResources)
+        public void Init(HDRenderPipelineRuntimeResources rpResources)
         {
             // Keep track of the resources
-            m_TemporalFilterCS = rpRTResources.temporalFilterCS;
+            m_TemporalFilterCS = rpResources.shaders.temporalFilterCS;
 
             // Grab all the kernels we'll eventually need
             m_ValidateHistoryKernel = m_TemporalFilterCS.FindKernel("ValidateHistory");
@@ -68,6 +68,7 @@ namespace UnityEngine.Rendering.HighDefinition
             public float historyValidity;
             public bool occluderMotionRejection;
             public bool receiverMotionRejection;
+            public float exposureControl;
         }
 
         class HistoryValidityPassData
@@ -183,6 +184,7 @@ namespace UnityEngine.Rendering.HighDefinition
             public float pixelSpreadTangent;
             public bool occluderMotionRejection;
             public bool receiverMotionRejection;
+            public float exposureControl;
 
             // Kernels
             public int temporalAccKernel;
@@ -222,6 +224,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 passData.historyValidity = filterParams.historyValidity;
                 passData.receiverMotionRejection = filterParams.receiverMotionRejection;
                 passData.occluderMotionRejection = filterParams.occluderMotionRejection;
+                passData.exposureControl = filterParams.exposureControl;
 
                 // Kernels
                 passData.temporalAccKernel = filterParams.singleChannel ? m_TemporalAccumulationSingleKernel : m_TemporalAccumulationColorKernel;
@@ -266,6 +269,8 @@ namespace UnityEngine.Rendering.HighDefinition
                         ctx.cmd.SetComputeFloatParam(data.temporalFilterCS, HDShaderIDs._HistoryValidity, data.historyValidity);
                         ctx.cmd.SetComputeIntParam(data.temporalFilterCS, HDShaderIDs._ReceiverMotionRejection, data.receiverMotionRejection ? 1 : 0);
                         ctx.cmd.SetComputeIntParam(data.temporalFilterCS, HDShaderIDs._OccluderMotionRejection, data.occluderMotionRejection ? 1 : 0);
+                        ctx.cmd.SetComputeFloatParam(data.temporalFilterCS, HDShaderIDs._PixelSpreadAngleTangent, data.pixelSpreadTangent);
+                        ctx.cmd.SetComputeFloatParam(data.temporalFilterCS, HDShaderIDs._EnableExposureControl, data.exposureControl);
 
                         // Bind the output buffer
                         ctx.cmd.SetComputeTextureParam(data.temporalFilterCS, data.temporalAccKernel, HDShaderIDs._DenoiseOutputTextureRW, data.outputBuffer);

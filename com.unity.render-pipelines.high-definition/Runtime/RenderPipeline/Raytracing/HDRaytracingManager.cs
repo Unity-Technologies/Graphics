@@ -64,7 +64,6 @@ namespace UnityEngine.Rendering.HighDefinition
         HDDiffuseDenoiser m_DiffuseDenoiser;
         HDReflectionDenoiser m_ReflectionDenoiser;
         HDDiffuseShadowDenoiser m_DiffuseShadowDenoiser;
-        SSGIDenoiser m_SSGIDenoiser;
 
         // Ray-count manager data
         RayCountManager m_RayCountManager;
@@ -109,8 +108,6 @@ namespace UnityEngine.Rendering.HighDefinition
                 m_TemporalFilter.Release();
             if (m_SimpleDenoiser != null)
                 m_SimpleDenoiser.Release();
-            if (m_SSGIDenoiser != null)
-                m_SSGIDenoiser.Release();
             if (m_DiffuseShadowDenoiser != null)
                 m_DiffuseShadowDenoiser.Release();
             if (m_DiffuseDenoiser != null)
@@ -720,10 +717,10 @@ namespace UnityEngine.Rendering.HighDefinition
 
         internal HDTemporalFilter GetTemporalFilter()
         {
-            if (m_TemporalFilter == null && m_RayTracingSupported)
+            if (m_TemporalFilter == null)
             {
                 m_TemporalFilter = new HDTemporalFilter();
-                m_TemporalFilter.Init(m_GlobalSettings.renderPipelineRayTracingResources);
+                m_TemporalFilter.Init(m_GlobalSettings.renderPipelineResources);
             }
             return m_TemporalFilter;
         }
@@ -738,22 +735,12 @@ namespace UnityEngine.Rendering.HighDefinition
             return m_SimpleDenoiser;
         }
 
-        internal SSGIDenoiser GetSSGIDenoiser()
-        {
-            if (m_SSGIDenoiser == null)
-            {
-                m_SSGIDenoiser = new SSGIDenoiser();
-                m_SSGIDenoiser.Init(m_GlobalSettings.renderPipelineResources);
-            }
-            return m_SSGIDenoiser;
-        }
-
         internal HDDiffuseDenoiser GetDiffuseDenoiser()
         {
             if (m_DiffuseDenoiser == null)
             {
                 m_DiffuseDenoiser = new HDDiffuseDenoiser();
-                m_DiffuseDenoiser.Init(m_GlobalSettings.renderPipelineResources, m_GlobalSettings.renderPipelineRayTracingResources, this);
+                m_DiffuseDenoiser.Init(m_GlobalSettings.renderPipelineResources, this);
             }
             return m_DiffuseDenoiser;
         }

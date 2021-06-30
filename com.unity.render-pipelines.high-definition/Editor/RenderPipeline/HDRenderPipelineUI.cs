@@ -769,7 +769,10 @@ namespace UnityEditor.Rendering.HighDefinition
         static void DrawSSGIQualitySetting(SerializedHDRenderPipelineAsset serialized, int tier)
         {
             EditorGUILayout.PropertyField(serialized.renderPipelineSettings.lightingQualitySettings.SSGIRaySteps.GetArrayElementAtIndex(tier), Styles.SSGIRaySteps);
-            EditorGUILayout.PropertyField(serialized.renderPipelineSettings.lightingQualitySettings.SSGIFilterRadius.GetArrayElementAtIndex(tier), Styles.SSGIFilterRadius);
+            EditorGUILayout.PropertyField(serialized.renderPipelineSettings.lightingQualitySettings.SSGIDenoise.GetArrayElementAtIndex(tier), Styles.SSGIDenoise);
+            EditorGUILayout.PropertyField(serialized.renderPipelineSettings.lightingQualitySettings.SSGIHalfResDenoise.GetArrayElementAtIndex(tier), Styles.SSGIHalfResDenoise);
+            EditorGUILayout.PropertyField(serialized.renderPipelineSettings.lightingQualitySettings.SSGIDenoiserRadius.GetArrayElementAtIndex(tier), Styles.SSGIDenoiserRadius);
+            EditorGUILayout.PropertyField(serialized.renderPipelineSettings.lightingQualitySettings.SSGISecondDenoise.GetArrayElementAtIndex(tier), Styles.SSGISecondDenoise);
         }
 
         static void Drawer_SectionRenderingUnsorted(SerializedHDRenderPipelineAsset serialized, Editor owner)
