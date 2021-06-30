@@ -38,17 +38,17 @@ namespace UnityEditor.ShaderGraph
         {
             m_GraphData  = graphData;
             m_OutputNode = outputNode;
-            Generate(mode, name, assetCollection, GetTargetImplementations());
+            Generate(mode, name, assetCollection, GetTargetImplementations(), humanReadable);
         }
 
-        public Generator(GraphData graphData, AbstractMaterialNode outputNode, GenerationMode mode, string name, AssetCollection assetCollection, Target[] targets)
+        public Generator(GraphData graphData, AbstractMaterialNode outputNode, GenerationMode mode, string name, AssetCollection assetCollection, Target[] targets, bool humanReadable = false)
         {
             m_GraphData  = graphData;
             m_OutputNode = outputNode;
-            Generate(mode, name, assetCollection, targets);
+            Generate(mode, name, assetCollection, targets, humanReadable);
         }
 
-        void Generate(GenerationMode mode, string name, AssetCollection assetCollection, Target[] targets)
+        void Generate(GenerationMode mode, string name, AssetCollection assetCollection, Target[] targets, bool humanReadable = false)
         {
             m_Mode = mode;
             m_Name = name;
@@ -56,6 +56,7 @@ namespace UnityEditor.ShaderGraph
             m_Builder = new ShaderStringBuilder(humanReadable: humanReadable);
             m_ConfiguredTextures = new List<PropertyCollector.TextureInfo>();
             m_assetCollection = assetCollection;
+            m_humanReadable = humanReadable;
             m_humanReadable = humanReadable;
 
             m_ActiveBlocks = m_GraphData.GetNodes<BlockNode>().ToList();
