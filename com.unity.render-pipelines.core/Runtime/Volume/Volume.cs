@@ -20,7 +20,7 @@ namespace UnityEngine.Rendering
         /// The Volume priority in the stack. A higher value means higher priority. This supports negative values.
         /// </summary>
         [Tooltip("Sets the Volume priority in the stack. A higher value means higher priority. You can use negative values.")]
-        public float priority = 0f;
+        public int priority = 0;
 
         /// <summary>
         /// The outer distance to start blending from. A value of 0 means no blending and Unity applies
