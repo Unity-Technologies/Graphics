@@ -116,21 +116,43 @@ if (collision)
                 Source += @"
     float distToCap = colliderSign * (cone_halfHeight - relativePosY);
     float distToSide = colliderSign * (cone_radius - dist);
-    float3 tPos = mul(invFieldTransform, float4(position, 1.0f)).xyz;";
+    float3 tPos = mul(invFieldTransform, float4(position, 1.0f)).xyz;
+
+    float3 sideNormal = normalize(float3(tNextPos.x * sincosSlope.y, sincosSlope.x, tNextPos.z * sincosSlope.y));
+    float3 capNormal = float3(0, tNextPos.y < cone_halfHeight ? -1.0f : 1.0f, 0);
+    float3 n = (float3)0;
+";
 
                 //Position/Normal correction
                 if (mode == Mode.Solid)
                     Source += @"
-    float3 n = distToSide < distToCap
-                ? normalize(float3(tNextPos.x * sincosSlope.y, sincosSlope.x, tNextPos.z * sincosSlope.y))
-                : float3(0, tNextPos.y < cone_halfHeight ? -1.0f : 1.0f, 0);
-    tPos += n * min(distToSide, distToCap);";
+    if (distToCap < 0.0f)
+    {
+        n += capNormal;
+        tPos += capNormal * distToCap;
+    }
+
+    if (distToSide < 0.0f)
+    {
+        n += sideNormal;
+        tPos += sideNormal * distToSide;
+    }";
                 else
                     Source += @"
-    float3 n = distToSide > distToCap
-        ? -normalize(float3(tNextPos.x * sincosSlope.y, sincosSlope.x, tNextPos.z * sincosSlope.y))
-        : -float3(0, tNextPos.y < cone_halfHeight ? -1.0f : 1.0f, 0);
-    tPos += n * max(distToSide, distToCap);";
+    if (distToCap > 0.0f)
+    {
+        tPos -= capNormal * distToCap;
+        n -= capNormal;
+    }
+
+    if (distToSide > 0.0f)
+    {
+        tPos -= sideNormal * distToSide;
+        n -= sideNormal;
+    }";
+                //There is a limitation here ^
+                //In cone case, sideNormal.y != 0
+                //if distToCap && distToSide, then sideNormal is offsetting tPos by y-axis.
 
                 //Back to initial space
                 Source += @"
