@@ -58,7 +58,7 @@ namespace UnityEditor.Rendering.Universal
             public static GUIContent[] displayedDefaultOptions =
             {
                 new GUIContent("Custom"),
-                new GUIContent("Use Pipeline Settings")
+                new GUIContent("Use settings from Render Pipeline Asset")
             };
 
             public static readonly GUIContent LightLayer = EditorGUIUtility.TrTextContent("Light Layer", "Specifies the current Light Layers that the Light affects. This Light illuminates corresponding Renderers with the same Light Layer flags.");
