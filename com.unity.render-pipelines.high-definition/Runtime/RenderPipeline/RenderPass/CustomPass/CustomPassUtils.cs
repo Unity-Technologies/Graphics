@@ -693,11 +693,20 @@ namespace UnityEngine.Rendering.HighDefinition
 
             /// <summary>
             /// Overrides the current camera, changing all the matrices and view parameters for the new one.
-            ///
             /// </summary>
-            /// <param name="ctx"></param>
-            /// <param name="overrideCamera"></param>
-            /// <param name="overrideAspectRatio"></param>
+            /// <param name="ctx">The current custom pass context.</param>
+            /// <param name="overrideCamera">The camera that will replace the current one.</param>
+            /// <param name="overrideAspectRatio">The aspect ratio of the override camera. Especially useful when rendering directly into a render texture with a different aspect ratio than the current camera.</param>
+            /// <code>
+            /// CoreUtils.SetRenderTarget(ctx.cmd, renderTexture.colorBuffer, renderTexture.depthBuffer, clearFlag);
+            ///
+            /// float aspectRatio = renderTexture.width / (float)renderTexture.height;
+            /// using (new HDRenderPipeline.OverrideCameraRendering(ctx, overrideCamera, aspectRatio))
+            /// {
+            ///     ...
+            /// }
+            /// </code>
+            /// </example>
             public OverrideCameraRendering(CustomPassContext ctx, Camera overrideCamera, float overrideAspectRatio)
             {
                 this.ctx = ctx;
