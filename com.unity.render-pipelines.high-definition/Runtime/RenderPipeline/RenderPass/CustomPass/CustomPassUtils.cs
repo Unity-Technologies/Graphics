@@ -441,6 +441,33 @@ namespace UnityEngine.Rendering.HighDefinition
         /// </summary>
         /// <param name="ctx">Custom Pass Context.</param>
         /// <param name="view">The camera from where you want the objects to be rendered.</param>
+        /// <param name="targetRenderTexture">The render target that will be bound before rendering the objects.</param>
+        /// <param name="layerMask">LayerMask to filter the objects to render.</param>
+        /// <param name="renderQueueFilter">Render Queue to filter the type of objects you want to render.</param>
+        /// <param name="overrideMaterial">Optional material that will be used to render the objects.</param>
+        /// <param name="overrideMaterialIndex">Pass index to use for the override material.</param>
+        /// <param name="overrideRenderState">The render states to override when rendering the objects.</param>
+        public static void RenderFromCamera(in CustomPassContext ctx, Camera view, RenderTexture targetRenderTexture, ClearFlag clearFlag, LayerMask layerMask, CustomPass.RenderQueueType renderQueueFilter = CustomPass.RenderQueueType.All, Material overrideMaterial = null, int overrideMaterialIndex = 0, RenderStateBlock overrideRenderState = default(RenderStateBlock))
+        {
+            CoreUtils.SetRenderTarget(ctx.cmd, targetRenderTexture.colorBuffer, targetRenderTexture.depthBuffer, clearFlag);
+
+            float aspectRatio = targetRenderTexture.width / (float)targetRenderTexture.height;
+
+            using (new DisableSinglePassRendering(ctx))
+            {
+                using (new OverrideCameraRendering(ctx, view, aspectRatio))
+                {
+                    using (new ProfilingScope(ctx.cmd, renderFromCameraSampler))
+                        DrawRenderers(ctx, layerMask, renderQueueFilter, overrideMaterial, overrideMaterialIndex, overrideRenderState);
+                }
+            }
+        }
+
+        /// <summary>
+        /// Render a list of objects from another camera point of view.
+        /// </summary>
+        /// <param name="ctx">Custom Pass Context.</param>
+        /// <param name="view">The camera from where you want the objects to be rendered.</param>
         /// <param name="targetColor">The render target that will be bound to the color buffer before rendering</param>
         /// <param name="targetDepth">The render target that will be bound to the depth buffer before rendering</param>
         /// <param name="clearFlag">The type of clear to do before binding the render targets.</param>
@@ -502,6 +529,27 @@ namespace UnityEngine.Rendering.HighDefinition
         }
 
         /// <summary>
+        /// Render eye space depth of objects from the view point of a camera into the color and depth buffers.
+        /// </summary>
+        /// <param name="ctx">Custom Pass Context.</param>
+        /// <param name="view">The camera from where you want the objects to be rendered.</param>
+        /// <param name="targetRenderTexture">The render target that will be bound before rendering the objects.</param>
+        /// <param name="clearFlag">The type of clear to do before binding the render targets.</param>
+        /// <param name="layerMask">LayerMask to filter the objects to render.</param>
+        /// <param name="renderQueueFilter">Render Queue to filter the type of objects you want to render.</param>
+        /// <param name="overrideRenderState">The render states to override when rendering the objects.</param>
+        public static void RenderDepthFromCamera(in CustomPassContext ctx, Camera view, RenderTexture targetRenderTexture, ClearFlag clearFlag, LayerMask layerMask, CustomPass.RenderQueueType renderQueueFilter = CustomPass.RenderQueueType.All, RenderStateBlock overrideRenderState = default(RenderStateBlock))
+        {
+            using (new ProfilingScope(ctx.cmd, renderDepthFromCameraSampler))
+            {
+                if (targetRenderTexture.format == RenderTextureFormat.Depth) // render target without color buffer
+                    RenderFromCamera(ctx, view, targetRenderTexture, clearFlag, layerMask, renderQueueFilter, customPassRenderersUtilsMaterial, depthPassIndex, overrideRenderState);
+                else
+                    RenderFromCamera(ctx, view, targetRenderTexture, clearFlag, layerMask, renderQueueFilter, customPassRenderersUtilsMaterial, depthToColorPassIndex, overrideRenderState);
+            }
+        }
+
+        /// <summary>
         /// Render world space normal of objects from the view point of a camera into the color buffer.
         /// </summary>
         /// <param name="ctx">Custom Pass Context.</param>
@@ -530,6 +578,22 @@ namespace UnityEngine.Rendering.HighDefinition
         }
 
         /// <summary>
+        /// Render world space normal of objects from the view point of a camera into the color buffer.
+        /// </summary>
+        /// <param name="ctx">Custom Pass Context.</param>
+        /// <param name="view">The camera from where you want the objects to be rendered.</param>
+        /// <param name="targetRenderTexture">The render target that will be bound before rendering the objects.</param>
+        /// <param name="clearFlag">The type of clear to do before binding the render targets.</param>
+        /// <param name="layerMask">LayerMask to filter the objects to render.</param>
+        /// <param name="renderQueueFilter">Render Queue to filter the type of objects you want to render.</param>
+        /// <param name="overrideRenderState">The render states to override when rendering the objects.</param>
+        public static void RenderNormalFromCamera(in CustomPassContext ctx, Camera view, RenderTexture targetRenderTexture, ClearFlag clearFlag, LayerMask layerMask, CustomPass.RenderQueueType renderQueueFilter = CustomPass.RenderQueueType.All, RenderStateBlock overrideRenderState = default(RenderStateBlock))
+        {
+            using (new ProfilingScope(ctx.cmd, renderNormalFromCameraSampler))
+                RenderFromCamera(ctx, view, targetRenderTexture, clearFlag, layerMask, renderQueueFilter, customPassRenderersUtilsMaterial, normalToColorPassIndex, overrideRenderState);
+        }
+
+        /// <summary>
         /// Render world space tangent of objects from the view point of a camera into the color buffer.
         /// </summary>
         /// <param name="ctx">Custom Pass Context.</param>
@@ -555,6 +619,23 @@ namespace UnityEngine.Rendering.HighDefinition
         {
             using (new ProfilingScope(ctx.cmd, renderTangentFromCameraSampler))
                 RenderFromCamera(ctx, view, targetColor, targetDepth, clearFlag, layerMask, renderQueueFilter, customPassRenderersUtilsMaterial, tangentToColorPassIndex, overrideRenderState);
+        }
+
+        /// <summary>
+        /// Render world space tangent of objects from the view point of a camera into the color buffer
+        /// </summary>
+        /// <param name="ctx">Custom Pass Context.</param>
+        /// <param name="view">The camera from where you want the objects to be rendered.</param>
+        /// <param name="targetRenderTexture">The render target that will be bound before rendering the objects.</param>
+        /// <param name="clearFlag">The type of clear to do before binding the render targets.</param>
+        /// <param name="layerMask">LayerMask to filter the objects to render.</param>
+        /// <param name="renderQueueFilter">Render Queue to filter the type of objects you want to render.</param>
+        /// <param name="overrideRenderState">The render states to override when rendering the objects.</param>
+        public static void RenderTangentFromCamera(in CustomPassContext ctx, Camera view, RenderTexture targetRenderTexture, ClearFlag clearFlag, LayerMask layerMask, CustomPass.RenderQueueType renderQueueFilter = CustomPass.RenderQueueType.All, RenderStateBlock overrideRenderState = default(RenderStateBlock))
+        {
+            using (new ProfilingScope(ctx.cmd, renderTangentFromCameraSampler))
+                // RenderFromCamera(ctx, view, targetRenderTexture, clearFlag, layerMask, renderQueueFilter, customPassRenderersUtilsMaterial, tangentToColorPassIndex, overrideRenderState);
+                RenderFromCamera(ctx, view, targetRenderTexture, clearFlag, layerMask, renderQueueFilter, customPassRenderersUtilsMaterial, tangentToColorPassIndex, overrideRenderState);
         }
 
         // TODO when rendergraph is available: a PostProcess pass which does the copy with a temp target
@@ -590,13 +671,51 @@ namespace UnityEngine.Rendering.HighDefinition
                 this.ctx = ctx;
                 this.overrideCamera = overrideCamera;
                 overrideHDCamera = HDCamera.GetOrCreate(overrideCamera);
-                originalAspect = 0;
+                originalAspect = overrideCamera.aspect;
 
+                float overrideAspectRatio = overrideCamera.aspect;
+
+                // Sync camera pixel rect and aspect ratio when it outputs to the scene view
+                if (overrideCamera.targetTexture == null)
+                {
+                    // We also sync the aspect ratio of the camera, this time using the camera instead of HDCamera.
+                    // This will update the projection matrix to match the aspect of the current rendering camera.
+                    overrideAspectRatio = (float)ctx.hdCamera.camera.pixelRect.width / (float)ctx.hdCamera.camera.pixelRect.height;
+                }
+                else
+                {
+                    // In case we have a render texture assigned to the camera, we can calculate the correct aspect ratio
+                    overrideAspectRatio = overrideCamera.pixelWidth / (float)overrideCamera.pixelHeight;
+                }
+
+                Init(ctx, overrideCamera, overrideAspectRatio);
+            }
+
+            /// <summary>
+            /// Overrides the current camera, changing all the matrices and view parameters for the new one.
+            ///
+            /// </summary>
+            /// <param name="ctx"></param>
+            /// <param name="overrideCamera"></param>
+            /// <param name="overrideAspectRatio"></param>
+            public OverrideCameraRendering(CustomPassContext ctx, Camera overrideCamera, float overrideAspectRatio)
+            {
+                this.ctx = ctx;
+                this.overrideCamera = overrideCamera;
+                overrideHDCamera = HDCamera.GetOrCreate(overrideCamera);
+                originalAspect = overrideCamera.aspect;
+
+                Init(ctx, overrideCamera, overrideAspectRatio);
+            }
+
+            void Init(CustomPassContext ctx, Camera overrideCamera, float overrideAspectRatio)
+            {
                 if (!IsContextValid(ctx, overrideCamera))
                     return;
 
                 // Mark the HDCamera as persistant so it's not deleted because it's camera is disabled.
                 overrideHDCamera.isPersistent = true;
+                overrideCamera.aspect = overrideAspectRatio;
 
                 // Sync camera pixel rect and aspect ratio when it outputs to the scene view
                 if (overrideCamera.targetTexture == null)
@@ -605,10 +724,6 @@ namespace UnityEngine.Rendering.HighDefinition
                     // with the game view and so it breaks in the scene view. Note that we can't use Camera.pixelRect here
                     // because when we assign it, the change is not instantaneous and is not reflected in pixelWidth/pixelHeight.
                     overrideHDCamera.OverridePixelRect(ctx.hdCamera.camera.pixelRect);
-                    // We also sync the aspect ratio of the camera, this time using the camera instead of HDCamera.
-                    // This will update the projection matrix to match the aspect of the current rendering camera.
-                    originalAspect = overrideCamera.aspect;
-                    overrideCamera.aspect = (float)ctx.hdCamera.camera.pixelRect.width / (float)ctx.hdCamera.camera.pixelRect.height;
                 }
 
                 // Update HDCamera datas
@@ -640,7 +755,10 @@ namespace UnityEngine.Rendering.HighDefinition
                 if (!IsContextValid(ctx, overrideCamera))
                     return;
 
-                overrideHDCamera.ResetPixelRect();
+                if (overrideCamera.targetTexture == null)
+                    overrideHDCamera.ResetPixelRect();
+
+                // Set back the original aspect ratio of the override camera to avoid modifying it.
                 overrideCamera.aspect = originalAspect;
 
                 // Set back the settings of the previous camera
