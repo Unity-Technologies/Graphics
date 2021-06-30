@@ -1,10 +1,12 @@
 ﻿using System.Collections.Generic;
 using UnityEditor;
 using UnityEditor.GraphToolsFoundation.Overdrive;
+using UnityEditor.Overlays;
+using UnityEngine.UIElements;
 
 namespace GtfPlayground
 {
-    public class PlaygroundGraphWindow : GraphViewEditorWindow
+    public class PlaygroundGraphWindow : GraphViewEditorWindow, ISupportsOverlays
     {
         protected override bool CanHandleAssetType(IGraphAssetModel asset) => asset is PlaygroundGraphAssetModel;
 
@@ -25,6 +27,11 @@ namespace GtfPlayground
         {
             EditorToolName = "GTF Playground";
             base.OnEnable();
+
+            // Needed to ensure that graph view takes up full window when overlay canvas is present
+            rootVisualElement.style.position = new StyleEnum<Position>(Position.Absolute);
+            rootVisualElement.style.width = new StyleLength(new Length(100, LengthUnit.Percent));
+            rootVisualElement.style.height = new StyleLength(new Length(100, LengthUnit.Percent));
         }
 
         protected override GraphView CreateGraphView()
@@ -37,7 +44,7 @@ namespace GtfPlayground
             var onboardingProviders = new List<OnboardingProvider> {new PlaygroundOnboardingProvider()};
             return new BlankPage(CommandDispatcher, onboardingProviders);
         }
-        
+
         protected override GraphToolState CreateInitialState()
         {
             var prefs = Preferences.CreatePreferences(EditorToolName);
