@@ -10,11 +10,13 @@ namespace UnityEditor.Rendering.HighDefinition
     {
         partial class Rendering
         {
-            public static readonly CED.IDrawer Drawer = CED.FoldoutGroup(
-                CameraUI.Rendering.Styles.header,
-                Expandable.Rendering,
-                k_ExpandedState,
-                FoldoutOption.Indent,
+            enum AdditionalProperties
+            {
+                Rendering = 1 << 5,
+            }
+            readonly static AdditionalPropertiesState<AdditionalProperties, HDAdditionalCameraData> k_AdditionalPropertiesState = new AdditionalPropertiesState<AdditionalProperties, HDAdditionalCameraData>(0, "HDRP");
+
+            public static readonly CED.IDrawer RenderingDrawer = CED.Group(
                 CED.Group(
                     Drawer_Rendering_AllowDynamicResolution,
                     Drawer_Rendering_Antialiasing
@@ -39,6 +41,30 @@ namespace UnityEditor.Rendering.HighDefinition
                     (serialized, owner) => FrameSettingsUI.Inspector().Draw(serialized.frameSettings, owner)
                 )
             );
+
+            public static readonly CED.IDrawer Drawer = CED.AdditionalPropertiesFoldoutGroup(CameraUI.Rendering.Styles.header, Expandable.Rendering, k_ExpandedState, AdditionalProperties.Rendering, k_AdditionalPropertiesState, RenderingDrawer, Draw_Rendering_Advanced);
+
+            internal static void RegisterEditor(HDCameraEditor editor)
+            {
+                k_AdditionalPropertiesState.RegisterEditor(editor);
+            }
+
+            internal static void UnregisterEditor(HDCameraEditor editor)
+            {
+                k_AdditionalPropertiesState.UnregisterEditor(editor);
+            }
+
+            [SetAdditionalPropertiesVisibility]
+            internal static void SetAdditionalPropertiesVisibility(bool value)
+            {
+                if (value)
+                    k_AdditionalPropertiesState.ShowAll();
+                else
+                    k_AdditionalPropertiesState.HideAll();
+            }
+
+            static void Draw_Rendering_Advanced(SerializedHDCamera p, Editor owner)
+            {}
 
             static void Drawer_Rendering_AllowDynamicResolution(SerializedHDCamera p, Editor owner)
             {
@@ -145,6 +171,11 @@ namespace UnityEditor.Rendering.HighDefinition
                 EditorGUILayout.PropertyField(p.SMAAQuality, Styles.SMAAQualityPresetContent);
             }
 
+            static void Draw_Rendering_Antialiasing_TAA_Advanced(SerializedHDCamera p, Editor owner)
+            {
+                EditorGUILayout.PropertyField(p.taaBaseBlendFactor, Styles.TAABaseBlendFactor);
+            }
+
             static void Drawer_Rendering_Antialiasing_TAA(SerializedHDCamera p, Editor owner)
             {
                 EditorGUILayout.PropertyField(p.taaQualityLevel, Styles.TAAQualityLevel);
@@ -160,6 +191,11 @@ namespace UnityEditor.Rendering.HighDefinition
                 {
                     EditorGUILayout.PropertyField(p.taaMotionVectorRejection, Styles.TAAMotionVectorRejection);
                     EditorGUILayout.PropertyField(p.taaAntiRinging, Styles.TAAAntiRinging);
+                }
+
+                if (k_AdditionalPropertiesState[AdditionalProperties.Rendering])
+                {
+                    Draw_Rendering_Antialiasing_TAA_Advanced(p, owner);
                 }
             }
 

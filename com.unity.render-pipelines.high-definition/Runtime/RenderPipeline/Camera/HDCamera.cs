@@ -237,6 +237,7 @@ namespace UnityEngine.Rendering.HighDefinition
         internal float                  taaHistorySharpening;
         internal float                  taaAntiFlicker;
         internal float                  taaMotionVectorRejection;
+        internal float                  taaBaseBlendFactor;
         internal bool                   taaAntiRinging;
 
         internal Vector4                zBufferParams;
@@ -1387,6 +1388,7 @@ namespace UnityEngine.Rendering.HighDefinition
                     taaAntiFlicker = m_AdditionalCameraData.taaAntiFlicker;
                     taaAntiRinging = m_AdditionalCameraData.taaAntiHistoryRinging;
                     taaMotionVectorRejection = m_AdditionalCameraData.taaMotionVectorRejection;
+                    taaBaseBlendFactor = m_AdditionalCameraData.taaBaseBlendFactor;
                 }
                 else
                     antialiasing = AntialiasingMode.None;

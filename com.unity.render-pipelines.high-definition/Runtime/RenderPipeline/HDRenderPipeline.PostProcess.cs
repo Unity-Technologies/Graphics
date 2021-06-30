@@ -1423,6 +1423,7 @@ namespace UnityEngine.Rendering.HighDefinition
             public bool resetPostProcessingHistory;
             public Vector4 previousScreenSize;
             public Vector4 taaParameters;
+            public Vector4 taaParameters1;
             public Vector4 taaFilterWeights;
             public bool motionVectorRejection;
             public Vector4 taauParams;
@@ -1452,6 +1453,7 @@ namespace UnityEngine.Rendering.HighDefinition
             float temporalContrastForMaxAntiFlicker = 0.7f - Mathf.Lerp(0.0f, 0.3f, Mathf.SmoothStep(0.5f, 1.0f, camera.taaAntiFlicker));
 
             passData.taaParameters = new Vector4(camera.taaHistorySharpening, postDoF ? maxAntiflicker : Mathf.Lerp(minAntiflicker, maxAntiflicker, camera.taaAntiFlicker), motionRejectionMultiplier, temporalContrastForMaxAntiFlicker);
+            passData.taaParameters1 = new Vector4(1.0f - camera.taaBaseBlendFactor, 0, 0, 0);
 
             // Precompute weights used for the Blackman-Harris filter. TODO: Note that these are slightly wrong as they don't take into account the jitter size. This needs to be fixed at some point.
             float crossWeights = Mathf.Exp(-2.29f * 2);
@@ -1599,6 +1601,7 @@ namespace UnityEngine.Rendering.HighDefinition
                         var taaHistorySize = data.previousScreenSize;
 
                         mpb.SetVector(HDShaderIDs._TaaPostParameters, data.taaParameters);
+                        mpb.SetVector(HDShaderIDs._TaaPostParameters1, data.taaParameters1);
                         mpb.SetVector(HDShaderIDs._TaaHistorySize, taaHistorySize);
                         mpb.SetVector(HDShaderIDs._TaaFilterWeights, data.taaFilterWeights);
                         mpb.SetVector(HDShaderIDs._TaauParameters, data.taauParams);

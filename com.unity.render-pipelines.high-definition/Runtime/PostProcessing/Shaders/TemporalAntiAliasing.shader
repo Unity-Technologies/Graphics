@@ -111,10 +111,17 @@ Shader "Hidden/HDRP/TemporalAA"
         RW_TEXTURE2D_X(CTYPE, _OutputHistoryTexture) : register(u1);
         #endif
 
+        float4 _TaaPostParameters;
+        float4 _TaaPostParameters1;
+        float4 _TaaHistorySize;
+        float4 _TaaFilterWeights;
+
         #define _HistorySharpening _TaaPostParameters.x
         #define _AntiFlickerIntensity _TaaPostParameters.y
         #define _SpeedRejectionIntensity _TaaPostParameters.z
         #define _ContrastForMaxAntiFlicker _TaaPostParameters.w
+
+        #define _BaseBlendFactor _TaaPostParameters1.x
 
         // TAAU specific
         float4 _TaauParameters;
@@ -133,9 +140,6 @@ Shader "Hidden/HDRP/TemporalAA"
         #endif
 #endif
 
-        float4 _TaaPostParameters;
-        float4 _TaaHistorySize;
-        float4 _TaaFilterWeights;
 
         struct Attributes
         {
@@ -234,7 +238,7 @@ Shader "Hidden/HDRP/TemporalAA"
             // ------------------------------------------------------------------------------
 
             // --------------- Compute blend factor for history ---------------
-            float blendFactor = GetBlendFactor(colorLuma, historyLuma, GetLuma(samples.minNeighbour), GetLuma(samples.maxNeighbour));
+            float blendFactor = GetBlendFactor(colorLuma, historyLuma, GetLuma(samples.minNeighbour), GetLuma(samples.maxNeighbour), _BaseBlendFactor);
             // --------------------------------------------------------
 
             // ------------------- Alpha handling ---------------------------
