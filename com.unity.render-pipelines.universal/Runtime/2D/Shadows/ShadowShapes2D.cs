@@ -69,6 +69,8 @@ namespace UnityEngine.Rendering.Universal
                 Edge edge1 = new Edge(v1Index, v2Index);
                 Edge edge2 = new Edge(v2Index, v0Index);
 
+
+                // When a contains key comparison is made edges (A, B) and (B, A) are equal (see EdgeComparer)
                 if (m_EdgeDictionary.ContainsKey(edge0))
                     m_EdgeDictionary[edge0] = m_EdgeDictionary[edge0] + 1;
                 else
@@ -80,7 +82,7 @@ namespace UnityEngine.Rendering.Universal
                     m_EdgeDictionary.Add(edge1, 1);
 
                 if (m_EdgeDictionary.ContainsKey(edge2))
-                    m_EdgeDictionary[edge1] = m_EdgeDictionary[edge2] + 1;
+                    m_EdgeDictionary[edge2] = m_EdgeDictionary[edge2] + 1;
                 else
                     m_EdgeDictionary.Add(edge2, 1);
             }
