@@ -22,14 +22,16 @@ namespace UnityEngine.Rendering.Universal
 #if UNITY_EDITOR
             if (k_AssetPreviousVersion != k_AssetVersion)
             {
-                EditorApplication.delayCall += () => UpgradeAsset(this);
+                EditorApplication.delayCall += () => UpgradeAsset(this.GetInstanceID());
             }
 #endif
         }
 
 #if UNITY_EDITOR
-        static void UpgradeAsset(UniversalRenderPipelineGlobalSettings asset)
+        static void UpgradeAsset(int assetInstanceID)
         {
+            UniversalRenderPipelineAsset asset = EditorUtility.InstanceIDToObject(assetInstanceID) as UniversalRenderPipelineAsset;
+
             EditorUtility.SetDirty(asset);
         }
 
@@ -152,17 +154,28 @@ namespace UnityEngine.Rendering.Universal
             get
             {
                 if (m_RenderingLayerNames == null)
-                {
                     UpdateRenderingLayerNames();
-                }
-
                 return m_RenderingLayerNames;
+            }
+        }
+        [System.NonSerialized]
+        string[] m_PrefixedRenderingLayerNames;
+        string[] prefixedRenderingLayerNames
+        {
+            get
+            {
+                if (m_PrefixedRenderingLayerNames == null)
+                    UpdateRenderingLayerNames();
+                return m_PrefixedRenderingLayerNames;
             }
         }
         /// <summary>Names used for display of rendering layer masks.</summary>
         public string[] renderingLayerMaskNames => renderingLayerNames;
+        /// <summary>Names used for display of rendering layer masks with a prefix.</summary>
+        public string[] prefixedRenderingLayerMaskNames => prefixedRenderingLayerNames;
 
-        void UpdateRenderingLayerNames()
+        /// <summary>Regenerate Rendering Layer names and their prefixed versions.</summary>
+        internal void UpdateRenderingLayerNames()
         {
             if (m_RenderingLayerNames == null)
                 m_RenderingLayerNames = new string[32];
@@ -181,6 +194,34 @@ namespace UnityEngine.Rendering.Universal
             for (int i = index; i < m_RenderingLayerNames.Length; ++i)
             {
                 m_RenderingLayerNames[i] = string.Format("Unused {0}", i);
+            }
+
+            // Update prefixed
+            if (m_PrefixedRenderingLayerNames == null)
+                m_PrefixedRenderingLayerNames = new string[32];
+            if (m_PrefixedLightLayerNames == null)
+                m_PrefixedLightLayerNames = new string[8];
+            for (int i = 0; i < m_PrefixedRenderingLayerNames.Length; ++i)
+            {
+                m_PrefixedRenderingLayerNames[i] = string.Format("{0}: {1}", i, m_RenderingLayerNames[i]);
+                if (i < 8)
+                    m_PrefixedLightLayerNames[i] = m_PrefixedRenderingLayerNames[i];
+            }
+        }
+
+        [System.NonSerialized]
+        string[] m_PrefixedLightLayerNames = null;
+        /// <summary>
+        /// Names used for display of light layers with Layer's index as prefix.
+        /// For example: "0: Light Layer Default"
+        /// </summary>
+        public string[] prefixedLightLayerNames
+        {
+            get
+            {
+                if (m_PrefixedLightLayerNames == null)
+                    UpdateRenderingLayerNames();
+                return m_PrefixedLightLayerNames;
             }
         }
 
@@ -243,6 +284,15 @@ namespace UnityEngine.Rendering.Universal
             lightLayerName6 = k_DefaultLightLayerNames[6];
             lightLayerName7 = k_DefaultLightLayerNames[7];
         }
+
+        #endregion
+
+        #region Misc Settings
+
+        /// <summary>
+        /// Controls whether debug display shaders for Rendering Debugger are available in Player builds.
+        /// </summary>
+        public bool supportRuntimeDebugDisplay = false;
 
         #endregion
     }

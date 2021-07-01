@@ -40,7 +40,8 @@ namespace UnityEditor.Rendering.Universal
         static UniversalGlobalSettingsPanelIMGUI()
         {
             Inspector = CED.Group(
-                LightLayerNamesSection
+                LightLayerNamesSection,
+                MiscSection
             );
         }
 
@@ -163,14 +164,22 @@ namespace UnityEditor.Rendering.Universal
 
             using (new EditorGUI.IndentLevelScope())
             {
-                EditorGUILayout.DelayedTextField(serialized.lightLayerName0, Styles.lightLayerName0, GUILayout.ExpandWidth(true));
-                EditorGUILayout.DelayedTextField(serialized.lightLayerName1, Styles.lightLayerName1, GUILayout.ExpandWidth(true));
-                EditorGUILayout.DelayedTextField(serialized.lightLayerName2, Styles.lightLayerName2, GUILayout.ExpandWidth(true));
-                EditorGUILayout.DelayedTextField(serialized.lightLayerName3, Styles.lightLayerName3, GUILayout.ExpandWidth(true));
-                EditorGUILayout.DelayedTextField(serialized.lightLayerName4, Styles.lightLayerName4, GUILayout.ExpandWidth(true));
-                EditorGUILayout.DelayedTextField(serialized.lightLayerName5, Styles.lightLayerName5, GUILayout.ExpandWidth(true));
-                EditorGUILayout.DelayedTextField(serialized.lightLayerName6, Styles.lightLayerName6, GUILayout.ExpandWidth(true));
-                EditorGUILayout.DelayedTextField(serialized.lightLayerName7, Styles.lightLayerName7, GUILayout.ExpandWidth(true));
+                using (var changed = new EditorGUI.ChangeCheckScope())
+                {
+                    EditorGUILayout.DelayedTextField(serialized.lightLayerName0, Styles.lightLayerName0);
+                    EditorGUILayout.DelayedTextField(serialized.lightLayerName1, Styles.lightLayerName1);
+                    EditorGUILayout.DelayedTextField(serialized.lightLayerName2, Styles.lightLayerName2);
+                    EditorGUILayout.DelayedTextField(serialized.lightLayerName3, Styles.lightLayerName3);
+                    EditorGUILayout.DelayedTextField(serialized.lightLayerName4, Styles.lightLayerName4);
+                    EditorGUILayout.DelayedTextField(serialized.lightLayerName5, Styles.lightLayerName5);
+                    EditorGUILayout.DelayedTextField(serialized.lightLayerName6, Styles.lightLayerName6);
+                    EditorGUILayout.DelayedTextField(serialized.lightLayerName7, Styles.lightLayerName7);
+                    if (changed.changed)
+                    {
+                        serialized.serializedObject?.ApplyModifiedProperties();
+                        (serialized.serializedObject.targetObject as UniversalRenderPipelineGlobalSettings).UpdateRenderingLayerNames();
+                    }
+                }
             }
 
             EditorGUIUtility.labelWidth = oldWidth;
@@ -185,6 +194,30 @@ namespace UnityEditor.Rendering.Universal
                 globalSettings.ResetRenderingLayerNames();
             });
             menu.DropDown(new Rect(position, Vector2.zero));
+        }
+
+        #endregion
+
+        #region Misc Settings
+
+        static readonly CED.IDrawer MiscSection = CED.Group(
+            CED.Group((serialized, owner) => CoreEditorUtils.DrawSectionHeader(Styles.miscSettingsLabel)),
+            CED.Group((serialized, owner) => EditorGUILayout.Space()),
+            CED.Group(DrawMiscSettings),
+            CED.Group((serialized, owner) => EditorGUILayout.Space())
+        );
+
+        static void DrawMiscSettings(SerializedUniversalRenderPipelineGlobalSettings serialized, Editor owner)
+        {
+            var oldWidth = EditorGUIUtility.labelWidth;
+            EditorGUIUtility.labelWidth = Styles.labelWidth;
+
+            using (new EditorGUI.IndentLevelScope())
+            {
+                EditorGUILayout.PropertyField(serialized.supportRuntimeDebugDisplay, Styles.supportRuntimeDebugDisplayContentLabel);
+            }
+
+            EditorGUIUtility.labelWidth = oldWidth;
         }
 
         #endregion

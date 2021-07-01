@@ -308,8 +308,11 @@ namespace UnityEditor
 
         public virtual void DrawAdvancedOptions(Material material)
         {
+            // Only draw the sorting priority field if queue control is set to "auto"
+            bool autoQueueControl = GetAutomaticQueueControlSetting(material);
+            if (autoQueueControl)
+                DrawQueueOffsetField();
             materialEditor.EnableInstancingField();
-            DrawQueueOffsetField();
         }
 
         protected void DrawQueueOffsetField()
@@ -464,9 +467,9 @@ namespace UnityEditor
 
         internal static bool GetAutomaticQueueControlSetting(Material material)
         {
-            // If the material doesn't yet have the queue control property, we should not engage automatic behavior until
-            // the shader gets reimported.
-            bool automaticQueueControl = false;
+            // If a Shader Graph material doesn't yet have the queue control property,
+            // we should not engage automatic behavior until the shader gets reimported.
+            bool automaticQueueControl = !material.IsShaderGraph();
             if (material.HasProperty(Property.QueueControl))
             {
                 var queueControl = material.GetFloat(Property.QueueControl);

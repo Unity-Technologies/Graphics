@@ -29,7 +29,7 @@ namespace UnityEditor.Rendering.HighDefinition
 
             base.OnInspectorGUI();
 
-            using (new HDEditorUtils.IndentScope())
+            using (new IndentLevelScope())
             using (new QualityScope(this))
             {
                 PropertyField(m_MaxSamples);

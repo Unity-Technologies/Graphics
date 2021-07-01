@@ -141,12 +141,24 @@ namespace UnityEditor.ShaderGraph
             m_GraphData.CollectShaderProperties(shaderProperties, m_Mode);
             m_GraphData.CollectShaderKeywords(shaderKeywords, m_Mode);
 
+            var graphInputOrderData = new List<GraphInputData>();
+            foreach (var cat in m_GraphData.categories)
+            {
+                foreach (var input in cat.Children)
+                {
+                    graphInputOrderData.Add(new GraphInputData()
+                    {
+                        isKeyword = input is ShaderKeyword,
+                        referenceName = input.referenceName
+                    });
+                }
+            }
+            string path = AssetDatabase.GUIDToAssetPath(m_GraphData.assetGuid);
             if (m_GraphData.GetKeywordPermutationCount() > ShaderGraphPreferences.variantLimit)
             {
                 string graphName = "";
                 if (m_GraphData.owner != null)
                 {
-                    string path = AssetDatabase.GUIDToAssetPath(m_GraphData.owner.AssetGuid);
                     if (path != null)
                     {
                         graphName = Path.GetFileNameWithoutExtension(path);
@@ -179,7 +191,7 @@ namespace UnityEditor.ShaderGraph
             m_Builder.AppendLine(@"Shader ""{0}""", m_Name);
             using (m_Builder.BlockScope())
             {
-                GenerationUtils.GeneratePropertiesBlock(m_Builder, shaderProperties, shaderKeywords, m_Mode);
+                GenerationUtils.GeneratePropertiesBlock(m_Builder, shaderProperties, shaderKeywords, m_Mode, graphInputOrderData);
 
                 for (int i = 0; i < m_Targets.Length; i++)
                 {
@@ -556,6 +568,13 @@ namespace UnityEditor.ShaderGraph
                         if (pragma.TestActive(activeFields))
                             passPragmaBuilder.AppendLine(pragma.value);
                     }
+                }
+
+                // Enable this to turn on shader debugging
+                bool debugShader = false;
+                if (debugShader)
+                {
+                    passPragmaBuilder.AppendLine("#pragma enable_d3d11_debug_symbols");
                 }
 
                 string command = GenerationUtils.GetSpliceCommand(passPragmaBuilder.ToCodeBlock(), "PassPragmas");
