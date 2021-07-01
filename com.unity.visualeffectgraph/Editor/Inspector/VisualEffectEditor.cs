@@ -475,48 +475,48 @@ namespace UnityEditor.VFX
 
         protected virtual void SceneViewGUICallback()
         {
-            VisualEffect effect = ((VisualEffect)targets[0]);
-            if (effect == null)
+            List<VisualEffect> effects = targets.OfType<VisualEffect>().ToList();
+            if (effects.Count == 0)
                 return;
 
             var buttonWidth = GUILayout.Width(52);
             GUILayout.BeginHorizontal();
             if (GUILayout.Button(Contents.GetIcon(Contents.Icon.Stop), buttonWidth))
             {
-                effect.ControlStop();
+                effects.ForEach(x => x.ControlStop());
             }
-            if (effect.pause)
+            if (effects.All(x => x.pause))
             {
                 if (GUILayout.Button(Contents.GetIcon(Contents.Icon.Play), buttonWidth))
                 {
-                    effect.ControlPlayPause();
+                    effects.ForEach(x => x.ControlPlayPause());
                 }
             }
             else
             {
                 if (GUILayout.Button(Contents.GetIcon(Contents.Icon.Pause), buttonWidth))
                 {
-                    effect.ControlPlayPause();
+                    effects.ForEach(x => x.ControlPlayPause());
                 }
             }
 
 
             if (GUILayout.Button(Contents.GetIcon(Contents.Icon.Step), buttonWidth))
             {
-                effect.ControlStep();
+                effects.ForEach(x => x.ControlStep());
             }
             if (GUILayout.Button(Contents.GetIcon(Contents.Icon.Restart), buttonWidth))
             {
-                effect.ControlRestart();
+                effects.ForEach(x => x.ControlRestart());
             }
             GUILayout.EndHorizontal();
 
-            float playRate = effect.playRate * VisualEffectControl.playRateToValue;
+            float playRate = effects.Min(x => x.playRate) * VisualEffectControl.playRateToValue;
 
             GUILayout.BeginHorizontal();
             GUILayout.Label(Contents.playRate, GUILayout.Width(46));
             playRate = EditorGUILayout.PowerSlider("", playRate, VisualEffectControl.minSlider, VisualEffectControl.maxSlider, VisualEffectControl.sliderPower, GUILayout.Width(124));
-            effect.playRate = playRate * VisualEffectControl.valueToPlayRate;
+            effects.ForEach(x => x.playRate = playRate * VisualEffectControl.valueToPlayRate);
 
             var eventType = Event.current.type;
             if (EditorGUILayout.DropdownButton(Contents.setPlayRate, FocusType.Passive, GUILayout.Width(40)))
@@ -546,9 +546,9 @@ namespace UnityEditor.VFX
 
             GUILayout.BeginHorizontal();
             if (GUILayout.Button(new GUIContent("Play()")))
-                effect.Play();
+                effects.ForEach(x => x.Play());
             if (GUILayout.Button(new GUIContent("Stop()")))
-                effect.Stop();
+                effects.ForEach(x => x.Stop());
             GUILayout.EndHorizontal();
         }
 
