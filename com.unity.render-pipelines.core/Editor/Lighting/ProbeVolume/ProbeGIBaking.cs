@@ -520,7 +520,7 @@ namespace UnityEngine.Experimental.Rendering
                         asset.cells.Add(cell);
                         if (hasFoundBounds)
                         {
-                            BrickCountInDirections(out asset.maxCellIndex, refVol.profile.minBrickSize);
+                            BrickCountInDirections(out asset.maxBrickIndex, refVol.profile.minBrickSize);
                         }
                         else
                         {
