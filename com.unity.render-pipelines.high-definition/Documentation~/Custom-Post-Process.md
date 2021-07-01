@@ -79,7 +79,7 @@ Firstly, the example code uses a ClampedFloatParameter which is a type that you 
 
 Next, there is the **IsActive()** function. HDRP calls this function before the **Render** function make sure it is possible to process the effect. If this function returns `false`, HDRP does not process the effect. It is good practice to check every property configuration where the effect either breaks or does nothing. In this example, **IsActive()** makes sure that it can find the **GrayScale.shader** and that the intensity is greater than 0.
 
-The **injectionPoint** override allows you to specify where in the pipeline HDRP executes the effect. There are currently three injection points:
+The **injectionPoint** override allows you to specify where in the pipeline HDRP executes the effect. There are currently five injection points:
 
 * **AfterOpaqueAndSky.**
 
@@ -87,7 +87,9 @@ The **injectionPoint** override allows you to specify where in the pipeline HDRP
 
 * **BeforePostProcess.**
 
-* **AfterPostProcess**.
+* **AfterPostProcessBlurs.**
+
+* **AfterPostProcess.**
 
 For more detailed information on where HDRP injects the custom post-process passes, see the following diagram:
 ![](Images/HDRP-frame-graph-diagram.png)
@@ -215,9 +217,11 @@ HDRP processes effects from the top of the list to the bottom and the order of e
 
 1. Before Transparent.
 
-2. Before TAA
+2. Before TAA.
 
 3. Before Post Process.
+
+4. After Post Process Blurs.
 
 4. After Post Process.
 
