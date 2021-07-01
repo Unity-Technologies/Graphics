@@ -55,7 +55,7 @@ namespace UnityEngine.Rendering.Universal
         public NativeArray<Vector2> m_ContractionDirection;
         public NativeArray<float>   m_ContractionMaximum;
 
-        private void ExtractEdgesFromTriangles<T>(T indices, out NativeArray<Edge> nativeOutline, ValueGetter<T> valueGetter, LengthGetter<T> lengthGetter)
+        private void ExtractEdgesFromTriangles<T>(T indices, ValueGetter<T> valueGetter, LengthGetter<T> lengthGetter)
         {
             // Add our edges to an edge list
             m_EdgeDictionary.Clear();
@@ -94,14 +94,14 @@ namespace UnityEngine.Rendering.Universal
                 if (keyValuePair.Value == 1)
                     outsideEdges++;
             }
-            nativeOutline = new NativeArray<Edge>(outsideEdges, Allocator.Persistent);
+            m_ProvidedEdges = new NativeArray<Edge>(outsideEdges, Allocator.Persistent);
 
             // Populate the array
             foreach (KeyValuePair<Edge, int> keyValuePair in m_EdgeDictionary)
             {
                 if (keyValuePair.Value == 1)
                 {
-                    nativeOutline[keyValuePair.Key.v0] = keyValuePair.Key;
+                    m_ProvidedEdges[keyValuePair.Key.v0] = keyValuePair.Key;
                 }
             }
         }
@@ -118,15 +118,12 @@ namespace UnityEngine.Rendering.Universal
 
                 int currentVertexIndex = currentEdge.v1;
 
-                Vector3 v0 = Vector3.Normalize(m_ProvidedVertices[currentEdge.v0]);
-                Vector3 v1 = Vector3.Normalize(m_ProvidedVertices[currentEdge.v1]);
-                Vector3 v2 = Vector3.Normalize(m_ProvidedVertices[nextEdge.v1]);
+                Vector3 v0 = m_ProvidedVertices[currentEdge.v0];
+                Vector3 v1 = m_ProvidedVertices[currentEdge.v1];
+                Vector3 v2 = m_ProvidedVertices[nextEdge.v1];
 
-                Vector3 normal1 = Vector3.Normalize(Vector3.Cross(v1-v0, Vector3.forward));
-                Vector3 normal2 = Vector3.Normalize(Vector3.Cross(v2-v1, Vector3.forward));
-
-                Debug.DrawLine(m_ProvidedVertices[currentEdge.v1], (Vector3)m_ProvidedVertices[currentEdge.v1] + normal1, Color.blue, 5f);
-                Debug.DrawLine(m_ProvidedVertices[currentEdge.v1], (Vector3)m_ProvidedVertices[currentEdge.v1] + normal2, Color.blue, 5f);
+                Vector3 normal1 = Vector3.Normalize(Vector3.Cross(Vector3.Normalize(v1-v0), Vector3.forward));
+                Vector3 normal2 = Vector3.Normalize(Vector3.Cross(Vector3.Normalize(v2 -v1), Vector3.forward));
 
                 m_ContractionDirection[currentVertexIndex] = 0.5f * (normal1 + normal2);
             }
@@ -148,7 +145,7 @@ namespace UnityEngine.Rendering.Universal
             if (outlineTopology == IShadowShapes2DProvider.OutlineTopology.Triangles)
             {
                 m_ProvidedVertices = new NativeArray<Vector2>(vertices, Allocator.Persistent);
-                ExtractEdgesFromTriangles<ushort[]>(indices, out m_ProvidedEdges, ArrayGetter, ArrayLengthGetter);
+                ExtractEdgesFromTriangles<ushort[]>(indices, ArrayGetter, ArrayLengthGetter);
             }
 
 
