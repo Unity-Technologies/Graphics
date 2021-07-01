@@ -79,7 +79,7 @@ VertexDescriptionInputs VaryingsMeshToDSToVertexDescriptionInputs(VaryingsMeshTo
     $VertexDescriptionInputs.WorldSpacePositionPredisplacement:         output.WorldSpacePositionPredisplacement = input.positionPredisplacementRWS;
     $VertexDescriptionInputs.ViewSpacePositionPredisplacement:          output.ViewSpacePositionPredisplacement = TransformWorldToView(input.positionPredisplacementRWS);
     $VertexDescriptionInputs.TangentSpacePositionPredisplacement:       output.TangentSpacePositionPredisplacement = float3(0.0f, 0.0f, 0.0f);
-    $VertexDescriptionInputs.AbsoluteWorldSpacePositionPredisplacement: output.AbsoluteWorldSpacePositionPredisplacement = GetAbsolutePositionPredisplacementWS(input.positionPredisplacementRWS.xyz);
+    $VertexDescriptionInputs.AbsoluteWorldSpacePositionPredisplacement: output.AbsoluteWorldSpacePositionPredisplacement = GetAbsolutePositionWS(input.positionPredisplacementRWS.xyz);
     $VertexDescriptionInputs.WorldSpaceViewDirection:                   output.WorldSpaceViewDirection = GetWorldSpaceNormalizeViewDir(input.positionRWS);
     $VertexDescriptionInputs.ObjectSpaceViewDirection:                  output.ObjectSpaceViewDirection = TransformWorldToObjectDir(GetWorldSpaceNormalizeViewDir(input.positionRWS));
     $VertexDescriptionInputs.ViewSpaceViewDirection:                    output.ViewSpaceViewDirection = TransformWorldToViewDir(GetWorldSpaceNormalizeViewDir(input.positionRWS));
