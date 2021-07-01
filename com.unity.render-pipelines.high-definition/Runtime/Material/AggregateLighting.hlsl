@@ -87,9 +87,9 @@ struct PackedDirectLighting
     PackedLightingColor2 m_data;
 };
 
-void PackDirect(float3 diffuse, float3 specular, inout PackedLightingColor2 dst)
+void PackDirect(float3 diffuse, float3 specular, inout PackedDirectLighting dst)
 {
-    PackColor2(diffuse, specular, dst);
+    PackColor2(diffuse, specular, dst.m_data);
 }
 
 float3 UnpackDiffuse(in PackedDirectLighting direct)
@@ -107,9 +107,9 @@ struct PackedIndirectLighting
     PackedLightingColor2 m_data;
 };
 
-void PackIndirect(float3 specularReflected, float3 specularTransmitted, inout PackedLightingColor2 dst)
+void PackIndirect(float3 specularReflected, float3 specularTransmitted, inout PackedIndirectLighting dst)
 {
-    PackColor2(specularReflected, specularTransmitted, dst);
+    PackColor2(specularReflected, specularTransmitted, dst.m_data);
 }
 
 float3 UnpackSpecularReflected(in PackedIndirectLighting indirect)
