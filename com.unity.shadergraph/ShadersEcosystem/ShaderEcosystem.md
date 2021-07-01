@@ -8,6 +8,7 @@ Table of Contents:
 - [Template](#template)
 - [Template Provider](#template-provider)
 - [Template Linker](#template-linker)
+- [Shader Generator](#shader-generator)
     - [Active Fields](#active-fields)
 - [Block Linker](#block-linker)
 - [Surface Shaders](#surface-shaders)
@@ -72,6 +73,7 @@ class ShaderProperty : ShaderVariable
     Attributes?
 }
 ```
+Note: Properties are actually more complicated due to handling block inputs, material properties, and shader properties, all of which can be declared very differently.
 
 Finer details will be fleshed out [here](./ShaderCore.md)
 
@@ -249,7 +251,7 @@ In the short term, the provider could choose to only provide the configuration p
 - Configuration Point
 - Post Configuration Point
 
-This will reflect what 2.0 will likely be split into in the SRPs and may give a little extra information (expected outputs, available inputs, etc...) that tools like shader graph can use.
+This will reflect what 2.0 will likely be split into in the SRPs and may give a little extra information (expected outputs, available inputs, etc...) that tools like shader graph can use. In particular, this is useful to shader graph currently due to how it filters [active fields](##active-fields). The old system should not be visible at all to shader graph, but instead it can inspect the outputs of the pre block and the inputs of the post block and use that to filter the same.
 
 ---
 ## Template Linker
@@ -301,7 +303,36 @@ Open Questions:
 - How are varyings built? These will likely need to be hard-coded into the legacy linker in the same way they are now
 - [Active fields](#active-fields) are fairly complicated and convoluted.
 - Field/keyword/etc... dependencies. Can we bake these out or at least hide them inside the linker. We currently do a lot of stuff like add defines if a field is used e.g. using world space position defines VARYINGS_NEED_POSITION_WS
+- Properties need extra metadata about how they're declared (not declared, global, per material, hybrid)
 
+---
+## Shader Generator
+
+Linking all of templates together will produce a bunch of sub-shaders, but some common class needs to exist to create the actual shader from the sub-shaders. In particular, this needs to declare the properties section. To do this the merged list of properties across all templates needs to be generated. This should be doable without any new api, but from only inspecting the data in the templates and block links.
+
+High level this needs to look something like:
+```
+internal class TemplateDescription
+{
+    public Template template;
+    public List<BlockLink> blockLinks = new List<BlockLink>();
+}
+
+internal class ShaderDescription
+{
+    public string name;
+    public List<TemplateDescription> templateDescriptions = new List<TemplateDescription>();
+    public string fallbackShader = @"FallBack ""Hidden/Shader Graph/FallbackError""";
+}
+
+internal class ShaderGenerator
+{
+    internal void Generate(ShaderStringBuilder builder, SandboxShaderDescription shaderDesc);
+}
+```
+Basically each shader is constructed of a set of templates plus blocks. Blocks know what passes they operate on so that can be filtered internally. The generator can then declare the top-level shader structure and the merged material properties by inspecting all of the blocks in the templates and all of the blocks in the block links.
+
+The name and structure of these classes is subject to change.
 
 ---
 ### Active Fields
@@ -318,6 +349,10 @@ The above is an over simplification as there's some intricate ordering details t
 For 1.0 we'd like to entirely remove this from the API. Shader graph can track its own fields. Internally the legacy linker can use its old active fields and reconstruct the active fields from the blocks. It's currently hard to determine if there will be issues with this approach
 
 See [active fields](ActiveFields.md) for a deeper dive.
+
+After some experimenting it should be possible to hide active fields by generating blocks with the necessary data from the target. In particular, if each shader stage is split into 3 parts: pre/main/post then shader graph can inspect the outputs of the pre block and the inputs of the post block and use this same info to do field culling.
+
+The legacy linker should be able to take the shader graph blocks and knowing if it's vertex/pixel and input/output re-map the name to an actual active field and do everything identically on the backend.
 
 
 ---
