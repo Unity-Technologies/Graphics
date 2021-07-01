@@ -174,30 +174,3 @@ MonoBehaviour:
     XrSdk: 
     StereoModes: 0
     Reason: Needs fixing on DX12
-  - FilteredScene: {fileID: 0}
-    FilteredScenes:
-    - {fileID: 102900000, guid: 0bcaa565757b243bba6bd2c007b0977c, type: 3}
-    ColorSpace: -1
-    BuildPlatform: 5
-    GraphicsDevice: 21
-    XrSdk: 
-    StereoModes: 0
-    Reason: Needs fixing on Vulkan Standalone (Win and Linux)
-  - FilteredScene: {fileID: 0}
-    FilteredScenes:
-    - {fileID: 102900000, guid: 0bcaa565757b243bba6bd2c007b0977c, type: 3}
-    ColorSpace: -1
-    BuildPlatform: 24
-    GraphicsDevice: 21
-    XrSdk: 
-    StereoModes: 0
-    Reason: Needs fixing on Vulkan Standalone (Win and Linux)
-  - FilteredScene: {fileID: 0}
-    FilteredScenes:
-    - {fileID: 102900000, guid: 0bcaa565757b243bba6bd2c007b0977c, type: 3}
-    ColorSpace: -1
-    BuildPlatform: 19
-    GraphicsDevice: 21
-    XrSdk: 
-    StereoModes: 0
-    Reason: Needs fixing on Vulkan Standalone (Win and Linux)
