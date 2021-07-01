@@ -339,6 +339,12 @@ namespace UnityEngine.Rendering.HighDefinition
             return worldSpaceSize / (2.0f * relativeScreenHeight * halfAngle);
         }
 
+        internal float GetWorldSpaceSize(LODGroup lodGroup)
+        {
+            Vector3 lossyScale = lodGroup.transform.lossyScale;
+            return Mathf.Max(Mathf.Max(Mathf.Abs(lossyScale.x), Mathf.Abs(lossyScale.y)), Mathf.Abs(lossyScale.z)) * lodGroup.size;
+        }
+
         internal void BuildRayTracingAccelerationStructure(HDCamera hdCamera)
         {
             // Clear all the per frame-data
@@ -479,7 +485,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 LODGroup lodGroup = lodGroupArray[i];
 
                 // Compute the distance between the LOD group and the camera
-                float lodGroupDistance = (hdCamera.camera.transform.position - lodGroup.transform.position).magnitude;
+                float lodGroupDistance = (hdCamera.camera.transform.position - lodGroup.transform.TransformPoint(lodGroup.localReferencePoint)).magnitude;
 
                 // Flag to track if the LODGroup has been represented
                 bool lodGroupProcessed = false;
@@ -492,7 +498,7 @@ namespace UnityEngine.Rendering.HighDefinition
                     LOD currentLOD = lodArray[lodIdx];
 
                     // Compute the distance until which this LOD may be used
-                    float maxLODUsageDistance = CalculateCameraDistance(hdCamera.camera.fieldOfView, lodGroup.size * Mathf.Max(Mathf.Max(lodGroup.transform.localScale.x, lodGroup.transform.localScale.y), lodGroup.transform.localScale.z), currentLOD.screenRelativeTransitionHeight);
+                    float maxLODUsageDistance = CalculateCameraDistance(hdCamera.camera.fieldOfView, GetWorldSpaceSize(lodGroup), currentLOD.screenRelativeTransitionHeight);
 
                     // If the LOD should be the used one
                     if (!lodGroupProcessed && lodGroupDistance < maxLODUsageDistance)
