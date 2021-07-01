@@ -200,6 +200,11 @@ namespace UnityEditor.ShaderGraph.Drawing
 
         void InitializeViewModel()
         {
+            if (Model == null)
+            {
+                AssertHelpers.Fail("Could not initialize shader input view model as shader input was null.");
+                return;
+            }
             ViewModel.model = Model;
             ViewModel.isSubGraph = DataStore.State.isSubGraph;
             ViewModel.isInputExposed = (DataStore.State.isSubGraph || (Model.isExposable && Model.generatePropertyBlock));
