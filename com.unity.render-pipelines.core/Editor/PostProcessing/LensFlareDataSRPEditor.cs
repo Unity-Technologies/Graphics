@@ -446,7 +446,6 @@ namespace UnityEditor.Rendering
                 SerializedProperty distributionProp = element.FindPropertyRelative("distribution");
                 SerializedProperty lengthSpreadProp = element.FindPropertyRelative("lengthSpread");
                 SerializedProperty colorGradientProp = element.FindPropertyRelative("colorGradient");
-                SerializedProperty scaleCurveProp = element.FindPropertyRelative("scaleCurve");
                 SerializedProperty seedProp = element.FindPropertyRelative("seed");
                 SerializedProperty intensityVariationProp = element.FindPropertyRelative("m_IntensityVariation");
                 SerializedProperty scaleVariationProp = element.FindPropertyRelative("scaleVariation");
@@ -539,8 +538,6 @@ namespace UnityEditor.Rendering
                     Color usedColor = colorProp.colorValue;
                     if (GetEnum<SRPLensFlareDistribution>(distributionProp) == SRPLensFlareDistribution.Random)
                     {
-                        //colorGradientProp.serializedObject.targetObject
-                        //UnityEngine.Gradient colorGradient = (UnityEngine.Gradient)colorGradientProp.serializedObject.targetObject;
                         UnityEngine.Gradient colorGradient = SafeGradientValue(colorGradientProp);
                         Color randCol = colorGradient.Evaluate(RandomRange(0.0f, 1.0f));
                         RandomRange(-1.0f, 1.0f); // Position
@@ -591,10 +588,6 @@ namespace UnityEditor.Rendering
                         {
                             case SRPLensFlareDistribution.Uniform:
                                 currentAngle += uniformAngleProp.floatValue;
-                                break;
-                            case SRPLensFlareDistribution.Curve:
-                                break;
-                            case SRPLensFlareDistribution.Random:
                                 break;
                         }
                     }
