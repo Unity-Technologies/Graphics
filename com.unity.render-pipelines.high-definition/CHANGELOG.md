@@ -364,6 +364,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Depth of field at half or quarter resolution is now computed consistently with the full resolution option (case 1335687).
 - Hair uses GGX LTC for area light specular.
 - Moved invariants outside of loop for a minor CPU speedup in the light loop code.
+- Improved fabric IBL (Charlie) pre-convolution performance and accuracy (uses 1000x less samples and is closer match with the ground truth)
 
 ## [11.0.0] - 2020-10-21
 
