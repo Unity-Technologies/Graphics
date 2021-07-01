@@ -4,6 +4,12 @@ All notable changes to this package are documented in this file.
 The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.html).
 
+## [13.0.0] - 2021-07-01
+
+### Fixed
+
+- Parallax Occlusion Mapping node has more inputs to handle non uniformly scaled UVs like HDRP/Lit POM [1347008]
+
 ## [12.0.0] - 2021-01-11
 
 ### Added
