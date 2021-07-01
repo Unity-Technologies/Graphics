@@ -4,12 +4,6 @@ All notable changes to this package are documented in this file.
 The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.html).
 
-## [13.0.0] - 2021-07-01
-
-### Fixed
-
-- Parallax Occlusion Mapping node has more inputs to handle non uniformly scaled UVs like HDRP/Lit POM [1347008]
-
 ## [12.0.0] - 2021-01-11
 
 ### Added
@@ -115,6 +109,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed ShaderGraph BuiltIn target shader GUI to allow the same render queue control available on URP with the changes for case 1335795.
 - Fixed ShaderGraph BuiltIn target not to apply emission in the ForwardAdd pass to match surface shader results [1345574]. (https://issuetracker.unity3d.com/product/unity/issues/guid/1345574/)
 - Fixed Procedural Virtual Texture compatibility with SRP Batcher [1329336] (https://issuetracker.unity3d.com/issues/procedural-virtual-texture-node-will-make-a-shadergraph-incompatible-with-srp-batcher)
+- Parallax Occlusion Mapping node has more inputs to handle non uniformly scaled UVs like HDRP/Lit POM [1347008]
 
 ## [11.0.0] - 2020-10-21
 
