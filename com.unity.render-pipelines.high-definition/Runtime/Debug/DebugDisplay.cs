@@ -264,6 +264,10 @@ namespace UnityEngine.Rendering.HighDefinition
             /// <summary>Index of the camera to freeze for visibility.</summary>
             public int debugCameraToFreeze = 0;
 
+            /// <summary>Minimum length a motion vector needs to be to be displayed in the debug display. Unit is pixels.</summary>
+            public float minMotionVectorLength = 0.0f;
+
+
             // TODO: The only reason this exist is because of Material/Engine debug enums
             // They have repeating values, which caused issues when iterating through the enum, thus the need for explicit indices
             // Once we refactor material/engine debug to avoid repeating values, we should be able to remove that.
@@ -1188,9 +1192,9 @@ namespace UnityEngine.Rendering.HighDefinition
             public static readonly NameAndTooltip FullscreenDebugMode = new() { name = "Fullscreen Debug Mode", tooltip = "Use the drop-down to select a rendering mode to display as an overlay on the screen." };
             public static readonly NameAndTooltip ScreenSpaceShadowIndex = new() { name = "Screen Space Shadow Index", tooltip = "Select the index of the screen space shadows to view with the slider. There must be a Light in the scene that uses Screen Space Shadows." };
             public static readonly NameAndTooltip DepthPyramidDebugMip = new() { name = "Debug Mip", tooltip = "Enable to view a lower-resolution mipmap." };
-            public static readonly NameAndTooltip DepthPyramidEnableRemap = new() { name = "Enable Depth Remap", tooltip = "" };
-            public static readonly NameAndTooltip DepthPyramidRangeMin = new() { name = "Depth Range Min Value", tooltip = "" };
-            public static readonly NameAndTooltip DepthPyramidRangeMax = new() { name = "Depth Range Max Value", tooltip = "" };
+            public static readonly NameAndTooltip DepthPyramidEnableRemap = new() { name = "Enable Depth Remap", tooltip = "Enable remapping of displayed depth values for better vizualization." };
+            public static readonly NameAndTooltip DepthPyramidRangeMin = new() { name = "Depth Range Min Value", tooltip = "Distance at which depth values remap starts (0 is near plane, 1 is far plane)" };
+            public static readonly NameAndTooltip DepthPyramidRangeMax = new() { name = "Depth Range Max Value", tooltip = "Distance at which depth values remap ends (0 is near plane, 1 is far plane)" };
             public static readonly NameAndTooltip ContactShadowsLightIndex = new() { name = "Light Index", tooltip = "Enable to display Contact shadows for each Light individually." };
 
             // Tile/Cluster debug
@@ -1388,9 +1392,8 @@ namespace UnityEngine.Rendering.HighDefinition
                             enumType = typeof(DebugLightLayersMask)
                         };
 
-                        var asset = (RenderPipelineManager.currentPipeline as HDRenderPipeline).asset;
                         for (int i = 0; i < 8; i++)
-                            field.enumNames[i + 1].text = asset.renderingLayerMaskNames[i];
+                            field.enumNames[i + 1].text = HDRenderPipelineGlobalSettings.instance.prefixedRenderingLayerMaskNames[i];
                         container.children.Add(field);
                     }
 
@@ -1398,10 +1401,9 @@ namespace UnityEngine.Rendering.HighDefinition
                     for (int i = 0; i < 8; i++)
                     {
                         int index = i;
-                        var asset = (RenderPipelineManager.currentPipeline as HDRenderPipeline).asset;
                         layersColor.children.Add(new DebugUI.ColorField
                         {
-                            displayName = asset.renderingLayerMaskNames[i],
+                            displayName = HDRenderPipelineGlobalSettings.instance.prefixedRenderingLayerMaskNames[i],
                             flags = DebugUI.Flags.EditorOnly,
                             getter = () => data.lightingDebugSettings.debugRenderingLayersColors[index],
                             setter = value => data.lightingDebugSettings.debugRenderingLayersColors[index] = value
@@ -1495,16 +1497,16 @@ namespace UnityEngine.Rendering.HighDefinition
                 case FullScreenDebugMode.FinalColorPyramid:
                 case FullScreenDebugMode.DepthPyramid:
                 {
-                    list.Add(new DebugUI.Container
+                    var depthPyramidContainer = new DebugUI.Container();
+                    depthPyramidContainer.children.Add(new DebugUI.FloatField { nameAndTooltip = LightingStrings.DepthPyramidDebugMip, getter = () => data.fullscreenDebugMip, setter = value => data.fullscreenDebugMip = value, min = () => 0f, max = () => 1f, incStep = 0.05f });
+                    depthPyramidContainer.children.Add(new DebugUI.BoolField { nameAndTooltip = LightingStrings.DepthPyramidEnableRemap, getter = () => data.enableDebugDepthRemap, setter = value => data.enableDebugDepthRemap = value, onValueChanged = RefreshLightingDebug });
+                    if (data.enableDebugDepthRemap)
                     {
-                        children =
-                        {
-                            new DebugUI.FloatField { nameAndTooltip = LightingStrings.DepthPyramidDebugMip, getter = () => data.fullscreenDebugMip, setter = value => data.fullscreenDebugMip = value, min = () => 0f, max = () => 1f, incStep = 0.05f },
-                            new DebugUI.BoolField { nameAndTooltip = LightingStrings.DepthPyramidEnableRemap, getter = () => data.enableDebugDepthRemap, setter = value => data.enableDebugDepthRemap = value },
-                            new DebugUI.FloatField { nameAndTooltip = LightingStrings.DepthPyramidRangeMin, getter = () => data.fullScreenDebugDepthRemap.x, setter = value => data.fullScreenDebugDepthRemap.x = value, min = () => 0f, max = () => 1f, incStep = 0.05f },
-                            new DebugUI.FloatField { nameAndTooltip = LightingStrings.DepthPyramidRangeMax, getter = () => data.fullScreenDebugDepthRemap.y, setter = value => data.fullScreenDebugDepthRemap.y = value, min = () => 0f, max = () => 1f, incStep = 0.05f }
-                        }
-                    });
+                        depthPyramidContainer.children.Add(new DebugUI.FloatField { nameAndTooltip = LightingStrings.DepthPyramidRangeMin, getter = () => data.fullScreenDebugDepthRemap.x, setter = value => data.fullScreenDebugDepthRemap.x = Mathf.Min(value, data.fullScreenDebugDepthRemap.y), min = () => 0f, max = () => 1f, incStep = 0.01f });
+                        depthPyramidContainer.children.Add(new DebugUI.FloatField { nameAndTooltip = LightingStrings.DepthPyramidRangeMax, getter = () => data.fullScreenDebugDepthRemap.y, setter = value => data.fullScreenDebugDepthRemap.y = Mathf.Max(value, data.fullScreenDebugDepthRemap.x), min = () => 0.01f, max = () => 1f, incStep = 0.01f });
+                    }
+
+                    list.Add(depthPyramidContainer);
                     break;
                 }
                 case FullScreenDebugMode.ContactShadows:
@@ -1952,6 +1954,16 @@ namespace UnityEngine.Rendering.HighDefinition
                     children =
                     {
                         new DebugUI.UIntField { nameAndTooltip = RenderingStrings.MaxVertexDensity, getter = () => data.maxVertexDensity, setter = value => data.maxVertexDensity = value, min = () => 1, max = () => 100}
+                    }
+                });
+            }
+            else if (data.fullScreenDebugMode == FullScreenDebugMode.MotionVectors)
+            {
+                widgetList.Add(new DebugUI.Container
+                {
+                    children =
+                    {
+                        new DebugUI.FloatField {displayName = "Min Motion Vector Length (in pixels)", getter = () => data.minMotionVectorLength, setter = value => data.minMotionVectorLength = value, min = () => 0}
                     }
                 });
             }

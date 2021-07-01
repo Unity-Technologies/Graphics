@@ -204,7 +204,7 @@ namespace UnityEditor.Rendering.HighDefinition
         }
 
         /// <summary>
-        /// This is to convert any int into LightLayer which is usefull for the version in shadow of lights.
+        /// This is to convert any int into LightLayer which is useful for the version in shadow of lights.
         /// LightLayer have a CustomPropertyDrawer so for SerializedProperty on LightLayer type,
         /// prefer using EditorGUILayout.PropertyField.
         /// </summary>
@@ -234,7 +234,7 @@ namespace UnityEditor.Rendering.HighDefinition
             EditorGUI.BeginProperty(rect, label, property);
 
             EditorGUI.BeginChangeCheck();
-            int changedValue = EditorGUI.MaskField(rect, label ?? GUIContent.none, property.intValue, HDRenderPipelineGlobalSettings.instance.decalLayerNames);
+            int changedValue = EditorGUI.MaskField(rect, label ?? GUIContent.none, property.intValue, HDRenderPipelineGlobalSettings.instance.prefixedDecalLayerNames);
             if (EditorGUI.EndChangeCheck())
                 property.intValue = changedValue;
 
@@ -251,7 +251,7 @@ namespace UnityEditor.Rendering.HighDefinition
                 return lightLayer;
 
             EditorGUI.BeginChangeCheck();
-            lightLayer = EditorGUI.MaskField(rect, label ?? GUIContent.none, lightLayer, HDRenderPipelineGlobalSettings.instance.lightLayerNames);
+            lightLayer = EditorGUI.MaskField(rect, label ?? GUIContent.none, lightLayer, HDRenderPipelineGlobalSettings.instance.prefixedLightLayerNames);
             if (EditorGUI.EndChangeCheck())
                 lightLayer = HDAdditionalLightData.LightLayerToRenderingLayerMask(lightLayer, value);
             return lightLayer;
@@ -275,33 +275,6 @@ namespace UnityEditor.Rendering.HighDefinition
             //
             labelPosition.x += EditorGUI.indentLevel * 15;
             EditorGUI.HandlePrefixLabel(totalPosition, labelPosition, label);
-        }
-
-        /// <summary>
-        /// Like EditorGUI.IndentLevelScope but this one will also indent the override checkboxes.
-        /// </summary>
-        internal class IndentScope : GUI.Scope
-        {
-            int m_Offset;
-
-            public IndentScope(int offset = 16)
-            {
-                m_Offset = offset;
-
-                // When using EditorGUI.indentLevel++, the clicking on the checkboxes does not work properly due to some issues on the C++ side.
-                // This scope is a work-around for this issue.
-                GUILayout.BeginHorizontal();
-                EditorGUILayout.Space(offset, false);
-                GUILayout.BeginVertical();
-                EditorGUIUtility.labelWidth -= m_Offset;
-            }
-
-            protected override void CloseScope()
-            {
-                EditorGUIUtility.labelWidth += m_Offset;
-                GUILayout.EndVertical();
-                GUILayout.EndHorizontal();
-            }
         }
     }
 

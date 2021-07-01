@@ -36,6 +36,8 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - VFX: Fix light cookies integration.
 - Added Lights 2D to the Light Explorer window.
 - Two new URP specific scene templates, Basic which has a camera and directional light, then Standard which has the addition of a global volume with basic post effects setup.
+- Added Render Settings Converter to the Render Pipeline Converter, this tool creates and assigns URP Assets based off rendering settings of a Builtin project.
+- XR: Added Late Latching support to reduce VR latency (Quest).
 
 ### Changed
 - Moved fog evaluation from vertex shader to pixel shader. This improves rendering of fog for big triangles and fog quality. This can change the look of the fog slightly.
@@ -69,6 +71,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - When MSAA is enabled and a depth texture is required, the opaque pass depth will be copied instead of scheduling a depth prepass.
 
 ### Fixed
+- Fixed an issue with the blend mode in Sprite-Lit-Default shader causing alpha to overwrite the framebuffer. [case 1331392](https://issuetracker.unity3d.com/product/unity/issues/guid/1331392/)
 - Fixed pixel perfect camera rect not being correctly initialized. [case 1312646](https://issuetracker.unity3d.com/product/unity/issues/guid/1312646/)
 - Camera Inspector Stack list edition fixes.
 - Fixed Opacity as Density blending artifacts on Terrain that that caused Terrain to have modified splat weights of zero in some areas and greater than one in others. [case 1283124](https://issuetracker.unity3d.com/product/unity/issues/guid/1283124/)
