@@ -7,6 +7,7 @@ using UnityEngine;
 using UnityEngine.Profiling;
 using UnityEngine.Rendering.Universal;
 using UnityEngine.Rendering;
+using System.Linq;
 
 #if XR_MANAGEMENT_4_0_1_OR_NEWER
 using UnityEditor.XR.Management;
@@ -99,6 +100,8 @@ namespace UnityEditor.Rendering.Universal
 
         int m_TotalVariantsInputCount;
         int m_TotalVariantsOutputCount;
+
+        ShaderVariantCollection m_ShaderVariantCollection = AssetDatabase.LoadAssetAtPath<ShaderVariantCollection>("Assets/UniversalGraphicsTests.shadervariants");
 
         // Multiple callback may be implemented.
         // The first one executed is the one where callbackOrder is returning the smallest number.
@@ -403,6 +406,8 @@ namespace UnityEditor.Rendering.Universal
             if (urpAsset == null || compilerDataList == null || compilerDataList.Count == 0)
                 return;
 
+            Debug.Log($"Is stripping with ShaderVariantCollection? {m_ShaderVariantCollection != null}");
+
             // Local Keywords need to be initialized with the shader
             InitializeLocalShaderKeywords(shader);
 
@@ -410,9 +415,38 @@ namespace UnityEditor.Rendering.Universal
 
             int prevVariantCount = compilerDataList.Count;
             var inputShaderVariantCount = compilerDataList.Count;
+            var arrayPool = new List<string[]>(32);
+            arrayPool.Add(new string[] {});
             for (int i = 0; i < inputShaderVariantCount;)
             {
                 bool removeInput = StripUnused(ShaderBuildPreprocessor.supportedFeatures, shader, snippetData, compilerDataList[i]);
+                if (!removeInput &&
+                    m_ShaderVariantCollection != null &&
+                    shader.name.Contains("Universal") &&
+                    !shader.name.Contains("Hidden") &&
+                    m_ShaderVariantCollection.Contains(new ShaderVariantCollection.ShaderVariant(shader, snippetData.passType, arrayPool[0])))
+                {
+                    var shaderKeywords = compilerDataList[i].shaderKeywordSet.GetShaderKeywords();
+                    string[] keywords;
+                    if (shaderKeywords.Length >= arrayPool.Count)
+                    {
+                        for (var j = arrayPool.Count; j <= shaderKeywords.Length; j++)
+                        {
+                            arrayPool.Add(null);
+                        }
+                    }
+                    if (arrayPool[shaderKeywords.Length] == null)
+                    {
+                        arrayPool[shaderKeywords.Length] = new string[shaderKeywords.Length];
+                    }
+                    keywords = arrayPool[shaderKeywords.Length];
+                    for (var j = 0; j < shaderKeywords.Length; j++)
+                    {
+                        keywords[j] = shaderKeywords[j].name;
+                    }
+                    var variant = new ShaderVariantCollection.ShaderVariant(shader, snippetData.passType, keywords);
+                    removeInput = !m_ShaderVariantCollection.Contains(variant);
+                }
                 if (removeInput)
                     compilerDataList[i] = compilerDataList[--inputShaderVariantCount];
                 else

@@ -1,0 +1,510 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!200 &20000000
+ShaderVariantCollection:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_Name: UniversalGraphicsTests
+  m_Shaders:
+  - first: {fileID: 10770, guid: 0000000000000000f000000000000000, type: 0}
+    second:
+      variants:
+      - keywords: 
+        passType: 0
+  - first: {fileID: 66, guid: 0000000000000000f000000000000000, type: 0}
+    second:
+      variants:
+      - keywords: 
+        passType: 0
+  - first: {fileID: 103, guid: 0000000000000000f000000000000000, type: 0}
+    second:
+      variants:
+      - keywords: 
+        passType: 0
+  - first: {fileID: 106, guid: 0000000000000000f000000000000000, type: 0}
+    second:
+      variants:
+      - keywords: _SUNDISK_SIMPLE
+        passType: 0
+  - first: {fileID: 9000, guid: 0000000000000000f000000000000000, type: 0}
+    second:
+      variants:
+      - keywords: 
+        passType: 0
+  - first: {fileID: 9001, guid: 0000000000000000f000000000000000, type: 0}
+    second:
+      variants:
+      - keywords: 
+        passType: 0
+  - first: {fileID: 9002, guid: 0000000000000000f000000000000000, type: 0}
+    second:
+      variants:
+      - keywords: 
+        passType: 0
+  - first: {fileID: 9003, guid: 0000000000000000f000000000000000, type: 0}
+    second:
+      variants:
+      - keywords: 
+        passType: 0
+  - first: {fileID: 9004, guid: 0000000000000000f000000000000000, type: 0}
+    second:
+      variants:
+      - keywords: 
+        passType: 0
+  - first: {fileID: 9007, guid: 0000000000000000f000000000000000, type: 0}
+    second:
+      variants:
+      - keywords: 
+        passType: 0
+  - first: {fileID: 9101, guid: 0000000000000000f000000000000000, type: 0}
+    second:
+      variants:
+      - keywords: 
+        passType: 0
+  - first: {fileID: 9103, guid: 0000000000000000f000000000000000, type: 0}
+    second:
+      variants:
+      - keywords: 
+        passType: 0
+  - first: {fileID: 4800000, guid: c17132b1f77d20942aa75f8429c0f8bc, type: 3}
+    second:
+      variants:
+      - keywords: 
+        passType: 0
+  - first: {fileID: 4800000, guid: d6dae50ee9e1bfa4db75f19f99355220, type: 3}
+    second:
+      variants:
+      - keywords: 
+        passType: 0
+      - keywords: _DEPTH_MSAA_4
+        passType: 0
+  - first: {fileID: 4800000, guid: e9155b26e1bc55942a41e518703fe304, type: 3}
+    second:
+      variants:
+      - keywords: 
+        passType: 0
+      - keywords: LIGHTMAP_SHADOW_MIXING SHADOWS_SHADOWMASK _ADDITIONAL_LIGHT_SHADOWS
+          _DEFERRED_MIXED_LIGHTING _DEFERRED_STENCIL _LIT _SHADOWS_SOFT _SPOT
+        passType: 0
+      - keywords: LIGHTMAP_SHADOW_MIXING SHADOWS_SHADOWMASK _ADDITIONAL_LIGHT_SHADOWS
+          _DEFERRED_MIXED_LIGHTING _DEFERRED_STENCIL _SHADOWS_SOFT _SIMPLELIT _SPOT
+        passType: 0
+      - keywords: LIGHTMAP_SHADOW_MIXING SHADOWS_SHADOWMASK _DEFERRED_FIRST_LIGHT
+          _DEFERRED_MAIN_LIGHT _DEFERRED_MIXED_LIGHTING _DEFERRED_STENCIL _DIRECTIONAL
+          _LIT _MAIN_LIGHT_SHADOWS_CASCADE _SHADOWS_SOFT
+        passType: 0
+      - keywords: LIGHTMAP_SHADOW_MIXING SHADOWS_SHADOWMASK _DEFERRED_FIRST_LIGHT
+          _DEFERRED_MAIN_LIGHT _DEFERRED_MIXED_LIGHTING _DEFERRED_STENCIL _DIRECTIONAL
+          _MAIN_LIGHT_SHADOWS_CASCADE _SHADOWS_SOFT _SIMPLELIT
+        passType: 0
+      - keywords: LIGHTMAP_SHADOW_MIXING _ADDITIONAL_LIGHT_SHADOWS _DEFERRED_MIXED_LIGHTING
+          _DEFERRED_STENCIL _LIT _SHADOWS_SOFT _SPOT
+        passType: 0
+      - keywords: LIGHTMAP_SHADOW_MIXING _ADDITIONAL_LIGHT_SHADOWS _DEFERRED_MIXED_LIGHTING
+          _DEFERRED_STENCIL _SHADOWS_SOFT _SIMPLELIT _SPOT
+        passType: 0
+      - keywords: LIGHTMAP_SHADOW_MIXING _DEFERRED_FIRST_LIGHT _DEFERRED_MAIN_LIGHT
+          _DEFERRED_MIXED_LIGHTING _DEFERRED_STENCIL _DIRECTIONAL _LIT _MAIN_LIGHT_SHADOWS_CASCADE
+          _SHADOWS_SOFT
+        passType: 0
+      - keywords: LIGHTMAP_SHADOW_MIXING _DEFERRED_FIRST_LIGHT _DEFERRED_MAIN_LIGHT
+          _DEFERRED_MIXED_LIGHTING _DEFERRED_STENCIL _DIRECTIONAL _MAIN_LIGHT_SHADOWS_CASCADE
+          _SHADOWS_SOFT _SIMPLELIT
+        passType: 0
+      - keywords: _ADDITIONAL_LIGHT_SHADOWS _DEFERRED_STENCIL _LIGHT_LAYERS _LIT
+          _POINT
+        passType: 0
+      - keywords: _ADDITIONAL_LIGHT_SHADOWS _DEFERRED_STENCIL _LIGHT_LAYERS _LIT
+          _SPOT
+        passType: 0
+      - keywords: _ADDITIONAL_LIGHT_SHADOWS _DEFERRED_STENCIL _LIGHT_LAYERS _POINT
+          _SIMPLELIT
+        passType: 0
+      - keywords: _ADDITIONAL_LIGHT_SHADOWS _DEFERRED_STENCIL _LIGHT_LAYERS _SIMPLELIT
+          _SPOT
+        passType: 0
+      - keywords: _ADDITIONAL_LIGHT_SHADOWS _DEFERRED_STENCIL _LIT _SHADOWS_SOFT
+          _SPOT
+        passType: 0
+      - keywords: _ADDITIONAL_LIGHT_SHADOWS _DEFERRED_STENCIL _SHADOWS_SOFT _SIMPLELIT
+          _SPOT
+        passType: 0
+      - keywords: _DEFERRED_FIRST_LIGHT _DEFERRED_MAIN_LIGHT _DEFERRED_STENCIL _DIRECTIONAL
+          _LIGHT_LAYERS _LIT _MAIN_LIGHT_SHADOWS_CASCADE
+        passType: 0
+      - keywords: _DEFERRED_FIRST_LIGHT _DEFERRED_MAIN_LIGHT _DEFERRED_STENCIL _DIRECTIONAL
+          _LIGHT_LAYERS _MAIN_LIGHT_SHADOWS_CASCADE _SIMPLELIT
+        passType: 0
+      - keywords: _DEFERRED_FIRST_LIGHT _DEFERRED_MAIN_LIGHT _DEFERRED_STENCIL _DIRECTIONAL
+          _LIT
+        passType: 0
+      - keywords: _DEFERRED_FIRST_LIGHT _DEFERRED_MAIN_LIGHT _DEFERRED_STENCIL _DIRECTIONAL
+          _LIT _MAIN_LIGHT_SHADOWS_CASCADE _SHADOWS_SOFT
+        passType: 0
+      - keywords: _DEFERRED_FIRST_LIGHT _DEFERRED_MAIN_LIGHT _DEFERRED_STENCIL _DIRECTIONAL
+          _LIT _SCREEN_SPACE_OCCLUSION
+        passType: 0
+      - keywords: _DEFERRED_FIRST_LIGHT _DEFERRED_MAIN_LIGHT _DEFERRED_STENCIL _DIRECTIONAL
+          _MAIN_LIGHT_SHADOWS_CASCADE _SHADOWS_SOFT _SIMPLELIT
+        passType: 0
+      - keywords: _DEFERRED_FIRST_LIGHT _DEFERRED_MAIN_LIGHT _DEFERRED_STENCIL _DIRECTIONAL
+          _SCREEN_SPACE_OCCLUSION _SIMPLELIT
+        passType: 0
+      - keywords: _DEFERRED_FIRST_LIGHT _DEFERRED_MAIN_LIGHT _DEFERRED_STENCIL _DIRECTIONAL
+          _SIMPLELIT
+        passType: 0
+      - keywords: _DEFERRED_STENCIL _LIT _SPOT
+        passType: 0
+      - keywords: _DEFERRED_STENCIL _SIMPLELIT _SPOT
+        passType: 0
+      - keywords: _DIRECTIONAL
+        passType: 0
+      - keywords: _POINT
+        passType: 0
+      - keywords: _SPOT
+        passType: 0
+      - keywords: _SSAO_ONLY
+        passType: 0
+  - first: {fileID: 4800000, guid: 7242d828152e64d0da5064e782974ac7, type: 3}
+    second:
+      variants:
+      - keywords: 
+        passType: 0
+  - first: {fileID: 4800000, guid: 718823c46701e42c89603ff80f90f8b6, type: 3}
+    second:
+      variants:
+      - keywords: 
+        passType: 0
+  - first: {fileID: 4800000, guid: e61ad6112715047c9ac93c05f2990886, type: 3}
+    second:
+      variants:
+      - keywords: 
+        passType: 0
+  - first: {fileID: 4800000, guid: 0849e84e3d62649e8882e9d6f056a017, type: 3}
+    second:
+      variants:
+      - keywords: 
+        passType: 0
+      - keywords: _ORTHOGRAPHIC _RECONSTRUCT_NORMAL_LOW _SOURCE_DEPTH
+        passType: 0
+      - keywords: _ORTHOGRAPHIC _RECONSTRUCT_NORMAL_LOW _SOURCE_DEPTH_NORMALS
+        passType: 0
+      - keywords: _ORTHOGRAPHIC _SOURCE_DEPTH
+        passType: 0
+      - keywords: _ORTHOGRAPHIC _SOURCE_DEPTH_NORMALS
+        passType: 0
+      - keywords: _RECONSTRUCT_NORMAL_LOW _SOURCE_DEPTH
+        passType: 0
+      - keywords: _RECONSTRUCT_NORMAL_LOW _SOURCE_DEPTH_NORMALS
+        passType: 0
+      - keywords: _SOURCE_DEPTH
+        passType: 0
+      - keywords: _SOURCE_DEPTH_NORMALS
+        passType: 0
+  - first: {fileID: 4800000, guid: 933532a4fcc9baf4fa0491de14d08ed7, type: 3}
+    second:
+      variants:
+      - keywords: 
+        passType: 8
+      - keywords: _ALPHATEST_ON
+        passType: 8
+      - keywords: _CASTING_PUNCTUAL_LIGHT_SHADOW
+        passType: 8
+      - keywords: 
+        passType: 13
+      - keywords: DIRLIGHTMAP_COMBINED LIGHTMAP_ON
+        passType: 13
+      - keywords: DIRLIGHTMAP_COMBINED LIGHTMAP_ON LIGHTMAP_SHADOW_MIXING SHADOWS_SHADOWMASK
+          _ADDITIONAL_LIGHTS _ADDITIONAL_LIGHT_SHADOWS _MAIN_LIGHT_SHADOWS_CASCADE
+          _SHADOWS_SOFT
+        passType: 13
+      - keywords: DIRLIGHTMAP_COMBINED LIGHTMAP_ON LIGHTMAP_SHADOW_MIXING SHADOWS_SHADOWMASK
+          _ADDITIONAL_LIGHTS _MAIN_LIGHT_SHADOWS_CASCADE
+        passType: 13
+      - keywords: DIRLIGHTMAP_COMBINED LIGHTMAP_ON LIGHTMAP_SHADOW_MIXING SHADOWS_SHADOWMASK
+          _MAIN_LIGHT_SHADOWS_CASCADE _SHADOWS_SOFT
+        passType: 13
+      - keywords: DIRLIGHTMAP_COMBINED LIGHTMAP_ON LIGHTMAP_SHADOW_MIXING _ADDITIONAL_LIGHTS
+          _ADDITIONAL_LIGHT_SHADOWS _MAIN_LIGHT_SHADOWS_CASCADE _SHADOWS_SOFT
+        passType: 13
+      - keywords: DIRLIGHTMAP_COMBINED LIGHTMAP_ON LIGHTMAP_SHADOW_MIXING _ADDITIONAL_LIGHTS
+          _MAIN_LIGHT_SHADOWS_CASCADE
+        passType: 13
+      - keywords: DIRLIGHTMAP_COMBINED LIGHTMAP_ON LIGHTMAP_SHADOW_MIXING _MAIN_LIGHT_SHADOWS_CASCADE
+          _SHADOWS_SOFT
+        passType: 13
+      - keywords: DIRLIGHTMAP_COMBINED LIGHTMAP_ON SHADOWS_SHADOWMASK _ADDITIONAL_LIGHTS
+          _ADDITIONAL_LIGHT_SHADOWS _MAIN_LIGHT_SHADOWS_CASCADE _SHADOWS_SOFT
+        passType: 13
+      - keywords: DIRLIGHTMAP_COMBINED LIGHTMAP_ON SHADOWS_SHADOWMASK _ADDITIONAL_LIGHTS
+          _MAIN_LIGHT_SHADOWS_CASCADE
+        passType: 13
+      - keywords: DIRLIGHTMAP_COMBINED LIGHTMAP_ON _NORMALMAP
+        passType: 13
+      - keywords: LIGHTMAP_ON
+        passType: 13
+      - keywords: LIGHTMAP_ON _ADDITIONAL_LIGHTS
+        passType: 13
+      - keywords: LIGHTMAP_ON _ADDITIONAL_LIGHTS _ADDITIONAL_LIGHT_SHADOWS _MAIN_LIGHT_SHADOWS_CASCADE
+          _SHADOWS_SOFT
+        passType: 13
+      - keywords: LIGHTMAP_ON _ADDITIONAL_LIGHTS _MAIN_LIGHT_SHADOWS_CASCADE
+        passType: 13
+      - keywords: LIGHTMAP_ON _ALPHAPREMULTIPLY_ON _METALLICSPECGLOSSMAP _NORMALMAP
+          _SPECULARHIGHLIGHTS_OFF _SURFACE_TYPE_TRANSPARENT
+        passType: 13
+      - keywords: LIGHTMAP_ON _ALPHAPREMULTIPLY_ON _METALLICSPECGLOSSMAP _NORMALMAP
+          _SURFACE_TYPE_TRANSPARENT
+        passType: 13
+      - keywords: LIGHTMAP_ON _ALPHATEST_ON _METALLICSPECGLOSSMAP _NORMALMAP
+        passType: 13
+      - keywords: LIGHTMAP_ON _ALPHATEST_ON _METALLICSPECGLOSSMAP _NORMALMAP _SPECULARHIGHLIGHTS_OFF
+        passType: 13
+      - keywords: LIGHTMAP_ON _MAIN_LIGHT_SHADOWS_CASCADE _SHADOWS_SOFT
+        passType: 13
+      - keywords: LIGHTMAP_ON _METALLICSPECGLOSSMAP _NORMALMAP _OCCLUSIONMAP
+        passType: 13
+      - keywords: LIGHTMAP_ON _METALLICSPECGLOSSMAP _NORMALMAP _OCCLUSIONMAP _SPECULARHIGHLIGHTS_OFF
+        passType: 13
+      - keywords: LIGHTMAP_ON _METALLICSPECGLOSSMAP _NORMALMAP _OCCLUSIONMAP _SPECULARHIGHLIGHTS_OFF
+          _SURFACE_TYPE_TRANSPARENT
+        passType: 13
+      - keywords: LIGHTMAP_ON _METALLICSPECGLOSSMAP _NORMALMAP _OCCLUSIONMAP _SURFACE_TYPE_TRANSPARENT
+        passType: 13
+      - keywords: LIGHTMAP_ON _NORMALMAP
+        passType: 13
+      - keywords: LIGHTMAP_ON _SPECULARHIGHLIGHTS_OFF
+        passType: 13
+      - keywords: LIGHTMAP_SHADOW_MIXING SHADOWS_SHADOWMASK _ADDITIONAL_LIGHTS _ADDITIONAL_LIGHT_SHADOWS
+          _MAIN_LIGHT_SHADOWS_CASCADE _SHADOWS_SOFT
+        passType: 13
+      - keywords: LIGHTMAP_SHADOW_MIXING SHADOWS_SHADOWMASK _ADDITIONAL_LIGHTS _MAIN_LIGHT_SHADOWS_CASCADE
+        passType: 13
+      - keywords: LIGHTMAP_SHADOW_MIXING SHADOWS_SHADOWMASK _MAIN_LIGHT_SHADOWS_CASCADE
+          _SHADOWS_SOFT
+        passType: 13
+      - keywords: LIGHTMAP_SHADOW_MIXING _ADDITIONAL_LIGHTS _ADDITIONAL_LIGHT_SHADOWS
+          _MAIN_LIGHT_SHADOWS_CASCADE _SHADOWS_SOFT
+        passType: 13
+      - keywords: LIGHTMAP_SHADOW_MIXING _ADDITIONAL_LIGHTS _MAIN_LIGHT_SHADOWS_CASCADE
+        passType: 13
+      - keywords: LIGHTMAP_SHADOW_MIXING _MAIN_LIGHT_SHADOWS_CASCADE _SHADOWS_SOFT
+        passType: 13
+      - keywords: SHADOWS_SHADOWMASK _ADDITIONAL_LIGHTS _ADDITIONAL_LIGHT_SHADOWS
+          _MAIN_LIGHT_SHADOWS_CASCADE _SHADOWS_SOFT
+        passType: 13
+      - keywords: SHADOWS_SHADOWMASK _ADDITIONAL_LIGHTS _MAIN_LIGHT_SHADOWS_CASCADE
+        passType: 13
+      - keywords: _ADDITIONAL_LIGHTS
+        passType: 13
+      - keywords: _ADDITIONAL_LIGHTS _ADDITIONAL_LIGHT_SHADOWS
+        passType: 13
+      - keywords: _ADDITIONAL_LIGHTS _ADDITIONAL_LIGHT_SHADOWS _LIGHT_LAYERS _MAIN_LIGHT_SHADOWS_CASCADE
+        passType: 13
+      - keywords: _ADDITIONAL_LIGHTS _ADDITIONAL_LIGHT_SHADOWS _MAIN_LIGHT_SHADOWS_CASCADE
+          _SHADOWS_SOFT
+        passType: 13
+      - keywords: _ADDITIONAL_LIGHTS _ADDITIONAL_LIGHT_SHADOWS _SHADOWS_SOFT
+        passType: 13
+      - keywords: _ADDITIONAL_LIGHTS _MAIN_LIGHT_SHADOWS_CASCADE
+        passType: 13
+      - keywords: _ALPHAPREMULTIPLY_ON _METALLICSPECGLOSSMAP _NORMALMAP _SPECULARHIGHLIGHTS_OFF
+          _SURFACE_TYPE_TRANSPARENT
+        passType: 13
+      - keywords: _ALPHAPREMULTIPLY_ON _METALLICSPECGLOSSMAP _NORMALMAP _SURFACE_TYPE_TRANSPARENT
+        passType: 13
+      - keywords: _ALPHATEST_ON _METALLICSPECGLOSSMAP _NORMALMAP
+        passType: 13
+      - keywords: _ALPHATEST_ON _METALLICSPECGLOSSMAP _NORMALMAP _SPECULARHIGHLIGHTS_OFF
+        passType: 13
+      - keywords: _ENVIRONMENTREFLECTIONS_OFF _RECEIVE_SHADOWS_OFF
+        passType: 13
+      - keywords: _ENVIRONMENTREFLECTIONS_OFF _RECEIVE_SHADOWS_OFF _SCREEN_SPACE_OCCLUSION
+        passType: 13
+      - keywords: _LIGHT_LAYERS _MAIN_LIGHT_SHADOWS_CASCADE
+        passType: 13
+      - keywords: _MAIN_LIGHT_SHADOWS_CASCADE
+        passType: 13
+      - keywords: _MAIN_LIGHT_SHADOWS_CASCADE _SHADOWS_SOFT
+        passType: 13
+      - keywords: _METALLICSPECGLOSSMAP _NORMALMAP _OCCLUSIONMAP
+        passType: 13
+      - keywords: _METALLICSPECGLOSSMAP _NORMALMAP _OCCLUSIONMAP _SPECULARHIGHLIGHTS_OFF
+        passType: 13
+      - keywords: _METALLICSPECGLOSSMAP _NORMALMAP _OCCLUSIONMAP _SPECULARHIGHLIGHTS_OFF
+          _SURFACE_TYPE_TRANSPARENT
+        passType: 13
+      - keywords: _METALLICSPECGLOSSMAP _NORMALMAP _OCCLUSIONMAP _SURFACE_TYPE_TRANSPARENT
+        passType: 13
+      - keywords: _NORMALMAP
+        passType: 13
+      - keywords: _RECEIVE_SHADOWS_OFF
+        passType: 13
+      - keywords: _SPECULARHIGHLIGHTS_OFF
+        passType: 13
+  - first: {fileID: 4800000, guid: 0ca6dca7396eb48e5849247ffd444914, type: 3}
+    second:
+      variants:
+      - keywords: 
+        passType: 13
+      - keywords: _ALPHATEST_ON
+        passType: 13
+      - keywords: _ALPHATEST_ON _NORMALMAP
+        passType: 13
+      - keywords: _ALPHATEST_ON _NORMALMAP _SCREEN_SPACE_OCCLUSION
+        passType: 13
+      - keywords: _NORMALMAP
+        passType: 13
+      - keywords: _NORMALMAP _SCREEN_SPACE_OCCLUSION
+        passType: 13
+      - keywords: _SCREEN_SPACE_OCCLUSION
+        passType: 13
+  - first: {fileID: 4800000, guid: 8d2bb70cbf9db8d4da26e15b26e74248, type: 3}
+    second:
+      variants:
+      - keywords: 
+        passType: 8
+      - keywords: INSTANCING_ON
+        passType: 8
+      - keywords: INSTANCING_ON _GLOSSINESS_FROM_BASE_ALPHA
+        passType: 8
+      - keywords: _CASTING_PUNCTUAL_LIGHT_SHADOW
+        passType: 8
+      - keywords: _GLOSSINESS_FROM_BASE_ALPHA
+        passType: 8
+      - keywords: 
+        passType: 11
+      - keywords: _EMISSION
+        passType: 11
+      - keywords: 
+        passType: 13
+      - keywords: DIRLIGHTMAP_COMBINED LIGHTMAP_ON LIGHTMAP_SHADOW_MIXING SHADOWS_SHADOWMASK
+          _ADDITIONAL_LIGHTS _ADDITIONAL_LIGHT_SHADOWS _GLOSSINESS_FROM_BASE_ALPHA
+          _MAIN_LIGHT_SHADOWS_CASCADE _SHADOWS_SOFT _SPECULAR_COLOR
+        passType: 13
+      - keywords: DIRLIGHTMAP_COMBINED LIGHTMAP_ON LIGHTMAP_SHADOW_MIXING SHADOWS_SHADOWMASK
+          _ADDITIONAL_LIGHTS _MAIN_LIGHT_SHADOWS_CASCADE
+        passType: 13
+      - keywords: DIRLIGHTMAP_COMBINED LIGHTMAP_ON LIGHTMAP_SHADOW_MIXING SHADOWS_SHADOWMASK
+          _GLOSSINESS_FROM_BASE_ALPHA _MAIN_LIGHT_SHADOWS_CASCADE _SHADOWS_SOFT _SPECULAR_COLOR
+        passType: 13
+      - keywords: DIRLIGHTMAP_COMBINED LIGHTMAP_ON LIGHTMAP_SHADOW_MIXING SHADOWS_SHADOWMASK
+          _MAIN_LIGHT_SHADOWS_CASCADE _SHADOWS_SOFT
+        passType: 13
+      - keywords: DIRLIGHTMAP_COMBINED LIGHTMAP_ON LIGHTMAP_SHADOW_MIXING _ADDITIONAL_LIGHTS
+          _ADDITIONAL_LIGHT_SHADOWS _GLOSSINESS_FROM_BASE_ALPHA _MAIN_LIGHT_SHADOWS_CASCADE
+          _SHADOWS_SOFT _SPECULAR_COLOR
+        passType: 13
+      - keywords: DIRLIGHTMAP_COMBINED LIGHTMAP_ON LIGHTMAP_SHADOW_MIXING _ADDITIONAL_LIGHTS
+          _MAIN_LIGHT_SHADOWS_CASCADE
+        passType: 13
+      - keywords: DIRLIGHTMAP_COMBINED LIGHTMAP_ON LIGHTMAP_SHADOW_MIXING _GLOSSINESS_FROM_BASE_ALPHA
+          _MAIN_LIGHT_SHADOWS_CASCADE _SHADOWS_SOFT _SPECULAR_COLOR
+        passType: 13
+      - keywords: DIRLIGHTMAP_COMBINED LIGHTMAP_ON LIGHTMAP_SHADOW_MIXING _MAIN_LIGHT_SHADOWS_CASCADE
+          _SHADOWS_SOFT
+        passType: 13
+      - keywords: DIRLIGHTMAP_COMBINED LIGHTMAP_ON SHADOWS_SHADOWMASK _ADDITIONAL_LIGHTS
+          _ADDITIONAL_LIGHT_SHADOWS _GLOSSINESS_FROM_BASE_ALPHA _MAIN_LIGHT_SHADOWS_CASCADE
+          _SHADOWS_SOFT _SPECULAR_COLOR
+        passType: 13
+      - keywords: DIRLIGHTMAP_COMBINED LIGHTMAP_ON SHADOWS_SHADOWMASK _ADDITIONAL_LIGHTS
+          _MAIN_LIGHT_SHADOWS_CASCADE
+        passType: 13
+      - keywords: DYNAMICLIGHTMAP_ON
+        passType: 13
+      - keywords: DYNAMICLIGHTMAP_ON _ADDITIONAL_LIGHTS
+        passType: 13
+      - keywords: DYNAMICLIGHTMAP_ON _ADDITIONAL_LIGHTS _GLOSSINESS_FROM_BASE_ALPHA
+          _SPECULAR_COLOR
+        passType: 13
+      - keywords: DYNAMICLIGHTMAP_ON _EMISSION _GLOSSINESS_FROM_BASE_ALPHA _SPECULAR_COLOR
+        passType: 13
+      - keywords: DYNAMICLIGHTMAP_ON _GLOSSINESS_FROM_BASE_ALPHA _SPECULAR_COLOR
+        passType: 13
+      - keywords: LIGHTMAP_ON
+        passType: 13
+      - keywords: LIGHTMAP_ON _ADDITIONAL_LIGHTS _ADDITIONAL_LIGHT_SHADOWS _GLOSSINESS_FROM_BASE_ALPHA
+          _MAIN_LIGHT_SHADOWS_CASCADE _SHADOWS_SOFT _SPECULAR_COLOR
+        passType: 13
+      - keywords: LIGHTMAP_ON _ADDITIONAL_LIGHTS _MAIN_LIGHT_SHADOWS_CASCADE
+        passType: 13
+      - keywords: LIGHTMAP_ON _EMISSION _GLOSSINESS_FROM_BASE_ALPHA _SPECULAR_COLOR
+        passType: 13
+      - keywords: LIGHTMAP_ON _GLOSSINESS_FROM_BASE_ALPHA _MAIN_LIGHT_SHADOWS_CASCADE
+          _SHADOWS_SOFT _SPECULAR_COLOR
+        passType: 13
+      - keywords: LIGHTMAP_ON _GLOSSINESS_FROM_BASE_ALPHA _SPECULAR_COLOR
+        passType: 13
+      - keywords: LIGHTMAP_ON _MAIN_LIGHT_SHADOWS_CASCADE _SHADOWS_SOFT
+        passType: 13
+      - keywords: LIGHTMAP_SHADOW_MIXING SHADOWS_SHADOWMASK _ADDITIONAL_LIGHTS _ADDITIONAL_LIGHT_SHADOWS
+          _GLOSSINESS_FROM_BASE_ALPHA _MAIN_LIGHT_SHADOWS_CASCADE _SHADOWS_SOFT _SPECULAR_COLOR
+        passType: 13
+      - keywords: LIGHTMAP_SHADOW_MIXING SHADOWS_SHADOWMASK _ADDITIONAL_LIGHTS _MAIN_LIGHT_SHADOWS_CASCADE
+        passType: 13
+      - keywords: LIGHTMAP_SHADOW_MIXING SHADOWS_SHADOWMASK _GLOSSINESS_FROM_BASE_ALPHA
+          _MAIN_LIGHT_SHADOWS_CASCADE _SHADOWS_SOFT _SPECULAR_COLOR
+        passType: 13
+      - keywords: LIGHTMAP_SHADOW_MIXING SHADOWS_SHADOWMASK _MAIN_LIGHT_SHADOWS_CASCADE
+          _SHADOWS_SOFT
+        passType: 13
+      - keywords: LIGHTMAP_SHADOW_MIXING _ADDITIONAL_LIGHTS _ADDITIONAL_LIGHT_SHADOWS
+          _GLOSSINESS_FROM_BASE_ALPHA _MAIN_LIGHT_SHADOWS_CASCADE _SHADOWS_SOFT _SPECULAR_COLOR
+        passType: 13
+      - keywords: LIGHTMAP_SHADOW_MIXING _ADDITIONAL_LIGHTS _MAIN_LIGHT_SHADOWS_CASCADE
+        passType: 13
+      - keywords: LIGHTMAP_SHADOW_MIXING _GLOSSINESS_FROM_BASE_ALPHA _MAIN_LIGHT_SHADOWS_CASCADE
+          _SHADOWS_SOFT _SPECULAR_COLOR
+        passType: 13
+      - keywords: LIGHTMAP_SHADOW_MIXING _MAIN_LIGHT_SHADOWS_CASCADE _SHADOWS_SOFT
+        passType: 13
+      - keywords: SHADOWS_SHADOWMASK _ADDITIONAL_LIGHTS _ADDITIONAL_LIGHT_SHADOWS
+          _GLOSSINESS_FROM_BASE_ALPHA _MAIN_LIGHT_SHADOWS_CASCADE _SHADOWS_SOFT _SPECULAR_COLOR
+        passType: 13
+      - keywords: SHADOWS_SHADOWMASK _ADDITIONAL_LIGHTS _MAIN_LIGHT_SHADOWS_CASCADE
+        passType: 13
+      - keywords: _ADDITIONAL_LIGHTS
+        passType: 13
+      - keywords: _ADDITIONAL_LIGHTS _ADDITIONAL_LIGHT_SHADOWS _GLOSSINESS_FROM_BASE_ALPHA
+          _MAIN_LIGHT_SHADOWS_CASCADE _SHADOWS_SOFT _SPECULAR_COLOR
+        passType: 13
+      - keywords: _ADDITIONAL_LIGHTS _GLOSSINESS_FROM_BASE_ALPHA _SPECULAR_COLOR
+        passType: 13
+      - keywords: _ADDITIONAL_LIGHTS _MAIN_LIGHT_SHADOWS_CASCADE
+        passType: 13
+      - keywords: _GLOSSINESS_FROM_BASE_ALPHA _MAIN_LIGHT_SHADOWS _SHADOWS_SOFT _SPECULAR_COLOR
+        passType: 13
+      - keywords: _GLOSSINESS_FROM_BASE_ALPHA _MAIN_LIGHT_SHADOWS_CASCADE _SHADOWS_SOFT
+          _SPECULAR_COLOR
+        passType: 13
+      - keywords: _GLOSSINESS_FROM_BASE_ALPHA _SPECULAR_COLOR
+        passType: 13
+      - keywords: _MAIN_LIGHT_SHADOWS
+        passType: 13
+      - keywords: _MAIN_LIGHT_SHADOWS_CASCADE
+        passType: 13
+      - keywords: _MAIN_LIGHT_SHADOWS_CASCADE _SHADOWS_SOFT
+        passType: 13
+  - first: {fileID: -6465566751694194690, guid: afd42de6af5ee04488acabc5713ed2e0,
+      type: 3}
+    second:
+      variants:
+      - keywords: _MAIN_LIGHT_SHADOWS_CASCADE
+        passType: 0
+      - keywords: _MAIN_LIGHT_SHADOWS
+        passType: 8
+  - first: {fileID: -6465566751694194690, guid: 8b0c4a3f4546f934783c50d0bca18a30,
+      type: 3}
+    second:
+      variants:
+      - keywords: 
+        passType: 8
+      - keywords: 
+        passType: 11
+      - keywords: DYNAMICLIGHTMAP_ON
+        passType: 13
+      - keywords: DYNAMICLIGHTMAP_ON _ADDITIONAL_LIGHTS
+        passType: 13
