@@ -74,6 +74,12 @@ float4 Fetch4Array(Texture2DArray tex, uint slot, float2 coords, float2 offset, 
 #define BLEND_WITH_CLIP 1
 #define SIMPLE_CLAMP 2
 
+// Upsample pixel confidence factor (used for tuning the blend factor when upsampling)
+// See A Survey of Temporal Antialiasing Techniques [Yang et al 2020], section 5.1
+#define GAUSSIAN_WEIGHT 0
+#define BOX_REJECT 1
+#define CONFIDENCE_FACTOR BOX_REJECT
+
 #if CENTRAL_FILTERING == UPSCALE
 #define UPSAMPLE
 #endif
@@ -325,7 +331,7 @@ float ModifyBlendWithMotionVectorRejection(TEXTURE2D_X(VelocityMagnitudeTexture)
     // We don't start rejecting until we have the equivalent of around 40 texels in 1080p
     diff -= 0.015935382;
     float val = saturate(diff * speedRejectionFactor);
-    return lerp(blendFactor, 1.0, val*val);
+    return lerp(blendFactor, 0.97f, val*val);
 
 #else
     return blendFactor;
@@ -555,7 +561,7 @@ void MinMaxNeighbourhood(inout NeighbourhoodSamples samples)
     samples.avgNeighbour *= rcp(NEIGHBOUR_COUNT);
 }
 
-void VarianceNeighbourhood(inout NeighbourhoodSamples samples, float historyLuma, float colorLuma, float2 antiFlickerParams, float motionVectorLen)
+void VarianceNeighbourhood(inout NeighbourhoodSamples samples, float historyLuma, float colorLuma, float2 antiFlickerParams, float motionVecLenInPixels, float downsampleFactor)
 {
     CTYPE moment1 = 0;
     CTYPE moment2 = 0;
@@ -585,26 +591,32 @@ void VarianceNeighbourhood(inout NeighbourhoodSamples samples, float historyLuma
     stDevMultiplier = 1.5;
     float temporalContrast = saturate(abs(colorLuma - historyLuma) / Max3(0.2, colorLuma, historyLuma));
 #if ANTI_FLICKER_MV_DEPENDENT
-    const float screenDiag = length(_ScreenSize.xy);
     const float maxFactorScale = 2.25f; // when stationary
     const float minFactorScale = 0.8f; // when moving more than slightly
-    float localizedAntiFlicker = lerp(antiFlickerParams.x * minFactorScale, antiFlickerParams.x * maxFactorScale, saturate(1.0f - 2.0f * (motionVectorLen * screenDiag)));
+    float localizedAntiFlicker = lerp(antiFlickerParams.x * minFactorScale, antiFlickerParams.x * maxFactorScale, saturate(1.0f - 2.0f * (motionVecLenInPixels)));
 #else
     float localizedAntiFlicker = antiFlickerParams.x;
 #endif
     stDevMultiplier += lerp(0.0, localizedAntiFlicker, smoothstep(0.05, antiFlickerParams.y, temporalContrast));
-
 #endif
+
+#if CENTRAL_FILTERING == UPSCALE
+    // We shrink the bounding box when upscaling as ghosting is more likely.
+    // Ideally the shrinking should happen also (or just) when sampling the neighbours
+    // This shrinking should also be investigated a bit further with more content. (TODO).
+    stDevMultiplier = lerp(stDevMultiplier, 0.9f, saturate(downsampleFactor));
+#endif
+
     samples.minNeighbour = moment1 - stdDev * stDevMultiplier;
     samples.maxNeighbour = moment1 + stdDev * stDevMultiplier;
 }
 
-void GetNeighbourhoodCorners(inout NeighbourhoodSamples samples, float historyLuma, float colorLuma, float2 antiFlickerParams, float motionVecLen)
+void GetNeighbourhoodCorners(inout NeighbourhoodSamples samples, float historyLuma, float colorLuma, float2 antiFlickerParams, float motionVecLenInPixels, float downsampleFactor)
 {
 #if NEIGHBOUROOD_CORNER_METHOD == MINMAX
     MinMaxNeighbourhood(samples);
 #else
-    VarianceNeighbourhood(samples, historyLuma, colorLuma, antiFlickerParams, motionVecLen);
+    VarianceNeighbourhood(samples, historyLuma, colorLuma, antiFlickerParams, motionVecLenInPixels, downsampleFactor);
 #endif
 }
 
@@ -612,7 +624,7 @@ void GetNeighbourhoodCorners(inout NeighbourhoodSamples samples, float historyLu
 // Filter main color
 // ---------------------------------------------------
 
-float GetSampleWeight(NeighbourhoodSamples samples, int neighbourIdx, float4 filterParameters, float4 filterParameters2, float centralWeight, bool centralPixel = false)
+float GetSampleWeight(NeighbourhoodSamples samples, int neighbourIdx, float4 filterParameters, bool centralPixel = false)
 {
 #ifdef UPSAMPLE
     // Very spiky gaussian (See for honor presentation)
@@ -643,9 +655,6 @@ CTYPE FilterCentralColor(NeighbourhoodSamples samples, float4 filterParameters, 
     return avg / (1 + NEIGHBOUR_COUNT);
 
 #elif CENTRAL_FILTERING == BLACKMAN_HARRIS
-
-    // TODO : GetSampleWeight
-
     CTYPE filtered = samples.central * centralWeight;
     filtered += (samples.neighbours[0] * filterParameters.x + samples.neighbours[1] * filterParameters.y + samples.neighbours[2] * filterParameters.z + samples.neighbours[3] * filterParameters.w);
 #if WIDE_NEIGHBOURHOOD
@@ -655,13 +664,13 @@ CTYPE FilterCentralColor(NeighbourhoodSamples samples, float4 filterParameters, 
 
 #elif CENTRAL_FILTERING == UPSCALE
 
-    float totalWeight = GetSampleWeight(samples, 0, filterParameters, 0, 0, true);
+    float totalWeight = GetSampleWeight(samples, 0, filterParameters, true);
     CTYPE filtered = 0;
     filtered += samples.central * totalWeight;
 
     for (int i = 0; i < 8; ++i)
     {
-        float w = GetSampleWeight(samples, i, filterParameters, 0, 0);
+        float w = GetSampleWeight(samples, i, filterParameters);
         filtered += samples.neighbours[i] * w;
         totalWeight += w;
     }
@@ -675,11 +684,6 @@ CTYPE FilterCentralColor(NeighbourhoodSamples samples, float4 filterParameters, 
 // ---------------------------------------------------
 // Blend factor calculation
 // ---------------------------------------------------
-
-float UpsampleConfidenceValue()
-{
-
-}
 
 float HistoryContrast(float historyLuma, float minNeighbourLuma, float maxNeighbourLuma, float baseBlendFactor)
 {
@@ -783,4 +787,34 @@ CTYPE SharpenColor(NeighbourhoodSamples samples, CTYPE color, float sharpenStren
 #endif
 
     return outputSharpened;
+}
+
+// ---------------------------------------------------
+// Upscale confidence factor
+// ---------------------------------------------------
+
+// Binary accept or not
+float BoxKernelConfidence(float2 inputToOutputVec, float confidenceThreshold)
+{
+    // Binary (TODO: Smooth it?)
+    float confidenceScore = dot(inputToOutputVec, inputToOutputVec) < (confidenceThreshold);
+    return confidenceScore;
+}
+
+float GaussianConfidence(float2 inputToOutputVec, float rcpStdDev2, float resScale)
+{
+    const float resolutionScale2 = resScale * resScale;
+
+    return resolutionScale2 * exp2(-0.5f * dot(inputToOutputVec, inputToOutputVec) * resolutionScale2 * rcpStdDev2);
+}
+
+float GetUpsampleConfidence(float2 inputToOutputVec, float confidenceThreshold, float rcpStdDev2, float resScale)
+{
+#if CONFIDENCE_FACTOR == GAUSSIAN_WEIGHT
+    return saturate(GaussianConfidence(inputToOutputVec, rcpStdDev2, resScale));
+#elif CONFIDENCE_FACTOR == BOX_REJECT
+    return BoxKernelConfidence(inputToOutputVec, confidenceThreshold);
+#endif
+
+    return 1;
 }

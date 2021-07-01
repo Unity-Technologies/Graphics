@@ -1408,6 +1408,22 @@ namespace UnityEngine.Rendering.HighDefinition
             previous = camera.GetPreviousFrameRT((int)HDCameraFrameHistoryType.TAAMotionVectorMagnitude);
         }
 
+        void GrabVelocityMagnitudeHistoryTextures(HDCamera camera, out RTHandle previous, out RTHandle next, int width, int height)
+        {
+            RTHandle Allocator(string id, int frameIndex, RTHandleSystem rtHandleSystem)
+            {
+                return rtHandleSystem.Alloc(
+                    width, height, TextureXR.slices, DepthBits.None, dimension: TextureXR.dimension,
+                    filterMode: FilterMode.Bilinear, colorFormat: GraphicsFormat.R16_SFloat,
+                    enableRandomWrite: true, useDynamicScale: true, name: $"{id} Velocity magnitude"
+                );
+            }
+
+            next = camera.GetCurrentFrameRT((int)HDCameraFrameHistoryType.TAAMotionVectorMagnitude)
+                ?? camera.AllocHistoryFrameRT((int)HDCameraFrameHistoryType.TAAMotionVectorMagnitude, Allocator, 2);
+            previous = camera.GetPreviousFrameRT((int)HDCameraFrameHistoryType.TAAMotionVectorMagnitude);
+        }
+
         void ReleasePostDoFTAAHistoryTextures(HDCamera camera)
         {
             var rt = camera.GetCurrentFrameRT((int)HDCameraFrameHistoryType.TemporalAntialiasingPostDoF);
@@ -1550,7 +1566,9 @@ namespace UnityEngine.Rendering.HighDefinition
                 GrabTemporalAntialiasingHistoryTextures(camera, out prevHistory, out nextHistory, (int)camera.finalViewport.width, (int)camera.finalViewport.height, postDoF);
             }
             else
+            {
                 GrabTemporalAntialiasingHistoryTextures(camera, out prevHistory, out nextHistory, 1, postDoF);
+            }
 
             Vector2Int prevViewPort = camera.historyRTHandleProperties.previousViewportSize;
             passData.previousScreenSize = new Vector4(prevViewPort.x, prevViewPort.y, 1.0f / prevViewPort.x, 1.0f / prevViewPort.y);
@@ -1569,7 +1587,16 @@ namespace UnityEngine.Rendering.HighDefinition
             passData.nextHistory = builder.WriteTexture(renderGraph.ImportTexture(nextHistory));
 
             // Note: In case we run TAA for a second time (post-dof), we can use the same velocity history (and not write the output)
-            GrabVelocityMagnitudeHistoryTextures(camera, out var prevMVLen, out var nextMVLen);
+            RTHandle prevMVLen, nextMVLen;
+            if (TAAU)
+            {
+                GrabVelocityMagnitudeHistoryTextures(camera, out prevMVLen, out nextMVLen, (int)camera.finalViewport.width, (int)camera.finalViewport.height);
+            }
+            else
+            {
+                GrabVelocityMagnitudeHistoryTextures(camera, out prevMVLen, out nextMVLen);
+            }
+
             passData.prevMVLen = builder.ReadTexture(renderGraph.ImportTexture(prevMVLen));
             passData.nextMVLen = (!postDoF) ? builder.WriteTexture(renderGraph.ImportTexture(nextMVLen)) : TextureHandle.nullHandle;
 
@@ -1581,7 +1608,7 @@ namespace UnityEngine.Rendering.HighDefinition
             passData.finalViewport = camera.finalViewport;
             var resScale = DynamicResolutionHandler.instance.GetCurrentScale();
             float stdDev = 0.4f;
-            passData.taauParams = new Vector4(1.0f / (stdDev * stdDev), 1.0f / resScale, 0, 0);
+            passData.taauParams = new Vector4(1.0f / (stdDev * stdDev), 1.0f / resScale, 0.5f * resScale * resScale, resScale);
         }
 
         TextureHandle DoTemporalAntialiasing(RenderGraph renderGraph, HDCamera hdCamera, TextureHandle depthBuffer, TextureHandle motionVectors, TextureHandle depthBufferMipChain, TextureHandle sourceTexture, bool postDoF, string outputName)

@@ -17,7 +17,7 @@ Shader "Hidden/HDRP/TemporalAA"
         #pragma multi_compile_local_fragment LOW_QUALITY MEDIUM_QUALITY HIGH_QUALITY TAA_UPSCALE POST_DOF
 
         #pragma editor_sync_compilation
-        //#pragma enable_d3d11_debug_symbols
+       // #pragma enable_d3d11_debug_symbols
 
         #pragma only_renderers d3d11 playstation xboxone xboxseries vulkan metal switch
         #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Common.hlsl"
@@ -115,6 +115,7 @@ Shader "Hidden/HDRP/TemporalAA"
         float4 _TaaPostParameters1;
         float4 _TaaHistorySize;
         float4 _TaaFilterWeights;
+        float4 _TaaFilterWeights1;
 
         #define _HistorySharpening _TaaPostParameters.x
         #define _AntiFlickerIntensity _TaaPostParameters.y
@@ -122,11 +123,14 @@ Shader "Hidden/HDRP/TemporalAA"
         #define _ContrastForMaxAntiFlicker _TaaPostParameters.w
 
         #define _BaseBlendFactor _TaaPostParameters1.x
+        #define _CentralWeight _TaaPostParameters1.y
 
         // TAAU specific
         float4 _TaauParameters;
         #define _TAAUFilterRcpSigma2 _TaauParameters.x
         #define _TAAUScale _TaauParameters.y
+        #define _TAAUBoxConfidenceThresh _TaauParameters.z
+        #define _TAAURenderScale _TaauParameters.w
         #define _InputSize _ScreenSize
 
 
@@ -166,6 +170,21 @@ Shader "Hidden/HDRP/TemporalAA"
 
     // ------------------------------------------------------------------
 
+        // This complexity will not be needed when moving to CS.
+        void SwizzleFilterWeights(int2 posSS, inout float4 filterParams1, inout float4 filterParams2)
+        {
+            // Data arrives as if filterParams weights for { (0, 1), (1, 0), (-1, 0), (0,-1) }, filterParams2 for { (-1, 1), (1, -1), (1, 1), (-1, -1) }
+            bool2 needSwizzle = (posSS & 1) == 0;
+
+            filterParams1.yz = needSwizzle.x ? filterParams1.zy : filterParams1.yz;
+            filterParams1.xw = needSwizzle.y ? filterParams1.wx : filterParams1.xw;
+#if WIDE_NEIGHBOURHOOD
+            filterParams2 = all(needSwizzle) ? filterParams2.yxwz :
+                (needSwizzle.x && !needSwizzle.y) ? filterParams2.zwxy :
+                (!needSwizzle.x && needSwizzle.y) ? filterParams2.wzyx : filterParams2;
+#endif
+        }
+
         void FragTAA(Varyings input, out CTYPE outColor : SV_Target0)
         {
             UNITY_SETUP_STEREO_EYE_INDEX_POST_VERTEX(input);
@@ -176,7 +195,8 @@ Shader "Hidden/HDRP/TemporalAA"
             float2 uv = input.texcoord;
 
             #ifdef TAA_UPSCALE
-            float2 outputPixInInput = input.texcoord * _InputSize.xy - _TaaJitterStrength.xy;
+            float2 outputPixInInput = input.texcoord * _InputSize.xy + float2(_TaaJitterStrength.x, -_TaaJitterStrength.y);
+            outputPixInInput = input.texcoord * _InputSize.xy - _TaaJitterStrength.xy;
 
             uv = _InputSize.zw * (0.5f + floor(outputPixInInput));
             #endif
@@ -217,6 +237,7 @@ Shader "Hidden/HDRP/TemporalAA"
             filterParams.x = _TAAUFilterRcpSigma2;
             filterParams.y = _TAAUScale;
             filterParams.zw = outputPixInInput - (floor(outputPixInInput) + 0.5f);
+
             #elif CENTRAL_FILTERING  == BLACKMAN_HARRIS
             // We need to swizzle weights as we use quad communication to access neighbours, so the order of neighbours is not always the same (this needs to go away when moving back to compute)
             SwizzleFilterWeights(input.positionCS.xy, filterParams, filterParams1);
@@ -231,12 +252,15 @@ Shader "Hidden/HDRP/TemporalAA"
             float colorLuma = GetLuma(filteredColor);
             float historyLuma = GetLuma(history);
 
-#if ANTI_FLICKER_MV_DEPENDENT || VELOCITY_REJECTION
-            float motionVectorLength = length(motionVector);
-#else
             float motionVectorLength = 0.0f;
+            float motionVectorLenInPixels = 0.0f;
+
+#if ANTI_FLICKER_MV_DEPENDENT || VELOCITY_REJECTION
+            motionVectorLength = length(motionVector);
+            motionVectorLenInPixels = motionVectorLength * length(_InputSize.xy);
 #endif
-            GetNeighbourhoodCorners(samples, historyLuma, colorLuma, float2(_AntiFlickerIntensity, _ContrastForMaxAntiFlicker), motionVectorLength);
+
+            GetNeighbourhoodCorners(samples, historyLuma, colorLuma, float2(_AntiFlickerIntensity, _ContrastForMaxAntiFlicker), motionVectorLenInPixels, _TAAURenderScale);
 
             history = GetClippedHistory(filteredColor, history, samples.minNeighbour, samples.maxNeighbour);
             filteredColor = SharpenColor(samples, filteredColor, sharpenStrength);
@@ -266,6 +290,9 @@ Shader "Hidden/HDRP/TemporalAA"
             blendFactor = ModifyBlendWithMotionVectorRejection(_InputVelocityMagnitudeHistory, lengthMV, prevUV, blendFactor, _SpeedRejectionIntensity);
 #endif
 
+#ifdef TAA_UPSCALE
+            blendFactor *= GetUpsampleConfidence(filterParams.zw, _TAAUBoxConfidenceThresh, _TAAUFilterRcpSigma2, _TAAUScale);
+#endif
             blendFactor = max(blendFactor, 0.03);
 
             CTYPE finalColor;
