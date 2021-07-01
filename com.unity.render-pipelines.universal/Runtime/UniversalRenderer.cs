@@ -455,6 +455,11 @@ namespace UnityEngine.Rendering.Universal
 
             requiresDepthPrepass |= m_DepthPrimingMode == DepthPrimingMode.Forced;
 
+            // If possible try to merge the opaque and skybox passes instead of splitting them when "Depth Texture" is required.
+            // This optimization is temporarily disabled on VR/XR because of a depth copy y-flip issue on DX11.
+#if ENABLE_VR && ENABLE_XR_MODULE
+            m_CopyDepthPass.renderPassEvent = (!requiresDepthTexture && (applyPostProcessing ||isSceneViewCamera ||isGizmosEnabled)) ? RenderPassEvent.AfterRenderingTransparents : RenderPassEvent.AfterRenderingOpaques;
+#else
             // The copying of depth should normally happen after rendering opaques.
             // But if we only require it for post processing or the scene camera then we do it after rendering transparent objects
             // Aim to have the most optimized render pass event for Depth Copy (The aim is to minimize the number of render passes)
@@ -474,6 +479,8 @@ namespace UnityEngine.Rendering.Universal
                 // If only post process requires depth texture, we can re-use depth buffer from main geometry pass instead of enqueuing a depth copy pass, but no proper API to do that for now, so resort to depth copy pass for now
                 m_CopyDepthPass.renderPassEvent = RenderPassEvent.AfterRenderingTransparents;
             }
+#endif // #if ENABLE_VR && ENABLE_XR_MODULE
+
             createColorTexture |= RequiresIntermediateColorTexture(ref cameraData);
             createColorTexture |= renderPassInputs.requiresColorTexture;
             createColorTexture &= !isPreviewCamera;
