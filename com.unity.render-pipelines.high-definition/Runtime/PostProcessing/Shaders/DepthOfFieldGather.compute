@@ -43,7 +43,7 @@ CBUFFER_START(cb0)
 CBUFFER_END
 
 #define SampleCount         _Params.x
-#define TotalSampleCount    _Params.y
+#define ScaledRadius        _Params.y
 #define BarrelClipping      _Params.z
 #define Radius              _Params.w
 
@@ -94,7 +94,7 @@ void MAIN(uint3 dispatchThreadId : SV_DispatchThreadID)
 #if NEAR
     float mip = 0.0;
 #else
-    float mip = min(kMaxMips, (1.0 / (SampleCount - 1.5)) * samp0CoC * Radius);
+    float mip = min(kMaxMips, (1.0 / (SampleCount - 1.5)) * samp0CoC * ScaledRadius);
 #endif
 
     uint mipCeiled = ceil(mip);
@@ -104,6 +104,7 @@ void MAIN(uint3 dispatchThreadId : SV_DispatchThreadID)
     float nearWeightAcc = 0.0;
     float accAlpha = 0.0;
 
+    float TotalSampleCount = SampleCount * SampleCount;
     // Gather samples
     UNITY_LOOP
     for (uint i = 0u; i < uint(TotalSampleCount); i++)
@@ -135,7 +136,7 @@ void MAIN(uint3 dispatchThreadId : SV_DispatchThreadID)
         {
             // Weight & pre-multiply to limit bleeding on the focused area
             float weight = saturate(1.0 - (samp0CoC - sampCoC));
-            acc += float4(sampColor.xyz, sampCoC)* weight;
+            acc += float4(sampColor.xyz, sampCoC) * weight;
 
 #ifdef ENABLE_ALPHA
             accAlpha += sampColor.w * weight;
