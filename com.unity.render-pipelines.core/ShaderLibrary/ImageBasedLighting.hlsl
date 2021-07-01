@@ -591,7 +591,7 @@ real4 IntegrateLDCharlie(TEXTURECUBE_PARAM(tex, sampl),
         cbsdfInt += F * D * Vis;
     }
 
-    return 0.5f * real4(lightInt / cbsdfInt, 1.0);
+    return real4(0.5f * lightInt / cbsdfInt, 1.0); // note, the 0.5 multiplier is to better match the reference, but it's unknown why it's needed
 }
 
 
