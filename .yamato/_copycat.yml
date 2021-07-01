@@ -15,6 +15,7 @@ nightly_katana_abv_validate:
     - eval "$COPYCAT_1"
     - copycat vendor --revision "${GIT_TAG:-${GIT_BRANCH%%' (tag)'}}" --sha "$GIT_REVISION" "../destination/$MANIFEST"
     - git clone git@github.cds.internal.unity3d.com:unity/gfx-sdet-tools.git ../gfx-sdet-tools
+    - git -C ../gfx-sdet-tools checkout test-refs-updater/try-fix
     - python3 ../gfx-sdet-tools/scripts/srp_builders_in_trunk_updater.py --srp-version $SRP_VERSION --destination-folder ../destination
     - copycat katana "../destination/$MANIFEST"
   triggers:
