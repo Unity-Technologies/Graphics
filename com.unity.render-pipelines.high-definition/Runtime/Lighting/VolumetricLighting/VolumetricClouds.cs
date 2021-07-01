@@ -258,7 +258,7 @@ namespace UnityEngine.Rendering.HighDefinition
         /// Controls the density (Y axis) of the volumetric clouds as a function of the height (X Axis) inside the cloud volume.
         /// </summary>
         [Tooltip("Controls the density (Y axis) of the volumetric clouds as a function of the height (X Axis) inside the cloud volume.")]
-        public AnimationCurveParameter customDensityCurve = new AnimationCurveParameter(new AnimationCurve(new Keyframe(0f, 0f), new Keyframe(0.2f, 1.0f), new Keyframe(0.5f, 0.7f),new Keyframe(0.8f, 1.0f), new Keyframe(1.0f, 0.0f)), false);
+        public AnimationCurveParameter customDensityCurve = new AnimationCurveParameter(new AnimationCurve(new Keyframe(0f, 0f), new Keyframe(0.2f, 1.0f), new Keyframe(0.5f, 0.7f), new Keyframe(0.8f, 1.0f), new Keyframe(1.0f, 0.0f)), false);
 
         /// <summary>
         /// Controls the erosion (Y axis) of the volumetric clouds as a function of the height (X Axis) inside the cloud volume.
