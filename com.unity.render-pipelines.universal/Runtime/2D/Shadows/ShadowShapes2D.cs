@@ -54,8 +54,9 @@ namespace UnityEngine.Rendering.Universal
         public NativeArray<Edge>    m_ProvidedEdges;
         public NativeArray<Vector2> m_ContractionDirection;
         public NativeArray<float>   m_ContractionMaximum;
+        public NativeArray<Vector2> m_ContractedVertices;
 
-        private void ExtractEdgesFromTriangles<T>(T indices, ValueGetter<T> valueGetter, LengthGetter<T> lengthGetter)
+        private void CalculateEdgesFromTriangles<T>(T indices, ValueGetter<T> valueGetter, LengthGetter<T> lengthGetter)
         {
             // Add our edges to an edge list
             m_EdgeDictionary.Clear();
@@ -129,6 +130,20 @@ namespace UnityEngine.Rendering.Universal
             }
         }
 
+        private void CalculateContractedVertices(float contractionDistance)
+        {
+
+            if (m_ContractedVertices.IsCreated)
+                m_ContractedVertices.Dispose();
+
+            m_ContractedVertices = new NativeArray<Vector2>(m_ProvidedVertices.Length, Allocator.Persistent);
+
+            for(int i=0;i<m_ProvidedVertices.Length;i++)
+            {
+                m_ContractedVertices[i] = m_ProvidedVertices[i] + contractionDistance * m_ContractionDirection[i];
+            }
+        }
+
         private int ArrayGetter(ref ushort[] array, int index) { return array[index]; }
         private int ArrayLengthGetter(ref ushort[] array) { return array.Length; }
         private int NativeArrayGetter(ref NativeArray<int> array, int index) { return array[index]; }
@@ -145,11 +160,11 @@ namespace UnityEngine.Rendering.Universal
             if (outlineTopology == IShadowShapes2DProvider.OutlineTopology.Triangles)
             {
                 m_ProvidedVertices = new NativeArray<Vector2>(vertices, Allocator.Persistent);
-                ExtractEdgesFromTriangles<ushort[]>(indices, ArrayGetter, ArrayLengthGetter);
+                CalculateEdgesFromTriangles<ushort[]>(indices, ArrayGetter, ArrayLengthGetter);
             }
 
-
             CalculateContractionDirection();
+            CalculateContractedVertices(0.25f);
         }
 
         public override void SetEdges(NativeArray<Vector2> vertices, NativeArray<int> indices, IShadowShapes2DProvider.OutlineTopology outlineTopology)
@@ -174,6 +189,8 @@ namespace UnityEngine.Rendering.Universal
         {
             m_ProvidedVertices.Dispose();
             m_ProvidedEdges.Dispose();
+            m_ContractionDirection.Dispose();
+            m_ContractedVertices.Dispose();
         }
     }
 }
