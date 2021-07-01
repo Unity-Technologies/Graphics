@@ -26,7 +26,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed fog precision in some camera positions (case 1329603).
 - Fixed contact shadows tile coordinates calculations.
 - Fixed blocky looking bloom when dynamic resolution scaling was used.
-- Fixrf for wrong cached area light initialization.
+- Fixed for wrong cached area ight initialization.
 - Fixed an issue where auto baking of ambient and reflection probe done for builtin renderer would cause wrong baking in HDRP.
 - Fixed the ray traced sub subsurface scattering debug mode not displaying only the RTSSS Data (case 1332904).
 - Fixed for discrepancies in intensity and saturation between screen space refraction and probe refraction.
