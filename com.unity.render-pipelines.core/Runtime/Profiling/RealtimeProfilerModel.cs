@@ -1,4 +1,4 @@
-#define RTPROFILER_DEBUG
+//#define RTPROFILER_DEBUG
 
 using System;
 using System.Collections.Generic;
@@ -79,8 +79,8 @@ public class RealtimeProfilerModel : MonoBehaviour
         FrameTimeSample frameTime = new FrameTimeSample();
 
         frameTime.FullFrameTime                 = (float)m_Timing.First().cpuFrameTime;
-        frameTime.MainThreadCPUFrameTime        = (float)m_Timing.First().mainThreadCpuFrameTime;
-        frameTime.RenderThreadCPUFrameTime      = (float)m_Timing.First().renderThreadCpuFrameTime;
+        frameTime.MainThreadCPUFrameTime        = (float)m_Timing.First().cpuMainThreadFrameTime;
+        frameTime.RenderThreadCPUFrameTime      = (float)m_Timing.First().cpuRenderThreadFrameTime;
         frameTime.GPUFrameTime                  = (float)m_Timing.First().gpuFrameTime;
 
         Samples.Add(frameTime);
