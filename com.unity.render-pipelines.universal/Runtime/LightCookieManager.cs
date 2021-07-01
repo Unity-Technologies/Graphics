@@ -705,7 +705,6 @@ namespace UnityEngine.Rendering.Universal
             // Sort in-place by cookie size for better atlas allocation efficiency (and deduplication)
             validLightMappings.Sort(LightCookieMapping.s_CompareByCookieSize);
 
-            bool atlasReset = false;
             uint cookieRequestPixelCount = ComputeCookieRequestPixelCount(ref validLightMappings);
             var atlasSize = m_AdditionalLightsCookieAtlas.AtlasTexture.referenceSize;
             float requestAtlasRatio = cookieRequestPixelCount / (float)(atlasSize.x * atlasSize.y);
@@ -948,7 +947,7 @@ namespace UnityEngine.Rendering.Universal
             var atlasUVRects = m_AdditionalLightsCookieShaderData.atlasUVRects;
             var lightTypes = m_AdditionalLightsCookieShaderData.lightTypes;
 
-            // Set all rects to "Invalid" zero area (Vector4.zero).
+            // Set all rects to "Invalid" zero area (Vector4.zero), just in case they're accessed.
             Array.Clear(atlasUVRects, 0, atlasUVRects.Length);
             // Set all cookies disabled
             cookieEnableBits.Clear();
