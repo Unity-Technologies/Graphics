@@ -731,6 +731,10 @@ namespace UnityEngine.Rendering.HighDefinition
         }
         // custom-end
 
+        public bool IsDataAssigned()
+        {
+            return probeVolumeAsset != null && probeVolumeAsset.IsDataAssigned();
+        }
 
         private int GetID()
         {
@@ -744,15 +748,28 @@ namespace UnityEngine.Rendering.HighDefinition
 
         internal ProbeVolumeAtlasKey ComputeProbeVolumeAtlasKey()
         {
-            return (probeVolumeAsset == null)
-                ? ProbeVolumeAtlasKey.zero
-                : new ProbeVolumeAtlasKey
+            if (probeVolumeAsset == null)
+                return ProbeVolumeAtlasKey.zero;
+
+            Quaternion assetRotation = GetAssetRotation();
+            Quaternion volumeRotation = transform.rotation;
+            return ComputeProbeVolumeAtlasKey(GetID(),
+                probeVolumeAsset.resolutionX, probeVolumeAsset.resolutionY, probeVolumeAsset.resolutionZ,
+                volumeRotation, assetRotation);
+        }
+
+        internal static ProbeVolumeAtlasKey ComputeProbeVolumeAtlasKey(int id, int width, int height, int depth,
+            Quaternion volumeRotation, Quaternion assetRotation)
+        {
+            Quaternion sphericalHarmonicWSFromOS = Quaternion.Inverse(assetRotation) * volumeRotation;
+
+            return new ProbeVolumeAtlasKey
                 {
-                    id = GetID(),
-                    width = probeVolumeAsset.resolutionX,
-                    height = probeVolumeAsset.resolutionY,
-                    depth = probeVolumeAsset.resolutionZ,
-                    rotation = ComputeSphericalHarmonicWSFromOS()
+                    id = id,
+                    width = width,
+                    height = height,
+                    depth = depth,
+                    rotation = sphericalHarmonicWSFromOS
                 };
         }
 
@@ -777,7 +794,7 @@ namespace UnityEngine.Rendering.HighDefinition
             return id;
         }
 
-        internal int GetAtlasID()
+        public int GetAtlasID()
         {
             // Use the payloadID, rather than the probe volume ID to uniquely identify data in the atlas.
             // This ensures that if 2 probe volume exist that point to the same data, that data will only be uploaded once.
@@ -789,7 +806,7 @@ namespace UnityEngine.Rendering.HighDefinition
             bakeKey = ProbeVolumeSettingsKey.zero;
         }
 
-        internal bool GetDataIsUpdated()
+        public bool GetDataIsUpdated()
         {
             return dataUpdated;
         }
@@ -802,15 +819,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
             return probeVolumeAsset.payload;
         }
-
-        internal Quaternion ComputeSphericalHarmonicWSFromOS()
-        {
-            Quaternion assetRotation = GetAssetRotation();
-            Quaternion volumeRotation = transform.rotation;
-            Quaternion sphericalHarmonicWSFromOS = Quaternion.Inverse(assetRotation) * volumeRotation;
-            return sphericalHarmonicWSFromOS;
-        }
-
+        
         private Quaternion GetAssetRotation()
         {
             if (!probeVolumeAsset) { return transform.rotation; }
@@ -948,7 +957,7 @@ namespace UnityEngine.Rendering.HighDefinition
 #endif
         }
 
-        internal bool IsAssetCompatible()
+        public bool IsAssetCompatible()
         {
             return IsAssetCompatibleResolution();
         }
