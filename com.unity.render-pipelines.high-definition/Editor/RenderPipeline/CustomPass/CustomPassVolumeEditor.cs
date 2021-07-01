@@ -11,7 +11,7 @@ using UnityEditor.Experimental.GraphView;
 
 namespace UnityEditor.Rendering.HighDefinition
 {
-    [CustomEditor(typeof(CustomPassVolume))]
+    [CustomEditor(typeof(CustomPassVolume)), CanEditMultipleObjects]
     sealed class CustomPassVolumeEditor : Editor
     {
         ReorderableList         m_CustomPassList;
@@ -19,6 +19,7 @@ namespace UnityEditor.Rendering.HighDefinition
         CustomPassVolume        m_Volume;
         MaterialEditor[]        m_MaterialEditors = new MaterialEditor[0];
         int                     m_CustomPassMaterialsHash;
+        bool                    m_SupportListMultiEditing;
 
         const string            k_DefaultListName = "Custom Passes";
 
@@ -185,13 +186,26 @@ namespace UnityEditor.Rendering.HighDefinition
 
         void CreateReorderableList(SerializedProperty passList)
         {
+            m_SupportListMultiEditing = targets.OfType<CustomPassVolume>().Count() == 1;
+
             m_CustomPassList = new ReorderableList(passList.serializedObject, passList);
 
             m_CustomPassList.drawHeaderCallback = (rect) => {
                 EditorGUI.LabelField(rect, k_DefaultListName, EditorStyles.largeLabel);
             };
 
+            m_CustomPassList.displayRemove = m_SupportListMultiEditing;
+            m_CustomPassList.draggable = m_SupportListMultiEditing;
+            m_CustomPassList.multiSelect = false;
+
             m_CustomPassList.drawElementCallback = (rect, index, active, focused) => {
+                // Custom pass drawer inside the list doesn't support multi-selection
+                if (!m_SupportListMultiEditing)
+                {
+                    EditorGUI.HelpBox(rect, "Custom Pass UI is not supported with multi-selection", MessageType.Info);
+                    return;
+                }
+
                 EditorGUI.BeginChangeCheck();
 
                 passList.serializedObject.ApplyModifiedProperties();
@@ -208,6 +222,9 @@ namespace UnityEditor.Rendering.HighDefinition
 
             m_CustomPassList.elementHeightCallback = (index) =>
             {
+                if (!m_SupportListMultiEditing)
+                    return EditorGUIUtility.singleLineHeight + EditorGUIUtility.standardVerticalSpacing;
+
                 passList.serializedObject.ApplyModifiedProperties();
                 var customPass = passList.GetArrayElementAtIndex(index);
                 var drawer = GetCustomPassDrawer(customPass, m_Volume.customPasses[index], index);
@@ -234,14 +251,17 @@ namespace UnityEditor.Rendering.HighDefinition
 
             void AddCustomPass(Type customPassType)
             {
-                Undo.RegisterCompleteObjectUndo(m_Volume, "Add custom pass");
+                foreach (CustomPassVolume volume in targets)
+                {
+                    Undo.RegisterCompleteObjectUndo(volume, "Add custom pass");
 
-                passList.serializedObject.ApplyModifiedProperties();
-                m_Volume.AddPassOfType(customPassType);
-                UpdateMaterialEditors();
-                passList.serializedObject.Update();
-                // Notify the prefab that something have changed:
-                PrefabUtility.RecordPrefabInstancePropertyModifications(m_Volume);
+                    passList.serializedObject.ApplyModifiedProperties();
+                    volume.AddPassOfType(customPassType);
+                    UpdateMaterialEditors();
+                    passList.serializedObject.Update();
+                    // Notify the prefab that something have changed:
+                    PrefabUtility.RecordPrefabInstancePropertyModifications(volume);
+                }
             }
         }
 
