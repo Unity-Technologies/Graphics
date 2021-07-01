@@ -9,7 +9,7 @@ The following table shows the compatibility of the Visual Effect Graph versions 
 | **Package version** | **Minimum Unity version** | **Maximum Unity version** |
 | ------------------- | ------------------------- | ------------------------- |
 | 11.x                | 2021.1                    | 2021.1                    |
-| 10.x                | 2020.2                    | 2020.2                    |
+| 10.x                | 2020.2                    | 2020.3                    |
 | 8.x / 9.x-preview   | 2020.1                    | 2020.1                    |
 | 7.x                 | 2019.3                    | 2019.4                    |
 | 6.x                 | 2019.2                    | 2019.2                    |

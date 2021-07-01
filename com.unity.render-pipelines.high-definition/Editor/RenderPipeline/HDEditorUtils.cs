@@ -258,20 +258,6 @@ namespace UnityEditor.Rendering.HighDefinition
         }
 
         /// <summary>
-        /// Like EditorGUILayout.DrawTextField but for delayed text field
-        /// </summary>
-        internal static void DrawDelayedTextField(GUIContent label, SerializedProperty property)
-        {
-            Rect lineRect = GUILayoutUtility.GetRect(1, EditorGUIUtility.singleLineHeight);
-            EditorGUI.BeginProperty(lineRect, label, property);
-            EditorGUI.BeginChangeCheck();
-            string value = EditorGUI.DelayedTextField(lineRect, label, property.stringValue);
-            if (EditorGUI.EndChangeCheck())
-                property.stringValue = value;
-            EditorGUI.EndProperty();
-        }
-
-        /// <summary>
         /// Similar to <see cref="EditorGUI.HandlePrefixLabel(Rect, Rect, GUIContent)"/> but indent the label
         /// with <see cref="EditorGUI.indentLevel"/> value.
         ///
@@ -289,33 +275,6 @@ namespace UnityEditor.Rendering.HighDefinition
             //
             labelPosition.x += EditorGUI.indentLevel * 15;
             EditorGUI.HandlePrefixLabel(totalPosition, labelPosition, label);
-        }
-
-        /// <summary>
-        /// Like EditorGUI.IndentLevelScope but this one will also indent the override checkboxes.
-        /// </summary>
-        internal class IndentScope : GUI.Scope
-        {
-            int m_Offset;
-
-            public IndentScope(int offset = 16)
-            {
-                m_Offset = offset;
-
-                // When using EditorGUI.indentLevel++, the clicking on the checkboxes does not work properly due to some issues on the C++ side.
-                // This scope is a work-around for this issue.
-                GUILayout.BeginHorizontal();
-                EditorGUILayout.Space(offset, false);
-                GUILayout.BeginVertical();
-                EditorGUIUtility.labelWidth -= m_Offset;
-            }
-
-            protected override void CloseScope()
-            {
-                EditorGUIUtility.labelWidth += m_Offset;
-                GUILayout.EndVertical();
-                GUILayout.EndHorizontal();
-            }
         }
     }
 

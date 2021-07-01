@@ -32,9 +32,14 @@ namespace UnityEngine.Rendering.HighDefinition
     /// - Frame Settings applied by default to Camera, ReflectionProbe
     /// - Various resources (such as Shaders) for runtime, editor-only, and raytracing
     /// </summary>
+    [HDRPHelpURL("Default-Settings-Window")]
     partial class HDRenderPipelineGlobalSettings : RenderPipelineGlobalSettings
     {
         private static HDRenderPipelineGlobalSettings cachedInstance = null;
+
+        /// <summary>
+        /// Active HDRP Global Settings asset. If the value is null then no HDRenderPipelineGlobalSettings has been registered to the Graphics Settings with the HDRenderPipeline.
+        /// </summary>
         public static HDRenderPipelineGlobalSettings instance
         {
             get
@@ -71,7 +76,7 @@ namespace UnityEngine.Rendering.HighDefinition
             if (instance == null || instance.Equals(null))
             {
                 //try load at default path
-                HDRenderPipelineGlobalSettings loaded = AssetDatabase.LoadAssetAtPath<HDRenderPipelineGlobalSettings>($"Assets/{HDUserSettings.projectSettingsFolderPath}/HDRenderPipelineGlobalSettings.asset");
+                HDRenderPipelineGlobalSettings loaded = AssetDatabase.LoadAssetAtPath<HDRenderPipelineGlobalSettings>($"Assets/{HDProjectSettingsReadOnlyBase.projectSettingsFolderPath}/HDRenderPipelineGlobalSettings.asset");
 
                 if (loaded == null)
                 {
@@ -87,7 +92,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 // No migration available and no asset available? Create one if allowed
                 if (canCreateNewAsset && instance == null)
                 {
-                    var createdAsset = Create($"Assets/{HDUserSettings.projectSettingsFolderPath}/HDRenderPipelineGlobalSettings.asset");
+                    var createdAsset = Create($"Assets/{HDProjectSettingsReadOnlyBase.projectSettingsFolderPath}/HDRenderPipelineGlobalSettings.asset");
                     UpdateGraphicsSettings(createdAsset);
 
                     Debug.LogWarning("No HDRP Global Settings Asset is assigned. One has been created for you. If you want to modify it, go to Project Settings > Graphics > HDRP Settings.");
@@ -124,9 +129,9 @@ namespace UnityEngine.Rendering.HighDefinition
 
             //asset creation
             assetCreated = ScriptableObject.CreateInstance<HDRenderPipelineGlobalSettings>();
+            assetCreated.name = Path.GetFileName(path);
             AssetDatabase.CreateAsset(assetCreated, path);
             Debug.Assert(assetCreated);
-            assetCreated.name = Path.GetFileName(path);
 
             // copy data from provided source
             if (dataSource != null)
@@ -520,22 +525,24 @@ namespace UnityEngine.Rendering.HighDefinition
 
         #region Rendering Layer Names [Light + Decal]
 
+        static readonly string[] k_DefaultLightLayerNames = { "Light Layer default", "Light Layer 1", "Light Layer 2", "Light Layer 3", "Light Layer 4", "Light Layer 5", "Light Layer 6", "Light Layer 7"};
+
         /// <summary>Name for light layer 0.</summary>
-        public string lightLayerName0 = "Light Layer default";
+        public string lightLayerName0 = k_DefaultLightLayerNames[0];
         /// <summary>Name for light layer 1.</summary>
-        public string lightLayerName1 = "Light Layer 1";
+        public string lightLayerName1 = k_DefaultLightLayerNames[1];
         /// <summary>Name for light layer 2.</summary>
-        public string lightLayerName2 = "Light Layer 2";
+        public string lightLayerName2 = k_DefaultLightLayerNames[2];
         /// <summary>Name for light layer 3.</summary>
-        public string lightLayerName3 = "Light Layer 3";
+        public string lightLayerName3 = k_DefaultLightLayerNames[3];
         /// <summary>Name for light layer 4.</summary>
-        public string lightLayerName4 = "Light Layer 4";
+        public string lightLayerName4 = k_DefaultLightLayerNames[4];
         /// <summary>Name for light layer 5.</summary>
-        public string lightLayerName5 = "Light Layer 5";
+        public string lightLayerName5 = k_DefaultLightLayerNames[5];
         /// <summary>Name for light layer 6.</summary>
-        public string lightLayerName6 = "Light Layer 6";
+        public string lightLayerName6 = k_DefaultLightLayerNames[6];
         /// <summary>Name for light layer 7.</summary>
-        public string lightLayerName7 = "Light Layer 7";
+        public string lightLayerName7 = k_DefaultLightLayerNames[7];
 
 
         [System.NonSerialized]
@@ -565,22 +572,24 @@ namespace UnityEngine.Rendering.HighDefinition
             }
         }
 
+        static readonly string[] k_DefaultDecalLayerNames = { "Decal Layer default", "Decal Layer 1", "Decal Layer 2", "Decal Layer 3", "Decal Layer 4", "Decal Layer 5", "Decal Layer 6", "Decal Layer 7" };
+
         /// <summary>Name for decal layer 0.</summary>
-        public string decalLayerName0 = "Decal Layer default";
+        public string decalLayerName0 = k_DefaultDecalLayerNames[0];
         /// <summary>Name for decal layer 1.</summary>
-        public string decalLayerName1 = "Decal Layer 1";
+        public string decalLayerName1 = k_DefaultDecalLayerNames[1];
         /// <summary>Name for decal layer 2.</summary>
-        public string decalLayerName2 = "Decal Layer 2";
+        public string decalLayerName2 = k_DefaultDecalLayerNames[2];
         /// <summary>Name for decal layer 3.</summary>
-        public string decalLayerName3 = "Decal Layer 3";
+        public string decalLayerName3 = k_DefaultDecalLayerNames[3];
         /// <summary>Name for decal layer 4.</summary>
-        public string decalLayerName4 = "Decal Layer 4";
+        public string decalLayerName4 = k_DefaultDecalLayerNames[4];
         /// <summary>Name for decal layer 5.</summary>
-        public string decalLayerName5 = "Decal Layer 5";
+        public string decalLayerName5 = k_DefaultDecalLayerNames[5];
         /// <summary>Name for decal layer 6.</summary>
-        public string decalLayerName6 = "Decal Layer 6";
+        public string decalLayerName6 = k_DefaultDecalLayerNames[6];
         /// <summary>Name for decal layer 7.</summary>
-        public string decalLayerName7 = "Decal Layer 7";
+        public string decalLayerName7 = k_DefaultDecalLayerNames[7];
 
         [System.NonSerialized]
         string[] m_DecalLayerNames = null;
@@ -626,6 +635,8 @@ namespace UnityEngine.Rendering.HighDefinition
                 return m_RenderingLayerNames;
             }
         }
+
+        /// <summary>Names used for display of rendering layer masks.</summary>
         public string[] renderingLayerMaskNames => renderingLayerNames;
 
         void UpdateRenderingLayerNames()
@@ -657,6 +668,32 @@ namespace UnityEngine.Rendering.HighDefinition
             }
         }
 
+        internal void ResetRenderingLayerNames(bool lightLayers, bool decalLayers)
+        {
+            if (lightLayers)
+            {
+                lightLayerName0 = k_DefaultLightLayerNames[0];
+                lightLayerName1 = k_DefaultLightLayerNames[1];
+                lightLayerName2 = k_DefaultLightLayerNames[2];
+                lightLayerName3 = k_DefaultLightLayerNames[3];
+                lightLayerName4 = k_DefaultLightLayerNames[4];
+                lightLayerName5 = k_DefaultLightLayerNames[5];
+                lightLayerName6 = k_DefaultLightLayerNames[6];
+                lightLayerName7 = k_DefaultLightLayerNames[7];
+            }
+            if (decalLayers)
+            {
+                decalLayerName0 = k_DefaultDecalLayerNames[0];
+                decalLayerName1 = k_DefaultDecalLayerNames[1];
+                decalLayerName2 = k_DefaultDecalLayerNames[2];
+                decalLayerName3 = k_DefaultDecalLayerNames[3];
+                decalLayerName4 = k_DefaultDecalLayerNames[4];
+                decalLayerName5 = k_DefaultDecalLayerNames[5];
+                decalLayerName6 = k_DefaultDecalLayerNames[6];
+                decalLayerName7 = k_DefaultDecalLayerNames[7];
+            }
+        }
+
         #endregion
 
         #region Misc.
@@ -669,6 +706,9 @@ namespace UnityEngine.Rendering.HighDefinition
 
         [SerializeField]
         internal DiffusionProfileSettings[] diffusionProfileSettingsList = new DiffusionProfileSettings[0];
+
+        [SerializeField]
+        internal bool rendererListCulling;
 
 #if UNITY_EDITOR
         internal bool AddDiffusionProfile(DiffusionProfileSettings profile)
@@ -698,6 +738,11 @@ namespace UnityEngine.Rendering.HighDefinition
 
         [SerializeField]
         internal bool supportProbeVolumes = false;
+
+        /// <summary>
+        /// Controls whether debug display shaders for Rendering Debugger are available in Player builds.
+        /// </summary>
+        public bool supportRuntimeDebugDisplay = false;
 
         #endregion
 

@@ -52,6 +52,10 @@ ${VFXBegin:VFXHDRPDecalVaryingsMacros}
 #define VFX_VARYING_UV_BIAS scaleBias.zw
 #endif
 
+#if USE_NORMAL_MAP
+#define VFX_VARYING_NORMALSCALE normalScale
+#endif
+
 
 #define VFX_VARYING_PS_INPUTS ps_input
 #define VFX_VARYING_POSCS pos
@@ -111,10 +115,14 @@ nointerpolation float4 fadeParameters : TEXCOORD4;
 nointerpolation float3 fadeParameters : TEXCOORD4;
 #endif
 
-
 nointerpolation float4 viewToDecal0 : TEXCOORD5;
 nointerpolation float4 viewToDecal1 : TEXCOORD6;
 nointerpolation float4 viewToDecal2 : TEXCOORD7;
+
+#if USE_NORMAL_MAP
+VFX_OPTIONAL_INTERPOLATION float normalScale : TEXCOORD8;
+#endif
+
 ${VFXEnd}
 
 ${VFXBegin:VFXHDRPDecalFillVaryings}
@@ -175,4 +183,9 @@ viewToDecal = mul(viewToDecal, VFXGetViewToWorldMatrix());
 o.viewToDecal0 = viewToDecal[0];
 o.viewToDecal1 = viewToDecal[1];
 o.viewToDecal2 = viewToDecal[2];
+
+#ifdef VFX_VARYING_NORMALSCALE
+${VFXLoadParameter:{normalScale}}
+o.VFX_VARYING_NORMALSCALE = normalScale;
+#endif
 ${VFXEnd}

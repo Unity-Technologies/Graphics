@@ -587,8 +587,17 @@ namespace UnityEditor.ShaderGraph.Drawing
                         masterRenderData.texture = masterRenderData.renderTexture;
                         m_NewMasterPreviewSize = null;
                     }
-                    var mesh = m_Graph.previewData.serializedMesh.mesh ? m_Graph.previewData.serializedMesh.mesh : m_SceneResources.sphere;
-                    var previewTransform = Matrix4x4.Rotate(m_Graph.previewData.rotation);
+                    var mesh = m_Graph.previewData.serializedMesh.mesh;
+                    var preventRotation = m_Graph.previewData.preventRotation;
+                    if (!mesh)
+                    {
+                        var useSpritePreview =
+                            m_Graph.activeTargets.LastOrDefault(t => t.IsActive())?.prefersSpritePreview ?? false;
+                        mesh = useSpritePreview ? m_SceneResources.quad : m_SceneResources.sphere;
+                        preventRotation = useSpritePreview;
+                    }
+
+                    var previewTransform = preventRotation ? Matrix4x4.identity : Matrix4x4.Rotate(m_Graph.previewData.rotation);
                     var scale = m_Graph.previewData.scale;
                     previewTransform *= Matrix4x4.Scale(scale * Vector3.one * (Vector3.one).magnitude / mesh.bounds.size.magnitude);
                     previewTransform *= Matrix4x4.Translate(-mesh.bounds.center);

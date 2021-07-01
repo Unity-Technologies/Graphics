@@ -18,12 +18,11 @@ namespace UnityEngine.Rendering.Universal
             public override void Action(int instanceId, string pathName, string resourceFile)
             {
                 var instance = UniversalRenderPipelineAsset.CreateRendererAsset(pathName, RendererType.UniversalRenderer, false) as UniversalRendererData;
-                ResourceReloader.ReloadAllNullIn(instance, UniversalRenderPipelineAsset.packagePath);
                 Selection.activeObject = instance;
             }
         }
 
-        [MenuItem("Assets/Create/Rendering/URP Universal Renderer", priority = CoreUtils.Sections.section3 + CoreUtils.Priorities.assetsCreateRenderingMenuPriority)]
+        [MenuItem("Assets/Create/Rendering/URP Universal Renderer", priority = CoreUtils.Sections.section3 + CoreUtils.Priorities.assetsCreateRenderingMenuPriority + 2)]
         static void CreateUniversalRendererData()
         {
             ProjectWindowUtil.StartNameEditingIfProjectWindowExists(0, CreateInstance<CreateUniversalRendererAsset>(), "CustomUniversalRendererData.asset", null, null);
@@ -57,10 +56,10 @@ namespace UnityEngine.Rendering.Universal
 
             // Core blitter shaders, adapted from HDRP
             // TODO: move to core and share with HDRP
-            [Reload("Shaders/Utils/CoreBlit.shader")]
-            public Shader coreBlitPS;
-            [Reload("Shaders/Utils/CoreBlitColorAndDepth.shader")]
-            public Shader coreBlitColorAndDepthPS;
+            [Reload("Shaders/Utils/CoreBlit.shader"), SerializeField]
+            internal Shader coreBlitPS;
+            [Reload("Shaders/Utils/CoreBlitColorAndDepth.shader"), SerializeField]
+            internal Shader coreBlitColorAndDepthPS;
 
 
             [Reload("Shaders/CameraMotionVectors.shader")]

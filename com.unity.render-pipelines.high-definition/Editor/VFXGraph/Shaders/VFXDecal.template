@@ -137,13 +137,33 @@ if(_EnableDecalLayers)
 	    surfaceData.mask.w = maskMapBlend;
     #endif
 
+        float normalScale = 1.0f;
 
-	    #if USE_NORMAL_MAP
-	    float3 normalTS = SampleNormalMap(VFX_SAMPLER(normalMap),uvData);
-	    #else
+    #ifdef DECAL_SURFACE_GRADIENT
+
+        #if USE_NORMAL_MAP
+        #ifdef VFX_VARYING_NORMALSCALE
+        normalScale = i.VFX_VARYING_NORMALSCALE;
+        #endif
+	    float2 deriv = UnpackDerivativeNormalRGorAG(SampleTexture(VFX_SAMPLER(normalMap),uvData)) * normalScale;
+        #else // USE_NORMAL_MAP
+        float2 deriv = float2(0.0f,0.0f);
+        #endif  // USE_NORMAL_MAP
+        float3 normalWS = SurfaceGradientFromTBN(deriv, worldToElement._m00_m01_m02, worldToElement._m10_m11_m12);
+
+    #else //DECAL_SURFACE_GRADIENT
+        #if USE_NORMAL_MAP
+        #ifdef VFX_VARYING_NORMALSCALE
+        normalScale = i.VFX_VARYING_NORMALSCALE;
+        #endif
+        float3 normalTS = SampleNormalMap(VFX_SAMPLER(normalMap),uvData);
+        #else //USE_NORMAL_MAP
 	    float3 normalTS = float3(0.0f,0.0f,1.0f);
-	    #endif
-	    float3 normalWS = normalize(mul(transpose(worldToElement), normalTS));
+	    #endif //USE_NORMAL_MAP
+        float3 normalWS = lerp(worldToElement._m20_m21_m22, mul(transpose(worldToElement), normalTS), normalScale);
+	    normalWS = normalize(normalWS);
+    #endif //DECAL_SURFACE_GRADIENT
+
 
 	    surfaceData.normalWS.xyz = normalWS;
 	    #if VFX_NORMAL_BLEND_BASE_COLOR_ALPHA
