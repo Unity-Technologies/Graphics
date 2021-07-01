@@ -107,18 +107,15 @@ namespace UnityEditor.Rendering.Universal
             if (isURPinUse && serialized != null)
                 return;
 
-            using (new EditorGUILayout.HorizontalScope())
+            if (isURPinUse)
             {
-                if (isURPinUse)
-                {
-                    ShowMessageWithFixButton(Styles.warningGlobalSettingsMissing, MessageType.Warning);
-                }
-                else
-                {
-                    EditorGUILayout.HelpBox(Styles.warningUrpNotActive, MessageType.Warning);
-                    if (serialized == null)
-                        ShowMessageWithFixButton(Styles.infoGlobalSettingsMissing, MessageType.Info);
-                }
+                ShowMessageWithFixButton(Styles.warningGlobalSettingsMissing, MessageType.Warning);
+            }
+            else
+            {
+                EditorGUILayout.HelpBox(Styles.warningUrpNotActive, MessageType.Warning);
+                if (serialized == null)
+                    ShowMessageWithFixButton(Styles.infoGlobalSettingsMissing, MessageType.Info);
             }
         }
 
