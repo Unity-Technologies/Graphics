@@ -218,7 +218,7 @@ namespace UnityEditor.Rendering.HighDefinition
 
         // Commented out on purpose.
         // We only need to send this event manually when we add new members or change values of the HDRP asset.
-        //[MenuItem("Edit/Rendering/Generate HDRP default values analytics", priority = CoreUtils.Sections.section3 + CoreUtils.Priorities.editMenuPriority + 1)]
+        //[MenuItem("Edit/Rendering/Generate HDRP default values analytics", priority = CoreUtils.Sections.section4)]
         //static void GenerateDefaultValues()
         //{
         //    SendDefaultValuesEvent();
