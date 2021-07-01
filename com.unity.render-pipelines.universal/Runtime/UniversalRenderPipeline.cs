@@ -543,6 +543,8 @@ namespace UnityEngine.Rendering.Universal
 
                 // Helper function for updating cameraData with xrPass Data
                 m_XRSystem.UpdateCameraData(ref baseCameraData, baseCameraData.xr);
+
+                m_XRSystem.BeginLateLatching(baseCamera, xrPass);
             }
 #endif
 
@@ -559,6 +561,10 @@ namespace UnityEngine.Rendering.Universal
             {
                 EndCameraRendering(context, baseCamera);
             }
+
+#if ENABLE_VR && ENABLE_XR_MODULE
+            m_XRSystem.EndLateLatching(baseCamera, xrPass);
+#endif
 
             if (isStackedRendering)
             {
