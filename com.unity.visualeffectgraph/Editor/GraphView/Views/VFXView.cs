@@ -110,6 +110,7 @@ namespace UnityEditor.VFX.UI
     class VFXView : GraphView, IControlledElement<VFXViewController>, IControllerListener
     {
         public HashSet<VFXEditableDataAnchor> allDataAnchors = new HashSet<VFXEditableDataAnchor>();
+        public bool isLocked;
 
         void IControllerListener.OnControllerEvent(ControllerEvent e)
         {
@@ -367,6 +368,7 @@ namespace UnityEditor.VFX.UI
         VFXNodeProvider m_NodeProvider;
         VisualElement m_Toolbar;
         ToolbarButton m_SaveButton;
+        ToolbarToggle m_LockToggle;
 
         private bool m_IsRuntimeMode = false;
         private bool m_ForceShaderValidation = false;
@@ -454,6 +456,14 @@ namespace UnityEditor.VFX.UI
             m_SaveButton.style.unityTextAlign = TextAnchor.MiddleLeft;
             m_SaveButton.text = "Save";
             m_Toolbar.Add(m_SaveButton);
+
+            m_LockToggle = new ToolbarToggle();
+            m_LockToggle.style.unityTextAlign = TextAnchor.MiddleLeft;
+            m_LockToggle.tooltip = this.isLocked ? "Click to unlock" : "Click to lock";
+            
+            m_LockToggle.name = "lock-auto-attach";
+            m_LockToggle.RegisterCallback<ChangeEvent<bool>>(ToggleLock);
+            m_Toolbar.Add(m_LockToggle);
 
             var spacer = new ToolbarSpacer();
             spacer.style.width = 12f;
@@ -739,6 +749,12 @@ namespace UnityEditor.VFX.UI
             {
                 anchor.ForceUpdate();
             }
+        }
+
+        void ToggleLock(ChangeEvent<bool> evt)
+        {
+            this.isLocked = !this.isLocked;
+            this.m_LockToggle.tooltip = this.isLocked ? "Click to unlock" : "Click to lock";
         }
 
         void ToggleBlackboard(ChangeEvent<bool> e)

@@ -753,10 +753,13 @@ namespace UnityEditor.VFX
             if (EditorWindow.HasOpenInstances<VFXViewWindow>())
             {
                 VFXViewWindow window = EditorWindow.GetWindow<VFXViewWindow>();
-                var asset = m_VisualEffectAsset.objectReferenceValue as VisualEffectAsset;
-                if (window.graphView.controller.graph.visualEffectResource.asset == asset)
+                if (!window.graphView.isLocked)
                 {
-                    window.LoadAsset(asset, targets.Length > 1 ? null : target as VisualEffect);
+                    var asset = m_VisualEffectAsset.objectReferenceValue as VisualEffectAsset;
+                    if (window.graphView.controller.graph.visualEffectResource.asset == asset)
+                    {
+                        window.LoadAsset(asset, targets.Length > 1 ? null : target as VisualEffect);
+                    }
                 }
             }
         }
