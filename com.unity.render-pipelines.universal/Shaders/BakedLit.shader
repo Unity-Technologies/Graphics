@@ -54,6 +54,7 @@ Shader "Universal Render Pipeline/Baked Lit"
             // -------------------------------------
             // Universal Pipeline keywords
             #pragma multi_compile_fragment _ _SCREEN_SPACE_OCCLUSION
+            #pragma multi_compile_fragment _ _DBUFFER_MRT1 _DBUFFER_MRT2 _DBUFFER_MRT3
 
             // -------------------------------------
             // Unity defined keywords
@@ -65,7 +66,7 @@ Shader "Universal Render Pipeline/Baked Lit"
             //--------------------------------------
             // GPU Instancing
             #pragma multi_compile_instancing
-            #pragma multi_compile _ DOTS_INSTANCING_ON
+            #pragma multi_compile _ DOTS_INSTANCING_O
 
             #pragma vertex BakedLitForwardPassVertex
             #pragma fragment BakedLitForwardPassFragment
@@ -104,38 +105,7 @@ Shader "Universal Render Pipeline/Baked Lit"
             ENDHLSL
         }
 
-        // This pass is used when drawing to a _CameraNormalsTexture texture
-        Pass
-        {
-            Name "DepthNormals"
-            Tags{"LightMode" = "DepthNormals"}
-
-            ZWrite On
-            Cull[_Cull]
-
-            HLSLPROGRAM
-            #pragma exclude_renderers gles gles3 glcore
-            #pragma target 4.5
-
-            #pragma vertex DepthNormalsVertex
-            #pragma fragment DepthNormalsFragment
-
-            // -------------------------------------
-            // Material Keywords
-            #pragma shader_feature_local _ _NORMALMAP
-            #pragma shader_feature_local_fragment _ALPHATEST_ON
-
-            //--------------------------------------
-            // GPU Instancing
-            #pragma multi_compile_instancing
-            #pragma multi_compile _ DOTS_INSTANCING_ON
-
-            #include "Packages/com.unity.render-pipelines.universal/Shaders/BakedLitInput.hlsl"
-            #include "Packages/com.unity.render-pipelines.universal/Shaders/BakedLitDepthNormalsPass.hlsl"
-            ENDHLSL
-        }
-
-        // Same as DepthNormals pass, but used for deferred renderer and forwardOnly materials.
+        // This pass is used when drawing to a _CameraNormalsTexture texture with the forward renderer or the depthNormal prepass with the deferred renderer.
         Pass
         {
             Name "DepthNormalsOnly"
@@ -222,7 +192,8 @@ Shader "Universal Render Pipeline/Baked Lit"
             #pragma target 4.5
 
             #pragma vertex UniversalVertexMeta
-            #pragma fragment UniversalFragmentMetaBakedLit
+            #pragma fragment UniversalFragmentMetaUnlit
+            #pragma shader_feature EDITOR_VISUALIZATION
 
             #include "Packages/com.unity.render-pipelines.universal/Shaders/BakedLitInput.hlsl"
             #include "Packages/com.unity.render-pipelines.universal/Shaders/BakedLitMetaPass.hlsl"
@@ -374,7 +345,8 @@ Shader "Universal Render Pipeline/Baked Lit"
             #pragma target 2.0
 
             #pragma vertex UniversalVertexMeta
-            #pragma fragment UniversalFragmentMetaBakedLit
+            #pragma fragment UniversalFragmentMetaUnlit
+            #pragma shader_feature EDITOR_VISUALIZATION
 
             #include "Packages/com.unity.render-pipelines.universal/Shaders/BakedLitInput.hlsl"
             #include "Packages/com.unity.render-pipelines.universal/Shaders/BakedLitMetaPass.hlsl"

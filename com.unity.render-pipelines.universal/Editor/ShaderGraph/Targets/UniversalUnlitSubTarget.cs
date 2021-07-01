@@ -33,8 +33,8 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
             }
 
             // Process SubShaders
-            context.AddSubShader(SubShaders.Unlit(target, target.renderType, target.renderQueue));
             context.AddSubShader(SubShaders.UnlitDOTS(target, target.renderType, target.renderQueue));
+            context.AddSubShader(SubShaders.Unlit(target, target.renderType, target.renderQueue));
         }
 
         public override void ProcessPreviewMaterial(Material material)
@@ -53,6 +53,12 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
                 material.SetFloat(Property.ZWriteControl, (float)target.zWriteControl);
                 material.SetFloat(Property.ZTest, (float)target.zTestMode);
             }
+
+            // We always need these properties regardless of whether the material is allowed to override
+            // Queue control & offset enable correct automatic render queue behavior
+            // Control == 0 is automatic, 1 is user-specified render queue
+            material.SetFloat(Property.QueueOffset, 0.0f);
+            material.SetFloat(Property.QueueControl, (float)BaseShaderGUI.QueueControl.Auto);
 
             // call the full unlit material setup function
             ShaderGraphUnlitGUI.UpdateMaterial(material, MaterialUpdateType.CreatedNewMaterial);
@@ -84,6 +90,12 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
                 collector.AddFloatProperty(Property.ZTest, (float)target.zTestMode);    // ztest mode is designed to directly pass as ztest
                 collector.AddFloatProperty(Property.CullMode, (float)target.renderFace);    // render face enum is designed to directly pass as a cull mode
             }
+
+            // We always need these properties regardless of whether the material is allowed to override other shader properties.
+            // Queue control & offset enable correct automatic render queue behavior.  Control == 0 is automatic, 1 is user-specified.
+            // We initialize queue control to -1 to indicate to UpdateMaterial that it needs to initialize it properly on the material.
+            collector.AddFloatProperty(Property.QueueOffset, 0.0f);
+            collector.AddFloatProperty(Property.QueueControl, -1.0f);
         }
 
         public override void GetPropertiesGUI(ref TargetPropertyGUIContext context, Action onChange, Action<String> registerUndo)
@@ -133,8 +145,14 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
                 if (target.mayWriteDepth)
                     result.passes.Add(CorePasses.DepthOnly(target));
 
+                result.passes.Add(CorePasses.DepthNormalOnly(target));
+
                 if (target.castShadows || target.allowMaterialOverride)
                     result.passes.Add(CorePasses.ShadowCaster(target));
+
+                result.passes.Add(UnlitPasses.DepthNormalOnly(target));
+                result.passes.Add(CorePasses.SceneSelection(target));
+                result.passes.Add(CorePasses.ScenePicking(target));
 
                 return result;
             }
@@ -156,8 +174,14 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
                 if (target.mayWriteDepth)
                     result.passes.Add(PassVariant(CorePasses.DepthOnly(target), CorePragmas.DOTSInstanced));
 
+                result.passes.Add(PassVariant(CorePasses.DepthNormalOnly(target), CorePragmas.DOTSInstanced));
+
                 if (target.castShadows || target.allowMaterialOverride)
                     result.passes.Add(PassVariant(CorePasses.ShadowCaster(target), CorePragmas.DOTSInstanced));
+
+                result.passes.Add(UnlitPasses.DepthNormalOnly(target));
+                result.passes.Add(CorePasses.SceneSelection(target));
+                result.passes.Add(CorePasses.ScenePicking(target));
 
                 return result;
             }
@@ -205,6 +229,57 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
                 return result;
             }
 
+            public static PassDescriptor DepthNormalOnly(UniversalTarget target)
+            {
+                var result = new PassDescriptor
+                {
+                    // Definition
+                    displayName = "DepthNormals",
+                    referenceName = "SHADERPASS_DEPTHNORMALSONLY",
+                    lightMode = "DepthNormalsOnly",
+                    useInPreview = false,
+
+                    // Template
+                    passTemplatePath = UniversalTarget.kUberTemplatePath,
+                    sharedTemplateDirectories = UniversalTarget.kSharedTemplateDirectories,
+
+                    // Port Mask
+                    validVertexBlocks = CoreBlockMasks.Vertex,
+                    validPixelBlocks = UnlitBlockMasks.FragmentDepthNormals,
+
+                    // Fields
+                    structs = CoreStructCollections.Default,
+                    requiredFields = UnlitRequiredFields.DepthNormalsOnly,
+                    fieldDependencies = CoreFieldDependencies.Default,
+
+                    // Conditional State
+                    renderStates = CoreRenderStates.DepthNormalsOnly(target),
+                    pragmas = CorePragmas.Forward,
+                    defines = new DefineCollection(),
+                    keywords = new KeywordCollection(),
+                    includes = CoreIncludes.DepthNormalsOnly,
+
+                    // Custom Interpolator Support
+                    customInterpolators = CoreCustomInterpDescriptors.Common
+                };
+
+                CorePasses.AddTargetSurfaceControlsToPass(ref result, target);
+
+                return result;
+            }
+
+            #region PortMasks
+            static class UnlitBlockMasks
+            {
+                public static readonly BlockFieldDescriptor[] FragmentDepthNormals = new BlockFieldDescriptor[]
+                {
+                    BlockFields.SurfaceDescription.NormalWS,
+                    BlockFields.SurfaceDescription.Alpha,
+                    BlockFields.SurfaceDescription.AlphaClipThreshold,
+                };
+            }
+            #endregion
+
             #region RequiredFields
             static class UnlitRequiredFields
             {
@@ -213,6 +288,11 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
                     StructFields.Varyings.positionWS,
                     StructFields.Varyings.normalWS,
                     StructFields.Varyings.viewDirectionWS,
+                };
+
+                public static readonly FieldCollection DepthNormalsOnly = new FieldCollection()
+                {
+                    StructFields.Varyings.normalWS,
                 };
             }
             #endregion
@@ -230,6 +310,7 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
                 CoreKeywordDescriptors.StaticLightmap,
                 CoreKeywordDescriptors.DirectionalLightmapCombined,
                 CoreKeywordDescriptors.SampleGI,
+                CoreKeywordDescriptors.DBuffer,
                 CoreKeywordDescriptors.DebugDisplay,
             };
         }
@@ -245,6 +326,7 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
                 // Pre-graph
                 { CoreIncludes.CorePregraph },
                 { CoreIncludes.ShaderGraphPregraph },
+                { CoreIncludes.DBufferPregraph },
 
                 // Post-graph
                 { CoreIncludes.CorePostgraph },

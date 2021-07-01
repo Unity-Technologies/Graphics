@@ -24,12 +24,6 @@ namespace UnityEngine.Rendering.Universal
         public sealed class DebugShaderResources
         {
             /// <summary>
-            /// Number font used by Rendering Debugger shaders.
-            /// </summary>
-            [Reload("Textures/Debug/numberFont.png")]
-            public Texture2D NumberFont;
-
-            /// <summary>
             /// Debug shader used to output interpolated vertex attributes.
             /// </summary>
             [Reload("Shaders/Debug/DebugReplacement.shader")]
@@ -96,6 +90,25 @@ namespace UnityEngine.Rendering.Universal
                 SetDirty();
                 m_UseNativeRenderPass = value;
             }
+        }
+
+        /// <summary>
+        /// Returns true if contains renderer feature with specified type.
+        /// </summary>
+        /// <typeparam name="T">Renderer Feature type.</typeparam>
+        /// <returns></returns>
+        internal bool TryGetRendererFeature<T>(out T rendererFeature) where T : ScriptableRendererFeature
+        {
+            foreach (var target in rendererFeatures)
+            {
+                if (target.GetType() == typeof(T))
+                {
+                    rendererFeature = target as T;
+                    return true;
+                }
+            }
+            rendererFeature = null;
+            return false;
         }
 
 #if UNITY_EDITOR

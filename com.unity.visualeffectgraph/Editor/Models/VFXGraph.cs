@@ -128,9 +128,9 @@ namespace UnityEditor.VFX
             }
         }
     }
-    class VFXCacheManager : EditorWindow
+    class VFXAssetManager : EditorWindow
     {
-        private static List<VisualEffectObject> GetAllVisualEffectObjects()
+        public static List<VisualEffectObject> GetAllVisualEffectObjects()
         {
             var vfxObjects = new List<VisualEffectObject>();
             var vfxObjectsGuid = AssetDatabase.FindAssets("t:VisualEffectObject");
@@ -146,8 +146,7 @@ namespace UnityEditor.VFX
             return vfxObjects;
         }
 
-        [MenuItem("Edit/VFX/Rebuild And Save All VFX Graphs", priority = 320)]
-        public static void Build()
+        public static void Build(bool forceDirty = false)
         {
             var vfxObjects = GetAllVisualEffectObjects();
 
@@ -161,11 +160,18 @@ namespace UnityEditor.VFX
                 {
                     VFXGraph graph = resource.GetOrCreateGraph();
                     AssetDatabase.ImportAsset(AssetDatabase.GetAssetPath(graph));
-                    EditorUtility.SetDirty(resource);
+                    if (forceDirty)
+                        EditorUtility.SetDirty(resource);
                 }
             }
 
             VFXExpression.ClearCache();
+        }
+
+        [MenuItem("Edit/VFX/Rebuild And Save All VFX Graphs", priority = 320)]
+        public static void BuildAndSave()
+        {
+            Build(true);
             AssetDatabase.SaveAssets();
         }
     }
@@ -190,7 +196,6 @@ namespace UnityEditor.VFX
                 if (vfxResource != null)
                 {
                     var graph = vfxResource.GetOrCreateGraph();
-                    graph.OnSaved();
                     vfxResource.WriteAsset(); // write asset as the AssetDatabase won't do it.
                 }
             }
@@ -275,7 +280,8 @@ namespace UnityEditor.VFX
         // 5: Harmonized position blocks composition: PositionAABox was the only one with Overwrite position
         // 6: Remove automatic strip orientation from quad strip context
         // 7: Add CameraBuffer type
-        public static readonly int CurrentVersion = 7;
+        // 8: Bounds computation introduces a BoundsSettingMode for VFXDataParticles
+        public static readonly int CurrentVersion = 8;
 
         public readonly VFXErrorManager errorManager = new VFXErrorManager();
 
@@ -283,6 +289,18 @@ namespace UnityEditor.VFX
         public override void OnEnable()
         {
             base.OnEnable();
+            VFXLibrary.OnSRPChanged += OnSRPChanged;
+            m_ExpressionGraphDirty = true;
+        }
+
+        public virtual void OnDisable()
+        {
+            VFXLibrary.OnSRPChanged -= OnSRPChanged;
+        }
+
+        private void OnSRPChanged()
+        {
+            m_GraphSanitized = false;
             m_ExpressionGraphDirty = true;
         }
 
@@ -382,18 +400,6 @@ namespace UnityEditor.VFX
             }
         }
 
-        public void OnSaved()
-        {
-            try
-            {
-                m_saved = true;
-            }
-            catch (Exception e)
-            {
-                Debug.LogErrorFormat("Save failed : {0}", e);
-            }
-        }
-
         public void SanitizeGraph()
         {
             if (m_GraphSanitized)
@@ -460,14 +466,6 @@ namespace UnityEditor.VFX
             m_ResourceVersion = resourceCurrentVersion;
             m_GraphSanitized = true;
             m_GraphVersion = CurrentVersion;
-
-#if !CASE_1289829_HAS_BEEN_FIXED
-            if (visualEffectResource != null && (visualEffectResource.updateMode & VFXUpdateMode.ExactFixedTimeStep) == VFXUpdateMode.ExactFixedTimeStep)
-            {
-                visualEffectResource.updateMode = visualEffectResource.updateMode & ~VFXUpdateMode.ExactFixedTimeStep;
-                Debug.Log("Sanitize : Exact Fixed Time has been automatically reset to false to avoid an unexpected behavior.");
-            }
-#endif
 
             UpdateSubAssets(); //Should not be necessary : force remove no more referenced object from asset
         }
@@ -553,8 +551,6 @@ namespace UnityEditor.VFX
 
         protected override void OnInvalidate(VFXModel model, VFXModel.InvalidationCause cause)
         {
-            m_saved = false;
-
             if (cause == VFXModel.InvalidationCause.kStructureChanged
                 || cause == VFXModel.InvalidationCause.kSettingChanged
                 || cause == VFXModel.InvalidationCause.kConnectionChanged)
@@ -977,11 +973,6 @@ namespace UnityEditor.VFX
 
         [NonSerialized]
         public Action<VFXGraph> onRuntimeDataChanged;
-
-        [SerializeField]
-        protected bool m_saved = false;
-
-        public bool saved { get { return m_saved; } }
 
         [SerializeField]
         private List<VisualEffectObject> m_SubgraphDependencies = new List<VisualEffectObject>();

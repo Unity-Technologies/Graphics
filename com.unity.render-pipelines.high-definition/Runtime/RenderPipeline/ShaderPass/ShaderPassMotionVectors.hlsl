@@ -26,15 +26,8 @@ PackedVaryingsType Vert(AttributesMesh inputMesh,
 PackedVaryingsToPS VertTesselation(VaryingsToDS input)
 {
     VaryingsToPS output;
-
     output.vmesh = VertMeshTesselation(input.vmesh);
-
-    MotionVectorPositionZBias(output);
-
-    output.vpass.positionCS = input.vpass.positionCS;
-    output.vpass.previousPositionCS = input.vpass.previousPositionCS;
-
-    return PackVaryingsToPS(output);
+    return MotionVectorTessellation(output, input);
 }
 
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/ShaderPass/TessellationShare.hlsl"

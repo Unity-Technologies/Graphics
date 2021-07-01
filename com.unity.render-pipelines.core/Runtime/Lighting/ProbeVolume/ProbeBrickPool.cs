@@ -1,3 +1,4 @@
+using System.Diagnostics;
 using System.Collections.Generic;
 using UnityEngine.Rendering;
 using UnityEngine.Profiling;
@@ -6,6 +7,7 @@ namespace UnityEngine.Experimental.Rendering
 {
     internal class ProbeBrickPool
     {
+        [DebuggerDisplay("Chunk ({x}, {y}, {z})")]
         public struct BrickChunkAlloc
         {
             public int x, y, z;
@@ -82,11 +84,6 @@ namespace UnityEngine.Experimental.Rendering
             Profiler.EndSample();
         }
 
-        internal ProbeVolumeTextureMemoryBudget GetMemoryBudget()
-        {
-            return m_MemoryBudget;
-        }
-
         internal void EnsureTextureValidity()
         {
             // We assume that if a texture is null, all of them are. In any case we reboot them altogether.
@@ -98,6 +95,8 @@ namespace UnityEngine.Experimental.Rendering
         }
 
         internal int GetChunkSize() { return m_AllocationSize; }
+        internal int GetChunkSizeInProbeCount() { return m_AllocationSize * kBrickProbeCountTotal; }
+
         internal int GetPoolWidth() { return m_Pool.width; }
         internal int GetPoolHeight() { return m_Pool.height; }
         internal Vector3Int GetPoolDimensions() { return new Vector3Int(m_Pool.width, m_Pool.height, m_Pool.depth); }
@@ -186,7 +185,7 @@ namespace UnityEngine.Experimental.Rendering
             }
         }
 
-        private static Vector3Int ProbeCountToDataLocSize(int numProbes)
+        static Vector3Int ProbeCountToDataLocSize(int numProbes)
         {
             Debug.Assert(numProbes != 0);
             Debug.Assert(numProbes % kBrickProbeCountTotal == 0);
@@ -250,7 +249,7 @@ namespace UnityEngine.Experimental.Rendering
             return loc;
         }
 
-        private static void SetPixel(ref Color[] data, int x, int y, int z, int dataLocWidth, int dataLocHeight, Color value)
+        static void SetPixel(ref Color[] data, int x, int y, int z, int dataLocWidth, int dataLocHeight, Color value)
         {
             int index = x + dataLocWidth * (y + dataLocHeight * z);
             data[index] = value;
@@ -377,7 +376,7 @@ namespace UnityEngine.Experimental.Rendering
             }
         }
 
-        private void DerivePoolSizeFromBudget(int allocationSize, ProbeVolumeTextureMemoryBudget memoryBudget, out int width, out int height, out int depth)
+        void DerivePoolSizeFromBudget(int allocationSize, ProbeVolumeTextureMemoryBudget memoryBudget, out int width, out int height, out int depth)
         {
             // TODO: This is fairly simplistic for now and relies on the enum to have the value set to the desired numbers,
             // might change the heuristic later on.

@@ -24,12 +24,7 @@ PackedVaryingsToPS VertTesselation(VaryingsToDS input)
 {
     VaryingsToPS output;
     output.vmesh = VertMeshTesselation(input.vmesh);
-    MotionVectorPositionZBias(output);
-
-    output.vpass.positionCS = input.vpass.positionCS;
-    output.vpass.previousPositionCS = input.vpass.previousPositionCS;
-
-    return PackVaryingsToPS(output);
+    return MotionVectorTessellation(output, input);
 }
 
 #endif // TESSELLATION_ON
@@ -69,7 +64,6 @@ PackedVaryingsToPS VertTesselation(VaryingsToDS input)
 
     return PackVaryingsToPS(output);
 }
-
 
 #endif // TESSELLATION_ON
 
@@ -119,7 +113,7 @@ void Frag(PackedVaryingsToPS packedInput,
     FragInputs input = UnpackVaryingsToFragInputs(packedInput);
 
     // We need to readapt the SS position as our screen space positions are for a low res buffer, but we try to access a full res buffer.
-    input.positionSS.xy = _OffScreenRendering > 0 ? (input.positionSS.xy * _OffScreenDownsampleFactor) : input.positionSS.xy;
+    input.positionSS.xy = _OffScreenRendering > 0 ? (uint2)round(input.positionSS.xy * _OffScreenDownsampleFactor) : input.positionSS.xy;
 
     uint2 tileIndex = uint2(input.positionSS.xy) / GetTileSize();
 

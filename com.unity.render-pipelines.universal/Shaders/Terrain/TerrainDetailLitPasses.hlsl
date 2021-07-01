@@ -19,13 +19,11 @@ struct Varyings
     DECLARE_LIGHTMAP_OR_SH(staticLightmapUV, vertexSH, 1);
     half4   Color           : TEXCOORD2; // Vertex Color
     half4   LightingFog     : TEXCOORD3; // Vertex Lighting, Fog Factor
-    #if defined(MAIN_LIGHT_CALCULATE_SHADOWS)
+    #if defined(REQUIRES_VERTEX_SHADOW_COORD_INTERPOLATOR)
     float4  ShadowCoords    : TEXCOORD4; // Shadow UVs
     #endif
     half4   NormalWS        : TEXCOORD5;
-    #if defined(DEBUG_DISPLAY)
-    float3 positionWS       : TEXCOORD6;
-    #endif
+    float3  PositionWS      : TEXCOORD6;
     float4  PositionCS      : SV_POSITION; // Clip Position
 
     UNITY_VERTEX_INPUT_INSTANCE_ID
@@ -36,34 +34,27 @@ void InitializeInputData(Varyings input, out InputData inputData)
 {
     inputData = (InputData)0;
 
+    inputData.positionCS = input.PositionCS;
     inputData.normalWS = half3(0, 1, 0);
     inputData.viewDirectionWS = half3(0, 0, 1);
-    #if defined(MAIN_LIGHT_CALCULATE_SHADOWS)
-    inputData.shadowCoord = input.ShadowCoords;
+
+    #if defined(REQUIRES_VERTEX_SHADOW_COORD_INTERPOLATOR)
+        inputData.shadowCoord = input.ShadowCoords;
+    #elif defined(MAIN_LIGHT_CALCULATE_SHADOWS)
+        inputData.shadowCoord = TransformWorldToShadowCoord(input.PositionWS);
     #else
-    inputData.shadowCoord = float4(0, 0, 0, 0);
+        inputData.shadowCoord = float4(0, 0, 0, 0);
     #endif
+
     inputData.fogCoord = input.LightingFog.a;
     inputData.vertexLighting = input.LightingFog.rgb;
     inputData.bakedGI = SAMPLE_GI(input.staticLightmapUV, input.vertexSH, input.NormalWS.xyz);
     inputData.normalizedScreenSpaceUV = GetNormalizedScreenSpaceUV(input.PositionCS);
     inputData.shadowMask = SAMPLE_SHADOWMASK(input.staticLightmapUV);
-
-    #if defined(LIGHTMAP_ON)
-    inputData.lightmapUV = input.staticLightmapUV;
-    #else
-    inputData.vertexSH = float3(1, 1, 1);
-    #endif
-
-    #if defined(_NORMALMAP)
-    inputData.tangentToWorld;
-    #endif
+    inputData.positionWS = input.PositionWS;
 
     #if defined(DEBUG_DISPLAY)
-    inputData.positionWS = input.positionWS;
     inputData.uv = input.UV01;
-    #else
-    inputData.positionWS = float3(0, 0, 0);
     #endif
 }
 
@@ -134,8 +125,8 @@ Varyings TerrainLitVertex(Attributes input)
     output.PositionCS = vertexInput.positionCS;
 
     // Shadow Coords
-    #if defined(MAIN_LIGHT_CALCULATE_SHADOWS)
-    output.ShadowCoords = GetShadowCoord(vertexInput);
+    #if defined(REQUIRES_VERTEX_SHADOW_COORD_INTERPOLATOR)
+        output.ShadowCoords = GetShadowCoord(vertexInput);
     #endif
 
     // Vertex Lighting
@@ -169,10 +160,7 @@ Varyings TerrainLitVertex(Attributes input)
     output.LightingFog.w = ComputeFogFactor(output.PositionCS.z);
 
     output.NormalWS.xyz = NormalWS;
-
-    #if defined(DEBUG_DISPLAY)
-    output.positionWS = vertexInput.positionWS;
-    #endif
+    output.PositionWS = vertexInput.positionWS;
 
     return output;
 }

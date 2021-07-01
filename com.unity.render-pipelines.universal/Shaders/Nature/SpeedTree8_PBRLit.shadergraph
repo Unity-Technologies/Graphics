@@ -3772,6 +3772,31 @@
 
 {
     "m_SGVersion": 0,
+    "m_Type": "UnityEditor.ShaderGraph.Vector4MaterialSlot",
+    "m_ObjectId": "3c159799c47e4b199d2e6b38259a434c",
+    "m_Id": -84633316,
+    "m_DisplayName": "Backside Normal Transform (TS)",
+    "m_SlotType": 0,
+    "m_Hidden": false,
+    "m_ShaderOutputName": "Backside_Normal_Transform_TS",
+    "m_StageCapability": 2,
+    "m_Value": {
+        "x": 1.0,
+        "y": 1.0,
+        "z": -1.0,
+        "w": 1.0
+    },
+    "m_DefaultValue": {
+        "x": 0.0,
+        "y": 0.0,
+        "z": 0.0,
+        "w": 0.0
+    },
+    "m_Labels": []
+}
+
+{
+    "m_SGVersion": 0,
     "m_Type": "UnityEditor.ShaderGraph.Internal.Texture2DShaderProperty",
     "m_ObjectId": "408f4011bedc248f9abbf3200ce684cd",
     "m_Guid": {
@@ -6496,6 +6521,20 @@
 {
     "m_SGVersion": 0,
     "m_Type": "UnityEditor.ShaderGraph.BooleanMaterialSlot",
+    "m_ObjectId": "98900e1e754143c9b8902a213f7a3124",
+    "m_Id": 1903731781,
+    "m_DisplayName": "Transform Backside Normals",
+    "m_SlotType": 0,
+    "m_Hidden": false,
+    "m_ShaderOutputName": "Transform_Backside_Normals",
+    "m_StageCapability": 2,
+    "m_Value": true,
+    "m_DefaultValue": false
+}
+
+{
+    "m_SGVersion": 0,
+    "m_Type": "UnityEditor.ShaderGraph.BooleanMaterialSlot",
     "m_ObjectId": "98ea5bf7f62eac819926a60055b2468e",
     "m_Id": -1920596915,
     "m_DisplayName": "Billboard",
@@ -8690,31 +8729,6 @@
 
 {
     "m_SGVersion": 0,
-    "m_Type": "UnityEditor.ShaderGraph.Vector4MaterialSlot",
-    "m_ObjectId": "d4fa0d5432a147c3ae9d8296e5230f57",
-    "m_Id": -84633316,
-    "m_DisplayName": "Backside Normal Transform (TS)",
-    "m_SlotType": 0,
-    "m_Hidden": false,
-    "m_ShaderOutputName": "Backside_Normal_Transform_TS",
-    "m_StageCapability": 2,
-    "m_Value": {
-        "x": 1.0,
-        "y": 1.0,
-        "z": -1.0,
-        "w": 1.0
-    },
-    "m_DefaultValue": {
-        "x": 0.0,
-        "y": 0.0,
-        "z": 0.0,
-        "w": 0.0
-    },
-    "m_Labels": []
-}
-
-{
-    "m_SGVersion": 0,
     "m_Type": "UnityEditor.ShaderGraph.Vector1MaterialSlot",
     "m_ObjectId": "d4ffc995f303438c897ea47bda68aeea",
     "m_Id": 2,
@@ -9430,7 +9444,7 @@
     "m_Group": {
         "m_Id": "54e9698bb5e84076bf674ac114f1c1c5"
     },
-    "m_Name": "SpeedTree8BacksideInterpolatedNormals",
+    "m_Name": "SpeedTree8InterpolatedNormals",
     "m_DrawState": {
         "m_Expanded": true,
         "m_Position": {
@@ -9458,7 +9472,10 @@
             "m_Id": "48539903e06846ea8e06342e5bb3aa5a"
         },
         {
-            "m_Id": "d4fa0d5432a147c3ae9d8296e5230f57"
+            "m_Id": "3c159799c47e4b199d2e6b38259a434c"
+        },
+        {
+            "m_Id": "98900e1e754143c9b8902a213f7a3124"
         },
         {
             "m_Id": "2b444e9e7d7c42a684b18213424efe9f"
@@ -9481,7 +9498,8 @@
         "bc51b4e9-7577-4362-b7e6-42b1a617f2b9",
         "bb51d5be-1c5f-4f70-987c-dccda73e1a4b",
         "f530f069-4b92-4c68-9e07-c51aba95e28f",
-        "ed11de33-81e5-477a-9781-96cfb424ce55"
+        "ed11de33-81e5-477a-9781-96cfb424ce55",
+        "b6c0e362-24b8-4762-a71b-e3406a96c645"
     ],
     "m_PropertyIds": [
         1032965081,
@@ -9489,7 +9507,8 @@
         -1960380622,
         2064554629,
         2074262670,
-        -84633316
+        -84633316,
+        1903731781
     ]
 }
 

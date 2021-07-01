@@ -202,6 +202,7 @@ namespace UnityEditor.ShaderGraph
             packBuilder.AppendLine("{");
             packBuilder.IncreaseIndent();
             packBuilder.AppendLine($"{packedStruct} output;");
+            packBuilder.AppendLine($"ZERO_INITIALIZE({packedStruct}, output);");
 
             unpackBuilder.AppendLine($"{shaderStruct.name} Unpack{shaderStruct.name} ({packedStruct} input)");
             unpackBuilder.AppendLine("{");
@@ -259,10 +260,12 @@ namespace UnityEditor.ShaderGraph
             packBuilder.AppendLine("return output;");
             packBuilder.DecreaseIndent();
             packBuilder.AppendLine("}");
+            packBuilder.AppendNewLine();
 
             unpackBuilder.AppendLine("return output;");
             unpackBuilder.DecreaseIndent();
             unpackBuilder.AppendLine("}");
+            unpackBuilder.AppendNewLine();
 
             interpolatorBuilder.Concat(packBuilder);
             interpolatorBuilder.Concat(unpackBuilder);
@@ -640,24 +643,66 @@ namespace UnityEditor.ShaderGraph
                 builder.AppendLine(format, CoordinateSpace.AbsoluteWorld.ToVariableName(interpolatorType));
         }
 
-        internal static void GeneratePropertiesBlock(ShaderStringBuilder sb, PropertyCollector propertyCollector, KeywordCollector keywordCollector, GenerationMode mode)
+        internal static void GeneratePropertiesBlock(ShaderStringBuilder sb, PropertyCollector propertyCollector, KeywordCollector keywordCollector, GenerationMode mode, List<GraphInputData> graphInputs)
         {
             sb.AppendLine("Properties");
             using (sb.BlockScope())
             {
-                foreach (var prop in propertyCollector.properties.Where(x => x.generatePropertyBlock))
+                if (graphInputs == null || graphInputs.Count == 0)
                 {
-                    prop.AppendPropertyBlockStrings(sb);
+                    foreach (var prop in propertyCollector.properties.Where(x => x.generatePropertyBlock))
+                    {
+                        prop.AppendPropertyBlockStrings(sb);
+                    }
+
+                    // Keywords use hardcoded state in preview
+                    // Do not add them to the Property Block
+                    if (mode == GenerationMode.Preview)
+                        return;
+
+                    foreach (var key in keywordCollector.keywords.Where(x => x.generatePropertyBlock))
+                    {
+                        key.AppendPropertyBlockStrings(sb);
+                    }
                 }
-
-                // Keywords use hardcoded state in preview
-                // Do not add them to the Property Block
-                if (mode == GenerationMode.Preview)
-                    return;
-
-                foreach (var key in keywordCollector.keywords.Where(x => x.generatePropertyBlock))
+                else
                 {
-                    key.AppendPropertyBlockStrings(sb);
+                    var propertyInputs = propertyCollector.properties.Where(x => x.generatePropertyBlock).ToList();
+                    var keywordInputs = keywordCollector.keywords.Where(x => x.generatePropertyBlock).ToList();
+                    foreach (var input in graphInputs)
+                    {
+                        if (input.isKeyword && mode != GenerationMode.Preview)
+                        {
+                            var keyword = keywordInputs.FirstOrDefault(x => x.referenceName.CompareTo(input.referenceName) == 0);
+                            if (keyword != null)
+                            {
+                                keyword.AppendPropertyBlockStrings(sb);
+                                keywordInputs.Remove(keyword);
+                            }
+                        }
+                        else if (!input.isKeyword)
+                        {
+                            var property = propertyInputs.FirstOrDefault(x => x.referenceName.CompareTo(input.referenceName) == 0);
+                            if (property != null)
+                            {
+                                property.AppendPropertyBlockStrings(sb);
+                                propertyInputs.Remove(property);
+                            }
+                        }
+                    }
+
+                    foreach (var property in propertyInputs)
+                    {
+                        property.AppendPropertyBlockStrings(sb);
+                    }
+
+                    if (mode != GenerationMode.Preview)
+                    {
+                        foreach (var keyword in keywordInputs)
+                        {
+                            keyword.AppendPropertyBlockStrings(sb);
+                        }
+                    }
                 }
             }
         }

@@ -125,6 +125,9 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
 
         internal override bool ignoreCustomInterpolators => false;
         internal override int padCustomInterpolatorLimit => 4;
+        internal override bool prefersSpritePreview =>
+            activeSubTarget is UniversalSpriteUnlitSubTarget or UniversalSpriteLitSubTarget or
+                               UniversalSpriteCustomLitSubTarget;
 
         public UniversalTarget()
         {
@@ -328,6 +331,10 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
             collector.AddShaderProperty(LightmappingShaderProperties.kLightmapsArray);
             collector.AddShaderProperty(LightmappingShaderProperties.kLightmapsIndirectionArray);
             collector.AddShaderProperty(LightmappingShaderProperties.kShadowMasksArray);
+
+
+            // SubTarget blocks
+            m_ActiveSubTarget.value.CollectShaderProperties(collector, generationMode);
         }
 
         public override void GetPropertiesGUI(ref TargetPropertyGUIContext context, Action onChange, Action<String> registerUndo)
@@ -674,6 +681,86 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
             return result;
         }
 
+        // used by lit/unlit subtargets
+        public static PassDescriptor DepthNormal(UniversalTarget target)
+        {
+            var result = new PassDescriptor()
+            {
+                // Definition
+                displayName = "DepthNormals",
+                referenceName = "SHADERPASS_DEPTHNORMALS",
+                lightMode = "DepthNormals",
+                useInPreview = false,
+
+                // Template
+                passTemplatePath = UniversalTarget.kUberTemplatePath,
+                sharedTemplateDirectories = UniversalTarget.kSharedTemplateDirectories,
+
+                // Port Mask
+                validVertexBlocks = CoreBlockMasks.Vertex,
+                validPixelBlocks = CoreBlockMasks.FragmentDepthNormals,
+
+                // Fields
+                structs = CoreStructCollections.Default,
+                requiredFields = CoreRequiredFields.DepthNormals,
+                fieldDependencies = CoreFieldDependencies.Default,
+
+                // Conditional State
+                renderStates = CoreRenderStates.DepthNormalsOnly(target),
+                pragmas = CorePragmas.Instanced,
+                defines = new DefineCollection(),
+                keywords = new KeywordCollection(),
+                includes = CoreIncludes.DepthNormalsOnly,
+
+                // Custom Interpolator Support
+                customInterpolators = CoreCustomInterpDescriptors.Common
+            };
+
+            AddAlphaClipControlToPass(ref result, target);
+
+            return result;
+        }
+
+        // used by lit/unlit subtargets
+        public static PassDescriptor DepthNormalOnly(UniversalTarget target)
+        {
+            var result = new PassDescriptor()
+            {
+                // Definition
+                displayName = "DepthNormalsOnly",
+                referenceName = "SHADERPASS_DEPTHNORMALSONLY",
+                lightMode = "DepthNormalsOnly",
+                useInPreview = false,
+
+                // Template
+                passTemplatePath = UniversalTarget.kUberTemplatePath,
+                sharedTemplateDirectories = UniversalTarget.kSharedTemplateDirectories,
+
+                // Port Mask
+                validVertexBlocks = CoreBlockMasks.Vertex,
+                validPixelBlocks = CoreBlockMasks.FragmentDepthNormals,
+
+                // Fields
+                structs = CoreStructCollections.Default,
+                requiredFields = CoreRequiredFields.DepthNormals,
+                fieldDependencies = CoreFieldDependencies.Default,
+
+                // Conditional State
+                renderStates = CoreRenderStates.DepthNormalsOnly(target),
+                pragmas = CorePragmas.Instanced,
+                defines = new DefineCollection(),
+                keywords = new KeywordCollection(),
+                includes = CoreIncludes.DepthNormalsOnly,
+
+                // Custom Interpolator Support
+                customInterpolators = CoreCustomInterpDescriptors.Common
+            };
+
+            AddAlphaClipControlToPass(ref result, target);
+
+            return result;
+        }
+
         // used by lit/unlit targets
         public static PassDescriptor ShadowCaster(UniversalTarget target)
         {
@@ -712,6 +799,158 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
 
             return result;
         }
+
+        public static PassDescriptor SceneSelection(UniversalTarget target)
+        {
+            var result = new PassDescriptor()
+            {
+                // Definition
+                displayName = "SceneSelectionPass",
+                referenceName = "SHADERPASS_DEPTHONLY",
+                lightMode = "SceneSelectionPass",
+                useInPreview = false,
+
+                // Template
+                passTemplatePath = GenerationUtils.GetDefaultTemplatePath("PassMesh.template"),
+                sharedTemplateDirectories = UniversalTarget.kSharedTemplateDirectories,
+
+                // Port Mask
+                validVertexBlocks = CoreBlockMasks.Vertex,
+                validPixelBlocks = CoreBlockMasks.FragmentAlphaOnly,
+
+                // Fields
+                structs = CoreStructCollections.Default,
+                fieldDependencies = CoreFieldDependencies.Default,
+
+                // Conditional State
+                renderStates = CoreRenderStates.SceneSelection(target),
+                pragmas = CorePragmas.Instanced,
+                defines = new DefineCollection { CoreDefines.SceneSelection, {CoreKeywordDescriptors.AlphaClipThreshold, 1 } },
+                keywords = new KeywordCollection(),
+                includes = CoreIncludes.SceneSelection,
+
+                // Custom Interpolator Support
+                customInterpolators = CoreCustomInterpDescriptors.Common
+            };
+
+            AddAlphaClipControlToPass(ref result, target);
+
+            return result;
+        }
+
+        public static PassDescriptor ScenePicking(UniversalTarget target)
+        {
+            var result = new PassDescriptor()
+            {
+                // Definition
+                displayName = "ScenePickingPass",
+                referenceName = "SHADERPASS_DEPTHONLY",
+                lightMode = "Picking",
+                useInPreview = false,
+
+                // Template
+                passTemplatePath = GenerationUtils.GetDefaultTemplatePath("PassMesh.template"),
+                sharedTemplateDirectories = UniversalTarget.kSharedTemplateDirectories,
+
+                // Port Mask
+                validVertexBlocks = CoreBlockMasks.Vertex,
+                validPixelBlocks = CoreBlockMasks.FragmentAlphaOnly,
+
+                // Fields
+                structs = CoreStructCollections.Default,
+                fieldDependencies = CoreFieldDependencies.Default,
+
+                // Conditional State
+                renderStates = CoreRenderStates.ScenePicking(target),
+                pragmas = CorePragmas.Instanced,
+                defines = new DefineCollection { CoreDefines.ScenePicking, {CoreKeywordDescriptors.AlphaClipThreshold, 1 } },
+                keywords = new KeywordCollection(),
+                includes = CoreIncludes.ScenePicking,
+
+                // Custom Interpolator Support
+                customInterpolators = CoreCustomInterpDescriptors.Common
+            };
+
+            AddAlphaClipControlToPass(ref result, target);
+
+            return result;
+        }
+
+        public static PassDescriptor _2DSceneSelection(UniversalTarget target)
+        {
+            var result = new PassDescriptor()
+            {
+                // Definition
+                displayName = "SceneSelectionPass",
+                referenceName = "SHADERPASS_DEPTHONLY",
+                lightMode = "SceneSelectionPass",
+                useInPreview = false,
+
+                // Template
+                passTemplatePath = GenerationUtils.GetDefaultTemplatePath("PassMesh.template"),
+                sharedTemplateDirectories = GenerationUtils.GetDefaultSharedTemplateDirectories(),
+
+                // Port Mask
+                validVertexBlocks = CoreBlockMasks.Vertex,
+                validPixelBlocks = CoreBlockMasks.FragmentAlphaOnly,
+
+                // Fields
+                structs = CoreStructCollections.Default,
+                fieldDependencies = CoreFieldDependencies.Default,
+
+                // Conditional State
+                renderStates = CoreRenderStates.SceneSelection(target),
+                pragmas = CorePragmas._2DDefault,
+                defines = new DefineCollection { CoreDefines.SceneSelection, {CoreKeywordDescriptors.AlphaClipThreshold, 0 } },
+                keywords = new KeywordCollection(),
+                includes = CoreIncludes.ScenePicking,
+
+                // Custom Interpolator Support
+                customInterpolators = CoreCustomInterpDescriptors.Common
+            };
+
+            AddAlphaClipControlToPass(ref result, target);
+
+            return result;
+        }
+
+        public static PassDescriptor _2DScenePicking(UniversalTarget target)
+        {
+            var result = new PassDescriptor()
+            {
+                // Definition
+                displayName = "ScenePickingPass",
+                referenceName = "SHADERPASS_DEPTHONLY",
+                lightMode = "Picking",
+                useInPreview = false,
+
+                // Template
+                passTemplatePath = GenerationUtils.GetDefaultTemplatePath("PassMesh.template"),
+                sharedTemplateDirectories = GenerationUtils.GetDefaultSharedTemplateDirectories(),
+
+                // Port Mask
+                validVertexBlocks = CoreBlockMasks.Vertex,
+                validPixelBlocks = CoreBlockMasks.FragmentAlphaOnly,
+
+                // Fields
+                structs = CoreStructCollections.Default,
+                fieldDependencies = CoreFieldDependencies.Default,
+
+                // Conditional State
+                renderStates = CoreRenderStates.ScenePicking(target),
+                pragmas = CorePragmas._2DDefault,
+                defines = new DefineCollection { CoreDefines.ScenePicking, {CoreKeywordDescriptors.AlphaClipThreshold, 0 } },
+                keywords = new KeywordCollection(),
+                includes = CoreIncludes.SceneSelection,
+
+                // Custom Interpolator Support
+                customInterpolators = CoreCustomInterpDescriptors.Common
+            };
+
+            AddAlphaClipControlToPass(ref result, target);
+
+            return result;
+        }
     }
     #endregion
 
@@ -737,6 +976,15 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
             BlockFields.SurfaceDescription.Alpha,
             BlockFields.SurfaceDescription.AlphaClipThreshold,
         };
+
+        public static readonly BlockFieldDescriptor[] FragmentDepthNormals = new BlockFieldDescriptor[]
+        {
+            BlockFields.SurfaceDescription.NormalOS,
+            BlockFields.SurfaceDescription.NormalTS,
+            BlockFields.SurfaceDescription.NormalWS,
+            BlockFields.SurfaceDescription.Alpha,
+            BlockFields.SurfaceDescription.AlphaClipThreshold,
+        };
     }
     #endregion
 
@@ -759,6 +1007,13 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
         public static readonly FieldCollection ShadowCaster = new FieldCollection()
         {
             StructFields.Attributes.normalOS,
+        };
+
+        public static readonly FieldCollection DepthNormals = new FieldCollection()
+        {
+            StructFields.Attributes.uv1,                            // needed for meta vertex position
+            StructFields.Varyings.normalWS,
+            StructFields.Varyings.tangentWS,                        // needed for vertex lighting
         };
     }
     #endregion
@@ -928,13 +1183,31 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
 
             return result;
         }
+
+        // Used by all targets
+        public static RenderStateCollection SceneSelection(UniversalTarget target)
+        {
+            var result = new RenderStateCollection
+            {
+                { RenderState.Cull(Cull.Off) },
+            };
+
+            return result;
+        }
+
+        public static RenderStateCollection ScenePicking(UniversalTarget target)
+        {
+            var result = new RenderStateCollection
+            {
+                { UberSwitchedCullRenderState(target) }
+            };
+
+            return result;
+        }
     }
     #endregion
 
     #region Pragmas
-    // TODO: should these be renamed and moved to UniversalPragmas/UniversalPragmas.cs ?
-    // TODO: these aren't "core" as HDRP doesn't use them
-    // TODO: and the same for the rest "Core" things
     static class CorePragmas
     {
         public static readonly PragmaCollection Default = new PragmaCollection
@@ -1031,6 +1304,8 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
         const string kDepthNormalsOnlyPass = "Packages/com.unity.render-pipelines.universal/Editor/ShaderGraph/Includes/DepthNormalsOnlyPass.hlsl";
         const string kShadowCasterPass = "Packages/com.unity.render-pipelines.universal/Editor/ShaderGraph/Includes/ShadowCasterPass.hlsl";
         const string kTextureStack = "Packages/com.unity.render-pipelines.core/ShaderLibrary/TextureStack.hlsl";
+        const string kDBuffer = "Packages/com.unity.render-pipelines.universal/ShaderLibrary/DBuffer.hlsl";
+        const string kSelectionPickingPass = "Packages/com.unity.render-pipelines.universal/Editor/ShaderGraph/Includes/SelectionPickingPass.hlsl";
 
         public static readonly IncludeCollection CorePregraph = new IncludeCollection
         {
@@ -1084,6 +1359,33 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
             { CorePostgraph },
             { kShadowCasterPass, IncludeLocation.Postgraph },
         };
+
+        public static readonly IncludeCollection DBufferPregraph = new IncludeCollection
+        {
+            { kDBuffer, IncludeLocation.Pregraph },
+        };
+
+        public static readonly IncludeCollection SceneSelection = new IncludeCollection
+        {
+            // Pre-graph
+            { CorePregraph },
+            { ShaderGraphPregraph },
+
+            // Post-graph
+            { CorePostgraph },
+            { kSelectionPickingPass, IncludeLocation.Postgraph },
+        };
+
+        public static readonly IncludeCollection ScenePicking = new IncludeCollection
+        {
+            // Pre-graph
+            { CorePregraph },
+            { ShaderGraphPregraph },
+
+            // Post-graph
+            { CorePostgraph },
+            { kSelectionPickingPass, IncludeLocation.Postgraph },
+        };
     }
     #endregion
 
@@ -1099,12 +1401,20 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
         {
             {CoreKeywordDescriptors.UseFragmentFog, 1},
         };
+
+        public static readonly DefineCollection SceneSelection = new DefineCollection
+        {
+            { CoreKeywordDescriptors.SceneSelectionPass, 1 },
+        };
+
+        public static readonly DefineCollection ScenePicking = new DefineCollection
+        {
+            { CoreKeywordDescriptors.ScenePickingPass, 1 },
+        };
     }
     #endregion
 
     #region KeywordDescriptors
-    // TODO: should these be renamed and moved to UniversalKeywordDescriptors/UniversalKeywords.cs ?
-    // TODO: these aren't "core" as they aren't used by HDRP
     static class CoreKeywordDescriptors
     {
         public static readonly KeywordDescriptor StaticLightmap = new KeywordDescriptor()
@@ -1201,15 +1511,15 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
         public static readonly KeywordDescriptor AdditionalLights = new KeywordDescriptor()
         {
             displayName = "Additional Lights",
-            referenceName = "_ADDITIONAL",
+            referenceName = "",
             type = KeywordType.Enum,
             definition = KeywordDefinition.MultiCompile,
             scope = KeywordScope.Global,
             entries = new KeywordEntry[]
             {
-                new KeywordEntry() { displayName = "Vertex", referenceName = "LIGHTS_VERTEX" },
-                new KeywordEntry() { displayName = "Fragment", referenceName = "LIGHTS" },
-                new KeywordEntry() { displayName = "Off", referenceName = "OFF" },
+                new KeywordEntry() { displayName = "Off", referenceName = "" },
+                new KeywordEntry() { displayName = "Vertex", referenceName = "ADDITIONAL_LIGHTS_VERTEX" },
+                new KeywordEntry() { displayName = "Fragment", referenceName = "ADDITIONAL_LIGHTS" },
             }
         };
 
@@ -1285,6 +1595,15 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
             scope = KeywordScope.Global,
         };
 
+        public static readonly KeywordDescriptor RenderPassEnabled = new KeywordDescriptor()
+        {
+            displayName = "Render Pass Enabled",
+            referenceName = "_RENDER_PASS_ENABLED",
+            type = KeywordType.Boolean,
+            definition = KeywordDefinition.MultiCompile,
+            scope = KeywordScope.Global,
+        };
+
         public static readonly KeywordDescriptor ShapeLightType0 = new KeywordDescriptor()
         {
             displayName = "Shape Light Type 0",
@@ -1335,12 +1654,86 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
             type = KeywordType.Boolean,
         };
 
+        public static readonly KeywordDescriptor GBufferNormalsOct = new KeywordDescriptor()
+        {
+            displayName = "GBuffer normal octahedron encoding",
+            referenceName = "_GBUFFER_NORMALS_OCT",
+            type = KeywordType.Boolean,
+            definition = KeywordDefinition.MultiCompile,
+            scope = KeywordScope.Global,
+        };
+
+        public static readonly KeywordDescriptor DBuffer = new KeywordDescriptor()
+        {
+            displayName = "Decals",
+            referenceName = "",
+            type = KeywordType.Enum,
+            definition = KeywordDefinition.MultiCompile,
+            scope = KeywordScope.Global,
+            entries = new KeywordEntry[]
+            {
+                new KeywordEntry() { displayName = "Off", referenceName = "" },
+                new KeywordEntry() { displayName = "DBuffer Mrt1", referenceName = "DBUFFER_MRT1" },
+                new KeywordEntry() { displayName = "DBuffer Mrt2", referenceName = "DBUFFER_MRT2" },
+                new KeywordEntry() { displayName = "DBuffer Mrt3", referenceName = "DBUFFER_MRT3" },
+            }
+        };
+
         public static readonly KeywordDescriptor DebugDisplay = new KeywordDescriptor()
         {
             displayName = "Debug Display",
             referenceName = "DEBUG_DISPLAY",
             type = KeywordType.Boolean,
             definition = KeywordDefinition.MultiCompile,
+            scope = KeywordScope.Global,
+        };
+
+        public static readonly KeywordDescriptor SceneSelectionPass = new KeywordDescriptor()
+        {
+            displayName = "Scene Selection Pass",
+            referenceName = "SCENESELECTIONPASS",
+            type = KeywordType.Boolean,
+        };
+
+        public static readonly KeywordDescriptor ScenePickingPass = new KeywordDescriptor()
+        {
+            displayName = "Scene Picking Pass",
+            referenceName = "SCENEPICKINGPASS",
+            type = KeywordType.Boolean,
+        };
+
+        public static readonly KeywordDescriptor AlphaClipThreshold = new KeywordDescriptor()
+        {
+            displayName = "AlphaClipThreshold",
+            referenceName = "ALPHA_CLIP_THRESHOLD",
+            type = KeywordType.Boolean,
+            definition = KeywordDefinition.Predefined,
+        };
+
+        public static readonly KeywordDescriptor LightCookies = new KeywordDescriptor()
+        {
+            displayName = "Light Cookies",
+            referenceName = "_LIGHT_COOKIES",
+            type = KeywordType.Boolean,
+            definition = KeywordDefinition.ShaderFeature,
+            scope = KeywordScope.Global,
+        };
+
+        public static readonly KeywordDescriptor ClusteredRendering = new KeywordDescriptor()
+        {
+            displayName = "Clustered Rendering",
+            referenceName = "_CLUSTERED_RENDERING",
+            type = KeywordType.Boolean,
+            definition = KeywordDefinition.MultiCompile,
+            scope = KeywordScope.Global,
+        };
+
+        public static readonly KeywordDescriptor EditorVisualization = new KeywordDescriptor()
+        {
+            displayName = "Editor Visualization",
+            referenceName = "EDITOR_VISUALIZATION",
+            type = KeywordType.Boolean,
+            definition = KeywordDefinition.ShaderFeature,
             scope = KeywordScope.Global,
         };
     }

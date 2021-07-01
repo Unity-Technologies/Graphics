@@ -56,7 +56,6 @@ namespace UnityEngine.Rendering.HighDefinition
         internal HDRenderPipelineRuntimeResources renderPipelineResources
         {
             get { return globalSettings.renderPipelineResources; }
-            set { globalSettings.renderPipelineResources = value; }
         }
 
         internal bool frameSettingsHistory { get; set; } = false;
@@ -110,6 +109,10 @@ namespace UnityEngine.Rendering.HighDefinition
         /// <summary>Names used for display of rendering layer masks.</summary>
         public override string[] renderingLayerMaskNames
             => globalSettings.renderingLayerMaskNames;
+
+        /// <summary>Names used for display of rendering layer masks with a prefix.</summary>
+        public override string[] prefixedRenderingLayerMaskNames
+            => globalSettings.prefixedRenderingLayerMaskNames;
 
         /// <summary>
         /// Names used for display of light layers.

@@ -13,7 +13,7 @@ namespace UnityEditor.Rendering.HighDefinition
         {
             public static readonly CED.IDrawer Drawer = CED.FoldoutGroup(
                 CameraUI.Output.Styles.header,
-                CameraUI.Expandable.Output,
+                Expandable.Output,
                 k_ExpandedState,
                 FoldoutOption.Indent,
                 CED.Group(
@@ -25,7 +25,6 @@ namespace UnityEditor.Rendering.HighDefinition
 #endif
                     CameraUI.Output.Drawer_Output_RenderTarget,
                     Drawer_Output_MSAA_Warning,
-                    CameraUI.Output.Drawer_Output_AllowDynamicResolution,
                     CameraUI.Output.Drawer_Output_Depth,
                     CameraUI.Output.Drawer_Output_NormalizedViewPort
                 )

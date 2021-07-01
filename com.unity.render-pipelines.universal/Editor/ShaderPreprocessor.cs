@@ -8,11 +8,16 @@ using UnityEngine.Profiling;
 using UnityEngine.Rendering.Universal;
 using UnityEngine.Rendering;
 
+#if XR_MANAGEMENT_4_0_1_OR_NEWER
+using UnityEditor.XR.Management;
+#endif
+
 namespace UnityEditor.Rendering.Universal
 {
     [Flags]
     enum ShaderFeatures
     {
+        None = 0,
         MainLight = (1 << 0),
         MainLightShadows = (1 << 1),
         AdditionalLights = (1 << 2),
@@ -30,6 +35,16 @@ namespace UnityEditor.Rendering.Universal
         LightLayers = (1 << 14),
         ReflectionProbeBlending = (1 << 15),
         ReflectionProbeBoxProjection = (1 << 16),
+        DBufferMRT1 = (1 << 17),
+        DBufferMRT2 = (1 << 18),
+        DBufferMRT3 = (1 << 19),
+        DecalScreenSpace = (1 << 20),
+        DecalGBuffer = (1 << 21),
+        DecalNormalBlendLow = (1 << 22),
+        DecalNormalBlendMedium = (1 << 23),
+        DecalNormalBlendHigh = (1 << 24),
+        ClusteredRendering = (1 << 25),
+        RenderPassEnabled = (1 << 26),
     }
 
     internal class ShaderPreprocessor : IPreprocessShaders
@@ -52,7 +67,6 @@ namespace UnityEditor.Rendering.Universal
         ShaderKeyword m_AdditionalLightShadows = new ShaderKeyword(ShaderKeywordStrings.AdditionalLightShadows);
         ShaderKeyword m_ReflectionProbeBlending = new ShaderKeyword(ShaderKeywordStrings.ReflectionProbeBlending);
         ShaderKeyword m_ReflectionProbeBoxProjection = new ShaderKeyword(ShaderKeywordStrings.ReflectionProbeBoxProjection);
-        ShaderKeyword m_DeferredLightShadows = new ShaderKeyword(ShaderKeywordStrings._DEFERRED_LIGHT_SHADOWS);
         ShaderKeyword m_CastingPunctualLightShadow = new ShaderKeyword(ShaderKeywordStrings.CastingPunctualLightShadow);
         ShaderKeyword m_SoftShadows = new ShaderKeyword(ShaderKeywordStrings.SoftShadows);
         ShaderKeyword m_MixedLightingSubtractive = new ShaderKeyword(ShaderKeywordStrings.MixedLightingSubtractive);
@@ -62,12 +76,22 @@ namespace UnityEditor.Rendering.Universal
         ShaderKeyword m_DynamicLightmap = new ShaderKeyword(ShaderKeywordStrings.DYNAMICLIGHTMAP_ON);
         ShaderKeyword m_DirectionalLightmap = new ShaderKeyword(ShaderKeywordStrings.DIRLIGHTMAP_COMBINED);
         ShaderKeyword m_AlphaTestOn = new ShaderKeyword(ShaderKeywordStrings._ALPHATEST_ON);
+        ShaderKeyword m_DeferredStencil = new ShaderKeyword(ShaderKeywordStrings._DEFERRED_STENCIL);
         ShaderKeyword m_GbufferNormalsOct = new ShaderKeyword(ShaderKeywordStrings._GBUFFER_NORMALS_OCT);
         ShaderKeyword m_UseDrawProcedural = new ShaderKeyword(ShaderKeywordStrings.UseDrawProcedural);
         ShaderKeyword m_ScreenSpaceOcclusion = new ShaderKeyword(ShaderKeywordStrings.ScreenSpaceOcclusion);
         ShaderKeyword m_UseFastSRGBLinearConversion = new ShaderKeyword(ShaderKeywordStrings.UseFastSRGBLinearConversion);
         ShaderKeyword m_LightLayers = new ShaderKeyword(ShaderKeywordStrings.LightLayers);
+        ShaderKeyword m_RenderPassEnabled = new ShaderKeyword(ShaderKeywordStrings.RenderPassEnabled);
         ShaderKeyword m_DebugDisplay = new ShaderKeyword(ShaderKeywordStrings.DEBUG_DISPLAY);
+        ShaderKeyword m_DBufferMRT1 = new ShaderKeyword(ShaderKeywordStrings.DBufferMRT1);
+        ShaderKeyword m_DBufferMRT2 = new ShaderKeyword(ShaderKeywordStrings.DBufferMRT2);
+        ShaderKeyword m_DBufferMRT3 = new ShaderKeyword(ShaderKeywordStrings.DBufferMRT3);
+        ShaderKeyword m_DecalNormalBlendLow = new ShaderKeyword(ShaderKeywordStrings.DecalNormalBlendLow);
+        ShaderKeyword m_DecalNormalBlendMedium = new ShaderKeyword(ShaderKeywordStrings.DecalNormalBlendMedium);
+        ShaderKeyword m_DecalNormalBlendHigh = new ShaderKeyword(ShaderKeywordStrings.DecalNormalBlendHigh);
+        ShaderKeyword m_ClusteredRendering = new ShaderKeyword(ShaderKeywordStrings.ClusteredRendering);
+        ShaderKeyword m_EditorVisualization = new ShaderKeyword(ShaderKeywordStrings.EDITOR_VISUALIZATION);
 
         ShaderKeyword m_LocalDetailMulx2;
         ShaderKeyword m_LocalDetailScaled;
@@ -108,16 +132,38 @@ namespace UnityEditor.Rendering.Universal
                 if (!IsFeatureEnabled(features, ShaderFeatures.MainLightShadows) && !IsFeatureEnabled(features, ShaderFeatures.AdditionalLightShadows))
                     return true;
 
+            // DBuffer
+            if (snippetData.passName == DecalShaderPassNames.DBufferMesh || snippetData.passName == DecalShaderPassNames.DBufferProjector ||
+                snippetData.passName == DecalShaderPassNames.DecalMeshForwardEmissive || snippetData.passName == DecalShaderPassNames.DecalProjectorForwardEmissive)
+                if (!IsFeatureEnabled(features, ShaderFeatures.DBufferMRT1) && !IsFeatureEnabled(features, ShaderFeatures.DBufferMRT2) && !IsFeatureEnabled(features, ShaderFeatures.DBufferMRT3))
+                    return true;
+
+            // Decal Screen Space
+            if (snippetData.passName == DecalShaderPassNames.DecalScreenSpaceMesh || snippetData.passName == DecalShaderPassNames.DecalScreenSpaceProjector)
+                if (!IsFeatureEnabled(features, ShaderFeatures.DecalScreenSpace))
+                    return true;
+
+            // Decal GBuffer
+            if (snippetData.passName == DecalShaderPassNames.DecalGBufferMesh || snippetData.passName == DecalShaderPassNames.DecalGBufferProjector)
+                if (!IsFeatureEnabled(features, ShaderFeatures.DecalGBuffer))
+                    return true;
+
             return false;
         }
 
         bool StripUnusedFeatures(ShaderFeatures features, Shader shader, ShaderSnippetData snippetData, ShaderCompilerData compilerData)
         {
-#if URP_ENABLE_DEBUG_DISPLAY
-            bool stripDebugDisplayShaders = !Debug.isDebugBuild;
-#else
-            bool stripDebugDisplayShaders = true;
+            var globalSettings = UniversalRenderPipelineGlobalSettings.instance;
+            bool stripDebugDisplayShaders = !Debug.isDebugBuild || (globalSettings == null || !globalSettings.supportRuntimeDebugDisplay);
+
+#if XR_MANAGEMENT_4_0_1_OR_NEWER
+            var buildTargetSettings = XRGeneralSettingsPerBuildTarget.XRGeneralSettingsForBuildTarget(BuildTargetGroup.Standalone);
+            if (buildTargetSettings != null && buildTargetSettings.AssignedSettings != null && buildTargetSettings.AssignedSettings.activeLoaders.Count > 0)
+            {
+                stripDebugDisplayShaders = true;
+            }
 #endif
+
             if (stripDebugDisplayShaders && compilerData.shaderKeywordSet.IsEnabled(m_DebugDisplay))
             {
                 return true;
@@ -139,8 +185,8 @@ namespace UnityEditor.Rendering.Universal
                     return true;
             }
 
-            if (!IsFeatureEnabled(features, ShaderFeatures.SoftShadows) &&
-                compilerData.shaderKeywordSet.IsEnabled(m_SoftShadows))
+            bool isSoftShadow = compilerData.shaderKeywordSet.IsEnabled(m_SoftShadows);
+            if (!IsFeatureEnabled(features, ShaderFeatures.SoftShadows) && isSoftShadow)
                 return true;
 
             // Left for backward compatibility
@@ -163,6 +209,10 @@ namespace UnityEditor.Rendering.Universal
                 !IsFeatureEnabled(features, ShaderFeatures.LightLayers))
                 return true;
 
+            if (compilerData.shaderKeywordSet.IsEnabled(m_RenderPassEnabled) &&
+                !IsFeatureEnabled(features, ShaderFeatures.RenderPassEnabled))
+                return true;
+
             // No additional light shadows
             bool isAdditionalLightShadow = compilerData.shaderKeywordSet.IsEnabled(m_AdditionalLightShadows);
             if (!IsFeatureEnabled(features, ShaderFeatures.AdditionalLightShadows) && isAdditionalLightShadow)
@@ -180,25 +230,24 @@ namespace UnityEditor.Rendering.Universal
             if (!IsFeatureEnabled(features, ShaderFeatures.AdditionalLightShadows) && isPunctualLightShadowCasterPass)
                 return true;
 
-            bool isDeferredShadow = compilerData.shaderKeywordSet.IsEnabled(m_DeferredLightShadows);
-            if (!IsFeatureEnabled(features, ShaderFeatures.AdditionalLightShadows) && isDeferredShadow)
-                return true;
-
             // Additional light are shaded per-vertex or per-pixel.
             bool isFeaturePerPixelLightingEnabled = IsFeatureEnabled(features, ShaderFeatures.AdditionalLights);
             bool isFeaturePerVertexLightingEnabled = IsFeatureEnabled(features, ShaderFeatures.VertexLighting);
+            bool clusteredRendering = IsFeatureEnabled(features, ShaderFeatures.ClusteredRendering);
             bool isAdditionalLightPerPixel = compilerData.shaderKeywordSet.IsEnabled(m_AdditionalLightsPixel);
             bool isAdditionalLightPerVertex = compilerData.shaderKeywordSet.IsEnabled(m_AdditionalLightsVertex);
 
             // Strip if Per-Pixel lighting is NOT used in the project and the
-            // Per-Pixel (_ADDITIONAL_LIGHTS) or additional shadows (_ADDITIONAL_LIGHT_SHADOWS)
-            // variants are enabled in the shader.
-            if (!isFeaturePerPixelLightingEnabled && (isAdditionalLightPerPixel || isAdditionalLightShadow))
+            // Per-Pixel (_ADDITIONAL_LIGHTS) variant is enabled in the shader.
+            if (!isFeaturePerPixelLightingEnabled && isAdditionalLightPerPixel)
                 return true;
 
             // Strip if Per-Vertex lighting is NOT used in the project and the
             // Per-Vertex (_ADDITIONAL_LIGHTS_VERTEX) variant is enabled in the shader.
             if (!isFeaturePerVertexLightingEnabled && isAdditionalLightPerVertex)
+                return true;
+
+            if (!clusteredRendering && compilerData.shaderKeywordSet.IsEnabled(m_ClusteredRendering))
                 return true;
 
             // Screen Space Shadows
@@ -209,6 +258,28 @@ namespace UnityEditor.Rendering.Universal
             // Screen Space Occlusion
             if (!IsFeatureEnabled(features, ShaderFeatures.ScreenSpaceOcclusion) &&
                 compilerData.shaderKeywordSet.IsEnabled(m_ScreenSpaceOcclusion))
+                return true;
+
+            // Decal DBuffer
+            if (!IsFeatureEnabled(features, ShaderFeatures.DBufferMRT1) &&
+                compilerData.shaderKeywordSet.IsEnabled(m_DBufferMRT1))
+                return true;
+            if (!IsFeatureEnabled(features, ShaderFeatures.DBufferMRT2) &&
+                compilerData.shaderKeywordSet.IsEnabled(m_DBufferMRT2))
+                return true;
+            if (!IsFeatureEnabled(features, ShaderFeatures.DBufferMRT3) &&
+                compilerData.shaderKeywordSet.IsEnabled(m_DBufferMRT3))
+                return true;
+
+            // Decal Normal Blend
+            if (!IsFeatureEnabled(features, ShaderFeatures.DecalNormalBlendLow) &&
+                compilerData.shaderKeywordSet.IsEnabled(m_DecalNormalBlendLow))
+                return true;
+            if (!IsFeatureEnabled(features, ShaderFeatures.DecalNormalBlendMedium) &&
+                compilerData.shaderKeywordSet.IsEnabled(m_DecalNormalBlendMedium))
+                return true;
+            if (!IsFeatureEnabled(features, ShaderFeatures.DecalNormalBlendHigh) &&
+                compilerData.shaderKeywordSet.IsEnabled(m_DecalNormalBlendHigh))
                 return true;
 
             return false;
@@ -246,6 +317,10 @@ namespace UnityEditor.Rendering.Universal
                     return true;
             }
 
+            // Editor visualization is only used in scene view debug modes.
+            if (compilerData.shaderKeywordSet.IsEnabled(m_EditorVisualization))
+                return true;
+
             return false;
         }
 
@@ -257,12 +332,10 @@ namespace UnityEditor.Rendering.Universal
             bool isMainShadow = isMainShadowNoCascades || isMainShadowCascades || isMainShadowScreen;
 
             bool isAdditionalShadow = compilerData.shaderKeywordSet.IsEnabled(m_AdditionalLightShadows);
-            if (isAdditionalShadow && !compilerData.shaderKeywordSet.IsEnabled(m_AdditionalLightsPixel))
+            if (isAdditionalShadow && !(compilerData.shaderKeywordSet.IsEnabled(m_AdditionalLightsPixel) || compilerData.shaderKeywordSet.IsEnabled(m_ClusteredRendering) || compilerData.shaderKeywordSet.IsEnabled(m_DeferredStencil)))
                 return true;
 
-            bool isDeferredShadow = compilerData.shaderKeywordSet.IsEnabled(m_DeferredLightShadows);
-
-            bool isShadowVariant = isMainShadow || isAdditionalShadow || isDeferredShadow;
+            bool isShadowVariant = isMainShadow || isAdditionalShadow;
             if (!isShadowVariant && compilerData.shaderKeywordSet.IsEnabled(m_SoftShadows))
                 return true;
 
@@ -327,6 +400,7 @@ namespace UnityEditor.Rendering.Universal
 #if PROFILE_BUILD
             Profiler.BeginSample(k_ProcessShaderTag);
 #endif
+
             UniversalRenderPipelineAsset urpAsset = GraphicsSettings.renderPipelineAsset as UniversalRenderPipelineAsset;
             if (urpAsset == null || compilerDataList == null || compilerDataList.Count == 0)
                 return;
@@ -340,7 +414,17 @@ namespace UnityEditor.Rendering.Universal
             var inputShaderVariantCount = compilerDataList.Count;
             for (int i = 0; i < inputShaderVariantCount;)
             {
-                bool removeInput = StripUnused(ShaderBuildPreprocessor.supportedFeatures, shader, snippetData, compilerDataList[i]);
+                bool removeInput = true;
+                foreach (var supportedFeatures in ShaderBuildPreprocessor.supportedFeaturesList)
+                {
+                    if (!StripUnused(supportedFeatures, shader, snippetData, compilerDataList[i]))
+                    {
+                        removeInput = false;
+                        break;
+                    }
+                }
+
+                // Remove at swap back
                 if (removeInput)
                     compilerDataList[i] = compilerDataList[--inputShaderVariantCount];
                 else
@@ -376,19 +460,19 @@ namespace UnityEditor.Rendering.Universal
         , IPostprocessBuildWithReport
 #endif
     {
-        public static ShaderFeatures supportedFeatures
+        public static List<ShaderFeatures> supportedFeaturesList
         {
             get
             {
-                if (_supportedFeatures <= 0)
-                {
+                if (s_SupportedFeaturesList.Count == 0)
                     FetchAllSupportedFeatures();
-                }
-                return _supportedFeatures;
+                return s_SupportedFeaturesList;
             }
         }
 
-        private static ShaderFeatures _supportedFeatures = 0;
+        private static List<ShaderFeatures> s_SupportedFeaturesList = new List<ShaderFeatures>();
+
+
         public int callbackOrder { get { return 0; } }
 #if PROFILE_BUILD
         public void OnPostprocessBuild(BuildReport report)
@@ -417,13 +501,13 @@ namespace UnityEditor.Rendering.Universal
                 urps.Add(QualitySettings.GetRenderPipelineAssetAt(i) as UniversalRenderPipelineAsset);
             }
 
-            // Must reset flags.
-            _supportedFeatures = 0;
+            s_SupportedFeaturesList.Clear();
+
             foreach (UniversalRenderPipelineAsset urp in urps)
             {
                 if (urp != null)
                 {
-                    _supportedFeatures |= GetSupportedShaderFeatures(urp);
+                    s_SupportedFeaturesList.Add(GetSupportedShaderFeatures(urp));
                 }
             }
         }
@@ -443,9 +527,6 @@ namespace UnityEditor.Rendering.Universal
             else if (pipelineAsset.additionalLightsRenderingMode == LightRenderingMode.PerPixel)
             {
                 shaderFeatures |= ShaderFeatures.AdditionalLights;
-
-                if (pipelineAsset.supportsAdditionalLightShadows)
-                    shaderFeatures |= ShaderFeatures.AdditionalLightShadows;
             }
 
             bool anyShadows = pipelineAsset.supportsMainLightShadows ||
@@ -470,6 +551,9 @@ namespace UnityEditor.Rendering.Universal
             bool hasDeferredRenderer = false;
             bool withAccurateGbufferNormals = false;
             bool withoutAccurateGbufferNormals = false;
+            bool clusteredRendering = false;
+            bool onlyClusteredRendering = false;
+            bool usesRenderPass = false;
 
             int rendererCount = pipelineAsset.m_RendererDataList.Length;
             for (int rendererIndex = 0; rendererIndex < rendererCount; ++rendererIndex)
@@ -483,10 +567,12 @@ namespace UnityEditor.Rendering.Universal
                         hasDeferredRenderer |= true;
                         withAccurateGbufferNormals |= universalRenderer.accurateGbufferNormals;
                         withoutAccurateGbufferNormals |= !universalRenderer.accurateGbufferNormals;
+                        usesRenderPass |= universalRenderer.useRenderPassEnabled;
                     }
                 }
 
-                // Check for Screen Space Ambient Occlusion Renderer Feature
+                var rendererClustered = false;
+
                 ScriptableRendererData rendererData = pipelineAsset.m_RendererDataList[rendererIndex];
                 if (rendererData != null)
                 {
@@ -497,10 +583,41 @@ namespace UnityEditor.Rendering.Universal
                         ScreenSpaceShadows ssshadows = rendererFeature as ScreenSpaceShadows;
                         hasScreenSpaceShadows |= ssshadows != null;
 
+                        // Check for Screen Space Ambient Occlusion Renderer Feature
                         ScreenSpaceAmbientOcclusion ssao = rendererFeature as ScreenSpaceAmbientOcclusion;
                         hasScreenSpaceOcclusion |= ssao != null;
+
+                        // Check for Decal Renderer Feature
+                        DecalRendererFeature decal = rendererFeature as DecalRendererFeature;
+                        if (decal != null)
+                        {
+                            var technique = decal.GetTechnique(renderer);
+                            switch (technique)
+                            {
+                                case DecalTechnique.DBuffer:
+                                    shaderFeatures |= GetFromDecalSurfaceData(decal.GetDBufferSettings().surfaceData);
+                                    break;
+                                case DecalTechnique.ScreenSpace:
+                                    shaderFeatures |= GetFromNormalBlend(decal.GetScreenSpaceSettings().normalBlend);
+                                    shaderFeatures |= ShaderFeatures.DecalScreenSpace;
+                                    break;
+                                case DecalTechnique.GBuffer:
+                                    shaderFeatures |= GetFromNormalBlend(decal.GetScreenSpaceSettings().normalBlend);
+                                    shaderFeatures |= ShaderFeatures.DecalGBuffer;
+                                    break;
+                            }
+                        }
+                    }
+
+                    if (rendererData is UniversalRendererData universalRendererData)
+                    {
+                        rendererClustered = universalRendererData.renderingMode == RenderingMode.Forward &&
+                            universalRendererData.clusteredRendering;
                     }
                 }
+
+                clusteredRendering |= rendererClustered;
+                onlyClusteredRendering &= rendererClustered;
             }
 
             if (hasDeferredRenderer)
@@ -519,12 +636,69 @@ namespace UnityEditor.Rendering.Universal
             if (hasScreenSpaceOcclusion)
                 shaderFeatures |= ShaderFeatures.ScreenSpaceOcclusion;
 
+            if (usesRenderPass)
+                shaderFeatures |= ShaderFeatures.RenderPassEnabled;
+
             if (pipelineAsset.reflectionProbeBlending)
                 shaderFeatures |= ShaderFeatures.ReflectionProbeBlending;
 
             if (pipelineAsset.reflectionProbeBoxProjection)
                 shaderFeatures |= ShaderFeatures.ReflectionProbeBoxProjection;
 
+            if (clusteredRendering)
+            {
+                shaderFeatures |= ShaderFeatures.ClusteredRendering;
+            }
+
+            if (onlyClusteredRendering)
+            {
+                shaderFeatures &= ~(ShaderFeatures.AdditionalLights | ShaderFeatures.VertexLighting);
+            }
+
+            if (pipelineAsset.additionalLightsRenderingMode == LightRenderingMode.PerPixel || clusteredRendering)
+            {
+                if (pipelineAsset.supportsAdditionalLightShadows)
+                {
+                    shaderFeatures |= ShaderFeatures.AdditionalLightShadows;
+                }
+            }
+
+            return shaderFeatures;
+        }
+
+        private static ShaderFeatures GetFromDecalSurfaceData(DecalSurfaceData surfaceData)
+        {
+            ShaderFeatures shaderFeatures = ShaderFeatures.None;
+            switch (surfaceData)
+            {
+                case DecalSurfaceData.Albedo:
+                    shaderFeatures |= ShaderFeatures.DBufferMRT1;
+                    break;
+                case DecalSurfaceData.AlbedoNormal:
+                    shaderFeatures |= ShaderFeatures.DBufferMRT2;
+                    break;
+                case DecalSurfaceData.AlbedoNormalMAOS:
+                    shaderFeatures |= ShaderFeatures.DBufferMRT3;
+                    break;
+            }
+            return shaderFeatures;
+        }
+
+        private static ShaderFeatures GetFromNormalBlend(DecalNormalBlend normalBlend)
+        {
+            ShaderFeatures shaderFeatures = ShaderFeatures.None;
+            switch (normalBlend)
+            {
+                case DecalNormalBlend.Low:
+                    shaderFeatures |= ShaderFeatures.DecalNormalBlendLow;
+                    break;
+                case DecalNormalBlend.Medium:
+                    shaderFeatures |= ShaderFeatures.DecalNormalBlendMedium;
+                    break;
+                case DecalNormalBlend.High:
+                    shaderFeatures |= ShaderFeatures.DecalNormalBlendHigh;
+                    break;
+            }
             return shaderFeatures;
         }
     }

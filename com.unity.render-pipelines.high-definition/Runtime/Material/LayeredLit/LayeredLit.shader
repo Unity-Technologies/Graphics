@@ -95,7 +95,7 @@ Shader "HDRP/LayeredLit"
         _HeightMap3("HeightMap3", 2D) = "black" {}
 
         // Caution: Default value of _HeightAmplitude must be (_HeightMax - _HeightMin) * 0.01
-        // Those two properties are computed from the ones exposed in the UI and depends on the displaement mode so they are separate because we don't want to lose information upon displacement mode change.
+        // These two properties are computed from exposed properties by the UI block and are separated so we don't lose information by changing displacement mode in the UI block
         [HideInInspector] _HeightAmplitude0("Height Scale0", Float) = 0.02
         [HideInInspector] _HeightAmplitude1("Height Scale1", Float) = 0.02
         [HideInInspector] _HeightAmplitude2("Height Scale2", Float) = 0.02
@@ -307,7 +307,7 @@ Shader "HDRP/LayeredLit"
         [Enum(Subsurface Scattering, 0, Standard, 1, Translucent, 5)] _MaterialID("MaterialId", Int) = 1 // MaterialId.Standard
         [ToggleUI] _TransmissionEnable("_TransmissionEnable", Float) = 1.0
 
-        [Enum(None, 0, Vertex displacement, 1, Pixel displacement, 2)] _DisplacementMode("DisplacementMode", Int) = 0
+        _DisplacementMode("DisplacementMode", Int) = 0
         [ToggleUI] _DisplacementLockObjectScale("displacement lock object scale", Float) = 1.0
         [ToggleUI] _DisplacementLockTilingScale("displacement lock tiling scale", Float) = 1.0
         [ToggleUI] _DepthOffsetEnable("Depth Offset View space", Float) = 0.0
@@ -408,16 +408,12 @@ Shader "HDRP/LayeredLit"
     #pragma shader_feature_local_fragment _NORMALMAP_TANGENT_SPACE1
     #pragma shader_feature_local_fragment _NORMALMAP_TANGENT_SPACE2
     #pragma shader_feature_local_fragment _NORMALMAP_TANGENT_SPACE3
-    #pragma shader_feature_local_fragment _ _LAYER_MAPPING_PLANAR0 _LAYER_MAPPING_TRIPLANAR0
-    #pragma shader_feature_local_fragment _ _LAYER_MAPPING_PLANAR1 _LAYER_MAPPING_TRIPLANAR1
-    #pragma shader_feature_local_fragment _ _LAYER_MAPPING_PLANAR2 _LAYER_MAPPING_TRIPLANAR2
-    #pragma shader_feature_local_fragment _ _LAYER_MAPPING_PLANAR3 _LAYER_MAPPING_TRIPLANAR3
+    #pragma shader_feature_local _ _LAYER_MAPPING_PLANAR0 _LAYER_MAPPING_TRIPLANAR0
+    #pragma shader_feature_local _ _LAYER_MAPPING_PLANAR1 _LAYER_MAPPING_TRIPLANAR1
+    #pragma shader_feature_local _ _LAYER_MAPPING_PLANAR2 _LAYER_MAPPING_TRIPLANAR2
+    #pragma shader_feature_local _ _LAYER_MAPPING_PLANAR3 _LAYER_MAPPING_TRIPLANAR3
 
     #pragma shader_feature_local_raytracing _ _EMISSIVE_MAPPING_PLANAR _EMISSIVE_MAPPING_TRIPLANAR _EMISSIVE_MAPPING_BASE
-    #pragma shader_feature_local_raytracing _ _LAYER_MAPPING_PLANAR0 _LAYER_MAPPING_TRIPLANAR0
-    #pragma shader_feature_local_raytracing _ _LAYER_MAPPING_PLANAR1 _LAYER_MAPPING_TRIPLANAR1
-    #pragma shader_feature_local_raytracing _ _LAYER_MAPPING_PLANAR2 _LAYER_MAPPING_TRIPLANAR2
-    #pragma shader_feature_local_raytracing _ _LAYER_MAPPING_PLANAR3 _LAYER_MAPPING_TRIPLANAR3
     #pragma shader_feature_local_raytracing _NORMALMAP_TANGENT_SPACE0
     #pragma shader_feature_local_raytracing _NORMALMAP_TANGENT_SPACE1
     #pragma shader_feature_local_raytracing _NORMALMAP_TANGENT_SPACE2
@@ -650,6 +646,7 @@ Shader "HDRP/LayeredLit"
 
             #define SHADERPASS SHADERPASS_DEPTH_ONLY
             #define SCENESELECTIONPASS // This will drive the output of the scene selection shader
+            #include "Packages/com.unity.render-pipelines.high-definition/Runtime/ShaderLibrary/PickingSpaceTransforms.hlsl"
             #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Material.hlsl"
             #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Lit/Lit.hlsl"
             #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Lit/ShaderPass/LitDepthPass.hlsl"
@@ -698,6 +695,7 @@ Shader "HDRP/LayeredLit"
             #pragma multi_compile_fragment PROBE_VOLUMES_OFF PROBE_VOLUMES_L1 PROBE_VOLUMES_L2
             // Setup DECALS_OFF so the shader stripper can remove variants
             #pragma multi_compile_fragment DECALS_OFF DECALS_3RT DECALS_4RT
+            #pragma multi_compile_fragment _ DECAL_SURFACE_GRADIENT
             #pragma multi_compile_fragment _ LIGHT_LAYERS
 
         #ifndef DEBUG_DISPLAY
@@ -745,6 +743,7 @@ Shader "HDRP/LayeredLit"
             // both direct and indirect lighting) will hand up in the "regular" lightmap->LIGHTMAP_ON.
 
             #define SHADERPASS SHADERPASS_LIGHT_TRANSPORT
+            #pragma shader_feature EDITOR_VISUALIZATION
             #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Material.hlsl"
             #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Lit/Lit.hlsl"
             #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Lit/ShaderPass/LitSharePass.hlsl"
@@ -932,9 +931,10 @@ Shader "HDRP/LayeredLit"
             #pragma multi_compile_fragment SCREEN_SPACE_SHADOWS_OFF SCREEN_SPACE_SHADOWS_ON
             // Setup DECALS_OFF so the shader stripper can remove variants
             #pragma multi_compile_fragment DECALS_OFF DECALS_3RT DECALS_4RT
+            #pragma multi_compile_fragment _ DECAL_SURFACE_GRADIENT
 
             // Supported shadow modes per light type
-            #pragma multi_compile_fragment SHADOW_LOW SHADOW_MEDIUM SHADOW_HIGH
+            #pragma multi_compile_fragment SHADOW_LOW SHADOW_MEDIUM SHADOW_HIGH SHADOW_VERY_HIGH
 
             #pragma multi_compile_fragment USE_FPTL_LIGHTLIST USE_CLUSTERED_LIGHTLIST
 

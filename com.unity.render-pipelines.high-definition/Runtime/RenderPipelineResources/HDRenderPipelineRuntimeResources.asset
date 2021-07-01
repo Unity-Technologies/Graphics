@@ -120,13 +120,19 @@ MonoBehaviour:
       type: 3}
     volumetricCloudMapGeneratorCS: {fileID: 7200000, guid: 6b22771f0aa98744cb09f455a5a818cb,
       type: 3}
+    volumetricCloudsCombinePS: {fileID: 4800000, guid: 12f1a69ddf916f042ae6ce8a994506f3,
+      type: 3}
     preIntegratedFGD_GGXDisneyDiffusePS: {fileID: 4800000, guid: 123f13d52852ef547b2962de4bd9eaad,
       type: 3}
     preIntegratedFGD_CharlieFabricLambertPS: {fileID: 4800000, guid: 3b3bf235775cf8b4baae7f3306787ab0,
       type: 3}
+    preIntegratedFGD_MarschnerPS: {fileID: 4800000, guid: 31f36caf0a5e7f848a1b5328b6ad3eb8,
+      type: 3}
     preIntegratedFGD_WardPS: {fileID: 4800000, guid: d279c46a545b0af4f9f0c4fa82cd489e,
       type: 3}
     preIntegratedFGD_CookTorrancePS: {fileID: 4800000, guid: a6402c19b020b4a4fb7073aaa2e26aba,
+      type: 3}
+    preIntegratedAzimuthalScatteringPS: {fileID: 4800000, guid: 26ad8e15a8a298e42bc4d11aff5f9c67,
       type: 3}
     encodeBC6HCS: {fileID: 7200000, guid: aa922d239de60304f964e24488559eeb, type: 3}
     cubeToPanoPS: {fileID: 4800000, guid: 595434cc3b6405246b6cd3086d0b6f7d, type: 3}
@@ -215,6 +221,9 @@ MonoBehaviour:
     clearBlackPS: {fileID: 4800000, guid: 3330c1503ea8c6d4d9408df3f64227eb, type: 3}
     SMAAPS: {fileID: 4800000, guid: 9655f4aa89a469c49aceaceabf9bc77b, type: 3}
     temporalAntialiasingPS: {fileID: 4800000, guid: 3dd9fd928fdb83743b1f27d15df22179,
+      type: 3}
+    upsampleSceneCS: {fileID: 7200000, guid: 51e13c18f34ea1d4183edb912e98cbf7, type: 3}
+    lensFlareDataDrivenPS: {fileID: 4800000, guid: 85330b3de0cfebc4ba78b2d61b1a2899,
       type: 3}
     dofCircleOfConfusion: {fileID: 7200000, guid: 75332b7b315c80d4babe506820aa0bfd,
       type: 3}

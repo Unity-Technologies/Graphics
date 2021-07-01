@@ -1,6 +1,8 @@
 using System;
+using System.Runtime.CompilerServices;
 
-namespace UnityEditor.Rendering.Universal
+[assembly: InternalsVisibleTo("PPv2URPConverters")]
+namespace UnityEditor.Rendering.Universal.Converters
 {
     // Might need to change this name before making it public
     internal abstract class RenderPipelineConverter
@@ -18,7 +20,19 @@ namespace UnityEditor.Rendering.Universal
         /// <summary>
         /// A check if the converter is enabled or not. Can be used to do a check if prerequisites are met to have it enabled or disabled.
         /// </summary>
-        public virtual bool IsEnabled => true;
+        public virtual bool isEnabled => true;
+
+        /// <summary>
+        /// A priority of the converter. The lower the number (can be negative), the earlier it will be executed. Can be used to make sure that a converter runs before another converter.
+        /// </summary>
+        public virtual int priority => 0;
+
+        /// <summary>
+        /// A check to see if the converter needs to create the index.
+        /// This will only need to be set to true if the converter is using search api, and search queries.
+        /// If set to true the converter framework will create the indexer and remove it after all search queries are done.
+        /// </summary>
+        public virtual bool needsIndexing => false;
 
         /// <summary>
         /// This method getting triggered when clicking the listview item in the UI.
@@ -33,18 +47,32 @@ namespace UnityEditor.Rendering.Universal
 
         // This is in which drop down item the converter belongs to.
         // Not properly implemented yet
-        public abstract Type conversion { get; }
+        public abstract Type container { get; }
 
         /// <summary>
         /// This runs when initializing the converter. To gather data for the UI and also for the converter if needed.
         /// </summary>
         /// <param name="context">The context that will be used to initialize data for the converter.</param>
-        public abstract void OnInitialize(InitializeConverterContext context);
+        public abstract void OnInitialize(InitializeConverterContext context, Action callback);
+
+        /// <summary>
+        /// The method that will be run before Run method if needed.
+        /// </summary>
+        public virtual void OnPreRun()
+        {
+        }
 
         /// <summary>
         /// The method that will be run when converting the assets.
         /// </summary>
         /// <param name="context">The context that will be used when executing converter.</param>
         public abstract void OnRun(ref RunItemContext context);
+
+        /// <summary>
+        /// The method that will be run after the converters are done if needed.
+        /// </summary>
+        public virtual void OnPostRun()
+        {
+        }
     }
 }

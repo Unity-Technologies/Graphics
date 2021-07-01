@@ -31,8 +31,11 @@ GLOBAL_CBUFFER_START(ShaderVariablesGlobal, b0)
     float4 _WorldSpaceCameraPos_Internal;
     float4 _PrevCamPosRWS_Internal;
     float4 _ScreenSize;
+    float4 _PostProcessScreenSize;
     float4 _RTHandleScale;
     float4 _RTHandleScaleHistory;
+    float4 _RTHandlePostProcessScale;
+    float4 _RTHandlePostProcessScaleHistory;
     float4 _ZBufferParams;
     float4 _ProjectionParams;
     float4 unity_OrthoParams;
@@ -53,8 +56,8 @@ GLOBAL_CBUFFER_START(ShaderVariablesGlobal, b0)
     float _MaxFogDistance;
     float4 _FogColor;
     float _FogColorMode;
-    float _Pad0;
-    float _Pad1;
+    float _GlobalMipBias;
+    float _GlobalMipBiasPow2;
     float _Pad2;
     float4 _MipFogParameters;
     float4 _HeightFogBaseScattering;
@@ -133,8 +136,8 @@ GLOBAL_CBUFFER_START(ShaderVariablesGlobal, b0)
     float2 _DecalAtlasResolution;
     uint _EnableDecals;
     uint _DecalCount;
+    float _OffScreenDownsampleFactor;
     uint _OffScreenRendering;
-    uint _OffScreenDownsampleFactor;
     uint _XRViewCount;
     int _FrameCount;
     float4 _CoarseStencilBufferSize;
