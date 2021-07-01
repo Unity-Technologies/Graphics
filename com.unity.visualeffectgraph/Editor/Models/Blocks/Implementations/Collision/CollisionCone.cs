@@ -88,7 +88,9 @@ bool collision = relativePosY > cone_halfHeight || sqrLength > cone_radius * con
                     Source += @"
 if (collision)
 {
-    float dist = sqrt(sqrLength);";
+    float dist = sqrt(sqrLength);
+    float radiusCorrectionXZ = 0.0f;
+    float radiusCorrectionY = 0.0f;";
                 }
                 else
                 {
@@ -117,44 +119,56 @@ if (collision)
     float distToCap = colliderSign * (cone_halfHeight - relativePosY);
     float distToSide = colliderSign * (cone_radius - dist);
     float3 tPos = mul(invFieldTransform, float4(position, 1.0f)).xyz;
-
     float3 sideNormal = normalize(float3(tNextPos.x * sincosSlope.y, sincosSlope.x, tNextPos.z * sincosSlope.y));
-    float3 capNormal = float3(0, tNextPos.y < cone_halfHeight ? -1.0f : 1.0f, 0);
-    float3 n = (float3)0;
-";
+    float3 capNormal = float3(0, tNextPos.y < cone_halfHeight ? -1.0f : 1.0f, 0);";
+                //N.B: distToSide has been resolved in 2D without considering slope, we probably need an adjustment like this :
+                //distToSide -= colliderSign * (sideNormal.y * distToSide);
+                //Alternatively, we could use another sideNormal (where y = 0) only for correction
 
                 //Position/Normal correction
                 if (mode == Mode.Solid)
                     Source += @"
-    if (distToCap < 0.0f)
-    {
-        n += capNormal;
-        tPos += capNormal * distToCap;
-    }
-
-    if (distToSide < 0.0f)
-    {
-        n += sideNormal;
-        tPos += sideNormal * distToSide;
-    }";
+    float3 n = distToSide < distToCap ? sideNormal : capNormal;
+    tPos += n * min(distToSide, distToCap);";
                 else
                     Source += @"
-    if (distToCap > 0.0f)
-    {
-        tPos -= capNormal * distToCap;
-        n -= capNormal;
-    }
+    float3 n = distToSide > distToCap ? -sideNormal : -capNormal;
+    tPos += n * max(distToSide, distToCap);";
 
-    if (distToSide > 0.0f)
+                //Clamp outside/inside cone afterwards (could optional, only relevant with teleport cases)
+                //Alternatively, we can apply several time Position & Normal correction
+                bool applyClamp = true;
+                if (applyClamp)
+                {
+                    Source += @"
+    dist = max(length(tPos.xz), VFX_EPSILON);
+    cone_radius = lerp(cone_baseRadius, cone_topRadius, saturate(tPos.y/cone_height));";
+                    if (mode == Mode.Solid)
+                    {
+                        Source += @"
+    if (    tPos.y > -radiusCorrectionY
+        &&  tPos.y < cone_height + radiusCorrectionY
+        &&  dist < cone_radius + radiusCorrectionXZ)
     {
-        tPos -= sideNormal * distToSide;
-        n -= sideNormal;
+        float3 candidateA = tPos;
+        float3 candidateB = tPos;
+        candidateA.y = tPos.y > 0.5f ? -radiusCorrectionY : cone_height + radiusCorrectionY;
+        candidateB.xz = tPos.xz / dist * (cone_radius + radiusCorrectionXZ);
+        if (Length2(candidateA - tPos.xyz) < Length2(candidateB - tPos.xyz))
+            tPos = candidateA;
+        else
+            tPos = candidateB;
     }";
-                //There is a limitation here ^
-                //In cone case, sideNormal.y != 0
-                //if distToCap && distToSide, then sideNormal is offsetting tPos by y-axis.
+                    }
+                    else
+                    {
+                        Source += @"
+    tPos.y = clamp(tPos.y, radiusCorrectionY, cone_height - radiusCorrectionY);
+    tPos.xz = tPos.xz/dist * min(dist, cone_radius - radiusCorrectionXZ);";
+                    }
+                }
 
-                //Back to initial space
+                //Back to the initial space
                 Source += @"
     position = mul(fieldTransform, float4(tPos.xyz, 1.0f)).xyz;
     n = VFXSafeNormalize(mul(float4(n, 0.0f), invFieldTransform).xyz);";
