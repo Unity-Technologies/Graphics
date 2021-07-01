@@ -56,12 +56,12 @@ Shader "Hidden/HDRP/CharlieConvolve"
 
                 float perceptualRoughness = MipmapLevelToPerceptualRoughness(_Level);
                 float roughness = PerceptualRoughnessToRoughness(perceptualRoughness);
-                uint  sampleCount = GetIBLRuntimeFilterSampleCount(_Level);
+                uint  sampleCount = GetIBLRuntimeFilterSampleCount(_Level) / 10; // 10% of the "IBL filter sample count" seems to result in sufficient quality for Charlie convolution
 
                 float4 val = IntegrateLDCharlie(TEXTURECUBE_ARGS(_MainTex, s_trilinear_clamp_sampler),
                              V, N,
                              roughness,
-                             sampleCount / 10,
+                             sampleCount,
                              _InvOmegaP);
                 return val;
             }
