@@ -71,6 +71,13 @@ namespace UnityEditor.Rendering.HighDefinition
 
         public override void OnInspectorGUI()
         {
+            if (HDRenderPipeline.currentAsset == null)
+            {
+                EditorGUILayout.HelpBox("HDRP is not the active Render Pipeline.", MessageType.Info);
+                Selection.activeObject = serializedObject.targetObject;
+                return;
+            }
+
             m_SerializedHDLight.Update();
 
             // Add space before the first collapsible area

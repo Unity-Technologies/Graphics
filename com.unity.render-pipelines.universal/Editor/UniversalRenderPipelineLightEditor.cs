@@ -17,6 +17,13 @@ namespace UnityEditor.Rendering.Universal
 
         public override void OnInspectorGUI()
         {
+            if (UniversalRenderPipeline.asset == null)
+            {
+                EditorGUILayout.HelpBox("URP is not the active Render Pipeline.", MessageType.Info);
+                Selection.activeObject = serializedObject.targetObject;
+                return;
+            }
+
             serializedLight.Update();
 
             UniversalRenderPipelineLightUI.Inspector.Draw(serializedLight, this);
@@ -26,7 +33,7 @@ namespace UnityEditor.Rendering.Universal
 
         protected override void OnSceneGUI()
         {
-            if (!(GraphicsSettings.currentRenderPipeline is UniversalRenderPipelineAsset))
+            if (UniversalRenderPipeline.asset == null)
                 return;
 
             Light light = target as Light;
