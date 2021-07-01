@@ -243,6 +243,45 @@ namespace UnityEditor.VFX.Test
                     Assert.AreEqual(0.7f, block.inputSlots[2].value);
                 }
             }
+
+            //Position Cone
+            {
+                var initialize = graph.children.OfType<VFXBasicInitialize>().FirstOrDefault(o => o.label == "position_cone");
+                Assert.IsNotNull(initialize);
+
+                var coneBlocks = initialize.children.OfType<Block.PositionCone>().ToArray();
+                Assert.AreEqual(3, coneBlocks.Length);
+                foreach (var block in coneBlocks)
+                {
+                    Assert.AreEqual(4, block.inputSlots.Count);
+
+                    if (block != coneBlocks.Last())
+                    {
+                        Assert.IsTrue(block.inputSlots[0][0][0][0].HasLink()); //center
+                        Assert.IsTrue(block.inputSlots[0][0][1].HasLink()); //baseradius
+                        Assert.IsTrue(block.inputSlots[0][0][2].HasLink()); //topRadius
+                        Assert.IsTrue(block.inputSlots[0][0][3].HasLink()); //height
+
+                        if (block == coneBlocks.First())
+                            Assert.IsTrue(block.inputSlots[0][1]); //arc
+                    }
+                    else
+                    {
+                        var tArcCone = (TArcCone)block.inputSlots[0].value;
+                        Assert.AreEqual(1.0f, tArcCone.cone.transform.position.x);
+                        Assert.AreEqual(2.0f, tArcCone.cone.transform.position.y);
+                        Assert.AreEqual(3.0f, tArcCone.cone.transform.position.z);
+                        Assert.AreEqual(4.0f, tArcCone.cone.baseRadius);
+                        Assert.AreEqual(5.0f, tArcCone.cone.topRadius);
+                        Assert.AreEqual(6.0f, tArcCone.cone.height);
+                        Assert.AreEqual(0.7f, tArcCone.arc);
+                    }
+
+                    Assert.AreEqual(8.0f, block.inputSlots[1].value);
+                    Assert.AreEqual(0.9f, block.inputSlots[2].value);
+                    Assert.AreEqual(1.0f, block.inputSlots[3].value);
+                }
+            }
         }
 
         [OneTimeSetUpAttribute]
