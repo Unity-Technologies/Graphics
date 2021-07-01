@@ -114,22 +114,16 @@ namespace UnityEditor.Rendering.HighDefinition
             UpdateSkyAndFogIntPopupData();
 
             DrawHeader("Sky");
-            using (new EditorGUILayout.HorizontalScope())
+            using (var scope = new OverridablePropertyScope(m_SkyType, EditorGUIUtility.TrTextContent("Sky type", "Specifies the type of sky this Volume uses."), this))
             {
-                DrawOverrideCheckbox(m_SkyType);
-                using (new EditorGUI.DisabledScope(!m_SkyType.overrideState.boolValue))
-                {
-                    EditorGUILayout.IntPopup(m_SkyType.value, m_SkyClassNames.ToArray(), m_SkyUniqueIDs.ToArray(), EditorGUIUtility.TrTextContent("Sky type", "Specifies the type of sky this Volume uses."));
-                }
+                if (scope.displayed)
+                    EditorGUILayout.IntPopup(m_SkyType.value, m_SkyClassNames.ToArray(), m_SkyUniqueIDs.ToArray(), scope.label);
             }
 
-            using (new EditorGUILayout.HorizontalScope())
+            using (var scope = new OverridablePropertyScope(m_CloudType, EditorGUIUtility.TrTextContent("Background clouds", "Specifies the type of background cloud this Volume uses."), this))
             {
-                DrawOverrideCheckbox(m_CloudType);
-                using (new EditorGUI.DisabledScope(!m_CloudType.overrideState.boolValue))
-                {
-                    EditorGUILayout.IntPopup(m_CloudType.value, m_CloudClassNames.ToArray(), m_CloudUniqueIDs.ToArray(), EditorGUIUtility.TrTextContent("Background clouds", "Specifies the type of background cloud this Volume uses."));
-                }
+                if (scope.displayed)
+                    EditorGUILayout.IntPopup(m_CloudType.value, m_CloudClassNames.ToArray(), m_CloudUniqueIDs.ToArray(), scope.label);
             }
 
             PropertyField(m_SkyAmbientMode, EditorGUIUtility.TrTextContent("Ambient Mode", "Specifies how the global ambient probe is computed. Dynamic will use the currently displayed sky and static will use the sky setup in the environment lighting panel."));

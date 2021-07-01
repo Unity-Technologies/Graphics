@@ -6,27 +6,6 @@ namespace UnityEditor.Rendering
     /// <summary> Camera UI Shared Properties among SRP</summary>
     public static partial class CameraUI
     {
-        /// <summary>Enum to store know the expanded state of a expandable section on the camera inspector</summary>
-        public enum Expandable
-        {
-            /// <summary> Projection</summary>
-            Projection = 1 << 0,
-            /// <summary> Physical</summary>
-            Physical = 1 << 1,
-            /// <summary> Output</summary>
-            Output = 1 << 2,
-            /// <summary> Orthographic</summary>
-            Orthographic = 1 << 3,
-            /// <summary> RenderLoop</summary>
-            RenderLoop = 1 << 4,
-            /// <summary> Rendering</summary>
-            Rendering = 1 << 5,
-            /// <summary> Environment</summary>
-            Environment = 1 << 6,
-            /// <summary> Stack</summary>
-            Stack = 1 << 7,
-        }
-
         /// <summary>Camera Projection type</summary>
         public enum ProjectionType
         {

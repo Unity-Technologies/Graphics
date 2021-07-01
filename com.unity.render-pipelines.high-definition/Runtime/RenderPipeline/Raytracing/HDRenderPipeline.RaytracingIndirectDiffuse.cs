@@ -56,6 +56,7 @@ namespace UnityEngine.Rendering.HighDefinition
             deferredParameters.halfResolution = !settings.fullResolution;
             deferredParameters.rayCountType = (int)RayCountValues.DiffuseGI_Deferred;
             deferredParameters.lodBias = settings.textureLodBias.value;
+            deferredParameters.fallbackHierarchy = (int)RayTracingFallbackHierachy.Sky;
 
             // Ray marching
             deferredParameters.mixedTracing = settings.tracing.value == RayCastingMode.Mixed && hdCamera.frameSettings.litShaderMode == LitShaderMode.Deferred;
@@ -92,7 +93,7 @@ namespace UnityEngine.Rendering.HighDefinition
             // Override the ones we need to
             deferredParameters.raytracingCB._RaytracingRayMaxLength = settings.rayLength;
             deferredParameters.raytracingCB._RaytracingIntensityClamp = settings.clampValue;
-            deferredParameters.raytracingCB._RaytracingIncludeSky = 1;
+            deferredParameters.raytracingCB._RayTracingFallbackHierarchy = deferredParameters.fallbackHierarchy;
             deferredParameters.raytracingCB._RaytracingPreExposition = 1;
             deferredParameters.raytracingCB._RayTracingDiffuseLightingOnly = 1;
 
@@ -454,12 +455,13 @@ namespace UnityEngine.Rendering.HighDefinition
 
                         // Update global constant buffer
                         data.shaderVariablesRayTracingCB._RaytracingIntensityClamp = data.clampValue;
-                        data.shaderVariablesRayTracingCB._RaytracingIncludeSky = 1;
                         data.shaderVariablesRayTracingCB._RaytracingRayMaxLength = data.rayLength;
                         data.shaderVariablesRayTracingCB._RaytracingNumSamples = data.sampleCount;
                         data.shaderVariablesRayTracingCB._RaytracingMaxRecursion = data.bounceCount;
                         data.shaderVariablesRayTracingCB._RayTracingDiffuseLightingOnly = 1;
                         data.shaderVariablesRayTracingCB._RayTracingLodBias = data.lodBias;
+                        data.shaderVariablesRayTracingCB._RayTracingFallbackHierarchy = (int)RayTracingFallbackHierachy.Sky;
+
                         ConstantBuffer.PushGlobal(ctx.cmd, data.shaderVariablesRayTracingCB, HDShaderIDs._ShaderVariablesRaytracing);
 
                         // Only use the shader variant that has multi bounce if the bounce count > 1
@@ -520,7 +522,14 @@ namespace UnityEngine.Rendering.HighDefinition
 
                 // Run the temporal denoiser
                 TextureHandle historyBufferHF = renderGraph.ImportTexture(RequestIndirectDiffuseHistoryTextureHF(hdCamera));
-                TextureHandle denoisedRTGI = temporalFilter.Denoise(renderGraph, hdCamera, singleChannel: false, historyValidity0, rtGIBuffer, renderGraph.defaultResources.blackTextureXR, historyBufferHF, depthPyramid, normalBuffer, motionVectorBuffer, historyValidationTexture);
+                HDTemporalFilter.TemporalFilterParameters filterParams;
+                filterParams.singleChannel = false;
+                filterParams.historyValidity = historyValidity0;
+                filterParams.occluderMotionRejection = false;
+                filterParams.receiverMotionRejection = giSettings.receiverMotionRejection.value;
+                TextureHandle denoisedRTGI = temporalFilter.Denoise(renderGraph, hdCamera, filterParams,
+                    rtGIBuffer, renderGraph.defaultResources.blackTextureXR, historyBufferHF,
+                    depthPyramid, normalBuffer, motionVectorBuffer, historyValidationTexture);
 
                 // Apply the diffuse denoiser
                 rtGIBuffer = diffuseDenoiser.Denoise(renderGraph, hdCamera, singleChannel: false, kernelSize: giSettings.denoiserRadius, halfResolutionFilter: giSettings.halfResolutionDenoiser, jitterFilter: giSettings.secondDenoiserPass, denoisedRTGI, depthPyramid, normalBuffer, rtGIBuffer);
@@ -532,7 +541,13 @@ namespace UnityEngine.Rendering.HighDefinition
 
                     // Run the temporal denoiser
                     TextureHandle historyBufferLF = renderGraph.ImportTexture(RequestIndirectDiffuseHistoryTextureLF(hdCamera));
-                    denoisedRTGI = temporalFilter.Denoise(renderGraph, hdCamera, singleChannel: false, historyValidity1, rtGIBuffer, renderGraph.defaultResources.blackTextureXR, historyBufferLF, depthPyramid, normalBuffer, motionVectorBuffer, historyValidationTexture);
+                    filterParams.singleChannel = false;
+                    filterParams.historyValidity = historyValidity1;
+                    filterParams.occluderMotionRejection = false;
+                    filterParams.receiverMotionRejection = giSettings.receiverMotionRejection.value;
+                    denoisedRTGI = temporalFilter.Denoise(renderGraph, hdCamera, filterParams,
+                        rtGIBuffer, renderGraph.defaultResources.blackTextureXR, historyBufferLF,
+                        depthPyramid, normalBuffer, motionVectorBuffer, historyValidationTexture);
 
                     // Apply the diffuse denoiser
                     rtGIBuffer = diffuseDenoiser.Denoise(renderGraph, hdCamera, singleChannel: false, kernelSize: giSettings.denoiserRadius * 0.5f, halfResolutionFilter: giSettings.halfResolutionDenoiser, jitterFilter: false, denoisedRTGI, depthPyramid, normalBuffer, rtGIBuffer);
