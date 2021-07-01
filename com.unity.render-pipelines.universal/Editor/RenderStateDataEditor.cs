@@ -13,10 +13,10 @@ namespace UnityEditor.Rendering.Universal
                 new GUIContent("Stencil", "Process and override the Stencil buffer values.");
 
             public static readonly GUIContent stencilValue = new GUIContent("Value",
-                "The value to be compared against and/or the value to be written to the buffer.");
+                "For each pixel, the Compare function compares this value with the value in the Stencil buffer. The function writes this value to the buffer if the Pass property is set to Replace.");
 
             public static readonly GUIContent stencilFunction = new GUIContent("Compare Function",
-                "The function used to compare the stencil value on screen to the current contents of the buffer.");
+                "For each pixel, Unity uses this function to compare the value in the Value property with the value in the Stencil buffer.");
 
             public static readonly GUIContent stencilPass =
                 new GUIContent("Pass", "What happens to the stencil value when passing.");
