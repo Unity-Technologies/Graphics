@@ -4,7 +4,6 @@ using UnityEngine;
 
 namespace UnityEditor.VFX.Operator
 {
-    //TODOPAUL : Sanitize this
     class ConeVolumeDeprecated : VFXOperator
     {
         public class InputProperties
@@ -24,6 +23,16 @@ namespace UnityEditor.VFX.Operator
         protected override sealed VFXExpression[] BuildExpression(VFXExpression[] inputExpression)
         {
             return new VFXExpression[] { VFXOperatorUtility.ConeVolume(inputExpression[1], inputExpression[2], inputExpression[3]) };
+        }
+
+        public override void Sanitize(int version)
+        {
+            if (!SanitizeHelper.s_Enable_Sanitize_of_TShape) return;
+
+            var newVolume = ScriptableObject.CreateInstance<Operator.ConeVolume>();
+            SanitizeHelper.MigrateTConeFromCone(newVolume.inputSlots[0], inputSlots[0]);
+            VFXSlot.CopyLinksAndValue(newVolume.outputSlots[0], outputSlots[0], true);
+            ReplaceModel(newVolume, this);
         }
     }
 }

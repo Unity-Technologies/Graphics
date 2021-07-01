@@ -4,7 +4,6 @@ using UnityEngine;
 
 namespace UnityEditor.VFX.Block
 {
-    //TODOPAUL : Sanitize this
     class PositionCircleDeprecated : PositionBase
     {
         public override string name { get { return string.Format(base.name, "Circle (deprecated)"); } }
@@ -24,6 +23,14 @@ namespace UnityEditor.VFX.Block
 
         protected override bool needDirectionWrite => true;
 
+        public override void Sanitize(int version)
+        {
+            if (!SanitizeHelper.s_Enable_Sanitize_of_TShape) return;
+
+            var newPositionCircle = ScriptableObject.CreateInstance<PositionCircle>();
+            SanitizeHelper.MigrateBlockTShapeFromShape(newPositionCircle, this);
+            ReplaceModel(newPositionCircle, this);
+        }
 
         public override IEnumerable<VFXNamedExpression> parameters
         {

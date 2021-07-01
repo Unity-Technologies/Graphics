@@ -4,7 +4,6 @@ using UnityEngine;
 
 namespace UnityEditor.VFX.Operator
 {
-    //TODOPAUL : Sanitize this (to ConeVolume)
     class CylinderVolumeDeprecated : VFXOperator
     {
         public class InputProperties
@@ -26,6 +25,16 @@ namespace UnityEditor.VFX.Operator
             //pi * r * r * h
             var pi = VFXValue.Constant(Mathf.PI);
             return (pi * radius * radius * height);
+        }
+
+        public override void Sanitize(int version)
+        {
+            if (!SanitizeHelper.s_Enable_Sanitize_of_TShape) return;
+
+            var newVolume = ScriptableObject.CreateInstance<Operator.ConeVolume>();
+            SanitizeHelper.MigrateTConeFromCylinder(newVolume.inputSlots[0], inputSlots[0]);
+            VFXSlot.CopyLinksAndValue(newVolume.outputSlots[0], outputSlots[0], true);
+            ReplaceModel(newVolume, this);
         }
 
         protected override sealed VFXExpression[] BuildExpression(VFXExpression[] inputExpression)

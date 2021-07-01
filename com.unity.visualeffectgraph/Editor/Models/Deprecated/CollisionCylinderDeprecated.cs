@@ -2,7 +2,6 @@ using UnityEngine;
 
 namespace UnityEditor.VFX.Block
 {
-    //TODOPAUL : Sanitize this (to CollisionCone)
     class CollisionCylinderDeprecated : CollisionBase
     {
         public override string name { get { return "Collide with Cylinder (deprecated)"; } }
@@ -43,6 +42,15 @@ bool collision = abs(dir.y) > halfHeight || sqrLength > cylinderRadius * cylinde
     n *= distToSide > distToCap ? float3(1,0,1) : float3(0,1,0);
 ";
             }
+        }
+
+        public override void Sanitize(int version)
+        {
+            if (!SanitizeHelper.s_Enable_Sanitize_of_TShape) return;
+
+            var newCollisionCone = ScriptableObject.CreateInstance<CollisionCone>();
+            SanitizeHelper.MigrateBlockTShapeFromShape(newCollisionCone, this);
+            ReplaceModel(newCollisionCone, this);
         }
 
         public override string source

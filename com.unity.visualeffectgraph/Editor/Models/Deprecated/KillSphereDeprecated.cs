@@ -4,7 +4,6 @@ using UnityEngine;
 
 namespace UnityEditor.VFX.Block
 {
-    //TODOPAUL : Sanitize this
     class KillSphereDeprecated : VFXBlock
     {
         [VFXSetting]
@@ -43,6 +42,15 @@ namespace UnityEditor.VFX.Block
         {
             [Tooltip("Sets the center and radius of the sphere used to determine the kill volume.")]
             public Sphere Sphere = new Sphere() { radius = 1.0f };
+        }
+
+        public override void Sanitize(int version)
+        {
+            if (!SanitizeHelper.s_Enable_Sanitize_of_TShape) return;
+
+            var newKillSphere = ScriptableObject.CreateInstance<KillSphere>();
+            SanitizeHelper.MigrateBlockTShapeFromShape(newKillSphere, this);
+            ReplaceModel(newKillSphere, this);
         }
 
         public override string source

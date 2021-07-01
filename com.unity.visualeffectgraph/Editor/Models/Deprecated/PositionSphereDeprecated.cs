@@ -4,7 +4,6 @@ using UnityEngine;
 
 namespace UnityEditor.VFX.Block
 {
-    //TODOPAUL : Sanitize this
     class PositionSphereDeprecated : PositionBase
     {
         public override string name { get { return string.Format(base.name, "Sphere (deprecated)"); } }
@@ -22,6 +21,15 @@ namespace UnityEditor.VFX.Block
         }
 
         protected override bool needDirectionWrite => true;
+
+        public override void Sanitize(int version)
+        {
+            if (!SanitizeHelper.s_Enable_Sanitize_of_TShape) return;
+
+            var newPositionSphere = ScriptableObject.CreateInstance<PositionSphere>();
+            SanitizeHelper.MigrateBlockTShapeFromShape(newPositionSphere, this);
+            ReplaceModel(newPositionSphere, this);
+        }
 
         public override string source
         {

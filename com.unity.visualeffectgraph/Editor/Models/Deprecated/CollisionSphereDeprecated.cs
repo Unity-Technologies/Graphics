@@ -2,7 +2,6 @@ using UnityEngine;
 
 namespace UnityEditor.VFX.Block
 {
-    //TODOPAUL : Sanitize this
     class CollisionSphereDeprecated : CollisionBase
     {
         public override string name { get { return "Collide with Sphere (deprecated)"; } }
@@ -11,6 +10,15 @@ namespace UnityEditor.VFX.Block
         {
             [Tooltip("Sets the sphere with which particles can collide.")]
             public Sphere Sphere = new Sphere() { radius = 1.0f };
+        }
+
+        public override void Sanitize(int version)
+        {
+            if (!SanitizeHelper.s_Enable_Sanitize_of_TShape) return;
+
+            var newCollisionSphere = ScriptableObject.CreateInstance<CollisionSphere>();
+            SanitizeHelper.MigrateBlockTShapeFromShape(newCollisionSphere, this);
+            ReplaceModel(newCollisionSphere, this);
         }
 
         public override string source

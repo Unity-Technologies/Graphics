@@ -4,15 +4,8 @@ using UnityEngine;
 
 namespace UnityEditor.VFX.Block
 {
-    //TODOPAUL : Sanitize this
     class PositionConeDeprecated : PositionBase
     {
-        public enum HeightMode
-        {
-            Base,
-            Volume
-        }
-
         [VFXSetting, Tooltip("Controls whether particles are spawned on the base of the cone, or throughout the entire volume.")]
         public HeightMode heightMode;
 
@@ -56,6 +49,15 @@ namespace UnityEditor.VFX.Block
         }
 
         protected override bool needDirectionWrite => true;
+
+        public override void Sanitize(int version)
+        {
+            if (!SanitizeHelper.s_Enable_Sanitize_of_TShape) return;
+
+            var newPositionCone = ScriptableObject.CreateInstance<PositionCone>();
+            SanitizeHelper.MigrateBlockTShapeFromShape(newPositionCone, this);
+            ReplaceModel(newPositionCone, this);
+        }
 
         public override string source
         {
