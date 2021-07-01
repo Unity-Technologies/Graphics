@@ -4,7 +4,7 @@
 #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Sampling/Sampling.hlsl"
 
 #if SHADER_API_GLES
-struct Attributes
+struct AttributesLensFlare
 {
     float4 positionCS       : POSITION;
     float2 uv               : TEXCOORD0;
@@ -14,7 +14,7 @@ struct Attributes
 #endif
 };
 #else
-struct Attributes
+struct AttributesLensFlare
 {
     uint vertexID : SV_VertexID;
 
