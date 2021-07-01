@@ -9,10 +9,13 @@ nightly_katana_abv_validate:
   variables:
     MANIFEST: .copycat/graphics.json
     RELEASE_BRANCH: trunk
+    SRP_VERSION: "12.0.0"
   skip_checkout: true
   commands:
     - eval "$COPYCAT_1"
     - copycat vendor --revision "${GIT_TAG:-${GIT_BRANCH%%' (tag)'}}" --sha "$GIT_REVISION" "../destination/$MANIFEST"
+    - git clone git@github.cds.internal.unity3d.com:unity/gfx-sdet-tools.git ../gfx-sdet-tools
+    - python3 ../gfx-sdet-tools/scripts/srp_builders_in_trunk_updater.py --srp-version $SRP_VERSION --destination-folder ../destination
     - copycat katana "../destination/$MANIFEST"
   triggers:
     recurring:
@@ -28,10 +31,13 @@ vendor:
   variables:
     MANIFEST: .copycat/graphics.json
     RELEASE_BRANCH: trunk
+    SRP_VERSION: "12.0.0"
   skip_checkout: true
   commands:
     - eval "$COPYCAT_1"
     - copycat diff -o ../diff.patch "../destination/$MANIFEST"
     - copycat vendor --revision "${GIT_TAG:-${GIT_BRANCH%%' (tag)'}}" --sha "$GIT_REVISION" "../destination/$MANIFEST"
+    - git clone git@github.cds.internal.unity3d.com:unity/gfx-sdet-tools.git ../gfx-sdet-tools
+    - python3 ../gfx-sdet-tools/scripts/srp_builders_in_trunk_updater.py --srp-version $SRP_VERSION --destination-folder ../destination
     - copycat ono "../destination/$MANIFEST" ../diff.patch
     - copycat katana "../destination/$MANIFEST"
