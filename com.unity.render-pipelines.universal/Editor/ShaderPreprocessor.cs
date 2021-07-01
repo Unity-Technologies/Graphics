@@ -8,6 +8,7 @@ using UnityEngine.Profiling;
 using UnityEngine.Rendering.Universal;
 using UnityEngine.Rendering;
 using System.Linq;
+using System.Reflection;
 
 #if XR_MANAGEMENT_4_0_1_OR_NEWER
 using UnityEditor.XR.Management;
@@ -396,6 +397,18 @@ namespace UnityEditor.Rendering.Universal
             }
         }
 
+        // extern private static string CheckShaderVariant(Shader shader, UnityEngine.Rendering.PassType passType, string[] keywords);
+        static MethodInfo s_CheckShaderVariant = typeof(ShaderVariantCollection.ShaderVariant).GetMethod("CheckShaderVariant", BindingFlags.NonPublic | BindingFlags.Static);
+        static string CheckShaderVariant(Shader shader, UnityEngine.Rendering.PassType passType, string[] keywords)
+        {
+            return (string)s_CheckShaderVariant.Invoke(null, new object[] { shader, passType, keywords });
+        }
+
+        static bool ShaderVariantIsValid(Shader shader, UnityEngine.Rendering.PassType passType, string[] keywords)
+        {
+            return string.IsNullOrEmpty(CheckShaderVariant(shader, passType, keywords));
+        }
+
         public void OnProcessShader(Shader shader, ShaderSnippetData snippetData, IList<ShaderCompilerData> compilerDataList)
         {
 #if PROFILE_BUILD
@@ -424,6 +437,7 @@ namespace UnityEditor.Rendering.Universal
                     m_ShaderVariantCollection != null &&
                     shader.name.Contains("Universal") &&
                     !shader.name.Contains("Hidden") &&
+                    ShaderVariantIsValid(shader, snippetData.passType, arrayPool[0]) &&
                     m_ShaderVariantCollection.Contains(new ShaderVariantCollection.ShaderVariant(shader, snippetData.passType, arrayPool[0])))
                 {
                     var shaderKeywords = compilerDataList[i].shaderKeywordSet.GetShaderKeywords();
@@ -444,8 +458,12 @@ namespace UnityEditor.Rendering.Universal
                     {
                         keywords[j] = shaderKeywords[j].name;
                     }
-                    var variant = new ShaderVariantCollection.ShaderVariant(shader, snippetData.passType, keywords);
-                    removeInput = !m_ShaderVariantCollection.Contains(variant);
+
+                    if (ShaderVariantIsValid(shader, snippetData.passType, keywords))
+                    {
+                        var variant = new ShaderVariantCollection.ShaderVariant(shader, snippetData.passType, keywords);
+                        removeInput = !m_ShaderVariantCollection.Contains(variant);
+                    }
                 }
                 if (removeInput)
                     compilerDataList[i] = compilerDataList[--inputShaderVariantCount];
