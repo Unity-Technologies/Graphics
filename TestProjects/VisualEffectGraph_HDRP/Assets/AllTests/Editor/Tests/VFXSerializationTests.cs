@@ -282,7 +282,141 @@ namespace UnityEditor.VFX.Test
                     Assert.AreEqual(1.0f, block.inputSlots[3].value);
                 }
             }
+
+            //Position Torus
+            {
+                var initialize = graph.children.OfType<VFXBasicInitialize>().FirstOrDefault(o => o.label == "position_torus");
+                Assert.IsNotNull(initialize);
+
+                var torusBlocks = initialize.children.OfType<Block.PositionTorus>().ToArray();
+                Assert.AreEqual(3, torusBlocks.Length);
+                foreach (var block in torusBlocks)
+                {
+                    Assert.AreEqual(3, block.inputSlots.Count);
+
+                    if (block != torusBlocks.Last())
+                    {
+                        Assert.IsTrue(block.inputSlots[0][0][0][0].HasLink()); //center
+                        Assert.IsTrue(block.inputSlots[0][0][1].HasLink()); //majorRadius
+                        Assert.IsTrue(block.inputSlots[0][0][2].HasLink()); //minorRadius
+
+                        if (block == torusBlocks.First())
+                            Assert.IsTrue(block.inputSlots[0][1]); //arc
+                    }
+                    else
+                    {
+                        var tArcTorus = (TArcTorus)block.inputSlots[0].value;
+                        Assert.AreEqual(1.0f, tArcTorus.torus.transform.position.x);
+                        Assert.AreEqual(2.0f, tArcTorus.torus.transform.position.y);
+                        Assert.AreEqual(3.0f, tArcTorus.torus.transform.position.z);
+                        Assert.AreEqual(4.0f, tArcTorus.torus.majorRadius);
+                        Assert.AreEqual(5.0f, tArcTorus.torus.minorRadius);
+                        Assert.AreEqual(0.6f, tArcTorus.arc);
+                    }
+
+                    Assert.AreEqual(7.0f, block.inputSlots[1].value);
+                    Assert.AreEqual(0.8f, block.inputSlots[2].value);
+                }
+            }
+
+            //Kill Sphere
+            {
+                var initialize = graph.children.OfType<VFXBasicUpdate>().FirstOrDefault(o => o.label == "kill_sphere");
+                Assert.IsNotNull(initialize);
+
+                var sphereBlocks = initialize.children.OfType<Block.KillSphere>().ToArray();
+                Assert.AreEqual(3, sphereBlocks.Length);
+                foreach (var block in sphereBlocks)
+                {
+                    Assert.AreEqual(1, block.inputSlots.Count);
+
+                    if (block != sphereBlocks.Last())
+                    {
+                        Assert.IsTrue(block.inputSlots[0][0][0].HasLink()); //center
+                        Assert.IsTrue(block.inputSlots[0][1].HasLink()); //radius
+                    }
+                    else
+                    {
+                        var tSphere = (TSphere)block.inputSlots[0].value;
+                        Assert.AreEqual(1.0f, tSphere.transform.position.x);
+                        Assert.AreEqual(2.0f, tSphere.transform.position.y);
+                        Assert.AreEqual(3.0f, tSphere.transform.position.z);
+                        Assert.AreEqual(4.0f, tSphere.radius);
+                    }
+                }
+            }
+
+            //Collide Sphere
+            {
+                var initialize = graph.children.OfType<VFXBasicUpdate>().FirstOrDefault(o => o.label == "collision_sphere");
+                Assert.IsNotNull(initialize);
+
+                var sphereBlocks = initialize.children.OfType<Block.CollisionSphere>().ToArray();
+                Assert.AreEqual(3, sphereBlocks.Length);
+                foreach (var block in sphereBlocks)
+                {
+                    Assert.AreEqual(6, block.inputSlots.Count);
+
+                    if (block != sphereBlocks.Last())
+                    {
+                        Assert.IsTrue(block.inputSlots[0][0][0].HasLink()); //center
+                        Assert.IsTrue(block.inputSlots[0][1].HasLink()); //radius
+                    }
+                    else
+                    {
+                        var tSphere = (TSphere)block.inputSlots[0].value;
+                        Assert.AreEqual(1.0f, tSphere.transform.position.x);
+                        Assert.AreEqual(2.0f, tSphere.transform.position.y);
+                        Assert.AreEqual(3.0f, tSphere.transform.position.z);
+                        Assert.AreEqual(4.0f, tSphere.radius);
+                    }
+
+                    Assert.AreEqual(0.2f, block.inputSlots[1].value);
+                    Assert.AreEqual(0.3f, block.inputSlots[2].value);
+                    Assert.AreEqual(0.4f, block.inputSlots[3].value);
+                    Assert.AreEqual(0.5f, block.inputSlots[4].value);
+                    Assert.AreEqual(0.6f, block.inputSlots[5].value);
+                }
+            }
+
+            //Collide Cylinder (migration to cone)
+            {
+                var initialize = graph.children.OfType<VFXBasicUpdate>().FirstOrDefault(o => o.label == "collision_cylinder");
+                Assert.IsNotNull(initialize);
+
+                var coneBlocks = initialize.children.OfType<Block.CollisionCone>().ToArray();
+                Assert.AreEqual(3, coneBlocks.Length);
+                foreach (var block in coneBlocks)
+                {
+                    Assert.AreEqual(6, block.inputSlots.Count);
+
+                    if (block != coneBlocks.Last())
+                    {
+                        Assert.IsTrue(block.inputSlots[0][0][0].HasLink()); //center
+                        Assert.IsTrue(block.inputSlots[0][1].HasLink()); //baseradius
+                        Assert.IsTrue(block.inputSlots[0][2].HasLink()); //topRadius
+                        Assert.IsTrue(block.inputSlots[0][3].HasLink()); //height
+                    }
+                    else
+                    {
+                        var tCone = (TCone)block.inputSlots[0].value;
+                        Assert.AreEqual(1.0f, tCone.transform.position.x);
+                        Assert.AreEqual(-0.5f, tCone.transform.position.y);
+                        Assert.AreEqual(3.0f, tCone.transform.position.z);
+                        Assert.AreEqual(4.0f, tCone.baseRadius); //<= That is the trick of cylinder migration
+                        Assert.AreEqual(4.0f, tCone.topRadius);
+                        Assert.AreEqual(5.0f, tCone.height);
+                    }
+
+                    Assert.AreEqual(0.2f, block.inputSlots[1].value);
+                    Assert.AreEqual(0.3f, block.inputSlots[2].value);
+                    Assert.AreEqual(0.4f, block.inputSlots[3].value);
+                    Assert.AreEqual(0.5f, block.inputSlots[4].value);
+                    Assert.AreEqual(0.6f, block.inputSlots[5].value);
+                }
+            }
         }
+
 
         [OneTimeSetUpAttribute]
         public void OneTimeSetUpAttribute()

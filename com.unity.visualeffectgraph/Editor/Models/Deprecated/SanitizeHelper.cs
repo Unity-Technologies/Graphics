@@ -7,7 +7,8 @@ namespace UnityEditor.VFX
 {
     static class SanitizeHelper
     {
-        public static readonly bool s_Enable_Sanitize_of_TShape = true; //TODOPAUL : Remove this
+        //Require fix of https://fogbugz.unity3d.com/f/cases/1344645/
+        public static readonly bool s_Enable_Sanitize_of_TShape = true;
 
         public static void MigrateVector3OutputToSpaceableKeepingLegacyBehavior(VFXOperator op, string newTypeInfo)
         {
