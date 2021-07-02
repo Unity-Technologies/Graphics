@@ -755,6 +755,15 @@ namespace UnityEditor.VFX.UI
         {
             this.isLocked = !this.isLocked;
             this.m_LockToggle.tooltip = this.isLocked ? "Click to unlock" : "Click to lock";
+            if (!this.isLocked)
+            {
+                var selectedAsset = (Selection.activeObject as GameObject)?.GetComponent<VisualEffect>();
+                
+                if (this.controller.graph.visualEffectResource.asset == selectedAsset?.visualEffectAsset)
+                {
+                    m_ComponentBoard.Attach(selectedAsset);
+                }
+            }
         }
 
         void ToggleBlackboard(ChangeEvent<bool> e)
