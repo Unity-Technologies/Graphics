@@ -74,7 +74,7 @@ namespace UnityEditor.ShaderGraph
                 kLodThresholdSlotId,
                 kTilingSlotId,
                 kOffsetSlotId,
-                kPrimitiveSizeSlotId    
+                kPrimitiveSizeSlotId
             });
         }
 
