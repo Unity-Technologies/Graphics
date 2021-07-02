@@ -12,8 +12,8 @@ formatting:
       -  result=$(perl ~/unity-meta/Tools/Format/format.pl --reporoot $(pwd) --dry-run .)
     timeout: 1
     after:
+      -  echo $result
       -  |5-
-            echo $result
             if [[ $result -ne 0 ]]; then
               perl ~/unity-meta/Tools/Format/format.pl --reporoot $(pwd) --preview .
               cat ./format.patch
