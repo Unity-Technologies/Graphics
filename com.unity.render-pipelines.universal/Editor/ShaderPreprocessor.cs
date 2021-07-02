@@ -409,6 +409,15 @@ namespace UnityEditor.Rendering.Universal
             return string.IsNullOrEmpty(CheckShaderVariant(shader, passType, keywords));
         }
 
+        static HashSet<string> s_SvcFilter = new HashSet<string>
+        {
+            "Universal Render Pipeline/Baked Lit",
+            "Universal Render Pipeline/Complex Lit",
+            "Universal Render Pipeline/Lit",
+            "Universal Render Pipeline/Simple Lit",
+            "Universal Render Pipeline/Unlit",
+        };
+
         public void OnProcessShader(Shader shader, ShaderSnippetData snippetData, IList<ShaderCompilerData> compilerDataList)
         {
 #if PROFILE_BUILD
@@ -418,8 +427,6 @@ namespace UnityEditor.Rendering.Universal
             UniversalRenderPipelineAsset urpAsset = GraphicsSettings.renderPipelineAsset as UniversalRenderPipelineAsset;
             if (urpAsset == null || compilerDataList == null || compilerDataList.Count == 0)
                 return;
-
-            Debug.Log($"Is stripping with ShaderVariantCollection? {m_ShaderVariantCollection != null}");
 
             // Local Keywords need to be initialized with the shader
             InitializeLocalShaderKeywords(shader);
@@ -435,10 +442,7 @@ namespace UnityEditor.Rendering.Universal
                 bool removeInput = StripUnused(ShaderBuildPreprocessor.supportedFeatures, shader, snippetData, compilerDataList[i]);
                 if (!removeInput &&
                     m_ShaderVariantCollection != null &&
-                    shader.name.Contains("Universal") &&
-                    !shader.name.Contains("Hidden") &&
-                    ShaderVariantIsValid(shader, snippetData.passType, arrayPool[0]) &&
-                    m_ShaderVariantCollection.Contains(new ShaderVariantCollection.ShaderVariant(shader, snippetData.passType, arrayPool[0])))
+                    s_SvcFilter.Contains(shader.name))
                 {
                     var shaderKeywords = compilerDataList[i].shaderKeywordSet.GetShaderKeywords();
                     string[] keywords;
