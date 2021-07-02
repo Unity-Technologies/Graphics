@@ -9,23 +9,11 @@ formatting:
     commands:
       -  "echo -e \"[extensions]\nlargefiles=\n\" > ~/.hgrc"
       -  hg clone -u stable http://hg-mirror-slo.hq.unity3d.com/unity-extra/unity-meta ~/unity-meta
-      -  perl ~/unity-meta/Tools/Format/format.pl --reporoot $(pwd) --dry-run .
-    timeout: 1
-    triggers:
-        expression: pull_request.target eq "master"
-
-formatting_preview:
-    name: Formatting (Preview diff)
-    agent:
-        type: Unity::VM
-        image: package-ci/ubuntu:stable
-        flavor: b1.small
-    commands:
-      -  "echo -e \"[extensions]\nlargefiles=\n\" > ~/.hgrc"
-      -  hg clone -u stable http://hg-mirror-slo.hq.unity3d.com/unity-extra/unity-meta ~/unity-meta
       -  perl ~/unity-meta/Tools/Format/format.pl --reporoot $(pwd) --preview .
       -  cat ./format.patch
     timeout: 1
+    triggers:
+        expression: pull_request.target eq "master"
     artifacts:
       diff:
         paths:
