@@ -1,11 +1,5 @@
 comment:
-  on-update: recreate
-  header: |
-    Thank you for contributing to this repository :tada:.
-
-  footer: |
-    ---
-    Automated comment created by [PR Commenter](https://github.com/exercism/pr-commenter-action) :robot:.
+  on-update: edit
 
   snippets:
     - id: HDRP
