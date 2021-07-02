@@ -224,5 +224,33 @@ namespace UnityEngine.Rendering
                 return getter();
             }
         }
+
+        /// <summary>
+        /// Progress bar value.
+        /// </summary>
+        public class ProgressBarValue : Value
+        {
+            /// <summary>
+            /// Minimum value.
+            /// </summary>
+            public float min = 0f;
+            /// <summary>
+            /// Maximum value.
+            /// </summary>
+            public float max = 1f;
+
+            /// <summary>
+            /// Remap current value to [0, 1] range, representing the progress between min and max.
+            /// </summary>
+            /// <returns>Remapped progress value between 0 and 1.</returns>
+            public float GetProgressPercentage()
+            {
+                static float Remap01(float v, float x0, float y0) => (v - x0) / (y0 - x0);
+
+                float value = Mathf.Clamp(Convert.ToSingle(GetValue()), min, max);
+                float percentage = Remap01(value, min, max);
+                return percentage;
+            }
+        }
     }
 }

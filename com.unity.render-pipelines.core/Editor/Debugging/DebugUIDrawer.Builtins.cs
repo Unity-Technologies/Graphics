@@ -26,6 +26,32 @@ namespace UnityEditor.Rendering
     }
 
     /// <summary>
+    /// Builtin Drawer for ProgressBarValue Debug Items.
+    /// </summary>
+    [DebugUIDrawer(typeof(DebugUI.ProgressBarValue))]
+    public sealed class DebugUIDrawerProgressBarValue : DebugUIDrawer
+    {
+        /// <summary>
+        /// OnGUI implementation for Value DebugUIDrawer.
+        /// </summary>
+        /// <param name="widget">DebugUI Widget.</param>
+        /// <param name="state">Debug State associated with the Debug Item.</param>
+        /// <returns>The state of the widget.</returns>
+        public override bool OnGUI(DebugUI.Widget widget, DebugState state)
+        {
+            var w = Cast<DebugUI.ProgressBarValue>(widget);
+
+            float percentage = w.GetProgressPercentage();
+
+            var labelRect = PrepareControlRect();
+            var progressBarRect = EditorGUI.PrefixLabel(labelRect, EditorGUIUtility.TrTextContent(w.displayName));
+            EditorGUI.ProgressBar(progressBarRect, percentage, $"{percentage:P1}");
+
+            return true;
+        }
+    }
+
+    /// <summary>
     /// Builtin Drawer for Button Debug Items.
     /// </summary>
     [DebugUIDrawer(typeof(DebugUI.Button))]
