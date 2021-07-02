@@ -13,7 +13,8 @@ formatting:
     timeout: 1
     after:
       -  |5-
-            if [ "$result" -ne "0" ]; then
+            echo $result
+            if [[ $result -ne 0 ]]; then
               perl ~/unity-meta/Tools/Format/format.pl --reporoot $(pwd) --preview .
               cat ./format.patch
             else
