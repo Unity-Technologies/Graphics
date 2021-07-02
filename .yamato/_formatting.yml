@@ -9,10 +9,16 @@ formatting:
     commands:
       -  "echo -e \"[extensions]\nlargefiles=\n\" > ~/.hgrc"
       -  hg clone -u stable http://hg-mirror-slo.hq.unity3d.com/unity-extra/unity-meta ~/unity-meta
-      -  perl ~/unity-meta/Tools/Format/format.pl --reporoot $(pwd) --preview .
-      -  exitcode=$?
-      -  cat ./format.patch
-      -  exit $exitcode
+      -  perl ~/unity-meta/Tools/Format/format.pl --reporoot $(pwd) --dry-run .
+      -  result=$?
+      -  |5-
+            if [ $result -ne 0 ]; then
+              perl ~/unity-meta/Tools/Format/format.pl --reporoot $(pwd) --preview .
+              cat ./format.patch
+              exit 1
+            else
+              exit 0
+            fi
     timeout: 1
     triggers:
         expression: pull_request.target eq "master"
@@ -31,7 +37,7 @@ formatting_apply:
       -  git config --global user.name "noreply@unity3d.com"
       -  git config --global user.email "noreply@unity3d.com"
       -  git checkout $GIT_BRANCH
-      -  git pull $GIT_BRANCH # In case the job was not run on the latest commit, attempt to get it. There may be situations with merge conflicts, in that case wait for everyone to push their changes and then only run the formatting job on HEAD.
+      -  git pull origin $GIT_BRANCH # In case the job was not run on the latest commit, attempt to get it. There may be situations with merge conflicts, in that case wait for everyone to push their changes and then only run the formatting job on HEAD.
       -  "echo -e \"[extensions]\nlargefiles=\n\" > ~/.hgrc"
       -  hg clone -u stable http://hg-mirror-slo.hq.unity3d.com/unity-extra/unity-meta ~/unity-meta
       -  perl ~/unity-meta/Tools/Format/format.pl --reporoot $(pwd) --nobackups .
