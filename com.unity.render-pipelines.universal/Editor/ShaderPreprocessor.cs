@@ -442,10 +442,7 @@ namespace UnityEditor.Rendering.Universal
 
                 if (!removeInput &&
                     m_ShaderVariantCollection != null &&
-                    shader.name.Contains("Universal") &&
-                    !shader.name.Contains("Hidden") &&
-                    ShaderVariantIsValid(shader, snippetData.passType, arrayPool[0]) &&
-                    m_ShaderVariantCollection.Contains(new ShaderVariantCollection.ShaderVariant(shader, snippetData.passType, arrayPool[0])))
+                    shader.name.Contains("Universal"))
                 {
                     var shaderKeywords = compilerDataList[i].shaderKeywordSet.GetShaderKeywords();
                     string[] keywords;
