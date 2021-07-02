@@ -38,9 +38,17 @@ VFXView #no-asset *
     height: 16px;
     padding:0 4px;
     align-self: center;
+    border-left-width: 0;
+
+}
+
+#attach-toolbar-button
+{
+    border-right-width: 0;
 }
 
 #lock-auto-attach:checked
 {
     background-image: url("project:///Packages/com.unity.visualeffectgraph/Editor/UIResources/VFX/Locked.png");
+    background-color: #46607C;
 }

@@ -138,12 +138,23 @@ namespace UnityEditor.VFX.UI
                 GUI.enabled = !isAttached;
                 if (GUILayout.Button("Find", GUILayout.Height(24)))
                 {
-                    Debug.Log("2=====");
+                    Debug.Log("Browse hierarchy...");
                 }
 
+                EditorGUILayout.Space();
                 GUI.enabled = !GUI.enabled;
-                var attachedName = this.m_vfxView.attachedComponent?.name;
-                GUILayout.Label(isAttached ? $"Attached to\n{attachedName}" : "Not attached", GUILayout.Height(48));
+                var attachedName = this.m_vfxView.attachedComponent?.name ?? "No selection";
+                using (new GUILayout.HorizontalScope())
+                {
+                    GUILayout.Label("Attached to", GUILayout.Height(24));
+                    GUILayout.FlexibleSpace();
+                    GUI.enabled = isAttached;
+                    if (GUILayout.Button(new GUIContent(attachedName, isAttached ? "Click to select" : null), GUILayout.Height(24), GUILayout.MinWidth(60)))
+                    {
+                        Debug.Log("Select in hierarchy...");
+                    }
+                }
+
                 GUI.enabled = true;
             }
         }
@@ -502,18 +513,18 @@ namespace UnityEditor.VFX.UI
             m_SaveButton.text = "Save";
             m_Toolbar.Add(m_SaveButton);
 
+
+            m_attachPopupContent = new AttachPanel(this);
+            m_AttachDropDownButton = new EditorToolbarDropdown("Attach", OnOpenAttachMenu);
+            m_AttachDropDownButton.name = "attach-toolbar-button";
+            m_Toolbar.Add(m_AttachDropDownButton);
+
             m_LockToggle = new ToolbarToggle();
             m_LockToggle.style.unityTextAlign = TextAnchor.MiddleLeft;
             m_LockToggle.tooltip = this.isLocked ? "Click to unlock" : "Click to lock";
-            
             m_LockToggle.name = "lock-auto-attach";
             m_LockToggle.RegisterCallback<ChangeEvent<bool>>(OnToggleLock);
             m_Toolbar.Add(m_LockToggle);
-
-            this.m_attachPopupContent = new AttachPanel(this);
-
-            m_AttachDropDownButton = new EditorToolbarDropdown("Attach", OnOpenAttachMenu);
-            m_Toolbar.Add(m_AttachDropDownButton);
 
             var spacer = new ToolbarSpacer();
             spacer.style.width = 12f;
