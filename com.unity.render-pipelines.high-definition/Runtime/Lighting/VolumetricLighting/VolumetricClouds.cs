@@ -7,7 +7,7 @@ namespace UnityEngine.Rendering.HighDefinition
     /// </summary>
     [Serializable, VolumeComponentMenu("Sky/Volumetric Clouds")]
     [HDRPHelpURLAttribute("Override-Volumetric-Clouds")]
-    public sealed class VolumetricClouds : VolumeComponent
+    public sealed partial class VolumetricClouds : VolumeComponent
     {
         /// <summary>
         /// Control mode for the volumetric clouds.

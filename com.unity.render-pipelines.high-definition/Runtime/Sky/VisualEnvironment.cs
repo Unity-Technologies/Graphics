@@ -11,18 +11,16 @@ namespace UnityEngine.Rendering.HighDefinition
     [HDRPHelpURLAttribute("Override-Visual-Environment")]
     public sealed class VisualEnvironment : VolumeComponent
     {
-        [Header("Sky")]
-
         /// <summary>Type of sky that should be used for rendering.</summary>
+        [Header("Sky")]
         public NoInterpIntParameter skyType = new NoInterpIntParameter(0);
         /// <summary>Type of clouds that should be used for rendering.</summary>
         public NoInterpIntParameter cloudType = new NoInterpIntParameter(0);
         /// <summary>Defines the way the ambient probe should be computed.</summary>
         public SkyAmbientModeParameter skyAmbientMode = new SkyAmbientModeParameter(SkyAmbientMode.Static);
 
-        [Header("Wind")]
-
         /// <summary>Controls the global orientation of the wind relative to the X world vector.</summary>
+        [Header("Wind")]
         public ClampedFloatParameter windOrientation = new ClampedFloatParameter(0.0f, 0.0f, 360.0f);
         /// <summary>Controls the global wind speed in kilometers per hour.</summary>
         public MinFloatParameter windSpeed = new MinFloatParameter(100.0f, 0.0f);
@@ -85,25 +83,40 @@ namespace UnityEngine.Rendering.HighDefinition
     }
 
     /// <summary>
-    /// Sky Ambient Mode volume parameter.
+    /// Generic wind volume parameter.
     /// </summary>
     [Serializable, DebuggerDisplay(k_DebuggerDisplay)]
-    public class WindParameter : VolumeParameter<WindParameter.WindParamaterValue>
+    public abstract class WindParameter : VolumeParameter<WindParameter.WindParamaterValue>
     {
+        /// <summary>Parameter override mode.</summary>
         public enum WindOverrideMode
         {
+            /// <summary>Custom value.</summary>
             Custom,
+            /// <summary>Use the value from the Visual Environment.</summary>
             Global,
+            /// <summary>Add a custom amount to the value from the Visual Environment.</summary>
             Additive,
+            /// <summary>Multiply the value from the Visual Environment by a custom factor.</summary>
             Multiply
         }
 
+        /// <summary>Wind parameter value.</summary>
         [Serializable]
         public struct WindParamaterValue
         {
+            /// <summary>Override mode.</summary>
             public WindOverrideMode mode;
-            public float customValue, additiveValue, multiplyValue;
+            /// <summary>Value for the Custom mode.</summary>
+            public float customValue;
+            /// <summary>Value for the Additive mode.</summary>
+            public float additiveValue;
+            /// <summary>Value for the Multiply mode.</summary>
+            public float multiplyValue;
 
+
+            /// <summary>Returns a string that represents the current object.</summary>
+            /// <returns>A string that represents the current object.</returns>
             public override string ToString()
             {
                 if (mode == WindOverrideMode.Global)
@@ -119,11 +132,10 @@ namespace UnityEngine.Rendering.HighDefinition
             }
         }
 
-        /// <summary>
-        /// Sky Ambient Mode volume parameter constructor.
-        /// </summary>
-        /// <param name="value">Sky Ambient Mode parameter.</param>
-        /// <param name="overrideState">Initial override value.</param>
+        /// <summary>Wind volume parameter constructor.</summary>
+        /// <param name="value">Initial value.</param>
+        /// <param name="value">Initial override mode.</param>
+        /// <param name="overrideState">Initial override state.</param>
         public WindParameter(float value = 0.0f, WindOverrideMode mode = WindOverrideMode.Global, bool overrideState = false)
             : base(default, overrideState)
         {
@@ -136,9 +148,7 @@ namespace UnityEngine.Rendering.HighDefinition
             };
         }
 
-        /// <summary>
-        /// Interpolates between two values.
-        /// </summary>
+        /// <summary>Interpolates between two values.</summary>
         /// <param name="from">The start value</param>
         /// <param name="to">The end value</param>
         /// <param name="t">The interpolation factor in range [0,1]</param>
@@ -150,9 +160,7 @@ namespace UnityEngine.Rendering.HighDefinition
             m_Value.multiplyValue = from.multiplyValue + (to.multiplyValue - from.multiplyValue) * t;
         }
 
-        /// <summary>
-        /// Returns a hash code for the current object.
-        /// </summary>
+        /// <summary>Returns a hash code for the current object.</summary>
         /// <returns>A hash code for the current object.</returns>
         public override int GetHashCode()
         {
@@ -169,21 +177,21 @@ namespace UnityEngine.Rendering.HighDefinition
             }
         }
 
-        protected float GetValue(float global)
+        /// <summary>Returns interpolated value from the visual environment.</summary>
+        /// <returns>The value for this parameter.</returns>
+        public float GetValue(HDCamera camera)
         {
-            switch (value.mode)
-            {
-                case WindOverrideMode.Custom:
-                    return value.customValue;
-                case WindOverrideMode.Global:
-                    return global;
-                case WindOverrideMode.Additive:
-                    return global + value.additiveValue;
-                case WindOverrideMode.Multiply:
-                    return global * value.multiplyValue;
-            }
-            return 0.0f;
+            if (value.mode == WindOverrideMode.Custom)
+                return value.customValue;
+            float globalValue = GetGlobalValue(camera);
+            if (value.mode == WindOverrideMode.Additive)
+                return globalValue + value.additiveValue;
+            if (value.mode == WindOverrideMode.Multiply)
+                return globalValue * value.multiplyValue;
+            return globalValue;
         }
+
+        protected abstract float GetGlobalValue(HDCamera camera);
     }
 
     [Serializable, DebuggerDisplay(k_DebuggerDisplay)]
@@ -197,28 +205,22 @@ namespace UnityEngine.Rendering.HighDefinition
         public WindOrientationParameter(float value = 0.0f, WindOverrideMode mode = WindOverrideMode.Global, bool overrideState = false)
             : base(value, mode, overrideState) {}
 
-        public float GetValue(HDCamera camera)
-        {
-            var env = camera.volumeStack.GetComponent<VisualEnvironment>();
-            return GetValue(env.windOrientation.value);
-        }
+        protected override float GetGlobalValue(HDCamera camera) =>
+            camera.volumeStack.GetComponent<VisualEnvironment>().windOrientation.value;
     }
 
     [Serializable, DebuggerDisplay(k_DebuggerDisplay)]
     public sealed class WindSpeedParameter : WindParameter
     {
         /// <summary>
-        /// Wind orientation volume parameter constructor.
+        /// Wind speed volume parameter constructor.
         /// </summary>
         /// <param name="value">Sky Ambient Mode parameter.</param>
         /// <param name="overrideState">Initial override value.</param>
         public WindSpeedParameter(float value = 100.0f, WindOverrideMode mode = WindOverrideMode.Global, bool overrideState = false)
             : base(value, mode, overrideState) {}
 
-        public float GetValue(HDCamera camera)
-        {
-            var env = camera.volumeStack.GetComponent<VisualEnvironment>();
-            return GetValue(env.windSpeed.value);
-        }
+        protected override float GetGlobalValue(HDCamera camera) =>
+            camera.volumeStack.GetComponent<VisualEnvironment>().windSpeed.value;
     }
 }
