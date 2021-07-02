@@ -33,7 +33,7 @@ comment:
         Please run the following jobs before merging your PR:
         https://yamato.cds.internal.unity3d.com/jobs/902-Graphics/tree/master/.yamato%252F_abv.yml%2523General_Checks_2021.2
         https://yamato.cds.internal.unity3d.com/jobs/902-Graphics/tree/master/.yamato%252Fall-shadergraph.yml%2523PR_ShaderGraph_2021.2
-        Depending on the scope of your PR, you may also need to run URP and HDRP jobs. Please ask your lead if you are unsure.
+        Depending on the scope of your PR, you may also need to run URP and HDRP jobs. Please ask your lead if you are unsure about what your PR could affect.
     - id: VFX
       files:
         - com.unity.visualeffectgraph/**/*
@@ -44,12 +44,12 @@ comment:
         Please run the following jobs before merging your PR:
         https://yamato.cds.internal.unity3d.com/jobs/902-Graphics/tree/master/.yamato%252F_abv.yml%2523General_Checks_2021.2
         https://yamato.cds.internal.unity3d.com/jobs/902-Graphics/tree/master/.yamato%252Fall-vfx.yml%2523PR_VFX_2021.2
-        Depending on the scope of your PR, you may also need to run URP and HDRP jobs. Please ask your lead if you are unsure.
+        Depending on the scope of your PR, you may also need to run URP and HDRP jobs. Please ask your lead if you are unsure about what your PR could affect.
     - id: Core
       files:
         - com.unity.render-pipelines.core/**/*
       body: |
         It looks like you're changing the Core SRP Package
-        You could run ABV before merging your PR, but it will start A LOT of jobs:
+        You could run ABV before merging your PR, but it will start A LOT of jobs. Please be responsible about it and run it only when you feel the PR is ready:
         https://yamato.cds.internal.unity3d.com/jobs/902-Graphics/tree/master/.yamato%252F_abv.yml%2523all_project_ci_2021.2
-        If you are unsure what to run, please talk to your lead.
+        Be aware that any modifications to the Core package impacts everyone in the Graphics repo so please discuss the PR with your lead.
