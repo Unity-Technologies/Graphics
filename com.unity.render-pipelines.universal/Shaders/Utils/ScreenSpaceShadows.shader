@@ -62,12 +62,14 @@ Shader "Hidden/Universal Render Pipeline/ScreenSpaceShadows"
             float4 coords = TransformWorldToShadowCoord(wpos);
 
             // Screenspace shadowmap is only used for directional lights which use orthogonal projection.
-            ShadowSamplingData shadowSamplingData = GetMainLightShadowSamplingData();
-            half4 shadowParams = GetMainLightShadowParams();
-            half realtimeShadow = SampleShadowmap(TEXTURE2D_ARGS(_MainLightShadowmapTexture, sampler_MainLightShadowmapTexture), coords, shadowSamplingData, shadowParams, false);
+            half realtimeShadow = MainLightRealtimeShadow(coords);
             half shadowFade = GetMainLightShadowFade(wpos);
 
+#if defined(SHADOWS_SHADOWMASK) || defined(LIGHTMAP_SHADOW_MIXING)
+            return realtimeShadow;
+#else
             return lerp(realtimeShadow, 1.0h, shadowFade);
+#endif
         }
 
         ENDHLSL
@@ -82,6 +84,8 @@ Shader "Hidden/Universal Render Pipeline/ScreenSpaceShadows"
             HLSLPROGRAM
             #pragma multi_compile _MAIN_LIGHT_SHADOWS _MAIN_LIGHT_SHADOWS_CASCADE
             #pragma multi_compile _ _SHADOWS_SOFT
+            #pragma multi_compile _ LIGHTMAP_SHADOW_MIXING
+            #pragma multi_compile _ SHADOWS_SHADOWMASK
 
             #pragma vertex   Vertex
             #pragma fragment Fragment
