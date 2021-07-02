@@ -1,0 +1,54 @@
+comment:
+  on-update: recreate
+  header: |
+    Thank you for contributing to this repository :tada:.
+
+  footer: |
+    ---
+    Automated comment created by [PR Commenter](https://github.com/exercism/pr-commenter-action) :robot:.
+
+  snippets:
+    - id: HDRP
+      files:
+        - com.unity.render-pipelines.high-definition-config/**/*
+        - com.unity.render-pipelines.high-definition/**/*
+        - com.unity.testing.hdrp/**/*
+        - TestProjects/HDRP*/**/*
+      body: |
+        It looks like you're changing an HDRP Package
+        Please run the following jobs before merging your PR:
+        https://yamato.cds.internal.unity3d.com/jobs/902-Graphics/tree/master/.yamato%252F_abv.yml%2523General_Checks_2021.2
+        https://yamato.cds.internal.unity3d.com/jobs/902-Graphics/tree/master/.yamato%252Fall-hdrp.yml%2523HDRP_2021.2
+        
+    - id: URP
+      files:
+        - com.unity.render-pipelines.universal/**/*
+        - com.unity.testing.urp/**/*
+        - TestProjects/Universal*/**/*
+      body: |
+        It looks like you're changing a URP Package
+        Please run the following jobs before merging your PR:
+        https://yamato.cds.internal.unity3d.com/jobs/902-Graphics/tree/master/.yamato%252F_abv.yml%2523General_Checks_2021.2
+        https://yamato.cds.internal.unity3d.com/jobs/902-Graphics/tree/master/.yamato%252Fall-urp.yml%2523URP_2021.2
+    - id: ShaderGraph
+      files:
+        - com.unity.shadergraph/**/*
+        - TestProjects/ShaderGraph*/**/*
+        - com.unity.render-pipelines.universal/Editor/ShaderGraph/*
+      body: |
+        It looks like you're changing a Shader Graph Package
+        Please run the following jobs before merging your PR:
+        https://yamato.cds.internal.unity3d.com/jobs/902-Graphics/tree/master/.yamato%252F_abv.yml%2523General_Checks_2021.2
+        https://yamato.cds.internal.unity3d.com/jobs/902-Graphics/tree/master/.yamato%252Fall-shadergraph.yml%2523ShaderGraph_2021.2
+        Depending on the scope of your PR, you may also need to run URP and HDRP jobs. Please ask your lead if you are unsure.
+    - id: VFX
+      files:
+        - com.unity.visualeffectgraph/**/*
+        - com.unity.testing.visualeffectgraph/**/*
+        - TestProjects/VisualEffectGraph*/**/*
+      body: |
+        It looks like you're changing a VFX Package
+        Please run the following jobs before merging your PR:
+        https://yamato.cds.internal.unity3d.com/jobs/902-Graphics/tree/master/.yamato%252F_abv.yml%2523General_Checks_2021.2
+        https://yamato.cds.internal.unity3d.com/jobs/902-Graphics/tree/master/.yamato%252Fall-vfx.yml%2523VFX_2021.2
+        Depending on the scope of your PR, you may also need to run URP and HDRP jobs. Please ask your lead if you are unsure.
