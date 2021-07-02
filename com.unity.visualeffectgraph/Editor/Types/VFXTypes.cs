@@ -313,12 +313,16 @@ namespace UnityEditor.VFX
     {
         [Tooltip("The camera's Transform in the world.")]
         public Transform transform;
+        [Tooltip("Uses Orthographic projection.")]
+        public bool orthographic;
         [Angle, Range(0.0f, Mathf.PI), Tooltip("The field of view is the height of the camera’s view angle, measured in degrees along the local Y axis.")]
         public float fieldOfView;
         [Min(0.0f), Tooltip("The near plane is the closest plane relative to the camera where drawing occurs.")]
         public float nearPlane;
         [Min(0.0f), Tooltip("The far plane is the furthest plane relative to the camera where drawing occurs.")]
         public float farPlane;
+        [Min(0.0f), Tooltip("The orthographic size is half the size of the vertical viewing volume.")]
+        public float orthographicSize;
         [Min(0.0f), Tooltip("The aspect ratio is the proportional relationship between the camera’s width and height.")]
         public float aspectRatio;
         [Min(0.0f), Tooltip("The width and height of the camera in pixels.")]
@@ -328,7 +332,7 @@ namespace UnityEditor.VFX
         [Tooltip("The color buffer of the camera, containing the rendered color information.")]
         public CameraBuffer colorBuffer;
 
-        public static CameraType defaultValue = new CameraType { transform = Transform.defaultValue, fieldOfView = 60.0f * Mathf.Deg2Rad, nearPlane = 0.3f, farPlane = 1000.0f, aspectRatio = 1.0f, pixelDimensions = new Vector2(1920, 1080) };
+        public static CameraType defaultValue = new CameraType { transform = Transform.defaultValue, fieldOfView = 60.0f * Mathf.Deg2Rad, nearPlane = 0.3f, farPlane = 1000.0f, aspectRatio = 1.0f, orthographicSize = 5.0f, pixelDimensions = new Vector2(1920, 1080) };
     }
 
     [VFXType, Serializable]
