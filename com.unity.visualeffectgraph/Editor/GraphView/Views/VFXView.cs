@@ -816,7 +816,8 @@ namespace UnityEditor.VFX.UI
                 
             if (this.controller.graph.visualEffectResource.asset == selectedAsset?.visualEffectAsset)
             {
-                m_ComponentBoard.Attach(selectedAsset);
+                this.m_ComponentBoard.Attach(selectedAsset);
+                this.m_AttachDropDownButton.style.backgroundColor = new StyleColor(new Color(0.31f, 0.31f, 0.31f));
             }
 
             this.UpdateLockToggleTooltip();
@@ -825,6 +826,7 @@ namespace UnityEditor.VFX.UI
         internal void Detach()
         {
             this.m_ComponentBoard.Detach();
+            this.m_AttachDropDownButton.style.backgroundColor = new StyleColor(StyleKeyword.None);
         }
 
         private void UpdateLockToggleTooltip()
