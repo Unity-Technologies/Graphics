@@ -271,7 +271,8 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed custom pass volume not executed in scene view because of the volume culling mask.
 - Fixed remapping of depth pyramid debug view
 - Fixed an issue with asymmetric projection matrices and fog / pathtracing. (case 1330290).
-- HD Global Settings can now be unassigned in the Graphics tab (case 1343570).
+- Fixed rounding issue when accessing the color buffer in the DoF shader.
+- HD Global Settings can now be unassigned in the Graphics tab if HDRP is not the active pipeline(case 1343570).
 
 ### Changed
 - Changed Window/Render Pipeline/HD Render Pipeline Wizard to Window/Rendering/HDRP Wizard
@@ -364,6 +365,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - TAA jitter is disabled while using Frame Debugger now.
 - Depth of field at half or quarter resolution is now computed consistently with the full resolution option (case 1335687).
 - Hair uses GGX LTC for area light specular.
+- Moved invariants outside of loop for a minor CPU speedup in the light loop code.
 
 ## [11.0.0] - 2020-10-21
 
