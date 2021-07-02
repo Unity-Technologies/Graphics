@@ -141,7 +141,7 @@ namespace UnityEditor.VFX.UI
                     Debug.Log("Browse hierarchy...");
                 }
 
-                EditorGUILayout.Space();
+                GUILayout.FlexibleSpace();
                 GUI.enabled = !GUI.enabled;
                 var attachedName = this.m_vfxView.attachedComponent?.name ?? "No selection";
                 using (new GUILayout.HorizontalScope())
@@ -156,6 +156,7 @@ namespace UnityEditor.VFX.UI
                 }
 
                 GUI.enabled = true;
+                EditorGUILayout.Space();
             }
         }
     }
