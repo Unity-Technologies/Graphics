@@ -12,7 +12,7 @@ formatting:
       -  perl ~/unity-meta/Tools/Format/format.pl --reporoot $(pwd) --dry-run .
       -  result=$?
       -  |5-
-            if [ "$result" -ne 0 ]; then
+            if [ "$result" -ne "0" ]; then
               perl ~/unity-meta/Tools/Format/format.pl --reporoot $(pwd) --preview .
               cat ./format.patch
             fi
