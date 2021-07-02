@@ -37,6 +37,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Added Lights 2D to the Light Explorer window.
 - Two new URP specific scene templates, Basic which has a camera and directional light, then Standard which has the addition of a global volume with basic post effects setup.
 - Added Render Settings Converter to the Render Pipeline Converter, this tool creates and assigns URP Assets based off rendering settings of a Builtin project.
+- XR: Added Late Latching support to reduce VR latency (Quest).
 
 ### Changed
 - Moved fog evaluation from vertex shader to pixel shader. This improves rendering of fog for big triangles and fog quality. This can change the look of the fog slightly.
@@ -66,6 +67,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Enabled subsurface scattering with GI on handwritten Universal ST8 shader.
 - Material upgrader now also upgrades AnimationClips in the project that have curves bound to renamed material properties.
 - 2D Lights now inherit from Light2DBase.
+- The behavior of setting a camera's Background Type to "Dont Care" has changed on mobile. Previously, "Dont Care" would behave identically to "Solid Color" on mobile. Now, "Dont Care" corresponds to the render target being filled with arbitrary data at the beginning of the frame, which may be faster in some situations. Note that there are no guarantees for the exact content of the render target, so projects should use "Dont care" only if they are guaranteed to render to, or otherwise write every pixel every frame.
 - Stripping shader variants per renderer features instead of combined renderer features.
 - When MSAA is enabled and a depth texture is required, the opaque pass depth will be copied instead of scheduling a depth prepass.
 
@@ -138,7 +140,8 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed gizmos no longer allocate memory in game view. [case 1328852]
 - Fixed an issue where shadow artefacts appeared between cascades on Terrain Detail objects.
 - Fixed ShaderGraph materials to select render queue in the same way as handwritten shader materials by default, but allows for a user override for custom behavior. [case 1335795]
-- Fixed sceneview debug mode rendering (case 1211436)
+- Fixed sceneview debug mode rendering (case 1211436).
+- URP Global Settings can now be unassigned in the Graphics tab (case 1343570).
 
 ### Changed
 - Change Asset/Create/Shader/Universal Render Pipeline/Lit Shader Graph to Asset/Create/Shader Graph/URP/Lit Shader Graph
