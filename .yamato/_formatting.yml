@@ -29,7 +29,7 @@ formatting_preview:
     artifacts:
       diff:
         paths:
-          - "./format.patch"
+          - format.patch
 
 formatting_apply:
     name: Formatting (Apply requested changes)
