@@ -9,18 +9,10 @@ formatting:
     commands:
       -  "echo -e \"[extensions]\nlargefiles=\n\" > ~/.hgrc"
       -  hg clone -u stable http://hg-mirror-slo.hq.unity3d.com/unity-extra/unity-meta ~/unity-meta
-      -  result=$(perl ~/unity-meta/Tools/Format/format.pl --reporoot $(pwd) --dry-run .)
+      -  perl ~/unity-meta/Tools/Format/format.pl --reporoot $(pwd) --preview .
+      -  cat ./format.patch
+      -  perl ~/unity-meta/Tools/Format/format.pl --reporoot $(pwd) --dry-run . # Run a 2nd time to actually "fail" the job if there are formatting diffs (--preview always exits with 0)
     timeout: 1
-    after:
-      -  echo $result
-      -  |5-
-            if [[ $result -ne 0 ]]; then
-              perl ~/unity-meta/Tools/Format/format.pl --reporoot $(pwd) --preview .
-              cat ./format.patch
-            else
-              echo "Formatting is correct so no diff.patch file was generated."
-            fi
-      -  exit $result
     triggers:
         expression: pull_request.target eq "master"
     artifacts:
