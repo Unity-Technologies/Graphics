@@ -16,7 +16,7 @@ namespace UnityEditor.ShaderGraph
         static bool EnableAnalytics()
         {
             AnalyticsResult result = EditorAnalytics.RegisterEventWithLimit(k_EventName, k_MaxEventsPerHour, k_MaxNumberOfElements, k_VendorKey);
-            if (result == AnalyticsResult.Ok)
+            if (    result == AnalyticsResult.Ok)
                 s_EventRegistered = true;
 
             return s_EventRegistered;
@@ -40,7 +40,7 @@ namespace UnityEditor.ShaderGraph
             if (!EnableAnalytics())
                 return;
 
-            Dictionary<string, int> nodeTypeAndCount = new Dictionary<string, int>();
+            Dictionary<string, int    > nodeTypeAndCount = new Dictionary<string, int>();
             var nodes = graph.GetNodes<AbstractMaterialNode>();
 
             int subgraphCount = 0;
