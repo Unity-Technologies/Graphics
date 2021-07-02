@@ -274,7 +274,7 @@ float3 ConvertToOutputSpace(float3 color)
 // ---------------------------------------------------
 
 // Front most neighbourhood velocity ([Karis 2014])
-float2 GetClosestFragment(TEXTURE2D_X(DepthTexture), int2 positionSS)
+float2 GetClosestFragmentOffset(TEXTURE2D_X(DepthTexture), int2 positionSS)
 {
     float center = LOAD_TEXTURE2D_X_LOD(DepthTexture, positionSS, 0).r;
 
@@ -296,7 +296,7 @@ float2 GetClosestFragment(TEXTURE2D_X(DepthTexture), int2 positionSS)
     closest = COMPARE_DEPTH(s2, closest.z) ? float3(offset2, s2) : closest;
     closest = COMPARE_DEPTH(s1, closest.z) ? float3(offset1, s1) : closest;
 
-    return positionSS + closest.xy;
+    return closest.xy;
 }
 
 // Used since some compute might want to call this and we cannot use Quad reads in that case.

@@ -45,7 +45,7 @@ void KMainPhysical(uint3 dispatchThreadId : SV_DispatchThreadID)
 {
     UNITY_XR_ASSIGN_VIEW_INDEX(dispatchThreadId.z);
 
-    float depth = LoadCameraDepth(dispatchThreadId.xy);
+    float depth = LoadCameraDepth(FromOutputPosSSToPreupsamplePosSS(dispatchThreadId.xy));
     float linearEyeDepth = LinearEyeDepth(depth, _ZBufferParams);
     float coc = (1.0 - FocusDist / max(linearEyeDepth, 1e-6f)) * MaxCoC;
 
@@ -63,7 +63,7 @@ void KMainPhysical(uint3 dispatchThreadId : SV_DispatchThreadID)
 void KMainManual(uint3 dispatchThreadId : SV_DispatchThreadID)
 {
     UNITY_XR_ASSIGN_VIEW_INDEX(dispatchThreadId.z);
-    float depth = LoadCameraDepth(dispatchThreadId.xy);
+    float depth = LoadCameraDepth(FromOutputPosSSToPreupsamplePosSS(dispatchThreadId.xy));
     float linearEyeDepth = LinearEyeDepth(depth, _ZBufferParams);
 
     float nearBlend = GetFixedNearBlend(linearEyeDepth);

@@ -195,8 +195,7 @@ Shader "Hidden/HDRP/TemporalAA"
             float2 uv = input.texcoord;
 
             #ifdef TAA_UPSCALE
-            float2 outputPixInInput = input.texcoord * _InputSize.xy + float2(_TaaJitterStrength.x, -_TaaJitterStrength.y);
-            outputPixInInput = input.texcoord * _InputSize.xy - _TaaJitterStrength.xy;
+            float2 outputPixInInput = input.texcoord * _InputSize.xy - _TaaJitterStrength.xy;
 
             uv = _InputSize.zw * (0.5f + floor(outputPixInInput));
             #endif
@@ -204,12 +203,13 @@ Shader "Hidden/HDRP/TemporalAA"
             // --------------- Get closest motion vector ---------------
             float2 motionVector;
 
-#if ORTHOGRAPHIC || /* TODO: This should not be the case, but we are a bit in an awkward state w.r.t depth and motion vector sizes.  Needs fixing. */ defined(TAA_UPSCALE)
-            float2 closest = input.positionCS.xy;
+#if ORTHOGRAPHIC
+            float2 closestOffset = 0;
 #else
-            float2 closest = GetClosestFragment(_DepthTexture, int2(input.positionCS.xy));
+            float2 closestOffset = GetClosestFragmentOffset(_DepthTexture, int2(input.positionCS.xy));
 #endif
-            DecodeMotionVector(LOAD_TEXTURE2D_X(_CameraMotionVectorsTexture, closest), motionVector);
+
+            DecodeMotionVector(SAMPLE_TEXTURE2D_X_LOD(_CameraMotionVectorsTexture, s_point_clamp_sampler, ClampAndScaleUVForPoint(uv + closestOffset * _InputSize.zw), 0), motionVector);
             // --------------------------------------------------------
 
             // --------------- Get resampled history ---------------
@@ -226,7 +226,7 @@ Shader "Hidden/HDRP/TemporalAA"
             color = ConvertToWorkingSpace(color);
 
             NeighbourhoodSamples samples;
-            GatherNeighbourhood(_InputTexture, uv, input.positionCS.xy, color, samples);
+            GatherNeighbourhood(_InputTexture, uv, floor(input.positionCS.xy), color, samples);
             // --------------------------------------------------------
 
             // --------------- Filter central sample ---------------
@@ -240,7 +240,7 @@ Shader "Hidden/HDRP/TemporalAA"
 
             #elif CENTRAL_FILTERING  == BLACKMAN_HARRIS
             // We need to swizzle weights as we use quad communication to access neighbours, so the order of neighbours is not always the same (this needs to go away when moving back to compute)
-            SwizzleFilterWeights(input.positionCS.xy, filterParams, filterParams1);
+            SwizzleFilterWeights(floor(input.positionCS.xy), filterParams, filterParams1);
             #endif
             CTYPE filteredColor = FilterCentralColor(samples, filterParams, filterParams1, centralWeight);
             // ------------------------------------------------------
@@ -313,7 +313,6 @@ Shader "Hidden/HDRP/TemporalAA"
 
             _OutputHistoryTexture[COORD_TEXTURE2D_X(input.positionCS.xy)] = color.CTYPE_SWIZZLE;
             outColor = color.CTYPE_SWIZZLE;
-
 #if VELOCITY_REJECTION && !defined(POST_DOF)
             _OutputVelocityMagnitudeHistory[COORD_TEXTURE2D_X(input.positionCS.xy)] = lengthMV;
 #endif

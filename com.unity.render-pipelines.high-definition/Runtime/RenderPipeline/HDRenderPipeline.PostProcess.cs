@@ -465,13 +465,10 @@ namespace UnityEngine.Rendering.HighDefinition
 
                 source = DynamicExposurePass(renderGraph, hdCamera, source);
 
-                if ((m_DLSSPassEnabled || DynamicResolutionHandler.instance.filter == DynamicResUpscaleFilter.TAAU) && DynamicResolutionHandler.instance.upsamplerSchedule == DynamicResolutionHandler.UpsamplerScheduleType.BeforePost)
+                if (m_DLSSPassEnabled && DynamicResolutionHandler.instance.upsamplerSchedule == DynamicResolutionHandler.UpsamplerScheduleType.BeforePost)
                 {
-                    var upsamplignSceneResults = SceneUpsamplePass(renderGraph, hdCamera, source, depthBuffer, motionVectors);
-                    //source = upsamplignSceneResults.color;
-                    // depthBuffer = upsamplignSceneResults.depthBuffer;
-                    motionVectors = upsamplignSceneResults.motionVectors;
-                    // SetCurrentResolutionGroup(renderGraph, hdCamera, ResolutionGroup.AfterDynamicResUpscale);
+                    source = DoDLSSPass(renderGraph, hdCamera, inputColor, depthBuffer, motionVectors);
+                    SetCurrentResolutionGroup(renderGraph, hdCamera, ResolutionGroup.AfterDynamicResUpscale);
                 }
 
                 source = CustomPostProcessPass(renderGraph, hdCamera, source, depthBuffer, normalBuffer, motionVectors, m_GlobalSettings.beforeTAACustomPostProcesses, HDProfileId.CustomPostProcessBeforeTAA);
@@ -3356,145 +3353,6 @@ namespace UnityEngine.Rendering.HighDefinition
         #endregion
 
         #region Upsample Scene
-
-        class SceneUpsamplingData
-        {
-            public struct Textures
-            {
-                public TextureHandle color;
-                public TextureHandle depthBuffer;
-                public TextureHandle motionVectors;
-            }
-            public UpsampleSceneParameters parameters;
-            public bool upsampleColor;
-            public Textures inputTextures = new Textures();
-            public Textures outputTextures = new Textures();
-        }
-
-        struct UpsampleSceneParameters
-        {
-            public ComputeShader upsampleSceneCS;
-            public int mainUpsampleKernel;
-            public int viewCount;
-            public float width;
-            public float height;
-        }
-
-        UpsampleSceneParameters PrepareUpsampleSceneParameters(HDCamera camera)
-        {
-            var parameters = new UpsampleSceneParameters();
-
-            parameters.upsampleSceneCS = defaultResources.shaders.upsampleSceneCS;
-            parameters.mainUpsampleKernel = parameters.upsampleSceneCS.FindKernel("MainUpsample");
-            parameters.viewCount = camera.viewCount;
-            parameters.width = camera.finalViewport.width;
-            parameters.height = camera.finalViewport.height;
-            return parameters;
-        }
-
-        static void DoUpsampleScene(
-            UpsampleSceneParameters parameters, CommandBuffer cmd,
-            RTHandle sourceColor, RTHandle sourceDepth, RTHandle sourceMotionVectors,
-            RTHandle outputColor, RTHandle outputDepth, RTHandle outputMotionVectors)
-        {
-            var mainKernel = parameters.mainUpsampleKernel;
-            if (mainKernel < 0)
-                throw new Exception(String.Format(
-                    "Invalid kernel specified for UpsampleSceneCS"));
-
-            var cs = parameters.upsampleSceneCS;
-            if (sourceColor != null)
-                cmd.SetComputeTextureParam(cs, mainKernel, HDShaderIDs._InputTexture, sourceColor);
-            cmd.SetComputeTextureParam(cs, mainKernel, HDShaderIDs._InputDepth, sourceDepth);
-            cmd.SetComputeTextureParam(cs, mainKernel, HDShaderIDs._CameraMotionVectorsTexture, sourceMotionVectors);
-
-            cmd.SetComputeTextureParam(cs, mainKernel, HDShaderIDs._OutputTexture, outputColor);
-            cmd.SetComputeTextureParam(cs, mainKernel, HDShaderIDs._OutputDepthTexture, outputDepth);
-            cmd.SetComputeTextureParam(cs, mainKernel, HDShaderIDs._OutputMotionVectorTexture, outputMotionVectors);
-
-            cmd.SetComputeVectorParam(cs, HDShaderIDs._ViewPortSize, new Vector4(parameters.width, parameters.height, 1.0f / parameters.width, 1.0f / parameters.height));
-
-            const int xThreads = 8;
-            const int yThreads = 4;
-            int dispatchX = HDUtils.DivRoundUp(Mathf.RoundToInt(parameters.width),  xThreads);
-            int dispatchY = HDUtils.DivRoundUp(Mathf.RoundToInt(parameters.height), yThreads);
-            cmd.DispatchCompute(cs, mainKernel, dispatchX, dispatchY, parameters.viewCount);
-        }
-
-        SceneUpsamplingData.Textures SceneUpsamplePass(RenderGraph renderGraph, HDCamera hdCamera, TextureHandle inputColor, TextureHandle inputDepth, TextureHandle inputMotionVectors)
-        {
-            SceneUpsamplingData.Textures outTextures;
-
-            TextureHandle upsampledColor = TextureHandle.nullHandle;
-            bool upsampleColorInScenePass = true;
-            if (m_DLSSPassEnabled)
-            {
-                upsampledColor = DoDLSSPass(renderGraph, hdCamera, inputColor, inputDepth, inputMotionVectors);
-                upsampleColorInScenePass = false;
-            }
-
-            using (var builder = renderGraph.AddRenderPass<SceneUpsamplingData>("Scene Upsampling", out var passData, ProfilingSampler.Get(HDProfileId.SceneUpsampling)))
-            {
-                passData.parameters = PrepareUpsampleSceneParameters(hdCamera);
-                passData.upsampleColor = upsampleColorInScenePass;
-
-                if (passData.upsampleColor)
-                    passData.inputTextures.color = builder.ReadTexture(inputColor);
-
-                passData.inputTextures.depthBuffer = builder.ReadTexture(inputDepth);
-                passData.inputTextures.motionVectors = builder.ReadTexture(inputMotionVectors);
-
-                if (passData.upsampleColor)
-                {
-                    passData.outputTextures.color = renderGraph.CreateTexture(new TextureDesc(Vector2.one, false, true)
-                    {
-                        name = "Resolved Color Buffer",
-                        colorFormat = renderGraph.GetTextureDesc(inputColor).colorFormat,
-                        useMipMap = false,
-                        enableRandomWrite = true
-                    });
-
-                    passData.outputTextures.color = builder.WriteTexture(passData.outputTextures.color);
-                }
-                else
-                {
-                    passData.outputTextures.color = upsampledColor;
-                }
-
-                passData.outputTextures.depthBuffer = renderGraph.CreateTexture(new TextureDesc(Vector2.one, false, true)
-                {
-                    name = "Resolved Depth Buffer",
-                    colorFormat = GraphicsFormat.R32_SFloat,
-                    useMipMap = false,
-                    enableRandomWrite = true
-                });
-                passData.outputTextures.depthBuffer = builder.WriteTexture(passData.outputTextures.depthBuffer);
-
-                passData.outputTextures.motionVectors = renderGraph.CreateTexture(new TextureDesc(Vector2.one, false, true)
-                {
-                    name = "Resolved Motion Vectors",
-                    colorFormat = renderGraph.GetTextureDesc(inputMotionVectors).colorFormat,
-                    useMipMap = false,
-                    enableRandomWrite = true
-                });
-                passData.outputTextures.motionVectors = builder.WriteTexture(passData.outputTextures.motionVectors);
-
-                builder.SetRenderFunc(
-                    (SceneUpsamplingData data, RenderGraphContext ctx) =>
-                    {
-                        DoUpsampleScene(
-                            data.parameters, ctx.cmd,
-                            data.upsampleColor ? (RTHandle)data.inputTextures.color : null,
-                            data.inputTextures.depthBuffer,
-                            data.inputTextures.motionVectors,
-                            data.outputTextures.color,
-                            data.outputTextures.depthBuffer,
-                            data.outputTextures.motionVectors);
-                    });
-                outTextures = passData.outputTextures;
-            }
-            return outTextures;
-        }
 
         private void SetCurrentResolutionGroup(RenderGraph renderGraph, HDCamera camera, ResolutionGroup newResGroup)
         {
