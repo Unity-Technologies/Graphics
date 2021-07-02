@@ -96,7 +96,7 @@ namespace UnityEditor.Rendering.HighDefinition
             DrawHeader(label);
 
             PropertyField(map.cloudMap);
-            using (new HDEditorUtils.IndentScope())
+            using (new IndentLevelScope())
             {
                 for (int i = 0; i < 4; i++)
                     PropertyField(map.opacities[i]);
@@ -107,7 +107,7 @@ namespace UnityEditor.Rendering.HighDefinition
             PropertyField(map.exposure);
 
             PropertyField(map.distortion);
-            using (new HDEditorUtils.IndentScope())
+            using (new IndentLevelScope())
             {
                 PropertyField(map.scrollDirection, scrollLabel);
                 PropertyField(map.scrollSpeed);
@@ -118,7 +118,7 @@ namespace UnityEditor.Rendering.HighDefinition
             }
 
             PropertyField(map.lighting);
-            using (new HDEditorUtils.IndentScope())
+            using (new IndentLevelScope())
             {
                 PropertyField(map.steps);
                 PropertyField(map.thickness);

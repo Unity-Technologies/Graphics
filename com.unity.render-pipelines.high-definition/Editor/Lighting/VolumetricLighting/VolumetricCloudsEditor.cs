@@ -169,7 +169,7 @@ namespace UnityEditor.Rendering.HighDefinition
             PropertyField(m_CloudControl);
             VolumetricClouds.CloudControl controlMode = (VolumetricClouds.CloudControl)m_CloudControl.value.enumValueIndex;
             bool hasCloudMap = true;
-            using (new HDEditorUtils.IndentScope())
+            using (new IndentLevelScope())
             {
                 bool needsIntendation = false;
                 if (controlMode == VolumetricClouds.CloudControl.Advanced)
@@ -202,21 +202,24 @@ namespace UnityEditor.Rendering.HighDefinition
                 VolumetricClouds.CloudPresets controlPreset = (VolumetricClouds.CloudPresets)m_CloudPreset.value.enumValueIndex;
                 if ((controlMode != VolumetricClouds.CloudControl.Simple) || controlMode == VolumetricClouds.CloudControl.Simple && controlPreset == VolumetricClouds.CloudPresets.Custom)
                 {
-                    using (new HDEditorUtils.IndentScope(needsIntendation ? 16 : 0))
+                    using (new IndentLevelScope(needsIntendation ? 16 : 0))
                     {
+                        PropertyField(m_DensityMultiplier);
                         if (controlMode == VolumetricClouds.CloudControl.Simple)
                         {
                             PropertyField(m_CustomDensityCurve);
-                            PropertyField(m_CustomErosionCurve);
-                            PropertyField(m_CustomAmbientOcclusionCurve);
                         }
-                        PropertyField(m_DensityMultiplier);
                         PropertyField(m_ShapeFactor);
                         PropertyField(m_ShapeScale);
                         PropertyField(m_ShapeOffsetX);
                         PropertyField(m_ShapeOffsetZ);
                         PropertyField(m_ErosionFactor);
                         PropertyField(m_ErosionScale);
+                        if (controlMode == VolumetricClouds.CloudControl.Simple)
+                        {
+                            PropertyField(m_CustomErosionCurve);
+                            PropertyField(m_CustomAmbientOcclusionCurve);
+                        }
                     }
                 }
                 else
@@ -232,20 +235,13 @@ namespace UnityEditor.Rendering.HighDefinition
 
             DrawHeader("Wind");
             PropertyField(m_GlobalWindSpeed);
-            using (new HDEditorUtils.IndentScope())
+            using (new IndentLevelScope())
             {
                 PropertyField(m_Orientation);
                 if (hasCloudMap)
                     PropertyField(m_CloudMapSpeedMultiplier);
                 PropertyField(m_ShapeSpeedMultiplier);
                 PropertyField(m_ErosionSpeedMultiplier);
-            }
-
-            DrawHeader("Quality");
-            {
-                PropertyField(m_TemporalAccumulationFactor);
-                PropertyField(m_NumPrimarySteps);
-                PropertyField(m_NumLightSteps);
             }
 
             DrawHeader("Lighting");
@@ -260,7 +256,7 @@ namespace UnityEditor.Rendering.HighDefinition
             DrawHeader("Shadows");
             {
                 PropertyField(m_Shadows);
-                using (new HDEditorUtils.IndentScope())
+                using (new IndentLevelScope())
                 {
                     PropertyField(m_ShadowResolution);
                     PropertyField(m_ShadowOpacity);
@@ -268,6 +264,13 @@ namespace UnityEditor.Rendering.HighDefinition
                     PropertyField(m_ShadowPlaneHeightOffset);
                     PropertyField(m_ShadowOpacityFallback);
                 }
+            }
+
+            DrawHeader("Quality");
+            {
+                PropertyField(m_TemporalAccumulationFactor);
+                PropertyField(m_NumPrimarySteps);
+                PropertyField(m_NumLightSteps);
             }
         }
     }
