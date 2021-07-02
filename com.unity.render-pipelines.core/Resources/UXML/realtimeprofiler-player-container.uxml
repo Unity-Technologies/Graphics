@@ -1,7 +1,0 @@
-<ui:UXML xmlns:ui="UnityEngine.UIElements" xmlns:uie="UnityEditor.UIElements" editor-extension-mode="False">
-    <ui:Template name="ContentTemplate" src="realtimeprofiler-content.uxml" />
-    <Style src="../Styles/realtimeprofiler-player-container.uss" />
-    <ui:VisualElement name="Container" style="width: 50%; min-width: 400px;">
-        <ui:Instance name="Content" template="ContentTemplate" />
-    </ui:VisualElement>
-</ui:UXML>

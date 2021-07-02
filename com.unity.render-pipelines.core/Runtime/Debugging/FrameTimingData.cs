@@ -7,10 +7,9 @@ using Unity.Profiling;
 using UnityEngine;
 using UnityEngine.Rendering;
 
-// TODO: Prototype stuff, should not be a MonoBehaviour?
-public class RealtimeProfilerModel : MonoBehaviour
+public class FrameTimingData
 {
-    #if RTPROFILER_DEBUG
+#if RTPROFILER_DEBUG
     ProfilerCounterValue<float> m_FullFrameTimeCounter              = new ProfilerCounterValue<float>(ProfilerCategory.Render, "Full Frame Time", ProfilerMarkerDataUnit.TimeNanoseconds);
     ProfilerCounterValue<float> m_MainThreadCPUFrameTimeCounter     = new ProfilerCounterValue<float>(ProfilerCategory.Render, "Main Thread CPU Frame Time", ProfilerMarkerDataUnit.TimeNanoseconds);
     ProfilerCounterValue<float> m_RenderThreadCPUFrameTimeCounter   = new ProfilerCounterValue<float>(ProfilerCategory.Render, "Render Thread CPU Frame Time", ProfilerMarkerDataUnit.TimeNanoseconds);
@@ -27,6 +26,9 @@ public class RealtimeProfilerModel : MonoBehaviour
     ProfilerCounterValue<float> m_BalancedCounter           = new ProfilerCounterValue<float>(ProfilerCategory.Render, "Balanced", ProfilerMarkerDataUnit.Percent);
 #endif
 
+    /// <summary>
+    /// Represents timing data captured from a single frame.
+    /// </summary>
     public struct FrameTimeSample
     {
         public float FullFrameTime;
@@ -35,13 +37,21 @@ public class RealtimeProfilerModel : MonoBehaviour
         public float GPUFrameTime;
     };
 
-    List<FrameTimeSample> Samples = new List<FrameTimeSample>();
+    /// <summary>
+    /// Frame timing data representing data average over the Frame Time History Window.
+    /// </summary>
+    public FrameTimeSample AveragedSample;
 
-    public FrameTimeSample AverageSample = new FrameTimeSample();
+    /// <summary>
+    /// Size of the Frame Time History Window.
+    /// </summary>
+    public int HistorySize { get; set; } = 30;
 
-    // Contains proportional values [0, 1] that describe the amount of samples classified to each
-    // category over the size of the bottleneck history. Indeterminate values are discarded.
-    public struct BottleneckStat
+    /// <summary>
+    /// Proportional percentages between different bottleneck categories, representing the portion of
+    /// samples classified into each bottleneck category over the Bottleneck History Window.
+    /// </summary>
+    public struct Bottlenecks
     {
         public float PresentLimited;
         public float CPU;
@@ -49,11 +59,19 @@ public class RealtimeProfilerModel : MonoBehaviour
         public float Balanced;
     };
 
-    public BottleneckStat BottleneckStats;
+    /// <summary>
+    /// See <see cref="Bottlenecks"/>
+    /// </summary>
+    public Bottlenecks BottleneckStats;
+
+    /// <summary>
+    /// Size of the Bottleneck History Window in number of samples.
+    /// </summary>
+    public int BottleneckHistorySize { get; set; } = 60;
 
     FrameTiming[] m_Timing = new FrameTiming[1];
 
-    public int HistorySize { get; set; } = 1;
+    List<FrameTimeSample> m_Samples = new List<FrameTimeSample>();
 
     enum PerformanceBottleneck
     {
@@ -66,15 +84,16 @@ public class RealtimeProfilerModel : MonoBehaviour
 
     List<PerformanceBottleneck> m_BottleneckHistory = new List<PerformanceBottleneck>();
 
-    public int BottleneckHistorySize { get; set; } = 100;
-
-    void Update()
+    /// <summary>
+    /// Update timing data from profiling counters.
+    /// </summary>
+    public void UpdateFrameTiming()
     {
         FrameTimingManager.CaptureFrameTimings();
         FrameTimingManager.GetLatestTimings(1, m_Timing);
 
-        while (Samples.Count >= HistorySize)
-            Samples.RemoveAt(0);
+        while (m_Samples.Count >= HistorySize)
+            m_Samples.RemoveAt(0);
 
         FrameTimeSample frameTime = new FrameTimeSample();
 
@@ -83,10 +102,10 @@ public class RealtimeProfilerModel : MonoBehaviour
         frameTime.RenderThreadCPUFrameTime      = (float)m_Timing.First().cpuRenderThreadFrameTime;
         frameTime.GPUFrameTime                  = (float)m_Timing.First().gpuFrameTime;
 
-        Samples.Add(frameTime);
+        m_Samples.Add(frameTime);
 
         ComputeAverages();
-        var bottleneck = DetermineBottleneck(AverageSample);
+        var bottleneck = DetermineBottleneck(AveragedSample);
 
         while (m_BottleneckHistory.Count > BottleneckHistorySize)
         {
@@ -116,15 +135,15 @@ public class RealtimeProfilerModel : MonoBehaviour
 
     void ComputeAverages()
     {
-        AverageSample.FullFrameTime               = Samples.Average(s => s.FullFrameTime);
-        AverageSample.MainThreadCPUFrameTime      = Samples.Average(s => s.MainThreadCPUFrameTime);
-        AverageSample.RenderThreadCPUFrameTime    = Samples.Average(s => s.RenderThreadCPUFrameTime);
-        AverageSample.GPUFrameTime                = Samples.Average(s => s.GPUFrameTime);
+        AveragedSample.FullFrameTime               = m_Samples.Average(s => s.FullFrameTime);
+        AveragedSample.MainThreadCPUFrameTime      = m_Samples.Average(s => s.MainThreadCPUFrameTime);
+        AveragedSample.RenderThreadCPUFrameTime    = m_Samples.Average(s => s.RenderThreadCPUFrameTime);
+        AveragedSample.GPUFrameTime                = m_Samples.Average(s => s.GPUFrameTime);
     }
 
-    BottleneckStat ComputeBottleneckStats()
+    Bottlenecks ComputeBottleneckStats()
     {
-        var stats = new BottleneckStat();
+        var stats = new Bottlenecks();
         m_BottleneckHistory.ForEach((PerformanceBottleneck bottleneck) =>
         {
             switch (bottleneck)
@@ -157,7 +176,7 @@ public class RealtimeProfilerModel : MonoBehaviour
         if (s.GPUFrameTime == 0 || s.MainThreadCPUFrameTime == 0 || s.RenderThreadCPUFrameTime == 0)
             return PerformanceBottleneck.Indeterminate; // Missing data
 
-        const float balancedThreshold = 0.1f;
+        const float balancedThreshold = 0.2f;
         float fullFrameTimeWithMargin = (1f - balancedThreshold) * s.FullFrameTime;
 
         // GPU time is close to frame time, CPU times are not

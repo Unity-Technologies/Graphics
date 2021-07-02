@@ -342,6 +342,11 @@ namespace UnityEngine.Rendering.HighDefinition
                 lightingFulscreenDebugModeEnumIndex = 0;
                 renderingFulscreenDebugModeEnumIndex = 0;
             }
+
+            /// <summary>
+            /// Frame timing data.
+            /// </summary>
+            internal FrameTimingData frameTimingData;
         }
         DebugData m_Data;
 
@@ -974,6 +979,68 @@ namespace UnityEngine.Rendering.HighDefinition
             list.Add(new DebugUI.Value { displayName = "Frame Rate (fps)", getter = () => 1f / Time.smoothDeltaTime, refreshRate = 1f / 5f });
             list.Add(new DebugUI.Value { displayName = "Frame Time (ms)", getter = () => Time.smoothDeltaTime * 1000f, refreshRate = 1f / 5f });
 
+            list.Add(new DebugUI.Foldout
+            {
+                displayName = "Realtime Profiler",
+                children =
+                {
+                    new DebugUI.IntField
+                    {
+                        displayName = "Frame Time History Size",
+                        getter = () => m_Data.frameTimingData?.HistorySize ?? 0,
+                        setter = (value) =>
+                        {
+                            if (m_Data.frameTimingData != null)
+                                m_Data.frameTimingData.HistorySize = value;
+                        },
+                        min = () => 1,
+                        max = () => 100
+                    },
+                    new DebugUI.Value
+                    {
+                        displayName = "CPU Full Frame (ms)",
+                        getter = () => m_Data.frameTimingData?.AveragedSample.FullFrameTime ?? 0f
+                    },
+                    new DebugUI.Value
+                    {
+                        displayName = "CPU Main Thread Frame (ms)",
+                        getter = () => m_Data.frameTimingData?.AveragedSample.MainThreadCPUFrameTime ?? 0f
+                    },
+                    new DebugUI.Value
+                    {
+                        displayName = "CPU Render Thread Frame (ms)",
+                        getter = () => m_Data.frameTimingData?.AveragedSample.RenderThreadCPUFrameTime ?? 0f
+                    },
+                    new DebugUI.Value
+                    {
+                        displayName = "GPU Frame (ms)",
+                        getter = () => m_Data.frameTimingData?.AveragedSample.GPUFrameTime ?? 0f
+                    },
+                    new DebugUI.Container
+                    {
+                        displayName = "Bottlenecks",
+                        children =
+                        {
+                            new DebugUI.IntField
+                            {
+                                displayName = "Bottleneck History Size",
+                                getter = () => m_Data.frameTimingData?.BottleneckHistorySize ?? 0,
+                                setter = (value) =>
+                                {
+                                    if (m_Data.frameTimingData != null)
+                                        m_Data.frameTimingData.BottleneckHistorySize = value;
+                                },
+                                min = () => 1,
+                                max = () => 100
+                            },
+                            new DebugUI.ProgressBarValue { displayName = "CPU", getter = () => m_Data.frameTimingData?.BottleneckStats.CPU ?? 0f },
+                            new DebugUI.ProgressBarValue { displayName = "GPU", getter = () => m_Data.frameTimingData?.BottleneckStats.GPU ?? 0f },
+                            new DebugUI.ProgressBarValue { displayName = "Present limited", getter = () => m_Data.frameTimingData?.BottleneckStats.PresentLimited ?? 0f },
+                            new DebugUI.ProgressBarValue { displayName = "Balanced", getter = () => m_Data.frameTimingData?.BottleneckStats.Balanced ?? 0f },
+                        }
+                    }
+                }
+            });
 
             EnableProfilingRecorders();
             list.Add(new DebugUI.BoolField { displayName = "Update every second with average", getter = () => data.averageProfilerTimingsOverASecond, setter = value => data.averageProfilerTimingsOverASecond = value });
@@ -1920,6 +1987,8 @@ namespace UnityEngine.Rendering.HighDefinition
 
         internal void RegisterDebug()
         {
+            m_Data.frameTimingData = DebugManager.instance.FrameTimingData;
+
             RegisterDecalsDebug();
             RegisterDisplayStatsDebug();
             RegisterMaterialDebug();
@@ -1931,6 +2000,8 @@ namespace UnityEngine.Rendering.HighDefinition
 
         internal void UnregisterDebug()
         {
+            m_Data.frameTimingData = null;
+
             UnregisterDebugItems(k_PanelDecals, m_DebugDecalsAffectingTransparentItems);
 
             DisableProfilingRecorders();
