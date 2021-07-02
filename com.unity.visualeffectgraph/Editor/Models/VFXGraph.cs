@@ -23,6 +23,8 @@ namespace UnityEditor.VFX
     {
         static void OnPostprocessAllAssets(string[] importedAssets, string[] deletedAssets, string[] movedAssets, string[] movedFromAssetPaths)
         {
+            List<string> assetToReimport = null;
+
             foreach (var assetPath in importedAssets)
             {
                 bool isVFX = VisualEffectAssetModicationProcessor.HasVFXExtension(assetPath);
@@ -38,8 +40,9 @@ namespace UnityEditor.VFX
                         graph.SanitizeForImport();
                         if (!wasGraphSanitized && graph.sanitized)
                         {
-                            //Relaunch previously skipped OnCompileResource
-                            AssetDatabase.ImportAsset(assetPath, ImportAssetOptions.ForceUpdate);
+                            if (assetToReimport == null)
+                                assetToReimport = new List<string>();
+                            assetToReimport.Add(assetPath);
                         }
                     }
                     else
@@ -47,6 +50,13 @@ namespace UnityEditor.VFX
                         Debug.LogError("VisualEffectGraphResource without graph");
                     }
                 }
+            }
+
+            //Relaunch previously skipped OnCompileResource
+            if (assetToReimport != null)
+            {
+                foreach (var assetPath in assetToReimport)
+                    AssetDatabase.ImportAsset(assetPath, ImportAssetOptions.ForceUpdate);
             }
         }
 
