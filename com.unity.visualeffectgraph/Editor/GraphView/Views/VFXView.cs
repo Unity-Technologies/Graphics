@@ -151,7 +151,7 @@ namespace UnityEditor.VFX.UI
                     GUI.enabled = isAttached;
                     if (GUILayout.Button(new GUIContent(attachedName, isAttached ? "Click to select" : null), GUILayout.Height(24), GUILayout.MinWidth(60)))
                     {
-                        Debug.Log("Select in hierarchy...");
+                        Selection.activeObject = this.m_vfxView.attachedComponent;
                     }
                 }
 
