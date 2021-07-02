@@ -20,7 +20,13 @@ namespace UnityEditor.VFX
             get
             {
                 yield return new VFXAttributeInfo(VFXAttribute.Position, VFXAttributeMode.Read);
+                // if (sortCriterion == VFXAbstractParticleOutput.SortCriteria.YoungestInFront ||
+                //     sortCriterion == VFXAbstractParticleOutput.SortCriteria.OldestInFront)
+                // {
+                //     yield return new VFXAttributeInfo(VFXAttribute.Age, VFXAttributeMode.Read);
+                // }
             }
+
         }
 
         public override VFXExpressionMapper GetExpressionMapper(VFXDeviceTarget target)
@@ -29,7 +35,8 @@ namespace UnityEditor.VFX
             if (localSpace && target == VFXDeviceTarget.GPU) // Needs to add locaToWorld matrix
             {
                 var gpuMapper = new VFXExpressionMapper();
-                gpuMapper.AddExpression(VFXBuiltInExpression.LocalToWorld, "localToWorld", -1);
+                gpuMapper.AddExpression(VFXBuiltInExpression.LocalToWorld, "unity_ObjectToWorld", -1);
+                gpuMapper.AddExpression(VFXBuiltInExpression.WorldToLocal, "unity_WorldToObject", -1);
                 return gpuMapper;
             }
 

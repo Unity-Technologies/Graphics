@@ -16,8 +16,9 @@ namespace UnityEditor.VFX
             Culling         = 1 << 2 | IndirectDraw,
             MultiMesh       = 1 << 3 | Culling,
             LOD             = 1 << 4 | Culling,
-            Sort            = 1 << 5 | IndirectDraw,
-            FrustumCulling  = 1 << 6 | IndirectDraw,
+            Sort            = 1 << 5 | Culling,
+            CameraSort      = 1 << 6 | IndirectDraw,
+            FrustumCulling  = 1 << 7 | IndirectDraw,
         }
 
         public VFXOutputUpdate() : base(VFXContextType.Filter, VFXDataType.Particle, VFXDataType.Particle) {}
@@ -31,6 +32,7 @@ namespace UnityEditor.VFX
                 throw new InvalidOperationException("Unexpected SetOutput called twice, supposed to be call only once after construction");
 
             features = output.outputUpdateFeatures;
+            sortCriterion = output.GetSortCriterion();
 
             if (features == VFXOutputUpdate.Features.None)
                 throw new ArgumentException("This output does not need an output update pass");
@@ -39,6 +41,8 @@ namespace UnityEditor.VFX
         }
 
         private Features features = Features.None;
+
+        private VFXAbstractParticleOutput.SortCriteria sortCriterion = VFXAbstractParticleOutput.SortCriteria.Distance;
 
         public static bool HasFeature(Features flags, Features feature)
         {
@@ -49,7 +53,7 @@ namespace UnityEditor.VFX
         {
             return HasFeature(flags, Features.MotionVector)
                 || HasFeature(flags, Features.LOD)
-                || HasFeature(flags, Features.Sort)
+                || HasFeature(flags, Features.CameraSort)
                 || HasFeature(flags, Features.FrustumCulling);
         }
 
@@ -126,6 +130,21 @@ namespace UnityEditor.VFX
                 //Since it's a compute shader without renderer associated, these entries aren't automatically sent
                 expressionMapper.AddExpression(VFXBuiltInExpression.LocalToWorld, "unity_ObjectToWorld", -1);
                 expressionMapper.AddExpression(VFXBuiltInExpression.WorldToLocal, "unity_WorldToObject", -1);
+                if (m_Output.HasCustomSortingCriterion())
+                {
+                    try
+                    {
+                        var sortKeyExp = m_Output.inputSlots.First(s => s.name == "sortKey").GetExpression();
+                        expressionMapper.AddExpression(sortKeyExp, "sortKey", -1);
+                    }
+                    catch (Exception e)
+                    {
+                        Console.WriteLine(e);
+                        throw;
+                    }
+                }
+
+
 
                 return expressionMapper;
             }
@@ -175,6 +194,12 @@ namespace UnityEditor.VFX
 
                 if (HasFeature(Features.MotionVector) && output is VFXLineOutput)
                     yield return new VFXAttributeInfo(VFXAttribute.TargetPosition, VFXAttributeMode.Read);
+
+                if (sortCriterion == VFXAbstractParticleOutput.SortCriteria.YoungestInFront ||
+                    sortCriterion == VFXAbstractParticleOutput.SortCriteria.OldestInFront)
+                {
+                    yield return new VFXAttributeInfo(VFXAttribute.Age, VFXAttributeMode.Read);
+                }
             }
         }
 
@@ -195,8 +220,29 @@ namespace UnityEditor.VFX
                 }
                 if (HasFeature(Features.LOD))
                     yield return "VFX_FEATURE_LOD";
-                if (HasFeature(Features.Sort))
+                if (HasFeature(Features.CameraSort))
                     yield return "VFX_FEATURE_SORT";
+                switch (m_Output.GetSortCriterion())
+                {
+                    case VFXAbstractParticleOutput.SortCriteria.Custom:
+                        yield return "VFX_CUSTOM_SORT_KEY";
+                        break;
+                    case VFXAbstractParticleOutput.SortCriteria.Depth:
+                        yield return "VFX_DEPTH_SORT_KEY";
+                        break;
+                    case VFXAbstractParticleOutput.SortCriteria.Distance:
+                        yield return "VFX_DISTANCE_SORT_KEY";
+                        break;
+                    case VFXAbstractParticleOutput.SortCriteria.YoungestInFront:
+                        yield return "VFX_YOUNGEST_SORT_KEY";
+                        break;
+                    case VFXAbstractParticleOutput.SortCriteria.OldestInFront:
+                        yield return "VFX_OLDEST_SORT_KEY";
+                        break;
+                    default:
+                        throw new NotImplementedException("This Sorting criteria is missing an Additional Define");
+                }
+
                 if (HasFeature(Features.FrustumCulling))
                     yield return "VFX_FEATURE_FRUSTUM_CULL";
             }

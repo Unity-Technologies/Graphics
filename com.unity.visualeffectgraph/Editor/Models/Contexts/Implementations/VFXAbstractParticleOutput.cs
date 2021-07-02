@@ -58,6 +58,15 @@ namespace UnityEditor.VFX
             Off,
             On
         }
+
+        public enum SortCriteria
+        {
+            Distance,
+            YoungestInFront,
+            OldestInFront,
+            Depth,
+            Custom,
+        }
         protected enum StripTilingMode
         {
             Stretch,
@@ -95,6 +104,9 @@ namespace UnityEditor.VFX
         [VFXSetting(VFXSettingAttribute.VisibleFlags.InInspector), SerializeField, Tooltip("Specifies whether to use GPU sorting for transparent particles.")]
         protected SortMode sort = SortMode.Auto;
 
+        [VFXSetting(VFXSettingAttribute.VisibleFlags.InInspector), SerializeField, Tooltip("Specifies the sorting criterion.")]
+        protected SortCriteria sortCriterion = SortCriteria.Distance;
+
         [VFXSetting(VFXSettingAttribute.VisibleFlags.InInspector), SerializeField, Tooltip("When enabled, the system will only output alive particles, as opposed to rendering all particles and culling dead ones in the vertex shader. Enable to improve performance when the system capacity is not reached or a high number of vertices per particle are used.")]
         protected bool indirectDraw = false;
 
@@ -127,9 +139,18 @@ namespace UnityEditor.VFX
 
         public bool HasIndirectDraw()   { return (indirectDraw || HasSorting() || VFXOutputUpdate.HasFeature(outputUpdateFeatures, VFXOutputUpdate.Features.IndirectDraw)) && !HasStrips(true); }
         public virtual bool HasSorting() { return (sort == SortMode.On || (sort == SortMode.Auto && (blendMode == BlendMode.Alpha || blendMode == BlendMode.AlphaPremultiplied))) && !HasStrips(true); }
+
+        public bool HasCustomSortingCriterion() { return sortCriterion == SortCriteria.Custom; }
         public bool HasComputeCulling() { return computeCulling && !HasStrips(true); }
         public bool HasFrustumCulling() { return frustumCulling && !HasStrips(true); }
         public bool NeedsOutputUpdate() { return outputUpdateFeatures != VFXOutputUpdate.Features.None; }
+
+        public SortCriteria GetSortCriterion() { return sortCriterion; }
+
+        public static bool IsPerCamera(SortCriteria criteria)
+        {
+            return criteria == SortCriteria.Depth || criteria == SortCriteria.Distance;
+        }
 
         public virtual VFXOutputUpdate.Features outputUpdateFeatures
         {
@@ -141,7 +162,12 @@ namespace UnityEditor.VFX
                 if (HasComputeCulling())
                     features |= VFXOutputUpdate.Features.Culling;
                 if (HasSorting() && VFXOutputUpdate.HasFeature(features, VFXOutputUpdate.Features.IndirectDraw))
-                    features |= VFXOutputUpdate.Features.Sort;
+                {
+                    if (IsPerCamera(sortCriterion))
+                        features |= VFXOutputUpdate.Features.CameraSort;
+                    else
+                        features |= VFXOutputUpdate.Features.Sort;
+                }
                 if (HasFrustumCulling())
                     features |= VFXOutputUpdate.Features.FrustumCulling;
                 return features;
@@ -302,6 +328,12 @@ namespace UnityEditor.VFX
             public Gradient gradient = VFXResources.defaultResources.gradientMapRamp;
         }
 
+        public class InputPropertiesSortKey
+        {
+            [Tooltip("The value used to sort the outputs. Lower values are rendered first, and thus appear behind.")]
+            public float sortKey = 0.0f;
+        }
+
         protected override IEnumerable<VFXPropertyWithValue> inputProperties
         {
             get
@@ -349,6 +381,11 @@ namespace UnityEditor.VFX
 
                 if (hasExposure && useExposureWeight)
                     yield return new VFXPropertyWithValue(new VFXProperty(typeof(float), "exposureWeight", new RangeAttribute(0.0f, 1.0f)), 1.0f);
+                if (HasCustomSortingCriterion())
+                {
+                    foreach (var property in PropertiesFromType("InputPropertiesSortKey"))
+                        yield return property;
+                }
             }
         }
 
@@ -495,6 +532,10 @@ namespace UnityEditor.VFX
                 }
                 if (!subOutput.supportsExcludeFromTAA)
                     yield return "excludeFromTAA";
+                if (sort == SortMode.Off)
+                {
+                    yield return "sortCriterion";
+                }
             }
         }
 

@@ -910,7 +910,7 @@ namespace UnityEditor.VFX
                     boundsBufferIndex = bufferDescs.Count;
                     bufferDescs.Add(new VFXGPUBufferDesc(){type = ComputeBufferType.Default, size = 6, stride = 4});
                 }
-                buffers.boundsBuffers.Add(data, boundsBufferIndex); // TODO Ludovic : Fill the data index and stuff
+                buffers.boundsBuffers.Add(data, boundsBufferIndex);
             }
 
             //Prepare GPU event buffer

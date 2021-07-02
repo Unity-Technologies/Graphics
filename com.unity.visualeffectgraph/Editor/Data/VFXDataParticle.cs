@@ -747,7 +747,7 @@ namespace UnityEditor.VFX
                         uint bufferCount = culler.bufferCount;
                         culler.bufferIndex = outBufferDescs.Count;
                         bool perCamera = culler.isPerCamera;
-                        uint bufferStride = culler.HasFeature(VFXOutputUpdate.Features.Sort) ? 8u : 4u;
+                        uint bufferStride = culler.HasFeature(VFXOutputUpdate.Features.CameraSort) ? 8u : 4u;
                         for (uint i = 0; i < bufferCount; ++i)
                         {
                             string bufferName = "indirectBuffer" + currentIndirectBufferIndex++;
@@ -757,7 +757,7 @@ namespace UnityEditor.VFX
                             outBufferDescs.Add(new VFXGPUBufferDesc() { type = ComputeBufferType.Counter, size = capacity, stride = bufferStride });
                         }
 
-                        if (culler.HasFeature(VFXOutputUpdate.Features.Sort))
+                        if (culler.HasFeature(VFXOutputUpdate.Features.CameraSort))
                         {
                             culler.sortedBufferIndex = outBufferDescs.Count;
                             for (uint i = 0; i < bufferCount; ++i)
@@ -772,8 +772,8 @@ namespace UnityEditor.VFX
             // sort buffers
             int sortBufferAIndex = -1;
             int sortBufferBIndex = -1;
-            bool needsSort = NeedsGlobalSort();
-            if (needsSort)
+            bool needsGlobalSort = NeedsGlobalSort();
+            if (needsGlobalSort)
             {
                 sortBufferAIndex = outBufferDescs.Count;
                 sortBufferBIndex = sortBufferAIndex + 1;
@@ -967,12 +967,15 @@ namespace UnityEditor.VFX
                 {
                     var update = (VFXOutputUpdate)context;
 
-                    if (update.HasFeature(VFXOutputUpdate.Features.Sort))
+                    if (update.HasFeature(VFXOutputUpdate.Features.CameraSort) || update.HasFeature(VFXOutputUpdate.Features.Sort) )
                     {
                         for (int j = 0; j < update.bufferCount; ++j)
                         {
                             VFXEditorTaskDesc sortTaskDesc = new VFXEditorTaskDesc();
                             sortTaskDesc.type = UnityEngine.VFX.VFXTaskType.PerCameraSort;
+                            // sortTaskDesc.type = update.HasFeature(VFXOutputUpdate.Features.CameraSort)
+                            //     ? UnityEngine.VFX.VFXTaskType.PerCameraSort
+                            //     : UnityEngine.VFX.VFXTaskType.CameraAgnosticSort;
                             sortTaskDesc.externalProcessor = null;
                             sortTaskDesc.model = context;
 

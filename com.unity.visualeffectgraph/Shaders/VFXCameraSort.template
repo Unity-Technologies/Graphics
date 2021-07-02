@@ -3,6 +3,8 @@ ${VFXGlobalInclude}
 ${VFXGlobalDeclaration}
 ${VFXPerPassInclude}
 
+
+
 CBUFFER_START(params)
     uint nbMax;
     uint dispatchWidth;
@@ -39,17 +41,16 @@ void CSMain(uint3 groupId          : SV_GroupID,
 	if (id < threshold)
 	{
 		uint index = inputBuffer[id];
-		
+
 		Attributes attributes = (Attributes)0;
 		${VFXLoadAttributes:{position}}
-		
+
 #if VFX_LOCAL_SPACE
-		float3 wPos = mul(localToWorld,float4(attributes.position,1.0f)).xyz;
+        float3 posRWS = TransformObjectToWorld(attributes.position);
 #else
-		float3 wPos = attributes.position;
+        float3 posRWS = GetCameraRelativePositionWS(attributes.position);
 #endif
-		float3 camToPos = wPos - cameraPosition;
-		
+        float3 camToPos = posRWS - GetCurrentViewPosition();
 		Kvp kvp;
 		kvp.sortKey = dot(camToPos,camToPos); // sqr distance to the camera
 		kvp.index = index;
