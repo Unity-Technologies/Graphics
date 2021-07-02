@@ -558,10 +558,10 @@ real4 IntegrateLDCharlie(TEXTURECUBE_PARAM(tex, sampl),
     {
         // generate sample using stratified sampling of the hemisphere
         float3 localL = SampleConeStrata(i, rcpNumSamples, 0.0f);
+        float NdotL = localL.z;
 
         // Convert it to world space
         real3 L = mul(localL, localToWorld);
-        float NdotL = dot(N, L);
 
         // The goal of this function is to use Monte-Carlo integration to find
         // X = Integral{Radiance(L) * CBSDF(L, N, V) dL} / Integral{CBSDF(L, N, V) dL}.
@@ -587,11 +587,13 @@ real4 IntegrateLDCharlie(TEXTURECUBE_PARAM(tex, sampl),
         real3 val = SAMPLE_TEXTURECUBE_LOD(tex, sampl, L, mipLevel).rgb;
 
         // Use the approximation from "Real Shading in Unreal Engine 4": Weight ~ NdotL.
-        lightInt += val * F * D * Vis;
-        cbsdfInt += F * D * Vis;
+        float w = F * D * Vis * NdotL;
+        lightInt += val * w;
+        cbsdfInt += w;
     }
 
-    return real4(0.5f * lightInt / cbsdfInt, 1.0); // note, the 0.5 multiplier is to better match the reference, but it's unknown why it's needed
+    float adhocFactor = PI / 2.0f; // todo: this factor is to make close match with the reference model, needs to be investigated why
+    return real4(adhocFactor * lightInt / cbsdfInt, 1.0);
 }
 
 
