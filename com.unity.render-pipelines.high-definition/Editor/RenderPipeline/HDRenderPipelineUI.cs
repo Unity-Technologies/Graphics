@@ -11,7 +11,7 @@ namespace UnityEditor.Rendering.HighDefinition
 
     static partial class HDRenderPipelineUI
     {
-        enum Expandable
+        internal enum Expandable
         {
             // Obsolete values
             Rendering = 1 << 4,

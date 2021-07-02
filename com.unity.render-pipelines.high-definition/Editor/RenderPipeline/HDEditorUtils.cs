@@ -276,6 +276,72 @@ namespace UnityEditor.Rendering.HighDefinition
             labelPosition.x += EditorGUI.indentLevel * 15;
             EditorGUI.HandlePrefixLabel(totalPosition, labelPosition, label);
         }
+
+        internal static void QualitySettingsHelpBox(string message, MessageType type, HDRenderPipelineUI.Expandable uiSection, string propertyPath)
+        {
+            if (HelpBoxWithButton(message, type))
+            {
+                SettingsService.OpenProjectSettings("Project/Quality/HDRP");
+                HDRenderPipelineUI.Inspector.Expand((int)uiSection);
+                Highlighter.Highlight("Project Settings", propertyPath, HighlightSearchMode.Identifier);
+                GUIUtility.ExitGUI();
+            }
+        }
+
+        internal static void GlobalSettingsHelpBox(string message, MessageType type, string propertyPath)
+        {
+            if (HelpBoxWithButton(message, type))
+            {
+                SettingsService.OpenProjectSettings("Project/Graphics/HDRP Global Settings");
+                Highlighter.Highlight("Project Settings", propertyPath);
+                GUIUtility.ExitGUI();
+            }
+        }
+
+        internal static bool HelpBoxWithButton(string message, MessageType type, string buttonLabel = "Open")
+        {
+            var icon = "console.infoicon";
+            switch (type)
+            {
+                case MessageType.Error:
+                    icon = "console.erroricon";
+                    break;
+                case MessageType.Warning:
+                    icon = "console.warnicon";
+                    break;
+            }
+            var label = new GUIContent(message, EditorGUIUtility.IconContent(icon).image);
+            var style = new GUIStyle() { imagePosition = ImagePosition.ImageLeft, fontSize = 10, wordWrap = true };
+            style.normal.textColor = EditorStyles.helpBox.normal.textColor;
+
+            EditorGUILayout.BeginHorizontal();
+
+            float indent = EditorGUI.indentLevel * 15 - EditorStyles.helpBox.margin.left;
+            GUILayoutUtility.GetRect(indent, EditorGUIUtility.singleLineHeight, EditorStyles.helpBox, GUILayout.ExpandWidth(false));
+
+            Rect leftRect = GUILayoutUtility.GetRect(new GUIContent(buttonLabel), EditorStyles.miniButton, GUILayout.ExpandWidth(false));
+            Rect rect = GUILayoutUtility.GetRect(label, EditorStyles.helpBox);
+            Rect boxRect = new Rect(leftRect.x, rect.y, rect.xMax - leftRect.xMin, rect.height);
+
+            int oldIndent = EditorGUI.indentLevel;
+            EditorGUI.indentLevel = 0;
+
+            if (Event.current.type == EventType.Repaint)
+                EditorStyles.helpBox.Draw(boxRect, false, false, false, false);
+
+            Rect labelRect = new Rect(boxRect.x + 4, boxRect.y + 3, rect.width - 8, rect.height);
+            EditorGUI.LabelField(labelRect, label, style);
+
+            var buttonRect = leftRect;
+            buttonRect.x += rect.width - 2;
+            buttonRect.y = rect.yMin + (rect.height - EditorGUIUtility.singleLineHeight) / 2;
+            bool clicked = GUI.Button(buttonRect, buttonLabel);
+
+            EditorGUI.indentLevel = oldIndent;
+            EditorGUILayout.EndHorizontal();
+
+            return clicked;
+        }
     }
 
     internal static partial class SerializedPropertyExtension

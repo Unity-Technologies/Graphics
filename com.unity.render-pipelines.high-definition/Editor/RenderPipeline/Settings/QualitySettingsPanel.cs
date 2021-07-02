@@ -70,7 +70,13 @@ namespace UnityEditor.Rendering.HighDefinition
             {
                 m_HDRPAssets.Clear();
                 PopulateHDRPAssetsFromQualitySettings(m_HDRPAssets);
+
+                var currentAsset = QualitySettings.GetRenderPipelineAssetAt(QualitySettings.GetQualityLevel());
+                m_SelectedHDRPAssetIndex = m_HDRPAssets.FindIndex((asset) => asset.asset == currentAsset);
+                m_HDRPAssetsUIList.index = m_SelectedHDRPAssetIndex;
             }
+
+            float highlightStart = 0.0f;
 
             /// <summary>
             /// entry point of the GUI of the HDRP's quality settings panel
@@ -97,6 +103,16 @@ namespace UnityEditor.Rendering.HighDefinition
                     Editor.CreateCachedEditor(asset.asset, typeof(HDRenderPipelineEditor), ref m_Cached);
                     ((HDRenderPipelineEditor)m_Cached).largeLabelWidth = false;
                     m_Cached.OnInspectorGUI();
+                    if (Highlighter.active)
+                    {
+                        if (Highlighter.activeVisible)
+                        {
+                            if (Time.realtimeSinceStartup - highlightStart > 0.7f)
+                                Highlighter.Stop();
+                        }
+                        else
+                            highlightStart = Time.realtimeSinceStartup;
+                    }
                 }
             }
 
