@@ -366,6 +366,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Depth of field at half or quarter resolution is now computed consistently with the full resolution option (case 1335687).
 - Hair uses GGX LTC for area light specular.
 - Moved invariants outside of loop for a minor CPU speedup in the light loop code.
+- Various improvements to the volumetric clouds.
 
 ## [11.0.0] - 2020-10-21
 
