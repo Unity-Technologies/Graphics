@@ -10,7 +10,9 @@ formatting:
       -  "echo -e \"[extensions]\nlargefiles=\n\" > ~/.hgrc"
       -  hg clone -u stable http://hg-mirror-slo.hq.unity3d.com/unity-extra/unity-meta ~/unity-meta
       -  perl ~/unity-meta/Tools/Format/format.pl --reporoot $(pwd) --preview .
+      -  exitcode=$?
       -  cat ./format.patch
+      -  exit $exitcode
     timeout: 1
     triggers:
         expression: pull_request.target eq "master"
