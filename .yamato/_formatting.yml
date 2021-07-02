@@ -28,13 +28,13 @@ formatting_apply:
         image: package-ci/ubuntu:stable
         flavor: b1.small
     commands:
-      -  perl ~/unity-meta/Tools/Format/format.pl --reporoot $(pwd) --nobackups .
       -  git config --global user.name "noreply@unity3d.com"
       -  git config --global user.email "noreply@unity3d.com"
       -  git checkout $GIT_BRANCH
-      -  git pull $GIT_BRANCH # In case the job was not run on the latest commit, attempt to get it. There may be situations with merge conflicts, in that case wait for all people to push their changes and then only run the formatting job on HEAD.
+      -  git pull $GIT_BRANCH # In case the job was not run on the latest commit, attempt to get it. There may be situations with merge conflicts, in that case wait for everyone to push their changes and then only run the formatting job on HEAD.
       -  "echo -e \"[extensions]\nlargefiles=\n\" > ~/.hgrc"
       -  hg clone -u stable http://hg-mirror-slo.hq.unity3d.com/unity-extra/unity-meta ~/unity-meta
+      -  perl ~/unity-meta/Tools/Format/format.pl --reporoot $(pwd) --nobackups .
       -  git add .
       -  git commit -m "Apply formatting changes"
       -  git push --set-upstream origin $GIT_BRANCH
