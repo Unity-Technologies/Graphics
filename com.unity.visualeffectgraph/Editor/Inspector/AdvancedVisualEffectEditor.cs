@@ -755,11 +755,7 @@ namespace UnityEditor.VFX
                 VFXViewWindow window = EditorWindow.GetWindow<VFXViewWindow>();
                 if (!window.graphView.isLocked)
                 {
-                    var asset = m_VisualEffectAsset.objectReferenceValue as VisualEffectAsset;
-                    if (window.graphView.controller.graph.visualEffectResource.asset == asset)
-                    {
-                        window.LoadAsset(asset, targets.Length > 1 ? null : target as VisualEffect);
-                    }
+                    window.graphView.AttachToSelection();
                 }
             }
         }

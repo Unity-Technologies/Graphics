@@ -743,6 +743,28 @@ namespace UnityEditor.VFX.UI
             board.PlaceBehind(m_Toolbar);
         }
 
+        public void AttachToSelection()
+        {
+            var selectedAsset = (Selection.activeObject as GameObject)?.GetComponent<VisualEffect>();
+                
+            if (this.controller.graph.visualEffectResource.asset == selectedAsset?.visualEffectAsset)
+            {
+                m_ComponentBoard.Attach(selectedAsset);
+            }
+
+            this.UpdateLockToggleTooltip();
+        }
+
+        private void UpdateLockToggleTooltip()
+        {
+            this.m_LockToggle.tooltip = this.isLocked ? "Click to unlock" : "Click to lock";
+
+            if (!string.IsNullOrEmpty(this.attachedComponent?.name))
+            {
+                this.m_LockToggle.tooltip += $"\nAttached to {this.attachedComponent.name}";
+            }
+        }
+
         void OnUndoPerformed()
         {
             foreach (var anchor in allDataAnchors)
@@ -754,15 +776,13 @@ namespace UnityEditor.VFX.UI
         void ToggleLock(ChangeEvent<bool> evt)
         {
             this.isLocked = !this.isLocked;
-            this.m_LockToggle.tooltip = this.isLocked ? "Click to unlock" : "Click to lock";
             if (!this.isLocked)
             {
-                var selectedAsset = (Selection.activeObject as GameObject)?.GetComponent<VisualEffect>();
-                
-                if (this.controller.graph.visualEffectResource.asset == selectedAsset?.visualEffectAsset)
-                {
-                    m_ComponentBoard.Attach(selectedAsset);
-                }
+                this.AttachToSelection();
+            }
+            else
+            {
+                this.UpdateLockToggleTooltip();
             }
         }
 
