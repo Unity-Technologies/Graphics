@@ -409,15 +409,6 @@ namespace UnityEditor.Rendering.Universal
             return string.IsNullOrEmpty(CheckShaderVariant(shader, passType, keywords));
         }
 
-        static HashSet<string> s_SvcFilter = new HashSet<string>
-        {
-            "Universal Render Pipeline/Baked Lit",
-            "Universal Render Pipeline/Complex Lit",
-            "Universal Render Pipeline/Lit",
-            "Universal Render Pipeline/Simple Lit",
-            "Universal Render Pipeline/Unlit",
-        };
-
         public void OnProcessShader(Shader shader, ShaderSnippetData snippetData, IList<ShaderCompilerData> compilerDataList)
         {
 #if PROFILE_BUILD
@@ -451,7 +442,10 @@ namespace UnityEditor.Rendering.Universal
 
                 if (!removeInput &&
                     m_ShaderVariantCollection != null &&
-                    s_SvcFilter.Contains(shader.name))
+                    shader.name.Contains("Universal") &&
+                    !shader.name.Contains("Hidden") &&
+                    ShaderVariantIsValid(shader, snippetData.passType, arrayPool[0]) &&
+                    m_ShaderVariantCollection.Contains(new ShaderVariantCollection.ShaderVariant(shader, snippetData.passType, arrayPool[0])))
                 {
                     var shaderKeywords = compilerDataList[i].shaderKeywordSet.GetShaderKeywords();
                     string[] keywords;
