@@ -1377,7 +1377,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 return rtHandleSystem.Alloc(
                     width, height, TextureXR.slices, DepthBits.None, dimension: TextureXR.dimension,
                     filterMode: FilterMode.Bilinear, colorFormat: GetPostprocessTextureFormat(),
-                    enableRandomWrite: true, useDynamicScale: true, name: $"{id} TAA History"
+                    enableRandomWrite: true, useDynamicScale: false, name: $"{id} TAA History"
                 );
             }
 
@@ -1597,9 +1597,10 @@ namespace UnityEngine.Rendering.HighDefinition
             passData.prevMVLen = builder.ReadTexture(renderGraph.ImportTexture(prevMVLen));
             passData.nextMVLen = (!postDoF) ? builder.WriteTexture(renderGraph.ImportTexture(nextMVLen)) : TextureHandle.nullHandle;
 
-            passData.destination = builder.WriteTexture(GetPostprocessOutputHandle(renderGraph, outputName));;
+            // TODO! ONLY DO WHEN HW!
+            passData.destination = builder.WriteTexture(GetPostprocessUpsampledOutputHandle(renderGraph, outputName));;
 
-            TextureHandle dest = GetPostprocessOutputHandle(renderGraph, "Post-DoF TAA Destination");
+            TextureHandle dest = GetPostprocessUpsampledOutputHandle(renderGraph, "Post-DoF TAA Destination");
             passData.destination = builder.WriteTexture(dest);
 
             passData.finalViewport = camera.finalViewport;
