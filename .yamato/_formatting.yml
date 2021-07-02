@@ -43,6 +43,7 @@ formatting_apply:
       -  perl ~/unity-meta/Tools/Format/format.pl --reporoot $(pwd) --nobackups .
       -  git config --global user.name "noreply@unity3d.com"
       -  git config --global user.email "noreply@unity3d.com"
+      -  git checkout $GIT_BRANCH
       -  git add .
       -  git commit -m "Apply formatting changes"
       -  git push --set-upstream origin $GIT_BRANCH
