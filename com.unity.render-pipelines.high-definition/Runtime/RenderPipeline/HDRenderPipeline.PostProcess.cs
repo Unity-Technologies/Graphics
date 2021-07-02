@@ -1597,10 +1597,15 @@ namespace UnityEngine.Rendering.HighDefinition
             passData.prevMVLen = builder.ReadTexture(renderGraph.ImportTexture(prevMVLen));
             passData.nextMVLen = (!postDoF) ? builder.WriteTexture(renderGraph.ImportTexture(nextMVLen)) : TextureHandle.nullHandle;
 
-            // TODO! ONLY DO WHEN HW!
-            passData.destination = builder.WriteTexture(GetPostprocessUpsampledOutputHandle(renderGraph, outputName));;
-
-            TextureHandle dest = GetPostprocessUpsampledOutputHandle(renderGraph, "Post-DoF TAA Destination");
+            TextureHandle dest;
+            if (DynamicResolutionHandler.instance.filter == DynamicResUpscaleFilter.TAAU && DynamicResolutionHandler.instance.HardwareDynamicResIsEnabled())
+            {
+                dest = GetPostprocessUpsampledOutputHandle(renderGraph, outputName);
+            }
+            else
+            {
+                dest = GetPostprocessOutputHandle(renderGraph, outputName);
+            }
             passData.destination = builder.WriteTexture(dest);
 
             passData.finalViewport = camera.finalViewport;
@@ -1666,8 +1671,7 @@ namespace UnityEngine.Rendering.HighDefinition
                         if (DynamicResolutionHandler.instance.filter == DynamicResUpscaleFilter.TAAU)
                         {
                             rect = data.finalViewport;
-                            HDUtils.DrawFullScreen(ctx.cmd, rect, data.temporalAAMaterial, data.destination, data.depthBuffer, mpb, 0);
-                            HDUtils.DrawFullScreen(ctx.cmd, rect, data.temporalAAMaterial, data.destination, data.depthBuffer, mpb, 1);
+                            HDUtils.DrawFullScreen(ctx.cmd, rect, data.temporalAAMaterial, data.destination, mpb, 2);
                         }
                         else
                         {

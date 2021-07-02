@@ -372,6 +372,19 @@ Shader "Hidden/HDRP/TemporalAA"
                 #pragma fragment FragExcludedTAA
             ENDHLSL
         }
+
+        Pass // TAAU
+        {
+            // We cannot stencil with TAAU, we will need to manually sample the texture.
+
+            ZWrite Off ZTest Always Blend Off Cull Off
+
+            HLSLPROGRAM
+                #pragma vertex Vert
+                #pragma fragment FragTAA
+            ENDHLSL
+        }
+
     }
     Fallback Off
 }
