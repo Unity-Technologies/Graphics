@@ -777,7 +777,7 @@ CTYPE SharpenColor(NeighbourhoodSamples samples, CTYPE color, float sharpenStren
 
     linearC = ConvertToWorkingSpace(linearC);
 #else
-    linearC = linearC + (linearC - linearAvg) * sharpenStrength * 4;
+    linearC = linearC + (linearC - linearAvg) * sharpenStrength * 3;
     linearC = clamp(linearC, 0, CLAMP_MAX);
 #endif
     CTYPE outputSharpened = linearC * PerceptualWeight(linearC);
