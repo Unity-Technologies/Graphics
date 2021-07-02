@@ -347,11 +347,15 @@ half AdditionalLightRealtimeShadow(int lightIndex, float3 positionWS, half3 ligh
 
 half GetMainLightShadowFade(float3 positionWS)
 {
+#ifdef _MAIN_LIGHT_SHADOWS_SCREEN
+    return 0.0;
+#else
     float3 camToPixel = positionWS - _WorldSpaceCameraPos;
     float distanceCamToPixel2 = dot(camToPixel, camToPixel);
 
     float fade = saturate(distanceCamToPixel2 * float(_MainLightShadowParams.z) + float(_MainLightShadowParams.w));
     return half(fade);
+#endif
 }
 
 half GetAdditionalLightShadowFade(float3 positionWS)

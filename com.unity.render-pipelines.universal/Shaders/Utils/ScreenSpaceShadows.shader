@@ -64,7 +64,10 @@ Shader "Hidden/Universal Render Pipeline/ScreenSpaceShadows"
             // Screenspace shadowmap is only used for directional lights which use orthogonal projection.
             ShadowSamplingData shadowSamplingData = GetMainLightShadowSamplingData();
             half4 shadowParams = GetMainLightShadowParams();
-            return SampleShadowmap(TEXTURE2D_ARGS(_MainLightShadowmapTexture, sampler_MainLightShadowmapTexture), coords, shadowSamplingData, shadowParams, false);
+            half realtimeShadow = SampleShadowmap(TEXTURE2D_ARGS(_MainLightShadowmapTexture, sampler_MainLightShadowmapTexture), coords, shadowSamplingData, shadowParams, false);
+            half shadowFade = GetMainLightShadowFade(wpos);
+
+            return lerp(realtimeShadow, 1.0h, shadowFade);
         }
 
         ENDHLSL
