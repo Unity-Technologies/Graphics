@@ -55,7 +55,6 @@ bool RayTraceContactShadow(PositionInputs posInput, float3 direction)
         // Create and init the RayIntersection structure for this
         RayIntersection rayIntersection;
         rayIntersection.color = float3(0.0, 0.0, 0.0);
-        rayIntersection.incidentDirection = rayDescriptor.Direction;
         rayIntersection.pixelCoord = posInput.positionSS;
 
         // Evaluate the ray visibility term and PDF

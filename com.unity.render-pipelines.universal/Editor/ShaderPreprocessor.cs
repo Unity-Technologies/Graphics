@@ -439,7 +439,16 @@ namespace UnityEditor.Rendering.Universal
             arrayPool.Add(new string[] {});
             for (int i = 0; i < inputShaderVariantCount;)
             {
-                bool removeInput = StripUnused(ShaderBuildPreprocessor.supportedFeatures, shader, snippetData, compilerDataList[i]);
+                bool removeInput = true;
+                foreach (var supportedFeatures in ShaderBuildPreprocessor.supportedFeaturesList)
+                {
+                    if (!StripUnused(supportedFeatures, shader, snippetData, compilerDataList[i]))
+                    {
+                        removeInput = false;
+                        break;
+                    }
+                }
+
                 if (!removeInput &&
                     m_ShaderVariantCollection != null &&
                     s_SvcFilter.Contains(shader.name))
@@ -469,6 +478,8 @@ namespace UnityEditor.Rendering.Universal
                         removeInput = !m_ShaderVariantCollection.Contains(variant);
                     }
                 }
+
+                // Remove at swap back
                 if (removeInput)
                     compilerDataList[i] = compilerDataList[--inputShaderVariantCount];
                 else
@@ -504,19 +515,19 @@ namespace UnityEditor.Rendering.Universal
         , IPostprocessBuildWithReport
 #endif
     {
-        public static ShaderFeatures supportedFeatures
+        public static List<ShaderFeatures> supportedFeaturesList
         {
             get
             {
-                if (_supportedFeatures <= 0)
-                {
+                if (s_SupportedFeaturesList.Count == 0)
                     FetchAllSupportedFeatures();
-                }
-                return _supportedFeatures;
+                return s_SupportedFeaturesList;
             }
         }
 
-        private static ShaderFeatures _supportedFeatures = 0;
+        private static List<ShaderFeatures> s_SupportedFeaturesList = new List<ShaderFeatures>();
+
+
         public int callbackOrder { get { return 0; } }
 #if PROFILE_BUILD
         public void OnPostprocessBuild(BuildReport report)
@@ -545,13 +556,13 @@ namespace UnityEditor.Rendering.Universal
                 urps.Add(QualitySettings.GetRenderPipelineAssetAt(i) as UniversalRenderPipelineAsset);
             }
 
-            // Must reset flags.
-            _supportedFeatures = 0;
+            s_SupportedFeaturesList.Clear();
+
             foreach (UniversalRenderPipelineAsset urp in urps)
             {
                 if (urp != null)
                 {
-                    _supportedFeatures |= GetSupportedShaderFeatures(urp);
+                    s_SupportedFeaturesList.Add(GetSupportedShaderFeatures(urp));
                 }
             }
         }
