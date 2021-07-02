@@ -734,7 +734,7 @@ namespace UnityEngine.Rendering
             }
         }
 
-#region Panini Projection
+        #region Panini Projection
         static Vector2 DoPaniniProjection(Vector2 screenPos, float actualWidth, float actualHeight, float fieldOfView, float paniniProjectionCropToFit, float paniniProjectionDistance)
         {
             Vector2 viewExtents = CalcViewExtents(actualWidth, actualHeight, fieldOfView);
@@ -835,6 +835,6 @@ namespace UnityEngine.Rendering
             return cylPos * (viewDist / cylDist);
         }
 
-#endregion
+        #endregion
     }
 }
