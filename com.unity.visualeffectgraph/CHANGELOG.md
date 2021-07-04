@@ -63,12 +63,15 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Modified state in the VFX tab has now a correct state
 - Motion Vector map sampling for flipbooks were not using correct mips
 - Remove unexpected expression in spawn context evaluation [Case 1318412](https://issuetracker.unity3d.com/product/unity/issues/guid/1318412/)
+- Fixed Collision with Depth Buffer when using Orthographic camera [Case 1309958](https://issuetracker.unity3d.com/product/unity/issues/guid/1309958/)
 - Fix unexpected Spawn context execution ordering
 - Fix incorrect buffer type for strips
 - Enabled an optimization for motion vectors, storing projected positions for vertices instead of the transform matrix
 - Compilation issue when normal is used in shadergraph for opacity with unlit output
 - Fix Exception on trying to invert a degenerate TRS matrix [Case 1307068](https://issuetracker.unity3d.com/product/unity/issues/guid/1307068/)
 - Fix IsFrontFace shader graph node for VFX.
+- Fix crash when loading SDF Baker settings holding a mesh prefab [Case 1343898](https://issuetracker.unity3d.com/product/unity/issues/guid/1343898/)
+- Exception using gizmo on exposed properties [Case 1340818](https://issuetracker.unity3d.com/product/unity/issues/guid/1340818/)
 - GPU hang on some initialize dispatch during dichotomy (platform specific)
 
 ## [11.0.0] - 2020-10-21
