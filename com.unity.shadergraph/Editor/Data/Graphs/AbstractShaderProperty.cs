@@ -37,11 +37,6 @@ namespace UnityEditor.ShaderGraph.Internal
             return referenceName;
         }
 
-        internal virtual string GetHLSLVariableName(bool isSubgraphProperty)
-        {
-            return GetHLSLVariableName(isSubgraphProperty, GenerationMode.ForReals);
-        }
-
         internal string GetConnectionStateHLSLVariableName()
         {
             return GetConnectionStateVariableName(referenceName + "_" + objectId);
@@ -225,6 +220,28 @@ namespace UnityEditor.ShaderGraph.Internal
             this.declaration = declaration;
             this.precision = precision;
             this.customDeclaration = null;
+        }
+
+        public bool ValueEquals(HLSLProperty other)
+        {
+            if ((name != other.name) ||
+                (type != other.type) ||
+                (precision != other.precision) ||
+                (declaration != other.declaration) ||
+                ((customDeclaration == null) != (other.customDeclaration == null)))
+            {
+                return false;
+            }
+            else if (customDeclaration != null)
+            {
+                var ssb = new ShaderStringBuilder();
+                var ssbother = new ShaderStringBuilder();
+                customDeclaration(ssb);
+                other.customDeclaration(ssbother);
+                if (ssb.ToCodeBlock() != ssbother.ToCodeBlock())
+                    return false;
+            }
+            return true;
         }
 
         static string[,] kValueTypeStrings = new string[(int)HLSLType.FirstObjectType, 2]

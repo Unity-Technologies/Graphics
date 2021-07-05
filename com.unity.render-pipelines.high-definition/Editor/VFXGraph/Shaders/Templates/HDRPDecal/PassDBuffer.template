@@ -26,12 +26,15 @@ Pass
 	#pragma multi_compile _ LIGHT_LAYERS
 	#pragma multi_compile _ DEBUG_DISPLAY
     #pragma multi_compile_fragment DECALS_3RT DECALS_4RT
+    #pragma multi_compile_fragment _ DECAL_SURFACE_GRADIENT
 
 	#define UNITY_MATERIAL_LIT
 
 	${VFXIncludeRP("VFXDecalVaryings.template")}
     #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Decal/Decal.hlsl"
 	#include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Decal/DecalPrepassBuffer.hlsl"
+    #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/NormalSurfaceGradient.hlsl"
+
 
 
 	struct ps_input

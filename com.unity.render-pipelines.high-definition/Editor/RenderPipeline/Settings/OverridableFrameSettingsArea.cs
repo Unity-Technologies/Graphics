@@ -254,7 +254,7 @@ namespace UnityEditor.Rendering.HighDefinition
                                 if (oldBool ^ newBool)
                                 {
                                     if(field.field == FrameSettingsField.Decals || field.field == FrameSettingsField.DecalLayers)
-                                        DefaultSettingsPanelIMGUI.needRefreshVfxErrors = true;
+                                        HDGlobalSettingsPanelIMGUI.needRefreshVfxErrors = true;
                                     Undo.RecordObject(serializedFrameSettings.serializedObject.targetObject, "Changed FrameSettings " + field.field);
                                     serializedFrameSettings.SetEnabled(field.field, newBool);
                                 }
@@ -341,7 +341,7 @@ namespace UnityEditor.Rendering.HighDefinition
             else if (field is Enum)
                 return EditorGUI.EnumPopup(rect, (Enum)field);
             else if (field is LayerMask)
-                return EditorGUI.MaskField(rect, (LayerMask)field, GraphicsSettings.currentRenderPipeline.renderingLayerMaskNames);
+                return EditorGUI.MaskField(rect, (LayerMask)field, GraphicsSettings.currentRenderPipeline.prefixedRenderingLayerMaskNames);
             else if (field is UnityEngine.Object)
                 return EditorGUI.ObjectField(rect, (UnityEngine.Object)field, field.GetType(), true);
             else if (field is SerializedProperty)
