@@ -76,6 +76,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Added tooltips for content inside the Rendering Debugger window.
 - Added support for reflection probes as a fallback for ray traced reflections (case 1338644).
 - Added a minimum motion vector length to the motion vector debug view.
+- Added a custom post process injection point AfterPostProcessBlurs executing after depth of field and motion blur.
 
 ### Fixed
 - Fixed Intensity Multiplier not affecting realtime global illumination.
