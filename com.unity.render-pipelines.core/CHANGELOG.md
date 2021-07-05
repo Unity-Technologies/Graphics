@@ -61,6 +61,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Skip wind calculations for Speed Tree 8 when wind vector is zero (case 1343002)
 - Fixed memory leak when changing SRP pipeline settings, and having the player in pause mode.
 - Fixed alignment in Volume Components
+- Fixed LightAnchor too much error message, became a HelpBox on the Inspector.
 
 ### Changed
 - Changed Window/Render Pipeline/Render Pipeline Debug to Window/Analysis/Rendering Debugger
@@ -81,6 +82,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - LensFlare (SRP) tooltips now refer to meters.
 - Serialize the Probe Volume asset as binary to improve footprint on disk and loading speed.
 - LensFlare Element editor now have Thumbnail preview
+- LightAnchor default distance is 0 now
 
 ## [11.0.0] - 2020-10-21
 
