@@ -122,7 +122,10 @@ namespace UnityEngine.Rendering.HighDefinition
                 // Input Buffers
                 passData.depthStencilBuffer = builder.ReadTexture(depthBuffer);
                 passData.normalBuffer = builder.ReadTexture(normalBuffer);
-                passData.motionVectorBuffer = builder.ReadTexture(motionVectorBuffer);
+                if (hdCamera.frameSettings.IsEnabled(FrameSettingsField.MotionVectors))
+                    passData.motionVectorBuffer = builder.ReadTexture(motionVectorBuffer);
+                else
+                    passData.motionVectorBuffer = builder.ReadTexture(renderGraph.defaultResources.blackTextureXR);
 
                 // History buffers
                 passData.historyDepthTexture = builder.ReadTexture(renderGraph.ImportTexture(hdCamera.GetCurrentFrameRT((int)HDCameraFrameHistoryType.Depth)));
