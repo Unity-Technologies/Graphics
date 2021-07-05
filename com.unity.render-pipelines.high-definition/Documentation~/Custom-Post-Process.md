@@ -215,7 +215,7 @@ HDRP allows you to customize the order of your custom post-processing effect at 
 
 HDRP processes effects from the top of the list to the bottom and the order of execution for each list is:
 
-1. Before Transparent.
+1. After Opaque And Sky.
 
 2. Before TAA.
 
