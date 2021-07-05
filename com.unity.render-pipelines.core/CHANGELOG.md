@@ -9,7 +9,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 ### Added
 - Support for the PlayStation 5 platform has been added.
 - Support for additional properties for Volume Components without custom editor
-- Exposing new attribute SupportedOn
+- Added VolumeComponentMenuForRenderPipelineAttribute to specify a volume component only for certain RenderPipelines.
 - Calculating correct rtHandleScale by considering the possible pixel rounding when DRS is on
 - Support for the PlayStation 5 platform has been added.
 - Support for the XboxSeries platform has been added.
