@@ -53,7 +53,7 @@ namespace UnityEditor.Rendering
         {
             serializedObject.Update();
 
-            GUIContent label = EditorGUIUtility.TrTextContent("Mode", "Global Volumes affect the Camera wherever the Camera is in the Scene and Local Volumes affect the Camera if they encapsulate the Camera within the bounds of their Collider.");
+            GUIContent label = EditorGUIUtility.TrTextContent("Mode", "This property defines whether the Volume is Global or Local. Global: Volumes affect the Camera everywhere in the Scene. Local: Volumes affect the Camera if the Camera is within the bounds of the Collider.");
             Rect lineRect = EditorGUILayout.GetControlRect();
             int isGlobal = m_IsGlobal.boolValue ? 0 : 1;
             EditorGUI.BeginProperty(lineRect, label, m_IsGlobal);
