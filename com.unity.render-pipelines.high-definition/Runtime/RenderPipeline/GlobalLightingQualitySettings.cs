@@ -58,7 +58,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
             SSGIDenoiserRadius[(int)ScalableSettingLevelParameter.Level.Low] = 0.75f;
             SSGIDenoiserRadius[(int)ScalableSettingLevelParameter.Level.Medium] = 0.5f;
-            SSGIDenoiserRadius[(int)ScalableSettingLevelParameter.Level.High] = 0.25f;
+            SSGIDenoiserRadius[(int)ScalableSettingLevelParameter.Level.High] = 0.5f;
 
             SSGISecondDenoise[(int)ScalableSettingLevelParameter.Level.Low] = true;
             SSGISecondDenoise[(int)ScalableSettingLevelParameter.Level.Medium] = true;
