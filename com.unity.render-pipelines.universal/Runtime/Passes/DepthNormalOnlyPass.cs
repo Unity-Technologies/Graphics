@@ -10,7 +10,7 @@ namespace UnityEngine.Rendering.Universal.Internal
         internal bool allocateNormal { get; set; } = true;
         internal List<ShaderTagId> shaderTagIds { get; set; }
 
-        private RenderTargetHandle depthHandle { get; set; }
+        private RTHandle depthHandle { get; set; }
         private RenderTargetHandle normalHandle { get; set; }
         private FilteringSettings m_FilteringSettings;
         private int m_RendererMSAASamples = 1;
@@ -45,7 +45,7 @@ namespace UnityEngine.Rendering.Universal.Internal
             else
                 normalsFormat = GraphicsFormat.R32G32B32A32_SFloat; // fallback
 
-            this.depthHandle = new RenderTargetHandle(depthHandle);
+            this.depthHandle = depthHandle;
 
             m_RendererMSAASamples = baseDescriptor.msaaSamples;
 
@@ -77,7 +77,7 @@ namespace UnityEngine.Rendering.Universal.Internal
             else
                 normalsFormat = GraphicsFormat.R32G32B32A32_SFloat; // fallback
 
-            this.depthHandle = new RenderTargetHandle(depthHandle);
+            this.depthHandle = depthHandle;
 
             m_RendererMSAASamples = baseDescriptor.msaaSamples;
 
@@ -114,7 +114,7 @@ namespace UnityEngine.Rendering.Universal.Internal
             {
                 ConfigureTarget(
                     new RenderTargetIdentifier(normalHandle.Identifier(), 0, CubemapFace.Unknown, -1),
-                    new RenderTargetIdentifier(depthHandle.Identifier(), 0, CubemapFace.Unknown, -1)
+                    new RenderTargetIdentifier(depthHandle.nameID, 0, CubemapFace.Unknown, -1)
                 );
             }
 
@@ -153,13 +153,13 @@ namespace UnityEngine.Rendering.Universal.Internal
                 throw new ArgumentNullException("cmd");
             }
 
-            if (depthHandle != RenderTargetHandle.CameraTarget)
+            if (normalHandle != RenderTargetHandle.CameraTarget)
             {
                 if (this.allocateNormal)
                     cmd.ReleaseTemporaryRT(normalHandle.id);
                 normalHandle = RenderTargetHandle.CameraTarget;
-                depthHandle = RenderTargetHandle.CameraTarget;
             }
+            depthHandle = null;
         }
     }
 }
