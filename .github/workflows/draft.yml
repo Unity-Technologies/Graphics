@@ -14,7 +14,6 @@ jobs:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         message: |
               It appears that you made a non-draft PR!
-              Please convert your PR to draft (button on the right side of the page)
-              and cancel any jobs that started on Yamato.
+              Please convert your PR to draft (button on the right side of the page).
               See the PR template for more information.
               Thank you!
