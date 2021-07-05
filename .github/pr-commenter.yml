@@ -9,18 +9,20 @@ comment:
         - com.unity.testing.hdrp/**/*
         - TestProjects/HDRP*/**/*
       body: |
-        It looks like you're changing an HDRP Package
-        Please run the following jobs before merging your PR:
+        It looks like you're changing an HDRP Package or project
+        Please run the following jobs on your branch before merging your PR:
+        your branch = $GITHUB_BASE_REF
         https://yamato.cds.internal.unity3d.com/jobs/902-Graphics/tree/master/.yamato%252F_abv.yml%2523General_Checks_2021.2
-        https://yamato.cds.internal.unity3d.com/jobs/902-Graphics/tree/master/.yamato%252Fall-hdrp.yml%2523PR_HDRP_2021.2    
+        https://yamato.cds.internal.unity3d.com/jobs/902-Graphics/tree/master/.yamato%252Fall-hdrp.yml%2523PR_HDRP_2021.2
     - id: URP
       files:
         - com.unity.render-pipelines.universal/**/*
         - com.unity.testing.urp/**/*
         - TestProjects/Universal*/**/*
       body: |
-        It looks like you're changing a URP Package
-        Please run the following jobs before merging your PR:
+        It looks like you're changing a URP Package or project
+        Please run the following jobs on your branch before merging your PR:
+        your branch = $GITHUB_BASE_REF
         https://yamato.cds.internal.unity3d.com/jobs/902-Graphics/tree/master/.yamato%252F_abv.yml%2523General_Checks_2021.2
         https://yamato.cds.internal.unity3d.com/jobs/902-Graphics/tree/master/.yamato%252Fall-urp.yml%2523PR_URP_2021.2
     - id: ShaderGraph
@@ -29,8 +31,9 @@ comment:
         - TestProjects/ShaderGraph*/**/*
         - com.unity.render-pipelines.universal/Editor/ShaderGraph/*
       body: |
-        It looks like you're changing a Shader Graph Package
-        Please run the following jobs before merging your PR:
+        It looks like you're changing a Shader Graph Package or project
+        Please run the following jobs on your branch before merging your PR:
+        your branch = $GITHUB_BASE_REF
         https://yamato.cds.internal.unity3d.com/jobs/902-Graphics/tree/master/.yamato%252F_abv.yml%2523General_Checks_2021.2
         https://yamato.cds.internal.unity3d.com/jobs/902-Graphics/tree/master/.yamato%252Fall-shadergraph.yml%2523PR_ShaderGraph_2021.2
         Depending on the scope of your PR, you may also need to run URP and HDRP jobs. Please ask your lead if you are unsure about what your PR could affect.
@@ -40,8 +43,9 @@ comment:
         - com.unity.testing.visualeffectgraph/**/*
         - TestProjects/VisualEffectGraph*/**/*
       body: |
-        It looks like you're changing a VFX Package
-        Please run the following jobs before merging your PR:
+        It looks like you're changing a VFX Package or project
+        Please run the following jobs on your branch before merging your PR:
+        your branch = $GITHUB_BASE_REF
         https://yamato.cds.internal.unity3d.com/jobs/902-Graphics/tree/master/.yamato%252F_abv.yml%2523General_Checks_2021.2
         https://yamato.cds.internal.unity3d.com/jobs/902-Graphics/tree/master/.yamato%252Fall-vfx.yml%2523PR_VFX_2021.2
         Depending on the scope of your PR, you may also need to run URP and HDRP jobs. Please ask your lead if you are unsure about what your PR could affect.
@@ -49,7 +53,8 @@ comment:
       files:
         - com.unity.render-pipelines.core/**/*
       body: |
-        It looks like you're changing the Core SRP Package
-        You could run ABV before merging your PR, but it will start A LOT of jobs. Please be responsible about it and run it only when you feel the PR is ready:
+        It looks like you're changing the Core SRP Package or project
+        You could run ABV on your branch before merging your PR, but it will start A LOT of jobs. Please be responsible about it and run it only when you feel the PR is ready:
+        your branch = $GITHUB_BASE_REF
         https://yamato.cds.internal.unity3d.com/jobs/902-Graphics/tree/master/.yamato%252F_abv.yml%2523all_project_ci_2021.2
         Be aware that any modifications to the Core package impacts everyone in the Graphics repo so please discuss the PR with your lead.
