@@ -96,7 +96,9 @@ Shader "Hidden/ProbeVolume/VoxelizeScene"
             #pragma enable_d3d11_debug_symbols
 
             #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Common.hlsl"
-            #include "Packages/com.unity.render-pipelines.high-definition/Runtime/ShaderLibrary/ShaderVariables.hlsl"
+
+            float4x4 unity_ObjectToWorld;
+            sampler s_point_clamp_sampler;
 
             RWTexture3D<float>  _Output : register(u4);
             float3              _OutputSize;
@@ -136,7 +138,7 @@ Shader "Hidden/ProbeVolume/VoxelizeScene"
 
                 o.uv = heightmapLoadPosition / _TerrainHeightmapResolution;
 
-                float3 cellPos = mul(GetRawUnityObjectToWorld(), vertex).xyz;
+                float3 cellPos = mul(unity_ObjectToWorld, vertex).xyz;
                 cellPos -= _VolumeWorldOffset;
                 o.cellPos01 = (cellPos / _VolumeSize);
 

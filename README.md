@@ -6,7 +6,7 @@ The Scriptable Render Pipeline (SRP) is a Unity feature designed to give artists
 * The Universal Render Pipeline (URP) for use on all platforms.
 * The High Definition Render Pipeline (HDRP) for use on compute shader compatible platforms.
 
-Unity is committed to an open and transparent development process for SRP and the pre-built Render Pipelines. This means that so you can browse this repository to see what features are currently in development.
+Unity is committed to an open and transparent development process for SRP and the pre-built Render Pipelines. This means that you can browse this repository to see what features are currently in development.
 
 For more information about the packages in this repository, see the following:
 

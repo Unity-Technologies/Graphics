@@ -362,6 +362,68 @@ namespace UnityEditor.Rendering.HighDefinition
                 if (!HDShaderUtils.IsHDRPShader(material.shader, upgradable: true))
                     continue;
 
+
+                void AddDiffusionProfileToSettings(string propName)
+                {
+                    if (Application.isBatchMode || HDRenderPipelineGlobalSettings.instance == null
+                        || HDRenderPipelineGlobalSettings.instance.diffusionProfileSettingsList == null) return;
+
+                    bool diffusionProfileCanBeAdded = HDRenderPipelineGlobalSettings.instance.diffusionProfileSettingsList.Length < 15;
+                    DiffusionProfileSettings diffusionProfile = null;
+
+                    if (material.HasProperty(propName))
+                    {
+                        var diffusionProfileAsset = material.GetVector(propName);
+                        string guid = HDUtils.ConvertVector4ToGUID(diffusionProfileAsset);
+                        diffusionProfile = AssetDatabase.LoadAssetAtPath<DiffusionProfileSettings>(AssetDatabase.GUIDToAssetPath(guid));
+
+                        if (diffusionProfile != null && !HDRenderPipelineGlobalSettings.instance.diffusionProfileSettingsList.Any(d => d == diffusionProfile))
+                        {
+                            string materialName = material.name;
+                            string diffusionProfileName = diffusionProfile.name;
+
+                            if (!diffusionProfileCanBeAdded)
+                                Debug.LogWarning("There is no space in the global settings to add the diffusion profile " + diffusionProfileName);
+                            else if ((!Application.isBatchMode) &&
+                                     (EditorUtility.DisplayDialog("Diffusion Profile Import",
+                                         "A Material (" + materialName + ") is being imported with a diffusion profile (" + diffusionProfileName + ") not already added to the HDRP Global Settings.\n If the Diffusion Profile is not referenced in the global settings, HDRP cannot use it.\nDo you want to add the diffusion profile to the HDRP Global Settings asset?", "Yes", "No")))
+                            {
+                                diffusionProfileCanBeAdded = HDRenderPipelineGlobalSettings.instance.AddDiffusionProfile(diffusionProfile);
+                            }
+                        }
+                    }
+                }
+
+                AddDiffusionProfileToSettings("_DiffusionProfileAsset");
+
+                // Special Eye case that uses a node with diffusion profiles.
+                if (material.shader.IsShaderGraphAsset())
+                {
+                    var matProperties = MaterialEditor.GetMaterialProperties(new UnityEngine.Object[] { material });
+                    for (int propIdx = 0; propIdx < matProperties.Length; ++propIdx)
+                    {
+                        var attributes = material.shader.GetPropertyAttributes(propIdx);
+                        bool hasDiffusionProfileAttribute = false;
+                        foreach (var attribute in attributes)
+                        {
+                            if (attribute == "DiffusionProfile")
+                            {
+                                propIdx++;
+                                hasDiffusionProfileAttribute = true;
+                                break;
+                            }
+                        }
+
+                        var propName = ShaderUtil.GetPropertyName(material.shader, propIdx);
+                        var type = ShaderUtil.GetPropertyType(material.shader, propIdx);
+                        if (hasDiffusionProfileAttribute &&
+                            type == ShaderUtil.ShaderPropertyType.Vector)
+                        {
+                            AddDiffusionProfileToSettings(propName);
+                        }
+                    }
+                }
+
                 (HDShaderUtils.ShaderID id, GUID subTargetGUID) = HDShaderUtils.GetShaderIDsFromShader(material.shader);
                 var latestVersion = k_Migrations.Length;
 

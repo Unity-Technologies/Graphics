@@ -40,6 +40,8 @@ MonoBehaviour:
         m_Id: With3Levels
     supportDecals: 1
     supportDecalLayers: 0
+    supportSurfaceGradient: 0
+    decalNormalBufferHP: 0
     msaaSampleCount: 1
     supportMotionVectors: 1
     supportRuntimeDebugDisplay: 0
@@ -118,8 +120,10 @@ MonoBehaviour:
       bufferFormat: 74
     dynamicResolutionSettings:
       enabled: 1
+      useMipBias: 0
       enableDLSS: 1
       DLSSPerfQualitySetting: 0
+      DLSSUseOptimalSettings: 1
       DLSSSharpness: 0
       maxPercentage: 100
       minPercentage: 100
@@ -127,6 +131,7 @@ MonoBehaviour:
       upsampleFilter: 1
       forceResolution: 1
       forcedPercentage: 40
+      lowResTransparencyMinimumThreshold: 0
     lowresTransparentSettings:
       enabled: 1
       checkerboardDepthBuffer: 1
@@ -200,6 +205,7 @@ MonoBehaviour:
       - 0.8
       - 1.5
       RTGIUpScaleRadius: 040000000400000004000000
+      RTGIRaySteps: 200000003000000040000000
       RTGIDenoise: 010101
       RTGIHalfResDenoise: 010000
       RTGIDenoiserRadius:
@@ -224,6 +230,7 @@ MonoBehaviour:
       - 1
       - 1.2
       RTRFullResolution: 000001
+      RTRRayMaxIterations: 200000003000000040000000
       RTRDenoise: 010101
       RTRDenoiserRadius: 080000000c00000010000000
       RTRSmoothDenoising: 010000
@@ -263,7 +270,7 @@ MonoBehaviour:
     - format: 0
       sizeInMegaBytes: 128
   m_UseRenderGraph: 1
-  m_Version: 19
+  m_Version: 20
   m_ObsoleteFrameSettings:
     overrides: 0
     enableShadow: 0
@@ -414,6 +421,7 @@ MonoBehaviour:
     sssQualityMode: 0
     sssQualityLevel: 0
     sssCustomSampleBudget: 0
+    msaaMode: 0
     materialQuality: 0
   m_ObsoleteBakedOrCustomReflectionFrameSettingsMovedToDefaultSettings:
     bitDatas:
@@ -428,6 +436,7 @@ MonoBehaviour:
     sssQualityMode: 0
     sssQualityLevel: 0
     sssCustomSampleBudget: 0
+    msaaMode: 0
     materialQuality: 0
   m_ObsoleteRealtimeReflectionFrameSettingsMovedToDefaultSettings:
     bitDatas:
@@ -442,6 +451,7 @@ MonoBehaviour:
     sssQualityMode: 0
     sssQualityLevel: 0
     sssCustomSampleBudget: 0
+    msaaMode: 0
     materialQuality: 0
   m_ObsoleteRenderPipelineResources: {fileID: 0}
   m_ObsoleteRenderPipelineRayTracingResources: {fileID: 0}
