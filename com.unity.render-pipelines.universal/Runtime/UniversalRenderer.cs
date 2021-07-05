@@ -987,6 +987,9 @@ namespace UnityEngine.Rendering.Universal
                     // XRTODO: Enabled this line for non-XR pass? URP copy depth pass is already capable of handling MSAA.
                     depthDescriptor.bindMS = depthDescriptor.msaaSamples > 1 && !SystemInfo.supportsMultisampleAutoResolve && (SystemInfo.supportsMultisampledTextures != 0);
 #endif
+
+                    depthDescriptor.bindMS |= depthDescriptor.msaaSamples > 1 && (SystemInfo.supportsMultisampledTextures != 0);
+
                     depthDescriptor.colorFormat = RenderTextureFormat.Depth;
                     depthDescriptor.depthBufferBits = k_DepthStencilBufferBits;
                     cmd.GetTemporaryRT(m_ActiveCameraDepthAttachment.id, depthDescriptor, FilterMode.Point);
