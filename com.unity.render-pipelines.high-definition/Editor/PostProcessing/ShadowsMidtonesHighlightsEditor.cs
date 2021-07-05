@@ -9,6 +9,13 @@ namespace UnityEditor.Rendering.HighDefinition
     [VolumeComponentEditor(typeof(ShadowsMidtonesHighlights))]
     sealed class ShadowsMidtonesHighlightsEditor : VolumeComponentEditor
     {
+        static class Styles
+        {
+            public static readonly GUIContent shadowsLabel = EditorGUIUtility.TrTextContent("Shadows", "Apply a hue to the shadows and adjust their level.");
+            public static readonly GUIContent midtonesLabel = EditorGUIUtility.TrTextContent("Midtones", "Apply a hue to the midtones and adjust their level.");
+            public static readonly GUIContent highlightsLabel = EditorGUIUtility.TrTextContent("Highlights", "Apply a hue to the highlights and adjust their level.");
+        }
+
         SerializedDataParameter m_Shadows;
         SerializedDataParameter m_Midtones;
         SerializedDataParameter m_Highlights;
@@ -16,10 +23,6 @@ namespace UnityEditor.Rendering.HighDefinition
         SerializedDataParameter m_ShadowsEnd;
         SerializedDataParameter m_HighlightsStart;
         SerializedDataParameter m_HighlightsEnd;
-
-        GUIContent m_ShadowsLabel = EditorGUIUtility.TrTextContent("Shadows", "Apply a hue to the shadows and adjust their level.");
-        GUIContent m_MidtonesLabel = EditorGUIUtility.TrTextContent("Midtones", "Apply a hue to the midtones and adjust their level.");
-        GUIContent m_HighlightsLabel = EditorGUIUtility.TrTextContent("Highlights", "Apply a hue to the highlights and adjust their level.");
 
         readonly TrackballUIDrawer m_TrackballUIDrawer = new TrackballUIDrawer();
 
@@ -47,11 +50,11 @@ namespace UnityEditor.Rendering.HighDefinition
         {
             using (new EditorGUILayout.HorizontalScope())
             {
-                m_TrackballUIDrawer.OnGUI(m_Shadows.value, m_Shadows.overrideState, m_ShadowsLabel, GetWheelValue);
+                m_TrackballUIDrawer.OnGUI(m_Shadows.value, m_Shadows.overrideState, Styles.shadowsLabel, GetWheelValue);
                 GUILayout.Space(4f);
-                m_TrackballUIDrawer.OnGUI(m_Midtones.value, m_Midtones.overrideState, m_MidtonesLabel, GetWheelValue);
+                m_TrackballUIDrawer.OnGUI(m_Midtones.value, m_Midtones.overrideState, Styles.midtonesLabel, GetWheelValue);
                 GUILayout.Space(4f);
-                m_TrackballUIDrawer.OnGUI(m_Highlights.value, m_Highlights.overrideState, m_HighlightsLabel, GetWheelValue);
+                m_TrackballUIDrawer.OnGUI(m_Highlights.value, m_Highlights.overrideState, Styles.highlightsLabel, GetWheelValue);
             }
             EditorGUILayout.Space();
 
