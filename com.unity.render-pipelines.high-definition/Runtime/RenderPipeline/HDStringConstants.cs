@@ -281,6 +281,7 @@ namespace UnityEngine.Rendering.HighDefinition
         public static readonly int _TaaFilterWeights = Shader.PropertyToID("_TaaFilterWeights");
         public static readonly int _TaaFilterWeights1 = Shader.PropertyToID("_TaaFilterWeights1");
         public static readonly int _TaauParameters = Shader.PropertyToID("_TaauParameters");
+        public static readonly int _TaaScales = Shader.PropertyToID("_TaaScales");
 
         public static readonly int _WorldSpaceCameraPos1 = Shader.PropertyToID("_WorldSpaceCameraPos1");
         public static readonly int _ViewMatrix1 = Shader.PropertyToID("_ViewMatrix1");

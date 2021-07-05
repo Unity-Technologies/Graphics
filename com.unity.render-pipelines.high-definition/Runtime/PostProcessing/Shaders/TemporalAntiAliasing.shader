@@ -134,6 +134,9 @@ Shader "Hidden/HDRP/TemporalAA"
         #define _InputSize _ScreenSize
 
 
+        float4 _TaaScales;
+        #define _RTHandleScaleForTAAHistory _TaaScales.xy
+
 
 #if VELOCITY_REJECTION
         TEXTURE2D_X(_InputVelocityMagnitudeHistory);
@@ -215,7 +218,7 @@ Shader "Hidden/HDRP/TemporalAA"
             // --------------- Get resampled history ---------------
             float2 prevUV = input.texcoord - motionVector;
 
-            CTYPE history = GetFilteredHistory(_InputHistoryTexture, prevUV, _HistorySharpening, _TaaHistorySize);
+            CTYPE history = GetFilteredHistory(_InputHistoryTexture, prevUV, _HistorySharpening, _TaaHistorySize, _RTHandleScaleForTAAHistory);
             bool offScreen = any(abs(prevUV * 2 - 1) >= (1.0f - (1.0 * _TaaHistorySize.zw)));
             history.xyz *= PerceptualWeight(history);
             // -----------------------------------------------------
@@ -287,7 +290,7 @@ Shader "Hidden/HDRP/TemporalAA"
 
 #if VELOCITY_REJECTION
             float lengthMV = motionVectorLength * 10;
-            blendFactor = ModifyBlendWithMotionVectorRejection(_InputVelocityMagnitudeHistory, lengthMV, prevUV, blendFactor, _SpeedRejectionIntensity);
+            blendFactor = ModifyBlendWithMotionVectorRejection(_InputVelocityMagnitudeHistory, lengthMV, prevUV, blendFactor, _SpeedRejectionIntensity, _RTHandleScaleForTAAHistory);
 #endif
 
 #ifdef TAA_UPSCALE
