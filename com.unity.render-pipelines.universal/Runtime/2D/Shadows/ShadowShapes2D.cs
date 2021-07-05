@@ -55,6 +55,7 @@ namespace UnityEngine.Rendering.Universal
         public NativeArray<Vector2> m_ContractionDirection;
         public NativeArray<float>   m_ContractionMaximum;
         public NativeArray<Vector2> m_ContractedVertices;
+        private float               m_ContractionDistance = -1.0f;
 
         private void CalculateEdgesFromTriangles<T>(T indices, ValueGetter<T> valueGetter, LengthGetter<T> lengthGetter)
         {
@@ -162,14 +163,28 @@ namespace UnityEngine.Rendering.Universal
                 m_ProvidedVertices = new NativeArray<Vector2>(vertices, Allocator.Persistent);
                 CalculateEdgesFromTriangles<ushort[]>(indices, ArrayGetter, ArrayLengthGetter);
             }
-
-            CalculateContractionDirection();
-            CalculateContractedVertices(0.25f);
         }
 
         public override void SetEdges(NativeArray<Vector2> vertices, NativeArray<int> indices, IShadowShapes2DProvider.OutlineTopology outlineTopology)
         {
             // Implement this later...
+        }
+
+        public void GetEdges(float contractionDistance, out NativeArray<Vector2> vertices, out NativeArray<Edge> edges)
+        {
+            if (contractionDistance < 0)
+                contractionDistance = 0;
+
+            if (m_ContractionDistance != contractionDistance)
+            {
+                CalculateContractionDirection();
+                CalculateContractedVertices(contractionDistance);
+
+                m_ContractionDistance = contractionDistance;
+            }
+
+            vertices = m_ContractedVertices;
+            edges = m_ProvidedEdges;
         }
 
         public override void UpdateEdges(Vector2[] vertices)

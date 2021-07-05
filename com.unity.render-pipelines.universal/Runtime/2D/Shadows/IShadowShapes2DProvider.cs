@@ -13,7 +13,7 @@ namespace UnityEngine.U2D
             LineStrip,
             Triangles
         }
-    
+
         public abstract class ShadowShapes2D
         {
             public abstract void SetEdges(Vector2[] vertices, ushort[] indices, OutlineTopology outlineTopology);
@@ -22,6 +22,7 @@ namespace UnityEngine.U2D
             public abstract void UpdateEdges(NativeArray<Vector2> vertices);
         }
 
-        void OnShadowShapesStart(ShadowShapes2D shape);
+
+        void SetShadowShape(ref ShadowShapes2D persistantShapeData);
     }
 }
