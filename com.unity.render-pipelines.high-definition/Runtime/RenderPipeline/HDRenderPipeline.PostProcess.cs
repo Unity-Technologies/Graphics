@@ -453,7 +453,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
             renderGraph.BeginProfilingSampler(ProfilingSampler.Get(HDProfileId.PostProcessing));
 
-            if (m_WillNeedToClearHistoryBuffers.ContainsKey(hdCamera) && m_WillNeedToClearHistoryBuffers[hdCamera])
+            if (hdCamera.needToReleasePostProcessHistory)
             {
                 ReleasePostProcessHistoryBuffers(hdCamera);
             }
@@ -498,7 +498,6 @@ namespace UnityEngine.Rendering.HighDefinition
                         if (DynamicResolutionHandler.instance.filter == DynamicResUpscaleFilter.TAAU)
                         {
                             SetCurrentResolutionGroup(renderGraph, hdCamera, ResolutionGroup.AfterDynamicResUpscale);
-                            m_PrevFinalViewport = hdCamera.finalViewport;
                         }
                     }
                     else if (hdCamera.antialiasing == HDAdditionalCameraData.AntialiasingMode.SubpixelMorphologicalAntiAliasing)
@@ -545,25 +544,12 @@ namespace UnityEngine.Rendering.HighDefinition
             FinalPass(renderGraph, hdCamera, afterPostProcessBuffer, alphaTexture, dest, source, m_BlueNoise, flipYInPostProcess);
 
             bool currFrameIsTAAUpsampled = DynamicResolutionHandler.instance.DynamicResolutionEnabled() && DynamicResolutionHandler.instance.filter == DynamicResUpscaleFilter.TAAU;
-            bool cameraWasRunningTAA = false;
-            if (m_WasRunningTAAU.ContainsKey(hdCamera))
-            {
-                cameraWasRunningTAA = m_WasRunningTAAU[hdCamera];
-                m_WasRunningTAAU[hdCamera] = currFrameIsTAAUpsampled;
-            }
-            else
-            {
-                m_WasRunningTAAU.Add(hdCamera, currFrameIsTAAUpsampled);
-            }
+            bool cameraWasRunningTAA = hdCamera.previousFrameWasTAAUpsampled;
+            hdCamera.previousFrameWasTAAUpsampled = currFrameIsTAAUpsampled;
 
-            if (m_WillNeedToClearHistoryBuffers.ContainsKey(hdCamera))
-            {
-                m_WillNeedToClearHistoryBuffers[hdCamera] = (cameraWasRunningTAA != currFrameIsTAAUpsampled);
-            }
-            else
-            {
-                m_WillNeedToClearHistoryBuffers.Add(hdCamera, (cameraWasRunningTAA != currFrameIsTAAUpsampled));
-            }
+            hdCamera.needToReleasePostProcessHistory = (cameraWasRunningTAA != currFrameIsTAAUpsampled);
+
+            m_PrevFinalViewport = hdCamera.finalViewport;
 
             renderGraph.EndProfilingSampler(ProfilingSampler.Get(HDProfileId.PostProcessing));
 
@@ -1465,7 +1451,7 @@ namespace UnityEngine.Rendering.HighDefinition
         void PrepareTAAPassData(RenderGraph renderGraph, RenderGraphBuilder builder, TemporalAntiAliasingData passData, HDCamera camera,
             TextureHandle depthBuffer, TextureHandle motionVectors, TextureHandle depthBufferMipChain, TextureHandle sourceTexture, bool postDoF, string outputName)
         {
-            passData.resetPostProcessingHistory = (camera.resetPostProcessingHistory || (m_WillNeedToClearHistoryBuffers.ContainsKey(camera) && m_WillNeedToClearHistoryBuffers[camera]));
+            passData.resetPostProcessingHistory = (camera.resetPostProcessingHistory || camera.needToReleasePostProcessHistory);
 
             float minAntiflicker = 0.0f;
             float maxAntiflicker = 3.5f;
@@ -1613,14 +1599,14 @@ namespace UnityEngine.Rendering.HighDefinition
             passData.prevFinalViewport = m_PrevFinalViewport.width < 0 ? camera.finalViewport : m_PrevFinalViewport;
             var mainRTScales = RTHandles.CalculateRatioAgainstMaxSize(camera.actualWidth, camera.actualHeight);
 
+            var historyRenderingViewport = TAAU ? new Vector2(passData.prevFinalViewport.width, passData.prevFinalViewport.height) : camera.historyRTHandleProperties.previousViewportSize;
             if (TAAU && postDoF)
             {
                 // We are already upsampled here.
-                //       mainRTScales = RTHandles.CalculateRatioAgainstMaxSize((int)camera.finalViewport.width, (int)camera.finalViewport.height);
-                //mainRTScales.x = camera.finalViewport.width / ((RTHandle)dest).rt.width;
-                //mainRTScales.y = camera.finalViewport.height / ((RTHandle)dest).rt.height;
+                mainRTScales = RTHandles.CalculateRatioAgainstMaxSize((int)camera.finalViewport.width, (int)camera.finalViewport.height);
             }
-            Vector4 scales = new Vector4(passData.prevFinalViewport.width / prevHistory.rt.width, passData.prevFinalViewport.height / prevHistory.rt.height, mainRTScales.x, mainRTScales.y);
+            Vector4 scales = new Vector4(historyRenderingViewport.x / prevHistory.rt.width, historyRenderingViewport.y / prevHistory.rt.height, mainRTScales.x, mainRTScales.y);
+
             passData.taaScales = scales;
 
             passData.finalViewport = camera.finalViewport;

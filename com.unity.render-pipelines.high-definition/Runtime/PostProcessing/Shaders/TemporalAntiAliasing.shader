@@ -135,18 +135,8 @@ Shader "Hidden/HDRP/TemporalAA"
 
 
         float4 _TaaScales;
-#if defined(TAA_UPSCALE)
         #define _RTHandleScaleForTAAHistory _TaaScales.xy
         #define _RTHandleScaleForTAA _TaaScales.zw
-
-#else
-        #define _RTHandleScaleForTAAHistory _RTHandlePostProcessScaleHistory.xy
-        #define _RTHandleScaleForTAA _RTHandlePostProcessScale.xy
-
-        //#define _RTHandleScaleForTAAHistory _RTHandleScaleHistory.zw
-        //#define _RTHandleScaleForTAA _RTHandleScale.xy
-
-#endif
 
 #if VELOCITY_REJECTION
         TEXTURE2D_X(_InputVelocityMagnitudeHistory);

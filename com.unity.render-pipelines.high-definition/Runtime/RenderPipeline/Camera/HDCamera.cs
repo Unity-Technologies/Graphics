@@ -115,6 +115,10 @@ namespace UnityEngine.Rendering.HighDefinition
 
         internal bool               dofHistoryIsValid = false;  // used to invalidate DoF accumulation history when switching DoF modes
 
+        // State needed to handle TAAU.
+        internal bool               previousFrameWasTAAUpsampled = false;
+        internal bool               needToReleasePostProcessHistory = false;
+
         // Pass all the systems that may want to initialize per-camera data here.
         // That way you will never create an HDCamera and forget to initialize the data.
         /// <summary>
