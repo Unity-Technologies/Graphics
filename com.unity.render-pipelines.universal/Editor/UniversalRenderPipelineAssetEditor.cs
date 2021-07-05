@@ -325,8 +325,8 @@ namespace UnityEditor.Rendering.Universal
                 if (m_RenderingAdditionalSettings.value || m_ShowAllAdditionalProperties)
                 {
                     EditorGUILayout.PropertyField(m_SRPBatcher, Styles.srpBatcher);
-                    EditorGUILayout.PropertyField(m_StoreActionsOptimizationProperty, Styles.storeActionsOptimizationText);
                     EditorGUILayout.PropertyField(m_SupportsDynamicBatching, Styles.dynamicBatching);
+                    EditorGUILayout.PropertyField(m_StoreActionsOptimizationProperty, Styles.storeActionsOptimizationText);
                     EditorGUILayout.PropertyField(m_DebugLevelProp, Styles.debugLevel);
                     EditorGUILayout.PropertyField(m_ShaderVariantLogLevel, Styles.shaderVariantLogLevel);
                 }
