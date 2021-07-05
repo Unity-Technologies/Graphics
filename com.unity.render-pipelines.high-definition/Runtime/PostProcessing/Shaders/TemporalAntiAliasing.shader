@@ -135,8 +135,18 @@ Shader "Hidden/HDRP/TemporalAA"
 
 
         float4 _TaaScales;
+#if defined(TAA_UPSCALE)
         #define _RTHandleScaleForTAAHistory _TaaScales.xy
+        #define _RTHandleScaleForTAA _TaaScales.zw
 
+#else
+        #define _RTHandleScaleForTAAHistory _RTHandlePostProcessScaleHistory.xy
+        #define _RTHandleScaleForTAA _RTHandlePostProcessScale.xy
+
+        //#define _RTHandleScaleForTAAHistory _RTHandleScaleHistory.zw
+        //#define _RTHandleScaleForTAA _RTHandleScale.xy
+
+#endif
 
 #if VELOCITY_REJECTION
         TEXTURE2D_X(_InputVelocityMagnitudeHistory);
@@ -146,7 +156,6 @@ Shader "Hidden/HDRP/TemporalAA"
         RW_TEXTURE2D_X(float, _OutputVelocityMagnitudeHistory) : register(u2);
         #endif
 #endif
-
 
         struct Attributes
         {
@@ -224,12 +233,12 @@ Shader "Hidden/HDRP/TemporalAA"
             // -----------------------------------------------------
 
             // --------------- Gather neigbourhood data ---------------
-            CTYPE color = Fetch4(_InputTexture, uv, 0.0, _RTHandleScale.xy).CTYPE_SWIZZLE;
+            CTYPE color = Fetch4(_InputTexture, uv, 0.0, _RTHandleScaleForTAA).CTYPE_SWIZZLE;
             color = clamp(color, 0, CLAMP_MAX);
             color = ConvertToWorkingSpace(color);
 
             NeighbourhoodSamples samples;
-            GatherNeighbourhood(_InputTexture, uv, floor(input.positionCS.xy), color, samples);
+            GatherNeighbourhood(_InputTexture, uv, floor(input.positionCS.xy), color, _RTHandleScaleForTAA, samples);
             // --------------------------------------------------------
 
             // --------------- Filter central sample ---------------

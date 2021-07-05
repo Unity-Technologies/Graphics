@@ -1448,6 +1448,7 @@ namespace UnityEngine.Rendering.HighDefinition
             public Vector4 taauParams;
             public Rect finalViewport;
             public Rect prevFinalViewport;
+            public Vector4 taaScales;
             public bool runsTAAU;
 
             public TextureHandle source;
@@ -1536,9 +1537,9 @@ namespace UnityEngine.Rendering.HighDefinition
                 passData.temporalAAMaterial.EnableKeyword("ENABLE_MV_REJECTION");
             }
 
-            bool TAAU = DynamicResolutionHandler.instance.DynamicResolutionEnabled() && DynamicResolutionHandler.instance.filter == DynamicResUpscaleFilter.TAAU && !postDoF;
+            bool TAAU = DynamicResolutionHandler.instance.DynamicResolutionEnabled() && DynamicResolutionHandler.instance.filter == DynamicResUpscaleFilter.TAAU;
             passData.runsTAAU = TAAU;
-            if (TAAU)
+            if (TAAU && !postDoF)
             {
                 passData.temporalAAMaterial.EnableKeyword("TAA_UPSCALE");
             }
@@ -1574,10 +1575,6 @@ namespace UnityEngine.Rendering.HighDefinition
             }
 
             GrabTemporalAntialiasingHistoryTextures(camera, out prevHistory, out nextHistory, historyScale, postDoF);
-            if (prevHistory == null)
-            {
-                Debug.Log("WUT");
-            }
 
             Vector2Int prevViewPort = camera.historyRTHandleProperties.previousViewportSize;
             passData.previousScreenSize = new Vector4(prevViewPort.x, prevViewPort.y, 1.0f / prevViewPort.x, 1.0f / prevViewPort.y);
@@ -1599,7 +1596,6 @@ namespace UnityEngine.Rendering.HighDefinition
             RTHandle prevMVLen, nextMVLen;
             GrabVelocityMagnitudeHistoryTextures(camera, historyScale, out prevMVLen, out nextMVLen);
 
-
             passData.prevMVLen = builder.ReadTexture(renderGraph.ImportTexture(prevMVLen));
             passData.nextMVLen = (!postDoF) ? builder.WriteTexture(renderGraph.ImportTexture(nextMVLen)) : TextureHandle.nullHandle;
 
@@ -1615,6 +1611,18 @@ namespace UnityEngine.Rendering.HighDefinition
             passData.destination = builder.WriteTexture(dest);
 
             passData.prevFinalViewport = m_PrevFinalViewport.width < 0 ? camera.finalViewport : m_PrevFinalViewport;
+            var mainRTScales = RTHandles.CalculateRatioAgainstMaxSize(camera.actualWidth, camera.actualHeight);
+
+            if (TAAU && postDoF)
+            {
+                // We are already upsampled here.
+                //       mainRTScales = RTHandles.CalculateRatioAgainstMaxSize((int)camera.finalViewport.width, (int)camera.finalViewport.height);
+                //mainRTScales.x = camera.finalViewport.width / ((RTHandle)dest).rt.width;
+                //mainRTScales.y = camera.finalViewport.height / ((RTHandle)dest).rt.height;
+            }
+            Vector4 scales = new Vector4(passData.prevFinalViewport.width / prevHistory.rt.width, passData.prevFinalViewport.height / prevHistory.rt.height, mainRTScales.x, mainRTScales.y);
+            passData.taaScales = scales;
+
             passData.finalViewport = camera.finalViewport;
             var resScale = DynamicResolutionHandler.instance.GetCurrentScale();
             float stdDev = 0.4f;
@@ -1668,10 +1676,7 @@ namespace UnityEngine.Rendering.HighDefinition
                         mpb.SetVector(HDShaderIDs._TaaFilterWeights, data.taaFilterWeights);
                         mpb.SetVector(HDShaderIDs._TaaFilterWeights1, data.taaFilterWeights1);
                         mpb.SetVector(HDShaderIDs._TaauParameters, data.taauParams);
-
-                        Vector4 scales = new Vector4(data.prevFinalViewport.width / ((RTHandle)data.prevHistory).rt.width, data.prevFinalViewport.height / ((RTHandle)data.prevHistory).rt.height, 0, 0);
-
-                        mpb.SetVector(HDShaderIDs._TaaScales, scales);
+                        mpb.SetVector(HDShaderIDs._TaaScales, data.taaScales);
 
                         if (data.runsTAAU)
                         {
