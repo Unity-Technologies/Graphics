@@ -22,7 +22,7 @@ namespace UnityEditor.Rendering.Universal.ShaderGUI
         public static class Styles
         {
             public static GUIContent specularMapText =
-                new GUIContent("Specular Map", "Designates a Specular Map and specular color determining the apperance of reflections on this Material's surface.");
+                EditorGUIUtility.TrTextContent("Specular Map", "Designates a Specular Map and specular color determining the apperance of reflections on this Material's surface.");
         }
 
         public struct SimpleLitProperties
