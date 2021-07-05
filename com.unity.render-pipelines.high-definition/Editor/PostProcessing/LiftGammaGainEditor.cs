@@ -11,9 +11,9 @@ namespace UnityEditor.Rendering.HighDefinition
         SerializedDataParameter m_Gamma;
         SerializedDataParameter m_Gain;
 
-        GUIContent m_LiftLabel = EditorGUIUtility.TrTextContent("Lift", "Use this to control and apply a hue to the dark tones. This has a more exaggerated effect on shadows.");
-        GUIContent m_GammaLabel = EditorGUIUtility.TrTextContent("Gamma", "Use this to control and apply a hue to the mid-range tones with a power function.");
-        GUIContent m_GainLabel = EditorGUIUtility.TrTextContent("Gain", "Use this to increase and apply a hue to the signal and make highlights brighter.");
+        GUIContent m_LiftLabel = EditorGUIUtility.TrTextContent("Lift", "Use this control to apply a hue to the dark tones (shadows) and adjust their level.");
+        GUIContent m_GammaLabel = EditorGUIUtility.TrTextContent("Gamma", "Use this control to apply a hue to the mid-range tones and adjust their level.");
+        GUIContent m_GainLabel = EditorGUIUtility.TrTextContent("Gain", "Use this control to apply a hue to the highlights and adjust their level.");
 
         readonly TrackballUIDrawer m_TrackballUIDrawer = new TrackballUIDrawer();
 
