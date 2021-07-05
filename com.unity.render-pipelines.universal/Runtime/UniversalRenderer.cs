@@ -1072,10 +1072,10 @@ namespace UnityEngine.Rendering.Universal
             bool msaaDepthResolve = msaaEnabledForCamera && SystemInfo.supportsMultisampledTextures != 0;
 
             // copying depth on GLES3 is giving invalid results. Needs investigation (Fogbugz issue 1339401)
-            if (SystemInfo.graphicsDeviceType == GraphicsDeviceType.OpenGLES3 || SystemInfo.graphicsDeviceType == GraphicsDeviceType.Vulkan)
+            if (SystemInfo.graphicsDeviceType == GraphicsDeviceType.OpenGLES3)
                 msaaDepthResolve = false;
 
-            return supportsDepthCopy || msaaDepthResolve;
+            return false;
         }
 
         internal override void SwapColorBuffer(CommandBuffer cmd)
