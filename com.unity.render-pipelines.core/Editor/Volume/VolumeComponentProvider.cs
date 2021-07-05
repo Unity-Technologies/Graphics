@@ -58,7 +58,7 @@ namespace UnityEditor.Rendering
 
             supportedVolumeComponents = FilterVolumeComponentTypes(
                 VolumeManager.instance.baseComponentTypeArray, currentPipelineType);
-            s_SupportedVolumeComponentsForRenderPipeline[currentPipelineType]= supportedVolumeComponents;
+            s_SupportedVolumeComponentsForRenderPipeline[currentPipelineType] = supportedVolumeComponents;
 
             return supportedVolumeComponents;
         }
@@ -101,7 +101,7 @@ namespace UnityEditor.Rendering
                 if (string.IsNullOrEmpty(path))
                     path = ObjectNames.NicifyVariableName(t.Name);
 
-                volumes.Add((path,t));
+                volumes.Add((path, t));
             }
 
             return volumes;
@@ -125,7 +125,7 @@ namespace UnityEditor.Rendering
             {
                 var rootNode = new PathNode();
 
-                foreach (var (path, t) in volumeComponentTypesFiltered)
+                foreach (var(path, t) in volumeComponentTypesFiltered)
                 {
                     // Skip components that have already been added to the volume
                     if (m_Target.Has(t))

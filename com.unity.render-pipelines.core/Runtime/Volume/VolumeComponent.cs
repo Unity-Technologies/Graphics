@@ -45,7 +45,7 @@ namespace UnityEngine.Rendering
         /// create sub-menus.</param>
         /// <param name="pipelineTypes">The list of pipeline types that the target class supports</param>
         public VolumeComponentMenuForRenderPipeline(string menu, params Type[] pipelineTypes)
-            : base (menu)
+            : base(menu)
         {
             if (pipelineTypes == null)
                 throw new Exception("Specify a list of supported pipeline");
@@ -61,8 +61,6 @@ namespace UnityEngine.Rendering
             this.pipelineTypes = pipelineTypes;
         }
     }
-
-
 
 
     /// <summary>
