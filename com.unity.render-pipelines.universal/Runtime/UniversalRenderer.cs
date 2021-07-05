@@ -1075,7 +1075,7 @@ namespace UnityEngine.Rendering.Universal
             if (SystemInfo.graphicsDeviceType == GraphicsDeviceType.OpenGLES3)
                 msaaDepthResolve = false;
 
-            return false;
+            return true;
         }
 
         internal override void SwapColorBuffer(CommandBuffer cmd)
