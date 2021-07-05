@@ -74,7 +74,8 @@ namespace UnityEditor.Rendering.HighDefinition
             if (HDRenderPipeline.currentAsset == null)
             {
                 EditorGUILayout.HelpBox("HDRP is not the active Render Pipeline.", MessageType.Info);
-                Selection.activeObject = serializedObject.targetObject;
+                Selection.activeObject = null;
+                EditorApplication.delayCall += () => Selection.activeObject = (serializedObject.targetObject);
                 return;
             }
 

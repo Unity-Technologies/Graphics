@@ -20,7 +20,8 @@ namespace UnityEditor.Rendering.Universal
             if (UniversalRenderPipeline.asset == null)
             {
                 EditorGUILayout.HelpBox("URP is not the active Render Pipeline.", MessageType.Info);
-                Selection.activeObject = serializedObject.targetObject;
+                Selection.activeObject = null;
+                EditorApplication.delayCall += () => Selection.activeObject = (serializedObject.targetObject);
                 return;
             }
 
