@@ -53,6 +53,9 @@ namespace UnityEngine.Rendering.Universal
 
         internal bool accurateGbufferNormals => m_DeferredLights != null ? m_DeferredLights.AccurateGbufferNormals : false;
 
+#if ADAPTIVE_PERFORMANCE_2_1_0_OR_NEWER
+        internal bool needTransparencyPass { get { return !UniversalRenderPipeline.asset.useAdaptivePerformance || !AdaptivePerformance.AdaptivePerformanceRenderSettings.SkipTransparentObjects;; } }
+#endif
         /// <summary>Property to control the depth priming behavior of the forward rendering path.</summary>
         public DepthPrimingMode depthPrimingMode { get { return m_DepthPrimingMode; } set { m_DepthPrimingMode = value; } }
         DepthOnlyPass m_DepthPrepass;
@@ -238,7 +241,7 @@ namespace UnityEngine.Rendering.Universal
             m_DrawSkyboxPass = new DrawSkyboxPass(RenderPassEvent.BeforeRenderingSkybox);
             m_CopyColorPass = new CopyColorPass(RenderPassEvent.AfterRenderingSkybox, m_SamplingMaterial, m_BlitMaterial);
 #if ADAPTIVE_PERFORMANCE_2_1_0_OR_NEWER
-            if (!UniversalRenderPipeline.asset.useAdaptivePerformance || AdaptivePerformance.AdaptivePerformanceRenderSettings.SkipTransparentObjects == false)
+            if (needTransparencyPass)
 #endif
             {
                 m_TransparentSettingsPass = new TransparentSettingsPass(RenderPassEvent.BeforeRenderingTransparents, data.shadowTransparentReceive);
@@ -307,12 +310,12 @@ namespace UnityEngine.Rendering.Universal
         {
             if ((DebugHandler != null) && DebugHandler.IsActiveForCamera(ref cameraData))
             {
-                if (DebugHandler.TryGetFullscreenDebugMode(out DebugFullScreenMode fullScreenDebugMode, out int outputHeight))
+                if (DebugHandler.TryGetFullscreenDebugMode(out DebugFullScreenMode fullScreenDebugMode, out int textureHeightPercent))
                 {
                     Camera camera = cameraData.camera;
                     float screenWidth = camera.pixelWidth;
                     float screenHeight = camera.pixelHeight;
-                    float height = Mathf.Min(outputHeight, screenHeight);
+                    float height = Mathf.Clamp01(textureHeightPercent / 100f) * screenHeight;
                     float width = height * (screenWidth / screenHeight);
                     float normalizedSizeX = width / screenWidth;
                     float normalizedSizeY = height / screenHeight;
@@ -359,9 +362,6 @@ namespace UnityEngine.Rendering.Universal
 
             DebugHandler?.Setup(context, ref cameraData);
 
-#if ADAPTIVE_PERFORMANCE_2_1_0_OR_NEWER
-            bool needTransparencyPass = !UniversalRenderPipeline.asset.useAdaptivePerformance || !AdaptivePerformance.AdaptivePerformanceRenderSettings.SkipTransparentObjects;
-#endif
             if (cameraData.cameraType != CameraType.Game)
                 useRenderPassEnabled = false;
 
@@ -529,7 +529,7 @@ namespace UnityEngine.Rendering.Universal
 
             if ((DebugHandler != null) && DebugHandler.IsActiveForCamera(ref cameraData))
             {
-                DebugHandler.TryGetFullscreenDebugMode(out var fullScreenMode, out int outputHeight);
+                DebugHandler.TryGetFullscreenDebugMode(out var fullScreenMode);
                 if (fullScreenMode == DebugFullScreenMode.Depth)
                 {
                     requiresDepthPrepass = true;
@@ -702,6 +702,7 @@ namespace UnityEngine.Rendering.Universal
                 EnqueuePass(m_MotionVectorPass);
             }
 
+            bool lastCameraInTheStack = cameraData.resolveFinalTarget;
 
 #if ADAPTIVE_PERFORMANCE_2_1_0_OR_NEWER
             if (needTransparencyPass)
@@ -712,7 +713,8 @@ namespace UnityEngine.Rendering.Universal
                     EnqueuePass(m_TransparentSettingsPass);
                 }
 
-                RenderBufferStoreAction transparentPassColorStoreAction = cameraTargetDescriptor.msaaSamples > 1 ? RenderBufferStoreAction.Resolve : RenderBufferStoreAction.Store;
+                // if this is not lastCameraInTheStack we still need to Store, since the MSAA buffer might be needed by the Overlay cameras
+                RenderBufferStoreAction transparentPassColorStoreAction = cameraTargetDescriptor.msaaSamples > 1 && lastCameraInTheStack ? RenderBufferStoreAction.Resolve : RenderBufferStoreAction.Store;
                 RenderBufferStoreAction transparentPassDepthStoreAction = RenderBufferStoreAction.DontCare;
                 m_RenderTransparentForwardPass.ConfigureColorStoreAction(transparentPassColorStoreAction);
                 m_RenderTransparentForwardPass.ConfigureDepthStoreAction(transparentPassDepthStoreAction);
@@ -720,7 +722,7 @@ namespace UnityEngine.Rendering.Universal
             }
             EnqueuePass(m_OnRenderObjectCallbackPass);
 
-            bool lastCameraInTheStack = cameraData.resolveFinalTarget;
+
             bool hasCaptureActions = renderingData.cameraData.captureActions != null && lastCameraInTheStack;
             bool applyFinalPostProcessing = anyPostProcessing && lastCameraInTheStack &&
                 renderingData.cameraData.antialiasing == AntialiasingMode.FastApproximateAntialiasing;

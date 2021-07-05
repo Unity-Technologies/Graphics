@@ -68,6 +68,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Sticky notes can now be deleted through contextual manual menu
 - Blackboard fields can now be duplicated either with a shortcut (Ctrl+D) or with a contextual menu option
 - Properties labels do not overlap anymore
+- VFX Graph operators keep the same width when expanded or collpased so that the button does not change position
 
 ## [11.0.0] - 2020-10-21
 ### Added

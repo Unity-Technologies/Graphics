@@ -157,11 +157,10 @@ namespace UnityEditor.Rendering.HighDefinition
 
         public override void OnInspectorGUI()
         {
-            EditorGUI.BeginChangeCheck();
-            {
-                PropertyField(m_hdriSky);
-            }
             bool updateDefaultShadowTint = false;
+
+            EditorGUI.BeginChangeCheck();
+            PropertyField(m_hdriSky);
             if (EditorGUI.EndChangeCheck())
             {
                 GetUpperHemisphereLuxValue();
@@ -171,28 +170,33 @@ namespace UnityEditor.Rendering.HighDefinition
             PropertyField(m_EnableCloudMotion);
             if (m_EnableCloudMotion.value.boolValue)
             {
-                EditorGUI.indentLevel++;
-
-                using (new EditorGUILayout.HorizontalScope())
+                using (new IndentLevelScope())
                 {
-                    DrawOverrideCheckbox(m_Procedural);
-                    using (new EditorGUI.DisabledScope(!m_Procedural.overrideState.boolValue))
-                        m_Procedural.value.boolValue = EditorGUILayout.IntPopup(Styles.distorsionMode, (int)m_Procedural.value.intValue, m_DistortionModes, m_DistortionModeValues) == 1;
-                }
+                    using (var scope = new OverridablePropertyScope(m_Procedural, Styles.distorsionMode, this))
+                    {
+                        if (scope.displayed)
+                        {
+                            EditorGUI.BeginChangeCheck();
+                            bool newValue = EditorGUILayout.IntPopup(Styles.distorsionMode, (int)m_Procedural.value.intValue, m_DistortionModes, m_DistortionModeValues) == 1;
+                            if (EditorGUI.EndChangeCheck())
+                                m_Procedural.value.boolValue = newValue;
+                        }
+                    }
 
-                if (!m_Procedural.value.boolValue)
-                {
-                    EditorGUI.indentLevel++;
-                    PropertyField(m_Flowmap);
-                    if (IsFlowmapFormatInvalid(m_Flowmap))
-                        EditorGUILayout.HelpBox(Styles.flowmapInfoMessage, MessageType.Info);
-                    PropertyField(m_UpperHemisphereOnly);
-                    EditorGUI.indentLevel--;
-                }
+                    if (!m_Procedural.value.boolValue)
+                    {
+                        using (new IndentLevelScope())
+                        {
+                            PropertyField(m_Flowmap);
+                            if (IsFlowmapFormatInvalid(m_Flowmap))
+                                EditorGUILayout.HelpBox(Styles.flowmapInfoMessage, MessageType.Info);
+                            PropertyField(m_UpperHemisphereOnly);
+                        }
+                    }
 
-                PropertyField(m_ScrollDirection);
-                PropertyField(m_ScrollSpeed);
-                EditorGUI.indentLevel--;
+                    PropertyField(m_ScrollDirection);
+                    PropertyField(m_ScrollSpeed);
+                }
             }
 
             base.CommonSkySettingsGUI();
@@ -201,9 +205,8 @@ namespace UnityEditor.Rendering.HighDefinition
 
             if (m_EnableBackplate.value.boolValue)
             {
-                if (BeginAdditionalPropertiesScope())
+                using (new IndentLevelScope())
                 {
-                    EditorGUI.indentLevel++;
                     PropertyField(m_BackplateType, Styles.type);
                     bool constraintAsCircle = false;
                     if (m_BackplateType.value.enumValueIndex == (uint)BackplateType.Disc)
@@ -246,9 +249,7 @@ namespace UnityEditor.Rendering.HighDefinition
                     {
                         m_ShadowTint.value.colorValue = new Color(m_UpperHemisphereLuxColor.value.vector3Value.x, m_UpperHemisphereLuxColor.value.vector3Value.y, m_UpperHemisphereLuxColor.value.vector3Value.z);
                     }
-                    EditorGUI.indentLevel--;
                 }
-                EndAdditionalPropertiesScope();
             }
         }
     }

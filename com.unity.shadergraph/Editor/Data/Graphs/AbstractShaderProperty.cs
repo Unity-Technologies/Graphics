@@ -37,11 +37,6 @@ namespace UnityEditor.ShaderGraph.Internal
             return referenceName;
         }
 
-        internal virtual string GetHLSLVariableName(bool isSubgraphProperty)
-        {
-            return GetHLSLVariableName(isSubgraphProperty, GenerationMode.ForReals);
-        }
-
         internal string GetConnectionStateHLSLVariableName()
         {
             return GetConnectionStateVariableName(referenceName + "_" + objectId);
