@@ -668,7 +668,7 @@ namespace UnityEditor.VFX.UI
 
         void UpdatePlayRate()
         {
-            if (m_LastKnownPlayRate != m_AttachedComponent.playRate)
+            if (Math.Abs(m_LastKnownPlayRate - m_AttachedComponent.playRate) > 1e-4)
             {
                 m_LastKnownPlayRate = m_AttachedComponent.playRate;
                 float playRateValue = m_AttachedComponent.playRate * VisualEffectControl.playRateToValue;

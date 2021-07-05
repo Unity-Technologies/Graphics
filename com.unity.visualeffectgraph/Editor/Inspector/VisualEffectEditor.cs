@@ -92,6 +92,16 @@ namespace UnityEditor.VFX
         SerializedObject m_SingleSerializedObject;
         SerializedObject[] m_OtherSerializedObjects;
 
+        public VisualEffectEditor()
+        {
+            Selection.selectionChanged += OnSelectionChanged;
+        }
+
+        private void OnSelectionChanged()
+        {
+            this.m_lastPlayRate = -1f;
+        }
+
         protected void OnEnable()
         {
             m_SingleSerializedObject = targets.Length == 1 ? serializedObject : new SerializedObject(targets[0]);
@@ -473,6 +483,8 @@ namespace UnityEditor.VFX
             }
         }
 
+        private float m_lastPlayRate = -1f;
+
         protected virtual void SceneViewGUICallback()
         {
             List<VisualEffect> effects = targets.OfType<VisualEffect>().ToList();
@@ -511,12 +523,17 @@ namespace UnityEditor.VFX
             }
             GUILayout.EndHorizontal();
 
-            float playRate = effects.Min(x => x.playRate) * VisualEffectControl.playRateToValue;
+            float playRate = this.m_lastPlayRate < 0
+                ? effects.First().playRate
+                : effects.FirstOrDefault(x => x.playRate != this.m_lastPlayRate)?.playRate ?? effects.First().playRate;
+            this.m_lastPlayRate = playRate;
+
+            float playRateValue = playRate * VisualEffectControl.playRateToValue;
 
             GUILayout.BeginHorizontal();
             GUILayout.Label(Contents.playRate, GUILayout.Width(46));
-            playRate = EditorGUILayout.PowerSlider("", playRate, VisualEffectControl.minSlider, VisualEffectControl.maxSlider, VisualEffectControl.sliderPower, GUILayout.Width(124));
-            effects.ForEach(x => x.playRate = playRate * VisualEffectControl.valueToPlayRate);
+            playRateValue = EditorGUILayout.PowerSlider("", playRateValue, VisualEffectControl.minSlider, VisualEffectControl.maxSlider, VisualEffectControl.sliderPower, GUILayout.Width(124));
+            effects.ForEach(x => x.playRate = playRateValue * VisualEffectControl.valueToPlayRate);
 
             var eventType = Event.current.type;
             if (EditorGUILayout.DropdownButton(Contents.setPlayRate, FocusType.Passive, GUILayout.Width(40)))
@@ -554,9 +571,11 @@ namespace UnityEditor.VFX
 
         void SetPlayRate(object value)
         {
-            float rate = (float)((int)value)  * VisualEffectControl.valueToPlayRate;
-            VisualEffect effect = ((VisualEffect)targets[0]);
-            effect.playRate = rate;
+            float rate = (int)value  * VisualEffectControl.valueToPlayRate;
+            foreach (var visualEffect in targets.OfType<VisualEffect>())
+            {
+                visualEffect.playRate = rate;
+            }
         }
 
         static VisualEffectEditor s_EffectUi;
