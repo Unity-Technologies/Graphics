@@ -4,6 +4,22 @@ using UnityEngine.VFX;
 
 namespace UnityEditor.VFX
 {
+    static class Deprecated
+    {
+        public static readonly Type[] s_Types = new Type[]
+        {
+            typeof(Circle),
+            typeof(ArcCircle),
+            //Simple Sphere is still used for Conform & Distance to Sphere
+            typeof(ArcSphere),
+            typeof(Cylinder),
+            typeof(Cone),
+            typeof(ArcCone),
+            typeof(Torus),
+            typeof(ArcTorus)
+        };
+    }
+
     [VFXType(VFXTypeAttribute.Usage.ExcludeFromProperty, "Circle (Deprecated)"), Serializable]
     struct Circle
     {

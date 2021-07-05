@@ -78,6 +78,20 @@ namespace UnityEditor.VFX
             return inputExpression;
         }
 
+        protected override void GenerateErrors(VFXInvalidateErrorReporter manager)
+        {
+            base.GenerateErrors(manager);
+
+            var type = this.type;
+            if (Deprecated.s_Types.Contains(type))
+            {
+                manager.RegisterError(
+                    "DeprecatedTypeInlineOperator",
+                    VFXErrorType.Warning,
+                    string.Format("The structure of the '{0}' has changed, the position property has been moved to a transform type. You should consider to recreate this operator.", type));
+            }
+        }
+
         public override void Sanitize(int version)
         {
             if (type == null)
