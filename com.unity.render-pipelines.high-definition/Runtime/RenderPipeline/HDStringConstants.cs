@@ -575,7 +575,7 @@ namespace UnityEngine.Rendering.HighDefinition
         public static readonly int _RayTracingLayerMask             = Shader.PropertyToID("_RayTracingLayerMask");
         public static readonly int _PixelSpreadAngleTangent         = Shader.PropertyToID("_PixelSpreadAngleTangent");
         public static readonly string _RaytracingAccelerationStructureName          = "_RaytracingAccelerationStructure";
-        
+
         // Path tracing variables
         public static readonly int _PathTracedDoFConstants          = Shader.PropertyToID("_PathTracedDoFConstants");
         public static readonly int _InvViewportScaleBias            = Shader.PropertyToID("_InvViewportScaleBias");
