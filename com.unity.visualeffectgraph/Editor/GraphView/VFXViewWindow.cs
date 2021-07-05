@@ -71,7 +71,7 @@ namespace  UnityEditor.VFX.UI
             }
 
             LoadResource(resource, effectToAttach);
-        }
+        }  
 
         public void LoadResource(VisualEffectResource resource, VisualEffect effectToAttach = null)
         {
