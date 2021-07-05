@@ -35,7 +35,7 @@ From 10.x, when you create a Spot Light from the Editor menu, HDRP now enables t
 
 From 10.x, HDRP disables [Backplate](Override-HDRI-Sky.md) rendering for lighting cubemaps that are not compatible.
 
-From 10.x, [Screen Space Ambient Occlusion](Override-Ambient-Occlusion.md), [Screen Space Global Illumination](Override-Screen-Space-GI.md), [Screen Space Reflection](Override-Screen-Space-Reflection.md), [Ray Tracing Effects](Ray-Tracing-Getting-Started.md), and [Volumetric Reprojection](Override-Fog.md) do not interact with Reflection Probes as they do not work correctly.
+From 10.x, [Screen Space Ambient Occlusion](Override-Ambient-Occlusion.md), [Screen Space Global Illumination](Override-Screen-Space-GI.md), [Reflection](Override-Reflection.md), [Ray Tracing Effects](Ray-Tracing-Getting-Started.md), and [Volumetric Reprojection](Override-Fog.md) do not interact with Reflection Probes as they do not work correctly.
 
 From 10.x, if you disable the sky override used as the **Static Lighting Sky** in the **Lighting** window, the sky no longer affects the baked lighting. Previously, the sky affected the baked lighting even when it was disabled.
 
@@ -59,7 +59,7 @@ For project migrating from old 9.x.x-preview package. There is a change in the o
 
 From 10.x, the debug lens attenuation has been removed, however the lens attenuation can now be set in the HDRP Default setting Panel as either modelling a perfect lens or an imperfect one.
 
-From 10.x, the [Screen Space Reflection](Override-Screen-Space-Reflection.md) effect always uses the color pyramid HDRP generates after the Before Refraction transparent pass. This means the color buffer only includes transparent GameObjects that use the **BeforeRefraction** [Rendering Pass](Surface-Type.md). Previously the content depended on whether the Distortion effect was active.
+From 10.x, the [Screen Space Reflection](Override-Reflection.md) effect always uses the color pyramid HDRP generates after the Before Refraction transparent pass. This means the color buffer only includes transparent GameObjects that use the **BeforeRefraction** [Rendering Pass](Surface-Type.md). Previously the content depended on whether the Distortion effect was active.
 
 ## Volumetric Fog
 

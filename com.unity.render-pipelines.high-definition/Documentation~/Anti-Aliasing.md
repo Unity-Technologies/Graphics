@@ -78,7 +78,7 @@ When you use MSAA, be aware of the following:
 - HDRP does not disable the following features when you enable MSAA, but instead uses non-MSAA depth which can cause issues on edges:
   1. [Screen Space Ambient Occlusion](Override-Ambient-Occlusion.md).
 - MSAA does not work with the following features. HDRP disables these features when you enable MSAA:
-  1. [Screen space reflection (SSR)](Override-Screen-Space-Reflection.md).
+  1. [Reflection (SSR/RTR)](Override-Reflection.md).
   2. Screen space shadows.
   3. [Temporal Anti-aliasing](#TAA).
   4. Normal Buffer patch up by Decals. It mean Decal which affect material's normal will not affect Screen space reflection (SSR). This is not a problem as the effect is disabled, see 1.

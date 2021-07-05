@@ -20,7 +20,7 @@ namespace UnityEngine.Rendering.HighDefinition
         /// <summary>
         /// Enable screen space global illumination.
         /// </summary>
-        [Tooltip("Enable screen space global illumination.")]
+        [Tooltip("Enable global illumination.")]
         public BoolParameter enable = new BoolParameter(false);
 
         /// <summary>

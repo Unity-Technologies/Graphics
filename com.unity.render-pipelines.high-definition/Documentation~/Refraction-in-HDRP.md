@@ -47,7 +47,7 @@ To produce the highest quality refractions, HDRP selects which refraction techni
 
 To do this, HDRP checks the available techniques in a specific order, called the Refraction hierarchy. The order of the Refraction hierarchy is:
 
-1. [Screen space refraction](Override-Screen-Space-Refraction.md).
+1. [Screen space refraction](Override-Refraction.md).
 2. Sampling [standard](Reflection-Probe.md) and [Planar](Planar-Reflection-Probe.md) Reflection Probes.
 
 This means that, if screen space refraction does not return information for a pixel, HDRP uses Reflection Probes for that pixel.

@@ -13,7 +13,7 @@ The following table provides a high level overview of the advantages and disadva
 | **Graph-Based Composition** | Low | High | High| Low |
 | **3D Composition** | Low | High | Low | High |
 
-[*] *Feature Coverage* indicates whether features such as [screen-space reflections](Override-Screen-Space-Reflection.md), transparencies or refractions can work between layers.
+[*] *Feature Coverage* indicates whether features such as [reflections](Override-Reflection.md), transparencies or refractions can work between layers.
 
 Furthermore, the Graphics Compositor includes functionality such as *"localized post-processing"*, where a Post-Processing Volume only affects certain GameObjects in the Scene.
 

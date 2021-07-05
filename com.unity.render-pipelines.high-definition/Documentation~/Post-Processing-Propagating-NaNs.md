@@ -26,7 +26,7 @@ For example, see a NaN caused by a material issue that spreads to the whole scen
 
 ![](Images/Post-processingPropagatingNaNsExample4.png)
 
-A similar issue occurs when HDRP generates color pyramids for use by features such as [screen-space reflection](Override-Screen-Space-Reflection.md), [screen-space refraction](Override-Screen-Space-Refraction.md), and distortion.
+A similar issue occurs when HDRP generates color pyramids for use by features such as [screen-space reflection](Override-Reflection.md), [screen-space refraction](Override-Refraction.md), and distortion.
 
 If you disable bloom and the screen stops being black, the cause of the black screen is likely because a single NaN/Inf pixel is present, but not really visible, and bloom propagated it across the whole screen. It is **not** because bloom created the invalid values.
 

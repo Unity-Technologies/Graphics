@@ -37,13 +37,13 @@ If screen space reflection has a weight of 1, then HDRP uses that information an
 
 ### Screen space reflection
 
-The first level of the reflection hierarchy is a screen space solution with a high resource intensity that captures everything rendered in the Scene. HDRP uses the [Volume](Volumes.md) framework to handle screen space reflection. The [Screen Space Reflection](Override-Screen-Space-Reflection.md) Volume [override](Volume-Components.md) contains the properties and controls the screen space reflection effect. To calculate screen space reflection, the algorithm traces a ray in screen space until it finds an intersection with the depth buffer. It then looks up the color of the pixel from the previous frame, and uses that to compute the reflected lighting.
+The first level of the reflection hierarchy is a screen space solution with a high resource intensity that captures everything rendered in the Scene. HDRP uses the [Volume](Volumes.md) framework to handle screen space reflection. The [Reflection](Override-Reflection.md) Volume [override](Volume-Components.md) contains the properties and controls the screen space reflection effect. To calculate screen space reflection, the algorithm traces a ray in screen space until it finds an intersection with the depth buffer. It then looks up the color of the pixel from the previous frame, and uses that to compute the reflected lighting.
 
 This screen-space technique limits the reflective effect because it can only reflect GameObjects that actually visible on screen. Also, because this technique only uses a single layer of the depth buffer, tracing rays behind GameObjects is difficult for it to handle. If this technique does not find an intersection, HDRP falls back to the next technique in the [reflection hierarchy](#ReflectionHierarchy).
 
 **Note**: Screen space reflection only works for opaque Materials and, because it is a screen space effect, it only reflects GameObjects that are visible on the screen.
 
-For information on how to use screen space reflection in your Unity Project, see the [Screen Space Reflection](Override-Screen-Space-Reflection.md) documentation.
+For information on how to use screen space reflection in your Unity Project, see the [Reflection](Override-Reflection.md) documentation.
 
 <a name="ReflectionProbes"></a>
 

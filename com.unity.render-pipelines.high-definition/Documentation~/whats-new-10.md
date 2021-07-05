@@ -49,7 +49,7 @@ This version of HDRP includes scalability settings for fog and subsurface scatte
 
 ![](Images/HDRPFeatures-SSGI.png)
 
-This version of HDRP introduces screen-space global illumination (SSGI). It is an algorithm that accesses indirect diffuse lighting the environment generates. It works in the same way as the [Screen Space Reflection](Override-Screen-Space-Reflection.md) in that it uses ray marching to calculate the result.
+This version of HDRP introduces screen-space global illumination (SSGI). It is an algorithm that accesses indirect diffuse lighting the environment generates. It works in the same way as the [Screen Space Reflection](Override-Reflection.md) in that it uses ray marching to calculate the result.
 
 For more information, see [Screen Space Global Illumination](Override-Screen-Space-GI.md).
 
@@ -234,7 +234,7 @@ Reflection Probe can now fake the increasing preceive bluriness of a surface ref
 
 ### Screen space reflection
 
-[Screen Space Reflection](Override-Screen-Space-Reflection.md) effect always use the color pyramid generate after the Before Refraction transparent pass. Thus the color buffer only includes transparent GameObjects that use the **BeforeRefraction** [Rendering Pass](Surface-Type.md).
+[Screen Space Reflection](Override-Reflection.md) effect always use the color pyramid generate after the Before Refraction transparent pass. Thus the color buffer only includes transparent GameObjects that use the **BeforeRefraction** [Rendering Pass](Surface-Type.md).
 
 ### Distortion
 

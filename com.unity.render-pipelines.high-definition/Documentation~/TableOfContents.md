@@ -35,8 +35,8 @@
       * [Ambient Occlusion](Override-Ambient-Occlusion.md)
       * [Indirect Lighting Controller](Override-Indirect-Lighting-Controller.md)
       * [Screen Space Global Illumination](Override-Screen-Space-GI.md)
-      * [Screen Space Reflection](Override-Screen-Space-Reflection.md)
-      * [Screen Space Refraction](Override-Screen-Space-Refraction.md)
+      * [Screen Space Reflection](Override-Reflection.md)
+      * [Screen Space Refraction](Override-Refraction.md)
     * Material
       * [Diffusion Profile](Override-Diffusion-Profile.md)
     * Post-processing

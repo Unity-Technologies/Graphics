@@ -52,7 +52,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
         #region General
         /// <summary>Enable Screen Space Reflections.</summary>
-        [Tooltip("Enable Screen Space Reflections.")]
+        [Tooltip("Enable Reflections.")]
         public BoolParameter enabled = new BoolParameter(true);
 
         /// <summary>
@@ -147,7 +147,7 @@ namespace UnityEngine.Rendering.HighDefinition
         public RayTracingFallbackHierachyParameter fallbackHierachy = new RayTracingFallbackHierachyParameter(RayTracingFallbackHierachy.ReflectionProbesAndSky);
 
         /// <summary>
-        /// Layer mask used to include the objects for screen space reflection.
+        /// Layer mask used to include the objects for ray traced reflection.
         /// </summary>
         public LayerMaskParameter layerMask = new LayerMaskParameter(-1);
 
