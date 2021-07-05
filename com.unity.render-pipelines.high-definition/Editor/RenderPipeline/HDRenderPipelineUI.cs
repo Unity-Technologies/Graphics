@@ -51,7 +51,7 @@ namespace UnityEditor.Rendering.HighDefinition
             SSGIQuality = 1 << 34,
             VolumetricClouds = 1 << 35,
         }
-        
+
         enum ExpandableShadows
         {
             PunctualLightShadows = 1 << 1,
@@ -66,11 +66,11 @@ namespace UnityEditor.Rendering.HighDefinition
             High = 1 << 3,
         }
 
-        static readonly ExpandedState<Expandable, HDRenderPipelineAsset> k_ExpandedState = new (Expandable.Rendering, "HDRP");
+        static readonly ExpandedState<Expandable, HDRenderPipelineAsset> k_ExpandedState = new(Expandable.Rendering, "HDRP");
         static readonly ExpandedState<ExpandableShadows, HDRenderPipelineAsset> k_LightsExpandedState = new(0, "HDRP:Shadows");
 
         static readonly Dictionary<GUIContent, ExpandedState<ExpandableQualities, HDRenderPipelineAsset>>
-            k_QualityExpandedStates = new();
+        k_QualityExpandedStates = new();
         private static CED.IDrawer QualityDrawer(GUIContent content, Expandable expandable, Action<SerializedHDRenderPipelineAsset, int> qualityActionForTier)
         {
             // Make sure that the section is not registered
@@ -697,7 +697,7 @@ namespace UnityEditor.Rendering.HighDefinition
             EditorGUILayout.PropertyField(serialized.renderPipelineSettings.postProcessQualitySettings.BloomHighPrefilteringQuality.GetArrayElementAtIndex(tier), Styles.highQualityPrefiltering);
             EditorGUILayout.PropertyField(serialized.renderPipelineSettings.postProcessQualitySettings.BloomHighFilteringQuality.GetArrayElementAtIndex(tier), Styles.highQualityFiltering);
         }
-        
+
         static void DrawChromaticAberrationQualitySetting(SerializedHDRenderPipelineAsset serialized, int tier)
         {
             EditorGUILayout.PropertyField(serialized.renderPipelineSettings.postProcessQualitySettings.ChromaticAbMaxSamples.GetArrayElementAtIndex(tier), Styles.maxSamplesQuality);
