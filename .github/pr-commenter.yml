@@ -31,6 +31,7 @@ comment:
         - com.unity.render-pipelines.universal/Editor/ShaderGraph/*
       body: |
         It looks like you're changing a Shader Graph Package or project
+        branch: '"${GITHUB_REF##*/}"'
         Please run the following jobs on your branch before merging your PR:
         https://yamato.cds.internal.unity3d.com/jobs/902-Graphics/tree/master/.yamato%252Fall-shadergraph.yml%2523PR_ShaderGraph_2021.2
         Depending on the scope of your PR, you may also need to run URP and HDRP jobs. Please ask your lead if you are unsure about what your PR could affect.
