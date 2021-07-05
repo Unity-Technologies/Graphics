@@ -163,6 +163,16 @@ namespace UnityEngine.Rendering.Universal
             get => m_DepthStoreAction;
         }
 
+        internal bool[] overriddenColorStoreActions
+        {
+            get => m_OverriddenColorStoreActions;
+        }
+
+        internal bool overriddenDepthStoreAction
+        {
+            get => m_OverriddenDepthStoreAction;
+        }
+
         /// <summary>
         /// The input requirements for the <c>ScriptableRenderPass</c>, which has been set using <c>ConfigureInput</c>
         /// </summary>
@@ -184,6 +194,11 @@ namespace UnityEngine.Rendering.Universal
 
         RenderBufferStoreAction[] m_ColorStoreActions = new RenderBufferStoreAction[] { RenderBufferStoreAction.Store };
         RenderBufferStoreAction m_DepthStoreAction = RenderBufferStoreAction.Store;
+
+        // by default all store actions are Store. The overridden flags are used to keep track of explicitly requested store actions, to
+        // help figuring out the correct final store action for merged render passes when using the RenderPass API.
+        private bool[] m_OverriddenColorStoreActions = new bool[] { false };
+        private bool m_OverriddenDepthStoreAction = false;
 
         /// <summary>
         /// A ProfilingSampler for the entire render pass. Used as a profiling name by <c>ScriptableRenderer</c> when executing the pass.
@@ -233,6 +248,8 @@ namespace UnityEngine.Rendering.Universal
             m_DepthAttachment = BuiltinRenderTextureType.CameraTarget;
             m_ColorStoreActions = new RenderBufferStoreAction[] { RenderBufferStoreAction.Store, 0, 0, 0, 0, 0, 0, 0 };
             m_DepthStoreAction = RenderBufferStoreAction.Store;
+            m_OverriddenColorStoreActions = new bool[] { false, false, false, false, false, false, false, false };
+            m_OverriddenDepthStoreAction = false;
             m_ClearFlag = ClearFlag.None;
             m_ClearColor = Color.black;
             overrideCameraTarget = false;
@@ -265,6 +282,7 @@ namespace UnityEngine.Rendering.Universal
         public void ConfigureColorStoreAction(RenderBufferStoreAction storeAction, uint attachmentIndex = 0)
         {
             m_ColorStoreActions[attachmentIndex] = storeAction;
+            m_OverriddenColorStoreActions[attachmentIndex] = true;
         }
 
         public void ConfigureColorStoreActions(RenderBufferStoreAction[] storeActions)
@@ -273,12 +291,14 @@ namespace UnityEngine.Rendering.Universal
             for (uint i = 0; i < count; ++i)
             {
                 m_ColorStoreActions[i] = storeActions[i];
+                m_OverriddenColorStoreActions[i] = true;
             }
         }
 
         public void ConfigureDepthStoreAction(RenderBufferStoreAction storeAction)
         {
             m_DepthStoreAction = storeAction;
+            m_OverriddenDepthStoreAction = true;
         }
 
         internal void ConfigureInputAttachments(RenderTargetIdentifier input)

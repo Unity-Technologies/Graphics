@@ -725,6 +725,11 @@ namespace UnityEngine.Rendering.Universal
                     ExecuteBlock(RenderPassBlock.MainRenderingTransparent, in renderBlocks, context, ref renderingData);
                 }
 
+#if ENABLE_VR && ENABLE_XR_MODULE
+                if (cameraData.xr.enabled)
+                    cameraData.xr.canMarkLateLatch = false;
+#endif
+
                 // Draw Gizmos...
                 if (drawGizmos)
                 {
@@ -790,10 +795,6 @@ namespace UnityEngine.Rendering.Universal
             // Camera clear flags are used to initialize the attachments on the first render pass.
             // ClearFlag is used together with Tile Load action to figure out how to clear the camera render target.
             // In Tile Based GPUs ClearFlag.Depth + RenderBufferLoadAction.DontCare becomes DontCare load action.
-            // While ClearFlag.All + RenderBufferLoadAction.DontCare become Clear load action.
-            // In mobile we force ClearFlag.All as DontCare doesn't have noticeable perf. difference from Clear
-            // and this avoid tile clearing issue when not rendering all pixels in some GPUs.
-            // In desktop/consoles there's actually performance difference between DontCare and Clear.
 
             // RenderBufferLoadAction.DontCare in PC/Desktop behaves as not clearing screen
             // RenderBufferLoadAction.DontCare in Vulkan/Metal behaves as DontCare load action
@@ -803,10 +804,6 @@ namespace UnityEngine.Rendering.Universal
             // For overlay cameras we check if depth should be cleared on not.
             if (cameraData.renderType == CameraRenderType.Overlay)
                 return (cameraData.clearDepth) ? ClearFlag.DepthStencil : ClearFlag.None;
-
-            // Always clear on first render pass in mobile as it's same perf of DontCare and avoid tile clearing issues.
-            if (Application.isMobilePlatform)
-                return ClearFlag.All;
 
             // Certain debug modes (e.g. wireframe/overdraw modes) require that we override clear flags and clear everything.
             var debugHandler = cameraData.renderer.DebugHandler;
@@ -963,6 +960,11 @@ namespace UnityEngine.Rendering.Universal
                 ExecuteNativeRenderPass(context,  renderPass, cameraData, ref  renderingData);
             else
                 renderPass.Execute(context, ref renderingData);
+
+#if ENABLE_VR && ENABLE_XR_MODULE
+            if (cameraData.xr.enabled && cameraData.xr.hasMarkedLateLatch)
+                cameraData.xr.UnmarkLateLatchShaderProperties(cmd, ref cameraData);
+#endif
         }
 
         void SetRenderPassAttachments(CommandBuffer cmd, ScriptableRenderPass renderPass, ref CameraData cameraData)
@@ -1199,6 +1201,8 @@ namespace UnityEngine.Rendering.Universal
 #if ENABLE_VR && ENABLE_XR_MODULE
             if (cameraData.xr.enabled)
             {
+                if (cameraData.xr.isLateLatchEnabled)
+                    cameraData.xr.canMarkLateLatch = true;
                 cameraData.xr.StartSinglePass(cmd);
                 cmd.EnableShaderKeyword(ShaderKeywordStrings.UseDrawProcedural);
                 context.ExecuteCommandBuffer(cmd);
