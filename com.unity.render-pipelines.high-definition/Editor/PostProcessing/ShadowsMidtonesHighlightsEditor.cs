@@ -17,9 +17,9 @@ namespace UnityEditor.Rendering.HighDefinition
         SerializedDataParameter m_HighlightsStart;
         SerializedDataParameter m_HighlightsEnd;
 
-        GUIContent m_ShadowsLabel = EditorGUIUtility.TrTextContent("Shadows", "Use this to control and apply a hue to the shadows.");
-        GUIContent m_MidtonesLabel = EditorGUIUtility.TrTextContent("Midtones", "Use this to control and apply a hue to the midtones.");
-        GUIContent m_HighlightsLabel = EditorGUIUtility.TrTextContent("Highlights", "Use this to control and apply a hue to the highlights.");
+        GUIContent m_ShadowsLabel = EditorGUIUtility.TrTextContent("Shadows", "Apply a hue to the shadows and adjust their level.");
+        GUIContent m_MidtonesLabel = EditorGUIUtility.TrTextContent("Midtones", "Apply a hue to the midtones and adjust their level.");
+        GUIContent m_HighlightsLabel = EditorGUIUtility.TrTextContent("Highlights", "Apply a hue to the highlights and adjust their level.");
 
         readonly TrackballUIDrawer m_TrackballUIDrawer = new TrackballUIDrawer();
 
