@@ -235,6 +235,19 @@ namespace UnityEngine.Experimental.Rendering
             RunPlacement();
         }
 
+        static void CellCountInDirections(out Vector3Int cellsInXYZ, float cellSizeInMeters)
+        {
+            cellsInXYZ = Vector3Int.zero;
+
+            Vector3 center = Vector3.zero;
+            var centeredMin = globalBounds.min - center;
+            var centeredMax = globalBounds.max - center;
+
+            cellsInXYZ.x = Mathf.Max(Mathf.CeilToInt(Mathf.Abs(centeredMin.x / cellSizeInMeters)), Mathf.CeilToInt(Mathf.Abs(centeredMax.x / cellSizeInMeters))) * 2;
+            cellsInXYZ.y = Mathf.Max(Mathf.CeilToInt(Mathf.Abs(centeredMin.y / cellSizeInMeters)), Mathf.CeilToInt(Mathf.Abs(centeredMax.y / cellSizeInMeters))) * 2;
+            cellsInXYZ.z = Mathf.Max(Mathf.CeilToInt(Mathf.Abs(centeredMin.z / cellSizeInMeters)), Mathf.CeilToInt(Mathf.Abs(centeredMax.z / cellSizeInMeters))) * 2;
+        }
+
         static void BrickCountInDirections(out Vector3Int cellsInXYZ, float brickSizeInMeter)
         {
             cellsInXYZ = Vector3Int.zero;
@@ -521,6 +534,7 @@ namespace UnityEngine.Experimental.Rendering
                         if (hasFoundBounds)
                         {
                             BrickCountInDirections(out asset.maxBrickIndex, refVol.profile.minBrickSize);
+                            CellCountInDirections(out asset.maxCellIndex, refVol.profile.cellSizeInMeters);
                         }
                         else
                         {
@@ -532,6 +546,13 @@ namespace UnityEngine.Experimental.Rendering
                                 asset.maxBrickIndex.x = Mathf.Max(asset.maxBrickIndex.x, Mathf.CeilToInt(x * 2));
                                 asset.maxBrickIndex.y = Mathf.Max(asset.maxBrickIndex.y, Mathf.CeilToInt(y * 2));
                                 asset.maxBrickIndex.z = Mathf.Max(asset.maxBrickIndex.z, Mathf.CeilToInt(z * 2));
+
+                                x = Mathf.Abs((float)p.x + refVol.transform.position.x) / refVol.profile.cellSizeInMeters;
+                                y = Mathf.Abs((float)p.y + refVol.transform.position.y) / refVol.profile.cellSizeInMeters;
+                                z = Mathf.Abs((float)p.z + refVol.transform.position.z) / refVol.profile.cellSizeInMeters;
+                                asset.maxCellIndex.x = Mathf.Max(asset.maxCellIndex.x, Mathf.CeilToInt(x * 2));
+                                asset.maxCellIndex.y = Mathf.Max(asset.maxCellIndex.y, Mathf.CeilToInt(y * 2));
+                                asset.maxCellIndex.z = Mathf.Max(asset.maxCellIndex.z, Mathf.CeilToInt(z * 2));
                             }
                         }
                     }
