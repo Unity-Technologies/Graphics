@@ -69,7 +69,7 @@ namespace UnityEditor.VFX.HDRP
             MaskMapBlue,
         }
 
-        [VFXSetting(VFXSettingAttribute.VisibleFlags.InInspector), SerializeField,
+        [VFXSetting(VFXSettingAttribute.VisibleFlags.InInspector), Header("Opacity Channels"), SerializeField,
          Tooltip("Specifies the source this Material uses as opacity for its Normal Map.")]
         BlendSource normalOpacityChannel = BlendSource.BaseColorMapAlpha;
 
@@ -77,7 +77,7 @@ namespace UnityEditor.VFX.HDRP
          Tooltip("Specifies the source this Material uses as opacity for its Mask Map.")]
         BlendSource maskOpacityChannel = BlendSource.BaseColorMapAlpha;
 
-        [VFXSetting(VFXSettingAttribute.VisibleFlags.InInspector), SerializeField,
+        [VFXSetting(VFXSettingAttribute.VisibleFlags.InInspector), Header("Surface options"), SerializeField,
          Tooltip("When enabled, modifies the base color of the surface it projects onto.")]
         private bool affectBaseColor = true;
 
